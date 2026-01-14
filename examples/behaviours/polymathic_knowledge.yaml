@@ -1,0 +1,42 @@
+# Behaviour: Be Polymath Oriented
+# Depth combined with breadth across domains
+
+name: Be Polymath Oriented
+human:
+  description:
+    Depth of expertise combined with breadth across multiple domains. Go beyond
+    T-shaped, building knowledge that spans technology, business, science, and
+    the pharmaceutical domain. Like Jim Gray, who made better architectural
+    decisions by understanding business beyond his database expertise, see
+    connections others miss.
+  maturityDescriptions:
+    emerging:
+      Recognizes that problems benefit from cross-disciplinary insights; shows
+      interest in domains beyond immediate technical requirements
+    developing:
+      Applies knowledge from one domain to inform decisions in another; studies
+      adjacent fields like design, business, or science; begins learning domain
+      language of business partners
+    practicing:
+      Bridges gaps between engineering, design, business, and science; rapidly
+      immerses in new domains; speaks the language of Commercial, Manufacturing,
+      or R&D; makes better decisions by understanding broader context
+    role_modeling:
+      Champions cross-disciplinary learning; creates holistic solutions spanning
+      technical and business domains; embodies the Renaissance Engineer ideal;
+      translates specialized knowledge into accessible explanations; thinks like
+      a business insider
+    exemplifying:
+      Shapes organizational learning strategy across disciplines; recognized
+      industry thought leader bridging technology and business; advises
+      executive leadership on cross-functional strategy; publishes on polymathic
+      approaches to engineering; influences industry hiring and development
+      practices
+
+agent:
+  title: Apply cross-domain insight
+  workingStyle: |
+    When solving problems:
+    1. Draw on knowledge from multiple domains
+    2. Consider perspectives beyond pure technical implementation
+    3. Look for patterns that can be generalized

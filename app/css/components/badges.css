@@ -1,0 +1,215 @@
+/**
+ * Badge Components
+ *
+ * All badge variants consolidated: type badges, level badges, capability badges, modifiers.
+ */
+
+@layer components {
+  /* Base badge */
+  .badge {
+    display: inline-block;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .badge-default {
+    background: var(--color-primary-light);
+    color: var(--color-primary-dark);
+  }
+
+  .badge-human-only {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  /* Skill type badges */
+  .badge-primary {
+    background: var(--color-primary-skill-light);
+    color: var(--color-primary-skill);
+  }
+
+  .badge-secondary {
+    background: var(--color-secondary-light);
+    color: #92400e;
+  }
+
+  .badge-broad {
+    background: var(--color-broad-light);
+    color: #047857;
+  }
+
+  .badge-negative {
+    background: var(--color-primary-skill-light);
+    color: var(--color-primary-skill);
+  }
+
+  /* Level badges (1-5) - consolidated definition */
+  .badge-1,
+  .level-badge-1 {
+    background: var(--color-level-1);
+    color: #991b1b;
+  }
+
+  .badge-2,
+  .level-badge-2 {
+    background: var(--color-level-2);
+    color: #92400e;
+  }
+
+  .badge-3,
+  .level-badge-3 {
+    background: var(--color-level-3);
+    color: #166534;
+  }
+
+  .badge-4,
+  .level-badge-4 {
+    background: var(--color-level-4);
+    color: #0e7490;
+  }
+
+  .badge-5,
+  .level-badge-5 {
+    background: var(--color-level-5);
+    color: #5b21b6;
+  }
+
+  /* Level badge base style */
+  .level-badge {
+    display: inline-block;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+
+  /* Capability badges */
+  .badge-delivery {
+    background: var(--color-cat-delivery-light);
+    color: var(--color-cat-delivery);
+  }
+
+  .badge-scale {
+    background: var(--color-cat-scale-light);
+    color: var(--color-cat-scale);
+  }
+
+  .badge-reliability {
+    background: var(--color-cat-reliability-light);
+    color: var(--color-cat-reliability);
+  }
+
+  .badge-data {
+    background: var(--color-cat-data-light);
+    color: var(--color-cat-data);
+  }
+
+  .badge-ai {
+    background: var(--color-cat-ai-light);
+    color: var(--color-cat-ai);
+  }
+
+  .badge-process {
+    background: var(--color-cat-process-light);
+    color: var(--color-cat-process);
+  }
+
+  .badge-business {
+    background: var(--color-cat-business-light);
+    color: var(--color-cat-business);
+  }
+
+  .badge-people {
+    background: var(--color-cat-people-light);
+    color: var(--color-cat-people);
+  }
+
+  .badge-documentation {
+    background: var(--color-cat-documentation-light);
+    color: var(--color-cat-documentation);
+  }
+
+  /* Tool badge */
+  .badge-tool {
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    font-size: 0.9rem;
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  /* Modifier tags - consolidated definition */
+  .modifier {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .modifier-positive {
+    background: var(--color-level-3);
+    color: #166534;
+  }
+
+  .modifier-negative {
+    background: var(--color-level-1);
+    color: #991b1b;
+  }
+
+  .modifier-neutral {
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+  }
+
+  /* Tags */
+  .tags {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  /* Tool/skill badges container */
+  .tool-badges,
+  .skill-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  /* Change indicators */
+  .change-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-weight: 500;
+  }
+
+  .change-up {
+    color: var(--color-success);
+  }
+
+  .change-down {
+    color: var(--color-error);
+  }
+
+  .change-same {
+    color: var(--color-text-muted);
+  }
+}

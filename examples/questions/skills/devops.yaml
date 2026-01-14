@@ -1,0 +1,47 @@
+# devops questions
+# See skills.yaml or behaviours.yaml for metadata
+
+awareness:
+  - id: devops_aware_1
+    text: What do you understand about CI/CD pipelines? How have you used them?
+    lookingFor:
+      - Basic understanding of automated builds and deployments
+      - Experience using pipelines defined by others
+    expectedDurationMinutes: 5
+foundational:
+  - id: devops_found_1
+    text: Describe how you would set up a basic CI pipeline for a new project.
+    lookingFor:
+      - Understanding of CI fundamentals
+      - Basic pipeline configuration knowledge
+    expectedDurationMinutes: 8
+working:
+  - id: devops_work_1
+    text:
+      Tell me about a deployment pipeline you've built. What stages did it
+      include?
+    followUps:
+      - How did you handle failures?
+      - What monitoring did you add?
+    lookingFor:
+      - End-to-end pipeline experience
+      - Infrastructure as code awareness
+    expectedDurationMinutes: 10
+practitioner:
+  - id: devops_pract_1
+    text: How have you improved deployment practices in your team?
+    followUps:
+      - How did you measure improvement?
+    lookingFor:
+      - DevOps leadership
+      - Metrics-driven improvement
+    expectedDurationMinutes: 8
+expert:
+  - id: devops_expert_1
+    text: How have you shaped DevOps practices across an organization?
+    followUps:
+      - What cultural changes did you drive?
+    lookingFor:
+      - Organizational DevOps transformation
+      - Culture change leadership
+    expectedDurationMinutes: 10

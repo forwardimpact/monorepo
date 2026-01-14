@@ -1,0 +1,105 @@
+/**
+ * Form Components
+ *
+ * Form inputs, selects, and form groups.
+ */
+
+@layer components {
+  .form-group {
+    margin-bottom: var(--space-md);
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: var(--space-xs);
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .form-input,
+  .form-select {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    font-family: inherit;
+    background: var(--color-surface);
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .form-input:focus,
+  .form-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .form-select {
+    cursor: pointer;
+  }
+
+  /* Search bar */
+  .search-bar {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    flex-wrap: wrap;
+  }
+
+  .search-bar .form-input {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .search-bar .form-select {
+    min-width: 150px;
+  }
+
+  /* Stage radio buttons */
+  .stage-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .stage-radio-item {
+    display: flex;
+    align-items: center;
+  }
+
+  .stage-radio-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .stage-radio-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 500;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .stage-radio-label:hover {
+    border-color: var(--color-primary);
+    background: var(--color-bg);
+  }
+
+  .stage-radio-label.active {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light, rgba(37, 99, 235, 0.1));
+    color: var(--color-primary);
+  }
+}

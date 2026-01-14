@@ -1,0 +1,54 @@
+# architecture_design questions
+# See skills.yaml or behaviours.yaml for metadata
+
+awareness:
+  - id: arch_aware_1
+    text: What do you understand by 'separation of concerns' in software design?
+    lookingFor:
+      - Basic understanding of modularity
+      - Recognition that different parts of a system should handle different
+        things
+    expectedDurationMinutes: 5
+foundational:
+  - id: arch_found_1
+    text:
+      Walk me through a recent feature you built. How did you decide on the
+      structure?
+    followUps:
+      - What alternatives did you consider?
+      - What would you do differently?
+    lookingFor:
+      - Evidence of thoughtful design decisions
+      - Understanding of common patterns
+    expectedDurationMinutes: 8
+working:
+  - id: arch_work_1
+    text:
+      Describe a system you designed. What were the key trade-offs you had to
+      make?
+    followUps:
+      - How did you validate these decisions?
+    lookingFor:
+      - Clear articulation of trade-offs
+      - Evidence of independent design work
+    expectedDurationMinutes: 8
+practitioner:
+  - id: arch_pract_1
+    text:
+      Tell me about a time when you had to guide a team through a significant
+      architectural decision.
+    followUps:
+      - How did you handle disagreements?
+    lookingFor:
+      - Leadership in technical decisions
+      - Ability to build consensus
+    expectedDurationMinutes: 8
+expert:
+  - id: arch_expert_1
+    text:
+      How do you approach defining and evolving architectural standards for an
+      organization?
+    lookingFor:
+      - Strategic thinking about architecture
+      - Experience with organizational influence
+    expectedDurationMinutes: 8

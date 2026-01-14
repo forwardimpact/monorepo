@@ -1,0 +1,394 @@
+name: Scale
+emoji: 📐
+displayOrder: 4
+description: |
+  Building systems that grow gracefully.
+  Encompasses architecture, code quality, testing, performance,
+  and technical decision-making.
+transitionChecklists:
+  plan_to_code:
+    foundational:
+      - Architectural patterns are identified
+      - Coding standards are understood
+    working:
+      - Technical approach considers scalability
+      - Design trade-offs are documented
+      - Testing strategy is defined
+    practitioner:
+      - Architecture aligns with cross-team systems
+      - Technical debt impact is assessed
+      - Performance requirements are specified
+    expert:
+      - Architecture follows enterprise patterns
+      - Strategic technical decisions are documented
+      - Long-term maintainability is considered
+  code_to_review:
+    foundational:
+      - Code follows team style guide
+      - Basic tests exist
+      - Code is readable and well-structured
+    working:
+      - Error handling is comprehensive
+      - Edge cases are tested
+      - Performance implications are considered
+    practitioner:
+      - Architectural patterns are documented
+      - Security review is completed
+      - Backward compatibility is verified
+    expert:
+      - Cross-cutting concerns are addressed
+      - Solution can scale to enterprise needs
+      - Technical decisions enable future evolution
+professionalResponsibilities:
+  awareness:
+    Follow established architectural patterns and coding standards with guidance
+    from senior engineers
+  foundational:
+    Contribute to scalable designs, write quality code with appropriate tests,
+    and understand architectural trade-offs
+  working:
+    Design scalable components, make sound architectural decisions, ensure code
+    quality, and review others' designs
+  practitioner:
+    Lead architectural decisions for complex systems across teams, establish
+    quality standards for your area, mentor engineers on architecture, and own
+    technical debt strategy
+  expert:
+    Define technical standards across the business unit, guide enterprise
+    architecture, be recognized externally for architectural expertise, and
+    drive innovation
+managementResponsibilities:
+  awareness:
+    Understand technical architecture decisions and their resource and timeline
+    implications
+  foundational:
+    Support team technical decisions, ensure alignment with architectural
+    standards, and escalate technical risks
+  working:
+    Facilitate architectural discussions, manage technical debt prioritization,
+    champion quality, and balance technical investment with delivery
+  practitioner:
+    Drive technical excellence across teams, establish quality standards for
+    your area, own cross-team technical direction, and advise on architecture
+    trade-offs
+  expert:
+    Shape technical strategy across the business unit, guide enterprise
+    architecture governance, and represent technical priorities at executive
+    level
+skills:
+  - id: cloud_platforms
+    name: Cloud Platforms
+    human:
+      description:
+        Working effectively with cloud infrastructure (AWS, Azure, GCP)
+      levelDescriptions:
+        awareness:
+          You understand cloud computing concepts (IaaS, PaaS, SaaS) and can use
+          cloud services through consoles and defined interfaces with guidance.
+        foundational:
+          You deploy applications to cloud platforms and use common services
+          (compute, storage, databases, queues). You understand cloud pricing
+          and basic security configuration.
+        working:
+          You design cloud-native solutions, manage infrastructure as code,
+          implement security best practices, and make informed service
+          selections. You troubleshoot cloud-specific issues.
+        practitioner:
+          You architect multi-region, highly available solutions across teams.
+          You optimize for cost and performance, lead cloud migrations for your
+          area, and mentor engineers on cloud architecture patterns.
+        expert:
+          You shape cloud strategy across the business unit. You solve
+          large-scale cloud challenges, define cloud governance, and are
+          recognized as an authority on cloud architecture.
+    agent:
+      name: cloud-platforms
+      description: >
+        Guide for working with cloud infrastructure and services. Use when
+
+        deploying to cloud, selecting cloud services, configuring
+        infrastructure,
+
+        or solving cloud-specific challenges.
+      body: |
+        # Cloud Platforms
+
+        ## When to use this skill
+
+        Use this skill when:
+        - Deploying applications to cloud environments
+        - Selecting appropriate cloud services
+        - Configuring cloud infrastructure
+        - Optimizing cloud costs and performance
+        - Implementing cloud security best practices
+
+        ## Service Categories
+
+        ### Compute
+        - **VMs/EC2**: Full control, any workload
+        - **Containers/ECS/GKE**: Portable, scalable applications
+        - **Serverless/Lambda**: Event-driven, pay-per-use
+        - **Kubernetes**: Container orchestration at scale
+
+        ### Storage
+        - **Object Storage (S3/GCS)**: Unstructured data, backups, static assets
+        - **Block Storage (EBS)**: VM disks, databases
+        - **File Storage (EFS)**: Shared file systems
+        - **Archive (Glacier)**: Long-term, infrequent access
+
+        ### Databases
+        - **Managed SQL (RDS/Cloud SQL)**: Relational, ACID transactions
+        - **NoSQL (DynamoDB/Firestore)**: Flexible schema, high scale
+        - **Cache (ElastiCache/Memorystore)**: Low-latency data access
+        - **Data Warehouse (Redshift/BigQuery)**: Analytics at scale
+
+        ### Messaging
+        - **Queues (SQS/Cloud Tasks)**: Decoupled processing
+        - **Pub/Sub (SNS/Cloud Pub/Sub)**: Event distribution
+        - **Streaming (Kinesis/Dataflow)**: Real-time data processing
+
+        ## Cloud-Native Design
+
+        ### Principles
+        - Design for failure (everything fails eventually)
+        - Use managed services when possible
+        - Automate everything (infrastructure as code)
+        - Monitor and alert on all services
+
+        ### High Availability
+        - Deploy across multiple availability zones
+        - Use load balancers for traffic distribution
+        - Implement health checks and auto-healing
+        - Design for graceful degradation
+
+        ### Security
+        - Principle of least privilege for IAM
+        - Encrypt data at rest and in transit
+        - Use security groups and network policies
+        - Rotate credentials regularly
+
+        ## Cost Optimization
+
+        - Right-size instances based on actual usage
+        - Use reserved instances for predictable workloads
+        - Leverage spot/preemptible instances for fault-tolerant work
+        - Set up billing alerts and budgets
+        - Delete unused resources
+
+        ## Cloud Checklist
+
+        - [ ] Service selection matches requirements
+        - [ ] Multi-AZ deployment for availability
+        - [ ] Security groups properly configured
+        - [ ] IAM follows least privilege
+        - [ ] Data encrypted at rest and in transit
+        - [ ] Monitoring and alerting in place
+        - [ ] Cost controls established
+        - [ ] Infrastructure defined as code
+  - id: code_quality
+    name: Code Quality & Review
+    human:
+      description:
+        Writing and reviewing clean, maintainable, tested, and well-documented
+        code. In the AI era, code review becomes more important than code
+        generation—every line must be understood and verified regardless of its
+        source.
+      levelDescriptions:
+        awareness:
+          You follow team coding conventions and style guides with guidance. You
+          understand why code quality matters and can run linters and tests
+          others have written.
+        foundational:
+          You write readable, well-structured code. You use linting tools, write
+          basic unit tests, and participate constructively in code reviews—both
+          giving and receiving feedback.
+        working:
+          You produce consistently high-quality, well-tested code. You review
+          AI-generated code critically and never ship code you don't fully
+          understand. You identify edge cases and ensure adequate test coverage.
+        practitioner:
+          You establish and enforce quality standards across teams in your area.
+          You mentor engineers on effective code review, ensure verification
+          depth for AI-assisted development, and drive testing strategies.
+        expert:
+          You shape coding standards and quality practices across the business
+          unit. You champion code review as a critical engineering skill, define
+          AI-assisted development guidelines, and are recognized for quality
+          engineering.
+    agent:
+      name: code-quality-review
+      description: |
+        Guide for reviewing code quality, identifying issues, and suggesting
+        improvements. Use when asked to review code, check for best practices,
+        or conduct code reviews.
+      body: |
+        # Code Quality & Review
+
+        ## When to use this skill
+
+        Use this skill when:
+        - Reviewing code for quality issues
+        - Checking code against best practices
+        - Conducting or assisting with code reviews
+        - Verifying AI-generated code before committing
+
+        ## Review Process
+
+        ### 1. Correctness First
+
+        Before anything else, verify the code does what it claims:
+        - Does it implement the intended behavior?
+        - Are there logic errors or off-by-one bugs?
+        - Does it handle all specified requirements?
+        - Are error conditions handled appropriately?
+
+        ### 2. Test Coverage
+
+        Check that changes are properly tested:
+        - Unit tests for new functionality
+        - Edge cases and error conditions
+        - Integration tests where appropriate
+        - Tests are readable and maintainable
+
+        ### 3. Maintainability
+
+        Evaluate long-term code health:
+        - Clear naming (variables, functions, classes)
+        - Appropriate abstraction levels
+        - No unnecessary duplication (DRY)
+        - Single responsibility principle applied
+
+        ### 4. Code Style
+
+        Verify consistency with project standards:
+        - Follows project coding conventions
+        - Consistent formatting and indentation
+        - Appropriate comments for non-obvious logic
+        - Documentation updated if needed
+
+        ## Quality Checklist
+
+        - [ ] Code compiles and passes all tests
+        - [ ] Changes are covered by tests
+        - [ ] No obvious security vulnerabilities
+        - [ ] Error handling is appropriate
+        - [ ] Code follows project conventions
+        - [ ] No unnecessary complexity
+        - [ ] Documentation updated if needed
+        - [ ] No code you don't fully understand
+  - id: data_modeling
+    name: Data Modeling
+    human:
+      description:
+        Designing data structures and database schemas that support application
+        needs
+      levelDescriptions:
+        awareness:
+          You understand the difference between relational and non-relational
+          data stores. You can create basic schemas from specifications with
+          guidance.
+        foundational:
+          You design normalized schemas for straightforward use cases and
+          understand indexing basics. You write efficient queries for common
+          patterns.
+        working:
+          You create efficient data models that balance normalization with query
+          performance. You optimize queries, handle schema migrations safely,
+          and choose appropriate storage technologies.
+        practitioner:
+          You design complex data architectures spanning multiple systems across
+          teams. You make strategic trade-offs between consistency, performance,
+          and maintainability. You mentor engineers in your area on data
+          modeling best practices.
+        expert:
+          You define data modeling standards across the business unit. You
+          handle extreme scale and complex distributed data challenges, innovate
+          on approaches, and are recognized as a data architecture authority.
+    agent:
+      name: data-modeling
+      description: |
+        Guide for designing database schemas, data structures, and data
+        architectures. Use when designing tables, optimizing queries, or
+        making decisions about data storage technologies.
+      body: |
+        # Data Modeling
+
+        ## When to use this skill
+
+        Use this skill when:
+        - Designing database schemas
+        - Optimizing query performance
+        - Choosing storage technologies
+        - Planning schema migrations
+        - Balancing normalization with performance
+
+        ## Schema Design
+
+        ### Normalization
+        - **1NF**: Atomic values, no repeating groups
+        - **2NF**: No partial dependencies
+        - **3NF**: No transitive dependencies
+        - Normalize first, then denormalize strategically
+
+        ### Denormalization Trade-offs
+        - Improves read performance
+        - Complicates writes and updates
+        - Risk of data inconsistency
+        - Use for read-heavy workloads
+
+        ## Data Store Selection
+
+        ### Relational (SQL)
+        - Strong consistency requirements
+        - Complex queries and joins
+        - ACID transactions needed
+        - Well-defined schema
+
+        ### Document (NoSQL)
+        - Flexible, evolving schemas
+        - Hierarchical data
+        - Horizontal scaling priority
+        - Read-heavy workloads
+
+        ### Key-Value
+        - Simple lookup patterns
+        - Extreme performance needs
+        - Caching layer
+        - Session storage
+
+        ### Time Series
+        - Temporal data patterns
+        - High write throughput
+        - Time-based queries
+        - Sensor and metrics data
+
+        ## Indexing Strategy
+
+        ### When to Index
+        - Columns in WHERE clauses
+        - Join columns
+        - ORDER BY columns
+        - High-cardinality columns
+
+        ### Index Trade-offs
+        - Faster reads, slower writes
+        - Storage overhead
+        - Maintenance cost
+        - Query planner complexity
+
+        ## Schema Migrations
+
+        ### Safe Migration Practices
+        - Make changes backward compatible
+        - Add columns before using them
+        - Migrate data before dropping columns
+        - Test migrations on production-like data
+
+        ## Data Modeling Checklist
+
+        - [ ] Requirements understood
+        - [ ] Appropriate storage technology selected
+        - [ ] Schema normalized appropriately
+        - [ ] Indexes support query patterns
+        - [ ] Migration plan is safe
+        - [ ] Backward compatibility maintained

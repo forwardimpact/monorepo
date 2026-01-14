@@ -1,0 +1,49 @@
+# stakeholder_management questions
+# See skills.yaml or behaviours.yaml for metadata
+
+awareness:
+  - id: stk_aware_1
+    text:
+      Who are the key stakeholders you work with and how do you keep them
+      informed?
+    lookingFor:
+      - Stakeholder identification
+      - Basic communication practices
+    expectedDurationMinutes: 5
+foundational:
+  - id: stk_found_1
+    text:
+      How do you set expectations with stakeholders about timelines and
+      deliverables?
+    lookingFor:
+      - Expectation management
+      - Proactive communication
+    expectedDurationMinutes: 5
+working:
+  - id: stk_work_1
+    text:
+      Describe a situation where you had to manage conflicting stakeholder
+      priorities.
+    followUps:
+      - How did you resolve it?
+    lookingFor:
+      - Conflict navigation
+      - Prioritization skills
+    expectedDurationMinutes: 8
+practitioner:
+  - id: stk_pract_1
+    text:
+      How do you build trust with senior stakeholders and influence their
+      decisions?
+    lookingFor:
+      - Executive relationship building
+      - Influence without authority
+    expectedDurationMinutes: 10
+expert:
+  - id: stk_expert_1
+    text:
+      How do you manage complex stakeholder landscapes across an organization?
+    lookingFor:
+      - Enterprise stakeholder management
+      - Political navigation
+    expectedDurationMinutes: 10

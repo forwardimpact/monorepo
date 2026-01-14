@@ -1,0 +1,318 @@
+name: Reliability
+emoji: 🛡️
+displayOrder: 5
+description: |
+  Ensuring systems are dependable, secure, and observable.
+  Includes DevOps practices, security, monitoring, incident response,
+  and infrastructure management.
+transitionChecklists:
+  plan_to_code:
+    foundational:
+      - Security requirements are understood
+      - Operational guidelines are followed
+    working:
+      - Monitoring strategy is planned
+      - Failure modes are identified
+      - Alerting thresholds are defined
+    practitioner:
+      - SLOs/SLIs are defined for the system
+      - Incident response procedures are documented
+      - Cross-team reliability dependencies are mapped
+    expert:
+      - Reliability strategy aligns with enterprise standards
+      - Disaster recovery approach is defined
+      - Resilience patterns are specified
+  code_to_review:
+    foundational:
+      - Security guidelines are followed
+      - Basic monitoring is implemented
+      - Error logging exists
+    working:
+      - Comprehensive monitoring and alerting are in place
+      - Failure scenarios are tested
+      - Runbooks are created or updated
+    practitioner:
+      - SLOs are measurable and validated
+      - Resilience is tested (chaos engineering)
+      - Security review is completed
+    expert:
+      - Solution meets enterprise reliability standards
+      - Incident management integration is verified
+      - Disaster recovery is tested
+professionalResponsibilities:
+  awareness:
+    Follow security and operational guidelines, escalate issues appropriately,
+    and participate in on-call rotations with guidance
+  foundational:
+    Implement reliability practices in your code, create basic monitoring, and
+    contribute effectively to incident response
+  working:
+    Design for reliability, implement comprehensive monitoring and alerting,
+    lead incident response, and drive post-incident improvements
+  practitioner:
+    Establish SLOs/SLIs across teams, build resilient systems, lead reliability
+    initiatives for your area, mentor engineers on reliability practices, and
+    drive reliability culture
+  expert:
+    Shape reliability strategy across the business unit, lead critical incident
+    management, pioneer new reliability practices, and be the authority on
+    system resilience
+managementResponsibilities:
+  awareness:
+    Understand reliability requirements and support incident escalation
+    processes
+  foundational:
+    Ensure team follows reliability practices, manage on-call schedules, and
+    facilitate incident retrospectives
+  working:
+    Own team reliability outcomes, manage incident response rotations, staff
+    reliability initiatives, and champion operational excellence
+  practitioner:
+    Drive reliability culture across teams, establish SLOs and incident
+    management processes for your area, and own cross-team reliability outcomes
+  expert:
+    Shape reliability strategy across the business unit, lead critical incident
+    management at executive level, and own enterprise reliability outcomes
+skills:
+  - id: devops
+    name: DevOps & CI/CD
+    human:
+      description:
+        Building and maintaining deployment pipelines, infrastructure, and
+        operational practices
+      levelDescriptions:
+        awareness:
+          You understand CI/CD concepts (build, test, deploy) and can trigger
+          and monitor pipelines others have built. You follow deployment
+          procedures.
+        foundational:
+          You configure basic CI/CD pipelines, understand containerization
+          (Docker), and can troubleshoot common build and deployment failures.
+        working:
+          You build complete CI/CD pipelines end-to-end, manage infrastructure
+          as code (Terraform, CloudFormation), implement monitoring, and design
+          deployment strategies for your services.
+        practitioner:
+          You design deployment strategies for complex multi-service systems
+          across teams, optimize pipeline performance and reliability, define
+          DevOps practices for your area, and mentor engineers on
+          infrastructure.
+        expert:
+          You shape DevOps culture and practices across the business unit. You
+          introduce innovative approaches to deployment and infrastructure,
+          solve large-scale DevOps challenges, and are recognized externally.
+    agent:
+      name: devops-cicd
+      description: |
+        Guide for building CI/CD pipelines, managing infrastructure as code, and
+        implementing deployment best practices. Use when setting up pipelines,
+        containerizing applications, or configuring infrastructure.
+      body: |
+        # DevOps & CI/CD
+
+        ## When to use this skill
+
+        Use this skill when:
+        - Setting up or modifying CI/CD pipelines
+        - Containerizing applications with Docker
+        - Managing infrastructure as code
+        - Troubleshooting deployment failures
+        - Implementing monitoring and alerting
+
+        ## CI/CD Pipeline Stages
+
+        ### Build
+        - Install dependencies
+        - Compile/transpile code
+        - Generate artifacts
+        - Cache dependencies for speed
+
+        ### Test
+        - Run unit tests
+        - Run integration tests
+        - Static analysis and linting
+        - Security scanning
+
+        ### Deploy
+        - Deploy to staging environment
+        - Run smoke tests
+        - Deploy to production
+        - Verify deployment health
+
+        ## Infrastructure as Code
+
+        ### Terraform
+        ```hcl
+        # Define resources declaratively
+        resource "aws_instance" "example" {
+          ami           = "ami-0c55b159cbfafe1f0"
+          instance_type = "t2.micro"
+        }
+        ```
+
+        ### Docker
+        ```dockerfile
+        FROM node:18-alpine
+        WORKDIR /app
+        COPY package*.json ./
+        RUN npm ci --only=production
+        COPY . .
+        CMD ["node", "server.js"]
+        ```
+
+        ## Deployment Strategies
+
+        ### Rolling Deployment
+        - Gradual replacement of instances
+        - Zero downtime
+        - Easy rollback
+
+        ### Blue-Green Deployment
+        - Two identical environments
+        - Switch traffic atomically
+        - Fast rollback
+
+        ### Canary Deployment
+        - Route small percentage to new version
+        - Monitor for issues
+        - Gradually increase traffic
+
+        ## DevOps Checklist
+
+        - [ ] Pipeline runs on every commit
+        - [ ] Tests run before deployment
+        - [ ] Deployments are automated
+        - [ ] Rollback procedure is documented
+        - [ ] Infrastructure is version controlled
+        - [ ] Secrets are managed securely
+        - [ ] Monitoring is in place
+        - [ ] Alerts are configured
+  - id: sre_practices
+    name: Site Reliability Engineering
+    human:
+      description:
+        Ensuring system reliability through observability, incident response,
+        and capacity planning
+      levelDescriptions:
+        awareness:
+          You understand SLIs, SLOs, and error budgets conceptually. You can use
+          monitoring dashboards and escalate issues appropriately.
+        foundational:
+          You create basic alerts and dashboards. You participate in on-call
+          rotations and contribute to incident response under guidance.
+        working:
+          You design observability strategies for your services, lead incident
+          response, implement resilience testing, and conduct blameless
+          post-mortems. You balance reliability investment with feature
+          velocity.
+        practitioner:
+          You define reliability standards across teams in your area, drive
+          post-incident improvements systematically, design capacity planning
+          processes, and mentor engineers on SRE practices.
+        expert:
+          You shape reliability culture and standards across the business unit.
+          You pioneer new reliability practices, solve large-scale reliability
+          challenges, and are recognized as an authority on system resilience.
+    agent:
+      name: sre-practices
+      description: |
+        Guide for ensuring system reliability through observability, incident
+        response, and capacity planning. Use when designing monitoring, handling
+        incidents, setting SLOs, or improving system resilience.
+      body: |
+        # Site Reliability Engineering
+
+        ## When to use this skill
+
+        Use this skill when:
+        - Designing monitoring and alerting
+        - Defining SLIs, SLOs, and error budgets
+        - Handling or preparing for incidents
+        - Conducting post-mortems
+        - Planning for capacity and resilience
+
+        ## Service Level Concepts
+
+        ### SLI (Service Level Indicator)
+        Quantitative measure of service behavior:
+        - Request latency (p50, p95, p99)
+        - Error rate (% of failed requests)
+        - Availability (% of successful requests)
+        - Throughput (requests per second)
+
+        ### SLO (Service Level Objective)
+        Target value for an SLI:
+        - "99.9% of requests complete in < 200ms"
+        - "Error rate < 0.1% over 30 days"
+        - "99.95% availability monthly"
+
+        ### Error Budget
+        Allowed unreliability: 100% - SLO
+        - 99.9% SLO = 0.1% error budget
+        - ~43 minutes downtime per month
+        - Spend on features or reliability
+
+        ## Observability
+
+        ### Three Pillars
+        - **Metrics**: Aggregated numeric data (counters, gauges, histograms)
+        - **Logs**: Discrete event records with context
+        - **Traces**: Request flow across services
+
+        ### Alerting Principles
+        - Alert on symptoms, not causes
+        - Every alert should be actionable
+        - Reduce noise ruthlessly
+        - Page only for user-impacting issues
+        - Use severity levels appropriately
+
+        ## Incident Response
+
+        ### Incident Lifecycle
+        1. **Detection**: Automated alerts or user reports
+        2. **Triage**: Assess severity and impact
+        3. **Mitigation**: Stop the bleeding first
+        4. **Resolution**: Fix the underlying issue
+        5. **Post-mortem**: Learn and improve
+
+        ### During an Incident
+        - Communicate early and often
+        - Focus on mitigation before root cause
+        - Document actions in real-time
+        - Escalate when needed
+        - Update stakeholders regularly
+
+        ## Post-Mortem Process
+
+        ### Blameless Culture
+        - Focus on systems, not individuals
+        - Assume good intentions
+        - Ask "how did the system allow this?"
+        - Share findings openly
+
+        ### Post-Mortem Template
+        1. Incident summary
+        2. Timeline of events
+        3. Root cause analysis
+        4. What went well
+        5. What could be improved
+        6. Action items with owners
+
+        ## Resilience Patterns
+
+        - **Timeouts**: Don't wait forever
+        - **Retries**: With exponential backoff
+        - **Circuit breakers**: Fail fast when downstream is unhealthy
+        - **Bulkheads**: Isolate failures
+        - **Graceful degradation**: Partial functionality over total failure
+
+        ## SRE Checklist
+
+        - [ ] SLIs defined for key user journeys
+        - [ ] SLOs set with stakeholder agreement
+        - [ ] Error budget tracking in place
+        - [ ] Alerts are actionable and low-noise
+        - [ ] Runbooks exist for common issues
+        - [ ] Incident response process documented
+        - [ ] Post-mortem culture established
+        - [ ] Resilience patterns implemented

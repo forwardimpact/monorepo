@@ -1,0 +1,82 @@
+/**
+ * State Components
+ *
+ * Loading, error, and empty states.
+ */
+
+@layer components {
+  /* Loading state */
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2xl);
+    color: var(--color-text-muted);
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: var(--space-md);
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Error state */
+  .error-message {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    color: var(--color-error);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: var(--space-2xl);
+    color: var(--color-text-muted);
+  }
+
+  .empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+    opacity: 0.5;
+  }
+
+  .empty-state-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    color: var(--color-text);
+  }
+
+  .empty-state-message {
+    margin: 0;
+  }
+
+  /* Not found state */
+  .not-found {
+    text-align: center;
+    padding: var(--space-2xl);
+  }
+
+  .not-found h1 {
+    font-size: var(--font-size-3xl);
+    color: var(--color-text-muted);
+  }
+
+  .not-found-actions {
+    margin-top: var(--space-xl);
+  }
+}

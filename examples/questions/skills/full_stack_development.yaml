@@ -1,0 +1,48 @@
+# full_stack_development questions
+# See skills.yaml or behaviours.yaml for metadata
+
+awareness:
+  - id: fs_aware_1
+    text: What layers of a typical web application are you familiar with?
+    lookingFor:
+      - Basic understanding of frontend, backend, database
+      - Awareness of how layers interact
+    expectedDurationMinutes: 5
+foundational:
+  - id: fs_found_1
+    text:
+      Walk me through building a simple feature that touches the UI, API, and
+      database.
+    lookingFor:
+      - Understanding of full-stack flow
+      - Basic implementation across layers
+    expectedDurationMinutes: 10
+working:
+  - id: fs_work_1
+    text:
+      Describe a complete feature you delivered end-to-end. How did you approach
+      each layer?
+    followUps:
+      - What challenges did you face?
+    lookingFor:
+      - Independent full-stack delivery
+      - Pragmatic technology choices
+    expectedDurationMinutes: 10
+practitioner:
+  - id: fs_pract_1
+    text:
+      How do you rapidly deliver complete solutions without depending on
+      specialists?
+    followUps:
+      - How do you handle areas outside your expertise?
+    lookingFor:
+      - Speed of end-to-end delivery
+      - Self-sufficiency across the stack
+    expectedDurationMinutes: 10
+expert:
+  - id: fs_expert_1
+    text: How do you enable rapid full-stack delivery across teams?
+    lookingFor:
+      - Organizational full-stack enablement
+      - Removing specialist dependencies at scale
+    expectedDurationMinutes: 10

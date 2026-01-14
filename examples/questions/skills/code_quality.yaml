@@ -1,0 +1,49 @@
+# code_quality questions
+# See skills.yaml for metadata
+
+awareness:
+  - id: cq_aware_1
+    text: What does 'clean code' mean to you?
+    lookingFor:
+      - Basic understanding of readability
+      - Awareness of maintainability concerns
+    expectedDurationMinutes: 5
+
+foundational:
+  - id: cq_found_1
+    text: How do you ensure the code you write is readable by others?
+    followUps:
+      - What naming conventions do you follow?
+      - How do you decide when to add comments?
+    lookingFor:
+      - Consistent coding practices
+      - Understanding of code formatting and structure
+    expectedDurationMinutes: 5
+
+working:
+  - id: cq_work_1
+    text: How do you approach code review? What do you look for?
+    lookingFor:
+      - Systematic approach to reviews
+      - Balance between quality and velocity
+    expectedDurationMinutes: 8
+
+practitioner:
+  - id: cq_pract_1
+    text: How have you improved code quality practices in your team?
+    lookingFor:
+      - Measurable improvements
+      - Team influence
+    expectedDurationMinutes: 8
+
+expert:
+  - id: cq_expert_1
+    text:
+      How have you established code quality standards across an organization?
+    followUps:
+      - How did you gain adoption?
+      - How do you measure success?
+    lookingFor:
+      - Organizational influence
+      - Scalable quality practices
+    expectedDurationMinutes: 10

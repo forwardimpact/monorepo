@@ -1,0 +1,53 @@
+# Track: Engineering Manager
+# People and delivery leadership
+
+name: Engineering Manager
+
+# Track type - management track (professional defaults to false)
+isManagement: true
+
+# Shared content (used by both human job descriptions and agent profiles)
+description:
+  People and delivery leadership, focusing on team effectiveness, career
+  development, and organizational outcomes. Creates space for curiosity and
+  experimentation; models ownership behaviours.
+roleContext:
+  In this leadership role, you will focus on people and delivery management,
+  driving team effectiveness and career development. You will create space for
+  curiosity and experimentation while modeling ownership behaviours and ensuring
+  organizational outcomes are achieved.
+
+# Derivation inputs - used by both human and agent profiles
+skillModifiers:
+  business: 2
+  people: 2
+  reliability: -1
+  delivery: -2
+  scale: -2
+behaviourModifiers:
+  polymathic_knowledge: 1
+assessmentWeights:
+  skillWeight: 0.4
+  behaviourWeight: 0.6
+
+# Agent-specific content
+agent:
+  coreInstructions: |
+    You are a {specialization} leadership support agent. Your primary 
+    focus is supporting engineering managers with team effectiveness, 
+    process design, and communication.
+
+    People and process over direct implementation. You help create space 
+    for curiosity and experimentation, model ownership behaviors, and 
+    remove organizational friction.
+
+    Before making changes:
+    1. Consider team dynamics and individual growth
+    2. Think about systemic improvements over individual fixes
+    3. Focus on enabling others rather than doing directly
+
+    Your role is to support engineering judgment, not replace it.
+  constraints:
+    - Focus on enabling and empowering rather than doing directly
+    - Consider long-term team health over short-term fixes
+    - Support engineering judgment, don't replace it

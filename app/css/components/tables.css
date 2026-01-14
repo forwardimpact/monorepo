@@ -1,0 +1,362 @@
+/**
+ * Table Components
+ *
+ * Base table styles for all table variants.
+ */
+
+@layer components {
+  /* Table container */
+  .table-container {
+    overflow-x: auto;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Base table */
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .table th,
+  .table td {
+    padding: var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .table th {
+    background: var(--color-bg);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .table tr:hover td {
+    background: var(--color-bg);
+  }
+
+  /* Standard table column widths */
+  .table .col-name {
+    width: 20%;
+    min-width: 160px;
+  }
+
+  .table .col-capability {
+    width: 100px;
+    min-width: 100px;
+  }
+
+  .table .col-type {
+    width: 90px;
+    min-width: 90px;
+  }
+
+  .table .col-level {
+    width: 120px;
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .table .col-change {
+    width: 70px;
+    min-width: 70px;
+    text-align: center;
+  }
+
+  .table .col-description {
+    width: auto;
+    min-width: 200px;
+  }
+
+  /* Data table */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .data-table th {
+    background: var(--color-bg);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .data-table tbody tr {
+    transition: background-color 0.2s ease;
+  }
+
+  .data-table tbody tr:hover {
+    background: var(--color-bg);
+  }
+
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .data-table .col-narrow {
+    width: 100px;
+  }
+
+  .data-table .col-medium {
+    width: 150px;
+  }
+
+  .data-table .col-center {
+    text-align: center;
+  }
+
+  /* Level table */
+  .level-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--color-surface);
+  }
+
+  .level-table th,
+  .level-table td {
+    padding: var(--space-md) var(--space-lg);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .level-table th {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    background: var(--color-bg);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .level-table th:first-child {
+    width: 180px;
+  }
+
+  .level-table tbody tr {
+    transition: background-color 0.2s ease;
+  }
+
+  .level-table tbody tr:hover {
+    background: var(--color-bg);
+  }
+
+  .level-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .level-table td:first-child {
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  /* Progression table */
+  .progression-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--space-md);
+  }
+
+  .progression-table th,
+  .progression-table td {
+    padding: var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .progression-table th {
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    background: var(--color-bg);
+  }
+
+  .progression-table tbody tr {
+    transition: background-color 0.2s ease;
+  }
+
+  .progression-table tbody tr:hover {
+    background: var(--color-bg);
+  }
+
+  .progression-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Progression table column widths */
+  .progression-table th:first-child,
+  .progression-table td:first-child {
+    width: 20%;
+    min-width: 160px;
+  }
+
+  /* Skills table: 6 columns (Name, Capability, Type, Current, Target, Change) */
+  .progression-table.skill-table th:nth-child(2),
+  .progression-table.skill-table td:nth-child(2) {
+    width: 100px;
+  }
+
+  .progression-table.skill-table th:nth-child(3),
+  .progression-table.skill-table td:nth-child(3) {
+    width: 90px;
+  }
+
+  .progression-table.skill-table th:nth-child(4),
+  .progression-table.skill-table td:nth-child(4),
+  .progression-table.skill-table th:nth-child(5),
+  .progression-table.skill-table td:nth-child(5) {
+    width: 120px;
+    text-align: center;
+  }
+
+  .progression-table.skill-table th:nth-child(6),
+  .progression-table.skill-table td:nth-child(6) {
+    width: 70px;
+    text-align: center;
+  }
+
+  /* Behaviour table: 4 columns (Name, Current, Target, Change) */
+  .progression-table.behaviour-table th:nth-child(2),
+  .progression-table.behaviour-table td:nth-child(2),
+  .progression-table.behaviour-table th:nth-child(3),
+  .progression-table.behaviour-table td:nth-child(3) {
+    width: 120px;
+    text-align: center;
+  }
+
+  .progression-table.behaviour-table th:nth-child(4),
+  .progression-table.behaviour-table td:nth-child(4) {
+    width: 70px;
+    text-align: center;
+  }
+
+  /* Matrix tables */
+  .matrix-table th:first-child,
+  .matrix-table td:first-child {
+    width: 25%;
+    min-width: 220px;
+  }
+
+  .matrix-table th:nth-child(2),
+  .matrix-table td:nth-child(2) {
+    width: 100px;
+  }
+
+  .matrix-table th:nth-child(3),
+  .matrix-table td:nth-child(3) {
+    width: 90px;
+  }
+
+  .matrix-table th:nth-child(4),
+  .matrix-table td:nth-child(4) {
+    width: 120px;
+    text-align: center;
+  }
+
+  .matrix-table th:last-child,
+  .matrix-table td:last-child {
+    width: auto;
+  }
+
+  /* Behaviour matrix */
+  .matrix-table.behaviour-matrix th:nth-child(2),
+  .matrix-table.behaviour-matrix td:nth-child(2) {
+    width: 120px;
+    text-align: center;
+  }
+
+  /* Levels table */
+  .levels-table th:first-child,
+  .levels-table td:first-child {
+    width: 120px;
+    text-align: center;
+  }
+
+  .levels-table td.level-cell {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .levels-table td.level-cell .level-bar {
+    display: inline-flex;
+    justify-content: center;
+  }
+
+  .levels-table td.level-cell .level-label {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-top: 2px;
+  }
+
+  /* Modifier tables */
+  .modifier-table th:last-child,
+  .modifier-table td:last-child {
+    width: 100px;
+    text-align: center;
+  }
+
+  /* Human-only skill indicators */
+  .human-only-row {
+    background: rgba(254, 243, 199, 0.3);
+  }
+
+  .human-only-indicator {
+    font-size: var(--font-size-xs);
+    opacity: 0.8;
+    cursor: help;
+  }
+
+  /* Lists */
+  .item-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .item-list li {
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .item-list li:last-child {
+    border-bottom: none;
+  }
+
+  .item-list-compact li {
+    padding: var(--space-xs) 0;
+  }
+
+  /* Related lists */
+  .related-list {
+    list-style: disc;
+    padding-left: var(--space-lg);
+    margin: var(--space-md) 0;
+  }
+
+  .related-list li {
+    padding: var(--space-xs) 0;
+    color: var(--color-text);
+  }
+}

@@ -1,0 +1,153 @@
+/**
+ * Design Tokens
+ *
+ * Single source of truth for colors, spacing, typography, and other
+ * design decisions.
+ */
+
+@layer tokens {
+  :root {
+    /* --------------------------------------------------------------------------
+     Colors - Primary
+     -------------------------------------------------------------------------- */
+    --color-primary: #3b82f6;
+    --color-primary-dark: #2563eb;
+    --color-primary-light: #93c5fd;
+
+    /* --------------------------------------------------------------------------
+     Colors - Skill Types
+     -------------------------------------------------------------------------- */
+    --color-primary-skill: #ef4444;
+    --color-primary-skill-light: #fecaca;
+    --color-secondary: #f59e0b;
+    --color-secondary-light: #fde68a;
+    --color-broad: #10b981;
+    --color-broad-light: #a7f3d0;
+
+    /* --------------------------------------------------------------------------
+     Colors - Skill Levels (1-5)
+     -------------------------------------------------------------------------- */
+    --color-level-1: #fecaca;
+    --color-level-2: #fde68a;
+    --color-level-3: #bbf7d0;
+    --color-level-4: #a5f3fc;
+    --color-level-5: #c4b5fd;
+
+    /* --------------------------------------------------------------------------
+     Colors - Behaviour Maturities (1-5)
+     -------------------------------------------------------------------------- */
+    --color-maturity-1: #fecaca;
+    --color-maturity-2: #fde68a;
+    --color-maturity-3: #bbf7d0;
+    --color-maturity-4: #a5f3fc;
+    --color-maturity-5: #c4b5fd;
+
+    /* --------------------------------------------------------------------------
+     Colors - Categories (text)
+     -------------------------------------------------------------------------- */
+    --color-cat-delivery: #dc2626; /* red - rapid delivery focus */
+    --color-cat-scale: #1d4ed8; /* blue - infrastructure/platform */
+    --color-cat-reliability: #0369a1; /* sky - SRE/operations */
+    --color-cat-data: #0f766e; /* teal */
+    --color-cat-ai: #7c3aed; /* violet */
+    --color-cat-process: #c2410c; /* orange */
+    --color-cat-business: #a16207; /* amber */
+    --color-cat-people: #be185d; /* pink */
+    --color-cat-documentation: #15803d; /* green */
+
+    /* --------------------------------------------------------------------------
+     Colors - Categories (backgrounds)
+     -------------------------------------------------------------------------- */
+    --color-cat-delivery-light: #fecaca; /* red */
+    --color-cat-scale-light: #dbeafe; /* blue */
+    --color-cat-reliability-light: #e0f2fe; /* sky */
+    --color-cat-data-light: #ccfbf1; /* teal */
+    --color-cat-ai-light: #ede9fe; /* violet */
+    --color-cat-process-light: #ffedd5; /* orange */
+    --color-cat-business-light: #fef3c7; /* amber */
+    --color-cat-people-light: #fce7f3; /* pink */
+    --color-cat-documentation-light: #dcfce7; /* green */
+
+    /* --------------------------------------------------------------------------
+     Colors - Neutrals
+     -------------------------------------------------------------------------- */
+    --color-bg: #f8fafc;
+    --color-bg-secondary: #f1f5f9;
+    --color-surface: #ffffff;
+    --color-border: #e2e8f0;
+    --color-text: #1e293b;
+    --color-text-muted: #64748b;
+    --color-text-secondary: #475569;
+    --color-text-light: #94a3b8;
+
+    /* --------------------------------------------------------------------------
+     Colors - Status
+     -------------------------------------------------------------------------- */
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    --color-info: #3b82f6;
+
+    /* --------------------------------------------------------------------------
+     Colors - Graph Nodes (entity types)
+     -------------------------------------------------------------------------- */
+    --color-node-driver: #4caf50;
+    --color-node-skill: #2196f3;
+    --color-node-behaviour: #9c27b0;
+    --color-node-discipline: #ff9800;
+    --color-node-track: #00bcd4;
+
+    /* --------------------------------------------------------------------------
+     Spacing
+     -------------------------------------------------------------------------- */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+
+    /* --------------------------------------------------------------------------
+     Border Radius
+     -------------------------------------------------------------------------- */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+
+    /* --------------------------------------------------------------------------
+     Shadows
+     -------------------------------------------------------------------------- */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md:
+      0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg:
+      0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* --------------------------------------------------------------------------
+     Typography
+     -------------------------------------------------------------------------- */
+    --font-family:
+      system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 2rem;
+
+    /* --------------------------------------------------------------------------
+     Layout
+     -------------------------------------------------------------------------- */
+    --max-width: 1400px;
+    --nav-height: 60px;
+
+    /*
+   * Responsive breakpoints (used in @media queries):
+   * - 1280px: Tablet/laptop - nav hamburger, layout stacking
+   * - 640px: Mobile - full-width buttons, simplified layouts
+   */
+  }
+}

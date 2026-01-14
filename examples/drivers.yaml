@@ -1,0 +1,205 @@
+# Drivers - What outcomes matter?
+# Organizational outcomes that productive teams achieve
+# Links skills and behaviours to business impact
+
+# Direction & Strategy
+- id: clear_direction
+  name: Clear Direction
+  description:
+    The degree to which developers understand their team's mission, goals, and
+    alignment with the greater organization
+  contributingSkills:
+    - stakeholder_management
+    - technical_writing
+  contributingBehaviours:
+    - polymathic_knowledge
+    - systems_thinking
+
+- id: say_on_priorities
+  name: Say on Priorities
+  description:
+    The involvement and influence developers hold in shaping their team's
+    direction and tasks
+  contributingSkills:
+    - stakeholder_management
+    - team_collaboration
+  contributingBehaviours:
+    - outcome_ownership
+    - relentless_curiosity
+
+- id: requirements_quality
+  name: Requirements Quality
+  description:
+    How well specifications are defined for tasks and projects, encompassing
+    completeness and stability of requirements
+  contributingSkills:
+    - stakeholder_management
+    - technical_writing
+    - architecture_design
+  contributingBehaviours:
+    - precise_communication
+    - systems_thinking
+
+# Delivery & Release
+- id: ease_of_release
+  name: Ease of Release
+  description:
+    The amount of friction involved in releasing code to end-users, encompassing
+    validation, packaging, and deployment
+  contributingSkills:
+    - devops
+    - code_quality
+    - full_stack_development
+    - cloud_platforms
+  contributingBehaviours:
+    - outcome_ownership
+    - precise_communication
+
+- id: test_efficiency
+  name: Test Efficiency
+  description:
+    The speed and stability of an automated test suite, affecting feedback loops
+    in the software development lifecycle
+  contributingSkills:
+    - full_stack_development
+    - code_quality
+    - devops
+  contributingBehaviours:
+    - outcome_ownership
+    - relentless_curiosity
+
+- id: managing_tech_debt
+  name: Managing Tech Debt
+  description:
+    Continuously identifying, analyzing, and addressing technical debt to
+    maintain developer productivity
+  contributingSkills:
+    - code_quality
+    - architecture_design
+  contributingBehaviours:
+    - outcome_ownership
+    - systems_thinking
+
+# Quality & Documentation
+- id: code_review
+  name: Code Review
+  description:
+    The timeliness and quality of feedback received during code review, as well
+    as the experience of reviewing others' code
+  contributingSkills:
+    - code_quality
+    - team_collaboration
+  contributingBehaviours:
+    - precise_communication
+    - relentless_curiosity
+
+- id: documentation
+  name: Documentation
+  description:
+    Helping developers obtain the information they need to understand and
+    complete technical tasks
+  contributingSkills:
+    - technical_writing
+  contributingBehaviours:
+    - precise_communication
+    - polymathic_knowledge
+
+- id: codebase_experience
+  name: Codebase Experience
+  description:
+    The ease of understanding and modifying code, significantly affecting
+    overall developer experience
+  contributingSkills:
+    - code_quality
+    - architecture_design
+  contributingBehaviours:
+    - relentless_curiosity
+    - polymathic_knowledge
+
+# Operations & Reliability
+- id: incident_response
+  name: Incident Response
+  description:
+    How developers handle and resolve issues in their systems, including triage,
+    resolution, and communication
+  contributingSkills:
+    - sre_practices
+    - devops
+    - cloud_platforms
+  contributingBehaviours:
+    - outcome_ownership
+    - systems_thinking
+
+# Learning & Growth
+- id: learning_culture
+  name: Learning Culture
+  description:
+    The team characteristic of continuously improving and learning from past
+    experience
+  contributingSkills:
+    - team_collaboration
+    - technical_writing
+  contributingBehaviours:
+    - relentless_curiosity
+    - polymathic_knowledge
+
+- id: experimentation
+  name: Experimentation
+  description:
+    Activities that generate new ideas, test hypotheses, and capture insights
+    from experiments
+  contributingSkills:
+    - data_modeling
+    - full_stack_development
+  contributingBehaviours:
+    - relentless_curiosity
+    - polymathic_knowledge
+
+# Team & Collaboration
+- id: connectedness
+  name: Connectedness
+  description:
+    The state of feeling linked and related to others at work, fostered through
+    communication and interaction
+  contributingSkills:
+    - team_collaboration
+    - stakeholder_management
+  contributingBehaviours:
+    - precise_communication
+    - polymathic_knowledge
+
+- id: efficient_processes
+  name: Efficient Processes
+  description:
+    How effectively team members collaborate to design and deliver software
+    using principles and workflows
+  contributingSkills:
+    - team_collaboration
+    - devops
+  contributingBehaviours:
+    - precise_communication
+    - outcome_ownership
+
+- id: deep_work
+  name: Deep Work
+  description:
+    The ability to focus on tasks without distraction, achieved by minimizing
+    interruptions and context switching
+  contributingSkills:
+    - architecture_design
+    - code_quality
+  contributingBehaviours:
+    - relentless_curiosity
+    - precise_communication
+
+# User Focus
+- id: leveraging_user_feedback
+  name: Leveraging User Feedback
+  description:
+    Collecting, analyzing, and taking action based on insights from end-users
+  contributingSkills:
+    - stakeholder_management
+    - data_modeling
+  contributingBehaviours:
+    - relentless_curiosity
+    - precise_communication

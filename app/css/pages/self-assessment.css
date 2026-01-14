@@ -1,0 +1,502 @@
+/**
+ * Self-Assessment Wizard Page
+ *
+ * Multi-step assessment wizard with step indicators, level selectors.
+ */
+
+@layer pages {
+  .self-assessment-page {
+    margin: 0 auto;
+  }
+
+  .assessment-progress {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--space-xl);
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+  }
+
+  .progress-label {
+    font-weight: 600;
+    font-size: var(--font-size-lg);
+    color: var(--color-primary);
+  }
+
+  .progress-stats {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .assessment-progress .progress-bar {
+    height: 8px;
+    margin-bottom: var(--space-md);
+  }
+
+  .step-indicators {
+    display: flex;
+    gap: var(--space-xs);
+    overflow-x: auto;
+    padding: var(--space-xs) 0;
+  }
+
+  .step-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 70px;
+    background: var(--color-bg);
+    border: 2px solid transparent;
+  }
+
+  .step-indicator:hover {
+    background: var(--color-primary-light);
+  }
+
+  .step-indicator.active {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .step-indicator.completed {
+    background: var(--color-success);
+    background: #dcfce7;
+    border-color: var(--color-success);
+  }
+
+  .step-icon {
+    font-size: var(--font-size-lg);
+  }
+
+  .step-name {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Assessment Content */
+  .assessment-content {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  .assessment-step {
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Intro Step */
+  .assessment-intro .intro-card {
+    text-align: center;
+  }
+
+  .assessment-intro .intro-card h2 {
+    margin-bottom: var(--space-md);
+  }
+
+  .intro-info {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xl);
+    margin: var(--space-xl) 0;
+    flex-wrap: wrap;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    text-align: left;
+  }
+
+  .info-icon {
+    font-size: 2rem;
+  }
+
+  .info-item h4 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+  }
+
+  .info-item p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .discipline-filter {
+    background: var(--color-bg);
+    padding: var(--space-lg);
+    border-radius: var(--radius-md);
+    margin: var(--space-xl) auto;
+    max-width: 500px;
+    text-align: left;
+  }
+
+  .discipline-filter h3 {
+    margin-bottom: var(--space-sm);
+  }
+
+  .intro-tips {
+    margin-top: var(--space-xl);
+    text-align: left;
+  }
+
+  .intro-tips h3 {
+    text-align: center;
+    margin-bottom: var(--space-md);
+  }
+
+  .tip-card {
+    background: var(--color-bg);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    text-align: center;
+  }
+
+  .tip-icon {
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: var(--space-sm);
+  }
+
+  .tip-card h4 {
+    margin: 0 0 var(--space-xs);
+    font-size: var(--font-size-base);
+  }
+
+  .tip-card p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  /* Step Header */
+  .step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-md);
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  .step-header h2 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .step-header-icon {
+    font-size: 1.5rem;
+  }
+
+  .step-progress {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    background: var(--color-bg);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+  }
+
+  .step-intro {
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-lg);
+  }
+
+  .discipline-context {
+    background: var(--color-primary-light);
+    color: var(--color-primary-dark);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-lg);
+    font-size: var(--font-size-sm);
+  }
+
+  .discipline-name {
+    font-weight: 600;
+  }
+
+  /* Assessment Items */
+  .assessment-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .assessment-item {
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    border-left: 4px solid var(--color-border);
+    transition: all 0.2s;
+  }
+
+  .assessment-item:hover {
+    box-shadow: var(--shadow-sm);
+  }
+
+  .assessment-item.assessed {
+    border-left-color: var(--color-success);
+    background: #f0fdf4;
+  }
+
+  .assessment-item.relevance-primary {
+    border-left-color: var(--color-primary-skill);
+  }
+
+  .assessment-item.relevance-secondary {
+    border-left-color: var(--color-secondary);
+  }
+
+  .assessment-item.relevance-broad {
+    border-left-color: var(--color-broad);
+  }
+
+  .assessment-item.assessed.relevance-primary,
+  .assessment-item.assessed.relevance-secondary,
+  .assessment-item.assessed.relevance-broad {
+    background: #f0fdf4;
+  }
+
+  .assessment-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-sm);
+    gap: var(--space-sm);
+  }
+
+  .assessment-item-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+
+  .assessment-item-title a {
+    font-weight: 600;
+    font-size: var(--font-size-base);
+  }
+
+  .assessment-item-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-md);
+    line-height: 1.5;
+  }
+
+  .current-level-badge {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    background: var(--color-success);
+    color: white;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+  }
+
+  /* Level Selector */
+  .level-selector {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .level-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: var(--space-sm) var(--space-md);
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 90px;
+  }
+
+  .level-btn:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+  }
+
+  .level-btn.selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .level-btn-number {
+    font-weight: 700;
+    font-size: var(--font-size-lg);
+  }
+
+  .level-btn-name {
+    font-size: var(--font-size-xs);
+    text-transform: capitalize;
+  }
+
+  /* Level color coding */
+  .level-btn.level-1:hover,
+  .level-btn.level-1.selected {
+    border-color: #f87171;
+  }
+  .level-btn.level-1.selected {
+    background: #fecaca;
+    color: #991b1b;
+  }
+
+  .level-btn.level-2:hover,
+  .level-btn.level-2.selected {
+    border-color: #fbbf24;
+  }
+  .level-btn.level-2.selected {
+    background: #fde68a;
+    color: #92400e;
+  }
+
+  .level-btn.level-3:hover,
+  .level-btn.level-3.selected {
+    border-color: #34d399;
+  }
+  .level-btn.level-3.selected {
+    background: #bbf7d0;
+    color: #166534;
+  }
+
+  .level-btn.level-4:hover,
+  .level-btn.level-4.selected {
+    border-color: #22d3ee;
+  }
+  .level-btn.level-4.selected {
+    background: #a5f3fc;
+    color: #155e75;
+  }
+
+  .level-btn.level-5:hover,
+  .level-btn.level-5.selected {
+    border-color: #a78bfa;
+  }
+  .level-btn.level-5.selected {
+    background: #c4b5fd;
+    color: #5b21b6;
+  }
+
+  .level-clear-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    transition: all 0.2s;
+  }
+
+  .level-clear-btn:hover {
+    background: var(--color-error);
+    color: white;
+  }
+
+  /* Navigation Buttons */
+  .assessment-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .step-counter {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Results Preview */
+  .results-preview {
+    text-align: center;
+  }
+
+  .results-incomplete,
+  .results-ready {
+    padding: var(--space-xl);
+  }
+
+  .results-incomplete h2,
+  .results-ready h2 {
+    margin-bottom: var(--space-md);
+  }
+
+  .progress-summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    justify-content: center;
+    margin-top: var(--space-lg);
+  }
+
+  .progress-summary .progress-bar {
+    width: 200px;
+  }
+
+  .progress-summary .progress-bar.large {
+    height: 12px;
+  }
+
+  .results-summary {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xl);
+    margin: var(--space-xl) 0;
+  }
+
+  .summary-stat {
+    text-align: center;
+  }
+
+  .summary-value {
+    display: block;
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .summary-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .results-actions {
+    margin-top: var(--space-xl);
+  }
+}

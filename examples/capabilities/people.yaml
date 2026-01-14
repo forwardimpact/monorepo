@@ -1,0 +1,100 @@
+name: People
+emoji: 👥
+displayOrder: 6
+description: |
+  Growing individuals and building effective teams.
+  Includes mentoring, coaching, hiring, performance management,
+  and creating inclusive environments.
+transitionChecklists:
+  plan_to_code:
+    foundational:
+      - Pair programming opportunities are identified
+      - Knowledge sharing approach is considered
+    working:
+      - Mentoring opportunities are planned
+      - Team learning needs are identified
+      - Collaboration approach is documented
+    practitioner:
+      - Cross-team knowledge sharing is coordinated
+      - Coaching objectives are defined
+      - Hiring needs are assessed
+    expert:
+      - Talent development strategy is aligned
+      - Leadership pipeline opportunities are identified
+      - Organizational learning goals are addressed
+  code_to_review:
+    foundational:
+      - Code review is constructive and educational
+      - Knowledge is shared during review
+      - Team standards are reinforced
+    working:
+      - Junior engineers can learn from the code
+      - Technical decisions are explained
+      - Review feedback develops others
+    practitioner:
+      - Cross-team learning is enabled
+      - Technical mentoring happens through reviews
+      - Best practices are reinforced
+    expert:
+      - Code sets example for organization
+      - Leadership behaviors are modeled
+      - Institutional knowledge is preserved
+professionalResponsibilities:
+  awareness:
+    Contribute positively to team dynamics, be open to feedback, and learn
+    actively from colleagues
+  foundational:
+    Support teammates through pair programming, knowledge sharing, and
+    constructive code reviews
+  working:
+    Mentor junior engineers on technical topics, contribute to hiring through
+    interviews, and actively build team knowledge
+  practitioner:
+    Coach multiple engineers on career growth, lead hiring for technical roles
+    across your area, and shape team technical culture
+  expert:
+    Develop technical leaders, shape engineering talent strategy across the
+    business unit, and build high-performing engineering teams
+managementResponsibilities:
+  awareness:
+    Build positive relationships with team members and seek feedback on your
+    leadership
+  foundational:
+    Conduct effective 1:1s, provide regular feedback, support individual
+    development, and recognize contributions
+  working:
+    Manage team performance, own hiring decisions, create inclusive team
+    environments, and handle difficult conversations
+  practitioner:
+    Develop and retain talent across teams, build leadership pipelines for your
+    area, make promotion decisions, and shape team culture
+  expert:
+    Develop senior leaders, shape talent strategy across the business unit,
+    build high-performing teams, and own succession planning
+skills:
+  - id: team_collaboration
+    name: Team Collaboration
+    isHumanOnly: true
+    human:
+      description: Working effectively with others to achieve shared goals
+      levelDescriptions:
+        awareness:
+          You participate constructively in team activities, communicate
+          clearly, and ask for help when stuck. You are reliable and follow
+          through on commitments.
+        foundational:
+          You collaborate effectively on shared work, support teammates
+          proactively, share knowledge freely, and give and receive feedback
+          constructively.
+        working:
+          You facilitate collaboration across the team, resolve minor conflicts
+          before they escalate, enable others to succeed, and contribute
+          positively to team dynamics and morale.
+        practitioner:
+          You build high-performing teams across your area, navigate complex
+          interpersonal dynamics, foster psychological safety, and create
+          environments where diverse perspectives are valued and heard.
+        expert:
+          You create collaborative culture across the business unit. You
+          transform dysfunctional team dynamics, are recognized for building
+          exceptional teams, and mentor others on collaboration excellence.

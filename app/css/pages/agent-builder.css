@@ -1,0 +1,391 @@
+/**
+ * Agent Builder Page Styles
+ *
+ * Agent builder form, preview, and card components.
+ */
+
+@layer pages {
+  .agent-builder-page {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .agent-builder-page.wide {
+    max-width: none;
+  }
+
+  .agent-builder-form {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--space-xl);
+  }
+
+  .agent-preview {
+    margin-top: var(--space-xl);
+  }
+
+  .agent-deployment {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+  }
+
+  .agent-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  .agent-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+  }
+
+  .agent-section .section-header h2 {
+    margin: 0;
+  }
+
+  .agent-section .filename {
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+  }
+
+  .agent-section .code-block {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    overflow-x: auto;
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .agent-section .code-block code {
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  /* Agent cards grid */
+  .agent-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--space-lg);
+  }
+
+  .agent-cards-grid.single {
+    grid-template-columns: 1fr;
+    max-width: 800px;
+  }
+
+  .agent-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    overflow: hidden;
+  }
+
+  .agent-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    gap: var(--space-sm);
+  }
+
+  .agent-card-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+
+  .agent-card-title h3 {
+    margin: 0;
+    font-size: var(--font-size-md);
+  }
+
+  .agent-card-emoji {
+    font-size: 1.5rem;
+  }
+
+  .agent-card-filename {
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin: 0;
+    padding: 0 var(--space-md);
+    padding-top: var(--space-sm);
+  }
+
+  .agent-card-preview {
+    padding: var(--space-md);
+  }
+
+  .agent-card-preview .code-preview {
+    margin: 0;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  /* Skill cards grid */
+  .skill-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .skill-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    overflow: hidden;
+  }
+
+  .skill-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .skill-card-name {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+  }
+
+  .skill-card-filename {
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin: 0;
+    padding: var(--space-xs) var(--space-md);
+  }
+
+  .skill-card-preview {
+    padding: var(--space-sm) var(--space-md) var(--space-md);
+  }
+
+  .skill-card-preview .code-preview {
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  /* Code preview */
+  .code-preview {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--color-text-muted);
+  }
+
+  .skills-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .skill-filename {
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .skill-card .code-block {
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  /* CLI hint */
+  .cli-hint {
+    background: var(--color-bg);
+  }
+
+  .cli-hint h2 {
+    margin-bottom: var(--space-sm);
+  }
+
+  .cli-command {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+
+  .cli-command .code-block {
+    flex: 1;
+    margin: 0;
+  }
+
+  /* Role agents list */
+  .role-agents-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .role-agent-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .role-agent-card > summary {
+    cursor: pointer;
+    padding: var(--space-md);
+    background: var(--color-bg);
+    border-bottom: 1px solid transparent;
+    list-style: none;
+  }
+
+  .role-agent-card > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .role-agent-card[open] > summary {
+    border-bottom-color: var(--color-border);
+  }
+
+  .role-agent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .role-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text);
+  }
+
+  .role-filename {
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .role-agent-content {
+    padding: var(--space-md);
+  }
+
+  .role-description {
+    margin-bottom: var(--space-md);
+  }
+
+  .role-agent-actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+
+  .role-agent-content .code-block {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  /* Stage agent preview */
+  .stage-agent-preview .stage-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+  }
+
+  .stage-agent-preview .stage-emoji {
+    font-size: 2rem;
+  }
+
+  .stage-agent-preview .stage-info h2 {
+    margin: 0;
+  }
+
+  .handoff-buttons {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+  }
+
+  .handoff-button-preview {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+  }
+
+  /* Checklist preview */
+  .checklist-preview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .checklist-group {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+
+  .checklist-capability {
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    text-transform: capitalize;
+  }
+
+  .checklist-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .checklist-item {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: flex-start;
+  }
+
+  .checklist-checkbox {
+    color: var(--color-text-muted);
+  }
+}

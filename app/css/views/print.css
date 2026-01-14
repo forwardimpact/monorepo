@@ -1,0 +1,608 @@
+/**
+ * Print Styles
+ *
+ * Print-only media queries for all views.
+ */
+
+@layer print {
+  @media print {
+    @page {
+      size: landscape;
+      margin: 0; /* Remove margins to eliminate space for browser headers/footers */
+    }
+
+    /* Force landscape orientation */
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Slide view base print styles */
+    .slide-view {
+      padding: 0.75cm;
+      max-width: none;
+      background: white !important;
+      animation: none !important;
+      min-height: auto;
+    }
+
+    .slide-view::before {
+      display: none !important;
+    }
+
+    .slide-nav {
+      display: none !important;
+    }
+
+    .slide-view main {
+      padding-bottom: 0;
+    }
+
+    /* Reduce text sizes for compact print */
+    .slide-view {
+      font-size: 11px;
+    }
+
+    .slide-view .page-title {
+      font-size: 20px;
+      margin-bottom: 0.25rem;
+    }
+
+    .slide-view .page-description {
+      font-size: 11px;
+      margin-bottom: 0.5rem;
+      display: block !important;
+    }
+
+    /* Ensure text-muted paragraphs in header are visible */
+    .slide-view .page-header .text-muted,
+    .slide-view .page-header p {
+      display: block !important;
+      visibility: visible !important;
+      font-size: 10px;
+      color: #475569 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .slide-view .section-title,
+    .slide-section-title {
+      font-size: 14px;
+      margin-bottom: 0.35rem;
+      padding-bottom: 0.2rem;
+    }
+
+    /* Compact page header */
+    .slide-view .page-header {
+      page-break-after: avoid;
+      margin-bottom: 0.75rem;
+      padding: 0.5rem;
+      background: none !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+
+    .slide-view .page-header::before {
+      display: none !important;
+    }
+
+    /* Compact sections */
+    .section,
+    .section-detail,
+    .slide-section {
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      page-break-inside: avoid;
+      background: none !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+
+    /* Two-column layout for modifier tables */
+    .slide-view .modifier-tables-row,
+    .track-detail .section-detail + .section-detail {
+      display: inline-block;
+      width: 48%;
+      vertical-align: top;
+      margin-right: 2%;
+      page-break-inside: avoid;
+    }
+
+    .track-detail {
+      display: block;
+    }
+
+    .track-detail .section-detail {
+      page-break-inside: avoid;
+    }
+
+    /* Force modifier sections into columns */
+    .slide-view .print-columns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .slide-view .print-columns > * {
+      flex: 1 1 45%;
+      min-width: 250px;
+      max-width: 48%;
+    }
+
+    /* Compact tables */
+    .slide-view .data-table,
+    .slide-view .level-table,
+    .slide-view .table {
+      page-break-inside: avoid;
+      font-size: 10px;
+      margin-bottom: 0.5rem;
+    }
+
+    .slide-view .data-table th,
+    .slide-view .data-table td,
+    .slide-view .level-table th,
+    .slide-view .level-table td,
+    .slide-view .table th,
+    .slide-view .table td {
+      padding: 0.25rem 0.5rem;
+    }
+
+    .slide-view .table-container {
+      overflow: visible;
+    }
+
+    /* Compact stats grid */
+    .slide-stats,
+    .stats-grid {
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .slide-stat,
+    .stat-card {
+      padding: 0.35rem;
+      background: none !important;
+      border: 1px solid #cbd5e1;
+    }
+
+    .slide-stat::before,
+    .stat-card::before {
+      display: none !important;
+    }
+
+    .slide-stat-value,
+    .stat-value {
+      font-size: 16px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .slide-stat-label,
+    .stat-label {
+      font-size: 9px;
+      margin-top: 0.125rem;
+    }
+
+    /* Ensure 4-column grid fits in landscape */
+    .slide-progression-summary {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    /* Preserve badge colors */
+    .slide-view .badge,
+    .slide-view .level-badge,
+    .slide-view .tag,
+    .badge,
+    .level-badge,
+    .tag {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      background-color: inherit !important;
+      animation: none !important;
+    }
+
+    .badge-broad,
+    .badge-negative,
+    .badge-primary,
+    .badge-secondary,
+    .badge-default {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Preserve text colors */
+    .text-muted,
+    .text-primary,
+    .text-success,
+    .text-warning,
+    .text-error,
+    .modifier-positive,
+    .modifier-negative,
+    .slide-modifier-positive,
+    .slide-modifier-negative {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Preserve level dot colors */
+    .slide-view .level-dot,
+    .slide-view .level-dot.filled,
+    .level-dot,
+    .level-dot.filled {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      animation: none !important;
+    }
+
+    .slide-view .level-dot.filled.level-1,
+    .slide-view .level-dot.filled.level-2,
+    .slide-view .level-dot.filled.level-3,
+    .slide-view .level-dot.filled.level-4,
+    .slide-view .level-dot.filled.level-5 {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Links */
+    .slide-view a {
+      text-decoration: underline;
+      color: var(--color-text);
+    }
+
+    .slide-view a::after {
+      content: none;
+    }
+
+    /* Page break controls */
+    .page-break-before {
+      page-break-before: always;
+    }
+
+    .page-break-after {
+      page-break-after: always;
+    }
+
+    /* Remove decorative backgrounds */
+    .slide-question,
+    .slide-driver-item,
+    .slide-progression-stat {
+      background: none;
+      border: 1px solid #cbd5e1;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+
+    .slide-question::before,
+    .slide-driver-item::before {
+      display: none !important;
+    }
+
+    /* Compact skill/behaviour rows */
+    .slide-skill-row,
+    .slide-behaviour-row,
+    .slide-change-row {
+      padding: 0.2rem 0.5rem;
+      margin-bottom: 0.15rem;
+      background: none !important;
+    }
+
+    .slide-skill-row.header,
+    .slide-behaviour-row.header,
+    .slide-change-row.header {
+      background: #f1f5f9 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Compact related lists */
+    .slide-view .related-list li {
+      padding: 0.2rem 0.5rem;
+      margin-bottom: 0.1rem;
+      background: none !important;
+    }
+
+    /* Driver coverage compact */
+    .slide-driver-coverage {
+      gap: 0.5rem;
+    }
+
+    .slide-driver-item {
+      padding: 0.35rem;
+    }
+
+    /* Content columns for formatters */
+    .content-columns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .content-columns .column {
+      page-break-inside: avoid;
+    }
+
+    /* Stats row compact */
+    .stats {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      padding: 0.35rem;
+      min-width: 80px;
+      background: none !important;
+      border: 1px solid #cbd5e1;
+    }
+
+    .stat-value {
+      font-size: 16px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .stat-label {
+      font-size: 9px;
+    }
+
+    /* Detail sections compact */
+    .detail-section {
+      margin-bottom: 0.5rem;
+      page-break-inside: avoid;
+    }
+
+    .detail-section .section-title {
+      font-size: 13px;
+      margin-bottom: 0.25rem;
+      padding-bottom: 0.15rem;
+    }
+
+    .list-item {
+      padding: 0.25rem 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .list-item .label {
+      font-size: 9px;
+      margin-bottom: 0.1rem;
+    }
+
+    .list-item p {
+      font-size: 10px;
+      margin: 0;
+    }
+
+    /* Related lists compact */
+    .related-list {
+      margin: 0.25rem 0;
+      padding-left: 1rem;
+    }
+
+    .related-list li {
+      padding: 0.1rem 0;
+      font-size: 10px;
+    }
+
+    /* Level table compact */
+    .level-table {
+      font-size: 10px;
+    }
+
+    .level-table th,
+    .level-table td {
+      padding: 0.2rem 0.4rem;
+    }
+
+    /* Badges compact */
+    .slide-view .badges,
+    .slide-view .page-meta,
+    .badges,
+    .page-meta {
+      margin-bottom: 0.25rem;
+    }
+
+    .slide-view .badge,
+    .badge {
+      padding: 0.1rem 0.35rem;
+      font-size: 9px;
+    }
+
+    /* Auto-grid layouts for print */
+    .auto-grid-xs,
+    .auto-grid-sm,
+    .auto-grid-md,
+    .auto-grid-lg {
+      gap: 0.75rem;
+    }
+
+    .auto-grid-lg {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    /* Radar charts compact for print */
+    .radar-container,
+    .slide-radar-container {
+      margin: 0.5rem 0;
+    }
+
+    .radar-container svg,
+    .slide-radar-container svg {
+      max-width: 320px;
+      max-height: 320px;
+    }
+
+    /* Skill matrix and behaviour profile compact */
+    .skill-matrix,
+    .behaviour-profile {
+      font-size: 10px;
+    }
+
+    .skill-matrix th,
+    .skill-matrix td,
+    .behaviour-profile th,
+    .behaviour-profile td {
+      padding: 0.2rem 0.4rem;
+    }
+
+    /* Job detail page compact */
+    .job-detail-page .section {
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Job description HTML formatting for print */
+    .job-description-print-section {
+      display: block !important;
+      page-break-before: always;
+    }
+
+    /* Hide the "Job Description" section title */
+    .job-description-print-section > .section-title {
+      display: none !important;
+    }
+
+    .job-description-print-only {
+      font-size: 8px;
+      line-height: 1.35;
+      /* Two-column layout like an academic paper */
+      column-count: 2;
+      column-gap: 2rem;
+      column-rule: 1px solid #e2e8f0;
+    }
+
+    .job-description-print-only h1 {
+      font-size: 12px;
+      margin: 0 0 0.4rem;
+      page-break-after: avoid;
+      break-after: avoid-column;
+      column-span: all;
+    }
+
+    .job-description-print-only h2 {
+      font-size: 10px;
+      margin: 0.6rem 0 0.3rem;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 0.1rem;
+      page-break-after: avoid;
+      break-after: avoid-column;
+      break-inside: avoid;
+    }
+
+    .job-description-print-only h3 {
+      font-size: 9px;
+      margin: 0.4rem 0 0.2rem;
+      page-break-after: avoid;
+      break-after: avoid-column;
+      break-inside: avoid;
+    }
+
+    .job-description-print-only p {
+      margin: 0.25rem 0;
+    }
+
+    .job-description-print-only ul {
+      margin: 0.25rem 0;
+      padding-left: 1.25rem;
+    }
+
+    .job-description-print-only li {
+      margin: 0.15rem 0;
+    }
+
+    .job-description-print-only strong {
+      font-weight: 600;
+    }
+
+    /* Page brand header for print */
+    .page-brand-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      z-index: 100;
+      padding: var(--space-xs) var(--space-md);
+      margin-bottom: 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .page-brand-header .brand-tag {
+      background: linear-gradient(
+        135deg,
+        #f472b6 0%,
+        #a78bfa 50%,
+        #38bdf8 100%
+      );
+      color: white;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    main {
+      padding-top: 3rem;
+    }
+
+    /* Chapter cover print styles */
+    .chapter-cover {
+      page-break-after: always;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Checklist print styles */
+    .checklist-section {
+      page-break-inside: avoid;
+      margin-bottom: var(--space-lg);
+    }
+
+    .checklist-group {
+      margin-bottom: var(--space-md);
+    }
+
+    .checklist-group-header {
+      font-weight: 600;
+      margin-bottom: var(--space-xs);
+    }
+
+    .checklist-items {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
+      padding: var(--space-xs) 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .checklist-item::before {
+      content: "☐";
+      font-size: var(--font-size-lg);
+      flex-shrink: 0;
+    }
+
+    /* Human-only badge for print */
+    .badge-human-only {
+      background: #fef3c7;
+      color: #92400e;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+
+    .human-only-row {
+      background: rgba(254, 243, 199, 0.3);
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+  }
+}

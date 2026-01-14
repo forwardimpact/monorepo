@@ -1,0 +1,6 @@
+{
+  "name": "Engineering Pathway",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:bookworm",
+  "postCreateCommand": "npm install",
+  "forwardPorts": [3000]
+}

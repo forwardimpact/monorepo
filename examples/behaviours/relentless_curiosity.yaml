@@ -1,0 +1,38 @@
+# Behaviour: Don't Lose Your Curiosity
+# The driving force behind learning and invention
+
+name: Don't Lose Your Curiosity
+human:
+  description:
+    The driving force behind learning and invention. Protect your instinct to
+    break things down and understand them deeply. Embrace an experimental spirit
+    that treats failure as a path to discovery, not a setback to avoid.
+  maturityDescriptions:
+    emerging:
+      Asks basic questions when prompted; shows interest in learning about
+      immediate tasks; willing to try new approaches
+    developing:
+      Regularly asks clarifying questions about "why" and "how"; explores
+      related topics with guidance; experiments without fear of failure;
+      investigates how AI tools work rather than using them blindly
+    practicing:
+      Proactively investigates root causes; experiments with new technologies
+      and AI capabilities; protects time for exploration; treats failure as
+      learning; discovers requirements through immersion in problem spaces
+    role_modeling:
+      Drives team curiosity through challenging questions; creates environments
+      where exploration and experimentation are encouraged; models problem
+      discovery orientation; seeks out ambiguity rather than avoiding it
+    exemplifying:
+      Shapes organizational culture around curiosity and continuous learning;
+      sponsors experimental initiatives across the organization; recognized
+      externally as a thought leader in problem discovery; influences industry
+      practices around innovation and exploration
+
+agent:
+  title: Investigate before acting
+  workingStyle: |
+    Before taking action:
+    1. Confirm your understanding of the goal
+    2. Identify unknowns that could affect the approach
+    3. Research unfamiliar areas via subagent if needed

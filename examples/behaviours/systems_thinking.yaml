@@ -1,0 +1,41 @@
+# Behaviour: Think in Systems
+# See beyond components to understand whole-system behaviour
+
+name: Think in Systems
+human:
+  description:
+    The ability to see beyond individual components to understand how the entire
+    system behaves. Like understanding how reintroducing wolves to Yellowstone
+    transformed not just deer but rivers, engineers recognize that every
+    service, API, and queue is part of a larger whole—isolated changes ripple
+    across the system.
+  maturityDescriptions:
+    emerging:
+      Recognizes that systems have interconnected parts; considers immediate
+      dependencies in code; understands basic cause-and-effect
+    developing:
+      Identifies upstream and downstream impacts; uses observability tools to
+      trace requests across services; understands feedback loops; maps
+      dependencies before making changes
+    practicing:
+      Maps complex system interactions across technical and business domains;
+      anticipates cascading effects; designs systems that degrade gracefully;
+      understands how technology changes impact business operations
+    role_modeling:
+      Shapes systems design practices across their function; conducts chaos
+      engineering experiments; influences cross-team architecture decisions;
+      creates clarity from complexity; bridges technical systems with business
+      processes
+    exemplifying:
+      Defines organizational systems architecture principles; recognized
+      industry authority on complex systems; advises executive leadership on
+      systemic risks and opportunities; publishes thought leadership on systems
+      thinking in technology organizations
+
+agent:
+  title: Consider the whole system
+  workingStyle: |
+    For every change:
+    1. Identify upstream and downstream impacts
+    2. Consider non-functional requirements (performance, security)
+    3. Document assumptions and trade-offs

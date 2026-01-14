@@ -1,0 +1,40 @@
+/**
+ * App Bundle
+ *
+ * Main entry point for index.html (web app).
+ * Single import for all app styles.
+ */
+
+/* Layer order declaration - must be first */
+@layer tokens, reset, base, components, utilities, pages;
+
+/* Foundation */
+@import "../tokens.css" layer(tokens);
+@import "../reset.css" layer(reset);
+@import "../base.css" layer(base);
+
+/* Components */
+@import "../components/layout.css" layer(components);
+@import "../components/surfaces.css" layer(components);
+@import "../components/typography.css" layer(components);
+@import "../components/badges.css" layer(components);
+@import "../components/buttons.css" layer(components);
+@import "../components/forms.css" layer(components);
+@import "../components/tables.css" layer(components);
+@import "../components/progress.css" layer(components);
+@import "../components/states.css" layer(components);
+@import "../components/nav.css" layer(components);
+
+/* Utilities */
+@import "../components/utilities.css" layer(utilities);
+
+/* Pages */
+@import "../pages/landing.css" layer(pages);
+@import "../pages/job-builder.css" layer(pages);
+@import "../pages/agent-builder.css" layer(pages);
+@import "../pages/lifecycle.css" layer(pages);
+@import "../pages/detail.css" layer(pages);
+@import "../pages/interview-builder.css" layer(pages);
+@import "../pages/self-assessment.css" layer(pages);
+@import "../pages/assessment-results.css" layer(pages);
+@import "../pages/progress-builder.css" layer(pages);

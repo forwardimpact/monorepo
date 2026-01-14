@@ -1,0 +1,66 @@
+# Self Assessments - Example profiles for testing candidate matching
+# Maps skills to levels and behaviours to maturities
+
+# Example: Mid-level Software Engineer
+- id: example_mid_swe
+  skillLevels:
+    architecture_design: working
+    code_quality: working
+    devops: foundational
+    ai_augmented_development: foundational
+    technical_debt_management: foundational
+    lean_thinking: awareness
+    data_modeling: awareness
+    stakeholder_management: awareness
+    technical_writing: foundational
+    ai_literacy: foundational
+    service_management: awareness
+  behaviourMaturities:
+    precise_communication: developing
+    relentless_curiosity: developing
+    outcome_ownership: developing
+    polymathic_knowledge: emerging
+    systems_thinking: developing
+
+# Example: Senior Data Engineer
+- id: example_senior_de
+  skillLevels:
+    data_modeling: practitioner
+    data_integration: practitioner
+    architecture_design: working
+    code_quality: working
+    devops: working
+    cloud_platforms: working
+    ai_literacy: working
+    stakeholder_management: foundational
+    technical_writing: foundational
+    ai_augmented_development: foundational
+    lean_thinking: foundational
+  behaviourMaturities:
+    precise_communication: practicing
+    relentless_curiosity: practicing
+    outcome_ownership: practicing
+    polymathic_knowledge: developing
+    systems_thinking: practicing
+
+# Example: Data Scientist - R&D Focus
+- id: example_ds_rd
+  skillLevels:
+    machine_learning: working
+    data_analysis: working
+    statistical_modeling: working
+    data_modeling: foundational
+    ai_evaluation: working
+    technical_writing: foundational
+    business_immersion: foundational
+    code_quality: foundational
+    stakeholder_management: awareness
+    ai_literacy: working
+    multi_audience_communication: foundational
+    service_management: awareness
+  behaviourMaturities:
+    precise_communication: developing
+    relentless_curiosity: practicing
+    outcome_ownership: developing
+    polymathic_knowledge: developing
+    systems_thinking: developing

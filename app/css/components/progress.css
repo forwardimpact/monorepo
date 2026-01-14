@@ -1,0 +1,166 @@
+/**
+ * Progress Indicators
+ *
+ * Level dots, bars, and progress indicators - consolidated definition.
+ */
+
+@layer components {
+  /* Level bar */
+  .level-bar {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* Level dot base */
+  .level-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(226, 232, 240, 0.5);
+    border: 2px solid rgba(203, 213, 225, 0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+
+  .level-dot:hover {
+    transform: scale(1.2);
+  }
+
+  .level-dot.filled {
+    background: var(--color-primary);
+  }
+
+  /* Level dot colors by level */
+  .level-dot.filled.level-1 {
+    background: linear-gradient(135deg, #fecaca, #fca5a5);
+    border-color: #f87171;
+    box-shadow:
+      0 2px 8px rgba(239, 68, 68, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+
+  .level-dot.filled.level-2 {
+    background: linear-gradient(135deg, #fde68a, #fcd34d);
+    border-color: #fbbf24;
+    box-shadow:
+      0 2px 8px rgba(245, 158, 11, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+
+  .level-dot.filled.level-3 {
+    background: linear-gradient(135deg, #bbf7d0, #86efac);
+    border-color: #34d399;
+    box-shadow:
+      0 2px 8px rgba(16, 185, 129, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+
+  .level-dot.filled.level-4 {
+    background: linear-gradient(135deg, #a5f3fc, #67e8f9);
+    border-color: #22d3ee;
+    box-shadow:
+      0 2px 8px rgba(6, 182, 212, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+
+  .level-dot.filled.level-5 {
+    background: linear-gradient(135deg, #c4b5fd, #a78bfa);
+    border-color: #a78bfa;
+    box-shadow:
+      0 2px 8px rgba(139, 92, 246, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+
+  /* Level dots for compact display (no animation) */
+  .level-dots {
+    display: inline-flex;
+    gap: var(--space-xs);
+  }
+
+  .level-dots .level-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-border);
+  }
+
+  .level-dots .level-dot.filled {
+    background: var(--color-primary);
+  }
+
+  /* Level cell */
+  .level-cell {
+    position: relative;
+  }
+
+  .level-label {
+    display: block;
+    margin-top: 4px;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    transition: color 0.3s;
+  }
+
+  .level-cell:hover .level-label {
+    background: linear-gradient(135deg, #3b82f6, #9333ea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 8px;
+    background: var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: var(--radius-sm);
+    transition: width 0.3s;
+  }
+
+  /* Stats */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .stat-item {
+    background: var(--color-bg);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    text-align: center;
+  }
+
+  .stats {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+  }
+
+  .stat-value {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--color-primary);
+    display: block;
+    margin-bottom: var(--space-xs);
+  }
+}

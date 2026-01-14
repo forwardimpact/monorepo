@@ -1,0 +1,44 @@
+# Behaviour: Own the Outcome
+# Business outcomes trump engineering elegance
+
+name: Own the Outcome
+human:
+  description:
+    Business outcomes trump engineering elegance. Embrace extreme ownership of
+    what you build—not just code quality, but business relationships, impact
+    metrics, and end-to-end results. Accept technical debt when it enables
+    faster business value, but own the consequences. AI may generate the code,
+    but responsibility for outcomes remains with you.
+  maturityDescriptions:
+    emerging:
+      Takes responsibility for assigned tasks with supervision; follows through
+      when reminded; asks for help appropriately; understands that work serves
+      business goals
+    developing:
+      Owns task completion independently; reviews AI-generated code critically;
+      makes pragmatic trade-offs between speed and polish; takes responsibility
+      for understanding code before shipping; considers business impact of
+      technical decisions
+    practicing:
+      Takes end-to-end ownership of features and business outcomes; accepts
+      technical debt intentionally when it accelerates value; builds trust
+      through rapid delivery of working solutions; owns stakeholder
+      relationships; balances quality with delivery speed
+    role_modeling:
+      Drives accountability culture focused on outcomes not deliverables; owns
+      business relationships and impact metrics across their function; makes
+      trade-offs between custom solutions and generalizable work; there is no "I
+      must run this by X"; ensures verification rigor for AI-generated code
+    exemplifying:
+      Defines organizational accountability standards focused on business
+      impact; shapes industry practices around outcome ownership in the AI era;
+      sponsors transformational initiatives with full outcome accountability;
+      recognized externally for ownership culture leadership
+
+agent:
+  title: Own the outcome end-to-end
+  workingStyle: |
+    At each step:
+    1. Define success criteria before starting
+    2. Verify the change achieves the criteria
+    3. Don't hand off until you've validated the work

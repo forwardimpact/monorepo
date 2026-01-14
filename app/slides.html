@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Engineering Pathway - Slide View</title>
+    <link rel="stylesheet" href="css/bundles/slides.css" />
+  </head>
+  <body class="slide-view">
+    <header
+      id="page-brand-header"
+      class="page-brand-header"
+      style="display: none"
+    ></header>
+    <div id="slide-loading" class="slide-loading">
+      <p>Loading...</p>
+    </div>
+    <main id="slide-content"></main>
+    <nav id="slide-nav" class="slide-nav">
+      <button
+        id="prev-chapter"
+        class="slide-nav-btn slide-nav-chapter"
+        disabled
+        title="Previous Chapter"
+      >
+        ↑
+      </button>
+      <button
+        id="prev-slide"
+        class="slide-nav-btn slide-nav-chapter"
+        disabled
+        title="Previous"
+      >
+        ←
+      </button>
+      <span id="slide-indicator" class="slide-indicator"></span>
+      <button
+        id="next-slide"
+        class="slide-nav-btn slide-nav-chapter"
+        disabled
+        title="Next"
+      >
+        →
+      </button>
+      <button
+        id="next-chapter"
+        class="slide-nav-btn slide-nav-chapter"
+        disabled
+        title="Next Chapter"
+      >
+        ↓
+      </button>
+    </nav>
+    <script type="module" src="slide-main.js"></script>
+  </body>
+</html>

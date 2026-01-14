@@ -1,0 +1,330 @@
+/**
+ * Slide View Base Styles
+ *
+ * Base styles for the slide view layout and navigation.
+ */
+
+@layer slides {
+  .slide-view {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-xl);
+    background: linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #f8fafc 25%,
+      #f1f5f9 50%,
+      #f8fafc 75%,
+      #ffffff 100%
+    );
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  .slide-view::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 300px;
+    background: radial-gradient(
+      ellipse at top,
+      rgba(59, 130, 246, 0.08) 0%,
+      rgba(147, 51, 234, 0.05) 40%,
+      transparent 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .slide-view main {
+    padding-bottom: 5rem; /* Account for fixed nav */
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Loading state */
+  .slide-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    font-size: var(--font-size-lg);
+    background: linear-gradient(135deg, #3b82f6, #9333ea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 600;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .slide-loading.hidden {
+    display: none;
+  }
+
+  /* Navigation */
+  .slide-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xl);
+    padding: var(--space-md);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid rgba(59, 130, 246, 0.15);
+    box-shadow:
+      0 -4px 20px rgba(59, 130, 246, 0.08),
+      0 -1px 4px rgba(147, 51, 234, 0.05);
+    z-index: 100;
+  }
+
+  .slide-nav-btn {
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background:
+      linear-gradient(white, white) padding-box,
+      linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.3))
+        border-box;
+    color: var(--color-text);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide-nav-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    transition: left 0.5s;
+  }
+
+  .slide-nav-btn:hover:not(:disabled)::before {
+    left: 100%;
+  }
+
+  .slide-nav-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #3b82f6, #9333ea);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow:
+      0 4px 16px rgba(59, 130, 246, 0.3),
+      0 2px 8px rgba(147, 51, 234, 0.2);
+  }
+
+  .slide-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(248, 250, 252, 0.5);
+    box-shadow: none;
+  }
+
+  .slide-nav-chapter {
+    min-width: 44px;
+    padding: var(--space-sm);
+    font-size: var(--font-size-md);
+    aspect-ratio: 1;
+  }
+
+  .slide-indicator {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-weight: 500;
+    background: linear-gradient(135deg, #3b82f6, #9333ea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  /* Page header */
+  .slide-view .page-header {
+    border-bottom: 2px solid transparent;
+    border-image: linear-gradient(
+        90deg,
+        rgba(59, 130, 246, 0.3),
+        rgba(147, 51, 234, 0.3),
+        rgba(59, 130, 246, 0.3)
+      )
+      1;
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(248, 250, 252, 0.8) 100%
+    );
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow:
+      0 4px 20px rgba(59, 130, 246, 0.08),
+      0 2px 8px rgba(147, 51, 234, 0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide-view .page-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(59, 130, 246, 0.03),
+      transparent
+    );
+    animation: shimmer 3s infinite;
+  }
+
+  .slide-view .page-title {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    margin: 0 0 var(--space-sm);
+    color: var(--color-text);
+    position: relative;
+    animation: fadeInScale 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .slide-view .page-title .gradient-text {
+    background: linear-gradient(135deg, #1e40af, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .slide-view .page-description {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-muted);
+    max-width: 80ch;
+    margin: 0;
+    position: relative;
+  }
+
+  .slide-view .page-meta {
+    display: flex;
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+    flex-wrap: wrap;
+    position: relative;
+  }
+
+  /* Hide elements in slide mode */
+  .slide-view .nav,
+  .slide-view .page-actions,
+  .slide-view footer,
+  .slide-view .action-buttons,
+  .slide-view .back-link,
+  .slide-view #app-nav,
+  .slide-view #app-footer {
+    display: none !important;
+  }
+
+  /* Hide job description HTML on screen - only show when printing */
+  .slide-view .job-description-print-section {
+    display: none;
+  }
+
+  /* Page brand header */
+  .page-brand-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-lg);
+    margin-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .page-brand-header .brand-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+
+  .page-brand-header .brand-tag {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #f472b6 0%, #a78bfa 50%, #38bdf8 100%);
+    background-size: 200% 200%;
+    color: white;
+    animation: gradient-shift 6s ease infinite;
+    opacity: 0.9;
+  }
+
+  /* Chapter cover page */
+  .chapter-cover {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: var(--space-xl);
+  }
+
+  .chapter-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: var(--space-lg);
+  }
+
+  .chapter-title .gradient-text {
+    background: linear-gradient(135deg, #3b82f6, #9333ea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .chapter-description {
+    font-size: 1.25rem;
+    max-width: 600px;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .slide-view {
+      padding: var(--space-md);
+    }
+
+    .slide-view .page-title {
+      font-size: var(--font-size-2xl);
+    }
+
+    .slide-nav {
+      gap: var(--space-md);
+      padding: var(--space-sm);
+    }
+  }
+}

@@ -1,0 +1,53 @@
+# systems_thinking questions
+# See skills.yaml or behaviours.yaml for metadata
+
+emerging:
+  - id: sys_emerg_1
+    text:
+      How do you consider the impact of your code changes on other parts of the
+      system?
+    lookingFor:
+      - Awareness of dependencies
+      - Basic impact thinking
+    expectedDurationMinutes: 5
+developing:
+  - id: sys_dev_1
+    text:
+      Describe a time when you identified an unintended consequence of a change.
+    lookingFor:
+      - Systemic awareness
+      - Proactive identification
+    expectedDurationMinutes: 5
+practicing:
+  - id: sys_pract_1
+    text: How do you approach understanding a complex system you're new to?
+    lookingFor:
+      - Systematic exploration
+      - Mapping approaches
+    expectedDurationMinutes: 8
+role_modeling:
+  - id: sys_role_1
+    text: How do you help others develop systems thinking capabilities?
+    lookingFor:
+      - Teaching approaches
+      - Creating visibility
+    expectedDurationMinutes: 8
+exemplifying:
+  - id: sys_exemp_1
+    text:
+      How do you define enterprise-wide systems architecture principles and
+      influence organizational thinking?
+    followUps:
+      - How do you advise executive leadership on complex systems?
+    lookingFor:
+      - Enterprise systems thinking leadership
+      - Executive advisory on complexity
+    expectedDurationMinutes: 10
+  - id: sys_exemp_2
+    text:
+      How do you bridge technical systems with business processes at an
+      organizational scale?
+    lookingFor:
+      - Business-technical systems integration
+      - Enterprise complexity management
+    expectedDurationMinutes: 10

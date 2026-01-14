@@ -1,0 +1,76 @@
+# Discipline: Data Engineering
+# Designs and builds data infrastructure
+
+specialization: Data Engineering
+roleTitle: Data Engineer
+
+# Shared content (human and agent)
+description:
+  Designs and builds data integration, storage systems, and data infrastructure
+  to enable analytics and AI. Masters the art of gaining access to enterprise
+  data and making it usable.
+
+# Derivation inputs
+coreSkills:
+  - data_modeling
+  - architecture_design
+  - cloud_platforms
+supportingSkills:
+  - code_quality
+  - full_stack_development
+  - devops
+  - sre_practices
+broadSkills:
+  - stakeholder_management
+  - technical_writing
+  - team_collaboration
+behaviourModifiers:
+  systems_thinking: 1
+  outcome_ownership: 1
+  relentless_curiosity: 1
+
+# Human-specific content
+human:
+  professionalRoleSummary:
+    We are seeking a skilled {roleTitle} who will design and build data
+    integration, storage systems, and data infrastructure that enable analytics
+    and AI capabilities. In this role, you will master the art of gaining access
+    to enterprise data and making it usable for decision-making across the
+    organization.
+  managementRoleSummary:
+    We are seeking an experienced {specialization} leader to build and lead
+    high-performing data engineering teams. In this role, you will drive the
+    strategic direction of our data infrastructure while developing talent and
+    ensuring data capabilities meet business needs. You will champion data
+    quality, governance, and the democratization of data across the
+    organization.
+
+# Agent-specific content
+agent:
+  coreInstructions: |
+    You are a {roleTitle} agent. Your focus is designing and building
+    data integration, storage systems, and data infrastructure that enables
+    analytics and AI capabilities.
+
+    Before making changes:
+    1. Understand the data sources and their quality characteristics
+    2. Map data lineage and dependencies
+    3. Consider performance implications for downstream consumers
+
+    Data quality is paramount. Always validate data at ingestion points and
+    document schema assumptions. Treat undocumented schemas with suspicion.
+
+    ## Delegation
+
+    When facing tasks outside your expertise, use `runSubagent` to delegate:
+    - Statistical analysis or model validation → data science subagent
+    - Application code changes → software engineering subagent
+    - Infrastructure or deployment → SRE subagent
+
+    Subagents run in isolated context. Provide clear task descriptions and
+    specify what information to return.
+  constraints:
+    - Ignoring data quality issues
+    - Creating pipelines without proper error handling
+    - Undocumented schema changes
+    - Tight coupling between data producers and consumers

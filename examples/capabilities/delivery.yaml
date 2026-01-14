@@ -1,0 +1,352 @@
+name: Delivery
+emoji: 🚀
+displayOrder: 1
+description: |
+  Building and shipping solutions that solve real problems.
+  Encompasses full-stack development, data integration, problem discovery,
+  and rapid prototyping.
+transitionChecklists:
+  plan_to_code:
+    foundational:
+      - Requirements are understood and documented
+      - Acceptance criteria are defined
+    working:
+      - Technical approach is documented
+      - Dependencies are identified and planned for
+      - Scope is broken into deliverable increments
+    practitioner:
+      - Cross-team dependencies are coordinated
+      - Risks are identified with mitigation strategies
+      - Delivery timeline is realistic and communicated
+    expert:
+      - Strategic alignment is validated with stakeholders
+      - Resource allocation is optimized across teams
+      - Success metrics are defined and measurable
+  code_to_review:
+    foundational:
+      - Feature works end-to-end
+      - Basic tests cover critical paths
+      - Code is self-reviewed before submitting
+    working:
+      - All acceptance criteria are met
+      - Edge cases are handled
+      - Technical debt is explicitly documented
+    practitioner:
+      - Solution addresses cross-team requirements
+      - Integration points are tested
+      - Rollback plan exists
+    expert:
+      - Organizational standards are followed
+      - Pattern can be reused across teams
+      - Documentation enables others to extend
+professionalResponsibilities:
+  awareness:
+    Complete assigned implementation tasks within established patterns with
+    guidance from senior engineers
+  foundational:
+    Deliver small features end-to-end with minimal guidance, understanding how
+    your code fits the broader system
+  working:
+    Own feature delivery from design through deployment, making sound technical
+    trade-offs to ship value on time
+  practitioner:
+    Lead technical delivery of complex projects across multiple teams, unblock
+    others through hands-on contributions, and ensure engineering quality
+  expert:
+    Drive delivery of the most critical technical initiatives, establish
+    engineering delivery practices across the business unit, and be the
+    technical authority on high-stakes projects
+managementResponsibilities:
+  awareness:
+    Track team progress and communicate status to stakeholders with guidance
+  foundational:
+    Coordinate team delivery by managing dependencies, removing blockers, and
+    keeping stakeholders informed
+  working:
+    Own team delivery outcomes—balance scope, staffing, and timeline; make
+    resourcing decisions to meet commitments
+  practitioner:
+    Drive delivery excellence across multiple teams, establish delivery metrics
+    and practices for your area, hold teams accountable, and escalate cross-team
+    risks
+  expert:
+    Shape delivery culture across the business unit, lead strategic delivery
+    transformations, and represent delivery commitments at executive level
+skills:
+  - id: architecture_design
+    name: Architecture & Design
+    human:
+      description:
+        Ability to design software systems that are scalable, maintainable, and
+        fit for purpose. In the AI era, this includes designing systems that
+        effectively leverage AI capabilities while maintaining human oversight.
+      levelDescriptions:
+        awareness:
+          You understand basic architectural concepts (separation of concerns,
+          modularity, coupling) and can read architecture diagrams. You follow
+          established patterns with guidance.
+        foundational:
+          You explain and apply common patterns (MVC, microservices,
+          event-driven) to familiar problems. You contribute to design
+          discussions and identify when existing patterns don't fit.
+        working:
+          You design components and services independently for moderate
+          complexity. You make appropriate trade-off decisions, document design
+          rationale, and consider AI integration points in your designs.
+        practitioner:
+          You design complex multi-component systems end-to-end, evaluate
+          architectural options for large initiatives across teams, guide
+          technical decisions for your area, and mentor engineers on
+          architecture. You balance elegance with delivery needs.
+        expert:
+          You define architecture standards and patterns across the business
+          unit. You innovate on approaches to large-scale challenges, shape
+          AI-integrated system design, and are recognized externally as an
+          architecture authority.
+    agent:
+      name: architecture-design
+      description: |
+        Guide for designing software systems and making architectural decisions.
+        Use when asked to design a system, evaluate architecture options, or
+        make structural decisions about code organization.
+      body: >
+        # Architecture & Design
+
+
+        ## When to use this skill
+
+
+        Use this skill when:
+
+        - Designing new systems or major features
+
+        - Evaluating architectural options and trade-offs
+
+        - Making decisions about code organization and structure
+
+        - Reviewing or improving existing architecture
+
+
+        ## Design Process
+
+
+        ### 1. Understand Requirements
+
+
+        Before designing, clarify:
+
+        - What problem are we solving?
+
+        - What are the non-functional requirements (scale, latency,
+        availability)?
+
+        - What are the constraints (existing systems, team skills, timeline)?
+
+        - What will change over time?
+
+
+        ### 2. Identify Key Decisions
+
+
+        Architecture is the set of decisions that are hard to change:
+
+        - Data storage and schema design
+
+        - Service boundaries and communication patterns
+
+        - Synchronous vs asynchronous processing
+
+        - Stateful vs stateless components
+
+
+        ### 3. Evaluate Trade-offs
+
+
+        Every architectural choice has trade-offs:
+
+        - Consistency vs availability
+
+        - Simplicity vs flexibility
+
+        - Performance vs maintainability
+
+        - Build vs buy
+
+
+        Document trade-offs explicitly.
+
+
+        ### 4. Design for Change
+
+
+        Good architecture accommodates change:
+
+        - Separate what changes from what stays the same
+
+        - Define clear interfaces between components
+
+        - Prefer composition over inheritance
+
+        - Make dependencies explicit
+
+
+        ## Common Patterns
+
+
+        ### Service Architecture
+
+        - Microservices: Independent deployment, clear boundaries
+
+        - Monolith: Simpler deployment, easier refactoring
+
+        - Modular monolith: Boundaries within single deployment
+
+
+        ### Data Patterns
+
+        - Event sourcing: Full audit trail, complex queries
+
+        - CQRS: Separate read and write models
+
+        - Repository pattern: Abstract data access
+
+
+        ### Communication Patterns
+
+        - REST: Synchronous, request-response
+
+        - Event-driven: Asynchronous, loose coupling
+
+        - gRPC: Efficient, strongly typed
+
+
+        ## Architecture Checklist
+
+
+        - [ ] Requirements are clearly understood
+
+        - [ ] Key decisions are documented with rationale
+
+        - [ ] Trade-offs are explicit
+
+        - [ ] Failure modes are considered
+
+        - [ ] Scalability requirements are addressed
+
+        - [ ] Security implications are reviewed
+
+        - [ ] Dependencies are minimal and explicit
+  - id: full_stack_development
+    name: Full-Stack Development
+    human:
+      description:
+        Building complete solutions across frontend, APIs, databases, and
+        infrastructure without dependencies on specialists. JavaScript and
+        Python are our primary languages, with CloudFormation and Terraform for
+        infrastructure. Essential for rapid delivery and embedded engineering
+        work.
+      levelDescriptions:
+        awareness:
+          You understand how frontend, backend, and database layers work
+          together. You can make changes in one layer with guidance and
+          understand the impact on other layers.
+        foundational:
+          You build simple features across frontend and backend using JavaScript
+          or Python. You understand how layers connect through APIs and can
+          debug across the stack.
+        working:
+          You deliver complete features end-to-end independently—frontend,
+          backend, database, and infrastructure (CloudFormation/Terraform). You
+          make pragmatic technology choices and deploy what you build.
+        practitioner:
+          You build complete applications rapidly across any technology stack
+          for teams in your area. You select the right tools for each problem,
+          balance technical debt with delivery speed, and mentor engineers on
+          full-stack development.
+        expert:
+          You work comfortably in any language and rapidly acquire new skills as
+          needed. You deliver production solutions in days not months, shape
+          full-stack practices across the business unit, and exemplify
+          polymathic engineering.
+    agent:
+      name: full-stack-development
+      description: >
+        Guide for building complete solutions across the full technology stack.
+
+        Use when asked to implement features spanning frontend, backend,
+        database,
+
+        and infrastructure layers.
+      body: |
+        # Full-Stack Development
+
+        ## When to use this skill
+
+        Use this skill when:
+        - Building features that span multiple layers
+        - Implementing end-to-end functionality
+        - Working across frontend, backend, and infrastructure
+        - Debugging issues that cross layer boundaries
+
+        ## Technology Stack
+
+        ### Primary Languages
+        - **JavaScript/TypeScript**: Frontend and Node.js backend
+        - **Python**: Backend APIs and data processing
+
+        ### Infrastructure
+        - **Terraform**: Cloud infrastructure as code
+        - **CloudFormation**: AWS-specific infrastructure
+        - **Docker**: Containerization
+
+        ## Layer Responsibilities
+
+        ### Frontend
+        - User interface and experience
+        - Client-side validation
+        - API integration
+        - State management
+
+        ### Backend API
+        - Business logic
+        - Data validation
+        - Authentication/authorization
+        - External service integration
+
+        ### Database
+        - Data persistence
+        - Query optimization
+        - Schema migrations
+        - Data integrity
+
+        ### Infrastructure
+        - Deployment pipelines
+        - Environment configuration
+        - Scaling and reliability
+        - Monitoring and logging
+
+        ## Development Process
+
+        ### 1. Start with the Interface
+        - Define the API contract first
+        - Frontend and backend can work in parallel
+        - Clear interface = fewer integration issues
+
+        ### 2. Build Vertically
+        - Complete one feature end-to-end before starting another
+        - Validates assumptions early
+        - Delivers demonstrable progress
+
+        ### 3. Test Across Layers
+        - Unit tests per layer
+        - Integration tests across layers
+        - End-to-end tests for critical paths
+
+        ## Full-Stack Checklist
+
+        - [ ] API contract is defined
+        - [ ] Frontend connects to backend correctly
+        - [ ] Database schema supports the feature
+        - [ ] Error handling spans all layers
+        - [ ] Feature works end-to-end
+        - [ ] Deployment is automated

@@ -1,0 +1,55 @@
+# precise_communication questions
+# See skills.yaml or behaviours.yaml for metadata
+
+emerging:
+  - id: comm_emerg_1
+    text:
+      Tell me about a time when you had to explain something technical to
+      someone less familiar with the topic.
+    lookingFor:
+      - Ability to simplify concepts
+      - Awareness of audience
+    expectedDurationMinutes: 5
+developing:
+  - id: comm_dev_1
+    text: Describe how you approach writing documentation for your work.
+    lookingFor:
+      - Clear writing habits
+      - Consideration of readers
+    expectedDurationMinutes: 5
+practicing:
+  - id: comm_pract_1
+    text:
+      Tell me about presenting a complex technical topic to diverse
+      stakeholders.
+    lookingFor:
+      - Audience adaptation
+      - Facilitation skills
+    expectedDurationMinutes: 8
+role_modeling:
+  - id: comm_role_1
+    text: How have you improved communication practices in your organization?
+    lookingFor:
+      - Leadership in communication
+      - Systemic improvements
+    expectedDurationMinutes: 8
+exemplifying:
+  - id: comm_exemp_1
+    text:
+      How do you shape communication culture across an enterprise and represent
+      your organization externally?
+    followUps:
+      - How do you coach executives on technical communication?
+    lookingFor:
+      - Enterprise communication leadership
+      - External representation
+      - Communication excellence at all levels
+    expectedDurationMinutes: 10
+  - id: comm_exemp_2
+    text:
+      Describe how you've established communication standards that span
+      technical and business audiences across the organization.
+    lookingFor:
+      - Cross-functional communication leadership
+      - Scalable communication practices
+    expectedDurationMinutes: 10

@@ -1,0 +1,52 @@
+# outcome_ownership questions
+# See skills.yaml or behaviours.yaml for metadata
+
+emerging:
+  - id: own_emerg_1
+    text: Describe a task you completed from start to finish.
+    lookingFor:
+      - Follow-through
+      - Basic accountability
+    expectedDurationMinutes: 5
+developing:
+  - id: own_dev_1
+    text: Tell me about a time when you took responsibility for a mistake.
+    lookingFor:
+      - Accountability
+      - Learning from errors
+    expectedDurationMinutes: 5
+practicing:
+  - id: own_pract_1
+    text:
+      Describe a project where you owned the entire lifecycle from design to
+      production support.
+    lookingFor:
+      - End-to-end ownership
+      - Operational responsibility
+    expectedDurationMinutes: 8
+role_modeling:
+  - id: own_role_1
+    text: How do you build a culture of ownership in your team?
+    lookingFor:
+      - Team accountability
+      - Systemic approaches
+    expectedDurationMinutes: 8
+exemplifying:
+  - id: own_exemp_1
+    text:
+      How do you establish and drive ownership culture across an entire
+      organization?
+    followUps:
+      - How do you balance ownership with collaboration?
+    lookingFor:
+      - Enterprise ownership culture
+      - Accountability at scale
+    expectedDurationMinutes: 10
+  - id: own_exemp_2
+    text:
+      How do you hold yourself and others accountable for outcomes at an
+      organizational level?
+    lookingFor:
+      - Executive-level accountability
+      - Systemic ownership practices
+    expectedDurationMinutes: 10

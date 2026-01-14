@@ -1,0 +1,122 @@
+/**
+ * Typography Utilities
+ *
+ * Text styles, labels, and typography utilities.
+ */
+
+@layer components {
+  /* Labels - small uppercase text (consolidated definition) */
+  .label,
+  .detail-item-label,
+  .stat-label,
+  .expectation-label,
+  .filter-title {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .label-xs {
+    font-size: var(--font-size-xs);
+  }
+
+  /* Match score label uses smaller font */
+  .score-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+  }
+
+  /* Labels with bottom margin */
+  .detail-item-label,
+  .expectation-label {
+    margin-bottom: var(--space-xs);
+  }
+
+  /* Filter title has bold weight and wider letter-spacing */
+  .filter-title {
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.05em;
+  }
+
+  /* Text colors */
+  .text-muted {
+    color: var(--color-text-muted);
+  }
+
+  .text-light {
+    color: var(--color-text-light);
+  }
+
+  .text-primary {
+    color: var(--color-primary);
+  }
+
+  .text-success {
+    color: var(--color-success);
+  }
+
+  .text-warning {
+    color: var(--color-warning);
+  }
+
+  .text-error {
+    color: var(--color-error);
+  }
+
+  /* Text alignment */
+  .text-center {
+    text-align: center;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  /* Font sizes */
+  .text-xs {
+    font-size: var(--font-size-xs);
+  }
+
+  .text-sm {
+    font-size: var(--font-size-sm);
+  }
+
+  .text-lg {
+    font-size: var(--font-size-lg);
+  }
+
+  .text-xl {
+    font-size: var(--font-size-xl);
+  }
+
+  .text-2xl {
+    font-size: var(--font-size-2xl);
+  }
+
+  /* Font weight */
+  .font-medium {
+    font-weight: 500;
+  }
+
+  .font-semibold {
+    font-weight: 600;
+  }
+
+  .font-bold {
+    font-weight: 700;
+  }
+
+  /* Code inline */
+  .code-inline {
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    background: var(--color-bg);
+    padding: 0.1em 0.4em;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+  }
+}

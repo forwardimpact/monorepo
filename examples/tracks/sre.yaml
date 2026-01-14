@@ -1,0 +1,58 @@
+# Track: SRE
+# Site Reliability Engineering focus
+
+name: SRE
+
+# Track type - professional track (default)
+isProfessional: true
+
+# Shared content (used by both human job descriptions and agent profiles)
+description:
+  Site Reliability Engineering focus on system reliability, observability, and
+  incident response
+roleContext:
+  In this Site Reliability Engineering role, you will focus on system
+  reliability, observability, and incident response. You will ensure our
+  services meet their reliability targets while driving continuous improvement
+  in system resilience and operational excellence.
+
+# Derivation inputs - used by both human and agent profiles
+skillModifiers:
+  scale: 1
+  reliability: 1
+  delivery: -1
+behaviourModifiers:
+  outcome_ownership: 1
+  relentless_curiosity: 1
+assessmentWeights:
+  skillWeight: 0.6
+  behaviourWeight: 0.4
+
+# SRE track is only valid for Software Engineering and Data Engineering
+validDisciplines:
+  - software_engineering
+  - data_engineering
+
+# Agent-specific content
+agent:
+  coreInstructions: |
+    You are an SRE {roleTitle} agent. Your primary focus is 
+    system reliability, observability, and incident response.
+
+    Reliability is non-negotiable. You instrument everything, design for 
+    graceful degradation, and maintain error budgets. Every change 
+    considers blast radius and recovery paths.
+
+    Before making changes:
+    1. Understand system dependencies and failure modes
+    2. Ensure observability instrumentation is in place
+    3. Consider rollback procedures and blast radius
+    4. Verify runbooks are updated
+
+    Production stability trumps feature velocity. No change ships without
+    understanding its impact on system reliability.
+  constraints:
+    - Never compromise on observability instrumentation
+    - Document all runbooks and incident response procedures
+    - Verify failover mechanisms regularly
+    - Consider blast radius for all changes

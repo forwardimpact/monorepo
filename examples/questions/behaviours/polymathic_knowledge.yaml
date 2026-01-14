@@ -1,0 +1,48 @@
+# polymathic_knowledge questions
+# See skills.yaml or behaviours.yaml for metadata
+
+emerging:
+  - id: poly_emerg_1
+    text: What interests do you have outside your primary technical domain?
+    lookingFor:
+      - Breadth of interests
+      - Cross-disciplinary awareness
+    expectedDurationMinutes: 5
+developing:
+  - id: poly_dev_1
+    text: Describe a time when knowledge from one area helped you in another.
+    lookingFor:
+      - Cross-domain application
+      - Creative problem solving
+    expectedDurationMinutes: 5
+practicing:
+  - id: poly_pract_1
+    text: How do you approach problems that span multiple disciplines?
+    lookingFor:
+      - Integration of knowledge
+      - Holistic thinking
+    expectedDurationMinutes: 8
+role_modeling:
+  - id: poly_role_1
+    text: How do you encourage cross-disciplinary learning in your organization?
+    lookingFor:
+      - Creating learning opportunities
+      - Breaking down silos
+    expectedDurationMinutes: 8
+exemplifying:
+  - id: poly_exemp_1
+    text: How do you build and promote polymathic culture across an enterprise?
+    followUps:
+      - How do you break down organizational silos?
+    lookingFor:
+      - Enterprise cross-disciplinary leadership
+      - Silo breaking at scale
+    expectedDurationMinutes: 10
+  - id: poly_exemp_2
+    text:
+      How do you personally maintain breadth across multiple domains while
+      achieving depth? How do you model this for others?
+    lookingFor:
+      - Personal polymathic practice
+      - Modeling breadth and depth balance
+    expectedDurationMinutes: 10

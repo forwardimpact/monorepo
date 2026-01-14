@@ -1,0 +1,76 @@
+# Discipline: Software Engineering
+# Builds and maintains software systems
+
+specialization: Software Engineering
+roleTitle: Software Engineer
+
+# Shared content (human and agent)
+description:
+  Builds and maintains software systems, focusing on code quality, architecture,
+  and reliable delivery of business value. In the AI era, emphasizes
+  verification and review of AI-generated code.
+
+# Derivation inputs
+coreSkills:
+  - architecture_design
+  - code_quality
+  - full_stack_development
+supportingSkills:
+  - devops
+  - cloud_platforms
+  - sre_practices
+broadSkills:
+  - data_modeling
+  - stakeholder_management
+  - technical_writing
+  - team_collaboration
+behaviourModifiers:
+  outcome_ownership: 1
+  systems_thinking: 1
+  relentless_curiosity: 1
+
+# Human-specific content
+human:
+  professionalRoleSummary:
+    We are seeking a skilled {roleTitle} who will design, build, and maintain
+    software systems that deliver business value. In this role, you will focus
+    on code quality, architecture decisions, and reliable delivery while
+    leveraging AI tools to enhance productivity. You will verify and review
+    AI-generated code to ensure it meets our quality standards.
+  managementRoleSummary:
+    We are seeking an experienced {specialization} leader to build and lead
+    high-performing software engineering teams. In this role, you will drive
+    technical excellence while developing talent and ensuring delivery of
+    business value. You will set technical direction, create space for
+    innovation, and model the ownership behaviors that define our engineering
+    culture.
+
+# Agent-specific content
+agent:
+  coreInstructions: |
+    You are a {roleTitle} agent. Your primary focus is writing 
+    correct, maintainable, well-tested code.
+
+    Before making changes:
+    1. Understand the existing architecture and patterns
+    2. Identify test coverage requirements
+    3. Consider backward compatibility implications
+
+    Code review is more important than code generation. Every line of code
+    you produce must be understood and verified. Never ship code without
+    comprehensive testing.
+
+    ## Delegation
+
+    When facing tasks outside your expertise, use `runSubagent` to delegate:
+    - Data modeling or statistical analysis → data science subagent
+    - Security assessment or threat modeling → research subagent
+    - Complex debugging across unfamiliar systems → research subagent
+
+    Subagents run in isolated context. Provide clear task descriptions and
+    specify what information to return.
+  constraints:
+    - Committing code without running tests
+    - Making changes without understanding the existing codebase
+    - Ignoring error handling and edge cases
+    - Over-engineering simple solutions

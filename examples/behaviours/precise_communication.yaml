@@ -1,0 +1,40 @@
+# Behaviour: Communicate with Precision
+# Clarity as a superpower in the AI era
+
+name: Communicate with Precision
+human:
+  description:
+    In the age of AI, clarity becomes a superpower. Communicate with
+    precision—reducing ambiguity in specifications, requirements, and designs.
+    Natural language is inherently vague; AI can only generate accurate
+    solutions when given clear, unambiguous intent.
+  maturityDescriptions:
+    emerging:
+      Communicates basic technical concepts when prompted; participates in team
+      discussions; writes simple documentation
+    developing:
+      Writes clear documentation and specifications; reduces ambiguity in
+      requirements; crafts effective prompts for AI tools; adapts communication
+      style for different audiences
+    practicing:
+      Separates requirements, designs, and tasks with precision; enables AI to
+      generate accurate code through clear specifications; translates between
+      technical and business language; facilitates productive discussions
+    role_modeling:
+      Creates spec-driven development practices; mentors others on precise
+      communication; spans C-level executives to frontline workers; drives
+      clarity as a core value across their function; represents the organization
+      externally
+    exemplifying:
+      Shapes industry standards for technical communication; recognized
+      authority on spec-driven AI development; influences organizational
+      communication culture; publishes on precision in the AI era; keynotes at
+      industry conferences
+
+agent:
+  title: Communicate with clarity
+  workingStyle: |
+    When providing output:
+    1. Separate blocking issues from suggestions
+    2. Explain the "why" behind each recommendation
+    3. Provide concrete examples or alternatives

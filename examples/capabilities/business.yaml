@@ -1,0 +1,251 @@
+name: Business
+emoji: 💼
+displayOrder: 8
+description: |
+  Understanding and driving business value.
+  Includes domain knowledge, stakeholder management, strategic thinking,
+  and translating between technical and business contexts.
+transitionChecklists:
+  plan_to_code:
+    foundational:
+      - Business context is understood
+      - User needs are identified
+    working:
+      - Business requirements are documented
+      - Stakeholder expectations are aligned
+      - Value proposition is clear
+    practitioner:
+      - Business impact is quantified
+      - Strategic alignment is verified
+      - Cross-team business needs are considered
+    expert:
+      - Enterprise business goals are addressed
+      - Strategic technology decisions are aligned
+      - Executive stakeholders are engaged
+  code_to_review:
+    foundational:
+      - Solution addresses the stated business need
+      - User-facing behavior is correct
+      - Business requirements are met
+    working:
+      - Stakeholder feedback is incorporated
+      - Business value is delivered
+      - Success metrics can be measured
+    practitioner:
+      - Cross-team business requirements are met
+      - ROI is demonstrable
+      - Business risks are mitigated
+    expert:
+      - Strategic business outcomes are enabled
+      - Enterprise value is created
+      - Business innovation is demonstrated
+professionalResponsibilities:
+  awareness:
+    Understand the business context for your assigned work and communicate
+    progress clearly when asked
+  foundational:
+    Connect your technical work to business outcomes, engage with stakeholders
+    to clarify requirements
+  working:
+    Translate business needs into technical solutions, manage stakeholder
+    expectations, and articulate technical decisions in business terms
+  practitioner:
+    Drive business outcomes through technical solutions across your area,
+    influence product roadmaps, and partner effectively with business
+    stakeholders
+  expert:
+    Shape technology-driven business strategy, represent technical perspective
+    at executive level, and be recognized as a bridge between engineering and
+    business
+managementResponsibilities:
+  awareness:
+    Understand business context and communicate team progress to stakeholders
+    with guidance
+  foundational:
+    Align team priorities with business objectives, manage stakeholder
+    relationships, and communicate team impact
+  working:
+    Translate business strategy into team objectives, own stakeholder
+    relationships, and ensure team delivers business value
+  practitioner:
+    Partner with business leaders to shape strategy for your area, influence
+    direction across teams, and deliver measurable business impact
+  expert:
+    Shape technology-driven business strategy, represent engineering at
+    executive level, and own strategic business outcomes
+skills:
+  - id: stakeholder_management
+    name: Stakeholder Management
+    isHumanOnly: true
+    human:
+      description:
+        Building relationships with and managing expectations of stakeholders
+        across the organization, from frontline workers to C-level executives
+      levelDescriptions:
+        awareness:
+          You identify key stakeholders for your work and communicate status
+          when asked. You understand that different stakeholders have different
+          needs.
+        foundational:
+          You proactively update stakeholders on progress, handle basic
+          expectation setting, and escalate concerns appropriately. You build
+          rapport with regular collaborators.
+        working:
+          You manage multiple stakeholders with different interests, navigate
+          conflicting priorities diplomatically, and build trust through
+          consistent delivery. You tailor communication to each audience.
+        practitioner:
+          You influence senior stakeholders effectively across your area, manage
+          complex stakeholder landscapes with competing agendas, build trust
+          rapidly with new stakeholders, and shield teams from organizational
+          friction.
+        expert:
+          You shape stakeholder practices across the business unit. You manage
+          executive relationships, represent engineering at the highest levels,
+          and are recognized for exceptional stakeholder partnerships.
+  - id: technical_writing
+    name: Technical Writing
+    human:
+      description:
+        Creating clear, accurate, and useful technical documentation. Good specs
+        enable AI to generate accurate solutions; poor specs lead to poor
+        results.
+      levelDescriptions:
+        awareness:
+          You document your own work following team templates and standards. You
+          keep code comments current and write basic README content.
+        foundational:
+          You write clear READMEs, inline documentation, and technical guides.
+          You update existing docs when making changes and ensure documentation
+          matches implementation.
+        working:
+          You create comprehensive documentation for complex systems. You write
+          precise specifications that enable accurate AI-generated code,
+          establish documentation practices for your projects, and ensure docs
+          are discoverable.
+        practitioner:
+          You define documentation standards across teams in your area, create
+          documentation systems and templates, train engineers on spec-driven
+          development, and ensure documentation quality across projects.
+        expert:
+          You shape documentation culture and standards across the business
+          unit. You innovate on documentation approaches, are recognized for
+          exceptional technical writing clarity, and lead documentation
+          initiatives.
+    agent:
+      name: technical-writing
+      description: >
+        Guide for creating clear technical documentation. Use when writing
+        READMEs,
+
+        API docs, specifications, or any technical content that needs to be
+        clear
+
+        and accurate.
+      body: |
+        # Technical Writing
+
+        ## When to use this skill
+
+        Use this skill when:
+        - Writing README files
+        - Creating API documentation
+        - Writing technical specifications
+        - Documenting code and systems
+        - Creating guides and tutorials
+
+        ## Writing Principles
+
+        ### Clarity First
+        - Use simple, direct language
+        - One idea per sentence
+        - Active voice over passive
+        - Avoid jargon unless defined
+        - Be specific, not vague
+
+        ### Know Your Audience
+        - What do they already know?
+        - What do they need to accomplish?
+        - What's their skill level?
+        - What questions will they have?
+
+        ### Structure for Scanning
+        - Lead with the most important information
+        - Use headings and subheadings
+        - Keep paragraphs short
+        - Use lists for multiple items
+        - Highlight key terms
+
+        ## Document Types
+
+        ### README
+        - What is this project?
+        - How do I get started?
+        - How do I use it?
+        - Where do I get help?
+
+        ### API Documentation
+        - Endpoint description
+        - Parameters and types
+        - Request/response examples
+        - Error codes and handling
+
+        ### Technical Specification
+        - Problem statement
+        - Proposed solution
+        - Alternatives considered
+        - Implementation plan
+
+        ### Tutorial
+        - Clear learning objective
+        - Prerequisites listed
+        - Step-by-step instructions
+        - Expected outcomes shown
+
+        ## README Template
+
+        ```markdown
+        # Project Name
+
+        Brief description of what this project does.
+
+        ## Getting Started
+
+        ### Prerequisites
+        - Required software and versions
+
+        ### Installation
+        Step-by-step installation instructions.
+
+        ### Quick Start
+        Minimal example to get running.
+
+        ## Usage
+        Common use cases with examples.
+
+        ## Contributing
+        How to contribute to the project.
+
+        ## License
+        License information.
+        ```
+
+        ## Code Examples
+
+        Good examples are:
+        - Complete and runnable
+        - Minimal but realistic
+        - Copy-pasteable
+        - Annotated with comments
+        - Tested and verified
+
+        ## Technical Writing Checklist
+
+        - [ ] Purpose is clear in first paragraph
+        - [ ] Audience is identified
+        - [ ] Prerequisites are listed
+        - [ ] Examples are tested and work
+        - [ ] Technical terms are defined
+        - [ ] Structure supports scanning
+        - [ ] No ambiguous pronouns
+        - [ ] Updated when code changes

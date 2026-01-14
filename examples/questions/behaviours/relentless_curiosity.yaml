@@ -1,0 +1,51 @@
+# relentless_curiosity questions
+# See skills.yaml or behaviours.yaml for metadata
+
+emerging:
+  - id: cur_emerg_1
+    text: What new technology or concept have you learned recently?
+    lookingFor:
+      - Evidence of learning
+      - Interest beyond immediate work
+    expectedDurationMinutes: 5
+developing:
+  - id: cur_dev_1
+    text:
+      Tell me about a time when you went beyond the requirements to understand
+      something deeper.
+    lookingFor:
+      - Self-directed exploration
+      - Root cause thinking
+    expectedDurationMinutes: 5
+practicing:
+  - id: cur_pract_1
+    text: How do you stay current with developments in your field?
+    lookingFor:
+      - Systematic learning approach
+      - Breadth of interests
+    expectedDurationMinutes: 5
+role_modeling:
+  - id: cur_role_1
+    text: How do you foster a culture of curiosity in your team?
+    lookingFor:
+      - Creating learning environments
+      - Encouraging exploration
+    expectedDurationMinutes: 8
+exemplifying:
+  - id: cur_exemp_1
+    text:
+      How do you shape organizational culture around curiosity and continuous
+      learning at an enterprise level?
+    followUps:
+      - How do you sponsor experimental initiatives?
+    lookingFor:
+      - Enterprise learning culture leadership
+      - Sponsoring innovation and experimentation
+    expectedDurationMinutes: 10
+  - id: cur_exemp_2
+    text:
+      How do you influence industry practices around innovation and exploration?
+    lookingFor:
+      - External thought leadership
+      - Industry-level influence on learning culture
+    expectedDurationMinutes: 10

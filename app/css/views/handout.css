@@ -1,0 +1,30 @@
+/**
+ * Handout View Styles
+ *
+ * Handout-specific styles that override slide view.
+ */
+
+@layer handout {
+  .handout-view {
+    padding: var(--space-lg);
+  }
+
+  .handout-view .detail-page {
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-xl);
+    border-bottom: 3px solid var(--color-border);
+  }
+
+  .handout-view .detail-page:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .handout-section-title {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--color-primary);
+  }
+}

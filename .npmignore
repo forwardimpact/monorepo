@@ -1,0 +1,19 @@
+# User data
+data/
+data
+
+# Development files
+tmp/
+PLAN*.md
+SCRATCHPAD*.md
+eslint.config.js
+
+# Test files
+tests/
+test-results/
+playwright-report/
+playwright.config.js
+
+# Documentation
+docs/
+.github/

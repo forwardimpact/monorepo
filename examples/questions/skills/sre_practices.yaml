@@ -1,0 +1,44 @@
+# sre_practices questions
+# See skills.yaml or behaviours.yaml for metadata
+
+awareness:
+  - id: sre_aware_1
+    text: What do you understand by SLIs, SLOs, and error budgets?
+    lookingFor:
+      - Basic SRE concepts understanding
+      - Awareness of reliability metrics
+    expectedDurationMinutes: 5
+foundational:
+  - id: sre_found_1
+    text: How would you set up basic monitoring and alerting for a service?
+    lookingFor:
+      - Understanding of observability basics
+      - Experience with monitoring tools
+    expectedDurationMinutes: 8
+working:
+  - id: sre_work_1
+    text:
+      Describe how you've handled an incident in production. What was your
+      process?
+    followUps:
+      - What did you learn from it?
+    lookingFor:
+      - Incident response experience
+      - Post-incident improvement
+    expectedDurationMinutes: 10
+practitioner:
+  - id: sre_pract_1
+    text: How do you balance reliability with feature velocity in your team?
+    lookingFor:
+      - Error budget management
+      - Pragmatic reliability decisions
+    expectedDurationMinutes: 8
+expert:
+  - id: sre_expert_1
+    text:
+      How have you established reliability culture and practices across an
+      organization?
+    lookingFor:
+      - Organizational reliability leadership
+      - Systematic reliability improvement
+    expectedDurationMinutes: 10

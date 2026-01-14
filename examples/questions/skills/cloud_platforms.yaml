@@ -1,0 +1,48 @@
+# cloud_platforms questions
+# See skills.yaml for metadata
+
+awareness:
+  - id: cp_aware_1
+    text: What cloud platforms are you familiar with?
+    lookingFor:
+      - Basic cloud awareness
+      - Understanding of cloud services
+    expectedDurationMinutes: 5
+
+foundational:
+  - id: cp_found_1
+    text: How would you deploy a simple application to the cloud?
+    lookingFor:
+      - Basic deployment knowledge
+      - Understanding of cloud resources
+    expectedDurationMinutes: 8
+
+working:
+  - id: cp_work_1
+    text:
+      Describe a cloud architecture you've designed. What services did you use
+      and why?
+    followUps:
+      - How did you handle cost optimization?
+    lookingFor:
+      - Practical cloud architecture experience
+      - Service selection rationale
+    expectedDurationMinutes: 10
+
+practitioner:
+  - id: cp_pract_1
+    text:
+      How do you approach cloud cost optimization and governance for your team?
+    lookingFor:
+      - Cloud cost management
+      - Governance practices
+    expectedDurationMinutes: 8
+
+expert:
+  - id: cp_expert_1
+    text:
+      How have you shaped cloud strategy and practices across an organization?
+    lookingFor:
+      - Enterprise cloud strategy
+      - Multi-cloud or hybrid considerations
+    expectedDurationMinutes: 10

@@ -1,0 +1,15 @@
+# User data
+data/
+data
+
+# Development files
+tmp/
+PLAN*.md
+SCRATCHPAD*.md
+
+# Test files
+test-results/
+playwright-report/
+
+# Package files
+node_modules/

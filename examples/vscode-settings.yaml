@@ -1,0 +1,22 @@
+# VS Code Settings for Agent Features
+# These settings are exported when generating agent configurations
+# to ensure the target workspace has the required VS Code configuration.
+
+# Enable agent mode in chat
+chat.agent.enabled: true
+
+# Maximum requests per agent session (high limit for complex tasks)
+chat.agent.maxRequests: 999
+
+# Enable edits v2 for improved code editing
+chat.edits2.enabled: true
+
+# Enable extension unification for consistent behavior
+chat.extensionUnification.enabled: true
+
+# Enable custom agents to be used as subagents
+# Required for multi-agent workflows with handoffs
+chat.customAgentInSubagent.enabled: true
+
+# Enable Claude skills for enhanced agent capabilities
+chat.useClaudeSkills: true

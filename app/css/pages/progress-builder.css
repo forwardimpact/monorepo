@@ -1,0 +1,274 @@
+/**
+ * Career Progress Page
+ *
+ * Comparison radars, progression tables, change indicators.
+ */
+
+@layer pages {
+  .progress-detail-page {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Comparison radars */
+  .comparison-radars {
+    display: flex;
+    gap: var(--space-xl);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .comparison-radar .radar-legend {
+    display: flex;
+    gap: var(--space-lg);
+    justify-content: center;
+    margin-bottom: var(--space-md);
+  }
+
+  .radar-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+  }
+
+  .radar-legend .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+  }
+
+  /* Progression tables */
+  .progression-tables {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .progression-group,
+  .comparison-group {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .progression-group-header,
+  .comparison-group-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--color-bg);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+  }
+
+  .group-icon {
+    font-size: var(--font-size-lg);
+  }
+
+  .collapsible-header {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .collapsible-header:hover {
+    background: var(--color-border);
+  }
+
+  .collapse-indicator {
+    margin-left: auto;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .no-change-group .progression-group-header,
+  .same-group .comparison-group-header {
+    color: var(--color-text-muted);
+  }
+
+  /* Progression table rows */
+  .progression-table .change-up {
+    background: rgba(16, 185, 129, 0.05);
+  }
+
+  .progression-table .change-down {
+    background: rgba(239, 68, 68, 0.05);
+  }
+
+  .change-cell {
+    font-weight: 600;
+  }
+
+  .change-cell.change-up {
+    color: var(--color-success);
+  }
+
+  .change-cell.change-down {
+    color: var(--color-error);
+  }
+
+  .change-cell.change-same {
+    color: var(--color-text-muted);
+  }
+
+  .change-cell.change-gained {
+    color: var(--color-info);
+  }
+
+  .change-cell.change-lost {
+    color: var(--color-warning);
+  }
+
+  .change-gained {
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  .change-lost {
+    background: rgba(245, 158, 11, 0.05);
+  }
+
+  .gained-badge,
+  .lost-badge {
+    display: inline-block;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--radius-sm);
+    margin-left: var(--space-xs);
+    vertical-align: middle;
+  }
+
+  .gained-badge {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--color-info);
+  }
+
+  .lost-badge {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--color-warning);
+  }
+
+  .gained-header {
+    color: var(--color-info);
+  }
+
+  .lost-header {
+    color: var(--color-warning);
+  }
+
+  .change-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  /* Level cell with dots and text */
+  td.level-cell {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  td.level-cell .level-bar {
+    display: inline-flex;
+    justify-content: center;
+  }
+
+  td.level-cell .level-label {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-top: 2px;
+  }
+
+  /* Preview paths in selection page */
+  .preview-paths {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+  }
+
+  .path-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .path-icon {
+    font-size: var(--font-size-lg);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 1280px) {
+    .comparison-radars {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .progression-table .level-label {
+      display: none;
+    }
+  }
+
+  /* Comparison section */
+  .comparison-selectors {
+    display: flex;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-lg);
+  }
+
+  .comparison-selectors .form-group {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .comparison-selectors label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: var(--space-xs);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .comparison-selectors .form-select {
+    width: 100%;
+  }
+
+  .comparison-results {
+    margin-top: var(--space-md);
+  }
+
+  .comparison-placeholder {
+    padding: var(--space-xl);
+    text-align: center;
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--color-border);
+  }
+
+  .comparison-error {
+    padding: var(--space-lg);
+    text-align: center;
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-muted);
+  }
+
+  .comparison-result {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @media (max-width: 1280px) {
+    .comparison-selectors {
+      flex-direction: column;
+    }
+
+    .comparison-selectors .form-group {
+      min-width: 100%;
+    }
+  }
+}

@@ -1,0 +1,134 @@
+/**
+ * Job Builder Page Styles
+ *
+ * Job builder form and preview components.
+ */
+
+@layer pages {
+  .job-builder-form {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--space-xl);
+  }
+
+  .job-preview {
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-top: var(--space-lg);
+  }
+
+  .job-preview-title {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-sm);
+  }
+
+  .job-preview-valid {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--color-success);
+  }
+
+  .job-preview-invalid {
+    color: var(--color-text-muted);
+  }
+
+  /* Radar charts */
+  .radar-container {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  .radar-title {
+    text-align: center;
+    margin-bottom: var(--space-md);
+  }
+
+  .radar-chart-wrapper {
+    display: flex;
+    justify-content: center;
+    overflow: visible;
+  }
+
+  @media (max-width: 640px) {
+    .radar-container {
+      overflow-x: auto;
+    }
+  }
+
+  /* Driver coverage */
+  .driver-coverage {
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  .driver-coverage-item {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .driver-coverage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+  }
+
+  .driver-coverage-name {
+    font-weight: 500;
+  }
+
+  .driver-coverage-score {
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+
+  /* Job description section */
+  .job-description-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .job-description-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+  }
+
+  .job-description-header .text-muted {
+    margin: 0;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .job-description-textarea {
+    width: 100%;
+    min-height: 400px;
+    padding: var(--space-md);
+    font-family:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    resize: vertical;
+    color: var(--color-text);
+  }
+
+  .job-description-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+}

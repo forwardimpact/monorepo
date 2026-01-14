@@ -1,0 +1,56 @@
+/**
+ * Base Styles
+ *
+ * Typography, links, and body defaults using design tokens.
+ * Import after tokens.css and reset.css.
+ */
+
+@layer base {
+  body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    color: var(--color-text);
+    background-color: var(--color-bg);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-bottom: var(--space-md);
+  }
+
+  h1 {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: var(--font-size-2xl);
+  }
+
+  h3 {
+    font-size: var(--font-size-xl);
+  }
+
+  h4 {
+    font-size: var(--font-size-lg);
+  }
+
+  p {
+    margin-bottom: var(--space-md);
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--color-primary-dark);
+    text-decoration: underline;
+  }
+}

@@ -1,0 +1,76 @@
+# Stages - What part of the lifecycle?
+#
+# Defines the three stages of the engineering lifecycle with their tools,
+# handoffs, and constraints. Used for both human checklists and AI agent
+# profile generation.
+#
+# Entry criteria define what must be complete before starting work in a stage.
+# Exit criteria are implicit: they equal the entry criteria of the next stage.
+#
+# See concept/lifecycle.md for full documentation.
+
+- id: plan
+  name: Plan
+  emoji: "📋"
+  description:
+    Research & Design - Understand the problem, gather context, design the
+    solution
+  availableTools:
+    - search
+    - web/fetch
+    - search/codebase
+    - read
+    - todos
+  handoffs:
+    - targetStage: code
+      label: Start Coding
+      prompt: Implement the planned changes.
+  constraints:
+    - Do not make code edits
+    - Do not execute commands
+    - Research thoroughly before proposing solutions
+  entryCriteria: [] # Entry stage, no prior work expected
+
+- id: code
+  name: Code
+  emoji: "💻"
+  description: Build & Iterate - Implement, test, refine
+  availableTools:
+    - search
+    - search/codebase
+    - read
+    - edit
+    - todos
+  handoffs:
+    - targetStage: review
+      label: Request Review
+      prompt: Review the implemented changes.
+  constraints: []
+  entryCriteria:
+    - Problem statement documented
+    - Approach selected with rationale
+    - Implementation plan exists
+
+- id: review
+  name: Review
+  emoji: "✅"
+  description: Verify & Ship - Review, approve, deploy, document
+  availableTools:
+    - search
+    - search/codebase
+    - read
+    - todos
+  handoffs:
+    - targetStage: code
+      label: Request Changes
+      prompt: Address the review feedback.
+    - targetStage: plan
+      label: Needs Replanning
+      prompt: The implementation needs replanning.
+  constraints:
+    - Do not make code edits
+    - Prioritize actionable feedback over exhaustive lists
+  entryCriteria:
+    - Implementation complete
+    - Tests written and passing
+    - Self-review completed

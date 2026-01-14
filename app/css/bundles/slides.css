@@ -1,0 +1,40 @@
+/**
+ * Slides Bundle
+ *
+ * Entry point for slides.html.
+ * Includes app styles plus slide-specific layers.
+ */
+
+/* Layer order declaration - must be first */
+@layer tokens, reset, base, components, utilities, pages, slides, print;
+
+/* Foundation */
+@import "../tokens.css" layer(tokens);
+@import "../reset.css" layer(reset);
+@import "../base.css" layer(base);
+
+/* Components */
+@import "../components/layout.css" layer(components);
+@import "../components/surfaces.css" layer(components);
+@import "../components/typography.css" layer(components);
+@import "../components/badges.css" layer(components);
+@import "../components/buttons.css" layer(components);
+@import "../components/forms.css" layer(components);
+@import "../components/tables.css" layer(components);
+@import "../components/progress.css" layer(components);
+@import "../components/states.css" layer(components);
+
+/* Utilities */
+@import "../components/utilities.css" layer(utilities);
+
+/* Pages (for shared formatters) */
+@import "../pages/detail.css" layer(pages);
+
+/* Slide views */
+@import "../views/slide-animations.css" layer(slides);
+@import "../views/slide-base.css" layer(slides);
+@import "../views/slide-sections.css" layer(slides);
+@import "../views/slide-tables.css" layer(slides);
+
+/* Print */
+@import "../views/print.css" layer(print);

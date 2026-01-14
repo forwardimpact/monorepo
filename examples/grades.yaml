@@ -1,0 +1,118 @@
+# Grades - What career level?
+# Base skill levels and behaviour maturities by seniority
+# See domain-concepts.instructions.md for level progressions
+
+- id: L1
+  professionalTitle: Engineer I
+  managementTitle: Associate Manager
+  typicalExperienceRange: "0-2"
+  ordinalRank: 1
+  qualificationSummary:
+    Entry-level position for those new to the field or transitioning careers.
+    Bachelor's degree or equivalent practical experience.
+  baseSkillLevels:
+    primary: foundational
+    secondary: awareness
+    broad: awareness
+  baseBehaviourMaturity: emerging
+  expectations:
+    impactScope:
+      Individual tasks and small features with guidance from senior team members
+    autonomyExpectation:
+      Work with close supervision and ask for help when encountering challenges
+    influenceScope:
+      Contribute to team discussions and learn from experienced colleagues
+    complexityHandled:
+      Standard tasks with established patterns and clear requirements
+
+- id: L2
+  professionalTitle: Engineer II
+  managementTitle: Manager
+  typicalExperienceRange: "2-5"
+  ordinalRank: 2
+  qualificationSummary:
+    2-5 years of relevant experience. Demonstrated ability to complete tasks
+    independently and contribute effectively to team projects.
+  baseSkillLevels:
+    primary: foundational
+    secondary: foundational
+    broad: awareness
+  baseBehaviourMaturity: emerging
+  expectations:
+    impactScope: Complete features and components delivered independently
+    autonomyExpectation:
+      Work independently on familiar problems while seeking guidance on novel
+      situations
+    influenceScope:
+      Help onboard new team members and participate actively in code reviews
+    complexityHandled: Moderate complexity with some ambiguity in requirements
+
+- id: L3
+  professionalTitle: Senior Engineer
+  managementTitle: Senior Manager
+  typicalExperienceRange: "5-8"
+  ordinalRank: 3
+  qualificationSummary:
+    5-8 years of relevant experience. Proven track record of leading technical
+    initiatives and mentoring team members.
+  baseSkillLevels:
+    primary: practitioner
+    secondary: working
+    broad: foundational
+  baseBehaviourMaturity: developing
+  expectations:
+    impactScope:
+      Large features and technical initiatives including leading small projects
+    autonomyExpectation:
+      Do self-directed work while seeking input on strategic decisions
+    influenceScope: Shape team practices and mentor junior engineers
+    complexityHandled: High complexity with comfort navigating ambiguity
+
+- id: L4
+  professionalTitle: Staff Engineer
+  managementTitle: Director
+  typicalExperienceRange: "8-12"
+  ordinalRank: 4
+  qualificationSummary:
+    8-12 years of relevant experience. Extensive experience leading complex
+    technical projects with multi-team impact.
+  baseSkillLevels:
+    primary: expert
+    secondary: practitioner
+    broad: working
+  baseBehaviourMaturity: practicing
+  breadthCriteria:
+    practitioner: 4
+  expectations:
+    impactScope: Multi-team initiatives with organizational impact
+    autonomyExpectation: Set own direction within broader strategic goals
+    influenceScope:
+      Influence multiple teams and be recognized as a domain expert
+    complexityHandled:
+      Very high complexity driving through ambiguity to deliver results
+
+- id: L5
+  professionalTitle: Principal Engineer
+  managementTitle: VP of Engineering
+  typicalExperienceRange: "12+"
+  ordinalRank: 5
+  qualificationSummary:
+    12+ years of relevant experience. Deep technical expertise with a proven
+    track record of organization-wide technical leadership.
+  baseSkillLevels:
+    primary: expert
+    secondary: expert
+    broad: practitioner
+  baseBehaviourMaturity: role_modeling
+  breadthCriteria:
+    practitioner: 5
+    expert: 2
+  expectations:
+    impactScope:
+      Organization-wide technical strategy and architectural direction
+    autonomyExpectation:
+      Define strategic direction and be accountable for outcomes
+    influenceScope:
+      Shape organizational practices and maintain external industry visibility
+    complexityHandled:
+      Organizational-scale complexity creating clarity from chaos

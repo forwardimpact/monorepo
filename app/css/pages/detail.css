@@ -1,0 +1,59 @@
+/**
+ * Detail Page Styles
+ *
+ * Shared styles for entity detail pages.
+ */
+
+@layer pages {
+  /* Expectation items */
+  .expectation-item {
+    background: var(--color-bg);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--color-primary);
+  }
+
+  .expectation-value {
+    font-weight: 500;
+  }
+
+  /* Question groups */
+  .question-group {
+    margin-bottom: var(--space-lg);
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+  }
+
+  .question-group-title {
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .question-list {
+    margin-top: var(--space-md);
+  }
+
+  .question-text {
+    padding: var(--space-sm) 0;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* Links list */
+  .links-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .links-list a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+}

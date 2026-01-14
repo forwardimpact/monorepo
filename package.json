@@ -1,0 +1,68 @@
+{
+  "name": "@forwardimpact/pathway",
+  "version": "0.1.0",
+  "description": "Engineering Pathway framework for human and AI collaboration",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forwardimpact/pathway"
+  },
+  "keywords": [
+    "career",
+    "competency",
+    "framework",
+    "hr",
+    "skills",
+    "talent",
+    "ai-agent",
+    "engineering"
+  ],
+  "type": "module",
+  "main": "app/model/loader.js",
+  "bin": {
+    "pathway": "./bin/pathway.js"
+  },
+  "files": [
+    "bin/",
+    "app/",
+    "examples/"
+  ],
+  "exports": {
+    ".": "./app/model/loader.js",
+    "./derivation": "./app/model/derivation.js",
+    "./interview": "./app/model/interview.js",
+    "./levels": "./app/model/levels.js",
+    "./loader": "./app/model/loader.js",
+    "./matching": "./app/model/matching.js",
+    "./types": "./app/model/levels.js",
+    "./validation": "./app/model/validation.js"
+  },
+  "scripts": {
+    "start": "node bin/pathway.js serve",
+    "prestart": "npm run generate-index",
+    "check": "npm run format && npm run lint && npm run test",
+    "check:fix": "npm run format:fix && npm run lint:fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "test": "find ./tests -name '*.test.js' | xargs node --test",
+    "test:e2e": "npx playwright test",
+    "validate": "node bin/pathway.js --validate",
+    "generate-index": "node bin/pathway.js --generate-index",
+    "pathway": "node bin/pathway.js",
+    "demo": "node scripts/demo.js"
+  },
+  "dependencies": {
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.7.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
