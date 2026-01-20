@@ -126,28 +126,29 @@ export async function runJobCommand({ data, args, options }) {
     return;
   }
 
-  // --checklist: Show checklist for a specific handoff
+  // --checklist: Show checklist for a specific stage
   if (options.checklist) {
-    const validHandoffs = ["plan_to_code", "code_to_review"];
-    if (!validHandoffs.includes(options.checklist)) {
-      console.error(`Invalid handoff: ${options.checklist}`);
-      console.error(`Available: ${validHandoffs.join(", ")}`);
+    const validStages = ["plan", "code"];
+    if (!validStages.includes(options.checklist)) {
+      console.error(`Invalid stage: ${options.checklist}`);
+      console.error(`Available: ${validStages.join(", ")}`);
       process.exit(1);
     }
 
     const checklist = deriveChecklist({
-      handoff: options.checklist,
+      stageId: options.checklist,
       skillMatrix: view.skillMatrix,
+      skills: data.skills,
       capabilities: data.capabilities,
     });
 
     if (checklist.length === 0) {
-      console.log(`\nNo checklist items for ${options.checklist}\n`);
+      console.log(`\nNo checklist items for ${options.checklist} stage\n`);
       return;
     }
 
-    const handoffLabel = options.checklist.replace(/_/g, " → ");
-    console.log(`\n# ${view.title} — ${handoffLabel}\n`);
+    const stageLabel = options.checklist.charAt(0).toUpperCase() + options.checklist.slice(1);
+    console.log(`\n# ${view.title} — ${stageLabel} Stage Checklist\n`);
     console.log(formatChecklistMarkdown(checklist));
     console.log("");
     return;

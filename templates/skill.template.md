@@ -6,20 +6,26 @@ description: |
 
 # {{title}}
 
-{{#applicability.length}}
-## When to Use This Skill
+## Stage Guidance
 
-{{#applicability}}
+{{#stages}}
+### {{stageName}} Stage
+
+**Focus:** {{focus}}
+
+**Activities:**
+{{#activities}}
 - {{.}}
-{{/applicability}}
+{{/activities}}
 
-{{/applicability.length}}
-{{{guidance}}}
-
-{{#verificationCriteria.length}}
-## Verification Criteria
-
-{{#verificationCriteria}}
+**Ready for {{nextStageName}} when:**
+{{#ready}}
 - [ ] {{.}}
-{{/verificationCriteria}}
-{{/verificationCriteria.length}}
+{{/ready}}
+
+{{/stages}}
+{{#reference}}
+## Reference
+
+{{{reference}}}
+{{/reference}}

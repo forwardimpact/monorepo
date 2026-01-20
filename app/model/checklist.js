@@ -1,116 +1,76 @@
 /**
  * Checklist Derivation
  *
- * Checklists are derived from:
- * Checklist = Handoff × Skills Matrix × Capability Checklists
+ * Checklists are derived from skills with agent.stages.{stage}.ready criteria.
+ * Each skill defines its own readiness criteria for stage transitions.
  *
- * The skill matrix determines which capability levels are relevant,
- * and the capability checklists provide items for each level.
+ * Checklist = Stage × Skill Matrix × Skill Ready Criteria
  */
-
-import { SKILL_LEVEL_ORDER, getSkillLevelIndex } from "./levels.js";
 
 /**
- * Get the maximum skill level for a capability from the skill matrix
- * @param {Array} skillMatrix - Derived skill matrix with entries like { skillId, level, capability }
- * @param {string} capabilityId - Capability ID to check
- * @returns {string|null} Maximum skill level or null if no skills in this capability
+ * Map from stage ID to the stage whose ready criteria should be shown
+ * (i.e., what must be ready before leaving this stage)
  */
-export function getMaxCapabilityLevel(skillMatrix, capabilityId) {
-  const skillsInCapability = skillMatrix.filter(
-    (entry) => entry.capability === capabilityId,
-  );
-
-  if (skillsInCapability.length === 0) {
-    return null;
-  }
-
-  // Find the highest level among skills in this capability
-  let maxIndex = -1;
-  let maxLevel = null;
-
-  for (const entry of skillsInCapability) {
-    const index = getSkillLevelIndex(entry.level);
-    if (index > maxIndex) {
-      maxIndex = index;
-      maxLevel = entry.level;
-    }
-  }
-
-  return maxLevel;
-}
+const STAGE_TO_HANDOFF = {
+  plan: "plan", // Show plan.ready before leaving plan
+  code: "code", // Show code.ready before leaving code
+  review: "review", // Show review.ready (completion criteria)
+};
 
 /**
- * Get all checklist items up to and including a given level
- * @param {Object} checklists - Capability checklists for a specific handoff
- * @param {string} maxLevel - Maximum level to include
- * @returns {string[]} Array of checklist items
+ * Derive checklist items for a specific stage
+ * Returns skills grouped by capability with their ready criteria
+ *
+ * @param {Object} params
+ * @param {string} params.stageId - Current stage (plan, code, review)
+ * @param {Array} params.skillMatrix - Derived skill matrix with skill details
+ * @param {Array} params.skills - All skills (to look up agent.stages)
+ * @param {Array} params.capabilities - All capabilities (for emoji lookup)
+ * @returns {Array<{skill: Object, capability: Object, items: string[]}>} Checklist items grouped by skill
  */
-function getChecklistItemsUpToLevel(checklists, maxLevel) {
-  if (!checklists || !maxLevel) {
+export function deriveChecklist({ stageId, skillMatrix, skills, capabilities }) {
+  const targetStage = STAGE_TO_HANDOFF[stageId];
+  if (!targetStage) {
     return [];
   }
 
-  const maxIndex = getSkillLevelIndex(maxLevel);
-  const items = [];
+  // Build skill lookup
+  const skillById = new Map(skills.map((s) => [s.id, s]));
 
-  // Include items from all levels up to and including maxLevel
-  for (const level of SKILL_LEVEL_ORDER) {
-    const levelIndex = getSkillLevelIndex(level);
-    if (levelIndex <= maxIndex && checklists[level]) {
-      items.push(...checklists[level]);
-    }
-  }
+  // Build capability lookup
+  const capabilityById = new Map(capabilities.map((c) => [c.id, c]));
 
-  return items;
-}
-
-/**
- * Derive checklist items for a specific handoff
- *
- * @param {Object} params
- * @param {string} params.handoff - Handoff type (plan_to_code, code_to_review)
- * @param {Array} params.skillMatrix - Derived skill matrix
- * @param {Array} params.capabilities - All capabilities with checklists
- * @returns {Array<{capability: Object, level: string, items: string[]}>} Checklist items grouped by capability
- */
-export function deriveChecklist({ handoff, skillMatrix, capabilities }) {
   const result = [];
 
-  for (const capability of capabilities) {
-    // Skip if no checklists defined for this capability
-    if (
-      !capability.transitionChecklists ||
-      !capability.transitionChecklists[handoff]
-    ) {
+  for (const entry of skillMatrix) {
+    const skill = skillById.get(entry.skillId);
+    if (!skill || !skill.agent || !skill.agent.stages) {
       continue;
     }
 
-    // Find the max skill level for this capability
-    const maxLevel = getMaxCapabilityLevel(skillMatrix, capability.id);
-
-    // Skip awareness level - not ready for checklists
-    if (!maxLevel || maxLevel === "awareness") {
+    const stageData = skill.agent.stages[targetStage];
+    if (!stageData || !stageData.ready || stageData.ready.length === 0) {
       continue;
     }
 
-    // Get all items up to the max level
-    const items = getChecklistItemsUpToLevel(
-      capability.transitionChecklists[handoff],
-      maxLevel,
-    );
-
-    if (items.length > 0) {
-      result.push({
-        capability: {
-          id: capability.id,
-          name: capability.name,
-          emoji: capability.emoji,
-        },
-        level: maxLevel,
-        items,
-      });
+    // Get capability for this skill
+    const capability = capabilityById.get(entry.capability);
+    if (!capability) {
+      continue;
     }
+
+    result.push({
+      skill: {
+        id: skill.id,
+        name: skill.name,
+      },
+      capability: {
+        id: capability.id,
+        name: capability.name,
+        emoji: capability.emoji,
+      },
+      items: stageData.ready,
+    });
   }
 
   return result;
@@ -118,8 +78,9 @@ export function deriveChecklist({ handoff, skillMatrix, capabilities }) {
 
 /**
  * Format a checklist for display (markdown format)
+ * Groups items by skill with capability emoji
  *
- * @param {Array<{capability: Object, level: string, items: string[]}>} checklist - Derived checklist
+ * @param {Array<{skill: Object, capability: Object, items: string[]}>} checklist - Derived checklist
  * @returns {string} Markdown-formatted checklist
  */
 export function formatChecklistMarkdown(checklist) {
@@ -127,8 +88,8 @@ export function formatChecklistMarkdown(checklist) {
     return "";
   }
 
-  const sections = checklist.map(({ capability, items }) => {
-    const header = `**${capability.emoji} ${capability.name}**`;
+  const sections = checklist.map(({ skill, capability, items }) => {
+    const header = `**${capability.emoji} ${skill.name}**`;
     const itemList = items.map((item) => `- [ ] ${item}`).join("\n");
     return `${header}\n\n${itemList}`;
   });

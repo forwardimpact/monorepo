@@ -70,14 +70,15 @@ export function prepareJobDetail({
     drivers,
   });
 
-  // Derive checklists for each handoff type
+  // Derive checklists for each stage
   const checklists = {};
   if (capabilities) {
-    const handoffTypes = ["plan_to_code", "code_to_review"];
-    for (const handoff of handoffTypes) {
-      checklists[handoff] = deriveChecklist({
-        handoff,
+    const stageIds = ["plan", "code"];
+    for (const stageId of stageIds) {
+      checklists[stageId] = deriveChecklist({
+        stageId,
         skillMatrix: job.skillMatrix,
+        skills,
         capabilities,
       });
     }

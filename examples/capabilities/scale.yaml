@@ -5,40 +5,6 @@ description: |
   Building systems that grow gracefully.
   Encompasses architecture, code quality, testing, performance,
   and technical decision-making.
-transitionChecklists:
-  plan_to_code:
-    foundational:
-      - Architectural patterns are identified
-      - Coding standards are understood
-    working:
-      - Technical approach considers scalability
-      - Design trade-offs are documented
-      - Testing strategy is defined
-    practitioner:
-      - Architecture aligns with cross-team systems
-      - Technical debt impact is assessed
-      - Performance requirements are specified
-    expert:
-      - Architecture follows enterprise patterns
-      - Strategic technical decisions are documented
-      - Long-term maintainability is considered
-  code_to_review:
-    foundational:
-      - Code follows team style guide
-      - Basic tests exist
-      - Code is readable and well-structured
-    working:
-      - Error handling is comprehensive
-      - Edge cases are tested
-      - Performance implications are considered
-    practitioner:
-      - Architectural patterns are documented
-      - Security review is completed
-      - Backward compatibility is verified
-    expert:
-      - Cross-cutting concerns are addressed
-      - Solution can scale to enterprise needs
-      - Technical decisions enable future evolution
 professionalResponsibilities:
   awareness:
     Follow established architectural patterns and coding standards with guidance
@@ -107,74 +73,58 @@ skills:
         Guide for working with cloud infrastructure and services. Use when
         deploying to cloud, selecting cloud services, configuring infrastructure,
         or solving cloud-specific challenges.
-      applicability:
-        - Deploying applications to cloud environments
-        - Selecting appropriate cloud services
-        - Configuring cloud infrastructure
-        - Optimizing cloud costs and performance
-        - Implementing cloud security best practices
-      guidance: |
+      stages:
+        plan:
+          focus: Selecting and designing cloud architecture
+          activities:
+            - Evaluate service options for the use case
+            - Plan multi-AZ deployment for availability
+            - Design IAM roles with least privilege
+            - Estimate costs and plan resource sizing
+          ready:
+            - Service selection matches requirements
+            - Architecture designed for availability
+            - Security approach documented
+            - Cost estimate prepared
+        code:
+          focus: Implementing cloud infrastructure and deployments
+          activities:
+            - Define infrastructure as code (Terraform/CloudFormation)
+            - Configure security groups and network policies
+            - Set up encryption at rest and in transit
+            - Implement monitoring and alerting
+          ready:
+            - Infrastructure defined as code
+            - Security groups properly configured
+            - Encryption enabled for data
+            - Monitoring and alerting in place
+        review:
+          focus: Validating cloud configuration and security
+          activities:
+            - Verify IAM follows least privilege
+            - Check multi-AZ deployment
+            - Validate cost controls are in place
+            - Review security configuration
+          ready:
+            - IAM permissions are minimal
+            - Multi-AZ deployment confirmed
+            - Cost controls established
+            - Security review complete
+      reference: |
         ## Service Categories
 
-        ### Compute
-        - **VMs/EC2**: Full control, any workload
-        - **Containers/ECS/GKE**: Portable, scalable applications
-        - **Serverless/Lambda**: Event-driven, pay-per-use
-        - **Kubernetes**: Container orchestration at scale
+        | Category | Services | Use Case |
+        |----------|----------|----------|
+        | Compute | EC2, ECS, Lambda | VMs, Containers, Serverless |
+        | Storage | S3, EBS, EFS | Objects, Blocks, Files |
+        | Database | RDS, DynamoDB | SQL, NoSQL |
+        | Messaging | SQS, SNS, Kinesis | Queues, Pub/Sub, Streaming |
 
-        ### Storage
-        - **Object Storage (S3/GCS)**: Unstructured data, backups, static assets
-        - **Block Storage (EBS)**: VM disks, databases
-        - **File Storage (EFS)**: Shared file systems
-        - **Archive (Glacier)**: Long-term, infrequent access
-
-        ### Databases
-        - **Managed SQL (RDS/Cloud SQL)**: Relational, ACID transactions
-        - **NoSQL (DynamoDB/Firestore)**: Flexible schema, high scale
-        - **Cache (ElastiCache/Memorystore)**: Low-latency data access
-        - **Data Warehouse (Redshift/BigQuery)**: Analytics at scale
-
-        ### Messaging
-        - **Queues (SQS/Cloud Tasks)**: Decoupled processing
-        - **Pub/Sub (SNS/Cloud Pub/Sub)**: Event distribution
-        - **Streaming (Kinesis/Dataflow)**: Real-time data processing
-
-        ## Cloud-Native Design
-
-        ### Principles
-        - Design for failure (everything fails eventually)
-        - Use managed services when possible
-        - Automate everything (infrastructure as code)
-        - Monitor and alert on all services
-
-        ### High Availability
-        - Deploy across multiple availability zones
-        - Use load balancers for traffic distribution
-        - Implement health checks and auto-healing
-        - Design for graceful degradation
-
-        ### Security
-        - Principle of least privilege for IAM
-        - Encrypt data at rest and in transit
-        - Use security groups and network policies
-        - Rotate credentials regularly
-
-        ## Cost Optimization
-
-        - Right-size instances based on actual usage
-        - Use reserved instances for predictable workloads
-        - Leverage spot/preemptible instances for fault-tolerant work
-        - Set up billing alerts and budgets
-        - Delete unused resources
-      verificationCriteria:
-        - Service selection matches requirements
-        - Multi-AZ deployment for availability
-        - Security groups properly configured
-        - IAM follows least privilege
-        - Data encrypted at rest and in transit
-        - Monitoring and alerting in place
-        - Cost controls established
-        - Infrastructure defined as code
+        ## Cloud-Native Principles
+        - Design for failure
+        - Use managed services
+        - Automate everything
+        - Monitor and alert
   - id: code_quality
     name: Code Quality & Review
     human:
@@ -208,57 +158,53 @@ skills:
     agent:
       name: code-quality-review
       description: |
-        Guide for reviewing code quality, identifying issues, and suggesting
-        improvements. Use when asked to review code, check for best practices,
-        or conduct code reviews.
-      applicability:
-        - Reviewing code for quality issues
-        - Checking code against best practices
-        - Conducting or assisting with code reviews
-        - Verifying AI-generated code before committing
-      guidance: |
-        ## Review Process
+        Guide for writing quality code and conducting code reviews. Use when
+        reviewing code, checking for best practices, or verifying AI-generated
+        code before committing.
+      stages:
+        plan:
+          focus: Planning for quality before implementation
+          activities:
+            - Review project coding conventions
+            - Plan testing strategy for the feature
+            - Identify edge cases to handle
+            - Consider error handling approach
+          ready:
+            - Coding conventions understood
+            - Testing strategy defined
+            - Edge cases identified
+            - Error handling planned
+        code:
+          focus: Writing and testing quality code
+          activities:
+            - Follow project coding conventions
+            - Write tests alongside implementation
+            - Handle error conditions appropriately
+            - Self-review before requesting review
+          ready:
+            - Code follows project conventions
+            - Changes are covered by tests
+            - Error handling is appropriate
+            - Self-review completed
+        review:
+          focus: Verifying code quality and correctness
+          activities:
+            - Verify code does what it claims
+            - Check test coverage is adequate
+            - Evaluate maintainability
+            - Ensure no code you don't understand
+          ready:
+            - Code compiles and passes all tests
+            - No obvious security vulnerabilities
+            - No unnecessary complexity
+            - Documentation updated if needed
+      reference: |
+        ## Review Checklist
 
-        ### 1. Correctness First
-
-        Before anything else, verify the code does what it claims:
-        - Does it implement the intended behavior?
-        - Are there logic errors or off-by-one bugs?
-        - Does it handle all specified requirements?
-        - Are error conditions handled appropriately?
-
-        ### 2. Test Coverage
-
-        Check that changes are properly tested:
-        - Unit tests for new functionality
-        - Edge cases and error conditions
-        - Integration tests where appropriate
-        - Tests are readable and maintainable
-
-        ### 3. Maintainability
-
-        Evaluate long-term code health:
-        - Clear naming (variables, functions, classes)
-        - Appropriate abstraction levels
-        - No unnecessary duplication (DRY)
-        - Single responsibility principle applied
-
-        ### 4. Code Style
-
-        Verify consistency with project standards:
-        - Follows project coding conventions
-        - Consistent formatting and indentation
-        - Appropriate comments for non-obvious logic
-        - Documentation updated if needed
-      verificationCriteria:
-        - Code compiles and passes all tests
-        - Changes are covered by tests
-        - No obvious security vulnerabilities
-        - Error handling is appropriate
-        - Code follows project conventions
-        - No unnecessary complexity
-        - Documentation updated if needed
-        - No code you don't fully understand
+        1. **Correctness**: Does it work as intended?
+        2. **Tests**: Is it properly tested?
+        3. **Maintainability**: Will it be easy to change?
+        4. **Style**: Does it follow conventions?
   - id: data_modeling
     name: Data Modeling
     human:
@@ -293,78 +239,49 @@ skills:
         Guide for designing database schemas, data structures, and data
         architectures. Use when designing tables, optimizing queries, or
         making decisions about data storage technologies.
-      applicability:
-        - Designing database schemas
-        - Optimizing query performance
-        - Choosing storage technologies
-        - Planning schema migrations
-        - Balancing normalization with performance
-      guidance: |
-        ## Schema Design
+      stages:
+        plan:
+          focus: Understanding data requirements and designing schema
+          activities:
+            - Gather data requirements and access patterns
+            - Choose appropriate storage technology
+            - Design normalized schema
+            - Plan indexing strategy
+          ready:
+            - Requirements understood
+            - Storage technology selected
+            - Schema design documented
+            - Index strategy planned
+        code:
+          focus: Implementing schema and migrations
+          activities:
+            - Create database migrations
+            - Implement schema changes
+            - Add indexes for query patterns
+            - Write efficient queries
+          ready:
+            - Schema implemented correctly
+            - Indexes support query patterns
+            - Migrations are reversible
+            - Queries are optimized
+        review:
+          focus: Validating schema design and performance
+          activities:
+            - Verify schema matches requirements
+            - Check migration safety
+            - Validate query performance
+            - Review backward compatibility
+          ready:
+            - Schema meets requirements
+            - Migrations tested on production-like data
+            - Query performance acceptable
+            - Backward compatibility maintained
+      reference: |
+        ## Storage Selection Guide
 
-        ### Normalization
-        - **1NF**: Atomic values, no repeating groups
-        - **2NF**: No partial dependencies
-        - **3NF**: No transitive dependencies
-        - Normalize first, then denormalize strategically
-
-        ### Denormalization Trade-offs
-        - Improves read performance
-        - Complicates writes and updates
-        - Risk of data inconsistency
-        - Use for read-heavy workloads
-
-        ## Data Store Selection
-
-        ### Relational (SQL)
-        - Strong consistency requirements
-        - Complex queries and joins
-        - ACID transactions needed
-        - Well-defined schema
-
-        ### Document (NoSQL)
-        - Flexible, evolving schemas
-        - Hierarchical data
-        - Horizontal scaling priority
-        - Read-heavy workloads
-
-        ### Key-Value
-        - Simple lookup patterns
-        - Extreme performance needs
-        - Caching layer
-        - Session storage
-
-        ### Time Series
-        - Temporal data patterns
-        - High write throughput
-        - Time-based queries
-        - Sensor and metrics data
-
-        ## Indexing Strategy
-
-        ### When to Index
-        - Columns in WHERE clauses
-        - Join columns
-        - ORDER BY columns
-        - High-cardinality columns
-
-        ### Index Trade-offs
-        - Faster reads, slower writes
-        - Storage overhead
-        - Maintenance cost
-        - Query planner complexity
-
-        ## Schema Migrations
-
-        ### Safe Migration Practices
-        - Make changes backward compatible
-        - Add columns before using them
-        - Migrate data before dropping columns
-        - Test migrations on production-like data
-      verificationCriteria:
-        - Requirements understood
-        - Appropriate storage technology selected
-        - Schema normalized appropriately
-        - Indexes support query patterns
-        - Migration plan is safe
-        - Backward compatibility maintained
+        | Type | Use When | Examples |
+        |------|----------|----------|
+        | Relational | ACID needed, complex queries | PostgreSQL, MySQL |
+        | Document | Flexible schema, hierarchical | MongoDB, Firestore |
+        | Key-Value | Simple lookups, caching | Redis, DynamoDB |
+        | Time Series | Temporal data, metrics | InfluxDB, TimescaleDB |

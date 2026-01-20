@@ -225,9 +225,18 @@ function buildWorkingStyleFromBehaviours(
 }
 
 /**
+ * Stage ID to display name and next stage mapping
+ */
+const STAGE_INFO = {
+  plan: { name: "Plan", nextStage: "Code" },
+  code: { name: "Code", nextStage: "Review" },
+  review: { name: "Review", nextStage: "Complete" },
+};
+
+/**
  * Generate SKILL.md content from skill data
- * @param {Object} skillData - Skill with agent section
- * @returns {Object} Skill with frontmatter, title, applicability, guidance, verificationCriteria, dirname
+ * @param {Object} skillData - Skill with agent section containing stages
+ * @returns {Object} Skill with frontmatter, title, stages array, reference, dirname
  */
 export function generateSkillMd(skillData) {
   const { agent, name } = skillData;
@@ -236,15 +245,42 @@ export function generateSkillMd(skillData) {
     throw new Error(`Skill ${skillData.id} has no agent section`);
   }
 
+  if (!agent.stages) {
+    throw new Error(`Skill ${skillData.id} agent section missing stages`);
+  }
+
+  // Transform stages object to array for template rendering
+  const stagesArray = Object.entries(agent.stages).map(
+    ([stageId, stageData]) => {
+      const info = STAGE_INFO[stageId] || {
+        name: stageId,
+        nextStage: "Next",
+      };
+      return {
+        stageId,
+        stageName: info.name,
+        nextStageName: info.nextStage,
+        focus: stageData.focus,
+        activities: stageData.activities || [],
+        ready: stageData.ready || [],
+      };
+    },
+  );
+
+  // Sort stages in order: plan, code, review
+  const stageOrder = ["plan", "code", "review"];
+  stagesArray.sort(
+    (a, b) => stageOrder.indexOf(a.stageId) - stageOrder.indexOf(b.stageId),
+  );
+
   return {
     frontmatter: {
       name: agent.name,
       description: agent.description.trim(),
     },
     title: name,
-    applicability: agent.applicability || [],
-    guidance: agent.guidance ? agent.guidance.trim() : "",
-    verificationCriteria: agent.verificationCriteria || [],
+    stages: stagesArray,
+    reference: agent.reference ? agent.reference.trim() : "",
     dirname: agent.name,
   };
 }
@@ -437,15 +473,11 @@ export function deriveHandoffs({ stage, discipline, track, stages }) {
 /**
  * Get the handoff type for a stage (used for checklist derivation)
  * @param {string} stageId - Stage ID (plan, code, review)
- * @returns {string|null} Handoff type or null
+ * @returns {string|null} Stage ID for checklist or null
  */
-function getHandoffForStage(stageId) {
-  const handoffMap = {
-    plan: "plan_to_code",
-    code: "code_to_review",
-    review: null, // Review stage doesn't need a checklist
-  };
-  return handoffMap[stageId] || null;
+function getChecklistStage(stageId) {
+  // Plan and code stages have checklists, review doesn't
+  return stageId === "review" ? null : stageId;
 }
 
 /**
@@ -549,7 +581,7 @@ function buildStageProfileBodyData({
  * @param {Array} params.agentBehaviours - Agent behaviour definitions
  * @param {Object} params.agentDiscipline - Agent discipline definition
  * @param {Object} params.agentTrack - Agent track definition
- * @param {Array} params.capabilities - Capabilities with checklists
+ * @param {Array} params.capabilities - Capabilities for checklist grouping
  * @param {Array} params.stages - All stages (for handoff entry criteria)
  * @returns {Object} Agent definition with skills, behaviours, tools, handoffs, constraints, checklist
  */
@@ -593,12 +625,13 @@ export function deriveStageAgent({
   });
 
   // Derive checklist if applicable
-  const handoffType = getHandoffForStage(stage.id);
+  const checklistStage = getChecklistStage(stage.id);
   let checklist = [];
-  if (handoffType && capabilities) {
+  if (checklistStage && capabilities) {
     checklist = deriveChecklist({
-      handoff: handoffType,
+      stageId: checklistStage,
       skillMatrix: derivedSkills,
+      skills,
       capabilities,
     });
   }

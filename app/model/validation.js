@@ -129,55 +129,150 @@ function validateSkill(skill, index) {
         ),
       );
     }
-    // applicability is optional but should be an array if present
+
+    // Validate stages (required for agent skills)
+    if (!skill.agent.stages) {
+      errors.push(
+        createError(
+          "MISSING_REQUIRED",
+          "Skill agent section missing stages",
+          `${agentPath}.stages`,
+        ),
+      );
+    } else if (typeof skill.agent.stages !== "object") {
+      errors.push(
+        createError(
+          "INVALID_VALUE",
+          "Skill agent stages must be an object",
+          `${agentPath}.stages`,
+          skill.agent.stages,
+        ),
+      );
+    } else {
+      // Validate each stage
+      const validStageIds = ["plan", "code", "review"];
+      for (const [stageId, stageData] of Object.entries(skill.agent.stages)) {
+        if (!validStageIds.includes(stageId)) {
+          errors.push(
+            createError(
+              "INVALID_VALUE",
+              `Invalid stage ID: ${stageId}. Must be one of: ${validStageIds.join(", ")}`,
+              `${agentPath}.stages.${stageId}`,
+              stageId,
+            ),
+          );
+          continue;
+        }
+        const stagePath = `${agentPath}.stages.${stageId}`;
+        // focus is required
+        if (!stageData.focus) {
+          errors.push(
+            createError(
+              "MISSING_REQUIRED",
+              `Stage ${stageId} missing focus`,
+              `${stagePath}.focus`,
+            ),
+          );
+        } else if (typeof stageData.focus !== "string") {
+          errors.push(
+            createError(
+              "INVALID_VALUE",
+              `Stage ${stageId} focus must be a string`,
+              `${stagePath}.focus`,
+              stageData.focus,
+            ),
+          );
+        }
+        // activities is required and must be an array
+        if (!stageData.activities) {
+          errors.push(
+            createError(
+              "MISSING_REQUIRED",
+              `Stage ${stageId} missing activities`,
+              `${stagePath}.activities`,
+            ),
+          );
+        } else if (!Array.isArray(stageData.activities)) {
+          errors.push(
+            createError(
+              "INVALID_VALUE",
+              `Stage ${stageId} activities must be an array`,
+              `${stagePath}.activities`,
+              stageData.activities,
+            ),
+          );
+        }
+        // ready is required and must be an array (these become checklist items)
+        if (!stageData.ready) {
+          errors.push(
+            createError(
+              "MISSING_REQUIRED",
+              `Stage ${stageId} missing ready criteria`,
+              `${stagePath}.ready`,
+            ),
+          );
+        } else if (!Array.isArray(stageData.ready)) {
+          errors.push(
+            createError(
+              "INVALID_VALUE",
+              `Stage ${stageId} ready must be an array`,
+              `${stagePath}.ready`,
+              stageData.ready,
+            ),
+          );
+        }
+      }
+    }
+
+    // reference is optional but should be a string if present
     if (
-      skill.agent.applicability !== undefined &&
-      !Array.isArray(skill.agent.applicability)
+      skill.agent.reference !== undefined &&
+      typeof skill.agent.reference !== "string"
     ) {
       errors.push(
         createError(
           "INVALID_VALUE",
-          "Skill agent applicability must be an array",
-          `${agentPath}.applicability`,
-          skill.agent.applicability,
+          "Skill agent reference must be a string",
+          `${agentPath}.reference`,
+          skill.agent.reference,
         ),
       );
     }
-    // guidance is optional but should be a string if present
-    if (
-      skill.agent.guidance !== undefined &&
-      typeof skill.agent.guidance !== "string"
-    ) {
-      errors.push(
-        createError(
-          "INVALID_VALUE",
-          "Skill agent guidance must be a string",
-          `${agentPath}.guidance`,
-          skill.agent.guidance,
-        ),
-      );
-    }
-    // verificationCriteria is optional but should be an array if present
-    if (
-      skill.agent.verificationCriteria !== undefined &&
-      !Array.isArray(skill.agent.verificationCriteria)
-    ) {
-      errors.push(
-        createError(
-          "INVALID_VALUE",
-          "Skill agent verificationCriteria must be an array",
-          `${agentPath}.verificationCriteria`,
-          skill.agent.verificationCriteria,
-        ),
-      );
-    }
-    // Error if old 'body' field is still present
+
+    // Error if old fields are still present
     if (skill.agent.body !== undefined) {
       errors.push(
         createError(
           "INVALID_FIELD",
-          "Skill agent 'body' field is not supported. Use applicability, guidance, and verificationCriteria instead.",
+          "Skill agent 'body' field is not supported. Use stages instead.",
           `${agentPath}.body`,
+        ),
+      );
+    }
+    if (skill.agent.applicability !== undefined) {
+      errors.push(
+        createError(
+          "INVALID_FIELD",
+          "Skill agent 'applicability' field is not supported. Use stages instead.",
+          `${agentPath}.applicability`,
+        ),
+      );
+    }
+    if (skill.agent.guidance !== undefined) {
+      errors.push(
+        createError(
+          "INVALID_FIELD",
+          "Skill agent 'guidance' field is not supported. Use stages instead.",
+          `${agentPath}.guidance`,
+        ),
+      );
+    }
+    if (skill.agent.verificationCriteria !== undefined) {
+      errors.push(
+        createError(
+          "INVALID_FIELD",
+          "Skill agent 'verificationCriteria' field is not supported. Use stages.{stage}.ready instead.",
+          `${agentPath}.verificationCriteria`,
         ),
       );
     }

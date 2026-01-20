@@ -5,40 +5,6 @@ description: |
   Growing individuals and building effective teams.
   Includes mentoring, coaching, hiring, performance management,
   and creating inclusive environments.
-transitionChecklists:
-  plan_to_code:
-    foundational:
-      - Pair programming opportunities are identified
-      - Knowledge sharing approach is considered
-    working:
-      - Mentoring opportunities are planned
-      - Team learning needs are identified
-      - Collaboration approach is documented
-    practitioner:
-      - Cross-team knowledge sharing is coordinated
-      - Coaching objectives are defined
-      - Hiring needs are assessed
-    expert:
-      - Talent development strategy is aligned
-      - Leadership pipeline opportunities are identified
-      - Organizational learning goals are addressed
-  code_to_review:
-    foundational:
-      - Code review is constructive and educational
-      - Knowledge is shared during review
-      - Team standards are reinforced
-    working:
-      - Junior engineers can learn from the code
-      - Technical decisions are explained
-      - Review feedback develops others
-    practitioner:
-      - Cross-team learning is enabled
-      - Technical mentoring happens through reviews
-      - Best practices are reinforced
-    expert:
-      - Code sets example for organization
-      - Leadership behaviors are modeled
-      - Institutional knowledge is preserved
 professionalResponsibilities:
   awareness:
     Contribute positively to team dynamics, be open to feedback, and learn

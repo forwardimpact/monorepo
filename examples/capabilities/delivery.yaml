@@ -5,40 +5,6 @@ description: |
   Building and shipping solutions that solve real problems.
   Encompasses full-stack development, data integration, problem discovery,
   and rapid prototyping.
-transitionChecklists:
-  plan_to_code:
-    foundational:
-      - Requirements are understood and documented
-      - Acceptance criteria are defined
-    working:
-      - Technical approach is documented
-      - Dependencies are identified and planned for
-      - Scope is broken into deliverable increments
-    practitioner:
-      - Cross-team dependencies are coordinated
-      - Risks are identified with mitigation strategies
-      - Delivery timeline is realistic and communicated
-    expert:
-      - Strategic alignment is validated with stakeholders
-      - Resource allocation is optimized across teams
-      - Success metrics are defined and measurable
-  code_to_review:
-    foundational:
-      - Feature works end-to-end
-      - Basic tests cover critical paths
-      - Code is self-reviewed before submitting
-    working:
-      - All acceptance criteria are met
-      - Edge cases are handled
-      - Technical debt is explicitly documented
-    practitioner:
-      - Solution addresses cross-team requirements
-      - Integration points are tested
-      - Rollback plan exists
-    expert:
-      - Organizational standards are followed
-      - Pattern can be reused across teams
-      - Documentation enables others to extend
 professionalResponsibilities:
   awareness:
     Complete assigned implementation tasks within established patterns with
@@ -109,72 +75,60 @@ skills:
         Guide for designing software systems and making architectural decisions.
         Use when asked to design a system, evaluate architecture options, or
         make structural decisions about code organization.
-      applicability:
-        - Designing new systems or major features
-        - Evaluating architectural options and trade-offs
-        - Making decisions about code organization and structure
-        - Reviewing or improving existing architecture
-      guidance: |
-        ## Design Process
-
-        ### 1. Understand Requirements
-
-        Before designing, clarify:
-        - What problem are we solving?
-        - What are the non-functional requirements (scale, latency, availability)?
-        - What are the constraints (existing systems, team skills, timeline)?
-        - What will change over time?
-
-        ### 2. Identify Key Decisions
-
-        Architecture is the set of decisions that are hard to change:
-        - Data storage and schema design
-        - Service boundaries and communication patterns
-        - Synchronous vs asynchronous processing
-        - Stateful vs stateless components
-
-        ### 3. Evaluate Trade-offs
-
-        Every architectural choice has trade-offs:
-        - Consistency vs availability
-        - Simplicity vs flexibility
-        - Performance vs maintainability
-        - Build vs buy
-
-        Document trade-offs explicitly.
-
-        ### 4. Design for Change
-
-        Good architecture accommodates change:
-        - Separate what changes from what stays the same
-        - Define clear interfaces between components
-        - Prefer composition over inheritance
-        - Make dependencies explicit
-
+      stages:
+        plan:
+          focus: Understanding requirements and designing solutions
+          activities:
+            - Gather context about existing systems and constraints
+            - Clarify non-functional requirements (scale, latency, availability)
+            - Identify key decisions that are hard to change later
+            - Evaluate trade-offs between architectural options
+            - Document approach with rationale
+          ready:
+            - Requirements are clearly understood
+            - Key decisions are documented with rationale
+            - Trade-offs are explicit
+            - Dependencies are identified
+        code:
+          focus: Implementing architecture faithfully while adapting to reality
+          activities:
+            - Verify implementation aligns with design decisions
+            - Implement interfaces and boundaries before internals
+            - Document any deviations from design with rationale
+            - Keep architecture documentation in sync with implementation
+          ready:
+            - Implementation matches documented design
+            - Deviations documented with rationale
+            - Failure modes are considered and handled
+            - Security implications are reviewed
+        review:
+          focus: Verifying architecture implementation and documentation
+          activities:
+            - Compare implementation to design documentation
+            - Verify all decisions were followed or documented
+            - Assess maintainability and extensibility
+            - Ensure architecture enables future changes
+          ready:
+            - Design docs reflect actual implementation
+            - Architecture decisions validated in practice
+            - Scalability requirements addressed
+      reference: |
         ## Common Patterns
 
         ### Service Architecture
-        - Microservices: Independent deployment, clear boundaries
-        - Monolith: Simpler deployment, easier refactoring
-        - Modular monolith: Boundaries within single deployment
+        - **Microservices**: Independent deployment, clear boundaries
+        - **Monolith**: Simpler deployment, easier refactoring
+        - **Modular monolith**: Boundaries within single deployment
 
         ### Data Patterns
-        - Event sourcing: Full audit trail, complex queries
-        - CQRS: Separate read and write models
-        - Repository pattern: Abstract data access
+        - **Event sourcing**: Full audit trail, complex queries
+        - **CQRS**: Separate read and write models
+        - **Repository pattern**: Abstract data access
 
         ### Communication Patterns
-        - REST: Synchronous, request-response
-        - Event-driven: Asynchronous, loose coupling
-        - gRPC: Efficient, strongly typed
-      verificationCriteria:
-        - Requirements are clearly understood
-        - Key decisions are documented with rationale
-        - Trade-offs are explicit
-        - Failure modes are considered
-        - Scalability requirements are addressed
-        - Security implications are reviewed
-        - Dependencies are minimal and explicit
+        - **REST**: Synchronous, request-response
+        - **Event-driven**: Asynchronous, loose coupling
+        - **gRPC**: Efficient, strongly typed
   - id: full_stack_development
     name: Full-Stack Development
     human:
@@ -211,14 +165,46 @@ skills:
       name: full-stack-development
       description: |
         Guide for building complete solutions across the full technology stack.
-        Use when asked to implement features spanning frontend, backend, database,
+        Use when implementing features spanning frontend, backend, database,
         and infrastructure layers.
-      applicability:
-        - Building features that span multiple layers
-        - Implementing end-to-end functionality
-        - Working across frontend, backend, and infrastructure
-        - Debugging issues that cross layer boundaries
-      guidance: |
+      stages:
+        plan:
+          focus: Designing the complete solution across layers
+          activities:
+            - Define the API contract between frontend and backend
+            - Design database schema to support the feature
+            - Plan infrastructure requirements
+            - Identify cross-layer dependencies
+          ready:
+            - API contract is defined
+            - Database schema is designed
+            - Infrastructure needs identified
+            - Layer boundaries are clear
+        code:
+          focus: Building vertically across all layers
+          activities:
+            - Implement backend API endpoints
+            - Build frontend components and integrate with API
+            - Set up database migrations and queries
+            - Configure infrastructure as code
+            - Test across layer boundaries
+          ready:
+            - Frontend connects to backend correctly
+            - Database schema supports the feature
+            - Error handling spans all layers
+            - Feature works end-to-end
+        review:
+          focus: Verifying integration across the stack
+          activities:
+            - Test complete user flows end-to-end
+            - Verify error handling at each layer
+            - Check deployment pipeline works
+            - Validate monitoring and logging
+          ready:
+            - End-to-end tests pass
+            - Deployment is automated
+            - Cross-layer errors are handled gracefully
+      reference: |
         ## Technology Stack
 
         ### Primary Languages
@@ -232,50 +218,9 @@ skills:
 
         ## Layer Responsibilities
 
-        ### Frontend
-        - User interface and experience
-        - Client-side validation
-        - API integration
-        - State management
-
-        ### Backend API
-        - Business logic
-        - Data validation
-        - Authentication/authorization
-        - External service integration
-
-        ### Database
-        - Data persistence
-        - Query optimization
-        - Schema migrations
-        - Data integrity
-
-        ### Infrastructure
-        - Deployment pipelines
-        - Environment configuration
-        - Scaling and reliability
-        - Monitoring and logging
-
-        ## Development Process
-
-        ### 1. Start with the Interface
-        - Define the API contract first
-        - Frontend and backend can work in parallel
-        - Clear interface = fewer integration issues
-
-        ### 2. Build Vertically
-        - Complete one feature end-to-end before starting another
-        - Validates assumptions early
-        - Delivers demonstrable progress
-
-        ### 3. Test Across Layers
-        - Unit tests per layer
-        - Integration tests across layers
-        - End-to-end tests for critical paths
-      verificationCriteria:
-        - API contract is defined
-        - Frontend connects to backend correctly
-        - Database schema supports the feature
-        - Error handling spans all layers
-        - Feature works end-to-end
-        - Deployment is automated
+        | Layer | Responsibilities |
+        |-------|-----------------|
+        | Frontend | UI/UX, client validation, API integration |
+        | Backend | Business logic, auth, external services |
+        | Database | Persistence, queries, migrations |
+        | Infrastructure | Deployment, scaling, monitoring |

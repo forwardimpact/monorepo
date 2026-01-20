@@ -77,7 +77,6 @@ import {
 } from "../app/model/interview.js";
 
 import {
-  getMaxCapabilityLevel,
   deriveChecklist,
   formatChecklistMarkdown,
 } from "../app/model/checklist.js";
@@ -2860,134 +2859,147 @@ describe("Skill Modifiers", () => {
 });
 
 describe("Checklist Derivation", () => {
+  // Test skills with agent.stages defined
+  const testSkillsWithStages = [
+    {
+      id: "arch",
+      name: "Architecture",
+      capability: "scale",
+      agent: {
+        name: "architecture",
+        description: "Architecture skill",
+        stages: {
+          plan: {
+            focus: "Design architecture",
+            activities: ["Gather requirements", "Design components"],
+            ready: ["Architecture documented", "Trade-offs explicit"],
+          },
+          code: {
+            focus: "Implement architecture",
+            activities: ["Build components"],
+            ready: ["Implementation matches design"],
+          },
+        },
+      },
+    },
+    {
+      id: "devops",
+      name: "DevOps",
+      capability: "reliability",
+      agent: {
+        name: "devops",
+        description: "DevOps skill",
+        stages: {
+          code: {
+            focus: "Build pipelines",
+            activities: ["Set up CI/CD"],
+            ready: ["Pipeline working", "Tests green"],
+          },
+        },
+      },
+    },
+    {
+      id: "collab",
+      name: "Collaboration",
+      capability: "people",
+      // No agent section - human-only skill
+    },
+  ];
+
   const testCapabilities = [
-    {
-      id: "scale",
-      name: "Scale",
-      emoji: "📐",
-      transitionChecklists: {
-        plan_to_code: {
-          foundational: ["Basic architecture understood"],
-          working: ["Trade-offs documented"],
-          practitioner: ["Cross-team impact assessed"],
-          expert: ["Enterprise patterns applied"],
-        },
-        code_to_review: {
-          foundational: ["Code follows style guide", "Basic tests exist"],
-          working: ["Edge cases tested"],
-          practitioner: ["Performance considered"],
-        },
-      },
-    },
-    {
-      id: "reliability",
-      name: "Reliability",
-      emoji: "🛡️",
-      transitionChecklists: {
-        code_to_review: {
-          foundational: ["Error handling exists"],
-          working: ["Monitoring configured"],
-        },
-      },
-    },
-    {
-      id: "delivery",
-      name: "Delivery",
-      emoji: "🚀",
-      // No transitionChecklists defined
-    },
+    { id: "scale", name: "Scale", emoji: "📐" },
+    { id: "reliability", name: "Reliability", emoji: "🛡️" },
+    { id: "people", name: "People", emoji: "👥" },
   ];
 
   const testSkillMatrix = [
     { skillId: "arch", level: "working", capability: "scale" },
-    { skillId: "code", level: "practitioner", capability: "scale" },
-    { skillId: "sre", level: "foundational", capability: "reliability" },
-    { skillId: "proto", level: "awareness", capability: "delivery" },
+    { skillId: "devops", level: "foundational", capability: "reliability" },
+    { skillId: "collab", level: "working", capability: "people" },
   ];
 
-  describe("getMaxCapabilityLevel", () => {
-    it("returns highest level among skills in capability", () => {
-      const level = getMaxCapabilityLevel(testSkillMatrix, "scale");
-      assert.strictEqual(level, "practitioner");
-    });
-
-    it("returns null for unknown capability", () => {
-      const level = getMaxCapabilityLevel(testSkillMatrix, "unknown");
-      assert.strictEqual(level, null);
-    });
-
-    it("returns single level when only one skill", () => {
-      const level = getMaxCapabilityLevel(testSkillMatrix, "reliability");
-      assert.strictEqual(level, "foundational");
-    });
-  });
-
   describe("deriveChecklist", () => {
-    it("includes items up to max level", () => {
+    it("returns ready items for skills with stage data", () => {
       const checklist = deriveChecklist({
-        handoff: "code_to_review",
+        stageId: "plan",
         skillMatrix: testSkillMatrix,
+        skills: testSkillsWithStages,
         capabilities: testCapabilities,
       });
 
-      const scaleChecklist = checklist.find((c) => c.capability.id === "scale");
-      assert.ok(scaleChecklist);
-      // practitioner level includes foundational, working, practitioner items
-      assert.ok(scaleChecklist.items.includes("Code follows style guide"));
-      assert.ok(scaleChecklist.items.includes("Edge cases tested"));
-      assert.ok(scaleChecklist.items.includes("Performance considered"));
+      // Should include arch skill's plan.ready items
+      const archChecklist = checklist.find((c) => c.skill.id === "arch");
+      assert.ok(archChecklist);
+      assert.deepStrictEqual(archChecklist.items, [
+        "Architecture documented",
+        "Trade-offs explicit",
+      ]);
+      assert.strictEqual(archChecklist.capability.emoji, "📐");
     });
 
-    it("excludes awareness-only capabilities", () => {
+    it("excludes skills without agent.stages", () => {
       const checklist = deriveChecklist({
-        handoff: "code_to_review",
+        stageId: "code",
         skillMatrix: testSkillMatrix,
+        skills: testSkillsWithStages,
         capabilities: testCapabilities,
       });
 
-      const deliveryChecklist = checklist.find(
-        (c) => c.capability.id === "delivery",
-      );
-      assert.strictEqual(deliveryChecklist, undefined);
+      // collab skill has no agent section
+      const collabChecklist = checklist.find((c) => c.skill.id === "collab");
+      assert.strictEqual(collabChecklist, undefined);
     });
 
-    it("excludes capabilities without checklists", () => {
+    it("excludes skills without data for the requested stage", () => {
       const checklist = deriveChecklist({
-        handoff: "plan_to_code",
+        stageId: "plan",
         skillMatrix: testSkillMatrix,
+        skills: testSkillsWithStages,
         capabilities: testCapabilities,
       });
 
-      // reliability has no plan_to_code checklist
-      const reliabilityChecklist = checklist.find(
-        (c) => c.capability.id === "reliability",
-      );
-      assert.strictEqual(reliabilityChecklist, undefined);
+      // devops skill only has code stage
+      const devopsChecklist = checklist.find((c) => c.skill.id === "devops");
+      assert.strictEqual(devopsChecklist, undefined);
     });
 
-    it("returns empty array for unknown handoff", () => {
+    it("returns empty array for unknown stage", () => {
       const checklist = deriveChecklist({
-        handoff: "unknown_handoff",
+        stageId: "unknown",
         skillMatrix: testSkillMatrix,
+        skills: testSkillsWithStages,
         capabilities: testCapabilities,
       });
 
       assert.deepStrictEqual(checklist, []);
     });
+
+    it("returns empty array for review stage", () => {
+      // Review stage shows completion criteria, not handoff criteria
+      const checklist = deriveChecklist({
+        stageId: "review",
+        skillMatrix: testSkillMatrix,
+        skills: testSkillsWithStages,
+        capabilities: testCapabilities,
+      });
+
+      // arch and devops don't have review stage defined
+      assert.deepStrictEqual(checklist, []);
+    });
   });
 
   describe("formatChecklistMarkdown", () => {
-    it("formats checklist as markdown", () => {
+    it("formats checklist as markdown grouped by skill", () => {
       const checklist = [
         {
+          skill: { id: "arch", name: "Architecture" },
           capability: { id: "scale", name: "Scale", emoji: "📐" },
-          level: "working",
           items: ["Item 1", "Item 2"],
         },
       ];
 
       const markdown = formatChecklistMarkdown(checklist);
-      assert.ok(markdown.includes("**📐 Scale**"));
+      assert.ok(markdown.includes("**📐 Architecture**"));
       assert.ok(markdown.includes("- [ ] Item 1"));
       assert.ok(markdown.includes("- [ ] Item 2"));
     });

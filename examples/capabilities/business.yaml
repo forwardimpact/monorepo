@@ -5,40 +5,6 @@ description: |
   Understanding and driving business value.
   Includes domain knowledge, stakeholder management, strategic thinking,
   and translating between technical and business contexts.
-transitionChecklists:
-  plan_to_code:
-    foundational:
-      - Business context is understood
-      - User needs are identified
-    working:
-      - Business requirements are documented
-      - Stakeholder expectations are aligned
-      - Value proposition is clear
-    practitioner:
-      - Business impact is quantified
-      - Strategic alignment is verified
-      - Cross-team business needs are considered
-    expert:
-      - Enterprise business goals are addressed
-      - Strategic technology decisions are aligned
-      - Executive stakeholders are engaged
-  code_to_review:
-    foundational:
-      - Solution addresses the stated business need
-      - User-facing behavior is correct
-      - Business requirements are met
-    working:
-      - Stakeholder feedback is incorporated
-      - Business value is delivered
-      - Success metrics can be measured
-    practitioner:
-      - Cross-team business requirements are met
-      - ROI is demonstrable
-      - Business risks are mitigated
-    expert:
-      - Strategic business outcomes are enabled
-      - Enterprise value is created
-      - Business innovation is demonstrated
 professionalResponsibilities:
   awareness:
     Understand the business context for your assigned work and communicate
@@ -138,102 +104,55 @@ skills:
         Guide for creating clear technical documentation. Use when writing
         READMEs, API docs, specifications, or any technical content that needs
         to be clear and accurate.
-      applicability:
-        - Writing README files
-        - Creating API documentation
-        - Writing technical specifications
-        - Documenting code and systems
-        - Creating guides and tutorials
-      guidance: |
-        ## Writing Principles
+      stages:
+        plan:
+          focus: Understanding audience and planning documentation
+          activities:
+            - Identify target audience and their needs
+            - Determine document type and structure
+            - List prerequisites and assumptions
+            - Outline key sections and content
+          ready:
+            - Audience is identified
+            - Document type and structure planned
+            - Prerequisites listed
+            - Outline complete
+        code:
+          focus: Writing clear and accurate documentation
+          activities:
+            - Write using simple, direct language
+            - Structure content for scanning
+            - Include tested, runnable examples
+            - Define technical terms
+          ready:
+            - Purpose clear in first paragraph
+            - Examples are tested and work
+            - Technical terms are defined
+            - Structure supports scanning
+        review:
+          focus: Verifying documentation quality
+          activities:
+            - Check accuracy against implementation
+            - Verify examples are runnable
+            - Review for clarity and completeness
+            - Test with target audience if possible
+          ready:
+            - Documentation matches implementation
+            - All examples verified working
+            - No ambiguous pronouns
+            - Structure is logical and complete
+      reference: |
+        ## Document Types
 
-        ### Clarity First
+        | Type | Purpose | Key Sections |
+        |------|---------|--------------|
+        | README | Project overview | Description, Getting Started, Usage |
+        | API Docs | API reference | Endpoints, Parameters, Examples |
+        | Spec | Design proposal | Problem, Solution, Alternatives |
+        | Tutorial | Learning guide | Objective, Steps, Outcomes |
+
+        ## Writing Principles
         - Use simple, direct language
         - One idea per sentence
         - Active voice over passive
-        - Avoid jargon unless defined
-        - Be specific, not vague
-
-        ### Know Your Audience
-        - What do they already know?
-        - What do they need to accomplish?
-        - What's their skill level?
-        - What questions will they have?
-
-        ### Structure for Scanning
-        - Lead with the most important information
-        - Use headings and subheadings
-        - Keep paragraphs short
-        - Use lists for multiple items
-        - Highlight key terms
-
-        ## Document Types
-
-        ### README
-        - What is this project?
-        - How do I get started?
-        - How do I use it?
-        - Where do I get help?
-
-        ### API Documentation
-        - Endpoint description
-        - Parameters and types
-        - Request/response examples
-        - Error codes and handling
-
-        ### Technical Specification
-        - Problem statement
-        - Proposed solution
-        - Alternatives considered
-        - Implementation plan
-
-        ### Tutorial
-        - Clear learning objective
-        - Prerequisites listed
-        - Step-by-step instructions
-        - Expected outcomes shown
-
-        ## README Template
-
-        ```markdown
-        # Project Name
-
-        Brief description of what this project does.
-
-        ## Getting Started
-
-        ### Prerequisites
-        - Required software and versions
-
-        ### Installation
-        Step-by-step installation instructions.
-
-        ### Quick Start
-        Minimal example to get running.
-
-        ## Usage
-        Common use cases with examples.
-
-        ## Contributing
-        How to contribute to the project.
-
-        ## License
-        License information.
-        ```
-
-        ## Code Examples
-
-        Good examples are:
-        - Complete and runnable
-        - Minimal but realistic
-        - Copy-pasteable
-        - Annotated with comments
-        - Tested and verified
-      verificationCriteria:
-        - Purpose is clear in first paragraph
-        - Audience is identified
-        - Prerequisites are listed
-        - Examples are tested and work
-        - Technical terms are defined
-        - Structure supports scanning
-        - No ambiguous pronouns
+        - Lead with most important info
