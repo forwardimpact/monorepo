@@ -37,6 +37,7 @@ import {
 } from "../formatters/agent/profile.js";
 import { formatAgentSkill } from "../formatters/agent/skill.js";
 import { formatError, formatSuccess } from "../lib/cli-output.js";
+import { loadAgentTemplate, loadSkillTemplate } from "../lib/template-loader.js";
 
 /**
  * Ensure directory exists for a file path
@@ -181,10 +182,11 @@ function listAgentCombinations(data, agentData, verbose = false) {
  * Write agent profile to file
  * @param {Object} profile - Generated profile
  * @param {string} baseDir - Base output directory
+ * @param {string} template - Mustache template for agent profile
  */
-async function writeProfile(profile, baseDir) {
+async function writeProfile(profile, baseDir, template) {
   const profilePath = join(baseDir, ".github", "agents", profile.filename);
-  const profileContent = formatAgentProfile(profile);
+  const profileContent = formatAgentProfile(profile, template);
   await ensureDir(profilePath);
   await writeFile(profilePath, profileContent, "utf-8");
   console.log(formatSuccess(`Created: ${profilePath}`));
@@ -195,8 +197,9 @@ async function writeProfile(profile, baseDir) {
  * Write skill files
  * @param {Array} skills - Generated skills
  * @param {string} baseDir - Base output directory
+ * @param {string} template - Mustache template for skills
  */
-async function writeSkills(skills, baseDir) {
+async function writeSkills(skills, baseDir, template) {
   for (const skill of skills) {
     const skillPath = join(
       baseDir,
@@ -205,7 +208,7 @@ async function writeSkills(skills, baseDir) {
       skill.dirname,
       "SKILL.md",
     );
-    const skillContent = formatAgentSkill(skill);
+    const skillContent = formatAgentSkill(skill, template);
     await ensureDir(skillPath);
     await writeFile(skillPath, skillContent, "utf-8");
     console.log(formatSuccess(`Created: ${skillPath}`));
@@ -224,6 +227,17 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
   // Load agent-specific data
   const agentData = await loadAgentData(dataDir);
   const skillsWithAgent = await loadSkillsWithAgentData(dataDir);
+
+  // Load templates
+  let agentTemplate;
+  let skillTemplate;
+  try {
+    agentTemplate = await loadAgentTemplate(dataDir);
+    skillTemplate = await loadSkillTemplate(dataDir);
+  } catch (error) {
+    console.error(formatError(`Failed to load templates: ${error.message}`));
+    process.exit(1);
+  }
 
   // --list: Output clean lines for piping
   if (options.list) {
@@ -346,7 +360,7 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
       return;
     }
 
-    await writeProfile(profile, baseDir);
+    await writeProfile(profile, baseDir, agentTemplate);
     await generateVSCodeSettings(baseDir, agentData.vscodeSettings);
     console.log("");
     console.log(
@@ -416,9 +430,9 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
   }
 
   for (const profile of profiles) {
-    await writeProfile(profile, baseDir);
+    await writeProfile(profile, baseDir, agentTemplate);
   }
-  await writeSkills(skillFiles, baseDir);
+  await writeSkills(skillFiles, baseDir, skillTemplate);
   await generateVSCodeSettings(baseDir, agentData.vscodeSettings);
 
   console.log("");

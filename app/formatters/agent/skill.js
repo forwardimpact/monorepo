@@ -3,39 +3,38 @@
  *
  * Formats agent skill data into SKILL.md file content
  * following the Agent Skills Standard specification.
+ *
+ * Uses Mustache templates for flexible output formatting.
+ * Templates are loaded from data/ directory with fallback to templates/ directory.
  */
 
+import Mustache from "mustache";
+
 /**
- * Format agent skill as SKILL.md file content
+ * Format agent skill as SKILL.md file content using Mustache template
  * @param {Object} skill - Skill with frontmatter and body
  * @param {Object} skill.frontmatter - YAML frontmatter data
  * @param {string} skill.frontmatter.name - Skill name (required)
  * @param {string} skill.frontmatter.description - Skill description (required)
  * @param {string} skill.body - Markdown body content
+ * @param {string} template - Mustache template string
  * @returns {string} Complete SKILL.md file content
  */
-export function formatAgentSkill({ frontmatter, body }) {
-  const lines = ["---"];
-
-  // Name (required)
-  lines.push(`name: ${frontmatter.name}`);
-
-  // Description (required) - handle multiline
+export function formatAgentSkill({ frontmatter, body }, template) {
   const description = frontmatter.description.trim();
-  if (description.includes("\n")) {
-    lines.push("description: |");
-    for (const line of description.split("\n")) {
-      lines.push(`  ${line}`);
-    }
-  } else {
-    lines.push(`description: ${description}`);
-  }
+  const descriptionLines = description.split("\n");
+  const isMultiline = descriptionLines.length > 1;
 
-  lines.push("---");
-  lines.push("");
-  lines.push(body);
-
-  return lines.join("\n");
+  const data = {
+    frontmatter: {
+      name: frontmatter.name,
+      description: isMultiline ? description : undefined,
+      descriptionSingleLine: !isMultiline ? description : undefined,
+      lines: descriptionLines,
+    },
+    body,
+  };
+  return Mustache.render(template, data);
 }
 
 /**
