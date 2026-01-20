@@ -264,9 +264,9 @@ See [Agents](agents.md) for agent profile generation details.
 
 | Stage  | Tools                                     | Mode        |
 | ------ | ----------------------------------------- | ----------- |
-| Plan   | search, web/fetch, search/codebase, todos | Read-only   |
-| Code   | search, search/codebase, edit, todos      | Full access |
-| Review | search, search/codebase, read, todos      | Read-only   |
+| Plan   | search, web/fetch, search/codebase, todo | Read-only   |
+| Code   | search, search/codebase, edit, todo      | Full access |
+| Review | search, search/codebase, read, todo      | Read-only   |
 
 ---
 

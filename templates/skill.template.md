@@ -1,26 +1,26 @@
 ---
 name: {{name}}
 description: |
-{{#descriptionLines}}  {{.}}
+{{#descriptionLines}}  {{{.}}}
 {{/descriptionLines}}---
 
-# {{title}}
+# {{{title}}}
 
 ## Stage Guidance
 
 {{#stages}}
 ### {{stageName}} Stage
 
-**Focus:** {{focus}}
+**Focus:** {{{focus}}}
 
 **Activities:**
 {{#activities}}
-- {{.}}
+- {{{.}}}
 {{/activities}}
 
 **Ready for {{nextStageName}} when:**
 {{#ready}}
-- [ ] {{.}}
+- [ ] {{{.}}}
 {{/ready}}
 
 {{/stages}}

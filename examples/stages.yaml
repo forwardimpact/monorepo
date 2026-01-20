@@ -20,7 +20,7 @@
     - web/fetch
     - search/codebase
     - read
-    - todos
+    - todo
   handoffs:
     - targetStage: code
       label: Start Coding
@@ -40,7 +40,7 @@
     - search/codebase
     - read
     - edit
-    - todos
+    - todo
   handoffs:
     - targetStage: review
       label: Request Review
@@ -59,7 +59,7 @@
     - search
     - search/codebase
     - read
-    - todos
+    - todo
   handoffs:
     - targetStage: code
       label: Request Changes

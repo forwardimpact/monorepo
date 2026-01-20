@@ -3,17 +3,16 @@
 {{/name}}description: {{{description}}}
 {{#tools}}tools: {{{tools}}}
 {{/tools}}{{#infer}}infer: {{infer}}
-{{/infer}}{{#handoffs}}handoffs:
-{{#.}}  - label: {{label}}
+{{/infer}}{{#handoffs.length}}handoffs:
+{{#handoffs}}  - label: {{label}}
 {{#agent}}    agent: {{agent}}
 {{/agent}}    prompt: {{{prompt}}}
 {{#send}}    send: {{send}}
-{{/send}}{{/.}}
-{{/handoffs}}---
+{{/send}}{{/handoffs}}{{/handoffs.length}}---
 
 # {{title}}
 
-{{stageDescription}}
+{{{stageDescription}}}
 
 ## Core Identity
 
@@ -26,14 +25,14 @@
 {{#capabilities.length}}
 Your primary capabilities:
 {{#capabilities}}
-- {{.}}
+- {{{.}}}
 {{/capabilities}}
 
 {{/capabilities.length}}
 {{#beforeMakingChanges.length}}
 Before making changes:
 {{#beforeMakingChanges}}
-{{index}}. {{text}}
+{{index}}. {{{text}}}
 {{/beforeMakingChanges}}
 
 {{/beforeMakingChanges.length}}
@@ -48,8 +47,8 @@ Before making changes:
 {{{operationalContext}}}
 
 {{{workingStyle}}}
-
 {{#beforeHandoff}}
+
 ## Before Handoff
 
 Before offering a handoff, verify and summarize completion of these items:
@@ -72,6 +71,6 @@ When completing work (for handoff or as a subagent), provide:
 ## Constraints
 
 {{#constraints}}
-- {{.}}
+- {{{.}}}
 {{/constraints}}
 {{/constraints.length}}
