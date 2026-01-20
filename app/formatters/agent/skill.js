@@ -12,44 +12,36 @@ import Mustache from "mustache";
 
 /**
  * Format agent skill as SKILL.md file content using Mustache template
- * @param {Object} skill - Skill with frontmatter, title, applicability, guidance, verificationCriteria
+ * @param {Object} skill - Skill with frontmatter, title, stages, reference
  * @param {Object} skill.frontmatter - YAML frontmatter data
  * @param {string} skill.frontmatter.name - Skill name (required)
  * @param {string} skill.frontmatter.description - Skill description (required)
  * @param {string} skill.title - Human-readable skill title for heading
- * @param {string[]} skill.applicability - When to use this skill (list)
- * @param {string} skill.guidance - Main instructional content (markdown)
- * @param {string[]} skill.verificationCriteria - Checklist items for verification
+ * @param {Array} skill.stages - Array of stage objects with stageName, focus, activities, ready
+ * @param {string} skill.reference - Reference content (markdown)
  * @param {string} template - Mustache template string
  * @returns {string} Complete SKILL.md file content
  */
 export function formatAgentSkill(
-  { frontmatter, title, applicability, guidance, verificationCriteria },
+  { frontmatter, title, stages, reference },
   template,
 ) {
   const data = {
     name: frontmatter.name,
     descriptionLines: frontmatter.description.trim().split("\n"),
     title,
-    applicability,
-    guidance: guidance ? guidance.trim() : "",
-    verificationCriteria,
+    stages,
+    reference: reference ? reference.trim() : "",
   };
   return Mustache.render(template, data);
 }
 
 /**
  * Format agent skill for CLI output (markdown)
- * @param {Object} skill - Skill with frontmatter, title, applicability, guidance, verificationCriteria
+ * @param {Object} skill - Skill with frontmatter, title, stages, reference
  * @returns {string} Markdown formatted for CLI display
  */
-export function formatAgentSkillForCli({
-  frontmatter,
-  title,
-  applicability,
-  guidance,
-  verificationCriteria,
-}) {
+export function formatAgentSkillForCli({ frontmatter, title, stages, reference }) {
   const lines = [];
 
   lines.push(`# ${title}`);
@@ -59,26 +51,35 @@ export function formatAgentSkillForCli({
   lines.push(`**Description:** ${frontmatter.description.trim()}`);
   lines.push("");
 
-  if (applicability && applicability.length > 0) {
-    lines.push("## When to Use This Skill");
+  if (stages && stages.length > 0) {
+    lines.push("## Stage Guidance");
     lines.push("");
-    for (const item of applicability) {
-      lines.push(`- ${item}`);
+    for (const stage of stages) {
+      lines.push(`### ${stage.stageName} Stage`);
+      lines.push("");
+      lines.push(`**Focus:** ${stage.focus.trim()}`);
+      lines.push("");
+      if (stage.activities && stage.activities.length > 0) {
+        lines.push("**Activities:**");
+        for (const item of stage.activities) {
+          lines.push(`- ${item}`);
+        }
+        lines.push("");
+      }
+      if (stage.ready && stage.ready.length > 0) {
+        lines.push(`**Ready for ${stage.nextStageName} when:**`);
+        for (const item of stage.ready) {
+          lines.push(`- [ ] ${item}`);
+        }
+        lines.push("");
+      }
     }
-    lines.push("");
   }
 
-  if (guidance) {
-    lines.push(guidance.trim());
+  if (reference) {
+    lines.push("## Reference");
     lines.push("");
-  }
-
-  if (verificationCriteria && verificationCriteria.length > 0) {
-    lines.push("## Verification Criteria");
-    lines.push("");
-    for (const item of verificationCriteria) {
-      lines.push(`- [ ] ${item}`);
-    }
+    lines.push(reference.trim());
   }
 
   return lines.join("\n");
