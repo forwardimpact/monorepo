@@ -27,6 +27,7 @@
   constraints:
     - Do not make code edits or execute commands
     - Specify first (what and why), then plan (how)
+    - Write specs and plans as markdown files under specs/[feature-name]/
     - Mark ambiguities with [NEEDS CLARIFICATION] instead of guessing
   entryCriteria: [] # Entry stage, no prior work expected
 
