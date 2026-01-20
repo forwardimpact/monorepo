@@ -134,26 +134,17 @@ skills:
           initiatives.
     agent:
       name: technical-writing
-      description: >
+      description: |
         Guide for creating clear technical documentation. Use when writing
-        READMEs,
-
-        API docs, specifications, or any technical content that needs to be
-        clear
-
-        and accurate.
-      body: |
-        # Technical Writing
-
-        ## When to use this skill
-
-        Use this skill when:
+        READMEs, API docs, specifications, or any technical content that needs
+        to be clear and accurate.
+      applicability:
         - Writing README files
         - Creating API documentation
         - Writing technical specifications
         - Documenting code and systems
         - Creating guides and tutorials
-
+      guidance: |
         ## Writing Principles
 
         ### Clarity First
@@ -238,14 +229,11 @@ skills:
         - Copy-pasteable
         - Annotated with comments
         - Tested and verified
-
-        ## Technical Writing Checklist
-
-        - [ ] Purpose is clear in first paragraph
-        - [ ] Audience is identified
-        - [ ] Prerequisites are listed
-        - [ ] Examples are tested and work
-        - [ ] Technical terms are defined
-        - [ ] Structure supports scanning
-        - [ ] No ambiguous pronouns
-        - [ ] Updated when code changes
+      verificationCriteria:
+        - Purpose is clear in first paragraph
+        - Audience is identified
+        - Prerequisites are listed
+        - Examples are tested and work
+        - Technical terms are defined
+        - Structure supports scanning
+        - No ambiguous pronouns

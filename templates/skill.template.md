@@ -1,7 +1,25 @@
 ---
 name: {{name}}
 description: |
-{{#lines}}  {{.}}
-{{/lines}}---
+{{#descriptionLines}}  {{.}}
+{{/descriptionLines}}---
 
-{{{body}}}
+# {{title}}
+
+{{#applicability.length}}
+## When to Use This Skill
+
+{{#applicability}}
+- {{.}}
+{{/applicability}}
+
+{{/applicability.length}}
+{{{guidance}}}
+
+{{#verificationCriteria.length}}
+## Verification Criteria
+
+{{#verificationCriteria}}
+- [ ] {{.}}
+{{/verificationCriteria}}
+{{/verificationCriteria.length}}

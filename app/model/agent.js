@@ -227,10 +227,10 @@ function buildWorkingStyleFromBehaviours(
 /**
  * Generate SKILL.md content from skill data
  * @param {Object} skillData - Skill with agent section
- * @returns {Object} Skill with frontmatter, body, and dirname
+ * @returns {Object} Skill with frontmatter, title, applicability, guidance, verificationCriteria, dirname
  */
 export function generateSkillMd(skillData) {
-  const { agent } = skillData;
+  const { agent, name } = skillData;
 
   if (!agent) {
     throw new Error(`Skill ${skillData.id} has no agent section`);
@@ -241,7 +241,10 @@ export function generateSkillMd(skillData) {
       name: agent.name,
       description: agent.description.trim(),
     },
-    body: agent.body.trim(),
+    title: name,
+    applicability: agent.applicability || [],
+    guidance: agent.guidance ? agent.guidance.trim() : "",
+    verificationCriteria: agent.verificationCriteria || [],
     dirname: agent.name,
   };
 }

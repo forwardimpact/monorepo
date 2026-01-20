@@ -108,6 +108,81 @@ function validateSkill(skill, index) {
     );
   }
 
+  // Validate agent section if present
+  if (skill.agent) {
+    const agentPath = `${path}.agent`;
+    if (!skill.agent.name) {
+      errors.push(
+        createError(
+          "MISSING_REQUIRED",
+          "Skill agent section missing name",
+          `${agentPath}.name`,
+        ),
+      );
+    }
+    if (!skill.agent.description) {
+      errors.push(
+        createError(
+          "MISSING_REQUIRED",
+          "Skill agent section missing description",
+          `${agentPath}.description`,
+        ),
+      );
+    }
+    // applicability is optional but should be an array if present
+    if (
+      skill.agent.applicability !== undefined &&
+      !Array.isArray(skill.agent.applicability)
+    ) {
+      errors.push(
+        createError(
+          "INVALID_VALUE",
+          "Skill agent applicability must be an array",
+          `${agentPath}.applicability`,
+          skill.agent.applicability,
+        ),
+      );
+    }
+    // guidance is optional but should be a string if present
+    if (
+      skill.agent.guidance !== undefined &&
+      typeof skill.agent.guidance !== "string"
+    ) {
+      errors.push(
+        createError(
+          "INVALID_VALUE",
+          "Skill agent guidance must be a string",
+          `${agentPath}.guidance`,
+          skill.agent.guidance,
+        ),
+      );
+    }
+    // verificationCriteria is optional but should be an array if present
+    if (
+      skill.agent.verificationCriteria !== undefined &&
+      !Array.isArray(skill.agent.verificationCriteria)
+    ) {
+      errors.push(
+        createError(
+          "INVALID_VALUE",
+          "Skill agent verificationCriteria must be an array",
+          `${agentPath}.verificationCriteria`,
+          skill.agent.verificationCriteria,
+        ),
+      );
+    }
+    // Error if old 'body' field is still present
+    if (skill.agent.body !== undefined) {
+      errors.push(
+        createError(
+          "INVALID_FIELD",
+          "Skill agent 'body' field is not supported. Use applicability, guidance, and verificationCriteria instead.",
+          `${agentPath}.body`,
+        ),
+      );
+    }
+  }
+
   return { errors, warnings };
 }
 
