@@ -56,9 +56,10 @@ function createWarning(type, message, path) {
  * Validate that a skill has required properties
  * @param {import('./levels.js').Skill} skill - Skill to validate
  * @param {number} index - Index in the skills array
+ * @param {string[]} [requiredStageIds] - Stage IDs that must be present in agent skills
  * @returns {{errors: Array, warnings: Array}}
  */
-function validateSkill(skill, index) {
+function validateSkill(skill, index, requiredStageIds = []) {
   const errors = [];
   const warnings = [];
   const path = `skills[${index}]`;
@@ -220,6 +221,22 @@ function validateSkill(skill, index) {
               stageData.ready,
             ),
           );
+        }
+      }
+
+      // Check that all required stages are present
+      if (requiredStageIds.length > 0) {
+        const presentStageIds = Object.keys(skill.agent.stages);
+        for (const requiredStageId of requiredStageIds) {
+          if (!presentStageIds.includes(requiredStageId)) {
+            errors.push(
+              createError(
+                "MISSING_REQUIRED",
+                `Skill agent missing required stage: ${requiredStageId}`,
+                `${agentPath}.stages.${requiredStageId}`,
+              ),
+            );
+          }
         }
       }
     }
@@ -1397,6 +1414,9 @@ export function validateAllData({
   const behaviourIds = new Set((behaviours || []).map((b) => b.id));
   const capabilityIds = new Set((capabilities || []).map((c) => c.id));
 
+  // Extract stage IDs for agent skill validation
+  const requiredStageIds = (stages || []).map((s) => s.id);
+
   // Validate skills
   if (!skills || skills.length === 0) {
     allErrors.push(
@@ -1404,7 +1424,11 @@ export function validateAllData({
     );
   } else {
     skills.forEach((skill, index) => {
-      const { errors, warnings } = validateSkill(skill, index);
+      const { errors, warnings } = validateSkill(
+        skill,
+        index,
+        requiredStageIds,
+      );
       allErrors.push(...errors);
       allWarnings.push(...warnings);
     });
