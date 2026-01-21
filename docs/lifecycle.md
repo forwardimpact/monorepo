@@ -262,8 +262,8 @@ See [Agents](agents.md) for agent profile generation details.
 
 ### Stage Tool Sets
 
-| Stage  | Tools                                     | Mode        |
-| ------ | ----------------------------------------- | ----------- |
+| Stage  | Tools                                    | Mode        |
+| ------ | ---------------------------------------- | ----------- |
 | Plan   | search, web/fetch, search/codebase, todo | Read-only   |
 | Code   | search, search/codebase, edit, todo      | Full access |
 | Review | search, search/codebase, read, todo      | Read-only   |

@@ -23,6 +23,7 @@ import {
   getConceptEmoji,
 } from "../../model/levels.js";
 import { prepareBehaviourDetail } from "./shared.js";
+import { createJsonLdScript, behaviourToJsonLd } from "../json-ld.js";
 
 /**
  * Format behaviour detail as DOM elements
@@ -41,6 +42,8 @@ export function behaviourToDOM(
   const emoji = getConceptEmoji(framework, "behaviour");
   return div(
     { className: "detail-page behaviour-detail" },
+    // JSON-LD structured data
+    createJsonLdScript(behaviourToJsonLd(behaviour)),
     // Header
     div(
       { className: "page-header" },

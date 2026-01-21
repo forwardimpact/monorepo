@@ -41,7 +41,12 @@ export function formatAgentSkill(
  * @param {Object} skill - Skill with frontmatter, title, stages, reference
  * @returns {string} Markdown formatted for CLI display
  */
-export function formatAgentSkillForCli({ frontmatter, title, stages, reference }) {
+export function formatAgentSkillForCli({
+  frontmatter,
+  title,
+  stages,
+  reference,
+}) {
   const lines = [];
 
   lines.push(`# ${title}`);

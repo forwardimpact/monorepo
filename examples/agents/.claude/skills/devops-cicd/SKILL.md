@@ -15,8 +15,8 @@ description: |
 **Focus:** Plan CI/CD pipeline architecture and infrastructure requirements.
 Consider deployment strategies and monitoring needs.
 
-
 **Activities:**
+
 - Define pipeline stages (build, test, deploy)
 - Identify infrastructure requirements
 - Plan deployment strategy (rolling, blue-green, canary)
@@ -24,6 +24,7 @@ Consider deployment strategies and monitoring needs.
 - Plan secret management approach
 
 **Ready for Code when:**
+
 - [ ] Pipeline architecture is documented
 - [ ] Deployment strategy is chosen and justified
 - [ ] Infrastructure requirements are identified
@@ -31,11 +32,11 @@ Consider deployment strategies and monitoring needs.
 
 ### Code Stage
 
-**Focus:** Implement CI/CD pipelines and infrastructure as code. Follow
-best practices for containerization and deployment automation.
-
+**Focus:** Implement CI/CD pipelines and infrastructure as code. Follow best
+practices for containerization and deployment automation.
 
 **Activities:**
+
 - Configure CI/CD pipeline stages
 - Implement infrastructure as code (Terraform, CloudFormation)
 - Create Dockerfiles with security best practices
@@ -44,6 +45,7 @@ best practices for containerization and deployment automation.
 - Implement deployment automation
 
 **Ready for Review when:**
+
 - [ ] Pipeline runs on every commit
 - [ ] Tests run before deployment
 - [ ] Deployments are automated
@@ -56,8 +58,8 @@ best practices for containerization and deployment automation.
 **Focus:** Verify pipeline reliability, security, and operational readiness.
 Ensure rollback procedures work and documentation is complete.
 
-
 **Activities:**
+
 - Verify pipeline runs successfully end-to-end
 - Test rollback procedures
 - Review security configurations
@@ -65,6 +67,7 @@ Ensure rollback procedures work and documentation is complete.
 - Check documentation completeness
 
 **Ready for Complete when:**
+
 - [ ] Pipeline is tested and reliable
 - [ ] Rollback procedure is documented and tested
 - [ ] Alerts are configured and tested
@@ -75,18 +78,21 @@ Ensure rollback procedures work and documentation is complete.
 ## CI/CD Pipeline Stages
 
 ### Build
+
 - Install dependencies
 - Compile/transpile code
 - Generate artifacts
 - Cache dependencies for speed
 
 ### Test
+
 - Run unit tests
 - Run integration tests
 - Static analysis and linting
 - Security scanning
 
 ### Deploy
+
 - Deploy to staging environment
 - Run smoke tests
 - Deploy to production
@@ -95,6 +101,7 @@ Ensure rollback procedures work and documentation is complete.
 ## Infrastructure as Code
 
 ### Terraform
+
 ```hcl
 # Define resources declaratively
 resource "aws_instance" "example" {
@@ -104,6 +111,7 @@ resource "aws_instance" "example" {
 ```
 
 ### Docker
+
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
@@ -116,16 +124,19 @@ CMD ["node", "server.js"]
 ## Deployment Strategies
 
 ### Rolling Deployment
+
 - Gradual replacement of instances
 - Zero downtime
 - Easy rollback
 
 ### Blue-Green Deployment
+
 - Two identical environments
 - Switch traffic atomically
 - Fast rollback
 
 ### Canary Deployment
+
 - Route small percentage to new version
 - Monitor for issues
 - Gradually increase traffic

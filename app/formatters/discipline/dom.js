@@ -20,6 +20,7 @@ import {
 } from "../../components/action-buttons.js";
 import { getConceptEmoji } from "../../model/levels.js";
 import { prepareDisciplineDetail } from "./shared.js";
+import { createJsonLdScript, disciplineToJsonLd } from "../json-ld.js";
 
 /**
  * Format discipline detail as DOM elements
@@ -46,6 +47,8 @@ export function disciplineToDOM(
   const emoji = getConceptEmoji(framework, "discipline");
   return div(
     { className: "detail-page discipline-detail" },
+    // JSON-LD structured data
+    createJsonLdScript(disciplineToJsonLd(discipline, { skills })),
     // Header
     div(
       { className: "page-header" },

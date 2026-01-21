@@ -41,7 +41,7 @@
   "scripts": {
     "start": "node bin/pathway.js serve",
     "prestart": "npm run generate-index",
-    "check": "npm run format && npm run lint && npm run test",
+    "check": "npm run format && npm run lint && npm run test && npm run validate:shacl",
     "check:fix": "npm run format:fix && npm run lint:fix",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -50,6 +50,7 @@
     "test": "find ./tests -name '*.test.js' | xargs node --test",
     "test:e2e": "npx playwright test",
     "validate": "node bin/pathway.js --validate",
+    "validate:shacl": "node scripts/validate-shacl.js",
     "generate-index": "node bin/pathway.js --generate-index",
     "pathway": "node bin/pathway.js",
     "demo": "node scripts/demo.js"
@@ -64,6 +65,7 @@
     "@playwright/test": "^1.49.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
+    "n3": "^2.0.1",
     "prettier": "^3.7.4"
   },
   "engines": {

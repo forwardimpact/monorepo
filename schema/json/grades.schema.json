@@ -109,7 +109,13 @@
     },
     "behaviourMaturity": {
       "type": "string",
-      "enum": ["emerging", "developing", "practicing", "role_modeling", "exemplifying"]
+      "enum": [
+        "emerging",
+        "developing",
+        "practicing",
+        "role_modeling",
+        "exemplifying"
+      ]
     }
   }
 }

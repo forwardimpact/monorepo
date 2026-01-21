@@ -2,15 +2,12 @@
  * Drivers pages
  */
 
-import { render, div, h1, h2, p, section } from "../lib/render.js";
+import { render, div, h1, p } from "../lib/render.js";
 import { getState } from "../lib/state.js";
 import { createCardList } from "../components/list.js";
-import { createDetailHeader, createLinksList } from "../components/detail.js";
 import { renderNotFound } from "../components/error-page.js";
-import {
-  prepareDriversList,
-  prepareDriverDetail,
-} from "../formatters/driver/shared.js";
+import { prepareDriversList } from "../formatters/driver/shared.js";
+import { driverToDOM } from "../formatters/driver/dom.js";
 import { driverToCardConfig } from "../lib/card-mappers.js";
 
 /**
@@ -60,47 +57,12 @@ export function renderDriverDetail(params) {
     return;
   }
 
-  // Transform data for detail view
-  const view = prepareDriverDetail(driver, {
-    skills: data.skills,
-    behaviours: data.behaviours,
-  });
-
-  const page = div(
-    { className: "driver-detail" },
-    createDetailHeader({
-      title: view.name,
-      description: view.description,
-      backLink: "/driver",
-      backText: "← Back to Drivers",
+  // Use DOM formatter - it handles transformation internally
+  render(
+    driverToDOM(driver, {
+      skills: data.skills,
+      behaviours: data.behaviours,
+      framework: data.framework,
     }),
-
-    // Contributing Skills and Contributing Behaviours in two columns
-    view.contributingSkills.length > 0 || view.contributingBehaviours.length > 0
-      ? section(
-          { className: "section section-detail" },
-          div(
-            { className: "content-columns" },
-            // Contributing Skills column
-            view.contributingSkills.length > 0
-              ? div(
-                  { className: "column" },
-                  h2({ className: "section-title" }, "Contributing Skills"),
-                  createLinksList(view.contributingSkills, "/skill"),
-                )
-              : null,
-            // Contributing Behaviours column
-            view.contributingBehaviours.length > 0
-              ? div(
-                  { className: "column" },
-                  h2({ className: "section-title" }, "Contributing Behaviours"),
-                  createLinksList(view.contributingBehaviours, "/behaviour"),
-                )
-              : null,
-          ),
-        )
-      : null,
   );
-
-  render(page);
 }

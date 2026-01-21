@@ -1,5 +1,3 @@
-# yaml-language-server: $schema=https://schema.forwardimpact.team/json/vscode-settings.schema.json
-
 chat.agent.enabled: true
 
 # Maximum requests per agent session (high limit for complex tasks)

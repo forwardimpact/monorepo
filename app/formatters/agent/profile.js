@@ -141,7 +141,9 @@ export function formatAgentProfileForCli({ frontmatter, bodyData }) {
   lines.push("When completing work (for handoff or as a subagent), provide:");
   lines.push("");
   lines.push("1. **Work completed**: What was accomplished");
-  lines.push("2. **Checklist status**: Items verified from Before Handoff section");
+  lines.push(
+    "2. **Checklist status**: Items verified from Before Handoff section",
+  );
   lines.push("3. **Recommendation**: Ready for next stage, or needs more work");
   lines.push("");
 

@@ -1,0 +1,2245 @@
+@prefix fit: <https://schema.forwardimpact.team/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+# =============================================================================
+# Engineering Pathway SHACL Schema
+# =============================================================================
+# This schema defines the data model for the Engineering Pathway framework,
+# a unified system for human and AI collaboration in engineering.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Ontology Definition
+# -----------------------------------------------------------------------------
+
+fit: a owl:Ontology ;
+    rdfs:label "Engineering Pathway Schema"@en ;
+    rdfs:comment "SHACL schema for the Engineering Pathway framework - a unified system for defining engineering roles, skills, behaviours, and AI agent configurations."@en .
+
+# =============================================================================
+# ENUMERATIONS (Named Individuals)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Skill Levels (5 levels from lowest to highest proficiency)
+# -----------------------------------------------------------------------------
+
+fit:SkillLevel a rdfs:Class ;
+    rdfs:label "Skill Level"@en ;
+    rdfs:comment "Skill proficiency level from lowest to highest"@en .
+
+fit:awareness a fit:SkillLevel ;
+    rdfs:label "Awareness"@en ;
+    fit:ordinal 1 ;
+    rdfs:comment "Learning fundamentals, needs guidance"@en .
+
+fit:foundational a fit:SkillLevel ;
+    rdfs:label "Foundational"@en ;
+    fit:ordinal 2 ;
+    rdfs:comment "Can apply basics independently"@en .
+
+fit:working a fit:SkillLevel ;
+    rdfs:label "Working"@en ;
+    fit:ordinal 3 ;
+    rdfs:comment "Solid competence, handles ambiguity"@en .
+
+fit:practitioner a fit:SkillLevel ;
+    rdfs:label "Practitioner"@en ;
+    fit:ordinal 4 ;
+    rdfs:comment "Deep expertise, leads and mentors"@en .
+
+fit:expert a fit:SkillLevel ;
+    rdfs:label "Expert"@en ;
+    fit:ordinal 5 ;
+    rdfs:comment "Authority, shapes direction across org"@en .
+
+# -----------------------------------------------------------------------------
+# Behaviour Maturities (5 levels from lowest to highest)
+# -----------------------------------------------------------------------------
+
+fit:BehaviourMaturity a rdfs:Class ;
+    rdfs:label "Behaviour Maturity"@en ;
+    rdfs:comment "Behaviour maturity level from lowest to highest"@en .
+
+fit:emerging a fit:BehaviourMaturity ;
+    rdfs:label "Emerging"@en ;
+    fit:ordinal 1 ;
+    rdfs:comment "Shows interest, needs prompting"@en .
+
+fit:developing a fit:BehaviourMaturity ;
+    rdfs:label "Developing"@en ;
+    fit:ordinal 2 ;
+    rdfs:comment "Regular practice with guidance"@en .
+
+fit:practicing a fit:BehaviourMaturity ;
+    rdfs:label "Practicing"@en ;
+    fit:ordinal 3 ;
+    rdfs:comment "Consistent application, proactive"@en .
+
+fit:role_modeling a fit:BehaviourMaturity ;
+    rdfs:label "Role Modeling"@en ;
+    fit:ordinal 4 ;
+    rdfs:comment "Influences team culture"@en .
+
+fit:exemplifying a fit:BehaviourMaturity ;
+    rdfs:label "Exemplifying"@en ;
+    fit:ordinal 5 ;
+    rdfs:comment "Shapes organizational culture"@en .
+
+# -----------------------------------------------------------------------------
+# Lifecycle Stages
+# -----------------------------------------------------------------------------
+
+fit:Stage a rdfs:Class ;
+    rdfs:label "Stage"@en ;
+    rdfs:comment "Engineering lifecycle stage"@en .
+
+fit:plan a fit:Stage ;
+    rdfs:label "Plan"@en ;
+    rdfs:comment "Research, gather context, design"@en .
+
+fit:code a fit:Stage ;
+    rdfs:label "Code"@en ;
+    rdfs:comment "Implement, test, iterate"@en .
+
+fit:review a fit:Stage ;
+    rdfs:label "Review"@en ;
+    rdfs:comment "Verify, approve, document"@en .
+
+# =============================================================================
+# CORE ENTITY CLASSES
+# =============================================================================
+
+fit:Capability a rdfs:Class ;
+    rdfs:label "Capability"@en ;
+    rdfs:comment "Capability area that groups related skills with responsibilities and checklists"@en .
+
+fit:Skill a rdfs:Class ;
+    rdfs:label "Skill"@en ;
+    rdfs:comment "Technical or professional capability that can be measured across proficiency levels"@en .
+
+fit:Behaviour a rdfs:Class ;
+    rdfs:label "Behaviour"@en ;
+    rdfs:comment "Mindset and way of working that underpins effective application of skills"@en .
+
+fit:Discipline a rdfs:Class ;
+    rdfs:label "Discipline"@en ;
+    rdfs:comment "Engineering specialization that defines T-shaped skill profiles"@en .
+
+fit:Track a rdfs:Class ;
+    rdfs:label "Track"@en ;
+    rdfs:comment "Work context that modifies skill and behaviour expectations"@en .
+
+fit:Grade a rdfs:Class ;
+    rdfs:label "Grade"@en ;
+    rdfs:comment "Career level defining expectations for skill proficiency, behaviour maturity, and scope of impact"@en .
+
+fit:Driver a rdfs:Class ;
+    rdfs:label "Driver"@en ;
+    rdfs:comment "Organizational outcome that productive teams achieve"@en .
+
+fit:Framework a rdfs:Class ;
+    rdfs:label "Framework"@en ;
+    rdfs:comment "High-level framework configuration"@en .
+
+fit:Question a rdfs:Class ;
+    rdfs:label "Question"@en ;
+    rdfs:comment "Interview question for assessing skills or behaviours"@en .
+
+fit:SelfAssessment a rdfs:Class ;
+    rdfs:label "Self Assessment"@en ;
+    rdfs:comment "Example candidate profile for testing candidate matching"@en .
+
+# -----------------------------------------------------------------------------
+# Composite/Nested Classes
+# -----------------------------------------------------------------------------
+
+fit:SkillHumanSection a rdfs:Class ;
+    rdfs:label "Skill Human Section"@en ;
+    rdfs:comment "Human-specific content for a skill"@en .
+
+fit:SkillAgentSection a rdfs:Class ;
+    rdfs:label "Skill Agent Section"@en ;
+    rdfs:comment "Agent-specific content for a skill"@en .
+
+fit:SkillStage a rdfs:Class ;
+    rdfs:label "Skill Stage"@en ;
+    rdfs:comment "Stage-specific guidance for applying a skill"@en .
+
+fit:BehaviourHumanSection a rdfs:Class ;
+    rdfs:label "Behaviour Human Section"@en ;
+    rdfs:comment "Human-specific content for a behaviour"@en .
+
+fit:BehaviourAgentSection a rdfs:Class ;
+    rdfs:label "Behaviour Agent Section"@en ;
+    rdfs:comment "Agent-specific content for a behaviour"@en .
+
+fit:DisciplineHumanSection a rdfs:Class ;
+    rdfs:label "Discipline Human Section"@en ;
+    rdfs:comment "Human-specific content for a discipline"@en .
+
+fit:DisciplineAgentSection a rdfs:Class ;
+    rdfs:label "Discipline Agent Section"@en ;
+    rdfs:comment "Agent-specific content for a discipline"@en .
+
+fit:TrackAgentSection a rdfs:Class ;
+    rdfs:label "Track Agent Section"@en ;
+    rdfs:comment "Agent-specific content for a track"@en .
+
+fit:LevelDescriptions a rdfs:Class ;
+    rdfs:label "Level Descriptions"@en ;
+    rdfs:comment "Description of expectations at each skill level"@en .
+
+fit:MaturityDescriptions a rdfs:Class ;
+    rdfs:label "Maturity Descriptions"@en ;
+    rdfs:comment "Description of expectations at each behaviour maturity level"@en .
+
+fit:ResponsibilitiesByLevel a rdfs:Class ;
+    rdfs:label "Responsibilities By Level"@en ;
+    rdfs:comment "Responsibility descriptions by skill level"@en .
+
+fit:BaseSkillLevels a rdfs:Class ;
+    rdfs:label "Base Skill Levels"@en ;
+    rdfs:comment "Base skill levels by skill tier for a grade"@en .
+
+fit:GradeExpectations a rdfs:Class ;
+    rdfs:label "Grade Expectations"@en ;
+    rdfs:comment "Expectations for impact, autonomy, influence, and complexity at a grade level"@en .
+
+fit:AssessmentWeights a rdfs:Class ;
+    rdfs:label "Assessment Weights"@en ;
+    rdfs:comment "Custom weights for skill vs behaviour assessment"@en .
+
+fit:Handoff a rdfs:Class ;
+    rdfs:label "Handoff"@en ;
+    rdfs:comment "Transition from one stage to another"@en .
+
+fit:EntityDefinition a rdfs:Class ;
+    rdfs:label "Entity Definition"@en ;
+    rdfs:comment "Definition for an entity type used in pages and chapters"@en .
+
+fit:SkillModifier a rdfs:Class ;
+    rdfs:label "Skill Modifier"@en ;
+    rdfs:comment "Modifier applied to skills in a capability by a track"@en .
+
+fit:BehaviourModifier a rdfs:Class ;
+    rdfs:label "Behaviour Modifier"@en ;
+    rdfs:comment "Modifier applied to a behaviour by a discipline or track"@en .
+
+fit:BreadthCriteria a rdfs:Class ;
+    rdfs:label "Breadth Criteria"@en ;
+    rdfs:comment "Minimum number of skills at each level for breadth (senior grades only)"@en .
+
+fit:SkillAssessment a rdfs:Class ;
+    rdfs:label "Skill Assessment"@en ;
+    rdfs:comment "Assessment of a skill at a particular level"@en .
+
+fit:BehaviourAssessment a rdfs:Class ;
+    rdfs:label "Behaviour Assessment"@en ;
+    rdfs:comment "Assessment of a behaviour at a particular maturity"@en .
+
+# =============================================================================
+# PROPERTIES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Common Properties
+# -----------------------------------------------------------------------------
+
+fit:id a rdf:Property ;
+    rdfs:label "id"@en ;
+    rdfs:comment "Unique identifier"@en ;
+    rdfs:range xsd:string .
+
+fit:name a rdf:Property ;
+    rdfs:label "name"@en ;
+    rdfs:comment "Human-readable name"@en ;
+    rdfs:range xsd:string .
+
+fit:description a rdf:Property ;
+    rdfs:label "description"@en ;
+    rdfs:comment "Description text"@en ;
+    rdfs:range xsd:string .
+
+fit:emoji a rdf:Property ;
+    rdfs:label "emoji"@en ;
+    rdfs:comment "Emoji for visual representation"@en ;
+    rdfs:range xsd:string .
+
+fit:displayOrder a rdf:Property ;
+    rdfs:label "displayOrder"@en ;
+    rdfs:comment "Order for display in UI"@en ;
+    rdfs:range xsd:integer .
+
+fit:ordinal a rdf:Property ;
+    rdfs:label "ordinal"@en ;
+    rdfs:comment "Numeric position in ordered sequence"@en ;
+    rdfs:range xsd:integer .
+
+fit:title a rdf:Property ;
+    rdfs:label "title"@en ;
+    rdfs:comment "Display title"@en ;
+    rdfs:range xsd:string .
+
+# -----------------------------------------------------------------------------
+# Capability Properties
+# -----------------------------------------------------------------------------
+
+fit:professionalResponsibilities a rdf:Property ;
+    rdfs:label "professionalResponsibilities"@en ;
+    rdfs:comment "Responsibilities for professional/IC track by level"@en ;
+    rdfs:domain fit:Capability ;
+    rdfs:range fit:ResponsibilitiesByLevel .
+
+fit:managementResponsibilities a rdf:Property ;
+    rdfs:label "managementResponsibilities"@en ;
+    rdfs:comment "Responsibilities for management track by level"@en ;
+    rdfs:domain fit:Capability ;
+    rdfs:range fit:ResponsibilitiesByLevel .
+
+fit:skills a rdf:Property ;
+    rdfs:label "skills"@en ;
+    rdfs:comment "Skills within this capability"@en ;
+    rdfs:domain fit:Capability ;
+    rdfs:range fit:Skill .
+
+# -----------------------------------------------------------------------------
+# Skill Properties
+# -----------------------------------------------------------------------------
+
+fit:capability a rdf:Property ;
+    rdfs:label "capability"@en ;
+    rdfs:comment "The capability this skill belongs to"@en ;
+    rdfs:domain fit:Skill ;
+    rdfs:range fit:Capability .
+
+fit:isHumanOnly a rdf:Property ;
+    rdfs:label "isHumanOnly"@en ;
+    rdfs:comment "If true, this skill is excluded from agent profiles"@en ;
+    rdfs:domain fit:Skill ;
+    rdfs:range xsd:boolean .
+
+fit:human a rdf:Property ;
+    rdfs:label "human"@en ;
+    rdfs:comment "Human-specific content"@en .
+
+fit:agent a rdf:Property ;
+    rdfs:label "agent"@en ;
+    rdfs:comment "Agent-specific content"@en .
+
+fit:levelDescriptions a rdf:Property ;
+    rdfs:label "levelDescriptions"@en ;
+    rdfs:comment "Description of expectations at each level"@en ;
+    rdfs:range fit:LevelDescriptions .
+
+fit:maturityDescriptions a rdf:Property ;
+    rdfs:label "maturityDescriptions"@en ;
+    rdfs:comment "Description of expectations at each maturity level"@en ;
+    rdfs:range fit:MaturityDescriptions .
+
+# Level description properties
+fit:awarenessDescription a rdf:Property ;
+    rdfs:label "awarenessDescription"@en ;
+    rdfs:comment "Description for awareness level"@en ;
+    rdfs:range xsd:string .
+
+fit:foundationalDescription a rdf:Property ;
+    rdfs:label "foundationalDescription"@en ;
+    rdfs:comment "Description for foundational level"@en ;
+    rdfs:range xsd:string .
+
+fit:workingDescription a rdf:Property ;
+    rdfs:label "workingDescription"@en ;
+    rdfs:comment "Description for working level"@en ;
+    rdfs:range xsd:string .
+
+fit:practitionerDescription a rdf:Property ;
+    rdfs:label "practitionerDescription"@en ;
+    rdfs:comment "Description for practitioner level"@en ;
+    rdfs:range xsd:string .
+
+fit:expertDescription a rdf:Property ;
+    rdfs:label "expertDescription"@en ;
+    rdfs:comment "Description for expert level"@en ;
+    rdfs:range xsd:string .
+
+# Maturity description properties
+fit:emergingDescription a rdf:Property ;
+    rdfs:label "emergingDescription"@en ;
+    rdfs:comment "Description for emerging maturity"@en ;
+    rdfs:range xsd:string .
+
+fit:developingDescription a rdf:Property ;
+    rdfs:label "developingDescription"@en ;
+    rdfs:comment "Description for developing maturity"@en ;
+    rdfs:range xsd:string .
+
+fit:practicingDescription a rdf:Property ;
+    rdfs:label "practicingDescription"@en ;
+    rdfs:comment "Description for practicing maturity"@en ;
+    rdfs:range xsd:string .
+
+fit:roleModelingDescription a rdf:Property ;
+    rdfs:label "roleModelingDescription"@en ;
+    rdfs:comment "Description for role_modeling maturity"@en ;
+    rdfs:range xsd:string .
+
+fit:exemplifyingDescription a rdf:Property ;
+    rdfs:label "exemplifyingDescription"@en ;
+    rdfs:comment "Description for exemplifying maturity"@en ;
+    rdfs:range xsd:string .
+
+# -----------------------------------------------------------------------------
+# Skill Agent Section Properties
+# -----------------------------------------------------------------------------
+
+fit:stages a rdf:Property ;
+    rdfs:label "stages"@en ;
+    rdfs:comment "Stage-specific guidance for applying the skill"@en ;
+    rdfs:domain fit:SkillAgentSection .
+
+fit:reference a rdf:Property ;
+    rdfs:label "reference"@en ;
+    rdfs:comment "Optional reference material in markdown format"@en ;
+    rdfs:range xsd:string .
+
+fit:planStage a rdf:Property ;
+    rdfs:label "planStage"@en ;
+    rdfs:comment "Guidance for the plan stage"@en ;
+    rdfs:range fit:SkillStage .
+
+fit:codeStage a rdf:Property ;
+    rdfs:label "codeStage"@en ;
+    rdfs:comment "Guidance for the code stage"@en ;
+    rdfs:range fit:SkillStage .
+
+fit:reviewStage a rdf:Property ;
+    rdfs:label "reviewStage"@en ;
+    rdfs:comment "Guidance for the review stage"@en ;
+    rdfs:range fit:SkillStage .
+
+fit:focus a rdf:Property ;
+    rdfs:label "focus"@en ;
+    rdfs:comment "Primary focus for this stage"@en ;
+    rdfs:range xsd:string .
+
+fit:activities a rdf:Property ;
+    rdfs:label "activities"@en ;
+    rdfs:comment "Key activities to perform in this stage"@en ;
+    rdfs:range xsd:string .
+
+fit:ready a rdf:Property ;
+    rdfs:label "ready"@en ;
+    rdfs:comment "Criteria that indicate readiness to move to next stage"@en ;
+    rdfs:range xsd:string .
+
+# -----------------------------------------------------------------------------
+# Behaviour Properties
+# -----------------------------------------------------------------------------
+
+fit:workingStyle a rdf:Property ;
+    rdfs:label "workingStyle"@en ;
+    rdfs:comment "How the agent should apply this behaviour"@en ;
+    rdfs:domain fit:BehaviourAgentSection ;
+    rdfs:range xsd:string .
+
+# -----------------------------------------------------------------------------
+# Discipline Properties
+# -----------------------------------------------------------------------------
+
+fit:specialization a rdf:Property ;
+    rdfs:label "specialization"@en ;
+    rdfs:comment "Name of the specialization (e.g., Software Engineering)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range xsd:string .
+
+fit:roleTitle a rdf:Property ;
+    rdfs:label "roleTitle"@en ;
+    rdfs:comment "Base role title (e.g., Software Engineer)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range xsd:string .
+
+fit:coreSkills a rdf:Property ;
+    rdfs:label "coreSkills"@en ;
+    rdfs:comment "Primary skills for deep expertise (references skill IDs)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range fit:Skill .
+
+fit:supportingSkills a rdf:Property ;
+    rdfs:label "supportingSkills"@en ;
+    rdfs:comment "Secondary skills for supporting capabilities (references skill IDs)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range fit:Skill .
+
+fit:broadSkills a rdf:Property ;
+    rdfs:label "broadSkills"@en ;
+    rdfs:comment "Skills for general awareness (references skill IDs)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range fit:Skill .
+
+fit:behaviourModifiers a rdf:Property ;
+    rdfs:label "behaviourModifiers"@en ;
+    rdfs:comment "Modifiers to behaviour expectations"@en .
+
+fit:professionalRoleSummary a rdf:Property ;
+    rdfs:label "professionalRoleSummary"@en ;
+    rdfs:comment "Role summary for professional/IC track. May use {roleTitle} placeholder."@en ;
+    rdfs:domain fit:DisciplineHumanSection ;
+    rdfs:range xsd:string .
+
+fit:managementRoleSummary a rdf:Property ;
+    rdfs:label "managementRoleSummary"@en ;
+    rdfs:comment "Role summary for management track. May use {specialization} placeholder."@en ;
+    rdfs:domain fit:DisciplineHumanSection ;
+    rdfs:range xsd:string .
+
+# -----------------------------------------------------------------------------
+# Discipline/Track Agent Section Properties
+# -----------------------------------------------------------------------------
+
+fit:identity a rdf:Property ;
+    rdfs:label "identity"@en ;
+    rdfs:comment "Core identity statement for the agent"@en ;
+    rdfs:range xsd:string .
+
+fit:priority a rdf:Property ;
+    rdfs:label "priority"@en ;
+    rdfs:comment "Priority guidance for the agent"@en ;
+    rdfs:range xsd:string .
+
+fit:beforeMakingChanges a rdf:Property ;
+    rdfs:label "beforeMakingChanges"@en ;
+    rdfs:comment "Checklist items to consider before making changes"@en ;
+    rdfs:range xsd:string .
+
+fit:delegation a rdf:Property ;
+    rdfs:label "delegation"@en ;
+    rdfs:comment "Guidance on when and how to delegate to subagents"@en ;
+    rdfs:range xsd:string .
+
+fit:constraints a rdf:Property ;
+    rdfs:label "constraints"@en ;
+    rdfs:comment "Restrictions or things to avoid"@en ;
+    rdfs:range xsd:string .
+
+# -----------------------------------------------------------------------------
+# Track Properties
+# -----------------------------------------------------------------------------
+
+fit:isProfessional a rdf:Property ;
+    rdfs:label "isProfessional"@en ;
+    rdfs:comment "If true, this is a professional/IC track (default true)"@en ;
+    rdfs:domain fit:Track ;
+    rdfs:range xsd:boolean .
+
+fit:isManagement a rdf:Property ;
+    rdfs:label "isManagement"@en ;
+    rdfs:comment "If true, this is a management track (default false)"@en ;
+    rdfs:domain fit:Track ;
+    rdfs:range xsd:boolean .
+
+fit:roleContext a rdf:Property ;
+    rdfs:label "roleContext"@en ;
+    rdfs:comment "Contextual description for job listings"@en ;
+    rdfs:domain fit:Track ;
+    rdfs:range xsd:string .
+
+fit:skillModifiers a rdf:Property ;
+    rdfs:label "skillModifiers"@en ;
+    rdfs:comment "Modifiers by capability ID"@en ;
+    rdfs:domain fit:Track .
+
+fit:assessmentWeights a rdf:Property ;
+    rdfs:label "assessmentWeights"@en ;
+    rdfs:comment "Custom weights for skill vs behaviour assessment"@en ;
+    rdfs:domain fit:Track ;
+    rdfs:range fit:AssessmentWeights .
+
+fit:validDisciplines a rdf:Property ;
+    rdfs:label "validDisciplines"@en ;
+    rdfs:comment "If specified, restricts which disciplines can use this track"@en ;
+    rdfs:domain fit:Track ;
+    rdfs:range fit:Discipline .
+
+fit:minGrade a rdf:Property ;
+    rdfs:label "minGrade"@en ;
+    rdfs:comment "Minimum grade required for this track"@en ;
+    rdfs:domain fit:Track ;
+    rdfs:range fit:Grade .
+
+fit:skillWeight a rdf:Property ;
+    rdfs:label "skillWeight"@en ;
+    rdfs:comment "Weight for skills in assessment (0-1)"@en ;
+    rdfs:domain fit:AssessmentWeights ;
+    rdfs:range xsd:decimal .
+
+fit:behaviourWeight a rdf:Property ;
+    rdfs:label "behaviourWeight"@en ;
+    rdfs:comment "Weight for behaviours in assessment (0-1)"@en ;
+    rdfs:domain fit:AssessmentWeights ;
+    rdfs:range xsd:decimal .
+
+# -----------------------------------------------------------------------------
+# Modifier Properties
+# -----------------------------------------------------------------------------
+
+fit:targetCapability a rdf:Property ;
+    rdfs:label "targetCapability"@en ;
+    rdfs:comment "The capability this modifier applies to"@en ;
+    rdfs:domain fit:SkillModifier ;
+    rdfs:range fit:Capability .
+
+fit:targetBehaviour a rdf:Property ;
+    rdfs:label "targetBehaviour"@en ;
+    rdfs:comment "The behaviour this modifier applies to"@en ;
+    rdfs:domain fit:BehaviourModifier ;
+    rdfs:range fit:Behaviour .
+
+fit:modifierValue a rdf:Property ;
+    rdfs:label "modifierValue"@en ;
+    rdfs:comment "The modifier value (-1, 0, or 1)"@en ;
+    rdfs:range xsd:integer .
+
+# -----------------------------------------------------------------------------
+# Grade Properties
+# -----------------------------------------------------------------------------
+
+fit:professionalTitle a rdf:Property ;
+    rdfs:label "professionalTitle"@en ;
+    rdfs:comment "Title for professional/IC track"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range xsd:string .
+
+fit:managementTitle a rdf:Property ;
+    rdfs:label "managementTitle"@en ;
+    rdfs:comment "Title for management track"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range xsd:string .
+
+fit:typicalExperienceRange a rdf:Property ;
+    rdfs:label "typicalExperienceRange"@en ;
+    rdfs:comment "Expected years of experience range"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range xsd:string .
+
+fit:ordinalRank a rdf:Property ;
+    rdfs:label "ordinalRank"@en ;
+    rdfs:comment "Numeric rank for ordering grades (1 = lowest)"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range xsd:integer .
+
+fit:qualificationSummary a rdf:Property ;
+    rdfs:label "qualificationSummary"@en ;
+    rdfs:comment "Summary of qualifications expected at this grade"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range xsd:string .
+
+fit:baseSkillLevels a rdf:Property ;
+    rdfs:label "baseSkillLevels"@en ;
+    rdfs:comment "Base skill levels by skill tier for this grade"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range fit:BaseSkillLevels .
+
+fit:baseBehaviourMaturity a rdf:Property ;
+    rdfs:label "baseBehaviourMaturity"@en ;
+    rdfs:comment "Base behaviour maturity for this grade"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range fit:BehaviourMaturity .
+
+fit:breadthCriteria a rdf:Property ;
+    rdfs:label "breadthCriteria"@en ;
+    rdfs:comment "Minimum number of skills at each level for breadth"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range fit:BreadthCriteria .
+
+fit:expectations a rdf:Property ;
+    rdfs:label "expectations"@en ;
+    rdfs:comment "Expectations for impact, autonomy, influence, and complexity"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range fit:GradeExpectations .
+
+fit:primary a rdf:Property ;
+    rdfs:label "primary"@en ;
+    rdfs:comment "Level for core/primary skills"@en ;
+    rdfs:domain fit:BaseSkillLevels ;
+    rdfs:range fit:SkillLevel .
+
+fit:secondary a rdf:Property ;
+    rdfs:label "secondary"@en ;
+    rdfs:comment "Level for supporting/secondary skills"@en ;
+    rdfs:domain fit:BaseSkillLevels ;
+    rdfs:range fit:SkillLevel .
+
+fit:broad a rdf:Property ;
+    rdfs:label "broad"@en ;
+    rdfs:comment "Level for broad skills"@en ;
+    rdfs:domain fit:BaseSkillLevels ;
+    rdfs:range fit:SkillLevel .
+
+fit:impactScope a rdf:Property ;
+    rdfs:label "impactScope"@en ;
+    rdfs:comment "Scope of impact expected at this grade"@en ;
+    rdfs:domain fit:GradeExpectations ;
+    rdfs:range xsd:string .
+
+fit:autonomyExpectation a rdf:Property ;
+    rdfs:label "autonomyExpectation"@en ;
+    rdfs:comment "Level of autonomy expected"@en ;
+    rdfs:domain fit:GradeExpectations ;
+    rdfs:range xsd:string .
+
+fit:influenceScope a rdf:Property ;
+    rdfs:label "influenceScope"@en ;
+    rdfs:comment "Scope of influence"@en ;
+    rdfs:domain fit:GradeExpectations ;
+    rdfs:range xsd:string .
+
+fit:complexityHandled a rdf:Property ;
+    rdfs:label "complexityHandled"@en ;
+    rdfs:comment "Complexity level the grade should handle"@en ;
+    rdfs:domain fit:GradeExpectations ;
+    rdfs:range xsd:string .
+
+# -----------------------------------------------------------------------------
+# Stage Properties
+# -----------------------------------------------------------------------------
+
+fit:handoffs a rdf:Property ;
+    rdfs:label "handoffs"@en ;
+    rdfs:comment "Transitions to other stages"@en ;
+    rdfs:domain fit:Stage ;
+    rdfs:range fit:Handoff .
+
+fit:entryCriteria a rdf:Property ;
+    rdfs:label "entryCriteria"@en ;
+    rdfs:comment "Conditions that must be met before entering this stage"@en ;
+    rdfs:range xsd:string .
+
+fit:targetStage a rdf:Property ;
+    rdfs:label "targetStage"@en ;
+    rdfs:comment "The stage to transition to"@en ;
+    rdfs:domain fit:Handoff ;
+    rdfs:range fit:Stage .
+
+fit:label a rdf:Property ;
+    rdfs:label "label"@en ;
+    rdfs:comment "Button label for the handoff action"@en ;
+    rdfs:domain fit:Handoff ;
+    rdfs:range xsd:string .
+
+fit:prompt a rdf:Property ;
+    rdfs:label "prompt"@en ;
+    rdfs:comment "Instructions for the next stage"@en ;
+    rdfs:domain fit:Handoff ;
+    rdfs:range xsd:string .
+
+# -----------------------------------------------------------------------------
+# Driver Properties
+# -----------------------------------------------------------------------------
+
+fit:contributingSkills a rdf:Property ;
+    rdfs:label "contributingSkills"@en ;
+    rdfs:comment "Skills that contribute to this driver"@en ;
+    rdfs:domain fit:Driver ;
+    rdfs:range fit:Skill .
+
+fit:contributingBehaviours a rdf:Property ;
+    rdfs:label "contributingBehaviours"@en ;
+    rdfs:comment "Behaviours that contribute to this driver"@en ;
+    rdfs:domain fit:Driver ;
+    rdfs:range fit:Behaviour .
+
+# -----------------------------------------------------------------------------
+# Framework Properties
+# -----------------------------------------------------------------------------
+
+fit:tag a rdf:Property ;
+    rdfs:label "tag"@en ;
+    rdfs:comment "Organization tag or identifier"@en ;
+    rdfs:domain fit:Framework ;
+    rdfs:range xsd:string .
+
+fit:entityDefinitions a rdf:Property ;
+    rdfs:label "entityDefinitions"@en ;
+    rdfs:comment "Definitions for each entity type"@en ;
+    rdfs:domain fit:Framework ;
+    rdfs:range fit:EntityDefinition .
+
+fit:entityType a rdf:Property ;
+    rdfs:label "entityType"@en ;
+    rdfs:comment "The type of entity this definition describes"@en ;
+    rdfs:domain fit:EntityDefinition ;
+    rdfs:range xsd:string .
+
+# -----------------------------------------------------------------------------
+# Question Properties
+# -----------------------------------------------------------------------------
+
+fit:text a rdf:Property ;
+    rdfs:label "text"@en ;
+    rdfs:comment "The question text"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range xsd:string .
+
+fit:lookingFor a rdf:Property ;
+    rdfs:label "lookingFor"@en ;
+    rdfs:comment "Bullet points of good answer indicators"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range xsd:string .
+
+fit:expectedDurationMinutes a rdf:Property ;
+    rdfs:label "expectedDurationMinutes"@en ;
+    rdfs:comment "Expected duration in minutes"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range xsd:integer .
+
+fit:followUps a rdf:Property ;
+    rdfs:label "followUps"@en ;
+    rdfs:comment "Probing questions for deeper exploration"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range xsd:string .
+
+fit:forSkill a rdf:Property ;
+    rdfs:label "forSkill"@en ;
+    rdfs:comment "The skill this question assesses"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range fit:Skill .
+
+fit:forBehaviour a rdf:Property ;
+    rdfs:label "forBehaviour"@en ;
+    rdfs:comment "The behaviour this question assesses"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range fit:Behaviour .
+
+fit:atLevel a rdf:Property ;
+    rdfs:label "atLevel"@en ;
+    rdfs:comment "The skill level this question is for"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range fit:SkillLevel .
+
+fit:atMaturity a rdf:Property ;
+    rdfs:label "atMaturity"@en ;
+    rdfs:comment "The behaviour maturity this question is for"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range fit:BehaviourMaturity .
+
+# -----------------------------------------------------------------------------
+# Self Assessment Properties
+# -----------------------------------------------------------------------------
+
+fit:skillLevels a rdf:Property ;
+    rdfs:label "skillLevels"@en ;
+    rdfs:comment "Skill assessments"@en ;
+    rdfs:domain fit:SelfAssessment ;
+    rdfs:range fit:SkillAssessment .
+
+fit:behaviourMaturities a rdf:Property ;
+    rdfs:label "behaviourMaturities"@en ;
+    rdfs:comment "Behaviour assessments"@en ;
+    rdfs:domain fit:SelfAssessment ;
+    rdfs:range fit:BehaviourAssessment .
+
+fit:assessedSkill a rdf:Property ;
+    rdfs:label "assessedSkill"@en ;
+    rdfs:comment "The skill being assessed"@en ;
+    rdfs:domain fit:SkillAssessment ;
+    rdfs:range fit:Skill .
+
+fit:assessedLevel a rdf:Property ;
+    rdfs:label "assessedLevel"@en ;
+    rdfs:comment "The assessed level for the skill"@en ;
+    rdfs:domain fit:SkillAssessment ;
+    rdfs:range fit:SkillLevel .
+
+fit:assessedBehaviour a rdf:Property ;
+    rdfs:label "assessedBehaviour"@en ;
+    rdfs:comment "The behaviour being assessed"@en ;
+    rdfs:domain fit:BehaviourAssessment ;
+    rdfs:range fit:Behaviour .
+
+fit:assessedMaturity a rdf:Property ;
+    rdfs:label "assessedMaturity"@en ;
+    rdfs:comment "The assessed maturity for the behaviour"@en ;
+    rdfs:domain fit:BehaviourAssessment ;
+    rdfs:range fit:BehaviourMaturity .
+
+# =============================================================================
+# SHACL NODE SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Capability Shape
+# -----------------------------------------------------------------------------
+
+fit:CapabilityShape a sh:NodeShape ;
+    sh:targetClass fit:Capability ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Capability identifier (derived from filename if not specified)" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable capability name" ;
+    ] ;
+    sh:property [
+        sh:path fit:emoji ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "emoji" ;
+        sh:description "Emoji for visual representation" ;
+    ] ;
+    sh:property [
+        sh:path fit:displayOrder ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "displayOrder" ;
+        sh:description "Order for display in UI" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the capability area" ;
+    ] ;
+    sh:property [
+        sh:path fit:professionalResponsibilities ;
+        sh:node fit:ResponsibilitiesByLevelShape ;
+        sh:maxCount 1 ;
+        sh:name "professionalResponsibilities" ;
+        sh:description "Responsibilities for professional/IC track by level" ;
+    ] ;
+    sh:property [
+        sh:path fit:managementResponsibilities ;
+        sh:node fit:ResponsibilitiesByLevelShape ;
+        sh:maxCount 1 ;
+        sh:name "managementResponsibilities" ;
+        sh:description "Responsibilities for management track by level" ;
+    ] ;
+    sh:property [
+        sh:path fit:skills ;
+        sh:node fit:SkillShape ;
+        sh:name "skills" ;
+        sh:description "Skills within this capability" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Responsibilities By Level Shape
+# -----------------------------------------------------------------------------
+
+fit:ResponsibilitiesByLevelShape a sh:NodeShape ;
+    sh:targetClass fit:ResponsibilitiesByLevel ;
+    sh:property [
+        sh:path fit:awarenessDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "awareness" ;
+    ] ;
+    sh:property [
+        sh:path fit:foundationalDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "foundational" ;
+    ] ;
+    sh:property [
+        sh:path fit:workingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "working" ;
+    ] ;
+    sh:property [
+        sh:path fit:practitionerDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "practitioner" ;
+    ] ;
+    sh:property [
+        sh:path fit:expertDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "expert" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillShape a sh:NodeShape ;
+    sh:targetClass fit:Skill ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Unique skill identifier (snake_case)" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable skill name" ;
+    ] ;
+    sh:property [
+        sh:path fit:isHumanOnly ;
+        sh:datatype xsd:boolean ;
+        sh:maxCount 1 ;
+        sh:name "isHumanOnly" ;
+        sh:description "If true, this skill is excluded from agent profiles" ;
+    ] ;
+    sh:property [
+        sh:path fit:human ;
+        sh:node fit:SkillHumanSectionShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "human" ;
+        sh:description "Human-specific content for the skill" ;
+    ] ;
+    sh:property [
+        sh:path fit:agent ;
+        sh:node fit:SkillAgentSectionShape ;
+        sh:maxCount 1 ;
+        sh:name "agent" ;
+        sh:description "Agent-specific content for the skill" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Human Section Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillHumanSectionShape a sh:NodeShape ;
+    sh:targetClass fit:SkillHumanSection ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the skill" ;
+    ] ;
+    sh:property [
+        sh:path fit:levelDescriptions ;
+        sh:node fit:LevelDescriptionsShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "levelDescriptions" ;
+        sh:description "Description of expectations at each level" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Level Descriptions Shape
+# -----------------------------------------------------------------------------
+
+fit:LevelDescriptionsShape a sh:NodeShape ;
+    sh:targetClass fit:LevelDescriptions ;
+    sh:property [
+        sh:path fit:awarenessDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "awareness" ;
+    ] ;
+    sh:property [
+        sh:path fit:foundationalDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "foundational" ;
+    ] ;
+    sh:property [
+        sh:path fit:workingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "working" ;
+    ] ;
+    sh:property [
+        sh:path fit:practitionerDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "practitioner" ;
+    ] ;
+    sh:property [
+        sh:path fit:expertDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "expert" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Agent Section Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillAgentSectionShape a sh:NodeShape ;
+    sh:targetClass fit:SkillAgentSection ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Agent skill name (kebab-case)" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "When to use this skill (triggering conditions)" ;
+    ] ;
+    sh:property [
+        sh:path fit:planStage ;
+        sh:node fit:SkillStageShape ;
+        sh:maxCount 1 ;
+        sh:name "plan" ;
+    ] ;
+    sh:property [
+        sh:path fit:codeStage ;
+        sh:node fit:SkillStageShape ;
+        sh:maxCount 1 ;
+        sh:name "code" ;
+    ] ;
+    sh:property [
+        sh:path fit:reviewStage ;
+        sh:node fit:SkillStageShape ;
+        sh:maxCount 1 ;
+        sh:name "review" ;
+    ] ;
+    sh:property [
+        sh:path fit:reference ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "reference" ;
+        sh:description "Optional reference material in markdown format" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Stage Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillStageShape a sh:NodeShape ;
+    sh:targetClass fit:SkillStage ;
+    sh:property [
+        sh:path fit:focus ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "focus" ;
+        sh:description "Primary focus for this stage" ;
+    ] ;
+    sh:property [
+        sh:path fit:activities ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:name "activities" ;
+        sh:description "Key activities to perform in this stage" ;
+    ] ;
+    sh:property [
+        sh:path fit:ready ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:name "ready" ;
+        sh:description "Criteria that indicate readiness to move to next stage" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Behaviour Shape
+# -----------------------------------------------------------------------------
+
+fit:BehaviourShape a sh:NodeShape ;
+    sh:targetClass fit:Behaviour ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Behaviour identifier (derived from filename)" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable behaviour name" ;
+    ] ;
+    sh:property [
+        sh:path fit:human ;
+        sh:node fit:BehaviourHumanSectionShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "human" ;
+        sh:description "Human-specific content" ;
+    ] ;
+    sh:property [
+        sh:path fit:agent ;
+        sh:node fit:BehaviourAgentSectionShape ;
+        sh:maxCount 1 ;
+        sh:name "agent" ;
+        sh:description "Agent-specific content" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Behaviour Human Section Shape
+# -----------------------------------------------------------------------------
+
+fit:BehaviourHumanSectionShape a sh:NodeShape ;
+    sh:targetClass fit:BehaviourHumanSection ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the behaviour" ;
+    ] ;
+    sh:property [
+        sh:path fit:maturityDescriptions ;
+        sh:node fit:MaturityDescriptionsShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "maturityDescriptions" ;
+        sh:description "Description of expectations at each maturity level" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Maturity Descriptions Shape
+# -----------------------------------------------------------------------------
+
+fit:MaturityDescriptionsShape a sh:NodeShape ;
+    sh:targetClass fit:MaturityDescriptions ;
+    sh:property [
+        sh:path fit:emergingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "emerging" ;
+    ] ;
+    sh:property [
+        sh:path fit:developingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "developing" ;
+    ] ;
+    sh:property [
+        sh:path fit:practicingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "practicing" ;
+    ] ;
+    sh:property [
+        sh:path fit:roleModelingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "role_modeling" ;
+    ] ;
+    sh:property [
+        sh:path fit:exemplifyingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "exemplifying" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Behaviour Agent Section Shape
+# -----------------------------------------------------------------------------
+
+fit:BehaviourAgentSectionShape a sh:NodeShape ;
+    sh:targetClass fit:BehaviourAgentSection ;
+    sh:property [
+        sh:path fit:title ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "title" ;
+        sh:description "Short title for the behaviour's agent application" ;
+    ] ;
+    sh:property [
+        sh:path fit:workingStyle ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "workingStyle" ;
+        sh:description "How the agent should apply this behaviour" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Discipline Shape
+# -----------------------------------------------------------------------------
+
+fit:DisciplineShape a sh:NodeShape ;
+    sh:targetClass fit:Discipline ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Discipline identifier (derived from filename)" ;
+    ] ;
+    sh:property [
+        sh:path fit:specialization ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "specialization" ;
+        sh:description "Name of the specialization (e.g., Software Engineering)" ;
+    ] ;
+    sh:property [
+        sh:path fit:roleTitle ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "roleTitle" ;
+        sh:description "Base role title (e.g., Software Engineer)" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the discipline's focus" ;
+    ] ;
+    sh:property [
+        sh:path fit:coreSkills ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:name "coreSkills" ;
+        sh:description "Primary skills for deep expertise (skill IDs)" ;
+    ] ;
+    sh:property [
+        sh:path fit:supportingSkills ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:name "supportingSkills" ;
+        sh:description "Secondary skills for supporting capabilities (skill IDs)" ;
+    ] ;
+    sh:property [
+        sh:path fit:broadSkills ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:name "broadSkills" ;
+        sh:description "Skills for general awareness (skill IDs)" ;
+    ] ;
+    sh:property [
+        sh:path fit:behaviourModifiers ;
+        sh:node fit:BehaviourModifierShape ;
+        sh:name "behaviourModifiers" ;
+        sh:description "Modifiers to behaviour expectations" ;
+    ] ;
+    sh:property [
+        sh:path fit:human ;
+        sh:node fit:DisciplineHumanSectionShape ;
+        sh:maxCount 1 ;
+        sh:name "human" ;
+        sh:description "Human-specific content" ;
+    ] ;
+    sh:property [
+        sh:path fit:agent ;
+        sh:node fit:DisciplineAgentSectionShape ;
+        sh:maxCount 1 ;
+        sh:name "agent" ;
+        sh:description "Agent-specific content" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Discipline Human Section Shape
+# -----------------------------------------------------------------------------
+
+fit:DisciplineHumanSectionShape a sh:NodeShape ;
+    sh:targetClass fit:DisciplineHumanSection ;
+    sh:property [
+        sh:path fit:professionalRoleSummary ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "professionalRoleSummary" ;
+        sh:description "Role summary for professional/IC track" ;
+    ] ;
+    sh:property [
+        sh:path fit:managementRoleSummary ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "managementRoleSummary" ;
+        sh:description "Role summary for management track" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Discipline Agent Section Shape
+# -----------------------------------------------------------------------------
+
+fit:DisciplineAgentSectionShape a sh:NodeShape ;
+    sh:targetClass fit:DisciplineAgentSection ;
+    sh:property [
+        sh:path fit:identity ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "identity" ;
+        sh:description "Core identity statement for the agent" ;
+    ] ;
+    sh:property [
+        sh:path fit:priority ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "priority" ;
+        sh:description "Priority guidance for the agent" ;
+    ] ;
+    sh:property [
+        sh:path fit:beforeMakingChanges ;
+        sh:datatype xsd:string ;
+        sh:name "beforeMakingChanges" ;
+        sh:description "Checklist items to consider before making changes" ;
+    ] ;
+    sh:property [
+        sh:path fit:delegation ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "delegation" ;
+        sh:description "Guidance on when and how to delegate to subagents" ;
+    ] ;
+    sh:property [
+        sh:path fit:constraints ;
+        sh:datatype xsd:string ;
+        sh:name "constraints" ;
+        sh:description "Things the agent should avoid or never do" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Track Shape
+# -----------------------------------------------------------------------------
+
+fit:TrackShape a sh:NodeShape ;
+    sh:targetClass fit:Track ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Track identifier (derived from filename)" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable track name" ;
+    ] ;
+    sh:property [
+        sh:path fit:isProfessional ;
+        sh:datatype xsd:boolean ;
+        sh:maxCount 1 ;
+        sh:name "isProfessional" ;
+        sh:description "If true, this is a professional/IC track (default true)" ;
+    ] ;
+    sh:property [
+        sh:path fit:isManagement ;
+        sh:datatype xsd:boolean ;
+        sh:maxCount 1 ;
+        sh:name "isManagement" ;
+        sh:description "If true, this is a management track (default false)" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the track's focus" ;
+    ] ;
+    sh:property [
+        sh:path fit:roleContext ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "roleContext" ;
+        sh:description "Contextual description for job listings" ;
+    ] ;
+    sh:property [
+        sh:path fit:skillModifiers ;
+        sh:node fit:SkillModifierShape ;
+        sh:name "skillModifiers" ;
+        sh:description "Modifiers by capability ID" ;
+    ] ;
+    sh:property [
+        sh:path fit:behaviourModifiers ;
+        sh:node fit:BehaviourModifierShape ;
+        sh:name "behaviourModifiers" ;
+        sh:description "Modifiers to behaviour expectations" ;
+    ] ;
+    sh:property [
+        sh:path fit:assessmentWeights ;
+        sh:node fit:AssessmentWeightsShape ;
+        sh:maxCount 1 ;
+        sh:name "assessmentWeights" ;
+        sh:description "Custom weights for skill vs behaviour assessment" ;
+    ] ;
+    sh:property [
+        sh:path fit:validDisciplines ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:name "validDisciplines" ;
+        sh:description "Restricts which disciplines can use this track (discipline IDs)" ;
+    ] ;
+    sh:property [
+        sh:path fit:minGrade ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[A-Z][A-Z0-9]*$" ;
+        sh:maxCount 1 ;
+        sh:name "minGrade" ;
+        sh:description "Minimum grade required for this track (grade ID)" ;
+    ] ;
+    sh:property [
+        sh:path fit:agent ;
+        sh:node fit:TrackAgentSectionShape ;
+        sh:maxCount 1 ;
+        sh:name "agent" ;
+        sh:description "Agent-specific content" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Track Agent Section Shape
+# -----------------------------------------------------------------------------
+
+fit:TrackAgentSectionShape a sh:NodeShape ;
+    sh:targetClass fit:TrackAgentSection ;
+    sh:property [
+        sh:path fit:identity ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "identity" ;
+        sh:description "Identity override for the agent" ;
+    ] ;
+    sh:property [
+        sh:path fit:priority ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "priority" ;
+        sh:description "Priority guidance specific to this track" ;
+    ] ;
+    sh:property [
+        sh:path fit:beforeMakingChanges ;
+        sh:datatype xsd:string ;
+        sh:name "beforeMakingChanges" ;
+        sh:description "Additional checklist items to consider" ;
+    ] ;
+    sh:property [
+        sh:path fit:constraints ;
+        sh:datatype xsd:string ;
+        sh:name "constraints" ;
+        sh:description "Additional constraints specific to this track" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Modifier Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillModifierShape a sh:NodeShape ;
+    sh:targetClass fit:SkillModifier ;
+    sh:property [
+        sh:path fit:targetCapability ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "targetCapability" ;
+        sh:description "The capability this modifier applies to" ;
+    ] ;
+    sh:property [
+        sh:path fit:modifierValue ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "modifierValue" ;
+        sh:description "Level modifier to apply to all skills in this capability" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Behaviour Modifier Shape
+# -----------------------------------------------------------------------------
+
+fit:BehaviourModifierShape a sh:NodeShape ;
+    sh:targetClass fit:BehaviourModifier ;
+    sh:property [
+        sh:path fit:targetBehaviour ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "targetBehaviour" ;
+        sh:description "The behaviour this modifier applies to" ;
+    ] ;
+    sh:property [
+        sh:path fit:modifierValue ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive -1 ;
+        sh:maxInclusive 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "modifierValue" ;
+        sh:description "Modifier value (-1, 0, or 1)" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Assessment Weights Shape
+# -----------------------------------------------------------------------------
+
+fit:AssessmentWeightsShape a sh:NodeShape ;
+    sh:targetClass fit:AssessmentWeights ;
+    sh:property [
+        sh:path fit:skillWeight ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "skillWeight" ;
+        sh:description "Weight for skills in assessment (must sum to 1 with behaviourWeight)" ;
+    ] ;
+    sh:property [
+        sh:path fit:behaviourWeight ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "behaviourWeight" ;
+        sh:description "Weight for behaviours in assessment (must sum to 1 with skillWeight)" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Grade Shape
+# -----------------------------------------------------------------------------
+
+fit:GradeShape a sh:NodeShape ;
+    sh:targetClass fit:Grade ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[A-Z][A-Z0-9]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Unique grade identifier (e.g., L1, L2, L3)" ;
+    ] ;
+    sh:property [
+        sh:path fit:professionalTitle ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "professionalTitle" ;
+        sh:description "Title for professional/IC track" ;
+    ] ;
+    sh:property [
+        sh:path fit:managementTitle ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "managementTitle" ;
+        sh:description "Title for management track" ;
+    ] ;
+    sh:property [
+        sh:path fit:typicalExperienceRange ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "typicalExperienceRange" ;
+        sh:description "Expected years of experience range" ;
+    ] ;
+    sh:property [
+        sh:path fit:ordinalRank ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "ordinalRank" ;
+        sh:description "Numeric rank for ordering grades (1 = lowest)" ;
+    ] ;
+    sh:property [
+        sh:path fit:qualificationSummary ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "qualificationSummary" ;
+        sh:description "Summary of qualifications expected at this grade" ;
+    ] ;
+    sh:property [
+        sh:path fit:baseSkillLevels ;
+        sh:node fit:BaseSkillLevelsShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "baseSkillLevels" ;
+        sh:description "Base skill levels by skill tier for this grade" ;
+    ] ;
+    sh:property [
+        sh:path fit:baseBehaviourMaturity ;
+        sh:in ( fit:emerging fit:developing fit:practicing fit:role_modeling fit:exemplifying ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "baseBehaviourMaturity" ;
+        sh:description "Base behaviour maturity for this grade" ;
+    ] ;
+    sh:property [
+        sh:path fit:breadthCriteria ;
+        sh:node fit:BreadthCriteriaShape ;
+        sh:maxCount 1 ;
+        sh:name "breadthCriteria" ;
+        sh:description "Minimum number of skills at each level for breadth" ;
+    ] ;
+    sh:property [
+        sh:path fit:expectations ;
+        sh:node fit:GradeExpectationsShape ;
+        sh:maxCount 1 ;
+        sh:name "expectations" ;
+        sh:description "Expectations for impact, autonomy, influence, and complexity" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Base Skill Levels Shape
+# -----------------------------------------------------------------------------
+
+fit:BaseSkillLevelsShape a sh:NodeShape ;
+    sh:targetClass fit:BaseSkillLevels ;
+    sh:property [
+        sh:path fit:primary ;
+        sh:in ( fit:awareness fit:foundational fit:working fit:practitioner fit:expert ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "primary" ;
+        sh:description "Level for core/primary skills" ;
+    ] ;
+    sh:property [
+        sh:path fit:secondary ;
+        sh:in ( fit:awareness fit:foundational fit:working fit:practitioner fit:expert ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "secondary" ;
+        sh:description "Level for supporting/secondary skills" ;
+    ] ;
+    sh:property [
+        sh:path fit:broad ;
+        sh:in ( fit:awareness fit:foundational fit:working fit:practitioner fit:expert ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "broad" ;
+        sh:description "Level for broad skills" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Breadth Criteria Shape
+# -----------------------------------------------------------------------------
+
+fit:BreadthCriteriaShape a sh:NodeShape ;
+    sh:targetClass fit:BreadthCriteria ;
+    sh:property [
+        sh:path fit:awarenessCount ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "awareness" ;
+    ] ;
+    sh:property [
+        sh:path fit:foundationalCount ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "foundational" ;
+    ] ;
+    sh:property [
+        sh:path fit:workingCount ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "working" ;
+    ] ;
+    sh:property [
+        sh:path fit:practitionerCount ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "practitioner" ;
+    ] ;
+    sh:property [
+        sh:path fit:expertCount ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "expert" ;
+    ] .
+
+# Additional properties for breadth criteria counts
+fit:awarenessCount a rdf:Property ;
+    rdfs:label "awarenessCount"@en ;
+    rdfs:domain fit:BreadthCriteria ;
+    rdfs:range xsd:integer .
+
+fit:foundationalCount a rdf:Property ;
+    rdfs:label "foundationalCount"@en ;
+    rdfs:domain fit:BreadthCriteria ;
+    rdfs:range xsd:integer .
+
+fit:workingCount a rdf:Property ;
+    rdfs:label "workingCount"@en ;
+    rdfs:domain fit:BreadthCriteria ;
+    rdfs:range xsd:integer .
+
+fit:practitionerCount a rdf:Property ;
+    rdfs:label "practitionerCount"@en ;
+    rdfs:domain fit:BreadthCriteria ;
+    rdfs:range xsd:integer .
+
+fit:expertCount a rdf:Property ;
+    rdfs:label "expertCount"@en ;
+    rdfs:domain fit:BreadthCriteria ;
+    rdfs:range xsd:integer .
+
+# -----------------------------------------------------------------------------
+# Grade Expectations Shape
+# -----------------------------------------------------------------------------
+
+fit:GradeExpectationsShape a sh:NodeShape ;
+    sh:targetClass fit:GradeExpectations ;
+    sh:property [
+        sh:path fit:impactScope ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "impactScope" ;
+        sh:description "Scope of impact expected at this grade" ;
+    ] ;
+    sh:property [
+        sh:path fit:autonomyExpectation ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "autonomyExpectation" ;
+        sh:description "Level of autonomy expected" ;
+    ] ;
+    sh:property [
+        sh:path fit:influenceScope ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "influenceScope" ;
+        sh:description "Scope of influence" ;
+    ] ;
+    sh:property [
+        sh:path fit:complexityHandled ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "complexityHandled" ;
+        sh:description "Complexity level the grade should handle" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Stage Shape
+# -----------------------------------------------------------------------------
+
+fit:StageShape a sh:NodeShape ;
+    sh:targetClass fit:Stage ;
+    sh:property [
+        sh:path fit:id ;
+        sh:in ( "plan" "code" "review" ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Stage identifier" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable stage name" ;
+    ] ;
+    sh:property [
+        sh:path fit:emoji ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "emoji" ;
+        sh:description "Emoji for visual representation" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the stage's purpose" ;
+    ] ;
+    sh:property [
+        sh:path fit:handoffs ;
+        sh:node fit:HandoffShape ;
+        sh:name "handoffs" ;
+        sh:description "Transitions to other stages" ;
+    ] ;
+    sh:property [
+        sh:path fit:constraints ;
+        sh:datatype xsd:string ;
+        sh:name "constraints" ;
+        sh:description "Restrictions on behaviour in this stage" ;
+    ] ;
+    sh:property [
+        sh:path fit:entryCriteria ;
+        sh:datatype xsd:string ;
+        sh:name "entryCriteria" ;
+        sh:description "Conditions that must be met before entering this stage" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Handoff Shape
+# -----------------------------------------------------------------------------
+
+fit:HandoffShape a sh:NodeShape ;
+    sh:targetClass fit:Handoff ;
+    sh:property [
+        sh:path fit:targetStage ;
+        sh:in ( "plan" "code" "review" ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "targetStage" ;
+        sh:description "The stage to transition to" ;
+    ] ;
+    sh:property [
+        sh:path fit:label ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "label" ;
+        sh:description "Button label for the handoff action" ;
+    ] ;
+    sh:property [
+        sh:path fit:prompt ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "prompt" ;
+        sh:description "Instructions for the next stage" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Driver Shape
+# -----------------------------------------------------------------------------
+
+fit:DriverShape a sh:NodeShape ;
+    sh:targetClass fit:Driver ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Unique driver identifier (snake_case)" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable driver name" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the business outcome" ;
+    ] ;
+    sh:property [
+        sh:path fit:contributingSkills ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:name "contributingSkills" ;
+        sh:description "Skills that contribute to this driver (skill IDs)" ;
+    ] ;
+    sh:property [
+        sh:path fit:contributingBehaviours ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:name "contributingBehaviours" ;
+        sh:description "Behaviours that contribute to this driver (behaviour IDs)" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Framework Shape
+# -----------------------------------------------------------------------------
+
+fit:FrameworkShape a sh:NodeShape ;
+    sh:targetClass fit:Framework ;
+    sh:property [
+        sh:path fit:title ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "title" ;
+        sh:description "Title of the engineering pathway" ;
+    ] ;
+    sh:property [
+        sh:path fit:emoji ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "emoji" ;
+        sh:description "Emoji for visual representation" ;
+    ] ;
+    sh:property [
+        sh:path fit:tag ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "tag" ;
+        sh:description "Organization tag or identifier" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the framework's purpose" ;
+    ] ;
+    sh:property [
+        sh:path fit:entityDefinitions ;
+        sh:node fit:EntityDefinitionShape ;
+        sh:name "entityDefinitions" ;
+        sh:description "Definitions for each entity type" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Entity Definition Shape
+# -----------------------------------------------------------------------------
+
+fit:EntityDefinitionShape a sh:NodeShape ;
+    sh:targetClass fit:EntityDefinition ;
+    sh:property [
+        sh:path fit:entityType ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "entityType" ;
+        sh:description "The type of entity this definition describes" ;
+    ] ;
+    sh:property [
+        sh:path fit:title ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "title" ;
+        sh:description "Display title for the entity" ;
+    ] ;
+    sh:property [
+        sh:path fit:emoji ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "emoji" ;
+        sh:description "Emoji for visual representation" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the entity type" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Question Shape
+# -----------------------------------------------------------------------------
+
+fit:QuestionShape a sh:NodeShape ;
+    sh:targetClass fit:Question ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Unique question identifier" ;
+    ] ;
+    sh:property [
+        sh:path fit:text ;
+        sh:datatype xsd:string ;
+        sh:maxLength 150 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "text" ;
+        sh:description "The question text (under 150 characters)" ;
+    ] ;
+    sh:property [
+        sh:path fit:lookingFor ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 4 ;
+        sh:name "lookingFor" ;
+        sh:description "2-4 bullet points of good answer indicators" ;
+    ] ;
+    sh:property [
+        sh:path fit:expectedDurationMinutes ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "expectedDurationMinutes" ;
+        sh:description "Expected duration in minutes" ;
+    ] ;
+    sh:property [
+        sh:path fit:followUps ;
+        sh:datatype xsd:string ;
+        sh:maxCount 3 ;
+        sh:name "followUps" ;
+        sh:description "1-3 probing questions for deeper exploration" ;
+    ] ;
+    sh:property [
+        sh:path fit:forSkill ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:maxCount 1 ;
+        sh:name "forSkill" ;
+        sh:description "The skill this question assesses (skill ID)" ;
+    ] ;
+    sh:property [
+        sh:path fit:forBehaviour ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:maxCount 1 ;
+        sh:name "forBehaviour" ;
+        sh:description "The behaviour this question assesses (behaviour ID)" ;
+    ] ;
+    sh:property [
+        sh:path fit:atLevel ;
+        sh:in ( fit:awareness fit:foundational fit:working fit:practitioner fit:expert ) ;
+        sh:maxCount 1 ;
+        sh:name "atLevel" ;
+        sh:description "The skill level this question is for" ;
+    ] ;
+    sh:property [
+        sh:path fit:atMaturity ;
+        sh:in ( fit:emerging fit:developing fit:practicing fit:role_modeling fit:exemplifying ) ;
+        sh:maxCount 1 ;
+        sh:name "atMaturity" ;
+        sh:description "The behaviour maturity this question is for" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Self Assessment Shape
+# -----------------------------------------------------------------------------
+
+fit:SelfAssessmentShape a sh:NodeShape ;
+    sh:targetClass fit:SelfAssessment ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Unique assessment identifier" ;
+    ] ;
+    sh:property [
+        sh:path fit:skillLevels ;
+        sh:node fit:SkillAssessmentShape ;
+        sh:name "skillLevels" ;
+        sh:description "Skill assessments" ;
+    ] ;
+    sh:property [
+        sh:path fit:behaviourMaturities ;
+        sh:node fit:BehaviourAssessmentShape ;
+        sh:name "behaviourMaturities" ;
+        sh:description "Behaviour assessments" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Assessment Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillAssessmentShape a sh:NodeShape ;
+    sh:targetClass fit:SkillAssessment ;
+    sh:property [
+        sh:path fit:assessedSkill ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "assessedSkill" ;
+        sh:description "The skill being assessed (skill ID)" ;
+    ] ;
+    sh:property [
+        sh:path fit:assessedLevel ;
+        sh:in ( fit:awareness fit:foundational fit:working fit:practitioner fit:expert ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "assessedLevel" ;
+        sh:description "The assessed level for the skill" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Behaviour Assessment Shape
+# -----------------------------------------------------------------------------
+
+fit:BehaviourAssessmentShape a sh:NodeShape ;
+    sh:targetClass fit:BehaviourAssessment ;
+    sh:property [
+        sh:path fit:assessedBehaviour ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "assessedBehaviour" ;
+        sh:description "The behaviour being assessed (behaviour ID)" ;
+    ] ;
+    sh:property [
+        sh:path fit:assessedMaturity ;
+        sh:in ( fit:emerging fit:developing fit:practicing fit:role_modeling fit:exemplifying ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "assessedMaturity" ;
+        sh:description "The assessed maturity for the behaviour" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Index Shape (Auto-generated index files)
+# -----------------------------------------------------------------------------
+
+fit:Index a rdfs:Class ;
+    rdfs:label "Index"@en ;
+    rdfs:comment "Auto-generated index file for browser loading"@en .
+
+fit:IndexShape a sh:NodeShape ;
+    sh:targetClass fit:Index ;
+    sh:property [
+        sh:path fit:files ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:name "files" ;
+        sh:description "List of file basenames (without extension) in the directory" ;
+    ] .
+
+fit:files a rdf:Property ;
+    rdfs:label "files"@en ;
+    rdfs:comment "List of file basenames in the directory"@en ;
+    rdfs:domain fit:Index ;
+    rdfs:range xsd:string .

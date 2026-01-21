@@ -154,9 +154,9 @@ A job's requirements are derived by:
 Both human jobs and AI agents share the same core derivation logic through
 `profile.js`. The key difference is post-processing:
 
-| Consumer  | Filtering                              | Sorting             |
-| --------- | -------------------------------------- | ------------------- |
-| **Jobs**  | None (all skills/behaviours)           | By type, then name  |
+| Consumer  | Filtering                               | Sorting             |
+| --------- | --------------------------------------- | ------------------- |
+| **Jobs**  | None (all skills/behaviours)            | By type, then name  |
 | **Agent** | Exclude isHumanOnly, highest level only | By level/maturity ↓ |
 
 ### Profile Module (`model/profile.js`)

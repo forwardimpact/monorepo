@@ -20,6 +20,7 @@ import {
 } from "../../components/modifier-table.js";
 import { getConceptEmoji } from "../../model/levels.js";
 import { prepareTrackDetail } from "./shared.js";
+import { createJsonLdScript, trackToJsonLd } from "../json-ld.js";
 
 /**
  * Get track type badge(s)
@@ -80,6 +81,8 @@ export function trackToDOM(
 
   return div(
     { className: "detail-page track-detail" },
+    // JSON-LD structured data
+    createJsonLdScript(trackToJsonLd(track)),
     // Header
     div(
       { className: "page-header" },

@@ -24,6 +24,7 @@ import {
 } from "../../model/levels.js";
 import { createJobBuilderButton } from "../../components/action-buttons.js";
 import { prepareGradeDetail } from "./shared.js";
+import { createJsonLdScript, gradeToJsonLd } from "../json-ld.js";
 
 /**
  * Format grade detail as DOM elements
@@ -38,6 +39,8 @@ export function gradeToDOM(grade, { framework, showBackLink = true } = {}) {
   const emoji = framework ? getConceptEmoji(framework, "grade") : "📊";
   return div(
     { className: "detail-page grade-detail" },
+    // JSON-LD structured data
+    createJsonLdScript(gradeToJsonLd(grade)),
     // Header
     div(
       { className: "page-header" },

@@ -37,7 +37,10 @@ import {
 } from "../formatters/agent/profile.js";
 import { formatAgentSkill } from "../formatters/agent/skill.js";
 import { formatError, formatSuccess } from "../lib/cli-output.js";
-import { loadAgentTemplate, loadSkillTemplate } from "../lib/template-loader.js";
+import {
+  loadAgentTemplate,
+  loadSkillTemplate,
+} from "../lib/template-loader.js";
 
 /**
  * Ensure directory exists for a file path

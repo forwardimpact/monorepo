@@ -6,12 +6,24 @@
   "$defs": {
     "skillLevel": {
       "type": "string",
-      "enum": ["awareness", "foundational", "working", "practitioner", "expert"],
+      "enum": [
+        "awareness",
+        "foundational",
+        "working",
+        "practitioner",
+        "expert"
+      ],
       "description": "Skill proficiency level from lowest to highest"
     },
     "behaviourMaturity": {
       "type": "string",
-      "enum": ["emerging", "developing", "practicing", "role_modeling", "exemplifying"],
+      "enum": [
+        "emerging",
+        "developing",
+        "practicing",
+        "role_modeling",
+        "exemplifying"
+      ],
       "description": "Behaviour maturity level from lowest to highest"
     },
     "stageId": {
@@ -29,7 +41,13 @@
         "practitioner": { "type": "string" },
         "expert": { "type": "string" }
       },
-      "required": ["awareness", "foundational", "working", "practitioner", "expert"],
+      "required": [
+        "awareness",
+        "foundational",
+        "working",
+        "practitioner",
+        "expert"
+      ],
       "additionalProperties": false
     },
     "maturityDescriptions": {
@@ -42,7 +60,13 @@
         "role_modeling": { "type": "string" },
         "exemplifying": { "type": "string" }
       },
-      "required": ["emerging", "developing", "practicing", "role_modeling", "exemplifying"],
+      "required": [
+        "emerging",
+        "developing",
+        "practicing",
+        "role_modeling",
+        "exemplifying"
+      ],
       "additionalProperties": false
     },
     "responsibilitiesByLevel": {
@@ -55,7 +79,13 @@
         "practitioner": { "type": "string" },
         "expert": { "type": "string" }
       },
-      "required": ["awareness", "foundational", "working", "practitioner", "expert"],
+      "required": [
+        "awareness",
+        "foundational",
+        "working",
+        "practitioner",
+        "expert"
+      ],
       "additionalProperties": false
     },
     "skillId": {

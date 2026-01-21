@@ -14,7 +14,7 @@ import addFormats from "ajv-formats";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const schemaDir = join(__dirname, "../../schema");
+const schemaDir = join(__dirname, "../../schema/json");
 
 /**
  * Schema mappings for different file types
@@ -27,7 +27,6 @@ const SCHEMA_MAPPINGS = {
   "stages.yaml": "stages.schema.json",
   "framework.yaml": "framework.schema.json",
   "self-assessments.yaml": "self-assessments.schema.json",
-  "vscode-settings.yaml": "vscode-settings.schema.json",
   // Directories - each file in directory uses the schema
   capabilities: "capability.schema.json",
   disciplines: "discipline.schema.json",
@@ -253,9 +252,7 @@ export async function validateDataDirectory(dataDir) {
     const filePath = join(dataDir, filename);
     if (!(await fileExists(filePath))) {
       // Some files are optional
-      if (
-        !["self-assessments.yaml", "vscode-settings.yaml"].includes(filename)
-      ) {
+      if (!["self-assessments.yaml"].includes(filename)) {
         warnings.push(
           createWarning("MISSING_FILE", `Optional file not found: ${filename}`),
         );

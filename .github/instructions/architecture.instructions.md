@@ -11,6 +11,11 @@ applyTo: "app/**/*.js"
 3. **View** (`app/pages/`, `app/commands/`, `app/slides/`) - Route handling,
    render calls
 
+## Schema Definitions
+
+- `schema/json/` - JSON Schema files for validating YAML data files
+- `schema/rdf/` - RDF/SHACL ontology for semantic representation
+
 ## Model Layer Structure
 
 The model layer has a clear hierarchy:

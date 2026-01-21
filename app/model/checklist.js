@@ -28,7 +28,12 @@ const STAGE_TO_HANDOFF = {
  * @param {Array} params.capabilities - All capabilities (for emoji lookup)
  * @returns {Array<{skill: Object, capability: Object, items: string[]}>} Checklist items grouped by skill
  */
-export function deriveChecklist({ stageId, skillMatrix, skills, capabilities }) {
+export function deriveChecklist({
+  stageId,
+  skillMatrix,
+  skills,
+  capabilities,
+}) {
   const targetStage = STAGE_TO_HANDOFF[stageId];
   if (!targetStage) {
     return [];

@@ -47,12 +47,7 @@ ${content}`;
  * @returns {Promise<Object>} Summary of generated indexes
  */
 export async function generateAllIndexes(dataDir) {
-  const directories = [
-    "behaviours",
-    "disciplines",
-    "tracks",
-    "capabilities",
-  ];
+  const directories = ["behaviours", "disciplines", "tracks", "capabilities"];
 
   const results = {};
 

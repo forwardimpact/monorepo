@@ -429,7 +429,9 @@ function createAllStagesPreview(context) {
       skillFiles.length > 0
         ? div(
             { className: "skill-cards-grid" },
-            ...skillFiles.map((skill) => createSkillCard(skill, templates.skill)),
+            ...skillFiles.map((skill) =>
+              createSkillCard(skill, templates.skill),
+            ),
           )
         : p(
             { className: "text-muted" },
@@ -529,7 +531,9 @@ function createSingleStagePreview(context, stage) {
       skillFiles.length > 0
         ? div(
             { className: "skill-cards-grid" },
-            ...skillFiles.map((skill) => createSkillCard(skill, templates.skill)),
+            ...skillFiles.map((skill) =>
+              createSkillCard(skill, templates.skill),
+            ),
           )
         : p(
             { className: "text-muted" },
@@ -717,7 +721,12 @@ function createDownloadAllButton(
  * @param {{agent: string, skill: string}} templates - Mustache templates
  * @returns {HTMLElement}
  */
-function createDownloadSingleButton(profile, skillFiles, vscodeSettings, templates) {
+function createDownloadSingleButton(
+  profile,
+  skillFiles,
+  vscodeSettings,
+  templates,
+) {
   const btn = document.createElement("button");
   btn.className = "btn btn-primary download-all-btn";
   btn.textContent = "📥 Download Agent (.zip)";

@@ -45,7 +45,13 @@
         "role_modeling": { "type": "string" },
         "exemplifying": { "type": "string" }
       },
-      "required": ["emerging", "developing", "practicing", "role_modeling", "exemplifying"],
+      "required": [
+        "emerging",
+        "developing",
+        "practicing",
+        "role_modeling",
+        "exemplifying"
+      ],
       "additionalProperties": false
     },
     "behaviourAgentSection": {

@@ -238,7 +238,8 @@ skills:
           activities:
             - Implement metrics, logging, and tracing
             - Configure alerts based on SLOs
-            - Implement resilience patterns (timeouts, retries, circuit breakers)
+            - Implement resilience patterns (timeouts, retries, circuit
+              breakers)
             - Create runbooks for common issues
             - Set up error budget tracking
           ready:

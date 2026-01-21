@@ -14,7 +14,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "enum": ["specify", "plan", "code", "review"],
+          "enum": ["specify", "plan", "code", "review", "deploy"],
           "description": "Stage identifier"
         },
         "name": {
@@ -49,6 +49,13 @@
           "items": {
             "type": "string"
           }
+        },
+        "exitCriteria": {
+          "type": "array",
+          "description": "Conditions that must be met before leaving this stage",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "additionalProperties": false
@@ -59,7 +66,7 @@
       "properties": {
         "targetStage": {
           "type": "string",
-          "enum": ["specify", "plan", "code", "review"],
+          "enum": ["specify", "plan", "code", "review", "deploy"],
           "description": "The stage to transition to"
         },
         "label": {

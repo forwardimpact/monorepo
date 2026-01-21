@@ -55,7 +55,13 @@
         "practitioner": { "type": "string" },
         "expert": { "type": "string" }
       },
-      "required": ["awareness", "foundational", "working", "practitioner", "expert"],
+      "required": [
+        "awareness",
+        "foundational",
+        "working",
+        "practitioner",
+        "expert"
+      ],
       "additionalProperties": false
     },
     "skill": {
@@ -110,7 +116,13 @@
         "practitioner": { "type": "string" },
         "expert": { "type": "string" }
       },
-      "required": ["awareness", "foundational", "working", "practitioner", "expert"],
+      "required": [
+        "awareness",
+        "foundational",
+        "working",
+        "practitioner",
+        "expert"
+      ],
       "additionalProperties": false
     },
     "skillAgentSection": {

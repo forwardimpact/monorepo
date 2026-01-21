@@ -20,6 +20,7 @@ import { createBackLink } from "../../components/nav.js";
 import { createLevelCell } from "../../components/detail.js";
 import { SKILL_LEVEL_ORDER } from "../../model/levels.js";
 import { prepareSkillDetail, formatCapability } from "./shared.js";
+import { createJsonLdScript, skillToJsonLd } from "../json-ld.js";
 
 /**
  * Format skill detail as DOM elements
@@ -44,6 +45,8 @@ export function skillToDOM(
   });
   return div(
     { className: "detail-page skill-detail" },
+    // JSON-LD structured data
+    createJsonLdScript(skillToJsonLd(skill, { capabilities })),
     // Header
     div(
       { className: "page-header" },

@@ -147,7 +147,8 @@ export async function runJobCommand({ data, args, options }) {
       return;
     }
 
-    const stageLabel = options.checklist.charAt(0).toUpperCase() + options.checklist.slice(1);
+    const stageLabel =
+      options.checklist.charAt(0).toUpperCase() + options.checklist.slice(1);
     console.log(`\n# ${view.title} — ${stageLabel} Stage Checklist\n`);
     console.log(formatChecklistMarkdown(checklist));
     console.log("");

@@ -2,47 +2,58 @@
 
 - id: specify
   name: Specify
-  emoji: "📝"
+  emoji: "🎯"
   description:
     Define What & Why - User stories, acceptance criteria, requirements
   handoffs:
-    - targetStage: plan
-      label: Create Plan
-      prompt: Create plan.md based on spec.md.
     - targetStage: specify
       label: Refine Spec
       prompt: Refine spec.md with more detail or clarity.
+    - targetStage: specify
+      label: Alternative Spec
+      prompt: Create an alternative spec.md exploring a different approach.
+    - targetStage: plan
+      label: Create Plan
+      prompt: Create plan.md based on spec.md.
   constraints:
     - Do not make code edits or execute commands
     - Focus on WHAT users need and WHY, not HOW to implement
     - Write specifications as markdown files under specs/[feature-name]/spec.md
-    - Mark ambiguities with [NEEDS CLARIFICATION] - do not guess
+    - Mark ambiguities with [NEEDS CLARIFICATION]; do not guess
     - No technology choices, APIs, or code structure in specifications
   entryCriteria: [] # Entry stage, no prior work expected
+  exitCriteria:
+    - spec.md exists with user stories and acceptance criteria
+    - No unresolved [NEEDS CLARIFICATION] markers in spec.md
 
 - id: plan
   name: Plan
-  emoji: "📋"
+  emoji: "📐"
   description:
     Define How - Technology choices, architecture, contracts, data models
   handoffs:
+    - targetStage: plan
+      label: Refine Plan
+      prompt: Refine plan.md with more detail or clarity.
+    - targetStage: plan
+      label: Alternative Plan
+      prompt: Create an alternative plan.md exploring a different approach.
     - targetStage: code
       label: Start Coding
       prompt: Implement the tasks defined in plan.md.
-    - targetStage: plan
-      label: Refine Plan
-      prompt: Refine plan.md with more details or alternative approaches.
-    - targetStage: specify
-      label: Clarify Spec
-      prompt: Resolve [NEEDS CLARIFICATION] markers in spec.md before continuing.
   constraints:
     - Do not make code edits or execute commands
     - Every technology choice must trace back to a specific requirement
     - Write plans as markdown files under specs/[feature-name]/plan.md
     - Define contracts and data models before implementation details
+    - Document rationale for architectural decisions
   entryCriteria:
-    - Specification exists with user stories and acceptance criteria
-    - No unresolved [NEEDS CLARIFICATION] markers in spec
+    - spec.md exists with user stories and acceptance criteria
+    - No unresolved [NEEDS CLARIFICATION] markers in spec.md
+  exitCriteria:
+    - plan.md exists with technology choices and architecture
+    - Contracts and data models defined where applicable
+    - No unresolved [NEEDS CLARIFICATION] markers in plan.md
 
 - id: code
   name: Code
@@ -55,28 +66,65 @@
   constraints:
     - Implement one task at a time, verify before moving on
     - Write tests alongside implementation
+    - Track progress with the todo tool
   entryCriteria:
-    - Specification complete (spec.md with acceptance criteria)
-    - Implementation plan complete (plan.md with technology choices)
-    - Contracts and data models defined where applicable
-    - Test scenarios derived from acceptance criteria
+    - spec.md exists with user stories and acceptance criteria
+    - plan.md exists with technology choices and architecture
+    - No unresolved [NEEDS CLARIFICATION] markers in plan.md
+  exitCriteria:
+    - Implementation complete according to plan.md
+    - Tests written and passing
+    - Self-review completed
 
 - id: review
   name: Review
-  emoji: "✅"
-  description: Verify & Ship - Review, approve, deploy, document
+  emoji: "🔍"
+  description: Verify & Ship - Review, approve, document
   handoffs:
     - targetStage: code
       label: Request Changes
       prompt: Address the findings in review.md.
     - targetStage: plan
-      label: Needs Replanning
+      label: Needs Re-planning
       prompt: Update plan.md to address issues found in review.md.
+    - targetStage: deploy
+      label: Deploy
+      prompt: Deploy the approved changes.
   constraints:
     - Do not make code edits
     - Write review findings as markdown under specs/[feature-name]/review.md
     - Prioritize actionable feedback over exhaustive lists
+    - Track findings and required changes with the todo tool
+    - Run the application locally and verify changes work as expected
+    - Test user-facing functionality against acceptance criteria
   entryCriteria:
-    - Implementation complete
+    - Implementation complete according to plan.md
     - Tests written and passing
     - Self-review completed
+  exitCriteria:
+    - Application runs locally without errors
+    - Changes verified against acceptance criteria through manual testing
+    - No blocking issues identified in review
+    - Review approved
+
+- id: deploy
+  name: Deploy
+  emoji: "🚀"
+  description: Ship to Production - Push, monitor workflows, verify deployment
+  handoffs:
+    - targetStage: code
+      label: Fix Pipeline
+      prompt: Fix the failing workflow issues identified during deployment.
+  constraints:
+    - Use git push to deploy changes
+    - Use gh CLI to monitor triggered workflows (gh run list, gh run watch)
+    - Do not make code edits; hand off to code stage if fixes are needed
+    - Verify all workflows complete successfully before considering deployment done
+  entryCriteria:
+    - Application runs locally without errors
+    - Changes verified against acceptance criteria through manual testing
+    - No blocking issues identified in review
+    - Review approved
+  exitCriteria:
+    - All triggered workflows are green
+    - Deployment verified in target environment

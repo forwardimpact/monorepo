@@ -6,6 +6,7 @@ import { div, heading1, heading2, p, a, span } from "../../lib/render.js";
 import { createBackLink } from "../../components/nav.js";
 import { prepareDriverDetail } from "./shared.js";
 import { getConceptEmoji } from "../../model/levels.js";
+import { createJsonLdScript, driverToJsonLd } from "../json-ld.js";
 
 /**
  * Format driver detail as DOM elements
@@ -25,6 +26,8 @@ export function driverToDOM(
   const emoji = framework ? getConceptEmoji(framework, "driver") : "🎯";
   return div(
     { className: "detail-page driver-detail" },
+    // JSON-LD structured data
+    createJsonLdScript(driverToJsonLd(driver, { skills, behaviours })),
     // Header
     div(
       { className: "page-header" },
