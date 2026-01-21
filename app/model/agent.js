@@ -104,8 +104,9 @@ export function toKebabCase(id) {
 /**
  * Derive agent skills using the unified profile system
  * Returns skills sorted by level (highest first) for the given discipline × track
- * Excludes human-only skills (those requiring human presence/experience)
- * Excludes broad skills unless they're in a capability with positive track modifier
+ * Excludes human-only skills and keeps only skills at the highest derived level.
+ * This approach respects track modifiers—a broad skill boosted to the same level
+ * as primary skills will be included.
  * @param {Object} params - Parameters
  * @param {Object} params.discipline - Human discipline definition
  * @param {Object} params.track - Human track definition
@@ -123,7 +124,7 @@ export function deriveAgentSkills({ discipline, track, grade, skills }) {
   });
 
   // Apply agent-specific filtering and sorting
-  const filtered = filterSkillsForAgent(skillMatrix, track);
+  const filtered = filterSkillsForAgent(skillMatrix);
   return sortByLevelDescending(filtered);
 }
 
@@ -432,8 +433,9 @@ export function deriveHandoffs({ stage, discipline, track, stages }) {
     return [];
   }
 
-  // Build base name for target agents (matches frontmatter name field)
-  const baseName = `${toKebabCase(discipline.id)}-${toKebabCase(track.id)}`;
+  // Build base name for target agents (matches filename without .agent.md)
+  const abbrev = getDisciplineAbbreviation(discipline.id);
+  const baseName = `${abbrev}-${toKebabCase(track.id)}`;
 
   return stage.handoffs.map((handoff) => {
     // Find the target stage to get its entry criteria
@@ -701,10 +703,10 @@ export function generateStageAgentProfile({
     stages,
   });
 
-  // Build names
-  const fullName = `${toKebabCase(discipline.id)}-${toKebabCase(track.id)}-${stage.id}`;
+  // Build names (abbreviated form used consistently for filename, name, and handoffs)
   const abbrev = getDisciplineAbbreviation(discipline.id);
-  const filename = `${abbrev}-${toKebabCase(track.id)}-${stage.id}.agent.md`;
+  const fullName = `${abbrev}-${toKebabCase(track.id)}-${stage.id}`;
+  const filename = `${fullName}.agent.md`;
 
   // Build description
   const disciplineDesc = discipline.description.trim().split("\n")[0];

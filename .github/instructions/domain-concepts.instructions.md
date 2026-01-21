@@ -156,10 +156,10 @@ A job's requirements are derived by:
 Both human jobs and AI agents share the same core derivation logic through
 `profile.js`. The key difference is post-processing:
 
-| Consumer  | Filtering                         | Sorting             |
-| --------- | --------------------------------- | ------------------- |
-| **Jobs**  | None (all skills/behaviours)      | By type, then name  |
-| **Agent** | Exclude isHumanOnly, filter broad | By level/maturity ↓ |
+| Consumer  | Filtering                              | Sorting             |
+| --------- | -------------------------------------- | ------------------- |
+| **Jobs**  | None (all skills/behaviours)           | By type, then name  |
+| **Agent** | Exclude isHumanOnly, highest level only | By level/maturity ↓ |
 
 ### Profile Module (`model/profile.js`)
 
@@ -167,9 +167,9 @@ Provides unified functions used by both job and agent derivation:
 
 ```javascript
 // Filter functions
-filterSkillsForAgent(skillMatrix, track); // Exclude isHumanOnly + broad without positive modifier
+filterSkillsForAgent(skillMatrix); // Exclude isHumanOnly + keep only highest level
 filterHumanOnlySkills(skillMatrix); // Exclude isHumanOnly skills
-filterBroadWithoutPositiveModifier(skillMatrix, positiveCapabilities);
+filterByHighestLevel(skillMatrix); // Keep only skills at max derived level
 
 // Sort functions
 sortByLevelDescending(skillMatrix); // Expert first → Awareness last
@@ -185,7 +185,7 @@ prepareAgentProfile({ discipline, track, grade, skills, behaviours }); // Uses A
 ```javascript
 const AGENT_PROFILE_OPTIONS = {
   excludeHumanOnly: true, // Filter skills with isHumanOnly: true
-  excludeBroadWithoutPositiveModifier: true, // Filter broad skills unless capability has positive modifier
+  keepHighestLevelOnly: true, // Keep only skills at the highest derived level
   sortByLevel: true, // Sort skills by level descending
   sortByMaturity: true, // Sort behaviours by maturity descending
 };

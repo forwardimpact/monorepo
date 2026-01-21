@@ -3018,7 +3018,7 @@ describe("Checklist Derivation", () => {
 import {
   getPositiveTrackCapabilities,
   filterHumanOnlySkills,
-  filterBroadWithoutPositiveModifier,
+  filterByHighestLevel,
   filterSkillsForAgent,
   sortByLevelDescending,
   sortByMaturityDescending,
@@ -3061,46 +3061,52 @@ describe("Profile Module", () => {
     });
   });
 
-  describe("filterBroadWithoutPositiveModifier", () => {
-    it("keeps broad skills with positive modifier in their capability", () => {
+  describe("filterByHighestLevel", () => {
+    it("keeps only skills at the highest level", () => {
       const skillMatrix = [
-        { skillId: "a", type: "broad", capability: "scale" },
-        { skillId: "b", type: "broad", capability: "ai" },
-        { skillId: "c", type: "primary", capability: "ai" },
+        { skillId: "a", type: "primary", level: "practitioner" },
+        { skillId: "b", type: "broad", level: "practitioner" },
+        { skillId: "c", type: "secondary", level: "working" },
+        { skillId: "d", type: "broad", level: "foundational" },
       ];
-      const positiveCapabilities = new Set(["scale"]);
-      const result = filterBroadWithoutPositiveModifier(
-        skillMatrix,
-        positiveCapabilities,
-      );
+      const result = filterByHighestLevel(skillMatrix);
       assert.strictEqual(result.length, 2);
-      assert.ok(result.some((s) => s.skillId === "a")); // broad with positive
-      assert.ok(result.some((s) => s.skillId === "c")); // primary (not filtered)
+      assert.ok(result.some((s) => s.skillId === "a")); // practitioner
+      assert.ok(result.some((s) => s.skillId === "b")); // practitioner
+    });
+
+    it("returns empty array for empty input", () => {
+      const result = filterByHighestLevel([]);
+      assert.strictEqual(result.length, 0);
     });
   });
 
   describe("filterSkillsForAgent", () => {
-    it("combines humanOnly and broad filtering", () => {
+    it("excludes humanOnly skills and keeps only highest level", () => {
       const skillMatrix = [
-        { skillId: "a", type: "primary", isHumanOnly: false, capability: "ai" },
+        {
+          skillId: "a",
+          type: "primary",
+          isHumanOnly: false,
+          level: "practitioner",
+        },
         {
           skillId: "b",
           type: "broad",
           isHumanOnly: false,
-          capability: "scale",
+          level: "practitioner",
         },
         {
           skillId: "c",
           type: "secondary",
           isHumanOnly: true,
-          capability: "people",
+          level: "practitioner",
         },
-        { skillId: "d", type: "broad", isHumanOnly: false, capability: "ai" },
+        { skillId: "d", type: "broad", isHumanOnly: false, level: "working" },
       ];
-      const track = { skillModifiers: { scale: 1, ai: -1 } };
-      const result = filterSkillsForAgent(skillMatrix, track);
-      // Should include: a (primary), b (broad with positive)
-      // Should exclude: c (humanOnly), d (broad without positive)
+      const result = filterSkillsForAgent(skillMatrix);
+      // Should include: a (practitioner), b (practitioner broad, same level)
+      // Should exclude: c (humanOnly), d (lower level)
       assert.strictEqual(result.length, 2);
       assert.ok(result.some((s) => s.skillId === "a"));
       assert.ok(result.some((s) => s.skillId === "b"));
@@ -3259,10 +3265,7 @@ describe("Profile Module", () => {
   describe("AGENT_PROFILE_OPTIONS", () => {
     it("has all expected options set to true", () => {
       assert.strictEqual(AGENT_PROFILE_OPTIONS.excludeHumanOnly, true);
-      assert.strictEqual(
-        AGENT_PROFILE_OPTIONS.excludeBroadWithoutPositiveModifier,
-        true,
-      );
+      assert.strictEqual(AGENT_PROFILE_OPTIONS.keepHighestLevelOnly, true);
       assert.strictEqual(AGENT_PROFILE_OPTIONS.sortByLevel, true);
       assert.strictEqual(AGENT_PROFILE_OPTIONS.sortByMaturity, true);
     });

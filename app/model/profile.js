@@ -10,6 +10,10 @@
  *
  * The core derivation (deriveSkillMatrix, deriveBehaviourProfile) remains in
  * derivation.js. This module adds post-processing for specific use cases.
+ *
+ * Agent filtering keeps only skills at the highest derived level. This ensures
+ * track modifiers are respected—a broad skill boosted by a +1 track modifier
+ * may reach the same level as primary skills and thus be included.
  */
 
 import { SKILL_LEVEL_ORDER, BEHAVIOUR_MATURITY_ORDER } from "./levels.js";
@@ -47,44 +51,40 @@ export function filterHumanOnlySkills(skillMatrix) {
 }
 
 /**
- * Filter broad skills without positive track modifier
- * Keeps broad skills only if their capability has a positive track modifier
- * @param {Array} skillMatrix - Skill matrix entries
- * @param {Set<string>} positiveCapabilities - Capabilities with positive modifiers
- * @returns {Array} Filtered skill matrix
+ * Filter skills to keep only those at the highest derived level
+ * After track modifiers are applied, some skills will be at higher levels
+ * than others. This filter keeps only the skills at the maximum level.
+ * @param {Array} skillMatrix - Skill matrix entries with derived levels
+ * @returns {Array} Filtered skill matrix containing only highest-level skills
  */
-export function filterBroadWithoutPositiveModifier(
-  skillMatrix,
-  positiveCapabilities,
-) {
+export function filterByHighestLevel(skillMatrix) {
+  if (skillMatrix.length === 0) return [];
+
+  // Find the highest level index in the matrix
+  const maxLevelIndex = Math.max(
+    ...skillMatrix.map((entry) => SKILL_LEVEL_ORDER.indexOf(entry.level)),
+  );
+
+  // Keep only skills at that level
   return skillMatrix.filter(
-    (entry) =>
-      entry.type !== "broad" || positiveCapabilities.has(entry.capability),
+    (entry) => SKILL_LEVEL_ORDER.indexOf(entry.level) === maxLevelIndex,
   );
 }
 
 /**
  * Apply agent-specific skill filters
- * Combines humanOnly and broad skill filtering for agent profiles
- * @param {Array} skillMatrix - Skill matrix entries
- * @param {Object} track - Track definition (for modifier lookup)
+ * Filters to human-only skills and keeps only skills at the highest derived level.
+ * This approach respects track modifiers—a broad skill boosted to the same level
+ * as primary skills will be included.
+ * @param {Array} skillMatrix - Skill matrix entries with derived levels
  * @returns {Array} Filtered skill matrix
  */
-export function filterSkillsForAgent(skillMatrix, track) {
-  const positiveCapabilities = getPositiveTrackCapabilities(track);
+export function filterSkillsForAgent(skillMatrix) {
+  // First exclude human-only skills
+  const withoutHumanOnly = filterHumanOnlySkills(skillMatrix);
 
-  return skillMatrix.filter((entry) => {
-    // Exclude human-only skills
-    if (entry.isHumanOnly) {
-      return false;
-    }
-    // For broad skills, only include if capability has positive modifier
-    if (entry.type === "broad") {
-      return positiveCapabilities.has(entry.capability);
-    }
-    // Include primary, secondary, and track-added skills
-    return true;
-  });
+  // Then keep only skills at the highest level
+  return filterByHighestLevel(withoutHumanOnly);
 }
 
 // =============================================================================
@@ -126,7 +126,7 @@ export function sortByMaturityDescending(behaviourProfile) {
 /**
  * @typedef {Object} ProfileOptions
  * @property {boolean} [excludeHumanOnly=false] - Filter out human-only skills
- * @property {boolean} [excludeBroadWithoutPositiveModifier=false] - Filter broad skills
+ * @property {boolean} [keepHighestLevelOnly=false] - Keep only skills at the highest derived level
  * @property {boolean} [sortByLevel=false] - Sort skills by level descending
  * @property {boolean} [sortByMaturity=false] - Sort behaviours by maturity descending
  */
@@ -148,7 +148,7 @@ export function sortByMaturityDescending(behaviourProfile) {
  * and AI agents use this function, with different options:
  *
  * - Human jobs: No filtering, default sorting by type
- * - AI agents: Filter humanOnly, filter broad without positive modifier, sort by level
+ * - AI agents: Filter humanOnly, keep only highest-level skills, sort by level
  *
  * @param {Object} params
  * @param {Object} params.discipline - The discipline
@@ -171,7 +171,7 @@ export function prepareBaseProfile({
 }) {
   const {
     excludeHumanOnly = false,
-    excludeBroadWithoutPositiveModifier = false,
+    keepHighestLevelOnly = false,
     sortByLevel = false,
     sortByMaturity = false,
   } = options;
@@ -186,18 +186,11 @@ export function prepareBaseProfile({
   });
 
   // Apply skill filters
-  if (excludeHumanOnly || excludeBroadWithoutPositiveModifier) {
-    const positiveCapabilities = getPositiveTrackCapabilities(track);
-
-    if (excludeHumanOnly) {
-      skillMatrix = filterHumanOnlySkills(skillMatrix);
-    }
-    if (excludeBroadWithoutPositiveModifier) {
-      skillMatrix = filterBroadWithoutPositiveModifier(
-        skillMatrix,
-        positiveCapabilities,
-      );
-    }
+  if (excludeHumanOnly) {
+    skillMatrix = filterHumanOnlySkills(skillMatrix);
+  }
+  if (keepHighestLevelOnly) {
+    skillMatrix = filterByHighestLevel(skillMatrix);
   }
 
   // Apply sorting
@@ -230,12 +223,12 @@ export function prepareBaseProfile({
 
 /**
  * Preset options for agent profile derivation
- * Excludes human-only skills, excludes broad skills without positive modifiers,
+ * Excludes human-only skills, keeps only skills at the highest derived level,
  * and sorts by level/maturity descending
  */
 export const AGENT_PROFILE_OPTIONS = {
   excludeHumanOnly: true,
-  excludeBroadWithoutPositiveModifier: true,
+  keepHighestLevelOnly: true,
   sortByLevel: true,
   sortByMaturity: true,
 };

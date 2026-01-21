@@ -551,11 +551,15 @@ export async function loadSkillsWithAgentData(dataDir) {
   const allSkills = [];
 
   for (const file of yamlFiles) {
+    const capabilityId = basename(file, ".yaml"); // Derive ID from filename
     const capability = await loadYamlFile(join(capabilitiesDir, file));
 
     if (capability.skills && Array.isArray(capability.skills)) {
       for (const skill of capability.skills) {
-        allSkills.push(skill);
+        allSkills.push({
+          ...skill,
+          capability: capabilityId, // Add capability from parent filename
+        });
       }
     }
   }
