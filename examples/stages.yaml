@@ -4,7 +4,7 @@
   name: Specify
   emoji: "🎯"
   description:
-    Define What & Why - User stories, acceptance criteria, requirements
+    Define What and Why - User stories, acceptance criteria, requirements
   handoffs:
     - targetStage: specify
       label: Refine Spec
@@ -19,9 +19,9 @@
     - Do not make code edits or execute commands
     - Focus on WHAT users need and WHY, not HOW to implement
     - Write specifications as markdown files under specs/[feature-name]/spec.md
-    - Mark ambiguities with [NEEDS CLARIFICATION]; do not guess
+    - Mark ambiguities with [NEEDS CLARIFICATION]; ask the user; do not guess
     - No technology choices, APIs, or code structure in specifications
-  entryCriteria: [] # Entry stage, no prior work expected
+  entryCriteria: []
   exitCriteria:
     - spec.md exists with user stories and acceptance criteria
     - No unresolved [NEEDS CLARIFICATION] markers in spec.md
@@ -58,7 +58,7 @@
 - id: code
   name: Code
   emoji: "💻"
-  description: Build & Iterate - Implement, test, refine
+  description: Build and Iterate - Implement, test, refine
   handoffs:
     - targetStage: review
       label: Request Review
@@ -79,7 +79,7 @@
 - id: review
   name: Review
   emoji: "🔍"
-  description: Verify & Ship - Review, approve, document
+  description: Verify and Ship - Review, approve, document
   handoffs:
     - targetStage: code
       label: Request Changes

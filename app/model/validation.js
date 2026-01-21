@@ -150,7 +150,7 @@ function validateSkill(skill, index) {
       );
     } else {
       // Validate each stage
-      const validStageIds = ["plan", "code", "review"];
+      const validStageIds = Object.values(Stage);
       for (const [stageId, stageData] of Object.entries(skill.agent.stages)) {
         if (!validStageIds.includes(stageId)) {
           errors.push(

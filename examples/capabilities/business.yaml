@@ -107,6 +107,21 @@ skills:
         READMEs, API docs, specifications, or any technical content that needs
         to be clear and accurate.
       stages:
+        specify:
+          focus: |
+            Define documentation requirements and audience needs.
+            Clarify what the documentation must accomplish.
+          activities:
+            - Identify target audience and their skill level
+            - Document what questions the docs must answer
+            - Define documentation type (README, API, spec, tutorial)
+            - Specify accuracy and completeness requirements
+            - Mark ambiguities with [NEEDS CLARIFICATION]
+          ready:
+            - Audience is identified
+            - Questions to answer are documented
+            - Documentation type is chosen
+            - Requirements are clear
         plan:
           focus: Understanding audience and planning documentation
           activities:
@@ -143,6 +158,20 @@ skills:
             - All examples verified working
             - No ambiguous pronouns
             - Structure is logical and complete
+        deploy:
+          focus: |
+            Publish documentation and ensure it reaches the audience.
+            Set up maintenance process.
+          activities:
+            - Publish to documentation site
+            - Announce to relevant teams
+            - Add to search indexes and navigation
+            - Establish update and review schedule
+          ready:
+            - Documentation is published and accessible
+            - Audience can discover and find it
+            - Search and navigation are updated
+            - Maintenance schedule is established
       reference: |
         ## Document Types
 

@@ -78,6 +78,21 @@ skills:
         Use when asked to design a system, evaluate architecture options, or
         make structural decisions about code organization.
       stages:
+        specify:
+          focus: |
+            Define system requirements and constraints before design.
+            Clarify functional and non-functional requirements.
+          activities:
+            - Document functional requirements and use cases
+            - Identify non-functional requirements (scale, latency, availability)
+            - Document system constraints and integration points
+            - Identify stakeholders and their concerns
+            - Mark ambiguities with [NEEDS CLARIFICATION]
+          ready:
+            - Functional requirements are documented
+            - Non-functional requirements are specified
+            - Constraints are identified
+            - Stakeholder concerns are understood
         plan:
           focus: Understanding requirements and designing solutions
           activities:
@@ -114,6 +129,20 @@ skills:
             - Design docs reflect actual implementation
             - Architecture decisions validated in practice
             - Scalability requirements addressed
+        deploy:
+          focus: |
+            Deploy architecture and verify it performs as designed
+            in production environment.
+          activities:
+            - Deploy system components to production
+            - Verify architectural boundaries work under load
+            - Monitor performance against requirements
+            - Document any operational learnings
+          ready:
+            - System deployed successfully
+            - Performance meets requirements
+            - Monitoring confirms design assumptions
+            - Operational procedures are documented
       reference: |
         ## Common Patterns
 
@@ -170,6 +199,21 @@ skills:
         Use when implementing features spanning frontend, backend, database,
         and infrastructure layers.
       stages:
+        specify:
+          focus: |
+            Define full-stack feature requirements and acceptance criteria.
+            Clarify user needs and system integration points.
+          activities:
+            - Identify user stories and acceptance criteria
+            - Document expected user interactions
+            - Clarify integration requirements with existing systems
+            - Define non-functional requirements (performance, security)
+            - Mark ambiguities with [NEEDS CLARIFICATION]
+          ready:
+            - User stories are documented
+            - Acceptance criteria are defined
+            - Integration points are identified
+            - Non-functional requirements are clear
         plan:
           focus: Designing the complete solution across layers
           activities:
@@ -206,6 +250,21 @@ skills:
             - End-to-end tests pass
             - Deployment is automated
             - Cross-layer errors are handled gracefully
+        deploy:
+          focus: |
+            Deploy full-stack feature to production and verify end-to-end
+            functionality in live environment.
+          activities:
+            - Deploy backend services
+            - Deploy frontend changes
+            - Run database migrations
+            - Verify feature works in production
+            - Monitor for errors and performance issues
+          ready:
+            - All components deployed successfully
+            - Feature works end-to-end in production
+            - No errors in monitoring
+            - Performance meets requirements
       reference: |
         ## Technology Stack
 

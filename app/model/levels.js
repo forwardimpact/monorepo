@@ -60,16 +60,24 @@ export const BEHAVIOUR_MATURITY_ORDER = [
  * @enum {string}
  */
 export const Stage = {
+  SPECIFY: "specify",
   PLAN: "plan",
   CODE: "code",
   REVIEW: "review",
+  DEPLOY: "deploy",
 };
 
 /**
  * Ordered array of stages for lifecycle progression
  * @type {string[]}
  */
-export const STAGE_ORDER = [Stage.PLAN, Stage.CODE, Stage.REVIEW];
+export const STAGE_ORDER = [
+  Stage.SPECIFY,
+  Stage.PLAN,
+  Stage.CODE,
+  Stage.REVIEW,
+  Stage.DEPLOY,
+];
 
 /**
  * Skill capabilities (what capability area)

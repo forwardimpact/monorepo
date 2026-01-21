@@ -76,6 +76,21 @@ skills:
         deploying to cloud, selecting cloud services, configuring infrastructure,
         or solving cloud-specific challenges.
       stages:
+        specify:
+          focus: |
+            Define cloud infrastructure requirements and constraints.
+            Clarify availability, security, and cost expectations.
+          activities:
+            - Document availability and reliability requirements
+            - Identify security and compliance constraints
+            - Specify cost budget and constraints
+            - Define performance requirements (latency, throughput)
+            - Mark ambiguities with [NEEDS CLARIFICATION]
+          ready:
+            - Availability requirements are documented
+            - Security requirements are specified
+            - Cost constraints are defined
+            - Performance requirements are clear
         plan:
           focus: Selecting and designing cloud architecture
           activities:
@@ -112,6 +127,20 @@ skills:
             - Multi-AZ deployment confirmed
             - Cost controls established
             - Security review complete
+        deploy:
+          focus: |
+            Deploy cloud infrastructure and verify production readiness.
+            Confirm failover and monitoring work correctly.
+          activities:
+            - Deploy infrastructure to production
+            - Verify multi-AZ failover works
+            - Confirm monitoring and alerting are operational
+            - Validate cost tracking is in place
+          ready:
+            - Infrastructure deployed successfully
+            - Failover tested in production
+            - Monitoring is operational
+            - Cost tracking is active
       reference: |
         ## Service Categories
 
@@ -164,6 +193,21 @@ skills:
         reviewing code, checking for best practices, or verifying AI-generated
         code before committing.
       stages:
+        specify:
+          focus: |
+            Define code quality requirements and review criteria.
+            Clarify standards and acceptance criteria for the change.
+          activities:
+            - Identify applicable coding standards
+            - Document quality acceptance criteria
+            - Specify test coverage requirements
+            - Define review depth based on risk level
+            - Mark ambiguities with [NEEDS CLARIFICATION]
+          ready:
+            - Coding standards are identified
+            - Quality criteria are documented
+            - Test requirements are specified
+            - Review approach matches risk level
         plan:
           focus: Planning for quality before implementation
           activities:
@@ -200,6 +244,20 @@ skills:
             - No obvious security vulnerabilities
             - No unnecessary complexity
             - Documentation updated if needed
+        deploy:
+          focus: |
+            Merge and deploy reviewed code. Verify quality checks pass
+            in production pipeline.
+          activities:
+            - Merge approved changes
+            - Verify CI pipeline passes
+            - Monitor for issues after deployment
+            - Document any lessons learned
+          ready:
+            - Code merged successfully
+            - CI pipeline passes all checks
+            - No regressions detected
+            - Deployment verified
       reference: |
         ## Review Checklist
 
@@ -242,6 +300,21 @@ skills:
         architectures. Use when designing tables, optimizing queries, or
         making decisions about data storage technologies.
       stages:
+        specify:
+          focus: |
+            Define data requirements and access patterns.
+            Clarify schema requirements before designing.
+          activities:
+            - Document data entities and relationships
+            - Identify query patterns and access requirements
+            - Specify consistency and performance requirements
+            - Define data retention and compliance needs
+            - Mark ambiguities with [NEEDS CLARIFICATION]
+          ready:
+            - Data entities are documented
+            - Query patterns are identified
+            - Performance requirements are specified
+            - Compliance needs are clear
         plan:
           focus: Understanding data requirements and designing schema
           activities:
@@ -278,6 +351,20 @@ skills:
             - Migrations tested on production-like data
             - Query performance acceptable
             - Backward compatibility maintained
+        deploy:
+          focus: |
+            Deploy schema changes to production safely.
+            Verify data integrity and query performance.
+          activities:
+            - Run migrations in production
+            - Verify data integrity after migration
+            - Monitor query performance
+            - Confirm rollback plan works
+          ready:
+            - Migration completed successfully
+            - Data integrity verified
+            - Performance meets requirements
+            - Rollback procedure tested
       reference: |
         ## Storage Selection Guide
 

@@ -142,9 +142,11 @@
           "type": "object",
           "description": "Stage-specific guidance for applying the skill",
           "properties": {
+            "specify": { "$ref": "#/$defs/skillStage" },
             "plan": { "$ref": "#/$defs/skillStage" },
             "code": { "$ref": "#/$defs/skillStage" },
-            "review": { "$ref": "#/$defs/skillStage" }
+            "review": { "$ref": "#/$defs/skillStage" },
+            "deploy": { "$ref": "#/$defs/skillStage" }
           },
           "additionalProperties": false
         },

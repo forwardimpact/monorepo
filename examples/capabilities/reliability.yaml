@@ -76,6 +76,21 @@ skills:
         implementing deployment best practices. Use when setting up pipelines,
         containerizing applications, or configuring infrastructure.
       stages:
+        specify:
+          focus: |
+            Define CI/CD and infrastructure requirements.
+            Clarify deployment strategy and operational needs.
+          activities:
+            - Document deployment frequency requirements
+            - Identify rollback and recovery requirements
+            - Specify monitoring and alerting needs
+            - Define security and compliance constraints
+            - Mark ambiguities with [NEEDS CLARIFICATION]
+          ready:
+            - Deployment requirements are documented
+            - Recovery requirements are specified
+            - Monitoring needs are identified
+            - Compliance constraints are clear
         plan:
           focus: |
             Plan CI/CD pipeline architecture and infrastructure requirements.
@@ -124,6 +139,20 @@ skills:
             - Rollback procedure is documented and tested
             - Alerts are configured and tested
             - Runbooks exist for common issues
+        deploy:
+          focus: |
+            Deploy pipeline and infrastructure changes to production.
+            Verify operational readiness.
+          activities:
+            - Deploy pipeline configuration to production
+            - Verify deployment workflows work correctly
+            - Confirm monitoring and alerting are operational
+            - Run deployment through the new pipeline
+          ready:
+            - Pipeline deployed and operational
+            - Workflows tested in production
+            - Monitoring confirms healthy operation
+            - First deployment through pipeline succeeded
       reference: |
         ## CI/CD Pipeline Stages
 
@@ -215,6 +244,21 @@ skills:
         response, and capacity planning. Use when designing monitoring, handling
         incidents, setting SLOs, or improving system resilience.
       stages:
+        specify:
+          focus: |
+            Define reliability requirements and SLO targets.
+            Identify critical user journeys that need protection.
+          activities:
+            - Identify critical user journeys and business impact
+            - Document reliability requirements (availability, latency)
+            - Define SLO targets with stakeholder agreement
+            - Specify acceptable error budgets
+            - Mark ambiguities with [NEEDS CLARIFICATION]
+          ready:
+            - Critical user journeys are identified
+            - Reliability requirements are documented
+            - SLO targets are defined
+            - Error budgets are agreed
         plan:
           focus: |
             Define reliability requirements, SLIs/SLOs, and observability
@@ -264,6 +308,20 @@ skills:
             - Incident response process documented
             - Post-mortem culture established
             - Disaster recovery approach is tested
+        deploy:
+          focus: |
+            Deploy reliability infrastructure and verify production
+            monitoring. Ensure on-call readiness.
+          activities:
+            - Deploy monitoring and alerting to production
+            - Verify dashboards and alerts work correctly
+            - Confirm on-call rotation is ready
+            - Run production readiness review
+          ready:
+            - Monitoring is live in production
+            - Alerts fire correctly for SLO breaches
+            - On-call team is trained and ready
+            - Production readiness review is complete
       reference: |
         ## Service Level Concepts
 
