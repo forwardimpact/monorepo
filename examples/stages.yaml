@@ -1,13 +1,4 @@
-# Stages - What part of the lifecycle?
-#
-# Defines the three stages of the engineering lifecycle with their tools,
-# handoffs, and constraints. Used for both human checklists and AI agent
-# profile generation.
-#
-# Entry criteria define what must be complete before starting work in a stage.
-# Exit criteria are implicit: they equal the entry criteria of the next stage.
-#
-# See concept/lifecycle.md for full documentation.
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/stages.schema.json
 
 - id: plan
   name: Plan

@@ -1,5 +1,4 @@
-# Behaviour: Communicate with Precision
-# Clarity as a superpower in the AI era
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/behaviour.schema.json
 
 name: Communicate with Precision
 human:

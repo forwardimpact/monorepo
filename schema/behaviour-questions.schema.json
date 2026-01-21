@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.forwardimpact.team/json/behaviour-questions.schema.json",
+  "title": "Behaviour Interview Questions",
+  "description": "Interview questions for a behaviour, organized by maturity level",
+  "type": "object",
+  "properties": {
+    "emerging": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question" }
+    },
+    "developing": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question" }
+    },
+    "practicing": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question" }
+    },
+    "role_modeling": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question" }
+    },
+    "exemplifying": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "question": {
+      "type": "object",
+      "required": ["id", "text", "lookingFor"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Unique question identifier (format: {abbrev}_{maturity_abbrev}_{number})"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "The question text (second person, under 150 characters)"
+        },
+        "lookingFor": {
+          "type": "array",
+          "description": "2-4 bullet points of good answer indicators",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": { "type": "string" }
+        },
+        "expectedDurationMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Expected duration in minutes (default: 5 for emerging/developing, 8-10 for higher)"
+        },
+        "followUps": {
+          "type": "array",
+          "description": "1-3 probing questions for deeper exploration",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

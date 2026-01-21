@@ -1,5 +1,4 @@
-# Track: Platform
-# Internal tooling and infrastructure focus
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/track.schema.json
 
 name: Platform
 

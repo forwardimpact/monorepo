@@ -1,5 +1,4 @@
-# code_quality questions
-# See skills.yaml for metadata
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/skill-questions.schema.json
 
 awareness:
   - id: cq_aware_1

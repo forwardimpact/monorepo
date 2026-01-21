@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.forwardimpact.team/json/track.schema.json",
+  "title": "Track",
+  "description": "Work context that modifies skill and behaviour expectations",
+  "type": "object",
+  "required": ["name"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable track name"
+    },
+    "isProfessional": {
+      "type": "boolean",
+      "description": "If true, this is a professional/IC track (default true)"
+    },
+    "isManagement": {
+      "type": "boolean",
+      "description": "If true, this is a management track (default false)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the track's focus"
+    },
+    "roleContext": {
+      "type": "string",
+      "description": "Contextual description for job listings"
+    },
+    "skillModifiers": {
+      "type": "object",
+      "description": "Modifiers by capability ID (not individual skill IDs)",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "description": "Must be a capability ID (e.g., delivery, scale, reliability)"
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "description": "Level modifier to apply to all skills in this capability"
+      }
+    },
+    "behaviourModifiers": {
+      "type": "object",
+      "description": "Modifiers to behaviour expectations (behaviour ID → modifier)",
+      "additionalProperties": {
+        "type": "integer"
+      }
+    },
+    "assessmentWeights": {
+      "$ref": "#/$defs/assessmentWeights",
+      "description": "Custom weights for skill vs behaviour assessment"
+    },
+    "validDisciplines": {
+      "type": "array",
+      "description": "If specified, restricts which disciplines can use this track",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      }
+    },
+    "minGrade": {
+      "type": "string",
+      "description": "Minimum grade required for this track (references grade ID)"
+    },
+    "agent": {
+      "$ref": "#/$defs/trackAgentSection",
+      "description": "Agent-specific content"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "assessmentWeights": {
+      "type": "object",
+      "required": ["skillWeight", "behaviourWeight"],
+      "properties": {
+        "skillWeight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Weight for skills in assessment (must sum to 1 with behaviourWeight)"
+        },
+        "behaviourWeight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Weight for behaviours in assessment (must sum to 1 with skillWeight)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "trackAgentSection": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "type": "string",
+          "description": "Identity override for the agent (replaces discipline identity). May use {roleTitle} placeholder."
+        },
+        "priority": {
+          "type": "string",
+          "description": "Priority guidance specific to this track"
+        },
+        "beforeMakingChanges": {
+          "type": "array",
+          "description": "Additional checklist items to consider",
+          "items": { "type": "string" }
+        },
+        "constraints": {
+          "type": "array",
+          "description": "Additional constraints specific to this track",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

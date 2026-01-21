@@ -1,5 +1,4 @@
-# Framework - High-level definitions about the Engineering Pathway
-# Drives page content for landing page, entity list pages, and handout chapters
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/framework.schema.json
 
 title: Engineering Pathway
 emoji: "🧭"

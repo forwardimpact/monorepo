@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.forwardimpact.team/json/grades.schema.json",
+  "title": "Grades",
+  "description": "Career levels defining expectations for skill proficiency, behaviour maturity, and scope of impact",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/grade"
+  },
+  "$defs": {
+    "grade": {
+      "type": "object",
+      "required": [
+        "id",
+        "professionalTitle",
+        "managementTitle",
+        "ordinalRank",
+        "baseSkillLevels",
+        "baseBehaviourMaturity"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]*$",
+          "description": "Unique grade identifier (e.g., L1, L2, L3)"
+        },
+        "professionalTitle": {
+          "type": "string",
+          "description": "Title for professional/IC track (e.g., Engineer I, Senior Engineer)"
+        },
+        "managementTitle": {
+          "type": "string",
+          "description": "Title for management track (e.g., Manager, Senior Manager)"
+        },
+        "typicalExperienceRange": {
+          "type": "string",
+          "description": "Expected years of experience range (e.g., '0-2', '5-8', '12+')"
+        },
+        "ordinalRank": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Numeric rank for ordering grades (1 = lowest)"
+        },
+        "qualificationSummary": {
+          "type": "string",
+          "description": "Summary of qualifications expected at this grade"
+        },
+        "baseSkillLevels": {
+          "type": "object",
+          "description": "Base skill levels by skill tier for this grade",
+          "required": ["primary", "secondary", "broad"],
+          "properties": {
+            "primary": {
+              "$ref": "#/$defs/skillLevel",
+              "description": "Level for core/primary skills"
+            },
+            "secondary": {
+              "$ref": "#/$defs/skillLevel",
+              "description": "Level for supporting/secondary skills"
+            },
+            "broad": {
+              "$ref": "#/$defs/skillLevel",
+              "description": "Level for broad skills"
+            }
+          },
+          "additionalProperties": false
+        },
+        "baseBehaviourMaturity": {
+          "$ref": "#/$defs/behaviourMaturity",
+          "description": "Base behaviour maturity for this grade"
+        },
+        "breadthCriteria": {
+          "type": "object",
+          "description": "Minimum number of skills at each level for breadth (senior grades only)",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "expectations": {
+          "type": "object",
+          "description": "Expectations for impact, autonomy, influence, and complexity",
+          "properties": {
+            "impactScope": {
+              "type": "string",
+              "description": "Scope of impact expected at this grade"
+            },
+            "autonomyExpectation": {
+              "type": "string",
+              "description": "Level of autonomy expected"
+            },
+            "influenceScope": {
+              "type": "string",
+              "description": "Scope of influence"
+            },
+            "complexityHandled": {
+              "type": "string",
+              "description": "Complexity level the grade should handle"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "skillLevel": {
+      "type": "string",
+      "enum": ["awareness", "foundational", "working", "practitioner", "expert"]
+    },
+    "behaviourMaturity": {
+      "type": "string",
+      "enum": ["emerging", "developing", "practicing", "role_modeling", "exemplifying"]
+    }
+  }
+}

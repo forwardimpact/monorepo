@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/capability.schema.json
+
 name: People
 emoji: 👥
 displayOrder: 6

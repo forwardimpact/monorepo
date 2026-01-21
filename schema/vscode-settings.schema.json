@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.forwardimpact.team/json/vscode-settings.schema.json",
+  "title": "VS Code Settings",
+  "description": "VS Code settings exported when generating agent configurations",
+  "type": "object",
+  "additionalProperties": {
+    "oneOf": [
+      { "type": "string" },
+      { "type": "number" },
+      { "type": "boolean" },
+      { "type": "array" },
+      { "type": "object" }
+    ]
+  }
+}

@@ -1,5 +1,4 @@
-# stakeholder_management questions
-# See skills.yaml or behaviours.yaml for metadata
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/skill-questions.schema.json
 
 awareness:
   - id: stk_aware_1

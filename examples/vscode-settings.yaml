@@ -1,8 +1,5 @@
-# VS Code Settings for Agent Features
-# These settings are exported when generating agent configurations
-# to ensure the target workspace has the required VS Code configuration.
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/vscode-settings.schema.json
 
-# Enable agent mode in chat
 chat.agent.enabled: true
 
 # Maximum requests per agent session (high limit for complex tasks)

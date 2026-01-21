@@ -1,7 +1,5 @@
-# Self Assessments - Example profiles for testing candidate matching
-# Maps skills to levels and behaviours to maturities
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/self-assessments.schema.json
 
-# Example: Mid-level Software Engineer
 - id: example_mid_swe
   skillLevels:
     architecture_design: working

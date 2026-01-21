@@ -1,6 +1,4 @@
-# Grades - What career level?
-# Base skill levels and behaviour maturities by seniority
-# See domain-concepts.instructions.md for level progressions
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/grades.schema.json
 
 - id: L1
   professionalTitle: Engineer I

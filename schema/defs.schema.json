@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.forwardimpact.team/json/defs.schema.json",
+  "title": "Engineering Pathway Common Definitions",
+  "description": "Shared definitions for all pathway schemas",
+  "$defs": {
+    "skillLevel": {
+      "type": "string",
+      "enum": ["awareness", "foundational", "working", "practitioner", "expert"],
+      "description": "Skill proficiency level from lowest to highest"
+    },
+    "behaviourMaturity": {
+      "type": "string",
+      "enum": ["emerging", "developing", "practicing", "role_modeling", "exemplifying"],
+      "description": "Behaviour maturity level from lowest to highest"
+    },
+    "stageId": {
+      "type": "string",
+      "enum": ["plan", "code", "review"],
+      "description": "Lifecycle stage identifier"
+    },
+    "levelDescriptions": {
+      "type": "object",
+      "description": "Description of expectations at each skill level",
+      "properties": {
+        "awareness": { "type": "string" },
+        "foundational": { "type": "string" },
+        "working": { "type": "string" },
+        "practitioner": { "type": "string" },
+        "expert": { "type": "string" }
+      },
+      "required": ["awareness", "foundational", "working", "practitioner", "expert"],
+      "additionalProperties": false
+    },
+    "maturityDescriptions": {
+      "type": "object",
+      "description": "Description of expectations at each behaviour maturity level",
+      "properties": {
+        "emerging": { "type": "string" },
+        "developing": { "type": "string" },
+        "practicing": { "type": "string" },
+        "role_modeling": { "type": "string" },
+        "exemplifying": { "type": "string" }
+      },
+      "required": ["emerging", "developing", "practicing", "role_modeling", "exemplifying"],
+      "additionalProperties": false
+    },
+    "responsibilitiesByLevel": {
+      "type": "object",
+      "description": "Responsibility descriptions by skill level",
+      "properties": {
+        "awareness": { "type": "string" },
+        "foundational": { "type": "string" },
+        "working": { "type": "string" },
+        "practitioner": { "type": "string" },
+        "expert": { "type": "string" }
+      },
+      "required": ["awareness", "foundational", "working", "practitioner", "expert"],
+      "additionalProperties": false
+    },
+    "skillId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Skill identifier (snake_case)"
+    },
+    "behaviourId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Behaviour identifier (snake_case)"
+    },
+    "capabilityId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Capability identifier (snake_case)"
+    },
+    "gradeId": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]*$",
+      "description": "Grade identifier (uppercase)"
+    },
+    "disciplineId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Discipline identifier (snake_case)"
+    },
+    "trackId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Track identifier (snake_case)"
+    },
+    "modifier": {
+      "type": "integer",
+      "description": "Modifier value for adjusting levels"
+    },
+    "normalizedModifier": {
+      "type": "integer",
+      "minimum": -1,
+      "maximum": 1,
+      "description": "Modifier value restricted to -1, 0, or 1"
+    }
+  }
+}

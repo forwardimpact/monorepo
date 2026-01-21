@@ -1,5 +1,4 @@
-# Discipline: Data Engineering
-# Designs and builds data infrastructure
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/discipline.schema.json
 
 specialization: Data Engineering
 roleTitle: Data Engineer

@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.forwardimpact.team/json/self-assessments.schema.json",
+  "title": "Self Assessments",
+  "description": "Example candidate profiles for testing candidate matching",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/selfAssessment"
+  },
+  "$defs": {
+    "selfAssessment": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Unique assessment identifier"
+        },
+        "skillLevels": {
+          "type": "object",
+          "description": "Skill assessments (skill ID → level)",
+          "additionalProperties": {
+            "$ref": "#/$defs/skillLevel"
+          }
+        },
+        "behaviourMaturities": {
+          "type": "object",
+          "description": "Behaviour assessments (behaviour ID → maturity)",
+          "additionalProperties": {
+            "$ref": "#/$defs/behaviourMaturity"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "skillLevel": {
+      "type": "string",
+      "enum": ["awareness", "foundational", "working", "practitioner", "expert"]
+    },
+    "behaviourMaturity": {
+      "type": "string",
+      "enum": ["emerging", "developing", "practicing", "role_modeling", "exemplifying"]
+    }
+  }
+}

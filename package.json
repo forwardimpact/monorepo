@@ -55,6 +55,8 @@
     "demo": "node scripts/demo.js"
   },
   "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "mustache": "^4.2.0",
     "yaml": "^2.3.4"
   },

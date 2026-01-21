@@ -1,8 +1,5 @@
-# Drivers - What outcomes matter?
-# Organizational outcomes that productive teams achieve
-# Links skills and behaviours to business impact
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/drivers.schema.json
 
-# Direction & Strategy
 - id: clear_direction
   name: Clear Direction
   description:

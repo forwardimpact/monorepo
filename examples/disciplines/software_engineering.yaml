@@ -1,5 +1,4 @@
-# Discipline: Software Engineering
-# Builds and maintains software systems
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/discipline.schema.json
 
 specialization: Software Engineering
 roleTitle: Software Engineer

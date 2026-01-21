@@ -1,5 +1,4 @@
-# team_collaboration questions
-# See skills.yaml or behaviours.yaml for metadata
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/skill-questions.schema.json
 
 awareness:
   - id: tc_aware_1

@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.forwardimpact.team/json/drivers.schema.json",
+  "title": "Drivers",
+  "description": "Organizational outcomes that productive teams achieve",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/driver"
+  },
+  "$defs": {
+    "driver": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Unique driver identifier (snake_case)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable driver name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the business outcome"
+        },
+        "contributingSkills": {
+          "type": "array",
+          "description": "Skills that contribute to this driver (references skill IDs)",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "contributingBehaviours": {
+          "type": "array",
+          "description": "Behaviours that contribute to this driver (references behaviour IDs)",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

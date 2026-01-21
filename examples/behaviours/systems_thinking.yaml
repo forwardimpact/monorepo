@@ -1,5 +1,4 @@
-# Behaviour: Think in Systems
-# See beyond components to understand whole-system behaviour
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/behaviour.schema.json
 
 name: Think in Systems
 human:

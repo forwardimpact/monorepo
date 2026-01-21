@@ -1,5 +1,4 @@
-# polymathic_knowledge questions
-# See skills.yaml or behaviours.yaml for metadata
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/behaviour-questions.schema.json
 
 emerging:
   - id: poly_emerg_1

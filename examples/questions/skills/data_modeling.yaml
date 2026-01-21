@@ -1,5 +1,4 @@
-# data_modeling questions
-# See skills.yaml or behaviours.yaml for metadata
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/skill-questions.schema.json
 
 awareness:
   - id: dm_aware_1

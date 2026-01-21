@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schema.forwardimpact.team/json/behaviour.schema.json",
+  "title": "Behaviour",
+  "description": "Mindset and way of working that underpins effective application of skills",
+  "type": "object",
+  "required": ["name", "human"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable behaviour name"
+    },
+    "human": {
+      "$ref": "#/$defs/behaviourHumanSection",
+      "description": "Human-specific content"
+    },
+    "agent": {
+      "$ref": "#/$defs/behaviourAgentSection",
+      "description": "Agent-specific content"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "behaviourHumanSection": {
+      "type": "object",
+      "required": ["description", "maturityDescriptions"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Description of the behaviour"
+        },
+        "maturityDescriptions": {
+          "$ref": "#/$defs/maturityDescriptions",
+          "description": "Description of expectations at each maturity level"
+        }
+      },
+      "additionalProperties": false
+    },
+    "maturityDescriptions": {
+      "type": "object",
+      "properties": {
+        "emerging": { "type": "string" },
+        "developing": { "type": "string" },
+        "practicing": { "type": "string" },
+        "role_modeling": { "type": "string" },
+        "exemplifying": { "type": "string" }
+      },
+      "required": ["emerging", "developing", "practicing", "role_modeling", "exemplifying"],
+      "additionalProperties": false
+    },
+    "behaviourAgentSection": {
+      "type": "object",
+      "required": ["title", "workingStyle"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Short title for the behaviour's agent application"
+        },
+        "workingStyle": {
+          "type": "string",
+          "description": "How the agent should apply this behaviour"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

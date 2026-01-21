@@ -1,5 +1,4 @@
-# relentless_curiosity questions
-# See skills.yaml or behaviours.yaml for metadata
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/behaviour-questions.schema.json
 
 emerging:
   - id: cur_emerg_1

@@ -1,5 +1,4 @@
-# Behaviour: Don't Lose Your Curiosity
-# The driving force behind learning and invention
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/behaviour.schema.json
 
 name: Don't Lose Your Curiosity
 human:

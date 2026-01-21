@@ -31,15 +31,10 @@
 import { fileURLToPath } from "url";
 import { dirname, join, resolve } from "path";
 import { existsSync } from "fs";
-import {
-  loadAllData,
-  loadAgentData,
-  loadSkillsWithAgentData,
-  loadQuestionBankFromFolder,
-} from "../app/model/loader.js";
+import { loadAllData } from "../app/model/loader.js";
 import { generateAllIndexes } from "../app/model/index-generator.js";
 import { formatError } from "../app/lib/cli-output.js";
-import { validateAgentData } from "../app/model/validation.js";
+import { runSchemaValidation } from "../app/model/schema-validation.js";
 
 // Import command handlers
 import { runSkillCommand } from "../app/commands/skill.js";
@@ -261,7 +256,7 @@ function printHelp() {
 }
 
 /**
- * Run full data validation
+ * Run full data validation using JSON schemas
  * @param {string} dataDir - Path to data directory
  */
 async function runFullValidation(dataDir) {
@@ -269,93 +264,32 @@ async function runFullValidation(dataDir) {
 
   let hasErrors = false;
 
-  // Load and validate core data
+  // Load data for referential integrity checking (without old validation)
   const data = await loadAllData(dataDir, {
-    validate: true,
+    validate: false,
     throwOnError: false,
   });
 
-  if (data.validation.valid) {
-    console.log("✅ Core data validation passed");
+  // Run schema validation + referential integrity
+  const result = await runSchemaValidation(dataDir, data);
+
+  if (result.valid) {
+    console.log("✅ Schema validation passed");
   } else {
-    console.log("❌ Core data validation failed");
+    console.log("❌ Schema validation failed");
     hasErrors = true;
-    for (const e of data.validation.errors) {
-      console.log(`  - [${e.type}] ${e.message}`);
+    for (const e of result.errors) {
+      console.log(
+        `  - [${e.type}] ${e.message}${e.path ? ` (${e.path})` : ""}`,
+      );
     }
   }
 
-  if (data.validation.warnings.length > 0) {
+  if (result.warnings.length > 0) {
     console.log("\n⚠️  Warnings:");
-    for (const w of data.validation.warnings) {
+    for (const w of result.warnings) {
       console.log(`  - [${w.type}] ${w.message}`);
     }
-  }
-
-  // Validate question bank
-  try {
-    const questionBank = await loadQuestionBankFromFolder(
-      join(dataDir, "questions"),
-      data.skills,
-      data.behaviours,
-      { validate: true, throwOnError: false },
-    );
-
-    if (questionBank.validation?.valid) {
-      console.log("✅ Question bank validation passed");
-    } else if (questionBank.validation) {
-      console.log("❌ Question bank validation failed");
-      hasErrors = true;
-      for (const e of questionBank.validation.errors) {
-        console.log(`  - [${e.type}] ${e.message}`);
-      }
-    }
-  } catch (err) {
-    console.log("⚠️  Could not validate question bank:", err.message);
-  }
-
-  // Validate agent data
-  try {
-    const agentData = await loadAgentData(dataDir);
-
-    const skillsWithAgentCount = data.skills.filter((s) => s.agent).length;
-
-    // Run comprehensive agent validation
-    const agentValidation = validateAgentData({
-      humanData: {
-        disciplines: data.disciplines,
-        tracks: data.tracks,
-        skills: data.skills,
-        behaviours: data.behaviours,
-        stages: data.stages,
-      },
-      agentData: {
-        disciplines: agentData.disciplines,
-        tracks: agentData.tracks,
-        behaviours: agentData.behaviours,
-      },
-    });
-
-    if (agentValidation.valid) {
-      console.log(
-        `✅ Agent data: ${agentData.disciplines.length} disciplines, ${agentData.tracks.length} tracks, ${skillsWithAgentCount} skills with agent sections`,
-      );
-    } else {
-      console.log("❌ Agent data validation failed");
-      hasErrors = true;
-      for (const e of agentValidation.errors) {
-        console.log(`  - [${e.type}] ${e.message}`);
-      }
-    }
-
-    if (agentValidation.warnings.length > 0) {
-      console.log("\n⚠️  Agent warnings:");
-      for (const w of agentValidation.warnings) {
-        console.log(`  - [${w.type}] ${w.message}`);
-      }
-    }
-  } catch (err) {
-    console.log("⚠️  Could not validate agent data:", err.message);
   }
 
   // Summary

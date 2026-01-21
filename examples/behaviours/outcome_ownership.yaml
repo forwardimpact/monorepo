@@ -1,5 +1,4 @@
-# Behaviour: Own the Outcome
-# Business outcomes trump engineering elegance
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/behaviour.schema.json
 
 name: Own the Outcome
 human:
