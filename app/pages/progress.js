@@ -90,8 +90,9 @@ export function renderProgressDetail(params) {
         a({ href: `#/discipline/${discipline.id}` }, discipline.specialization),
         " × ",
         a({ href: `#/grade/${grade.id}` }, grade.id),
-        " × ",
-        a({ href: `#/track/${track.id}` }, track.name),
+        track
+          ? [" × ", a({ href: `#/track/${track.id}` }, track.name)]
+          : " (Generalist)",
       ),
     ),
 
@@ -173,17 +174,29 @@ function createComparisonSelectorsSection({
   // State to track current selections - default to same discipline, same track, next grade
   let selectedDisciplineId = discipline.id;
   let selectedGradeId = nextGrade?.id || "";
-  let selectedTrackId = currentTrack.id;
+  let selectedTrackId = currentTrack?.id || "";
 
   // Get available options based on selected discipline
   function getAvailableOptions(disciplineId) {
     const selectedDisc = data.disciplines.find((d) => d.id === disciplineId);
-    if (!selectedDisc) return { grades: [], tracks: [] };
+    if (!selectedDisc)
+      return { grades: [], tracks: [], allowsTrackless: false };
 
     const validGrades = [];
     const validTracks = new Set();
+    let allowsTrackless = false;
 
     for (const grade of data.grades) {
+      // Check trackless combination
+      if (
+        isValidCombination({ discipline: selectedDisc, grade, track: null })
+      ) {
+        if (!validGrades.find((g) => g.id === grade.id)) {
+          validGrades.push(grade);
+        }
+        allowsTrackless = true;
+      }
+      // Check each track combination
       for (const track of data.tracks) {
         if (isValidCombination({ discipline: selectedDisc, grade, track })) {
           if (!validGrades.find((g) => g.id === grade.id)) {
@@ -199,6 +212,7 @@ function createComparisonSelectorsSection({
       tracks: data.tracks
         .filter((t) => validTracks.has(t.id))
         .sort((a, b) => a.name.localeCompare(b.name)),
+      allowsTrackless,
     };
   }
 
@@ -209,13 +223,14 @@ function createComparisonSelectorsSection({
     // Clear previous results
     comparisonResultsContainer.innerHTML = "";
 
-    if (!selectedDisciplineId || !selectedGradeId || !selectedTrackId) {
+    // Track can be empty string for generalist, but discipline and grade are required
+    if (!selectedDisciplineId || !selectedGradeId) {
       comparisonResultsContainer.appendChild(
         div(
           { className: "comparison-placeholder" },
           p(
             { className: "text-muted" },
-            "Select a discipline, track, and grade to see the comparison.",
+            "Select a discipline and grade to see the comparison.",
           ),
         ),
       );
@@ -226,9 +241,12 @@ function createComparisonSelectorsSection({
       (d) => d.id === selectedDisciplineId,
     );
     const targetGrade = data.grades.find((g) => g.id === selectedGradeId);
-    const targetTrack = data.tracks.find((t) => t.id === selectedTrackId);
+    // selectedTrackId can be empty string for generalist
+    const targetTrack = selectedTrackId
+      ? data.tracks.find((t) => t.id === selectedTrackId)
+      : null;
 
-    if (!targetDiscipline || !targetGrade || !targetTrack) {
+    if (!targetDiscipline || !targetGrade) {
       return;
     }
 
@@ -236,7 +254,7 @@ function createComparisonSelectorsSection({
     if (
       targetDiscipline.id === discipline.id &&
       targetGrade.id === currentGrade.id &&
-      targetTrack.id === currentTrack.id
+      targetTrack?.id === currentTrack?.id
     ) {
       comparisonResultsContainer.appendChild(
         div(
@@ -409,10 +427,20 @@ function createComparisonSelectorsSection({
     // Update track selector
     if (trackSelectEl) {
       trackSelectEl.innerHTML = "";
-      const placeholderOpt = document.createElement("option");
-      placeholderOpt.value = "";
-      placeholderOpt.textContent = "Select track...";
-      trackSelectEl.appendChild(placeholderOpt);
+
+      // Add generalist option if discipline allows trackless
+      if (availableOptions.allowsTrackless) {
+        const generalistOpt = document.createElement("option");
+        generalistOpt.value = "";
+        generalistOpt.textContent = "Generalist";
+        trackSelectEl.appendChild(generalistOpt);
+      } else {
+        const placeholderOpt = document.createElement("option");
+        placeholderOpt.value = "";
+        placeholderOpt.textContent = "Select track...";
+        placeholderOpt.disabled = true;
+        trackSelectEl.appendChild(placeholderOpt);
+      }
 
       for (const track of availableOptions.tracks) {
         const opt = document.createElement("option");
@@ -422,8 +450,16 @@ function createComparisonSelectorsSection({
       }
 
       // Try to keep current selection if valid
-      if (availableOptions.tracks.find((t) => t.id === selectedTrackId)) {
+      const hasValidTrack = availableOptions.tracks.find(
+        (t) => t.id === selectedTrackId,
+      );
+      const isValidGeneralist =
+        selectedTrackId === "" && availableOptions.allowsTrackless;
+      if (hasValidTrack || isValidGeneralist) {
         trackSelectEl.value = selectedTrackId;
+      } else if (availableOptions.allowsTrackless) {
+        selectedTrackId = "";
+        trackSelectEl.value = "";
       } else {
         selectedTrackId = "";
         trackSelectEl.value = "";
