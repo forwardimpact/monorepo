@@ -117,7 +117,8 @@ export function prepareCareerProgressPreview({
   grades,
   tracks,
 }) {
-  if (!discipline || !grade || !track) {
+  // Track is optional (null = generalist)
+  if (!discipline || !grade) {
     return {
       isValid: false,
       title: null,
@@ -135,12 +136,13 @@ export function prepareCareerProgressPreview({
   });
 
   if (!validCombination) {
+    const reason = track
+      ? `The ${track.name} track is not available for ${discipline.specialization}.`
+      : `${discipline.specialization} requires a track specialization.`;
     return {
       isValid: false,
       title: null,
-      invalidReason: discipline.validTracks
-        ? `The ${discipline.name} discipline is only available for certain tracks.`
-        : "This combination is not valid.",
+      invalidReason: reason,
       nextGrade: null,
       validTracks: [],
     };
@@ -149,10 +151,10 @@ export function prepareCareerProgressPreview({
   const title = generateJobTitle(discipline, grade, track);
   const nextGrade = getNextGrade(grade, grades);
 
-  // Find other valid tracks for comparison
+  // Find other valid tracks for comparison (exclude current track if any)
   const validTracks = tracks.filter(
     (t) =>
-      t.id !== track.id &&
+      (!track || t.id !== track.id) &&
       isValidJobCombination({ discipline, grade, track: t, grades }),
   );
 

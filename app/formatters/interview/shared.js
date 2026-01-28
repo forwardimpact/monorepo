@@ -206,7 +206,8 @@ export function prepareInterviewBuilderPreview({
   behaviourCount,
   grades,
 }) {
-  if (!discipline || !grade || !track) {
+  // Track is optional (null = generalist)
+  if (!discipline || !grade) {
     return {
       isValid: false,
       title: null,
@@ -224,12 +225,15 @@ export function prepareInterviewBuilderPreview({
   });
 
   if (!validCombination) {
+    const reason = track
+      ? `The ${track.name} track is not available for ${discipline.specialization}.`
+      : `${discipline.specialization} requires a track specialization.`;
     return {
       isValid: false,
       title: null,
       totalSkills: 0,
       totalBehaviours: 0,
-      invalidReason: `The ${track.name} track is not available for ${discipline.specialization}.`,
+      invalidReason: reason,
     };
   }
 
