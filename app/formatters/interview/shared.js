@@ -116,7 +116,7 @@ export function prepareInterviewDetail({
   questions,
   interviewType = "full",
 }) {
-  if (!discipline || !grade || !track) return null;
+  if (!discipline || !grade) return null;
 
   const job = getOrCreateJob({
     discipline,
@@ -171,8 +171,8 @@ export function prepareInterviewDetail({
     disciplineId: discipline.id,
     disciplineName: discipline.specialization || discipline.name,
     gradeId: grade.id,
-    trackId: track.id,
-    trackName: track.name,
+    trackId: track?.id || null,
+    trackName: track?.name || null,
     sections: allSections,
     totalQuestions,
     expectedDurationMinutes: typeConfig.expectedDurationMinutes,

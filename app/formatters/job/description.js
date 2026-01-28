@@ -52,7 +52,7 @@ export function formatJobDescription({ job, discipline, grade, track }) {
   lines.push("");
 
   // Add track context
-  if (track.roleContext) {
+  if (track?.roleContext) {
     lines.push(track.roleContext);
     lines.push("");
   }

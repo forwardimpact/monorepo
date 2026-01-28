@@ -67,7 +67,7 @@ export function prepareCurrentJob({
   behaviours,
   capabilities,
 }) {
-  if (!discipline || !grade || !track) return null;
+  if (!discipline || !grade) return null;
 
   const job = getOrCreateJob({
     discipline,

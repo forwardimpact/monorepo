@@ -132,7 +132,7 @@ export function prepareJobSummary({
   skills,
   behaviours,
 }) {
-  if (!discipline || !grade || !track) return null;
+  if (!discipline || !grade) return null;
 
   const job = getOrCreateJob({
     discipline,
@@ -149,8 +149,8 @@ export function prepareJobSummary({
     disciplineId: discipline.id,
     disciplineName: discipline.specialization || discipline.name,
     gradeId: grade.id,
-    trackId: track.id,
-    trackName: track.name,
+    trackId: track?.id || null,
+    trackName: track?.name || null,
     skillCount: job.skillMatrix.length,
     behaviourCount: job.behaviourProfile.length,
     primarySkillCount: job.skillMatrix.filter((s) => s.type === "primary")
