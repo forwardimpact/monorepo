@@ -94,7 +94,7 @@ export function createBuilder({
   // Track select element - created once, options updated when discipline changes
   const trackSelectEl = select(
     { className: "form-select", id: "track-select" },
-    option({ value: "" }, "(none) - Generalist"),
+    option({ value: "" }, "Generalist"),
   );
   // Initially disabled until discipline is selected
   trackSelectEl.disabled = true;
@@ -139,7 +139,7 @@ export function createBuilder({
 
     // Add generalist option if trackless is allowed
     if (canBeTrackless) {
-      trackSelectEl.appendChild(option({ value: "" }, "(none) - Generalist"));
+      trackSelectEl.appendChild(option({ value: "" }, "Generalist"));
     }
 
     // Add available track options
