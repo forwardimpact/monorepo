@@ -279,7 +279,8 @@ export function prepareAllInterviews({
   behaviours,
   questions,
 }) {
-  if (!discipline || !grade || !track) return null;
+  // Track is optional (null = generalist)
+  if (!discipline || !grade) return null;
 
   const job = getOrCreateJob({
     discipline,
@@ -317,8 +318,8 @@ export function prepareAllInterviews({
     disciplineId: discipline.id,
     disciplineName: discipline.specialization || discipline.name,
     gradeId: grade.id,
-    trackId: track.id,
-    trackName: track.name,
+    trackId: track?.id || null,
+    trackName: track?.name || null,
     interviews: {
       short: {
         ...shortInterview,

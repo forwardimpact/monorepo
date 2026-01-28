@@ -52,7 +52,8 @@ export function prepareJobDetail({
   drivers,
   capabilities,
 }) {
-  if (!discipline || !grade || !track) return null;
+  // Track is optional (null = generalist)
+  if (!discipline || !grade) return null;
 
   const job = getOrCreateJob({
     discipline,
@@ -90,8 +91,8 @@ export function prepareJobDetail({
     disciplineName: discipline.specialization || discipline.name,
     gradeId: grade.id,
     gradeName: grade.professionalTitle || grade.id,
-    trackId: track.id,
-    trackName: track.name,
+    trackId: track?.id || null,
+    trackName: track?.name || null,
     expectations: job.expectations || {},
     // Raw model data for components that need the original shape
     skillMatrix: job.skillMatrix,

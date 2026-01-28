@@ -205,8 +205,9 @@ export function prepareProgressDetail({
   behaviours,
   capabilities,
 }) {
-  if (!fromDiscipline || !fromGrade || !fromTrack) return null;
-  if (!toDiscipline || !toGrade || !toTrack) return null;
+  // Track is optional (null = generalist)
+  if (!fromDiscipline || !fromGrade) return null;
+  if (!toDiscipline || !toGrade) return null;
 
   const fromJob = getOrCreateJob({
     discipline: fromDiscipline,
@@ -265,12 +266,12 @@ export function prepareProgressDetail({
     fromJob: {
       disciplineId: fromDiscipline.id,
       gradeId: fromGrade.id,
-      trackId: fromTrack.id,
+      trackId: fromTrack?.id || null,
     },
     toJob: {
       disciplineId: toDiscipline.id,
       gradeId: toGrade.id,
-      trackId: toTrack.id,
+      trackId: toTrack?.id || null,
     },
     skillChanges,
     behaviourChanges,
