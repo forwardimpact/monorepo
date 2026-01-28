@@ -454,9 +454,11 @@ function validateDriver(driver, index, skillIds, behaviourIds) {
  * @param {number} index - Index in the disciplines array
  * @param {Set<string>} skillIds - Set of valid skill IDs
  * @param {Set<string>} behaviourIds - Set of valid behaviour IDs
+ * @param {Set<string>} trackIds - Set of valid track IDs
+ * @param {Set<string>} gradeIds - Set of valid grade IDs
  * @returns {{errors: Array, warnings: Array}}
  */
-function validateDiscipline(discipline, index, skillIds, behaviourIds) {
+function validateDiscipline(discipline, index, skillIds, behaviourIds, trackIds, gradeIds) {
   const errors = [];
   const warnings = [];
   const path = `disciplines[${index}]`;
@@ -477,6 +479,72 @@ function validateDiscipline(discipline, index, skillIds, behaviourIds) {
         "MISSING_REQUIRED",
         "Discipline missing roleTitle",
         `${path}.roleTitle`,
+      ),
+    );
+  }
+
+  // Validate validTracks (REQUIRED - must be an array, can be empty for trackless-only disciplines)
+  if (!Array.isArray(discipline.validTracks)) {
+    errors.push(
+      createError(
+        "MISSING_REQUIRED",
+        `Discipline "${discipline.id}" missing required validTracks array`,
+        `${path}.validTracks`,
+      ),
+    );
+  } else {
+    discipline.validTracks.forEach((trackId, i) => {
+      if (!trackIds.has(trackId)) {
+        errors.push(
+          createError(
+            "INVALID_REFERENCE",
+            `Discipline "${discipline.id}" references non-existent track: ${trackId}`,
+            `${path}.validTracks[${i}]`,
+            trackId,
+          ),
+        );
+      }
+    });
+  }
+
+  // Validate minGrade if specified
+  if (discipline.minGrade) {
+    if (!gradeIds.has(discipline.minGrade)) {
+      errors.push(
+        createError(
+          "INVALID_REFERENCE",
+          `Discipline "${discipline.id}" references non-existent grade: ${discipline.minGrade}`,
+          `${path}.minGrade`,
+          discipline.minGrade,
+        ),
+      );
+    }
+  }
+
+  // Validate isManagement/isProfessional booleans (optional)
+  if (
+    discipline.isManagement !== undefined &&
+    typeof discipline.isManagement !== "boolean"
+  ) {
+    errors.push(
+      createError(
+        "INVALID_VALUE",
+        `Discipline "${discipline.id}" has invalid isManagement value: ${discipline.isManagement} (must be boolean)`,
+        `${path}.isManagement`,
+        discipline.isManagement,
+      ),
+    );
+  }
+  if (
+    discipline.isProfessional !== undefined &&
+    typeof discipline.isProfessional !== "boolean"
+  ) {
+    errors.push(
+      createError(
+        "INVALID_VALUE",
+        `Discipline "${discipline.id}" has invalid isProfessional value: ${discipline.isProfessional} (must be boolean)`,
+        `${path}.isProfessional`,
+        discipline.isProfessional,
       ),
     );
   }
@@ -709,7 +777,7 @@ function getAllDisciplineSkillIds(disciplines) {
  * @param {number} index - Index in the tracks array
  * @param {Set<string>} disciplineSkillIds - Set of skill IDs used in any discipline
  * @param {Set<string>} behaviourIds - Set of valid behaviour IDs
- * @param {Set<string>} disciplineIds - Set of valid discipline IDs
+ * @param {Set<string>} gradeIds - Set of valid grade IDs
  * @returns {{errors: Array, warnings: Array}}
  */
 function validateTrack(
@@ -717,7 +785,6 @@ function validateTrack(
   index,
   disciplineSkillIds,
   behaviourIds,
-  disciplineIds,
   gradeIds,
 ) {
   const errors = [];
@@ -728,34 +795,6 @@ function validateTrack(
   if (!track.name) {
     errors.push(
       createError("MISSING_REQUIRED", "Track missing name", `${path}.name`),
-    );
-  }
-
-  // Validate isProfessional/isManagement booleans (optional, default to isProfessional: true)
-  if (
-    track.isProfessional !== undefined &&
-    typeof track.isProfessional !== "boolean"
-  ) {
-    errors.push(
-      createError(
-        "INVALID_VALUE",
-        `Track "${track.id}" has invalid isProfessional value: ${track.isProfessional} (must be boolean)`,
-        `${path}.isProfessional`,
-        track.isProfessional,
-      ),
-    );
-  }
-  if (
-    track.isManagement !== undefined &&
-    typeof track.isManagement !== "boolean"
-  ) {
-    errors.push(
-      createError(
-        "INVALID_VALUE",
-        `Track "${track.id}" has invalid isManagement value: ${track.isManagement} (must be boolean)`,
-        `${path}.isManagement`,
-        track.isManagement,
-      ),
     );
   }
 
@@ -812,22 +851,6 @@ function validateTrack(
         }
       },
     );
-  }
-
-  // Validate validDisciplines if specified
-  if (track.validDisciplines) {
-    track.validDisciplines.forEach((disciplineId, i) => {
-      if (!disciplineIds.has(disciplineId)) {
-        errors.push(
-          createError(
-            "INVALID_REFERENCE",
-            `Track "${track.id}" references non-existent discipline: ${disciplineId}`,
-            `${path}.validDisciplines[${i}]`,
-            disciplineId,
-          ),
-        );
-      }
-    });
   }
 
   // Validate minGrade if specified
@@ -1483,6 +1506,12 @@ export function validateAllData({
     });
   }
 
+  // Get track IDs for discipline validation
+  const trackIdSet = new Set((tracks || []).map((t) => t.id));
+
+  // Get grade IDs for discipline and track validation
+  const gradeIdSet = new Set((grades || []).map((g) => g.id));
+
   // Validate disciplines
   if (!disciplines || disciplines.length === 0) {
     allErrors.push(
@@ -1495,6 +1524,8 @@ export function validateAllData({
         index,
         skillIds,
         behaviourIds,
+        trackIdSet,
+        gradeIdSet,
       );
       allErrors.push(...errors);
       allWarnings.push(...warnings);
@@ -1522,12 +1553,6 @@ export function validateAllData({
   // Get all skill IDs from disciplines for track validation
   const disciplineSkillIds = getAllDisciplineSkillIds(disciplines || []);
 
-  // Get discipline IDs for track validation
-  const disciplineIdSet = new Set((disciplines || []).map((d) => d.id));
-
-  // Get grade IDs for track validation
-  const gradeIdSet = new Set((grades || []).map((g) => g.id));
-
   // Validate tracks
   if (!tracks || tracks.length === 0) {
     allErrors.push(
@@ -1540,7 +1565,6 @@ export function validateAllData({
         index,
         disciplineSkillIds,
         behaviourIds,
-        disciplineIdSet,
         gradeIdSet,
       );
       allErrors.push(...errors);

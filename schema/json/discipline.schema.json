@@ -4,7 +4,7 @@
   "title": "Discipline",
   "description": "Engineering specialization that defines T-shaped skill profiles",
   "type": "object",
-  "required": ["specialization", "roleTitle", "coreSkills"],
+  "required": ["specialization", "roleTitle", "coreSkills", "validTracks"],
   "properties": {
     "specialization": {
       "type": "string",
@@ -13,6 +13,26 @@
     "roleTitle": {
       "type": "string",
       "description": "Base role title (e.g., Software Engineer)"
+    },
+    "isProfessional": {
+      "type": "boolean",
+      "description": "If true, this is an IC/professional discipline (default true)"
+    },
+    "isManagement": {
+      "type": "boolean",
+      "description": "If true, this is a management discipline (default false)"
+    },
+    "validTracks": {
+      "type": "array",
+      "description": "REQUIRED. Explicit list of valid tracks. Empty array = trackless only.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      }
+    },
+    "minGrade": {
+      "type": "string",
+      "description": "Minimum grade required for this discipline"
     },
     "description": {
       "type": "string",

@@ -2,4 +2,5 @@
 # Do not edit manually - regenerate with: npx pathway --generate-index
 files:
   - data_engineering
+  - engineering_management
   - software_engineering

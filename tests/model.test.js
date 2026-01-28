@@ -144,14 +144,15 @@ const testDiscipline = {
   supportingSkills: ["skill_b"],
   broadSkills: ["skill_c"],
   behaviourModifiers: { behaviour_x: 1 },
+  isProfessional: true,
+  isManagement: false,
+  validTracks: ["test_track"],
 };
 
 const testTrack = {
   id: "test_track",
   name: "Test Track",
   description: "A test track",
-  isProfessional: true,
-  isManagement: false,
   skillModifiers: {
     scale: 1,
     ai: -1,
@@ -779,17 +780,17 @@ describe("Validation", () => {
       assert.strictEqual(result.valid, true);
     });
 
-    it("validates track with validDisciplines constraint", () => {
-      const trackWithValidDisciplines = {
-        ...testTrack,
-        validDisciplines: ["test_discipline"],
+    it("validates discipline with validTracks constraint", () => {
+      const disciplineWithValidTracks = {
+        ...testDiscipline,
+        validTracks: ["test_track"],
       };
 
       const result = validateAllData({
         skills: testSkills,
         behaviours: testBehaviours,
-        disciplines: [testDiscipline],
-        tracks: [trackWithValidDisciplines],
+        disciplines: [disciplineWithValidTracks],
+        tracks: [testTrack],
         grades: [testGrade],
         drivers: testDrivers,
         capabilities: testCategories,
@@ -798,17 +799,17 @@ describe("Validation", () => {
       assert.strictEqual(result.valid, true);
     });
 
-    it("detects invalid validDisciplines references", () => {
-      const trackWithInvalidDisciplines = {
-        ...testTrack,
-        validDisciplines: ["nonexistent_discipline"],
+    it("detects invalid validTracks references", () => {
+      const disciplineWithInvalidTracks = {
+        ...testDiscipline,
+        validTracks: ["nonexistent_track"],
       };
 
       const result = validateAllData({
         skills: testSkills,
         behaviours: testBehaviours,
-        disciplines: [testDiscipline],
-        tracks: [trackWithInvalidDisciplines],
+        disciplines: [disciplineWithInvalidTracks],
+        tracks: [testTrack],
         grades: [testGrade],
       });
 
@@ -816,10 +817,10 @@ describe("Validation", () => {
       assert.ok(result.errors.some((e) => e.type === "INVALID_REFERENCE"));
     });
 
-    it("validates track with professional/management flags", () => {
-      const managementTrack = {
-        ...testTrack,
-        id: "management_track",
+    it("validates discipline with professional/management flags", () => {
+      const managementDiscipline = {
+        ...testDiscipline,
+        id: "management_discipline",
         isProfessional: false,
         isManagement: true,
       };
@@ -827,8 +828,8 @@ describe("Validation", () => {
       const result = validateAllData({
         skills: testSkills,
         behaviours: testBehaviours,
-        disciplines: [testDiscipline],
-        tracks: [managementTrack],
+        disciplines: [managementDiscipline],
+        tracks: [testTrack],
         grades: [testGrade],
         drivers: testDrivers,
         capabilities: testCategories,
@@ -838,16 +839,16 @@ describe("Validation", () => {
     });
 
     it("detects invalid professional/management flag types", () => {
-      const invalidTrack = {
-        ...testTrack,
+      const invalidDiscipline = {
+        ...testDiscipline,
         isProfessional: "yes", // Should be boolean
       };
 
       const result = validateAllData({
         skills: testSkills,
         behaviours: testBehaviours,
-        disciplines: [testDiscipline],
-        tracks: [invalidTrack],
+        disciplines: [invalidDiscipline],
+        tracks: [testTrack],
         grades: [testGrade],
       });
 
@@ -886,22 +887,22 @@ describe("Validation", () => {
         ...testTrack,
         id: "valid_modifiers_track",
         skillModifiers: {
-          delivery: 1,
-          scale: -1,
-          reliability: 1,
-          data: 1,
+          scale: 1,
           ai: -1,
           people: 1,
-          process: -1,
-          business: 1,
-          documentation: -1,
         },
+      };
+
+      // Update discipline to reference the new track
+      const disciplineForTest = {
+        ...testDiscipline,
+        validTracks: ["valid_modifiers_track"],
       };
 
       const result = validateAllData({
         skills: testSkills,
         behaviours: testBehaviours,
-        disciplines: [testDiscipline],
+        disciplines: [disciplineForTest],
         tracks: [trackWithValidModifiers],
         grades: [testGrade],
         drivers: testDrivers,
@@ -1514,6 +1515,23 @@ describe("Derivation", () => {
 
       assert.strictEqual(job, null);
     });
+
+    it("creates trackless job definition", () => {
+      const job = deriveJob({
+        discipline: testDiscipline,
+        grade: testGrade,
+        track: null,
+        skills: testSkills,
+        behaviours: testBehaviours,
+      });
+
+      assert.ok(job);
+      assert.strictEqual(job.id, "test_discipline_test_grade");
+      assert.strictEqual(job.track, null);
+      assert.ok(job.title.includes("Test"));
+      assert.strictEqual(job.skillMatrix.length, 3);
+      assert.strictEqual(job.behaviourProfile.length, 2);
+    });
   });
 
   describe("isValidJobCombination", () => {
@@ -1548,92 +1566,73 @@ describe("Derivation", () => {
       );
     });
 
-    it("respects valid tracks by discipline", () => {
-      const rules = {
-        validTracksByDiscipline: {
-          test_discipline: ["other_track"], // test_track not valid
-        },
+    it("respects discipline validTracks constraint", () => {
+      const disciplineWithValidTracks = {
+        ...testDiscipline,
+        validTracks: ["other_track"],
       };
 
       assert.strictEqual(
         isValidJobCombination({
-          discipline: testDiscipline,
+          discipline: disciplineWithValidTracks,
           grade: testGrade,
           track: testTrack,
-          validationRules: rules,
           grades: [],
         }),
         false,
       );
     });
 
-    it("respects track validDisciplines constraint", () => {
-      const trackWithValidDisciplines = {
-        ...testTrack,
-        validDisciplines: ["other_discipline"],
+    it("allows combination when track is in validTracks", () => {
+      const disciplineWithValidTracks = {
+        ...testDiscipline,
+        validTracks: ["test_track", "other_track"],
       };
 
       assert.strictEqual(
         isValidJobCombination({
-          discipline: testDiscipline,
+          discipline: disciplineWithValidTracks,
           grade: testGrade,
-          track: trackWithValidDisciplines,
-          grades: [],
-        }),
-        false,
-      );
-    });
-
-    it("allows combination when discipline is in validDisciplines", () => {
-      const trackWithValidDisciplines = {
-        ...testTrack,
-        validDisciplines: ["test_discipline", "other_discipline"],
-      };
-
-      assert.strictEqual(
-        isValidJobCombination({
-          discipline: testDiscipline,
-          grade: testGrade,
-          track: trackWithValidDisciplines,
+          track: testTrack,
           grades: [],
         }),
         true,
       );
     });
 
-    it("allows all disciplines when validDisciplines is empty", () => {
-      const trackWithEmptyValidDisciplines = {
-        ...testTrack,
-        validDisciplines: [],
+    it("allows all tracks when validTracks is empty", () => {
+      const disciplineWithEmptyValidTracks = {
+        ...testDiscipline,
+        validTracks: [],
       };
 
       assert.strictEqual(
         isValidJobCombination({
-          discipline: testDiscipline,
+          discipline: disciplineWithEmptyValidTracks,
           grade: testGrade,
-          track: trackWithEmptyValidDisciplines,
+          track: testTrack,
           grades: [],
         }),
         true,
       );
     });
 
-    it("respects track minGrade constraint", () => {
+    it("respects discipline minGrade constraint", () => {
       const juniorGrade = { id: "junior", ordinalRank: 1 };
       const seniorGrade = { id: "senior", ordinalRank: 5 };
       const grades = [juniorGrade, seniorGrade];
 
-      const trackWithMinGrade = {
-        ...testTrack,
+      const disciplineWithMinGrade = {
+        ...testDiscipline,
         minGrade: "senior",
       };
 
       // Junior grade should be invalid
       assert.strictEqual(
         isValidJobCombination({
-          discipline: testDiscipline,
+          discipline: disciplineWithMinGrade,
           grade: juniorGrade,
-          track: trackWithMinGrade,
+          track: testTrack,
           grades,
         }),
         false,
@@ -1642,9 +1641,9 @@ describe("Derivation", () => {
       // Senior grade should be valid
       assert.strictEqual(
         isValidJobCombination({
-          discipline: testDiscipline,
+          discipline: disciplineWithMinGrade,
           grade: seniorGrade,
-          track: trackWithMinGrade,
+          track: testTrack,
           grades,
         }),
         true,
@@ -1655,16 +1654,29 @@ describe("Derivation", () => {
       const juniorGrade = { id: "junior", ordinalRank: 1 };
       const grades = [juniorGrade];
 
-      const trackWithoutMinGrade = {
-        ...testTrack,
+      const disciplineWithoutMinGrade = {
+        ...testDiscipline,
       };
+      delete disciplineWithoutMinGrade.minGrade;
 
       assert.strictEqual(
         isValidJobCombination({
-          discipline: testDiscipline,
+          discipline: disciplineWithoutMinGrade,
           grade: juniorGrade,
-          track: trackWithoutMinGrade,
+          track: testTrack,
           grades,
+        }),
+        true,
+      );
+    });
+
+    it("allows trackless job combination", () => {
+      assert.strictEqual(
+        isValidJobCombination({
+          discipline: testDiscipline,
+          grade: testGrade,
+          track: null,
+          grades: [],
         }),
         true,
       );
@@ -1689,32 +1701,32 @@ describe("Derivation", () => {
       assert.strictEqual(title, "Staff Test Engineer - Test Track");
     });
 
-    it("generates title for management track", () => {
-      const managementTrack = {
-        ...testTrack,
+    it("generates title for management discipline", () => {
+      const managementDiscipline = {
+        ...testDiscipline,
         isProfessional: false,
         isManagement: true,
       };
-      const title = generateJobTitle(
-        testDiscipline,
-        testGrade,
-        managementTrack,
-      );
-      // Non-manager management track format: "Manager, Track Name"
+      const title = generateJobTitle(managementDiscipline, testGrade, testTrack);
+      // Management discipline format: "Manager, Track Name"
       assert.strictEqual(title, "Manager, Test Track");
     });
 
-    it("generates title for manager track specifically", () => {
-      const managerTrack = {
-        ...testTrack,
-        id: "manager",
-        name: "Engineering Manager",
+    it("generates title for trackless management discipline", () => {
+      const managementDiscipline = {
+        ...testDiscipline,
         isProfessional: false,
         isManagement: true,
       };
-      const title = generateJobTitle(testDiscipline, testGrade, managerTrack);
-      // Manager track format uses roleTitle: "Manager, Test Engineering"
+      const title = generateJobTitle(managementDiscipline, testGrade, null);
+      // Trackless management format uses roleTitle: "Manager, Test Engineering"
       assert.strictEqual(title, "Manager, Test Engineering");
+    });
+
+    it("generates title for trackless professional discipline", () => {
+      const title = generateJobTitle(testDiscipline, testGrade, null);
+      // Trackless professional format: "Test Engineer Level III"
+      assert.strictEqual(title, "Test Engineer Level III");
     });
   });
 
@@ -1994,45 +2006,47 @@ describe("Matching", () => {
       assert.strictEqual(matches.length, 1);
     });
 
-    it("filters out jobs with invalid validDisciplines constraints", () => {
-      const trackWithValidDisciplines = {
-        ...testTrack,
-        id: "restricted_track",
-        validDisciplines: ["other_discipline"], // test_discipline not allowed
+    it("filters out jobs with invalid validTracks constraints", () => {
+      const disciplineWithValidTracks = {
+        ...testDiscipline,
+        id: "restricted_discipline",
+        validTracks: ["other_track"], // test_track not allowed
       };
 
       const matches = findMatchingJobs({
         selfAssessment: { skillLevels: {}, behaviourMaturities: {} },
-        disciplines: [testDiscipline],
+        disciplines: [disciplineWithValidTracks],
         grades: [testGrade],
-        tracks: [trackWithValidDisciplines],
+        tracks: [testTrack],
         skills: testSkills,
         behaviours: testBehaviours,
         topN: 10,
       });
 
-      // Should return no matches since track doesn't allow test_discipline
-      assert.strictEqual(matches.length, 0);
+      // Should return only the trackless job since track isn't allowed
+      assert.strictEqual(matches.length, 1);
+      assert.strictEqual(matches[0].job.track, null);
     });
 
-    it("includes jobs when discipline matches validDisciplines", () => {
-      const trackWithValidDisciplines = {
-        ...testTrack,
-        id: "restricted_track",
-        validDisciplines: ["test_discipline"],
+    it("includes jobs when track matches validTracks", () => {
+      const disciplineWithValidTracks = {
+        ...testDiscipline,
+        id: "restricted_discipline",
+        validTracks: ["test_track"],
       };
 
       const matches = findMatchingJobs({
         selfAssessment: { skillLevels: {}, behaviourMaturities: {} },
-        disciplines: [testDiscipline],
+        disciplines: [disciplineWithValidTracks],
         grades: [testGrade],
-        tracks: [trackWithValidDisciplines],
+        tracks: [testTrack],
         skills: testSkills,
         behaviours: testBehaviours,
         topN: 10,
       });
 
-      assert.strictEqual(matches.length, 1);
+      // Should return both the trackless job and the tracked job
+      assert.strictEqual(matches.length, 2);
     });
   });
 

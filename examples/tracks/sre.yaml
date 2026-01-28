@@ -2,9 +2,6 @@
 
 name: SRE
 
-# Track type - professional track (default)
-isProfessional: true
-
 # Shared content (used by both human job descriptions and agent profiles)
 description:
   Site Reliability Engineering focus on system reliability, observability, and
@@ -26,11 +23,6 @@ behaviourModifiers:
 assessmentWeights:
   skillWeight: 0.6
   behaviourWeight: 0.4
-
-# SRE track is only valid for Software Engineering and Data Engineering
-validDisciplines:
-  - software_engineering
-  - data_engineering
 
 # Agent-specific content
 agent:

@@ -85,7 +85,7 @@ export function findMaxBaseSkillLevel(grade) {
  *
  * @param {Object} params
  * @param {import('./levels.js').Discipline} params.discipline - The discipline
- * @param {import('./levels.js').Track} params.track - The track
+ * @param {import('./levels.js').Track} [params.track] - The track (optional)
  * @param {import('./levels.js').Grade} params.grade - The grade
  * @param {string} params.skillId - The skill ID
  * @param {import('./levels.js').Skill[]} params.skills - All available skills (for capability lookup)
@@ -94,7 +94,7 @@ export function findMaxBaseSkillLevel(grade) {
 export function deriveSkillLevel({
   discipline,
   grade,
-  track,
+  track = null,
   skillId,
   skills,
 }) {
@@ -107,8 +107,9 @@ export function deriveSkillLevel({
   const baseLevel = grade.baseSkillLevels[effectiveType];
   const baseIndex = getSkillLevelIndex(baseLevel);
 
-  // 3. Apply track modifier via capability lookup
-  const modifier = resolveSkillModifier(skillId, track.skillModifiers, skills);
+  // 3. Apply track modifier via capability lookup (if track provided)
+  const effectiveTrack = track || { skillModifiers: {} };
+  const modifier = resolveSkillModifier(skillId, effectiveTrack.skillModifiers, skills);
 
   // Track-added skills require a positive modifier to be included
   if (!skillType && modifier <= 0) {
@@ -133,7 +134,7 @@ export function deriveSkillLevel({
  * Derive the behaviour maturity for a specific behaviour given discipline, track, and grade
  * @param {Object} params
  * @param {import('./levels.js').Discipline} params.discipline - The discipline
- * @param {import('./levels.js').Track} params.track - The track
+ * @param {import('./levels.js').Track} [params.track] - The track (optional)
  * @param {import('./levels.js').Grade} params.grade - The grade
  * @param {string} params.behaviourId - The behaviour ID
  * @returns {string} The derived maturity level
@@ -141,7 +142,7 @@ export function deriveSkillLevel({
 export function deriveBehaviourMaturity({
   discipline,
   grade,
-  track,
+  track = null,
   behaviourId,
 }) {
   // 1. Get base maturity from grade
@@ -150,7 +151,8 @@ export function deriveBehaviourMaturity({
 
   // 2. Calculate behaviour modifiers (additive from discipline and track)
   const disciplineModifier = discipline.behaviourModifiers?.[behaviourId] ?? 0;
-  const trackModifier = track.behaviourModifiers?.[behaviourId] ?? 0;
+  const effectiveTrack = track || { behaviourModifiers: {} };
+  const trackModifier = effectiveTrack.behaviourModifiers?.[behaviourId] ?? 0;
   const totalModifier = disciplineModifier + trackModifier;
 
   // 3. Apply modifier and clamp
@@ -163,12 +165,13 @@ export function deriveBehaviourMaturity({
  * @param {Object} params
  * @param {import('./levels.js').Discipline} params.discipline - The discipline
  * @param {import('./levels.js').Grade} params.grade - The grade
- * @param {import('./levels.js').Track} params.track - The track
+ * @param {import('./levels.js').Track} [params.track] - The track (optional)
  * @param {import('./levels.js').Skill[]} params.skills - All available skills
  * @returns {import('./levels.js').SkillMatrixEntry[]} Complete skill matrix
  */
-export function deriveSkillMatrix({ discipline, grade, track, skills }) {
+export function deriveSkillMatrix({ discipline, grade, track = null, skills }) {
   const matrix = [];
+  const effectiveTrack = track || { skillModifiers: {} };
 
   // Collect all skills for this discipline
   const allDisciplineSkills = new Set([
@@ -179,7 +182,7 @@ export function deriveSkillMatrix({ discipline, grade, track, skills }) {
 
   // Collect capabilities with positive track modifiers
   const trackCapabilities = new Set(
-    Object.entries(track.skillModifiers || {})
+    Object.entries(effectiveTrack.skillModifiers || {})
       .filter(([_, modifier]) => modifier > 0)
       .map(([capability]) => capability),
   );
@@ -239,14 +242,14 @@ export function deriveSkillMatrix({ discipline, grade, track, skills }) {
  * @param {Object} params
  * @param {import('./levels.js').Discipline} params.discipline - The discipline
  * @param {import('./levels.js').Grade} params.grade - The grade
- * @param {import('./levels.js').Track} params.track - The track
+ * @param {import('./levels.js').Track} [params.track] - The track (optional)
  * @param {import('./levels.js').Behaviour[]} params.behaviours - All available behaviours
  * @returns {import('./levels.js').BehaviourProfileEntry[]} Complete behaviour profile
  */
 export function deriveBehaviourProfile({
   discipline,
   grade,
-  track,
+  track = null,
   behaviours,
 }) {
   const profile = [];
@@ -278,7 +281,7 @@ export function deriveBehaviourProfile({
  * @param {Object} params
  * @param {import('./levels.js').Discipline} params.discipline - The discipline
  * @param {import('./levels.js').Grade} params.grade - The grade
- * @param {import('./levels.js').Track} params.track - The track
+ * @param {import('./levels.js').Track} [params.track] - The track (optional)
  * @param {import('./levels.js').JobValidationRules} [params.validationRules] - Optional validation rules
  * @param {Array<import('./levels.js').Grade>} [params.grades] - Optional array of all grades for minGrade validation
  * @returns {boolean} True if the combination is valid
@@ -286,18 +289,33 @@ export function deriveBehaviourProfile({
 export function isValidJobCombination({
   discipline,
   grade,
-  track,
+  track = null,
   validationRules,
   grades,
 }) {
-  // Check track's validDisciplines constraint (e.g., SRE only valid for Software Engineering and Data Engineering)
-  if (track.validDisciplines && track.validDisciplines.length > 0) {
-    if (!track.validDisciplines.includes(discipline.id)) {
+  // 1. Check discipline's minGrade constraint
+  if (discipline.minGrade && grades) {
+    const minGradeObj = grades.find((g) => g.id === discipline.minGrade);
+    if (minGradeObj && grade.ordinalRank < minGradeObj.ordinalRank) {
       return false;
     }
   }
 
-  // Check track's minGrade constraint (e.g., manager track only valid for senior grades)
+  // 2. If no track provided, job is valid (trackless job)
+  if (!track) {
+    return true;
+  }
+
+  // 3. Check discipline's validTracks constraint (empty array means allow all)
+  if (
+    discipline.validTracks &&
+    discipline.validTracks.length > 0 &&
+    !discipline.validTracks.includes(track.id)
+  ) {
+    return false;
+  }
+
+  // 4. Check track's minGrade constraint
   if (track.minGrade && grades) {
     const minGradeObj = grades.find((g) => g.id === track.minGrade);
     if (minGradeObj && grade.ordinalRank < minGradeObj.ordinalRank) {
@@ -305,12 +323,8 @@ export function isValidJobCombination({
     }
   }
 
-  if (!validationRules) {
-    return true;
-  }
-
-  // Check invalid combinations
-  if (validationRules.invalidCombinations) {
+  // 5. Apply framework-level validation rules
+  if (validationRules?.invalidCombinations) {
     for (const combo of validationRules.invalidCombinations) {
       const disciplineMatch =
         !combo.discipline || combo.discipline === discipline.id;
@@ -323,14 +337,6 @@ export function isValidJobCombination({
     }
   }
 
-  // Check valid tracks by discipline
-  if (validationRules.validTracksByDiscipline) {
-    const validTracks = validationRules.validTracksByDiscipline[discipline.id];
-    if (validTracks && !validTracks.includes(track.id)) {
-      return false;
-    }
-  }
-
   return true;
 }
 
@@ -338,48 +344,59 @@ export function isValidJobCombination({
  * Generate a job title from discipline, track, and grade
  *
  * Rules:
- * - If professional track and grade starts with "Level": ${discipline.roleTitle} ${grade.professionalTitle} - ${track.name}
- * - Else if professional track: ${grade.professionalTitle} ${discipline.roleTitle} - ${track.name}
- * - Else if management track: ${grade.managementTitle}, ${discipline.specialization} - ${track.name}
+ * - Management discipline without track: ${grade.managementTitle}, ${discipline.specialization}
+ * - Management discipline with track: ${grade.managementTitle}, ${track.name}
+ * - IC discipline with track: ${grade.professionalTitle} ${discipline.roleTitle} - ${track.name}
+ * - IC discipline without track: ${grade.professionalTitle} ${discipline.roleTitle}
  *
  * @param {import('./levels.js').Discipline} discipline - The discipline
- * @param {import('./levels.js').Track} track - The track
  * @param {import('./levels.js').Grade} grade - The grade
+ * @param {import('./levels.js').Track} [track] - The track (optional)
  * @returns {string} Generated job title
  */
-export function generateJobTitle(discipline, grade, track) {
-  const { roleTitle, specialization } = discipline;
+export function generateJobTitle(discipline, grade, track = null) {
+  const { roleTitle, specialization, isManagement } = discipline;
   const { professionalTitle, managementTitle } = grade;
 
-  // Determine if track is professional or management (default to professional)
-  const isProfessional = track.isProfessional !== false && !track.isManagement;
-  const isManagement = track.isManagement === true;
+  // Management discipline (no track needed)
+  if (isManagement && !track) {
+    return `${managementTitle}, ${specialization}`;
+  }
 
-  if (isManagement) {
-    // Management family track: "Director, Software Engineering"
-    if (track.id == "manager") {
-      return `${managementTitle}, ${specialization}`;
-    }
-    // Other management tracks: "Director, Developer Experience"
+  // Management discipline with track
+  if (isManagement && track) {
     return `${managementTitle}, ${track.name}`;
-  } else if (isProfessional && professionalTitle.startsWith("Level")) {
-    // Professional track with Level grade: "Software Engineer Level II - Platform"
-    return `${roleTitle} ${professionalTitle} - ${track.name}`;
-  } else {
+  }
+
+  // IC discipline with track
+  if (track) {
+    if (professionalTitle.startsWith("Level")) {
+      // Professional track with Level grade: "Software Engineer Level II - Platform"
+      return `${roleTitle} ${professionalTitle} - ${track.name}`;
+    }
     // Professional track with non-Level grade: "Staff Software Engineer - Platform"
     return `${professionalTitle} ${roleTitle} - ${track.name}`;
   }
+
+  // IC discipline without track (generalist)
+  if (professionalTitle.startsWith("Level")) {
+    return `${roleTitle} ${professionalTitle}`;
+  }
+  return `${professionalTitle} ${roleTitle}`;
 }
 
 /**
- * Generate a job ID from discipline, track, and grade
+ * Generate a job ID from discipline, grade, and track
  * @param {import('./levels.js').Discipline} discipline - The discipline
- * @param {import('./levels.js').Track} track - The track
  * @param {import('./levels.js').Grade} grade - The grade
+ * @param {import('./levels.js').Track} [track] - The track (optional)
  * @returns {string} Generated job ID
  */
-function generateJobId(discipline, track, grade) {
-  return `${discipline.id}_${track.id}_${grade.id}`;
+function generateJobId(discipline, grade, track = null) {
+  if (track) {
+    return `${discipline.id}_${grade.id}_${track.id}`;
+  }
+  return `${discipline.id}_${grade.id}`;
 }
 
 /**
@@ -392,23 +409,23 @@ function generateJobId(discipline, track, grade) {
  * Capabilities are sorted by their maximum skill level (descending),
  * so Expert-level capabilities appear before Practitioner-level, etc.
  *
- * Uses professionalResponsibilities for professional tracks (professional: true)
- * and managementResponsibilities for management tracks (management: true).
+ * Uses professionalResponsibilities for professional disciplines (isProfessional: true)
+ * and managementResponsibilities for management disciplines (isManagement: true).
  *
  * @param {Object} params
  * @param {import('./levels.js').SkillMatrixEntry[]} params.skillMatrix - Derived skill matrix for the job
  * @param {Object[]} params.capabilities - Capability definitions with responsibilities
- * @param {import('./levels.js').Track} params.track - The track (determines which responsibilities to use)
+ * @param {import('./levels.js').Discipline} params.discipline - The discipline (determines which responsibilities to use)
  * @returns {Array<{capability: string, capabilityName: string, emoji: string, responsibility: string, level: string}>}
  */
-export function deriveResponsibilities({ skillMatrix, capabilities, track }) {
+export function deriveResponsibilities({ skillMatrix, capabilities, discipline }) {
   if (!capabilities || capabilities.length === 0) {
     return [];
   }
 
-  // Determine which responsibility set to use based on track type
-  // Management tracks use managementResponsibilities, professional tracks use professionalResponsibilities
-  const responsibilityKey = track?.isManagement
+  // Determine which responsibility set to use based on discipline type
+  // Management disciplines use managementResponsibilities, professional disciplines use professionalResponsibilities
+  const responsibilityKey = discipline?.isManagement
     ? "managementResponsibilities"
     : "professionalResponsibilities";
 
@@ -464,11 +481,11 @@ export function deriveResponsibilities({ skillMatrix, capabilities, track }) {
 }
 
 /**
- * Create a complete job definition from discipline, track, and grade
+ * Create a complete job definition from discipline, grade, and optional track
  * @param {Object} params
  * @param {import('./levels.js').Discipline} params.discipline - The discipline
  * @param {import('./levels.js').Grade} params.grade - The grade
- * @param {import('./levels.js').Track} params.track - The track
+ * @param {import('./levels.js').Track} [params.track] - The track (optional)
  * @param {import('./levels.js').Skill[]} params.skills - All available skills
  * @param {import('./levels.js').Behaviour[]} params.behaviours - All available behaviours
  * @param {Object[]} [params.capabilities] - Optional capabilities for responsibility derivation
@@ -478,7 +495,7 @@ export function deriveResponsibilities({ skillMatrix, capabilities, track }) {
 export function deriveJob({
   discipline,
   grade,
-  track,
+  track = null,
   skills,
   behaviours,
   capabilities,
@@ -511,7 +528,7 @@ export function deriveJob({
     derivedResponsibilities = deriveResponsibilities({
       skillMatrix,
       capabilities,
-      track,
+      discipline,
     });
   }
 
@@ -645,6 +662,7 @@ export function isSeniorGrade(grade) {
 
 /**
  * Generate all valid job definitions from the data
+ * Generates both trackless jobs and jobs with tracks based on discipline.validTracks
  * @param {Object} params
  * @param {import('./levels.js').Discipline[]} params.disciplines - All disciplines
  * @param {import('./levels.js').Grade[]} params.grades - All grades
@@ -665,8 +683,32 @@ export function generateAllJobs({
   const jobs = [];
 
   for (const discipline of disciplines) {
-    for (const track of tracks) {
-      for (const grade of grades) {
+    for (const grade of grades) {
+      // First, generate trackless job for this discipline/grade
+      if (
+        isValidJobCombination({
+          discipline,
+          grade,
+          track: null,
+          validationRules,
+          grades,
+        })
+      ) {
+        const tracklessJob = deriveJob({
+          discipline,
+          grade,
+          track: null,
+          skills,
+          behaviours,
+          validationRules,
+        });
+        if (tracklessJob) {
+          jobs.push(tracklessJob);
+        }
+      }
+
+      // Then, generate jobs with valid tracks
+      for (const track of tracks) {
         if (
           !isValidJobCombination({
             discipline,

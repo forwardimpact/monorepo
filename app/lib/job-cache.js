@@ -13,12 +13,15 @@ const cache = new Map();
 /**
  * Create a consistent cache key from job parameters
  * @param {string} disciplineId
- * @param {string} trackId
  * @param {string} gradeId
+ * @param {string} [trackId] - Optional track ID
  * @returns {string}
  */
-export function makeJobKey(disciplineId, trackId, gradeId) {
-  return `${disciplineId}_${trackId}_${gradeId}`;
+export function makeJobKey(disciplineId, gradeId, trackId = null) {
+  if (trackId) {
+    return `${disciplineId}_${gradeId}_${trackId}`;
+  }
+  return `${disciplineId}_${gradeId}`;
 }
 
 /**
@@ -26,7 +29,7 @@ export function makeJobKey(disciplineId, trackId, gradeId) {
  * @param {Object} params
  * @param {Object} params.discipline
  * @param {Object} params.grade
- * @param {Object} params.track
+ * @param {Object} [params.track] - Optional track
  * @param {Array} params.skills
  * @param {Array} params.behaviours
  * @param {Array} [params.capabilities]
@@ -35,12 +38,12 @@ export function makeJobKey(disciplineId, trackId, gradeId) {
 export function getOrCreateJob({
   discipline,
   grade,
-  track,
+  track = null,
   skills,
   behaviours,
   capabilities,
 }) {
-  const key = makeJobKey(discipline.id, track.id, grade.id);
+  const key = makeJobKey(discipline.id, grade.id, track?.id);
 
   if (!cache.has(key)) {
     const job = deriveJob({
@@ -70,11 +73,11 @@ export function clearJobCache() {
 /**
  * Invalidate a specific job from the cache
  * @param {string} disciplineId
- * @param {string} trackId
  * @param {string} gradeId
+ * @param {string} [trackId] - Optional track ID
  */
-export function invalidateJob(disciplineId, trackId, gradeId) {
-  cache.delete(makeJobKey(disciplineId, trackId, gradeId));
+export function invalidateJob(disciplineId, gradeId, trackId = null) {
+  cache.delete(makeJobKey(disciplineId, gradeId, trackId));
 }
 
 /**

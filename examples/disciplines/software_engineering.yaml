@@ -2,6 +2,10 @@
 
 specialization: Software Engineering
 roleTitle: Software Engineer
+isProfessional: true
+validTracks:
+  - platform
+  - sre
 
 # Shared content (human and agent)
 description:

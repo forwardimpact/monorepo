@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://schema.forwardimpact.team/json/discipline.schema.json
+
+specialization: Engineering Management
+roleTitle: Engineering Manager
+isManagement: true
+minGrade: SE
+
+description: |
+  People and delivery leadership, focusing on team effectiveness,
+  career development, and organizational outcomes.
+
+validTracks: []
+
+coreSkills:
+  - stakeholder_management
+  - team_collaboration
+supportingSkills:
+  - code_quality
+  - devops
+broadSkills:
+  - architecture_design
+  - technical_writing
+
+behaviourModifiers:
+  outcome_ownership: 1
+  systems_thinking: 1
+
+# Human-specific content
+human:
+  professionalRoleSummary:
+    We are seeking a skilled {roleTitle} who will lead engineering teams,
+    focusing on team effectiveness, career development, and organizational
+    outcomes. In this role, you will create space for curiosity and
+    experimentation while modeling ownership behaviours.
+  managementRoleSummary:
+    We are seeking an experienced {specialization} leader to build and lead
+    high-performing engineering teams. In this role, you will drive team
+    effectiveness and career development while ensuring organizational outcomes
+    are achieved. You will create space for innovation and model the ownership
+    behaviors that define our engineering culture.
+
+# Agent-specific content
+agent:
+  identity: |
+    You are an {specialization} leadership support agent. Your primary 
+    focus is supporting engineering managers with team effectiveness, 
+    process design, and communication.
+  priority: |
+    People and process over direct implementation. You help create space 
+    for curiosity and experimentation, model ownership behaviors, and 
+    remove organizational friction.
+
+    Your role is to support engineering judgment, not replace it.
+  beforeMakingChanges:
+    - Consider team dynamics and individual growth
+    - Think about systemic improvements over individual fixes
+    - Focus on enabling others rather than doing directly
+  constraints:
+    - Focus on enabling and empowering rather than doing directly
+    - Consider long-term team health over short-term fixes
+    - Support engineering judgment, don't replace it

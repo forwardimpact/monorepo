@@ -10,14 +10,6 @@
       "type": "string",
       "description": "Human-readable track name"
     },
-    "isProfessional": {
-      "type": "boolean",
-      "description": "If true, this is a professional/IC track (default true)"
-    },
-    "isManagement": {
-      "type": "boolean",
-      "description": "If true, this is a management track (default false)"
-    },
     "description": {
       "type": "string",
       "description": "Description of the track's focus"
@@ -49,14 +41,6 @@
     "assessmentWeights": {
       "$ref": "#/$defs/assessmentWeights",
       "description": "Custom weights for skill vs behaviour assessment"
-    },
-    "validDisciplines": {
-      "type": "array",
-      "description": "If specified, restricts which disciplines can use this track",
-      "items": {
-        "type": "string",
-        "pattern": "^[a-z][a-z0-9_]*$"
-      }
     },
     "minGrade": {
       "type": "string",

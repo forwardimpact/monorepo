@@ -1,6 +1,5 @@
 # Auto-generated index for browser loading
 # Do not edit manually - regenerate with: npx pathway --generate-index
 files:
-  - manager
   - platform
   - sre

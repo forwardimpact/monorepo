@@ -463,6 +463,24 @@ fit:roleTitle a rdf:Property ;
     rdfs:domain fit:Discipline ;
     rdfs:range xsd:string .
 
+fit:isProfessional a rdf:Property ;
+    rdfs:label "isProfessional"@en ;
+    rdfs:comment "If true, this is an IC/professional discipline (default true)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range xsd:boolean .
+
+fit:isManagement a rdf:Property ;
+    rdfs:label "isManagement"@en ;
+    rdfs:comment "If true, this is a management discipline (default false)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range xsd:boolean .
+
+fit:validTracks a rdf:Property ;
+    rdfs:label "validTracks"@en ;
+    rdfs:comment "REQUIRED. Explicit list of valid tracks. Empty array = trackless only."@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range fit:Track .
+
 fit:coreSkills a rdf:Property ;
     rdfs:label "coreSkills"@en ;
     rdfs:comment "Primary skills for deep expertise (references skill IDs)"@en ;
@@ -530,18 +548,6 @@ fit:constraints a rdf:Property ;
 # Track Properties
 # -----------------------------------------------------------------------------
 
-fit:isProfessional a rdf:Property ;
-    rdfs:label "isProfessional"@en ;
-    rdfs:comment "If true, this is a professional/IC track (default true)"@en ;
-    rdfs:domain fit:Track ;
-    rdfs:range xsd:boolean .
-
-fit:isManagement a rdf:Property ;
-    rdfs:label "isManagement"@en ;
-    rdfs:comment "If true, this is a management track (default false)"@en ;
-    rdfs:domain fit:Track ;
-    rdfs:range xsd:boolean .
-
 fit:roleContext a rdf:Property ;
     rdfs:label "roleContext"@en ;
     rdfs:comment "Contextual description for job listings"@en ;
@@ -559,16 +565,9 @@ fit:assessmentWeights a rdf:Property ;
     rdfs:domain fit:Track ;
     rdfs:range fit:AssessmentWeights .
 
-fit:validDisciplines a rdf:Property ;
-    rdfs:label "validDisciplines"@en ;
-    rdfs:comment "If specified, restricts which disciplines can use this track"@en ;
-    rdfs:domain fit:Track ;
-    rdfs:range fit:Discipline .
-
 fit:minGrade a rdf:Property ;
     rdfs:label "minGrade"@en ;
-    rdfs:comment "Minimum grade required for this track"@en ;
-    rdfs:domain fit:Track ;
+    rdfs:comment "Minimum grade required"@en ;
     rdfs:range fit:Grade .
 
 fit:skillWeight a rdf:Property ;
@@ -1324,6 +1323,36 @@ fit:DisciplineShape a sh:NodeShape ;
         sh:description "Base role title (e.g., Software Engineer)" ;
     ] ;
     sh:property [
+        sh:path fit:isProfessional ;
+        sh:datatype xsd:boolean ;
+        sh:maxCount 1 ;
+        sh:name "isProfessional" ;
+        sh:description "If true, this is an IC/professional discipline (default true)" ;
+    ] ;
+    sh:property [
+        sh:path fit:isManagement ;
+        sh:datatype xsd:boolean ;
+        sh:maxCount 1 ;
+        sh:name "isManagement" ;
+        sh:description "If true, this is a management discipline (default false)" ;
+    ] ;
+    sh:property [
+        sh:path fit:validTracks ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:name "validTracks" ;
+        sh:description "REQUIRED. Explicit list of valid tracks. Empty array = trackless only." ;
+    ] ;
+    sh:property [
+        sh:path fit:minGrade ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[A-Z][A-Z0-9]*$" ;
+        sh:maxCount 1 ;
+        sh:name "minGrade" ;
+        sh:description "Minimum grade required for this discipline (grade ID)" ;
+    ] ;
+    sh:property [
         sh:path fit:description ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
@@ -1458,20 +1487,6 @@ fit:TrackShape a sh:NodeShape ;
         sh:description "Human-readable track name" ;
     ] ;
     sh:property [
-        sh:path fit:isProfessional ;
-        sh:datatype xsd:boolean ;
-        sh:maxCount 1 ;
-        sh:name "isProfessional" ;
-        sh:description "If true, this is a professional/IC track (default true)" ;
-    ] ;
-    sh:property [
-        sh:path fit:isManagement ;
-        sh:datatype xsd:boolean ;
-        sh:maxCount 1 ;
-        sh:name "isManagement" ;
-        sh:description "If true, this is a management track (default false)" ;
-    ] ;
-    sh:property [
         sh:path fit:description ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
@@ -1503,13 +1518,6 @@ fit:TrackShape a sh:NodeShape ;
         sh:maxCount 1 ;
         sh:name "assessmentWeights" ;
         sh:description "Custom weights for skill vs behaviour assessment" ;
-    ] ;
-    sh:property [
-        sh:path fit:validDisciplines ;
-        sh:datatype xsd:string ;
-        sh:pattern "^[a-z][a-z0-9_]*$" ;
-        sh:name "validDisciplines" ;
-        sh:description "Restricts which disciplines can use this track (discipline IDs)" ;
     ] ;
     sh:property [
         sh:path fit:minGrade ;

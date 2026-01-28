@@ -2,9 +2,6 @@
 
 name: Platform
 
-# Track type - professional track (default)
-isProfessional: true
-
 # Shared content (used by both human job descriptions and agent profiles)
 description:
   Internal tooling and infrastructure focus, building shared capabilities that

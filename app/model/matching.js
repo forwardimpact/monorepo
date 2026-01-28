@@ -275,9 +275,9 @@ function calculateExpectationsScore(selfExpectations, jobExpectations) {
  * @returns {import('./levels.js').MatchAnalysis}
  */
 export function calculateJobMatch(selfAssessment, job) {
-  // Get weights from track or use defaults
-  const skillWeight = job.track.assessmentWeights?.skillWeight ?? 0.5;
-  const behaviourWeight = job.track.assessmentWeights?.behaviourWeight ?? 0.5;
+  // Get weights from track or use defaults (track may be null for trackless jobs)
+  const skillWeight = job.track?.assessmentWeights?.skillWeight ?? 0.5;
+  const behaviourWeight = job.track?.assessmentWeights?.behaviourWeight ?? 0.5;
 
   // Calculate skill score
   const skillResult = calculateSkillScore(
@@ -362,6 +362,36 @@ export function findMatchingJobs({
 
   // Generate all valid job combinations
   for (const discipline of disciplines) {
+    // First generate trackless jobs for each discipline × grade
+    for (const grade of grades) {
+      if (
+        !isValidJobCombination({
+          discipline,
+          grade,
+          track: null,
+          validationRules,
+          grades,
+        })
+      ) {
+        continue;
+      }
+
+      const job = deriveJob({
+        discipline,
+        grade,
+        track: null,
+        skills,
+        behaviours,
+        validationRules,
+      });
+
+      if (job) {
+        const analysis = calculateJobMatch(selfAssessment, job);
+        matches.push({ job, analysis });
+      }
+    }
+
+    // Then generate jobs with valid tracks
     for (const track of tracks) {
       for (const grade of grades) {
         // Skip invalid combinations
