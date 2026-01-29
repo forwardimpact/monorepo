@@ -240,4 +240,20 @@
   #app-footer p {
     margin: 0 0 var(--space-sm) 0;
   }
+
+  .footer-links {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+  }
+
+  .footer-links a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .footer-links a:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
 }
