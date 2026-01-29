@@ -94,6 +94,7 @@ export const Capability = {
   BUSINESS: "business",
   PEOPLE: "people",
   DOCUMENTATION: "documentation",
+  PRODUCT: "product",
 };
 
 /**
@@ -103,7 +104,7 @@ export const Capability = {
  * 2. Data & AI capabilities
  * 3. Scale & reliability
  * 4. People & process
- * 5. Business & documentation
+ * 5. Business, documentation & product
  * @type {string[]}
  */
 export const CAPABILITY_ORDER = [
@@ -116,6 +117,7 @@ export const CAPABILITY_ORDER = [
   Capability.PROCESS,
   Capability.BUSINESS,
   Capability.DOCUMENTATION,
+  Capability.PRODUCT,
 ];
 
 /**
