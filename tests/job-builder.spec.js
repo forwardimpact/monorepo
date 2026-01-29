@@ -13,8 +13,9 @@ test("job builder can generate a job", async ({ page }) => {
   await expect(page.locator("h1")).toContainText("Job Builder");
 
   // Select discipline, grade, track
+  // Uses IDs from examples/ data which is used by CI
   await page.selectOption("#discipline-select", "software_engineering");
-  await page.selectOption("#grade-select", "J070");
+  await page.selectOption("#grade-select", "L3");
   await page.selectOption("#track-select", "platform");
 
   // Verify preview appears with valid combination message
