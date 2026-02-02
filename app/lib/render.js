@@ -187,12 +187,17 @@ export function showError(message) {
 
 /**
  * Format a skill level or behaviour maturity for display
+ * Handles both snake_case and camelCase
  * @param {string} value - The level/maturity value
  * @returns {string}
  */
 export function formatLevel(value) {
   if (!value) return "";
-  return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  // Insert space before uppercase letters (for camelCase), then handle snake_case
+  return value
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /**

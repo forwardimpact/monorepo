@@ -14,6 +14,7 @@ import {
   tr,
   th,
   td,
+  formatLevel,
 } from "../../lib/render.js";
 import { createBackLink } from "../../components/nav.js";
 import { createLevelDots } from "../../components/detail.js";
@@ -102,10 +103,7 @@ export function gradeToDOM(grade, { framework, showBackLink = true } = {}) {
             ...Object.entries(view.expectations).map(([key, value]) =>
               div(
                 { className: "list-item" },
-                p(
-                  { className: "label" },
-                  key.charAt(0).toUpperCase() + key.slice(1),
-                ),
+                p({ className: "label" }, formatLevel(key)),
                 p({}, value),
               ),
             ),

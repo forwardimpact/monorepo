@@ -36,7 +36,7 @@ export function tableToMarkdown(headers, rows) {
 export function objectToMarkdownList(obj, indent = 0) {
   const prefix = "  ".repeat(indent);
   return Object.entries(obj)
-    .map(([key, value]) => `${prefix}- **${key}**: ${value}`)
+    .map(([key, value]) => `${prefix}- **${capitalize(key)}**: ${value}`)
     .join("\n");
 }
 
@@ -51,12 +51,17 @@ export function formatPercent(value) {
 
 /**
  * Capitalize first letter of each word
+ * Handles both snake_case and camelCase
  * @param {string} str
  * @returns {string}
  */
 export function capitalize(str) {
   if (!str) return "";
-  return str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  // Insert space before uppercase letters (for camelCase), then handle snake_case
+  return str
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /**
