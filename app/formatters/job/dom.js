@@ -206,13 +206,22 @@ function getScoreColor(score) {
  * @param {string} params.template - Mustache template for job description
  * @returns {HTMLElement} The job description section element
  */
-export function createJobDescriptionSection({ job, discipline, grade, track, template }) {
-  const markdown = formatJobDescription({
-    job,
-    discipline,
-    grade,
-    track,
-  }, template);
+export function createJobDescriptionSection({
+  job,
+  discipline,
+  grade,
+  track,
+  template,
+}) {
+  const markdown = formatJobDescription(
+    {
+      job,
+      discipline,
+      grade,
+      track,
+    },
+    template,
+  );
 
   const copyButton = button(
     {
@@ -299,13 +308,22 @@ export function createJobDescriptionSection({ job, discipline, grade, track, tem
  * @param {string} params.template - Mustache template for job description
  * @returns {HTMLElement} The job description HTML element (print-only)
  */
-export function createJobDescriptionHtml({ job, discipline, grade, track, template }) {
-  const markdown = formatJobDescription({
-    job,
-    discipline,
-    grade,
-    track,
-  }, template);
+export function createJobDescriptionHtml({
+  job,
+  discipline,
+  grade,
+  track,
+  template,
+}) {
+  const markdown = formatJobDescription(
+    {
+      job,
+      discipline,
+      grade,
+      track,
+    },
+    template,
+  );
 
   const html = markdownToHtml(markdown);
 

@@ -83,18 +83,21 @@ export function jobToMarkdown(view, entities = {}, jobTemplate) {
     lines.push("## Job Description", "");
     lines.push("```markdown");
     lines.push(
-      formatJobDescription({
-        job: {
-          title: view.title,
-          skillMatrix: view.skillMatrix,
-          behaviourProfile: view.behaviourProfile,
-          expectations: view.expectations,
-          derivedResponsibilities: view.derivedResponsibilities,
+      formatJobDescription(
+        {
+          job: {
+            title: view.title,
+            skillMatrix: view.skillMatrix,
+            behaviourProfile: view.behaviourProfile,
+            expectations: view.expectations,
+            derivedResponsibilities: view.derivedResponsibilities,
+          },
+          discipline: entities.discipline,
+          grade: entities.grade,
+          track: entities.track,
         },
-        discipline: entities.discipline,
-        grade: entities.grade,
-        track: entities.track,
-      }, jobTemplate),
+        jobTemplate,
+      ),
     );
     lines.push("```");
   }

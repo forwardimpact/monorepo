@@ -122,8 +122,7 @@ Questions Filters:
 
 Agent Options:
   --track=TRACK       Track for the agent (e.g., platform, forward_deployed)
-  --output=PATH       Output directory (default: current directory)
-  --preview           Show output without writing files
+  --output=PATH       Write files to directory (without this, outputs to console)
   --stage=STAGE       Generate specific stage agent (plan, code, review)
   --all-stages        Generate all stage agents (default)
 
@@ -175,9 +174,6 @@ function parseArgs(args) {
     checklist: null,
     // Agent command options
     output: null,
-    preview: false,
-    role: null,
-    "all-roles": false,
     stage: null,
     "all-stages": false,
     // Serve command options
@@ -199,8 +195,6 @@ function parseArgs(args) {
       result.validate = true;
     } else if (arg === "--generate-index") {
       result.generateIndex = true;
-    } else if (arg === "--preview") {
-      result.preview = true;
     } else if (arg.startsWith("--type=")) {
       result.type = arg.slice(7);
     } else if (arg.startsWith("--compare=")) {

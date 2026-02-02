@@ -7,16 +7,18 @@
  * All agents are stage-specific. Use --stage for a single stage
  * or --all-stages (default) for all stages.
  *
+ * By default, outputs to console. Use --output to write files.
+ *
  * Usage:
- *   npx pathway agent <discipline> [--track=<track>] [--output=PATH] [--preview]
+ *   npx pathway agent <discipline> [--track=<track>]
  *   npx pathway agent <discipline> --track=<track> --stage=plan
- *   npx pathway agent <discipline> --track=<track> --all-stages
+ *   npx pathway agent <discipline> --track=<track> --output=./agents
  *   npx pathway agent --list
  *
  * Examples:
  *   npx pathway agent software_engineering --track=platform
  *   npx pathway agent software_engineering --track=platform --stage=plan
- *   npx pathway agent software_engineering --track=platform --preview
+ *   npx pathway agent software_engineering --track=platform --output=./agents
  */
 
 import { writeFile, mkdir, readFile } from "fs/promises";
@@ -32,9 +34,7 @@ import {
   deriveAgentSkills,
   generateSkillMd,
 } from "../model/agent.js";
-import {
-  formatAgentProfile,
-} from "../formatters/agent/profile.js";
+import { formatAgentProfile } from "../formatters/agent/profile.js";
 import { formatAgentSkill } from "../formatters/agent/skill.js";
 import { formatError, formatSuccess } from "../lib/cli-output.js";
 import {
@@ -409,10 +409,11 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
       process.exit(1);
     }
 
-    // Preview or write - load template for both
+    // Load template
     const agentTemplate = await loadAgentTemplate(dataDir);
 
-    if (options.preview) {
+    // Output to console (default) or write to files (with --output)
+    if (!options.output) {
       console.log(formatAgentProfile(profile, agentTemplate));
       return;
     }
@@ -483,12 +484,12 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
     }
   }
 
-  // Load templates for both preview and write
+  // Load templates
   const agentTemplate = await loadAgentTemplate(dataDir);
   const skillTemplate = await loadSkillTemplate(dataDir);
 
-  // Preview or write
-  if (options.preview) {
+  // Output to console (default) or write to files (with --output)
+  if (!options.output) {
     for (const profile of profiles) {
       console.log(formatAgentProfile(profile, agentTemplate));
       console.log("\n---\n");
