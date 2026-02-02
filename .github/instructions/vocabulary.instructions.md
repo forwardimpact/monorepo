@@ -4,83 +4,60 @@ applyTo: "**/*.yaml,**/*.md"
 
 # Vocabulary Standards
 
-Use these standard terms throughout the engineering pathway framework for job
-descriptions, skill definitions, and behaviour maturity levels.
+Standard terms for skill definitions and behaviour maturity levels. Grades and
+their mappings vary per installation—use `npx pathway grade --list` to see
+available grades.
 
-> **Note**: The grade IDs and titles shown below are examples. The actual grades
-> and their mappings vary per installation and are defined in `grades.yaml`. Use
-> `npx pathway grade --list` to see available grades.
+## Scope Terms
 
-## Scope Terminology
+Use these terms for spheres of influence (ascending breadth):
 
-In a large enterprise (50,000+ employees), individual impact is bounded. Use
-these terms for increasingly broad spheres of influence:
+| Term              | Size             | Example Usage                   |
+| ----------------- | ---------------- | ------------------------------- |
+| **Team**          | 5–15 people      | "within your team"              |
+| **Area**          | 2–5 teams        | "across teams in your area"     |
+| **Business unit** | 500–5,000 people | "across the business unit"      |
+| **Function**      | Major capability | "across the function"           |
+| **Organization**  | Enterprise-wide  | "shapes organizational culture" |
 
-| Term              | Typical Size     | Used For                     |
-| ----------------- | ---------------- | ---------------------------- |
-| **Team**          | 5-15 people      | Individual contributors      |
-| **Area**          | 2-5 teams        | Practitioner-level scope     |
-| **Business unit** | 500-5,000 people | Expert-level scope           |
-| **Function**      | Major capability | Role modeling scope          |
-| **Organization**  | 50,000+ people   | Exemplifying behaviours only |
+## Skill Levels
 
-## Usage by Grade
+Skills measure **what you can do**. Five levels from learning to mastery:
 
-The table below shows **example** grade mappings for illustration. Actual grade
-IDs, titles, and scope expectations are defined in `grades.yaml` and vary per
-installation.
+| Level          | Autonomy              | Complexity            | Verbs                                       |
+| -------------- | --------------------- | --------------------- | ------------------------------------------- |
+| `awareness`    | with guidance         | basic, simple         | understand, follow, use, ask, learn         |
+| `foundational` | with minimal guidance | common, familiar      | apply, create, explain, identify            |
+| `working`      | independently         | moderate, multiple    | design, own, troubleshoot, decide, document |
+| `practitioner` | lead, mentor          | complex, large        | lead, mentor, establish, evaluate           |
+| `expert`       | define, shape         | enterprise, strategic | define, shape, innovate, pioneer            |
 
-| Grade    | Professional Title | Skill Scope   | Behaviour Scope |
-| -------- | ------------------ | ------------- | --------------- |
-| (Junior) | Level I/II         | Team          | Emerging        |
-| (Mid)    | Level III          | Team          | Emerging        |
-| (Senior) | Staff              | Area          | Developing      |
-| (Lead)   | Principal          | Business unit | Practicing      |
-| (Expert) | Distinguished      | Business unit | Exemplifying    |
+**Sentence patterns:**
 
-The progression pattern is: lower grades focus on team scope with emerging
-behaviours; higher grades expand to business unit scope with role modeling and
-exemplifying behaviours.
+- **Awareness**: "You understand...", "You can use... with guidance"
+- **Foundational**: "You apply...", "You create simple..."
+- **Working**: "You design... independently", "You make appropriate..."
+- **Practitioner**: "You lead... across teams in your area"
+- **Expert**: "You define... across the business unit"
 
-## Key Distinctions
+## Behaviour Maturities
 
-### "Area" vs "Business Unit"
+Behaviours measure **how you approach work**. Five maturities from interest to
+culture-shaping:
 
-- **Area**: A practitioner's sphere of direct influence—2-5 teams they work with
-  regularly. Use "your area" or "in your area".
-- **Business unit**: Hundreds to thousands of people. Use for expert-level scope
-  where someone shapes standards affecting many teams they don't directly work
-  with.
+| Maturity        | Focus                                | Typical Scope |
+| --------------- | ------------------------------------ | ------------- |
+| `emerging`      | Individual interest, needs prompting | Team          |
+| `developing`    | Regular practice with guidance       | Team          |
+| `practicing`    | Consistent, proactive application    | Area          |
+| `role_modeling` | Influences others, fosters culture   | Function      |
+| `exemplifying`  | Shapes organizational culture        | Organization  |
 
-### "Function" vs "Organization"
+## Quick Reference: Scope by Level/Maturity
 
-- **Function**: A major capability area (Engineering, IT, Data Science). Use for
-  role_modeling behaviour maturity (typically senior/lead grades).
-- **Organization**: The entire enterprise. Reserved exclusively for exemplifying
-  behaviour maturity (highest grades only).
-
-## Writing Guidelines
-
-### For Practitioner Level (mid-senior grades)
-
-Use multi-team but bounded scope:
-
-- ✅ "across teams in your area"
-- ✅ "mentor engineers in your area"
-- ❌ "organizational" (too broad)
-- ❌ "enterprise-wide" (too broad)
-
-### For Expert Level (senior grades)
-
-Use business unit scope:
-
-- ✅ "across the business unit"
-- ✅ "define standards across the business unit"
-- ❌ "organizational" (reserved for exemplifying behaviours)
-
-### For Exemplifying Behaviours Only (highest grades)
-
-Reserved for the highest maturity level:
-
-- ✅ "shapes organizational culture"
-- ✅ "organizational learning strategy"
+| Concept               | ✅ Use                          | ❌ Avoid                       |
+| --------------------- | ------------------------------- | ------------------------------ |
+| Practitioner (skill)  | "in your area", "across teams"  | "organizational", "enterprise" |
+| Expert (skill)        | "across the business unit"      | "organizational"               |
+| Role modeling (behav) | "across the function"           | "organizational"               |
+| Exemplifying (behav)  | "shapes organizational culture" | —                              |
