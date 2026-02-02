@@ -20,15 +20,17 @@ import {
   deriveChecklist,
   formatChecklistMarkdown,
 } from "../model/checklist.js";
+import { loadJobTemplate } from "../lib/template-loader.js";
 
 /**
  * Format job output
  * @param {Object} view - Presenter view
  * @param {Object} _options - Command options
  * @param {Object} entities - Original entities
+ * @param {string} jobTemplate - Mustache template for job description
  */
-function formatJob(view, _options, entities) {
-  console.log(jobToMarkdown(view, entities));
+function formatJob(view, _options, entities, jobTemplate) {
+  console.log(jobToMarkdown(view, entities, jobTemplate));
 }
 
 /**
@@ -37,8 +39,9 @@ function formatJob(view, _options, entities) {
  * @param {Object} params.data - All loaded data
  * @param {string[]} params.args - Command arguments
  * @param {Object} params.options - Command options
+ * @param {string} params.dataDir - Path to data directory
  */
-export async function runJobCommand({ data, args, options }) {
+export async function runJobCommand({ data, args, options, dataDir }) {
   const jobs = generateAllJobs({
     disciplines: data.disciplines,
     grades: data.grades,
@@ -167,5 +170,7 @@ export async function runJobCommand({ data, args, options }) {
     return;
   }
 
-  formatJob(view, options, { discipline, grade, track });
+  // Load job template for description formatting
+  const jobTemplate = await loadJobTemplate(dataDir);
+  formatJob(view, options, { discipline, grade, track }, jobTemplate);
 }

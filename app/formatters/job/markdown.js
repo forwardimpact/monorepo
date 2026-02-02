@@ -15,9 +15,10 @@ import { SKILL_LEVEL_ORDER } from "../../model/levels.js";
  * Format job detail as markdown
  * @param {Object} view - Job detail view from presenter
  * @param {Object} [entities] - Original entities (for job description)
+ * @param {string} [jobTemplate] - Mustache template for job description
  * @returns {string}
  */
-export function jobToMarkdown(view, entities = {}) {
+export function jobToMarkdown(view, entities = {}, jobTemplate) {
   const lines = [
     `# ${view.title}`,
     "",
@@ -77,7 +78,7 @@ export function jobToMarkdown(view, entities = {}) {
   }
 
   // Job Description (copyable markdown)
-  if (entities.discipline && entities.grade && entities.track) {
+  if (entities.discipline && entities.grade && jobTemplate) {
     lines.push("---", "");
     lines.push("## Job Description", "");
     lines.push("```markdown");
@@ -93,7 +94,7 @@ export function jobToMarkdown(view, entities = {}) {
         discipline: entities.discipline,
         grade: entities.grade,
         track: entities.track,
-      }),
+      }, jobTemplate),
     );
     lines.push("```");
   }

@@ -2,18 +2,7 @@
  * Job formatting for DOM/web output
  */
 
-import {
-  div,
-  h1,
-  h2,
-  p,
-  a,
-  span,
-  button,
-  section,
-  details,
-  summary,
-} from "../../lib/render.js";
+import { div, h1, h2, p, a, span, button, section } from "../../lib/render.js";
 import { createBackLink } from "../../components/nav.js";
 import {
   createDetailSection,
@@ -39,6 +28,7 @@ import { formatJobDescription } from "./description.js";
  * @param {Object} [options.discipline] - Discipline entity for job description
  * @param {Object} [options.grade] - Grade entity for job description
  * @param {Object} [options.track] - Track entity for job description
+ * @param {string} [options.jobTemplate] - Mustache template for job description
  * @returns {HTMLElement}
  */
 export function jobToDOM(view, options = {}) {
@@ -50,9 +40,10 @@ export function jobToDOM(view, options = {}) {
     discipline,
     grade,
     track,
+    jobTemplate,
   } = options;
 
-  const hasEntities = discipline && grade && track;
+  const hasEntities = discipline && grade && jobTemplate;
 
   return div(
     { className: "job-detail-page" },
@@ -108,6 +99,7 @@ export function jobToDOM(view, options = {}) {
           discipline,
           grade,
           track,
+          template: jobTemplate,
         })
       : null,
 
@@ -140,14 +132,6 @@ export function jobToDOM(view, options = {}) {
                 ),
               })
             : null,
-
-          // Handoff Checklists
-          view.checklists && hasChecklistItems(view.checklists)
-            ? createDetailSection({
-                title: "📋 Handoff Checklists",
-                content: createChecklistSections(view.checklists),
-              })
-            : null,
         )
       : null,
 
@@ -164,6 +148,7 @@ export function jobToDOM(view, options = {}) {
           discipline,
           grade,
           track,
+          template: jobTemplate,
         })
       : null,
   );
@@ -212,99 +197,22 @@ function getScoreColor(score) {
 }
 
 /**
- * Check if any checklist has items
- * @param {Object} checklists - Checklists object keyed by handoff type
- * @returns {boolean}
- */
-function hasChecklistItems(checklists) {
-  for (const items of Object.values(checklists)) {
-    if (items && items.length > 0) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Create collapsible checklist sections for all handoffs
- * @param {Object} checklists - Checklists object keyed by handoff type
- * @returns {HTMLElement}
- */
-function createChecklistSections(checklists) {
-  const handoffLabels = {
-    plan_to_code: "📋 → 💻 Plan → Code",
-    code_to_review: "💻 → ✅ Code → Review",
-  };
-
-  const sections = Object.entries(checklists)
-    .filter(([_, items]) => items && items.length > 0)
-    .map(([handoff, groups]) => {
-      const label = handoffLabels[handoff] || handoff;
-      const totalItems = groups.reduce((sum, g) => sum + g.items.length, 0);
-
-      return details(
-        { className: "checklist-section" },
-        summary(
-          { className: "checklist-section-header" },
-          span({ className: "checklist-section-label" }, label),
-          span({ className: "badge badge-default" }, `${totalItems} items`),
-        ),
-        div(
-          { className: "checklist-section-content" },
-          ...groups.map((group) => createChecklistGroup(group)),
-        ),
-      );
-    });
-
-  return div({ className: "checklist-sections" }, ...sections);
-}
-
-/**
- * Create a checklist group for a capability
- * @param {Object} group - Group with capability, level, and items
- * @returns {HTMLElement}
- */
-function createChecklistGroup(group) {
-  const emoji = group.capability.emoji || "📌";
-  const capabilityName = group.capability.name || group.capability.id;
-
-  return div(
-    { className: "checklist-group" },
-    div(
-      { className: "checklist-group-header" },
-      span({ className: "checklist-emoji" }, emoji),
-      span({ className: "checklist-capability" }, capabilityName),
-      span({ className: "badge badge-secondary" }, group.level),
-    ),
-    div(
-      { className: "checklist-items" },
-      ...group.items.map((item) =>
-        div(
-          { className: "checklist-item" },
-          span({ className: "checklist-checkbox" }, "☐"),
-          span({}, item),
-        ),
-      ),
-    ),
-  );
-}
-
-/**
  * Create the job description section with copy button
  * @param {Object} params
  * @param {Object} params.job - The job definition
  * @param {Object} params.discipline - The discipline
  * @param {Object} params.grade - The grade
  * @param {Object} params.track - The track
+ * @param {string} params.template - Mustache template for job description
  * @returns {HTMLElement} The job description section element
  */
-export function createJobDescriptionSection({ job, discipline, grade, track }) {
+export function createJobDescriptionSection({ job, discipline, grade, track, template }) {
   const markdown = formatJobDescription({
     job,
     discipline,
     grade,
     track,
-  });
+  }, template);
 
   const copyButton = button(
     {
@@ -388,15 +296,16 @@ export function createJobDescriptionSection({ job, discipline, grade, track }) {
  * @param {Object} params.discipline - The discipline
  * @param {Object} params.grade - The grade
  * @param {Object} params.track - The track
+ * @param {string} params.template - Mustache template for job description
  * @returns {HTMLElement} The job description HTML element (print-only)
  */
-export function createJobDescriptionHtml({ job, discipline, grade, track }) {
+export function createJobDescriptionHtml({ job, discipline, grade, track, template }) {
   const markdown = formatJobDescription({
     job,
     discipline,
     grade,
     track,
-  });
+  }, template);
 
   const html = markdownToHtml(markdown);
 

@@ -34,7 +34,6 @@ import {
 } from "../model/agent.js";
 import {
   formatAgentProfile,
-  formatAgentProfileForCli,
 } from "../formatters/agent/profile.js";
 import { formatAgentSkill } from "../formatters/agent/skill.js";
 import { formatError, formatSuccess } from "../lib/cli-output.js";
@@ -410,14 +409,14 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
       process.exit(1);
     }
 
-    // Preview or write
+    // Preview or write - load template for both
+    const agentTemplate = await loadAgentTemplate(dataDir);
+
     if (options.preview) {
-      console.log(formatAgentProfileForCli(profile));
+      console.log(formatAgentProfile(profile, agentTemplate));
       return;
     }
 
-    // Load templates only when writing files
-    const agentTemplate = await loadAgentTemplate(dataDir);
     await writeProfile(profile, baseDir, agentTemplate);
     await generateVSCodeSettings(baseDir, agentData.vscodeSettings);
     await generateDevcontainer(
@@ -484,18 +483,18 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
     }
   }
 
+  // Load templates for both preview and write
+  const agentTemplate = await loadAgentTemplate(dataDir);
+  const skillTemplate = await loadSkillTemplate(dataDir);
+
   // Preview or write
   if (options.preview) {
     for (const profile of profiles) {
-      console.log(formatAgentProfileForCli(profile));
+      console.log(formatAgentProfile(profile, agentTemplate));
       console.log("\n---\n");
     }
     return;
   }
-
-  // Load templates only when writing files
-  const agentTemplate = await loadAgentTemplate(dataDir);
-  const skillTemplate = await loadSkillTemplate(dataDir);
 
   for (const profile of profiles) {
     await writeProfile(profile, baseDir, agentTemplate);

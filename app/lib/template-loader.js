@@ -64,3 +64,12 @@ export async function loadAgentTemplate(dataDir) {
 export async function loadSkillTemplate(dataDir) {
   return loadTemplate("skill.template.md", dataDir);
 }
+
+/**
+ * Load job description template
+ * @param {string} dataDir - Path to data directory
+ * @returns {Promise<string>} Job template content
+ */
+export async function loadJobTemplate(dataDir) {
+  return loadTemplate("job.template.md", dataDir);
+}

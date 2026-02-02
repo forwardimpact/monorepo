@@ -2,17 +2,32 @@
  * Job detail page with visualizations
  */
 
-import { render } from "../lib/render.js";
+import { render, div, p } from "../lib/render.js";
 import { getState } from "../lib/state.js";
 import { renderError } from "../components/error-page.js";
 import { prepareJobDetail } from "../model/job.js";
 import { jobToDOM } from "../formatters/job/dom.js";
 
+/** @type {string|null} Cached job template */
+let jobTemplateCache = null;
+
+/**
+ * Load job template with caching
+ * @returns {Promise<string>}
+ */
+async function getJobTemplate() {
+  if (!jobTemplateCache) {
+    const response = await fetch("./templates/job.template.md");
+    jobTemplateCache = await response.text();
+  }
+  return jobTemplateCache;
+}
+
 /**
  * Render job detail page
  * @param {Object} params - Route params
  */
-export function renderJobDetail(params) {
+export async function renderJobDetail(params) {
   const { discipline: disciplineId, grade: gradeId, track: trackId } = params;
   const { data } = getState();
 
@@ -63,7 +78,16 @@ export function renderJobDetail(params) {
     return;
   }
 
-  // Format using DOM formatter
-  const page = jobToDOM(jobView, { discipline, grade, track });
+  // Show loading while fetching template
+  render(
+    div(
+      { className: "job-detail-page" },
+      div({ className: "loading" }, p({}, "Loading...")),
+    ),
+  );
+
+  // Load template and format
+  const jobTemplate = await getJobTemplate();
+  const page = jobToDOM(jobView, { discipline, grade, track, jobTemplate });
   render(page);
 }
