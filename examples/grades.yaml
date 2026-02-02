@@ -82,10 +82,10 @@
   breadthCriteria:
     practitioner: 4
   expectations:
-    impactScope: Multi-team initiatives with organizational impact
+    impactScope: Multi-team initiatives with area-wide impact
     autonomyExpectation: Set own direction within broader strategic goals
     influenceScope:
-      Influence multiple teams and be recognized as a domain expert
+      Influence teams in your area and be recognized as a domain expert
     complexityHandled:
       Very high complexity driving through ambiguity to deliver results
 
@@ -107,11 +107,9 @@
     practitioner: 5
     expert: 2
   expectations:
-    impactScope:
-      Organization-wide technical strategy and architectural direction
+    impactScope: Business unit technical strategy and architectural direction
     autonomyExpectation:
       Define strategic direction and be accountable for outcomes
     influenceScope:
-      Shape organizational practices and maintain external industry visibility
-    complexityHandled:
-      Organizational-scale complexity creating clarity from chaos
+      Shape practices across the business unit and maintain external visibility
+    complexityHandled: Business unit complexity creating clarity from ambiguity
