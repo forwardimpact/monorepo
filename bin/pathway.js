@@ -101,7 +101,7 @@ Composite Commands:
   progress <discipline> <track> <grade> [--compare=GRADE]
                                       Show career progression
   questions [filters]                 Browse interview questions
-  agent [<discipline> <track>]        Generate AI coding agent
+  agent <discipline> [--track=<track>] Generate AI coding agent
 
 Global Options:
   --list            Output IDs only (for piping to other commands)
@@ -121,10 +121,11 @@ Questions Filters:
   --format=FORMAT     Output format: table, yaml, json
 
 Agent Options:
+  --track=TRACK       Track for the agent (e.g., platform, forward_deployed)
   --output=PATH       Output directory (default: current directory)
   --preview           Show output without writing files
-  --role=ROLE         Generate specific role variant
-  --all-roles         Generate default + all role variants
+  --stage=STAGE       Generate specific stage agent (plan, code, review)
+  --all-stages        Generate all stage agents (default)
 
 Examples:
   npx pathway skill                    # Summary of all skills
@@ -139,7 +140,7 @@ Examples:
   npx pathway questions --level=practitioner
   npx pathway questions --stats
 
-  npx pathway agent software_engineering platform --output=./agents
+  npx pathway agent software_engineering --track=platform --output=./agents
   npx pathway --validate               # Validate all data
 `;
 
@@ -160,6 +161,8 @@ function parseArgs(args) {
     type: "full",
     compare: null,
     data: null,
+    // Shared command options
+    track: null,
     // Questions command options
     level: null,
     maturity: null,
@@ -204,6 +207,8 @@ function parseArgs(args) {
       result.compare = arg.slice(10);
     } else if (arg.startsWith("--data=")) {
       result.data = arg.slice(7);
+    } else if (arg.startsWith("--track=")) {
+      result.track = arg.slice(8);
     } else if (arg.startsWith("--output=")) {
       result.output = arg.slice(9);
     } else if (arg.startsWith("--level=")) {
