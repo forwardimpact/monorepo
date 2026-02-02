@@ -1800,8 +1800,8 @@ describe("Derivation", () => {
         testGrade,
         testTrack,
       );
-      // Management discipline format: "Manager, Track Name"
-      assert.strictEqual(title, "Manager, Test Track");
+      // Management discipline format: "Manager, Role Title – Track Name"
+      assert.strictEqual(title, "Manager, Test Engineer – Test Track");
     });
 
     it("generates title for trackless management discipline", () => {
@@ -1811,8 +1811,8 @@ describe("Derivation", () => {
         isManagement: true,
       };
       const title = generateJobTitle(managementDiscipline, testGrade, null);
-      // Trackless management format uses roleTitle: "Manager, Test Engineering"
-      assert.strictEqual(title, "Manager, Test Engineering");
+      // Trackless management format: "Manager, Role Title"
+      assert.strictEqual(title, "Manager, Test Engineer");
     });
 
     it("generates title for trackless professional discipline", () => {

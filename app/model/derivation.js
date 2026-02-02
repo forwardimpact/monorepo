@@ -376,17 +376,17 @@ export function isValidJobCombination({
  * @returns {string} Generated job title
  */
 export function generateJobTitle(discipline, grade, track = null) {
-  const { roleTitle, specialization, isManagement } = discipline;
+  const { roleTitle, isManagement } = discipline;
   const { professionalTitle, managementTitle } = grade;
 
   // Management discipline (no track needed)
   if (isManagement && !track) {
-    return `${managementTitle}, ${specialization}`;
+    return `${managementTitle}, ${roleTitle}`;
   }
 
   // Management discipline with track
   if (isManagement && track) {
-    return `${managementTitle}, ${track.name}`;
+    return `${managementTitle}, ${roleTitle} – ${track.name}`;
   }
 
   // IC discipline with track
