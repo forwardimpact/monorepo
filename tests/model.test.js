@@ -349,16 +349,18 @@ describe("Type Helpers", () => {
 
   describe("getCapabilityIndex", () => {
     it("returns correct indices for all capabilities", () => {
-      // Order: delivery, data, ai, scale, reliability, people, process, business, documentation
+      // Order: delivery, data, ai, ml, scale, reliability, people, process, business, documentation, product
       assert.strictEqual(getCapabilityIndex("delivery"), 0);
       assert.strictEqual(getCapabilityIndex("data"), 1);
       assert.strictEqual(getCapabilityIndex("ai"), 2);
-      assert.strictEqual(getCapabilityIndex("scale"), 3);
-      assert.strictEqual(getCapabilityIndex("reliability"), 4);
-      assert.strictEqual(getCapabilityIndex("people"), 5);
-      assert.strictEqual(getCapabilityIndex("process"), 6);
-      assert.strictEqual(getCapabilityIndex("business"), 7);
-      assert.strictEqual(getCapabilityIndex("documentation"), 8);
+      assert.strictEqual(getCapabilityIndex("ml"), 3);
+      assert.strictEqual(getCapabilityIndex("scale"), 4);
+      assert.strictEqual(getCapabilityIndex("reliability"), 5);
+      assert.strictEqual(getCapabilityIndex("people"), 6);
+      assert.strictEqual(getCapabilityIndex("process"), 7);
+      assert.strictEqual(getCapabilityIndex("business"), 8);
+      assert.strictEqual(getCapabilityIndex("documentation"), 9);
+      assert.strictEqual(getCapabilityIndex("product"), 10);
     });
 
     it("returns -1 for invalid capabilities", () => {
