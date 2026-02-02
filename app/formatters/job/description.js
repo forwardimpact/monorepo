@@ -103,8 +103,11 @@ function prepareJobDescriptionData({ job, discipline, grade, track }) {
     return indexB - indexA;
   });
 
+  // Keep only the top 2 skill levels for job descriptions
+  const topLevels = sortedLevels.slice(0, 2);
+
   // Build skill levels array for template
-  const skillLevels = sortedLevels.map((level) => {
+  const skillLevels = topLevels.map((level) => {
     const skills = skillsByLevel[level];
     const sortedSkills = [...skills].sort((a, b) =>
       (a.skillName || "").localeCompare(b.skillName || ""),
