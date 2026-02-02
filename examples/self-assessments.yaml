@@ -44,7 +44,7 @@
 # Example: Data Scientist - R&D Focus
 - id: example_ds_rd
   skillLevels:
-    machine_learning: working
+    model_development: working
     data_analysis: working
     statistical_modeling: working
     data_modeling: foundational
