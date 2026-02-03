@@ -55,25 +55,6 @@ export function renderSlideIndex({ render, data }) {
       ),
     ),
 
-    // Tracks
-    div(
-      { className: "slide-section" },
-      a(
-        { href: "#/overview/track" },
-        heading2(
-          { className: "slide-section-title" },
-          `${getConceptEmoji(data.framework, "track")} `,
-          span({ className: "gradient-text" }, "Tracks"),
-        ),
-      ),
-      ul(
-        { className: "related-list" },
-        ...data.tracks.map((track) =>
-          li({}, a({ href: `#/track/${track.id}` }, track.name)),
-        ),
-      ),
-    ),
-
     // Grades
     div(
       { className: "slide-section" },
@@ -99,21 +80,21 @@ export function renderSlideIndex({ render, data }) {
       ),
     ),
 
-    // Skills
+    // Tracks
     div(
       { className: "slide-section" },
       a(
-        { href: "#/overview/skill" },
+        { href: "#/overview/track" },
         heading2(
           { className: "slide-section-title" },
-          `${getConceptEmoji(data.framework, "skill")} `,
-          span({ className: "gradient-text" }, "Skills"),
+          `${getConceptEmoji(data.framework, "track")} `,
+          span({ className: "gradient-text" }, "Tracks"),
         ),
       ),
       ul(
         { className: "related-list" },
-        ...data.skills.map((skill) =>
-          li({}, a({ href: `#/skill/${skill.id}` }, skill.name)),
+        ...data.tracks.map((track) =>
+          li({}, a({ href: `#/track/${track.id}` }, track.name)),
         ),
       ),
     ),
@@ -133,6 +114,25 @@ export function renderSlideIndex({ render, data }) {
         { className: "related-list" },
         ...data.behaviours.map((behaviour) =>
           li({}, a({ href: `#/behaviour/${behaviour.id}` }, behaviour.name)),
+        ),
+      ),
+    ),
+
+    // Skills
+    div(
+      { className: "slide-section" },
+      a(
+        { href: "#/overview/skill" },
+        heading2(
+          { className: "slide-section-title" },
+          `${getConceptEmoji(data.framework, "skill")} `,
+          span({ className: "gradient-text" }, "Skills"),
+        ),
+      ),
+      ul(
+        { className: "related-list" },
+        ...data.skills.map((skill) =>
+          li({}, a({ href: `#/skill/${skill.id}` }, skill.name)),
         ),
       ),
     ),

@@ -7,6 +7,7 @@ import { getState } from "../lib/state.js";
 import { createStatCard } from "../components/card.js";
 import { groupSkillsByCapability, getConceptEmoji } from "../model/levels.js";
 import { getStageEmoji } from "../formatters/stage/shared.js";
+import { aggregateTools } from "../formatters/tool/shared.js";
 
 /**
  * Create lifecycle flow visualization for landing page
@@ -43,6 +44,7 @@ export function renderLanding() {
   // Calculate stats using centralized capability ordering
   const skillsByCapability = groupSkillsByCapability(data.skills);
   const capabilityCount = Object.keys(skillsByCapability).length;
+  const tools = aggregateTools(data.skills);
 
   const page = div(
     { className: "landing-page" },
@@ -83,7 +85,7 @@ export function renderLanding() {
 
     // Stats grid
     div(
-      { className: "grid grid-6" },
+      { className: "grid grid-4" },
       createStatCard({
         value: data.disciplines.length,
         label: "Disciplines",
@@ -100,19 +102,29 @@ export function renderLanding() {
         href: "/track",
       }),
       createStatCard({
-        value: data.skills.length,
-        label: "Skills",
-        href: "/skill",
-      }),
-      createStatCard({
         value: data.behaviours.length,
         label: "Behaviours",
         href: "/behaviour",
       }),
       createStatCard({
+        value: data.skills.length,
+        label: "Skills",
+        href: "/skill",
+      }),
+      createStatCard({
+        value: data.drivers.length,
+        label: "Drivers",
+        href: "/driver",
+      }),
+      createStatCard({
         value: stages.length,
         label: "Stages",
         href: "/stage",
+      }),
+      createStatCard({
+        value: tools.length,
+        label: "Tools",
+        href: "/tool",
       }),
     ),
 
@@ -120,7 +132,10 @@ export function renderLanding() {
     stages.length > 0
       ? div(
           { className: "section section-detail" },
-          h2({ className: "section-title" }, "🔄 Engineering Lifecycle"),
+          h2(
+            { className: "section-title" },
+            `${getConceptEmoji(framework, "stage")} Engineering Lifecycle`,
+          ),
           p(
             { className: "text-muted", style: "margin-bottom: 1rem" },
             "The three stages of engineering work, from planning through review.",
@@ -134,7 +149,7 @@ export function renderLanding() {
       { className: "section section-detail" },
       h2({ className: "section-title" }, "Explore the Framework"),
       div(
-        { className: "grid grid-3" },
+        { className: "grid grid-4" },
         createQuickLinkCard(
           `${getConceptEmoji(framework, "discipline")} ${framework.entityDefinitions.discipline.title}`,
           `${data.disciplines.length} ${framework.entityDefinitions.discipline.title.toLowerCase()} — ${framework.entityDefinitions.discipline.description.trim().split("\n")[0]}`,
@@ -151,24 +166,29 @@ export function renderLanding() {
           "/track",
         ),
         createQuickLinkCard(
-          `${getConceptEmoji(framework, "skill")} ${framework.entityDefinitions.skill.title}`,
-          `${data.skills.length} ${framework.entityDefinitions.skill.title.toLowerCase()} across ${capabilityCount} capabilities — ${framework.entityDefinitions.skill.description.trim().split("\n")[0]}`,
-          "/skill",
-        ),
-        createQuickLinkCard(
           `${getConceptEmoji(framework, "behaviour")} ${framework.entityDefinitions.behaviour.title}`,
           `${data.behaviours.length} ${framework.entityDefinitions.behaviour.title.toLowerCase()} — ${framework.entityDefinitions.behaviour.description.trim().split("\n")[0]}`,
           "/behaviour",
         ),
         createQuickLinkCard(
-          "🔄 Stages",
-          `${stages.length} stages — The engineering lifecycle from planning through review.`,
-          "/stage",
+          `${getConceptEmoji(framework, "skill")} ${framework.entityDefinitions.skill.title}`,
+          `${data.skills.length} ${framework.entityDefinitions.skill.title.toLowerCase()} across ${capabilityCount} capabilities — ${framework.entityDefinitions.skill.description.trim().split("\n")[0]}`,
+          "/skill",
         ),
         createQuickLinkCard(
           `${getConceptEmoji(framework, "driver")} ${framework.entityDefinitions.driver.title}`,
           `${data.drivers.length} ${framework.entityDefinitions.driver.title.toLowerCase()} — ${framework.entityDefinitions.driver.description.trim().split("\n")[0]}`,
           "/driver",
+        ),
+        createQuickLinkCard(
+          `${getConceptEmoji(framework, "stage")} ${framework.entityDefinitions.stage.title}`,
+          `${stages.length} ${framework.entityDefinitions.stage.title.toLowerCase()} — ${framework.entityDefinitions.stage.description.trim().split("\n")[0]}`,
+          "/stage",
+        ),
+        createQuickLinkCard(
+          `${getConceptEmoji(framework, "tool")} ${framework.entityDefinitions.tool.title}`,
+          `${tools.length} ${framework.entityDefinitions.tool.title.toLowerCase()} — ${framework.entityDefinitions.tool.description.trim().split("\n")[0]}`,
+          "/tool",
         ),
       ),
     ),

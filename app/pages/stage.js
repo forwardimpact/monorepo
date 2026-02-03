@@ -7,6 +7,7 @@ import { getState } from "../lib/state.js";
 import { createCardList } from "../components/list.js";
 import { renderNotFound } from "../components/error-page.js";
 import { prepareStagesList, stageToDOM } from "../formatters/stage/index.js";
+import { getConceptEmoji } from "../model/levels.js";
 
 /**
  * Map stage to card configuration
@@ -15,7 +16,7 @@ import { prepareStagesList, stageToDOM } from "../formatters/stage/index.js";
  */
 function stageToCardConfig(stage) {
   return {
-    title: `${stage.emoji || "🔄"} ${stage.name}`,
+    title: `${stage.emoji} ${stage.name}`,
     description: stage.truncatedDescription,
     href: `/stage/${stage.id}`,
   };
@@ -28,14 +29,13 @@ function stageToCardConfig(stage) {
  */
 function createLifecycleFlow(stages) {
   const flowItems = stages.map((stage, index) => {
-    const emoji = stage.emoji || "🔄";
     const isLast = index === stages.length - 1;
 
     return div(
       { className: "lifecycle-flow-item" },
       a(
         { href: `#/stage/${stage.id}`, className: "lifecycle-stage" },
-        span({ className: "lifecycle-emoji" }, emoji),
+        span({ className: "lifecycle-emoji" }, stage.emoji),
         span({ className: "lifecycle-name" }, stage.name),
       ),
       !isLast ? span({ className: "lifecycle-arrow" }, "→") : null,
@@ -50,7 +50,9 @@ function createLifecycleFlow(stages) {
  */
 export function renderStagesList() {
   const { data } = getState();
+  const { framework } = data;
   const stages = data.stages || [];
+  const stageEmoji = getConceptEmoji(framework, "stage");
 
   // Transform data for list view
   const { items } = prepareStagesList(stages);
@@ -60,11 +62,13 @@ export function renderStagesList() {
     // Header
     div(
       { className: "page-header" },
-      h1({ className: "page-title" }, "🔄 Stages"),
+      h1(
+        { className: "page-title" },
+        `${stageEmoji} ${framework.entityDefinitions.stage.title}`,
+      ),
       p(
         { className: "page-description" },
-        "The engineering lifecycle stages. Each stage has specific tools, " +
-          "constraints, and handoffs to guide work from planning through review.",
+        framework.entityDefinitions.stage.description.trim().split("\n")[0],
       ),
     ),
 
