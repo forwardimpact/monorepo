@@ -26,6 +26,7 @@ import { renderTracksList, renderTrackDetail } from "./pages/track.js";
 import { renderGradesList, renderGradeDetail } from "./pages/grade.js";
 import { renderDriversList, renderDriverDetail } from "./pages/driver.js";
 import { renderStagesList, renderStageDetail } from "./pages/stage.js";
+import { renderToolsList } from "./pages/tool.js";
 import { renderJobBuilder } from "./pages/job-builder.js";
 import { renderJobDetail } from "./pages/job.js";
 import { renderInterviewPrep } from "./pages/interview-builder.js";
@@ -98,6 +99,9 @@ function setupRoutes() {
   // Stage
   router.on("/stage", renderStagesList);
   router.on("/stage/:id", renderStageDetail);
+
+  // Tool
+  router.on("/tool", renderToolsList);
 
   // Job builder
   router.on("/job-builder", renderJobBuilder);
