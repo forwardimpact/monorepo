@@ -1,9 +1,25 @@
 ---
-
-{{#name}}name: {{name}} {{/name}}description: {{{description}}} {{#infer}}infer:
-{{infer}} {{/infer}}{{#handoffs.length}}handoffs: {{#handoffs}} - label:
-{{label}} {{#agent}} agent: {{agent}} {{/agent}} prompt: "{{{prompt}}}"
-{{#send}} send: {{send}} {{/send}}{{/handoffs}}{{/handoffs.length}}---
+{{#name}}
+name: {{name}}
+{{/name}}
+description: {{{description}}}
+{{#infer}}
+infer: {{infer}}
+{{/infer}}
+{{#handoffs.length}}
+handoffs:
+{{#handoffs}}
+  - label: {{label}}
+{{#agent}}
+    agent: {{agent}}
+{{/agent}}
+    prompt: "{{{prompt}}}"
+{{#send}}
+    send: {{send}}
+{{/send}}
+{{/handoffs}}
+{{/handoffs.length}}
+---
 
 # {{title}}
 
@@ -13,17 +29,27 @@
 
 {{{identity}}}
 
-{{#priority}} {{{priority}}}
+{{#priority}}
+{{{priority}}}
 
-{{/priority}} {{#capabilities.length}} Your primary capabilities:
+{{/priority}}
+{{#capabilities.length}}
+Your primary capabilities:
+
 {{#capabilities}}
+- {{{.}}}
+{{/capabilities}}
 
-- {{{.}}} {{/capabilities}}
+{{/capabilities.length}}
+{{#beforeMakingChanges.length}}
+Before making changes:
 
-{{/capabilities.length}} {{#beforeMakingChanges.length}} Before making changes:
-{{#beforeMakingChanges}} {{index}}. {{{text}}} {{/beforeMakingChanges}}
+{{#beforeMakingChanges}}
+{{index}}. {{{text}}}
+{{/beforeMakingChanges}}
 
-{{/beforeMakingChanges.length}} {{#delegation}}
+{{/beforeMakingChanges.length}}
+{{#delegation}}
 
 ## Delegation
 
@@ -35,7 +61,8 @@
 
 {{{operationalContext}}}
 
-{{{workingStyle}}} {{#beforeHandoff}}
+{{{workingStyle}}}
+{{#beforeHandoff}}
 
 ## Before Handoff
 
@@ -61,5 +88,6 @@ When completing work (for handoff or as a subagent), provide:
 ## Constraints
 
 {{#constraints}}
-
-- {{{.}}} {{/constraints}} {{/constraints.length}}
+- {{{.}}}
+{{/constraints}}
+{{/constraints.length}}

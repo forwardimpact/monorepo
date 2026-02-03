@@ -1,18 +1,19 @@
 ---
-
 name: {{name}}
 description: |
-{{#descriptionLines}}  {{{.}}}
+{{#descriptionLines}}
+  {{{.}}}
 {{/descriptionLines}}
-
-{{#useWhenLines.length}}  **Use When:** {{#useWhenLines}}{{{.}}}
-{{/useWhenLines}}{{/useWhenLines.length}}---
+{{#useWhenLines.length}}
+  **Use When:** {{#useWhenLines}}{{{.}}}{{/useWhenLines}}
+{{/useWhenLines.length}}
+---
 
 # {{{title}}}
 
 {{#useWhenLines.length}}
-**Use This Skill When:** {{#useWhenLines}}{{{.}}}
-{{/useWhenLines}}{{/useWhenLines.length}}
+**Use This Skill When:** {{#useWhenLines}}{{{.}}}{{/useWhenLines}}
+{{/useWhenLines.length}}
 
 ## Stage Guidance
 {{#stages}}
@@ -40,8 +41,10 @@ description: |
 {{#toolReferences}}
 | {{#url}}[{{{name}}}]({{{url}}}){{/url}}{{^url}}{{{name}}}{{/url}} | {{{useWhen}}} |
 {{/toolReferences}}
-{{/toolReferences.length}} {{#reference}}
+{{/toolReferences.length}}
+{{#reference}}
 
 ## Reference
 
-{{{reference}}} {{/reference}}
+{{{reference}}}
+{{/reference}}
