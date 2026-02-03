@@ -241,17 +241,13 @@ function validateSkill(skill, index, requiredStageIds = []) {
       }
     }
 
-    // reference is optional but should be a string if present
-    if (
-      skill.agent.reference !== undefined &&
-      typeof skill.agent.reference !== "string"
-    ) {
+    // Error if old 'reference' field is still present (moved to skill.implementationReference)
+    if (skill.agent.reference !== undefined) {
       errors.push(
         createError(
-          "INVALID_VALUE",
-          "Skill agent reference must be a string",
+          "INVALID_FIELD",
+          "Skill agent 'reference' field is not supported. Use skill.implementationReference instead.",
           `${agentPath}.reference`,
-          skill.agent.reference,
         ),
       );
     }
@@ -292,6 +288,76 @@ function validateSkill(skill, index, requiredStageIds = []) {
           `${agentPath}.verificationCriteria`,
         ),
       );
+    }
+  }
+
+  // Validate implementationReference if present (optional string)
+  if (
+    skill.implementationReference !== undefined &&
+    typeof skill.implementationReference !== "string"
+  ) {
+    errors.push(
+      createError(
+        "INVALID_VALUE",
+        "Skill implementationReference must be a string",
+        `${path}.implementationReference`,
+        skill.implementationReference,
+      ),
+    );
+  }
+
+  // Validate toolReferences array if present
+  if (skill.toolReferences !== undefined) {
+    if (!Array.isArray(skill.toolReferences)) {
+      errors.push(
+        createError(
+          "INVALID_VALUE",
+          "Skill toolReferences must be an array",
+          `${path}.toolReferences`,
+          skill.toolReferences,
+        ),
+      );
+    } else {
+      skill.toolReferences.forEach((tool, i) => {
+        const toolPath = `${path}.toolReferences[${i}]`;
+        if (!tool.name) {
+          errors.push(
+            createError(
+              "MISSING_REQUIRED",
+              "Tool reference missing name",
+              `${toolPath}.name`,
+            ),
+          );
+        }
+        if (!tool.description) {
+          errors.push(
+            createError(
+              "MISSING_REQUIRED",
+              "Tool reference missing description",
+              `${toolPath}.description`,
+            ),
+          );
+        }
+        if (!tool.useWhen) {
+          errors.push(
+            createError(
+              "MISSING_REQUIRED",
+              "Tool reference missing useWhen",
+              `${toolPath}.useWhen`,
+            ),
+          );
+        }
+        if (tool.url !== undefined && typeof tool.url !== "string") {
+          errors.push(
+            createError(
+              "INVALID_VALUE",
+              "Tool reference url must be a string",
+              `${toolPath}.url`,
+              tool.url,
+            ),
+          );
+        }
+      });
     }
   }
 
