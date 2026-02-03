@@ -1,7 +1,10 @@
 ---
 
-name: {{name}} description: | {{#descriptionLines}} {{{.}}}
-{{/descriptionLines}}---
+name: {{name}}
+description: |
+{{#descriptionLines}}  {{{.}}}
+{{/descriptionLines}}{{#useWhenLines.length}}  Use when: {{#useWhenLines}}{{{.}}}
+{{/useWhenLines}}{{/useWhenLines.length}}---
 
 # {{{title}}}
 

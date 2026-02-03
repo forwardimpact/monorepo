@@ -71,10 +71,10 @@ skills:
           recognized as an authority on cloud architecture.
     agent:
       name: cloud-platforms
-      description: |
-        Guide for working with cloud infrastructure and services. Use when
-        deploying to cloud, selecting cloud services, configuring infrastructure,
-        or solving cloud-specific challenges.
+      description: Guide for working with cloud infrastructure and services.
+      useWhen: |
+        Deploying to cloud, selecting cloud services, configuring
+        infrastructure, or solving cloud-specific challenges.
       stages:
         specify:
           focus: |
@@ -188,9 +188,9 @@ skills:
           engineering.
     agent:
       name: code-quality-review
-      description: |
-        Guide for writing quality code and conducting code reviews. Use when
-        reviewing code, checking for best practices, or verifying AI-generated
+      description: Guide for writing quality code and conducting code reviews.
+      useWhen: |
+        Reviewing code, checking for best practices, or verifying AI-generated
         code before committing.
       stages:
         specify:
@@ -297,8 +297,10 @@ skills:
       name: data-modeling
       description: |
         Guide for designing database schemas, data structures, and data
-        architectures. Use when designing tables, optimizing queries, or
-        making decisions about data storage technologies.
+        architectures.
+      useWhen: |
+        Designing tables, optimizing queries, or making decisions about data
+        storage technologies.
       stages:
         specify:
           focus: |

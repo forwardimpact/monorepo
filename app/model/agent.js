@@ -278,6 +278,7 @@ export function generateSkillMd(skillData) {
     frontmatter: {
       name: agent.name,
       description: agent.description.trim(),
+      useWhen: agent.useWhen ? agent.useWhen.trim() : "",
     },
     title: name,
     stages: stagesArray,

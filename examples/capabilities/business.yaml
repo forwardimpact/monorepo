@@ -102,10 +102,10 @@ skills:
           initiatives.
     agent:
       name: technical-writing
-      description: |
-        Guide for creating clear technical documentation. Use when writing
-        READMEs, API docs, specifications, or any technical content that needs
-        to be clear and accurate.
+      description: Guide for creating clear technical documentation.
+      useWhen: |
+        Writing READMEs, API docs, specifications, or any technical content
+        that needs to be clear and accurate.
       stages:
         specify:
           focus: |

@@ -29,6 +29,9 @@ export function formatAgentSkill(
   const data = {
     name: frontmatter.name,
     descriptionLines: frontmatter.description.trim().split("\n"),
+    useWhenLines: frontmatter.useWhen
+      ? frontmatter.useWhen.trim().split("\n")
+      : [],
     title,
     stages,
     reference: reference ? reference.trim() : "",

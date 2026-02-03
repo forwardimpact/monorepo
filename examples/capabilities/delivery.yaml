@@ -73,10 +73,11 @@ skills:
           architecture authority.
     agent:
       name: architecture-design
-      description: |
+      description:
         Guide for designing software systems and making architectural decisions.
-        Use when asked to design a system, evaluate architecture options, or
-        make structural decisions about code organization.
+      useWhen: |
+        Asked to design a system, evaluate architecture options, or make
+        structural decisions about code organization.
       stages:
         specify:
           focus: |
@@ -195,10 +196,11 @@ skills:
           polymathic engineering.
     agent:
       name: full-stack-development
-      description: |
+      description:
         Guide for building complete solutions across the full technology stack.
-        Use when implementing features spanning frontend, backend, database,
-        and infrastructure layers.
+      useWhen: |
+        Implementing features spanning frontend, backend, database, and
+        infrastructure layers.
       stages:
         specify:
           focus: |

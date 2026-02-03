@@ -127,7 +127,7 @@
     },
     "skillAgentSection": {
       "type": "object",
-      "required": ["name", "description", "stages"],
+      "required": ["name", "description", "useWhen", "stages"],
       "properties": {
         "name": {
           "type": "string",
@@ -136,7 +136,11 @@
         },
         "description": {
           "type": "string",
-          "description": "When to use this skill (triggering conditions)"
+          "description": "Brief description of what this skill provides"
+        },
+        "useWhen": {
+          "type": "string",
+          "description": "Triggering conditions - when agents should use this skill"
         },
         "stages": {
           "type": "object",

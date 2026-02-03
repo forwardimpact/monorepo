@@ -72,9 +72,11 @@ skills:
     agent:
       name: devops-cicd
       description: |
-        Guide for building CI/CD pipelines, managing infrastructure as code, and
-        implementing deployment best practices. Use when setting up pipelines,
-        containerizing applications, or configuring infrastructure.
+        Guide for building CI/CD pipelines, managing infrastructure as code,
+        and implementing deployment best practices.
+      useWhen: |
+        Setting up pipelines, containerizing applications, or configuring
+        infrastructure.
       stages:
         specify:
           focus: |
@@ -241,8 +243,10 @@ skills:
       name: sre-practices
       description: |
         Guide for ensuring system reliability through observability, incident
-        response, and capacity planning. Use when designing monitoring, handling
-        incidents, setting SLOs, or improving system resilience.
+        response, and capacity planning.
+      useWhen: |
+        Designing monitoring, handling incidents, setting SLOs, or improving
+        system resilience.
       stages:
         specify:
           focus: |

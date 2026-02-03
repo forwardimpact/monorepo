@@ -407,6 +407,12 @@ fit:reference a rdf:Property ;
     rdfs:comment "Optional reference material in markdown format"@en ;
     rdfs:range xsd:string .
 
+fit:useWhen a rdf:Property ;
+    rdfs:label "useWhen"@en ;
+    rdfs:comment "Triggering conditions - when agents should use this skill"@en ;
+    rdfs:domain fit:SkillAgentSection ;
+    rdfs:range xsd:string .
+
 fit:planStage a rdf:Property ;
     rdfs:label "planStage"@en ;
     rdfs:comment "Guidance for the plan stage"@en ;
@@ -1109,7 +1115,15 @@ fit:SkillAgentSectionShape a sh:NodeShape ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "description" ;
-        sh:description "When to use this skill (triggering conditions)" ;
+        sh:description "Brief description of what this skill provides" ;
+    ] ;
+    sh:property [
+        sh:path fit:useWhen ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "useWhen" ;
+        sh:description "Triggering conditions - when agents should use this skill" ;
     ] ;
     sh:property [
         sh:path fit:planStage ;
