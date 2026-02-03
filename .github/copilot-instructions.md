@@ -11,25 +11,18 @@ derivation logic, but the actual entities (disciplines, tracks, skills, grades,
 behaviours, etc.) are defined entirely in YAML files. Different installations
 may have completely different data while using the same model.
 
-**Architecture**: Model → Formatter → View
+**Architecture**: Model → Formatter → View (see `architecture.instructions.md`
+for details)
 
-- **Model** (`app/model/`) - Pure business logic, derivation, validation, agent
-  generation. Defines the schema, not the data.
-  - `derivation.js` - Core derivation (deriveSkillMatrix,
-    deriveBehaviourProfile)
-  - `profile.js` - Unified profile layer (filtering, sorting,
-    prepareBaseProfile)
-  - `job.js` - Job preparation for display
-  - `agent.js` - Agent generation (uses profile.js)
-- **Formatter** (`app/formatters/`) - Entity + context → output (DOM/markdown)
-- **View** (`app/pages/`, `app/commands/`, `app/slides/`) - Route handling,
-  render calls
-- **Data** (`examples/` and `data/`) - YAML configuration (human + agent
-  definitions). This is where the actual content lives and varies per
-  installation.
+**Data**: YAML files in `examples/` and `data/` contain all human and agent
+definitions. Content varies per installation.
 
-**⚠️ Important:** Both `examples/` and `data/` MUST be updated when you are
-changing schema or properties of data files.
+**⚠️ Important:** When changing data structure or properties, ALL THREE
+locations MUST be updated:
+
+1. `schema/json/` and `schema/rdf/` — Update JSON Schema and RDF/SHACL ontology
+2. `examples/` — Update example data files to match new schema
+3. `data/` — Update actual data files to match new schema
 
 **Tech**: Node.js 18+, Plain JS + JSDoc, YAML, no frameworks
 
@@ -39,10 +32,12 @@ changing schema or properties of data files.
 
 See `.github/instructions/` for details:
 
-- `architecture.instructions.md` - Formatter layer, state, rendering
-- `code-style.instructions.md` - Style, organization, testing
-- `domain-concepts.instructions.md` - Entities, job derivation
-- `common-tasks.instructions.md` - Common workflows
+- `architecture.instructions.md` - 3-layer system, model structure, job/agent
+  derivation, formatter layer, key patterns
+- `code-style.instructions.md` - Code style, organization, testing
+- `domain-concepts.instructions.md` - Core entities, skill levels, behaviour
+  maturities, business domain
+- `common-tasks.instructions.md` - Common workflows and CLI usage
 - `git-workflow.instructions.md` - Conventional commits
 - `vocabulary.instructions.md` - Standard terminology
 

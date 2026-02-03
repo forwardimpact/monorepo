@@ -18,9 +18,7 @@ Data lives in YAML files under `data/`. Schema definitions are in `schema/`:
 - `schema/json/` — JSON Schema for validating YAML files
 - `schema/rdf/` — RDF/SHACL ontology for semantic representation
 
-**Core entities**: disciplines, grades, tracks, capabilities (containing
-skills), behaviours, drivers, stages. All entities use co-located `human:` and
-`agent:` sections in the same file.
+See `domain-concepts.instructions.md` for entity descriptions and relationships.
 
 ## Model Layer
 

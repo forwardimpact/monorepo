@@ -4,6 +4,10 @@ applyTo: "**"
 
 # Domain Concepts
 
+This document describes the **business domain**: entities, their relationships,
+and semantics. For technical implementation details (job derivation, agent
+generation mechanics), see `architecture.instructions.md`.
+
 > **Data-Driven Model**: The model defines schema and derivation logic, but
 > actual entities are defined in YAML files under `data/`. Use
 > `npx pathway <entity> --list` to discover what's available.
