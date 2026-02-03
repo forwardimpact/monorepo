@@ -407,7 +407,7 @@ function createAllStagesPreview(context) {
   const skillFiles = derivedSkills
     .map((derived) => skills.find((s) => s.id === derived.skillId))
     .filter((skill) => skill?.agent)
-    .map((skill) => generateSkillMd(skill));
+    .map((skill) => generateSkillMd(skill, stages));
 
   return div(
     { className: "agent-deployment" },
@@ -522,7 +522,7 @@ function createSingleStagePreview(context, stage) {
   const skillFiles = derivedSkills
     .map((d) => skills.find((s) => s.id === d.skillId))
     .filter((skill) => skill?.agent)
-    .map((skill) => generateSkillMd(skill));
+    .map((skill) => generateSkillMd(skill, stages));
 
   return div(
     { className: "agent-deployment" },

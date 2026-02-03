@@ -66,9 +66,10 @@ function formatDetail(viewAndContext, framework) {
 /**
  * Format skill as agent SKILL.md output
  * @param {Object} skill - Skill entity with agent section
+ * @param {Array} stages - All stage entities
  * @param {string} dataDir - Path to data directory for template loading
  */
-async function formatAgentDetail(skill, dataDir) {
+async function formatAgentDetail(skill, stages, dataDir) {
   if (!skill.agent) {
     console.error(formatError(`Skill '${skill.id}' has no agent section`));
     console.error(`\nSkills with agent support:`);
@@ -79,7 +80,7 @@ async function formatAgentDetail(skill, dataDir) {
   }
 
   const template = await loadSkillTemplate(dataDir);
-  const skillMd = generateSkillMd(skill);
+  const skillMd = generateSkillMd(skill, stages);
   const output = formatAgentSkill(skillMd, template);
   console.log(output);
 }
@@ -120,7 +121,7 @@ export async function runSkillCommand({ data, args, options, dataDir }) {
       process.exit(1);
     }
 
-    await formatAgentDetail(skill, dataDir);
+    await formatAgentDetail(skill, data.stages, dataDir);
     return;
   }
 

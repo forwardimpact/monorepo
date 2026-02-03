@@ -3,27 +3,33 @@
 name: {{name}}
 description: |
 {{#descriptionLines}}  {{{.}}}
-{{/descriptionLines}}{{#useWhenLines.length}}  Use when: {{#useWhenLines}}{{{.}}}
+{{/descriptionLines}}
+
+{{#useWhenLines.length}}  **Use When:** {{#useWhenLines}}{{{.}}}
 {{/useWhenLines}}{{/useWhenLines.length}}---
 
 # {{{title}}}
 
-## Stage Guidance
+{{#useWhenLines.length}}
+**Use This Skill When:** {{#useWhenLines}}{{{.}}}
+{{/useWhenLines}}{{/useWhenLines.length}}
 
+## Stage Guidance
 {{#stages}}
 
 ### {{stageName}} Stage
 
 **Focus:** {{{focus}}}
 
-**Activities:** {{#activities}}
+**Activities:**
+{{#activities}}
+- {{{.}}}
+{{/activities}}
 
-- {{{.}}} {{/activities}}
-
-**Ready for {{nextStageName}} when:** {{#ready}}
-
-- [ ] {{{.}}} {{/ready}}
-
+**Ready for {{nextStageName}} when:**
+{{#ready}}
+- [ ] {{{.}}}
+{{/ready}}
 {{/stages}} {{#reference}}
 
 ## Reference

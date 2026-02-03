@@ -226,20 +226,12 @@ function buildWorkingStyleFromBehaviours(
 }
 
 /**
- * Stage ID to display name and next stage mapping
- */
-const STAGE_INFO = {
-  plan: { name: "Plan", nextStage: "Code" },
-  code: { name: "Code", nextStage: "Review" },
-  review: { name: "Review", nextStage: "Complete" },
-};
-
-/**
  * Generate SKILL.md content from skill data
  * @param {Object} skillData - Skill with agent section containing stages
+ * @param {Array} stages - All stage entities
  * @returns {Object} Skill with frontmatter, title, stages array, reference, dirname
  */
-export function generateSkillMd(skillData) {
+export function generateSkillMd(skillData, stages) {
   const { agent, name } = skillData;
 
   if (!agent) {
@@ -250,17 +242,31 @@ export function generateSkillMd(skillData) {
     throw new Error(`Skill ${skillData.id} agent section missing stages`);
   }
 
+  // Build stage lookup map
+  const stageMap = new Map(stages.map((s) => [s.id, s]));
+
   // Transform stages object to array for template rendering
   const stagesArray = Object.entries(agent.stages).map(
     ([stageId, stageData]) => {
-      const info = STAGE_INFO[stageId] || {
-        name: stageId,
-        nextStage: "Next",
-      };
+      const stageEntity = stageMap.get(stageId);
+      const stageName = stageEntity?.name || stageId;
+
+      // Find next stage from handoffs
+      let nextStageName = "Complete";
+      if (stageEntity?.handoffs) {
+        const nextHandoff = stageEntity.handoffs.find(
+          (h) => h.targetStage !== stageId,
+        );
+        if (nextHandoff) {
+          const nextStage = stageMap.get(nextHandoff.targetStage);
+          nextStageName = nextStage?.name || nextHandoff.targetStage;
+        }
+      }
+
       return {
         stageId,
-        stageName: info.name,
-        nextStageName: info.nextStage,
+        stageName,
+        nextStageName,
         focus: stageData.focus,
         activities: stageData.activities || [],
         ready: stageData.ready || [],
