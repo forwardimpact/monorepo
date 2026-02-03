@@ -87,6 +87,7 @@ Getting Started:
 
 Entity Commands (summary by default, --list for IDs, <id> for detail):
   skill [<id>]                        Browse skills
+    --agent                           Output as agent SKILL.md format
   behaviour [<id>]                    Browse behaviours  
   discipline [<id>]                   Browse disciplines
   grade [<id>]                        Browse grades
@@ -130,6 +131,7 @@ Examples:
   npx pathway skill                    # Summary of all skills
   npx pathway skill --list             # Skill IDs for piping
   npx pathway skill ai_evaluation      # Detail view
+  npx pathway skill architecture_design --agent  # Agent SKILL.md output
 
   npx pathway job                      # Summary of valid combinations
   npx pathway job --list               # All combinations for piping
@@ -177,6 +179,7 @@ function parseArgs(args) {
     output: null,
     stage: null,
     "all-stages": false,
+    agent: false,
     // Serve command options
     port: null,
     // Init command options
@@ -228,6 +231,8 @@ function parseArgs(args) {
       result.stage = arg.slice(8);
     } else if (arg === "--all-stages") {
       result["all-stages"] = true;
+    } else if (arg === "--agent") {
+      result.agent = true;
     } else if (arg.startsWith("--checklist=")) {
       result.checklist = arg.slice(12);
     } else if (arg.startsWith("--port=")) {

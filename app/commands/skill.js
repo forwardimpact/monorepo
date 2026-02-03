@@ -7,6 +7,7 @@
  *   npx pathway skill              # Summary with stats
  *   npx pathway skill --list       # IDs only (for piping)
  *   npx pathway skill <id>         # Detail view
+ *   npx pathway skill <id> --agent # Agent SKILL.md output
  *   npx pathway skill --validate   # Validation checks
  */
 
@@ -14,7 +15,10 @@ import { createEntityCommand } from "./command-factory.js";
 import { skillToMarkdown } from "../formatters/skill/markdown.js";
 import { prepareSkillsList } from "../formatters/skill/shared.js";
 import { getConceptEmoji } from "../model/levels.js";
-import { formatTable } from "../lib/cli-output.js";
+import { formatTable, formatError } from "../lib/cli-output.js";
+import { generateSkillMd } from "../model/agent.js";
+import { formatAgentSkill } from "../formatters/agent/skill.js";
+import { loadSkillTemplate } from "../lib/template-loader.js";
 
 /**
  * Format skill summary output
@@ -59,7 +63,28 @@ function formatDetail(viewAndContext, framework) {
   );
 }
 
-export const runSkillCommand = createEntityCommand({
+/**
+ * Format skill as agent SKILL.md output
+ * @param {Object} skill - Skill entity with agent section
+ * @param {string} dataDir - Path to data directory for template loading
+ */
+async function formatAgentDetail(skill, dataDir) {
+  if (!skill.agent) {
+    console.error(formatError(`Skill '${skill.id}' has no agent section`));
+    console.error(`\nSkills with agent support:`);
+    console.error(
+      `  npx pathway skill --list | xargs -I{} sh -c 'npx pathway skill {} --json | jq -e .skill.agent > /dev/null && echo {}'`,
+    );
+    process.exit(1);
+  }
+
+  const template = await loadSkillTemplate(dataDir);
+  const skillMd = generateSkillMd(skill);
+  const output = formatAgentSkill(skillMd, template);
+  console.log(output);
+}
+
+const baseSkillCommand = createEntityCommand({
   entityName: "skill",
   pluralName: "skills",
   findEntity: (data, id) => data.skills.find((s) => s.id === id),
@@ -74,3 +99,31 @@ export const runSkillCommand = createEntityCommand({
   formatDetail,
   emoji: "📚",
 });
+
+/**
+ * Run skill command with --agent support
+ * @param {Object} params - Command parameters
+ * @param {Object} params.data - Loaded pathway data
+ * @param {string[]} params.args - Command arguments
+ * @param {Object} params.options - Command options
+ * @param {string} params.dataDir - Path to data directory
+ */
+export async function runSkillCommand({ data, args, options, dataDir }) {
+  // Handle --agent flag for detail view
+  if (options.agent && args.length > 0) {
+    const [id] = args;
+    const skill = data.skills.find((s) => s.id === id);
+
+    if (!skill) {
+      console.error(formatError(`Skill not found: ${id}`));
+      console.error(`Available: ${data.skills.map((s) => s.id).join(", ")}`);
+      process.exit(1);
+    }
+
+    await formatAgentDetail(skill, dataDir);
+    return;
+  }
+
+  // Delegate to base command for all other cases
+  return baseSkillCommand({ data, args, options, dataDir });
+}

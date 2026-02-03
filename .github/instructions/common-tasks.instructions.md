@@ -190,6 +190,9 @@ npx pathway job --list | head -5
 # Detail view (use actual IDs from your installation)
 npx pathway skill <skill_id>
 npx pathway discipline <discipline_id>
+
+# Agent SKILL.md output (for skills with agent section)
+npx pathway skill <skill_id> --agent
 ```
 
 ### Composite Commands
