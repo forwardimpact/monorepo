@@ -80,5 +80,5 @@ export function prepareStageDetail(stage) {
  */
 export function getStageEmoji(stages, stageId) {
   const stage = stages.find((s) => s.id === stageId);
-  return stage?.emoji || "🔄";
+  return stage?.emoji;
 }

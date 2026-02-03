@@ -111,6 +111,10 @@ export const th = (attrs, ...children) =>
   createElement("th", attrs, ...children);
 export const td = (attrs, ...children) =>
   createElement("td", attrs, ...children);
+export const pre = (attrs, ...children) =>
+  createElement("pre", attrs, ...children);
+export const code = (attrs, ...children) =>
+  createElement("code", attrs, ...children);
 export const button = (attrs, ...children) =>
   createElement("button", attrs, ...children);
 export const input = (attrs) => createElement("input", attrs);

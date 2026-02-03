@@ -10,6 +10,23 @@ import { formatLevel } from "./render.js";
 import { getCapabilityEmoji } from "../model/levels.js";
 
 /**
+ * Create an external link element styled as a badge
+ * @param {string} text - Link text
+ * @param {string} url - External URL
+ * @returns {HTMLElement}
+ */
+function createExternalLink(text, url) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.className = "badge badge-primary";
+  link.textContent = text;
+  link.addEventListener("click", (e) => e.stopPropagation()); // Don't trigger card click
+  return link;
+}
+
+/**
  * Map discipline to card config
  * @param {Object} discipline
  * @returns {Object}
@@ -152,6 +169,48 @@ export function jobToCardConfig(job) {
     badges: [createBadge(job.grade.id, "default")],
     meta: job.track ? [createBadge(job.track.name, "secondary")] : [],
   };
+}
+
+/**
+ * Map tool to card config
+ * @param {Object} tool - Aggregated tool with usages
+ * @param {Array} capabilities - Capability entities for emoji lookup
+ * @returns {Object}
+ */
+export function toolToCardConfig(tool, capabilities) {
+  // Create skills list as card content
+  const skillsList = createSkillsList(tool.usages, capabilities);
+
+  return {
+    title: tool.name,
+    description: tool.description,
+    // Docs link in header badges (upper right)
+    badges: tool.url ? [createExternalLink("Docs →", tool.url)] : [],
+    content: skillsList,
+  };
+}
+
+/**
+ * Create an unordered list of skill links with capability emoji
+ * @param {Array} usages - Tool usage objects with skillId, skillName, capabilityId
+ * @param {Array} capabilities - Capability entities
+ * @returns {HTMLElement}
+ */
+function createSkillsList(usages, capabilities) {
+  const ul = document.createElement("ul");
+  ul.className = "tool-skills-list";
+
+  for (const usage of usages) {
+    const emoji = getCapabilityEmoji(capabilities, usage.capabilityId);
+    const li = document.createElement("li");
+    const link = document.createElement("a");
+    link.href = `#/skill/${usage.skillId}`;
+    link.textContent = `${emoji} ${usage.skillName}`;
+    li.appendChild(link);
+    ul.appendChild(li);
+  }
+
+  return ul;
 }
 
 /**

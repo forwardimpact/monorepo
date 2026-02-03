@@ -288,7 +288,8 @@ export function generateSkillMd(skillData, stages) {
     },
     title: name,
     stages: stagesArray,
-    reference: agent.reference || "",
+    reference: skillData.implementationReference || "",
+    toolReferences: skillData.toolReferences || [],
     dirname: agent.name,
   };
 }

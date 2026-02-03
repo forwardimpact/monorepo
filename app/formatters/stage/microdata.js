@@ -32,7 +32,7 @@ export function stageListToMicrodata(stages) {
           ? `→ ${stage.handoffs.map((h) => h.target).join(", ")}`
           : "";
       return `${openTag("article", { itemtype: "Stage", itemid: `#${stage.id}` })}
-${prop("h2", "name", `${stage.emoji || ""} ${stage.name}`)}
+${prop("h2", "name", `${stage.emoji} ${stage.name}`)}
 ${prop("p", "description", stage.truncatedDescription)}
 ${handoffText ? `<p>Handoffs: ${handoffText}</p>` : ""}
 </article>`;

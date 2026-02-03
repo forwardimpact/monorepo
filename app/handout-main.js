@@ -135,16 +135,7 @@ function renderIndex(data) {
             `${getConceptEmoji(framework, "job")} ${framework.entityDefinitions.job.title}`,
           ),
           " - ",
-          `${data.disciplines.length} disciplines, ${data.tracks.length} tracks, ${data.grades.length} grades`,
-        ),
-        li(
-          {},
-          a(
-            { href: "#/skill" },
-            `${getConceptEmoji(framework, "skill")} ${framework.entityDefinitions.skill.title}`,
-          ),
-          " - ",
-          `${data.skills.length} skill definitions`,
+          `${data.disciplines.length} disciplines, ${data.grades.length} grades, ${data.tracks.length} tracks`,
         ),
         li(
           {},
@@ -154,6 +145,15 @@ function renderIndex(data) {
           ),
           " - ",
           `${data.behaviours.length} behaviour definitions`,
+        ),
+        li(
+          {},
+          a(
+            { href: "#/skill" },
+            `${getConceptEmoji(framework, "skill")} ${framework.entityDefinitions.skill.title}`,
+          ),
+          " - ",
+          `${data.skills.length} skill definitions`,
         ),
         li(
           {},
