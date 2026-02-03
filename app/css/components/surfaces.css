@@ -53,6 +53,28 @@
     margin-top: var(--space-md);
   }
 
+  /* Tool skills list (inside cards) */
+  .tool-skills-list {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-sm) 0 0 0;
+    font-size: var(--font-size-sm);
+  }
+
+  .tool-skills-list li {
+    padding: var(--space-xs) 0;
+  }
+
+  .tool-skills-list a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+  }
+
+  .tool-skills-list a:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+
   /* Stat cards */
   .stat-card {
     background: var(--color-surface);

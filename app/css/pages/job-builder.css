@@ -89,46 +89,4 @@
     font-weight: 600;
     color: var(--color-primary);
   }
-
-  /* Job description section */
-  .job-description-container {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
-  }
-
-  .job-description-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--space-md);
-  }
-
-  .job-description-header .text-muted {
-    margin: 0;
-    flex: 1;
-    min-width: 200px;
-  }
-
-  .job-description-textarea {
-    width: 100%;
-    min-height: 400px;
-    padding: var(--space-md);
-    font-family:
-      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: var(--font-size-sm);
-    line-height: 1.6;
-    background-color: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    resize: vertical;
-    color: var(--color-text);
-  }
-
-  .job-description-textarea:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
 }
