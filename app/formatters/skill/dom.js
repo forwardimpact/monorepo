@@ -18,6 +18,7 @@ import {
 } from "../../lib/render.js";
 import { createBackLink } from "../../components/nav.js";
 import { createLevelCell } from "../../components/detail.js";
+import { createMarkdownTextarea } from "../../components/markdown-textarea.js";
 import { SKILL_LEVEL_ORDER } from "../../model/levels.js";
 import { prepareSkillDetail } from "./shared.js";
 import { createJsonLdScript, skillToJsonLd } from "../json-ld.js";
@@ -96,6 +97,60 @@ export function skillToDOM(
         ),
       ),
     ),
+
+    // Recommended Tools
+    view.toolReferences.length > 0
+      ? div(
+          { className: "detail-section" },
+          heading2({ className: "section-title" }, "Recommended Tools"),
+          table(
+            { className: "tools-table" },
+            thead({}, tr({}, th({}, "Tool"), th({}, "Use When"))),
+            tbody(
+              {},
+              ...view.toolReferences.map((tool) =>
+                tr(
+                  {},
+                  td(
+                    {},
+                    tool.url
+                      ? a(
+                          {
+                            href: tool.url,
+                            target: "_blank",
+                            rel: "noopener noreferrer",
+                          },
+                          tool.name,
+                        )
+                      : tool.name,
+                  ),
+                  td({}, tool.useWhen),
+                ),
+              ),
+            ),
+          ),
+          showBackLink
+            ? p(
+                { className: "see-all-link" },
+                a({ href: "#/tool" }, "See all tools →"),
+              )
+            : null,
+        )
+      : null,
+
+    // Implementation Reference
+    view.implementationReference
+      ? div(
+          { className: "detail-section" },
+          heading2({ className: "section-title" }, "Implementation Patterns"),
+          createMarkdownTextarea({
+            markdown: view.implementationReference,
+            description:
+              "Project-specific implementation guidance for this skill.",
+            minHeight: 450,
+          }),
+        )
+      : null,
 
     // Used in Disciplines and Linked to Drivers in two columns
     view.relatedDisciplines.length > 0 || view.relatedDrivers.length > 0

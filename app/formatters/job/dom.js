@@ -2,7 +2,7 @@
  * Job formatting for DOM/web output
  */
 
-import { div, h1, h2, p, a, span, button, section } from "../../lib/render.js";
+import { div, h1, h2, p, a, span, section } from "../../lib/render.js";
 import { createBackLink } from "../../components/nav.js";
 import {
   createDetailSection,
@@ -14,6 +14,7 @@ import {
 } from "../../components/radar-chart.js";
 import { createSkillMatrix } from "../../components/skill-matrix.js";
 import { createBehaviourProfile } from "../../components/behaviour-profile.js";
+import { createMarkdownTextarea } from "../../components/markdown-textarea.js";
 import { markdownToHtml } from "../../lib/markdown.js";
 import { formatJobDescription } from "./description.js";
 
@@ -223,77 +224,15 @@ export function createJobDescriptionSection({
     template,
   );
 
-  const copyButton = button(
-    {
-      className: "btn btn-primary copy-btn",
-      onClick: async () => {
-        try {
-          await navigator.clipboard.writeText(markdown);
-          copyButton.textContent = "✓ Copied!";
-          copyButton.classList.add("copied");
-          setTimeout(() => {
-            copyButton.textContent = "Copy Markdown";
-            copyButton.classList.remove("copied");
-          }, 2000);
-        } catch (err) {
-          console.error("Failed to copy:", err);
-          copyButton.textContent = "Copy failed";
-          setTimeout(() => {
-            copyButton.textContent = "Copy Markdown";
-          }, 2000);
-        }
-      },
-    },
-    "Copy Markdown",
-  );
-
-  const copyHtmlButton = button(
-    {
-      className: "btn btn-secondary copy-btn",
-      onClick: async () => {
-        try {
-          const html = markdownToHtml(markdown);
-          // Use ClipboardItem with text/html MIME type for rich text pasting in Word
-          const blob = new Blob([html], { type: "text/html" });
-          const clipboardItem = new ClipboardItem({ "text/html": blob });
-          await navigator.clipboard.write([clipboardItem]);
-          copyHtmlButton.textContent = "✓ Copied!";
-          copyHtmlButton.classList.add("copied");
-          setTimeout(() => {
-            copyHtmlButton.textContent = "Copy as HTML";
-            copyHtmlButton.classList.remove("copied");
-          }, 2000);
-        } catch (err) {
-          console.error("Failed to copy:", err);
-          copyHtmlButton.textContent = "Copy failed";
-          setTimeout(() => {
-            copyHtmlButton.textContent = "Copy as HTML";
-          }, 2000);
-        }
-      },
-    },
-    "Copy as HTML",
-  );
-
-  const textarea = document.createElement("textarea");
-  textarea.className = "job-description-textarea";
-  textarea.readOnly = true;
-  textarea.value = markdown;
-
   return createDetailSection({
     title: "Job Description",
-    content: div(
-      { className: "job-description-container" },
-      div(
-        { className: "job-description-header" },
-        p(
-          { className: "text-muted" },
-          "Copy this markdown-formatted job description for use in job postings, documentation, or sharing.",
-        ),
-        div({ className: "button-group" }, copyButton, copyHtmlButton),
-      ),
-      textarea,
-    ),
+    content: createMarkdownTextarea({
+      markdown,
+      description:
+        "Copy this markdown-formatted job description for use in job postings, documentation, or sharing.",
+      toHtml: markdownToHtml,
+      minHeight: 450,
+    }),
   });
 }
 

@@ -23,9 +23,16 @@ import { trimValue, splitLines, trimFields } from "../shared.js";
  * @param {string} params.title - Human-readable skill title for heading
  * @param {Array} params.stages - Array of stage objects with stageName, focus, activities, ready
  * @param {string} params.reference - Reference content (markdown)
+ * @param {Array} [params.toolReferences] - Array of tool reference objects
  * @returns {Object} Data object ready for Mustache template
  */
-function prepareAgentSkillData({ frontmatter, title, stages, reference }) {
+function prepareAgentSkillData({
+  frontmatter,
+  title,
+  stages,
+  reference,
+  toolReferences,
+}) {
   // Process stages - trim focus and array values
   const processedStages = trimFields(stages, {
     focus: "required",
@@ -40,6 +47,7 @@ function prepareAgentSkillData({ frontmatter, title, stages, reference }) {
     title,
     stages: processedStages,
     reference: trimValue(reference) || "",
+    toolReferences: toolReferences || [],
   };
 }
 
@@ -52,13 +60,20 @@ function prepareAgentSkillData({ frontmatter, title, stages, reference }) {
  * @param {string} skill.title - Human-readable skill title for heading
  * @param {Array} skill.stages - Array of stage objects with stageName, focus, activities, ready
  * @param {string} skill.reference - Reference content (markdown)
+ * @param {Array} [skill.toolReferences] - Array of tool reference objects
  * @param {string} template - Mustache template string
  * @returns {string} Complete SKILL.md file content
  */
 export function formatAgentSkill(
-  { frontmatter, title, stages, reference },
+  { frontmatter, title, stages, reference, toolReferences },
   template,
 ) {
-  const data = prepareAgentSkillData({ frontmatter, title, stages, reference });
+  const data = prepareAgentSkillData({
+    frontmatter,
+    title,
+    stages,
+    reference,
+    toolReferences,
+  });
   return Mustache.render(template, data);
 }

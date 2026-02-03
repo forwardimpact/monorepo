@@ -105,5 +105,23 @@ export function skillToMarkdown(
     lines.push("");
   }
 
+  // Recommended tools
+  if (view.toolReferences.length > 0) {
+    lines.push("## Recommended Tools", "");
+    const toolRows = view.toolReferences.map((tool) => [
+      tool.url ? `[${tool.name}](${tool.url})` : tool.name,
+      tool.useWhen,
+    ]);
+    lines.push(tableToMarkdown(["Tool", "Use When"], toolRows));
+    lines.push("");
+  }
+
+  // Implementation reference
+  if (view.implementationReference) {
+    lines.push("## Implementation Patterns", "");
+    lines.push(view.implementationReference);
+    lines.push("");
+  }
+
   return lines.join("\n");
 }

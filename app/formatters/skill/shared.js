@@ -73,6 +73,8 @@ export function prepareSkillsList(
  * @property {Array<{id: string, name: string, skillType: string}>} relatedDisciplines
  * @property {Array<{id: string, name: string, modifier: number}>} relatedTracks
  * @property {Array<{id: string, name: string}>} relatedDrivers
+ * @property {Array<{name: string, url?: string, description: string, useWhen: string}>} toolReferences
+ * @property {string|null} implementationReference
  */
 
 /**
@@ -125,5 +127,7 @@ export function prepareSkillDetail(
     relatedDisciplines,
     relatedTracks,
     relatedDrivers,
+    toolReferences: skill.toolReferences || [],
+    implementationReference: skill.implementationReference || null,
   };
 }
