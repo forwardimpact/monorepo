@@ -215,7 +215,7 @@ function createCliCommand(agentName) {
 
   return createCodeDisplay({
     content: command,
-    copyLabel: "📋 Copy",
+    language: "bash",
   });
 }
 

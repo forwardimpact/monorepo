@@ -8,36 +8,37 @@
 /* global Prism */
 import { div, p, span, button } from "../lib/render.js";
 
+const COPY_LABEL = "📋 Copy";
+const COPY_HTML_LABEL = "Copy as HTML";
+
 /**
  * Create a copy button that copies content to clipboard
  * @param {string} content - The text content to copy
- * @param {string} label - Button label text
- * @param {string} [className="btn btn-sm"] - Button class
  * @returns {HTMLElement}
  */
-export function createCopyButton(content, label, className = "btn btn-sm") {
+export function createCopyButton(content) {
   const btn = button(
     {
-      className: `${className} copy-btn`,
+      className: "btn btn-sm copy-btn",
       onClick: async () => {
         try {
           await navigator.clipboard.writeText(content);
           btn.textContent = "✓ Copied!";
           btn.classList.add("copied");
           setTimeout(() => {
-            btn.textContent = label;
+            btn.textContent = COPY_LABEL;
             btn.classList.remove("copied");
           }, 2000);
         } catch (err) {
           console.error("Failed to copy:", err);
           btn.textContent = "Copy failed";
           setTimeout(() => {
-            btn.textContent = label;
+            btn.textContent = COPY_LABEL;
           }, 2000);
         }
       },
     },
-    label,
+    COPY_LABEL,
   );
   return btn;
 }
@@ -45,10 +46,9 @@ export function createCopyButton(content, label, className = "btn btn-sm") {
 /**
  * Create a copy button that copies HTML to clipboard (for rich text pasting)
  * @param {string} html - The HTML content to copy
- * @param {string} label - Button label text
  * @returns {HTMLElement}
  */
-export function createCopyHtmlButton(html, label) {
+function createCopyHtmlButton(html) {
   const btn = button(
     {
       className: "btn btn-sm btn-secondary copy-btn",
@@ -60,19 +60,19 @@ export function createCopyHtmlButton(html, label) {
           btn.textContent = "✓ Copied!";
           btn.classList.add("copied");
           setTimeout(() => {
-            btn.textContent = label;
+            btn.textContent = COPY_HTML_LABEL;
             btn.classList.remove("copied");
           }, 2000);
         } catch (err) {
           console.error("Failed to copy:", err);
           btn.textContent = "Copy failed";
           setTimeout(() => {
-            btn.textContent = label;
+            btn.textContent = COPY_HTML_LABEL;
           }, 2000);
         }
       },
     },
-    label,
+    COPY_HTML_LABEL,
   );
   return btn;
 }
@@ -81,24 +81,20 @@ export function createCopyHtmlButton(html, label) {
  * Create a code display component with syntax highlighting and copy button
  * @param {Object} options
  * @param {string} options.content - The code content to display
- * @param {string} [options.language] - Language for syntax highlighting (e.g., "markdown", "yaml")
+ * @param {string} [options.language="markdown"] - Language for syntax highlighting
  * @param {string} [options.filename] - Optional filename to display in header
  * @param {string} [options.description] - Optional description text
- * @param {string} [options.copyLabel="📋 Copy"] - Label for the copy button
- * @param {Function} [options.toHtml] - Optional function to convert content to HTML for rich copy
- * @param {string} [options.copyHtmlLabel="Copy as HTML"] - Label for HTML copy button
+ * @param {Function} [options.toHtml] - Function to convert content to HTML (enables "Copy as HTML" button)
  * @param {number} [options.minHeight] - Optional minimum height in pixels
  * @param {number} [options.maxHeight] - Optional maximum height in pixels
  * @returns {HTMLElement}
  */
 export function createCodeDisplay({
   content,
-  language,
+  language = "markdown",
   filename,
   description,
-  copyLabel = "📋 Copy",
   toHtml,
-  copyHtmlLabel = "Copy as HTML",
   minHeight,
   maxHeight,
 }) {
@@ -133,9 +129,9 @@ export function createCodeDisplay({
   }
 
   // Build buttons
-  const buttons = [createCopyButton(content, copyLabel)];
+  const buttons = [createCopyButton(content)];
   if (toHtml) {
-    buttons.push(createCopyHtmlButton(toHtml(content), copyHtmlLabel));
+    buttons.push(createCopyHtmlButton(toHtml(content)));
   }
 
   // Only show header if there's content for it
@@ -161,27 +157,20 @@ export function createCodeDisplay({
  * @param {Object} options
  * @param {string} options.markdown - The markdown content to display
  * @param {string} [options.description] - Optional description text above the textarea
- * @param {string} [options.copyLabel="Copy Markdown"] - Label for the copy button
- * @param {Function} [options.toHtml] - Optional function to convert markdown to HTML for rich copy
- * @param {string} [options.copyHtmlLabel="Copy as HTML"] - Label for the HTML copy button
+ * @param {Function} [options.toHtml] - Function to convert markdown to HTML (enables "Copy as HTML" button)
  * @param {number} [options.minHeight=300] - Minimum height in pixels
  * @returns {HTMLElement}
  */
 export function createMarkdownTextarea({
   markdown,
   description,
-  copyLabel = "Copy Markdown",
   toHtml,
-  copyHtmlLabel = "Copy as HTML",
   minHeight = 300,
 }) {
   return createCodeDisplay({
     content: markdown,
-    language: "markdown",
     description,
-    copyLabel,
     toHtml,
-    copyHtmlLabel,
     minHeight,
   });
 }
