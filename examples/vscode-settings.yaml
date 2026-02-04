@@ -1,3 +1,4 @@
+# Enable coding agent
 chat.agent.enabled: true
 
 # Maximum requests per agent session (high limit for complex tasks)
@@ -15,3 +16,6 @@ chat.customAgentInSubagent.enabled: true
 
 # Enable agent skills for enhanced agent capabilities
 chat.useAgentSkills: true
+
+# Enable skill adherence prompt to improve agent compliance with defined skills
+chat.experimental.useSkillAdherencePrompt: true

@@ -34,10 +34,17 @@ handoffs:
 
 {{/priority}}
 {{#hasSkills}}
-## Available Skills
+## Available Skills and Tools
 
-IMPORTANT: Before starting work, read the relevant skill file for project-specific
-guidance. Do not rely solely on pre-training knowledge.
+**IMPORTANT:** Before starting work, read the relevant skill file for
+project-specific guidance, tools and technology recommendations. Do not rely
+solely on pre-training knowledge.
+
+Skills represent validated organizational patterns. When a skill recommends
+specific tools in its "Recommended Tools" section, use them unless a blocking
+constraint exists. If you choose a different tool, document in your output:
+(1) which skill recommendation you're overriding, (2) the constraint preventing
+use, and (3) trade-offs of the alternative.
 
 | Skill | Location | Use When |
 |-------|----------|----------|
