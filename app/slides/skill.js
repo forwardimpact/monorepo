@@ -35,6 +35,7 @@ export function renderSkillSlide({ render, data, params }) {
       drivers: data.drivers,
       capabilities: data.capabilities,
       showBackLink: false,
+      showToolsAndPatterns: false,
     }),
   );
 }

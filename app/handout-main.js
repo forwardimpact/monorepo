@@ -227,6 +227,7 @@ function renderSkillHandout(data) {
       drivers: data.drivers,
       capabilities: data.capabilities,
       showBackLink: false,
+      showToolsAndPatterns: false,
     });
   });
 

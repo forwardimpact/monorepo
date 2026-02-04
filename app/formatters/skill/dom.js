@@ -32,11 +32,19 @@ import { createJsonLdScript, skillToJsonLd } from "../json-ld.js";
  * @param {Array} context.drivers - All drivers
  * @param {Array} context.capabilities - Capability entities
  * @param {boolean} [context.showBackLink=true] - Whether to show back navigation link
+ * @param {boolean} [context.showToolsAndPatterns=true] - Whether to show recommended tools and implementation patterns
  * @returns {HTMLElement}
  */
 export function skillToDOM(
   skill,
-  { disciplines, tracks, drivers, capabilities, showBackLink = true } = {},
+  {
+    disciplines,
+    tracks,
+    drivers,
+    capabilities,
+    showBackLink = true,
+    showToolsAndPatterns = true,
+  } = {},
 ) {
   const view = prepareSkillDetail(skill, {
     disciplines,
@@ -97,60 +105,6 @@ export function skillToDOM(
         ),
       ),
     ),
-
-    // Recommended Tools
-    view.toolReferences.length > 0
-      ? div(
-          { className: "detail-section" },
-          heading2({ className: "section-title" }, "Recommended Tools"),
-          table(
-            { className: "tools-table" },
-            thead({}, tr({}, th({}, "Tool"), th({}, "Use When"))),
-            tbody(
-              {},
-              ...view.toolReferences.map((tool) =>
-                tr(
-                  {},
-                  td(
-                    {},
-                    tool.url
-                      ? a(
-                          {
-                            href: tool.url,
-                            target: "_blank",
-                            rel: "noopener noreferrer",
-                          },
-                          tool.name,
-                        )
-                      : tool.name,
-                  ),
-                  td({}, tool.useWhen),
-                ),
-              ),
-            ),
-          ),
-          showBackLink
-            ? p(
-                { className: "see-all-link" },
-                a({ href: "#/tool" }, "See all tools →"),
-              )
-            : null,
-        )
-      : null,
-
-    // Implementation Reference
-    view.implementationReference
-      ? div(
-          { className: "detail-section" },
-          heading2({ className: "section-title" }, "Implementation Patterns"),
-          createCodeDisplay({
-            content: view.implementationReference,
-            description:
-              "Project-specific implementation guidance for this skill.",
-            minHeight: 450,
-          }),
-        )
-      : null,
 
     // Used in Disciplines and Linked to Drivers in two columns
     view.relatedDisciplines.length > 0 || view.relatedDrivers.length > 0
@@ -220,6 +174,60 @@ export function skillToDOM(
               ),
             ),
           ),
+        )
+      : null,
+
+    // Recommended Tools
+    showToolsAndPatterns && view.toolReferences.length > 0
+      ? div(
+          { className: "detail-section" },
+          heading2({ className: "section-title" }, "Recommended Tools"),
+          table(
+            { className: "tools-table" },
+            thead({}, tr({}, th({}, "Tool"), th({}, "Use When"))),
+            tbody(
+              {},
+              ...view.toolReferences.map((tool) =>
+                tr(
+                  {},
+                  td(
+                    {},
+                    tool.url
+                      ? a(
+                          {
+                            href: tool.url,
+                            target: "_blank",
+                            rel: "noopener noreferrer",
+                          },
+                          tool.name,
+                        )
+                      : tool.name,
+                  ),
+                  td({}, tool.useWhen),
+                ),
+              ),
+            ),
+          ),
+          showBackLink
+            ? p(
+                { className: "see-all-link" },
+                a({ href: "#/tool" }, "See all tools →"),
+              )
+            : null,
+        )
+      : null,
+
+    // Implementation Reference
+    showToolsAndPatterns && view.implementationReference
+      ? div(
+          { className: "detail-section" },
+          heading2({ className: "section-title" }, "Implementation Patterns"),
+          createCodeDisplay({
+            content: view.implementationReference,
+            description:
+              "Project-specific implementation guidance for this skill.",
+            minHeight: 450,
+          }),
         )
       : null,
   );
