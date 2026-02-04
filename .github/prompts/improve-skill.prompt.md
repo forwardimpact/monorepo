@@ -37,8 +37,10 @@ Check that `toolReferences`:
 
 - Include all tools used in `implementationReference` code samples
 - Have accurate, concise `description` fields
-- Have specific `useWhen` guidance (not generic)
+- Have specific `useWhen` guidance relevant to each skill (not generic)
 - Include `url` for official documentation where available
+- Include `icon` field where appropriate using Simple Icons names (use `task`,
+  `python`, `typescript` as generic fallbacks)
 - Don't include tools not actually used in the implementation
 
 ### Implementation Reference Review

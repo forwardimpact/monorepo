@@ -11,12 +11,12 @@ import { getConceptEmoji } from "../model/levels.js";
 
 /**
  * Map stage to card configuration
- * @param {Object} stage - Prepared stage item (includes emoji)
+ * @param {Object} stage - Prepared stage item (includes emojiIcon)
  * @returns {Object} Card configuration
  */
 function stageToCardConfig(stage) {
   return {
-    title: `${stage.emoji} ${stage.name}`,
+    title: `${stage.emojiIcon} ${stage.name}`,
     description: stage.truncatedDescription,
     href: `/stage/${stage.id}`,
   };
@@ -24,7 +24,7 @@ function stageToCardConfig(stage) {
 
 /**
  * Create lifecycle flow visualization
- * @param {Array} stages - Array of stage items (each includes emoji)
+ * @param {Array} stages - Array of stage items (each includes emojiIcon)
  * @returns {HTMLElement}
  */
 function createLifecycleFlow(stages) {
@@ -35,7 +35,7 @@ function createLifecycleFlow(stages) {
       { className: "lifecycle-flow-item" },
       a(
         { href: `#/stage/${stage.id}`, className: "lifecycle-stage" },
-        span({ className: "lifecycle-emoji" }, stage.emoji),
+        span({ className: "lifecycle-emoji" }, stage.emojiIcon),
         span({ className: "lifecycle-name" }, stage.name),
       ),
       !isLast ? span({ className: "lifecycle-arrow" }, "→") : null,

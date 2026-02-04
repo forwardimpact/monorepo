@@ -181,13 +181,40 @@ export function toolToCardConfig(tool, capabilities) {
   // Create skills list as card content
   const skillsList = createSkillsList(tool.usages, capabilities);
 
+  // Create icon element if available
+  const icon = tool.simpleIcon
+    ? createToolIcon(tool.simpleIcon, tool.name)
+    : null;
+
   return {
     title: tool.name,
     description: tool.description,
     // Docs link in header badges (upper right)
     badges: tool.url ? [createExternalLink("Docs →", tool.url)] : [],
     content: skillsList,
+    icon,
   };
+}
+
+/**
+ * Create a tool icon element using Simple Icons CDN
+ * @param {string} slug - Simple Icons slug (e.g., 'terraform', 'docker')
+ * @param {string} name - Tool name for alt text
+ * @returns {HTMLElement}
+ */
+export function createToolIcon(slug, name) {
+  const img = document.createElement("img");
+  // Use black color for consistent monochrome appearance
+  img.src = `https://cdn.simpleicons.org/${slug}/000000`;
+  img.alt = `${name} icon`;
+  img.className = "tool-icon";
+  img.width = 28;
+  img.height = 28;
+  // Gracefully handle missing icons
+  img.onerror = () => {
+    img.style.display = "none";
+  };
+  return img;
 }
 
 /**

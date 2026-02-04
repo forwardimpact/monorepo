@@ -13,6 +13,7 @@ import { div, h3, p, span } from "../lib/render.js";
  * @param {HTMLElement[]} [options.badges] - Badges to display
  * @param {HTMLElement[]} [options.meta] - Meta information
  * @param {HTMLElement} [options.content] - Additional content
+ * @param {HTMLElement} [options.icon] - Icon element to display
  * @param {string} [options.className] - Additional CSS class
  * @returns {HTMLElement}
  */
@@ -23,13 +24,22 @@ export function createCard({
   badges = [],
   meta = [],
   content,
+  icon,
   className = "",
 }) {
   const isClickable = !!href;
 
+  const titleContent = icon
+    ? div(
+        { className: "card-title-with-icon" },
+        icon,
+        h3({ className: "card-title" }, title),
+      )
+    : h3({ className: "card-title" }, title);
+
   const cardHeader = div(
     { className: "card-header" },
-    h3({ className: "card-title" }, title),
+    titleContent,
     badges.length > 0 ? div({ className: "card-badges" }, ...badges) : null,
   );
 

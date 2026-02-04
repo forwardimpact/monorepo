@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://schema.forwardimpact.team/json/capability.schema.json
 
 name: Delivery
-emoji: 🚀
+emojiIcon: 🚀
 displayOrder: 1
 description: |
   Building and shipping solutions that solve real problems.
@@ -271,6 +271,7 @@ skills:
     toolReferences:
       - name: Terraform
         url: https://developer.hashicorp.com/terraform/docs
+        simpleIcon: terraform
         description: Infrastructure as code tool
         useWhen: Provisioning and managing cloud infrastructure
       - name: CloudFormation
@@ -279,6 +280,7 @@ skills:
         useWhen: Managing AWS infrastructure as code
       - name: Docker
         url: https://docs.docker.com/
+        simpleIcon: docker
         description: Container platform
         useWhen: Containerizing applications or managing container environments
     implementationReference: |

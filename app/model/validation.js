@@ -1239,12 +1239,12 @@ function validateCapability(capability, index) {
       ),
     );
   }
-  if (!capability.emoji) {
+  if (!capability.emojiIcon) {
     warnings.push(
       createWarning(
         "MISSING_OPTIONAL",
-        "Capability missing emoji",
-        `${path}.emoji`,
+        "Capability missing emojiIcon",
+        `${path}.emojiIcon`,
       ),
     );
   }

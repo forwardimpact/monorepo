@@ -94,7 +94,7 @@ export async function runServeCommand({ dataDir, options }) {
     framework = await loadFrameworkConfig(dataDir);
   } catch {
     // Fallback if framework config fails
-    framework = { emoji: "🚀", title: "Engineering Pathway" };
+    framework = { emojiIcon: "🚀", title: "Engineering Pathway" };
   }
 
   // Generate _index.yaml files before serving
@@ -136,7 +136,7 @@ export async function runServeCommand({ dataDir, options }) {
 
   server.listen(port, () => {
     console.log(`
-${framework.emoji} ${framework.title} running at http://localhost:${port}
+${framework.emojiIcon} ${framework.title} running at http://localhost:${port}
 📁 Data directory: ${dataDir}
 
 Press Ctrl+C to stop the server.

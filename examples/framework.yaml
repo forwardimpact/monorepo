@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://schema.forwardimpact.team/json/framework.schema.json
 
 title: Engineering Pathway
-emoji: "🧭"
+emojiIcon: "🧭"
 tag: "#AcmeCorp"
 description: |
   A unified framework for human and AI collaboration in engineering. Define roles, track skills and behaviours, build career paths, and generate AI coding agents—all from the same coherent foundation. The pathway aligns human capabilities with AI assistance, enabling productive teams in the AI era.
@@ -10,60 +10,60 @@ description: |
 entityDefinitions:
   driver:
     title: Drivers
-    emoji: "🎯"
+    emojiIcon: "🎯"
     description: |
       Organizational outcomes that productive teams achieve. Drivers link skills and behaviours to business value, helping teams understand how their capabilities contribute to organizational success.
 
   skill:
     title: Skills
-    emoji: "💡"
+    emojiIcon: "💡"
     description: |
       Capabilities required to perform work effectively. Skills are organized by capability and measured across five levels from Awareness to Expert. They form the foundation of technical and professional competence.
 
   behaviour:
     title: Behaviours
-    emoji: "🧠"
+    emojiIcon: "🧠"
     description: |
       Mindsets and ways of working that underpin effective application of skills. Behaviours are measured across five maturity levels from Emerging to Exemplifying. They describe how engineers approach their work, collaborate with others, and drive outcomes.
 
   discipline:
     title: Disciplines
-    emoji: "🔧"
+    emojiIcon: "🔧"
     description: |
       Engineering specializations that define T-shaped skill profiles. Each discipline specifies primary skills for deep expertise, secondary skills for supporting capabilities, and broad skills for general awareness. Disciplines answer the question: "What kind of engineer are you?"
 
   grade:
     title: Grades
-    emoji: "📊"
+    emojiIcon: "📊"
     description: |
       Career levels that define expectations for skill proficiency, behaviour maturity, and scope of impact. Grades provide a clear progression path from entry-level to distinguished leadership roles, with defined expectations at each stage.
 
   track:
     title: Tracks
-    emoji: "🛤️"
+    emojiIcon: "🛤️"
     description: |
       Work contexts that modify skill and behaviour expectations based on the nature of the role. Tracks answer the question: "Where and how do you work?" They apply modifiers to adjust expectations for different working environments and responsibilities.
 
   job:
     title: Jobs
-    emoji: "📋"
+    emojiIcon: "📋"
     description: |
       Complete role specifications that combine discipline, track, and grade into actionable job definitions with skill matrices, behaviour profiles, and derived responsibilities. Jobs represent the practical application of the framework to define concrete engineering positions.
 
   agent:
     title: Agents
-    emoji: "🤖"
+    emojiIcon: "🤖"
     description: |
       AI coding agent configurations generated from the same disciplines, tracks, and skills that define human roles. Agent profiles and skills follow the GitHub Copilot specification, ensuring AI assistants understand context, constraints, and working styles aligned with human engineering expectations.
 
   stage:
     title: Stages
-    emoji: "🔄"
+    emojiIcon: "🔄"
     description: |
       Defined phases of the engineering lifecycle that structure work from planning through delivery and review. Stages provide context for AI agents and define entry criteria, exit criteria, and appropriate handoffs between phases.
 
   tool:
     title: Tools
-    emoji: "🔧"
+    emojiIcon: "🔧"
     description: |
       Recommended tools and utilities referenced by skills for effective engineering workflows. Tools are linked to specific skills with guidance on when and how to use them, surfacing best practices directly in skill definitions.

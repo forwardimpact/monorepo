@@ -198,7 +198,7 @@ const testCategories = [
   {
     id: "scale",
     name: "Scale",
-    emoji: "📐",
+    emojiIcon: "📐",
     order: 1,
     description: "Building systems that grow gracefully",
     professionalResponsibilities: {
@@ -219,7 +219,7 @@ const testCategories = [
   {
     id: "ai",
     name: "AI",
-    emoji: "🤖",
+    emojiIcon: "🤖",
     order: 2,
     description: "Leveraging artificial intelligence",
     professionalResponsibilities: {
@@ -240,7 +240,7 @@ const testCategories = [
   {
     id: "people",
     name: "People",
-    emoji: "👥",
+    emojiIcon: "👥",
     order: 3,
     description: "Growing individuals and teams",
     professionalResponsibilities: {
@@ -521,12 +521,12 @@ describe("Framework emoji function", () => {
   describe("getConceptEmoji", () => {
     const testFramework = {
       entityDefinitions: {
-        driver: { emoji: "🎯" },
-        skill: { emoji: "💼" },
-        behaviour: { emoji: "🧠" },
-        discipline: { emoji: "🔧" },
-        grade: { emoji: "📊" },
-        track: { emoji: "🛤️" },
+        driver: { emojiIcon: "🎯" },
+        skill: { emojiIcon: "💼" },
+        behaviour: { emojiIcon: "🧠" },
+        discipline: { emojiIcon: "🔧" },
+        grade: { emojiIcon: "📊" },
+        track: { emojiIcon: "🛤️" },
       },
     };
 
@@ -635,7 +635,7 @@ describe("deriveResponsibilities", () => {
       skillMatrix,
       capabilities: testCategories,
     });
-    assert.strictEqual(result[0].emoji, "📐");
+    assert.strictEqual(result[0].emojiIcon, "📐");
   });
 });
 
@@ -997,7 +997,7 @@ describe("Validation", () => {
         disciplines: [testDiscipline],
         tracks: [testTrack],
         grades: [testGrade],
-        capabilities: [{ name: "No ID", emoji: "🚀" }],
+        capabilities: [{ name: "No ID", emojiIcon: "🚀" }],
       });
 
       assert.strictEqual(result.valid, false);
@@ -3015,9 +3015,9 @@ describe("Checklist Derivation", () => {
   ];
 
   const testCapabilities = [
-    { id: "scale", name: "Scale", emoji: "📐" },
-    { id: "reliability", name: "Reliability", emoji: "🛡️" },
-    { id: "people", name: "People", emoji: "👥" },
+    { id: "scale", name: "Scale", emojiIcon: "📐" },
+    { id: "reliability", name: "Reliability", emojiIcon: "🛡️" },
+    { id: "people", name: "People", emojiIcon: "👥" },
   ];
 
   const testSkillMatrix = [
@@ -3042,7 +3042,7 @@ describe("Checklist Derivation", () => {
         "Architecture documented",
         "Trade-offs explicit",
       ]);
-      assert.strictEqual(archChecklist.capability.emoji, "📐");
+      assert.strictEqual(archChecklist.capability.emojiIcon, "📐");
     });
 
     it("excludes skills without agent.stages", () => {
@@ -3101,7 +3101,7 @@ describe("Checklist Derivation", () => {
       const checklist = [
         {
           skill: { id: "arch", name: "Architecture" },
-          capability: { id: "scale", name: "Scale", emoji: "📐" },
+          capability: { id: "scale", name: "Scale", emojiIcon: "📐" },
           items: ["Item 1", "Item 2"],
         },
       ];

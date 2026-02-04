@@ -10,7 +10,7 @@ import { truncate } from "../shared.js";
  * @typedef {Object} StageListItem
  * @property {string} id
  * @property {string} name
- * @property {string} emoji
+ * @property {string} emojiIcon
  * @property {string} description
  * @property {string} truncatedDescription
  * @property {Array<{target: string, label: string}>} handoffs
@@ -27,7 +27,7 @@ export function prepareStagesList(stages, descriptionLimit = 150) {
     return {
       id: stage.id,
       name: stage.name,
-      emoji: stage.emoji,
+      emojiIcon: stage.emojiIcon,
       description: stage.description,
       truncatedDescription: truncate(stage.description, descriptionLimit),
       handoffs: (stage.handoffs || []).map((h) => ({
@@ -80,5 +80,5 @@ export function prepareStageDetail(stage) {
  */
 export function getStageEmoji(stages, stageId) {
   const stage = stages.find((s) => s.id === stageId);
-  return stage?.emoji;
+  return stage?.emojiIcon;
 }

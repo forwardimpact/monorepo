@@ -56,5 +56,5 @@ export const runGradeCommand = createEntityCommand({
   presentDetail: (entity) => entity,
   formatSummary,
   formatDetail,
-  emoji: "📊",
+  emojiIcon: "📊",
 });

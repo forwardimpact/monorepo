@@ -98,7 +98,7 @@ const baseSkillCommand = createEntityCommand({
   }),
   formatSummary,
   formatDetail,
-  emoji: "📚",
+  emojiIcon: "📚",
 });
 
 /**

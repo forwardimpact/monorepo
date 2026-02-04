@@ -54,5 +54,5 @@ export const runDisciplineCommand = createEntityCommand({
   }),
   formatSummary,
   formatDetail,
-  emoji: "📋",
+  emojiIcon: "📋",
 });

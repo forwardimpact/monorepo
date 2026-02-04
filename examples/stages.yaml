@@ -2,7 +2,7 @@
 
 - id: specify
   name: Specify
-  emoji: "🎯"
+  emojiIcon: "🎯"
   description:
     Define What and Why - User stories, acceptance criteria, requirements
   handoffs:
@@ -28,7 +28,7 @@
 
 - id: plan
   name: Plan
-  emoji: "📐"
+  emojiIcon: "📐"
   description:
     Define How - Technology choices, architecture, contracts, data models
   handoffs:
@@ -57,7 +57,7 @@
 
 - id: code
   name: Code
-  emoji: "💻"
+  emojiIcon: "💻"
   description: Build and Iterate - Implement, test, refine
   handoffs:
     - targetStage: review
@@ -78,7 +78,7 @@
 
 - id: review
   name: Review
-  emoji: "🔍"
+  emojiIcon: "🔍"
   description: Verify and Ship - Review, approve, document
   handoffs:
     - targetStage: code
@@ -109,7 +109,7 @@
 
 - id: deploy
   name: Deploy
-  emoji: "🚀"
+  emojiIcon: "🚀"
   description: Ship to Production - Push, monitor workflows, verify deployment
   handoffs:
     - targetStage: code

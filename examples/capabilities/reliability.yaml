@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://schema.forwardimpact.team/json/capability.schema.json
 
 name: Reliability
-emoji: 🛡️
+emojiIcon: 🛡️
 displayOrder: 5
 description: |
   Ensuring systems are dependable, secure, and observable.
@@ -158,10 +158,12 @@ skills:
     toolReferences:
       - name: Terraform
         url: https://developer.hashicorp.com/terraform/docs
+        simpleIcon: terraform
         description: Infrastructure as code tool
         useWhen: Provisioning and managing cloud infrastructure
       - name: Docker
         url: https://docs.docker.com/
+        simpleIcon: docker
         description: Container platform
         useWhen: Containerizing applications or managing container environments
     implementationReference: |

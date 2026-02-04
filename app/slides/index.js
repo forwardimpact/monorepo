@@ -22,7 +22,7 @@ export function renderSlideIndex({ render, data }) {
       { className: "page-header" },
       heading1(
         { className: "page-title" },
-        `${framework.emoji} ${framework.title}`,
+        `${framework.emojiIcon} ${framework.title}`,
       ),
       p(
         { className: "page-description" },

@@ -63,5 +63,5 @@ export const runTrackCommand = createEntityCommand({
   sortItems: sortTracksByName,
   formatSummary,
   formatDetail,
-  emoji: "🛤️",
+  emojiIcon: "🛤️",
 });

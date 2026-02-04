@@ -346,7 +346,7 @@ function populateBrandHeader(framework) {
   header.appendChild(
     a(
       { className: "brand-title", href: "#/" },
-      `${framework.emoji} ${framework.title}`,
+      `${framework.emojiIcon} ${framework.title}`,
     ),
   );
   header.appendChild(span({ className: "brand-tag" }, framework.tag));

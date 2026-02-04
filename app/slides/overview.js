@@ -63,14 +63,14 @@ export function renderOverviewSlide({ render, data, params }) {
   const chapterConfig = {
     driver: {
       title: framework.entityDefinitions.driver.title,
-      emoji: framework.entityDefinitions.driver.emoji,
+      emojiIcon: framework.entityDefinitions.driver.emojiIcon,
       description: framework.entityDefinitions.driver.description,
       entities: prepareDriversList(data.drivers).items,
       mapper: driverToCardConfig,
     },
     skill: {
       title: framework.entityDefinitions.skill.title,
-      emoji: framework.entityDefinitions.skill.emoji,
+      emojiIcon: framework.entityDefinitions.skill.emojiIcon,
       description: framework.entityDefinitions.skill.description,
       entities: Object.values(
         prepareSkillsList(data.skills, data.capabilities).groups,
@@ -79,14 +79,14 @@ export function renderOverviewSlide({ render, data, params }) {
     },
     behaviour: {
       title: framework.entityDefinitions.behaviour.title,
-      emoji: framework.entityDefinitions.behaviour.emoji,
+      emojiIcon: framework.entityDefinitions.behaviour.emojiIcon,
       description: framework.entityDefinitions.behaviour.description,
       entities: prepareBehavioursList(data.behaviours).items,
       mapper: behaviourToCardConfig,
     },
     discipline: {
       title: framework.entityDefinitions.discipline.title,
-      emoji: framework.entityDefinitions.discipline.emoji,
+      emojiIcon: framework.entityDefinitions.discipline.emojiIcon,
       description: framework.entityDefinitions.discipline.description,
       groups: prepareDisciplinesList(data.disciplines).groups,
       mapper: disciplineToCardConfig,
@@ -94,21 +94,21 @@ export function renderOverviewSlide({ render, data, params }) {
     },
     grade: {
       title: framework.entityDefinitions.grade.title,
-      emoji: framework.entityDefinitions.grade.emoji,
+      emojiIcon: framework.entityDefinitions.grade.emojiIcon,
       description: framework.entityDefinitions.grade.description,
       entities: prepareGradesList(data.grades).items,
       mapper: gradeToCardConfig,
     },
     track: {
       title: framework.entityDefinitions.track.title,
-      emoji: framework.entityDefinitions.track.emoji,
+      emojiIcon: framework.entityDefinitions.track.emojiIcon,
       description: framework.entityDefinitions.track.description,
       entities: prepareTracksList(data.tracks).items,
       mapper: trackToCardConfig,
     },
     job: {
       title: framework.entityDefinitions.job.title,
-      emoji: framework.entityDefinitions.job.emoji,
+      emojiIcon: framework.entityDefinitions.job.emojiIcon,
       description: framework.entityDefinitions.job.description,
       entities: generateAllJobs({
         disciplines: data.disciplines,
@@ -150,7 +150,7 @@ export function renderOverviewSlide({ render, data, params }) {
       { className: "overview-header" },
       h1(
         { className: "overview-title" },
-        config.emoji ? `${config.emoji} ` : "",
+        config.emojiIcon ? `${config.emojiIcon} ` : "",
         span({ className: "gradient-text" }, config.title),
       ),
       p({ className: "overview-description" }, config.description.trim()),

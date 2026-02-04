@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://schema.forwardimpact.team/json/capability.schema.json
 
 name: Business
-emoji: 💼
+emojiIcon: 💼
 displayOrder: 8
 description: |
   Understanding and driving business value.

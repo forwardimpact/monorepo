@@ -127,7 +127,9 @@ export function prepareSkillDetail(
     relatedDisciplines,
     relatedTracks,
     relatedDrivers,
-    toolReferences: skill.toolReferences || [],
+    toolReferences: (skill.toolReferences || [])
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name)),
     implementationReference: skill.implementationReference || null,
   };
 }

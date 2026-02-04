@@ -90,5 +90,5 @@ export const runDriverCommand = createEntityCommand({
   }),
   formatSummary,
   formatDetail,
-  emoji: "🎯",
+  emojiIcon: "🎯",
 });

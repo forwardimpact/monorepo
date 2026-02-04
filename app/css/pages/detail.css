@@ -86,7 +86,12 @@
   }
 
   .tools-table th:first-child {
-    width: 200px;
+    width: 260px;
+    white-space: nowrap;
+  }
+
+  .tools-table td:first-child {
+    white-space: nowrap;
   }
 
   .tools-table tbody tr:last-child td {

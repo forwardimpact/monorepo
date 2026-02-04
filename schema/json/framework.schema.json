@@ -10,7 +10,7 @@
       "type": "string",
       "description": "Title of the engineering pathway"
     },
-    "emoji": {
+    "emojiIcon": {
       "type": "string",
       "description": "Emoji for visual representation"
     },
@@ -40,7 +40,7 @@
           "type": "string",
           "description": "Display title for the entity"
         },
-        "emoji": {
+        "emojiIcon": {
           "type": "string",
           "description": "Emoji for visual representation"
         },

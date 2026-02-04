@@ -115,5 +115,5 @@ export const runStageCommand = createEntityCommand({
   }),
   formatSummary,
   formatDetail,
-  emoji: "🔄",
+  emojiIcon: "🔄",
 });

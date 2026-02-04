@@ -57,5 +57,5 @@ export const runBehaviourCommand = createEntityCommand({
   }),
   formatSummary,
   formatDetail,
-  emoji: "🧠",
+  emojiIcon: "🧠",
 });

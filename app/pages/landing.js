@@ -53,7 +53,7 @@ export function renderLanding() {
       { className: "landing-hero" },
       div(
         { className: "hero-title-wrapper" },
-        h1({}, `${framework.emoji} ${framework.title}`),
+        h1({}, `${framework.emojiIcon} ${framework.title}`),
         span({ className: "brand-tag brand-tag-hero" }, framework.tag),
       ),
       p({}, framework.description.trim()),

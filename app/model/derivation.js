@@ -437,7 +437,7 @@ function generateJobId(discipline, grade, track = null) {
  * @param {import('./levels.js').SkillMatrixEntry[]} params.skillMatrix - Derived skill matrix for the job
  * @param {Object[]} params.capabilities - Capability definitions with responsibilities
  * @param {import('./levels.js').Discipline} params.discipline - The discipline (determines which responsibilities to use)
- * @returns {Array<{capability: string, capabilityName: string, emoji: string, responsibility: string, level: string}>}
+ * @returns {Array<{capability: string, capabilityName: string, emojiIcon: string, responsibility: string, level: string}>}
  */
 export function deriveResponsibilities({
   skillMatrix,
@@ -484,7 +484,7 @@ export function deriveResponsibilities({
       responsibilities.push({
         capability: capabilityId,
         capabilityName: capability.name,
-        emoji: capability.emoji || "💡",
+        emojiIcon: capability.emojiIcon || "💡",
         displayOrder: capability.displayOrder ?? 999,
         responsibility: responsibilityText,
         level,

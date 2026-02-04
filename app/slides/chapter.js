@@ -20,37 +20,37 @@ export function renderChapterSlide({ render, data, params }) {
   const chapterConfig = {
     driver: {
       title: framework.entityDefinitions.driver.title,
-      emoji: framework.entityDefinitions.driver.emoji,
+      emojiIcon: framework.entityDefinitions.driver.emojiIcon,
       description: framework.entityDefinitions.driver.description,
     },
     skill: {
       title: framework.entityDefinitions.skill.title,
-      emoji: framework.entityDefinitions.skill.emoji,
+      emojiIcon: framework.entityDefinitions.skill.emojiIcon,
       description: framework.entityDefinitions.skill.description,
     },
     behaviour: {
       title: framework.entityDefinitions.behaviour.title,
-      emoji: framework.entityDefinitions.behaviour.emoji,
+      emojiIcon: framework.entityDefinitions.behaviour.emojiIcon,
       description: framework.entityDefinitions.behaviour.description,
     },
     discipline: {
       title: framework.entityDefinitions.discipline.title,
-      emoji: framework.entityDefinitions.discipline.emoji,
+      emojiIcon: framework.entityDefinitions.discipline.emojiIcon,
       description: framework.entityDefinitions.discipline.description,
     },
     grade: {
       title: framework.entityDefinitions.grade.title,
-      emoji: framework.entityDefinitions.grade.emoji,
+      emojiIcon: framework.entityDefinitions.grade.emojiIcon,
       description: framework.entityDefinitions.grade.description,
     },
     track: {
       title: framework.entityDefinitions.track.title,
-      emoji: framework.entityDefinitions.track.emoji,
+      emojiIcon: framework.entityDefinitions.track.emojiIcon,
       description: framework.entityDefinitions.track.description,
     },
     job: {
       title: framework.entityDefinitions.job.title,
-      emoji: framework.entityDefinitions.job.emoji,
+      emojiIcon: framework.entityDefinitions.job.emojiIcon,
       description: framework.entityDefinitions.job.description,
     },
   };
@@ -72,7 +72,7 @@ export function renderChapterSlide({ render, data, params }) {
     { className: "slide chapter-cover" },
     h1(
       { className: "chapter-title" },
-      config.emoji ? `${config.emoji} ` : "",
+      config.emojiIcon ? `${config.emojiIcon} ` : "",
       span({ className: "gradient-text" }, config.title),
     ),
     p({ className: "chapter-description" }, config.description.trim()),

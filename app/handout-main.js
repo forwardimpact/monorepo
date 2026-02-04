@@ -41,17 +41,17 @@ import { sortTracksByName } from "./formatters/track/shared.js";
 /**
  * Create a chapter cover page
  * @param {Object} params
- * @param {string} params.emoji - Chapter emoji
+ * @param {string} params.emojiIcon - Chapter emoji
  * @param {string} params.title - Chapter title
  * @param {string} params.description - Chapter description
  * @returns {HTMLElement}
  */
-function createChapterCover({ emoji, title, description }) {
+function createChapterCover({ emojiIcon, title, description }) {
   return div(
     { className: "chapter-cover" },
     h1(
       { className: "chapter-title" },
-      emoji,
+      emojiIcon,
       " ",
       span({ className: "gradient-text" }, title),
     ),
@@ -111,7 +111,7 @@ function renderIndex(data) {
       { className: "page-header" },
       heading1(
         { className: "page-title" },
-        `${framework.emoji} ${framework.title} Handouts`,
+        `${framework.emojiIcon} ${framework.title} Handouts`,
       ),
       p(
         { className: "page-description" },
@@ -190,7 +190,7 @@ function renderDriverHandout(data) {
   const content = div(
     {},
     createChapterCover({
-      emoji: getConceptEmoji(framework, "driver"),
+      emojiIcon: getConceptEmoji(framework, "driver"),
       title: framework.entityDefinitions.driver.title,
       description: framework.entityDefinitions.driver.description,
     }),
@@ -234,7 +234,7 @@ function renderSkillHandout(data) {
   const content = div(
     {},
     createChapterCover({
-      emoji: getConceptEmoji(framework, "skill"),
+      emojiIcon: getConceptEmoji(framework, "skill"),
       title: framework.entityDefinitions.skill.title,
       description: framework.entityDefinitions.skill.description,
     }),
@@ -262,7 +262,7 @@ function renderBehaviourHandout(data) {
   const content = div(
     {},
     createChapterCover({
-      emoji: getConceptEmoji(framework, "behaviour"),
+      emojiIcon: getConceptEmoji(framework, "behaviour"),
       title: framework.entityDefinitions.behaviour.title,
       description: framework.entityDefinitions.behaviour.description,
     }),
@@ -323,7 +323,7 @@ function renderJobHandout(data) {
     {},
     // Disciplines chapter
     createChapterCover({
-      emoji: getConceptEmoji(framework, "discipline"),
+      emojiIcon: getConceptEmoji(framework, "discipline"),
       title: framework.entityDefinitions.discipline.title,
       description: framework.entityDefinitions.discipline.description,
     }),
@@ -331,7 +331,7 @@ function renderJobHandout(data) {
 
     // Grades chapter (moved before Tracks)
     createChapterCover({
-      emoji: getConceptEmoji(framework, "grade"),
+      emojiIcon: getConceptEmoji(framework, "grade"),
       title: framework.entityDefinitions.grade.title,
       description: framework.entityDefinitions.grade.description,
     }),
@@ -339,7 +339,7 @@ function renderJobHandout(data) {
 
     // Tracks chapter (moved after Grades)
     createChapterCover({
-      emoji: getConceptEmoji(framework, "track"),
+      emojiIcon: getConceptEmoji(framework, "track"),
       title: framework.entityDefinitions.track.title,
       description: framework.entityDefinitions.track.description,
     }),
@@ -394,7 +394,7 @@ function populateBrandHeader(framework) {
   header.appendChild(
     a(
       { className: "brand-title", href: "#/" },
-      `${framework.emoji} ${framework.title}`,
+      `${framework.emojiIcon} ${framework.title}`,
     ),
   );
   header.appendChild(span({ className: "brand-tag" }, framework.tag));

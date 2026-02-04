@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://schema.forwardimpact.team/json/capability.schema.json
 
 name: People
-emoji: 👥
+emojiIcon: 👥
 displayOrder: 6
 description: |
   Growing individuals and building effective teams.

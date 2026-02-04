@@ -24,7 +24,7 @@ import { capitalize } from "../formatters/shared.js";
  * @param {Function} config.formatDetail - Function to format detail output: (view, framework) => void
  * @param {Function} [config.sortItems] - Optional function to sort items: (items) => sortedItems
  * @param {Function} [config.validate] - Optional validation function: (data) => {errors: [], warnings: []}
- * @param {string} [config.emoji] - Optional emoji for the entity
+ * @param {string} [config.emojiIcon] - Optional emoji for the entity
  * @returns {Function} Command handler
  */
 export function createEntityCommand({
@@ -36,7 +36,7 @@ export function createEntityCommand({
   formatDetail,
   sortItems,
   validate,
-  _emoji = "",
+  _emojiIcon = "",
 }) {
   return async function runCommand({ data, args, options }) {
     const [id] = args;

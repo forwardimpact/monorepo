@@ -72,7 +72,7 @@ export function deriveChecklist({
       capability: {
         id: capability.id,
         name: capability.name,
-        emoji: capability.emoji,
+        emojiIcon: capability.emojiIcon,
       },
       items: stageData.ready,
     });
@@ -94,7 +94,7 @@ export function formatChecklistMarkdown(checklist) {
   }
 
   const sections = checklist.map(({ skill, capability, items }) => {
-    const header = `**${capability.emoji} ${skill.name}**`;
+    const header = `**${capability.emojiIcon} ${skill.name}**`;
     const itemList = items.map((item) => `- [ ] ${item}`).join("\n");
     return `${header}\n\n${itemList}`;
   });

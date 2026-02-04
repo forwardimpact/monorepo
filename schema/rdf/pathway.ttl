@@ -269,8 +269,8 @@ fit:description a rdf:Property ;
     rdfs:comment "Description text"@en ;
     rdfs:range xsd:string .
 
-fit:emoji a rdf:Property ;
-    rdfs:label "emoji"@en ;
+fit:emojiIcon a rdf:Property ;
+    rdfs:label "emojiIcon"@en ;
     rdfs:comment "Emoji for visual representation"@en ;
     rdfs:range xsd:string .
 
@@ -429,6 +429,12 @@ fit:toolUrl a rdf:Property ;
     rdfs:comment "URL to tool documentation"@en ;
     rdfs:domain fit:ToolReference ;
     rdfs:range xsd:anyURI .
+
+fit:simpleIcon a rdf:Property ;
+    rdfs:label "simpleIcon"@en ;
+    rdfs:comment "Simple Icons slug for the tool icon"@en ;
+    rdfs:domain fit:ToolReference ;
+    rdfs:range xsd:string .
 
 fit:toolDescription a rdf:Property ;
     rdfs:label "toolDescription"@en ;
@@ -934,10 +940,10 @@ fit:CapabilityShape a sh:NodeShape ;
         sh:description "Human-readable capability name" ;
     ] ;
     sh:property [
-        sh:path fit:emoji ;
+        sh:path fit:emojiIcon ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:name "emoji" ;
+        sh:name "emojiIcon" ;
         sh:description "Emoji for visual representation" ;
     ] ;
     sh:property [
@@ -1097,6 +1103,14 @@ fit:ToolReferenceShape a sh:NodeShape ;
         sh:maxCount 1 ;
         sh:name "url" ;
         sh:description "Link to tool documentation" ;
+    ] ;
+    sh:property [
+        sh:path fit:simpleIcon ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z0-9]+$" ;
+        sh:maxCount 1 ;
+        sh:name "simpleIcon" ;
+        sh:description "Simple Icons slug for the tool icon" ;
     ] ;
     sh:property [
         sh:path fit:toolDescription ;
@@ -1982,10 +1996,10 @@ fit:StageShape a sh:NodeShape ;
         sh:description "Human-readable stage name" ;
     ] ;
     sh:property [
-        sh:path fit:emoji ;
+        sh:path fit:emojiIcon ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:name "emoji" ;
+        sh:name "emojiIcon" ;
         sh:description "Emoji for visual representation" ;
     ] ;
     sh:property [
@@ -2105,10 +2119,10 @@ fit:FrameworkShape a sh:NodeShape ;
         sh:description "Title of the engineering pathway" ;
     ] ;
     sh:property [
-        sh:path fit:emoji ;
+        sh:path fit:emojiIcon ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:name "emoji" ;
+        sh:name "emojiIcon" ;
         sh:description "Emoji for visual representation" ;
     ] ;
     sh:property [
@@ -2155,10 +2169,10 @@ fit:EntityDefinitionShape a sh:NodeShape ;
         sh:description "Display title for the entity" ;
     ] ;
     sh:property [
-        sh:path fit:emoji ;
+        sh:path fit:emojiIcon ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:name "emoji" ;
+        sh:name "emojiIcon" ;
         sh:description "Emoji for visual representation" ;
     ] ;
     sh:property [

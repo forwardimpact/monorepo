@@ -228,7 +228,7 @@ export function stageToJsonLd(stage) {
     identifier: stage.id,
     name: stage.name,
     description: stage.description,
-    ...(stage.emoji && { emoji: stage.emoji }),
+    ...(stage.emojiIcon && { emojiIcon: stage.emojiIcon }),
     ...(stage.tools?.length > 0 && { tools: stage.tools }),
     ...(stage.constraints?.length > 0 && { constraints: stage.constraints }),
     ...(stage.handoffs && {

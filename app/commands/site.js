@@ -58,11 +58,11 @@ export async function runSiteCommand({ dataDir, options }) {
   try {
     framework = await loadFrameworkConfig(dataDir);
   } catch {
-    framework = { emoji: "🚀", title: "Engineering Pathway" };
+    framework = { emojiIcon: "🚀", title: "Engineering Pathway" };
   }
 
   console.log(`
-${framework.emoji} Generating ${framework.title} static site...
+${framework.emojiIcon} Generating ${framework.title} static site...
 `);
 
   // Clean output directory if requested

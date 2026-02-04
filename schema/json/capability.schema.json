@@ -15,7 +15,7 @@
       "type": "string",
       "description": "Human-readable capability name"
     },
-    "emoji": {
+    "emojiIcon": {
       "type": "string",
       "description": "Emoji for visual representation"
     },
@@ -113,6 +113,11 @@
           "type": "string",
           "format": "uri",
           "description": "Link to tool documentation"
+        },
+        "simpleIcon": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+$",
+          "description": "Simple Icons slug for the tool icon (e.g., 'terraform', 'docker')"
         },
         "description": {
           "type": "string",

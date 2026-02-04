@@ -40,6 +40,30 @@
     font-size: var(--font-size-lg);
   }
 
+  .card-title-with-icon {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .card-title-with-icon .card-title {
+    margin: 0;
+  }
+
+  /* Tool icons */
+  .tool-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+
+  /* Tool name cell with icon */
+  .tool-name-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
   .card-description {
     color: var(--color-text-muted);
     margin: 0;

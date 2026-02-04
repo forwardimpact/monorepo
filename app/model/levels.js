@@ -220,7 +220,7 @@ export function getCapabilityOrder(capabilities) {
  */
 export function getCapabilityEmoji(capabilities, capabilityId) {
   const capability = getCapabilityById(capabilities, capabilityId);
-  return capability?.emoji || "💡";
+  return capability?.emojiIcon || "💡";
 }
 
 /**
@@ -597,5 +597,5 @@ export function behaviourMaturityMeetsRequirement(actual, required) {
  * @returns {string} The emoji for the concept or default "💡"
  */
 export function getConceptEmoji(framework, concept) {
-  return framework?.entityDefinitions?.[concept]?.emoji || "💡";
+  return framework?.entityDefinitions?.[concept]?.emojiIcon || "💡";
 }

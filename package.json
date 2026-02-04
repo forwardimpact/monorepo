@@ -59,6 +59,7 @@
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "mustache": "^4.2.0",
+    "simple-icons": "^16.7.0",
     "yaml": "^2.3.4"
   },
   "devDependencies": {
