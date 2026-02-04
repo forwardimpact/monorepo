@@ -103,13 +103,15 @@
     color: var(--color-primary);
   }
 
-  /* Markdown display - read-only code block with copy buttons */
+  /* Code display - unified component for code/markdown with copy buttons */
+  .code-display-container,
   .markdown-textarea-container {
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
+    gap: var(--space-sm);
   }
 
+  .code-display-header,
   .markdown-textarea-header {
     display: flex;
     justify-content: space-between;
@@ -118,20 +120,27 @@
     gap: var(--space-md);
   }
 
-  .markdown-textarea-header .text-muted {
-    margin: 0;
+  .code-display-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
     flex: 1;
     min-width: 200px;
   }
 
-  .markdown-textarea-header .filename {
+  .code-display-info .text-muted,
+  .markdown-textarea-header .text-muted {
+    margin: 0;
+  }
+
+  .code-display-filename {
     font-family:
       ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
-    margin: 0;
   }
 
+  .code-display,
   .markdown-display {
     width: 100%;
     margin: 0;
@@ -149,6 +158,7 @@
     word-wrap: break-word;
   }
 
+  .code-display code,
   .markdown-display code {
     background: transparent;
     padding: 0;

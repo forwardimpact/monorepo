@@ -16,7 +16,7 @@ import {
   details,
   summary,
 } from "../../lib/render.js";
-import { createMarkdownTextarea } from "../../components/markdown-textarea.js";
+import { createCodeDisplay } from "../../components/markdown-textarea.js";
 import { formatAgentProfile } from "./profile.js";
 import { formatAgentSkill } from "./skill.js";
 import { getStageEmoji } from "../stage/shared.js";
@@ -55,12 +55,10 @@ export function agentDeploymentToDOM({
     section(
       { className: "agent-section" },
       h2({}, "Agent Profile"),
-      createMarkdownTextarea({
+      createCodeDisplay({
         content: profileContent,
         filename: profile.filename,
-        language: "plaintext",
-        copyLabel: "📋 Copy",
-        minHeight: 450,
+        maxHeight: 600,
       }),
     ),
 
@@ -158,12 +156,10 @@ function createSkillCard(skill) {
 
   return div(
     { className: "skill-card" },
-    createMarkdownTextarea({
+    createCodeDisplay({
       content,
       filename,
-      language: "plaintext",
-      copyLabel: "📋 Copy",
-      minHeight: 300,
+      maxHeight: 300,
     }),
   );
 }
@@ -196,11 +192,9 @@ function createRoleAgentCard(agent) {
         { className: "text-muted role-description" },
         agent.frontmatter.description,
       ),
-      createMarkdownTextarea({
+      createCodeDisplay({
         content,
-        language: "plaintext",
-        copyLabel: "📋 Copy",
-        minHeight: 300,
+        maxHeight: 400,
       }),
     ),
   );
@@ -219,12 +213,9 @@ function createCliCommand(agentName) {
 
   const command = `npx pathway agent ${discipline} ${track} --output=.github --all-roles`;
 
-  return createMarkdownTextarea({
+  return createCodeDisplay({
     content: command,
-    language: "bash",
     copyLabel: "📋 Copy",
-    minHeight: 60,
-    className: "cli-command",
   });
 }
 
@@ -411,12 +402,10 @@ export function stageAgentToDOM(stageAgent, profile, options = {}) {
     section(
       { className: "agent-section" },
       h3({}, "Agent Profile"),
-      createMarkdownTextarea({
+      createCodeDisplay({
         content: profileContent,
         filename: profile.filename,
-        language: "plaintext",
-        copyLabel: "📋 Copy",
-        minHeight: 450,
+        maxHeight: 600,
       }),
     ),
 
