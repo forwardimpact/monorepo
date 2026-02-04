@@ -14,7 +14,9 @@ Skills with `agent:` sections generate SKILL.md files using
 Because the template handles tool rendering separately, the
 `implementationReference` must NOT duplicate tool information.
 
-## Core Principle: Outcome-Oriented Instructions
+## Core Principles
+
+### Outcome-Oriented Instructions
 
 Skills exist to help someone achieve an outcome. The `implementationReference`
 should provide **clear step-by-step instructions** that guide the reader from
@@ -22,6 +24,13 @@ start to finish—not a scattered collection of code snippets or best practices.
 
 Ask: _"If I follow these instructions, will I achieve the skill's stated
 purpose?"_
+
+### Minimal Essential Tooling
+
+Recommend only the **core tools required** to achieve the skill's outcome. A
+focused set of 2-4 essential tools is more valuable than an exhaustive list.
+
+Ask: _"Could someone complete this skill without this tool?"_ If yes, omit it.
 
 ## Your Task
 
@@ -33,15 +42,24 @@ purpose?"_
 
 ### Tool References Review
 
-Check that `toolReferences`:
+Aim for **2-4 essential tools** per skill. Check that `toolReferences`:
 
-- Include all tools used in `implementationReference` code samples
+- **Include only tools essential** to achieve the skill's core outcome
+- Include the primary tool used in `implementationReference` code samples
+- Prefer open source tools and libraries over commercial offerings (exceptions:
+  ubiquitous platforms like AWS, GitHub, Azure, GCP are fine)
 - Have accurate, concise `description` fields
-- Have specific `useWhen` guidance relevant to each skill (not generic)
+- Have specific `useWhen` guidance relevant to this skill (not generic)
 - Include `url` for official documentation where available
 - Include `icon` field where appropriate using Simple Icons names (use `task`,
   `python`, `typescript` as generic fallbacks)
-- Don't include tools not actually used in the implementation
+
+**Exclude:**
+
+- Nice-to-have tools that aren't central to the implementation
+- Alternative tools (pick one, don't list options)
+- Generic utilities (linters, formatters) unless skill-specific
+- Tools mentioned only in passing
 
 ### Implementation Reference Review
 
@@ -59,6 +77,7 @@ Check that `implementationReference`:
 
 | Problem                 | Fix                                             |
 | ----------------------- | ----------------------------------------------- |
+| Too many tools          | Keep only 2-4 essential tools for core outcome  |
 | Scattered snippets      | Restructure as numbered steps or logical flow   |
 | Tool lists in reference | Remove (already in `toolReferences`)            |
 | Code without context    | Add prose explaining what each section achieves |
@@ -184,4 +203,35 @@ toolReferences:
 toolReferences:
   - name: pytest
     useWhen: Writing unit tests for Python ML pipelines and evaluators
+```
+
+**BAD - Tool bloat (lists everything tangentially related):**
+
+```yaml
+toolReferences:
+  - name: Langfuse
+    useWhen: Tracing LLM calls
+  - name: LangSmith
+    useWhen: Alternative tracing option
+  - name: OpenTelemetry
+    useWhen: General observability
+  - name: Prometheus
+    useWhen: Metrics collection
+  - name: Grafana
+    useWhen: Dashboards
+  - name: pytest
+    useWhen: Testing
+  - name: ruff
+    useWhen: Linting
+```
+
+**GOOD - Essential tools only (focused on core outcome):**
+
+```yaml
+toolReferences:
+  - name: Langfuse
+    useWhen:
+      Instrumenting LLM pipelines with tracing and building evaluation datasets
+  - name: pytest
+    useWhen: Running evaluation test suites against traced outputs
 ```
