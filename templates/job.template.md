@@ -1,8 +1,8 @@
-# {{title}}
+# {{{title}}}
 
-- **Level:** {{gradeId}}
-- **Experience:** {{typicalExperienceRange}}
-{{#trackName}}- **Track:** {{trackName}}
+- **Level:** {{{gradeId}}}
+- **Experience:** {{{typicalExperienceRange}}}
+{{#trackName}}- **Track:** {{{trackName}}}
 {{/trackName}}
 
 ## ROLE SUMMARY
@@ -21,21 +21,21 @@
 ## ROLE RESPONSIBILITIES
 
 {{#responsibilities}}
-- **{{capabilityName}}:** {{responsibility}}
+- **{{{capabilityName}}}:** {{{responsibility}}}
 {{/responsibilities}}
 
 ## ROLE BEHAVIOURS
 
 {{#behaviours}}
-- **{{behaviourName}}:** {{maturityDescription}}
+- **{{{behaviourName}}}:** {{{maturityDescription}}}
 {{/behaviours}}
 
 {{#skillLevels}}
 
-## {{levelHeading}}
+## {{{levelHeading}}}
 
 {{#skills}}
-- **{{skillName}}:** {{levelDescription}}
+- **{{{skillName}}}:** {{{levelDescription}}}
 {{/skills}}
 
 {{/skillLevels}}
