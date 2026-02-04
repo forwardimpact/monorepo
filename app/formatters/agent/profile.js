@@ -26,7 +26,7 @@ import { trimValue, trimRequired, trimFields } from "../shared.js";
  * @param {string} params.bodyData.stageDescription - Stage description text
  * @param {string} params.bodyData.identity - Core identity text
  * @param {string} [params.bodyData.priority] - Priority/philosophy statement
- * @param {string[]} params.bodyData.capabilities - List of capability names
+ * @param {Array<{name: string, dirname: string, useWhen: string}>} params.bodyData.skillIndex - Skill index entries
  * @param {Array<{index: number, text: string}>} params.bodyData.beforeMakingChanges - Numbered steps
  * @param {string} [params.bodyData.delegation] - Delegation guidance
  * @param {string} params.bodyData.operationalContext - Operational context text
@@ -44,9 +44,13 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
 
   // Trim simple string arrays
   const constraints = (bodyData.constraints || []).map((c) => trimRequired(c));
-  const capabilities = (bodyData.capabilities || []).map((c) =>
-    trimRequired(c),
-  );
+
+  // Trim skill index entries
+  const skillIndex = (bodyData.skillIndex || []).map((s) => ({
+    name: trimRequired(s.name),
+    dirname: trimRequired(s.dirname),
+    useWhen: trimRequired(s.useWhen),
+  }));
 
   return {
     // Frontmatter
@@ -60,7 +64,8 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
     stageDescription: trimValue(bodyData.stageDescription),
     identity: trimValue(bodyData.identity),
     priority: trimValue(bodyData.priority),
-    capabilities,
+    skillIndex,
+    hasSkills: skillIndex.length > 0,
     beforeMakingChanges,
     delegation: trimValue(bodyData.delegation),
     operationalContext: trimValue(bodyData.operationalContext),
@@ -84,7 +89,7 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
  * @param {string} profile.bodyData.stageDescription - Stage description text
  * @param {string} profile.bodyData.identity - Core identity text
  * @param {string} [profile.bodyData.priority] - Priority/philosophy statement (optional)
- * @param {string[]} profile.bodyData.capabilities - List of capability names
+ * @param {Array<{name: string, dirname: string, useWhen: string}>} profile.bodyData.skillIndex - Skill index entries
  * @param {Array<{index: number, text: string}>} profile.bodyData.beforeMakingChanges - Numbered steps
  * @param {string} [profile.bodyData.delegation] - Delegation guidance (optional)
  * @param {string} profile.bodyData.operationalContext - Operational context text

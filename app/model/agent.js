@@ -320,8 +320,11 @@ function estimateBodyDataLength(bodyData) {
   }
 
   // Array fields
-  if (bodyData.capabilities) {
-    length += bodyData.capabilities.join(", ").length;
+  if (bodyData.skillIndex) {
+    for (const skill of bodyData.skillIndex) {
+      length +=
+        skill.name.length + skill.dirname.length + skill.useWhen.length + 50;
+    }
   }
   if (bodyData.beforeMakingChanges) {
     for (const item of bodyData.beforeMakingChanges) {
@@ -491,6 +494,7 @@ function getChecklistStage(stageId) {
  * @param {Array} params.derivedSkills - Skills sorted by level
  * @param {Array} params.derivedBehaviours - Behaviours sorted by maturity
  * @param {Array} params.agentBehaviours - Agent behaviour definitions
+ * @param {Array} params.skills - All skill definitions (for agent section lookup)
  * @param {string} params.checklistMarkdown - Pre-formatted checklist markdown
  * @returns {Object} Structured profile body data
  */
@@ -503,6 +507,7 @@ function buildStageProfileBodyData({
   derivedSkills,
   derivedBehaviours,
   agentBehaviours,
+  skills,
   checklistMarkdown,
 }) {
   const name = `${humanDiscipline.specialization || humanDiscipline.name} - ${humanTrack.name}`;
@@ -532,8 +537,18 @@ function buildStageProfileBodyData({
     ? substituteTemplateVars(rawDelegation, humanDiscipline)
     : null;
 
-  // Primary capabilities from derived skills
-  const capabilities = derivedSkills.slice(0, 6).map((s) => s.skillName);
+  // Build skill index from derived skills with agent sections
+  const skillIndex = derivedSkills
+    .map((derived) => {
+      const skill = skills.find((s) => s.id === derived.skillId);
+      if (!skill?.agent) return null;
+      return {
+        name: derived.skillName,
+        dirname: skill.agent.name,
+        useWhen: skill.agent.useWhen?.trim() || "",
+      };
+    })
+    .filter(Boolean);
 
   // Operational Context - use track's roleContext (shared with human job descriptions)
   const operationalContext = humanTrack.roleContext.trim();
@@ -557,7 +572,7 @@ function buildStageProfileBodyData({
     stageDescription: stage.description,
     identity: identity.trim(),
     priority: priority ? priority.trim() : null,
-    capabilities,
+    skillIndex,
     beforeMakingChanges,
     delegation: delegation ? delegation.trim() : null,
     operationalContext,
@@ -719,6 +734,7 @@ export function generateStageAgentProfile({
     derivedSkills: agent.derivedSkills,
     derivedBehaviours: agent.derivedBehaviours,
     agentBehaviours,
+    skills,
     checklistMarkdown,
   });
 

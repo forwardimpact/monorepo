@@ -33,28 +33,31 @@ handoffs:
 {{{priority}}}
 
 {{/priority}}
-{{#capabilities.length}}
-Your primary capabilities:
+{{#hasSkills}}
+## Available Skills
 
-{{#capabilities}}
-- {{{.}}}
-{{/capabilities}}
+IMPORTANT: Before starting work, read the relevant skill file for project-specific
+guidance. Do not rely solely on pre-training knowledge.
 
-{{/capabilities.length}}
+| Skill | Location | Use When |
+|-------|----------|----------|
+{{#skillIndex}}
+| {{{name}}} | `.claude/skills/{{dirname}}/SKILL.md` | {{{useWhen}}} |
+{{/skillIndex}}
+
+{{/hasSkills}}
 {{#beforeMakingChanges.length}}
 Before making changes:
 
 {{#beforeMakingChanges}}
 {{index}}. {{{text}}}
 {{/beforeMakingChanges}}
-
 {{/beforeMakingChanges.length}}
-{{#delegation}}
 
+{{#delegation}}
 ## Delegation
 
 {{{delegation}}}
-
 {{/delegation}}
 
 ## Operational Context
@@ -84,7 +87,6 @@ When completing work (for handoff or as a subagent), provide:
 3. **Recommendation**: Ready for next stage, or needs more work
 
 {{#constraints.length}}
-
 ## Constraints
 
 {{#constraints}}
