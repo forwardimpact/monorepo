@@ -38,3 +38,17 @@
 @import "../pages/self-assessment.css" layer(pages);
 @import "../pages/assessment-results.css" layer(pages);
 @import "../pages/progress-builder.css" layer(pages);
+
+/**
+ * Prism overrides (unlayered to beat Prism's unlayered CSS)
+ */
+pre.code-display[class*="language-"] {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  background-color: var(--color-surface);
+}
+
+pre.code-display > code[class*="language-"] {
+  font-family: inherit;
+  font-size: inherit;
+}
