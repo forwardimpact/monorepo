@@ -14,7 +14,7 @@ import {
 } from "../../components/radar-chart.js";
 import { createSkillMatrix } from "../../components/skill-matrix.js";
 import { createBehaviourProfile } from "../../components/behaviour-profile.js";
-import { createMarkdownTextarea } from "../../components/markdown-textarea.js";
+import { createCodeDisplay } from "../../components/markdown-textarea.js";
 import { markdownToHtml } from "../../lib/markdown.js";
 import { formatJobDescription } from "./description.js";
 
@@ -226,8 +226,8 @@ export function createJobDescriptionSection({
 
   return createDetailSection({
     title: "Job Description",
-    content: createMarkdownTextarea({
-      markdown,
+    content: createCodeDisplay({
+      content: markdown,
       description:
         "Copy this markdown-formatted job description for use in job postings, documentation, or sharing.",
       toHtml: markdownToHtml,

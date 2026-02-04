@@ -151,26 +151,3 @@ export function createCodeDisplay({
     pre,
   );
 }
-
-/**
- * Create a markdown textarea with copy buttons (backward-compatible alias)
- * @param {Object} options
- * @param {string} options.markdown - The markdown content to display
- * @param {string} [options.description] - Optional description text above the textarea
- * @param {Function} [options.toHtml] - Function to convert markdown to HTML (enables "Copy as HTML" button)
- * @param {number} [options.minHeight=300] - Minimum height in pixels
- * @returns {HTMLElement}
- */
-export function createMarkdownTextarea({
-  markdown,
-  description,
-  toHtml,
-  minHeight = 300,
-}) {
-  return createCodeDisplay({
-    content: markdown,
-    description,
-    toHtml,
-    minHeight,
-  });
-}

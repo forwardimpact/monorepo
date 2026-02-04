@@ -104,15 +104,13 @@
   }
 
   /* Code display - unified component for code/markdown with copy buttons */
-  .code-display-container,
-  .markdown-textarea-container {
+  .code-display-container {
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
   }
 
-  .code-display-header,
-  .markdown-textarea-header {
+  .code-display-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -128,8 +126,7 @@
     min-width: 200px;
   }
 
-  .code-display-info .text-muted,
-  .markdown-textarea-header .text-muted {
+  .code-display-info .text-muted {
     margin: 0;
   }
 
@@ -140,8 +137,7 @@
     color: var(--color-text-muted);
   }
 
-  .code-display,
-  .markdown-display {
+  .code-display {
     width: 100%;
     margin: 0;
     padding: var(--space-md);
@@ -158,8 +154,7 @@
     word-wrap: break-word;
   }
 
-  .code-display code,
-  .markdown-display code {
+  .code-display code {
     background: transparent;
     padding: 0;
     font-size: inherit;

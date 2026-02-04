@@ -34,6 +34,7 @@ import { createReactive } from "../lib/reactive.js";
 import { getStageEmoji } from "../formatters/stage/shared.js";
 import { formatAgentProfile } from "../formatters/agent/profile.js";
 import { formatAgentSkill } from "../formatters/agent/skill.js";
+import { createCodeDisplay } from "../components/markdown-textarea.js";
 
 /** All stages option value */
 const ALL_STAGES_VALUE = "all";
@@ -590,10 +591,15 @@ function createAgentCard(stage, profile, stages, agentTemplate, _derived) {
         span({ className: "agent-card-emoji" }, stageEmoji),
         h3({}, `${stage.name} Agent`),
       ),
-      createCopyButton(content),
     ),
-    p({ className: "agent-card-filename" }, profile.filename),
-    div({ className: "agent-card-preview" }, createCodePreview(content)),
+    div(
+      { className: "agent-card-preview" },
+      createCodeDisplay({
+        content,
+        filename: profile.filename,
+        maxHeight: 400,
+      }),
+    ),
   );
 
   return card;
@@ -614,55 +620,16 @@ function createSkillCard(skill, skillTemplate) {
     div(
       { className: "skill-card-header" },
       span({ className: "skill-card-name" }, skill.frontmatter.name),
-      createCopyButton(content),
     ),
-    p({ className: "skill-card-filename" }, filename),
-    div({ className: "skill-card-preview" }, createCodePreview(content)),
+    div(
+      { className: "skill-card-preview" },
+      createCodeDisplay({
+        content,
+        filename,
+        maxHeight: 300,
+      }),
+    ),
   );
-}
-
-/**
- * Create a code preview element
- * @param {string} content - Code content
- * @returns {HTMLElement}
- */
-function createCodePreview(content) {
-  const pre = document.createElement("pre");
-  pre.className = "code-block code-preview";
-
-  const code = document.createElement("code");
-  code.textContent = content;
-
-  pre.appendChild(code);
-  return pre;
-}
-
-/**
- * Create a copy button
- * @param {string} content - Content to copy
- * @returns {HTMLElement}
- */
-function createCopyButton(content) {
-  const btn = document.createElement("button");
-  btn.className = "btn btn-sm copy-btn";
-  btn.textContent = "📋 Copy";
-
-  btn.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      btn.textContent = "✓ Copied";
-      setTimeout(() => {
-        btn.textContent = "📋 Copy";
-      }, 2000);
-    } catch {
-      btn.textContent = "Failed";
-      setTimeout(() => {
-        btn.textContent = "📋 Copy";
-      }, 2000);
-    }
-  });
-
-  return btn;
 }
 
 /**
@@ -860,11 +827,10 @@ function createCliHint(disciplineId, trackId, stageId) {
     { className: "agent-section cli-hint" },
     h2({}, "CLI Alternative"),
     p({}, "Generate this agent from the command line:"),
-    div(
-      { className: "cli-command" },
-      createCodePreview(command),
-      createCopyButton(command),
-    ),
+    createCodeDisplay({
+      content: command,
+      language: "bash",
+    }),
   );
 
   return container;
