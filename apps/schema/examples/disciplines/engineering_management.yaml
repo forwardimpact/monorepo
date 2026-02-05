@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://schema.forwardimpact.team/json/discipline.schema.json
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/discipline.schema.json
 
 specialization: Engineering Management
 roleTitle: Engineering Manager

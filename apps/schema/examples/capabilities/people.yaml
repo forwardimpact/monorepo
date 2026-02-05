@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://schema.forwardimpact.team/json/capability.schema.json
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/capability.schema.json
 
 name: People
 emojiIcon: 👥

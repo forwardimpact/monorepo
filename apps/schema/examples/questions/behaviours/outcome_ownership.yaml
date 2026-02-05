@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://schema.forwardimpact.team/json/behaviour-questions.schema.json
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/behaviour-questions.schema.json
 
 emerging:
   - id: own_emerg_1

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://schema.forwardimpact.team/json/stages.schema.json
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/stages.schema.json
 
 - id: specify
   name: Specify

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://schema.forwardimpact.team/json/behaviour.schema.json
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/behaviour.schema.json
 
 name: Be Polymath Oriented
 human:

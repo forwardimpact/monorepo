@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://schema.forwardimpact.team/json/skill-questions.schema.json
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/skill-questions.schema.json
 
 awareness:
   - id: cq_aware_1

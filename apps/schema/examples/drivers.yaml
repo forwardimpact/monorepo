@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://schema.forwardimpact.team/json/drivers.schema.json
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/drivers.schema.json
 
 - id: clear_direction
   name: Clear Direction

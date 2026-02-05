@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://schema.forwardimpact.team/json/self-assessments.schema.json
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/self-assessments.schema.json
 
 - id: example_mid_swe
   skillLevels:

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://schema.forwardimpact.team/json/grades.schema.json
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/grades.schema.json
 
 - id: L1
   professionalTitle: Engineer I
