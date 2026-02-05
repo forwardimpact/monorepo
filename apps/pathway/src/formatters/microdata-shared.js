@@ -2,10 +2,10 @@
  * Shared microdata HTML utilities
  *
  * Helper functions for generating clean, class-less HTML with microdata attributes
- * aligned with the RDF schema at https://schema.forwardimpact.team/rdf/
+ * aligned with the RDF schema at https://www.forwardimpact.team/schema/rdf/
  */
 
-const VOCAB_BASE = "https://schema.forwardimpact.team/rdf/";
+const VOCAB_BASE = "https://www.forwardimpact.team/schema/rdf/";
 
 /**
  * Create an opening tag with microdata attributes

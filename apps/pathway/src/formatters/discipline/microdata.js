@@ -2,7 +2,7 @@
  * Discipline formatting for microdata HTML output
  *
  * Generates clean, class-less HTML with microdata aligned with discipline.schema.json
- * RDF vocab: https://schema.forwardimpact.team/rdf/
+ * RDF vocab: https://www.forwardimpact.team/schema/rdf/
  */
 
 import {
