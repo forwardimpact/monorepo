@@ -160,12 +160,13 @@ skills:
         url: https://developer.hashicorp.com/terraform/docs
         simpleIcon: terraform
         description: Infrastructure as code tool
-        useWhen: Provisioning and managing cloud infrastructure
+        useWhen: Provisioning and managing cloud infrastructure as code
       - name: Docker
         url: https://docs.docker.com/
         simpleIcon: docker
         description: Container platform
-        useWhen: Containerizing applications or managing container environments
+        useWhen:
+          Containerizing applications, building images, or running containers
     implementationReference: |
       ## CI/CD Pipeline Stages
 

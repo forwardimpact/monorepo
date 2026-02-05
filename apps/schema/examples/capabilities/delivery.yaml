@@ -273,16 +273,17 @@ skills:
         url: https://developer.hashicorp.com/terraform/docs
         simpleIcon: terraform
         description: Infrastructure as code tool
-        useWhen: Provisioning and managing cloud infrastructure
+        useWhen: Provisioning and managing cloud infrastructure as code
       - name: CloudFormation
         url: https://docs.aws.amazon.com/cloudformation/
         description: AWS infrastructure as code service
-        useWhen: Managing AWS infrastructure as code
+        useWhen: Managing cloud infrastructure using declarative templates
       - name: Docker
         url: https://docs.docker.com/
         simpleIcon: docker
         description: Container platform
-        useWhen: Containerizing applications or managing container environments
+        useWhen:
+          Containerizing applications, building images, or running containers
     implementationReference: |
       ## Technology Stack
 
