@@ -8,5 +8,9 @@
   "chat.edits2.enabled": true,
   "chat.extensionUnification.enabled": true,
   "chat.customAgentInSubagent.enabled": true,
-  "chat.useAgentSkills": true
+  "chat.useAgentSkills": true,
+  "chat.agentSkillsLocations": {
+    "./libs": true
+  },
+  "chat.experimental.useSkillAdherencePrompt": true
 }
