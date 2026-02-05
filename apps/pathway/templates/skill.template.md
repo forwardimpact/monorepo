@@ -4,41 +4,50 @@ description: |
 {{#descriptionLines}}
   {{{.}}}
 {{/descriptionLines}}
-{{#useWhenLines.length}}
+{{#hasUseWhen}}
   **Use When:** {{#useWhenLines}}{{{.}}}{{/useWhenLines}}
-{{/useWhenLines.length}}
+{{/hasUseWhen}}
 ---
 
 # {{{title}}}
+{{#hasUseWhen}}
 
-{{#useWhenLines.length}} **Use This Skill When:**
-{{#useWhenLines}}{{{.}}}{{/useWhenLines}} {{/useWhenLines.length}}
+**Use This Skill When:**
+{{#useWhenLines}}{{{.}}}{{/useWhenLines}}
+{{/hasUseWhen}}
+{{#hasStages}}
 
 ## Stage Guidance
-
 {{#stages}}
 
 ### {{stageName}} Stage
 
 **Focus:** {{{focus}}}
 
-**Activities:** {{#activities}}
+**Activities:**
+{{#activities}}
+- {{{.}}}
+{{/activities}}
 
-- {{{.}}} {{/activities}}
+**Ready for {{nextStageName}} when:**
+{{#ready}}
+- [ ] {{{.}}}
+{{/ready}}
+{{/stages}}
+{{/hasStages}}
+{{#hasToolReferences}}
 
-**Ready for {{nextStageName}} when:** {{#ready}}
-
-- [ ] {{{.}}} {{/ready}} {{/stages}} {{#toolReferences.length}}
-
-## Recommended Tools
+# Recommended Tools
 
 | Tool | Use When |
 | ---- | -------- |
+{{#toolReferences}}
+| {{#url}}[{{{name}}}]({{{url}}}){{/url}}{{^url}}{{{name}}}{{/url}} | {{{useWhen}}} |
+{{/toolReferences}}
+{{/hasToolReferences}}
+{{#hasReference}}
 
-{{#toolReferences}} |
-{{#url}}[{{{name}}}]({{{url}}}){{/url}}{{^url}}{{{name}}}{{/url}} |
-{{{useWhen}}} | {{/toolReferences}} {{/toolReferences.length}} {{#reference}}
+# Reference
 
-## Reference
-
-{{{reference}}} {{/reference}}
+{{{reference}}}
+{{/hasReference}}

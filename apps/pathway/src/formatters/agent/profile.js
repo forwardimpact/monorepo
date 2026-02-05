@@ -13,6 +13,12 @@ import Mustache from "mustache";
 import { trimValue, trimRequired, trimFields } from "../shared.js";
 
 /**
+ * @typedef {Object} WorkingStyleEntry
+ * @property {string} title - Section title
+ * @property {string} content - Working style content (markdown)
+ */
+
+/**
  * Prepare agent profile data for template rendering
  * Normalizes string values by trimming trailing newlines for consistent template output.
  * @param {Object} params
@@ -27,30 +33,32 @@ import { trimValue, trimRequired, trimFields } from "../shared.js";
  * @param {string} params.bodyData.identity - Core identity text
  * @param {string} [params.bodyData.priority] - Priority/philosophy statement
  * @param {Array<{name: string, dirname: string, useWhen: string}>} params.bodyData.skillIndex - Skill index entries
- * @param {Array<{index: number, text: string}>} params.bodyData.beforeMakingChanges - Numbered steps
- * @param {string} [params.bodyData.delegation] - Delegation guidance
- * @param {string} params.bodyData.operationalContext - Operational context text
- * @param {string} params.bodyData.workingStyle - Working style markdown section
+ * @param {string} params.bodyData.roleContext - Role context text
+ * @param {WorkingStyleEntry[]} params.bodyData.workingStyles - Working style entries
  * @param {string} [params.bodyData.beforeHandoff] - Before handoff checklist markdown
  * @param {string[]} params.bodyData.constraints - List of constraints
+ * @param {Array<{id: string, name: string, description: string}>} [params.bodyData.agentIndex] - List of all available agents
+ * @param {boolean} [params.bodyData.hasAgentIndex] - Whether agent index is available
  * @returns {Object} Data object ready for Mustache template
  */
 function prepareAgentProfileData({ frontmatter, bodyData }) {
-  // Trim array fields using helpers
+  // Trim array fields using shared helpers
   const handoffs = trimFields(frontmatter.handoffs, { prompt: "required" });
-  const beforeMakingChanges = trimFields(bodyData.beforeMakingChanges, {
-    text: "required",
-  });
-
-  // Trim simple string arrays
   const constraints = (bodyData.constraints || []).map((c) => trimRequired(c));
-
-  // Trim skill index entries
-  const skillIndex = (bodyData.skillIndex || []).map((s) => ({
-    name: trimRequired(s.name),
-    dirname: trimRequired(s.dirname),
-    useWhen: trimRequired(s.useWhen),
-  }));
+  const skillIndex = trimFields(bodyData.skillIndex, {
+    name: "required",
+    dirname: "required",
+    useWhen: "required",
+  });
+  const agentIndex = trimFields(bodyData.agentIndex, {
+    id: "required",
+    name: "required",
+    description: "required",
+  });
+  const workingStyles = trimFields(bodyData.workingStyles, {
+    title: "required",
+    content: "required",
+  });
 
   return {
     // Frontmatter
@@ -66,12 +74,14 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
     priority: trimValue(bodyData.priority),
     skillIndex,
     hasSkills: skillIndex.length > 0,
-    beforeMakingChanges,
-    delegation: trimValue(bodyData.delegation),
-    operationalContext: trimValue(bodyData.operationalContext),
-    workingStyle: trimValue(bodyData.workingStyle),
+    roleContext: trimValue(bodyData.roleContext),
+    workingStyles,
+    hasWorkingStyles: workingStyles.length > 0,
     beforeHandoff: trimValue(bodyData.beforeHandoff),
     constraints,
+    hasConstraints: constraints.length > 0,
+    agentIndex,
+    hasAgentIndex: agentIndex.length > 0,
   };
 }
 
@@ -90,10 +100,8 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
  * @param {string} profile.bodyData.identity - Core identity text
  * @param {string} [profile.bodyData.priority] - Priority/philosophy statement (optional)
  * @param {Array<{name: string, dirname: string, useWhen: string}>} profile.bodyData.skillIndex - Skill index entries
- * @param {Array<{index: number, text: string}>} profile.bodyData.beforeMakingChanges - Numbered steps
- * @param {string} [profile.bodyData.delegation] - Delegation guidance (optional)
- * @param {string} profile.bodyData.operationalContext - Operational context text
- * @param {string} profile.bodyData.workingStyle - Working style markdown section
+ * @param {string} profile.bodyData.roleContext - Role context text
+ * @param {WorkingStyleEntry[]} profile.bodyData.workingStyles - Working style entries
  * @param {string} [profile.bodyData.beforeHandoff] - Before handoff checklist markdown (optional)
  * @param {string[]} profile.bodyData.constraints - List of constraints
  * @param {string} template - Mustache template string

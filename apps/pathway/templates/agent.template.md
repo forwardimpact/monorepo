@@ -28,12 +28,28 @@ handoffs:
 ## Core Identity
 
 {{{identity}}}
-
 {{#priority}}
+
 {{{priority}}}
 {{/priority}}
+{{#roleContext}}
 
+## Role Context
+
+{{{roleContext}}}
+{{/roleContext}}
+{{#hasWorkingStyles}}
+
+## Working Style
+{{#workingStyles}}
+
+### {{title}}
+
+{{{content}}}
+{{/workingStyles}}
+{{/hasWorkingStyles}}
 {{#hasSkills}}
+
 ## Available Skills and Tools
 
 **IMPORTANT:** Before starting work, read the relevant skill file for
@@ -48,31 +64,29 @@ and (3) trade-offs of the alternative.
 
 | Skill | Location | Use When |
 | ----- | -------- | -------- |
-
 {{#skillIndex}}
 | {{{name}}} | `.claude/skills/{{dirname}}/SKILL.md` | {{{useWhen}}} |
 {{/skillIndex}}
 {{/hasSkills}}
+{{#hasAgentIndex}}
 
-{{#beforeMakingChanges.length}}
-## Before Starting Work
+## Available Sub-Agents for Delegation
 
-{{#beforeMakingChanges}}
-{{index}}. {{{text}}}
-{{/beforeMakingChanges}}
-{{/beforeMakingChanges.length}}
+**IMPORTANT:** If you come across work that is not strictly within your
+speciality, then you must delegate the task using the `runSubagent` tool.
 
-{{#delegation}}
-## Delegation
+You are part of a team of agents and should not carry out all work yourself.
+Rely on other agents around you that have a speciality better suited for
+individual tasks. If you choose to not delegate specialised work to a sub-agent,
+document in your output: (1) what the specialised work is, (2) the constraint
+preventing delegation and (3) trade-offs of the alternative.
 
-{{{delegation}}}
-{{/delegation}}
-
-## Operational Context
-
-{{{operationalContext}}}
-
-{{{workingStyle}}}
+| Agent Name | Speciality | Description |
+| ---------- | ---------- | ----------- |
+{{#agentIndex}}
+| `{{id}}` | {{{name}}} | {{{description}}} |
+{{/agentIndex}}
+{{/hasAgentIndex}}
 {{#beforeHandoff}}
 
 ## Before Handoff
@@ -93,10 +107,10 @@ When completing work (for handoff or as a subagent), provide:
 2. **Checklist status**: Items verified from Before Handoff section
 3. **Recommendation**: Ready for next stage, or needs more work
 
-{{#constraints.length}}
+{{#hasConstraints}}
 ## Constraints
 
 {{#constraints}}
 - {{{.}}}
 {{/constraints}}
-{{/constraints.length}}
+{{/hasConstraints}}

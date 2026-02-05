@@ -129,25 +129,38 @@ function prepareJobDescriptionData({ job, discipline, grade, track }) {
       grade.typicalExperienceRange || "",
     ) || null;
 
+  const responsibilities = trimFields(job.derivedResponsibilities, {
+    responsibility: "required",
+  });
+  const behaviours = trimFields(sortedBehaviours, {
+    maturityDescription: "optional",
+  });
+  const trimmedTrackRoleContext = trimValue(track?.roleContext);
+  const trimmedExpectationsParagraph = trimValue(expectationsParagraph);
+  const trimmedQualificationSummary = trimValue(qualificationSummary);
+
   return {
     title: job.title,
     gradeId: grade.id,
     typicalExperienceRange: grade.typicalExperienceRange,
     trackName: track?.name || null,
+    hasTrack: !!track,
     roleSummary: trimValue(roleSummary),
-    trackRoleContext: trimValue(track?.roleContext),
-    expectationsParagraph: trimValue(expectationsParagraph),
-    responsibilities: trimFields(job.derivedResponsibilities, {
-      responsibility: "required",
-    }),
-    behaviours: trimFields(sortedBehaviours, {
-      maturityDescription: "optional",
-    }),
+    trackRoleContext: trimmedTrackRoleContext,
+    hasTrackRoleContext: !!trimmedTrackRoleContext,
+    expectationsParagraph: trimmedExpectationsParagraph,
+    hasExpectationsParagraph: !!trimmedExpectationsParagraph,
+    responsibilities,
+    hasResponsibilities: responsibilities.length > 0,
+    behaviours,
+    hasBehaviours: behaviours.length > 0,
     skillLevels: skillLevels.map((level) => ({
       ...level,
       skills: trimFields(level.skills, { levelDescription: "optional" }),
     })),
-    qualificationSummary: trimValue(qualificationSummary),
+    hasSkillLevels: skillLevels.length > 0,
+    qualificationSummary: trimmedQualificationSummary,
+    hasQualificationSummary: !!trimmedQualificationSummary,
   };
 }
 

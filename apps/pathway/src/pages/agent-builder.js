@@ -28,6 +28,7 @@ import {
   deriveAgentSkills,
   deriveReferenceGrade,
   deriveToolkit,
+  buildAgentIndex,
 } from "@forwardimpact/model";
 import {
   createSelectWithValue,
@@ -250,6 +251,15 @@ export async function renderAgentBuilder() {
     // Get reference grade for derivation
     const grade = deriveReferenceGrade(data.grades);
 
+    // Build agent index for all valid combinations
+    const agentIndex = buildAgentIndex({
+      disciplines: data.disciplines,
+      tracks: data.tracks,
+      stages,
+      agentDisciplines: agentData.disciplines,
+      agentTracks: agentData.tracks,
+    });
+
     // Build context for generation
     const context = {
       humanDiscipline,
@@ -265,6 +275,7 @@ export async function renderAgentBuilder() {
       vscodeSettings: agentData.vscodeSettings,
       devcontainer: agentData.devcontainer,
       templates,
+      agentIndex,
     };
 
     // Generate preview based on stage selection
@@ -442,6 +453,7 @@ function createAllStagesPreview(context) {
     vscodeSettings,
     devcontainer,
     templates,
+    agentIndex,
   } = context;
 
   // Generate all stage agents
@@ -472,6 +484,7 @@ function createAllStagesPreview(context) {
       agentTrack,
       capabilities,
       stages,
+      agentIndex,
     });
 
     return { stage, derived, profile };
@@ -576,6 +589,7 @@ function createSingleStagePreview(context, stage) {
     devcontainer,
     stages,
     templates,
+    agentIndex,
   } = context;
 
   // Derive stage agent
@@ -605,6 +619,7 @@ function createSingleStagePreview(context, stage) {
     agentTrack,
     capabilities,
     stages,
+    agentIndex,
   });
 
   // Get skills for this stage (using full derived skills)

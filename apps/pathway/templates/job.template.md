@@ -1,41 +1,50 @@
 # {{{title}}}
 
 - **Level:** {{{gradeId}}}
-- **Experience:** {{{typicalExperienceRange}}} {{#trackName}}- **Track:**
-  {{{trackName}}} {{/trackName}}
+- **Experience:** {{{typicalExperienceRange}}}
+{{#hasTrack}}- **Track:** {{{trackName}}}
+{{/hasTrack}}
 
 ## ROLE SUMMARY
 
 {{{roleSummary}}}
+{{#hasTrackRoleContext}}
 
-{{#trackRoleContext}} {{{trackRoleContext}}}
+{{{trackRoleContext}}}
+{{/hasTrackRoleContext}}
+{{#hasExpectationsParagraph}}
 
-{{/trackRoleContext}} {{#expectationsParagraph}} {{{expectationsParagraph}}}
-
-{{/expectationsParagraph}}
+{{{expectationsParagraph}}}
+{{/hasExpectationsParagraph}}
+{{#hasResponsibilities}}
 
 ## ROLE RESPONSIBILITIES
 
 {{#responsibilities}}
-
-- **{{{capabilityName}}}:** {{{responsibility}}} {{/responsibilities}}
+- **{{{capabilityName}}}:** {{{responsibility}}}
+{{/responsibilities}}
+{{/hasResponsibilities}}
+{{#hasBehaviours}}
 
 ## ROLE BEHAVIOURS
 
 {{#behaviours}}
-
-- **{{{behaviourName}}}:** {{{maturityDescription}}} {{/behaviours}}
-
+- **{{{behaviourName}}}:** {{{maturityDescription}}}
+{{/behaviours}}
+{{/hasBehaviours}}
+{{#hasSkillLevels}}
 {{#skillLevels}}
 
 ## {{{levelHeading}}}
 
 {{#skills}}
-
-- **{{{skillName}}}:** {{{levelDescription}}} {{/skills}}
-
+- **{{{skillName}}}:** {{{levelDescription}}}
+{{/skills}}
 {{/skillLevels}}
+{{/hasSkillLevels}}
+{{#hasQualificationSummary}}
 
 ## QUALIFICATIONS
 
-{{#qualificationSummary}} {{{qualificationSummary}}} {{/qualificationSummary}}
+{{{qualificationSummary}}}
+{{/hasQualificationSummary}}

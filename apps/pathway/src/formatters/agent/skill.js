@@ -40,14 +40,24 @@ function prepareAgentSkillData({
     ready: "array",
   });
 
+  const descriptionLines = splitLines(frontmatter.description);
+  const useWhenLines = splitLines(frontmatter.useWhen);
+  const trimmedReference = trimValue(reference) || "";
+  const tools = toolReferences || [];
+
   return {
     name: frontmatter.name,
-    descriptionLines: splitLines(frontmatter.description),
-    useWhenLines: splitLines(frontmatter.useWhen),
+    descriptionLines,
+    hasDescription: descriptionLines.length > 0,
+    useWhenLines,
+    hasUseWhen: useWhenLines.length > 0,
     title,
     stages: processedStages,
-    reference: trimValue(reference) || "",
-    toolReferences: toolReferences || [],
+    hasStages: processedStages.length > 0,
+    reference: trimmedReference,
+    hasReference: !!trimmedReference,
+    toolReferences: tools,
+    hasToolReferences: tools.length > 0,
   };
 }
 

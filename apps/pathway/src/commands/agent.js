@@ -39,6 +39,7 @@ import {
   deriveAgentSkills,
   generateSkillMd,
   deriveToolkit,
+  buildAgentIndex,
 } from "@forwardimpact/model";
 import { formatAgentProfile } from "../formatters/agent/profile.js";
 import { formatAgentSkill } from "../formatters/agent/skill.js";
@@ -408,6 +409,15 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
 
   const baseDir = options.output || ".";
 
+  // Build agent index for all valid combinations
+  const agentIndex = buildAgentIndex({
+    disciplines: data.disciplines,
+    tracks: data.tracks,
+    stages: data.stages,
+    agentDisciplines: agentData.disciplines,
+    agentTracks: agentData.tracks,
+  });
+
   // Common params for stage-based generation
   const stageParams = {
     discipline: humanDiscipline,
@@ -420,6 +430,7 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
     agentTrack,
     capabilities: data.capabilities,
     stages: data.stages,
+    agentIndex,
   };
 
   // Handle --stage flag for single stage agent
