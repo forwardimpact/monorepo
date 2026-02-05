@@ -17,7 +17,12 @@ jobs:
 
       - name: Extract package name from tag
         id: package
-        run: echo "name=${GITHUB_REF_NAME%%@v*}" >> $GITHUB_OUTPUT
+        run: |
+          TAG_NAME="${GITHUB_REF_NAME%%@v*}"
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          # Find the npm package name from the tag (e.g., schema -> @forwardimpact/schema)
+          NPM_NAME=$(npm query "[name*=${TAG_NAME}]" --json | jq -r '.[0].name')
+          echo "npm_name=${NPM_NAME}" >> $GITHUB_OUTPUT
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,7 +39,7 @@ jobs:
 
       - name: Publish to npm
         run:
-          npm publish --workspace=apps/${{ steps.package.outputs.name }}
+          npm publish --workspace=${{ steps.package.outputs.npm_name }}
           --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
