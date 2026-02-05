@@ -269,7 +269,8 @@ function printHelp() {
  * 1. --data=<path> flag (explicit override)
  * 2. PATHWAY_DATA environment variable
  * 3. ./data/ relative to current working directory
- * 4. Package examples (for demo/testing)
+ * 4. ./examples/ relative to current working directory
+ * 5. apps/schema/examples/ for monorepo development
  *
  * @param {Object} options - Parsed command options
  * @returns {string} Resolved absolute path to data directory
@@ -285,16 +286,22 @@ function resolveDataPath(options) {
     return resolve(process.env.PATHWAY_DATA);
   }
 
-  // 3. Current working directory
+  // 3. Current working directory ./data/
   const cwdData = join(process.cwd(), "data");
   if (existsSync(cwdData)) {
     return cwdData;
   }
 
-  // 4. Package examples (for demo/testing)
-  const examplesData = join(rootDir, "examples");
-  if (existsSync(examplesData)) {
-    return examplesData;
+  // 4. Current working directory ./examples/
+  const cwdExamples = join(process.cwd(), "examples");
+  if (existsSync(cwdExamples)) {
+    return cwdExamples;
+  }
+
+  // 5. Monorepo: apps/schema/examples/
+  const schemaExamples = join(process.cwd(), "apps/schema/examples");
+  if (existsSync(schemaExamples)) {
+    return schemaExamples;
   }
 
   throw new Error(
