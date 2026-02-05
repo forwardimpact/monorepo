@@ -15,7 +15,7 @@
     "apps/pathway"
   ],
   "scripts": {
-    "start": "npm run -w @forwardimpact/pathway start",
+    "start": "npm run -w @forwardimpact/pathway pathway -- serve --data=../../apps/schema/examples",
     "prestart": "npm run generate-index",
     "check": "npm run format && npm run lint && npm run test && npm run validate:shacl",
     "check:fix": "npm run format:fix && npm run lint:fix",
