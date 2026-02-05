@@ -88,17 +88,23 @@ and (3) the compromised approach with acknowledged limitations.
 | `{{id}}` | {{{name}}} | {{{description}}} |
 {{/agentIndex}}
 {{/hasAgentIndex}}
-{{#beforeHandoff}}
+{{#hasBeforeHandoff}}
 
 ## Before Handoff
 
 Before offering a handoff, verify and summarize completion of these items:
 
-{{{beforeHandoff}}}
+{{#beforeHandoff}}
+### {{{capability.emojiIcon}}} {{{skill.name}}}
 
+{{#items}}
+- [ ] {{{.}}}
+{{/items}}
+
+{{/beforeHandoff}}
 When verified, summarize what was accomplished then offer the handoff. If items
 are incomplete, explain what remains.
-{{/beforeHandoff}}
+{{/hasBeforeHandoff}}
 
 ## Return Format
 

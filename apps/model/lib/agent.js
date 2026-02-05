@@ -19,7 +19,7 @@
  */
 
 import { deriveSkillMatrix, deriveBehaviourProfile } from "./derivation.js";
-import { deriveChecklist, formatChecklistMarkdown } from "./checklist.js";
+import { deriveChecklist } from "./checklist.js";
 import {
   filterSkillsForAgent,
   sortByLevelDescending,
@@ -308,7 +308,6 @@ function estimateBodyDataLength(bodyData) {
     "priority",
     "roleContext",
     "workingStyle",
-    "beforeHandoff",
   ];
   for (const field of stringFields) {
     if (bodyData[field]) {
@@ -487,7 +486,7 @@ function getChecklistStage(stageId) {
  * @param {Array} params.derivedBehaviours - Behaviours sorted by maturity
  * @param {Array} params.agentBehaviours - Agent behaviour definitions
  * @param {Array} params.skills - All skill definitions (for agent section lookup)
- * @param {string} params.checklistMarkdown - Pre-formatted checklist markdown
+ * @param {Array<{skill: Object, capability: Object, items: string[]}>} params.checklist - Raw checklist from deriveChecklist
  * @param {Array<{id: string, name: string, description: string}>} [params.agentIndex] - List of all available agents
  * @returns {Object} Structured profile body data
  */
@@ -501,7 +500,7 @@ function buildStageProfileBodyData({
   derivedBehaviours,
   agentBehaviours,
   skills,
-  checklistMarkdown,
+  checklist,
   agentIndex,
 }) {
   const name = `${humanDiscipline.specialization || humanDiscipline.name} - ${humanTrack.name}`;
@@ -563,7 +562,7 @@ function buildStageProfileBodyData({
     skillIndex,
     roleContext,
     workingStyles,
-    beforeHandoff: checklistMarkdown || null,
+    beforeHandoff: checklist || [],
     constraints,
     agentIndex: filteredAgentIndex,
     hasAgentIndex: filteredAgentIndex.length > 0,
@@ -709,10 +708,7 @@ export function generateStageAgentProfile({
   // Build description using shared helper
   const description = buildAgentDescription(discipline, track, stage);
 
-  // Format checklist as markdown
-  const checklistMarkdown = formatChecklistMarkdown(agent.checklist);
-
-  // Build structured profile body data
+  // Build structured profile body data (pass raw checklist for template iteration)
   const bodyData = buildStageProfileBodyData({
     stage,
     humanDiscipline: discipline,
@@ -723,7 +719,7 @@ export function generateStageAgentProfile({
     derivedBehaviours: agent.derivedBehaviours,
     agentBehaviours,
     skills,
-    checklistMarkdown,
+    checklist: agent.checklist,
     agentIndex,
   });
 
