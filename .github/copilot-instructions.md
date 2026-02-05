@@ -57,7 +57,7 @@ See `.github/instructions/` for details:
 
 **Tasks**:
 
-- `common-tasks.instructions.md` - General workflows
+- `tasks.instructions.md` - General workflows
 - `tasks-schema.instructions.md` - Schema-specific tasks
 - `tasks-pathway.instructions.md` - Pathway-specific tasks
 
