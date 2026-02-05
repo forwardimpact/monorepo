@@ -135,7 +135,21 @@ export async function runJobCommand({ data, args, options, dataDir }) {
   });
 
   if (!view) {
-    console.error("Failed to generate job output.");
+    const combo = track
+      ? `${discipline.id} × ${grade.id} × ${track.id}`
+      : `${discipline.id} × ${grade.id}`;
+    console.error(`Invalid combination: ${combo}`);
+    if (track) {
+      const validTracks =
+        discipline.validTracks?.filter((t) => t !== null) || [];
+      if (validTracks.length > 0) {
+        console.error(
+          `Valid tracks for ${discipline.id}: ${validTracks.join(", ")}`,
+        );
+      } else {
+        console.error(`${discipline.id} does not support tracks`);
+      }
+    }
     process.exit(1);
   }
 

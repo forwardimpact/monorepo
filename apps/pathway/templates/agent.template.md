@@ -29,8 +29,11 @@ handoffs:
 
 {{{identity}}}
 
-{{#priority}} {{{priority}}} {{/priority}} {{#hasSkills}}
+{{#priority}}
+{{{priority}}}
+{{/priority}}
 
+{{#hasSkills}}
 ## Available Skills and Tools
 
 **IMPORTANT:** Before starting work, read the relevant skill file for
@@ -46,27 +49,31 @@ and (3) trade-offs of the alternative.
 | Skill | Location | Use When |
 | ----- | -------- | -------- |
 
-{{#skillIndex}} | {{{name}}} | `.claude/skills/{{dirname}}/SKILL.md` |
-{{{useWhen}}} | {{/skillIndex}} {{/hasSkills}}
+{{#skillIndex}}
+| {{{name}}} | `.claude/skills/{{dirname}}/SKILL.md` | {{{useWhen}}} |
+{{/skillIndex}}
+{{/hasSkills}}
 
 {{#beforeMakingChanges.length}}
-
 ## Before Starting Work
 
-{{#beforeMakingChanges}} {{index}}. {{{text}}} {{/beforeMakingChanges}}
+{{#beforeMakingChanges}}
+{{index}}. {{{text}}}
+{{/beforeMakingChanges}}
 {{/beforeMakingChanges.length}}
 
 {{#delegation}}
-
 ## Delegation
 
-{{{delegation}}} {{/delegation}}
+{{{delegation}}}
+{{/delegation}}
 
 ## Operational Context
 
 {{{operationalContext}}}
 
-{{{workingStyle}}} {{#beforeHandoff}}
+{{{workingStyle}}}
+{{#beforeHandoff}}
 
 ## Before Handoff
 
@@ -76,7 +83,6 @@ Before offering a handoff, verify and summarize completion of these items:
 
 When verified, summarize what was accomplished then offer the handoff. If items
 are incomplete, explain what remains.
-
 {{/beforeHandoff}}
 
 ## Return Format
@@ -88,9 +94,9 @@ When completing work (for handoff or as a subagent), provide:
 3. **Recommendation**: Ready for next stage, or needs more work
 
 {{#constraints.length}}
-
 ## Constraints
 
 {{#constraints}}
-
-- {{{.}}} {{/constraints}} {{/constraints.length}}
+- {{{.}}}
+{{/constraints}}
+{{/constraints.length}}

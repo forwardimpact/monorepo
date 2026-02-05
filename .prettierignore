@@ -1,3 +1,4 @@
 node_modules
 package-lock.json
-templates/*.template.md
+**/*.template.md
+**/*.template.html
