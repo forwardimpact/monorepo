@@ -16,6 +16,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const publicDir = join(__dirname, "..");
 const rootDir = join(__dirname, "../..");
+const appsDir = join(__dirname, "../../..");
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -118,6 +119,12 @@ export async function runServeCommand({ dataDir, options }) {
     } else if (pathname.startsWith("/templates/")) {
       // Serve from templates directory
       filePath = join(rootDir, pathname);
+    } else if (pathname.startsWith("/schema/")) {
+      // Serve @forwardimpact/schema package files
+      filePath = join(appsDir, pathname);
+    } else if (pathname.startsWith("/model/")) {
+      // Serve @forwardimpact/model package files
+      filePath = join(appsDir, pathname);
     } else if (pathname === "/" || pathname === "") {
       // Serve index.html for root
       filePath = join(publicDir, "index.html");
