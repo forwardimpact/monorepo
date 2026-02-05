@@ -6,7 +6,10 @@
  * track comparison scenarios.
  */
 
-import { getSkillLevelIndex, getBehaviourMaturityIndex } from "@forwardimpact/schema/levels";
+import {
+  getSkillLevelIndex,
+  getBehaviourMaturityIndex,
+} from "@forwardimpact/schema/levels";
 import { deriveJob, isValidJobCombination } from "./derivation.js";
 
 /**

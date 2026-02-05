@@ -16,7 +16,10 @@
  * may reach the same level as primary skills and thus be included.
  */
 
-import { SKILL_LEVEL_ORDER, BEHAVIOUR_MATURITY_ORDER } from "@forwardimpact/schema/levels";
+import {
+  SKILL_LEVEL_ORDER,
+  BEHAVIOUR_MATURITY_ORDER,
+} from "@forwardimpact/schema/levels";
 import {
   deriveSkillMatrix,
   deriveBehaviourProfile,

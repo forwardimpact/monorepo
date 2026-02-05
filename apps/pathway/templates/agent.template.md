@@ -29,11 +29,10 @@ handoffs:
 
 {{{identity}}}
 
-{{#priority}}
-{{{priority}}}
+{{#priority}} {{{priority}}}
 
-{{/priority}}
-{{#hasSkills}}
+{{/priority}} {{#hasSkills}}
+
 ## Available Skills and Tools
 
 **IMPORTANT:** Before starting work, read the relevant skill file for
@@ -42,37 +41,32 @@ solely on pre-training knowledge.
 
 Skills represent validated organizational patterns. When a skill recommends
 specific tools in its "Recommended Tools" section, use them unless a blocking
-constraint exists. If you choose a different tool, document in your output:
-(1) which skill recommendation you're overriding, (2) the constraint preventing
-use, and (3) trade-offs of the alternative.
+constraint exists. If you choose a different tool, document in your output: (1)
+which skill recommendation you're overriding, (2) the constraint preventing use,
+and (3) trade-offs of the alternative.
 
 | Skill | Location | Use When |
-|-------|----------|----------|
-{{#skillIndex}}
-| {{{name}}} | `.claude/skills/{{dirname}}/SKILL.md` | {{{useWhen}}} |
-{{/skillIndex}}
+| ----- | -------- | -------- |
 
-{{/hasSkills}}
-{{#beforeMakingChanges.length}}
-Before making changes:
+{{#skillIndex}} | {{{name}}} | `.claude/skills/{{dirname}}/SKILL.md` |
+{{{useWhen}}} | {{/skillIndex}}
 
-{{#beforeMakingChanges}}
-{{index}}. {{{text}}}
-{{/beforeMakingChanges}}
+{{/hasSkills}} {{#beforeMakingChanges.length}} Before making changes:
+
+{{#beforeMakingChanges}} {{index}}. {{{text}}} {{/beforeMakingChanges}}
 {{/beforeMakingChanges.length}}
 
 {{#delegation}}
+
 ## Delegation
 
-{{{delegation}}}
-{{/delegation}}
+{{{delegation}}} {{/delegation}}
 
 ## Operational Context
 
 {{{operationalContext}}}
 
-{{{workingStyle}}}
-{{#beforeHandoff}}
+{{{workingStyle}}} {{#beforeHandoff}}
 
 ## Before Handoff
 
@@ -94,9 +88,9 @@ When completing work (for handoff or as a subagent), provide:
 3. **Recommendation**: Ready for next stage, or needs more work
 
 {{#constraints.length}}
+
 ## Constraints
 
 {{#constraints}}
-- {{{.}}}
-{{/constraints}}
-{{/constraints.length}}
+
+- {{{.}}} {{/constraints}} {{/constraints.length}}

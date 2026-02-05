@@ -5,7 +5,10 @@
 import { render, div, h1, h2, p, a, span } from "../lib/render.js";
 import { getState } from "../lib/state.js";
 import { createStatCard } from "../components/card.js";
-import { groupSkillsByCapability, getConceptEmoji } from "@forwardimpact/schema/levels";
+import {
+  groupSkillsByCapability,
+  getConceptEmoji,
+} from "@forwardimpact/schema/levels";
 import { getStageEmoji } from "../formatters/stage/shared.js";
 import { aggregateTools } from "../formatters/tool/shared.js";
 

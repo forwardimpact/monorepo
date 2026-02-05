@@ -25,7 +25,10 @@ import { writeFile, mkdir, readFile } from "fs/promises";
 import { join, dirname } from "path";
 import { existsSync } from "fs";
 import { stringify as stringifyYaml } from "yaml";
-import { loadAgentData, loadSkillsWithAgentData } from "@forwardimpact/schema/loader";
+import {
+  loadAgentData,
+  loadSkillsWithAgentData,
+} from "@forwardimpact/schema/loader";
 import {
   generateStageAgentProfile,
   validateAgentProfile,

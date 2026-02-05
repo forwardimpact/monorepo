@@ -25,7 +25,10 @@ import {
 } from "./lib/render.js";
 
 // Import model functions
-import { getCapabilityOrder, getConceptEmoji } from "@forwardimpact/schema/levels";
+import {
+  getCapabilityOrder,
+  getConceptEmoji,
+} from "@forwardimpact/schema/levels";
 
 // Import formatters
 import {

@@ -4,7 +4,10 @@
  * Shared utilities for formatting track data across DOM and markdown outputs.
  */
 
-import { isCapability, getSkillsByCapability } from "@forwardimpact/model/modifiers";
+import {
+  isCapability,
+  getSkillsByCapability,
+} from "@forwardimpact/model/modifiers";
 import { truncate } from "../shared.js";
 
 /**

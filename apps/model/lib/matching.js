@@ -5,7 +5,10 @@
  * job matching, and development path derivation.
  */
 
-import { getSkillLevelIndex, getBehaviourMaturityIndex } from "@forwardimpact/schema/levels";
+import {
+  getSkillLevelIndex,
+  getBehaviourMaturityIndex,
+} from "@forwardimpact/schema/levels";
 
 import {
   deriveJob,
