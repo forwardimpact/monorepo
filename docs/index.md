@@ -1,7 +1,11 @@
-# Forward Impact
-
-Applications that help teams grow and cultivate world-class engineers in the age
-of AI.
+---
+title: Forward Impact
+description: |
+  Applications that help teams grow and cultivate world-class engineers in
+  the age of AI. A unified framework where human engineering roles and AI
+  coding agents derive from the same foundation.
+toc: false
+---
 
 ## Vision
 

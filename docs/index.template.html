@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {{#description}}
+    <meta name="description" content="{{description}}" />
+    {{/description}}
+    <title>Forward Impact – {{title}}</title>
+    <link rel="stylesheet" href="/assets/main.css" />
+  </head>
+  <body>
+    <header class="container">
+      <hgroup>
+        <a href="/"><mark>Forward Impact</mark></a>
+        <p>Growing world-class engineers in the age of AI</p>
+      </hgroup>
+      <nav>
+        <ul>
+          <li><a href="/" class="contrast">Home</a></li>
+          <li>
+            <details class="dropdown">
+              <summary>Schema</summary>
+              <ul>
+                <li><a href="/schema/">Overview</a></li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details class="dropdown">
+              <summary>Model</summary>
+              <ul>
+                <li><a href="/model/">Overview</a></li>
+                <li><a href="/model/core/">Core Model</a></li>
+                <li><a href="/model/lifecycle/">Lifecycle</a></li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details class="dropdown">
+              <summary>Pathway</summary>
+              <ul>
+                <li><a href="/pathway/">Overview</a></li>
+                <li><a href="/pathway/agents/">Agents</a></li>
+                <li><a href="/pathway/reference/">Reference</a></li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="container">
+      <h1>{{title}}</h1>
+
+      {{#description}}
+      <p class="lead">{{{description}}}</p>
+      {{/description}} {{#hasToc}}
+      <aside>
+        <nav>
+          <h5>Contents</h5>
+          {{{toc}}}
+        </nav>
+        <hr />
+      </aside>
+      {{/hasToc}} {{{content}}}
+    </main>
+    <footer class="container">
+      <p>
+        <small>
+          Code licensed
+          <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank"
+            >Apache 2.0</a
+          >, docs
+          <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank"
+            >CC BY 4.0</a
+          >
+        </small>
+      </p>
+    </footer>
+
+    <script type="module" src="/assets/main.js"></script>
+  </body>
+</html>

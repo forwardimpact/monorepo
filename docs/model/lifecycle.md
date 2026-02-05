@@ -1,8 +1,9 @@
-# Lifecycle
-
-The engineering lifecycle represents the flow of work from inception to
-production. This lifecycle applies to both human engineers and AI coding agents,
-with the same stages, handoffs, and checklists.
+---
+title: Lifecycle
+description: |
+  The engineering lifecycle from inception to production. Stages, handoffs,
+  and checklists that apply to both human engineers and AI coding agents.
+---
 
 > See [Core Model](core.md) for foundational concepts and
 > [Agents](../pathway/agents.md) for AI-specific profile generation.

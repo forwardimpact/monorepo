@@ -1,6 +1,7 @@
-# Model
-
-Derivation engine for roles, skills, and AI agent profiles.
+---
+title: Model
+description: Derivation engine for roles, skills, and AI agent profiles.
+---
 
 ## Purpose
 

@@ -1,6 +1,7 @@
-# Agents
-
-Agent profile derivation, SKILL.md format, and VS Code integration.
+---
+title: Agents
+description: Agent profile derivation, SKILL.md format, and VS Code integration.
+---
 
 > See [Core Model](../model/core.md) for foundational concepts and
 > [Lifecycle](../model/lifecycle.md) for stages, handoffs, and checklists.

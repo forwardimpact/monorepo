@@ -1,0 +1,43 @@
+@import url("https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css");
+
+:root {
+  --gradient: linear-gradient(
+    to right,
+    rgb(74, 143, 231),
+    rgb(107, 125, 214),
+    rgb(141, 107, 184)
+  );
+}
+
+mark {
+  background: var(--gradient);
+  background-clip: text;
+  color: transparent;
+}
+
+hgroup a {
+  font-weight: bold;
+  font-size: var(--pico-font-size);
+  text-decoration: none;
+}
+
+.lead {
+  font-size: 1.1em;
+  color: var(--pico-muted-color);
+}
+
+aside nav {
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+aside nav h5 {
+  margin-bottom: 0.5rem;
+}
+
+aside nav ul {
+  padding-left: 1rem;
+  font-size: 0.9em;
+}

@@ -1,6 +1,8 @@
-# Pathway
-
-Career progression web app and CLI for exploring roles and generating agents.
+---
+title: Pathway
+description:
+  Career progression web app and CLI for exploring roles and generating agents.
+---
 
 ## Purpose
 

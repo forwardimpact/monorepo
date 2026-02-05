@@ -1,6 +1,7 @@
-# Reference
-
-Practical reference for file organization, output templates, and CLI usage.
+---
+title: Reference
+description: File organization, output templates, and CLI usage reference.
+---
 
 > See [Core Model](../model/core.md) for foundational concepts,
 > [Lifecycle](../model/lifecycle.md) for stages and checklists, and
