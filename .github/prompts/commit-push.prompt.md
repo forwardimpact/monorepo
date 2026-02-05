@@ -10,4 +10,8 @@ Follow the conventions in `.github/instructions/git-workflow.instructions.md`.
 2. Group related changes into logical, atomic commits
 3. Separate feature/logic changes from formatting changes
 4. Run `npm run check` to validate changes
-5. Push all commits to remote
+5. Assess version bump level for affected packages:
+   - Breaking changes → major
+   - New features → minor
+   - Fixes/refactors → patch
+6. Push all commits to remote
