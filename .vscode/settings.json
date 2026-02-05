@@ -1,6 +1,7 @@
 {
   "files.associations": {
-    "*.template.md": "mustache"
+    "*.template.md": "mustache",
+    "*.template.html": "mustache"
   },
   "chat.agent.enabled": true,
   "chat.agent.maxRequests": 999,
