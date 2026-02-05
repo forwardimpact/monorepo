@@ -1,22 +1,22 @@
 {
   "name": "@forwardimpact/schema",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Schema definitions and data loading for skills, behaviours, and role frameworks",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/forwardimpact/pathway",
+    "url": "https://github.com/forwardimpact/monorepo",
     "directory": "apps/schema"
   },
+  "homepage": "https://www.forwardimpact.team/schema",
   "type": "module",
   "main": "lib/index.js",
   "bin": {
     "fit-schema": "./bin/fit-schema.js"
   },
   "scripts": {
-    "validate": "node ./bin/fit-schema.js validate",
     "generate-index": "node ./bin/fit-schema.js generate-index",
-    "validate:shacl": "node ./bin/fit-schema.js validate:shacl"
+    "validate": "node ./bin/fit-schema.js validate"
   },
   "files": [
     "bin/",

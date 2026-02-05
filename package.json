@@ -6,8 +6,9 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/forwardimpact/pathway"
+    "url": "https://github.com/forwardimpact/monorepo"
   },
+  "homepage": "https://www.forwardimpact.team",
   "type": "module",
   "workspaces": [
     "apps/schema",
@@ -18,7 +19,7 @@
   "scripts": {
     "start": "npm run -w @forwardimpact/pathway pathway -- serve --data=../../apps/schema/examples",
     "prestart": "npm run generate-index",
-    "check": "npm run format && npm run lint && npm run test && npm run validate:shacl",
+    "check": "npm run format && npm run lint && npm run test && npm run validate -- --shacl",
     "check:fix": "npm run format:fix && npm run lint:fix",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -26,8 +27,7 @@
     "format:fix": "prettier --write .",
     "test": "find ./tests -name '*.test.js' | xargs node --test",
     "test:e2e": "npx playwright test",
-    "validate": "npm run -w @forwardimpact/schema validate",
-    "validate:shacl": "npm run -w @forwardimpact/schema validate:shacl",
+    "validate": "npm run -w @forwardimpact/schema validate --",
     "generate-index": "npm run -w @forwardimpact/schema generate-index",
     "pathway": "npm run -w @forwardimpact/pathway pathway"
   },

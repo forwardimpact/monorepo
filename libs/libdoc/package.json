@@ -1,13 +1,14 @@
 {
   "name": "@forwardimpact/libdoc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Documentation build and serve tools for static site generation from Markdown",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/forwardimpact/pathway",
+    "url": "https://github.com/forwardimpact/monorepo",
     "directory": "libs/libdoc"
   },
+  "homepage": "https://www.forwardimpact.team",
   "type": "module",
   "main": "index.js",
   "bin": {

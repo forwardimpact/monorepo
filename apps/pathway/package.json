@@ -1,13 +1,14 @@
 {
   "name": "@forwardimpact/pathway",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Career progression web app and CLI for exploring roles and generating agents",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/forwardimpact/pathway",
+    "url": "https://github.com/forwardimpact/monorepo",
     "directory": "apps/pathway"
   },
+  "homepage": "https://www.forwardimpact.team/pathway",
   "keywords": [
     "career",
     "competency",
@@ -39,8 +40,8 @@
     "./commands": "./src/commands/index.js"
   },
   "dependencies": {
-    "@forwardimpact/schema": "^0.1.0",
-    "@forwardimpact/model": "^0.1.0",
+    "@forwardimpact/schema": "^0.2.0",
+    "@forwardimpact/model": "^0.2.0",
     "mustache": "^4.2.0",
     "simple-icons": "^16.7.0",
     "yaml": "^2.3.4"

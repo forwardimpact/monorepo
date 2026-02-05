@@ -1,13 +1,14 @@
 {
   "name": "@forwardimpact/model",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Derivation engine for roles, skills, and AI agent profiles",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/forwardimpact/pathway",
+    "url": "https://github.com/forwardimpact/monorepo",
     "directory": "apps/model"
   },
+  "homepage": "https://www.forwardimpact.team/model",
   "type": "module",
   "main": "lib/index.js",
   "files": [
@@ -27,7 +28,7 @@
     "./progression": "./lib/progression.js"
   },
   "dependencies": {
-    "@forwardimpact/schema": "^0.1.0"
+    "@forwardimpact/schema": "^0.2.0"
   },
   "engines": {
     "node": ">=18.0.0"
