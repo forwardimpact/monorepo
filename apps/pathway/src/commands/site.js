@@ -16,6 +16,22 @@ const __dirname = dirname(__filename);
 const appDir = join(__dirname, "..");
 
 /**
+ * Resolve package directory using Node's module resolution.
+ * Works in both monorepo (development) and installed (production) contexts.
+ * @param {string} packageName - Package specifier (e.g., '@forwardimpact/schema')
+ * @returns {string} Absolute path to package lib directory
+ */
+function resolvePackageLib(packageName) {
+  // import.meta.resolve returns file:// URL to package's main entry (lib/index.js)
+  const mainUrl = import.meta.resolve(packageName);
+  // Convert to path and get lib directory
+  return dirname(fileURLToPath(mainUrl));
+}
+
+const schemaLibDir = resolvePackageLib("@forwardimpact/schema");
+const modelLibDir = resolvePackageLib("@forwardimpact/model");
+
+/**
  * Files and directories to copy from app/
  */
 const PUBLIC_ASSETS = [
@@ -31,7 +47,6 @@ const PUBLIC_ASSETS = [
   // Directories
   "css",
   "lib",
-  "model",
   "pages",
   "slides",
   "components",
@@ -112,6 +127,14 @@ ${framework.emojiIcon} Generating ${framework.title} static site...
       console.log(`   ⚠️  Skipped ${asset}: ${err.message}`);
     }
   }
+
+  // Copy @forwardimpact/schema and @forwardimpact/model packages
+  // These are needed by the browser's import map
+  console.log("📚 Copying package dependencies...");
+  await cp(schemaLibDir, join(outputDir, "schema/lib"), { recursive: true });
+  console.log(`   ✓ schema/lib`);
+  await cp(modelLibDir, join(outputDir, "model/lib"), { recursive: true });
+  console.log(`   ✓ model/lib`);
 
   // Copy data directory (dereference symlinks to copy actual content)
   console.log("📁 Copying data files...");
