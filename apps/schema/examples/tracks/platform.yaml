@@ -37,11 +37,6 @@ agent:
 
     Every API change must consider developer experience. Treat breaking 
     changes with extreme caution—your consumers build on your stability.
-  beforeMakingChanges:
-    - Understand the existing architecture and patterns
-    - Identify test coverage requirements
-    - Consider backward compatibility implications
-    - Plan documentation updates
   constraints:
     - Maintain backward compatibility
     - Document breaking changes with migration guides

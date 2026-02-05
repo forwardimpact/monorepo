@@ -36,11 +36,6 @@ agent:
 
     Production stability trumps feature velocity. No change ships without
     understanding its impact on system reliability.
-  beforeMakingChanges:
-    - Understand system dependencies and failure modes
-    - Ensure observability instrumentation is in place
-    - Consider rollback procedures and blast radius
-    - Verify runbooks are updated
   constraints:
     - Never compromise on observability instrumentation
     - Document all runbooks and incident response procedures

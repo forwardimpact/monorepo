@@ -83,11 +83,6 @@
           "type": "string",
           "description": "Priority guidance specific to this track"
         },
-        "beforeMakingChanges": {
-          "type": "array",
-          "description": "Additional checklist items to consider",
-          "items": { "type": "string" }
-        },
         "constraints": {
           "type": "array",
           "description": "Additional constraints specific to this track",

@@ -109,16 +109,6 @@ fit:priority a rdf:Property ;
     rdfs:comment "Priority guidance for the agent"@en ;
     rdfs:range xsd:string .
 
-fit:beforeMakingChanges a rdf:Property ;
-    rdfs:label "beforeMakingChanges"@en ;
-    rdfs:comment "Checklist items to consider before making changes"@en ;
-    rdfs:range xsd:string .
-
-fit:delegation a rdf:Property ;
-    rdfs:label "delegation"@en ;
-    rdfs:comment "Guidance on when and how to delegate to subagents"@en ;
-    rdfs:range xsd:string .
-
 # Modifier Properties
 fit:targetBehaviour a rdf:Property ;
     rdfs:label "targetBehaviour"@en ;
@@ -288,19 +278,6 @@ fit:DisciplineAgentSectionShape a sh:NodeShape ;
         sh:maxCount 1 ;
         sh:name "priority" ;
         sh:description "Priority guidance for the agent" ;
-    ] ;
-    sh:property [
-        sh:path fit:beforeMakingChanges ;
-        sh:datatype xsd:string ;
-        sh:name "beforeMakingChanges" ;
-        sh:description "Checklist items to consider before making changes" ;
-    ] ;
-    sh:property [
-        sh:path fit:delegation ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:name "delegation" ;
-        sh:description "Guidance on when and how to delegate to subagents" ;
     ] ;
     sh:property [
         sh:path fit:constraints ;

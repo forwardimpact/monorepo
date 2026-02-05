@@ -167,12 +167,6 @@ fit:TrackAgentSectionShape a sh:NodeShape ;
         sh:description "Priority guidance specific to this track" ;
     ] ;
     sh:property [
-        sh:path fit:beforeMakingChanges ;
-        sh:datatype xsd:string ;
-        sh:name "beforeMakingChanges" ;
-        sh:description "Additional checklist items to consider" ;
-    ] ;
-    sh:property [
         sh:path fit:constraints ;
         sh:datatype xsd:string ;
         sh:name "constraints" ;

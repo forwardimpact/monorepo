@@ -59,18 +59,6 @@ agent:
     Code review is more important than code generation. Every line of code
     you produce must be understood and verified. Never ship code without
     comprehensive testing.
-  beforeMakingChanges:
-    - Understand the existing architecture and patterns
-    - Identify test coverage requirements
-    - Consider backward compatibility implications
-  delegation: |
-    When facing tasks outside your expertise, use `runSubagent` to delegate:
-    - Data modeling or statistical analysis → data science subagent
-    - Security assessment or threat modeling → research subagent
-    - Complex debugging across unfamiliar systems → research subagent
-
-    Subagents run in isolated context. Provide clear task descriptions and
-    specify what information to return.
   constraints:
     - Committing code without running tests
     - Making changes without understanding the existing codebase

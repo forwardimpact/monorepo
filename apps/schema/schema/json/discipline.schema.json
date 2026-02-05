@@ -111,15 +111,6 @@
           "type": "string",
           "description": "Priority guidance for the agent"
         },
-        "beforeMakingChanges": {
-          "type": "array",
-          "description": "Checklist items to consider before making changes",
-          "items": { "type": "string" }
-        },
-        "delegation": {
-          "type": "string",
-          "description": "Guidance on when and how to delegate to subagents"
-        },
         "constraints": {
           "type": "array",
           "description": "Things the agent should avoid or never do",

@@ -750,48 +750,6 @@ function validateDiscipline(
       );
     }
 
-    // Optional: beforeMakingChanges (array of strings)
-    if (discipline.agent.beforeMakingChanges !== undefined) {
-      if (!Array.isArray(discipline.agent.beforeMakingChanges)) {
-        errors.push(
-          createError(
-            "INVALID_VALUE",
-            "Discipline agent beforeMakingChanges must be an array",
-            `${agentPath}.beforeMakingChanges`,
-            discipline.agent.beforeMakingChanges,
-          ),
-        );
-      } else {
-        discipline.agent.beforeMakingChanges.forEach((item, i) => {
-          if (typeof item !== "string") {
-            errors.push(
-              createError(
-                "INVALID_VALUE",
-                "Discipline agent beforeMakingChanges items must be strings",
-                `${agentPath}.beforeMakingChanges[${i}]`,
-                item,
-              ),
-            );
-          }
-        });
-      }
-    }
-
-    // Optional: delegation (string)
-    if (
-      discipline.agent.delegation !== undefined &&
-      typeof discipline.agent.delegation !== "string"
-    ) {
-      errors.push(
-        createError(
-          "INVALID_VALUE",
-          "Discipline agent delegation must be a string",
-          `${agentPath}.delegation`,
-          discipline.agent.delegation,
-        ),
-      );
-    }
-
     // Optional: constraints (array of strings)
     if (discipline.agent.constraints !== undefined) {
       if (!Array.isArray(discipline.agent.constraints)) {
@@ -824,7 +782,7 @@ function validateDiscipline(
       errors.push(
         createError(
           "INVALID_FIELD",
-          "Discipline agent 'coreInstructions' field is not supported. Use identity, priority, beforeMakingChanges, and delegation instead.",
+          "Discipline agent 'coreInstructions' field is not supported. Use identity, priority, and constraints instead.",
           `${agentPath}.coreInstructions`,
         ),
       );
@@ -1024,33 +982,6 @@ function validateTrack(
       );
     }
 
-    // Optional: beforeMakingChanges (array of strings)
-    if (track.agent.beforeMakingChanges !== undefined) {
-      if (!Array.isArray(track.agent.beforeMakingChanges)) {
-        errors.push(
-          createError(
-            "INVALID_VALUE",
-            "Track agent beforeMakingChanges must be an array",
-            `${agentPath}.beforeMakingChanges`,
-            track.agent.beforeMakingChanges,
-          ),
-        );
-      } else {
-        track.agent.beforeMakingChanges.forEach((item, i) => {
-          if (typeof item !== "string") {
-            errors.push(
-              createError(
-                "INVALID_VALUE",
-                "Track agent beforeMakingChanges items must be strings",
-                `${agentPath}.beforeMakingChanges[${i}]`,
-                item,
-              ),
-            );
-          }
-        });
-      }
-    }
-
     // Optional: constraints (array of strings)
     if (track.agent.constraints !== undefined) {
       if (!Array.isArray(track.agent.constraints)) {
@@ -1083,7 +1014,7 @@ function validateTrack(
       errors.push(
         createError(
           "INVALID_FIELD",
-          "Track agent 'coreInstructions' field is not supported. Use identity, priority, beforeMakingChanges, and constraints instead.",
+          "Track agent 'coreInstructions' field is not supported. Use identity, priority, and constraints instead.",
           `${agentPath}.coreInstructions`,
         ),
       );

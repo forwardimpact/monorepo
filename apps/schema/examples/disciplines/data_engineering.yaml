@@ -59,18 +59,6 @@ agent:
   priority: |
     Data quality is paramount. Always validate data at ingestion points and
     document schema assumptions. Treat undocumented schemas with suspicion.
-  beforeMakingChanges:
-    - Understand the data sources and their quality characteristics
-    - Map data lineage and dependencies
-    - Consider performance implications for downstream consumers
-  delegation: |
-    When facing tasks outside your expertise, use `runSubagent` to delegate:
-    - Statistical analysis or model validation → data science subagent
-    - Application code changes → software engineering subagent
-    - Infrastructure or deployment → SRE subagent
-
-    Subagents run in isolated context. Provide clear task descriptions and
-    specify what information to return.
   constraints:
     - Ignoring data quality issues
     - Creating pipelines without proper error handling
