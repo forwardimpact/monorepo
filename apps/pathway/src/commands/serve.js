@@ -16,7 +16,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const publicDir = join(__dirname, "..");
 const rootDir = join(__dirname, "../..");
-const appsDir = join(__dirname, "../../..");
+
+/**
+ * Resolve package directory using Node's module resolution.
+ * Works in both monorepo (development) and installed (production) contexts.
+ * @param {string} packageName - Package specifier (e.g., '@forwardimpact/schema')
+ * @returns {string} Absolute path to package lib directory
+ */
+function resolvePackageLib(packageName) {
+  // import.meta.resolve returns file:// URL to package's main entry (lib/index.js)
+  const mainUrl = import.meta.resolve(packageName);
+  // Convert to path and get lib directory
+  return dirname(fileURLToPath(mainUrl));
+}
+
+const schemaLibDir = resolvePackageLib("@forwardimpact/schema");
+const modelLibDir = resolvePackageLib("@forwardimpact/model");
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -119,12 +134,12 @@ export async function runServeCommand({ dataDir, options }) {
     } else if (pathname.startsWith("/templates/")) {
       // Serve from templates directory
       filePath = join(rootDir, pathname);
-    } else if (pathname.startsWith("/schema/")) {
-      // Serve @forwardimpact/schema package files
-      filePath = join(appsDir, pathname);
-    } else if (pathname.startsWith("/model/")) {
-      // Serve @forwardimpact/model package files
-      filePath = join(appsDir, pathname);
+    } else if (pathname.startsWith("/schema/lib/")) {
+      // Serve @forwardimpact/schema package files (resolved via Node module resolution)
+      filePath = join(schemaLibDir, pathname.slice(12));
+    } else if (pathname.startsWith("/model/lib/")) {
+      // Serve @forwardimpact/model package files (resolved via Node module resolution)
+      filePath = join(modelLibDir, pathname.slice(11));
     } else if (pathname === "/" || pathname === "") {
       // Serve index.html for root
       filePath = join(publicDir, "index.html");
