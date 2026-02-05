@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schema.forwardimpact.team/json/drivers.schema.json",
+  "$id": "https://www.forwardimpact.team/schema/json/drivers.schema.json",
   "title": "Drivers",
   "description": "Organizational outcomes that productive teams achieve",
   "type": "array",

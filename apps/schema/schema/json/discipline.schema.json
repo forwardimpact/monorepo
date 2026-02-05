@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schema.forwardimpact.team/json/discipline.schema.json",
+  "$id": "https://www.forwardimpact.team/schema/json/discipline.schema.json",
   "title": "Discipline",
   "description": "Engineering specialization that defines T-shaped skill profiles",
   "type": "object",

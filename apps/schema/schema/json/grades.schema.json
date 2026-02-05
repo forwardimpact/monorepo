@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schema.forwardimpact.team/json/grades.schema.json",
+  "$id": "https://www.forwardimpact.team/schema/json/grades.schema.json",
   "title": "Grades",
   "description": "Career levels defining expectations for skill proficiency, behaviour maturity, and scope of impact",
   "type": "array",

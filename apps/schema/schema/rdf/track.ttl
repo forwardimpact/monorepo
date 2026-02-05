@@ -1,0 +1,231 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# Track Schema
+# =============================================================================
+# Work context that modifies skill and behaviour expectations.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
+
+fit:Track a rdfs:Class ;
+    rdfs:label "Track"@en ;
+    rdfs:comment "Work context that modifies skill and behaviour expectations"@en .
+
+fit:TrackAgentSection a rdfs:Class ;
+    rdfs:label "Track Agent Section"@en ;
+    rdfs:comment "Agent-specific content for a track"@en .
+
+fit:SkillModifier a rdfs:Class ;
+    rdfs:label "Skill Modifier"@en ;
+    rdfs:comment "Modifier applied to skills in a capability by a track"@en .
+
+fit:AssessmentWeights a rdfs:Class ;
+    rdfs:label "Assessment Weights"@en ;
+    rdfs:comment "Custom weights for skill vs behaviour assessment"@en .
+
+# -----------------------------------------------------------------------------
+# Properties
+# -----------------------------------------------------------------------------
+
+fit:roleContext a rdf:Property ;
+    rdfs:label "roleContext"@en ;
+    rdfs:comment "Contextual description for job listings"@en ;
+    rdfs:domain fit:Track ;
+    rdfs:range xsd:string .
+
+fit:skillModifiers a rdf:Property ;
+    rdfs:label "skillModifiers"@en ;
+    rdfs:comment "Modifiers by capability ID"@en ;
+    rdfs:domain fit:Track .
+
+fit:assessmentWeights a rdf:Property ;
+    rdfs:label "assessmentWeights"@en ;
+    rdfs:comment "Custom weights for skill vs behaviour assessment"@en ;
+    rdfs:domain fit:Track ;
+    rdfs:range fit:AssessmentWeights .
+
+# Skill Modifier Properties
+fit:targetCapability a rdf:Property ;
+    rdfs:label "targetCapability"@en ;
+    rdfs:comment "The capability this modifier applies to"@en ;
+    rdfs:domain fit:SkillModifier ;
+    rdfs:range fit:Capability .
+
+# Assessment Weight Properties
+fit:skillWeight a rdf:Property ;
+    rdfs:label "skillWeight"@en ;
+    rdfs:comment "Weight for skills in assessment (0-1)"@en ;
+    rdfs:domain fit:AssessmentWeights ;
+    rdfs:range xsd:decimal .
+
+fit:behaviourWeight a rdf:Property ;
+    rdfs:label "behaviourWeight"@en ;
+    rdfs:comment "Weight for behaviours in assessment (0-1)"@en ;
+    rdfs:domain fit:AssessmentWeights ;
+    rdfs:range xsd:decimal .
+
+# =============================================================================
+# SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Track Shape
+# -----------------------------------------------------------------------------
+
+fit:TrackShape a sh:NodeShape ;
+    sh:targetClass fit:Track ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Track identifier (derived from filename)" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable track name" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the track's focus" ;
+    ] ;
+    sh:property [
+        sh:path fit:roleContext ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "roleContext" ;
+        sh:description "Contextual description for job listings" ;
+    ] ;
+    sh:property [
+        sh:path fit:skillModifiers ;
+        sh:node fit:SkillModifierShape ;
+        sh:name "skillModifiers" ;
+        sh:description "Modifiers by capability ID" ;
+    ] ;
+    sh:property [
+        sh:path fit:behaviourModifiers ;
+        sh:node fit:BehaviourModifierShape ;
+        sh:name "behaviourModifiers" ;
+        sh:description "Modifiers to behaviour expectations" ;
+    ] ;
+    sh:property [
+        sh:path fit:assessmentWeights ;
+        sh:node fit:AssessmentWeightsShape ;
+        sh:maxCount 1 ;
+        sh:name "assessmentWeights" ;
+        sh:description "Custom weights for skill vs behaviour assessment" ;
+    ] ;
+    sh:property [
+        sh:path fit:minGrade ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[A-Z][A-Z0-9]*$" ;
+        sh:maxCount 1 ;
+        sh:name "minGrade" ;
+        sh:description "Minimum grade required for this track (grade ID)" ;
+    ] ;
+    sh:property [
+        sh:path fit:agent ;
+        sh:node fit:TrackAgentSectionShape ;
+        sh:maxCount 1 ;
+        sh:name "agent" ;
+        sh:description "Agent-specific content" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Track Agent Section Shape
+# -----------------------------------------------------------------------------
+
+fit:TrackAgentSectionShape a sh:NodeShape ;
+    sh:targetClass fit:TrackAgentSection ;
+    sh:property [
+        sh:path fit:identity ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "identity" ;
+        sh:description "Identity override for the agent" ;
+    ] ;
+    sh:property [
+        sh:path fit:priority ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "priority" ;
+        sh:description "Priority guidance specific to this track" ;
+    ] ;
+    sh:property [
+        sh:path fit:beforeMakingChanges ;
+        sh:datatype xsd:string ;
+        sh:name "beforeMakingChanges" ;
+        sh:description "Additional checklist items to consider" ;
+    ] ;
+    sh:property [
+        sh:path fit:constraints ;
+        sh:datatype xsd:string ;
+        sh:name "constraints" ;
+        sh:description "Additional constraints specific to this track" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Modifier Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillModifierShape a sh:NodeShape ;
+    sh:targetClass fit:SkillModifier ;
+    sh:property [
+        sh:path fit:targetCapability ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "targetCapability" ;
+        sh:description "The capability this modifier applies to" ;
+    ] ;
+    sh:property [
+        sh:path fit:modifierValue ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "modifierValue" ;
+        sh:description "Level modifier to apply to all skills in this capability" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Assessment Weights Shape
+# -----------------------------------------------------------------------------
+
+fit:AssessmentWeightsShape a sh:NodeShape ;
+    sh:targetClass fit:AssessmentWeights ;
+    sh:property [
+        sh:path fit:skillWeight ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "skillWeight" ;
+        sh:description "Weight for skills in assessment (must sum to 1 with behaviourWeight)" ;
+    ] ;
+    sh:property [
+        sh:path fit:behaviourWeight ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "behaviourWeight" ;
+        sh:description "Weight for behaviours in assessment (must sum to 1 with skillWeight)" ;
+    ] .

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schema.forwardimpact.team/json/stages.schema.json",
+  "$id": "https://www.forwardimpact.team/schema/json/stages.schema.json",
   "title": "Stages",
   "description": "Engineering lifecycle stages with their tools, handoffs, and constraints",
   "type": "array",

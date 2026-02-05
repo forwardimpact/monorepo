@@ -1,0 +1,128 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# Skill Questions Schema
+# =============================================================================
+# Interview questions for assessing skills.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
+
+fit:Question a rdfs:Class ;
+    rdfs:label "Question"@en ;
+    rdfs:comment "Interview question for assessing skills or behaviours"@en .
+
+# -----------------------------------------------------------------------------
+# Properties
+# -----------------------------------------------------------------------------
+
+fit:text a rdf:Property ;
+    rdfs:label "text"@en ;
+    rdfs:comment "The question text"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range xsd:string .
+
+fit:lookingFor a rdf:Property ;
+    rdfs:label "lookingFor"@en ;
+    rdfs:comment "Bullet points of good answer indicators"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range xsd:string .
+
+fit:expectedDurationMinutes a rdf:Property ;
+    rdfs:label "expectedDurationMinutes"@en ;
+    rdfs:comment "Expected duration in minutes"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range xsd:integer .
+
+fit:followUps a rdf:Property ;
+    rdfs:label "followUps"@en ;
+    rdfs:comment "Probing questions for deeper exploration"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range xsd:string .
+
+fit:forSkill a rdf:Property ;
+    rdfs:label "forSkill"@en ;
+    rdfs:comment "The skill this question assesses"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range fit:Skill .
+
+fit:atLevel a rdf:Property ;
+    rdfs:label "atLevel"@en ;
+    rdfs:comment "The skill level this question is for"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range fit:SkillLevel .
+
+# =============================================================================
+# SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Skill Question Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillQuestionShape a sh:NodeShape ;
+    sh:targetClass fit:Question ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Unique question identifier" ;
+    ] ;
+    sh:property [
+        sh:path fit:text ;
+        sh:datatype xsd:string ;
+        sh:maxLength 150 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "text" ;
+        sh:description "The question text (under 150 characters)" ;
+    ] ;
+    sh:property [
+        sh:path fit:lookingFor ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 4 ;
+        sh:name "lookingFor" ;
+        sh:description "2-4 bullet points of good answer indicators" ;
+    ] ;
+    sh:property [
+        sh:path fit:expectedDurationMinutes ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "expectedDurationMinutes" ;
+        sh:description "Expected duration in minutes" ;
+    ] ;
+    sh:property [
+        sh:path fit:followUps ;
+        sh:datatype xsd:string ;
+        sh:maxCount 3 ;
+        sh:name "followUps" ;
+        sh:description "1-3 probing questions for deeper exploration" ;
+    ] ;
+    sh:property [
+        sh:path fit:forSkill ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "forSkill" ;
+        sh:description "The skill this question assesses (skill ID)" ;
+    ] ;
+    sh:property [
+        sh:path fit:atLevel ;
+        sh:in ( fit:awareness fit:foundational fit:working fit:practitioner fit:expert ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "atLevel" ;
+        sh:description "The skill level this question is for" ;
+    ] .

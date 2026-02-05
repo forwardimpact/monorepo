@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schema.forwardimpact.team/json/framework.schema.json",
+  "$id": "https://www.forwardimpact.team/schema/json/framework.schema.json",
   "title": "Framework",
   "description": "High-level framework configuration and entity definitions",
   "type": "object",

@@ -1,0 +1,96 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# Behaviour Questions Schema
+# =============================================================================
+# Interview questions for assessing behaviours.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Properties
+# -----------------------------------------------------------------------------
+
+fit:forBehaviour a rdf:Property ;
+    rdfs:label "forBehaviour"@en ;
+    rdfs:comment "The behaviour this question assesses"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range fit:Behaviour .
+
+fit:atMaturity a rdf:Property ;
+    rdfs:label "atMaturity"@en ;
+    rdfs:comment "The behaviour maturity this question is for"@en ;
+    rdfs:domain fit:Question ;
+    rdfs:range fit:BehaviourMaturity .
+
+# =============================================================================
+# SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Behaviour Question Shape
+# -----------------------------------------------------------------------------
+
+fit:BehaviourQuestionShape a sh:NodeShape ;
+    sh:targetClass fit:Question ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Unique question identifier" ;
+    ] ;
+    sh:property [
+        sh:path fit:text ;
+        sh:datatype xsd:string ;
+        sh:maxLength 150 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "text" ;
+        sh:description "The question text (under 150 characters)" ;
+    ] ;
+    sh:property [
+        sh:path fit:lookingFor ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 4 ;
+        sh:name "lookingFor" ;
+        sh:description "2-4 bullet points of good answer indicators" ;
+    ] ;
+    sh:property [
+        sh:path fit:expectedDurationMinutes ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "expectedDurationMinutes" ;
+        sh:description "Expected duration in minutes" ;
+    ] ;
+    sh:property [
+        sh:path fit:followUps ;
+        sh:datatype xsd:string ;
+        sh:maxCount 3 ;
+        sh:name "followUps" ;
+        sh:description "1-3 probing questions for deeper exploration" ;
+    ] ;
+    sh:property [
+        sh:path fit:forBehaviour ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "forBehaviour" ;
+        sh:description "The behaviour this question assesses (behaviour ID)" ;
+    ] ;
+    sh:property [
+        sh:path fit:atMaturity ;
+        sh:in ( fit:emerging fit:developing fit:practicing fit:role_modeling fit:exemplifying ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "atMaturity" ;
+        sh:description "The behaviour maturity this question is for" ;
+    ] .

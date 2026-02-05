@@ -1,0 +1,128 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# Framework Schema
+# =============================================================================
+# High-level framework configuration.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
+
+fit:Framework a rdfs:Class ;
+    rdfs:label "Framework"@en ;
+    rdfs:comment "High-level framework configuration"@en .
+
+fit:EntityDefinition a rdfs:Class ;
+    rdfs:label "Entity Definition"@en ;
+    rdfs:comment "Definition for an entity type used in pages and chapters"@en .
+
+# -----------------------------------------------------------------------------
+# Properties
+# -----------------------------------------------------------------------------
+
+fit:tag a rdf:Property ;
+    rdfs:label "tag"@en ;
+    rdfs:comment "Organization tag or identifier"@en ;
+    rdfs:domain fit:Framework ;
+    rdfs:range xsd:string .
+
+fit:entityDefinitions a rdf:Property ;
+    rdfs:label "entityDefinitions"@en ;
+    rdfs:comment "Definitions for each entity type"@en ;
+    rdfs:domain fit:Framework ;
+    rdfs:range fit:EntityDefinition .
+
+fit:entityType a rdf:Property ;
+    rdfs:label "entityType"@en ;
+    rdfs:comment "The type of entity this definition describes"@en ;
+    rdfs:domain fit:EntityDefinition ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Framework Shape
+# -----------------------------------------------------------------------------
+
+fit:FrameworkShape a sh:NodeShape ;
+    sh:targetClass fit:Framework ;
+    sh:property [
+        sh:path fit:title ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "title" ;
+        sh:description "Title of the engineering pathway" ;
+    ] ;
+    sh:property [
+        sh:path fit:emojiIcon ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "emojiIcon" ;
+        sh:description "Emoji for visual representation" ;
+    ] ;
+    sh:property [
+        sh:path fit:tag ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "tag" ;
+        sh:description "Organization tag or identifier" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the framework's purpose" ;
+    ] ;
+    sh:property [
+        sh:path fit:entityDefinitions ;
+        sh:node fit:EntityDefinitionShape ;
+        sh:name "entityDefinitions" ;
+        sh:description "Definitions for each entity type" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Entity Definition Shape
+# -----------------------------------------------------------------------------
+
+fit:EntityDefinitionShape a sh:NodeShape ;
+    sh:targetClass fit:EntityDefinition ;
+    sh:property [
+        sh:path fit:entityType ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "entityType" ;
+        sh:description "The type of entity this definition describes" ;
+    ] ;
+    sh:property [
+        sh:path fit:title ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "title" ;
+        sh:description "Display title for the entity" ;
+    ] ;
+    sh:property [
+        sh:path fit:emojiIcon ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "emojiIcon" ;
+        sh:description "Emoji for visual representation" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the entity type" ;
+    ] .

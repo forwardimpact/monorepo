@@ -25,11 +25,11 @@ apps/schema/
 
 `npx fit-schema <command>`
 
-| Command          | Purpose                      |
-| ---------------- | ---------------------------- |
-| `validate`       | Run full data validation     |
-| `generate-index` | Generate browser index files |
-| `validate:shacl` | Validate SHACL ontology      |
+| Command            | Purpose                      |
+| ------------------ | ---------------------------- |
+| `validate`         | Run full data validation     |
+| `generate-index`   | Generate browser index files |
+| `validate --shacl` | Validate SHACL ontology      |
 
 ## Key Modules
 

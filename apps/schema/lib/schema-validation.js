@@ -227,7 +227,7 @@ async function validateDirectory(ajv, dirPath, schemaId) {
  * @returns {string} Full schema $id URL
  */
 function getSchemaId(schemaFilename) {
-  return `https://schema.forwardimpact.team/json/${schemaFilename}`;
+  return `https://www.forwardimpact.team/schema/json/${schemaFilename}`;
 }
 
 /**

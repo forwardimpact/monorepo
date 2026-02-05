@@ -6,9 +6,8 @@
  * Schema validation and index generation for Engineering Pathway data.
  *
  * Commands:
- *   validate [--data=PATH]      Run full schema + referential validation
+ *   validate [--json|--shacl]   Run validation (default: --json)
  *   generate-index [--data=PATH] Generate _index.yaml files
- *   validate:shacl              Validate SHACL schema syntax
  *   --help                      Show help
  */
 
@@ -166,25 +165,51 @@ async function runGenerateIndex(dataDir) {
 async function runValidateShacl() {
   console.log("🔍 Validating SHACL schema syntax...\n");
 
-  const schemaPath = join(__dirname, "../schema/rdf/pathway.ttl");
+  const rdfDir = join(__dirname, "../schema/rdf");
 
   try {
     const { default: N3 } = await import("n3");
-    const { readFile } = await import("fs/promises");
+    const { readFile, readdir } = await import("fs/promises");
 
-    const turtleContent = await readFile(schemaPath, "utf-8");
-    const parser = new N3.Parser({ format: "text/turtle" });
+    // Find all .ttl files in the RDF directory
+    const files = await readdir(rdfDir);
+    const ttlFiles = files.filter((f) => f.endsWith(".ttl")).sort();
 
-    const quads = [];
-    parser.parse(turtleContent, (error, quad) => {
-      if (error) throw error;
-      if (quad) quads.push(quad);
-    });
+    if (ttlFiles.length === 0) {
+      console.error("❌ No .ttl files found in schema/rdf/\n");
+      return 1;
+    }
 
-    console.log(`✅ SHACL syntax valid (${quads.length} triples)\n`);
+    let totalQuads = 0;
+    const errors = [];
+
+    for (const file of ttlFiles) {
+      const filePath = join(rdfDir, file);
+      const turtleContent = await readFile(filePath, "utf-8");
+
+      try {
+        const parser = new N3.Parser({ format: "text/turtle" });
+        const quads = parser.parse(turtleContent);
+        totalQuads += quads.length;
+        console.log(`  ✓ ${file} (${quads.length} triples)`);
+      } catch (error) {
+        errors.push({ file, error: error.message });
+        console.log(`  ✗ ${file}: ${error.message}`);
+      }
+    }
+
+    console.log();
+    if (errors.length > 0) {
+      console.error(`❌ SHACL syntax errors in ${errors.length} file(s)\n`);
+      return 1;
+    }
+
+    console.log(
+      `✅ SHACL syntax valid (${ttlFiles.length} files, ${totalQuads} triples)\n`,
+    );
     return 0;
   } catch (error) {
-    console.error(`❌ SHACL syntax error: ${error.message}\n`);
+    console.error(`❌ SHACL validation error: ${error.message}\n`);
     return 1;
   }
 }
@@ -200,19 +225,20 @@ Usage:
   fit-schema <command> [options]
 
 Commands:
-  validate           Run full schema + referential validation
+  validate           Run validation (default: JSON schema validation)
   generate-index     Generate _index.yaml files for directories
-  validate:shacl     Validate SHACL schema syntax
 
 Options:
+  --json             JSON schema + referential validation (default)
+  --shacl            SHACL schema syntax validation
   --data=PATH        Path to data directory (default: ./data or ./examples)
   --help, -h         Show this help message
 
 Examples:
   fit-schema validate
+  fit-schema validate --shacl
   fit-schema validate --data=./my-data
   fit-schema generate-index
-  fit-schema validate:shacl
 `);
 }
 
@@ -232,8 +258,12 @@ async function main() {
 
     switch (command) {
       case "validate": {
-        const dataDir = await findDataDir(options.dataDir);
-        exitCode = await runValidate(dataDir);
+        if (options.shacl) {
+          exitCode = await runValidateShacl();
+        } else {
+          const dataDir = await findDataDir(options.dataDir);
+          exitCode = await runValidate(dataDir);
+        }
         break;
       }
       case "generate-index": {
@@ -241,9 +271,6 @@ async function main() {
         exitCode = await runGenerateIndex(dataDir);
         break;
       }
-      case "validate:shacl":
-        exitCode = await runValidateShacl();
-        break;
       default:
         console.error(`Unknown command: ${command}`);
         showHelp();

@@ -1,0 +1,357 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# Grades Schema
+# =============================================================================
+# Career level defining expectations for skill proficiency, behaviour maturity,
+# and scope of impact.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
+
+fit:Grade a rdfs:Class ;
+    rdfs:label "Grade"@en ;
+    rdfs:comment "Career level defining expectations for skill proficiency, behaviour maturity, and scope of impact"@en .
+
+fit:BaseSkillLevels a rdfs:Class ;
+    rdfs:label "Base Skill Levels"@en ;
+    rdfs:comment "Base skill levels by skill tier for a grade"@en .
+
+fit:GradeExpectations a rdfs:Class ;
+    rdfs:label "Grade Expectations"@en ;
+    rdfs:comment "Expectations for impact, autonomy, influence, and complexity at a grade level"@en .
+
+fit:BreadthCriteria a rdfs:Class ;
+    rdfs:label "Breadth Criteria"@en ;
+    rdfs:comment "Minimum number of skills at each level for breadth (senior grades only)"@en .
+
+# -----------------------------------------------------------------------------
+# Properties
+# -----------------------------------------------------------------------------
+
+fit:professionalTitle a rdf:Property ;
+    rdfs:label "professionalTitle"@en ;
+    rdfs:comment "Title for professional/IC track"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range xsd:string .
+
+fit:managementTitle a rdf:Property ;
+    rdfs:label "managementTitle"@en ;
+    rdfs:comment "Title for management track"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range xsd:string .
+
+fit:typicalExperienceRange a rdf:Property ;
+    rdfs:label "typicalExperienceRange"@en ;
+    rdfs:comment "Expected years of experience range"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range xsd:string .
+
+fit:ordinalRank a rdf:Property ;
+    rdfs:label "ordinalRank"@en ;
+    rdfs:comment "Numeric rank for ordering grades (1 = lowest)"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range xsd:integer .
+
+fit:qualificationSummary a rdf:Property ;
+    rdfs:label "qualificationSummary"@en ;
+    rdfs:comment "Summary of qualifications expected at this grade"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range xsd:string .
+
+fit:baseSkillLevels a rdf:Property ;
+    rdfs:label "baseSkillLevels"@en ;
+    rdfs:comment "Base skill levels by skill tier for this grade"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range fit:BaseSkillLevels .
+
+fit:baseBehaviourMaturity a rdf:Property ;
+    rdfs:label "baseBehaviourMaturity"@en ;
+    rdfs:comment "Base behaviour maturity for this grade"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range fit:BehaviourMaturity .
+
+fit:breadthCriteria a rdf:Property ;
+    rdfs:label "breadthCriteria"@en ;
+    rdfs:comment "Minimum number of skills at each level for breadth"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range fit:BreadthCriteria .
+
+fit:expectations a rdf:Property ;
+    rdfs:label "expectations"@en ;
+    rdfs:comment "Expectations for impact, autonomy, influence, and complexity"@en ;
+    rdfs:domain fit:Grade ;
+    rdfs:range fit:GradeExpectations .
+
+# Base Skill Level Properties
+fit:primary a rdf:Property ;
+    rdfs:label "primary"@en ;
+    rdfs:comment "Level for core/primary skills"@en ;
+    rdfs:domain fit:BaseSkillLevels ;
+    rdfs:range fit:SkillLevel .
+
+fit:secondary a rdf:Property ;
+    rdfs:label "secondary"@en ;
+    rdfs:comment "Level for supporting/secondary skills"@en ;
+    rdfs:domain fit:BaseSkillLevels ;
+    rdfs:range fit:SkillLevel .
+
+fit:broad a rdf:Property ;
+    rdfs:label "broad"@en ;
+    rdfs:comment "Level for broad skills"@en ;
+    rdfs:domain fit:BaseSkillLevels ;
+    rdfs:range fit:SkillLevel .
+
+# Grade Expectation Properties
+fit:impactScope a rdf:Property ;
+    rdfs:label "impactScope"@en ;
+    rdfs:comment "Scope of impact expected at this grade"@en ;
+    rdfs:domain fit:GradeExpectations ;
+    rdfs:range xsd:string .
+
+fit:autonomyExpectation a rdf:Property ;
+    rdfs:label "autonomyExpectation"@en ;
+    rdfs:comment "Level of autonomy expected"@en ;
+    rdfs:domain fit:GradeExpectations ;
+    rdfs:range xsd:string .
+
+fit:influenceScope a rdf:Property ;
+    rdfs:label "influenceScope"@en ;
+    rdfs:comment "Scope of influence"@en ;
+    rdfs:domain fit:GradeExpectations ;
+    rdfs:range xsd:string .
+
+fit:complexityHandled a rdf:Property ;
+    rdfs:label "complexityHandled"@en ;
+    rdfs:comment "Complexity level the grade should handle"@en ;
+    rdfs:domain fit:GradeExpectations ;
+    rdfs:range xsd:string .
+
+# Breadth Criteria Properties
+fit:awarenessCount a rdf:Property ;
+    rdfs:label "awarenessCount"@en ;
+    rdfs:domain fit:BreadthCriteria ;
+    rdfs:range xsd:integer .
+
+fit:foundationalCount a rdf:Property ;
+    rdfs:label "foundationalCount"@en ;
+    rdfs:domain fit:BreadthCriteria ;
+    rdfs:range xsd:integer .
+
+fit:workingCount a rdf:Property ;
+    rdfs:label "workingCount"@en ;
+    rdfs:domain fit:BreadthCriteria ;
+    rdfs:range xsd:integer .
+
+fit:practitionerCount a rdf:Property ;
+    rdfs:label "practitionerCount"@en ;
+    rdfs:domain fit:BreadthCriteria ;
+    rdfs:range xsd:integer .
+
+fit:expertCount a rdf:Property ;
+    rdfs:label "expertCount"@en ;
+    rdfs:domain fit:BreadthCriteria ;
+    rdfs:range xsd:integer .
+
+# =============================================================================
+# SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Grade Shape
+# -----------------------------------------------------------------------------
+
+fit:GradeShape a sh:NodeShape ;
+    sh:targetClass fit:Grade ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[A-Z][A-Z0-9]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Unique grade identifier (e.g., L1, L2, L3)" ;
+    ] ;
+    sh:property [
+        sh:path fit:professionalTitle ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "professionalTitle" ;
+        sh:description "Title for professional/IC track" ;
+    ] ;
+    sh:property [
+        sh:path fit:managementTitle ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "managementTitle" ;
+        sh:description "Title for management track" ;
+    ] ;
+    sh:property [
+        sh:path fit:typicalExperienceRange ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "typicalExperienceRange" ;
+        sh:description "Expected years of experience range" ;
+    ] ;
+    sh:property [
+        sh:path fit:ordinalRank ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "ordinalRank" ;
+        sh:description "Numeric rank for ordering grades (1 = lowest)" ;
+    ] ;
+    sh:property [
+        sh:path fit:qualificationSummary ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "qualificationSummary" ;
+        sh:description "Summary of qualifications expected at this grade" ;
+    ] ;
+    sh:property [
+        sh:path fit:baseSkillLevels ;
+        sh:node fit:BaseSkillLevelsShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "baseSkillLevels" ;
+        sh:description "Base skill levels by skill tier for this grade" ;
+    ] ;
+    sh:property [
+        sh:path fit:baseBehaviourMaturity ;
+        sh:in ( fit:emerging fit:developing fit:practicing fit:role_modeling fit:exemplifying ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "baseBehaviourMaturity" ;
+        sh:description "Base behaviour maturity for this grade" ;
+    ] ;
+    sh:property [
+        sh:path fit:breadthCriteria ;
+        sh:node fit:BreadthCriteriaShape ;
+        sh:maxCount 1 ;
+        sh:name "breadthCriteria" ;
+        sh:description "Minimum number of skills at each level for breadth" ;
+    ] ;
+    sh:property [
+        sh:path fit:expectations ;
+        sh:node fit:GradeExpectationsShape ;
+        sh:maxCount 1 ;
+        sh:name "expectations" ;
+        sh:description "Expectations for impact, autonomy, influence, and complexity" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Base Skill Levels Shape
+# -----------------------------------------------------------------------------
+
+fit:BaseSkillLevelsShape a sh:NodeShape ;
+    sh:targetClass fit:BaseSkillLevels ;
+    sh:property [
+        sh:path fit:primary ;
+        sh:in ( fit:awareness fit:foundational fit:working fit:practitioner fit:expert ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "primary" ;
+        sh:description "Level for core/primary skills" ;
+    ] ;
+    sh:property [
+        sh:path fit:secondary ;
+        sh:in ( fit:awareness fit:foundational fit:working fit:practitioner fit:expert ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "secondary" ;
+        sh:description "Level for supporting/secondary skills" ;
+    ] ;
+    sh:property [
+        sh:path fit:broad ;
+        sh:in ( fit:awareness fit:foundational fit:working fit:practitioner fit:expert ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "broad" ;
+        sh:description "Level for broad skills" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Breadth Criteria Shape
+# -----------------------------------------------------------------------------
+
+fit:BreadthCriteriaShape a sh:NodeShape ;
+    sh:targetClass fit:BreadthCriteria ;
+    sh:property [
+        sh:path fit:awarenessCount ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "awareness" ;
+    ] ;
+    sh:property [
+        sh:path fit:foundationalCount ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "foundational" ;
+    ] ;
+    sh:property [
+        sh:path fit:workingCount ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "working" ;
+    ] ;
+    sh:property [
+        sh:path fit:practitionerCount ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "practitioner" ;
+    ] ;
+    sh:property [
+        sh:path fit:expertCount ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "expert" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Grade Expectations Shape
+# -----------------------------------------------------------------------------
+
+fit:GradeExpectationsShape a sh:NodeShape ;
+    sh:targetClass fit:GradeExpectations ;
+    sh:property [
+        sh:path fit:impactScope ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "impactScope" ;
+        sh:description "Scope of impact expected at this grade" ;
+    ] ;
+    sh:property [
+        sh:path fit:autonomyExpectation ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "autonomyExpectation" ;
+        sh:description "Level of autonomy expected" ;
+    ] ;
+    sh:property [
+        sh:path fit:influenceScope ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "influenceScope" ;
+        sh:description "Scope of influence" ;
+    ] ;
+    sh:property [
+        sh:path fit:complexityHandled ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "complexityHandled" ;
+        sh:description "Complexity level the grade should handle" ;
+    ] .

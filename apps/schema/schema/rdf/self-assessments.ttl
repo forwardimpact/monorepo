@@ -1,0 +1,147 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# Self Assessments Schema
+# =============================================================================
+# Example candidate profiles for testing candidate matching.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
+
+fit:SelfAssessment a rdfs:Class ;
+    rdfs:label "Self Assessment"@en ;
+    rdfs:comment "Example candidate profile for testing candidate matching"@en .
+
+fit:SkillAssessment a rdfs:Class ;
+    rdfs:label "Skill Assessment"@en ;
+    rdfs:comment "Assessment of a skill at a particular level"@en .
+
+fit:BehaviourAssessment a rdfs:Class ;
+    rdfs:label "Behaviour Assessment"@en ;
+    rdfs:comment "Assessment of a behaviour at a particular maturity"@en .
+
+# -----------------------------------------------------------------------------
+# Properties
+# -----------------------------------------------------------------------------
+
+fit:skillLevels a rdf:Property ;
+    rdfs:label "skillLevels"@en ;
+    rdfs:comment "Skill assessments"@en ;
+    rdfs:domain fit:SelfAssessment ;
+    rdfs:range fit:SkillAssessment .
+
+fit:behaviourMaturities a rdf:Property ;
+    rdfs:label "behaviourMaturities"@en ;
+    rdfs:comment "Behaviour assessments"@en ;
+    rdfs:domain fit:SelfAssessment ;
+    rdfs:range fit:BehaviourAssessment .
+
+fit:assessedSkill a rdf:Property ;
+    rdfs:label "assessedSkill"@en ;
+    rdfs:comment "The skill being assessed"@en ;
+    rdfs:domain fit:SkillAssessment ;
+    rdfs:range fit:Skill .
+
+fit:assessedLevel a rdf:Property ;
+    rdfs:label "assessedLevel"@en ;
+    rdfs:comment "The assessed level for the skill"@en ;
+    rdfs:domain fit:SkillAssessment ;
+    rdfs:range fit:SkillLevel .
+
+fit:assessedBehaviour a rdf:Property ;
+    rdfs:label "assessedBehaviour"@en ;
+    rdfs:comment "The behaviour being assessed"@en ;
+    rdfs:domain fit:BehaviourAssessment ;
+    rdfs:range fit:Behaviour .
+
+fit:assessedMaturity a rdf:Property ;
+    rdfs:label "assessedMaturity"@en ;
+    rdfs:comment "The assessed maturity for the behaviour"@en ;
+    rdfs:domain fit:BehaviourAssessment ;
+    rdfs:range fit:BehaviourMaturity .
+
+# =============================================================================
+# SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Self Assessment Shape
+# -----------------------------------------------------------------------------
+
+fit:SelfAssessmentShape a sh:NodeShape ;
+    sh:targetClass fit:SelfAssessment ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Unique assessment identifier" ;
+    ] ;
+    sh:property [
+        sh:path fit:skillLevels ;
+        sh:node fit:SkillAssessmentShape ;
+        sh:name "skillLevels" ;
+        sh:description "Skill assessments" ;
+    ] ;
+    sh:property [
+        sh:path fit:behaviourMaturities ;
+        sh:node fit:BehaviourAssessmentShape ;
+        sh:name "behaviourMaturities" ;
+        sh:description "Behaviour assessments" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Assessment Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillAssessmentShape a sh:NodeShape ;
+    sh:targetClass fit:SkillAssessment ;
+    sh:property [
+        sh:path fit:assessedSkill ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "assessedSkill" ;
+        sh:description "The skill being assessed (skill ID)" ;
+    ] ;
+    sh:property [
+        sh:path fit:assessedLevel ;
+        sh:in ( fit:awareness fit:foundational fit:working fit:practitioner fit:expert ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "assessedLevel" ;
+        sh:description "The assessed level for the skill" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Behaviour Assessment Shape
+# -----------------------------------------------------------------------------
+
+fit:BehaviourAssessmentShape a sh:NodeShape ;
+    sh:targetClass fit:BehaviourAssessment ;
+    sh:property [
+        sh:path fit:assessedBehaviour ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "assessedBehaviour" ;
+        sh:description "The behaviour being assessed (behaviour ID)" ;
+    ] ;
+    sh:property [
+        sh:path fit:assessedMaturity ;
+        sh:in ( fit:emerging fit:developing fit:practicing fit:role_modeling fit:exemplifying ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "assessedMaturity" ;
+        sh:description "The assessed maturity for the behaviour" ;
+    ] .

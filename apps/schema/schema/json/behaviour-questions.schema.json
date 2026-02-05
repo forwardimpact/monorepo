@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schema.forwardimpact.team/json/behaviour-questions.schema.json",
+  "$id": "https://www.forwardimpact.team/schema/json/behaviour-questions.schema.json",
   "title": "Behaviour Interview Questions",
   "description": "Interview questions for a behaviour, organized by maturity level",
   "type": "object",

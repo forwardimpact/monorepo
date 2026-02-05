@@ -1,0 +1,130 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# Behaviour Schema
+# =============================================================================
+# Mindset and way of working that underpins effective application of skills.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
+
+fit:Behaviour a rdfs:Class ;
+    rdfs:label "Behaviour"@en ;
+    rdfs:comment "Mindset and way of working that underpins effective application of skills"@en .
+
+fit:BehaviourHumanSection a rdfs:Class ;
+    rdfs:label "Behaviour Human Section"@en ;
+    rdfs:comment "Human-specific content for a behaviour"@en .
+
+fit:BehaviourAgentSection a rdfs:Class ;
+    rdfs:label "Behaviour Agent Section"@en ;
+    rdfs:comment "Agent-specific content for a behaviour"@en .
+
+# -----------------------------------------------------------------------------
+# Properties
+# -----------------------------------------------------------------------------
+
+fit:maturityDescriptions a rdf:Property ;
+    rdfs:label "maturityDescriptions"@en ;
+    rdfs:comment "Description of expectations at each maturity level"@en ;
+    rdfs:range fit:MaturityDescriptions .
+
+fit:workingStyle a rdf:Property ;
+    rdfs:label "workingStyle"@en ;
+    rdfs:comment "How the agent should apply this behaviour"@en ;
+    rdfs:domain fit:BehaviourAgentSection ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Behaviour Shape
+# -----------------------------------------------------------------------------
+
+fit:BehaviourShape a sh:NodeShape ;
+    sh:targetClass fit:Behaviour ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Behaviour identifier (derived from filename)" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable behaviour name" ;
+    ] ;
+    sh:property [
+        sh:path fit:human ;
+        sh:node fit:BehaviourHumanSectionShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "human" ;
+        sh:description "Human-specific content" ;
+    ] ;
+    sh:property [
+        sh:path fit:agent ;
+        sh:node fit:BehaviourAgentSectionShape ;
+        sh:maxCount 1 ;
+        sh:name "agent" ;
+        sh:description "Agent-specific content" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Behaviour Human Section Shape
+# -----------------------------------------------------------------------------
+
+fit:BehaviourHumanSectionShape a sh:NodeShape ;
+    sh:targetClass fit:BehaviourHumanSection ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the behaviour" ;
+    ] ;
+    sh:property [
+        sh:path fit:maturityDescriptions ;
+        sh:node fit:MaturityDescriptionsShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "maturityDescriptions" ;
+        sh:description "Description of expectations at each maturity level" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Behaviour Agent Section Shape
+# -----------------------------------------------------------------------------
+
+fit:BehaviourAgentSectionShape a sh:NodeShape ;
+    sh:targetClass fit:BehaviourAgentSection ;
+    sh:property [
+        sh:path fit:title ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "title" ;
+        sh:description "Short title for the behaviour's agent application" ;
+    ] ;
+    sh:property [
+        sh:path fit:workingStyle ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "workingStyle" ;
+        sh:description "How the agent should apply this behaviour" ;
+    ] .

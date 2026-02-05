@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schema.forwardimpact.team/json/behaviour.schema.json",
+  "$id": "https://www.forwardimpact.team/schema/json/behaviour.schema.json",
   "title": "Behaviour",
   "description": "Mindset and way of working that underpins effective application of skills",
   "type": "object",

@@ -27,7 +27,7 @@ npx fit-schema validate
 npx fit-schema generate-index
 
 # Validate SHACL ontology
-npx fit-schema validate:shacl
+npx fit-schema validate --shacl
 ```
 
 ## Package Exports

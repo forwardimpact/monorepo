@@ -1,0 +1,440 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# Capability Schema
+# =============================================================================
+# Capability area that groups related skills with responsibilities and checklists.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
+
+fit:Capability a rdfs:Class ;
+    rdfs:label "Capability"@en ;
+    rdfs:comment "Capability area that groups related skills with responsibilities and checklists"@en .
+
+fit:Skill a rdfs:Class ;
+    rdfs:label "Skill"@en ;
+    rdfs:comment "Technical or professional capability that can be measured across proficiency levels"@en .
+
+fit:SkillHumanSection a rdfs:Class ;
+    rdfs:label "Skill Human Section"@en ;
+    rdfs:comment "Human-specific content for a skill"@en .
+
+fit:SkillAgentSection a rdfs:Class ;
+    rdfs:label "Skill Agent Section"@en ;
+    rdfs:comment "Agent-specific content for a skill"@en .
+
+fit:SkillStage a rdfs:Class ;
+    rdfs:label "Skill Stage"@en ;
+    rdfs:comment "Stage-specific guidance for applying a skill"@en .
+
+fit:ToolReference a rdfs:Class ;
+    rdfs:label "Tool Reference"@en ;
+    rdfs:comment "Reference to an external tool with usage guidance"@en .
+
+# -----------------------------------------------------------------------------
+# Properties
+# -----------------------------------------------------------------------------
+
+fit:professionalResponsibilities a rdf:Property ;
+    rdfs:label "professionalResponsibilities"@en ;
+    rdfs:comment "Responsibilities for professional/IC track by level"@en ;
+    rdfs:domain fit:Capability ;
+    rdfs:range fit:ResponsibilitiesByLevel .
+
+fit:managementResponsibilities a rdf:Property ;
+    rdfs:label "managementResponsibilities"@en ;
+    rdfs:comment "Responsibilities for management track by level"@en ;
+    rdfs:domain fit:Capability ;
+    rdfs:range fit:ResponsibilitiesByLevel .
+
+fit:skills a rdf:Property ;
+    rdfs:label "skills"@en ;
+    rdfs:comment "Skills within this capability"@en ;
+    rdfs:domain fit:Capability ;
+    rdfs:range fit:Skill .
+
+fit:capability a rdf:Property ;
+    rdfs:label "capability"@en ;
+    rdfs:comment "The capability this skill belongs to"@en ;
+    rdfs:domain fit:Skill ;
+    rdfs:range fit:Capability .
+
+fit:isHumanOnly a rdf:Property ;
+    rdfs:label "isHumanOnly"@en ;
+    rdfs:comment "If true, this skill is excluded from agent profiles"@en ;
+    rdfs:domain fit:Skill ;
+    rdfs:range xsd:boolean .
+
+fit:levelDescriptions a rdf:Property ;
+    rdfs:label "levelDescriptions"@en ;
+    rdfs:comment "Description of expectations at each level"@en ;
+    rdfs:range fit:LevelDescriptions .
+
+fit:implementationReference a rdf:Property ;
+    rdfs:label "implementationReference"@en ;
+    rdfs:comment "Implementation patterns and code examples in markdown format"@en ;
+    rdfs:domain fit:Skill ;
+    rdfs:range xsd:string .
+
+fit:toolReferences a rdf:Property ;
+    rdfs:label "toolReferences"@en ;
+    rdfs:comment "Recommended tools for this skill"@en ;
+    rdfs:domain fit:Skill ;
+    rdfs:range fit:ToolReference .
+
+# Tool Reference Properties
+fit:toolName a rdf:Property ;
+    rdfs:label "toolName"@en ;
+    rdfs:comment "Name of the tool"@en ;
+    rdfs:domain fit:ToolReference ;
+    rdfs:range xsd:string .
+
+fit:toolUrl a rdf:Property ;
+    rdfs:label "toolUrl"@en ;
+    rdfs:comment "URL to tool documentation"@en ;
+    rdfs:domain fit:ToolReference ;
+    rdfs:range xsd:anyURI .
+
+fit:simpleIcon a rdf:Property ;
+    rdfs:label "simpleIcon"@en ;
+    rdfs:comment "Simple Icons slug for the tool icon"@en ;
+    rdfs:domain fit:ToolReference ;
+    rdfs:range xsd:string .
+
+fit:toolDescription a rdf:Property ;
+    rdfs:label "toolDescription"@en ;
+    rdfs:comment "What this tool does"@en ;
+    rdfs:domain fit:ToolReference ;
+    rdfs:range xsd:string .
+
+fit:toolUseWhen a rdf:Property ;
+    rdfs:label "toolUseWhen"@en ;
+    rdfs:comment "When to use this tool"@en ;
+    rdfs:domain fit:ToolReference ;
+    rdfs:range xsd:string .
+
+# Skill Agent Section Properties
+fit:useWhen a rdf:Property ;
+    rdfs:label "useWhen"@en ;
+    rdfs:comment "Triggering conditions - when agents should use this skill"@en ;
+    rdfs:domain fit:SkillAgentSection ;
+    rdfs:range xsd:string .
+
+fit:stages a rdf:Property ;
+    rdfs:label "stages"@en ;
+    rdfs:comment "Stage-specific guidance for applying the skill"@en ;
+    rdfs:domain fit:SkillAgentSection .
+
+fit:planStage a rdf:Property ;
+    rdfs:label "planStage"@en ;
+    rdfs:comment "Guidance for the plan stage"@en ;
+    rdfs:range fit:SkillStage .
+
+fit:codeStage a rdf:Property ;
+    rdfs:label "codeStage"@en ;
+    rdfs:comment "Guidance for the code stage"@en ;
+    rdfs:range fit:SkillStage .
+
+fit:reviewStage a rdf:Property ;
+    rdfs:label "reviewStage"@en ;
+    rdfs:comment "Guidance for the review stage"@en ;
+    rdfs:range fit:SkillStage .
+
+# Skill Stage Properties
+fit:focus a rdf:Property ;
+    rdfs:label "focus"@en ;
+    rdfs:comment "Primary focus for this stage"@en ;
+    rdfs:range xsd:string .
+
+fit:activities a rdf:Property ;
+    rdfs:label "activities"@en ;
+    rdfs:comment "Key activities to perform in this stage"@en ;
+    rdfs:range xsd:string .
+
+fit:ready a rdf:Property ;
+    rdfs:label "ready"@en ;
+    rdfs:comment "Criteria that indicate readiness to move to next stage"@en ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Capability Shape
+# -----------------------------------------------------------------------------
+
+fit:CapabilityShape a sh:NodeShape ;
+    sh:targetClass fit:Capability ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Capability identifier (derived from filename if not specified)" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable capability name" ;
+    ] ;
+    sh:property [
+        sh:path fit:emojiIcon ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "emojiIcon" ;
+        sh:description "Emoji for visual representation" ;
+    ] ;
+    sh:property [
+        sh:path fit:displayOrder ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:maxCount 1 ;
+        sh:name "displayOrder" ;
+        sh:description "Order for display in UI" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the capability area" ;
+    ] ;
+    sh:property [
+        sh:path fit:professionalResponsibilities ;
+        sh:node fit:ResponsibilitiesByLevelShape ;
+        sh:maxCount 1 ;
+        sh:name "professionalResponsibilities" ;
+        sh:description "Responsibilities for professional/IC track by level" ;
+    ] ;
+    sh:property [
+        sh:path fit:managementResponsibilities ;
+        sh:node fit:ResponsibilitiesByLevelShape ;
+        sh:maxCount 1 ;
+        sh:name "managementResponsibilities" ;
+        sh:description "Responsibilities for management track by level" ;
+    ] ;
+    sh:property [
+        sh:path fit:skills ;
+        sh:node fit:SkillShape ;
+        sh:name "skills" ;
+        sh:description "Skills within this capability" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillShape a sh:NodeShape ;
+    sh:targetClass fit:Skill ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Unique skill identifier (snake_case)" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable skill name" ;
+    ] ;
+    sh:property [
+        sh:path fit:isHumanOnly ;
+        sh:datatype xsd:boolean ;
+        sh:maxCount 1 ;
+        sh:name "isHumanOnly" ;
+        sh:description "If true, this skill is excluded from agent profiles" ;
+    ] ;
+    sh:property [
+        sh:path fit:human ;
+        sh:node fit:SkillHumanSectionShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "human" ;
+        sh:description "Human-specific content for the skill" ;
+    ] ;
+    sh:property [
+        sh:path fit:agent ;
+        sh:node fit:SkillAgentSectionShape ;
+        sh:maxCount 1 ;
+        sh:name "agent" ;
+        sh:description "Agent-specific content for the skill" ;
+    ] ;
+    sh:property [
+        sh:path fit:implementationReference ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "implementationReference" ;
+        sh:description "Implementation patterns and code examples in markdown format" ;
+    ] ;
+    sh:property [
+        sh:path fit:toolReferences ;
+        sh:node fit:ToolReferenceShape ;
+        sh:name "toolReferences" ;
+        sh:description "Recommended tools for this skill" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Tool Reference Shape
+# -----------------------------------------------------------------------------
+
+fit:ToolReferenceShape a sh:NodeShape ;
+    sh:targetClass fit:ToolReference ;
+    sh:property [
+        sh:path fit:toolName ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Tool name" ;
+    ] ;
+    sh:property [
+        sh:path fit:toolUrl ;
+        sh:datatype xsd:anyURI ;
+        sh:maxCount 1 ;
+        sh:name "url" ;
+        sh:description "Link to tool documentation" ;
+    ] ;
+    sh:property [
+        sh:path fit:simpleIcon ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z0-9]+$" ;
+        sh:maxCount 1 ;
+        sh:name "simpleIcon" ;
+        sh:description "Simple Icons slug for the tool icon" ;
+    ] ;
+    sh:property [
+        sh:path fit:toolDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "What this tool does" ;
+    ] ;
+    sh:property [
+        sh:path fit:toolUseWhen ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "useWhen" ;
+        sh:description "When to use this tool" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Human Section Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillHumanSectionShape a sh:NodeShape ;
+    sh:targetClass fit:SkillHumanSection ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the skill" ;
+    ] ;
+    sh:property [
+        sh:path fit:levelDescriptions ;
+        sh:node fit:LevelDescriptionsShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "levelDescriptions" ;
+        sh:description "Description of expectations at each level" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Agent Section Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillAgentSectionShape a sh:NodeShape ;
+    sh:targetClass fit:SkillAgentSection ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9-]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Agent skill name (kebab-case)" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Brief description of what this skill provides" ;
+    ] ;
+    sh:property [
+        sh:path fit:useWhen ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "useWhen" ;
+        sh:description "Triggering conditions - when agents should use this skill" ;
+    ] ;
+    sh:property [
+        sh:path fit:planStage ;
+        sh:node fit:SkillStageShape ;
+        sh:maxCount 1 ;
+        sh:name "plan" ;
+    ] ;
+    sh:property [
+        sh:path fit:codeStage ;
+        sh:node fit:SkillStageShape ;
+        sh:maxCount 1 ;
+        sh:name "code" ;
+    ] ;
+    sh:property [
+        sh:path fit:reviewStage ;
+        sh:node fit:SkillStageShape ;
+        sh:maxCount 1 ;
+        sh:name "review" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Skill Stage Shape
+# -----------------------------------------------------------------------------
+
+fit:SkillStageShape a sh:NodeShape ;
+    sh:targetClass fit:SkillStage ;
+    sh:property [
+        sh:path fit:focus ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "focus" ;
+        sh:description "Primary focus for this stage" ;
+    ] ;
+    sh:property [
+        sh:path fit:activities ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:name "activities" ;
+        sh:description "Key activities to perform in this stage" ;
+    ] ;
+    sh:property [
+        sh:path fit:ready ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:name "ready" ;
+        sh:description "Criteria that indicate readiness to move to next stage" ;
+    ] .

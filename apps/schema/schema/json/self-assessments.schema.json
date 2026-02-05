@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schema.forwardimpact.team/json/self-assessments.schema.json",
+  "$id": "https://www.forwardimpact.team/schema/json/self-assessments.schema.json",
   "title": "Self Assessments",
   "description": "Example candidate profiles for testing candidate matching",
   "type": "array",

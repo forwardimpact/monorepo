@@ -1,0 +1,84 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# Drivers Schema
+# =============================================================================
+# Organizational outcomes that productive teams achieve.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
+
+fit:Driver a rdfs:Class ;
+    rdfs:label "Driver"@en ;
+    rdfs:comment "Organizational outcome that productive teams achieve"@en .
+
+# -----------------------------------------------------------------------------
+# Properties
+# -----------------------------------------------------------------------------
+
+fit:contributingSkills a rdf:Property ;
+    rdfs:label "contributingSkills"@en ;
+    rdfs:comment "Skills that contribute to this driver"@en ;
+    rdfs:domain fit:Driver ;
+    rdfs:range fit:Skill .
+
+fit:contributingBehaviours a rdf:Property ;
+    rdfs:label "contributingBehaviours"@en ;
+    rdfs:comment "Behaviours that contribute to this driver"@en ;
+    rdfs:domain fit:Driver ;
+    rdfs:range fit:Behaviour .
+
+# =============================================================================
+# SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Driver Shape
+# -----------------------------------------------------------------------------
+
+fit:DriverShape a sh:NodeShape ;
+    sh:targetClass fit:Driver ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Unique driver identifier (snake_case)" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable driver name" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the business outcome" ;
+    ] ;
+    sh:property [
+        sh:path fit:contributingSkills ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:name "contributingSkills" ;
+        sh:description "Skills that contribute to this driver (skill IDs)" ;
+    ] ;
+    sh:property [
+        sh:path fit:contributingBehaviours ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:name "contributingBehaviours" ;
+        sh:description "Behaviours that contribute to this driver (behaviour IDs)" ;
+    ] .

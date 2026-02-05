@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schema.forwardimpact.team/json/defs.schema.json",
+  "$id": "https://www.forwardimpact.team/schema/json/defs.schema.json",
   "title": "Engineering Pathway Common Definitions",
   "description": "Shared definitions for all pathway schemas",
   "$defs": {

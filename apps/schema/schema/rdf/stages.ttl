@@ -1,0 +1,142 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# Stages Schema
+# =============================================================================
+# Engineering lifecycle stages with handoffs and criteria.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
+
+fit:Handoff a rdfs:Class ;
+    rdfs:label "Handoff"@en ;
+    rdfs:comment "Transition from one stage to another"@en .
+
+# -----------------------------------------------------------------------------
+# Properties
+# -----------------------------------------------------------------------------
+
+fit:handoffs a rdf:Property ;
+    rdfs:label "handoffs"@en ;
+    rdfs:comment "Transitions to other stages"@en ;
+    rdfs:domain fit:Stage ;
+    rdfs:range fit:Handoff .
+
+fit:entryCriteria a rdf:Property ;
+    rdfs:label "entryCriteria"@en ;
+    rdfs:comment "Conditions that must be met before entering this stage"@en ;
+    rdfs:range xsd:string .
+
+fit:targetStage a rdf:Property ;
+    rdfs:label "targetStage"@en ;
+    rdfs:comment "The stage to transition to"@en ;
+    rdfs:domain fit:Handoff ;
+    rdfs:range fit:Stage .
+
+fit:label a rdf:Property ;
+    rdfs:label "label"@en ;
+    rdfs:comment "Button label for the handoff action"@en ;
+    rdfs:domain fit:Handoff ;
+    rdfs:range xsd:string .
+
+fit:prompt a rdf:Property ;
+    rdfs:label "prompt"@en ;
+    rdfs:comment "Instructions for the next stage"@en ;
+    rdfs:domain fit:Handoff ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Stage Shape
+# -----------------------------------------------------------------------------
+
+fit:StageShape a sh:NodeShape ;
+    sh:targetClass fit:Stage ;
+    sh:property [
+        sh:path fit:id ;
+        sh:in ( "plan" "code" "review" ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Stage identifier" ;
+    ] ;
+    sh:property [
+        sh:path fit:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "name" ;
+        sh:description "Human-readable stage name" ;
+    ] ;
+    sh:property [
+        sh:path fit:emojiIcon ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "emojiIcon" ;
+        sh:description "Emoji for visual representation" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the stage's purpose" ;
+    ] ;
+    sh:property [
+        sh:path fit:handoffs ;
+        sh:node fit:HandoffShape ;
+        sh:name "handoffs" ;
+        sh:description "Transitions to other stages" ;
+    ] ;
+    sh:property [
+        sh:path fit:constraints ;
+        sh:datatype xsd:string ;
+        sh:name "constraints" ;
+        sh:description "Restrictions on behaviour in this stage" ;
+    ] ;
+    sh:property [
+        sh:path fit:entryCriteria ;
+        sh:datatype xsd:string ;
+        sh:name "entryCriteria" ;
+        sh:description "Conditions that must be met before entering this stage" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Handoff Shape
+# -----------------------------------------------------------------------------
+
+fit:HandoffShape a sh:NodeShape ;
+    sh:targetClass fit:Handoff ;
+    sh:property [
+        sh:path fit:targetStage ;
+        sh:in ( "plan" "code" "review" ) ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "targetStage" ;
+        sh:description "The stage to transition to" ;
+    ] ;
+    sh:property [
+        sh:path fit:label ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "label" ;
+        sh:description "Button label for the handoff action" ;
+    ] ;
+    sh:property [
+        sh:path fit:prompt ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "prompt" ;
+        sh:description "Instructions for the next stage" ;
+    ] .

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schema.forwardimpact.team/json/skill-questions.schema.json",
+  "$id": "https://www.forwardimpact.team/schema/json/skill-questions.schema.json",
   "title": "Skill Interview Questions",
   "description": "Interview questions for a skill, organized by level",
   "type": "object",

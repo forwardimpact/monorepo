@@ -1,0 +1,396 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+# =============================================================================
+# Engineering Pathway Common Definitions
+# =============================================================================
+# Shared definitions for all pathway schemas: enumerations, common classes,
+# and shared properties.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Ontology Definition
+# -----------------------------------------------------------------------------
+
+fit: a owl:Ontology ;
+    rdfs:label "Engineering Pathway Schema"@en ;
+    rdfs:comment "SHACL schema for the Engineering Pathway framework - a unified system for defining engineering roles, skills, behaviours, and AI agent configurations."@en .
+
+# =============================================================================
+# ENUMERATIONS (Named Individuals)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Skill Levels (5 levels from lowest to highest proficiency)
+# -----------------------------------------------------------------------------
+
+fit:SkillLevel a rdfs:Class ;
+    rdfs:label "Skill Level"@en ;
+    rdfs:comment "Skill proficiency level from lowest to highest"@en .
+
+fit:awareness a fit:SkillLevel ;
+    rdfs:label "Awareness"@en ;
+    fit:ordinal 1 ;
+    rdfs:comment "Learning fundamentals, needs guidance"@en .
+
+fit:foundational a fit:SkillLevel ;
+    rdfs:label "Foundational"@en ;
+    fit:ordinal 2 ;
+    rdfs:comment "Can apply basics independently"@en .
+
+fit:working a fit:SkillLevel ;
+    rdfs:label "Working"@en ;
+    fit:ordinal 3 ;
+    rdfs:comment "Solid competence, handles ambiguity"@en .
+
+fit:practitioner a fit:SkillLevel ;
+    rdfs:label "Practitioner"@en ;
+    fit:ordinal 4 ;
+    rdfs:comment "Deep expertise, leads and mentors"@en .
+
+fit:expert a fit:SkillLevel ;
+    rdfs:label "Expert"@en ;
+    fit:ordinal 5 ;
+    rdfs:comment "Authority, shapes direction across org"@en .
+
+# -----------------------------------------------------------------------------
+# Behaviour Maturities (5 levels from lowest to highest)
+# -----------------------------------------------------------------------------
+
+fit:BehaviourMaturity a rdfs:Class ;
+    rdfs:label "Behaviour Maturity"@en ;
+    rdfs:comment "Behaviour maturity level from lowest to highest"@en .
+
+fit:emerging a fit:BehaviourMaturity ;
+    rdfs:label "Emerging"@en ;
+    fit:ordinal 1 ;
+    rdfs:comment "Shows interest, needs prompting"@en .
+
+fit:developing a fit:BehaviourMaturity ;
+    rdfs:label "Developing"@en ;
+    fit:ordinal 2 ;
+    rdfs:comment "Regular practice with guidance"@en .
+
+fit:practicing a fit:BehaviourMaturity ;
+    rdfs:label "Practicing"@en ;
+    fit:ordinal 3 ;
+    rdfs:comment "Consistent application, proactive"@en .
+
+fit:role_modeling a fit:BehaviourMaturity ;
+    rdfs:label "Role Modeling"@en ;
+    fit:ordinal 4 ;
+    rdfs:comment "Influences team culture"@en .
+
+fit:exemplifying a fit:BehaviourMaturity ;
+    rdfs:label "Exemplifying"@en ;
+    fit:ordinal 5 ;
+    rdfs:comment "Shapes organizational culture"@en .
+
+# -----------------------------------------------------------------------------
+# Lifecycle Stages
+# -----------------------------------------------------------------------------
+
+fit:Stage a rdfs:Class ;
+    rdfs:label "Stage"@en ;
+    rdfs:comment "Engineering lifecycle stage"@en .
+
+fit:plan a fit:Stage ;
+    rdfs:label "Plan"@en ;
+    rdfs:comment "Research, gather context, design"@en .
+
+fit:code a fit:Stage ;
+    rdfs:label "Code"@en ;
+    rdfs:comment "Implement, test, iterate"@en .
+
+fit:review a fit:Stage ;
+    rdfs:label "Review"@en ;
+    rdfs:comment "Verify, approve, document"@en .
+
+# =============================================================================
+# COMMON PROPERTIES
+# =============================================================================
+
+fit:id a rdf:Property ;
+    rdfs:label "id"@en ;
+    rdfs:comment "Unique identifier"@en ;
+    rdfs:range xsd:string .
+
+fit:name a rdf:Property ;
+    rdfs:label "name"@en ;
+    rdfs:comment "Human-readable name"@en ;
+    rdfs:range xsd:string .
+
+fit:description a rdf:Property ;
+    rdfs:label "description"@en ;
+    rdfs:comment "Description text"@en ;
+    rdfs:range xsd:string .
+
+fit:emojiIcon a rdf:Property ;
+    rdfs:label "emojiIcon"@en ;
+    rdfs:comment "Emoji for visual representation"@en ;
+    rdfs:range xsd:string .
+
+fit:displayOrder a rdf:Property ;
+    rdfs:label "displayOrder"@en ;
+    rdfs:comment "Order for display in UI"@en ;
+    rdfs:range xsd:integer .
+
+fit:ordinal a rdf:Property ;
+    rdfs:label "ordinal"@en ;
+    rdfs:comment "Numeric position in ordered sequence"@en ;
+    rdfs:range xsd:integer .
+
+fit:title a rdf:Property ;
+    rdfs:label "title"@en ;
+    rdfs:comment "Display title"@en ;
+    rdfs:range xsd:string .
+
+fit:human a rdf:Property ;
+    rdfs:label "human"@en ;
+    rdfs:comment "Human-specific content"@en .
+
+fit:agent a rdf:Property ;
+    rdfs:label "agent"@en ;
+    rdfs:comment "Agent-specific content"@en .
+
+fit:minGrade a rdf:Property ;
+    rdfs:label "minGrade"@en ;
+    rdfs:comment "Minimum grade required"@en ;
+    rdfs:range fit:Grade .
+
+fit:constraints a rdf:Property ;
+    rdfs:label "constraints"@en ;
+    rdfs:comment "Restrictions or things to avoid"@en ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# SHARED NESTED CLASSES
+# =============================================================================
+
+fit:LevelDescriptions a rdfs:Class ;
+    rdfs:label "Level Descriptions"@en ;
+    rdfs:comment "Description of expectations at each skill level"@en .
+
+fit:MaturityDescriptions a rdfs:Class ;
+    rdfs:label "Maturity Descriptions"@en ;
+    rdfs:comment "Description of expectations at each behaviour maturity level"@en .
+
+fit:ResponsibilitiesByLevel a rdfs:Class ;
+    rdfs:label "Responsibilities By Level"@en ;
+    rdfs:comment "Responsibility descriptions by skill level"@en .
+
+# -----------------------------------------------------------------------------
+# Level Description Properties
+# -----------------------------------------------------------------------------
+
+fit:awarenessDescription a rdf:Property ;
+    rdfs:label "awarenessDescription"@en ;
+    rdfs:comment "Description for awareness level"@en ;
+    rdfs:range xsd:string .
+
+fit:foundationalDescription a rdf:Property ;
+    rdfs:label "foundationalDescription"@en ;
+    rdfs:comment "Description for foundational level"@en ;
+    rdfs:range xsd:string .
+
+fit:workingDescription a rdf:Property ;
+    rdfs:label "workingDescription"@en ;
+    rdfs:comment "Description for working level"@en ;
+    rdfs:range xsd:string .
+
+fit:practitionerDescription a rdf:Property ;
+    rdfs:label "practitionerDescription"@en ;
+    rdfs:comment "Description for practitioner level"@en ;
+    rdfs:range xsd:string .
+
+fit:expertDescription a rdf:Property ;
+    rdfs:label "expertDescription"@en ;
+    rdfs:comment "Description for expert level"@en ;
+    rdfs:range xsd:string .
+
+# -----------------------------------------------------------------------------
+# Maturity Description Properties
+# -----------------------------------------------------------------------------
+
+fit:emergingDescription a rdf:Property ;
+    rdfs:label "emergingDescription"@en ;
+    rdfs:comment "Description for emerging maturity"@en ;
+    rdfs:range xsd:string .
+
+fit:developingDescription a rdf:Property ;
+    rdfs:label "developingDescription"@en ;
+    rdfs:comment "Description for developing maturity"@en ;
+    rdfs:range xsd:string .
+
+fit:practicingDescription a rdf:Property ;
+    rdfs:label "practicingDescription"@en ;
+    rdfs:comment "Description for practicing maturity"@en ;
+    rdfs:range xsd:string .
+
+fit:roleModelingDescription a rdf:Property ;
+    rdfs:label "roleModelingDescription"@en ;
+    rdfs:comment "Description for role_modeling maturity"@en ;
+    rdfs:range xsd:string .
+
+fit:exemplifyingDescription a rdf:Property ;
+    rdfs:label "exemplifyingDescription"@en ;
+    rdfs:comment "Description for exemplifying maturity"@en ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# SHARED SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Level Descriptions Shape
+# -----------------------------------------------------------------------------
+
+fit:LevelDescriptionsShape a sh:NodeShape ;
+    sh:targetClass fit:LevelDescriptions ;
+    sh:property [
+        sh:path fit:awarenessDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "awareness" ;
+    ] ;
+    sh:property [
+        sh:path fit:foundationalDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "foundational" ;
+    ] ;
+    sh:property [
+        sh:path fit:workingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "working" ;
+    ] ;
+    sh:property [
+        sh:path fit:practitionerDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "practitioner" ;
+    ] ;
+    sh:property [
+        sh:path fit:expertDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "expert" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Maturity Descriptions Shape
+# -----------------------------------------------------------------------------
+
+fit:MaturityDescriptionsShape a sh:NodeShape ;
+    sh:targetClass fit:MaturityDescriptions ;
+    sh:property [
+        sh:path fit:emergingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "emerging" ;
+    ] ;
+    sh:property [
+        sh:path fit:developingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "developing" ;
+    ] ;
+    sh:property [
+        sh:path fit:practicingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "practicing" ;
+    ] ;
+    sh:property [
+        sh:path fit:roleModelingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "role_modeling" ;
+    ] ;
+    sh:property [
+        sh:path fit:exemplifyingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "exemplifying" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Responsibilities By Level Shape
+# -----------------------------------------------------------------------------
+
+fit:ResponsibilitiesByLevelShape a sh:NodeShape ;
+    sh:targetClass fit:ResponsibilitiesByLevel ;
+    sh:property [
+        sh:path fit:awarenessDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "awareness" ;
+    ] ;
+    sh:property [
+        sh:path fit:foundationalDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "foundational" ;
+    ] ;
+    sh:property [
+        sh:path fit:workingDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "working" ;
+    ] ;
+    sh:property [
+        sh:path fit:practitionerDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "practitioner" ;
+    ] ;
+    sh:property [
+        sh:path fit:expertDescription ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "expert" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Index Shape (Auto-generated index files)
+# -----------------------------------------------------------------------------
+
+fit:Index a rdfs:Class ;
+    rdfs:label "Index"@en ;
+    rdfs:comment "Auto-generated index file for browser loading"@en .
+
+fit:files a rdf:Property ;
+    rdfs:label "files"@en ;
+    rdfs:comment "List of file basenames in the directory"@en ;
+    rdfs:domain fit:Index ;
+    rdfs:range xsd:string .
+
+fit:IndexShape a sh:NodeShape ;
+    sh:targetClass fit:Index ;
+    sh:property [
+        sh:path fit:files ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:name "files" ;
+        sh:description "List of file basenames (without extension) in the directory" ;
+    ] .

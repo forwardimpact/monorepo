@@ -1,0 +1,336 @@
+@prefix fit: <https://www.forwardimpact.team/schema/rdf/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# Discipline Schema
+# =============================================================================
+# Engineering specialization that defines T-shaped skill profiles.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
+
+fit:Discipline a rdfs:Class ;
+    rdfs:label "Discipline"@en ;
+    rdfs:comment "Engineering specialization that defines T-shaped skill profiles"@en .
+
+fit:DisciplineHumanSection a rdfs:Class ;
+    rdfs:label "Discipline Human Section"@en ;
+    rdfs:comment "Human-specific content for a discipline"@en .
+
+fit:DisciplineAgentSection a rdfs:Class ;
+    rdfs:label "Discipline Agent Section"@en ;
+    rdfs:comment "Agent-specific content for a discipline"@en .
+
+fit:BehaviourModifier a rdfs:Class ;
+    rdfs:label "Behaviour Modifier"@en ;
+    rdfs:comment "Modifier applied to a behaviour by a discipline or track"@en .
+
+# -----------------------------------------------------------------------------
+# Properties
+# -----------------------------------------------------------------------------
+
+fit:specialization a rdf:Property ;
+    rdfs:label "specialization"@en ;
+    rdfs:comment "Name of the specialization (e.g., Software Engineering)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range xsd:string .
+
+fit:roleTitle a rdf:Property ;
+    rdfs:label "roleTitle"@en ;
+    rdfs:comment "Base role title (e.g., Software Engineer)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range xsd:string .
+
+fit:isProfessional a rdf:Property ;
+    rdfs:label "isProfessional"@en ;
+    rdfs:comment "If true, this is an IC/professional discipline (default true)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range xsd:boolean .
+
+fit:isManagement a rdf:Property ;
+    rdfs:label "isManagement"@en ;
+    rdfs:comment "If true, this is a management discipline (default false)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range xsd:boolean .
+
+fit:validTracks a rdf:Property ;
+    rdfs:label "validTracks"@en ;
+    rdfs:comment "REQUIRED. Explicit list of valid tracks. Empty array = trackless only."@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range fit:Track .
+
+fit:coreSkills a rdf:Property ;
+    rdfs:label "coreSkills"@en ;
+    rdfs:comment "Primary skills for deep expertise (references skill IDs)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range fit:Skill .
+
+fit:supportingSkills a rdf:Property ;
+    rdfs:label "supportingSkills"@en ;
+    rdfs:comment "Secondary skills for supporting capabilities (references skill IDs)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range fit:Skill .
+
+fit:broadSkills a rdf:Property ;
+    rdfs:label "broadSkills"@en ;
+    rdfs:comment "Skills for general awareness (references skill IDs)"@en ;
+    rdfs:domain fit:Discipline ;
+    rdfs:range fit:Skill .
+
+fit:behaviourModifiers a rdf:Property ;
+    rdfs:label "behaviourModifiers"@en ;
+    rdfs:comment "Modifiers to behaviour expectations"@en .
+
+fit:professionalRoleSummary a rdf:Property ;
+    rdfs:label "professionalRoleSummary"@en ;
+    rdfs:comment "Role summary for professional/IC track. May use {roleTitle} placeholder."@en ;
+    rdfs:domain fit:DisciplineHumanSection ;
+    rdfs:range xsd:string .
+
+fit:managementRoleSummary a rdf:Property ;
+    rdfs:label "managementRoleSummary"@en ;
+    rdfs:comment "Role summary for management track. May use {specialization} placeholder."@en ;
+    rdfs:domain fit:DisciplineHumanSection ;
+    rdfs:range xsd:string .
+
+# Agent Section Properties
+fit:identity a rdf:Property ;
+    rdfs:label "identity"@en ;
+    rdfs:comment "Core identity statement for the agent"@en ;
+    rdfs:range xsd:string .
+
+fit:priority a rdf:Property ;
+    rdfs:label "priority"@en ;
+    rdfs:comment "Priority guidance for the agent"@en ;
+    rdfs:range xsd:string .
+
+fit:beforeMakingChanges a rdf:Property ;
+    rdfs:label "beforeMakingChanges"@en ;
+    rdfs:comment "Checklist items to consider before making changes"@en ;
+    rdfs:range xsd:string .
+
+fit:delegation a rdf:Property ;
+    rdfs:label "delegation"@en ;
+    rdfs:comment "Guidance on when and how to delegate to subagents"@en ;
+    rdfs:range xsd:string .
+
+# Modifier Properties
+fit:targetBehaviour a rdf:Property ;
+    rdfs:label "targetBehaviour"@en ;
+    rdfs:comment "The behaviour this modifier applies to"@en ;
+    rdfs:domain fit:BehaviourModifier ;
+    rdfs:range fit:Behaviour .
+
+fit:modifierValue a rdf:Property ;
+    rdfs:label "modifierValue"@en ;
+    rdfs:comment "The modifier value (-1, 0, or 1)"@en ;
+    rdfs:range xsd:integer .
+
+# =============================================================================
+# SHACL SHAPES
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Discipline Shape
+# -----------------------------------------------------------------------------
+
+fit:DisciplineShape a sh:NodeShape ;
+    sh:targetClass fit:Discipline ;
+    sh:property [
+        sh:path fit:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:maxCount 1 ;
+        sh:name "id" ;
+        sh:description "Discipline identifier (derived from filename)" ;
+    ] ;
+    sh:property [
+        sh:path fit:specialization ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "specialization" ;
+        sh:description "Name of the specialization (e.g., Software Engineering)" ;
+    ] ;
+    sh:property [
+        sh:path fit:roleTitle ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "roleTitle" ;
+        sh:description "Base role title (e.g., Software Engineer)" ;
+    ] ;
+    sh:property [
+        sh:path fit:isProfessional ;
+        sh:datatype xsd:boolean ;
+        sh:maxCount 1 ;
+        sh:name "isProfessional" ;
+        sh:description "If true, this is an IC/professional discipline (default true)" ;
+    ] ;
+    sh:property [
+        sh:path fit:isManagement ;
+        sh:datatype xsd:boolean ;
+        sh:maxCount 1 ;
+        sh:name "isManagement" ;
+        sh:description "If true, this is a management discipline (default false)" ;
+    ] ;
+    sh:property [
+        sh:path fit:validTracks ;
+        sh:minCount 1 ;
+        sh:name "validTracks" ;
+        sh:description "REQUIRED. Valid track configurations. Use null for trackless (generalist)." ;
+        sh:or (
+            [ sh:datatype xsd:string ; sh:pattern "^[a-z][a-z0-9_]*$" ]
+            [ sh:nodeKind sh:Literal ; sh:hasValue "null" ]
+        ) ;
+    ] ;
+    sh:property [
+        sh:path fit:minGrade ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[A-Z][A-Z0-9]*$" ;
+        sh:maxCount 1 ;
+        sh:name "minGrade" ;
+        sh:description "Minimum grade required for this discipline (grade ID)" ;
+    ] ;
+    sh:property [
+        sh:path fit:description ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "description" ;
+        sh:description "Description of the discipline's focus" ;
+    ] ;
+    sh:property [
+        sh:path fit:coreSkills ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:name "coreSkills" ;
+        sh:description "Primary skills for deep expertise (skill IDs)" ;
+    ] ;
+    sh:property [
+        sh:path fit:supportingSkills ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:name "supportingSkills" ;
+        sh:description "Secondary skills for supporting capabilities (skill IDs)" ;
+    ] ;
+    sh:property [
+        sh:path fit:broadSkills ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:name "broadSkills" ;
+        sh:description "Skills for general awareness (skill IDs)" ;
+    ] ;
+    sh:property [
+        sh:path fit:behaviourModifiers ;
+        sh:node fit:BehaviourModifierShape ;
+        sh:name "behaviourModifiers" ;
+        sh:description "Modifiers to behaviour expectations" ;
+    ] ;
+    sh:property [
+        sh:path fit:human ;
+        sh:node fit:DisciplineHumanSectionShape ;
+        sh:maxCount 1 ;
+        sh:name "human" ;
+        sh:description "Human-specific content" ;
+    ] ;
+    sh:property [
+        sh:path fit:agent ;
+        sh:node fit:DisciplineAgentSectionShape ;
+        sh:maxCount 1 ;
+        sh:name "agent" ;
+        sh:description "Agent-specific content" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Discipline Human Section Shape
+# -----------------------------------------------------------------------------
+
+fit:DisciplineHumanSectionShape a sh:NodeShape ;
+    sh:targetClass fit:DisciplineHumanSection ;
+    sh:property [
+        sh:path fit:professionalRoleSummary ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "professionalRoleSummary" ;
+        sh:description "Role summary for professional/IC track" ;
+    ] ;
+    sh:property [
+        sh:path fit:managementRoleSummary ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "managementRoleSummary" ;
+        sh:description "Role summary for management track" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Discipline Agent Section Shape
+# -----------------------------------------------------------------------------
+
+fit:DisciplineAgentSectionShape a sh:NodeShape ;
+    sh:targetClass fit:DisciplineAgentSection ;
+    sh:property [
+        sh:path fit:identity ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "identity" ;
+        sh:description "Core identity statement for the agent" ;
+    ] ;
+    sh:property [
+        sh:path fit:priority ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "priority" ;
+        sh:description "Priority guidance for the agent" ;
+    ] ;
+    sh:property [
+        sh:path fit:beforeMakingChanges ;
+        sh:datatype xsd:string ;
+        sh:name "beforeMakingChanges" ;
+        sh:description "Checklist items to consider before making changes" ;
+    ] ;
+    sh:property [
+        sh:path fit:delegation ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "delegation" ;
+        sh:description "Guidance on when and how to delegate to subagents" ;
+    ] ;
+    sh:property [
+        sh:path fit:constraints ;
+        sh:datatype xsd:string ;
+        sh:name "constraints" ;
+        sh:description "Things the agent should avoid or never do" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Behaviour Modifier Shape
+# -----------------------------------------------------------------------------
+
+fit:BehaviourModifierShape a sh:NodeShape ;
+    sh:targetClass fit:BehaviourModifier ;
+    sh:property [
+        sh:path fit:targetBehaviour ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "targetBehaviour" ;
+        sh:description "The behaviour this modifier applies to" ;
+    ] ;
+    sh:property [
+        sh:path fit:modifierValue ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive -1 ;
+        sh:maxInclusive 1 ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "modifierValue" ;
+        sh:description "Modifier value (-1, 0, or 1)" ;
+    ] .
