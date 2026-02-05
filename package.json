@@ -27,7 +27,8 @@
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "test": "find ./tests -name '*.test.js' | xargs node --test",
-    "test:e2e": "npx playwright test"
+    "test:e2e": "npx playwright test",
+    "validate": "npx fit-schema validate"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
