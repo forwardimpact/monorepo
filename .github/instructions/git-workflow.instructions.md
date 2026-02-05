@@ -44,6 +44,9 @@ When releasing a minor or major version, update dependent packages:
 2. Update dependency version in downstream packages (minor/major only)
 3. Commit: `chore({package}): bump to {version}`
 4. Tag: `git tag {package}@v{version}`
-5. Push: `git push origin main --tags`
+5. Push commits: `git push origin main`
+6. Push each tag individually: `git push origin {package}@v{version}`
 
-Tags trigger publish workflows automatically.
+**Push tags one at a time.** GitHub Actions triggers once per push event, so
+`git push --tags` with multiple tags only triggers one workflow run. Push each
+tag separately to trigger individual publish workflows.
