@@ -1,20 +1,17 @@
 ---
 name: {{name}}
 description: |
-{{#descriptionLines}}
-  {{{.}}}
-{{/descriptionLines}}
+  {{#descriptionLines}}{{{.}}} {{/descriptionLines}}
 {{#hasUseWhen}}
-  **Use When:** {{#useWhenLines}}{{{.}}}{{/useWhenLines}}
+  Use When: {{#useWhenLines}}{{{.}}} {{/useWhenLines}}
 {{/hasUseWhen}}
 ---
 
 # {{{title}}}
-{{#hasUseWhen}}
 
-**Use This Skill When:**
-{{#useWhenLines}}{{{.}}}{{/useWhenLines}}
-{{/hasUseWhen}}
+{{#descriptionLines}}
+{{{.}}}
+{{/descriptionLines}}
 {{#hasStages}}
 
 ## Stage Guidance
