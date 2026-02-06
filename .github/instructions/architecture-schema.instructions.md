@@ -8,7 +8,7 @@ applyTo: "apps/schema/**"
 
 ```
 apps/schema/
-  lib/
+  src/
     loader.js           # Load and parse YAML data files
     validation.js       # Data validation logic
     schema-validation.js # JSON Schema validation

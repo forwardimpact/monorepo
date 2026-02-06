@@ -10,22 +10,22 @@
   },
   "homepage": "https://www.forwardimpact.team/model",
   "type": "module",
-  "main": "lib/index.js",
+  "main": "src/index.js",
   "files": [
-    "lib/"
+    "src/"
   ],
   "exports": {
-    ".": "./lib/index.js",
-    "./derivation": "./lib/derivation.js",
-    "./modifiers": "./lib/modifiers.js",
-    "./agent": "./lib/agent.js",
-    "./interview": "./lib/interview.js",
-    "./job": "./lib/job.js",
-    "./job-cache": "./lib/job-cache.js",
-    "./checklist": "./lib/checklist.js",
-    "./matching": "./lib/matching.js",
-    "./profile": "./lib/profile.js",
-    "./progression": "./lib/progression.js"
+    ".": "./src/index.js",
+    "./derivation": "./src/derivation.js",
+    "./modifiers": "./src/modifiers.js",
+    "./agent": "./src/agent.js",
+    "./interview": "./src/interview.js",
+    "./job": "./src/job.js",
+    "./job-cache": "./src/job-cache.js",
+    "./checklist": "./src/checklist.js",
+    "./matching": "./src/matching.js",
+    "./profile": "./src/profile.js",
+    "./progression": "./src/progression.js"
   },
   "dependencies": {
     "@forwardimpact/schema": "^0.4.0"

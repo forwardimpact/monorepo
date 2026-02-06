@@ -116,7 +116,7 @@ function formatValidationResults(result) {
 async function runValidate(dataDir) {
   console.log(`🔍 Validating data in: ${dataDir}\n`);
 
-  const { runSchemaValidation, loadAllData } = await import("../lib/index.js");
+  const { runSchemaValidation, loadAllData } = await import("../src/index.js");
 
   // Load data first
   const data = await loadAllData(dataDir, { validate: false });
@@ -144,7 +144,7 @@ async function runValidate(dataDir) {
 async function runGenerateIndex(dataDir) {
   console.log(`📁 Generating index files in: ${dataDir}\n`);
 
-  const { generateAllIndexes } = await import("../lib/index.js");
+  const { generateAllIndexes } = await import("../src/index.js");
 
   const results = await generateAllIndexes(dataDir);
 

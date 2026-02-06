@@ -10,7 +10,7 @@
   },
   "homepage": "https://www.forwardimpact.team/schema",
   "type": "module",
-  "main": "lib/index.js",
+  "main": "src/index.js",
   "bin": {
     "fit-schema": "./bin/fit-schema.js"
   },
@@ -21,16 +21,16 @@
   "files": [
     "bin/",
     "examples/",
-    "lib/",
+    "src/",
     "schema/"
   ],
   "exports": {
-    ".": "./lib/index.js",
-    "./loader": "./lib/loader.js",
-    "./validation": "./lib/validation.js",
-    "./schema-validation": "./lib/schema-validation.js",
-    "./index-generator": "./lib/index-generator.js",
-    "./levels": "./lib/levels.js",
+    ".": "./src/index.js",
+    "./loader": "./src/loader.js",
+    "./validation": "./src/validation.js",
+    "./schema-validation": "./src/schema-validation.js",
+    "./index-generator": "./src/index-generator.js",
+    "./levels": "./src/levels.js",
     "./examples/*": "./examples/*",
     "./schema/json/*": "./schema/json/*",
     "./schema/rdf/*": "./schema/rdf/*"

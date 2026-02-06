@@ -21,8 +21,8 @@ apps/
 
 ## 3-Layer System
 
-1. **Schema** (`apps/schema/`) — Data definitions, validation, loading
-2. **Model** (`apps/model/lib/`) — Pure business logic, derivation
+1. **Schema** (`apps/schema/src/`) — Data definitions, validation, loading
+2. **Model** (`apps/model/src/`) — Pure business logic, derivation
 3. **Pathway** (`apps/pathway/src/`) — Formatters, views, UI components
 
 ## Data Flow
@@ -42,7 +42,7 @@ Schema (data) → Model (derivation) → Pathway (presentation)
 | Example data | `apps/schema/examples/`        |
 | JSON Schema  | `apps/schema/schema/json/`     |
 | RDF/SHACL    | `apps/schema/schema/rdf/`      |
-| Derivation   | `apps/model/lib/`              |
+| Derivation   | `apps/model/src/`              |
 | Formatters   | `apps/pathway/src/formatters/` |
 | Templates    | `apps/pathway/templates/`      |
 
@@ -57,7 +57,7 @@ When updating data structure, change:
 1. `apps/schema/schema/json/` and `rdf/` — Schema definitions (both formats,
    same commit)
 2. `apps/schema/examples/` — Example data
-3. `apps/model/lib/` — Derivation logic if needed
+3. `apps/model/src/` — Derivation logic if needed
 4. `apps/pathway/src/formatters/` — Presentation if needed
 
 See package-specific instructions:

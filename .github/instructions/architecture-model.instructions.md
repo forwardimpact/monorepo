@@ -7,7 +7,7 @@ applyTo: "apps/model/**"
 ## Package Structure
 
 ```
-apps/model/lib/
+apps/model/src/
   derivation.js   # Core: deriveSkillMatrix, deriveBehaviourProfile, deriveJob
   modifiers.js    # Skill modifier resolution
   profile.js      # Post-processing: filtering, sorting for agents

@@ -15,10 +15,10 @@ applyTo: "**/*.js"
 
 ## File Organization
 
-**Schema** (`apps/schema/lib/`): `loader.js`, `validation.js`,
+**Schema** (`apps/schema/src/`): `loader.js`, `validation.js`,
 `schema-validation.js`, `index-generator.js`, `levels.js`
 
-**Model** (`apps/model/lib/`): `derivation.js`, `modifiers.js`, `profile.js`,
+**Model** (`apps/model/src/`): `derivation.js`, `modifiers.js`, `profile.js`,
 `job.js`, `agent.js`, `checklist.js`, `interview.js`
 
 **Pathway** (`apps/pathway/src/`): `formatters/`, `pages/`, `components/`,
