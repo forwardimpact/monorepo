@@ -33,6 +33,11 @@ const DEFAULT_QUESTION_MINUTES = 5;
 const DEFAULT_DECOMPOSITION_MINUTES = 15;
 
 /**
+ * Default stakeholder simulation question time estimate
+ */
+const DEFAULT_SIMULATION_MINUTES = 20;
+
+/**
  * Get questions from the question bank for a specific skill and level
  * @param {import('./levels.js').QuestionBank} questionBank - The question bank
  * @param {string} skillId - The skill ID
@@ -886,16 +891,17 @@ export function deriveDecompositionInterview({
 }
 
 /**
- * Derive Stakeholder Simulation interview questions (skill + behaviour mix)
+ * Derive Stakeholder Simulation interview questions (behaviour-focused)
  *
- * 60-minute interview with 3-4 stakeholders
- * Combines skill and behaviour questions to simulate stakeholder interactions.
+ * 60-minute interview with 3-4 stakeholders.
+ * Selects the highest-maturity behaviours for the role and picks one chunky
+ * simulation question per behaviour. For most jobs this means 2-3 behaviours
+ * with ~20-minute simulation scenarios each.
  *
  * @param {Object} params
  * @param {import('./levels.js').JobDefinition} params.job - The job definition
  * @param {import('./levels.js').QuestionBank} params.questionBank - The question bank
  * @param {number} [params.targetMinutes=60] - Target interview length in minutes
- * @param {number} [params.skillBehaviourRatio=0.5] - Ratio of time for skills vs behaviours
  * @param {string} [params.roleType='professionalQuestions'] - Role type ('professionalQuestions' or 'managementQuestions')
  * @returns {import('./levels.js').InterviewGuide}
  */
@@ -903,39 +909,25 @@ export function deriveStakeholderInterview({
   job,
   questionBank,
   targetMinutes = 60,
-  skillBehaviourRatio = 0.5,
   roleType = "professionalQuestions",
 }) {
-  const allSkillQuestions = [];
-  const allBehaviourQuestions = [];
-  const coveredSkills = new Set();
   const coveredBehaviours = new Set();
 
-  // Generate skill questions
-  for (const skill of job.skillMatrix) {
-    const targetLevel = skill.level;
-    const questions = getSkillQuestions(
-      questionBank,
-      skill.skillId,
-      targetLevel,
-      roleType,
-    );
+  // Sort behaviours by maturity (highest first) to prioritize the most emphasized
+  const sortedBehaviours = [...job.behaviourProfile].sort(
+    (a, b) =>
+      getBehaviourMaturityIndex(b.maturity) -
+      getBehaviourMaturityIndex(a.maturity),
+  );
 
-    for (const question of questions) {
-      allSkillQuestions.push({
-        question,
-        targetId: skill.skillId,
-        targetName: skill.skillName,
-        targetType: "skill",
-        targetLevel,
-        priority: calculateSkillPriority(skill, false),
-      });
-    }
-  }
+  // Select one question per behaviour, highest maturity first, within budget
+  const selectedQuestions = [];
+  let totalMinutes = 0;
 
-  // Generate behaviour questions
-  for (const behaviour of job.behaviourProfile) {
+  for (const behaviour of sortedBehaviours) {
     const targetMaturity = behaviour.maturity;
+
+    // Get questions at target maturity
     const questions = getBehaviourQuestions(
       questionBank,
       behaviour.behaviourId,
@@ -943,70 +935,32 @@ export function deriveStakeholderInterview({
       roleType,
     );
 
-    for (const question of questions) {
-      allBehaviourQuestions.push({
-        question,
-        targetId: behaviour.behaviourId,
-        targetName: behaviour.behaviourName,
-        targetType: "behaviour",
-        targetLevel: targetMaturity,
-        priority: calculateBehaviourPriority(behaviour),
-      });
-    }
-  }
+    // Pick the first available question (1 per behaviour)
+    const question = questions[0];
+    if (!question) continue;
 
-  // Sort both lists by priority
-  allSkillQuestions.sort((a, b) => b.priority - a.priority);
-  allBehaviourQuestions.sort((a, b) => b.priority - a.priority);
-
-  // Calculate time budgets (equal split for stakeholder simulation)
-  const skillTimeBudget = targetMinutes * skillBehaviourRatio;
-  const behaviourTimeBudget = targetMinutes * (1 - skillBehaviourRatio);
-
-  // Select skill questions
-  const selectedQuestions = [];
-  const selectedSkillIds = new Set();
-  let skillMinutes = 0;
-
-  for (const q of allSkillQuestions) {
-    if (selectedSkillIds.has(q.targetId)) continue;
     const questionTime =
-      q.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES;
-    if (skillMinutes + questionTime <= skillTimeBudget + 5) {
-      selectedQuestions.push(q);
-      selectedSkillIds.add(q.targetId);
-      coveredSkills.add(q.targetId);
-      skillMinutes += questionTime;
-    }
+      question.expectedDurationMinutes || DEFAULT_SIMULATION_MINUTES;
+    if (totalMinutes + questionTime > targetMinutes + 5) break;
+
+    selectedQuestions.push({
+      question,
+      targetId: behaviour.behaviourId,
+      targetName: behaviour.behaviourName,
+      targetType: "behaviour",
+      targetLevel: targetMaturity,
+      priority: calculateBehaviourPriority(behaviour),
+    });
+    coveredBehaviours.add(behaviour.behaviourId);
+    totalMinutes += questionTime;
   }
-
-  // Select behaviour questions
-  const selectedBehaviourIds = new Set();
-  let behaviourMinutes = 0;
-
-  for (const q of allBehaviourQuestions) {
-    if (selectedBehaviourIds.has(q.targetId)) continue;
-    const questionTime =
-      q.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES;
-    if (behaviourMinutes + questionTime <= behaviourTimeBudget + 5) {
-      selectedQuestions.push(q);
-      selectedBehaviourIds.add(q.targetId);
-      coveredBehaviours.add(q.targetId);
-      behaviourMinutes += questionTime;
-    }
-  }
-
-  // Re-sort by priority
-  selectedQuestions.sort((a, b) => b.priority - a.priority);
-
-  const expectedDurationMinutes = skillMinutes + behaviourMinutes;
 
   return {
     job,
     questions: selectedQuestions,
-    expectedDurationMinutes,
+    expectedDurationMinutes: totalMinutes,
     coverage: {
-      skills: Array.from(coveredSkills),
+      skills: [],
       behaviours: Array.from(coveredBehaviours),
       capabilities: [],
     },
