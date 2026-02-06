@@ -93,50 +93,30 @@
     font-weight: 500;
   }
 
-  /* Capability badges */
+  /* Capability badges - each capability ID maps to its own distinct color */
   .badge-delivery {
-    background: var(--color-cat-delivery-light);
-    color: var(--color-cat-delivery);
+    background: var(--color-cap-delivery-light);
+    color: var(--color-cap-delivery);
   }
 
   .badge-scale {
-    background: var(--color-cat-scale-light);
-    color: var(--color-cat-scale);
+    background: var(--color-cap-scale-light);
+    color: var(--color-cap-scale);
   }
 
   .badge-reliability {
-    background: var(--color-cat-reliability-light);
-    color: var(--color-cat-reliability);
-  }
-
-  .badge-data {
-    background: var(--color-cat-data-light);
-    color: var(--color-cat-data);
-  }
-
-  .badge-ai {
-    background: var(--color-cat-ai-light);
-    color: var(--color-cat-ai);
-  }
-
-  .badge-process {
-    background: var(--color-cat-process-light);
-    color: var(--color-cat-process);
+    background: var(--color-cap-reliability-light);
+    color: var(--color-cap-reliability);
   }
 
   .badge-business {
-    background: var(--color-cat-business-light);
-    color: var(--color-cat-business);
+    background: var(--color-cap-business-light);
+    color: var(--color-cap-business);
   }
 
   .badge-people {
-    background: var(--color-cat-people-light);
-    color: var(--color-cat-people);
-  }
-
-  .badge-documentation {
-    background: var(--color-cat-documentation-light);
-    color: var(--color-cat-documentation);
+    background: var(--color-cap-people-light);
+    color: var(--color-cap-people);
   }
 
   /* Tool badge */

@@ -43,30 +43,22 @@
     --color-maturity-5: #c4b5fd;
 
     /* --------------------------------------------------------------------------
-     Colors - Categories (text)
+     Colors - Capabilities (text)
      -------------------------------------------------------------------------- */
-    --color-cat-delivery: #dc2626; /* red - rapid delivery focus */
-    --color-cat-scale: #1d4ed8; /* blue - infrastructure/platform */
-    --color-cat-reliability: #0369a1; /* sky - SRE/operations */
-    --color-cat-data: #0f766e; /* teal */
-    --color-cat-ai: #7c3aed; /* violet */
-    --color-cat-process: #c2410c; /* orange */
-    --color-cat-business: #a16207; /* amber */
-    --color-cat-people: #be185d; /* pink */
-    --color-cat-documentation: #15803d; /* green */
+    --color-cap-delivery: #dc2626; /* red - speed and efficiency */
+    --color-cap-scale: #1d4ed8; /* blue - infrastructure and systems */
+    --color-cap-reliability: #0891b2; /* cyan - stability and operations */
+    --color-cap-business: #b45309; /* amber - strategy and outcomes */
+    --color-cap-people: #be185d; /* pink - collaboration and leadership */
 
     /* --------------------------------------------------------------------------
-     Colors - Categories (backgrounds)
+     Colors - Capabilities (backgrounds)
      -------------------------------------------------------------------------- */
-    --color-cat-delivery-light: #fecaca; /* red */
-    --color-cat-scale-light: #dbeafe; /* blue */
-    --color-cat-reliability-light: #e0f2fe; /* sky */
-    --color-cat-data-light: #ccfbf1; /* teal */
-    --color-cat-ai-light: #ede9fe; /* violet */
-    --color-cat-process-light: #ffedd5; /* orange */
-    --color-cat-business-light: #fef3c7; /* amber */
-    --color-cat-people-light: #fce7f3; /* pink */
-    --color-cat-documentation-light: #dcfce7; /* green */
+    --color-cap-delivery-light: #fecaca; /* red */
+    --color-cap-scale-light: #dbeafe; /* blue */
+    --color-cap-reliability-light: #cffafe; /* cyan */
+    --color-cap-business-light: #fef3c7; /* amber */
+    --color-cap-people-light: #fce7f3; /* pink */
 
     /* --------------------------------------------------------------------------
      Colors - Neutrals
