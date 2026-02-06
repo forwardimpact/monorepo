@@ -43,22 +43,34 @@
     --color-maturity-5: #c4b5fd;
 
     /* --------------------------------------------------------------------------
-     Colors - Capabilities (text)
+     Colors - Capabilities (text) - matches data/capabilities/*.yaml IDs
      -------------------------------------------------------------------------- */
-    --color-cap-delivery: #dc2626; /* red - speed and efficiency */
-    --color-cap-scale: #1d4ed8; /* blue - infrastructure and systems */
-    --color-cap-reliability: #0891b2; /* cyan - stability and operations */
-    --color-cap-business: #b45309; /* amber - strategy and outcomes */
-    --color-cap-people: #be185d; /* pink - collaboration and leadership */
+    --color-cap-ai: #7c3aed; /* violet */
+    --color-cap-business: #b45309; /* amber */
+    --color-cap-data: #0f766e; /* teal */
+    --color-cap-delivery: #dc2626; /* red */
+    --color-cap-documentation: #15803d; /* green */
+    --color-cap-ml: #9333ea; /* purple */
+    --color-cap-people: #be185d; /* pink */
+    --color-cap-process: #c2410c; /* orange */
+    --color-cap-product: #4f46e5; /* indigo */
+    --color-cap-reliability: #0891b2; /* cyan */
+    --color-cap-scale: #1d4ed8; /* blue */
 
     /* --------------------------------------------------------------------------
      Colors - Capabilities (backgrounds)
      -------------------------------------------------------------------------- */
-    --color-cap-delivery-light: #fecaca; /* red */
-    --color-cap-scale-light: #dbeafe; /* blue */
-    --color-cap-reliability-light: #cffafe; /* cyan */
+    --color-cap-ai-light: #ede9fe; /* violet */
     --color-cap-business-light: #fef3c7; /* amber */
+    --color-cap-data-light: #ccfbf1; /* teal */
+    --color-cap-delivery-light: #fecaca; /* red */
+    --color-cap-documentation-light: #dcfce7; /* green */
+    --color-cap-ml-light: #f3e8ff; /* purple */
     --color-cap-people-light: #fce7f3; /* pink */
+    --color-cap-process-light: #ffedd5; /* orange */
+    --color-cap-product-light: #e0e7ff; /* indigo */
+    --color-cap-reliability-light: #cffafe; /* cyan */
+    --color-cap-scale-light: #dbeafe; /* blue */
 
     /* --------------------------------------------------------------------------
      Colors - Neutrals

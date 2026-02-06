@@ -94,19 +94,9 @@
   }
 
   /* Capability badges - each capability ID maps to its own distinct color */
-  .badge-delivery {
-    background: var(--color-cap-delivery-light);
-    color: var(--color-cap-delivery);
-  }
-
-  .badge-scale {
-    background: var(--color-cap-scale-light);
-    color: var(--color-cap-scale);
-  }
-
-  .badge-reliability {
-    background: var(--color-cap-reliability-light);
-    color: var(--color-cap-reliability);
+  .badge-ai {
+    background: var(--color-cap-ai-light);
+    color: var(--color-cap-ai);
   }
 
   .badge-business {
@@ -114,9 +104,49 @@
     color: var(--color-cap-business);
   }
 
+  .badge-data {
+    background: var(--color-cap-data-light);
+    color: var(--color-cap-data);
+  }
+
+  .badge-delivery {
+    background: var(--color-cap-delivery-light);
+    color: var(--color-cap-delivery);
+  }
+
+  .badge-documentation {
+    background: var(--color-cap-documentation-light);
+    color: var(--color-cap-documentation);
+  }
+
+  .badge-ml {
+    background: var(--color-cap-ml-light);
+    color: var(--color-cap-ml);
+  }
+
   .badge-people {
     background: var(--color-cap-people-light);
     color: var(--color-cap-people);
+  }
+
+  .badge-process {
+    background: var(--color-cap-process-light);
+    color: var(--color-cap-process);
+  }
+
+  .badge-product {
+    background: var(--color-cap-product-light);
+    color: var(--color-cap-product);
+  }
+
+  .badge-reliability {
+    background: var(--color-cap-reliability-light);
+    color: var(--color-cap-reliability);
+  }
+
+  .badge-scale {
+    background: var(--color-cap-scale-light);
+    color: var(--color-cap-scale);
   }
 
   /* Tool badge */
