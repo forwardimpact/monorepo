@@ -23,7 +23,8 @@ export const INTERVIEW_TYPES = {
   mission: {
     id: "mission",
     name: "Mission Fit",
-    description: "Recruiting Manager + 1 Senior Engineer",
+    description:
+      "Assess technical skills and alignment with role expectations. Focus on depth of knowledge, problem-solving approach, and ability to articulate technical decisions.",
     icon: "🎯",
     expectedDurationMinutes: 45,
     panel: "Recruiting Manager + 1 Senior Engineer",
@@ -32,7 +33,8 @@ export const INTERVIEW_TYPES = {
   decomposition: {
     id: "decomposition",
     name: "Decomposition",
-    description: "2 Senior Engineers",
+    description:
+      "Evaluate how candidates break down ambiguous problems into actionable components. Inspired by Palantir's technique—focus on structured thinking, trade-off analysis, and communication under uncertainty.",
     icon: "🧩",
     expectedDurationMinutes: 60,
     panel: "2 Senior Engineers",
@@ -41,7 +43,8 @@ export const INTERVIEW_TYPES = {
   stakeholder: {
     id: "stakeholder",
     name: "Stakeholder Simulation",
-    description: "3-4 stakeholders",
+    description:
+      "Simulate real-world stakeholder interactions combining technical and behavioural assessment. Focus on communication style, influence, and ability to navigate competing priorities.",
     icon: "👥",
     expectedDurationMinutes: 60,
     panel: "3-4 Stakeholders",
