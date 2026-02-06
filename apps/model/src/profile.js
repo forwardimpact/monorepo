@@ -4,13 +4,10 @@
  * Shared functions for deriving skill and behaviour profiles for both
  * human jobs and AI agents.
  *
- * - prepareBaseProfile() - full derivation with configurable options
- * - prepareAgentProfile() - convenience wrapper with agent-specific filtering
+ * - prepareBaseProfile() - core derivation (skills, behaviours, responsibilities)
+ * - prepareAgentProfile() - agent-specific derivation using composed policies
  *
- * @see policies/predicates.js - Entry-level predicate functions
- * @see policies/filters.js - Matrix-level filter functions
- * @see policies/orderings.js - Comparator functions
- * @see policies/composed.js - Composed policies
+ * @see policies/composed.js - Agent filtering and sorting policies
  */
 
 import {
@@ -20,11 +17,9 @@ import {
 } from "./derivation.js";
 
 import {
-  isAgentEligible,
-  filterHighestLevel,
-  compareByLevelDesc,
-  compareByMaturityDesc,
-} from "./policies/index.js";
+  prepareAgentSkillMatrix,
+  prepareAgentBehaviourProfile,
+} from "./policies/composed.js";
 
 // =============================================================================
 // Utility Functions
@@ -48,14 +43,6 @@ export function getPositiveTrackCapabilities(track) {
 // =============================================================================
 
 /**
- * @typedef {Object} ProfileOptions
- * @property {boolean} [excludeHumanOnly=false] - Filter out human-only skills
- * @property {boolean} [keepHighestLevelOnly=false] - Keep only skills at the highest derived level
- * @property {boolean} [sortByLevel=false] - Sort skills by level descending
- * @property {boolean} [sortByMaturity=false] - Sort behaviours by maturity descending
- */
-
-/**
  * @typedef {Object} BaseProfile
  * @property {Array} skillMatrix - Derived skill matrix
  * @property {Array} behaviourProfile - Derived behaviour profile
@@ -66,13 +53,14 @@ export function getPositiveTrackCapabilities(track) {
  */
 
 /**
- * Prepare a base profile shared by jobs and agents
+ * Prepare a base profile with raw derivation
  *
- * This is the unified entry point for profile derivation. Both human jobs
- * and AI agents use this function, with different options:
+ * Core derivation entry point shared by jobs and agents. Produces the
+ * raw skill matrix, behaviour profile, and responsibilities without
+ * any filtering or sorting. Consumers apply policies as needed:
  *
- * - Human jobs: No filtering, default sorting by type
- * - AI agents: Use prepareAgentProfile() for agent-specific filtering
+ * - Human jobs: use raw output directly (sorted by type in derivation)
+ * - AI agents: use prepareAgentProfile() which applies composed policies
  *
  * @param {Object} params
  * @param {Object} params.discipline - The discipline
@@ -81,7 +69,6 @@ export function getPositiveTrackCapabilities(track) {
  * @param {Array} params.skills - All available skills
  * @param {Array} params.behaviours - All available behaviours
  * @param {Array} [params.capabilities] - Optional capabilities for responsibility derivation
- * @param {ProfileOptions} [params.options={}] - Filtering and sorting options
  * @returns {BaseProfile} The prepared profile
  */
 export function prepareBaseProfile({
@@ -91,39 +78,15 @@ export function prepareBaseProfile({
   skills,
   behaviours,
   capabilities,
-  options = {},
 }) {
-  const {
-    excludeHumanOnly = false,
-    keepHighestLevelOnly = false,
-    sortByLevel = false,
-    sortByMaturity = false,
-  } = options;
-
   // Core derivation
-  let skillMatrix = deriveSkillMatrix({ discipline, grade, track, skills });
-  let behaviourProfile = deriveBehaviourProfile({
+  const skillMatrix = deriveSkillMatrix({ discipline, grade, track, skills });
+  const behaviourProfile = deriveBehaviourProfile({
     discipline,
     grade,
     track,
     behaviours,
   });
-
-  // Apply skill filters using policy functions
-  if (excludeHumanOnly) {
-    skillMatrix = skillMatrix.filter(isAgentEligible);
-  }
-  if (keepHighestLevelOnly) {
-    skillMatrix = filterHighestLevel(skillMatrix);
-  }
-
-  // Apply sorting using policy comparators
-  if (sortByLevel) {
-    skillMatrix = [...skillMatrix].sort(compareByLevelDesc);
-  }
-  if (sortByMaturity) {
-    behaviourProfile = [...behaviourProfile].sort(compareByMaturityDesc);
-  }
 
   // Derive responsibilities if capabilities provided
   let derivedResponsibilities = [];
@@ -148,14 +111,14 @@ export function prepareBaseProfile({
 /**
  * Prepare a profile optimized for agent generation
  *
- * Applies agent-specific filtering and sorting:
+ * Applies agent-specific policies from composed.js:
  * - Excludes human-only skills
  * - Keeps only skills at the highest derived level
  * - Sorts skills by level descending
  * - Sorts behaviours by maturity descending
  *
- * @param {Object} params - Same as prepareBaseProfile, without options
- * @returns {BaseProfile} The prepared profile
+ * @param {Object} params - Same as prepareBaseProfile
+ * @returns {BaseProfile} The prepared profile with agent policies applied
  */
 export function prepareAgentProfile({
   discipline,
@@ -165,18 +128,18 @@ export function prepareAgentProfile({
   behaviours,
   capabilities,
 }) {
-  return prepareBaseProfile({
+  const base = prepareBaseProfile({
     discipline,
     track,
     grade,
     skills,
     behaviours,
     capabilities,
-    options: {
-      excludeHumanOnly: true,
-      keepHighestLevelOnly: true,
-      sortByLevel: true,
-      sortByMaturity: true,
-    },
   });
+
+  return {
+    ...base,
+    skillMatrix: prepareAgentSkillMatrix(base.skillMatrix),
+    behaviourProfile: prepareAgentBehaviourProfile(base.behaviourProfile),
+  };
 }

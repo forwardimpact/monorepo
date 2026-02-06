@@ -20,22 +20,17 @@ import {
   WEIGHT_SKILL_LEVEL,
   WEIGHT_BELOW_LEVEL_PENALTY,
   RATIO_SKILL_BEHAVIOUR,
+  DEFAULT_INTERVIEW_QUESTION_MINUTES,
+  DEFAULT_DECOMPOSITION_QUESTION_MINUTES,
+  DEFAULT_SIMULATION_QUESTION_MINUTES,
+  TOLERANCE_INTERVIEW_BUDGET_MINUTES,
+  WEIGHT_CAPABILITY_DECOMP_DELIVERY,
+  WEIGHT_CAPABILITY_DECOMP_SCALE,
+  WEIGHT_CAPABILITY_DECOMP_RELIABILITY,
+  WEIGHT_FOCUS_BOOST,
 } from "./policies/thresholds.js";
 
-/**
- * Default question time estimate if not specified
- */
-const DEFAULT_QUESTION_MINUTES = 5;
-
-/**
- * Default decomposition question time estimate
- */
-const DEFAULT_DECOMPOSITION_MINUTES = 15;
-
-/**
- * Default stakeholder simulation question time estimate
- */
-const DEFAULT_SIMULATION_MINUTES = 20;
+import { compareByMaturityDesc } from "./policies/orderings.js";
 
 /**
  * Get questions from the question bank for a specific skill and level
@@ -136,7 +131,7 @@ function calculateSkillPriority(skill, includeBelowLevel = false) {
     priority += WEIGHT_CAPABILITY_BOOST.ai;
   }
 
-  // Delivery skills are core technical skills
+  // Delivery skills get a core technical boost
   if (skill.capability === Capability.DELIVERY) {
     priority += WEIGHT_CAPABILITY_BOOST.delivery;
   }
@@ -178,11 +173,11 @@ function calculateCapabilityPriority(capabilityId, levelIndex) {
 
   // Delivery and scale capabilities are typically more important for decomposition
   if (capabilityId === Capability.DELIVERY) {
-    priority += 10;
+    priority += WEIGHT_CAPABILITY_DECOMP_DELIVERY;
   } else if (capabilityId === Capability.SCALE) {
-    priority += 8;
+    priority += WEIGHT_CAPABILITY_DECOMP_SCALE;
   } else if (capabilityId === Capability.RELIABILITY) {
-    priority += 6;
+    priority += WEIGHT_CAPABILITY_DECOMP_RELIABILITY;
   }
 
   // Higher level = higher priority
@@ -339,8 +334,11 @@ export function deriveInterviewQuestions({ job, questionBank, options = {} }) {
   for (const q of allSkillQuestions) {
     if (selectedSkillIds.has(q.targetId)) continue; // Skip if we already have this skill
     const questionTime =
-      q.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES;
-    if (skillMinutes + questionTime <= skillTimeBudget + 5) {
+      q.question.expectedDurationMinutes || DEFAULT_INTERVIEW_QUESTION_MINUTES;
+    if (
+      skillMinutes + questionTime <=
+      skillTimeBudget + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    ) {
       selectedQuestions.push(q);
       selectedSkillIds.add(q.targetId);
       coveredSkills.add(q.targetId);
@@ -352,8 +350,11 @@ export function deriveInterviewQuestions({ job, questionBank, options = {} }) {
   for (const q of allSkillQuestions) {
     if (selectedQuestions.includes(q)) continue; // Skip already selected
     const questionTime =
-      q.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES;
-    if (skillMinutes + questionTime <= skillTimeBudget + 5) {
+      q.question.expectedDurationMinutes || DEFAULT_INTERVIEW_QUESTION_MINUTES;
+    if (
+      skillMinutes + questionTime <=
+      skillTimeBudget + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    ) {
       selectedQuestions.push(q);
       coveredSkills.add(q.targetId);
       skillMinutes += questionTime;
@@ -368,8 +369,11 @@ export function deriveInterviewQuestions({ job, questionBank, options = {} }) {
   for (const q of allBehaviourQuestions) {
     if (selectedBehaviourIds.has(q.targetId)) continue; // Skip if we already have this behaviour
     const questionTime =
-      q.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES;
-    if (behaviourMinutes + questionTime <= behaviourTimeBudget + 5) {
+      q.question.expectedDurationMinutes || DEFAULT_INTERVIEW_QUESTION_MINUTES;
+    if (
+      behaviourMinutes + questionTime <=
+      behaviourTimeBudget + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    ) {
       selectedQuestions.push(q);
       selectedBehaviourIds.add(q.targetId);
       coveredBehaviours.add(q.targetId);
@@ -381,8 +385,11 @@ export function deriveInterviewQuestions({ job, questionBank, options = {} }) {
   for (const q of allBehaviourQuestions) {
     if (selectedQuestions.includes(q)) continue; // Skip already selected
     const questionTime =
-      q.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES;
-    if (behaviourMinutes + questionTime <= behaviourTimeBudget + 5) {
+      q.question.expectedDurationMinutes || DEFAULT_INTERVIEW_QUESTION_MINUTES;
+    if (
+      behaviourMinutes + questionTime <=
+      behaviourTimeBudget + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    ) {
       selectedQuestions.push(q);
       coveredBehaviours.add(q.targetId);
       behaviourMinutes += questionTime;
@@ -395,7 +402,9 @@ export function deriveInterviewQuestions({ job, questionBank, options = {} }) {
   // Calculate total time
   const expectedDurationMinutes = selectedQuestions.reduce(
     (sum, q) =>
-      sum + (q.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES),
+      sum +
+      (q.question.expectedDurationMinutes ||
+        DEFAULT_INTERVIEW_QUESTION_MINUTES),
     0,
   );
 
@@ -469,10 +478,14 @@ export function deriveShortInterview({
     }
 
     const questionTime =
-      nextQuestion.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES;
+      nextQuestion.question.expectedDurationMinutes ||
+      DEFAULT_INTERVIEW_QUESTION_MINUTES;
 
     // Don't exceed budget by too much
-    if (totalMinutes + questionTime > targetMinutes + 5) {
+    if (
+      totalMinutes + questionTime >
+      targetMinutes + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    ) {
       break;
     }
 
@@ -549,7 +562,9 @@ export function deriveBehaviourQuestions({
   // Calculate total time
   const expectedDurationMinutes = interviewQuestions.reduce(
     (sum, q) =>
-      sum + (q.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES),
+      sum +
+      (q.question.expectedDurationMinutes ||
+        DEFAULT_INTERVIEW_QUESTION_MINUTES),
     0,
   );
 
@@ -603,7 +618,7 @@ export function deriveFocusedInterview({
         targetName: skill.skillName,
         targetType: "skill",
         targetLevel: skill.level,
-        priority: calculateSkillPriority(skill) + 10, // Boost for focus
+        priority: calculateSkillPriority(skill) + WEIGHT_FOCUS_BOOST,
       });
       coveredSkills.add(skill.skillId);
     }
@@ -627,7 +642,7 @@ export function deriveFocusedInterview({
         targetName: behaviour.behaviourName,
         targetType: "behaviour",
         targetLevel: behaviour.maturity,
-        priority: calculateBehaviourPriority(behaviour) + 10, // Boost for focus
+        priority: calculateBehaviourPriority(behaviour) + WEIGHT_FOCUS_BOOST,
       });
       coveredBehaviours.add(behaviour.behaviourId);
     }
@@ -638,7 +653,9 @@ export function deriveFocusedInterview({
 
   const expectedDurationMinutes = interviewQuestions.reduce(
     (sum, q) =>
-      sum + (q.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES),
+      sum +
+      (q.question.expectedDurationMinutes ||
+        DEFAULT_INTERVIEW_QUESTION_MINUTES),
     0,
   );
 
@@ -734,8 +751,11 @@ export function deriveMissionFitInterview({
   for (const q of allSkillQuestions) {
     if (selectedSkillIds.has(q.targetId)) continue;
     const questionTime =
-      q.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES;
-    if (totalMinutes + questionTime <= targetMinutes + 5) {
+      q.question.expectedDurationMinutes || DEFAULT_INTERVIEW_QUESTION_MINUTES;
+    if (
+      totalMinutes + questionTime <=
+      targetMinutes + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    ) {
       selectedQuestions.push(q);
       selectedSkillIds.add(q.targetId);
       coveredSkills.add(q.targetId);
@@ -747,8 +767,11 @@ export function deriveMissionFitInterview({
   for (const q of allSkillQuestions) {
     if (selectedQuestions.includes(q)) continue;
     const questionTime =
-      q.question.expectedDurationMinutes || DEFAULT_QUESTION_MINUTES;
-    if (totalMinutes + questionTime <= targetMinutes + 5) {
+      q.question.expectedDurationMinutes || DEFAULT_INTERVIEW_QUESTION_MINUTES;
+    if (
+      totalMinutes + questionTime <=
+      targetMinutes + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    ) {
       selectedQuestions.push(q);
       coveredSkills.add(q.targetId);
       totalMinutes += questionTime;
@@ -854,8 +877,12 @@ export function deriveDecompositionInterview({
   for (const q of allCapabilityQuestions) {
     if (selectedCapabilityIds.has(q.targetId)) continue;
     const questionTime =
-      q.question.expectedDurationMinutes || DEFAULT_DECOMPOSITION_MINUTES;
-    if (totalMinutes + questionTime <= targetMinutes + 5) {
+      q.question.expectedDurationMinutes ||
+      DEFAULT_DECOMPOSITION_QUESTION_MINUTES;
+    if (
+      totalMinutes + questionTime <=
+      targetMinutes + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    ) {
       selectedQuestions.push(q);
       selectedCapabilityIds.add(q.targetId);
       coveredCapabilities.add(q.targetId);
@@ -867,8 +894,12 @@ export function deriveDecompositionInterview({
   for (const q of allCapabilityQuestions) {
     if (selectedQuestions.includes(q)) continue;
     const questionTime =
-      q.question.expectedDurationMinutes || DEFAULT_DECOMPOSITION_MINUTES;
-    if (totalMinutes + questionTime <= targetMinutes + 5) {
+      q.question.expectedDurationMinutes ||
+      DEFAULT_DECOMPOSITION_QUESTION_MINUTES;
+    if (
+      totalMinutes + questionTime <=
+      targetMinutes + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    ) {
       selectedQuestions.push(q);
       coveredCapabilities.add(q.targetId);
       totalMinutes += questionTime;
@@ -915,9 +946,7 @@ export function deriveStakeholderInterview({
 
   // Sort behaviours by maturity (highest first) to prioritize the most emphasized
   const sortedBehaviours = [...job.behaviourProfile].sort(
-    (a, b) =>
-      getBehaviourMaturityIndex(b.maturity) -
-      getBehaviourMaturityIndex(a.maturity),
+    compareByMaturityDesc,
   );
 
   // Select one question per behaviour, highest maturity first, within budget
@@ -940,8 +969,12 @@ export function deriveStakeholderInterview({
     if (!question) continue;
 
     const questionTime =
-      question.expectedDurationMinutes || DEFAULT_SIMULATION_MINUTES;
-    if (totalMinutes + questionTime > targetMinutes + 5) break;
+      question.expectedDurationMinutes || DEFAULT_SIMULATION_QUESTION_MINUTES;
+    if (
+      totalMinutes + questionTime >
+      targetMinutes + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    )
+      break;
 
     selectedQuestions.push({
       question,

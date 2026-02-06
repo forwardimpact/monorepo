@@ -158,3 +158,160 @@ export const WEIGHT_DEV_TYPE_BROAD = 1;
  * AI skills get extra emphasis in development planning.
  */
 export const WEIGHT_DEV_AI_BOOST = 1.5;
+
+// =============================================================================
+// Agent Profile Limits
+// =============================================================================
+
+/**
+ * Maximum number of skills shown in agent profile body
+ *
+ * Limits the skill index table and before-handoff checklist to keep
+ * agent context focused. All skills are still exported as SKILL.md files
+ * and listed via --skills.
+ *
+ * @see agent.js:buildStageProfileBodyData
+ */
+export const LIMIT_AGENT_PROFILE_SKILLS = 5;
+
+/**
+ * Maximum number of working style entries from top behaviours
+ * in agent profiles.
+ *
+ * @see agent.js:buildWorkingStyleFromBehaviours
+ */
+export const LIMIT_AGENT_WORKING_STYLES = 3;
+
+// =============================================================================
+// Interview Time Defaults
+// =============================================================================
+
+/**
+ * Default expected duration for a standard interview question (minutes)
+ */
+export const DEFAULT_INTERVIEW_QUESTION_MINUTES = 5;
+
+/**
+ * Default expected duration for a decomposition question (minutes)
+ */
+export const DEFAULT_DECOMPOSITION_QUESTION_MINUTES = 15;
+
+/**
+ * Default expected duration for a stakeholder simulation question (minutes)
+ */
+export const DEFAULT_SIMULATION_QUESTION_MINUTES = 20;
+
+/**
+ * Tolerance above target interview budget before stopping selection (minutes)
+ *
+ * Interview question selection allows exceeding the time budget by this amount
+ * to avoid under-filling interviews.
+ */
+export const TOLERANCE_INTERVIEW_BUDGET_MINUTES = 5;
+
+// =============================================================================
+// Decomposition Capability Weights
+// =============================================================================
+
+/**
+ * Capability priority weights for decomposition interviews
+ *
+ * Delivery and scale capabilities are typically more important for
+ * system decomposition questions.
+ *
+ * @see interview.js:calculateCapabilityPriority
+ */
+export const WEIGHT_CAPABILITY_DECOMP_DELIVERY = 10;
+export const WEIGHT_CAPABILITY_DECOMP_SCALE = 8;
+export const WEIGHT_CAPABILITY_DECOMP_RELIABILITY = 6;
+
+/**
+ * Priority boost applied to focus-area questions in focused interviews
+ *
+ * @see interview.js:deriveFocusedInterview
+ */
+export const WEIGHT_FOCUS_BOOST = 10;
+
+// =============================================================================
+// Senior Grade Threshold
+// =============================================================================
+
+/**
+ * Minimum ordinalRank for a grade to be considered "senior" (Staff+)
+ *
+ * Used to determine when additional expectations scoring applies
+ * in job matching.
+ *
+ * @see derivation.js:isSeniorGrade
+ */
+export const THRESHOLD_SENIOR_GRADE = 5;
+
+// =============================================================================
+// Assessment Weights
+// =============================================================================
+
+/**
+ * Default skill weight when track does not specify assessment weights
+ */
+export const WEIGHT_ASSESSMENT_SKILL_DEFAULT = 0.5;
+
+/**
+ * Default behaviour weight when track does not specify assessment weights
+ */
+export const WEIGHT_ASSESSMENT_BEHAVIOUR_DEFAULT = 0.5;
+
+/**
+ * Base weight for overall score in senior role matching (non-expectations portion)
+ */
+export const WEIGHT_SENIOR_BASE = 0.9;
+
+/**
+ * Weight for expectations score bonus in senior role matching
+ */
+export const WEIGHT_SENIOR_EXPECTATIONS = 0.1;
+
+// =============================================================================
+// Match Result Limits
+// =============================================================================
+
+/**
+ * Number of top-priority gaps to surface in match analysis
+ */
+export const LIMIT_PRIORITY_GAPS = 3;
+
+/**
+ * Score bonus for same-track candidates in next-step job matching
+ */
+export const WEIGHT_SAME_TRACK_BONUS = 0.1;
+
+// =============================================================================
+// Realistic Match Filtering
+// =============================================================================
+
+/**
+ * Grade offset (±) from best-fit grade for realistic match filtering
+ */
+export const RANGE_GRADE_OFFSET = 1;
+
+/**
+ * Grade offset below highest strong/good match for ready-tier filtering
+ *
+ * Strong and Good matches are shown up to this many levels below the
+ * highest matched grade. Stretch and Aspirational matches are only shown
+ * at or above the highest matched grade.
+ */
+export const RANGE_READY_GRADE_OFFSET = 2;
+
+// =============================================================================
+// Driver Coverage Thresholds
+// =============================================================================
+
+/**
+ * Minimum skill level for a skill to count as "covered" in driver analysis
+ */
+export const THRESHOLD_DRIVER_SKILL_LEVEL = "working";
+
+/**
+ * Minimum behaviour maturity for a behaviour to count as "covered" in driver analysis
+ */
+export const THRESHOLD_DRIVER_BEHAVIOUR_MATURITY = "practicing";

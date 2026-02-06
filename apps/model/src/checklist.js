@@ -7,15 +7,7 @@
  * Checklist = Stage × Skill Matrix × Skill Ready Criteria
  */
 
-/**
- * Map from stage ID to the stage whose ready criteria should be shown
- * (i.e., what must be ready before leaving this stage)
- */
-const STAGE_TO_HANDOFF = {
-  plan: "plan", // Show plan.ready before leaving plan
-  code: "code", // Show code.ready before leaving code
-  review: "review", // Show review.ready (completion criteria)
-};
+import { CHECKLIST_STAGE_MAP } from "./policies/orderings.js";
 
 /**
  * Derive checklist items for a specific stage
@@ -34,7 +26,7 @@ export function deriveChecklist({
   skills,
   capabilities,
 }) {
-  const targetStage = STAGE_TO_HANDOFF[stageId];
+  const targetStage = CHECKLIST_STAGE_MAP[stageId];
   if (!targetStage) {
     return [];
   }

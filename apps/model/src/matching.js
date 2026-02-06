@@ -25,6 +25,14 @@ import {
   WEIGHT_DEV_TYPE_SECONDARY,
   WEIGHT_DEV_TYPE_BROAD,
   WEIGHT_DEV_AI_BOOST,
+  WEIGHT_ASSESSMENT_SKILL_DEFAULT,
+  WEIGHT_ASSESSMENT_BEHAVIOUR_DEFAULT,
+  WEIGHT_SENIOR_BASE,
+  WEIGHT_SENIOR_EXPECTATIONS,
+  LIMIT_PRIORITY_GAPS,
+  WEIGHT_SAME_TRACK_BONUS,
+  RANGE_GRADE_OFFSET,
+  RANGE_READY_GRADE_OFFSET,
 } from "./policies/thresholds.js";
 
 // ============================================================================
@@ -285,8 +293,12 @@ function calculateExpectationsScore(selfExpectations, jobExpectations) {
  */
 export function calculateJobMatch(selfAssessment, job) {
   // Get weights from track or use defaults (track may be null for trackless jobs)
-  const skillWeight = job.track?.assessmentWeights?.skillWeight ?? 0.5;
-  const behaviourWeight = job.track?.assessmentWeights?.behaviourWeight ?? 0.5;
+  const skillWeight =
+    job.track?.assessmentWeights?.skillWeight ??
+    WEIGHT_ASSESSMENT_SKILL_DEFAULT;
+  const behaviourWeight =
+    job.track?.assessmentWeights?.behaviourWeight ??
+    WEIGHT_ASSESSMENT_BEHAVIOUR_DEFAULT;
 
   // Calculate skill score
   const skillResult = calculateSkillScore(
@@ -312,7 +324,9 @@ export function calculateJobMatch(selfAssessment, job) {
       job.expectations,
     );
     // Add up to 10% bonus for expectations match
-    overallScore = overallScore * 0.9 + expectationsScore * 0.1;
+    overallScore =
+      overallScore * WEIGHT_SENIOR_BASE +
+      expectationsScore * WEIGHT_SENIOR_EXPECTATIONS;
   }
 
   // Combine all gaps
@@ -324,8 +338,8 @@ export function calculateJobMatch(selfAssessment, job) {
   // Classify match into tier
   const tier = classifyMatch(overallScore);
 
-  // Identify top priority gaps (top 3 by gap size)
-  const priorityGaps = allGaps.slice(0, 3);
+  // Identify top priority gaps
+  const priorityGaps = allGaps.slice(0, LIMIT_PRIORITY_GAPS);
 
   const result = {
     overallScore,
@@ -544,11 +558,11 @@ export function findRealisticMatches({
     skills,
   });
 
-  // Determine grade range (±1 level)
+  // Determine grade range (±RANGE_GRADE_OFFSET levels)
   const bestFitLevel = estimatedGrade.grade.ordinalRank;
   const gradeRange = {
-    min: bestFitLevel - 1,
-    max: bestFitLevel + 1,
+    min: bestFitLevel - RANGE_GRADE_OFFSET,
+    max: bestFitLevel + RANGE_GRADE_OFFSET,
   };
 
   // Find all matches
@@ -608,11 +622,11 @@ export function findRealisticMatches({
   }
 
   // Filter each tier to only show grades within reasonable range of highest match
-  // For Strong/Good matches: show up to 2 levels below highest match
+  // For Strong/Good matches: show up to RANGE_READY_GRADE_OFFSET levels below highest match
   // For Stretch/Aspirational: show only at or above highest match (growth opportunities)
   if (highestMatchedLevel > 0) {
-    const minLevelForReady = highestMatchedLevel - 2; // Show some consolidation options
-    const minLevelForStretch = highestMatchedLevel; // Stretch roles should be at or above current
+    const minLevelForReady = highestMatchedLevel - RANGE_READY_GRADE_OFFSET;
+    const minLevelForStretch = highestMatchedLevel;
 
     matchesByTier[1] = matchesByTier[1].filter(
       (m) => m.job.grade.ordinalRank >= minLevelForReady,
@@ -799,8 +813,8 @@ export function findNextStepJob({
 
       if (job) {
         const analysis = calculateJobMatch(selfAssessment, job);
-        // Boost score for same track
-        const trackBonus = track.id === currentJob.track.id ? 0.1 : 0;
+        const trackBonus =
+          track.id === currentJob.track.id ? WEIGHT_SAME_TRACK_BONUS : 0;
         candidates.push({
           job,
           analysis,

@@ -24,8 +24,10 @@ import {
   filterAgentSkills,
   sortAgentSkills,
   sortAgentBehaviours,
+  focusAgentSkills,
 } from "./policies/composed.js";
 import { ORDER_AGENT_STAGE } from "./policies/orderings.js";
+import { LIMIT_AGENT_WORKING_STYLES } from "./policies/thresholds.js";
 import { SkillLevel } from "@forwardimpact/schema/levels";
 
 /**
@@ -194,7 +196,7 @@ function findAgentBehaviour(agentBehaviours, id) {
 function buildWorkingStyleFromBehaviours(
   derivedBehaviours,
   agentBehaviours,
-  topN = 3,
+  topN = LIMIT_AGENT_WORKING_STYLES,
 ) {
   const entries = [];
 
@@ -518,7 +520,7 @@ function buildStageProfileBodyData({
     ? substituteTemplateVars(rawPriority, humanDiscipline)
     : null;
 
-  // Build skill index from derived skills with agent sections
+  // Build skill index from derived skills (already focused by deriveStageAgent)
   const skillIndex = derivedSkills
     .map((derived) => {
       const skill = skills.find((s) => s.id === derived.skillId);
@@ -538,7 +540,6 @@ function buildStageProfileBodyData({
   const workingStyles = buildWorkingStyleFromBehaviours(
     derivedBehaviours,
     agentBehaviours,
-    3,
   );
 
   // Constraints (stage + discipline + track)
@@ -602,12 +603,15 @@ export function deriveStageAgent({
   stages,
 }) {
   // Derive skills and behaviours
-  const derivedSkills = deriveAgentSkills({
+  const allSkills = deriveAgentSkills({
     discipline,
     track,
     grade,
     skills,
   });
+
+  // Focus skills for profile body (limited set to reduce context bloat)
+  const focusedSkills = focusAgentSkills(allSkills);
 
   const derivedBehaviours = deriveAgentBehaviours({
     discipline,
@@ -624,13 +628,13 @@ export function deriveStageAgent({
     stages,
   });
 
-  // Derive checklist if applicable
+  // Derive checklist from focused skills only
   const checklistStage = getChecklistStage(stage.id);
   let checklist = [];
   if (checklistStage && capabilities) {
     checklist = deriveChecklist({
       stageId: checklistStage,
-      skillMatrix: derivedSkills,
+      skillMatrix: focusedSkills,
       skills,
       capabilities,
     });
@@ -640,7 +644,7 @@ export function deriveStageAgent({
     stage,
     discipline,
     track,
-    derivedSkills,
+    derivedSkills: focusedSkills,
     derivedBehaviours,
     handoffs,
     constraints: [

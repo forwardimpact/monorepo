@@ -34,6 +34,18 @@ export const ORDER_STAGE = ["specify", "plan", "code", "review", "deploy"];
  */
 export const ORDER_AGENT_STAGE = ["plan", "code", "review"];
 
+/**
+ * Stage-to-handoff mapping for checklist derivation
+ *
+ * Maps stage IDs to the stage whose `.ready` criteria should be shown
+ * before leaving that stage.
+ */
+export const CHECKLIST_STAGE_MAP = {
+  plan: "plan",
+  code: "code",
+  review: "review",
+};
+
 // =============================================================================
 // Skill Comparators
 // =============================================================================

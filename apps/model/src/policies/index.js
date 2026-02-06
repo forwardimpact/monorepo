@@ -45,6 +45,35 @@ export {
   WEIGHT_DEV_TYPE_SECONDARY,
   WEIGHT_DEV_TYPE_BROAD,
   WEIGHT_DEV_AI_BOOST,
+  // Agent profile limits
+  LIMIT_AGENT_PROFILE_SKILLS,
+  LIMIT_AGENT_WORKING_STYLES,
+  // Interview time defaults
+  DEFAULT_INTERVIEW_QUESTION_MINUTES,
+  DEFAULT_DECOMPOSITION_QUESTION_MINUTES,
+  DEFAULT_SIMULATION_QUESTION_MINUTES,
+  TOLERANCE_INTERVIEW_BUDGET_MINUTES,
+  // Decomposition capability weights
+  WEIGHT_CAPABILITY_DECOMP_DELIVERY,
+  WEIGHT_CAPABILITY_DECOMP_SCALE,
+  WEIGHT_CAPABILITY_DECOMP_RELIABILITY,
+  WEIGHT_FOCUS_BOOST,
+  // Senior grade threshold
+  THRESHOLD_SENIOR_GRADE,
+  // Assessment weights
+  WEIGHT_ASSESSMENT_SKILL_DEFAULT,
+  WEIGHT_ASSESSMENT_BEHAVIOUR_DEFAULT,
+  WEIGHT_SENIOR_BASE,
+  WEIGHT_SENIOR_EXPECTATIONS,
+  // Match result limits
+  LIMIT_PRIORITY_GAPS,
+  WEIGHT_SAME_TRACK_BONUS,
+  // Realistic match filtering
+  RANGE_GRADE_OFFSET,
+  RANGE_READY_GRADE_OFFSET,
+  // Driver coverage thresholds
+  THRESHOLD_DRIVER_SKILL_LEVEL,
+  THRESHOLD_DRIVER_BEHAVIOUR_MATURITY,
 } from "./thresholds.js";
 
 // Predicates
@@ -90,6 +119,7 @@ export {
   ORDER_SKILL_TYPE,
   ORDER_STAGE,
   ORDER_AGENT_STAGE,
+  CHECKLIST_STAGE_MAP,
   // Skill comparators
   compareByLevelDesc,
   compareByLevelAsc,
@@ -118,6 +148,8 @@ export {
   // Agent skill filtering
   filterAgentSkills,
   filterToolkitSkills,
+  // Agent profile focus
+  focusAgentSkills,
   // Sorting
   sortAgentSkills,
   sortAgentBehaviours,

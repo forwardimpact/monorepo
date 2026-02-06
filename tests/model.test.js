@@ -3361,7 +3361,7 @@ describe("Profile Module", () => {
   });
 
   describe("prepareBaseProfile", () => {
-    it("derives skills and behaviours without options", () => {
+    it("derives skills and behaviours", () => {
       const result = prepareBaseProfile({
         discipline: testDiscipline,
         track: testTrack,
@@ -3376,8 +3376,8 @@ describe("Profile Module", () => {
       assert.strictEqual(result.grade, testGrade);
     });
 
-    it("applies excludeHumanOnly option", () => {
-      // Create skills with humanOnly flag
+    it("includes human-only skills in raw derivation", () => {
+      // prepareBaseProfile returns raw derivation without filtering
       const skillsWithHumanOnly = [
         ...testSkills,
         {
@@ -3392,49 +3392,16 @@ describe("Profile Module", () => {
         coreSkills: [...testDiscipline.coreSkills, "human_skill"],
       };
 
-      const withoutFilter = prepareBaseProfile({
-        discipline: disciplineWithHumanSkill,
-        track: testTrack,
-        grade: testGrade,
-        skills: skillsWithHumanOnly,
-        behaviours: testBehaviours,
-      });
-
-      const withFilter = prepareBaseProfile({
-        discipline: disciplineWithHumanSkill,
-        track: testTrack,
-        grade: testGrade,
-        skills: skillsWithHumanOnly,
-        behaviours: testBehaviours,
-        options: { excludeHumanOnly: true },
-      });
-
-      assert.ok(
-        withFilter.skillMatrix.length < withoutFilter.skillMatrix.length,
-      );
-      assert.ok(
-        !withFilter.skillMatrix.some((s) => s.skillId === "human_skill"),
-      );
-    });
-
-    it("applies sortByLevel option", () => {
       const result = prepareBaseProfile({
-        discipline: testDiscipline,
+        discipline: disciplineWithHumanSkill,
         track: testTrack,
         grade: testGrade,
-        skills: testSkills,
+        skills: skillsWithHumanOnly,
         behaviours: testBehaviours,
-        options: { sortByLevel: true },
       });
 
-      // Check skills are sorted by level descending
-      for (let i = 1; i < result.skillMatrix.length; i++) {
-        const prevLevel = result.skillMatrix[i - 1].level;
-        const currLevel = result.skillMatrix[i].level;
-        const prevIndex = getSkillLevelIndex(prevLevel);
-        const currIndex = getSkillLevelIndex(currLevel);
-        assert.ok(prevIndex >= currIndex);
-      }
+      // Raw derivation includes human-only skills
+      assert.ok(result.skillMatrix.some((s) => s.skillId === "human_skill"));
     });
 
     it("derives responsibilities when capabilities provided", () => {
@@ -3451,7 +3418,7 @@ describe("Profile Module", () => {
   });
 
   describe("prepareAgentProfile", () => {
-    it("applies agent-specific filtering and sorting", () => {
+    it("applies agent-specific filtering and sorting via composed policies", () => {
       const result = prepareAgentProfile({
         discipline: testDiscipline,
         track: testTrack,
@@ -3469,6 +3436,32 @@ describe("Profile Module", () => {
           getSkillLevelIndex(firstLevel) >= getSkillLevelIndex(lastLevel),
         );
       }
+    });
+
+    it("excludes human-only skills", () => {
+      const skillsWithHumanOnly = [
+        ...testSkills,
+        {
+          id: "human_skill",
+          name: "Human Skill",
+          capability: "scale",
+          isHumanOnly: true,
+        },
+      ];
+      const disciplineWithHumanSkill = {
+        ...testDiscipline,
+        coreSkills: [...testDiscipline.coreSkills, "human_skill"],
+      };
+
+      const result = prepareAgentProfile({
+        discipline: disciplineWithHumanSkill,
+        track: testTrack,
+        grade: testGrade,
+        skills: skillsWithHumanOnly,
+        behaviours: testBehaviours,
+      });
+
+      assert.ok(!result.skillMatrix.some((s) => s.skillId === "human_skill"));
     });
   });
 });

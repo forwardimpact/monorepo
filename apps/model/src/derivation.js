@@ -7,8 +7,6 @@
 
 import {
   SkillType,
-  SkillLevel,
-  BehaviourMaturity,
   SKILL_LEVEL_ORDER,
   getSkillLevelIndex,
   getBehaviourMaturityIndex,
@@ -19,6 +17,11 @@ import {
 
 import { resolveSkillModifier } from "./modifiers.js";
 import { ORDER_SKILL_TYPE } from "./policies/orderings.js";
+import {
+  THRESHOLD_SENIOR_GRADE,
+  THRESHOLD_DRIVER_SKILL_LEVEL,
+  THRESHOLD_DRIVER_BEHAVIOUR_MATURITY,
+} from "./policies/thresholds.js";
 
 /**
  * Build a Map of skillId → skillType for a discipline
@@ -595,7 +598,10 @@ export function calculateDriverCoverage({ job, drivers }) {
 
     for (const skillId of contributingSkills) {
       const level = jobSkillLevels.get(skillId);
-      if (level && skillLevelMeetsRequirement(level, SkillLevel.WORKING)) {
+      if (
+        level &&
+        skillLevelMeetsRequirement(level, THRESHOLD_DRIVER_SKILL_LEVEL)
+      ) {
         coveredSkills.push(skillId);
       } else {
         missingSkills.push(skillId);
@@ -611,7 +617,7 @@ export function calculateDriverCoverage({ job, drivers }) {
     const coveredBehaviours = [];
     const missingBehaviours = [];
     const practicingIndex = getBehaviourMaturityIndex(
-      BehaviourMaturity.PRACTICING,
+      THRESHOLD_DRIVER_BEHAVIOUR_MATURITY,
     );
 
     for (const behaviourId of contributingBehaviours) {
@@ -678,8 +684,7 @@ export function getGradeLevel(grade) {
  * @returns {boolean} True if the grade is senior level
  */
 export function isSeniorGrade(grade) {
-  // Typically Staff+ is level 5 or higher
-  return grade.ordinalRank >= 5;
+  return grade.ordinalRank >= THRESHOLD_SENIOR_GRADE;
 }
 
 /**
