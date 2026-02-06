@@ -72,6 +72,9 @@ import {
   deriveShortInterview,
   deriveBehaviourQuestions,
   deriveFocusedInterview,
+  deriveMissionFitInterview,
+  deriveDecompositionInterview,
+  deriveStakeholderInterview,
 } from "@forwardimpact/model/interview";
 
 import {
@@ -2822,6 +2825,76 @@ describe("Interview", () => {
       });
 
       assert.strictEqual(interview.questions.length, 0);
+    });
+  });
+
+  describe("deriveMissionFitInterview", () => {
+    it("only includes skill questions", () => {
+      const interview = deriveMissionFitInterview({
+        job,
+        questionBank,
+      });
+
+      assert.ok(interview.questions.length > 0);
+      assert.ok(interview.questions.every((q) => q.targetType === "skill"));
+      assert.strictEqual(interview.coverage.behaviours.length, 0);
+    });
+  });
+
+  describe("deriveDecompositionInterview", () => {
+    it("only includes capability questions", () => {
+      const bankWithCapabilities = {
+        ...questionBank,
+        capabilityLevels: {
+          scale: {
+            professionalQuestions: {
+              practitioner: [
+                {
+                  id: "cap_q1",
+                  text: "Decomposition question",
+                  type: "decomposition",
+                  expectedDurationMinutes: 15,
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      const interview = deriveDecompositionInterview({
+        job,
+        questionBank: bankWithCapabilities,
+      });
+
+      assert.ok(interview.questions.length > 0);
+      assert.ok(
+        interview.questions.every((q) => q.targetType === "capability"),
+      );
+      assert.strictEqual(interview.coverage.skills.length, 0);
+      assert.strictEqual(interview.coverage.behaviours.length, 0);
+    });
+  });
+
+  describe("deriveStakeholderInterview", () => {
+    it("only includes behaviour questions", () => {
+      const interview = deriveStakeholderInterview({
+        job,
+        questionBank,
+      });
+
+      assert.ok(interview.questions.length > 0);
+      assert.ok(interview.questions.every((q) => q.targetType === "behaviour"));
+      assert.strictEqual(interview.coverage.skills.length, 0);
+    });
+
+    it("respects time budget", () => {
+      const interview = deriveStakeholderInterview({
+        job,
+        questionBank,
+        targetMinutes: 60,
+      });
+
+      assert.ok(interview.expectedDurationMinutes <= 65);
     });
   });
 });
