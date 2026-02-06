@@ -344,6 +344,7 @@ function createComparisonSelectorsSection({
             currentLabel: `Current (${currentGrade.id})`,
             targetLabel: `Target (${targetGrade.id})`,
             size: 400,
+            capabilities: data.capabilities,
           },
         ),
         createComparisonBehaviourRadar(

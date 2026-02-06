@@ -45,7 +45,10 @@ export function renderLanding() {
   const stages = data.stages || [];
 
   // Calculate stats using centralized capability ordering
-  const skillsByCapability = groupSkillsByCapability(data.skills);
+  const skillsByCapability = groupSkillsByCapability(
+    data.skills,
+    data.capabilities,
+  );
   const capabilityCount = Object.keys(skillsByCapability).length;
   const tools = aggregateTools(data.skills);
 

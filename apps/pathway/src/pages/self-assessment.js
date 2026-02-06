@@ -22,7 +22,7 @@ import {
   SKILL_LEVEL_ORDER,
   BEHAVIOUR_MATURITY_ORDER,
   groupSkillsByCapability,
-  CAPABILITY_ORDER,
+  getCapabilityOrder,
   getCapabilityEmoji,
   getConceptEmoji,
 } from "@forwardimpact/schema/levels";
@@ -66,7 +66,10 @@ export function getAssessmentState() {
  */
 function getWizardSteps(data) {
   const { framework } = data;
-  const skillsByCapability = groupSkillsByCapability(data.skills);
+  const skillsByCapability = groupSkillsByCapability(
+    data.skills,
+    data.capabilities,
+  );
   const steps = [
     {
       id: "intro",
@@ -77,7 +80,7 @@ function getWizardSteps(data) {
   ];
 
   // Add a step for each non-empty skill capability
-  for (const capability of CAPABILITY_ORDER) {
+  for (const capability of getCapabilityOrder(data.capabilities)) {
     const skills = skillsByCapability[capability];
     if (skills && skills.length > 0) {
       steps.push({
@@ -277,7 +280,7 @@ function renderIntroStep(data) {
           div(
             {},
             h4({}, `${data.skills.length} Skills`),
-            p({}, "Across " + CAPABILITY_ORDER.length + " capabilities"),
+            p({}, "Across " + data.capabilities.length + " capabilities"),
           ),
         ),
         div(

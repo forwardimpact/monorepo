@@ -13,7 +13,7 @@ import {
   getBehaviourMaturityIndex,
   formatLevel,
 } from "../lib/render.js";
-import { getCapabilityIndex } from "@forwardimpact/schema/levels";
+import { compareByCapability } from "@forwardimpact/model/policies";
 
 /**
  * Create a comparison skill radar chart
@@ -24,7 +24,7 @@ import { getCapabilityIndex } from "@forwardimpact/schema/levels";
  */
 export function createComparisonSkillRadar(
   currentMatrix,
-  targetMatrix,
+  targetMatrix = [],
   options = {},
 ) {
   const container = div(
@@ -80,9 +80,11 @@ export function createComparisonSkillRadar(
     }
 
     // Sort by capability order, then by skill name within capability
+    const capabilityComparator = options.capabilities
+      ? compareByCapability(options.capabilities)
+      : (a, b) => a.capability.localeCompare(b.capability);
     skillEntries.sort((a, b) => {
-      const capDiff =
-        getCapabilityIndex(a.capability) - getCapabilityIndex(b.capability);
+      const capDiff = capabilityComparator(a, b);
       if (capDiff !== 0) return capDiff;
       return a.skillName.localeCompare(b.skillName);
     });
@@ -141,7 +143,7 @@ export function createComparisonSkillRadar(
  */
 export function createComparisonBehaviourRadar(
   currentProfile,
-  targetProfile,
+  targetProfile = [],
   options = {},
 ) {
   const container = div(

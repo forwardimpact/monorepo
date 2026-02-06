@@ -83,7 +83,7 @@ responsibilities:
 # capabilities/scale.yaml
 name: Scale
 emojiIcon: "🔧"
-displayOrder: 2
+ordinalRank: 2
 description: Architecture, quality, and technical sustainability...
 transitionChecklists:
   plan_to_code:

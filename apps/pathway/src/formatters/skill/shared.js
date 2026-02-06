@@ -43,7 +43,7 @@ export function prepareSkillsList(
   capabilities,
   descriptionLimit = 120,
 ) {
-  const grouped = groupSkillsByCapability(skills);
+  const grouped = groupSkillsByCapability(skills, capabilities);
 
   const groups = {};
   for (const [capability, capabilitySkills] of Object.entries(grouped)) {

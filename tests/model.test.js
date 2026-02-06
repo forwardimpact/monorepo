@@ -11,16 +11,12 @@ import assert from "node:assert";
 import {
   // Types and constants
   Capability,
-  CAPABILITY_ORDER,
   getSkillLevelIndex,
   getBehaviourMaturityIndex,
-  getCapabilityIndex,
   clampSkillLevel,
   clampBehaviourMaturity,
   skillLevelMeetsRequirement,
   behaviourMaturityMeetsRequirement,
-  compareCapabilities,
-  sortSkillsByCapability,
   groupSkillsByCapability,
   // Data-driven capability functions
   getCapabilityById,
@@ -30,6 +26,11 @@ import {
   // Framework emoji function
   getConceptEmoji,
 } from "@forwardimpact/schema/levels";
+
+import {
+  compareByCapability,
+  sortSkillsByCapability,
+} from "@forwardimpact/model/policies";
 
 import {
   classifyMatch,
@@ -344,38 +345,39 @@ describe("Type Helpers", () => {
     });
   });
 
-  describe("getCapabilityIndex", () => {
-    it("returns correct indices for all capabilities", () => {
-      // Order: delivery, data, ai, ml, scale, reliability, people, process, business, documentation, product
-      assert.strictEqual(getCapabilityIndex("delivery"), 0);
-      assert.strictEqual(getCapabilityIndex("data"), 1);
-      assert.strictEqual(getCapabilityIndex("ai"), 2);
-      assert.strictEqual(getCapabilityIndex("ml"), 3);
-      assert.strictEqual(getCapabilityIndex("scale"), 4);
-      assert.strictEqual(getCapabilityIndex("reliability"), 5);
-      assert.strictEqual(getCapabilityIndex("people"), 6);
-      assert.strictEqual(getCapabilityIndex("process"), 7);
-      assert.strictEqual(getCapabilityIndex("business"), 8);
-      assert.strictEqual(getCapabilityIndex("documentation"), 9);
-      assert.strictEqual(getCapabilityIndex("product"), 10);
-    });
-
-    it("returns -1 for invalid capabilities", () => {
-      assert.strictEqual(getCapabilityIndex("invalid"), -1);
-      assert.strictEqual(getCapabilityIndex("technical"), -1);
-    });
-  });
-
-  describe("compareCapabilities", () => {
-    it("correctly compares capabilities", () => {
-      assert.ok(compareCapabilities("delivery", "scale") < 0);
-      assert.ok(compareCapabilities("scale", "delivery") > 0);
-      assert.strictEqual(compareCapabilities("ai", "ai"), 0);
-      assert.ok(compareCapabilities("delivery", "documentation") < 0);
+  describe("compareByCapability", () => {
+    it("correctly compares capabilities using data-driven order", () => {
+      const capabilities = [
+        { id: "delivery", ordinalRank: 1 },
+        { id: "ai", ordinalRank: 2 },
+        { id: "scale", ordinalRank: 3 },
+        { id: "documentation", ordinalRank: 4 },
+      ];
+      const compare = compareByCapability(capabilities);
+      assert.ok(
+        compare({ capability: "delivery" }, { capability: "scale" }) < 0,
+      );
+      assert.ok(
+        compare({ capability: "scale" }, { capability: "delivery" }) > 0,
+      );
+      assert.strictEqual(
+        compare({ capability: "ai" }, { capability: "ai" }),
+        0,
+      );
+      assert.ok(
+        compare({ capability: "delivery" }, { capability: "documentation" }) <
+          0,
+      );
     });
   });
 
   describe("sortSkillsByCapability", () => {
+    const testCapabilities = [
+      { id: "delivery", ordinalRank: 1 },
+      { id: "ai", ordinalRank: 2 },
+      { id: "documentation", ordinalRank: 3 },
+    ];
+
     it("sorts skills by capability order then name", () => {
       const unsorted = [
         { id: "s3", name: "Zebra", capability: "ai" },
@@ -383,7 +385,7 @@ describe("Type Helpers", () => {
         { id: "s2", name: "Beta", capability: "delivery" },
         { id: "s4", name: "Gamma", capability: "ai" },
       ];
-      const sorted = sortSkillsByCapability(unsorted);
+      const sorted = sortSkillsByCapability(unsorted, testCapabilities);
       assert.strictEqual(sorted[0].id, "s2"); // delivery first
       assert.strictEqual(sorted[1].id, "s4"); // ai - Gamma before Zebra
       assert.strictEqual(sorted[2].id, "s3"); // ai - Zebra
@@ -395,20 +397,26 @@ describe("Type Helpers", () => {
         { id: "s1", name: "Z", capability: "ai" },
         { id: "s2", name: "A", capability: "delivery" },
       ];
-      const sorted = sortSkillsByCapability(original);
+      const sorted = sortSkillsByCapability(original, testCapabilities);
       assert.strictEqual(original[0].id, "s1");
       assert.notStrictEqual(original, sorted);
     });
   });
 
   describe("groupSkillsByCapability", () => {
+    const testCapabilities = [
+      { id: "delivery", ordinalRank: 1 },
+      { id: "ai", ordinalRank: 2 },
+      { id: "scale", ordinalRank: 3 },
+    ];
+
     it("groups skills by capability in order", () => {
       const skills = [
         { id: "s1", name: "B", capability: "ai" },
         { id: "s2", name: "A", capability: "delivery" },
         { id: "s3", name: "C", capability: "ai" },
       ];
-      const grouped = groupSkillsByCapability(skills);
+      const grouped = groupSkillsByCapability(skills, testCapabilities);
       const keys = Object.keys(grouped);
       assert.strictEqual(keys[0], "delivery");
       assert.strictEqual(keys[1], "ai");
@@ -421,20 +429,10 @@ describe("Type Helpers", () => {
 
     it("excludes empty capabilities", () => {
       const skills = [{ id: "s1", name: "A", capability: "delivery" }];
-      const grouped = groupSkillsByCapability(skills);
+      const grouped = groupSkillsByCapability(skills, testCapabilities);
       assert.ok(!grouped.scale);
       assert.ok(!grouped.ai);
       assert.strictEqual(Object.keys(grouped).length, 1);
-    });
-  });
-
-  describe("CAPABILITY_ORDER", () => {
-    it("contains all capability values", () => {
-      const capabilityValues = Object.values(Capability);
-      assert.strictEqual(CAPABILITY_ORDER.length, capabilityValues.length);
-      for (const capability of capabilityValues) {
-        assert.ok(CAPABILITY_ORDER.includes(capability));
-      }
     });
   });
 });
