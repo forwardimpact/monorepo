@@ -3,105 +3,273 @@
 professionalQuestions:
   emerging:
     - id: poly_pro_emerg_1
-      text: What interests do you have outside your primary technical domain?
+      text:
+        You're building a feature for a pharmaceutical client's clinical trial
+        management system. The PM hands you a spec full of domain terms you
+        don't understand.
+      context:
+        The feature tracks "adverse event reporting" with specific regulatory
+        timelines. The spec references ICH E2B guidelines, MedDRA coding, and
+        CIOMS forms. Your team has no pharma domain experts. The client expects
+        the first deliverable in 2 weeks and will review your data model.
+      simulationPrompts:
+        - How would you approach learning enough about this domain to build
+          effectively?
+        - What's the difference between blindly implementing the spec vs
+          understanding the domain?
+        - How would you know if you've learned enough to start building?
+        - What questions would you ask the client in your first meeting?
       lookingFor:
-        - Breadth of interests
-        - Cross-disciplinary awareness
-      expectedDurationMinutes: 5
+        - Recognizes that problems benefit from cross-disciplinary understanding
+        - Shows interest in domains beyond immediate technical requirements
+        - Asks questions that reveal genuine curiosity about the domain
+        - Willing to invest in learning unfamiliar territory
+      expectedDurationMinutes: 20
+
   developing:
     - id: poly_pro_dev_1
-      text: Describe a time when knowledge from one area helped you in another.
+      text:
+        Your team is building a recommendation engine. You have strong backend
+        skills but the UX designer keeps talking about cognitive load and
+        decision fatigue. You don't understand their concerns.
+      context:
+        The recommendation engine shows 50 product suggestions. The UX designer
+        insists this will paralyze users, citing the "paradox of choice." The PM
+        sides with engineering — more recommendations means more sales. The
+        designer is frustrated that nobody understands their perspective.
+      simulationPrompts:
+        - How would you bridge the gap between the engineering and design
+          perspectives?
+        - What would you do to understand the UX designer's concerns more
+          deeply?
+        - How would knowledge of behavioral psychology change your technical
+          approach?
+        - How do you apply insights from one domain to inform decisions in
+          another?
       lookingFor:
-        - Cross-domain application
-        - Creative problem solving
-      expectedDurationMinutes: 5
+        - Applies knowledge from one domain to inform decisions in another
+        - Studies adjacent fields to broaden perspective
+        - Begins learning the language of other disciplines
+        - Sees connections between technical implementation and human behavior
+      expectedDurationMinutes: 20
+
   practicing:
     - id: poly_pro_pract_1
-      text: How do you approach problems that span multiple disciplines?
+      text:
+        Your company is deciding between building vs buying a supply chain
+        optimization tool. Engineering says build, finance says buy, operations
+        says neither option fits their workflow.
+      context:
+        The build option would take 6 months and give full customization. The
+        buy option costs £200K/year but is available immediately. Operations has
+        unique workflows around cold chain management for biologics that neither
+        option handles well. You've been asked to lead the evaluation because
+        you understand both the technical and business sides.
+      simulationPrompts:
+        - How do you evaluate this spanning engineering, finance, and operations
+          perspectives?
+        - How do you speak the language of each stakeholder group?
+        - What insights from the operations domain would change the technical
+          approach?
+        - How do you synthesize cross-disciplinary concerns into a coherent
+          recommendation?
       lookingFor:
-        - Integration of knowledge
-        - Holistic thinking
-      expectedDurationMinutes: 8
+        - Bridges gaps between engineering, business, and domain expertise
+        - Rapidly immerses in new domains to make informed decisions
+        - Speaks the language of different stakeholder groups
+        - Makes better decisions by understanding broader context
+      expectedDurationMinutes: 20
+
   role_modeling:
     - id: poly_pro_role_1
       text:
-        How do you encourage cross-disciplinary learning in your organization?
+        Your engineering team builds great software but consistently
+        misunderstands the commercial context. Features are technically
+        excellent but miss what customers actually need.
+      context:
+        In the last year, 3 features were technically impressive but
+        commercially unsuccessful. Engineers don't attend customer calls or read
+        commercial reports. The sales team has stopped asking engineering for
+        input on product direction. You see a growing disconnect between what
+        engineers think is important and what drives business value.
+      simulationPrompts:
+        - How do you get engineers to think like business insiders?
+        - What cross-disciplinary practices would you champion?
+        - How do you translate specialized engineering knowledge into business
+          language?
+        - How do you create holistic solutions spanning technical and business
+          domains?
       lookingFor:
-        - Creating learning opportunities
-        - Breaking down silos
-      expectedDurationMinutes: 8
+        - Champions cross-disciplinary learning across the function
+        - Creates holistic solutions spanning technical and business domains
+        - Translates specialized knowledge into accessible explanations
+        - Thinks like a business insider, not just an engineer
+      expectedDurationMinutes: 20
+
   exemplifying:
     - id: poly_pro_exemp_1
       text:
-        How do you build and promote polymathic culture across an enterprise?
+        Your organization wants to create a new role — "Technical Domain Expert"
+        — that bridges engineering and the pharmaceutical business. Nobody
+        agrees on what this role should look like.
+      context:
+        The company builds software for pharma R&D. Engineers lack domain
+        knowledge; domain experts lack technical depth. Projects routinely fail
+        at the intersection. The CEO wants engineers who can "think like
+        scientists." You've been asked to define the role, the hiring criteria,
+        and the development path.
+      simulationPrompts:
+        - How would you define this role drawing from your polymathic
+          experience?
+        - How do you build a development path that creates genuine breadth, not
+          surface knowledge?
+        - How would you influence industry thinking about cross-disciplinary
+          engineering roles?
+        - What organizational structures would you create to sustain polymathic
+          growth?
+      lookingFor:
+        - Shapes organizational learning strategy across disciplines
+        - Advises leadership on cross-functional strategy
+        - Influences industry practices around polymathic engineering
+        - Recognized as a thought leader bridging technology and business
+      expectedDurationMinutes: 20
       followUps:
-        - How do you break down organizational silos?
-      lookingFor:
-        - Enterprise cross-disciplinary leadership
-        - Silo breaking at scale
-      expectedDurationMinutes: 10
-    - id: poly_pro_exemp_2
-      text:
-        How do you personally maintain breadth across multiple domains while
-        achieving depth? How do you model this for others?
-      lookingFor:
-        - Personal polymathic practice
-        - Modeling breadth and depth balance
-      expectedDurationMinutes: 10
+        - How would you assess whether someone is genuinely polymathic vs
+          superficially broad?
 
 managementQuestions:
   emerging:
     - id: poly_mgmt_emerg_1
       text:
-        How do you encourage team members to explore topics outside their
-        immediate responsibilities?
+        A team member wants to attend a 2-day workshop on pharmaceutical
+        regulatory processes. It's not directly related to their current project
+        work.
+      context:
+        The workshop covers FDA submission processes and GxP compliance. Your
+        team builds internal tools, not regulatory software. The team member
+        says "I want to understand what our company actually does." The workshop
+        conflicts with a sprint commitment. Your manager values predictable
+        delivery.
+      simulationPrompts:
+        - How do you evaluate the value of cross-domain learning for this team
+          member?
+        - How would you justify this to your manager?
+        - What would make you say yes vs no?
+        - How do you create a culture where this kind of exploration is
+          encouraged?
       lookingFor:
-        - Supporting exploration
-        - Awareness of breadth value
-      expectedDurationMinutes: 5
+        - Supports cross-disciplinary learning even when not immediately
+          relevant
+        - Recognizes the long-term value of domain breadth
+        - Encourages team members to explore beyond their specialization
+        - Balances learning investment with delivery commitments
+      expectedDurationMinutes: 20
+
   developing:
     - id: poly_mgmt_dev_1
       text:
-        How do you create opportunities for your team to learn from other
-        disciplines?
+        Your team of infrastructure engineers struggles to understand why the
+        product team makes certain decisions. They build technically sound
+        solutions that don't align with product goals.
+      context:
+        Recent example — the team over-engineered a caching layer for a feature
+        that product planned to deprecate in 3 months. Engineers didn't know
+        about the deprecation because they don't attend product planning.
+        They've asked "why should we care about product strategy?"
+      simulationPrompts:
+        - How would you create opportunities for your team to learn from the
+          product domain?
+        - How do you make cross-domain knowledge feel valuable, not like extra
+          work?
+        - What specific practices would you introduce?
+        - How do you handle engineers who resist learning beyond their technical
+          domain?
       lookingFor:
-        - Cross-training facilitation
-        - Learning opportunity creation
-      expectedDurationMinutes: 5
+        - Creates structured cross-disciplinary learning opportunities
+        - Makes cross-domain knowledge practically relevant
+        - Builds bridges between engineering and other functions
+        - Doesn't force breadth but makes it naturally valuable
+      expectedDurationMinutes: 20
+
   practicing:
     - id: poly_mgmt_pract_1
       text:
-        How do you structure your team to leverage diverse knowledge and break
-        down specialization silos?
+        You manage a team that is highly specialized — everyone is an expert in
+        one narrow area but the system requires decisions that span multiple
+        domains.
+      context:
+        Your team of 8 has deep specialists in database performance, frontend
+        UX, API design, and security. A recent architecture decision required
+        all four perspectives but no one could evaluate the trade-offs across
+        domains. The decision was made by averaging opinions rather than
+        synthesizing them. Quality is suffering at the seams between
+        specializations.
+      simulationPrompts:
+        - How do you structure your team to leverage depth while building
+          breadth?
+        - What practices would you introduce to break specialization silos?
+        - How do you develop T-shaped engineers from I-shaped specialists?
+        - How do you handle the tension between deep expertise and broad
+          understanding?
       lookingFor:
-        - Team structure for cross-pollination
-        - Silo-breaking practices
-      expectedDurationMinutes: 8
+        - Structures teams to leverage diverse knowledge
+        - Breaks down specialization silos with concrete practices
+        - Develops engineers toward polymathic breadth
+        - Creates environments where cross-domain synthesis happens naturally
+      expectedDurationMinutes: 20
+
   role_modeling:
     - id: poly_mgmt_role_1
       text:
-        How do you model polymathic learning for your team and demonstrate the
-        value of cross-disciplinary knowledge?
+        Your engineering function operates in silos — backend, frontend,
+        platform, and data teams rarely share knowledge or attend each other's
+        reviews.
+      context:
+        You lead 3 teams with 20 engineers. Each team has strong internal
+        culture but there's minimal cross-pollination. When a project requires
+        cross-team collaboration, it takes weeks to build shared understanding.
+        A recent project failed because the data team's model assumptions
+        conflicted with the backend team's architecture, and nobody caught it
+        until production.
+      simulationPrompts:
+        - How do you model polymathic learning as a leader?
+        - What structures would you create for cross-team knowledge sharing?
+        - How do you demonstrate the value of breadth to specialists who are
+          comfortable in their silos?
+        - How do you make cross-disciplinary collaboration a norm, not an
+          exception?
       lookingFor:
-        - Personal modeling of breadth
-        - Demonstrating cross-domain value
-      expectedDurationMinutes: 8
+        - Models polymathic learning visibly as a leader
+        - Creates structures that promote cross-team knowledge
+        - Demonstrates value of breadth beyond just efficiency gains
+        - Builds collaborative culture across specialization boundaries
+      expectedDurationMinutes: 20
+
   exemplifying:
     - id: poly_mgmt_exemp_1
       text:
-        How do you build organizational structures and incentives that promote
-        cross-disciplinary collaboration across teams?
+        The organization wants to hire "full-stack" engineers but keeps
+        attracting deep specialists. Meanwhile, the most impactful engineers are
+        those with cross-domain knowledge.
+      context:
+        Exit interviews show that polymathic engineers leave because they feel
+        undervalued compared to deep specialists. The promotion criteria reward
+        depth. Hiring screens filter for specific tech skills, not cross-domain
+        thinking. The CEO observes that competitors with broader engineering
+        cultures ship faster.
+      simulationPrompts:
+        - How would you redesign hiring and promotion to value polymathic
+          knowledge?
+        - How do you build organizational incentives for breadth alongside
+          depth?
+        - How do you coach other managers to value cross-disciplinary growth?
+        - How do you balance the need for specialization with the strategic
+          value of breadth?
+      lookingFor:
+        - Shapes organizational structures to promote polymathic culture
+        - Redesigns talent practices to value breadth
+        - Coaches other managers on developing cross-disciplinary teams
+        - Strategic approach to balancing depth and breadth at scale
+      expectedDurationMinutes: 20
       followUps:
-        - How do you coach managers to value breadth alongside depth?
-      lookingFor:
-        - Enterprise polymathic culture
-        - Structural support for cross-disciplinary work
-      expectedDurationMinutes: 10
-    - id: poly_mgmt_exemp_2
-      text:
-        How do you balance the need for deep specialization with the benefits of
-        broad knowledge when developing your organization?
-      lookingFor:
-        - Balancing depth and breadth at scale
-        - Strategic approach to knowledge diversity
-      expectedDurationMinutes: 10
+        - How would you measure the business impact of polymathic culture?

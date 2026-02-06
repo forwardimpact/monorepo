@@ -4,109 +4,235 @@ professionalQuestions:
   emerging:
     - id: sys_pro_emerg_1
       text:
-        How do you consider the impact of your code changes on other parts of
-        the system?
+        You are asked to add a caching layer to a frequently called API
+        endpoint. The change seems straightforward but the endpoint is used by
+        three other services.
+      context:
+        The endpoint currently handles 500 requests per second. Two of the
+        consuming services expect real-time data, while the third can tolerate
+        staleness. Your team owns the endpoint but not the consuming services.
+      simulationPrompts:
+        - What would you check before implementing the cache?
+        - How would you find out who depends on this endpoint?
+        - What could go wrong with adding caching here?
+        - How would you communicate the change to the other teams?
       lookingFor:
-        - Awareness of dependencies
-        - Basic impact thinking
-      expectedDurationMinutes: 5
+        - Considers immediate dependencies before making changes
+        - Recognizes that systems have interconnected parts
+        - Asks about downstream impact rather than assuming it's safe
+        - Shows basic cause-and-effect thinking
+      expectedDurationMinutes: 20
+
   developing:
     - id: sys_pro_dev_1
       text:
-        Describe a time when you identified an unintended consequence of a
-        change.
+        After deploying a database migration, response times on an unrelated
+        service have increased by 300%. There is no obvious connection between
+        the two.
+      context:
+        The migration added an index to a high-traffic table. The affected
+        service shares the same database cluster but uses different tables.
+        Monitoring shows increased lock contention during peak hours.
+      simulationPrompts:
+        - How would you investigate the connection between these two events?
+        - What tools would you use to trace the impact?
+        - How would you map the dependencies that led to this?
+        - What would you do to resolve it while the investigation continues?
       lookingFor:
-        - Systemic awareness
-        - Proactive identification
-      expectedDurationMinutes: 5
+        - Identifies upstream and downstream impacts methodically
+        - Uses observability tools to trace cross-service effects
+        - Maps dependencies before proposing a fix
+        - Understands feedback loops in shared infrastructure
+      expectedDurationMinutes: 20
+
   practicing:
     - id: sys_pro_pract_1
-      text: How do you approach understanding a complex system you're new to?
+      text:
+        Your team is proposing to replace a synchronous API with an event-driven
+        architecture. The change would affect 6 consuming services across 3
+        teams.
+      context:
+        The current API handles order processing. Moving to events would improve
+        throughput but change data consistency guarantees. Two of the consuming
+        services have SLAs that depend on synchronous confirmation. Business
+        stakeholders want the throughput improvement for peak season.
+      simulationPrompts:
+        - How would you map the full system impact of this architectural change?
+        - How do you handle the teams whose SLAs depend on synchronous
+          behaviour?
+        - What would your migration approach look like?
+        - How would you help business stakeholders understand the trade-offs?
       lookingFor:
-        - Systematic exploration
-        - Mapping approaches
-      expectedDurationMinutes: 8
+        - Maps complex interactions across technical and business domains
+        - Anticipates cascading effects of architectural changes
+        - Designs migration that degrades gracefully during transition
+        - Understands how technology changes impact business operations
+      expectedDurationMinutes: 20
+
   role_modeling:
     - id: sys_pro_role_1
-      text: How do you help others develop systems thinking capabilities?
+      text:
+        A major outage was caused by a cascading failure across 4 services. The
+        post-mortem reveals that no single team understood the full dependency
+        chain.
+      context:
+        The cascade started with a memory leak in Service A, which caused
+        timeouts in Service B, which triggered retries that overwhelmed Service
+        C, which failed over incorrectly to Service D. Each team had local
+        monitoring but no one had end-to-end visibility. This is the second
+        cascading failure this quarter.
+      simulationPrompts:
+        - How would you lead the cross-team investigation?
+        - What systemic changes would you propose to prevent cascading failures?
+        - How would you create shared visibility across these teams?
+        - How do you make the case for investing in system-wide resilience?
       lookingFor:
-        - Teaching approaches
-        - Creating visibility
-      expectedDurationMinutes: 8
+        - Shapes systems design practices across the function
+        - Bridges technical systems thinking with business process impact
+        - Creates clarity from complexity for multiple stakeholder groups
+        - Influences cross-team architecture decisions
+      expectedDurationMinutes: 20
+
   exemplifying:
     - id: sys_pro_exemp_1
       text:
-        How do you define enterprise-wide systems architecture principles and
-        influence organizational thinking?
+        The organisation is scaling from 20 to 80 microservices. Complexity is
+        growing faster than the team's ability to reason about the system.
+      context:
+        Incident frequency has tripled in 6 months. Teams operate in silos with
+        no shared architectural principles. Executive leadership is concerned
+        about reliability but doesn't want to slow feature delivery. You've been
+        asked to define the systems architecture strategy.
+      simulationPrompts:
+        - How would you define organizational systems architecture principles?
+        - How do you balance team autonomy with system-wide coherence?
+        - How would you advise executive leadership on the systemic risks?
+        - What governance structures would you put in place?
+      lookingFor:
+        - Defines organizational systems architecture principles
+        - Advises executive leadership on systemic risks and opportunities
+        - Creates frameworks that scale with organizational growth
+        - Takes an approach recognized as industry-leading
+      expectedDurationMinutes: 20
       followUps:
-        - How do you advise executive leadership on complex systems?
-      lookingFor:
-        - Enterprise systems thinking leadership
-        - Executive advisory on complexity
-      expectedDurationMinutes: 10
-    - id: sys_pro_exemp_2
-      text:
-        How do you bridge technical systems with business processes at an
-        organizational scale?
-      lookingFor:
-        - Business-technical systems integration
-        - Enterprise complexity management
-      expectedDurationMinutes: 10
+        - How would you measure whether systems thinking is improving?
 
 managementQuestions:
   emerging:
     - id: sys_mgmt_emerg_1
       text:
-        How do you help team members understand the broader context of their
-        work within the system?
+        A team member made a change to your service that broke a downstream
+        consumer. They didn't realize the dependency existed.
+      context:
+        The downstream team is upset and your team member feels terrible. The
+        dependency wasn't documented and there's no integration test covering
+        it. Your team has 6 members, most of whom are unfamiliar with the
+        broader system context.
+      simulationPrompts:
+        - How do you help the team member understand what happened?
+        - What do you say to the downstream team?
+        - How do you help your team understand the broader system context?
+        - What would you put in place to prevent similar blind spots?
       lookingFor:
-        - Contextualizing work
-        - Basic systems awareness coaching
-      expectedDurationMinutes: 5
+        - Helps team members see how their work fits the broader system
+        - Creates context awareness without blame
+        - Shows basic understanding of system dependencies
+        - Takes steps to improve visibility
+      expectedDurationMinutes: 20
+
   developing:
     - id: sys_mgmt_dev_1
       text:
-        How do you coach team members to think about second-order effects of
-        their decisions?
+        Your team is about to ship a major refactor. Another team's manager
+        warns you it might affect their service, but your team can't see how.
+      context:
+        The refactor changes internal data structures but the API contract
+        should remain the same. The other team's concern is based on past
+        experience where "internal changes" leaked through. You need to decide
+        whether to delay the release to investigate.
+      simulationPrompts:
+        - How do you assess the risk the other manager is raising?
+        - How do you help your team think about second-order effects?
+        - What would you do if your team disagrees with the delay?
+        - How do you build a collaborative relationship with the other team?
       lookingFor:
-        - Coaching systems awareness
-        - Teaching impact thinking
-      expectedDurationMinutes: 5
+        - Teaches team to think about downstream impacts
+        - Takes cross-team concerns seriously even without proof
+        - Facilitates systems thinking in planning decisions
+        - Builds collaborative relationships across team boundaries
+      expectedDurationMinutes: 20
+
   practicing:
     - id: sys_mgmt_pract_1
       text:
-        How do you structure your team's work to encourage consideration of
-        system-wide impacts?
+        Your team needs to plan a quarter of work but keeps getting interrupted
+        by production issues caused by other teams' changes affecting your
+        service.
+      context:
+        Your service is a critical dependency for 5 other teams. In the last
+        quarter, 40% of your team's time was spent on reactive work caused by
+        upstream changes. Your team is frustrated and wants to "build a wall"
+        with strict API contracts.
+      simulationPrompts:
+        - How do you structure your team's work to account for cross-system
+          dependencies?
+        - How would you work with the other teams rather than building walls?
+        - What systemic improvements would you propose?
+        - How do you protect your team while maintaining collaborative system
+          stewardship?
       lookingFor:
-        - Team processes for systems thinking
-        - Cross-team coordination
-      expectedDurationMinutes: 8
+        - Embeds systems thinking into team planning processes
+        - Coordinates cross-team to address systemic issues
+        - Balances team protection with broader system health
+        - Proposes structural improvements, not just coping mechanisms
+      expectedDurationMinutes: 20
+
   role_modeling:
     - id: sys_mgmt_role_1
       text:
-        How do you model systems thinking in your leadership decisions and make
-        your reasoning visible to your team?
+        You want to invest in chaos engineering but your leadership sees it as
+        unnecessary risk. Meanwhile, cascading failures are becoming more
+        frequent.
+      context:
+        Your function has had 5 cascading failures in 6 months. Each post-mortem
+        identifies systemic issues but fixes are always local. Leadership wants
+        predictable delivery and sees intentional failure injection as
+        dangerous. You manage 3 teams that own core platform services.
+      simulationPrompts:
+        - How do you make the case for chaos engineering to sceptical
+          leadership?
+        - How would you implement it safely to build confidence?
+        - How do you develop systems thinking capabilities across your teams?
+        - What metrics would you use to demonstrate value?
       lookingFor:
-        - Personal systems thinking modeling
-        - Transparent decision-making
-      expectedDurationMinutes: 8
+        - Models systems thinking in leadership decisions
+        - Develops team capabilities for understanding complex systems
+        - Makes reasoning visible and transparent to stakeholders
+        - Proposes incremental approaches that build trust
+      expectedDurationMinutes: 20
+
   exemplifying:
     - id: sys_mgmt_exemp_1
       text:
-        How do you build organizational capabilities for systems thinking and
-        coach other managers to develop this in their teams?
+        You are leading an organizational initiative to improve system
+        reliability, but teams have no shared language or practices for systems
+        thinking.
+      context:
+        You are responsible for a function of 50+ engineers across 8 teams.
+        Incident reviews reveal that most outages are caused by teams not
+        understanding cross-system impacts. There is no architectural governance
+        and teams have conflicting approaches to resilience.
+      simulationPrompts:
+        - How do you create organizational structures that promote systems
+          thinking?
+        - How do you balance local team optimization with broader system health?
+        - How do you develop a shared language for discussing system complexity?
+        - How do you handle complexity that spans multiple team boundaries?
+      lookingFor:
+        - Creates organizational structures for systems thinking
+        - Balances local and global optimization at scale
+        - Builds shared understanding of system complexity
+        - Takes a strategic, long-term approach to systemic improvement
+      expectedDurationMinutes: 20
       followUps:
-        - How do you create visibility of system dependencies across the
-          organization?
-      lookingFor:
-        - Enterprise systems thinking culture
-        - Manager coaching on complexity
-      expectedDurationMinutes: 10
-    - id: sys_mgmt_exemp_2
-      text:
-        How do you ensure organizational decisions account for cross-functional
-        system impacts and long-term consequences?
-      lookingFor:
-        - Organizational systems alignment
-        - Strategic complexity management
-      expectedDurationMinutes: 10
+        - How would you know if systems thinking maturity is improving?

@@ -3,107 +3,246 @@
 professionalQuestions:
   emerging:
     - id: cur_pro_emerg_1
-      text: What new technology or concept have you learned recently?
+      text:
+        You've been assigned to fix a bug in a service you've never worked on.
+        The fix is straightforward but you don't understand why the code is
+        structured the way it is.
+      context:
+        The service handles payment reconciliation. The bug is a simple
+        off-by-one error in a date filter. The codebase uses patterns you
+        haven't seen before — event sourcing with a custom projection layer.
+        Your team lead said "just fix the bug and move on."
+      simulationPrompts:
+        - Would you just fix the bug or try to understand the broader system?
+        - What questions would you ask about the codebase?
+        - How would you decide how deep to go given you were told to move on?
+        - What would you do if you found something else that looked wrong while
+          investigating?
       lookingFor:
-        - Evidence of learning
-        - Interest beyond immediate work
-      expectedDurationMinutes: 5
+        - Shows curiosity beyond the immediate task
+        - Asks meaningful questions about why, not just what
+        - Willing to explore unfamiliar territory
+        - Balances curiosity with practical delivery
+      expectedDurationMinutes: 20
+
   developing:
     - id: cur_pro_dev_1
       text:
-        Tell me about a time when you went beyond the requirements to understand
-        something deeper.
+        Your team's CI pipeline takes 45 minutes. Everyone accepts it as normal.
+        You suspect it could be much faster but nobody has investigated.
+      context:
+        The pipeline runs unit tests, integration tests, and two rounds of
+        linting. It was set up 2 years ago and has been added to but never
+        optimized. When you mentioned it might be slow, a senior engineer said
+        "it's fine, we're used to it." You have no pipeline expertise.
+      simulationPrompts:
+        - How would you investigate this despite not being a CI expert?
+        - What would your first experiment be?
+        - How would you approach learning about pipeline optimization?
+        - How do you handle the pushback from the senior engineer who thinks
+          it's fine?
       lookingFor:
-        - Self-directed exploration
-        - Root cause thinking
-      expectedDurationMinutes: 5
+        - Investigates root causes independently
+        - Experiments with unfamiliar technology without fear of failure
+        - Seeks to understand how things work rather than accepting the status
+          quo
+        - Shows self-directed exploration patterns
+      expectedDurationMinutes: 20
+
   practicing:
     - id: cur_pro_pract_1
-      text: How do you stay current with developments in your field?
+      text:
+        A new AI coding tool claims to reduce development time by 50%. Your
+        company is considering adopting it but wants someone to evaluate it
+        thoroughly.
+      context:
+        The tool is a code generation agent that can handle entire user stories.
+        Marketing materials are impressive but vague on limitations. Your
+        company has 60 engineers. You've been given 2 weeks to evaluate it and
+        make a recommendation. No one on your team has used AI agents beyond
+        basic copilot tools.
+      simulationPrompts:
+        - How would you design your evaluation? What would you test?
+        - How do you separate marketing claims from reality?
+        - What failure modes would you specifically look for?
+        - How would you structure your findings to help the organization decide?
       lookingFor:
-        - Systematic learning approach
-        - Breadth of interests
-      expectedDurationMinutes: 5
+        - Systematic approach to investigating new technology
+        - Treats the evaluation as discovery, not confirmation
+        - Protects time for thorough exploration
+        - Discovers requirements through immersion in the problem space
+      expectedDurationMinutes: 20
+
   role_modeling:
     - id: cur_pro_role_1
-      text: How do you foster a culture of curiosity in your team?
+      text:
+        Your team consistently delivers features on time but rarely questions
+        whether they're building the right things. Product requirements are
+        accepted at face value.
+      context:
+        Over the last 6 months, 2 features were shipped and then unused because
+        the underlying assumptions were wrong. The team is highly skilled at
+        execution but doesn't push back on requirements or explore the problem
+        space. When you've asked "why are we building this?" in planning, you
+        get polite but empty answers.
+      simulationPrompts:
+        - How would you shift the team culture toward questioning and discovery?
+        - How do you model curiosity without slowing delivery?
+        - What specific practices would you introduce?
+        - How do you create safety for engineers to challenge assumptions?
       lookingFor:
-        - Creating learning environments
-        - Encouraging exploration
-      expectedDurationMinutes: 8
+        - Drives curiosity through challenging questions
+        - Creates environments where exploration is encouraged
+        - Models problem discovery orientation
+        - Seeks out ambiguity rather than avoiding it
+      expectedDurationMinutes: 20
+
   exemplifying:
     - id: cur_pro_exemp_1
       text:
-        How do you shape organizational culture around curiosity and continuous
-        learning at an enterprise level?
+        Your organization wants to become "AI-native" but most teams treat AI
+        tools as autocomplete. There's no culture of experimentation with new AI
+        capabilities.
+      context:
+        The company has 200+ engineers. AI tool licenses are available to
+        everyone but usage data shows 80% of usage is basic code completion.
+        Only 3 teams have experimented with AI agents. The CTO has asked you to
+        lead a transformation toward deeper AI integration. Budget is available
+        but cultural resistance is strong.
+      simulationPrompts:
+        - How do you create a culture of experimentation at organizational
+          scale?
+        - How do you sponsor initiatives that might fail?
+        - How do you influence engineers who are skeptical or intimidated by AI?
+        - How would you share learnings across 200+ engineers effectively?
+      lookingFor:
+        - Shapes organizational culture around curiosity and learning
+        - Sponsors experimental initiatives across the organization
+        - Recognized as a thought leader in problem discovery
+        - Influences practices around innovation and exploration
+      expectedDurationMinutes: 20
       followUps:
-        - How do you sponsor experimental initiatives?
-      lookingFor:
-        - Enterprise learning culture leadership
-        - Sponsoring innovation and experimentation
-      expectedDurationMinutes: 10
-    - id: cur_pro_exemp_2
-      text:
-        How do you influence industry practices around innovation and
-        exploration?
-      lookingFor:
-        - External thought leadership
-        - Industry-level influence on learning culture
-      expectedDurationMinutes: 10
+        - How would you measure whether the organization is becoming more
+          curious?
 
 managementQuestions:
   emerging:
     - id: cur_mgmt_emerg_1
       text:
-        How do you support team members who want to learn new technologies or
-        skills?
+        A team member asks if they can spend a day investigating a new database
+        technology. Your sprint is fully committed and you're behind by 2 story
+        points.
+      context:
+        The team member is your most productive engineer. The database
+        technology could solve a scaling problem you'll face in 3 months. You've
+        never managed competing priorities between exploration and delivery
+        before. Your manager tracks sprint velocity closely.
+      simulationPrompts:
+        - How do you decide whether to approve the exploration time?
+        - How would you frame this to your manager?
+        - What boundaries would you set on the exploration?
+        - How do you make this a learning opportunity regardless of the outcome?
       lookingFor:
-        - Supporting learning
-        - Awareness of development needs
-      expectedDurationMinutes: 5
+        - Supports team learning and exploration
+        - Shows awareness of balancing curiosity with delivery
+        - Creates space for investigation even under pressure
+        - Treats learning as valuable, not wasteful
+      expectedDurationMinutes: 20
+
   developing:
     - id: cur_mgmt_dev_1
       text:
-        How do you create time and space for your team to explore and
-        experiment?
+        You notice your team only learns reactively — they pick up new skills
+        when forced by a project requirement but never explore proactively.
+      context:
+        The team of 7 engineers is competent and delivers well. But when a
+        project required Kubernetes knowledge, nobody had it and the team
+        scrambled. This has happened 3 times in the past year. Engineers say
+        they'd love to learn but "there's never time."
+      simulationPrompts:
+        - How would you create structured opportunities for exploration?
+        - How do you make learning feel safe, not like extra work?
+        - What would you do if an exploration produces no tangible outcome?
+        - How do you balance your delivery commitments with learning time?
       lookingFor:
-        - Creating exploration opportunities
-        - Balancing delivery with learning
-      expectedDurationMinutes: 5
+        - Creates time and space for exploration
+        - Balances delivery with learning proactively
+        - Encourages experimentation without fear of failure
+        - Makes curiosity part of the team's rhythm, not an exception
+      expectedDurationMinutes: 20
+
   practicing:
     - id: cur_mgmt_pract_1
       text:
-        How do you build a team culture that values questioning assumptions and
-        deep investigation?
+        Two of your teams have different approaches to adopting new technology.
+        One team experiments constantly but ships slowly. The other never
+        experiments but delivers predictably.
+      context:
+        You manage both teams. The experimental team has found valuable
+        innovations but missed deadlines 3 times. The predictable team delivers
+        on time but their tech stack is becoming outdated. Leadership is
+        starting to question the experimental team's reliability.
+      simulationPrompts:
+        - How do you calibrate the right level of exploration for each team?
+        - What would you take from each team's culture to improve the other?
+        - How do you protect the experimental team from leadership pressure?
+        - How do you encourage the predictable team to question their
+          assumptions?
       lookingFor:
-        - Curiosity culture building
-        - Encouraging questioning
-      expectedDurationMinutes: 8
+        - Builds team culture that values questioning assumptions
+        - Calibrates exploration against delivery needs
+        - Protects space for curiosity while maintaining accountability
+        - Creates sustainable patterns for experimentation
+      expectedDurationMinutes: 20
+
   role_modeling:
     - id: cur_mgmt_role_1
       text:
-        How do you model curiosity for your team and demonstrate the value of
-        continuous learning in your own work?
+        Your engineering function is solving the same problems repeatedly across
+        teams because there's no culture of sharing discoveries or asking "has
+        anyone solved this before?"
+      context:
+        You lead 3 teams with 25 engineers total. In the last quarter, two teams
+        independently built similar caching solutions. Another team
+        re-investigated a technology that was evaluated and rejected 6 months
+        ago. Engineers are curious individually but there's no collective
+        curiosity.
+      simulationPrompts:
+        - How do you create collective curiosity, not just individual curiosity?
+        - What structures would you put in place for sharing discoveries?
+        - How do you model curiosity visibly as a leader?
+        - How do you make "has anyone solved this?" the first question, not the
+          last?
       lookingFor:
-        - Personal curiosity modeling
-        - Visible learning leadership
-      expectedDurationMinutes: 8
+        - Models curiosity visibly in leadership
+        - Creates environments where discoveries are shared
+        - Builds collective inquiry practices
+        - Drives curiosity as a cultural value across teams
+      expectedDurationMinutes: 20
+
   exemplifying:
     - id: cur_mgmt_exemp_1
       text:
-        How do you build organizational systems that reward curiosity and
-        experimentation across multiple teams?
+        The organization wants to launch an internal innovation program but
+        previous attempts failed because they felt disconnected from real work.
+      context:
+        Two previous "hack week" programs were cancelled after low
+        participation. Engineers felt the initiatives were performative — good
+        ideas went nowhere after the event. Leadership still believes in the
+        concept but wants a different approach. You've been asked to design
+        something that creates genuine, sustainable curiosity.
+      simulationPrompts:
+        - Why did previous programs fail and how would yours be different?
+        - How do you build organizational systems that reward genuine curiosity?
+        - How do you ensure discoveries from the program feed back into real
+          work?
+        - How do you coach other managers to foster curiosity in their teams?
+      lookingFor:
+        - Builds organizational systems that reward curiosity
+        - Creates sustainable exploration programs, not performative ones
+        - Coaches other managers on fostering curiosity
+        - Balances predictable delivery with organizational learning
+      expectedDurationMinutes: 20
       followUps:
-        - How do you coach managers to foster curiosity in their teams?
-      lookingFor:
-        - Enterprise curiosity culture
-        - Systemic support for exploration
-      expectedDurationMinutes: 10
-    - id: cur_mgmt_exemp_2
-      text:
-        How do you balance the need for predictable delivery with fostering a
-        culture of experimentation and learning?
-      lookingFor:
-        - Balancing delivery and exploration
-        - Strategic approach to organizational learning
-      expectedDurationMinutes: 10
+        - How do you handle the inevitable pushback from delivery-focused
+          managers?

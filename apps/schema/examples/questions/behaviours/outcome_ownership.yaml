@@ -3,106 +3,226 @@
 professionalQuestions:
   emerging:
     - id: own_pro_emerg_1
-      text: Describe a task you completed from start to finish.
+      text:
+        A feature you built last week is causing intermittent errors in
+        production. Your tech lead is in a meeting and unavailable for an hour.
+      context:
+        The errors affect about 5% of users and the on-call engineer has pinged
+        the team channel. You have access to logs and the deployment pipeline.
+        The feature was built using AI-generated code that you reviewed before
+        merging.
+      simulationPrompts:
+        - Walk me through your first steps when you see the alert
+        - How would you decide whether to roll back or investigate further?
+        - Who would you communicate with and what would you say?
+        - How would you document what happened for the team?
       lookingFor:
-        - Follow-through
-        - Basic accountability
-      expectedDurationMinutes: 5
+        - Takes immediate responsibility rather than waiting for direction
+        - Shows willingness to act within their capability
+        - Communicates status proactively even without being asked
+        - Understands the feature serves a business purpose beyond code
+      expectedDurationMinutes: 20
+
   developing:
     - id: own_pro_dev_1
-      text: Tell me about a time when you took responsibility for a mistake.
+      text:
+        You shipped a feature using AI-generated code that passed all tests, but
+        a stakeholder reports it behaves differently than specified.
+      context:
+        The stakeholder is frustrated because they demoed the feature to a
+        client and it didn't work as expected. The AI tool generated a plausible
+        but subtly wrong implementation that your tests didn't catch.
+      simulationPrompts:
+        - How do you respond to the stakeholder's frustration?
+        - What do you do to understand the gap between spec and implementation?
+        - How do you decide between a quick patch and a proper fix?
+        - What would you change about your review process going forward?
       lookingFor:
-        - Accountability
-        - Learning from errors
-      expectedDurationMinutes: 5
+        - Takes ownership of the gap rather than blaming the AI tool
+        - Reviews AI-generated code critically against the specification
+        - Makes pragmatic trade-offs between speed and correctness
+        - Considers how to prevent similar gaps in future
+      expectedDurationMinutes: 20
+
   practicing:
     - id: own_pro_pract_1
       text:
-        Describe a project where you owned the entire lifecycle from design to
-        production support.
+        A key integration your team owns is blocking a partner team's quarterly
+        release. The fix requires accepting significant technical debt.
+      context:
+        The partner team's release is worth £2M in annual revenue. A proper fix
+        would take 3 weeks; a pragmatic workaround takes 3 days but leaves known
+        limitations. You own the stakeholder relationship with the partner
+        team's lead.
+      simulationPrompts:
+        - How do you evaluate the trade-off between technical debt and business
+          value?
+        - Walk me through the conversation you'd have with the partner team lead
+        - How do you ensure the technical debt is tracked and eventually
+          addressed?
+        - How do you communicate the decision and its consequences to your team?
       lookingFor:
-        - End-to-end ownership
-        - Operational responsibility
-      expectedDurationMinutes: 8
+        - Owns the end-to-end business outcome, not just the code
+        - Accepts technical debt intentionally with clear reasoning
+        - Manages the stakeholder relationship with transparency
+        - Balances delivery speed with long-term quality
+      expectedDurationMinutes: 20
+
   role_modeling:
     - id: own_pro_role_1
-      text: How do you build a culture of ownership in your team?
+      text:
+        Two teams in your function disagree about who owns a cross-cutting
+        reliability issue. Incidents are recurring and both teams blame the
+        other.
+      context:
+        The issue has caused 3 incidents this month, each impacting customer
+        experience. Neither team has full visibility into the other's service.
+        You are a senior IC with credibility with both teams. Leadership is
+        starting to notice.
+      simulationPrompts:
+        - How do you approach the situation without formal authority?
+        - What would you do to establish clear ownership boundaries?
+        - How do you shift the conversation from blame to accountability?
+        - What systemic changes would you propose to prevent this pattern?
       lookingFor:
-        - Team accountability
-        - Systemic approaches
-      expectedDurationMinutes: 8
+        - Drives accountability culture focused on outcomes not blame
+        - Takes ownership of the problem without formal responsibility
+        - Makes decisions without needing to escalate for permission
+        - Establishes verification rigor for cross-team boundaries
+      expectedDurationMinutes: 20
+
   exemplifying:
     - id: own_pro_exemp_1
       text:
-        How do you establish and drive ownership culture across an entire
-        organization?
+        The organisation is adopting AI code generation at scale, but there is
+        no accountability framework for AI-generated code quality and outcomes.
+      context:
+        Several teams have shipped AI-generated features with defects not caught
+        in review. Leadership wants velocity but also accountability. You have
+        been asked to define the organizational approach.
+      simulationPrompts:
+        - How do you define accountability standards for AI-generated code?
+        - How do you balance velocity gains from AI with outcome ownership?
+        - What organizational structures would you put in place?
+        - How would you measure success of the accountability framework?
+      lookingFor:
+        - Defines organizational accountability standards for the AI era
+        - Shapes practices that scale beyond individual team behaviour
+        - Sponsors initiatives with full outcome accountability
+        - Takes an approach that could influence industry practices
+      expectedDurationMinutes: 20
       followUps:
-        - How do you balance ownership with collaboration?
-      lookingFor:
-        - Enterprise ownership culture
-        - Accountability at scale
-      expectedDurationMinutes: 10
-    - id: own_pro_exemp_2
-      text:
-        How do you hold yourself and others accountable for outcomes at an
-        organizational level?
-      lookingFor:
-        - Executive-level accountability
-        - Systemic ownership practices
-      expectedDurationMinutes: 10
+        - How would you handle a team that resists the framework?
 
 managementQuestions:
   emerging:
     - id: own_mgmt_emerg_1
-      text: How do you ensure your team members complete their assigned tasks?
+      text:
+        A team member's task is overdue and they haven't raised it. You discover
+        this during standup where they say everything is "on track."
+      context:
+        The task was due yesterday and blocks another team member's work. The
+        team member is relatively new and you suspect they may be struggling but
+        don't want to appear incompetent. The sprint goal is at risk.
+      simulationPrompts:
+        - How do you address this in the moment without embarrassing them?
+        - What conversation do you have with them privately afterwards?
+        - How do you ensure the blocking dependency is resolved?
+        - What do you put in place to catch this earlier next time?
       lookingFor:
-        - Basic oversight
-        - Task tracking awareness
-      expectedDurationMinutes: 5
+        - Ensures follow-through on delegated tasks
+        - Creates psychological safety while maintaining accountability
+        - Addresses both the immediate blocker and the underlying pattern
+        - Shows awareness of team accountability dynamics
+      expectedDurationMinutes: 20
+
   developing:
     - id: own_mgmt_dev_1
       text:
-        How do you coach team members when they struggle to take ownership of
-        their work?
+        A team member shipped code that caused a production incident. During the
+        post-mortem, other team members want to assign blame.
+      context:
+        The incident affected 200 users for 45 minutes. The code was reviewed
+        and approved by another team member before merge. The author is junior
+        and clearly upset. Your team has no established incident ownership
+        culture.
+      simulationPrompts:
+        - How do you run the post-mortem to keep it constructive?
+        - How do you coach the team member privately afterwards?
+        - What do you say to the team about shared accountability?
+        - How do you start building an ownership culture from this moment?
       lookingFor:
-        - Coaching for accountability
-        - Supporting ownership development
-      expectedDurationMinutes: 5
+        - Creates safe space for ownership while addressing the incident
+        - Coaches individual accountability constructively
+        - Models shared ownership rather than individual blame
+        - Begins establishing team accountability patterns
+      expectedDurationMinutes: 20
+
   practicing:
     - id: own_mgmt_pract_1
       text:
-        How do you structure your team to encourage end-to-end ownership of
-        deliverables?
+        Your team consistently treats operational issues as "someone else's
+        problem" once features ship. The platform team is overwhelmed.
+      context:
+        Your team shipped 12 features this quarter with strong velocity, but
+        operational tickets have doubled. The platform team lead has escalated
+        to your manager. Your team sees themselves as "builders, not operators."
+      simulationPrompts:
+        - How do you shift the team from feature delivery to outcome ownership?
+        - What structural changes embed operational ownership?
+        - How do you have the conversation with the platform team lead?
+        - How do you measure and recognize end-to-end ownership?
       lookingFor:
-        - Team structure for ownership
-        - Accountability frameworks
-      expectedDurationMinutes: 8
+        - Structures team around end-to-end ownership, not just features
+        - Balances autonomy with accountability for operational outcomes
+        - Builds clear ownership expectations with concrete mechanisms
+        - Takes responsibility for the team culture gap
+      expectedDurationMinutes: 20
+
   role_modeling:
     - id: own_mgmt_role_1
       text:
-        How do you model ownership behaviour for your team and hold yourself
-        accountable publicly?
+        A project you championed has missed its business targets after 6 months.
+        Technology works but adoption is far lower than projected.
+      context:
+        You estimated £500K in annual savings but actual savings are £120K.
+        Technical delivery was on time and on budget. The adoption gap is due to
+        change management issues outside your initial scope. Your peers are
+        distancing themselves from the project.
+      simulationPrompts:
+        - How do you own this outcome publicly with leadership?
+        - What do you do about the adoption gap specifically?
+        - How do you model accountability when the outcome isn't what you
+          projected?
+        - What would you do differently if starting again?
       lookingFor:
-        - Personal accountability modeling
-        - Transparent leadership
-      expectedDurationMinutes: 8
+        - Models personal accountability publicly, including for indirect
+          outcomes
+        - Owns the business outcome, not just the technical delivery
+        - Takes action to close the gap rather than accepting current state
+        - Shows transparency about lessons learned
+      expectedDurationMinutes: 20
+
   exemplifying:
     - id: own_mgmt_exemp_1
       text:
-        How do you establish ownership expectations across multiple teams and
-        coach other managers on building accountability cultures?
+        You need to establish ownership expectations across a function where
+        teams have very different accountability cultures.
+      context:
+        You lead a function of 8 teams (60+ engineers). Three teams have strong
+        ownership cultures, three are inconsistent, and two actively avoid
+        accountability. Recent reorgs mixed people from different cultures and
+        cross-team incidents are increasing.
+      simulationPrompts:
+        - How do you assess ownership maturity across teams?
+        - What organizational standards would you establish?
+        - How do you bring lower-performing teams up without bureaucracy?
+        - How do you handle managers who resist accountability expectations?
+      lookingFor:
+        - Establishes organizational accountability standards
+        - Takes a systemic approach rather than team-by-team fixing
+        - Balances accountability with psychological safety at scale
+        - Creates sustainable culture that survives personnel changes
+      expectedDurationMinutes: 20
       followUps:
-        - How do you handle managers who struggle to build ownership in their
-          teams?
-      lookingFor:
-        - Cross-team ownership culture
-        - Manager coaching on accountability
-      expectedDurationMinutes: 10
-    - id: own_mgmt_exemp_2
-      text:
-        How do you balance organizational accountability with psychological
-        safety when outcomes are missed?
-      lookingFor:
-        - Balancing accountability and safety
-        - Systemic approach to ownership culture
-      expectedDurationMinutes: 10
+        - How would you measure the impact of the ownership culture change?

@@ -4,109 +4,245 @@ professionalQuestions:
   emerging:
     - id: comm_pro_emerg_1
       text:
-        Tell me about a time when you had to explain something technical to
-        someone less familiar with the topic.
+        A product manager asks you to explain why a feature will take longer
+        than expected. They need to update the client by end of day.
+      context:
+        The delay is caused by an unexpected API limitation in a third-party
+        service. The PM has no technical background but is under pressure from
+        the client. You've been working on this for 2 days and just discovered
+        the blocker.
+      simulationPrompts:
+        - How would you explain the technical blocker to the PM?
+        - What information do they need vs what details can you leave out?
+        - How would you frame the timeline impact clearly?
+        - How would you write this up if they asked for a brief email summary?
       lookingFor:
-        - Ability to simplify concepts
-        - Awareness of audience
-      expectedDurationMinutes: 5
+        - Communicates basic technical concepts in accessible language
+        - Adapts level of detail for the audience
+        - Provides clear timeline impact without overwhelming with detail
+        - Shows willingness to communicate proactively
+      expectedDurationMinutes: 20
+
   developing:
     - id: comm_pro_dev_1
-      text: Describe how you approach writing documentation for your work.
+      text:
+        You need to write a specification for a feature that will be partially
+        implemented by an AI coding tool. The feature involves complex business
+        rules.
+      context:
+        The feature calculates tiered pricing based on customer segment, volume,
+        and contract terms. Previous attempts to use AI for similar features
+        resulted in subtle logic errors because the specs were ambiguous. Your
+        team relies on AI tools for ~40% of implementation.
+      simulationPrompts:
+        - How would you structure the specification to minimize ambiguity?
+        - What's the difference between a spec humans can follow and one AI can
+          follow?
+        - How would you verify the AI interpreted your spec correctly?
+        - Walk me through how you'd document one of the pricing rules
       lookingFor:
-        - Clear writing habits
-        - Consideration of readers
-      expectedDurationMinutes: 5
+        - Writes clear specifications that reduce ambiguity
+        - Considers how AI tools parse requirements differently than humans
+        - Crafts effective prompts and specifications for AI consumption
+        - Adapts communication style for different audiences
+      expectedDurationMinutes: 20
+
   practicing:
     - id: comm_pro_pract_1
       text:
-        Tell me about presenting a complex technical topic to diverse
-        stakeholders.
+        You need to present a proposed architecture change to a room with the
+        CTO, product managers, and frontend engineers. Each group cares about
+        different aspects.
+      context:
+        The change migrates from a monolith to microservices for the payments
+        domain. The CTO cares about strategic alignment, PMs care about feature
+        velocity impact, and engineers care about implementation details. You
+        have 30 minutes and expect pushback from PMs about the 6-week
+        productivity dip.
+      simulationPrompts:
+        - How would you structure the presentation for this mixed audience?
+        - How do you translate between technical and business language?
+        - How do you handle questions from stakeholders with conflicting
+          priorities?
+        - How do you separate what needs deciding now vs what can be decided
+          later?
       lookingFor:
-        - Audience adaptation
-        - Facilitation skills
-      expectedDurationMinutes: 8
+        - Separates concerns precisely for different audiences
+        - Translates between technical and business language fluently
+        - Facilitates productive discussion among stakeholders with competing
+          priorities
+        - Enables clear decisions by structuring information precisely
+      expectedDurationMinutes: 20
+
   role_modeling:
     - id: comm_pro_role_1
-      text: How have you improved communication practices in your organization?
+      text:
+        Your function has recurring miscommunication between engineering and
+        product. Requirements are interpreted differently, leading to rework.
+      context:
+        In the last quarter, 3 major features needed significant rework due to
+        specification ambiguity. Engineers blame vague requirements. Product
+        managers blame engineers for not asking clarifying questions. You've
+        been asked to propose a better process. The function has 40 engineers
+        and 8 product managers.
+      simulationPrompts:
+        - What's the root cause of the miscommunication pattern?
+        - What spec-driven practices would you introduce?
+        - How do you get buy-in from both engineering and product?
+        - How do you mentor others on precise communication without being
+          prescriptive?
       lookingFor:
-        - Leadership in communication
-        - Systemic improvements
-      expectedDurationMinutes: 8
+        - Creates spec-driven development practices that reduce ambiguity
+        - Mentors others on precise communication across the function
+        - Bridges communication gaps between engineering and product
+        - Drives clarity as a core value, not just a process
+      expectedDurationMinutes: 20
+
   exemplifying:
     - id: comm_pro_exemp_1
       text:
-        How do you shape communication culture across an enterprise and
-        represent your organization externally?
+        The organisation wants to adopt spec-driven AI development but has no
+        standards for how specifications should be written across teams.
+      context:
+        Teams use different formats, levels of detail, and terminology. AI tool
+        effectiveness varies wildly between teams. External clients are starting
+        to ask about the company's AI development methodology for compliance
+        purposes. You've been asked to lead the standardization effort.
+      simulationPrompts:
+        - How would you define organizational communication standards?
+        - How do you balance standardization with team autonomy?
+        - How would you represent this externally to clients and industry?
+        - How would you measure whether communication precision is improving?
+      lookingFor:
+        - Shapes organizational standards for technical communication
+        - Defines spec-driven AI development practices at scale
+        - Represents the organization's approach externally with authority
+        - Creates standards that improve outcomes, not just compliance
+      expectedDurationMinutes: 20
       followUps:
-        - How do you coach executives on technical communication?
-      lookingFor:
-        - Enterprise communication leadership
-        - External representation
-        - Communication excellence at all levels
-      expectedDurationMinutes: 10
-    - id: comm_pro_exemp_2
-      text:
-        Describe how you've established communication standards that span
-        technical and business audiences across the organization.
-      lookingFor:
-        - Cross-functional communication leadership
-        - Scalable communication practices
-      expectedDurationMinutes: 10
+        - How would you handle teams that resist the standardization?
 
 managementQuestions:
   emerging:
     - id: comm_mgmt_emerg_1
       text:
-        How do you ensure your team communicates clearly in their daily work?
+        You notice that standup updates from your team are vague — "still
+        working on it" with no specifics. Sprint planning decisions are being
+        made on incomplete information.
+      context:
+        Your team of 6 engineers has been together for 3 months. Some members
+        are quiet and uncomfortable speaking in groups. Others give detailed
+        updates but talk for too long. The standups regularly run over 15
+        minutes.
+      simulationPrompts:
+        - How would you improve the quality of standup communication?
+        - How do you coach a quiet team member to share more effectively?
+        - How do you coach a verbose team member to be more concise?
+        - What structure or format would you introduce?
       lookingFor:
-        - Basic communication oversight
-        - Awareness of team communication
-      expectedDurationMinutes: 5
+        - Identifies communication gaps affecting team effectiveness
+        - Coaches individuals on clear, concise communication
+        - Creates structures that support better communication
+        - Shows awareness of different communication styles
+      expectedDurationMinutes: 20
+
   developing:
     - id: comm_mgmt_dev_1
       text:
-        How do you coach team members who struggle with clear written or verbal
-        communication?
+        A team member's pull request descriptions are consistently unclear,
+        causing reviewers to misunderstand the intent and approve problematic
+        changes.
+      context:
+        Two bugs in the last month were traced back to PRs where the reviewer
+        didn't understand the full scope of the change. The team member is
+        technically strong but their written communication is ambiguous. Other
+        team members are reluctant to review their PRs.
+      simulationPrompts:
+        - How do you give feedback on their communication without undermining
+          their technical confidence?
+        - What would you suggest as a PR description standard?
+        - How do you make clear communication a team expectation, not just an
+          individual issue?
+        - How do you verify the coaching is working?
       lookingFor:
-        - Communication coaching
-        - Identifying communication gaps
-      expectedDurationMinutes: 5
+        - Provides constructive feedback on communication skills
+        - Sets clear communication expectations for the team
+        - Coaches without undermining technical confidence
+        - Makes communication quality a team norm
+      expectedDurationMinutes: 20
+
   practicing:
     - id: comm_mgmt_pract_1
       text:
-        How do you establish communication standards and practices for your
-        team?
+        Your team needs to communicate a breaking API change to 5 consuming
+        teams. Past breaking changes caused friction because of poor
+        communication timing and unclear migration guides.
+      context:
+        The API change removes deprecated endpoints used by at least 3 teams.
+        Your team wants to ship in 4 weeks. Previous breaking changes led to
+        angry messages in Slack and escalations. You need to manage both the
+        technical communication and the stakeholder relationships.
+      simulationPrompts:
+        - How would you structure the communication plan?
+        - How do you help your team communicate effectively with each consuming
+          team?
+        - What communication standards would you establish for breaking changes?
+        - How do you handle a team that doesn't respond to the migration
+          timeline?
       lookingFor:
-        - Team communication frameworks
-        - Standards and expectations
-      expectedDurationMinutes: 8
+        - Establishes communication standards for high-impact changes
+        - Coaches team members on stakeholder communication
+        - Creates communication practices that become team norms
+        - Manages multi-stakeholder communication proactively
+      expectedDurationMinutes: 20
+
   role_modeling:
     - id: comm_mgmt_role_1
       text:
-        How do you model precise communication in your leadership and create a
-        culture where clear communication is valued?
+        Cross-functional meetings in your area are unproductive — engineers and
+        product managers talk past each other, decisions aren't captured, and
+        actions are unclear.
+      context:
+        You manage 3 teams and participate in weekly cross-functional meetings
+        with product, design, and engineering. The meetings often end without
+        clear decisions. Product managers feel engineers don't listen to
+        business context; engineers feel product doesn't understand technical
+        constraints.
+      simulationPrompts:
+        - How do you model precise communication in these meetings?
+        - What facilitation practices would you introduce?
+        - How do you establish shared language between engineering and product?
+        - How do you make your communication standards visible to peers?
       lookingFor:
-        - Personal communication modeling
-        - Building communication culture
-      expectedDurationMinutes: 8
+        - Models precise communication in leadership settings
+        - Establishes facilitation practices that drive clarity
+        - Creates shared language across functions
+        - Drives communication as a core value, not just a skill
+      expectedDurationMinutes: 20
+
   exemplifying:
     - id: comm_mgmt_exemp_1
       text:
-        How do you establish communication excellence across multiple teams and
-        coach other managers on building strong communication cultures?
+        You've been asked to develop strategic communication capabilities across
+        your organization to support AI-driven development practices.
+      context:
+        Your organization has 100+ engineers across 15 teams. AI tools are being
+        adopted but spec quality varies wildly. Customer-facing communication
+        about AI capabilities is inconsistent. The CEO wants the organization to
+        be known for communication excellence.
+      simulationPrompts:
+        - How do you develop strategic communication capabilities at scale?
+        - How do you handle communication breakdowns between teams as an
+          organizational pattern?
+        - How do you build communication excellence into hiring and development?
+        - How do you balance transparency with appropriate information
+          boundaries?
+      lookingFor:
+        - Develops organizational communication strategy
+        - Addresses communication patterns systemically, not individually
+        - Builds communication excellence into talent development
+        - Shows strategic judgment about communication at enterprise scale
+      expectedDurationMinutes: 20
       followUps:
-        - How do you ensure consistent communication standards across diverse
-          teams?
-      lookingFor:
-        - Cross-team communication standards
-        - Manager coaching on communication
-      expectedDurationMinutes: 10
-    - id: comm_mgmt_exemp_2
-      text:
-        How do you bridge communication gaps between technical and non-technical
-        stakeholders at an organizational level?
-      lookingFor:
-        - Enterprise communication bridging
-        - Cross-functional alignment
-      expectedDurationMinutes: 10
+        - How would you measure communication effectiveness across the
+          organization?
