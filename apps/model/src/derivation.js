@@ -482,7 +482,7 @@ export function deriveResponsibilities({
         capability: capabilityId,
         capabilityName: capability.name,
         emojiIcon: capability.emojiIcon || "💡",
-        displayOrder: capability.displayOrder ?? 999,
+        ordinalRank: capability.ordinalRank ?? 999,
         responsibility: responsibilityText,
         level,
         levelIndex: SKILL_LEVEL_ORDER.indexOf(level),
@@ -495,7 +495,7 @@ export function deriveResponsibilities({
     if (b.levelIndex !== a.levelIndex) {
       return b.levelIndex - a.levelIndex;
     }
-    return a.displayOrder - b.displayOrder;
+    return a.ordinalRank - b.ordinalRank;
   });
 
   // Remove levelIndex from output (internal use only)

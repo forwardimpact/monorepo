@@ -6,13 +6,13 @@
  * (e.g., "delivery: 1", "scale: -1") - individual skill modifiers are not allowed.
  */
 
-import { CAPABILITY_ORDER } from "@forwardimpact/schema/levels";
+import { Capability } from "@forwardimpact/schema/levels";
 
 /**
  * Valid skill capability names for modifier expansion
  * @type {Set<string>}
  */
-const VALID_CAPABILITIES = new Set(CAPABILITY_ORDER);
+const VALID_CAPABILITIES = new Set(Object.values(Capability));
 
 /**
  * Check if a key is a skill capability

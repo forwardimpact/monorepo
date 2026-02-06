@@ -97,6 +97,9 @@ export {
   compareByName,
   compareBySkillPriority,
   compareByTypeAndName,
+  // Capability comparators
+  compareByCapability,
+  sortSkillsByCapability,
   // Behaviour comparators
   compareByMaturityDesc,
   compareByMaturityAsc,

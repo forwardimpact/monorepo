@@ -11,6 +11,7 @@
 import {
   getSkillLevelIndex,
   getBehaviourMaturityIndex,
+  getCapabilityOrder,
 } from "@forwardimpact/schema/levels";
 
 // =============================================================================
@@ -183,6 +184,46 @@ export function compareByBehaviourPriority(a, b) {
     getBehaviourMaturityIndex(a.maturity);
   if (maturityDiff !== 0) return maturityDiff;
   return compareByBehaviourName(a, b);
+}
+
+// =============================================================================
+// Capability Comparators
+// =============================================================================
+
+/**
+ * Create a comparator for sorting by capability ordinal rank
+ *
+ * The returned comparator uses ordinalRank from loaded capability data,
+ * making the ordering data-driven rather than hardcoded.
+ *
+ * @param {Object[]} capabilities - Loaded capabilities array
+ * @returns {(a: Object, b: Object) => number} Comparator function
+ */
+export function compareByCapability(capabilities) {
+  const order = getCapabilityOrder(capabilities);
+  return (a, b) => {
+    const capA = a.capability || "";
+    const capB = b.capability || "";
+    return order.indexOf(capA) - order.indexOf(capB);
+  };
+}
+
+/**
+ * Sort skills by capability (display order), then by name
+ *
+ * @param {Object[]} skills - Array of skills to sort
+ * @param {Object[]} capabilities - Loaded capabilities array
+ * @returns {Object[]} Sorted array (new array, does not mutate input)
+ */
+export function sortSkillsByCapability(skills, capabilities) {
+  const capabilityComparator = compareByCapability(capabilities);
+  return [...skills].sort((a, b) => {
+    const capCompare = capabilityComparator(a, b);
+    if (capCompare !== 0) return capCompare;
+    const nameA = a.skillName || a.name;
+    const nameB = b.skillName || b.name;
+    return nameA.localeCompare(nameB);
+  });
 }
 
 // =============================================================================
