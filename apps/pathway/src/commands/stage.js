@@ -60,19 +60,19 @@ function formatDetail(viewAndContext, _framework) {
   console.log(formatHeader(`\n${emoji} ${view.name}\n`));
   console.log(`${view.description}\n`);
 
-  // Entry criteria
-  if (view.entryCriteria.length > 0) {
-    console.log(formatSubheader("Entry Criteria\n"));
-    for (const item of view.entryCriteria) {
+  // Read checklist
+  if (view.readChecklist.length > 0) {
+    console.log(formatSubheader("Read Checklist\n"));
+    for (const item of view.readChecklist) {
       console.log(formatBullet(item, 1));
     }
     console.log();
   }
 
-  // Exit criteria
-  if (view.exitCriteria.length > 0) {
-    console.log(formatSubheader("Exit Criteria\n"));
-    for (const item of view.exitCriteria) {
+  // Confirm checklist
+  if (view.confirmChecklist.length > 0) {
+    console.log(formatSubheader("Confirm Checklist\n"));
+    for (const item of view.confirmChecklist) {
       console.log(formatBullet(item, 1));
     }
     console.log();

@@ -34,33 +34,33 @@ export function stageToDOM(stage, { stages = [], showBackLink = true } = {}) {
       p({ className: "page-description" }, view.description),
     ),
 
-    // Entry/Exit Criteria
-    view.entryCriteria.length > 0 || view.exitCriteria.length > 0
+    // Read/Confirm Checklists
+    view.readChecklist.length > 0 || view.confirmChecklist.length > 0
       ? div(
           { className: "section section-detail" },
           div(
             { className: "content-columns" },
-            // Entry criteria column
-            view.entryCriteria.length > 0
+            // Read checklist column
+            view.readChecklist.length > 0
               ? div(
                   { className: "column" },
-                  h2({ className: "section-title" }, "Entry Criteria"),
+                  h2({ className: "section-title" }, "Read Checklist"),
                   ul(
                     { className: "criteria-list" },
-                    ...view.entryCriteria.map((item) =>
+                    ...view.readChecklist.map((item) =>
                       li({ className: "criteria-item" }, item),
                     ),
                   ),
                 )
               : null,
-            // Exit criteria column
-            view.exitCriteria.length > 0
+            // Confirm checklist column
+            view.confirmChecklist.length > 0
               ? div(
                   { className: "column" },
-                  h2({ className: "section-title" }, "Exit Criteria"),
+                  h2({ className: "section-title" }, "Confirm Checklist"),
                   ul(
                     { className: "criteria-list" },
-                    ...view.exitCriteria.map((item) =>
+                    ...view.confirmChecklist.map((item) =>
                       li({ className: "criteria-item" }, item),
                     ),
                   ),

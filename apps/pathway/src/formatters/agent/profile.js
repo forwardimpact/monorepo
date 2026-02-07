@@ -23,7 +23,7 @@ import {
  */
 
 /**
- * @typedef {Object} BeforeHandoffEntry
+ * @typedef {Object} ConfirmChecklistEntry
  * @property {{id: string, name: string}} skill - Skill info
  * @property {{id: string, name: string, emojiIcon: string}} capability - Capability info
  * @property {string[]} items - Checklist items
@@ -46,7 +46,7 @@ import {
  * @param {Array<{name: string, dirname: string, useWhen: string}>} params.bodyData.skillIndex - Skill index entries
  * @param {string} params.bodyData.roleContext - Role context text
  * @param {WorkingStyleEntry[]} params.bodyData.workingStyles - Working style entries
- * @param {BeforeHandoffEntry[]} [params.bodyData.beforeHandoff] - Before handoff checklist entries
+ * @param {ConfirmChecklistEntry[]} [params.bodyData.confirmChecklist] - Confirm Checklist entries
  * @param {string[]} params.bodyData.constraints - List of constraints
  * @param {Array<{id: string, name: string, description: string}>} [params.bodyData.agentIndex] - List of all available agents
  * @param {boolean} [params.bodyData.hasAgentIndex] - Whether agent index is available
@@ -77,8 +77,8 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
     content: "required",
   });
 
-  // Process beforeHandoff: trim items in each entry
-  const beforeHandoff = (bodyData.beforeHandoff || []).map((entry) => ({
+  // Process confirmChecklist: trim items in each entry
+  const confirmChecklist = (bodyData.confirmChecklist || []).map((entry) => ({
     skill: entry.skill,
     capability: entry.capability,
     items: (entry.items || []).map((item) => trimRequired(item)),
@@ -101,8 +101,8 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
     roleContext: trimValue(bodyData.roleContext),
     workingStyles,
     hasWorkingStyles: workingStyles.length > 0,
-    beforeHandoff,
-    hasBeforeHandoff: beforeHandoff.length > 0,
+    confirmChecklist,
+    hasConfirmChecklist: confirmChecklist.length > 0,
     constraints,
     hasConstraints: constraints.length > 0,
     agentIndex,
@@ -127,7 +127,7 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
  * @param {Array<{name: string, dirname: string, useWhen: string}>} profile.bodyData.skillIndex - Skill index entries
  * @param {string} profile.bodyData.roleContext - Role context text
  * @param {WorkingStyleEntry[]} profile.bodyData.workingStyles - Working style entries
- * @param {BeforeHandoffEntry[]} [profile.bodyData.beforeHandoff] - Before handoff checklist entries (optional)
+ * @param {ConfirmChecklistEntry[]} [profile.bodyData.confirmChecklist] - Confirm Checklist entries (optional)
  * @param {string[]} profile.bodyData.constraints - List of constraints
  * @param {string} template - Mustache template string
  * @returns {string} Complete .agent.md file content

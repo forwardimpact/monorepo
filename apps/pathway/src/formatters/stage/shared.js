@@ -46,8 +46,8 @@ export function prepareStagesList(stages, descriptionLimit = 150) {
  * @property {string} name
  * @property {string} description
  * @property {string[]} constraints
- * @property {string[]} entryCriteria
- * @property {string[]} exitCriteria
+ * @property {string[]} readChecklist
+ * @property {string[]} confirmChecklist
  * @property {Array<{target: string, label: string, prompt: string}>} handoffs
  */
 
@@ -62,8 +62,8 @@ export function prepareStageDetail(stage) {
     name: stage.name,
     description: stage.description,
     constraints: stage.constraints || [],
-    entryCriteria: stage.entryCriteria || [],
-    exitCriteria: stage.exitCriteria || [],
+    readChecklist: stage.readChecklist || [],
+    confirmChecklist: stage.confirmChecklist || [],
     handoffs: (stage.handoffs || []).map((h) => ({
       target: h.targetStage,
       label: h.label,

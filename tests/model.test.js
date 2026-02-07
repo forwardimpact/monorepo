@@ -3079,13 +3079,16 @@ describe("Checklist Derivation", () => {
         stages: {
           plan: {
             focus: "Design architecture",
-            activities: ["Gather requirements", "Design components"],
-            ready: ["Architecture documented", "Trade-offs explicit"],
+            readChecklist: ["Gather requirements", "Design components"],
+            confirmChecklist: [
+              "Architecture documented",
+              "Trade-offs explicit",
+            ],
           },
           code: {
             focus: "Implement architecture",
-            activities: ["Build components"],
-            ready: ["Implementation matches design"],
+            readChecklist: ["Build components"],
+            confirmChecklist: ["Implementation matches design"],
           },
         },
       },
@@ -3100,8 +3103,8 @@ describe("Checklist Derivation", () => {
         stages: {
           code: {
             focus: "Build pipelines",
-            activities: ["Set up CI/CD"],
-            ready: ["Pipeline working", "Tests green"],
+            readChecklist: ["Set up CI/CD"],
+            confirmChecklist: ["Pipeline working", "Tests green"],
           },
         },
       },
@@ -3135,7 +3138,7 @@ describe("Checklist Derivation", () => {
         capabilities: testCapabilities,
       });
 
-      // Should include arch skill's plan.ready items
+      // Should include arch skill's plan.confirmChecklist items
       const archChecklist = checklist.find((c) => c.skill.id === "arch");
       assert.ok(archChecklist);
       assert.deepStrictEqual(archChecklist.items, [

@@ -197,20 +197,20 @@
     },
     "skillStage": {
       "type": "object",
-      "required": ["focus", "activities", "ready"],
+      "required": ["focus", "readChecklist", "confirmChecklist"],
       "properties": {
         "focus": {
           "type": "string",
           "description": "Primary focus for this stage"
         },
-        "activities": {
+        "readChecklist": {
           "type": "array",
-          "description": "Key activities to perform in this stage",
+          "description": "Read-Then-Do Checklist: steps to follow in order during this stage",
           "items": { "type": "string" }
         },
-        "ready": {
+        "confirmChecklist": {
           "type": "array",
-          "description": "Criteria that indicate readiness to move to next stage",
+          "description": "Do-Then-Confirm Checklist: items to verify before moving to next stage",
           "items": { "type": "string" }
         }
       },

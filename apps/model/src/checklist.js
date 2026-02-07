@@ -1,10 +1,10 @@
 /**
  * Checklist Derivation
  *
- * Checklists are derived from skills with agent.stages.{stage}.ready criteria.
+ * Checklists are derived from skills with agent.stages.{stage}.confirmChecklist criteria.
  * Each skill defines its own readiness criteria for stage transitions.
  *
- * Checklist = Stage × Skill Matrix × Skill Ready Criteria
+ * Checklist = Stage × Skill Matrix × Skill Confirm Checklist
  */
 
 import { CHECKLIST_STAGE_MAP } from "./policies/orderings.js";
@@ -46,7 +46,11 @@ export function deriveChecklist({
     }
 
     const stageData = skill.agent.stages[targetStage];
-    if (!stageData || !stageData.ready || stageData.ready.length === 0) {
+    if (
+      !stageData ||
+      !stageData.confirmChecklist ||
+      stageData.confirmChecklist.length === 0
+    ) {
       continue;
     }
 
@@ -66,7 +70,7 @@ export function deriveChecklist({
         name: capability.name,
         emojiIcon: capability.emojiIcon,
       },
-      items: stageData.ready,
+      items: stageData.confirmChecklist,
     });
   }
 

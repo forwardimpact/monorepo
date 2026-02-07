@@ -47,16 +47,16 @@
             "type": "string"
           }
         },
-        "entryCriteria": {
+        "readChecklist": {
           "type": "array",
-          "description": "Conditions that must be met before entering this stage",
+          "description": "Read-Then-Do Checklist: steps to follow in order during this stage",
           "items": {
             "type": "string"
           }
         },
-        "exitCriteria": {
+        "confirmChecklist": {
           "type": "array",
-          "description": "Conditions that must be met before leaving this stage",
+          "description": "Do-Then-Confirm Checklist: items to verify before handing off to next stage",
           "items": {
             "type": "string"
           }

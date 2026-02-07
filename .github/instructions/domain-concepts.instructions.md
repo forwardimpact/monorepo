@@ -154,7 +154,8 @@ Stages define engineering lifecycle phases with:
 
 - **constraints**: Restrictions on behaviour
 - **handoffs**: Transitions to other stages with prompts
-- **entryCriteria/exitCriteria**: Conditions for entering/leaving
+- **readChecklist/confirmChecklist**: Read-Then-Do and Do-Then-Confirm
+  checklists
 
 Checklists are derived at stage transitions by gathering items from relevant
 capabilities at the job's skill level.

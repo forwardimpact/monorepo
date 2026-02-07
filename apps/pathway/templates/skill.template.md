@@ -17,15 +17,15 @@ description: {{{description}}}{{#hasUseWhen}} Use When: {{{useWhen}}}{{/hasUseWh
 
 **Focus:** {{{focus}}}
 
-**Activities:**
-{{#activities}}
+**Read Checklist:**
+{{#readChecklist}}
 - {{{.}}}
-{{/activities}}
+{{/readChecklist}}
 
-**Ready for {{nextStageName}} when:**
-{{#ready}}
+**Confirm Checklist (verify before {{nextStageName}}):**
+{{#confirmChecklist}}
 - [ ] {{{.}}}
-{{/ready}}
+{{/confirmChecklist}}
 {{/stages}}
 {{/hasStages}}
 {{#hasToolReferences}}

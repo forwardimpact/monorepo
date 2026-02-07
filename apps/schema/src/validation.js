@@ -184,41 +184,41 @@ function validateSkill(skill, index, requiredStageIds = []) {
             ),
           );
         }
-        // activities is required and must be an array
-        if (!stageData.activities) {
+        // readChecklist is required and must be an array
+        if (!stageData.readChecklist) {
           errors.push(
             createError(
               "MISSING_REQUIRED",
-              `Stage ${stageId} missing activities`,
-              `${stagePath}.activities`,
+              `Stage ${stageId} missing readChecklist`,
+              `${stagePath}.readChecklist`,
             ),
           );
-        } else if (!Array.isArray(stageData.activities)) {
+        } else if (!Array.isArray(stageData.readChecklist)) {
           errors.push(
             createError(
               "INVALID_VALUE",
-              `Stage ${stageId} activities must be an array`,
-              `${stagePath}.activities`,
-              stageData.activities,
+              `Stage ${stageId} readChecklist must be an array`,
+              `${stagePath}.readChecklist`,
+              stageData.readChecklist,
             ),
           );
         }
-        // ready is required and must be an array (these become checklist items)
-        if (!stageData.ready) {
+        // confirmChecklist is required and must be an array (these become checklist items)
+        if (!stageData.confirmChecklist) {
           errors.push(
             createError(
               "MISSING_REQUIRED",
-              `Stage ${stageId} missing ready criteria`,
-              `${stagePath}.ready`,
+              `Stage ${stageId} missing confirmChecklist`,
+              `${stagePath}.confirmChecklist`,
             ),
           );
-        } else if (!Array.isArray(stageData.ready)) {
+        } else if (!Array.isArray(stageData.confirmChecklist)) {
           errors.push(
             createError(
               "INVALID_VALUE",
-              `Stage ${stageId} ready must be an array`,
-              `${stagePath}.ready`,
-              stageData.ready,
+              `Stage ${stageId} confirmChecklist must be an array`,
+              `${stagePath}.confirmChecklist`,
+              stageData.confirmChecklist,
             ),
           );
         }
@@ -284,7 +284,7 @@ function validateSkill(skill, index, requiredStageIds = []) {
       errors.push(
         createError(
           "INVALID_FIELD",
-          "Skill agent 'verificationCriteria' field is not supported. Use stages.{stage}.ready instead.",
+          "Skill agent 'verificationCriteria' field is not supported. Use stages.{stage}.confirmChecklist instead.",
           `${agentPath}.verificationCriteria`,
         ),
       );
@@ -2025,28 +2025,28 @@ export function validateAgentData({ humanData, agentData }) {
         );
       }
       if (
-        !stageData.activities ||
-        !Array.isArray(stageData.activities) ||
-        stageData.activities.length === 0
+        !stageData.readChecklist ||
+        !Array.isArray(stageData.readChecklist) ||
+        stageData.readChecklist.length === 0
       ) {
         errors.push(
           createError(
             "MISSING_REQUIRED",
-            `Skill '${skill.id}' agent stage '${stageId}' missing or empty activities`,
-            `skills.${skill.id}.agent.stages.${stageId}.activities`,
+            `Skill '${skill.id}' agent stage '${stageId}' missing or empty readChecklist`,
+            `skills.${skill.id}.agent.stages.${stageId}.readChecklist`,
           ),
         );
       }
       if (
-        !stageData.ready ||
-        !Array.isArray(stageData.ready) ||
-        stageData.ready.length === 0
+        !stageData.confirmChecklist ||
+        !Array.isArray(stageData.confirmChecklist) ||
+        stageData.confirmChecklist.length === 0
       ) {
         errors.push(
           createError(
             "MISSING_REQUIRED",
-            `Skill '${skill.id}' agent stage '${stageId}' missing or empty ready criteria`,
-            `skills.${skill.id}.agent.stages.${stageId}.ready`,
+            `Skill '${skill.id}' agent stage '${stageId}' missing or empty confirmChecklist`,
+            `skills.${skill.id}.agent.stages.${stageId}.confirmChecklist`,
           ),
         );
       }

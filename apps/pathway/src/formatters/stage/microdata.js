@@ -60,12 +60,10 @@ export function stageToMicrodata(stage) {
 
   const sections = [];
 
-  // Entry criteria
-  if (view.entryCriteria.length > 0) {
-    const criteriaItems = view.entryCriteria.map((c) => escapeHtml(c));
-    sections.push(
-      section("Entry Criteria", ul(criteriaItems, "entryCriteria"), 2),
-    );
+  // Read checklist
+  if (view.readChecklist.length > 0) {
+    const readItems = view.readChecklist.map((c) => escapeHtml(c));
+    sections.push(section("Read Checklist", ul(readItems, "readChecklist"), 2));
   }
 
   // Constraints
@@ -76,10 +74,12 @@ export function stageToMicrodata(stage) {
     );
   }
 
-  // Exit criteria
-  if (view.exitCriteria.length > 0) {
-    const exitItems = view.exitCriteria.map((c) => escapeHtml(c));
-    sections.push(section("Exit Criteria", ul(exitItems, "exitCriteria"), 2));
+  // Confirm checklist
+  if (view.confirmChecklist.length > 0) {
+    const confirmItems = view.confirmChecklist.map((c) => escapeHtml(c));
+    sections.push(
+      section("Confirm Checklist", ul(confirmItems, "confirmChecklist"), 2),
+    );
   }
 
   // Handoffs - using Handoff itemtype

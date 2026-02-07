@@ -28,14 +28,14 @@ fit:handoffs a rdf:Property ;
     rdfs:domain fit:Stage ;
     rdfs:range fit:Handoff .
 
-fit:entryCriteria a rdf:Property ;
-    rdfs:label "entryCriteria"@en ;
-    rdfs:comment "Conditions that must be met before entering this stage"@en ;
+fit:readChecklist a rdf:Property ;
+    rdfs:label "readChecklist"@en ;
+    rdfs:comment "Read-Then-Do Checklist: steps to follow in order during this stage"@en ;
     rdfs:range xsd:string .
 
-fit:exitCriteria a rdf:Property ;
-    rdfs:label "exitCriteria"@en ;
-    rdfs:comment "Conditions that must be met before leaving this stage"@en ;
+fit:confirmChecklist a rdf:Property ;
+    rdfs:label "confirmChecklist"@en ;
+    rdfs:comment "Do-Then-Confirm Checklist: items to verify before handing off to next stage"@en ;
     rdfs:range xsd:string .
 
 fit:summary a rdf:Property ;
@@ -122,16 +122,16 @@ fit:StageShape a sh:NodeShape ;
         sh:description "Restrictions on behaviour in this stage" ;
     ] ;
     sh:property [
-        sh:path fit:entryCriteria ;
+        sh:path fit:readChecklist ;
         sh:datatype xsd:string ;
-        sh:name "entryCriteria" ;
-        sh:description "Conditions that must be met before entering this stage" ;
+        sh:name "readChecklist" ;
+        sh:description "Read-Then-Do Checklist: steps to follow in order during this stage" ;
     ] ;
     sh:property [
-        sh:path fit:exitCriteria ;
+        sh:path fit:confirmChecklist ;
         sh:datatype xsd:string ;
-        sh:name "exitCriteria" ;
-        sh:description "Conditions that must be met before leaving this stage" ;
+        sh:name "confirmChecklist" ;
+        sh:description "Do-Then-Confirm Checklist: items to verify before handing off to next stage" ;
     ] .
 
 # -----------------------------------------------------------------------------

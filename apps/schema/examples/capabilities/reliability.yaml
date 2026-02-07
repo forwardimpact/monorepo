@@ -82,13 +82,13 @@ skills:
           focus: |
             Define CI/CD and infrastructure requirements.
             Clarify deployment strategy and operational needs.
-          activities:
+          readChecklist:
             - Document deployment frequency requirements
             - Identify rollback and recovery requirements
             - Specify monitoring and alerting needs
             - Define security and compliance constraints
             - Mark ambiguities with [NEEDS CLARIFICATION]
-          ready:
+          confirmChecklist:
             - Deployment requirements are documented
             - Recovery requirements are specified
             - Monitoring needs are identified
@@ -97,13 +97,13 @@ skills:
           focus: |
             Plan CI/CD pipeline architecture and infrastructure requirements.
             Consider deployment strategies and monitoring needs.
-          activities:
+          readChecklist:
             - Define pipeline stages (build, test, deploy)
             - Identify infrastructure requirements
             - Plan deployment strategy (rolling, blue-green, canary)
             - Consider monitoring and alerting needs
             - Plan secret management approach
-          ready:
+          confirmChecklist:
             - Pipeline architecture is documented
             - Deployment strategy is chosen and justified
             - Infrastructure requirements are identified
@@ -112,14 +112,14 @@ skills:
           focus: |
             Implement CI/CD pipelines and infrastructure as code. Follow
             best practices for containerization and deployment automation.
-          activities:
+          readChecklist:
             - Configure CI/CD pipeline stages
             - Implement infrastructure as code (Terraform, CloudFormation)
             - Create Dockerfiles with security best practices
             - Set up monitoring and alerting
             - Configure secret management
             - Implement deployment automation
-          ready:
+          confirmChecklist:
             - Pipeline runs on every commit
             - Tests run before deployment
             - Deployments are automated
@@ -130,13 +130,13 @@ skills:
           focus: |
             Verify pipeline reliability, security, and operational readiness.
             Ensure rollback procedures work and documentation is complete.
-          activities:
+          readChecklist:
             - Verify pipeline runs successfully end-to-end
             - Test rollback procedures
             - Review security configurations
             - Validate monitoring and alerts
             - Check documentation completeness
-          ready:
+          confirmChecklist:
             - Pipeline is tested and reliable
             - Rollback procedure is documented and tested
             - Alerts are configured and tested
@@ -145,12 +145,12 @@ skills:
           focus: |
             Deploy pipeline and infrastructure changes to production.
             Verify operational readiness.
-          activities:
+          readChecklist:
             - Deploy pipeline configuration to production
             - Verify deployment workflows work correctly
             - Confirm monitoring and alerting are operational
             - Run deployment through the new pipeline
-          ready:
+          confirmChecklist:
             - Pipeline deployed and operational
             - Workflows tested in production
             - Monitoring confirms healthy operation
@@ -284,13 +284,13 @@ skills:
           focus: |
             Define reliability requirements and SLO targets.
             Identify critical user journeys that need protection.
-          activities:
+          readChecklist:
             - Identify critical user journeys and business impact
             - Document reliability requirements (availability, latency)
             - Define SLO targets with stakeholder agreement
             - Specify acceptable error budgets
             - Mark ambiguities with [NEEDS CLARIFICATION]
-          ready:
+          confirmChecklist:
             - Critical user journeys are identified
             - Reliability requirements are documented
             - SLO targets are defined
@@ -299,13 +299,13 @@ skills:
           focus: |
             Define reliability requirements, SLIs/SLOs, and observability
             strategy. Plan for resilience and capacity needs.
-          activities:
+          readChecklist:
             - Define SLIs for key user journeys
             - Set SLOs with stakeholder agreement
             - Plan observability strategy (metrics, logs, traces)
             - Identify failure modes and resilience patterns
             - Define alerting thresholds
-          ready:
+          confirmChecklist:
             - SLIs defined for key user journeys
             - SLOs set with stakeholder agreement
             - Monitoring strategy is planned
@@ -315,14 +315,14 @@ skills:
           focus: |
             Implement observability, resilience patterns, and operational
             tooling. Build systems that fail gracefully and recover quickly.
-          activities:
+          readChecklist:
             - Implement metrics, logging, and tracing
             - Configure alerts based on SLOs
             - Implement resilience patterns (timeouts, retries, circuit
               breakers)
             - Create runbooks for common issues
             - Set up error budget tracking
-          ready:
+          confirmChecklist:
             - Comprehensive monitoring is in place
             - Alerts are actionable and low-noise
             - Resilience patterns are implemented
@@ -332,13 +332,13 @@ skills:
           focus: |
             Verify reliability implementation meets SLOs and operational
             readiness. Ensure incident response procedures are in place.
-          activities:
+          readChecklist:
             - Validate SLOs are measurable
             - Test failure scenarios
             - Review runbook completeness
             - Verify incident response procedures
             - Check alert quality and coverage
-          ready:
+          confirmChecklist:
             - SLOs are measurable and validated
             - Failure scenarios are tested
             - Incident response process documented
@@ -348,12 +348,12 @@ skills:
           focus: |
             Deploy reliability infrastructure and verify production
             monitoring. Ensure on-call readiness.
-          activities:
+          readChecklist:
             - Deploy monitoring and alerting to production
             - Verify dashboards and alerts work correctly
             - Confirm on-call rotation is ready
             - Run production readiness review
-          ready:
+          confirmChecklist:
             - Monitoring is live in production
             - Alerts fire correctly for SLO breaches
             - On-call team is trained and ready

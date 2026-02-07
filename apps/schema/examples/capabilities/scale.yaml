@@ -80,49 +80,49 @@ skills:
           focus: |
             Define cloud infrastructure requirements and constraints.
             Clarify availability, security, and cost expectations.
-          activities:
+          readChecklist:
             - Document availability and reliability requirements
             - Identify security and compliance constraints
             - Specify cost budget and constraints
             - Define performance requirements (latency, throughput)
             - Mark ambiguities with [NEEDS CLARIFICATION]
-          ready:
+          confirmChecklist:
             - Availability requirements are documented
             - Security requirements are specified
             - Cost constraints are defined
             - Performance requirements are clear
         plan:
           focus: Selecting and designing cloud architecture
-          activities:
+          readChecklist:
             - Evaluate service options for the use case
             - Plan multi-AZ deployment for availability
             - Design IAM roles with least privilege
             - Estimate costs and plan resource sizing
-          ready:
+          confirmChecklist:
             - Service selection matches requirements
             - Architecture designed for availability
             - Security approach documented
             - Cost estimate prepared
         code:
           focus: Implementing cloud infrastructure and deployments
-          activities:
+          readChecklist:
             - Define infrastructure as code (Terraform/CloudFormation)
             - Configure security groups and network policies
             - Set up encryption at rest and in transit
             - Implement monitoring and alerting
-          ready:
+          confirmChecklist:
             - Infrastructure defined as code
             - Security groups properly configured
             - Encryption enabled for data
             - Monitoring and alerting in place
         review:
           focus: Validating cloud configuration and security
-          activities:
+          readChecklist:
             - Verify IAM follows least privilege
             - Check multi-AZ deployment
             - Validate cost controls are in place
             - Review security configuration
-          ready:
+          confirmChecklist:
             - IAM permissions are minimal
             - Multi-AZ deployment confirmed
             - Cost controls established
@@ -131,12 +131,12 @@ skills:
           focus: |
             Deploy cloud infrastructure and verify production readiness.
             Confirm failover and monitoring work correctly.
-          activities:
+          readChecklist:
             - Deploy infrastructure to production
             - Verify multi-AZ failover works
             - Confirm monitoring and alerting are operational
             - Validate cost tracking is in place
-          ready:
+          confirmChecklist:
             - Infrastructure deployed successfully
             - Failover tested in production
             - Monitoring is operational
@@ -197,49 +197,49 @@ skills:
           focus: |
             Define code quality requirements and review criteria.
             Clarify standards and acceptance criteria for the change.
-          activities:
+          readChecklist:
             - Identify applicable coding standards
             - Document quality acceptance criteria
             - Specify test coverage requirements
             - Define review depth based on risk level
             - Mark ambiguities with [NEEDS CLARIFICATION]
-          ready:
+          confirmChecklist:
             - Coding standards are identified
             - Quality criteria are documented
             - Test requirements are specified
             - Review approach matches risk level
         plan:
           focus: Planning for quality before implementation
-          activities:
+          readChecklist:
             - Review project coding conventions
             - Plan testing strategy for the feature
             - Identify edge cases to handle
             - Consider error handling approach
-          ready:
+          confirmChecklist:
             - Coding conventions understood
             - Testing strategy defined
             - Edge cases identified
             - Error handling planned
         code:
           focus: Writing and testing quality code
-          activities:
+          readChecklist:
             - Follow project coding conventions
             - Write tests alongside implementation
             - Handle error conditions appropriately
             - Self-review before requesting review
-          ready:
+          confirmChecklist:
             - Code follows project conventions
             - Changes are covered by tests
             - Error handling is appropriate
             - Self-review completed
         review:
           focus: Verifying code quality and correctness
-          activities:
+          readChecklist:
             - Verify code does what it claims
             - Check test coverage is adequate
             - Evaluate maintainability
             - Ensure no code you don't understand
-          ready:
+          confirmChecklist:
             - Code compiles and passes all tests
             - No obvious security vulnerabilities
             - No unnecessary complexity
@@ -248,12 +248,12 @@ skills:
           focus: |
             Merge and deploy reviewed code. Verify quality checks pass
             in production pipeline.
-          activities:
+          readChecklist:
             - Merge approved changes
             - Verify CI pipeline passes
             - Monitor for issues after deployment
             - Document any lessons learned
-          ready:
+          confirmChecklist:
             - Code merged successfully
             - CI pipeline passes all checks
             - No regressions detected
@@ -306,49 +306,49 @@ skills:
           focus: |
             Define data requirements and access patterns.
             Clarify schema requirements before designing.
-          activities:
+          readChecklist:
             - Document data entities and relationships
             - Identify query patterns and access requirements
             - Specify consistency and performance requirements
             - Define data retention and compliance needs
             - Mark ambiguities with [NEEDS CLARIFICATION]
-          ready:
+          confirmChecklist:
             - Data entities are documented
             - Query patterns are identified
             - Performance requirements are specified
             - Compliance needs are clear
         plan:
           focus: Understanding data requirements and designing schema
-          activities:
+          readChecklist:
             - Gather data requirements and access patterns
             - Choose appropriate storage technology
             - Design normalized schema
             - Plan indexing strategy
-          ready:
+          confirmChecklist:
             - Requirements understood
             - Storage technology selected
             - Schema design documented
             - Index strategy planned
         code:
           focus: Implementing schema and migrations
-          activities:
+          readChecklist:
             - Create database migrations
             - Implement schema changes
             - Add indexes for query patterns
             - Write efficient queries
-          ready:
+          confirmChecklist:
             - Schema implemented correctly
             - Indexes support query patterns
             - Migrations are reversible
             - Queries are optimized
         review:
           focus: Validating schema design and performance
-          activities:
+          readChecklist:
             - Verify schema matches requirements
             - Check migration safety
             - Validate query performance
             - Review backward compatibility
-          ready:
+          confirmChecklist:
             - Schema meets requirements
             - Migrations tested on production-like data
             - Query performance acceptable
@@ -357,12 +357,12 @@ skills:
           focus: |
             Deploy schema changes to production safely.
             Verify data integrity and query performance.
-          activities:
+          readChecklist:
             - Run migrations in production
             - Verify data integrity after migration
             - Monitor query performance
             - Confirm rollback plan works
-          ready:
+          confirmChecklist:
             - Migration completed successfully
             - Data integrity verified
             - Performance meets requirements

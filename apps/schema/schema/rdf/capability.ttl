@@ -153,14 +153,14 @@ fit:focus a rdf:Property ;
     rdfs:comment "Primary focus for this stage"@en ;
     rdfs:range xsd:string .
 
-fit:activities a rdf:Property ;
-    rdfs:label "activities"@en ;
-    rdfs:comment "Key activities to perform in this stage"@en ;
+fit:readChecklist a rdf:Property ;
+    rdfs:label "readChecklist"@en ;
+    rdfs:comment "Read-Then-Do Checklist: steps to follow in order during this stage"@en ;
     rdfs:range xsd:string .
 
-fit:ready a rdf:Property ;
-    rdfs:label "ready"@en ;
-    rdfs:comment "Criteria that indicate readiness to move to next stage"@en ;
+fit:confirmChecklist a rdf:Property ;
+    rdfs:label "confirmChecklist"@en ;
+    rdfs:comment "Do-Then-Confirm Checklist: items to verify before moving to next stage"@en ;
     rdfs:range xsd:string .
 
 # =============================================================================
@@ -425,16 +425,16 @@ fit:SkillStageShape a sh:NodeShape ;
         sh:description "Primary focus for this stage" ;
     ] ;
     sh:property [
-        sh:path fit:activities ;
+        sh:path fit:readChecklist ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
-        sh:name "activities" ;
-        sh:description "Key activities to perform in this stage" ;
+        sh:name "readChecklist" ;
+        sh:description "Read-Then-Do Checklist: steps to follow in order during this stage" ;
     ] ;
     sh:property [
-        sh:path fit:ready ;
+        sh:path fit:confirmChecklist ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
-        sh:name "ready" ;
-        sh:description "Criteria that indicate readiness to move to next stage" ;
+        sh:name "confirmChecklist" ;
+        sh:description "Do-Then-Confirm Checklist: items to verify before moving to next stage" ;
     ] .

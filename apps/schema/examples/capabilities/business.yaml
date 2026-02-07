@@ -111,49 +111,49 @@ skills:
           focus: |
             Define documentation requirements and audience needs.
             Clarify what the documentation must accomplish.
-          activities:
+          readChecklist:
             - Identify target audience and their skill level
             - Document what questions the docs must answer
             - Define documentation type (README, API, spec, tutorial)
             - Specify accuracy and completeness requirements
             - Mark ambiguities with [NEEDS CLARIFICATION]
-          ready:
+          confirmChecklist:
             - Audience is identified
             - Questions to answer are documented
             - Documentation type is chosen
             - Requirements are clear
         plan:
           focus: Understanding audience and planning documentation
-          activities:
+          readChecklist:
             - Identify target audience and their needs
             - Determine document type and structure
             - List prerequisites and assumptions
             - Outline key sections and content
-          ready:
+          confirmChecklist:
             - Audience is identified
             - Document type and structure planned
             - Prerequisites listed
             - Outline complete
         code:
           focus: Writing clear and accurate documentation
-          activities:
+          readChecklist:
             - Write using simple, direct language
             - Structure content for scanning
             - Include tested, runnable examples
             - Define technical terms
-          ready:
+          confirmChecklist:
             - Purpose clear in first paragraph
             - Examples are tested and work
             - Technical terms are defined
             - Structure supports scanning
         review:
           focus: Verifying documentation quality
-          activities:
+          readChecklist:
             - Check accuracy against implementation
             - Verify examples are runnable
             - Review for clarity and completeness
             - Test with target audience if possible
-          ready:
+          confirmChecklist:
             - Documentation matches implementation
             - All examples verified working
             - No ambiguous pronouns
@@ -162,12 +162,12 @@ skills:
           focus: |
             Publish documentation and ensure it reaches the audience.
             Set up maintenance process.
-          activities:
+          readChecklist:
             - Publish to documentation site
             - Announce to relevant teams
             - Add to search indexes and navigation
             - Establish update and review schedule
-          ready:
+          confirmChecklist:
             - Documentation is published and accessible
             - Audience can discover and find it
             - Search and navigation are updated

@@ -269,8 +269,8 @@ export function generateSkillMarkdown(skillData, stages) {
         stageName,
         nextStageName,
         focus: stageData.focus,
-        activities: stageData.activities || [],
-        ready: stageData.ready || [],
+        readChecklist: stageData.readChecklist || [],
+        confirmChecklist: stageData.confirmChecklist || [],
       };
     },
   );
@@ -433,9 +433,9 @@ export function deriveHandoffs({ stage, discipline, track, stages }) {
   const baseName = `${abbrev}-${toKebabCase(track.id)}`;
 
   return stage.handoffs.map((handoff) => {
-    // Find the target stage to get its entry criteria
+    // Find the target stage to get its confirmChecklist
     const targetStage = stages.find((s) => s.id === handoff.targetStage);
-    const entryCriteria = targetStage?.entryCriteria || [];
+    const confirmChecklist = targetStage?.confirmChecklist || [];
 
     // Build rich prompt - formatted for single-line display
     const promptParts = [handoff.prompt];
@@ -445,9 +445,9 @@ export function deriveHandoffs({ stage, discipline, track, stages }) {
       `Summarize what was completed in the ${stage.name} stage.`,
     );
 
-    // Add entry criteria from target stage with inline numbered list
-    if (entryCriteria.length > 0) {
-      const formattedCriteria = entryCriteria
+    // Add confirm checklist from target stage with inline numbered list
+    if (confirmChecklist.length > 0) {
+      const formattedCriteria = confirmChecklist
         .map((item, index) => `(${index + 1}) ${item}`)
         .join(", ");
       promptParts.push(
@@ -565,7 +565,7 @@ function buildStageProfileBodyData({
     skillIndex,
     roleContext,
     workingStyles,
-    beforeHandoff: checklist || [],
+    confirmChecklist: checklist || [],
     constraints,
     agentIndex: filteredAgentIndex,
     hasAgentIndex: filteredAgentIndex.length > 0,

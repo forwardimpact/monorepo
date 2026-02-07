@@ -83,51 +83,51 @@ skills:
           focus: |
             Define system requirements and constraints before design.
             Clarify functional and non-functional requirements.
-          activities:
+          readChecklist:
             - Document functional requirements and use cases
             - Identify non-functional requirements (scale, latency,
               availability)
             - Document system constraints and integration points
             - Identify stakeholders and their concerns
             - Mark ambiguities with [NEEDS CLARIFICATION]
-          ready:
+          confirmChecklist:
             - Functional requirements are documented
             - Non-functional requirements are specified
             - Constraints are identified
             - Stakeholder concerns are understood
         plan:
           focus: Understanding requirements and designing solutions
-          activities:
+          readChecklist:
             - Gather context about existing systems and constraints
             - Clarify non-functional requirements (scale, latency, availability)
             - Identify key decisions that are hard to change later
             - Evaluate trade-offs between architectural options
             - Document approach with rationale
-          ready:
+          confirmChecklist:
             - Requirements are clearly understood
             - Key decisions are documented with rationale
             - Trade-offs are explicit
             - Dependencies are identified
         code:
           focus: Implementing architecture faithfully while adapting to reality
-          activities:
+          readChecklist:
             - Verify implementation aligns with design decisions
             - Implement interfaces and boundaries before internals
             - Document any deviations from design with rationale
             - Keep architecture documentation in sync with implementation
-          ready:
+          confirmChecklist:
             - Implementation matches documented design
             - Deviations documented with rationale
             - Failure modes are considered and handled
             - Security implications are reviewed
         review:
           focus: Verifying architecture implementation and documentation
-          activities:
+          readChecklist:
             - Compare implementation to design documentation
             - Verify all decisions were followed or documented
             - Assess maintainability and extensibility
             - Ensure architecture enables future changes
-          ready:
+          confirmChecklist:
             - Design docs reflect actual implementation
             - Architecture decisions validated in practice
             - Scalability requirements addressed
@@ -135,12 +135,12 @@ skills:
           focus: |
             Deploy architecture and verify it performs as designed
             in production environment.
-          activities:
+          readChecklist:
             - Deploy system components to production
             - Verify architectural boundaries work under load
             - Monitor performance against requirements
             - Document any operational learnings
-          ready:
+          confirmChecklist:
             - System deployed successfully
             - Performance meets requirements
             - Monitoring confirms design assumptions
@@ -206,50 +206,50 @@ skills:
           focus: |
             Define full-stack feature requirements and acceptance criteria.
             Clarify user needs and system integration points.
-          activities:
+          readChecklist:
             - Identify user stories and acceptance criteria
             - Document expected user interactions
             - Clarify integration requirements with existing systems
             - Define non-functional requirements (performance, security)
             - Mark ambiguities with [NEEDS CLARIFICATION]
-          ready:
+          confirmChecklist:
             - User stories are documented
             - Acceptance criteria are defined
             - Integration points are identified
             - Non-functional requirements are clear
         plan:
           focus: Designing the complete solution across layers
-          activities:
+          readChecklist:
             - Define the API contract between frontend and backend
             - Design database schema to support the feature
             - Plan infrastructure requirements
             - Identify cross-layer dependencies
-          ready:
+          confirmChecklist:
             - API contract is defined
             - Database schema is designed
             - Infrastructure needs identified
             - Layer boundaries are clear
         code:
           focus: Building vertically across all layers
-          activities:
+          readChecklist:
             - Implement backend API endpoints
             - Build frontend components and integrate with API
             - Set up database migrations and queries
             - Configure infrastructure as code
             - Test across layer boundaries
-          ready:
+          confirmChecklist:
             - Frontend connects to backend correctly
             - Database schema supports the feature
             - Error handling spans all layers
             - Feature works end-to-end
         review:
           focus: Verifying integration across the stack
-          activities:
+          readChecklist:
             - Test complete user flows end-to-end
             - Verify error handling at each layer
             - Check deployment pipeline works
             - Validate monitoring and logging
-          ready:
+          confirmChecklist:
             - End-to-end tests pass
             - Deployment is automated
             - Cross-layer errors are handled gracefully
@@ -257,13 +257,13 @@ skills:
           focus: |
             Deploy full-stack feature to production and verify end-to-end
             functionality in live environment.
-          activities:
+          readChecklist:
             - Deploy backend services
             - Deploy frontend changes
             - Run database migrations
             - Verify feature works in production
             - Monitor for errors and performance issues
-          ready:
+          confirmChecklist:
             - All components deployed successfully
             - Feature works end-to-end in production
             - No errors in monitoring

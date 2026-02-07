@@ -22,7 +22,7 @@ import { flattenToLine } from "../template-preprocess.js";
  * @param {string} params.frontmatter.description - Skill description (required)
  * @param {string} [params.frontmatter.useWhen] - When to use this skill
  * @param {string} params.title - Human-readable skill title for heading
- * @param {Array} params.stages - Array of stage objects with stageName, focus, activities, ready
+ * @param {Array} params.stages - Array of stage objects with stageName, focus, readChecklist, confirmChecklist
  * @param {string} params.reference - Reference content (markdown)
  * @param {Array} [params.toolReferences] - Array of tool reference objects
  * @returns {Object} Data object ready for Mustache template
@@ -37,8 +37,8 @@ function prepareAgentSkillData({
   // Process stages - trim focus and array values
   const processedStages = trimFields(stages, {
     focus: "required",
-    activities: "array",
-    ready: "array",
+    readChecklist: "array",
+    confirmChecklist: "array",
   });
 
   // Flatten multi-line strings to single line for front matter compatibility
@@ -77,7 +77,7 @@ function prepareAgentSkillData({
  * @param {string} skill.frontmatter.name - Skill name (required)
  * @param {string} skill.frontmatter.description - Skill description (required)
  * @param {string} skill.title - Human-readable skill title for heading
- * @param {Array} skill.stages - Array of stage objects with stageName, focus, activities, ready
+ * @param {Array} skill.stages - Array of stage objects with stageName, focus, readChecklist, confirmChecklist
  * @param {string} skill.reference - Reference content (markdown)
  * @param {Array} [skill.toolReferences] - Array of tool reference objects
  * @param {string} template - Mustache template string

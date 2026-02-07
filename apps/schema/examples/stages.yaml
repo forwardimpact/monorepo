@@ -23,8 +23,8 @@
     - Write specifications as markdown files under specs/[feature-name]/spec.md
     - Mark ambiguities with [NEEDS CLARIFICATION]; ask the user; do not guess
     - No technology choices, APIs, or code structure in specifications
-  entryCriteria: []
-  exitCriteria:
+  readChecklist: []
+  confirmChecklist:
     - spec.md exists with user stories and acceptance criteria
     - No unresolved [NEEDS CLARIFICATION] markers in spec.md
 
@@ -51,10 +51,10 @@
     - Write plans as markdown files under specs/[feature-name]/plan.md
     - Define contracts and data models before implementation details
     - Document rationale for architectural decisions
-  entryCriteria:
+  readChecklist: []
+  confirmChecklist:
     - spec.md exists with user stories and acceptance criteria
     - No unresolved [NEEDS CLARIFICATION] markers in spec.md
-  exitCriteria:
     - plan.md exists with technology choices and architecture
     - Contracts and data models defined where applicable
     - No unresolved [NEEDS CLARIFICATION] markers in plan.md
@@ -74,11 +74,11 @@
     - Implement one task at a time, verify before moving on
     - Write tests alongside implementation
     - Track progress with the todo tool
-  entryCriteria:
+  readChecklist: []
+  confirmChecklist:
     - spec.md exists with user stories and acceptance criteria
     - plan.md exists with technology choices and architecture
     - No unresolved [NEEDS CLARIFICATION] markers in plan.md
-  exitCriteria:
     - Implementation complete according to plan.md
     - Tests written and passing
     - Self-review completed
@@ -108,11 +108,11 @@
     - Track findings and required changes with the todo tool
     - Run the application locally and verify changes work as expected
     - Test user-facing functionality against acceptance criteria
-  entryCriteria:
+  readChecklist: []
+  confirmChecklist:
     - Implementation complete according to plan.md
     - Tests written and passing
     - Self-review completed
-  exitCriteria:
     - Application runs locally without errors
     - Changes verified against acceptance criteria through manual testing
     - No blocking issues identified in review
@@ -135,11 +135,11 @@
     - Do not make code edits; hand off to code stage if fixes are needed
     - Verify all workflows complete successfully before considering deployment
       done
-  entryCriteria:
+  readChecklist: []
+  confirmChecklist:
     - Application runs locally without errors
     - Changes verified against acceptance criteria through manual testing
     - No blocking issues identified in review
     - Review approved
-  exitCriteria:
     - All triggered workflows are green
     - Deployment verified in target environment
