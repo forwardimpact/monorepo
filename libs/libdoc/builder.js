@@ -161,6 +161,7 @@ export class DocsBuilder {
 
     for (const entryName of entries) {
       if (["assets", "public"].includes(entryName)) continue;
+      if (["CLAUDE.md", "SKILL.md"].includes(entryName)) continue;
       const fullPath = this.#path.join(dir, entryName);
 
       // Use statSync to check if it's a directory or file

@@ -263,6 +263,79 @@ test("DocsBuilder handles multiple markdown files correctly", async () => {
   assert.ok(dirs.has("dist/deployment"));
 });
 
+test("DocsBuilder skips CLAUDE.md and SKILL.md files", async () => {
+  const files = new Map();
+  const dirs = new Set();
+
+  const mockFs = {
+    existsSync: (path) => {
+      if (path.endsWith("index.template.html")) return true;
+      if (path.endsWith("assets")) return false;
+      if (path.endsWith("public")) return false;
+      return files.has(path) || dirs.has(path);
+    },
+    mkdirSync: (path) => {
+      dirs.add(path);
+    },
+    rmSync: () => {},
+    readdirSync: (path) => {
+      if (path.includes("docs")) {
+        return ["index.md", "CLAUDE.md", "SKILL.md", "guide.md"];
+      }
+      return [];
+    },
+    readFileSync: (path) => {
+      if (path.endsWith("index.template.html")) {
+        return "{{title}}: {{content}}";
+      }
+      return "---\ntitle: Test\n---\nContent";
+    },
+    writeFileSync: (path, content) => {
+      files.set(path, content);
+    },
+    statSync: () => ({ isFile: () => true }),
+    copyFileSync: () => {},
+  };
+
+  const mockPath = {
+    join: (...parts) => parts.join("/"),
+    dirname: (p) => p.split("/").slice(0, -1).join("/") || ".",
+  };
+
+  const mockMarked = Object.assign((md) => `<p>${md}</p>`, { use: () => {} });
+  const mockMatter = (_content) => ({
+    data: { title: "Test" },
+    content: "Content",
+  });
+  const mockMustache = (template, context) => context.title;
+  const mockPrettier = { format: async (html) => html };
+
+  const builder = new DocsBuilder(
+    mockFs,
+    mockPath,
+    mockMarked,
+    mockMatter,
+    mockMustache,
+    mockPrettier,
+  );
+
+  await builder.build("docs", "dist");
+
+  // CLAUDE.md and SKILL.md should not be built
+  assert.ok(
+    !files.has("dist/CLAUDE/index.html"),
+    "CLAUDE.md should be skipped",
+  );
+  assert.ok(!files.has("dist/SKILL/index.html"), "SKILL.md should be skipped");
+
+  // Regular markdown files should still be built
+  assert.ok(files.has("dist/index.html"), "index.html should exist");
+  assert.ok(
+    files.has("dist/guide/index.html"),
+    "guide/index.html should exist",
+  );
+});
+
 test("DocsServer handles directory requests correctly", async () => {
   const files = new Map();
   files.set("dist/index.html", "Home");
