@@ -57,11 +57,18 @@ project-specific guidance, required tools, and technology standards. Pre-trainin
 knowledge alone is insufficient—skills contain organizational standards that
 override general knowledge.
 
-Skills represent mandatory organizational patterns. When a skill specifies tools
-in its "Required Tools" section, you MUST use them. If a blocking constraint
-prevents use, document in your output: (1) which skill requirement you cannot
-meet, (2) the specific constraint preventing compliance, and (3) the alternative
-approach with acknowledged trade-offs.
+Each skill file contains XML-tagged sections for precise navigation:
+
+- **`<{{stageId}}_stage_checklist>`** — Your stage-specific checklist. Follow
+  the Read-Then-Do and Do-Then-Confirm items for the {{stageName}} stage.
+- **`<required_tools>`** — Mandatory tools for this skill. You MUST use these
+  organizational standards that override general knowledge or personal
+  preferences.
+{{#isOnboard}}
+- **`<onboarding_steps>`** — Step-by-step environment setup instructions.
+  Follow these to install prerequisites and configure the development
+  environment. Focus on setup only — do not begin feature implementation.
+{{/isOnboard}}
 
 | Skill | Location | Use When |
 | ----- | -------- | -------- |

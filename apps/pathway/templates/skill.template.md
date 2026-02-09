@@ -13,22 +13,28 @@ description: {{{description}}}{{#hasUseWhen}} Use When: {{{useWhen}}}{{/hasUseWh
 ## Stage Guidance
 {{#stages}}
 
+<{{stageId}}_stage_checklist>
+
 ### {{stageName}} Stage
 
 **Focus:** {{{focus}}}
 
 **Read-Then-Do Checklist:**
 {{#readChecklist}}
-- {{{.}}}
+- [ ] {{{.}}}
 {{/readChecklist}}
 
-**Do-Then-Confirm Checklist (verify before {{nextStageName}}):**
+**Do-Then-Confirm Checklist:**
 {{#confirmChecklist}}
 - [ ] {{{.}}}
 {{/confirmChecklist}}
+
+</{{stageId}}_stage_checklist>
 {{/stages}}
 {{/hasStages}}
 {{#hasToolReferences}}
+
+<required_tools>
 
 ## Required Tools
 
@@ -45,6 +51,8 @@ trade-offs.
 {{#toolReferences}}
 | {{#url}}[{{{name}}}]({{{url}}}){{/url}}{{^url}}{{{name}}}{{/url}} | {{{useWhen}}} |
 {{/toolReferences}}
+
+</required_tools>
 {{/hasToolReferences}}
 {{#hasReference}}
 
