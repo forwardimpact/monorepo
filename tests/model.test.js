@@ -3130,26 +3130,35 @@ describe("Checklist Derivation", () => {
   ];
 
   describe("deriveChecklist", () => {
-    it("returns ready items for skills with stage data", () => {
-      const checklist = deriveChecklist({
+    it("returns both checklist types for skills with stage data", () => {
+      const { readChecklist, confirmChecklist } = deriveChecklist({
         stageId: "plan",
         skillMatrix: testSkillMatrix,
         skills: testSkillsWithStages,
         capabilities: testCapabilities,
       });
 
+      // Should include arch skill's plan.readChecklist items
+      const archRead = readChecklist.find((c) => c.skill.id === "arch");
+      assert.ok(archRead);
+      assert.deepStrictEqual(archRead.items, [
+        "Gather requirements",
+        "Design components",
+      ]);
+      assert.strictEqual(archRead.capability.emojiIcon, "📐");
+
       // Should include arch skill's plan.confirmChecklist items
-      const archChecklist = checklist.find((c) => c.skill.id === "arch");
-      assert.ok(archChecklist);
-      assert.deepStrictEqual(archChecklist.items, [
+      const archConfirm = confirmChecklist.find((c) => c.skill.id === "arch");
+      assert.ok(archConfirm);
+      assert.deepStrictEqual(archConfirm.items, [
         "Architecture documented",
         "Trade-offs explicit",
       ]);
-      assert.strictEqual(archChecklist.capability.emojiIcon, "📐");
+      assert.strictEqual(archConfirm.capability.emojiIcon, "📐");
     });
 
     it("excludes skills without agent.stages", () => {
-      const checklist = deriveChecklist({
+      const { readChecklist, confirmChecklist } = deriveChecklist({
         stageId: "code",
         skillMatrix: testSkillMatrix,
         skills: testSkillsWithStages,
@@ -3157,12 +3166,16 @@ describe("Checklist Derivation", () => {
       });
 
       // collab skill has no agent section
-      const collabChecklist = checklist.find((c) => c.skill.id === "collab");
-      assert.strictEqual(collabChecklist, undefined);
+      const collabRead = readChecklist.find((c) => c.skill.id === "collab");
+      assert.strictEqual(collabRead, undefined);
+      const collabConfirm = confirmChecklist.find(
+        (c) => c.skill.id === "collab",
+      );
+      assert.strictEqual(collabConfirm, undefined);
     });
 
     it("excludes skills without data for the requested stage", () => {
-      const checklist = deriveChecklist({
+      const { readChecklist, confirmChecklist } = deriveChecklist({
         stageId: "plan",
         skillMatrix: testSkillMatrix,
         skills: testSkillsWithStages,
@@ -3170,24 +3183,29 @@ describe("Checklist Derivation", () => {
       });
 
       // devops skill only has code stage
-      const devopsChecklist = checklist.find((c) => c.skill.id === "devops");
-      assert.strictEqual(devopsChecklist, undefined);
+      const devopsRead = readChecklist.find((c) => c.skill.id === "devops");
+      assert.strictEqual(devopsRead, undefined);
+      const devopsConfirm = confirmChecklist.find(
+        (c) => c.skill.id === "devops",
+      );
+      assert.strictEqual(devopsConfirm, undefined);
     });
 
-    it("returns empty array for unknown stage", () => {
-      const checklist = deriveChecklist({
+    it("returns empty arrays for unknown stage", () => {
+      const { readChecklist, confirmChecklist } = deriveChecklist({
         stageId: "unknown",
         skillMatrix: testSkillMatrix,
         skills: testSkillsWithStages,
         capabilities: testCapabilities,
       });
 
-      assert.deepStrictEqual(checklist, []);
+      assert.deepStrictEqual(readChecklist, []);
+      assert.deepStrictEqual(confirmChecklist, []);
     });
 
-    it("returns empty array for review stage", () => {
+    it("returns empty arrays for review stage", () => {
       // Review stage shows completion criteria, not handoff criteria
-      const checklist = deriveChecklist({
+      const { readChecklist, confirmChecklist } = deriveChecklist({
         stageId: "review",
         skillMatrix: testSkillMatrix,
         skills: testSkillsWithStages,
@@ -3195,7 +3213,8 @@ describe("Checklist Derivation", () => {
       });
 
       // arch and devops don't have review stage defined
-      assert.deepStrictEqual(checklist, []);
+      assert.deepStrictEqual(readChecklist, []);
+      assert.deepStrictEqual(confirmChecklist, []);
     });
   });
 

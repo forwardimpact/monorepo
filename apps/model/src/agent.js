@@ -487,7 +487,8 @@ function getChecklistStage(stageId) {
  * @param {Array} params.derivedBehaviours - Behaviours sorted by maturity
  * @param {Array} params.agentBehaviours - Agent behaviour definitions
  * @param {Array} params.skills - All skill definitions (for agent section lookup)
- * @param {Array<{skill: Object, capability: Object, items: string[]}>} params.checklist - Raw checklist from deriveChecklist
+ * @param {Array<{skill: Object, capability: Object, items: string[]}>} params.readChecklist - Read-then-do checklist from deriveChecklist
+ * @param {Array<{skill: Object, capability: Object, items: string[]}>} params.confirmChecklist - Do-then-confirm checklist from deriveChecklist
  * @param {Array<{id: string, name: string, description: string}>} [params.agentIndex] - List of all available agents
  * @returns {Object} Structured profile body data
  */
@@ -501,7 +502,8 @@ function buildStageProfileBodyData({
   derivedBehaviours,
   agentBehaviours,
   skills,
-  checklist,
+  readChecklist,
+  confirmChecklist,
   agentIndex,
 }) {
   const name = `${humanDiscipline.specialization || humanDiscipline.name} - ${humanTrack.name}`;
@@ -565,7 +567,8 @@ function buildStageProfileBodyData({
     skillIndex,
     roleContext,
     workingStyles,
-    confirmChecklist: checklist || [],
+    readChecklist: readChecklist || [],
+    confirmChecklist: confirmChecklist || [],
     constraints,
     agentIndex: filteredAgentIndex,
     hasAgentIndex: filteredAgentIndex.length > 0,
@@ -628,16 +631,19 @@ export function deriveStageAgent({
     stages,
   });
 
-  // Derive checklist from focused skills only
+  // Derive checklists from focused skills only
   const checklistStage = getChecklistStage(stage.id);
-  let checklist = [];
+  let readChecklist = [];
+  let confirmChecklist = [];
   if (checklistStage && capabilities) {
-    checklist = deriveChecklist({
+    const checklists = deriveChecklist({
       stageId: checklistStage,
       skillMatrix: focusedSkills,
       skills,
       capabilities,
     });
+    readChecklist = checklists.readChecklist;
+    confirmChecklist = checklists.confirmChecklist;
   }
 
   return {
@@ -652,7 +658,8 @@ export function deriveStageAgent({
       ...(agentDiscipline.constraints || []),
       ...(agentTrack.constraints || []),
     ],
-    checklist,
+    readChecklist,
+    confirmChecklist,
     agentDiscipline,
     agentTrack,
     agentBehaviours,
@@ -714,7 +721,7 @@ export function generateStageAgentProfile({
   // Build description using shared helper
   const description = buildAgentDescription(discipline, track, stage);
 
-  // Build structured profile body data (pass raw checklist for template iteration)
+  // Build structured profile body data (pass raw checklists for template iteration)
   const bodyData = buildStageProfileBodyData({
     stage,
     humanDiscipline: discipline,
@@ -725,7 +732,8 @@ export function generateStageAgentProfile({
     derivedBehaviours: agent.derivedBehaviours,
     agentBehaviours,
     skills,
-    checklist: agent.checklist,
+    readChecklist: agent.readChecklist,
+    confirmChecklist: agent.confirmChecklist,
     agentIndex,
   });
 
