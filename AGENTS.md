@@ -453,6 +453,18 @@ When releasing a minor or major version, update dependent packages:
 `git push --tags` with multiple tags only triggers one workflow run. Push each
 tag separately to trigger individual publish workflows.
 
+**Tag at the final commit.** All tags must point to a commit where
+`package-lock.json` is consistent with every `package.json`. CI runs `npm ci`,
+which fails if the lockfile is out of sync. When releasing multiple packages,
+make all version and dependency changes first, then tag them all at the final
+commit—not at intermediate commits.
+
+**Verify every publish workflow.** After pushing each tag, run
+`gh run list --limit <n>` to confirm all publish workflows succeed. Re-push any
+failed tags after fixing the root cause: delete the remote tag
+(`git push origin :refs/tags/{tag}`), move it locally
+(`git tag -d {tag} && git tag {tag} <commit>`), and push again.
+
 ## Common Tasks
 
 > **Data-Driven Application**: All entity IDs (skills, disciplines, tracks,
