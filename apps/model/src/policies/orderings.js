@@ -12,7 +12,11 @@ import {
   getSkillLevelIndex,
   getBehaviourMaturityIndex,
   getCapabilityOrder,
+  getStageOrder,
 } from "@forwardimpact/schema/levels";
+
+// Re-export getStageOrder for consumers
+export { getStageOrder };
 
 // =============================================================================
 // Canonical Orderings
@@ -24,28 +28,27 @@ import {
  */
 export const ORDER_SKILL_TYPE = ["primary", "secondary", "broad", "track"];
 
-/**
- * Engineering lifecycle stages in execution order
- */
-export const ORDER_STAGE = ["specify", "plan", "onboard", "code", "review", "deploy"];
+// =============================================================================
+// Stage Comparators
+// =============================================================================
 
 /**
- * Agent stage ordering (subset used for agent generation)
- */
-export const ORDER_AGENT_STAGE = ["plan", "onboard", "code", "review"];
-
-/**
- * Stage-to-handoff mapping for checklist derivation
+ * Create a comparator for sorting by stage lifecycle order
  *
- * Maps stage IDs to the stage whose `.confirmChecklist` criteria should be shown
- * before leaving that stage.
+ * The returned comparator uses the canonical order from loaded stage data,
+ * making the ordering data-driven rather than hardcoded.
+ *
+ * @param {Object[]} stages - Loaded stages array from stages.yaml
+ * @returns {(a: Object, b: Object) => number} Comparator function
  */
-export const CHECKLIST_STAGE_MAP = {
-  plan: "plan",
-  onboard: "onboard",
-  code: "code",
-  review: "review",
-};
+export function compareByStageOrder(stages) {
+  const order = getStageOrder(stages);
+  return (a, b) => {
+    const stageA = a.stageId || a.id || "";
+    const stageB = b.stageId || b.id || "";
+    return order.indexOf(stageA) - order.indexOf(stageB);
+  };
+}
 
 // =============================================================================
 // Skill Comparators

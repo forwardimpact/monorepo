@@ -31,6 +31,7 @@
 
 import { join, resolve } from "path";
 import { existsSync } from "fs";
+import { homedir } from "os";
 import { loadAllData } from "@forwardimpact/schema/loader";
 import { formatError } from "../src/lib/cli-output.js";
 
@@ -51,6 +52,7 @@ import { runAgentCommand } from "../src/commands/agent.js";
 import { runDevCommand } from "../src/commands/dev.js";
 import { runInitCommand } from "../src/commands/init.js";
 import { runBuildCommand } from "../src/commands/build.js";
+import { runUpdateCommand } from "../src/commands/update.js";
 
 const COMMANDS = {
   discipline: runDisciplineCommand,
@@ -86,7 +88,8 @@ GETTING STARTED
 
   init                                Create ./data/ with example data
   dev [--port=PORT]                   Run live development server
-  build [--output=PATH]               Generate static site to ./public/
+  build [--output=PATH] [--url=URL]   Generate static site + distribution bundle
+  update [--url=URL]                  Update local ~/.fit/pathway/ installation
 
 ────────────────────────────────────────────────────────────────────────────────
 ENTITY COMMANDS
@@ -253,6 +256,7 @@ function parseArgs(args) {
     path: null,
     // Site command options
     clean: true,
+    url: null,
   };
 
   for (const arg of args) {
@@ -308,6 +312,8 @@ function parseArgs(args) {
       result.path = arg.slice(7);
     } else if (arg === "--no-clean") {
       result.clean = false;
+    } else if (arg.startsWith("--url=")) {
+      result.url = arg.slice(6);
     } else if (!arg.startsWith("-")) {
       if (!result.command) {
         result.command = arg;
@@ -332,9 +338,10 @@ function printHelp() {
  * Resolution order:
  * 1. --data=<path> flag (explicit override)
  * 2. PATHWAY_DATA environment variable
- * 3. ./data/ relative to current working directory
- * 4. ./examples/ relative to current working directory
- * 5. apps/schema/examples/ for monorepo development
+ * 3. ~/.fit/pathway/data/ (home directory install)
+ * 4. ./data/ relative to current working directory
+ * 5. ./examples/ relative to current working directory
+ * 6. apps/schema/examples/ for monorepo development
  *
  * @param {Object} options - Parsed command options
  * @returns {string} Resolved absolute path to data directory
@@ -350,19 +357,25 @@ function resolveDataPath(options) {
     return resolve(process.env.PATHWAY_DATA);
   }
 
-  // 3. Current working directory ./data/
+  // 3. Home directory install (~/.fit/pathway/data/)
+  const homeData = join(homedir(), ".fit", "pathway", "data");
+  if (existsSync(homeData)) {
+    return homeData;
+  }
+
+  // 4. Current working directory ./data/
   const cwdData = join(process.cwd(), "data");
   if (existsSync(cwdData)) {
     return cwdData;
   }
 
-  // 4. Current working directory ./examples/
+  // 5. Current working directory ./examples/
   const cwdExamples = join(process.cwd(), "examples");
   if (existsSync(cwdExamples)) {
     return cwdExamples;
   }
 
-  // 5. Monorepo: apps/schema/examples/
+  // 6. Monorepo: apps/schema/examples/
   const schemaExamples = join(process.cwd(), "apps/schema/examples");
   if (existsSync(schemaExamples)) {
     return schemaExamples;
@@ -411,6 +424,12 @@ async function main() {
   // Handle build command (generates static site)
   if (command === "build") {
     await runBuildCommand({ dataDir, options });
+    process.exit(0);
+  }
+
+  // Handle update command (re-downloads bundle for local install)
+  if (command === "update") {
+    await runUpdateCommand({ dataDir, options });
     process.exit(0);
   }
 

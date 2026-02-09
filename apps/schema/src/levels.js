@@ -54,32 +54,25 @@ export const BEHAVIOUR_MATURITY_ORDER = [
   BehaviourMaturity.EXEMPLIFYING,
 ];
 
-/**
- * Lifecycle stages for development workflow
- * @readonly
- * @enum {string}
- */
-export const Stage = {
-  SPECIFY: "specify",
-  PLAN: "plan",
-  ONBOARD: "onboard",
-  CODE: "code",
-  REVIEW: "review",
-  DEPLOY: "deploy",
-};
+// ============================================================================
+// Data-driven Stage Functions
+// ============================================================================
+// Stage ordering is derived from loaded stage data, not hardcoded.
+// Use getStageOrder(stages) to get stage IDs in lifecycle order.
 
 /**
- * Ordered array of stages for lifecycle progression
- * @type {string[]}
+ * Get ordered stage IDs from loaded stage data
+ *
+ * Stages are defined in stages.yaml and their array order IS the
+ * canonical lifecycle order. This function extracts IDs preserving
+ * that order, similar to getCapabilityOrder for capabilities.
+ *
+ * @param {Object[]} stages - Loaded stages array from stages.yaml
+ * @returns {string[]} Stage IDs in lifecycle order
  */
-export const STAGE_ORDER = [
-  Stage.SPECIFY,
-  Stage.PLAN,
-  Stage.ONBOARD,
-  Stage.CODE,
-  Stage.REVIEW,
-  Stage.DEPLOY,
-];
+export function getStageOrder(stages) {
+  return stages.map((s) => s.id);
+}
 
 /**
  * Skill capabilities (what capability area)

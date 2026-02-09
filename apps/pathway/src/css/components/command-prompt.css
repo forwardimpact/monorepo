@@ -1,0 +1,98 @@
+/**
+ * Command Prompt
+ *
+ * Terminal-style command display with copy button.
+ * Pill-shaped container with $ prompt, monospace text, and copy action.
+ */
+
+@layer components {
+  .command-prompt {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 var(--space-sm) 0 var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    gap: var(--space-xs);
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
+  }
+
+  .command-prompt:hover {
+    border-color: var(--color-text-light);
+  }
+
+  /* Terminal prompt symbol */
+  .command-prompt__prompt {
+    flex-shrink: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-light);
+    user-select: none;
+  }
+
+  /* Command text */
+  .command-prompt__text {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: all;
+    line-height: 36px;
+  }
+
+  /* Copy button */
+  .command-prompt__copy {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-light);
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+
+  .command-prompt__copy:hover {
+    background: var(--color-border);
+    color: var(--color-text);
+  }
+
+  .command-prompt__copy svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Copied state */
+  .command-prompt__copy.copied {
+    color: var(--color-success);
+  }
+
+  /* --------------------------------------------------------------------------
+   Mobile tweaks
+   -------------------------------------------------------------------------- */
+  @media (max-width: 768px) {
+    .command-prompt__prompt {
+      display: none;
+    }
+  }
+}

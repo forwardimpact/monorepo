@@ -28,6 +28,19 @@
       "additionalProperties": {
         "$ref": "#/$defs/entityDefinition"
       }
+    },
+    "distribution": {
+      "type": "object",
+      "description": "Distribution configuration for publishing and installing the framework",
+      "properties": {
+        "siteUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Base URL for the published static site (e.g. https://pathway.myorg.com)"
+        }
+      },
+      "required": ["siteUrl"],
+      "additionalProperties": false
     }
   },
   "additionalProperties": false,

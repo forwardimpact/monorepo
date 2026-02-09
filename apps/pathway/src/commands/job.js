@@ -132,6 +132,7 @@ export async function runJobCommand({ data, args, options, dataDir }) {
     behaviours: data.behaviours,
     drivers: data.drivers,
     capabilities: data.capabilities,
+    stages: data.stages,
   });
 
   if (!view) {

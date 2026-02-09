@@ -22,6 +22,10 @@ fit:EntityDefinition a rdfs:Class ;
     rdfs:label "Entity Definition"@en ;
     rdfs:comment "Definition for an entity type used in pages and chapters"@en .
 
+fit:Distribution a rdfs:Class ;
+    rdfs:label "Distribution"@en ;
+    rdfs:comment "Distribution configuration for publishing and installing the framework"@en .
+
 # -----------------------------------------------------------------------------
 # Properties
 # -----------------------------------------------------------------------------
@@ -37,6 +41,18 @@ fit:entityDefinitions a rdf:Property ;
     rdfs:comment "Definitions for each entity type"@en ;
     rdfs:domain fit:Framework ;
     rdfs:range fit:EntityDefinition .
+
+fit:distribution a rdf:Property ;
+    rdfs:label "distribution"@en ;
+    rdfs:comment "Distribution configuration for the framework"@en ;
+    rdfs:domain fit:Framework ;
+    rdfs:range fit:Distribution .
+
+fit:siteUrl a rdf:Property ;
+    rdfs:label "siteUrl"@en ;
+    rdfs:comment "Base URL for the published static site"@en ;
+    rdfs:domain fit:Distribution ;
+    rdfs:range xsd:anyURI .
 
 fit:entityType a rdf:Property ;
     rdfs:label "entityType"@en ;
@@ -88,6 +104,28 @@ fit:FrameworkShape a sh:NodeShape ;
         sh:node fit:EntityDefinitionShape ;
         sh:name "entityDefinitions" ;
         sh:description "Definitions for each entity type" ;
+    ] ;
+    sh:property [
+        sh:path fit:distribution ;
+        sh:node fit:DistributionShape ;
+        sh:maxCount 1 ;
+        sh:name "distribution" ;
+        sh:description "Distribution configuration for the framework" ;
+    ] .
+
+# -----------------------------------------------------------------------------
+# Distribution Shape
+# -----------------------------------------------------------------------------
+
+fit:DistributionShape a sh:NodeShape ;
+    sh:targetClass fit:Distribution ;
+    sh:property [
+        sh:path fit:siteUrl ;
+        sh:datatype xsd:anyURI ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:name "siteUrl" ;
+        sh:description "Base URL for the published static site" ;
     ] .
 
 # -----------------------------------------------------------------------------

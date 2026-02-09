@@ -117,9 +117,9 @@ export {
 export {
   // Canonical orders
   ORDER_SKILL_TYPE,
-  ORDER_STAGE,
-  ORDER_AGENT_STAGE,
-  CHECKLIST_STAGE_MAP,
+  // Data-driven stage ordering
+  getStageOrder,
+  compareByStageOrder,
   // Skill comparators
   compareByLevelDesc,
   compareByLevelAsc,

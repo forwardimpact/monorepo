@@ -7,8 +7,6 @@
  * Checklist = Stage × Skill Matrix × Skill Confirm Checklist
  */
 
-import { CHECKLIST_STAGE_MAP } from "./policies/orderings.js";
-
 /**
  * Derive checklist items for a specific stage
  * Returns skills grouped by capability with their ready criteria
@@ -26,11 +24,6 @@ export function deriveChecklist({
   skills,
   capabilities,
 }) {
-  const targetStage = CHECKLIST_STAGE_MAP[stageId];
-  if (!targetStage) {
-    return [];
-  }
-
   // Build skill lookup
   const skillById = new Map(skills.map((s) => [s.id, s]));
 
@@ -45,7 +38,7 @@ export function deriveChecklist({
       continue;
     }
 
-    const stageData = skill.agent.stages[targetStage];
+    const stageData = skill.agent.stages[stageId];
     if (
       !stageData ||
       !stageData.confirmChecklist ||

@@ -6,9 +6,27 @@ Applications that help teams grow and cultivate world-class engineers in the age
 of AI.
 
 Engineering excellence requires both human growth and AI augmentation. This
-monorepo provides apps that define skills, behaviours, and career paths—working
-equally well for human engineers and AI coding agents from the same coherent
-model.
+monorepo provides the tools that define skills, behaviours, and career paths—
+working equally well for human engineers and AI coding agents.
+
+**For organizations:** Define your engineering career framework in YAML. Publish
+a static site and install endpoint for your engineers.
+
+**For engineers:** Install the CLI locally. Explore the career framework, browse
+job definitions, generate AI agent profiles for your role, and track your
+progression—all from the command line.
+
+```sh
+# Organization publishes the site
+npx fit-pathway build --url=https://pathway.myorg.com
+
+# Engineer installs locally
+curl -fsSL https://pathway.myorg.com/install.sh | bash
+
+# Engineer uses the CLI
+fit-pathway job software_engineering L4 --track=platform
+fit-pathway agent software_engineering --track=platform --output=./agents
+```
 
 ## Monorepo Structure
 

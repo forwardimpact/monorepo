@@ -177,9 +177,8 @@ export {
   composeFilters,
   // Orderings
   ORDER_SKILL_TYPE,
-  ORDER_STAGE,
-  ORDER_AGENT_STAGE,
-  CHECKLIST_STAGE_MAP,
+  getStageOrder,
+  compareByStageOrder,
   compareByLevelDesc,
   compareByType,
   compareBySkillPriority,

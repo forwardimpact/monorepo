@@ -14,6 +14,7 @@ import {
 import { deriveChecklist } from "./checklist.js";
 import { deriveToolkit } from "./toolkit.js";
 import { getOrCreateJob } from "./job-cache.js";
+import { getStageOrder } from "@forwardimpact/schema/levels";
 
 /**
  * @typedef {Object} JobDetailView
@@ -43,6 +44,7 @@ import { getOrCreateJob } from "./job-cache.js";
  * @param {Array} params.behaviours
  * @param {Array} params.drivers
  * @param {Array} [params.capabilities]
+ * @param {Array} [params.stages] - Loaded stages for checklist derivation
  * @returns {JobDetailView|null}
  */
 export function prepareJobDetail({
@@ -53,6 +55,7 @@ export function prepareJobDetail({
   behaviours,
   drivers,
   capabilities,
+  stages,
 }) {
   // Track is optional (null = generalist)
   if (!discipline || !grade) return null;
@@ -73,10 +76,10 @@ export function prepareJobDetail({
     drivers,
   });
 
-  // Derive checklists for each stage
+  // Derive checklists for each stage from loaded stage data
   const checklists = {};
-  if (capabilities) {
-    const stageIds = ["plan", "onboard", "code"];
+  if (capabilities && stages) {
+    const stageIds = getStageOrder(stages);
     for (const stageId of stageIds) {
       checklists[stageId] = deriveChecklist({
         stageId,

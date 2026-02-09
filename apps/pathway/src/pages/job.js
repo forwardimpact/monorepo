@@ -66,6 +66,7 @@ export async function renderJobDetail(params) {
     behaviours: data.behaviours,
     drivers: data.drivers,
     capabilities: data.capabilities,
+    stages: data.stages,
   });
 
   if (!jobView) {

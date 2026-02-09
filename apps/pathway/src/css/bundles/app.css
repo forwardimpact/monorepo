@@ -25,6 +25,7 @@
 @import "../components/states.css" layer(components);
 @import "../components/nav.css" layer(components);
 @import "../components/top-bar.css" layer(components);
+@import "../components/command-prompt.css" layer(components);
 
 /* Utilities */
 @import "../components/utilities.css" layer(utilities);

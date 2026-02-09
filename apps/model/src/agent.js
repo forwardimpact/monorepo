@@ -26,7 +26,7 @@ import {
   sortAgentBehaviours,
   focusAgentSkills,
 } from "./policies/composed.js";
-import { ORDER_AGENT_STAGE } from "./policies/orderings.js";
+import { compareByStageOrder } from "./policies/orderings.js";
 import { LIMIT_AGENT_WORKING_STYLES } from "./policies/thresholds.js";
 import { SkillLevel } from "@forwardimpact/schema/levels";
 
@@ -275,12 +275,9 @@ export function generateSkillMarkdown(skillData, stages) {
     },
   );
 
-  // Sort stages using canonical ordering from policies
-  stagesArray.sort(
-    (a, b) =>
-      ORDER_AGENT_STAGE.indexOf(a.stageId) -
-      ORDER_AGENT_STAGE.indexOf(b.stageId),
-  );
+  // Sort stages using canonical ordering from loaded stage data
+  const stageComparator = compareByStageOrder(stages);
+  stagesArray.sort(stageComparator);
 
   return {
     frontmatter: {

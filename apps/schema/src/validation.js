@@ -6,7 +6,6 @@
 
 import {
   Capability,
-  Stage,
   getSkillLevelIndex,
   getBehaviourMaturityIndex,
 } from "./levels.js";
@@ -150,14 +149,13 @@ function validateSkill(skill, index, requiredStageIds = []) {
         ),
       );
     } else {
-      // Validate each stage
-      const validStageIds = Object.values(Stage);
+      // Validate each stage against loaded stage data
       for (const [stageId, stageData] of Object.entries(skill.agent.stages)) {
-        if (!validStageIds.includes(stageId)) {
+        if (requiredStageIds.length > 0 && !requiredStageIds.includes(stageId)) {
           errors.push(
             createError(
               "INVALID_VALUE",
-              `Invalid stage ID: ${stageId}. Must be one of: ${validStageIds.join(", ")}`,
+              `Invalid stage ID: ${stageId}. Must be one of: ${requiredStageIds.join(", ")}`,
               `${agentPath}.stages.${stageId}`,
               stageId,
             ),
@@ -1249,15 +1247,6 @@ function validateStage(stage, index) {
 
   if (!stage.id) {
     errors.push(createError("MISSING_REQUIRED", "Stage missing id", path));
-  } else if (!Object.values(Stage).includes(stage.id)) {
-    errors.push(
-      createError(
-        "INVALID_VALUE",
-        `Invalid stage id: ${stage.id}`,
-        `${path}.id`,
-        stage.id,
-      ),
-    );
   }
 
   if (!stage.name) {

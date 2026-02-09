@@ -11,6 +11,7 @@ import {
 } from "@forwardimpact/schema/levels";
 import { getStageEmoji } from "../formatters/stage/shared.js";
 import { aggregateTools } from "../formatters/tool/shared.js";
+import { createCommandPrompt } from "../components/command-prompt.js";
 
 /**
  * Create lifecycle flow visualization for landing page
@@ -63,6 +64,12 @@ export function renderLanding() {
         span({ className: "brand-tag brand-tag-hero" }, framework.tag),
       ),
       p({}, framework.description.trim()),
+      // Install command prompt (only if distribution URL is configured)
+      framework.distribution?.siteUrl
+        ? createCommandPrompt(
+            `curl -fsSL ${framework.distribution.siteUrl}/install.sh | bash`,
+          )
+        : null,
       // Job builder CTA
       div(
         { className: "page-actions", style: "justify-content: center" },

@@ -6,6 +6,10 @@ tag: "#AcmeCorp"
 description: |
   A unified framework for human and AI collaboration in engineering. Define roles, track skills and behaviours, build career paths, and generate AI coding agents—all from the same coherent foundation. The pathway aligns human capabilities with AI assistance, enabling productive teams in the AI era.
 
+# Distribution configuration
+distribution:
+  siteUrl: https://pathway.example.com
+
 # Entity definitions for pages and chapters
 entityDefinitions:
   driver:
