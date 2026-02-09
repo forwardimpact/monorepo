@@ -59,8 +59,12 @@ override general knowledge.
 
 Each skill file contains XML-tagged sections for precise navigation:
 
-- **`<{{stageId}}_stage_checklist>`** — Your stage-specific checklist. Follow
-  the Read-Then-Do and Do-Then-Confirm items for the {{stageName}} stage.
+- **`<{{stageId}}_read_then_do>`** — Read-Then-Do checklist for the
+  {{stageName}} stage. Read and understand these items BEFORE starting work.
+  These are prerequisites and context you must absorb first.
+- **`<{{stageId}}_do_then_confirm>`** — Do-Then-Confirm checklist for the
+  {{stageName}} stage. Complete your work, then verify each item. These are
+  quality gates to check AFTER implementation.
 - **`<required_tools>`** — Mandatory tools for this skill. You MUST use these
   organizational standards that override general knowledge or personal
   preferences.
@@ -95,6 +99,22 @@ and (3) the compromised approach with acknowledged limitations.
 | `{{id}}` | {{{name}}} | {{{description}}} |
 {{/agentIndex}}
 {{/hasAgentIndex}}
+{{#hasReadChecklist}}
+
+## Read-Then-Do Checklist
+
+Before starting work, read and understand these items. They are prerequisites
+and context that must be absorbed before implementation begins:
+
+{{#readChecklist}}
+### {{{capability.emojiIcon}}} {{{skill.name}}}
+
+{{#items}}
+- [ ] {{{.}}}
+{{/items}}
+
+{{/readChecklist}}
+{{/hasReadChecklist}}
 {{#hasConfirmChecklist}}
 
 ## Do-Then-Confirm Checklist

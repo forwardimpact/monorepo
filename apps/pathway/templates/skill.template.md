@@ -13,23 +13,27 @@ description: {{{description}}}{{#hasUseWhen}} Use When: {{{useWhen}}}{{/hasUseWh
 ## Stage Guidance
 {{#stages}}
 
-<{{stageId}}_stage_checklist>
-
 ### {{stageName}} Stage
 
 **Focus:** {{{focus}}}
+
+<{{stageId}}_read_then_do>
 
 **Read-Then-Do Checklist:**
 {{#readChecklist}}
 - [ ] {{{.}}}
 {{/readChecklist}}
 
+</{{stageId}}_read_then_do>
+
+<{{stageId}}_do_then_confirm>
+
 **Do-Then-Confirm Checklist:**
 {{#confirmChecklist}}
 - [ ] {{{.}}}
 {{/confirmChecklist}}
 
-</{{stageId}}_stage_checklist>
+</{{stageId}}_do_then_confirm>
 {{/stages}}
 {{/hasStages}}
 {{#hasToolReferences}}

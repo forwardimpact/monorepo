@@ -182,14 +182,14 @@ export async function runJobCommand({ data, args, options, dataDir }) {
       process.exit(1);
     }
 
-    const checklist = deriveChecklist({
+    const { readChecklist, confirmChecklist } = deriveChecklist({
       stageId: options.checklist,
       skillMatrix: view.skillMatrix,
       skills: data.skills,
       capabilities: data.capabilities,
     });
 
-    if (checklist.length === 0) {
+    if (readChecklist.length === 0 && confirmChecklist.length === 0) {
       console.log(`\nNo checklist items for ${options.checklist} stage\n`);
       return;
     }
@@ -197,8 +197,16 @@ export async function runJobCommand({ data, args, options, dataDir }) {
     const stageLabel =
       options.checklist.charAt(0).toUpperCase() + options.checklist.slice(1);
     console.log(`\n# ${view.title} — ${stageLabel} Stage Checklist\n`);
-    console.log(formatChecklistMarkdown(checklist));
-    console.log("");
+    if (readChecklist.length > 0) {
+      console.log("## Read-Then-Do\n");
+      console.log(formatChecklistMarkdown(readChecklist));
+      console.log("");
+    }
+    if (confirmChecklist.length > 0) {
+      console.log("## Do-Then-Confirm\n");
+      console.log(formatChecklistMarkdown(confirmChecklist));
+      console.log("");
+    }
     return;
   }
 
