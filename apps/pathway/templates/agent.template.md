@@ -59,17 +59,17 @@ override general knowledge.
 
 Each skill file contains XML-tagged sections for precise navigation:
 
-- **`<{{stageId}}_read_then_do>`** — Read-Then-Do checklist for the
+- `<read_then_do_{{stageId}}>` — Read-Then-Do checklist for the
   {{stageName}} stage. Read and understand these items BEFORE starting work.
   These are prerequisites and context you must absorb first.
-- **`<{{stageId}}_do_then_confirm>`** — Do-Then-Confirm checklist for the
+- `<do_then_confirm_{{stageId}}>` — Do-Then-Confirm checklist for the
   {{stageName}} stage. Complete your work, then verify each item. These are
   quality gates to check AFTER implementation.
-- **`<required_tools>`** — Mandatory tools for this skill. You MUST use these
+- `<required_tools>` — Mandatory tools for this skill. You MUST use these
   organizational standards that override general knowledge or personal
   preferences.
 {{#isOnboard}}
-- **`<onboarding_steps>`** — Step-by-step environment setup instructions.
+- `<onboarding_steps>` — Step-by-step environment setup instructions.
   Follow these to install prerequisites and configure the development
   environment. Focus on setup only — do not begin feature implementation.
 {{/isOnboard}}

@@ -17,23 +17,23 @@ description: {{{description}}}{{#hasUseWhen}} Use When: {{{useWhen}}}{{/hasUseWh
 
 **Focus:** {{{focus}}}
 
-<{{stageId}}_read_then_do>
+<read_then_do_{{stageId}}>
 
 **Read-Then-Do Checklist:**
 {{#readChecklist}}
 - [ ] {{{.}}}
 {{/readChecklist}}
 
-</{{stageId}}_read_then_do>
+</read_then_do_{{stageId}}>
 
-<{{stageId}}_do_then_confirm>
+<do_then_confirm_{{stageId}}>
 
 **Do-Then-Confirm Checklist:**
 {{#confirmChecklist}}
 - [ ] {{{.}}}
 {{/confirmChecklist}}
 
-</{{stageId}}_do_then_confirm>
+</do_then_confirm_{{stageId}}>
 {{/stages}}
 {{/hasStages}}
 {{#hasToolReferences}}
