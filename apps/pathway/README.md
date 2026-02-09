@@ -1,12 +1,13 @@
 # @forwardimpact/pathway
 
-Career progression web app and CLI for exploring roles and generating agents.
+Career progression web app and CLI for exploring roles and generating agent
+teams.
 
 ## Role in the Vision
 
 Pathway is the primary interface for interacting with engineering competency
 data. It provides tools for browsing career paths, generating job descriptions,
-creating AI agent profiles, and preparing interviews—all from a unified web
+creating agent team profiles, and preparing interviews—all from a unified web
 experience and command line.
 
 ## What It Does

@@ -1,13 +1,14 @@
 ---
 title: Model
-description: Derivation engine for roles, skills, and AI agent profiles.
+description: Derivation engine for roles, skills, and agent team profiles.
 ---
 
 ## Purpose
 
 The model package contains the core logic that transforms raw data into
-actionable role definitions. Whether generating a human job description or an AI
-agent profile, the same derivation engine ensures consistent expectations.
+actionable role definitions. Whether generating a human job description or a
+coding agent team profile, the same derivation engine ensures consistent
+expectations.
 
 ## Core Derivation
 

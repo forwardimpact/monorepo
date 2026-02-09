@@ -1,22 +1,28 @@
 ---
 title: Forward Impact
 description: |
-  Applications that help teams grow and cultivate world-class engineers in
-  the age of AI. A unified framework where human engineering roles and AI
-  coding agents derive from the same foundation.
+  Great engineering comes from improving the performance of people and machines
+  together. Define skills, behaviours, and career levels that apply equally to
+  human engineers and coding agent teams.
 toc: false
 ---
 
+> _"The aim of leadership should be to improve the performance of man and
+> machine, to improve quality, to increase output, and simultaneously to bring
+> pride of workmanship to people."_
+>
+> — W. Edwards Deming
+
 ## Vision
 
-Engineering excellence requires both human growth and AI augmentation. This
-monorepo provides apps that define skills, behaviours, and career paths—working
-equally well for human engineers and AI coding agents from the same coherent
-model.
+Great engineering comes from improving the performance of people and machines
+together. This monorepo provides apps that define skills, behaviours, and career
+paths—raising quality, increasing output, and bringing pride of workmanship to
+human engineers and coding agent teams alike.
 
 ## Core Concept
 
-A unified framework where human engineering roles and AI coding agents derive
+A unified framework where human engineering roles and coding agent teams derive
 from the same foundation:
 
 ```
@@ -26,7 +32,7 @@ Schema (definitions) → Model (derivation) → Apps (presentation)
 The same skill and behaviour definitions power:
 
 - **Human career paths** — Job descriptions, skill matrices, progression
-- **AI coding agents** — Agent profiles, skill files, lifecycle constraints
+- **Coding agent teams** — Agent profiles, skill files, lifecycle constraints
 
 ## Apps
 

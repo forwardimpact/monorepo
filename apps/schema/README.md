@@ -5,9 +5,9 @@ Schema definitions and data loading for skills, behaviours, and role frameworks.
 ## Role in the Vision
 
 The schema package defines how engineering competencies are structured. It
-provides the foundational data model that both human career progression and AI
-agent generation build upon—ensuring consistency between how we define human
-roles and how AI agents understand their capabilities.
+provides the foundational data model that both human career progression and
+coding agent team generation build upon—ensuring consistency between how we
+define human roles and how agent teams understand their capabilities.
 
 ## What It Does
 

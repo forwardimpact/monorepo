@@ -6,8 +6,8 @@ description: Schema definitions and data loading for skills, behaviours, and rol
 ## Purpose
 
 The schema package defines how engineering competencies are structured. It
-provides the foundational data model that both human career progression and AI
-agent generation build upon.
+provides the foundational data model that both human career progression and
+coding agent team generation build upon.
 
 ## Components
 

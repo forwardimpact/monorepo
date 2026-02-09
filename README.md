@@ -1,14 +1,13 @@
 # Forward Impact
 
-Applications that help teams grow and cultivate world-class engineers in the age
-of AI.
+Great engineering comes from improving the performance of people and machines
+together.
 
 ## Vision
 
-Engineering excellence requires both human growth and AI augmentation. Our apps
-provide the foundation: defining skills, behaviours, and career paths that work
-equally well for human engineers and AI coding agents—all from the same coherent
-model.
+Our apps define skills, behaviours, and career paths that apply equally to human
+engineers and coding agent teams—raising quality, increasing output, and
+bringing pride of workmanship to both.
 
 ## Apps
 

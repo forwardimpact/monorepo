@@ -1,19 +1,19 @@
 # @forwardimpact/model
 
-Derivation engine for roles, skills, and AI agent profiles.
+Derivation engine for roles, skills, and agent team profiles.
 
 ## Role in the Vision
 
 The model package contains the core logic that transforms raw data into
 actionable role definitions. Whether you're generating a human job description
-or an AI agent profile, the same derivation engine ensures consistent
+or a coding agent team profile, the same derivation engine ensures consistent
 expectations across both.
 
 ## What It Does
 
 - **Job derivation** — Combine discipline, track, and grade into complete role
   definitions with skill matrices and behaviour profiles
-- **Agent profiles** — Generate AI coding agent configurations from the same
+- **Agent profiles** — Generate coding agent team configurations from the same
   foundation as human roles
 - **Interview preparation** — Select appropriate questions based on role
   requirements

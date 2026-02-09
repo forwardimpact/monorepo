@@ -2,18 +2,18 @@
 
 ## Vision
 
-Applications that help teams grow and cultivate world-class engineers in the age
-of AI.
+Great engineering comes from improving the performance of people and machines
+together.
 
-Engineering excellence requires both human growth and AI augmentation. This
-monorepo provides the tools that define skills, behaviours, and career paths—
-working equally well for human engineers and AI coding agents.
+This monorepo provides the tools that define skills, behaviours, and career
+paths—raising quality, increasing output, and bringing pride of workmanship to
+human engineers and coding agent teams alike.
 
 **For organizations:** Define your engineering career framework in YAML. Publish
 a static site and install endpoint for your engineers.
 
 **For engineers:** Install the CLI locally. Explore the career framework, browse
-job definitions, generate AI agent profiles for your role, and track your
+job definitions, generate agent team profiles for your role, and track your
 progression—all from the command line.
 
 ```sh

@@ -1,13 +1,13 @@
 ---
 title: Pathway
-description: Career progression web app and CLI for exploring roles and generating agents.
+description: Career progression web app and CLI for exploring roles and generating agent teams.
 ---
 
 ## Purpose
 
 Pathway is the primary interface for interacting with engineering competency
 data. It provides tools for browsing career paths, generating job descriptions,
-creating AI agent profiles, and preparing interviews.
+creating agent team profiles, and preparing interviews.
 
 ## Features
 
