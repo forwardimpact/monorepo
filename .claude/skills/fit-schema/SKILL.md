@@ -1,31 +1,46 @@
+---
+name: fit-schema
+description: Work with the @forwardimpact/schema package. Use when adding or modifying skills, capabilities, behaviours, disciplines, tracks, grades, questions, or schema definitions.
+---
+
 # Schema Package
+
+Schema definitions, data loading, and validation for the Forward Impact
+framework.
+
+## When to Use
+
+- Adding or modifying skills in capability files
+- Adding new behaviours, disciplines, tracks, or grades
+- Working with JSON Schema or RDF/SHACL definitions
+- Running data validation
+- Adding interview questions
+- Generating browser index files
 
 ## Package Structure
 
 ```
 apps/schema/
   src/
-    loader.js           # Load and parse YAML data files
-    validation.js       # Data validation logic
+    loader.js            # Load and parse YAML data files
+    validation.js        # Data validation logic
     schema-validation.js # JSON Schema validation
-    index-generator.js  # Generate _index.yaml for browser
-    levels.js           # Skill levels, behaviour maturities
-    modifiers.js        # Modifier utilities
+    index-generator.js   # Generate _index.yaml for browser
+    levels.js            # Skill levels, behaviour maturities
+    modifiers.js         # Modifier utilities
   schema/
-    json/               # JSON Schema definitions
-    rdf/                # RDF/SHACL ontology
-  examples/             # Canonical example data
+    json/                # JSON Schema definitions
+    rdf/                 # RDF/SHACL ontology
+  examples/              # Canonical example data
 ```
 
 ## CLI
 
-`npx fit-schema <command>`
-
-| Command            | Purpose                      |
-| ------------------ | ---------------------------- |
-| `validate`         | Run full data validation     |
-| `generate-index`   | Generate browser index files |
-| `validate --shacl` | Validate SHACL ontology      |
+```sh
+npx fit-schema validate          # Validate all data
+npx fit-schema generate-index    # Generate browser indexes
+npx fit-schema validate --shacl  # Validate RDF/SHACL
+```
 
 ## Key Modules
 
@@ -82,7 +97,7 @@ in sync.
 
 ## Example Data (`examples/`)
 
-Canonical reference data for testing and documentation. Structure:
+Canonical reference data for testing and documentation:
 
 ```
 examples/
@@ -96,9 +111,9 @@ examples/
 └── questions/            # Interview questions
 ```
 
-## Tasks
+## Common Tasks
 
-### Add Skill
+### Add a Skill
 
 1. Add skill to capability file
    `apps/schema/examples/capabilities/{capability_id}.yaml`
@@ -159,10 +174,10 @@ toolReferences:
     useWhen: Instrumenting AI applications
 ```
 
-### Schema CLI
+## Verification
+
+Always run validation after changes:
 
 ```sh
-npx fit-schema validate          # Validate all data
-npx fit-schema generate-index    # Generate browser indexes
-npx fit-schema validate --shacl  # Validate RDF/SHACL
+npx fit-schema validate
 ```

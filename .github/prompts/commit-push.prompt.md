@@ -2,7 +2,7 @@
 
 Commit all staged and unstaged changes, then push to remote.
 
-Follow the conventions in `.github/instructions/git-workflow.instructions.md`.
+Follow the conventions in `AGENTS.md` (Git Workflow section).
 
 ## Process
 

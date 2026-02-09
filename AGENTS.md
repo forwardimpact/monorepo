@@ -1,4 +1,4 @@
-# Forward Impact
+# Forward Impact Team
 
 ## Vision
 

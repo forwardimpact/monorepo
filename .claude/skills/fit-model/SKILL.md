@@ -1,4 +1,21 @@
+---
+name: fit-model
+description: Work with the @forwardimpact/model package. Use when modifying job derivation, agent profile generation, skill matrices, behaviour profiles, or career progression logic.
+---
+
 # Model Package
+
+Pure business logic for deriving jobs, agent profiles, skill matrices, and
+career progression from schema data.
+
+## When to Use
+
+- Modifying job derivation logic (skill levels, behaviour maturities)
+- Changing agent profile generation
+- Working with skill modifier resolution
+- Updating checklist derivation for stage transitions
+- Modifying interview question selection
+- Changing career progression analysis
 
 ## Package Structure
 
@@ -38,6 +55,10 @@ Agent-specific filtering and sorting:
 - Keeps only highest level per skill
 - Sorts by level (highest first)
 
+```javascript
+import { prepareAgentProfile } from "@forwardimpact/model/profile";
+```
+
 ### job.js / job-cache.js
 
 Job preparation and caching for web pages.
@@ -55,14 +76,6 @@ import {
   deriveAgentSkills,
   generateStageAgentProfile,
 } from "@forwardimpact/model/agent";
-```
-
-### profile.js
-
-Unified profile derivation for jobs and agents.
-
-```javascript
-import { prepareAgentProfile } from "@forwardimpact/model/profile";
 ```
 
 ### interview.js
@@ -108,3 +121,11 @@ All derivation functions are pure:
 - No external state access
 
 This makes them easy to test and reason about.
+
+## Verification
+
+Run tests after changes:
+
+```sh
+npm run test
+```

@@ -1,8 +1,6 @@
 ---
 name: update-docs
-description:
-  "Review and update documentation in the docs/ folder. Use when ensuring
-  documentation accurately reflects the current codebase."
+description: Review and update documentation in the docs/ folder. Use when ensuring documentation accurately reflects the current codebase.
 ---
 
 # Update Documentation
@@ -52,19 +50,19 @@ reflects the current codebase.
 
 ## Key Files to Cross-Reference
 
-| Document Topic    | Source of Truth                      |
-| ----------------- | ------------------------------------ |
-| Skills & Levels   | `apps/schema/examples/capabilities/` |
-| Behaviours        | `apps/schema/examples/behaviours/`   |
-| Disciplines       | `apps/schema/examples/disciplines/`  |
-| Tracks            | `apps/schema/examples/tracks/`       |
-| Grades            | `apps/schema/examples/grades.yaml`   |
-| Stages            | `apps/schema/examples/stages.yaml`   |
-| Job Derivation    | `apps/model/src/job.js`              |
-| Agent Derivation  | `apps/model/src/agent.js`            |
-| CLI Commands      | `apps/pathway/bin/fit-pathway.js`    |
-| Templates         | `apps/pathway/templates/`            |
-| Instruction files | `.github/instructions/`              |
+| Document Topic     | Source of Truth                      |
+| ------------------ | ------------------------------------ |
+| Skills & Levels    | `apps/schema/examples/capabilities/` |
+| Behaviours         | `apps/schema/examples/behaviours/`   |
+| Disciplines        | `apps/schema/examples/disciplines/`  |
+| Tracks             | `apps/schema/examples/tracks/`       |
+| Grades             | `apps/schema/examples/grades.yaml`   |
+| Stages             | `apps/schema/examples/stages.yaml`   |
+| Job Derivation     | `apps/model/src/job.js`              |
+| Agent Derivation   | `apps/model/src/agent.js`            |
+| CLI Commands       | `apps/pathway/bin/fit-pathway.js`    |
+| Templates          | `apps/pathway/templates/`            |
+| Agent instructions | `AGENTS.md`                          |
 
 ## CLI Verification
 
