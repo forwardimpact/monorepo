@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/schema",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Schema definitions and data loading for skills, behaviours, and role frameworks",
   "license": "Apache-2.0",
   "repository": {
