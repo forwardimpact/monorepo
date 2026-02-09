@@ -108,6 +108,23 @@ skills:
             - Key decisions are documented with rationale
             - Trade-offs are explicit
             - Dependencies are identified
+        onboard:
+          focus: |
+            Set up the development environment for the planned
+            architecture. Install frameworks, configure project
+            structure, and verify tooling.
+          readChecklist:
+            - Install planned frameworks and dependencies
+            - Create project structure matching architecture design
+            - Configure Mermaid rendering for architecture docs
+            - Set up ADR directory for decision records
+            - Configure linter and formatter for the project
+          confirmChecklist:
+            - Project structure reflects architectural boundaries
+            - All planned frameworks installed and importable
+            - Documentation tooling renders diagrams correctly
+            - Linter and formatter configured and passing
+            - Build system compiles without errors
         code:
           focus: Implementing architecture faithfully while adapting to reality
           readChecklist:
@@ -229,6 +246,25 @@ skills:
             - Database schema is designed
             - Infrastructure needs identified
             - Layer boundaries are clear
+        onboard:
+          focus: |
+            Set up the full-stack development environment.
+            Install dependencies for each layer and verify
+            connectivity between layers.
+          readChecklist:
+            - Install frontend dependencies (e.g., npm install)
+            - Install backend dependencies and runtime
+            - Start local database and verify connection
+            - Configure environment variables (.env files)
+            - Verify API layer can connect to database
+            - Set up linter and formatter for the project
+          confirmChecklist:
+            - Frontend dev server starts without errors
+            - Backend API responds to health checks
+            - Database is running and seeded with test data
+            - Environment variables configured for all layers
+            - Linter and formatter configured and passing
+            - Build commands succeed for all layers
         code:
           focus: Building vertically across all layers
           readChecklist:

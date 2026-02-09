@@ -1997,7 +1997,7 @@ export function validateAgentData({ humanData, agentData }) {
 
   // Validate skills with agent sections have complete stage coverage
   const skillsWithAgent = (humanData.skills || []).filter((s) => s.agent);
-  const requiredStages = ["plan", "code", "review"];
+  const requiredStages = ["plan", "onboard", "code", "review"];
 
   for (const skill of skillsWithAgent) {
     const stages = skill.agent.stages || {};

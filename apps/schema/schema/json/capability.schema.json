@@ -186,6 +186,7 @@
           "properties": {
             "specify": { "$ref": "#/$defs/skillStage" },
             "plan": { "$ref": "#/$defs/skillStage" },
+            "onboard": { "$ref": "#/$defs/skillStage" },
             "code": { "$ref": "#/$defs/skillStage" },
             "review": { "$ref": "#/$defs/skillStage" },
             "deploy": { "$ref": "#/$defs/skillStage" }

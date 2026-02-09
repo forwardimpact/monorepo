@@ -76,7 +76,7 @@ export function prepareJobDetail({
   // Derive checklists for each stage
   const checklists = {};
   if (capabilities) {
-    const stageIds = ["plan", "code"];
+    const stageIds = ["plan", "onboard", "code"];
     for (const stageId of stageIds) {
       checklists[stageId] = deriveChecklist({
         stageId,

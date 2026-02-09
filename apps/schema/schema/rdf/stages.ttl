@@ -74,7 +74,7 @@ fit:StageShape a sh:NodeShape ;
     sh:targetClass fit:Stage ;
     sh:property [
         sh:path fit:id ;
-        sh:in ( "specify" "plan" "code" "review" "deploy" ) ;
+        sh:in ( "specify" "plan" "onboard" "code" "review" "deploy" ) ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "id" ;
@@ -142,7 +142,7 @@ fit:HandoffShape a sh:NodeShape ;
     sh:targetClass fit:Handoff ;
     sh:property [
         sh:path fit:targetStage ;
-        sh:in ( "specify" "plan" "code" "review" "deploy" ) ;
+        sh:in ( "specify" "plan" "onboard" "code" "review" "deploy" ) ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:name "targetStage" ;

@@ -108,6 +108,22 @@ skills:
             - Deployment strategy is chosen and justified
             - Infrastructure requirements are identified
             - Monitoring approach is defined
+        onboard:
+          focus: |
+            Set up the CI/CD and infrastructure development environment.
+            Install pipeline tools, container runtime, and IaC tooling.
+          readChecklist:
+            - Install container runtime (Docker/Colima)
+            - Install infrastructure as code tools (Terraform)
+            - Configure CI/CD service credentials
+            - Initialize Terraform workspace and backend
+            - Set up secret management for pipeline credentials
+          confirmChecklist:
+            - Container runtime builds and runs images
+            - Terraform initialized with providers
+            - CI/CD credentials configured securely
+            - Pipeline configuration file created
+            - Secret management is in place
         code:
           focus: |
             Implement CI/CD pipelines and infrastructure as code. Follow
@@ -311,6 +327,23 @@ skills:
             - Monitoring strategy is planned
             - Failure modes are identified
             - Alerting thresholds are defined
+        onboard:
+          focus: |
+            Set up the observability and monitoring environment.
+            Install monitoring tools, configure dashboards, and verify
+            instrumentation libraries work.
+          readChecklist:
+            - Install monitoring/observability tools (Prometheus, Grafana)
+            - Configure tracing library (OpenTelemetry)
+            - Set up logging framework with structured output
+            - Configure dashboard templates for SLI tracking
+            - Verify instrumentation exports metrics correctly
+          confirmChecklist:
+            - Monitoring tools installed and accessible
+            - Tracing library integrated and exporting spans
+            - Logging outputs structured data
+            - Dashboard templates render correctly
+            - Instrumentation verified with test traffic
         code:
           focus: |
             Implement observability, resilience patterns, and operational

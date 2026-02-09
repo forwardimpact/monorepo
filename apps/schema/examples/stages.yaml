@@ -42,9 +42,9 @@
     - targetStage: plan
       label: Alternative Plan
       prompt: Create an alternative plan.md exploring a different approach.
-    - targetStage: code
-      label: Start Coding
-      prompt: Implement the tasks defined in plan.md.
+    - targetStage: onboard
+      label: Set Up Environment
+      prompt: Prepare the development environment based on plan.md requirements.
   constraints:
     - Do not make code edits or execute commands
     - Every technology choice must trace back to a specific requirement
@@ -58,6 +58,42 @@
     - plan.md exists with technology choices and architecture
     - Contracts and data models defined where applicable
     - No unresolved [NEEDS CLARIFICATION] markers in plan.md
+
+- id: onboard
+  name: Onboard
+  emojiIcon: "🔧"
+  summary:
+    Prepares the development environment with dependencies, tools, and credentials
+  description:
+    Your primary task is to prepare the development environment with all
+    prerequisites for coding. Install dependencies, configure tools, set up
+    credentials, and verify the environment is ready for implementation.
+  handoffs:
+    - targetStage: onboard
+      label: Retry Setup
+      prompt: Re-run the environment setup to fix remaining issues.
+    - targetStage: plan
+      label: Update Plan
+      prompt: Update plan.md because the environment setup revealed issues.
+    - targetStage: code
+      label: Start Coding
+      prompt: Implement the tasks defined in plan.md.
+  constraints:
+    - Do not implement feature code; focus only on environment setup
+    - Verify each tool and dependency works before moving on
+    - Document all environment configuration in a reproducible way
+    - Never hardcode secrets; use .env files or secret managers
+    - Track progress with the todo tool
+  readChecklist: []
+  confirmChecklist:
+    - plan.md exists with technology choices and architecture
+    - No unresolved [NEEDS CLARIFICATION] markers in plan.md
+    - All dependencies installed and versions verified
+    - Environment variables and secrets configured (.env files, tokens)
+    - Linter and formatter configured and passing on existing code
+    - Build and test commands run successfully
+    - Version control hooks and CI checks are operational
+    - Development server or runtime starts without errors
 
 - id: code
   name: Code
@@ -79,6 +115,9 @@
     - spec.md exists with user stories and acceptance criteria
     - plan.md exists with technology choices and architecture
     - No unresolved [NEEDS CLARIFICATION] markers in plan.md
+    - All dependencies installed and versions verified
+    - Linter and formatter configured and passing
+    - Build and test commands run successfully
     - Implementation complete according to plan.md
     - Tests written and passing
     - Self-review completed

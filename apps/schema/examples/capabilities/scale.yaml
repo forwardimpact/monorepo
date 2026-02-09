@@ -103,6 +103,23 @@ skills:
             - Architecture designed for availability
             - Security approach documented
             - Cost estimate prepared
+        onboard:
+          focus: |
+            Set up cloud development environment. Configure CLI tools,
+            authenticate with cloud provider, and verify infrastructure
+            tooling works.
+          readChecklist:
+            - Install cloud CLI tools (AWS CLI, Terraform)
+            - Configure cloud credentials and authentication
+            - Initialize Terraform workspace and providers
+            - Verify cloud account access and permissions
+            - Set up environment variables for cloud configuration
+          confirmChecklist:
+            - Cloud CLI authenticated and working
+            - Terraform initialized with correct providers
+            - IAM permissions verified for planned resources
+            - Environment variables configured securely
+            - Infrastructure as code directory structure created
         code:
           focus: Implementing cloud infrastructure and deployments
           readChecklist:
@@ -220,6 +237,24 @@ skills:
             - Testing strategy defined
             - Edge cases identified
             - Error handling planned
+        onboard:
+          focus: |
+            Set up code quality tooling. Configure linters, formatters,
+            testing frameworks, and pre-commit hooks for the project.
+          readChecklist:
+            - Install linter (ESLint for JS/TS, Ruff for Python)
+            - Install formatter (Prettier for JS/TS, Ruff for Python)
+            - Configure linter rules matching project standards
+            - Set up pre-commit hooks (husky/lint-staged or pre-commit)
+            - Install testing framework (Node.js test runner, pytest)
+            - Configure editor settings for format-on-save
+          confirmChecklist:
+            - Linter runs without configuration errors
+            - Formatter produces consistent output
+            - Pre-commit hooks catch style violations
+            - Test runner discovers and runs existing tests
+            - Editor integration works (format-on-save, inline errors)
+            - CI pipeline includes quality checks
         code:
           focus: Writing and testing quality code
           readChecklist:
@@ -329,6 +364,23 @@ skills:
             - Storage technology selected
             - Schema design documented
             - Index strategy planned
+        onboard:
+          focus: |
+            Set up the database environment. Install ORM/query tools,
+            configure database connections, and verify migration
+            tooling works.
+          readChecklist:
+            - Install database client and ORM (Prisma, SQLAlchemy)
+            - Configure database connection in .env file
+            - Start local database (Supabase, PostgreSQL, etc.)
+            - Initialize migration tooling and verify it connects
+            - Create database user with appropriate privileges
+          confirmChecklist:
+            - Database running locally and accepting connections
+            - ORM/client configured and connected
+            - Migration tooling initialized and working
+            - Test data can be seeded and queried
+            - Database credentials stored securely in .env
         code:
           focus: Implementing schema and migrations
           readChecklist:

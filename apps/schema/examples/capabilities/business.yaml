@@ -134,6 +134,22 @@ skills:
             - Document type and structure planned
             - Prerequisites listed
             - Outline complete
+        onboard:
+          focus: |
+            Set up the documentation environment. Install documentation
+            tools, configure rendering, and verify preview works.
+          readChecklist:
+            - Install documentation framework (MkDocs, Docusaurus, etc.)
+            - Configure markdown linter (markdownlint)
+            - Set up diagram rendering (Mermaid, PlantUML)
+            - Configure spell checker (cspell)
+            - Verify documentation preview server works
+          confirmChecklist:
+            - Documentation framework builds without errors
+            - Markdown linter runs and catches issues
+            - Diagrams render correctly in preview
+            - Spell checker configured with project dictionary
+            - Preview server shows formatted documentation
         code:
           focus: Writing clear and accurate documentation
           readChecklist:

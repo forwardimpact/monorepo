@@ -27,12 +27,12 @@ export const ORDER_SKILL_TYPE = ["primary", "secondary", "broad", "track"];
 /**
  * Engineering lifecycle stages in execution order
  */
-export const ORDER_STAGE = ["specify", "plan", "code", "review", "deploy"];
+export const ORDER_STAGE = ["specify", "plan", "onboard", "code", "review", "deploy"];
 
 /**
  * Agent stage ordering (subset used for agent generation)
  */
-export const ORDER_AGENT_STAGE = ["plan", "code", "review"];
+export const ORDER_AGENT_STAGE = ["plan", "onboard", "code", "review"];
 
 /**
  * Stage-to-handoff mapping for checklist derivation
@@ -42,6 +42,7 @@ export const ORDER_AGENT_STAGE = ["plan", "code", "review"];
  */
 export const CHECKLIST_STAGE_MAP = {
   plan: "plan",
+  onboard: "onboard",
   code: "code",
   review: "review",
 };

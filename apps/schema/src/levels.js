@@ -62,6 +62,7 @@ export const BEHAVIOUR_MATURITY_ORDER = [
 export const Stage = {
   SPECIFY: "specify",
   PLAN: "plan",
+  ONBOARD: "onboard",
   CODE: "code",
   REVIEW: "review",
   DEPLOY: "deploy",
@@ -74,6 +75,7 @@ export const Stage = {
 export const STAGE_ORDER = [
   Stage.SPECIFY,
   Stage.PLAN,
+  Stage.ONBOARD,
   Stage.CODE,
   Stage.REVIEW,
   Stage.DEPLOY,
