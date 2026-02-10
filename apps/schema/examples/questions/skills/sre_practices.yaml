@@ -3,35 +3,39 @@
 professionalQuestions:
   awareness:
     - id: sre_pro_aware_1
-      text: What do you understand by SLIs, SLOs, and error budgets?
+      text: How do you know when a service is healthy enough for your users?
       lookingFor:
-        - Basic SRE concepts understanding
-        - Awareness of reliability metrics
+        - Thinks about health from the user's perspective, not just uptime
+        - Shows awareness that different users have different expectations
+        - Recognizes that monitoring and alerting help detect problems early
       expectedDurationMinutes: 5
   foundational:
     - id: sre_pro_found_1
       text: How would you set up basic monitoring and alerting for a service?
       lookingFor:
-        - Understanding of observability basics
-        - Experience with monitoring tools
+        - Monitors the metrics users care about, not just system internals
+        - Sets alert thresholds that catch real problems without alert fatigue
+        - Builds dashboards that help someone unfamiliar diagnose issues quickly
       expectedDurationMinutes: 8
   working:
     - id: sre_pro_work_1
       text:
-        Describe how you've handled an incident in production. What was your
+        How do you approach handling incidents in production? What is your
         process?
       followUps:
-        - What did you learn from it?
+        - What do you learn from incidents and how do you apply it?
       lookingFor:
-        - Incident response experience
-        - Post-incident improvement
-      expectedDurationMinutes: 10
+        - Follows a structured incident response process, not ad-hoc firefighting
+        - Documents findings and drives follow-up improvements
+        - Communicates incident status clearly to affected stakeholders
+      expectedDurationMinutes: 8
   practitioner:
     - id: sre_pro_pract_1
       text: How do you balance reliability with feature velocity in your team?
       lookingFor:
-        - Error budget management
-        - Pragmatic reliability decisions
+        - Uses error budgets to make objective speed-vs-reliability decisions
+        - Adjusts reliability investment based on user impact data, not fear
+        - Coaches team to treat reliability work as enabling velocity, not opposing it
       expectedDurationMinutes: 8
   expert:
     - id: sre_pro_expert_1
@@ -39,56 +43,55 @@ professionalQuestions:
         How have you established reliability culture and practices across an
         organization?
       lookingFor:
-        - Organizational reliability leadership
-        - Systematic reliability improvement
+        - Creates reliability standards and SLO frameworks adopted across the business unit
+        - Builds organisational capability for incident response and learning
+        - Influences engineering leadership to invest in reliability as a business enabler
       expectedDurationMinutes: 10
 
 managementQuestions:
   awareness:
     - id: sre_mgmt_aware_1
       text:
-        How do you ensure your team understands the reliability expectations for
-        their services?
+        How do you ensure your team understands reliability concepts and their importance?
       lookingFor:
-        - Basic reliability awareness
-        - Team expectation setting
+        - Connects reliability to user impact in team discussions, not abstract metrics
+        - Makes reliability part of feature discussions rather than a separate concern
       expectedDurationMinutes: 5
   foundational:
     - id: sre_mgmt_found_1
       text:
-        How do you manage on-call rotations and incident response in your team?
-      followUps:
-        - How do you prevent burnout?
+        How do you support team members in developing reliability engineering skills?
       lookingFor:
-        - On-call management
-        - Team wellbeing awareness
+        - Creates hands-on learning through incident response participation and on-call rotations
+        - Pairs less experienced engineers with SRE-skilled colleagues on reliability tasks
+        - Reviews reliability practices in design discussions and code reviews
       expectedDurationMinutes: 8
   working:
     - id: sre_mgmt_work_1
       text:
-        How do you balance reliability investment with feature delivery in your
-        team's roadmap?
+        How do you handle incidents and facilitate post-incident learning?
       followUps:
-        - How do you prioritize reliability work?
+        - How do you communicate incidents to stakeholders?
       lookingFor:
-        - Reliability vs velocity trade-offs
-        - Roadmap prioritization
+        - Runs blameless incident reviews that produce actionable improvements
+        - Communicates incident status and impact clearly to non-technical stakeholders
+        - Tracks whether post-incident actions are completed and effective
       expectedDurationMinutes: 10
   practitioner:
     - id: sre_mgmt_pract_1
-      text: How do you build a reliability-focused culture within your team?
-      followUps:
-        - How do you learn from incidents?
+      text:
+        How do you drive reliability culture and balance it with feature delivery pressure?
       lookingFor:
-        - Reliability culture development
-        - Incident learning practices
+        - Uses error budgets to make transparent trade-off decisions with stakeholders
+        - Frames reliability investment as protecting delivery velocity, not slowing it
+        - Creates team norms where reliability is everyone's responsibility, not an SRE team's
       expectedDurationMinutes: 8
   expert:
     - id: sre_mgmt_expert_1
       text:
-        How do you drive reliability practices and culture across multiple
-        teams?
+        How do you shape organizational reliability strategy and practices?
       lookingFor:
-        - Cross-team reliability leadership
-        - Organizational reliability strategy
+        - Defines reliability practices and SLO frameworks adopted across organisational boundaries
+        - Creates incident response capabilities that work across teams and business units
+        - Influences organisational culture so reliability is valued as a business differentiator
       expectedDurationMinutes: 10

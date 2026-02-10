@@ -3,18 +3,20 @@
 professionalQuestions:
   awareness:
     - id: cp_pro_aware_1
-      text: What cloud platforms are you familiar with?
+      text: How do you decide what should run locally vs in the cloud?
       lookingFor:
-        - Basic cloud awareness
-        - Understanding of cloud services
+        - Thinks about trade-offs between local and cloud deployment
+        - Shows awareness that cloud introduces operational considerations
+        - Recognizes cost, latency, and scalability as factors
       expectedDurationMinutes: 5
   foundational:
     - id: cp_pro_found_1
-      text: How would you deploy a simple application to the cloud?
+      text: How would you choose which cloud services to use for a new project?
       lookingFor:
-        - Basic deployment knowledge
-        - Understanding of cloud resources
-      expectedDurationMinutes: 8
+        - Considers project requirements before picking services
+        - Weighs managed services against self-hosted options
+        - Thinks about cost and operational overhead
+      expectedDurationMinutes: 5
   working:
     - id: cp_pro_work_1
       text:
@@ -23,71 +25,81 @@ professionalQuestions:
       followUps:
         - How did you handle cost optimization?
       lookingFor:
-        - Practical cloud architecture experience
-        - Service selection rationale
-      expectedDurationMinutes: 10
+        - Explains service selection rationale tied to specific requirements
+        - Considers cost optimization alongside functionality
+        - Designs with operational concerns like monitoring and scaling
+      expectedDurationMinutes: 8
   practitioner:
     - id: cp_pro_pract_1
       text:
-        How do you approach cloud cost optimization and governance for your
-        team?
+        How would you design a multi-region, highly available architecture for a
+        critical application?
+      followUps:
+        - What about disaster recovery?
+        - How would AI-driven workloads change your architecture?
       lookingFor:
-        - Cloud cost management
-        - Governance practices
-      expectedDurationMinutes: 8
+        - Designs for resilience across availability zones and regions
+        - Balances high availability with cost constraints
+        - Plans for failure scenarios and recovery procedures
+      expectedDurationMinutes: 10
   expert:
     - id: cp_pro_expert_1
       text:
-        How have you shaped cloud strategy and practices across an organization?
+        What are the key considerations when defining cloud governance and
+        strategy for a large organization?
       lookingFor:
-        - Enterprise cloud strategy
-        - Multi-cloud or hybrid considerations
+        - Balances governance with team autonomy in cloud usage
+        - Considers compliance, security, and cost at organizational scale
+        - Shapes cloud strategy that adapts to emerging AI infrastructure needs
       expectedDurationMinutes: 10
 
 managementQuestions:
   awareness:
     - id: cp_mgmt_aware_1
       text:
-        How do you ensure your team has appropriate cloud access and knowledge?
+        How do you stay informed about cloud capabilities that could benefit your team?
       lookingFor:
-        - Basic team enablement awareness
-        - Understanding of cloud access management
+        - Actively explores cloud capabilities relevant to team work
+        - Evaluates new services for practical team benefit
+        - Shares learnings with the team proactively
       expectedDurationMinutes: 5
   foundational:
     - id: cp_mgmt_found_1
-      text: How do you manage cloud costs and budgets for your team?
+      text:
+        How do you support team members in developing cloud platform skills?
       lookingFor:
-        - Basic cost awareness
-        - Budget management practices
-      expectedDurationMinutes: 8
+        - Creates structured learning paths for cloud skills
+        - Pairs team members on cloud tasks for knowledge transfer
+        - Identifies skill gaps and addresses them proactively
+      expectedDurationMinutes: 5
   working:
     - id: cp_mgmt_work_1
       text:
-        How do you ensure your team follows cloud best practices and security
-        standards?
+        How do you balance cloud costs with team productivity and delivery needs?
       followUps:
-        - How do you handle compliance requirements?
+        - How do you communicate cloud spending to stakeholders?
       lookingFor:
-        - Cloud governance approach
-        - Security and compliance awareness
-      expectedDurationMinutes: 10
+        - Tracks cloud spending and communicates trends to stakeholders
+        - Makes trade-off decisions between cost and developer productivity
+        - Establishes team practices for cost-aware cloud usage
+      expectedDurationMinutes: 8
   practitioner:
     - id: cp_mgmt_pract_1
       text:
-        How do you build cloud expertise and platform capabilities within your
-        team?
+        How do you drive cloud best practices and standards across your team?
       followUps:
-        - How do you balance specialist vs generalist cloud skills?
+        - How do you handle compliance requirements?
       lookingFor:
-        - Team cloud capability development
-        - Skill building strategies
-      expectedDurationMinutes: 8
+        - Establishes cloud standards that teams follow willingly
+        - Addresses compliance requirements with practical solutions
+        - Mentors team members on cloud best practices
+      expectedDurationMinutes: 10
   expert:
     - id: cp_mgmt_expert_1
       text:
-        How do you drive cloud adoption and platform strategy across multiple
-        teams?
+        How do you shape organizational cloud strategy and governance?
       lookingFor:
-        - Cross-team cloud leadership
-        - Enterprise platform strategy
+        - Defines cloud governance that enables innovation within guardrails
+        - Influences cloud direction across organizational boundaries
+        - Adapts strategy for emerging workloads like AI/ML infrastructure
       expectedDurationMinutes: 10

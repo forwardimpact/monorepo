@@ -3,11 +3,11 @@
 professionalQuestions:
   awareness:
     - id: dm_pro_aware_1
-      text:
-        What's the difference between relational and non-relational databases?
+      text: How do you decide how to store and organize data for a new feature?
       lookingFor:
-        - Basic database concepts
-        - Understanding of use cases for each
+        - Thinks about data relationships before choosing storage
+        - Considers how the data will be queried and used
+        - Shows awareness that data structure affects performance
       expectedDurationMinutes: 5
   foundational:
     - id: dm_pro_found_1
@@ -15,26 +15,29 @@ professionalQuestions:
         How would you design a simple database schema for a user management
         system?
       lookingFor:
-        - Basic schema design
-        - Understanding of normalization
-      expectedDurationMinutes: 8
+        - Identifies the key entities and relationships before writing SQL
+        - Considers how the schema will be queried, not just stored
+        - Makes normalization decisions with practical reasoning
+      expectedDurationMinutes: 5
   working:
     - id: dm_pro_work_1
-      text: Describe a data model you've designed. What trade-offs did you make?
+      text: How do you approach designing a data model for a complex domain?
       followUps:
-        - How did you handle performance?
+        - How do you handle evolving requirements in your data model?
       lookingFor:
-        - Practical data modeling experience
-        - Performance considerations
-      expectedDurationMinutes: 10
+        - Balances normalization with query performance needs
+        - Makes deliberate trade-offs with clear reasoning
+        - Considers how the model will evolve over time
+      expectedDurationMinutes: 8
   practitioner:
     - id: dm_pro_pract_1
       text:
         How do you approach data modeling for complex domains with evolving
         requirements?
       lookingFor:
-        - Advanced modeling techniques
-        - Handling schema evolution
+        - Designs models that accommodate change without major rework
+        - Applies advanced techniques like event sourcing where appropriate
+        - Collaborates with domain experts to validate model accuracy
       expectedDurationMinutes: 10
   expert:
     - id: dm_pro_expert_1
@@ -42,54 +45,55 @@ professionalQuestions:
         How do you establish data modeling standards and practices across an
         organization?
       lookingFor:
-        - Enterprise data architecture
-        - Organizational standards leadership
+        - Creates modeling standards that improve consistency across teams
+        - Shapes organizational data architecture to enable interoperability
+        - Mentors teams on modeling practices and domain-driven design
       expectedDurationMinutes: 10
 
 managementQuestions:
   awareness:
     - id: dm_mgmt_aware_1
       text:
-        How do you ensure your team understands the data models they work with?
+        How do you ensure your team considers data modeling implications in their work?
       lookingFor:
-        - Basic data awareness in team
-        - Knowledge sharing practices
+        - Ensures modeling decisions are considered during feature planning
+        - Communicates how data model quality affects system behaviour
       expectedDurationMinutes: 5
   foundational:
     - id: dm_mgmt_found_1
-      text: How do you support your team in making data modeling decisions?
-      followUps:
-        - What review processes do you have?
+      text:
+        How do you help team members develop data modeling skills?
       lookingFor:
-        - Team support practices
-        - Data decision governance
-      expectedDurationMinutes: 8
+        - Creates learning opportunities through real project work
+        - Pairs less experienced engineers with modeling-skilled colleagues
+        - Reviews data models as part of team process
+      expectedDurationMinutes: 5
   working:
     - id: dm_mgmt_work_1
       text:
-        How do you manage data quality and schema changes across your team's
-        services?
+        How do you facilitate data model review and alignment across your team?
       followUps:
-        - How do you coordinate breaking changes?
+        - How do you handle disagreements about modeling approaches?
       lookingFor:
-        - Data change management
-        - Cross-service coordination
+        - Creates review processes that catch modeling issues before they reach production
+        - Facilitates productive disagreements about modeling by focusing on trade-offs and evidence
+        - Ensures the team aligns on modeling conventions to reduce inconsistency
       expectedDurationMinutes: 10
   practitioner:
     - id: dm_mgmt_pract_1
-      text: How do you build data modeling expertise within your team?
-      followUps:
-        - How do you identify data skill gaps?
+      text:
+        How do you coordinate data modeling decisions across teams to ensure consistency?
       lookingFor:
-        - Team capability development
-        - Data skill growth strategies
+        - Creates cross-team alignment on shared data models and naming conventions
+        - Facilitates discussions between teams when models need to interoperate
+        - Establishes modeling standards that reduce friction at team boundaries
       expectedDurationMinutes: 10
   expert:
     - id: dm_mgmt_expert_1
       text:
-        How do you drive data governance and modeling standards across multiple
-        teams?
+        How do you shape organizational data modeling standards and governance?
       lookingFor:
-        - Cross-team data leadership
-        - Enterprise data strategy
+        - Defines data modeling practices and governance adopted across the business unit
+        - Creates organisational standards that improve data interoperability at scale
+        - Influences how the organisation values and invests in data architecture quality
       expectedDurationMinutes: 10

@@ -5,8 +5,8 @@ professionalQuestions:
     - id: fs_pro_aware_1
       text: What layers of a typical web application are you familiar with?
       lookingFor:
-        - Basic understanding of frontend, backend, database
-        - Awareness of how layers interact
+        - Understands the main layers (frontend, backend, data) and their roles
+        - Describes how layers communicate and depend on each other
       expectedDurationMinutes: 5
   foundational:
     - id: fs_pro_found_1
@@ -14,20 +14,22 @@ professionalQuestions:
         Walk me through building a simple feature that touches the UI, API, and
         database.
       lookingFor:
-        - Understanding of full-stack flow
-        - Basic implementation across layers
-      expectedDurationMinutes: 10
+        - Thinks through the full flow from user action to data storage
+        - Considers how changes in one layer affect others
+        - Plans the implementation order pragmatically
+      expectedDurationMinutes: 5
   working:
     - id: fs_pro_work_1
       text:
-        Describe a complete feature you delivered end-to-end. How did you
-        approach each layer?
+        How do you approach delivering a complete feature end-to-end across the
+        stack?
       followUps:
-        - What challenges did you face?
+        - How do AI tools help you work across unfamiliar layers?
       lookingFor:
-        - Independent full-stack delivery
-        - Pragmatic technology choices
-      expectedDurationMinutes: 10
+        - Delivers independently across all layers without specialist handoffs
+        - Makes pragmatic technology choices based on the feature needs
+        - Identifies and addresses gaps in their own stack knowledge
+      expectedDurationMinutes: 8
   practitioner:
     - id: fs_pro_pract_1
       text:
@@ -36,60 +38,63 @@ professionalQuestions:
       followUps:
         - How do you handle areas outside your expertise?
       lookingFor:
-        - Speed of end-to-end delivery
-        - Self-sufficiency across the stack
+        - Delivers end-to-end features in days by working across the full stack confidently
+        - Uses AI tools to accelerate work in less familiar layers rather than blocking on others
+        - Knows when their cross-stack work needs specialist review versus when it's solid enough
       expectedDurationMinutes: 10
   expert:
     - id: fs_pro_expert_1
       text: How do you enable rapid full-stack delivery across teams?
       lookingFor:
-        - Organizational full-stack enablement
-        - Removing specialist dependencies at scale
+        - Creates shared tooling and patterns that make cross-stack work accessible to all engineers
+        - Removes specialist bottlenecks by building team capability rather than centralising expertise
+        - Shapes hiring and development to value versatility alongside depth
       expectedDurationMinutes: 10
 
 managementQuestions:
   awareness:
     - id: fs_mgmt_aware_1
       text:
-        How do you ensure your team can work across the full stack when needed?
+        How do you ensure your team understands the full scope of features they deliver?
       lookingFor:
-        - Basic understanding of full-stack team needs
-        - Awareness of skill coverage
+        - Encourages engineers to trace features end-to-end, not just their layer
+        - Ensures demos show the complete user experience, not just isolated components
       expectedDurationMinutes: 5
   foundational:
     - id: fs_mgmt_found_1
-      text: How do you handle skill gaps across the stack in your team?
-      followUps:
-        - When do you bring in specialists vs develop skills internally?
+      text:
+        How do you help team members develop skills across the full stack?
       lookingFor:
-        - Skill gap management
-        - Team capability planning
+        - Assigns cross-layer tasks that stretch engineers beyond their comfort zone
+        - Pairs specialists together so knowledge transfers through real work
+        - Creates safety for engineers to work in unfamiliar layers without fear of judgment
       expectedDurationMinutes: 10
   working:
     - id: fs_mgmt_work_1
       text:
-        How do you balance specialist depth vs full-stack breadth in your team
-        composition?
+        How do you balance specialist depth with full-stack breadth in your team?
       followUps:
-        - How does this affect your hiring and development?
+        - How do you assign work to build versatility?
       lookingFor:
-        - Team composition strategy
-        - Skill development planning
+        - Maps the team's skill portfolio and identifies risky concentrations
+        - Assigns work deliberately to build versatility while respecting delivery commitments
+        - Uses AI tools' ability to fill knowledge gaps as a lever for cross-stack confidence
       expectedDurationMinutes: 10
   practitioner:
     - id: fs_mgmt_pract_1
-      text: How do you build full-stack capabilities within your team?
-      followUps:
-        - How do you reduce dependencies on external specialists?
+      text:
+        How do you build a team culture of end-to-end ownership and delivery?
       lookingFor:
-        - Full-stack capability development
-        - Team self-sufficiency strategies
+        - Creates expectations that engineers own features from commit to production
+        - Removes structural barriers that force specialist handoffs between layers
+        - Celebrates engineers who step outside their primary expertise to unblock delivery
       expectedDurationMinutes: 10
   expert:
     - id: fs_mgmt_expert_1
       text:
-        How do you enable autonomous full-stack delivery across multiple teams?
+        How do you shape organizational approaches to full-stack delivery and team structure?
       lookingFor:
-        - Cross-team full-stack enablement
-        - Organizational capability strategy
+        - Designs team topologies that minimise cross-team handoffs for feature delivery
+        - Creates organisational patterns for building versatile teams at scale
+        - Influences hiring practices to value T-shaped engineers over narrow specialists
       expectedDurationMinutes: 10

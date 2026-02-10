@@ -13,6 +13,7 @@ professionalQuestions:
         - What information would you need to gather first?
         - How would you break down the technical implementation?
         - What are the biggest risks and how would you mitigate them?
+        - How would AI tools change your approach to building this faster?
         - How would you prioritize if you had only 3 weeks instead?
       lookingFor:
         - Asks clarifying questions about requirements before diving in
@@ -22,8 +23,7 @@ professionalQuestions:
         - Thinks about scalability and performance constraints
       expectedDurationMinutes: 15
       followUps:
-        - What would you do differently if their data was in 5 different
-          systems?
+        - What would you do differently if their data was in 5 different systems?
         - How would you handle if a key team member left mid-project?
 
   practitioner:
@@ -54,51 +54,47 @@ managementQuestions:
   working:
     - id: del_mgmt_work_decomp_1
       text:
-        Your team has committed to delivering a major feature, but halfway
-        through the sprint you realize the scope was underestimated. How would
-        you handle this?
+        A critical project is at risk of missing its deadline, and stakeholders
+        are escalating. How would you assess and address the situation?
       context:
-        The feature was estimated at 2 weeks but will likely take 4 weeks. The
-        client has a marketing launch planned around the original date. Your
-        team has 5 engineers.
+        The project was planned for 8 weeks but is now in week 6 with 40% of
+        scope remaining. The team of 5 engineers reports blockers from another
+        team. The business committed the date to a major customer.
       decompositionPrompts:
-        - How would you communicate the delay to stakeholders?
-        - What options would you present for moving forward?
-        - How would you support your team through this situation?
-        - What would you change to prevent this in the future?
+        - How would you assess the true state of the project?
+        - What options would you present to stakeholders?
+        - How would you protect the team while managing expectations?
+        - How would you prevent this situation in future projects?
       lookingFor:
-        - Communicates early and transparently with stakeholders
-        - Presents options rather than just problems
-        - Protects team from blame while addressing root causes
-        - Focuses on learning and process improvement
+        - Gets accurate assessment from team without blame
+        - Presents realistic options with trade-offs (scope, time, resources)
+        - Manages stakeholder expectations transparently
+        - Addresses systemic issues (estimation, dependencies, communication)
       expectedDurationMinutes: 15
       followUps:
-        - What if the stakeholder insists on the original date?
-        - How would you handle if this was the third time this quarter scope was
-          underestimated?
+        - What if leadership insists the original date cannot move?
+        - How would you handle if the blocking team is unresponsive?
 
   practitioner:
     - id: del_mgmt_pract_decomp_1
       text:
-        You're leading a cross-functional initiative involving three teams with
-        different managers, timelines, and priorities. How would you coordinate
-        delivery?
+        You're responsible for coordinating a major platform initiative across
+        4 engineering teams. How would you structure the delivery?
       context:
-        The initiative is a platform modernization requiring backend, frontend,
-        and infrastructure teams. Each team has their own roadmap commitments.
-        Executive sponsorship is strong but day-to-day coordination is
-        challenging.
+        The initiative is a 12-month platform modernization affecting all products.
+        Teams have different managers, priorities, and technical preferences.
+        Executive sponsorship is strong but teams are skeptical.
       decompositionPrompts:
-        - How would you establish governance and decision-making?
-        - What coordination mechanisms would you put in place?
-        - How would you handle conflicts between team priorities?
-        - How would you maintain momentum and visibility?
+        - How would you establish alignment across teams?
+        - What governance and coordination mechanisms would you put in place?
+        - How would you handle competing priorities between teams?
+        - How would you track and communicate progress to executives?
       lookingFor:
-        - Creates clear accountability and escalation paths
-        - Establishes regular coordination touchpoints
-        - Negotiates with peer managers for alignment
-        - Uses visibility and reporting to maintain executive support
+        - Creates clear roles, responsibilities, and decision rights
+        - Establishes lightweight coordination that doesn't slow teams
+        - Manages dependencies and resolves conflicts across teams
+        - Provides executive visibility without micromanagement
       expectedDurationMinutes: 15
       followUps:
-        - What if one team consistently missed their commitments?
-        - How would you handle if executive sponsorship weakened mid-project?
+        - What if one team's manager disagrees with the overall approach?
+        - How would you handle if the initiative loses executive sponsorship?

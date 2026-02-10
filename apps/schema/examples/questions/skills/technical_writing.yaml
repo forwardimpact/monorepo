@@ -5,87 +5,91 @@ professionalQuestions:
     - id: tw_pro_aware_1
       text: How do you approach documenting your code and work?
       lookingFor:
-        - Basic documentation habits
-        - Understanding of documentation importance
+        - Documents work consistently, not just when asked
+        - Understands that documentation helps future maintainers
       expectedDurationMinutes: 5
   foundational:
     - id: tw_pro_found_1
       text: What makes a good README file? Walk me through what you'd include.
       lookingFor:
-        - README best practices
-        - Reader-centric documentation
+        - Structures READMEs for the reader's needs, not the author's
+        - Includes essentials like purpose, setup, usage, and contribution guide
+        - Keeps documentation concise and up-to-date
       expectedDurationMinutes: 5
   working:
     - id: tw_pro_work_1
       text:
-        How do you write technical specifications that enable others to
-        implement features?
+        How do you write technical specifications that enable others to implement
+        features?
       followUps:
-        - How detailed do you go?
+        - How do you write specs that AI tools can also use effectively?
       lookingFor:
-        - Spec writing skills
-        - Communication of technical requirements
+        - Writes specs that reduce ambiguity and enable independent implementation
+        - Calibrates detail level based on audience and feature complexity
+        - Structures specs so they can be verified against implementation
       expectedDurationMinutes: 8
   practitioner:
     - id: tw_pro_pract_1
       text:
         How do you establish documentation standards and practices in your team?
       lookingFor:
-        - Documentation leadership
-        - Spec-driven development advocacy
+        - Creates documentation standards that the team actually follows because they're practical
+        - Champions spec-driven development where documentation precedes implementation
+        - Reviews documentation quality with the same rigour as code reviews
       expectedDurationMinutes: 8
   expert:
     - id: tw_pro_expert_1
       text: How do you create organizational documentation culture and systems?
       lookingFor:
-        - Enterprise documentation strategy
-        - Knowledge management systems
+        - Creates documentation systems and practices adopted across the business unit
+        - Defines knowledge management approaches that reduce information silos at scale
+        - Influences organisational culture so documentation is valued as a first-class engineering output
       expectedDurationMinutes: 10
 
 managementQuestions:
   awareness:
     - id: tw_mgmt_aware_1
-      text: How do you ensure your team documents their work appropriately?
+      text:
+        How do you ensure your team maintains adequate documentation?
       lookingFor:
-        - Basic documentation expectations
-        - Team documentation awareness
+        - Sets clear expectations about what must be documented and when
+        - Checks for documentation as part of feature completion criteria
       expectedDurationMinutes: 5
   foundational:
     - id: tw_mgmt_found_1
       text:
-        How do you set documentation expectations and standards for your team?
-      followUps:
-        - How do you handle resistance to documentation?
+        How do you help team members improve their technical writing skills?
       lookingFor:
-        - Documentation standard setting
-        - Team buy-in practices
+        - Reviews documentation and provides specific, actionable feedback on clarity and structure
+        - Creates pair-writing or review opportunities to build writing skills through practice
+        - Models clear writing in their own specs, emails, and documentation
       expectedDurationMinutes: 5
   working:
     - id: tw_mgmt_work_1
       text:
-        How do you balance documentation effort with delivery speed in your
-        team?
+        How do you establish documentation standards and ensure consistency?
       followUps:
-        - What is the minimum documentation you require?
+        - How do you balance documentation effort with delivery?
       lookingFor:
-        - Documentation vs velocity trade-offs
-        - Pragmatic documentation approach
+        - Creates practical documentation standards that reduce inconsistency without overhead
+        - Balances documentation effort against delivery by focusing on high-value documentation
+        - Ensures documentation stays current through process integration, not manual enforcement
       expectedDurationMinutes: 8
   practitioner:
     - id: tw_mgmt_pract_1
-      text: How do you build a documentation culture within your team?
-      followUps:
-        - How do you keep documentation current?
+      text:
+        How do you drive documentation culture and spec-driven development in your team?
       lookingFor:
-        - Documentation culture development
-        - Knowledge management practices
+        - Creates team expectation that specs are written before code, not after
+        - Makes documentation quality a visible part of team health metrics and retrospectives
+        - Builds a culture where engineers view documentation as an investment, not a chore
       expectedDurationMinutes: 8
   expert:
     - id: tw_mgmt_expert_1
       text:
-        How do you drive documentation practices and knowledge sharing across
-        multiple teams?
+        How do you shape organizational documentation practices and knowledge management?
       lookingFor:
-        - Cross-team documentation leadership
-        - Organizational knowledge strategy
+        - Defines documentation practices and knowledge management systems adopted across the business unit
+        - Creates organisational standards that reduce information fragmentation at enterprise scale
+        - Influences how the organisation values and invests in documentation infrastructure
       expectedDurationMinutes: 10

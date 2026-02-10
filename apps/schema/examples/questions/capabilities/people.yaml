@@ -13,6 +13,7 @@ professionalQuestions:
       decompositionPrompts:
         - What would the first week look like vs the first month?
         - How would you balance their learning with team productivity?
+        - How would AI tools accelerate their ramp-up on the new stack?
         - What pairing or mentoring structure would you set up?
         - How would you measure whether onboarding is successful?
       lookingFor:
@@ -28,9 +29,9 @@ professionalQuestions:
   practitioner:
     - id: ppl_pro_pract_decomp_1
       text:
-        Two senior engineers on your team have conflicting views on the
-        technical direction. This is affecting team morale and velocity. How do
-        you address it?
+        Two senior engineers on your team have conflicting views on the technical
+        direction. This is affecting team morale and velocity. How do you address
+        it?
       context:
         One wants to adopt a new framework for better developer experience. The
         other wants to stick with the current stack for stability. Both are high
@@ -38,8 +39,7 @@ professionalQuestions:
       decompositionPrompts:
         - How would you understand the root cause of the conflict?
         - What process would you use to reach a decision?
-        - How would you maintain both engineers' engagement regardless of
-          outcome?
+        - How would you maintain both engineers' engagement regardless of outcome?
         - What would you do if the conflict persists after a decision?
       lookingFor:
         - Separates technical disagreement from interpersonal conflict
@@ -48,57 +48,54 @@ professionalQuestions:
         - Plans for ongoing relationship management
       expectedDurationMinutes: 15
       followUps:
-        - What if one engineer threatens to leave if their approach isn't
-          chosen?
-        - How would you handle if this pattern repeats with the same
-          individuals?
+        - What if one engineer threatens to leave if their approach isn't chosen?
+        - How would you handle if this pattern repeats with the same individuals?
 
 managementQuestions:
   working:
     - id: ppl_mgmt_work_decomp_1
       text:
-        One of your engineers has been underperforming for the past two months.
-        They were previously a strong contributor. How would you approach this?
+        One of your team members is consistently underperforming despite multiple
+        feedback conversations. How would you handle this situation?
       context:
-        Their code quality has declined, they've missed two sprint commitments,
-        and other team members have started picking up slack. They haven't
-        mentioned any issues proactively.
+        The engineer has been on the team for 8 months. They meet basic
+        expectations but are not growing. Peers are frustrated with carrying
+        extra load. You've had 3 feedback conversations with limited improvement.
       decompositionPrompts:
-        - How would you prepare for a conversation with them?
-        - What would you try to understand about the situation?
-        - How would you structure support and accountability?
-        - What timeline and milestones would you set?
+        - How would you assess whether this is a skill, will, or fit issue?
+        - What performance improvement approach would you take?
+        - How would you manage the impact on the rest of the team?
+        - What decision criteria would you use for next steps?
       lookingFor:
-        - Approaches with curiosity rather than assumptions
-        - Considers personal and external factors
-        - Creates clear expectations with support plan
-        - Documents appropriately while maintaining trust
+        - Diagnoses root cause before choosing intervention
+        - Creates clear, measurable improvement plan with timeline
+        - Manages team dynamics while addressing individual performance
+        - Prepares for multiple outcomes including separation
       expectedDurationMinutes: 15
       followUps:
-        - What if they revealed they're dealing with a personal crisis?
-        - How would you handle if there was no improvement after one month?
+        - What if the engineer claims the expectations are unfair?
+        - How would you handle if the team wants you to act faster?
 
   practitioner:
     - id: ppl_mgmt_pract_decomp_1
       text:
-        Your organization is going through a restructuring that will affect your
-        team's composition. Some team members may be moved to other teams or
-        laid off. How do you navigate this with your team?
+        You need to grow your engineering organization from 25 to 50 engineers
+        over the next year. How would you approach this scaling challenge?
       context:
-        Leadership has shared preliminary plans with managers. Final decisions
-        are two weeks away. Rumors are starting to circulate. Your team has 8
-        members, 3 of whom may be affected.
+        The company has secured Series B funding. Current team is strong but
+        has no formal career ladders or management structure. You're the only
+        engineering manager reporting to the CTO.
       decompositionPrompts:
-        - How would you communicate with your team during uncertainty?
-        - How would you advocate for your team members with leadership?
-        - How would you support those who are affected?
-        - How would you maintain team function during the transition?
+        - How would you structure the hiring plan and timeline?
+        - What organizational structure would you build?
+        - How would you develop management capacity?
+        - How would you preserve culture while scaling?
       lookingFor:
-        - Balances transparency with appropriate confidentiality
-        - Advocates for team while aligning with organizational needs
-        - Provides emotional support during uncertainty
-        - Maintains team effectiveness through transition
+        - Creates phased hiring plan with clear milestones
+        - Designs org structure that scales (spans of control, team topology)
+        - Develops managers from within and hires experienced managers
+        - Explicitly addresses culture preservation and evolution
       expectedDurationMinutes: 15
       followUps:
-        - What if you disagreed with leadership's decisions about your team?
-        - How would you handle if remaining team members had survivor's guilt?
+        - What if you can't find enough quality candidates?
+        - How would you handle if existing senior ICs don't want to become managers?

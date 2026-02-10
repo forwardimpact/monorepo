@@ -3,102 +3,112 @@
 professionalQuestions:
   awareness:
     - id: arch_pro_aware_1
-      text:
-        What do you understand by 'separation of concerns' in software design?
+      text: How do you decide where to draw boundaries when structuring new code?
       lookingFor:
-        - Basic understanding of modularity
-        - Recognition that different parts of a system should handle different
-          things
+        - Thinks about grouping related functionality together
+        - Considers how changes in one area might affect others
+        - Shows awareness that structure choices affect future maintainability
       expectedDurationMinutes: 5
   foundational:
     - id: arch_pro_found_1
-      text:
-        Walk me through a recent feature you built. How did you decide on the
-        structure?
+      text: How do you decide on the structure when building a new feature?
       followUps:
-        - What alternatives did you consider?
-        - What would you do differently?
+        - What alternatives would you consider?
+        - How would AI tools change your approach to structuring code?
       lookingFor:
-        - Evidence of thoughtful design decisions
-        - Understanding of common patterns
-      expectedDurationMinutes: 8
+        - Considers multiple structural options before choosing
+        - Explains reasoning behind design decisions clearly
+        - Applies familiar patterns appropriately to new problems
+      expectedDurationMinutes: 5
   working:
     - id: arch_pro_work_1
       text:
-        Describe a system you designed. What were the key trade-offs you had to
-        make?
+        How do you approach designing a system when requirements involve
+        competing constraints?
       followUps:
-        - How did you validate these decisions?
+        - How do you validate architectural decisions before committing?
+        - How would AI tools help you explore design alternatives?
       lookingFor:
-        - Clear articulation of trade-offs
-        - Evidence of independent design work
+        - Articulates trade-offs clearly with rationale for each choice
+        - Designs independently, seeking feedback at appropriate points
+        - Considers operational concerns alongside functional requirements
       expectedDurationMinutes: 8
   practitioner:
     - id: arch_pro_pract_1
       text:
-        Tell me about a time when you had to guide a team through a significant
-        architectural decision.
+        How do you guide your team through significant architectural decisions
+        where opinions conflict?
       followUps:
-        - How did you handle disagreements?
+        - How do you balance technical purity with delivery pragmatism?
+        - How is AI changing the way your team evaluates architecture?
       lookingFor:
-        - Leadership in technical decisions
-        - Ability to build consensus
+        - Facilitates decision-making that includes diverse perspectives
+        - Builds consensus without suppressing valid dissent
+        - Documents decisions and rationale for future reference
       expectedDurationMinutes: 8
   expert:
     - id: arch_pro_expert_1
       text:
-        How do you approach defining and evolving architectural standards for an
+        How do you define and evolve architectural standards across a large
         organization?
+      followUps:
+        - How do AI tools change your approach to architectural governance?
       lookingFor:
-        - Strategic thinking about architecture
-        - Experience with organizational influence
-      expectedDurationMinutes: 8
+        - Creates standards that enable teams rather than constrain them
+        - Evolves architecture strategy as technology landscape changes
+        - Influences architectural direction across organizational boundaries
+      expectedDurationMinutes: 10
 
 managementQuestions:
   awareness:
     - id: arch_mgmt_aware_1
-      text: How do you ensure your team considers architecture in their work?
+      text: How do you recognize when your team needs architectural guidance?
       lookingFor:
-        - Basic awareness of architecture importance
-        - Understanding of team guidance needs
+        - Notices signals of architectural strain like coupling or tech debt
+        - Understands when to involve senior engineers in design decisions
+        - Connects architecture quality to team delivery outcomes
       expectedDurationMinutes: 5
   foundational:
     - id: arch_mgmt_found_1
-      text:
-        How do you support your team members in making sound design decisions?
+      text: How do you support your team in making good architectural decisions?
       followUps:
         - What resources or guidance do you provide?
       lookingFor:
-        - Team enablement approach
-        - Design decision support practices
-      expectedDurationMinutes: 8
+        - Enables team decision-making rather than dictating solutions
+        - Provides appropriate guardrails without micromanaging
+        - Connects teams with relevant expertise when needed
+      expectedDurationMinutes: 5
   working:
     - id: arch_mgmt_work_1
       text:
-        How do you balance architectural quality with delivery timelines in your
-        team?
+        How do you balance technical debt management with feature delivery in
+        your team?
       followUps:
-        - How do you handle technical debt decisions?
+        - How do you communicate architectural trade-offs to stakeholders?
       lookingFor:
-        - Trade-off management
-        - Team architecture governance
+        - Uses a clear framework to prioritize debt vs features
+        - Communicates trade-offs in business terms stakeholders understand
+        - Ensures the team has capacity for both maintenance and delivery
       expectedDurationMinutes: 8
   practitioner:
     - id: arch_mgmt_pract_1
       text:
-        How do you build architectural capability and maturity within your team?
+        How do you drive architectural alignment across multiple teams in your
+        area?
       followUps:
-        - How do you identify and develop architecture skills?
+        - How do you handle conflicts between team approaches?
       lookingFor:
-        - Team capability development
-        - Architecture skill growth strategies
+        - Creates alignment through shared principles, not mandates
+        - Resolves architectural conflicts by surfacing underlying trade-offs
+        - Thinks strategically about technical direction across teams
       expectedDurationMinutes: 8
   expert:
     - id: arch_mgmt_expert_1
-      text:
-        How do you shape architectural governance and decision-making across
-        multiple teams?
+      text: How do you shape architectural strategy at the organizational level?
+      followUps:
+        - How do you ensure architectural strategy keeps pace with AI advances?
       lookingFor:
-        - Cross-team architecture leadership
-        - Organizational architecture strategy
+        - Defines architectural vision that aligns business and technical goals
+        - Influences technical direction across organizational boundaries
+        - Adapts strategy as technology landscape evolves
       expectedDurationMinutes: 10

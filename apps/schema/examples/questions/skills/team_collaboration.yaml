@@ -5,16 +5,17 @@ professionalQuestions:
     - id: tc_pro_aware_1
       text: How do you work with your team to complete shared tasks?
       lookingFor:
-        - Basic teamwork skills
-        - Communication practices
+        - Communicates progress and blockers to teammates without being asked
+        - Shows willingness to help others even when it's not their direct responsibility
       expectedDurationMinutes: 5
   foundational:
     - id: tc_pro_found_1
       text:
-        Describe how you've helped a teammate when they were stuck on a problem.
+        How do you help a teammate when they're stuck on a problem?
       lookingFor:
-        - Supportive collaboration
-        - Knowledge sharing
+        - Offers support proactively without waiting to be asked
+        - Shares knowledge in a way that builds the teammate's capability
+        - Balances helping others with their own delivery commitments
       expectedDurationMinutes: 5
   working:
     - id: tc_pro_work_1
@@ -22,15 +23,17 @@ professionalQuestions:
       followUps:
         - How do you handle remote collaboration?
       lookingFor:
-        - Active collaboration facilitation
-        - Team enablement
+        - Creates practices that make collaboration easy, like shared documentation and regular syncs
+        - Adapts collaboration approach for remote and distributed team members
+        - Identifies and removes collaboration friction points proactively
       expectedDurationMinutes: 8
   practitioner:
     - id: tc_pro_pract_1
-      text: Describe how you've built high-performing team dynamics.
+      text: How do you build high-performing team dynamics?
       lookingFor:
-        - Team building expertise
-        - Handling interpersonal challenges
+        - Creates conditions for psychological safety and productive conflict
+        - Addresses interpersonal friction before it undermines collaboration
+        - Builds shared goals that unite diverse working styles
       expectedDurationMinutes: 10
   expert:
     - id: tc_pro_expert_1
@@ -38,52 +41,55 @@ professionalQuestions:
         How do you create collaborative culture across multiple teams or an
         organization?
       lookingFor:
-        - Cross-team collaboration leadership
-        - Organizational culture shaping
+        - Creates cross-team collaboration practices adopted beyond their own teams
+        - Breaks down silos by establishing shared goals and mutual dependencies
+        - Influences organisational culture so collaboration is the default, not the exception
       expectedDurationMinutes: 10
 
 managementQuestions:
   awareness:
     - id: tc_mgmt_aware_1
-      text: How do you encourage collaboration within your team?
+      text:
+        How do you ensure your team communicates effectively?
       lookingFor:
-        - Basic collaboration encouragement
-        - Team communication awareness
+        - Creates clear team communication norms for standups, async updates, and escalations
+        - Notices when communication breaks down and addresses it promptly
       expectedDurationMinutes: 5
   foundational:
     - id: tc_mgmt_found_1
-      text: How do you handle conflicts or tensions within your team?
-      followUps:
-        - How do you prevent conflicts from escalating?
+      text:
+        How do you help team members develop collaboration skills?
       lookingFor:
-        - Conflict resolution approach
-        - Team harmony maintenance
+        - Creates opportunities for pair and mob programming to build collaboration habits
+        - Gives specific feedback on collaboration behaviours in 1:1s and retros
+        - Models effective collaboration in their own cross-functional interactions
       expectedDurationMinutes: 5
   working:
     - id: tc_mgmt_work_1
-      text: How do you build psychological safety and trust within your team?
+      text:
+        How do you facilitate team collaboration and handle conflicts?
       followUps:
-        - How do you measure team health?
+        - How do you build psychological safety?
       lookingFor:
-        - Psychological safety practices
-        - Team health monitoring
+        - Addresses conflicts early through facilitated discussion rather than avoidance
+        - Creates psychological safety by responding constructively to mistakes and disagreements
+        - Builds team practices that encourage healthy debate and productive conflict
       expectedDurationMinutes: 8
   practitioner:
     - id: tc_mgmt_pract_1
       text:
-        How do you develop collaboration skills and team culture in your team?
-      followUps:
-        - How do you onboard new members into the team culture?
+        How do you build high-performing team dynamics and sustain them over time?
       lookingFor:
-        - Team culture development
-        - Collaboration skill building
+        - Creates conditions where teams maintain high performance through personnel changes
+        - Addresses team health issues before they impact delivery
+        - Builds self-managing teams that sustain their own collaboration practices
       expectedDurationMinutes: 10
   expert:
     - id: tc_mgmt_expert_1
       text:
-        How do you foster collaborative culture across multiple teams you
-        influence?
+        How do you shape organizational collaboration culture across teams?
       lookingFor:
-        - Cross-team collaboration leadership
-        - Organizational culture shaping
+        - Defines cross-team collaboration practices adopted across the business unit
+        - Creates organisational norms that break down team silos and encourage knowledge sharing
+        - Influences how the organisation values and rewards collaborative behaviour
       expectedDurationMinutes: 10

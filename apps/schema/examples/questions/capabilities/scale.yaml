@@ -8,8 +8,8 @@ professionalQuestions:
         1000 RPS in 6 months due to a new partnership. How would you approach
         this?
       context:
-        The API is a monolithic Node.js application backed by PostgreSQL.
-        Response time P99 is currently 200ms and must stay under 500ms.
+        The API is a monolithic Node.js application backed by PostgreSQL. Response
+        time P99 is currently 200ms and must stay under 500ms.
       decompositionPrompts:
         - What would you need to measure and understand first?
         - How would you identify the scaling bottlenecks?
@@ -23,8 +23,7 @@ professionalQuestions:
       expectedDurationMinutes: 15
       followUps:
         - What if the partnership deal accelerated and you had only 3 months?
-        - How would you handle if the new load had very different access
-          patterns?
+        - How would you handle if the new load had very different access patterns?
 
   practitioner:
     - id: scl_pro_pract_decomp_1
@@ -55,49 +54,49 @@ managementQuestions:
   working:
     - id: scl_mgmt_work_decomp_1
       text:
-        Your team's codebase has grown significantly and new engineers are
-        taking much longer to become productive. How would you address this?
+        Your team is responsible for a system that needs to scale significantly,
+        but you don't have dedicated infrastructure expertise. How would you
+        build this capability?
       context:
-        Onboarding time has increased from 2 weeks to 6 weeks. The codebase has
-        300K lines of code with limited documentation. You're planning to hire 3
-        more engineers this quarter.
+        The system needs to 10x in capacity over the next year. Your team of
+        6 engineers has strong application development skills but limited
+        infrastructure and performance engineering experience.
       decompositionPrompts:
-        - How would you assess what's causing the onboarding slowdown?
-        - What investments would you prioritize to improve the situation?
-        - How would you balance documentation work with feature delivery?
-        - How would you measure improvement over time?
+        - How would you assess your team's current capabilities and gaps?
+        - What strategy would you use to build the needed expertise?
+        - How would you manage the risk during the scaling effort?
+        - How would you balance learning with delivery commitments?
       lookingFor:
-        - Investigates root causes systematically
-        - Considers documentation, tooling, and mentorship investments
-        - Creates sustainable approach that doesn't overburden existing team
-        - Sets concrete onboarding time targets
+        - Honestly assesses capability gaps without blame
+        - Considers multiple approaches (hire, train, partner, outsource)
+        - Creates risk mitigation plan for capability building period
+        - Protects learning time while meeting business needs
       expectedDurationMinutes: 15
       followUps:
-        - What if senior engineers resisted taking time for documentation?
-        - How would you handle pressure to start new hires on features
-          immediately?
+        - What if you can't hire and must develop expertise internally?
+        - How would you handle if early scaling efforts fail?
 
   practitioner:
     - id: scl_mgmt_pract_decomp_1
       text:
-        Your organization wants to scale from 3 engineering teams to 8 teams
-        over the next year. You've been asked to help plan the team structure
-        and architecture evolution. How would you approach this?
+        Your organization's infrastructure costs have grown faster than revenue,
+        and leadership wants a 30% cost reduction while maintaining performance.
+        How would you approach this?
       context:
-        Current teams are organized by layer (frontend, backend,
-        infrastructure). The product is a B2B SaaS platform with 5 major feature
-        areas. Current architecture is a monolith with some extracted services.
+        Current cloud spend is $2M annually across 15 teams. Some services are
+        over-provisioned, others have inefficient architectures. Teams have
+        autonomy over their infrastructure but no accountability for costs.
       decompositionPrompts:
-        - What factors would drive your team topology recommendations?
-        - How would you align architecture changes with team growth?
-        - What challenges do you anticipate and how would you mitigate them?
-        - How would you phase the transition?
+        - How would you analyze current spend and identify opportunities?
+        - What governance changes would you propose?
+        - How would you drive cost consciousness across teams?
+        - How would you ensure cost reduction doesn't impact performance?
       lookingFor:
-        - Considers domain-driven team boundaries
-        - Aligns architecture evolution with organizational design
-        - Plans for communication overhead and coordination costs
-        - Anticipates cultural and process challenges of rapid growth
+        - Creates visibility into costs at service and team level
+        - Proposes accountability model while respecting team autonomy
+        - Identifies both quick wins and architectural improvements
+        - Establishes guardrails to prevent performance regression
       expectedDurationMinutes: 15
       followUps:
-        - What if leadership wanted to move faster than you recommended?
-        - How would you handle if existing teams resisted reorganization?
+        - What if teams push back on cost accountability?
+        - How would you handle if major cost savings require significant refactoring?

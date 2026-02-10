@@ -30,12 +30,10 @@ professionalQuestions:
     - id: rel_pro_pract_decomp_1
       text:
         You're designing the disaster recovery strategy for a system that
-        processes customer financial transactions. Walk me through your
-        approach.
+        processes customer financial transactions. Walk me through your approach.
       context:
-        The system handles $10M in daily transactions, uses AWS in us-east-1,
-        and currently has no cross-region capability. Budget for DR is $50K
-        annual.
+        The system handles $10M in daily transactions, uses AWS in us-east-1, and
+        currently has no cross-region capability. Budget for DR is $50K annual.
       decompositionPrompts:
         - What are the key requirements you need to establish first?
         - How would you structure the technical options analysis?
@@ -48,56 +46,55 @@ professionalQuestions:
         - Plans for regular testing and runbook maintenance
       expectedDurationMinutes: 15
       followUps:
-        - What would you do if a regional outage happened before DR was
-          complete?
+        - What would you do if a regional outage happened before DR was complete?
         - How would you handle if the $50K budget was cut in half?
 
 managementQuestions:
   working:
     - id: rel_mgmt_work_decomp_1
       text:
-        Your team's on-call rotation is burning people out. Three engineers have
-        complained about being paged too frequently. How would you address this?
+        Your on-call engineers are burning out due to frequent pages and
+        incident response. How would you improve the situation?
       context:
-        The team of 6 handles on-call for 3 services. Page volume is 40 per
-        week, with 60% being false alarms or low-priority. Two engineers are
-        considering leaving due to on-call burden.
+        The team is paged an average of 5 times per week outside business hours.
+        Two engineers have asked to leave on-call rotation. Incident response
+        often requires escalation because documentation is lacking.
       decompositionPrompts:
-        - How would you assess the current on-call health?
-        - What changes would you prioritize to reduce burden?
-        - How would you balance immediate relief with long-term fixes?
-        - How would you rebuild team trust around on-call?
+        - How would you analyze the current on-call burden?
+        - What changes to the on-call structure would you consider?
+        - How would you reduce incident frequency and impact?
+        - How would you sustain these improvements over time?
       lookingFor:
-        - Takes retention risk seriously
-        - Analyzes page sources to prioritize fixes
-        - Considers short-term accommodations while fixing root causes
-        - Involves team in designing sustainable solutions
+        - Analyzes incidents to identify patterns and preventable pages
+        - Considers rotation structure, compensation, and workload distribution
+        - Invests in runbooks, automation, and self-healing
+        - Creates sustainable practices rather than short-term fixes
       expectedDurationMinutes: 15
       followUps:
-        - What if you couldn't reduce page volume quickly?
-        - How would you handle if leadership wanted to add a fourth service?
+        - What if leadership says there's no budget for additional on-call support?
+        - How would you handle if the most experienced engineers refuse on-call?
 
   practitioner:
     - id: rel_mgmt_pract_decomp_1
       text:
-        After a major incident, your team's postmortem revealed significant
-        process and communication failures. How would you drive organizational
-        improvements?
+        Your organization has grown to 20 services owned by different teams
+        but has no consistent approach to reliability. How would you establish
+        reliability practices at scale?
       context:
-        The incident lasted 4 hours and impacted $500K in transactions. Root
-        causes included unclear escalation paths, lack of runbooks, and poor
-        cross-team communication. Multiple teams were involved.
+        Some teams have mature SLOs and incident response, others don't.
+        Recent cross-team incidents took too long to resolve due to unclear
+        ownership. Leadership wants to improve reliability organization-wide.
       decompositionPrompts:
-        - How would you prioritize the improvements identified?
-        - How would you build consensus across teams and leadership?
-        - What governance would you establish to ensure follow-through?
-        - How would you measure whether improvements are working?
+        - How would you assess current reliability maturity across teams?
+        - What standards and practices would you establish?
+        - How would you drive adoption across teams with different contexts?
+        - How would you coordinate reliability during cross-team incidents?
       lookingFor:
-        - Focuses on systemic issues rather than individual blame
-        - Creates cross-functional alignment on improvements
-        - Establishes accountability for action items
-        - Builds culture of continuous reliability improvement
+        - Creates maturity model to meet teams where they are
+        - Establishes minimum standards while allowing team flexibility
+        - Provides enablement (tooling, templates) alongside requirements
+        - Defines clear escalation and coordination for cross-team issues
       expectedDurationMinutes: 15
       followUps:
-        - What if other teams resisted changes to their processes?
-        - How would you handle pressure to move on without implementing fixes?
+        - What if teams resist reliability requirements as overhead?
+        - How would you handle if different teams have conflicting SLO definitions?

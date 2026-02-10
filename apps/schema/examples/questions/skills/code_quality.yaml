@@ -3,10 +3,11 @@
 professionalQuestions:
   awareness:
     - id: cq_pro_aware_1
-      text: What does 'clean code' mean to you?
+      text: How do you ensure the next person who reads your code understands it?
       lookingFor:
-        - Basic understanding of readability
-        - Awareness of maintainability concerns
+        - Thinks about readability from another developer's perspective
+        - Uses naming and structure to communicate intent
+        - Shows awareness that code is read more often than written
       expectedDurationMinutes: 5
   foundational:
     - id: cq_pro_found_1
@@ -15,75 +16,124 @@ professionalQuestions:
         - What naming conventions do you follow?
         - How do you decide when to add comments?
       lookingFor:
-        - Consistent coding practices
-        - Understanding of code formatting and structure
+        - Uses consistent naming and structure that communicates intent to readers
+        - Formats code for scanability and groups related logic together
+        - Writes comments that explain why, not what
+      expectedDurationMinutes: 5
+    - id: cq_pro_found_2
+      text: What testing practices do you follow when writing code?
+      lookingFor:
+        - Writes tests as part of development, not as an afterthought
+        - Understands the purpose of testing beyond just coverage numbers
       expectedDurationMinutes: 5
   working:
     - id: cq_pro_work_1
       text: How do you approach code review? What do you look for?
       lookingFor:
-        - Systematic approach to reviews
-        - Balance between quality and velocity
+        - Follows a systematic approach covering correctness, clarity, and design
+        - Balances thoroughness with keeping reviews timely
+        - Gives constructive feedback that helps the author improve
+      expectedDurationMinutes: 8
+    - id: cq_pro_work_2
+      text:
+        How do you decide what to test and what level of testing to apply?
+      followUps:
+        - How does AI-generated code change your testing approach?
+      lookingFor:
+        - Chooses test types based on risk and complexity of the code
+        - Focuses testing effort where bugs would be most costly
+        - Considers the maintenance cost of tests alongside their value
       expectedDurationMinutes: 8
   practitioner:
     - id: cq_pro_pract_1
       text: How have you improved code quality practices in your team?
       lookingFor:
-        - Measurable improvements
-        - Team influence
+        - Identifies specific quality gaps and addresses them with measurable actions
+        - Influences team norms around quality through mentoring and example
+        - Balances quality investment with delivery commitments
+      expectedDurationMinutes: 8
+    - id: cq_pro_pract_2
+      text:
+        How do you balance code quality with delivery speed? Give a specific
+        example.
+      followUps:
+        - When have you chosen to accept technical debt?
+      lookingFor:
+        - Makes pragmatic trade-offs with clear reasoning about context
+        - Communicates quality decisions to stakeholders without jargon
+        - Distinguishes between deliberate trade-offs and sloppy shortcuts
       expectedDurationMinutes: 8
   expert:
     - id: cq_pro_expert_1
       text:
-        How have you established code quality standards across an organization?
+        How have you established code quality standards across an organization or
+        multiple teams?
       followUps:
         - How did you gain adoption?
         - How do you measure success?
       lookingFor:
-        - Organizational influence
-        - Scalable quality practices
+        - Creates standards that teams adopt willingly because they solve real problems
+        - Measures quality through defect rates and change failure, not just lint scores
+        - Evolves standards as practices change, especially around AI-generated code
+      expectedDurationMinutes: 10
+    - id: cq_pro_expert_2
+      text:
+        How do you approach reviewing AI-generated code at scale? What practices
+        ensure quality?
+      lookingFor:
+        - Designs review processes that catch AI-specific failure modes like plausible but wrong logic
+        - Creates verification depth guidelines calibrated to risk, not just code origin
+        - Establishes organisational patterns for when AI-generated code needs deeper scrutiny
       expectedDurationMinutes: 10
 
 managementQuestions:
   awareness:
     - id: cq_mgmt_aware_1
-      text: How do you set expectations for code quality in your team?
+      text:
+        How do you communicate the importance of code quality to your team?
       lookingFor:
-        - Basic quality expectations
-        - Understanding of team standards
+        - Connects quality to outcomes the team cares about like fewer bugs and faster changes
+        - Uses concrete examples of quality impact rather than abstract principles
       expectedDurationMinutes: 5
   foundational:
     - id: cq_mgmt_found_1
-      text: How do you ensure code reviews happen effectively in your team?
-      followUps:
-        - How do you handle review bottlenecks?
+      text:
+        How do you help team members improve their coding and testing practices?
       lookingFor:
-        - Code review process management
-        - Team workflow optimization
+        - Provides specific, actionable feedback in code reviews rather than vague suggestions
+        - Creates pairing opportunities that build quality skills through real work
+        - Identifies individual skill gaps and tailors development approaches
       expectedDurationMinutes: 5
   working:
     - id: cq_mgmt_work_1
-      text: How do you balance code quality with delivery speed in your team?
+      text:
+        How do you establish and maintain code review practices in your team?
       followUps:
-        - How do you make trade-off decisions?
+        - How do you handle disagreements about code quality?
       lookingFor:
-        - Quality vs velocity trade-offs
-        - Team guidance on priorities
+        - Establishes review norms that balance thoroughness with turnaround time
+        - Facilitates quality disagreements toward shared standards rather than personal preference
+        - Creates review practices that work for AI-generated code, not just human-written
       expectedDurationMinutes: 8
   practitioner:
     - id: cq_mgmt_pract_1
-      text: How do you build a culture of quality ownership within your team?
+      text:
+        How do you balance code quality standards with delivery pressure from stakeholders?
+      followUps:
+        - How do you communicate quality trade-offs?
       lookingFor:
-        - Quality culture development
-        - Team accountability practices
+        - Translates quality trade-offs into business terms stakeholders can act on
+        - Pushes back on shortcuts that create future cost while accepting pragmatic trade-offs
+        - Creates visibility into quality metrics so trade-offs are informed, not guesses
       expectedDurationMinutes: 8
   expert:
     - id: cq_mgmt_expert_1
       text:
-        How do you establish and evolve quality standards across multiple teams?
+        How do you drive code quality culture and standards across multiple teams?
       followUps:
-        - How do you measure quality outcomes?
+        - How do you measure quality improvement?
       lookingFor:
-        - Cross-team quality leadership
-        - Quality metrics and governance
+        - Creates cross-team quality standards that teams adopt without heavy governance
+        - Uses metrics like defect escape rate and change lead time to track quality trends
+        - Shapes engineering culture so quality is a shared value, not a compliance exercise
       expectedDurationMinutes: 10

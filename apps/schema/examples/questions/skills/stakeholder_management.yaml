@@ -7,8 +7,8 @@ professionalQuestions:
         Who are the key stakeholders you work with and how do you keep them
         informed?
       lookingFor:
-        - Stakeholder identification
-        - Basic communication practices
+        - Identifies who depends on their work and who they depend on
+        - Keeps stakeholders informed proactively rather than waiting to be asked
       expectedDurationMinutes: 5
   foundational:
     - id: stk_pro_found_1
@@ -16,19 +16,20 @@ professionalQuestions:
         How do you set expectations with stakeholders about timelines and
         deliverables?
       lookingFor:
-        - Expectation management
-        - Proactive communication
+        - Sets realistic expectations early rather than over-promising
+        - Communicates changes to timelines proactively with reasons and alternatives
+        - Builds trust through consistent follow-through on commitments
       expectedDurationMinutes: 5
   working:
     - id: stk_pro_work_1
       text:
-        Describe a situation where you had to manage conflicting stakeholder
-        priorities.
+        How do you manage conflicting priorities from different stakeholders?
       followUps:
-        - How did you resolve it?
+        - How do you decide whose priorities take precedence?
       lookingFor:
-        - Conflict navigation
-        - Prioritization skills
+        - Identifies the underlying needs behind each stakeholder's position
+        - Facilitates trade-off discussions rather than unilaterally deciding
+        - Communicates decisions and reasoning back to all affected parties
       expectedDurationMinutes: 8
   practitioner:
     - id: stk_pro_pract_1
@@ -36,64 +37,64 @@ professionalQuestions:
         How do you build trust with senior stakeholders and influence their
         decisions?
       lookingFor:
-        - Executive relationship building
-        - Influence without authority
+        - Builds credibility through consistent delivery and transparent communication
+        - Influences decisions by framing technical choices in business terms
+        - Adapts their communication style to match each stakeholder's priorities and preferences
       expectedDurationMinutes: 10
   expert:
     - id: stk_pro_expert_1
       text:
         How do you manage complex stakeholder landscapes across an organization?
       lookingFor:
-        - Enterprise stakeholder management
-        - Political navigation
+        - Maps and navigates complex stakeholder networks with competing interests
+        - Builds coalitions to drive organisational change across boundaries
+        - Resolves conflicts between powerful stakeholders while preserving relationships
       expectedDurationMinutes: 10
 
 managementQuestions:
   awareness:
     - id: stk_mgmt_aware_1
       text:
-        How do you ensure your team communicates effectively with stakeholders?
+        How do you ensure your team understands who their stakeholders are?
       lookingFor:
-        - Basic stakeholder communication guidance
-        - Team communication awareness
+        - Makes stakeholder context visible to the team during planning and execution
+        - Helps team members understand how their work impacts other teams and users
       expectedDurationMinutes: 5
   foundational:
     - id: stk_mgmt_found_1
       text:
-        How do you shield your team from stakeholder pressure while maintaining
-        relationships?
-      followUps:
-        - How do you handle unrealistic demands?
+        How do you help team members develop stakeholder management skills?
       lookingFor:
-        - Team protection practices
-        - Stakeholder boundary setting
+        - Creates opportunities for engineers to interact directly with stakeholders
+        - Coaches team members on communication style for different audiences
+        - Models effective stakeholder communication in their own interactions
       expectedDurationMinutes: 5
   working:
     - id: stk_mgmt_work_1
       text:
-        How do you represent your team's interests to stakeholders while
-        maintaining trust?
+        How do you manage stakeholder expectations on behalf of your team?
       followUps:
-        - How do you handle conflicting stakeholder demands?
+        - How do you shield your team while maintaining transparency?
       lookingFor:
-        - Team advocacy
-        - Stakeholder relationship management
+        - Manages expectations proactively by surfacing risks and trade-offs early
+        - Shields team from context-switching without hiding information from stakeholders
+        - Maintains trust through transparency even when delivering difficult news
       expectedDurationMinutes: 8
   practitioner:
     - id: stk_mgmt_pract_1
-      text: How do you develop stakeholder management skills within your team?
-      followUps:
-        - How do you delegate stakeholder relationships?
+      text:
+        How do you navigate conflicting stakeholder priorities and build trust across groups?
       lookingFor:
-        - Team stakeholder capability building
-        - Delegation of relationships
+        - Facilitates alignment discussions rather than choosing sides unilaterally
+        - Builds trust with multiple stakeholder groups through consistent and fair treatment
+        - Creates transparent decision frameworks so stakeholders understand how priorities are set
       expectedDurationMinutes: 10
   expert:
     - id: stk_mgmt_expert_1
       text:
-        How do you build strategic stakeholder relationships that benefit
-        multiple teams?
+        How do you shape organizational approaches to stakeholder engagement?
       lookingFor:
-        - Cross-team stakeholder strategy
-        - Organizational relationship building
+        - Defines stakeholder engagement practices adopted across organisational boundaries
+        - Creates frameworks for managing complex stakeholder landscapes at enterprise scale
+        - Influences organisational culture toward transparent, trust-based stakeholder relationships
       expectedDurationMinutes: 10
