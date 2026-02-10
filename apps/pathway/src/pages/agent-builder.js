@@ -37,8 +37,13 @@ import {
 import { createReactive } from "../lib/reactive.js";
 import { getStageEmoji } from "../formatters/stage/shared.js";
 import { formatAgentProfile } from "../formatters/agent/profile.js";
-import { formatAgentSkill } from "../formatters/agent/skill.js";
+import {
+  formatAgentSkill,
+  formatInstallScript,
+  formatReference,
+} from "../formatters/agent/skill.js";
 import { createCodeDisplay } from "../components/code-display.js";
+import { createSkillFileViewer } from "../components/skill-file-viewer.js";
 import { createToolkitTable } from "../formatters/toolkit/dom.js";
 import { createDetailSection } from "../components/detail.js";
 
@@ -65,17 +70,21 @@ async function getAgentData(dataDir = "./data") {
 
 /**
  * Load templates with caching
- * @returns {Promise<{agent: string, skill: string}>}
+ * @returns {Promise<{agent: string, skill: string, install: string, reference: string}>}
  */
 async function getTemplates() {
   if (!templateCache) {
-    const [agentRes, skillRes] = await Promise.all([
+    const [agentRes, skillRes, installRes, referenceRes] = await Promise.all([
       fetch("./templates/agent.template.md"),
       fetch("./templates/skill.template.md"),
+      fetch("./templates/skill-install.template.sh"),
+      fetch("./templates/skill-reference.template.md"),
     ]);
     templateCache = {
       agent: await agentRes.text(),
       skill: await skillRes.text(),
+      install: await installRes.text(),
+      reference: await referenceRes.text(),
     };
   }
   return templateCache;
@@ -271,7 +280,6 @@ export async function renderAgentBuilder() {
       skills: data.skills,
       behaviours: data.behaviours,
       agentBehaviours: agentData.behaviours,
-      capabilities: data.capabilities,
       vscodeSettings: agentData.vscodeSettings,
       devcontainer: agentData.devcontainer,
       templates,
@@ -449,7 +457,6 @@ function createAllStagesPreview(context) {
     skills,
     behaviours,
     agentBehaviours,
-    capabilities,
     vscodeSettings,
     devcontainer,
     templates,
@@ -468,7 +475,6 @@ function createAllStagesPreview(context) {
       agentBehaviours,
       agentDiscipline,
       agentTrack,
-      capabilities,
       stages,
     });
 
@@ -482,7 +488,6 @@ function createAllStagesPreview(context) {
       agentBehaviours,
       agentDiscipline,
       agentTrack,
-      capabilities,
       stages,
       agentIndex,
     });
@@ -545,9 +550,7 @@ function createAllStagesPreview(context) {
       skillFiles.length > 0
         ? div(
             { className: "skill-cards-grid" },
-            ...skillFiles.map((skill) =>
-              createSkillCard(skill, templates.skill),
-            ),
+            ...skillFiles.map((skill) => createSkillCard(skill, templates)),
           )
         : p(
             { className: "text-muted" },
@@ -581,7 +584,6 @@ function createSingleStagePreview(context, stage) {
     skills,
     behaviours,
     agentBehaviours,
-    capabilities,
     vscodeSettings,
     devcontainer,
     stages,
@@ -600,7 +602,6 @@ function createSingleStagePreview(context, stage) {
     agentBehaviours,
     agentDiscipline,
     agentTrack,
-    capabilities,
     stages,
   });
 
@@ -614,7 +615,6 @@ function createSingleStagePreview(context, stage) {
     agentBehaviours,
     agentDiscipline,
     agentTrack,
-    capabilities,
     stages,
     agentIndex,
   });
@@ -667,9 +667,7 @@ function createSingleStagePreview(context, stage) {
       skillFiles.length > 0
         ? div(
             { className: "skill-cards-grid" },
-            ...skillFiles.map((skill) =>
-              createSkillCard(skill, templates.skill),
-            ),
+            ...skillFiles.map((skill) => createSkillCard(skill, templates)),
           )
         : p(
             { className: "text-muted" },
@@ -716,6 +714,7 @@ function createAgentCard(stage, profile, stages, agentTemplate, _derived) {
         content,
         filename: profile.filename,
         maxHeight: 400,
+        open: true,
       }),
     ),
   );
@@ -724,28 +723,58 @@ function createAgentCard(stage, profile, stages, agentTemplate, _derived) {
 }
 
 /**
- * Create a skill card
+ * Create a skill card with tabbed file viewer
  * @param {Object} skill - Skill with frontmatter and body
- * @param {string} skillTemplate - Mustache template for skill
+ * @param {{skill: string, install: string, reference: string}} templates - Mustache templates
  * @returns {HTMLElement}
  */
-function createSkillCard(skill, skillTemplate) {
-  const content = formatAgentSkill(skill, skillTemplate);
+function createSkillCard(skill, templates) {
+  const content = formatAgentSkill(skill, templates.skill);
   const filename = `${skill.dirname}/SKILL.md`;
+
+  // Build files array for the tabbed viewer
+  /** @type {import('../components/skill-file-viewer.js').SkillFile[]} */
+  const files = [
+    {
+      filename,
+      content,
+      language: "markdown",
+    },
+  ];
+
+  if (skill.installScript) {
+    files.push({
+      filename: `${skill.dirname}/scripts/install.sh`,
+      content: formatInstallScript(skill, templates.install),
+      language: "bash",
+    });
+  }
+
+  if (skill.implementationReference) {
+    files.push({
+      filename: `${skill.dirname}/references/REFERENCE.md`,
+      content: formatReference(skill, templates.reference),
+      language: "markdown",
+    });
+  }
+
+  // Count total files for badge
+  const fileCount = files.length;
+  const headerChildren = [
+    span({ className: "skill-card-name" }, skill.frontmatter.name),
+  ];
+  if (fileCount > 1) {
+    headerChildren.push(
+      span({ className: "skill-card-badge" }, `${fileCount} files`),
+    );
+  }
 
   return div(
     { className: "skill-card" },
-    div(
-      { className: "skill-card-header" },
-      span({ className: "skill-card-name" }, skill.frontmatter.name),
-    ),
+    div({ className: "skill-card-header" }, ...headerChildren),
     div(
       { className: "skill-card-preview" },
-      createCodeDisplay({
-        content,
-        filename,
-        maxHeight: 300,
-      }),
+      createSkillFileViewer({ files, maxHeight: 300 }),
     ),
   );
 }
@@ -787,10 +816,27 @@ function createDownloadAllButton(
         zip.file(`.github/agents/${profile.filename}`, content);
       }
 
-      // Add skills
+      // Add skills (SKILL.md + optional install script + optional reference)
       for (const skill of skillFiles) {
         const content = formatAgentSkill(skill, templates.skill);
         zip.file(`.claude/skills/${skill.dirname}/SKILL.md`, content);
+
+        if (skill.installScript) {
+          const installContent = formatInstallScript(skill, templates.install);
+          zip.file(
+            `.claude/skills/${skill.dirname}/scripts/install.sh`,
+            installContent,
+            { unixPermissions: "755" },
+          );
+        }
+
+        if (skill.implementationReference) {
+          const refContent = formatReference(skill, templates.reference);
+          zip.file(
+            `.claude/skills/${skill.dirname}/references/REFERENCE.md`,
+            refContent,
+          );
+        }
       }
 
       // Add VS Code settings
@@ -870,10 +916,27 @@ function createDownloadSingleButton(
       const content = formatAgentProfile(profile, templates.agent);
       zip.file(`.github/agents/${profile.filename}`, content);
 
-      // Add skills
+      // Add skills (SKILL.md + optional install script + optional reference)
       for (const skill of skillFiles) {
         const skillContent = formatAgentSkill(skill, templates.skill);
         zip.file(`.claude/skills/${skill.dirname}/SKILL.md`, skillContent);
+
+        if (skill.installScript) {
+          const installContent = formatInstallScript(skill, templates.install);
+          zip.file(
+            `.claude/skills/${skill.dirname}/scripts/install.sh`,
+            installContent,
+            { unixPermissions: "755" },
+          );
+        }
+
+        if (skill.implementationReference) {
+          const refContent = formatReference(skill, templates.reference);
+          zip.file(
+            `.claude/skills/${skill.dirname}/references/REFERENCE.md`,
+            refContent,
+          );
+        }
       }
 
       // Add VS Code settings

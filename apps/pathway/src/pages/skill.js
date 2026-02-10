@@ -14,6 +14,23 @@ import {
   getCapabilityEmoji,
   getConceptEmoji,
 } from "@forwardimpact/schema/levels";
+import { generateSkillMarkdown } from "@forwardimpact/model";
+import { formatAgentSkill } from "../formatters/agent/skill.js";
+
+/** @type {string|null} Cached skill template */
+let skillTemplateCache = null;
+
+/**
+ * Load skill Mustache template with caching
+ * @returns {Promise<string>}
+ */
+async function getSkillTemplate() {
+  if (!skillTemplateCache) {
+    const res = await fetch("./templates/skill.template.md");
+    skillTemplateCache = await res.text();
+  }
+  return skillTemplateCache;
+}
 
 /**
  * Render skills list page
@@ -69,7 +86,7 @@ export function renderSkillsList() {
  * Render skill detail page
  * @param {Object} params - Route params
  */
-export function renderSkillDetail(params) {
+export async function renderSkillDetail(params) {
   const { data } = getState();
   const skill = data.skills.find((s) => s.id === params.id);
 
@@ -83,6 +100,14 @@ export function renderSkillDetail(params) {
     return;
   }
 
+  // Generate SKILL.md content if skill has an agent section
+  let agentSkillContent;
+  if (skill.agent) {
+    const template = await getSkillTemplate();
+    const skillData = generateSkillMarkdown(skill, data.stages);
+    agentSkillContent = formatAgentSkill(skillData, template);
+  }
+
   // Use DOM formatter - it handles transformation internally
   render(
     skillToDOM(skill, {
@@ -90,6 +115,7 @@ export function renderSkillDetail(params) {
       tracks: data.tracks,
       drivers: data.drivers,
       capabilities: data.capabilities,
+      agentSkillContent,
     }),
   );
 }

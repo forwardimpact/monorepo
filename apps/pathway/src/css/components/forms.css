@@ -103,31 +103,62 @@
     color: var(--color-primary);
   }
 
-  /* Code display - unified component for code/markdown with copy buttons */
-  .code-display-container {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
+  /* Code display - collapsible component for code/markdown with copy buttons */
+  .code-display-pane {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    overflow: hidden;
   }
 
-  .code-display-header {
+  .code-display-summary {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: var(--space-md);
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    list-style: none;
+    background: var(--color-surface);
+    border-bottom: 1px solid transparent;
   }
 
-  .code-display-info {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
+  .code-display-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .code-display-summary::before {
+    content: "▸";
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+
+  .code-display-pane[open] > .code-display-summary {
+    border-bottom-color: var(--color-border);
+  }
+
+  .code-display-pane[open] > .code-display-summary::before {
+    content: "▾";
+  }
+
+  .code-display-summary .code-display-filename {
     flex: 1;
-    min-width: 200px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .code-display-info .text-muted {
-    margin: 0;
+  .code-display-summary .button-group {
+    flex-shrink: 0;
+  }
+
+  .code-display-body {
+    padding: var(--space-sm) var(--space-md) var(--space-md);
+  }
+
+  .code-display-body .text-muted {
+    margin: 0 0 var(--space-sm);
   }
 
   .code-display-filename {

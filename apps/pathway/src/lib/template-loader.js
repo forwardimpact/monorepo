@@ -66,6 +66,24 @@ export async function loadSkillTemplate(dataDir) {
 }
 
 /**
+ * Load skill install script template
+ * @param {string} dataDir - Path to data directory
+ * @returns {Promise<string>} Install script template content
+ */
+export async function loadSkillInstallTemplate(dataDir) {
+  return loadTemplate("skill-install.template.sh", dataDir);
+}
+
+/**
+ * Load skill reference template
+ * @param {string} dataDir - Path to data directory
+ * @returns {Promise<string>} Reference template content
+ */
+export async function loadSkillReferenceTemplate(dataDir) {
+  return loadTemplate("skill-reference.template.md", dataDir);
+}
+
+/**
  * Load job description template
  * @param {string} dataDir - Path to data directory
  * @returns {Promise<string>} Job template content

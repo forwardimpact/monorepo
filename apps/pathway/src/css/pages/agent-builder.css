@@ -106,7 +106,7 @@
     padding: var(--space-md);
   }
 
-  .agent-card-preview .code-display-container {
+  .agent-card-preview .code-display-pane {
     margin: 0;
   }
 
@@ -146,12 +146,23 @@
     padding: var(--space-sm) var(--space-md) var(--space-md);
   }
 
-  .skill-card-preview .code-display-container {
+  .skill-card-preview .code-display-pane {
     margin: 0;
   }
 
   .skill-card-preview .code-display {
     max-height: 300px;
+  }
+
+  /* Skill card file count badge */
+  .skill-card-badge {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.1em 0.5em;
+    white-space: nowrap;
   }
 
   .skills-list {
@@ -165,59 +176,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
-  }
-
-  .role-agent-card {
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-
-  .role-agent-card > summary {
-    cursor: pointer;
-    padding: var(--space-md);
-    background: var(--color-bg);
-    border-bottom: 1px solid transparent;
-    list-style: none;
-  }
-
-  .role-agent-card > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .role-agent-card[open] > summary {
-    border-bottom-color: var(--color-border);
-  }
-
-  .role-agent-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .role-name {
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text);
-  }
-
-  .role-filename {
-    font-family: var(--font-family-mono);
-    font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
-  }
-
-  .role-agent-content {
-    padding: var(--space-md);
-  }
-
-  .role-description {
-    margin-bottom: var(--space-md);
-  }
-
-  .role-agent-actions {
-    display: flex;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-sm);
   }
 
   /* Stage agent preview */

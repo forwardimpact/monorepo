@@ -23,13 +23,6 @@ import {
  */
 
 /**
- * @typedef {Object} ChecklistEntry
- * @property {{id: string, name: string}} skill - Skill info
- * @property {{id: string, name: string, emojiIcon: string}} capability - Capability info
- * @property {string[]} items - Checklist items
- */
-
-/**
  * Prepare agent profile data for template rendering
  * Normalizes string values by trimming trailing newlines for consistent template output.
  * @param {Object} params
@@ -49,8 +42,6 @@ import {
  * @param {Array<{name: string, dirname: string, useWhen: string}>} params.bodyData.skillIndex - Skill index entries
  * @param {string} params.bodyData.roleContext - Role context text
  * @param {WorkingStyleEntry[]} params.bodyData.workingStyles - Working style entries
- * @param {ChecklistEntry[]} [params.bodyData.readChecklist] - Read-Then-Do Checklist entries
- * @param {ChecklistEntry[]} [params.bodyData.confirmChecklist] - Do-Then-Confirm Checklist entries
  * @param {string[]} params.bodyData.constraints - List of constraints
  * @param {Array<{id: string, name: string, description: string}>} [params.bodyData.agentIndex] - List of all available agents
  * @param {boolean} [params.bodyData.hasAgentIndex] - Whether agent index is available
@@ -81,20 +72,6 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
     content: "required",
   });
 
-  // Process readChecklist: trim items in each entry
-  const readChecklist = (bodyData.readChecklist || []).map((entry) => ({
-    skill: entry.skill,
-    capability: entry.capability,
-    items: (entry.items || []).map((item) => trimRequired(item)),
-  }));
-
-  // Process confirmChecklist: trim items in each entry
-  const confirmChecklist = (bodyData.confirmChecklist || []).map((entry) => ({
-    skill: entry.skill,
-    capability: entry.capability,
-    items: (entry.items || []).map((item) => trimRequired(item)),
-  }));
-
   return {
     // Frontmatter - flatten description for single-line front matter
     name: frontmatter.name,
@@ -115,10 +92,6 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
     roleContext: trimValue(bodyData.roleContext),
     workingStyles,
     hasWorkingStyles: workingStyles.length > 0,
-    readChecklist,
-    hasReadChecklist: readChecklist.length > 0,
-    confirmChecklist,
-    hasConfirmChecklist: confirmChecklist.length > 0,
     constraints,
     hasConstraints: constraints.length > 0,
     agentIndex,
@@ -143,8 +116,6 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
  * @param {Array<{name: string, dirname: string, useWhen: string}>} profile.bodyData.skillIndex - Skill index entries
  * @param {string} profile.bodyData.roleContext - Role context text
  * @param {WorkingStyleEntry[]} profile.bodyData.workingStyles - Working style entries
- * @param {ChecklistEntry[]} [profile.bodyData.readChecklist] - Read-Then-Do Checklist entries (optional)
- * @param {ChecklistEntry[]} [profile.bodyData.confirmChecklist] - Do-Then-Confirm Checklist entries (optional)
  * @param {string[]} profile.bodyData.constraints - List of constraints
  * @param {string} template - Mustache template string
  * @returns {string} Complete .agent.md file content

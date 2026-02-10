@@ -5,17 +5,7 @@
  * Includes copy and download functionality.
  */
 
-import {
-  div,
-  h2,
-  h3,
-  p,
-  span,
-  button,
-  section,
-  details,
-  summary,
-} from "../../lib/render.js";
+import { div, h2, h3, p, span, button, section } from "../../lib/render.js";
 import { createCodeDisplay } from "../../components/code-display.js";
 import { formatAgentProfile } from "./profile.js";
 import { formatAgentSkill } from "./skill.js";
@@ -163,33 +153,13 @@ function createSkillCard(skill) {
  */
 function createRoleAgentCard(agent) {
   const content = formatAgentProfile(agent);
-  const roleName = agent.frontmatter.name.split("-").pop(); // Extract role suffix (plan, review)
 
-  return details(
-    { className: "role-agent-card" },
-    summary(
-      {},
-      div(
-        { className: "role-agent-header" },
-        span(
-          { className: "role-name" },
-          `${roleName.charAt(0).toUpperCase() + roleName.slice(1)} Agent`,
-        ),
-        span({ className: "role-filename" }, agent.filename),
-      ),
-    ),
-    div(
-      { className: "role-agent-content" },
-      p(
-        { className: "text-muted role-description" },
-        agent.frontmatter.description,
-      ),
-      createCodeDisplay({
-        content,
-        maxHeight: 400,
-      }),
-    ),
-  );
+  return createCodeDisplay({
+    content,
+    filename: agent.filename,
+    description: agent.frontmatter.description,
+    maxHeight: 400,
+  });
 }
 
 /**

@@ -18,7 +18,7 @@ import {
 } from "../../lib/render.js";
 import { createBackLink } from "../../components/nav.js";
 import { createLevelCell } from "../../components/detail.js";
-import { createCodeDisplay } from "../../components/code-display.js";
+import { createSkillFileViewer } from "../../components/skill-file-viewer.js";
 import { createToolIcon } from "../../lib/card-mappers.js";
 import { SKILL_LEVEL_ORDER } from "@forwardimpact/schema/levels";
 import { prepareSkillDetail } from "./shared.js";
@@ -34,6 +34,7 @@ import { createJsonLdScript, skillToJsonLd } from "../json-ld.js";
  * @param {Array} context.capabilities - Capability entities
  * @param {boolean} [context.showBackLink=true] - Whether to show back navigation link
  * @param {boolean} [context.showToolsAndPatterns=true] - Whether to show required tools and implementation patterns
+ * @param {string} [context.agentSkillContent] - Pre-generated SKILL.md content for agent file viewer
  * @returns {HTMLElement}
  */
 export function skillToDOM(
@@ -45,6 +46,7 @@ export function skillToDOM(
     capabilities,
     showBackLink = true,
     showToolsAndPatterns = true,
+    agentSkillContent,
   } = {},
 ) {
   const view = prepareSkillDetail(skill, {
@@ -222,18 +224,54 @@ export function skillToDOM(
         )
       : null,
 
-    // Implementation Reference
-    showToolsAndPatterns && view.implementationReference
+    // Agent Skill Files
+    showToolsAndPatterns &&
+      (agentSkillContent || view.implementationReference || view.installScript)
       ? div(
           { className: "detail-section" },
-          heading2({ className: "section-title" }, "Implementation Patterns"),
-          createCodeDisplay({
-            content: view.implementationReference,
-            description:
-              "Project-specific implementation guidance for this skill.",
-            minHeight: 450,
+          heading2({ className: "section-title" }, "Agent Skill Files"),
+          createSkillFileViewer({
+            files: buildSkillFiles(view, agentSkillContent),
+            maxHeight: 450,
           }),
         )
       : null,
   );
+}
+
+/**
+ * Build file descriptors for the skill file viewer
+ * @param {import('./shared.js').SkillDetailView} view
+ * @param {string} [agentSkillContent] - Pre-generated SKILL.md content
+ * @returns {import('../../components/skill-file-viewer.js').SkillFile[]}
+ */
+function buildSkillFiles(view, agentSkillContent) {
+  /** @type {import('../../components/skill-file-viewer.js').SkillFile[]} */
+  const files = [];
+
+  if (agentSkillContent) {
+    files.push({
+      filename: "SKILL.md",
+      content: agentSkillContent,
+      language: "markdown",
+    });
+  }
+
+  if (view.installScript) {
+    files.push({
+      filename: "scripts/install.sh",
+      content: view.installScript,
+      language: "bash",
+    });
+  }
+
+  if (view.implementationReference) {
+    files.push({
+      filename: "references/REFERENCE.md",
+      content: view.implementationReference,
+      language: "markdown",
+    });
+  }
+
+  return files;
 }

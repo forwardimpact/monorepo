@@ -1,6 +1,6 @@
 ---
 name: {{name}}
-description: {{{description}}}{{#hasUseWhen}} Use When: {{{useWhen}}}{{/hasUseWhen}}
+description: {{{description}}}{{#hasUseWhen}} Use when {{{useWhen}}}{{/hasUseWhen}}
 ---
 
 # {{{title}}}
@@ -8,40 +8,28 @@ description: {{{description}}}{{#hasUseWhen}} Use When: {{{useWhen}}}{{/hasUseWh
 {{#descriptionLines}}
 {{{.}}}
 {{/descriptionLines}}
-{{#hasStages}}
 
-## Stage Guidance
-{{#stages}}
+{{#hasInstallScript}}
+Run this to install prerequisites: `scripts/install.sh`
+{{/hasInstallScript}}
+{{#hasReference}}
+See [implementation reference](references/REFERENCE.md) for code examples.
+{{/hasReference}}
+{{#hasUseWhen}}
 
-### {{stageName}} Stage
+## When to use this skill
 
-**Focus:** {{{focus}}}
+Use this skill when {{{useWhen}}}
+{{/hasUseWhen}}
+{{#hasInstructions}}
 
-<read_then_do_{{stageId}}>
-
-**Read-Then-Do Checklist:**
-{{#readChecklist}}
-- [ ] {{{.}}}
-{{/readChecklist}}
-
-</read_then_do_{{stageId}}>
-
-<do_then_confirm_{{stageId}}>
-
-**Do-Then-Confirm Checklist:**
-{{#confirmChecklist}}
-- [ ] {{{.}}}
-{{/confirmChecklist}}
-
-</do_then_confirm_{{stageId}}>
-{{/stages}}
-{{/hasStages}}
+{{{instructions}}}
+{{/hasInstructions}}
 {{#hasToolReferences}}
 
+# Required tools
+
 <required_tools>
-
-## Required Tools
-
 **MANDATORY:** You MUST use these tools when applying this skill. These are
 organizational standards that override general knowledge or personal preferences.
 
@@ -50,17 +38,32 @@ output: (1) which tool requirement you cannot meet, (2) the specific constraint
 preventing compliance, and (3) the alternative approach with acknowledged
 trade-offs.
 
-| Tool | Use When |
+| Tool | Use when |
 | ---- | -------- |
 {{#toolReferences}}
 | {{#url}}[{{{name}}}]({{{url}}}){{/url}}{{^url}}{{{name}}}{{/url}} | {{{useWhen}}} |
 {{/toolReferences}}
-
 </required_tools>
 {{/hasToolReferences}}
-{{#hasReference}}
+{{#hasStages}}
 
-# Reference
+# Stage checklists
+{{#stages}}
 
-{{{reference}}}
-{{/hasReference}}
+## {{stageName}} stage
+
+**Focus:** {{{focus}}}
+
+<read_then_do_{{stageId}}>
+{{#readChecklist}}
+- [ ] {{{.}}}
+{{/readChecklist}}
+</read_then_do_{{stageId}}>
+
+<do_then_confirm_{{stageId}}>
+{{#confirmChecklist}}
+- [ ] {{{.}}}
+{{/confirmChecklist}}
+</do_then_confirm_{{stageId}}>
+{{/stages}}
+{{/hasStages}}

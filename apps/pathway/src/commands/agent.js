@@ -42,11 +42,17 @@ import {
   buildAgentIndex,
 } from "@forwardimpact/model";
 import { formatAgentProfile } from "../formatters/agent/profile.js";
-import { formatAgentSkill } from "../formatters/agent/skill.js";
+import {
+  formatAgentSkill,
+  formatInstallScript,
+  formatReference,
+} from "../formatters/agent/skill.js";
 import { formatError, formatSuccess } from "../lib/cli-output.js";
 import {
   loadAgentTemplate,
   loadSkillTemplate,
+  loadSkillInstallTemplate,
+  loadSkillReferenceTemplate,
 } from "../lib/template-loader.js";
 import { toolkitToPlainList } from "../formatters/toolkit/markdown.js";
 
@@ -263,25 +269,45 @@ async function writeProfile(profile, baseDir, template) {
 }
 
 /**
- * Write skill files
+ * Write skill files (SKILL.md, scripts/install.sh, references/REFERENCE.md)
  * @param {Array} skills - Generated skills
  * @param {string} baseDir - Base output directory
- * @param {string} template - Mustache template for skills
+ * @param {Object} templates - Templates object with skill, install, reference
  */
-async function writeSkills(skills, baseDir, template) {
+async function writeSkills(skills, baseDir, templates) {
+  let fileCount = 0;
   for (const skill of skills) {
-    const skillPath = join(
-      baseDir,
-      ".claude",
-      "skills",
-      skill.dirname,
-      "SKILL.md",
-    );
-    const skillContent = formatAgentSkill(skill, template);
+    const skillDir = join(baseDir, ".claude", "skills", skill.dirname);
+
+    // Write SKILL.md (always)
+    const skillPath = join(skillDir, "SKILL.md");
+    const skillContent = formatAgentSkill(skill, templates.skill);
     await ensureDir(skillPath);
     await writeFile(skillPath, skillContent, "utf-8");
     console.log(formatSuccess(`Created: ${skillPath}`));
+    fileCount++;
+
+    // Write scripts/install.sh (only when installScript exists)
+    if (skill.installScript) {
+      const installPath = join(skillDir, "scripts", "install.sh");
+      const installContent = formatInstallScript(skill, templates.install);
+      await ensureDir(installPath);
+      await writeFile(installPath, installContent, { mode: 0o755 });
+      console.log(formatSuccess(`Created: ${installPath}`));
+      fileCount++;
+    }
+
+    // Write references/REFERENCE.md (only when implementationReference exists)
+    if (skill.implementationReference) {
+      const refPath = join(skillDir, "references", "REFERENCE.md");
+      const refContent = formatReference(skill, templates.reference);
+      await ensureDir(refPath);
+      await writeFile(refPath, refContent, "utf-8");
+      console.log(formatSuccess(`Created: ${refPath}`));
+      fileCount++;
+    }
   }
+  return fileCount;
 }
 
 /**
@@ -428,7 +454,6 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
     agentBehaviours: agentData.behaviours,
     agentDiscipline,
     agentTrack,
-    capabilities: data.capabilities,
     stages: data.stages,
     agentIndex,
   };
@@ -535,6 +560,13 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
   // Load templates
   const agentTemplate = await loadAgentTemplate(dataDir);
   const skillTemplate = await loadSkillTemplate(dataDir);
+  const installTemplate = await loadSkillInstallTemplate(dataDir);
+  const referenceTemplate = await loadSkillReferenceTemplate(dataDir);
+  const skillTemplates = {
+    skill: skillTemplate,
+    install: installTemplate,
+    reference: referenceTemplate,
+  };
 
   // Output to console (default) or write to files (with --output)
   if (!options.output) {
@@ -548,7 +580,7 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
   for (const profile of profiles) {
     await writeProfile(profile, baseDir, agentTemplate);
   }
-  await writeSkills(skillFiles, baseDir, skillTemplate);
+  const fileCount = await writeSkills(skillFiles, baseDir, skillTemplates);
   await generateVSCodeSettings(baseDir, agentData.vscodeSettings);
   await generateDevcontainer(
     baseDir,
@@ -562,5 +594,5 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
   for (const profile of profiles) {
     console.log(`  - ${profile.frontmatter.name}`);
   }
-  console.log(`  Skills: ${skillFiles.length} files`);
+  console.log(`  Skills: ${fileCount} files`);
 }

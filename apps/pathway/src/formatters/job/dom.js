@@ -233,16 +233,18 @@ export function createJobDescriptionSection({
     template,
   );
 
-  return createDetailSection({
-    title: "Job Description",
-    content: createCodeDisplay({
+  return section(
+    { className: "section section-detail" },
+    h2({ className: "section-title" }, "Job Description"),
+    createCodeDisplay({
       content: markdown,
+      filename: "job-description.md",
       description:
         "Copy this markdown-formatted job description for use in job postings, documentation, or sharing.",
       toHtml: markdownToHtml,
       minHeight: 450,
     }),
-  });
+  );
 }
 
 /**
