@@ -42,8 +42,7 @@ import {
   formatInstallScript,
   formatReference,
 } from "../formatters/agent/skill.js";
-import { createCodeDisplay } from "../components/code-display.js";
-import { createSkillFileViewer } from "../components/skill-file-viewer.js";
+import { createFileCard } from "../components/file-card.js";
 import { createToolkitTable } from "../formatters/toolkit/dom.js";
 import { createDetailSection } from "../components/detail.js";
 
@@ -537,9 +536,24 @@ function createAllStagesPreview(context) {
       ),
       div(
         { className: "agent-cards-grid" },
-        ...stageAgents.map(({ stage, profile }) =>
-          createAgentCard(stage, profile, stages, templates.agent),
-        ),
+        ...stageAgents.map(({ stage, profile }) => {
+          const content = formatAgentProfile(profile, templates.agent);
+          const stageEmoji = getStageEmoji(stages, stage.id);
+          return createFileCard({
+            header: [
+              span({ className: "file-card-emoji" }, stageEmoji),
+              h3({}, `${stage.name} Agent`),
+            ],
+            files: [
+              {
+                filename: profile.filename,
+                content,
+                language: "markdown",
+              },
+            ],
+            maxHeight: 400,
+          });
+        }),
       ),
     ),
 
@@ -550,7 +564,7 @@ function createAllStagesPreview(context) {
       skillFiles.length > 0
         ? div(
             { className: "skill-cards-grid" },
-            ...skillFiles.map((skill) => createSkillCard(skill, templates)),
+            ...skillFiles.map((skill) => buildSkillFileCard(skill, templates)),
           )
         : p(
             { className: "text-muted" },
@@ -590,20 +604,6 @@ function createSingleStagePreview(context, stage) {
     templates,
     agentIndex,
   } = context;
-
-  // Derive stage agent
-  const derived = deriveStageAgent({
-    discipline: humanDiscipline,
-    track: humanTrack,
-    stage,
-    grade,
-    skills,
-    behaviours,
-    agentBehaviours,
-    agentDiscipline,
-    agentTrack,
-    stages,
-  });
 
   const profile = generateStageAgentProfile({
     discipline: humanDiscipline,
@@ -656,7 +656,24 @@ function createSingleStagePreview(context, stage) {
       h2({}, "Agent"),
       div(
         { className: "agent-cards-grid single" },
-        createAgentCard(stage, profile, stages, templates.agent, derived),
+        (() => {
+          const content = formatAgentProfile(profile, templates.agent);
+          const stageEmoji = getStageEmoji(stages, stage.id);
+          return createFileCard({
+            header: [
+              span({ className: "file-card-emoji" }, stageEmoji),
+              h3({}, `${stage.name} Agent`),
+            ],
+            files: [
+              {
+                filename: profile.filename,
+                content,
+                language: "markdown",
+              },
+            ],
+            maxHeight: 400,
+          });
+        })(),
       ),
     ),
 
@@ -667,7 +684,7 @@ function createSingleStagePreview(context, stage) {
       skillFiles.length > 0
         ? div(
             { className: "skill-cards-grid" },
-            ...skillFiles.map((skill) => createSkillCard(skill, templates)),
+            ...skillFiles.map((skill) => buildSkillFileCard(skill, templates)),
           )
         : p(
             { className: "text-muted" },
@@ -686,57 +703,18 @@ function createSingleStagePreview(context, stage) {
 }
 
 /**
- * Create an agent card for a stage
- * @param {Object} stage - Stage object
- * @param {Object} profile - Generated profile
- * @param {Array} stages - All stages for emoji lookup
- * @param {string} agentTemplate - Mustache template for agent profile
- * @param {Object} [_derived] - Optional derived agent data for extra info
- * @returns {HTMLElement}
- */
-function createAgentCard(stage, profile, stages, agentTemplate, _derived) {
-  const content = formatAgentProfile(profile, agentTemplate);
-  const stageEmoji = getStageEmoji(stages, stage.id);
-
-  const card = div(
-    { className: "agent-card" },
-    div(
-      { className: "agent-card-header" },
-      div(
-        { className: "agent-card-title" },
-        span({ className: "agent-card-emoji" }, stageEmoji),
-        h3({}, `${stage.name} Agent`),
-      ),
-    ),
-    div(
-      { className: "agent-card-preview" },
-      createCodeDisplay({
-        content,
-        filename: profile.filename,
-        maxHeight: 400,
-        open: true,
-      }),
-    ),
-  );
-
-  return card;
-}
-
-/**
- * Create a skill card with tabbed file viewer
+ * Build a file card for a skill with 1–3 file panes (accordion).
  * @param {Object} skill - Skill with frontmatter and body
  * @param {{skill: string, install: string, reference: string}} templates - Mustache templates
  * @returns {HTMLElement}
  */
-function createSkillCard(skill, templates) {
+function buildSkillFileCard(skill, templates) {
   const content = formatAgentSkill(skill, templates.skill);
-  const filename = `${skill.dirname}/SKILL.md`;
 
-  // Build files array for the tabbed viewer
-  /** @type {import('../components/skill-file-viewer.js').SkillFile[]} */
+  /** @type {import('../components/file-card.js').FileDescriptor[]} */
   const files = [
     {
-      filename,
+      filename: `${skill.dirname}/SKILL.md`,
       content,
       language: "markdown",
     },
@@ -758,25 +736,20 @@ function createSkillCard(skill, templates) {
     });
   }
 
-  // Count total files for badge
-  const fileCount = files.length;
   const headerChildren = [
-    span({ className: "skill-card-name" }, skill.frontmatter.name),
+    span({ className: "file-card-name" }, skill.frontmatter.name),
   ];
-  if (fileCount > 1) {
+  if (files.length > 1) {
     headerChildren.push(
-      span({ className: "skill-card-badge" }, `${fileCount} files`),
+      span({ className: "file-card-badge" }, `${files.length} files`),
     );
   }
 
-  return div(
-    { className: "skill-card" },
-    div({ className: "skill-card-header" }, ...headerChildren),
-    div(
-      { className: "skill-card-preview" },
-      createSkillFileViewer({ files, maxHeight: 300 }),
-    ),
-  );
+  return createFileCard({
+    header: headerChildren,
+    files,
+    maxHeight: 300,
+  });
 }
 
 /**

@@ -1,7 +1,8 @@
 /**
  * Agent Builder Page Styles
  *
- * Agent builder form, preview, and card components.
+ * Agent builder form, preview, and card grid layout.
+ * Card surfaces are in components/file-card.css.
  */
 
 @layer pages {
@@ -32,11 +33,9 @@
     gap: var(--space-xl);
   }
 
+  /* Agent section — spacing container, no surface */
   .agent-section {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    padding: var(--space-lg);
-    box-shadow: var(--shadow-md);
+    margin-bottom: var(--space-lg);
   }
 
   .agent-section .section-header {
@@ -48,13 +47,6 @@
 
   .agent-section .section-header h2 {
     margin: 0;
-  }
-
-  .agent-section .filename {
-    font-family: var(--font-family-mono);
-    font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
-    margin-bottom: var(--space-sm);
   }
 
   /* Agent cards grid */
@@ -69,100 +61,11 @@
     max-width: 800px;
   }
 
-  .agent-card {
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    background: var(--color-bg);
-    overflow: hidden;
-  }
-
-  .agent-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: var(--space-md);
-    background: var(--color-surface);
-    border-bottom: 1px solid var(--color-border);
-    gap: var(--space-sm);
-  }
-
-  .agent-card-title {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    flex-wrap: wrap;
-  }
-
-  .agent-card-title h3 {
-    margin: 0;
-    font-size: var(--font-size-md);
-  }
-
-  .agent-card-emoji {
-    font-size: 1.5rem;
-  }
-
-  .agent-card-preview {
-    padding: var(--space-md);
-  }
-
-  .agent-card-preview .code-display-pane {
-    margin: 0;
-  }
-
-  .agent-card-preview .code-display {
-    max-height: 400px;
-  }
-
   /* Skill cards grid */
   .skill-cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: var(--space-md);
-  }
-
-  .skill-card {
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-bg);
-    overflow: hidden;
-  }
-
-  .skill-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-sm) var(--space-md);
-    background: var(--color-surface);
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .skill-card-name {
-    font-weight: 600;
-    font-size: var(--font-size-sm);
-  }
-
-  .skill-card-preview {
-    padding: var(--space-sm) var(--space-md) var(--space-md);
-  }
-
-  .skill-card-preview .code-display-pane {
-    margin: 0;
-  }
-
-  .skill-card-preview .code-display {
-    max-height: 300px;
-  }
-
-  /* Skill card file count badge */
-  .skill-card-badge {
-    font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    padding: 0.1em 0.5em;
-    white-space: nowrap;
   }
 
   .skills-list {

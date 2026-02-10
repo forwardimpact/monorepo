@@ -1,0 +1,109 @@
+/**
+ * File Card
+ *
+ * Unified card surface for displaying files with collapsible panes.
+ * Single bordered surface — no nested borders from code-display or wrappers.
+ */
+
+@layer components {
+  /* The card — single bordered surface */
+  .file-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+
+  /* Card header — always visible */
+  .file-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .file-card-header h3 {
+    margin: 0;
+    font-size: var(--font-size-md);
+  }
+
+  /* File panes — flush inside card, no chrome */
+  .file-card-pane + .file-card-pane {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .file-card-pane > summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .file-card-pane > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .file-card-pane > summary::before {
+    content: "▸";
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+
+  .file-card-pane[open] > summary::before {
+    content: "▾";
+  }
+
+  .file-card-filename {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .file-card-pane > summary .button-group {
+    flex-shrink: 0;
+  }
+
+  /* Code block inside file card — no border, no radius, no bg */
+  .file-card-pane .code-display {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    margin: 0;
+  }
+
+  /* Header element helpers */
+  .file-card-emoji {
+    font-size: 1.5rem;
+  }
+
+  .file-card-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .file-card-name {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+  }
+
+  .file-card-badge {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.1em 0.5em;
+    white-space: nowrap;
+  }
+}
