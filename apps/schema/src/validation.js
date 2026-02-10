@@ -307,6 +307,50 @@ function validateSkill(skill, index, requiredStageIds = []) {
     );
   }
 
+  // Validate instructions if present (optional string)
+  if (
+    skill.instructions !== undefined &&
+    typeof skill.instructions !== "string"
+  ) {
+    errors.push(
+      createError(
+        "INVALID_VALUE",
+        "Skill instructions must be a string",
+        `${path}.instructions`,
+        skill.instructions,
+      ),
+    );
+  }
+
+  // Validate installScript if present (optional string)
+  if (
+    skill.installScript !== undefined &&
+    typeof skill.installScript !== "string"
+  ) {
+    errors.push(
+      createError(
+        "INVALID_VALUE",
+        "Skill installScript must be a string",
+        `${path}.installScript`,
+        skill.installScript,
+      ),
+    );
+  }
+
+  // Error if implementationReference still contains <onboarding_steps> tags (migration aid)
+  if (
+    typeof skill.implementationReference === "string" &&
+    skill.implementationReference.includes("<onboarding_steps>")
+  ) {
+    errors.push(
+      createError(
+        "INVALID_FIELD",
+        "Skill implementationReference contains <onboarding_steps> tags. Extract install commands to skill.installScript instead.",
+        `${path}.implementationReference`,
+      ),
+    );
+  }
+
   // Validate toolReferences array if present
   if (skill.toolReferences !== undefined) {
     if (!Array.isArray(skill.toolReferences)) {

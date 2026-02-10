@@ -89,14 +89,22 @@
           "$ref": "#/$defs/skillAgentSection",
           "description": "Agent-specific content for the skill"
         },
-        "implementationReference": {
-          "type": "string",
-          "description": "Implementation patterns and code examples in markdown format (shared by human and agent)"
-        },
         "toolReferences": {
           "type": "array",
           "description": "Required tools for this skill",
           "items": { "$ref": "#/$defs/toolReference" }
+        },
+        "instructions": {
+          "type": "string",
+          "description": "Step-by-step workflow guidance for the main SKILL.md body"
+        },
+        "installScript": {
+          "type": "string",
+          "description": "Shell commands for environment setup, exported to scripts/install.sh"
+        },
+        "implementationReference": {
+          "type": "string",
+          "description": "Code examples and detailed reference material, exported to references/REFERENCE.md"
         }
       },
       "additionalProperties": false

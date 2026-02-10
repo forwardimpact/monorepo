@@ -77,9 +77,21 @@ fit:levelDescriptions a rdf:Property ;
     rdfs:comment "Description of expectations at each level"@en ;
     rdfs:range fit:LevelDescriptions .
 
+fit:instructions a rdf:Property ;
+    rdfs:label "instructions"@en ;
+    rdfs:comment "Step-by-step workflow guidance for the main SKILL.md body"@en ;
+    rdfs:domain fit:Skill ;
+    rdfs:range xsd:string .
+
+fit:installScript a rdf:Property ;
+    rdfs:label "installScript"@en ;
+    rdfs:comment "Shell commands for environment setup, exported to scripts/install.sh"@en ;
+    rdfs:domain fit:Skill ;
+    rdfs:range xsd:string .
+
 fit:implementationReference a rdf:Property ;
     rdfs:label "implementationReference"@en ;
-    rdfs:comment "Implementation patterns and code examples in markdown format"@en ;
+    rdfs:comment "Code examples and detailed reference material, exported to references/REFERENCE.md"@en ;
     rdfs:domain fit:Skill ;
     rdfs:range xsd:string .
 
@@ -278,17 +290,31 @@ fit:SkillShape a sh:NodeShape ;
         sh:description "Agent-specific content for the skill" ;
     ] ;
     sh:property [
-        sh:path fit:implementationReference ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:name "implementationReference" ;
-        sh:description "Implementation patterns and code examples in markdown format" ;
-    ] ;
-    sh:property [
         sh:path fit:toolReferences ;
         sh:node fit:ToolReferenceShape ;
         sh:name "toolReferences" ;
         sh:description "Required tools for this skill" ;
+    ] ;
+    sh:property [
+        sh:path fit:instructions ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "instructions" ;
+        sh:description "Step-by-step workflow guidance for the main SKILL.md body" ;
+    ] ;
+    sh:property [
+        sh:path fit:installScript ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "installScript" ;
+        sh:description "Shell commands for environment setup, exported to scripts/install.sh" ;
+    ] ;
+    sh:property [
+        sh:path fit:implementationReference ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "implementationReference" ;
+        sh:description "Code examples and detailed reference material, exported to references/REFERENCE.md" ;
     ] .
 
 # -----------------------------------------------------------------------------

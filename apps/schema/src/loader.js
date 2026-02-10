@@ -90,6 +90,8 @@ async function loadSkillsFromCapabilities(capabilitiesDir) {
           isHumanOnly,
           human,
           agent,
+          instructions,
+          installScript,
           implementationReference,
           toolReferences,
         } = skill;
@@ -103,6 +105,9 @@ async function loadSkillsFromCapabilities(capabilitiesDir) {
           ...(isHumanOnly && { isHumanOnly }),
           // Preserve agent section for agent generation
           ...(agent && { agent }),
+          // Include agent skill content fields
+          ...(instructions && { instructions }),
+          ...(installScript && { installScript }),
           // Include implementation reference and tool references (shared by human and agent)
           ...(implementationReference && { implementationReference }),
           ...(toolReferences && { toolReferences }),
