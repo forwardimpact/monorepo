@@ -471,7 +471,7 @@ skills:
       brew install colima
       colima start
       brew install supabase/tap/supabase || npm install -g supabase
-      npx create-next-app@latest my-app --typescript
+      npx --yes create-next-app@latest my-app --typescript --yes
       cd my-app
       supabase init
       supabase start
@@ -927,7 +927,7 @@ skills:
       to productionize. This prevents confusion later.
     installScript: |
       set -e
-      npx create-next-app@latest my-prototype --typescript
+      npx --yes create-next-app@latest my-prototype --typescript --yes
       cd my-prototype
       supabase init
       supabase start
