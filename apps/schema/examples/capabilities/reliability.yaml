@@ -1,8 +1,9 @@
 # yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/capability.schema.json
 
+id: reliability
 name: Reliability
 emojiIcon: 🛡️
-ordinalRank: 5
+ordinalRank: 8
 description: |
   Ensuring systems are dependable, secure, and observable.
   Includes DevOps practices, security, monitoring, incident response,
@@ -42,225 +43,32 @@ managementResponsibilities:
     Shape reliability strategy across the business unit, lead critical incident
     management at executive level, and own enterprise reliability outcomes
 skills:
-  - id: devops
-    name: DevOps & CI/CD
+  - id: service_management
+    name: Service Management
+    isHumanOnly: true
     human:
       description:
-        Building and maintaining deployment pipelines, infrastructure, and
-        operational practices
+        Managing services throughout their lifecycle from design to retirement,
+        focusing on value delivery to users
       levelDescriptions:
         awareness:
-          You understand CI/CD concepts (build, test, deploy) and can trigger
-          and monitor pipelines others have built. You follow deployment
-          procedures.
+          You understand service lifecycle concepts (design, deploy, operate,
+          retire) and follow service management processes established by others.
         foundational:
-          You configure basic CI/CD pipelines, understand containerization
-          (Docker), and can troubleshoot common build and deployment failures.
+          You document services you own, participate in service reviews, handle
+          basic service requests, and understand SLAs for your services.
         working:
-          You build complete CI/CD pipelines end-to-end, manage infrastructure
-          as code (Terraform, CloudFormation), implement monitoring, and design
-          deployment strategies for your services.
+          You design service offerings with clear value propositions, manage
+          service level agreements, improve service delivery based on user
+          feedback, and communicate service status proactively.
         practitioner:
-          You design deployment strategies for complex multi-service systems
-          across teams, optimize pipeline performance and reliability, define
-          DevOps practices for your area, and mentor engineers on
-          infrastructure.
+          You lead service management practices for multiple services across
+          teams, optimize service portfolios for your area, balance service
+          investments, and train engineers on service-oriented thinking.
         expert:
-          You shape DevOps culture and practices across the business unit. You
-          introduce innovative approaches to deployment and infrastructure,
-          solve large-scale DevOps challenges, and are recognized externally.
-    agent:
-      name: devops-cicd
-      description: |
-        Guide for building CI/CD pipelines, managing infrastructure as code,
-        and implementing deployment best practices.
-      useWhen: |
-        Setting up pipelines, containerizing applications, or configuring
-        infrastructure.
-      stages:
-        specify:
-          focus: |
-            Define CI/CD and infrastructure requirements.
-            Clarify deployment strategy and operational needs.
-          readChecklist:
-            - Document deployment frequency requirements
-            - Identify rollback and recovery requirements
-            - Specify monitoring and alerting needs
-            - Define security and compliance constraints
-            - Mark ambiguities with [NEEDS CLARIFICATION]
-          confirmChecklist:
-            - Deployment requirements are documented
-            - Recovery requirements are specified
-            - Monitoring needs are identified
-            - Compliance constraints are clear
-        plan:
-          focus: |
-            Plan CI/CD pipeline architecture and infrastructure requirements.
-            Consider deployment strategies and monitoring needs.
-          readChecklist:
-            - Define pipeline stages (build, test, deploy)
-            - Identify infrastructure requirements
-            - Plan deployment strategy (rolling, blue-green, canary)
-            - Consider monitoring and alerting needs
-            - Plan secret management approach
-          confirmChecklist:
-            - Pipeline architecture is documented
-            - Deployment strategy is chosen and justified
-            - Infrastructure requirements are identified
-            - Monitoring approach is defined
-        onboard:
-          focus: |
-            Set up the CI/CD and infrastructure development environment.
-            Install pipeline tools, container runtime, and IaC tooling.
-          readChecklist:
-            - Install container runtime (Docker/Colima)
-            - Install infrastructure as code tools (Terraform)
-            - Configure CI/CD service credentials
-            - Initialize Terraform workspace and backend
-            - Set up secret management for pipeline credentials
-          confirmChecklist:
-            - Container runtime builds and runs images
-            - Terraform initialized with providers
-            - CI/CD credentials configured securely
-            - Pipeline configuration file created
-            - Secret management is in place
-        code:
-          focus: |
-            Implement CI/CD pipelines and infrastructure as code. Follow
-            best practices for containerization and deployment automation.
-          readChecklist:
-            - Configure CI/CD pipeline stages
-            - Implement infrastructure as code (Terraform, CloudFormation)
-            - Create Dockerfiles with security best practices
-            - Set up monitoring and alerting
-            - Configure secret management
-            - Implement deployment automation
-          confirmChecklist:
-            - Pipeline runs on every commit
-            - Tests run before deployment
-            - Deployments are automated
-            - Infrastructure is version controlled
-            - Secrets are managed securely
-            - Monitoring is in place
-        review:
-          focus: |
-            Verify pipeline reliability, security, and operational readiness.
-            Ensure rollback procedures work and documentation is complete.
-          readChecklist:
-            - Verify pipeline runs successfully end-to-end
-            - Test rollback procedures
-            - Review security configurations
-            - Validate monitoring and alerts
-            - Check documentation completeness
-          confirmChecklist:
-            - Pipeline is tested and reliable
-            - Rollback procedure is documented and tested
-            - Alerts are configured and tested
-            - Runbooks exist for common issues
-        deploy:
-          focus: |
-            Deploy pipeline and infrastructure changes to production.
-            Verify operational readiness.
-          readChecklist:
-            - Deploy pipeline configuration to production
-            - Verify deployment workflows work correctly
-            - Confirm monitoring and alerting are operational
-            - Run deployment through the new pipeline
-          confirmChecklist:
-            - Pipeline deployed and operational
-            - Workflows tested in production
-            - Monitoring confirms healthy operation
-            - First deployment through pipeline succeeded
-    toolReferences:
-      - name: Terraform
-        url: https://developer.hashicorp.com/terraform/docs
-        simpleIcon: terraform
-        description: Infrastructure as code tool
-        useWhen: Provisioning and managing cloud infrastructure as code
-      - name: Colima
-        url: https://github.com/abiosoft/colima
-        simpleIcon: docker
-        description: Container runtime for macOS with Docker-compatible CLI
-        useWhen:
-          Running containers locally, building images, or containerizing
-          applications
-    implementationReference: |
-      ## CI/CD Pipeline Stages
-
-      ### Build
-      - Install dependencies
-      - Compile/transpile code
-      - Generate artifacts
-      - Cache dependencies for speed
-
-      ### Test
-      - Run unit tests
-      - Run integration tests
-      - Static analysis and linting
-      - Security scanning
-
-      ### Deploy
-      - Deploy to staging environment
-      - Run smoke tests
-      - Deploy to production
-      - Verify deployment health
-
-      ## Infrastructure as Code
-
-      ### Terraform Workflow
-      ```bash
-      terraform init      # Initialize providers and backend
-      terraform plan      # Preview changes before applying
-      terraform apply     # Apply changes to infrastructure
-      terraform destroy   # Tear down infrastructure
-      ```
-
-      ### Terraform in CI/CD Pipelines
-      1. **Plan on PR**: Run `terraform plan` on pull requests
-      2. **Review output**: Require approval for destructive changes
-      3. **Apply on merge**: Run `terraform apply` after merge to main
-      4. **State locking**: Use remote backend with locking (S3 + DynamoDB)
-
-      ### Terraform Structure
-      ```hcl
-      # main.tf - Define resources declaratively
-      resource "aws_instance" "app" {
-        ami           = var.ami_id
-        instance_type = var.instance_type
-        tags = { Environment = var.environment }
-      }
-
-      # variables.tf - Parameterize for environments
-      variable "environment" { type = string }
-      variable "instance_type" { default = "t3.micro" }
-      ```
-
-      ### Docker
-      ```dockerfile
-      FROM node:18-alpine
-      WORKDIR /app
-      COPY package*.json ./
-      RUN npm ci --only=production
-      COPY . .
-      CMD ["node", "server.js"]
-      ```
-
-      ## Deployment Strategies
-
-      ### Rolling Deployment
-      - Gradual replacement of instances
-      - Zero downtime
-      - Easy rollback
-
-      ### Blue-Green Deployment
-      - Two identical environments
-      - Switch traffic atomically
-      - Fast rollback
-
-      ### Canary Deployment
-      - Route small percentage to new version
-      - Monitor for issues
-      - Gradually increase traffic
+          You shape service management strategy across the business unit. You
+          drive service excellence culture, innovate on service delivery
+          approaches, and are recognized as a service management authority.
   - id: sre_practices
     name: Site Reliability Engineering
     human:
@@ -329,21 +137,21 @@ skills:
             - Alerting thresholds are defined
         onboard:
           focus: |
-            Set up the observability and monitoring environment.
-            Install monitoring tools, configure dashboards, and verify
-            instrumentation libraries work.
+            Set up the observability and reliability tooling. Install
+            tracing, logging, and monitoring libraries, and configure
+            the observability backend.
           readChecklist:
-            - Install monitoring/observability tools (Prometheus, Grafana)
-            - Configure tracing library (OpenTelemetry)
-            - Set up logging framework with structured output
-            - Configure dashboard templates for SLI tracking
-            - Verify instrumentation exports metrics correctly
+            - Install observability tools (OpenTelemetry, Pino/structlog)
+            - Configure OTLP exporter endpoint and credentials
+            - Set up structured logging configuration
+            - Verify traces and logs reach the observability backend
+            - Create runbook template directory
           confirmChecklist:
-            - Monitoring tools installed and accessible
-            - Tracing library integrated and exporting spans
-            - Logging outputs structured data
-            - Dashboard templates render correctly
-            - Instrumentation verified with test traffic
+            - OpenTelemetry SDK installed and configured
+            - OTLP exporter sends data to backend
+            - Structured logging produces valid JSON
+            - Test trace and log entries appear in backend
+            - Runbook directory structure created
         code:
           focus: |
             Implement observability, resilience patterns, and operational
@@ -391,78 +199,150 @@ skills:
             - Alerts fire correctly for SLO breaches
             - On-call team is trained and ready
             - Production readiness review is complete
+    toolReferences:
+      - name: OpenTelemetry
+        url: https://opentelemetry.io/docs/
+        simpleIcon: opentelemetry
+        description:
+          Vendor-neutral observability framework for traces, metrics, and logs
+        useWhen:
+          Instrumenting applications for distributed tracing and observability
+      - name: Pino
+        url: https://getpino.io/
+        simpleIcon: nodedotjs
+        description: Fast, low-overhead structured logging for Node.js
+        useWhen: Adding structured logging to JavaScript applications
+      - name: structlog
+        url: https://www.structlog.org/
+        simpleIcon: python
+        description: Structured logging library for Python
+        useWhen: Adding structured logging to Python applications
+    instructions: |
+      ## Step 1: Define SLIs and SLOs
+
+      Identify what matters to users. For each critical user
+      journey (page load, checkout, API), define an SLI (what to
+      measure) and SLO (target threshold). Calculate error budgets
+      from SLOs.
+
+      ## Step 2: Instrument Application
+
+      Add distributed tracing with OpenTelemetry. Configure the
+      OTLP exporter to send traces to your observability backend.
+      Use auto-instrumentation for common libraries.
+
+      ## Step 3: Add Structured Logging
+
+      Replace free-text logging with structured JSON logs. Use Pino
+      for Node.js or structlog for Python. Always include context
+      fields (userId, orderId, correlationId) for queryability.
+
+      ## Step 4: Create Runbook Template
+
+      For each alert, document symptoms, diagnosis steps,
+      mitigation actions, and escalation criteria. Keep runbooks
+      co-located with the alerting configuration.
+    installScript: |
+      set -e
+      npm install @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node
+      npm install @opentelemetry/exporter-trace-otlp-http pino
+      pip install opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp structlog
+      python -c "import opentelemetry; import structlog"
     implementationReference: |
-      ## Service Level Concepts
+      ## SLI/SLO Table
 
-      ### SLI (Service Level Indicator)
-      Quantitative measure of service behavior:
-      - Request latency (p50, p95, p99)
-      - Error rate (% of failed requests)
-      - Availability (% of successful requests)
-      - Throughput (requests per second)
+      | User Journey | SLI | SLO |
+      |--------------|-----|-----|
+      | Page load | Latency p99 | < 500ms for 99.9% of requests |
+      | Checkout | Success rate | > 99.95% of transactions succeed |
+      | API | Availability | 99.9% uptime (43 min/month budget) |
 
-      ### SLO (Service Level Objective)
-      Target value for an SLI:
-      - "99.9% of requests complete in < 200ms"
-      - "Error rate < 0.1% over 30 days"
-      - "99.95% availability monthly"
+      ## OpenTelemetry — Node.js
 
-      ### Error Budget
-      Allowed unreliability: 100% - SLO
-      - 99.9% SLO = 0.1% error budget
-      - ~43 minutes downtime per month
-      - Spend on features or reliability
+      ```javascript
+      const { NodeSDK } = require('@opentelemetry/sdk-node')
+      const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node')
+      const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http')
 
-      ## Observability
+      const sdk = new NodeSDK({
+        traceExporter: new OTLPTraceExporter({
+          url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces'
+        }),
+        instrumentations: [getNodeAutoInstrumentations()]
+      })
+      sdk.start()
+      ```
 
-      ### Three Pillars
-      - **Metrics**: Aggregated numeric data (counters, gauges, histograms)
-      - **Logs**: Discrete event records with context
-      - **Traces**: Request flow across services
+      ## OpenTelemetry — Python
 
-      ### Alerting Principles
-      - Alert on symptoms, not causes
-      - Every alert should be actionable
-      - Reduce noise ruthlessly
-      - Page only for user-impacting issues
-      - Use severity levels appropriately
+      ```python
+      from opentelemetry import trace
+      from opentelemetry.sdk.trace import TracerProvider
+      from opentelemetry.sdk.trace.export import BatchSpanProcessor
+      from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
-      ## Incident Response
+      provider = TracerProvider()
+      provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+      trace.set_tracer_provider(provider)
+      ```
 
-      ### Incident Lifecycle
-      1. **Detection**: Automated alerts or user reports
-      2. **Triage**: Assess severity and impact
-      3. **Mitigation**: Stop the bleeding first
-      4. **Resolution**: Fix the underlying issue
-      5. **Post-mortem**: Learn and improve
+      ## Structured Logging — Pino (Node.js)
 
-      ### During an Incident
-      - Communicate early and often
-      - Focus on mitigation before root cause
-      - Document actions in real-time
-      - Escalate when needed
-      - Update stakeholders regularly
+      ```javascript
+      const pino = require('pino')
+      const logger = pino({ level: process.env.LOG_LEVEL || 'info' })
 
-      ## Post-Mortem Process
+      logger.info({ userId: 123, action: 'checkout' }, 'Processing checkout')
+      logger.error({ err, orderId }, 'Checkout failed')
+      ```
 
-      ### Blameless Culture
-      - Focus on systems, not individuals
-      - Assume good intentions
-      - Ask "how did the system allow this?"
-      - Share findings openly
+      ## Structured Logging — structlog (Python)
 
-      ### Post-Mortem Template
-      1. Incident summary
-      2. Timeline of events
-      3. Root cause analysis
-      4. What went well
-      5. What could be improved
-      6. Action items with owners
+      ```python
+      import structlog
 
-      ## Resilience Patterns
+      structlog.configure(processors=[
+          structlog.processors.TimeStamper(fmt="iso"),
+          structlog.processors.JSONRenderer()
+      ])
+      logger = structlog.get_logger()
+      logger.info("processing_checkout", user_id=123)
+      ```
 
-      - **Timeouts**: Don't wait forever
-      - **Retries**: With exponential backoff
-      - **Circuit breakers**: Fail fast when downstream is unhealthy
-      - **Bulkheads**: Isolate failures
-      - **Graceful degradation**: Partial functionality over total failure
+      ## Runbook Template
+
+      ```markdown
+      # Runbook: High Error Rate
+
+      ## Symptoms
+      - Error rate > 0.1% for 5+ minutes
+
+      ## Diagnosis
+      1. Check application logs for error patterns
+      2. Check dependency health endpoints
+      3. Check recent deployments
+
+      ## Mitigation
+      1. If recent deploy: Roll back
+      2. If dependency issue: Enable circuit breaker
+      3. If load spike: Scale up
+
+      ## Escalation
+      If not resolved in 15 min, escalate to team lead.
+      ```
+
+      ## Verification
+
+      Your reliability setup is working when:
+      - Traces appear in your observability backend
+      - Structured logs contain consistent fields (correlation IDs, user context)
+      - Runbooks exist for known failure modes
+      - Team knows how to respond to common alerts
+
+      ## Common Pitfalls
+
+      - **Missing environment variables**: OTLP exporters fail silently
+      - **No correlation IDs**: Cannot trace requests across services
+      - **Unstructured logs**: Free-text logs are hard to query
+      - **Alert fatigue**: Too many alerts drown out real issues
+      - **No runbooks**: Alerts fire but responders don't know what to do

@@ -1,8 +1,9 @@
 # yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/capability.schema.json
 
+id: delivery
 name: Delivery
 emojiIcon: 🚀
-ordinalRank: 1
+ordinalRank: 3
 description: |
   Building and shipping solutions that solve real problems.
   Encompasses full-stack development, data integration, problem discovery,
@@ -41,144 +42,239 @@ managementResponsibilities:
     Shape delivery culture across the business unit, lead strategic delivery
     transformations, and represent delivery commitments at executive level
 skills:
-  - id: architecture_design
-    name: Architecture & Design
+  - id: data_integration
+    name: Data Integration
     human:
       description:
-        Ability to design software systems that are scalable, maintainable, and
-        fit for purpose. In the AI era, this includes designing systems that
-        effectively leverage AI capabilities while maintaining human oversight.
+        Gaining access to enterprise data, cleaning messy real-world datasets,
+        and making information usable for decision-making—often with
+        inconsistent formats, missing values, and undocumented schemas. The
+        heart of embedded engineering work.
       levelDescriptions:
         awareness:
-          You understand basic architectural concepts (separation of concerns,
-          modularity, coupling) and can read architecture diagrams. You follow
-          established patterns with guidance.
+          You understand how data flows through systems and can use existing
+          pipelines, APIs, and data sources with guidance. You know to ask about
+          data quality.
         foundational:
-          You explain and apply common patterns (MVC, microservices,
-          event-driven) to familiar problems. You contribute to design
-          discussions and identify when existing patterns don't fit.
+          You create simple data transformations and handle common formats (CSV,
+          JSON, SQL). You identify and report data quality issues and understand
+          basic ETL concepts.
         working:
-          You design components and services independently for moderate
-          complexity. You make appropriate trade-off decisions, document design
-          rationale, and consider AI integration points in your designs.
+          You integrate multiple data sources independently, clean messy
+          datasets, handle inconsistent formats and missing values, and document
+          data lineage. You troubleshoot integration failures.
         practitioner:
-          You design complex multi-component systems end-to-end, evaluate
-          architectural options for large initiatives across teams, guide
-          technical decisions for your area, and mentor engineers on
-          architecture. You balance elegance with delivery needs.
+          You navigate complex enterprise data landscapes across teams, build
+          relationships to gain data access, handle undocumented schemas through
+          investigation, and build robust, maintainable integration solutions.
+          You mentor engineers in your area on data integration challenges.
         expert:
-          You define architecture standards and patterns across the business
-          unit. You innovate on approaches to large-scale challenges, shape
-          AI-integrated system design, and are recognized externally as an
-          architecture authority.
+          You define data integration patterns and best practices across the
+          business unit. You architect large-scale data flows, solve the most
+          complex integration challenges, and are the authority on enterprise
+          data integration.
     agent:
-      name: architecture-design
-      description:
-        Guide for designing software systems and making architectural decisions.
+      name: data-integration
+      description: |
+        Guide for integrating data from multiple sources, cleaning messy
+        datasets, and handling data quality issues.
       useWhen: |
-        Asked to design a system, evaluate architecture options, or make
-        structural decisions about code organization.
+        Working with enterprise data, ETL pipelines, or data transformation
+        tasks.
       stages:
         specify:
           focus: |
-            Define system requirements and constraints before design.
-            Clarify functional and non-functional requirements.
+            Define data integration requirements and acceptance criteria.
+            Clarify data sources, formats, and quality expectations.
           readChecklist:
-            - Document functional requirements and use cases
-            - Identify non-functional requirements (scale, latency,
-              availability)
-            - Document system constraints and integration points
-            - Identify stakeholders and their concerns
+            - Identify source and target data systems
+            - Document data format and schema requirements
+            - Define data quality acceptance criteria
+            - Clarify data freshness and latency requirements
             - Mark ambiguities with [NEEDS CLARIFICATION]
           confirmChecklist:
-            - Functional requirements are documented
-            - Non-functional requirements are specified
-            - Constraints are identified
-            - Stakeholder concerns are understood
+            - Data sources are identified and accessible
+            - Data format requirements are documented
+            - Quality criteria are defined
+            - Latency requirements are clear
         plan:
-          focus: Understanding requirements and designing solutions
+          focus: |
+            Plan data integration approach. Identify sources, assess quality,
+            and plan transformation logic.
           readChecklist:
-            - Gather context about existing systems and constraints
-            - Clarify non-functional requirements (scale, latency, availability)
-            - Identify key decisions that are hard to change later
-            - Evaluate trade-offs between architectural options
-            - Document approach with rationale
+            - Identify data sources and access requirements
+            - Assess data quality and completeness
+            - Plan transformation logic and validation
+            - Document data lineage approach
           confirmChecklist:
-            - Requirements are clearly understood
-            - Key decisions are documented with rationale
-            - Trade-offs are explicit
-            - Dependencies are identified
+            - Data sources are identified
+            - Data formats are understood
+            - Data quality requirements are defined
+            - Transformation logic is planned
         onboard:
           focus: |
-            Set up the development environment for the planned
-            architecture. Install frameworks, configure project
-            structure, and verify tooling.
+            Set up the data integration environment. Install data
+            processing tools, configure data source access, and verify
+            connectivity to all required systems.
           readChecklist:
-            - Install planned frameworks and dependencies
-            - Create project structure matching architecture design
-            - Configure Mermaid rendering for architecture docs
-            - Set up ADR directory for decision records
-            - Configure linter and formatter for the project
+            - Install data tools (DuckDB, Polars, Great Expectations)
+            - Configure database connections and API credentials
+            - Verify access to all identified data sources
+            - Set up virtual environment and pin dependency versions
+            - Create .env file with connection strings and credentials
           confirmChecklist:
-            - Project structure reflects architectural boundaries
-            - All planned frameworks installed and importable
-            - Documentation tooling renders diagrams correctly
-            - Linter and formatter configured and passing
-            - Build system compiles without errors
+            - All data processing libraries installed and importable
+            - Data source connections verified and working
+            - Credentials stored securely in .env (not committed to git)
+            - Sample queries run successfully against each data source
+            - Virtual environment is reproducible (requirements.txt or
+              pyproject.toml)
         code:
-          focus: Implementing architecture faithfully while adapting to reality
+          focus: |
+            Implement data transformations with robust quality checks
+            and error handling for messy real-world data.
           readChecklist:
-            - Verify implementation aligns with design decisions
-            - Implement interfaces and boundaries before internals
-            - Document any deviations from design with rationale
-            - Keep architecture documentation in sync with implementation
+            - Implement data extraction and loading
+            - Handle data quality issues (nulls, formats, duplicates)
+            - Create transformation logic
+            - Add validation and error handling
+            - Document data lineage
           confirmChecklist:
-            - Implementation matches documented design
-            - Deviations documented with rationale
-            - Failure modes are considered and handled
-            - Security implications are reviewed
+            - Data transformations produce expected output
+            - Basic validation exists for input data
+            - Data formats are handled correctly
+            - Error handling exists for malformed data
+            - Pipeline is idempotent
         review:
-          focus: Verifying architecture implementation and documentation
+          focus: |
+            Validate data quality, transformation correctness, and
+            operational readiness.
           readChecklist:
-            - Compare implementation to design documentation
-            - Verify all decisions were followed or documented
-            - Assess maintainability and extensibility
-            - Ensure architecture enables future changes
+            - Verify data quality checks
+            - Test with edge cases and malformed data
+            - Review error handling coverage
+            - Validate documentation completeness
           confirmChecklist:
-            - Design docs reflect actual implementation
-            - Architecture decisions validated in practice
-            - Scalability requirements addressed
+            - Data quality checks are implemented
+            - Edge cases are handled
+            - Data lineage is documented
+            - Failures are logged and alertable
         deploy:
           focus: |
-            Deploy architecture and verify it performs as designed
-            in production environment.
+            Deploy data pipeline to production and verify data flow.
+            Monitor for data quality and latency issues.
           readChecklist:
-            - Deploy system components to production
-            - Verify architectural boundaries work under load
-            - Monitor performance against requirements
-            - Document any operational learnings
+            - Deploy pipeline configuration
+            - Verify data flows end-to-end in production
+            - Monitor data quality metrics
+            - Confirm alerting is operational
           confirmChecklist:
-            - System deployed successfully
-            - Performance meets requirements
-            - Monitoring confirms design assumptions
-            - Operational procedures are documented
+            - Pipeline deployed successfully
+            - Data flowing in production
+            - Quality metrics within thresholds
+            - Alerting verified working
+    toolReferences:
+      - name: DuckDB
+        url: https://duckdb.org/docs/
+        simpleIcon: duckdb
+        description: In-process analytical database
+        useWhen: Querying CSV/Parquet files with SQL or quick data exploration
+      - name: Polars
+        url: https://docs.pola.rs/
+        simpleIcon: polars
+        description: Fast DataFrame library with lazy evaluation
+        useWhen: Transforming and cleaning large datasets programmatically
+      - name: Great Expectations
+        url: https://docs.greatexpectations.io/
+        simpleIcon: python
+        description: Data validation and profiling framework
+        useWhen: Validating data quality and creating data documentation
+    instructions: |
+      ## Step 1: Explore the Source Data
+
+      Use DuckDB to quickly inspect files without loading into memory.
+      Check schema, data types, row counts, and null distributions.
+
+      ## Step 2: Transform with Polars
+
+      Use lazy evaluation for large datasets: filter, fill nulls,
+      parse dates, and aggregate. Collect only when the query plan
+      is complete. Write cleaned data to Parquet.
+
+      ## Step 3: Validate Data Quality
+
+      Define expectations with Great Expectations: not-null checks,
+      uniqueness constraints, value ranges. Run validation and
+      check results.
+
+      ## Step 4: Export to Target Format
+
+      Use DuckDB COPY or Polars write methods to export transformed
+      data to the target format and location.
+    installScript: |
+      set -e
+      pip install duckdb polars great-expectations
+      python -c "import duckdb, polars, great_expectations"
     implementationReference: |
-      ## Common Patterns
+      ## SQL Exploration
 
-      ### Service Architecture
-      - **Microservices**: Independent deployment, clear boundaries
-      - **Monolith**: Simpler deployment, easier refactoring
-      - **Modular monolith**: Boundaries within single deployment
+      ```sql
+      SELECT * FROM read_csv('data.csv') LIMIT 10;
+      DESCRIBE SELECT * FROM read_csv('data.csv');
+      SELECT COUNT(*), COUNT(id), COUNT(email) FROM read_csv('data.csv');
+      ```
 
-      ### Data Patterns
-      - **Event sourcing**: Full audit trail, complex queries
-      - **CQRS**: Separate read and write models
-      - **Repository pattern**: Abstract data access
+      ## Polars Transformation
 
-      ### Communication Patterns
-      - **REST**: Synchronous, request-response
-      - **Event-driven**: Asynchronous, loose coupling
-      - **gRPC**: Efficient, strongly typed
+      ```python
+      import polars as pl
+
+      df = (
+          pl.scan_csv("source_data.csv")
+          .filter(pl.col("status") == "active")
+          .with_columns(
+              pl.col("value").fill_null(0),
+              pl.col("date").str.to_date("%Y-%m-%d")
+          )
+          .group_by("category")
+          .agg(pl.col("value").sum())
+          .collect()
+      )
+      df.write_parquet("cleaned_data.parquet")
+      ```
+
+      ## Data Quality Validation
+
+      ```python
+      import great_expectations as gx
+
+      context = gx.get_context()
+      validator = context.sources.pandas_default.read_csv("cleaned_data.csv")
+      validator.expect_column_values_to_not_be_null("id")
+      validator.expect_column_values_to_be_unique("id")
+      validator.expect_column_values_to_be_between("age", 0, 120)
+      results = validator.validate()
+      ```
+
+      ## Verification
+
+      Your pipeline is working when:
+      - Source data loads without errors
+      - Transformation produces expected row counts
+      - Data quality checks pass
+      - Output file is readable and contains expected data
+
+      ```python
+      result = pl.read_parquet("output.parquet")
+      assert len(result) > 0, "Output should have rows"
+      ```
+
+      ## Common Pitfalls
+
+      - **Data leakage**: Using future data in training sets
+      - **Silent nulls**: Empty strings vs NULL vs placeholder values
+      - **Schema drift**: Columns change without warning
+      - **Encoding issues**: UTF-8 vs Latin-1 in CSV files
   - id: full_stack_development
     name: Full-Stack Development
     human:
@@ -213,11 +309,12 @@ skills:
           polymathic engineering.
     agent:
       name: full-stack-development
-      description:
-        Guide for building complete solutions across the full technology stack.
+      description: |
+        Guide for building complete solutions across the full technology
+        stack.
       useWhen: |
-        Implementing features spanning frontend, backend, database, and
-        infrastructure layers.
+        Asked to implement features spanning frontend, backend, database,
+        and infrastructure layers.
       stages:
         specify:
           focus: |
@@ -235,60 +332,68 @@ skills:
             - Integration points are identified
             - Non-functional requirements are clear
         plan:
-          focus: Designing the complete solution across layers
+          focus: |
+            Design the full-stack solution architecture. Define API
+            contracts and plan layer interactions.
           readChecklist:
-            - Define the API contract between frontend and backend
-            - Design database schema to support the feature
+            - Define the API contract first
+            - Plan frontend and backend responsibilities
+            - Design database schema
             - Plan infrastructure requirements
-            - Identify cross-layer dependencies
           confirmChecklist:
             - API contract is defined
-            - Database schema is designed
-            - Infrastructure needs identified
-            - Layer boundaries are clear
+            - Layer responsibilities are clear
+            - Database schema is planned
+            - Infrastructure approach is decided
         onboard:
           focus: |
-            Set up the full-stack development environment.
-            Install dependencies for each layer and verify
-            connectivity between layers.
+            Set up the full-stack development environment. Install
+            frameworks, configure services, set up database, and verify
+            the development server runs.
           readChecklist:
-            - Install frontend dependencies (e.g., npm install)
-            - Install backend dependencies and runtime
-            - Start local database and verify connection
-            - Configure environment variables (.env files)
-            - Verify API layer can connect to database
-            - Set up linter and formatter for the project
+            - Install project dependencies (npm install, pip install)
+            - Configure environment variables in .env.local or .env
+            - Start local database and apply schema/migrations
+            - Configure linter, formatter, and pre-commit hooks
+            - Set up GitHub tokens for API access if needed
+            - Verify development server starts without errors
           confirmChecklist:
-            - Frontend dev server starts without errors
-            - Backend API responds to health checks
-            - Database is running and seeded with test data
-            - Environment variables configured for all layers
-            - Linter and formatter configured and passing
-            - Build commands succeed for all layers
+            - All dependencies installed and versions locked
+            - Environment variables configured for local development
+            - Database running locally with schema applied
+            - Linter and formatter pass on existing code
+            - Development server starts and responds to requests
+            - CI pipeline configuration is valid
         code:
-          focus: Building vertically across all layers
+          focus: |
+            Build vertically—complete one feature end-to-end before
+            starting another. Validates assumptions early.
           readChecklist:
-            - Implement backend API endpoints
-            - Build frontend components and integrate with API
-            - Set up database migrations and queries
-            - Configure infrastructure as code
-            - Test across layer boundaries
+            - Implement API endpoints
+            - Build frontend integration
+            - Create database schema and queries
+            - Configure infrastructure as needed
+            - Test across layers
           confirmChecklist:
             - Frontend connects to backend correctly
             - Database schema supports the feature
             - Error handling spans all layers
             - Feature works end-to-end
-        review:
-          focus: Verifying integration across the stack
-          readChecklist:
-            - Test complete user flows end-to-end
-            - Verify error handling at each layer
-            - Check deployment pipeline works
-            - Validate monitoring and logging
-          confirmChecklist:
-            - End-to-end tests pass
             - Deployment is automated
-            - Cross-layer errors are handled gracefully
+        review:
+          focus: |
+            Verify integration across layers and ensure deployment
+            readiness.
+          readChecklist:
+            - Test integration across all layers
+            - Verify error handling end-to-end
+            - Check deployment configuration
+            - Review documentation
+          confirmChecklist:
+            - Integration tests pass
+            - Deployment verified
+            - Documentation is complete
+            - Feature is production-ready
         deploy:
           focus: |
             Deploy full-stack feature to production and verify end-to-end
@@ -305,39 +410,583 @@ skills:
             - No errors in monitoring
             - Performance meets requirements
     toolReferences:
-      - name: Terraform
-        url: https://developer.hashicorp.com/terraform/docs
-        simpleIcon: terraform
-        description: Infrastructure as code tool
-        useWhen: Provisioning and managing cloud infrastructure as code
-      - name: CloudFormation
-        url: https://docs.aws.amazon.com/cloudformation/
-        description: AWS infrastructure as code service
-        useWhen: Managing cloud infrastructure using declarative templates
+      - name: Supabase
+        url: https://supabase.com/docs
+        simpleIcon: supabase
+        description: Open source Firebase alternative with PostgreSQL
+        useWhen:
+          Building applications with PostgreSQL, auth, and real-time features
+      - name: Next.js
+        url: https://nextjs.org/docs
+        simpleIcon: nextdotjs
+        description: React framework for full-stack web applications
+        useWhen:
+          Building React applications with server-side rendering or API routes
+      - name: GitHub Actions
+        url: https://docs.github.com/en/actions
+        simpleIcon: githubactions
+        description: CI/CD and automation platform
+        useWhen: Automating builds, tests, and deployments
+      - name: Nixpacks
+        url: https://nixpacks.com/docs
+        simpleIcon: nixos
+        description: Build tool that auto-detects and builds applications
+        useWhen: Auto-building and deploying applications to containers
       - name: Colima
         url: https://github.com/abiosoft/colima
         simpleIcon: docker
-        description: Container runtime for macOS with Docker-compatible CLI
+        description:
+          Lightweight container runtime for macOS with Docker-compatible CLI
         useWhen:
-          Running containers locally, building images, or containerizing
-          applications
+          Running containers locally for development, building images, or
+          testing containerized apps
+    instructions: |
+      ## Step 1: Configure Environment
+
+      Get connection details from `supabase status`. Create `.env.local`
+      with Supabase URL and anon key. Create the Supabase client module.
+
+      ## Step 2: Create Database Schema
+
+      Create a migration with `supabase migration new`, define the
+      SQL schema with RLS enabled, and apply with `supabase db push`.
+
+      ## Step 3: Build API Routes
+
+      Create Next.js API routes for GET and POST operations using
+      the Supabase client.
+
+      ## Step 4: Build Frontend
+
+      Create a React component that fetches from the API and renders
+      data. Start with a simple list display.
+
+      ## Step 5: Deploy
+
+      Use Nixpacks to auto-detect and build the image. Run it
+      locally with Colima's Docker-compatible runtime to verify
+      before deploying to production.
+    installScript: |
+      set -e
+      brew install colima
+      colima start
+      brew install supabase/tap/supabase || npm install -g supabase
+      npx create-next-app@latest my-app --typescript
+      cd my-app
+      supabase init
+      supabase start
+      npm install @supabase/supabase-js
+      colima status
     implementationReference: |
-      ## Technology Stack
+      ## Supabase Client Setup
 
-      ### Primary Languages
-      - **JavaScript/TypeScript**: Frontend and Node.js backend
-      - **Python**: Backend APIs and data processing
+      ```typescript
+      // lib/supabase.ts
+      import { createClient } from '@supabase/supabase-js'
 
-      ### Infrastructure
-      - **Terraform**: Cloud infrastructure as code
-      - **CloudFormation**: AWS-specific infrastructure
-      - **Docker**: Containerization
+      export const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      ```
 
-      ## Layer Responsibilities
+      ## Database Schema
 
-      | Layer | Responsibilities |
-      |-------|-----------------|
-      | Frontend | UI/UX, client validation, API integration |
-      | Backend | Business logic, auth, external services |
-      | Database | Persistence, queries, migrations |
-      | Infrastructure | Deployment, scaling, monitoring |
+      ```sql
+      CREATE TABLE items (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name TEXT NOT NULL,
+          description TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      ALTER TABLE items ENABLE ROW LEVEL SECURITY;
+      ```
+
+      ## API Route
+
+      ```typescript
+      // app/api/items/route.ts
+      import { supabase } from '@/lib/supabase'
+      import { NextResponse } from 'next/server'
+
+      export async function GET() {
+          const { data, error } = await supabase.from('items').select('*')
+          if (error) return NextResponse.json({ error }, { status: 500 })
+          return NextResponse.json(data)
+      }
+      ```
+
+      ## Frontend Component
+
+      ```typescript
+      // app/page.tsx
+      'use client'
+      import { useEffect, useState } from 'react'
+
+      export default function Home() {
+          const [items, setItems] = useState([])
+          useEffect(() => {
+              fetch('/api/items').then(r => r.json()).then(setItems)
+          }, [])
+          return (
+              <main>
+                  <h1>Items</h1>
+                  <ul>{items.map((item: any) => <li key={item.id}>{item.name}</li>)}</ul>
+              </main>
+          )
+      }
+      ```
+
+      ## Verification
+
+      Your full-stack app is working when:
+      - `npm run dev` starts without errors
+      - Frontend loads at http://localhost:3000
+      - API responds at http://localhost:3000/api/items
+      - Data persists in database (check Supabase Studio at http://localhost:54323)
+
+      ## Common Pitfalls
+
+      - **Missing env vars**: Supabase client fails silently
+      - **RLS without policies**: Queries return empty results
+      - **Type mismatch**: Generate types with `supabase gen types typescript`
+      - **Migration order**: Migrations apply alphabetically by filename
+
+      ## Local Container Testing with Colima
+
+      ```bash
+      # Start Colima (lightweight Docker-compatible runtime)
+      colima start
+
+      # Build with Nixpacks and run locally
+      nixpacks build . --name my-app
+      docker run --rm -p 3000:3000 --env-file .env.local my-app
+
+      # Verify app responds
+      curl http://localhost:3000
+      ```
+  - id: problem_discovery
+    name: Problem Discovery
+    human:
+      description:
+        Navigating undefined problem spaces to uncover real requirements through
+        observation and immersion. Where most engineers expect specifications,
+        FDEs embrace ambiguity—starting with open questions like "How can we
+        accelerate patient recruitment?" rather than detailed requirements
+        documents.
+      levelDescriptions:
+        awareness:
+          You recognize that initial requirements are often incomplete. You ask
+          clarifying questions when you encounter gaps and don't make
+          assumptions.
+        foundational:
+          You actively seek context beyond initial requirements, interview
+          stakeholders to understand "why" behind requests, and document
+          discovered constraints and assumptions.
+        working:
+          You navigate ambiguous problem spaces independently. You discover
+          requirements through observation and user shadowing, reframe problems
+          to find higher-value solutions, and distinguish symptoms from root
+          causes.
+        practitioner:
+          You seek out undefined problems rather than avoiding them. You embed
+          with users to discover latent needs, coach engineers in your area on
+          problem discovery techniques, and turn ambiguity into clear problem
+          statements.
+        expert:
+          You shape approaches to problem discovery across the business unit.
+          You are recognized for transforming ambiguous situations into clear
+          opportunities, influence how teams engage with business problems, and
+          are the go-to person for the most undefined challenges.
+    agent:
+      name: problem-discovery
+      description: |
+        Guide for navigating undefined problem spaces and uncovering real
+        requirements.
+      useWhen: |
+        Facing ambiguous requests, exploring user needs, or translating vague
+        asks into clear problem statements.
+      stages:
+        specify:
+          focus: |
+            Explore the problem space and document what is known.
+            Surface ambiguities and unknowns before attempting solutions.
+          readChecklist:
+            - Document the initial problem statement as understood
+            - List stakeholders and their perspectives
+            - Identify what is known vs unknown
+            - Document assumptions that need validation
+            - Mark all ambiguities with [NEEDS CLARIFICATION]
+          confirmChecklist:
+            - Initial problem statement is documented
+            - Stakeholders are identified
+            - Known vs unknown is explicit
+            - Assumptions are listed for validation
+        plan:
+          focus: |
+            Embrace ambiguity and explore the problem space. Understand
+            context deeply before proposing solutions.
+          readChecklist:
+            - Ask open-ended questions about goals and context
+            - Identify stakeholders and their needs
+            - Discover constraints and prior attempts
+            - Distinguish symptoms from root causes
+            - Write clear problem statement
+          confirmChecklist:
+            - Understand who has the problem
+            - Success criteria are clear
+            - Root cause identified, not just symptoms
+            - Constraints and assumptions documented
+            - Problem statement is validated
+        onboard:
+          focus: |
+            Set up the environment for solution implementation.
+            Install required tools, configure access to relevant
+            systems, and prepare workspace for development.
+          readChecklist:
+            - Install project dependencies from plan requirements
+            - Configure access to relevant data sources and APIs
+            - Set up environment variables and credentials
+            - Verify access to stakeholder communication channels
+            - Create workspace structure for documentation and code
+          confirmChecklist:
+            - All planned tools and dependencies are installed
+            - API keys and credentials are configured securely
+            - Workspace structure supports the planned approach
+            - Access to all required systems is verified
+            - Development environment matches plan requirements
+        code:
+          focus: |
+            Implement solution while staying connected to the original
+            problem. Validate assumptions as you build.
+          readChecklist:
+            - Build incrementally to validate understanding
+            - Check in with stakeholders frequently
+            - Adjust as new information emerges
+            - Document discovered requirements
+          confirmChecklist:
+            - Solution addresses the validated problem
+            - Stakeholder feedback is incorporated
+            - Discovered requirements are documented
+            - Scope boundaries are maintained
+        review:
+          focus: |
+            Verify solution addresses the real problem and stakeholders
+            agree on success.
+          readChecklist:
+            - Validate with original stakeholders
+            - Confirm problem is addressed
+            - Document learnings for future reference
+          confirmChecklist:
+            - Stakeholders confirm problem is solved
+            - Success criteria are met
+            - Learnings are documented
+        deploy:
+          focus: |
+            Release solution and verify it addresses the real problem
+            in production context.
+          readChecklist:
+            - Deploy solution to production
+            - Gather stakeholder feedback on live solution
+            - Monitor for unexpected usage patterns
+            - Document discovered requirements for future iterations
+          confirmChecklist:
+            - Solution is deployed
+            - Stakeholders have validated in production
+            - Usage patterns match expectations
+            - Learnings are captured
+    instructions: |
+      ## Discovery Process
+
+      ### 1. Embrace Ambiguity
+      - Don't rush to solutions
+      - Resist the urge to fill gaps with assumptions
+      - Ask open-ended questions
+      - Seek to understand context deeply
+
+      ### 2. Understand the Context
+      - Who are the stakeholders?
+      - What triggered this request?
+      - What has been tried before?
+      - What constraints exist?
+      - What does success look like?
+
+      ### 3. Find the Real Problem
+      - Ask "why" repeatedly (5 Whys technique)
+      - Distinguish wants from needs
+      - Identify root causes vs symptoms
+      - Challenge initial framing
+
+      ### 4. Validate Understanding
+      - Restate the problem in your own words
+      - Confirm with stakeholders
+      - Check for hidden assumptions
+      - Identify what's still unknown
+    implementationReference: |
+      ## Key Questions
+
+      ### Understanding Goals
+      - What outcome are you trying to achieve?
+      - How will you know if this succeeds?
+      - What happens if we do nothing?
+      - What's the deadline and why?
+
+      ### Understanding Context
+      - Who uses this and how?
+      - What's the current workaround?
+      - What constraints must we work within?
+      - What has been tried before?
+
+      ### Understanding Scope
+      - What's in scope vs out of scope?
+      - What's the minimum viable solution?
+      - What could we cut if needed?
+      - What can't we compromise on?
+
+      ## Problem Statement Template
+
+      A good problem statement answers:
+      - **Who** has this problem?
+      - **What** is the problem they face?
+      - **Why** does it matter?
+      - **When/Where** does it occur?
+      - **How** is it currently handled?
+
+      Format: "[User type] needs [capability] because [reason], but currently [obstacle]."
+
+      ## Common Pitfalls
+
+      - **Solutioning too early**: Jumping to "how" before understanding "what"
+      - **Taking requests literally**: Building what was asked, not what's needed
+      - **Assuming completeness**: Believing initial requirements are complete
+      - **Ignoring context**: Missing business or user context
+      - **Single perspective**: Only talking to one stakeholder
+  - id: rapid_prototyping
+    name: Rapid Prototyping & Validation
+    human:
+      description:
+        Building working solutions quickly to validate ideas and build trust
+        through delivery. Credibility comes from showing real software in days,
+        not months— demonstrating value before polishing details. "Working
+        solutions delivered in days" is the FDE standard.
+      levelDescriptions:
+        awareness:
+          You understand the value of prototypes for learning quickly. You can
+          create simple demos and mockups with guidance.
+        foundational:
+          You build functional prototypes to validate ideas, prioritize core
+          functionality over polish, and iterate based on user feedback. You
+          know the difference between prototype and production code.
+        working:
+          You deliver working solutions rapidly (days not weeks). You use
+          prototypes to build stakeholder trust, know when to stop prototyping
+          and start productionizing, and balance speed with appropriate quality.
+        practitioner:
+          You lead rapid delivery initiatives across teams in your area, coach
+          on prototype-first approaches, establish trust through consistent fast
+          delivery, and define clear criteria for prototype-to-production
+          transitions.
+        expert:
+          You shape culture around rapid validation and iterative delivery
+          across the business unit. You are recognized for transformative fast
+          delivery, define standards for prototype-to-production, and exemplify
+          the "deliver in days" mindset.
+    agent:
+      name: rapid-prototyping
+      description: |
+        Guide for building working prototypes quickly to validate ideas and
+        demonstrate feasibility.
+      useWhen: |
+        Asked to build a quick demo, proof of concept, MVP, or prototype
+        something rapidly.
+      stages:
+        specify:
+          focus: |
+            Define what the prototype must demonstrate and success criteria.
+            Scope ruthlessly—prototypes are for learning, not production.
+          readChecklist:
+            - Identify the key question or hypothesis to validate
+            - Document minimum acceptable demonstration
+            - Define what success looks like for this prototype
+            - Explicitly mark what is out of scope
+            - Mark any ambiguities with [NEEDS CLARIFICATION]
+          confirmChecklist:
+            - Key question to answer is clear
+            - Minimum viable demonstration is defined
+            - Success criteria are explicit
+            - Out of scope items are documented
+        plan:
+          focus: |
+            Define what the prototype needs to demonstrate and set
+            success criteria. Scope ruthlessly for speed.
+          readChecklist:
+            - Define the key question to answer
+            - Scope to minimum viable demonstration
+            - Identify what can be hardcoded or skipped
+            - Set time box for delivery
+          confirmChecklist:
+            - Success criteria are defined
+            - Scope is minimal and focused
+            - Time box is agreed
+            - It's clear this is a prototype
+        onboard:
+          focus: |
+            Set up the prototyping environment as fast as possible.
+            Use scaffolding tools, install minimal dependencies,
+            and get to a running state quickly.
+          readChecklist:
+            - Scaffold project using template or CLI tool
+            - Install only essential dependencies
+            - Configure minimal environment variables
+            - Start development server and verify it runs
+            - Skip non-essential tooling (linters, CI) for speed
+          confirmChecklist:
+            - Project scaffolded and running locally
+            - Core dependencies installed
+            - Development server responds to requests
+            - Ready to start building visible output immediately
+        code:
+          focus: |
+            Build the simplest thing that demonstrates the concept.
+            Prioritize visible progress over backend elegance.
+          readChecklist:
+            - Start with visible UI/output
+            - Hardcode values that would normally be configurable
+            - Skip edge cases that won't appear in demo
+            - Show progress frequently
+            - Document shortcuts taken
+          confirmChecklist:
+            - Core concept is demonstrable
+            - Happy path works end-to-end
+            - Known limitations are documented
+            - Stakeholders can interact with it
+        review:
+          focus: |
+            Validate prototype answers the original question. Decide
+            whether to iterate, productionize, or abandon.
+          readChecklist:
+            - Demo to stakeholders
+            - Gather feedback on the concept
+            - Decide next steps
+            - Document learnings
+          confirmChecklist:
+            - Stakeholders have seen the prototype
+            - Original question is answered
+            - Next steps are decided
+            - Learnings are captured
+        deploy:
+          focus: |
+            Make prototype accessible to stakeholders for evaluation.
+            Prototypes may not need production deployment.
+          readChecklist:
+            - Deploy to accessible environment (staging or demo)
+            - Share access with stakeholders
+            - Gather hands-on feedback
+            - Decide on next phase (iterate, productionize, or abandon)
+          confirmChecklist:
+            - Prototype is accessible to stakeholders
+            - Feedback has been gathered
+            - Decision on next steps is made
+            - Learnings are documented
+    toolReferences:
+      - name: Supabase
+        url: https://supabase.com/docs
+        simpleIcon: supabase
+        description: Open source Firebase alternative with PostgreSQL
+        useWhen: Instant PostgreSQL database with auth for rapid prototypes
+      - name: Next.js
+        url: https://nextjs.org/docs
+        simpleIcon: nextdotjs
+        description: React framework for full-stack web applications
+        useWhen: Scaffolding a full-stack prototype with server-side rendering
+      - name: Nixpacks
+        url: https://nixpacks.com/docs
+        simpleIcon: nixos
+        description: Build tool that auto-detects and builds applications
+        useWhen: Deploying prototypes to containers without writing Dockerfiles
+    instructions: |
+      ## Step 1: Define What to Demonstrate
+
+      Before writing code, answer: What question does this prototype
+      answer? What's the minimum to demonstrate the concept? What can
+      be hardcoded or skipped? When will you stop?
+
+      ## Step 2: Start with Visible Output
+
+      Build the UI first—stakeholders need to see something.
+      Hardcode data initially so you have working output in minutes.
+
+      ## Step 3: Add Real Data When Needed
+
+      Only add database when the UI needs real data. Use Supabase
+      Studio to create tables directly (skip migrations for prototypes).
+
+      ## Step 4: Document Shortcuts
+
+      Add a README section listing what was skipped and what's needed
+      to productionize. This prevents confusion later.
+    installScript: |
+      set -e
+      npx create-next-app@latest my-prototype --typescript
+      cd my-prototype
+      supabase init
+      supabase start
+      npm run dev
+    implementationReference: |
+      ## Start with Hardcoded UI
+
+      ```typescript
+      // app/page.tsx
+      export default function Home() {
+          const items = [
+              { id: 1, name: 'Demo Item 1' },
+              { id: 2, name: 'Demo Item 2' },
+          ]
+          return (
+              <main style={{ padding: '2rem' }}>
+                  <h1>Prototype Demo</h1>
+                  <ul>{items.map(item => <li key={item.id}>{item.name}</li>)}</ul>
+              </main>
+          )
+      }
+      ```
+
+      ## Replace with Real Data
+
+      ```typescript
+      import { supabase } from '@/lib/supabase'
+      const { data: items } = await supabase.from('items').select('*')
+      ```
+
+      ## Document Shortcuts
+
+      ```markdown
+      ## Prototype Limitations
+      This is a prototype for [purpose]. Not production-ready.
+
+      **Shortcuts taken:**
+      - No authentication
+      - Hardcoded configuration in code
+      - No error handling for edge cases
+
+      **To productionize:**
+      - Add authentication
+      - Move config to environment variables
+      - Add proper error handling
+      ```
+
+      ## Acceptable vs Required
+
+      | Acceptable to Skip | Still Required |
+      |-------------------|----------------|
+      | Authentication | Core functionality works |
+      | Error handling | Happy path is reliable |
+      | Migrations | It's clear this is a prototype |
+      | Tests | Limitations are documented |
+
+      ## Common Pitfalls
+
+      - **Over-engineering**: Adding features "while you're at it"
+      - **No stopping point**: Polishing what you might throw away
+      - **Unclear purpose**: Building without knowing what question to answer
+      - **Hidden shortcuts**: Not documenting what was skipped

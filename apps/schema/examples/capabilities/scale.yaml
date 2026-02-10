@@ -1,8 +1,9 @@
 # yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/capability.schema.json
 
+id: scale
 name: Scale
 emojiIcon: 📐
-ordinalRank: 4
+ordinalRank: 7
 description: |
   Building systems that grow gracefully.
   Encompasses architecture, code quality, testing, performance,
@@ -44,6 +45,264 @@ managementResponsibilities:
     architecture governance, and represent technical priorities at executive
     level
 skills:
+  - id: architecture_design
+    name: Architecture & Design
+    human:
+      description:
+        Ability to design software systems that are scalable, maintainable, and
+        fit for purpose. In the AI era, this includes designing systems that
+        effectively leverage AI capabilities while maintaining human oversight.
+      levelDescriptions:
+        awareness:
+          You understand basic architectural concepts (separation of concerns,
+          modularity, coupling) and can read architecture diagrams. You follow
+          established patterns with guidance.
+        foundational:
+          You explain and apply common patterns (MVC, microservices,
+          event-driven) to familiar problems. You contribute to design
+          discussions and identify when existing patterns don't fit.
+        working:
+          You design components and services independently for moderate
+          complexity. You make appropriate trade-off decisions, document design
+          rationale, and consider AI integration points in your designs.
+        practitioner:
+          You design complex multi-component systems end-to-end, evaluate
+          architectural options for large initiatives across teams, guide
+          technical decisions for your area, and mentor engineers on
+          architecture. You balance elegance with delivery needs.
+        expert:
+          You define architecture standards and patterns across the business
+          unit. You innovate on approaches to large-scale challenges, shape
+          AI-integrated system design, and are recognized externally as an
+          architecture authority.
+    agent:
+      name: architecture-design
+      description: |
+        Guide for designing software systems and making architectural
+        decisions.
+      useWhen: |
+        Asked to design a system, evaluate architecture options, or make
+        structural decisions about code organization.
+      stages:
+        specify:
+          focus: |
+            Define system requirements and constraints before design.
+            Clarify functional and non-functional requirements.
+          readChecklist:
+            - Document functional requirements and use cases
+            - Identify non-functional requirements (scale, latency,
+              availability)
+            - Document system constraints and integration points
+            - Identify stakeholders and their concerns
+            - Mark ambiguities with [NEEDS CLARIFICATION]
+          confirmChecklist:
+            - Functional requirements are documented
+            - Non-functional requirements are specified
+            - Constraints are identified
+            - Stakeholder concerns are understood
+        plan:
+          focus: |
+            Understand requirements and identify key architectural decisions.
+            Document trade-offs and design rationale.
+          readChecklist:
+            - Clarify functional and non-functional requirements
+            - Identify constraints (existing systems, team skills, timeline)
+            - Document key decisions and trade-offs
+            - Design for anticipated change
+          confirmChecklist:
+            - Requirements are clearly understood
+            - Key decisions are documented with rationale
+            - Trade-offs are explicit
+            - Failure modes are considered
+        onboard:
+          focus: |
+            Set up the development environment for the planned
+            architecture. Install frameworks, configure project
+            structure, and verify tooling.
+          readChecklist:
+            - Install planned frameworks and dependencies
+            - Create project structure matching architecture design
+            - Configure Mermaid rendering for architecture docs
+            - Set up ADR directory for decision records
+            - Configure linter and formatter for the project
+          confirmChecklist:
+            - Project structure reflects architectural boundaries
+            - All planned frameworks installed and importable
+            - Documentation tooling renders diagrams correctly
+            - Linter and formatter configured and passing
+            - Build system compiles without errors
+        code:
+          focus: |
+            Implement architecture with clear boundaries and interfaces.
+            Ensure components can evolve independently.
+          readChecklist:
+            - Define clear interfaces between components
+            - Implement with appropriate patterns
+            - Document design decisions in code
+            - Test architectural boundaries
+          confirmChecklist:
+            - Dependencies are minimal and explicit
+            - Interfaces are well-defined
+            - Design patterns are documented
+            - Architecture tests pass
+        review:
+          focus: |
+            Validate architecture meets requirements and is maintainable.
+            Ensure scalability and security are addressed.
+          readChecklist:
+            - Verify architecture meets requirements
+            - Review for scalability concerns
+            - Check security implications
+            - Validate documentation completeness
+          confirmChecklist:
+            - Scalability requirements are addressed
+            - Security implications are reviewed
+            - Architecture is documented
+            - Design is maintainable
+        deploy:
+          focus: |
+            Deploy architecture and verify it performs as designed
+            in production environment.
+          readChecklist:
+            - Deploy system components to production
+            - Verify architectural boundaries work under load
+            - Monitor performance against requirements
+            - Document any operational learnings
+          confirmChecklist:
+            - System deployed successfully
+            - Performance meets requirements
+            - Monitoring confirms design assumptions
+            - Operational procedures are documented
+    toolReferences:
+      - name: Mermaid
+        url: https://mermaid.js.org/intro/
+        simpleIcon: mermaid
+        description: Text-based diagramming for architecture documentation
+        useWhen: Creating architecture diagrams in markdown or documentation
+      - name: ADR Tools
+        url: https://adr.github.io/
+        simpleIcon: task
+        description: Architecture Decision Records tooling
+        useWhen: Documenting architectural decisions and trade-offs
+    instructions: |
+      ## Step 1: Identify Key Decisions
+
+      Architecture is decisions that are hard to change later.
+      Before coding, document: data storage (SQL vs NoSQL),
+      service boundaries (monolith vs services), and communication
+      patterns (sync HTTP vs async events).
+
+      ## Step 2: Visualize with Mermaid Diagrams
+
+      Create architecture diagrams in markdown for version control.
+      Use C4 diagram types for different levels of detail (context,
+      container, component).
+
+      ## Step 3: Document Trade-offs with ADRs
+
+      Create an Architecture Decision Record for each significant
+      choice. Include status, context, decision, and consequences
+      (both positive and negative).
+
+      ## Step 4: Structure Code with Clear Boundaries
+
+      Organize code so each domain is independent. Use api, service,
+      repository, and types layers within each module. Cross-cutting
+      concerns go in a shared directory.
+
+      ## Step 5: Define Explicit Interfaces
+
+      Define contracts at domain boundaries. Hide implementations
+      behind interfaces so modules can evolve independently.
+    installScript: |
+      set -e
+      npm install -g @mermaid-js/mermaid-cli
+      npm install -g adr-log
+      command -v mmdc
+    implementationReference: |
+      ## Mermaid Architecture Diagram
+
+      ```mermaid
+      graph TB
+          subgraph "API Layer"
+              API[API Gateway]
+          end
+          subgraph "Domain Modules"
+              Users[Users Module]
+              Orders[Orders Module]
+          end
+          subgraph "Data Layer"
+              DB[(PostgreSQL)]
+          end
+          API --> Users
+          API --> Orders
+          Users --> DB
+          Orders --> DB
+      ```
+
+      ## ADR Template
+
+      ```markdown
+      # ADR 001: Start with Modular Monolith
+
+      ## Status
+      Accepted
+
+      ## Context
+      We need to deliver quickly but maintain future flexibility.
+
+      ## Decision
+      Start with a modular monolith with clear domain boundaries.
+
+      ## Consequences
+      - (+) Faster initial development
+      - (+) Easier refactoring while boundaries evolve
+      - (-) Must enforce boundaries through code review
+      ```
+
+      ## Module Structure
+
+      ```
+      src/
+        modules/
+          users/
+            api.ts
+            service.ts
+            repository.ts
+            types.ts
+          orders/
+            api.ts
+            service.ts
+            repository.ts
+            types.ts
+        shared/
+      ```
+
+      ## Interface at Domain Boundary
+
+      ```javascript
+      // Define contracts at domain boundaries
+      class OrderServiceImpl {
+        constructor(repo) { this.repo = repo; }
+        async create(order) { return this.repo.save(order); }
+        async get(id) { return this.repo.findById(id); }
+      }
+      ```
+
+      ## Verification
+
+      Your architecture is sound when:
+      - Each module can be understood without reading others
+      - Dependencies flow inward (api -> service -> repository)
+      - ADRs explain "why" for each major decision
+      - Diagrams render correctly in your documentation
+
+      ## When to Extract Services
+
+      Extract only when you have evidence:
+      - Independent scaling is required (measured, not guessed)
+      - Different deployment cadences are blocking teams
+      - Team boundaries naturally align with service boundaries
   - id: cloud_platforms
     name: Cloud Platforms
     human:
@@ -92,17 +351,19 @@ skills:
             - Cost constraints are defined
             - Performance requirements are clear
         plan:
-          focus: Selecting and designing cloud architecture
+          focus: |
+            Select appropriate cloud services and design for availability,
+            security, and cost efficiency.
           readChecklist:
-            - Evaluate service options for the use case
-            - Plan multi-AZ deployment for availability
-            - Design IAM roles with least privilege
-            - Estimate costs and plan resource sizing
+            - Identify service requirements
+            - Select appropriate cloud services
+            - Plan for high availability
+            - Consider security and cost
           confirmChecklist:
             - Service selection matches requirements
-            - Architecture designed for availability
-            - Security approach documented
-            - Cost estimate prepared
+            - Availability approach planned
+            - Security model defined
+            - Cost controls considered
         onboard:
           focus: |
             Set up cloud development environment. Configure CLI tools,
@@ -121,29 +382,34 @@ skills:
             - Environment variables configured securely
             - Infrastructure as code directory structure created
         code:
-          focus: Implementing cloud infrastructure and deployments
+          focus: |
+            Implement cloud infrastructure with security best practices.
+            Use infrastructure as code for reproducibility.
           readChecklist:
-            - Define infrastructure as code (Terraform/CloudFormation)
-            - Configure security groups and network policies
-            - Set up encryption at rest and in transit
-            - Implement monitoring and alerting
+            - Define infrastructure as code
+            - Configure security groups and IAM
+            - Set up monitoring and alerting
+            - Implement deployment automation
           confirmChecklist:
-            - Infrastructure defined as code
+            - Multi-AZ deployment for availability
             - Security groups properly configured
-            - Encryption enabled for data
-            - Monitoring and alerting in place
+            - IAM follows least privilege
+            - Data encrypted at rest and in transit
+            - Infrastructure defined as code
         review:
-          focus: Validating cloud configuration and security
+          focus: |
+            Validate security, availability, and operational readiness.
+            Ensure cost controls are in place.
           readChecklist:
-            - Verify IAM follows least privilege
-            - Check multi-AZ deployment
-            - Validate cost controls are in place
-            - Review security configuration
+            - Verify security configuration
+            - Test availability and failover
+            - Review cost projections
+            - Validate monitoring coverage
           confirmChecklist:
-            - IAM permissions are minimal
-            - Multi-AZ deployment confirmed
+            - Security review completed
+            - Monitoring and alerting in place
             - Cost controls established
-            - Security review complete
+            - Operational runbooks exist
         deploy:
           focus: |
             Deploy cloud infrastructure and verify production readiness.
@@ -158,21 +424,226 @@ skills:
             - Failover tested in production
             - Monitoring is operational
             - Cost tracking is active
+    toolReferences:
+      - name: Terraform
+        url: https://developer.hashicorp.com/terraform/docs
+        simpleIcon: terraform
+        description:
+          Infrastructure as code tool for provisioning cloud resources
+        useWhen: Defining and managing cloud infrastructure as code
+      - name: AWS Lambda
+        url: https://docs.aws.amazon.com/lambda/
+        simpleIcon: task
+        description: Serverless compute service for event-driven applications
+        useWhen: Building event-driven functions without managing servers
+      - name: Amazon EventBridge
+        url: https://docs.aws.amazon.com/eventbridge/
+        simpleIcon: task
+        description: Serverless event bus for application integration
+        useWhen: Building event-driven architectures or integrating AWS services
+      - name: Amazon DynamoDB
+        url: https://docs.aws.amazon.com/dynamodb/
+        simpleIcon: task
+        description:
+          Serverless NoSQL database with single-digit millisecond latency
+        useWhen:
+          Building serverless applications requiring fast key-value or document
+          storage
+      - name: AWS Step Functions
+        url: https://docs.aws.amazon.com/step-functions/
+        simpleIcon: task
+        description:
+          Serverless workflow orchestration for coordinating AWS services
+        useWhen:
+          Orchestrating multi-step serverless workflows with error handling,
+          retries, and state management
+    instructions: |
+      ## Step 1: Choose Your Architecture Pattern
+
+      Event-driven serverless works best when workload is
+      unpredictable or spiky, you want pay-per-use pricing,
+      and components can operate independently.
+
+      ## Step 2: Define Infrastructure with Terraform
+
+      Use Terraform to define cloud resources declaratively.
+      Define Lambda functions, DynamoDB tables, and IAM roles
+      in HCL. Apply with terraform init, plan, apply.
+
+      ## Step 3: Define the Event Flow
+
+      Wire EventBridge rules to trigger Lambda functions based
+      on event patterns. Define source, detail-type, and target.
+
+      ## Step 4: Implement Lambda Functions
+
+      Initialize SDK clients outside the handler for reuse across
+      invocations. Keep handlers focused on a single responsibility.
+
+      ## Step 5: Configure IAM (Least Privilege)
+
+      Grant only the specific actions needed (e.g., dynamodb:GetItem,
+      dynamodb:PutItem) on the specific resource ARN. Never use
+      wildcard permissions.
+
+      ## Step 6: Orchestrate with Step Functions
+
+      Use Step Functions to coordinate multi-step workflows. Define
+      state machines in Amazon States Language. Use Step Functions
+      for workflows that need error handling, retries, parallel
+      execution, or human approval gates.
+    installScript: |
+      set -e
+      brew tap hashicorp/tap
+      brew install hashicorp/tap/terraform
+      terraform --version
+      command -v aws
     implementationReference: |
-      ## Service Categories
+      ## Terraform Lambda + DynamoDB
 
-      | Category | Services | Use Case |
-      |----------|----------|----------|
-      | Compute | EC2, ECS, Lambda | VMs, Containers, Serverless |
-      | Storage | S3, EBS, EFS | Objects, Blocks, Files |
-      | Database | RDS, DynamoDB | SQL, NoSQL |
-      | Messaging | SQS, SNS, Kinesis | Queues, Pub/Sub, Streaming |
+      ```hcl
+      terraform {
+        required_providers {
+          aws = { source = "hashicorp/aws", version = "~> 5.0" }
+        }
+      }
 
-      ## Cloud-Native Principles
-      - Design for failure
-      - Use managed services
-      - Automate everything
-      - Monitor and alert
+      resource "aws_lambda_function" "process_order" {
+        filename      = "lambda.zip"
+        function_name = "process-order"
+        role          = aws_iam_role.lambda_role.arn
+        handler       = "handler.process_order"
+        runtime       = "python3.11"
+        environment {
+          variables = { TABLE_NAME = aws_dynamodb_table.orders.name }
+        }
+      }
+
+      resource "aws_dynamodb_table" "orders" {
+        name         = "orders"
+        billing_mode = "PAY_PER_REQUEST"
+        hash_key     = "pk"
+        range_key    = "sk"
+        attribute { name = "pk", type = "S" }
+        attribute { name = "sk", type = "S" }
+      }
+      ```
+
+      ## EventBridge Rule
+
+      ```hcl
+      resource "aws_cloudwatch_event_rule" "order_created" {
+        name          = "order-created"
+        event_pattern = jsonencode({
+          source      = ["orders"]
+          detail-type = ["OrderCreated"]
+        })
+      }
+
+      resource "aws_cloudwatch_event_target" "process_order" {
+        rule      = aws_cloudwatch_event_rule.order_created.name
+        target_id = "ProcessOrder"
+        arn       = aws_lambda_function.process_order.arn
+      }
+      ```
+
+      ## Lambda Handler
+
+      ```python
+      import os, boto3
+
+      dynamodb = boto3.resource('dynamodb')
+      table = dynamodb.Table(os.environ['TABLE_NAME'])
+
+      def process_order(event, context):
+          order = event['detail']
+          table.put_item(Item={
+              'pk': f"ORDER#{order['id']}",
+              'sk': 'METADATA',
+              'status': 'processing',
+              **order
+          })
+          return {'statusCode': 200}
+      ```
+
+      ## IAM Least Privilege
+
+      ```hcl
+      resource "aws_iam_role_policy" "lambda_dynamodb" {
+        name = "dynamodb-access"
+        role = aws_iam_role.lambda_role.id
+        policy = jsonencode({
+          Version = "2012-10-17"
+          Statement = [{
+            Effect   = "Allow"
+            Action   = ["dynamodb:GetItem", "dynamodb:PutItem"]
+            Resource = aws_dynamodb_table.orders.arn
+          }]
+        })
+      }
+      ```
+
+      ## Verification
+
+      ```bash
+      terraform apply
+      aws events put-events --entries '[{"Source":"orders","DetailType":"OrderCreated","Detail":"{\"id\":\"123\"}"}]'
+      ```
+
+      Check CloudWatch Logs for function execution.
+
+      ## Step Functions State Machine
+
+      ```hcl
+      resource "aws_sfn_state_machine" "order_workflow" {
+        name     = "order-processing"
+        role_arn = aws_iam_role.sfn_role.arn
+
+        definition = jsonencode({
+          StartAt = "ValidateOrder"
+          States = {
+            ValidateOrder = {
+              Type     = "Task"
+              Resource = aws_lambda_function.validate_order.arn
+              Next     = "ProcessPayment"
+              Retry = [{
+                ErrorEquals     = ["States.TaskFailed"]
+                IntervalSeconds = 2
+                MaxAttempts     = 3
+                BackoffRate     = 2.0
+              }]
+              Catch = [{
+                ErrorEquals = ["States.ALL"]
+                Next        = "OrderFailed"
+              }]
+            }
+            ProcessPayment = {
+              Type     = "Task"
+              Resource = aws_lambda_function.process_payment.arn
+              Next     = "FulfillOrder"
+            }
+            FulfillOrder = {
+              Type     = "Task"
+              Resource = aws_lambda_function.fulfill_order.arn
+              End      = true
+            }
+            OrderFailed = {
+              Type  = "Fail"
+              Cause = "Order processing failed"
+            }
+          }
+        })
+      }
+      ```
+
+      ## When to Use Step Functions
+
+      | Use Case | Approach |
+      |----------|----------|
+      | Simple event → action | EventBridge + Lambda |
+      | Multi-step with retries | Step Functions |
+      | Long-running workflows | Step Functions (Express or Standard) |
+      | Parallel fan-out | Step Functions Parallel state |
   - id: code_quality
     name: Code Quality & Review
     human:
@@ -205,10 +676,12 @@ skills:
           engineering.
     agent:
       name: code-quality-review
-      description: Guide for writing quality code and conducting code reviews.
+      description: |
+        Guide for reviewing code quality, identifying issues, and suggesting
+        improvements.
       useWhen: |
-        Reviewing code, checking for best practices, or verifying AI-generated
-        code before committing.
+        Asked to review code, check for best practices, or conduct code
+        reviews.
       stages:
         specify:
           focus: |
@@ -226,17 +699,19 @@ skills:
             - Test requirements are specified
             - Review approach matches risk level
         plan:
-          focus: Planning for quality before implementation
+          focus: |
+            Understand code review scope and establish review criteria.
+            Consider what quality standards apply.
           readChecklist:
-            - Review project coding conventions
-            - Plan testing strategy for the feature
-            - Identify edge cases to handle
-            - Consider error handling approach
+            - Identify code review scope
+            - Understand applicable standards
+            - Plan review approach
+            - Consider risk level
           confirmChecklist:
-            - Coding conventions understood
-            - Testing strategy defined
-            - Edge cases identified
-            - Error handling planned
+            - Review scope is clear
+            - Standards are understood
+            - Review approach is planned
+            - Risk level is assessed
         onboard:
           focus: |
             Set up code quality tooling. Configure linters, formatters,
@@ -256,29 +731,33 @@ skills:
             - Editor integration works (format-on-save, inline errors)
             - CI pipeline includes quality checks
         code:
-          focus: Writing and testing quality code
+          focus: |
+            Write clean, maintainable, tested code. Follow project
+            conventions and ensure adequate coverage.
           readChecklist:
-            - Follow project coding conventions
-            - Write tests alongside implementation
-            - Handle error conditions appropriately
-            - Self-review before requesting review
-          confirmChecklist:
-            - Code follows project conventions
-            - Changes are covered by tests
-            - Error handling is appropriate
-            - Self-review completed
-        review:
-          focus: Verifying code quality and correctness
-          readChecklist:
-            - Verify code does what it claims
-            - Check test coverage is adequate
-            - Evaluate maintainability
-            - Ensure no code you don't understand
+            - Write readable, well-structured code
+            - Add appropriate tests
+            - Follow project conventions
+            - Document non-obvious logic
           confirmChecklist:
             - Code compiles and passes all tests
-            - No obvious security vulnerabilities
+            - Changes are covered by tests
+            - Code follows project conventions
             - No unnecessary complexity
+        review:
+          focus: |
+            Verify correctness, maintainability, and adherence to
+            standards. Ensure no code is shipped that isn't understood.
+          readChecklist:
+            - Verify code does what it claims
+            - Check test coverage
+            - Review for maintainability
+            - Confirm style compliance
+          confirmChecklist:
+            - No obvious security vulnerabilities
+            - Error handling is appropriate
             - Documentation updated if needed
+            - No code you don't fully understand
         deploy:
           focus: |
             Merge and deploy reviewed code. Verify quality checks pass
@@ -293,13 +772,157 @@ skills:
             - CI pipeline passes all checks
             - No regressions detected
             - Deployment verified
-    implementationReference: |
-      ## Review Checklist
+    toolReferences:
+      - name: ESLint
+        url: https://eslint.org/docs/latest/
+        simpleIcon: eslint
+        description: Pluggable JavaScript/TypeScript linting utility
+        useWhen:
+          Enforcing code style and catching errors in JavaScript/TypeScript
+          projects
+      - name: Ruff
+        url: https://docs.astral.sh/ruff/
+        simpleIcon: ruff
+        description: Extremely fast Python linter and formatter
+        useWhen: Enforcing code style and catching errors in Python projects
+      - name: Prettier
+        url: https://prettier.io/docs/en/
+        simpleIcon: prettier
+        description: Opinionated code formatter
+        useWhen:
+          Enforcing consistent code formatting across JavaScript/TypeScript
+          codebases
+      - name: SonarQube
+        url: https://docs.sonarsource.com/sonarqube/latest/
+        simpleIcon: sonarqubeserver
+        description: Code quality and security analysis platform
+        useWhen:
+          Analyzing code quality metrics, identifying code smells, or tracking
+          quality gates
+      - name: Playwright
+        url: https://playwright.dev/docs/intro
+        simpleIcon: playwright
+        description: End-to-end testing framework for web applications
+        useWhen:
+          Writing and running end-to-end tests to verify full application
+          behavior across browsers
+    instructions: |
+      ## Step 1: Set Up Linting
 
-      1. **Correctness**: Does it work as intended?
-      2. **Tests**: Is it properly tested?
-      3. **Maintainability**: Will it be easy to change?
-      4. **Style**: Does it follow conventions?
+      Configure ESLint for JavaScript/TypeScript using flat config.
+      For Python, configure Ruff in pyproject.toml with appropriate
+      rule selections (E, F, I at minimum).
+
+      ## Step 2: Configure Formatting
+
+      Set up Prettier for JS/TS with consistent settings. Enable
+      format-on-save in your editor. Ruff handles Python formatting.
+
+      ## Step 3: Add Pre-commit Hooks
+
+      Install husky and lint-staged to run linting and formatting
+      automatically on staged files before each commit.
+
+      ## Step 4: Set Up Quality Gates (Optional)
+
+      Configure SonarQube to analyze code quality metrics. Set
+      quality gates for technical debt ratio, code smells, and
+      maintainability rating.
+
+      ## Step 5: Add End-to-End Tests
+
+      Use Playwright to write E2E tests that verify full application
+      behavior in a real browser. Test critical user flows end-to-end
+      to catch integration issues that unit tests miss.
+    installScript: |
+      set -e
+      npm install -D eslint prettier husky lint-staged
+      pip install ruff
+      npx playwright install --with-deps chromium
+      npx eslint --version
+      ruff --version
+      npx playwright --version
+    implementationReference: |
+      ## ESLint Flat Config
+
+      ```javascript
+      // eslint.config.js
+      export default [
+        { rules: { "no-unused-vars": "error", "no-console": "warn" } }
+      ];
+      ```
+
+      ## Ruff Config
+
+      ```toml
+      # pyproject.toml
+      [tool.ruff]
+      line-length = 88
+      select = ["E", "F", "I"]
+      ```
+
+      ## Prettier Config
+
+      ```json
+      { "semi": true, "singleQuote": true, "trailingComma": "es5" }
+      ```
+
+      ## Pre-commit Hooks
+
+      ```bash
+      npx husky init
+      echo "npx lint-staged" > .husky/pre-commit
+      ```
+
+      ```json
+      "lint-staged": {
+        "*.{js,ts}": ["eslint --fix", "prettier --write"],
+        "*.py": ["ruff check --fix", "ruff format"]
+      }
+      ```
+
+      ## Code Review Checklist
+
+      1. **Correctness** — Does it do what it claims?
+      2. **Tests** — Are changes covered? Edge cases?
+      3. **Readability** — Can you understand it in 6 months?
+      4. **No surprises** — Side effects documented?
+
+      ## Playwright E2E Tests
+
+      ```javascript
+      // tests/app.spec.js
+      import { test, expect } from '@playwright/test';
+
+      test('homepage loads and displays content', async ({ page }) => {
+          await page.goto('/');
+          await expect(page.locator('h1')).toBeVisible();
+      });
+
+      test('user can submit form', async ({ page }) => {
+          await page.goto('/form');
+          await page.fill('[name="email"]', 'test@example.com');
+          await page.click('button[type="submit"]');
+          await expect(page.locator('.success')).toBeVisible();
+      });
+      ```
+
+      ```javascript
+      // playwright.config.js
+      import { defineConfig } from '@playwright/test';
+      export default defineConfig({
+          testDir: './tests',
+          use: { baseURL: 'http://localhost:3000' },
+          webServer: { command: 'npm run dev', port: 3000 },
+      });
+      ```
+
+      ## Verification
+
+      Run locally before commit:
+      ```bash
+      npx eslint . && npx prettier --check . && npm test
+      ```
   - id: data_modeling
     name: Data Modeling
     human:
@@ -353,17 +976,19 @@ skills:
             - Performance requirements are specified
             - Compliance needs are clear
         plan:
-          focus: Understanding data requirements and designing schema
+          focus: |
+            Understand data requirements and select appropriate storage
+            technology. Plan schema with query patterns in mind.
           readChecklist:
-            - Gather data requirements and access patterns
-            - Choose appropriate storage technology
-            - Design normalized schema
-            - Plan indexing strategy
+            - Identify data requirements and access patterns
+            - Select appropriate storage technology
+            - Plan normalization approach
+            - Design indexing strategy
           confirmChecklist:
             - Requirements understood
-            - Storage technology selected
-            - Schema design documented
-            - Index strategy planned
+            - Appropriate storage technology selected
+            - Schema design planned
+            - Query patterns identified
         onboard:
           focus: |
             Set up the database environment. Install ORM/query tools,
@@ -379,32 +1004,36 @@ skills:
             - Database running locally and accepting connections
             - ORM/client configured and connected
             - Migration tooling initialized and working
-            - Test data can be seeded and queried
             - Database credentials stored securely in .env
+            - Schema management directory structure created
         code:
-          focus: Implementing schema and migrations
+          focus: |
+            Implement schema with appropriate normalization and indexes.
+            Plan safe migrations for existing data.
           readChecklist:
-            - Create database migrations
-            - Implement schema changes
+            - Create schema with appropriate normalization
             - Add indexes for query patterns
-            - Write efficient queries
+            - Implement safe migration plan
+            - Document data model
           confirmChecklist:
-            - Schema implemented correctly
+            - Schema normalized appropriately
             - Indexes support query patterns
-            - Migrations are reversible
-            - Queries are optimized
-        review:
-          focus: Validating schema design and performance
-          readChecklist:
-            - Verify schema matches requirements
-            - Check migration safety
-            - Validate query performance
-            - Review backward compatibility
-          confirmChecklist:
-            - Schema meets requirements
-            - Migrations tested on production-like data
-            - Query performance acceptable
+            - Migration plan is safe
             - Backward compatibility maintained
+        review:
+          focus: |
+            Validate schema meets requirements and migrations are safe.
+            Ensure data integrity is maintained.
+          readChecklist:
+            - Test query performance
+            - Verify migration safety
+            - Check data integrity
+            - Review documentation
+          confirmChecklist:
+            - Query performance validated
+            - Migration tested on production-like data
+            - Data integrity verified
+            - Documentation complete
         deploy:
           focus: |
             Deploy schema changes to production safely.
@@ -419,12 +1048,624 @@ skills:
             - Data integrity verified
             - Performance meets requirements
             - Rollback procedure tested
-    implementationReference: |
-      ## Storage Selection Guide
+    toolReferences:
+      - name: PostgreSQL
+        url: https://www.postgresql.org/docs/
+        simpleIcon: postgresql
+        description: Advanced open source relational database
+        useWhen:
+          Building applications requiring ACID transactions and complex queries
+      - name: Prisma
+        url: https://www.prisma.io/docs/
+        simpleIcon: prisma
+        description:
+          Type-safe ORM for Node.js and TypeScript which works well with
+          Supabase
+        useWhen:
+          Building type-safe database access layers in Node.js applications
+    instructions: |
+      ## Step 1: Create a Prisma User in Supabase
 
-      | Type | Use When | Examples |
-      |------|----------|----------|
-      | Relational | ACID needed, complex queries | PostgreSQL, MySQL |
-      | Document | Flexible schema, hierarchical | MongoDB, Firestore |
-      | Key-Value | Simple lookups, caching | Redis, DynamoDB |
-      | Time Series | Temporal data, metrics | InfluxDB, TimescaleDB |
+      In the Supabase SQL Editor, create a dedicated Prisma user
+      with appropriate privileges. Grant usage, create, and all
+      permissions on the public schema.
+
+      ## Step 2: Initialize Prisma Project
+
+      Install Prisma and TypeScript dependencies. Run prisma init
+      to scaffold the schema and .env file.
+
+      ## Step 3: Configure Supabase Connection
+
+      Get your Supavisor Session pooler string from Supabase
+      Dashboard. Use port 5432 for session mode (migrations).
+      For serverless, also configure transaction mode (port 6543).
+
+      ## Step 4: Define Your Schema
+
+      Define models with relationships, indexes, and constraints
+      in prisma/schema.prisma. Use uuid for IDs and add timestamps.
+
+      ## Step 5: Run Migrations
+
+      Run prisma migrate dev to create tables and generate the
+      client. Verify tables in Supabase Dashboard.
+
+      ## Step 6: Use the Prisma Client
+
+      Import PrismaClient and use type-safe queries. Always
+      disconnect in finally blocks and handle errors.
+    installScript: |
+      set -e
+      npm install prisma @prisma/client typescript ts-node --save-dev
+      npx prisma init
+      npx prisma --version
+    implementationReference: |
+      ## Supabase Prisma User Setup
+
+      ```sql
+      create user "prisma" with password 'your_secure_password' bypassrls createdb;
+      grant "prisma" to "postgres";
+      grant usage on schema public to prisma;
+      grant create on schema public to prisma;
+      grant all on all tables in schema public to prisma;
+      grant all on all routines in schema public to prisma;
+      grant all on all sequences in schema public to prisma;
+      ```
+
+      ## Connection Strings
+
+      ```env
+      # Session mode (migrations)
+      DATABASE_URL="postgres://prisma.[REF]:[PASS]@[REGION].pooler.supabase.com:5432/postgres"
+
+      # Transaction mode (serverless)
+      DATABASE_URL="postgres://prisma.[REF]:[PASS]@[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true"
+      DIRECT_URL="postgres://prisma.[REF]:[PASS]@[REGION].pooler.supabase.com:5432/postgres"
+      ```
+
+      ## Schema Example
+
+      ```prisma
+      generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider  = "postgresql"
+        url       = env("DATABASE_URL")
+        directUrl = env("DIRECT_URL")
+      }
+
+      model User {
+        id        String   @id @default(uuid())
+        email     String   @unique
+        name      String?
+        posts     Post[]
+        createdAt DateTime @default(now())
+      }
+
+      model Post {
+        id        String   @id @default(uuid())
+        title     String
+        content   String?
+        published Boolean  @default(false)
+        author    User?    @relation(fields: [authorId], references: [id])
+        authorId  String?
+        createdAt DateTime @default(now())
+      }
+      ```
+
+      ## Prisma Client Usage
+
+      ```javascript
+      import { PrismaClient } from '@prisma/client';
+      const prisma = new PrismaClient();
+
+      const user = await prisma.user.create({
+        data: {
+          email: 'alice@example.com',
+          name: 'Alice',
+          posts: { create: { title: 'Hello World' } }
+        },
+        include: { posts: true }
+      });
+      ```
+
+      ## Verification
+
+      - Migrations apply without errors
+      - Tables visible in Supabase Dashboard
+      - Queries return expected data
+      - Connection pooling works in production
+  - id: devops
+    name: DevOps & CI/CD
+    human:
+      description:
+        Building and maintaining deployment pipelines, infrastructure, and
+        operational practices
+      levelDescriptions:
+        awareness:
+          You understand CI/CD concepts (build, test, deploy) and can trigger
+          and monitor pipelines others have built. You follow deployment
+          procedures.
+        foundational:
+          You configure basic CI/CD pipelines, understand containerization, and
+          can troubleshoot common build and deployment failures.
+        working:
+          You build complete CI/CD pipelines end-to-end, manage infrastructure
+          as code, implement monitoring, and design deployment strategies for
+          your services.
+        practitioner:
+          You design deployment strategies for complex multi-service systems
+          across teams, optimize pipeline performance and reliability, define
+          DevOps practices for your area, and mentor engineers on
+          infrastructure.
+        expert:
+          You shape DevOps culture and practices across the business unit. You
+          introduce innovative approaches to deployment and infrastructure,
+          solve large-scale DevOps challenges, and are recognized externally.
+    agent:
+      name: devops-cicd
+      description: |
+        Guide for building CI/CD pipelines, managing infrastructure as code,
+        and implementing deployment best practices.
+      useWhen: |
+        Setting up pipelines, containerizing applications, or configuring
+        infrastructure.
+      stages:
+        specify:
+          focus: |
+            Define CI/CD and infrastructure requirements.
+            Clarify deployment strategy and operational needs.
+          readChecklist:
+            - Document deployment frequency requirements
+            - Identify rollback and recovery requirements
+            - Specify monitoring and alerting needs
+            - Define security and compliance constraints
+            - Mark ambiguities with [NEEDS CLARIFICATION]
+          confirmChecklist:
+            - Deployment requirements are documented
+            - Recovery requirements are specified
+            - Monitoring needs are identified
+            - Compliance constraints are clear
+        plan:
+          focus: |
+            Plan CI/CD pipeline architecture and infrastructure requirements.
+            Consider deployment strategies and monitoring needs.
+          readChecklist:
+            - Define pipeline stages (build, test, deploy)
+            - Identify infrastructure requirements
+            - Plan deployment strategy (rolling, blue-green, canary)
+            - Consider monitoring and alerting needs
+            - Plan secret management approach
+          confirmChecklist:
+            - Pipeline architecture is documented
+            - Deployment strategy is chosen and justified
+            - Infrastructure requirements are identified
+            - Monitoring approach is defined
+        onboard:
+          focus: |
+            Set up CI/CD and infrastructure tooling. Install build
+            tools, configure container runtime, and verify pipeline
+            connectivity.
+          readChecklist:
+            - Install container runtime (Colima/Docker)
+            - Install build tool (Nixpacks) and verify it works
+            - Configure GitHub Actions workflow directory structure
+            - Set up repository secrets for CI/CD pipeline
+            - Configure container registry authentication
+            - Verify local container builds succeed
+          confirmChecklist:
+            - Container runtime running and responsive
+            - Build tool creates images from project source
+            - GitHub Actions workflow files are valid YAML
+            - Repository secrets configured for deployment
+            - Container registry push/pull works
+            - Local build-test-run cycle completes successfully
+        code:
+          focus: |
+            Implement CI/CD pipelines and infrastructure as code. Follow
+            best practices for containerization and deployment automation.
+          readChecklist:
+            - Configure CI/CD pipeline stages
+            - Implement infrastructure as code (Terraform)
+            - Create Dockerfiles with security best practices
+            - Set up monitoring and alerting
+            - Configure secret management
+            - Implement deployment automation
+          confirmChecklist:
+            - Pipeline runs on every commit
+            - Tests run before deployment
+            - Deployments are automated
+            - Infrastructure is version controlled
+            - Secrets are managed securely
+            - Monitoring is in place
+        review:
+          focus: |
+            Verify pipeline reliability, security, and operational readiness.
+            Ensure rollback procedures work and documentation is complete.
+          readChecklist:
+            - Verify pipeline runs successfully end-to-end
+            - Test rollback procedures
+            - Review security configurations
+            - Validate monitoring and alerts
+            - Check documentation completeness
+          confirmChecklist:
+            - Pipeline is tested and reliable
+            - Rollback procedure is documented and tested
+            - Alerts are configured and tested
+            - Runbooks exist for common issues
+        deploy:
+          focus: |
+            Deploy pipeline and infrastructure changes to production.
+            Verify operational readiness.
+          readChecklist:
+            - Deploy pipeline configuration to production
+            - Verify deployment workflows work correctly
+            - Confirm monitoring and alerting are operational
+            - Run deployment through the new pipeline
+          confirmChecklist:
+            - Pipeline deployed and operational
+            - Workflows tested in production
+            - Monitoring confirms healthy operation
+            - First deployment through pipeline succeeded
+    toolReferences:
+      - name: Nixpacks
+        url: https://nixpacks.com/docs
+        simpleIcon: nixos
+        description:
+          Auto-detecting build system that creates optimized container images
+        useWhen: Building container images without writing Dockerfiles
+      - name: GitHub Actions
+        url: https://docs.github.com/en/actions
+        simpleIcon: githubactions
+        description: CI/CD and automation platform for GitHub repositories
+        useWhen: Automating build, test, and deployment pipelines
+      - name: Colima
+        url: https://github.com/abiosoft/colima
+        simpleIcon: docker
+        description: Container runtime for macOS with Docker-compatible CLI
+        useWhen:
+          Running containers locally, building images, or containerizing
+          applications
+    instructions: |
+      ## Step 1: Build with Nixpacks
+
+      Nixpacks auto-detects your project type and creates optimized
+      container images without requiring a Dockerfile. For custom
+      builds, create a nixpacks.toml with build phases and start
+      command.
+
+      ## Step 2: Create GitHub Actions Workflow
+
+      Define a CI/CD workflow with test and build-and-push jobs.
+      Run tests on every push and PR. Build and push container
+      images to GitHub Container Registry on main merges only.
+      Tag images with commit SHA for traceability.
+
+      ## Step 3: Configure Deployment
+
+      Add a deploy job that triggers after successful image push.
+      Use rolling deployment with automatic rollback on failure.
+      Upgrade to blue-green only when you need instant rollback
+      for high-traffic services.
+    installScript: |
+      set -e
+      curl -sSL https://nixpacks.com/install.sh | bash
+      command -v nixpacks
+      command -v docker || command -v colima
+    implementationReference: |
+      ## Nixpacks Build
+
+      ```bash
+      nixpacks build . --name app
+      docker run --rm app
+      ```
+
+      ## Nixpacks Config
+
+      ```toml
+      # nixpacks.toml
+      [phases.build]
+      cmds = ["npm run build"]
+
+      [start]
+      cmd = "node dist/index.js"
+      ```
+
+      ## GitHub Actions CI/CD
+
+      ```yaml
+      name: CI/CD
+      on:
+        push:
+          branches: [main]
+        pull_request:
+          branches: [main]
+
+      env:
+        REGISTRY: ghcr.io/${{ github.repository }}
+
+      jobs:
+        test:
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                node-version: 20
+                cache: npm
+            - run: npm ci
+            - run: npm test
+
+        build-and-push:
+          needs: test
+          runs-on: ubuntu-latest
+          permissions:
+            contents: read
+            packages: write
+          steps:
+            - uses: actions/checkout@v4
+            - uses: docker/login-action@v3
+              with:
+                registry: ghcr.io
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
+            - name: Build and push
+              run: |
+                nixpacks build . --name app
+                docker tag app ${{ env.REGISTRY }}:${{ github.sha }}
+                docker push ${{ env.REGISTRY }}:${{ github.sha }}
+              if: github.ref == 'refs/heads/main'
+      ```
+
+      ## Rolling Deployment
+
+      ```yaml
+        deploy:
+          needs: build-and-push
+          if: github.ref == 'refs/heads/main'
+          runs-on: ubuntu-latest
+          environment: production
+          steps:
+            - name: Deploy
+              run: |
+                kubectl set image deployment/app app=${{ env.REGISTRY }}:${{ github.sha }}
+                kubectl rollout status deployment/app --timeout=5m || \
+                  (kubectl rollout undo deployment/app && exit 1)
+      ```
+
+      ## Verification
+
+      ```bash
+      nixpacks build . --name app
+      docker run --rm app
+      git push origin main
+      # Check Actions tab for pipeline status
+      ```
+
+      Your pipeline is working when:
+      - Tests run on every PR
+      - Images are pushed only on main merges
+      - Deployments complete within 10 minutes
+      - Failed deployments automatically roll back
+  - id: technical_debt_management
+    name: Technical Debt Management
+    human:
+      description:
+        Identifying, prioritizing, and addressing technical debt strategically.
+        Accepts technical debt when it enables faster business value; explicitly
+        leaves generalization to platform teams when appropriate.
+      levelDescriptions:
+        awareness:
+          You recognize obvious technical debt (duplicated code, missing tests,
+          outdated dependencies) and flag issues to the team.
+        foundational:
+          You document technical debt with context and business impact,
+          contribute to prioritization discussions, and address debt in code you
+          touch.
+        working:
+          You prioritize debt systematically based on risk and impact, balance
+          debt reduction with feature work, and make pragmatic trade-offs. You
+          know when to take on debt intentionally.
+        practitioner:
+          You create debt reduction strategies across teams in your area,
+          influence roadmap decisions to include debt work, and teach engineers
+          when to accept debt for speed vs when to invest in quality.
+        expert:
+          You shape approaches to technical debt across the business unit. You
+          create frameworks others adopt, balance large-scale technical health
+          with delivery velocity, and are recognized for strategic debt
+          management.
+    agent:
+      name: technical-debt-management
+      description: |
+        Guide for identifying, prioritizing, and addressing technical debt.
+      useWhen: |
+        Assessing code quality issues, planning refactoring work, or making
+        build vs fix decisions.
+      stages:
+        specify:
+          focus: |
+            Define technical debt scope and acceptance criteria.
+            Clarify impact and urgency of debt items.
+          readChecklist:
+            - Document debt items and their business impact
+            - Define acceptance criteria for debt resolution
+            - Specify constraints (time, risk tolerance)
+            - Identify dependencies and affected systems
+            - Mark ambiguities with [NEEDS CLARIFICATION]
+          confirmChecklist:
+            - Debt items are documented
+            - Business impact is assessed
+            - Acceptance criteria are defined
+            - Constraints are clear
+        plan:
+          focus: |
+            Assess technical debt and prioritize based on impact and effort.
+            Decide whether to accept, defer, or address debt.
+          readChecklist:
+            - Identify and document technical debt
+            - Assess impact and effort for each item
+            - Prioritize using impact/effort matrix
+            - Decide accept, defer, or address
+          confirmChecklist:
+            - Debt is documented with context
+            - Impact and effort are assessed
+            - Prioritization criteria are clear
+            - Decision is documented
+        onboard:
+          focus: |
+            Set up code analysis and quality measurement tools.
+            Configure SonarQube, dependency scanning, and establish
+            baseline metrics.
+          readChecklist:
+            - Install code analysis tools (SonarQube scanner, Dependabot)
+            - Configure quality gates and analysis rules
+            - Run initial scan to establish baseline metrics
+            - Set up dependency update automation
+            - Configure IDE integration for quality feedback
+          confirmChecklist:
+            - Code analysis tools installed and configured
+            - Baseline quality metrics captured
+            - Quality gates defined and enforced
+            - Dependency scanning is operational
+            - IDE shows quality feedback inline
+        code:
+          focus: |
+            Address debt incrementally while delivering features. Document
+            intentional debt clearly.
+          readChecklist:
+            - Apply Kid Scout Rule (leave code better)
+            - Refactor while adding features
+            - Document new intentional debt
+            - Track debt in backlog
+          confirmChecklist:
+            - Debt work is visible in planning
+            - New debt is intentional and documented
+            - Code quality improved where touched
+            - Technical debt backlog updated
+        review:
+          focus: |
+            Validate debt reduction and ensure new debt is intentional
+            and documented.
+          readChecklist:
+            - Review debt reduction progress
+            - Verify new debt is documented
+            - Check debt backlog currency
+            - Assess overall technical health
+          confirmChecklist:
+            - Debt reduction validated
+            - New debt justified and documented
+            - Backlog is current
+            - Metrics track debt trends
+        deploy:
+          focus: |
+            Deploy debt reduction changes and verify improvements
+            in production.
+          readChecklist:
+            - Deploy refactored code to production
+            - Verify no regressions from debt work
+            - Monitor system health after changes
+            - Update debt backlog and metrics
+          confirmChecklist:
+            - Debt reduction deployed successfully
+            - No regressions detected
+            - System health maintained or improved
+            - Debt backlog updated
+    toolReferences:
+      - name: SonarQube
+        url: https://docs.sonarsource.com/sonarqube/latest/
+        simpleIcon: sonarqubeserver
+        description: Code quality and security analysis platform
+        useWhen:
+          Measuring technical debt, tracking quality metrics, or identifying
+          code smells at scale
+      - name: Dependabot
+        url: https://docs.github.com/en/code-security/dependabot
+        simpleIcon: dependabot
+        description: Automated dependency updates for GitHub repositories
+        useWhen: Automating dependency updates and reducing dependency debt
+    instructions: |
+      ## Step 1: Identify and Document Debt
+
+      Use a consistent format in code comments and issues. Include
+      a tracking ID, description, impact estimate, effort size,
+      and owner.
+
+      ## Step 2: Prioritize Using Impact/Effort Matrix
+
+      Categorize each debt item by impact (high/low) and effort
+      (high/low). Do high-impact/low-effort items now. Plan
+      high-impact/high-effort items for sprints. Apply Kid Scout
+      Rule to low-impact/low-effort items. Defer or accept
+      low-impact/high-effort items.
+
+      ## Step 3: Decide Accept, Defer, or Address
+
+      Accept debt when time-to-market is critical AND you have a
+      payback plan, requirements are uncertain, or code is
+      short-lived. Never accept debt in security-sensitive paths,
+      core functionality, or high-change-frequency areas.
+
+      ## Step 4: Track Debt Metrics
+
+      Configure SonarQube quality gates: Technical Debt Ratio
+      below 5%, no new code smells on changed files,
+      maintainability rating A or better.
+
+      ## Step 5: Reduce Debt Incrementally
+
+      Apply the Kid Scout Rule: leave code better than you found
+      it. Refactor adjacent to feature work. For large legacy
+      systems, use the Strangler Fig pattern to route traffic
+      incrementally until legacy is unused.
+    installScript: |
+      set -e
+      npm install -D sonarqube-scanner
+      npx sonar-scanner --version || true
+    implementationReference: |
+      ## Debt Documentation Format
+
+      ```markdown
+      TODO(DEBT-123): Extract common validation logic
+      Impact: Slows feature work ~2h/week
+      Effort: M (1-2 days)
+      Owner: @team-platform
+      ```
+
+      ## Impact/Effort Matrix
+
+      | Impact | Effort | Action           |
+      |--------|--------|------------------|
+      | High   | Low    | Do now           |
+      | High   | High   | Plan for sprint  |
+      | Low    | Low    | Kid Scout Rule   |
+      | Low    | High   | Defer or accept  |
+
+      ## Accept vs Reject Debt
+
+      **Accept when:**
+      - Time-to-market is critical AND you have a payback plan
+      - Requirements are uncertain (prototype/experiment)
+      - Code is short-lived (migration, one-off script)
+
+      **Never accept in:**
+      - Security-sensitive code paths
+      - Core system functionality
+      - High-change-frequency areas
+
+      ## Strangler Fig Pattern
+
+      ```
+      Request -> Router -> [New Service | Legacy] -> Response
+      ```
+      Route traffic incrementally until legacy is unused.
+
+      ## Verification
+
+      - Debt backlog is current and prioritized
+      - New intentional debt has documented justification
+      - SonarQube metrics trend in right direction
+      - Team can articulate why specific debt was accepted
