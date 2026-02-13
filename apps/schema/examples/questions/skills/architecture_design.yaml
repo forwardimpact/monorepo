@@ -3,7 +3,8 @@
 professionalQuestions:
   awareness:
     - id: arch_pro_aware_1
-      text: How do you decide where to draw boundaries when structuring new code?
+      text:
+        How do you decide where to draw boundaries when structuring new code?
       lookingFor:
         - Thinks about grouping related functionality together
         - Considers how changes in one area might affect others

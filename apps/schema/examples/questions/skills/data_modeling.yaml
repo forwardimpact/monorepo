@@ -54,15 +54,15 @@ managementQuestions:
   awareness:
     - id: dm_mgmt_aware_1
       text:
-        How do you ensure your team considers data modeling implications in their work?
+        How do you ensure your team considers data modeling implications in
+        their work?
       lookingFor:
         - Ensures modeling decisions are considered during feature planning
         - Communicates how data model quality affects system behaviour
       expectedDurationMinutes: 5
   foundational:
     - id: dm_mgmt_found_1
-      text:
-        How do you help team members develop data modeling skills?
+      text: How do you help team members develop data modeling skills?
       lookingFor:
         - Creates learning opportunities through real project work
         - Pairs less experienced engineers with modeling-skilled colleagues
@@ -75,16 +75,21 @@ managementQuestions:
       followUps:
         - How do you handle disagreements about modeling approaches?
       lookingFor:
-        - Creates review processes that catch modeling issues before they reach production
-        - Facilitates productive disagreements about modeling by focusing on trade-offs and evidence
-        - Ensures the team aligns on modeling conventions to reduce inconsistency
+        - Creates review processes that catch modeling issues before they reach
+          production
+        - Facilitates productive disagreements about modeling by focusing on
+          trade-offs and evidence
+        - Ensures the team aligns on modeling conventions to reduce
+          inconsistency
       expectedDurationMinutes: 10
   practitioner:
     - id: dm_mgmt_pract_1
       text:
-        How do you coordinate data modeling decisions across teams to ensure consistency?
+        How do you coordinate data modeling decisions across teams to ensure
+        consistency?
       lookingFor:
-        - Creates cross-team alignment on shared data models and naming conventions
+        - Creates cross-team alignment on shared data models and naming
+          conventions
         - Facilitates discussions between teams when models need to interoperate
         - Establishes modeling standards that reduce friction at team boundaries
       expectedDurationMinutes: 10
@@ -93,7 +98,10 @@ managementQuestions:
       text:
         How do you shape organizational data modeling standards and governance?
       lookingFor:
-        - Defines data modeling practices and governance adopted across the business unit
-        - Creates organisational standards that improve data interoperability at scale
-        - Influences how the organisation values and invests in data architecture quality
+        - Defines data modeling practices and governance adopted across the
+          business unit
+        - Creates organisational standards that improve data interoperability at
+          scale
+        - Influences how the organisation values and invests in data
+          architecture quality
       expectedDurationMinutes: 10

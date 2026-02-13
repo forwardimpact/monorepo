@@ -8,8 +8,8 @@ professionalQuestions:
         1000 RPS in 6 months due to a new partnership. How would you approach
         this?
       context:
-        The API is a monolithic Node.js application backed by PostgreSQL. Response
-        time P99 is currently 200ms and must stay under 500ms.
+        The API is a monolithic Node.js application backed by PostgreSQL.
+        Response time P99 is currently 200ms and must stay under 500ms.
       decompositionPrompts:
         - What would you need to measure and understand first?
         - How would you identify the scaling bottlenecks?
@@ -23,7 +23,8 @@ professionalQuestions:
       expectedDurationMinutes: 15
       followUps:
         - What if the partnership deal accelerated and you had only 3 months?
-        - How would you handle if the new load had very different access patterns?
+        - How would you handle if the new load had very different access
+          patterns?
 
   practitioner:
     - id: scl_pro_pract_decomp_1
@@ -58,8 +59,8 @@ managementQuestions:
         but you don't have dedicated infrastructure expertise. How would you
         build this capability?
       context:
-        The system needs to 10x in capacity over the next year. Your team of
-        6 engineers has strong application development skills but limited
+        The system needs to 10x in capacity over the next year. Your team of 6
+        engineers has strong application development skills but limited
         infrastructure and performance engineering experience.
       decompositionPrompts:
         - How would you assess your team's current capabilities and gaps?
@@ -99,4 +100,5 @@ managementQuestions:
       expectedDurationMinutes: 15
       followUps:
         - What if teams push back on cost accountability?
-        - How would you handle if major cost savings require significant refactoring?
+        - How would you handle if major cost savings require significant
+          refactoring?

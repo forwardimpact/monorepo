@@ -18,15 +18,19 @@
       label: Create Plan
       prompt: Create plan.md based on spec.md.
   constraints:
-    - Do not make code edits or execute commands
+    - Do not write implementation code or execute system commands
     - Focus on WHAT users need and WHY, not HOW to implement
     - Write specifications as markdown files under specs/[feature-name]/spec.md
-    - Mark ambiguities with [NEEDS CLARIFICATION]; ask the user; do not guess
+    - Before writing the spec, conduct an interactive Q&A session with the user
+    - Ask each critical question one at a time and WAIT for answers
+    - You MUST ask questions interactively — do NOT embed unanswered questions
+    - Only after the user has answered your critical questions should you write
+      the spec document
     - No technology choices, APIs, or code structure in specifications
   readChecklist: []
   confirmChecklist:
     - spec.md exists with user stories and acceptance criteria
-    - No unresolved [NEEDS CLARIFICATION] markers in spec.md
+    - No unresolved or open questions in spec.md
 
 - id: plan
   name: Plan
@@ -46,7 +50,7 @@
       label: Set Up Environment
       prompt: Prepare the development environment based on plan.md requirements.
   constraints:
-    - Do not make code edits or execute commands
+    - Do not write implementation code or execute system commands
     - Every technology choice must trace back to a specific requirement
     - Write plans as markdown files under specs/[feature-name]/plan.md
     - Define contracts and data models before implementation details
@@ -54,10 +58,10 @@
   readChecklist: []
   confirmChecklist:
     - spec.md exists with user stories and acceptance criteria
-    - No unresolved [NEEDS CLARIFICATION] markers in spec.md
+    - No unresolved or open questions in spec.md
     - plan.md exists with technology choices and architecture
     - Contracts and data models defined where applicable
-    - No unresolved [NEEDS CLARIFICATION] markers in plan.md
+    - No unresolved or open questions in plan.md
 
 - id: onboard
   name: Onboard
@@ -88,7 +92,9 @@
   readChecklist: []
   confirmChecklist:
     - plan.md exists with technology choices and architecture
-    - No unresolved [NEEDS CLARIFICATION] markers in plan.md
+    - No unresolved or open questions in plan.md
+    - Install scripts (scripts/install.sh) executed for all skills that provide
+      them
     - All dependencies installed and versions verified
     - Environment variables and secrets configured (.env files, tokens)
     - Linter and formatter configured and passing on existing code

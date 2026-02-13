@@ -7,8 +7,8 @@ professionalQuestions:
         The product team wants to add a feature that will increase revenue but
         requires significant technical investment. How would you evaluate this?
       context:
-        The feature is an AI-powered recommendation engine. Product estimates 15%
-        revenue increase. Your team estimates 4 months of work and ongoing
+        The feature is an AI-powered recommendation engine. Product estimates
+        15% revenue increase. Your team estimates 4 months of work and ongoing
         maintenance costs.
       decompositionPrompts:
         - What questions would you ask the product team?
@@ -22,16 +22,17 @@ professionalQuestions:
         - Thinks about alternatives and build vs buy decisions
       expectedDurationMinutes: 15
       followUps:
-        - What if the CEO strongly favors this feature but your analysis suggests
-          otherwise?
+        - What if the CEO strongly favors this feature but your analysis
+          suggests otherwise?
         - How would you handle if the revenue estimate turned out to be
           optimistic?
 
   practitioner:
     - id: biz_pro_pract_decomp_1
       text:
-        Your company is considering entering a new market that requires different
-        compliance requirements. How would you approach the technical evaluation?
+        Your company is considering entering a new market that requires
+        different compliance requirements. How would you approach the technical
+        evaluation?
       context:
         The new market is healthcare (HIPAA compliance). Current systems handle
         financial data but were not designed for healthcare. Leadership wants a
@@ -60,9 +61,9 @@ managementQuestions:
         Your engineering organization needs to reduce costs by 20% while
         maintaining delivery commitments. How would you approach this?
       context:
-        Budget constraints require significant cost reduction. You manage 3 teams
-        with 18 engineers total. Current commitments include two major product
-        launches in the next quarter.
+        Budget constraints require significant cost reduction. You manage 3
+        teams with 18 engineers total. Current commitments include two major
+        product launches in the next quarter.
       decompositionPrompts:
         - How would you identify cost reduction opportunities?
         - How would you prioritize cuts while protecting critical work?
@@ -75,7 +76,8 @@ managementQuestions:
         - Renegotiates scope or timelines where necessary
       expectedDurationMinutes: 15
       followUps:
-        - What if leadership insists on no headcount changes but still needs 20% savings?
+        - What if leadership insists on no headcount changes but still needs 20%
+          savings?
         - How would you handle if key team members leave due to uncertainty?
 
   practitioner:
@@ -85,9 +87,9 @@ managementQuestions:
         engineering organization. How would you evaluate the technical due
         diligence and integration plan?
       context:
-        The target company has 100 engineers, different tech stack, and overlapping
-        product lines. You have 6 weeks for due diligence and need to present
-        integration risks and synergies to the board.
+        The target company has 100 engineers, different tech stack, and
+        overlapping product lines. You have 6 weeks for due diligence and need
+        to present integration risks and synergies to the board.
       decompositionPrompts:
         - What technical areas would you prioritize in due diligence?
         - How would you assess organizational and cultural compatibility?
@@ -101,4 +103,5 @@ managementQuestions:
       expectedDurationMinutes: 15
       followUps:
         - What if the acquisition goes through despite your concerns?
-        - How would you handle if the target's best engineers leave post-acquisition?
+        - How would you handle if the target's best engineers leave
+          post-acquisition?

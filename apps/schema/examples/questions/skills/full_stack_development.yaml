@@ -38,16 +38,21 @@ professionalQuestions:
       followUps:
         - How do you handle areas outside your expertise?
       lookingFor:
-        - Delivers end-to-end features in days by working across the full stack confidently
-        - Uses AI tools to accelerate work in less familiar layers rather than blocking on others
-        - Knows when their cross-stack work needs specialist review versus when it's solid enough
+        - Delivers end-to-end features in days by working across the full stack
+          confidently
+        - Uses AI tools to accelerate work in less familiar layers rather than
+          blocking on others
+        - Knows when their cross-stack work needs specialist review versus when
+          it's solid enough
       expectedDurationMinutes: 10
   expert:
     - id: fs_pro_expert_1
       text: How do you enable rapid full-stack delivery across teams?
       lookingFor:
-        - Creates shared tooling and patterns that make cross-stack work accessible to all engineers
-        - Removes specialist bottlenecks by building team capability rather than centralising expertise
+        - Creates shared tooling and patterns that make cross-stack work
+          accessible to all engineers
+        - Removes specialist bottlenecks by building team capability rather than
+          centralising expertise
         - Shapes hiring and development to value versatility alongside depth
       expectedDurationMinutes: 10
 
@@ -55,46 +60,59 @@ managementQuestions:
   awareness:
     - id: fs_mgmt_aware_1
       text:
-        How do you ensure your team understands the full scope of features they deliver?
+        How do you ensure your team understands the full scope of features they
+        deliver?
       lookingFor:
-        - Encourages engineers to trace features end-to-end, not just their layer
-        - Ensures demos show the complete user experience, not just isolated components
+        - Encourages engineers to trace features end-to-end, not just their
+          layer
+        - Ensures demos show the complete user experience, not just isolated
+          components
       expectedDurationMinutes: 5
   foundational:
     - id: fs_mgmt_found_1
-      text:
-        How do you help team members develop skills across the full stack?
+      text: How do you help team members develop skills across the full stack?
       lookingFor:
-        - Assigns cross-layer tasks that stretch engineers beyond their comfort zone
+        - Assigns cross-layer tasks that stretch engineers beyond their comfort
+          zone
         - Pairs specialists together so knowledge transfers through real work
-        - Creates safety for engineers to work in unfamiliar layers without fear of judgment
+        - Creates safety for engineers to work in unfamiliar layers without fear
+          of judgment
       expectedDurationMinutes: 10
   working:
     - id: fs_mgmt_work_1
       text:
-        How do you balance specialist depth with full-stack breadth in your team?
+        How do you balance specialist depth with full-stack breadth in your
+        team?
       followUps:
         - How do you assign work to build versatility?
       lookingFor:
         - Maps the team's skill portfolio and identifies risky concentrations
-        - Assigns work deliberately to build versatility while respecting delivery commitments
-        - Uses AI tools' ability to fill knowledge gaps as a lever for cross-stack confidence
+        - Assigns work deliberately to build versatility while respecting
+          delivery commitments
+        - Uses AI tools' ability to fill knowledge gaps as a lever for
+          cross-stack confidence
       expectedDurationMinutes: 10
   practitioner:
     - id: fs_mgmt_pract_1
       text:
         How do you build a team culture of end-to-end ownership and delivery?
       lookingFor:
-        - Creates expectations that engineers own features from commit to production
-        - Removes structural barriers that force specialist handoffs between layers
-        - Celebrates engineers who step outside their primary expertise to unblock delivery
+        - Creates expectations that engineers own features from commit to
+          production
+        - Removes structural barriers that force specialist handoffs between
+          layers
+        - Celebrates engineers who step outside their primary expertise to
+          unblock delivery
       expectedDurationMinutes: 10
   expert:
     - id: fs_mgmt_expert_1
       text:
-        How do you shape organizational approaches to full-stack delivery and team structure?
+        How do you shape organizational approaches to full-stack delivery and
+        team structure?
       lookingFor:
-        - Designs team topologies that minimise cross-team handoffs for feature delivery
+        - Designs team topologies that minimise cross-team handoffs for feature
+          delivery
         - Creates organisational patterns for building versatile teams at scale
-        - Influences hiring practices to value T-shaped engineers over narrow specialists
+        - Influences hiring practices to value T-shaped engineers over narrow
+          specialists
       expectedDurationMinutes: 10

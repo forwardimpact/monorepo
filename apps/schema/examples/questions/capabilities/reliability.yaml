@@ -30,10 +30,12 @@ professionalQuestions:
     - id: rel_pro_pract_decomp_1
       text:
         You're designing the disaster recovery strategy for a system that
-        processes customer financial transactions. Walk me through your approach.
+        processes customer financial transactions. Walk me through your
+        approach.
       context:
-        The system handles $10M in daily transactions, uses AWS in us-east-1, and
-        currently has no cross-region capability. Budget for DR is $50K annual.
+        The system handles $10M in daily transactions, uses AWS in us-east-1,
+        and currently has no cross-region capability. Budget for DR is $50K
+        annual.
       decompositionPrompts:
         - What are the key requirements you need to establish first?
         - How would you structure the technical options analysis?
@@ -46,7 +48,8 @@ professionalQuestions:
         - Plans for regular testing and runbook maintenance
       expectedDurationMinutes: 15
       followUps:
-        - What would you do if a regional outage happened before DR was complete?
+        - What would you do if a regional outage happened before DR was
+          complete?
         - How would you handle if the $50K budget was cut in half?
 
 managementQuestions:
@@ -71,19 +74,20 @@ managementQuestions:
         - Creates sustainable practices rather than short-term fixes
       expectedDurationMinutes: 15
       followUps:
-        - What if leadership says there's no budget for additional on-call support?
+        - What if leadership says there's no budget for additional on-call
+          support?
         - How would you handle if the most experienced engineers refuse on-call?
 
   practitioner:
     - id: rel_mgmt_pract_decomp_1
       text:
-        Your organization has grown to 20 services owned by different teams
-        but has no consistent approach to reliability. How would you establish
+        Your organization has grown to 20 services owned by different teams but
+        has no consistent approach to reliability. How would you establish
         reliability practices at scale?
       context:
-        Some teams have mature SLOs and incident response, others don't.
-        Recent cross-team incidents took too long to resolve due to unclear
-        ownership. Leadership wants to improve reliability organization-wide.
+        Some teams have mature SLOs and incident response, others don't. Recent
+        cross-team incidents took too long to resolve due to unclear ownership.
+        Leadership wants to improve reliability organization-wide.
       decompositionPrompts:
         - How would you assess current reliability maturity across teams?
         - What standards and practices would you establish?
@@ -97,4 +101,5 @@ managementQuestions:
       expectedDurationMinutes: 15
       followUps:
         - What if teams resist reliability requirements as overhead?
-        - How would you handle if different teams have conflicting SLO definitions?
+        - How would you handle if different teams have conflicting SLO
+          definitions?

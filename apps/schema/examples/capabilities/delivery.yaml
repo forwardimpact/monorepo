@@ -361,6 +361,8 @@ skills:
             - All dependencies installed and versions locked
             - Environment variables configured for local development
             - Database running locally with schema applied
+            - All credentials stored in .env — NEVER hardcoded in code,
+              including seed scripts and utility scripts
             - Linter and formatter pass on existing code
             - Development server starts and responds to requests
             - CI pipeline configuration is valid
@@ -379,6 +381,7 @@ skills:
             - Database schema supports the feature
             - Error handling spans all layers
             - Feature works end-to-end
+            - At least one test exists for each API route and passes when run
             - Deployment is automated
         review:
           focus: |
@@ -613,10 +616,12 @@ skills:
             Surface ambiguities and unknowns before attempting solutions.
           readChecklist:
             - Document the initial problem statement as understood
-            - List stakeholders and their perspectives
-            - Identify what is known vs unknown
-            - Document assumptions that need validation
-            - Mark all ambiguities with [NEEDS CLARIFICATION]
+            - ASK the user who the stakeholders are and what their perspectives
+              are
+            - ASK the user what is known vs unknown about the problem
+            - ASK the user to confirm or reject your assumptions
+            - Mark all ambiguities with [NEEDS CLARIFICATION] and ASK the user
+              to clarify them
           confirmChecklist:
             - Initial problem statement is documented
             - Stakeholders are identified
@@ -858,6 +863,9 @@ skills:
           confirmChecklist:
             - Core concept is demonstrable
             - Happy path works end-to-end
+            - At least one smoke test verifying the happy path exists
+            - SSR pages that fetch from API routes use environment-aware base
+              URLs (not hardcoded localhost)
             - Known limitations are documented
             - Stakeholders can interact with it
         review:

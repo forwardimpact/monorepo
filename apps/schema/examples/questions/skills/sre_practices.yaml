@@ -25,7 +25,8 @@ professionalQuestions:
       followUps:
         - What do you learn from incidents and how do you apply it?
       lookingFor:
-        - Follows a structured incident response process, not ad-hoc firefighting
+        - Follows a structured incident response process, not ad-hoc
+          firefighting
         - Documents findings and drives follow-up improvements
         - Communicates incident status clearly to affected stakeholders
       expectedDurationMinutes: 8
@@ -35,7 +36,8 @@ professionalQuestions:
       lookingFor:
         - Uses error budgets to make objective speed-vs-reliability decisions
         - Adjusts reliability investment based on user impact data, not fear
-        - Coaches team to treat reliability work as enabling velocity, not opposing it
+        - Coaches team to treat reliability work as enabling velocity, not
+          opposing it
       expectedDurationMinutes: 8
   expert:
     - id: sre_pro_expert_1
@@ -43,55 +45,69 @@ professionalQuestions:
         How have you established reliability culture and practices across an
         organization?
       lookingFor:
-        - Creates reliability standards and SLO frameworks adopted across the business unit
+        - Creates reliability standards and SLO frameworks adopted across the
+          business unit
         - Builds organisational capability for incident response and learning
-        - Influences engineering leadership to invest in reliability as a business enabler
+        - Influences engineering leadership to invest in reliability as a
+          business enabler
       expectedDurationMinutes: 10
 
 managementQuestions:
   awareness:
     - id: sre_mgmt_aware_1
       text:
-        How do you ensure your team understands reliability concepts and their importance?
+        How do you ensure your team understands reliability concepts and their
+        importance?
       lookingFor:
-        - Connects reliability to user impact in team discussions, not abstract metrics
-        - Makes reliability part of feature discussions rather than a separate concern
+        - Connects reliability to user impact in team discussions, not abstract
+          metrics
+        - Makes reliability part of feature discussions rather than a separate
+          concern
       expectedDurationMinutes: 5
   foundational:
     - id: sre_mgmt_found_1
       text:
-        How do you support team members in developing reliability engineering skills?
+        How do you support team members in developing reliability engineering
+        skills?
       lookingFor:
-        - Creates hands-on learning through incident response participation and on-call rotations
-        - Pairs less experienced engineers with SRE-skilled colleagues on reliability tasks
+        - Creates hands-on learning through incident response participation and
+          on-call rotations
+        - Pairs less experienced engineers with SRE-skilled colleagues on
+          reliability tasks
         - Reviews reliability practices in design discussions and code reviews
       expectedDurationMinutes: 8
   working:
     - id: sre_mgmt_work_1
-      text:
-        How do you handle incidents and facilitate post-incident learning?
+      text: How do you handle incidents and facilitate post-incident learning?
       followUps:
         - How do you communicate incidents to stakeholders?
       lookingFor:
         - Runs blameless incident reviews that produce actionable improvements
-        - Communicates incident status and impact clearly to non-technical stakeholders
+        - Communicates incident status and impact clearly to non-technical
+          stakeholders
         - Tracks whether post-incident actions are completed and effective
       expectedDurationMinutes: 10
   practitioner:
     - id: sre_mgmt_pract_1
       text:
-        How do you drive reliability culture and balance it with feature delivery pressure?
+        How do you drive reliability culture and balance it with feature
+        delivery pressure?
       lookingFor:
-        - Uses error budgets to make transparent trade-off decisions with stakeholders
-        - Frames reliability investment as protecting delivery velocity, not slowing it
-        - Creates team norms where reliability is everyone's responsibility, not an SRE team's
+        - Uses error budgets to make transparent trade-off decisions with
+          stakeholders
+        - Frames reliability investment as protecting delivery velocity, not
+          slowing it
+        - Creates team norms where reliability is everyone's responsibility, not
+          an SRE team's
       expectedDurationMinutes: 8
   expert:
     - id: sre_mgmt_expert_1
-      text:
-        How do you shape organizational reliability strategy and practices?
+      text: How do you shape organizational reliability strategy and practices?
       lookingFor:
-        - Defines reliability practices and SLO frameworks adopted across organisational boundaries
-        - Creates incident response capabilities that work across teams and business units
-        - Influences organisational culture so reliability is valued as a business differentiator
+        - Defines reliability practices and SLO frameworks adopted across
+          organisational boundaries
+        - Creates incident response capabilities that work across teams and
+          business units
+        - Influences organisational culture so reliability is valued as a
+          business differentiator
       expectedDurationMinutes: 10

@@ -57,7 +57,8 @@ managementQuestions:
   awareness:
     - id: cp_mgmt_aware_1
       text:
-        How do you stay informed about cloud capabilities that could benefit your team?
+        How do you stay informed about cloud capabilities that could benefit
+        your team?
       lookingFor:
         - Actively explores cloud capabilities relevant to team work
         - Evaluates new services for practical team benefit
@@ -65,8 +66,7 @@ managementQuestions:
       expectedDurationMinutes: 5
   foundational:
     - id: cp_mgmt_found_1
-      text:
-        How do you support team members in developing cloud platform skills?
+      text: How do you support team members in developing cloud platform skills?
       lookingFor:
         - Creates structured learning paths for cloud skills
         - Pairs team members on cloud tasks for knowledge transfer
@@ -75,7 +75,8 @@ managementQuestions:
   working:
     - id: cp_mgmt_work_1
       text:
-        How do you balance cloud costs with team productivity and delivery needs?
+        How do you balance cloud costs with team productivity and delivery
+        needs?
       followUps:
         - How do you communicate cloud spending to stakeholders?
       lookingFor:
@@ -96,8 +97,7 @@ managementQuestions:
       expectedDurationMinutes: 10
   expert:
     - id: cp_mgmt_expert_1
-      text:
-        How do you shape organizational cloud strategy and governance?
+      text: How do you shape organizational cloud strategy and governance?
       lookingFor:
         - Defines cloud governance that enables innovation within guardrails
         - Influences cloud direction across organizational boundaries

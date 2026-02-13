@@ -29,9 +29,9 @@ professionalQuestions:
   practitioner:
     - id: ppl_pro_pract_decomp_1
       text:
-        Two senior engineers on your team have conflicting views on the technical
-        direction. This is affecting team morale and velocity. How do you address
-        it?
+        Two senior engineers on your team have conflicting views on the
+        technical direction. This is affecting team morale and velocity. How do
+        you address it?
       context:
         One wants to adopt a new framework for better developer experience. The
         other wants to stick with the current stack for stability. Both are high
@@ -39,7 +39,8 @@ professionalQuestions:
       decompositionPrompts:
         - How would you understand the root cause of the conflict?
         - What process would you use to reach a decision?
-        - How would you maintain both engineers' engagement regardless of outcome?
+        - How would you maintain both engineers' engagement regardless of
+          outcome?
         - What would you do if the conflict persists after a decision?
       lookingFor:
         - Separates technical disagreement from interpersonal conflict
@@ -48,19 +49,22 @@ professionalQuestions:
         - Plans for ongoing relationship management
       expectedDurationMinutes: 15
       followUps:
-        - What if one engineer threatens to leave if their approach isn't chosen?
-        - How would you handle if this pattern repeats with the same individuals?
+        - What if one engineer threatens to leave if their approach isn't
+          chosen?
+        - How would you handle if this pattern repeats with the same
+          individuals?
 
 managementQuestions:
   working:
     - id: ppl_mgmt_work_decomp_1
       text:
-        One of your team members is consistently underperforming despite multiple
-        feedback conversations. How would you handle this situation?
+        One of your team members is consistently underperforming despite
+        multiple feedback conversations. How would you handle this situation?
       context:
         The engineer has been on the team for 8 months. They meet basic
         expectations but are not growing. Peers are frustrated with carrying
-        extra load. You've had 3 feedback conversations with limited improvement.
+        extra load. You've had 3 feedback conversations with limited
+        improvement.
       decompositionPrompts:
         - How would you assess whether this is a skill, will, or fit issue?
         - What performance improvement approach would you take?
@@ -82,8 +86,8 @@ managementQuestions:
         You need to grow your engineering organization from 25 to 50 engineers
         over the next year. How would you approach this scaling challenge?
       context:
-        The company has secured Series B funding. Current team is strong but
-        has no formal career ladders or management structure. You're the only
+        The company has secured Series B funding. Current team is strong but has
+        no formal career ladders or management structure. You're the only
         engineering manager reporting to the CTO.
       decompositionPrompts:
         - How would you structure the hiring plan and timeline?
@@ -98,4 +102,5 @@ managementQuestions:
       expectedDurationMinutes: 15
       followUps:
         - What if you can't find enough quality candidates?
-        - How would you handle if existing senior ICs don't want to become managers?
+        - How would you handle if existing senior ICs don't want to become
+          managers?

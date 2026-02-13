@@ -6,12 +6,12 @@ professionalQuestions:
       text: How do you work with your team to complete shared tasks?
       lookingFor:
         - Communicates progress and blockers to teammates without being asked
-        - Shows willingness to help others even when it's not their direct responsibility
+        - Shows willingness to help others even when it's not their direct
+          responsibility
       expectedDurationMinutes: 5
   foundational:
     - id: tc_pro_found_1
-      text:
-        How do you help a teammate when they're stuck on a problem?
+      text: How do you help a teammate when they're stuck on a problem?
       lookingFor:
         - Offers support proactively without waiting to be asked
         - Shares knowledge in a way that builds the teammate's capability
@@ -23,7 +23,8 @@ professionalQuestions:
       followUps:
         - How do you handle remote collaboration?
       lookingFor:
-        - Creates practices that make collaboration easy, like shared documentation and regular syncs
+        - Creates practices that make collaboration easy, like shared
+          documentation and regular syncs
         - Adapts collaboration approach for remote and distributed team members
         - Identifies and removes collaboration friction points proactively
       expectedDurationMinutes: 8
@@ -41,55 +42,65 @@ professionalQuestions:
         How do you create collaborative culture across multiple teams or an
         organization?
       lookingFor:
-        - Creates cross-team collaboration practices adopted beyond their own teams
+        - Creates cross-team collaboration practices adopted beyond their own
+          teams
         - Breaks down silos by establishing shared goals and mutual dependencies
-        - Influences organisational culture so collaboration is the default, not the exception
+        - Influences organisational culture so collaboration is the default, not
+          the exception
       expectedDurationMinutes: 10
 
 managementQuestions:
   awareness:
     - id: tc_mgmt_aware_1
-      text:
-        How do you ensure your team communicates effectively?
+      text: How do you ensure your team communicates effectively?
       lookingFor:
-        - Creates clear team communication norms for standups, async updates, and escalations
+        - Creates clear team communication norms for standups, async updates,
+          and escalations
         - Notices when communication breaks down and addresses it promptly
       expectedDurationMinutes: 5
   foundational:
     - id: tc_mgmt_found_1
-      text:
-        How do you help team members develop collaboration skills?
+      text: How do you help team members develop collaboration skills?
       lookingFor:
-        - Creates opportunities for pair and mob programming to build collaboration habits
+        - Creates opportunities for pair and mob programming to build
+          collaboration habits
         - Gives specific feedback on collaboration behaviours in 1:1s and retros
-        - Models effective collaboration in their own cross-functional interactions
+        - Models effective collaboration in their own cross-functional
+          interactions
       expectedDurationMinutes: 5
   working:
     - id: tc_mgmt_work_1
-      text:
-        How do you facilitate team collaboration and handle conflicts?
+      text: How do you facilitate team collaboration and handle conflicts?
       followUps:
         - How do you build psychological safety?
       lookingFor:
-        - Addresses conflicts early through facilitated discussion rather than avoidance
-        - Creates psychological safety by responding constructively to mistakes and disagreements
-        - Builds team practices that encourage healthy debate and productive conflict
+        - Addresses conflicts early through facilitated discussion rather than
+          avoidance
+        - Creates psychological safety by responding constructively to mistakes
+          and disagreements
+        - Builds team practices that encourage healthy debate and productive
+          conflict
       expectedDurationMinutes: 8
   practitioner:
     - id: tc_mgmt_pract_1
       text:
-        How do you build high-performing team dynamics and sustain them over time?
+        How do you build high-performing team dynamics and sustain them over
+        time?
       lookingFor:
-        - Creates conditions where teams maintain high performance through personnel changes
+        - Creates conditions where teams maintain high performance through
+          personnel changes
         - Addresses team health issues before they impact delivery
-        - Builds self-managing teams that sustain their own collaboration practices
+        - Builds self-managing teams that sustain their own collaboration
+          practices
       expectedDurationMinutes: 10
   expert:
     - id: tc_mgmt_expert_1
-      text:
-        How do you shape organizational collaboration culture across teams?
+      text: How do you shape organizational collaboration culture across teams?
       lookingFor:
-        - Defines cross-team collaboration practices adopted across the business unit
-        - Creates organisational norms that break down team silos and encourage knowledge sharing
-        - Influences how the organisation values and rewards collaborative behaviour
+        - Defines cross-team collaboration practices adopted across the business
+          unit
+        - Creates organisational norms that break down team silos and encourage
+          knowledge sharing
+        - Influences how the organisation values and rewards collaborative
+          behaviour
       expectedDurationMinutes: 10

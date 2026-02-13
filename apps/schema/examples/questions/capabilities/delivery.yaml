@@ -23,7 +23,8 @@ professionalQuestions:
         - Thinks about scalability and performance constraints
       expectedDurationMinutes: 15
       followUps:
-        - What would you do differently if their data was in 5 different systems?
+        - What would you do differently if their data was in 5 different
+          systems?
         - How would you handle if a key team member left mid-project?
 
   practitioner:
@@ -78,12 +79,12 @@ managementQuestions:
   practitioner:
     - id: del_mgmt_pract_decomp_1
       text:
-        You're responsible for coordinating a major platform initiative across
-        4 engineering teams. How would you structure the delivery?
+        You're responsible for coordinating a major platform initiative across 4
+        engineering teams. How would you structure the delivery?
       context:
-        The initiative is a 12-month platform modernization affecting all products.
-        Teams have different managers, priorities, and technical preferences.
-        Executive sponsorship is strong but teams are skeptical.
+        The initiative is a 12-month platform modernization affecting all
+        products. Teams have different managers, priorities, and technical
+        preferences. Executive sponsorship is strong but teams are skeptical.
       decompositionPrompts:
         - How would you establish alignment across teams?
         - What governance and coordination mechanisms would you put in place?
