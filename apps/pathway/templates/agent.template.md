@@ -52,10 +52,17 @@ handoffs:
 
 ## Required skills
 
-**MANDATORY:** Before starting work, you MUST read the relevant skill files for
-project-specific guidance, required tools, and technology standards. Pre-training
-knowledge alone is insufficient—skills contain organizational standards that
-override general knowledge.
+**MANDATORY:** Before starting work, you MUST read ALL listed skill files below,
+not just the most relevant one. Every skill contributes project-specific
+guidance, required tools, and technology standards. Pre-training knowledge alone
+is insufficient—skills contain organizational standards that override general
+knowledge.
+
+**FIRST ACTION:** Read every skill file listed below. For each skill, note
+its `<read_then_do_{{stageId}}>` and `<do_then_confirm_{{stageId}}>` checklist
+items. List all checklist items from all skills before beginning any work. Do
+not start implementation until every skill has been read and its checklists
+acknowledged.
 
 Each skill contains marked-up sections and references for precise navigation:
 
@@ -70,8 +77,10 @@ Each skill contains marked-up sections and references for precise navigation:
   preferences.
 {{#isOnboard}}
 - `scripts/install.sh` — Self-contained install script for environment setup.
-  Run this script to install prerequisites and configure the development
-  environment. Focus on setup only — do not begin feature implementation.
+  **Step 1 of onboarding — run FIRST:** Execute
+  `bash .claude/skills/<skill-name>/scripts/install.sh` for each skill before
+  doing any manual setup. Only install manually if the script is missing or
+  fails. Do not skip this step even if you can install the same tools manually.
 - `references/REFERENCE.md` — Detailed code examples and reference material.
   Consult this for implementation patterns, common pitfalls, and verification
   steps.

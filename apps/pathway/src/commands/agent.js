@@ -40,6 +40,8 @@ import {
   generateSkillMarkdown,
   deriveToolkit,
   buildAgentIndex,
+  getDisciplineAbbreviation,
+  toKebabCase,
 } from "@forwardimpact/model";
 import { formatAgentProfile } from "../formatters/agent/profile.js";
 import {
@@ -205,7 +207,9 @@ function listAgentCombinations(data, agentData, verbose = false) {
         );
         const humanTrack = data.tracks.find((t) => t.id === track.id);
         if (humanDiscipline && humanTrack) {
-          console.log(`${discipline.id} ${track.id}`);
+          const abbrev = getDisciplineAbbreviation(discipline.id);
+          const agentName = `${abbrev}-${toKebabCase(track.id)}`;
+          console.log(`${agentName} ${discipline.id} ${track.id}`);
         }
       }
     }
@@ -337,6 +341,16 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
 
   const [disciplineId] = args;
   const trackId = options.track;
+
+  // Reject unexpected positional args (track must use --track=<id>)
+  if (args.length > 1) {
+    console.error(
+      formatError(
+        `Unexpected argument: ${args[1]}. Did you mean --track=${args[1]}?`,
+      ),
+    );
+    process.exit(1);
+  }
 
   if (!disciplineId) {
     console.error(
