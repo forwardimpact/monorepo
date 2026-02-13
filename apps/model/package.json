@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/model",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Derivation engine for roles, skills, and agent team profiles",
   "license": "Apache-2.0",
   "repository": {
@@ -30,7 +30,7 @@
     "./toolkit": "./src/toolkit.js"
   },
   "dependencies": {
-    "@forwardimpact/schema": "^0.9.0"
+    "@forwardimpact/schema": "^0.10.0"
   },
   "engines": {
     "node": ">=18.0.0"
