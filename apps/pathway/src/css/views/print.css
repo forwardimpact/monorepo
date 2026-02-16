@@ -546,6 +546,15 @@
       padding-top: 3rem;
     }
 
+    /* Handout view: hide brand header — chapter covers provide branding */
+    .handout-view .page-brand-header {
+      display: none !important;
+    }
+
+    .handout-view main {
+      padding-top: 0;
+    }
+
     /* Chapter cover print styles */
     .chapter-cover {
       page-break-after: always;
@@ -554,6 +563,23 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+    }
+
+    /* Handout view: page breaks between chapters and sections */
+    .handout-view .chapter-cover {
+      page-break-before: always;
+      page-break-after: auto;
+    }
+
+    .handout-view .detail-page {
+      page-break-before: always;
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .handout-view main > :first-child {
+      page-break-before: auto;
     }
 
     /* Checklist print styles */
