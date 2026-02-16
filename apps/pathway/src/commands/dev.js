@@ -31,7 +31,7 @@ function resolvePackageLib(packageName) {
 }
 
 const schemaLibDir = resolvePackageLib("@forwardimpact/schema");
-const modelLibDir = resolvePackageLib("@forwardimpact/model");
+const modelLibDir = resolvePackageLib("@forwardimpact/libpathway");
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -138,7 +138,7 @@ export async function runDevCommand({ dataDir, options }) {
       // Serve @forwardimpact/schema package files (resolved via Node module resolution)
       filePath = join(schemaLibDir, pathname.slice(12));
     } else if (pathname.startsWith("/model/lib/")) {
-      // Serve @forwardimpact/model package files (resolved via Node module resolution)
+      // Serve @forwardimpact/libpathway package files (resolved via Node module resolution)
       filePath = join(modelLibDir, pathname.slice(11));
     } else if (pathname === "/" || pathname === "") {
       // Serve index.html for root

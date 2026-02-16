@@ -7,7 +7,7 @@
 import {
   isCapability,
   getSkillsByCapability,
-} from "@forwardimpact/model/modifiers";
+} from "@forwardimpact/libpathway/modifiers";
 import { truncate } from "../shared.js";
 
 /**

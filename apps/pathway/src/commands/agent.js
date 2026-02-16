@@ -42,7 +42,7 @@ import {
   buildAgentIndex,
   getDisciplineAbbreviation,
   toKebabCase,
-} from "@forwardimpact/model";
+} from "@forwardimpact/libpathway";
 import { formatAgentProfile } from "../formatters/agent/profile.js";
 import {
   formatAgentSkill,

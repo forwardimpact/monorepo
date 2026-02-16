@@ -12,7 +12,7 @@
   "type": "module",
   "workspaces": [
     "apps/schema",
-    "apps/model",
+    "libs/libpathway",
     "apps/pathway",
     "apps/basecamp",
     "libs/libdoc"

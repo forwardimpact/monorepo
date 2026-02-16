@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@forwardimpact/schema": "^0.10.0",
-    "@forwardimpact/model": "^1.2.0",
+    "@forwardimpact/libpathway": "^1.2.0",
     "mustache": "^4.2.0",
     "simple-icons": "^16.7.0",
     "yaml": "^2.3.4"

@@ -110,8 +110,8 @@ skills and constrain by lifecycle stage.
 
 ```javascript
 import { deriveSkillMatrix, deriveBehaviourProfile, deriveJob }
-  from "@forwardimpact/model/derivation";
+  from "@forwardimpact/libpathway/derivation";
 
 import { prepareAgentProfile }
-  from "@forwardimpact/model/profile";
+  from "@forwardimpact/libpathway/profile";
 ```

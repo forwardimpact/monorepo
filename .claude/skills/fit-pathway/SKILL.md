@@ -149,7 +149,7 @@ export function execute(data, args) {
 Always use the cache for job derivation in pages:
 
 ```javascript
-import { getOrCreateJob } from "@forwardimpact/model/job-cache";
+import { getOrCreateJob } from "@forwardimpact/libpathway/job-cache";
 const job = getOrCreateJob({ discipline, grade, track, skills, behaviours });
 ```
 

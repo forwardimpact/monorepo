@@ -42,7 +42,7 @@ function resolvePackageLib(packageName) {
 }
 
 const schemaLibDir = resolvePackageLib("@forwardimpact/schema");
-const modelLibDir = resolvePackageLib("@forwardimpact/model");
+const modelLibDir = resolvePackageLib("@forwardimpact/libpathway");
 
 /**
  * Files and directories to copy from app/
@@ -141,7 +141,7 @@ ${framework.emojiIcon} Generating ${framework.title} static site...
     }
   }
 
-  // Copy @forwardimpact/schema and @forwardimpact/model packages
+  // Copy @forwardimpact/schema and @forwardimpact/libpathway packages
   // These are needed by the browser's import map
   console.log("📚 Copying package dependencies...");
   await cp(schemaLibDir, join(outputDir, "schema/lib"), { recursive: true });

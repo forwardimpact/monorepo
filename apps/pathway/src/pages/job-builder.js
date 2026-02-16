@@ -5,7 +5,7 @@
 import { render } from "../lib/render.js";
 import { getState } from "../lib/state.js";
 import { createBuilder, createStandardPreview } from "../components/builder.js";
-import { prepareJobBuilderPreview } from "@forwardimpact/model/job";
+import { prepareJobBuilderPreview } from "@forwardimpact/libpathway/job";
 
 /**
  * Render job builder page

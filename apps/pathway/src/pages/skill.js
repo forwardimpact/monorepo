@@ -14,7 +14,7 @@ import {
   getCapabilityEmoji,
   getConceptEmoji,
 } from "@forwardimpact/schema/levels";
-import { generateSkillMarkdown } from "@forwardimpact/model";
+import { generateSkillMarkdown } from "@forwardimpact/libpathway";
 import { formatAgentSkill } from "../formatters/agent/skill.js";
 
 /** @type {string|null} Cached skill template */

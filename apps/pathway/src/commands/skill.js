@@ -16,7 +16,7 @@ import { skillToMarkdown } from "../formatters/skill/markdown.js";
 import { prepareSkillsList } from "../formatters/skill/shared.js";
 import { getConceptEmoji } from "@forwardimpact/schema/levels";
 import { formatTable, formatError } from "../lib/cli-output.js";
-import { generateSkillMarkdown } from "@forwardimpact/model/agent";
+import { generateSkillMarkdown } from "@forwardimpact/libpathway/agent";
 import { formatAgentSkill } from "../formatters/agent/skill.js";
 import { loadSkillTemplate } from "../lib/template-loader.js";
 

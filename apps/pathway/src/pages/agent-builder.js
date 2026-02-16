@@ -29,7 +29,7 @@ import {
   deriveReferenceGrade,
   deriveToolkit,
   buildAgentIndex,
-} from "@forwardimpact/model";
+} from "@forwardimpact/libpathway";
 import {
   createSelectWithValue,
   createDisciplineSelect,

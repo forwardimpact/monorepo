@@ -6,7 +6,7 @@
 
 import { div, heading1, heading2, p, a, ul, li, span } from "../lib/render.js";
 import { getConceptEmoji } from "@forwardimpact/schema/levels";
-import { generateAllJobs } from "@forwardimpact/model/derivation";
+import { generateAllJobs } from "@forwardimpact/libpathway/derivation";
 
 /**
  * Render the slide index

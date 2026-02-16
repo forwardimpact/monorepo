@@ -14,14 +14,14 @@
  *   npx pathway job --validate                               # Validation checks
  */
 
-import { prepareJobDetail } from "@forwardimpact/model/job";
+import { prepareJobDetail } from "@forwardimpact/libpathway/job";
 import { jobToMarkdown } from "../formatters/job/markdown.js";
-import { generateAllJobs } from "@forwardimpact/model/derivation";
+import { generateAllJobs } from "@forwardimpact/libpathway/derivation";
 import { formatTable } from "../lib/cli-output.js";
 import {
   deriveChecklist,
   formatChecklistMarkdown,
-} from "@forwardimpact/model/checklist";
+} from "@forwardimpact/libpathway/checklist";
 import { loadJobTemplate } from "../lib/template-loader.js";
 import { toolkitToPlainList } from "../formatters/toolkit/markdown.js";
 

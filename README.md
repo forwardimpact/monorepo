@@ -1,22 +1,33 @@
 # Forward Impact Engineering
 
-Great engineering comes from improving the performance of people and machines
-together.
+> "The aim of leadership should be to improve the performance of man and machine,
+> to improve quality, to increase output, and simultaneously to bring pride of
+> workmanship to people."
+>
+> — W. Edwards Deming
 
-## Vision
+## The Problem
 
-Our apps define skills, behaviours, and career paths that apply equally to human
-engineers and coding agent teams—raising quality, increasing output, and
-bringing pride of workmanship to both.
+Organizations force AI adoption onto engineers without regard for well-being,
+quality of their output, or sustainability—creating disharmony between
+leadership, engineers, and the AI strategy. What's missing is a human-centered
+approach where AI empowers people to do their best work.
 
-## Apps
+## The Vision
 
-| Package                                  | Purpose                                           |
-| ---------------------------------------- | ------------------------------------------------- |
-| [@forwardimpact/schema](apps/schema)     | Schema definitions and data loading               |
-| [@forwardimpact/model](apps/model)       | Derivation engine for roles and agent profiles    |
-| [@forwardimpact/pathway](apps/pathway)   | Web app and CLI for career progression            |
-| [@forwardimpact/basecamp](apps/basecamp) | Personal knowledge system with scheduled AI tasks |
+**Pathway** defines skills, behaviours, and career paths for human engineers and
+AI coding agents alike. **Basecamp** gives every engineer a personal knowledge
+system, powered by AI agents. Together, they raise quality, increase output, and
+bring pride of workmanship to engineering teams.
+
+## Packages
+
+| Package                                          | Purpose                                           |
+| ------------------------------------------------ | ------------------------------------------------- |
+| [@forwardimpact/schema](apps/schema)             | Schema definitions and data loading               |
+| [@forwardimpact/libpathway](libs/libpathway)     | Derivation engine for roles and agent profiles    |
+| [@forwardimpact/pathway](apps/pathway)           | Web app and CLI for career progression            |
+| [@forwardimpact/basecamp](apps/basecamp)         | Personal knowledge system with scheduled AI tasks |
 
 ## Quick Start
 

@@ -2,12 +2,16 @@
 
 ## Vision
 
-Great engineering comes from improving the performance of people and machines
-together.
+> "The aim of leadership should be to improve the performance of man and machine,
+> to improve quality, to increase output, and simultaneously to bring pride of
+> workmanship to people."
+>
+> — W. Edwards Deming
 
-This monorepo provides the tools that define skills, behaviours, and career
-paths—raising quality, increasing output, and bringing pride of workmanship to
-human engineers and coding agent teams alike.
+**Pathway** defines skills, behaviours, and career paths for human engineers and
+AI coding agents alike. **Basecamp** gives every engineer a personal knowledge
+system powered by scheduled AI tasks. Together, they raise quality, increase
+output, and bring pride of workmanship to engineering teams.
 
 **For organizations:** Define your engineering career framework in YAML. Publish
 a static site and install endpoint for your engineers.
@@ -36,20 +40,20 @@ npx fit-basecamp --daemon
 
 ```
 apps/
-  schema/       @forwardimpact/schema    Schema, validation, data loading
-  model/        @forwardimpact/model     Derivation logic, job/agent models
   pathway/      @forwardimpact/pathway   Web app, CLI, formatters
   basecamp/     @forwardimpact/basecamp  Personal knowledge system, scheduler
+  schema/       @forwardimpact/schema    Schema, validation, data loading
 libs/
-  libdoc/       @forwardimpact/libdoc    Documentation build and serve tools
+  libpathway/   @forwardimpact/libpathway  Derivation logic, job/agent models
+  libdoc/       @forwardimpact/libdoc      Documentation build and serve tools
 ```
 
-| Package                   | CLI            | Purpose                                           |
-| ------------------------- | -------------- | ------------------------------------------------- |
-| `@forwardimpact/schema`   | `fit-schema`   | Schema definitions and data loading               |
-| `@forwardimpact/model`    | —              | Derivation engine for roles and agents            |
-| `@forwardimpact/pathway`  | `fit-pathway`  | Web app and CLI for career progression            |
-| `@forwardimpact/basecamp` | `fit-basecamp` | Personal knowledge system with scheduled AI tasks |
+| Package                      | CLI            | Purpose                                           |
+| ---------------------------- | -------------- | ------------------------------------------------- |
+| `@forwardimpact/schema`      | `fit-schema`   | Schema definitions and data loading               |
+| `@forwardimpact/libpathway`  | —              | Derivation engine for roles and agents            |
+| `@forwardimpact/pathway`     | `fit-pathway`  | Web app and CLI for career progression            |
+| `@forwardimpact/basecamp`    | `fit-basecamp` | Personal knowledge system with scheduled AI tasks |
 
 **This is a data-driven monorepo.** The model layer defines derivation logic,
 but actual entities (disciplines, tracks, skills, grades, behaviours) are
@@ -61,7 +65,7 @@ different data while using the same model.
 ## 3-Layer System
 
 1. **Schema** (`apps/schema/src/`) — Data definitions, validation, loading
-2. **Model** (`apps/model/src/`) — Pure business logic, derivation
+2. **Model** (`libs/libpathway/src/`) — Pure business logic, derivation
 3. **Pathway** (`apps/pathway/src/`) — Formatters, views, UI components
 
 ```
@@ -80,7 +84,7 @@ Schema (data) → Model (derivation) → Pathway (presentation)
 | Example data | `apps/schema/examples/`                  |
 | JSON Schema  | `apps/schema/schema/json/`               |
 | RDF/SHACL    | `apps/schema/schema/rdf/`                |
-| Derivation   | `apps/model/src/`                        |
+| Derivation   | `libs/libpathway/src/`                   |
 | Formatters   | `apps/pathway/src/formatters/`           |
 | Templates    | `apps/pathway/templates/`                |
 | Scheduler    | `apps/basecamp/basecamp.js`              |
@@ -90,7 +94,7 @@ Schema (data) → Model (derivation) → Pathway (presentation)
 ### Dependency Chain
 
 ```
-schema → model → pathway
+schema → libpathway → pathway
 ```
 
 When updating data structure, change:
@@ -98,7 +102,7 @@ When updating data structure, change:
 1. `apps/schema/schema/json/` and `rdf/` — Schema definitions (both formats,
    same commit)
 2. `apps/schema/examples/` — Example data
-3. `apps/model/src/` — Derivation logic if needed
+3. `libs/libpathway/src/` — Derivation logic if needed
 4. `apps/pathway/src/formatters/` — Presentation if needed
 
 ## Core Rules
@@ -387,7 +391,7 @@ Use these terms for spheres of influence (ascending breadth):
 **Schema** (`apps/schema/src/`): `loader.js`, `validation.js`,
 `schema-validation.js`, `index-generator.js`, `levels.js`
 
-**Model** (`apps/model/src/`): `derivation.js`, `modifiers.js`, `profile.js`,
+**Model** (`libs/libpathway/src/`): `derivation.js`, `modifiers.js`, `profile.js`,
 `job.js`, `agent.js`, `checklist.js`, `interview.js`
 
 **Pathway** (`apps/pathway/src/`): `formatters/`, `pages/`, `components/`,
@@ -421,10 +425,10 @@ Format: `type(scope): subject`
 
 **Types**: `feat`, `fix`, `refactor`, `docs`, `style`, `test`, `chore`, `perf`
 
-**Scope**: Use package name (`schema`, `model`, `pathway`, `basecamp`) or
+**Scope**: Use package name (`schema`, `libpathway`, `pathway`, `basecamp`) or
 specific area. Omit if change spans multiple packages.
 
-**Breaking changes**: Add `!` after scope: `refactor(model)!: change API`
+**Breaking changes**: Add `!` after scope: `refactor(libpathway)!: change API`
 
 ### Before Committing
 
@@ -448,13 +452,13 @@ Assess version impact at each commit:
 | New feature (`feat`)      | Minor |
 | Bug fix, refactor, other  | Patch |
 
-**Dependency chain**: `schema` → `model` → `pathway`
+**Dependency chain**: `schema` → `libpathway` → `pathway`
 
-Find dependents: `grep -l "@forwardimpact/{pkg}" apps/*/package.json`
+Find dependents: `grep -rl "@forwardimpact/{pkg}" apps/*/package.json libs/*/package.json`
 
 When releasing a minor or major version, update dependent packages:
 
-1. Bump version in `apps/{package}/package.json`
+1. Bump version in the package's `package.json`
 2. Update dependency version in downstream packages (minor/major only)
 3. Commit: `chore({package}): bump to {version}`
 4. Tag: `git tag {package}@v{version}`

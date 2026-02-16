@@ -5,7 +5,7 @@
  * Provides consistent key generation and get-or-create pattern.
  */
 
-import { deriveJob } from "@forwardimpact/model/derivation";
+import { deriveJob } from "@forwardimpact/libpathway/derivation";
 
 /** @type {Map<string, Object>} */
 const cache = new Map();

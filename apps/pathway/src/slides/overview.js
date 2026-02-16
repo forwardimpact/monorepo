@@ -22,7 +22,7 @@ import { prepareBehavioursList } from "../formatters/behaviour/shared.js";
 import { prepareDriversList } from "../formatters/driver/shared.js";
 import { prepareGradesList } from "../formatters/grade/shared.js";
 import { prepareTracksList } from "../formatters/track/shared.js";
-import { generateAllJobs } from "@forwardimpact/model/derivation";
+import { generateAllJobs } from "@forwardimpact/libpathway/derivation";
 
 /**
  * Format discipline group name for display

@@ -1,9 +1,9 @@
 ---
-name: fit-model
-description: Work with the @forwardimpact/model package. Use when modifying job derivation, agent profile generation, skill matrices, behaviour profiles, or career progression logic.
+name: libpathway
+description: Work with the @forwardimpact/libpathway package. Use when modifying job derivation, agent profile generation, skill matrices, behaviour profiles, or career progression logic.
 ---
 
-# Model Package
+# Libpathway Package
 
 Pure business logic for deriving jobs, agent profiles, skill matrices, and
 career progression from schema data.
@@ -20,7 +20,7 @@ career progression from schema data.
 ## Package Structure
 
 ```
-apps/model/src/
+libs/libpathway/src/
   derivation.js   # Core: deriveSkillMatrix, deriveBehaviourProfile, deriveJob
   modifiers.js    # Skill modifier resolution
   profile.js      # Post-processing: filtering, sorting for agents
@@ -44,7 +44,7 @@ import {
   deriveSkillMatrix,
   deriveBehaviourProfile,
   deriveJob,
-} from "@forwardimpact/model/derivation";
+} from "@forwardimpact/libpathway/derivation";
 ```
 
 ### profile.js
@@ -56,7 +56,7 @@ Agent-specific filtering and sorting:
 - Sorts by level (highest first)
 
 ```javascript
-import { prepareAgentProfile } from "@forwardimpact/model/profile";
+import { prepareAgentProfile } from "@forwardimpact/libpathway/profile";
 ```
 
 ### job.js / job-cache.js
@@ -64,7 +64,7 @@ import { prepareAgentProfile } from "@forwardimpact/model/profile";
 Job preparation and caching for web pages.
 
 ```javascript
-import { getOrCreateJob } from "@forwardimpact/model/job-cache";
+import { getOrCreateJob } from "@forwardimpact/libpathway/job-cache";
 ```
 
 ### agent.js
@@ -75,7 +75,7 @@ Agent profile and skill file generation.
 import {
   deriveAgentSkills,
   generateStageAgentProfile,
-} from "@forwardimpact/model/agent";
+} from "@forwardimpact/libpathway/agent";
 ```
 
 ### interview.js

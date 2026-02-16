@@ -30,7 +30,7 @@ import {
 import {
   compareByCapability,
   sortSkillsByCapability,
-} from "@forwardimpact/model/policies";
+} from "@forwardimpact/libpathway/policies";
 
 import {
   classifyMatch,
@@ -43,7 +43,7 @@ import {
   estimateBestFitGrade,
   deriveDevelopmentPath,
   findNextStepJob,
-} from "@forwardimpact/model/matching";
+} from "@forwardimpact/libpathway/matching";
 
 import {
   validateAllData,
@@ -65,7 +65,7 @@ import {
   isSeniorGrade,
   getDisciplineSkillIds,
   getGradeLevel,
-} from "@forwardimpact/model/derivation";
+} from "@forwardimpact/libpathway/derivation";
 
 import {
   deriveInterviewQuestions,
@@ -75,12 +75,12 @@ import {
   deriveMissionFitInterview,
   deriveDecompositionInterview,
   deriveStakeholderInterview,
-} from "@forwardimpact/model/interview";
+} from "@forwardimpact/libpathway/interview";
 
 import {
   deriveChecklist,
   formatChecklistMarkdown,
-} from "@forwardimpact/model/checklist";
+} from "@forwardimpact/libpathway/checklist";
 
 // ============================================================================
 // Test Data Fixtures
@@ -2911,7 +2911,7 @@ import {
   extractCapabilityModifiers,
   extractSkillModifiers,
   resolveSkillModifier,
-} from "@forwardimpact/model/modifiers";
+} from "@forwardimpact/libpathway/modifiers";
 
 describe("Skill Modifiers", () => {
   describe("isCapability", () => {
@@ -3249,7 +3249,7 @@ import {
   getPositiveTrackCapabilities,
   prepareBaseProfile,
   prepareAgentProfile,
-} from "@forwardimpact/model/profile";
+} from "@forwardimpact/libpathway/profile";
 
 import {
   isAgentEligible,
@@ -3257,7 +3257,7 @@ import {
   filterAgentSkills,
   compareByLevelDesc,
   compareByMaturityDesc,
-} from "@forwardimpact/model/policies";
+} from "@forwardimpact/libpathway/policies";
 
 describe("Profile Module", () => {
   describe("getPositiveTrackCapabilities", () => {
@@ -3492,7 +3492,7 @@ describe("Profile Module", () => {
 // Agent Module Tests
 // ============================================================================
 
-import { deriveReferenceGrade } from "@forwardimpact/model/agent";
+import { deriveReferenceGrade } from "@forwardimpact/libpathway/agent";
 
 describe("Agent Module", () => {
   describe("deriveReferenceGrade", () => {
