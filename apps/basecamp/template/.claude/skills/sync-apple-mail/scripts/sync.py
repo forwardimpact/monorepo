@@ -4,14 +4,19 @@
 Queries the macOS Mail SQLite database for threads with new messages since
 the last sync and writes one markdown file per thread.
 
-Usage: python3 scripts/sync.py
+Usage: python3 scripts/sync.py [--days N]
+
+Options:
+    --days N    How many days back to sync on first run (default: 30)
 
 Requires: macOS with Mail app configured and Full Disk Access granted.
 """
 
+import argparse
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -19,6 +24,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 OUTDIR = os.path.expanduser("~/.cache/fit/basecamp/apple_mail")
+ATTACHMENTS_DIR = os.path.join(OUTDIR, "attachments")
 STATE_DIR = os.path.expanduser("~/.cache/fit/basecamp/state")
 STATE_FILE = os.path.join(STATE_DIR, "apple_mail_last_sync")
 
@@ -64,8 +70,12 @@ def query(db, sql, retry=True):
     return json.loads(result.stdout) if result.stdout.strip() else []
 
 
-def load_last_sync():
-    """Load the last sync timestamp. Returns Unix timestamp."""
+def load_last_sync(days_back=30):
+    """Load the last sync timestamp. Returns Unix timestamp.
+
+    Args:
+        days_back: How many days back to look on first sync (default: 30).
+    """
     try:
         iso = Path(STATE_FILE).read_text().strip()
         if iso:
@@ -75,8 +85,8 @@ def load_last_sync():
             return int(dt.timestamp())
     except (FileNotFoundError, ValueError):
         pass
-    # First sync: 30 days ago
-    return int((datetime.now(timezone.utc) - timedelta(days=30)).timestamp())
+    # First sync: N days ago
+    return int((datetime.now(timezone.utc) - timedelta(days=days_back)).timestamp())
 
 
 def save_sync_state():
@@ -176,28 +186,64 @@ def fetch_recipients(db, message_ids):
     return result
 
 
-def build_emlx_index():
-    """Build a dict mapping message ROWID → .emlx file path with a single find."""
+def fetch_attachments(db, message_ids):
+    """Batch-fetch attachment metadata for a set of message IDs."""
+    if not message_ids:
+        return {}
+    id_list = ",".join(str(mid) for mid in message_ids)
+    rows = query(db, f"""
+        SELECT a.message AS message_id, a.attachment_id, a.name
+        FROM attachments a
+        WHERE a.message IN ({id_list})
+        ORDER BY a.message, a.ROWID;
+    """)
+    result = {}
+    for r in rows:
+        mid = r["message_id"]
+        result.setdefault(mid, []).append({
+            "attachment_id": r["attachment_id"],
+            "name": r["name"],
+        })
+    return result
+
+
+def build_file_indexes():
+    """Build emlx and attachment indexes with a single find traversal.
+
+    Returns (emlx_index, attachment_index):
+        emlx_index: {message_rowid: path} for .emlx files
+        attachment_index: {(message_rowid, attachment_id): path} for attachment files
+    """
     mail_dir = os.path.expanduser("~/Library/Mail")
     try:
         result = subprocess.run(
-            ["find", mail_dir, "-name", "*.emlx"],
-            capture_output=True, text=True, timeout=30
+            ["find", mail_dir, "(", "-name", "*.emlx", "-o",
+             "-path", "*/Attachments/*", ")", "-type", "f"],
+            capture_output=True, text=True, timeout=60
         )
-        index = {}
+        emlx_index = {}
+        attachment_index = {}
         for path in result.stdout.strip().splitlines():
-            # Filename is like 12345.emlx or 12345.partial.emlx
-            basename = os.path.basename(path)
-            # Extract the numeric ID
-            msg_id = basename.split(".")[0]
-            if msg_id.isdigit():
-                mid = int(msg_id)
-                # Prefer .emlx over .partial.emlx (shorter name = full message)
-                if mid not in index or len(basename) < len(os.path.basename(index[mid])):
-                    index[mid] = path
-        return index
+            if "/Attachments/" in path:
+                # Path: .../Attachments/{msg_rowid}/{attachment_id}/{filename}
+                parts = path.split("/Attachments/", 1)
+                if len(parts) == 2:
+                    segments = parts[1].split("/")
+                    if len(segments) >= 3 and segments[0].isdigit():
+                        msg_rowid = int(segments[0])
+                        att_id = segments[1]
+                        attachment_index[(msg_rowid, att_id)] = path
+            elif path.endswith(".emlx"):
+                basename = os.path.basename(path)
+                msg_id = basename.split(".")[0]
+                if msg_id.isdigit():
+                    mid = int(msg_id)
+                    # Prefer .emlx over .partial.emlx (shorter name = full message)
+                    if mid not in emlx_index or len(basename) < len(os.path.basename(emlx_index[mid])):
+                        emlx_index[mid] = path
+        return emlx_index, attachment_index
     except (subprocess.TimeoutExpired, Exception):
-        return {}
+        return {}, {}
 
 
 def parse_emlx(message_id, emlx_index):
@@ -234,7 +280,44 @@ def format_sender(msg):
     return addr or name
 
 
-def write_thread_markdown(thread_id, messages, recipients_by_msg, emlx_index):
+def copy_thread_attachments(thread_id, messages, attachments_by_msg, attachment_index):
+    """Copy attachment files into the output attachments directory.
+
+    Returns {message_id: [{name, available, path}, ...]} for markdown listing.
+    """
+    results = {}
+    seen_filenames = set()
+    for msg in messages:
+        mid = msg["message_id"]
+        msg_attachments = attachments_by_msg.get(mid, [])
+        if not msg_attachments:
+            continue
+        msg_results = []
+        for att in msg_attachments:
+            att_id = att["attachment_id"]
+            name = att["name"] or "unnamed"
+            source = attachment_index.get((mid, att_id))
+            if not source or not os.path.isfile(source):
+                msg_results.append({"name": name, "available": False, "path": None})
+                continue
+            # Handle filename collisions by prefixing with message_id
+            dest_name = name
+            if dest_name in seen_filenames:
+                dest_name = f"{mid}_{name}"
+            seen_filenames.add(dest_name)
+            dest_dir = os.path.join(ATTACHMENTS_DIR, str(thread_id))
+            os.makedirs(dest_dir, exist_ok=True)
+            dest_path = os.path.join(dest_dir, dest_name)
+            try:
+                shutil.copy2(source, dest_path)
+                msg_results.append({"name": dest_name, "available": True, "path": dest_path})
+            except OSError:
+                msg_results.append({"name": name, "available": False, "path": None})
+        results[mid] = msg_results
+    return results
+
+
+def write_thread_markdown(thread_id, messages, recipients_by_msg, emlx_index, attachment_results=None):
     """Write a thread as a markdown file."""
     if not messages:
         return False
@@ -286,17 +369,34 @@ def write_thread_markdown(thread_id, messages, recipients_by_msg, emlx_index):
             lines.append(body)
         lines.append("")
 
+        # Attachments
+        if attachment_results:
+            msg_atts = attachment_results.get(mid, [])
+            if msg_atts:
+                lines.append("**Attachments:**")
+                for att in msg_atts:
+                    if att["available"]:
+                        lines.append(f"- [{att['name']}](attachments/{thread_id}/{att['name']})")
+                    else:
+                        lines.append(f"- {att['name']} *(not available)*")
+                lines.append("")
+
     filepath = os.path.join(OUTDIR, f"{thread_id}.md")
     Path(filepath).write_text("\n".join(lines))
     return True
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Sync Apple Mail threads.")
+    parser.add_argument("--days", type=int, default=30,
+                        help="How many days back to sync on first run (default: 30)")
+    args = parser.parse_args()
+
     db = find_db()
     os.makedirs(OUTDIR, exist_ok=True)
 
     # Load sync state
-    since_ts = load_last_sync()
+    since_ts = load_last_sync(days_back=args.days)
     since_readable = unix_to_readable(since_ts)
 
     # Discover thread column
@@ -317,8 +417,8 @@ def main():
         save_sync_state()
         return
 
-    # Build .emlx file index once (single find traversal)
-    emlx_index = build_emlx_index()
+    # Build .emlx and attachment file indexes (single find traversal)
+    emlx_index, attachment_index = build_file_indexes()
 
     # Process each thread
     written = 0
@@ -327,11 +427,18 @@ def main():
         if not messages:
             continue
 
-        # Batch-fetch recipients for all messages in thread
         msg_ids = [m["message_id"] for m in messages]
-        recipients = fetch_recipients(db, msg_ids)
 
-        if write_thread_markdown(tid, messages, recipients, emlx_index):
+        # Batch-fetch recipients and attachments for all messages in thread
+        recipients = fetch_recipients(db, msg_ids)
+        attachments_by_msg = fetch_attachments(db, msg_ids)
+
+        # Copy attachment files to output directory
+        attachment_results = copy_thread_attachments(
+            tid, messages, attachments_by_msg, attachment_index
+        )
+
+        if write_thread_markdown(tid, messages, recipients, emlx_index, attachment_results):
             written += 1
 
     # Save sync state (even on partial success)

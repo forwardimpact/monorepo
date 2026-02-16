@@ -32,6 +32,8 @@ their email.
 
 - `~/.cache/fit/basecamp/apple_mail/{thread_id}.md` — one markdown file per
   email thread
+- `~/.cache/fit/basecamp/apple_mail/attachments/{thread_id}/` — copied
+  attachment files for each thread (PDFs, images, documents, etc.)
 - `~/.cache/fit/basecamp/state/apple_mail_last_sync` — updated with new sync
   timestamp
 
@@ -42,16 +44,19 @@ their email.
 Run the sync as a single Python script. This avoids N+1 shell invocations and
 handles all data transformation in one pass:
 
-    python3 scripts/sync.py
+    python3 scripts/sync.py [--days N]
+
+- `--days N` — how many days back to look on first sync (default: 30)
 
 The script:
 
 1. Finds the Mail database (`~/Library/Mail/V*/MailData/Envelope Index`)
-2. Loads last sync timestamp (or defaults to 30 days ago for first sync)
+2. Loads last sync timestamp (or defaults to `--days` days ago for first sync)
 3. Discovers the thread grouping column (`conversation_id` or `thread_id`)
 4. Finds threads with new messages since last sync (up to 500)
-5. For each thread: fetches messages, batch-fetches recipients, parses `.emlx`
-   files for full email bodies (falling back to database summaries)
+5. For each thread: fetches messages, batch-fetches recipients and attachment
+   metadata, parses `.emlx` files for full email bodies (falling back to
+   database summaries), copies attachment files to the output directory
 6. Writes one markdown file per thread to `~/.cache/fit/basecamp/apple_mail/`
 7. Updates sync state timestamp
 8. Reports summary (threads processed, files written)
@@ -95,10 +100,13 @@ Each `{thread_id}.md` file:
 **Cc:** ...
 
 {next_body}
+
+**Attachments:**
+- [report.pdf](attachments/{thread_id}/report.pdf)
+- image001.png *(not available)*
 ```
 
 Rules:
-
 - Use the **base subject** (from `subject` column, without `subject_prefix`) as
   the `# heading`.
 - **Flags line** — only include when at least one flag is set:
@@ -107,9 +115,9 @@ Rules:
   - Omit the `**Flags:**` line entirely if neither flag applies.
 - **Sender** — format as `{sender_name} <{sender_email}>` when display name is
   present, otherwise just `{sender_email}`.
-- **To/Cc** — include per-message. Format each recipient as `{name} <{email}>`
-  when name exists, otherwise just `{email}`. Omit the line if that field has no
-  recipients.
+- **To/Cc** — include per-message. Format each recipient as
+  `{name} <{email}>` when name exists, otherwise just `{email}`. Omit the line
+  if that field has no recipients.
 
 ## Error Handling
 
@@ -118,9 +126,11 @@ Rules:
 - Database locked → wait 2 seconds, retry once
 - `.emlx` / `.partial.emlx` not found → fall back to database summary field
 - `.emlx` parse error → fall back to database summary field
-- HTML-only email → strip tags and use as plain text body (handled by
-  parse-emlx.py)
-- `find` timeout → skip that message's body, use summary
+- HTML-only email → strip tags and use as plain text body (handled by parse-emlx.py)
+- `find` timeout → skip that message's body, use summary; attachment index empty
+- Attachment file not found on disk → listed as `*(not available)*` in markdown
+- Attachment copy fails (permissions, disk full) → listed as `*(not available)*`
+- Filename collision across messages → prefixed with `{message_id}_`
 - Always update sync state, even on partial success
 
 ## Constraints

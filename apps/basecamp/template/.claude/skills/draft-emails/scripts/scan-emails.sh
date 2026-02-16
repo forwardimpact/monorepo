@@ -3,14 +3,15 @@
 #
 # Usage: bash scripts/scan-emails.sh
 #
-# Checks ~/.cache/fit/basecamp/apple_mail/ for email files
-# not yet listed in drafts/drafted or drafts/ignored.
+# Checks ~/.cache/fit/basecamp/apple_mail/ for email files not yet
+# listed in drafts/drafted or drafts/ignored.
 # Outputs tab-separated: email_id<TAB>subject
 
 set -euo pipefail
 
 MAIL_DIRS=(
   "$HOME/.cache/fit/basecamp/apple_mail"
+  "$HOME/.cache/fit/basecamp/gmail"
 )
 
 for dir in "${MAIL_DIRS[@]}"; do

@@ -122,6 +122,8 @@ Built-in skills in `template/.claude/skills/`:
 | Create Presentations   | `create-presentations/` | Generate PDF slide decks      |
 | Document Collaboration | `doc-collab/`           | Document editing workflows    |
 | Organize Files         | `organize-files/`       | File organization and cleanup |
+| Track Candidates       | `track-candidates/`     | Recruitment pipeline tracking |
+| Process Hyprnote       | `process-hyprnote/`     | Hyprnote session extraction   |
 
 Skills are Claude Code-native SKILL.md files. They are auto-discovered by Claude
 from `.claude/skills/<name>/SKILL.md` inside each knowledge base.

@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """Sync Apple Calendar events to ~/.cache/fit/basecamp/apple_calendar/ as JSON.
 
-Queries the macOS Calendar SQLite database for events in a 14-day sliding
-window (past and future) and writes one JSON file per event.
+Queries the macOS Calendar SQLite database for events in a sliding window
+(past and future) and writes one JSON file per event.
 
-Usage: python3 scripts/sync.py
+Usage: python3 scripts/sync.py [--days N]
+
+Options:
+    --days N    How many days back to sync (default: 30)
 
 Requires: macOS with Calendar app configured and Full Disk Access granted.
 """
 
+import argparse
 import json
 import os
 import subprocess
@@ -82,11 +86,16 @@ def coredata_to_iso(ts, tz_name=None):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Sync Apple Calendar events.")
+    parser.add_argument("--days", type=int, default=30,
+                        help="How many days back to sync (default: 30)")
+    args = parser.parse_args()
+
     db = find_db()
     os.makedirs(OUTDIR, exist_ok=True)
 
     now = datetime.now(timezone.utc)
-    start = now - timedelta(days=14)
+    start = now - timedelta(days=args.days)
     end = now + timedelta(days=14)
     START_TS = (start - EPOCH).total_seconds()
     END_TS = (end - EPOCH).total_seconds()

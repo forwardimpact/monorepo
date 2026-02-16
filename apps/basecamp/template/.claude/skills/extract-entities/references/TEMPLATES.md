@@ -10,6 +10,7 @@ Templates for creating new knowledge base notes.
 ## Info
 **Role:** {role or inferred role with qualifier}
 **Organization:** [[Organizations/{organization}]]
+**Reports to:** [[People/{{Person}}]]
 **Email:** {email}
 **Aliases:** {comma-separated variants}
 **First met:** {YYYY-MM-DD}

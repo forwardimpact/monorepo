@@ -32,18 +32,18 @@ Run when the user asks to create a presentation, slide deck, or pitch deck.
 
 ## Workflow
 
-1.  Check `knowledge/` for relevant context about the company, product, team,
-    etc.
-2.  Ensure Playwright is installed:
-    `npm install playwright && npx playwright install chromium`
-3.  Create an HTML file at `/tmp/basecamp-presentation.html` with slides
-    (1280x720px each)
-4.  Include the required CSS from [references/slide.css](references/slide.css)
-5.  Run the conversion script:
+1. Check `knowledge/` for relevant context about the company, product, team,
+   etc.
+2. Ensure Playwright is installed:
+   `npm install playwright && npx playwright install chromium`
+3. Create an HTML file at `/tmp/basecamp-presentation.html` with slides
+   (1280x720px each)
+4. Include the required CSS from [references/slide.css](references/slide.css)
+5. Run the conversion script:
 
         node scripts/convert-to-pdf.js
 
-6.  Tell the user: "Your presentation is ready at ~/Desktop/presentation.pdf"
+6. Tell the user: "Your presentation is ready at ~/Desktop/presentation.pdf"
 
 **Do NOT show HTML code to the user. Just create the PDF and deliver it.**
 
@@ -51,8 +51,7 @@ The conversion script accepts optional arguments:
 
     node scripts/convert-to-pdf.js [input.html] [output.pdf]
 
-Defaults: input = `/tmp/basecamp-presentation.html`, output =
-`~/Desktop/presentation.pdf`
+Defaults: input = `/tmp/basecamp-presentation.html`, output = `~/Desktop/presentation.pdf`
 
 ## PDF Rendering Rules
 

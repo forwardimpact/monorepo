@@ -16,13 +16,15 @@ Run when the user asks to draft, reply to, or respond to an email.
 ## Prerequisites
 
 - Knowledge base populated (from `extract-entities` skill)
-- Synced email data in `~/.cache/fit/basecamp/apple_mail/`
+- Synced email data in `~/.cache/fit/basecamp/apple_mail/` or
+  `~/.cache/fit/basecamp/gmail/`
 
 ## Inputs
 
 - `knowledge/People/*.md` — person context
 - `knowledge/Organizations/*.md` — organization context
-- `~/.cache/fit/basecamp/apple_mail/*.md` — email threads
+- `~/.cache/fit/basecamp/apple_mail/*.md` or `~/.cache/fit/basecamp/gmail/*.md`
+  — email threads
 - `~/.cache/fit/basecamp/apple_calendar/*.json` — calendar events (for
   scheduling)
 - `drafts/last_processed` — timestamp of last processing run
@@ -116,7 +118,7 @@ cat "knowledge/Organizations/Company Name.md"
 **Calendar (for scheduling emails):**
 
 ```bash
-ls ~/.cache/fit/basecamp/apple_calendar/ 2>/dev/null
+ls ~/.cache/fit/basecamp/apple_calendar/ ~/.cache/fit/basecamp/google_calendar/ 2>/dev/null
 cat "$HOME/.cache/fit/basecamp/apple_calendar/event123.json"
 ```
 
@@ -183,6 +185,33 @@ date -u '+%Y-%m-%dT%H:%M:%SZ' > drafts/last_processed
 ### Ignored:
 - {id}: {subject} — {reason}
 ```
+
+## Recruitment & Staffing Emails
+
+**CRITICAL: Candidates must NEVER be copied on internal emails about them.**
+
+When an email involves recruitment, staffing, or hiring:
+
+1. **Identify the candidate** — Determine who the candidate is from the email
+   thread and knowledge base (`knowledge/Candidates/`, `knowledge/People/`)
+2. **Strip the candidate from recipients** — The draft must ONLY be addressed to
+   internal stakeholders (hiring managers, recruiters, interview panel, etc.).
+   The candidate’s email address must NOT appear in To, CC, or BCC
+3. **Only recruiters email candidates directly** — If the email is a direct
+   reply TO a candidate (e.g., scheduling an interview, extending an offer),
+   flag it clearly so only the recruiter sends it. Add a note:
+   `⚠️ RECRUITER ONLY — This email goes directly to the candidate.`
+
+**Examples of internal recruitment emails (candidate must NOT be copied):**
+
+- Interview feedback or debrief
+- Candidate evaluation or comparison
+- Hiring decision discussions
+- Compensation/offer discussions
+- Reference check follow-ups between colleagues
+
+**When in doubt:** If an email thread mentions a candidate by name and involves
+multiple internal recipients, treat it as internal and exclude the candidate.
 
 ## Constraints
 

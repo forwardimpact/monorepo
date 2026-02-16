@@ -65,13 +65,13 @@ Run this skill:
 
 ## Before Starting
 
-1.  Read `USER.md` to get the user's name, email, and domain
-2.  Find new/changed files to process:
+1. Read `USER.md` to get the user's name, email, and domain
+2. Find new/changed files to process:
 
-         python3 scripts/state.py check
+        python3 scripts/state.py check
 
-    This outputs one file path per line for all source files that are new or
-    have changed since last processing.
+   This outputs one file path per line for all source files that are new or
+   have changed since last processing.
 
 ### Ad-hoc file inputs
 
@@ -264,7 +264,6 @@ person?"** test:
 - Transactional service providers (bank employees, support reps)
 - One-time administrative contacts
 - Large group meeting attendees you didn't interact with
-- Internal colleagues (@user.domain)
 - Assistants handling only logistics
 
 For people who don't get their own note, add to the Organization note's
@@ -338,8 +337,8 @@ Always use canonical names with absolute paths (`[[People/Name]]`,
 the relationship, not the communication method.
 
 **Good:** "VP Engineering at [[Organizations/Acme Corp]] leading the
-[[Projects/Acme Integration]] pilot." **Bad:** "Attendee on the scheduled
-meeting (Aug 12, 2024)."
+[[Projects/Acme Integration]] pilot."
+**Bad:** "Attendee on the scheduled meeting (Aug 12, 2024)."
 
 ## Step 7: Detect State Changes
 
@@ -402,8 +401,7 @@ Before writing:
 
 ### For NEW entities (meetings only)
 
-Create the note file using the templates in
-[references/TEMPLATES.md](references/TEMPLATES.md).
+Create the note file using the templates in [references/TEMPLATES.md](references/TEMPLATES.md).
 
 ### For EXISTING entities
 
