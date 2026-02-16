@@ -19,7 +19,6 @@ deno compile \
   --allow-all \
   --no-check \
   --output "$OUTPUT" \
-  --include template/ \
   basecamp.js
 
 echo "  -> $OUTPUT"

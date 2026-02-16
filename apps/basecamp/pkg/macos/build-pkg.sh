@@ -53,6 +53,9 @@ cp "$PROJECT_DIR/config/scheduler.json" "$PAYLOAD_DIR/usr/local/share/fit-baseca
 cp "$SCRIPT_DIR/uninstall.sh" "$PAYLOAD_DIR/usr/local/share/fit-basecamp/uninstall.sh"
 chmod +x "$PAYLOAD_DIR/usr/local/share/fit-basecamp/uninstall.sh"
 
+# Template files (shared location — binary reads from here instead of embedding)
+cp -R "$PROJECT_DIR/template" "$PAYLOAD_DIR/usr/local/share/fit-basecamp/template"
+
 # Status menu binary
 cp "$STATUS_MENU_BINARY" "$PAYLOAD_DIR/usr/local/bin/BasecampStatus"
 chmod +x "$PAYLOAD_DIR/usr/local/bin/BasecampStatus"

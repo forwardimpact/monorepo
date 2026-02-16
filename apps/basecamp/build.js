@@ -48,7 +48,6 @@ function compile() {
     "--allow-all",
     "--no-check",
     `--output "${outputPath}"`,
-    "--include template/",
     "basecamp.js",
   ].join(" ");
 

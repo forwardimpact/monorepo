@@ -16,7 +16,6 @@ import {
   writeFileSync,
   existsSync,
   mkdirSync,
-  readdirSync,
   unlinkSync,
   chmodSync,
 } from "node:fs";
@@ -34,7 +33,7 @@ const STATE_PATH = join(BASECAMP_HOME, "state.json");
 const LOG_DIR = join(BASECAMP_HOME, "logs");
 const __dirname =
   import.meta.dirname || dirname(fileURLToPath(import.meta.url));
-const KB_TEMPLATE_DIR = join(__dirname, "template");
+const SHARE_DIR = "/usr/local/share/fit-basecamp";
 const SOCKET_PATH = join(BASECAMP_HOME, "basecamp.sock");
 
 let daemonStartedAt = null;
@@ -79,20 +78,12 @@ function log(msg) {
 }
 
 function findClaude() {
-  for (const c of [
-    "claude",
+  const paths = [
     "/usr/local/bin/claude",
     join(HOME, ".claude", "bin", "claude"),
     join(HOME, ".local", "bin", "claude"),
-  ]) {
-    try {
-      execSync(`which "${c}" 2>/dev/null || command -v "${c}" 2>/dev/null`, {
-        encoding: "utf8",
-      });
-      return c;
-    } catch {}
-    if (existsSync(c)) return c;
-  }
+  ];
+  for (const p of paths) if (existsSync(p)) return p;
   return "claude";
 }
 
@@ -337,29 +328,6 @@ function handleStatusRequest(socket) {
   });
 }
 
-function handleRestartRequest(socket) {
-  send(socket, { type: "ack", command: "restart" });
-  setTimeout(() => process.exit(0), 100);
-}
-
-function handleRunRequest(socket, taskName) {
-  if (!taskName) {
-    send(socket, { type: "error", message: "Missing task name" });
-    return;
-  }
-  const config = loadConfig();
-  const task = config.tasks[taskName];
-  if (!task) {
-    send(socket, { type: "error", message: `Task not found: ${taskName}` });
-    return;
-  }
-  send(socket, { type: "ack", command: "run", task: taskName });
-  const state = loadState();
-  runTask(taskName, task, config, state).catch((err) => {
-    console.error(`[socket] runTask error for ${taskName}:`, err.message);
-  });
-}
-
 function handleMessage(socket, line) {
   let request;
   try {
@@ -369,21 +337,38 @@ function handleMessage(socket, line) {
     return;
   }
 
-  const handlers = {
-    status: () => handleStatusRequest(socket),
-    restart: () => handleRestartRequest(socket),
-    run: () => handleRunRequest(socket, request.task),
-  };
+  if (request.type === "status") return handleStatusRequest(socket);
 
-  const handler = handlers[request.type];
-  if (handler) {
-    handler();
-  } else {
-    send(socket, {
-      type: "error",
-      message: `Unknown request type: ${request.type}`,
-    });
+  if (request.type === "restart") {
+    send(socket, { type: "ack", command: "restart" });
+    setTimeout(() => process.exit(0), 100);
+    return;
   }
+
+  if (request.type === "run") {
+    if (!request.task) {
+      send(socket, { type: "error", message: "Missing task name" });
+      return;
+    }
+    const config = loadConfig();
+    const task = config.tasks[request.task];
+    if (!task) {
+      send(socket, {
+        type: "error",
+        message: `Task not found: ${request.task}`,
+      });
+      return;
+    }
+    send(socket, { type: "ack", command: "run", task: request.task });
+    const state = loadState();
+    runTask(request.task, task, config, state).catch(() => {});
+    return;
+  }
+
+  send(socket, {
+    type: "error",
+    message: `Unknown request type: ${request.type}`,
+  });
 }
 
 function startSocketServer() {
@@ -446,23 +431,21 @@ function daemon() {
 
 // --- Init knowledge base ----------------------------------------------------
 
-function copyDirRecursive(src, dest) {
-  for (const entry of readdirSync(src, { withFileTypes: true })) {
-    const s = join(src, entry.name),
-      d = join(dest, entry.name);
-    if (entry.isDirectory()) {
-      ensureDir(d);
-      copyDirRecursive(s, d);
-    } else if (!existsSync(d)) {
-      writeFileSync(d, readFileSync(s));
-    }
-  }
+function findTemplateDir() {
+  for (const d of [join(SHARE_DIR, "template"), join(__dirname, "template")])
+    if (existsSync(d)) return d;
+  return null;
 }
 
 function initKB(targetPath) {
   const dest = expandPath(targetPath);
   if (existsSync(join(dest, "CLAUDE.md"))) {
     console.error(`Knowledge base already exists at ${dest}`);
+    process.exit(1);
+  }
+  const tpl = findTemplateDir();
+  if (!tpl) {
+    console.error("Template not found. Reinstall fit-basecamp.");
     process.exit(1);
   }
 
@@ -472,11 +455,10 @@ function initKB(targetPath) {
     "knowledge/Organizations",
     "knowledge/Projects",
     "knowledge/Topics",
-    ".claude/skills",
   ])
     ensureDir(join(dest, d));
 
-  if (existsSync(KB_TEMPLATE_DIR)) copyDirRecursive(KB_TEMPLATE_DIR, dest);
+  execSync(`cp -R "${tpl}/." "${dest}/"`);
 
   console.log(
     `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. Edit ${dest}/USER.md with your name, email, and domain\n  2. cd ${dest} && claude`,
@@ -492,26 +474,23 @@ function showStatus() {
 
   const tasks = Object.entries(config.tasks || {});
   if (tasks.length === 0) {
-    console.log(
-      `Tasks: (none configured)\n\nEdit ${CONFIG_PATH} to add tasks.`,
-    );
+    console.log(`No tasks configured.\n\nEdit ${CONFIG_PATH} to add tasks.`);
     return;
   }
 
   console.log("Tasks:");
   for (const [name, task] of tasks) {
     const s = state.tasks[name] || {};
-    const kbPath = task.kb ? expandPath(task.kb) : null;
-    const kbStatus = kbPath ? (existsSync(kbPath) ? "" : " (not found)") : "";
-    const lines = [
-      `  ${task.enabled !== false ? "+" : "-"} ${name}`,
-      `    KB: ${task.kb || "(none)"}${kbStatus}  Schedule: ${JSON.stringify(task.schedule)}`,
-      `    Status: ${s.status || "never-run"}  Last run: ${s.lastRunAt ? new Date(s.lastRunAt).toLocaleString() : "never"}  Runs: ${s.runCount || 0}`,
-    ];
-    if (task.agent) lines.push(`    Agent: ${task.agent}`);
-    if (task.skill) lines.push(`    Skill: ${task.skill}`);
-    if (s.lastError) lines.push(`    Error: ${s.lastError.slice(0, 80)}`);
-    console.log(lines.join("\n"));
+    const kbStatus =
+      task.kb && !existsSync(expandPath(task.kb)) ? " (not found)" : "";
+    console.log(
+      `  ${task.enabled !== false ? "+" : "-"} ${name}\n` +
+        `    KB: ${task.kb || "(none)"}${kbStatus}  Schedule: ${JSON.stringify(task.schedule)}\n` +
+        `    Status: ${s.status || "never-run"}  Last: ${s.lastRunAt ? new Date(s.lastRunAt).toLocaleString() : "never"}  Runs: ${s.runCount || 0}` +
+        (task.agent ? `\n    Agent: ${task.agent}` : "") +
+        (task.skill ? `\n    Skill: ${task.skill}` : "") +
+        (s.lastError ? `\n    Error: ${s.lastError.slice(0, 80)}` : ""),
+    );
   }
 }
 
@@ -544,7 +523,7 @@ function validate() {
     }
     const kbPath = expandPath(task.kb);
     if (!existsSync(kbPath)) {
-      console.log(`  [FAIL] ${name}: path does not exist: ${kbPath}`);
+      console.log(`  [FAIL] ${name}: path not found: ${kbPath}`);
       errors++;
       continue;
     }
@@ -559,25 +538,17 @@ function validate() {
           ? join("agents", sub.endsWith(".md") ? sub : sub + ".md")
           : join("skills", sub, "SKILL.md");
       const found = findInLocalOrGlobal(kbPath, relPath);
-      if (found) {
-        console.log(`  [OK]   ${name}: ${kind} "${sub}" found at ${found}`);
-      } else {
-        console.log(
-          `  [FAIL] ${name}: ${kind} "${sub}" not found in ${join(kbPath, ".claude", relPath)} or ${join(HOME, ".claude", relPath)}`,
-        );
-        errors++;
-      }
+      console.log(
+        `  [${found ? "OK" : "FAIL"}]  ${name}: ${kind} "${sub}"${found ? "" : " not found"}`,
+      );
+      if (!found) errors++;
     }
 
     if (!task.agent && !task.skill)
       console.log(`  [OK]   ${name}: no agent or skill to validate`);
   }
 
-  console.log(
-    errors > 0
-      ? `\nValidation failed: ${errors} error(s) found.`
-      : "\nAll tasks validated successfully.",
-  );
+  console.log(errors > 0 ? `\n${errors} error(s).` : "\nAll OK.");
   if (errors > 0) process.exit(1);
 }
 
@@ -586,7 +557,7 @@ function validate() {
 function showHelp() {
   const bin = "fit-basecamp";
   console.log(`
-Basecamp Scheduler — Run scheduled tasks across multiple knowledge bases.
+Basecamp — Run scheduled Claude tasks across knowledge bases.
 
 Usage:
   ${bin}                     Run due tasks once and exit
@@ -595,28 +566,10 @@ Usage:
   ${bin} --init <path>       Initialize a new knowledge base
   ${bin} --validate          Validate agents and skills exist
   ${bin} --status            Show task status
-  ${bin} --help              Show this help
 
 Config:  ~/.fit/basecamp/scheduler.json
 State:   ~/.fit/basecamp/state.json
 Logs:    ~/.fit/basecamp/logs/
-
-Config format:
-  {
-    "tasks": {
-      "sync-mail": {
-        "kb": "~/Documents/Personal",
-        "schedule": { "type": "interval", "minutes": 5 },
-        "prompt": "Sync Apple Mail.", "skill": "sync-apple-mail",
-        "agent": null, "enabled": true
-      }
-    }
-  }
-
-Schedule types:
-  interval: { "type": "interval", "minutes": 5 }
-  cron:     { "type": "cron", "expression": "0 8 * * *" }
-  once:     { "type": "once", "runAt": "2025-02-12T10:00:00Z" }
 `);
 }
 
