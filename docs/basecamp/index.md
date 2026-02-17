@@ -93,16 +93,16 @@ Your drafts are plain text. Your config is JSON. No magic, no lock-in.
 
 ## Built-in Skills
 
-| Skill                  | What it does                                     |
-| ---------------------- | ------------------------------------------------ |
-| **Sync Apple Mail**    | Reads email threads from Mail.app via SQLite     |
-| **Sync Apple Calendar**| Reads upcoming events from Calendar.app          |
-| **Extract Entities**   | Processes synced data into a knowledge graph     |
-| **Draft Emails**       | Writes response drafts using your full context   |
-| **Meeting Prep**       | Creates briefings before upcoming meetings       |
-| **Create Presentations**| Generates PDF slide decks from markdown         |
-| **Document Collab**    | Assists with document creation and editing       |
-| **Organize Files**     | Cleans up and organizes your files               |
+| Skill                    | What it does                                   |
+| ------------------------ | ---------------------------------------------- |
+| **Sync Apple Mail**      | Reads email threads from Mail.app via SQLite   |
+| **Sync Apple Calendar**  | Reads upcoming events from Calendar.app        |
+| **Extract Entities**     | Processes synced data into a knowledge graph   |
+| **Draft Emails**         | Writes response drafts using your full context |
+| **Meeting Prep**         | Creates briefings before upcoming meetings     |
+| **Create Presentations** | Generates PDF slide decks from markdown        |
+| **Document Collab**      | Assists with document creation and editing     |
+| **Organize Files**       | Cleans up and organizes your files             |
 
 ---
 
@@ -129,9 +129,9 @@ contexts. The scheduler manages them all from one configuration.
 
 ## macOS Status Menu
 
-Basecamp includes a native macOS status menu app that sits in your menu bar.
-It shows the status of every scheduled task — what's running, what finished,
-and when the next run is due. Click any task to run it immediately or see error
+Basecamp includes a native macOS status menu app that sits in your menu bar. It
+shows the status of every scheduled task — what's running, what finished, and
+when the next run is due. Click any task to run it immediately or see error
 details.
 
 ---

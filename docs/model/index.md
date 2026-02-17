@@ -59,23 +59,23 @@ Agent  = Discipline × Track × Stage
 | **Grade**      | What career level?          |
 | **Stage**      | What part of the lifecycle? |
 
-Both jobs and agents use the same skill and behaviour derivation. The difference:
-jobs include all skills capped by grade, while agents filter out human-only
-skills and constrain by lifecycle stage.
+Both jobs and agents use the same skill and behaviour derivation. The
+difference: jobs include all skills capped by grade, while agents filter out
+human-only skills and constrain by lifecycle stage.
 
 ---
 
 ## Key Capabilities
 
-| Capability          | What it does                                       |
-| ------------------- | -------------------------------------------------- |
-| **Job derivation**  | Complete role definitions with skills and behaviours |
-| **Agent profiles**  | Stage-specific agent instructions for AI assistants  |
-| **Skill matrices**  | Derived skill levels with track modifiers applied    |
-| **Checklists**      | Stage transition criteria from capability definitions|
-| **Progression**     | Career path analysis and gap identification          |
-| **Interviews**      | Role-specific question selection                     |
-| **Job matching**    | Gap analysis between current and target roles        |
+| Capability         | What it does                                          |
+| ------------------ | ----------------------------------------------------- |
+| **Job derivation** | Complete role definitions with skills and behaviours  |
+| **Agent profiles** | Stage-specific agent instructions for AI assistants   |
+| **Skill matrices** | Derived skill levels with track modifiers applied     |
+| **Checklists**     | Stage transition criteria from capability definitions |
+| **Progression**    | Career path analysis and gap identification           |
+| **Interviews**     | Role-specific question selection                      |
+| **Job matching**   | Gap analysis between current and target roles         |
 
 ---
 

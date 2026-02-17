@@ -34,7 +34,12 @@ function toggleTheme() {
 
 // Restore saved theme, or use system preference
 const savedTheme = localStorage.getItem(STORAGE_KEY);
-applyTheme(savedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+applyTheme(
+  savedTheme ||
+    (window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light"),
+);
 
 // Wire up theme toggle button
 const toggleBtn = document.querySelector(".theme-toggle");
