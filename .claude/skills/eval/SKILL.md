@@ -219,7 +219,16 @@ Give the agent a realistic task that exercises the skills. Good eval prompts:
 
 ### Step 4: Observe and Record
 
-While the session runs, record observations in a structured format:
+While the session runs, record observations. Write the eval report to
+`tmp/eval/` using the naming convention:
+
+```
+tmp/eval/<date>-<shortname>-<stage>.md
+```
+
+For example: `tmp/eval/2026-02-17-se-forward-deployed-specify.md`
+
+Use this structured format:
 
 ```markdown
 ## Eval: <shortname> — <date>
