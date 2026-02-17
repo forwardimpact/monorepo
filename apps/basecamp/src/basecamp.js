@@ -36,6 +36,21 @@ const __dirname =
 const SHARE_DIR = "/usr/local/share/fit-basecamp";
 const SOCKET_PATH = join(BASECAMP_HOME, "basecamp.sock");
 
+// --- posix_spawn (macOS app bundle only) ------------------------------------
+
+const USE_POSIX_SPAWN = !!process.env.BASECAMP_BUNDLE;
+let posixSpawn;
+if (USE_POSIX_SPAWN) {
+  try {
+    posixSpawn = await import("./posix-spawn.js");
+  } catch (err) {
+    console.error(
+      "Failed to load posix-spawn, falling back to child_process:",
+      err.message,
+    );
+  }
+}
+
 let daemonStartedAt = null;
 
 // --- Helpers ----------------------------------------------------------------
@@ -82,9 +97,30 @@ function findClaude() {
     "/usr/local/bin/claude",
     join(HOME, ".claude", "bin", "claude"),
     join(HOME, ".local", "bin", "claude"),
+    "/opt/homebrew/bin/claude",
   ];
   for (const p of paths) if (existsSync(p)) return p;
   return "claude";
+}
+
+/**
+ * Detect if running from inside a macOS .app bundle.
+ * The binary is at Basecamp.app/Contents/MacOS/fit-basecamp.
+ * @returns {{ bundle: string, resources: string } | null}
+ */
+function getBundlePath() {
+  try {
+    const exe = process.execPath || "";
+    const macosDir = dirname(exe);
+    const contentsDir = dirname(macosDir);
+    const resourcesDir = join(contentsDir, "Resources");
+    if (existsSync(join(resourcesDir, "config"))) {
+      return { bundle: dirname(contentsDir), resources: resourcesDir };
+    }
+  } catch {
+    /* not in bundle */
+  }
+  return null;
 }
 
 function loadConfig() {
@@ -163,7 +199,7 @@ function shouldRun(task, taskState, now) {
 
 // --- Task execution ---------------------------------------------------------
 
-function runTask(taskName, task, _config, state) {
+async function runTask(taskName, task, _config, state) {
   if (!task.kb) {
     log(`Task ${taskName}: no "kb" specified, skipping.`);
     return;
@@ -191,6 +227,58 @@ function runTask(taskName, task, _config, state) {
   const spawnArgs = ["--print"];
   if (task.agent) spawnArgs.push("--agent", task.agent);
   spawnArgs.push("-p", prompt);
+
+  // Use posix_spawn when running inside the app bundle for TCC inheritance.
+  // Fall back to child_process.spawn for dev mode and other platforms.
+  if (posixSpawn) {
+    try {
+      const { pid, stdoutFd, stderrFd } = posixSpawn.spawn(
+        claude,
+        spawnArgs,
+        undefined,
+        kbPath,
+      );
+
+      // Read stdout and stderr concurrently to avoid pipe deadlocks,
+      // then wait for the child to exit.
+      const [stdout, stderr] = await Promise.all([
+        posixSpawn.readAll(stdoutFd),
+        posixSpawn.readAll(stderrFd),
+      ]);
+      const exitCode = await posixSpawn.waitForExit(pid);
+
+      if (exitCode === 0) {
+        log(`Task ${taskName} completed. Output: ${stdout.slice(0, 200)}...`);
+        Object.assign(ts, {
+          status: "finished",
+          startedAt: null,
+          lastRunAt: new Date().toISOString(),
+          lastError: null,
+          runCount: (ts.runCount || 0) + 1,
+        });
+      } else {
+        const errMsg = stderr || stdout || `Exit code ${exitCode}`;
+        log(`Task ${taskName} failed: ${errMsg.slice(0, 300)}`);
+        Object.assign(ts, {
+          status: "failed",
+          startedAt: null,
+          lastRunAt: new Date().toISOString(),
+          lastError: errMsg.slice(0, 500),
+        });
+      }
+      saveState(state);
+    } catch (err) {
+      log(`Task ${taskName} failed: ${err.message}`);
+      Object.assign(ts, {
+        status: "failed",
+        startedAt: null,
+        lastRunAt: new Date().toISOString(),
+        lastError: err.message.slice(0, 500),
+      });
+      saveState(state);
+    }
+    return;
+  }
 
   return new Promise((resolve) => {
     const child = spawn(claude, spawnArgs, {
@@ -339,12 +427,6 @@ function handleMessage(socket, line) {
 
   if (request.type === "status") return handleStatusRequest(socket);
 
-  if (request.type === "restart") {
-    send(socket, { type: "ack", command: "restart" });
-    setTimeout(() => process.exit(0), 100);
-    return;
-  }
-
   if (request.type === "run") {
     if (!request.task) {
       send(socket, { type: "error", message: "Missing task name" });
@@ -401,9 +483,6 @@ function startSocketServer() {
 
   const cleanup = () => {
     server.close();
-    try {
-      unlinkSync(SOCKET_PATH);
-    } catch {}
     process.exit(0);
   };
   process.on("SIGTERM", cleanup);
@@ -419,7 +498,7 @@ function daemon() {
   log("Scheduler daemon started. Polling every 60 seconds.");
   log(`Config: ${CONFIG_PATH}  State: ${STATE_PATH}`);
   startSocketServer();
-  runDueTasks();
+  runDueTasks().catch((err) => log(`Error: ${err.message}`));
   setInterval(async () => {
     try {
       await runDueTasks();
@@ -432,7 +511,15 @@ function daemon() {
 // --- Init knowledge base ----------------------------------------------------
 
 function findTemplateDir() {
-  for (const d of [join(SHARE_DIR, "template"), join(__dirname, "template")])
+  const bundle = getBundlePath();
+  if (bundle) {
+    const tpl = join(bundle.resources, "template");
+    if (existsSync(tpl)) return tpl;
+  }
+  for (const d of [
+    join(SHARE_DIR, "template"),
+    join(__dirname, "..", "template"),
+  ])
     if (existsSync(d)) return d;
   return null;
 }

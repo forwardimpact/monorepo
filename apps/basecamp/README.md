@@ -1,96 +1,110 @@
 # @forwardimpact/basecamp
 
 A personal knowledge system that runs as scheduled Claude Code tasks. No server,
-no database — just plain files, markdown, and the `claude` CLI. Compiles to a
-standalone executable via Deno.
+no database — just plain files, markdown, and the `claude` CLI. Packaged as a
+native macOS app bundle (`Basecamp.app`) with TCC-compliant process management.
 
 Part of the [Forward Impact](https://www.forwardimpact.team) monorepo.
 
 ## Architecture
 
 ```
-~/.fit/basecamp/                          # Scheduler home (central config)
-├── scheduler.json                    # Task definitions
-├── state.json                        # Task run state
-└── logs/                             # Scheduler logs
+Basecamp.app/                             # macOS app bundle
+└── Contents/
+    ├── Info.plist                         # Bundle metadata (LSUIElement)
+    ├── MacOS/
+    │   ├── Basecamp                      # Swift launcher (TCC responsible)
+    │   └── fit-basecamp                  # Deno scheduler (child process)
+    └── Resources/
+        ├── config/scheduler.json         # Default config
+        └── template/                     # KB template
 
-~/Documents/Personal/                 # Default personal knowledge base
-├── CLAUDE.md                         # Claude Code instructions for this KB
-├── knowledge/                        # The knowledge graph (Obsidian-compatible)
+~/.fit/basecamp/                          # Scheduler home (user config)
+├── scheduler.json                        # Task definitions
+├── state.json                            # Task run state
+├── basecamp.sock                         # IPC socket
+└── logs/                                 # Scheduler logs
+
+~/Documents/Personal/                     # Default personal knowledge base
+├── CLAUDE.md                             # Claude Code instructions for this KB
+├── knowledge/                            # The knowledge graph
 │   ├── People/
 │   ├── Organizations/
 │   ├── Projects/
 │   └── Topics/
-├── .claude/skills/                   # Claude Code skill files (auto-discovered)
-└── drafts/                           # Email drafts
-
-~/Documents/Team/                     # Example knowledge base for team work
-├── CLAUDE.md
-├── knowledge/
-├── .claude/skills/
-└── ...
+├── .claude/skills/                       # Claude Code skill files
+└── drafts/                               # Email drafts
 ```
 
-The scheduler is the only real code — a single JavaScript file. Everything else
-is markdown, JSON, and skill files. Knowledge bases are self-contained
-directories that can live anywhere on disk. Synced data and processing state
-live in `~/.cache/fit/basecamp/`, keeping KB directories clean — only the parsed
-knowledge graph, notes, documents, and drafts belong in the KB.
+### Process Tree
+
+```
+Basecamp (Swift launcher, CFBundleExecutable, TCC responsible)
+├── fit-basecamp --daemon    (Deno scheduler, spawned via posix_spawn)
+│   └── claude --print ...   (spawned via posix_spawn FFI)
+└── [status menu UI]         (AppKit menu bar, in-process)
+```
+
+The Swift launcher is the main executable and TCC responsible process. It spawns
+the Deno scheduler via `posix_spawn` so child processes inherit TCC attributes.
+Users grant Calendar, Contacts, and other permissions once to Basecamp.app.
 
 ## Install from Package
 
-The easiest way to install is from the pre-built macOS installer package:
-
-1. Double-click `basecamp-1.0.0-arm64.pkg` (or `basecamp-1.0.0-x86_64.pkg`)
+1. Double-click `fit-basecamp-<version>.pkg`
 2. Follow the installer prompts
 
-The installer places the `basecamp` binary in `/usr/local/bin/`, initializes
-`~/Documents/Personal/` as the default knowledge base, and installs a
-LaunchAgent so the scheduler runs automatically on login.
+The installer places `Basecamp.app` in `/Applications/` and initializes
+`~/Documents/Personal/` as the default knowledge base.
 
-To uninstall, run `/usr/local/share/basecamp/uninstall.sh`.
+After installing, open Basecamp from `/Applications/`. It runs as a menu bar app
+— use "Quit Basecamp" from the status menu to stop it.
+
+To uninstall, run `just uninstall` from the source tree.
 
 ## Install from Source
 
 ```bash
 cd apps/basecamp
-./scripts/init.sh
+
+# Run the scheduler in dev mode
+just daemon
+
+# Or initialize a new KB
+just init ~/Documents/Personal
 
 # Configure your identity
 vi ~/Documents/Personal/USER.md
-
-# Open your KB interactively
-cd ~/Documents/Personal && claude
 ```
 
 ## Building
 
-Requires [Deno](https://deno.com) >= 2.x.
+Requires [Deno](https://deno.com) >= 2.x and Xcode Command Line Tools.
 
 ```bash
-# Build standalone executable (current architecture)
-npm run build           # or: deno task build
+# Build scheduler + launcher binaries
+just build
 
-# Build executable + macOS installer package (.pkg)
-npm run build:pkg       # or: deno task build:pkg
+# Build + assemble Basecamp.app
+just build-app
 
-# Build for both arm64 and x86_64 + packages
-npm run build:all       # or: deno task build:all
+# Build + assemble + .pkg installer
+just pkg
+
+# Or via npm:
+npm run build           # binaries only
+npm run build:app       # + Basecamp.app
+npm run build:pkg       # + .pkg installer
 ```
 
 Output goes to `dist/`:
 
 ```
 dist/
-├── basecamp-aarch64-apple-darwin       # arm64 binary
-├── basecamp-x86_64-apple-darwin        # x86_64 binary
-├── basecamp-1.0.0-arm64.pkg           # arm64 installer package
-└── basecamp-1.0.0-x86_64.pkg          # x86_64 installer package
+├── fit-basecamp             # Deno scheduler binary
+├── Basecamp                 # Swift launcher binary
+└── Basecamp.app/            # Assembled app bundle
 ```
-
-The compiled binary is fully self-contained — it embeds the `template/`
-directory (CLAUDE.md, skills) so `basecamp --init <path>` works without any
-source files present.
 
 ## Multiple Knowledge Bases
 
@@ -101,7 +115,7 @@ independent directory with its own CLAUDE.md, skills, and knowledge graph.
 
 ```bash
 # Initialize a new knowledge base
-npx fit-basecamp --init ~/Documents/Team
+deno run --allow-all src/basecamp.js --init ~/Documents/Team
 
 # Edit the scheduler config to register it
 vi ~/.fit/basecamp/scheduler.json
@@ -118,7 +132,6 @@ vi ~/.fit/basecamp/scheduler.json
       "kb": "~/Documents/Personal",
       "schedule": { "type": "interval", "minutes": 5 },
       "enabled": true,
-      "agent": null,
       "skill": "sync-apple-mail",
       "prompt": "Sync Apple Mail."
     },
@@ -126,7 +139,6 @@ vi ~/.fit/basecamp/scheduler.json
       "kb": "~/Documents/Team",
       "schedule": { "type": "interval", "minutes": 10 },
       "enabled": true,
-      "agent": null,
       "skill": "sync-apple-calendar",
       "prompt": "Sync Apple Calendar."
     }
@@ -153,23 +165,6 @@ vi ~/.fit/basecamp/scheduler.json
 { "type": "once", "runAt": "2025-02-12T10:00:00Z" }
 ```
 
-## Agents
-
-Set the `agent` field on a task to use a specific Claude sub-agent. The value is
-passed as `--agent <name>` to the `claude` CLI.
-
-```json
-{
-  "sync-personal-mail": {
-    "kb": "~/Documents/Personal",
-    "agent": "basecamp-sync",
-    "schedule": { "type": "interval", "minutes": 5 },
-    "skill": "sync-apple-mail",
-    "prompt": "Sync Apple Mail."
-  }
-}
-```
-
 ## CLI Reference
 
 ```
@@ -178,22 +173,12 @@ fit-basecamp --daemon            Run continuously (poll every 60s)
 fit-basecamp --run <task>        Run a specific task immediately
 fit-basecamp --init <path>       Initialize a new knowledge base
 fit-basecamp --status            Show knowledge bases and task status
+fit-basecamp --validate          Validate agents and skills exist
 fit-basecamp --help              Show this help
 ```
 
-When running from source, use `node basecamp.js` or `npx fit-basecamp` instead
-of `fit-basecamp`.
-
-## How It Works
-
-1. The scheduler reads `~/.fit/basecamp/scheduler.json` for task configs
-2. For each due task, it invokes the `claude` CLI with `--print` mode
-3. If a skill is set, its name is included in the prompt (Claude auto-discovers
-   the SKILL.md file)
-4. The claude CLI runs with `cwd` set to the target KB directory
-5. Claude reads the KB's `CLAUDE.md` for context, executes the task, and writes
-   results
-6. State (last run times, status) is tracked in `~/.fit/basecamp/state.json`
+When running from source, use `deno run --allow-all src/basecamp.js` or
+`just run` instead of `fit-basecamp`.
 
 ## Skills
 
@@ -215,8 +200,8 @@ ships with these skills:
 ## Requirements
 
 - Claude CLI (`claude`) installed and authenticated
-- macOS (for Apple Mail/Calendar sync)
-- Node.js >= 18 (for running from source) or the standalone binary
+- macOS 13+ (Ventura or later)
+- Xcode Command Line Tools (for building the Swift launcher)
 - Deno >= 2.x (for building the standalone binary)
 
 ## License

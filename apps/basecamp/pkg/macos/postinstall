@@ -2,24 +2,59 @@
 
 # Basecamp postinstall script — runs as root after macOS pkg installation.
 #
-# Sets up per-user config, default knowledge base, and LaunchAgent for the
-# console user (the person who double-clicked the installer).
+# Sets up per-user config and default knowledge base for the console user
+# (the person who double-clicked the installer).
+#
+# Also removes old loose-binary install artifacts (pre-app-bundle era)
+# and any LaunchAgent from previous versions.
 
 REAL_USER=$(/usr/bin/stat -f "%Su" /dev/console)
 REAL_HOME=$(/usr/bin/dscl . -read "/Users/$REAL_USER" NFSHomeDirectory | /usr/bin/awk '{print $2}')
 
 BASECAMP_HOME="$REAL_HOME/.fit/basecamp"
 DEFAULT_KB="$REAL_HOME/Documents/Personal"
-SHARE_DIR="/usr/local/share/fit-basecamp"
-BINARY="/usr/local/bin/fit-basecamp"
-STATUS_MENU_BINARY="/usr/local/bin/BasecampStatus"
+APP_PATH="/Applications/Basecamp.app"
+
+# --- Remove old installs ----------------------------------------------------
+
+# Old LaunchAgents (pre-app-bundle)
+for OLD_LABEL in "com.fit-basecamp.scheduler" "com.fit-basecamp.status-menu"; do
+  OLD_PLIST="$REAL_HOME/Library/LaunchAgents/$OLD_LABEL.plist"
+  if [ -f "$OLD_PLIST" ]; then
+    /usr/bin/sudo -u "$REAL_USER" /usr/bin/launchctl unload "$OLD_PLIST" 2>/dev/null || true
+    /bin/rm -f "$OLD_PLIST"
+  fi
+done
+
+# Previous-version LaunchAgent (app-bundle era, now removed)
+PLIST="$REAL_HOME/Library/LaunchAgents/com.forwardimpact.basecamp.plist"
+if [ -f "$PLIST" ]; then
+  /usr/bin/sudo -u "$REAL_USER" /usr/bin/launchctl unload "$PLIST" 2>/dev/null || true
+  /bin/rm -f "$PLIST"
+fi
+
+# Stop any running instance so the new binary takes effect on next launch
+/usr/bin/killall Basecamp 2>/dev/null || true
+/usr/bin/killall fit-basecamp 2>/dev/null || true
+/usr/bin/killall BasecampStatus 2>/dev/null || true
+/bin/rm -f "/usr/local/bin/fit-basecamp"
+/bin/rm -f "/usr/local/bin/BasecampStatus"
+
+# Old shared resources and pkg receipt
+/bin/rm -rf "/usr/local/share/fit-basecamp"
+/usr/sbin/pkgutil --pkgs 2>/dev/null | /usr/bin/grep -q "com.fit-basecamp.scheduler" && {
+  /usr/sbin/pkgutil --forget "com.fit-basecamp.scheduler" >/dev/null 2>&1
+} || true
 
 # --- Config home -------------------------------------------------------------
 
 /usr/bin/sudo -u "$REAL_USER" /bin/mkdir -p "$BASECAMP_HOME/logs"
 
-if [ ! -f "$BASECAMP_HOME/scheduler.json" ] && [ -f "$SHARE_DIR/config/scheduler.json" ]; then
-  /usr/bin/sudo -u "$REAL_USER" /bin/cp "$SHARE_DIR/config/scheduler.json" "$BASECAMP_HOME/scheduler.json"
+if [ ! -f "$BASECAMP_HOME/scheduler.json" ]; then
+  CONFIG_SRC="$APP_PATH/Contents/Resources/config/scheduler.json"
+  if [ -f "$CONFIG_SRC" ]; then
+    /usr/bin/sudo -u "$REAL_USER" /bin/cp "$CONFIG_SRC" "$BASECAMP_HOME/scheduler.json"
+  fi
 fi
 
 if [ ! -f "$BASECAMP_HOME/state.json" ]; then
@@ -29,89 +64,10 @@ fi
 # --- Default knowledge base --------------------------------------------------
 
 if [ ! -d "$DEFAULT_KB" ]; then
-  /usr/bin/sudo -u "$REAL_USER" "$BINARY" --init "$DEFAULT_KB" 2>/dev/null || true
-fi
-
-# --- LaunchAgent (runs as user, not root) ------------------------------------
-
-PLIST_LABEL="com.fit-basecamp.scheduler"
-PLIST="$REAL_HOME/Library/LaunchAgents/$PLIST_LABEL.plist"
-
-if [ -f "$PLIST" ]; then
-  # Upgrade: binary already replaced by pkg payload. Kill the old daemon and
-  # let KeepAlive restart it with the new binary. No plist rewrite needed.
-  /usr/bin/killall fit-basecamp 2>/dev/null || true
-else
-  # Fresh install: write plist and load it.
-  /usr/bin/sudo -u "$REAL_USER" /usr/bin/tee "$PLIST" > /dev/null <<LAUNCHD
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>$PLIST_LABEL</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>$BINARY</string>
-    <string>--daemon</string>
-  </array>
-  <key>RunAtLoad</key>
-  <true/>
-  <key>KeepAlive</key>
-  <true/>
-  <key>StandardOutPath</key>
-  <string>$BASECAMP_HOME/logs/launchd-stdout.log</string>
-  <key>StandardErrorPath</key>
-  <string>$BASECAMP_HOME/logs/launchd-stderr.log</string>
-  <key>WorkingDirectory</key>
-  <string>$BASECAMP_HOME</string>
-  <key>EnvironmentVariables</key>
-  <dict>
-    <key>PATH</key>
-    <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:$REAL_HOME/.local/bin</string>
-  </dict>
-</dict>
-</plist>
-LAUNCHD
-
-  /usr/bin/sudo -u "$REAL_USER" /usr/bin/launchctl load "$PLIST"
-fi
-
-# --- Status menu LaunchAgent (runs as user, not root) -----------------------
-
-STATUS_PLIST="$REAL_HOME/Library/LaunchAgents/com.fit-basecamp.status-menu.plist"
-
-if [ -f "$STATUS_MENU_BINARY" ]; then
-  # Kill old status menu if running (picks up new binary on relaunch)
-  /usr/bin/killall BasecampStatus 2>/dev/null || true
-
-  # Write LaunchAgent plist
-  /usr/bin/sudo -u "$REAL_USER" /usr/bin/tee "$STATUS_PLIST" > /dev/null <<PLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>com.fit-basecamp.status-menu</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>/usr/local/bin/BasecampStatus</string>
-  </array>
-  <key>RunAtLoad</key>
-  <true/>
-  <key>KeepAlive</key>
-  <true/>
-  <key>StandardOutPath</key>
-  <string>$BASECAMP_HOME/logs/status-menu-stdout.log</string>
-  <key>StandardErrorPath</key>
-  <string>$BASECAMP_HOME/logs/status-menu-stderr.log</string>
-</dict>
-</plist>
-PLIST
-
-  # Load the LaunchAgent (unload first for upgrades)
-  /usr/bin/sudo -u "$REAL_USER" /usr/bin/launchctl unload "$STATUS_PLIST" 2>/dev/null || true
-  /usr/bin/sudo -u "$REAL_USER" /usr/bin/launchctl load "$STATUS_PLIST"
+  SCHEDULER="$APP_PATH/Contents/MacOS/fit-basecamp"
+  if [ -f "$SCHEDULER" ]; then
+    /usr/bin/sudo -u "$REAL_USER" "$SCHEDULER" --init "$DEFAULT_KB" 2>/dev/null || true
+  fi
 fi
 
 exit 0

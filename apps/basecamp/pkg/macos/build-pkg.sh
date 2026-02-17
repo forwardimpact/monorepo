@@ -1,28 +1,27 @@
 #!/bin/bash
 set -e
 
-# Build a macOS installer package (.pkg) for Basecamp (arm64).
+# Build a macOS installer package (.pkg) for Basecamp.app.
 #
-# Uses pkgbuild (component) + productbuild (distribution) to create a .pkg
-# that installs the binary to /usr/local/bin/ and runs a postinstall script
-# to set up the LaunchAgent, config, and default knowledge base.
+# Creates a .pkg that installs Basecamp.app to /Applications/ and runs a
+# postinstall script to set up config and default KB.
+# Also removes old loose-binary installs if present.
 #
-# Usage: build-pkg.sh <dist_dir> <app_name> <version> <status_menu_binary>
-#   e.g.  build-pkg.sh dist fit-basecamp 1.0.0 dist/BasecampStatus
+# Usage: build-pkg.sh <dist_dir> <version>
+#   e.g.  build-pkg.sh dist 1.0.0
 
-DIST_DIR="${1:?Usage: build-pkg.sh <dist_dir> <app_name> <version> <status_menu_binary>}"
-APP_NAME="${2:?Usage: build-pkg.sh <dist_dir> <app_name> <version> <status_menu_binary>}"
-VERSION="${3:?Usage: build-pkg.sh <dist_dir> <app_name> <version> <status_menu_binary>}"
-STATUS_MENU_BINARY="${4:?Usage: build-pkg.sh <dist_dir> <app_name> <version> <status_menu_binary>}"
+DIST_DIR="${1:?Usage: build-pkg.sh <dist_dir> <version>}"
+VERSION="${2:?Usage: build-pkg.sh <dist_dir> <version>}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
-BINARY_PATH="$DIST_DIR/$APP_NAME"
-IDENTIFIER="com.fit-basecamp.scheduler"
+APP_PATH="$DIST_DIR/Basecamp.app"
+APP_NAME="fit-basecamp"
+IDENTIFIER="com.forwardimpact.basecamp"
 
-if [ ! -f "$BINARY_PATH" ]; then
-  echo "Error: binary not found at $BINARY_PATH"
-  echo "Run compile.sh first."
+if [ ! -d "$APP_PATH" ]; then
+  echo "Error: Basecamp.app not found at $APP_PATH"
+  echo "Run 'just build-app' first."
   exit 1
 fi
 
@@ -41,24 +40,10 @@ echo "Building pkg: $PKG_NAME..."
 rm -rf "$PAYLOAD_DIR" "$SCRIPTS_DIR" "$RESOURCES_DIR" "$COMPONENT_PKG"
 rm -f "$PKG_PATH"
 
-# --- Create payload (files to install) ---------------------------------------
+# --- Create payload (Basecamp.app → /Applications/) -------------------------
 
-mkdir -p "$PAYLOAD_DIR/usr/local/bin"
-mkdir -p "$PAYLOAD_DIR/usr/local/share/fit-basecamp/config"
-
-cp "$BINARY_PATH" "$PAYLOAD_DIR/usr/local/bin/$APP_NAME"
-chmod +x "$PAYLOAD_DIR/usr/local/bin/$APP_NAME"
-
-cp "$PROJECT_DIR/config/scheduler.json" "$PAYLOAD_DIR/usr/local/share/fit-basecamp/config/scheduler.json"
-cp "$SCRIPT_DIR/uninstall.sh" "$PAYLOAD_DIR/usr/local/share/fit-basecamp/uninstall.sh"
-chmod +x "$PAYLOAD_DIR/usr/local/share/fit-basecamp/uninstall.sh"
-
-# Template files (shared location — binary reads from here instead of embedding)
-cp -R "$PROJECT_DIR/template" "$PAYLOAD_DIR/usr/local/share/fit-basecamp/template"
-
-# Status menu binary
-cp "$STATUS_MENU_BINARY" "$PAYLOAD_DIR/usr/local/bin/BasecampStatus"
-chmod +x "$PAYLOAD_DIR/usr/local/bin/BasecampStatus"
+mkdir -p "$PAYLOAD_DIR/Applications"
+cp -R "$APP_PATH" "$PAYLOAD_DIR/Applications/Basecamp.app"
 
 # --- Create scripts directory ------------------------------------------------
 
@@ -66,10 +51,19 @@ mkdir -p "$SCRIPTS_DIR"
 cp "$SCRIPT_DIR/postinstall" "$SCRIPTS_DIR/postinstall"
 chmod +x "$SCRIPTS_DIR/postinstall"
 
+# --- Disable bundle relocation -----------------------------------------------
+# By default pkgbuild marks app bundles as relocatable, so macOS will install
+# updates wherever it finds an existing copy instead of /Applications/.
+
+COMPONENT_PLIST="$DIST_DIR/pkg-component.plist"
+pkgbuild --analyze --root "$PAYLOAD_DIR" "$COMPONENT_PLIST"
+/usr/libexec/PlistBuddy -c "Set :0:BundleIsRelocatable false" "$COMPONENT_PLIST"
+
 # --- Build component package -------------------------------------------------
 
 pkgbuild \
   --root "$PAYLOAD_DIR" \
+  --component-plist "$COMPONENT_PLIST" \
   --scripts "$SCRIPTS_DIR" \
   --identifier "$IDENTIFIER" \
   --version "$VERSION" \
@@ -113,6 +107,6 @@ productbuild \
 
 # --- Clean up staging --------------------------------------------------------
 
-rm -rf "$PAYLOAD_DIR" "$SCRIPTS_DIR" "$RESOURCES_DIR" "$COMPONENT_PKG" "$DIST_XML"
+rm -rf "$PAYLOAD_DIR" "$SCRIPTS_DIR" "$RESOURCES_DIR" "$COMPONENT_PKG" "$COMPONENT_PLIST" "$DIST_XML"
 
 echo "  -> $PKG_NAME"

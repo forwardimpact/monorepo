@@ -43,8 +43,8 @@
   <body>
     <h1>Basecamp is installed</h1>
     <p>
-      The scheduler is running in the background and will start automatically on
-      login.
+      Open <strong>Basecamp</strong> from <code>/Applications/</code> to start
+      the scheduler. It runs as a menu bar app — look for the tent icon.
     </p>
     <p><strong>Next steps:</strong></p>
     <p>1. Edit your identity file:</p>
@@ -52,11 +52,12 @@
     <p>2. Configure scheduled tasks:</p>
     <p class="cmd"><code>vim ~/.fit/basecamp/scheduler.json</code></p>
     <p>3. Check scheduler status:</p>
-    <p class="cmd"><code>fit-basecamp --status</code></p>
+    <p class="cmd">
+      <code
+        >/Applications/Basecamp.app/Contents/MacOS/fit-basecamp --status</code
+      >
+    </p>
     <p>4. Open your knowledge base interactively:</p>
     <p class="cmd"><code>cd ~/Documents/Personal &amp;&amp; claude</code></p>
-    <p class="note">
-      To uninstall, run: <code>/usr/local/share/fit-basecamp/uninstall.sh</code>
-    </p>
   </body>
 </html>

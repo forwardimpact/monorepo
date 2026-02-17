@@ -2,10 +2,11 @@
   "name": "fit-basecamp",
   "version": "1.0.0",
   "tasks": {
-    "start": "deno run --allow-all basecamp.js",
-    "status": "deno run --allow-all basecamp.js --status",
-    "build": "deno run --allow-all build.js",
-    "build:pkg": "deno run --allow-all build.js --pkg"
+    "start": "deno run --allow-all src/basecamp.js",
+    "status": "deno run --allow-all src/basecamp.js --status",
+    "build": "deno run --allow-all pkg/build.js",
+    "build:app": "deno run --allow-all pkg/build.js --app",
+    "build:pkg": "deno run --allow-all pkg/build.js --pkg"
   },
   "compilerOptions": {
     "lib": ["deno.window"]

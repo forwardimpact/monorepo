@@ -3,65 +3,72 @@ set -e
 
 # Basecamp Uninstaller
 #
-# Removes the binary, LaunchAgent, and shared data installed by the .pkg.
-# User data at ~/Documents/Personal/ and config at ~/.fit/basecamp/ are preserved.
-
-APP_NAME="${1:-fit-basecamp}"
-PLIST_NAME="${2:-com.fit-basecamp.scheduler}"
+# Removes Basecamp.app and any remaining old artifacts.
+# User data at ~/Documents/Personal/ and config at ~/.fit/basecamp/
+# are preserved.
 
 echo ""
 echo "Basecamp Uninstaller"
 echo "====================="
 echo ""
 
-# Remove LaunchAgent
-PLIST="$HOME/Library/LaunchAgents/$PLIST_NAME.plist"
-if [ -f "$PLIST" ]; then
-  launchctl unload "$PLIST" 2>/dev/null || true
-  rm -f "$PLIST"
-  echo "  Removed LaunchAgent"
-else
-  echo "  LaunchAgent not found, skipping."
-fi
+# --- Stop running processes --------------------------------------------------
 
-# Remove status menu LaunchAgent
-STATUS_PLIST="$HOME/Library/LaunchAgents/com.fit-basecamp.status-menu.plist"
-if [ -f "$STATUS_PLIST" ]; then
-  launchctl unload "$STATUS_PLIST" 2>/dev/null || true
-  rm -f "$STATUS_PLIST"
-  echo "  Removed status menu LaunchAgent"
-fi
+killall Basecamp 2>/dev/null || true
+killall fit-basecamp 2>/dev/null || true
 killall BasecampStatus 2>/dev/null || true
-if [ -f "/usr/local/bin/BasecampStatus" ]; then
-  sudo rm -f "/usr/local/bin/BasecampStatus"
-  echo "  Removed /usr/local/bin/BasecampStatus"
-fi
 
-# Remove stale socket file
-# Socket path: ~/.fit/basecamp/basecamp.sock (must match SOCKET_PATH in basecamp.js)
+# --- Remove any leftover LaunchAgents (from older versions) ------------------
+
+for LABEL in "com.forwardimpact.basecamp" "com.fit-basecamp.scheduler" "com.fit-basecamp.status-menu"; do
+  PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
+  if [ -f "$PLIST" ]; then
+    launchctl unload "$PLIST" 2>/dev/null || true
+    rm -f "$PLIST"
+    echo "  Removed old LaunchAgent ($LABEL)"
+  fi
+done
+
+# --- Remove stale socket file -----------------------------------------------
+
 rm -f "$HOME/.fit/basecamp/basecamp.sock"
 
-# Remove binary
-if [ -f "/usr/local/bin/$APP_NAME" ]; then
-  sudo rm -f "/usr/local/bin/$APP_NAME"
-  echo "  Removed /usr/local/bin/$APP_NAME"
+# --- Remove Basecamp.app ----------------------------------------------------
+
+if [ -d "/Applications/Basecamp.app" ]; then
+  sudo rm -rf "/Applications/Basecamp.app"
+  echo "  Removed /Applications/Basecamp.app"
+elif [ -d "$HOME/Applications/Basecamp.app" ]; then
+  rm -rf "$HOME/Applications/Basecamp.app"
+  echo "  Removed ~/Applications/Basecamp.app"
 else
-  echo "  Binary not found at /usr/local/bin/$APP_NAME, skipping."
+  echo "  Basecamp.app not found, skipping."
 fi
 
-# Remove shared data (default config template, this uninstall script's installed copy)
+# --- Remove old loose binaries -----------------------------------------------
+
+for BIN in "/usr/local/bin/fit-basecamp" "/usr/local/bin/BasecampStatus"; do
+  if [ -f "$BIN" ]; then
+    sudo rm -f "$BIN"
+    echo "  Removed $BIN"
+  fi
+done
+
+# --- Remove old shared data -------------------------------------------------
+
 if [ -d "/usr/local/share/fit-basecamp" ]; then
   sudo rm -rf "/usr/local/share/fit-basecamp"
   echo "  Removed /usr/local/share/fit-basecamp/"
-else
-  echo "  Shared data not found, skipping."
 fi
 
-# Forget pkg receipt
-pkgutil --pkgs 2>/dev/null | grep -q "com.fit-basecamp.scheduler" && {
-  sudo pkgutil --forget "com.fit-basecamp.scheduler" >/dev/null 2>&1
-  echo "  Removed installer receipt"
-} || true
+# --- Forget pkg receipts ----------------------------------------------------
+
+for RECEIPT in "com.forwardimpact.basecamp" "com.fit-basecamp.scheduler"; do
+  pkgutil --pkgs 2>/dev/null | grep -q "$RECEIPT" && {
+    sudo pkgutil --forget "$RECEIPT" >/dev/null 2>&1
+    echo "  Removed installer receipt ($RECEIPT)"
+  } || true
+done
 
 echo ""
 echo "Basecamp uninstalled."

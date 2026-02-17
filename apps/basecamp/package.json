@@ -10,21 +10,19 @@
   },
   "homepage": "https://www.forwardimpact.team/basecamp",
   "type": "module",
-  "main": "basecamp.js",
+  "main": "src/basecamp.js",
   "bin": {
-    "fit-basecamp": "./basecamp.js"
+    "fit-basecamp": "./src/basecamp.js"
   },
   "scripts": {
-    "start": "node basecamp.js",
-    "status": "node basecamp.js --status",
-    "build": "deno run --allow-all build.js",
-    "build:pkg": "deno run --allow-all build.js --pkg",
-    "build:all": "deno run --allow-all build.js --all",
-    "init": "./scripts/init.sh"
+    "start": "node src/basecamp.js",
+    "status": "node src/basecamp.js --status",
+    "build": "deno run --allow-all pkg/build.js",
+    "build:app": "deno run --allow-all pkg/build.js --app",
+    "build:pkg": "deno run --allow-all pkg/build.js --pkg"
   },
   "files": [
-    "basecamp.js",
-    "build.js",
+    "src/basecamp.js",
     "config/",
     "template/"
   ],

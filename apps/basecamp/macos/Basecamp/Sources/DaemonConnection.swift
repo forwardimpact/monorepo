@@ -91,6 +91,10 @@ class DaemonConnection {
             case .ready:
                 DispatchQueue.main.async { self.onConnect?() }
                 self.receive()
+            case .waiting:
+                // Socket doesn't exist yet or connection refused.
+                // Cancel so reconnect logic creates a fresh connection.
+                self.connection?.cancel()
             case .failed:
                 DispatchQueue.main.async { self.onDisconnect?() }
             case .cancelled:
@@ -114,10 +118,6 @@ class DaemonConnection {
 
     func requestStatus() {
         sendJSON(["type": "status"])
-    }
-
-    func requestRestart() {
-        sendJSON(["type": "restart"])
     }
 
     func requestRun(task: String) {

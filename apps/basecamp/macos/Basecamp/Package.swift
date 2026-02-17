@@ -3,11 +3,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "BasecampStatus",
+    name: "Basecamp",
     platforms: [.macOS(.v13)],
     targets: [
         .executableTarget(
-            name: "BasecampStatus",
+            name: "Basecamp",
             path: "Sources"
         ),
     ]

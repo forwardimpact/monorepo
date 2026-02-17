@@ -7,7 +7,12 @@ private enum MenuTag: Int {
     case taskBase = 1000
 }
 
-class StatusMenuController: NSObject, NSApplicationDelegate {
+/// Status bar menu UI for Basecamp.
+///
+/// Runs in-process as part of the Swift app launcher. Connects to the
+/// scheduler over the existing Unix socket IPC to query status and
+/// trigger task runs.
+class StatusMenu: NSObject, NSMenuDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let daemon = DaemonConnection()
     private var lastStatus: StatusResponse?
@@ -17,9 +22,8 @@ class StatusMenuController: NSObject, NSApplicationDelegate {
     private var isConnected = false
     private var menuIsOpen = false
 
-    func applicationDidFinishLaunching(_: Notification) {
-        ProcessInfo.processInfo.disableSuddenTermination()
-        NSApp.setActivationPolicy(.accessory)
+    override init() {
+        super.init()
         setupStatusItem()
         setupDaemon()
         connect()
@@ -329,14 +333,6 @@ class StatusMenuController: NSObject, NSApplicationDelegate {
     }
 
     private func addFooterItems(to menu: NSMenu) {
-        let restart = NSMenuItem(
-            title: "↻ Restart Daemon",
-            action: #selector(restartDaemon),
-            keyEquivalent: ""
-        )
-        restart.target = self
-        menu.addItem(restart)
-
         let openLogs = NSMenuItem(
             title: "📂 Open Logs…",
             action: #selector(openLogs),
@@ -344,17 +340,20 @@ class StatusMenuController: NSObject, NSApplicationDelegate {
         )
         openLogs.target = self
         menu.addItem(openLogs)
+
+        let quit = NSMenuItem(
+            title: "Quit Basecamp",
+            action: #selector(quitApp),
+            keyEquivalent: "q"
+        )
+        quit.target = self
+        menu.addItem(quit)
     }
 
     // MARK: - Actions
 
-    @objc private func restartDaemon() {
-        daemon.requestRestart()
-        isConnected = false
-        updateMenu()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-            self?.connect()
-        }
+    @objc private func quitApp() {
+        NSApp.terminate(nil)
     }
 
     @objc private func runTask(_ sender: NSMenuItem) {
@@ -410,11 +409,9 @@ class StatusMenuController: NSObject, NSApplicationDelegate {
         let m = (seconds % 3600) / 60
         return m > 0 ? "uptime \(h)h \(m)m" : "uptime \(h)h"
     }
-}
 
-// MARK: - NSMenuDelegate
+    // MARK: - NSMenuDelegate
 
-extension StatusMenuController: NSMenuDelegate {
     func menuWillOpen(_: NSMenu) {
         menuIsOpen = true
         startPolling()

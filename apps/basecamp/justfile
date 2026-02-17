@@ -1,11 +1,10 @@
 # Basecamp — build, install, and manage the scheduler
 
 app_name       := "fit-basecamp"
-status_menu    := "BasecampStatus"
+launcher       := "Basecamp"
 version        := `grep '"version"' package.json | head -1 | sed 's/.*: *"//;s/".*//;s/ //g'`
-plist_name     := "com.fit-basecamp.scheduler"
+plist_name     := "com.forwardimpact.basecamp"
 dist_dir       := "dist"
-status_menu_bin := dist_dir / status_menu
 
 # Show available recipes
 [doc("List all available recipes")]
@@ -14,57 +13,59 @@ default:
 
 # ─── Build ────────────────────────────────────────────────────────────────────
 
-# Compile the Swift status menu binary
-build-status-menu:
+# Compile standalone Deno scheduler binary
+build-scheduler:
     @mkdir -p "{{ dist_dir }}"
-    @rm -rf StatusMenu/.build
-    swift build -c release --package-path StatusMenu
-    @cp StatusMenu/.build/release/{{ status_menu }} "{{ status_menu_bin }}"
-    @rm -rf StatusMenu/.build
+    deno compile --allow-all --no-check \
+        --output "{{ dist_dir }}/{{ app_name }}" src/basecamp.js
 
-# Compile standalone Deno binary
-build-daemon:
-    ./pkg/macos/compile.sh "{{ dist_dir }}" "{{ app_name }}"
+# Compile Swift app launcher (includes status menu UI)
+build-launcher:
+    @mkdir -p "{{ dist_dir }}"
+    @rm -rf macos/Basecamp/.build
+    swift build -c release --package-path macos/Basecamp
+    @cp macos/Basecamp/.build/release/{{ launcher }} "{{ dist_dir }}/{{ launcher }}"
+    @rm -rf macos/Basecamp/.build
 
-# Compile everything (Deno first so status menu binary is not embedded)
-build: build-daemon build-status-menu
+# Compile everything (scheduler first so launcher binary is not embedded)
+build: build-scheduler build-launcher
+
+# Assemble Basecamp.app bundle
+build-app: build
+    bash pkg/macos/build-app.sh
 
 # Build macOS installer package (.pkg)
-pkg: build
-    ./pkg/macos/build-pkg.sh "{{ dist_dir }}" "{{ app_name }}" "{{ version }}" "{{ status_menu_bin }}"
+pkg: build-app
+    bash pkg/macos/build-pkg.sh "{{ dist_dir }}" "{{ version }}"
 
 # Clean build artifacts
 clean:
-    rm -rf "{{ dist_dir }}"
+    rm -rf "{{ dist_dir }}" 2>/dev/null; sudo rm -rf "{{ dist_dir }}" 2>/dev/null; true
 
 # ─── Setup ───────────────────────────────────────────────────────────────────
 
-# Initialize config and default KB at ~/Documents/Personal/ (dev)
-setup:
-    ./scripts/init.sh
-
-# Uninstall pkg (remove binary and LaunchAgent; user data preserved)
+# Uninstall (remove app; user data preserved)
 uninstall:
-    ./pkg/macos/uninstall.sh "{{ app_name }}" "{{ plist_name }}"
+    bash pkg/macos/uninstall.sh
 
 # ─── Scheduler ────────────────────────────────────────────────────────────────
 
 # Run due tasks once and exit
 run:
-    deno run --allow-all basecamp.js
+    deno run --allow-all src/basecamp.js
 
 # Run scheduler daemon (poll every 60s)
 daemon:
-    deno run --allow-all basecamp.js --daemon
+    deno run --allow-all src/basecamp.js --daemon
 
 # Run a specific task immediately
 run-task task:
-    deno run --allow-all basecamp.js --run "{{ task }}"
+    deno run --allow-all src/basecamp.js --run "{{ task }}"
 
 # Show knowledge bases and task status
 status:
-    deno run --allow-all basecamp.js --status
+    deno run --allow-all src/basecamp.js --status
 
 # Initialize a new knowledge base at the given path
 init path:
-    deno run --allow-all basecamp.js --init "{{ path }}"
+    deno run --allow-all src/basecamp.js --init "{{ path }}"
