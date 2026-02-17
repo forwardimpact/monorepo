@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libpathway",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Derivation engine for roles, skills, and agent team profiles",
   "license": "Apache-2.0",
   "repository": {

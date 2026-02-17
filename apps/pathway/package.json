@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/pathway",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "Career progression web app and CLI for exploring roles and generating agent teams",
   "license": "Apache-2.0",
   "repository": {
@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@forwardimpact/schema": "^0.10.0",
-    "@forwardimpact/libpathway": "^1.2.0",
+    "@forwardimpact/libpathway": "^2.0.0",
     "mustache": "^4.2.0",
     "simple-icons": "^16.7.0",
     "yaml": "^2.3.4"
