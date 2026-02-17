@@ -30,6 +30,7 @@ export default [
         ClipboardItem: "readonly",
         confirm: "readonly",
         navigator: "readonly",
+        requestAnimationFrame: "readonly",
       },
     },
   },
@@ -40,6 +41,8 @@ export default [
         Deno: "readonly",
         setInterval: "readonly",
         require: "readonly",
+        TextEncoder: "readonly",
+        TextDecoder: "readonly",
       },
     },
     rules: {
@@ -47,6 +50,6 @@ export default [
     },
   },
   {
-    ignores: ["node_modules/**", "tmp/**"],
+    ignores: ["node_modules/**", "tmp/**", "dist/**"],
   },
 ];

@@ -1,8 +1,8 @@
 # Forward Impact Engineering
 
-> "The aim of leadership should be to improve the performance of man and machine,
-> to improve quality, to increase output, and simultaneously to bring pride of
-> workmanship to people."
+> "The aim of leadership should be to improve the performance of man and
+> machine, to improve quality, to increase output, and simultaneously to bring
+> pride of workmanship to people."
 >
 > — W. Edwards Deming
 
@@ -22,8 +22,8 @@ bring pride of workmanship to engineering teams.
 
 ## Apps
 
-**[Pathway](apps/pathway)** — Web app and CLI for career progression.
-Browse skills, generate job definitions, create agent team profiles.
+**[Pathway](apps/pathway)** — Web app and CLI for career progression. Browse
+skills, generate job definitions, create agent team profiles.
 
 **[Basecamp](apps/basecamp)** — Personal knowledge system with scheduled AI
 tasks. Sync email, prep meetings, draft responses.

@@ -2,9 +2,9 @@
 
 ## Vision
 
-> "The aim of leadership should be to improve the performance of man and machine,
-> to improve quality, to increase output, and simultaneously to bring pride of
-> workmanship to people."
+> "The aim of leadership should be to improve the performance of man and
+> machine, to improve quality, to increase output, and simultaneously to bring
+> pride of workmanship to people."
 >
 > — W. Edwards Deming
 
@@ -40,18 +40,18 @@ npx fit-basecamp --daemon
 
 ### Apps
 
-| App                        | CLI            | Purpose                                           |
-| -------------------------- | -------------- | ------------------------------------------------- |
-| `@forwardimpact/pathway`   | `fit-pathway`  | Web app and CLI for career progression            |
-| `@forwardimpact/basecamp`  | `fit-basecamp` | Personal knowledge system with scheduled AI tasks |
-| `@forwardimpact/schema`    | `fit-schema`   | Public data model for AI agents and engineers     |
+| App                       | CLI            | Purpose                                           |
+| ------------------------- | -------------- | ------------------------------------------------- |
+| `@forwardimpact/pathway`  | `fit-pathway`  | Web app and CLI for career progression            |
+| `@forwardimpact/basecamp` | `fit-basecamp` | Personal knowledge system with scheduled AI tasks |
+| `@forwardimpact/schema`   | `fit-schema`   | Public data model for AI agents and engineers     |
 
 ### Libraries
 
-| Library                      | CLI          | Purpose                                 |
-| ---------------------------- | ------------ | --------------------------------------- |
-| `@forwardimpact/libpathway`  | —            | Derivation engine for roles and agents  |
-| `@forwardimpact/libdoc`      | `fit-doc`    | Documentation build and serve tools     |
+| Library                     | CLI       | Purpose                                |
+| --------------------------- | --------- | -------------------------------------- |
+| `@forwardimpact/libpathway` | —         | Derivation engine for roles and agents |
+| `@forwardimpact/libdoc`     | `fit-doc` | Documentation build and serve tools    |
 
 ```
 apps/
@@ -399,8 +399,8 @@ Use these terms for spheres of influence (ascending breadth):
 **Schema** (`apps/schema/src/`): `loader.js`, `validation.js`,
 `schema-validation.js`, `index-generator.js`, `levels.js`
 
-**Model** (`libs/libpathway/src/`): `derivation.js`, `modifiers.js`, `profile.js`,
-`job.js`, `agent.js`, `checklist.js`, `interview.js`
+**Model** (`libs/libpathway/src/`): `derivation.js`, `modifiers.js`,
+`profile.js`, `job.js`, `agent.js`, `checklist.js`, `interview.js`
 
 **Pathway** (`apps/pathway/src/`): `formatters/`, `pages/`, `components/`,
 `lib/`, `commands/`, `slides/`
@@ -462,7 +462,8 @@ Assess version impact at each commit:
 
 **Dependency chain**: `schema` → `libpathway` → `pathway`
 
-Find dependents: `grep -rl "@forwardimpact/{pkg}" apps/*/package.json libs/*/package.json`
+Find dependents:
+`grep -rl "@forwardimpact/{pkg}" apps/*/package.json libs/*/package.json`
 
 When releasing a minor or major version, update dependent packages:
 

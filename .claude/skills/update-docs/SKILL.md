@@ -58,8 +58,8 @@ reflects the current codebase.
 | Tracks             | `apps/schema/examples/tracks/`       |
 | Grades             | `apps/schema/examples/grades.yaml`   |
 | Stages             | `apps/schema/examples/stages.yaml`   |
-| Job Derivation     | `libs/libpathway/src/job.js`              |
-| Agent Derivation   | `libs/libpathway/src/agent.js`            |
+| Job Derivation     | `libs/libpathway/src/job.js`         |
+| Agent Derivation   | `libs/libpathway/src/agent.js`       |
 | CLI Commands       | `apps/pathway/bin/fit-pathway.js`    |
 | Templates          | `apps/pathway/templates/`            |
 | Agent instructions | `AGENTS.md`                          |
