@@ -104,7 +104,8 @@ be empty — Hyprnote doesn't always populate this).
 
 ### 1b. Read `_memo.md`
 
-YAML frontmatter (id, session_id) followed by the user's markdown notes. Example:
+YAML frontmatter (id, session_id) followed by the user's markdown notes.
+Example:
 
 ```markdown
 ---
@@ -179,8 +180,8 @@ Hyprnote sessions are **meetings**. They follow meeting rules from
 - **CAN update** existing notes
 - **CAN detect** state changes
 
-Apply the same "Would I prep for this person?" test from `extract-entities`
-Step 5 when deciding whether to create a note for someone mentioned.
+Apply the same "Would I prep for this person?" test from `extract-entities` Step
+5 when deciding whether to create a note for someone mentioned.
 
 ## Step 3: Extract Entities
 
@@ -192,8 +193,8 @@ exist, as it's more detailed). Extract:
 Look for names in:
 
 - Memo text ("chat with Sarah Chen", "interview with David Kim")
-- Summary bullet points ("the user will serve as the senior engineer",
-  "Alex from the platform team")
+- Summary bullet points ("the user will serve as the senior engineer", "Alex
+  from the platform team")
 - Participant list in `_meta.json`
 
 For each person:
@@ -236,8 +237,8 @@ For each entity that has or will have a note, extract from the session:
 
 ### Decisions
 
-Signals in summaries: "decided", "agreed", "plan to", "established", "will
-serve as"
+Signals in summaries: "decided", "agreed", "plan to", "established", "will serve
+as"
 
 ### Commitments / Action Items
 

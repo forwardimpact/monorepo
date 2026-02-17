@@ -14,14 +14,15 @@ It must remain objective, factual, and ethically sound at all times. It is NOT a
 **Hard rules:**
 
 - **Objective and factual only.** Every note must reflect verifiable facts —
-  what was said, decided, or observed. No speculation, gossip, or editorializing.
+  what was said, decided, or observed. No speculation, gossip, or
+  editorializing.
 - **No personal judgments about character.** Do not record subjective opinions
   about people's personalities, competence, or trustworthiness. Stick to what
   happened: actions, decisions, stated positions.
 - **No sensitive personal information beyond what's work-relevant.** Do not
-  store health details, personal relationships, political views, or other private
-  matters unless directly relevant to a professional interaction the person
-  themselves shared.
+  store health details, personal relationships, political views, or other
+  private matters unless directly relevant to a professional interaction the
+  person themselves shared.
 - **Fair and balanced.** If a disagreement or conflict is noted, represent all
   sides accurately. Never frame notes to make someone look bad.
 - **Assume the subject will read it.** Write every note as if the person it's
@@ -127,8 +128,8 @@ rg "keyword" knowledge/
 ```
 
 This surfaces every note that mentions the keyword — people, orgs, projects, and
-topics you might miss if you only open one file. Read ALL matching notes to build
-a complete picture, then respond. A single note is never the full story.
+topics you might miss if you only open one file. Read ALL matching notes to
+build a complete picture, then respond. A single note is never the full story.
 
 **When to access:**
 
@@ -159,16 +160,16 @@ manually — Claude Code loads them automatically based on context.
 
 Available skills:
 
-| Skill                  | Directory                              | Purpose                                        |
-| ---------------------- | -------------------------------------- | ---------------------------------------------- |
-| Sync Apple Mail        | `.claude/skills/sync-apple-mail/`      | Sync Apple Mail threads via SQLite             |
-| Sync Apple Calendar    | `.claude/skills/sync-apple-calendar/`  | Sync Apple Calendar events via SQLite          |
-| Extract Entities       | `.claude/skills/extract-entities/`     | Process synced data into knowledge graph notes |
-| Draft Emails           | `.claude/skills/draft-emails/`         | Draft email responses using knowledge context  |
-| Meeting Prep           | `.claude/skills/meeting-prep/`         | Prepare briefings for upcoming meetings        |
-| Create Presentations   | `.claude/skills/create-presentations/` | Create slide decks as PDF                      |
-| Document Collaboration | `.claude/skills/doc-collab/`           | Document creation and collaboration            |
-| Organize Files         | `.claude/skills/organize-files/`       | File organization and cleanup                  |
+| Skill                  | Directory                              | Purpose                                         |
+| ---------------------- | -------------------------------------- | ----------------------------------------------- |
+| Sync Apple Mail        | `.claude/skills/sync-apple-mail/`      | Sync Apple Mail threads via SQLite              |
+| Sync Apple Calendar    | `.claude/skills/sync-apple-calendar/`  | Sync Apple Calendar events via SQLite           |
+| Extract Entities       | `.claude/skills/extract-entities/`     | Process synced data into knowledge graph notes  |
+| Draft Emails           | `.claude/skills/draft-emails/`         | Draft email responses using knowledge context   |
+| Meeting Prep           | `.claude/skills/meeting-prep/`         | Prepare briefings for upcoming meetings         |
+| Create Presentations   | `.claude/skills/create-presentations/` | Create slide decks as PDF                       |
+| Document Collaboration | `.claude/skills/doc-collab/`           | Document creation and collaboration             |
+| Organize Files         | `.claude/skills/organize-files/`       | File organization and cleanup                   |
 | Process Hyprnote       | `.claude/skills/process-hyprnote/`     | Extract entities from Hyprnote meeting sessions |
 
 ## User Identity

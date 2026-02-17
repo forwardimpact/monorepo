@@ -13,13 +13,14 @@ const path = require("path");
 
 const input = process.argv[2] || "/tmp/basecamp-presentation.html";
 const output =
-  process.argv[3] ||
-  path.join(process.env.HOME, "Desktop", "presentation.pdf");
+  process.argv[3] || path.join(process.env.HOME, "Desktop", "presentation.pdf");
 
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
-  await page.goto(`file://${path.resolve(input)}`, { waitUntil: "networkidle" });
+  await page.goto(`file://${path.resolve(input)}`, {
+    waitUntil: "networkidle",
+  });
   await page.pdf({
     path: output,
     width: "1280px",

@@ -107,6 +107,7 @@ Each `{thread_id}.md` file:
 ```
 
 Rules:
+
 - Use the **base subject** (from `subject` column, without `subject_prefix`) as
   the `# heading`.
 - **Flags line** — only include when at least one flag is set:
@@ -115,9 +116,9 @@ Rules:
   - Omit the `**Flags:**` line entirely if neither flag applies.
 - **Sender** — format as `{sender_name} <{sender_email}>` when display name is
   present, otherwise just `{sender_email}`.
-- **To/Cc** — include per-message. Format each recipient as
-  `{name} <{email}>` when name exists, otherwise just `{email}`. Omit the line
-  if that field has no recipients.
+- **To/Cc** — include per-message. Format each recipient as `{name} <{email}>`
+  when name exists, otherwise just `{email}`. Omit the line if that field has no
+  recipients.
 
 ## Error Handling
 
@@ -126,7 +127,8 @@ Rules:
 - Database locked → wait 2 seconds, retry once
 - `.emlx` / `.partial.emlx` not found → fall back to database summary field
 - `.emlx` parse error → fall back to database summary field
-- HTML-only email → strip tags and use as plain text body (handled by parse-emlx.py)
+- HTML-only email → strip tags and use as plain text body (handled by
+  parse-emlx.py)
 - `find` timeout → skip that message's body, use summary; attachment index empty
 - Attachment file not found on disk → listed as `*(not available)*` in markdown
 - Attachment copy fails (permissions, disk full) → listed as `*(not available)*`

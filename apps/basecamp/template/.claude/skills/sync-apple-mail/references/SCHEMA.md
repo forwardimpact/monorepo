@@ -89,12 +89,12 @@ Use case-insensitive `LIKE` patterns to match both:
 
 ## attachments (email attachments)
 
-| Column          | Type    | Notes                                           |
-| --------------- | ------- | ----------------------------------------------- |
-| `ROWID`         | INTEGER | Primary key                                     |
-| `message`       | INTEGER | FK → messages.ROWID (ON DELETE CASCADE)         |
-| `attachment_id` | TEXT    | Used as subdirectory name on disk                |
-| `name`          | TEXT    | Original filename (e.g., `report.pdf`)          |
+| Column          | Type    | Notes                                   |
+| --------------- | ------- | --------------------------------------- |
+| `ROWID`         | INTEGER | Primary key                             |
+| `message`       | INTEGER | FK → messages.ROWID (ON DELETE CASCADE) |
+| `attachment_id` | TEXT    | Used as subdirectory name on disk       |
+| `name`          | TEXT    | Original filename (e.g., `report.pdf`)  |
 
 **Constraints:** `UNIQUE(message, attachment_id)` — each attachment within a
 message has a unique identifier.

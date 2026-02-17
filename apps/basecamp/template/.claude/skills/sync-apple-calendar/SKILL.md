@@ -37,8 +37,8 @@ their calendar.
 
 ## Implementation
 
-Run the sync as a single Python script. This avoids N+1 sqlite3 invocations
-(one per event for attendees) and handles all data transformation in one pass:
+Run the sync as a single Python script. This avoids N+1 sqlite3 invocations (one
+per event for attendees) and handles all data transformation in one pass:
 
     python3 scripts/sync.py [--days N]
 
@@ -47,7 +47,8 @@ Run the sync as a single Python script. This avoids N+1 sqlite3 invocations
 The script:
 
 1. Finds the Calendar database (Sonoma+ path first, then fallback)
-2. Queries all events in a sliding window (`--days` past / 14 days future) with a single SQL query
+2. Queries all events in a sliding window (`--days` past / 14 days future) with
+   a single SQL query
 3. Batch-fetches all attendees for those events in one query
 4. Writes one JSON file per event to `~/.cache/fit/basecamp/apple_calendar/`
 5. Cleans up JSON files for events now outside the window
@@ -55,10 +56,9 @@ The script:
 
 ## Database Schema
 
-See [references/SCHEMA.md](references/SCHEMA.md) for the complete Apple
-Calendar SQLite schema including table structures, column names, and important
-caveats (e.g., Identity uses `address` not `email`, Participant has no
-`display_name`).
+See [references/SCHEMA.md](references/SCHEMA.md) for the complete Apple Calendar
+SQLite schema including table structures, column names, and important caveats
+(e.g., Identity uses `address` not `email`, Participant has no `display_name`).
 
 ## Output Format
 
