@@ -16,14 +16,6 @@
 
 {{{expectationsParagraph}}}
 {{/hasExpectationsParagraph}}
-{{#hasResponsibilities}}
-
-## ROLE RESPONSIBILITIES
-
-{{#responsibilities}}
-- **{{{capabilityName}}}:** {{{responsibility}}}
-{{/responsibilities}}
-{{/hasResponsibilities}}
 {{#hasBehaviours}}
 
 ## ROLE BEHAVIOURS
@@ -32,16 +24,20 @@
 - **{{{behaviourName}}}:** {{{maturityDescription}}}
 {{/behaviours}}
 {{/hasBehaviours}}
-{{#hasSkillLevels}}
-{{#skillLevels}}
+{{#hasCapabilitySkills}}
 
-## {{{levelHeading}}}
+## ROLE RESPONSIBILITIES
+{{#capabilitySkills}}
+
+### {{{capabilityHeading}}}
+
+{{{responsibilityDescription}}}:
 
 {{#skills}}
 - **{{{skillName}}}:** {{{levelDescription}}}
 {{/skills}}
-{{/skillLevels}}
-{{/hasSkillLevels}}
+{{/capabilitySkills}}
+{{/hasCapabilitySkills}}
 {{#hasQualificationSummary}}
 
 ## QUALIFICATIONS

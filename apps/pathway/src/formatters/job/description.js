@@ -10,10 +10,7 @@
 
 import Mustache from "mustache";
 
-import {
-  SKILL_LEVEL_ORDER,
-  BEHAVIOUR_MATURITY_ORDER,
-} from "@forwardimpact/schema/levels";
+import { BEHAVIOUR_MATURITY_ORDER } from "@forwardimpact/schema/levels";
 import { trimValue, trimFields } from "../shared.js";
 
 /**
@@ -84,43 +81,45 @@ function prepareJobDescriptionData({ job, discipline, grade, track }) {
     return indexB - indexA;
   });
 
-  // Group skills by level
-  const skillsByLevel = {};
-  for (const skill of job.skillMatrix) {
-    const level = skill.level || "Other";
-    if (!skillsByLevel[level]) {
-      skillsByLevel[level] = [];
-    }
-    skillsByLevel[level].push(skill);
-  }
+  // Build capability skill sections at the highest skill level
+  let capabilitySkills = [];
+  const derivedResponsibilities = job.derivedResponsibilities || [];
+  if (derivedResponsibilities.length > 0) {
+    // derivedResponsibilities is sorted: highest level first, then by ordinalRank
+    const highestLevel = derivedResponsibilities[0].level;
 
-  // Sort levels in reverse order (expert first, awareness last)
-  const sortedLevels = Object.keys(skillsByLevel).sort((a, b) => {
-    const indexA = SKILL_LEVEL_ORDER.indexOf(a.toLowerCase());
-    const indexB = SKILL_LEVEL_ORDER.indexOf(b.toLowerCase());
-    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
-    if (indexA === -1) return 1;
-    if (indexB === -1) return -1;
-    return indexB - indexA;
-  });
-
-  // Keep only the top 2 skill levels for job descriptions
-  const topLevels = sortedLevels.slice(0, 2);
-
-  // Build skill levels array for template
-  const skillLevels = topLevels.map((level) => {
-    const skills = skillsByLevel[level];
-    const sortedSkills = [...skills].sort((a, b) =>
-      (a.skillName || "").localeCompare(b.skillName || ""),
+    // Filter responsibilities to only the highest level
+    const topResponsibilities = derivedResponsibilities.filter(
+      (r) => r.level === highestLevel,
     );
-    return {
-      levelHeading: `${level.toUpperCase()}-LEVEL SKILLS`,
-      skills: sortedSkills.map((s) => ({
-        skillName: s.skillName,
-        levelDescription: s.levelDescription || "",
-      })),
-    };
-  });
+
+    // Group skill matrix entries by capability at the highest level
+    const skillsByCapability = {};
+    for (const skill of job.skillMatrix) {
+      if (skill.level !== highestLevel) continue;
+      if (!skillsByCapability[skill.capability]) {
+        skillsByCapability[skill.capability] = [];
+      }
+      skillsByCapability[skill.capability].push(skill);
+    }
+
+    // Build capability sections in ordinalRank order
+    capabilitySkills = topResponsibilities
+      .filter((r) => skillsByCapability[r.capability]?.length > 0)
+      .map((r) => {
+        const skills = [...skillsByCapability[r.capability]].sort((a, b) =>
+          (a.skillName || "").localeCompare(b.skillName || ""),
+        );
+        return {
+          capabilityHeading: r.capabilityName.toUpperCase(),
+          responsibilityDescription: r.responsibility,
+          skills: skills.map((s) => ({
+            skillName: s.skillName,
+            levelDescription: s.levelDescription || "",
+          })),
+        };
+      });
+  }
 
   // Build qualification summary with placeholder replacement
   const qualificationSummary =
@@ -129,9 +128,6 @@ function prepareJobDescriptionData({ job, discipline, grade, track }) {
       grade.typicalExperienceRange || "",
     ) || null;
 
-  const responsibilities = trimFields(job.derivedResponsibilities, {
-    responsibility: "required",
-  });
   const behaviours = trimFields(sortedBehaviours, {
     maturityDescription: "optional",
   });
@@ -150,15 +146,14 @@ function prepareJobDescriptionData({ job, discipline, grade, track }) {
     hasTrackRoleContext: !!trimmedTrackRoleContext,
     expectationsParagraph: trimmedExpectationsParagraph,
     hasExpectationsParagraph: !!trimmedExpectationsParagraph,
-    responsibilities,
-    hasResponsibilities: responsibilities.length > 0,
     behaviours,
     hasBehaviours: behaviours.length > 0,
-    skillLevels: skillLevels.map((level) => ({
-      ...level,
-      skills: trimFields(level.skills, { levelDescription: "optional" }),
+    capabilitySkills: capabilitySkills.map((cap) => ({
+      ...cap,
+      responsibilityDescription: trimValue(cap.responsibilityDescription),
+      skills: trimFields(cap.skills, { levelDescription: "optional" }),
     })),
-    hasSkillLevels: skillLevels.length > 0,
+    hasCapabilitySkills: capabilitySkills.length > 0,
     qualificationSummary: trimmedQualificationSummary,
     hasQualificationSummary: !!trimmedQualificationSummary,
   };
