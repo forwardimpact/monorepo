@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/schema",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "Public data model for career frameworks, consumed by AI agents and engineers",
   "license": "Apache-2.0",
   "repository": {
