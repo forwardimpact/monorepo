@@ -10,38 +10,39 @@ description: |
   and infrastructure management.
 professionalResponsibilities:
   awareness:
-    Follow security and operational guidelines, escalate issues appropriately,
-    and participate in on-call rotations with guidance
+    You follow security and operational guidelines, escalate issues
+    appropriately, and participate in on-call rotations with guidance
   foundational:
-    Implement reliability practices in your code, create basic monitoring, and
-    contribute effectively to incident response
+    You implement reliability practices in your code, create basic monitoring,
+    and contribute effectively to incident response
   working:
-    Design for reliability, implement comprehensive monitoring and alerting,
+    You design for reliability, implement comprehensive monitoring and alerting,
     lead incident response, and drive post-incident improvements
   practitioner:
-    Establish SLOs/SLIs across teams, build resilient systems, lead reliability
-    initiatives for your area, mentor engineers on reliability practices, and
-    drive reliability culture
+    You establish SLOs/SLIs across teams, build resilient systems, lead
+    reliability initiatives for your area, mentor engineers on reliability
+    practices, and drive reliability culture
   expert:
-    Shape reliability strategy across the business unit, lead critical incident
-    management, pioneer new reliability practices, and be the authority on
-    system resilience
+    You shape reliability strategy across the business unit, lead critical
+    incident management, pioneer new reliability practices, and are the
+    authority on system resilience
 managementResponsibilities:
   awareness:
-    Understand reliability requirements and support incident escalation
+    You understand reliability requirements and support incident escalation
     processes
   foundational:
-    Ensure team follows reliability practices, manage on-call schedules, and
-    facilitate incident retrospectives
+    You ensure your team follows reliability practices, manage on-call
+    schedules, and facilitate incident retrospectives
   working:
-    Own team reliability outcomes, manage incident response rotations, staff
+    You own team reliability outcomes, manage incident response rotations, staff
     reliability initiatives, and champion operational excellence
   practitioner:
-    Drive reliability culture across teams, establish SLOs and incident
+    You drive reliability culture across teams, establish SLOs and incident
     management processes for your area, and own cross-team reliability outcomes
   expert:
-    Shape reliability strategy across the business unit, lead critical incident
-    management at executive level, and own enterprise reliability outcomes
+    You shape reliability strategy across the business unit, lead critical
+    incident management at executive level, and own enterprise reliability
+    outcomes
 skills:
   - id: service_management
     name: Service Management

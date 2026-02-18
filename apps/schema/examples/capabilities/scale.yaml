@@ -10,38 +10,39 @@ description: |
   and technical decision-making.
 professionalResponsibilities:
   awareness:
-    Follow established architectural patterns and coding standards with guidance
-    from senior engineers
+    You follow established architectural patterns and coding standards with
+    guidance from senior engineers
   foundational:
-    Contribute to scalable designs, write quality code with appropriate tests,
-    and understand architectural trade-offs
+    You contribute to scalable designs, write quality code with appropriate
+    tests, and understand architectural trade-offs
   working:
-    Design scalable components, make sound architectural decisions, ensure code
-    quality, and review others' designs
+    You design scalable components, make sound architectural decisions, ensure
+    code quality, and review others' designs
   practitioner:
-    Lead architectural decisions for complex systems across teams, establish
+    You lead architectural decisions for complex systems across teams, establish
     quality standards for your area, mentor engineers on architecture, and own
     technical debt strategy
   expert:
-    Define technical standards across the business unit, guide enterprise
-    architecture, be recognized externally for architectural expertise, and
+    You define technical standards across the business unit, guide enterprise
+    architecture, are recognized externally for architectural expertise, and
     drive innovation
 managementResponsibilities:
   awareness:
-    Understand technical architecture decisions and their resource and timeline
-    implications
+    You understand technical architecture decisions and their resource and
+    timeline implications
   foundational:
-    Support team technical decisions, ensure alignment with architectural
+    You support team technical decisions, ensure alignment with architectural
     standards, and escalate technical risks
   working:
-    Facilitate architectural discussions, manage technical debt prioritization,
-    champion quality, and balance technical investment with delivery
+    You facilitate architectural discussions, manage technical debt
+    prioritization, champion quality, and balance technical investment with
+    delivery
   practitioner:
-    Drive technical excellence across teams, establish quality standards for
+    You drive technical excellence across teams, establish quality standards for
     your area, own cross-team technical direction, and advise on architecture
     trade-offs
   expert:
-    Shape technical strategy across the business unit, guide enterprise
+    You shape technical strategy across the business unit, guide enterprise
     architecture governance, and represent technical priorities at executive
     level
 skills:

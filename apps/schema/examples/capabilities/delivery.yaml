@@ -10,36 +10,37 @@ description: |
   and rapid prototyping.
 professionalResponsibilities:
   awareness:
-    Complete assigned implementation tasks within established patterns with
+    You complete assigned implementation tasks within established patterns with
     guidance from senior engineers
   foundational:
-    Deliver small features end-to-end with minimal guidance, understanding how
-    your code fits the broader system
+    You deliver small features end-to-end with minimal guidance, understanding
+    how your code fits the broader system
   working:
-    Own feature delivery from design through deployment, making sound technical
-    trade-offs to ship value on time
+    You own feature delivery from design through deployment, making sound
+    technical trade-offs to ship value on time
   practitioner:
-    Lead technical delivery of complex projects across multiple teams, unblock
-    others through hands-on contributions, and ensure engineering quality
+    You lead technical delivery of complex projects across multiple teams,
+    unblock others through hands-on contributions, and ensure engineering
+    quality
   expert:
-    Drive delivery of the most critical technical initiatives, establish
-    engineering delivery practices across the business unit, and be the
+    You drive delivery of the most critical technical initiatives, establish
+    engineering delivery practices across the business unit, and are the
     technical authority on high-stakes projects
 managementResponsibilities:
   awareness:
-    Track team progress and communicate status to stakeholders with guidance
+    You track team progress and communicate status to stakeholders with guidance
   foundational:
-    Coordinate team delivery by managing dependencies, removing blockers, and
-    keeping stakeholders informed
+    You coordinate team delivery by managing dependencies, removing blockers,
+    and keeping stakeholders informed
   working:
-    Own team delivery outcomes—balance scope, staffing, and timeline; make
+    You own team delivery outcomes—balance scope, staffing, and timeline; make
     resourcing decisions to meet commitments
   practitioner:
-    Drive delivery excellence across multiple teams, establish delivery metrics
-    and practices for your area, hold teams accountable, and escalate cross-team
-    risks
+    You drive delivery excellence across multiple teams, establish delivery
+    metrics and practices for your area, hold teams accountable, and escalate
+    cross-team risks
   expert:
-    Shape delivery culture across the business unit, lead strategic delivery
+    You shape delivery culture across the business unit, lead strategic delivery
     transformations, and represent delivery commitments at executive level
 skills:
   - id: data_integration
