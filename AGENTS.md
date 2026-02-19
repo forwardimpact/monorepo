@@ -13,29 +13,6 @@ AI coding agents alike. **Basecamp** gives every engineer a personal knowledge
 system powered by scheduled AI tasks. Together, they raise quality, increase
 output, and bring pride of workmanship to engineering teams.
 
-**For organizations:** Define your engineering career framework in YAML. Publish
-a static site and install endpoint for your engineers.
-
-**For engineers:** Install the CLI locally. Explore the career framework, browse
-job definitions, generate agent team profiles for your role, and track your
-progression—all from the command line.
-
-```sh
-# Organization publishes the site
-npx fit-pathway build --url=https://pathway.myorg.com
-
-# Engineer installs locally
-curl -fsSL https://pathway.myorg.com/install.sh | bash
-
-# Engineer uses the CLI
-fit-pathway job software_engineering L4 --track=platform
-fit-pathway agent software_engineering --track=platform --output=./agents
-
-# Engineer sets up personal knowledge system
-npx fit-basecamp --init ~/Documents/Team
-npx fit-basecamp --daemon
-```
-
 ## Monorepo Structure
 
 ### Products
@@ -520,28 +497,11 @@ failed tags after fixing the root cause: delete the remote tag
 ### Quick Reference
 
 ```sh
-# Validate data
-npx fit-map validate
-
-# Browse entities
-npx fit-pathway skill --list
-npx fit-pathway discipline --list
-
-# Generate job definition
-npx fit-pathway job <discipline> <grade> --track=<track>
-
-# Generate agent profiles
-npx fit-pathway agent <discipline> --track=<track> --output=./agents
-
-# Basecamp: show scheduler status
-npx fit-basecamp --status
-
-# Basecamp: initialize a new knowledge base
-npx fit-basecamp --init ~/Documents/Team
-
-# Basecamp: run due tasks once
-npx fit-basecamp
-
-# Basecamp: run as daemon
-npx fit-basecamp --daemon
+npx fit-map validate                  # Validate data files
+npx fit-pathway dev                   # Start development server
+npx fit-pathway build --url=<URL>     # Generate static site + install bundle
+npx fit-basecamp --init ~/Documents   # Initialize knowledge base
+npx fit-basecamp --daemon             # Run scheduler
 ```
+
+See each product's skill file for full CLI reference.
