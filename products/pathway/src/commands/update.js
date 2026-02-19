@@ -3,6 +3,7 @@
  *
  * Re-downloads the distribution bundle from the published site URL
  * and updates the local ~/.fit/pathway/ installation.
+ * Updates the global @forwardimpact/pathway package if the version changed.
  */
 
 import { cp, mkdir, rm, readFile, writeFile, access } from "fs/promises";
@@ -16,7 +17,7 @@ const INSTALL_DIR = join(homedir(), ".fit", "pathway");
 /**
  * Run the update command.
  * Reads siteUrl from the installed framework.yaml, re-downloads the bundle,
- * extracts data, and runs npm install to update dependencies.
+ * extracts data, and updates the global pathway package if the version changed.
  *
  * @param {Object} params - Command parameters
  * @param {string} params.dataDir - Path to data directory (may be the installed one)
@@ -82,7 +83,7 @@ export async function runUpdateCommand({ dataDir: _dataDir, options }) {
     ]);
     console.log("   ✓ Extracted");
 
-    // 3. Compare versions
+    // 3. Compare versions from bundle's package.json (version manifest)
     const newPkgPath = join(extractDir, "package.json");
     const oldPkgPath = join(INSTALL_DIR, "package.json");
     const newPkg = JSON.parse(await readFile(newPkgPath, "utf8"));
@@ -104,20 +105,17 @@ export async function runUpdateCommand({ dataDir: _dataDir, options }) {
     await cp(join(extractDir, "data"), installDataDir, { recursive: true });
     console.log("   ✓ Data updated");
 
-    // 5. Update package.json if version changed
+    // 5. Update version manifest
+    await writeFile(oldPkgPath, JSON.stringify(newPkg, null, 2) + "\n");
+
+    // 6. Update global pathway package if version changed
     if (oldVersion !== newVersion) {
       console.log(`   Updating pathway ${oldVersion} → ${newVersion}...`);
-      await writeFile(oldPkgPath, JSON.stringify(newPkg, null, 2) + "\n");
-      console.log("   ✓ package.json updated");
+      execSync(`npm install -g @forwardimpact/pathway@${newVersion}`, {
+        stdio: "ignore",
+      });
+      console.log("   ✓ Global package updated");
     }
-
-    // 6. Run npm install
-    console.log("   Installing dependencies...");
-    execSync("npm install --production --ignore-scripts --no-audit --no-fund", {
-      cwd: INSTALL_DIR,
-      stdio: "ignore",
-    });
-    console.log("   ✓ Dependencies installed");
 
     // 7. Report
     console.log(`
