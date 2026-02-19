@@ -1,7 +1,6 @@
 ---
 title: Core Model
 description: How disciplines, grades, tracks, skills, and behaviours combine to produce complete role definitions.
-layout: prose
 ---
 
 ## Overview

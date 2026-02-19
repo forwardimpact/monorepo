@@ -1,7 +1,6 @@
 ---
 title: Agent Profiles
 description: How AI coding agent profiles are generated from the career framework.
-layout: prose
 ---
 
 ## Overview

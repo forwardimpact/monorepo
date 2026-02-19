@@ -150,6 +150,45 @@ export class DocsBuilder {
   }
 
   /**
+   * Compute URL path from a markdown file's relative path
+   * @param {string} mdFile - Relative path to markdown file
+   * @returns {string} URL path (e.g. "/docs/pathway/")
+   */
+  #urlPathFromMdFile(mdFile) {
+    const baseName = mdFile.replace(".md", "");
+    const isIndex = baseName === "index" || baseName.endsWith("/index");
+    if (isIndex) {
+      return baseName === "index"
+        ? "/"
+        : "/" + baseName.replace(/\/index$/, "") + "/";
+    }
+    return "/" + baseName + "/";
+  }
+
+  /**
+   * Build breadcrumb HTML for pages two or more levels deep
+   * @param {string} urlPath - URL path of the current page
+   * @param {Map<string, string>} pageTitles - Map of URL paths to page titles
+   * @returns {string} Breadcrumb HTML or empty string
+   */
+  #buildBreadcrumbs(urlPath, pageTitles) {
+    const segments = urlPath.split("/").filter(Boolean);
+    if (segments.length < 2) return "";
+
+    const parts = [];
+    for (let i = 0; i < segments.length - 1; i++) {
+      const ancestorPath = "/" + segments.slice(0, i + 1).join("/") + "/";
+      const title = pageTitles.get(ancestorPath) || segments[i];
+      parts.push(`<a href="${ancestorPath}">${title}</a>`);
+    }
+
+    const currentTitle = pageTitles.get(urlPath) || segments[segments.length - 1];
+    parts.push(`<span>${currentTitle}</span>`);
+
+    return parts.join(" / ");
+  }
+
+  /**
    * Recursively find all Markdown files in a directory
    * @param {string} dir - Directory to search
    * @param {string} baseDir - Base directory for relative paths
@@ -214,6 +253,17 @@ export class DocsBuilder {
       console.warn("Warning: No Markdown files found in docs/");
     }
 
+    // First pass: collect page titles by URL path for breadcrumbs
+    const pageTitles = new Map();
+    for (const mdFile of mdFiles) {
+      const { data } = this.#matter(
+        this.#fs.readFileSync(this.#path.join(docsDir, mdFile), "utf-8"),
+      );
+      if (data.title) {
+        pageTitles.set(this.#urlPathFromMdFile(mdFile), data.title);
+      }
+    }
+
     for (const mdFile of mdFiles) {
       const { data: frontMatter, content: markdown } = this.#matter(
         this.#fs.readFileSync(this.#path.join(docsDir, mdFile), "utf-8"),
@@ -237,6 +287,10 @@ export class DocsBuilder {
           btnClass: item.secondary ? "btn-secondary" : "btn-primary",
         })) || [];
 
+      // Generate breadcrumbs for pages two or more levels deep
+      const urlPath = this.#urlPathFromMdFile(mdFile);
+      const breadcrumbs = this.#buildBreadcrumbs(urlPath, pageTitles);
+
       // Render template with context
       const outputHtml = this.#mustacheRender(template, {
         title: frontMatter.title,
@@ -245,7 +299,6 @@ export class DocsBuilder {
         toc,
         hasToc: !!toc,
         layout: frontMatter.layout || "",
-        bodyClass: frontMatter.bodyClass || "",
         hasHero: !!hero,
         heroImage: hero?.image || "",
         heroAlt: hero?.alt || "",
@@ -253,6 +306,8 @@ export class DocsBuilder {
         heroSubtitle: hero?.subtitle || frontMatter.description || "",
         heroCta,
         hasHeroCta: heroCta.length > 0,
+        hasBreadcrumbs: !!breadcrumbs,
+        breadcrumbs,
       });
 
       // Format HTML with prettier

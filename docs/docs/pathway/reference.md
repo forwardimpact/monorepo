@@ -1,7 +1,6 @@
 ---
-title: Reference
+title: Technical Reference
 description: File organization, module index, templates, and CLI command reference for the Pathway package.
-layout: prose
 ---
 
 ## File Organization

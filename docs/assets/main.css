@@ -149,6 +149,8 @@ h6 {
 h1 {
   font-size: var(--text-h1-size);
   font-weight: 700;
+  margin-top: var(--space-12);
+  margin-bottom: var(--space-6);
 }
 
 h2 {
@@ -191,14 +193,6 @@ strong {
   line-height: 1.05;
   color: var(--black);
   letter-spacing: -0.02em;
-}
-
-.text-display {
-  font-family: var(--font-display);
-  font-size: var(--text-display-size);
-  font-weight: 400;
-  line-height: 1.1;
-  color: var(--gray-900);
 }
 
 .text-subtitle {
@@ -329,25 +323,12 @@ strong {
   max-width: 720px;
 }
 
-/* ── Page Content (layout pages) ───────────────────────────────── */
+/* ── Page Content ──────────────────────────────────────────────── */
 
 .page-content {
+  max-width: 680px;
   margin: 0 auto;
-  padding: var(--space-12) var(--space-6);
-}
-
-.page-content h2 {
-  margin-top: var(--space-12);
-  margin-bottom: var(--space-6);
-}
-
-.page-content h3 {
-  margin-top: var(--space-10);
-  margin-bottom: var(--space-4);
-}
-
-.page-content p {
-  margin-bottom: var(--space-4);
+  padding: calc(56px + var(--space-12)) var(--space-6) var(--space-12);
 }
 
 .page-content ul,
@@ -412,17 +393,18 @@ strong {
   color: var(--gray-500);
 }
 
-/* ── Layout: Prose ─────────────────────────────────────────────── */
+/* ── Layout: Home ──────────────────────────────────────────────── */
 
-.layout-prose .page-content {
-  max-width: 680px;
-  padding-top: calc(56px + var(--space-12));
+.layout-home .page-content {
+  max-width: none;
+  padding-top: 0;
 }
 
 /* ── Layout: Product ───────────────────────────────────────────── */
 
 .layout-product .page-content {
   max-width: 720px;
+  padding-top: var(--space-12);
 }
 
 /* Blockquotes as value boxes */
@@ -474,6 +456,7 @@ strong {
 .hero-illustration {
   max-width: 400px;
   margin: 0 auto var(--space-8);
+  animation: fadeUp 500ms var(--ease-default);
 }
 
 .hero-illustration img {
@@ -482,11 +465,14 @@ strong {
 }
 
 .hero .text-hero {
+  margin-top: 0;
   margin-bottom: var(--space-4);
+  animation: fadeUp 500ms var(--ease-default) 100ms backwards;
 }
 
 .hero .text-subtitle {
   margin: 0 auto var(--space-8);
+  animation: fadeUp 500ms var(--ease-default) 200ms backwards;
 }
 
 .hero-cta {
@@ -494,22 +480,6 @@ strong {
   gap: var(--space-4);
   justify-content: center;
   flex-wrap: wrap;
-}
-
-/* Page load animation */
-.hero-illustration {
-  animation: fadeUp 500ms var(--ease-default);
-}
-
-.hero .text-hero {
-  animation: fadeUp 500ms var(--ease-default) 100ms backwards;
-}
-
-.hero .text-subtitle {
-  animation: fadeUp 500ms var(--ease-default) 200ms backwards;
-}
-
-.hero-cta {
   animation: fadeUp 500ms var(--ease-default) 300ms backwards;
 }
 
@@ -587,44 +557,82 @@ strong {
   transform: translateX(2px);
 }
 
-/* ── Product Cards ─────────────────────────────────────────────── */
+/* ── Grid & Cards ──────────────────────────────────────────────── */
 
-.product-grid {
+.grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: var(--space-6);
-  margin: var(--space-12) 0;
+  margin: var(--space-8) 0;
 }
 
-.product-card {
+.grid > a,
+.grid > div {
   background: var(--bg-page);
   border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-lg);
-  padding: var(--space-8);
+  padding: var(--space-6);
   text-decoration: none;
   color: inherit;
-  display: flex;
-  flex-direction: column;
   transition:
     border-color var(--duration-normal) var(--ease-default),
     transform var(--duration-normal) var(--ease-default),
     box-shadow var(--duration-normal) var(--ease-default);
 }
 
-.product-card:hover {
+.grid > a:hover {
   border-color: var(--sand-200);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(28, 26, 24, 0.04);
+}
+
+.grid h3,
+.grid h4 {
+  font-size: var(--text-body-size);
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0 0 var(--space-2);
+}
+
+.grid p {
+  color: var(--text-body);
+  font-size: var(--text-small-size);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Product cards — overrides for icon cards with CTA */
+
+.grid:has(.product-card) {
+  grid-template-columns: repeat(4, 1fr);
+  margin: var(--space-12) 0;
+}
+
+.product-card {
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(28, 26, 24, 0.04);
 }
 
-.product-card-icon {
+.product-card > p:first-child {
+  margin: 0;
+  flex: none;
+  line-height: 0;
+}
+
+.product-card img {
   width: 48px;
   height: 48px;
   margin-bottom: var(--space-4);
   transition: transform var(--duration-normal) var(--ease-default);
 }
 
-.product-card:hover .product-card-icon {
+.product-card:hover img {
   animation: iconWiggle 300ms var(--ease-default);
 }
 
@@ -643,15 +651,9 @@ strong {
 
 .product-card h3 {
   font-size: var(--text-h3-size);
-  font-weight: 600;
-  color: var(--gray-900);
-  margin: 0 0 var(--space-2);
 }
 
 .product-card p {
-  color: var(--text-body);
-  font-size: var(--text-small-size);
-  line-height: 1.5;
   margin-bottom: var(--space-6);
   flex: 1;
 }
@@ -677,84 +679,41 @@ strong {
   background-size: 400px 400px;
 }
 
-.section-title {
+/* ── Philosophy Section ────────────────────────────────────────── */
+
+.section-philosophy {
   text-align: center;
-  margin-bottom: var(--space-8);
 }
 
-.section-title .text-display {
-  margin-bottom: var(--space-4);
+.section-philosophy img {
+  max-width: 320px;
+  margin: 0 auto var(--space-6);
+  border-radius: 0;
 }
 
-/* ── Quote / Philosophy Block ──────────────────────────────────── */
+.section-philosophy blockquote {
+  border: none;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  max-width: 720px;
+  margin: 0 auto var(--space-8);
+}
 
-.philosophy-quote {
+.section-philosophy blockquote p {
   font-family: var(--font-display);
   font-size: var(--text-display-size);
   font-weight: 400;
   font-style: italic;
   line-height: 1.2;
   color: var(--gray-900);
-  max-width: 640px;
-  margin: 0 auto var(--space-8);
-  text-align: center;
-}
-
-.philosophy-attribution {
-  display: block;
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-style: normal;
-  font-weight: 400;
-  color: var(--text-body);
-  margin-top: var(--space-3);
-}
-
-.philosophy-scene {
-  max-width: 320px;
-  margin: 0 auto var(--space-6);
-}
-
-.philosophy-scene img {
-  width: 100%;
-}
-
-.philosophy-text {
-  max-width: 640px;
-  margin: 0 auto;
-  text-align: center;
-  color: var(--text-body);
-  line-height: 1.65;
-}
-
-/* ── Feature Grid ──────────────────────────────────────────────── */
-
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-6);
-  margin: var(--space-8) 0;
-}
-
-.feature-item {
-  padding: var(--space-6);
-  border-radius: var(--radius-lg);
-  background: var(--bg-page);
-  border: 1.5px solid var(--border-default);
-}
-
-.feature-item h4 {
-  font-size: var(--text-body-size);
-  font-weight: 600;
-  color: var(--gray-900);
-  margin: 0 0 var(--space-2);
-}
-
-.feature-item p {
-  color: var(--text-body);
-  font-size: var(--text-small-size);
-  line-height: 1.5;
   margin: 0;
+}
+
+.section-philosophy > .page-container > p {
+  max-width: 720px;
+  margin: 0 auto;
+  line-height: 1.65;
 }
 
 /* ── Code Blocks ───────────────────────────────────────────────── */
@@ -785,48 +744,6 @@ pre code {
   background: transparent;
   padding: 0;
   border-radius: 0;
-}
-
-/* ── Docs Navigation Cards ─────────────────────────────────────── */
-
-.docs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--space-6);
-  margin: var(--space-8) 0;
-}
-
-.docs-card {
-  background: var(--bg-page);
-  border: 1.5px solid var(--gray-200);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  text-decoration: none;
-  color: inherit;
-  transition:
-    border-color var(--duration-normal) var(--ease-default),
-    transform var(--duration-normal) var(--ease-default),
-    box-shadow var(--duration-normal) var(--ease-default);
-}
-
-.docs-card:hover {
-  border-color: var(--sand-200);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(28, 26, 24, 0.04);
-}
-
-.docs-card h3 {
-  font-size: var(--text-body-size);
-  font-weight: 600;
-  color: var(--gray-900);
-  margin: 0 0 var(--space-2);
-}
-
-.docs-card p {
-  color: var(--text-body);
-  font-size: var(--text-small-size);
-  line-height: 1.5;
-  margin: 0;
 }
 
 /* ── TOC Sidebar ───────────────────────────────────────────────── */
@@ -987,7 +904,7 @@ pre:has(.language-mermaid) {
 /* ── Responsive ────────────────────────────────────────────────── */
 
 @media (max-width: 960px) {
-  .product-grid {
+  .grid:has(.product-card) {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -1105,11 +1022,7 @@ pre:has(.language-mermaid) {
     background: none;
   }
 
-  .product-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .feature-grid {
+  .grid {
     grid-template-columns: 1fr;
   }
 

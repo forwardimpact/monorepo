@@ -2,7 +2,7 @@
 title: Forward Impact Team
 description: An open-source suite that helps organizations empower engineers with clear expectations, career growth, and the clarity to do their best work.
 toc: false
-bodyClass: page-home
+layout: home
 hero:
   image: /assets/heros/welcome.svg
   alt: An engineer in a hoodie, an AI robot, and a business professional wave hello
@@ -18,34 +18,50 @@ hero:
 
 <div class="section section-warm">
   <div class="page-container">
-    <div class="product-grid">
+    <div class="grid">
 
 <a class="product-card" href="/map/">
-  <img class="product-card-icon" src="/assets/icons/map.svg" alt="Map" />
-  <h3>Map</h3>
-  <p>Chart the territory. Define your engineering skills, behaviours, and career levels in plain YAML — the single source of truth.</p>
-  <span class="btn btn-ghost">Learn more</span>
+
+![Map](/assets/icons/map.svg)
+
+### Map
+
+Chart the territory. Define your engineering skills, behaviours, and career levels in plain YAML — the single source of truth.
+
+<div class="btn btn-ghost">Learn more</div>
 </a>
 
 <a class="product-card" href="/pathway/">
-  <img class="product-card-icon" src="/assets/icons/pathway.svg" alt="Pathway" />
-  <h3>Pathway</h3>
-  <p>Navigate the trail. Browse career paths, generate agent teams, and build progression plans — in the browser or from the CLI.</p>
-  <span class="btn btn-ghost">Learn more</span>
+
+![Pathway](/assets/icons/pathway.svg)
+
+### Pathway
+
+Navigate the trail. Browse career paths, generate agent teams, and build progression plans — in the browser or from the CLI.
+
+<div class="btn btn-ghost">Learn more</div>
 </a>
 
 <a class="product-card" href="/guide/">
-  <img class="product-card-icon" src="/assets/icons/guide.svg" alt="Guide" />
-  <h3>Guide</h3>
-  <p>Find your bearing. AI-powered onboarding and career advice that helps engineers orient in unfamiliar terrain.</p>
-  <span class="btn btn-ghost">Learn more</span>
+
+![Guide](/assets/icons/guide.svg)
+
+### Guide
+
+Find your bearing. AI-powered onboarding and career advice that helps engineers orient in unfamiliar terrain.
+
+<div class="btn btn-ghost">Learn more</div>
 </a>
 
 <a class="product-card" href="/basecamp/">
-  <img class="product-card-icon" src="/assets/icons/basecamp.svg" alt="Basecamp" />
-  <h3>Basecamp</h3>
-  <p>Set up camp. A personal knowledge system with scheduled AI tasks that keeps you briefed, organized, and field-ready.</p>
-  <span class="btn btn-ghost">Learn more</span>
+
+![Basecamp](/assets/icons/basecamp.svg)
+
+### Basecamp
+
+Set up camp. A personal knowledge system with scheduled AI tasks that keeps you briefed, organized, and field-ready.
+
+<div class="btn btn-ghost">Learn more</div>
 </a>
 
 </div>
@@ -54,47 +70,58 @@ hero:
 
 <div class="section">
   <div class="page-container">
-    <div class="feature-grid">
+    <div class="grid">
 
-<div class="feature-item">
-  <h4>One Source of Truth</h4>
-  <p>Skills, behaviours, and grades defined once in YAML — used everywhere, by humans and machines alike.</p>
+<div>
+
+#### One Source of Truth
+
+Skills, behaviours, and grades defined once in YAML — used everywhere, by humans and machines alike.
+
 </div>
 
-<div class="feature-item">
-  <h4>Human + Machine</h4>
-  <p>Career frameworks and AI agent profiles derived from the same foundation. Co-located in the same files.</p>
+<div>
+
+#### Human + Machine
+
+Career frameworks and AI agent profiles derived from the same foundation. Co-located in the same files.
+
 </div>
 
-<div class="feature-item">
-  <h4>Data-Driven</h4>
-  <p>Plain YAML files. No vendor lock-in. Your data, your way. Different installations use the same model.</p>
+<div>
+
+#### Data-Driven
+
+Plain YAML files. No vendor lock-in. Your data, your way. Different installations use the same model.
+
 </div>
 
-<div class="feature-item">
-  <h4>Ready to Deploy</h4>
-  <p>Works at the command line, in VS Code, and on the web — meeting engineers where they already work.</p>
+<div>
+
+#### Ready to Deploy
+
+Works at the command line, in VS Code, and on the web — meeting engineers where they already work.
+
 </div>
 
 </div>
   </div>
 </div>
 
-<div class="section section-contour">
-  <div class="page-container" style="text-align: center;">
-    <div class="philosophy-scene">
-      <img src="/assets/heros/map.svg" alt="An engineer, an AI robot, and a business professional kneel around a large unfolded map, tracing routes together" />
-    </div>
-    <p class="philosophy-quote">
-      "The aim of leadership should be to improve the performance of man and machine, to improve quality, to increase output, and simultaneously to bring pride of workmanship to people."
-      <span class="philosophy-attribution">— W. Edwards Deming</span>
-    </p>
-    <p class="philosophy-text">
-      Forward Impact Team puts this into practice. Organizations define what great engineering looks like — skills, behaviours, and career levels — in a shared framework. Engineers gain clear expectations, career paths, AI assistance, and knowledge systems matched to their standards. When the path forward is clear, engineers deliver with confidence and pride.
-    </p>
-    <div class="hero-cta" style="margin-top: var(--space-6);">
-      <a href="/about/" class="btn btn-secondary">Read our philosophy</a>
-    </div>
+<div class="section section-contour section-philosophy">
+  <div class="page-container">
+
+![An engineer, an AI robot, and a business professional kneel around a large unfolded map, tracing routes together](/assets/heros/map.svg)
+
+> "The aim of leadership should be to improve the performance of man and machine, to improve quality, to increase output, and simultaneously to bring pride of workmanship to people."
+>
+> — W. Edwards Deming
+
+Forward Impact Team puts this into practice. Organizations define what great engineering looks like — skills, behaviours, and career levels — in a shared framework. Engineers gain clear expectations, career paths, AI assistance, and knowledge systems matched to their standards. When the path forward is clear, engineers deliver with confidence and pride.
+
+  <div class="hero-cta" style="margin-top: var(--space-6);">
+    <a href="/about/" class="btn btn-secondary">Read our philosophy</a>
+  </div>
   </div>
 </div>
 

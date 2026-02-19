@@ -76,20 +76,19 @@ Mustache template with these variables:
 | `{{{toc}}}`                             | Generated table of contents HTML                    |
 | `{{#description}}` / `{{/description}}` | Conditional description block                       |
 | `{{#layout}}`                           | Conditional: true if `layout` set in front matter   |
-| `{{layout}}`                            | Layout name (e.g. `prose`, `product`)               |
-| `{{#bodyClass}}`                        | Conditional: true if `bodyClass` set                |
-| `{{bodyClass}}`                         | CSS class applied to `<body>`                       |
-| `{{#hasHero}}`                          | Conditional: true if `hero` object in front matter  |
+| `{{layout}}`                             | Layout name (e.g. `product`, `home`)                |
+| `{{#hasHero}}`                           | Conditional: true if `hero` object in front matter  |
 | `{{heroImage}}`                         | Hero image path from `hero.image`                   |
 | `{{heroAlt}}`                           | Hero image alt text from `hero.alt`                 |
 | `{{heroTitle}}`                         | Hero heading (defaults to `title`)                  |
 | `{{heroSubtitle}}`                      | Hero subtitle from `hero.subtitle`                  |
 | `{{#hasHeroCta}}`                       | Conditional: true if hero has CTA buttons           |
-| `{{#heroCta}}`                          | Array of CTA items with `href`, `label`, `btnClass` |
-
-When `layout` is set, the template wraps `{{{content}}}` in a
-`<div class="page-content">` and applies `class="layout-{layout}"` to `<main>`.
-When no layout is set, content is rendered directly inside `<main>`.
+| `{{#heroCta}}`                          | Array of CTA items with `href`, `label`, `btnClass` || `{{#hasBreadcrumbs}}`                      | Conditional: true if page is 2+ levels deep         |
+| `{{{breadcrumbs}}}`                        | Breadcrumb navigation HTML (raw)                    |
+Content is always wrapped in a `<div class="page-content">` inside `<main>`.
+When `layout` is set, `class="layout-{layout}"` is applied to `<main>` to
+override the default styling. The default styling (no layout) matches prose
+formatting: max-width 680px, top padding for header clearance.
 
 ```html
 <!DOCTYPE html>
@@ -97,17 +96,12 @@ When no layout is set, content is rendered directly inside `<main>`.
   <head>
     <title>{{title}}</title>
   </head>
-  <body{{#bodyClass}} class="{{bodyClass}}"{{/bodyClass}}>
+  <body>
     <main{{#layout}} class="layout-{{layout}}"{{/layout}}>
       {{#hasHero}}
       <div class="hero">...</div>
       {{/hasHero}}
-      {{#layout}}
       <div class="page-content">{{{content}}}</div>
-      {{/layout}}
-      {{^layout}}
-      {{{content}}}
-      {{/layout}}
     </main>
   </body>
 </html>
@@ -122,8 +116,7 @@ Each `.md` file needs YAML front matter:
 title: Page Title
 description: Optional page description
 toc: true      # Set to false to hide table of contents
-layout: prose  # Optional: wraps content in .page-content, adds class to <main>
-bodyClass: ""  # Optional: adds class to <body>
+layout: product  # Optional: adds class to <main> for layout-specific styling
 hero:          # Optional: renders hero section from template
   image: /assets/heros/example.svg
   alt: Hero image description
@@ -141,9 +134,11 @@ Your markdown content here...
 
 **Layout values:**
 
-- `prose` — max-width 680px, top padding for header clearance (technical docs)
+- _(default / no layout)_ — max-width 680px, top padding for header clearance
+  (technical docs, prose)
 - `product` — max-width 720px, blockquotes styled as value boxes, lists get
   checkmarks (product pages)
+- `home` — no max-width constraint, no top padding (full-width landing pages)
 
 ### 3. Assets Directory (Optional)
 

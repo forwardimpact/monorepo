@@ -1,7 +1,6 @@
 ---
-title: "Map: Data Model Reference"
+title: Map
 description: Data model, YAML format, validation, and programmatic access for the Map data layer.
-layout: prose
 ---
 
 ## Overview

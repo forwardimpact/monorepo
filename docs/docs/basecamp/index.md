@@ -1,7 +1,6 @@
 ---
-title: "Basecamp: Technical Docs"
+title: Basecamp
 description: Scheduler configuration, knowledge base structure, CLI reference, and macOS app architecture.
-layout: prose
 ---
 
 ## Overview

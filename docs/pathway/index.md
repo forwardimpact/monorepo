@@ -6,7 +6,7 @@ toc: false
 hero:
   image: /assets/heros/pathway.svg
   alt: An engineer, an AI robot, and a business professional stand at the base of mountains, studying the trail ahead
-  subtitle: "Navigate engineering skills and careers with clarity. Whether you're an engineer exploring career progression, a manager building job descriptions, or a team lead deploying AI coding agents — Pathway delivers it through a web app, a CLI, and a static site generator."
+  subtitle: Navigate engineering skills and careers with clarity. Whether you're an engineer exploring career progression, a manager building job descriptions, or a team lead deploying AI coding agents — Pathway delivers it through a web app, a CLI, and a static site generator.
   cta:
     - label: Documentation
       href: /docs/pathway/

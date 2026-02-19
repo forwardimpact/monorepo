@@ -6,7 +6,7 @@ toc: false
 hero:
   image: /assets/heros/guide.svg
   alt: An engineer, an AI robot holding a compass, and a business professional gathered together, finding their bearings
-  subtitle: "Find your bearing. Guide is the AI assistant that helps engineers orient quickly — onboarding to new teams, getting career advice, and solving problems with context from your organization's skills framework."
+  subtitle: Find your bearing. Guide is the AI assistant that helps engineers orient quickly — onboarding to new teams, getting career advice, and solving problems with context from your organization's skills framework.
   cta:
     - label: Coming soon
       href: /docs/

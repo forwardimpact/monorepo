@@ -1,7 +1,6 @@
 ---
 title: Lifecycle
 description: Engineering lifecycle stages, handoffs, constraints, and transition checklists.
-layout: prose
 ---
 
 ## Overview

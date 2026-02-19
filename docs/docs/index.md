@@ -9,41 +9,62 @@ hero:
   subtitle: Technical reference for the Forward Impact Team suite. Everything you need to define your engineering framework, derive roles and agents, and set up personal knowledge systems.
 ---
 
-<div class="docs-grid">
+<div class="grid">
 
-<a class="docs-card" href="/docs/map/">
-  <h3>Map</h3>
-  <p>Data model, YAML format, validation, schema definitions, and programmatic access.</p>
+<a href="/docs/map/">
+
+### Map
+
+Data model, YAML format, validation, schema definitions, and programmatic access.
+
 </a>
 
-<a class="docs-card" href="/docs/model/">
-  <h3>Model</h3>
-  <p>How disciplines, grades, tracks, skills, and behaviours combine to produce role definitions.</p>
+<a href="/docs/model/">
+
+### Model
+
+How disciplines, grades, tracks, skills, and behaviours combine to produce role definitions.
+
 </a>
 
-<a class="docs-card" href="/docs/model/lifecycle/">
-  <h3>Lifecycle</h3>
-  <p>Engineering stages from specify through deploy — handoffs, checklists, and quality gates.</p>
+<a href="/docs/model/lifecycle/">
+
+### Lifecycle
+
+Engineering stages from specify through deploy — handoffs, checklists, and quality gates.
+
 </a>
 
-<a class="docs-card" href="/docs/pathway/">
-  <h3>Pathway</h3>
-  <p>Web app, CLI commands, formatters, agent generation, and output templates.</p>
+<a href="/docs/pathway/">
+
+### Pathway
+
+Web app, CLI commands, formatters, agent generation, and output templates.
+
 </a>
 
-<a class="docs-card" href="/docs/pathway/agents/">
-  <h3>Agents</h3>
-  <p>Agent profile derivation, SKILL.md format, stage-specific agents, and handoff flow.</p>
+<a href="/docs/pathway/agents/">
+
+### Agents
+
+Agent profile derivation, SKILL.md format, stage-specific agents, and handoff flow.
+
 </a>
 
-<a class="docs-card" href="/docs/pathway/reference/">
-  <h3>Reference</h3>
-  <p>File organization, co-located file structure, CLI commands, and output formats.</p>
+<a href="/docs/pathway/reference/">
+
+### Reference
+
+File organization, co-located file structure, CLI commands, and output formats.
+
 </a>
 
-<a class="docs-card" href="/docs/basecamp/">
-  <h3>Basecamp</h3>
-  <p>Scheduler configuration, knowledge base structure, built-in skills, CLI reference.</p>
+<a href="/docs/basecamp/">
+
+### Basecamp
+
+Scheduler configuration, knowledge base structure, built-in skills, CLI reference.
+
 </a>
 
 </div>

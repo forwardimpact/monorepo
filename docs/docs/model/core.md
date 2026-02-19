@@ -1,7 +1,6 @@
 ---
 title: Core Derivation
 description: Detailed explanation of how skill levels, behaviour maturities, and responsibilities are derived from entity combinations.
-layout: prose
 ---
 
 ## Overview

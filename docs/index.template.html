@@ -10,7 +10,7 @@
     <link rel="icon" href="/assets/icons/map.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/assets/main.css" />
   </head>
-  <body{{#bodyClass}} class="{{bodyClass}}"{{/bodyClass}}>
+  <body>
     <header class="site-header">
       <div class="header-inner">
         <a class="brand" href="/">
@@ -58,14 +58,15 @@
         </div>
       </div>
       {{/hasHero}}
-      {{#layout}}
       <div class="page-content">
+        {{#hasBreadcrumbs}}
+        <nav class="breadcrumbs" aria-label="Breadcrumb">{{{breadcrumbs}}}</nav>
+        {{/hasBreadcrumbs}}
+        {{^hasHero}}
+        <h1 class="page-title">{{{title}}}</h1>
+        {{/hasHero}}
         {{{content}}}
       </div>
-      {{/layout}}
-      {{^layout}}
-      {{{content}}}
-      {{/layout}}
     </main>
 
     {{#hasToc}}
@@ -74,7 +75,7 @@
 
     <footer class="site-footer">
       <div class="footer-inner">
-        <span class="footer-brand">FIT</span>
+        <span class="footer-brand">Forward Impact Team</span>
         <span class="footer-text">
           Code licensed
           <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache 2.0</a>, docs
