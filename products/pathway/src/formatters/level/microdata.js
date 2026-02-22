@@ -102,22 +102,9 @@ ${dl(levelPairs)}
   }
 
   // Base behaviour maturity - link to BehaviourMaturity
-  if (
-    view.baseBehaviourMaturity &&
-    Object.keys(view.baseBehaviourMaturity).length > 0
-  ) {
-    const maturityPairs = Object.entries(view.baseBehaviourMaturity).map(
-      ([type, maturity]) => ({
-        term: formatLevelName(type),
-        definition: formatLevelName(maturity),
-      }),
-    );
-    // Handle both single value and object cases
-    const maturityContent =
-      typeof level.baseBehaviourMaturity === "string"
-        ? `${linkTag("baseBehaviourMaturity", `#${level.baseBehaviourMaturity}`)}
-<p>${formatLevelName(level.baseBehaviourMaturity)}</p>`
-        : dl(maturityPairs);
+  if (view.baseBehaviourMaturity) {
+    const maturityContent = `${linkTag("baseBehaviourMaturity", `#${level.baseBehaviourMaturity}`)}
+<p>${formatLevelName(level.baseBehaviourMaturity)}</p>`;
     sections.push(section("Base Behaviour Maturity", maturityContent, 2));
   }
 

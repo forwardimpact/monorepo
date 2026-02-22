@@ -66,18 +66,9 @@ export function levelToMarkdown(level, framework) {
   lines.push("");
 
   // Base behaviour maturity
-  if (
-    view.baseBehaviourMaturity &&
-    Object.keys(view.baseBehaviourMaturity).length > 0
-  ) {
+  if (view.baseBehaviourMaturity) {
     lines.push("## Base Behaviour Maturity", "");
-    const behaviourRows = Object.entries(view.baseBehaviourMaturity).map(
-      ([type, maturity]) => [
-        capitalize(type),
-        capitalize(maturity.replace(/_/g, " ")),
-      ],
-    );
-    lines.push(tableToMarkdown(["Type", "Maturity"], behaviourRows));
+    lines.push(capitalize(view.baseBehaviourMaturity.replace(/_/g, " ")));
     lines.push("");
   }
 

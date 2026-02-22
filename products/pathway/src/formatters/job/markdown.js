@@ -86,7 +86,7 @@ export function jobToMarkdown(view, entities = {}, jobTemplate) {
   }
 
   // Job Description (copyable markdown)
-  if (entities.discipline && entities.proficiency && jobTemplate) {
+  if (entities.discipline && entities.level && jobTemplate) {
     lines.push("---", "");
     lines.push("## Job Description", "");
     lines.push("```markdown");
@@ -101,7 +101,7 @@ export function jobToMarkdown(view, entities = {}, jobTemplate) {
             derivedResponsibilities: view.derivedResponsibilities,
           },
           discipline: entities.discipline,
-          level: entities.proficiency,
+          level: entities.level,
           track: entities.track,
         },
         jobTemplate,
