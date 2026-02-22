@@ -34,7 +34,7 @@
 {{{responsibilityDescription}}}:
 
 {{#skills}}
-- **{{{skillName}}}:** {{{levelDescription}}}
+- **{{{skillName}}}:** {{{proficiencyDescription}}}
 {{/skills}}
 {{/capabilitySkills}}
 {{/hasCapabilitySkills}}

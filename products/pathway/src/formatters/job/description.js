@@ -85,12 +85,12 @@ function prepareJobDescriptionData({ job, discipline, level, track }) {
   let capabilitySkills = [];
   const derivedResponsibilities = job.derivedResponsibilities || [];
   if (derivedResponsibilities.length > 0) {
-    // derivedResponsibilities is sorted: highest level first, then by ordinalRank
-    const highestProficiency = derivedResponsibilities[0].level;
+    // derivedResponsibilities is sorted: highest proficiency first, then by ordinalRank
+    const highestProficiency = derivedResponsibilities[0].proficiency;
 
-    // Filter responsibilities to only the highest level
+    // Filter responsibilities to only the highest proficiency
     const topResponsibilities = derivedResponsibilities.filter(
-      (r) => r.level === highestProficiency,
+      (r) => r.proficiency === highestProficiency,
     );
 
     // Group skill matrix entries by capability at the highest level
