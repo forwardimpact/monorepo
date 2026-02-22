@@ -98,7 +98,7 @@ ENTITY COMMANDS
 All entity commands support: summary (default), --list (IDs for piping), <id> (detail)
 
   discipline [<id>]     Browse engineering disciplines
-  level [<id>]          Browse career levels/levels
+  level [<id>]          Browse career levels
   track [<id>]          Browse track specializations
   behaviour [<id>]      Browse professional behaviours
   driver [<id>]         Browse outcome drivers
@@ -119,10 +119,10 @@ Usage:
   npx fit-pathway job                                  Summary with stats
   npx fit-pathway job --list                           All valid combinations
   npx fit-pathway job <discipline> <level>             Detail view (trackless)
-  npx fit-pathway job <d> <g> --track=<track>          Detail view (with track)
-  npx fit-pathway job <d> <g> --skills                 Plain list of skill IDs
-  npx fit-pathway job <d> <g> --tools                  Plain list of tool names
-  npx fit-pathway job <d> <g> --checklist=<stage>      Show handoff checklist
+  npx fit-pathway job <d> <l> --track=<track>          Detail view (with track)
+  npx fit-pathway job <d> <l> --skills                 Plain list of skill IDs
+  npx fit-pathway job <d> <l> --tools                  Plain list of tool names
+  npx fit-pathway job <d> <l> --checklist=<stage>      Show handoff checklist
 
 Options:
   --track=TRACK       Track specialization (e.g., platform, forward_deployed)
@@ -171,8 +171,8 @@ Generate interview question sets based on job requirements.
 
 Usage:
   npx fit-pathway interview <discipline> <level>                     All types
-  npx fit-pathway interview <d> <g> --track=<track>                  With track
-  npx fit-pathway interview <d> <g> --track=<t> --type=<type>        Single type
+  npx fit-pathway interview <d> <l> --track=<track>                  With track
+  npx fit-pathway interview <d> <l> --track=<t> --type=<type>        Single type
 
 Options:
   --track=TRACK       Track specialization
@@ -187,8 +187,8 @@ Analyze career progression between levels.
 
 Usage:
   npx fit-pathway progress <discipline> <level>
-  npx fit-pathway progress <d> <g> --track=<track>
-  npx fit-pathway progress <d> <g> --compare=<to_level>
+  npx fit-pathway progress <d> <l> --track=<track>
+  npx fit-pathway progress <d> <l> --compare=<to_level>
 
 Options:
   --track=TRACK        Track specialization
