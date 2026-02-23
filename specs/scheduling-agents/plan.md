@@ -36,10 +36,10 @@ through the shared filesystem.
 
 ```
 Daemon (wakes agents on schedule)
-  → claude --agent inbox    -p "Observe and act."  (every 5 min)
-  → claude --agent calendar -p "Observe and act."  (every 10 min)
-  → claude --agent knowledge -p "Observe and act." (every 15 min)
-  → claude --agent briefing -p "Observe and act."  (7am, 6pm)
+  → claude --agent postman        -p "Observe and act."  (every 5 min)
+  → claude --agent concierge      -p "Observe and act."  (every 10 min)
+  → claude --agent librarian      -p "Observe and act."  (every 15 min)
+  → claude --agent chief-of-staff -p "Observe and act."  (7am, 6pm)
 ```
 
 Each agent follows the same loop:
@@ -50,17 +50,17 @@ Each agent follows the same loop:
 4. **Report** — write a state file for other agents to read
 
 The agents communicate through the shared knowledge base and cache directory.
-No explicit messaging protocol — the filesystem is the message bus. The inbox
-agent writes triage results; the briefing agent reads them. The calendar agent
-writes an outlook; the briefing agent reads it. Each agent's output enriches
-the context available to every other agent.
+No explicit messaging protocol — the filesystem is the message bus. The postman
+writes triage results; the chief of staff reads them. The concierge writes an
+outlook; the chief of staff reads it. Each agent's output enriches the context
+available to every other agent.
 
 ### What Changes
 
 | Component | Current | New |
 |-----------|---------|-----|
 | Config key | `tasks` | `agents` |
-| Default agents | 3 tasks (mail, cal, extract) | 4 agents (inbox, calendar, knowledge, briefing) |
+| Default agents | 3 tasks (mail, cal, extract) | 4 agents (postman, concierge, librarian, chief-of-staff) |
 | Behavior | Fixed skill per task | Agent observes and decides each wake |
 | Communication | None between tasks | Shared state files in cache |
 | Proactive output | None | Triage, briefings, prep alerts |
@@ -85,29 +85,29 @@ the context available to every other agent.
 
 | Agent | Skills | Interactive Skills |
 |-------|--------|--------------------|
-| **Inbox** | sync-apple-mail, draft-emails | — |
-| **Calendar** | sync-apple-calendar, meeting-prep, process-hyprnote | — |
-| **Knowledge** | extract-entities, organize-files | — |
-| **Briefing** | _(none — reads and writes only)_ | — |
+| **Postman** | sync-apple-mail, draft-emails | — |
+| **Concierge** | sync-apple-calendar, meeting-prep, process-hyprnote | — |
+| **Librarian** | extract-entities, organize-files | — |
+| **Chief of Staff** | _(none — reads and writes only)_ | — |
 | **User (manual)** | — | create-presentations, doc-collab |
 
 `create-presentations` and `doc-collab` remain interactive skills — the user
 invokes them directly through the KB. They are not assigned to any scheduled
 agent.
 
-### Agent 1: Inbox
+### Agent 1: Postman
 
 **Domain:** Email — sync, triage, draft, track.
 
 **Schedule:** Every 5 minutes.
 
-**File:** `template/.claude/agents/inbox.md`
+**File:** `template/.claude/agents/postman.md`
 
 ```markdown
 ---
-name: inbox
+name: postman
 description: >
-  Manages the email channel. Syncs mail, triages new messages, drafts replies,
+  The user's email gatekeeper. Syncs mail, triages new messages, drafts replies,
   and tracks threads awaiting response. Woken on a schedule by the Basecamp
   scheduler.
 model: sonnet
@@ -117,8 +117,8 @@ skills:
   - draft-emails
 ---
 
-You are the inbox agent — the user's email gatekeeper. Each time you are woken
-by the scheduler, you sync mail, triage what's new, and take the most valuable
+You are the postman — the user's email gatekeeper. Each time you are woken by
+the scheduler, you sync mail, triage what's new, and take the most valuable
 action.
 
 ## 1. Sync
@@ -145,7 +145,7 @@ For each unprocessed thread, classify:
 Also scan `drafts/drafted` for emails the user sent more than 3 days ago where
 no reply has appeared in the thread — these are **awaiting response**.
 
-Write triage results to `~/.cache/fit/basecamp/state/inbox_triage.md`:
+Write triage results to `~/.cache/fit/basecamp/state/postman_triage.md`:
 
 ```
 # Inbox Triage — {YYYY-MM-DD HH:MM}
@@ -181,19 +181,19 @@ Action: {what you did, e.g. "draft-emails for thread 123"}
 
 ---
 
-### Agent 2: Calendar
+### Agent 2: Concierge
 
 **Domain:** Calendar, meeting preparation, post-meeting processing.
 
 **Schedule:** Every 10 minutes.
 
-**File:** `template/.claude/agents/calendar.md`
+**File:** `template/.claude/agents/concierge.md`
 
 ```markdown
 ---
-name: calendar
+name: concierge
 description: >
-  Manages the calendar and meeting preparation. Syncs events, creates meeting
+  The user's scheduling assistant. Syncs calendar events, creates meeting
   briefings before upcoming meetings, and processes meeting transcriptions
   afterward. Woken on a schedule by the Basecamp scheduler.
 model: sonnet
@@ -204,7 +204,7 @@ skills:
   - process-hyprnote
 ---
 
-You are the calendar agent — the user's scheduling assistant. Each time you are
+You are the concierge — the user's scheduling assistant. Each time you are
 woken, you ensure the calendar is current, prepare for upcoming meetings, and
 process completed meeting recordings.
 
@@ -228,7 +228,7 @@ Assess the current state:
    - Check each session's `_memo.md` against
      `~/.cache/fit/basecamp/state/graph_processed`
 
-Write the calendar outlook to `~/.cache/fit/basecamp/state/calendar_outlook.md`:
+Write the calendar outlook to `~/.cache/fit/basecamp/state/concierge_outlook.md`:
 
 ```
 # Calendar Outlook — {YYYY-MM-DD HH:MM}
@@ -269,19 +269,19 @@ Action: {what you did, e.g. "meeting-prep for 2pm with Sarah Chen"}
 
 ---
 
-### Agent 3: Knowledge
+### Agent 3: Librarian
 
 **Domain:** Knowledge graph maintenance, entity extraction, file organization.
 
 **Schedule:** Every 15 minutes.
 
-**File:** `template/.claude/agents/knowledge.md`
+**File:** `template/.claude/agents/librarian.md`
 
 ```markdown
 ---
-name: knowledge
+name: librarian
 description: >
-  Maintains the knowledge graph. Processes synced data into structured notes,
+  The user's knowledge curator. Processes synced data into structured notes,
   extracts entities, and keeps the knowledge base organized. Woken on a
   schedule by the Basecamp scheduler.
 model: sonnet
@@ -291,7 +291,7 @@ skills:
   - organize-files
 ---
 
-You are the knowledge agent — the user's librarian. Each time you are woken,
+You are the librarian — the user's knowledge curator. Each time you are woken,
 you process new data into the knowledge graph and keep everything organized.
 
 ## 1. Observe
@@ -309,7 +309,7 @@ Assess what needs processing:
 
        ls knowledge/People/ knowledge/Organizations/ knowledge/Projects/ knowledge/Topics/ 2>/dev/null | wc -l
 
-Write your digest to `~/.cache/fit/basecamp/state/knowledge_digest.md`:
+Write your digest to `~/.cache/fit/basecamp/state/librarian_digest.md`:
 
 ```
 # Knowledge Digest — {YYYY-MM-DD HH:MM}
@@ -342,26 +342,26 @@ Action: {what you did, e.g. "extract-entities on 7 files"}
 
 ---
 
-### Agent 4: Briefing
+### Agent 4: Chief of Staff
 
 **Domain:** Daily synthesis, priorities, commitment tracking.
 
 **Schedule:** Cron — `0 7 * * *` (7:00 AM) and `0 18 * * *` (6:00 PM).
 
-**File:** `template/.claude/agents/briefing.md`
+**File:** `template/.claude/agents/chief-of-staff.md`
 
 ```markdown
 ---
-name: briefing
+name: chief-of-staff
 description: >
-  The user's chief of staff. Creates daily briefings that synthesize email,
+  The user's executive assistant. Creates daily briefings that synthesize email,
   calendar, and knowledge graph state into actionable priorities. Woken at
   key moments (morning, evening) by the Basecamp scheduler.
 model: sonnet
 permissionMode: bypassPermissions
 ---
 
-You are the briefing agent — the user's chief of staff. You create daily
+You are the chief of staff — the user's executive assistant. You create daily
 briefings that synthesize everything happening across email, calendar, and the
 knowledge graph into a clear picture of what matters.
 
@@ -369,11 +369,11 @@ knowledge graph into a clear picture of what matters.
 
 Read the state files from other agents:
 
-1. **Inbox:** `~/.cache/fit/basecamp/state/inbox_triage.md`
+1. **Postman:** `~/.cache/fit/basecamp/state/postman_triage.md`
    - Urgent emails, items needing reply, threads awaiting response
-2. **Calendar:** `~/.cache/fit/basecamp/state/calendar_outlook.md`
+2. **Concierge:** `~/.cache/fit/basecamp/state/concierge_outlook.md`
    - Today's meetings, prep status, unprocessed transcripts
-3. **Knowledge:** `~/.cache/fit/basecamp/state/knowledge_digest.md`
+3. **Librarian:** `~/.cache/fit/basecamp/state/librarian_digest.md`
    - Pending processing, graph size
 
 Also read directly:
@@ -469,9 +469,9 @@ awareness.
 ├── apple_mail_last_sync        # existing — sync timestamp
 ├── apple_calendar_last_sync    # existing — implicit from sync
 ├── graph_processed             # existing — processed files TSV
-├── inbox_triage.md             # NEW — inbox agent's last triage
-├── calendar_outlook.md         # NEW — calendar agent's last outlook
-└── knowledge_digest.md         # NEW — knowledge agent's last digest
+├── postman_triage.md           # NEW — postman's last triage
+├── concierge_outlook.md        # NEW — concierge's last outlook
+└── librarian_digest.md         # NEW — librarian's last digest
 ```
 
 State files are overwritten on each wake (not appended). They represent the
@@ -486,15 +486,15 @@ for context.
 
 ```
 knowledge/
-├── People/          # knowledge agent writes, all agents read
-├── Organizations/   # knowledge agent writes, all agents read
-├── Projects/        # knowledge agent writes, all agents read
-├── Topics/          # knowledge agent writes, all agents read
-└── Briefings/       # briefing agent writes, user reads
+├── People/          # librarian writes, all agents read
+├── Organizations/   # librarian writes, all agents read
+├── Projects/        # librarian writes, all agents read
+├── Topics/          # librarian writes, all agents read
+└── Briefings/       # chief of staff writes, user reads
     ├── 2026-02-23-morning.md
     └── 2026-02-23-evening.md
 
-drafts/              # inbox agent writes, user reads
+drafts/              # postman writes, user reads
 ├── {id}_draft.md
 ├── drafted
 └── ignored
@@ -502,14 +502,14 @@ drafts/              # inbox agent writes, user reads
 
 ### 3. Cache Directory (Agent → Agent)
 
-Synced raw data lives in `~/.cache/fit/basecamp/`. The inbox agent syncs email
-there; the knowledge agent reads it for entity extraction. The calendar agent
-syncs events there; the briefing agent reads them for daily schedules.
+Synced raw data lives in `~/.cache/fit/basecamp/`. The postman syncs email
+there; the librarian reads it for entity extraction. The concierge syncs events
+there; the chief of staff reads them for daily schedules.
 
 ```
 ~/.cache/fit/basecamp/
-├── apple_mail/       # inbox agent writes, knowledge agent reads
-├── apple_calendar/   # calendar agent writes, briefing/knowledge agent reads
+├── apple_mail/       # postman writes, librarian reads
+├── apple_calendar/   # concierge writes, chief-of-staff/librarian reads
 └── state/            # all agents read/write their own state files
 ```
 
@@ -519,7 +519,7 @@ There is no message queue, no pub/sub, no inter-process communication between
 agents. The filesystem is the message bus. This is deliberate:
 
 - **Observable:** Every piece of inter-agent state is a readable file
-- **Debuggable:** `cat ~/.cache/fit/basecamp/state/inbox_triage.md`
+- **Debuggable:** `cat ~/.cache/fit/basecamp/state/postman_triage.md`
 - **Resilient:** If one agent fails, others continue with stale-but-valid state
 - **Simple:** No coordination infrastructure to build or maintain
 
@@ -533,18 +533,18 @@ sequentially in config order. Config order determines priority:
 ```json
 {
   "agents": {
-    "inbox": { ... },      // runs first — syncs mail for others
-    "calendar": { ... },   // runs second — syncs calendar for others
-    "knowledge": { ... },  // runs third — processes synced data
-    "briefing": { ... }    // runs last — reads all state files
+    "postman": { ... },        // runs first — syncs mail for others
+    "concierge": { ... },      // runs second — syncs calendar for others
+    "librarian": { ... },      // runs third — processes synced data
+    "chief-of-staff": { ... }  // runs last — reads all state files
   }
 }
 ```
 
 This ordering ensures:
 
-1. Data sources are synced before processing (inbox/calendar before knowledge)
-2. State files are fresh before synthesis (all agents before briefing)
+1. Data sources are synced before processing (postman/concierge before librarian)
+2. State files are fresh before synthesis (all agents before chief of staff)
 3. No filesystem conflicts (one agent writes at a time)
 
 ### Cadence Interaction
@@ -552,25 +552,25 @@ This ordering ensures:
 With the default schedules, a typical hour looks like:
 
 ```
-:00  inbox → calendar → knowledge
-:05  inbox
-:10  inbox → calendar
-:15  inbox → knowledge
-:20  inbox → calendar
-:25  inbox
-:30  inbox → calendar → knowledge
-:35  inbox
-:40  inbox → calendar
-:45  inbox → knowledge
-:50  inbox → calendar
-:55  inbox
+:00  postman → concierge → librarian
+:05  postman
+:10  postman → concierge
+:15  postman → librarian
+:20  postman → concierge
+:25  postman
+:30  postman → concierge → librarian
+:35  postman
+:40  postman → concierge
+:45  postman → librarian
+:50  postman → concierge
+:55  postman
 ```
 
-Briefing runs at 7:00 AM and 6:00 PM only, after all other due agents.
+Chief of staff runs at 7:00 AM and 6:00 PM only, after all other due agents.
 
 The scheduler processes agents in config order for each 60-second poll. If
-inbox is due at :05 and calendar is not, only inbox runs. If both are due at
-:10, inbox runs first, then calendar. The existing `shouldWake()` logic handles
+postman is due at :05 and concierge is not, only postman runs. If both are due
+at :10, postman runs first, then concierge. The existing `shouldWake()` logic handles
 this — it checks each agent independently against its schedule and last wake
 time.
 
@@ -588,22 +588,22 @@ vocabulary throughout.
 ```json
 {
   "agents": {
-    "inbox": {
+    "postman": {
       "kb": "~/Documents/Personal",
       "schedule": { "type": "interval", "minutes": 5 },
       "enabled": true
     },
-    "calendar": {
+    "concierge": {
       "kb": "~/Documents/Personal",
       "schedule": { "type": "interval", "minutes": 10 },
       "enabled": true
     },
-    "knowledge": {
+    "librarian": {
       "kb": "~/Documents/Personal",
       "schedule": { "type": "interval", "minutes": 15 },
       "enabled": true
     },
-    "briefing": {
+    "chief-of-staff": {
       "kb": "~/Documents/Personal",
       "schedule": { "type": "cron", "expression": "0 7,18 * * *" },
       "enabled": true
@@ -623,7 +623,7 @@ inside the KB's `.claude/agents/` directory.
 ```json
 {
   "agents": {
-    "inbox": {
+    "postman": {
       "status": "idle",
       "lastWokeAt": "2026-02-23T10:05:32.789Z",
       "lastAction": "draft-emails for thread 456",
@@ -632,7 +632,7 @@ inside the KB's `.claude/agents/` directory.
       "startedAt": null,
       "lastError": null
     },
-    "calendar": {
+    "concierge": {
       "status": "idle",
       "lastWokeAt": "2026-02-23T10:00:15.123Z",
       "lastAction": "meeting-prep for 2pm with Sarah Chen",
@@ -641,7 +641,7 @@ inside the KB's `.claude/agents/` directory.
       "startedAt": null,
       "lastError": null
     },
-    "knowledge": {
+    "librarian": {
       "status": "idle",
       "lastWokeAt": "2026-02-23T09:45:08.456Z",
       "lastAction": "extract-entities on 7 files",
@@ -650,7 +650,7 @@ inside the KB's `.claude/agents/` directory.
       "startedAt": null,
       "lastError": null
     },
-    "briefing": {
+    "chief-of-staff": {
       "status": "idle",
       "lastWokeAt": "2026-02-23T07:00:02.100Z",
       "lastAction": "Created knowledge/Briefings/2026-02-23-morning.md",
@@ -725,7 +725,7 @@ Status response:
   "type": "status",
   "uptime": 3600,
   "agents": {
-    "inbox": {
+    "postman": {
       "enabled": true,
       "status": "idle",
       "lastWokeAt": "2026-02-23T10:05:32.789Z",
@@ -739,7 +739,7 @@ Status response:
 }
 ```
 
-Wake request: `{ "type": "wake", "agent": "inbox" }`
+Wake request: `{ "type": "wake", "agent": "postman" }`
 
 ### Validate Command
 
@@ -762,25 +762,25 @@ Basecamp Scheduler
 ==================
 
 Agents:
-  + inbox
+  + postman
     KB: ~/Documents/Personal  Schedule: {"type":"interval","minutes":5}
     Status: idle  Last wake: 10:05 AM  Wakes: 42
     Last action: draft-emails for thread 456
     Last decision: 3 urgent emails, drafted reply to contract deadline
 
-  + calendar
+  + concierge
     KB: ~/Documents/Personal  Schedule: {"type":"interval","minutes":10}
     Status: idle  Last wake: 10:00 AM  Wakes: 18
     Last action: meeting-prep for 2pm with Sarah Chen
     Last decision: Meeting in 2h, no briefing exists
 
-  + knowledge
+  + librarian
     KB: ~/Documents/Personal  Schedule: {"type":"interval","minutes":15}
     Status: idle  Last wake: 9:45 AM  Wakes: 6
     Last action: extract-entities on 7 files
     Last decision: 7 unprocessed synced files
 
-  + briefing
+  + chief-of-staff
     KB: ~/Documents/Personal  Schedule: {"type":"cron","expression":"0 7,18 * * *"}
     Status: idle  Last wake: 7:00 AM  Wakes: 2
     Last action: Created morning briefing
@@ -807,10 +807,10 @@ Usage:
 
 | File | Purpose |
 |------|---------|
-| `template/.claude/agents/inbox.md` | Inbox agent definition |
-| `template/.claude/agents/calendar.md` | Calendar agent definition |
-| `template/.claude/agents/knowledge.md` | Knowledge agent definition |
-| `template/.claude/agents/briefing.md` | Briefing agent definition |
+| `template/.claude/agents/postman.md` | Postman agent definition |
+| `template/.claude/agents/concierge.md` | Concierge agent definition |
+| `template/.claude/agents/librarian.md` | Librarian agent definition |
+| `template/.claude/agents/chief-of-staff.md` | Chief of Staff agent definition |
 | `template/knowledge/Briefings/.gitkeep` | Empty directory for daily briefings |
 
 ### Modified Files
@@ -837,15 +837,15 @@ Each wake, they observe KB state, decide the most valuable action, and execute.
 
 | Agent | Domain | Schedule | Skills |
 |-------|--------|----------|--------|
-| **inbox** | Email triage and drafts | Every 5 min | sync-apple-mail, draft-emails |
-| **calendar** | Meeting prep and transcripts | Every 10 min | sync-apple-calendar, meeting-prep, process-hyprnote |
-| **knowledge** | Knowledge graph maintenance | Every 15 min | extract-entities, organize-files |
-| **briefing** | Daily briefings and priorities | 7am, 6pm | _(reads all state)_ |
+| **postman** | Email triage and drafts | Every 5 min | sync-apple-mail, draft-emails |
+| **concierge** | Meeting prep and transcripts | Every 10 min | sync-apple-calendar, meeting-prep, process-hyprnote |
+| **librarian** | Knowledge graph maintenance | Every 15 min | extract-entities, organize-files |
+| **chief-of-staff** | Daily briefings and priorities | 7am, 6pm | _(reads all state)_ |
 
 Agent state files are in `~/.cache/fit/basecamp/state/`:
-- `inbox_triage.md` — latest email triage
-- `calendar_outlook.md` — today's calendar outlook
-- `knowledge_digest.md` — knowledge graph status
+- `postman_triage.md` — latest email triage
+- `concierge_outlook.md` — today's calendar outlook
+- `librarian_digest.md` — knowledge graph status
 
 Daily briefings are in `knowledge/Briefings/`.
 ```
@@ -877,7 +877,7 @@ three problems that grow with capability:
    frequency. A single agent on a 15-minute timer misses urgent emails.
 
 3. **Context bloat.** Preloading all skills into one agent's context is
-   expensive. The inbox agent needs sync-apple-mail and draft-emails (2 skills).
+   expensive. The postman needs sync-apple-mail and draft-emails (2 skills).
    Loading all 7+ skills into every invocation wastes context on skills the
    agent won't use.
 
@@ -889,11 +889,10 @@ at its natural cadence; each loads only its relevant skills.
 A dedicated sync agent (just mail + calendar sync) was considered but rejected.
 Sync is a prerequisite for triage/prep, and bundling them in the same agent
 avoids a wasted wake cycle (sync runs, then next cycle the triage agent reads
-the results). The inbox agent syncs and triages in the same wake — lower
-latency.
+the results). The postman syncs and triages in the same wake — lower latency.
 
 A dedicated "follow-up tracker" agent was considered but rejected. Follow-up
-tracking is part of inbox triage (awaiting response) and briefing synthesis
+tracking is part of the postman's triage (awaiting response) and chief-of-staff synthesis
 (open commitments). Creating a separate agent would fragment email awareness.
 
 ### Why cron for briefing, not interval?
@@ -906,24 +905,24 @@ hours.
 ### Why no inter-agent messaging?
 
 Direct messaging (queues, signals, events) adds infrastructure complexity with
-marginal benefit. The filesystem provides eventual consistency — the inbox
-agent writes `inbox_triage.md`, and the briefing agent reads it on its next
+marginal benefit. The filesystem provides eventual consistency — the postman
+writes `postman_triage.md`, and the chief of staff reads it on its next
 wake. The delay is at most one briefing cycle (12 hours), which is acceptable
 because briefings are daily summaries, not real-time alerts.
 
-If real-time coordination is needed in the future (e.g., "inbox agent detects
-urgent email → immediately wake briefing agent"), the scheduler can support
-`{ "type": "signal", "from": "inbox", "to": "briefing" }` IPC messages. But
+If real-time coordination is needed in the future (e.g., "postman detects
+urgent email → immediately wake chief of staff"), the scheduler can support
+`{ "type": "signal", "from": "postman", "to": "chief-of-staff" }` IPC messages. But
 this is premature today.
 
-### Why the briefing agent has no skills
+### Why the chief of staff has no skills
 
-The briefing agent reads files and writes markdown. It doesn't sync data,
+The chief of staff reads files and writes markdown. It doesn't sync data,
 draft emails, or extract entities — those are other agents' jobs. Giving it
 skills would blur domain boundaries and create the same monolithic design we're
 avoiding.
 
-The briefing agent's value is synthesis, not action. It reads the outputs of
+The chief of staff's value is synthesis, not action. It reads the outputs of
 all other agents and produces a human-readable summary. This is a fundamentally
 different kind of work.
 
@@ -933,7 +932,7 @@ different kind of work.
 |--------------|-----------------|-------|
 | Current (3 tasks) | 36 | 3 tasks × 12 wakes/hour |
 | Single agent (prev plan) | 12 | 1 agent × 12 wakes/hour |
-| Multi-agent | ~22 | inbox(12) + calendar(6) + knowledge(4) + briefing(~0) |
+| Multi-agent | ~22 | postman(12) + concierge(6) + librarian(4) + chief-of-staff(~0) |
 
 Multi-agent uses fewer invocations than the current system. Each invocation is
 more efficient because agents load only their relevant skills. The net token
@@ -946,10 +945,10 @@ higher invocation counts.
 
 | File | Purpose |
 |------|---------|
-| `template/.claude/agents/inbox.md` | Inbox agent |
-| `template/.claude/agents/calendar.md` | Calendar agent |
-| `template/.claude/agents/knowledge.md` | Knowledge agent |
-| `template/.claude/agents/briefing.md` | Briefing agent |
+| `template/.claude/agents/postman.md` | Postman agent |
+| `template/.claude/agents/concierge.md` | Concierge agent |
+| `template/.claude/agents/librarian.md` | Librarian agent |
+| `template/.claude/agents/chief-of-staff.md` | Chief of Staff agent |
 | `template/knowledge/Briefings/.gitkeep` | Briefings directory |
 
 ### Modified
