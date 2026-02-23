@@ -8,8 +8,6 @@
 // On other platforms or in dev mode, the scheduler falls back to
 // child_process.spawn / Deno.Command.
 
-import { read as fsReadCb, closeSync as fsCloseSync } from "node:fs";
-
 const libc = Deno.dlopen("libSystem.B.dylib", {
   posix_spawn: {
     parameters: [
@@ -103,36 +101,26 @@ function createPipe() {
 }
 
 /**
- * Read from a file descriptor using Node.js fs.read callback API.
- * @param {number} fd
- * @param {Uint8Array} buffer
- * @returns {Promise<number>} bytes read
- */
-function readFromFd(fd, buffer) {
-  return new Promise((resolve, reject) => {
-    fsReadCb(fd, buffer, 0, buffer.length, null, (err, bytesRead) => {
-      if (err) reject(err);
-      else resolve(bytesRead);
-    });
-  });
-}
-
-/**
  * Read all data from a file descriptor until EOF.
- * Uses node:fs read callbacks so the libuv event loop stays responsive
- * (socket server, timers, etc. continue processing during reads).
+ * Wraps the raw FFI fd into Deno's resource system via /dev/fd/N (macOS dup)
+ * so reads go through Tokio's async I/O and properly yield to the event loop
+ * (socket server, timers, etc. stay responsive while a child process runs).
  * @param {number} fd
  * @returns {Promise<string>}
  */
 export async function readAll(fd) {
+  const file = await Deno.open(`/dev/fd/${fd}`, { read: true });
+  libc.symbols.close(fd); // Original fd no longer needed after dup
+
   const chunks = [];
   const buf = new Uint8Array(4096);
   while (true) {
-    const n = await readFromFd(fd, buf);
-    if (n === 0) break; // EOF
+    const n = await file.read(buf);
+    if (n === null) break; // EOF
     chunks.push(buf.slice(0, n));
   }
-  fsCloseSync(fd);
+  file.close();
+
   const total = chunks.reduce((sum, c) => sum + c.length, 0);
   const result = new Uint8Array(total);
   let offset = 0;
