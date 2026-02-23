@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/basecamp",
-  "version": "1.0.0",
-  "description": "Claude Code-native personal knowledge system with scheduled tasks",
+  "version": "2.0.0",
+  "description": "Claude Code-native personal knowledge system with autonomous agents",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

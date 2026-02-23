@@ -24,9 +24,9 @@ Nobody gives them a morning briefing of what matters today.
 
 A single omniscient agent (the previous plan's `knowledge-curator`) can
 technically do all of this, but it creates a monolithic decision tree that grows
-with every new capability. More practically, it forces a single cadence for
-work that naturally operates at very different frequencies — email triage every
-few minutes, meeting prep on an event-driven basis, daily briefings twice a day.
+with every new capability. More practically, it forces a single cadence for work
+that naturally operates at very different frequencies — email triage every few
+minutes, meeting prep on an event-driven basis, daily briefings twice a day.
 
 ## Solution
 
@@ -49,24 +49,24 @@ Each agent follows the same loop:
 3. **Act** — execute one skill, write results
 4. **Report** — write a state file for other agents to read
 
-The agents communicate through the shared knowledge base and cache directory.
-No explicit messaging protocol — the filesystem is the message bus. The postman
+The agents communicate through the shared knowledge base and cache directory. No
+explicit messaging protocol — the filesystem is the message bus. The postman
 writes triage results; the chief of staff reads them. The concierge writes an
 outlook; the chief of staff reads it. Each agent's output enriches the context
 available to every other agent.
 
 ### What Changes
 
-| Component | Current | New |
-|-----------|---------|-----|
-| Config key | `tasks` | `agents` |
-| Default agents | 3 tasks (mail, cal, extract) | 4 agents (postman, concierge, librarian, chief-of-staff) |
-| Behavior | Fixed skill per task | Agent observes and decides each wake |
-| Communication | None between tasks | Shared state files in cache |
-| Proactive output | None | Triage, briefings, prep alerts |
-| macOS UI | Task list (name + status) | Agent panel (decision context, briefing links, wake control) |
-| State model | `{ status, lastRunAt, runCount }` | `{ status, lastWokeAt, lastAction, lastDecision, wakeCount }` |
-| Execution | `claude --print -p "Use skill X"` | `claude --agent <name> --print -p "Observe and act."` |
+| Component        | Current                           | New                                                           |
+| ---------------- | --------------------------------- | ------------------------------------------------------------- |
+| Config key       | `tasks`                           | `agents`                                                      |
+| Default agents   | 3 tasks (mail, cal, extract)      | 4 agents (postman, concierge, librarian, chief-of-staff)      |
+| Behavior         | Fixed skill per task              | Agent observes and decides each wake                          |
+| Communication    | None between tasks                | Shared state files in cache                                   |
+| Proactive output | None                              | Triage, briefings, prep alerts                                |
+| macOS UI         | Task list (name + status)         | Agent panel (decision context, briefing links, wake control)  |
+| State model      | `{ status, lastRunAt, runCount }` | `{ status, lastWokeAt, lastAction, lastDecision, wakeCount }` |
+| Execution        | `claude --print -p "Use skill X"` | `claude --agent <name> --print -p "Observe and act."`         |
 
 ### What Stays
 
@@ -84,13 +84,13 @@ available to every other agent.
 
 ### Skill Assignment
 
-| Agent | Skills | Interactive Skills |
-|-------|--------|--------------------|
-| **Postman** | sync-apple-mail, draft-emails | — |
-| **Concierge** | sync-apple-calendar, meeting-prep, process-hyprnote | — |
-| **Librarian** | extract-entities, organize-files | — |
-| **Chief of Staff** | _(none — reads and writes only)_ | — |
-| **User (manual)** | — | create-presentations, doc-collab |
+| Agent              | Skills                                              | Interactive Skills               |
+| ------------------ | --------------------------------------------------- | -------------------------------- |
+| **Postman**        | sync-apple-mail, draft-emails                       | —                                |
+| **Concierge**      | sync-apple-calendar, meeting-prep, process-hyprnote | —                                |
+| **Librarian**      | extract-entities, organize-files                    | —                                |
+| **Chief of Staff** | _(none — reads and writes only)_                    | —                                |
+| **User (manual)**  | —                                                   | create-presentations, doc-collab |
 
 `create-presentations` and `doc-collab` remain interactive skills — the user
 invokes them directly through the KB. They are not assigned to any scheduled
@@ -476,8 +476,8 @@ awareness.
 ```
 
 State files are overwritten on each wake (not appended). They represent the
-latest snapshot, not a history. The scheduler's `state.json` tracks the
-history (wake count, last action, last decision).
+latest snapshot, not a history. The scheduler's `state.json` tracks the history
+(wake count, last action, last decision).
 
 ### 2. Knowledge Base (Agent → User → Agent)
 
@@ -544,7 +544,8 @@ sequentially in config order. Config order determines priority:
 
 This ordering ensures:
 
-1. Data sources are synced before processing (postman/concierge before librarian)
+1. Data sources are synced before processing (postman/concierge before
+   librarian)
 2. State files are fresh before synthesis (all agents before chief of staff)
 3. No filesystem conflicts (one agent writes at a time)
 
@@ -571,9 +572,9 @@ Chief of staff runs at 7:00 AM and 6:00 PM only, after all other due agents.
 
 The scheduler processes agents in config order for each 60-second poll. If
 postman is due at :05 and concierge is not, only postman runs. If both are due
-at :10, postman runs first, then concierge. The existing `shouldWake()` logic handles
-this — it checks each agent independently against its schedule and last wake
-time.
+at :10, postman runs first, then concierge. The existing `shouldWake()` logic
+handles this — it checks each agent independently against its schedule and last
+wake time.
 
 ## Scheduler Architecture
 
@@ -667,21 +668,21 @@ inside the KB's `.claude/agents/` directory.
 Status values: `"idle"`, `"active"`, `"failed"`, `"never-woken"`.
 
 The scheduler parses `Decision:` and `Action:` lines from agent stdout to
-populate `lastDecision` and `lastAction`. Falls back to the first 200
-characters of output if markers are absent.
+populate `lastDecision` and `lastAction`. Falls back to the first 200 characters
+of output if markers are absent.
 
 ### Code Changes (`src/basecamp.js`)
 
 The same mechanical replacements as the previous plan:
 
-| Current | New |
-|---------|-----|
+| Current                                | New                                     |
+| -------------------------------------- | --------------------------------------- |
 | `loadConfig()` returns `{ tasks: {} }` | `loadConfig()` returns `{ agents: {} }` |
-| `loadState()` checks `raw.tasks` | `loadState()` checks `raw.agents` |
-| `runTask(name, task, config, state)` | `wakeAgent(name, agent, config, state)` |
-| `runDueTasks()` | `wakeDueAgents()` |
-| `shouldRun(task, taskState, now)` | `shouldWake(agent, agentState, now)` |
-| `computeNextRunAt()` | `computeNextWakeAt()` |
+| `loadState()` checks `raw.tasks`       | `loadState()` checks `raw.agents`       |
+| `runTask(name, task, config, state)`   | `wakeAgent(name, agent, config, state)` |
+| `runDueTasks()`                        | `wakeDueAgents()`                       |
+| `shouldRun(task, taskState, now)`      | `shouldWake(agent, agentState, now)`    |
+| `computeNextRunAt()`                   | `computeNextWakeAt()`                   |
 
 The execution function changes from constructing a prompt with a skill name to
 invoking a named agent:
@@ -806,8 +807,8 @@ function resolveBriefingFile(agentName, agentConfig) {
 }
 ```
 
-The mapping is explicit rather than derived from a naming convention. This
-keeps the descriptive file names (`postman_triage.md`, `concierge_outlook.md`,
+The mapping is explicit rather than derived from a naming convention. This keeps
+the descriptive file names (`postman_triage.md`, `concierge_outlook.md`,
 `librarian_digest.md`) which aid debugging when browsing the filesystem
 directly, while centralizing path knowledge in the daemon rather than
 distributing it to clients.
@@ -862,24 +863,24 @@ Usage:
 
 ### New Files
 
-| File | Purpose |
-|------|---------|
-| `template/.claude/agents/postman.md` | Postman agent definition |
-| `template/.claude/agents/concierge.md` | Concierge agent definition |
-| `template/.claude/agents/librarian.md` | Librarian agent definition |
-| `template/.claude/agents/chief-of-staff.md` | Chief of Staff agent definition |
-| `template/knowledge/Briefings/.gitkeep` | Empty directory for daily briefings |
+| File                                        | Purpose                             |
+| ------------------------------------------- | ----------------------------------- |
+| `template/.claude/agents/postman.md`        | Postman agent definition            |
+| `template/.claude/agents/concierge.md`      | Concierge agent definition          |
+| `template/.claude/agents/librarian.md`      | Librarian agent definition          |
+| `template/.claude/agents/chief-of-staff.md` | Chief of Staff agent definition     |
+| `template/knowledge/Briefings/.gitkeep`     | Empty directory for daily briefings |
 
 ### Modified Files
 
-| File | Change |
-|------|--------|
-| `src/basecamp.js` | Replace task model with agent model throughout |
-| `config/scheduler.json` | Three tasks → four agents |
-| `template/CLAUDE.md` | Add agent team section, update skills context |
+| File                                            | Change                                                                       |
+| ----------------------------------------------- | ---------------------------------------------------------------------------- |
+| `src/basecamp.js`                               | Replace task model with agent model throughout                               |
+| `config/scheduler.json`                         | Three tasks → four agents                                                    |
+| `template/CLAUDE.md`                            | Add agent team section, update skills context                                |
 | `macos/Basecamp/Sources/DaemonConnection.swift` | `TaskStatus` → `AgentStatus`, parse `briefingFile`/`kbPath`, `requestWake()` |
-| `macos/Basecamp/Sources/StatusMenu.swift` | Agent-focused UI: decision subtitles, View Briefing, Open KB, Wake Now |
-| `package.json` | Version bump |
+| `macos/Basecamp/Sources/StatusMenu.swift`       | Agent-focused UI: decision subtitles, View Briefing, Open KB, Wake Now       |
+| `package.json`                                  | Version bump                                                                 |
 
 ### Updated: `template/CLAUDE.md`
 
@@ -942,13 +943,13 @@ struct StatusResponse {
 
 IPC vocabulary changes:
 
-| Current | New |
-|---------|-----|
-| `struct TaskStatus` | `struct AgentStatus` |
-| `StatusResponse.tasks` | `StatusResponse.agents` |
-| `requestRun(task:)` | `requestWake(agent:)` |
+| Current                                 | New                                       |
+| --------------------------------------- | ----------------------------------------- |
+| `struct TaskStatus`                     | `struct AgentStatus`                      |
+| `StatusResponse.tasks`                  | `StatusResponse.agents`                   |
+| `requestRun(task:)`                     | `requestWake(agent:)`                     |
 | Send `{ "type": "run", "task": "..." }` | Send `{ "type": "wake", "agent": "..." }` |
-| Parse `json["tasks"]` | Parse `json["agents"]` |
+| Parse `json["tasks"]`                   | Parse `json["agents"]`                    |
 
 Parsing reads `lastAction`, `lastDecision`, `kbPath`, and `briefingFile` as
 optional strings. The `status` field uses agent vocabulary (`idle`, `active`,
@@ -1003,10 +1004,10 @@ Each enabled agent's title item has a submenu with actions:
 └──────────────────────────────┘
 ```
 
-- **View Briefing** — calls `NSWorkspace.shared.open(URL(fileURLWithPath:))`
-  on `agentStatus.briefingFile`. Opens the agent's latest output file in the
-  user's default markdown editor. Disabled (grayed out) if `briefingFile` is
-  nil (file doesn't exist yet or agent never woken).
+- **View Briefing** — calls `NSWorkspace.shared.open(URL(fileURLWithPath:))` on
+  `agentStatus.briefingFile`. Opens the agent's latest output file in the user's
+  default markdown editor. Disabled (grayed out) if `briefingFile` is nil (file
+  doesn't exist yet or agent never woken).
 - **Wake Now** — sends `{ "type": "wake", "agent": "<name>" }` over IPC, then
   requests status after 1 second. Replaces the current "Run Now" action.
 - **Error text** — last 80 characters of `lastError`, shown as a disabled item
@@ -1016,11 +1017,11 @@ Each enabled agent's title item has a submenu with actions:
 
 Replace the current single footer with agent-relevant actions:
 
-| Item | Action | Source |
-|------|--------|--------|
-| 📂 Open KB… | `NSWorkspace.shared.open()` on KB directory | First agent's `kbPath` from IPC |
+| Item          | Action                                        | Source                              |
+| ------------- | --------------------------------------------- | ----------------------------------- |
+| 📂 Open KB…   | `NSWorkspace.shared.open()` on KB directory   | First agent's `kbPath` from IPC     |
 | 📂 Open Logs… | `NSWorkspace.shared.open()` on logs directory | `~/.fit/basecamp/logs/` (unchanged) |
-| Quit Basecamp | `NSApp.terminate(nil)` | Unchanged |
+| Quit Basecamp | `NSApp.terminate(nil)`                        | Unchanged                           |
 
 "Open KB…" opens the knowledge base directory in Finder. The KB path is taken
 from the first enabled agent's `kbPath` field in the status response. In
@@ -1030,13 +1031,13 @@ practice all agents share the same KB, so any agent's path works.
 
 Updated vocabulary — status values change from task to agent semantics:
 
-| Status | Icon | Color | Was |
-|--------|------|-------|-----|
-| `idle` | ✓ | `.systemGreen` | `finished` |
-| `active` | ● | `.systemBlue` | `running` |
-| `failed` | ✗ | `.systemRed` | `failed` |
-| `never-woken` | ○ | `.systemGray` | `never-run` |
-| disabled | — | `.systemGray` | disabled |
+| Status        | Icon | Color          | Was         |
+| ------------- | ---- | -------------- | ----------- |
+| `idle`        | ✓    | `.systemGreen` | `finished`  |
+| `active`      | ●    | `.systemBlue`  | `running`   |
+| `failed`      | ✗    | `.systemRed`   | `failed`    |
+| `never-woken` | ○    | `.systemGray`  | `never-run` |
+| disabled      | —    | `.systemGray`  | disabled    |
 
 #### Relative Time
 
@@ -1066,8 +1067,8 @@ menu on every status poll.
 
 #### In-Place Update Strategy
 
-Same pattern as current — check if structural change occurred (connection
-state, agent count), rebuild menu if so. Otherwise update in-place:
+Same pattern as current — check if structural change occurred (connection state,
+agent count), rebuild menu if so. Otherwise update in-place:
 
 1. Header uptime text
 2. Agent title items (icon, name, relative time via attributed title)
@@ -1094,8 +1095,8 @@ The single-agent design (previous plan's `knowledge-curator`) works but has
 three problems that grow with capability:
 
 1. **Monolithic decision tree.** One agent choosing between mail sync, calendar
-   sync, entity extraction, meeting prep, email drafting, file organization,
-   and daily briefings creates a priority chain that's hard to reason about and
+   sync, entity extraction, meeting prep, email drafting, file organization, and
+   daily briefings creates a priority chain that's hard to reason about and
    tune. Adding a new capability means rethinking the entire priority order.
 
 2. **Single cadence.** Email triage should happen every 5 minutes. Entity
@@ -1108,8 +1109,8 @@ three problems that grow with capability:
    Loading all 7+ skills into every invocation wastes context on skills the
    agent won't use.
 
-Four agents solve all three: each has a short, clear decision tree; each runs
-at its natural cadence; each loads only its relevant skills.
+Four agents solve all three: each has a short, clear decision tree; each runs at
+its natural cadence; each loads only its relevant skills.
 
 ### Why not more agents?
 
@@ -1119,8 +1120,9 @@ avoids a wasted wake cycle (sync runs, then next cycle the triage agent reads
 the results). The postman syncs and triages in the same wake — lower latency.
 
 A dedicated "follow-up tracker" agent was considered but rejected. Follow-up
-tracking is part of the postman's triage (awaiting response) and chief-of-staff synthesis
-(open commitments). Creating a separate agent would fragment email awareness.
+tracking is part of the postman's triage (awaiting response) and chief-of-staff
+synthesis (open commitments). Creating a separate agent would fragment email
+awareness.
 
 ### Why cron for briefing, not interval?
 
@@ -1133,24 +1135,24 @@ hours.
 
 Direct messaging (queues, signals, events) adds infrastructure complexity with
 marginal benefit. The filesystem provides eventual consistency — the postman
-writes `postman_triage.md`, and the chief of staff reads it on its next
-wake. The delay is at most one briefing cycle (12 hours), which is acceptable
-because briefings are daily summaries, not real-time alerts.
+writes `postman_triage.md`, and the chief of staff reads it on its next wake.
+The delay is at most one briefing cycle (12 hours), which is acceptable because
+briefings are daily summaries, not real-time alerts.
 
-If real-time coordination is needed in the future (e.g., "postman detects
-urgent email → immediately wake chief of staff"), the scheduler can support
-`{ "type": "signal", "from": "postman", "to": "chief-of-staff" }` IPC messages. But
-this is premature today.
+If real-time coordination is needed in the future (e.g., "postman detects urgent
+email → immediately wake chief of staff"), the scheduler can support
+`{ "type": "signal", "from": "postman", "to": "chief-of-staff" }` IPC messages.
+But this is premature today.
 
 ### Why the chief of staff has no skills
 
-The chief of staff reads files and writes markdown. It doesn't sync data,
-draft emails, or extract entities — those are other agents' jobs. Giving it
-skills would blur domain boundaries and create the same monolithic design we're
+The chief of staff reads files and writes markdown. It doesn't sync data, draft
+emails, or extract entities — those are other agents' jobs. Giving it skills
+would blur domain boundaries and create the same monolithic design we're
 avoiding.
 
-The chief of staff's value is synthesis, not action. It reads the outputs of
-all other agents and produces a human-readable summary. This is a fundamentally
+The chief of staff's value is synthesis, not action. It reads the outputs of all
+other agents and produces a human-readable summary. This is a fundamentally
 different kind of work.
 
 ### Why descriptive file names, not standardized `{agent}.md`?
@@ -1166,15 +1168,15 @@ reasons:
    message bus — descriptive names support that.
 
 2. **The chief of staff breaks the pattern.** The chief of staff writes to
-   `knowledge/Briefings/{date}-{type}.md`, not to the cache state directory.
-   No single naming convention covers all agents, so a convention-based
-   approach still requires special-casing.
+   `knowledge/Briefings/{date}-{type}.md`, not to the cache state directory. No
+   single naming convention covers all agents, so a convention-based approach
+   still requires special-casing.
 
 3. **The daemon resolves paths, not the UI.** The `briefingFile` field in the
-   IPC status response gives the Swift UI the exact path to open. The UI
-   never constructs paths from agent names — it receives them. This means
-   file names can change without UI changes, and new agents can write to
-   arbitrary locations without protocol changes.
+   IPC status response gives the Swift UI the exact path to open. The UI never
+   constructs paths from agent names — it receives them. This means file names
+   can change without UI changes, and new agents can write to arbitrary
+   locations without protocol changes.
 
 The cost is a small mapping table in the daemon (`AGENT_STATE_FILES`). This is
 acceptable because agent definitions change infrequently and the mapping is
@@ -1182,11 +1184,11 @@ co-located with the agent execution logic.
 
 ### Cost profile
 
-| Configuration | Invocations/hour | Notes |
-|--------------|-----------------|-------|
-| Current (3 tasks) | 36 | 3 tasks × 12 wakes/hour |
-| Single agent (prev plan) | 12 | 1 agent × 12 wakes/hour |
-| Multi-agent | ~22 | postman(12) + concierge(6) + librarian(4) + chief-of-staff(~0) |
+| Configuration            | Invocations/hour | Notes                                                          |
+| ------------------------ | ---------------- | -------------------------------------------------------------- |
+| Current (3 tasks)        | 36               | 3 tasks × 12 wakes/hour                                        |
+| Single agent (prev plan) | 12               | 1 agent × 12 wakes/hour                                        |
+| Multi-agent              | ~22              | postman(12) + concierge(6) + librarian(4) + chief-of-staff(~0) |
 
 Multi-agent uses fewer invocations than the current system. Each invocation is
 more efficient because agents load only their relevant skills. The net token
@@ -1197,24 +1199,24 @@ higher invocation counts.
 
 ### Added
 
-| File | Purpose |
-|------|---------|
-| `template/.claude/agents/postman.md` | Postman agent |
-| `template/.claude/agents/concierge.md` | Concierge agent |
-| `template/.claude/agents/librarian.md` | Librarian agent |
+| File                                        | Purpose              |
+| ------------------------------------------- | -------------------- |
+| `template/.claude/agents/postman.md`        | Postman agent        |
+| `template/.claude/agents/concierge.md`      | Concierge agent      |
+| `template/.claude/agents/librarian.md`      | Librarian agent      |
 | `template/.claude/agents/chief-of-staff.md` | Chief of Staff agent |
-| `template/knowledge/Briefings/.gitkeep` | Briefings directory |
+| `template/knowledge/Briefings/.gitkeep`     | Briefings directory  |
 
 ### Modified
 
-| File | Change |
-|------|--------|
-| `src/basecamp.js` | tasks → agents throughout |
-| `config/scheduler.json` | 3 tasks → 4 agents |
-| `template/CLAUDE.md` | Add agent team section |
+| File                               | Change                                                               |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| `src/basecamp.js`                  | tasks → agents throughout                                            |
+| `config/scheduler.json`            | 3 tasks → 4 agents                                                   |
+| `template/CLAUDE.md`               | Add agent team section                                               |
 | `macos/.../DaemonConnection.swift` | `AgentStatus` model, `briefingFile`/`kbPath` fields, `requestWake()` |
-| `macos/.../StatusMenu.swift` | Agent-focused UI with decision subtitles, View Briefing, Open KB |
-| `package.json` | version bump |
+| `macos/.../StatusMenu.swift`       | Agent-focused UI with decision subtitles, View Briefing, Open KB     |
+| `package.json`                     | version bump                                                         |
 
 ### Deleted
 
@@ -1235,8 +1237,9 @@ None. Skills stay. Config is replaced in-place.
 3. Replace `config/scheduler.json` (three tasks → four agents)
 4. Rewrite `src/basecamp.js` (tasks → agents throughout)
 5. Update `template/CLAUDE.md` (add agent team section)
-6. Update Swift files:
-   a. `DaemonConnection.swift` — `AgentStatus` model, `briefingFile`/`kbPath` parsing, `requestWake()`
-   b. `StatusMenu.swift` — agent-focused layout with decision subtitles, View Briefing action, Open KB footer
+6. Update Swift files: a. `DaemonConnection.swift` — `AgentStatus` model,
+   `briefingFile`/`kbPath` parsing, `requestWake()` b. `StatusMenu.swift` —
+   agent-focused layout with decision subtitles, View Briefing action, Open KB
+   footer
 7. Update `package.json` version
 8. Run `npm run check` and fix issues
