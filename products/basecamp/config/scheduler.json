@@ -1,28 +1,24 @@
 {
-  "tasks": {
-    "sync-apple-mail": {
+  "agents": {
+    "postman": {
       "kb": "~/Documents/Personal",
       "schedule": { "type": "interval", "minutes": 5 },
-      "enabled": true,
-      "agent": null,
-      "skill": "sync-apple-mail",
-      "prompt": "Sync Apple Mail. Only process new threads since last sync."
+      "enabled": true
     },
-    "sync-apple-calendar": {
+    "concierge": {
       "kb": "~/Documents/Personal",
-      "schedule": { "type": "interval", "minutes": 5 },
-      "enabled": true,
-      "agent": null,
-      "skill": "sync-apple-calendar",
-      "prompt": "Sync Apple Calendar events. Export events from the past 14 days and next 14 days."
+      "schedule": { "type": "interval", "minutes": 10 },
+      "enabled": true
     },
-    "extract-entities": {
+    "librarian": {
       "kb": "~/Documents/Personal",
       "schedule": { "type": "interval", "minutes": 15 },
-      "enabled": true,
-      "agent": null,
-      "skill": "extract-entities",
-      "prompt": "Process any new synced data (emails and calendar events) into knowledge graph notes."
+      "enabled": true
+    },
+    "chief-of-staff": {
+      "kb": "~/Documents/Personal",
+      "schedule": { "type": "cron", "expression": "0 7,18 * * *" },
+      "enabled": true
     }
   }
 }
