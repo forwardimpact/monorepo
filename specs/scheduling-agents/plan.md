@@ -104,7 +104,7 @@ agent.
 
 **File:** `template/.claude/agents/postman.md`
 
-```markdown
+````markdown
 ---
 name: postman
 description: >
@@ -178,7 +178,7 @@ After acting, output exactly:
 Decision: {what you observed and why you chose this action}
 Action: {what you did, e.g. "draft-emails for thread 123"}
 ```
-```
+````
 
 ---
 
@@ -190,7 +190,7 @@ Action: {what you did, e.g. "draft-emails for thread 123"}
 
 **File:** `template/.claude/agents/concierge.md`
 
-```markdown
+````markdown
 ---
 name: concierge
 description: >
@@ -266,7 +266,7 @@ After acting, output exactly:
 Decision: {what you observed and why you chose this action}
 Action: {what you did, e.g. "meeting-prep for 2pm with Sarah Chen"}
 ```
-```
+````
 
 ---
 
@@ -278,7 +278,7 @@ Action: {what you did, e.g. "meeting-prep for 2pm with Sarah Chen"}
 
 **File:** `template/.claude/agents/librarian.md`
 
-```markdown
+````markdown
 ---
 name: librarian
 description: >
@@ -339,7 +339,7 @@ After acting, output exactly:
 Decision: {what you observed and why you chose this action}
 Action: {what you did, e.g. "extract-entities on 7 files"}
 ```
-```
+````
 
 ---
 
@@ -351,7 +351,7 @@ Action: {what you did, e.g. "extract-entities on 7 files"}
 
 **File:** `template/.claude/agents/chief-of-staff.md`
 
-```markdown
+````markdown
 ---
 name: chief-of-staff
 description: >
@@ -451,7 +451,7 @@ Write to `knowledge/Briefings/{YYYY-MM-DD}-evening.md`:
 Decision: {morning/evening} briefing — {key insight about today}
 Action: Created knowledge/Briefings/{YYYY-MM-DD}-{morning|evening}.md
 ```
-```
+````
 
 ---
 
