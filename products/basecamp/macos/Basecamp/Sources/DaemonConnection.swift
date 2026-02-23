@@ -3,20 +3,24 @@ import Network
 
 // MARK: - Data models
 
-struct TaskStatus {
+struct AgentStatus {
     let name: String
     let enabled: Bool
     let status: String
-    let lastRunAt: Date?
-    let nextRunAt: Date?
-    let runCount: Int
+    let lastWokeAt: Date?
+    let nextWakeAt: Date?
+    let lastAction: String?
+    let lastDecision: String?
+    let wakeCount: Int
     let lastError: String?
     let startedAt: Date?
+    let kbPath: String?
+    let briefingFile: String?
 }
 
 struct StatusResponse {
     let uptime: Int
-    let tasks: [TaskStatus]
+    let agents: [AgentStatus]
 
     // Reuse formatters — ISO8601DateFormatter is expensive to create.
     private static let fractionalFormatter: ISO8601DateFormatter = {
@@ -30,22 +34,30 @@ struct StatusResponse {
     init(json: [String: Any]) {
         uptime = json["uptime"] as? Int ?? 0
 
-        var taskList: [TaskStatus] = []
-        if let tasksDict = json["tasks"] as? [String: [String: Any]] {
-            for (name, info) in tasksDict.sorted(by: { $0.key < $1.key }) {
-                taskList.append(TaskStatus(
+        var agentList: [AgentStatus] = []
+        if let agentsDict = json["agents"] as? [String: [String: Any]] {
+            // Preserve config order: use sorted keys as a stable fallback.
+            // The daemon sends agents in config order (JS object iteration
+            // preserves insertion order), but JSONSerialization doesn't
+            // guarantee key order, so we sort by name for consistency.
+            for (name, info) in agentsDict.sorted(by: { $0.key < $1.key }) {
+                agentList.append(AgentStatus(
                     name: name,
                     enabled: info["enabled"] as? Bool ?? true,
-                    status: info["status"] as? String ?? "never-run",
-                    lastRunAt: Self.parseDate(info["lastRunAt"]),
-                    nextRunAt: Self.parseDate(info["nextRunAt"]),
-                    runCount: info["runCount"] as? Int ?? 0,
+                    status: info["status"] as? String ?? "never-woken",
+                    lastWokeAt: Self.parseDate(info["lastWokeAt"]),
+                    nextWakeAt: Self.parseDate(info["nextWakeAt"]),
+                    lastAction: info["lastAction"] as? String,
+                    lastDecision: info["lastDecision"] as? String,
+                    wakeCount: info["wakeCount"] as? Int ?? 0,
                     lastError: info["lastError"] as? String,
-                    startedAt: Self.parseDate(info["startedAt"])
+                    startedAt: Self.parseDate(info["startedAt"]),
+                    kbPath: info["kbPath"] as? String,
+                    briefingFile: info["briefingFile"] as? String
                 ))
             }
         }
-        tasks = taskList
+        agents = agentList
     }
 
     private static func parseDate(_ value: Any?) -> Date? {
@@ -120,8 +132,8 @@ class DaemonConnection {
         sendJSON(["type": "status"])
     }
 
-    func requestRun(task: String) {
-        sendJSON(["type": "run", "task": task])
+    func requestWake(agent: String) {
+        sendJSON(["type": "wake", "agent": agent])
     }
 
     private func sendJSON(_ dict: [String: Any]) {
