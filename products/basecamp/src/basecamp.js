@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
-// Basecamp — CLI and scheduler for personal knowledge bases.
+// Basecamp — CLI and scheduler for autonomous agent teams.
 //
 // Usage:
-//   node basecamp.js                     Run due tasks once and exit
+//   node basecamp.js                     Wake due agents once and exit
 //   node basecamp.js --daemon            Run continuously (poll every 60s)
-//   node basecamp.js --run <task>        Run a specific task immediately
+//   node basecamp.js --wake <agent>      Wake a specific agent immediately
 //   node basecamp.js --init <path>       Initialize a new knowledge base
-//   node basecamp.js --validate          Validate agents and skills exist
-//   node basecamp.js --status            Show task status
+//   node basecamp.js --validate          Validate agent definitions exist
+//   node basecamp.js --status            Show agent status
 //   node basecamp.js --help              Show this help
 
 import {
@@ -18,6 +18,7 @@ import {
   mkdirSync,
   unlinkSync,
   chmodSync,
+  readdirSync,
 } from "node:fs";
 import { execSync } from "node:child_process";
 import { spawn } from "node:child_process";
@@ -31,6 +32,7 @@ const BASECAMP_HOME = join(HOME, ".fit", "basecamp");
 const CONFIG_PATH = join(BASECAMP_HOME, "scheduler.json");
 const STATE_PATH = join(BASECAMP_HOME, "state.json");
 const LOG_DIR = join(BASECAMP_HOME, "logs");
+const CACHE_DIR = join(HOME, ".cache", "fit", "basecamp");
 const __dirname =
   import.meta.dirname || dirname(fileURLToPath(import.meta.url));
 const SHARE_DIR = "/usr/local/share/fit-basecamp";
@@ -124,12 +126,12 @@ function getBundlePath() {
 }
 
 function loadConfig() {
-  return readJSON(CONFIG_PATH, { tasks: {} });
+  return readJSON(CONFIG_PATH, { agents: {} });
 }
 function loadState() {
   const raw = readJSON(STATE_PATH, null);
-  if (!raw || typeof raw !== "object" || !raw.tasks) {
-    const state = { tasks: {} };
+  if (!raw || typeof raw !== "object" || !raw.agents) {
+    const state = { agents: {} };
     saveState(state);
     return state;
   }
@@ -176,57 +178,53 @@ function floorToMinute(d) {
   ).getTime();
 }
 
-function shouldRun(task, taskState, now) {
-  if (task.enabled === false) return false;
-  if (taskState.status === "running") return false;
-  const { schedule } = task;
+function shouldWake(agent, agentState, now) {
+  if (agent.enabled === false) return false;
+  if (agentState.status === "active") return false;
+  const { schedule } = agent;
   if (!schedule) return false;
-  const lastRun = taskState.lastRunAt ? new Date(taskState.lastRunAt) : null;
+  const lastWoke = agentState.lastWokeAt
+    ? new Date(agentState.lastWokeAt)
+    : null;
 
   if (schedule.type === "cron") {
-    if (lastRun && floorToMinute(lastRun) === floorToMinute(now)) return false;
+    if (lastWoke && floorToMinute(lastWoke) === floorToMinute(now))
+      return false;
     return cronMatches(schedule.expression, now);
   }
   if (schedule.type === "interval") {
     const ms = (schedule.minutes || 5) * 60_000;
-    return !lastRun || now.getTime() - lastRun.getTime() >= ms;
+    return !lastWoke || now.getTime() - lastWoke.getTime() >= ms;
   }
   if (schedule.type === "once") {
-    return !taskState.lastRunAt && now >= new Date(schedule.runAt);
+    return !agentState.lastWokeAt && now >= new Date(schedule.runAt);
   }
   return false;
 }
 
-// --- Task execution ---------------------------------------------------------
+// --- Agent execution --------------------------------------------------------
 
-async function runTask(taskName, task, _config, state) {
-  if (!task.kb) {
-    log(`Task ${taskName}: no "kb" specified, skipping.`);
+async function wakeAgent(agentName, agent, _config, state) {
+  if (!agent.kb) {
+    log(`Agent ${agentName}: no "kb" specified, skipping.`);
     return;
   }
-  const kbPath = expandPath(task.kb);
+  const kbPath = expandPath(agent.kb);
   if (!existsSync(kbPath)) {
-    log(`Task ${taskName}: path "${kbPath}" does not exist, skipping.`);
+    log(`Agent ${agentName}: path "${kbPath}" does not exist, skipping.`);
     return;
   }
 
   const claude = findClaude();
-  const prompt = task.skill
-    ? `Use the skill "${task.skill}" — ${task.prompt || `Run the ${taskName} task.`}`
-    : task.prompt || `Run the ${taskName} task.`;
 
-  log(
-    `Running task: ${taskName} (kb: ${task.kb}${task.agent ? `, agent: ${task.agent}` : ""}${task.skill ? `, skill: ${task.skill}` : ""})`,
-  );
+  log(`Waking agent: ${agentName} (kb: ${agent.kb})`);
 
-  const ts = (state.tasks[taskName] ||= {});
-  ts.status = "running";
-  ts.startedAt = new Date().toISOString();
+  const as = (state.agents[agentName] ||= {});
+  as.status = "active";
+  as.startedAt = new Date().toISOString();
   saveState(state);
 
-  const spawnArgs = ["--print"];
-  if (task.agent) spawnArgs.push("--agent", task.agent);
-  spawnArgs.push("-p", prompt);
+  const spawnArgs = ["--agent", agentName, "--print", "-p", "Observe and act."];
 
   // Use posix_spawn when running inside the app bundle for TCC inheritance.
   // Fall back to child_process.spawn for dev mode and other platforms.
@@ -248,31 +246,25 @@ async function runTask(taskName, task, _config, state) {
       const exitCode = await posixSpawn.waitForExit(pid);
 
       if (exitCode === 0) {
-        log(`Task ${taskName} completed. Output: ${stdout.slice(0, 200)}...`);
-        Object.assign(ts, {
-          status: "finished",
-          startedAt: null,
-          lastRunAt: new Date().toISOString(),
-          lastError: null,
-          runCount: (ts.runCount || 0) + 1,
-        });
+        log(`Agent ${agentName} completed. Output: ${stdout.slice(0, 200)}...`);
+        updateAgentState(as, stdout);
       } else {
         const errMsg = stderr || stdout || `Exit code ${exitCode}`;
-        log(`Task ${taskName} failed: ${errMsg.slice(0, 300)}`);
-        Object.assign(ts, {
+        log(`Agent ${agentName} failed: ${errMsg.slice(0, 300)}`);
+        Object.assign(as, {
           status: "failed",
           startedAt: null,
-          lastRunAt: new Date().toISOString(),
+          lastWokeAt: new Date().toISOString(),
           lastError: errMsg.slice(0, 500),
         });
       }
       saveState(state);
     } catch (err) {
-      log(`Task ${taskName} failed: ${err.message}`);
-      Object.assign(ts, {
+      log(`Agent ${agentName} failed: ${err.message}`);
+      Object.assign(as, {
         status: "failed",
         startedAt: null,
-        lastRunAt: new Date().toISOString(),
+        lastWokeAt: new Date().toISOString(),
         lastError: err.message.slice(0, 500),
       });
       saveState(state);
@@ -294,21 +286,15 @@ async function runTask(taskName, task, _config, state) {
 
     child.on("close", (code) => {
       if (code === 0) {
-        log(`Task ${taskName} completed. Output: ${stdout.slice(0, 200)}...`);
-        Object.assign(ts, {
-          status: "finished",
-          startedAt: null,
-          lastRunAt: new Date().toISOString(),
-          lastError: null,
-          runCount: (ts.runCount || 0) + 1,
-        });
+        log(`Agent ${agentName} completed. Output: ${stdout.slice(0, 200)}...`);
+        updateAgentState(as, stdout);
       } else {
         const errMsg = stderr || stdout || `Exit code ${code}`;
-        log(`Task ${taskName} failed: ${errMsg.slice(0, 300)}`);
-        Object.assign(ts, {
+        log(`Agent ${agentName} failed: ${errMsg.slice(0, 300)}`);
+        Object.assign(as, {
           status: "failed",
           startedAt: null,
-          lastRunAt: new Date().toISOString(),
+          lastWokeAt: new Date().toISOString(),
           lastError: errMsg.slice(0, 500),
         });
       }
@@ -317,11 +303,11 @@ async function runTask(taskName, task, _config, state) {
     });
 
     child.on("error", (err) => {
-      log(`Task ${taskName} failed: ${err.message}`);
-      Object.assign(ts, {
+      log(`Agent ${agentName} failed: ${err.message}`);
+      Object.assign(as, {
         status: "failed",
         startedAt: null,
-        lastRunAt: new Date().toISOString(),
+        lastWokeAt: new Date().toISOString(),
         lastError: err.message.slice(0, 500),
       });
       saveState(state);
@@ -330,33 +316,58 @@ async function runTask(taskName, task, _config, state) {
   });
 }
 
-async function runDueTasks() {
+/**
+ * Parse Decision:/Action: lines from agent output and update state.
+ * @param {object} agentState
+ * @param {string} stdout
+ */
+function updateAgentState(agentState, stdout) {
+  const lines = stdout.split("\n");
+  const decisionLine = lines.find((l) => l.startsWith("Decision:"));
+  const actionLine = lines.find((l) => l.startsWith("Action:"));
+
+  Object.assign(agentState, {
+    status: "idle",
+    startedAt: null,
+    lastWokeAt: new Date().toISOString(),
+    lastDecision: decisionLine
+      ? decisionLine.slice(10).trim()
+      : stdout.slice(0, 200),
+    lastAction: actionLine ? actionLine.slice(8).trim() : null,
+    lastError: null,
+    wakeCount: (agentState.wakeCount || 0) + 1,
+  });
+}
+
+async function wakeDueAgents() {
   const config = loadConfig(),
     state = loadState(),
     now = new Date();
-  let ranAny = false;
-  for (const [name, task] of Object.entries(config.tasks)) {
-    if (shouldRun(task, state.tasks[name] || {}, now)) {
-      await runTask(name, task, config, state);
-      ranAny = true;
+  let wokeAny = false;
+  for (const [name, agent] of Object.entries(config.agents)) {
+    if (shouldWake(agent, state.agents[name] || {}, now)) {
+      await wakeAgent(name, agent, config, state);
+      wokeAny = true;
     }
   }
-  if (!ranAny) log("No tasks due.");
+  if (!wokeAny) log("No agents due.");
 }
 
-// --- Next-run computation ---------------------------------------------------
+// --- Next-wake computation --------------------------------------------------
 
-/** @param {object} task @param {object} taskState @param {Date} now */
-function computeNextRunAt(task, taskState, now) {
-  if (task.enabled === false) return null;
-  const { schedule } = task;
+/** @param {object} agent @param {object} agentState @param {Date} now */
+function computeNextWakeAt(agent, agentState, now) {
+  if (agent.enabled === false) return null;
+  const { schedule } = agent;
   if (!schedule) return null;
 
   if (schedule.type === "interval") {
     const ms = (schedule.minutes || 5) * 60_000;
-    const lastRun = taskState.lastRunAt ? new Date(taskState.lastRunAt) : null;
-    if (!lastRun) return now.toISOString();
-    return new Date(lastRun.getTime() + ms).toISOString();
+    const lastWoke = agentState.lastWokeAt
+      ? new Date(agentState.lastWokeAt)
+      : null;
+    if (!lastWoke) return now.toISOString();
+    return new Date(lastWoke.getTime() + ms).toISOString();
   }
 
   if (schedule.type === "cron") {
@@ -372,8 +383,37 @@ function computeNextRunAt(task, taskState, now) {
   }
 
   if (schedule.type === "once") {
-    if (taskState.lastRunAt) return null;
+    if (agentState.lastWokeAt) return null;
     return schedule.runAt;
+  }
+
+  return null;
+}
+
+// --- Briefing file resolution -----------------------------------------------
+
+const AGENT_STATE_FILES = {
+  postman: "postman_triage.md",
+  concierge: "concierge_outlook.md",
+  librarian: "librarian_digest.md",
+};
+
+function resolveBriefingFile(agentName, agentConfig) {
+  const stateFile = AGENT_STATE_FILES[agentName];
+  if (stateFile) {
+    const p = join(CACHE_DIR, "state", stateFile);
+    return existsSync(p) ? p : null;
+  }
+
+  if (agentName === "chief-of-staff") {
+    const kbPath = expandPath(agentConfig.kb);
+    const dir = join(kbPath, "knowledge", "Briefings");
+    if (!existsSync(dir)) return null;
+    const files = readdirSync(dir)
+      .filter((f) => f.endsWith(".md"))
+      .sort()
+      .reverse();
+    return files.length > 0 ? join(dir, files[0]) : null;
   }
 
   return null;
@@ -392,19 +432,23 @@ function handleStatusRequest(socket) {
   const config = loadConfig();
   const state = loadState();
   const now = new Date();
-  const tasks = {};
+  const agents = {};
 
-  for (const [name, task] of Object.entries(config.tasks)) {
-    const ts = state.tasks[name] || {};
-    tasks[name] = {
-      enabled: task.enabled !== false,
-      status: ts.status || "never-run",
-      lastRunAt: ts.lastRunAt || null,
-      nextRunAt: computeNextRunAt(task, ts, now),
-      runCount: ts.runCount || 0,
-      lastError: ts.lastError || null,
+  for (const [name, agent] of Object.entries(config.agents)) {
+    const as = state.agents[name] || {};
+    agents[name] = {
+      enabled: agent.enabled !== false,
+      status: as.status || "never-woken",
+      lastWokeAt: as.lastWokeAt || null,
+      nextWakeAt: computeNextWakeAt(agent, as, now),
+      lastAction: as.lastAction || null,
+      lastDecision: as.lastDecision || null,
+      wakeCount: as.wakeCount || 0,
+      lastError: as.lastError || null,
+      kbPath: agent.kb ? expandPath(agent.kb) : null,
+      briefingFile: resolveBriefingFile(name, agent),
     };
-    if (ts.startedAt) tasks[name].startedAt = ts.startedAt;
+    if (as.startedAt) agents[name].startedAt = as.startedAt;
   }
 
   send(socket, {
@@ -412,7 +456,7 @@ function handleStatusRequest(socket) {
     uptime: daemonStartedAt
       ? Math.floor((Date.now() - daemonStartedAt) / 1000)
       : 0,
-    tasks,
+    agents,
   });
 }
 
@@ -427,23 +471,23 @@ function handleMessage(socket, line) {
 
   if (request.type === "status") return handleStatusRequest(socket);
 
-  if (request.type === "run") {
-    if (!request.task) {
-      send(socket, { type: "error", message: "Missing task name" });
+  if (request.type === "wake") {
+    if (!request.agent) {
+      send(socket, { type: "error", message: "Missing agent name" });
       return;
     }
     const config = loadConfig();
-    const task = config.tasks[request.task];
-    if (!task) {
+    const agent = config.agents[request.agent];
+    if (!agent) {
       send(socket, {
         type: "error",
-        message: `Task not found: ${request.task}`,
+        message: `Agent not found: ${request.agent}`,
       });
       return;
     }
-    send(socket, { type: "ack", command: "run", task: request.task });
+    send(socket, { type: "ack", command: "wake", agent: request.agent });
     const state = loadState();
-    runTask(request.task, task, config, state).catch(() => {});
+    wakeAgent(request.agent, agent, config, state).catch(() => {});
     return;
   }
 
@@ -498,10 +542,10 @@ function daemon() {
   log("Scheduler daemon started. Polling every 60 seconds.");
   log(`Config: ${CONFIG_PATH}  State: ${STATE_PATH}`);
   startSocketServer();
-  runDueTasks().catch((err) => log(`Error: ${err.message}`));
+  wakeDueAgents().catch((err) => log(`Error: ${err.message}`));
   setInterval(async () => {
     try {
-      await runDueTasks();
+      await wakeDueAgents();
     } catch (err) {
       log(`Error: ${err.message}`);
     }
@@ -542,6 +586,7 @@ function initKB(targetPath) {
     "knowledge/Organizations",
     "knowledge/Projects",
     "knowledge/Topics",
+    "knowledge/Briefings",
   ])
     ensureDir(join(dest, d));
 
@@ -559,23 +604,23 @@ function showStatus() {
     state = loadState();
   console.log("\nBasecamp Scheduler\n==================\n");
 
-  const tasks = Object.entries(config.tasks || {});
-  if (tasks.length === 0) {
-    console.log(`No tasks configured.\n\nEdit ${CONFIG_PATH} to add tasks.`);
+  const agents = Object.entries(config.agents || {});
+  if (agents.length === 0) {
+    console.log(`No agents configured.\n\nEdit ${CONFIG_PATH} to add agents.`);
     return;
   }
 
-  console.log("Tasks:");
-  for (const [name, task] of tasks) {
-    const s = state.tasks[name] || {};
+  console.log("Agents:");
+  for (const [name, agent] of agents) {
+    const s = state.agents[name] || {};
     const kbStatus =
-      task.kb && !existsSync(expandPath(task.kb)) ? " (not found)" : "";
+      agent.kb && !existsSync(expandPath(agent.kb)) ? " (not found)" : "";
     console.log(
-      `  ${task.enabled !== false ? "+" : "-"} ${name}\n` +
-        `    KB: ${task.kb || "(none)"}${kbStatus}  Schedule: ${JSON.stringify(task.schedule)}\n` +
-        `    Status: ${s.status || "never-run"}  Last: ${s.lastRunAt ? new Date(s.lastRunAt).toLocaleString() : "never"}  Runs: ${s.runCount || 0}` +
-        (task.agent ? `\n    Agent: ${task.agent}` : "") +
-        (task.skill ? `\n    Skill: ${task.skill}` : "") +
+      `  ${agent.enabled !== false ? "+" : "-"} ${name}\n` +
+        `    KB: ${agent.kb || "(none)"}${kbStatus}  Schedule: ${JSON.stringify(agent.schedule)}\n` +
+        `    Status: ${s.status || "never-woken"}  Last wake: ${s.lastWokeAt ? new Date(s.lastWokeAt).toLocaleString() : "never"}  Wakes: ${s.wakeCount || 0}` +
+        (s.lastAction ? `\n    Last action: ${s.lastAction}` : "") +
+        (s.lastDecision ? `\n    Last decision: ${s.lastDecision}` : "") +
         (s.lastError ? `\n    Error: ${s.lastError.slice(0, 80)}` : ""),
     );
   }
@@ -593,46 +638,34 @@ function findInLocalOrGlobal(kbPath, subPath) {
 
 function validate() {
   const config = loadConfig();
-  const tasks = Object.entries(config.tasks || {});
-  if (tasks.length === 0) {
-    console.log("No tasks configured. Nothing to validate.");
+  const agents = Object.entries(config.agents || {});
+  if (agents.length === 0) {
+    console.log("No agents configured. Nothing to validate.");
     return;
   }
 
-  console.log("\nValidating tasks...\n");
+  console.log("\nValidating agents...\n");
   let errors = 0;
 
-  for (const [name, task] of tasks) {
-    if (!task.kb) {
+  for (const [name, agent] of agents) {
+    if (!agent.kb) {
       console.log(`  [FAIL] ${name}: no "kb" path specified`);
       errors++;
       continue;
     }
-    const kbPath = expandPath(task.kb);
+    const kbPath = expandPath(agent.kb);
     if (!existsSync(kbPath)) {
       console.log(`  [FAIL] ${name}: path not found: ${kbPath}`);
       errors++;
       continue;
     }
 
-    for (const [kind, sub] of [
-      ["agent", task.agent],
-      ["skill", task.skill],
-    ]) {
-      if (!sub) continue;
-      const relPath =
-        kind === "agent"
-          ? join("agents", sub.endsWith(".md") ? sub : sub + ".md")
-          : join("skills", sub, "SKILL.md");
-      const found = findInLocalOrGlobal(kbPath, relPath);
-      console.log(
-        `  [${found ? "OK" : "FAIL"}]  ${name}: ${kind} "${sub}"${found ? "" : " not found"}`,
-      );
-      if (!found) errors++;
-    }
-
-    if (!task.agent && !task.skill)
-      console.log(`  [OK]   ${name}: no agent or skill to validate`);
+    const agentFile = join("agents", name + ".md");
+    const found = findInLocalOrGlobal(kbPath, agentFile);
+    console.log(
+      `  [${found ? "OK" : "FAIL"}]  ${name}: agent definition${found ? "" : " not found"}`,
+    );
+    if (!found) errors++;
   }
 
   console.log(errors > 0 ? `\n${errors} error(s).` : "\nAll OK.");
@@ -644,15 +677,15 @@ function validate() {
 function showHelp() {
   const bin = "fit-basecamp";
   console.log(`
-Basecamp — Run scheduled Claude tasks across knowledge bases.
+Basecamp — Schedule autonomous agents across knowledge bases.
 
 Usage:
-  ${bin}                     Run due tasks once and exit
+  ${bin}                     Wake due agents once and exit
   ${bin} --daemon            Run continuously (poll every 60s)
-  ${bin} --run <task>        Run a specific task immediately
+  ${bin} --wake <agent>      Wake a specific agent immediately
   ${bin} --init <path>       Initialize a new knowledge base
-  ${bin} --validate          Validate agents and skills exist
-  ${bin} --status            Show task status
+  ${bin} --validate          Validate agent definitions exist
+  ${bin} --status            Show agent status
 
 Config:  ~/.fit/basecamp/scheduler.json
 State:   ~/.fit/basecamp/state.json
@@ -679,22 +712,22 @@ const commands = {
     }
     initKB(args[1]);
   },
-  "--run": async () => {
+  "--wake": async () => {
     if (!args[1]) {
-      console.error("Usage: node basecamp.js --run <task-name>");
+      console.error("Usage: node basecamp.js --wake <agent-name>");
       process.exit(1);
     }
     const config = loadConfig(),
       state = loadState(),
-      task = config.tasks[args[1]];
-    if (!task) {
+      agent = config.agents[args[1]];
+    if (!agent) {
       console.error(
-        `Task "${args[1]}" not found. Available: ${Object.keys(config.tasks).join(", ") || "(none)"}`,
+        `Agent "${args[1]}" not found. Available: ${Object.keys(config.agents).join(", ") || "(none)"}`,
       );
       process.exit(1);
     }
-    await runTask(args[1], task, config, state);
+    await wakeAgent(args[1], agent, config, state);
   },
 };
 
-await (commands[command] || runDueTasks)();
+await (commands[command] || wakeDueAgents)();

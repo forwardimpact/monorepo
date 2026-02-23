@@ -69,6 +69,27 @@ This directory is a knowledge base. Everything is relative to this root:
 └── .mcp.json               # MCP server configurations (optional)
 ```
 
+## Agents
+
+This knowledge base is maintained by a team of agents, each defined in
+`.claude/agents/`. They are woken on a schedule by the Basecamp scheduler. Each
+wake, they observe KB state, decide the most valuable action, and execute.
+
+| Agent              | Domain                         | Schedule     | Skills                                              |
+| ------------------ | ------------------------------ | ------------ | --------------------------------------------------- |
+| **postman**        | Email triage and drafts        | Every 5 min  | sync-apple-mail, draft-emails                       |
+| **concierge**      | Meeting prep and transcripts   | Every 10 min | sync-apple-calendar, meeting-prep, process-hyprnote |
+| **librarian**      | Knowledge graph maintenance    | Every 15 min | extract-entities, organize-files                    |
+| **chief-of-staff** | Daily briefings and priorities | 7am, 6pm     | _(reads all state)_                                 |
+
+Agent state files are in `~/.cache/fit/basecamp/state/`:
+
+- `postman_triage.md` — latest email triage
+- `concierge_outlook.md` — today's calendar outlook
+- `librarian_digest.md` — knowledge graph status
+
+Daily briefings are in `knowledge/Briefings/`.
+
 ## Cache Directory (`~/.cache/fit/basecamp/`)
 
 Synced data and runtime state live outside the knowledge base in

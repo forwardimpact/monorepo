@@ -38,6 +38,8 @@ products/
 libs/
   libpathway/   Derivation logic, job/agent models
   libdoc/       Documentation build and serve tools
+specs/
+  {feature}/    Feature specifications and plans
 ```
 
 **This is a data-driven monorepo.** The model layer defines derivation logic,
@@ -65,6 +67,7 @@ Map (data) → Model (derivation) → Presentation (display)
 
 | Purpose      | Location                                     |
 | ------------ | -------------------------------------------- |
+| Specs/plans  | `specs/{feature}/plan.md`                    |
 | User data    | `data/`                                      |
 | Example data | `products/map/examples/`                     |
 | JSON Schema  | `products/map/schema/json/`                  |

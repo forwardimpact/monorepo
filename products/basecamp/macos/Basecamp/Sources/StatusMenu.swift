@@ -4,14 +4,15 @@ import AppKit
 private enum MenuTag: Int {
     case header = 100
     case connectionStatus = 101
-    case taskBase = 1000
+    case agentBase = 1000
+    case agentDecisionBase = 2000
 }
 
 /// Status bar menu UI for Basecamp.
 ///
 /// Runs in-process as part of the Swift app launcher. Connects to the
 /// scheduler over the existing Unix socket IPC to query status and
-/// trigger task runs.
+/// trigger agent wakes.
 class StatusMenu: NSObject, NSMenuDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let daemon = DaemonConnection()
@@ -286,52 +287,69 @@ class StatusMenu: NSObject, NSMenuDelegate {
         menu.addItem(header)
         menu.addItem(NSMenuItem.separator())
 
-        // Task items
-        for (i, task) in status.tasks.enumerated() {
-            let item = makeTaskItem(task)
-            item.tag = MenuTag.taskBase.rawValue + i
+        // Agent items: title + decision for each agent
+        for (i, agent) in status.agents.enumerated() {
+            let item = makeAgentTitleItem(agent, index: i)
             menu.addItem(item)
+
+            if let decision = agent.lastDecision {
+                let decisionItem = makeAgentDecisionItem(decision, index: i)
+                menu.addItem(decisionItem)
+            }
         }
 
-        if status.tasks.isEmpty {
-            let empty = NSMenuItem(title: "No tasks configured", action: nil, keyEquivalent: "")
+        if status.agents.isEmpty {
+            let empty = NSMenuItem(title: "No agents configured", action: nil, keyEquivalent: "")
             empty.isEnabled = false
             menu.addItem(empty)
         }
 
         menu.addItem(NSMenuItem.separator())
-        addFooterItems(to: menu)
+        addFooterItems(to: menu, status: status)
         return menu
     }
 
-    private func makeTaskItem(_ task: TaskStatus) -> NSMenuItem {
-        let icon = Self.statusIcon(task)
-        let time = Self.relativeTime(task)
-        let title = "\(icon)  \(task.name)    \(time)"
+    private func makeAgentTitleItem(_ agent: AgentStatus, index: Int) -> NSMenuItem {
+        let icon = Self.statusIcon(agent)
+        let time = Self.relativeTime(agent)
+        let displayName = Self.displayName(agent.name)
+        let title = "\(icon)  \(displayName)    \(time)"
         let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.tag = MenuTag.agentBase.rawValue + index * 2
 
         // Attributed title with colored status icon
         let attributed = NSMutableAttributedString(string: title)
         let iconRange = NSRange(location: 0, length: icon.utf16.count)
         attributed.addAttribute(
             .foregroundColor,
-            value: Self.statusColor(task),
+            value: Self.statusColor(agent),
             range: iconRange
         )
         item.attributedTitle = attributed
 
-        if task.enabled {
+        if agent.enabled {
             let submenu = NSMenu()
-            let runItem = NSMenuItem(
-                title: "Run Now",
-                action: #selector(runTask(_:)),
+
+            let briefingItem = NSMenuItem(
+                title: "View Briefing",
+                action: #selector(viewBriefing(_:)),
                 keyEquivalent: ""
             )
-            runItem.target = self
-            runItem.representedObject = task.name
-            submenu.addItem(runItem)
+            briefingItem.target = self
+            briefingItem.representedObject = agent.briefingFile
+            briefingItem.isEnabled = agent.briefingFile != nil
+            submenu.addItem(briefingItem)
 
-            if let error = task.lastError {
+            let wakeItem = NSMenuItem(
+                title: "Wake Now",
+                action: #selector(wakeAgent(_:)),
+                keyEquivalent: ""
+            )
+            wakeItem.target = self
+            wakeItem.representedObject = agent.name
+            submenu.addItem(wakeItem)
+
+            if let error = agent.lastError {
                 submenu.addItem(NSMenuItem.separator())
                 let errItem = NSMenuItem(
                     title: "Error: \(error.prefix(80))",
@@ -350,21 +368,47 @@ class StatusMenu: NSObject, NSMenuDelegate {
         return item
     }
 
+    private func makeAgentDecisionItem(_ decision: String, index: Int) -> NSMenuItem {
+        let truncated = decision.count > 60
+            ? String(decision.prefix(60)) + "…"
+            : decision
+        let item = NSMenuItem(title: "   \(truncated)", action: nil, keyEquivalent: "")
+        item.tag = MenuTag.agentDecisionBase.rawValue + index
+        item.isEnabled = false
+
+        // Smaller, secondary-colored text
+        let attributed = NSMutableAttributedString(string: "   \(truncated)")
+        let fullRange = NSRange(location: 0, length: attributed.length)
+        attributed.addAttribute(.foregroundColor, value: NSColor.secondaryLabelColor, range: fullRange)
+        attributed.addAttribute(.font, value: NSFont.menuFont(ofSize: 11), range: fullRange)
+        item.attributedTitle = attributed
+
+        return item
+    }
+
     private func updateMenu() {
         guard let menu = statusItem.menu else {
             statusItem.menu = buildMenu()
             return
         }
 
-        // If structural change (connected/disconnected, task count changed), rebuild
+        // If structural change (connected/disconnected, agent count changed), rebuild
         guard isConnected, let status = lastStatus else {
             statusItem.menu = buildMenu()
             return
         }
 
-        // Check if task count matches existing tagged items
-        let existingTaskItems = menu.items.filter { $0.tag >= MenuTag.taskBase.rawValue }
-        if existingTaskItems.count != status.tasks.count {
+        // Check if agent count or decision presence changed (structural change)
+        let existingTitleItems = menu.items.filter {
+            $0.tag >= MenuTag.agentBase.rawValue && $0.tag < MenuTag.agentDecisionBase.rawValue
+        }
+        let existingDecisionItems = menu.items.filter {
+            $0.tag >= MenuTag.agentDecisionBase.rawValue
+        }
+        let expectedDecisionCount = status.agents.filter { $0.lastDecision != nil }.count
+
+        if existingTitleItems.count != status.agents.count ||
+            existingDecisionItems.count != expectedDecisionCount {
             statusItem.menu = buildMenu()
             return
         }
@@ -375,44 +419,77 @@ class StatusMenu: NSObject, NSMenuDelegate {
             headerItem.title = "Basecamp          \(uptimeStr)"
         }
 
-        // In-place update: task items
-        for (i, task) in status.tasks.enumerated() {
-            let tag = MenuTag.taskBase.rawValue + i
-            guard let existingItem = menu.item(withTag: tag) else { continue }
+        // In-place update: agent title and decision items
+        for (i, agent) in status.agents.enumerated() {
+            let titleTag = MenuTag.agentBase.rawValue + i * 2
+            if let existingItem = menu.item(withTag: titleTag) {
+                let icon = Self.statusIcon(agent)
+                let time = Self.relativeTime(agent)
+                let displayName = Self.displayName(agent.name)
+                let title = "\(icon)  \(displayName)    \(time)"
 
-            let icon = Self.statusIcon(task)
-            let time = Self.relativeTime(task)
-            let title = "\(icon)  \(task.name)    \(time)"
+                let attributed = NSMutableAttributedString(string: title)
+                let iconRange = NSRange(location: 0, length: icon.utf16.count)
+                attributed.addAttribute(
+                    .foregroundColor,
+                    value: Self.statusColor(agent),
+                    range: iconRange
+                )
+                existingItem.attributedTitle = attributed
 
-            let attributed = NSMutableAttributedString(string: title)
-            let iconRange = NSRange(location: 0, length: icon.utf16.count)
-            attributed.addAttribute(
-                .foregroundColor,
-                value: Self.statusColor(task),
-                range: iconRange
-            )
-            existingItem.attributedTitle = attributed
+                // Update submenu
+                if agent.enabled, let submenu = existingItem.submenu {
+                    // Update briefing item
+                    if let briefingItem = submenu.items.first {
+                        briefingItem.representedObject = agent.briefingFile
+                        briefingItem.isEnabled = agent.briefingFile != nil
+                    }
 
-            // Update submenu error text if needed
-            if task.enabled, let submenu = existingItem.submenu {
-                // Remove old error items (keep "Run Now")
-                while submenu.items.count > 1 {
-                    submenu.removeItem(at: submenu.items.count - 1)
+                    // Remove old error items (keep View Briefing + Wake Now)
+                    while submenu.items.count > 2 {
+                        submenu.removeItem(at: submenu.items.count - 1)
+                    }
+                    if let error = agent.lastError {
+                        submenu.addItem(NSMenuItem.separator())
+                        let errItem = NSMenuItem(
+                            title: "Error: \(error.prefix(80))",
+                            action: nil, keyEquivalent: ""
+                        )
+                        errItem.isEnabled = false
+                        submenu.addItem(errItem)
+                    }
                 }
-                if let error = task.lastError {
-                    submenu.addItem(NSMenuItem.separator())
-                    let errItem = NSMenuItem(
-                        title: "Error: \(error.prefix(80))",
-                        action: nil, keyEquivalent: ""
-                    )
-                    errItem.isEnabled = false
-                    submenu.addItem(errItem)
-                }
+            }
+
+            // Update decision item
+            let decisionTag = MenuTag.agentDecisionBase.rawValue + i
+            if let decisionItem = menu.item(withTag: decisionTag),
+               let decision = agent.lastDecision {
+                let truncated = decision.count > 60
+                    ? String(decision.prefix(60)) + "…"
+                    : decision
+                let attributed = NSMutableAttributedString(string: "   \(truncated)")
+                let fullRange = NSRange(location: 0, length: attributed.length)
+                attributed.addAttribute(.foregroundColor, value: NSColor.secondaryLabelColor, range: fullRange)
+                attributed.addAttribute(.font, value: NSFont.menuFont(ofSize: 11), range: fullRange)
+                decisionItem.attributedTitle = attributed
             }
         }
     }
 
-    private func addFooterItems(to menu: NSMenu) {
+    private func addFooterItems(to menu: NSMenu, status: StatusResponse? = nil) {
+        // Open KB — use first agent's kbPath
+        if let kbPath = status?.agents.first(where: { $0.enabled && $0.kbPath != nil })?.kbPath {
+            let openKB = NSMenuItem(
+                title: "📂 Open KB…",
+                action: #selector(openPath(_:)),
+                keyEquivalent: ""
+            )
+            openKB.target = self
+            openKB.representedObject = kbPath
+            menu.addItem(openKB)
+        }
+
         let openLogs = NSMenuItem(
             title: "📂 Open Logs…",
             action: #selector(openLogs),
@@ -436,12 +513,22 @@ class StatusMenu: NSObject, NSMenuDelegate {
         NSApp.terminate(nil)
     }
 
-    @objc private func runTask(_ sender: NSMenuItem) {
-        guard let taskName = sender.representedObject as? String else { return }
-        daemon.requestRun(task: taskName)
+    @objc private func wakeAgent(_ sender: NSMenuItem) {
+        guard let agentName = sender.representedObject as? String else { return }
+        daemon.requestWake(agent: agentName)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             self?.daemon.requestStatus()
         }
+    }
+
+    @objc private func viewBriefing(_ sender: NSMenuItem) {
+        guard let path = sender.representedObject as? String else { return }
+        NSWorkspace.shared.open(URL(fileURLWithPath: path))
+    }
+
+    @objc private func openPath(_ sender: NSMenuItem) {
+        guard let path = sender.representedObject as? String else { return }
+        NSWorkspace.shared.open(URL(fileURLWithPath: path, isDirectory: true))
     }
 
     @objc private func openLogs() {
@@ -452,30 +539,36 @@ class StatusMenu: NSObject, NSMenuDelegate {
 
     // MARK: - Formatting
 
-    static func statusIcon(_ task: TaskStatus) -> String {
-        if !task.enabled { return "—" }
-        switch task.status {
-        case "finished": return "✓"
-        case "running": return "●"
+    static func displayName(_ name: String) -> String {
+        name.split(separator: "-")
+            .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+            .joined(separator: " ")
+    }
+
+    static func statusIcon(_ agent: AgentStatus) -> String {
+        if !agent.enabled { return "—" }
+        switch agent.status {
+        case "idle": return "✓"
+        case "active": return "●"
         case "failed": return "✗"
         default: return "○"
         }
     }
 
-    static func statusColor(_ task: TaskStatus) -> NSColor {
-        if !task.enabled { return .systemGray }
-        switch task.status {
-        case "finished": return .systemGreen
-        case "running": return .systemBlue
+    static func statusColor(_ agent: AgentStatus) -> NSColor {
+        if !agent.enabled { return .systemGray }
+        switch agent.status {
+        case "idle": return .systemGreen
+        case "active": return .systemBlue
         case "failed": return .systemRed
         default: return .systemGray
         }
     }
 
-    static func relativeTime(_ task: TaskStatus) -> String {
-        if task.status == "running" { return "running" }
-        guard let lastRun = task.lastRunAt else { return "never" }
-        let seconds = Int(Date().timeIntervalSince(lastRun))
+    static func relativeTime(_ agent: AgentStatus) -> String {
+        if agent.status == "active" { return "running" }
+        guard let lastWoke = agent.lastWokeAt else { return "never" }
+        let seconds = Int(Date().timeIntervalSince(lastWoke))
         if seconds < 60 { return "just now" }
         if seconds < 3600 { return "\(seconds / 60)m ago" }
         if seconds < 86400 { return "\(seconds / 3600)h ago" }
