@@ -8,6 +8,8 @@
 // On other platforms or in dev mode, the scheduler falls back to
 // child_process.spawn / Deno.Command.
 
+import { read as fsReadCb, closeSync as fsCloseSync } from "node:fs";
+
 const libc = Deno.dlopen("libSystem.B.dylib", {
   posix_spawn: {
     parameters: [
@@ -52,10 +54,6 @@ const libc = Deno.dlopen("libSystem.B.dylib", {
     parameters: ["pointer"], // int fildes[2]
     result: "i32",
   },
-  read: {
-    parameters: ["i32", "pointer", "u64"], // fd, buf, nbyte
-    result: "i64",
-  },
   close: {
     parameters: ["i32"],
     result: "i32",
@@ -64,15 +62,7 @@ const libc = Deno.dlopen("libSystem.B.dylib", {
     parameters: ["i32", "pointer", "i32"],
     result: "i32",
   },
-  fcntl: {
-    parameters: ["i32", "i32", "i32"], // fd, cmd, arg
-    result: "i32",
-  },
 });
-
-const F_GETFL = 3;
-const F_SETFL = 4;
-const O_NONBLOCK = 0x0004;
 
 const WNOHANG = 1;
 
@@ -113,30 +103,36 @@ function createPipe() {
 }
 
 /**
- * Read all data from a file descriptor until EOF.
- * Uses non-blocking I/O to avoid blocking the event loop.
+ * Read from a file descriptor using Node.js fs.read callback API.
  * @param {number} fd
- * @param {number} [pollIntervalMs=100] - Polling interval when no data available
+ * @param {Uint8Array} buffer
+ * @returns {Promise<number>} bytes read
+ */
+function readFromFd(fd, buffer) {
+  return new Promise((resolve, reject) => {
+    fsReadCb(fd, buffer, 0, buffer.length, null, (err, bytesRead) => {
+      if (err) reject(err);
+      else resolve(bytesRead);
+    });
+  });
+}
+
+/**
+ * Read all data from a file descriptor until EOF.
+ * Uses node:fs read callbacks so the libuv event loop stays responsive
+ * (socket server, timers, etc. continue processing during reads).
+ * @param {number} fd
  * @returns {Promise<string>}
  */
-export async function readAll(fd, pollIntervalMs = 100) {
-  // Set non-blocking mode so reads yield to the event loop
-  const flags = libc.symbols.fcntl(fd, F_GETFL, 0);
-  libc.symbols.fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-
+export async function readAll(fd) {
   const chunks = [];
   const buf = new Uint8Array(4096);
   while (true) {
-    const n = Number(libc.symbols.read(fd, Deno.UnsafePointer.of(buf), 4096n));
+    const n = await readFromFd(fd, buf);
     if (n === 0) break; // EOF
-    if (n < 0) {
-      // EAGAIN/EWOULDBLOCK — no data available, yield and retry
-      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-      continue;
-    }
     chunks.push(buf.slice(0, n));
   }
-  libc.symbols.close(fd);
+  fsCloseSync(fd);
   const total = chunks.reduce((sum, c) => sum + c.length, 0);
   const result = new Uint8Array(total);
   let offset = 0;
