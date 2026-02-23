@@ -64,6 +64,7 @@ available to every other agent.
 | Behavior | Fixed skill per task | Agent observes and decides each wake |
 | Communication | None between tasks | Shared state files in cache |
 | Proactive output | None | Triage, briefings, prep alerts |
+| macOS UI | Task list (name + status) | Agent panel (decision context, briefing links, wake control) |
 | State model | `{ status, lastRunAt, runCount }` | `{ status, lastWokeAt, lastAction, lastDecision, wakeCount }` |
 | Execution | `claude --print -p "Use skill X"` | `claude --agent <name> --print -p "Observe and act."` |
 
@@ -733,11 +734,23 @@ Status response:
       "lastAction": "draft-emails for thread 456",
       "lastDecision": "3 urgent emails, drafted reply",
       "wakeCount": 42,
-      "lastError": null
+      "lastError": null,
+      "kbPath": "/Users/user/Documents/Personal",
+      "briefingFile": "/Users/user/.cache/fit/basecamp/state/postman_triage.md"
     }
   }
 }
 ```
+
+New fields:
+
+- **`kbPath`** — absolute path to the agent's knowledge base (resolved from
+  config `kb` with `~` expanded). The Swift UI uses this for the "Open KB…"
+  footer item.
+- **`briefingFile`** — absolute path to the agent's latest output file. The
+  Swift UI uses this for the "View Briefing" submenu action. See
+  [Briefing File Resolution](#briefing-file-resolution) for how the daemon
+  resolves this per agent.
 
 Wake request: `{ "type": "wake", "agent": "postman" }`
 
@@ -754,6 +767,50 @@ for (const [name, agent] of Object.entries(config.agents)) {
   console.log(`  [${found ? "OK" : "FAIL"}]  ${name}: agent definition`);
 }
 ```
+
+### Briefing File Resolution
+
+The daemon resolves each agent's `briefingFile` path when constructing the IPC
+status response. Each agent writes its output to a known location — the daemon
+maps agent names to their output files:
+
+```javascript
+const AGENT_STATE_FILES = {
+  postman: "postman_triage.md",
+  concierge: "concierge_outlook.md",
+  librarian: "librarian_digest.md",
+};
+
+function resolveBriefingFile(agentName, agentConfig) {
+  const kbPath = expandPath(agentConfig.kb);
+
+  // Most agents write to the cache state directory
+  const stateFile = AGENT_STATE_FILES[agentName];
+  if (stateFile) {
+    const p = join(CACHE_DIR, "state", stateFile);
+    return existsSync(p) ? p : null;
+  }
+
+  // Chief of staff writes to the KB briefings directory
+  if (agentName === "chief-of-staff") {
+    const dir = join(kbPath, "knowledge", "Briefings");
+    if (!existsSync(dir)) return null;
+    const files = readdirSync(dir)
+      .filter((f) => f.endsWith(".md"))
+      .sort()
+      .reverse();
+    return files.length > 0 ? join(dir, files[0]) : null;
+  }
+
+  return null;
+}
+```
+
+The mapping is explicit rather than derived from a naming convention. This
+keeps the descriptive file names (`postman_triage.md`, `concierge_outlook.md`,
+`librarian_digest.md`) which aid debugging when browsing the filesystem
+directly, while centralizing path knowledge in the daemon rather than
+distributing it to clients.
 
 ### Status Display
 
@@ -820,8 +877,8 @@ Usage:
 | `src/basecamp.js` | Replace task model with agent model throughout |
 | `config/scheduler.json` | Three tasks → four agents |
 | `template/CLAUDE.md` | Add agent team section, update skills context |
-| `macos/Basecamp/Sources/DaemonConnection.swift` | `tasks` → `agents` in IPC |
-| `macos/Basecamp/Sources/StatusMenu.swift` | Task display → agent display |
+| `macos/Basecamp/Sources/DaemonConnection.swift` | `TaskStatus` → `AgentStatus`, parse `briefingFile`/`kbPath`, `requestWake()` |
+| `macos/Basecamp/Sources/StatusMenu.swift` | Agent-focused UI: decision subtitles, View Briefing, Open KB, Wake Now |
 | `package.json` | Version bump |
 
 ### Updated: `template/CLAUDE.md`
@@ -852,12 +909,182 @@ Daily briefings are in `knowledge/Briefings/`.
 
 ### macOS App (Swift)
 
-Same changes as the previous plan:
+The Swift app shifts from a generic task-runner display to an agent-focused
+status panel. Each agent is a first-class entity with its own decision context,
+briefing file, and wake control. The UI's purpose changes from "show me what
+tasks ran" to "show me what my agents are thinking."
 
-- `struct TaskStatus` → `struct AgentStatus`
-- `requestRun(task:)` → `requestWake(agent:)`
-- Status menu shows agent names, last action, last decision
-- "Run Now" → "Wake Now"
+#### Data Model (`DaemonConnection.swift`)
+
+Replace `TaskStatus` and `StatusResponse` with agent-oriented models:
+
+```swift
+struct AgentStatus {
+    let name: String
+    let enabled: Bool
+    let status: String          // "idle", "active", "failed", "never-woken"
+    let lastWokeAt: Date?
+    let nextWakeAt: Date?
+    let lastAction: String?
+    let lastDecision: String?
+    let wakeCount: Int
+    let lastError: String?
+    let startedAt: Date?
+    let kbPath: String?         // Absolute path to agent's knowledge base
+    let briefingFile: String?   // Absolute path to agent's output file
+}
+
+struct StatusResponse {
+    let uptime: Int
+    let agents: [AgentStatus]   // Sorted by config order (not alphabetical)
+}
+```
+
+IPC vocabulary changes:
+
+| Current | New |
+|---------|-----|
+| `struct TaskStatus` | `struct AgentStatus` |
+| `StatusResponse.tasks` | `StatusResponse.agents` |
+| `requestRun(task:)` | `requestWake(agent:)` |
+| Send `{ "type": "run", "task": "..." }` | Send `{ "type": "wake", "agent": "..." }` |
+| Parse `json["tasks"]` | Parse `json["agents"]` |
+
+Parsing reads `lastAction`, `lastDecision`, `kbPath`, and `briefingFile` as
+optional strings. The `status` field uses agent vocabulary (`idle`, `active`,
+`failed`, `never-woken`) instead of task vocabulary (`finished`, `running`,
+`failed`, `never-run`).
+
+#### Status Menu Layout (`StatusMenu.swift`)
+
+The menu shows each agent's name, status, and last decision — giving the user
+immediate visibility into what each agent observed and why it acted.
+
+```
+Basecamp          uptime 2h 15m
+─────────────────────────────────
+✓  Postman                  5m ago      ▶
+   3 urgent, drafted reply to contract deadline
+✓  Concierge              12m ago      ▶
+   Meeting in 2h, prep needed for Sarah Chen
+✓  Librarian               15m ago      ▶
+   Extracted 7 files, graph at 142 entities
+✓  Chief of Staff        7:00 AM      ▶
+   4 meetings today, 3 urgent emails
+─────────────────────────────────
+📂 Open KB…
+📂 Open Logs…
+Quit Basecamp     (q)
+```
+
+Each agent occupies two menu items:
+
+1. **Title item** — status icon + agent name + relative time. Has a submenu
+   (indicated by ▶). This is a standard `NSMenuItem` with an attributed title
+   for the colored status icon.
+2. **Decision item** — `lastDecision` text, indented, smaller font,
+   `.secondaryLabelColor`. This is a separate disabled `NSMenuItem` below the
+   title. Truncated to 60 characters with ellipsis. Omitted entirely if
+   `lastDecision` is nil (agent never woken).
+
+This two-item pattern gives users the key insight at a glance: what did each
+agent decide, and when? No submenu needed to understand current state.
+
+#### Agent Submenu
+
+Each enabled agent's title item has a submenu with actions:
+
+```
+┌──────────────────────────────┐
+│ View Briefing                │  ← opens briefingFile in default app
+│ Wake Now                     │  ← sends wake IPC message
+│──────────────────────────────│
+│ Error: connection timeout... │  ← if lastError (disabled, truncated)
+└──────────────────────────────┘
+```
+
+- **View Briefing** — calls `NSWorkspace.shared.open(URL(fileURLWithPath:))`
+  on `agentStatus.briefingFile`. Opens the agent's latest output file in the
+  user's default markdown editor. Disabled (grayed out) if `briefingFile` is
+  nil (file doesn't exist yet or agent never woken).
+- **Wake Now** — sends `{ "type": "wake", "agent": "<name>" }` over IPC, then
+  requests status after 1 second. Replaces the current "Run Now" action.
+- **Error text** — last 80 characters of `lastError`, shown as a disabled item
+  after a separator. Omitted if no error.
+
+#### Footer Items
+
+Replace the current single footer with agent-relevant actions:
+
+| Item | Action | Source |
+|------|--------|--------|
+| 📂 Open KB… | `NSWorkspace.shared.open()` on KB directory | First agent's `kbPath` from IPC |
+| 📂 Open Logs… | `NSWorkspace.shared.open()` on logs directory | `~/.fit/basecamp/logs/` (unchanged) |
+| Quit Basecamp | `NSApp.terminate(nil)` | Unchanged |
+
+"Open KB…" opens the knowledge base directory in Finder. The KB path is taken
+from the first enabled agent's `kbPath` field in the status response. In
+practice all agents share the same KB, so any agent's path works.
+
+#### Status Icons and Colors
+
+Updated vocabulary — status values change from task to agent semantics:
+
+| Status | Icon | Color | Was |
+|--------|------|-------|-----|
+| `idle` | ✓ | `.systemGreen` | `finished` |
+| `active` | ● | `.systemBlue` | `running` |
+| `failed` | ✗ | `.systemRed` | `failed` |
+| `never-woken` | ○ | `.systemGray` | `never-run` |
+| disabled | — | `.systemGray` | disabled |
+
+#### Relative Time
+
+Same logic as current, reading `lastWokeAt` instead of `lastRunAt`:
+
+- `active` → "running"
+- < 60s → "just now"
+- < 1h → "Xm ago"
+- < 24h → "Xh ago"
+- ≥ 24h → "Xd ago"
+- Never woken → "never"
+
+#### Menu Tag Enum
+
+```swift
+private enum MenuTag: Int {
+    case header = 100
+    case connectionStatus = 101
+    case agentBase = 1000           // agentBase + i*2 for title items
+    case agentDecisionBase = 2000   // agentDecisionBase + i for decision items
+}
+```
+
+Title items use `agentBase + i*2` and decision items use
+`agentDecisionBase + i`. This allows in-place updates without rebuilding the
+menu on every status poll.
+
+#### In-Place Update Strategy
+
+Same pattern as current — check if structural change occurred (connection
+state, agent count), rebuild menu if so. Otherwise update in-place:
+
+1. Header uptime text
+2. Agent title items (icon, name, relative time via attributed title)
+3. Agent decision items (lastDecision text)
+4. Submenu error text (add/remove as needed)
+
+The decision items require an additional check: if an agent transitions from
+never-woken to idle (first wake), the decision item must be inserted. This
+counts as a structural change and triggers a full rebuild.
+
+#### Polling Strategy
+
+Unchanged from current:
+
+- Menu **open** → poll every 5 seconds
+- Menu **closed** → poll every 30 seconds
+- `NSMenuDelegate` tracks `menuWillOpen` / `menuDidClose`
 
 ## Design Tradeoffs
 
@@ -926,6 +1153,33 @@ The chief of staff's value is synthesis, not action. It reads the outputs of
 all other agents and produces a human-readable summary. This is a fundamentally
 different kind of work.
 
+### Why descriptive file names, not standardized `{agent}.md`?
+
+The state files use descriptive names — `postman_triage.md`,
+`concierge_outlook.md`, `librarian_digest.md` — rather than a uniform
+`{agent_name}.md` convention. This was considered and rejected for three
+reasons:
+
+1. **Debuggability.** `ls ~/.cache/fit/basecamp/state/` immediately tells you
+   what each file contains. With `postman.md` you'd have to open the file to
+   know it's a triage report. The plan values the filesystem as an observable
+   message bus — descriptive names support that.
+
+2. **The chief of staff breaks the pattern.** The chief of staff writes to
+   `knowledge/Briefings/{date}-{type}.md`, not to the cache state directory.
+   No single naming convention covers all agents, so a convention-based
+   approach still requires special-casing.
+
+3. **The daemon resolves paths, not the UI.** The `briefingFile` field in the
+   IPC status response gives the Swift UI the exact path to open. The UI
+   never constructs paths from agent names — it receives them. This means
+   file names can change without UI changes, and new agents can write to
+   arbitrary locations without protocol changes.
+
+The cost is a small mapping table in the daemon (`AGENT_STATE_FILES`). This is
+acceptable because agent definitions change infrequently and the mapping is
+co-located with the agent execution logic.
+
 ### Cost profile
 
 | Configuration | Invocations/hour | Notes |
@@ -958,8 +1212,8 @@ higher invocation counts.
 | `src/basecamp.js` | tasks → agents throughout |
 | `config/scheduler.json` | 3 tasks → 4 agents |
 | `template/CLAUDE.md` | Add agent team section |
-| `macos/.../DaemonConnection.swift` | tasks → agents |
-| `macos/.../StatusMenu.swift` | task display → agent display |
+| `macos/.../DaemonConnection.swift` | `AgentStatus` model, `briefingFile`/`kbPath` fields, `requestWake()` |
+| `macos/.../StatusMenu.swift` | Agent-focused UI with decision subtitles, View Briefing, Open KB |
 | `package.json` | version bump |
 
 ### Deleted
@@ -981,6 +1235,8 @@ None. Skills stay. Config is replaced in-place.
 3. Replace `config/scheduler.json` (three tasks → four agents)
 4. Rewrite `src/basecamp.js` (tasks → agents throughout)
 5. Update `template/CLAUDE.md` (add agent team section)
-6. Update Swift files (`DaemonConnection.swift`, `StatusMenu.swift`)
+6. Update Swift files:
+   a. `DaemonConnection.swift` — `AgentStatus` model, `briefingFile`/`kbPath` parsing, `requestWake()`
+   b. `StatusMenu.swift` — agent-focused layout with decision subtitles, View Briefing action, Open KB footer
 7. Update `package.json` version
 8. Run `npm run check` and fix issues
