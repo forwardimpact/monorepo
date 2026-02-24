@@ -3,8 +3,6 @@
   "permissions": {
     "defaultMode": "acceptEdits",
     "allow": [
-      "Bash(python3 *)",
-      "Bash(sqlite3 *)",
       "Bash(bash scripts/*)",
       "Bash(sh scripts/*)",
       "Bash(node *)",

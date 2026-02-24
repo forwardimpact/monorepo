@@ -37,10 +37,11 @@ their calendar.
 
 ## Implementation
 
-Run the sync as a single Python script. This avoids N+1 sqlite3 invocations (one
-per event for attendees) and handles all data transformation in one pass:
+Run the sync as a single Node.js script with embedded SQLite. This avoids N+1
+process invocations (one per event for attendees) and handles all data
+transformation in one pass:
 
-    python3 scripts/sync.py [--days N]
+    node scripts/sync.mjs [--days N]
 
 - `--days N` — how many days back to sync (default: 30)
 
@@ -97,7 +98,7 @@ Each `{event_id}.json` file:
 
 ## Constraints
 
-- Open database read-only (`-readonly`)
+- Open database read-only (`readOnly: true`)
 - This sync is stateless — always queries the current sliding window
 - All-day events may have null end times — use start date as end date
 - All-day events have timezone `_float` — omit timezone from output

@@ -68,7 +68,7 @@ Run this skill:
 1.  Read `USER.md` to get the user's name, email, and domain
 2.  Find new/changed files to process:
 
-         python3 scripts/state.py check
+         node scripts/state.mjs check
 
     This outputs one file path per line for all source files that are new or
     have changed since last processing.
@@ -434,7 +434,7 @@ Always use absolute links: `[[People/Sarah Chen]]`,
 
 After processing each file, update the state:
 
-    python3 scripts/state.py update "$FILE"
+    node scripts/state.mjs update "$FILE"
 
 ## Source Type Rules Summary
 

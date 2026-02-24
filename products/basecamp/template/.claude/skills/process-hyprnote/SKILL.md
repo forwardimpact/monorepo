@@ -308,11 +308,11 @@ absolute paths: `[[People/Name]]`, `[[Organizations/Name]]`,
 After processing each session, mark its files as processed:
 
 ```bash
-python3 .claude/skills/extract-entities/scripts/state.py update \
+node .claude/skills/extract-entities/scripts/state.mjs update \
   "$HOME/Library/Application Support/hyprnote/sessions/{uuid}/_memo.md"
 
 # Also mark _summary.md if it exists
-python3 .claude/skills/extract-entities/scripts/state.py update \
+node .claude/skills/extract-entities/scripts/state.mjs update \
   "$HOME/Library/Application Support/hyprnote/sessions/{uuid}/_summary.md"
 ```
 

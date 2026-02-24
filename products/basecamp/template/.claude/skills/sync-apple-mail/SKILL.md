@@ -41,10 +41,10 @@ their email.
 
 ## Implementation
 
-Run the sync as a single Python script. This avoids N+1 shell invocations and
-handles all data transformation in one pass:
+Run the sync as a single Node.js script with embedded SQLite. This avoids N+1
+process invocations and handles all data transformation in one pass:
 
-    python3 scripts/sync.py [--days N]
+    node scripts/sync.mjs [--days N]
 
 - `--days N` — how many days back to look on first sync (default: 30)
 
@@ -61,7 +61,7 @@ The script:
 7. Updates sync state timestamp
 8. Reports summary (threads processed, files written)
 
-The script calls `scripts/parse-emlx.py` to extract plain text bodies from
+The script imports `scripts/parse-emlx.mjs` to extract plain text bodies from
 `.emlx` / `.partial.emlx` files (handles HTML-only emails by stripping tags).
 
 ## Database Schema
@@ -128,7 +128,7 @@ Rules:
 - `.emlx` / `.partial.emlx` not found → fall back to database summary field
 - `.emlx` parse error → fall back to database summary field
 - HTML-only email → strip tags and use as plain text body (handled by
-  parse-emlx.py)
+  parse-emlx.mjs)
 - `find` timeout → skip that message's body, use summary; attachment index empty
 - Attachment file not found on disk → listed as `*(not available)*` in markdown
 - Attachment copy fails (permissions, disk full) → listed as `*(not available)*`
@@ -137,7 +137,7 @@ Rules:
 
 ## Constraints
 
-- Open database read-only (`-readonly`)
+- Open database read-only (`readOnly: true`)
 - Only sync Inbox and Sent folders
 - Limit to 500 threads per run
 - Incremental: only threads with new messages since last sync
