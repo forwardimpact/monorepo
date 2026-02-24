@@ -92,8 +92,7 @@ Single-file CLI that:
 Key functions:
 
 - `shouldRun(task, taskState, now)` — Schedule evaluation
-- `runTask(taskName, task, config, state)` — Task execution (posix_spawn or
-  child_process)
+- `runTask(taskName, task, config, state)` — Task execution (posix_spawn)
 - `initKB(targetPath)` — Knowledge base initialization
 - `getBundlePath()` — Detect app bundle, discover resources
 - `cronMatches(expr, date)` — Cron expression matching
@@ -101,9 +100,9 @@ Key functions:
 
 ### posix_spawn FFI (`src/posix-spawn.js`)
 
-Deno FFI wrapper for `posix_spawn`. Used when `BASECAMP_BUNDLE` env var is set
-(app bundle context) so child processes inherit TCC attributes from the
-responsible binary. Falls back to `child_process.spawn` otherwise.
+Deno FFI wrapper for `posix_spawn` (macOS only). Always used for spawning child
+processes. Calls `responsibility_spawnattrs_setdisclaim` so child processes
+inherit TCC attributes from the responsible binary (Basecamp.app).
 
 ### Swift App Launcher (`macos/Basecamp/`)
 
@@ -158,8 +157,9 @@ Deno-based build that:
 ### Modifying the Scheduler
 
 - Schedule logic: `shouldRun()`, `cronMatches()`, `floorToMinute()`
-- Task execution: `runTask()` — invokes `claude` CLI
-- posix_spawn path: conditional on `BASECAMP_BUNDLE` env var
+- Task execution: `runTask()` — invokes `claude` CLI via posix_spawn
+- posix_spawn: always used, TCC disclaim via
+  `responsibility_spawnattrs_setdisclaim`
 - State management: `loadState()`, `saveState()`
 - All in `src/basecamp.js` — single file, no dependencies
 
