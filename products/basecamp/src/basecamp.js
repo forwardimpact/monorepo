@@ -19,9 +19,9 @@ import {
   unlinkSync,
   chmodSync,
   readdirSync,
+  statSync,
 } from "node:fs";
 import { execSync } from "node:child_process";
-import { spawn } from "node:child_process";
 import { join, dirname, resolve } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -38,22 +38,15 @@ const __dirname =
 const SHARE_DIR = "/usr/local/share/fit-basecamp";
 const SOCKET_PATH = join(BASECAMP_HOME, "basecamp.sock");
 
-// --- posix_spawn (macOS app bundle only) ------------------------------------
+// --- posix_spawn (TCC-compliant process spawning) ---------------------------
 
-const USE_POSIX_SPAWN = !!process.env.BASECAMP_BUNDLE;
-let posixSpawn;
-if (USE_POSIX_SPAWN) {
-  try {
-    posixSpawn = await import("./posix-spawn.js");
-  } catch (err) {
-    console.error(
-      "Failed to load posix-spawn, falling back to child_process:",
-      err.message,
-    );
-  }
-}
+import * as posixSpawn from "./posix-spawn.js";
 
 let daemonStartedAt = null;
+
+// Maximum time an agent can be "active" before being considered stale (35 min).
+// Matches the 30-minute child_process timeout plus a buffer.
+const MAX_AGENT_RUNTIME_MS = 35 * 60_000;
 
 // --- Helpers ----------------------------------------------------------------
 
@@ -226,102 +219,56 @@ async function wakeAgent(agentName, agent, _config, state) {
 
   const spawnArgs = ["--agent", agentName, "--print", "-p", "Observe and act."];
 
-  // Use posix_spawn when running inside the app bundle for TCC inheritance.
-  // Fall back to child_process.spawn for dev mode and other platforms.
-  if (posixSpawn) {
-    try {
-      const { pid, stdoutFd, stderrFd } = posixSpawn.spawn(
-        claude,
-        spawnArgs,
-        undefined,
-        kbPath,
-      );
+  try {
+    const { pid, stdoutFd, stderrFd } = posixSpawn.spawn(
+      claude,
+      spawnArgs,
+      undefined,
+      kbPath,
+    );
 
-      // Read stdout and stderr concurrently to avoid pipe deadlocks,
-      // then wait for the child to exit.
-      const [stdout, stderr] = await Promise.all([
-        posixSpawn.readAll(stdoutFd),
-        posixSpawn.readAll(stderrFd),
-      ]);
-      const exitCode = await posixSpawn.waitForExit(pid);
+    // Read stdout and stderr concurrently to avoid pipe deadlocks,
+    // then wait for the child to exit.
+    const [stdout, stderr] = await Promise.all([
+      posixSpawn.readAll(stdoutFd),
+      posixSpawn.readAll(stderrFd),
+    ]);
+    const exitCode = await posixSpawn.waitForExit(pid);
 
-      if (exitCode === 0) {
-        log(`Agent ${agentName} completed. Output: ${stdout.slice(0, 200)}...`);
-        updateAgentState(as, stdout);
-      } else {
-        const errMsg = stderr || stdout || `Exit code ${exitCode}`;
-        log(`Agent ${agentName} failed: ${errMsg.slice(0, 300)}`);
-        Object.assign(as, {
-          status: "failed",
-          startedAt: null,
-          lastWokeAt: new Date().toISOString(),
-          lastError: errMsg.slice(0, 500),
-        });
-      }
-      saveState(state);
-    } catch (err) {
-      log(`Agent ${agentName} failed: ${err.message}`);
+    if (exitCode === 0) {
+      log(`Agent ${agentName} completed. Output: ${stdout.slice(0, 200)}...`);
+      updateAgentState(as, stdout, agentName);
+    } else {
+      const errMsg = stderr || stdout || `Exit code ${exitCode}`;
+      log(`Agent ${agentName} failed: ${errMsg.slice(0, 300)}`);
       Object.assign(as, {
         status: "failed",
         startedAt: null,
         lastWokeAt: new Date().toISOString(),
-        lastError: err.message.slice(0, 500),
+        lastError: errMsg.slice(0, 500),
       });
-      saveState(state);
     }
-    return;
+    saveState(state);
+  } catch (err) {
+    log(`Agent ${agentName} failed: ${err.message}`);
+    Object.assign(as, {
+      status: "failed",
+      startedAt: null,
+      lastWokeAt: new Date().toISOString(),
+      lastError: err.message.slice(0, 500),
+    });
+    saveState(state);
   }
-
-  return new Promise((resolve) => {
-    const child = spawn(claude, spawnArgs, {
-      cwd: kbPath,
-      stdio: ["pipe", "pipe", "pipe"],
-      timeout: 30 * 60_000,
-    });
-
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (d) => (stdout += d));
-    child.stderr.on("data", (d) => (stderr += d));
-
-    child.on("close", (code) => {
-      if (code === 0) {
-        log(`Agent ${agentName} completed. Output: ${stdout.slice(0, 200)}...`);
-        updateAgentState(as, stdout);
-      } else {
-        const errMsg = stderr || stdout || `Exit code ${code}`;
-        log(`Agent ${agentName} failed: ${errMsg.slice(0, 300)}`);
-        Object.assign(as, {
-          status: "failed",
-          startedAt: null,
-          lastWokeAt: new Date().toISOString(),
-          lastError: errMsg.slice(0, 500),
-        });
-      }
-      saveState(state);
-      resolve();
-    });
-
-    child.on("error", (err) => {
-      log(`Agent ${agentName} failed: ${err.message}`);
-      Object.assign(as, {
-        status: "failed",
-        startedAt: null,
-        lastWokeAt: new Date().toISOString(),
-        lastError: err.message.slice(0, 500),
-      });
-      saveState(state);
-      resolve();
-    });
-  });
 }
 
 /**
  * Parse Decision:/Action: lines from agent output and update state.
+ * Also saves stdout to the state directory as a briefing fallback.
  * @param {object} agentState
  * @param {string} stdout
+ * @param {string} agentName
  */
-function updateAgentState(agentState, stdout) {
+function updateAgentState(agentState, stdout, agentName) {
   const lines = stdout.split("\n");
   const decisionLine = lines.find((l) => l.startsWith("Decision:"));
   const actionLine = lines.find((l) => l.startsWith("Action:"));
@@ -337,12 +284,55 @@ function updateAgentState(agentState, stdout) {
     lastError: null,
     wakeCount: (agentState.wakeCount || 0) + 1,
   });
+
+  // Save output as briefing fallback so View Briefing always has content
+  const stateDir = join(CACHE_DIR, "state");
+  ensureDir(stateDir);
+  const prefix = agentName.replace(/-/g, "_");
+  writeFileSync(join(stateDir, `${prefix}_last_output.md`), stdout);
+}
+
+/**
+ * Reset agents stuck in "active" state. This happens when the daemon
+ * restarts while agents were running, or when a child process exits
+ * without triggering cleanup (e.g. pipe error, signal).
+ *
+ * @param {object} state
+ * @param {{ reason: string, maxAge?: number }} opts
+ *   reason  — logged and stored in lastError
+ *   maxAge  — if set, only reset agents active longer than this (ms)
+ */
+function resetStaleAgents(state, { reason, maxAge }) {
+  let resetCount = 0;
+  for (const [name, as] of Object.entries(state.agents)) {
+    if (as.status !== "active") continue;
+    if (maxAge && as.startedAt) {
+      const elapsed = Date.now() - new Date(as.startedAt).getTime();
+      if (elapsed < maxAge) continue;
+    }
+    log(`Resetting stale agent: ${name} (${reason})`);
+    Object.assign(as, {
+      status: "interrupted",
+      startedAt: null,
+      lastError: reason,
+    });
+    resetCount++;
+  }
+  if (resetCount > 0) saveState(state);
+  return resetCount;
 }
 
 async function wakeDueAgents() {
   const config = loadConfig(),
     state = loadState(),
     now = new Date();
+
+  // Reset agents that have been active longer than the maximum runtime.
+  resetStaleAgents(state, {
+    reason: "Exceeded maximum runtime",
+    maxAge: MAX_AGENT_RUNTIME_MS,
+  });
+
   let wokeAny = false;
   for (const [name, agent] of Object.entries(config.agents)) {
     if (shouldWake(agent, state.agents[name] || {}, now)) {
@@ -392,28 +382,42 @@ function computeNextWakeAt(agent, agentState, now) {
 
 // --- Briefing file resolution -----------------------------------------------
 
-const AGENT_STATE_FILES = {
-  postman: "postman_triage.md",
-  concierge: "concierge_outlook.md",
-  librarian: "librarian_digest.md",
-};
-
+/**
+ * Resolve the briefing file for an agent by convention:
+ * 1. Scan ~/.cache/fit/basecamp/state/ for files matching {agent_name}_*.md
+ * 2. Fall back to the KB's knowledge/Briefings/ directory (latest .md file)
+ *
+ * @param {string} agentName
+ * @param {object} agentConfig
+ * @returns {string|null}
+ */
 function resolveBriefingFile(agentName, agentConfig) {
-  const stateFile = AGENT_STATE_FILES[agentName];
-  if (stateFile) {
-    const p = join(CACHE_DIR, "state", stateFile);
-    return existsSync(p) ? p : null;
+  // 1. Scan state directory for agent-specific files
+  const stateDir = join(CACHE_DIR, "state");
+  if (existsSync(stateDir)) {
+    const prefix = agentName.replace(/-/g, "_") + "_";
+    const matches = readdirSync(stateDir).filter(
+      (f) => f.startsWith(prefix) && f.endsWith(".md"),
+    );
+    if (matches.length === 1) return join(stateDir, matches[0]);
+    if (matches.length > 1) {
+      return matches
+        .map((f) => join(stateDir, f))
+        .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)[0];
+    }
   }
 
-  if (agentName === "chief-of-staff") {
+  // 2. Fall back to KB briefings directory
+  if (agentConfig.kb) {
     const kbPath = expandPath(agentConfig.kb);
     const dir = join(kbPath, "knowledge", "Briefings");
-    if (!existsSync(dir)) return null;
-    const files = readdirSync(dir)
-      .filter((f) => f.endsWith(".md"))
-      .sort()
-      .reverse();
-    return files.length > 0 ? join(dir, files[0]) : null;
+    if (existsSync(dir)) {
+      const files = readdirSync(dir)
+        .filter((f) => f.endsWith(".md"))
+        .sort()
+        .reverse();
+      if (files.length > 0) return join(dir, files[0]);
+    }
   }
 
   return null;
@@ -541,6 +545,11 @@ function daemon() {
   daemonStartedAt = Date.now();
   log("Scheduler daemon started. Polling every 60 seconds.");
   log(`Config: ${CONFIG_PATH}  State: ${STATE_PATH}`);
+
+  // Reset any agents left "active" from a previous daemon session.
+  const state = loadState();
+  resetStaleAgents(state, { reason: "Daemon restarted" });
+
   startSocketServer();
   wakeDueAgents().catch((err) => log(`Error: ${err.message}`));
   setInterval(async () => {

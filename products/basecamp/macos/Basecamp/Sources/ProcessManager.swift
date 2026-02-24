@@ -1,5 +1,12 @@
 import Foundation
 
+// Private API: makes the spawned child disclaim TCC "responsible process"
+// status so macOS checks the parent app (Basecamp.app) for TCC grants.
+@_silgen_name("responsibility_spawnattrs_setdisclaim")
+func responsibility_spawnattrs_setdisclaim(
+    _ attr: UnsafeMutablePointer<posix_spawnattr_t?>, _ disclaim: Int32
+) -> Int32
+
 /// Manages the Deno scheduler as a child process using posix_spawn.
 ///
 /// posix_spawn is required (instead of fork+exec) so that TCC attributes
@@ -66,6 +73,10 @@ class ProcessManager {
         // Set up spawn attributes
         var attr: posix_spawnattr_t?
         posix_spawnattr_init(&attr)
+
+        // Disclaim TCC responsibility so fit-basecamp (and its children)
+        // inherit Basecamp.app as the responsible process.
+        _ = responsibility_spawnattrs_setdisclaim(&attr, 1)
 
         var pid: pid_t = 0
         let result = posix_spawn(

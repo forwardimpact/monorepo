@@ -551,6 +551,7 @@ class StatusMenu: NSObject, NSMenuDelegate {
         case "idle": return "✓"
         case "active": return "●"
         case "failed": return "✗"
+        case "interrupted": return "⚠"
         default: return "○"
         }
     }
@@ -561,6 +562,7 @@ class StatusMenu: NSObject, NSMenuDelegate {
         case "idle": return .systemGreen
         case "active": return .systemBlue
         case "failed": return .systemRed
+        case "interrupted": return .systemOrange
         default: return .systemGray
         }
     }

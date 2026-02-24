@@ -1,12 +1,22 @@
 // @ts-check
 /// <reference lib="deno.ns" />
 
-// Deno FFI wrapper for posix_spawn.
+// Deno FFI wrapper for posix_spawn (macOS only).
 //
 // Used by the scheduler when running inside Basecamp.app so that child
 // processes (claude) inherit TCC attributes from the responsible binary.
-// On other platforms or in dev mode, the scheduler falls back to
-// child_process.spawn / Deno.Command.
+
+// responsibility_spawnattrs_setdisclaim makes the spawned child disclaim
+// TCC "responsible process" status, so macOS checks the parent's responsible
+// process (Basecamp.app) instead.
+const {
+  symbols: { responsibility_spawnattrs_setdisclaim: setDisclaim },
+} = Deno.dlopen("/usr/lib/system/libquarantine.dylib", {
+  responsibility_spawnattrs_setdisclaim: {
+    parameters: ["pointer", "i32"],
+    result: "i32",
+  },
+});
 
 const libc = Deno.dlopen("libSystem.B.dylib", {
   posix_spawn: {
@@ -160,6 +170,11 @@ export function spawn(executable, args, env, cwd) {
   const attrBuf = new Uint8Array(512); // posix_spawnattr_t is opaque, 512 is generous
   const fileActionsBuf = new Uint8Array(512);
   libc.symbols.posix_spawnattr_init(Deno.UnsafePointer.of(attrBuf));
+
+  // Disclaim TCC responsibility so the child inherits the responsible
+  // process from the parent chain (ultimately Basecamp.app).
+  setDisclaim(Deno.UnsafePointer.of(attrBuf), 1);
+
   libc.symbols.posix_spawn_file_actions_init(
     Deno.UnsafePointer.of(fileActionsBuf),
   );
