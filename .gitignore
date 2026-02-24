@@ -21,3 +21,7 @@ playwright-report/
 
 # Package files
 node_modules/
+
+# Other stuff
+**/.DS_Store
+
