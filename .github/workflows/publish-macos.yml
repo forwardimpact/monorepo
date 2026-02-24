@@ -1,0 +1,56 @@
+name: Publish macOS App
+
+on:
+  push:
+    tags: ["basecamp@v*"]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: meta
+        run: |
+          # Tag format: basecamp@v1.2.3
+          VERSION="${GITHUB_REF_NAME#*@v}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Install Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Install just
+        run: brew install just
+
+      - name: Build .pkg installer
+        working-directory: products/basecamp
+        run: just pkg
+
+      - name: Verify .pkg exists
+        working-directory: products/basecamp
+        run: |
+          PKG_FILE="dist/fit-basecamp-${{ steps.meta.outputs.version }}.pkg"
+          if [ ! -f "$PKG_FILE" ]; then
+            echo "Error: $PKG_FILE not found"
+            ls -la dist/
+            exit 1
+          fi
+          echo "pkg_file=$PKG_FILE" >> $GITHUB_OUTPUT
+          echo "Built: $PKG_FILE ($(du -h "$PKG_FILE" | cut -f1))"
+        id: verify
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: Basecamp ${{ steps.meta.outputs.version }}
+          generate_release_notes: true
+          files: products/basecamp/${{ steps.verify.outputs.pkg_file }}
