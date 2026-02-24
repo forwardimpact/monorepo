@@ -40,7 +40,8 @@ pkg: build-app
 
 # Clean build artifacts
 clean:
-    rm -rf "{{ dist_dir }}" 2>/dev/null; sudo rm -rf "{{ dist_dir }}" 2>/dev/null; true
+    sudo rm -rf "{{ dist_dir }}"
+    rm -rf macos/Basecamp/.build
 
 # ─── Setup ───────────────────────────────────────────────────────────────────
 

@@ -53,6 +53,12 @@ cp "$PROJECT_DIR/macos/Info.plist" "$APP_DIR/Contents/Info.plist"
 cp -R "$PROJECT_DIR/config" "$APP_DIR/Contents/Resources/config"
 cp -R "$PROJECT_DIR/template" "$APP_DIR/Contents/Resources/template"
 
+# --- Copy icons ---------------------------------------------------------------
+
+ICON_DIR="$PROJECT_DIR/../../design/icons"
+cp "$ICON_DIR/basecamp-flat.svg" "$APP_DIR/Contents/Resources/basecamp-flat.svg"
+cp "$ICON_DIR/basecamp.svg" "$APP_DIR/Contents/Resources/basecamp.svg"
+
 # --- Ad-hoc code sign with entitlements ---------------------------------------
 
 ENTITLEMENTS="$PROJECT_DIR/macos/Basecamp.entitlements"

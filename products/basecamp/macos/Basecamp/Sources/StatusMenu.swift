@@ -34,145 +34,18 @@ class StatusMenu: NSObject, NSMenuDelegate {
 
     private func setupStatusItem() {
         if let button = statusItem.button {
-            button.image = Self.basecampIcon(size: NSSize(width: 18, height: 18))
+            button.image = Self.loadBundleIcon("basecamp-flat", size: NSSize(width: 18, height: 18))
             button.image?.isTemplate = true
         }
         statusItem.menu = buildMenu()
     }
 
-    /// Basecamp tent icon drawn from SVG path data.
-    /// Matches design/icons/basecamp-flat.svg — stylized tent shape.
-    private static func basecampIcon(size: NSSize) -> NSImage {
-        let image = NSImage(size: size, flipped: true) { rect in
-            let svgW: CGFloat = 227
-            let svgH: CGFloat = 143
-            let scale = min(rect.width / svgW, rect.height / svgH)
-
-            let t = NSAffineTransform()
-            t.translateX(by: (rect.width - svgW * scale) / 2,
-                         yBy: (rect.height - svgH * scale) / 2)
-            t.scale(by: scale)
-            t.concat()
-
-            NSColor.labelColor.setFill()
-
-            // Right tent panel
-            let p1 = NSBezierPath()
-            p1.move(to: NSPoint(x: 75.1724, y: 0))
-            p1.curve(to: NSPoint(x: 158.056, y: 6.08155),
-                     controlPoint1: NSPoint(x: 102.087, y: 2.60203),
-                     controlPoint2: NSPoint(x: 131.903, y: 3.04077))
-            p1.curve(to: NSPoint(x: 170.234, y: 28.5126),
-                     controlPoint1: NSPoint(x: 161.957, y: 12.1692),
-                     controlPoint2: NSPoint(x: 166.669, y: 21.7851))
-            p1.line(to: NSPoint(x: 186.966, y: 59.4872))
-            p1.curve(to: NSPoint(x: 218.868, y: 107.78),
-                     controlPoint1: NSPoint(x: 197.45, y: 79.103),
-                     controlPoint2: NSPoint(x: 203.91, y: 91.2173))
-            p1.curve(to: NSPoint(x: 224.573, y: 101.132),
-                     controlPoint1: NSPoint(x: 220.142, y: 104.709),
-                     controlPoint2: NSPoint(x: 220.989, y: 101.802))
-            p1.curve(to: NSPoint(x: 221.617, y: 116.872),
-                     controlPoint1: NSPoint(x: 228.517, y: 103.027),
-                     controlPoint2: NSPoint(x: 226.17, y: 115.068))
-            p1.curve(to: NSPoint(x: 214.016, y: 108.755),
-                     controlPoint1: NSPoint(x: 219.624, y: 116.269),
-                     controlPoint2: NSPoint(x: 215.54, y: 110.626))
-            p1.curve(to: NSPoint(x: 203.167, y: 97.2074),
-                     controlPoint1: NSPoint(x: 210.445, y: 104.867),
-                     controlPoint2: NSPoint(x: 206.824, y: 101.022))
-            p1.curve(to: NSPoint(x: 199.357, y: 110.151),
-                     controlPoint1: NSPoint(x: 201.753, y: 101.382),
-                     controlPoint2: NSPoint(x: 200.564, y: 105.885))
-            p1.curve(to: NSPoint(x: 134.742, y: 123.886),
-                     controlPoint1: NSPoint(x: 180.066, y: 116.08),
-                     controlPoint2: NSPoint(x: 154.801, y: 119.389))
-            p1.curve(to: NSPoint(x: 103.429, y: 59.4628),
-                     controlPoint1: NSPoint(x: 123.679, y: 102.613),
-                     controlPoint2: NSPoint(x: 114.081, y: 80.8397))
-            p1.curve(to: NSPoint(x: 83.0054, y: 17.7023),
-                     controlPoint1: NSPoint(x: 96.4454, y: 45.63),
-                     controlPoint2: NSPoint(x: 89.637, y: 31.7057))
-            p1.curve(to: NSPoint(x: 75.1724, y: 0),
-                     controlPoint1: NSPoint(x: 80.9482, y: 13.3331),
-                     controlPoint2: NSPoint(x: 76.4085, y: 4.28391))
-            p1.close()
-            p1.fill()
-
-            // Center tent panel
-            let p2 = NSBezierPath()
-            p2.move(to: NSPoint(x: 75.2699, y: 17.4159))
-            p2.curve(to: NSPoint(x: 124.993, y: 117.408),
-                     controlPoint1: NSPoint(x: 77.8652, y: 19.116),
-                     controlPoint2: NSPoint(x: 118.709, y: 109.212))
-            p2.curve(to: NSPoint(x: 131.043, y: 124.922),
-                     controlPoint1: NSPoint(x: 126.866, y: 119.852),
-                     controlPoint2: NSPoint(x: 128.221, y: 122.436))
-            p2.curve(to: NSPoint(x: 140.353, y: 131.54),
-                     controlPoint1: NSPoint(x: 137.866, y: 125.153),
-                     controlPoint2: NSPoint(x: 136.43, y: 130.169))
-            p2.line(to: NSPoint(x: 143.293, y: 128.59))
-            p2.curve(to: NSPoint(x: 145.522, y: 139.571),
-                     controlPoint1: NSPoint(x: 149.896, y: 126.854),
-                     controlPoint2: NSPoint(x: 147.171, y: 136.299))
-            p2.curve(to: NSPoint(x: 141.731, y: 142.137),
-                     controlPoint1: NSPoint(x: 143.806, y: 141.223),
-                     controlPoint2: NSPoint(x: 143.779, y: 141.82))
-            p2.curve(to: NSPoint(x: 128.689, y: 125.373),
-                     controlPoint1: NSPoint(x: 137.322, y: 137.481),
-                     controlPoint2: NSPoint(x: 133.102, y: 130.583))
-            p2.curve(to: NSPoint(x: 92.9638, y: 123.685),
-                     controlPoint1: NSPoint(x: 113.453, y: 129.431),
-                     controlPoint2: NSPoint(x: 109.103, y: 126.384))
-            p2.curve(to: NSPoint(x: 75.4472, y: 48.3904),
-                     controlPoint1: NSPoint(x: 86.2346, y: 109.267),
-                     controlPoint2: NSPoint(x: 77.3666, y: 64.9106))
-            p2.curve(to: NSPoint(x: 75.2699, y: 17.4159),
-                     controlPoint1: NSPoint(x: 74.9048, y: 43.7165),
-                     controlPoint2: NSPoint(x: 75.1077, y: 23.0831))
-            p2.close()
-            p2.fill()
-
-            // Left tent panel
-            let p3 = NSBezierPath()
-            p3.move(to: NSPoint(x: 68.7518, y: 13.8145))
-            p3.curve(to: NSPoint(x: 64.8143, y: 65.5748),
-                     controlPoint1: NSPoint(x: 73.6811, y: 20.1215),
-                     controlPoint2: NSPoint(x: 67.0799, y: 57.2325))
-            p3.curve(to: NSPoint(x: 43.0921, y: 113.849),
-                     controlPoint1: NSPoint(x: 60.0631, y: 83.0821),
-                     controlPoint2: NSPoint(x: 51.5389, y: 97.9753))
-            p3.curve(to: NSPoint(x: 26.0218, y: 110.979),
-                     controlPoint1: NSPoint(x: 37.2236, y: 112.716),
-                     controlPoint2: NSPoint(x: 31.9543, y: 111.674))
-            p3.curve(to: NSPoint(x: 23.5356, y: 96.7444),
-                     controlPoint1: NSPoint(x: 25.831, y: 107.098),
-                     controlPoint2: NSPoint(x: 24.3432, y: 100.736))
-            p3.curve(to: NSPoint(x: 7.78421, y: 114.824),
-                     controlPoint1: NSPoint(x: 18.5783, y: 101.29),
-                     controlPoint2: NSPoint(x: 11.7138, y: 109.468))
-            p3.curve(to: NSPoint(x: 5.67647, y: 118.133),
-                     controlPoint1: NSPoint(x: 6.99061, y: 117.579),
-                     controlPoint2: NSPoint(x: 7.62329, y: 116.951))
-            p3.curve(to: NSPoint(x: 1.57075, y: 101.613),
-                     controlPoint1: NSPoint(x: 1.49148, y: 116.86),
-                     controlPoint2: NSPoint(x: -2.20647, y: 104.447))
-            p3.curve(to: NSPoint(x: 7.47886, y: 108.694),
-                     controlPoint1: NSPoint(x: 5.12366, y: 102.607),
-                     controlPoint2: NSPoint(x: 6.18727, y: 105.599))
-            p3.curve(to: NSPoint(x: 22.0751, y: 91.7718),
-                     controlPoint1: NSPoint(x: 11.8528, y: 103.514),
-                     controlPoint2: NSPoint(x: 18.3308, y: 97.4025))
-            p3.curve(to: NSPoint(x: 40.5059, y: 61.559),
-                     controlPoint1: NSPoint(x: 28.4611, y: 82.1742),
-                     controlPoint2: NSPoint(x: 34.7069, y: 71.5405))
-            p3.line(to: NSPoint(x: 57.5128, y: 32.827))
-            p3.curve(to: NSPoint(x: 68.7518, y: 13.8145),
-                     controlPoint1: NSPoint(x: 61.1072, y: 26.6297),
-                     controlPoint2: NSPoint(x: 64.7662, y: 19.6766))
-            p3.close()
-            p3.fill()
-
+    /// Load an SVG icon from the app bundle Resources, scaled to the given size.
+    private static func loadBundleIcon(_ name: String, size: NSSize) -> NSImage? {
+        guard let path = Bundle.main.path(forResource: name, ofType: "svg"),
+              let source = NSImage(contentsOfFile: path) else { return nil }
+        let image = NSImage(size: size, flipped: false) { rect in
+            source.draw(in: rect)
             return true
         }
         return image

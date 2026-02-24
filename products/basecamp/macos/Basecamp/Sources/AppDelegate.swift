@@ -11,6 +11,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_: Notification) {
         NSApp.setActivationPolicy(.accessory)
 
+        // Set app icon from bundled SVG
+        if let iconPath = Bundle.main.path(forResource: "basecamp", ofType: "svg"),
+           let icon = NSImage(contentsOfFile: iconPath) {
+            NSApp.applicationIconImage = icon
+        }
+
         processManager.startScheduler()
         statusMenu = StatusMenu()
     }
