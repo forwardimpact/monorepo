@@ -7,6 +7,7 @@
 //   node basecamp.js --daemon            Run continuously (poll every 60s)
 //   node basecamp.js --wake <agent>      Wake a specific agent immediately
 //   node basecamp.js --init <path>       Initialize a new knowledge base
+//   node basecamp.js --update [path]     Update KB with latest CLAUDE.md, agents and skills
 //   node basecamp.js --validate          Validate agent definitions exist
 //   node basecamp.js --status            Show agent status
 //   node basecamp.js --help              Show this help
@@ -577,17 +578,125 @@ function findTemplateDir() {
   return null;
 }
 
+/**
+ * Resolve the template directory or exit with an error.
+ * @returns {string}
+ */
+function requireTemplateDir() {
+  const tpl = findTemplateDir();
+  if (!tpl) {
+    console.error("Template not found. Reinstall fit-basecamp.");
+    process.exit(1);
+  }
+  return tpl;
+}
+
+/**
+ * Copy bundled files (CLAUDE.md, skills, agents) from template to a KB.
+ * Shared by --init and --update.
+ * @param {string} tpl  Path to the template directory
+ * @param {string} dest Path to the target knowledge base
+ */
+function copyBundledFiles(tpl, dest) {
+  // CLAUDE.md
+  execSync(`cp "${join(tpl, "CLAUDE.md")}" "${join(dest, "CLAUDE.md")}"`);
+  console.log(`  Updated CLAUDE.md`);
+
+  // Settings — merge template permissions into existing settings
+  mergeSettings(tpl, dest);
+
+  // Skills
+  const skillsSrc = join(tpl, ".claude", "skills");
+  const skillsDest = join(dest, ".claude", "skills");
+  if (existsSync(skillsSrc)) {
+    ensureDir(skillsDest);
+    execSync(`cp -R "${skillsSrc}/" "${skillsDest}/"`);
+    const skills = readdirSync(skillsSrc).filter((f) =>
+      statSync(join(skillsSrc, f)).isDirectory(),
+    );
+    console.log(`  Updated ${skills.length} skills: ${skills.join(", ")}`);
+  }
+
+  // Agents
+  const agentsSrc = join(tpl, ".claude", "agents");
+  const agentsDest = join(dest, ".claude", "agents");
+  if (existsSync(agentsSrc)) {
+    ensureDir(agentsDest);
+    execSync(`cp -R "${agentsSrc}/" "${agentsDest}/"`);
+    const agents = readdirSync(agentsSrc).filter((f) => f.endsWith(".md"));
+    console.log(
+      `  Updated ${agents.length} agents: ${agents.map((f) => f.replace(".md", "")).join(", ")}`,
+    );
+  }
+}
+
+/**
+ * Merge template settings.json into the destination's settings.json.
+ * Adds any missing entries from allow, deny, and additionalDirectories
+ * without removing user customizations.
+ * @param {string} tpl Template directory
+ * @param {string} dest Knowledge base directory
+ */
+function mergeSettings(tpl, dest) {
+  const src = join(tpl, ".claude", "settings.json");
+  if (!existsSync(src)) return;
+
+  const destPath = join(dest, ".claude", "settings.json");
+  ensureDir(join(dest, ".claude"));
+
+  // No existing settings — copy template directly
+  if (!existsSync(destPath)) {
+    execSync(`cp "${src}" "${destPath}"`);
+    console.log(`  Created settings.json`);
+    return;
+  }
+
+  const template = JSON.parse(readFileSync(src, "utf8"));
+  const existing = JSON.parse(readFileSync(destPath, "utf8"));
+
+  const tp = template.permissions || {};
+  const ep = existing.permissions || {};
+
+  let added = 0;
+
+  // Merge array fields: allow, deny, additionalDirectories
+  for (const key of ["allow", "deny", "additionalDirectories"]) {
+    const tplEntries = tp[key] || [];
+    if (tplEntries.length === 0) continue;
+    if (!ep[key]) ep[key] = [];
+    const set = new Set(ep[key]);
+    for (const entry of tplEntries) {
+      if (!set.has(entry)) {
+        ep[key].push(entry);
+        set.add(entry);
+        added++;
+      }
+    }
+  }
+
+  // Merge scalar fields (defaultMode)
+  if (tp.defaultMode && !ep.defaultMode) {
+    ep.defaultMode = tp.defaultMode;
+    added++;
+  }
+
+  existing.permissions = ep;
+
+  if (added > 0) {
+    writeFileSync(destPath, JSON.stringify(existing, null, 2) + "\n");
+    console.log(`  Updated settings.json (${added} new entries)`);
+  } else {
+    console.log(`  Settings up to date`);
+  }
+}
+
 function initKB(targetPath) {
   const dest = expandPath(targetPath);
   if (existsSync(join(dest, "CLAUDE.md"))) {
     console.error(`Knowledge base already exists at ${dest}`);
     process.exit(1);
   }
-  const tpl = findTemplateDir();
-  if (!tpl) {
-    console.error("Template not found. Reinstall fit-basecamp.");
-    process.exit(1);
-  }
+  const tpl = requireTemplateDir();
 
   ensureDir(dest);
   for (const d of [
@@ -599,11 +708,68 @@ function initKB(targetPath) {
   ])
     ensureDir(join(dest, d));
 
-  execSync(`cp -R "${tpl}/." "${dest}/"`);
+  // User-specific files (not overwritten by --update)
+  execSync(`cp "${join(tpl, "USER.md")}" "${join(dest, "USER.md")}"`);
+
+  // Bundled files (shared with --update)
+  copyBundledFiles(tpl, dest);
 
   console.log(
     `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. Edit ${dest}/USER.md with your name, email, and domain\n  2. cd ${dest} && claude`,
   );
+}
+
+// --- Update knowledge base --------------------------------------------------
+
+/**
+ * Update an existing knowledge base with the latest bundled files.
+ * User data (USER.md, knowledge/) is untouched.
+ * Settings.json is merged — new template entries are added without
+ * removing user customizations.
+ * @param {string} targetPath
+ */
+function updateKB(targetPath) {
+  const dest = expandPath(targetPath);
+  if (!existsSync(join(dest, "CLAUDE.md"))) {
+    console.error(`No knowledge base found at ${dest}`);
+    process.exit(1);
+  }
+  const tpl = requireTemplateDir();
+  copyBundledFiles(tpl, dest);
+  console.log(`\nKnowledge base updated: ${dest}`);
+}
+
+/**
+ * Run --update for an explicit path or every unique KB in the scheduler config.
+ */
+function runUpdate() {
+  if (args[1]) {
+    updateKB(args[1]);
+    return;
+  }
+
+  // Discover unique KB paths from config
+  const config = loadConfig();
+  const kbPaths = [
+    ...new Set(
+      Object.values(config.agents)
+        .filter((a) => a.kb)
+        .map((a) => expandPath(a.kb)),
+    ),
+  ];
+
+  if (kbPaths.length === 0) {
+    console.error(
+      "No knowledge bases configured and no path given.\n" +
+        "Usage: fit-basecamp --update [path]",
+    );
+    process.exit(1);
+  }
+
+  for (const kb of kbPaths) {
+    console.log(`\nUpdating ${kb}...`);
+    updateKB(kb);
+  }
 }
 
 // --- Status -----------------------------------------------------------------
@@ -693,6 +859,7 @@ Usage:
   ${bin} --daemon            Run continuously (poll every 60s)
   ${bin} --wake <agent>      Wake a specific agent immediately
   ${bin} --init <path>       Initialize a new knowledge base
+  ${bin} --update [path]     Update KB with latest CLAUDE.md, agents and skills
   ${bin} --validate          Validate agent definitions exist
   ${bin} --status            Show agent status
 
@@ -721,6 +888,7 @@ const commands = {
     }
     initKB(args[1]);
   },
+  "--update": runUpdate,
   "--wake": async () => {
     if (!args[1]) {
       console.error("Usage: node basecamp.js --wake <agent-name>");

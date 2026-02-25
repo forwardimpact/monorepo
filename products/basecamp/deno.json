@@ -1,6 +1,7 @@
 {
   "name": "fit-basecamp",
   "version": "1.0.0",
+  "exports": "./src/basecamp.js",
   "tasks": {
     "start": "deno run --allow-all src/basecamp.js",
     "status": "deno run --allow-all src/basecamp.js --status",
