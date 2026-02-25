@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libpathway",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Derivation engine for roles, skills, and agent team profiles",
   "license": "Apache-2.0",
   "repository": {
@@ -30,7 +30,7 @@
     "./toolkit": "./src/toolkit.js"
   },
   "dependencies": {
-    "@forwardimpact/map": "^0.10.0"
+    "@forwardimpact/map": "^0.11.0"
   },
   "engines": {
     "node": ">=18.0.0"
