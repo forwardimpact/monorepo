@@ -85,7 +85,7 @@ function prepareJobDescriptionData({ job, discipline, level, track }) {
   let capabilitySkills = [];
   const derivedResponsibilities = job.derivedResponsibilities || [];
   if (derivedResponsibilities.length > 0) {
-    // derivedResponsibilities is sorted: highest proficiency first, then by ordinalRank
+    // derivedResponsibilities is sorted: highest proficiency first, then by skill count
     const highestProficiency = derivedResponsibilities[0].proficiency;
 
     // Filter responsibilities to only the highest proficiency
@@ -103,7 +103,7 @@ function prepareJobDescriptionData({ job, discipline, level, track }) {
       skillsByCapability[skill.capability].push(skill);
     }
 
-    // Build capability sections in ordinalRank order
+    // Build capability sections in skill count order
     capabilitySkills = topResponsibilities
       .filter((r) => skillsByCapability[r.capability]?.length > 0)
       .map((r) => {

@@ -436,6 +436,8 @@ function generateJobId(discipline, level, track = null) {
  *
  * Capabilities are sorted by their maximum skill proficiency (descending),
  * so Expert-level capabilities appear before Practitioner-level, etc.
+ * Within the same proficiency, capabilities with more skills at that
+ * proficiency are sorted first.
  *
  * Uses professionalResponsibilities for professional disciplines (isProfessional: true)
  * and managementResponsibilities for management disciplines (isManagement: true).
@@ -478,6 +480,16 @@ export function deriveResponsibilities({
     }
   }
 
+  // Count skills per capability at each capability's max proficiency
+  const capabilitySkillCounts = new Map();
+  for (const skill of skillMatrix) {
+    const capMaxProf = capabilityProficiencies.get(skill.capability);
+    if (skill.proficiency === capMaxProf) {
+      const count = capabilitySkillCounts.get(skill.capability) || 0;
+      capabilitySkillCounts.set(skill.capability, count + 1);
+    }
+  }
+
   // Build capability lookup map
   const capabilityMap = new Map(capabilities.map((c) => [c.id, c]));
 
@@ -498,21 +510,27 @@ export function deriveResponsibilities({
         responsibility: responsibilityText,
         proficiency,
         proficiencyIndex: SKILL_PROFICIENCY_ORDER.indexOf(proficiency),
+        skillCount: capabilitySkillCounts.get(capabilityId) || 0,
       });
     }
   }
 
-  // Sort by proficiency descending (expert first), then by capability order
+  // Sort by proficiency descending (expert first), then by skill count descending,
+  // then by capability order as tiebreaker
   responsibilities.sort((a, b) => {
     if (b.proficiencyIndex !== a.proficiencyIndex) {
       return b.proficiencyIndex - a.proficiencyIndex;
     }
+    if (b.skillCount !== a.skillCount) {
+      return b.skillCount - a.skillCount;
+    }
     return a.ordinalRank - b.ordinalRank;
   });
 
-  // Remove proficiencyIndex from output (internal use only)
+  // Remove internal fields from output
   return responsibilities.map(
-    ({ proficiencyIndex: _proficiencyIndex, ...rest }) => rest,
+    ({ proficiencyIndex: _proficiencyIndex, skillCount: _skillCount, ...rest }) =>
+      rest,
   );
 }
 
