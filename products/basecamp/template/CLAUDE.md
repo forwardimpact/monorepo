@@ -61,7 +61,9 @@ This directory is a knowledge base. Everything is relative to this root:
 │   ├── Organizations/      # Notes on companies and teams
 │   ├── Projects/           # Notes on initiatives and workstreams
 │   ├── Topics/             # Notes on recurring themes
-│   └── Candidates/         # Recruitment candidate profiles
+│   ├── Candidates/         # Recruitment candidate profiles
+│   ├── Tasks/              # Per-person task boards
+│   └── Weeklies/           # Weekly priorities snapshots
 ├── .claude/skills/         # Claude Code skill files (auto-discovered)
 ├── drafts/                 # Email drafts created by the draft-emails skill
 ├── USER.md                 # Your identity (name, email, domain) — gitignored
@@ -75,12 +77,12 @@ This knowledge base is maintained by a team of agents, each defined in
 `.claude/agents/`. They are woken on a schedule by the Basecamp scheduler. Each
 wake, they observe KB state, decide the most valuable action, and execute.
 
-| Agent              | Domain                         | Schedule     | Skills                                              |
-| ------------------ | ------------------------------ | ------------ | --------------------------------------------------- |
-| **postman**        | Email triage and drafts        | Every 5 min  | sync-apple-mail, draft-emails                       |
-| **concierge**      | Meeting prep and transcripts   | Every 10 min | sync-apple-calendar, meeting-prep, process-hyprnote |
-| **librarian**      | Knowledge graph maintenance    | Every 15 min | extract-entities, organize-files                    |
-| **chief-of-staff** | Daily briefings and priorities | 7am, 6pm     | _(reads all state)_                                 |
+| Agent              | Domain                         | Schedule       | Skills                                                          |
+| ------------------ | ------------------------------ | -------------- | --------------------------------------------------------------- |
+| **postman**        | Email triage and drafts        | Every 5 min    | sync-apple-mail, draft-emails, track-candidates                 |
+| **concierge**      | Meeting prep and transcripts   | Every 10 min   | sync-apple-calendar, meeting-prep, process-hyprnote             |
+| **librarian**      | Knowledge graph maintenance    | Every 15 min   | extract-entities, organize-files, manage-tasks                  |
+| **chief-of-staff** | Daily briefings and priorities | 7am, Mon 7:30am | weekly-update _(Mon)_, _(reads all state for daily briefings)_ |
 
 Agent state files are in `~/.cache/fit/basecamp/state/`:
 
@@ -184,6 +186,10 @@ Available skills:
 | Extract Entities       | `.claude/skills/extract-entities/`     | Process synced data into knowledge graph notes  |
 | Draft Emails           | `.claude/skills/draft-emails/`         | Draft email responses using knowledge context   |
 | Meeting Prep           | `.claude/skills/meeting-prep/`         | Prepare briefings for upcoming meetings         |
+| Manage Tasks           | `.claude/skills/manage-tasks/`         | Per-person task boards with lifecycle tracking   |
+| Track Candidates       | `.claude/skills/track-candidates/`     | Recruitment pipeline from email threads         |
+| Weekly Update          | `.claude/skills/weekly-update/`        | Weekly priorities snapshot from tasks + calendar |
+| Send Chat              | `.claude/skills/send-chat/`            | Send chat messages via browser automation       |
 | Create Presentations   | `.claude/skills/create-presentations/` | Create slide decks as PDF                       |
 | Document Collaboration | `.claude/skills/doc-collab/`           | Document creation and collaboration             |
 | Organize Files         | `.claude/skills/organize-files/`       | File organization and cleanup                   |
