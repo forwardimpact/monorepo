@@ -102,4 +102,3 @@ Each `{event_id}.json` file:
 - This sync is stateless — always queries the current sliding window
 - All-day events may have null end times — use start date as end date
 - All-day events have timezone `_float` — omit timezone from output
-- Output format matches Google Calendar event format for downstream consistency

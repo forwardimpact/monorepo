@@ -99,8 +99,6 @@ Synced data and runtime state live outside the knowledge base in
 ~/.cache/fit/basecamp/
 ├── apple_mail/         # Synced Apple Mail threads (.md files)
 ├── apple_calendar/     # Synced Apple Calendar events (.json files)
-├── gmail/              # Synced Gmail threads (.md files)
-├── google_calendar/    # Synced Google Calendar events (.json files)
 └── state/              # Runtime state (plain text files)
     ├── apple_mail_last_sync   # ISO timestamp of last mail sync
     └── graph_processed        # TSV of processed files (path<TAB>hash)
@@ -165,10 +163,8 @@ build a complete picture, then respond. A single note is never the full story.
 Synced emails and calendar events are stored in `~/.cache/fit/basecamp/`,
 outside the knowledge base:
 
-- **Emails:** `~/.cache/fit/basecamp/apple_mail/` and
-  `~/.cache/fit/basecamp/gmail/` — each thread is a `.md` file
-- **Calendar:** `~/.cache/fit/basecamp/apple_calendar/` and
-  `~/.cache/fit/basecamp/google_calendar/` — each event is a `.json` file
+- **Emails:** `~/.cache/fit/basecamp/apple_mail/` — each thread is a `.md` file
+- **Calendar:** `~/.cache/fit/basecamp/apple_calendar/` — each event is a `.json` file
 
 When the user asks about calendar, upcoming meetings, or recent emails, read
 directly from these folders.

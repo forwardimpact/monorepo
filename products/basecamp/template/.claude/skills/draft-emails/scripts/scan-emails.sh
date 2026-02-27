@@ -11,7 +11,6 @@ set -euo pipefail
 
 MAIL_DIRS=(
   "$HOME/.cache/fit/basecamp/apple_mail"
-  "$HOME/.cache/fit/basecamp/gmail"
 )
 
 for dir in "${MAIL_DIRS[@]}"; do
