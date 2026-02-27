@@ -76,9 +76,14 @@ reference.
 browsers, job descriptions, AI agents that follow team standards, and
 progression plans that make growth tangible.
 
-**Guide** will connect these systems into context-aware AI assistance —
-onboarding, career advice, and problem-solving grounded in the team's actual
-framework, not generic best practices.
+**Guide** is the AI agent that understands the framework deeply enough to reason
+about it — onboarding new engineers, advising on career growth, and assessing
+engineering activity against the team's actual skill expectations.
+
+**Landmark** helps engineers see their own growth by connecting what they
+produce on GitHub — pull requests, reviews, design documents — back to the
+framework. And it helps organizations see whether their engineering systems
+support the practices the framework describes.
 
 **Basecamp** gives engineers a personal operations center — scheduled AI tasks
 that sync information, prepare briefings, and organize knowledge so engineers
