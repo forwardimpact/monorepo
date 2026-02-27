@@ -1,6 +1,6 @@
 ---
 title: Documentation
-description: Technical documentation for the FIT suite — Map, Pathway, Guide, and Basecamp.
+description: Technical documentation for the FIT suite — Map, Pathway, Guide, Landmark, and Basecamp.
 layout: product
 toc: false
 hero:

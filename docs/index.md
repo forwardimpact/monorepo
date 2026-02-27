@@ -7,7 +7,7 @@ hero:
   image: /assets/heros/welcome.svg
   alt: An engineer in a hoodie, an AI robot, and a business professional wave hello
   title: Empowered engineers<br>deliver lasting impact.
-  subtitle: Map, Pathway, Guide, and Basecamp — an open-source suite that helps organizations define great engineering, support career growth, and give every engineer the clarity to do their best work in the field.
+  subtitle: Map, Pathway, Guide, Landmark, and Basecamp — an open-source suite that helps organizations define great engineering, support career growth, and give every engineer the clarity to do their best work in the field.
   cta:
     - label: Explore the suite
       href: /docs/
@@ -50,8 +50,8 @@ progression plans — in the browser or from the CLI.
 
 ### Guide
 
-Find your bearing. AI-powered onboarding and career advice that helps engineers
-orient in unfamiliar terrain.
+Find your bearing. An AI agent that understands your engineering framework —
+onboarding, career advice, and growth guidance.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
