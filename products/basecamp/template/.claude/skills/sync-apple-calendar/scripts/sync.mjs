@@ -14,7 +14,13 @@
  */
 
 import { DatabaseSync } from "node:sqlite";
-import { existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
@@ -25,7 +31,10 @@ const OUTDIR = join(HOME, ".cache/fit/basecamp/apple_calendar");
 const EPOCH_MS = Date.UTC(2001, 0, 1);
 
 const DB_PATHS = [
-  join(HOME, "Library/Group Containers/group.com.apple.calendar/Calendar.sqlitedb"),
+  join(
+    HOME,
+    "Library/Group Containers/group.com.apple.calendar/Calendar.sqlitedb",
+  ),
   join(HOME, "Library/Calendars/Calendar.sqlitedb"),
 ];
 
@@ -54,7 +63,9 @@ const ROLE_MAP = {
 function findDb() {
   const db = DB_PATHS.find((p) => existsSync(p));
   if (!db) {
-    console.error("Error: Apple Calendar database not found. Is Calendar configured?");
+    console.error(
+      "Error: Apple Calendar database not found. Is Calendar configured?",
+    );
     process.exit(1);
   }
   return db;
@@ -105,8 +116,10 @@ function coredataToIso(ts, tzName) {
 
   if (tzName && tzName !== "_float") {
     try {
-      return dt.toLocaleString("sv-SE", { timeZone: tzName }).replace(" ", "T") +
-        getUtcOffset(dt, tzName);
+      return (
+        dt.toLocaleString("sv-SE", { timeZone: tzName }).replace(" ", "T") +
+        getUtcOffset(dt, tzName)
+      );
     } catch {
       // Fall through to UTC
     }
@@ -166,7 +179,9 @@ function main() {
 
   try {
     // Fetch events with a single query
-    const events = query(db, `
+    const events = query(
+      db,
+      `
       SELECT
         ci.ROWID AS id,
         ci.summary,
@@ -192,7 +207,8 @@ function main() {
         AND ci.summary != ''
       ORDER BY ci.start_date ASC
       LIMIT 1000;
-    `);
+    `,
+    );
 
     // Collect event IDs for batch attendee query
     const eventIds = events.map((ev) => String(ev.id));
@@ -201,7 +217,9 @@ function main() {
     const attendeesByEvent = {};
     if (eventIds.length > 0) {
       const idList = eventIds.join(",");
-      const attendeesRaw = query(db, `
+      const attendeesRaw = query(
+        db,
+        `
         SELECT
           p.owner_id,
           p.email,
@@ -214,7 +232,8 @@ function main() {
         LEFT JOIN Identity i ON i.ROWID = p.identity_id
         WHERE p.owner_id IN (${idList})
           AND p.entity_type = 7;
-      `);
+      `,
+      );
       for (const a of attendeesRaw) {
         attendeesByEvent[a.owner_id] ??= [];
         attendeesByEvent[a.owner_id].push(a);
@@ -253,10 +272,7 @@ function main() {
           timeZone: ev.start_tz !== "_float" ? ev.start_tz : null,
         },
         end: {
-          dateTime: coredataToIso(
-            ev.end_date ?? ev.start_date,
-            ev.end_tz,
-          ),
+          dateTime: coredataToIso(ev.end_date ?? ev.start_date, ev.end_tz),
           timeZone: ev.end_tz !== "_float" ? ev.end_tz : null,
         },
         allDay: isAllDay,
@@ -286,7 +302,9 @@ function main() {
 
     console.log("Apple Calendar Sync Complete");
     console.log(`Events synced: ${writtenIds.size}`);
-    console.log(`Time window: ${start.toISOString().slice(0, 10)} to ${end.toISOString().slice(0, 10)}`);
+    console.log(
+      `Time window: ${start.toISOString().slice(0, 10)} to ${end.toISOString().slice(0, 10)}`,
+    );
     console.log(`Files cleaned up: ${removed} (outside window)`);
     console.log(`Output: ${OUTDIR}`);
   } finally {

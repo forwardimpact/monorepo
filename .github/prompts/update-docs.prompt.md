@@ -14,7 +14,7 @@ reflects the current codebase.
 2. **Audit against the current codebase**
    - For each document, examine the actual code it describes
    - Check `products/map/src/` for data structures and validation
-   - Check `libs/libpathway/src/` for derivation logic
+   - Check `libraries/libpathway/src/` for derivation logic
    - Check `products/pathway/` for CLI commands, templates, and formatters
    - Run CLI commands mentioned in docs to verify accuracy
 
@@ -22,7 +22,7 @@ reflects the current codebase.
    - Mermaid diagrams must reflect actual data flow and relationships
    - Compare entity diagrams against actual YAML structures in
      `products/map/examples/`
-   - Compare derivation flowcharts against code in `libs/libpathway/src/`
+   - Compare derivation flowcharts against code in `libraries/libpathway/src/`
    - Update or add diagrams where they clarify concepts
 
 4. **Verify code samples**
@@ -46,8 +46,8 @@ reflects the current codebase.
 | Tracks             | `products/map/examples/tracks/`       |
 | Levels             | `products/map/examples/levels.yaml`   |
 | Stages             | `products/map/examples/stages.yaml`   |
-| Job Derivation     | `libs/libpathway/src/job.js`          |
-| Agent Derivation   | `libs/libpathway/src/agent.js`        |
+| Job Derivation     | `libraries/libpathway/src/job.js`     |
+| Agent Derivation   | `libraries/libpathway/src/agent.js`   |
 | CLI Commands       | `products/pathway/bin/fit-pathway.js` |
 | Templates          | `products/pathway/templates/`         |
 | Agent instructions | `AGENTS.md`                           |

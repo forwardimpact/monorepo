@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package agent;
+
+import "common.proto";
+import "tool.proto";
+
+service Agent {
+  rpc ProcessStream(AgentRequest) returns (stream AgentResponse);
+  rpc ProcessUnary(AgentRequest) returns (AgentResponse);
+  rpc ListSubAgents(common.Empty) returns (tool.ToolCallResult);
+  rpc RunSubAgent(RunSubAgentRequest) returns (tool.ToolCallResult);
+  rpc ListHandoffs(ListHandoffsRequest) returns (tool.ToolCallResult);
+  rpc RunHandoff(RunHandoffRequest) returns (tool.ToolCallResult);
+}
+
+message AgentRequest {
+  repeated common.Message messages = 1;
+  optional string resource_id = 2;
+  optional string llm_token = 3;
+  optional string agent = 4;
+}
+
+message AgentResponse {
+  string object = 1;
+  int64 created = 2;
+  string model = 3;
+  common.Usage usage = 5;
+  string resource_id = 6;
+  repeated common.Message messages = 7;
+}
+
+message RunSubAgentRequest {
+  string resource_id = 1;
+  string agent_id = 2;
+  string prompt = 3;
+  optional string llm_token = 4;
+}
+
+message ListHandoffsRequest {
+  string resource_id = 1;
+  bool void = 2;  // Ensures non-empty schema for OpenAI function calling
+}
+
+message RunHandoffRequest {
+  string resource_id = 1;
+  string label = 2;
+}

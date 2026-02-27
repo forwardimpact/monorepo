@@ -1,0 +1,32 @@
+{
+  "name": "@forwardimpact/libvector",
+  "version": "0.1.68",
+  "description": "Vector operations and index management library for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./index/vector.js": "./index/vector.js",
+    "./processor/vector.js": "./processor/vector.js"
+  },
+  "bin": {
+    "fit-process-vectors": "./bin/fit-process-vectors.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libindex": "^0.1.27",
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libtype": "^0.1.63"
+  },
+  "devDependencies": {
+    "@forwardimpact/libutil": "^0.1.60",
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

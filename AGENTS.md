@@ -35,7 +35,7 @@ products/
   pathway/      Web app, CLI, formatters
   basecamp/     Personal knowledge system, scheduler
   map/          Public data model for AI agents and engineers
-libs/
+libraries/
   libpathway/   Derivation logic, job/agent models
   libdoc/       Documentation build and serve tools
 specs/
@@ -52,7 +52,7 @@ different data while using the same model.
 ## 3-Layer System
 
 1. **Map** (`products/map/src/`) — Public data model, validation, loading
-2. **Model** (`libs/libpathway/src/`) — Pure business logic, derivation
+2. **Model** (`libraries/libpathway/src/`) — Pure business logic, derivation
 3. **Presentation** (`products/pathway/src/`) — Formatters, views, UI components
 
 ```
@@ -72,7 +72,7 @@ Map (data) → Model (derivation) → Presentation (display)
 | Example data | `products/map/examples/`                     |
 | JSON Schema  | `products/map/schema/json/`                  |
 | RDF/SHACL    | `products/map/schema/rdf/`                   |
-| Derivation   | `libs/libpathway/src/`                       |
+| Derivation   | `libraries/libpathway/src/`                  |
 | Formatters   | `products/pathway/src/formatters/`           |
 | Templates    | `products/pathway/templates/`                |
 | Scheduler    | `products/basecamp/basecamp.js`              |
@@ -90,7 +90,7 @@ When updating data structure, change:
 1. `products/map/schema/json/` and `rdf/` — Schema definitions (both formats,
    same commit)
 2. `products/map/examples/` — Example data
-3. `libs/libpathway/src/` — Derivation logic if needed
+3. `libraries/libpathway/src/` — Derivation logic if needed
 4. `products/pathway/src/formatters/` — Presentation if needed
 
 ## Core Rules
@@ -380,7 +380,7 @@ Use these terms for spheres of influence (ascending breadth):
 **Map** (`products/map/src/`): `loader.js`, `validation.js`,
 `schema-validation.js`, `index-generator.js`, `levels.js`
 
-**Model** (`libs/libpathway/src/`): `derivation.js`, `modifiers.js`,
+**Model** (`libraries/libpathway/src/`): `derivation.js`, `modifiers.js`,
 `profile.js`, `job.js`, `agent.js`, `checklist.js`, `interview.js`
 
 **Presentation** (`products/pathway/src/`): `formatters/`, `pages/`,
@@ -444,7 +444,7 @@ Assess version impact at each commit:
 **Dependency chain**: `map` → `libpathway` → `pathway`
 
 Find dependents:
-`grep -rl "@forwardimpact/{pkg}" products/*/package.json libs/*/package.json`
+`grep -rl "@forwardimpact/{pkg}" products/*/package.json libraries/*/package.json`
 
 When releasing a minor or major version, update dependent packages:
 

@@ -1,0 +1,82 @@
+/* eslint no-unused-vars: "off" */
+
+import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespaces}} } from "@forwardimpact/libtype";
+
+/**
+ * Base class for {{serviceName}} service implementation
+ */
+export class {{className}} {
+  config;
+
+  /**
+   * Creates a new {{serviceName}} service instance
+   * @param {object} config - Service configuration
+   */
+  constructor(config) {
+    if (!config) throw new Error("config is required");
+    this.config = config;
+  }
+
+{{#methods}}
+  {{#responseStream}}
+  /**
+   * Must be implemented by subclass (server streaming)
+   * @param { {{requestTypeNamespace}}.{{requestType}} } {{paramName}} - Request parameters
+   * @param { (response: {{responseTypeNamespace}}.{{responseType}}) => void } write - Callback to write response messages
+   * @returns { Promise<void> } Resolves when streaming is complete
+   */
+  async {{name}}({{paramName}}, write) {
+    throw new Error("{{name}} not implemented");
+  }
+  {{/responseStream}}
+  {{^responseStream}}
+  /**
+   * Must be implemented by subclass
+   * @param { {{requestTypeNamespace}}.{{requestType}} } {{paramName}} - Request parameters
+   * @returns { Promise<{{responseTypeNamespace}}.{{responseType}}> } Response object
+   */
+  async {{name}}({{paramName}}) {
+    throw new Error("{{name}} not implemented");
+  }
+  {{/responseStream}}
+
+{{/methods}}
+  /**
+   * Creates gRPC handlers for this service instance
+   * @returns { object } Map of method names to handler functions
+   */
+  getHandlers() {
+    return {
+{{#methods}}
+      {{#responseStream}}
+      {{name}}: async (call) => {
+        // Validate and convert request
+        const error = {{requestTypeNamespace}}.{{requestType}}.verify(call.request);
+        if (error) throw new Error(`{{name}}: ${error}`);
+        const req = {{requestTypeNamespace}}.{{requestType}}.fromObject(call.request);
+
+        // Stream wrapper that writes typed responses
+        const write = (response) => {
+          call.write({{responseTypeNamespace}}.{{responseType}}.toObject(response));
+        };
+
+        // Call implementation and end stream
+        await this.{{name}}(req, write);
+        call.end();
+      },
+      {{/responseStream}}
+      {{^responseStream}}
+      {{name}}: async (call) => {
+        // Validate and convert request
+        const error = {{requestTypeNamespace}}.{{requestType}}.verify(call.request);
+        if (error) throw new Error(`{{name}}: ${error}`);
+        const req = {{requestTypeNamespace}}.{{requestType}}.fromObject(call.request);
+        
+        // Call implementation
+        return await this.{{name}}(req);
+      },
+      {{/responseStream}}
+{{/methods}}
+    };
+  }
+}

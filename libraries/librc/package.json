@@ -1,0 +1,26 @@
+{
+  "name": "@forwardimpact/librc",
+  "version": "0.1.7",
+  "description": "Service manager for Forward Impact",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "fit-rc": "./bin/fit-rc.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libconfig": "^0.1.58",
+    "@forwardimpact/libsupervise": "^0.1.6",
+    "@forwardimpact/libtelemetry": "^0.1.22"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

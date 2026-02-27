@@ -1,0 +1,31 @@
+{
+  "name": "@forwardimpact/libtelemetry",
+  "version": "0.1.22",
+  "description": "OpenTelemetry-based tracing library for Guide microservices",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./tracer.js": "./tracer.js",
+    "./visualizer.js": "./visualizer.js",
+    "./index/trace.js": "./index/trace.js"
+  },
+  "bin": {
+    "fit-visualize": "./bin/fit-visualize.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libindex": "^0.1.27",
+    "jmespath": "^0.16.0"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

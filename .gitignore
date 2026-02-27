@@ -2,6 +2,13 @@
 data/
 data
 
+# Generated code
+generated/
+**/generated
+
+# Local config (use config.example.json as template)
+**/config/config.json
+
 # Development files
 tmp/
 SCRATCHPAD*.md

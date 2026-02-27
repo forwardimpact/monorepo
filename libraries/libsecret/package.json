@@ -1,0 +1,15 @@
+{
+  "name": "@forwardimpact/libsecret",
+  "version": "0.1.3",
+  "description": "Secret generation and environment file utilities for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

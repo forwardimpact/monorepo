@@ -1,0 +1,24 @@
+{
+  "name": "@forwardimpact/librpc",
+  "version": "0.1.77",
+  "description": "gRPC framework and utilities for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libconfig": "^0.1.58",
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libutil": "^0.1.60",
+    "@grpc/grpc-js": "^1.14.3"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

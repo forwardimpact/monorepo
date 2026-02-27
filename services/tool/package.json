@@ -1,0 +1,25 @@
+{
+  "name": "@forwardimpact/svctool",
+  "version": "0.1.88",
+  "description": "Tool service providing various utility functions for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "npx download && node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libconfig": "^0.1.58",
+    "@forwardimpact/librpc": "^0.1.77",
+    "@forwardimpact/libtype": "^0.1.63"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

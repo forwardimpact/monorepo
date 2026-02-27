@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package vector;
+
+import "tool.proto";
+
+service Vector {
+  rpc SearchContent(TextQuery) returns (tool.ToolCallResult);
+}
+
+message TextQuery {
+  repeated string input = 1;
+  optional tool.QueryFilter filter = 2;
+  optional string llm_token = 3;
+}

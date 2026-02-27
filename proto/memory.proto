@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package memory;
+
+import "common.proto";
+import "resource.proto";
+import "tool.proto";
+
+service Memory {
+  rpc AppendMemory(AppendRequest) returns (AppendResponse);
+  rpc GetWindow(WindowRequest) returns (WindowResponse);
+}
+
+message AppendRequest {
+  string resource_id = 1;
+  repeated resource.Identifier identifiers = 2;
+}
+
+message AppendResponse {
+  string accepted = 1;
+}
+
+message WindowRequest {
+  string resource_id = 1;
+  string model = 2;
+}
+
+message WindowResponse {
+  repeated common.Message messages = 1;
+  repeated tool.ToolCall tools = 2;
+  int32 max_tokens = 3;
+}

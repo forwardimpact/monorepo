@@ -1,0 +1,18 @@
+# Node files
+**/node_modules/
+
+# Environment files
+**/*.env*
+**/.ghtoken
+
+# Data files
+**/data/
+
+# Editor files
+SCRATCHPAD.md
+.vscode/
+.idea/
+
+# Other files
+**/.DS_Store
+**/.git

@@ -1,0 +1,40 @@
+{
+  "name": "@forwardimpact/libresource",
+  "version": "0.1.89",
+  "description": "Resource management for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./processor/resource.js": "./processor/resource.js",
+    "./parser.js": "./parser.js",
+    "./skolemizer.js": "./skolemizer.js"
+  },
+  "bin": {
+    "fit-process-resources": "./bin/fit-process-resources.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libllm": "^0.1.71",
+    "@forwardimpact/libpolicy": "^0.1.52",
+    "@forwardimpact/libstorage": "^0.1.53",
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libtype": "^0.1.63",
+    "@forwardimpact/libutil": "^0.1.60",
+    "html-minifier-terser": "^7.2.0"
+  },
+  "devDependencies": {
+    "jsdom": "^27.4.0",
+    "microdata-rdf-streaming-parser": "^3.0.0",
+    "n3": "^1.26.0",
+    "rdf-canonize": "^4.0.1",
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

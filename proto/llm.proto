@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package llm;
+
+import "common.proto";
+import "tool.proto";
+
+service Llm {
+  rpc CreateEmbeddings(EmbeddingsRequest) returns (common.Embeddings);
+  rpc CreateCompletions(CompletionsRequest) returns (CompletionsResponse);
+}
+
+message EmbeddingsRequest {
+  repeated string input = 1;
+  string llm_token = 2;
+  optional string model = 3;
+}
+
+message CompletionsRequest {
+  string resource_id = 1;
+  string llm_token = 4;
+  optional string model = 5;
+}
+
+message CompletionsResponse {
+  string id = 1;
+  string object = 2;
+  int64 created = 3;
+  string model = 4;
+  repeated common.Choice choices = 5;
+  common.Usage usage = 6;
+}

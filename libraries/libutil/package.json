@@ -1,0 +1,24 @@
+{
+  "name": "@forwardimpact/libutil",
+  "version": "0.1.60",
+  "description": "Utility functions and utilities for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "fit-download-bundle": "./bin/fit-download-bundle.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libtelemetry": "^0.1.22"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@forwardimpact/libsupervise",
+  "version": "0.1.6",
+  "description": "Process supervision for Forward Impact services",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "fit-logger": "./bin/fit-logger.js",
+    "fit-svscan": "./bin/fit-svscan.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libtelemetry": "^0.1.22"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

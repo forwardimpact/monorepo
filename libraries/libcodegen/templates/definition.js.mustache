@@ -1,0 +1,31 @@
+import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespaces}} } from "@forwardimpact/libtype";
+
+/**
+ * Pre-compiled gRPC service definition for {{serviceName}}
+ * Generated at build time
+ */
+export const {{serviceName}}ServiceDefinition = {
+{{#methods}}
+  {{name}}: {
+    path: '/{{packageName}}.{{serviceName}}/{{name}}',
+    requestStream: {{requestStream}},
+    responseStream: {{responseStream}},
+    requestSerialize: (value) => {
+      return Buffer.from({{requestTypeNamespace}}.{{requestType}}.encode(value).finish());
+    },
+    requestDeserialize: (value) => {
+      return {{requestTypeNamespace}}.{{requestType}}.toObject(
+        {{requestTypeNamespace}}.{{requestType}}.decode(value)
+      );
+    },
+    responseSerialize: (value) => {
+      return Buffer.from({{responseTypeNamespace}}.{{responseType}}.encode(value).finish());
+    },
+    responseDeserialize: (value) => {
+      return {{responseTypeNamespace}}.{{responseType}}.toObject(
+        {{responseTypeNamespace}}.{{responseType}}.decode(value)
+      );
+    },
+  },
+{{/methods}}
+};
