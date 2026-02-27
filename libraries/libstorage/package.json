@@ -1,0 +1,29 @@
+{
+  "name": "@forwardimpact/libstorage",
+  "version": "0.1.53",
+  "description": "Storage abstraction layer for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "fit-storage": "./bin/fit-storage.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.970.0",
+    "@aws-sdk/credential-providers": "^3.970.0",
+    "@forwardimpact/libconfig": "^0.1.58",
+    "@forwardimpact/libsecret": "^0.1.3",
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libutil": "^0.1.60"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

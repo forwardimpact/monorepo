@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package common;
+
+import "resource.proto";
+import "tool.proto";
+
+message Empty {
+  bool void = 1;
+}
+
+message Usage {
+  int32 prompt_tokens = 1;
+  int32 completion_tokens = 2;
+  int32 total_tokens = 3;
+}
+
+message Choice {
+  int32 index = 1;
+  Message message = 2;
+  optional string finish_reason = 3;
+}
+
+message Embedding {
+  string object = 1;
+  int32 index = 2;
+  repeated float embedding = 3;
+}
+
+message Embeddings {
+  string object = 1;
+  repeated Embedding data = 2;
+  string model = 3;
+  Usage usage = 4;
+}
+
+message Conversation {
+  resource.Identifier id = 1;
+  optional string agent_id = 2;
+}
+
+message Message {
+  resource.Identifier id = 1;
+  string role = 2;
+  string content = 3;
+  repeated tool.ToolCall tool_calls = 4;
+  optional string tool_call_id = 5;
+}
+
+message Handoff {
+  string label = 1;
+  string agent = 2;
+  string prompt = 3;
+}
+
+message Agent {
+  resource.Identifier id = 1;
+  string name = 2;
+  string description = 3;
+  bool infer = 4;
+  repeated string tools = 5;
+  repeated Handoff handoffs = 6;
+  string content = 7;
+}

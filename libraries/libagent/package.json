@@ -1,0 +1,28 @@
+{
+  "name": "@forwardimpact/libagent",
+  "version": "0.1.36",
+  "description": "Agent orchestration library for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "fit-process-agents": "./bin/fit-process-agents.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libsecret": "^0.1.3",
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libtype": "^0.1.63",
+    "js-yaml": "^4.1.1"
+  },
+  "devDependencies": {
+    "@forwardimpact/libdoc": "^0.2.0",
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

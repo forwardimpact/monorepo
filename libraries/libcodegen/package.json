@@ -1,0 +1,27 @@
+{
+  "name": "@forwardimpact/libcodegen",
+  "version": "0.1.27",
+  "description": "Protocol Buffer code generation utilities for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "fit-codegen": "./bin/fit-codegen.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@grpc/proto-loader": "^0.8.0",
+    "mustache": "^4.2.0",
+    "protobufjs": "^7.5.4",
+    "protobufjs-cli": "^1.2.0"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

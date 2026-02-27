@@ -1,0 +1,26 @@
+{
+  "name": "@forwardimpact/svcagent",
+  "version": "0.1.110",
+  "description": "Core orchestration service for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "npx download && node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libagent": "^0.1.36",
+    "@forwardimpact/libconfig": "^0.1.58",
+    "@forwardimpact/libresource": "^0.1.89",
+    "@forwardimpact/librpc": "^0.1.77"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

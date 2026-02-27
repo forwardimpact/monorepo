@@ -19,7 +19,7 @@ Data model, validation, and loading.
 | `src/index-generator.js`   | Browser index generation                                    |
 | `src/index.js`             | Public API exports                                          |
 
-### Model (`libs/libpathway/`)
+### Model (`libraries/libpathway/`)
 
 Pure business logic and derivation.
 

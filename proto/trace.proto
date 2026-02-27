@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package trace;
+
+service Trace {
+  rpc RecordSpan(Span) returns (RecordResponse);
+  rpc QuerySpans(QueryRequest) returns (QueryResponse);
+}
+
+enum Kind {
+  UNSPECIFIED = 0;
+  INTERNAL = 1;
+  SERVER = 2;
+  CLIENT = 3;
+}
+
+enum Code {
+  UNSET = 0;
+  OK = 1;
+  ERROR = 2;
+}
+
+message Span {
+  string trace_id = 1;
+  string span_id = 2;
+  string parent_span_id = 3;
+  string name = 4;
+  Kind kind = 5;
+  int64 start_time_unix_nano = 6;
+  int64 end_time_unix_nano = 7;
+  map<string, string> attributes = 8;
+  repeated Event events = 9;
+  Status status = 10;
+  Resource resource = 11;
+}
+
+message Event {
+  string name = 1;
+  int64 time_unix_nano = 2;
+  map<string, string> attributes = 3;
+}
+
+message Resource {
+  map<string, string> attributes = 1;
+}
+
+message Status {
+  Code code = 1;
+  string message = 2;
+}
+
+message RecordResponse {
+  bool success = 1;
+}
+
+message QueryRequest {
+  optional string query = 1;
+  optional Filter filter = 2;
+
+  message Filter {
+    optional string trace_id = 1;
+    optional string resource_id = 2;
+  }
+}
+
+message QueryResponse {
+  repeated Span spans = 1;
+}

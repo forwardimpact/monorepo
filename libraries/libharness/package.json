@@ -1,0 +1,32 @@
+{
+  "name": "@forwardimpact/libharness",
+  "version": "0.1.5",
+  "description": "Test harness and mock infrastructure for guide tests",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./mock": "./mock/index.js",
+    "./fixture": "./fixture/index.js"
+  },
+  "files": [
+    "index.js",
+    "mock/**/*.js",
+    "fixture/**/*.js",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "test",
+    "mock",
+    "fixture",
+    "harness"
+  ],
+  "author": "Forward Impact Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "@forwardimpact/libtype": "*"
+  }
+}

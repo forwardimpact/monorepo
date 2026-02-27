@@ -1,0 +1,100 @@
+{
+  "init": {
+    "log_dir": "data/logs",
+    "shutdown_timeout": 3000,
+    "services": [
+      {
+        "name": "tei",
+        "command": "text-embeddings-router --model-id BAAI/bge-small-en-v1.5 --port 8090 --json-output --auto-truncate --max-concurrent-requests 32 --tokenization-workers 4"
+      },
+      {
+        "name": "trace",
+        "command": "npm run dev -w @forwardimpact/svctrace"
+      },
+      {
+        "name": "vector",
+        "command": "npm run dev -w @forwardimpact/svcvector"
+      },
+      {
+        "name": "graph",
+        "command": "npm run dev -w @forwardimpact/svcgraph"
+      },
+      {
+        "name": "llm",
+        "command": "npm run dev -w @forwardimpact/svcllm"
+      },
+      {
+        "name": "memory",
+        "command": "npm run dev -w @forwardimpact/svcmemory"
+      },
+      {
+        "name": "tool",
+        "command": "npm run dev -w @forwardimpact/svctool"
+      },
+      {
+        "name": "agent",
+        "command": "npm run dev -w @forwardimpact/svcagent"
+      },
+      {
+        "name": "web",
+        "command": "npm run dev -w @forwardimpact/svcweb"
+      }
+    ]
+  },
+  "evals": {
+    "models": ["openai/gpt-4o", "openai/gpt-4.1", "deepseek/deepseek-v3-0324"],
+    "judge_model": "openai/gpt-4o"
+  },
+  "service": {
+    "agent": {
+      "agent": "common.Agent.planner",
+      "model": "openai/gpt-4o"
+    },
+    "llm": {
+      "temperature": 0.32
+    },
+    "memory": {
+      "max_tokens": 4096
+    },
+    "tool": {
+      "filter": {
+        "threshold": 0.64,
+        "max_tokens": 8000
+      },
+      "endpoints": {
+        "get_ontology": {
+          "method": "graph.Graph.GetOntology",
+          "request": "common.Empty"
+        },
+        "get_subjects": {
+          "method": "graph.Graph.GetSubjects",
+          "request": "graph.SubjectsQuery"
+        },
+        "query_by_pattern": {
+          "method": "graph.Graph.QueryByPattern",
+          "request": "graph.PatternQuery"
+        },
+        "search_content": {
+          "method": "vector.Vector.SearchContent",
+          "request": "vector.TextQuery"
+        },
+        "list_sub_agents": {
+          "method": "agent.Agent.ListSubAgents",
+          "request": "common.Empty"
+        },
+        "run_sub_agent": {
+          "method": "agent.Agent.RunSubAgent",
+          "request": "agent.RunSubAgentRequest"
+        },
+        "list_handoffs": {
+          "method": "agent.Agent.ListHandoffs",
+          "request": "agent.ListHandoffsRequest"
+        },
+        "run_handoff": {
+          "method": "agent.Agent.RunHandoff",
+          "request": "agent.RunHandoffRequest"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package tool;
+
+import "resource.proto";
+
+service Tool {
+  rpc CallTool(ToolCall) returns (ToolCallResult);
+}
+
+// Generic query types
+
+message QueryFilter {
+  optional string prefix = 1;
+  optional string threshold = 2;
+  optional string limit = 3;
+  optional string max_tokens = 4;
+}
+
+// Tool types
+
+message ToolProp {
+  string type = 1;
+  map<string, string> items = 2;
+  string description = 3;
+}
+
+message ToolParam {
+  string type = 1;
+  map<string, ToolProp> properties = 2;
+  repeated string required = 3;
+}
+
+message ToolFunction {
+  resource.Identifier id = 1;
+  string name = 2;
+  string description = 3;
+  oneof usage {
+    ToolParam parameters = 4; // When declaring
+    string arguments = 5; // When calling
+  }
+}
+
+message ToolCall {
+  string type = 1;
+  ToolFunction function = 2;
+  optional string id = 3; // When calling
+  optional QueryFilter filter = 4; // Filter to pass-on when calling
+  optional string llm_token = 5; // LLM API token to pass-on when calling
+  optional string resource_id = 6; // For context-aware tools
+}
+
+message ToolCallResult {
+  optional string content = 1;
+  repeated resource.Identifier identifiers = 2;
+}
+
+message ToolCallMessage {
+  resource.Identifier id = 1;
+  string content = 2;
+  string role = 3;
+  repeated ToolCall tool_calls = 4;
+  string tool_call_id = 5;
+}

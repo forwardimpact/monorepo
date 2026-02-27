@@ -6,7 +6,10 @@ export default [
   prettierConfig,
   {
     rules: {
-      "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
       "no-console": "off",
     },
     languageOptions: {
@@ -36,9 +39,10 @@ export default [
     },
   },
   {
-    files: ["products/basecamp/**/*.js"],
+    files: ["products/basecamp/**/*.js", "products/basecamp/**/*.mjs"],
     languageOptions: {
       globals: {
+        Buffer: "readonly",
         Deno: "readonly",
         setInterval: "readonly",
         require: "readonly",
@@ -51,6 +55,33 @@ export default [
     },
   },
   {
-    ignores: ["node_modules/**", "tmp/**", "dist/**"],
+    files: ["libraries/**/*.js", "services/**/*.js"],
+    languageOptions: {
+      globals: {
+        global: "readonly",
+        Buffer: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        clearTimeout: "readonly",
+        TextEncoder: "readonly",
+        TextDecoder: "readonly",
+        structuredClone: "readonly",
+        AbortController: "readonly",
+        AbortSignal: "readonly",
+        btoa: "readonly",
+        atob: "readonly",
+        EventTarget: "readonly",
+        Event: "readonly",
+        crypto: "readonly",
+        performance: "readonly",
+        Response: "readonly",
+        Headers: "readonly",
+        ReadableStream: "readonly",
+        queueMicrotask: "readonly",
+      },
+    },
+  },
+  {
+    ignores: ["node_modules/**", "tmp/**", "**/dist/**", "**/generated/**"],
   },
 ];

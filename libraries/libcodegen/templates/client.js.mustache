@@ -1,0 +1,70 @@
+/* eslint no-unused-vars: "off" */
+
+import { Client } from "@forwardimpact/librpc/client.js";
+import { createAuth, createGrpc } from "@forwardimpact/librpc/base.js";
+import { createObserver } from "@forwardimpact/libtelemetry";
+import { {{#importNamespaces}}{{name}}{{^isLast}}, {{/isLast}}{{/importNamespaces}} } from "@forwardimpact/libtype";
+
+/**
+ * Typed client for the {{serviceName}} gRPC service.
+ * Extends the `Client` class for shared gRPC client functionality.
+ */
+export class {{className}} extends Client {
+  /**
+   * Creates a new {{serviceName}} client instance
+   * @param {object} config - Service configuration
+   * @param {import("@forwardimpact/libtelemetry").Logger} [logger] - Optional logger instance
+   * @param {import("@forwardimpact/libtelemetry").Tracer} [tracer] - Optional tracer for distributed tracing
+   * @param {Function} [authFn] - Optional authentication function
+   */
+  constructor(config, logger = null, tracer = null, authFn = createAuth) {
+    super(config, logger, tracer, createObserver, createGrpc, authFn);
+  }
+
+{{#methods}}
+  {{#responseStream}}
+  /**
+   * Call the `{{name}}` RPC with request/response type conversion.
+   * @param { {{requestTypeNamespace}}.{{requestType}} } {{paramName}} - Typed request message.
+   * @returns { import("@grpc/grpc-js").ClientReadableStream<{{responseTypeNamespace}}.{{responseType}}> } Response stream emitting typed messages.
+   */
+  {{name}}({{paramName}}) {
+    // Type validation
+    if (!({{paramName}} instanceof {{requestTypeNamespace}}.{{requestType}})) {
+      throw new TypeError(
+        `{{name}}: Expected parameter to be instanceof {{requestTypeNamespace}}.{{requestType}}`,
+      );
+    }
+    
+    // Convert to plain object
+    const request = {{requestTypeNamespace}}.{{requestType}}.toObject({{paramName}});
+    
+    // Make gRPC call
+    return this.callStream("{{name}}", request, (res) => {{responseTypeNamespace}}.{{responseType}}.fromObject(res));
+  }
+  {{/responseStream}}
+  {{^responseStream}}
+  /**
+   * Call the `{{name}}` RPC with request/response type conversion.
+   * @param { {{requestTypeNamespace}}.{{requestType}} } {{paramName}} - Typed request message.
+   * @returns { Promise<{{responseTypeNamespace}}.{{responseType}}> } Typed response message.
+   */
+  async {{name}}({{paramName}}) {
+    // Type validation
+    if (!({{paramName}} instanceof {{requestTypeNamespace}}.{{requestType}})) {
+      throw new TypeError(
+        `{{name}}: Expected parameter to be instanceof {{requestTypeNamespace}}.{{requestType}}`,
+      );
+    }
+    
+    // Convert to plain object
+    const request = {{requestTypeNamespace}}.{{requestType}}.toObject({{paramName}});
+    
+    // Make gRPC call (tracing handled by base Client class)
+    return this.callUnary("{{name}}", request, (res) => {{responseTypeNamespace}}.{{responseType}}.fromObject(res));
+  }
+  {{/responseStream}}
+{{^isLast}}
+
+{{/isLast}}{{/methods}}
+}

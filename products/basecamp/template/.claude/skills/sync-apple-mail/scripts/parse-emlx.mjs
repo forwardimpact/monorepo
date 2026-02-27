@@ -46,11 +46,29 @@ export function htmlToText(html) {
  */
 function decodeEntities(text) {
   const named = {
-    amp: "&", lt: "<", gt: ">", quot: '"', apos: "'",
-    nbsp: " ", ndash: "–", mdash: "—", lsquo: "\u2018", rsquo: "\u2019",
-    ldquo: "\u201C", rdquo: "\u201D", hellip: "…", copy: "©", reg: "®",
-    trade: "™", bull: "•", middot: "·", ensp: "\u2002", emsp: "\u2003",
-    thinsp: "\u2009", zwnj: "\u200C", zwj: "\u200D",
+    amp: "&",
+    lt: "<",
+    gt: ">",
+    quot: '"',
+    apos: "'",
+    nbsp: " ",
+    ndash: "–",
+    mdash: "—",
+    lsquo: "\u2018",
+    rsquo: "\u2019",
+    ldquo: "\u201C",
+    rdquo: "\u201D",
+    hellip: "…",
+    copy: "©",
+    reg: "®",
+    trade: "™",
+    bull: "•",
+    middot: "·",
+    ensp: "\u2002",
+    emsp: "\u2003",
+    thinsp: "\u2009",
+    zwnj: "\u200C",
+    zwj: "\u200D",
   };
   return text.replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, (match, ref) => {
     if (ref.startsWith("#x") || ref.startsWith("#X")) {
@@ -207,7 +225,13 @@ function parsePart(raw) {
   const encoding = (headers.get("content-transfer-encoding") ?? ["7bit"])[0];
   const bodyRaw = raw.subarray(bodyOffset);
   const body = decodePayload(bodyRaw, encoding);
-  return { contentType: type, charset: params.charset, body, headers, boundary: params.boundary };
+  return {
+    contentType: type,
+    charset: params.charset,
+    body,
+    headers,
+    boundary: params.boundary,
+  };
 }
 
 /**
@@ -236,11 +260,18 @@ function walkParts(raw) {
     if (start === -1) break;
     let afterDelim = start + delim.length;
     // Check for terminal --
-    if (afterDelim + 1 < raw.length && raw[afterDelim] === 0x2d && raw[afterDelim + 1] === 0x2d) {
+    if (
+      afterDelim + 1 < raw.length &&
+      raw[afterDelim] === 0x2d &&
+      raw[afterDelim + 1] === 0x2d
+    ) {
       break;
     }
     // Skip to start of part content (after CRLF or LF)
-    while (afterDelim < raw.length && (raw[afterDelim] === 0x0d || raw[afterDelim] === 0x0a)) {
+    while (
+      afterDelim < raw.length &&
+      (raw[afterDelim] === 0x0d || raw[afterDelim] === 0x0a)
+    ) {
       afterDelim++;
     }
     // Find next boundary
@@ -320,7 +351,11 @@ function parseAndPrint(filePath) {
 }
 
 // --- CLI ---
-if (process.argv[1] && (process.argv[1].endsWith("parse-emlx.mjs") || process.argv[1].endsWith("parse-emlx"))) {
+if (
+  process.argv[1] &&
+  (process.argv[1].endsWith("parse-emlx.mjs") ||
+    process.argv[1].endsWith("parse-emlx"))
+) {
   if (process.argv.length !== 3) {
     console.error("Usage: node scripts/parse-emlx.mjs <path>");
     process.exit(1);

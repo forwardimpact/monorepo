@@ -15,8 +15,14 @@
 
 import { DatabaseSync } from "node:sqlite";
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
+import { basename, join } from "node:path";
 import { homedir } from "node:os";
 import { globSync } from "node:fs";
 import { parseEmlx } from "./parse-emlx.mjs";
@@ -36,7 +42,9 @@ const MAX_THREADS = 500;
  */
 function findDb() {
   const mailDir = join(HOME, "Library/Mail");
-  const paths = globSync(join(mailDir, "V*/MailData/Envelope Index")).sort().reverse();
+  const paths = globSync(join(mailDir, "V*/MailData/Envelope Index"))
+    .sort()
+    .reverse();
   if (paths.length === 0) {
     console.error("Error: Apple Mail database not found. Is Mail configured?");
     process.exit(1);
@@ -111,7 +119,10 @@ function saveSyncState() {
 function unixToReadable(ts) {
   if (ts == null) return "Unknown";
   try {
-    return new Date(ts * 1000).toISOString().replace("T", " ").replace(/\.\d+Z/, " UTC");
+    return new Date(ts * 1000)
+      .toISOString()
+      .replace("T", " ")
+      .replace(/\.\d+Z/, " UTC");
   } catch {
     return "Unknown";
   }
@@ -140,7 +151,9 @@ function discoverThreadColumn(db) {
  * @returns {Array<{ tid: number }>}
  */
 function findChangedThreads(db, threadCol, sinceTs) {
-  return query(db, `
+  return query(
+    db,
+    `
     SELECT DISTINCT m.${threadCol} AS tid
     FROM messages m
     WHERE m.date_received > ${sinceTs}
@@ -152,7 +165,8 @@ function findChangedThreads(db, threadCol, sinceTs) {
            OR url LIKE '%/Sent%'
       )
     LIMIT ${MAX_THREADS};
-  `);
+  `,
+  );
 }
 
 /**
@@ -163,7 +177,9 @@ function findChangedThreads(db, threadCol, sinceTs) {
  * @returns {Array<Record<string, any>>}
  */
 function fetchThreadMessages(db, threadCol, tid) {
-  return query(db, `
+  return query(
+    db,
+    `
     SELECT
       m.ROWID AS message_id,
       m.${threadCol} AS thread_id,
@@ -182,7 +198,8 @@ function fetchThreadMessages(db, threadCol, tid) {
     WHERE m.${threadCol} = ${tid}
       AND m.deleted = 0
     ORDER BY m.date_received ASC;
-  `);
+  `,
+  );
 }
 
 /**
@@ -194,7 +211,9 @@ function fetchThreadMessages(db, threadCol, tid) {
 function fetchRecipients(db, messageIds) {
   if (messageIds.length === 0) return {};
   const idList = messageIds.join(",");
-  const rows = query(db, `
+  const rows = query(
+    db,
+    `
     SELECT
       r.message AS message_id,
       r.type,
@@ -204,7 +223,8 @@ function fetchRecipients(db, messageIds) {
     LEFT JOIN addresses a ON r.address = a.ROWID
     WHERE r.message IN (${idList})
     ORDER BY r.message, r.type, r.position;
-  `);
+  `,
+  );
   const result = {};
   for (const r of rows) {
     if (r.type === 2) continue; // Skip Bcc
@@ -224,12 +244,15 @@ function fetchRecipients(db, messageIds) {
 function fetchAttachments(db, messageIds) {
   if (messageIds.length === 0) return {};
   const idList = messageIds.join(",");
-  const rows = query(db, `
+  const rows = query(
+    db,
+    `
     SELECT a.message AS message_id, a.attachment_id, a.name
     FROM attachments a
     WHERE a.message IN (${idList})
     ORDER BY a.message, a.ROWID;
-  `);
+  `,
+  );
   const result = {};
   for (const r of rows) {
     result[r.message_id] ??= [];
@@ -253,9 +276,22 @@ function buildFileIndexes() {
   const attachmentIndex = new Map();
 
   try {
-    const output = execFileSync("find", [
-      mailDir, "(", "-name", "*.emlx", "-o", "-path", "*/Attachments/*", ")", "-type", "f",
-    ], { encoding: "utf-8", timeout: 60000, maxBuffer: 50 * 1024 * 1024 });
+    const output = execFileSync(
+      "find",
+      [
+        mailDir,
+        "(",
+        "-name",
+        "*.emlx",
+        "-o",
+        "-path",
+        "*/Attachments/*",
+        ")",
+        "-type",
+        "f",
+      ],
+      { encoding: "utf-8", timeout: 60000, maxBuffer: 50 * 1024 * 1024 },
+    );
 
     for (const path of output.trim().split("\n")) {
       if (!path) continue;
@@ -341,7 +377,12 @@ function formatSender(msg) {
  * @param {Map<string, string>} attachmentIndex
  * @returns {Record<number, Array<{ name: string, available: boolean, path: string | null }>>}
  */
-function copyThreadAttachments(threadId, messages, attachmentsByMsg, attachmentIndex) {
+function copyThreadAttachments(
+  threadId,
+  messages,
+  attachmentsByMsg,
+  attachmentIndex,
+) {
   const results = {};
   const seenFilenames = new Set();
 
@@ -391,12 +432,20 @@ function copyThreadAttachments(threadId, messages, attachmentsByMsg, attachmentI
  * @param {Record<number, Array<{ name: string, available: boolean, path: string | null }>> | null} attachmentResults
  * @returns {boolean}
  */
-function writeThreadMarkdown(threadId, messages, recipientsByMsg, emlxIndex, attachmentResults) {
+function writeThreadMarkdown(
+  threadId,
+  messages,
+  recipientsByMsg,
+  emlxIndex,
+  attachmentResults,
+) {
   if (messages.length === 0) return false;
 
   const baseSubject = messages[0].subject ?? "(No Subject)";
   const isMailingList = messages.some((m) => (m.list_id_hash ?? 0) !== 0);
-  const isAutomated = messages.some((m) => (m.automated_conversation ?? 0) !== 0);
+  const isAutomated = messages.some(
+    (m) => (m.automated_conversation ?? 0) !== 0,
+  );
 
   const flags = [];
   if (isMailingList) flags.push("mailing-list");
@@ -420,8 +469,10 @@ function writeThreadMarkdown(threadId, messages, recipientsByMsg, emlxIndex, att
     const msgRecips = recipientsByMsg[mid] ?? {};
     const toList = msgRecips[0] ?? [];
     const ccList = msgRecips[1] ?? [];
-    if (toList.length > 0) lines.push(`**To:** ${toList.map(formatRecipient).join(", ")}`);
-    if (ccList.length > 0) lines.push(`**Cc:** ${ccList.map(formatRecipient).join(", ")}`);
+    if (toList.length > 0)
+      lines.push(`**To:** ${toList.map(formatRecipient).join(", ")}`);
+    if (ccList.length > 0)
+      lines.push(`**Cc:** ${ccList.map(formatRecipient).join(", ")}`);
     lines.push("");
 
     // Body: try .emlx first, fall back to summary
@@ -472,7 +523,9 @@ function main() {
   try {
     const threadCol = discoverThreadColumn(db);
     if (!threadCol) {
-      console.error("Error: Could not find conversation_id or thread_id column.");
+      console.error(
+        "Error: Could not find conversation_id or thread_id column.",
+      );
       process.exit(1);
     }
 
@@ -499,9 +552,22 @@ function main() {
       const msgIds = messages.map((m) => m.message_id);
       const recipients = fetchRecipients(db, msgIds);
       const attachmentsByMsg = fetchAttachments(db, msgIds);
-      const attachmentResults = copyThreadAttachments(tid, messages, attachmentsByMsg, attachmentIndex);
+      const attachmentResults = copyThreadAttachments(
+        tid,
+        messages,
+        attachmentsByMsg,
+        attachmentIndex,
+      );
 
-      if (writeThreadMarkdown(tid, messages, recipients, emlxIndex, attachmentResults)) {
+      if (
+        writeThreadMarkdown(
+          tid,
+          messages,
+          recipients,
+          emlxIndex,
+          attachmentResults,
+        )
+      ) {
         written++;
       }
     }

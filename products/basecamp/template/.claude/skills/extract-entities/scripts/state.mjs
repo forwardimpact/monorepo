@@ -15,7 +15,14 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -107,8 +114,8 @@ if (cmd === "check") {
 } else {
   console.error(
     "Usage:\n" +
-    "  node scripts/state.mjs check\n" +
-    "  node scripts/state.mjs update <file-path> [<file-path> …]"
+      "  node scripts/state.mjs check\n" +
+      "  node scripts/state.mjs update <file-path> [<file-path> …]",
   );
   process.exit(1);
 }

@@ -38,6 +38,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npx fit-codegen --all
       - run: npm test
       - run: npm run validate -- --shacl
 
@@ -51,6 +52,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npx fit-codegen --all
       - run: npx playwright install --with-deps
       - run: npx fit-map generate-index
       - run: npm run test:e2e

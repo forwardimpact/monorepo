@@ -1,0 +1,39 @@
+{
+  "name": "@forwardimpact/libgraph",
+  "version": "0.1.49",
+  "description": "RDF graph index and processing utilities",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./index/graph.js": "./index/graph.js",
+    "./processor/graph.js": "./processor/graph.js"
+  },
+  "bin": {
+    "fit-process-graphs": "./bin/fit-process-graphs.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "rdf",
+    "graph",
+    "linked-data"
+  ],
+  "dependencies": {
+    "@forwardimpact/libindex": "^0.1.27",
+    "@forwardimpact/libstorage": "^0.1.53",
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libtype": "^0.1.63",
+    "n3": "^1.26.0"
+  },
+  "devDependencies": {
+    "@forwardimpact/libutil": "^0.1.60",
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

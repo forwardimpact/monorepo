@@ -1,0 +1,334 @@
+# ==========================================
+# Volumes
+# Note: This file requires Docker BuildKit. Set DOCKER_BUILDKIT=1 or COMPOSE_DOCKER_CLI_BUILD=1
+# ==========================================
+
+volumes:
+  minio_data:
+    driver: local
+  db_data:
+    driver: local
+  supabase_storage_data:
+    driver: local
+  tei_data:
+    driver: local
+
+secrets:
+  github_token:
+    environment: GITHUB_TOKEN
+
+# ==========================================
+# Networks
+# ==========================================
+
+networks:
+  internal:
+    driver: bridge
+
+# ==========================================
+# Services
+# ==========================================
+
+services:
+  # ==========================================
+  # Infrastructure Services
+  # ==========================================
+
+  gateway:
+    build:
+      context: ./infrastructure/docker/gateway
+    image: guide/gateway:latest
+    container_name: gateway.guide
+    ports:
+      - "3128:3128"
+    networks:
+      internal:
+        aliases:
+          - gateway.guide.local
+
+  db:
+    build:
+      context: ./infrastructure/docker/db
+    image: guide/db:latest
+    container_name: db.guide
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      internal:
+        aliases:
+          - db.guide.local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Core Services
+  # ==========================================
+
+  agent:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/agent
+      secrets:
+        - github_token
+    image: guide/agent:latest
+    container_name: agent.guide
+    env_file: .env
+    networks:
+      internal:
+        aliases:
+          - agent.guide.local
+    depends_on:
+      - memory
+      - llm
+      - vector
+      - graph
+      - tool
+
+  memory:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/memory
+      secrets:
+        - github_token
+    image: guide/memory:latest
+    container_name: memory.guide
+    env_file: .env
+    networks:
+      internal:
+        aliases:
+          - memory.guide.local
+
+  llm:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/llm
+      secrets:
+        - github_token
+    image: guide/llm:latest
+    container_name: llm.guide
+    env_file: .env
+    networks:
+      internal:
+        aliases:
+          - llm.guide.local
+
+  vector:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/vector
+      secrets:
+        - github_token
+    image: guide/vector:latest
+    container_name: vector.guide
+    env_file: .env
+    networks:
+      internal:
+        aliases:
+          - vector.guide.local
+
+  graph:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/graph
+      secrets:
+        - github_token
+    image: guide/graph:latest
+    container_name: graph.guide
+    env_file: .env
+    networks:
+      internal:
+        aliases:
+          - graph.guide.local
+
+  tool:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/tool
+      secrets:
+        - github_token
+    image: guide/tool:latest
+    container_name: tool.guide
+    env_file: .env
+    networks:
+      internal:
+        aliases:
+          - tool.guide.local
+
+  trace:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        TARGET_PATH: services/trace
+      secrets:
+        - github_token
+    image: guide/trace:latest
+    container_name: trace.guide
+    env_file: .env
+    networks:
+      internal:
+        aliases:
+          - trace.guide.local
+
+  # ==========================================
+  # Embedding Service (TEI)
+  # ==========================================
+
+  tei:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
+    container_name: tei.guide
+    command: --model-id BAAI/bge-small-en-v1.5 --port 8080 --json-output
+    volumes:
+      - tei_data:/data
+    environment:
+      - HF_HOME=/data
+    networks:
+      internal:
+        aliases:
+          - tei.guide.local
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================
+  # Storage Services
+  # ==========================================
+
+  storage-minio:
+    profiles:
+      - minio
+    image: minio/minio:latest
+    container_name: storage-minio.guide
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      internal:
+        aliases:
+          - storage-minio.guide.local
+    command: server /data --console-address ":9001"
+
+  storage-supabase:
+    profiles:
+      - supabase
+    image: supabase/storage-api:v1.11.13
+    container_name: storage-supabase.guide
+    env_file:
+      - .env
+      - .env.storage.supabase
+    environment:
+      SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://postgres:${DATABASE_PASSWORD}@db.guide.local:5432/postgres?search_path=storage
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: local
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: false
+      IS_MULTITENANT: false
+      S3_PROTOCOL_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      S3_PROTOCOL_ACCESS_KEY_SECRET: ${AWS_SECRET_ACCESS_KEY}
+    ports:
+      - "9000:5000"
+    volumes:
+      - supabase_storage_data:/var/lib/storage
+    networks:
+      internal:
+        aliases:
+          - storage-supabase.guide.local
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ==========================================
+  # Authentication Services
+  # ==========================================
+
+  auth-gotrue:
+    profiles:
+      - gotrue
+    image: supabase/gotrue:v2.164.0
+    container_name: auth-gotrue.guide
+    environment:
+      API_EXTERNAL_URL: ${JWT_AUTH_URL:-http://localhost:9999}
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_SITE_URL: ${EXTENSION_UI_URL:-http://localhost}
+      GOTRUE_DISABLE_SIGNUP: false
+
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
+      GOTRUE_JWT_AUD: authenticated
+
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:${DATABASE_PASSWORD}@db.guide.local:5432/postgres?search_path=auth
+
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: true
+      GOTRUE_MAILER_AUTOCONFIRM: true
+    ports:
+      - "9999:9999"
+    networks:
+      internal:
+        aliases:
+          - auth-gotrue.guide.local
+    depends_on:
+      db:
+        condition: service_healthy
+
+  auth-supabase:
+    profiles:
+      - supabase
+    image: supabase/gotrue:v2.164.0
+    container_name: auth-supabase.guide
+    environment:
+      API_EXTERNAL_URL: ${JWT_AUTH_URL:-http://localhost:9999}
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_SITE_URL: ${EXTENSION_UI_URL:-http://localhost}
+      GOTRUE_DISABLE_SIGNUP: false
+
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
+      GOTRUE_JWT_AUD: authenticated
+
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:${DATABASE_PASSWORD}@db.guide.local:5432/postgres?search_path=auth
+
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: true
+      GOTRUE_MAILER_AUTOCONFIRM: true
+    ports:
+      - "9999:9999"
+    networks:
+      internal:
+        aliases:
+          - auth-supabase.guide.local
+    depends_on:
+      db:
+        condition: service_healthy

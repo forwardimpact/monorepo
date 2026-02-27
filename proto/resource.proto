@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package resource;
+
+message Identifier {
+  string type = 1;
+  string name = 2;
+  string parent = 3;
+  repeated string subjects = 4;
+
+  // In vector searches, values will be populated from the content.
+  optional int32 tokens = 5;
+  optional double score = 6;
+}

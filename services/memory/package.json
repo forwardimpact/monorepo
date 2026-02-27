@@ -1,0 +1,22 @@
+{
+  "name": "@forwardimpact/svcmemory",
+  "version": "0.1.84",
+  "description": "Memory service for managing transient resources and memory windows",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "npx download && node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libconfig": "^0.1.58",
+    "@forwardimpact/libmemory": "^0.1.33",
+    "@forwardimpact/libresource": "^0.1.89",
+    "@forwardimpact/librpc": "^0.1.77",
+    "@forwardimpact/libstorage": "^0.1.53"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

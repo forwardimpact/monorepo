@@ -1,0 +1,32 @@
+# Ingest configuration for supported MIME types
+# Each top-level key is a MIME type, with steps to process each type
+
+defaults:
+  maxTokens: 5000
+
+# Model configuration per step
+# Available: gpt-4.1, gpt-5, gpt-5-mini, gpt-4o, gpt-4o-mini, claude-sonnet-4, claude-sonnet-4.5, gemini-2.5-pro
+models:
+  images-to-html: gpt-4.1 # Vision + structured HTML - gpt-4.1 excels at this
+  extract-context: gpt-4o-mini # Simple JSON extraction - lightweight model sufficient
+  annotate-html: claude-sonnet-4.5 # Schema.org annotation - best at precise markup rules
+
+steps:
+  application/pdf:
+    - pdf-to-images
+    - images-to-html
+    - extract-context
+    - annotate-html
+    - normalize-html
+  application/msword:
+    - pdf-to-images
+    - images-to-html
+    - extract-context
+    - annotate-html
+    - normalize-html
+  application/vnd.ms-powerpoint:
+    - pdf-to-images
+    - images-to-html
+    - extract-context
+    - annotate-html
+    - normalize-html
