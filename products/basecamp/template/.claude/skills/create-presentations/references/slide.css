@@ -1,7 +1,7 @@
 /* Required CSS for HTML slide decks rendered to PDF via Playwright.
  *
  * Include this in the <style> block of /tmp/basecamp-presentation.html.
- * See scripts/convert-to-pdf.js for the rendering script.
+ * See scripts/convert-to-pdf.mjs for the rendering script.
  *
  * PDF rendering rules:
  * - No layered elements — style content directly, no separate backgrounds

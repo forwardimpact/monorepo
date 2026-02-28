@@ -2,17 +2,26 @@
 /**
  * Manage graph_processed state for entity extraction.
  *
- * Commands:
- *   check   - Find unprocessed or changed source files
- *   update  - Mark a file as processed (updates its hash in state)
+ * Tracks which source files (synced emails and calendar events) have already
+ * been processed by the extract-entities skill. The `check` command lists files
+ * that are new or changed since their last recorded hash; `update` marks files
+ * as processed by storing their current SHA-256 hash.
  *
- * Usage:
- *   node scripts/state.mjs check                     # List new/changed files
- *   node scripts/state.mjs update <file-path>         # Mark file as processed
- *   node scripts/state.mjs update <file1> <file2> …   # Mark multiple files
- *
- * State file: ~/.cache/fit/basecamp/state/graph_processed (TSV: path<TAB>hash)
+ * State is persisted as a TSV file at
+ * ~/.cache/fit/basecamp/state/graph_processed (path<TAB>hash).
  */
+
+if (process.argv.includes("-h") || process.argv.includes("--help")) {
+  console.log(`state — manage graph_processed state for entity extraction
+
+Usage:
+  node scripts/state.mjs check                    List new/changed files
+  node scripts/state.mjs update <path> [<path>…]  Mark files as processed
+  node scripts/state.mjs -h|--help                 Show this help message
+
+State file: ~/.cache/fit/basecamp/state/graph_processed (TSV: path<TAB>hash)`);
+  process.exit(0);
+}
 
 import { createHash } from "node:crypto";
 import {

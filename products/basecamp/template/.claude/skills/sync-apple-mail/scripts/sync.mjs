@@ -2,16 +2,26 @@
 /**
  * Sync Apple Mail threads to ~/.cache/fit/basecamp/apple_mail/ as markdown.
  *
- * Queries the macOS Mail SQLite database for threads with new messages since
- * the last sync and writes one markdown file per thread.
+ * Queries the macOS Mail Envelope Index SQLite database for threads with new
+ * messages since the last sync. Writes one markdown file per thread containing
+ * sender, recipients, date, body text (parsed from .emlx files), and attachment
+ * links. Attachments are copied into a per-thread subdirectory.
  *
- * Usage: node scripts/sync.mjs [--days N]
- *
- * Options:
- *     --days N    How many days back to sync on first run (default: 30)
- *
- * Requires: macOS with Mail app configured and Full Disk Access granted.
+ * Requires macOS with Mail app configured and Full Disk Access granted.
  */
+
+if (process.argv.includes("-h") || process.argv.includes("--help")) {
+  console.log(`sync-apple-mail — sync email threads to markdown
+
+Usage: node scripts/sync.mjs [--days N] [-h|--help]
+
+Options:
+  --days N     Days back to sync on first run (default: 30)
+  -h, --help   Show this help message and exit
+
+Requires macOS with Mail configured and Full Disk Access granted.`);
+  process.exit(0);
+}
 
 import { DatabaseSync } from "node:sqlite";
 import { execFileSync } from "node:child_process";
