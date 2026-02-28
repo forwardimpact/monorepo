@@ -179,9 +179,9 @@ If it exists, read it to:
    - Then items with due dates this week
    - Carry forward incomplete priorities from last week
    - Cap at 5-7 items. If more exist, prioritize ruthlessly.
-3. **Key Meetings:** From calendar. Format as `**{Day}**: {title} with
-   [[People/Name]] — {purpose}`. Look up attendees in knowledge base to add
-   context about purpose.
+3. **Key Meetings:** From calendar. Format as
+   `**{Day}**: {title} with [[People/Name]] — {purpose}`. Look up attendees in
+   knowledge base to add context about purpose.
 4. **Blockers:** From task board's `## Blocked` section. Include what's needed
    and from whom.
 5. **Accomplishments:** Leave empty (or pre-fill with anything completed Monday
@@ -219,8 +219,7 @@ Ensure the person's subdirectory exists:
 mkdir -p "knowledge/Weeklies/{Person Name}"
 ```
 
-Write the full document to:
-`knowledge/Weeklies/{Person Name}/{YYYY}-W{WW}.md`
+Write the full document to: `knowledge/Weeklies/{Person Name}/{YYYY}-W{WW}.md`
 
 ### Existing weekly
 

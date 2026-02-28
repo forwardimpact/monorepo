@@ -40,13 +40,12 @@ Edge Function (ingestion)
 
 Three distinct phases, each running at its own cadence:
 
-1. **Ingestion** — real-time. Edge Function receives webhook, writes raw
-   payload to Storage, inserts index row into Postgres. Returns 200
-   immediately.
+1. **Ingestion** — real-time. Edge Function receives webhook, writes raw payload
+   to Storage, inserts index row into Postgres. Returns 200 immediately.
 
-2. **Extraction** — scheduled. A pg_cron job processes unextracted events,
-   reads raw payloads from Storage, and writes structured artifacts to
-   Postgres. Runs every few minutes.
+2. **Extraction** — scheduled. A pg_cron job processes unextracted events, reads
+   raw payloads from Storage, and writes structured artifacts to Postgres. Runs
+   every few minutes.
 
 3. **Interpretation** — on-demand with caching. When an engineer queries their
    own evidence, Guide assesses their unscored artifacts against markers.
@@ -60,22 +59,23 @@ configuration option — it is the architecture.
 
 ### Personal Evidence
 
-An engineer sees their own artifacts and Guide's interpretation of them.
-Nobody else sees this view unless the engineer shares it.
+An engineer sees their own artifacts and Guide's interpretation of them. Nobody
+else sees this view unless the engineer shares it.
 
 - Queried by the engineer themselves via CLI
 - Scoped to their GitHub username — the CLI resolves this from git config or
   explicit `--user` flag
 - No manager access, no admin override, no "view as" capability
-- The engineer can export their evidence to share in career conversations —
-  this is a deliberate act, not a default
+- The engineer can export their evidence to share in career conversations — this
+  is a deliberate act, not a default
 
 ### Practice Patterns
 
 Engineering leadership sees aggregate patterns across a team, capability, or
 organization. No individuals named.
 
-- Queried by team or capability: `fit-landmark practice system_design --team platform`
+- Queried by team or capability:
+  `fit-landmark practice system_design --team platform`
 - Shows proportions and trends, not lists of people
 - "Most feature PRs include architecture sections" — not "Alice's PRs include
   architecture sections"
@@ -124,22 +124,22 @@ individual artifact IDs, person names, or specific PRs.
 
 Register a GitHub App with these webhook event subscriptions:
 
-| Event                        | Why                                       |
-| ---------------------------- | ----------------------------------------- |
-| `pull_request`               | PR opened, closed, merged, edited         |
-| `pull_request_review`        | Reviews submitted                         |
-| `pull_request_review_comment`| Inline review comments                    |
-| `issue_comment`              | PR-level conversation (issues + PRs)      |
-| `push`                       | Commit activity on default branches       |
+| Event                         | Why                                  |
+| ----------------------------- | ------------------------------------ |
+| `pull_request`                | PR opened, closed, merged, edited    |
+| `pull_request_review`         | Reviews submitted                    |
+| `pull_request_review_comment` | Inline review comments               |
+| `issue_comment`               | PR-level conversation (issues + PRs) |
+| `push`                        | Commit activity on default branches  |
 
 The app requires **read-only** permissions:
 
-| Permission       | Access    |
-| ---------------- | --------- |
-| Pull requests    | Read      |
-| Contents         | Read      |
-| Metadata         | Read      |
-| Members          | Read      |
+| Permission    | Access |
+| ------------- | ------ |
+| Pull requests | Read   |
+| Contents      | Read   |
+| Metadata      | Read   |
+| Members       | Read   |
 
 No write permissions. Landmark never modifies repositories. It does not post
 comments, set status checks, or create annotations. It collects and stays
@@ -245,14 +245,14 @@ Each event type produces a different artifact shape. The extraction logic is a
 set of deterministic field mappings — no LLM, no heuristics beyond structural
 parsing.
 
-| Event type                    | Artifact type | Key fields extracted                                           |
-| ----------------------------- | ------------- | -------------------------------------------------------------- |
-| `pull_request.opened`         | `pr`          | title, body, author, files, additions, deletions, base branch  |
+| Event type                    | Artifact type | Key fields extracted                                          |
+| ----------------------------- | ------------- | ------------------------------------------------------------- |
+| `pull_request.opened`         | `pr`          | title, body, author, files, additions, deletions, base branch |
 | `pull_request.closed/merged`  | `pr` (update) | merged, merged_by, merge_commit, time-to-merge                |
-| `pull_request_review`         | `review`      | reviewer, body, state (approved/changes_requested/commented)   |
+| `pull_request_review`         | `review`      | reviewer, body, state (approved/changes_requested/commented)  |
 | `pull_request_review_comment` | `comment`     | commenter, body, path, position, in_reply_to                  |
 | `issue_comment` (on PR)       | `discussion`  | commenter, body, PR reference                                 |
-| `push`                        | `push`        | pusher, commits (sha, message), ref, before/after              |
+| `push`                        | `push`        | pusher, commits (sha, message), ref, before/after             |
 
 ### Artifacts Table
 
@@ -274,14 +274,14 @@ CREATE INDEX idx_artifacts_repo ON artifacts (repo, created_at);
 CREATE INDEX idx_artifacts_type ON artifacts (artifact_type, created_at);
 ```
 
-The `external_id` ensures idempotency — multiple events for the same PR
-(opened, synchronize, edited) upsert the same artifact row with updated
-metadata rather than creating duplicates.
+The `external_id` ensures idempotency — multiple events for the same PR (opened,
+synchronize, edited) upsert the same artifact row with updated metadata rather
+than creating duplicates.
 
 ### Roster Table
 
-Loaded from `landmark.yaml` via CLI or API. Maps GitHub usernames to Pathway
-job profiles.
+Loaded from `landmark.yaml` via CLI or API. Maps GitHub usernames to Pathway job
+profiles.
 
 ```sql
 CREATE TABLE roster (
@@ -295,8 +295,8 @@ CREATE TABLE roster (
 ```
 
 The `team` field groups engineers for practice pattern queries. Teams are the
-organizational unit — "platform", "payments", "mobile". Aggregate views use
-this field to scope patterns. Teams with fewer than 5 members are excluded from
+organizational unit — "platform", "payments", "mobile". Aggregate views use this
+field to scope patterns. Teams with fewer than 5 members are excluded from
 aggregate queries to prevent identification by elimination.
 
 ```
@@ -330,8 +330,8 @@ fit-landmark evidence --skill system_design
   8. Return evidence for @alice + system_design, grouped by artifact
 ```
 
-Steps 1–5 are cheap Postgres queries. Step 6 is the LLM call — it only runs
-for artifacts that haven't been interpreted yet. Subsequent queries for the same
+Steps 1–5 are cheap Postgres queries. Step 6 is the LLM call — it only runs for
+artifacts that haven't been interpreted yet. Subsequent queries for the same
 skill hit the cache.
 
 The output groups by artifact, not by marker. The engineer sees their work
@@ -434,6 +434,7 @@ fit-landmark replay [--since DATE] [--event-type TYPE] [--dry-run]
 ```
 
 1. Query the events index for the target range:
+
    ```sql
    SELECT delivery_id, storage_path
    FROM events
@@ -501,13 +502,13 @@ evidence
   └──→ practice patterns     (team aggregate, anonymous, min 5 members)
 ```
 
-| Table     | Growth rate         | Retention | Rebuildable from    |
-| --------- | ------------------- | --------- | ------------------- |
-| events    | ~30k rows/day       | Permanent | —                   |
-| Storage   | ~1GB/day            | Permanent | —                   |
-| artifacts | ~5k rows/day        | Permanent | events + Storage    |
-| evidence  | On-demand           | Until invalidated | artifacts + Guide |
-| roster    | Manual updates      | Current   | landmark.yaml       |
+| Table     | Growth rate    | Retention         | Rebuildable from  |
+| --------- | -------------- | ----------------- | ----------------- |
+| events    | ~30k rows/day  | Permanent         | —                 |
+| Storage   | ~1GB/day       | Permanent         | —                 |
+| artifacts | ~5k rows/day   | Permanent         | events + Storage  |
+| evidence  | On-demand      | Until invalidated | artifacts + Guide |
+| roster    | Manual updates | Current           | landmark.yaml     |
 
 ## Supabase Project Structure
 

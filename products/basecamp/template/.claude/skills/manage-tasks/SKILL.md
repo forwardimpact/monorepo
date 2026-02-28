@@ -101,8 +101,8 @@ ls knowledge/Tasks/
 rg "{name}" knowledge/People/
 ```
 
-If the person doesn't have a task board yet, create one from the template
-(Step 4 covers creation).
+If the person doesn't have a task board yet, create one from the template (Step
+4 covers creation).
 
 ## Step 2: Read Current Task Board
 

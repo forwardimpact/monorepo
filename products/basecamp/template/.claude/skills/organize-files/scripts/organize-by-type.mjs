@@ -15,7 +15,7 @@ import {
   renameSync,
   statSync,
 } from "node:fs";
-import { basename, extname, join } from "node:path";
+import { extname, join } from "node:path";
 
 const HELP = `organize-by-type — sort files into type-based subdirectories
 

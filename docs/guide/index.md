@@ -13,10 +13,10 @@ hero:
       secondary: true
 ---
 
-> The Guide doesn't carry you — it shows you which way to go. Most AI
-> assistants give generic advice. Guide understands your organization's actual
-> engineering framework — the skills, levels, behaviours, and expectations that
-> define what good looks like in your team. That context changes everything.
+> The Guide doesn't carry you — it shows you which way to go. Most AI assistants
+> give generic advice. Guide understands your organization's actual engineering
+> framework — the skills, levels, behaviours, and expectations that define what
+> good looks like in your team. That context changes everything.
 
 ### What Guide is
 
@@ -43,8 +43,8 @@ Ask Guide a question and it answers with your framework in mind:
 - **Skill assessment** — observes engineering activity and interprets it against
   the framework, giving Landmark the judgement it needs to match evidence to
   markers
-- **Contextual help** — references the right skills, behaviours, and
-  conventions for your level when you need guidance
+- **Contextual help** — references the right skills, behaviours, and conventions
+  for your level when you need guidance
 - **Problem-solving** — assists with engineering decisions informed by your
   team's standards and patterns
 
