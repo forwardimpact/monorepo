@@ -164,13 +164,8 @@ function cronMatches(expr, d) {
 // --- Scheduling logic -------------------------------------------------------
 
 function floorToMinute(d) {
-  return new Date(
-    d.getFullYear(),
-    d.getMonth(),
-    d.getDate(),
-    d.getHours(),
-    d.getMinutes(),
-  ).getTime();
+  const t = d.getTime();
+  return t - (t % 60_000);
 }
 
 function shouldWake(agent, agentState, now) {
@@ -208,7 +203,7 @@ function failAgent(agentState, error) {
   });
 }
 
-async function wakeAgent(agentName, agent, _config, state) {
+async function wakeAgent(agentName, agent, state) {
   if (!agent.kb) {
     log(`Agent ${agentName}: no "kb" specified, skipping.`);
     return;
@@ -336,7 +331,7 @@ async function wakeDueAgents() {
   let wokeAny = false;
   for (const [name, agent] of Object.entries(config.agents)) {
     if (shouldWake(agent, state.agents[name] || {}, now)) {
-      await wakeAgent(name, agent, config, state);
+      await wakeAgent(name, agent, state);
       wokeAny = true;
     }
   }
@@ -497,7 +492,7 @@ function handleMessage(socket, line) {
     }
     send(socket, { type: "ack", command: "wake", agent: request.agent });
     const state = loadState();
-    wakeAgent(request.agent, agent, config, state).catch(() => {});
+    wakeAgent(request.agent, agent, state).catch(() => {});
     return;
   }
 
@@ -883,7 +878,7 @@ const commands = {
       );
       process.exit(1);
     }
-    await wakeAgent(name, agent, config, state);
+    await wakeAgent(name, agent, state);
   },
 };
 
