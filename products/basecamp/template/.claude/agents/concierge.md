@@ -36,11 +36,10 @@ Assess the current state:
    - Check each session's `_memo.md` against
      `~/.cache/fit/basecamp/state/graph_processed`
 
-Write the calendar outlook to
-`~/.cache/fit/basecamp/state/concierge_outlook.md`:
+Write triage results to `~/.cache/fit/basecamp/state/concierge_triage.md`:
 
 ```
-# Calendar Outlook — {YYYY-MM-DD HH:MM}
+# Calendar Triage — {YYYY-MM-DD HH:MM}
 
 ## Next Meeting
 **{title}** at {time} with {attendees}

@@ -77,20 +77,22 @@ This knowledge base is maintained by a team of agents, each defined in
 `.claude/agents/`. They are woken on a schedule by the Basecamp scheduler. Each
 wake, they observe KB state, decide the most valuable action, and execute.
 
-| Agent              | Domain                         | Schedule       | Skills                                                          |
-| ------------------ | ------------------------------ | -------------- | --------------------------------------------------------------- |
-| **postman**        | Email triage and drafts        | Every 5 min    | sync-apple-mail, draft-emails, track-candidates                 |
-| **concierge**      | Meeting prep and transcripts   | Every 10 min   | sync-apple-calendar, meeting-prep, process-hyprnote             |
-| **librarian**      | Knowledge graph maintenance    | Every 15 min   | extract-entities, organize-files, manage-tasks                  |
+| Agent              | Domain                         | Schedule        | Skills                                                         |
+| ------------------ | ------------------------------ | --------------- | -------------------------------------------------------------- |
+| **postman**        | Email triage and drafts        | Every 5 min     | sync-apple-mail, draft-emails, track-candidates                |
+| **concierge**      | Meeting prep and transcripts   | Every 10 min    | sync-apple-calendar, meeting-prep, process-hyprnote            |
+| **librarian**      | Knowledge graph maintenance    | Every 15 min    | extract-entities, organize-files, manage-tasks                 |
 | **chief-of-staff** | Daily briefings and priorities | 7am, Mon 7:30am | weekly-update _(Mon)_, _(reads all state for daily briefings)_ |
 
-Agent state files are in `~/.cache/fit/basecamp/state/`:
+Each agent writes a triage file to `~/.cache/fit/basecamp/state/` every wake
+cycle. The naming convention is `{agent}_triage.md`:
 
-- `postman_triage.md` — latest email triage
-- `concierge_outlook.md` — today's calendar outlook
-- `librarian_digest.md` — knowledge graph status
+- `postman_triage.md` — email urgency, reply needs, awaiting responses
+- `concierge_triage.md` — schedule, meeting prep status, unprocessed transcripts
+- `librarian_triage.md` — unprocessed files, knowledge graph size
 
-Daily briefings are in `knowledge/Briefings/`.
+The **chief-of-staff** reads all three triage files to synthesize daily
+briefings in `knowledge/Briefings/`.
 
 ## Cache Directory (`~/.cache/fit/basecamp/`)
 
@@ -99,18 +101,20 @@ Synced data and runtime state live outside the knowledge base in
 
 ```
 ~/.cache/fit/basecamp/
-├── apple_mail/         # Synced Apple Mail threads (.md files)
-├── apple_calendar/     # Synced Apple Calendar events (.json files)
-└── state/              # Runtime state (plain text files)
-    ├── apple_mail_last_sync   # ISO timestamp of last mail sync
-    └── graph_processed        # TSV of processed files (path<TAB>hash)
+├── apple_mail/              # Synced Apple Mail threads (.md files)
+│   └── attachments/         # Copied email attachments by thread
+├── apple_calendar/          # Synced Apple Calendar events (.json files)
+└── state/                   # Runtime state
+    ├── apple_mail_last_sync # ISO timestamp of last mail sync
+    ├── graph_processed      # TSV of processed files (path<TAB>hash)
+    ├── postman_triage.md    # Agent triage files ({agent}_triage.md)
+    ├── concierge_triage.md
+    └── librarian_triage.md
 ```
 
 This separation keeps the knowledge base clean — only the parsed knowledge
-graph, notes, documents, and drafts live in the KB directory. Raw synced data
-and processing state are cached externally. State files use simple Unix-friendly
-formats (single-value text files, TSV) rather than JSON, making them easy to
-read and write from shell scripts.
+graph, notes, documents, and drafts live in the KB directory. Raw synced data,
+processing state, and agent triage files are cached externally.
 
 ## How to Access the Knowledge Graph
 
@@ -166,7 +170,8 @@ Synced emails and calendar events are stored in `~/.cache/fit/basecamp/`,
 outside the knowledge base:
 
 - **Emails:** `~/.cache/fit/basecamp/apple_mail/` — each thread is a `.md` file
-- **Calendar:** `~/.cache/fit/basecamp/apple_calendar/` — each event is a `.json` file
+- **Calendar:** `~/.cache/fit/basecamp/apple_calendar/` — each event is a
+  `.json` file
 
 When the user asks about calendar, upcoming meetings, or recent emails, read
 directly from these folders.
@@ -177,23 +182,35 @@ Skills are auto-discovered by Claude Code from `.claude/skills/`. Each skill is
 a `SKILL.md` file inside a named directory. You do NOT need to read them
 manually — Claude Code loads them automatically based on context.
 
-Available skills:
+Available skills (grouped by function):
 
-| Skill                  | Directory                              | Purpose                                         |
-| ---------------------- | -------------------------------------- | ----------------------------------------------- |
-| Sync Apple Mail        | `.claude/skills/sync-apple-mail/`      | Sync Apple Mail threads via SQLite              |
-| Sync Apple Calendar    | `.claude/skills/sync-apple-calendar/`  | Sync Apple Calendar events via SQLite           |
-| Extract Entities       | `.claude/skills/extract-entities/`     | Process synced data into knowledge graph notes  |
-| Draft Emails           | `.claude/skills/draft-emails/`         | Draft email responses using knowledge context   |
-| Meeting Prep           | `.claude/skills/meeting-prep/`         | Prepare briefings for upcoming meetings         |
-| Manage Tasks           | `.claude/skills/manage-tasks/`         | Per-person task boards with lifecycle tracking   |
-| Track Candidates       | `.claude/skills/track-candidates/`     | Recruitment pipeline from email threads         |
-| Weekly Update          | `.claude/skills/weekly-update/`        | Weekly priorities snapshot from tasks + calendar |
-| Send Chat              | `.claude/skills/send-chat/`            | Send chat messages via browser automation       |
-| Create Presentations   | `.claude/skills/create-presentations/` | Create slide decks as PDF                       |
-| Document Collaboration | `.claude/skills/doc-collab/`           | Document creation and collaboration             |
-| Organize Files         | `.claude/skills/organize-files/`       | File organization and cleanup                   |
-| Process Hyprnote       | `.claude/skills/process-hyprnote/`     | Extract entities from Hyprnote meeting sessions |
+**Data pipeline** — sync raw sources into the cache directory:
+
+| Skill                 | Purpose                                    |
+| --------------------- | ------------------------------------------ |
+| `sync-apple-mail`     | Sync Mail threads to `.md` via SQLite      |
+| `sync-apple-calendar` | Sync Calendar events to `.json` via SQLite |
+
+**Knowledge graph** — build and maintain structured notes:
+
+| Skill              | Purpose                                  |
+| ------------------ | ---------------------------------------- |
+| `extract-entities` | Process synced data into knowledge notes |
+| `manage-tasks`     | Per-person task boards with lifecycle    |
+| `track-candidates` | Recruitment pipeline from email threads  |
+| `weekly-update`    | Weekly priorities from tasks + calendar  |
+| `process-hyprnote` | Extract entities from Hyprnote sessions  |
+| `organize-files`   | Tidy Desktop/Downloads, chain to extract |
+
+**Communication** — draft, send, and present:
+
+| Skill                  | Purpose                                   |
+| ---------------------- | ----------------------------------------- |
+| `draft-emails`         | Draft email responses with KB context     |
+| `send-chat`            | Send chat messages via browser automation |
+| `meeting-prep`         | Briefings for upcoming meetings           |
+| `create-presentations` | Generate PDF slide decks                  |
+| `doc-collab`           | Document creation and editing             |
 
 ## User Identity
 

@@ -61,7 +61,7 @@ Run when the user asks to find, organize, clean up, or tidy files on their Mac.
 
 Get an overview of both directories:
 
-    bash scripts/summarize.sh
+    node scripts/summarize.mjs
 
 ## Finding Files
 
@@ -79,8 +79,8 @@ find ~/Desktop -maxdepth 1 \( -name "Screenshot*" -o -name "Screen Shot*" \)
 Organize a directory into type-based subdirectories (Documents, Images,
 Archives, Installers, Screenshots):
 
-    bash scripts/organize-by-type.sh ~/Downloads
-    bash scripts/organize-by-type.sh ~/Desktop
+    node scripts/organize-by-type.mjs ~/Downloads
+    node scripts/organize-by-type.mjs ~/Desktop
 
 The script creates subdirectories and moves matching files. It does NOT delete
 anything.

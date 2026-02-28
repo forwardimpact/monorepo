@@ -41,7 +41,7 @@ Run when the user asks to create a presentation, slide deck, or pitch deck.
 4.  Include the required CSS from [references/slide.css](references/slide.css)
 5.  Run the conversion script:
 
-        node scripts/convert-to-pdf.js
+        node scripts/convert-to-pdf.mjs
 
 6.  Tell the user: "Your presentation is ready at ~/Desktop/presentation.pdf"
 
@@ -49,7 +49,7 @@ Run when the user asks to create a presentation, slide deck, or pitch deck.
 
 The conversion script accepts optional arguments:
 
-    node scripts/convert-to-pdf.js [input.html] [output.pdf]
+    node scripts/convert-to-pdf.mjs [input.html] [output.pdf]
 
 Defaults: input = `/tmp/basecamp-presentation.html`, output =
 `~/Desktop/presentation.pdf`

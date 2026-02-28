@@ -2,16 +2,26 @@
 /**
  * Sync Apple Calendar events to ~/.cache/fit/basecamp/apple_calendar/ as JSON.
  *
- * Queries the macOS Calendar SQLite database for events in a sliding window
- * (past and future) and writes one JSON file per event.
+ * Queries the macOS Calendar SQLite database (via node:sqlite) for events in a
+ * sliding window — N days in the past through 14 days in the future. Writes one
+ * JSON file per event and removes files for events that fall outside the window.
+ * Attendee details (name, email, status, role) are batch-fetched and included.
  *
- * Usage: node scripts/sync.mjs [--days N]
- *
- * Options:
- *     --days N    How many days back to sync (default: 30)
- *
- * Requires: macOS with Calendar app configured and Full Disk Access granted.
+ * Requires macOS with Calendar app configured and Full Disk Access granted.
  */
+
+if (process.argv.includes("-h") || process.argv.includes("--help")) {
+  console.log(`sync-apple-calendar — sync calendar events to JSON
+
+Usage: node scripts/sync.mjs [--days N] [-h|--help]
+
+Options:
+  --days N     Days back to sync (default: 30)
+  -h, --help   Show this help message and exit
+
+Requires macOS with Calendar configured and Full Disk Access granted.`);
+  process.exit(0);
+}
 
 import { DatabaseSync } from "node:sqlite";
 import {

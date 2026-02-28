@@ -2,18 +2,23 @@
 /**
  * Parse a macOS Mail .emlx or .partial.emlx file and output the plain text body.
  *
- * Usage: node scripts/parse-emlx.mjs <path-to-emlx-file>
- *
  * The .emlx format is: first line = byte count, then RFC822 message, then Apple
- * plist. This script extracts and prints the plain text body.
+ * plist. This script reads the RFC822 portion, walks MIME parts to find
+ * text/plain, and prints it to stdout. If the email is HTML-only, falls back to
+ * stripping tags and decoding entities.
  *
- * If the email has no text/plain part (HTML-only), falls back to stripping HTML
- * tags and outputting as plain text.
- *
- * Exit codes:
- *   0 — success (body printed to stdout)
- *   1 — file not found or parse error (message on stderr)
+ * Also exports `parseEmlx()` and `extractBody()` for use by sync-apple-mail.
  */
+
+if (process.argv.includes("-h") || process.argv.includes("--help")) {
+  console.log(`parse-emlx — extract plain text from .emlx files
+
+Usage: node scripts/parse-emlx.mjs <path-to-emlx-file> [-h|--help]
+
+Parses a macOS Mail .emlx or .partial.emlx file and prints the plain text
+body to stdout. Falls back to stripping HTML tags for HTML-only emails.`);
+  process.exit(0);
+}
 
 import { readFileSync } from "node:fs";
 

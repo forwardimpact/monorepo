@@ -46,12 +46,12 @@ Run this skill:
 2. Find new/changed email files to process:
 
 ```bash
-python3 .claude/skills/extract-entities/scripts/state.py check
+node .claude/skills/extract-entities/scripts/state.mjs check
 ```
 
-This outputs one file path per line for all source files that are new or changed.
-Filter this list to only `apple_mail/*.md` files — calendar events are not
-relevant for candidate tracking.
+This outputs one file path per line for all source files that are new or
+changed. Filter this list to only `apple_mail/*.md` files — calendar events are
+not relevant for candidate tracking.
 
 **Process in batches of 10 files per run.**
 
@@ -128,19 +128,19 @@ recruitment-related.
 
 For each candidate found in a recruitment email, extract:
 
-| Field | Source | Required |
-|---|---|---|
-| **Name** | Filename, email body, CV | Yes |
-| **Role** | Email body, CV | Yes |
-| **Rate** | Email body (e.g. "$120/hr", "€80/h") | If available |
-| **Availability** | Email body (e.g. "1 month notice", "immediately") | If available |
-| **English** | Email body (e.g. "B2", "Upper-intermediate") | If available |
-| **Location** | Email body, CV | If available |
-| **Source agency** | Sender domain → Organization | Yes |
-| **Recruiter** | Email sender or CC'd recruiter | Yes |
-| **CV path** | Attachment directory | If available |
-| **Skills** | Email body, CV | If available |
-| **Summary** | Email body, CV | Yes — 2-3 sentences |
+| Field             | Source                                            | Required            |
+| ----------------- | ------------------------------------------------- | ------------------- |
+| **Name**          | Filename, email body, CV                          | Yes                 |
+| **Role**          | Email body, CV                                    | Yes                 |
+| **Rate**          | Email body (e.g. "$120/hr", "€80/h")              | If available        |
+| **Availability**  | Email body (e.g. "1 month notice", "immediately") | If available        |
+| **English**       | Email body (e.g. "B2", "Upper-intermediate")      | If available        |
+| **Location**      | Email body, CV                                    | If available        |
+| **Source agency** | Sender domain → Organization                      | Yes                 |
+| **Recruiter**     | Email sender or CC'd recruiter                    | Yes                 |
+| **CV path**       | Attachment directory                              | If available        |
+| **Skills**        | Email body, CV                                    | If available        |
+| **Summary**       | Email body, CV                                    | Yes — 2-3 sentences |
 
 ### Determining Source and Recruiter
 
@@ -166,23 +166,23 @@ cp "~/.cache/fit/basecamp/apple_mail/attachments/{thread_id}/{filename}" \
    "knowledge/Candidates/{Full Name}/CV.pdf"
 ```
 
-Use `CV.pdf` for PDF files and `CV.docx` for Word documents. The `## CV` link
-in the brief uses a relative path: `./CV.pdf`.
+Use `CV.pdf` for PDF files and `CV.docx` for Word documents. The `## CV` link in
+the brief uses a relative path: `./CV.pdf`.
 
 ## Step 3: Determine Pipeline Status
 
 Assign a status based on the email context:
 
-| Status | Signal |
-|---|---|
-| `new` | CV/profile received, no response yet |
-| `screening` | Under review, questions asked about the candidate |
-| `first-interview` | First interview scheduled or completed |
-| `second-interview` | Second interview scheduled or completed |
-| `offer` | Offer extended |
-| `hired` | Accepted and onboarding |
-| `rejected` | Explicitly passed on ("not a fit", "pass", "decline") |
-| `on-hold` | Paused, waiting on notice period, or deferred |
+| Status             | Signal                                                |
+| ------------------ | ----------------------------------------------------- |
+| `new`              | CV/profile received, no response yet                  |
+| `screening`        | Under review, questions asked about the candidate     |
+| `first-interview`  | First interview scheduled or completed                |
+| `second-interview` | Second interview scheduled or completed               |
+| `offer`            | Offer extended                                        |
+| `hired`            | Accepted and onboarding                               |
+| `rejected`         | Explicitly passed on ("not a fit", "pass", "decline") |
+| `on-hold`          | Paused, waiting on notice period, or deferred         |
 
 **Default to `new`** if no response signals are found. Read the full thread
 chronologically to determine the most recent status.
@@ -305,11 +305,11 @@ Format: one bullet per insight under `## Placement Notes`, with
 
 After writing candidate notes, verify links go both ways:
 
-| If you add... | Then also add... |
-|---|---|
-| Candidate → Organization | Organization → Candidate |
-| Candidate → Recruiter | Recruiter → Candidate (in Activity section) |
-| Candidate → Project | Project → Candidate (in People section) |
+| If you add...            | Then also add...                            |
+| ------------------------ | ------------------------------------------- |
+| Candidate → Organization | Organization → Candidate                    |
+| Candidate → Recruiter    | Recruiter → Candidate (in Activity section) |
+| Candidate → Project      | Project → Candidate (in People section)     |
 
 Use absolute paths: `[[Candidates/Name/brief|Name]]`,
 `[[Organizations/Agency]]`, `[[People/Recruiter]]`.
@@ -322,7 +322,7 @@ don't already reference the candidate. Check before editing.
 After processing each email thread, mark it as processed:
 
 ```bash
-python3 .claude/skills/extract-entities/scripts/state.py update "{file_path}"
+node .claude/skills/extract-entities/scripts/state.mjs update "{file_path}"
 ```
 
 This uses the same state file as `extract-entities`, so threads processed here

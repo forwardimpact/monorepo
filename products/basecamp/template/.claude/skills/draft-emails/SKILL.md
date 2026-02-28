@@ -20,15 +20,15 @@ Run when the user asks to draft, reply to, respond to, or send an email.
 
 ## Data Locations
 
-| Data | Location |
-| --- | --- |
-| People | `knowledge/People/*.md` |
-| Organizations | `knowledge/Organizations/*.md` |
-| Email threads | `~/.cache/fit/basecamp/apple_mail/*.md` |
+| Data            | Location                                      |
+| --------------- | --------------------------------------------- |
+| People          | `knowledge/People/*.md`                       |
+| Organizations   | `knowledge/Organizations/*.md`                |
+| Email threads   | `~/.cache/fit/basecamp/apple_mail/*.md`       |
 | Calendar events | `~/.cache/fit/basecamp/apple_calendar/*.json` |
-| Drafted IDs | `drafts/drafted` (one ID per line) |
-| Ignored IDs | `drafts/ignored` (one ID per line) |
-| Draft files | `drafts/{email_id}_draft.md` |
+| Drafted IDs     | `drafts/drafted` (one ID per line)            |
+| Ignored IDs     | `drafts/ignored` (one ID per line)            |
+| Draft files     | `drafts/{email_id}_draft.md`                  |
 
 ---
 
@@ -65,7 +65,7 @@ base.**
 ### 1. Scan for New Emails
 
 ```bash
-bash scripts/scan-emails.sh
+node scripts/scan-emails.mjs
 ```
 
 Outputs tab-separated `email_id<TAB>subject` for unprocessed emails.
@@ -141,7 +141,7 @@ may request edits — apply them and present again.
 After the user approves, send via Apple Mail:
 
 ```bash
-bash scripts/send-email.sh \
+node scripts/send-email.mjs \
   --to "recipient@example.com" \
   --cc "other@example.com" \
   --subject "Re: Subject" \
