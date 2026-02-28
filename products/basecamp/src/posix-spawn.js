@@ -112,33 +112,16 @@ function createPipe() {
 
 /**
  * Read all data from a file descriptor until EOF.
- * Wraps the raw FFI fd into Deno's resource system via /dev/fd/N (macOS dup)
- * so reads go through Tokio's async I/O and properly yield to the event loop
- * (socket server, timers, etc. stay responsive while a child process runs).
+ * Opens via /dev/fd/N so reads go through Deno's async I/O (Tokio) and
+ * properly yield to the event loop (socket server, timers, etc. stay
+ * responsive while a child process runs).
  * @param {number} fd
  * @returns {Promise<string>}
  */
 export async function readAll(fd) {
   const file = await Deno.open(`/dev/fd/${fd}`, { read: true });
   libc.symbols.close(fd); // Original fd no longer needed after dup
-
-  const chunks = [];
-  const buf = new Uint8Array(4096);
-  while (true) {
-    const n = await file.read(buf);
-    if (n === null) break; // EOF
-    chunks.push(buf.slice(0, n));
-  }
-  file.close();
-
-  const total = chunks.reduce((sum, c) => sum + c.length, 0);
-  const result = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    result.set(chunk, offset);
-    offset += chunk.length;
-  }
-  return new TextDecoder().decode(result);
+  return new Response(file.readable).text();
 }
 
 /**
@@ -169,17 +152,16 @@ export function spawn(executable, args, env, cwd) {
   // Allocate attr and file_actions on the heap
   const attrBuf = new Uint8Array(512); // posix_spawnattr_t is opaque, 512 is generous
   const fileActionsBuf = new Uint8Array(512);
-  libc.symbols.posix_spawnattr_init(Deno.UnsafePointer.of(attrBuf));
+  const attr = Deno.UnsafePointer.of(attrBuf);
+  const fa = Deno.UnsafePointer.of(fileActionsBuf);
+
+  libc.symbols.posix_spawnattr_init(attr);
 
   // Disclaim TCC responsibility so the child inherits the responsible
   // process from the parent chain (ultimately Basecamp.app).
-  setDisclaim(Deno.UnsafePointer.of(attrBuf), 1);
+  setDisclaim(attr, 1);
 
-  libc.symbols.posix_spawn_file_actions_init(
-    Deno.UnsafePointer.of(fileActionsBuf),
-  );
-
-  const fa = Deno.UnsafePointer.of(fileActionsBuf);
+  libc.symbols.posix_spawn_file_actions_init(fa);
 
   // Set working directory if specified
   if (cwd) {
@@ -199,7 +181,7 @@ export function spawn(executable, args, env, cwd) {
     Deno.UnsafePointer.of(pidBuf),
     cstr(executable),
     fa,
-    Deno.UnsafePointer.of(attrBuf),
+    attr,
     Deno.UnsafePointer.of(argv.pointer),
     Deno.UnsafePointer.of(envp.pointer),
   );
@@ -208,10 +190,8 @@ export function spawn(executable, args, env, cwd) {
   libc.symbols.close(stdoutWrite);
   libc.symbols.close(stderrWrite);
 
-  libc.symbols.posix_spawnattr_destroy(Deno.UnsafePointer.of(attrBuf));
-  libc.symbols.posix_spawn_file_actions_destroy(
-    Deno.UnsafePointer.of(fileActionsBuf),
-  );
+  libc.symbols.posix_spawnattr_destroy(attr);
+  libc.symbols.posix_spawn_file_actions_destroy(fa);
 
   if (result !== 0) {
     libc.symbols.close(stdoutRead);
