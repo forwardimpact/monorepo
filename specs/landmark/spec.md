@@ -1,7 +1,7 @@
 # Landmark
 
-Help engineers see their own growth. Help organizations improve the systems
-that support it.
+Help engineers see their own growth. Help organizations improve the systems that
+support it.
 
 ```
 @forwardimpact/landmark    CLI: fit-landmark
@@ -9,13 +9,13 @@ that support it.
 
 ## Why
 
-| Product      | Question it answers                             |
-| ------------ | ----------------------------------------------- |
-| **Map**      | What does the terrain look like?                |
-| **Pathway**  | Where am I going?                               |
-| **Guide**    | How do I get there?                             |
-| **Basecamp** | What do I need day-to-day?                      |
-| **Landmark** | _What does my work actually show?_              |
+| Product      | Question it answers                |
+| ------------ | ---------------------------------- |
+| **Map**      | What does the terrain look like?   |
+| **Pathway**  | Where am I going?                  |
+| **Guide**    | How do I get there?                |
+| **Basecamp** | What do I need day-to-day?         |
+| **Landmark** | _What does my work actually show?_ |
 
 Map defines skills. Pathway charts the route through them. Guide coaches.
 Basecamp handles daily ops. But none of them connect the work engineers already
@@ -51,14 +51,14 @@ to support the engineer's own growth, not to produce scorecards for management.
 
 **GitHub is one window, not the whole picture.** A great deal of engineering
 skill is invisible on GitHub: the hallway conversation that prevented a bad
-design, the quiet mentoring that doesn't happen in PR comments, the decision
-not to build something. Landmark sees artifacts. It does not see the full
-practice. The framework captures both — Landmark captures what it can, and
-makes no claim about the rest.
+design, the quiet mentoring that doesn't happen in PR comments, the decision not
+to build something. Landmark sees artifacts. It does not see the full practice.
+The framework captures both — Landmark captures what it can, and makes no claim
+about the rest.
 
-**Show the work, not a score.** Evidence is presented as artifacts with
-context — "here is a PR where you documented trade-offs" — not as a filled
-progress bar. Numbers invite gaming. Narratives invite reflection.
+**Show the work, not a score.** Evidence is presented as artifacts with context
+— "here is a PR where you documented trade-offs" — not as a filled progress bar.
+Numbers invite gaming. Narratives invite reflection.
 
 ## What
 
@@ -139,11 +139,11 @@ A marker is a concrete, observable indicator of a skill at a proficiency level.
 Not a description of the skill — a description of what you can **see** when
 someone has it.
 
-| Skill description (Map)              | Marker (Landmark)                                                   |
-| ------------------------------------ | ------------------------------------------------------------------- |
-| "You design systems independently"   | "Authored a design doc accepted without requiring senior rewrite"   |
-| "You write well-tested code"         | "PRs include tests that cover the changed behaviour, not just lines"|
-| "You mentor others through review"   | "Review comments explain the *why*, not just the *what*"            |
+| Skill description (Map)            | Marker (Landmark)                                                    |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| "You design systems independently" | "Authored a design doc accepted without requiring senior rewrite"    |
+| "You write well-tested code"       | "PRs include tests that cover the changed behaviour, not just lines" |
+| "You mentor others through review" | "Review comments explain the _why_, not just the _what_"             |
 
 Markers live in the same YAML capability files as skills, following the
 co-located file principle:
@@ -172,14 +172,14 @@ skills:
 ```
 
 Markers are **installation-specific**. The same skill at the same level may have
-different markers in different organizations, because observable evidence depends
-on context. The skill definition is universal. The marker is local.
+different markers in different organizations, because observable evidence
+depends on context. The skill definition is universal. The marker is local.
 
 ### Evidence
 
 Evidence is a GitHub artifact that Guide has read against a marker. It is
-linked, not copied — Landmark points to the PR, the review comment, the
-commit. The artifact stays where it was produced, always current and verifiable.
+linked, not copied — Landmark points to the PR, the review comment, the commit.
+The artifact stays where it was produced, always current and verifiable.
 
 ### How Engineers Use Landmark
 
@@ -207,9 +207,9 @@ organization: which engineering practices show strong evidence and which don't?
 This is where process improvement starts. If trade-off documentation is absent
 across an entire team, the system isn't supporting the practice. Maybe design
 time isn't allocated. Maybe there are no examples to follow. Maybe the review
-culture doesn't ask for it. The aggregate view points to where the process
-needs attention — without naming individuals, without producing league tables,
-without creating fear.
+culture doesn't ask for it. The aggregate view points to where the process needs
+attention — without naming individuals, without producing league tables, without
+creating fear.
 
 ## Positioning
 
@@ -229,8 +229,8 @@ map
   markers. It depends on Guide for all interpretation.
 - **Pathway** presents career progression, now with reflective evidence from
   Landmark
-- **Basecamp** generates supplementary evidence (meeting notes, email
-  decisions) that Landmark can reference alongside GitHub activity
+- **Basecamp** generates supplementary evidence (meeting notes, email decisions)
+  that Landmark can reference alongside GitHub activity
 
 ## Design
 
@@ -239,13 +239,13 @@ map
 **Landmark** — a recognizable, fixed reference point used to confirm position.
 No metaphor to decode.
 
-| Product  | Metaphor                | Provides               |
-| -------- | ----------------------- | ---------------------- |
-| Map      | The surveyed territory  | Data model             |
-| Pathway  | The mountain trail      | Career progression     |
-| Guide    | The compass bearing     | Coaching and direction |
-| Basecamp | The shelter and supplies| Daily operations       |
-| Landmark | The cairn on the trail  | Evidence markers       |
+| Product  | Metaphor                 | Provides               |
+| -------- | ------------------------ | ---------------------- |
+| Map      | The surveyed territory   | Data model             |
+| Pathway  | The mountain trail       | Career progression     |
+| Guide    | The compass bearing      | Coaching and direction |
+| Basecamp | The shelter and supplies | Daily operations       |
+| Landmark | The cairn on the trail   | Evidence markers       |
 
 ### Icon: The Cairn
 
@@ -361,17 +361,17 @@ about the people.
 
 ## Summary
 
-| Attribute      | Value                                                 |
-| -------------- | ----------------------------------------------------- |
-| Package        | `@forwardimpact/landmark`                             |
-| CLI            | `fit-landmark`                                        |
-| Delivery       | GitHub App installed on GitHub Organizations          |
-| Icon           | Cairn (three stacked stones)                          |
-| Emoji          | 🪨                                                    |
-| Hero scene     | "Checking the Cairn"                                  |
-| Tagline        | "See your own growth. Improve the system."            |
-| Depends on     | `@forwardimpact/guide` (interpretation), `@forwardimpact/map` (markers) |
-| Input          | GitHub webhook events + roster (people → job profiles)|
-| For engineers  | Self-directed evidence, preparation for career conversations |
-| For teams      | Practice patterns, process improvement signals        |
-| For agents     | Same markers, same evidence, same interpretation      |
+| Attribute     | Value                                                                   |
+| ------------- | ----------------------------------------------------------------------- |
+| Package       | `@forwardimpact/landmark`                                               |
+| CLI           | `fit-landmark`                                                          |
+| Delivery      | GitHub App installed on GitHub Organizations                            |
+| Icon          | Cairn (three stacked stones)                                            |
+| Emoji         | 🪨                                                                      |
+| Hero scene    | "Checking the Cairn"                                                    |
+| Tagline       | "See your own growth. Improve the system."                              |
+| Depends on    | `@forwardimpact/guide` (interpretation), `@forwardimpact/map` (markers) |
+| Input         | GitHub webhook events + roster (people → job profiles)                  |
+| For engineers | Self-directed evidence, preparation for career conversations            |
+| For teams     | Practice patterns, process improvement signals                          |
+| For agents    | Same markers, same evidence, same interpretation                        |
