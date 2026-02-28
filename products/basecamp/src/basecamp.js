@@ -21,8 +21,9 @@ import {
   chmodSync,
   readdirSync,
   statSync,
+  cpSync,
+  copyFileSync,
 } from "node:fs";
-import { execSync } from "node:child_process";
 import { join, dirname, resolve } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -52,7 +53,7 @@ const MAX_AGENT_RUNTIME_MS = 35 * 60_000;
 // --- Helpers ----------------------------------------------------------------
 
 function ensureDir(dir) {
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  mkdirSync(dir, { recursive: true });
 }
 
 function readJSON(path, fallback) {
@@ -198,6 +199,15 @@ function shouldWake(agent, agentState, now) {
 
 // --- Agent execution --------------------------------------------------------
 
+function failAgent(agentState, error) {
+  Object.assign(agentState, {
+    status: "failed",
+    startedAt: null,
+    lastWokeAt: new Date().toISOString(),
+    lastError: String(error).slice(0, 500),
+  });
+}
+
 async function wakeAgent(agentName, agent, _config, state) {
   if (!agent.kb) {
     log(`Agent ${agentName}: no "kb" specified, skipping.`);
@@ -242,24 +252,13 @@ async function wakeAgent(agentName, agent, _config, state) {
     } else {
       const errMsg = stderr || stdout || `Exit code ${exitCode}`;
       log(`Agent ${agentName} failed: ${errMsg.slice(0, 300)}`);
-      Object.assign(as, {
-        status: "failed",
-        startedAt: null,
-        lastWokeAt: new Date().toISOString(),
-        lastError: errMsg.slice(0, 500),
-      });
+      failAgent(as, errMsg);
     }
-    saveState(state);
   } catch (err) {
     log(`Agent ${agentName} failed: ${err.message}`);
-    Object.assign(as, {
-      status: "failed",
-      startedAt: null,
-      lastWokeAt: new Date().toISOString(),
-      lastError: err.message.slice(0, 500),
-    });
-    saveState(state);
+    failAgent(as, err.message);
   }
+  saveState(state);
 }
 
 /**
@@ -393,25 +392,31 @@ function computeNextWakeAt(agent, agentState, now) {
  * @returns {string|null}
  */
 function resolveBriefingFile(agentName, agentConfig) {
-  // 1. Scan state directory for agent-specific files
+  // 1. Scan state directory for agent-specific files (latest by mtime)
   const stateDir = join(CACHE_DIR, "state");
   if (existsSync(stateDir)) {
     const prefix = agentName.replace(/-/g, "_") + "_";
     const matches = readdirSync(stateDir).filter(
       (f) => f.startsWith(prefix) && f.endsWith(".md"),
     );
-    if (matches.length === 1) return join(stateDir, matches[0]);
-    if (matches.length > 1) {
-      return matches
-        .map((f) => join(stateDir, f))
-        .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)[0];
+    if (matches.length > 0) {
+      let latest = join(stateDir, matches[0]);
+      let latestMtime = statSync(latest).mtimeMs;
+      for (let i = 1; i < matches.length; i++) {
+        const p = join(stateDir, matches[i]);
+        const mt = statSync(p).mtimeMs;
+        if (mt > latestMtime) {
+          latest = p;
+          latestMtime = mt;
+        }
+      }
+      return latest;
     }
   }
 
-  // 2. Fall back to KB briefings directory
+  // 2. Fall back to KB briefings directory (latest by name)
   if (agentConfig.kb) {
-    const kbPath = expandPath(agentConfig.kb);
-    const dir = join(kbPath, "knowledge", "Briefings");
+    const dir = join(expandPath(agentConfig.kb), "knowledge", "Briefings");
     if (existsSync(dir)) {
       const files = readdirSync(dir)
         .filter((f) => f.endsWith(".md"))
@@ -564,7 +569,11 @@ function daemon() {
 
 // --- Init knowledge base ----------------------------------------------------
 
-function findTemplateDir() {
+/**
+ * Resolve the template directory or exit with an error.
+ * @returns {string}
+ */
+function requireTemplateDir() {
   const bundle = getBundlePath();
   if (bundle) {
     const tpl = join(bundle.resources, "template");
@@ -575,20 +584,8 @@ function findTemplateDir() {
     join(__dirname, "..", "template"),
   ])
     if (existsSync(d)) return d;
-  return null;
-}
-
-/**
- * Resolve the template directory or exit with an error.
- * @returns {string}
- */
-function requireTemplateDir() {
-  const tpl = findTemplateDir();
-  if (!tpl) {
-    console.error("Template not found. Reinstall fit-basecamp.");
-    process.exit(1);
-  }
-  return tpl;
+  console.error("Template not found. Reinstall fit-basecamp.");
+  process.exit(1);
 }
 
 /**
@@ -599,34 +596,24 @@ function requireTemplateDir() {
  */
 function copyBundledFiles(tpl, dest) {
   // CLAUDE.md
-  execSync(`cp "${join(tpl, "CLAUDE.md")}" "${join(dest, "CLAUDE.md")}"`);
+  copyFileSync(join(tpl, "CLAUDE.md"), join(dest, "CLAUDE.md"));
   console.log(`  Updated CLAUDE.md`);
 
   // Settings — merge template permissions into existing settings
   mergeSettings(tpl, dest);
 
-  // Skills
-  const skillsSrc = join(tpl, ".claude", "skills");
-  const skillsDest = join(dest, ".claude", "skills");
-  if (existsSync(skillsSrc)) {
-    ensureDir(skillsDest);
-    execSync(`cp -R "${skillsSrc}/" "${skillsDest}/"`);
-    const skills = readdirSync(skillsSrc).filter((f) =>
-      statSync(join(skillsSrc, f)).isDirectory(),
+  // Skills and agents
+  for (const sub of ["skills", "agents"]) {
+    const src = join(tpl, ".claude", sub);
+    if (!existsSync(src)) continue;
+    cpSync(src, join(dest, ".claude", sub), { recursive: true });
+    const entries = readdirSync(src, { withFileTypes: true }).filter((d) =>
+      sub === "skills" ? d.isDirectory() : d.name.endsWith(".md"),
     );
-    console.log(`  Updated ${skills.length} skills: ${skills.join(", ")}`);
-  }
-
-  // Agents
-  const agentsSrc = join(tpl, ".claude", "agents");
-  const agentsDest = join(dest, ".claude", "agents");
-  if (existsSync(agentsSrc)) {
-    ensureDir(agentsDest);
-    execSync(`cp -R "${agentsSrc}/" "${agentsDest}/"`);
-    const agents = readdirSync(agentsSrc).filter((f) => f.endsWith(".md"));
-    console.log(
-      `  Updated ${agents.length} agents: ${agents.map((f) => f.replace(".md", "")).join(", ")}`,
+    const names = entries.map((d) =>
+      sub === "agents" ? d.name.replace(".md", "") : d.name,
     );
+    console.log(`  Updated ${names.length} ${sub}: ${names.join(", ")}`);
   }
 }
 
@@ -642,30 +629,26 @@ function mergeSettings(tpl, dest) {
   if (!existsSync(src)) return;
 
   const destPath = join(dest, ".claude", "settings.json");
-  ensureDir(join(dest, ".claude"));
 
   // No existing settings — copy template directly
   if (!existsSync(destPath)) {
-    execSync(`cp "${src}" "${destPath}"`);
+    ensureDir(join(dest, ".claude"));
+    copyFileSync(src, destPath);
     console.log(`  Created settings.json`);
     return;
   }
 
-  const template = JSON.parse(readFileSync(src, "utf8"));
-  const existing = JSON.parse(readFileSync(destPath, "utf8"));
-
+  const template = readJSON(src, {});
+  const existing = readJSON(destPath, {});
   const tp = template.permissions || {};
-  const ep = existing.permissions || {};
-
+  const ep = (existing.permissions ||= {});
   let added = 0;
 
-  // Merge array fields: allow, deny, additionalDirectories
+  // Merge array fields
   for (const key of ["allow", "deny", "additionalDirectories"]) {
-    const tplEntries = tp[key] || [];
-    if (tplEntries.length === 0) continue;
-    if (!ep[key]) ep[key] = [];
-    const set = new Set(ep[key]);
-    for (const entry of tplEntries) {
+    if (!tp[key]?.length) continue;
+    const set = new Set((ep[key] ||= []));
+    for (const entry of tp[key]) {
       if (!set.has(entry)) {
         ep[key].push(entry);
         set.add(entry);
@@ -674,16 +657,14 @@ function mergeSettings(tpl, dest) {
     }
   }
 
-  // Merge scalar fields (defaultMode)
+  // Merge scalar fields
   if (tp.defaultMode && !ep.defaultMode) {
     ep.defaultMode = tp.defaultMode;
     added++;
   }
 
-  existing.permissions = ep;
-
   if (added > 0) {
-    writeFileSync(destPath, JSON.stringify(existing, null, 2) + "\n");
+    writeJSON(destPath, existing);
     console.log(`  Updated settings.json (${added} new entries)`);
   } else {
     console.log(`  Settings up to date`);
@@ -709,7 +690,7 @@ function initKB(targetPath) {
     ensureDir(join(dest, d));
 
   // User-specific files (not overwritten by --update)
-  execSync(`cp "${join(tpl, "USER.md")}" "${join(dest, "USER.md")}"`);
+  copyFileSync(join(tpl, "USER.md"), join(dest, "USER.md"));
 
   // Bundled files (shared with --update)
   copyBundledFiles(tpl, dest);
@@ -875,35 +856,34 @@ const args = process.argv.slice(2);
 const command = args[0];
 ensureDir(BASECAMP_HOME);
 
+function requireArg(usage) {
+  if (!args[1]) {
+    console.error(usage);
+    process.exit(1);
+  }
+  return args[1];
+}
+
 const commands = {
   "--help": showHelp,
   "-h": showHelp,
   "--daemon": daemon,
   "--validate": validate,
   "--status": showStatus,
-  "--init": () => {
-    if (!args[1]) {
-      console.error("Usage: node basecamp.js --init <path>");
-      process.exit(1);
-    }
-    initKB(args[1]);
-  },
+  "--init": () => initKB(requireArg("Usage: fit-basecamp --init <path>")),
   "--update": runUpdate,
   "--wake": async () => {
-    if (!args[1]) {
-      console.error("Usage: node basecamp.js --wake <agent-name>");
-      process.exit(1);
-    }
+    const name = requireArg("Usage: fit-basecamp --wake <agent-name>");
     const config = loadConfig(),
       state = loadState(),
-      agent = config.agents[args[1]];
+      agent = config.agents[name];
     if (!agent) {
       console.error(
-        `Agent "${args[1]}" not found. Available: ${Object.keys(config.agents).join(", ") || "(none)"}`,
+        `Agent "${name}" not found. Available: ${Object.keys(config.agents).join(", ") || "(none)"}`,
       );
       process.exit(1);
     }
-    await wakeAgent(args[1], agent, config, state);
+    await wakeAgent(name, agent, config, state);
   },
 };
 
