@@ -30,7 +30,7 @@ import {
 import {
   compareByCapability,
   sortSkillsByCapability,
-} from "@forwardimpact/libpathway/policies";
+} from "@forwardimpact/libskill/policies";
 
 import {
   classifyMatch,
@@ -43,7 +43,7 @@ import {
   estimateBestFitLevel,
   deriveDevelopmentPath,
   findNextStepJob,
-} from "@forwardimpact/libpathway/matching";
+} from "@forwardimpact/libskill/matching";
 
 import {
   validateAllData,
@@ -65,7 +65,7 @@ import {
   isSeniorLevel,
   getDisciplineSkillIds,
   getLevelRank,
-} from "@forwardimpact/libpathway/derivation";
+} from "@forwardimpact/libskill/derivation";
 
 import {
   deriveInterviewQuestions,
@@ -75,12 +75,12 @@ import {
   deriveMissionFitInterview,
   deriveDecompositionInterview,
   deriveStakeholderInterview,
-} from "@forwardimpact/libpathway/interview";
+} from "@forwardimpact/libskill/interview";
 
 import {
   deriveChecklist,
   formatChecklistMarkdown,
-} from "@forwardimpact/libpathway/checklist";
+} from "@forwardimpact/libskill/checklist";
 
 // ============================================================================
 // Test Data Fixtures
@@ -2918,7 +2918,7 @@ import {
   extractCapabilityModifiers,
   extractSkillModifiers,
   resolveSkillModifier,
-} from "@forwardimpact/libpathway/modifiers";
+} from "@forwardimpact/libskill/modifiers";
 
 describe("Skill Modifiers", () => {
   describe("isCapability", () => {
@@ -3260,7 +3260,7 @@ import {
   getPositiveTrackCapabilities,
   prepareBaseProfile,
   prepareAgentProfile,
-} from "@forwardimpact/libpathway/profile";
+} from "@forwardimpact/libskill/profile";
 
 import {
   isAgentEligible,
@@ -3268,7 +3268,7 @@ import {
   filterAgentSkills,
   compareByLevelDesc,
   compareByMaturityDesc,
-} from "@forwardimpact/libpathway/policies";
+} from "@forwardimpact/libskill/policies";
 
 describe("Profile Module", () => {
   describe("getPositiveTrackCapabilities", () => {
@@ -3509,7 +3509,7 @@ describe("Profile Module", () => {
 // Agent Module Tests
 // ============================================================================
 
-import { deriveReferenceLevel } from "@forwardimpact/libpathway/agent";
+import { deriveReferenceLevel } from "@forwardimpact/libskill/agent";
 
 describe("Agent Module", () => {
   describe("deriveReferenceLevel", () => {

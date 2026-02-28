@@ -25,10 +25,11 @@ output, and bring pride of workmanship to engineering teams.
 
 ### Libraries
 
-| Library                     | CLI       | Purpose                                |
-| --------------------------- | --------- | -------------------------------------- |
-| `@forwardimpact/libpathway` | —         | Derivation engine for roles and agents |
-| `@forwardimpact/libdoc`     | `fit-doc` | Documentation build and serve tools    |
+| Library                    | CLI       | Purpose                                    |
+| -------------------------- | --------- | ------------------------------------------ |
+| `@forwardimpact/libskill`  | —         | Derivation engine for roles and agents     |
+| `@forwardimpact/libui`     | —         | Web UI framework: rendering, routing, CSS  |
+| `@forwardimpact/libdoc`    | `fit-doc` | Documentation build and serve tools        |
 
 ```
 products/
@@ -36,7 +37,8 @@ products/
   basecamp/     Personal knowledge system, scheduler
   map/          Public data model for AI agents and engineers
 libraries/
-  libpathway/   Derivation logic, job/agent models
+  libskill/     Derivation logic, job/agent models
+  libui/        Web UI framework, components, design system
   libdoc/       Documentation build and serve tools
 specs/
   {feature}/    Feature specifications and plans
@@ -52,15 +54,17 @@ different data while using the same model.
 ## 3-Layer System
 
 1. **Map** (`products/map/src/`) — Public data model, validation, loading
-2. **Model** (`libraries/libpathway/src/`) — Pure business logic, derivation
-3. **Presentation** (`products/pathway/src/`) — Formatters, views, UI components
+2. **Model** (`libraries/libskill/src/`) — Pure business logic, derivation
+3. **UI** (`libraries/libui/src/`) — Web UI framework, components, design system
+4. **Presentation** (`products/pathway/src/`) — Formatters, views, domain components
 
 ```
-Map (data) → Model (derivation) → Presentation (display)
+Map (data) → Model (derivation) → UI (framework) → Presentation (display)
 ```
 
 - **Map** publishes the data model and validates entities
 - **Model** transforms entities into derived outputs (jobs, agents)
+- **UI** provides generic rendering, routing, components, and CSS
 - **Presentation** formats outputs for display (web, CLI, markdown)
 
 ### Key Paths
@@ -72,7 +76,9 @@ Map (data) → Model (derivation) → Presentation (display)
 | Example data | `products/map/examples/`                     |
 | JSON Schema  | `products/map/schema/json/`                  |
 | RDF/SHACL    | `products/map/schema/rdf/`                   |
-| Derivation   | `libraries/libpathway/src/`                  |
+| Derivation   | `libraries/libskill/src/`                    |
+| UI framework | `libraries/libui/src/`                       |
+| UI CSS       | `libraries/libui/src/css/`                   |
 | Formatters   | `products/pathway/src/formatters/`           |
 | Templates    | `products/pathway/templates/`                |
 | Scheduler    | `products/basecamp/basecamp.js`              |
@@ -82,7 +88,8 @@ Map (data) → Model (derivation) → Presentation (display)
 ### Dependency Chain
 
 ```
-map → libpathway → pathway
+map → libskill → pathway
+      libui   ↗
 ```
 
 When updating data structure, change:
@@ -90,7 +97,7 @@ When updating data structure, change:
 1. `products/map/schema/json/` and `rdf/` — Schema definitions (both formats,
    same commit)
 2. `products/map/examples/` — Example data
-3. `libraries/libpathway/src/` — Derivation logic if needed
+3. `libraries/libskill/src/` — Derivation logic if needed
 4. `products/pathway/src/formatters/` — Presentation if needed
 
 ## Core Rules
@@ -380,8 +387,13 @@ Use these terms for spheres of influence (ascending breadth):
 **Map** (`products/map/src/`): `loader.js`, `validation.js`,
 `schema-validation.js`, `index-generator.js`, `levels.js`
 
-**Model** (`libraries/libpathway/src/`): `derivation.js`, `modifiers.js`,
+**Model** (`libraries/libskill/src/`): `derivation.js`, `modifiers.js`,
 `profile.js`, `job.js`, `agent.js`, `checklist.js`, `interview.js`
+
+**UI** (`libraries/libui/src/`): `render.js`, `reactive.js`, `state.js`,
+`router-core.js`, `router-pages.js`, `router-slides.js`, `error-boundary.js`,
+`errors.js`, `markdown.js`, `utils.js`, `yaml-loader.js`, `components/`,
+`css/`
 
 **Presentation** (`products/pathway/src/`): `formatters/`, `pages/`,
 `components/`, `lib/`, `commands/`, `slides/`
@@ -414,10 +426,10 @@ Format: `type(scope): subject`
 
 **Types**: `feat`, `fix`, `refactor`, `docs`, `style`, `test`, `chore`, `perf`
 
-**Scope**: Use package name (`map`, `libpathway`, `pathway`, `basecamp`) or
-specific area. Omit if change spans multiple packages.
+**Scope**: Use package name (`map`, `libskill`, `libui`, `pathway`, `basecamp`)
+or specific area. Omit if change spans multiple packages.
 
-**Breaking changes**: Add `!` after scope: `refactor(libpathway)!: change API`
+**Breaking changes**: Add `!` after scope: `refactor(libskill)!: change API`
 
 ### Before Committing
 
@@ -441,7 +453,7 @@ Assess version impact at each commit:
 | New feature (`feat`)      | Minor |
 | Bug fix, refactor, other  | Patch |
 
-**Dependency chain**: `map` → `libpathway` → `pathway`
+**Dependency chain**: `map` → `libskill` → `pathway`, `libui` → `pathway`
 
 Find dependents:
 `grep -rl "@forwardimpact/{pkg}" products/*/package.json libraries/*/package.json`

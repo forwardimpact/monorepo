@@ -7,13 +7,13 @@
 import {
   isValidJobCombination,
   generateJobTitle,
-} from "@forwardimpact/libpathway/derivation";
+} from "@forwardimpact/libskill/derivation";
 import {
   analyzeProgression,
   analyzeCustomProgression,
   getNextLevel,
-} from "@forwardimpact/libpathway/progression";
-import { getOrCreateJob } from "@forwardimpact/libpathway/job-cache";
+} from "@forwardimpact/libskill/progression";
+import { getOrCreateJob } from "@forwardimpact/libskill/job-cache";
 
 /**
  * Get the next level for progression

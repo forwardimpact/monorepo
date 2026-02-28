@@ -8,7 +8,7 @@ import {
   groupSkillsByCapability,
   getCapabilityEmoji,
 } from "@forwardimpact/map/levels";
-import { getSkillTypeForDiscipline } from "@forwardimpact/libpathway/derivation";
+import { getSkillTypeForDiscipline } from "@forwardimpact/libskill/derivation";
 import { truncate } from "../shared.js";
 
 /**

@@ -5,7 +5,7 @@
  */
 
 import { div, h1, p } from "../lib/render.js";
-import { prepareJobDetail } from "@forwardimpact/libpathway/job";
+import { prepareJobDetail } from "@forwardimpact/libskill/job";
 import { jobToDOM } from "../formatters/index.js";
 
 /**

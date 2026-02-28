@@ -8,36 +8,36 @@
 /* Layer order declaration - must be first */
 @layer tokens, reset, base, components, utilities, pages, slides, handout, print;
 
-/* Foundation */
-@import "../tokens.css" layer(tokens);
-@import "../reset.css" layer(reset);
-@import "../base.css" layer(base);
+/* Foundation (from libui) */
+@import "/ui/css/tokens.css" layer(tokens);
+@import "/ui/css/reset.css" layer(reset);
+@import "/ui/css/base.css" layer(base);
 
-/* Components */
-@import "../components/layout.css" layer(components);
-@import "../components/surfaces.css" layer(components);
-@import "../components/typography.css" layer(components);
-@import "../components/badges.css" layer(components);
-@import "../components/buttons.css" layer(components);
-@import "../components/forms.css" layer(components);
-@import "../components/tables.css" layer(components);
-@import "../components/progress.css" layer(components);
-@import "../components/states.css" layer(components);
+/* Components (from libui) */
+@import "/ui/css/components/layout.css" layer(components);
+@import "/ui/css/components/surfaces.css" layer(components);
+@import "/ui/css/components/typography.css" layer(components);
+@import "/ui/css/components/badges.css" layer(components);
+@import "/ui/css/components/buttons.css" layer(components);
+@import "/ui/css/components/forms.css" layer(components);
+@import "/ui/css/components/tables.css" layer(components);
+@import "/ui/css/components/progress.css" layer(components);
+@import "/ui/css/components/states.css" layer(components);
 
-/* Utilities */
-@import "../components/utilities.css" layer(utilities);
+/* Utilities (from libui) */
+@import "/ui/css/components/utilities.css" layer(utilities);
 
-/* Pages (for shared formatters) */
-@import "../pages/detail.css" layer(pages);
+/* Pages (from libui) */
+@import "/ui/css/pages/detail.css" layer(pages);
 
-/* Slide views */
-@import "../views/slide-animations.css" layer(slides);
-@import "../views/slide-base.css" layer(slides);
-@import "../views/slide-sections.css" layer(slides);
-@import "../views/slide-tables.css" layer(slides);
+/* Slide views (from libui) */
+@import "/ui/css/views/slide-animations.css" layer(slides);
+@import "/ui/css/views/slide-base.css" layer(slides);
+@import "/ui/css/views/slide-sections.css" layer(slides);
+@import "/ui/css/views/slide-tables.css" layer(slides);
 
-/* Handout overrides */
-@import "../views/handout.css" layer(handout);
+/* Handout overrides (from libui) */
+@import "/ui/css/views/handout.css" layer(handout);
 
-/* Print */
-@import "../views/print.css" layer(print);
+/* Print (from libui) */
+@import "/ui/css/views/print.css" layer(print);

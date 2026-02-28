@@ -1,0 +1,36 @@
+{
+  "name": "@forwardimpact/libui",
+  "version": "1.0.0",
+  "description": "Web UI framework: rendering, routing, components, and design system",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forwardimpact/monorepo",
+    "directory": "libraries/libui"
+  },
+  "type": "module",
+  "main": "src/index.js",
+  "files": [
+    "src/"
+  ],
+  "exports": {
+    ".": "./src/index.js",
+    "./render": "./src/render.js",
+    "./reactive": "./src/reactive.js",
+    "./state": "./src/state.js",
+    "./errors": "./src/errors.js",
+    "./error-boundary": "./src/error-boundary.js",
+    "./router-core": "./src/router-core.js",
+    "./router-pages": "./src/router-pages.js",
+    "./router-slides": "./src/router-slides.js",
+    "./yaml-loader": "./src/yaml-loader.js",
+    "./markdown": "./src/markdown.js",
+    "./utils": "./src/utils.js",
+    "./components": "./src/components/index.js",
+    "./components/*": "./src/components/*.js",
+    "./css/*": "./src/css/*"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

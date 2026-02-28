@@ -11,7 +11,7 @@ import { prepareSkillsList } from "../formatters/skill/shared.js";
 import { skillToDOM } from "../formatters/skill/dom.js";
 import { skillToCardConfig } from "../lib/card-mappers.js";
 import { getCapabilityEmoji, getConceptEmoji } from "@forwardimpact/map/levels";
-import { generateSkillMarkdown } from "@forwardimpact/libpathway";
+import { generateSkillMarkdown } from "@forwardimpact/libskill";
 import { formatAgentSkill } from "../formatters/agent/skill.js";
 
 /** @type {string|null} Cached skill template */

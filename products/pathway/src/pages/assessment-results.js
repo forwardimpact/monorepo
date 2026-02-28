@@ -19,7 +19,7 @@ import { getState } from "../lib/state.js";
 import { createBadge } from "../components/card.js";
 import { formatLevel } from "../lib/render.js";
 import { getAssessmentState, resetAssessment } from "./self-assessment.js";
-import { findRealisticMatches } from "@forwardimpact/libpathway/matching";
+import { findRealisticMatches } from "@forwardimpact/libskill/matching";
 
 /**
  * Render the assessment results page

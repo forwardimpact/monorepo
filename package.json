@@ -12,7 +12,8 @@
   "type": "module",
   "workspaces": [
     "products/map",
-    "libraries/libpathway",
+    "libraries/libskill",
+    "libraries/libui",
     "products/pathway",
     "products/basecamp",
     "libraries/libdoc",

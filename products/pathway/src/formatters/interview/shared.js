@@ -8,13 +8,13 @@ import {
   isValidJobCombination,
   generateJobTitle,
   getDisciplineSkillIds,
-} from "@forwardimpact/libpathway/derivation";
+} from "@forwardimpact/libskill/derivation";
 import {
   deriveMissionFitInterview,
   deriveDecompositionInterview,
   deriveStakeholderInterview,
-} from "@forwardimpact/libpathway/interview";
-import { getOrCreateJob } from "@forwardimpact/libpathway/job-cache";
+} from "@forwardimpact/libskill/interview";
+import { getOrCreateJob } from "@forwardimpact/libskill/job-cache";
 
 /**
  * Interview type configurations

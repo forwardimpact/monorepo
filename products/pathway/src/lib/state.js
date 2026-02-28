@@ -1,15 +1,13 @@
 /**
  * Application state management
+ *
+ * Uses generic store from @forwardimpact/libui/state
+ * with Pathway-specific state shape and accessors.
  */
 
-/**
- * @typedef {Object} AppState
- * @property {Object} data - Loaded data from YAML files
- * @property {Object} ui - UI state
- */
+import { createStore } from "@forwardimpact/libui/state";
 
-/** @type {AppState} */
-const state = {
+const store = createStore({
   data: {
     skills: [],
     behaviours: [],
@@ -35,48 +33,18 @@ const state = {
       drivers: { search: "" },
     },
   },
-};
+});
 
-/** @type {Set<Function>} */
-const listeners = new Set();
-
-/**
- * Get the current state
- * @returns {AppState}
- */
-export function getState() {
-  return state;
-}
-
-/**
- * Get a specific path from state
- * @param {string} path - Dot-notation path (e.g., 'data.skills')
- * @returns {*}
- */
-export function getStatePath(path) {
-  return path.split(".").reduce((obj, key) => obj?.[key], state);
-}
-
-/**
- * Update state at a specific path
- * @param {string} path - Dot-notation path
- * @param {*} value - New value
- */
-export function updateState(path, value) {
-  const keys = path.split(".");
-  const lastKey = keys.pop();
-  const target = keys.reduce((obj, key) => obj[key], state);
-  target[lastKey] = value;
-  notifyListeners();
-}
+export const { getState, getStatePath, updateState, subscribe } = store;
 
 /**
  * Merge data into state
  * @param {Object} data - Data to merge
  */
 export function setData(data) {
+  const state = getState();
   Object.assign(state.data, data, { loaded: true, error: null });
-  notifyListeners();
+  updateState("data", state.data);
 }
 
 /**
@@ -84,25 +52,7 @@ export function setData(data) {
  * @param {Error} error
  */
 export function setError(error) {
-  state.data.error = error.message;
-  notifyListeners();
-}
-
-/**
- * Subscribe to state changes
- * @param {Function} listener
- * @returns {Function} Unsubscribe function
- */
-export function subscribe(listener) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-/**
- * Notify all listeners of state change
- */
-function notifyListeners() {
-  listeners.forEach((listener) => listener(state));
+  updateState("data.error", error.message);
 }
 
 /**
@@ -112,9 +62,10 @@ function notifyListeners() {
  * @param {*} value - Filter value
  */
 export function setFilter(entity, filterKey, value) {
+  const state = getState();
   if (state.ui.filters[entity]) {
     state.ui.filters[entity][filterKey] = value;
-    notifyListeners();
+    updateState("ui.filters", state.ui.filters);
   }
 }
 
@@ -124,7 +75,7 @@ export function setFilter(entity, filterKey, value) {
  * @returns {Object}
  */
 export function getFilters(entity) {
-  return state.ui.filters[entity] || {};
+  return getState().ui.filters[entity] || {};
 }
 
 /**
@@ -140,7 +91,7 @@ export function getFilters(entity) {
  * @returns {Branding}
  */
 export function getBranding() {
-  const { framework } = state.data;
+  const { framework } = getState().data;
   return {
     title: framework.title || "Engineering Pathway",
     tag: framework.tag || "#BenchTools",

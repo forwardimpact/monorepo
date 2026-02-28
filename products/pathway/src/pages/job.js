@@ -5,7 +5,7 @@
 import { render, div, p } from "../lib/render.js";
 import { getState } from "../lib/state.js";
 import { renderError } from "../components/error-page.js";
-import { prepareJobDetail } from "@forwardimpact/libpathway/job";
+import { prepareJobDetail } from "@forwardimpact/libskill/job";
 import { jobToDOM } from "../formatters/job/dom.js";
 
 /** @type {string|null} Cached job template */

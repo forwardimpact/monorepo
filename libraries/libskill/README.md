@@ -1,4 +1,4 @@
-# @forwardimpact/libpathway
+# @forwardimpact/libskill (formerly libpathway)
 
 Derivation engine for roles, skills, and agent team profiles.
 
@@ -28,10 +28,10 @@ import {
   deriveJob,
   deriveSkillMatrix,
   deriveBehaviourProfile,
-} from "@forwardimpact/libpathway/derivation";
-import { prepareAgentProfile } from "@forwardimpact/libpathway/profile";
-import { deriveInterviewQuestions } from "@forwardimpact/libpathway/interview";
-import { analyzeProgression } from "@forwardimpact/libpathway/progression";
+} from "@forwardimpact/libskill/derivation";
+import { prepareAgentProfile } from "@forwardimpact/libskill/profile";
+import { deriveInterviewQuestions } from "@forwardimpact/libskill/interview";
+import { analyzeProgression } from "@forwardimpact/libskill/progression";
 ```
 
 ## Key Concepts

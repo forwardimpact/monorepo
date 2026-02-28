@@ -5,7 +5,7 @@
  *
  * Usage:
  *   import { THRESHOLD_MATCH_STRONG, isAgentEligible, filterHighestLevel }
- *     from "@forwardimpact/libpathway/policies";
+ *     from "@forwardimpact/libskill/policies";
  */
 
 // Thresholds, scores, and weights

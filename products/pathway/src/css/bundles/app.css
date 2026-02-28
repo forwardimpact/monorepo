@@ -8,36 +8,40 @@
 /* Layer order declaration - must be first */
 @layer tokens, reset, base, components, utilities, pages;
 
-/* Foundation */
-@import "../tokens.css" layer(tokens);
-@import "../reset.css" layer(reset);
-@import "../base.css" layer(base);
+/* Foundation (from libui) */
+@import "/ui/css/tokens.css" layer(tokens);
+@import "/ui/css/reset.css" layer(reset);
+@import "/ui/css/base.css" layer(base);
 
-/* Components */
-@import "../components/layout.css" layer(components);
-@import "../components/surfaces.css" layer(components);
-@import "../components/typography.css" layer(components);
-@import "../components/badges.css" layer(components);
-@import "../components/buttons.css" layer(components);
-@import "../components/forms.css" layer(components);
-@import "../components/tables.css" layer(components);
-@import "../components/progress.css" layer(components);
-@import "../components/states.css" layer(components);
-@import "../components/nav.css" layer(components);
-@import "../components/top-bar.css" layer(components);
+/* Components (from libui) */
+@import "/ui/css/components/layout.css" layer(components);
+@import "/ui/css/components/surfaces.css" layer(components);
+@import "/ui/css/components/typography.css" layer(components);
+@import "/ui/css/components/badges.css" layer(components);
+@import "/ui/css/components/buttons.css" layer(components);
+@import "/ui/css/components/forms.css" layer(components);
+@import "/ui/css/components/tables.css" layer(components);
+@import "/ui/css/components/progress.css" layer(components);
+@import "/ui/css/components/states.css" layer(components);
+@import "/ui/css/components/nav.css" layer(components);
+@import "/ui/css/components/top-bar.css" layer(components);
+
+/* Components (Pathway-specific) */
 @import "../components/command-prompt.css" layer(components);
 @import "../components/skill-file-viewer.css" layer(components);
 @import "../components/file-card.css" layer(components);
 
-/* Utilities */
-@import "../components/utilities.css" layer(utilities);
+/* Utilities (from libui) */
+@import "/ui/css/components/utilities.css" layer(utilities);
 
-/* Pages */
+/* Pages (from libui) */
+@import "/ui/css/pages/detail.css" layer(pages);
+
+/* Pages (Pathway-specific) */
 @import "../pages/landing.css" layer(pages);
 @import "../pages/job-builder.css" layer(pages);
 @import "../pages/agent-builder.css" layer(pages);
 @import "../pages/lifecycle.css" layer(pages);
-@import "../pages/detail.css" layer(pages);
 @import "../pages/interview-builder.css" layer(pages);
 @import "../pages/self-assessment.css" layer(pages);
 @import "../pages/assessment-results.css" layer(pages);
