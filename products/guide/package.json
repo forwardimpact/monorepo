@@ -6,6 +6,9 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "private": true,
+  "bin": {
+    "fit-guide": "./bin/fit-guide.js"
+  },
   "engines": {
     "node": ">=22.0.0"
   },

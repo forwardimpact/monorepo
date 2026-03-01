@@ -1,4 +1,14 @@
 #!/usr/bin/env node
+/**
+ * fit-guide CLI
+ *
+ * Conversational agent interface for the Guide knowledge platform.
+ *
+ * Usage:
+ *   npx fit-guide
+ *   echo "Tell me about the company" | npx fit-guide
+ */
+
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { Repl } from "@forwardimpact/librepl";
 import { createClient, createTracer } from "@forwardimpact/librpc";
@@ -13,8 +23,8 @@ The agent maintains conversation context across multiple turns.
 
 **Examples:**
 
-    echo "Tell me about the company" | make cli-chat
-    printf "What is microservices?\\nWhat are the benefits?\\n" | make cli-chat`;
+    echo "Tell me about the company" | npx fit-guide
+    printf "What is microservices?\\nWhat are the benefits?\\n" | npx fit-guide`;
 
 const config = await createServiceConfig("agent");
 const logger = createLogger("cli");

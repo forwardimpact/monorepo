@@ -379,7 +379,7 @@ docs-watch:  ## Serve with live reload
 
 .PHONY: cli-chat
 cli-chat: ## Agent conversations
-	@$(ENVLOAD) node ./src/cli.js $(ARGS)
+	@$(ENVLOAD) node ./bin/fit-guide.js $(ARGS)
 
 .PHONY: cli-search
 cli-search: ## Vector similarity search
