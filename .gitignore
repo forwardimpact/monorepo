@@ -6,6 +6,12 @@ data
 generated/
 **/generated
 
+# Environment files (use *.example templates)
+**/.env
+**/.env.*
+!**/.env.*.example
+!**/.env.example
+
 # Local config (use *.example.* templates)
 **/config/config.json
 **/config/tools.yml
