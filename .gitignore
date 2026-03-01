@@ -6,8 +6,12 @@ data
 generated/
 **/generated
 
-# Local config (use config.example.json as template)
+# Local config (use *.example.* templates)
 **/config/config.json
+**/config/tools.yml
+**/config/ingest.yml
+**/config/agents/*.agent.md
+!**/config/agents/*.agent.example.md
 
 # Development files
 tmp/
