@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BioNova Leadership Hierarchy</title>
+    <meta
+      name="description"
+      content="Executive and director-level organizational hierarchy for BioNova."
+    />
+  </head>
+  <body>
+    <!-- Top-Level Organization -->
+    <article
+      itemscope
+      itemtype="https://schema.org/Organization"
+      itemid="https://bionova.example/id/org/bionova"
+    >
+      <header>
+        <h1 itemprop="name">BioNova</h1>
+        <p>
+          Modern pharmaceutical company advancing innovative drug development
+          and technology-driven healthcare solutions.
+        </p>
+      </header>
+      <!-- Executives -->
+      <section>
+        <h2>Executive Leadership</h2>
+        <div
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/apollo"
+          itemprop="employee"
+        >
+          <span itemprop="name">Apollo</span>
+          <span itemprop="jobTitle">Chief Executive Officer (CEO)</span>
+          <link
+            itemprop="worksFor"
+            href="https://bionova.example/id/org/bionova"
+          />
+        </div>
+        <div
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/zeus"
+          itemprop="employee"
+        >
+          <span itemprop="name">Zeus</span>
+          <span itemprop="jobTitle">Chief Scientific Officer (CSO)</span>
+          <link
+            itemprop="worksFor"
+            href="https://bionova.example/id/org/bionova"
+          />
+        </div>
+      </section>
+
+      <!-- Departments as Sub-Organizations -->
+      <section>
+        <h2>Departments</h2>
+        <!-- R&D Department -->
+        <div
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/bionova-rd"
+          itemprop="subOrganization"
+        >
+          <h3 itemprop="name">BioNova R&amp;D</h3>
+          <p>
+            Research &amp; Development department driving discovery, clinical
+            development, and regulatory affairs.
+          </p>
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/drug-discovery-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/clinical-development-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/regulatory-affairs-team"
+          />
+          <div
+            itemscope
+            itemtype="https://schema.org/Person"
+            itemid="https://bionova.example/id/person/minerva"
+            itemprop="employee"
+          >
+            <span itemprop="name">Minerva</span>
+            <span itemprop="jobTitle">Director, BioNova R&amp;D</span>
+            <link
+              itemprop="worksFor"
+              href="https://bionova.example/id/org/bionova-rd"
+            />
+          </div>
+        </div>
+        <!-- Manufacturing Department -->
+        <div
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/bionova-manufacturing"
+          itemprop="subOrganization"
+        >
+          <h3 itemprop="name">BioNova Manufacturing</h3>
+          <p>
+            Manufacturing department ensuring GMP-compliant production and
+            quality assurance.
+          </p>
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/production-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/quality-assurance-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/supply-chain-team"
+          />
+          <div
+            itemscope
+            itemtype="https://schema.org/Person"
+            itemid="https://bionova.example/id/person/hephaestus"
+            itemprop="employee"
+          >
+            <span itemprop="name">Hephaestus</span>
+            <span itemprop="jobTitle">Director, BioNova Manufacturing</span>
+            <link
+              itemprop="worksFor"
+              href="https://bionova.example/id/org/bionova-manufacturing"
+            />
+          </div>
+        </div>
+        <!-- Commercial Department -->
+        <div
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/bionova-commercial"
+          itemprop="subOrganization"
+        >
+          <h3 itemprop="name">BioNova Commercial</h3>
+          <p>
+            Commercial department managing market access, sales strategy, and
+            pharmaceutical marketing.
+          </p>
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/market-access-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/sales-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/marketing-team"
+          />
+          <div
+            itemscope
+            itemtype="https://schema.org/Person"
+            itemid="https://bionova.example/id/person/rhea"
+            itemprop="employee"
+          >
+            <span itemprop="name">Rhea</span>
+            <span itemprop="jobTitle">Director, BioNova Commercial</span>
+            <link
+              itemprop="worksFor"
+              href="https://bionova.example/id/org/bionova-commercial"
+            />
+          </div>
+        </div>
+        <!-- IT Department -->
+        <div
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/bionova-it"
+          itemprop="subOrganization"
+        >
+          <h3 itemprop="name">BioNova IT</h3>
+          <p>
+            Information Technology department building AI platforms, data
+            infrastructure, and microservices architecture.
+          </p>
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/platform-engineering-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/data-science-ai-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/it-operations-team"
+          />
+          <link
+            itemprop="subOrganization"
+            href="https://bionova.example/id/org/cloud-infrastructure-team"
+          />
+          <div
+            itemscope
+            itemtype="https://schema.org/Person"
+            itemid="https://bionova.example/id/person/gaia"
+            itemprop="employee"
+          >
+            <span itemprop="name">Gaia</span>
+            <span itemprop="jobTitle">CTO / Director, BioNova IT</span>
+            <link
+              itemprop="worksFor"
+              href="https://bionova.example/id/org/bionova-it"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- Reporting Chain Summary (Helper Nodes) -->
+      <section>
+        <h2>Reporting Chain Summary</h2>
+        <div
+          itemscope
+          itemtype="https://schema.org/CreativeWork"
+          itemid="https://bionova.example/id/path/leadership-reporting-chain"
+        >
+          <meta itemprop="name" content="Leadership Reporting Chain" />
+          <p itemprop="description">
+            Apollo (CEO) → Zeus (CSO) → Department Directors (Minerva,
+            Hephaestus, Rhea, Gaia)
+          </p>
+          <link
+            itemprop="about"
+            href="https://bionova.example/id/person/apollo"
+          />
+          <link
+            itemprop="about"
+            href="https://bionova.example/id/person/zeus"
+          />
+          <link
+            itemprop="about"
+            href="https://bionova.example/id/person/minerva"
+          />
+          <link
+            itemprop="about"
+            href="https://bionova.example/id/person/hephaestus"
+          />
+          <link
+            itemprop="about"
+            href="https://bionova.example/id/person/rhea"
+          />
+          <link
+            itemprop="about"
+            href="https://bionova.example/id/person/gaia"
+          />
+        </div>
+      </section>
+    </article>
+  </body>
+</html>

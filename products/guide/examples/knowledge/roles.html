@@ -1,0 +1,643 @@
+<!--
+  Roles File
+  Contains 25 Role entities mapping people to organizations, projects, and teams for graph traversal.
+  Each item uses Schema.org microdata, unique itemid IRIs, and explicit links to person, organization, and roleName.
+-->
+<html lang="en">
+  <head>
+    <title>Roles - Knowledge Base</title>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <section>
+      <h1>Organizational and Project Roles</h1>
+      <!-- Role items start -->
+      <!--
+    Each Role:
+      - itemid: https://bionova.example/id/role/{slug}
+      - isRelatedTo: links to person (via link href) and organization (nested)
+      - roleName: title/position
+      - startDate, endDate (optional): temporal boundaries
+      - Diverse vocabulary, vector-optimized, cross-file links
+  -->
+      <!-- Role 1 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/ceo"
+      >
+        <span itemprop="roleName">Chief Executive Officer</span>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/person/apollo"
+        />
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/hq"
+        >
+          <span itemprop="name">Headquarters</span>
+        </div>
+        <meta itemprop="startDate" content="2022-01-01" />
+      </div>
+      <!-- Role 2 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/rd-director"
+      >
+        <span itemprop="roleName">Director of R&D</span>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/person/minerva"
+        />
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/rd"
+        >
+          <span itemprop="name">R&D Division</span>
+        </div>
+        <meta itemprop="startDate" content="2021-06-01" />
+      </div>
+      <!-- Role 3 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/clinical-lead"
+      >
+        <span itemprop="roleName">Clinical Lead</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/maria-garcia"
+        >
+          <span itemprop="name">Maria Garcia</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/clinical-ops"
+        >
+          <span itemprop="name">Clinical Operations Team</span>
+        </div>
+        <meta itemprop="startDate" content="2023-03-01" />
+      </div>
+      <!-- Role 4 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/quality-manager"
+      >
+        <span itemprop="roleName">Quality Manager</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/ella-jones"
+        >
+          <span itemprop="name">Ella Jones</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/quality"
+        >
+          <span itemprop="name">Quality Assurance</span>
+        </div>
+        <meta itemprop="startDate" content="2020-09-01" />
+      </div>
+      <!-- Role 5 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/genomics-lead"
+      >
+        <span itemprop="roleName">Genomics Lead</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/lily-nguyen"
+        >
+          <span itemprop="name">Lily Nguyen</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/genomics"
+        >
+          <span itemprop="name">Genomics Team</span>
+        </div>
+        <meta itemprop="startDate" content="2022-05-01" />
+      </div>
+      <!-- Role 6 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/pharmacovigilance-officer"
+      >
+        <span itemprop="roleName">Pharmacovigilance Officer</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/henry-shaw"
+        >
+          <span itemprop="name">Henry Shaw</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/safety"
+        >
+          <span itemprop="name">Drug Safety</span>
+        </div>
+        <meta itemprop="startDate" content="2021-04-15" />
+      </div>
+      <!-- Role 7 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/data-engineering-lead"
+      >
+        <span itemprop="roleName">Data Engineering Lead</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/kevin-wu"
+        >
+          <span itemprop="name">Kevin Wu</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/data-platform"
+        >
+          <span itemprop="name">Data Platform</span>
+        </div>
+        <meta itemprop="startDate" content="2022-02-01" />
+      </div>
+      <!-- Role 8 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/security-architect"
+      >
+        <span itemprop="roleName">Security Architect</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/james-porter"
+        >
+          <span itemprop="name">James Porter</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/security"
+        >
+          <span itemprop="name">Security & Compliance</span>
+        </div>
+        <meta itemprop="startDate" content="2020-11-01" />
+      </div>
+      <!-- Role 9 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/clinical-data-scientist"
+      >
+        <span itemprop="roleName">Clinical Data Scientist</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/oliver-smith"
+        >
+          <span itemprop="name">Oliver Smith</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/clinical-ops"
+        >
+          <span itemprop="name">Clinical Operations Team</span>
+        </div>
+        <meta itemprop="startDate" content="2023-05-10" />
+      </div>
+      <!-- Role 10 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/manufacturing-compliance-specialist"
+      >
+        <span itemprop="roleName">Manufacturing Compliance Specialist</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/rachel-klein"
+        >
+          <span itemprop="name">Rachel Klein</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/manufacturing"
+        >
+          <span itemprop="name">Manufacturing Quality</span>
+        </div>
+        <meta itemprop="startDate" content="2019-08-01" />
+        <meta itemprop="endDate" content="2024-02-28" />
+      </div>
+      <!-- Role 11 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/ai-ethics-officer"
+      >
+        <span itemprop="roleName">AI Ethics Officer</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/samuel-prose"
+        >
+          <span itemprop="name">Samuel Prose</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/governance"
+        >
+          <span itemprop="name">Governance & Ethics</span>
+        </div>
+        <meta itemprop="startDate" content="2022-07-01" />
+      </div>
+      <!-- Role 12 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/supply-chain-analyst"
+      >
+        <span itemprop="roleName">Supply Chain Analyst</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/marcus-lane"
+        >
+          <span itemprop="name">Marcus Lane</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/supply-chain"
+        >
+          <span itemprop="name">Supply Chain</span>
+        </div>
+        <meta itemprop="startDate" content="2021-10-01" />
+      </div>
+      <!-- Role 13 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/observability-engineer"
+      >
+        <span itemprop="roleName">Observability Engineer</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/victor-chen"
+        >
+          <span itemprop="name">Victor Chen</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/platform-engineering"
+        >
+          <span itemprop="name">Platform Engineering</span>
+        </div>
+        <meta itemprop="startDate" content="2020-05-01" />
+      </div>
+      <!-- Role 14 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/federated-learning-researcher"
+      >
+        <span itemprop="roleName">Federated Learning Researcher</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/grace-yamada"
+        >
+          <span itemprop="name">Grace Yamada</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/ml-research"
+        >
+          <span itemprop="name">ML Research</span>
+        </div>
+        <meta itemprop="startDate" content="2023-01-15" />
+      </div>
+      <!-- Role 15 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/pk-pd-modeler"
+      >
+        <span itemprop="roleName">PK/PD Modeler</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/alex-mendoza"
+        >
+          <span itemprop="name">Alex Mendoza</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/clinical-pharmacology"
+        >
+          <span itemprop="name">Clinical Pharmacology</span>
+        </div>
+        <meta itemprop="startDate" content="2022-09-01" />
+      </div>
+      <!-- Role 16 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/multi-modal-integration-specialist"
+      >
+        <span itemprop="roleName">Multi-Modal Integration Specialist</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/kate-danvers"
+        >
+          <span itemprop="name">Kate Danvers</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/data-platform"
+        >
+          <span itemprop="name">Data Platform</span>
+        </div>
+        <meta itemprop="startDate" content="2023-04-01" />
+      </div>
+      <!-- Role 17 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/synthetic-data-scientist"
+      >
+        <span itemprop="roleName">Synthetic Data Scientist</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/ethan-zhang"
+        >
+          <span itemprop="name">Ethan Zhang</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/ml-research"
+        >
+          <span itemprop="name">ML Research</span>
+        </div>
+        <meta itemprop="startDate" content="2021-12-01" />
+      </div>
+      <!-- Role 18 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/patient-engagement-strategist"
+      >
+        <span itemprop="roleName">Patient Engagement Strategist</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/maya-singh"
+        >
+          <span itemprop="name">Maya Singh</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/patient-experience"
+        >
+          <span itemprop="name">Patient Experience</span>
+        </div>
+        <meta itemprop="startDate" content="2020-03-01" />
+      </div>
+      <!-- Role 19 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/trial-automation-strategist"
+      >
+        <span itemprop="roleName">Trial Automation Strategist</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/julia-fang"
+        >
+          <span itemprop="name">Julia Fang</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/clinical-ops"
+        >
+          <span itemprop="name">Clinical Operations Team</span>
+        </div>
+        <meta itemprop="startDate" content="2023-07-01" />
+      </div>
+      <!-- Role 20 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/deployment-reliability-engineer"
+      >
+        <span itemprop="roleName">Deployment Reliability Engineer</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/diego-martin"
+        >
+          <span itemprop="name">Diego Martin</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/platform-engineering"
+        >
+          <span itemprop="name">Platform Engineering</span>
+        </div>
+        <meta itemprop="startDate" content="2021-06-01" />
+      </div>
+      <!-- Role 21 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/lineage-governance-analyst"
+      >
+        <span itemprop="roleName">Lineage Governance Analyst</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/isaac-turner"
+        >
+          <span itemprop="name">Isaac Turner</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/governance"
+        >
+          <span itemprop="name">Governance & Ethics</span>
+        </div>
+        <meta itemprop="startDate" content="2022-10-01" />
+      </div>
+      <!-- Role 22 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/memory-optimization-engineer"
+      >
+        <span itemprop="roleName">Memory Optimization Engineer</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/luke-fleming"
+        >
+          <span itemprop="name">Luke Fleming</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/platform-engineering"
+        >
+          <span itemprop="name">Platform Engineering</span>
+        </div>
+        <meta itemprop="startDate" content="2023-02-01" />
+      </div>
+      <!-- Role 23 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/vector-retrieval-specialist"
+      >
+        <span itemprop="roleName">Vector Retrieval Specialist</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/jordan-park"
+        >
+          <span itemprop="name">Jordan Park</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/data-platform"
+        >
+          <span itemprop="name">Data Platform</span>
+        </div>
+        <meta itemprop="startDate" content="2023-08-15" />
+      </div>
+      <!-- Role 24 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/registry-outcomes-analyst"
+      >
+        <span itemprop="roleName">Registry Outcomes Analyst</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/brianna-lowe"
+        >
+          <span itemprop="name">Brianna Lowe</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/real-world-evidence"
+        >
+          <span itemprop="name">Real-World Evidence</span>
+        </div>
+        <meta itemprop="startDate" content="2022-01-10" />
+      </div>
+      <!-- Role 25 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/Role"
+        itemid="https://bionova.example/id/role/quality-manager-successor"
+      >
+        <span itemprop="roleName">Quality Manager (Successor)</span>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Person"
+          itemid="https://bionova.example/id/person/ella-jones"
+        >
+          <span itemprop="name">Ella Jones</span>
+        </div>
+        <div
+          itemprop="isRelatedTo"
+          itemscope
+          itemtype="https://schema.org/Organization"
+          itemid="https://bionova.example/id/org/quality"
+        >
+          <span itemprop="name">Quality Assurance</span>
+        </div>
+        <meta itemprop="startDate" content="2024-03-01" />
+      </div>
+    </section>
+  </body>
+</html>

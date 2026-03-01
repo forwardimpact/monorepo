@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BioNova HowTo: Clinical & Data Operations</title>
+    <meta
+      name="description"
+      content="Ten HowTo items for clinical trial data management, patient consent, and regulatory submission, each referencing platforms, policies, and tools."
+    />
+  </head>
+  <body>
+    <header>
+      <h1>BioNova HowTo: Clinical & Data Operations</h1>
+      <p>
+        This file provides ten stepwise HowTo guides for clinical trial data
+        management, patient consent, and regulatory submission. Each HowTo
+        references relevant platforms, policies, and tools, and includes
+        explicit microdata relationships for graph and vector evaluation.
+      </p>
+    </header>
+
+    <section>
+      <h2>HowTo Procedures</h2>
+      <!-- Example: Clinical Data Entry SOP -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/clinical-data-entry"
+      >
+        <h3 itemprop="name">Clinical Data Entry SOP</h3>
+        <p itemprop="description">
+          Standard operating procedure for accurate and timely entry of clinical
+          trial data into the ClinicalStream platform.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-CLINICAL-DATA-ENTRY" />
+        <meta itemprop="totalTime" content="PT45M" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/clinicalstream"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/clinical-data-integrity"
+        />
+        <ol itemprop="step">
+          <li>Log in to ClinicalStream</li>
+          <li>Enter patient data from source documents</li>
+          <li>Validate entries for completeness</li>
+          <li>Resolve discrepancies</li>
+          <li>Submit data for review</li>
+        </ol>
+      </article>
+
+      <!-- Patient Consent Collection -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/patient-consent-collection"
+      >
+        <h3 itemprop="name">Patient Consent Collection</h3>
+        <p itemprop="description">
+          Procedure for obtaining, documenting, and storing informed consent
+          from clinical trial participants.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-PATIENT-CONSENT" />
+        <meta itemprop="totalTime" content="PT30M" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/clinicalstream"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/patient-safety-informed-consent"
+        />
+        <ol itemprop="step">
+          <li>Present consent form to participant</li>
+          <li>Explain study risks and benefits</li>
+          <li>Obtain participant signature</li>
+          <li>Scan and upload to ClinicalStream</li>
+          <li>Log consent in trial master file</li>
+        </ol>
+      </article>
+
+      <!-- Adverse Event Reporting -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/adverse-event-reporting"
+      >
+        <h3 itemprop="name">Adverse Event Reporting</h3>
+        <p itemprop="description">
+          Steps for reporting, documenting, and escalating adverse events during
+          clinical trials.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-ADVERSE-EVENT" />
+        <meta itemprop="totalTime" content="PT1H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/clinicalstream"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/clinical-trial"
+        />
+        <ol itemprop="step">
+          <li>Identify adverse event</li>
+          <li>Document event in ClinicalStream</li>
+          <li>Notify investigator and sponsor</li>
+          <li>Assess seriousness and causality</li>
+          <li>Submit regulatory report if required</li>
+        </ol>
+      </article>
+
+      <!-- Data Query Resolution -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/data-query-resolution"
+      >
+        <h3 itemprop="name">Data Query Resolution</h3>
+        <p itemprop="description">
+          Process for resolving data queries and discrepancies in clinical trial
+          datasets.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-DATA-QUERY-RESOLUTION" />
+        <meta itemprop="totalTime" content="PT2H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/clinicalstream"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/clinical-data-integrity"
+        />
+        <ol itemprop="step">
+          <li>Receive data query notification</li>
+          <li>Review source documents</li>
+          <li>Update data as needed</li>
+          <li>Document resolution in ClinicalStream</li>
+          <li>Close query in system</li>
+        </ol>
+      </article>
+
+      <!-- Regulatory Submission Preparation -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/regulatory-submission-prep"
+      >
+        <h3 itemprop="name">Regulatory Submission Preparation</h3>
+        <p itemprop="description">
+          Steps for compiling, reviewing, and submitting regulatory dossiers for
+          clinical trial approval.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-REG-SUBMISSION" />
+        <meta itemprop="totalTime" content="PT8H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/compliancemonitor"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+        <ol itemprop="step">
+          <li>Compile required documents</li>
+          <li>Review for completeness and accuracy</li>
+          <li>Upload to ComplianceMonitor</li>
+          <li>Submit to regulatory authority</li>
+          <li>Track submission status</li>
+        </ol>
+      </article>
+
+      <!-- Data Anonymization Workflow -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/data-anonymization-workflow"
+      >
+        <h3 itemprop="name">Data Anonymization Workflow</h3>
+        <p itemprop="description">
+          Workflow for anonymizing clinical trial data to protect patient
+          privacy and comply with data governance policies.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-DATA-ANONYMIZATION" />
+        <meta itemprop="totalTime" content="PT3H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/datalake"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/data-governance-privacy"
+        />
+        <ol itemprop="step">
+          <li>Extract dataset from ClinicalStream</li>
+          <li>Apply anonymization transformation</li>
+          <li>Validate anonymized data</li>
+          <li>Store in Datalake</li>
+          <li>Document process for audit</li>
+        </ol>
+      </article>
+
+      <!-- Patient Data Protection SOP -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/patient-data-protection"
+      >
+        <h3 itemprop="name">Patient Data Protection SOP</h3>
+        <p itemprop="description">
+          Standard operating procedure for protecting patient data in clinical
+          trials, including encryption, access control, and incident response.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-PATIENT-DATA-PROTECTION" />
+        <meta itemprop="totalTime" content="PT1H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/securityvault"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/patient-data-protection-procedures"
+        />
+        <ol itemprop="step">
+          <li>Encrypt patient data at rest and in transit</li>
+          <li>Restrict access to authorized users</li>
+          <li>Monitor access logs</li>
+          <li>Respond to security incidents</li>
+          <li>Review and update SOP annually</li>
+        </ol>
+      </article>
+
+      <!-- Data Export for Analysis -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/data-export-analysis"
+      >
+        <h3 itemprop="name">Data Export for Analysis</h3>
+        <p itemprop="description">
+          Procedure for exporting clinical trial data for statistical analysis
+          and reporting.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-DATA-EXPORT" />
+        <meta itemprop="totalTime" content="PT1H30M" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/analyticshub"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/clinical-data-integrity"
+        />
+        <ol itemprop="step">
+          <li>Request data export in ClinicalStream</li>
+          <li>Transfer dataset to AnalyticsHub</li>
+          <li>Verify data integrity</li>
+          <li>Perform analysis in AnalyticsHub</li>
+          <li>Document results</li>
+        </ol>
+      </article>
+
+      <!-- Data Lock and Freeze Process -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/data-lock-freeze"
+      >
+        <h3 itemprop="name">Data Lock and Freeze Process</h3>
+        <p itemprop="description">
+          Process for locking and freezing clinical trial data prior to final
+          analysis and regulatory submission.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-DATA-LOCK" />
+        <meta itemprop="totalTime" content="PT4H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/clinicalstream"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/clinical-data-integrity"
+        />
+        <ol itemprop="step">
+          <li>Complete all data entry and query resolution</li>
+          <li>Lock database in ClinicalStream</li>
+          <li>Freeze dataset for analysis</li>
+          <li>Notify stakeholders</li>
+          <li>Document lock/freeze in trial master file</li>
+        </ol>
+      </article>
+
+      <!-- Clinical Study Report Generation -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/clinical-study-report-generation"
+      >
+        <h3 itemprop="name">Clinical Study Report Generation</h3>
+        <p itemprop="description">
+          Steps for generating, reviewing, and submitting a clinical study
+          report (CSR) for a completed trial.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-CSR-GENERATION" />
+        <meta itemprop="totalTime" content="PT16H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/analyticshub"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+        <ol itemprop="step">
+          <li>Compile trial data and results</li>
+          <li>Draft CSR in AnalyticsHub</li>
+          <li>Review for accuracy and completeness</li>
+          <li>Submit for internal and external review</li>
+          <li>Archive final CSR</li>
+        </ol>
+      </article>
+    </section>
+  </body>
+</html>

@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BioNova Policy & Compliance Hierarchy</title>
+    <meta
+      name="description"
+      content="Thirteen policy DigitalDocuments and four compliance framework documents forming hierarchical relationships (isPartOf/hasPart) plus platform, course, service, drug, and trial references with a GMP compliance path articulation helper."
+    />
+  </head>
+  <body>
+    <header>
+      <h1>BioNova Policy & Compliance Hierarchy</h1>
+      <p>
+        This corpus enumerates regulated operational, clinical, manufacturing,
+        data governance, and quality risk management policy documents. Framework
+        alignment references FDA, GMP, HIPAA, and ICH-GCP standards. Each policy
+        includes rich descriptive text for hybrid retrieval and explicit
+        hierarchical microdata relationships for multi-hop graph queries.
+      </p>
+    </header>
+
+    <!-- Compliance Framework Documents -->
+    <section>
+      <h2>Compliance Frameworks</h2>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/framework/fda-compliance"
+      >
+        <h3 itemprop="name">FDA Compliance Framework</h3>
+        <p itemprop="description">
+          Defines regulatory submission expectations, safety reporting cadence,
+          oversight mechanisms, and dossier integrity checkpoints required under
+          U.S. Food & Drug Administration guidelines.
+        </p>
+        <meta itemprop="identifier" content="FRAMEWORK-FDA" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/fda-compliance-framework.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-01-15" />
+        <meta itemprop="dateModified" content="2024-06-20" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/course/pharm-301"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/service/regulatory-consulting"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/compliancemonitor"
+        />
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/framework/gmp-compliance"
+      >
+        <h3 itemprop="name">GMP Compliance Framework</h3>
+        <p itemprop="description">
+          Establishes universal Good Manufacturing Practice expectations: batch
+          record preservation, deviation escalation thresholds, contamination
+          prevention barriers, and release verification protocols.
+        </p>
+        <meta itemprop="identifier" content="FRAMEWORK-GMP" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/gmp-compliance-framework.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-02-01" />
+        <meta itemprop="dateModified" content="2024-07-15" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/course/mfg-201"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/processcontrol"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/service/contract-manufacturing"
+        />
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/framework/hipaa-compliance"
+      >
+        <h3 itemprop="name">HIPAA Compliance Framework</h3>
+        <p itemprop="description">
+          Specifies protected health information handling, minimum necessary
+          access, encryption in transit and at rest, audit tagging, and breach
+          notification protocols under Health Insurance Portability and
+          Accountability Act mandates.
+        </p>
+        <meta itemprop="identifier" content="FRAMEWORK-HIPAA" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/hipaa-compliance-framework.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-03-10" />
+        <meta itemprop="dateModified" content="2024-08-05" />
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+      >
+        <h3 itemprop="name">ICH-GCP Compliance Framework</h3>
+        <p itemprop="description">
+          Outlines international ethical and scientific quality standards for
+          designing, conducting, recording, and reporting clinical trials that
+          involve human participants.
+        </p>
+        <meta itemprop="identifier" content="FRAMEWORK-ICH-GCP" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/ich-gcp-compliance-framework.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-04-05" />
+        <meta itemprop="dateModified" content="2024-09-10" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/trial/oncora-phase-iii"
+        />
+      </article>
+    </section>
+
+    <!-- Master Quality Management System -->
+    <section>
+      <h2>Quality Management System</h2>
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/master-qms"
+      >
+        <h3 itemprop="name">Master Quality Management System Policy</h3>
+        <p itemprop="description">
+          Central governance document defining integrated quality oversight for
+          clinical development, manufacturing operations, data lifecycle,
+          supplier assurance, and risk controls. Establishes unified escalation
+          matrices, audit preparedness checkpoints, and cross-functional
+          deviation triage workflows.
+        </p>
+        <meta itemprop="identifier" content="POLICY-MASTER-QMS" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/master-qms.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2022-11-20" />
+        <meta itemprop="dateModified" content="2024-05-30" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/compliancemonitor"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/course/pharm-cert"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/course/mfg-cert"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/course/data-cert"
+        />
+        <section>
+          <h4>Subordinate Policies</h4>
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/clinical-trial"
+          />
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/manufacturing-quality"
+          />
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/data-governance-privacy"
+          />
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/quality-risk-management-framework"
+          />
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/supplier-qualification-procedures"
+          />
+        </section>
+      </article>
+    </section>
+
+    <!-- Clinical Domain Policies -->
+    <section>
+      <h2>Clinical Domain Policies</h2>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/clinical-trial"
+      >
+        <h3 itemprop="name">Clinical Trial Governance Policy</h3>
+        <p itemprop="description">
+          Defines protocol amendment controls, investigator oversight cadence,
+          safety signal aggregation intervals, and interim analysis data lock
+          standards for trial governance.
+        </p>
+        <meta itemprop="identifier" content="POLICY-CLINICAL-TRIAL" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/clinical-trial-governance.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-05-15" />
+        <meta itemprop="dateModified" content="2024-11-01" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/master-qms"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/trial/oncora-phase-iii"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/drug/oncora-xr"
+        />
+        <section>
+          <h4>Subordinate Policies</h4>
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/patient-safety-informed-consent"
+          />
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/clinical-data-integrity"
+          />
+        </section>
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/patient-safety-informed-consent"
+      >
+        <h3 itemprop="name">Patient Safety & Informed Consent Policy</h3>
+        <p itemprop="description">
+          Articulates global consent template stewardship, adverse event
+          clarification guidelines, participant withdrawal processing, and risk
+          communication transparency standards.
+        </p>
+        <meta itemprop="identifier" content="POLICY-PATIENT-SAFETY" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/patient-safety-informed-consent.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-06-01" />
+        <meta itemprop="dateModified" content="2024-10-15" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/clinical-trial"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/trial/immunex-phase-ii"
+        />
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/clinical-data-integrity"
+      >
+        <h3 itemprop="name">Clinical Data Integrity Policy</h3>
+        <p itemprop="description">
+          Specifies source data verification rates, audit trail immutability
+          requirements, discrepancy management workflow, and blinded dataset
+          segregation controls.
+        </p>
+        <meta itemprop="identifier" content="POLICY-CLINICAL-DATA" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/clinical-data-integrity.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-04-20" />
+        <meta itemprop="dateModified" content="2024-09-30" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/clinical-trial"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/clinicalstream"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/securityvault"
+        />
+      </article>
+    </section>
+
+    <!-- Data Governance Policies -->
+    <section>
+      <h2>Data Governance Policies</h2>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/data-governance-privacy"
+      >
+        <h3 itemprop="name">Data Governance & Privacy Policy</h3>
+        <p itemprop="description">
+          Establishes classification taxonomy, retention thresholds,
+          anonymization transformation pipeline standards, and stewardship
+          accountability mappings.
+        </p>
+        <meta itemprop="identifier" content="POLICY-DATA-GOVERNANCE" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/data-governance-privacy.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-03-10" />
+        <meta itemprop="dateModified" content="2024-10-20" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/master-qms"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/hipaa-compliance"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/datalake"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/analyticshub"
+        />
+        <section>
+          <h4>Subordinate Policies</h4>
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/patient-data-protection-procedures"
+          />
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/research-data-management-guidelines"
+          />
+        </section>
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/patient-data-protection-procedures"
+      >
+        <h3 itemprop="name">Patient Data Protection Procedures</h3>
+        <p itemprop="description">
+          Defines encryption key rotation cadence, incident notification
+          escalation flow, de-identification verification sampling, and secure
+          archival lifecycle triggers.
+        </p>
+        <meta itemprop="identifier" content="POLICY-PATIENT-DATA" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/patient-data-protection.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-03-25" />
+        <meta itemprop="dateModified" content="2024-10-05" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/data-governance-privacy"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/hipaa-compliance"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/securityvault"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/course/data-301"
+        />
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/research-data-management-guidelines"
+      >
+        <h3 itemprop="name">Research Data Management Guidelines</h3>
+        <p itemprop="description">
+          Outlines FAIR principle alignment (findable, accessible,
+          interoperable, reusable), experiment artifact versioning, lineage
+          checkpoint metadata, and reproducibility documentation expectations.
+        </p>
+        <meta itemprop="identifier" content="POLICY-RESEARCH-DATA" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/research-data-management.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-07-15" />
+        <meta itemprop="dateModified" content="2024-11-10" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/data-governance-privacy"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/mlflow"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/course/data-201"
+        />
+      </article>
+    </section>
+
+    <!-- Manufacturing & Quality Policies -->
+    <section>
+      <h2>Manufacturing & Quality Policies</h2>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/manufacturing-quality"
+      >
+        <h3 itemprop="name">Manufacturing Quality Policy</h3>
+        <p itemprop="description">
+          Defines statistical process control adoption scope, deviation
+          categorization taxonomy, corrective and preventive action
+          documentation, and continuous improvement cycle cadence.
+        </p>
+        <meta itemprop="identifier" content="POLICY-MFG-QUALITY" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/manufacturing-quality.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2022-11-01" />
+        <meta itemprop="dateModified" content="2024-08-15" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/master-qms"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/gmp-compliance"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/manufacturingos"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/course/mfg-301"
+        />
+        <section>
+          <h4>Subordinate Policies</h4>
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/gmp-compliance-procedures"
+          />
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/contamination-control-standards"
+          />
+          <link
+            itemprop="hasPart"
+            href="https://bionova.example/id/policy/batch-release-guidelines"
+          />
+        </section>
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/gmp-compliance-procedures"
+      >
+        <h3 itemprop="name">GMP Compliance Procedures</h3>
+        <p itemprop="description">
+          Detail batch record authoring controls, supervised cleaning validation
+          sampling, in-process specification adherence windows, and deviation
+          escalation triggers.
+        </p>
+        <meta itemprop="identifier" content="POLICY-GMP-PROCEDURES" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/gmp-compliance-procedures.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2022-12-01" />
+        <meta itemprop="dateModified" content="2024-09-10" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/manufacturing-quality"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/gmp-compliance"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/processcontrol"
+        />
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/contamination-control-standards"
+      >
+        <h3 itemprop="name">Contamination Control Standards</h3>
+        <p itemprop="description">
+          Establishes environmental monitoring intervals, aseptic technique
+          reinforcement protocols, material segregation zoning, and microbial
+          excursion investigation criteria.
+        </p>
+        <meta itemprop="identifier" content="POLICY-CONTAMINATION" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/contamination-control.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-01-15" />
+        <meta itemprop="dateModified" content="2024-07-20" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/manufacturing-quality"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/gmp-compliance"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/processcontrol"
+        />
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/batch-release-guidelines"
+      >
+        <h3 itemprop="name">Batch Release Guidelines</h3>
+        <p itemprop="description">
+          Defines specification conformance verification, stability data
+          snapshot requirements, quality batch disposition sign-off hierarchy,
+          and exception risk assessment workflow.
+        </p>
+        <meta itemprop="identifier" content="POLICY-BATCH-RELEASE" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/batch-release-guidelines.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-02-10" />
+        <meta itemprop="dateModified" content="2024-10-25" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/manufacturing-quality"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/gmp-compliance"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/manufacturingos"
+        />
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/quality-risk-management-framework"
+      >
+        <h3 itemprop="name">Quality Risk Management Framework Policy</h3>
+        <p itemprop="description">
+          Outlines hazard identification brainstorming structure,
+          probability/severity scoring matrices, mitigation plan lifecycle
+          tracking, and periodic effectiveness reassessment cadence.
+        </p>
+        <meta itemprop="identifier" content="POLICY-RISK-MGMT" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/quality-risk-management.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-08-01" />
+        <meta itemprop="dateModified" content="2024-11-15" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/master-qms"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/processcontrol"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/course/mfg-201"
+        />
+      </article>
+
+      <article
+        itemscope
+        itemtype="https://schema.org/DigitalDocument"
+        itemid="https://bionova.example/id/policy/supplier-qualification-procedures"
+      >
+        <h3 itemprop="name">Supplier Qualification Procedures</h3>
+        <p itemprop="description">
+          Defines initial supplier audit checklist, performance KPI thresholds,
+          corrective action collaboration workflow, and periodic requalification
+          review triggers ensuring supply resilience.
+        </p>
+        <meta itemprop="identifier" content="POLICY-SUPPLIER-QUAL" />
+        <meta
+          itemprop="url"
+          content="https://bionova.example/docs/policies/supplier-qualification.pdf"
+        />
+        <meta itemprop="encodingFormat" content="application/pdf" />
+        <meta itemprop="datePublished" content="2023-09-15" />
+        <meta itemprop="dateModified" content="2024-12-01" />
+        <link
+          itemprop="isPartOf"
+          href="https://bionova.example/id/policy/master-qms"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/compliancemonitor"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/service/contract-manufacturing"
+        />
+      </article>
+    </section>
+
+    <!-- Path Helper: GMP Policy Compliance Chain -->
+    <section
+      itemscope
+      itemtype="https://schema.org/CreativeWork"
+      itemid="https://bionova.example/id/path/gmp-policy-compliance-chain"
+    >
+      <meta itemprop="name" content="GMP Policy Compliance Chain" />
+      <p itemprop="description">
+        Manufacturing Quality Policy → GMP Compliance Procedures → Contamination
+        Control Standards → Batch Release Guidelines → Quality Risk Management
+        Framework
+      </p>
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/policy/manufacturing-quality"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/policy/gmp-compliance-procedures"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/policy/contamination-control-standards"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/policy/batch-release-guidelines"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/policy/quality-risk-management-framework"
+      />
+    </section>
+  </body>
+</html>

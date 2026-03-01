@@ -1,0 +1,1251 @@
+<!--
+  FAQ Pages File
+  Contains 35 FAQPage items covering drugs, trials, regulatory processes, and company operations.
+  Each item uses Schema.org microdata, unique itemid IRIs, and explicit relationships for hybrid vector/graph evaluation.
+-->
+<html lang="en">
+  <head>
+    <title>FAQ Pages - Knowledge Base</title>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <section>
+      <h1>Frequently Asked Questions</h1>
+      <!-- FAQPage items start -->
+      <!--
+    Each FAQPage:
+      - itemid: https://bionova.example/id/faq/{slug}
+      - mainEntity: Question/Answer pairs
+      - about/mentions: Drugs, Trials, Policies, Platforms, People, Organizations
+      - Diverse vocabulary, vector-optimized, cross-file links
+  -->
+      <!-- FAQPage 1 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/drug-approval-process"
+      >
+        <h2 itemprop="name">What is the process for drug approval?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How does a new drug get approved?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >The drug approval process involves preclinical research, clinical
+              trials, and regulatory review. For example,
+              <span
+                itemprop="about"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/novamed"
+                ><span itemprop="name">NovaMed</span></span
+              >
+              completed all three phases before receiving approval from the
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Organization"
+                itemid="https://bionova.example/id/org/regulatory"
+                ><span itemprop="name">Regulatory Affairs</span></span
+              >
+              team.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 2 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/clinical-trial-phases"
+      >
+        <h2 itemprop="name">What are the phases of a clinical trial?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How are clinical trials structured?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Clinical trials are typically conducted in three phases: Phase 1
+              (safety), Phase 2 (efficacy), and Phase 3 (confirmation). The
+              <span
+                itemprop="about"
+                itemscope
+                itemtype="https://schema.org/MedicalTrial"
+                itemid="https://bionova.example/id/trial/phase2-oncology"
+                ><span itemprop="name">Phase 2 Oncology Trial</span
+                ><meta itemprop="status" content="Recruiting"
+              /></span>
+              is currently in the efficacy stage.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 3 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/gmp-compliance"
+      >
+        <h2 itemprop="name">How do we ensure GMP compliance?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >What steps are taken for Good Manufacturing Practice?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >GMP compliance is maintained through digital batch records,
+              deviation tracking, and regular audits. Our
+              <span
+                itemprop="about"
+                itemscope
+                itemtype="https://schema.org/SoftwareApplication"
+                itemid="https://bionova.example/id/platform/gmp360"
+                ><span itemprop="name">GMP360</span></span
+              >
+              platform supports these processes, in line with the
+              <span
+                itemprop="about"
+                itemscope
+                itemtype="https://schema.org/Policy"
+                itemid="https://bionova.example/id/policy/gmp"
+                ><span itemprop="name">GMP Policy</span></span
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 4 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/precision-medicine-benefits"
+      >
+        <h2 itemprop="name">What are the benefits of precision medicine?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >How does precision medicine improve outcomes?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Precision medicine enables tailored treatments based on genetic
+              and clinical data. The
+              <span
+                itemprop="about"
+                itemscope
+                itemtype="https://schema.org/Project"
+                itemid="https://bionova.example/id/project/precision-medicine"
+                ><span itemprop="name">Precision Medicine Project</span>
+                <meta
+                  itemprop="description"
+                  content="Cross-functional initiative integrating genomic sequencing, biomarker analysis, and AI-driven patient stratification to enable personalized oncology treatments with improved efficacy and reduced adverse events."
+                />
+                <meta itemprop="identifier" content="PROJ-PRECISION-MED-2024" />
+                <meta itemprop="startDate" content="2024-01-15" />
+                <link
+                  itemprop="member"
+                  href="https://bionova.example/id/person/lily-nguyen"
+                />
+                <link
+                  itemprop="funder"
+                  href="https://bionova.example/id/org/bionova"
+                />
+                <link
+                  itemprop="parentOrganization"
+                  href="https://bionova.example/id/org/bionova-rd"
+                />
+              </span>
+              is a key initiative in this area.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 5 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/data-integrity"
+      >
+        <h2 itemprop="name">How is data integrity maintained?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">What safeguards are in place for data?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Data integrity is ensured through access controls, audit trails,
+              and validation checks. Our
+              <span
+                itemprop="about"
+                itemscope
+                itemtype="https://schema.org/SoftwareApplication"
+                itemid="https://bionova.example/id/platform/insightai"
+                ><span itemprop="name">InsightAI</span></span
+              >
+              platform provides robust data management features.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 6 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/adverse-event-reporting"
+      >
+        <h2 itemprop="name">How are adverse events reported?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >What is the adverse event reporting workflow?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Adverse events are captured through site submissions, normalized
+              in the pharmacovigilance ingestion pipeline, and reviewed under
+              the
+              <span
+                itemprop="about"
+                itemscope
+                itemtype="https://schema.org/Policy"
+                itemid="https://bionova.example/id/policy/pharmacovigilance"
+                ><span itemprop="name">Pharmacovigilance Policy</span></span
+              >. Serious events linked to
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/oncora"
+                ><span itemprop="name">Oncora</span></span
+              >
+              trigger expedited narrative assembly.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 7 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/pharmacovigilance-workflow"
+      >
+        <h2 itemprop="name">What is the pharmacovigilance workflow?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How do we process safety signals?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Signals are aggregated from spontaneous reports, trial data, and
+              literature scanning. InsightAI performs initial de-duplication and
+              semantic clustering prior to clinical safety review for
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/cardiozen"
+                ><span itemprop="name">Cardiozen</span></span
+              >
+              and
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/vitalis"
+                ><span itemprop="name">Vitalis</span></span
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 8 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/trial-enrollment-forecasting"
+      >
+        <h2 itemprop="name">How do we forecast trial enrollment?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >What techniques improve enrollment predictions?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >We combine historical accrual patterns, site activation latency
+              models, and demographic feasibility scoring. The automation
+              platform enhances estimates for
+              <a
+                itemprop="mentions"
+                href="https://bionova.example/id/trial/oncora-phase-iii"
+                >Oncora Phase III</a
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 9 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/vector-search-accuracy"
+      >
+        <h2 itemprop="name">How is vector search accuracy improved?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">What boosts semantic retrieval quality?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Accuracy improves through multi-modal embeddings, ontology-linked
+              entity expansion, and hybrid sparse + dense scoring. Clinical
+              terms for
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/neurova"
+                ><span itemprop="name">Neurova</span></span
+              >
+              gain better contextual alignment.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 10 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/hybrid-search-benefits"
+      >
+        <h2 itemprop="name">Why use hybrid search?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >What advantages does hybrid search provide?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Hybrid search merges semantic similarity with structured keyword
+              weighting for regulated corpora. This ensures adverse event
+              retrieval while retaining conceptual relevance for
+              <a
+                itemprop="mentions"
+                href="https://bionova.example/id/trial/immunex-phase-ii"
+                >Immunex Phase II</a
+              >
+              narratives.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 11 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/ontology-updates"
+      >
+        <h2 itemprop="name">How are ontology updates managed?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How do we evolve controlled vocabularies?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Updates follow a staging workflow with versioned concept
+              insertion, impact simulation on existing relationships, and
+              governed approval. Policies like
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Policy"
+                itemid="https://bionova.example/id/policy/data-governance"
+                ><span itemprop="name">Data Governance Policy</span></span
+              >
+              ensure consistency.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 12 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/data-lineage-benefits"
+      >
+        <h2 itemprop="name">Why is data lineage important?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How does lineage strengthen compliance?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Lineage enables traceability from ingestion through
+              transformation and analytics, supporting audit readiness. It
+              contextualizes modeling decisions for
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/vitalis"
+                ><span itemprop="name">Vitalis</span></span
+              >
+              safety analyses.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 13 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/model-drift-detection"
+      >
+        <h2 itemprop="name">How is model drift detected?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">What signals indicate drift?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >We analyze feature distribution shifts, embedding centroid
+              movement, and performance degradation metrics. Early warning helps
+              maintain reliability for trial enrollment predictions using
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/SoftwareApplication"
+                itemid="https://bionova.example/id/platform/insightai"
+                ><span itemprop="name">InsightAI</span></span
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 14 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/bias-auditing-methods"
+      >
+        <h2 itemprop="name">How do we audit model bias?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">What techniques assess fairness?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Bias auditing applies intersectional cohort scoring, disparate
+              impact ratios, and counterfactual evaluation. Governance aligns
+              with the
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Policy"
+                itemid="https://bionova.example/id/policy/ai-ethics"
+                ><span itemprop="name">AI Ethics Policy</span></span
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 15 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/federated-learning-benefits"
+      >
+        <h2 itemprop="name">Why use federated learning?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How does federated learning help privacy?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Federated learning trains models across decentralized nodes
+              without centralizing raw data, preserving patient confidentiality
+              for
+              <a
+                itemprop="mentions"
+                href="https://bionova.example/id/trial/neurova-phase-i"
+                >Neurova Phase I</a
+              >
+              exploratory endpoints.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 16 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/pk-pd-modeling"
+      >
+        <h2 itemprop="name">What is PK/PD modeling used for?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How does PK/PD inform dosing?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >PK/PD models correlate pharmacokinetics with pharmacodynamics to
+              optimize dosing strategies, guiding adjustments in
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/MedicalTrial"
+                itemid="https://bionova.example/id/trial/oncora-dose-optimization"
+                ><span itemprop="name">Oncora Dose Optimization</span
+                ><meta itemprop="status" content="Completed" /></span
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 17 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/multi-modal-fusion-purpose"
+      >
+        <h2 itemprop="name">Why apply multi-modal data fusion?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How does fusion improve insights?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Fusion integrates imaging, text, and structured biomarkers to
+              enrich clinical signal detection, aiding early endpoint evaluation
+              for
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/immunex"
+                ><span itemprop="name">Immunex</span></span
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 18 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/synthetic-data-validation"
+      >
+        <h2 itemprop="name">How do we validate synthetic data?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">What metrics evaluate synthetic realism?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >We measure coverage, distortion, privacy leakage risk, and
+              downstream model equivalence. Oncology registries for
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/oncora-xr"
+                ><span itemprop="name">Oncora-XR</span></span
+              >
+              benefit from calibrated synthetic augmentation.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 19 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/patient-reported-outcomes-value"
+      >
+        <h2 itemprop="name">Why integrate patient-reported outcomes?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How do PROs enhance analysis?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >PROs add functional and quality-of-life context to clinical
+              endpoints.
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/cardiozen"
+                ><span itemprop="name">Cardiozen</span></span
+              >
+              studies leverage normalized symptom diaries for longitudinal
+              insight.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 20 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/automation-platform-benefits"
+      >
+        <h2 itemprop="name">
+          What does the trial automation platform improve?
+        </h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >How does automation accelerate operations?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >It streamlines enrollment forecasting, query management, and
+              feasibility scoring, reducing cycle time for
+              <a
+                itemprop="mentions"
+                href="https://bionova.example/id/trial/immunex-phase-ii"
+                >Immunex Phase II</a
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 21 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/layered-deployment-security"
+      >
+        <h2 itemprop="name">How does layered deployment security work?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">What layers protect production?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Defense layers include network segmentation, artifact
+              attestation, secret vault isolation, and runtime policy
+              enforcement under the
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Policy"
+                itemid="https://bionova.example/id/policy/security"
+                ><span itemprop="name">Security Policy</span></span
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 22 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/digital-thread-value"
+      >
+        <h2 itemprop="name">Why maintain a digital thread?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >How does a digital thread help traceability?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >A digital thread links design, manufacturing, and clinical
+              artifacts to preserve context for audits and continuous
+              improvement, benefiting
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Policy"
+                itemid="https://bionova.example/id/policy/gmp"
+                ><span itemprop="name">GMP</span></span
+              >
+              oversight.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 23 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/adaptive-supply-chain-analytics"
+      >
+        <h2 itemprop="name">How do supply chain analytics reduce risk?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >What methods support adaptive forecasting?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >We apply probabilistic lead-time modeling, anomaly detection for
+              demand spikes, and temperature excursion prediction to optimize
+              inventory supporting
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/cardiozen"
+                ><span itemprop="name">Cardiozen</span></span
+              >
+              distribution.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 24 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/microservices-boundaries"
+      >
+        <h2 itemprop="name">How are microservices boundaries defined?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">What guides service segmentation?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Boundaries follow single-responsibility principles: vector
+              indexing via
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/SoftwareApplication"
+                itemid="https://bionova.example/id/platform/vector-indexing"
+                ><span itemprop="name">Vector Indexing Service</span></span
+              >, memory management, tool invocation, and orchestration are
+              isolated to maintain scalability and clarity.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 25 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/compliance-monitoring-architecture"
+      >
+        <h2 itemprop="name">What is the compliance monitoring architecture?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How does real-time compliance operate?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >It uses streaming rule evaluation, event lineage tagging, and
+              policy versioning to ensure GMP adherence across manufacturing
+              supported by
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/SoftwareApplication"
+                itemid="https://bionova.example/id/platform/gmp360"
+                ><span itemprop="name">GMP360</span></span
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 26 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/secure-deployment-practices"
+      >
+        <h2 itemprop="name">Which practices secure deployments?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How do we ensure secure releases?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >We integrate signed artifacts, SBOM scanning, ephemeral
+              credentials, and continuous posture assessment aligned with the
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Policy"
+                itemid="https://bionova.example/id/policy/security"
+                ><span itemprop="name">Security Policy</span></span
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 27 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/pipeline-reliability-engineering"
+      >
+        <h2 itemprop="name">How do we engineer pipeline reliability?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">What stabilizes ingestion pipelines?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Adaptive backpressure, circuit breakers, and observability
+              correlation reduce saturation risk when indexing high-volume
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/vitalis"
+                ><span itemprop="name">Vitalis</span></span
+              >
+              registry updates.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 28 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/temporal-data-processing"
+      >
+        <h2 itemprop="name">How is temporal data processed?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >How do we align time-series clinical data?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >We apply event time normalization, sliding window aggregation,
+              and multi-resolution sampling to interpret symptom evolution for
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/neurova"
+                ><span itemprop="name">Neurova</span></span
+              >
+              endpoints.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 29 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/vector-caching-strategy"
+      >
+        <h2 itemprop="name">What is our vector caching strategy?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How do we reduce embedding latency?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Semantic-aware LRU with refresh prioritization caches frequently
+              accessed compliance and clinical embeddings through
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/SoftwareApplication"
+                itemid="https://bionova.example/id/platform/vector-indexing"
+                ><span itemprop="name">Vector Indexing Service</span></span
+              >, accelerating retrieval for safety reviews.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 30 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/cognitive-biomarker-validation"
+      >
+        <h2 itemprop="name">How are cognitive biomarkers validated?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >What validates digital cognitive endpoints?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Convergent construct analysis, test-retest reliability, and
+              correlation with CSF markers confirm endpoint robustness in
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/neurova"
+                ><span itemprop="name">Neurova</span></span
+              >
+              biomarker studies.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 31 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/dose-optimization-rationale"
+      >
+        <h2 itemprop="name">Why conduct dose optimization trials?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">What justifies adaptive dose studies?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Adaptive dose trials refine exposure-response curves, ensuring
+              efficacy with minimized toxicity for agents like
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/oncora"
+                ><span itemprop="name">Oncora</span></span
+              >.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 32 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/quality-of-life-outcomes"
+      >
+        <h2 itemprop="name">How are quality-of-life outcomes measured?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">What tools assess patient well-being?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Standardized PRO instruments, symptom diaries, and functional
+              status indices create a composite view for
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/cardiozen"
+                ><span itemprop="name">Cardiozen</span></span
+              >
+              QoL trials.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 33 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/rare-disease-registry-value"
+      >
+        <h2 itemprop="name">Why maintain a rare disease registry?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name">How do registries support development?</span>
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Registries enable longitudinal safety and effectiveness profiling
+              across heterogeneous populations, informing
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/vitalis"
+                ><span itemprop="name">Vitalis</span></span
+              >
+              labeling evolution.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 34 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/long-term-safety-followup"
+      >
+        <h2 itemprop="name">How is long-term safety tracked?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >What methods support extended safety follow-up?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Extended safety uses periodic lab monitoring, cumulative AE
+              profiling, and survivorship analytics applied to
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/vitalis"
+                ><span itemprop="name">Vitalis</span></span
+              >
+              long-term cohorts.</span
+            >
+          </div>
+        </div>
+      </div>
+      <!-- FAQPage 35 -->
+      <div
+        itemscope
+        itemtype="https://schema.org/FAQPage"
+        itemid="https://bionova.example/id/faq/global-collaboration-benefits"
+      >
+        <h2 itemprop="name">Why foster global trial collaboration?</h2>
+        <div
+          itemprop="mainEntity"
+          itemscope
+          itemtype="https://schema.org/Question"
+        >
+          <span itemprop="name"
+            >How does global collaboration improve trials?</span
+          >
+          <div
+            itemprop="acceptedAnswer"
+            itemscope
+            itemtype="https://schema.org/Answer"
+          >
+            <span itemprop="text"
+              >Global collaboration diversifies patient demographics,
+              accelerates enrollment, and enhances external validity, supporting
+              <span
+                itemprop="mentions"
+                itemscope
+                itemtype="https://schema.org/Drug"
+                itemid="https://bionova.example/id/drug/cardiozen"
+                ><span itemprop="name">Cardiozen</span></span
+              >
+              multi-site efficacy evidence.</span
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

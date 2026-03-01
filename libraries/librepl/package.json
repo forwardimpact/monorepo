@@ -1,0 +1,30 @@
+{
+  "name": "@forwardimpact/librepl",
+  "version": "0.1.0",
+  "description": "Interactive REPL utilities and command-line interfaces for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libformat": "^0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "libraries/librepl"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

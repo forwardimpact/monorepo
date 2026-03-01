@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BioNova Clinical Trials Graph</title>
+    <meta
+      name="description"
+      content="Twenty-two clinical trial MedicalTrial items with drug, medical organization, investigator, and framework links. Includes multi-phase progression path helper."
+    />
+  </head>
+  <body>
+    <header>
+      <h1>BioNova Clinical Trials Graph</h1>
+      <p>
+        This file enumerates 22 clinical trial items spanning all major drugs,
+        phases, and trial sites. Each trial links to its drug, medical
+        organization, principal investigator, and compliance frameworks. Rich
+        descriptions and explicit relationships support both vector and graph
+        evaluation scenarios.
+      </p>
+    </header>
+
+    <section>
+      <h2>Clinical Trials</h2>
+      <!-- Example trial: Oncora Phase III -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/oncora-phase-iii"
+      >
+        <h3 itemprop="name">Oncora Phase III Efficacy Study</h3>
+        <p itemprop="description">
+          Randomized, double-blind, multicenter trial evaluating Oncora's
+          efficacy and safety in advanced solid tumor patients. Primary
+          endpoint: progression-free survival. Enrollment: 420. Start:
+          2024-01-15. End: 2025-09-30.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-ONCORA-III" />
+        <meta itemprop="status" content="Recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/oncora"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/eastern-oncology-center"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/global-phaseiii-consortium"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/asclepius"
+            >Dr. Asclepius</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+      </article>
+
+      <!-- Oncora-XR Preclinical Release -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/oncora-xr-preclinical-release"
+      >
+        <h3 itemprop="name">Oncora-XR Preclinical Release Study</h3>
+        <p itemprop="description">
+          Preclinical safety and pharmacokinetics study of Oncora-XR in murine
+          and canine models. Focus: dose proportionality, tissue distribution,
+          and early toxicity signals. Enrollment: 60. Start: 2023-03-01. End:
+          2023-09-15.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-ONCORA-XR-PRECLIN" />
+        <meta itemprop="status" content="Completed" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/oncora-xr"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/oncology-trial-site-a"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/athena"
+            >Dr. Athena</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+      </article>
+
+      <!-- Cardiozen Phase III -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/cardiozen-phase-iii"
+      >
+        <h3 itemprop="name">Cardiozen Phase III Cardiovascular Outcomes</h3>
+        <p itemprop="description">
+          Multinational, placebo-controlled trial assessing Cardiozen's impact
+          on major adverse cardiovascular events in high-risk patients.
+          Enrollment: 800. Start: 2024-05-10. End: 2026-02-28.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-CARDIOZEN-III" />
+        <meta itemprop="status" content="Recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/cardiozen"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/northern-cardiology-institute"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/global-phaseiii-consortium"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/hippocrates"
+            >Dr. Hippocrates</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+
+      <!-- Immunex Phase II -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/immunex-phase-ii"
+      >
+        <h3 itemprop="name">Immunex Phase II Autoimmune Biomarker Study</h3>
+        <p itemprop="description">
+          Phase II trial evaluating Immunex's efficacy in autoimmune biomarker
+          modulation. Primary endpoint: reduction in ANA titers. Enrollment:
+          150. Start: 2023-11-01. End: 2024-10-15.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-IMMUNEX-II" />
+        <meta itemprop="status" content="Completed" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/immunex"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/western-immunology-clinic"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/panacea"
+            >Dr. Panacea</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+
+      <!-- Immunex-Plus Preclinical Safety -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/immunex-plus-preclinical-safety"
+      >
+        <h3 itemprop="name">Immunex-Plus Preclinical Safety Study</h3>
+        <p itemprop="description">
+          Toxicology and safety assessment of Immunex-Plus in rodent and primate
+          models. Focus: immunogenicity, cytokine release, and off-target
+          effects. Enrollment: 40. Start: 2023-06-01. End: 2023-12-01.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-IMMUNEX-PLUS-PRECLIN" />
+        <meta itemprop="status" content="Completed" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/immunex-plus"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/immunology-trial-site-a"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/meditrina"
+            >Dr. Meditrina</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+      </article>
+
+      <!-- Neurova Phase I -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/neurova-phase-i"
+      >
+        <h3 itemprop="name">Neurova Phase I Dose Escalation</h3>
+        <p itemprop="description">
+          First-in-human, open-label, dose-escalation study of Neurova in
+          healthy volunteers. Primary endpoint: maximum tolerated dose.
+          Enrollment: 32. Start: 2024-02-01. End: 2024-07-15.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-NEUROVA-I" />
+        <meta itemprop="status" content="Completed" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/neurova"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/central-neuroscience-institute"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/chiron"
+            >Dr. Chiron</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+
+      <!-- Vitalis Postmarketing Study -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/vitalis-postmarketing-study"
+      >
+        <h3 itemprop="name">Vitalis Postmarketing Real-World Evidence Study</h3>
+        <p itemprop="description">
+          Observational study collecting real-world safety and effectiveness
+          data for Vitalis in diverse patient populations. Enrollment: 1200.
+          Start: 2025-01-01. End: 2027-06-30.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-VITALIS-POSTMARKET" />
+        <meta itemprop="status" content="Recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/vitalis"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/postmarketing-registry-network"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/anchiale"
+            >Dr. Anchiale</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+      </article>
+      <!-- Expanded additional trials (11 total to reach 18) -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/oncora-dose-optimization"
+      >
+        <h3 itemprop="name">Oncora Phase II Dose Optimization Study</h3>
+        <p itemprop="description">
+          Adaptive, open-label trial refining Oncora dosing through
+          pharmacokinetic and pharmacodynamic modeling. Enrollment: 180. Start:
+          2023-06-01. End: 2024-04-30.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-ONCORA-DOSE-OPT" />
+        <meta itemprop="status" content="Completed" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/oncora"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/eastern-oncology-center"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/chronos"
+            >Dr. Chronos</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/cardiozen-dose-ranging"
+      >
+        <h3 itemprop="name">Cardiozen Phase II Dose Ranging Study</h3>
+        <p itemprop="description">
+          Randomized, controlled dose-ranging trial assessing Cardiozen
+          hemodynamic responses across four titration arms. Enrollment: 260.
+          Start: 2023-12-01. End: 2024-11-20.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-CARDIOZEN-DOSE" />
+        <meta itemprop="status" content="Active, not recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/cardiozen"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/northern-cardiology-institute"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/ares"
+            >Dr. Ares</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/immunex-biomarker-extension"
+      >
+        <h3 itemprop="name">Immunex Biomarker Extension Study</h3>
+        <p itemprop="description">
+          Extension cohort analyzing sustained autoimmune biomarker modulation
+          after initial Immunex Phase II endpoints. Enrollment: 90. Start:
+          2024-11-01. End: 2025-07-31.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-IMMUNEX-EXT" />
+        <meta itemprop="status" content="Recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/immunex"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/western-immunology-clinic"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/hygieia"
+            >Dr. Hygieia</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/immunex-plus-dosing-strategy"
+      >
+        <h3 itemprop="name">Immunex-Plus Dosing Strategy Optimization Study</h3>
+        <p itemprop="description">
+          Preclinical to early translational bridging study establishing
+          combination dosing windows for Immunex-Plus components. Enrollment:
+          55. Start: 2024-02-01. End: 2024-09-30.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-IMMUNEX-PLUS-DOSING" />
+        <meta itemprop="status" content="Completed" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/immunex-plus"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/immunology-trial-site-b"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/coeus"
+            >Dr. Coeus</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/neurova-cognitive-biomarker"
+      >
+        <h3 itemprop="name">Neurova Cognitive Biomarker Validation Study</h3>
+        <p itemprop="description">
+          Phase Ib exploratory cohort validating digital cognitive endpoints and
+          CSF biomarkers for Neurova future efficacy trials. Enrollment: 48.
+          Start: 2024-08-01. End: 2025-03-15.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-NEUROVA-COG" />
+        <meta itemprop="status" content="Active, not recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/neurova"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/central-neuroscience-institute"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/chiron"
+            >Dr. Chiron</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/vitalis-rare-disease-registry"
+      >
+        <h3 itemprop="name">Vitalis Rare Disease Global Registry</h3>
+        <p itemprop="description">
+          Prospective observational registry tracking metabolic correction and
+          safety in global rare disease populations receiving Vitalis.
+          Enrollment: 1600. Start: 2025-03-01. End: 2028-12-31.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-VITALIS-REGISTRY" />
+        <meta itemprop="status" content="Not yet recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/vitalis"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/global-rare-disease-network"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/ananke"
+            >Dr. Ananke</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/oncora-xr-steady-state"
+      >
+        <h3 itemprop="name">Oncora-XR Steady-State Exposure Study</h3>
+        <p itemprop="description">
+          Single and multiple dose pharmacokinetic profiling for Oncora-XR to
+          characterize steady-state plasma levels. Enrollment: 72. Start:
+          2024-05-15. End: 2025-01-30.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-ONCORA-XR-STEADY" />
+        <meta itemprop="status" content="Active, not recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/oncora-xr"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/oncology-trial-site-b"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/selene"
+            >Dr. Selene</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/immunex-pharmacodynamic-correlation"
+      >
+        <h3 itemprop="name">Immunex Pharmacodynamic Correlation Study</h3>
+        <p itemprop="description">
+          Phase II substudy correlating Immunex plasma levels with specific
+          cytokine suppression trajectories. Enrollment: 110. Start: 2024-01-10.
+          End: 2024-12-20.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-IMMUNEX-PD" />
+        <meta itemprop="status" content="Active, not recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/immunex"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/immunology-trial-site-c"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/dike"
+            >Dr. Dike</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/cardiozen-quality-of-life"
+      >
+        <h3 itemprop="name">Cardiozen Quality of Life Outcomes Study</h3>
+        <p itemprop="description">
+          Prospective assessment of patient-reported functional status
+          improvements under Cardiozen therapy. Enrollment: 300. Start:
+          2024-03-01. End: 2025-06-30.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-CARDIOZEN-QOL" />
+        <meta itemprop="status" content="Recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/cardiozen"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/northern-cardiology-institute"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/salus"
+            >Dr. Salus</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/neurova-drug-drug-interaction"
+      >
+        <h3 itemprop="name">Neurova Drug-Drug Interaction Phase I Substudy</h3>
+        <p itemprop="description">
+          Evaluates Neurova interaction potential with standard-of-care agents
+          via cytochrome modulation and cognitive performance comparisons.
+          Enrollment: 36. Start: 2024-06-01. End: 2024-12-15.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-NEUROVA-DDI" />
+        <meta itemprop="status" content="Active, not recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/neurova"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/central-neuroscience-institute"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/nyx"
+            >Dr. Nyx</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/vitalis-long-term-safety"
+      >
+        <h3 itemprop="name">Vitalis Long-Term Safety Follow-Up Study</h3>
+        <p itemprop="description">
+          Extended observation study tracking chronic safety events and
+          metabolic stability over multiple years of Vitalis therapy.
+          Enrollment: 900. Start: 2025-05-01. End: 2030-04-30.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-VITALIS-LT" />
+        <meta itemprop="status" content="Not yet recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/vitalis"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/global-rare-disease-network"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/panacea"
+            >Dr. Panacea</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+      </article>
+      <!-- Additional trials to complete the metadata coverage -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/phase2-oncology"
+      >
+        <h3 itemprop="name">Phase 2 Oncology Trial</h3>
+        <p itemprop="description">
+          Multi-arm, randomized Phase II trial evaluating novel therapeutic
+          combinations in refractory solid tumors. Primary endpoint: objective
+          response rate by RECIST criteria. Enrollment: 200. Start: 2023-09-01.
+          End: 2024-12-31.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-PHASE2-ONCO" />
+        <meta itemprop="status" content="Recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/oncora"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/eastern-oncology-center"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/oncology-trial-site-a"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/asclepius"
+            >Dr. Asclepius</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/cardiozen-cardiologist-feedback"
+      >
+        <h3 itemprop="name">Cardiozen Cardiologist Feedback Survey Study</h3>
+        <p itemprop="description">
+          Qualitative study collecting structured feedback from practicing
+          cardiologists on Cardiozen dosing, patient selection criteria, and
+          real-world effectiveness observations. Enrollment: 150 cardiologists.
+          Start: 2024-06-01. End: 2025-03-31.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-CARDIOZEN-FEEDBACK" />
+        <meta itemprop="status" content="Recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/cardiozen"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/northern-cardiology-institute"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/hippocrates"
+            >Dr. Hippocrates</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/immunex-autoimmune-biomarkers"
+      >
+        <h3 itemprop="name">Immunex Autoimmune Biomarker Discovery Study</h3>
+        <p itemprop="description">
+          Exploratory Phase IIa study identifying novel autoimmune biomarkers
+          modulated by Immunex therapy through comprehensive proteomics and
+          transcriptomics profiling. Enrollment: 80. Start: 2024-03-01. End:
+          2025-01-15.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-IMMUNEX-BIOMARKERS" />
+        <meta itemprop="status" content="Active, not recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/immunex"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/western-immunology-clinic"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/immunology-trial-site-a"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/panacea"
+            >Dr. Panacea</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/fda-compliance"
+        />
+      </article>
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalTrial"
+        itemid="https://bionova.example/id/trial/neurova-neurodegeneration-biomarkers"
+      >
+        <h3 itemprop="name">Neurova Neurodegeneration Biomarker Validation</h3>
+        <p itemprop="description">
+          Phase Ib/IIa biomarker-driven study validating fluid and imaging
+          biomarkers of neurodegeneration in patients receiving Neurova therapy.
+          Focus: tau pathology, neuroinflammation, and synaptic integrity
+          markers. Enrollment: 64. Start: 2024-09-01. End: 2025-08-31.
+        </p>
+        <meta itemprop="identifier" content="TRIAL-NEUROVA-NEURO-BIO" />
+        <meta itemprop="status" content="Recruiting" />
+        <link
+          itemprop="studySubject"
+          href="https://bionova.example/id/drug/neurova"
+        />
+        <link
+          itemprop="location"
+          href="https://bionova.example/id/medical-org/central-neuroscience-institute"
+        />
+        <section>
+          <h4>Principal Investigator</h4>
+          <a
+            itemprop="investigator"
+            href="https://bionova.example/id/person/chiron"
+            >Dr. Chiron</a
+          >
+        </section>
+        <link
+          itemprop="citation"
+          href="https://bionova.example/id/policy/framework/ich-gcp-compliance"
+        />
+      </article>
+    </section>
+
+    <!-- Path Helper: Oncora Family Trial Progression -->
+    <section
+      itemscope
+      itemtype="https://schema.org/CreativeWork"
+      itemid="https://bionova.example/id/path/oncora-family-trial-progression"
+    >
+      <meta itemprop="name" content="Oncora Family Trial Progression" />
+      <p itemprop="description">
+        Oncora-XR Preclinical Release → Oncora Dose Optimization → Oncora Phase
+        III
+      </p>
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/trial/oncora-xr-preclinical-release"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/trial/oncora-dose-optimization"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/trial/oncora-phase-iii"
+      />
+    </section>
+  </body>
+</html>
