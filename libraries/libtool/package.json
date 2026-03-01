@@ -1,0 +1,43 @@
+{
+  "name": "@forwardimpact/libtool",
+  "version": "0.1.0",
+  "description": "Tool schema generation and processing for Guide",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./processor/tool.js": "./processor/tool.js"
+  },
+  "bin": {
+    "fit-process-tools": "./bin/fit-process-tools.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libresource": "^0.1.89",
+    "@forwardimpact/libstorage": "^0.1.53",
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libtype": "^0.1.63",
+    "@forwardimpact/libutil": "^0.1.60",
+    "js-yaml": "^4.1.0",
+    "protobufjs": "^7.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "libraries/libtool"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
+  }
+}

@@ -151,11 +151,15 @@ help:
 
 .PHONY: data-init
 data-init:  ## Initialize data directories
-	@mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
+	@mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/knowledge data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
+	@if [ -d examples/knowledge ] && [ -z "$$(ls -A data/knowledge 2>/dev/null)" ]; then \
+		cp -r examples/knowledge/* data/knowledge/ 2>/dev/null || true; \
+		echo "Copied example knowledge data to data/knowledge/"; \
+	fi
 
 .PHONY: data-clean
 data-clean:  ## Remove generated data
-	@rm -rf generated data/cli data/eval data/logs data/graphs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
+	@rm -rf generated data/cli data/eval data/logs data/graphs data/knowledge data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
 
 .PHONY: data-reset
 data-reset: data-clean data-init codegen  ## Clean, init, and regenerate code
@@ -230,7 +234,7 @@ process-resources:  ## Process knowledge resources
 
 .PHONY: process-tools
 process-tools:  ## Process tool definitions
-	@$(ENVLOAD) node ./scripts/tools.js
+	@$(ENVLOAD) npx fit-process-tools --proto-root=../../
 
 .PHONY: process-vectors
 process-vectors:  ## Process vector indices
@@ -375,7 +379,7 @@ docs-watch:  ## Serve with live reload
 
 .PHONY: cli-chat
 cli-chat: ## Agent conversations
-	@$(ENVLOAD) node ./scripts/chat.js $(ARGS)
+	@$(ENVLOAD) node ./src/cli.js $(ARGS)
 
 .PHONY: cli-search
 cli-search: ## Vector similarity search

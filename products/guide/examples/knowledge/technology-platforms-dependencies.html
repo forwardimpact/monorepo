@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BioNova Technology Platforms & Dependencies</title>
+    <meta
+      name="description"
+      content="Twenty-eight BioNova technology platforms with dependency relationships, linked projects, drugs, and events for multi-hop graph traversal."
+    />
+  </head>
+  <body>
+    <header>
+      <h1>BioNova Technology Platform Dependency Graph</h1>
+      <p>
+        This document defines twenty-eight platforms as
+        <code>SoftwareApplication</code> items with explicit dependency
+        relationships (<code>softwareRequirements</code> and
+        <code>data-rel="dependsOn"</code> links), cross-functional project
+        associations, product/drug context, and event anchors. Rich descriptions
+        enhance vector retrieval while structured links power graph queries.
+      </p>
+    </header>
+
+    <!-- Foundational Data Lake -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/datalake"
+    >
+      <h2 itemprop="name">DataLake</h2>
+      <p itemprop="description">
+        Centralized object and columnar storage layer aggregating clinical trial
+        records, manufacturing telemetry, analytical feature sets, and
+        compliance logs. Provides schema evolution, partition optimization, and
+        lineage tracking.
+      </p>
+      <meta itemprop="applicationCategory" content="Data Infrastructure" />
+      <meta itemprop="softwareVersion" content="2.4" />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/beta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/epsilon"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/eta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/lambda"
+      />
+    </article>
+
+    <!-- MolecularForge -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/molecularforge"
+    >
+      <h2 itemprop="name">MolecularForge</h2>
+      <p itemprop="description">
+        Computational chemistry and molecular property prediction environment
+        integrating structure-based docking, multi-target scoring, and
+        resistance pathway simulations.
+      </p>
+      <meta itemprop="applicationCategory" content="Computational Discovery" />
+      <meta itemprop="softwareVersion" content="5.1" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/bioanalyzer"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/drugdesignstudio"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/analyticshub"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/alpha"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/kappa"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/drug/oncora"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/drug/immunex-plus"
+      />
+    </article>
+
+    <!-- BioAnalyzer -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/bioanalyzer"
+    >
+      <h2 itemprop="name">BioAnalyzer</h2>
+      <p itemprop="description">
+        High-throughput assay ingestion and feature extraction platform
+        performing normalization, quality flagging, and multimodal fusion for
+        downstream predictive modeling.
+      </p>
+      <meta itemprop="applicationCategory" content="Data Processing" />
+      <meta itemprop="softwareVersion" content="3.8" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/datalake"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/alpha"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/drug/oncora"
+      />
+    </article>
+
+    <!-- DrugDesignStudio -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/drugdesignstudio"
+    >
+      <h2 itemprop="name">DrugDesignStudio</h2>
+      <p itemprop="description">
+        Interactive compound ideation suite combining generative chemistry
+        models, ADMET prediction, and synthetic accessibility scoring.
+      </p>
+      <meta itemprop="applicationCategory" content="Design & Modeling" />
+      <meta itemprop="softwareVersion" content="1.9" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/molecularforge"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/mlflow"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/alpha"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/epsilon"
+      />
+    </article>
+
+    <!-- ClinicalStream -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/clinicalstream"
+    >
+      <h2 itemprop="name">ClinicalStream</h2>
+      <p itemprop="description">
+        Streaming ingestion and harmonization pipeline converting heterogeneous
+        clinical trial source data into standardized longitudinal datasets with
+        real-time schema compliance enforcement.
+      </p>
+      <meta itemprop="applicationCategory" content="Clinical Data Pipeline" />
+      <meta itemprop="softwareVersion" content="4.2" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/datalake"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/securityvault"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/compliancemonitor"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/beta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/zeta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/drug/oncora"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/drug/neurova"
+      />
+    </article>
+
+    <!-- ProcessControl -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/processcontrol"
+    >
+      <h2 itemprop="name">ProcessControl</h2>
+      <p itemprop="description">
+        Real-time manufacturing orchestration capturing equipment telemetry,
+        applying deviation detection models, and publishing corrective action
+        alerts.
+      </p>
+      <meta
+        itemprop="applicationCategory"
+        content="Manufacturing Orchestration"
+      />
+      <meta itemprop="softwareVersion" content="6.0" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/cloudops"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/datalake"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/gamma"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/eta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/lambda"
+      />
+    </article>
+
+    <!-- ManufacturingOS -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/manufacturingos"
+    >
+      <h2 itemprop="name">ManufacturingOS</h2>
+      <p itemprop="description">
+        Unified manufacturing execution backbone integrating batch scheduling,
+        quality checkpoints, and supply chain visibility.
+      </p>
+      <meta itemprop="applicationCategory" content="Manufacturing Execution" />
+      <meta itemprop="softwareVersion" content="3.3" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/processcontrol"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/gamma"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/eta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/lambda"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/drug/cardiozen"
+      />
+    </article>
+
+    <!-- MLflow -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/mlflow"
+    >
+      <h2 itemprop="name">MLflow</h2>
+      <p itemprop="description">
+        Experiment tracking and model lifecycle management layer capturing
+        parameters, metrics, artifacts, and deployment lineage for predictive
+        pipelines.
+      </p>
+      <meta itemprop="applicationCategory" content="ML Operations" />
+      <meta itemprop="softwareVersion" content="2.1" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/datalake"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/cloudops"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/epsilon"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/lambda"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/drug/immunex"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/drug/immunex-plus"
+      />
+    </article>
+
+    <!-- AnalyticsHub -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/analyticshub"
+    >
+      <h2 itemprop="name">AnalyticsHub</h2>
+      <p itemprop="description">
+        Unified analytical workspace providing semantic feature catalogs,
+        dashboard composition, and outcome correlation exploration.
+      </p>
+      <meta itemprop="applicationCategory" content="Analytics Workspace" />
+      <meta itemprop="softwareVersion" content="7.0" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/datalake"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/mlflow"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/epsilon"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/iota"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/lambda"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/mu"
+      />
+    </article>
+
+    <!-- CloudOps -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/cloudops"
+    >
+      <h2 itemprop="name">CloudOps</h2>
+      <p itemprop="description">
+        Provisioning and orchestration layer supplying scalable container
+        runtime, secrets injection framework, and multi-zone deployment
+        automation.
+      </p>
+      <meta itemprop="applicationCategory" content="Cloud Orchestration" />
+      <meta itemprop="softwareVersion" content="11.2" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/securityvault"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/theta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/lambda"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/mu"
+      />
+    </article>
+
+    <!-- APIGateway -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/apigateway"
+    >
+      <h2 itemprop="name">APIGateway</h2>
+      <p itemprop="description">
+        Unified service exposure and request mediation layer handling routing,
+        rate limiting, version negotiation, and audit tagging.
+      </p>
+      <meta itemprop="applicationCategory" content="API Management" />
+      <meta itemprop="softwareVersion" content="6.5" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/cloudops"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/securityvault"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/theta"
+      />
+    </article>
+
+    <!-- SecurityVault -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/securityvault"
+    >
+      <h2 itemprop="name">SecurityVault</h2>
+      <p itemprop="description">
+        Centralized cryptographic secrets and key management platform enforcing
+        rotation policies, envelope encryption, and granular access governance.
+      </p>
+      <meta
+        itemprop="applicationCategory"
+        content="Security & Key Management"
+      />
+      <meta itemprop="softwareVersion" content="9.4" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/cloudops"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/compliancemonitor"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/theta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/mu"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/delta"
+      />
+    </article>
+
+    <!-- ComplianceMonitor -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/compliancemonitor"
+    >
+      <h2 itemprop="name">ComplianceMonitor</h2>
+      <p itemprop="description">
+        Regulatory intelligence and continuous compliance scoring engine
+        aggregating policy changes, audit artifacts, and data integrity
+        validations.
+      </p>
+      <meta itemprop="applicationCategory" content="Compliance Intelligence" />
+      <meta itemprop="softwareVersion" content="3.7" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/securityvault"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/datalake"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/delta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/mu"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/event/integrated-compliance-intelligence-audit"
+      />
+    </article>
+
+    <!-- PharmaSync -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/pharmasync"
+    >
+      <h2 itemprop="name">PharmaSync</h2>
+      <p itemprop="description">
+        Commercial access orchestration platform synthesizing therapeutic
+        positioning, payer model outcomes, and integrated objection handling
+        briefs.
+      </p>
+      <meta itemprop="applicationCategory" content="Commercial Enablement" />
+      <meta itemprop="softwareVersion" content="1.3" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/molecularforge"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/manufacturingos"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/analyticshub"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/kappa"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/event/sales-enablement-launch"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/drug/cardiozen"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/drug/immunex"
+      />
+    </article>
+
+    <!-- InsightAI -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/insightai"
+    >
+      <h2 itemprop="name">InsightAI</h2>
+      <p itemprop="description">
+        AI-powered drug discovery and development intelligence platform
+        integrating machine learning models for target validation, compound
+        screening, and lead optimization with automated insights and decision
+        support.
+      </p>
+      <meta itemprop="applicationCategory" content="AI Discovery Platform" />
+      <meta itemprop="softwareVersion" content="2.8" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/molecularforge"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/mlflow"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/alpha"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/drug/novamed"
+      />
+    </article>
+
+    <!-- TrialFlow -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/trialflow"
+    >
+      <h2 itemprop="name">TrialFlow</h2>
+      <p itemprop="description">
+        Clinical trial management and protocol adherence platform providing
+        real-time monitoring, patient enrollment tracking, adverse event
+        reporting, and regulatory compliance workflows.
+      </p>
+      <meta
+        itemprop="applicationCategory"
+        content="Clinical Trial Management"
+      />
+      <meta itemprop="softwareVersion" content="4.5" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/clinicalstream"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/compliancemonitor"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/beta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/zeta"
+      />
+    </article>
+
+    <!-- GMP360 -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/gmp360"
+    >
+      <h2 itemprop="name">GMP360</h2>
+      <p itemprop="description">
+        Comprehensive Good Manufacturing Practice compliance suite integrating
+        batch record management, deviation tracking, CAPA workflows, and
+        audit-ready documentation with automated regulatory reporting.
+      </p>
+      <meta itemprop="applicationCategory" content="GMP Compliance Suite" />
+      <meta itemprop="softwareVersion" content="8.1" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/manufacturingos"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/compliancemonitor"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/gamma"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/eta"
+      />
+    </article>
+
+    <!-- DataOps -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/dataops"
+    >
+      <h2 itemprop="name">DataOps</h2>
+      <p itemprop="description">
+        Data operations and orchestration platform managing ETL pipelines, data
+        quality monitoring, schema evolution, and lineage tracking across
+        enterprise data assets with automated testing and deployment.
+      </p>
+      <meta itemprop="applicationCategory" content="Data Operations" />
+      <meta itemprop="softwareVersion" content="5.2" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/datalake"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/cloudops"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/epsilon"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/lambda"
+      />
+    </article>
+
+    <!-- Vector Indexing Service -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/vectorindexservice"
+    >
+      <h2 itemprop="name">Vector Indexing Service</h2>
+      <p itemprop="description">
+        High-performance vector similarity search engine supporting semantic
+        search, embedding storage, approximate nearest neighbor queries, and
+        hybrid retrieval for knowledge base applications.
+      </p>
+      <meta itemprop="applicationCategory" content="Vector Search" />
+      <meta itemprop="softwareVersion" content="3.4" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/datalake"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/mlflow"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/iota"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/lambda"
+      />
+    </article>
+
+    <!-- Patient-Centric Platform -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/patientcentric"
+    >
+      <h2 itemprop="name">Patient-Centric Platform</h2>
+      <p itemprop="description">
+        Patient engagement and experience platform providing self-service
+        portals, symptom reporting, appointment scheduling, educational
+        resources, and patient-reported outcomes collection for clinical trials.
+      </p>
+      <meta
+        itemprop="applicationCategory"
+        content="Patient Engagement Platform"
+      />
+      <meta itemprop="softwareVersion" content="2.6" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/clinicalstream"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/securityvault"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/beta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/zeta"
+      />
+    </article>
+
+    <!-- Anomaly Detection Platform -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/anomalydetection"
+    >
+      <h2 itemprop="name">Anomaly Detection Platform</h2>
+      <p itemprop="description">
+        Advanced anomaly detection system using machine learning to identify
+        outliers, deviations, and unusual patterns in manufacturing processes,
+        clinical data, and system operations with automated alerting.
+      </p>
+      <meta itemprop="applicationCategory" content="Anomaly Detection" />
+      <meta itemprop="softwareVersion" content="1.7" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/mlflow"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/analyticshub"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/gamma"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/epsilon"
+      />
+    </article>
+
+    <!-- Hybrid Search Engine -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/hybridsearch"
+    >
+      <h2 itemprop="name">Hybrid Search Engine</h2>
+      <p itemprop="description">
+        Unified search platform combining vector similarity, keyword matching,
+        and graph traversal for comprehensive knowledge retrieval across
+        structured and unstructured data sources.
+      </p>
+      <meta itemprop="applicationCategory" content="Search Platform" />
+      <meta itemprop="softwareVersion" content="4.0" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/vectorindexservice"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/datalake"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/iota"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/lambda"
+      />
+    </article>
+
+    <!-- Ingestion Pipeline -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/ingestionpipeline"
+    >
+      <h2 itemprop="name">Ingestion Pipeline</h2>
+      <p itemprop="description">
+        High-throughput data ingestion framework supporting batch and streaming
+        data collection from heterogeneous sources with schema validation,
+        transformation, and error handling capabilities.
+      </p>
+      <meta itemprop="applicationCategory" content="Data Ingestion" />
+      <meta itemprop="softwareVersion" content="6.3" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/datalake"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/dataops"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/beta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/epsilon"
+      />
+    </article>
+
+    <!-- Deployment Security Toolkit -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/deploymentsecurity"
+    >
+      <h2 itemprop="name">Deployment Security Toolkit</h2>
+      <p itemprop="description">
+        Comprehensive security toolset for secure application deployment
+        including vulnerability scanning, secrets management, network
+        segmentation, and compliance validation with automated remediation.
+      </p>
+      <meta itemprop="applicationCategory" content="Security Toolkit" />
+      <meta itemprop="softwareVersion" content="3.9" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/securityvault"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/cloudops"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/theta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/mu"
+      />
+    </article>
+
+    <!-- Temporal Analytics Module -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/temporalanalytics"
+    >
+      <h2 itemprop="name">Temporal Analytics Module</h2>
+      <p itemprop="description">
+        Time-series analysis and forecasting module for longitudinal clinical
+        data, manufacturing trends, and operational metrics with pattern
+        detection and predictive modeling capabilities.
+      </p>
+      <meta itemprop="applicationCategory" content="Temporal Analytics" />
+      <meta itemprop="softwareVersion" content="2.2" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/analyticshub"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/mlflow"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/beta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/epsilon"
+      />
+    </article>
+
+    <!-- Synthetic Data Toolkit -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/syntheticdatatoolkit"
+    >
+      <h2 itemprop="name">Synthetic Data Toolkit</h2>
+      <p itemprop="description">
+        Privacy-preserving synthetic data generation suite creating realistic
+        patient populations, clinical scenarios, and manufacturing data for
+        testing, training, and research without exposing sensitive information.
+      </p>
+      <meta
+        itemprop="applicationCategory"
+        content="Synthetic Data Generation"
+      />
+      <meta itemprop="softwareVersion" content="1.4" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/mlflow"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/securityvault"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/epsilon"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/delta"
+      />
+    </article>
+
+    <!-- Pharmacovigilance Automation Platform -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/pharmacovigilance"
+    >
+      <h2 itemprop="name">Pharmacovigilance Automation Platform</h2>
+      <p itemprop="description">
+        Automated adverse event reporting and safety signal detection platform
+        integrating post-market surveillance, case processing, regulatory
+        submission, and risk assessment workflows.
+      </p>
+      <meta
+        itemprop="applicationCategory"
+        content="Pharmacovigilance Automation"
+      />
+      <meta itemprop="softwareVersion" content="5.6" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/clinicalstream"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/compliancemonitor"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/zeta"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/delta"
+      />
+    </article>
+
+    <!-- Model Retraining Scheduler -->
+    <article
+      itemscope
+      itemtype="https://schema.org/SoftwareApplication"
+      itemid="https://bionova.example/id/platform/modelretraining"
+    >
+      <h2 itemprop="name">Model Retraining Scheduler</h2>
+      <p itemprop="description">
+        Automated machine learning model retraining orchestration platform
+        monitoring model performance drift, scheduling retraining jobs, managing
+        model versions, and deploying updated models with A/B testing support.
+      </p>
+      <meta itemprop="applicationCategory" content="MLOps Automation" />
+      <meta itemprop="softwareVersion" content="2.9" />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/mlflow"
+      />
+      <link
+        itemprop="softwareRequirements"
+        href="https://bionova.example/id/platform/cloudops"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/epsilon"
+      />
+      <link
+        itemprop="isRelatedTo"
+        href="https://bionova.example/id/project/lambda"
+      />
+    </article>
+
+    <!-- Path Helper: Layered Architecture Chain -->
+    <section
+      itemscope
+      itemtype="https://schema.org/CreativeWork"
+      itemid="https://bionova.example/id/path/platform-layered-architecture"
+    >
+      <meta itemprop="name" content="Platform Layered Architecture Chain" />
+      <p itemprop="description">
+        MolecularForge → MLflow → AnalyticsHub → ComplianceMonitor →
+        SecurityVault → APIGateway
+      </p>
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/platform/molecularforge"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/platform/mlflow"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/platform/analyticshub"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/platform/compliancemonitor"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/platform/securityvault"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/platform/apigateway"
+      />
+    </section>
+  </body>
+</html>

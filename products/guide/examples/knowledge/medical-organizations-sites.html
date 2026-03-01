@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BioNova Medical Organizations & Trial Sites</title>
+    <meta
+      name="description"
+      content="Fifteen MedicalOrganization entities representing trial sites, hospitals, and research centers, each with location, trial, and investigator relationships."
+    />
+  </head>
+  <body>
+    <header>
+      <h1>BioNova Medical Organizations & Trial Sites</h1>
+      <p>
+        This file enumerates 15 medical organizations, including hospitals,
+        research centers, and clinical trial sites. Each entity includes
+        address/location, linked trials, and principal investigators, supporting
+        both graph and vector evaluation scenarios.
+      </p>
+    </header>
+
+    <section>
+      <h2>Medical Organizations</h2>
+      <!-- Example: Eastern Oncology Center -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/eastern-oncology-center"
+      >
+        <h3 itemprop="name">Eastern Oncology Center</h3>
+        <p itemprop="description">
+          Regional cancer research and treatment center specializing in solid
+          tumor clinical trials and advanced radiotherapy protocols.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-EAST-ONC" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="123 Oncology Ave" />
+          <meta itemprop="addressLocality" content="Boston" />
+          <meta itemprop="addressRegion" content="MA" />
+          <meta itemprop="postalCode" content="02115" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/oncora-phase-iii"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/oncora-tumor-response-analysis"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a
+            itemprop="employee"
+            href="https://bionova.example/id/person/asclepius"
+            >Dr. Asclepius</a
+          >
+        </section>
+      </article>
+
+      <!-- Northern Cardiology Institute -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/northern-cardiology-institute"
+      >
+        <h3 itemprop="name">Northern Cardiology Institute</h3>
+        <p itemprop="description">
+          Cardiovascular research hospital leading multinational trials in heart
+          failure, arrhythmia, and lipid management.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-NORTH-CARDIO" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="456 Cardio Blvd" />
+          <meta itemprop="addressLocality" content="Chicago" />
+          <meta itemprop="addressRegion" content="IL" />
+          <meta itemprop="postalCode" content="60611" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/cardiozen-phase-iii"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/cardiozen-cardiologist-feedback"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a
+            itemprop="employee"
+            href="https://bionova.example/id/person/hippocrates"
+            >Dr. Hippocrates</a
+          >
+        </section>
+      </article>
+
+      <!-- Western Immunology Clinic -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/western-immunology-clinic"
+      >
+        <h3 itemprop="name">Western Immunology Clinic</h3>
+        <p itemprop="description">
+          Immunology specialty center conducting biomarker and autoimmune
+          therapy trials with advanced flow cytometry facilities.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-WEST-IMMUNO" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="789 Immune Rd" />
+          <meta itemprop="addressLocality" content="San Francisco" />
+          <meta itemprop="addressRegion" content="CA" />
+          <meta itemprop="postalCode" content="94117" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/immunex-phase-ii"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/immunex-autoimmune-biomarkers"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a
+            itemprop="employee"
+            href="https://bionova.example/id/person/panacea"
+            >Dr. Panacea</a
+          >
+        </section>
+      </article>
+
+      <!-- Central Neuroscience Institute -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/central-neuroscience-institute"
+      >
+        <h3 itemprop="name">Central Neuroscience Institute</h3>
+        <p itemprop="description">
+          Neuroscience research and clinical care center with expertise in
+          neurodegeneration, epilepsy, and neuroimaging trials.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-CENTRAL-NEURO" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="321 Brain St" />
+          <meta itemprop="addressLocality" content="New York" />
+          <meta itemprop="addressRegion" content="NY" />
+          <meta itemprop="postalCode" content="10029" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/neurova-phase-i"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/neurova-neurodegeneration-biomarkers"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a itemprop="employee" href="https://bionova.example/id/person/chiron"
+            >Dr. Chiron</a
+          >
+        </section>
+      </article>
+
+      <!-- Rare Disease Reference Center -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/rare-disease-reference-center"
+      >
+        <h3 itemprop="name">Rare Disease Reference Center</h3>
+        <p itemprop="description">
+          Reference center for rare and orphan disease clinical research,
+          supporting global registry and postmarketing studies.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-RARE-DISEASE" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="654 Orphan Ln" />
+          <meta itemprop="addressLocality" content="Baltimore" />
+          <meta itemprop="addressRegion" content="MD" />
+          <meta itemprop="postalCode" content="21201" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/vitalis-postmarketing-study"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/vitalis-long-term-outcomes"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a
+            itemprop="employee"
+            href="https://bionova.example/id/person/anchiale"
+            >Dr. Anchiale</a
+          >
+        </section>
+      </article>
+
+      <!-- Oncology Translational Lab -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/oncology-translational-lab"
+      >
+        <h3 itemprop="name">Oncology Translational Lab</h3>
+        <p itemprop="description">
+          Laboratory bridging preclinical oncology findings with early-phase
+          clinical trial protocol design and biomarker validation.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-ONC-TRANS" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="12 Translational Way" />
+          <meta itemprop="addressLocality" content="Philadelphia" />
+          <meta itemprop="addressRegion" content="PA" />
+          <meta itemprop="postalCode" content="19104" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/oncora-xr-preclinical-formulation"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/oncora-xr-steady-state"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a itemprop="employee" href="https://bionova.example/id/person/selene"
+            >Dr. Selene</a
+          >
+        </section>
+      </article>
+
+      <!-- Cardiac Outcomes Consortium -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/cardiac-outcomes-consortium"
+      >
+        <h3 itemprop="name">Cardiac Outcomes Consortium</h3>
+        <p itemprop="description">
+          Consortium of cardiology centers standardizing functional outcome
+          measurement in advanced heart failure trials.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-CARD-OUT" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="87 Ventricular Pl" />
+          <meta itemprop="addressLocality" content="Cleveland" />
+          <meta itemprop="addressRegion" content="OH" />
+          <meta itemprop="postalCode" content="44106" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/cardiozen-phase-iii"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/cardiozen-quality-of-life"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a itemprop="employee" href="https://bionova.example/id/person/salus"
+            >Dr. Salus</a
+          >
+        </section>
+      </article>
+
+      <!-- Autoimmune Biomarker Hub -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/autoimmune-biomarker-hub"
+      >
+        <h3 itemprop="name">Autoimmune Biomarker Hub</h3>
+        <p itemprop="description">
+          Central hub specializing in cytokine profiling and autoimmune
+          biomarker standardization for immunotherapy trials.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-AUTO-BIO" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="45 Cytokine Cir" />
+          <meta itemprop="addressLocality" content="Seattle" />
+          <meta itemprop="addressRegion" content="WA" />
+          <meta itemprop="postalCode" content="98109" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/immunex-biomarker-extension"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/immunex-pharmacodynamic-correlation"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a
+            itemprop="employee"
+            href="https://bionova.example/id/person/hygieia"
+            >Dr. Hygieia</a
+          >
+        </section>
+      </article>
+
+      <!-- Neuroimaging Precision Center -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/neuroimaging-precision-center"
+      >
+        <h3 itemprop="name">Neuroimaging Precision Center</h3>
+        <p itemprop="description">
+          Imaging center focused on quantitative neurodegeneration metrics and
+          digital cognitive endpoint validation.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-NEURO-PREC" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="990 Cortex Pkwy" />
+          <meta itemprop="addressLocality" content="Atlanta" />
+          <meta itemprop="addressRegion" content="GA" />
+          <meta itemprop="postalCode" content="30309" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/neurova-cognitive-biomarker"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/neurova-drug-drug-interaction"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a itemprop="employee" href="https://bionova.example/id/person/nyx"
+            >Dr. Nyx</a
+          >
+        </section>
+      </article>
+
+      <!-- Global Metabolic Registry Network -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/global-metabolic-registry-network"
+      >
+        <h3 itemprop="name">Global Metabolic Registry Network</h3>
+        <p itemprop="description">
+          International collaboration capturing longitudinal metabolic
+          correction outcomes for rare disease therapy.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-GLOBAL-METAB" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="28 Registry Loop" />
+          <meta itemprop="addressLocality" content="Denver" />
+          <meta itemprop="addressRegion" content="CO" />
+          <meta itemprop="postalCode" content="80202" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/vitalis-rare-disease-registry"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/vitalis-long-term-safety"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a itemprop="employee" href="https://bionova.example/id/person/ananke"
+            >Dr. Ananke</a
+          >
+        </section>
+      </article>
+
+      <!-- Extended Pharmacodynamics Unit -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/extended-pharmacodynamics-unit"
+      >
+        <h3 itemprop="name">Extended Pharmacodynamics Unit</h3>
+        <p itemprop="description">
+          Facility specializing in longitudinal pharmacodynamic correlation
+          studies and adaptive exposure modeling.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-EXT-PD" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="401 Curvature Dr" />
+          <meta itemprop="addressLocality" content="Houston" />
+          <meta itemprop="addressRegion" content="TX" />
+          <meta itemprop="postalCode" content="77002" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/immunex-pharmacodynamic-correlation"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/oncora-dose-optimization"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a
+            itemprop="employee"
+            href="https://bionova.example/id/person/chronos"
+            >Dr. Chronos</a
+          >
+        </section>
+      </article>
+
+      <!-- Combination Therapy Research Site -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/combination-therapy-research-site"
+      >
+        <h3 itemprop="name">Combination Therapy Research Site</h3>
+        <p itemprop="description">
+          Research site focused on optimizing dosing strategies for
+          multi-component immunomodulatory combinations.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-COMB-TX" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="77 Synergy Ln" />
+          <meta itemprop="addressLocality" content="Portland" />
+          <meta itemprop="addressRegion" content="OR" />
+          <meta itemprop="postalCode" content="97209" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/immunex-plus-dosing-strategy"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/immunex-biomarker-extension"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a itemprop="employee" href="https://bionova.example/id/person/coeus"
+            >Dr. Coeus</a
+          >
+        </section>
+      </article>
+
+      <!-- Cognitive Endpoint Validation Center -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/cognitive-endpoint-validation-center"
+      >
+        <h3 itemprop="name">Cognitive Endpoint Validation Center</h3>
+        <p itemprop="description">
+          Center validating digital cognitive performance metrics and
+          sensor-derived neurological endpoints.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-COG-END" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="150 Cortex Loop" />
+          <meta itemprop="addressLocality" content="Minneapolis" />
+          <meta itemprop="addressRegion" content="MN" />
+          <meta itemprop="postalCode" content="55401" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/neurova-cognitive-biomarker"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/neurova-phase-i"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a itemprop="employee" href="https://bionova.example/id/person/dike"
+            >Dr. Dike</a
+          >
+        </section>
+      </article>
+
+      <!-- DDI Assessment Facility -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/ddi-assessment-facility"
+      >
+        <h3 itemprop="name">Drug-Drug Interaction Assessment Facility</h3>
+        <p itemprop="description">
+          Facility specializing in controlled interaction studies assessing
+          metabolic modulation across therapeutic classes.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-DDI-FAC" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="215 Interaction Ct" />
+          <meta itemprop="addressLocality" content="Raleigh" />
+          <meta itemprop="addressRegion" content="NC" />
+          <meta itemprop="postalCode" content="27601" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/neurova-drug-drug-interaction"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/immunex-pharmacodynamic-correlation"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a itemprop="employee" href="https://bionova.example/id/person/nyx"
+            >Dr. Nyx</a
+          >
+        </section>
+      </article>
+
+      <!-- Longitudinal Safety Analytics Center -->
+      <article
+        itemscope
+        itemtype="https://schema.org/MedicalOrganization"
+        itemid="https://bionova.example/id/medical-org/longitudinal-safety-analytics-center"
+      >
+        <h3 itemprop="name">Longitudinal Safety Analytics Center</h3>
+        <p itemprop="description">
+          Analytics center focusing on multi-year safety signal aggregation,
+          survivorship modeling, and registry outcomes.
+        </p>
+        <meta itemprop="identifier" content="MEDORG-LONG-SAFE" />
+        <span
+          itemprop="address"
+          itemscope
+          itemtype="https://schema.org/PostalAddress"
+        >
+          <meta itemprop="streetAddress" content="803 Continuum Dr" />
+          <meta itemprop="addressLocality" content="Phoenix" />
+          <meta itemprop="addressRegion" content="AZ" />
+          <meta itemprop="postalCode" content="85004" />
+          <meta itemprop="addressCountry" content="USA" />
+        </span>
+        <section>
+          <h4>Linked Trials</h4>
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/vitalis-long-term-safety"
+          />
+          <link
+            itemprop="isRelatedTo"
+            href="https://bionova.example/id/trial/vitalis-rare-disease-registry"
+          />
+        </section>
+        <section>
+          <h4>Principal Investigators</h4>
+          <a itemprop="employee" href="https://bionova.example/id/person/ananke"
+            >Dr. Ananke</a
+          >
+        </section>
+      </article>
+    </section>
+  </body>
+</html>

@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BioNova Managed Service Offerings</title>
+    <meta
+      name="description"
+      content="Three BioNova managed services with provider organizations, supported platforms, linked projects, drugs, and events for multi-hop traversal."
+    />
+  </head>
+  <body>
+    <header>
+      <h1>BioNova Managed Services Portfolio</h1>
+      <p>
+        This document defines three managed <code>Service</code> offerings
+        delivered by BioNova organizational units. Each service includes
+        capability scope, provider linkage, supported platform dependencies,
+        project enablement references, product/drug context, and temporal event
+        anchors. Rich descriptive content supports vector search while
+        structured microdata links power graph queries across departments and
+        product lifecycles.
+      </p>
+    </header>
+
+    <!-- Service 1: Contract Manufacturing -->
+    <article
+      itemscope
+      itemtype="https://schema.org/Service"
+      itemid="https://bionova.example/id/service/contract-manufacturing"
+    >
+      <h2 itemprop="name">Contract Manufacturing Service</h2>
+      <p itemprop="description">
+        GMP-aligned outsourced production capability delivering batch
+        formulation, scale-up transfer, quality analytics integration, and
+        supply continuity assurance across late-stage and commercialization
+        phases.
+      </p>
+      <meta itemprop="serviceType" content="Pharmaceutical Manufacturing" />
+      <meta itemprop="areaServed" content="Global" />
+      <link
+        itemprop="provider"
+        href="https://bionova.example/id/org/bionova-manufacturing"
+      />
+      <section>
+        <h3>Supported Platforms</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/manufacturingos"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/processcontrol"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/datalake"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/analyticshub"
+        />
+      </section>
+      <section>
+        <h3>Enabled Projects</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/project/gamma"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/project/eta"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/project/lambda"
+        />
+      </section>
+      <section>
+        <h3>Product Context</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/drug/cardiozen"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/drug/vitalis"
+        />
+      </section>
+      <section>
+        <h3>Temporal Anchors</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/event/cardiozen-manufacturing-scale-review"
+        />
+      </section>
+    </article>
+
+    <!-- Service 2: Clinical Trial Conduct -->
+    <article
+      itemscope
+      itemtype="https://schema.org/Service"
+      itemid="https://bionova.example/id/service/clinical-trial-conduct"
+    >
+      <h2 itemprop="name">Clinical Trial Conduct Service</h2>
+      <p itemprop="description">
+        End-to-end operational execution for interventional studies: site
+        activation, data capture harmonization, safety escalation monitoring,
+        and regulatory audit preparedness.
+      </p>
+      <meta itemprop="serviceType" content="Clinical Operations" />
+      <meta itemprop="areaServed" content="North America & Europe" />
+      <link
+        itemprop="provider"
+        href="https://bionova.example/id/org/bionova-rd"
+      />
+      <section>
+        <h3>Supported Platforms</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/clinicalstream"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/compliancemonitor"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/securityvault"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/datalake"
+        />
+      </section>
+      <section>
+        <h3>Enabled Projects</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/project/beta"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/project/zeta"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/project/epsilon"
+        />
+      </section>
+      <section>
+        <h3>Product Context</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/drug/oncora"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/drug/neurova"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/drug/immunex"
+        />
+      </section>
+      <section>
+        <h3>Temporal Anchors</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/event/clinical-data-harmonization-milestone"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/event/neurova-safety-escalation-review"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/event/immunex-biomarker-model-demo"
+        />
+      </section>
+    </article>
+
+    <!-- Service 3: Regulatory Consulting -->
+    <article
+      itemscope
+      itemtype="https://schema.org/Service"
+      itemid="https://bionova.example/id/service/regulatory-consulting"
+    >
+      <h2 itemprop="name">Regulatory Consulting Service</h2>
+      <p itemprop="description">
+        Specialized guidance for submission strategy, dossier compilation
+        optimization, compliance evidence aggregation, and accelerated review
+        facilitation.
+      </p>
+      <meta itemprop="serviceType" content="Regulatory Strategy" />
+      <meta itemprop="areaServed" content="Global" />
+      <link
+        itemprop="provider"
+        href="https://bionova.example/id/org/bionova-rd"
+      />
+      <section>
+        <h3>Supported Platforms</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/compliancemonitor"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/securityvault"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/analyticshub"
+        />
+      </section>
+      <section>
+        <h3>Enabled Projects</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/project/delta"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/project/mu"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/project/theta"
+        />
+      </section>
+      <section>
+        <h3>Product Context</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/drug/oncora-xr"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/drug/vitalis"
+        />
+      </section>
+      <section>
+        <h3>Temporal Anchors</h3>
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/event/oncora-xr-regulatory-summit"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/event/integrated-compliance-intelligence-audit"
+        />
+      </section>
+    </article>
+
+    <!-- Path Helper: Service Enablement Chain -->
+    <section
+      itemscope
+      itemtype="https://schema.org/CreativeWork"
+      itemid="https://bionova.example/id/path/service-enablement-chain"
+    >
+      <meta itemprop="name" content="Service Enablement Chain" />
+      <p itemprop="description">
+        Contract Manufacturing → ProcessControl → Project Gamma → Cardiozen →
+        Sales Enablement Launch
+      </p>
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/service/contract-manufacturing"
+      />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/platform/processcontrol"
+      />
+      <link itemprop="about" href="https://bionova.example/id/project/gamma" />
+      <link itemprop="about" href="https://bionova.example/id/drug/cardiozen" />
+      <link
+        itemprop="about"
+        href="https://bionova.example/id/event/sales-enablement-launch"
+      />
+    </section>
+  </body>
+</html>
