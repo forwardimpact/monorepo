@@ -1,0 +1,23 @@
+{
+  "name": "@forwardimpact/guide",
+  "version": "0.1.0",
+  "description": "Intelligent agent platform with knowledge graph and RAG",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "fit-guide": "./bin/fit-guide.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "@forwardimpact/libconfig": "^0.1.58",
+    "@forwardimpact/librepl": "^0.1.0",
+    "@forwardimpact/librpc": "^0.1.77",
+    "@forwardimpact/libstorage": "^0.1.53",
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libtype": "^0.1.63"
+  }
+}

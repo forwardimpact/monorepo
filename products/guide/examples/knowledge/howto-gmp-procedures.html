@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BioNova HowTo: GMP Procedures</title>
+    <meta
+      name="description"
+      content="Ten HowTo items covering GMP batch release, deviation triage, contamination control, and compliance documentation, each referencing platforms, policies, and tools."
+    />
+  </head>
+  <body>
+    <header>
+      <h1>BioNova HowTo: GMP Procedures</h1>
+      <p>
+        This file provides ten stepwise HowTo guides for Good Manufacturing
+        Practice (GMP) operations, each referencing relevant platforms,
+        policies, and tools. Each HowTo includes a description, step list, and
+        explicit microdata relationships for graph and vector evaluation.
+      </p>
+    </header>
+
+    <section>
+      <h2>HowTo Procedures</h2>
+      <!-- Example: Batch Release Workflow -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/gmp-batch-release"
+      >
+        <h3 itemprop="name">GMP Batch Release Workflow</h3>
+        <p itemprop="description">
+          Stepwise process for verifying batch conformance, documenting results,
+          and authorizing product release under GMP guidelines.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-GMP-BATCH-RELEASE" />
+        <meta itemprop="totalTime" content="PT3H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/manufacturingos"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/batch-release-guidelines"
+        />
+        <ol itemprop="step">
+          <li>Review batch record in ManufacturingOS</li>
+          <li>Verify in-process test results</li>
+          <li>Check for open deviations</li>
+          <li>Document disposition decision</li>
+          <li>Authorize release in ManufacturingOS</li>
+        </ol>
+      </article>
+
+      <!-- Deviation Triage Protocol -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/gmp-deviation-triage"
+      >
+        <h3 itemprop="name">Deviation Triage Protocol</h3>
+        <p itemprop="description">
+          Protocol for classifying, investigating, and resolving manufacturing
+          deviations in compliance with GMP standards.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-GMP-DEVIATION-TRIAGE" />
+        <meta itemprop="totalTime" content="PT4H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/processcontrol"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/gmp-compliance-procedures"
+        />
+        <ol itemprop="step">
+          <li>Log deviation in ProcessControl</li>
+          <li>Classify deviation type</li>
+          <li>Assign investigation lead</li>
+          <li>Document root cause analysis</li>
+          <li>Implement corrective action</li>
+        </ol>
+      </article>
+
+      <!-- Contamination Control SOP -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/gmp-contamination-control"
+      >
+        <h3 itemprop="name">Contamination Control SOP</h3>
+        <p itemprop="description">
+          Standard operating procedure for preventing, detecting, and responding
+          to contamination events in GMP manufacturing.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-GMP-CONTROL" />
+        <meta itemprop="totalTime" content="PT2H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/processcontrol"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/contamination-control-standards"
+        />
+        <ol itemprop="step">
+          <li>Perform environmental monitoring</li>
+          <li>Review contamination control log</li>
+          <li>Isolate affected area</li>
+          <li>Initiate cleaning protocol</li>
+          <li>Document corrective actions</li>
+        </ol>
+      </article>
+
+      <!-- Cleaning Validation Guide -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/gmp-cleaning-validation"
+      >
+        <h3 itemprop="name">Cleaning Validation Guide</h3>
+        <p itemprop="description">
+          Guide for validating cleaning procedures, sampling, and documentation
+          to ensure GMP compliance.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-GMP-CLEANING-VALIDATION" />
+        <meta itemprop="totalTime" content="PT6H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/processcontrol"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/gmp-compliance-procedures"
+        />
+        <ol itemprop="step">
+          <li>Prepare cleaning validation protocol</li>
+          <li>Perform swab/rinse sampling</li>
+          <li>Analyze samples in QC lab</li>
+          <li>Document results in ProcessControl</li>
+          <li>Approve validation report</li>
+        </ol>
+      </article>
+
+      <!-- CAPA Implementation Steps -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/gmp-capa-implementation"
+      >
+        <h3 itemprop="name">CAPA Implementation Steps</h3>
+        <p itemprop="description">
+          Steps for implementing Corrective and Preventive Actions (CAPA) in
+          response to GMP deviations or audit findings.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-GMP-CAPA" />
+        <meta itemprop="totalTime" content="PT8H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/manufacturingos"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/manufacturing-quality"
+        />
+        <ol itemprop="step">
+          <li>Identify CAPA trigger</li>
+          <li>Define corrective/preventive action</li>
+          <li>Assign responsible owner</li>
+          <li>Track action in ManufacturingOS</li>
+          <li>Verify effectiveness</li>
+        </ol>
+      </article>
+
+      <!-- Supplier Qualification Checklist -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/gmp-supplier-qualification"
+      >
+        <h3 itemprop="name">Supplier Qualification Checklist</h3>
+        <p itemprop="description">
+          Checklist for qualifying new suppliers in GMP manufacturing, including
+          audit, risk assessment, and approval steps.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-GMP-SUPPLIER-QUAL" />
+        <meta itemprop="totalTime" content="PT16H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/compliancemonitor"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/supplier-qualification-procedures"
+        />
+        <ol itemprop="step">
+          <li>Request supplier documentation</li>
+          <li>Conduct on-site audit</li>
+          <li>Assess risk profile</li>
+          <li>Approve supplier in ComplianceMonitor</li>
+          <li>Schedule periodic requalification</li>
+        </ol>
+      </article>
+
+      <!-- Quality Risk Management Process -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/gmp-quality-risk-management"
+      >
+        <h3 itemprop="name">Quality Risk Management Process</h3>
+        <p itemprop="description">
+          Process for identifying, assessing, and mitigating quality risks in
+          GMP operations.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-GMP-RISK-MGMT" />
+        <meta itemprop="totalTime" content="PT4H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/processcontrol"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/quality-risk-management-framework"
+        />
+        <ol itemprop="step">
+          <li>Identify potential hazards</li>
+          <li>Score probability and severity</li>
+          <li>Develop mitigation plan</li>
+          <li>Implement controls in ProcessControl</li>
+          <li>Review effectiveness periodically</li>
+        </ol>
+      </article>
+
+      <!-- Environmental Monitoring Routine -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/gmp-environmental-monitoring"
+      >
+        <h3 itemprop="name">Environmental Monitoring Routine</h3>
+        <p itemprop="description">
+          Routine for monitoring environmental conditions in GMP manufacturing,
+          including sampling, analysis, and response to excursions.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-GMP-ENV-MONITOR" />
+        <meta itemprop="totalTime" content="PT1H30M" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/processcontrol"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/contamination-control-standards"
+        />
+        <ol itemprop="step">
+          <li>Collect air and surface samples</li>
+          <li>Analyze results in QC lab</li>
+          <li>Log data in ProcessControl</li>
+          <li>Investigate out-of-spec results</li>
+          <li>Document corrective actions</li>
+        </ol>
+      </article>
+
+      <!-- Audit Readiness Preparation -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/gmp-audit-readiness"
+      >
+        <h3 itemprop="name">Audit Readiness Preparation</h3>
+        <p itemprop="description">
+          Preparation steps for GMP audit readiness, including documentation
+          review, training, and facility inspection.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-GMP-AUDIT-READY" />
+        <meta itemprop="totalTime" content="PT12H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/compliancemonitor"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/master-qms"
+        />
+        <ol itemprop="step">
+          <li>Review SOPs and batch records</li>
+          <li>Conduct staff training</li>
+          <li>Inspect facility for compliance</li>
+          <li>Update documentation in ComplianceMonitor</li>
+          <li>Schedule mock audit</li>
+        </ol>
+      </article>
+
+      <!-- Product Recall Response -->
+      <article
+        itemscope
+        itemtype="https://schema.org/HowTo"
+        itemid="https://bionova.example/id/howto/gmp-product-recall"
+      >
+        <h3 itemprop="name">Product Recall Response</h3>
+        <p itemprop="description">
+          Response protocol for executing a GMP product recall, including
+          notification, investigation, and regulatory reporting.
+        </p>
+        <meta itemprop="identifier" content="HOWTO-GMP-RECALL" />
+        <meta itemprop="totalTime" content="PT24H" />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/platform/manufacturingos"
+        />
+        <link
+          itemprop="isRelatedTo"
+          href="https://bionova.example/id/policy/master-qms"
+        />
+        <ol itemprop="step">
+          <li>Initiate recall in ManufacturingOS</li>
+          <li>Notify regulatory authorities</li>
+          <li>Investigate root cause</li>
+          <li>Document actions and outcomes</li>
+          <li>Review recall effectiveness</li>
+        </ol>
+      </article>
+    </section>
+  </body>
+</html>
