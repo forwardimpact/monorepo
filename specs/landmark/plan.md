@@ -50,7 +50,7 @@ Three distinct phases, each running at its own cadence:
 3. **Interpretation** — on-demand with caching. When an engineer queries their
    own evidence, Guide assesses their unscored artifacts against markers.
    Results are cached in the evidence table. An optional nightly job pre-warms
-   evidence for the full roster.
+   evidence for the full organization.
 
 ## Access Model
 
@@ -75,7 +75,7 @@ Engineering leadership sees aggregate patterns across a team, capability, or
 organization. No individuals named.
 
 - Queried by team or capability:
-  `fit-landmark practice system_design --team platform`
+  `fit-landmark practice system_design --manager carol`
 - Shows proportions and trends, not lists of people
 - "Most feature PRs include architecture sections" — not "Alice's PRs include
   architecture sections"
@@ -105,13 +105,13 @@ CREATE VIEW practice_patterns AS
     level,
     marker_index,
     marker_text,
-    team,
+    org.manager,
     count(*) FILTER (WHERE matched) AS matched_count,
     count(*) AS total_count
   FROM evidence
   JOIN artifacts ON evidence.artifact_id = artifacts.id
-  JOIN roster ON artifacts.person = roster.github
-  GROUP BY skill_id, level, marker_index, marker_text, team
+  JOIN organization org ON artifacts.person = org.github
+  GROUP BY skill_id, level, marker_index, marker_text, org.manager
   HAVING count(DISTINCT artifacts.person) >= 5;
 ```
 
@@ -278,32 +278,91 @@ The `external_id` ensures idempotency — multiple events for the same PR (opene
 synchronize, edited) upsert the same artifact row with updated metadata rather
 than creating duplicates.
 
-### Roster Table
+### Organization Table
 
-Loaded from `landmark.yaml` via CLI or API. Maps GitHub usernames to Pathway job
-profiles.
+Loaded from `organization.yaml` via CLI or API. Maps GitHub usernames to Pathway
+job profiles and line managers.
 
 ```sql
-CREATE TABLE roster (
+CREATE TABLE organization (
   github        TEXT PRIMARY KEY,
+  name          TEXT NOT NULL,
   discipline    TEXT NOT NULL,
   level         TEXT NOT NULL,
   track         TEXT,
-  team          TEXT,                  -- team name for practice pattern grouping
+  manager       TEXT REFERENCES organization(github),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_organization_manager ON organization (manager);
+```
+
+Each person links to their line manager by GitHub username. A team is a manager
+and their direct reports — there is no separate team entity. Carol's team is
+everyone whose `manager` field is `carol`. Aggregate views use this relationship
+to scope patterns. Teams with fewer than 5 members are excluded from aggregate
+queries to prevent identification by elimination.
+
+The top of the hierarchy has `manager` set to NULL.
+
+```
+$ fit-landmark org sync organization.yaml
+  Synced 142 people, 3 levels of hierarchy.
+  3 new, 2 updated, 0 removed.
+```
+
+### Repository Table
+
+Loaded from `repositories.yaml`. Maps GitHub repos to optional capability areas.
+
+```sql
+CREATE TABLE repositories (
+  id            TEXT PRIMARY KEY,     -- 'org/repo-name'
+  capabilities  TEXT[],               -- optional capability IDs
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 
-The `team` field groups engineers for practice pattern queries. Teams are the
-organizational unit — "platform", "payments", "mobile". Aggregate views use this
-field to scope patterns. Teams with fewer than 5 members are excluded from
-aggregate queries to prevent identification by elimination.
+The `capabilities` array is optional — repositories without capability tags
+still produce artifacts and evidence. When present, capability tags let Guide
+infer what kind of work a repository exercises.
 
+### Survey Tables
+
+Survey definitions and aggregate results, loaded from YAML files.
+
+```sql
+CREATE TABLE surveys (
+  id            TEXT PRIMARY KEY,
+  name          TEXT NOT NULL,
+  period_start  DATE NOT NULL,
+  period_end    DATE NOT NULL,
+  scale_min     INT NOT NULL DEFAULT 1,
+  scale_max     INT NOT NULL DEFAULT 5,
+  scale_labels  JSONB,                -- { "1": "Strongly Disagree", ... }
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE survey_results (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  survey_id     TEXT NOT NULL REFERENCES surveys(id),
+  manager       TEXT NOT NULL REFERENCES organization(github),
+  respondents   INT NOT NULL,
+  ratings       JSONB NOT NULL,       -- { "driver_id": { "mean": 4.1, "distribution": [0,1,1,3,3] } }
+  UNIQUE (survey_id, manager)
+);
+
+CREATE INDEX idx_survey_results_survey ON survey_results (survey_id);
+CREATE INDEX idx_survey_results_manager ON survey_results (manager);
 ```
-$ fit-landmark roster sync landmark.yaml
-  Synced 142 roster entries across 12 teams.
-  3 new, 2 updated, 0 removed.
-```
+
+Survey results are aggregate Likert scores per manager (team) per driver.
+Individual responses stay anonymous — only team-level aggregation is stored. The
+`manager` field references the organization table, identifying the team as the
+manager's direct reports.
+
+The `ratings` JSONB contains keys matching driver IDs from Map, each with a
+`mean` and `distribution` array (count of responses at each scale point).
 
 ## Phase 3: Interpretation
 
@@ -317,7 +376,7 @@ artifacts are sent to Guide with the relevant markers. Results are cached.
 fit-landmark evidence --skill system_design
   │
   1. Resolve current user → @alice (from git config)
-  2. Look up @alice in roster → se, L3, platform
+  2. Look up @alice in organization → se, L3, platform
   3. Derive skill expectations from Pathway → system_design at working level
   4. Load markers for system_design.working.human
   5. SELECT artifacts WHERE person = 'alice'
@@ -341,15 +400,17 @@ pass/fail status.
 ### Practice Pattern Flow
 
 ```
-fit-landmark practice system_design --team platform
+fit-landmark practice system_design --manager carol
   │
-  1. Look up all roster entries WHERE team = 'platform'
+  1. Look up all organization entries WHERE manager = 'carol'
   2. Verify team size >= 5 (refuse if below threshold)
   3. Derive skill expectations for each person's job profile
   4. Aggregate evidence across all team members:
      - For each marker: what proportion of the team shows evidence?
      - Trend: is evidence for this marker increasing or decreasing?
-  5. Return anonymous summary with proportions and trends
+  5. Look up survey results WHERE manager = 'carol' (most recent period)
+     - If available: include driver ratings for contributing skills
+  6. Return anonymous summary with proportions, trends, and survey context
 ```
 
 The query never returns individual names, artifact IDs, or PR links. It returns
@@ -358,15 +419,17 @@ sections" or "few PRs document multiple approaches considered."
 
 When evidence is weak for a marker, the output asks a process question — not
 "who isn't doing this?" but "does the engineering process support this
-practice?"
+practice?" When survey data is available, the output correlates perception
+(survey ratings) with observable evidence (Landmark artifacts) through the
+driver's contributing skills.
 
 ### Nightly Batch
 
-An optional pg_cron job runs interpretation for the full roster. Same logic as
-the personal evidence flow but iterates over all roster entries:
+An optional pg_cron job runs interpretation for the full organization. Same
+logic as the personal evidence flow but iterates over all organization entries:
 
 ```
-For each person in roster:
+For each person in organization:
   For each skill in their job profile:
     Run the evidence flow (skips already-cached interpretation)
 ```
@@ -492,23 +555,26 @@ events (index)           1:1     Storage (raw payloads)
   │
   │ extraction
   ▼
-artifacts               N:1     roster (people → jobs, teams)
-  │
+artifacts               N:1     organization (people → jobs → managers)
+  │                             repositories (repos → capabilities)
   │ interpretation (Guide)
   ▼
-evidence
+evidence ←──────────────────── survey_results (perception per manager/driver)
   │
   ├──→ personal evidence     (engineer sees own, RLS-enforced)
-  └──→ practice patterns     (team aggregate, anonymous, min 5 members)
+  └──→ practice patterns     (team aggregate + survey context, anonymous, min 5)
 ```
 
-| Table     | Growth rate    | Retention         | Rebuildable from  |
-| --------- | -------------- | ----------------- | ----------------- |
-| events    | ~30k rows/day  | Permanent         | —                 |
-| Storage   | ~1GB/day       | Permanent         | —                 |
-| artifacts | ~5k rows/day   | Permanent         | events + Storage  |
-| evidence  | On-demand      | Until invalidated | artifacts + Guide |
-| roster    | Manual updates | Current           | landmark.yaml     |
+| Table          | Growth rate    | Retention         | Rebuildable from     |
+| -------------- | -------------- | ----------------- | -------------------- |
+| events         | ~30k rows/day  | Permanent         | —                    |
+| Storage        | ~1GB/day       | Permanent         | —                    |
+| artifacts      | ~5k rows/day   | Permanent         | events + Storage     |
+| evidence       | On-demand      | Until invalidated | artifacts + Guide    |
+| organization   | Manual updates | Current           | organization.yaml    |
+| repositories   | Manual updates | Current           | repositories.yaml    |
+| surveys        | Quarterly      | Permanent         | survey YAML files    |
+| survey_results | Quarterly      | Permanent         | survey result files  |
 
 ## Supabase Project Structure
 
@@ -518,12 +584,14 @@ supabase/
     github-webhook/         Edge Function — ingestion endpoint
   migrations/
     001_events.sql          events table + indexes
-    002_artifacts.sql       artifacts table + indexes
-    003_roster.sql          roster table (with team column)
-    004_evidence.sql        evidence table + indexes
-    005_extraction_cron.sql pg_cron job for artifact extraction
-    006_rls_policies.sql    row-level security for personal evidence
-    007_practice_views.sql  aggregate views for practice patterns
+    002_organization.sql    organization table (people → jobs → managers)
+    003_repositories.sql    repositories table (repos → capabilities)
+    004_artifacts.sql       artifacts table + indexes
+    005_evidence.sql        evidence table + indexes
+    006_surveys.sql         surveys + survey_results tables
+    007_extraction_cron.sql pg_cron job for artifact extraction
+    008_rls_policies.sql    row-level security for personal evidence
+    009_practice_views.sql  aggregate views for practice patterns
 ```
 
 ## Implementation Order
@@ -532,7 +600,8 @@ supabase/
 2. GitHub App registration (webhook URL, permissions, events)
 3. Webhook Edge Function (signature validation, Storage write, index insert)
 4. Extraction job (pg_cron, raw event → artifact mapping)
-5. Roster sync CLI with team column (`fit-landmark roster sync`)
+5. Organization sync CLI (`fit-landmark org sync`)
+5b. Repository and survey data loading
 6. RLS policies for personal evidence isolation
 7. Personal evidence flow (`fit-landmark evidence`)
 8. Practice pattern aggregate views and CLI (`fit-landmark practice`)

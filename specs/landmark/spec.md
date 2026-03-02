@@ -76,30 +76,153 @@ framework, producing two views:
    process improvement starts. Nobody is named — the patterns describe the
    system, not the people in it.
 
-### Roster
+### Organization
 
-To connect GitHub activity to the framework, Landmark reads a **roster** — a
-config file that maps GitHub usernames to Pathway job definitions. Organizations
-export this from their HR system or maintain it by hand.
+To connect GitHub activity to the framework, Landmark reads an **organization**
+— a flat list of people that maps GitHub usernames to Pathway job definitions
+and line managers. Organizations export this from their HR system or maintain it
+by hand.
 
 ```yaml
-# landmark.yaml
-roster:
-  - github: alice
-    job: { discipline: se, level: L3, track: platform }
-  - github: bob
-    job: { discipline: se, level: L4 }
-  - github: carol
-    job: { discipline: se, level: L3, track: dx }
+# organization.yaml
+- github: alice
+  name: Alice Smith
+  job: { discipline: se, level: L3, track: platform }
+  manager: carol
+- github: bob
+  name: Bob Jones
+  job: { discipline: se, level: L4 }
+  manager: carol
+- github: carol
+  name: Carol Davis
+  job: { discipline: em, level: L4 }
+  manager: dave
+- github: dave
+  name: Dave Wilson
+  job: { discipline: em, level: L5 }
 ```
 
-The roster tells Landmark what skill profile to reflect against. Alice is an L3
-Software Engineer on the platform track — Pathway derives her skill
+Each person links to their line manager by GitHub username. This single link
+builds the full organizational hierarchy — Carol manages Alice and Bob, Dave
+manages Carol. A team is not a separate entity. A team is a manager and their
+direct reports. Carol's team is Alice and Bob. Dave's team is Carol (and
+transitively, Carol's reports).
+
+The organization tells Landmark what skill profile to reflect against. Alice is
+an L3 Software Engineer on the platform track — Pathway derives her skill
 expectations, and Landmark shows her the evidence in her own GitHub activity
 that relates to those expectations.
 
-Agents appear in the roster the same way. A bot account maps to an agent
+Agents appear in the organization the same way. A bot account maps to an agent
 profile, and the same markers apply to its PRs.
+
+Map defines the schema for organization data. Landmark owns the data itself —
+the actual people, their jobs, and their reporting lines are
+installation-specific and live in Landmark's database, synced from the YAML
+file.
+
+### Repositories
+
+Landmark tracks which GitHub repositories the organization works in.
+Repositories can optionally be tagged with the capability areas they exercise.
+This lets Guide reason about what kind of work happens where without needing
+markers on every PR.
+
+```yaml
+# repositories.yaml
+- id: org/platform-core
+  capabilities: [scale, reliability]
+- id: org/checkout-service
+  capabilities: [delivery]
+- id: org/design-system
+```
+
+The `capabilities` mapping is optional — not all repos need to be tagged.
+Untagged repos still produce artifacts and evidence; they just lack the
+capability signal that helps Guide connect repository activity to specific
+skill areas.
+
+When capability tags are present, Guide can infer context: "Alice works mostly
+in platform-core, which exercises scale and reliability capabilities." This
+complements the explicit marker-based interpretation with structural context
+about where work happens.
+
+Map defines the schema for repository data. Like organization data, the actual
+repository list is installation-specific and lives in Landmark.
+
+### Surveys
+
+Landmark accepts developer experience survey results as structured data input.
+Surveys measure how engineers perceive the productivity drivers already defined
+in Map — the same drivers that link to contributing skills and behaviours.
+
+A survey defines the instrument:
+
+```yaml
+# surveys/2026-q1.yaml
+id: 2026_q1
+name: Q1 2026 Developer Experience Survey
+period:
+  start: 2026-01-01
+  end: 2026-03-31
+scale:
+  min: 1
+  max: 5
+  labels:
+    1: Strongly Disagree
+    2: Disagree
+    3: Neutral
+    4: Agree
+    5: Strongly Agree
+```
+
+Survey results are aggregate Likert scores per team per driver. Individual
+responses stay anonymous — Landmark only sees team-level aggregation. The team
+key points to a manager in the organization, whose direct reports form the
+team:
+
+```yaml
+# survey-results/2026-q1.yaml
+survey: 2026_q1
+results:
+  - manager: carol
+    respondents: 8
+    ratings:
+      clear_direction:      { mean: 4.1, distribution: [0, 1, 1, 3, 3] }
+      say_on_priorities:    { mean: 3.2, distribution: [1, 2, 2, 2, 1] }
+      requirements_quality: { mean: 2.4, distribution: [2, 3, 2, 1, 0] }
+      ease_of_release:      { mean: 4.3, distribution: [0, 0, 1, 3, 4] }
+  - manager: dave
+    respondents: 14
+    ratings:
+      clear_direction:      { mean: 3.8, distribution: [0, 2, 4, 5, 3] }
+      requirements_quality: { mean: 3.1, distribution: [1, 3, 4, 4, 2] }
+```
+
+The `distribution` array gives the count of responses at each scale point
+(1 through 5), preserving the shape of opinion without individual attribution.
+
+This is where surveys and Landmark evidence meet. Guide can traverse from a
+weak survey score on `requirements_quality` to the contributing skills
+(`stakeholder_management`, `technical_writing`, `architecture_design`), to the
+markers for those skills, to the evidence (or lack of evidence) in the team's
+GitHub activity. The survey gives perception. Landmark gives observable
+evidence. The drivers link them through contributing skills.
+
+```
+Survey: Carol's team rated requirements_quality at 2.4/5
+  → Driver: requirements_quality
+    → Contributing skills: stakeholder_management, technical_writing
+      → Markers for those skills at the team's expected levels
+        → Landmark evidence: few PRs show design docs in Carol's team's repos
+
+Diagnosis: The team perceives requirements quality as poor.
+The evidence corroborates — design documentation is sparse.
+The contributing skills point to where investment would help.
+```
+
+Map defines the schema for surveys and survey results. The data itself lives in
+Landmark, loaded from YAML files or an HR integration.
 
 ### The GitHub App
 
@@ -298,17 +421,20 @@ collected. Two views: personal evidence and practice patterns.
 Landmark — Observable markers for engineering practice.
 
 Usage:
-  fit-landmark evidence [--skill]          Show your own evidence
-  fit-landmark practice <skill> [--team]   Show practice patterns across a team
-  fit-landmark marker <skill> [--level]    Show markers for a skill
-  fit-landmark roster                      Show the current roster
-  fit-landmark validate                    Validate marker definitions
+  fit-landmark evidence [--skill]             Show your own evidence
+  fit-landmark practice <skill> [--manager]   Show practice patterns across a team
+  fit-landmark marker <skill> [--level]       Show markers for a skill
+  fit-landmark org                            Show the organization
+  fit-landmark org sync <file>                Sync organization from YAML
+  fit-landmark survey <id>                    Show survey results
+  fit-landmark survey load <file>             Load survey results from YAML
+  fit-landmark validate                       Validate markers and data
 ```
 
 ### Personal Evidence
 
 The default command shows the engineer their own work. No arguments needed — it
-uses their GitHub username and roster entry.
+uses their GitHub username and organization entry.
 
 ```
 $ fit-landmark evidence --skill system_design
@@ -339,9 +465,9 @@ The aggregate view shows how a practice appears across a team. No individuals
 named.
 
 ```
-$ fit-landmark practice system_design --team platform
+$ fit-landmark practice system_design --manager carol
 
-  System Design practice — Platform team (last quarter)
+  System Design practice — Carol's team (last quarter)
 
   Strong evidence:
     Design documents in PRs — most feature PRs include architecture sections
@@ -352,26 +478,59 @@ $ fit-landmark practice system_design --team platform
     Consider: do engineers have time for design exploration before
     implementation begins?
 
-  Based on 47 feature PRs and 156 reviews from 12 engineers.
+  Based on 47 feature PRs and 156 reviews from 8 engineers.
 ```
+
+The `--manager` flag identifies a team by its manager — Carol's team is her
+direct reports. This is the only way to scope practice patterns. There is no
+separate team entity.
 
 This view is for engineering leadership. It points to where the system supports
 good practice and where it doesn't. It asks questions about the process, not
 about the people.
 
+When survey data is available for the same manager and period, the practice
+view includes it:
+
+```
+$ fit-landmark practice system_design --manager carol
+
+  System Design practice — Carol's team (last quarter)
+
+  Survey context (Q1 2026):
+    requirements_quality: 2.4/5 — team perceives requirements quality as poor
+    → contributing skills: stakeholder_management, technical_writing,
+      architecture_design
+
+  Strong evidence:
+    Design documents in PRs — most feature PRs include architecture sections
+    Review quality — review threads regularly discuss design rationale
+
+  Weak evidence:
+    Trade-off analysis — few PRs document multiple approaches considered
+    Consider: do engineers have time for design exploration before
+    implementation begins?
+
+  The survey and evidence align: the team perceives requirements quality as
+  poor, and design documentation in PRs is sparse. The contributing skills
+  point to where investment would help.
+```
+
 ## Summary
 
-| Attribute     | Value                                                                   |
-| ------------- | ----------------------------------------------------------------------- |
-| Package       | `@forwardimpact/landmark`                                               |
-| CLI           | `fit-landmark`                                                          |
-| Delivery      | GitHub App installed on GitHub Organizations                            |
-| Icon          | Cairn (three stacked stones)                                            |
-| Emoji         | 🪨                                                                      |
-| Hero scene    | "Checking the Cairn"                                                    |
-| Tagline       | "See your own growth. Improve the system."                              |
-| Depends on    | `@forwardimpact/guide` (interpretation), `@forwardimpact/map` (markers) |
-| Input         | GitHub webhook events + roster (people → job profiles)                  |
-| For engineers | Self-directed evidence, preparation for career conversations            |
-| For teams     | Practice patterns, process improvement signals                          |
-| For agents    | Same markers, same evidence, same interpretation                        |
+| Attribute     | Value                                                                    |
+| ------------- | ------------------------------------------------------------------------ |
+| Package       | `@forwardimpact/landmark`                                                |
+| CLI           | `fit-landmark`                                                           |
+| Delivery      | GitHub App installed on GitHub Organizations                             |
+| Icon          | Cairn (three stacked stones)                                             |
+| Emoji         | 🪨                                                                       |
+| Hero scene    | "Checking the Cairn"                                                     |
+| Tagline       | "See your own growth. Improve the system."                               |
+| Depends on    | `@forwardimpact/guide` (interpretation), `@forwardimpact/map` (schemas)  |
+| Input         | GitHub events + organization (people → jobs → managers) + survey results |
+| Schema (Map)  | Organization, repositories, surveys, survey results, markers             |
+| Data          | Installation-specific, owned by Landmark                                 |
+| For engineers | Self-directed evidence, preparation for career conversations             |
+| For teams     | Practice patterns + survey context, process improvement signals          |
+| For agents    | Same markers, same evidence, same interpretation                         |
