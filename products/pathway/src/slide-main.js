@@ -8,7 +8,7 @@ import { createSlideRouter } from "./lib/router-slides.js";
 import { setData, getState } from "./lib/state.js";
 import { loadAllData } from "./lib/yaml-loader.js";
 import { span, a } from "./lib/render.js";
-import { generateAllJobs } from "@forwardimpact/libpathway/derivation";
+import { generateAllJobs } from "@forwardimpact/libskill/derivation";
 import { sortTracksByName } from "./formatters/track/shared.js";
 
 // Import slide renderers

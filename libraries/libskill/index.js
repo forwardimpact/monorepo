@@ -1,5 +1,5 @@
 /**
- * @forwardimpact/libpathway
+ * @forwardimpact/libskill
  *
  * Pure business logic for Engineering Pathway framework.
  */

@@ -13,7 +13,7 @@ import {
   getBehaviourMaturityIndex,
   formatLevel,
 } from "../lib/render.js";
-import { compareByCapability } from "@forwardimpact/libpathway/policies";
+import { compareByCapability } from "@forwardimpact/libskill/policies";
 
 /**
  * Create a comparison skill radar chart

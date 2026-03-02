@@ -31,7 +31,8 @@ function resolvePackageLib(packageName) {
 }
 
 const mapLibDir = resolvePackageLib("@forwardimpact/map");
-const modelLibDir = resolvePackageLib("@forwardimpact/libpathway");
+const modelLibDir = resolvePackageLib("@forwardimpact/libskill");
+const uiLibDir = resolvePackageLib("@forwardimpact/libui");
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -138,8 +139,14 @@ export async function runDevCommand({ dataDir, options }) {
       // Serve @forwardimpact/map package files (resolved via Node module resolution)
       filePath = join(mapLibDir, pathname.slice(9));
     } else if (pathname.startsWith("/model/lib/")) {
-      // Serve @forwardimpact/libpathway package files (resolved via Node module resolution)
+      // Serve @forwardimpact/libskill package files (resolved via Node module resolution)
       filePath = join(modelLibDir, pathname.slice(11));
+    } else if (pathname.startsWith("/ui/lib/")) {
+      // Serve @forwardimpact/libui package JS files
+      filePath = join(uiLibDir, pathname.slice(8));
+    } else if (pathname.startsWith("/ui/css/")) {
+      // Serve @forwardimpact/libui package CSS files
+      filePath = join(uiLibDir, "css", pathname.slice(8));
     } else if (pathname === "/" || pathname === "") {
       // Serve index.html for root
       filePath = join(publicDir, "index.html");
