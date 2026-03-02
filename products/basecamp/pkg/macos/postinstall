@@ -33,7 +33,12 @@ if [ -f "$PLIST" ]; then
   /bin/rm -f "$PLIST"
 fi
 
-# Stop any running instance so the new binary takes effect on next launch
+# --- Stop running instance gracefully ----------------------------------------
+
+# Try graceful shutdown first (stops running agents cleanly), then killall as fallback.
+if [ -f "$APP_PATH/Contents/MacOS/fit-basecamp" ]; then
+  /usr/bin/sudo -u "$REAL_USER" "$APP_PATH/Contents/MacOS/fit-basecamp" --stop 2>/dev/null || true
+fi
 /usr/bin/killall Basecamp 2>/dev/null || true
 /usr/bin/killall fit-basecamp 2>/dev/null || true
 /usr/bin/killall BasecampStatus 2>/dev/null || true

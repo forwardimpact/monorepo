@@ -46,6 +46,19 @@
       Open <strong>Basecamp</strong> from <code>/Applications/</code> to start
       the scheduler. It runs as a menu bar app — look for the tent icon.
     </p>
+    <p><strong>Grant Full Disk Access:</strong></p>
+    <p>
+      Basecamp needs Full Disk Access to sync your calendar and mail. Open
+      <strong
+        >System Settings → Privacy &amp; Security → Full Disk Access</strong
+      >
+      and add or enable <code>Basecamp.app</code>.
+    </p>
+    <p>
+      If you are upgrading from a previous version, toggle Basecamp
+      <strong>off</strong> then <strong>on</strong> again — macOS revokes the
+      permission when the binary changes.
+    </p>
     <p><strong>Next steps:</strong></p>
     <p>1. Edit your identity file:</p>
     <p class="cmd"><code>vim ~/Documents/Personal/USER.md</code></p>
@@ -57,7 +70,11 @@
         >/Applications/Basecamp.app/Contents/MacOS/fit-basecamp --status</code
       >
     </p>
-    <p>4. Open your knowledge base interactively:</p>
+    <p>4. Stop the scheduler gracefully (before upgrading):</p>
+    <p class="cmd">
+      <code>/Applications/Basecamp.app/Contents/MacOS/fit-basecamp --stop</code>
+    </p>
+    <p>5. Open your knowledge base interactively:</p>
     <p class="cmd"><code>cd ~/Documents/Personal &amp;&amp; claude</code></p>
   </body>
 </html>

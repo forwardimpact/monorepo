@@ -16,6 +16,7 @@ private enum MenuTag: Int {
 class StatusMenu: NSObject, NSMenuDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let daemon = DaemonConnection()
+    private let processManager: ProcessManager
     private var lastStatus: StatusResponse?
     private var pollTimer: Timer?
     private var reconnectTimer: Timer?
@@ -23,7 +24,8 @@ class StatusMenu: NSObject, NSMenuDelegate {
     private var isConnected = false
     private var menuIsOpen = false
 
-    override init() {
+    init(processManager: ProcessManager) {
+        self.processManager = processManager
         super.init()
         setupStatusItem()
         setupDaemon()
@@ -120,10 +122,17 @@ class StatusMenu: NSObject, NSMenuDelegate {
             menu.addItem(header)
             menu.addItem(NSMenuItem.separator())
 
-            let disc = NSMenuItem(title: "Daemon not connected", action: nil, keyEquivalent: "")
-            disc.tag = MenuTag.connectionStatus.rawValue
-            disc.isEnabled = false
-            menu.addItem(disc)
+            if processManager.isRunning {
+                let connecting = NSMenuItem(title: "Connecting…", action: nil, keyEquivalent: "")
+                connecting.tag = MenuTag.connectionStatus.rawValue
+                connecting.isEnabled = false
+                menu.addItem(connecting)
+            } else {
+                let stopped = NSMenuItem(title: "Agent team stopped", action: nil, keyEquivalent: "")
+                stopped.tag = MenuTag.connectionStatus.rawValue
+                stopped.isEnabled = false
+                menu.addItem(stopped)
+            }
 
             menu.addItem(NSMenuItem.separator())
             addFooterItems(to: menu)
@@ -371,6 +380,26 @@ class StatusMenu: NSObject, NSMenuDelegate {
         openLogs.target = self
         menu.addItem(openLogs)
 
+        menu.addItem(NSMenuItem.separator())
+
+        if processManager.isRunning {
+            let stop = NSMenuItem(
+                title: "Stop Agent Team",
+                action: #selector(stopAgentTeam),
+                keyEquivalent: ""
+            )
+            stop.target = self
+            menu.addItem(stop)
+        } else {
+            let start = NSMenuItem(
+                title: "Start Agent Team",
+                action: #selector(startAgentTeam),
+                keyEquivalent: ""
+            )
+            start.target = self
+            menu.addItem(start)
+        }
+
         let quit = NSMenuItem(
             title: "Quit Basecamp",
             action: #selector(quitApp),
@@ -381,6 +410,18 @@ class StatusMenu: NSObject, NSMenuDelegate {
     }
 
     // MARK: - Actions
+
+    @objc private func stopAgentTeam() {
+        processManager.pauseScheduler()
+        lastStatus = nil
+        updateMenu()
+    }
+
+    @objc private func startAgentTeam() {
+        processManager.resumeScheduler()
+        connect()
+        updateMenu()
+    }
 
     @objc private func quitApp() {
         NSApp.terminate(nil)

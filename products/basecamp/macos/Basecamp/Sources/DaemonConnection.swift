@@ -136,6 +136,10 @@ class DaemonConnection {
         sendJSON(["type": "wake", "agent": agent])
     }
 
+    func requestShutdown() {
+        sendJSON(["type": "shutdown"])
+    }
+
     private func sendJSON(_ dict: [String: Any]) {
         guard let conn = connection,
               let data = try? JSONSerialization.data(withJSONObject: dict)

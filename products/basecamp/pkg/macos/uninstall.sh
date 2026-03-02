@@ -14,6 +14,10 @@ echo ""
 
 # --- Stop running processes --------------------------------------------------
 
+# Try graceful shutdown first (stops running agents cleanly), then killall as fallback.
+if [ -f "/Applications/Basecamp.app/Contents/MacOS/fit-basecamp" ]; then
+  /Applications/Basecamp.app/Contents/MacOS/fit-basecamp --stop 2>/dev/null || true
+fi
 killall Basecamp 2>/dev/null || true
 killall fit-basecamp 2>/dev/null || true
 killall BasecampStatus 2>/dev/null || true

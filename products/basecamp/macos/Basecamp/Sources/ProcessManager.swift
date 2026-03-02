@@ -18,8 +18,13 @@ class ProcessManager {
     private var schedulerPID: pid_t = 0
     private var monitorTimer: Timer?
 
+    /// Whether the scheduler is supposed to be running. When false,
+    /// the monitor won't auto-restart a crashed scheduler.
+    private(set) var isRunning = false
+
     /// Spawn the scheduler binary from inside the app bundle.
     func startScheduler() {
+        isRunning = true
         let bundlePath = Bundle.main.bundlePath
         let schedulerPath = "\(bundlePath)/Contents/MacOS/fit-basecamp"
 
@@ -105,7 +110,9 @@ class ProcessManager {
     }
 
     /// Send SIGTERM to the scheduler and wait for it to exit.
+    /// Called on app quit — stops everything.
     func stopScheduler() {
+        isRunning = false
         monitorTimer?.invalidate()
         monitorTimer = nil
         guard schedulerPID > 0 else { return }
@@ -114,6 +121,26 @@ class ProcessManager {
         waitpid(schedulerPID, &status, 0)
         schedulerPID = 0
         NSLog("Scheduler stopped")
+    }
+
+    /// Pause the scheduler without quitting the app.
+    /// Sends SIGTERM (daemon kills its children gracefully) and
+    /// prevents auto-restart until `resumeScheduler()` is called.
+    func pauseScheduler() {
+        isRunning = false
+        monitorTimer?.invalidate()
+        monitorTimer = nil
+        guard schedulerPID > 0 else { return }
+        kill(schedulerPID, SIGTERM)
+        var status: Int32 = 0
+        waitpid(schedulerPID, &status, 0)
+        schedulerPID = 0
+        NSLog("Scheduler paused")
+    }
+
+    /// Resume a paused scheduler by spawning it again.
+    func resumeScheduler() {
+        startScheduler()
     }
 
     // MARK: - Child monitoring
@@ -132,8 +159,12 @@ class ProcessManager {
         var status: Int32 = 0
         let result = waitpid(schedulerPID, &status, WNOHANG)
         if result > 0 {
-            NSLog("Scheduler exited unexpectedly (status %d), restarting...", status)
             schedulerPID = 0
+            guard isRunning else {
+                NSLog("Scheduler exited (paused, not restarting)")
+                return
+            }
+            NSLog("Scheduler exited unexpectedly (status %d), restarting...", status)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
                 self?.startScheduler()
             }

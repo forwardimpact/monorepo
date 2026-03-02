@@ -43,9 +43,11 @@ export default [
     languageOptions: {
       globals: {
         Buffer: "readonly",
+        clearTimeout: "readonly",
         Deno: "readonly",
         Response: "readonly",
         setInterval: "readonly",
+        setTimeout: "readonly",
         require: "readonly",
         TextEncoder: "readonly",
         TextDecoder: "readonly",

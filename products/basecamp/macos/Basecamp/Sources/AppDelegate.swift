@@ -18,7 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         processManager.startScheduler()
-        statusMenu = StatusMenu()
+        statusMenu = StatusMenu(processManager: processManager)
     }
 
     func applicationWillTerminate(_: Notification) {

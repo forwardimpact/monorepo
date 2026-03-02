@@ -8,6 +8,7 @@
 //   node basecamp.js --wake <agent>      Wake a specific agent immediately
 //   node basecamp.js --init <path>       Initialize a new knowledge base
 //   node basecamp.js --update [path]     Update KB with latest CLAUDE.md, agents and skills
+//   node basecamp.js --stop              Gracefully stop daemon and children
 //   node basecamp.js --validate          Validate agent definitions exist
 //   node basecamp.js --status            Show agent status
 //   node basecamp.js --help              Show this help
@@ -49,6 +50,9 @@ let daemonStartedAt = null;
 // Maximum time an agent can be "active" before being considered stale (35 min).
 // Matches the 30-minute child_process timeout plus a buffer.
 const MAX_AGENT_RUNTIME_MS = 35 * 60_000;
+
+/** Active child PIDs spawned by posix_spawn (for graceful shutdown). */
+const activeChildren = new Set();
 
 // --- Helpers ----------------------------------------------------------------
 
@@ -232,6 +236,7 @@ async function wakeAgent(agentName, agent, state) {
       undefined,
       kbPath,
     );
+    activeChildren.add(pid);
 
     // Read stdout and stderr concurrently to avoid pipe deadlocks,
     // then wait for the child to exit.
@@ -240,6 +245,7 @@ async function wakeAgent(agentName, agent, state) {
       posixSpawn.readAll(stderrFd),
     ]);
     const exitCode = await posixSpawn.waitForExit(pid);
+    activeChildren.delete(pid);
 
     if (exitCode === 0) {
       log(`Agent ${agentName} completed. Output: ${stdout.slice(0, 200)}...`);
@@ -476,6 +482,14 @@ function handleMessage(socket, line) {
 
   if (request.type === "status") return handleStatusRequest(socket);
 
+  if (request.type === "shutdown") {
+    log("Shutdown requested via socket.");
+    send(socket, { type: "ack", command: "shutdown" });
+    socket.end();
+    killActiveChildren();
+    process.exit(0);
+  }
+
   if (request.type === "wake") {
     if (!request.agent) {
       send(socket, { type: "error", message: "Missing agent name" });
@@ -531,13 +545,82 @@ function startSocketServer() {
   });
 
   const cleanup = () => {
+    killActiveChildren();
     server.close();
+    try {
+      unlinkSync(SOCKET_PATH);
+    } catch {}
     process.exit(0);
   };
   process.on("SIGTERM", cleanup);
   process.on("SIGINT", cleanup);
 
   return server;
+}
+
+// --- Graceful shutdown -------------------------------------------------------
+
+/**
+ * Send SIGTERM to all tracked child processes (running claude sessions).
+ * Called on daemon shutdown to prevent orphaned processes.
+ */
+function killActiveChildren() {
+  for (const pid of activeChildren) {
+    try {
+      process.kill(pid, "SIGTERM");
+      log(`Sent SIGTERM to child PID ${pid}`);
+    } catch {
+      // Already exited
+    }
+  }
+  activeChildren.clear();
+}
+
+/**
+ * Connect to the daemon socket and request graceful shutdown.
+ * Waits up to 5 seconds for the daemon to exit.
+ * @returns {Promise<boolean>} true if shutdown succeeded
+ */
+async function requestShutdown() {
+  if (!existsSync(SOCKET_PATH)) {
+    console.log("Daemon not running (no socket).");
+    return false;
+  }
+
+  const { createConnection } = await import("node:net");
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      console.log("Shutdown timed out.");
+      socket.destroy();
+      resolve(false);
+    }, 5000);
+
+    const socket = createConnection(SOCKET_PATH, () => {
+      socket.write(JSON.stringify({ type: "shutdown" }) + "\n");
+    });
+
+    let buffer = "";
+    socket.on("data", (data) => {
+      buffer += data.toString();
+      if (buffer.includes("\n")) {
+        clearTimeout(timeout);
+        console.log("Daemon stopped.");
+        socket.destroy();
+        resolve(true);
+      }
+    });
+
+    socket.on("error", () => {
+      clearTimeout(timeout);
+      console.log("Daemon not running (connection refused).");
+      resolve(false);
+    });
+
+    socket.on("close", () => {
+      clearTimeout(timeout);
+      resolve(true);
+    });
+  });
 }
 
 // --- Daemon -----------------------------------------------------------------
@@ -836,6 +919,7 @@ Usage:
   ${bin} --wake <agent>      Wake a specific agent immediately
   ${bin} --init <path>       Initialize a new knowledge base
   ${bin} --update [path]     Update KB with latest CLAUDE.md, agents and skills
+  ${bin} --stop              Gracefully stop daemon and all running agents
   ${bin} --validate          Validate agent definitions exist
   ${bin} --status            Show agent status
 
@@ -864,6 +948,10 @@ const commands = {
   "-h": showHelp,
   "--daemon": daemon,
   "--validate": validate,
+  "--stop": async () => {
+    const stopped = await requestShutdown();
+    if (!stopped) process.exit(1);
+  },
   "--status": showStatus,
   "--init": () => initKB(requireArg("Usage: fit-basecamp --init <path>")),
   "--update": runUpdate,
