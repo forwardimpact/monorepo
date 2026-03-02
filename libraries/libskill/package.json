@@ -1,0 +1,39 @@
+{
+  "name": "@forwardimpact/libskill",
+  "version": "3.0.0",
+  "description": "Derivation engine for roles, skills, and agent team profiles",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forwardimpact/monorepo",
+    "directory": "libraries/libskill"
+  },
+  "homepage": "https://www.forwardimpact.team/model",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "*.js",
+    "policies/"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./derivation": "./derivation.js",
+    "./modifiers": "./modifiers.js",
+    "./agent": "./agent.js",
+    "./interview": "./interview.js",
+    "./job": "./job.js",
+    "./job-cache": "./job-cache.js",
+    "./checklist": "./checklist.js",
+    "./matching": "./matching.js",
+    "./profile": "./profile.js",
+    "./progression": "./progression.js",
+    "./policies": "./policies/index.js",
+    "./toolkit": "./toolkit.js"
+  },
+  "dependencies": {
+    "@forwardimpact/map": "^0.11.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

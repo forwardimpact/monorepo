@@ -2,7 +2,7 @@
  * Skill Modifier Helpers for Validation
  *
  * Contains only the isCapability function needed for schema validation.
- * Full modifier logic is in @forwardimpact/libpathway.
+ * Full modifier logic is in @forwardimpact/libskill.
  */
 
 import { Capability } from "./levels.js";

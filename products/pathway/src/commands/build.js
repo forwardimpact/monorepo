@@ -42,7 +42,8 @@ function resolvePackageLib(packageName) {
 }
 
 const mapLibDir = resolvePackageLib("@forwardimpact/map");
-const modelLibDir = resolvePackageLib("@forwardimpact/libpathway");
+const modelLibDir = resolvePackageLib("@forwardimpact/libskill");
+const uiLibDir = resolvePackageLib("@forwardimpact/libui");
 
 /**
  * Files and directories to copy from app/
@@ -141,13 +142,21 @@ ${framework.emojiIcon} Generating ${framework.title} static site...
     }
   }
 
-  // Copy @forwardimpact/map and @forwardimpact/libpathway packages
+  // Copy @forwardimpact/map and @forwardimpact/libskill packages
   // These are needed by the browser's import map
   console.log("📚 Copying package dependencies...");
   await cp(mapLibDir, join(outputDir, "map/lib"), { recursive: true });
   console.log(`   ✓ map/lib`);
   await cp(modelLibDir, join(outputDir, "model/lib"), { recursive: true });
   console.log(`   ✓ model/lib`);
+  // Copy libui JS (src/) and CSS (src/css/)
+  await cp(uiLibDir, join(outputDir, "ui/lib"), { recursive: true });
+  // CSS is within uiLibDir/css/ so it's already copied as ui/lib/css/
+  // Create ui/css/ symlink-like copy for the CSS @import paths
+  await cp(join(uiLibDir, "css"), join(outputDir, "ui/css"), {
+    recursive: true,
+  });
+  console.log(`   ✓ ui/lib + ui/css`);
 
   // Copy data directory (dereference symlinks to copy actual content)
   console.log("📁 Copying data files...");
