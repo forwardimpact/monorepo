@@ -7,10 +7,7 @@ import { access } from "node:fs/promises";
 import { ProcessorBase } from "@forwardimpact/libutil";
 import { resource, tool } from "@forwardimpact/libtype";
 
-import {
-  generateSchemaFromProtobuf,
-  buildToolDescription,
-} from "../schema.js";
+import { generateSchemaFromProtobuf, buildToolDescription } from "../schema.js";
 
 const { Root } = pkg;
 

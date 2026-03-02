@@ -44,19 +44,19 @@ docs/
 
 Pages use the `layout` front matter field to control styling:
 
-| Layout    | Use for                          |
-| --------- | -------------------------------- |
-| `home`    | Landing page — full-width, no max-width constraint |
+| Layout    | Use for                                                |
+| --------- | ------------------------------------------------------ |
+| `home`    | Landing page — full-width, no max-width constraint     |
 | `product` | Product pages — 720px max-width, value-box blockquotes |
-| _(none)_  | Documentation — 680px max-width prose formatting |
+| _(none)_  | Documentation — 680px max-width prose formatting       |
 
 ### Assets Pipeline
 
 Hero illustrations and product icons have **source files** in `design/` and
 **deployed copies** in `docs/assets/`:
 
-| Source                | Deployed to             |
-| --------------------- | ----------------------- |
+| Source                | Deployed to               |
+| --------------------- | ------------------------- |
 | `design/heroes/*.svg` | `docs/assets/heros/*.svg` |
 | `design/icons/*.svg`  | `docs/assets/icons/*.svg` |
 
@@ -118,5 +118,5 @@ npx fit-doc build --src=docs --out=dist   # Full production build
 ### Add schema files to the published site
 
 Schema files are copied automatically by the workflow. Add new JSON schemas to
-`products/map/schema/json/` and RDF schemas to `products/map/schema/rdf/` —
-they will appear at `/schema/json/` and `/schema/rdf/` on the live site.
+`products/map/schema/json/` and RDF schemas to `products/map/schema/rdf/` — they
+will appear at `/schema/json/` and `/schema/rdf/` on the live site.

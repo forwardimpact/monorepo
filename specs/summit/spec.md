@@ -9,12 +9,12 @@ deliver.
 
 ## Why
 
-| Product     | Question it answers                |
-| ----------- | ---------------------------------- |
-| **Map**     | What does the terrain look like?   |
-| **Pathway** | Where am I going?                  |
-| **Basecamp** | What do I need day-to-day?        |
-| **Summit**  | _Can this team reach the peak?_    |
+| Product      | Question it answers              |
+| ------------ | -------------------------------- |
+| **Map**      | What does the terrain look like? |
+| **Pathway**  | Where am I going?                |
+| **Basecamp** | What do I need day-to-day?       |
+| **Summit**   | _Can this team reach the peak?_  |
 
 Map defines skills. Pathway charts individual routes. Basecamp handles daily
 ops. But none of them answer the question engineering leaders ask most often:
@@ -65,14 +65,14 @@ way to inspect individuals.
 ## What
 
 Summit is a CLI tool that reads a team roster and produces capability analysis.
-Organizations define teams — who's on them, what their Pathway job profiles
-are — and Summit derives structural properties of that team's collective skill
+Organizations define teams — who's on them, what their Pathway job profiles are
+— and Summit derives structural properties of that team's collective skill
 coverage.
 
 ### Three Views
 
-1. **Capability coverage** — across all skills in the framework, where does
-   this team have depth and where does it have gaps? A heatmap of collective
+1. **Capability coverage** — across all skills in the framework, where does this
+   team have depth and where does it have gaps? A heatmap of collective
    proficiency.
 
 2. **Structural risks** — single points of failure (skills held by only one
@@ -113,8 +113,8 @@ teams:
       job: { discipline: se, level: L2 }
 ```
 
-No GitHub usernames. No external identifiers. Just names (or pseudonyms) and
-job profiles. The roster is a planning document, not an integration point.
+No GitHub usernames. No external identifiers. Just names (or pseudonyms) and job
+profiles. The roster is a planning document, not an integration point.
 
 ### Capability Coverage
 
@@ -195,6 +195,7 @@ The most powerful view. Summit simulates roster changes and shows their impact
 on team capability before anyone makes a decision.
 
 **Adding a person:**
+
 ```
 $ fit-summit what-if platform --add "{ discipline: se, level: L3 }"
 
@@ -214,6 +215,7 @@ $ fit-summit what-if platform --add "{ discipline: se, level: L3 }"
 ```
 
 **Adding a targeted hire:**
+
 ```
 $ fit-summit what-if platform --add "{ discipline: se, level: L3, track: platform }" --focus reliability
 
@@ -232,6 +234,7 @@ $ fit-summit what-if platform --add "{ discipline: se, level: L3, track: platfor
 ```
 
 **Removing a person:**
+
 ```
 $ fit-summit what-if platform --remove Eve
 
@@ -251,6 +254,7 @@ $ fit-summit what-if platform --remove Eve
 ```
 
 **Comparing team compositions:**
+
 ```
 $ fit-summit what-if platform --move Alice --to payments
 
@@ -270,8 +274,8 @@ $ fit-summit what-if platform --move Alice --to payments
 
 ### Growth Alignment
 
-Summit connects team needs to individual growth opportunities. When a team has
-a gap, that gap is a growth opportunity for someone on the team. When someone
+Summit connects team needs to individual growth opportunities. When a team has a
+gap, that gap is a growth opportunity for someone on the team. When someone
 wants to grow in a direction, Summit shows whether the team needs that growth.
 
 ```
@@ -312,24 +316,24 @@ map → libpathway → pathway
 - **Pathway** presents individual career progression
 - **Summit** presents collective capability and planning scenarios
 
-Summit sits beside Pathway, not above it. Pathway is for the engineer looking
-at their own career. Summit is for the leader looking at the team's capability.
+Summit sits beside Pathway, not above it. Pathway is for the engineer looking at
+their own career. Summit is for the leader looking at the team's capability.
 Both consume the same derivation engine. Neither depends on the other.
 
 ### Comparison with Landmark
 
-| Dimension        | Landmark                       | Summit                          |
-| ---------------- | ------------------------------ | ------------------------------- |
-| **Orientation**  | Retrospective — past work      | Prospective — future capability |
-| **Input**        | GitHub webhook events          | Team roster YAML file           |
-| **Dependencies** | GitHub App, Supabase, LLM      | Map + libpathway only           |
-| **Runs where**   | Cloud (Edge Functions, pg)     | Local CLI, instant              |
-| **Focus**        | Individual evidence            | Team composition                |
-| **Output**       | Artifacts with interpretation  | Coverage, risks, scenarios      |
-| **Determinism**  | LLM interpretation varies      | Fully deterministic             |
-| **Cost**         | Supabase + LLM API costs       | Zero runtime cost               |
+| Dimension        | Landmark                        | Summit                          |
+| ---------------- | ------------------------------- | ------------------------------- |
+| **Orientation**  | Retrospective — past work       | Prospective — future capability |
+| **Input**        | GitHub webhook events           | Team roster YAML file           |
+| **Dependencies** | GitHub App, Supabase, LLM       | Map + libpathway only           |
+| **Runs where**   | Cloud (Edge Functions, pg)      | Local CLI, instant              |
+| **Focus**        | Individual evidence             | Team composition                |
+| **Output**       | Artifacts with interpretation   | Coverage, risks, scenarios      |
+| **Determinism**  | LLM interpretation varies       | Fully deterministic             |
+| **Cost**         | Supabase + LLM API costs        | Zero runtime cost               |
 | **Privacy**      | Requires GitHub activity access | Names + job profiles only       |
-| **Question**     | "What does my work show?"      | "Can this team deliver?"        |
+| **Question**     | "What does my work show?"       | "Can this team deliver?"        |
 
 Summit and Landmark are complementary but independent. An organization could use
 both, either, or neither. They address fundamentally different concerns:
@@ -342,17 +346,17 @@ Landmark is about the trail already walked, Summit is about the peak ahead.
 **Summit** — the peak a team is trying to reach together. Not individual
 achievement — collective capability that enables delivery.
 
-| Product   | Metaphor                 | Provides               |
-| --------- | ------------------------ | ---------------------- |
-| Map       | The surveyed territory   | Data model             |
-| Pathway   | The mountain trail       | Career progression     |
-| Basecamp  | The shelter and supplies | Daily operations       |
-| Summit    | The mountain peak        | Team capability target |
+| Product  | Metaphor                 | Provides               |
+| -------- | ------------------------ | ---------------------- |
+| Map      | The surveyed territory   | Data model             |
+| Pathway  | The mountain trail       | Career progression     |
+| Basecamp | The shelter and supplies | Daily operations       |
+| Summit   | The mountain peak        | Team capability target |
 
 ### Icon: The Peak
 
-Two overlapping mountain peaks, the taller one in front. Clean triangular
-shapes with a flag at the top of the tallest peak.
+Two overlapping mountain peaks, the taller one in front. Clean triangular shapes
+with a flag at the top of the tallest peak.
 
 - 24 x 24px grid, 2px padding
 - 2px stroke, round caps and joins
@@ -376,12 +380,12 @@ right, with multiple possible routes visible as faint trails.
 
 ### Visual Language
 
-| Attribute   | Value                                                       |
-| ----------- | ----------------------------------------------------------- |
-| Metaphor    | Mountain peaks, team ascent, route planning, base camps     |
-| Tone        | "See your team's capability. Plan the ascent."              |
-| Terrain     | High alpine — above treeline, clear visibility, open views  |
-| Empty state | Clouds obscuring the peak — capability not yet assessed     |
+| Attribute   | Value                                                      |
+| ----------- | ---------------------------------------------------------- |
+| Metaphor    | Mountain peaks, team ascent, route planning, base camps    |
+| Tone        | "See your team's capability. Plan the ascent."             |
+| Terrain     | High alpine — above treeline, clear visibility, open views |
+| Empty state | Clouds obscuring the peak — capability not yet assessed    |
 
 ### Taglines
 

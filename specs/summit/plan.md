@@ -79,9 +79,8 @@ map → libpathway → summit
 ```
 
 Summit consumes the same derivation engine as Pathway. It calls
-`deriveJob(discipline, level, track, data)` for each roster entry and works
-with the resulting skill matrices. No new derivation logic is needed in
-libpathway.
+`deriveJob(discipline, level, track, data)` for each roster entry and works with
+the resulting skill matrices. No new derivation logic is needed in libpathway.
 
 Summit does **not** depend on Pathway. They are siblings, not parent-child:
 
@@ -107,6 +106,7 @@ teams:
 ```
 
 Validation rules:
+
 - All `discipline`, `level`, and `track` values must exist in Map data
 - Team names must be unique within the file
 - Person names must be unique within a team
@@ -248,15 +248,18 @@ export function detectRisks(team, data) { ... }
 ```
 
 **Single points of failure:**
+
 - Skills where exactly 1 person holds working level or above
 - Severity increases with how critical the skill is to the team's track
 
 **Critical gaps:**
+
 - Skills expected for the team's dominant discipline+track where nobody holds
   working proficiency
 - Uses discipline/track skill tiers from Map to determine "expected" skills
 
 **Concentration risks:**
+
 - Three or more people at the same level in the same capability
 - Indicates redundancy and potential growth bottleneck
 
@@ -282,14 +285,15 @@ export function simulateScenario(currentTeam, action, data) { ... }
 
 Supported actions:
 
-| Action    | Input                              | Behavior                                   |
-| --------- | ---------------------------------- | ------------------------------------------ |
-| `add`     | Job profile (discipline/level/track) | Add hypothetical person to team            |
-| `remove`  | Person name                        | Remove from team, show impact              |
-| `move`    | Person name + target team          | Remove from source, add to target          |
-| `promote` | Person name                        | Advance to next level, re-derive           |
+| Action    | Input                                | Behavior                          |
+| --------- | ------------------------------------ | --------------------------------- |
+| `add`     | Job profile (discipline/level/track) | Add hypothetical person to team   |
+| `remove`  | Person name                          | Remove from team, show impact     |
+| `move`    | Person name + target team            | Remove from source, add to target |
+| `promote` | Person name                          | Advance to next level, re-derive  |
 
 For each action:
+
 1. Clone the current team profile
 2. Apply the mutation
 3. Re-run aggregation and risk detection
@@ -315,6 +319,7 @@ export function planGrowth(team, data) { ... }
 ```
 
 For each team gap or single point of failure:
+
 1. Identify which team members are closest to closing the gap (highest current
    proficiency below working)
 2. Rank by growth distance (how many proficiency levels to gain)
@@ -322,6 +327,7 @@ For each team gap or single point of failure:
    direction is natural for their role
 
 Impact classification:
+
 - **High** — addresses a critical gap
 - **Medium** — reduces a single point of failure
 - **Low** — strengthens existing coverage
@@ -335,6 +341,7 @@ Impact classification:
 #### 5.1 Formatters
 
 Follow the same pattern as Pathway formatters:
+
 - `shared.js` — format-agnostic logic (sorting, grouping, labeling)
 - `text.js` — ANSI terminal output with bar charts
 - `markdown.js` — Markdown tables and lists
@@ -358,6 +365,7 @@ const commands = {
 ```
 
 Global options:
+
 - `--roster <path>` — path to summit.yaml (default: `./summit.yaml`)
 - `--data <path>` — path to Map data directory
 - `--format <type>` — `text` (default), `json`, `markdown`
@@ -435,7 +443,8 @@ reads Summit's JSON output and annotates Pathway's existing progression view.
   state files, no caching. Run it again and get the same answer.
 - **No LLM calls** — All analysis is deterministic derivation and arithmetic.
 - **No GitHub integration** — Roster is maintained by hand or exported from HR.
-- **No individual scoring** — Coverage shows team depth, not individual rankings.
+- **No individual scoring** — Coverage shows team depth, not individual
+  rankings.
 - **No historical tracking** — Summit shows current state. Version the roster
   file in git to track changes over time.
 - **No web UI** — CLI only for v1. JSON output enables custom UIs if needed.

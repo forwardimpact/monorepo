@@ -67,7 +67,10 @@ export function mapFieldToSchema(field, description) {
  * @param {object} [paramDescriptions] - Parameter descriptions from descriptor
  * @returns {object} JSON schema
  */
-export function generateSchemaFromProtobuf(messageType, paramDescriptions = {}) {
+export function generateSchemaFromProtobuf(
+  messageType,
+  paramDescriptions = {},
+) {
   const schema = {
     type: "object",
     properties: {},

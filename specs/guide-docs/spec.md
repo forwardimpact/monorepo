@@ -24,20 +24,20 @@ All output lands in data/resources/, data/graphs/, data/vectors/
 
 ### Make Targets
 
-| Target | What it does |
-|--------|-------------|
-| `make data-init` | Create directories, copy example knowledge to `data/knowledge/` |
-| `make data-clean` | Remove all generated data |
-| `make process-agents` | Parse `config/agents/*.agent.md` into Agent resources |
-| `make process-resources` | Parse HTML knowledge into Message resources |
-| `make process-tools` | Generate tool schemas from protobuf + YAML descriptors |
-| `make process-graphs` | Build RDF graph index and SHACL ontology from Messages |
-| `make process-vectors` | Embed Message content via TEI, store in vector index |
-| `make process-fast` | All of the above except vectors |
-| `make process` | All of the above including vectors |
+| Target                   | What it does                                                    |
+| ------------------------ | --------------------------------------------------------------- |
+| `make data-init`         | Create directories, copy example knowledge to `data/knowledge/` |
+| `make data-clean`        | Remove all generated data                                       |
+| `make process-agents`    | Parse `config/agents/*.agent.md` into Agent resources           |
+| `make process-resources` | Parse HTML knowledge into Message resources                     |
+| `make process-tools`     | Generate tool schemas from protobuf + YAML descriptors          |
+| `make process-graphs`    | Build RDF graph index and SHACL ontology from Messages          |
+| `make process-vectors`   | Embed Message content via TEI, store in vector index            |
+| `make process-fast`      | All of the above except vectors                                 |
+| `make process`           | All of the above including vectors                              |
 
-Run order matters: `process-resources` must complete before `process-graphs`
-or `process-vectors`, since both read from the resource index.
+Run order matters: `process-resources` must complete before `process-graphs` or
+`process-vectors`, since both read from the resource index.
 
 ---
 
@@ -148,16 +148,16 @@ schema.
 
 ### Default Tools
 
-| Tool | gRPC Method | Purpose |
-|------|-------------|---------|
-| `get_ontology` | `graph.Graph.GetOntology` | Schema vocabulary (types + predicates) |
-| `get_subjects` | `graph.Graph.GetSubjects` | List entity URIs by type |
-| `query_by_pattern` | `graph.Graph.QueryByPattern` | Triple pattern queries |
-| `search_content` | `vector.Vector.SearchContent` | Semantic similarity search |
-| `list_sub_agents` | `agent.Agent.ListSubAgents` | Discover available sub-agents |
-| `run_sub_agent` | `agent.Agent.RunSubAgent` | Delegate task to sub-agent |
-| `list_handoffs` | `agent.Agent.ListHandoffs` | Discover handoff targets |
-| `run_handoff` | `agent.Agent.RunHandoff` | Transfer conversation control |
+| Tool               | gRPC Method                   | Purpose                                |
+| ------------------ | ----------------------------- | -------------------------------------- |
+| `get_ontology`     | `graph.Graph.GetOntology`     | Schema vocabulary (types + predicates) |
+| `get_subjects`     | `graph.Graph.GetSubjects`     | List entity URIs by type               |
+| `query_by_pattern` | `graph.Graph.QueryByPattern`  | Triple pattern queries                 |
+| `search_content`   | `vector.Vector.SearchContent` | Semantic similarity search             |
+| `list_sub_agents`  | `agent.Agent.ListSubAgents`   | Discover available sub-agents          |
+| `run_sub_agent`    | `agent.Agent.RunSubAgent`     | Delegate task to sub-agent             |
+| `list_handoffs`    | `agent.Agent.ListHandoffs`    | Discover handoff targets               |
+| `run_handoff`      | `agent.Agent.RunHandoff`      | Transfer conversation control          |
 
 ### Key Library
 
@@ -188,9 +188,9 @@ schema.
 
 - `data/graphs/index.jsonl` — one JSON line per resource, containing `id`,
   `identifier` (with subjects and token count), and `quads` array.
-- `data/graphs/ontology.ttl` — SHACL shapes describing all entity types,
-  their properties, instance counts, and relationships. Used by agents to
-  understand the graph vocabulary before querying.
+- `data/graphs/ontology.ttl` — SHACL shapes describing all entity types, their
+  properties, instance counts, and relationships. Used by agents to understand
+  the graph vocabulary before querying.
 
 ### Graph Queries
 
@@ -206,8 +206,8 @@ Any position can be a wildcard (`?`, `*`, `null`). Prefixed terms (e.g.,
 
 ### Key Library
 
-`@forwardimpact/libgraph` — `GraphProcessor`, `GraphIndex`,
-`OntologyProcessor`, `ShaclSerializer`.
+`@forwardimpact/libgraph` — `GraphProcessor`, `GraphIndex`, `OntologyProcessor`,
+`ShaclSerializer`.
 
 ---
 
@@ -220,8 +220,8 @@ Any position can be a wildcard (`?`, `*`, `null`). Prefixed terms (e.g.,
 
 ### Processing Steps
 
-1. Load all resource identifiers, filter out Conversations, ToolFunctions,
-   and Agents.
+1. Load all resource identifiers, filter out Conversations, ToolFunctions, and
+   Agents.
 2. Skip resources already in the vector index (incremental).
 3. Batch embed via TEI service — `POST /embed` with `{ inputs: [text, ...] }`.
    Batches of 4 items processed concurrently.
@@ -276,18 +276,21 @@ Health check: `GET /health`
 ### Local Setup
 
 Install via Rust:
+
 ```bash
 cargo install --git https://github.com/huggingface/text-embeddings-inference \
   --features candle text-embeddings-router
 ```
 
 Or use Makefile:
+
 ```bash
 make tei-install   # Install TEI binary
 make tei-start     # Start on port 8090
 ```
 
 Config in `config/config.json`:
+
 ```json
 {
   "name": "tei",
@@ -311,8 +314,8 @@ Network alias: `tei.guide.local:8080`
 
 ### Environment Variable
 
-| Variable | Local | Docker |
-|----------|-------|--------|
+| Variable             | Local                   | Docker                        |
+| -------------------- | ----------------------- | ----------------------------- |
 | `EMBEDDING_BASE_URL` | `http://localhost:8090` | `http://tei.guide.local:8080` |
 
 ---
@@ -321,23 +324,23 @@ Network alias: `tei.guide.local:8080`
 
 ### Required Variables
 
-| Variable | Purpose |
-|----------|---------|
-| `LLM_TOKEN` | GitHub Models API token (needs `models` scope) |
-| `LLM_BASE_URL` | GitHub Models endpoint (org or user level) |
-| `SERVICE_SECRET` | HMAC secret for inter-service auth |
-| `EMBEDDING_BASE_URL` | TEI endpoint URL |
+| Variable             | Purpose                                        |
+| -------------------- | ---------------------------------------------- |
+| `LLM_TOKEN`          | GitHub Models API token (needs `models` scope) |
+| `LLM_BASE_URL`       | GitHub Models endpoint (org or user level)     |
+| `SERVICE_SECRET`     | HMAC secret for inter-service auth             |
+| `EMBEDDING_BASE_URL` | TEI endpoint URL                               |
 
 ### Env Files
 
-| File | Contents |
-|------|----------|
-| `.env` | Base secrets: API tokens, service secret, JWT keys |
-| `.env.local` | Local networking: service URLs on localhost |
-| `.env.docker` | Docker networking: proxy config, container hostnames |
-| `.env.storage.local` | Local filesystem storage paths |
-| `.env.storage.minio` | MinIO S3-compatible storage credentials |
-| `.env.storage.supabase` | Supabase storage credentials |
+| File                    | Contents                                             |
+| ----------------------- | ---------------------------------------------------- |
+| `.env`                  | Base secrets: API tokens, service secret, JWT keys   |
+| `.env.local`            | Local networking: service URLs on localhost          |
+| `.env.docker`           | Docker networking: proxy config, container hostnames |
+| `.env.storage.local`    | Local filesystem storage paths                       |
+| `.env.storage.minio`    | MinIO S3-compatible storage credentials              |
+| `.env.storage.supabase` | Supabase storage credentials                         |
 
 Loaded by `scripts/env.sh` based on `ENV`, `STORAGE`, and `AUTH` variables.
 
@@ -400,16 +403,16 @@ PostalAddress (3), Blog (1), Platform (1).
 
 ### Processing Results
 
-| Step | Count |
-|------|-------|
-| Input HTML files | 22 |
-| Message resources | 888 |
-| Agent resources | 4 |
-| Tool resources | 8 |
-| Graph entries | 888 |
-| Ontology types | 27 |
-| Vector embeddings | 888 |
-| Total resources | 900 |
+| Step              | Count |
+| ----------------- | ----- |
+| Input HTML files  | 22    |
+| Message resources | 888   |
+| Agent resources   | 4     |
+| Tool resources    | 8     |
+| Graph entries     | 888   |
+| Ontology types    | 27    |
+| Vector embeddings | 888   |
+| Total resources   | 900   |
 
 ---
 
@@ -449,10 +452,10 @@ make cli-chat
 
 ## Open Questions for Documentation
 
-- Should the docs cover the ingest pipeline (PDF → HTML) or just the
-  processing pipeline?
-- How much detail on the agent/tool interaction at query time? The current
-  spec focuses on the offline processing, not the runtime query flow.
+- Should the docs cover the ingest pipeline (PDF → HTML) or just the processing
+  pipeline?
+- How much detail on the agent/tool interaction at query time? The current spec
+  focuses on the offline processing, not the runtime query flow.
 - Should we document the gRPC service layer or keep it as internal?
-- The evaluation framework (`make eval`) is mentioned in config but not
-  covered here.
+- The evaluation framework (`make eval`) is mentioned in config but not covered
+  here.
