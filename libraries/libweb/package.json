@@ -22,8 +22,7 @@
     "directory": "libraries/libweb"
   },
   "publishConfig": {
-    "access": "public",
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.5"
