@@ -60,6 +60,7 @@ Read the candidate's CV file. Extract:
 | **Leadership signals** | Team size, mentoring, cross-team work, architecture    |
 | **Scope signals**      | Scale of systems, user base, revenue impact            |
 | **Communication**      | Publications, talks, open source, documentation        |
+| **Gender**             | Pronouns, gendered titles, first name if unambiguous   |
 
 ## Step 2: Look Up the Framework Reference
 
@@ -200,6 +201,7 @@ Create `knowledge/Candidates/{Name}/assessment.md`:
 | **Level**        | {estimated level and confidence}          |
 | **Track fit**    | {forward_deployed / platform / either}    |
 | **Discipline**   | {best discipline match}                   |
+| **Gender**       | {Woman / Man / —}                         |
 
 ## Skill Alignment
 
@@ -244,6 +246,7 @@ If `knowledge/Candidates/{Name}/brief.md` exists, update it with findings:
 
 - Add or update the **Skills** section with framework skill IDs
 - Update **Summary** if the CV provides better context
+- Set the **Gender** field if identifiable from the CV and not already set
 - Add a link to the assessment: `- [CV Assessment](./assessment.md)`
 
 **Use precise edits — don't rewrite the entire file.**
@@ -261,3 +264,4 @@ to create the candidate profile from email threads.
 - [ ] Gaps are actionable — they suggest interview focus areas
 - [ ] Assessment file uses correct path format and links to CV
 - [ ] Candidate brief updated with skill tags and assessment link
+- [ ] Gender field set in both assessment and brief where identifiable

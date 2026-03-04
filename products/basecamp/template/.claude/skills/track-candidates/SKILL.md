@@ -140,7 +140,20 @@ For each candidate found in a recruitment email, extract:
 | **Recruiter**     | Email sender or CC'd recruiter                    | Yes                 |
 | **CV path**       | Attachment directory                              | If available        |
 | **Skills**        | Email body, CV                                    | If available        |
+| **Gender**        | Name, pronouns, recruiter context                 | If identifiable     |
 | **Summary**       | Email body, CV                                    | Yes — 2-3 sentences |
+
+### Determining Gender
+
+Record the candidate's gender when identifiable from the email or CV:
+
+- Pronouns used by the recruiter ("she is available", "her CV attached")
+- Gendered titles ("Ms.", "Mrs.", "Mr.")
+- First name when culturally unambiguous
+
+Record as `Woman`, `Man`, or `—` (unknown). When uncertain, use `—` — never
+guess. This field supports pool diversity tracking; it has **no bearing** on
+hiring decisions or assessment criteria.
 
 ### Determining Source and Recruiter
 
@@ -235,6 +248,7 @@ Then create `knowledge/Candidates/{Full Name}/brief.md`:
 **Availability:** {availability or "—"}
 **English:** {level or "—"}
 **Location:** {location or "—"}
+**Gender:** {Woman / Man / —}
 **Source:** [[Organizations/{Agency}]] via [[People/{Recruiter Name}]]
 **Status:** {pipeline status}
 **First seen:** {date profile was shared, YYYY-MM-DD}
@@ -358,3 +372,4 @@ produces a full framework-aligned assessment.
 - [ ] No duplicate candidate notes created
 - [ ] Key strategic insights added to `Insights.md` where warranted
 - [ ] Skills tagged using framework skill IDs where possible
+- [ ] Gender field populated where identifiable (Woman / Man / —)
