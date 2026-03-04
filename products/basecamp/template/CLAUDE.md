@@ -81,13 +81,13 @@ This knowledge base is maintained by a team of agents, each defined in
 `.claude/agents/`. They are woken on a schedule by the Basecamp scheduler. Each
 wake, they observe KB state, decide the most valuable action, and execute.
 
-| Agent              | Domain                         | Schedule        | Skills                                                         |
-| ------------------ | ------------------------------ | --------------- | -------------------------------------------------------------- |
-| **postman**        | Email triage and drafts        | Every 5 min     | sync-apple-mail, draft-emails                                  |
-| **concierge**      | Meeting prep and transcripts   | Every 10 min    | sync-apple-calendar, meeting-prep, process-hyprnote            |
-| **librarian**      | Knowledge graph maintenance    | Every 15 min    | extract-entities, organize-files, manage-tasks                 |
-| **recruiter**      | Engineering recruitment        | Every 30 min    | track-candidates, analyze-cv, right-to-be-forgotten, fit-pathway, fit-map |
-| **chief-of-staff** | Daily briefings and priorities | 7am, Mon 7:30am | weekly-update _(Mon)_, _(reads all state for daily briefings)_ |
+| Agent              | Domain                         | Schedule        | Skills                                                                                         |
+| ------------------ | ------------------------------ | --------------- | ---------------------------------------------------------------------------------------------- |
+| **postman**        | Email triage and drafts        | Every 5 min     | sync-apple-mail, draft-emails                                                                  |
+| **concierge**      | Meeting prep and transcripts   | Every 10 min    | sync-apple-calendar, meeting-prep, process-hyprnote                                            |
+| **librarian**      | Knowledge graph maintenance    | Every 15 min    | extract-entities, organize-files, manage-tasks                                                 |
+| **recruiter**      | Engineering recruitment        | Every 30 min    | track-candidates, analyze-cv, workday-requisition, right-to-be-forgotten, fit-pathway, fit-map |
+| **chief-of-staff** | Daily briefings and priorities | 7am, Mon 7:30am | weekly-update _(Mon)_, _(reads all state for daily briefings)_                                 |
 
 Each agent writes a triage file to `~/.cache/fit/basecamp/state/` every wake
 cycle. The naming convention is `{agent}_triage.md`:
@@ -200,16 +200,17 @@ Available skills (grouped by function):
 
 **Knowledge graph** — build and maintain structured notes:
 
-| Skill              | Purpose                                  |
-| ------------------ | ---------------------------------------- |
-| `extract-entities` | Process synced data into knowledge notes |
-| `manage-tasks`     | Per-person task boards with lifecycle    |
-| `track-candidates` | Recruitment pipeline from email threads  |
-| `analyze-cv`       | CV assessment against career framework   |
-| `right-to-be-forgotten` | GDPR data erasure with audit trail  |
-| `weekly-update`    | Weekly priorities from tasks + calendar  |
-| `process-hyprnote` | Extract entities from Hyprnote sessions  |
-| `organize-files`   | Tidy Desktop/Downloads, chain to extract |
+| Skill                   | Purpose                                  |
+| ----------------------- | ---------------------------------------- |
+| `extract-entities`      | Process synced data into knowledge notes |
+| `manage-tasks`          | Per-person task boards with lifecycle    |
+| `track-candidates`      | Recruitment pipeline from email threads  |
+| `workday-requisition`   | Import candidates from Workday XLSX      |
+| `analyze-cv`            | CV assessment against career framework   |
+| `right-to-be-forgotten` | GDPR data erasure with audit trail       |
+| `weekly-update`         | Weekly priorities from tasks + calendar  |
+| `process-hyprnote`      | Extract entities from Hyprnote sessions  |
+| `organize-files`        | Tidy Desktop/Downloads, chain to extract |
 
 **Communication** — draft, send, and present:
 
