@@ -104,7 +104,75 @@ const data = await loadYamlFile("/data/config.yaml");
 const files = await loadDirIndex("/data/skills/");
 ```
 
-## CSS Integration
+## CSS Architecture
+
+### Layer Order
+
+```
+tokens → reset → base → components → utilities → pages → slides → handout → print
+```
+
+| Layer        | Purpose                               | Files                          |
+| ------------ | ------------------------------------- | ------------------------------ |
+| `tokens`     | Design tokens (CSS custom properties) | `css/tokens.css`               |
+| `reset`      | Browser normalization                 | `css/reset.css`                |
+| `base`       | Typography, body defaults             | `css/base.css`                 |
+| `components` | Reusable UI components                | `css/components/*.css`         |
+| `utilities`  | Spacing, layout helpers               | `css/components/utilities.css` |
+| `pages`      | Page-specific styles                  | `css/pages/*.css`              |
+| `slides`     | Slide view styles                     | `css/views/slide-*.css`        |
+| `handout`    | Handout view overrides                | `css/views/handout.css`        |
+| `print`      | Print media queries                   | `css/views/print.css`          |
+
+### Design Tokens
+
+All values from `css/tokens.css` — never use hardcoded values:
+
+```css
+.card {
+  padding: var(--space-md);
+  background: var(--color-surface);
+}
+```
+
+### File Conventions
+
+Every CSS file starts with a JSDoc-style comment and wraps styles in the
+appropriate `@layer`:
+
+```css
+/**
+ * Component Name
+ *
+ * Brief description.
+ */
+@layer components {
+  .my-component { /* styles */ }
+}
+```
+
+Aim for files under 300 lines. Split by concern if larger.
+
+### Adding New Styles
+
+- **Component**: `css/components/{name}.css` → `@layer components`
+- **Page**: `css/pages/{name}.css` → `@layer pages`
+- **Slide**: `css/views/slide-*.css` → `@layer slides`
+- **Print**: `css/views/print.css` → `@layer print`
+
+### CSS Class Names
+
+Use BEM-style naming: `.card`, `.card__header`, `.card--highlighted`
+
+### Consolidation Rules
+
+- **Badges** → All badge variants in `badges.css`
+- **Labels** → Single `.label` definition in `typography.css`
+- **Level dots** → All level indicators in `progress.css`
+- **Tables** → All table variants in `tables.css`
+- **Animations** → All `@keyframes` in `slide-animations.css`
+
+### CSS Integration
 
 Products import shared CSS via absolute paths in bundle files:
 

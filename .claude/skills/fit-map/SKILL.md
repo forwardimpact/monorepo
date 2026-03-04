@@ -1,14 +1,17 @@
 ---
 name: fit-map
-description: Work with the @forwardimpact/map product. Use when adding or modifying skills, capabilities, behaviours, disciplines, tracks, levels, questions, or schema definitions.
+description: >
+  Work with the @forwardimpact/map product. Use when validating framework data,
+  browsing entity definitions, or adding/modifying skills, capabilities,
+  behaviours, disciplines, tracks, levels, questions, or schema definitions.
 ---
 
 # Map Product
 
-A public site describing the data model for consumption by AI agents and
-engineers. Map is the fundamental underpinning of all Forward Impact products—it
-defines how engineering competencies, career progression, and agent capabilities
-are structured in a machine-readable format.
+A public data model for consumption by AI agents and engineers. Map is the
+foundation of all Forward Impact products — it defines how engineering
+competencies, career progression, and agent capabilities are structured in a
+machine-readable format.
 
 Making the data model well understood is a first-class goal. It is published in
 structured formats (JSON Schema, RDF/SHACL) so that AI agents can reliably
@@ -16,66 +19,95 @@ interpret and work with career framework data.
 
 ## When to Use
 
+**Data validation and inspection:**
+
+- Validating framework data integrity after changes
+- Checking data summary (skill counts, entity counts)
+- Generating browser index files for the web app
+- Understanding what entities exist in the data
+
+**Data authoring and schema work:**
+
 - Adding or modifying skills in capability files
 - Adding new behaviours, disciplines, tracks, or levels
-- Working with JSON Schema or RDF/SHACL definitions
-- Running data validation
 - Adding interview questions
-- Generating browser index files
+- Working with JSON Schema or RDF/SHACL definitions
 - Improving schema documentation for public consumption
+
+---
+
+## CLI
+
+```sh
+npx fit-map validate                # Validate all data (JSON schema + referential)
+npx fit-map validate --shacl        # Validate RDF/SHACL syntax
+npx fit-map validate --data=PATH    # Validate a specific data directory
+npx fit-map generate-index          # Generate _index.yaml files for browser loading
+```
+
+Validation output includes a data summary showing entity counts. Use this to
+quickly verify data is loading correctly after changes.
+
+---
+
+## Data Structure
+
+```
+examples/                  (or data/ in org projects)
+├── framework.yaml         # Framework metadata, entity definitions
+├── levels.yaml            # Career levels (J040, J060, etc.)
+├── stages.yaml            # Lifecycle stages (plan, code, review, etc.)
+├── drivers.yaml           # Organizational outcomes
+├── disciplines/           # Engineering specialties (software_engineering, etc.)
+├── tracks/                # Work contexts (platform, forward_deployed, etc.)
+├── behaviours/            # Approach to work (outcome_ownership, etc.)
+├── capabilities/          # Skills grouped by area (delivery, scale, etc.)
+└── questions/             # Interview questions
+    ├── skills/            # Per-skill question sets
+    └── behaviours/        # Per-behaviour question sets
+```
+
+Entity files use **co-located content** — `human:` and `agent:` sections in the
+same YAML file. All entities have an `id` field used for cross-references.
+
+---
 
 ## Product Structure
 
 ```
 products/map/
+  bin/
+    fit-map.js             # CLI entry point
   src/
-    loader.js            # Load and parse YAML data files
-    validation.js        # Data validation logic
-    schema-validation.js # JSON Schema validation
-    index-generator.js   # Generate _index.yaml for browser
-    levels.js            # Skill proficiencies, behaviour maturities
-    modifiers.js         # Modifier utilities
+    loader.js              # Load and parse YAML data files
+    validation.js          # Referential integrity validation
+    schema-validation.js   # JSON Schema validation
+    index-generator.js     # Generate _index.yaml for browser
+    levels.js              # Skill proficiencies, behaviour maturities
+    modifiers.js           # Modifier utilities
   schema/
-    json/                # JSON Schema definitions (public)
-    rdf/                 # RDF/SHACL ontology (public)
-  examples/              # Canonical example data
-```
-
-## CLI
-
-```sh
-npx fit-map validate          # Validate all data
-npx fit-map generate-index    # Generate browser indexes
-npx fit-map validate --shacl  # Validate RDF/SHACL
+    json/                  # JSON Schema definitions (public)
+    rdf/                   # RDF/SHACL ontology (public)
+  examples/                # Canonical example data
 ```
 
 ## Key Modules
 
 ### loader.js
 
-Loads and parses YAML data files into JavaScript objects.
-
 ```javascript
 import { loadAllData, loadCapabilities } from "@forwardimpact/map/loader";
 const data = await loadAllData("./data");
+// data.skills, data.behaviours, data.disciplines, data.tracks, data.levels, ...
 ```
 
 ### validation.js
 
-Validates data against business rules (referential integrity, required fields).
-
-```javascript
-import { validateAll } from "@forwardimpact/map/validation";
-const errors = validateAll(data);
-```
-
-### schema-validation.js
-
-Validates data against JSON Schema definitions.
+Validates referential integrity (e.g., discipline references valid skill IDs).
 
 ### levels.js
 
-Exports skill proficiency and behaviour maturity constants.
+Exports proficiency and maturity constants used by derivation:
 
 ```javascript
 import {
@@ -83,10 +115,6 @@ import {
   BEHAVIOUR_MATURITIES,
 } from "@forwardimpact/map/levels";
 ```
-
-### index-generator.js
-
-Generates `_index.yaml` files for browser-based data loading.
 
 ## Schema Definitions
 
@@ -98,36 +126,21 @@ Validates YAML structure. One schema per entity type.
 
 Semantic representation for linked data interoperability.
 
-**Schema Synchronization:** When adding or modifying properties, update both
+**Schema synchronization:** When adding or modifying properties, update both
 `schema/json/` and `schema/rdf/` in the same commit. The two formats must stay
 in sync.
 
-## Example Data (`examples/`)
-
-Canonical reference data for testing and documentation:
-
-```
-examples/
-├── levels.yaml           # Career levels
-├── stages.yaml           # Lifecycle stages
-├── drivers.yaml          # Organizational outcomes
-├── disciplines/          # Engineering specialties
-├── tracks/               # Work contexts
-├── behaviours/           # Approach to work
-├── capabilities/         # Skills grouped by area
-└── questions/            # Interview questions
-```
+---
 
 ## Common Tasks
 
 ### Add a Skill
 
-1. Add skill to capability file
-   `products/map/examples/capabilities/{capability_id}.yaml`
+1. Add skill to capability file: `examples/capabilities/{capability_id}.yaml`
 2. Add skill object with `id`, `name`, and `human:` section
-3. Include level descriptions for all five levels
+3. Include level descriptions for all five proficiency levels
 4. Reference skill in disciplines (coreSkills/supportingSkills/broadSkills)
-5. Add questions to `products/map/examples/questions/skills/{skill_id}.yaml`
+5. Add questions: `examples/questions/skills/{skill_id}.yaml`
 6. Optionally add `agent:` section for AI coding agent support
 7. Run `npx fit-map validate`
 
@@ -135,8 +148,8 @@ examples/
 
 Location:
 
-- Skills: `products/map/examples/questions/skills/{skill_id}.yaml`
-- Behaviours: `products/map/examples/questions/behaviours/{behaviour_id}.yaml`
+- Skills: `examples/questions/skills/{skill_id}.yaml`
+- Behaviours: `examples/questions/behaviours/{behaviour_id}.yaml`
 
 Required properties:
 
@@ -148,10 +161,7 @@ Required properties:
 
 ### Add Agent Skill Section
 
-1. Add `agent:` section to skill in capability file
-2. Include: `name`, `description`, `useWhen`, `stages`
-3. Define stage guidance: `focus`, `activities[]`, `ready[]`
-4. Run `npx fit-map validate`
+Add `agent:` section to skill in capability file:
 
 ```yaml
 agent:

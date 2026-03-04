@@ -1,6 +1,9 @@
 ---
 name: fit-pathway
-description: Work with the @forwardimpact/pathway package. Use when modifying the web app, CLI commands, formatters, pages, components, CSS, or agent/skill output templates.
+description: >
+  Work with the @forwardimpact/pathway package. Use when exploring roles,
+  skills, career progression, or agent profiles via the CLI, or when modifying
+  the web app, CLI commands, formatters, pages, or templates.
 ---
 
 # Pathway Package
@@ -16,151 +19,79 @@ and agent profile generation. Three audiences use `fit-pathway` differently:
 
 ## When to Use This Skill
 
+**CLI exploration and discovery:**
+
+- Exploring disciplines, tracks, levels, skills, behaviours, or drivers
+- Generating or comparing job definitions across tracks and levels
+- Analyzing career progression between levels
+- Generating AI agent configurations from the framework
+- Answering questions about roles, skill expectations, or career paths
+
+**Development and maintenance:**
+
 - Adding or modifying web app pages, CLI commands, or formatters
-- Working with UI components, reactive state, or CSS
 - Updating agent or skill output templates
+- Working with the Mustache template system
 - Setting up an organization's career framework project
-- Understanding the engineer install flow
 
 ---
 
-## Audience: Maintainers
+## Discovery Workflows
 
-Maintainers work inside the `@forwardimpact/pathway` monorepo. Their goal is to
-develop the package so organizations can use it.
+Common patterns for exploring the framework using the CLI. The CLI is
+data-driven — entity IDs depend on the YAML files in the active data directory.
+Start with summary commands to discover what's available.
 
-### Running from the Workspace
-
-The monorepo has `products/map/examples/` data. The CLI resolves data
-automatically (see Data Resolution below).
+### Discover what roles exist on a track
 
 ```sh
-npx fit-pathway dev                # Start dev server at http://localhost:3000
-npx fit-pathway dev --port=8080    # Custom port
-npx fit-pathway build              # Generate static site to ./public/
-npx fit-pathway build --url=https://pathway.myorg.com  # With distribution bundle
+# 1. See all tracks and which disciplines use them
+npx fit-pathway track
+
+# 2. See jobs filtered to a specific track
+npx fit-pathway job --track=forward_deployed
+
+# 3. List all job combinations on that track (for piping)
+npx fit-pathway job --list --track=forward_deployed
+
+# 4. View a specific role
+npx fit-pathway job software_engineering J060 --track=forward_deployed
 ```
 
-### Package Structure
-
-```
-products/pathway/
-  bin/
-    fit-pathway.js    # CLI entry point
-  src/
-    commands/         # CLI command handlers
-    formatters/       # Entity → output (DOM/markdown)
-    pages/            # Web app page handlers
-    components/       # Reusable UI components
-    lib/              # Shared utilities (router, state, render)
-    css/              # Styles (layers, tokens, components)
-    slides/           # Slide presentation handlers
-  templates/          # Mustache templates for agent/skill/install output
-```
-
----
-
-## Audience: Organizations
-
-Organizations maintain a standalone project that depends on
-`@forwardimpact/pathway`. They define YAML data unique to their engineering
-culture and publish a static site for their engineers.
-
-### Setting Up a New Organization Project
+### Understand a discipline's structure
 
 ```sh
-mkdir my-pathway && cd my-pathway
-npm init -y
-npm install @forwardimpact/pathway
+# 1. See all disciplines with their type (professional/management) and valid tracks
+npx fit-pathway discipline
 
-# Scaffold example data into ./data/
-npx fit-pathway init
+# 2. Drill into a discipline to see skill tiers and behaviour modifiers
+npx fit-pathway discipline software_engineering
 
-# Edit data files to match your organization
-# data/framework.yaml — title, icon, distribution.siteUrl
-# data/disciplines/   — your engineering disciplines
-# data/levels.yaml    — your career levels
-# ...
+# 3. Compare the same discipline across tracks
+npx fit-pathway job software_engineering J060 --track=platform
+npx fit-pathway job software_engineering J060 --track=forward_deployed
 ```
 
-### Validating and Previewing
+### Explore career progression
 
 ```sh
-npx fit-pathway dev        # Preview the web app locally
-npx fit-map validate       # Validate data integrity
+# 1. See what changes between levels
+npx fit-pathway progress software_engineering J060 --track=forward_deployed
+
+# 2. Compare specific levels
+npx fit-pathway progress software_engineering J060 --track=forward_deployed --compare=J100
 ```
 
-### Publishing for Engineers
-
-The `build` command generates a static site. When a `--url` is provided (or
-`distribution.siteUrl` is set in `framework.yaml`), it also produces:
-
-- **`bundle.tar.gz`** — A minimal package with `package.json` + `data/` for
-  engineers to install locally
-- **`install.sh`** — A curl-pipe-bash script that downloads the bundle and sets
-  up global access
+### Discover what a track modifies
 
 ```sh
-npx fit-pathway build --url=https://pathway.myorg.com
-# Output: ./public/ (static site, bundle.tar.gz, install.sh)
+# 1. View track detail to see all skill and behaviour modifiers
+npx fit-pathway track forward_deployed
 
-# Deploy ./public/ to your hosting (GitHub Pages, S3, etc.)
+# 2. Compare the resulting skill matrices side by side
+npx fit-pathway job software_engineering J060 --skills
+npx fit-pathway job software_engineering J060 --track=forward_deployed --skills
 ```
-
-Once deployed, engineers install with a single command:
-
-```sh
-curl -fsSL https://pathway.myorg.com/install.sh | bash
-```
-
----
-
-## Audience: Engineers
-
-Engineers install `fit-pathway` locally to explore their organization's career
-framework from the terminal. They don't need the source code or the monorepo.
-
-### Installing
-
-The organization publishes an install script at their Pathway site URL:
-
-```sh
-curl -fsSL https://pathway.myorg.com/install.sh | bash
-```
-
-This installs `@forwardimpact/pathway` globally via `npm install -g` and
-downloads the organization's data to `~/.fit/pathway/data/`.
-
-### Updating
-
-```sh
-fit-pathway update                         # Re-download latest bundle
-fit-pathway update --url=https://...       # Override site URL
-```
-
-### Exploring
-
-```sh
-fit-pathway skill --list                   # List all skill IDs
-fit-pathway skill architecture_design      # Skill detail
-fit-pathway job --list                     # Valid job combinations
-fit-pathway job software_engineering L4 --track=platform
-fit-pathway agent software_engineering --track=platform
-fit-pathway progress software_engineering L3 --track=platform
-```
-
----
-
-## Data Resolution
-
-The CLI resolves data in this order:
-
-1. `--data=<path>` flag (explicit)
-2. `PATHWAY_DATA` environment variable
-3. `~/.fit/pathway/data/` (engineer install)
-4. `./data/` (organization project)
-5. `./examples/` (standalone examples)
-6. `products/map/examples/` (monorepo development)
 
 ---
 
@@ -176,10 +107,16 @@ All entity commands support three modes:
 | List    | `npx fit-pathway <cmd> --list` | IDs for piping              |
 | Detail  | `npx fit-pathway <cmd> <id>`   | Full entity details         |
 
+Entity commands: `discipline`, `level`, `track`, `behaviour`, `driver`, `stage`,
+`skill`, `tool`.
+
 ### Job Generation
 
 ```sh
+npx fit-pathway job                                       # Summary with stats
+npx fit-pathway job --track=<track>                       # Summary filtered by track
 npx fit-pathway job --list                                # Valid combinations
+npx fit-pathway job --list --track=<track>                # Combinations for a track
 npx fit-pathway job <discipline> <level>                  # Trackless job
 npx fit-pathway job <discipline> <level> --track=<track>  # With track
 npx fit-pathway job <discipline> <level> --checklist=code # With checklist
@@ -202,11 +139,18 @@ npx fit-pathway agent <discipline> --track=<track> --tools          # Tool names
 
 ```sh
 npx fit-pathway interview <discipline> <level>
-npx fit-pathway interview <d> <g> --track=<t> --type=mission
+npx fit-pathway interview <d> <l> --track=<t> --type=mission
 npx fit-pathway progress <discipline> <level>
-npx fit-pathway progress <d> <g> --compare=<to_level>
+npx fit-pathway progress <d> <l> --compare=<to_level>
 npx fit-pathway questions --level=practitioner
 npx fit-pathway questions --skill=<id> --format=yaml
+```
+
+### Skill Detail
+
+```sh
+npx fit-pathway skill <id>          # Human-readable detail
+npx fit-pathway skill <id> --agent  # Output as agent SKILL.md format
 ```
 
 ### Agent Output Paths
@@ -217,49 +161,75 @@ npx fit-pathway questions --skill=<id> --format=yaml
 
 ---
 
-## Formatter Layer
+## Data Resolution
 
-All presentation logic lives in formatters. Pages and commands pass raw
-entities—no transforms in views.
+The CLI resolves data in this order:
+
+1. `--data=<path>` flag (explicit)
+2. `PATHWAY_DATA` environment variable
+3. `~/.fit/pathway/data/` (engineer install)
+4. `./data/` (organization project)
+5. `./examples/` (standalone examples)
+6. `products/map/examples/` (monorepo development)
+
+---
+
+## Developing Pathway
+
+### Package Structure
+
+```
+products/pathway/
+  bin/
+    fit-pathway.js    # CLI entry point, arg parsing, help text, command dispatch
+  src/
+    commands/         # CLI command handlers (one per entity/feature)
+    formatters/       # Entity → output (DOM/markdown), grouped by entity
+    pages/            # Web app page handlers
+    components/       # Reusable UI components (pathway-specific)
+    lib/              # Shared utilities (cli-output, template-loader)
+    slides/           # Slide presentation handlers
+  templates/          # Mustache templates for agent/skill/install output
+```
+
+### Formatter Layer
+
+All presentation logic lives in formatters. Pages and commands pass raw entities
+— no transforms in views.
 
 ```
 src/formatters/{entity}/
   shared.js    # Helpers shared between outputs
-  dom.js       # Entity → DOM elements
-  markdown.js  # Entity → markdown string
+  dom.js       # Entity → DOM elements (web app)
+  markdown.js  # Entity → markdown string (CLI)
 ```
 
-## DOM Rendering
+### CLI Command Pattern
 
-Never use innerHTML. Use render helpers:
+Commands export an async handler. Entity commands use `createEntityCommand` from
+`command-factory.js`. Composite commands (job, interview, progress) use
+`createCompositeCommand`.
 
 ```javascript
-import { div, h2, p, ul, li, render } from "../lib/render.js";
-
-render(
-  container,
-  div({ class: "skills" }, h2("Skills"), ul(skills.map((s) => li(s.name)))),
-);
+// Entity command (discipline, track, skill, etc.)
+export const runFooCommand = createEntityCommand({
+  entityName: "foo",
+  pluralName: "foos",
+  findEntity: (data, id) => data.foos.find((f) => f.id === id),
+  presentDetail: (entity, data, options) => ({ /* view */ }),
+  formatSummary: (items, data) => { /* console output */ },
+  formatDetail: (view, framework) => { /* console output */ },
+  formatListItem: (item) => `${item.id}, ${item.name}`,
+});
 ```
 
-## Reactive State
-
-Use `createReactive` for component-local state:
-
-```javascript
-import { createReactive } from "../lib/reactive.js";
-
-const selectedLevel = createReactive(null);
-selectedLevel.subscribe((level) => updateDisplay(level));
-```
-
-## Page Structure
+### Page Structure
 
 Pages export a `render` function and optionally a `cleanup`:
 
 ```javascript
 export function render(container, params) {
-  // render page content
+  // render page content using libui helpers
 }
 
 export function cleanup() {
@@ -267,117 +237,25 @@ export function cleanup() {
 }
 ```
 
-## CLI Command Pattern
+### CSS
 
-Commands in `src/commands/`:
-
-```javascript
-export function execute(data, args) {
-  if (args.list) return formatSkillList(data.skills);
-  if (args.id) return formatSkillDetail(data.skills, args.id);
-  return formatSkillSummary(data.skills);
-}
-```
-
-## Job Caching
-
-Always use the cache for job derivation in pages:
-
-```javascript
-import { getOrCreateJob } from "@forwardimpact/libpathway/job-cache";
-const job = getOrCreateJob({ discipline, level, track, skills, behaviours });
-```
-
-## Error Handling
-
-Router wraps all pages with error boundary. Pages throw:
-
-- `NotFoundError` — Entity not found
-- `InvalidCombinationError` — Invalid discipline/track/level combination
-
-## CSS Architecture
-
-### Layer Order
-
-```
-tokens → reset → base → components → utilities → pages → slides → handout → print
-```
-
-| Layer        | Purpose                               | Files                          |
-| ------------ | ------------------------------------- | ------------------------------ |
-| `tokens`     | Design tokens (CSS custom properties) | `css/tokens.css`               |
-| `reset`      | Browser normalization                 | `css/reset.css`                |
-| `base`       | Typography, body defaults             | `css/base.css`                 |
-| `components` | Reusable UI components                | `css/components/*.css`         |
-| `utilities`  | Spacing, layout helpers               | `css/components/utilities.css` |
-| `pages`      | Page-specific styles                  | `css/pages/*.css`              |
-| `slides`     | Slide view styles                     | `css/views/slide-*.css`        |
-| `handout`    | Handout view overrides                | `css/views/handout.css`        |
-| `print`      | Print media queries                   | `css/views/print.css`          |
-
-### Design Tokens
-
-All values from `css/tokens.css`—never use hardcoded values:
-
-```css
-.card {
-  padding: var(--space-md);
-  background: var(--color-surface);
-}
-```
-
-### File Conventions
-
-Every CSS file starts with a JSDoc-style comment and wraps styles in the
-appropriate `@layer`:
-
-```css
-/**
- * Component Name
- *
- * Brief description.
- */
-@layer components {
-  .my-component { /* styles */ }
-}
-```
-
-Aim for files under 300 lines. Split by concern if larger.
-
-### Adding New Styles
-
-- **Component**: `css/components/{name}.css` → `@layer components`
-- **Page**: `css/pages/{name}.css` → `@layer pages`
-- **Slide**: `css/views/slide-*.css` → `@layer slides`
-- **Print**: `css/views/print.css` → `@layer print`
-
-### CSS Class Names
-
-Use BEM-style naming: `.card`, `.card__header`, `.card--highlighted`
-
-### Consolidation Rules
-
-- **Badges** → All badge variants in `badges.css`
-- **Labels** → Single `.label` definition in `typography.css`
-- **Level dots** → All level indicators in `progress.css`
-- **Tables** → All table variants in `tables.css`
-- **Animations** → All `@keyframes` in `slide-animations.css`
-
-## Common Tasks
-
-### Adding a New Page
-
-1. Create page in `src/pages/{page}.js`
-2. Export `render(container, params)` and optionally `cleanup()`
-3. Register route in `src/lib/router.js`
-4. Use formatters from `src/formatters/` for presentation
+Pathway uses the libui CSS design system. See the **libui** skill for layer
+order, design tokens, file conventions, and naming rules. Pathway adds
+product-specific styles in `css/pages/` and `css/views/`.
 
 ### Adding a New Command
 
-1. Create command in `src/commands/{command}.js`
-2. Export `execute(data, args)` returning output string
-3. Register in `src/commands/index.js`
-4. Add help text in CLI entry point
+1. Create `src/commands/{command}.js`
+2. Export async handler function
+3. Register in command dispatch (`bin/fit-pathway.js`)
+4. Add help text in `HELP_TEXT` constant
+
+### Adding a New Page
+
+1. Create `src/pages/{page}.js`
+2. Export `render(container, params)` and optionally `cleanup()`
+3. Register route in `src/lib/router.js`
+4. Use formatters from `src/formatters/` for presentation
 
 ## Verification
 
