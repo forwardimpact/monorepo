@@ -1,11 +1,12 @@
 # Design Spec: Forward Impact Team (FIT) — A Suite for Forward Deployed Engineers
 
 > A monochrome design system for five products — **Map**, **Pathway**,
-> **Guide**, **Landmark**, and **Basecamp** — built around the metaphor of engineers deployed
-> "in the field." The visual identity centers on three characters — the
-> Engineer, the AI Agent, and the Business Stakeholder — who collaborate at the
-> boundary between technology and the real world. Heavily inspired by the
-> restraint of Ollama and Moondream, adapted for a professional product suite.
+> **Guide**, **Landmark**, and **Basecamp** — built around the metaphor of
+> engineers deployed "in the field." The visual identity centers on three
+> characters — the Engineer, the AI Agent, and the Business Stakeholder — who
+> collaborate at the boundary between technology and the real world. Heavily
+> inspired by the restraint of Ollama and Moondream, adapted for a professional
+> product suite.
 
 ---
 
@@ -77,8 +78,8 @@ to carry more structural authority while retaining warmth and approachability.
 5. **Each product has a distinct terrain.** Map = charted territory and routes.
    Pathway = trails and elevation. Guide = stars and bearing. Landmark = vantage
    points and survey markers. Basecamp = shelter and foundation. These visual
-   sub-themes appear in icons, illustrations, and
-   empty states — never in structural UI.
+   sub-themes appear in icons, illustrations, and empty states — never in
+   structural UI.
 
 ---
 
@@ -727,15 +728,15 @@ you, not be locked in a system somewhere.
 
 ### Icon System Rules
 
-| Rule        | Specification                                                                       |
-| ----------- | ----------------------------------------------------------------------------------- |
-| Grid        | 24×24px with 2px padding (20px live area)                                           |
-| Stroke      | 2px, round caps, round joins                                                        |
-| Fill        | None, except the Guide's compass needle (north half)                                |
-| Color       | `--gray-900` default, `--gray-400` when inactive                                    |
+| Rule        | Specification                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------------- |
+| Grid        | 24×24px with 2px padding (20px live area)                                                      |
+| Stroke      | 2px, round caps, round joins                                                                   |
+| Fill        | None, except the Guide's compass needle (north half)                                           |
+| Color       | `--gray-900` default, `--gray-400` when inactive                                               |
 | Ground line | 1px stroke, extends to icon edges, sits 2px from bottom (Pathway, Landmark, and Basecamp only) |
-| Style       | Hand-drawn feel — corners are slightly imperfect, lines have micro-variation        |
-| Sizes       | 24px (inline), 32px (nav), 48px (cards), 96px (marketing)                           |
+| Style       | Hand-drawn feel — corners are slightly imperfect, lines have micro-variation                   |
+| Sizes       | 24px (inline), 32px (nav), 48px (cards), 96px (marketing)                                      |
 
 ### Combined Icon: The Suite Mark
 
@@ -1062,14 +1063,14 @@ differentiators:
 
 ### Map (Central Data Store)
 
-| Element                  | Treatment                                                                                          |
-| ------------------------ | -------------------------------------------------------------------------------------------------- |
-| Accent metaphor          | Cartography and survey — grid lines, coordinates, territory markers, data layers                   |
-| Hero scene               | Charting the Territory — trio kneeling around the unfolded map                                     |
-| Empty state illustration | AI Agent holding a blank map, tilting it toward the viewer                                         |
-| Feature icons            | Grid overlays, pin markers, fold lines, legend keys, data layer toggles                            |
+| Element                  | Treatment                                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| Accent metaphor          | Cartography and survey — grid lines, coordinates, territory markers, data layers                    |
+| Hero scene               | Charting the Territory — trio kneeling around the unfolded map                                      |
+| Empty state illustration | AI Agent holding a blank map, tilting it toward the viewer                                          |
+| Feature icons            | Grid overlays, pin markers, fold lines, legend keys, data layer toggles                             |
 | Data visualization       | Map-like layouts for skill taxonomies, org structure, and signal overlays — nodes on a terrain grid |
-| Tone                     | "The single source of truth. Chart the territory before you move through it."                      |
+| Tone                     | "The single source of truth. Chart the territory before you move through it."                       |
 
 ### Pathway (Skills Catalogue & Career Advice)
 
@@ -1095,14 +1096,14 @@ differentiators:
 
 ### Landmark (Signal Analysis)
 
-| Element                  | Treatment                                                                                         |
-| ------------------------ | ------------------------------------------------------------------------------------------------- |
-| Accent metaphor          | Observation and measurement — cairns, vantage points, survey markers, signal lines                |
-| Hero scene               | Reading the Signals — trio on an outcrop, observing the landscape with instruments               |
-| Empty state illustration | AI Agent standing beside a cairn, holding a telescope, looking outward                            |
-| Feature icons            | Cairn stones, telescope, graph lines, signal waves, trend arrows                                  |
-| Data visualization       | Dashboard-style trend lines and comparison bars, overlaid on a subtle terrain grid                 |
-| Tone                     | "What do the signals say about how engineering is functioning?"                                   |
+| Element                  | Treatment                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| Accent metaphor          | Observation and measurement — cairns, vantage points, survey markers, signal lines |
+| Hero scene               | Reading the Signals — trio on an outcrop, observing the landscape with instruments |
+| Empty state illustration | AI Agent standing beside a cairn, holding a telescope, looking outward             |
+| Feature icons            | Cairn stones, telescope, graph lines, signal waves, trend arrows                   |
+| Data visualization       | Dashboard-style trend lines and comparison bars, overlaid on a subtle terrain grid |
+| Tone                     | "What do the signals say about how engineering is functioning?"                    |
 
 ### Basecamp (Personal & Team Knowledge Management)
 
@@ -1149,8 +1150,7 @@ differentiators:
 - **Never add background scenery to scenes** — objects (maps, compass, tent,
   papers) exist in the scene; landscapes, trees, clouds, and horizon lines do
   not (except the Pathway mountains and the Landmark outcrop, which are part of
-  their product symbols). The
-  white background is the canvas.
+  their product symbols). The white background is the canvas.
 - **Never outline or frame a scene** — no boxes, borders, or background panels.
   Scenes float freely in whitespace.
 

@@ -69,8 +69,8 @@ Team semantics:
 
 - List available snapshots.
 - Show factor/driver scores for a snapshot.
-- Compare against prior snapshot and benchmarks (`vs_prev`, `vs_org`,
-  `vs_50th`, `vs_75th`, `vs_90th`).
+- Compare against prior snapshot and benchmarks (`vs_prev`, `vs_org`, `vs_50th`,
+  `vs_75th`, `vs_90th`).
 
 ### Marker evidence views
 
@@ -117,12 +117,12 @@ Landmark stays intentionally small: query, aggregate, explain.
 
 ## Summary
 
-| Attribute     | Value |
-| ------------- | ----- |
-| Package       | `@forwardimpact/landmark` |
-| CLI           | `fit-landmark` |
-| Role          | Thin analysis layer on Map |
-| Survey source | GetDX (external platform) |
-| Data store    | Map (single source of truth) |
+| Attribute     | Value                                     |
+| ------------- | ----------------------------------------- |
+| Package       | `@forwardimpact/landmark`                 |
+| CLI           | `fit-landmark`                            |
+| Role          | Thin analysis layer on Map                |
+| Survey source | GetDX (external platform)                 |
+| Data store    | Map (single source of truth)              |
 | Org model     | `Organization` people + manager hierarchy |
-| Team model    | Derived from manager subtree |
+| Team model    | Derived from manager subtree              |

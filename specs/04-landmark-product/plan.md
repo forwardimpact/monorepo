@@ -28,9 +28,9 @@ Landmark depends on Map data contracts:
 - `activity.organization_people` (flat people list)
 - derived team hierarchy by manager
 - GitHub objective-lens data:
-   - `activity.github_events`
-   - `activity.github_artifacts`
-   - `activity.evidence`
+  - `activity.github_events`
+  - `activity.github_artifacts`
+  - `activity.evidence`
 - GetDX imports:
   - `activity.getdx_teams`
   - `activity.getdx_snapshots`
@@ -72,8 +72,8 @@ Landmark reads GitHub-derived evidence and provides:
 
 1. **Personal evidence view** by skill/marker and recent artifacts.
 2. **Team practice patterns** aggregated over manager-derived team scope.
-3. **Driver health joins** where marker evidence is compared with GetDX
-   snapshot factors.
+3. **Driver health joins** where marker evidence is compared with GetDX snapshot
+   factors.
 
 ## CLI Direction (Simplified)
 
@@ -117,6 +117,6 @@ Removed commands:
 
 - Landmark can answer “how is team X trending on DX factors?” using only Map.
 - Landmark can answer “what marker evidence do we have for skill X?” using only
-   Map.
+  Map.
 - No survey submission, distribution, or ingestion logic remains in Landmark.
 - No roster concept remains; only organization + derived team hierarchy.

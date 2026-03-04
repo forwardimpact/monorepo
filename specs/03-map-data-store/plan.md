@@ -5,9 +5,9 @@
 The previous plans modeled developer experience surveys as if we were building
 our own survey product. That is not the intent.
 
-We will continue using **GetDX** as the survey platform. Map must ingest
-**GetDX snapshot data** (aggregated quarterly survey results) and expose it
-consistently to downstream products.
+We will continue using **GetDX** as the survey platform. Map must ingest **GetDX
+snapshot data** (aggregated quarterly survey results) and expose it consistently
+to downstream products.
 
 We also over-modeled organization structure. The old **Roster** concept should
 be replaced with a simpler **Organization** model.
@@ -22,7 +22,7 @@ be replaced with a simpler **Organization** model.
 5. **Team is derived**, not stored as a first-class entity:
    - a team is “everyone in the reporting hierarchy under a manager.”
 6. **GitHub activity data remains first-class** for objective marker analysis
-  (events → artifacts → evidence), with Map as owner of ingestion/storage.
+   (events → artifacts → evidence), with Map as owner of ingestion/storage.
 
 ## External Source Contracts (GetDX)
 
@@ -256,8 +256,9 @@ This keeps the implementation simple and aligned with the stated future plan.
    - Upsert raw + normalized fields.
 
 3. **GitHub objective lens**
-  - Keep/implement GitHub event ingestion in Map.
-  - Keep/implement artifact extraction + evidence tables.
+
+- Keep/implement GitHub event ingestion in Map.
+- Keep/implement artifact extraction + evidence tables.
 
 4. **Derived team queries**
    - Provide standard recursive hierarchy query patterns.

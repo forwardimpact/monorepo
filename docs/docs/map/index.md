@@ -5,8 +5,8 @@ description: Data model, storage contracts, validation, and ingestion surfaces f
 
 ## Overview
 
-Map is the central data store of the FIT suite. It defines framework entities
-in YAML and stores operational activity data used by downstream products.
+Map is the central data store of the FIT suite. It defines framework entities in
+YAML and stores operational activity data used by downstream products.
 
 > See the [Map product page](/map/) for a high-level overview.
 
@@ -17,9 +17,9 @@ in YAML and stores operational activity data used by downstream products.
 Map provides two domains:
 
 1. **Framework domain** — skills, behaviours, levels, disciplines, tracks,
-	stages, drivers, and interview questions.
+   stages, drivers, and interview questions.
 2. **Activity domain** — organization hierarchy, GitHub activity/evidence, and
-	GetDX snapshot aggregates.
+   GetDX snapshot aggregates.
 
 Products query Map through shared contracts across these datasets.
 
@@ -65,8 +65,8 @@ npx fit-map validate --shacl  # RDF/SHACL validation
 npx fit-map generate-index    # Generate browser indexes
 ```
 
-Validation covers framework definitions. Activity ingestion validation is handled
-by ingestion pipelines and table constraints.
+Validation covers framework definitions. Activity ingestion validation is
+handled by ingestion pipelines and table constraints.
 
 ---
 

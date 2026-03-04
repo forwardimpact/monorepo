@@ -5,9 +5,10 @@ from GitHub Organizations, uses Guide to interpret artifacts against skill
 markers, and produces two views: personal evidence for engineers and practice
 patterns for teams.
 
-**Prerequisite:** The Map data store plan must be implemented first. Map provides
-the Supabase project, database schemas (framework + activity), Edge Function
-hosting, Storage, and pg_cron. Landmark builds on top of that infrastructure.
+**Prerequisite:** The Map data store plan must be implemented first. Map
+provides the Supabase project, database schemas (framework + activity), Edge
+Function hosting, Storage, and pg_cron. Landmark builds on top of that
+infrastructure.
 
 ## What Landmark Owns
 
@@ -28,8 +29,8 @@ Landmark does **not** own:
 - RLS policies
 - Storage buckets
 
-All of that is Map's responsibility. See `specs/map-data-store/plan.md` for
-the full schema, RLS policies, and infrastructure details.
+All of that is Map's responsibility. See `specs/map-data-store/plan.md` for the
+full schema, RLS policies, and infrastructure details.
 
 ## Architecture
 
@@ -64,7 +65,8 @@ Map Supabase Project
 Three distinct phases, each running at its own cadence:
 
 1. **Ingestion** — real-time. Edge Function receives webhook, writes raw payload
-   to Storage, inserts index row into `activity.events`. Returns 200 immediately.
+   to Storage, inserts index row into `activity.events`. Returns 200
+   immediately.
 
 2. **Extraction** — scheduled. A pg_cron job processes unextracted events, reads
    raw payloads from Storage, and writes structured artifacts to
@@ -106,9 +108,9 @@ organization. No individuals named.
 - Minimum team size for aggregate queries: 5 engineers. Below this threshold,
   patterns could identify individuals by elimination.
 
-Access control is enforced at the database level by Map's RLS policies and
-the `activity.practice_patterns` aggregate view. See
-`specs/map-data-store/plan.md` for the full RLS and view definitions.
+Access control is enforced at the database level by Map's RLS policies and the
+`activity.practice_patterns` aggregate view. See `specs/map-data-store/plan.md`
+for the full RLS and view definitions.
 
 ## Phase 1: Ingestion
 
@@ -314,8 +316,8 @@ fit-landmark evidence --skill system_design
 ```
 
 Steps 1–5 are cheap Postgres queries via PostgREST. Step 6 is the LLM call — it
-only runs for artifacts that haven't been interpreted yet. Subsequent queries for
-the same skill hit the cache.
+only runs for artifacts that haven't been interpreted yet. Subsequent queries
+for the same skill hit the cache.
 
 The output groups by artifact, not by marker. The engineer sees their work
 first, then how it relates to the framework — not a checklist of markers with
@@ -465,13 +467,13 @@ activity.evidence
   └──→ practice patterns     (team aggregate + survey context, anonymous, min 5)
 ```
 
-| Table               | Growth rate    | Retention         | Rebuildable from            |
-| ------------------- | -------------- | ----------------- | --------------------------- |
-| activity.events     | ~30k rows/day  | Permanent         | —                           |
-| Storage             | ~1GB/day       | Permanent         | —                           |
-| activity.artifacts  | ~5k rows/day   | Permanent         | events + Storage            |
-| activity.evidence   | On-demand      | Until invalidated | artifacts + Guide           |
-| activity.roster     | Manual updates | Current           | landmark.yaml               |
+| Table              | Growth rate    | Retention         | Rebuildable from  |
+| ------------------ | -------------- | ----------------- | ----------------- |
+| activity.events    | ~30k rows/day  | Permanent         | —                 |
+| Storage            | ~1GB/day       | Permanent         | —                 |
+| activity.artifacts | ~5k rows/day   | Permanent         | events + Storage  |
+| activity.evidence  | On-demand      | Until invalidated | artifacts + Guide |
+| activity.roster    | Manual updates | Current           | landmark.yaml     |
 
 Table definitions, indexes, RLS policies, and views are in
 `specs/map-data-store/plan.md` under **Activity Tables** and **Row Level

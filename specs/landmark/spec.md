@@ -139,8 +139,8 @@ markers on every PR.
 
 The `capabilities` mapping is optional — not all repos need to be tagged.
 Untagged repos still produce artifacts and evidence; they just lack the
-capability signal that helps Guide connect repository activity to specific
-skill areas.
+capability signal that helps Guide connect repository activity to specific skill
+areas.
 
 When capability tags are present, Guide can infer context: "Alice works mostly
 in platform-core, which exercises scale and reliability capabilities." This
@@ -178,8 +178,7 @@ scale:
 
 Survey results are aggregate Likert scores per team per driver. Individual
 responses stay anonymous — Landmark only sees team-level aggregation. The team
-key points to a manager in the organization, whose direct reports form the
-team:
+key points to a manager in the organization, whose direct reports form the team:
 
 ```yaml
 # survey-results/2026-q1.yaml
@@ -199,11 +198,11 @@ results:
       requirements_quality: { mean: 3.1, distribution: [1, 3, 4, 4, 2] }
 ```
 
-The `distribution` array gives the count of responses at each scale point
-(1 through 5), preserving the shape of opinion without individual attribution.
+The `distribution` array gives the count of responses at each scale point (1
+through 5), preserving the shape of opinion without individual attribution.
 
-This is where surveys and Landmark evidence meet. Guide can traverse from a
-weak survey score on `requirements_quality` to the contributing skills
+This is where surveys and Landmark evidence meet. Guide can traverse from a weak
+survey score on `requirements_quality` to the contributing skills
 (`stakeholder_management`, `technical_writing`, `architecture_design`), to the
 markers for those skills, to the evidence (or lack of evidence) in the team's
 GitHub activity. The survey gives perception. Landmark gives observable
@@ -234,20 +233,20 @@ The app collects. It does not act on repositories — no comments, no status
 checks, no annotations on PRs. It does not surface results inside GitHub. All
 output is through the CLI, where the engineer controls what they see.
 
-Landmark owns no database. All data — events, artifacts, evidence, roster — lives
-in Map's Supabase project under the `activity` schema. This means any product
-that needs GitHub activity data (Guide, future products) can access it from
-the same data store without cross-service integration.
+Landmark owns no database. All data — events, artifacts, evidence, roster —
+lives in Map's Supabase project under the `activity` schema. This means any
+product that needs GitHub activity data (Guide, future products) can access it
+from the same data store without cross-service integration.
 
 ### Collector and Interpreter
 
 Landmark has two parts.
 
-The **collector** is the GitHub App — an Edge Function in Map's Supabase project.
-It receives events, writes raw payloads to Map's Storage, and inserts thin index
-rows into Map's `activity.events` table. A scheduled extraction job then
-processes raw events into structured artifacts. This is deterministic — anyone
-can see exactly what was collected and when.
+The **collector** is the GitHub App — an Edge Function in Map's Supabase
+project. It receives events, writes raw payloads to Map's Storage, and inserts
+thin index rows into Map's `activity.events` table. A scheduled extraction job
+then processes raw events into structured artifacts. This is deterministic —
+anyone can see exactly what was collected and when.
 
 The **interpreter** is Guide. Guide reads uninterpreted artifacts from Map's
 `activity.artifacts` table, assesses them against skill markers from the
@@ -506,8 +505,8 @@ This view is for engineering leadership. It points to where the system supports
 good practice and where it doesn't. It asks questions about the process, not
 about the people.
 
-When survey data is available for the same manager and period, the practice
-view includes it:
+When survey data is available for the same manager and period, the practice view
+includes it:
 
 ```
 $ fit-landmark practice system_design --manager carol
@@ -535,18 +534,18 @@ $ fit-landmark practice system_design --manager carol
 
 ## Summary
 
-| Attribute     | Value                                                                   |
-| ------------- | ----------------------------------------------------------------------- |
-| Package       | `@forwardimpact/landmark`                                               |
-| CLI           | `fit-landmark`                                                          |
-| Delivery      | GitHub App installed on GitHub Organizations                            |
-| Data store    | None — all data lives in Map's Supabase (activity schema)               |
-| Icon          | Cairn (three stacked stones)                                            |
-| Emoji         | 🪨                                                                      |
-| Hero scene    | "Checking the Cairn"                                                    |
-| Tagline       | "See your own growth. Improve the system."                              |
+| Attribute     | Value                                                                                |
+| ------------- | ------------------------------------------------------------------------------------ |
+| Package       | `@forwardimpact/landmark`                                                            |
+| CLI           | `fit-landmark`                                                                       |
+| Delivery      | GitHub App installed on GitHub Organizations                                         |
+| Data store    | None — all data lives in Map's Supabase (activity schema)                            |
+| Icon          | Cairn (three stacked stones)                                                         |
+| Emoji         | 🪨                                                                                   |
+| Hero scene    | "Checking the Cairn"                                                                 |
+| Tagline       | "See your own growth. Improve the system."                                           |
 | Depends on    | `@forwardimpact/map` (data store + markers), `@forwardimpact/guide` (interpretation) |
-| Input         | GitHub webhook events + roster (people → job profiles)                  |
-| For engineers | Self-directed evidence, preparation for career conversations            |
-| For teams     | Practice patterns, process improvement signals                          |
-| For agents    | Same markers, same evidence, same interpretation                        |
+| Input         | GitHub webhook events + roster (people → job profiles)                               |
+| For engineers | Self-directed evidence, preparation for career conversations                         |
+| For teams     | Practice patterns, process improvement signals                                       |
+| For agents    | Same markers, same evidence, same interpretation                                     |

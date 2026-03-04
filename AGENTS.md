@@ -25,11 +25,11 @@ output, and bring pride of workmanship to engineering teams.
 
 ### Libraries
 
-| Library                    | CLI       | Purpose                                    |
-| -------------------------- | --------- | ------------------------------------------ |
-| `@forwardimpact/libskill`  | —         | Derivation engine for roles and agents     |
-| `@forwardimpact/libui`     | —         | Web UI framework: rendering, routing, CSS  |
-| `@forwardimpact/libdoc`    | `fit-doc` | Documentation build and serve tools        |
+| Library                   | CLI       | Purpose                                   |
+| ------------------------- | --------- | ----------------------------------------- |
+| `@forwardimpact/libskill` | —         | Derivation engine for roles and agents    |
+| `@forwardimpact/libui`    | —         | Web UI framework: rendering, routing, CSS |
+| `@forwardimpact/libdoc`   | `fit-doc` | Documentation build and serve tools       |
 
 ```
 products/
@@ -56,7 +56,8 @@ different data while using the same model.
 1. **Map** (`products/map/src/`) — Public data model, validation, loading
 2. **Model** (`libraries/libskill/`) — Pure business logic, derivation
 3. **UI** (`libraries/libui/`) — Web UI framework, components, design system
-4. **Presentation** (`products/pathway/src/`) — Formatters, views, domain components
+4. **Presentation** (`products/pathway/src/`) — Formatters, views, domain
+   components
 
 ```
 Map (data) → Model (derivation) → UI (framework) → Presentation (display)
@@ -392,8 +393,7 @@ Use these terms for spheres of influence (ascending breadth):
 
 **UI** (`libraries/libui/`): `render.js`, `reactive.js`, `state.js`,
 `router-core.js`, `router-pages.js`, `router-slides.js`, `error-boundary.js`,
-`errors.js`, `markdown.js`, `utils.js`, `yaml-loader.js`, `components/`,
-`css/`
+`errors.js`, `markdown.js`, `utils.js`, `yaml-loader.js`, `components/`, `css/`
 
 **Presentation** (`products/pathway/src/`): `formatters/`, `pages/`,
 `components/`, `lib/`, `commands/`, `slides/`

@@ -60,8 +60,8 @@ $ fit-landmark evidence --skill system_design
 
 ### Practice Patterns
 
-  Engineering leadership sees aggregate marker patterns across a manager-defined
-  team scope.
+Engineering leadership sees aggregate marker patterns across a manager-defined
+team scope.
 
 ```
   $ fit-landmark practice --skill system_design --manager platform_manager
@@ -77,25 +77,25 @@ $ fit-landmark evidence --skill system_design
     Consider: where does design exploration happen in the current workflow?
 ```
 
-  ### Snapshot Trends
+### Snapshot Trends
 
-  Quarterly GetDX snapshots show how factors move over time and relative to org
-  and benchmark comparisons.
+Quarterly GetDX snapshots show how factors move over time and relative to org
+and benchmark comparisons.
 
-  ```sh
-  fit-landmark snapshot trend --item MTQ2 --manager platform_manager
-  fit-landmark snapshot compare --snapshot MjUyNbaY --manager platform_manager
-  ```
+```sh
+fit-landmark snapshot trend --item MTQ2 --manager platform_manager
+fit-landmark snapshot compare --snapshot MjUyNbaY --manager platform_manager
+```
 
 ---
 
 ## How It Works
 
-  Landmark queries Map's central store:
+Landmark queries Map's central store:
 
-  1. `organization_people` for hierarchy and team slicing
-  2. `github_artifacts` + `evidence` for objective marker analysis
-  3. `getdx_snapshots` + `getdx_snapshot_team_scores` for quarterly outcomes
+1. `organization_people` for hierarchy and team slicing
+2. `github_artifacts` + `evidence` for objective marker analysis
+3. `getdx_snapshots` + `getdx_snapshot_team_scores` for quarterly outcomes
 
 ```
   GetDX + GitHub → Map (ingest + store) → Landmark (analyze + present)
@@ -105,6 +105,6 @@ $ fit-landmark evidence --skill system_design
 
 ### Stay Updated
 
-  Landmark is currently in development. Product direction is specified in the
-  Landmark and Map specs under `specs/04-landmark-product` and
-  `specs/03-map-data-store`.
+Landmark is currently in development. Product direction is specified in the
+Landmark and Map specs under `specs/04-landmark-product` and
+`specs/03-map-data-store`.
