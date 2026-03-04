@@ -85,6 +85,15 @@ async function formatAgentDetail(skill, stages, dataDir) {
   console.log(output);
 }
 
+/**
+ * Format skill list item for --list output
+ * @param {Object} skill - Skill entity
+ * @returns {string} Formatted list line
+ */
+function formatListItem(skill) {
+  return `${skill.id}, ${skill.name}, ${skill.capability || "-"}`;
+}
+
 const baseSkillCommand = createEntityCommand({
   entityName: "skill",
   pluralName: "skills",
@@ -98,6 +107,7 @@ const baseSkillCommand = createEntityCommand({
   }),
   formatSummary,
   formatDetail,
+  formatListItem,
   emojiIcon: "📚",
 });
 

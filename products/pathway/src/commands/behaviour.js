@@ -15,6 +15,15 @@ import { behaviourToMarkdown } from "../formatters/behaviour/markdown.js";
 import { formatTable } from "../lib/cli-output.js";
 
 /**
+ * Format behaviour list item for --list output
+ * @param {Object} behaviour - Behaviour entity
+ * @returns {string} Formatted list line
+ */
+function formatListItem(behaviour) {
+  return `${behaviour.id}, ${behaviour.name}`;
+}
+
+/**
  * Format behaviour summary output
  * @param {Array} behaviours - Raw behaviour entities
  * @param {Object} data - Full data context
@@ -34,7 +43,7 @@ function formatSummary(behaviours, data) {
 
   console.log(formatTable(["ID", "Name", "Drivers"], rows));
   console.log(`\nTotal: ${behaviours.length} behaviours`);
-  console.log(`\nRun 'npx pathway behaviour --list' for IDs`);
+  console.log(`\nRun 'npx pathway behaviour --list' for IDs and names`);
   console.log(`Run 'npx pathway behaviour <id>' for details\n`);
 }
 
@@ -57,5 +66,6 @@ export const runBehaviourCommand = createEntityCommand({
   }),
   formatSummary,
   formatDetail,
+  formatListItem,
   emojiIcon: "🧠",
 });

@@ -21,6 +21,15 @@ import {
 import { getConceptEmoji } from "@forwardimpact/map/levels";
 
 /**
+ * Format driver list item for --list output
+ * @param {Object} driver - Driver entity
+ * @returns {string} Formatted list line
+ */
+function formatListItem(driver) {
+  return `${driver.id}, ${driver.name}`;
+}
+
+/**
  * Format driver summary output
  * @param {Array} drivers - Raw driver entities
  * @param {Object} data - Full data context
@@ -43,7 +52,7 @@ function formatSummary(drivers, data) {
 
   console.log(formatTable(["ID", "Name", "Skills", "Behaviours"], rows));
   console.log(`\nTotal: ${drivers.length} drivers`);
-  console.log(`\nRun 'npx pathway driver --list' for IDs`);
+  console.log(`\nRun 'npx pathway driver --list' for IDs and names`);
   console.log(`Run 'npx pathway driver <id>' for details\n`);
 }
 
@@ -90,5 +99,6 @@ export const runDriverCommand = createEntityCommand({
   }),
   formatSummary,
   formatDetail,
+  formatListItem,
   emojiIcon: "🎯",
 });

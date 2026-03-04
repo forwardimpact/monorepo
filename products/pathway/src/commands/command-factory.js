@@ -22,6 +22,7 @@ import { capitalize } from "../formatters/shared.js";
  * @param {Function} config.presentDetail - Function to present detail: (entity, data, options) => view
  * @param {Function} config.formatSummary - Function to format summary output: (items, data) => void
  * @param {Function} config.formatDetail - Function to format detail output: (view, framework) => void
+ * @param {Function} [config.formatListItem] - Optional function to format list item: (item) => string (defaults to item.id)
  * @param {Function} [config.sortItems] - Optional function to sort items: (items) => sortedItems
  * @param {Function} [config.validate] - Optional validation function: (data) => {errors: [], warnings: []}
  * @param {string} [config.emojiIcon] - Optional emoji for the entity
@@ -34,6 +35,7 @@ export function createEntityCommand({
   presentDetail,
   formatSummary,
   formatDetail,
+  formatListItem,
   sortItems,
   validate,
   _emojiIcon = "",
@@ -48,10 +50,10 @@ export function createEntityCommand({
       return handleValidate({ data, entityName, pluralName, validate });
     }
 
-    // --list: Output clean newline-separated IDs for piping
+    // --list: Output descriptive comma-separated lines for piping and AI agent discovery
     if (options.list) {
       for (const item of items) {
-        console.log(item.id);
+        console.log(formatListItem ? formatListItem(item) : item.id);
       }
       return;
     }

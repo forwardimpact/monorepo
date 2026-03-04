@@ -15,6 +15,15 @@ import { disciplineToMarkdown } from "../formatters/discipline/markdown.js";
 import { formatTable } from "../lib/cli-output.js";
 
 /**
+ * Format discipline list item for --list output
+ * @param {Object} discipline - Discipline entity
+ * @returns {string} Formatted list line
+ */
+function formatListItem(discipline) {
+  return `${discipline.id}, ${discipline.specialization || discipline.id}, ${discipline.roleTitle || discipline.id}`;
+}
+
+/**
  * Format discipline summary output
  * @param {Array} disciplines - Raw discipline entities
  */
@@ -23,14 +32,21 @@ function formatSummary(disciplines) {
 
   const rows = disciplines.map((d) => [
     d.id,
+    d.specialization || d.id,
+    d.roleTitle || d.id,
     d.coreSkills?.length || 0,
     d.supportingSkills?.length || 0,
     d.broadSkills?.length || 0,
   ]);
 
-  console.log(formatTable(["ID", "Core", "Supporting", "Broad"], rows));
+  console.log(
+    formatTable(
+      ["ID", "Specialization", "Role Title", "Core", "Supporting", "Broad"],
+      rows,
+    ),
+  );
   console.log(`\nTotal: ${disciplines.length} disciplines`);
-  console.log(`\nRun 'npx pathway discipline --list' for IDs`);
+  console.log(`\nRun 'npx pathway discipline --list' for IDs and names`);
   console.log(`Run 'npx pathway discipline <id>' for details\n`);
 }
 
@@ -54,5 +70,6 @@ export const runDisciplineCommand = createEntityCommand({
   }),
   formatSummary,
   formatDetail,
+  formatListItem,
   emojiIcon: "📋",
 });

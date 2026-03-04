@@ -17,6 +17,15 @@ import { formatTable } from "../lib/cli-output.js";
 import { getConceptEmoji } from "@forwardimpact/map/levels";
 
 /**
+ * Format track list item for --list output
+ * @param {Object} track - Track entity
+ * @returns {string} Formatted list line
+ */
+function formatListItem(track) {
+  return `${track.id}, ${track.name}`;
+}
+
+/**
  * Format track summary output
  * @param {Array} tracks - Raw track entities
  * @param {Object} data - Full data context
@@ -34,7 +43,7 @@ function formatSummary(tracks, data) {
 
   console.log(formatTable(["ID", "Name", "Modifiers"], rows));
   console.log(`\nTotal: ${tracks.length} tracks`);
-  console.log(`\nRun 'npx pathway track --list' for IDs`);
+  console.log(`\nRun 'npx pathway track --list' for IDs and names`);
   console.log(`Run 'npx pathway track <id>' for details\n`);
 }
 
@@ -63,5 +72,6 @@ export const runTrackCommand = createEntityCommand({
   sortItems: sortTracksByName,
   formatSummary,
   formatDetail,
+  formatListItem,
   emojiIcon: "🛤️",
 });

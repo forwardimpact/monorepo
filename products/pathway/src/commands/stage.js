@@ -22,6 +22,15 @@ import {
 } from "../lib/cli-output.js";
 
 /**
+ * Format stage list item for --list output
+ * @param {Object} stage - Stage entity
+ * @returns {string} Formatted list line
+ */
+function formatListItem(stage) {
+  return `${stage.id}, ${stage.name}`;
+}
+
+/**
  * Format stage summary output
  * @param {Array} stages - Raw stage entities
  * @param {Object} _data - Full data context (unused)
@@ -43,7 +52,7 @@ function formatSummary(stages, _data) {
 
   console.log(formatTable(["ID", "Name", "Mode", "Tools", "Handoffs"], rows));
   console.log(`\nTotal: ${stages.length} stages`);
-  console.log(`\nRun 'npx pathway stage --list' for IDs`);
+  console.log(`\nRun 'npx pathway stage --list' for IDs and names`);
   console.log(`Run 'npx pathway stage <id>' for details\n`);
 }
 
@@ -115,5 +124,6 @@ export const runStageCommand = createEntityCommand({
   }),
   formatSummary,
   formatDetail,
+  formatListItem,
   emojiIcon: "🔄",
 });

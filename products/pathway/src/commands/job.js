@@ -16,7 +16,7 @@
 
 import { prepareJobDetail } from "@forwardimpact/libskill/job";
 import { jobToMarkdown } from "../formatters/job/markdown.js";
-import { generateAllJobs } from "@forwardimpact/libskill/derivation";
+import { generateJobTitle, generateAllJobs } from "@forwardimpact/libskill/derivation";
 import { formatTable } from "../lib/cli-output.js";
 import {
   deriveChecklist,
@@ -54,13 +54,16 @@ export async function runJobCommand({ data, args, options, dataDir }) {
     validationRules: data.framework.validationRules,
   });
 
-  // --list: Output clean lines for piping (discipline level track format)
+  // --list: Output descriptive comma-separated lines for piping and AI agent discovery
   if (options.list) {
     for (const job of jobs) {
+      const title = generateJobTitle(job.discipline, job.level, job.track);
       if (job.track) {
-        console.log(`${job.discipline.id} ${job.level.id} ${job.track.id}`);
+        console.log(
+          `${job.discipline.id} ${job.level.id} ${job.track.id}, ${title}`,
+        );
       } else {
-        console.log(`${job.discipline.id} ${job.level.id}`);
+        console.log(`${job.discipline.id} ${job.level.id}, ${title}`);
       }
     }
     return;
@@ -70,17 +73,27 @@ export async function runJobCommand({ data, args, options, dataDir }) {
   if (args.length === 0) {
     console.log(`\n💼 Jobs\n`);
 
-    // Count by discipline
+    // Count by discipline with name
     const byDiscipline = {};
     for (const job of jobs) {
-      byDiscipline[job.discipline.id] =
-        (byDiscipline[job.discipline.id] || 0) + 1;
+      const key = job.discipline.id;
+      if (!byDiscipline[key]) {
+        byDiscipline[key] = {
+          name: job.discipline.specialization || job.discipline.id,
+          count: 0,
+        };
+      }
+      byDiscipline[key].count++;
     }
 
-    const rows = Object.entries(byDiscipline).map(([id, count]) => [id, count]);
-    console.log(formatTable(["Discipline", "Combinations"], rows));
+    const rows = Object.entries(byDiscipline).map(([id, info]) => [
+      id,
+      info.name,
+      info.count,
+    ]);
+    console.log(formatTable(["ID", "Specialization", "Combinations"], rows));
     console.log(`\nTotal: ${jobs.length} valid job combinations`);
-    console.log(`\nRun 'npx pathway job --list' for all combinations`);
+    console.log(`\nRun 'npx pathway job --list' for all combinations with titles`);
     console.log(
       `Run 'npx pathway job <discipline> <level> [--track=<track>]' for details\n`,
     );

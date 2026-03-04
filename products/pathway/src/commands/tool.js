@@ -9,6 +9,7 @@
  *   npx pathway tool <name>       # Detail view for specific tool
  */
 
+import { truncate } from "../formatters/shared.js";
 import { prepareToolsList } from "../formatters/tool/shared.js";
 import {
   formatTable,
@@ -27,10 +28,10 @@ export async function runToolCommand({ data, args, options }) {
   const [name] = args;
   const { tools, totalCount } = prepareToolsList(data.skills);
 
-  // --list: Output clean newline-separated tool names for piping
+  // --list: Output descriptive comma-separated tool lines for piping
   if (options.list) {
     for (const tool of tools) {
-      console.log(tool.name);
+      console.log(`${tool.name}, ${truncate(tool.description, 60)}`);
     }
     return;
   }
@@ -87,7 +88,7 @@ function formatSummary(tools, totalCount) {
   if (sorted.length > 15) {
     console.log(`(showing top 15 by usage)`);
   }
-  console.log(`\nRun 'npx pathway tool --list' for all tool names`);
+  console.log(`\nRun 'npx pathway tool --list' for all tool names and descriptions`);
   console.log(`Run 'npx pathway tool <name>' for details\n`);
 }
 

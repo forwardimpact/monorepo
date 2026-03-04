@@ -199,7 +199,7 @@ function showAgentSummary(data, agentData, skillsWithAgent) {
  */
 function listAgentCombinations(data, agentData, verbose = false) {
   if (!verbose) {
-    // Clean output for piping
+    // Descriptive output for piping and AI agent discovery
     for (const discipline of agentData.disciplines) {
       for (const track of agentData.tracks) {
         const humanDiscipline = data.disciplines.find(
@@ -209,7 +209,11 @@ function listAgentCombinations(data, agentData, verbose = false) {
         if (humanDiscipline && humanTrack) {
           const abbrev = getDisciplineAbbreviation(discipline.id);
           const agentName = `${abbrev}-${toKebabCase(track.id)}`;
-          console.log(`${agentName} ${discipline.id} ${track.id}`);
+          const specName =
+            humanDiscipline.specialization || humanDiscipline.id;
+          console.log(
+            `${agentName} ${discipline.id} ${track.id}, ${specName} (${humanTrack.name})`,
+          );
         }
       }
     }

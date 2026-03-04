@@ -17,6 +17,15 @@ import { getConceptEmoji } from "@forwardimpact/map/levels";
 import { capitalize } from "../formatters/shared.js";
 
 /**
+ * Format level list item for --list output
+ * @param {Object} level - Level entity
+ * @returns {string} Formatted list line
+ */
+function formatListItem(level) {
+  return `${level.id}, ${level.professionalTitle || level.id}, ${level.managementTitle || level.id}`;
+}
+
+/**
  * Format level summary output
  * @param {Array} levels - Raw level entities
  * @param {Object} data - Full data context
@@ -29,14 +38,20 @@ function formatSummary(levels, data) {
 
   const rows = levels.map((g) => [
     g.id,
-    g.displayName || g.id,
+    g.professionalTitle || g.displayName || g.id,
+    g.managementTitle || "-",
     g.typicalExperienceRange || "-",
     capitalize(g.baseSkillProficiencies?.primary || "-"),
   ]);
 
-  console.log(formatTable(["ID", "Name", "Experience", "Primary Level"], rows));
+  console.log(
+    formatTable(
+      ["ID", "Professional Title", "Management Title", "Experience", "Primary Level"],
+      rows,
+    ),
+  );
   console.log(`\nTotal: ${levels.length} levels`);
-  console.log(`\nRun 'npx pathway level --list' for IDs`);
+  console.log(`\nRun 'npx pathway level --list' for IDs and titles`);
   console.log(`Run 'npx pathway level <id>' for details\n`);
 }
 
@@ -56,5 +71,6 @@ export const runLevelCommand = createEntityCommand({
   presentDetail: (entity) => entity,
   formatSummary,
   formatDetail,
+  formatListItem,
   emojiIcon: "📊",
 });
