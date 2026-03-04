@@ -20,7 +20,11 @@ import { formatTable } from "../lib/cli-output.js";
  * @returns {string} Formatted list line
  */
 function formatListItem(discipline) {
-  return `${discipline.id}, ${discipline.specialization || discipline.id}, ${discipline.roleTitle || discipline.id}`;
+  const type = discipline.isProfessional ? "professional" : "management";
+  const tracks = (discipline.validTracks || [])
+    .filter((t) => t !== null)
+    .join("|");
+  return `${discipline.id}, ${discipline.specialization || discipline.id}, ${type}, ${tracks || "—"}`;
 }
 
 /**
@@ -30,21 +34,14 @@ function formatListItem(discipline) {
 function formatSummary(disciplines) {
   console.log(`\n📋 Disciplines\n`);
 
-  const rows = disciplines.map((d) => [
-    d.id,
-    d.specialization || d.id,
-    d.roleTitle || d.id,
-    d.coreSkills?.length || 0,
-    d.supportingSkills?.length || 0,
-    d.broadSkills?.length || 0,
-  ]);
+  const rows = disciplines.map((d) => {
+    const type = d.isProfessional ? "Professional" : "Management";
+    const validTracks = (d.validTracks || []).filter((t) => t !== null);
+    const trackStr = validTracks.length > 0 ? validTracks.join(", ") : "—";
+    return [d.id, d.specialization || d.id, type, trackStr];
+  });
 
-  console.log(
-    formatTable(
-      ["ID", "Specialization", "Role Title", "Core", "Supporting", "Broad"],
-      rows,
-    ),
-  );
+  console.log(formatTable(["ID", "Specialization", "Type", "Tracks"], rows));
   console.log(`\nTotal: ${disciplines.length} disciplines`);
   console.log(`\nRun 'npx pathway discipline --list' for IDs and names`);
   console.log(`Run 'npx pathway discipline <id>' for details\n`);
@@ -55,8 +52,8 @@ function formatSummary(disciplines) {
  * @param {Object} viewAndContext - Contains discipline entity and context
  */
 function formatDetail(viewAndContext) {
-  const { discipline, skills, behaviours } = viewAndContext;
-  console.log(disciplineToMarkdown(discipline, { skills, behaviours }));
+  const { discipline, skills, behaviours, tracks } = viewAndContext;
+  console.log(disciplineToMarkdown(discipline, { skills, behaviours, tracks }));
 }
 
 export const runDisciplineCommand = createEntityCommand({
@@ -67,6 +64,7 @@ export const runDisciplineCommand = createEntityCommand({
     discipline: entity,
     skills: data.skills,
     behaviours: data.behaviours,
+    tracks: data.tracks,
   }),
   formatSummary,
   formatDetail,

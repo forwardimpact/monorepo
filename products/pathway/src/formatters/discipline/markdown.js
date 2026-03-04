@@ -35,15 +35,30 @@ export function disciplineListToMarkdown(disciplines) {
  * @param {Object} context - Additional context
  * @param {Array} context.skills - All skills
  * @param {Array} context.behaviours - All behaviours
+ * @param {Array} [context.tracks] - All tracks (for showing valid track names)
  * @param {boolean} [context.showBehaviourModifiers=true] - Whether to show behaviour modifiers section
  * @returns {string}
  */
 export function disciplineToMarkdown(
   discipline,
-  { skills, behaviours, showBehaviourModifiers = true } = {},
+  { skills, behaviours, tracks, showBehaviourModifiers = true } = {},
 ) {
   const view = prepareDisciplineDetail(discipline, { skills, behaviours });
+  const type = discipline.isProfessional ? "Professional" : "Management";
   const lines = [`# 📋 ${view.name}`, "", view.description, ""];
+
+  // Type and valid tracks
+  const validTracks = (discipline.validTracks || []).filter((t) => t !== null);
+  if (validTracks.length > 0) {
+    const trackNames = validTracks.map((tid) => {
+      const track = tracks?.find((t) => t.id === tid);
+      return track ? track.name : tid;
+    });
+    lines.push(`**Type:** ${type}  `);
+    lines.push(`**Valid Tracks:** ${trackNames.join(", ")}`, "");
+  } else {
+    lines.push(`**Type:** ${type}`, "");
+  }
 
   // Core skills
   if (view.coreSkills.length > 0) {

@@ -46,7 +46,13 @@ function formatSummary(levels, data) {
 
   console.log(
     formatTable(
-      ["ID", "Professional Title", "Management Title", "Experience", "Primary Level"],
+      [
+        "ID",
+        "Professional Title",
+        "Management Title",
+        "Experience",
+        "Primary Level",
+      ],
       rows,
     ),
   );

@@ -88,7 +88,9 @@ function formatSummary(tools, totalCount) {
   if (sorted.length > 15) {
     console.log(`(showing top 15 by usage)`);
   }
-  console.log(`\nRun 'npx pathway tool --list' for all tool names and descriptions`);
+  console.log(
+    `\nRun 'npx pathway tool --list' for all tool names and descriptions`,
+  );
   console.log(`Run 'npx pathway tool <name>' for details\n`);
 }
 

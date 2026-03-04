@@ -31,17 +31,23 @@ function formatListItem(track) {
  * @param {Object} data - Full data context
  */
 function formatSummary(tracks, data) {
-  const { framework } = data;
+  const { framework, disciplines } = data;
   const emoji = framework ? getConceptEmoji(framework, "track") : "🛤️";
 
   console.log(`\n${emoji} Tracks\n`);
 
   const rows = tracks.map((t) => {
     const modCount = Object.keys(t.skillModifiers || {}).length;
-    return [t.id, t.name, modCount];
+    const usedBy = disciplines
+      ? disciplines.filter((d) => d.validTracks && d.validTracks.includes(t.id))
+      : [];
+    const disciplineNames = usedBy
+      .map((d) => d.specialization || d.id)
+      .join(", ");
+    return [t.id, t.name, modCount, disciplineNames || "—"];
   });
 
-  console.log(formatTable(["ID", "Name", "Modifiers"], rows));
+  console.log(formatTable(["ID", "Name", "Modifiers", "Disciplines"], rows));
   console.log(`\nTotal: ${tracks.length} tracks`);
   console.log(`\nRun 'npx pathway track --list' for IDs and names`);
   console.log(`Run 'npx pathway track <id>' for details\n`);

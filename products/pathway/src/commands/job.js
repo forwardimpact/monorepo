@@ -16,7 +16,10 @@
 
 import { prepareJobDetail } from "@forwardimpact/libskill/job";
 import { jobToMarkdown } from "../formatters/job/markdown.js";
-import { generateJobTitle, generateAllJobs } from "@forwardimpact/libskill/derivation";
+import {
+  generateJobTitle,
+  generateAllJobs,
+} from "@forwardimpact/libskill/derivation";
 import { formatTable } from "../lib/cli-output.js";
 import {
   deriveChecklist,
@@ -54,9 +57,33 @@ export async function runJobCommand({ data, args, options, dataDir }) {
     validationRules: data.framework.validationRules,
   });
 
+  // Apply --track filter to list and summary modes
+  const filteredJobs = options.track
+    ? jobs.filter((j) => j.track && j.track.id === options.track)
+    : jobs;
+
+  if (options.track && filteredJobs.length === 0 && args.length === 0) {
+    const trackExists = data.tracks.some((t) => t.id === options.track);
+    if (!trackExists) {
+      console.error(`Track not found: ${options.track}`);
+      console.error(`Available: ${data.tracks.map((t) => t.id).join(", ")}`);
+    } else {
+      console.error(`No jobs found for track: ${options.track}`);
+      const trackDisciplines = data.disciplines
+        .filter((d) => d.validTracks && d.validTracks.includes(options.track))
+        .map((d) => d.id);
+      if (trackDisciplines.length > 0) {
+        console.error(
+          `Disciplines with this track: ${trackDisciplines.join(", ")}`,
+        );
+      }
+    }
+    process.exit(1);
+  }
+
   // --list: Output descriptive comma-separated lines for piping and AI agent discovery
   if (options.list) {
-    for (const job of jobs) {
+    for (const job of filteredJobs) {
       const title = generateJobTitle(job.discipline, job.level, job.track);
       if (job.track) {
         console.log(
@@ -71,29 +98,40 @@ export async function runJobCommand({ data, args, options, dataDir }) {
 
   // No args: Show summary
   if (args.length === 0) {
-    console.log(`\n💼 Jobs\n`);
+    const trackLabel = options.track ? ` — ${options.track}` : "";
+    console.log(`\n💼 Jobs${trackLabel}\n`);
 
-    // Count by discipline with name
+    // Count by discipline with name, grouped by track
     const byDiscipline = {};
-    for (const job of jobs) {
+    for (const job of filteredJobs) {
       const key = job.discipline.id;
       if (!byDiscipline[key]) {
         byDiscipline[key] = {
           name: job.discipline.specialization || job.discipline.id,
+          roleTitle: job.discipline.roleTitle || job.discipline.id,
+          type: job.discipline.isProfessional ? "Professional" : "Management",
+          tracks: new Set(),
           count: 0,
         };
       }
+      if (job.track) byDiscipline[key].tracks.add(job.track.id);
       byDiscipline[key].count++;
     }
 
     const rows = Object.entries(byDiscipline).map(([id, info]) => [
       id,
       info.name,
+      info.type,
       info.count,
+      info.tracks.size > 0 ? [...info.tracks].join(", ") : "—",
     ]);
-    console.log(formatTable(["ID", "Specialization", "Combinations"], rows));
-    console.log(`\nTotal: ${jobs.length} valid job combinations`);
-    console.log(`\nRun 'npx pathway job --list' for all combinations with titles`);
+    console.log(
+      formatTable(["ID", "Specialization", "Type", "Jobs", "Tracks"], rows),
+    );
+    console.log(`\nTotal: ${filteredJobs.length} valid job combinations`);
+    console.log(
+      `\nRun 'npx pathway job --list' for all combinations with titles`,
+    );
     console.log(
       `Run 'npx pathway job <discipline> <level> [--track=<track>]' for details\n`,
     );
@@ -102,14 +140,28 @@ export async function runJobCommand({ data, args, options, dataDir }) {
 
   // Handle job detail view - requires discipline and level
   if (args.length < 2) {
-    console.error(
-      "Usage: npx pathway job <discipline> <level> [--track=<track>]",
-    );
-    console.error("       npx pathway job --list");
-    console.error("Example: npx pathway job software_engineering L4");
-    console.error(
-      "Example: npx pathway job software_engineering L4 --track=platform",
-    );
+    // Check if the single arg is a level or track, hinting at what's missing
+    const arg = args[0];
+    const isLevel = data.levels.some((g) => g.id === arg);
+    const isTrack = data.tracks.some((t) => t.id === arg);
+    if (isLevel) {
+      console.error(
+        `Missing discipline. Usage: npx pathway job <discipline> ${arg} [--track=<track>]`,
+      );
+      console.error(
+        `Disciplines: ${data.disciplines.map((d) => d.id).join(", ")}`,
+      );
+    } else if (isTrack) {
+      console.error(`Track must be passed as a flag: --track=${arg}`);
+      console.error(
+        `Usage: npx pathway job <discipline> <level> --track=${arg}`,
+      );
+    } else {
+      console.error(
+        "Usage: npx pathway job <discipline> <level> [--track=<track>]",
+      );
+      console.error("       npx pathway job --list");
+    }
     process.exit(1);
   }
 
@@ -120,14 +172,36 @@ export async function runJobCommand({ data, args, options, dataDir }) {
     : null;
 
   if (!discipline) {
-    console.error(`Discipline not found: ${args[0]}`);
-    console.error(`Available: ${data.disciplines.map((d) => d.id).join(", ")}`);
+    // Check if args are swapped (level first, discipline second)
+    const maybeLevel = data.levels.find((g) => g.id === args[0]);
+    const maybeDiscipline = data.disciplines.find((d) => d.id === args[1]);
+    if (maybeLevel && maybeDiscipline) {
+      console.error(`Arguments are in the wrong order. Try:`);
+      console.error(
+        `  npx pathway job ${args[1]} ${args[0]}${options.track ? ` --track=${options.track}` : ""}`,
+      );
+    } else {
+      console.error(`Discipline not found: ${args[0]}`);
+      console.error(
+        `Available: ${data.disciplines.map((d) => d.id).join(", ")}`,
+      );
+    }
     process.exit(1);
   }
 
   if (!level) {
-    console.error(`Level not found: ${args[1]}`);
-    console.error(`Available: ${data.levels.map((g) => g.id).join(", ")}`);
+    // Check if the second arg is a track ID passed as positional
+    const isTrack = data.tracks.some((t) => t.id === args[1]);
+    if (isTrack) {
+      console.error(
+        `Track must be passed as a flag, not a positional argument:`,
+      );
+      console.error(`  npx pathway job ${args[0]} <level> --track=${args[1]}`);
+      console.error(`Levels: ${data.levels.map((g) => g.id).join(", ")}`);
+    } else {
+      console.error(`Level not found: ${args[1]}`);
+      console.error(`Available: ${data.levels.map((g) => g.id).join(", ")}`);
+    }
     process.exit(1);
   }
 
@@ -162,6 +236,18 @@ export async function runJobCommand({ data, args, options, dataDir }) {
         );
       } else {
         console.error(`${discipline.id} does not support tracks`);
+      }
+    }
+    // Check if it's a minLevel issue
+    if (discipline.minLevel) {
+      const levelIndex = data.levels.findIndex((g) => g.id === level.id);
+      const minIndex = data.levels.findIndex(
+        (g) => g.id === discipline.minLevel,
+      );
+      if (levelIndex >= 0 && minIndex >= 0 && levelIndex < minIndex) {
+        console.error(
+          `${discipline.id} requires minimum level: ${discipline.minLevel}`,
+        );
       }
     }
     process.exit(1);

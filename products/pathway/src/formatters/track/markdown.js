@@ -44,6 +44,20 @@ export function trackToMarkdown(
   const emoji = framework ? getConceptEmoji(framework, "track") : "🛤️";
   const lines = [`# ${emoji} ${view.name}`, "", view.description, ""];
 
+  // Show which disciplines use this track
+  if (disciplines) {
+    const usedBy = disciplines.filter(
+      (d) => d.validTracks && d.validTracks.includes(track.id),
+    );
+    if (usedBy.length > 0) {
+      const names = usedBy.map(
+        (d) =>
+          `${d.specialization || d.id} (${d.isProfessional ? "professional" : "management"})`,
+      );
+      lines.push(`**Used by:** ${names.join(", ")}`, "");
+    }
+  }
+
   // Skill modifiers - show expanded skills for capabilities
   if (view.skillModifiers.length > 0) {
     lines.push("## Skill Modifiers", "");

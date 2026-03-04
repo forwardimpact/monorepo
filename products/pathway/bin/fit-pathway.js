@@ -117,7 +117,9 @@ Generate job definitions from discipline × level × track combinations.
 
 Usage:
   npx fit-pathway job                                  Summary with stats
+  npx fit-pathway job --track=<track>                  Summary filtered by track
   npx fit-pathway job --list                           All valid combinations
+  npx fit-pathway job --list --track=<track>            Combinations for a track
   npx fit-pathway job <discipline> <level>             Detail view (trackless)
   npx fit-pathway job <d> <l> --track=<track>          Detail view (with track)
   npx fit-pathway job <d> <l> --skills                 Plain list of skill IDs
@@ -126,15 +128,17 @@ Usage:
 
 Options:
   --track=TRACK       Track specialization (e.g., platform, forward_deployed)
+                      Also filters --list and summary modes
   --skills            Output plain list of skill IDs (for piping)
   --tools             Output plain list of tool names (for piping)
   --checklist=STAGE   Show checklist for stage handoff (plan, code)
 
 Examples:
-  npx fit-pathway job software_engineering L4
-  npx fit-pathway job software_engineering L4 --track=platform
-  npx fit-pathway job se L3 --track=platform --skills
-  npx fit-pathway job se L3 --track=platform --tools
+  npx fit-pathway job                                  # overview of all jobs
+  npx fit-pathway job --track=forward_deployed         # jobs on a specific track
+  npx fit-pathway job --list --track=forward_deployed  # list for piping
+  npx fit-pathway job software_engineering J060        # trackless job detail
+  npx fit-pathway job software_engineering J060 --track=platform  # with track
 
 ────────────────────────────────────────────────────────────────────────────────
 AGENT COMMAND

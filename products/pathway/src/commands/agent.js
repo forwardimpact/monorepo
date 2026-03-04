@@ -209,8 +209,7 @@ function listAgentCombinations(data, agentData, verbose = false) {
         if (humanDiscipline && humanTrack) {
           const abbrev = getDisciplineAbbreviation(discipline.id);
           const agentName = `${abbrev}-${toKebabCase(track.id)}`;
-          const specName =
-            humanDiscipline.specialization || humanDiscipline.id;
+          const specName = humanDiscipline.specialization || humanDiscipline.id;
           console.log(
             `${agentName} ${discipline.id} ${track.id}, ${specName} (${humanTrack.name})`,
           );
