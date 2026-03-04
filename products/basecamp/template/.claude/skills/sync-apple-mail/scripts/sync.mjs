@@ -42,6 +42,7 @@ const OUTDIR = join(HOME, ".cache/fit/basecamp/apple_mail");
 const ATTACHMENTS_DIR = join(OUTDIR, "attachments");
 const STATE_DIR = join(HOME, ".cache/fit/basecamp/state");
 const STATE_FILE = join(STATE_DIR, "apple_mail_last_sync");
+const ROWID_STATE_FILE = join(STATE_DIR, "apple_mail_last_rowid");
 const MAX_THREADS = 500;
 
 // --- Database helpers ---
@@ -115,10 +116,27 @@ function loadLastSync(daysBack = 30) {
   return Math.floor((Date.now() - daysBack * 86400000) / 1000);
 }
 
-/** Save current time as the sync timestamp. */
-function saveSyncState() {
+/** Save current time as the sync timestamp, and last ROWID. */
+function saveSyncState(lastRowid = null) {
   mkdirSync(STATE_DIR, { recursive: true });
   writeFileSync(STATE_FILE, new Date().toISOString());
+  if (lastRowid != null) {
+    writeFileSync(ROWID_STATE_FILE, String(lastRowid));
+  }
+}
+
+/**
+ * Load the last synced ROWID. Returns 0 on first sync.
+ * @returns {number}
+ */
+function loadLastRowid() {
+  try {
+    const val = readFileSync(ROWID_STATE_FILE, "utf-8").trim();
+    if (val && /^\d+$/.test(val)) return parseInt(val, 10);
+  } catch {
+    // First sync
+  }
+  return 0;
 }
 
 /**
@@ -154,19 +172,22 @@ function discoverThreadColumn(db) {
 }
 
 /**
- * Find thread IDs with messages newer than sinceTs.
+ * Find thread IDs with messages newer than sinceTs OR with ROWID > lastRowid.
+ * Using ROWID catches emails that Mail downloads late (date_received may
+ * predate our last sync, but ROWID always increases on insertion).
  * @param {import("node:sqlite").DatabaseSync} db
  * @param {string} threadCol
  * @param {number} sinceTs
+ * @param {number} lastRowid
  * @returns {Array<{ tid: number }>}
  */
-function findChangedThreads(db, threadCol, sinceTs) {
+function findChangedThreads(db, threadCol, sinceTs, lastRowid) {
   return query(
     db,
     `
     SELECT DISTINCT m.${threadCol} AS tid
     FROM messages m
-    WHERE m.date_received > ${sinceTs}
+    WHERE (m.date_received > ${sinceTs} OR m.ROWID > ${lastRowid})
       AND m.deleted = 0
       AND m.mailbox IN (
         SELECT ROWID FROM mailboxes
@@ -539,15 +560,26 @@ function main() {
       process.exit(1);
     }
 
-    const changed = findChangedThreads(db, threadCol, sinceTs);
+    const lastRowid = loadLastRowid();
+    const changed = findChangedThreads(db, threadCol, sinceTs, lastRowid);
     const threadIds = changed.map((r) => r.tid);
+
+    // Find the max ROWID across all messages for state tracking
+    let maxRowid = lastRowid;
+    const maxRowidResult = query(
+      db,
+      `SELECT MAX(ROWID) as max_rowid FROM messages`,
+    );
+    if (maxRowidResult.length > 0 && maxRowidResult[0].max_rowid != null) {
+      maxRowid = maxRowidResult[0].max_rowid;
+    }
 
     if (threadIds.length === 0) {
       console.log("Apple Mail Sync Complete");
       console.log("Threads processed: 0 (no new messages)");
       console.log(`Time range: ${sinceReadable} to now`);
       console.log(`Output: ${OUTDIR}`);
-      saveSyncState();
+      saveSyncState(maxRowid);
       return;
     }
 
@@ -582,7 +614,7 @@ function main() {
       }
     }
 
-    saveSyncState();
+    saveSyncState(maxRowid);
 
     console.log("Apple Mail Sync Complete");
     console.log(`Threads processed: ${threadIds.length}`);
