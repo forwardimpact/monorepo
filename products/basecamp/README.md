@@ -165,6 +165,25 @@ vi ~/.fit/basecamp/scheduler.json
 { "type": "once", "runAt": "2025-02-12T10:00:00Z" }
 ```
 
+## Updating
+
+When you upgrade Basecamp (install a new `.pkg`), the installer automatically
+runs `--update` on all configured knowledge bases. This pushes the latest
+`CLAUDE.md`, skills, and agents into each KB without touching your data.
+
+You can also run it manually at any time:
+
+```bash
+# Update all configured knowledge bases
+/Applications/Basecamp.app/Contents/MacOS/fit-basecamp --update
+
+# Update a specific knowledge base
+/Applications/Basecamp.app/Contents/MacOS/fit-basecamp --update ~/Documents/Personal
+```
+
+The update merges `.claude/settings.json` non-destructively — new entries are
+added but your existing permissions are preserved.
+
 ## CLI Reference
 
 ```
@@ -172,6 +191,7 @@ fit-basecamp                     Run due tasks once and exit
 fit-basecamp --daemon            Run continuously (poll every 60s)
 fit-basecamp --run <task>        Run a specific task immediately
 fit-basecamp --init <path>       Initialize a new knowledge base
+fit-basecamp --update [path]     Update KB skills, agents, and CLAUDE.md
 fit-basecamp --status            Show knowledge bases and task status
 fit-basecamp --validate          Validate agents and skills exist
 fit-basecamp --help              Show this help
