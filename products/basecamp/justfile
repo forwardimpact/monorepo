@@ -13,6 +13,24 @@ default:
 
 # ─── Build ────────────────────────────────────────────────────────────────────
 
+# Copy fit-* skills from monorepo .claude/skills/ into template.
+# For local testing only — the build script (pkg/build.js) does this automatically.
+prepare-template:
+    #!/usr/bin/env bash
+    set -e
+    src="../../.claude/skills"
+    dest="template/.claude/skills"
+    count=0
+    for d in "$src"/fit-*/; do
+        [ -d "$d" ] || continue
+        name="$(basename "$d")"
+        rm -rf "$dest/$name"
+        cp -R "$d" "$dest/$name"
+        echo "  Copied $name"
+        count=$((count + 1))
+    done
+    echo "  -> $count skills copied"
+
 # Compile standalone Deno scheduler binary
 build-scheduler:
     @mkdir -p "{{ dist_dir }}"
@@ -28,7 +46,7 @@ build-launcher:
     @rm -rf macos/Basecamp/.build
 
 # Compile everything (scheduler first so launcher binary is not embedded)
-build: build-scheduler build-launcher
+build: prepare-template build-scheduler build-launcher
 
 # Assemble Basecamp.app bundle
 build-app: build

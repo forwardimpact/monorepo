@@ -1,2 +1,5 @@
 dist/
 macos/Basecamp/.build/
+
+# Copied from monorepo .claude/skills/ during build
+template/.claude/skills/fit-*/

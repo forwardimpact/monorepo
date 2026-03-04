@@ -7,7 +7,14 @@
 //   deno run --allow-all pkg/build.js --app     Build + assemble Basecamp.app
 //   deno run --allow-all pkg/build.js --pkg     Build + assemble + .pkg installer
 
-import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+} from "node:fs";
 import { join, dirname } from "node:path";
 import { execSync } from "node:child_process";
 
@@ -33,6 +40,36 @@ function ensureDir(dir) {
 function run(cmd, opts = {}) {
   console.log(`  $ ${cmd}`);
   return execSync(cmd, { encoding: "utf8", stdio: "inherit", ...opts });
+}
+
+// ---------------------------------------------------------------------------
+// Copy fit-* skills from monorepo into template
+// ---------------------------------------------------------------------------
+
+const MONOREPO_SKILLS_DIR = join(PROJECT_DIR, "..", "..", ".claude", "skills");
+const TEMPLATE_SKILLS_DIR = join(PROJECT_DIR, "template", ".claude", "skills");
+
+function prepareTemplate() {
+  console.log("\nCopying fit-* skills into template...");
+
+  if (!existsSync(MONOREPO_SKILLS_DIR)) {
+    console.error(`  Monorepo skills not found at ${MONOREPO_SKILLS_DIR}`);
+    process.exit(1);
+  }
+
+  const fitSkills = readdirSync(MONOREPO_SKILLS_DIR, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && d.name.startsWith("fit-"))
+    .map((d) => d.name);
+
+  for (const skill of fitSkills) {
+    const src = join(MONOREPO_SKILLS_DIR, skill);
+    const dest = join(TEMPLATE_SKILLS_DIR, skill);
+    rmSync(dest, { recursive: true, force: true });
+    cpSync(src, dest, { recursive: true });
+    console.log(`  Copied ${skill}`);
+  }
+
+  console.log(`  -> ${fitSkills.length} skills copied`);
 }
 
 // ---------------------------------------------------------------------------
@@ -118,6 +155,9 @@ const wantPKG = args.includes("--pkg");
 
 console.log(`Basecamp Build (v${VERSION})`);
 console.log("==========================");
+
+// Copy monorepo fit-* skills into template before packaging
+prepareTemplate();
 
 // Compile Deno scheduler first (before launcher exists in dist/),
 // so the launcher binary is not embedded in the Deno binary.
