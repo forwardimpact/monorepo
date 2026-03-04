@@ -23,7 +23,7 @@ hero:
 ### What you get
 
 - Framework definitions for skills, behaviours, levels, disciplines, and tracks
-- A flat `Organization` people model (`name`, `email`, `github_username`, `manager`)
+- A simple people directory with reporting structure
 - Team views derived from reporting hierarchy (manager-rooted subtrees)
 - GitHub activity data for objective marker evidence analysis
 - GetDX snapshot imports for quarterly developer-experience results
