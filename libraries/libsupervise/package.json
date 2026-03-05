@@ -21,5 +21,8 @@
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.5"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

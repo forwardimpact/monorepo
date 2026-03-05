@@ -11,5 +11,8 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

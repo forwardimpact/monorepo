@@ -36,5 +36,8 @@
     "n3": "^1.26.0",
     "rdf-canonize": "^4.0.1",
     "@forwardimpact/libharness": "^0.1.5"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

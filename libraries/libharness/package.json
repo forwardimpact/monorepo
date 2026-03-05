@@ -28,5 +28,8 @@
   "license": "MIT",
   "peerDependencies": {
     "@forwardimpact/libtype": "*"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

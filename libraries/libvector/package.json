@@ -28,5 +28,8 @@
   "devDependencies": {
     "@forwardimpact/libutil": "^0.1.60",
     "@forwardimpact/libharness": "^0.1.5"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
