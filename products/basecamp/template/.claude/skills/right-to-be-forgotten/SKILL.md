@@ -38,7 +38,8 @@ Run this skill:
 
 - **Name**: Full name of the data subject (required)
 - **Aliases**: Alternative names, maiden names, nicknames (optional)
-- **Email addresses**: Known email addresses (optional, improves search coverage)
+- **Email addresses**: Known email addresses (optional, improves search
+  coverage)
 - **Scope**: `all` (default) or `recruitment-only` (limits to candidate data)
 
 ## Outputs
@@ -55,6 +56,7 @@ Before proceeding, clearly state to the user:
 > **Data erasure request for: {Name}**
 >
 > This will permanently delete all personal data related to {Name} from:
+>
 > - Knowledge base notes (People, Candidates, Organizations mentions)
 > - Cached email threads and attachments
 > - Agent state and triage files
@@ -134,16 +136,16 @@ Compile a complete inventory of every file and reference found.
 
 For each discovered reference, classify the required action:
 
-| Reference Type | Action | Example |
-| --- | --- | --- |
-| **Dedicated note** (sole subject) | Delete entire file | `knowledge/People/{Name}.md` |
-| **Dedicated directory** | Delete entire directory | `knowledge/Candidates/{Name}/` |
-| **Mention in another note** | Redact: remove lines referencing the person | Backlink in `knowledge/Organizations/Agency.md` |
-| **Email thread** (sole subject) | Delete file | `~/.cache/fit/basecamp/apple_mail/thread.md` |
-| **Email thread** (multiple people) | Redact: remove paragraphs about the person | Thread discussing multiple candidates |
-| **Attachment** (their CV, etc.) | Delete file | `attachments/{thread}/CV.pdf` |
-| **Triage/state file** | Redact: remove lines mentioning them | `recruiter_triage.md` |
-| **Insights file** | Redact: remove bullets mentioning them | `knowledge/Candidates/Insights.md` |
+| Reference Type                     | Action                                      | Example                                         |
+| ---------------------------------- | ------------------------------------------- | ----------------------------------------------- |
+| **Dedicated note** (sole subject)  | Delete entire file                          | `knowledge/People/{Name}.md`                    |
+| **Dedicated directory**            | Delete entire directory                     | `knowledge/Candidates/{Name}/`                  |
+| **Mention in another note**        | Redact: remove lines referencing the person | Backlink in `knowledge/Organizations/Agency.md` |
+| **Email thread** (sole subject)    | Delete file                                 | `~/.cache/fit/basecamp/apple_mail/thread.md`    |
+| **Email thread** (multiple people) | Redact: remove paragraphs about the person  | Thread discussing multiple candidates           |
+| **Attachment** (their CV, etc.)    | Delete file                                 | `attachments/{thread}/CV.pdf`                   |
+| **Triage/state file**              | Redact: remove lines mentioning them        | `recruiter_triage.md`                           |
+| **Insights file**                  | Redact: remove bullets mentioning them      | `knowledge/Candidates/Insights.md`              |
 
 ## Step 3: Execute Deletions
 
@@ -222,7 +224,7 @@ rg -v "{deleted_path}" ~/.cache/fit/basecamp/state/graph_processed \
 
 Create the audit trail at `knowledge/Erasure/{Name}--{YYYY-MM-DD}.md`:
 
-```markdown
+````markdown
 # Data Erasure Report — {Full Name}
 
 **Date:** {YYYY-MM-DD HH:MM}
@@ -278,10 +280,11 @@ After erasure, verify no traces remain:
 
 ```bash
 rg "{Name}" knowledge/ ~/.cache/fit/basecamp/
-```
+````
 
 Expected result: no matches (except this erasure report).
-```
+
+````
 
 **IMPORTANT:** The erasure report itself must NOT contain personal data beyond
 the name and the fact that data was deleted. Do not copy CV content, skill
@@ -294,7 +297,7 @@ Run a final search to confirm no references were missed:
 
 ```bash
 rg "{Name}" knowledge/ ~/.cache/fit/basecamp/ drafts/
-```
+````
 
 The only match should be the erasure report itself. If other matches remain,
 process them and update the report.
@@ -310,8 +313,8 @@ When scope is `recruitment-only`, limit erasure to:
 - Recruitment-related email threads (from known agency domains)
 - `recruiter_triage.md` state file
 
-Leave `knowledge/People/{Name}.md` and general knowledge graph references
-intact — the person may be a colleague or contact outside of recruitment.
+Leave `knowledge/People/{Name}.md` and general knowledge graph references intact
+— the person may be a colleague or contact outside of recruitment.
 
 ### all (default)
 

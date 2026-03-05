@@ -59,8 +59,8 @@ The script:
 3. Discovers the thread grouping column (`conversation_id` or `thread_id`)
 4. Loads last-seen ROWID (or defaults to 0 for first sync)
 5. Finds threads with new messages since last sync (up to 500), using both
-   timestamp and ROWID to catch late-arriving emails (emails downloaded after
-   a delay may have `date_received` before the last sync timestamp, but their
+   timestamp and ROWID to catch late-arriving emails (emails downloaded after a
+   delay may have `date_received` before the last sync timestamp, but their
    ROWID will be higher than the last-seen ROWID)
 6. For each thread: fetches messages, batch-fetches recipients and attachment
    metadata, parses `.emlx` files for full email bodies (falling back to

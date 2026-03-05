@@ -50,17 +50,17 @@ Run this skill:
 
 Read the candidate's CV file. Extract:
 
-| Field                  | What to look for                                       |
-| ---------------------- | ------------------------------------------------------ |
-| **Current role**       | Most recent job title                                  |
-| **Years of experience**| Total and per-role tenure                              |
-| **Technical skills**   | Languages, frameworks, platforms, tools mentioned      |
-| **Domain experience**  | Industries, business domains, customer-facing work     |
-| **Education**          | Degrees, certifications, relevant courses              |
-| **Leadership signals** | Team size, mentoring, cross-team work, architecture    |
-| **Scope signals**      | Scale of systems, user base, revenue impact            |
-| **Communication**      | Publications, talks, open source, documentation        |
-| **Gender**             | Pronouns, gendered titles (never infer from names)  |
+| Field                   | What to look for                                    |
+| ----------------------- | --------------------------------------------------- |
+| **Current role**        | Most recent job title                               |
+| **Years of experience** | Total and per-role tenure                           |
+| **Technical skills**    | Languages, frameworks, platforms, tools mentioned   |
+| **Domain experience**   | Industries, business domains, customer-facing work  |
+| **Education**           | Degrees, certifications, relevant courses           |
+| **Leadership signals**  | Team size, mentoring, cross-team work, architecture |
+| **Scope signals**       | Scale of systems, user base, revenue impact         |
+| **Communication**       | Publications, talks, open source, documentation     |
+| **Gender**              | Pronouns, gendered titles (never infer from names)  |
 
 ## Step 2: Look Up the Framework Reference
 
@@ -112,15 +112,15 @@ npx fit-pathway track platform
 
 Map CV evidence to track indicators:
 
-| Forward Deployed signals                     | Platform signals                            |
-| -------------------------------------------- | ------------------------------------------- |
-| Customer-facing projects                     | Internal tooling / shared services          |
-| Business domain immersion                    | Infrastructure / platform-as-product        |
-| Rapid prototyping, MVPs                      | Architecture, system design                 |
-| Data integration, analytics                  | CI/CD, DevOps, reliability                  |
-| Stakeholder management                       | Code quality, technical debt management     |
-| Cross-functional work                        | Scalability, performance engineering        |
-| Multiple industries or domain breadth        | Deep platform ownership                     |
+| Forward Deployed signals              | Platform signals                        |
+| ------------------------------------- | --------------------------------------- |
+| Customer-facing projects              | Internal tooling / shared services      |
+| Business domain immersion             | Infrastructure / platform-as-product    |
+| Rapid prototyping, MVPs               | Architecture, system design             |
+| Data integration, analytics           | CI/CD, DevOps, reliability              |
+| Stakeholder management                | Code quality, technical debt management |
+| Cross-functional work                 | Scalability, performance engineering    |
+| Multiple industries or domain breadth | Deep platform ownership                 |
 
 ## Step 3: Map CV to Framework Skills
 
@@ -134,13 +134,13 @@ npx fit-pathway skill {skill_id}
 
 Use the proficiency definitions from the framework:
 
-| Proficiency    | CV Evidence                                              |
-| -------------- | -------------------------------------------------------- |
-| `awareness`    | Mentioned but no project evidence                        |
-| `foundational` | Used in projects, basic application                      |
-| `working`      | Primary tool/skill in multiple roles, independent usage  |
-| `practitioner` | Led teams using this skill, mentored others, deep work   |
-| `expert`       | Published, shaped org practice, industry recognition     |
+| Proficiency    | CV Evidence                                             |
+| -------------- | ------------------------------------------------------- |
+| `awareness`    | Mentioned but no project evidence                       |
+| `foundational` | Used in projects, basic application                     |
+| `working`      | Primary tool/skill in multiple roles, independent usage |
+| `practitioner` | Led teams using this skill, mentored others, deep work  |
+| `expert`       | Published, shaped org practice, industry recognition    |
 
 **Be conservative.** CVs inflate; default one level below what's claimed unless
 there's concrete evidence (metrics, project details, scope indicators).
@@ -155,13 +155,13 @@ npx fit-pathway behaviour --list
 
 Map CV evidence to behaviours:
 
-| Behaviour                    | CV Evidence                                        |
-| ---------------------------- | -------------------------------------------------- |
-| Own the Outcome              | End-to-end ownership, P&L impact, delivery metrics |
-| Think in Systems             | Architecture decisions, system-wide reasoning      |
-| Communicate with Precision   | Technical writing, documentation, talks            |
-| Be Polymath Oriented         | Cross-domain work, diverse tech stack              |
-| Don't Lose Your Curiosity    | Side projects, continuous learning, certifications |
+| Behaviour                  | CV Evidence                                        |
+| -------------------------- | -------------------------------------------------- |
+| Own the Outcome            | End-to-end ownership, P&L impact, delivery metrics |
+| Think in Systems           | Architecture decisions, system-wide reasoning      |
+| Communicate with Precision | Technical writing, documentation, talks            |
+| Be Polymath Oriented       | Cross-domain work, diverse tech stack              |
+| Don't Lose Your Curiosity  | Side projects, continuous learning, certifications |
 
 ## Step 5: Identify Gaps and Strengths
 
@@ -259,7 +259,7 @@ to create the candidate profile from email threads.
 ## Quality Checklist
 
 - [ ] Assessment is grounded in `fit-pathway` framework data, not subjective
-  opinion
+      opinion
 - [ ] Every skill rating cites specific CV evidence or marks "Not evidenced"
 - [ ] Estimated level is conservative (one below CV claims unless proven)
 - [ ] Track fit analysis references specific skill modifiers from the framework

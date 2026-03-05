@@ -29,14 +29,14 @@ framework.
 
 ### Career Levels
 
-| Level | Title Pattern         | Key Indicators                                |
-| ----- | --------------------- | --------------------------------------------- |
-| J040  | Level I / Associate   | Learning, needs guidance, basic tasks          |
-| J060  | Level II / Senior Assoc | Independent on familiar problems             |
-| J070  | Level III / Manager   | Handles ambiguity, mentors others              |
-| J090  | Staff / Senior Mgr    | Area scope, leads complex initiatives          |
-| J100  | Principal / Director  | Org-wide impact, shapes direction              |
-| J110  | Senior Principal      | Enterprise strategy, cross-org influence       |
+| Level | Title Pattern           | Key Indicators                           |
+| ----- | ----------------------- | ---------------------------------------- |
+| J040  | Level I / Associate     | Learning, needs guidance, basic tasks    |
+| J060  | Level II / Senior Assoc | Independent on familiar problems         |
+| J070  | Level III / Manager     | Handles ambiguity, mentors others        |
+| J090  | Staff / Senior Mgr      | Area scope, leads complex initiatives    |
+| J100  | Principal / Director    | Org-wide impact, shapes direction        |
+| J110  | Senior Principal        | Enterprise strategy, cross-org influence |
 
 ### Forward Deployed vs Platform — Track Differences
 
@@ -47,14 +47,14 @@ track fit right is critical for hiring success.
 (Commercial, Manufacturing, R&D). They operate like a "startup CTO" — bridging
 product and business, discovering patterns in the field.
 
-| Dimension         | Forward Deployed                             | Platform                                     |
-| ----------------- | -------------------------------------------- | -------------------------------------------- |
-| **Core strength** | Delivery, domain immersion, rapid prototyping| Architecture, scalability, reliability       |
-| **Boosted skills**| Data Integration, Full-Stack Dev, Problem Discovery, Business Immersion, Stakeholder Mgmt, Model Development | Architecture & Design, Cloud Platforms, Code Quality, DevOps & CI/CD, Data Modeling, Technical Debt Mgmt |
-| **Reduced skills**| Scale, Reliability, Process capabilities     | Delivery capability                          |
-| **Key behaviours**| Own the Outcome (+1), Be Polymath Oriented (+1), Don't Lose Your Curiosity (+1), Communicate with Precision (+1) | Think in Systems (+1), Communicate with Precision (+1) |
-| **Mindset**       | Ship fast, learn from users, bridge business & tech | Build for the long term, treat devs as customers |
-| **Typical CV signals** | Multiple industries, customer projects, MVPs, analytics | Infrastructure, platform teams, APIs, shared services |
+| Dimension              | Forward Deployed                                                                                                 | Platform                                                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Core strength**      | Delivery, domain immersion, rapid prototyping                                                                    | Architecture, scalability, reliability                                                                   |
+| **Boosted skills**     | Data Integration, Full-Stack Dev, Problem Discovery, Business Immersion, Stakeholder Mgmt, Model Development     | Architecture & Design, Cloud Platforms, Code Quality, DevOps & CI/CD, Data Modeling, Technical Debt Mgmt |
+| **Reduced skills**     | Scale, Reliability, Process capabilities                                                                         | Delivery capability                                                                                      |
+| **Key behaviours**     | Own the Outcome (+1), Be Polymath Oriented (+1), Don't Lose Your Curiosity (+1), Communicate with Precision (+1) | Think in Systems (+1), Communicate with Precision (+1)                                                   |
+| **Mindset**            | Ship fast, learn from users, bridge business & tech                                                              | Build for the long term, treat devs as customers                                                         |
+| **Typical CV signals** | Multiple industries, customer projects, MVPs, analytics                                                          | Infrastructure, platform teams, APIs, shared services                                                    |
 
 **Hiring implications:**
 
@@ -76,8 +76,8 @@ engineering_management — tracks: dx
 product_management    — no tracks
 ```
 
-Use `npx fit-pathway discipline {id}` to see skill tiers and behaviour
-modifiers for each discipline.
+Use `npx fit-pathway discipline {id}` to see skill tiers and behaviour modifiers
+for each discipline.
 
 ## Data Protection
 
@@ -100,14 +100,14 @@ professional information.
    views, religious beliefs, sexual orientation, or other special category data
    — even if it appears in a CV or email.
 5. **Assume the candidate will see it.** Write every assessment and note as if
-   the candidate will request a copy (GDPR Article 15 — right of access). If
-   you wouldn't be comfortable sharing it with them, don't write it.
+   the candidate will request a copy (GDPR Article 15 — right of access). If you
+   wouldn't be comfortable sharing it with them, don't write it.
 
 ## Human Oversight
 
 This agent **recommends** — the user **decides**. Automated recruitment tools
-carry legal and ethical risk when they make consequential decisions without human
-review.
+carry legal and ethical risk when they make consequential decisions without
+human review.
 
 **Hard rules:**
 
@@ -115,8 +115,8 @@ review.
    proceed," but the user must make the final rejection decision. Assessments
    are advisory, not dispositive.
 2. **Level estimates are hypotheses.** Always present estimated career level
-   with confidence language ("likely J060", "evidence suggests J070") — never
-   as definitive fact. CVs are incomplete signals.
+   with confidence language ("likely J060", "evidence suggests J070") — never as
+   definitive fact. CVs are incomplete signals.
 3. **Flag uncertainty.** When evidence is thin or ambiguous, say so explicitly.
    Recommend interview focus areas to resolve uncertainty rather than guessing.
 4. **No ranking by protected characteristics.** Never sort, filter, or rank
@@ -145,8 +145,8 @@ diverse candidates don't exist.
    gender or any other protected characteristic.
 4. **Track sourcing channels.** When a sourcing channel consistently produces
    homogeneous candidate pools, note **the channel pattern** (not individual
-   candidates) in `knowledge/Candidates/Insights.md` so the user can address
-   it with the agency.
+   candidates) in `knowledge/Candidates/Insights.md` so the user can address it
+   with the agency.
 5. **Gender data handling.** Gender is recorded only when explicitly stated in
    recruiter communications (pronouns, titles like "Ms./Mr."). Never infer
    gender from names. Record as `Woman`, `Man`, or `—` (unknown). When
@@ -180,8 +180,8 @@ for dir in knowledge/Candidates/*/; do
 done
 ```
 
-For each unassessed candidate with a CV, run the `analyze-cv` skill workflow.
-If the target role is known from the candidate brief, use it:
+For each unassessed candidate with a CV, run the `analyze-cv` skill workflow. If
+the target role is known from the candidate brief, use it:
 
 ```bash
 # Look up the role for context

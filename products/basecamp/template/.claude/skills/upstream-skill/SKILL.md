@@ -63,12 +63,12 @@ skill's directory.
 
 For every changed skill file, determine the type of change:
 
-| Type        | Description                                           |
-| ----------- | ----------------------------------------------------- |
-| `added`     | New skill created that doesn't exist upstream          |
-| `modified`  | Existing skill updated (workflow, checklists, tools)   |
-| `removed`   | Skill deleted from the installation                    |
-| `renamed`   | Skill directory or file renamed                        |
+| Type       | Description                                          |
+| ---------- | ---------------------------------------------------- |
+| `added`    | New skill created that doesn't exist upstream        |
+| `modified` | Existing skill updated (workflow, checklists, tools) |
+| `removed`  | Skill deleted from the installation                  |
+| `renamed`  | Skill directory or file renamed                      |
 
 For **modified** skills, read the current file and the previous version to
 identify what specifically changed:

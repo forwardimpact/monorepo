@@ -128,29 +128,29 @@ recruitment-related.
 
 For each candidate found in a recruitment email, extract:
 
-| Field             | Source                                            | Required            |
-| ----------------- | ------------------------------------------------- | ------------------- |
-| **Name**             | Filename, email body, CV                                        | Yes                 |
-| **Title**            | Email body, CV — the candidate's professional title/function    | Yes                 |
-| **Rate**             | Email body (e.g. "$120/hr", "€80/h")                            | If available        |
-| **Availability**     | Email body (e.g. "1 month notice", "immediately")               | If available        |
-| **English**          | Email body (e.g. "B2", "Upper-intermediate")                    | If available        |
-| **Location**         | Email body, CV                                                  | If available        |
-| **Source agency**    | Sender domain → Organization                                    | Yes                 |
-| **Recruiter**        | Email sender or CC'd recruiter                                  | Yes                 |
-| **CV path**          | Attachment directory                                            | If available        |
-| **Skills**           | Email body, CV                                                  | If available        |
-| **Gender**           | Name, pronouns, recruiter context                               | If identifiable     |
-| **Summary**          | Email body, CV                                                  | Yes — 2-3 sentences |
-| **Role**             | Internal requisition profile being hired against                | If available        |
-| **Req**              | Requisition ID from hiring system                               | If available        |
-| **Internal/External**| Whether candidate is internal or external                       | If available        |
-| **Model**            | Engagement model (B2B, Direct Hire, etc.)                       | If available        |
-| **Current title**    | CV or email body                                                | If available        |
-| **Email**            | Email body, CV, signature                                       | If available        |
-| **Phone**            | Email body, CV, signature                                       | If available        |
-| **LinkedIn**         | Email body, CV                                                  | If available        |
-| **Also known as**    | Alternate name spellings or transliterations                    | If available        |
+| Field                 | Source                                                       | Required            |
+| --------------------- | ------------------------------------------------------------ | ------------------- |
+| **Name**              | Filename, email body, CV                                     | Yes                 |
+| **Title**             | Email body, CV — the candidate's professional title/function | Yes                 |
+| **Rate**              | Email body (e.g. "$120/hr", "€80/h")                         | If available        |
+| **Availability**      | Email body (e.g. "1 month notice", "immediately")            | If available        |
+| **English**           | Email body (e.g. "B2", "Upper-intermediate")                 | If available        |
+| **Location**          | Email body, CV                                               | If available        |
+| **Source agency**     | Sender domain → Organization                                 | Yes                 |
+| **Recruiter**         | Email sender or CC'd recruiter                               | Yes                 |
+| **CV path**           | Attachment directory                                         | If available        |
+| **Skills**            | Email body, CV                                               | If available        |
+| **Gender**            | Name, pronouns, recruiter context                            | If identifiable     |
+| **Summary**           | Email body, CV                                               | Yes — 2-3 sentences |
+| **Role**              | Internal requisition profile being hired against             | If available        |
+| **Req**               | Requisition ID from hiring system                            | If available        |
+| **Internal/External** | Whether candidate is internal or external                    | If available        |
+| **Model**             | Engagement model (B2B, Direct Hire, etc.)                    | If available        |
+| **Current title**     | CV or email body                                             | If available        |
+| **Email**             | Email body, CV, signature                                    | If available        |
+| **Phone**             | Email body, CV, signature                                    | If available        |
+| **LinkedIn**          | Email body, CV                                               | If available        |
+| **Also known as**     | Alternate name spellings or transliterations                 | If available        |
 
 ### Determining Gender
 
@@ -428,4 +428,5 @@ produces a full framework-aligned assessment.
 - [ ] No duplicate candidate notes created
 - [ ] Key strategic insights added to `Insights.md` where warranted
 - [ ] Skills tagged using framework skill IDs where possible
-- [ ] Gender field populated only from explicit pronouns/titles (never name-inferred)
+- [ ] Gender field populated only from explicit pronouns/titles (never
+      name-inferred)

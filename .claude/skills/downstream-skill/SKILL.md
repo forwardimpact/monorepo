@@ -24,14 +24,14 @@ Run this skill when:
 
 ## Downstream Installations
 
-| Installation | Path                      |
-| ------------ | ------------------------- |
-| Personal     | `~/Documents/Personal/`   |
+| Installation | Path                    |
+| ------------ | ----------------------- |
+| Personal     | `~/Documents/Personal/` |
 
 ## Inputs
 
-- `<installation>/.claude/skills/*/CHANGELOG.md` — per-skill changelogs
-  produced by the upstream skill in each installation
+- `<installation>/.claude/skills/*/CHANGELOG.md` — per-skill changelogs produced
+  by the upstream skill in each installation
 - `<installation>/.claude/skills/*/SKILL.md` — current skill files in the
   installation
 - `products/basecamp/template/.claude/skills/` — canonical template skills in
@@ -97,16 +97,16 @@ cat products/basecamp/template/.claude/skills/<skill-name>/SKILL.md
 
 #### Evaluation Criteria
 
-| Criterion              | Include upstream?                                    |
-| ---------------------- | ---------------------------------------------------- |
-| Fixes a real bug       | Yes — apply the fix                                  |
-| Improves workflow      | Yes — if the improvement is general, not personal     |
-| Adds safety checks     | Yes — defensive improvements benefit all users        |
-| New skill (general)    | Yes — add to template if useful for most installations |
-| New skill (personal)   | No — too specific to one user's workflow              |
-| Removes a step         | Maybe — understand why, it may indicate a design issue |
-| Changes paths/configs  | No — likely installation-specific                     |
-| Style-only changes     | No — not worth the churn                             |
+| Criterion             | Include upstream?                                      |
+| --------------------- | ------------------------------------------------------ |
+| Fixes a real bug      | Yes — apply the fix                                    |
+| Improves workflow     | Yes — if the improvement is general, not personal      |
+| Adds safety checks    | Yes — defensive improvements benefit all users         |
+| New skill (general)   | Yes — add to template if useful for most installations |
+| New skill (personal)  | No — too specific to one user's workflow               |
+| Removes a step        | Maybe — understand why, it may indicate a design issue |
+| Changes paths/configs | No — likely installation-specific                      |
+| Style-only changes    | No — not worth the churn                               |
 
 Ask: _"Would this change benefit a new Basecamp installation, or is it specific
 to this user's setup?"_
@@ -205,8 +205,8 @@ processed. This prevents re-processing the same changelog entries.
 
 ### Sync Log
 
-| Date       | Installation | Skill              | Action                                                          |
-| ---------- | ------------ | ------------------ | --------------------------------------------------------------- |
-| 2026-03-04 | Personal     | sync-apple-mail    | Incorporated ROWID-based sync fix for late-arriving emails      |
-| 2026-03-04 | Personal     | track-candidates   | Incorporated field renames, new fields, statuses, and template  |
-| 2026-03-04 | Personal     | track-candidates   | Deferred: relaxed gender policy (name-based inference)          |
+| Date       | Installation | Skill            | Action                                                         |
+| ---------- | ------------ | ---------------- | -------------------------------------------------------------- |
+| 2026-03-04 | Personal     | sync-apple-mail  | Incorporated ROWID-based sync fix for late-arriving emails     |
+| 2026-03-04 | Personal     | track-candidates | Incorporated field renames, new fields, statuses, and template |
+| 2026-03-04 | Personal     | track-candidates | Deferred: relaxed gender policy (name-based inference)         |
