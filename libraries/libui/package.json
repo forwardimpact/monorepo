@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libui",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Web UI framework: rendering, routing, components, and design system",
   "license": "Apache-2.0",
   "repository": {

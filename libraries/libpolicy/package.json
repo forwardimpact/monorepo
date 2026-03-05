@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libpolicy",
-  "version": "0.1.52",
+  "version": "0.1.53",
   "description": "Policy engine foundation for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

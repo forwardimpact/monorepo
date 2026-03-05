@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libskill",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Derivation engine for roles, skills, and agent team profiles",
   "license": "Apache-2.0",
   "repository": {

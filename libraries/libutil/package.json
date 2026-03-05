@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libutil",
-  "version": "0.1.60",
+  "version": "0.1.61",
   "description": "Utility functions and utilities for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

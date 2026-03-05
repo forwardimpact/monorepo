@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libconfig",
-  "version": "0.1.58",
+  "version": "0.1.59",
   "description": "Configuration management and environment resolution for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

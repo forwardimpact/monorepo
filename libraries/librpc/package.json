@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/librpc",
-  "version": "0.1.77",
+  "version": "0.1.78",
   "description": "gRPC framework and utilities for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
