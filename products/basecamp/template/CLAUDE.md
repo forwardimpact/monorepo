@@ -99,7 +99,7 @@ cycle. The naming convention is `{agent}_triage.md`:
 - `recruiter_triage.md` — candidate pipeline, assessments, track distribution
 - `head_hunter_triage.md` — prospect pipeline, source rotation, match strength
 
-The **chief-of-staff** reads all three triage files to synthesize daily
+The **chief-of-staff** reads all five triage files to synthesize daily
 briefings in `knowledge/Briefings/`.
 
 ## Cache Directory (`~/.cache/fit/basecamp/`)
@@ -114,6 +114,7 @@ Synced data and runtime state live outside the knowledge base in
 ├── apple_calendar/          # Synced Apple Calendar events (.json files)
 ├── head-hunter/             # Head hunter agent memory
 │   ├── cursor.tsv           # Source rotation state
+│   ├── failures.tsv         # Consecutive failure tracking
 │   ├── seen.tsv             # Deduplication index
 │   ├── prospects.tsv        # Prospect index
 │   └── log.md               # Append-only activity log

@@ -26,13 +26,15 @@ Read the state files from other agents:
    - Pending processing, graph size
 4. **Recruiter:** `~/.cache/fit/basecamp/state/recruiter_triage.md`
    - Candidate pipeline, new assessments, interview scheduling
+5. **Head Hunter:** `~/.cache/fit/basecamp/state/head_hunter_triage.md`
+   - Prospect pipeline, source rotation, new strong/moderate matches
 
 Also read directly:
 
-4. **Calendar events:** `~/.cache/fit/basecamp/apple_calendar/*.json`
+6. **Calendar events:** `~/.cache/fit/basecamp/apple_calendar/*.json`
    - Full event details for today and tomorrow
-5. **Open items:** Search `knowledge/` for unchecked items `- [ ]`
-6. **Pending drafts:** List `drafts/*_draft.md` files
+7. **Open items:** Search `knowledge/` for unchecked items `- [ ]`
+8. **Pending drafts:** List `drafts/*_draft.md` files
 
 ## 2. Determine Briefing Type
 
@@ -67,6 +69,11 @@ Write to `knowledge/Briefings/{YYYY-MM-DD}-morning.md`:
 - [ ] {commitment} — {context: for whom, by when}
 - [ ] {commitment} — {context}
 
+## Recruitment
+- Pipeline: {total} candidates, {screening} screening, {interviewing} interviewing
+- Prospects: {total prospects} ({strong} strong), newest: {name} — {match_strength}, {level} {track}
+- {⚠️ Pool diversity note if flagged by recruiter, otherwise omit}
+
 ## Heads Up
 - {Deadline approaching this week}
 - {Email thread gone quiet — sent N days ago, no reply}
@@ -88,6 +95,10 @@ Write to `knowledge/Briefings/{YYYY-MM-DD}-evening.md`:
 ## Still Outstanding
 - {Priority items from morning not yet addressed}
 - {New urgent items that came in today}
+
+## Recruitment
+- Pipeline: {movements today — new candidates, assessments completed, interviews scheduled}
+- Prospects: {new prospects found today, if any}
 
 ## Tomorrow Preview
 - {First meeting: time, attendees}
