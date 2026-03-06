@@ -47,9 +47,8 @@
       "Read(~/.cache/fit/basecamp/**)",
       "Edit(~/.cache/fit/basecamp/**)",
       "WebFetch(domain:hn.algolia.com)",
-      "WebFetch(domain:hachyderm.io)",
-      "WebFetch(domain:dev.to)",
-      "WebFetch(domain:www.reddit.com)"
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:dev.to)"
     ],
     "deny": [
       "Bash(curl *)",

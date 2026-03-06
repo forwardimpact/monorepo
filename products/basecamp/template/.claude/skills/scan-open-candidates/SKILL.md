@@ -2,8 +2,8 @@
 name: scan-open-candidates
 description: >
   Scan publicly available sources for candidates who indicate they are open for
-  hire. Uses WebFetch to read public APIs (HN Algolia, Mastodon, dev.to, Reddit
-  JSON). Writes prospect notes to knowledge/Prospects/. Maintains
+  hire. Uses WebFetch to read public APIs (HN Algolia, GitHub, dev.to).
+  Writes prospect notes to knowledge/Prospects/. Maintains
   cursor/dedup state in ~/.cache/fit/basecamp/head-hunter/. Use when the
   head-hunter agent is woken or when the user asks to scan for open candidates.
 ---
@@ -82,88 +82,193 @@ child comment.
 **Rate limit:** HN Algolia API has no strict rate limit but be respectful — one
 fetch per source per wake cycle.
 
-### 2. Mastodon (Hachyderm.io)
+### 2. GitHub Open to Work
 
-Public timeline filtered by job-seeking hashtags.
+Search for GitHub users whose bio signals availability. The GitHub user search
+API returns candidates with bios, locations, and repository metadata.
 
-**Fetch posts:**
+**Search by location (rotate one query per wake):**
 
 ```
-WebFetch URL: https://hachyderm.io/api/v1/timelines/tag/GetFediHired?limit=40
-WebFetch URL: https://hachyderm.io/api/v1/timelines/tag/HachyJobs?limit=40
+WebFetch URL: https://api.github.com/search/users?q=%22open+to+work%22+location:UK&per_page=30&sort=joined&order=desc
+WebFetch URL: https://api.github.com/search/users?q=%22open+to+work%22+location:Europe&per_page=30&sort=joined&order=desc
+WebFetch URL: https://api.github.com/search/users?q=%22looking+for+work%22+location:remote&per_page=30&sort=joined&order=desc
 ```
 
-Response is a JSON array of status objects. For each status:
+Alternative bio phrases to search (rotate across wakes):
+- `"available for hire"`
+- `"seeking opportunities"`
+- `"seeking new role"`
+- `"open to new opportunities"`
+- `"currently exploring"`
+- `"freelance" "available"`
+- `"between roles"`
+- `"on the market"`
+- `"open to opportunities"`
 
-- `id` — unique status ID (use for dedup)
-- `content` — HTML content of the post
-- `account.display_name` — poster's display name
-- `account.url` — profile URL
-- `url` — permalink to the post
-- `created_at` — ISO timestamp
-- `tags` — array of hashtag objects
+Response has `total_count` and `items` array. Each item has `login`,
+`html_url`, `score`.
 
-Parse `content` for skills, experience, location. The `account.note` field
-(bio) may contain additional context.
+**Fetch full profile for promising candidates:**
 
-**Cursor:** Store the `id` of the most recent status processed. On next fetch,
-use `?min_id={cursor}` to get only newer posts.
+```
+WebFetch URL: https://api.github.com/users/{login}
+```
 
-**Rate limit:** Mastodon API allows 300 requests per 5 minutes for public
-endpoints. One fetch per wake is well within limits.
+Profile fields:
+- `name` — display name
+- `bio` — bio text (contains open-to-work signals)
+- `location` — geographic location
+- `hireable` — boolean, explicit hire signal
+- `blog` — personal site URL
+- `company` — current employer (null = likely available)
+- `public_repos` — repository count (technical depth indicator)
+- `created_at` — account age (experience proxy)
+
+**Cursor:** Store the location query last used and page number. Rotate:
+UK → Europe → Remote → repeat.
+
+**Rate limit:** 10 requests/minute unauthenticated. Fetch at most 5 full
+profiles per wake cycle (1 search + 5 profile fetches = 6 requests).
 
 ### 3. dev.to
 
-Developer articles and listings where people share availability.
-
-**Fetch listings:**
-
-```
-WebFetch URL: https://dev.to/api/listings?category=collabs&per_page=25
-```
+Developer articles where candidates signal availability via tags.
 
 **Fetch articles tagged with job-seeking:**
 
 ```
-WebFetch URL: https://dev.to/api/articles?tag=lookingforwork&per_page=25&state=rising
+WebFetch URL: https://dev.to/api/articles?tag=opentowork&per_page=25
+WebFetch URL: https://dev.to/api/articles?tag=lookingforwork&per_page=25
 ```
 
-For listings, parse `title`, `body_markdown`, `category`, `user.name`,
-`user.username`. For articles, parse `title`, `description`, `user.name`,
-`url`, `tag_list`.
+For articles, parse `title`, `description`, `user.name`, `user.username`,
+`url`, `tag_list`, `published_at`.
 
-**Cursor:** Store the `id` of the most recent listing/article processed.
+Skip articles older than 90 days — the candidate may no longer be looking.
+
+Additional tags to try when primary tags yield no results:
+- `jobsearch`
+- `career`
+- `hiring`
+- `job`
+- `remotework`
+
+**Cursor:** Store the `id` of the most recent article processed.
 
 **Rate limit:** dev.to API allows 30 requests per 30 seconds. One fetch per
 wake is fine.
 
-### 4. Reddit r/forhire
+---
 
-`[For Hire]` posts where freelancers and job-seekers advertise.
+## Creative Fallback Strategies
 
-**Fetch posts:**
+When the primary query for a source yields zero new prospects after filtering,
+try these alternative approaches before reporting an empty scan.
 
+### Strategy 1: Alternative Search Terms
+
+Each source has multiple query variations. If the first query returns nothing
+new, try the next variation:
+
+**HN:**
+- Check the previous month's "Who Wants to Be Hired?" thread (candidates post
+  late or threads stay active)
+- Search for `"Who is hiring"` threads — candidates sometimes post in the wrong
+  thread, and comments may link to candidate profiles
+- Try: `https://hn.algolia.com/api/v1/search?query=%22freelancer+available%22&tags=comment`
+
+**GitHub:**
+- Search by skill + availability instead of just bio phrases:
+  ```
+  WebFetch URL: https://api.github.com/search/users?q=%22data+engineering%22+%22open+to+work%22&per_page=30&sort=joined&order=desc
+  WebFetch URL: https://api.github.com/search/users?q=%22full+stack%22+%22available+for+hire%22&per_page=30&sort=joined&order=desc
+  WebFetch URL: https://api.github.com/search/users?q=%22devops%22+%22looking+for%22&per_page=30&sort=joined&order=desc
+  ```
+- Search repos with README availability signals:
+  ```
+  WebFetch URL: https://api.github.com/search/repositories?q=%22hire+me%22+in:readme&sort=updated&order=desc&per_page=10
+  ```
+- Try different location terms: `Greece`, `Athens`, `Warsaw`, `Bucharest`,
+  `Sofia`, `Manchester`, `Edinburgh`
+
+**dev.to:**
+- Try broader tags: `jobsearch`, `career`, `remotework`
+- Search articles directly:
+  ```
+  WebFetch URL: https://dev.to/api/articles?tag=career&per_page=25
+  ```
+  Then filter article titles/descriptions for availability signals.
+
+### Strategy 2: Relax Filters
+
+If geographic filtering eliminated all candidates:
+- Re-scan the same results without the location filter
+- Candidates without stated locations may still be open to target regions
+- Mark these as "location unconfirmed" in the prospect note
+
+If skill alignment filtered everyone out:
+- Lower the minimum bar from 2 framework skills to 1
+- Look for transferable skills (e.g., strong Python → likely data integration
+  capability)
+- Consider adjacent skill indicators (e.g., "machine learning" implies
+  data skills)
+
+### Strategy 3: Cross-Reference
+
+When a source yields very few results, cross-reference what you do find:
+- If a GitHub profile links to a blog or portfolio, check it for more detail
+  (via WebFetch) before deciding on skill fit
+- If an HN post mentions a GitHub username, fetch their GitHub profile for
+  richer signal
+
+### Logging Alternatives
+
+Log every alternative approach in `log.md`:
+
+```markdown
+## 2026-03-05 14:00
+
+Source: github_open_to_work
+Primary query: "open to work" location:UK — 30 results, 0 new after dedup
+Alternative 1: "data engineering" "open to work" — 12 results, 1 new prospect
+Alternative 2: "full stack" "available for hire" — 8 results, 0 new
+Stopped after 2 alternatives (1 prospect found)
 ```
-WebFetch URL: https://www.reddit.com/r/forhire/new.json?limit=25
-```
 
-Response has `data.children` array. Filter to posts with `link_flair_text`
-containing "For Hire" or title starting with `[For Hire]`.
+---
 
-For each matching post:
+## Failure Handling
 
-- `data.id` — post ID (use for dedup)
-- `data.title` — contains role/skills summary
-- `data.selftext` — full post body with details
-- `data.author` — Reddit username
-- `data.permalink` — link to the post
-- `data.created_utc` — Unix timestamp
+When a WebFetch fails (HTTP 4xx, 5xx, timeout, empty response, or redirect to
+a block page), handle it gracefully:
 
-**Cursor:** Store the `name` (fullname) of the most recent post processed. On
-next fetch, use `?before={cursor}` for newer posts.
+1. **Record the failure** in `failures.tsv`:
+   ```bash
+   sed -i '' "s/^{source}\t.*/&/" ~/.cache/fit/basecamp/head-hunter/failures.tsv
+   # Or increment the count and update last_error
+   ```
 
-**Rate limit:** Reddit API allows ~60 requests per minute for unauthenticated
-access. One fetch per wake is fine.
+2. **Do not retry** the same source in this wake cycle. Move on.
+
+3. **Suspend after 3 consecutive failures.** During source selection, skip any
+   source with count ≥ 3 in `failures.tsv`. The agent should still attempt
+   suspended sources once every 7 days to detect recovery.
+
+4. **Common failure patterns:**
+   - **503 with HTML redirect** — Corporate proxy blocking the domain
+     (social-networking category). Source will not recover without network
+     change.
+   - **403 Forbidden** — API requires authentication or blocks automated
+     requests. Source may not recover.
+   - **429 Too Many Requests** — Rate limited. Will recover. Don't suspend
+     permanently.
+   - **Empty response / timeout** — Transient. Will likely recover.
+
+5. **Log all failures** in `log.md` with the HTTP status and error details.
+
+6. **Reset on success.** When a previously-failing source succeeds, reset its
+   count to 0 in `failures.tsv`.
 
 ## Filtering Pipeline
 
@@ -172,9 +277,8 @@ Apply these filters to each candidate post, in order:
 ### Filter 1: Open-for-Hire Signal
 
 - HN "Who Wants to Be Hired?" — **auto-pass** (thread is explicitly opt-in)
-- Mastodon — must use `#GetFediHired`, `#HachyJobs`, `#OpenToWork`, or similar
-- dev.to — must be in "collabs" category or tagged `lookingforwork`
-- Reddit — must have `[For Hire]` flair or title prefix
+- GitHub — must have `hireable: true`, or bio containing open-to-work phrases
+- dev.to — must be tagged `opentowork` or `lookingforwork`
 
 ### Filter 2: Deduplication
 

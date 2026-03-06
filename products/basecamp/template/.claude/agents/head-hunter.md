@@ -130,7 +130,7 @@ post.
 
 ```
 hn_wants_hired	43215678	2026-03-01
-mastodon_hachyderm	112749503847261	2026-03-01
+github_open_to_work	surmon-china	2026-03-01
 ```
 
 ### prospects.tsv
@@ -256,13 +256,46 @@ WebFetch: https://dev.to/api/articles?tag=lookingforwork&per_page=25
 Parse `title`, `description`, `user.name`, `url`, `tag_list`,
 `published_at`. Skip articles older than 90 days.
 
+## 3b. Creative Fallback — No Results
+
+If a source yields **zero new prospects** after filtering (all skipped for
+dedup, location, or skill fit), do not give up. Try alternative approaches
+**within the same wake cycle** before moving on:
+
+1. **Broaden search terms.** Each source has alternative queries listed in the
+   skill. Rotate through at least 2 alternative queries before declaring a
+   source exhausted.
+
+2. **Relax location filters.** If strict geographic filtering eliminated
+   everyone, re-scan with location filter removed — candidates who don't
+   state a location may still be relevant.
+
+3. **Try adjacent sources on the same platform.** For example:
+   - HN: check the previous month's thread if the current one is thin
+   - GitHub: search by skill keywords instead of bio phrases
+   - dev.to: try related tags (`jobsearch`, `career`, `hiring`)
+
+4. **Skill-based discovery.** Search for framework-relevant skill terms
+   combined with availability signals. For example, search GitHub for
+   `"data engineering" "open to work"` or `"full stack" "available for hire"`.
+
+5. **Log every attempt.** Record each alternative query tried in `log.md` so
+   future wakes don't repeat the same dead ends. Include the query, result
+   count, and why it yielded nothing.
+
+**Limit:** Try at most 3 alternative approaches per wake cycle to stay within
+rate limits. If all alternatives also yield nothing, report that in the triage
+with the queries attempted — this helps the user decide whether to add new
+sources.
+
 ## 4. Filter Candidates
 
 For each post, apply these filters in order:
 
 1. **Open-for-hire signal** — Skip if the candidate hasn't explicitly indicated
-   availability. HN "Who Wants to Be Hired?" and r/forhire `[For Hire]` posts
-   are inherently opt-in. Mastodon posts must use job-seeking hashtags.
+   availability. HN "Who Wants to Be Hired?" posts are inherently opt-in.
+   GitHub users must have open-to-work bio text or `hireable: true`.
+   dev.to articles must be tagged `opentowork` or `lookingforwork`.
 
 2. **Deduplication** — Check `seen.tsv` for the source + post ID. Skip if
    already processed.
@@ -342,10 +375,11 @@ After scanning, update all memory files:
 
 1. **cursor.tsv** — Update the checked source with new timestamp and cursor
    position
-2. **seen.tsv** — Append all processed post IDs (whether or not they became
+2. **failures.tsv** — Reset count to 0 on success, or increment on failure
+3. **seen.tsv** — Append all processed post IDs (whether or not they became
    prospects)
-3. **prospects.tsv** — Append new prospect entries
-4. **log.md** — Append wake summary
+4. **prospects.tsv** — Append new prospect entries
+5. **log.md** — Append wake summary
 
 ```bash
 # Example: update cursor
@@ -373,11 +407,13 @@ Source: {source_id} ({description})
 Posts scanned: {N}
 New prospects: {N}
 Skipped: {N} (dedup: {N}, location: {N}, skill fit: {N})
+Alternative queries tried: {N} ({list of queries, or "none needed"})
 
 ## Pipeline Summary
 Total prospects: {N} (strong: {N}, moderate: {N})
 Sources checked today: {list}
 Oldest unchecked source: {source_id} (last: {date})
+Suspended sources: {list with failure counts, or "none"}
 
 ## Recent Prospects
 - **{Name}** — {match_strength}, {estimated_level} {track}, {location}
@@ -394,5 +430,6 @@ After acting, output exactly:
 ```
 Decision: {what source you chose and why}
 Action: {what you scanned, e.g. "scanned HN Who Wants to Be Hired March 2026, 47 posts"}
+Alternatives: {N alternative queries tried, or "none needed"}
 Prospects: {N} new ({strong_count} strong, {moderate_count} moderate), {total} total
 ```
