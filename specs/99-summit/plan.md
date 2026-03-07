@@ -92,13 +92,25 @@ map → libpathway → pathway
 
 ## Data Model
 
-### Roster Schema
+### Person Source
+
+Summit reads team composition from one of two sources:
+
+1. **Map's unified person model** (`organization_people`) — email PK, name,
+   `discipline`, `level`, `track`, `manager_email`. Teams are derived from the
+   manager hierarchy automatically.
+
+2. **Local YAML file** (`summit.yaml`) — for offline planning or hypothetical
+   scenarios.
+
+### Local Roster Schema
 
 ```yaml
 # summit.yaml
 teams:
   <team_id>:
     - name: <string>           # display name (required)
+      email: <string>          # email address (optional, for Map cross-ref)
       job:                     # Pathway job profile (required)
         discipline: <id>       # from Map disciplines
         level: <id>            # from Map levels
@@ -132,6 +144,7 @@ Validation rules:
 /**
  * @typedef {Object} MemberProfile
  * @property {string} name
+ * @property {string} [email]
  * @property {Object} job - { discipline, level, track }
  * @property {Object} derivedJob - full job from deriveJob()
  * @property {Map<string, string>} skillMatrix - skill_id → proficiency level
@@ -181,19 +194,29 @@ everything else depends on.
 
 #### 1.2 Roster Loader (`roster.js`)
 
+Supports two modes:
+
+1. **Map mode** — read `organization_people` from Map, derive teams from manager
+   email hierarchy
+2. **YAML mode** — read local `summit.yaml` file
+
 ```js
 /**
- * Load and validate a Summit roster file.
+ * Load team data from Map's unified person model.
+ * @param {Object} orgPeople - organization_people rows
+ * @param {Object} data - loaded Map data
+ * @returns {{ teams: Map<string, RosterEntry[]> }}
+ */
+export function loadFromOrg(orgPeople, data) { ... }
+
+/**
+ * Load and validate a local Summit roster file.
  * @param {string} filePath - path to summit.yaml
  * @param {Object} data - loaded Map data
  * @returns {{ teams: Map<string, RosterEntry[]> }}
  */
 export function loadRoster(filePath, data) { ... }
 ```
-
-- Parse YAML
-- Validate all discipline/level/track references against Map data
-- Return structured roster with teams as a Map
 
 #### 1.3 Aggregation Engine (`aggregation.js`)
 
@@ -366,7 +389,7 @@ const commands = {
 
 Global options:
 
-- `--roster <path>` — path to summit.yaml (default: `./summit.yaml`)
+- `--roster <path>` — path to summit.yaml (default: derive from Map org)
 - `--data <path>` — path to Map data directory
 - `--format <type>` — `text` (default), `json`, `markdown`
 

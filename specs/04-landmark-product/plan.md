@@ -1,122 +1,154 @@
-# Plan: Landmark as Thin Analysis Layer
+# Plan: Landmark
 
-Landmark is not a survey platform and not a data-ingestion platform.
+How to implement the Landmark product described in `spec.md`.
 
-Landmark is a **thin analysis and presentation layer** on top of Map data.
+## Product Scaffolding
 
-## Scope (Clean Break)
-
-### Landmark does
-
-1. Query Map for organizational, framework, and measurement data.
-2. Compute/format analyst-friendly and manager-friendly views.
-3. Present output via CLI/UI.
-
-### Landmark does not
-
-1. Own survey collection.
-2. Own a roster store.
-3. Own webhook ingestion.
-4. Own Edge Functions, migrations, or storage pipelines.
-
-Those responsibilities move to Map.
-
-## Dependencies
-
-Landmark depends on Map data contracts:
-
-- `activity.organization_people` (flat people list)
-- derived team hierarchy by manager
-- GitHub objective-lens data:
-  - `activity.github_events`
-  - `activity.github_artifacts`
-  - `activity.evidence`
-- GetDX imports:
-  - `activity.getdx_teams`
-  - `activity.getdx_snapshots`
-  - `activity.getdx_snapshot_team_scores`
-
-## Architecture
+Create `products/landmark/` with standard monorepo structure:
 
 ```
-GetDX API ──> Map ingestion jobs/functions ──> Map activity tables
-                                                  │
-                                                  ▼
-                                         Landmark analysis layer
-                                         (query + aggregate + format)
+products/landmark/
+  package.json          # @forwardimpact/landmark
+  bin/fit-landmark.js   # CLI entry point
+  src/
+    index.js            # Public API
+    org.js              # Organization and team logic
+    snapshot.js         # Snapshot analytics logic
+    evidence.js         # Evidence and marker logic
+    formatters/
+      org.js            # Organization view formatting
+      snapshot.js       # Snapshot view formatting
+      evidence.js       # Evidence view formatting
+    commands/
+      org.js            # org show, org team
+      snapshot.js       # snapshot list, show, trend, compare
+      evidence.js       # evidence, practice, marker, health
 ```
 
-No separate data pipeline in Landmark.
+Dependencies:
 
-## Analysis Model
+- `@forwardimpact/map` — framework data, marker definitions (pure layer)
+- `@forwardimpact/map/activity/queries` — operational queries (workspace only)
+- `@forwardimpact/libskill` — job derivation from discipline/level/track
 
-### Organization and team slicing
+Landmark does not depend on `@supabase/supabase-js` directly. All database
+access goes through Map's activity query layer, keeping Supabase as Map's
+private implementation detail.
 
-- Organization is a flat list of people.
-- Team is a derived query rooted at a manager.
-- Landmark accepts manager/team filters and resolves team membership via
-  hierarchy expansion.
+## Query Layer
 
-### Snapshot analytics
+Landmark delegates all database access to Map's `activity/queries/` modules.
+Landmark's `src/` files compose these queries with formatting logic but do not
+access Supabase directly.
 
-Landmark reads snapshot aggregates and provides:
+### Organization queries
 
-1. **Point-in-time view** for a snapshot and team.
-2. **Trend view** across snapshots (`vs_prev` and historical score trajectory).
-3. **Comparative view** (`vs_org`, `vs_50th`, `vs_75th`, `vs_90th`).
-4. **Driver/factor breakdowns** by `item_type` and `item_name`.
+From `@forwardimpact/map/activity/queries`:
 
-### Marker analytics (objective lens)
+- `getOrganization()` — all people from `organization_people`.
+- `getTeam(managerEmail)` — recursive CTE walking `manager_email` to return
+  everyone under a manager.
 
-Landmark reads GitHub-derived evidence and provides:
+### Snapshot queries
 
-1. **Personal evidence view** by skill/marker and recent artifacts.
-2. **Team practice patterns** aggregated over manager-derived team scope.
-3. **Driver health joins** where marker evidence is compared with GetDX snapshot
-   factors.
+From `@forwardimpact/map/activity/queries`:
 
-## CLI Direction (Simplified)
+- `listSnapshots()` — all snapshots ordered by `scheduled_for`.
+- `getSnapshotScores(snapshotId, { managerEmail })` — team scores for a
+  snapshot, optionally filtered by manager's team via
+  `getdx_teams.manager_email`.
+- `getItemTrend(itemId, { managerEmail })` — score trajectory for an item across
+  snapshots.
+- `getSnapshotComparison(snapshotId, { managerEmail })` — scores with
+  comparative metrics (`vs_prev`, `vs_org`, `vs_50th`, `vs_75th`, `vs_90th`).
 
-Core commands:
+### Evidence queries
 
-- `fit-landmark org show`
-- `fit-landmark org team --manager <github_username>`
-- `fit-landmark snapshot list`
-- `fit-landmark snapshot show --snapshot <id> [--manager <github_username>]`
-- `fit-landmark snapshot trend --item <item_id> [--manager <github_username>]`
-- `fit-landmark snapshot compare --snapshot <id> [--manager <github_username>]`
-- `fit-landmark evidence [--skill <skill_id>] [--manager <github_username>]`
-- `fit-landmark practice [--skill <skill_id>] [--manager <github_username>]`
-- `fit-landmark health [--manager <github_username>]`
+From `@forwardimpact/map/activity/queries`:
 
-Removed commands:
+- `getEvidence({ skillId, email })` — evidence rows, optionally filtered by
+  skill or person.
+- `getPracticePatterns({ skillId, managerEmail })` — aggregated evidence across
+  a manager's team.
+- `getMarkers(skillId, levelId)` — marker definitions from Map capability YAML.
+- `getHealth({ managerEmail })` — joined view of marker evidence and snapshot
+  scores. Joins on driver `id` (which matches `item_id` in snapshot scores) and
+  uses `contributingSkills` to link each driver to its marker evidence.
 
-- Survey create/distribute/close
-- Roster sync
-- Any ingestion/replay pipeline controls
+All queries join through the unified person model (email PK) and use the derived
+team hierarchy for manager-scoped filtering. Evidence queries join through
+`artifact_id` → `github_artifacts.email` for person-scoped filtering.
+
+## Formatting Layer
+
+Formatters produce both terminal (CLI) and DOM (web) output:
+
+### Organization formatters
+
+- Directory table: name, discipline, level, track, manager.
+- Team tree: hierarchical view under a manager.
+
+### Snapshot formatters
+
+- Score table: item name, score, response count, comparative metrics.
+- Trend chart: item scores across snapshots (terminal sparkline or web chart).
+- Comparison table: score vs org, vs percentiles.
+
+### Evidence formatters
+
+- Evidence list: artifact, skill, marker, matched, Guide's rationale.
+- Personal evidence: grouped by skill, showing markers expected for the person's
+  role (derived from discipline/level/track via libskill).
+- Practice summary: marker coverage across a team.
+- Health view: marker evidence alongside snapshot factor scores.
+
+## CLI Commands
+
+Each command maps to a query + formatter:
+
+| Command              | Query                     | Formatter          |
+| -------------------- | ------------------------- | ------------------ |
+| `org show`           | `getOrganization()`       | Directory table    |
+| `org team --manager` | `getTeam(email)`          | Team tree          |
+| `snapshot list`      | `listSnapshots()`         | Snapshot list      |
+| `snapshot show`      | `getSnapshotScores()`     | Score table        |
+| `snapshot trend`     | `getItemTrend()`          | Trend chart        |
+| `snapshot compare`   | `getSnapshotComparison()` | Comparison table   |
+| `evidence`           | `getEvidence()`           | Evidence list      |
+| `practice`           | `getPracticePatterns()`   | Practice summary   |
+| `marker`             | `getMarkers()`            | Marker definitions |
+| `health`             | `getHealth()`             | Health view        |
+
+Commands pass raw data to formatters — no transforms in commands.
 
 ## Implementation Phases
 
-1. **Contract alignment**
-   - Switch Landmark from `roster` assumptions to `organization_people`.
-   - Add manager-rooted team resolution.
+### Phase 1: Scaffolding and organization
 
-2. **Snapshot query layer**
-   - Read snapshot + score tables from Map.
-   - Implement common filters (`snapshot_id`, manager/team subtree, item type).
+- Create product directory structure and `package.json`.
+- Add workspace dependency on `@forwardimpact/map` (both layers).
+- Implement `org.js` using Map's activity query modules.
+- Implement `org show` and `org team` CLI commands.
 
-3. **Views and formatting**
-   - Build concise outputs for trend/comparison/team slices.
-   - Build evidence/practice outputs from GitHub marker analysis tables.
+### Phase 2: Snapshot analytics
 
-4. **Remove legacy concepts**
-   - Delete survey orchestration features from Landmark spec and plan.
-   - Delete roster ownership assumptions.
+- Implement `snapshot.js` composing Map's snapshot queries with formatters.
+- Implement snapshot formatters (score table, trend, comparison).
+- Implement `snapshot list`, `show`, `trend`, `compare` CLI commands.
 
-## Success Criteria
+### Phase 3: Evidence and markers
 
-- Landmark can answer “how is team X trending on DX factors?” using only Map.
-- Landmark can answer “what marker evidence do we have for skill X?” using only
-  Map.
-- No survey submission, distribution, or ingestion logic remains in Landmark.
-- No roster concept remains; only organization + derived team hierarchy.
+- Implement `evidence.js` composing Map's evidence queries with formatters.
+- Implement evidence formatters (evidence list, personal, practice, health).
+- Implement `evidence`, `practice`, `marker`, `health` CLI commands.
+
+### Phase 4: Job profile integration
+
+- Use libskill to derive expected skill profiles from person's
+  `discipline`/`level`/`track`.
+- Show personal evidence against expected markers for the derived role.
+
+### Phase 5: Web UI
+
+- Add web views for organization, snapshot, and evidence analysis.
+- Reuse formatters (DOM output variants) from the CLI layer.

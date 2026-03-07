@@ -18,45 +18,105 @@ Key simplification:
 
 - We continue using **GetDX** as the survey platform.
 - Map ingests GetDX snapshot aggregates.
-- Map also stores GitHub activity/evidence used for marker analysis.
-- Landmark analyzes and presents; it does not collect surveys.
+- Map also stores GitHub activity and marker definitions in capability YAML.
+- **Guide** (the LLM agent) interprets artifacts against markers and writes
+  evidence to Map.
+- Landmark reads and presents; it does not collect surveys or call LLMs.
+
+Landmark consumes Map's **activity layer** (`activity/queries/`) for all
+operational data. It also imports from Map's **pure layer** (`src/`) for
+framework schema and marker definitions. See the Map spec for the full layering
+description.
 
 ## Scope
 
 ### In scope
 
-- Read `Organization` data (flat people list) from Map.
-- Derive team membership from manager hierarchy.
+- Read the unified person model (`organization_people`) from Map.
+- Derive team membership from manager email hierarchy.
+- Derive each person's expected skill profile from their job fields.
 - Read GetDX snapshot aggregates from Map.
-- Read GitHub artifact/evidence data from Map for marker analysis.
+- Read Guide-generated evidence from Map for marker analysis.
+- Read marker definitions from Map capability YAML files.
 - Provide trend, comparison, and team-slice analytics.
 
 ### Out of scope
 
 - Survey distribution or response collection.
 - Owning ingestion pipelines.
-- Owning roster data structures.
+- Owning roster data structures (unified person model lives in Map).
+- Interpreting artifacts against markers (Guide's responsibility).
+- Making LLM calls of any kind.
+- Access control enforcement (deferred — Map owns schema-level access policies
+  in a later phase; Landmark inherits whatever Map provides).
 
 ## Data Contracts
 
 Landmark consumes:
 
-- `activity.organization_people`
+- `activity.organization_people` (unified person model)
+  - `email` (PK)
   - `name`
-  - `email`
   - `github_username`
-  - `manager`
-- `activity.getdx_teams`
+  - `discipline`, `level`, `track` (job profile)
+  - `manager_email`
+- `activity.getdx_teams` (includes `manager_email` join)
 - `activity.getdx_snapshots`
 - `activity.getdx_snapshot_team_scores`
 - `activity.github_events`
-- `activity.github_artifacts`
-- `activity.evidence`
+- `activity.github_artifacts` (includes `email` join to person)
+- `activity.evidence` (written by Guide, read by Landmark)
+  - `artifact_id` (FK to `github_artifacts`)
+  - `skill_id`, `level_id`
+  - `marker_text`, `matched`, `rationale`
+- Marker definitions from Map capability YAML files
+- Driver definitions from Map (`drivers.yaml`) — the driver `id` is the join key
+  to `getdx_snapshot_team_scores.item_id`, and `contributingSkills` links
+  drivers to marker evidence
 
 Team semantics:
 
-- A team is defined by a manager root.
-- Team members are everyone in that manager’s reporting hierarchy.
+- A team is defined by a manager email.
+- Team members are everyone in that manager's reporting hierarchy.
+
+### Markers
+
+Markers are concrete, observable indicators of a skill at a proficiency level.
+They live in Map's capability YAML files alongside skill definitions:
+
+```yaml
+skills:
+  - id: system_design
+    markers:
+      working:
+        human:
+          - Authored a design doc accepted without requiring senior rewrite
+          - Led a technical discussion that resolved a design disagreement
+        agent:
+          - Produced a design doc that passes review without structural rework
+```
+
+Markers are installation-specific. Landmark reads them to label and group
+evidence. Guide reads them to interpret artifacts. Map validates them.
+
+### Evidence Pipeline
+
+```
+GitHub Events → Map (storage) → extraction → github_artifacts
+                                                │
+                                         Guide (interprets)
+                                                │
+                                         activity.evidence
+                                                │
+                                         Landmark (presents)
+```
+
+Guide writes evidence rows with `artifact_id`, `skill_id`, `level_id`,
+`marker_text`, `matched`, and `rationale`. The `artifact_id` links back to the
+source artifact in `github_artifacts`, and person filtering follows the join
+chain: evidence → artifact → person (via `email` on `github_artifacts`).
+Landmark reads them and provides the engineer with Guide's reasoning alongside
+each artifact.
 
 ## Product Behavior
 
@@ -74,10 +134,15 @@ Team semantics:
 
 ### Marker evidence views
 
-- Show marker-linked evidence by skill.
+- Show marker-linked evidence by skill, with Guide's rationale.
+- Personal evidence reflects against markers expected for the engineer's role
+  (derived from their `discipline`, `level`, `track` in the unified person
+  model).
 - Show practice-pattern aggregates for manager-defined teams.
 - Show joined health views where objective marker evidence is compared to GetDX
-  snapshot outcomes.
+  snapshot outcomes. Framework drivers are the GetDX drivers — the driver `id`
+  is the join key to snapshot scores. Each driver's `contributingSkills` link
+  back to the marker evidence.
 
 ### Trend views
 
@@ -91,14 +156,15 @@ Landmark — analysis on top of Map snapshot data.
 
 Usage:
   fit-landmark org show
-  fit-landmark org team --manager <github_username>
+  fit-landmark org team --manager <email>
   fit-landmark snapshot list
-  fit-landmark snapshot show --snapshot <id> [--manager <github_username>]
-  fit-landmark snapshot trend --item <item_id> [--manager <github_username>]
-  fit-landmark snapshot compare --snapshot <id> [--manager <github_username>]
-  fit-landmark evidence [--skill <skill_id>] [--manager <github_username>]
-  fit-landmark practice [--skill <skill_id>] [--manager <github_username>]
-  fit-landmark health [--manager <github_username>]
+  fit-landmark snapshot show --snapshot <id> [--manager <email>]
+  fit-landmark snapshot trend --item <item_id> [--manager <email>]
+  fit-landmark snapshot compare --snapshot <id> [--manager <email>]
+  fit-landmark evidence [--skill <skill_id>] [--email <email>]
+  fit-landmark practice [--skill <skill_id>] [--manager <email>]
+  fit-landmark marker <skill> [--level <level>]
+  fit-landmark health [--manager <email>]
 ```
 
 Removed from Landmark:
@@ -106,23 +172,33 @@ Removed from Landmark:
 - `survey create|distribute|close`
 - `roster sync`
 - ingestion/replay commands
+- any LLM/Guide invocation (interpretation is Guide's job, not Landmark's)
 
 ## Positioning
 
 ```
-GetDX + GitHub ──> Map (ingest + store) ──> Landmark (analyze + present)
+                    Pure layer           Activity layer
+                  ┌──────────────────┬─────────────────────────┐
+GetDX + GitHub ──> │   Map (src/)       │   Map (activity/)          │
+                  │   schema, markers  │   ingest, store, query     │
+                  └─────────┬────────┼──────────┬──────────────┘
+                            │                  │
+                         Guide              Landmark
+                      (interprets)         (presents)
 ```
 
 Landmark stays intentionally small: query, aggregate, explain.
 
+Map owns data. Guide owns interpretation. Landmark owns presentation.
+
 ## Summary
 
-| Attribute     | Value                                     |
-| ------------- | ----------------------------------------- |
-| Package       | `@forwardimpact/landmark`                 |
-| CLI           | `fit-landmark`                            |
-| Role          | Thin analysis layer on Map                |
-| Survey source | GetDX (external platform)                 |
-| Data store    | Map (single source of truth)              |
-| Org model     | `Organization` people + manager hierarchy |
-| Team model    | Derived from manager subtree              |
+| Attribute     | Value                                         |
+| ------------- | --------------------------------------------- |
+| Package       | `@forwardimpact/landmark`                     |
+| CLI           | `fit-landmark`                                |
+| Role          | Thin analysis layer on Map                    |
+| Survey source | GetDX (external platform)                     |
+| Data store    | Map (single source of truth)                  |
+| Org model     | Unified person model (email PK, job profiles) |
+| Team model    | Derived from manager email subtree            |

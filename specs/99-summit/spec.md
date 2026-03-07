@@ -49,7 +49,9 @@ decisions not yet made.
 
 **No external dependencies.** Summit uses only Map data and a team roster. No
 GitHub App, no webhooks, no Supabase, no LLM calls. It runs locally, instantly,
-deterministically. The same inputs always produce the same output.
+deterministically. The same inputs always produce the same output. Summit can
+read team composition from Map's unified person model (`organization_people`) or
+from a local YAML file for offline/planning use.
 
 **Capability, not performance.** Summit describes what a team _can_ do based on
 its skill profile — not how well it's doing it. It's a planning tool, not a
@@ -86,35 +88,54 @@ coverage.
 
 ### Team Roster
 
-Teams are defined in a YAML file that maps people to their Pathway job profiles
-and team membership.
+Summit reads team composition from one of two sources:
+
+1. **Map's unified person model** — `organization_people` table, which carries
+   email, name, job profile (`discipline`, `level`, `track`), and
+   `manager_email`. Teams are derived from the manager hierarchy. This is the
+   primary source for organizations that maintain their people in Map.
+
+2. **Local YAML file** — for offline planning, hypothetical scenarios, or
+   organizations not yet using Map's person model.
 
 ```yaml
-# summit.yaml
+# summit.yaml (local planning file)
 teams:
   platform:
     - name: Alice
+      email: alice@example.com
       job: { discipline: se, level: L3, track: platform }
     - name: Bob
+      email: bob@example.com
       job: { discipline: se, level: L4 }
     - name: Carol
+      email: carol@example.com
       job: { discipline: se, level: L3, track: platform }
     - name: Dan
+      email: dan@example.com
       job: { discipline: se, level: L2 }
     - name: Eve
+      email: eve@example.com
       job: { discipline: se, level: L5, track: platform }
 
   payments:
     - name: Frank
+      email: frank@example.com
       job: { discipline: se, level: L3 }
     - name: Grace
+      email: grace@example.com
       job: { discipline: se, level: L4 }
     - name: Heidi
+      email: heidi@example.com
       job: { discipline: se, level: L2 }
 ```
 
-No GitHub usernames. No external identifiers. Just names (or pseudonyms) and job
-profiles. The roster is a planning document, not an integration point.
+When using Map's person model, teams are derived automatically from the manager
+hierarchy — no local file needed. When using a local file, email is included so
+entries can be cross-referenced with Map data if needed.
+
+The local file is a planning document. The unified person model is the source of
+truth.
 
 ### Capability Coverage
 
@@ -322,18 +343,18 @@ Both consume the same derivation engine. Neither depends on the other.
 
 ### Comparison with Landmark
 
-| Dimension        | Landmark                        | Summit                          |
-| ---------------- | ------------------------------- | ------------------------------- |
-| **Orientation**  | Retrospective — past work       | Prospective — future capability |
-| **Input**        | GitHub webhook events           | Team roster YAML file           |
-| **Dependencies** | GitHub App, Supabase, LLM       | Map + libpathway only           |
-| **Runs where**   | Cloud (Edge Functions, pg)      | Local CLI, instant              |
-| **Focus**        | Individual evidence             | Team composition                |
-| **Output**       | Artifacts with interpretation   | Coverage, risks, scenarios      |
-| **Determinism**  | LLM interpretation varies       | Fully deterministic             |
-| **Cost**         | Supabase + LLM API costs        | Zero runtime cost               |
-| **Privacy**      | Requires GitHub activity access | Names + job profiles only       |
-| **Question**     | "What does my work show?"       | "Can this team deliver?"        |
+| Dimension        | Landmark                        | Summit                           |
+| ---------------- | ------------------------------- | -------------------------------- |
+| **Orientation**  | Retrospective — past work       | Prospective — future capability  |
+| **Input**        | GitHub webhook events           | Map unified person model or YAML |
+| **Dependencies** | GitHub App, Supabase, LLM       | Map + libpathway only            |
+| **Runs where**   | Cloud (Edge Functions, pg)      | Local CLI, instant               |
+| **Focus**        | Individual evidence             | Team composition                 |
+| **Output**       | Artifacts with interpretation   | Coverage, risks, scenarios       |
+| **Determinism**  | LLM interpretation varies       | Fully deterministic              |
+| **Cost**         | Supabase + LLM API costs        | Zero runtime cost                |
+| **Privacy**      | Requires GitHub activity access | Names + job profiles only        |
+| **Question**     | "What does my work show?"       | "Can this team deliver?"         |
 
 Summit and Landmark are complementary but independent. An organization could use
 both, either, or neither. They address fundamentally different concerns:
@@ -396,8 +417,9 @@ right, with multiple possible routes visible as faint trails.
 ## CLI
 
 All analysis is local and instant. No network calls, no API keys, no cloud
-infrastructure. The CLI reads a roster file and Map data, runs derivation
-through libpathway, and computes team-level properties.
+infrastructure. The CLI reads team composition from Map's person model or a
+local roster file, loads Map data, runs derivation through libpathway, and
+computes team-level properties.
 
 ```
 Summit — Team capability planning from skill data.
@@ -412,10 +434,14 @@ Usage:
   fit-summit validate                           Validate roster file
 
 Options:
-  --roster <path>         Path to summit.yaml (default: ./summit.yaml)
+  --roster <path>         Path to summit.yaml (default: derive from Map org)
   --data <path>           Path to Map data (default: from @forwardimpact/map)
   --format <type>         Output format: text, json, markdown (default: text)
 ```
+
+When `--roster` is omitted, Summit reads from Map's `organization_people` table
+and derives teams from the manager email hierarchy. When `--roster` is provided,
+it uses the local YAML file instead.
 
 ### What-If Options
 
@@ -462,7 +488,7 @@ $ fit-summit risks platform --format json
 | Hero scene    | "Planning the Ascent"                                    |
 | Tagline       | "See your team's capability. Plan the ascent."           |
 | Depends on    | `@forwardimpact/map`, `@forwardimpact/libpathway`        |
-| Input         | Team roster YAML file + Map data                         |
+| Input         | Map unified person model or local YAML + Map data        |
 | For leaders   | Capability coverage, structural risks, staffing planning |
 | For teams     | Growth alignment, what-if scenarios                      |
 | For engineers | Understanding which growth directions help the team      |

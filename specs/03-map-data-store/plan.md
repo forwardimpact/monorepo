@@ -1,118 +1,58 @@
-# Plan: Map as Central Data Store (Simplified)
+# Plan: Map as Data Product
 
-## Problem
+How to implement Map as the data product described in `spec.md`.
 
-The previous plans modeled developer experience surveys as if we were building
-our own survey product. That is not the intent.
+## Directory Structure
 
-We will continue using **GetDX** as the survey platform. Map must ingest **GetDX
-snapshot data** (aggregated quarterly survey results) and expose it consistently
-to downstream products.
-
-We also over-modeled organization structure. The old **Roster** concept should
-be replaced with a simpler **Organization** model.
-
-## Direction
-
-1. **Map is the source of truth** for framework + operational analytics data.
-2. **GetDX remains the survey system of record**.
-3. **Map stores periodic snapshot imports** from GetDX (`snapshots.list` +
-   `snapshots.info`), not per-response survey submissions.
-4. **Roster is removed**. Replace with `Organization` = flat list of people.
-5. **Team is derived**, not stored as a first-class entity:
-   - a team is “everyone in the reporting hierarchy under a manager.”
-6. **GitHub activity data remains first-class** for objective marker analysis
-   (events → artifacts → evidence), with Map as owner of ingestion/storage.
-
-## External Source Contracts (GetDX)
-
-Map ingestion is based on these GetDX APIs:
-
-- `teams.list` / `teams.info`
-- `snapshots.list` / `snapshots.info`
-
-And GitHub webhook/event ingestion for objective engineering signals.
-
-Important semantics we model directly:
-
-- Team hierarchy fields include `id`, `parent_id`, `manager_id`, `ancestors`,
-  `reference_id`.
-- Snapshot results are **aggregated** (`team_scores`) and include comparative
-  metrics (`vs_prev`, `vs_org`, percentile comparisons).
-- GetDX already applies contributor privacy thresholds in snapshot outputs.
-
-## Architecture
+New files live under `activity/` in the Map product. The pure layer (`src/`,
+`schema/`, `examples/`) is unchanged.
 
 ```
-GetDX API (teams + snapshots)
-           │
-           │ periodic import (future Edge Function / cron)
-           ▼
-     Map Supabase (single source)
-     ├─ framework schema (skills, drivers, etc.)
-     └─ activity schema
-        ├─ organization_people
-        ├─ github_events
-        ├─ github_artifacts
-        ├─ evidence
-        ├─ getdx_teams
-        ├─ getdx_snapshots
-        └─ getdx_snapshot_team_scores
-           │
-           ├─ Guide / other products (analysis)
-           └─ Landmark (thin analysis UI/CLI)
+products/map/
+  src/                          # Pure layer (unchanged, published to npm)
+  schema/                       # JSON Schema + SHACL (unchanged, published)
+  examples/                     # YAML data (unchanged, published)
+  activity/                     # Operational layer (not published to npm)
+    migrations/
+      001_activity_schema.sql   # All activity tables
+    ingestion/
+      getdx.js                  # GetDX snapshot importer
+      github.js                 # GitHub webhook receiver + artifact extraction
+      people.js                 # Organization people import from CSV/YAML
+    queries/
+      org.js                    # Organization and team queries
+      snapshots.js              # Snapshot score queries
+      evidence.js               # Evidence queries
+      artifacts.js              # GitHub artifact queries
+  bin/fit-map.js                # CLI routes to both layers
 ```
 
-No custom survey collection flow in our stack.
+`activity/` imports from `src/` (e.g., loading framework data to validate
+`discipline`/`level`/`track` during people import). `src/` never imports from
+`activity/`.
 
-## Data Model Changes
+## Database Schema
 
-### 1) Replace `Roster` with `Organization`
+### Activity schema tables
 
-**Old (remove):** `activity.roster`
+All operational data lives in the `activity` schema on Supabase.
 
-**New:** `activity.organization_people`
+#### organization_people
 
 ```sql
 CREATE TABLE activity.organization_people (
-  github_username         TEXT PRIMARY KEY,
+  email                   TEXT PRIMARY KEY,
   name                    TEXT NOT NULL,
-  email                   TEXT NOT NULL UNIQUE,
-  manager_github_username TEXT REFERENCES activity.organization_people(github_username),
+  github_username         TEXT UNIQUE,
+  discipline              TEXT NOT NULL,
+  level                   TEXT NOT NULL,
+  track                   TEXT,
+  manager_email           TEXT REFERENCES activity.organization_people(email),
   updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 
-Required person fields:
-
-- `name`
-- `email`
-- `github_username`
-- `manager`
-
-Mapping note: `manager` in spec/yaml maps to `manager_github_username` in SQL.
-
-### 2) Team as derived hierarchy
-
-Team is not a stored table. Team is derived by querying the org tree rooted at a
-manager.
-
-Example derived-team query pattern (recursive CTE):
-
-```sql
-WITH RECURSIVE team AS (
-  SELECT github_username
-  FROM activity.organization_people
-  WHERE github_username = :manager
-  UNION ALL
-  SELECT p.github_username
-  FROM activity.organization_people p
-  JOIN team t ON p.manager_github_username = t.github_username
-)
-SELECT github_username FROM team;
-```
-
-### 3) Store GetDX snapshots (aggregated)
+#### GetDX snapshot tables
 
 ```sql
 CREATE TABLE activity.getdx_snapshots (
@@ -133,6 +73,7 @@ CREATE TABLE activity.getdx_teams (
   parent_id               TEXT,
   manager_id              TEXT,
   reference_id            TEXT,
+  manager_email           TEXT REFERENCES activity.organization_people(email),
   ancestors               JSONB,
   contributors            INT,
   last_changed_at         TIMESTAMPTZ,
@@ -161,116 +102,250 @@ CREATE TABLE activity.getdx_snapshot_team_scores (
 );
 ```
 
-### 4) Retain GitHub activity + evidence model
+`manager_email` on `getdx_teams` bridges GetDX teams to the internal org
+hierarchy. Populated during import by matching GetDX `manager_id` →
+`reference_id` → `email`.
+
+#### GitHub activity tables
 
 ```sql
 CREATE TABLE activity.github_events (
-  delivery_id              TEXT PRIMARY KEY,
-  event_type               TEXT NOT NULL,
-  action                   TEXT,
-  repository               TEXT NOT NULL,
-  sender_github_username   TEXT,
-  occurred_at              TIMESTAMPTZ,
-  raw                      JSONB NOT NULL,
-  imported_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+  delivery_id             TEXT PRIMARY KEY,
+  event_type              TEXT NOT NULL,
+  action                  TEXT,
+  repository              TEXT NOT NULL,
+  sender_github_username  TEXT,
+  occurred_at             TIMESTAMPTZ,
+  raw                     JSONB NOT NULL,
+  imported_at             TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE activity.github_artifacts (
-  artifact_id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  artifact_type            TEXT NOT NULL,
-  external_id              TEXT NOT NULL UNIQUE,
-  repository               TEXT NOT NULL,
-  github_username          TEXT,
-  occurred_at              TIMESTAMPTZ,
-  metadata                 JSONB NOT NULL,
-  raw                      JSONB,
-  imported_at              TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE activity.evidence (
-  evidence_id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  artifact_id              UUID NOT NULL REFERENCES activity.github_artifacts(artifact_id),
-  skill_id                 TEXT NOT NULL,
-  level_id                 TEXT,
-  marker_text              TEXT NOT NULL,
-  matched                  BOOLEAN NOT NULL,
-  rationale                TEXT,
-  created_at               TIMESTAMPTZ NOT NULL DEFAULT now()
+  artifact_id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  artifact_type           TEXT NOT NULL,
+  external_id             TEXT NOT NULL UNIQUE,
+  repository              TEXT NOT NULL,
+  github_username         TEXT,
+  email                   TEXT REFERENCES activity.organization_people(email),
+  occurred_at             TIMESTAMPTZ,
+  metadata                JSONB NOT NULL,
+  raw                     JSONB,
+  imported_at             TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 
-This preserves the objective lens Landmark needs for skill-marker analysis while
-keeping data ownership in Map.
+`email` on `github_artifacts` links to the unified person model. Populated
+during extraction by joining `github_username` → `organization_people`.
 
-## Ingestion Model
+#### Evidence table
 
-### Current
+```sql
+CREATE TABLE activity.evidence (
+  evidence_id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  artifact_id             UUID NOT NULL REFERENCES activity.github_artifacts(artifact_id),
+  skill_id                TEXT NOT NULL,
+  level_id                TEXT,
+  marker_text             TEXT NOT NULL,
+  matched                 BOOLEAN NOT NULL,
+  rationale               TEXT,
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
 
-- Manual/CLI-triggered import jobs in Map.
+Guide writes evidence rows. Map stores them. Landmark reads them.
 
-### Future
+### Derived team query
 
-- Add Map Edge Function or scheduled job to periodically:
-  1. call `snapshots.list`
-  2. diff known snapshots
-  3. call `snapshots.info` for new/changed snapshots
-  4. upsert snapshot and team score rows
-  5. refresh GetDX team catalog via `teams.list`
+Team membership is resolved by walking `manager_email` references:
 
-- Add/retain Map webhook ingestion for GitHub activity:
-  1. receive webhook events
-  2. upsert `github_events`
-  3. extract normalized `github_artifacts`
-  4. run marker interpretation into `evidence`
+```sql
+WITH RECURSIVE team AS (
+  SELECT email, name, discipline, level, track
+  FROM activity.organization_people
+  WHERE email = :manager_email
+  UNION ALL
+  SELECT p.email, p.name, p.discipline, p.level, p.track
+  FROM activity.organization_people p
+  JOIN team t ON p.manager_email = t.email
+)
+SELECT * FROM team;
+```
 
-This keeps the implementation simple and aligned with the stated future plan.
+## Marker Definitions in Capability YAML
 
-## Product Impact
+Markers are co-located with skill definitions in Map capability files:
 
-### Map
+```yaml
+skills:
+  - id: system_design
+    name: System Design
+    human:
+      description: ...
+      levelDescriptions:
+        working: You design systems independently
+    agent:
+      name: system-design
+      description: ...
+    markers:
+      working:
+        human:
+          - Authored a design doc accepted without requiring senior rewrite
+          - Led a technical discussion that resolved a design disagreement
+        agent:
+          - Produced a design doc that passes review without structural rework
+          - Decomposed a feature into components with clear interface boundaries
+```
 
-- Owns ingestion and storage of GetDX snapshot aggregates.
-- Owns ingestion and storage of GitHub activity/evidence aggregates.
-- Owns `Organization` people model.
-- Exposes derived-team queries and aggregate views.
+`fit-map validate` validates marker structure and references.
 
-### Landmark
+## Ingestion
 
-- Does **not** collect surveys.
-- Reads Map data (GetDX + GitHub evidence) and performs thin
-  analysis/presentation only.
+All ingestion code lives in `activity/ingestion/`. Each module imports from
+`src/` for framework validation but has no coupling to the pure layer's public
+API.
 
-### Guide / Others
+### GetDX snapshot import
 
-- Consume the same Map snapshots + organization hierarchy without direct GetDX
-  coupling.
+`activity/ingestion/getdx.js` — CLI or scheduled job:
+
+1. Calls `snapshots.list` and diffs against known snapshots.
+2. Calls `snapshots.info` for new or changed snapshots.
+3. Upserts snapshot and team score rows.
+4. Refreshes GetDX team catalog via `teams.list`.
+5. Populates `manager_email` on `getdx_teams` by matching `manager_id` →
+   `reference_id` → `email`.
+
+### GitHub activity ingestion
+
+`activity/ingestion/github.js` — webhook receiver:
+
+1. Receives GitHub webhook events.
+2. Upserts `github_events`.
+3. Extracts normalized `github_artifacts` and links `email` via
+   `github_username`.
+
+Guide handles the next step: interpreting unscored artifacts into evidence.
+
+### Evidence pipeline
+
+```
+GitHub Events → Map (github_events → github_artifacts)
+                                        │
+                                 Guide (interprets against markers)
+                                        │
+                                 activity.evidence
+```
+
+Guide reads artifacts without evidence rows, assesses each against skill markers
+from capability YAML, and writes back:
+
+- `skill_id` and `level_id` — which marker was evaluated
+- `marker_text` — the specific marker text
+- `matched` — whether the artifact demonstrates the marker
+- `rationale` — Guide's reasoning (visible to the engineer)
+
+Guide runs on-demand or as a scheduled batch job.
 
 ## Implementation Phases
 
-1. **Schema clean break**
-   - Remove `roster` usage from specs.
-   - Add `organization_people` and GetDX snapshot tables.
+### Phase 0: Marker schema (precondition)
 
-2. **Ingestion MVP**
-   - Implement Map import command for GetDX snapshots/teams.
-   - Upsert raw + normalized fields.
+Guide and Landmark both depend on markers existing in capability YAML. The
+schema must support markers before any activity data references them.
 
-3. **GitHub objective lens**
+Add `markers` to the `skill` definition in both schema formats (same commit):
 
-- Keep/implement GitHub event ingestion in Map.
-- Keep/implement artifact extraction + evidence tables.
+**JSON Schema** (`schema/json/capability.schema.json`) — add to `#/$defs/skill`:
 
-4. **Derived team queries**
-   - Provide standard recursive hierarchy query patterns.
+```json
+"markers": {
+  "type": "object",
+  "description": "Observable indicators of skill proficiency, keyed by level",
+  "propertyNames": {
+    "enum": ["awareness", "foundational", "working", "practitioner", "expert"]
+  },
+  "additionalProperties": {
+    "type": "object",
+    "properties": {
+      "human": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Observable markers for human engineers"
+      },
+      "agent": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Observable markers for AI agents"
+      }
+    },
+    "additionalProperties": false
+  }
+}
+```
 
-5. **Consumer alignment**
-   - Update Landmark and other specs to analysis-only interaction with Map.
+**SHACL** (`schema/rdf/capability.ttl`) — add class, properties, and shape:
 
-## Summary
+```turtle
+fit:SkillMarkers a rdfs:Class ;
+    rdfs:label "Skill Markers"@en ;
+    rdfs:comment "Observable indicators of skill proficiency at a level"@en .
 
-- Keep GetDX for surveys.
-- Ingest quarterly aggregated snapshot data into Map.
-- Keep GitHub activity/evidence pipeline in Map for skill-marker analysis.
-- Rename and simplify `Roster` → `Organization` (flat people list).
-- Define team via manager-rooted hierarchy (derived, not separately stored).
-- Keep Landmark as a thin analysis layer on top of Map.
+fit:markers a rdf:Property ;
+    rdfs:label "markers"@en ;
+    rdfs:comment "Observable indicators keyed by proficiency level"@en ;
+    rdfs:domain fit:Skill ;
+    rdfs:range fit:SkillMarkers .
+
+fit:humanMarkers a rdf:Property ;
+    rdfs:label "humanMarkers"@en ;
+    rdfs:comment "Observable markers for human engineers"@en ;
+    rdfs:domain fit:SkillMarkers ;
+    rdfs:range xsd:string .
+
+fit:agentMarkers a rdf:Property ;
+    rdfs:label "agentMarkers"@en ;
+    rdfs:comment "Observable markers for AI agents"@en ;
+    rdfs:domain fit:SkillMarkers ;
+    rdfs:range xsd:string .
+```
+
+Add `fit:markers` property to `SkillShape` and a new `SkillMarkersShape`.
+
+Update `fit-map validate` to check marker structure and level references.
+
+### Phase 1: Activity directory and schema
+
+- Create `activity/` directory structure under `products/map/`.
+- Verify `activity/` is excluded from npm publish (not in `package.json`
+  `"files"`).
+- Create Supabase migration (`activity/migrations/001_activity_schema.sql`) with
+  all activity tables.
+- Add `organization_people` with email PK and job profile fields.
+- Add GetDX snapshot tables with `manager_email` join column.
+- Add GitHub activity and evidence tables.
+
+### Phase 2: Organization management
+
+- Implement `activity/ingestion/people.js` for importing people from CSV/YAML.
+- Import from `src/` to validate `discipline`, `level`, `track` against
+  framework data.
+- Add `fit-map people import` CLI command.
+
+### Phase 3: GetDX ingestion
+
+- Implement `activity/ingestion/getdx.js` for GetDX snapshots and teams.
+- Upsert raw + normalized fields.
+- Populate `manager_email` bridge on `getdx_teams`.
+
+### Phase 4: GitHub ingestion
+
+- Implement `activity/ingestion/github.js` for webhook events.
+- Implement artifact extraction with `email` join.
+
+### Phase 5: Query layer and consumer readiness
+
+- Implement `activity/queries/` modules (org, snapshots, evidence, artifacts).
+- Export query functions for Landmark and Guide to import as workspace
+  dependencies (`@forwardimpact/map/activity/queries`).
+- Ensure all downstream products can query the data product through its
+  documented contracts.
