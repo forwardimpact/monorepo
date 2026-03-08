@@ -95,17 +95,20 @@ Minimum scenarios:
 
 ### Output targets
 
-| Content                        | Target location                          |
-| ------------------------------ | ---------------------------------------- |
-| Company narrative (README)     | `products/guide/examples/knowledge/`     |
-| Entity registry (ONTOLOGY)     | `products/guide/examples/knowledge/`     |
-| HTML microdata (22 files)      | `products/guide/examples/knowledge/`     |
-| Framework YAML                 | `products/map/examples/`                 |
-| Organization roster            | `products/map/examples/activity/`        |
-| GitHub events and artifacts    | `products/map/examples/activity/`        |
-| GetDX snapshots and scores     | `products/map/examples/activity/`        |
-| Skill evidence                 | `products/map/examples/activity/`        |
-| Personal knowledge base        | `products/basecamp/template/knowledge/`  |
+All generated content lives under `examples/` at the monorepo root, organized
+by content type:
+
+| Content                        | Target location                  |
+| ------------------------------ | -------------------------------- |
+| Company narrative (README)     | `examples/organizational/`       |
+| Entity registry (ONTOLOGY)     | `examples/organizational/`       |
+| HTML microdata (22 files)      | `examples/organizational/`       |
+| Framework YAML                 | `examples/framework/`            |
+| Organization roster            | `examples/activity/`             |
+| GitHub events and artifacts    | `examples/activity/`             |
+| GetDX snapshots and scores     | `examples/activity/`             |
+| Skill evidence                 | `examples/activity/`             |
+| Personal knowledge base        | `examples/personal/`             |
 
 ### Cross-content validation
 
@@ -119,19 +122,24 @@ Generated data must pass these checks:
 - Evidence proficiency levels meet or exceed scenario-defined floors.
 - Self-assessment people exist in the organization.
 - Basecamp entity references resolve to ONTOLOGY IRIs.
-- All YAML passes `npx fit-map validate`.
+- All YAML passes `npx fit-map validate --data=examples/framework`.
 
 ### Clean break
 
 The pipeline replaces — not supplements — existing hand-crafted content:
 
+- `products/map/examples/` — All YAML files move to `examples/framework/` as
+  generated equivalents that pass the same schema validation.
 - `products/guide/examples/knowledge/` — All files (README.md, ONTOLOGY.md,
-  HTML microdata, GENERATE.prompt.md) replaced by generated equivalents.
-- `products/map/examples/` — All YAML files replaced by generated equivalents
-  that pass the same schema validation.
+  HTML microdata, GENERATE.prompt.md) move to `examples/organizational/` as
+  generated equivalents.
+- Activity data (new) lands in `examples/activity/`.
+- Personal knowledge base (new) lands in `examples/personal/`.
 
-Old content is deleted in the same commit that adds generated content. No
-coexistence period.
+Old product-specific example directories are deleted in the same commit that
+adds generated content under `examples/`. No coexistence period. Products that
+previously loaded from their own `examples/` directories are updated to resolve
+from the central `examples/` root (see the plan's "Downstream Changes" section).
 
 ## Scope
 

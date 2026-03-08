@@ -457,7 +457,7 @@ import { validateCrossContent } from './validate.js'
  *
  * @param {object} options
  * @param {string} options.universePath     Path to universe.dsl
- * @param {string} options.dataDir          Path to existing examples/ for YAML copy
+ * @param {string} options.dataDir          Path to examples/framework/ for YAML copy
  * @param {string} options.mode             "cached" | "generate" | "no-prose"
  * @param {boolean} [options.strict]        Fail on cache miss in cached mode
  * @param {string} [options.only]           Only run specific renderer
@@ -491,16 +491,16 @@ export async function runPipeline(options) {
 
   if (!only || only === 'yaml') {
     for (const [name, content] of renderYAML(entities, dataDir)) {
-      files.set(`products/map/examples/${name}`, content)
+      files.set(`examples/framework/${name}`, content)
     }
   }
   if (!only || only === 'html') {
     for (const [name, content] of renderHTML(entities, prose)) {
-      files.set(`products/guide/examples/knowledge/${name}`, content)
+      files.set(`examples/organizational/${name}`, content)
     }
-    files.set('products/guide/examples/knowledge/README.md',
+    files.set('examples/organizational/README.md',
       renderREADME(entities, prose))
-    files.set('products/guide/examples/knowledge/ONTOLOGY.md',
+    files.set('examples/organizational/ONTOLOGY.md',
       renderONTOLOGY(entities))
   }
   if (!only || only === 'activity') {
@@ -508,12 +508,12 @@ export async function runPipeline(options) {
     // github_artifacts.json, getdx_snapshots.json, getdx_teams.json,
     // getdx_snapshot_team_scores.json, evidence.json
     for (const [name, content] of renderTables(entities.activity)) {
-      files.set(`products/map/examples/activity/${name}`, content)
+      files.set(`examples/activity/${name}`, content)
     }
   }
   if (!only || only === 'personal') {
     for (const [name, content] of renderMarkdown(entities, prose)) {
-      files.set(`products/basecamp/template/knowledge/${name}`, content)
+      files.set(`examples/personal/${name}`, content)
     }
   }
 
@@ -843,7 +843,7 @@ Each record matches the `activity.organization_people` table:
 
 - `email` — Primary key. Format: `{greek_name}@{domain}`.
 - `discipline`, `level`, `track` — Must be valid framework IDs from
-  `products/map/examples/`. Validated by `fit-map validate`.
+  `examples/framework/`. Validated by `fit-map validate`.
 - `manager_email` — References another `organization_people.email`. Team
   managers reference their department head; department heads reference null.
 - `github_username` — Unique. Format: `{greek_name}-bio`. Used to join
@@ -1057,7 +1057,7 @@ mirror the GetDX `snapshots.info` API `team_scores` array entries:
 }
 ```
 
-- `item_id` — Must match a `driver.id` from `products/map/examples/drivers.yaml`
+- `item_id` — Must match a `driver.id` from `examples/framework/drivers.yaml`
   (the shared ID namespace between GetDX and the framework).
 - `item_type` — Always `"driver"` for framework-aligned items.
 - `snapshot_team` — Nested JSONB matching the GetDX `snapshots.info` API
@@ -1175,20 +1175,31 @@ export function validateCrossContent(entities) {
 
 ## Output File Mapping
 
-| Generated Content              | File                                         | Target Location                              |
-| ------------------------------ | -------------------------------------------- | -------------------------------------------- |
-| ONTOLOGY.md                    | `ONTOLOGY.md`                                | `products/guide/examples/knowledge/`         |
-| README.md                      | `README.md`                                  | `products/guide/examples/knowledge/`         |
-| HTML microdata files           | `*.html`                                     | `products/guide/examples/knowledge/`         |
-| Framework YAML                 | `*.yaml`                                     | `products/map/examples/`                     |
-| Organization people            | `organization_people.json`                   | `products/map/examples/activity/`            |
-| GitHub events                  | `github_events.json`                         | `products/map/examples/activity/`            |
-| GitHub artifacts               | `github_artifacts.json`                      | `products/map/examples/activity/`            |
-| GetDX snapshots                | `getdx_snapshots.json`                       | `products/map/examples/activity/`            |
-| GetDX teams                    | `getdx_teams.json`                           | `products/map/examples/activity/`            |
-| GetDX snapshot team scores     | `getdx_snapshot_team_scores.json`            | `products/map/examples/activity/`            |
-| Evidence records               | `evidence.json`                              | `products/map/examples/activity/`            |
-| Personal knowledge base        | `*.md`                                       | `products/basecamp/template/knowledge/`      |
+All generated content lives under `examples/` at the monorepo root, organized
+by content type:
+
+```
+examples/
+  framework/        Framework YAML (disciplines, capabilities, levels, etc.)
+  organizational/   HTML microdata, README, ONTOLOGY
+  activity/         Activity JSON (roster, GitHub events, GetDX, evidence)
+  personal/         Personal knowledge base Markdown (Basecamp personas)
+```
+
+| Generated Content              | File                                         | Target Location                  |
+| ------------------------------ | -------------------------------------------- | -------------------------------- |
+| ONTOLOGY.md                    | `ONTOLOGY.md`                                | `examples/organizational/`       |
+| README.md                      | `README.md`                                  | `examples/organizational/`       |
+| HTML microdata files           | `*.html`                                     | `examples/organizational/`       |
+| Framework YAML                 | `*.yaml`                                     | `examples/framework/`            |
+| Organization people            | `organization_people.json`                   | `examples/activity/`             |
+| GitHub events                  | `github_events.json`                         | `examples/activity/`             |
+| GitHub artifacts               | `github_artifacts.json`                      | `examples/activity/`             |
+| GetDX snapshots                | `getdx_snapshots.json`                       | `examples/activity/`             |
+| GetDX teams                    | `getdx_teams.json`                           | `examples/activity/`             |
+| GetDX snapshot team scores     | `getdx_snapshot_team_scores.json`            | `examples/activity/`             |
+| Evidence records               | `evidence.json`                              | `examples/activity/`             |
+| Personal knowledge base        | `*.md`                                       | `examples/personal/`             |
 
 ## CLI — Thin Wrapper
 
@@ -1234,7 +1245,7 @@ async function main() {
   const monorepoRoot = resolve(__dirname, '../..')
   const result = await runPipeline({
     universePath: args.universe || join(__dirname, 'universe.dsl'),
-    dataDir: join(monorepoRoot, 'products/map/examples'),
+    dataDir: join(monorepoRoot, 'examples/framework'),
     mode,
     strict: !!args.strict,
     only: args.only || null,
@@ -1388,6 +1399,17 @@ from the workspace.
 - `fit-map` CLI unchanged — no new commands or flags
 - Remove old hand-crafted content in the same commit as adding generated content
 
+### Phase G — Downstream Path Migration
+
+- Update `fit-map` CLI fallback resolution to find `examples/framework/`
+- Update `fit-pathway` CLI monorepo fallback to `examples/framework/`
+- Update pathway `init` command to copy from `examples/framework/`
+- Remove `examples/` entries from `products/map/package.json` files/exports
+- Update `AGENTS.md` Key Paths table
+- Update all `.claude/skills/` path references
+- Update CI scripts and `npm run validate` to pass `--data=examples/framework`
+- Delete old `products/map/examples/` and `products/guide/examples/` directories
+
 ## Strengths
 
 - **Best of both worlds**: Deterministic structure + LLM prose quality
@@ -1407,6 +1429,116 @@ from the workspace.
 - **Testable**: `libuniverse` is a pure library with no CLI or environment
   coupling — every module can be unit tested in isolation
 - **Clean separation**: Library (logic) vs CLI (I/O) boundary is explicit
+
+## Downstream Changes
+
+Moving example content from product-specific directories to a central
+`examples/` root requires updates to every product and configuration that
+resolves example data paths. This section enumerates all affected code.
+
+### products/map
+
+**`products/map/bin/fit-map.js`** — The CLI resolves data directories with
+fallback candidates `["./data", "./examples", "../examples"]`. Update the
+monorepo fallback to resolve `../../examples/framework` (two levels up from
+`products/map/`) instead of `./examples`. The `--data=PATH` help text must
+reflect the new default.
+
+**`products/map/src/loader.js`** — `loadExampleData(rootDir, options)` loads
+from `join(rootDir, "examples")`. Update to load from `join(rootDir,
+"examples/framework")` when called from the monorepo context, or accept the
+full path directly.
+
+**`products/map/package.json`** — The `files` array includes `"examples/"` and
+exports map `"./examples/*": "./examples/*"`. Remove these entries since example
+data no longer lives inside the map package. Downstream consumers that
+`import("@forwardimpact/map/examples/...")` must be updated.
+
+### products/pathway (fit-pathway)
+
+**`products/pathway/bin/fit-pathway.js`** — Data resolution priority includes
+`products/map/examples/` as a monorepo development fallback (line ~383:
+`const mapExamples = join(process.cwd(), "products/map/examples")`). Update to
+resolve `join(process.cwd(), "examples/framework")` instead.
+
+**`products/pathway/src/commands/init.js`** — The `init` command copies example
+data from `join(__dirname, "..", "..", "examples")` (which resolves to
+`products/map/examples/` relative to pathway). Update the source path to point
+to the monorepo root `examples/framework/` directory. This may require using
+`findProjectRoot()` from `libutil` to locate the monorepo root reliably.
+
+### products/basecamp
+
+**`products/basecamp/src/basecamp.js`** — The `requireTemplateDir()` function
+resolves the template directory for knowledge base initialization. The personal
+knowledge example data now lives at `examples/personal/` rather than
+`products/basecamp/template/knowledge/`. The template directory structure
+(`template/.claude/`, `template/CLAUDE.md`, `template/USER.md`) is unaffected —
+only the generated example knowledge content moves.
+
+**`products/basecamp/pkg/build.js`** — The build script copies skills from
+`.claude/skills/` into `template/.claude/skills/`. This is unaffected by the
+move since it copies skills, not knowledge content. However, if the build
+bundles example knowledge content for distribution, it must be updated to source
+from `examples/personal/`.
+
+### tests
+
+**`tests/job-builder.spec.js`** — Uses hardcoded IDs from example data
+(`software_engineering`, `L3`, `platform`) and comments that it "Uses IDs from
+examples/ data which is used by CI". The test data path resolution must be
+updated if it loads framework files directly. If it relies on `fit-map` or
+`fit-pathway` CLI resolution, the CLI changes above will handle it.
+
+### AGENTS.md and skill files
+
+**`AGENTS.md`** — The "Key Paths" table lists `Example data` at
+`products/map/examples/`. Update to `examples/` with sub-paths for each content
+type.
+
+**`.claude/skills/fit-map/SKILL.md`** — Data structure diagram shows
+`examples/` under the map product. Update to reference the monorepo root
+`examples/framework/` path.
+
+**`.claude/skills/fit-pathway/SKILL.md`** — Data resolution priority references
+`products/map/examples/` for monorepo development. Update to `examples/framework/`.
+
+**`.claude/skills/update-docs/SKILL.md`** — Source-of-truth mappings reference
+`products/map/examples/capabilities/`, `products/map/examples/behaviours/`,
+etc. Update all paths to `examples/framework/capabilities/`,
+`examples/framework/behaviours/`, etc.
+
+**`.claude/skills/improve-skill/SKILL.md`** and **`.claude/skills/eval/SKILL.md`**
+— Canonical example data references like
+`products/map/examples/capabilities/{id}.yaml` must be updated to
+`examples/framework/capabilities/{id}.yaml`.
+
+### Validation and CI
+
+**`npx fit-map validate`** — Currently auto-discovers `products/map/examples/`
+as the data directory. After the move, CI scripts and `npm run validate` must
+pass `--data=examples/framework` explicitly, or the `fit-map` CLI fallback
+resolution must be updated to find the new location.
+
+**`npm run check`** — Runs format, lint, test, and SHACL validation. If any
+step relies on the old example paths, it must be updated. The SHACL validation
+in particular validates against example data and needs the correct path.
+
+### Summary of required changes
+
+| Component               | File(s)                                      | Change                                          |
+| ----------------------- | -------------------------------------------- | ----------------------------------------------- |
+| fit-map CLI             | `products/map/bin/fit-map.js`                | Update fallback path to `examples/framework`    |
+| Map loader              | `products/map/src/loader.js`                 | Update `loadExampleData()` path resolution      |
+| Map package.json        | `products/map/package.json`                  | Remove `examples/` from files and exports       |
+| fit-pathway CLI         | `products/pathway/bin/fit-pathway.js`        | Update monorepo fallback path                   |
+| Pathway init command    | `products/pathway/src/commands/init.js`      | Update example source directory                 |
+| Basecamp knowledge      | `products/basecamp/src/basecamp.js`          | Update knowledge example path if bundled        |
+| Basecamp build          | `products/basecamp/pkg/build.js`             | Update if it bundles example knowledge content  |
+| Tests                   | `tests/job-builder.spec.js`                  | Update data path resolution                     |
+| Project instructions    | `AGENTS.md`                                  | Update Key Paths table                          |
+| Skill files             | `.claude/skills/fit-map/SKILL.md` + others   | Update all example path references              |
+| CI validation           | Root `package.json` scripts                  | Pass `--data=examples/framework` to `fit-map`   |
 
 ## Weaknesses
 

@@ -74,7 +74,7 @@ Map (data) → Model (derivation) → UI (framework) → Presentation (display)
 | ------------ | -------------------------------------------- |
 | Specs/plans  | `specs/{feature}/plan.md`                    |
 | User data    | `data/`                                      |
-| Example data | `products/map/examples/`                     |
+| Example data | `examples/`                                  |
 | JSON Schema  | `products/map/schema/json/`                  |
 | RDF/SHACL    | `products/map/schema/rdf/`                   |
 | Derivation   | `libraries/libskill/`                        |
