@@ -212,6 +212,16 @@ universe BioNova {
 
   // ─── Scenarios ──────────────────────────────────
 
+  // GetDX survey snapshots — quarterly cycles matching GetDX snapshots.list API
+  snapshots {
+    quarterly_from 2024-07
+    quarterly_to 2026-01
+    account_id "acct_bionova_001"
+    // Generates one getdx_snapshots record per quarter with fields:
+    //   snapshot_id, account_id, scheduled_for, completed_at,
+    //   completed_count, total_count, last_result_change_at, raw
+  }
+
   scenario oncora_push {
     name "Oncora Drug Discovery Push"
     timerange_start 2025-03
@@ -220,8 +230,14 @@ universe BioNova {
     affect drug_discovery {
       github_commits "spike"
       github_prs "elevated"
-      dx_sentiment "rising"
-      dx_engagement "high"
+      // dx_drivers uses driver IDs from drivers.yaml (= item_id in
+      // getdx_snapshot_team_scores). Each driver gets a trajectory shape
+      // and magnitude delta applied to the team's baseline score.
+      dx_drivers {
+        clear_direction  { trajectory "rising" magnitude 5 }
+        learning_culture { trajectory "rising" magnitude 3 }
+        connectedness    { trajectory "rising" magnitude 4 }
+      }
       evidence_skills [data_integration, data_modeling]
       evidence_floor "working"
     }
@@ -229,8 +245,11 @@ universe BioNova {
     affect clinical_development {
       github_commits "elevated"
       github_prs "moderate"
-      dx_sentiment "rising"
-      dx_engagement "high"
+      dx_drivers {
+        clear_direction       { trajectory "rising" magnitude 4 }
+        efficient_processes   { trajectory "rising" magnitude 3 }
+        requirements_quality  { trajectory "rising" magnitude 2 }
+      }
       evidence_skills [stakeholder_management]
       evidence_floor "foundational"
     }
@@ -244,8 +263,13 @@ universe BioNova {
     affect platform_engineering {
       github_commits "sustained_spike"
       github_prs "very_high"
-      dx_sentiment "declining"
-      dx_burnout "elevated"
+      // Burnout signals show up as declining scores on specific drivers
+      dx_drivers {
+        deep_work           { trajectory "declining" magnitude -8 }
+        managing_tech_debt  { trajectory "declining" magnitude -5 }
+        ease_of_release     { trajectory "declining" magnitude -6 }
+        code_review         { trajectory "declining" magnitude -3 }
+      }
       evidence_skills [architecture_design, sre_practices]
       evidence_floor "practitioner"
     }
@@ -312,10 +336,13 @@ AST node types:
 
 ```
 UniverseAST { name, domain, industry, seed, orgs, departments, teams,
-              people, projects, scenarios, framework, content }
+              people, projects, scenarios, snapshots, framework, content }
 DepartmentNode { id, name, parent, headcount, _children }
 TeamNode { id, name, size, manager, repos, department }
+SnapshotsNode { quarterly_from, quarterly_to, account_id }
 ScenarioNode { id, name, timerange_start, timerange_end, affects }
+AffectNode { team_id, github_commits, github_prs, dx_drivers, evidence_skills, evidence_floor }
+DxDriverNode { driver_id, trajectory, magnitude }
 ```
 
 ## libuniverse Package
@@ -477,6 +504,9 @@ export async function runPipeline(options) {
       renderONTOLOGY(entities))
   }
   if (!only || only === 'activity') {
+    // Renders: organization_people.json, github_events.json,
+    // github_artifacts.json, getdx_snapshots.json, getdx_teams.json,
+    // getdx_snapshot_team_scores.json, evidence.json
     for (const [name, content] of renderTables(entities.activity)) {
       files.set(`products/map/examples/activity/${name}`, content)
     }
@@ -519,6 +549,7 @@ export function generate(ast) {
   const people = generatePeople(ast, rng, teams, domain)
   const projects = buildProjects(ast, teams, people, domain)
   const activity = generateActivity(ast, rng, people, teams, ast.scenarios)
+  // activity contains: { roster, github, artifacts, teams, snapshots, scores, evidence }
 
   return { orgs, teams, people, projects, scenarios: ast.scenarios,
            activity, domain }
@@ -547,6 +578,49 @@ export function createSeededRNG(seed) {
   return { random, randomInt, pick, shuffle, weightedPick, gaussian }
 }
 ```
+
+#### Activity Generation Algorithm
+
+The `generateActivity()` function in `tier0.js` produces seven data arrays:
+
+1. **`roster`** — One record per person from `generatePeople()`. Assigns
+   `email`, `github_username`, `discipline`, `level`, `track`, `manager_email`.
+
+2. **`teams`** — One `getdx_teams` record per DSL `team` block, plus parent
+   `department` and `org` entries. Each team's `manager_email` is resolved from
+   the DSL `manager @name` reference. The `raw` field mirrors the GetDX
+   `teams.list` API response shape (includes `manager_name` for the bridging
+   lookup).
+
+3. **`snapshots`** — One `getdx_snapshots` record per quarter between
+   `snapshots.quarterly_from` and `snapshots.quarterly_to`. Each snapshot gets
+   `completed_count` derived from `people.count` × response rate (RNG jitter
+   around 85%), and `total_count` = `people.count`.
+
+4. **`scores`** — For each snapshot × each team × each driver (from
+   `drivers.yaml`), generate one `getdx_snapshot_team_scores` record:
+   - **Baseline score**: Seeded PRNG gaussian around 65 (σ=10), clamped 0–100.
+   - **Scenario delta**: If a scenario's `dx_drivers` block names this
+     `driver_id` for this team and the snapshot falls within `timerange_start`
+     to `timerange_end`, apply the `magnitude` delta scaled by the trajectory
+     curve (linear ramp for `"rising"`, inverse ramp for `"declining"`,
+     bell curve for `"spike"`).
+   - **Comparative metrics**: `vs_prev` = score − previous snapshot score (null
+     for first snapshot). `vs_org` = score − mean score across all teams for
+     same driver/snapshot. `vs_50th/75th/90th` = score − percentile cutoffs
+     across all teams.
+   - **`snapshot_team`**: Nested JSONB with `{ id, name, team_id, parent,
+     parent_id, ancestors }` matching the GetDX `snapshots.info` API shape.
+
+5. **`github`** / **`artifacts`** — GitHub events and normalized artifacts
+   generated per person per week, scaled by scenario `github_commits` and
+   `github_prs` curves. Each event's `raw` field contains a realistic webhook
+   payload matching the GitHub webhook schema for the event type.
+
+6. **`evidence`** — For each artifact belonging to a person in a scenario-
+   affected team, generate evidence records for the scenario's
+   `evidence_skills`. Each evidence row links to the artifact via `artifact_id`
+   and references a skill marker at or above the `evidence_floor` proficiency.
 
 ### Tier 1 — LLM-Assisted Prose
 
@@ -735,11 +809,297 @@ export function renderTables(activity) {
   files.set('github_events.json', JSON.stringify(activity.github, null, 2))
   files.set('github_artifacts.json', JSON.stringify(activity.artifacts, null, 2))
   files.set('getdx_snapshots.json', JSON.stringify(activity.snapshots, null, 2))
+  files.set('getdx_teams.json', JSON.stringify(activity.teams, null, 2))
   files.set('getdx_snapshot_team_scores.json', JSON.stringify(activity.scores, null, 2))
   files.set('evidence.json', JSON.stringify(activity.evidence, null, 2))
   return files
 }
 ```
+
+### Activity Record Schemas
+
+Each activity JSON file must produce records matching the SQL column definitions
+in `products/map/activity/migrations/001_activity_schema.sql`. The generated
+data lands as local files; the existing ingestion pipeline loads them into
+Supabase. Records must be structurally identical to what the ingestion code
+produces.
+
+#### organization_people.json
+
+Each record matches the `activity.organization_people` table:
+
+```json
+{
+  "email": "athena@bionova.example",
+  "name": "Athena",
+  "github_username": "athena-bio",
+  "discipline": "software_engineering",
+  "level": "L3",
+  "track": "platform",
+  "manager_email": "zeus@bionova.example",
+  "updated_at": "2025-06-15T00:00:00.000Z"
+}
+```
+
+- `email` — Primary key. Format: `{greek_name}@{domain}`.
+- `discipline`, `level`, `track` — Must be valid framework IDs from
+  `products/map/examples/`. Validated by `fit-map validate`.
+- `manager_email` — References another `organization_people.email`. Team
+  managers reference their department head; department heads reference null.
+- `github_username` — Unique. Format: `{greek_name}-bio`. Used to join
+  `github_artifacts.github_username` → `organization_people.email`.
+
+#### github_events.json
+
+Each record matches the `activity.github_events` table. The `raw` field must
+contain a realistic GitHub webhook payload matching the well-known webhook
+schemas for `push`, `pull_request`, and `pull_request_review` events:
+
+```json
+{
+  "delivery_id": "evt-00000001-0001",
+  "event_type": "pull_request",
+  "action": "opened",
+  "repository": "bionova/oncology-pipelines",
+  "sender_github_username": "athena-bio",
+  "occurred_at": "2025-06-15T14:30:00.000Z",
+  "raw": {
+    "action": "opened",
+    "number": 42,
+    "pull_request": {
+      "number": 42,
+      "title": "Add cell viability scoring endpoint",
+      "state": "open",
+      "user": { "login": "athena-bio" },
+      "created_at": "2025-06-15T14:30:00.000Z",
+      "updated_at": "2025-06-15T14:30:00.000Z",
+      "additions": 145,
+      "deletions": 23,
+      "changed_files": 4,
+      "merged": false,
+      "base": { "ref": "main" },
+      "head": { "ref": "feature/cell-viability" }
+    },
+    "repository": { "full_name": "bionova/oncology-pipelines" },
+    "sender": { "login": "athena-bio" }
+  }
+}
+```
+
+- `delivery_id` — Primary key. Synthetic UUID-like format.
+- `event_type` — One of: `push`, `pull_request`, `pull_request_review`.
+- `action` — Webhook action: `opened`, `closed`, `submitted`, etc. Null for
+  `push` events.
+- `raw` — Must include the nested structures that the `extractArtifacts()`
+  ingestion function reads: `payload.pull_request`, `payload.review`,
+  `payload.commits`, `payload.repository.full_name`, `payload.sender.login`.
+
+#### github_artifacts.json
+
+Each record matches the `activity.github_artifacts` table. Artifacts are the
+normalized output of `extractArtifacts()` from `github.js`:
+
+```json
+{
+  "artifact_id": "a0000001-0001-0001-0001-000000000001",
+  "artifact_type": "pull_request",
+  "external_id": "pr:bionova/oncology-pipelines#42",
+  "repository": "bionova/oncology-pipelines",
+  "github_username": "athena-bio",
+  "email": "athena@bionova.example",
+  "occurred_at": "2025-06-15T14:30:00.000Z",
+  "metadata": {
+    "number": 42,
+    "title": "Add cell viability scoring endpoint",
+    "state": "open",
+    "additions": 145,
+    "deletions": 23,
+    "changed_files": 4,
+    "merged": false,
+    "base_branch": "main",
+    "head_branch": "feature/cell-viability"
+  },
+  "raw": null
+}
+```
+
+Three `artifact_type` values with specific `external_id` formats and `metadata`
+shapes:
+
+| Type             | `external_id` format                        | `metadata` fields                                                                     |
+| ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `pull_request`   | `pr:{repo}#{number}`                        | `number`, `title`, `state`, `additions`, `deletions`, `changed_files`, `merged`, `base_branch`, `head_branch` |
+| `review`         | `review:{repo}#{pr_number}:{review_id}`     | `pr_number`, `state` (approved/changes_requested/commented), `body_length`            |
+| `commit`         | `commit:{repo}:{sha}`                       | `sha`, `message`, `added` (count), `removed` (count), `modified` (count)             |
+
+- `email` — Resolved from `github_username` via `organization_people`. Every
+  artifact must link to a valid person.
+- `raw` — Can be null in synthetic data (the normalized `metadata` is what
+  consumers read).
+
+#### getdx_snapshots.json
+
+Each record matches the `activity.getdx_snapshots` table. Fields mirror the
+GetDX `snapshots.list` API response:
+
+```json
+{
+  "snapshot_id": "snap_2025_Q1",
+  "account_id": "acct_bionova_001",
+  "scheduled_for": "2025-01-15",
+  "completed_at": "2025-02-01T00:00:00.000Z",
+  "completed_count": 180,
+  "total_count": 211,
+  "last_result_change_at": "2025-02-01T12:00:00.000Z",
+  "raw": {
+    "id": "snap_2025_Q1",
+    "account_id": "acct_bionova_001",
+    "scheduled_for": "2025-01-15",
+    "completed_at": "2025-02-01T00:00:00.000Z",
+    "completed_count": 180,
+    "total_count": 211,
+    "last_result_change_at": "2025-02-01T12:00:00.000Z",
+    "deleted_at": null
+  }
+}
+```
+
+- `raw` — The full GetDX API response object (includes `deleted_at` which the
+  ingestion code uses for filtering but does not store as a column).
+- One record per quarterly snapshot cycle defined in the DSL `snapshots` block.
+
+#### getdx_teams.json
+
+Each record matches the `activity.getdx_teams` table. Fields mirror the GetDX
+`teams.list` API response, bridged to the org model via `manager_email`:
+
+```json
+{
+  "getdx_team_id": "gdx_team_drug_discovery",
+  "name": "Drug Discovery Team",
+  "parent_id": "gdx_team_rd",
+  "manager_id": "gdx_mgr_thoth",
+  "reference_id": null,
+  "manager_email": "thoth@bionova.example",
+  "ancestors": ["gdx_team_rd", "gdx_team_headquarters"],
+  "contributors": 12,
+  "last_changed_at": "2025-06-01T00:00:00.000Z",
+  "raw": {
+    "id": "gdx_team_drug_discovery",
+    "name": "Drug Discovery Team",
+    "parent_id": "gdx_team_rd",
+    "manager_id": "gdx_mgr_thoth",
+    "manager_name": "Thoth",
+    "reference_id": null,
+    "ancestors": ["gdx_team_rd", "gdx_team_headquarters"],
+    "contributors": 12,
+    "last_changed_at": "2025-06-01T00:00:00.000Z"
+  }
+}
+```
+
+- One record per DSL `team` block, plus parent department/org entries.
+- `manager_email` — Resolved from the DSL `manager @name` via
+  `organization_people.email`. Mirrors the ingestion code's
+  `manager_name → email` lookup.
+- `raw` — The GetDX `teams.list` API response object (includes `manager_name`
+  which the ingestion code uses for the email lookup).
+
+#### getdx_snapshot_team_scores.json
+
+Each record matches the `activity.getdx_snapshot_team_scores` table. Fields
+mirror the GetDX `snapshots.info` API `team_scores` array entries:
+
+```json
+{
+  "snapshot_id": "snap_2025_Q1",
+  "getdx_team_id": "gdx_team_drug_discovery",
+  "item_id": "clear_direction",
+  "item_type": "driver",
+  "item_name": "Clear Direction",
+  "response_count": 10,
+  "contributor_count": 12,
+  "score": 72.5,
+  "vs_prev": 3.2,
+  "vs_org": 1.8,
+  "vs_50th": 5.1,
+  "vs_75th": -2.3,
+  "vs_90th": -8.7,
+  "snapshot_team": {
+    "id": "snapteam_2025Q1_drug_discovery",
+    "name": "Drug Discovery Team",
+    "team_id": "gdx_team_drug_discovery",
+    "parent": false,
+    "parent_id": "gdx_team_rd",
+    "ancestors": ["gdx_team_rd", "gdx_team_headquarters"]
+  },
+  "raw": {
+    "snapshot_team": {
+      "id": "snapteam_2025Q1_drug_discovery",
+      "name": "Drug Discovery Team",
+      "team_id": "gdx_team_drug_discovery",
+      "parent": false,
+      "parent_id": "gdx_team_rd",
+      "ancestors": ["gdx_team_rd", "gdx_team_headquarters"]
+    },
+    "item_id": "clear_direction",
+    "item_type": "driver",
+    "item_name": "Clear Direction",
+    "response_count": 10,
+    "score": 72.5,
+    "contributor_count": 12,
+    "vs_prev": 3.2,
+    "vs_org": 1.8,
+    "vs_50th": 5.1,
+    "vs_75th": -2.3,
+    "vs_90th": -8.7
+  }
+}
+```
+
+- `item_id` — Must match a `driver.id` from `products/map/examples/drivers.yaml`
+  (the shared ID namespace between GetDX and the framework).
+- `item_type` — Always `"driver"` for framework-aligned items.
+- `snapshot_team` — Nested JSONB matching the GetDX `snapshots.info` API
+  response structure: `{ id, name, team_id, parent, parent_id, ancestors }`.
+- `raw` — The complete GetDX `team_scores` entry as returned by the API.
+- Scores are generated per team × per driver × per snapshot. Scenario
+  `dx_drivers` blocks apply trajectory deltas to baseline scores for affected
+  teams during active time ranges.
+- Comparative metrics (`vs_prev`, `vs_org`, `vs_50th`, `vs_75th`, `vs_90th`)
+  are computed from the generated score distributions across teams and
+  snapshots.
+
+#### evidence.json
+
+Each record matches the `activity.evidence` table:
+
+```json
+{
+  "evidence_id": "e0000001-0001-0001-0001-000000000001",
+  "artifact_id": "a0000001-0001-0001-0001-000000000001",
+  "skill_id": "data_integration",
+  "level_id": "working",
+  "marker_text": "Authored a design doc accepted without requiring senior rewrite",
+  "matched": true,
+  "rationale": null
+}
+```
+
+- `artifact_id` — **Foreign key** referencing a valid `github_artifacts`
+  record. Every evidence row must link to an artifact produced by the same
+  person.
+- `skill_id` — Must match a skill ID from capability YAML files.
+- `level_id` — One of the framework proficiency levels (`awareness`,
+  `foundational`, `working`, `practitioner`, `expert`). Must meet or exceed the
+  scenario-defined `evidence_floor`.
+- `marker_text` — A marker string from the corresponding capability YAML's
+  `markers` section. If markers are not yet defined for the skill, use a
+  placeholder that describes observable behaviour.
+- `matched` — Whether the artifact demonstrates the marker. Synthetic data
+  should generate a realistic mix (~70% matched, ~30% unmatched).
+- `rationale` — LLM-generated (Tier 1) explanation of why the marker was or
+  was not matched. Null in no-prose mode.
 
 ### Markdown Renderer
 
@@ -779,12 +1139,32 @@ files.
 
 export function validateCrossContent(entities) {
   const checks = [
-    checkPeopleCoverage(entities),
-    checkFrameworkValidity(entities),
-    checkEvidenceProficiency(entities),
-    checkRosterCompleteness(entities),
-    checkTeamAssignments(entities),
-    checkManagerReferences(entities),
+    // Organization integrity
+    checkPeopleCoverage(entities),         // Every person in org HTML exists in roster
+    checkFrameworkValidity(entities),       // Every discipline/level/track is valid
+    checkRosterCompleteness(entities),      // Roster has required fields (email, name, etc.)
+    checkTeamAssignments(entities),         // Every person belongs to a valid team
+    checkManagerReferences(entities),       // Every manager_email references a valid person
+    checkGithubUsernames(entities),         // Every github_username is unique and non-null
+
+    // GitHub artifact integrity
+    checkArtifactExternalIds(entities),     // external_id format matches artifact_type
+    checkArtifactEmailResolution(entities), // Every artifact.email exists in roster
+    checkArtifactRepoValidity(entities),    // Every artifact.repository is a known team repo
+    checkEventArtifactConsistency(entities),// Every artifact traces to a github_event
+
+    // GetDX integrity
+    checkGetDXTeamsCoverage(entities),      // Every DSL team has a getdx_teams record
+    checkGetDXTeamManagerEmails(entities),  // Every getdx_teams.manager_email is in roster
+    checkSnapshotScoreDriverIds(entities),  // Every score.item_id is a valid driver from drivers.yaml
+    checkSnapshotTeamReferences(entities),  // Every score.getdx_team_id references a getdx_teams record
+    checkSnapshotTeamNesting(entities),     // Every score.snapshot_team has required fields
+    checkScoreTrajectories(entities),       // Scenario dx_drivers trajectories correlate (r > 0.6)
+
+    // Evidence integrity
+    checkEvidenceArtifactLinks(entities),   // Every evidence.artifact_id references a valid artifact
+    checkEvidenceProficiency(entities),     // Evidence levels meet scenario evidence_floor
+    checkEvidenceSkillIds(entities),        // Every evidence.skill_id is a valid framework skill
   ]
 
   const failures = checks.filter(c => !c.passed)
@@ -795,17 +1175,20 @@ export function validateCrossContent(entities) {
 
 ## Output File Mapping
 
-| Generated Content              | Target Location                              |
-| ------------------------------ | -------------------------------------------- |
-| ONTOLOGY.md                    | `products/guide/examples/knowledge/`         |
-| README.md                      | `products/guide/examples/knowledge/`         |
-| HTML microdata files           | `products/guide/examples/knowledge/`         |
-| Framework YAML                 | `products/map/examples/`                     |
-| Organization people            | `products/map/examples/activity/`            |
-| GitHub events/artifacts        | `products/map/examples/activity/`            |
-| GetDX snapshots/scores         | `products/map/examples/activity/`            |
-| Evidence records               | `products/map/examples/activity/`            |
-| Personal knowledge base        | `products/basecamp/template/knowledge/`      |
+| Generated Content              | File                                         | Target Location                              |
+| ------------------------------ | -------------------------------------------- | -------------------------------------------- |
+| ONTOLOGY.md                    | `ONTOLOGY.md`                                | `products/guide/examples/knowledge/`         |
+| README.md                      | `README.md`                                  | `products/guide/examples/knowledge/`         |
+| HTML microdata files           | `*.html`                                     | `products/guide/examples/knowledge/`         |
+| Framework YAML                 | `*.yaml`                                     | `products/map/examples/`                     |
+| Organization people            | `organization_people.json`                   | `products/map/examples/activity/`            |
+| GitHub events                  | `github_events.json`                         | `products/map/examples/activity/`            |
+| GitHub artifacts               | `github_artifacts.json`                      | `products/map/examples/activity/`            |
+| GetDX snapshots                | `getdx_snapshots.json`                       | `products/map/examples/activity/`            |
+| GetDX teams                    | `getdx_teams.json`                           | `products/map/examples/activity/`            |
+| GetDX snapshot team scores     | `getdx_snapshot_team_scores.json`            | `products/map/examples/activity/`            |
+| Evidence records               | `evidence.json`                              | `products/map/examples/activity/`            |
+| Personal knowledge base        | `*.md`                                       | `products/basecamp/template/knowledge/`      |
 
 ## CLI — Thin Wrapper
 
