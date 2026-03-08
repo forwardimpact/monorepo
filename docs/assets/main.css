@@ -327,8 +327,10 @@ strong {
 
 .page-content {
   max-width: 680px;
+  min-width: 0;
   margin: 0 auto;
   padding: calc(56px + var(--space-12)) var(--space-6) var(--space-12);
+  overflow-wrap: break-word;
 }
 
 .page-content ul,
@@ -377,6 +379,9 @@ strong {
   border-collapse: collapse;
   margin: var(--space-6) 0;
   font-size: var(--text-small-size);
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .page-content th {
@@ -760,6 +765,7 @@ pre code {
 
 .with-toc > .page-content {
   max-width: none;
+  min-width: 0;
   margin: 0;
   padding: 0;
 }
