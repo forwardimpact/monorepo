@@ -1,18 +1,28 @@
 ---
 title: Map
-description: Data model, storage contracts, validation, and ingestion surfaces for Map.
+description: Data product serving framework definitions, operational analytics, and ingestion contracts for the FIT suite.
 ---
 
 ## Overview
 
-Map is the central data store of the FIT suite. It defines framework entities in
-YAML and stores operational activity data used by downstream products.
+Map is the data product that serves framework definitions and operational
+analytics to every product in the Forward Impact suite. It owns domain data,
+publishes stable contracts, and enforces schema quality — consumers depend on
+contracts, not implementation details.
 
 > See the [Map product page](/map/) for a high-level overview.
 
 ---
 
 ## Position in the Suite
+
+As a data product, Map separates three concerns:
+
+- **Storage** — Map owns data ingestion, schema, and persistence.
+- **Interpretation** — Guide reads artifacts from Map, assesses them against
+  markers, and writes evidence back. Map stores but does not interpret.
+- **Presentation** — Landmark and other products read Map data and format views.
+  Map serves but does not present.
 
 Map provides two domains:
 
@@ -45,12 +55,20 @@ data/
 
 ### Activity model (stored records)
 
-Core activity contracts:
+Core data product contracts:
 
-- `organization_people` — flat people list with manager references
-- team scope derived from manager hierarchy
-- `github_events`, `github_artifacts`, `evidence`
-- `getdx_teams`, `getdx_snapshots`, `getdx_snapshot_team_scores`
+| Table                        | Purpose                                         |
+| ---------------------------- | ----------------------------------------------- |
+| `organization_people`        | Unified person model (email PK)                 |
+| `github_events`              | Raw GitHub webhook events                       |
+| `github_artifacts`           | Normalized artifacts (email join to person)     |
+| `evidence`                   | Guide-written skill evidence (artifact_id join) |
+| `getdx_snapshots`            | Quarterly snapshot metadata                     |
+| `getdx_teams`                | GetDX team hierarchy (manager_email join)       |
+| `getdx_snapshot_team_scores` | Aggregated scores per team per snapshot         |
+
+Team scope is derived from the manager hierarchy — not stored as a separate
+entity.
 
 ---
 
@@ -80,8 +98,8 @@ import { SKILL_PROFICIENCIES, BEHAVIOUR_MATURITIES } from "@forwardimpact/map/le
 const data = await loadAllData("./data");
 ```
 
-For activity datasets, consumers query Map storage APIs/views rather than local
-YAML loaders.
+For activity datasets, consumers import query functions from
+`@forwardimpact/map/activity/queries` as workspace dependencies.
 
 ---
 
