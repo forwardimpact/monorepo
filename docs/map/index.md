@@ -1,12 +1,12 @@
 ---
 title: Map
-description: Chart and store your engineering system data — framework definitions, organization structure, GitHub activity, and GetDX snapshots.
+description: The data product for your engineering system — framework definitions, organization structure, GitHub activity, and GetDX snapshots.
 layout: product
 toc: false
 hero:
   image: /assets/heros/map.svg
   alt: An engineer, an AI robot, and a business professional kneel around a large unfolded map, tracing routes together
-  subtitle: Map is the central data store for the FIT suite. It defines your framework in plain YAML and stores operational signals — organization hierarchy, GitHub activity, and GetDX snapshot results — in one model.
+  subtitle: Map is the data product for the FIT suite. It defines your framework in plain YAML and stores operational signals — organization hierarchy, GitHub activity, and GetDX snapshot results — in one model.
   cta:
     - label: Documentation
       href: /docs/map/
@@ -15,10 +15,10 @@ hero:
       secondary: true
 ---
 
-> Map provides shared context for every product in the suite. Teams define the
-> engineering framework once, import operational signals continuously, and make
-> that data available to Pathway, Guide, Landmark, and Basecamp through one
-> consistent model.
+> Map is the data product that provides shared context for every product in the
+> suite. Teams define the engineering framework once, import operational signals
+> continuously, and make that data available to Pathway, Guide, Landmark, and
+> Basecamp through stable contracts.
 
 ### What you get
 
