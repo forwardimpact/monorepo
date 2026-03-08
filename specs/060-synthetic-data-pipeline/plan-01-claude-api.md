@@ -31,7 +31,7 @@ seed.yaml ──► Orchestrator (Node.js)
 
 ## Seed Data
 
-A single `specs/synthetic-data-pipeline/seed.yaml` file defines the ground
+A single `specs/060-synthetic-data-pipeline/seed.yaml` file defines the ground
 truth that all generated content must respect.
 
 ```yaml

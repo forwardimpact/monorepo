@@ -5,7 +5,7 @@ produces coherent, cross-referenced synthetic data for every product in the
 monorepo.
 
 ```
-specs/synthetic-data-pipeline/
+specs/060-synthetic-data-pipeline/
   spec.md                       This document (WHAT and WHY)
   plan-01-claude-api.md         Claude API with validation loops
   plan-02-local-models.md       Local open-weight models (MLX / llama.cpp)
