@@ -39,8 +39,7 @@ help:
 	@echo "  data-init         	Initialize data directories"
 	@echo "  data-clean        	Remove generated data"
 	@echo "  data-reset        	Clean, init, and regenerate code"
-	@echo "  data-download     	Download demo data"
-	@echo "  data-download-last Download latest demo data only"
+
 	@echo ""
 	@echo "Code Generation:"
 	@echo "  codegen           	Generate all (types, services, clients)"
@@ -63,7 +62,6 @@ help:
 	@echo "  process-graphs    	Process graph indices"
 	@echo ""
 	@echo "Services:"
-	@echo "  rc                	Run rc command"
 	@echo "  rc-start          	Start services via rc"
 	@echo "  rc-stop           	Stop services via rc"
 	@echo "  rc-restart        	Restart services via rc"
@@ -127,10 +125,10 @@ help:
 	@echo "Utilities:"
 	@echo "  config-reset     	Reset config files from examples"
 	@echo "  download-bundle   	Download generated code bundle from S3"
-	@echo "  ontology-topdown  	Generate ontology (top-down approach)"
+
 	@echo "  security          	Run security audit"
 	@echo "  spellcheck        	Check spelling in documentation"
-	@echo "  validate-html     	Validate HTML files in eval/output"
+
 	@echo ""
 	@echo "NPM Scripts (pass-through):"
 	@echo "  dev               	Start development server"
@@ -163,14 +161,6 @@ data-clean:  ## Remove generated data
 
 .PHONY: data-reset
 data-reset: data-clean data-init codegen  ## Clean, init, and regenerate code
-
-.PHONY: data-download
-data-download:  ## Download demo data
-	@node ./scripts/demo-data.js
-
-.PHONY: data-download-last
-data-download-last:  ## Download latest demo data only
-	@node ./scripts/demo-data.js --last
 
 # ====================
 # Code Generation
@@ -467,10 +457,6 @@ config-reset: ## Reset config files from examples
 download-bundle:  ## Download generated code bundle from S3
 	@$(ENVLOAD) npx --workspace=@forwardimpact/libutil fit-download-bundle
 
-.PHONY: ontology-topdown
-ontology-topdown:  ## Generate ontology (top-down approach)
-	@node ./scripts/ontology_top_down.js
-
 .PHONY: security
 security:  ## Run security audit
 	@npm audit --audit-level=low --workspaces
@@ -478,10 +464,6 @@ security:  ## Run security audit
 .PHONY: spellcheck
 spellcheck:  ## Check spelling in documentation
 	@npx spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' '!**/*-prompt.md' --dictionaries .dictionary.txt --no-suggestions
-
-.PHONY: validate-html
-validate-html:  ## Validate HTML files in eval/output
-	@find eval/output -name '*.html' | node scripts/validate.js
 
 # ====================
 # NPM Scripts (pass-through)

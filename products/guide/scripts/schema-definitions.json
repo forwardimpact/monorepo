@@ -1,0 +1,303 @@
+{
+  "https://schema.org/Person": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/jobTitle": { "range": "Text" },
+      "https://schema.org/worksFor": {
+        "range": "https://schema.org/Organization"
+      },
+      "https://schema.org/affiliation": {
+        "range": "https://schema.org/Organization"
+      },
+      "https://schema.org/email": { "range": "Text" },
+      "https://schema.org/telephone": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/identifier": { "range": "Text" }
+    }
+  },
+  "https://schema.org/Organization": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/member": { "range": "https://schema.org/Person" },
+      "https://schema.org/employee": { "range": "https://schema.org/Person" },
+      "https://schema.org/parentOrganization": {
+        "range": "https://schema.org/Organization"
+      },
+      "https://schema.org/subOrganization": {
+        "range": "https://schema.org/Organization"
+      },
+      "https://schema.org/identifier": { "range": "Text" },
+      "https://schema.org/address": {
+        "range": "https://schema.org/PostalAddress"
+      },
+      "https://schema.org/email": { "range": "Text" },
+      "https://schema.org/telephone": { "range": "Text" }
+    }
+  },
+  "https://schema.org/MedicalOrganization": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/employee": { "range": "https://schema.org/Person" },
+      "https://schema.org/identifier": { "range": "Text" },
+      "https://schema.org/address": {
+        "range": "https://schema.org/PostalAddress"
+      },
+      "https://schema.org/isRelatedTo": { "range": "https://schema.org/Thing" }
+    }
+  },
+  "https://schema.org/Project": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/identifier": { "range": "Text" },
+      "https://schema.org/member": { "range": "https://schema.org/Person" },
+      "https://schema.org/about": { "range": "https://schema.org/Thing" }
+    }
+  },
+  "https://schema.org/ScholarlyArticle": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/headline": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/articleBody": { "range": "Text" },
+      "https://schema.org/about": { "range": "https://schema.org/Thing" },
+      "https://schema.org/author": { "range": "https://schema.org/Person" },
+      "https://schema.org/identifier": { "range": "Text" },
+      "https://schema.org/datePublished": { "range": "Date" },
+      "https://schema.org/dateModified": { "range": "Date" },
+      "https://schema.org/citation": {
+        "range": "https://schema.org/CreativeWork"
+      }
+    }
+  },
+  "https://schema.org/BlogPosting": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/headline": { "range": "Text" },
+      "https://schema.org/articleBody": { "range": "Text" },
+      "https://schema.org/about": { "range": "https://schema.org/Thing" },
+      "https://schema.org/author": { "range": "https://schema.org/Person" },
+      "https://schema.org/datePublished": { "range": "Date" },
+      "https://schema.org/isPartOf": {
+        "range": "https://schema.org/CreativeWork"
+      },
+      "https://schema.org/mentions": { "range": "https://schema.org/Thing" }
+    }
+  },
+  "https://schema.org/Comment": {
+    "properties": {
+      "https://schema.org/about": { "range": "https://schema.org/Thing" },
+      "https://schema.org/author": { "range": "https://schema.org/Person" },
+      "https://schema.org/text": { "range": "Text" },
+      "https://schema.org/dateCreated": { "range": "Date" }
+    }
+  },
+  "https://schema.org/SoftwareApplication": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/applicationCategory": { "range": "Text" },
+      "https://schema.org/softwareVersion": { "range": "Text" },
+      "https://schema.org/softwareRequirements": {
+        "range": "https://schema.org/SoftwareApplication"
+      },
+      "https://schema.org/isRelatedTo": { "range": "https://schema.org/Thing" }
+    }
+  },
+  "https://schema.org/Review": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/author": { "range": "https://schema.org/Person" },
+      "https://schema.org/itemReviewed": {
+        "range": "https://schema.org/Thing"
+      },
+      "https://schema.org/reviewBody": { "range": "Text" },
+      "https://schema.org/reviewRating": {
+        "range": "https://schema.org/Rating"
+      },
+      "https://schema.org/mentions": { "range": "https://schema.org/Thing" }
+    }
+  },
+  "https://schema.org/FAQPage": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/mainEntity": {
+        "range": "https://schema.org/Question"
+      }
+    }
+  },
+  "https://schema.org/Question": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/text": { "range": "Text" },
+      "https://schema.org/acceptedAnswer": {
+        "range": "https://schema.org/Answer"
+      }
+    }
+  },
+  "https://schema.org/Answer": {
+    "properties": {
+      "https://schema.org/text": { "range": "Text" },
+      "https://schema.org/mentions": { "range": "https://schema.org/Thing" },
+      "https://schema.org/about": { "range": "https://schema.org/Thing" }
+    }
+  },
+  "https://schema.org/MedicalTrial": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/identifier": { "range": "Text" },
+      "https://schema.org/citation": {
+        "range": "https://schema.org/CreativeWork"
+      },
+      "https://schema.org/location": { "range": "https://schema.org/Place" },
+      "https://schema.org/studySubject": {
+        "range": "https://schema.org/MedicalEntity"
+      },
+      "https://schema.org/investigator": {
+        "range": "https://schema.org/Person"
+      }
+    }
+  },
+  "https://schema.org/Role": {
+    "properties": {
+      "https://schema.org/roleName": { "range": "Text" },
+      "https://schema.org/mainEntity": { "range": "https://schema.org/Thing" },
+      "https://schema.org/mainEntityOfPage": {
+        "range": "https://schema.org/Organization"
+      },
+      "https://schema.org/startDate": { "range": "Date" },
+      "https://schema.org/endDate": { "range": "Date" }
+    }
+  },
+  "https://schema.org/CreativeWork": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/about": { "range": "https://schema.org/Thing" },
+      "https://schema.org/identifier": { "range": "Text" },
+      "https://schema.org/isPartOf": {
+        "range": "https://schema.org/CreativeWork"
+      },
+      "https://schema.org/contributor": {
+        "range": "https://schema.org/Person"
+      },
+      "https://schema.org/creator": { "range": "https://schema.org/Person" },
+      "https://schema.org/dateCreated": { "range": "Date" },
+      "https://schema.org/dateModified": { "range": "Date" }
+    }
+  },
+  "https://schema.org/HowTo": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/identifier": { "range": "Text" },
+      "https://schema.org/step": { "range": "https://schema.org/HowToStep" },
+      "https://schema.org/isRelatedTo": { "range": "https://schema.org/Thing" }
+    }
+  },
+  "https://schema.org/DigitalDocument": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/identifier": { "range": "Text" },
+      "https://schema.org/isPartOf": {
+        "range": "https://schema.org/CreativeWork"
+      },
+      "https://schema.org/citation": {
+        "range": "https://schema.org/CreativeWork"
+      },
+      "https://schema.org/hasPart": {
+        "range": "https://schema.org/CreativeWork"
+      },
+      "https://schema.org/isRelatedTo": { "range": "https://schema.org/Thing" }
+    }
+  },
+  "https://schema.org/Drug": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/identifier": { "range": "Text" },
+      "https://schema.org/isPartOf": { "range": "https://schema.org/Drug" },
+      "https://schema.org/drugClass": { "range": "Text" },
+      "https://schema.org/activeIngredient": { "range": "Text" },
+      "https://schema.org/clinicalPharmacology": { "range": "Text" },
+      "https://schema.org/legalStatus": { "range": "Text" },
+      "https://schema.org/isRelatedTo": { "range": "https://schema.org/Thing" }
+    }
+  },
+  "https://schema.org/Course": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/identifier": { "range": "Text" },
+      "https://schema.org/provider": {
+        "range": "https://schema.org/Organization"
+      },
+      "https://schema.org/educationalCredentialAwarded": { "range": "Text" },
+      "https://schema.org/coursePrerequisites": {
+        "range": "https://schema.org/Course"
+      },
+      "https://schema.org/isRelatedTo": { "range": "https://schema.org/Thing" }
+    }
+  },
+  "https://schema.org/PostalAddress": {
+    "properties": {
+      "https://schema.org/streetAddress": { "range": "Text" },
+      "https://schema.org/addressLocality": { "range": "Text" },
+      "https://schema.org/addressRegion": { "range": "Text" },
+      "https://schema.org/postalCode": { "range": "Text" },
+      "https://schema.org/addressCountry": { "range": "Text" }
+    }
+  },
+  "https://schema.org/Event": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/about": { "range": "https://schema.org/Thing" },
+      "https://schema.org/attendee": { "range": "https://schema.org/Person" },
+      "https://schema.org/organizer": {
+        "range": "https://schema.org/Organization"
+      },
+      "https://schema.org/startDate": { "range": "Date" },
+      "https://schema.org/endDate": { "range": "Date" }
+    }
+  },
+  "https://schema.org/Service": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/provider": {
+        "range": "https://schema.org/Organization"
+      },
+      "https://schema.org/serviceType": { "range": "Text" },
+      "https://schema.org/areaServed": { "range": "Text" },
+      "https://schema.org/isRelatedTo": { "range": "https://schema.org/Thing" }
+    }
+  },
+  "https://schema.org/Rating": {
+    "properties": {
+      "https://schema.org/ratingValue": { "range": "Number" },
+      "https://schema.org/bestRating": { "range": "Number" },
+      "https://schema.org/worstRating": { "range": "Number" }
+    }
+  },
+  "https://schema.org/Blog": {
+    "properties": {
+      "https://schema.org/blogPost": {
+        "range": "https://schema.org/BlogPosting"
+      }
+    }
+  },
+  "https://schema.org/Place": {
+    "properties": {
+      "https://schema.org/name": { "range": "Text" },
+      "https://schema.org/description": { "range": "Text" },
+      "https://schema.org/address": {
+        "range": "https://schema.org/PostalAddress"
+      }
+    }
+  }
+}

@@ -445,7 +445,57 @@ make process-vectors
 
 # 6. Start services and chat
 make rc-start
-make cli-chat
+echo "Hello" | npx fit-guide
+```
+
+---
+
+## Issues Found and Fixed During Porting
+
+### 1. STORAGE_ROOT Not Set — Processing Commands Find Wrong Directories
+
+**Problem:** Makefile targets like `make process-agents` invoke CLIs via
+`npx --workspace=@forwardimpact/libagent fit-process-agents`. The
+`--workspace=` flag changes cwd to the library package root
+(`libraries/libagent/`). The `createStorage("config")` call uses
+`Finder.findUpward()` from cwd, which traverses up to `monorepo/config/` instead
+of `products/guide/config/`.
+
+In copilot-ld this worked because the workspace root _was_ the product root.
+
+**Fix:** `scripts/env.sh` now exports
+`STORAGE_ROOT="${STORAGE_ROOT:-$(pwd)}"` before `exec "$@"`. Since env.sh runs
+from the guide product directory (via the Makefile), STORAGE_ROOT pins all
+storage resolution to the correct location regardless of where npx sets the cwd.
+
+### 2. Agent Name Double-Prefixed — `common.Agent.common.Agent.planner`
+
+**Problem:** `config.json` sets `"agent": "common.Agent.planner"`.
+`AgentMind.setupConversation()` in `libraries/libagent/mind.js` unconditionally
+prefixes the name:
+
+```js
+agent_id: `common.Agent.${agentName}`,
+```
+
+This produces `common.Agent.common.Agent.planner`, causing "Agent not found".
+
+**Fix:** Added a guard matching the pattern already used in
+`RunSubAgent`:
+
+```js
+const agentId = agentName.startsWith("common.Agent.")
+  ? agentName
+  : `common.Agent.${agentName}`;
+```
+
+### 3. SERVICE_SECRET Must Be Set
+
+The `.env` file ships with `SERVICE_SECRET` commented out. gRPC inter-service
+auth requires it. Generate with:
+
+```bash
+node -e "import('crypto').then(c => console.log(c.randomBytes(32).toString('hex')))"
 ```
 
 ---
