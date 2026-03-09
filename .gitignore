@@ -16,6 +16,7 @@ generated/
 **/config/config.json
 **/config/tools.yml
 **/config/ingest.yml
+**/config/eval.yml
 **/config/agents/*.agent.md
 !**/config/agents/*.agent.example.md
 

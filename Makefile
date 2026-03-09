@@ -1,4 +1,4 @@
-# Guide Makefile
+# Monorepo Makefile
 # ====================
 # Platform automation commands. Run `make help` for usage.
 #
@@ -39,7 +39,6 @@ help:
 	@echo "  data-init         	Initialize data directories"
 	@echo "  data-clean        	Remove generated data"
 	@echo "  data-reset        	Clean, init, and regenerate code"
-
 	@echo ""
 	@echo "Code Generation:"
 	@echo "  codegen           	Generate all (types, services, clients)"
@@ -125,10 +124,8 @@ help:
 	@echo "Utilities:"
 	@echo "  config-reset     	Reset config files from examples"
 	@echo "  download-bundle   	Download generated code bundle from S3"
-
 	@echo "  security          	Run security audit"
 	@echo "  spellcheck        	Check spelling in documentation"
-
 	@echo ""
 	@echo "NPM Scripts (pass-through):"
 	@echo "  dev               	Start development server"
@@ -149,7 +146,7 @@ help:
 
 .PHONY: data-init
 data-init:  ## Initialize data directories
-	@mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/knowledge data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
+	@mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/knowledge data/logs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
 	@if [ -d examples/knowledge ] && [ -z "$$(ls -A data/knowledge 2>/dev/null)" ]; then \
 		cp -r examples/knowledge/* data/knowledge/ 2>/dev/null || true; \
 		echo "Copied example knowledge data to data/knowledge/"; \
@@ -224,7 +221,7 @@ process-resources:  ## Process knowledge resources
 
 .PHONY: process-tools
 process-tools:  ## Process tool definitions
-	@$(ENVLOAD) npx fit-process-tools --proto-root=../../
+	@$(ENVLOAD) npx fit-process-tools
 
 .PHONY: process-vectors
 process-vectors:  ## Process vector indices
@@ -369,19 +366,19 @@ docs-watch:  ## Serve with live reload
 
 .PHONY: cli-chat
 cli-chat: ## Agent conversations
-	@$(ENVLOAD) node ./bin/fit-guide.js $(ARGS)
+	@$(ENVLOAD) npx fit-guide $(ARGS)
 
 .PHONY: cli-search
 cli-search: ## Vector similarity search
-	@$(ENVLOAD) node ./scripts/search.js $(ARGS)
+	@$(ENVLOAD) npx --workspace=@forwardimpact/libvector fit-search $(ARGS)
 
 .PHONY: cli-query
 cli-query: ## Graph triple pattern queries
-	@$(ENVLOAD) node ./scripts/query.js $(ARGS)
+	@$(ENVLOAD) npx --workspace=@forwardimpact/libgraph fit-query $(ARGS)
 
 .PHONY: cli-subjects
 cli-subjects: ## List graph subjects by type
-	@$(ENVLOAD) node ./scripts/subjects.js $(ARGS)
+	@$(ENVLOAD) npx --workspace=@forwardimpact/libgraph fit-subjects $(ARGS)
 
 .PHONY: cli-visualize
 cli-visualize:  ## Trace visualization
@@ -389,19 +386,19 @@ cli-visualize:  ## Trace visualization
 
 .PHONY: cli-window
 cli-window:  ## Fetch memory window as JSON
-	@$(ENVLOAD) node ./scripts/window.js $(ARGS)
+	@$(ENVLOAD) npx --workspace=@forwardimpact/libmemory fit-window $(ARGS)
 
 .PHONY: cli-completion
 cli-completion:  ## Send window to LLM API
-	@$(ENVLOAD) node ./scripts/completion.js $(ARGS)
+	@$(ENVLOAD) npx --workspace=@forwardimpact/libllm fit-completion $(ARGS)
 
 .PHONY: cli-tiktoken
 cli-tiktoken:  ## Token counting
-	@$(ENVLOAD) node ./scripts/tiktoken.js $(ARGS)
+	@$(ENVLOAD) npx --workspace=@forwardimpact/libutil fit-tiktoken $(ARGS)
 
 .PHONY: cli-unary
 cli-unary:  ## Unary gRPC calls
-	@$(ENVLOAD) node ./scripts/unary.js $(ARGS)
+	@$(ENVLOAD) npx --workspace=@forwardimpact/librpc fit-unary $(ARGS)
 
 # ====================
 # Evaluation
