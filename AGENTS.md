@@ -1,90 +1,35 @@
 # Forward Impact Engineering
 
-## Vision
-
-> "The aim of leadership should be to improve the performance of man and
-> machine, to improve quality, to increase output, and simultaneously to bring
-> pride of workmanship to people."
->
-> — W. Edwards Deming
-
 **Pathway** defines skills, behaviours, and career paths for human engineers and
-AI coding agents alike. **Basecamp** gives every engineer a personal knowledge
-system powered by scheduled AI tasks. Together, they raise quality, increase
-output, and bring pride of workmanship to engineering teams.
+AI coding agents. **Basecamp** gives every engineer a personal knowledge system
+powered by scheduled AI tasks.
 
-## Monorepo Structure
+**Tech**: Node.js 18+, Plain JS + JSDoc, YAML, npm workspaces, no frameworks
 
-### Products
-
-| Product                   | CLI            | Purpose                                           |
-| ------------------------- | -------------- | ------------------------------------------------- |
-| `@forwardimpact/pathway`  | `fit-pathway`  | Web app and CLI for career progression            |
-| `@forwardimpact/basecamp` | `fit-basecamp` | Personal knowledge system with scheduled AI tasks |
-| `@forwardimpact/map`      | `fit-map`      | Public data model for AI agents and engineers     |
-
-### Libraries
-
-| Library                   | CLI       | Purpose                                   |
-| ------------------------- | --------- | ----------------------------------------- |
-| `@forwardimpact/libskill` | —         | Derivation engine for roles and agents    |
-| `@forwardimpact/libui`    | —         | Web UI framework: rendering, routing, CSS |
-| `@forwardimpact/libdoc`   | `fit-doc` | Documentation build and serve tools       |
+## Structure
 
 ```
 products/
-  pathway/      Web app, CLI, formatters
-  basecamp/     Personal knowledge system, scheduler
-  map/          Public data model for AI agents and engineers
+  pathway/      Web app, CLI, formatters          (fit-pathway)
+  basecamp/     Knowledge system, scheduler       (fit-basecamp)
+  map/          Data model, validation            (fit-map)
 libraries/
   libskill/     Derivation logic, job/agent models
-  libui/        Web UI framework, components, design system
-  libdoc/       Documentation build and serve tools
+  libui/        Web UI framework, components, CSS
+  libdoc/       Documentation build/serve         (fit-doc)
+services/
+  agent/ graph/ llm/ memory/ tool/ trace/ vector/ web/
+config/
+  config.json   Service definitions, model settings, eval config
+  tools.yml     Tool endpoint definitions
+  agents/       Agent prompt files (*.agent.md)
 specs/
   {feature}/    Feature specifications and plans
 ```
 
-**This is a data-driven monorepo.** The model layer defines derivation logic,
-but actual entities (disciplines, tracks, skills, levels, behaviours) are
-defined entirely in YAML files. Different installations may have completely
-different data while using the same model.
-
-**Tech**: Node.js 18+, Plain JS + JSDoc, YAML, npm workspaces, no frameworks
-
-## 3-Layer System
-
-1. **Map** (`products/map/src/`) — Public data model, validation, loading
-2. **Model** (`libraries/libskill/`) — Pure business logic, derivation
-3. **UI** (`libraries/libui/`) — Web UI framework, components, design system
-4. **Presentation** (`products/pathway/src/`) — Formatters, views, domain
-   components
-
-```
-Map (data) → Model (derivation) → UI (framework) → Presentation (display)
-```
-
-- **Map** publishes the data model and validates entities
-- **Model** transforms entities into derived outputs (jobs, agents)
-- **UI** provides generic rendering, routing, components, and CSS
-- **Presentation** formats outputs for display (web, CLI, markdown)
-
-### Key Paths
-
-| Purpose      | Location                                     |
-| ------------ | -------------------------------------------- |
-| Specs/plans  | `specs/{feature}/plan.md`                    |
-| User data    | `data/`                                      |
-| Example data | `examples/`                                  |
-| JSON Schema  | `products/map/schema/json/`                  |
-| RDF/SHACL    | `products/map/schema/rdf/`                   |
-| Derivation   | `libraries/libskill/`                        |
-| UI framework | `libraries/libui/`                           |
-| UI CSS       | `libraries/libui/css/`                       |
-| Formatters   | `products/pathway/src/formatters/`           |
-| Templates    | `products/pathway/templates/`                |
-| Scheduler    | `products/basecamp/basecamp.js`              |
-| KB template  | `products/basecamp/template/`                |
-| KB skills    | `products/basecamp/template/.claude/skills/` |
+**Data-driven monorepo.** Entities (disciplines, tracks, skills, levels,
+behaviours) are defined in YAML files. Different installations may have
+completely different data while using the same model.
 
 ### Dependency Chain
 
@@ -93,430 +38,221 @@ map → libskill → pathway
       libui   ↗
 ```
 
-When updating data structure, change:
+When updating data structure: schema (`products/map/schema/`) → examples
+(`products/map/examples/`) → derivation (`libraries/libskill/`) → formatters
+(`products/pathway/src/formatters/`). All in the same commit.
 
-1. `products/map/schema/json/` and `rdf/` — Schema definitions (both formats,
-   same commit)
-2. `products/map/examples/` — Example data
-3. `libraries/libskill/` — Derivation logic if needed
-4. `products/pathway/src/formatters/` — Presentation if needed
+### Key Paths
+
+| Purpose      | Location                                     |
+| ------------ | -------------------------------------------- |
+| User data    | `data/`                                      |
+| Example data | `examples/`                                  |
+| JSON Schema  | `products/map/schema/json/`                  |
+| RDF/SHACL    | `products/map/schema/rdf/`                   |
+| Formatters   | `products/pathway/src/formatters/`           |
+| KB template  | `products/basecamp/template/`                |
+| KB skills    | `products/basecamp/template/.claude/skills/` |
 
 ## Core Rules
 
-1. **Clean breaks** - Fully replace, never leave old and new coexisting
-2. **No defensive code** - Trust the architecture, let errors surface
-3. **Pure functions** - Model layer has no side effects
-4. **Use formatters** - All presentation logic in
+1. **Clean breaks** — Fully replace, never leave old and new coexisting.
+   Delete old code, update all call sites, remove unused imports in one commit.
+2. **No defensive code** — Trust the architecture, let errors surface. No
+   optional chaining for non-optional data, no try-catch "just to be safe."
+3. **Simple over easy** — Reduce complexity, don't relocate it. Prefer explicit
+   over implicit, direct solutions over clever abstractions, fewer layers.
+4. **Pure functions** — Model layer has no side effects
+5. **Use formatters** — All presentation logic in
    `products/pathway/src/formatters/`
-5. **No transforms in views** - Pages/commands pass raw entities to formatters
-6. **JSDoc types** - All public functions
-7. **Test coverage** - New derivation logic requires tests
-8. **No frameworks** - Vanilla JS only
-9. **ESM modules** - No CommonJS
-10. **Conventional commits** - `type(scope): subject`
-11. **Co-located files** - All entities have `human:` and `agent:` sections in
-    the same file
+6. **No transforms in views** — Pages/commands pass raw entities to formatters
+7. **JSDoc types** — All public functions (`@param`, `@returns`)
+8. **Test coverage** — New derivation logic requires tests
+9. **No frameworks** — Vanilla JS only, ESM modules only
+10. **Co-located files** — All entities have `human:` and `agent:` sections
 
-## Simple vs Easy
+## Environment Management
 
-**Distinguish easy (hiding complexity) from simple (reducing complexity). Always
-prioritize simple.**
+Environment is configured via layered `.env` files, loaded by `scripts/env.sh`:
 
-- **Easy** = convenient now, complexity hidden (abstractions, wrappers, magic)
-- **Simple** = fewer moving parts, less to understand (composition, directness)
+```sh
+# Load order (later files override earlier):
+.env                      # Base: API credentials, service secrets
+.env.{ENV}                # Network: local (localhost) or docker (container DNS)
+.env.storage.{STORAGE}    # Storage: local, minio (S3), or supabase
+.env.auth.{AUTH}           # Auth: none, gotrue, or supabase
+```
 
-ALWAYS:
+Three variables control the environment stack:
 
-- Reduce total complexity, don't just relocate it
-- Prefer explicit over implicit
-- Choose direct solutions over clever abstractions
-- Fewer layers, fewer indirections
+| Variable  | Values                        | Default |
+| --------- | ----------------------------- | ------- |
+| `ENV`     | `local`, `docker`             | `local` |
+| `STORAGE` | `local`, `minio`, `supabase`  | `local` |
+| `AUTH`    | `none`, `gotrue`, `supabase`  | `none`  |
 
-NEVER:
+All `make` targets automatically load the correct env files. Pass overrides:
 
-- Add abstraction just to hide complexity
-- Create "easy" APIs that obscure what's happening
-- Trade long-term simplicity for short-term convenience
+```sh
+make rc-start                              # local env, local storage, no auth
+make rc-start ENV=docker STORAGE=minio     # docker networking, MinIO storage
+```
 
-## Clean Breaks
+### Setup
 
-**When changing code, fully replace—never leave old and new coexisting.**
+```sh
+make env-setup     # Reset from examples, generate secrets and storage creds
+make env-reset     # Reset .env* and config files from *.example counterparts
+make env-secrets   # Generate SERVICE_SECRET, JWT_SECRET, JWT_ANON_KEY
+make env-storage   # Generate storage backend credentials
+make env-github    # GitHub token utility (LLM_TOKEN, LLM_BASE_URL)
+```
 
-ALWAYS:
+## Configuration
 
-- Replace completely in one change
-- Delete old code immediately
-- Update all call sites in the same commit
-- Remove unused imports, functions, and files
+`config/config.json` controls service startup and runtime behaviour:
 
-NEVER:
+- **`init.services`** — Ordered list of services for `fit-rc` to supervise
+  (tei, trace, vector, graph, llm, memory, tool, agent, web)
+- **`init.log_dir`** / **`init.shutdown_timeout`** — Logging and shutdown
+- **`service.*`** — Per-service settings (model, temperature, max_tokens,
+  tool filter thresholds, tool endpoints)
+- **`evals`** — Evaluation models and judge model
 
-- Keep old code "just in case"
-- Add compatibility shims or adapters
-- Leave TODO comments for later cleanup
-- Comment out old implementations
-- Create wrapper functions to support both old and new
+`config/tools.yml` — Tool endpoint definitions (purpose, parameters, evaluation
+criteria) used by the tool service.
 
-**Why:** Coexisting code paths create confusion, increase maintenance burden,
-and hide bugs. A clean break is easier to review, test, and understand.
+`config/agents/*.agent.md` — Agent prompt files (planner, researcher, editor,
+eval_judge). Reset from examples with `make config-reset`.
 
-## No Defensive Code
+## Service Management
 
-**Trust the architecture. Don't guard against problems that shouldn't happen.**
+Services are supervised by `fit-rc` (via `libraries/librc/`). The service list
+is defined in `config/config.json` under `init.services`.
 
-ALWAYS:
+```sh
+npx fit-rc start              # Start all services (or: make rc-start)
+npx fit-rc stop               # Graceful shutdown    (or: make rc-stop)
+npx fit-rc restart            # Restart all          (or: make rc-restart)
+npx fit-rc status             # Show service status  (or: make rc-status)
+npx fit-rc start tei          # Start a single service
+```
 
-- Let errors surface loudly and immediately
-- Trust that callers pass valid data
-- Rely on TypeScript/JSDoc for type safety
-- Use assertions for invariants during development
+Services run on localhost in local mode (ports 3002–3008 for gRPC, 3001 for
+web, 8090 for TEI embeddings). Port mapping is in `.env.local`.
 
-NEVER:
+TEI (Text Embeddings Inference) provides local embeddings:
 
-- Optional chaining unless data is genuinely optional
-- Try-catch "just to be safe"
-- Null checks for data that should always exist
-- Fallback values that mask real problems
-- Silently swallow errors or return defaults
-
-**Why:** Defensive code hides bugs instead of fixing them. When something is
-wrong, fail fast and fix the root cause. Silent failures are harder to debug
-than loud ones.
+```sh
+make tei-install              # Install via cargo (first time)
+make tei-start                # Start TEI service (downloads model on first run)
+```
 
 ## Domain Concepts
 
-> **Data-Driven Model**: The model defines schema and derivation logic, but
-> actual entities are defined in YAML files under `products/map/examples/`. Use
-> `npx fit-pathway <entity> --list` to discover what's available.
+> Entities are defined in YAML under `products/map/examples/`. Use
+> `npx fit-pathway <entity> --list` to discover available values.
 
 ### Core Entities
 
-| Entity           | Question                  | File Location                       |
-| ---------------- | ------------------------- | ----------------------------------- |
-| **Disciplines**  | What kind of engineer?    | `disciplines/{id}.yaml`             |
-| **Levels**       | What career level?        | `levels.yaml`                       |
-| **Tracks**       | Where/how do you work?    | `tracks/{id}.yaml`                  |
-| **Skills**       | What can you do?          | `capabilities/{id}.yaml` (skills:)  |
-| **Behaviours**   | How do you approach work? | `behaviours/{id}.yaml`              |
-| **Capabilities** | What capability area?     | `capabilities/{id}.yaml`            |
-| **Stages**       | What lifecycle phase?     | `stages.yaml`                       |
-| **Drivers**      | What outcomes matter?     | `drivers.yaml`                      |
-| **Tools**        | What utilities to use?    | Derived from skill `toolReferences` |
+| Entity         | File Location                      |
+| -------------- | ---------------------------------- |
+| Disciplines    | `disciplines/{id}.yaml`            |
+| Levels         | `levels.yaml`                      |
+| Tracks         | `tracks/{id}.yaml`                 |
+| Capabilities   | `capabilities/{id}.yaml`           |
+| Skills         | `capabilities/{id}.yaml` (skills:) |
+| Behaviours     | `behaviours/{id}.yaml`             |
+| Stages         | `stages.yaml`                      |
+| Drivers        | `drivers.yaml`                     |
 
-All entities use **co-located files** with `human:` and `agent:` sections.
+All entities use co-located `human:` and `agent:` sections. Skills with
+`agent:` sections generate SKILL.md files for AI coding agents.
 
-### Skill Proficiencies
+### Key Concepts
 
-| Level          | Description                           |
-| -------------- | ------------------------------------- |
-| `awareness`    | Learning fundamentals, needs guidance |
-| `foundational` | Can apply basics independently        |
-| `working`      | Solid competence, handles ambiguity   |
-| `practitioner` | Deep expertise, leads and mentors     |
-| `expert`       | Authority, shapes org direction       |
+- **Skill proficiencies**: awareness → foundational → working → practitioner →
+  expert
+- **Behaviour maturities**: emerging → developing → practicing → role_modeling →
+  exemplifying
+- **Disciplines** define role types (professional/management) with T-shaped
+  skill tiers (core/supporting/broad)
+- **Tracks** are pure modifiers — adjust skill/behaviour expectations via
+  `skillModifiers` per capability
+- **Capabilities** group skills, define responsibilities, and provide stage
+  handoff checklists
+- **Stages** define lifecycle phases with constraints, handoffs, and checklists
+- **Tools** are derived from `toolReferences` in skills at runtime via
+  `npx fit-pathway tool`
 
-### Skill Structure
-
-Skills are defined within capability files and include:
-
-| Property                  | Required | Description                                             |
-| ------------------------- | -------- | ------------------------------------------------------- |
-| `id`                      | Yes      | Unique identifier (snake_case)                          |
-| `name`                    | Yes      | Human-readable name                                     |
-| `human`                   | Yes      | Human-specific content (description, levelDescriptions) |
-| `agent`                   | No       | Agent-specific content for AI skill generation          |
-| `toolReferences`          | No       | Required tools with usage guidance                      |
-| `implementationReference` | No       | Code examples shared by human and agent                 |
-| `isHumanOnly`             | No       | If true, excluded from agent profiles                   |
-
-#### Agent Skill Sections
-
-Skills with `agent:` sections generate SKILL.md files for AI coding agents:
-
-```yaml
-agent:
-  name: skill-name-kebab-case # Required, kebab-case
-  description: Brief description
-  useWhen: When to apply this skill
-  stages:
-    plan:
-      focus: What to accomplish
-      activities: [...]
-      ready: [...]
-    code:
-      focus: ...
-```
-
-Stage-specific guidance includes: `specify`, `plan`, `code`, `review`, `deploy`.
-
-### Tools
-
-Tools are derived from `toolReferences` arrays within skills. They aggregate
-required utilities across all skills with guidance on when to use them.
-
-| Property      | Required | Description                |
-| ------------- | -------- | -------------------------- |
-| `name`        | Yes      | Tool name                  |
-| `description` | Yes      | What the tool does         |
-| `useWhen`     | Yes      | When to use this tool      |
-| `url`         | No       | Link to tool documentation |
-
-Tools are not stored separately—they're extracted and aggregated from skills at
-runtime via `npx fit-pathway tool`.
-
-### Behaviour Maturities
-
-| Maturity        | Description                       |
-| --------------- | --------------------------------- |
-| `emerging`      | Shows interest, needs prompting   |
-| `developing`    | Regular practice with guidance    |
-| `practicing`    | Consistent application, proactive |
-| `role_modeling` | Influences team culture           |
-| `exemplifying`  | Shapes organizational culture     |
-
-### Capabilities
-
-Capabilities group skills and define:
-
-- **Track modifiers**: Level adjustments to all skills in a capability
-- **Responsibilities**: Professional/management responsibilities by level
-- **Checklists**: Transition criteria for stage handoffs
-
-### Tracks
-
-Tracks are pure modifiers—they adjust skill/behaviour expectations without
-defining role types. Modifiers use capability names:
-
-```yaml
-skillModifiers:
-  delivery: 1 # +1 to ALL delivery skills
-  scale: -1 # -1 to ALL scale skills
-```
-
-### Disciplines
-
-Disciplines define role types and valid tracks:
-
-- `isProfessional: true` — IC roles, uses `professionalResponsibilities`
-- `isManagement: true` — Manager roles, uses `managementResponsibilities`
-- `validTracks: [...]` — Valid track configurations (`null` = trackless allowed)
-- `minLevel: <level_id>` — Minimum level (optional)
-
-#### Skill Tiers (T-shaped profiles)
-
-| Tier               | Expected Level    | Purpose                 |
-| ------------------ | ----------------- | ----------------------- |
-| `coreSkills`       | Highest for level | Core expertise          |
-| `supportingSkills` | Mid-level         | Supporting capabilities |
-| `broadSkills`      | Lower level       | General awareness       |
-
-### Stages
-
-Stages define engineering lifecycle phases with:
-
-- **constraints**: Restrictions on behaviour
-- **handoffs**: Transitions to other stages with prompts
-- **readChecklist/confirmChecklist**: Read-Then-Do and Do-Then-Confirm
-  checklists
-
-Checklists are derived at stage transitions by gathering items from relevant
-capabilities at the job's skill proficiency.
-
-### Data Validation
-
-Run `npx fit-map validate` to check required fields, referential integrity,
-valid enum values, and cross-entity consistency.
+Validate data: `npx fit-map validate`
 
 ## Vocabulary Standards
 
-Standard terms for skill definitions and behaviour maturity levels. Levels and
-their mappings vary per installation—use `npx fit-pathway level --list` to see
-available levels.
+Use `npx fit-pathway level --list` to see available levels.
 
-### Scope Terms
-
-Use these terms for spheres of influence (ascending breadth):
-
-| Term              | Size             | Example Usage                   |
-| ----------------- | ---------------- | ------------------------------- |
-| **Team**          | 5–15 people      | "within your team"              |
-| **Area**          | 2–5 teams        | "across teams in your area"     |
-| **Business unit** | 500–5,000 people | "across the business unit"      |
-| **Function**      | Major capability | "across the function"           |
-| **Organization**  | Enterprise-wide  | "shapes organizational culture" |
-
-### Skill Proficiency Vocabulary
-
-| Level          | Autonomy              | Complexity            | Verbs                                       |
-| -------------- | --------------------- | --------------------- | ------------------------------------------- |
-| `awareness`    | with guidance         | basic, simple         | understand, follow, use, ask, learn         |
-| `foundational` | with minimal guidance | common, familiar      | apply, create, explain, identify            |
-| `working`      | independently         | moderate, multiple    | design, own, troubleshoot, decide, document |
-| `practitioner` | lead, mentor          | complex, large        | lead, mentor, establish, evaluate           |
-| `expert`       | define, shape         | enterprise, strategic | define, shape, innovate, pioneer            |
-
-**Sentence patterns:**
-
-- **Awareness**: "You understand...", "You can use... with guidance"
-- **Foundational**: "You apply...", "You create simple..."
-- **Working**: "You design... independently", "You make appropriate..."
-- **Practitioner**: "You lead... across teams in your area"
-- **Expert**: "You define... across the business unit"
-
-### Quick Reference: Scope by Level/Maturity
-
-| Concept               | Use                             | Avoid                          |
-| --------------------- | ------------------------------- | ------------------------------ |
-| Practitioner (skill)  | "in your area", "across teams"  | "organizational", "enterprise" |
-| Expert (skill)        | "across the business unit"      | "organizational"               |
-| Role modeling (behav) | "across the function"           | "organizational"               |
-| Exemplifying (behav)  | "shapes organizational culture" | —                              |
+| Level          | Autonomy              | Scope                    | Verbs                               |
+| -------------- | --------------------- | ------------------------ | ----------------------------------- |
+| `awareness`    | with guidance         | team                     | understand, follow, use, learn      |
+| `foundational` | with minimal guidance | team                     | apply, create, explain, identify    |
+| `working`      | independently         | team                     | design, own, troubleshoot, decide   |
+| `practitioner` | lead, mentor          | area (2–5 teams)         | lead, mentor, establish, evaluate   |
+| `expert`       | define, shape         | business unit / function | define, shape, innovate, pioneer    |
 
 ## Code Style
 
-### JavaScript
-
-- ESM modules only (no CommonJS)
-- JSDoc on all public functions (`@param`, `@returns`)
-- Pure functions, no side effects
-- Descriptive names (`skillProficiency`, `behaviourMaturity`)
-- Prefix unused params with underscore (`_param`)
-- Prefer `const`, use `let` when needed
-
-### File Organization
-
-**Map** (`products/map/src/`): `loader.js`, `validation.js`,
-`schema-validation.js`, `index-generator.js`, `levels.js`
-
-**Model** (`libraries/libskill/`): `derivation.js`, `modifiers.js`,
-`profile.js`, `job.js`, `agent.js`, `checklist.js`, `interview.js`
-
-**UI** (`libraries/libui/`): `render.js`, `reactive.js`, `state.js`,
-`router-core.js`, `router-pages.js`, `router-slides.js`, `error-boundary.js`,
-`errors.js`, `markdown.js`, `utils.js`, `yaml-loader.js`, `components/`, `css/`
-
-**Presentation** (`products/pathway/src/`): `formatters/`, `pages/`,
-`components/`, `lib/`, `commands/`, `slides/`
-
-**Basecamp** (`products/basecamp/`): `basecamp.js`, `build.js`, `config/`,
-`scripts/`, `template/`
-
-**Formatters** (`products/pathway/src/formatters/{entity}/`): `shared.js`,
-`dom.js`, `markdown.js`
-
-### Naming
-
-- Files: `kebab-case`
-- Functions: `camelCase`
-- Constants: `UPPER_SNAKE_CASE`
-- YAML IDs: `snake_case`
-
-### Testing
-
-- Node.js test runner: `node --test`
-- Descriptive test names
-- Test fixtures mirror YAML structure
-- Test success and edge cases
+- **ESM only**, no CommonJS. JSDoc on all public functions.
+- **Naming**: files `kebab-case`, functions `camelCase`, constants
+  `UPPER_SNAKE_CASE`, YAML IDs `snake_case`
+- **Testing**: Node.js test runner (`node --test`), fixtures mirror YAML
+- **Formatters** per entity: `shared.js` (logic), `dom.js` (web), `markdown.js`
+  (CLI)
 
 ## Git Workflow
-
-### Conventional Commits
 
 Format: `type(scope): subject`
 
 **Types**: `feat`, `fix`, `refactor`, `docs`, `style`, `test`, `chore`, `perf`
-
-**Scope**: Use package name (`map`, `libskill`, `libui`, `pathway`, `basecamp`)
-or specific area. Omit if change spans multiple packages.
-
-**Breaking changes**: Add `!` after scope: `refactor(libskill)!: change API`
+**Scope**: package name (`map`, `libskill`, `libui`, `pathway`, `basecamp`).
+**Breaking**: add `!` after scope.
 
 ### Before Committing
 
 1. Review with `git diff`
 2. Group related changes into logical, atomic commits
-3. Separate feature/logic changes from formatting changes
-4. Run `npm run check` and fix any issues related to your changes
-5. Assess version impact for affected packages (see below)
-6. Stage and commit: `git commit -m "type(scope): subject"`
-7. Push all commits to remote
+3. Run `npm run check` and fix issues related to your changes
+4. Assess version impact (breaking=major, feat=minor, other=patch)
+5. Stage and commit: `git commit -m "type(scope): subject"`
+6. Push all commits to remote
 
 **Always commit your work before finishing a task.**
 
-### Version Bumps
+### Releasing
 
-Assess version impact at each commit:
-
-| Change Type               | Bump  |
-| ------------------------- | ----- |
-| Breaking API change (`!`) | Major |
-| New feature (`feat`)      | Minor |
-| Bug fix, refactor, other  | Patch |
-
-**Dependency chain**: `map` → `libskill` → `pathway`, `libui` → `pathway`
-
-Find dependents:
-`grep -rl "@forwardimpact/{pkg}" products/*/package.json libraries/*/package.json`
-
-When releasing a minor or major version, update dependent packages:
-
-1. Bump version in the package's `package.json`
-2. Update dependency version in downstream packages (minor/major only)
-3. Commit: `chore({package}): bump to {version}`
-4. Tag: `git tag {package}@v{version}`
-5. Push commits: `git push origin main`
-6. Push each tag individually: `git push origin {package}@v{version}`
-
-**Push tags one at a time.** GitHub Actions triggers once per push event, so
-`git push --tags` with multiple tags only triggers one workflow run. Push each
-tag separately to trigger individual publish workflows.
-
-**Tag at the final commit.** All tags must point to a commit where
-`package-lock.json` is consistent with every `package.json`. CI runs `npm ci`,
-which fails if the lockfile is out of sync. When releasing multiple packages,
-make all version and dependency changes first, then tag them all at the final
-commit—not at intermediate commits.
-
-**Verify every publish workflow.** After pushing each tag, run
-`gh run list --limit <n>` to confirm all publish workflows succeed. Re-push any
-failed tags after fixing the root cause: delete the remote tag
-(`git push origin :refs/tags/{tag}`), move it locally
-(`git tag -d {tag} && git tag {tag} <commit>`), and push again.
+1. Bump version in `package.json`, update downstream deps (minor/major only)
+2. Commit: `chore({pkg}): bump to {version}`
+3. Tag at the final commit: `git tag {pkg}@v{version}`
+4. Push commits, then push each tag individually (not `--tags`)
+5. Verify each workflow: `gh run list --limit <n>`
 
 ## Common Tasks
 
-> **Data-Driven Application**: All entity IDs (skills, disciplines, tracks,
-> levels, behaviours) depend on YAML files in `products/map/examples/`. Use
-> `npx fit-pathway <entity> --list` to discover available values.
-
-### NPM Scripts (Root)
-
-| Script              | Purpose                              |
-| ------------------- | ------------------------------------ |
-| `npm start`         | Build static site and serve it       |
-| `npm run dev`       | Run live development server          |
-| `npm run check`     | Format, lint, test, SHACL validation |
-| `npm run check:fix` | Auto-fix format and lint issues      |
-| `npm run test`      | Run unit tests                       |
-| `npm run test:e2e`  | Run Playwright E2E tests             |
-| `npm run validate`  | Validate data files                  |
-
-### CLI Tools
-
-| CLI            | Purpose                                 |
-| -------------- | --------------------------------------- |
-| `fit-pathway`  | Web app, entity browsing, agents        |
-| `fit-basecamp` | Knowledge base scheduler and management |
-| `fit-map`      | Data validation, index generation       |
-
-### Quick Reference
-
 ```sh
-npx fit-map validate                  # Validate data files
-npx fit-pathway dev                   # Start development server
-npx fit-pathway build --url=<URL>     # Generate static site + install bundle
-npx fit-basecamp --init ~/Documents   # Initialize knowledge base
-npx fit-basecamp --daemon             # Run scheduler
+npm run dev                   # Development server
+npm run check                 # Format, lint, test, SHACL
+npm run check:fix             # Auto-fix format and lint
+npm run test                  # Unit tests
+npm run test:e2e              # Playwright E2E tests
+npx fit-map validate          # Validate data files
+npx fit-pathway dev           # Pathway dev server
+npx fit-pathway build --url=X # Static site + install bundle
+npx fit-basecamp --init ~/Dir # Initialize knowledge base
+npx fit-basecamp --daemon     # Run scheduler
+make rc-start                 # Start all services
+make rc-status                # Service health check
+make process                  # Process all resources (agents, tools, vectors, graphs)
+make codegen                  # Generate types, services, clients from proto/
+make env-setup                # Initialize environment from examples
 ```
 
 See each product's skill file for full CLI reference.
