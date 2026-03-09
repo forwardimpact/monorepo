@@ -38,9 +38,14 @@
     "./activity/queries/snapshots": "./activity/queries/snapshots.js",
     "./activity/queries/evidence": "./activity/queries/evidence.js",
     "./activity/queries/artifacts": "./activity/queries/artifacts.js",
-    "./activity/ingestion/people": "./activity/ingestion/people.js",
-    "./activity/ingestion/getdx": "./activity/ingestion/getdx.js",
-    "./activity/ingestion/github": "./activity/ingestion/github.js"
+    "./activity/storage": "./activity/storage.js",
+    "./activity/extract/github": "./activity/extract/github.js",
+    "./activity/extract/getdx": "./activity/extract/getdx.js",
+    "./activity/extract/people": "./activity/extract/people.js",
+    "./activity/transform/github": "./activity/transform/github.js",
+    "./activity/transform/getdx": "./activity/transform/getdx.js",
+    "./activity/transform/people": "./activity/transform/people.js",
+    "./activity/transform": "./activity/transform/index.js"
   },
   "dependencies": {
     "ajv": "^8.17.1",

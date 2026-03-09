@@ -229,7 +229,7 @@ async function runPeopleImport(filePath, dataDir) {
   console.log(`👤 Importing people from: ${filePath}\n`);
 
   const { loadPeopleFile, validatePeople } =
-    await import("../activity/ingestion/people.js");
+    await import("../activity/transform/people.js");
 
   const people = await loadPeopleFile(filePath);
   console.log(`  Loaded ${people.length} people from file`);
