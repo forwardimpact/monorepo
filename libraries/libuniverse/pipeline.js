@@ -4,17 +4,18 @@
  * @module libuniverse/pipeline
  */
 
-import { readFile } from 'fs/promises'
-import { join } from 'path'
-import { parseUniverse } from './dsl/index.js'
-import { generate } from './engine/tier0.js'
-import { collectProseKeys } from './engine/prose-keys.js'
-import { ProseEngine } from './engine/prose.js'
-import { renderHTML, renderREADME, renderONTOLOGY } from './render/html.js'
-import { renderYAML } from './render/yaml.js'
-import { renderRawDocuments } from './render/raw.js'
-import { renderMarkdown } from './render/markdown.js'
-import { validateCrossContent } from './validate.js'
+import { readFile } from "fs/promises";
+import { join } from "path";
+import { parseUniverse } from "./dsl/index.js";
+import { generate } from "./engine/tier0.js";
+import { collectProseKeys } from "./engine/prose-keys.js";
+import { ProseEngine } from "./engine/prose.js";
+import { generatePathwayData, loadSchemas } from "./engine/pathway.js";
+import { renderHTML, renderREADME, renderONTOLOGY } from "./render/html.js";
+import { renderRawDocuments, renderActivityFiles } from "./render/raw.js";
+import { renderPathway } from "./render/pathway.js";
+import { renderMarkdown } from "./render/markdown.js";
+import { validateCrossContent } from "./validate.js";
 
 /**
  * Run the full generation pipeline.
@@ -27,74 +28,101 @@ import { validateCrossContent } from './validate.js'
  * @param {string|null} [options.only=null] - Render only a specific content type
  * @param {object|null} [options.llmApi=null] - LLM API instance for prose generation
  * @param {string} [options.cachePath] - Path to .prose-cache.json
+ * @param {string|null} [options.schemaDir=null] - Path to JSON schema directory
  * @returns {Promise<{files: Map<string,string>, rawDocuments: Map<string,string>, entities: object, validation: object}>}
  */
 export async function runPipeline(options) {
   const {
     universePath,
     dataDir,
-    mode = 'no-prose',
+    mode = "no-prose",
     strict = false,
     only = null,
     llmApi = null,
     cachePath,
-  } = options
+    schemaDir = null,
+  } = options;
 
   // 1. Parse DSL
-  const source = await readFile(universePath, 'utf-8')
-  const ast = parseUniverse(source)
+  const source = await readFile(universePath, "utf-8");
+  const ast = parseUniverse(source);
 
   // 2. Generate entity graph (Tier 0)
-  const entities = generate(ast)
+  const entities = generate(ast);
 
   // 3. Prose generation (Tier 1/2)
-  const proseKeys = collectProseKeys(entities)
-  const proseEngine = new ProseEngine({ llmApi, cachePath, mode, strict })
-  const prose = new Map()
+  const proseKeys = collectProseKeys(entities);
+  const proseEngine = new ProseEngine({ llmApi, cachePath, mode, strict });
+  const prose = new Map();
   for (const [key, context] of proseKeys) {
-    const result = await proseEngine.generateProse(key, context)
-    if (result) prose.set(key, result)
+    const result = await proseEngine.generateProse(key, context);
+    if (result) prose.set(key, result);
   }
-  proseEngine.saveCache()
 
   // 4. Render outputs
-  const files = new Map()
-  const rawDocuments = new Map()
+  const files = new Map();
+  const rawDocuments = new Map();
 
-  const shouldRender = (type) => !only || only === type
+  const shouldRender = (type) => !only || only === type;
 
-  if (shouldRender('html')) {
-    const html = renderHTML(entities, prose)
+  if (shouldRender("html")) {
+    const html = renderHTML(entities, prose);
     for (const [name, content] of html) {
-      files.set(join('examples/organizational', name), content)
+      files.set(join("examples/organizational", name), content);
     }
-    files.set('examples/organizational/README.md', renderREADME(entities, prose))
-    files.set('examples/organizational/ONTOLOGY.md', renderONTOLOGY(entities))
+    files.set(
+      "examples/organizational/README.md",
+      renderREADME(entities, prose),
+    );
+    files.set("examples/organizational/ONTOLOGY.md", renderONTOLOGY(entities));
   }
 
-  if (shouldRender('yaml')) {
-    const yaml = renderYAML(entities)
-    for (const [name, content] of yaml) {
-      files.set(join('examples/framework', name), content)
+  if (shouldRender("pathway")) {
+    const hasPathwayFramework =
+      entities.framework?.capabilities?.length > 0 &&
+      typeof entities.framework.capabilities[0] === "object";
+
+    if (hasPathwayFramework && schemaDir) {
+      const schemas = loadSchemas(schemaDir);
+      const pathwayData = await generatePathwayData({
+        framework: entities.framework,
+        domain: entities.domain,
+        industry: entities.industry,
+        schemas,
+        proseEngine,
+      });
+      const pathwayFiles = renderPathway(pathwayData);
+      for (const [name, content] of pathwayFiles) {
+        files.set(`examples/pathway/${name}`, content);
+      }
     }
   }
 
-  if (shouldRender('raw')) {
-    const raw = renderRawDocuments(entities)
+  if (shouldRender("raw")) {
+    const raw = renderRawDocuments(entities);
     for (const [path, content] of raw) {
-      rawDocuments.set(path, content)
+      rawDocuments.set(path, content);
+    }
+
+    // Roster and teams are activity data — output as files
+    const activityFiles = renderActivityFiles(entities);
+    for (const [name, content] of activityFiles) {
+      files.set(join("examples/activity", name), content);
     }
   }
 
-  if (shouldRender('markdown')) {
-    const md = renderMarkdown(entities, prose)
+  if (shouldRender("markdown")) {
+    const md = renderMarkdown(entities, prose);
     for (const [name, content] of md) {
-      files.set(join('examples/personal', name), content)
+      files.set(join("examples/personal", name), content);
     }
   }
+
+  // Save prose cache after all generation
+  proseEngine.saveCache();
 
   // 5. Validate
-  const validation = validateCrossContent(entities)
+  const validation = validateCrossContent(entities);
 
-  return { files, rawDocuments, entities, validation }
+  return { files, rawDocuments, entities, validation };
 }

@@ -104,10 +104,80 @@ universe Default {
     }
   }
 
+  // ─── Framework (Pathway) ──────────────────────────
+
   framework {
     proficiencies [awareness, foundational, working, practitioner, expert]
     maturities [emerging, developing, practicing, role_modeling, exemplifying]
-    capabilities [delivery, scale, reliability]
+
+    levels {
+      L1 { title "Engineer I" rank 1 experience "0-2 years" }
+      L2 { title "Engineer II" rank 2 experience "2-4 years" }
+      L3 { title "Senior Engineer" rank 3 experience "4-7 years" }
+    }
+
+    capabilities {
+      delivery {
+        name "Delivery"
+        skills [problem_solving, code_quality, testing_practices]
+      }
+      reliability {
+        name "Reliability"
+        skills [incident_response, monitoring, system_design]
+      }
+    }
+
+    behaviours {
+      ownership { name "Own the Outcome" }
+      collaboration { name "Collaborate Openly" }
+    }
+
+    disciplines {
+      software_engineering {
+        roleTitle "Software Engineer"
+        specialization "Software Engineering"
+        core [problem_solving, code_quality, system_design]
+        supporting [testing_practices, monitoring]
+        broad [incident_response]
+        validTracks [null, platform]
+      }
+      data_engineering {
+        roleTitle "Data Engineer"
+        specialization "Data Engineering"
+        core [system_design, monitoring]
+        supporting [problem_solving]
+        broad [code_quality]
+        validTracks [null]
+      }
+      engineering_management {
+        roleTitle "Engineering Manager"
+        specialization "Engineering Management"
+        isProfessional false
+        core [problem_solving, incident_response]
+        supporting [code_quality]
+        broad [testing_practices]
+        validTracks [null]
+      }
+    }
+
+    tracks {
+      platform { name "Platform Engineering" }
+    }
+
+    drivers {
+      clear_direction {
+        name "Clear Direction"
+        skills [problem_solving]
+        behaviours [ownership]
+      }
+      deep_work {
+        name "Deep Work"
+        skills [code_quality, system_design]
+        behaviours [ownership, collaboration]
+      }
+    }
+
+    stages [specify, plan, code, review, deploy]
   }
 
   content guide_html {

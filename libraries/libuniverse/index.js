@@ -1,13 +1,14 @@
-export { parseUniverse } from './dsl/index.js'
-export { generate } from './engine/tier0.js'
-export { buildEntities } from './engine/entities.js'
-export { generateActivity } from './engine/activity.js'
-export { ProseEngine } from './engine/prose.js'
-export { collectProseKeys } from './engine/prose-keys.js'
-export { renderHTML, renderREADME, renderONTOLOGY } from './render/html.js'
-export { renderYAML } from './render/yaml.js'
-export { renderRawDocuments } from './render/raw.js'
-export { renderMarkdown } from './render/markdown.js'
-export { loadToSupabase } from './load.js'
-export { validateCrossContent } from './validate.js'
-export { runPipeline } from './pipeline.js'
+export { parseUniverse } from "./dsl/index.js";
+export { generate } from "./engine/tier0.js";
+export { buildEntities } from "./engine/entities.js";
+export { generateActivity } from "./engine/activity.js";
+export { ProseEngine } from "./engine/prose.js";
+export { collectProseKeys } from "./engine/prose-keys.js";
+export { generatePathwayData, loadSchemas } from "./engine/pathway.js";
+export { renderHTML, renderREADME, renderONTOLOGY } from "./render/html.js";
+export { renderRawDocuments, renderActivityFiles } from "./render/raw.js";
+export { renderPathway } from "./render/pathway.js";
+export { renderMarkdown } from "./render/markdown.js";
+export { loadToSupabase } from "./load.js";
+export { validateCrossContent } from "./validate.js";
+export { runPipeline } from "./pipeline.js";

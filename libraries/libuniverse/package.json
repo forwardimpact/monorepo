@@ -20,8 +20,9 @@
     "./engine/entities": "./engine/entities.js",
     "./engine/activity": "./engine/activity.js",
     "./prose": "./engine/prose.js",
+    "./engine/pathway": "./engine/pathway.js",
     "./render/html": "./render/html.js",
-    "./render/yaml": "./render/yaml.js",
+    "./render/pathway": "./render/pathway.js",
     "./render/raw": "./render/raw.js",
     "./render/markdown": "./render/markdown.js",
     "./validate": "./validate.js",
@@ -29,6 +30,8 @@
     "./load": "./load.js"
   },
   "dependencies": {
+    "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1",
     "@forwardimpact/libconfig": "^0.1.59",
     "@forwardimpact/libformat": "^0.1.1",
     "@forwardimpact/libllm": "^0.1.72",

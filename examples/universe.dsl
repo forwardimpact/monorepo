@@ -420,12 +420,187 @@ universe BioNova {
     }
   }
 
-  // ─── Framework ──────────────────────────────────
+  // ─── Framework (Pathway) ────────────────────────
 
   framework {
     proficiencies [awareness, foundational, working, practitioner, expert]
     maturities [emerging, developing, practicing, role_modeling, exemplifying]
-    capabilities [delivery, scale, reliability, business, people]
+
+    levels {
+      J040 { title "Associate Engineer" rank 1 experience "0-2 years" }
+      J060 { title "Engineer" rank 2 experience "2-4 years" }
+      J070 { title "Senior Engineer" rank 3 experience "4-7 years" }
+      J080 { title "Lead Engineer" rank 4 experience "7-10 years" }
+      J090 { title "Staff Engineer" rank 5 experience "10-14 years" }
+      J100 { title "Principal Engineer" rank 6 experience "14+ years" }
+    }
+
+    capabilities {
+      delivery {
+        name "Delivery"
+        skills [data_integration, full_stack_development, problem_discovery, rapid_prototyping]
+      }
+      scale {
+        name "Scale"
+        skills [architecture_design, data_modeling, performance_optimization, cloud_platforms]
+      }
+      reliability {
+        name "Reliability"
+        skills [sre_practices, incident_management, observability, change_management]
+      }
+      business {
+        name "Business"
+        skills [stakeholder_management, product_thinking, regulatory_compliance, risk_management]
+      }
+      people {
+        name "People"
+        skills [team_collaboration, technical_writing, mentoring, code_review]
+      }
+    }
+
+    behaviours {
+      outcome_ownership { name "Own the Outcome" }
+      systems_thinking { name "Think in Systems" }
+      relentless_curiosity { name "Stay Relentlessly Curious" }
+      precise_communication { name "Communicate with Precision" }
+      polymathic_knowledge { name "Build Polymathic Knowledge" }
+    }
+
+    disciplines {
+      software_engineering {
+        roleTitle "Software Engineer"
+        specialization "Software Engineering"
+        core [architecture_design, code_review, full_stack_development]
+        supporting [sre_practices, cloud_platforms]
+        broad [data_modeling, stakeholder_management]
+        validTracks [null, platform, sre]
+      }
+      data_engineering {
+        roleTitle "Data Engineer"
+        specialization "Data Engineering"
+        core [data_integration, data_modeling, performance_optimization]
+        supporting [architecture_design, cloud_platforms]
+        broad [stakeholder_management, regulatory_compliance]
+        validTracks [null, platform]
+      }
+      engineering_management {
+        roleTitle "Engineering Manager"
+        specialization "Engineering Management"
+        isProfessional false
+        core [stakeholder_management, team_collaboration, mentoring]
+        supporting [product_thinking, risk_management]
+        broad [architecture_design, incident_management]
+        validTracks [null]
+      }
+      clinical_informatics {
+        roleTitle "Clinical Informatics Engineer"
+        specialization "Clinical Informatics"
+        core [data_integration, regulatory_compliance, data_modeling]
+        supporting [stakeholder_management, risk_management]
+        broad [full_stack_development, observability]
+        validTracks [null]
+      }
+      quality_engineering {
+        roleTitle "Quality Engineer"
+        specialization "Quality Engineering"
+        core [observability, change_management, regulatory_compliance]
+        supporting [sre_practices, incident_management]
+        broad [code_review, technical_writing]
+        validTracks [null, sre]
+      }
+    }
+
+    tracks {
+      platform { name "Platform Engineering" }
+      sre { name "Site Reliability Engineering" }
+      ml_ops { name "ML Operations" }
+      security { name "Security Engineering" }
+    }
+
+    drivers {
+      clear_direction {
+        name "Clear Direction"
+        skills [stakeholder_management, product_thinking]
+        behaviours [outcome_ownership, precise_communication]
+      }
+      say_on_priorities {
+        name "Say on Priorities"
+        skills [stakeholder_management, risk_management]
+        behaviours [outcome_ownership, systems_thinking]
+      }
+      requirements_quality {
+        name "Requirements Quality"
+        skills [problem_discovery, product_thinking]
+        behaviours [precise_communication, relentless_curiosity]
+      }
+      ease_of_release {
+        name "Ease of Release"
+        skills [change_management, sre_practices]
+        behaviours [systems_thinking, outcome_ownership]
+      }
+      test_efficiency {
+        name "Test Efficiency"
+        skills [observability, rapid_prototyping]
+        behaviours [relentless_curiosity, systems_thinking]
+      }
+      managing_tech_debt {
+        name "Managing Tech Debt"
+        skills [architecture_design, code_review]
+        behaviours [systems_thinking, polymathic_knowledge]
+      }
+      code_review {
+        name "Code Review"
+        skills [code_review, mentoring]
+        behaviours [precise_communication, polymathic_knowledge]
+      }
+      documentation {
+        name "Documentation"
+        skills [technical_writing, regulatory_compliance]
+        behaviours [precise_communication, polymathic_knowledge]
+      }
+      codebase_experience {
+        name "Codebase Experience"
+        skills [full_stack_development, architecture_design]
+        behaviours [polymathic_knowledge, systems_thinking]
+      }
+      incident_response {
+        name "Incident Response"
+        skills [incident_management, sre_practices]
+        behaviours [outcome_ownership, systems_thinking]
+      }
+      learning_culture {
+        name "Learning Culture"
+        skills [mentoring, technical_writing]
+        behaviours [relentless_curiosity, polymathic_knowledge]
+      }
+      experimentation {
+        name "Experimentation"
+        skills [rapid_prototyping, data_modeling]
+        behaviours [relentless_curiosity, outcome_ownership]
+      }
+      connectedness {
+        name "Connectedness"
+        skills [team_collaboration, stakeholder_management]
+        behaviours [precise_communication, outcome_ownership]
+      }
+      efficient_processes {
+        name "Efficient Processes"
+        skills [change_management, performance_optimization]
+        behaviours [systems_thinking, outcome_ownership]
+      }
+      deep_work {
+        name "Deep Work"
+        skills [architecture_design, data_integration]
+        behaviours [relentless_curiosity, systems_thinking]
+      }
+      leveraging_user_feedback {
+        name "Leveraging User Feedback"
+        skills [product_thinking, problem_discovery]
+        behaviours [relentless_curiosity, precise_communication]
+      }
+    }
+
+    stages [specify, plan, onboard, code, review, deploy]
   }
 
   // ─── Content Types ──────────────────────────────
