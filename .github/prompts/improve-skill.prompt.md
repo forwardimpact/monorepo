@@ -36,7 +36,7 @@ Ask: _"Could someone complete this skill without this tool?"_ If yes, omit it.
 
 1. **Identify the capability** to review (ask if not specified)
 2. **Read the capability file** from
-   `products/map/examples/capabilities/{id}.yaml`
+   `data/pathway/capabilities/{id}.yaml`
 3. **For each skill with an `agent:` section**, review and improve
 4. **Study the updated skill** by running `npx fit-pathway skill <name> --agent`
 5. **Iterate** until the skill document is clear, complete, and well-structured

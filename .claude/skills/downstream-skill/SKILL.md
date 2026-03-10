@@ -40,9 +40,8 @@ Run this skill when:
 ## Outputs
 
 - Updated skills in `products/basecamp/template/.claude/skills/`
-- Updated capability data in `data/capabilities/` and
-  `products/map/examples/capabilities/` (when changes affect agent skill
-  definitions)
+- Updated capability data in `data/pathway/capabilities/` (when changes affect
+  agent skill definitions)
 - Summary of what was incorporated and what was deferred
 
 ---
@@ -144,10 +143,9 @@ personal preferences) and generalize before adding to the template.
 
 If the changelog describes changes to agent skill definitions (stages,
 checklists, tool references, instructions), also update the capability YAML
-files. These live in two locations that must stay in sync:
+files:
 
-- `data/capabilities/{id}.yaml`
-- `products/map/examples/capabilities/{id}.yaml`
+- `data/pathway/capabilities/{id}.yaml`
 
 After updating capability data, validate:
 

@@ -168,9 +168,10 @@ The CLI resolves data in this order:
 1. `--data=<path>` flag (explicit)
 2. `PATHWAY_DATA` environment variable
 3. `~/.fit/pathway/data/` (engineer install)
-4. `./data/` (organization project)
-5. `./examples/` (standalone examples)
-6. `products/map/examples/` (monorepo development)
+4. `./data/pathway/` (monorepo primary)
+5. `./examples/pathway/` (monorepo fallback)
+6. `./data/` (organization project)
+7. `./examples/` (standalone fallback)
 
 ---
 

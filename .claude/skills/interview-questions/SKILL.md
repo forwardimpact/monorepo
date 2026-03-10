@@ -81,7 +81,7 @@ These should feel like two builders talking shop, where the interviewer can
 smell whether the candidate _actually does this_ or just talks about it.
 
 **Schema:** `skill-questions.schema.json` **Location:**
-`data/questions/skills/{skill_id}.yaml`
+`data/pathway/questions/skills/{skill_id}.yaml`
 
 #### Skill Question Structure
 
@@ -149,7 +149,7 @@ problem and watching whether they orient like a builder or freeze like a
 student.
 
 **Schema:** `capability-questions.schema.json` **Location:**
-`data/questions/capabilities/{capability_id}.yaml`
+`data/pathway/questions/capabilities/{capability_id}.yaml`
 
 #### Capability Question Structure
 
@@ -258,7 +258,7 @@ situation, these people need something from you, go.
 This is the highest-signal interview we run. Protect its integrity.
 
 **Schema:** `behaviour-questions.schema.json` **Location:**
-`data/questions/behaviours/{behaviour_id}.yaml`
+`data/pathway/questions/behaviours/{behaviour_id}.yaml`
 
 #### Behaviour Question Structure
 
@@ -381,10 +381,10 @@ Every question must pass all of these. No exceptions. No "it's close enough."
 ### Creating New Questions
 
 1. **Pick the entity** — Which skill, capability, or behaviour?
-2. **Read the entity definition** — Load from `data/capabilities/`,
-   `data/behaviours/`, or equivalent. Internalize the level descriptions. You're
+2. **Read the entity definition** — Load from `data/pathway/capabilities/`,
+   `data/pathway/behaviours/`, or equivalent. Internalize the level descriptions. You're
    writing for _that_ level, not a generic one.
-3. **Read existing questions** — Check `data/questions/`. Know what's covered.
+3. **Read existing questions** — Check `data/pathway/questions/`. Know what's covered.
    Don't create a duplicate with different words.
 4. **Draft questions** — Follow the guidelines above. Write something that would
    make a great engineer say "oh, interesting." If you wouldn't want to answer
@@ -394,7 +394,7 @@ Every question must pass all of these. No exceptions. No "it's close enough."
 
 ### Refining Existing Questions
 
-1. **Read the questions** from `data/questions/`
+1. **Read the questions** from `data/pathway/questions/`
 2. **Run the quality checklist** — Flag everything that fails. Be ruthless.
 3. **Apply the philosophy** — Does this question find builders? Or does it find
    people who are good at interviews? If someone could pass this question by
@@ -486,12 +486,11 @@ simulation prompt produces a flat simulation.
 
 | Type       | Data Location                               | Schema Location                                             |
 | ---------- | ------------------------------------------- | ----------------------------------------------------------- |
-| Skill      | `data/questions/skills/{skill_id}.yaml`     | `products/map/schema/json/skill-questions.schema.json`      |
-| Capability | `data/questions/capabilities/{cap_id}.yaml` | `products/map/schema/json/capability-questions.schema.json` |
-| Behaviour  | `data/questions/behaviours/{behav_id}.yaml` | `products/map/schema/json/behaviour-questions.schema.json`  |
+| Skill      | `data/pathway/questions/skills/{skill_id}.yaml`     | `products/map/schema/json/skill-questions.schema.json`      |
+| Capability | `data/pathway/questions/capabilities/{cap_id}.yaml` | `products/map/schema/json/capability-questions.schema.json` |
+| Behaviour  | `data/pathway/questions/behaviours/{behav_id}.yaml` | `products/map/schema/json/behaviour-questions.schema.json`  |
 
-If data also exists under `products/map/examples/questions/`, update both
-locations in the same commit.
+Questions are located in `data/pathway/questions/`.
 
 ## Validation
 

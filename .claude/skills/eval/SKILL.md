@@ -274,8 +274,7 @@ When the agent deviates, determine the root cause:
 
 Use the `improve-skill` skill to fix issues found. Skill data lives in:
 
-- `data/capabilities/{id}.yaml` — Active installation data
-- `products/map/examples/capabilities/{id}.yaml` — Canonical examples
+- `data/pathway/capabilities/{id}.yaml`
 
 After fixing, regenerate and re-evaluate:
 

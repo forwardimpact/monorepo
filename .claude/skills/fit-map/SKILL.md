@@ -53,7 +53,7 @@ quickly verify data is loading correctly after changes.
 ## Data Structure
 
 ```
-examples/                  (or data/ in org projects)
+data/pathway/              (or examples/pathway/ fallback, or ./data/ in org projects)
 ├── framework.yaml         # Framework metadata, entity definitions
 ├── levels.yaml            # Career levels (J040, J060, etc.)
 ├── stages.yaml            # Lifecycle stages (plan, code, review, etc.)
@@ -62,6 +62,7 @@ examples/                  (or data/ in org projects)
 ├── tracks/                # Work contexts (platform, forward_deployed, etc.)
 ├── behaviours/            # Approach to work (outcome_ownership, etc.)
 ├── capabilities/          # Skills grouped by area (delivery, scale, etc.)
+├── repository/            # Repository configuration (vscode-settings, devcontainer, etc.)
 └── questions/             # Interview questions
     ├── skills/            # Per-skill question sets
     └── behaviours/        # Per-behaviour question sets
@@ -136,11 +137,11 @@ in sync.
 
 ### Add a Skill
 
-1. Add skill to capability file: `examples/capabilities/{capability_id}.yaml`
+1. Add skill to capability file: `data/pathway/capabilities/{capability_id}.yaml`
 2. Add skill object with `id`, `name`, and `human:` section
 3. Include level descriptions for all five proficiency levels
 4. Reference skill in disciplines (coreSkills/supportingSkills/broadSkills)
-5. Add questions: `examples/questions/skills/{skill_id}.yaml`
+5. Add questions: `data/pathway/questions/skills/{skill_id}.yaml`
 6. Optionally add `agent:` section for AI coding agent support
 7. Run `npx fit-map validate`
 
@@ -148,8 +149,8 @@ in sync.
 
 Location:
 
-- Skills: `examples/questions/skills/{skill_id}.yaml`
-- Behaviours: `examples/questions/behaviours/{behaviour_id}.yaml`
+- Skills: `data/pathway/questions/skills/{skill_id}.yaml`
+- Behaviours: `data/pathway/questions/behaviours/{behaviour_id}.yaml`
 
 Required properties:
 

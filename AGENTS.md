@@ -38,19 +38,16 @@ map → libskill → pathway
       libui   ↗
 ```
 
-When updating data structure: schema (`products/map/schema/`) → examples
-(`products/map/examples/`) → derivation (`libraries/libskill/`) → formatters
+When updating data structure: schema (`products/map/schema/`) → data
+(`data/pathway/`) → derivation (`libraries/libskill/`) → formatters
 (`products/pathway/src/formatters/`). All in the same commit.
 
 ### Key Paths
 
 | Purpose        | Location                                     |
 | -------------- | -------------------------------------------- |
-| User data      | `data/`                                      |
-| Framework data | `examples/framework/`                        |
-| Org data       | `examples/organizational/`                   |
-| Activity data  | `examples/activity/`                         |
-| Personal data  | `examples/personal/`                         |
+| Pathway data   | `data/pathway/`                              |
+| Repo config    | `data/pathway/repository/`                   |
 | Universe DSL   | `libraries/libuniverse/data/universe.dsl`    |
 | JSON Schema    | `products/map/schema/json/`                  |
 | RDF/SHACL      | `products/map/schema/rdf/`                   |
@@ -154,7 +151,7 @@ make tei-start                # Start TEI service (downloads model on first run)
 
 ## Domain Concepts
 
-> Entities are defined in YAML under `products/map/examples/`. Use
+> Entities are defined in YAML under `data/pathway/`. Use
 > `npx fit-pathway <entity> --list` to discover available values.
 
 ### Core Entities

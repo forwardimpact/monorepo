@@ -80,17 +80,9 @@ a skill object:
 
 ### Data File Locations
 
-Skills live in capability YAML files in **two** locations that must stay in
-sync:
+Skills live in capability YAML files:
 
-- `data/capabilities/{id}.yaml` — Active installation data
-- `products/map/examples/capabilities/{id}.yaml` — Canonical example data
-
-When a capability exists in both locations, update both files. Check with:
-
-```sh
-diff data/capabilities/{id}.yaml products/map/examples/capabilities/{id}.yaml
-```
+- `data/pathway/capabilities/{id}.yaml`
 
 ## Core Principles
 
@@ -189,8 +181,7 @@ Ask: _"If someone skipped this check, what could go wrong?"_ If the answer is
 ## Process
 
 1. **Identify the capability** to review (ask if not specified)
-2. **Read the capability file** from both `data/capabilities/{id}.yaml` and
-   `products/map/examples/capabilities/{id}.yaml`
+2. **Read the capability file** from `data/pathway/capabilities/{id}.yaml`
 3. **For each skill with an `agent:` section**, review and improve
 4. **Study the updated skill** by running `npx fit-pathway skill <name> --agent`
 5. **Iterate** until the skill document is clear, complete, and well-structured

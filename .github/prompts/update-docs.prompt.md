@@ -21,7 +21,7 @@ reflects the current codebase.
 3. **Verify diagrams**
    - Mermaid diagrams must reflect actual data flow and relationships
    - Compare entity diagrams against actual YAML structures in
-     `products/map/examples/`
+     `data/pathway/`
    - Compare derivation flowcharts against code in `libraries/libpathway/src/`
    - Update or add diagrams where they clarify concepts
 
@@ -40,12 +40,12 @@ reflects the current codebase.
 
 | Document Topic     | Source of Truth                       |
 | ------------------ | ------------------------------------- |
-| Skills & Levels    | `products/map/examples/capabilities/` |
-| Behaviours         | `products/map/examples/behaviours/`   |
-| Disciplines        | `products/map/examples/disciplines/`  |
-| Tracks             | `products/map/examples/tracks/`       |
-| Levels             | `products/map/examples/levels.yaml`   |
-| Stages             | `products/map/examples/stages.yaml`   |
+| Skills & Levels    | `data/pathway/capabilities/`          |
+| Behaviours         | `data/pathway/behaviours/`            |
+| Disciplines        | `data/pathway/disciplines/`           |
+| Tracks             | `data/pathway/tracks/`                |
+| Levels             | `data/pathway/levels.yaml`            |
+| Stages             | `data/pathway/stages.yaml`            |
 | Job Derivation     | `libraries/libpathway/src/job.js`     |
 | Agent Derivation   | `libraries/libpathway/src/agent.js`   |
 | CLI Commands       | `products/pathway/bin/fit-pathway.js` |
@@ -54,20 +54,19 @@ reflects the current codebase.
 
 ## CLI Verification
 
-**Always use `--data=products/map/examples`** to ensure documentation reflects
-the canonical example dataset, not any arbitrary dataset in the root `data/`
-folder.
+**Always use `--data=data/pathway`** to ensure documentation reflects
+the canonical dataset.
 
 ```sh
 # List available entities
-npx fit-pathway skill --data=products/map/examples --list
-npx fit-pathway discipline --data=products/map/examples --list
-npx fit-pathway track --data=products/map/examples --list
-npx fit-pathway level --data=products/map/examples --list
+npx fit-pathway skill --data=data/pathway --list
+npx fit-pathway discipline --data=data/pathway --list
+npx fit-pathway track --data=data/pathway --list
+npx fit-pathway level --data=data/pathway --list
 
 # Generate sample outputs to compare with docs
-npx fit-pathway job software_engineering L3 --data=products/map/examples
-npx fit-pathway agent software_engineering --data=products/map/examples --track=platform
+npx fit-pathway job software_engineering L3 --data=data/pathway
+npx fit-pathway agent software_engineering --data=data/pathway --track=platform
 ```
 
 ## Commit
