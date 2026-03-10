@@ -42,6 +42,7 @@
   "dependencies": {
     "@forwardimpact/map": "^0.12.0",
     "@forwardimpact/libskill": "^3.0.0",
+    "@forwardimpact/libtemplate": "^0.1.0",
     "@forwardimpact/libui": "^1.0.0",
     "mustache": "^4.2.0",
     "simple-icons": "^16.7.0",

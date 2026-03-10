@@ -40,6 +40,7 @@
     "libraries/librepl",
     "libraries/libtool",
     "libraries/libweb",
+    "libraries/libtemplate",
     "libraries/libuniverse",
     "products/guide",
     "services/agent",

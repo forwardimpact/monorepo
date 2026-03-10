@@ -3,6 +3,10 @@ data/
 data
 !libraries/libuniverse/data/
 
+# Generated examples (universe output)
+examples/
+!examples/universe.dsl
+
 # Generated code
 generated/
 **/generated

@@ -1,93 +1,49 @@
 /**
- * Template Loader
- *
- * Loads Mustache templates from the data directory with fallback to the
- * top-level templates directory. This allows users to customize agent
- * and skill templates by placing them in their data directory.
+ * Template Loader — delegates to @forwardimpact/libtemplate.
  *
  * Resolution order:
  * 1. {dataDir}/templates/{name} (user customization)
- * 2. {codebaseDir}/templates/{name} (fallback)
+ * 2. {packageDir}/templates/{name} (pathway defaults)
  */
 
-import { readFile } from "fs/promises";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { existsSync } from "fs";
+import { createTemplateLoader } from "@forwardimpact/libtemplate";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const CODEBASE_TEMPLATES_DIR = join(__dirname, "..", "..", "templates");
+const loader = createTemplateLoader(join(__dirname, "..", "..", "templates"));
 
 /**
- * Load a template file with fallback to codebase templates
- * @param {string} templateName - Template filename (e.g., 'agent.template.md')
+ * Load a template file with fallback to package defaults
+ * @param {string} templateName - Template filename
  * @param {string} dataDir - Path to data directory
- * @returns {Promise<string>} Template content
- * @throws {Error} If template not found in either location
+ * @returns {Promise<string>}
  */
-export async function loadTemplate(templateName, dataDir) {
-  // Build list of paths to try
-  const paths = [];
-  if (dataDir) {
-    paths.push(join(dataDir, "templates", templateName));
-  }
-  paths.push(join(CODEBASE_TEMPLATES_DIR, templateName));
-
-  // Try each path in order
-  for (const path of paths) {
-    if (existsSync(path)) {
-      return await readFile(path, "utf-8");
-    }
-  }
-
-  // Not found
-  throw new Error(
-    `Template '${templateName}' not found. Checked:\n` +
-      paths.map((p) => `  - ${p}`).join("\n"),
-  );
+export function loadTemplate(templateName, dataDir) {
+  return loader.load(templateName, dataDir);
 }
 
-/**
- * Load agent profile template
- * @param {string} dataDir - Path to data directory
- * @returns {Promise<string>} Agent template content
- */
-export async function loadAgentTemplate(dataDir) {
-  return loadTemplate("agent.template.md", dataDir);
+/** @param {string} dataDir */
+export function loadAgentTemplate(dataDir) {
+  return loader.load("agent.template.md", dataDir);
 }
 
-/**
- * Load agent skill template
- * @param {string} dataDir - Path to data directory
- * @returns {Promise<string>} Skill template content
- */
-export async function loadSkillTemplate(dataDir) {
-  return loadTemplate("skill.template.md", dataDir);
+/** @param {string} dataDir */
+export function loadSkillTemplate(dataDir) {
+  return loader.load("skill.template.md", dataDir);
 }
 
-/**
- * Load skill install script template
- * @param {string} dataDir - Path to data directory
- * @returns {Promise<string>} Install script template content
- */
-export async function loadSkillInstallTemplate(dataDir) {
-  return loadTemplate("skill-install.template.sh", dataDir);
+/** @param {string} dataDir */
+export function loadSkillInstallTemplate(dataDir) {
+  return loader.load("skill-install.template.sh", dataDir);
 }
 
-/**
- * Load skill reference template
- * @param {string} dataDir - Path to data directory
- * @returns {Promise<string>} Reference template content
- */
-export async function loadSkillReferenceTemplate(dataDir) {
-  return loadTemplate("skill-reference.template.md", dataDir);
+/** @param {string} dataDir */
+export function loadSkillReferenceTemplate(dataDir) {
+  return loader.load("skill-reference.template.md", dataDir);
 }
 
-/**
- * Load job description template
- * @param {string} dataDir - Path to data directory
- * @returns {Promise<string>} Job template content
- */
-export async function loadJobTemplate(dataDir) {
-  return loadTemplate("job.template.md", dataDir);
+/** @param {string} dataDir */
+export function loadJobTemplate(dataDir) {
+  return loader.load("job.template.md", dataDir);
 }
