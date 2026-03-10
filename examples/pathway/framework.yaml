@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/framework.schema.json
+
+title: Example.dev Engineering Pathway
+emojiIcon: 🛠️
+tag: "#ExampleDev"
+description: This framework outlines the career progression and skill
+  development for engineers at Example.dev. It provides structured guidance on
+  roles, skills, and behaviors to foster growth and excellence.
+distribution:
+  siteUrl: https://example.dev/pathway
+entityDefinitions:
+  driver:
+    title: Driver
+    emojiIcon: 🚗
+    description: Key motivators and goals that propel engineering efforts forward.
+  skill:
+    title: Skill
+    emojiIcon: 🧰
+    description: Specific technical or professional abilities required for
+      engineering success.
+  behaviour:
+    title: Behaviour
+    emojiIcon: 🤝
+    description: Observable actions and attitudes that demonstrate effective
+      engineering practices.
+  discipline:
+    title: Discipline
+    emojiIcon: 📚
+    description: Areas of specialized knowledge and expertise within engineering.
+  level:
+    title: Level
+    emojiIcon: 📈
+    description: Stages of career progression indicating increasing responsibility
+      and impact.
+  track:
+    title: Track
+    emojiIcon: 🛤️
+    description: Distinct career paths engineers can follow based on their interests
+      and skills.
+  job:
+    title: Job
+    emojiIcon: 💼
+    description: Defined roles and positions within the engineering organization.
+  agent:
+    title: Agent
+    emojiIcon: 🤖
+    description: Entities or tools that facilitate or influence engineering processes.
+  stage:
+    title: Stage
+    emojiIcon: 🎯
+    description: Phases within projects or career development cycles.
+  tool:
+    title: Tool
+    emojiIcon: 🔧
+    description: Software or hardware resources used to support engineering work.

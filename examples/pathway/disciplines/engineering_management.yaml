@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/discipline.schema.json
+
+specialization: Engineering Management
+roleTitle: Engineering Manager
+isProfessional: false
+isManagement: true
+validTracks:
+  - null
+description: Engineering Management focuses on leading engineering teams to
+  deliver high-quality solutions efficiently. This discipline emphasizes problem
+  solving and incident response to maintain system reliability and team
+  productivity.
+coreSkills:
+  - problem_solving
+  - incident_response
+supportingSkills:
+  - code_quality
+broadSkills:
+  - testing_practices
+behaviourModifiers:
+  ownership: 1
+  collaboration: 1
+human:
+  professionalRoleSummary: As a {roleTitle}, you focus on solving complex problems
+    and responding effectively to incidents to ensure system stability and
+    performance.
+  managementRoleSummary: The {specialization} role involves leading teams,
+    fostering collaboration, and driving engineering excellence to achieve
+    organizational goals.

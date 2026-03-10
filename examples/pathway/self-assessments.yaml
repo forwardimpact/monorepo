@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/self-assessments.schema.json
+
+- id: example_junior
+  skillProficiencies:
+    problem_solving: awareness
+    code_quality: awareness
+    testing_practices: awareness
+    incident_response: awareness
+    monitoring: awareness
+    system_design: awareness
+  behaviourMaturities:
+    ownership: emerging
+    collaboration: emerging
+- id: example_mid
+  skillProficiencies:
+    problem_solving: foundational
+    code_quality: awareness
+    testing_practices: foundational
+    incident_response: awareness
+    monitoring: foundational
+    system_design: awareness
+  behaviourMaturities:
+    ownership: developing
+    collaboration: developing
+- id: example_senior
+  skillProficiencies:
+    problem_solving: working
+    code_quality: foundational
+    testing_practices: working
+    incident_response: foundational
+    monitoring: working
+    system_design: foundational
+  behaviourMaturities:
+    ownership: practicing
+    collaboration: practicing
+- id: example_staff
+  skillProficiencies:
+    problem_solving: practitioner
+    code_quality: working
+    testing_practices: practitioner
+    incident_response: working
+    monitoring: practitioner
+    system_design: working
+  behaviourMaturities:
+    ownership: role_modeling
+    collaboration: role_modeling
+- id: example_principal
+  skillProficiencies:
+    problem_solving: expert
+    code_quality: practitioner
+    testing_practices: expert
+    incident_response: practitioner
+    monitoring: expert
+    system_design: practitioner
+  behaviourMaturities:
+    ownership: exemplifying
+    collaboration: exemplifying

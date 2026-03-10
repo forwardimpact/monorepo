@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/track.schema.json
+
+name: Platform Engineering
+description: This track focuses on building and maintaining scalable and
+  reliable platform infrastructure that supports software development and
+  deployment. It emphasizes automation, system reliability, and efficient
+  delivery pipelines.
+roleContext: Roles in this track involve designing, implementing, and managing
+  platform services that enable development teams to deliver software
+  efficiently and reliably.
+skillModifiers:
+  delivery: 1
+  reliability: 1
+behaviourModifiers:
+  ownership: 1
+  collaboration: 1
+assessmentWeights:
+  skillWeight: 0.7
+  behaviourWeight: 0.3

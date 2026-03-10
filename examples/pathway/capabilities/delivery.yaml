@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/capability.schema.json
+
+id: delivery
+name: Delivery
+emojiIcon: 🚚
+ordinalRank: 1
+description: The Delivery capability focuses on effectively solving problems,
+  ensuring code quality, and applying robust testing practices to deliver
+  reliable software solutions.
+professionalResponsibilities:
+  awareness: You understand the basics of problem solving, code quality, and
+    testing practices and their importance in software delivery.
+  foundational: You apply fundamental problem-solving techniques, write clean
+    code, and perform basic testing to contribute to delivery tasks.
+  working: You independently solve moderately complex problems, maintain high code
+    quality, and design and execute effective tests to ensure software
+    reliability.
+  practitioner: You lead problem-solving efforts, advocate for and enforce code
+    quality standards, and develop comprehensive testing strategies across
+    projects.
+  expert: You innovate and optimize delivery processes, mentor others on advanced
+    problem solving, code quality, and testing, and influence organizational
+    best practices.
+managementResponsibilities:
+  awareness: You recognize the importance of problem solving, code quality, and
+    testing in team delivery efforts.
+  foundational: You support team members in applying problem-solving techniques,
+    maintaining code quality, and following testing practices.
+  working: You manage resources and processes to ensure consistent problem
+    resolution, code quality, and testing coverage within your team.
+  practitioner: You drive continuous improvement initiatives in problem solving,
+    code quality, and testing practices across multiple teams.
+  expert: You set strategic direction and foster a culture of excellence in
+    delivery through advanced problem solving, code quality, and testing
+    methodologies organization-wide.
+skills:
+  - id: problem_solving
+    name: Problem Solving
+    human:
+      description: Problem Solving involves identifying, analyzing, and resolving
+        issues effectively to ensure smooth delivery of software projects. It
+        requires critical thinking, creativity, and persistence to overcome
+        challenges.
+      proficiencyDescriptions:
+        awareness: You recognize common problems and understand basic approaches to
+          solving them with guidance.
+        foundational: You apply standard problem-solving techniques to resolve
+          straightforward issues with some supervision.
+        working: You independently analyze and solve moderately complex problems,
+          considering multiple factors and impacts.
+        practitioner: You lead problem-solving efforts for complex challenges, mentor
+          others, and develop innovative solutions.
+        expert: You anticipate potential problems, create frameworks for problem
+          solving, and influence organizational strategies.
+  - id: code_quality
+    name: Code Quality
+    human:
+      description: Code Quality focuses on writing clean, maintainable, and efficient
+        code that meets standards and reduces technical debt. It ensures that
+        software is reliable and easy to enhance over time.
+      proficiencyDescriptions:
+        awareness: You understand the importance of code quality and basic principles
+          such as readability and consistency.
+        foundational: You write code that follows established guidelines and seek
+          feedback to improve quality.
+        working: You consistently produce high-quality code, apply best practices, and
+          identify areas for improvement.
+        practitioner: You advocate for and enforce code quality standards, conduct code
+          reviews, and guide others.
+        expert: You define and evolve code quality frameworks, lead initiatives to
+          reduce technical debt, and mentor broadly.
+  - id: testing_practices
+    name: Testing Practices
+    human:
+      description: Testing Practices encompass designing, implementing, and executing
+        tests to verify software functionality and prevent defects. It ensures
+        software meets requirements and performs reliably.
+      proficiencyDescriptions:
+        awareness: You understand basic testing concepts and the role of testing in
+          software delivery.
+        foundational: You write and run simple tests, and understand different types of
+          testing with guidance.
+        working: You design and execute comprehensive tests independently, including
+          unit and integration tests.
+        practitioner: You develop testing strategies, automate tests, and mentor others
+          on effective testing practices.
+        expert: You lead testing innovation, establish organizational testing standards,
+          and drive quality assurance excellence.

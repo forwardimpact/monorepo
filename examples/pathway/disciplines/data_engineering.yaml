@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/discipline.schema.json
+
+specialization: Data Engineering
+roleTitle: Data Engineer
+isProfessional: true
+isManagement: false
+validTracks:
+  - null
+minLevel: entry
+description: Data Engineering focuses on designing, building, and maintaining
+  scalable data systems. Professionals in this discipline ensure data is
+  accessible, reliable, and monitored for performance and issues.
+coreSkills:
+  - system_design
+  - monitoring
+supportingSkills:
+  - problem_solving
+broadSkills:
+  - code_quality
+behaviourModifiers:
+  ownership: 1
+  collaboration: 0
+human:
+  professionalRoleSummary: "{roleTitle}s design and maintain robust data systems,
+    ensuring data integrity and availability. They monitor system health and
+    troubleshoot issues to support business needs."
+  managementRoleSummary: Managers in {specialization} lead teams responsible for
+    data infrastructure, ensuring scalable and reliable data solutions that meet
+    organizational goals.

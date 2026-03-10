@@ -1,0 +1,127 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/stages.schema.json
+
+- id: specify
+  name: Specify
+  emojiIcon: 📝
+  description: You gather and define the requirements and objectives for the
+    engineering task. You clarify the scope and expected outcomes to ensure
+    alignment. You document all necessary details to guide the subsequent
+    stages.
+  summary: This stage involves gathering and defining requirements and objectives
+    for the engineering task.
+  handoffs:
+    - targetStage: plan
+      label: Proceed to Plan
+      prompt: Use the specified requirements to develop a detailed project plan.
+  constraints:
+    - Do not start implementation without clear requirements.
+    - Avoid ambiguous or incomplete specifications.
+    - Ensure all stakeholders agree on the objectives.
+  readChecklist:
+    - Review all stakeholder inputs and requirements.
+    - Identify key objectives and constraints.
+    - Document the scope and deliverables.
+  confirmChecklist:
+    - Confirm requirements are complete and unambiguous.
+    - Verify stakeholder agreement on specifications.
+    - Ensure documentation is accessible to the team.
+- id: plan
+  name: Plan
+  emojiIcon: 📅
+  description: You create a detailed plan outlining tasks, timelines, and
+    resources. You break down the work into manageable units and assign
+    responsibilities. You prepare for smooth execution by anticipating risks and
+    dependencies.
+  summary: This stage focuses on creating a detailed project plan with tasks,
+    timelines, and resource allocation.
+  handoffs:
+    - targetStage: code
+      label: Start Coding
+      prompt: Begin implementation following the project plan and assigned tasks.
+  constraints:
+    - Do not proceed without a clear and feasible plan.
+    - Avoid overcommitting resources or unrealistic timelines.
+    - Ensure dependencies and risks are identified and addressed.
+  readChecklist:
+    - Review requirements and specifications.
+    - Define tasks, milestones, and deadlines.
+    - Assign roles and responsibilities.
+  confirmChecklist:
+    - Confirm plan feasibility and resource availability.
+    - Verify risk mitigation strategies are in place.
+    - Ensure all team members understand their tasks.
+- id: code
+  name: Code
+  emojiIcon: 💻
+  description: You implement the solution by writing and testing code according to
+    the plan. You follow coding standards and best practices to ensure quality.
+    You document your work and prepare for peer review.
+  summary: This stage involves implementing the solution through coding and
+    initial testing.
+  handoffs:
+    - targetStage: review
+      label: Submit for Review
+      prompt: Provide your code for peer review and feedback.
+  constraints:
+    - Do not bypass coding standards or testing protocols.
+    - Avoid incomplete or untested code submissions.
+    - Ensure documentation is updated alongside code.
+  readChecklist:
+    - Review the project plan and coding guidelines.
+    - Set up development environment and tools.
+    - Write code incrementally with tests.
+  confirmChecklist:
+    - Confirm code meets quality and style standards.
+    - Verify all tests pass successfully.
+    - Ensure documentation is complete and clear.
+- id: review
+  name: Review
+  emojiIcon: 🔍
+  description: You examine the code for correctness, quality, and adherence to
+    standards. You provide constructive feedback and request changes if
+    necessary. You ensure the solution meets requirements before approval.
+  summary: This stage focuses on code examination, feedback, and approval to
+    ensure quality and correctness.
+  handoffs:
+    - targetStage: deploy
+      label: Approve and Deploy
+      prompt: After approval, proceed to deploy the solution to the target environment.
+    - targetStage: code
+      label: Request Changes
+      prompt: Send feedback to the developer for code improvements.
+  constraints:
+    - Do not approve code with unresolved issues.
+    - Avoid subjective or unclear feedback.
+    - Ensure all review comments are addressed before approval.
+  readChecklist:
+    - Understand the requirements and implementation details.
+    - Check code for style, functionality, and security.
+    - Prepare feedback and suggestions.
+  confirmChecklist:
+    - Confirm all issues are resolved satisfactorily.
+    - Verify compliance with standards and requirements.
+    - Ensure documentation reflects final changes.
+- id: deploy
+  name: Deploy
+  emojiIcon: 🚀
+  description: You release the approved solution to the production or target
+    environment. You monitor the deployment for issues and ensure stability. You
+    communicate the release status to stakeholders and prepare for maintenance.
+  summary: This stage involves releasing the solution to production and monitoring
+    its performance.
+  handoffs:
+    - targetStage: specify
+      label: Plan Next Cycle
+      prompt: Gather feedback and begin specifying improvements or new features.
+  constraints:
+    - Do not deploy without final approval.
+    - Avoid untested or incomplete releases.
+    - Ensure rollback plans are in place before deployment.
+  readChecklist:
+    - Review deployment plan and rollback procedures.
+    - Prepare release notes and communication.
+    - Verify environment readiness.
+  confirmChecklist:
+    - Confirm successful deployment with no critical issues.
+    - Verify monitoring and alerting are active.
+    - Communicate deployment status to stakeholders.

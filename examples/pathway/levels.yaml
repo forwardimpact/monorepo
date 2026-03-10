@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/levels.schema.json
+
+- id: L1
+  professionalTitle: Engineer I
+  managementTitle: Engineering Manager I
+  typicalExperienceRange: 0-2 years
+  ordinalRank: 1
+  qualificationSummary: An Engineer I typically has {typicalExperienceRange} of
+    experience and demonstrates foundational engineering skills. They are
+    beginning to contribute to projects with guidance and are developing their
+    technical and interpersonal abilities.
+  baseSkillProficiencies:
+    primary: foundational
+    secondary: awareness
+    broad: awareness
+  baseBehaviourMaturity: emerging
+  expectations:
+    impactScope: Contributes to individual tasks and small components within projects.
+    autonomyExpectation: Works under close supervision and requires guidance on most tasks.
+    influenceScope: Limited influence, primarily focused on own work and immediate team.
+    complexityHandled: Handles well-defined, low-complexity problems with clear instructions.
+- id: L2
+  professionalTitle: Engineer II
+  managementTitle: Engineering Manager II
+  typicalExperienceRange: 2-4 years
+  ordinalRank: 2
+  qualificationSummary: An Engineer II typically has {typicalExperienceRange} of
+    experience and demonstrates working proficiency in core engineering skills.
+    They contribute independently to projects and begin to support junior
+    engineers.
+  baseSkillProficiencies:
+    primary: working
+    secondary: foundational
+    broad: foundational
+  baseBehaviourMaturity: developing
+  expectations:
+    impactScope: Delivers components or features that contribute to team goals.
+    autonomyExpectation: Works with moderate supervision and can solve routine
+      problems independently.
+    influenceScope: Influences immediate team and occasionally collaborates across teams.
+    complexityHandled: Handles moderately complex problems with some ambiguity.
+- id: L3
+  professionalTitle: Senior Engineer
+  managementTitle: Senior Engineering Manager
+  typicalExperienceRange: 4-7 years
+  ordinalRank: 3
+  qualificationSummary: A Senior Engineer typically has {typicalExperienceRange}
+    of experience and demonstrates practitioner-level expertise in primary
+    skills. They lead technical efforts, mentor others, and contribute to
+    strategic decisions.
+  baseSkillProficiencies:
+    primary: practitioner
+    secondary: working
+    broad: working
+  baseBehaviourMaturity: practicing
+  expectations:
+    impactScope: Leads delivery of significant features or projects impacting
+      multiple teams.
+    autonomyExpectation: Operates with high autonomy and drives solutions to complex problems.
+    influenceScope: Influences cross-team initiatives and mentors junior engineers.
+    complexityHandled: Manages complex, ambiguous problems requiring innovative solutions.

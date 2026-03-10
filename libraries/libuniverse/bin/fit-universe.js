@@ -39,11 +39,19 @@ async function main() {
   let llmApi = null;
   if (mode === "generate") {
     const { createLlmApi } = await import("@forwardimpact/libllm");
+    const token = await config.llmToken();
+    const baseUrl = config.llmBaseUrl();
+    let embeddingBaseUrl;
+    try {
+      embeddingBaseUrl = config.embeddingBaseUrl();
+    } catch {
+      embeddingBaseUrl = baseUrl;
+    }
     llmApi = createLlmApi(
-      config.LLM_TOKEN,
-      config.LLM_MODEL,
-      config.LLM_BASE_URL,
-      config.LLM_EMBEDDING_BASE_URL || config.LLM_BASE_URL,
+      token,
+      config.LLM_MODEL || "openai/gpt-4.1-mini",
+      baseUrl,
+      embeddingBaseUrl,
     );
   }
 

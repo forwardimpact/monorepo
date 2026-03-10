@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/capability.schema.json
+
+id: reliability
+name: Reliability
+emojiIcon: 🛡️
+ordinalRank: 2
+description: Ensuring systems are dependable, available, and resilient through
+  proactive design, monitoring, and incident management.
+professionalResponsibilities:
+  awareness: Understand the importance of system reliability and basic monitoring
+    concepts.
+  foundational: Contribute to monitoring and incident response efforts with guidance.
+  working: Independently handle common incidents and maintain monitoring systems.
+  practitioner: Lead reliability improvements and design resilient systems.
+  expert: Drive organizational reliability strategy and mentor others on best
+    practices.
+managementResponsibilities:
+  awareness: Promote awareness of reliability principles within the team.
+  foundational: Support team members in developing reliability skills and processes.
+  working: Manage incident response processes and ensure monitoring coverage.
+  practitioner: Lead reliability initiatives and resource allocation for system resilience.
+  expert: Set strategic direction for reliability across multiple teams or the
+    organization.
+skills:
+  - id: incident_response
+    name: Incident Response
+    human:
+      description: Incident response involves detecting, managing, and resolving
+        system outages or degradations to minimize impact on users and business
+        operations. It requires quick decision-making, effective communication,
+        and post-incident analysis to prevent recurrence.
+      proficiencyDescriptions:
+        awareness: You recognize the importance of incident response and understand
+          basic terminology and processes.
+        foundational: You assist in incident detection and follow established procedures
+          to escalate or resolve issues under supervision.
+        working: You independently manage common incidents, coordinate with
+          stakeholders, and document resolutions.
+        practitioner: You lead incident response efforts, develop runbooks, and drive
+          post-incident reviews to improve processes.
+        expert: You design incident response strategies, mentor teams, and influence
+          organizational policies to enhance resilience.
+  - id: monitoring
+    name: Monitoring
+    human:
+      description: Monitoring involves setting up and maintaining systems that track
+        application and infrastructure health, enabling early detection of
+        issues. Effective monitoring supports proactive maintenance and informed
+        decision-making.
+      proficiencyDescriptions:
+        awareness: You understand the purpose of monitoring and can interpret basic
+          alerts and dashboards.
+        foundational: You help configure monitoring tools and respond to alerts with
+          guidance.
+        working: You independently maintain monitoring systems, tune alerts to reduce
+          noise, and analyze metrics to identify trends.
+        practitioner: You design comprehensive monitoring strategies, integrate multiple
+          data sources, and automate alerting workflows.
+        expert: You lead organizational monitoring standards, innovate on observability
+          practices, and mentor others on advanced monitoring techniques.
+  - id: system_design
+    name: System Design
+    human:
+      description: System design for reliability focuses on creating architectures
+        that are fault-tolerant, scalable, and maintainable. It balances
+        trade-offs to meet availability and performance goals under varying
+        conditions.
+      proficiencyDescriptions:
+        awareness: You understand basic concepts of reliable system design and common
+          failure modes.
+        foundational: You contribute to design discussions and apply standard patterns
+          for fault tolerance with guidance.
+        working: You design and implement reliable components, considering redundancy,
+          failover, and recovery mechanisms.
+        practitioner: You lead the design of complex systems with high availability
+          requirements and perform risk assessments.
+        expert: You define organizational best practices for resilient architecture and
+          drive innovation in system reliability design.

@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/discipline.schema.json
+
+specialization: Software Engineering
+roleTitle: Software Engineer
+isProfessional: true
+isManagement: false
+validTracks:
+  - null
+  - platform
+minLevel: entry
+description: Software Engineering focuses on designing, developing, and
+  maintaining software systems with an emphasis on quality and scalability.
+  Professionals in this discipline apply problem-solving skills and system
+  design principles to build robust software solutions.
+coreSkills:
+  - problem_solving
+  - code_quality
+  - system_design
+supportingSkills:
+  - testing_practices
+  - monitoring
+broadSkills:
+  - incident_response
+behaviourModifiers:
+  ownership: 1
+  collaboration: 1
+human:
+  professionalRoleSummary: As a {roleTitle}, you are responsible for developing
+    high-quality software solutions by applying strong problem-solving and
+    system design skills. You collaborate with cross-functional teams to ensure
+    code quality and maintainability.
+  managementRoleSummary: In a management role within {specialization}, you lead
+    engineering teams to deliver scalable and reliable software products. You
+    foster a culture of quality, ownership, and continuous improvement.

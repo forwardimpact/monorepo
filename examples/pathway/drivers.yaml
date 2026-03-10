@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/drivers.schema.json
+
+- id: clear_direction
+  name: Clear Direction
+  description: Teams with clear direction understand the goals and priorities,
+    enabling focused and effective problem solving. This clarity drives
+    alignment and purposeful action across the organization.
+  contributingSkills:
+    - problem_solving
+  contributingBehaviours:
+    - ownership
+- id: deep_work
+  name: Deep Work
+  description: Deep work enables teams to produce high quality outputs through
+    focused effort and thoughtful system design. This driver supports sustained
+    collaboration and ownership to build robust and maintainable solutions.
+  contributingSkills:
+    - code_quality
+    - system_design
+  contributingBehaviours:
+    - ownership
+    - collaboration

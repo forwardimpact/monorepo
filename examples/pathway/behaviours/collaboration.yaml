@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/behaviour.schema.json
+
+name: Collaborate Openly
+human:
+  description: Collaborate Openly means actively sharing ideas, feedback, and
+    information with others in a transparent and respectful manner. It fosters
+    trust and collective problem-solving by encouraging open communication and
+    inclusive participation.
+  maturityDescriptions:
+    emerging: You occasionally share your thoughts and listen to others but may
+      hesitate to fully engage or disclose your ideas openly. You are beginning
+      to recognize the value of open collaboration.
+    developing: You regularly contribute your ideas and feedback in team discussions
+      and seek input from others. You demonstrate respect for diverse
+      perspectives and start to build trust within your group.
+    practicing: You consistently communicate openly, encouraging others to share
+      their views and facilitating inclusive dialogue. You actively resolve
+      misunderstandings and help the team align on shared goals.
+    role_modeling: You lead by example in transparent communication, fostering a
+      safe environment where all voices are valued. You influence others to
+      adopt open collaboration practices and help resolve conflicts
+      constructively.
+    exemplifying: You inspire a culture of open collaboration across teams and the
+      organization. You champion transparency, drive collective innovation, and
+      mentor others to communicate openly and inclusively at all levels.
