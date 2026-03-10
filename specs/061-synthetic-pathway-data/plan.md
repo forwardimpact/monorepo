@@ -82,12 +82,13 @@ the DSL.
 The real schema uses `contributingSkills` and `contributingBehaviours`; the DSL
 uses shorter aliases `skills` and `behaviours` for brevity.
 
-### Backward compatibility
+### Clean break — no backward compatibility
 
-The `capabilities` keyword currently accepts a flat array (`parseArray()`). The
-new parser peeks at the next token — if it's `LBRACKET`, delegate to
-`parseArray()` for backward compatibility; if `LBRACE`, delegate to
-`parseFrameworkCapabilities()`. Same for `behaviours` and `drivers`.
+The old `framework` block accepted flat arrays for `capabilities`,
+`behaviours`, and `drivers`. There are no consumers of the old format — the
+old syntax is removed entirely. The new parser requires the block syntax
+(`LBRACE`) for all entity types. Any DSL files using the flat-array format
+must be migrated in Phase 6.
 
 ### Tokenizer
 
@@ -593,9 +594,9 @@ it.
 
 ### Update CLI `--only` flag
 
-In `bin/fit-universe.js`, add `pathway` as a valid value for `--only` (parsed
-via `arg.startsWith('--only=')`). Remove `yaml` or alias it to `pathway` for
-backward compatibility.
+In `bin/fit-universe.js`, replace `yaml` with `pathway` as a valid value for
+`--only` (parsed via `arg.startsWith('--only=')`). Do not alias the old name —
+clean break, no backward compatibility.
 
 ## Testing
 
