@@ -1,9 +1,9 @@
 {{#departments}}
-  <div itemscope itemtype="https://schema.org/Organization" itemid="{{iri}}">
+  <div itemscope itemtype="https://schema.org/Organization" itemid="{{{iri}}}">
     <span itemprop="name">{{name}}</span>
     <div itemprop="department">
 {{#teams}}
-    <div itemscope itemtype="https://schema.org/Organization" itemid="{{iri}}">
+    <div itemscope itemtype="https://schema.org/Organization" itemid="{{{iri}}}">
       <span itemprop="name">{{name}}</span>
       <meta itemprop="numberOfEmployees" content="{{size}}">
     </div>
