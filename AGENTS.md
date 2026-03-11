@@ -15,6 +15,7 @@ products/
   map/          Data model, validation            (fit-map)
 libraries/
   libskill/     Derivation logic, job/agent models
+  libuniverse/  Synthetic data DSL and generation  (fit-universe)
   libui/        Web UI framework, components, CSS
   libdoc/       Documentation build/serve         (fit-doc)
 services/
@@ -49,6 +50,7 @@ When updating data structure: schema (`products/map/schema/`) → data
 | Pathway data   | `data/pathway/`                              |
 | Repo config    | `data/pathway/repository/`                   |
 | Universe DSL   | `libraries/libuniverse/data/universe.dsl`    |
+| Generated data | `examples/` (output of `fit-universe`)       |
 | JSON Schema    | `products/map/schema/json/`                  |
 | RDF/SHACL      | `products/map/schema/rdf/`                   |
 | Formatters     | `products/pathway/src/formatters/`           |
@@ -111,6 +113,13 @@ make env-secrets   # Generate SERVICE_SECRET, JWT_SECRET, JWT_ANON_KEY
 make env-storage   # Generate storage backend credentials
 make env-github    # GitHub token utility (LLM_TOKEN, LLM_BASE_URL)
 ```
+
+### LLM Testing
+
+`LLM_TOKEN` and `LLM_BASE_URL` are always set in the environment (provided by
+the hosting platform or `.env`). This means any code using `libconfig` to access
+LLM credentials works out of the box — no extra setup is needed to test LLM
+interactions locally or in CI.
 
 ## Configuration
 
@@ -252,6 +261,8 @@ npx fit-pathway dev           # Pathway dev server
 npx fit-pathway build --url=X # Static site + install bundle
 npx fit-basecamp --init ~/Dir # Initialize knowledge base
 npx fit-basecamp --daemon     # Run scheduler
+npx fit-universe              # Generate synthetic data (structural only)
+npx fit-universe --generate   # Generate with LLM prose
 make rc-start                 # Start all services
 make rc-status                # Service health check
 make process                  # Process all resources (agents, tools, vectors, graphs)

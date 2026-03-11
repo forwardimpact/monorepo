@@ -89,7 +89,6 @@ products/map/
   schema/
     json/                  # JSON Schema definitions (public)
     rdf/                   # RDF/SHACL ontology (public)
-  examples/                # Canonical example data
 ```
 
 ## Key Modules

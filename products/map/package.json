@@ -20,7 +20,6 @@
   },
   "files": [
     "bin/",
-    "examples/",
     "src/",
     "schema/"
   ],
@@ -31,7 +30,6 @@
     "./schema-validation": "./src/schema-validation.js",
     "./index-generator": "./src/index-generator.js",
     "./levels": "./src/levels.js",
-    "./examples/*": "./examples/*",
     "./schema/json/*": "./schema/json/*",
     "./schema/rdf/*": "./schema/rdf/*",
     "./activity/queries/org": "./activity/queries/org.js",

@@ -63,6 +63,14 @@ File organization, co-located file structure, CLI commands, and output formats.
 
 </a>
 
+<a href="/docs/universe/">
+
+### Generating Synthetic Data
+
+Universe DSL, fit-universe CLI, prose generation, and output validation.
+
+</a>
+
 <a href="/docs/basecamp/">
 
 ### Basecamp

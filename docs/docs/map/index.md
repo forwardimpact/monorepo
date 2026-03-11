@@ -44,7 +44,6 @@ boundary:
 products/map/
   src/              Pure data model (published to npm)
   schema/           JSON Schema + RDF/SHACL (published to npm)
-  examples/         Example YAML data (published to npm)
   activity/         Operational layer (NOT published to npm)
     migrations/     SQL schema definitions
     ingestion/      GetDX snapshot importer, GitHub webhook receiver
@@ -52,8 +51,8 @@ products/map/
   bin/fit-map.js    CLI entry point (routes to both layers)
 ```
 
-**Pure layer** (`src/`, `schema/`, `examples/`) — Framework schema, validation,
-data loading. Zero infrastructure dependencies. Published to npm.
+**Pure layer** (`src/`, `schema/`) — Framework schema, validation, data loading.
+Zero infrastructure dependencies. Published to npm.
 
 **Activity layer** (`activity/`) — Supabase migrations, ingestion pipelines,
 query functions. Requires runtime infrastructure. Excluded from npm publish.
