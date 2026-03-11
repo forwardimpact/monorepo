@@ -243,7 +243,7 @@ export class DocsBuilder {
     // Read and validate template
     const templatePath = this.#path.join(docsDir, "index.template.html");
     if (!this.#fs.existsSync(templatePath)) {
-      throw new Error("index.template.html not found in docs directory");
+      throw new Error(`index.template.html not found in ${docsDir}`);
     }
     const template = this.#fs.readFileSync(templatePath, "utf-8");
 
@@ -251,7 +251,7 @@ export class DocsBuilder {
     const mdFiles = this.#findMarkdownFiles(docsDir);
 
     if (mdFiles.length === 0) {
-      console.warn("Warning: No Markdown files found in docs/");
+      console.warn(`Warning: No Markdown files found in ${docsDir}`);
     }
 
     // First pass: collect page titles by URL path for breadcrumbs

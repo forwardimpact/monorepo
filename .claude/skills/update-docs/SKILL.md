@@ -1,11 +1,11 @@
 ---
 name: update-docs
-description: Review and update documentation in the docs/ folder. Use when ensuring documentation accurately reflects the current codebase.
+description: Review and update documentation in the website/ folder. Use when ensuring documentation accurately reflects the current codebase.
 ---
 
 # Update Documentation
 
-Review and update documentation in the `docs/` folder to ensure it accurately
+Review and update documentation in the `website/` folder to ensure it accurately
 reflects the current codebase.
 
 ## When to Use
@@ -18,8 +18,8 @@ reflects the current codebase.
 ## Process
 
 1. **Understand the documentation structure**
-   - Read `docs/index.md` to see the documentation hierarchy
-   - Review each document in `docs/` subdirectories (model/, pathway/, map/)
+   - Read `website/docs/index.md` to see the documentation hierarchy
+   - Review each document in `website/docs/` subdirectories (model/, pathway/, map/)
    - Check `git log --oneline -20` for hints about recent changes—but use this
      only as a starting point, not a substitute for studying the code
 

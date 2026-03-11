@@ -1,6 +1,6 @@
 ---
 name: website
-description: Maintain the Forward Impact Team website under docs/. Use when editing website pages, assets, hero images, icons, or the GitHub Actions publish workflow.
+description: Maintain the Forward Impact Team website under website/. Use when editing website pages, assets, hero images, icons, or the GitHub Actions publish workflow.
 ---
 
 # Website Skill
@@ -14,11 +14,11 @@ description: Maintain the Forward Impact Team website under docs/. Use when edit
 
 ## Site Structure
 
-The website source lives in `docs/` and is built by `libdoc` (see the libdoc
+The website source lives in `website/` and is built by `libdoc` (see the libdoc
 skill for template variables, front matter options, and build mechanics).
 
 ```
-docs/
+website/
 ├── CNAME                    # Custom domain: www.forwardimpact.team
 ├── index.template.html      # Shared Mustache template for every page
 ├── index.md                 # Landing page (layout: home)
@@ -57,11 +57,11 @@ Hero illustrations and product icons have **source files** in `design/` and
 
 | Source                | Deployed to               |
 | --------------------- | ------------------------- |
-| `design/heroes/*.svg` | `docs/assets/heros/*.svg` |
-| `design/icons/*.svg`  | `docs/assets/icons/*.svg` |
+| `design/heroes/*.svg` | `website/assets/heros/*.svg` |
+| `design/icons/*.svg`  | `website/assets/icons/*.svg` |
 
 When updating illustrations, edit the source in `design/` and copy to
-`docs/assets/`. Both SVG and JPG versions exist for hero images (JPG as
+`website/assets/`. Both SVG and JPG versions exist for hero images (JPG as
 fallback).
 
 ## Design Guidelines
@@ -87,24 +87,24 @@ specs, and character guidelines.
 The site is published via GitHub Actions in `.github/workflows/website.yaml`:
 
 1. **Trigger**: push to `main` or manual `workflow_dispatch`
-2. **Build**: `npx fit-doc build --src=docs --out=dist`
+2. **Build**: `npx fit-doc build --src=website --out=dist`
 3. **Extra assets**: JSON schema files from `products/map/schema/json/` and RDF
    schema files from `products/map/schema/rdf/` are copied into `dist/schema/`
-4. **CNAME**: `docs/CNAME` is copied to `dist/` for the custom domain
+4. **CNAME**: `website/CNAME` is copied to `dist/` for the custom domain
 5. **Deploy**: uploaded to GitHub Pages via `actions/deploy-pages@v4`
 
 ### Local Preview
 
 ```sh
 npx fit-doc serve --watch    # Live-reload dev server
-npx fit-doc build --src=docs --out=dist   # Full production build
+npx fit-doc build --src=website --out=dist   # Full production build
 ```
 
 ## Common Tasks
 
 ### Add a new page
 
-1. Create `docs/{section}/index.md` with front matter (`title`, `description`,
+1. Create `website/{section}/index.md` with front matter (`title`, `description`,
    `layout` if needed)
 2. Add navigation links from related pages
 3. Preview with `npx fit-doc serve --watch`
@@ -112,7 +112,7 @@ npx fit-doc build --src=docs --out=dist   # Full production build
 ### Update a hero illustration
 
 1. Edit the SVG source in `design/heroes/`
-2. Copy to `docs/assets/heros/` (both `.svg` and `.jpg` if applicable)
+2. Copy to `website/assets/heros/` (both `.svg` and `.jpg` if applicable)
 3. Reference in front matter as `/assets/heros/{name}.svg`
 
 ### Add schema files to the published site

@@ -22,11 +22,11 @@ Options:
   -h, --help     Show this help message
 
 Build options:
-  --src=<dir>    Source directory (default: docs)
+  --src=<dir>    Source directory (default: website)
   --out=<dir>    Output directory (default: dist)
 
 Serve options:
-  --src=<dir>    Source directory (default: docs)
+  --src=<dir>    Source directory (default: website)
   --out=<dir>    Output directory (default: dist)
   -p, --port     Port to serve on (default: 3000)
   -w, --watch    Watch for changes and rebuild
@@ -93,7 +93,7 @@ async function main() {
   const { values } = parseArgs({
     args: commandArgs,
     options: {
-      src: { type: "string", default: "docs" },
+      src: { type: "string", default: "website" },
       out: { type: "string", default: "dist" },
       port: { type: "string", short: "p", default: "3000" },
       watch: { type: "boolean", short: "w", default: false },

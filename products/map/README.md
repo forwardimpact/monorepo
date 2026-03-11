@@ -64,4 +64,4 @@ examples/
 └── questions/            # Interview questions
 ```
 
-See the [documentation](../../docs/map/index.md) for details.
+See the [documentation](../../website/docs/map/index.md) for details.

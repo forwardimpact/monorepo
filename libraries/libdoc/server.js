@@ -33,7 +33,7 @@ export class DocsServer {
    * @returns {void}
    */
   watch(docsDir, distDir) {
-    console.log("Watching for changes in docs/...");
+    console.log(`Watching for changes in ${docsDir}...`);
 
     this.#watcher = this.#fs.watch(
       docsDir,

@@ -65,4 +65,4 @@ import { formatSkillForMarkdown } from "@forwardimpact/pathway/formatters";
 import { runCommand } from "@forwardimpact/pathway/commands";
 ```
 
-See the [documentation](../../docs/pathway/index.md) for usage details.
+See the [documentation](../../website/docs/pathway/index.md) for usage details.

@@ -30,8 +30,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build documentation
-        run: npx fit-doc build --src=docs --out=dist
+      - name: Build website
+        run: npx fit-doc build --src=website --out=dist
 
       - name: Copy JSON schema files
         run: |
@@ -44,7 +44,7 @@ jobs:
           cp products/map/schema/rdf/*.ttl dist/schema/rdf/
 
       - name: Copy CNAME file
-        run: cp docs/CNAME dist/
+        run: cp website/CNAME dist/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

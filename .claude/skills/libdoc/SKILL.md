@@ -30,7 +30,7 @@ preview.
 import { DocsBuilder } from "@forwardimpact/libdoc";
 
 const builder = new DocsBuilder({
-  srcDir: "docs",
+  srcDir: "website",
   outDir: "public",
 });
 await builder.build();
@@ -54,7 +54,7 @@ file hosting.
 
 ```sh
 # Build documentation
-npx fit-doc build --src=docs --out=dist
+npx fit-doc build --src=website --out=dist
 
 # Serve with live reload
 npx fit-doc serve --watch

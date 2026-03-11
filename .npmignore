@@ -15,5 +15,5 @@ playwright-report/
 playwright.config.js
 
 # Documentation
-docs/
+website/
 .github/
