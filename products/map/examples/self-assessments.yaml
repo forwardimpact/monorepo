@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/self-assessments.schema.json
 
 - id: example_mid_swe
-  skillLevels:
+  skillProficiencies:
     architecture_design: working
     code_quality: working
     devops: foundational
@@ -22,7 +22,7 @@
 
 # Example: Senior Data Engineer
 - id: example_senior_de
-  skillLevels:
+  skillProficiencies:
     data_modeling: practitioner
     data_integration: practitioner
     architecture_design: working
@@ -43,7 +43,7 @@
 
 # Example: Data Scientist - R&D Focus
 - id: example_ds_rd
-  skillLevels:
+  skillProficiencies:
     model_development: working
     data_analysis: working
     statistical_modeling: working
