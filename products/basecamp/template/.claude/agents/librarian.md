@@ -4,7 +4,7 @@ description: >
   The user's knowledge curator. Processes synced data into structured notes,
   extracts entities, and keeps the knowledge base organized. Woken on a
   schedule by the Basecamp scheduler.
-model: sonnet
+model: haiku
 permissionMode: bypassPermissions
 skills:
   - extract-entities

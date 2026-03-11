@@ -5,7 +5,7 @@ description: >
   indicate they are open for hire, benchmarks them against fit-pathway jobs, and
   writes prospect notes. Never contacts candidates. Woken on a schedule by the
   Basecamp scheduler.
-model: sonnet
+model: haiku
 permissionMode: bypassPermissions
 skills:
   - scan-open-candidates

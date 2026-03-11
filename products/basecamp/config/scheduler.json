@@ -2,32 +2,32 @@
   "agents": {
     "postman": {
       "kb": "~/Documents/Personal",
-      "schedule": { "type": "interval", "minutes": 5 },
+      "schedule": { "type": "cron", "expression": "*/15 8-18 * * 1-5" },
       "enabled": true
     },
     "concierge": {
       "kb": "~/Documents/Personal",
-      "schedule": { "type": "interval", "minutes": 10 },
+      "schedule": { "type": "cron", "expression": "*/30 8-18 * * 1-5" },
       "enabled": true
     },
     "librarian": {
       "kb": "~/Documents/Personal",
-      "schedule": { "type": "interval", "minutes": 15 },
+      "schedule": { "type": "cron", "expression": "0 9,12,15,18 * * 1-5" },
       "enabled": true
     },
     "chief-of-staff": {
       "kb": "~/Documents/Personal",
-      "schedule": { "type": "cron", "expression": "0 7,18 * * *" },
+      "schedule": { "type": "cron", "expression": "0 7,18 * * 1-5" },
       "enabled": true
     },
     "recruiter": {
       "kb": "~/Documents/Personal",
-      "schedule": { "type": "interval", "minutes": 30 },
+      "schedule": { "type": "cron", "expression": "0 8,12,17 * * 1-5" },
       "enabled": true
     },
     "head-hunter": {
       "kb": "~/Documents/Personal",
-      "schedule": { "type": "interval", "minutes": 60 },
+      "schedule": { "type": "cron", "expression": "0 9 * * 1-5" },
       "enabled": true
     }
   }
