@@ -1,16 +1,18 @@
 /**
  * Prose Engine — LLM-assisted prose generation with cache.
  *
- * Uses libllm for completions and libutil for cache key hashing.
+ * Uses libllm for completions, libutil for cache key hashing,
+ * and libprompt for prompt template loading.
  */
 
 import { readFileSync, writeFileSync, existsSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 import { generateHash } from "@forwardimpact/libutil";
+import { PromptLoader } from "@forwardimpact/libprompt";
 
-const SYSTEM_PROMPT =
-  "You are a technical writer for a pharmaceutical company. " +
-  "Generate concise, realistic content. Output the text only, no explanations " +
-  "or markdown formatting.";
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const prompts = new PromptLoader(join(__dirname, "..", "prompts"));
 
 export class ProseEngine {
   /**
@@ -67,7 +69,7 @@ export class ProseEngine {
     // LlmApi.createCompletions expects a window object with messages array
     const response = await this.llmApi.createCompletions({
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: prompts.load("prose-system") },
         { role: "user", content: prompt },
       ],
       max_tokens: context.maxTokens || 500,
@@ -156,14 +158,12 @@ export class ProseEngine {
  * @returns {string}
  */
 function buildPrompt(key, context) {
-  const topic = context.topic || key.replace(/_/g, " ").replace(/-/g, " ");
-  const tone = context.tone || "technical";
-  const length = context.length || "2-3 paragraphs";
-  const parts = [`Write ${length} of ${tone} prose about: ${topic}.`];
-  if (context.domain) parts.push(`Company domain: ${context.domain}.`);
-  if (context.role)
-    parts.push(`Written from the perspective of: ${context.role}.`);
-  if (context.audience) parts.push(`Target audience: ${context.audience}.`);
-  parts.push("Output the text only, no explanations.");
-  return parts.join("\n");
+  return prompts.render("prose-user", {
+    topic: context.topic || key.replace(/_/g, " ").replace(/-/g, " "),
+    tone: context.tone || "technical",
+    length: context.length || "2-3 paragraphs",
+    domain: context.domain,
+    role: context.role,
+    audience: context.audience,
+  });
 }

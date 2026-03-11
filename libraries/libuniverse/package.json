@@ -35,9 +35,10 @@
     "@forwardimpact/libconfig": "^0.1.59",
     "@forwardimpact/libformat": "^0.1.1",
     "@forwardimpact/libllm": "^0.1.72",
+    "@forwardimpact/libprompt": "^0.1.0",
+    "@forwardimpact/libtemplate": "^0.2.0",
     "@forwardimpact/libutil": "^0.1.61",
     "@supabase/supabase-js": "^2.0.0",
-    "mustache": "^4.2.0",
     "seedrandom": "^3.0.5",
     "yaml": "^2.3.0"
   },

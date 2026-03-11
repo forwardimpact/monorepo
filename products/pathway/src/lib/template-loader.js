@@ -17,7 +17,7 @@ const loader = createTemplateLoader(join(__dirname, "..", "..", "templates"));
  * Load a template file with fallback to package defaults
  * @param {string} templateName - Template filename
  * @param {string} dataDir - Path to data directory
- * @returns {Promise<string>}
+ * @returns {string}
  */
 export function loadTemplate(templateName, dataDir) {
   return loader.load(templateName, dataDir);

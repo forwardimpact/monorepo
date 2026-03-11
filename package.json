@@ -41,6 +41,7 @@
     "libraries/libtool",
     "libraries/libweb",
     "libraries/libtemplate",
+    "libraries/libprompt",
     "libraries/libuniverse",
     "products/guide",
     "services/agent",

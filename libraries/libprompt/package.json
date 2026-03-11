@@ -1,12 +1,12 @@
 {
-  "name": "@forwardimpact/libtemplate",
-  "version": "0.2.0",
-  "description": "Mustache template loading with data directory fallback",
+  "name": "@forwardimpact/libprompt",
+  "version": "0.1.0",
+  "description": "Prompt template loading and rendering with Mustache",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/forwardimpact/monorepo",
-    "directory": "libraries/libtemplate"
+    "directory": "libraries/libprompt"
   },
   "type": "module",
   "main": "index.js",
