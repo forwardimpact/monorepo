@@ -4,35 +4,32 @@ import assert from "node:assert";
 // Module under test
 import { createBundleDownloader } from "../index.js";
 
+const noop = () => {};
+const mockLogger = { info: noop, debug: noop, warn: noop, error: noop };
+
 describe("libutil", () => {
   describe("createBundleDownloader", () => {
-    test("creates BundleDownloader instance with correct dependencies", async () => {
+    test("creates BundleDownloader instance with correct dependencies", () => {
       const mockStorageFactory = mock.fn();
-      const mockProcess = { env: { STORAGE_TYPE: "local" } };
 
-      const downloader = await createBundleDownloader(
-        mockStorageFactory,
-        mockProcess,
-      );
+      const downloader = createBundleDownloader(mockStorageFactory, mockLogger);
 
       assert.ok(downloader);
-      // Check that it's a BundleDownloader instance by checking if it has the expected methods
       assert.ok(typeof downloader.initialize === "function");
       assert.ok(typeof downloader.download === "function");
     });
 
-    test("validates storageFactory parameter", async () => {
-      await assert.rejects(() => createBundleDownloader(null), {
+    test("validates storageFactory parameter", () => {
+      assert.throws(() => createBundleDownloader(null, mockLogger), {
         message: /createStorage is required/,
       });
     });
 
-    test("uses global process when not provided", async () => {
+    test("validates logger parameter", () => {
       const mockStorageFactory = mock.fn();
-
-      const downloader = await createBundleDownloader(mockStorageFactory);
-
-      assert.ok(downloader);
+      assert.throws(() => createBundleDownloader(mockStorageFactory, null), {
+        message: /logger is required/,
+      });
     });
   });
 });

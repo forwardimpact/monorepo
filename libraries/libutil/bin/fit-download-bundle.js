@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
+import { spawn } from "node:child_process";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createStorage } from "@forwardimpact/libstorage";
+import { createLogger } from "@forwardimpact/libtelemetry";
 import { createBundleDownloader, execLine } from "@forwardimpact/libutil";
 
 /**
@@ -11,11 +13,12 @@ import { createBundleDownloader, execLine } from "@forwardimpact/libutil";
  */
 async function main() {
   await createScriptConfig("download-bundle");
-  const downloader = await createBundleDownloader(createStorage);
+  const logger = createLogger("generated");
+  const downloader = createBundleDownloader(createStorage, logger);
   await downloader.download();
 
   // If additional arguments provided, execute them after download
-  execLine();
+  execLine(0, { spawn, process });
 }
 
 main().catch((error) => {

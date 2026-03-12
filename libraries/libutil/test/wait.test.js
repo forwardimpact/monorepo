@@ -3,13 +3,26 @@ import assert from "node:assert";
 
 import { waitFor } from "../wait.js";
 
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 describe("waitFor", () => {
+  test("throws if delayFn is missing", async () => {
+    await assert.rejects(
+      () => waitFor(() => Promise.resolve(true), {}),
+      /delayFn is required/,
+    );
+  });
+
   test("resolves immediately when condition is true", async () => {
     let callCount = 0;
-    await waitFor(() => {
-      callCount++;
-      return Promise.resolve(true);
-    });
+    await waitFor(
+      () => {
+        callCount++;
+        return Promise.resolve(true);
+      },
+      {},
+      delay,
+    );
 
     assert.strictEqual(callCount, 1);
   });
@@ -22,6 +35,7 @@ describe("waitFor", () => {
         return Promise.resolve(callCount >= 3);
       },
       { interval: 10, timeout: 5000 },
+      delay,
     );
 
     assert.strictEqual(callCount, 3);
@@ -30,10 +44,11 @@ describe("waitFor", () => {
   test("throws error on timeout", async () => {
     await assert.rejects(
       () =>
-        waitFor(() => Promise.resolve(false), {
-          timeout: 50,
-          interval: 10,
-        }),
+        waitFor(
+          () => Promise.resolve(false),
+          { timeout: 50, interval: 10 },
+          delay,
+        ),
       { message: "Timeout waiting for condition after 50ms" },
     );
   });
@@ -49,18 +64,22 @@ describe("waitFor", () => {
         return Promise.resolve(true);
       },
       { interval: 10, timeout: 5000 },
+      delay,
     );
 
     assert.strictEqual(callCount, 3);
   });
 
   test("uses default options when not provided", async () => {
-    // Just verify it doesn't throw with defaults
     let called = false;
-    await waitFor(() => {
-      called = true;
-      return Promise.resolve(true);
-    });
+    await waitFor(
+      () => {
+        called = true;
+        return Promise.resolve(true);
+      },
+      {},
+      delay,
+    );
 
     assert.strictEqual(called, true);
   });
@@ -81,6 +100,7 @@ describe("waitFor", () => {
         return Promise.resolve(callCount >= 4);
       },
       { interval: 20, maxInterval: 100, timeout: 5000 },
+      delay,
     );
 
     // Intervals should generally increase (with some tolerance for timing)

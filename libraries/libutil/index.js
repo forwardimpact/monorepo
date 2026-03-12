@@ -1,7 +1,6 @@
 import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
-import { spawn } from "child_process";
 
 import { Tokenizer, ranks } from "./tokenizer.js";
 import { Finder } from "./finder.js";
@@ -10,16 +9,22 @@ import { TarExtractor } from "./extractor.js";
 
 /**
  * Updates or creates an environment variable in .env file
+ * @param {string} filePath - Path to .env file
  * @param {string} key - Environment variable name (e.g., "SERVICE_SECRET")
  * @param {string} value - Environment variable value
- * @param {string} [envPath] - Path to .env file (defaults to .env in current directory)
+ * @param {object} fsFns - File system functions
+ * @param {Function} fsFns.readFile - Async file read function
+ * @param {Function} fsFns.writeFile - Async file write function
  */
-export async function updateEnvFile(key, value, envPath = ".env") {
-  const fullPath = path.resolve(envPath);
+export async function updateEnvFile(filePath, key, value, fsFns) {
+  if (!fsFns?.readFile) throw new Error("fsFns.readFile is required");
+  if (!fsFns?.writeFile) throw new Error("fsFns.writeFile is required");
+
+  const fullPath = path.resolve(filePath);
   let content = "";
 
   try {
-    content = await fs.readFile(fullPath, "utf8");
+    content = await fsFns.readFile(fullPath, "utf8");
   } catch (error) {
     // It's ok if the file doesn't exist
     if (error.code !== "ENOENT") throw error;
@@ -47,7 +52,7 @@ export async function updateEnvFile(key, value, envPath = ".env") {
   }
 
   // Write back to file
-  await fs.writeFile(fullPath, lines.join("\n"));
+  await fsFns.writeFile(fullPath, lines.join("\n"));
 }
 
 /**
@@ -95,14 +100,13 @@ export function createTokenizer() {
  * Creates a BundleDownloader instance configured for generated code management.
  * Used in containerized deployments to download pre-generated code bundles.
  * @param {Function} createStorage - Storage factory function from libstorage
- * @returns {Promise<BundleDownloader>} Configured BundleDownloader instance
+ * @param {object} logger - Logger instance
+ * @returns {BundleDownloader} Configured BundleDownloader instance
  */
-export async function createBundleDownloader(createStorage) {
+export function createBundleDownloader(createStorage, logger) {
   if (!createStorage) throw new Error("createStorage is required");
+  if (!logger) throw new Error("logger is required");
 
-  // Dynamic import to avoid circular dependency with libtelemetry
-  const { createLogger } = await import("@forwardimpact/libtelemetry");
-  const logger = createLogger("generated");
   const finder = new Finder(fs, logger);
   const extractor = new TarExtractor(fs, path);
 
@@ -111,11 +115,18 @@ export async function createBundleDownloader(createStorage) {
 
 /**
  * Executes command line arguments as child process, similar to execv() in C
- * @param {number} [shift] - Number of arguments to skip from process.argv before extracting command
+ * @param {number} shift - Number of arguments to skip from process.argv before extracting command
+ * @param {object} deps - Required dependencies
+ * @param {Function} deps.spawn - Child process spawn function
+ * @param {object} deps.process - Process object (argv, env, on, exit)
  * @returns {void} Function does not return - exits parent process
  */
-export function execLine(shift = 0) {
-  const args = process.argv.slice(2 + shift);
+export function execLine(shift, deps) {
+  if (!deps?.spawn) throw new Error("deps.spawn is required");
+  if (!deps?.process) throw new Error("deps.process is required");
+
+  const { spawn: spawnFn, process: proc } = deps;
+  const args = proc.argv.slice(2 + (shift || 0));
   if (args.length === 0) return;
 
   // Look for '--' delimiter and use everything after it as the command
@@ -125,23 +136,23 @@ export function execLine(shift = 0) {
   if (line.length === 0) return;
 
   const [command, ...commandArgs] = line;
-  const child = spawn(command, commandArgs, {
+  const child = spawnFn(command, commandArgs, {
     stdio: "inherit",
-    env: process.env,
+    env: proc.env,
   });
 
   // Forward signals to child process
   ["SIGTERM", "SIGINT", "SIGQUIT"].forEach((signal) => {
-    process.on(signal, () => child.kill(signal));
+    proc.on(signal, () => child.kill(signal));
   });
 
   child.on("error", (error) => {
     console.error("Error:", error);
-    process.exit(1);
+    proc.exit(1);
   });
 
   child.on("exit", (code, signal) => {
-    process.exit(signal ? 1 : code || 0);
+    proc.exit(signal ? 1 : code || 0);
   });
 }
 

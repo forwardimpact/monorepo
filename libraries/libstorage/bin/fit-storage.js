@@ -65,7 +65,8 @@ const commands = {
     const storage = createStorage("");
     const timeout = parseInt(values.timeout);
     console.log(`Waiting for storage (timeout: ${timeout}ms)...`);
-    await waitFor(() => storage.isHealthy(), { timeout });
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    await waitFor(() => storage.isHealthy(), { timeout }, delay);
     console.log("Storage is ready");
   },
 
