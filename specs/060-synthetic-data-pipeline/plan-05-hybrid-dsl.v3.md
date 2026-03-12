@@ -17,9 +17,9 @@ This is v3 of the plan, revised after v2 to address two architectural gaps:
    `package.json` so it is available as `npx fit-universe`.
 
 2. **Output format mismatch.** v2 generated fully-transformed database rows as
-   bulk JSON arrays (e.g., `examples/activity/github_events.json` at ~6 MB).
-   The ingestion gap analysis on the implementation branch revealed that this
-   data could not be directly loaded by the existing ingestion pipeline and
+   bulk JSON arrays (e.g., `examples/activity/github_events.json` at ~6 MB). The
+   ingestion gap analysis on the implementation branch revealed that this data
+   could not be directly loaded by the existing ingestion pipeline and
    duplicated transform logic. v3 aligns with the ELT pattern (spec 051):
    synthetic data is generated as **raw documents** — the same format that the
    Extract step produces — and loaded directly into Supabase Storage. The
@@ -34,12 +34,12 @@ This is v3 of the plan, revised after v2 to address two architectural gaps:
   `libraries/libuniverse/`. No `scripts/generate/` directory.
 - **No dynamic imports.** All dependencies are static ESM imports.
 - **Config via libconfig.** LLM tokens, model names, base URLs, and pipeline
-  settings come from `createScriptConfig()` and environment variables — not
-  CLI flags.
+  settings come from `createScriptConfig()` and environment variables — not CLI
+  flags.
 - **fit-map stays simple.** The `fit-map` CLI gains zero new commands or flags.
 - **Generate raw documents, not DB rows.** The pipeline produces the same
-  document formats as the ELT Extract step (spec 051). Synthetic data enters
-  the pipeline at the Load boundary, not at the Transform output.
+  document formats as the ELT Extract step (spec 051). Synthetic data enters the
+  pipeline at the Load boundary, not at the Transform output.
 
 ## Approach
 
@@ -49,12 +49,12 @@ execution engine processes this specification:
 
 - **Tier 0 (deterministic):** Entity graphs, relationships, activity data,
   signal curves — pure functions, seeded PRNG, no LLM
-- **Tier 1 (LLM-assisted):** Prose fields (descriptions, evidence, articles)
-  — generated via `libllm` (any OpenAI-compatible endpoint) or cached
+- **Tier 1 (LLM-assisted):** Prose fields (descriptions, evidence, articles) —
+  generated via `libllm` (any OpenAI-compatible endpoint) or cached
 - **Tier 2 (cached):** Previously generated Tier 1 output stored in a cache
   file, enabling fully offline/deterministic runs after initial generation
 
-The key insight: separate what *must* be natural language from what can be
+The key insight: separate what _must_ be natural language from what can be
 computed. Only ~15% of output tokens require LLM generation; the rest is
 structural.
 
@@ -87,17 +87,17 @@ universe.dsl ──► libuniverse
 
 Every cross-cutting concern maps to an existing library:
 
-| Concern                | Library      | API                                        |
-| ---------------------- | ------------ | ------------------------------------------ |
-| Configuration          | libconfig    | `createScriptConfig('universe', defaults)` |
-| LLM completions        | libllm       | `createLlmApi()` → `createCompletions()`   |
-| Token budgeting        | libutil      | `countTokens()`, `createTokenizer()`       |
-| Deterministic hashing  | libutil      | `generateHash()`                           |
-| HTML sanitization      | libformat    | `createHtmlFormatter()`                    |
-| Project root discovery | libutil      | `Finder`                                   |
-| YAML serialization     | yaml (npm)   | `YAML.stringify()`                         |
-| Seeded PRNG            | seedrandom   | `seedrandom()`                             |
-| Supabase client        | @supabase/supabase-js | `createClient()`                  |
+| Concern                | Library               | API                                        |
+| ---------------------- | --------------------- | ------------------------------------------ |
+| Configuration          | libconfig             | `createScriptConfig('universe', defaults)` |
+| LLM completions        | libllm                | `createLlmApi()` → `createCompletions()`   |
+| Token budgeting        | libutil               | `countTokens()`, `createTokenizer()`       |
+| Deterministic hashing  | libutil               | `generateHash()`                           |
+| HTML sanitization      | libformat             | `createHtmlFormatter()`                    |
+| Project root discovery | libutil               | `Finder`                                   |
+| YAML serialization     | yaml (npm)            | `YAML.stringify()`                         |
+| Seeded PRNG            | seedrandom            | `seedrandom()`                             |
+| Supabase client        | @supabase/supabase-js | `createClient()`                           |
 
 **No new utility code** should be written for concerns already handled by these
 libraries. If a library is missing functionality, extend the library — do not
@@ -296,8 +296,8 @@ universe BioNova {
 
 ### DSL Parser
 
-The DSL parser is a simple recursive-descent parser that produces an AST.
-It lives in `libraries/libuniverse/dsl/`:
+The DSL parser is a simple recursive-descent parser that produces an AST. It
+lives in `libraries/libuniverse/dsl/`:
 
 ```javascript
 // libraries/libuniverse/dsl/index.js
@@ -316,8 +316,8 @@ export function parseUniverse(source) {
 }
 ```
 
-The tokenizer and parser are the same recursive-descent approach as v1.
-AST node types:
+The tokenizer and parser are the same recursive-descent approach as v1. AST node
+types:
 
 ```
 UniverseAST { name, domain, industry, seed, orgs, departments, teams,
@@ -520,8 +520,9 @@ export async function runPipeline(options) {
 ```
 
 **Key differences from v2:**
-- The pipeline returns `rawDocuments` (a `Map<string, string>` of storage
-  paths → JSON content) separately from `files` (filesystem paths → content).
+
+- The pipeline returns `rawDocuments` (a `Map<string, string>` of storage paths
+  → JSON content) separately from `files` (filesystem paths → content).
 - Activity data is rendered as raw documents matching the Extract step format,
   not as bulk JSON arrays of database rows.
 - The CLI decides whether to write raw documents to local files or load them
@@ -579,21 +580,21 @@ export function createSeededRNG(seed) {
 
 #### Activity Generation Algorithm
 
-The `generateActivity()` function in `tier0.js` produces the same entity
-data structures as v2, but the data is rendered into raw documents by the
-renderer (not into bulk database-row arrays).
+The `generateActivity()` function in `tier0.js` produces the same entity data
+structures as v2, but the data is rendered into raw documents by the renderer
+(not into bulk database-row arrays).
 
 The function produces:
 
 1. **`roster`** — One record per person from `generatePeople()`. Assigns
    `email`, `github_username`, `discipline`, `level`, `track`, `manager_email`.
 
-2. **`teams`** — Team metadata per DSL `team` block, plus parent department
-   and org entries. Used to generate the `teams.list` API response document.
+2. **`teams`** — Team metadata per DSL `team` block, plus parent department and
+   org entries. Used to generate the `teams.list` API response document.
 
 3. **`snapshots`** — Snapshot metadata per quarter between
-   `snapshots.quarterly_from` and `snapshots.quarterly_to`. Used to generate
-   the `snapshots.list` API response document.
+   `snapshots.quarterly_from` and `snapshots.quarterly_to`. Used to generate the
+   `snapshots.list` API response document.
 
 4. **`scores`** — Per snapshot × team × driver score records. Used to generate
    `snapshots.info` API response documents (one per snapshot).
@@ -605,16 +606,16 @@ The function produces:
 
 6. **`evidence`** — For each artifact belonging to a person in a scenario-
    affected team, generate evidence records for the scenario's
-   `evidence_skills`. Evidence is included in the entity model for
-   cross-content validation, but is generated as database rows (not raw
-   documents) since evidence has no external source system — it is written by
-   Guide at runtime. The synthetic pipeline loads evidence directly.
+   `evidence_skills`. Evidence is included in the entity model for cross-content
+   validation, but is generated as database rows (not raw documents) since
+   evidence has no external source system — it is written by Guide at runtime.
+   The synthetic pipeline loads evidence directly.
 
 ### Tier 1 — LLM-Assisted Prose
 
 Uses `libllm` directly via a pre-configured `LlmApi` instance passed in. Uses
-`generateHash` from `libutil` for cache keys. No `process.env` reads, no
-dynamic imports:
+`generateHash` from `libutil` for cache keys. No `process.env` reads, no dynamic
+imports:
 
 ```javascript
 // libraries/libuniverse/engine/prose.js
@@ -709,8 +710,8 @@ function buildPrompt(key, context) {
 
 ### Tier 2 — Cache-Only Mode
 
-Same as v2 — a committed `.prose-cache.json` file keyed by content hash.
-The CLI controls which mode is active:
+Same as v2 — a committed `.prose-cache.json` file keyed by content hash. The CLI
+controls which mode is active:
 
 ```sh
 # First run: generates prose via LLM, populates cache
@@ -779,9 +780,9 @@ export function renderYAML(entities, existingDataDir) {
 
 ### Raw Document Renderer (new in v3)
 
-**Replaces v2's `table.js`** (which produced bulk JSON arrays of DB rows).
-The raw document renderer produces individual JSON documents matching the
-format that the ELT Extract step (spec 051) writes to Supabase Storage.
+**Replaces v2's `table.js`** (which produced bulk JSON arrays of DB rows). The
+raw document renderer produces individual JSON documents matching the format
+that the ELT Extract step (spec 051) writes to Supabase Storage.
 
 The output is a `Map<string, string>` where keys are Supabase Storage paths
 (within the `raw` bucket) and values are JSON document strings.
@@ -842,6 +843,7 @@ The `payload` field contains a realistic GitHub webhook body matching the
 well-known schemas:
 
 **`push` event payload:**
+
 ```json
 {
   "ref": "refs/heads/main",
@@ -861,6 +863,7 @@ well-known schemas:
 ```
 
 **`pull_request` event payload:**
+
 ```json
 {
   "action": "opened",
@@ -885,6 +888,7 @@ well-known schemas:
 ```
 
 **`pull_request_review` event payload:**
+
 ```json
 {
   "action": "submitted",
@@ -1262,7 +1266,8 @@ node -e "import { transformAll } from './products/map/activity/transform/index.j
 ## CLI — fit-universe
 
 The CLI lives in `libraries/libuniverse/bin/fit-universe.js` and is registered
-in `package.json` as the `fit-universe` binary, available via `npx fit-universe`.
+in `package.json` as the `fit-universe` binary, available via
+`npx fit-universe`.
 
 ```javascript
 #!/usr/bin/env node
@@ -1559,22 +1564,22 @@ People CSV     ──► Extract edge function ──► Supabase Storage (raw/ 
                                               Supabase DB tables
 ```
 
-**The Transform step is identical for both paths.** This is the core design
-goal of aligning with the ELT pattern.
+**The Transform step is identical for both paths.** This is the core design goal
+of aligning with the ELT pattern.
 
 ## Strengths
 
 - **Best of both worlds**: Deterministic structure + LLM prose quality
 - **ELT-aligned**: Synthetic data enters at the same boundary as real data
 - **No transform duplication**: v2 duplicated transform logic by generating
-  pre-transformed DB rows; v3 generates raw documents that flow through the
-  same Transform step as real data
+  pre-transformed DB rows; v3 generates raw documents that flow through the same
+  Transform step as real data
 - **Individual documents**: No 6 MB bulk files — each webhook is a separate
   document matching the natural granularity of the data
 - **Proper CLI**: `npx fit-universe` follows monorepo conventions — no ad-hoc
   scripts directory
-- **Cache makes it deterministic**: After first LLM run, all subsequent runs
-  are fully reproducible
+- **Cache makes it deterministic**: After first LLM run, all subsequent runs are
+  fully reproducible
 - **CI-friendly**: Cached mode runs in seconds, fails fast on stale cache
 - **DSL is self-documenting**: The universe file is a readable specification
 - **LLM-agnostic**: Tier 1 works with any LLM backend via libllm
@@ -1591,12 +1596,12 @@ goal of aligning with the ELT pattern.
 
 - **Custom DSL maintenance**: The DSL parser is bespoke code; changes to the
   data model require DSL grammar updates
-- **Two-run workflow**: First run requires LLM access; only subsequent runs
-  are fully offline
+- **Two-run workflow**: First run requires LLM access; only subsequent runs are
+  fully offline
 - **Cache staleness**: If the DSL changes, cache keys change, requiring
   regeneration of affected prose
-- **Supabase dependency for --load**: The Supabase loader adds an
-  infrastructure dependency, though local file mode remains available
+- **Supabase dependency for --load**: The Supabase loader adds an infrastructure
+  dependency, though local file mode remains available
 
 ## Downstream Changes
 
@@ -1613,9 +1618,9 @@ monorepo fallback to resolve `../../examples/framework` (two levels up from
 reflect the new default.
 
 **`products/map/src/loader.js`** — `loadExampleData(rootDir, options)` loads
-from `join(rootDir, "examples")`. Update to load from `join(rootDir,
-"examples/framework")` when called from the monorepo context, or accept the
-full path directly.
+from `join(rootDir, "examples")`. Update to load from
+`join(rootDir, "examples/framework")` when called from the monorepo context, or
+accept the full path directly.
 
 **`products/map/package.json`** — The `files` array includes `"examples/"` and
 exports map `"./examples/*": "./examples/*"`. Remove these entries since example
@@ -1625,8 +1630,8 @@ data no longer lives inside the map package. Downstream consumers that
 ### products/pathway (fit-pathway)
 
 **`products/pathway/bin/fit-pathway.js`** — Data resolution priority includes
-`products/map/examples/` as a monorepo development fallback. Update to
-resolve `join(process.cwd(), "examples/framework")` instead.
+`products/map/examples/` as a monorepo development fallback. Update to resolve
+`join(process.cwd(), "examples/framework")` instead.
 
 **`products/pathway/src/commands/init.js`** — The `init` command copies example
 data from `join(__dirname, "..", "..", "examples")` (which resolves to
@@ -1642,8 +1647,8 @@ knowledge example data now lives at `examples/personal/` rather than
 
 ### tests
 
-**`tests/job-builder.spec.js`** — Uses hardcoded IDs from example data. The
-test data path resolution must be updated if it loads framework files directly.
+**`tests/job-builder.spec.js`** — Uses hardcoded IDs from example data. The test
+data path resolution must be updated if it loads framework files directly.
 
 ### AGENTS.md and skill files
 
@@ -1651,8 +1656,8 @@ test data path resolution must be updated if it loads framework files directly.
 `products/map/examples/`. Update to `examples/` with sub-paths for each content
 type.
 
-**`.claude/skills/fit-map/SKILL.md`** — Data structure diagram shows
-`examples/` under the map product. Update to reference the monorepo root.
+**`.claude/skills/fit-map/SKILL.md`** — Data structure diagram shows `examples/`
+under the map product. Update to reference the monorepo root.
 
 **`.claude/skills/fit-pathway/SKILL.md`** — Data resolution priority references
 `products/map/examples/`. Update to `examples/framework/`.
@@ -1667,18 +1672,18 @@ updated.
 
 ### Summary of required changes
 
-| Component               | File(s)                                      | Change                                          |
-| ----------------------- | -------------------------------------------- | ----------------------------------------------- |
-| fit-map CLI             | `products/map/bin/fit-map.js`                | Update fallback path to `examples/framework`    |
-| Map loader              | `products/map/src/loader.js`                 | Update `loadExampleData()` path resolution      |
-| Map package.json        | `products/map/package.json`                  | Remove `examples/` from files and exports       |
-| fit-pathway CLI         | `products/pathway/bin/fit-pathway.js`        | Update monorepo fallback path                   |
-| Pathway init command    | `products/pathway/src/commands/init.js`      | Update example source directory                 |
-| Basecamp knowledge      | `products/basecamp/src/basecamp.js`          | Update knowledge example path if bundled        |
-| Tests                   | `tests/job-builder.spec.js`                  | Update data path resolution                     |
-| Project instructions    | `AGENTS.md`                                  | Update Key Paths table                          |
-| Skill files             | `.claude/skills/fit-map/SKILL.md` + others   | Update all example path references              |
-| CI validation           | Root `package.json` scripts                  | Pass `--data=examples/framework` to `fit-map`   |
+| Component            | File(s)                                    | Change                                        |
+| -------------------- | ------------------------------------------ | --------------------------------------------- |
+| fit-map CLI          | `products/map/bin/fit-map.js`              | Update fallback path to `examples/framework`  |
+| Map loader           | `products/map/src/loader.js`               | Update `loadExampleData()` path resolution    |
+| Map package.json     | `products/map/package.json`                | Remove `examples/` from files and exports     |
+| fit-pathway CLI      | `products/pathway/bin/fit-pathway.js`      | Update monorepo fallback path                 |
+| Pathway init command | `products/pathway/src/commands/init.js`    | Update example source directory               |
+| Basecamp knowledge   | `products/basecamp/src/basecamp.js`        | Update knowledge example path if bundled      |
+| Tests                | `tests/job-builder.spec.js`                | Update data path resolution                   |
+| Project instructions | `AGENTS.md`                                | Update Key Paths table                        |
+| Skill files          | `.claude/skills/fit-map/SKILL.md` + others | Update all example path references            |
+| CI validation        | Root `package.json` scripts                | Pass `--data=examples/framework` to `fit-map` |
 
 ## Appendix: GetDX API Response Schemas
 

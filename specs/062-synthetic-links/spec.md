@@ -15,10 +15,10 @@ specs/062-synthetic-links/
 
 ## Why
 
-The Guide product is a knowledge graph agent that traverses RDF graphs to
-answer multi-hop queries. Its evaluation requires synthetic data with realistic,
-dense cross-linking between entities. The current `libuniverse` output fails
-this requirement in five ways:
+The Guide product is a knowledge graph agent that traverses RDF graphs to answer
+multi-hop queries. Its evaluation requires synthetic data with realistic, dense
+cross-linking between entities. The current `libuniverse` output fails this
+requirement in five ways:
 
 1. **No project documents.** Projects exist in the DSL but are never rendered
    into organizational HTML. There are no project pages with start/end dates,
@@ -29,15 +29,14 @@ this requirement in five ways:
    mechanism of action, clinical phase, derivative relationships, and platform
    dependencies.
 
-3. **No technology platform graph.** No platform entities with dependency
-   chains (`softwareRequirements`), version metadata, or cross-links to
-   projects and drugs. The copilot-ld reference has 28 platforms forming a
-   dependency DAG.
+3. **No technology platform graph.** No platform entities with dependency chains
+   (`softwareRequirements`), version metadata, or cross-links to projects and
+   drugs. The copilot-ld reference has 28 platforms forming a dependency DAG.
 
 4. **Shallow courses, events, and blog posts.** Current templates produce
-   minimal microdata — courses have no IDs, no prerequisites, no attendee
-   links; events have no attendees, no `about` links; blog posts have no
-   authors, no `mentions` or `about` links to entities.
+   minimal microdata — courses have no IDs, no prerequisites, no attendee links;
+   events have no attendees, no `about` links; blog posts have no authors, no
+   `mentions` or `about` links to entities.
 
 5. **No cross-file linking.** Entities in one file don't reference entities in
    other files via stable IRIs. A project page doesn't link to its drug; a
@@ -54,14 +53,14 @@ retrieval, not graph reasoning.
 The copilot-ld project (`tmp/copilot-ld/examples/knowledge/`) demonstrates the
 target quality:
 
-| Document                        | Entities | Cross-links per entity |
-| ------------------------------- | -------- | ---------------------- |
-| projects-cross-functional.html  | 12       | 8–12 (leads, members, platforms, drugs) |
-| technology-platforms.html       | 28       | 4–8 (dependencies, projects, drugs) |
-| drugs-development-pipeline.html | 10       | 5–9 (phases, platforms, projects, events) |
-| courses-learning-catalog.html   | 16       | 4–7 (prerequisites, platforms, products) |
+| Document                        | Entities | Cross-links per entity                       |
+| ------------------------------- | -------- | -------------------------------------------- |
+| projects-cross-functional.html  | 12       | 8–12 (leads, members, platforms, drugs)      |
+| technology-platforms.html       | 28       | 4–8 (dependencies, projects, drugs)          |
+| drugs-development-pipeline.html | 10       | 5–9 (phases, platforms, projects, events)    |
+| courses-learning-catalog.html   | 16       | 4–7 (prerequisites, platforms, products)     |
 | events-program-calendar.html    | 8        | 6–10 (organizer, attendees, projects, drugs) |
-| blog-posts.html                 | 45       | 3–6 (author, about, mentions) |
+| blog-posts.html                 | 45       | 3–6 (author, about, mentions)                |
 
 The generated output must reach comparable density to enable multi-hop
 evaluation queries.
@@ -73,19 +72,19 @@ microdata linking. Specifically:
 
 ### New entity types
 
-| Entity     | Schema.org type       | Key properties |
-| ---------- | --------------------- | -------------- |
-| Drug       | `schema:Drug`         | name, drugClass, activeIngredient, clinicalPharmacology, identifier, legalStatus, isRelatedTo (projects, platforms, events, other drugs) |
-| Platform   | `schema:SoftwareApplication` | name, description, applicationCategory, softwareVersion, softwareRequirements (other platforms), isRelatedTo (projects, drugs) |
-| Project    | `schema:Project`      | name, description, identifier, startDate, endDate, creator, member, contributor (people), about (drugs), isPartOf (platforms, departments) |
+| Entity   | Schema.org type              | Key properties                                                                                                                             |
+| -------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Drug     | `schema:Drug`                | name, drugClass, activeIngredient, clinicalPharmacology, identifier, legalStatus, isRelatedTo (projects, platforms, events, other drugs)   |
+| Platform | `schema:SoftwareApplication` | name, description, applicationCategory, softwareVersion, softwareRequirements (other platforms), isRelatedTo (projects, drugs)             |
+| Project  | `schema:Project`             | name, description, identifier, startDate, endDate, creator, member, contributor (people), about (drugs), isPartOf (platforms, departments) |
 
 ### Enriched existing types
 
-| Entity     | Added properties |
-| ---------- | ---------------- |
-| Course     | identifier (course ID), coursePrerequisites (link to other courses), provider (link to org), isRelatedTo (platforms, drugs, projects), attendee (link to people) |
-| Event      | organizer (link to person), attendee (links to people), about (links to projects, drugs, platforms), location, eventStatus |
-| BlogPosting | author (link to person with name), about (inline links to drugs, platforms, projects), mentions (inline links to people, orgs), identifier, keywords |
+| Entity      | Added properties                                                                                                                                                 |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Course      | identifier (course ID), coursePrerequisites (link to other courses), provider (link to org), isRelatedTo (platforms, drugs, projects), attendee (link to people) |
+| Event       | organizer (link to person), attendee (links to people), about (links to projects, drugs, platforms), location, eventStatus                                       |
+| BlogPosting | author (link to person with name), about (inline links to drugs, platforms, projects), mentions (inline links to people, orgs), identifier, keywords             |
 
 ### Cross-linking requirements
 
@@ -98,18 +97,19 @@ them into a single connected RDF graph.
 
 The output must enable at least these query patterns:
 
-| Hops | Query pattern | Example |
-| ---- | ------------- | ------- |
-| 1    | person → team | "What team does Thoth lead?" |
-| 2    | person → project → drug | "What drugs are connected to Thoth's projects?" |
-| 2    | course → prerequisite → platform | "What platforms does Pharm 301's prerequisite chain cover?" |
-| 3    | drug → project → person → team | "What teams have members working on Oncora projects?" |
-| 3    | platform → dependency → project → event | "What events relate to projects using MolecularForge's dependencies?" |
-| 4    | blog → author → team → project → drug | "What drugs relate to projects led by teams whose members author blog posts?" |
+| Hops | Query pattern                           | Example                                                                       |
+| ---- | --------------------------------------- | ----------------------------------------------------------------------------- |
+| 1    | person → team                           | "What team does Thoth lead?"                                                  |
+| 2    | person → project → drug                 | "What drugs are connected to Thoth's projects?"                               |
+| 2    | course → prerequisite → platform        | "What platforms does Pharm 301's prerequisite chain cover?"                   |
+| 3    | drug → project → person → team          | "What teams have members working on Oncora projects?"                         |
+| 3    | platform → dependency → project → event | "What events relate to projects using MolecularForge's dependencies?"         |
+| 4    | blog → author → team → project → drug   | "What drugs relate to projects led by teams whose members author blog posts?" |
 
 ### Structural constraints
 
-- All entity IRIs use the DSL `domain` as base: `https://{domain}/id/{type}/{slug}`
+- All entity IRIs use the DSL `domain` as base:
+  `https://{domain}/id/{type}/{slug}`
 - Person IRIs reuse the existing `person.iri` from entity generation
 - Drug, platform, project IRIs are deterministic from DSL identifiers
 - Courses use sequential IDs (e.g. `PHARM-101`) with prerequisite chains
@@ -122,14 +122,14 @@ The output must enable at least these query patterns:
 
 These new or enriched files land in `examples/organizational/`:
 
-| File | Content |
-| ---- | ------- |
-| `projects-cross-functional.html` | New — all projects with members, platforms, drugs |
-| `technology-platforms-dependencies.html` | New — platform dependency graph |
-| `drugs-development-pipeline.html` | New — drug pipeline with phases and links |
-| `courses-learning-catalog.html` | Enriched — add IDs, prerequisites, attendees, platform/product links |
-| `events-program-calendar.html` | Enriched — add organizer, attendees, about links |
-| `blog-posts.html` | Enriched — add named authors, about/mentions links with inline microdata |
+| File                                     | Content                                                                  |
+| ---------------------------------------- | ------------------------------------------------------------------------ |
+| `projects-cross-functional.html`         | New — all projects with members, platforms, drugs                        |
+| `technology-platforms-dependencies.html` | New — platform dependency graph                                          |
+| `drugs-development-pipeline.html`        | New — drug pipeline with phases and links                                |
+| `courses-learning-catalog.html`          | Enriched — add IDs, prerequisites, attendees, platform/product links     |
+| `events-program-calendar.html`           | Enriched — add organizer, attendees, about links                         |
+| `blog-posts.html`                        | Enriched — add named authors, about/mentions links with inline microdata |
 
 ### What NOT to change
 

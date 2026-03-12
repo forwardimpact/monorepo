@@ -11,12 +11,12 @@ This is v2 of the plan, revised after an implementation attempt that was largely
 successful but revealed three architectural problems:
 
 1. **Library underuse.** The monorepo has libraries (`libutil`, `libllm`,
-   `libconfig`, `libformat`, `libstorage`) designed for exactly the concerns
-   the pipeline reimplemented from scratch (hashing, LLM calls, config loading,
-   HTML formatting, file I/O). The result was duplicated logic and missed
-   utility (e.g. hand-rolling `process.env` reads instead of using
-   `createScriptConfig`, reimplementing YAML serialization instead of using the
-   `yaml` package, building a custom RNG instead of using `seedrandom`).
+   `libconfig`, `libformat`, `libstorage`) designed for exactly the concerns the
+   pipeline reimplemented from scratch (hashing, LLM calls, config loading, HTML
+   formatting, file I/O). The result was duplicated logic and missed utility
+   (e.g. hand-rolling `process.env` reads instead of using `createScriptConfig`,
+   reimplementing YAML serialization instead of using the `yaml` package,
+   building a custom RNG instead of using `seedrandom`).
 
 2. **CLI overload.** The `generate` command was bolted onto `fit-map` with 12+
    flags (`--token`, `--model`, `--base-url`, `--temperature`, `--cached`,
@@ -41,8 +41,8 @@ successful but revealed three architectural problems:
   is needed, it is declared in `package.json` and imported at the top of the
   file.
 - **Config via libconfig.** LLM tokens, model names, base URLs, and pipeline
-  settings come from `createScriptConfig()` and environment variables — not
-  CLI flags.
+  settings come from `createScriptConfig()` and environment variables — not CLI
+  flags.
 - **fit-map stays simple.** The `fit-map` CLI gains zero new commands or flags.
   Generation is its own script: `node scripts/generate/cli.js`.
 
@@ -54,12 +54,12 @@ execution engine processes this specification:
 
 - **Tier 0 (deterministic):** Entity graphs, relationships, activity data,
   signal curves — pure functions, seeded PRNG, no LLM
-- **Tier 1 (LLM-assisted):** Prose fields (descriptions, evidence, articles)
-  — generated via `libllm` (any OpenAI-compatible endpoint) or cached
+- **Tier 1 (LLM-assisted):** Prose fields (descriptions, evidence, articles) —
+  generated via `libllm` (any OpenAI-compatible endpoint) or cached
 - **Tier 2 (cached):** Previously generated Tier 1 output stored in a cache
   file, enabling fully offline/deterministic runs after initial generation
 
-The key insight: separate what *must* be natural language from what can be
+The key insight: separate what _must_ be natural language from what can be
 computed. Only ~15% of output tokens require LLM generation; the rest is
 structural.
 
@@ -95,16 +95,16 @@ universe.dsl ──► libuniverse
 
 Every cross-cutting concern maps to an existing library:
 
-| Concern                | Library      | API                                        |
-| ---------------------- | ------------ | ------------------------------------------ |
-| Configuration          | libconfig    | `createScriptConfig('generate', defaults)` |
-| LLM completions        | libllm       | `createLlmApi()` → `createCompletions()`   |
-| Token budgeting        | libutil      | `countTokens()`, `createTokenizer()`       |
-| Deterministic hashing  | libutil      | `generateHash()`                           |
-| HTML sanitization      | libformat    | `createHtmlFormatter()`                    |
-| Project root discovery | libutil      | `Finder`                                   |
-| YAML serialization     | yaml (npm)   | `YAML.stringify()`                         |
-| Seeded PRNG            | seedrandom   | `seedrandom()`                             |
+| Concern                | Library    | API                                        |
+| ---------------------- | ---------- | ------------------------------------------ |
+| Configuration          | libconfig  | `createScriptConfig('generate', defaults)` |
+| LLM completions        | libllm     | `createLlmApi()` → `createCompletions()`   |
+| Token budgeting        | libutil    | `countTokens()`, `createTokenizer()`       |
+| Deterministic hashing  | libutil    | `generateHash()`                           |
+| HTML sanitization      | libformat  | `createHtmlFormatter()`                    |
+| Project root discovery | libutil    | `Finder`                                   |
+| YAML serialization     | yaml (npm) | `YAML.stringify()`                         |
+| Seeded PRNG            | seedrandom | `seedrandom()`                             |
 
 **No new utility code** should be written for concerns already handled by these
 libraries. If a library is missing functionality, extend the library — do not
@@ -311,8 +311,8 @@ universe BioNova {
 
 ### DSL Parser
 
-The DSL parser is a simple recursive-descent parser that produces an AST.
-It lives in `libraries/libuniverse/dsl/`:
+The DSL parser is a simple recursive-descent parser that produces an AST. It
+lives in `libraries/libuniverse/dsl/`:
 
 ```javascript
 // libraries/libuniverse/dsl/index.js
@@ -331,8 +331,8 @@ export function parseUniverse(source) {
 }
 ```
 
-The tokenizer and parser are the same recursive-descent approach as v1.
-AST node types:
+The tokenizer and parser are the same recursive-descent approach as v1. AST node
+types:
 
 ```
 UniverseAST { name, domain, industry, seed, orgs, departments, teams,
@@ -525,8 +525,8 @@ export async function runPipeline(options) {
 ```
 
 **Key difference from v1:** The pipeline receives a pre-configured `llmApi`
-instance — it does not construct one from raw tokens and URLs. Configuration
-is the CLI's responsibility. The pipeline is a pure data transformation.
+instance — it does not construct one from raw tokens and URLs. Configuration is
+the CLI's responsibility. The pipeline is a pure data transformation.
 
 ## Tiered Execution
 
@@ -603,14 +603,15 @@ The `generateActivity()` function in `tier0.js` produces seven data arrays:
    - **Scenario delta**: If a scenario's `dx_drivers` block names this
      `driver_id` for this team and the snapshot falls within `timerange_start`
      to `timerange_end`, apply the `magnitude` delta scaled by the trajectory
-     curve (linear ramp for `"rising"`, inverse ramp for `"declining"`,
-     bell curve for `"spike"`).
+     curve (linear ramp for `"rising"`, inverse ramp for `"declining"`, bell
+     curve for `"spike"`).
    - **Comparative metrics**: `vs_prev` = score − previous snapshot score (null
      for first snapshot). `vs_org` = score − mean score across all teams for
      same driver/snapshot. `vs_50th/75th/90th` = score − percentile cutoffs
      across all teams.
-   - **`snapshot_team`**: Nested JSONB with `{ id, name, team_id, parent,
-     parent_id, ancestors }` matching the GetDX `snapshots.info` API shape.
+   - **`snapshot_team`**: Nested JSONB with
+     `{ id, name, team_id, parent, parent_id, ancestors }` matching the GetDX
+     `snapshots.info` API shape.
 
 5. **`github`** / **`artifacts`** — GitHub events and normalized artifacts
    generated per person per week, scaled by scenario `github_commits` and
@@ -625,8 +626,8 @@ The `generateActivity()` function in `tier0.js` produces seven data arrays:
 ### Tier 1 — LLM-Assisted Prose
 
 Uses `libllm` directly via a pre-configured `LlmApi` instance passed in. Uses
-`generateHash` from `libutil` for cache keys. No `process.env` reads, no
-dynamic imports:
+`generateHash` from `libutil` for cache keys. No `process.env` reads, no dynamic
+imports:
 
 ```javascript
 // libraries/libuniverse/engine/prose.js
@@ -721,8 +722,8 @@ function buildPrompt(key, context) {
 
 ### Tier 2 — Cache-Only Mode
 
-Same as v1 — a committed `.prose-cache.json` file keyed by content hash.
-The CLI controls which mode is active:
+Same as v1 — a committed `.prose-cache.json` file keyed by content hash. The CLI
+controls which mode is active:
 
 ```sh
 # First run: generates prose via LLM, populates cache
@@ -926,11 +927,11 @@ normalized output of `extractArtifacts()` from `github.js`:
 Three `artifact_type` values with specific `external_id` formats and `metadata`
 shapes:
 
-| Type             | `external_id` format                        | `metadata` fields                                                                     |
-| ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `pull_request`   | `pr:{repo}#{number}`                        | `number`, `title`, `state`, `additions`, `deletions`, `changed_files`, `merged`, `base_branch`, `head_branch` |
-| `review`         | `review:{repo}#{pr_number}:{review_id}`     | `pr_number`, `state` (approved/changes_requested/commented), `body_length`            |
-| `commit`         | `commit:{repo}:{sha}`                       | `sha`, `message`, `added` (count), `removed` (count), `modified` (count)             |
+| Type           | `external_id` format                    | `metadata` fields                                                                                             |
+| -------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `pull_request` | `pr:{repo}#{number}`                    | `number`, `title`, `state`, `additions`, `deletions`, `changed_files`, `merged`, `base_branch`, `head_branch` |
+| `review`       | `review:{repo}#{pr_number}:{review_id}` | `pr_number`, `state` (approved/changes_requested/commented), `body_length`                                    |
+| `commit`       | `commit:{repo}:{sha}`                   | `sha`, `message`, `added` (count), `removed` (count), `modified` (count)                                      |
 
 - `email` — Resolved from `github_username` via `organization_people`. Every
   artifact must link to a valid person.
@@ -1066,9 +1067,8 @@ mirror the GetDX `snapshots.info` API `team_scores` array entries:
 - Scores are generated per team × per driver × per snapshot. Scenario
   `dx_drivers` blocks apply trajectory deltas to baseline scores for affected
   teams during active time ranges.
-- Comparative metrics (`vs_prev`, `vs_org`, `vs_50th`, `vs_75th`, `vs_90th`)
-  are computed from the generated score distributions across teams and
-  snapshots.
+- Comparative metrics (`vs_prev`, `vs_org`, `vs_50th`, `vs_75th`, `vs_90th`) are
+  computed from the generated score distributions across teams and snapshots.
 
 #### evidence.json
 
@@ -1086,9 +1086,8 @@ Each record matches the `activity.evidence` table:
 }
 ```
 
-- `artifact_id` — **Foreign key** referencing a valid `github_artifacts`
-  record. Every evidence row must link to an artifact produced by the same
-  person.
+- `artifact_id` — **Foreign key** referencing a valid `github_artifacts` record.
+  Every evidence row must link to an artifact produced by the same person.
 - `skill_id` — Must match a skill ID from capability YAML files.
 - `level_id` — One of the framework proficiency levels (`awareness`,
   `foundational`, `working`, `practitioner`, `expert`). Must meet or exceed the
@@ -1098,8 +1097,8 @@ Each record matches the `activity.evidence` table:
   placeholder that describes observable behaviour.
 - `matched` — Whether the artifact demonstrates the marker. Synthetic data
   should generate a realistic mix (~70% matched, ~30% unmatched).
-- `rationale` — LLM-generated (Tier 1) explanation of why the marker was or
-  was not matched. Null in no-prose mode.
+- `rationale` — LLM-generated (Tier 1) explanation of why the marker was or was
+  not matched. Null in no-prose mode.
 
 ### Markdown Renderer
 
@@ -1175,8 +1174,8 @@ export function validateCrossContent(entities) {
 
 ## Output File Mapping
 
-All generated content lives under `examples/` at the monorepo root, organized
-by content type:
+All generated content lives under `examples/` at the monorepo root, organized by
+content type:
 
 ```
 examples/
@@ -1186,20 +1185,20 @@ examples/
   personal/         Personal knowledge base Markdown (Basecamp personas)
 ```
 
-| Generated Content              | File                                         | Target Location                  |
-| ------------------------------ | -------------------------------------------- | -------------------------------- |
-| ONTOLOGY.md                    | `ONTOLOGY.md`                                | `examples/organizational/`       |
-| README.md                      | `README.md`                                  | `examples/organizational/`       |
-| HTML microdata files           | `*.html`                                     | `examples/organizational/`       |
-| Framework YAML                 | `*.yaml`                                     | `examples/framework/`            |
-| Organization people            | `organization_people.json`                   | `examples/activity/`             |
-| GitHub events                  | `github_events.json`                         | `examples/activity/`             |
-| GitHub artifacts               | `github_artifacts.json`                      | `examples/activity/`             |
-| GetDX snapshots                | `getdx_snapshots.json`                       | `examples/activity/`             |
-| GetDX teams                    | `getdx_teams.json`                           | `examples/activity/`             |
-| GetDX snapshot team scores     | `getdx_snapshot_team_scores.json`            | `examples/activity/`             |
-| Evidence records               | `evidence.json`                              | `examples/activity/`             |
-| Personal knowledge base        | `*.md`                                       | `examples/personal/`             |
+| Generated Content          | File                              | Target Location            |
+| -------------------------- | --------------------------------- | -------------------------- |
+| ONTOLOGY.md                | `ONTOLOGY.md`                     | `examples/organizational/` |
+| README.md                  | `README.md`                       | `examples/organizational/` |
+| HTML microdata files       | `*.html`                          | `examples/organizational/` |
+| Framework YAML             | `*.yaml`                          | `examples/framework/`      |
+| Organization people        | `organization_people.json`        | `examples/activity/`       |
+| GitHub events              | `github_events.json`              | `examples/activity/`       |
+| GitHub artifacts           | `github_artifacts.json`           | `examples/activity/`       |
+| GetDX snapshots            | `getdx_snapshots.json`            | `examples/activity/`       |
+| GetDX teams                | `getdx_teams.json`                | `examples/activity/`       |
+| GetDX snapshot team scores | `getdx_snapshot_team_scores.json` | `examples/activity/`       |
+| Evidence records           | `evidence.json`                   | `examples/activity/`       |
+| Personal knowledge base    | `*.md`                            | `examples/personal/`       |
 
 ## CLI — Thin Wrapper
 
@@ -1315,9 +1314,9 @@ node scripts/generate/cli.js --universe=path/to/custom.dsl
 ```
 
 **LLM configuration is entirely via environment variables** (handled by
-`libconfig`): `LLM_TOKEN`, `LLM_MODEL`, `LLM_BASE_URL`. No `--token`,
-`--model`, or `--base-url` flags. This follows the same pattern as every
-other service in the monorepo.
+`libconfig`): `LLM_TOKEN`, `LLM_MODEL`, `LLM_BASE_URL`. No `--token`, `--model`,
+or `--base-url` flags. This follows the same pattern as every other service in
+the monorepo.
 
 ### npm script (root package.json)
 
@@ -1348,8 +1347,8 @@ Usage: `npm run generate`, `npm run generate -- --cached`, etc.
 
 ### scripts/generate (CLI wrapper)
 
-No additional dependencies — uses `libuniverse`, `libconfig`, and `libllm`
-from the workspace.
+No additional dependencies — uses `libuniverse`, `libconfig`, and `libllm` from
+the workspace.
 
 ## Implementation Phases
 
@@ -1413,11 +1412,11 @@ from the workspace.
 ## Strengths
 
 - **Best of both worlds**: Deterministic structure + LLM prose quality
-- **Cache makes it deterministic**: After first LLM run, all subsequent runs
-  are fully reproducible from cache
+- **Cache makes it deterministic**: After first LLM run, all subsequent runs are
+  fully reproducible from cache
 - **CI-friendly**: Cached mode runs in seconds, fails fast on stale cache
-- **DSL is self-documenting**: The universe file is a readable specification
-  of the entire synthetic data universe
+- **DSL is self-documenting**: The universe file is a readable specification of
+  the entire synthetic data universe
 - **LLM-agnostic**: Tier 1 works with any LLM backend via libllm
 - **Minimal LLM usage**: Only ~15% of output requires LLM generation
 - **Pure Node.js**: No Python dependency (unlike Plans 02, 03)
@@ -1445,9 +1444,9 @@ monorepo fallback to resolve `../../examples/framework` (two levels up from
 reflect the new default.
 
 **`products/map/src/loader.js`** — `loadExampleData(rootDir, options)` loads
-from `join(rootDir, "examples")`. Update to load from `join(rootDir,
-"examples/framework")` when called from the monorepo context, or accept the
-full path directly.
+from `join(rootDir, "examples")`. Update to load from
+`join(rootDir, "examples/framework")` when called from the monorepo context, or
+accept the full path directly.
 
 **`products/map/package.json`** — The `files` array includes `"examples/"` and
 exports map `"./examples/*": "./examples/*"`. Remove these entries since example
@@ -1496,20 +1495,21 @@ updated if it loads framework files directly. If it relies on `fit-map` or
 `products/map/examples/`. Update to `examples/` with sub-paths for each content
 type.
 
-**`.claude/skills/fit-map/SKILL.md`** — Data structure diagram shows
-`examples/` under the map product. Update to reference the monorepo root
+**`.claude/skills/fit-map/SKILL.md`** — Data structure diagram shows `examples/`
+under the map product. Update to reference the monorepo root
 `examples/framework/` path.
 
 **`.claude/skills/fit-pathway/SKILL.md`** — Data resolution priority references
-`products/map/examples/` for monorepo development. Update to `examples/framework/`.
+`products/map/examples/` for monorepo development. Update to
+`examples/framework/`.
 
 **`.claude/skills/update-docs/SKILL.md`** — Source-of-truth mappings reference
-`products/map/examples/capabilities/`, `products/map/examples/behaviours/`,
-etc. Update all paths to `examples/framework/capabilities/`,
+`products/map/examples/capabilities/`, `products/map/examples/behaviours/`, etc.
+Update all paths to `examples/framework/capabilities/`,
 `examples/framework/behaviours/`, etc.
 
-**`.claude/skills/improve-skill/SKILL.md`** and **`.claude/skills/eval/SKILL.md`**
-— Canonical example data references like
+**`.claude/skills/improve-skill/SKILL.md`** and
+**`.claude/skills/eval/SKILL.md`** — Canonical example data references like
 `products/map/examples/capabilities/{id}.yaml` must be updated to
 `examples/framework/capabilities/{id}.yaml`.
 
@@ -1520,35 +1520,35 @@ as the data directory. After the move, CI scripts and `npm run validate` must
 pass `--data=examples/framework` explicitly, or the `fit-map` CLI fallback
 resolution must be updated to find the new location.
 
-**`npm run check`** — Runs format, lint, test, and SHACL validation. If any
-step relies on the old example paths, it must be updated. The SHACL validation
-in particular validates against example data and needs the correct path.
+**`npm run check`** — Runs format, lint, test, and SHACL validation. If any step
+relies on the old example paths, it must be updated. The SHACL validation in
+particular validates against example data and needs the correct path.
 
 ### Summary of required changes
 
-| Component               | File(s)                                      | Change                                          |
-| ----------------------- | -------------------------------------------- | ----------------------------------------------- |
-| fit-map CLI             | `products/map/bin/fit-map.js`                | Update fallback path to `examples/framework`    |
-| Map loader              | `products/map/src/loader.js`                 | Update `loadExampleData()` path resolution      |
-| Map package.json        | `products/map/package.json`                  | Remove `examples/` from files and exports       |
-| fit-pathway CLI         | `products/pathway/bin/fit-pathway.js`        | Update monorepo fallback path                   |
-| Pathway init command    | `products/pathway/src/commands/init.js`      | Update example source directory                 |
-| Basecamp knowledge      | `products/basecamp/src/basecamp.js`          | Update knowledge example path if bundled        |
-| Basecamp build          | `products/basecamp/pkg/build.js`             | Update if it bundles example knowledge content  |
-| Tests                   | `tests/job-builder.spec.js`                  | Update data path resolution                     |
-| Project instructions    | `AGENTS.md`                                  | Update Key Paths table                          |
-| Skill files             | `.claude/skills/fit-map/SKILL.md` + others   | Update all example path references              |
-| CI validation           | Root `package.json` scripts                  | Pass `--data=examples/framework` to `fit-map`   |
+| Component            | File(s)                                    | Change                                         |
+| -------------------- | ------------------------------------------ | ---------------------------------------------- |
+| fit-map CLI          | `products/map/bin/fit-map.js`              | Update fallback path to `examples/framework`   |
+| Map loader           | `products/map/src/loader.js`               | Update `loadExampleData()` path resolution     |
+| Map package.json     | `products/map/package.json`                | Remove `examples/` from files and exports      |
+| fit-pathway CLI      | `products/pathway/bin/fit-pathway.js`      | Update monorepo fallback path                  |
+| Pathway init command | `products/pathway/src/commands/init.js`    | Update example source directory                |
+| Basecamp knowledge   | `products/basecamp/src/basecamp.js`        | Update knowledge example path if bundled       |
+| Basecamp build       | `products/basecamp/pkg/build.js`           | Update if it bundles example knowledge content |
+| Tests                | `tests/job-builder.spec.js`                | Update data path resolution                    |
+| Project instructions | `AGENTS.md`                                | Update Key Paths table                         |
+| Skill files          | `.claude/skills/fit-map/SKILL.md` + others | Update all example path references             |
+| CI validation        | Root `package.json` scripts                | Pass `--data=examples/framework` to `fit-map`  |
 
 ## Weaknesses
 
 - **Custom DSL maintenance**: The DSL parser is bespoke code that must be
   maintained; changes to the data model require DSL grammar updates
-- **Two-run workflow**: First run requires LLM access; only subsequent runs
-  are fully offline — new content additions always need an LLM run
+- **Two-run workflow**: First run requires LLM access; only subsequent runs are
+  fully offline — new content additions always need an LLM run
 - **Cache staleness**: If the DSL changes, cache keys change, requiring
   regeneration of affected prose
-- **DSL learning curve**: Contributors must learn the DSL syntax to modify
-  the universe definition
-- **Parser complexity**: A recursive-descent parser, while simple, is still
-  ~500 lines of code to maintain
+- **DSL learning curve**: Contributors must learn the DSL syntax to modify the
+  universe definition
+- **Parser complexity**: A recursive-descent parser, while simple, is still ~500
+  lines of code to maintain

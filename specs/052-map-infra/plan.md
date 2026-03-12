@@ -6,9 +6,8 @@ management.
 
 ## Directory Structure
 
-Supabase project files live in `products/map/` alongside the existing code.
-The Supabase CLI expects `supabase/` at the project root, so we initialize
-there.
+Supabase project files live in `products/map/` alongside the existing code. The
+Supabase CLI expects `supabase/` at the project root, so we initialize there.
 
 ```
 products/map/
@@ -206,8 +205,8 @@ supabase-status:  ## Supabase health check
 
 These integrate with `make rc-start` via the oneshot service entry — when a
 developer runs `make rc-start`, fit-rc executes `make supabase-up` first
-(because it appears first in `init.services`), then starts the remaining
-longrun services.
+(because it appears first in `init.services`), then starts the remaining longrun
+services.
 
 ### Docker Compose
 
@@ -331,8 +330,8 @@ enabled = false
 ```
 
 Auth is disabled — Map uses service-role keys. Analytics is disabled for
-simplicity. Storage is enabled with a 50 MiB limit (raw webhook documents
-are typically <100 KB each).
+simplicity. Storage is enabled with a 50 MiB limit (raw webhook documents are
+typically <100 KB each).
 
 ## Database Migrations
 
@@ -380,8 +379,8 @@ VALUES ('raw', 'raw', false)
 ON CONFLICT (id) DO NOTHING;
 ```
 
-The bucket is private — only service-role access. No RLS policies needed
-because edge functions use the service-role key.
+The bucket is private — only service-role access. No RLS policies needed because
+edge functions use the service-role key.
 
 ## Edge Functions
 
@@ -389,10 +388,10 @@ Edge functions are Deno-based TypeScript files that Supabase deploys as
 serverless functions. They import the Map activity modules (Extract and
 Transform) and wire them to HTTP or cron triggers.
 
-> **Boundary note:** Edge functions run in Supabase's Deno runtime, so they
-> use `Deno.serve` and `esm.sh` imports. The shared activity logic in
-> `activity/` remains pure Node.js ESM. Edge functions are thin wrappers that
-> call into the activity layer's Extract and Transform interfaces.
+> **Boundary note:** Edge functions run in Supabase's Deno runtime, so they use
+> `Deno.serve` and `esm.sh` imports. The shared activity logic in `activity/`
+> remains pure Node.js ESM. Edge functions are thin wrappers that call into the
+> activity layer's Extract and Transform interfaces.
 
 ### Shared Supabase client
 

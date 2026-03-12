@@ -55,8 +55,8 @@ Pages use the `layout` front matter field to control styling:
 Hero illustrations and product icons have **source files** in `design/` and
 **deployed copies** in `docs/assets/`:
 
-| Source                | Deployed to               |
-| --------------------- | ------------------------- |
+| Source                | Deployed to                  |
+| --------------------- | ---------------------------- |
 | `design/heroes/*.svg` | `website/assets/heros/*.svg` |
 | `design/icons/*.svg`  | `website/assets/icons/*.svg` |
 
@@ -104,8 +104,8 @@ npx fit-doc build --src=website --out=dist   # Full production build
 
 ### Add a new page
 
-1. Create `website/{section}/index.md` with front matter (`title`, `description`,
-   `layout` if needed)
+1. Create `website/{section}/index.md` with front matter (`title`,
+   `description`, `layout` if needed)
 2. Add navigation links from related pages
 3. Preview with `npx fit-doc serve --watch`
 

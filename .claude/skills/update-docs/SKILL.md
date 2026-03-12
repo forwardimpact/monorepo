@@ -19,7 +19,8 @@ reflects the current codebase.
 
 1. **Understand the documentation structure**
    - Read `website/docs/index.md` to see the documentation hierarchy
-   - Review each document in `website/docs/` subdirectories (model/, pathway/, map/)
+   - Review each document in `website/docs/` subdirectories (model/, pathway/,
+     map/)
    - Check `git log --oneline -20` for hints about recent changes—but use this
      only as a starting point, not a substitute for studying the code
 
@@ -32,8 +33,7 @@ reflects the current codebase.
 
 3. **Verify diagrams**
    - Mermaid diagrams must reflect actual data flow and relationships
-   - Compare entity diagrams against actual YAML structures in
-     `data/pathway/`
+   - Compare entity diagrams against actual YAML structures in `data/pathway/`
    - Compare derivation flowcharts against code in `libraries/libpathway/src/`
    - Update or add diagrams where they clarify concepts
 
@@ -66,8 +66,8 @@ reflects the current codebase.
 
 ## CLI Verification
 
-**Always use `--data=data/pathway`** to ensure documentation reflects
-the canonical dataset.
+**Always use `--data=data/pathway`** to ensure documentation reflects the
+canonical dataset.
 
 ```sh
 # List available entities

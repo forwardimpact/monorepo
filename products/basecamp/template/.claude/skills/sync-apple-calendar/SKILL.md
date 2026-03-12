@@ -105,21 +105,21 @@ After syncing, use the query script to filter events by date or time window.
 
 ### Time filters (combinable)
 
-| Flag | Description |
-|------|-------------|
-| `--today` | Events starting today (default if no filter given) |
-| `--tomorrow` | Events starting tomorrow |
-| `--upcoming 2h` | Events starting within interval (e.g., `2h`, `30m`, `1d`) |
-| `--date 2026-03-09` | Events on a specific date |
-| `--range 2026-03-09 2026-03-11` | Events between two dates (inclusive) |
+| Flag                            | Description                                               |
+| ------------------------------- | --------------------------------------------------------- |
+| `--today`                       | Events starting today (default if no filter given)        |
+| `--tomorrow`                    | Events starting tomorrow                                  |
+| `--upcoming 2h`                 | Events starting within interval (e.g., `2h`, `30m`, `1d`) |
+| `--date 2026-03-09`             | Events on a specific date                                 |
+| `--range 2026-03-09 2026-03-11` | Events between two dates (inclusive)                      |
 
 ### Output options
 
-| Flag | Description |
-|------|-------------|
-| `--json` | Output as JSON array (default: formatted table) |
-| `--include-all-day` | Include all-day events (excluded by default) |
-| `--no-attendees` | Omit attendee names from output |
+| Flag                | Description                                     |
+| ------------------- | ----------------------------------------------- |
+| `--json`            | Output as JSON array (default: formatted table) |
+| `--include-all-day` | Include all-day events (excluded by default)    |
+| `--no-attendees`    | Omit attendee names from output                 |
 
 ### Examples
 

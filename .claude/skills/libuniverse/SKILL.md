@@ -84,8 +84,8 @@ const engine = new ProseEngine({ llmApi, cachePath, mode, strict });
 const result = await engine.generateProse(key, context);
 ```
 
-Three modes: `no-prose` (skip), `cached` (read from cache), `generate` (call
-LLM and cache result).
+Three modes: `no-prose` (skip), `cached` (read from cache), `generate` (call LLM
+and cache result).
 
 ### Pipeline
 

@@ -23,34 +23,33 @@ This matters for three reasons:
 
 1. **Schema mismatch.** The generated "framework" files do not conform to the
    pathway JSON schemas (`products/map/schema/json/`). They cannot pass
-   `npx fit-map validate --data=examples/framework` because they are not
-   pathway data at all — they are ad-hoc YAML with no schema reference. The
-   real pathway data (`data/pathway/`) has 13 entity types with strict schemas;
-   the generated data covers none of them.
+   `npx fit-map validate --data=examples/framework` because they are not pathway
+   data at all — they are ad-hoc YAML with no schema reference. The real pathway
+   data (`data/pathway/`) has 13 entity types with strict schemas; the generated
+   data covers none of them.
 
 2. **Language fidelity.** Pathway data is prose-heavy. Every skill has five
    proficiency descriptions. Every behaviour has five maturity descriptions.
    Capabilities carry responsibility narratives per level. Disciplines define
    role summaries for job descriptions. This prose must be coherent, consistent
    in tone, and domain-appropriate for the universe's industry — qualities that
-   static templates cannot achieve. The installed instance (`data/pathway/`)
-   was hand-authored over months; generating a second instance for a different
+   static templates cannot achieve. The installed instance (`data/pathway/`) was
+   hand-authored over months; generating a second instance for a different
    domain (e.g., BioNova pharma) demands an LLM.
 
 3. **Evaluation gap.** Without a second, independently-generated pathway
    dataset, there is no way to test that Map validation, Pathway rendering, and
-   libskill derivation work with alternative data. The existing
-   `data/pathway/` installation is both the only test fixture and the
-   production data — a single point of failure for schema and derivation
-   coverage.
+   libskill derivation work with alternative data. The existing `data/pathway/`
+   installation is both the only test fixture and the production data — a single
+   point of failure for schema and derivation coverage.
 
 ### Original intent
 
 The 060 spec defined the framework content type as "YAML for Map and Pathway"
 and required it to pass `npx fit-map validate`. The initial libuniverse
-implementation deferred this — it generates roster and assessment files that
-are useful for activity correlation but do not constitute pathway data. This
-spec closes that gap.
+implementation deferred this — it generates roster and assessment files that are
+useful for activity correlation but do not constitute pathway data. This spec
+closes that gap.
 
 ## What
 
@@ -63,21 +62,21 @@ against the pathway JSON schemas.
 The pathway schema defines 13 entity types. The generated dataset must include
 all non-question types. Question generation is deferred (marked optional).
 
-| Entity               | Schema file                      | File structure               | LLM needed |
-| -------------------- | -------------------------------- | ---------------------------- | ---------- |
-| Framework            | `framework.schema.json`          | `framework.yaml`             | Yes (desc) |
-| Levels               | `levels.schema.json`             | `levels.yaml`                | Yes (prose) |
-| Stages               | `stages.schema.json`             | `stages.yaml`                | Mostly no  |
-| Drivers              | `drivers.schema.json`            | `drivers.yaml`               | Yes        |
-| Capabilities         | `capability.schema.json`         | `capabilities/{id}.yaml`     | Yes (heavy)|
-| Behaviours           | `behaviour.schema.json`          | `behaviours/{id}.yaml`       | Yes (heavy)|
-| Disciplines          | `discipline.schema.json`         | `disciplines/{id}.yaml`      | Yes        |
-| Tracks               | `track.schema.json`              | `tracks/{id}.yaml`           | Yes (mod)  |
-| Self-assessments     | `self-assessments.schema.json`   | `self-assessments.yaml`      | No         |
-| `_index.yaml`        | (convention)                     | Per-directory index           | No         |
-| Skill questions      | `skill-questions.schema.json`    | `questions/skills/{id}.yaml` | Optional   |
-| Capability questions | `capability-questions.schema.json`| `questions/capabilities/{id}.yaml` | Optional |
-| Behaviour questions  | `behaviour-questions.schema.json`| `questions/behaviours/{id}.yaml`  | Optional |
+| Entity               | Schema file                        | File structure                     | LLM needed  |
+| -------------------- | ---------------------------------- | ---------------------------------- | ----------- |
+| Framework            | `framework.schema.json`            | `framework.yaml`                   | Yes (desc)  |
+| Levels               | `levels.schema.json`               | `levels.yaml`                      | Yes (prose) |
+| Stages               | `stages.schema.json`               | `stages.yaml`                      | Mostly no   |
+| Drivers              | `drivers.schema.json`              | `drivers.yaml`                     | Yes         |
+| Capabilities         | `capability.schema.json`           | `capabilities/{id}.yaml`           | Yes (heavy) |
+| Behaviours           | `behaviour.schema.json`            | `behaviours/{id}.yaml`             | Yes (heavy) |
+| Disciplines          | `discipline.schema.json`           | `disciplines/{id}.yaml`            | Yes         |
+| Tracks               | `track.schema.json`                | `tracks/{id}.yaml`                 | Yes (mod)   |
+| Self-assessments     | `self-assessments.schema.json`     | `self-assessments.yaml`            | No          |
+| `_index.yaml`        | (convention)                       | Per-directory index                | No          |
+| Skill questions      | `skill-questions.schema.json`      | `questions/skills/{id}.yaml`       | Optional    |
+| Capability questions | `capability-questions.schema.json` | `questions/capabilities/{id}.yaml` | Optional    |
+| Behaviour questions  | `behaviour-questions.schema.json`  | `questions/behaviours/{id}.yaml`   | Optional    |
 
 ### DSL extensions
 
@@ -159,18 +158,17 @@ Each entity type is prompted independently with:
 1. The JSON schema for that entity type (from `products/map/schema/json/`).
 2. The structural skeleton from the DSL (identifiers, relationships, counts).
 3. The universe context (domain, industry, organization narrative).
-4. A domain-specific instruction (e.g., "This is a pharma organization;
-   skills should reference drug development, clinical trials, regulatory
-   compliance").
+4. A domain-specific instruction (e.g., "This is a pharma organization; skills
+   should reference drug development, clinical trials, regulatory compliance").
 
 The LLM returns **JSON**, which is then validated against the schema and
-converted to YAML for output. JSON output from the LLM is simpler to parse
-and validate than YAML.
+converted to YAML for output. JSON output from the LLM is simpler to parse and
+validate than YAML.
 
 ### Generation order
 
-Entity generation follows a dependency chain — later entities reference
-earlier ones:
+Entity generation follows a dependency chain — later entities reference earlier
+ones:
 
 1. **Framework** — Top-level metadata, no dependencies.
 2. **Levels** — Career levels, no entity references.
@@ -179,8 +177,8 @@ earlier ones:
 5. **Capabilities** (with skills) — The heaviest entity; each capability
    contains multiple skills with five proficiency descriptions each.
 6. **Drivers** — Reference skill and behaviour IDs from steps 4–5.
-7. **Disciplines** — Reference skill IDs from step 5, behaviour IDs from
-   step 4, track IDs from step 8.
+7. **Disciplines** — Reference skill IDs from step 5, behaviour IDs from step 4,
+   track IDs from step 8.
 8. **Tracks** — Reference capability IDs from step 5.
 9. **Self-assessments** — Reference skill and behaviour IDs.
 10. **`_index.yaml`** — Generated from directory listings (deterministic).
@@ -199,9 +197,8 @@ Generated data must pass:
   against all 13 JSON schemas.
 - Cross-reference integrity — skill IDs referenced by disciplines exist in
   capabilities; behaviour IDs referenced by drivers exist in behaviours; etc.
-- The existing `validateCrossContent()` check `framework_validity` is
-  replaced with `pathway_validity` that confirms generated data passes
-  schema validation.
+- The existing `validateCrossContent()` check `framework_validity` is replaced
+  with `pathway_validity` that confirms generated data passes schema validation.
 
 ### Output structure
 
@@ -233,8 +230,8 @@ examples/pathway/
     ...
 ```
 
-This mirrors `data/pathway/` exactly, minus `repository/` (installation-specific)
-and `questions/` (deferred).
+This mirrors `data/pathway/` exactly, minus `repository/`
+(installation-specific) and `questions/` (deferred).
 
 ## Scope
 
@@ -253,8 +250,8 @@ and `questions/` (deferred).
 
 - Question generation (skill, capability, behaviour interview questions).
 - Agent sections within capabilities, disciplines, and tracks. The generated
-  data includes `human:` sections only unless the DSL explicitly declares
-  agent content. Agent authoring is a separate, manual activity.
+  data includes `human:` sections only unless the DSL explicitly declares agent
+  content. Agent authoring is a separate, manual activity.
 - Changes to the pathway schema itself (`products/map/schema/json/`).
 - Changes to the installed pathway data (`data/pathway/`).
 - Replacing `data/pathway/` with generated data — `examples/pathway/` is a

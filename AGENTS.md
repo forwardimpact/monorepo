@@ -59,8 +59,8 @@ When updating data structure: schema (`products/map/schema/`) → data
 
 ## Core Rules
 
-1. **Clean breaks** — Fully replace, never leave old and new coexisting.
-   Delete old code, update all call sites, remove unused imports in one commit.
+1. **Clean breaks** — Fully replace, never leave old and new coexisting. Delete
+   old code, update all call sites, remove unused imports in one commit.
 2. **No backward compatibility** — No shims, aliases, or feature flags for the
    old path. If there are no consumers yet, remove the old interface entirely —
    don't build bridges to code that doesn't exist.
@@ -91,11 +91,11 @@ Environment is configured via layered `.env` files, loaded by `scripts/env.sh`:
 
 Three variables control the environment stack:
 
-| Variable  | Values                        | Default |
-| --------- | ----------------------------- | ------- |
-| `ENV`     | `local`, `docker`             | `local` |
-| `STORAGE` | `local`, `minio`, `supabase`  | `local` |
-| `AUTH`    | `none`, `gotrue`, `supabase`  | `none`  |
+| Variable  | Values                       | Default |
+| --------- | ---------------------------- | ------- |
+| `ENV`     | `local`, `docker`            | `local` |
+| `STORAGE` | `local`, `minio`, `supabase` | `local` |
+| `AUTH`    | `none`, `gotrue`, `supabase` | `none`  |
 
 All `make` targets automatically load the correct env files. Pass overrides:
 
@@ -125,11 +125,11 @@ interactions locally or in CI.
 
 `config/config.json` controls service startup and runtime behaviour:
 
-- **`init.services`** — Ordered list of services for `fit-rc` to supervise
-  (tei, trace, vector, graph, llm, memory, tool, agent, web)
+- **`init.services`** — Ordered list of services for `fit-rc` to supervise (tei,
+  trace, vector, graph, llm, memory, tool, agent, web)
 - **`init.log_dir`** / **`init.shutdown_timeout`** — Logging and shutdown
-- **`service.*`** — Per-service settings (model, temperature, max_tokens,
-  tool filter thresholds, tool endpoints)
+- **`service.*`** — Per-service settings (model, temperature, max_tokens, tool
+  filter thresholds, tool endpoints)
 - **`evals`** — Evaluation models and judge model
 
 `config/tools.yml` — Tool endpoint definitions (purpose, parameters, evaluation
@@ -151,8 +151,8 @@ npx fit-rc status             # Show service status  (or: make rc-status)
 npx fit-rc start tei          # Start a single service
 ```
 
-Services run on localhost in local mode (ports 3002–3008 for gRPC, 3001 for
-web, 8090 for TEI embeddings). Port mapping is in `.env.local`.
+Services run on localhost in local mode (ports 3002–3008 for gRPC, 3001 for web,
+8090 for TEI embeddings). Port mapping is in `.env.local`.
 
 TEI (Text Embeddings Inference) provides local embeddings:
 
@@ -168,19 +168,19 @@ make tei-start                # Start TEI service (downloads model on first run)
 
 ### Core Entities
 
-| Entity         | File Location                      |
-| -------------- | ---------------------------------- |
-| Disciplines    | `disciplines/{id}.yaml`            |
-| Levels         | `levels.yaml`                      |
-| Tracks         | `tracks/{id}.yaml`                 |
-| Capabilities   | `capabilities/{id}.yaml`           |
-| Skills         | `capabilities/{id}.yaml` (skills:) |
-| Behaviours     | `behaviours/{id}.yaml`             |
-| Stages         | `stages.yaml`                      |
-| Drivers        | `drivers.yaml`                     |
+| Entity       | File Location                      |
+| ------------ | ---------------------------------- |
+| Disciplines  | `disciplines/{id}.yaml`            |
+| Levels       | `levels.yaml`                      |
+| Tracks       | `tracks/{id}.yaml`                 |
+| Capabilities | `capabilities/{id}.yaml`           |
+| Skills       | `capabilities/{id}.yaml` (skills:) |
+| Behaviours   | `behaviours/{id}.yaml`             |
+| Stages       | `stages.yaml`                      |
+| Drivers      | `drivers.yaml`                     |
 
-All entities use co-located `human:` and `agent:` sections. Skills with
-`agent:` sections generate SKILL.md files for AI coding agents.
+All entities use co-located `human:` and `agent:` sections. Skills with `agent:`
+sections generate SKILL.md files for AI coding agents.
 
 ### Key Concepts
 
@@ -204,13 +204,13 @@ Validate data: `npx fit-map validate`
 
 Use `npx fit-pathway level --list` to see available levels.
 
-| Level          | Autonomy              | Scope                    | Verbs                               |
-| -------------- | --------------------- | ------------------------ | ----------------------------------- |
-| `awareness`    | with guidance         | team                     | understand, follow, use, learn      |
-| `foundational` | with minimal guidance | team                     | apply, create, explain, identify    |
-| `working`      | independently         | team                     | design, own, troubleshoot, decide   |
-| `practitioner` | lead, mentor          | area (2–5 teams)         | lead, mentor, establish, evaluate   |
-| `expert`       | define, shape         | business unit / function | define, shape, innovate, pioneer    |
+| Level          | Autonomy              | Scope                    | Verbs                             |
+| -------------- | --------------------- | ------------------------ | --------------------------------- |
+| `awareness`    | with guidance         | team                     | understand, follow, use, learn    |
+| `foundational` | with minimal guidance | team                     | apply, create, explain, identify  |
+| `working`      | independently         | team                     | design, own, troubleshoot, decide |
+| `practitioner` | lead, mentor          | area (2–5 teams)         | lead, mentor, establish, evaluate |
+| `expert`       | define, shape         | business unit / function | define, shape, innovate, pioneer  |
 
 ## Code Style
 

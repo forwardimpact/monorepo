@@ -1,13 +1,13 @@
 # Plan 01 — Deterministic Template + Entity-Graph Linking
 
 > Extend templates and the HTML renderer to produce rich microdata using only
-> deterministic entity assignment from the existing DSL data. No LLM calls,
-> no DSL syntax changes.
+> deterministic entity assignment from the existing DSL data. No LLM calls, no
+> DSL syntax changes.
 
 **Clean break.** This plan fully replaces the current minimal templates and
 rendering logic for courses, events, and blog posts. There are no consumers of
-the existing output format — old templates are deleted and replaced, not
-wrapped or shimmed.
+the existing output format — old templates are deleted and replaced, not wrapped
+or shimmed.
 
 ## Approach
 
@@ -88,6 +88,7 @@ A new file `render/link-assigner.js` uses the seeded RNG to:
 ### Template changes
 
 **New `projects.html`:**
+
 ```html
 {{#projects}}
 <article itemscope itemtype="https://schema.org/Project"
@@ -113,8 +114,8 @@ A new file `render/link-assigner.js` uses the seeded RNG to:
 
 Similar templates for drugs, platforms. Enriched templates for courses (add
 `coursePrerequisites` link, `identifier`, attendee links), events (add
-`organizer`, `attendee` links, `about` links), blogs (add `author` with
-nested Person, `about`/`mentions` inline spans).
+`organizer`, `attendee` links, `about` links), blogs (add `author` with nested
+Person, `about`/`mentions` inline spans).
 
 ## Pros
 

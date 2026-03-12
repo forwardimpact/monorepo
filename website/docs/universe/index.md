@@ -5,8 +5,8 @@ description: Use the universe DSL and fit-universe CLI to generate realistic fra
 
 ## Overview
 
-`fit-universe` generates synthetic data for the entire Forward Impact suite
-from a single DSL file. It produces career framework definitions, organizational
+`fit-universe` generates synthetic data for the entire Forward Impact suite from
+a single DSL file. It produces career framework definitions, organizational
 documents, developer activity records, and personal knowledge base content —
 everything needed to develop, demo, or test the system without real data.
 
@@ -88,17 +88,17 @@ universe MyCompany {
 
 ### Key Blocks
 
-| Block          | Purpose                                                    |
-| -------------- | ---------------------------------------------------------- |
-| `org`          | Top-level organization with name and location              |
-| `department`   | Organizational unit with headcount                         |
-| `team`         | Team within a department, with manager and repos           |
-| `people`       | People count, level distribution, discipline distribution  |
-| `project`      | Cross-team initiative with timeline and prose topic        |
-| `snapshots`    | GetDX snapshot generation (quarterly intervals)            |
-| `scenario`     | Time-bounded effects on teams (commit volume, DX drivers)  |
-| `framework`    | Pathway framework: levels, capabilities, disciplines, etc. |
-| `content`      | Output content blocks (article counts, persona configs)    |
+| Block        | Purpose                                                    |
+| ------------ | ---------------------------------------------------------- |
+| `org`        | Top-level organization with name and location              |
+| `department` | Organizational unit with headcount                         |
+| `team`       | Team within a department, with manager and repos           |
+| `people`     | People count, level distribution, discipline distribution  |
+| `project`    | Cross-team initiative with timeline and prose topic        |
+| `snapshots`  | GetDX snapshot generation (quarterly intervals)            |
+| `scenario`   | Time-bounded effects on teams (commit volume, DX drivers)  |
+| `framework`  | Pathway framework: levels, capabilities, disciplines, etc. |
+| `content`    | Output content blocks (article counts, persona configs)    |
 
 ---
 
@@ -131,14 +131,14 @@ Markdown briefings and notes for Basecamp knowledge bases.
 Content generation happens in tiers:
 
 | Tier | What                           | Requires LLM |
-| ---- | ------------------------------ | ------------- |
-| 0    | Structural entities            | No            |
-| 1    | Template-based prose           | Yes           |
-| 2    | Deep framework prose (pathway) | Yes           |
+| ---- | ------------------------------ | ------------ |
+| 0    | Structural entities            | No           |
+| 1    | Template-based prose           | Yes          |
+| 2    | Deep framework prose (pathway) | Yes          |
 
-Use `--generate` to invoke the LLM. Results are cached in
-`.prose-cache.json` — subsequent runs with `--cached` skip LLM calls entirely.
-Use `--cached --strict` to fail on cache misses rather than silently skipping.
+Use `--generate` to invoke the LLM. Results are cached in `.prose-cache.json` —
+subsequent runs with `--cached` skip LLM calls entirely. Use `--cached --strict`
+to fail on cache misses rather than silently skipping.
 
 ---
 

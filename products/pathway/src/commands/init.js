@@ -11,7 +11,15 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 // Prefer monorepo root examples/framework/, fall back to legacy co-located examples/
-const monorepoExamplesDir = join(__dirname, "..", "..", "..", "..", "examples", "framework");
+const monorepoExamplesDir = join(
+  __dirname,
+  "..",
+  "..",
+  "..",
+  "..",
+  "examples",
+  "framework",
+);
 const legacyExamplesDir = join(__dirname, "..", "..", "examples");
 
 /**

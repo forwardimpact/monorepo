@@ -10,36 +10,36 @@ real dependencies.
 
 Current state of all 22 libraries against the standard pattern:
 
-| Library | Status | Notes |
-| --- | --- | --- |
-| libagent | Compliant | AgentMind, AgentHands — full constructor DI |
-| libcodegen | Compliant | CodegenBase hierarchy — injects fs, path, mustache, protoLoader |
-| libconfig | Compliant | Config class + createConfig factory |
-| libdoc | Compliant | DocsBuilder, DocsServer — comprehensive DI |
-| libformat | Compliant | HtmlFormatter, TerminalFormatter + factories |
-| libgraph | Compliant | GraphIndex via createGraphIndex factory |
-| libharness | N/A | Test infrastructure — mocks and fixtures |
-| libindex | Compliant | IndexBase, BufferedIndex — constructor DI |
-| libllm | Compliant | LlmApi + createLlmApi factory |
-| libmemory | Compliant | MemoryWindow — constructor DI |
-| libpolicy | Compliant | Policy + createPolicy factory |
-| libprompt | Compliant | PromptLoader + createPromptLoader factory |
-| librc | Compliant | ServiceManager — full DI via deps object |
-| librepl | Compliant | Repl — injects readline, process, os |
-| libresource | Compliant | ResourceIndex + createResourceIndex factory |
-| librpc | Compliant | Client, Server, Rpc classes + factories |
-| libsecret | Exempt | Pure crypto utilities — stateless, no deps |
-| libskill | Exempt | Pure functions by design |
-| libstorage | Compliant | LocalStorage, S3Storage, SupabaseStorage + createStorage factory |
-| libtelemetry | Compliant | Logger, Observer + factories |
-| libtemplate | Compliant | TemplateLoader + createTemplateLoader factory |
-| libtype | Exempt | Generated protobuf code |
-| libui | Exempt | Functional DOM library |
-| libutil | **Non-conforming** | Mixed classes + loose functions |
-| libvector | Compliant | VectorProcessor — full constructor DI |
-| libweb | Compliant | Middleware classes + factories |
-| **libsupervise** | **Non-conforming** | Module-level logger singleton |
-| **libuniverse** | **Non-conforming** | Procedural pipeline, module-level deps |
+| Library          | Status             | Notes                                                            |
+| ---------------- | ------------------ | ---------------------------------------------------------------- |
+| libagent         | Compliant          | AgentMind, AgentHands — full constructor DI                      |
+| libcodegen       | Compliant          | CodegenBase hierarchy — injects fs, path, mustache, protoLoader  |
+| libconfig        | Compliant          | Config class + createConfig factory                              |
+| libdoc           | Compliant          | DocsBuilder, DocsServer — comprehensive DI                       |
+| libformat        | Compliant          | HtmlFormatter, TerminalFormatter + factories                     |
+| libgraph         | Compliant          | GraphIndex via createGraphIndex factory                          |
+| libharness       | N/A                | Test infrastructure — mocks and fixtures                         |
+| libindex         | Compliant          | IndexBase, BufferedIndex — constructor DI                        |
+| libllm           | Compliant          | LlmApi + createLlmApi factory                                    |
+| libmemory        | Compliant          | MemoryWindow — constructor DI                                    |
+| libpolicy        | Compliant          | Policy + createPolicy factory                                    |
+| libprompt        | Compliant          | PromptLoader + createPromptLoader factory                        |
+| librc            | Compliant          | ServiceManager — full DI via deps object                         |
+| librepl          | Compliant          | Repl — injects readline, process, os                             |
+| libresource      | Compliant          | ResourceIndex + createResourceIndex factory                      |
+| librpc           | Compliant          | Client, Server, Rpc classes + factories                          |
+| libsecret        | Exempt             | Pure crypto utilities — stateless, no deps                       |
+| libskill         | Exempt             | Pure functions by design                                         |
+| libstorage       | Compliant          | LocalStorage, S3Storage, SupabaseStorage + createStorage factory |
+| libtelemetry     | Compliant          | Logger, Observer + factories                                     |
+| libtemplate      | Compliant          | TemplateLoader + createTemplateLoader factory                    |
+| libtype          | Exempt             | Generated protobuf code                                          |
+| libui            | Exempt             | Functional DOM library                                           |
+| libutil          | **Non-conforming** | Mixed classes + loose functions                                  |
+| libvector        | Compliant          | VectorProcessor — full constructor DI                            |
+| libweb           | Compliant          | Middleware classes + factories                                   |
+| **libsupervise** | **Non-conforming** | Module-level logger singleton                                    |
+| **libuniverse**  | **Non-conforming** | Procedural pipeline, module-level deps                           |
 
 ## Migration 1: libsupervise (small — ~1 hour)
 
@@ -70,8 +70,8 @@ class SupervisionTree {
 }
 ```
 
-Delete the module-level `const logger = createLogger("tree")` line.
-Replace all bare `logger.xxx()` calls with `this.logger.xxx()`.
+Delete the module-level `const logger = createLogger("tree")` line. Replace all
+bare `logger.xxx()` calls with `this.logger.xxx()`.
 
 **Add factory function** to index.js:
 
@@ -102,6 +102,7 @@ dynamic imports to avoid circular dependencies with libtelemetry.
 ### Current exports
 
 **Classes (already compliant):**
+
 - `Finder(fs, logger, process)`
 - `BundleDownloader(createStorageFn, finder, logger, extractor, process)`
 - `ProcessorBase(logger, batchSize)`
@@ -109,6 +110,7 @@ dynamic imports to avoid circular dependencies with libtelemetry.
 - `TarExtractor` (stateless utility)
 
 **Loose functions (non-compliant):**
+
 - `updateEnvFile(filePath, key, value)`
 - `generateHash(input)`
 - `generateUUID()`
@@ -126,6 +128,7 @@ explicitly — no optional parameters with real defaults. Pure stateless functio
 (zero dependencies beyond Node.js built-ins) stay as-is.
 
 **Keep as pure functions (no changes):**
+
 - `generateHash(input)` — stateless, uses only `crypto`
 - `generateUUID()` — stateless, uses only `crypto`
 - `countTokens(text)` — stateless computation
@@ -175,8 +178,8 @@ explicitly — no optional parameters with real defaults. Pure stateless functio
    }
    ```
 
-   The circular dependency with libtelemetry is resolved by requiring the
-   caller to create and pass the logger — no dynamic `import()` needed.
+   The circular dependency with libtelemetry is resolved by requiring the caller
+   to create and pass the logger — no dynamic `import()` needed.
 
 **Update all call sites in the same commit.** Every file that calls `execLine`,
 `waitFor`, `updateEnvFile`, or `createBundleDownloader` must pass the required
@@ -278,8 +281,8 @@ export function createDslParser() {
 
 ### Phase 3: Extract EntityGenerator
 
-Wrap `tier0.js`, `entities.js`, `activity.js`. Delete the bare `generate()`
-and `buildEntities()` exports.
+Wrap `tier0.js`, `entities.js`, `activity.js`. Delete the bare `generate()` and
+`buildEntities()` exports.
 
 ```javascript
 export class EntityGenerator {
@@ -453,11 +456,11 @@ const result = parser.parse(source);
 Each migration is a single atomic commit — library changes and all call site
 updates together. No intermediate broken states.
 
-| Order | Library | Commit scope |
-| --- | --- | --- |
-| 1 | libsupervise | Library + all SupervisionTree call sites |
-| 2 | libutil | Library + all execLine/waitFor/updateEnvFile/createBundleDownloader call sites |
-| 3 | libuniverse | Library + bin/fit-universe.js + all tests |
+| Order | Library      | Commit scope                                                                   |
+| ----- | ------------ | ------------------------------------------------------------------------------ |
+| 1     | libsupervise | Library + all SupervisionTree call sites                                       |
+| 2     | libutil      | Library + all execLine/waitFor/updateEnvFile/createBundleDownloader call sites |
+| 3     | libuniverse  | Library + bin/fit-universe.js + all tests                                      |
 
 ## Verification
 

@@ -55,13 +55,11 @@ export async function listRaw(supabase, prefix) {
   let offset = 0;
 
   while (true) {
-    const { data, error } = await supabase.storage
-      .from(BUCKET)
-      .list(prefix, {
-        sortBy: { column: "created_at", order: "desc" },
-        limit: PAGE_SIZE,
-        offset,
-      });
+    const { data, error } = await supabase.storage.from(BUCKET).list(prefix, {
+      sortBy: { column: "created_at", order: "desc" },
+      limit: PAGE_SIZE,
+      offset,
+    });
 
     if (error) throw new Error(`listRaw(${prefix}): ${error.message}`);
     all.push(...data);

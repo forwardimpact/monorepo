@@ -21,8 +21,8 @@ products. This blocks three workflows:
 
 1. **Evaluation.** Guide, Landmark, and Pathway cannot be evaluated end-to-end
    because no dataset spans all four content types with consistent entity
-   references. A person in the org HTML may not exist in the activity tables;
-   a skill in the framework YAML may have no corresponding evidence.
+   references. A person in the org HTML may not exist in the activity tables; a
+   skill in the framework YAML may have no corresponding evidence.
 
 2. **Fine-tuning.** Basecamp skills and Guide's RAG pipeline need training data
    that reflects realistic organizational patterns — cross-team activity
@@ -46,12 +46,12 @@ consistent and cross-referenced.
 
 ### Content types
 
-| Type             | Product(s)         | Format              | Current state          |
-| ---------------- | ------------------ | ------------------- | ---------------------- |
-| Organizational   | Guide              | HTML microdata      | Partial (hand-crafted) |
-| Framework        | Map, Pathway       | YAML                | Partial (hand-crafted) |
-| Activity         | Landmark           | JSON/CSV            | Missing                |
-| Personal         | Basecamp           | Markdown            | Missing                |
+| Type           | Product(s)   | Format         | Current state          |
+| -------------- | ------------ | -------------- | ---------------------- |
+| Organizational | Guide        | HTML microdata | Partial (hand-crafted) |
+| Framework      | Map, Pathway | YAML           | Partial (hand-crafted) |
+| Activity       | Landmark     | JSON/CSV       | Missing                |
+| Personal       | Basecamp     | Markdown       | Missing                |
 
 ### Seed data
 
@@ -60,15 +60,15 @@ A single declarative file defines the ground truth for all generated content:
 - **Organization structure** — BioNova departments, teams, headcounts, and
   reporting hierarchy.
 - **People** — 211 individuals with Greek mythology names, assigned to teams
-  with discipline/level/track from defined distributions (L1: 40%, L2: 25%,
-  L3: 20%, L4: 10%, L5: 5%).
+  with discipline/level/track from defined distributions (L1: 40%, L2: 25%, L3:
+  20%, L4: 10%, L5: 5%).
 - **Projects** — Named initiatives (drugs, platforms, programs) with team
   assignments and timelines.
 - **Story scenarios** — 3–5 narrative arcs with defined time ranges, affected
   teams, and expected signal patterns.
 
-The seed is the single source of truth. Every generated artifact must trace
-back to it.
+The seed is the single source of truth. Every generated artifact must trace back
+to it.
 
 ### Story scenarios
 
@@ -95,20 +95,20 @@ Minimum scenarios:
 
 ### Output targets
 
-All generated content lives under `examples/` at the monorepo root, organized
-by content type:
+All generated content lives under `examples/` at the monorepo root, organized by
+content type:
 
-| Content                        | Target location                  |
-| ------------------------------ | -------------------------------- |
-| Company narrative (README)     | `examples/organizational/`       |
-| Entity registry (ONTOLOGY)     | `examples/organizational/`       |
-| HTML microdata (22 files)      | `examples/organizational/`       |
-| Framework YAML                 | `examples/framework/`            |
-| Organization roster            | `examples/activity/`             |
-| GitHub events and artifacts    | `examples/activity/`             |
-| GetDX snapshots and scores     | `examples/activity/`             |
-| Skill evidence                 | `examples/activity/`             |
-| Personal knowledge base        | `examples/personal/`             |
+| Content                     | Target location            |
+| --------------------------- | -------------------------- |
+| Company narrative (README)  | `examples/organizational/` |
+| Entity registry (ONTOLOGY)  | `examples/organizational/` |
+| HTML microdata (22 files)   | `examples/organizational/` |
+| Framework YAML              | `examples/framework/`      |
+| Organization roster         | `examples/activity/`       |
+| GitHub events and artifacts | `examples/activity/`       |
+| GetDX snapshots and scores  | `examples/activity/`       |
+| Skill evidence              | `examples/activity/`       |
+| Personal knowledge base     | `examples/personal/`       |
 
 ### Cross-content validation
 
@@ -130,9 +130,9 @@ The pipeline replaces — not supplements — existing hand-crafted content:
 
 - `products/map/examples/` — All YAML files move to `examples/framework/` as
   generated equivalents that pass the same schema validation.
-- `products/guide/examples/knowledge/` — All files (README.md, ONTOLOGY.md,
-  HTML microdata, GENERATE.prompt.md) move to `examples/organizational/` as
-  generated equivalents.
+- `products/guide/examples/knowledge/` — All files (README.md, ONTOLOGY.md, HTML
+  microdata, GENERATE.prompt.md) move to `examples/organizational/` as generated
+  equivalents.
 - Activity data (new) lands in `examples/activity/`.
 - Personal knowledge base (new) lands in `examples/personal/`.
 
@@ -167,8 +167,8 @@ from the central `examples/` root (see the plan's "Downstream Changes" section).
 - Generated YAML must pass `npx fit-map validate` without modification.
 - Generated HTML must use valid schema.org microdata with `itemid` attributes
   matching the ONTOLOGY.
-- Activity data must conform to the table schemas defined in the Map spec
-  (see `activity.organization_people`, `activity.github_events`, etc.).
+- Activity data must conform to the table schemas defined in the Map spec (see
+  `activity.organization_people`, `activity.github_events`, etc.).
 - The pipeline must be runnable from a single command.
 - Output must be deterministic or reproducible (same seed → same structural
   output; prose may vary across LLM runs but must be cacheable).
@@ -178,10 +178,10 @@ from the central `examples/` root (see the plan's "Downstream Changes" section).
 Five plans explore fundamentally different approaches. Each is a complete,
 self-contained document:
 
-| Plan | Approach | LLM | Language | Key trade-off |
-| ---- | -------- | --- | -------- | ------------- |
-| [01](plan-01-claude-api.md) | Claude API with validation loops | Claude (remote) | Node.js | Highest prose quality; API cost and dependency |
-| [02](plan-02-local-models.md) | Local models on Mac Studio M4 Max | Qwen3 (local) | Python | No API cost; hardware requirement and lower quality |
-| [03](plan-03-distilabel.md) | Distilabel DAG pipeline | Any (pluggable) | Python | Production orchestration; Python dependency and framework coupling |
-| [04](plan-04-template-engine.md) | Deterministic templates | None | Node.js | Instant, free, reproducible; formulaic prose |
-| [05](plan-05-hybrid-dsl.md) | Custom DSL with tiered generation | Any (cached) | Node.js | Deterministic structure + LLM prose; custom parser maintenance |
+| Plan                             | Approach                          | LLM             | Language | Key trade-off                                                      |
+| -------------------------------- | --------------------------------- | --------------- | -------- | ------------------------------------------------------------------ |
+| [01](plan-01-claude-api.md)      | Claude API with validation loops  | Claude (remote) | Node.js  | Highest prose quality; API cost and dependency                     |
+| [02](plan-02-local-models.md)    | Local models on Mac Studio M4 Max | Qwen3 (local)   | Python   | No API cost; hardware requirement and lower quality                |
+| [03](plan-03-distilabel.md)      | Distilabel DAG pipeline           | Any (pluggable) | Python   | Production orchestration; Python dependency and framework coupling |
+| [04](plan-04-template-engine.md) | Deterministic templates           | None            | Node.js  | Instant, free, reproducible; formulaic prose                       |
+| [05](plan-05-hybrid-dsl.md)      | Custom DSL with tiered generation | Any (cached)    | Node.js  | Deterministic structure + LLM prose; custom parser maintenance     |

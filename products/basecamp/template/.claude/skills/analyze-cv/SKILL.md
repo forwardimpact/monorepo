@@ -146,9 +146,9 @@ Use the proficiency definitions from the framework:
 the CV implies unless the candidate provides concrete, quantified evidence
 (metrics, measurable outcomes, named systems, team sizes, user/revenue scale).
 Only award the directly implied level when the CV includes specific, verifiable
-details — vague descriptions like "improved performance" or "led initiatives"
-do not count. A skill merely listed in a "Skills" section with no project
-context rates `awareness` at most.
+details — vague descriptions like "improved performance" or "led initiatives" do
+not count. A skill merely listed in a "Skills" section with no project context
+rates `awareness` at most.
 
 ## Step 4: Assess Behaviour Indicators
 
@@ -184,8 +184,8 @@ Classify each skill as:
 - **Adequate** — candidate is exactly one level below expected proficiency with
   clear project evidence, **or** meets the level but evidence is thin
 - **Gap** — candidate is two or more levels below expected proficiency
-- **Not evidenced** — CV doesn't mention this skill area. **Treat as a gap**
-  for recommendation purposes — absence of evidence is not evidence of skill
+- **Not evidenced** — CV doesn't mention this skill area. **Treat as a gap** for
+  recommendation purposes — absence of evidence is not evidence of skill
 
 **Threshold rule:** If more than **one third** of the target job's skills are
 Gap or Not evidenced, the candidate cannot receive "Proceed." If more than
@@ -290,8 +290,8 @@ to create the candidate profile from email threads.
 - [ ] Estimated level is sceptical (two below CV claims unless proven with
       quantified evidence)
 - [ ] "Not evidenced" skills are counted as gaps in the recommendation
-- [ ] Recommendation follows the decision rules table — verify match
-      percentages and gap counts before choosing a tier
+- [ ] Recommendation follows the decision rules table — verify match percentages
+      and gap counts before choosing a tier
 - [ ] "Proceed with reservations" is only used for strong candidates with a
       specific, named concern — never as a soft "maybe"
 - [ ] Track fit analysis references specific skill modifiers from the framework

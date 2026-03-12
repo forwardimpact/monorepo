@@ -382,10 +382,10 @@ Every question must pass all of these. No exceptions. No "it's close enough."
 
 1. **Pick the entity** — Which skill, capability, or behaviour?
 2. **Read the entity definition** — Load from `data/pathway/capabilities/`,
-   `data/pathway/behaviours/`, or equivalent. Internalize the level descriptions. You're
-   writing for _that_ level, not a generic one.
-3. **Read existing questions** — Check `data/pathway/questions/`. Know what's covered.
-   Don't create a duplicate with different words.
+   `data/pathway/behaviours/`, or equivalent. Internalize the level
+   descriptions. You're writing for _that_ level, not a generic one.
+3. **Read existing questions** — Check `data/pathway/questions/`. Know what's
+   covered. Don't create a duplicate with different words.
 4. **Draft questions** — Follow the guidelines above. Write something that would
    make a great engineer say "oh, interesting." If you wouldn't want to answer
    the question yourself, it's not good enough.
@@ -484,8 +484,8 @@ simulation prompt produces a flat simulation.
 
 ## File Locations
 
-| Type       | Data Location                               | Schema Location                                             |
-| ---------- | ------------------------------------------- | ----------------------------------------------------------- |
+| Type       | Data Location                                       | Schema Location                                             |
+| ---------- | --------------------------------------------------- | ----------------------------------------------------------- |
 | Skill      | `data/pathway/questions/skills/{skill_id}.yaml`     | `products/map/schema/json/skill-questions.schema.json`      |
 | Capability | `data/pathway/questions/capabilities/{cap_id}.yaml` | `products/map/schema/json/capability-questions.schema.json` |
 | Behaviour  | `data/pathway/questions/behaviours/{behav_id}.yaml` | `products/map/schema/json/behaviour-questions.schema.json`  |

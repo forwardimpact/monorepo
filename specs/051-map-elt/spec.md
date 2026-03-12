@@ -10,7 +10,7 @@ Map's current ingestion pipeline conflates three distinct concerns into single
 function calls:
 
 1. **Extract + Transform in one step.** `processWebhook()` receives a GitHub
-   webhook, stores the raw event, *and* immediately extracts normalized
+   webhook, stores the raw event, _and_ immediately extracts normalized
    artifacts — all in the same call. If extraction logic changes (new artifact
    types, new metadata fields), historical events cannot be reprocessed because
    the raw-to-artifact mapping is not repeatable from persisted state alone.
@@ -54,12 +54,12 @@ Restructure Map's activity data pipeline into three explicit phases:
 
 Receive raw data from external systems and persist it unchanged.
 
-| Source          | Trigger                        | Raw data format                           |
-| --------------- | ------------------------------ | ----------------------------------------- |
-| GitHub          | Webhook POST to edge function  | Individual webhook payload JSON documents  |
-| GetDX           | Scheduled edge function call   | `snapshots.list` and `snapshots.info` API response JSON documents |
-| GetDX           | Scheduled edge function call   | `teams.list` API response JSON document   |
-| Organization    | Manual upload via edge function | CSV or YAML people file                   |
+| Source       | Trigger                         | Raw data format                                                   |
+| ------------ | ------------------------------- | ----------------------------------------------------------------- |
+| GitHub       | Webhook POST to edge function   | Individual webhook payload JSON documents                         |
+| GetDX        | Scheduled edge function call    | `snapshots.list` and `snapshots.info` API response JSON documents |
+| GetDX        | Scheduled edge function call    | `teams.list` API response JSON document                           |
+| Organization | Manual upload via edge function | CSV or YAML people file                                           |
 
 Each raw document is stored as an individual object in Supabase Storage with
 metadata (source, timestamp, content type) attached. No parsing, no field
@@ -67,7 +67,7 @@ mapping, no joins — just persistence of exactly what was received.
 
 ### Load
 
-The Extract step *is* the Load step — raw documents land directly in Supabase
+The Extract step _is_ the Load step — raw documents land directly in Supabase
 object storage. There is no separate load phase because the extract functions
 write to storage as their final action. The term "Load" in ELT refers to this
 raw persistence.
@@ -78,13 +78,13 @@ Read raw documents from object storage and produce structured rows in the
 activity database tables. Transforms are idempotent: running the same transform
 on the same raw data always produces the same database state.
 
-| Raw input                    | Transform                        | Output table(s)                                      |
-| ---------------------------- | -------------------------------- | ---------------------------------------------------- |
-| GitHub webhook document      | Extract artifacts, resolve email | `github_events` + `github_artifacts`                 |
-| `snapshots.list` response    | Parse snapshot metadata          | `getdx_snapshots`                                    |
-| `snapshots.info` response    | Parse team scores, resolve team  | `getdx_snapshot_team_scores`                          |
-| `teams.list` response        | Parse teams, resolve manager     | `getdx_teams`                                        |
-| Organization CSV/YAML        | Parse people records             | `organization_people`                                |
+| Raw input                 | Transform                        | Output table(s)                      |
+| ------------------------- | -------------------------------- | ------------------------------------ |
+| GitHub webhook document   | Extract artifacts, resolve email | `github_events` + `github_artifacts` |
+| `snapshots.list` response | Parse snapshot metadata          | `getdx_snapshots`                    |
+| `snapshots.info` response | Parse team scores, resolve team  | `getdx_snapshot_team_scores`         |
+| `teams.list` response     | Parse teams, resolve manager     | `getdx_teams`                        |
+| Organization CSV/YAML     | Parse people records             | `organization_people`                |
 
 Key property: **the Transform step is the same regardless of whether the raw
 data came from a live external system or from the synthetic data pipeline.**
@@ -118,8 +118,8 @@ request body for webhooks), stored as-is with no modification.
   API responses) and Transform (parse stored responses into DB rows).
 - Make all transforms operate on stored raw documents, not live API responses.
 - Preserve existing query functions and database schema unchanged.
-- Preserve existing `github_events.raw` column (populated by the Transform
-  step from the stored raw document, maintaining backward compatibility).
+- Preserve existing `github_events.raw` column (populated by the Transform step
+  from the stored raw document, maintaining backward compatibility).
 
 ### Out of scope
 

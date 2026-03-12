@@ -8,8 +8,8 @@
 
 Replace LLM generation entirely with template-driven content. Use Handlebars
 templates for HTML and Markdown, JSON Schema-constrained object builders for
-YAML, and statistical models for activity data. A seeded PRNG ensures every
-run produces identical output. The entire pipeline runs in Node.js with zero
+YAML, and statistical models for activity data. A seeded PRNG ensures every run
+produces identical output. The entire pipeline runs in Node.js with zero
 external dependencies beyond npm packages.
 
 ## Architecture
@@ -100,8 +100,8 @@ templates:
 
 ### Prose Generation (Template Fragments)
 
-Instead of LLM-generated prose, use a corpus of parameterized sentence
-templates organized by topic:
+Instead of LLM-generated prose, use a corpus of parameterized sentence templates
+organized by topic:
 
 ```javascript
 // templates/prose/pharma-corpus.js
@@ -415,17 +415,17 @@ export function crossValidate(generatedData) {
 
 ## Output File Mapping
 
-| Generated Content              | Target Location                              |
-| ------------------------------ | -------------------------------------------- |
-| ONTOLOGY.md                    | `products/guide/examples/knowledge/`         |
-| README.md                      | `products/guide/examples/knowledge/`         |
-| HTML microdata files           | `products/guide/examples/knowledge/`         |
-| Framework YAML                 | `products/map/examples/`                     |
-| Organization people            | `products/map/examples/activity/`            |
-| GitHub events/artifacts        | `products/map/examples/activity/`            |
-| GetDX snapshots/scores         | `products/map/examples/activity/`            |
-| Evidence records               | `products/map/examples/activity/`            |
-| Personal knowledge base        | `products/basecamp/template/knowledge/`      |
+| Generated Content       | Target Location                         |
+| ----------------------- | --------------------------------------- |
+| ONTOLOGY.md             | `products/guide/examples/knowledge/`    |
+| README.md               | `products/guide/examples/knowledge/`    |
+| HTML microdata files    | `products/guide/examples/knowledge/`    |
+| Framework YAML          | `products/map/examples/`                |
+| Organization people     | `products/map/examples/activity/`       |
+| GitHub events/artifacts | `products/map/examples/activity/`       |
+| GetDX snapshots/scores  | `products/map/examples/activity/`       |
+| Evidence records        | `products/map/examples/activity/`       |
+| Personal knowledge base | `products/basecamp/template/knowledge/` |
 
 ## CLI Interface
 
@@ -466,18 +466,21 @@ No Python. No model downloads. No API keys.
 ## Implementation Phases
 
 ### Phase A — Core Infrastructure (1 day)
+
 - Seeded PRNG wrapper with Gaussian, Poisson, weighted pick
 - Handlebars helpers (slugify, kebabCase, scopeFor, selectParagraphs)
 - Template directory structure
 - YAML serialization with schema validation
 
 ### Phase B — Entity Generation (1 day)
+
 - People generator with Greek mythology names
 - Organization/department/team generators
 - Project and drug generators
 - ONTOLOGY.md assembly from entities
 
 ### Phase C — Framework Templates (2 days)
+
 - Capability YAML templates with proficiency descriptions
 - Discipline, track, behaviour YAML templates
 - Levels, stages, drivers, framework templates
@@ -485,18 +488,21 @@ No Python. No model downloads. No API keys.
 - Validation against `npx fit-map validate`
 
 ### Phase D — Content Templates (2 days)
+
 - HTML microdata templates for all 22 content types
 - Prose corpus for pharmaceutical domain
 - README.md and ONTOLOGY.md templates
 - Basecamp Markdown templates
 
 ### Phase E — Activity Generation (1 day)
+
 - GitHub event Poisson process
 - DX survey score generation
 - Evidence statement templates
 - Signal curve generators
 
 ### Phase F — Integration (1 day)
+
 - Cross-content validation
 - CLI integration as `npx fit-map generate`
 - Remove old hand-crafted content

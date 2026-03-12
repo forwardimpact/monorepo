@@ -14,12 +14,7 @@
  */
 
 import { createHash } from "node:crypto";
-import {
-  existsSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-} from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
@@ -72,9 +67,7 @@ if (existsSync(STATE_FILE)) {
  * Compute SHA-256 hash of file contents.
  */
 function fileHash(filePath) {
-  return createHash("sha256")
-    .update(readFileSync(filePath))
-    .digest("hex");
+  return createHash("sha256").update(readFileSync(filePath)).digest("hex");
 }
 
 /**
@@ -184,8 +177,7 @@ for (const uuid of sessionIds) {
   // Read meta for title fallback
   const meta = readMeta(sessionPath);
 
-  const title =
-    memo?.title || meta?.title || uuid.slice(0, 8);
+  const title = memo?.title || meta?.title || uuid.slice(0, 8);
   const date =
     memo?.date ||
     (meta?.created_at ? meta.created_at.slice(0, 10) : null) ||

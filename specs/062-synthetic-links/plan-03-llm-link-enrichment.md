@@ -19,7 +19,7 @@ references to other entities. The LLM receives the entity graph as context and
 is instructed to embed `itemprop="about"`, `itemprop="mentions"`, and
 `itemprop="author"` microdata linking to specific entity IRIs.
 
-This extends the existing Tier 1 prose generation to produce *linked* prose
+This extends the existing Tier 1 prose generation to produce _linked_ prose
 rather than isolated text blocks.
 
 ## Architecture
@@ -131,15 +131,15 @@ async generateLinked(key, entityContext) {
 
 ## What Gets LLM Prose
 
-| Output type | Structural (template) | LLM-generated prose |
-| ----------- | --------------------- | ------------------- |
-| Projects | itemid, dates, lead, contributors, about links | description |
-| Platforms | itemid, category, version, deps, project links | description |
-| Drugs | itemid, class, phase, ingredient, platform links | description, pharmacology |
-| Courses | itemid, prereqs, provider | description (with entity mentions) |
-| Events | itemid, organizer, attendees, about links | description (with entity mentions) |
-| Blog posts | itemid, author, date | articleBody (with inline microdata) |
-| Articles | itemid, topic | body (with inline microdata) |
+| Output type | Structural (template)                            | LLM-generated prose                 |
+| ----------- | ------------------------------------------------ | ----------------------------------- |
+| Projects    | itemid, dates, lead, contributors, about links   | description                         |
+| Platforms   | itemid, category, version, deps, project links   | description                         |
+| Drugs       | itemid, class, phase, ingredient, platform links | description, pharmacology           |
+| Courses     | itemid, prereqs, provider                        | description (with entity mentions)  |
+| Events      | itemid, organizer, attendees, about links        | description (with entity mentions)  |
+| Blog posts  | itemid, author, date                             | articleBody (with inline microdata) |
+| Articles    | itemid, topic                                    | body (with inline microdata)        |
 
 ## Template Changes
 
@@ -177,8 +177,8 @@ microdata from the LLM.
 
 - LLM output quality varies — microdata formatting may be inconsistent
 - Requires validation that LLM-produced IRIs match actual entity IRIs
-- ~50–80 LLM calls for a full BioNova generation (15 blogs + 4 articles +
-  15 courses + 10 events + projects + drugs + platforms)
+- ~50–80 LLM calls for a full BioNova generation (15 blogs + 4 articles + 15
+  courses + 10 events + projects + drugs + platforms)
 - Prompt engineering iteration needed to get consistent microdata
 - If LLM hallucinates an entity IRI, the graph has a dangling link
 

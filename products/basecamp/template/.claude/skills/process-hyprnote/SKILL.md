@@ -62,12 +62,12 @@ which need processing, with titles, dates, and content previews.
 
 **Options:**
 
-| Flag | Description |
-|------|-------------|
+| Flag        | Description                                              |
+| ----------- | -------------------------------------------------------- |
 | `--changed` | Also detect sessions whose memo/summary hash has changed |
-| `--json` | Output as JSON (for programmatic use) |
-| `--count` | Just print the count (for quick checks) |
-| `--limit N` | Max sessions to display (default: 20) |
+| `--json`    | Output as JSON (for programmatic use)                    |
+| `--count`   | Just print the count (for quick checks)                  |
+| `--limit N` | Max sessions to display (default: 20)                    |
 
 A session needs processing if:
 

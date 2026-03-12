@@ -1,8 +1,8 @@
 # Library Standardization and Skill Consolidation
 
 Standardize all libraries to a single architectural pattern (OO+DI) and
-consolidate Claude skills into capability-based groups so coding agents
-reliably discover and use libraries.
+consolidate Claude skills into capability-based groups so coding agents reliably
+discover and use libraries.
 
 ```
 specs/080-library-standardization/
@@ -20,11 +20,11 @@ Two problems slow down development in the monorepo:
 Most libraries follow OO+DI (classes with constructor-injected dependencies and
 convenience factory functions). Three libraries deviate:
 
-| Library | Current pattern | Problem |
-| --- | --- | --- |
-| **libuniverse** | Procedural functions, module-level singletons | Cannot unit-test pipeline stages in isolation; ProseEngine creates its own PromptLoader at module scope; no DI seams for fs, config, or LLM |
-| **libutil** | Mixed — 5 classes with DI + 9 loose functions | Loose functions (`generateHash`, `countTokens`, `execLine`, `waitFor`) have no injection points; `createBundleDownloader` uses dynamic imports to work around circular deps |
-| **libsupervise** | Classes, but module-level logger singleton | `SupervisionTree` creates `const logger = createLogger("tree")` at module scope — untestable, violates DI |
+| Library          | Current pattern                               | Problem                                                                                                                                                                     |
+| ---------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **libuniverse**  | Procedural functions, module-level singletons | Cannot unit-test pipeline stages in isolation; ProseEngine creates its own PromptLoader at module scope; no DI seams for fs, config, or LLM                                 |
+| **libutil**      | Mixed — 5 classes with DI + 9 loose functions | Loose functions (`generateHash`, `countTokens`, `execLine`, `waitFor`) have no injection points; `createBundleDownloader` uses dynamic imports to work around circular deps |
+| **libsupervise** | Classes, but module-level logger singleton    | `SupervisionTree` creates `const logger = createLogger("tree")` at module scope — untestable, violates DI                                                                   |
 
 When a contributor opens a non-conforming library they see a different pattern
 than everywhere else, leading to copy-paste of the wrong style into new code.
@@ -106,13 +106,13 @@ Every library (except libskill and libui) follows one pattern:
 
 Replace 22 individual library skills with **5 capability group skills**:
 
-| Group skill | Libraries covered | When activated |
-| --- | --- | --- |
-| **service-infrastructure** | librpc, libconfig, libtelemetry, libtype, libharness | Building or modifying gRPC services, service configuration, logging/tracing |
-| **data-persistence** | libstorage, libindex, libresource, libpolicy, libgraph, libvector | Storing data, querying indexes, managing resources, access control, knowledge graphs, vector search |
-| **llm-orchestration** | libllm, libmemory, libprompt, libagent | LLM completions, embeddings, conversation memory, prompt templates, agent orchestration |
-| **web-presentation** | libui, libformat, libweb, libdoc, libtemplate | Web UIs, markdown rendering, HTTP middleware, documentation sites |
-| **system-utilities** | libutil, libsecret, libsupervise, librc, libcodegen | Process supervision, service management, code generation, hashing, secrets |
+| Group skill                | Libraries covered                                                 | When activated                                                                                      |
+| -------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **service-infrastructure** | librpc, libconfig, libtelemetry, libtype, libharness              | Building or modifying gRPC services, service configuration, logging/tracing                         |
+| **data-persistence**       | libstorage, libindex, libresource, libpolicy, libgraph, libvector | Storing data, querying indexes, managing resources, access control, knowledge graphs, vector search |
+| **llm-orchestration**      | libllm, libmemory, libprompt, libagent                            | LLM completions, embeddings, conversation memory, prompt templates, agent orchestration             |
+| **web-presentation**       | libui, libformat, libweb, libdoc, libtemplate                     | Web UIs, markdown rendering, HTTP middleware, documentation sites                                   |
+| **system-utilities**       | libutil, libsecret, libsupervise, librc, libcodegen               | Process supervision, service management, code generation, hashing, secrets                          |
 
 Each group skill contains:
 
@@ -122,8 +122,8 @@ Each group skill contains:
    class/factory.
 3. **Composition recipes** — 2–3 complete examples showing how the libraries
    work together for real tasks (not isolated API demos).
-4. **Decision guide** — "Use X when…, use Y when…" for libraries that overlap
-   in responsibility.
+4. **Decision guide** — "Use X when…, use Y when…" for libraries that overlap in
+   responsibility.
 5. **DI wiring patterns** — How to construct and compose instances, showing the
    factory functions and constructor signatures.
 

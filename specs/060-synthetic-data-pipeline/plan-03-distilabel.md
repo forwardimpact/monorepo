@@ -9,9 +9,9 @@
 Use [Distilabel](https://distilabel.argilla.io/) as the pipeline framework.
 Distilabel provides a DAG of steps (GeneratorStep → Task → processing) that
 orchestrate LLM calls, post-processing, and validation. Each content type
-becomes a Distilabel pipeline with typed inputs/outputs, automatic batching,
-and built-in support for multiple LLM backends. Generated datasets flow into
-Argilla for human review before committing to the monorepo.
+becomes a Distilabel pipeline with typed inputs/outputs, automatic batching, and
+built-in support for multiple LLM backends. Generated datasets flow into Argilla
+for human review before committing to the monorepo.
 
 ## Architecture
 
@@ -62,10 +62,10 @@ seed.yaml
 
 1. **DAG orchestration**: Steps declare inputs/outputs; Distilabel handles
    execution order, batching, and parallelism automatically
-2. **Multi-LLM support**: Built-in integrations for OpenAI, Anthropic,
-   vLLM, llama.cpp, Ollama — switch providers without code changes
-3. **Structured output**: Native support for JSON/Pydantic output schemas
-   via `structured_output` parameter on LLM tasks
+2. **Multi-LLM support**: Built-in integrations for OpenAI, Anthropic, vLLM,
+   llama.cpp, Ollama — switch providers without code changes
+3. **Structured output**: Native support for JSON/Pydantic output schemas via
+   `structured_output` parameter on LLM tasks
 4. **Dataset management**: Output is a Distiset (HuggingFace Dataset wrapper)
    with versioning, deduplication, and export
 5. **Argilla integration**: Generated data can flow into Argilla for human
@@ -73,8 +73,8 @@ seed.yaml
 
 ## Seed Data
 
-Same `seed.yaml` structure as Plans 01 and 02. Loaded as the initial dataset
-for Pipeline 1.
+Same `seed.yaml` structure as Plans 01 and 02. Loaded as the initial dataset for
+Pipeline 1.
 
 ## Pipeline Definitions
 
@@ -435,17 +435,17 @@ def CrossValidateStep(inputs: StepInput):
 
 ## Output File Mapping
 
-| Generated Content              | Target Location                              |
-| ------------------------------ | -------------------------------------------- |
-| ONTOLOGY.md                    | `products/guide/examples/knowledge/`         |
-| README.md                      | `products/guide/examples/knowledge/`         |
-| HTML microdata files           | `products/guide/examples/knowledge/`         |
-| Framework YAML                 | `products/map/examples/`                     |
-| Organization people            | `products/map/examples/activity/`            |
-| GitHub events/artifacts        | `products/map/examples/activity/`            |
-| GetDX snapshots/scores         | `products/map/examples/activity/`            |
-| Evidence records               | `products/map/examples/activity/`            |
-| Personal knowledge base        | `products/basecamp/template/knowledge/`      |
+| Generated Content       | Target Location                         |
+| ----------------------- | --------------------------------------- |
+| ONTOLOGY.md             | `products/guide/examples/knowledge/`    |
+| README.md               | `products/guide/examples/knowledge/`    |
+| HTML microdata files    | `products/guide/examples/knowledge/`    |
+| Framework YAML          | `products/map/examples/`                |
+| Organization people     | `products/map/examples/activity/`       |
+| GitHub events/artifacts | `products/map/examples/activity/`       |
+| GetDX snapshots/scores  | `products/map/examples/activity/`       |
+| Evidence records        | `products/map/examples/activity/`       |
+| Personal knowledge base | `products/basecamp/template/knowledge/` |
 
 ## CLI Interface
 
@@ -508,29 +508,34 @@ pyyaml>=6.0
 ## Implementation Phases
 
 ### Phase A — Distilabel Setup (1 day)
+
 - Install Distilabel and configure LLM backend
 - Create project structure under `scripts/generate/`
 - Define seed.yaml
 - Set up Argilla server (Docker) for optional review
 
 ### Phase B — Organization & Framework Pipelines (2 days)
+
 - Implement Pipeline 1 (Organization) with entity generation
 - Implement Pipeline 2 (Framework) with schema validation
 - Implement Pipeline 3 (Scenarios) with deterministic curves
 - Verify YAML output passes `npx fit-map validate`
 
 ### Phase C — Content Pipeline (3 days)
+
 - Implement Pipeline 4 (HTML microdata generation)
 - HTML microdata parser for validation
 - Implement retry logic for failed validations
 - Generate all Guide HTML files
 
 ### Phase D — Activity & Personal Pipelines (2 days)
+
 - Implement Pipeline 5 (Activity) with deterministic + LLM steps
 - Implement Pipeline 6 (Personal) with Basecamp Markdown
 - Statistical validation of correlations
 
 ### Phase E — Integration (1 day)
+
 - Master pipeline wiring
 - Cross-validation step
 - Export script to monorepo locations
@@ -539,8 +544,8 @@ pyyaml>=6.0
 
 ## Strengths
 
-- **Production-grade orchestration**: Distilabel handles batching, retries,
-  rate limiting, and error recovery out of the box
+- **Production-grade orchestration**: Distilabel handles batching, retries, rate
+  limiting, and error recovery out of the box
 - **LLM-agnostic**: Switch between Claude, Ollama, vLLM without code changes
 - **Dataset management**: Distiset provides versioned, typed datasets with
   export to multiple formats

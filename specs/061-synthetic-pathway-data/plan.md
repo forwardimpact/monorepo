@@ -58,48 +58,46 @@ Each sub-parser follows the existing pattern (advance tokens, expect braces,
 parse key-value pairs). The shapes match the spec's DSL examples:
 
 **`parseFrameworkLevels()`** — Map of level IDs to
-`{ professionalTitle, managementTitle, rank, experience }`. The real schema
-uses `professionalTitle` / `managementTitle`, not a single `title`.
+`{ professionalTitle, managementTitle, rank, experience }`. The real schema uses
+`professionalTitle` / `managementTitle`, not a single `title`.
 
 **`parseFrameworkCapabilities()`** — Array of `{ id, name, skills: string[] }`.
 Each capability declares skill IDs; skill names/prose come from the LLM.
 
-**`parseFrameworkBehaviours()`** — Array of `{ id, name }`. Note: the
-actual YAML files use `name` as the top-level key (no explicit `id` field).
-The filename serves as the ID. The DSL uses the block key as the ID.
+**`parseFrameworkBehaviours()`** — Array of `{ id, name }`. Note: the actual
+YAML files use `name` as the top-level key (no explicit `id` field). The
+filename serves as the ID. The DSL uses the block key as the ID.
 
-**`parseFrameworkDisciplines()`** — Each has `{ id, roleTitle, specialization,
-isProfessional, core, supporting, broad, validTracks }`. The real schema uses
-`specialization` (not `name`), and `isProfessional` is a boolean distinguishing
-professional from management disciplines.
+**`parseFrameworkDisciplines()`** — Each has
+`{ id, roleTitle, specialization, isProfessional, core, supporting, broad, validTracks }`.
+The real schema uses `specialization` (not `name`), and `isProfessional` is a
+boolean distinguishing professional from management disciplines.
 
-**`parseFrameworkTracks()`** — Each has `{ id, name }`. Track YAML files
-use `name` at the top level (no `id` field — filename is the ID). Skill
-modifiers and behaviour modifiers are populated by the LLM, not declared in
-the DSL.
+**`parseFrameworkTracks()`** — Each has `{ id, name }`. Track YAML files use
+`name` at the top level (no `id` field — filename is the ID). Skill modifiers
+and behaviour modifiers are populated by the LLM, not declared in the DSL.
 
-**`parseFrameworkDrivers()`** — Each has `{ id, name, skills, behaviours }`.
-The real schema uses `contributingSkills` and `contributingBehaviours`; the DSL
-uses shorter aliases `skills` and `behaviours` for brevity.
+**`parseFrameworkDrivers()`** — Each has `{ id, name, skills, behaviours }`. The
+real schema uses `contributingSkills` and `contributingBehaviours`; the DSL uses
+shorter aliases `skills` and `behaviours` for brevity.
 
 ### Clean break — no backward compatibility
 
-The old `framework` block accepted flat arrays for `capabilities`,
-`behaviours`, and `drivers`. There are no consumers of the old format — the
-old syntax is removed entirely. The new parser requires the block syntax
-(`LBRACE`) for all entity types. Any DSL files using the flat-array format
-must be migrated in Phase 6.
+The old `framework` block accepted flat arrays for `capabilities`, `behaviours`,
+and `drivers`. There are no consumers of the old format — the old syntax is
+removed entirely. The new parser requires the block syntax (`LBRACE`) for all
+entity types. Any DSL files using the flat-array format must be migrated in
+Phase 6.
 
 ### Tokenizer
 
 No new token **types** needed. The existing token types (`KEYWORD`, `IDENT`,
 `STRING`, `NUMBER`, `PERCENT`, `DATE`, `LBRACE`, `RBRACE`, `LBRACKET`,
 `RBRACKET`, `COMMA`, `AT_IDENT`) cover all new syntax. However, new keywords
-must be added to the KEYWORDS list (currently 42 entries):
-`levels`, `behaviours`, `disciplines`, `tracks`, `drivers`, `stages`,
-`skills`, `name`, `title`, `rank`, `experience`, `roleTitle`, `core`,
-`supporting`, `broad`, `validTracks`. This ensures they tokenize as `KEYWORD`
-rather than `IDENT`.
+must be added to the KEYWORDS list (currently 42 entries): `levels`,
+`behaviours`, `disciplines`, `tracks`, `drivers`, `stages`, `skills`, `name`,
+`title`, `rank`, `experience`, `roleTitle`, `core`, `supporting`, `broad`,
+`validTracks`. This ensures they tokenize as `KEYWORD` rather than `IDENT`.
 
 ## Phase 2 — Prompt Templates
 
@@ -110,8 +108,8 @@ function that takes the entity skeleton (from the DSL) and returns a prompt
 object `{ system, user, schema }`.
 
 Note: the existing codebase has **no prompts directory** — prose prompts are
-currently built inline in `ProseEngine.buildPrompt()`. This phase introduces
-the first externalized prompt templates.
+currently built inline in `ProseEngine.buildPrompt()`. This phase introduces the
+first externalized prompt templates.
 
 ### Design principle: JSON schema as context
 
@@ -133,7 +131,7 @@ prompts/pathway/
 
 ### Prompt structure (example: capability)
 
-```javascript
+````javascript
 export function buildCapabilityPrompt(skeleton, universeContext, schema) {
   return {
     system: [
@@ -176,12 +174,13 @@ export function buildCapabilityPrompt(skeleton, universeContext, schema) {
     ].join('\n'),
   }
 }
-```
+````
 
 ### Capability and behaviour prompts — the heavy lifters
 
 Capabilities are the most prose-dense entity. Each capability with 4 skills
 requires:
+
 - 1 description + 5 professional + 5 management responsibilities = 11 strings
 - Per skill: 1 description + 5 proficiency descriptions = 6 strings
 - 4 skills × 6 = 24 strings
@@ -190,8 +189,8 @@ requires:
 To keep prompt size manageable and output quality high, each capability is
 prompted independently (one LLM call per capability). Behaviours are similarly
 one call each (1 description + 5 maturity descriptions = ~7 prose strings).
-Behaviour files in `data/pathway/` have both `human:` and `agent:` sections,
-but the spec explicitly scopes this to `human:` sections only.
+Behaviour files in `data/pathway/` have both `human:` and `agent:` sections, but
+the spec explicitly scopes this to `human:` sections only.
 
 Simpler entities (levels, stages, drivers, framework) can be batched into a
 single prompt each since their prose density is lower.
@@ -206,16 +205,16 @@ The prompt must guide the LLM to produce all of these.
 
 Estimated token counts per call (including schema context):
 
-| Entity       | Input tokens | Output tokens | Calls |
-| ------------ | ------------ | ------------- | ----- |
-| Framework    | ~2,000       | ~500          | 1     |
-| Levels       | ~3,000       | ~2,000        | 1     |
-| Stages       | ~3,000       | ~3,000        | 1     |
-| Behaviours   | ~2,500       | ~1,500        | N (5) |
-| Capabilities | ~4,000       | ~4,000        | N (11)|
-| Drivers      | ~2,500       | ~1,000        | 1     |
-| Disciplines  | ~3,000       | ~1,500        | N (5) |
-| Tracks       | ~2,500       | ~800          | N (4) |
+| Entity       | Input tokens | Output tokens | Calls  |
+| ------------ | ------------ | ------------- | ------ |
+| Framework    | ~2,000       | ~500          | 1      |
+| Levels       | ~3,000       | ~2,000        | 1      |
+| Stages       | ~3,000       | ~3,000        | 1      |
+| Behaviours   | ~2,500       | ~1,500        | N (5)  |
+| Capabilities | ~4,000       | ~4,000        | N (11) |
+| Drivers      | ~2,500       | ~1,000        | 1      |
+| Disciplines  | ~3,000       | ~1,500        | N (5)  |
+| Tracks       | ~2,500       | ~800          | N (4)  |
 
 Total for BioNova-scale universe: ~25 LLM calls, ~80K input + ~40K output
 tokens.
@@ -272,8 +271,8 @@ Before writing YAML, each entity is validated against its JSON schema using
 `ajv`. Note: `ajv` and `ajv-formats` are dependencies of `@forwardimpact/map`
 but **not** of `libuniverse` — they must be added to
 `libraries/libuniverse/package.json`. If validation fails, the error is logged
-and the entity is retried once with the validation errors appended to the
-prompt (self-healing loop).
+and the entity is retried once with the validation errors appended to the prompt
+(self-healing loop).
 
 ```javascript
 import Ajv from 'ajv'
@@ -311,16 +310,16 @@ function toYaml(data, schemaName) {
 
 ### New generation step
 
-Insert a pathway generation step. The existing pipeline has five steps:
-parse → tier 0 → prose → render → validate. Pathway generation is a new
-render type (like `html`, `yaml`, `raw`, `markdown`) that also needs LLM
-calls. It slots in as both a generation and render step:
+Insert a pathway generation step. The existing pipeline has five steps: parse →
+tier 0 → prose → render → validate. Pathway generation is a new render type
+(like `html`, `yaml`, `raw`, `markdown`) that also needs LLM calls. It slots in
+as both a generation and render step:
 
 1. Reads JSON schemas from `products/map/schema/json/`.
-2. Builds prompts for each entity type using the DSL skeleton +
-   schema + universe context.
-3. Calls `ProseEngine.generateStructured()` (new method from Phase 2) with
-   cache key `pathway:{type}:{id}` for each entity.
+2. Builds prompts for each entity type using the DSL skeleton + schema +
+   universe context.
+3. Calls `ProseEngine.generateStructured()` (new method from Phase 2) with cache
+   key `pathway:{type}:{id}` for each entity.
 4. Parses JSON responses.
 5. Validates against schemas.
 6. Retries on validation failure (once, with errors in prompt).
@@ -419,8 +418,8 @@ export async function generatePathwayData({ framework, domain, schemas, proseEng
 Self-assessments reference actual skill and behaviour IDs from the generated
 data. They are generated deterministically using the seeded RNG — no LLM call
 needed. This replaces the current `generateSkillAssessments()` /
-`generateBehaviourAssessments()` in `render/yaml.js` which map person levels
-to hardcoded proficiency/maturity constants (`PROFICIENCY_LEVELS`,
+`generateBehaviourAssessments()` in `render/yaml.js` which map person levels to
+hardcoded proficiency/maturity constants (`PROFICIENCY_LEVELS`,
 `MATURITY_LEVELS`).
 
 ### ProseEngine extension
@@ -428,10 +427,10 @@ to hardcoded proficiency/maturity constants (`PROFICIENCY_LEVELS`,
 The existing `ProseEngine` supports string-valued cache entries. For pathway
 generation, the cache stores JSON strings (the LLM's raw JSON output).
 
-The existing cache key is a SHA-256 hash of `(key, JSON.stringify(context))`
-via `generateHash()` from libutil. The logical key prefix
-`pathway:{entity_type}:{entity_id}` is the `key` argument — the hash makes
-it deterministic for cache hits.
+The existing cache key is a SHA-256 hash of `(key, JSON.stringify(context))` via
+`generateHash()` from libutil. The logical key prefix
+`pathway:{entity_type}:{entity_id}` is the `key` argument — the hash makes it
+deterministic for cache hits.
 
 `generateProse()` currently builds prompts inline via `buildPrompt()` using
 fields like `topic`, `tone`, `length`, `domain`. Pathway generation needs
@@ -440,8 +439,8 @@ does not support. Two options:
 
 1. **Bypass `generateProse()`** — Call `llmApi.createCompletions()` directly
    from the pathway engine and manage caching separately.
-2. **Extend `ProseEngine`** — Add a `generateStructured(key, messages)`
-   method that accepts pre-built messages and handles caching.
+2. **Extend `ProseEngine`** — Add a `generateStructured(key, messages)` method
+   that accepts pre-built messages and handles caching.
 
 Option 2 is cleaner — it reuses the cache and mode (`no-prose`, `cached`,
 `generate`) logic:
@@ -469,9 +468,9 @@ async generateJson(key, messages) {
 
 ### Schema loading
 
-Schemas use `$ref` to reference shared definitions in `defs.schema.json`.
-When compiling with AJV, either load `defs.schema.json` first via
-`ajv.addSchema()` or resolve `$ref` URIs manually.
+Schemas use `$ref` to reference shared definitions in `defs.schema.json`. When
+compiling with AJV, either load `defs.schema.json` first via `ajv.addSchema()`
+or resolve `$ref` URIs manually.
 
 ```javascript
 function loadSchemas(schemaDir) {
@@ -535,17 +534,16 @@ post-generation check from the CLI.
 
 ### universe.dsl (BioNova) — full pathway skeleton
 
-Replace the minimal `framework { ... }` block with the extended syntax
-declaring levels, capabilities with skills, behaviours, disciplines, tracks,
-drivers, and stages. The entity graph should reflect a pharma-oriented
-organization with ~11 capabilities, ~40 skills, 5 behaviours, 5 disciplines,
-4 tracks.
+Replace the minimal `framework { ... }` block with the extended syntax declaring
+levels, capabilities with skills, behaviours, disciplines, tracks, drivers, and
+stages. The entity graph should reflect a pharma-oriented organization with ~11
+capabilities, ~40 skills, 5 behaviours, 5 disciplines, 4 tracks.
 
 ### default.dsl (minimal test) — small pathway skeleton
 
-A minimal framework with 2 capabilities (3 skills each), 2 behaviours,
-2 levels, 1 discipline, 1 track, 2 drivers. Enough to exercise the pipeline
-without heavy LLM usage.
+A minimal framework with 2 capabilities (3 skills each), 2 behaviours, 2 levels,
+1 discipline, 1 track, 2 drivers. Enough to exercise the pipeline without heavy
+LLM usage.
 
 ## Phase 7 — Cleanup
 
@@ -569,8 +567,8 @@ if (shouldRender('yaml')) {
 ### Retain roster/teams in activity output
 
 The current `renderYAML()` in `render/yaml.js` generates three files:
-`self-assessments.yaml`, `roster.yaml`, and `teams.yaml`. Roster and teams
-are activity data, not pathway data. Move roster and teams rendering to
+`self-assessments.yaml`, `roster.yaml`, and `teams.yaml`. Roster and teams are
+activity data, not pathway data. Move roster and teams rendering to
 `render/raw.js` (which already exists and exports `renderRawDocuments()`).
 Output them under `examples/activity/`:
 
@@ -583,14 +581,13 @@ if (shouldRender('raw')) {
 ```
 
 Note: `renderRawDocuments()` currently returns a Map fed into `rawDocuments`
-(for storage loading), not `files`. Roster/teams should go into `files`
-instead since they are filesystem outputs, not storage documents. This may
-require a small refactor of the raw render block.
+(for storage loading), not `files`. Roster/teams should go into `files` instead
+since they are filesystem outputs, not storage documents. This may require a
+small refactor of the raw render block.
 
 ### Delete render/yaml.js
 
-After moving roster/teams, `render/yaml.js` has no remaining exports. Delete
-it.
+After moving roster/teams, `render/yaml.js` has no remaining exports. Delete it.
 
 ### Update CLI `--only` flag
 
@@ -618,8 +615,8 @@ mode. Verify:
 2. `npx fit-map validate --data=examples/pathway` passes.
 3. Cross-reference integrity holds.
 
-Use a mock LLM client (from libharness) that returns canned JSON responses
-for deterministic testing without actual LLM calls.
+Use a mock LLM client (from libharness) that returns canned JSON responses for
+deterministic testing without actual LLM calls.
 
 ### Cached mode test
 
@@ -628,37 +625,37 @@ output, zero LLM calls.
 
 ## Dependency changes
 
-| Package           | Change                       | Reason                      |
-| ----------------- | ---------------------------- | --------------------------- |
-| `ajv`             | Add to libuniverse           | JSON Schema validation      |
-| `ajv-formats`     | Add to libuniverse           | Format validators (uri, etc)|
-| `yaml`            | Already present              | YAML serialization          |
-| `@forwardimpact/libllm` | Already present        | LLM calls                   |
+| Package                 | Change             | Reason                       |
+| ----------------------- | ------------------ | ---------------------------- |
+| `ajv`                   | Add to libuniverse | JSON Schema validation       |
+| `ajv-formats`           | Add to libuniverse | Format validators (uri, etc) |
+| `yaml`                  | Already present    | YAML serialization           |
+| `@forwardimpact/libllm` | Already present    | LLM calls                    |
 
 ## File inventory
 
-| Action  | Path                                         |
-| ------- | -------------------------------------------- |
-| Modify  | `libraries/libuniverse/dsl/tokenizer.js`     |
-| Modify  | `libraries/libuniverse/dsl/parser.js`        |
-| Modify  | `libraries/libuniverse/pipeline.js`          |
-| Modify  | `libraries/libuniverse/validate.js`          |
-| Modify  | `libraries/libuniverse/engine/prose.js`      |
-| Modify  | `libraries/libuniverse/engine/prose-keys.js` |
-| Modify  | `libraries/libuniverse/render/raw.js`        |
-| Modify  | `libraries/libuniverse/bin/fit-universe.js`  |
-| Modify  | `libraries/libuniverse/index.js`             |
-| Modify  | `libraries/libuniverse/package.json`         |
-| Modify  | `examples/universe.dsl`                      |
-| Modify  | `libraries/libuniverse/data/default.dsl`     |
-| Create  | `libraries/libuniverse/engine/pathway.js`    |
-| Create  | `libraries/libuniverse/render/pathway.js`    |
-| Create  | `libraries/libuniverse/prompts/pathway/capability.js` |
-| Create  | `libraries/libuniverse/prompts/pathway/behaviour.js`  |
-| Create  | `libraries/libuniverse/prompts/pathway/discipline.js` |
-| Create  | `libraries/libuniverse/prompts/pathway/track.js`      |
-| Create  | `libraries/libuniverse/prompts/pathway/level.js`      |
-| Create  | `libraries/libuniverse/prompts/pathway/driver.js`     |
-| Create  | `libraries/libuniverse/prompts/pathway/framework.js`  |
-| Create  | `libraries/libuniverse/prompts/pathway/stage.js`      |
-| Delete  | `libraries/libuniverse/render/yaml.js`       |
+| Action | Path                                                  |
+| ------ | ----------------------------------------------------- |
+| Modify | `libraries/libuniverse/dsl/tokenizer.js`              |
+| Modify | `libraries/libuniverse/dsl/parser.js`                 |
+| Modify | `libraries/libuniverse/pipeline.js`                   |
+| Modify | `libraries/libuniverse/validate.js`                   |
+| Modify | `libraries/libuniverse/engine/prose.js`               |
+| Modify | `libraries/libuniverse/engine/prose-keys.js`          |
+| Modify | `libraries/libuniverse/render/raw.js`                 |
+| Modify | `libraries/libuniverse/bin/fit-universe.js`           |
+| Modify | `libraries/libuniverse/index.js`                      |
+| Modify | `libraries/libuniverse/package.json`                  |
+| Modify | `examples/universe.dsl`                               |
+| Modify | `libraries/libuniverse/data/default.dsl`              |
+| Create | `libraries/libuniverse/engine/pathway.js`             |
+| Create | `libraries/libuniverse/render/pathway.js`             |
+| Create | `libraries/libuniverse/prompts/pathway/capability.js` |
+| Create | `libraries/libuniverse/prompts/pathway/behaviour.js`  |
+| Create | `libraries/libuniverse/prompts/pathway/discipline.js` |
+| Create | `libraries/libuniverse/prompts/pathway/track.js`      |
+| Create | `libraries/libuniverse/prompts/pathway/level.js`      |
+| Create | `libraries/libuniverse/prompts/pathway/driver.js`     |
+| Create | `libraries/libuniverse/prompts/pathway/framework.js`  |
+| Create | `libraries/libuniverse/prompts/pathway/stage.js`      |
+| Delete | `libraries/libuniverse/render/yaml.js`                |

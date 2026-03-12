@@ -83,11 +83,7 @@ async function main() {
     mapServiceRoleKey,
     SUPABASE_ENV_FILE,
   );
-  await updateEnvFile(
-    "MAP_SUPABASE_ANON_KEY",
-    mapAnonKey,
-    SUPABASE_ENV_FILE,
-  );
+  await updateEnvFile("MAP_SUPABASE_ANON_KEY", mapAnonKey, SUPABASE_ENV_FILE);
 
   console.log(".env:");
   console.log("  JWT_SECRET is set");

@@ -258,7 +258,8 @@ if (flags.json) {
     console.log(`\n=== ${date}${label} ===`);
 
     for (const ev of dayEvents) {
-      const tz = ev.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const tz =
+        ev.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
       const time = ev.allDay
         ? "all-day"
         : ev.start.toLocaleTimeString("en-GB", {

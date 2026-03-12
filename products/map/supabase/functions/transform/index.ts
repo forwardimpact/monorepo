@@ -1,12 +1,12 @@
-import { createSupabaseClient } from '../_shared/supabase.ts'
+import { createSupabaseClient } from "../_shared/supabase.ts";
 
 Deno.serve(async (_req) => {
-  const supabase = createSupabaseClient()
+  const supabase = createSupabaseClient();
   const results = {
     people: { imported: 0, errors: [] as string[] },
     getdx: { teams: 0, snapshots: 0, scores: 0, errors: [] as string[] },
-    github: { events: 0, artifacts: 0, errors: [] as string[] }
-  }
+    github: { events: 0, artifacts: 0, errors: [] as string[] },
+  };
 
   // Transform in dependency order: people → getdx → github
 
@@ -22,6 +22,6 @@ Deno.serve(async (_req) => {
   // Read all github/ webhook documents, transform into events + artifacts
 
   return new Response(JSON.stringify(results), {
-    headers: { 'Content-Type': 'application/json' }
-  })
-})
+    headers: { "Content-Type": "application/json" },
+  });
+});

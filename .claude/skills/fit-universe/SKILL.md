@@ -40,20 +40,20 @@ npx fit-universe --universe=path     # Custom universe file
 
 Use `--only=<type>` to generate a single content type:
 
-| Type       | Output Directory          | Contents                          |
-| ---------- | ------------------------- | --------------------------------- |
-| `html`     | `examples/organizational` | Articles, guides, FAQs, courses   |
-| `pathway`  | `examples/pathway`        | YAML framework files              |
-| `raw`      | `examples/activity`       | Roster, GitHub events, evidence   |
-| `markdown` | `examples/personal`       | Briefings, notes, KB content      |
+| Type       | Output Directory          | Contents                        |
+| ---------- | ------------------------- | ------------------------------- |
+| `html`     | `examples/organizational` | Articles, guides, FAQs, courses |
+| `pathway`  | `examples/pathway`        | YAML framework files            |
+| `raw`      | `examples/activity`       | Roster, GitHub events, evidence |
+| `markdown` | `examples/personal`       | Briefings, notes, KB content    |
 
 ### Prose Modes
 
-| Mode       | Flag           | Description                              |
-| ---------- | -------------- | ---------------------------------------- |
-| `no-prose` | _(default)_    | Structural only, no LLM calls            |
-| `cached`   | `--cached`     | Read from `.prose-cache.json`            |
-| `generate` | `--generate`   | Call LLM, write to cache                 |
+| Mode       | Flag         | Description                   |
+| ---------- | ------------ | ----------------------------- |
+| `no-prose` | _(default)_  | Structural only, no LLM calls |
+| `cached`   | `--cached`   | Read from `.prose-cache.json` |
+| `generate` | `--generate` | Call LLM, write to cache      |
 
 ---
 
@@ -85,8 +85,8 @@ universe Name {
 
 ### Key Blocks
 
-**org / department / team** — Organizational hierarchy with headcounts, managers,
-and repo assignments.
+**org / department / team** — Organizational hierarchy with headcounts,
+managers, and repo assignments.
 
 **people** — Count, name theme, level distribution, discipline distribution.
 
@@ -117,8 +117,8 @@ All generated output writes to `examples/` at the monorepo root.
 
 ## Environment
 
-Generation requires `LLM_TOKEN` and `LLM_BASE_URL` when using `--generate`
-mode. These are always available in the standard environment (see AGENTS.md).
+Generation requires `LLM_TOKEN` and `LLM_BASE_URL` when using `--generate` mode.
+These are always available in the standard environment (see AGENTS.md).
 
 ```sh
 npx fit-universe --generate          # Uses LLM_TOKEN from environment

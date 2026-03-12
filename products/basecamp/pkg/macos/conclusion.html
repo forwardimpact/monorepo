@@ -56,28 +56,31 @@
     <p>
       Basecamp agents need access to specific folders (Documents, Mail,
       Calendar). When macOS prompts, grant only the folders each process needs
-      via <strong>System Settings &rarr; Privacy &amp; Security &rarr; Files
-      &amp; Folders</strong>:
+      via
+      <strong
+        >System Settings &rarr; Privacy &amp; Security &rarr; Files &amp;
+        Folders</strong
+      >:
     </p>
     <ul>
       <li>
-        <strong>Basecamp.app</strong> &mdash; the TCC responsible process
-        (Swift launcher)
+        <strong>Basecamp.app</strong> &mdash; the TCC responsible process (Swift
+        launcher)
       </li>
       <li>
         <strong>node</strong> &mdash; runs skill scripts with
         <code>#!/usr/bin/env node</code> shebangs
       </li>
       <li>
-        A version number like <strong>&ldquo;2.1.72&rdquo;</strong> &mdash;
-        this is the Claude Code CLI. macOS shows its version string instead of
-        a name. Safe to grant per-folder access.
+        A version number like <strong>&ldquo;2.1.72&rdquo;</strong> &mdash; this
+        is the Claude Code CLI. macOS shows its version string instead of a
+        name. Safe to grant per-folder access.
       </li>
     </ul>
     <p>
       If you are upgrading from a previous version and a process stops working,
-      toggle it <strong>off</strong> then <strong>on</strong> again in
-      Files &amp; Folders &mdash; macOS revokes the permission when the binary
+      toggle it <strong>off</strong> then <strong>on</strong> again in Files
+      &amp; Folders &mdash; macOS revokes the permission when the binary
       changes.
     </p>
     <p><strong>Next steps:</strong></p>

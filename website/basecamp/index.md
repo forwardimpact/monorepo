@@ -71,8 +71,8 @@ npx fit-basecamp --run sync-mail            # Run a task now
 ### macOS Privacy & Security
 
 Basecamp agents need access to specific folders (Documents, Mail, Calendar).
-When macOS prompts, grant only the folders each process needs via
-**System Settings → Privacy & Security → Files & Folders**:
+When macOS prompts, grant only the folders each process needs via **System
+Settings → Privacy & Security → Files & Folders**:
 
 - **Basecamp.app** — the TCC responsible process (Swift launcher)
 - **node** — runs skill scripts with `#!/usr/bin/env node` shebangs

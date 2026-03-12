@@ -20,15 +20,15 @@ description: >
 
 **Always use libtelemetry for logging** — never use bare `console.log` /
 `console.error` for operational or progress output. `logger.info` always prints
-(to stderr), while `logger.debug` only prints when `DEBUG=<domain>` is set.
-This keeps stdout clean for data output and gives users consistent, structured
-log lines everywhere.
+(to stderr), while `logger.debug` only prints when `DEBUG=<domain>` is set. This
+keeps stdout clean for data output and gives users consistent, structured log
+lines everywhere.
 
 ## Key Concepts
 
-**Logger**: RFC 5424 compliant structured logging with severity levels.
-`info()` always outputs. `debug()` only outputs when `DEBUG` env var matches
-the domain. All output goes to stderr, keeping stdout free for data.
+**Logger**: RFC 5424 compliant structured logging with severity levels. `info()`
+always outputs. `debug()` only outputs when `DEBUG` env var matches the domain.
+All output goes to stderr, keeping stdout free for data.
 
 **Tracer**: Creates spans for distributed tracing across service boundaries.
 

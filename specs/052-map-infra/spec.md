@@ -35,8 +35,8 @@ This blocks three workflows:
 
 ### Supabase project configuration
 
-A Supabase project configuration lives in `products/map/` and defines
-everything needed to run Map's infrastructure locally and deploy to production.
+A Supabase project configuration lives in `products/map/` and defines everything
+needed to run Map's infrastructure locally and deploy to production.
 
 ### Database migrations
 
@@ -54,12 +54,12 @@ files organized by source and identifier.
 
 Four edge functions handle the Extract and Transform phases of the ELT pipeline:
 
-| Function            | Trigger                    | Purpose                                         |
-| ------------------- | -------------------------- | ----------------------------------------------- |
-| `github-webhook`    | HTTP POST (GitHub webhook) | Extract: store raw webhook, Transform: process  |
-| `getdx-sync`        | Scheduled (cron)           | Extract: fetch + store GetDX APIs, Transform    |
-| `people-upload`     | HTTP POST (manual)         | Extract: store raw file, Transform: process     |
-| `transform`         | HTTP POST (manual/cron)    | Transform: reprocess all raw data               |
+| Function         | Trigger                    | Purpose                                        |
+| ---------------- | -------------------------- | ---------------------------------------------- |
+| `github-webhook` | HTTP POST (GitHub webhook) | Extract: store raw webhook, Transform: process |
+| `getdx-sync`     | Scheduled (cron)           | Extract: fetch + store GetDX APIs, Transform   |
+| `people-upload`  | HTTP POST (manual)         | Extract: store raw file, Transform: process    |
+| `transform`      | HTTP POST (manual/cron)    | Transform: reprocess all raw data              |
 
 ### Environment integration
 
@@ -68,23 +68,23 @@ Supabase URL and keys live in `.env.storage.supabase` because they are
 storage-backend-specific. GetDX API credentials live in `.env` because they are
 deployment-wide secrets unrelated to the storage layer.
 
-| Variable                       | Layer                        | Purpose                        |
-| ------------------------------ | ---------------------------- | ------------------------------ |
-| `MAP_SUPABASE_URL`             | `.env.storage.supabase`      | Supabase API URL               |
-| `MAP_SUPABASE_SERVICE_ROLE_KEY`| `.env.storage.supabase`      | Service-role JWT               |
-| `MAP_SUPABASE_ANON_KEY`        | `.env.storage.supabase`      | Anonymous JWT (edge functions)  |
-| `MAP_SUPABASE_DB_PORT`         | `.env.{local\|docker}`       | Postgres port (env-specific)   |
-| `GETDX_API_TOKEN`              | `.env`                       | GetDX API credential           |
-| `GETDX_BASE_URL`               | `.env`                       | GetDX API base URL             |
+| Variable                        | Layer                   | Purpose                        |
+| ------------------------------- | ----------------------- | ------------------------------ |
+| `MAP_SUPABASE_URL`              | `.env.storage.supabase` | Supabase API URL               |
+| `MAP_SUPABASE_SERVICE_ROLE_KEY` | `.env.storage.supabase` | Service-role JWT               |
+| `MAP_SUPABASE_ANON_KEY`         | `.env.storage.supabase` | Anonymous JWT (edge functions) |
+| `MAP_SUPABASE_DB_PORT`          | `.env.{local\|docker}`  | Postgres port (env-specific)   |
+| `GETDX_API_TOKEN`               | `.env`                  | GetDX API credential           |
+| `GETDX_BASE_URL`                | `.env`                  | GetDX API base URL             |
 
 `scripts/env-storage.js` generates `MAP_SUPABASE_SERVICE_ROLE_KEY` and
-`MAP_SUPABASE_ANON_KEY` using the same `createJwt` / `updateEnvFile` pattern
-it already uses for `SUPABASE_SERVICE_ROLE_KEY`.
+`MAP_SUPABASE_ANON_KEY` using the same `createJwt` / `updateEnvFile` pattern it
+already uses for `SUPABASE_SERVICE_ROLE_KEY`.
 
 ### Config integration
 
-A `service.map` section in `config/config.json` holds Map-specific settings
-that do not belong in environment variables:
+A `service.map` section in `config/config.json` holds Map-specific settings that
+do not belong in environment variables:
 
 ```json
 {
@@ -113,14 +113,14 @@ config.supabase.migrations_dir // "products/map/supabase/migrations"
 
 Supabase is an external dependency, like TEI. It follows the same pattern:
 
-| Concern          | TEI pattern                          | Supabase pattern                    |
-| ---------------- | ------------------------------------ | ----------------------------------- |
-| Install          | `make tei-install` (cargo)           | `make supabase-install` (brew)      |
-| Start (local)    | `make tei-start` → fit-rc            | `make supabase-start` → fit-rc      |
-| Start (docker)   | `docker compose` service             | `docker compose --profile supabase` |
-| Health check     | `curl localhost:8090/health`         | `curl localhost:54321/rest/v1/`     |
-| Config entry     | `init.services[0]` (longrun)         | `init.services` (oneshot)           |
-| Environment      | `EMBEDDING_BASE_URL` in `.env.local` | `MAP_SUPABASE_URL` in `.env.storage.supabase` |
+| Concern        | TEI pattern                          | Supabase pattern                              |
+| -------------- | ------------------------------------ | --------------------------------------------- |
+| Install        | `make tei-install` (cargo)           | `make supabase-install` (brew)                |
+| Start (local)  | `make tei-start` → fit-rc            | `make supabase-start` → fit-rc                |
+| Start (docker) | `docker compose` service             | `docker compose --profile supabase`           |
+| Health check   | `curl localhost:8090/health`         | `curl localhost:54321/rest/v1/`               |
+| Config entry   | `init.services[0]` (longrun)         | `init.services` (oneshot)                     |
+| Environment    | `EMBEDDING_BASE_URL` in `.env.local` | `MAP_SUPABASE_URL` in `.env.storage.supabase` |
 
 In `config/config.json`, Supabase is a oneshot service in `init.services` —
 started before the services that depend on it, stopped after them:
@@ -143,9 +143,9 @@ supabase-status:   ## Health check
 ### Local development
 
 Supabase CLI provides `supabase start` for local development with a full
-Postgres instance, Storage, and Edge Functions runtime. The monorepo wraps
-this behind `make supabase-start` so that environment loading, config reading,
-and service ordering are handled consistently.
+Postgres instance, Storage, and Edge Functions runtime. The monorepo wraps this
+behind `make supabase-start` so that environment loading, config reading, and
+service ordering are handled consistently.
 
 Developers run the full ELT pipeline locally with:
 

@@ -42,7 +42,8 @@ Open http://localhost:3000 to explore.
 ## Documentation
 
 - [Overview](website/docs/index.md) — Vision and high-level concepts
-- [Map](website/docs/map/index.md) — Public data model for AI agents and engineers
+- [Map](website/docs/map/index.md) — Public data model for AI agents and
+  engineers
 - [Model](website/docs/model/index.md) — Derivation logic
 - [Pathway](website/docs/pathway/index.md) — Web app and CLI
 - [Basecamp](website/docs/basecamp/index.md) — Personal knowledge system

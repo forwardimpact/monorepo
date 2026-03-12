@@ -66,7 +66,12 @@ async function uploadPeople() {
 
   // Upload as a single combined YAML file
   const combined = stringifyYaml(people);
-  const result = await storeRaw(supabase, "people/roster.yaml", combined, "text/yaml");
+  const result = await storeRaw(
+    supabase,
+    "people/roster.yaml",
+    combined,
+    "text/yaml",
+  );
 
   if (!result.stored) {
     logError(`Failed to upload people: ${result.error}`);
@@ -81,7 +86,9 @@ async function uploadPeople() {
 
 async function uploadGitHub() {
   const dir = join(ROOT, "github");
-  const files = (await readdir(dir)).filter((f) => f.endsWith(".json") && f.startsWith("evt-"));
+  const files = (await readdir(dir)).filter(
+    (f) => f.endsWith(".json") && f.startsWith("evt-"),
+  );
 
   log(`Uploading ${files.length} GitHub event files...`);
 
@@ -104,7 +111,9 @@ async function uploadGitHub() {
     }
 
     if ((i + BATCH_SIZE) % 1000 === 0 || i + BATCH_SIZE >= files.length) {
-      log(`  GitHub progress: ${Math.min(i + BATCH_SIZE, files.length)}/${files.length}`);
+      log(
+        `  GitHub progress: ${Math.min(i + BATCH_SIZE, files.length)}/${files.length}`,
+      );
     }
   }
 
@@ -120,22 +129,39 @@ async function uploadGetDX() {
 
   // teams.list.json → getdx/teams-list/latest.json
   const teamsContent = await readFile(join(dir, "teams.list.json"), "utf-8");
-  const teamsResult = await storeRaw(supabase, "getdx/teams-list/latest.json", teamsContent);
+  const teamsResult = await storeRaw(
+    supabase,
+    "getdx/teams-list/latest.json",
+    teamsContent,
+  );
   if (teamsResult.stored) uploaded++;
   else logError(`Failed to upload teams list: ${teamsResult.error}`);
 
   // snapshots.list.json → getdx/snapshots-list/latest.json
-  const snapshotsContent = await readFile(join(dir, "snapshots.list.json"), "utf-8");
-  const snapshotsResult = await storeRaw(supabase, "getdx/snapshots-list/latest.json", snapshotsContent);
+  const snapshotsContent = await readFile(
+    join(dir, "snapshots.list.json"),
+    "utf-8",
+  );
+  const snapshotsResult = await storeRaw(
+    supabase,
+    "getdx/snapshots-list/latest.json",
+    snapshotsContent,
+  );
   if (snapshotsResult.stored) uploaded++;
   else logError(`Failed to upload snapshots list: ${snapshotsResult.error}`);
 
   // snapshots/*.json → getdx/snapshots-info/*.json
   const snapshotsDir = join(dir, "snapshots");
-  const snapshotFiles = (await readdir(snapshotsDir)).filter((f) => f.endsWith(".json"));
+  const snapshotFiles = (await readdir(snapshotsDir)).filter((f) =>
+    f.endsWith(".json"),
+  );
   for (const file of snapshotFiles) {
     const content = await readFile(join(snapshotsDir, file), "utf-8");
-    const result = await storeRaw(supabase, `getdx/snapshots-info/${file}`, content);
+    const result = await storeRaw(
+      supabase,
+      `getdx/snapshots-info/${file}`,
+      content,
+    );
     if (result.stored) uploaded++;
     else logError(`Failed to upload snapshot ${file}: ${result.error}`);
   }
@@ -156,15 +182,21 @@ async function main() {
   const getdxCount = await uploadGetDX();
   const githubCount = await uploadGitHub();
 
-  log(`\nStorage upload complete: ${peopleCount} people, ${githubCount} GitHub events, ${getdxCount} GetDX files`);
+  log(
+    `\nStorage upload complete: ${peopleCount} people, ${githubCount} GitHub events, ${getdxCount} GetDX files`,
+  );
 
   // Step 2: Run transforms
   log("\n── Step 2: Run transform pipeline ──");
   const result = await transformAll(supabase);
   log(`Transform complete:`);
   log(`  People: ${result.people.imported} imported`);
-  log(`  GetDX: ${result.getdx.teams} teams, ${result.getdx.snapshots} snapshots, ${result.getdx.scores} scores`);
-  log(`  GitHub: ${result.github.events} events, ${result.github.artifacts} artifacts`);
+  log(
+    `  GetDX: ${result.getdx.teams} teams, ${result.getdx.snapshots} snapshots, ${result.getdx.scores} scores`,
+  );
+  log(
+    `  GitHub: ${result.github.events} events, ${result.github.artifacts} artifacts`,
+  );
 
   const allErrors = [
     ...result.people.errors,

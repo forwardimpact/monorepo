@@ -136,7 +136,8 @@ in sync.
 
 ### Add a Skill
 
-1. Add skill to capability file: `data/pathway/capabilities/{capability_id}.yaml`
+1. Add skill to capability file:
+   `data/pathway/capabilities/{capability_id}.yaml`
 2. Add skill object with `id`, `name`, and `human:` section
 3. Include level descriptions for all five proficiency levels
 4. Reference skill in disciplines (coreSkills/supportingSkills/broadSkills)

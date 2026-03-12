@@ -176,25 +176,24 @@ framework:
 
 ### Phase 1 — Organization Skeleton (ONTOLOGY)
 
-**Input:** `seed.yaml` organization + people sections
-**Output:** Updated ONTOLOGY.md with entity IRIs, README.md with narrative
+**Input:** `seed.yaml` organization + people sections **Output:** Updated
+ONTOLOGY.md with entity IRIs, README.md with narrative
 
 **Prompt strategy:**
 
 1. Send seed data with the existing ONTOLOGY.md format as a template
-2. Ask Claude to generate all 211 people with greek mythology names, assigned
-   to departments/teams with plausible job titles matching their
-   discipline/level
+2. Ask Claude to generate all 211 people with greek mythology names, assigned to
+   departments/teams with plausible job titles matching their discipline/level
 3. Generate all organization entities (departments, teams, sub-orgs)
 4. Generate project entities with cross-links to teams and people
 
-**Validation:** Parse output, verify all entity counts match seed targets,
-all IRIs are unique, all people assigned to exactly one team.
+**Validation:** Parse output, verify all entity counts match seed targets, all
+IRIs are unique, all people assigned to exactly one team.
 
 ### Phase 2 — Story Scenarios (Narrative Context)
 
-**Input:** `seed.yaml` scenarios + Phase 1 entity IRIs
-**Output:** Internal scenario manifest (JSON) with concrete entity bindings
+**Input:** `seed.yaml` scenarios + Phase 1 entity IRIs **Output:** Internal
+scenario manifest (JSON) with concrete entity bindings
 
 **Prompt strategy:**
 
@@ -207,8 +206,8 @@ curves are monotonic where expected (e.g., "rising" sentiment doesn't dip).
 
 ### Phase 3 — Framework Content (Map YAML)
 
-**Input:** `seed.yaml` framework section + existing JSON schemas
-**Output:** Complete YAML files under `products/map/examples/`
+**Input:** `seed.yaml` framework section + existing JSON schemas **Output:**
+Complete YAML files under `products/map/examples/`
 
 **Prompt strategy:**
 
@@ -217,10 +216,11 @@ curves are monotonic where expected (e.g., "rising" sentiment doesn't dip).
 3. Use the vocabulary standards from AGENTS.md for level-appropriate language
 4. Generate `self-assessments.yaml` using people from Phase 1
 
-**Validation:** Run `npx fit-map validate` on every generated file. Re-prompt
-on any validation error with the error message as context.
+**Validation:** Run `npx fit-map validate` on every generated file. Re-prompt on
+any validation error with the error message as context.
 
 **Validation loop:**
+
 ```
 Generate YAML ──► fit-map validate ──► pass? ──► commit
                        │                          ▲
@@ -246,35 +246,38 @@ exist in the ONTOLOGY, verify all cross-references resolve.
 
 ### Phase 5 — Activity Content (Landmark Tables)
 
-**Input:** Phase 1 people + Phase 2 scenario signals
-**Output:** JSON/CSV tables for Landmark consumption
+**Input:** Phase 1 people + Phase 2 scenario signals **Output:** JSON/CSV tables
+for Landmark consumption
 
 **Tables generated:**
 
-| Table                       | Fields                                               |
-| --------------------------- | ---------------------------------------------------- |
-| `organization_people`       | email, name, discipline, level, track, manager_email |
-| `github_events`             | timestamp, author_email, repo, event_type, additions, deletions |
-| `github_artifacts`          | repo, path, language, lines, complexity              |
-| `getdx_snapshots`           | snapshot_id, date, team_id                           |
-| `getdx_snapshot_team_scores`| snapshot_id, team_id, driver_id, score, percentile   |
+| Table                        | Fields                                                          |
+| ---------------------------- | --------------------------------------------------------------- |
+| `organization_people`        | email, name, discipline, level, track, manager_email            |
+| `github_events`              | timestamp, author_email, repo, event_type, additions, deletions |
+| `github_artifacts`           | repo, path, language, lines, complexity                         |
+| `getdx_snapshots`            | snapshot_id, date, team_id                                      |
+| `getdx_snapshot_team_scores` | snapshot_id, team_id, driver_id, score, percentile              |
 
 **Prompt strategy:**
 
 1. For `organization_people`: derive directly from Phase 1 people with
    discipline/level/track from seed distribution
-2. For `github_events`: generate 12 months of daily events per person,
-   modulated by scenario signal curves from Phase 2
+2. For `github_events`: generate 12 months of daily events per person, modulated
+   by scenario signal curves from Phase 2
 3. For `getdx_snapshots`: generate monthly snapshots with scores driven by
    scenario signals, correlated with the 14+ drivers from `drivers.yaml`
 4. For evidence: generate skill marker evidence for selected people based on
    scenario-driven proficiency expectations
 
 **Validation:**
-- Every `author_email` / `email` in activity tables exists in `organization_people`
+
+- Every `author_email` / `email` in activity tables exists in
+  `organization_people`
 - Every `manager_email` resolves to another person in the roster
 - Every `driver_id` in survey scores exists in `drivers.yaml`
-- GitHub activity patterns match scenario signal curves (statistical correlation check)
+- GitHub activity patterns match scenario signal curves (statistical correlation
+  check)
 - DX survey score trajectories match scenario expectations
 
 ### Phase 6 — Personal Content (Basecamp Markdown)
@@ -319,17 +322,17 @@ const checks = [
 
 ## Output File Mapping
 
-| Generated Content              | Target Location                              |
-| ------------------------------ | -------------------------------------------- |
-| ONTOLOGY.md                    | `products/guide/examples/knowledge/`         |
-| README.md                      | `products/guide/examples/knowledge/`         |
-| HTML microdata files           | `products/guide/examples/knowledge/`         |
-| Framework YAML                 | `products/map/examples/`                     |
-| Organization people            | `products/map/examples/activity/`            |
-| GitHub events/artifacts        | `products/map/examples/activity/`            |
-| GetDX snapshots/scores         | `products/map/examples/activity/`            |
-| Evidence records               | `products/map/examples/activity/`            |
-| Personal knowledge base        | `products/basecamp/template/knowledge/`      |
+| Generated Content       | Target Location                         |
+| ----------------------- | --------------------------------------- |
+| ONTOLOGY.md             | `products/guide/examples/knowledge/`    |
+| README.md               | `products/guide/examples/knowledge/`    |
+| HTML microdata files    | `products/guide/examples/knowledge/`    |
+| Framework YAML          | `products/map/examples/`                |
+| Organization people     | `products/map/examples/activity/`       |
+| GitHub events/artifacts | `products/map/examples/activity/`       |
+| GetDX snapshots/scores  | `products/map/examples/activity/`       |
+| Evidence records        | `products/map/examples/activity/`       |
+| Personal knowledge base | `products/basecamp/template/knowledge/` |
 
 ## CLI Interface
 
@@ -385,28 +388,33 @@ output:
 ## Implementation Phases
 
 ### Phase A — Scaffolding (1 day)
+
 - Create `scripts/generate/` directory with orchestrator
 - Define `seed.yaml` with full organization structure
 - Set up Ajv validation harness for generated YAML
 - Wire up Claude API client with retry logic
 
 ### Phase B — Framework Generation (2 days)
+
 - Implement Phase 3 (framework YAML) with validation loop
 - Verify all output passes `npx fit-map validate`
 - Generate `self-assessments.yaml` with realistic profiles
 
 ### Phase C — Organization Content (3 days)
+
 - Implement Phases 1-2 (org skeleton + scenarios)
 - Implement Phase 4 (HTML microdata generation)
 - Build HTML microdata parser for validation
 - Verify cross-references between HTML and ONTOLOGY
 
 ### Phase D — Activity & Personal Content (2 days)
+
 - Implement Phase 5 (Landmark activity tables)
 - Implement Phase 6 (Basecamp personal content)
 - Statistical validation of signal correlations
 
 ### Phase E — Integration & Cleanup (1 day)
+
 - Cross-content validation pass
 - Remove old hand-crafted example content
 - CI integration: `npm run generate` in CI pipeline

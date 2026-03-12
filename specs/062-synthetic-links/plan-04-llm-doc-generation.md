@@ -20,8 +20,8 @@ document type gets a detailed prompt containing:
 3. The copilot-ld reference document as a few-shot example
 4. Cross-linking requirements (minimum links per entity, multi-hop targets)
 
-The LLM produces a complete, valid HTML file. Post-generation validation
-ensures structural correctness and link integrity.
+The LLM produces a complete, valid HTML file. Post-generation validation ensures
+structural correctness and link integrity.
 
 ## Architecture
 
@@ -71,7 +71,7 @@ Output requirements:
 
 ### User prompt (per document type)
 
-```markdown
+````markdown
 Generate a complete HTML document: "{{orgName}} Cross-Functional Projects"
 
 ## Entity Roster
@@ -109,10 +109,11 @@ Here is an example of the target quality:
 
 ```html
 {{referenceExample}}
-```
+````
 
 Generate the full HTML document now.
-```
+
+````
 
 ### Document types and prompts
 
@@ -144,7 +145,7 @@ async function generateDocument(type, entityContext, referenceHtml) {
 
   return prose.generateStructured(`doc_${type}`, messages)
 }
-```
+````
 
 Each document is one LLM call (or cached). Blog posts may need splitting into
 batches of 10–15 per call to stay within output token limits.
@@ -205,5 +206,5 @@ Regenerate the document fixing these issues.
 High. The LLM is the entire rendering engine — any model change, prompt drift,
 or output format issue breaks the pipeline. Mitigation: aggressive caching
 (cache per-document), validation with repair, and fallback to template-based
-rendering if LLM output fails validation after 2 retries. The cached output
-is the real source of truth after initial generation.
+rendering if LLM output fails validation after 2 retries. The cached output is
+the real source of truth after initial generation.

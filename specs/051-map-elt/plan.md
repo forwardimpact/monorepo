@@ -4,8 +4,8 @@ How to implement the ELT pattern described in `spec.md`.
 
 ## Directory Structure
 
-The existing `activity/ingestion/` directory is restructured into `extract/`
-and `transform/` subdirectories. The `queries/` directory is unchanged.
+The existing `activity/ingestion/` directory is restructured into `extract/` and
+`transform/` subdirectories. The `queries/` directory is unchanged.
 
 ```
 products/map/
@@ -141,8 +141,8 @@ export async function extractGitHubWebhook(supabase, { deliveryId, eventType, pa
 
 ### GetDX Extract
 
-Fetches from the GetDX REST API and stores the raw JSON responses. Each API
-call produces one stored document.
+Fetches from the GetDX REST API and stores the raw JSON responses. Each API call
+produces one stored document.
 
 ```javascript
 // products/map/activity/extract/getdx.js
@@ -250,9 +250,9 @@ export async function extractPeopleFile(supabase, content, format) {
 
 ## Transform Phase
 
-Transforms read raw documents from Supabase Storage and write structured rows
-to database tables. Every transform is idempotent — running it twice on the
-same raw data produces the same DB state (via upsert).
+Transforms read raw documents from Supabase Storage and write structured rows to
+database tables. Every transform is idempotent — running it twice on the same
+raw data produces the same DB state (via upsert).
 
 ### GitHub Transform
 
@@ -615,20 +615,20 @@ export async function transformAll(supabase) {
 
 ## Synthetic Data Integration Point
 
-The key benefit of ELT is that the synthetic data pipeline (spec 060) can
-inject data at the **Load** boundary — writing raw documents into Supabase
-Storage in exactly the same format as the Extract step produces. The Transform
-step then processes synthetic raw data identically to real data.
+The key benefit of ELT is that the synthetic data pipeline (spec 060) can inject
+data at the **Load** boundary — writing raw documents into Supabase Storage in
+exactly the same format as the Extract step produces. The Transform step then
+processes synthetic raw data identically to real data.
 
 ### Synthetic → Raw storage mapping
 
-| Synthetic generator output      | Raw storage path                        |
-| ------------------------------- | --------------------------------------- |
-| GitHub webhook payload          | `raw/github/{delivery_id}.json`         |
-| `snapshots.list` response       | `raw/getdx/snapshots-list/{ts}.json`    |
-| `snapshots.info` response       | `raw/getdx/snapshots-info/{snap_id}.json` |
-| `teams.list` response           | `raw/getdx/teams-list/{ts}.json`        |
-| Organization people file        | `raw/people/{ts}.yaml`                  |
+| Synthetic generator output | Raw storage path                          |
+| -------------------------- | ----------------------------------------- |
+| GitHub webhook payload     | `raw/github/{delivery_id}.json`           |
+| `snapshots.list` response  | `raw/getdx/snapshots-list/{ts}.json`      |
+| `snapshots.info` response  | `raw/getdx/snapshots-info/{snap_id}.json` |
+| `teams.list` response      | `raw/getdx/teams-list/{ts}.json`          |
+| Organization people file   | `raw/people/{ts}.yaml`                    |
 
 The synthetic pipeline generates documents with the exact structure that the
 Extract step produces for each source:
@@ -644,7 +644,8 @@ Extract step produces for each source:
 - **GetDX teams.list**: A JSON document matching the GetDX API response:
   `{ "ok": true, "teams": [...] }`.
 
-After loading, `transformAll()` processes them into the activity database tables.
+After loading, `transformAll()` processes them into the activity database
+tables.
 
 ## Migration Path
 
@@ -655,8 +656,8 @@ After loading, `transformAll()` processes them into the activity database tables
 
 ### Phase 2 — Add Extract functions
 
-1. Create `activity/extract/github.js` — wraps webhook payload in metadata
-   and calls `storeRaw`.
+1. Create `activity/extract/github.js` — wraps webhook payload in metadata and
+   calls `storeRaw`.
 2. Create `activity/extract/getdx.js` — fetches API and calls `storeRaw` for
    each response.
 3. Create `activity/extract/people.js` — stores uploaded file via `storeRaw`.
@@ -667,8 +668,8 @@ After loading, `transformAll()` processes them into the activity database tables
    `github_events` and `github_artifacts` rows. Artifact extraction and email
    resolution logic moves here from the current `ingestion/github.js`.
 2. Create `activity/transform/getdx.js` — reads from storage, produces
-   `getdx_snapshots`, `getdx_teams`, `getdx_snapshot_team_scores` rows.
-   Parsing and manager email resolution logic moves here from the current
+   `getdx_snapshots`, `getdx_teams`, `getdx_snapshot_team_scores` rows. Parsing
+   and manager email resolution logic moves here from the current
    `ingestion/getdx.js`.
 3. Create `activity/transform/people.js` — reads from storage, produces
    `organization_people` rows.
@@ -677,9 +678,8 @@ After loading, `transformAll()` processes them into the activity database tables
 
 ### Phase 4 — Wire up edge functions
 
-1. Update the GitHub webhook edge function to call `extractGitHubWebhook()`
-   then `transformGitHubWebhook()` (or just extract, with transform on a
-   schedule).
+1. Update the GitHub webhook edge function to call `extractGitHubWebhook()` then
+   `transformGitHubWebhook()` (or just extract, with transform on a schedule).
 2. Update the GetDX sync edge function to call `extractGetDX()` then
    `transformAllGetDX()`.
 3. Update the people upload edge function to call `extractPeopleFile()` then
@@ -808,8 +808,8 @@ response from `GET https://api.getdx.com/teams.list`:
 }
 ```
 
-Note: the `teams.list` API response does not include a `manager_name` field.
-The current ingestion code in `getdx.js` uses `manager_name` for the email
-lookup, but this field must come from a separate API call or org data join.
-The Transform step resolves `manager_email` via the organization people table,
-not from the raw API response.
+Note: the `teams.list` API response does not include a `manager_name` field. The
+current ingestion code in `getdx.js` uses `manager_name` for the email lookup,
+but this field must come from a separate API call or org data join. The
+Transform step resolves `manager_email` via the organization people table, not
+from the raw API response.

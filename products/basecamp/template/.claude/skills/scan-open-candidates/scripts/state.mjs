@@ -237,7 +237,9 @@ function failureIncrement(source) {
   );
   console.log(`Failures for ${source}: ${newCount}`);
   if (newCount >= 3) {
-    console.log(`WARNING: ${source} has ${newCount} consecutive failures (suspended at ≥3)`);
+    console.log(
+      `WARNING: ${source} has ${newCount} consecutive failures (suspended at ≥3)`,
+    );
   }
 }
 
@@ -302,7 +304,9 @@ function summary() {
     console.log("\nRecent prospects:");
     for (const line of prospects.slice(-5)) {
       const [name, source, date, strength, level] = line.split("\t");
-      console.log(`  ${date} | ${name} | ${strength} | ${level} | via ${source}`);
+      console.log(
+        `  ${date} | ${name} | ${strength} | ${level} | via ${source}`,
+      );
     }
   }
 }
@@ -320,7 +324,9 @@ switch (cmd) {
       cursorSet(cliArgs[2], cliArgs[3], cliArgs[4]);
     else if (sub === "list") cursorList();
     else {
-      console.error("Usage: cursor get|set|list <source> [<timestamp> <position>]");
+      console.error(
+        "Usage: cursor get|set|list <source> [<timestamp> <position>]",
+      );
       process.exit(1);
     }
     break;

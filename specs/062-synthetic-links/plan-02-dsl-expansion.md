@@ -151,8 +151,8 @@ Extend `libraries/libuniverse/dsl/parser.js`:
 Extend `libraries/libuniverse/dsl/tokenizer.js`:
 
 - New keywords: `drug`, `platform`, `parent`, `deps`, `lead`, `members`,
-  `drugs`, `platforms`, `course_tracks`, `event_links`, `provider`,
-  `organizer`, `attendees`
+  `drugs`, `platforms`, `course_tracks`, `event_links`, `provider`, `organizer`,
+  `attendees`
 
 ## Entity Builder Changes
 
@@ -165,6 +165,7 @@ function enrichProjects(projects, people, ast) { ... }
 ```
 
 Each produces entities with stable IRIs:
+
 - `https://{domain}/id/drug/{id}`
 - `https://{domain}/id/platform/{id}`
 - `https://{domain}/id/course/{id}`

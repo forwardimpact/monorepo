@@ -21,9 +21,9 @@ The Guide product (`products/guide/`) owns all operational infrastructure:
 
 This infrastructure is generic — `libconfig`, `libstorage`, `librc`,
 `libsupervise` are all library packages. Services live in `services/` at the
-monorepo root. The Guide product's `Makefile` wraps library CLIs with `npx
---workspace=` invocations. Nothing is Guide-specific except the agent configs
-and tool descriptors.
+monorepo root. The Guide product's `Makefile` wraps library CLIs with
+`npx --workspace=` invocations. Nothing is Guide-specific except the agent
+configs and tool descriptors.
 
 When Map, Pathway, or any future product needs the same processing pipeline,
 service management, or storage backends, the current structure forces
@@ -41,25 +41,25 @@ commands, manages secrets, starts services, and processes data.
 
 ### What Moves to the Root
 
-| From `products/guide/`    | To monorepo root         | Notes                                       |
-| ------------------------- | ------------------------ | ------------------------------------------- |
-| `.env*` (all env files)   | `.env*`                  | Shared secrets, networking, storage, auth    |
-| `.env*.example`           | `.env*.example`          | Example files tracked in git                 |
-| `Makefile`                | `Makefile`               | Single operational Makefile                  |
-| `scripts/env.sh`          | `scripts/env.sh`         | Environment loader                           |
-| `scripts/env-secrets.js`  | `scripts/env-secrets.js` | Secret generator                             |
-| `scripts/env-storage.js`  | `scripts/env-storage.js` | Storage credential generator                 |
-| `scripts/env-github.js`   | `scripts/env-github.js`  | GitHub token configurator                    |
-| `docker-compose.yml`      | `docker-compose.yml`     | Root-level compose                           |
-| `Dockerfile`              | `Dockerfile`             | Already at root                              |
-| `config/config.json`      | `config/config.json`     | Unified service + product config             |
-| `config/tools.yml`        | `config/tools.yml`       | Tool descriptors                             |
-| `config/agents/`          | `config/agents/`         | Agent definitions                            |
-| `config/ingest.yml`       | `config/ingest.yml`      | Ingest pipeline config                       |
-| `config/eval.yml`         | `config/eval.yml`        | Evaluation config                            |
-| `config/*.example.*`      | `config/*.example.*`     | Example configs tracked in git               |
-| `data/`                   | `data/`                  | All runtime data                             |
-| `examples/`               | `examples/`              | Example datasets                             |
+| From `products/guide/`   | To monorepo root         | Notes                                     |
+| ------------------------ | ------------------------ | ----------------------------------------- |
+| `.env*` (all env files)  | `.env*`                  | Shared secrets, networking, storage, auth |
+| `.env*.example`          | `.env*.example`          | Example files tracked in git              |
+| `Makefile`               | `Makefile`               | Single operational Makefile               |
+| `scripts/env.sh`         | `scripts/env.sh`         | Environment loader                        |
+| `scripts/env-secrets.js` | `scripts/env-secrets.js` | Secret generator                          |
+| `scripts/env-storage.js` | `scripts/env-storage.js` | Storage credential generator              |
+| `scripts/env-github.js`  | `scripts/env-github.js`  | GitHub token configurator                 |
+| `docker-compose.yml`     | `docker-compose.yml`     | Root-level compose                        |
+| `Dockerfile`             | `Dockerfile`             | Already at root                           |
+| `config/config.json`     | `config/config.json`     | Unified service + product config          |
+| `config/tools.yml`       | `config/tools.yml`       | Tool descriptors                          |
+| `config/agents/`         | `config/agents/`         | Agent definitions                         |
+| `config/ingest.yml`      | `config/ingest.yml`      | Ingest pipeline config                    |
+| `config/eval.yml`        | `config/eval.yml`        | Evaluation config                         |
+| `config/*.example.*`     | `config/*.example.*`     | Example configs tracked in git            |
+| `data/`                  | `data/`                  | All runtime data                          |
+| `examples/`              | `examples/`              | Example datasets                          |
 
 ### What Stays in Products
 
@@ -189,10 +189,10 @@ Loading order (later files override earlier):
 
 ### STORAGE_ROOT Elimination
 
-With infrastructure at the root, `STORAGE_ROOT` becomes unnecessary. The
-current `env.sh` sets `STORAGE_ROOT=$(pwd)` to pin path resolution when `npx
---workspace=` changes cwd to a library directory. When the Makefile runs from
-the monorepo root, `libstorage`'s `findUpward` from cwd naturally finds
+With infrastructure at the root, `STORAGE_ROOT` becomes unnecessary. The current
+`env.sh` sets `STORAGE_ROOT=$(pwd)` to pin path resolution when
+`npx --workspace=` changes cwd to a library directory. When the Makefile runs
+from the monorepo root, `libstorage`'s `findUpward` from cwd naturally finds
 `config/` at the root without any pinning.
 
 The `STORAGE_ROOT` fallback in `libstorage` remains for backward compatibility
@@ -286,28 +286,28 @@ ENVLOAD = ENV=$(ENV) STORAGE=$(STORAGE) AUTH=$(AUTH) ./scripts/env.sh
 All existing targets carry over. The `npx --workspace=` idiom works from root
 because npm workspace commands resolve from the monorepo root by design.
 
-| Category    | Targets                                                             |
-| ----------- | ------------------------------------------------------------------- |
-| Data        | `data-init`, `data-clean`, `data-reset`                             |
-| Codegen     | `codegen`, `codegen-type`, `codegen-client`, `codegen-service`      |
-| Processing  | `process`, `process-fast`, `process-agents`, `process-resources`,   |
-|             | `process-tools`, `process-vectors`, `process-graphs`                |
-| Ingest      | `ingest`, `ingest-load`, `ingest-pipeline`, `transform`             |
-| Services    | `rc-start`, `rc-stop`, `rc-restart`, `rc-status`                    |
-| TEI         | `tei-install`, `tei-start`                                          |
-| Docker      | `docker`, `docker-build`, `docker-up`, `docker-down`                |
-| Storage     | `storage-setup`, `storage-start`, `storage-stop`, `storage-init`,   |
-|             | `storage-upload`, `storage-download`, `storage-list`                |
-| Auth        | `auth-start`, `auth-stop`, `auth-user`                              |
-| Eval        | `eval`, `eval-report`, `eval-reset`                                 |
-| Environment | `env-setup`, `env-reset`, `env-secrets`, `env-storage`, `env-github`|
-| CLI         | `cli-chat`, `cli-search`, `cli-query`, `cli-subjects`               |
+| Category    | Targets                                                              |
+| ----------- | -------------------------------------------------------------------- |
+| Data        | `data-init`, `data-clean`, `data-reset`                              |
+| Codegen     | `codegen`, `codegen-type`, `codegen-client`, `codegen-service`       |
+| Processing  | `process`, `process-fast`, `process-agents`, `process-resources`,    |
+|             | `process-tools`, `process-vectors`, `process-graphs`                 |
+| Ingest      | `ingest`, `ingest-load`, `ingest-pipeline`, `transform`              |
+| Services    | `rc-start`, `rc-stop`, `rc-restart`, `rc-status`                     |
+| TEI         | `tei-install`, `tei-start`                                           |
+| Docker      | `docker`, `docker-build`, `docker-up`, `docker-down`                 |
+| Storage     | `storage-setup`, `storage-start`, `storage-stop`, `storage-init`,    |
+|             | `storage-upload`, `storage-download`, `storage-list`                 |
+| Auth        | `auth-start`, `auth-stop`, `auth-user`                               |
+| Eval        | `eval`, `eval-report`, `eval-reset`                                  |
+| Environment | `env-setup`, `env-reset`, `env-secrets`, `env-storage`, `env-github` |
+| CLI         | `cli-chat`, `cli-search`, `cli-query`, `cli-subjects`                |
 
 ### process-tools Path Fix
 
 Currently `process-tools` uses `--proto-root=../../` to navigate from
-`products/guide/` to the monorepo root where `proto/` lives. From the root,
-this becomes:
+`products/guide/` to the monorepo root where `proto/` lives. From the root, this
+becomes:
 
 ```makefile
 process-tools:
@@ -460,7 +460,8 @@ Runtime files (`svscan.sock`, `svscan.pid`, `svscan.log`) land in `data/` at
 root, exactly where they land today (relative to `config.rootDir`).
 
 Service commands like `npm run dev -w @forwardimpact/svcagent` work from any
-directory in the monorepo — npm resolves workspaces from the root `package.json`.
+directory in the monorepo — npm resolves workspaces from the root
+`package.json`.
 
 ### Service Startup
 
@@ -586,8 +587,8 @@ make docker
 make docker-up-minio STORAGE=minio
 ```
 
-Build context is `.` (root), which is what the `Dockerfile` already expects —
-it copies `libraries/`, `services/`, and `package*.json` from root.
+Build context is `.` (root), which is what the `Dockerfile` already expects — it
+copies `libraries/`, `services/`, and `package*.json` from root.
 
 ---
 
@@ -605,15 +606,15 @@ it copies `libraries/`, `services/`, and `package*.json` from root.
 
 ## Risks
 
-| Risk                               | Mitigation                                        |
-| ---------------------------------- | ------------------------------------------------- |
-| Guide Makefile entrenchment        | Phase 4 removes it completely — clean break        |
-| `STORAGE_ROOT` still needed        | Keep fallback in `libstorage` for external installs|
-| Docker alias breakage              | Update all `.env.docker` references in one commit  |
-| Root `Makefile` conflicts          | No existing root Makefile; root `package.json`     |
-|                                    | scripts are pass-through only, no overlap          |
-| `findUpward` from library dirs     | Tested: from `libraries/*/`, walks up to root and  |
-|                                    | finds `config/` at depth 2 — within default max 3  |
+| Risk                           | Mitigation                                          |
+| ------------------------------ | --------------------------------------------------- |
+| Guide Makefile entrenchment    | Phase 4 removes it completely — clean break         |
+| `STORAGE_ROOT` still needed    | Keep fallback in `libstorage` for external installs |
+| Docker alias breakage          | Update all `.env.docker` references in one commit   |
+| Root `Makefile` conflicts      | No existing root Makefile; root `package.json`      |
+|                                | scripts are pass-through only, no overlap           |
+| `findUpward` from library dirs | Tested: from `libraries/*/`, walks up to root and   |
+|                                | finds `config/` at depth 2 — within default max 3   |
 
 ---
 
@@ -621,7 +622,7 @@ it copies `libraries/`, `services/`, and `package*.json` from root.
 
 The Guide's operational infrastructure is generic. Moving it to the monorepo
 root eliminates duplication, creates a single operational surface, and enables
-all products to share environment, services, and data. No library changes
-needed — `libconfig`, `libstorage`, and `librc` already resolve paths relative
-to wherever `config/` is found. The Makefile, env files, and scripts move
-as-is with minor path adjustments.
+all products to share environment, services, and data. No library changes needed
+— `libconfig`, `libstorage`, and `librc` already resolve paths relative to
+wherever `config/` is found. The Makefile, env files, and scripts move as-is
+with minor path adjustments.

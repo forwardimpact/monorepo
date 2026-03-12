@@ -451,18 +451,18 @@ echo "Hello" | npx fit-guide
 
 ### What Each Step Does
 
-| Step            | Make target       | Effect                                              |
-| --------------- | ----------------- | --------------------------------------------------- |
-| Reset config    | `env-reset`       | Copies all `.env*.example` → `.env*` and resets config files |
-| Generate secrets| `env-secrets`     | Writes `SERVICE_SECRET`, `JWT_SECRET`, `JWT_ANON_KEY`, `DATABASE_PASSWORD` into `.env` |
-| Storage creds   | `env-storage`     | Writes S3/Supabase credentials into `.env.storage.*` files |
-| LLM access      | `env-github`      | Interactive — sets `LLM_TOKEN` and `LLM_BASE_URL` in `.env` |
-| Init data       | `data-init`       | Creates `data/` subdirectories, copies `examples/knowledge/` |
-| Process fast    | `process-fast`    | Runs `process-agents`, `process-resources`, `process-tools`, `process-graphs` |
-| TEI install     | `tei-install`     | Installs `text-embeddings-router` via `cargo` (one-time) |
-| TEI start       | `tei-start`       | Starts TEI on port 8090 via rc supervisor |
-| Process vectors | `process-vectors` | Embeds all Message resources via TEI → `data/vectors/index.jsonl` |
-| Start services  | `rc-start`        | Starts all gRPC services (agent, graph, llm, memory, tool, trace, vector, web) |
+| Step             | Make target       | Effect                                                                                 |
+| ---------------- | ----------------- | -------------------------------------------------------------------------------------- |
+| Reset config     | `env-reset`       | Copies all `.env*.example` → `.env*` and resets config files                           |
+| Generate secrets | `env-secrets`     | Writes `SERVICE_SECRET`, `JWT_SECRET`, `JWT_ANON_KEY`, `DATABASE_PASSWORD` into `.env` |
+| Storage creds    | `env-storage`     | Writes S3/Supabase credentials into `.env.storage.*` files                             |
+| LLM access       | `env-github`      | Interactive — sets `LLM_TOKEN` and `LLM_BASE_URL` in `.env`                            |
+| Init data        | `data-init`       | Creates `data/` subdirectories, copies `examples/knowledge/`                           |
+| Process fast     | `process-fast`    | Runs `process-agents`, `process-resources`, `process-tools`, `process-graphs`          |
+| TEI install      | `tei-install`     | Installs `text-embeddings-router` via `cargo` (one-time)                               |
+| TEI start        | `tei-start`       | Starts TEI on port 8090 via rc supervisor                                              |
+| Process vectors  | `process-vectors` | Embeds all Message resources via TEI → `data/vectors/index.jsonl`                      |
+| Start services   | `rc-start`        | Starts all gRPC services (agent, graph, llm, memory, tool, trace, vector, web)         |
 
 ### Full Reset
 
@@ -485,18 +485,17 @@ make rc-start
 ### 1. STORAGE_ROOT Not Set — Processing Commands Find Wrong Directories
 
 **Problem:** Makefile targets like `make process-agents` invoke CLIs via
-`npx --workspace=@forwardimpact/libagent fit-process-agents`. The
-`--workspace=` flag changes cwd to the library package root
-(`libraries/libagent/`). The `createStorage("config")` call uses
-`Finder.findUpward()` from cwd, which traverses up to `monorepo/config/` instead
-of `products/guide/config/`.
+`npx --workspace=@forwardimpact/libagent fit-process-agents`. The `--workspace=`
+flag changes cwd to the library package root (`libraries/libagent/`). The
+`createStorage("config")` call uses `Finder.findUpward()` from cwd, which
+traverses up to `monorepo/config/` instead of `products/guide/config/`.
 
 In copilot-ld this worked because the workspace root _was_ the product root.
 
-**Fix:** `scripts/env.sh` now exports
-`STORAGE_ROOT="${STORAGE_ROOT:-$(pwd)}"` before `exec "$@"`. Since env.sh runs
-from the guide product directory (via the Makefile), STORAGE_ROOT pins all
-storage resolution to the correct location regardless of where npx sets the cwd.
+**Fix:** `scripts/env.sh` now exports `STORAGE_ROOT="${STORAGE_ROOT:-$(pwd)}"`
+before `exec "$@"`. Since env.sh runs from the guide product directory (via the
+Makefile), STORAGE_ROOT pins all storage resolution to the correct location
+regardless of where npx sets the cwd.
 
 ### 2. Agent Name Double-Prefixed — `common.Agent.common.Agent.planner`
 
@@ -510,8 +509,7 @@ agent_id: `common.Agent.${agentName}`,
 
 This produces `common.Agent.common.Agent.planner`, causing "Agent not found".
 
-**Fix:** Added a guard matching the pattern already used in
-`RunSubAgent`:
+**Fix:** Added a guard matching the pattern already used in `RunSubAgent`:
 
 ```js
 const agentId = agentName.startsWith("common.Agent.")

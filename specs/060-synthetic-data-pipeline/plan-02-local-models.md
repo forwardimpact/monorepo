@@ -7,8 +7,8 @@
 ## Approach
 
 Run the entire generation pipeline locally using open-weight models optimized
-for Apple Silicon. Use MLX for models that fit comfortably in unified memory
-and llama.cpp as a fallback for larger quantized models. A Python orchestrator
+for Apple Silicon. Use MLX for models that fit comfortably in unified memory and
+llama.cpp as a fallback for larger quantized models. A Python orchestrator
 coordinates generation across specialized model roles: a large model for
 creative content and a smaller model for structured data generation.
 
@@ -56,13 +56,13 @@ seed.yaml ──► Python Orchestrator
 The 32B model produces higher-quality prose and better cross-entity coherence
 for content like HTML articles and Markdown briefings. The 8B model is faster
 for high-volume structured generation (hundreds of YAML entries, thousands of
-activity records) where quality requirements are lower but schema compliance
-is critical.
+activity records) where quality requirements are lower but schema compliance is
+critical.
 
 ## Seed Data
 
-Identical `seed.yaml` structure to Plan 01 (see Plan 01 for full schema).
-The seed file is the single source of truth shared across all plans.
+Identical `seed.yaml` structure to Plan 01 (see Plan 01 for full schema). The
+seed file is the single source of truth shared across all plans.
 
 ## Generation Pipeline
 
@@ -85,8 +85,8 @@ llama-server -m models/qwen3-8b-q6_k.gguf --port 8081 \
 
 ### Stage 2 — Organization Skeleton
 
-**Model:** Qwen3-32B (MLX)
-**Output:** ONTOLOGY.md, README.md, entity manifest (JSON)
+**Model:** Qwen3-32B (MLX) **Output:** ONTOLOGY.md, README.md, entity manifest
+(JSON)
 
 **Strategy:**
 
@@ -97,6 +97,7 @@ llama-server -m models/qwen3-8b-q6_k.gguf --port 8081 \
 5. Assemble ONTOLOGY.md from generated entities
 
 **Prompt template:**
+
 ```
 <system>
 You are generating entities for a fictional pharmaceutical company called
@@ -117,14 +118,15 @@ Existing people (avoid duplicate names): {existing_names}
 ```
 
 **Validation:**
+
 - Parse JSON output, verify uniqueness of all IRIs and names
 - Verify level distribution matches seed percentages (±5%)
 - Verify all team member counts match seed targets
 
 ### Stage 3 — Framework Content (Map YAML)
 
-**Model:** Qwen3-8B (llama.cpp)
-**Output:** All YAML files under `products/map/examples/`
+**Model:** Qwen3-8B (llama.cpp) **Output:** All YAML files under
+`products/map/examples/`
 
 **Strategy:**
 
@@ -135,6 +137,7 @@ Existing people (avoid duplicate names): {existing_names}
    language
 
 **Grammar-constrained generation:**
+
 ```
 # llama.cpp GBNF grammar for capability YAML
 root ::= "id: " identifier "\n" "name: " quoted-string "\n" ...
@@ -143,6 +146,7 @@ quoted-string ::= "\"" [^"]+ "\""
 ```
 
 **Validation loop:**
+
 ```python
 for schema_type in ['capabilities', 'disciplines', 'tracks', 'behaviours']:
     for attempt in range(3):
@@ -157,8 +161,8 @@ for schema_type in ['capabilities', 'disciplines', 'tracks', 'behaviours']:
 
 ### Stage 4 — Story Scenarios (Signal Curves)
 
-**Model:** Deterministic (no LLM needed)
-**Output:** Scenario manifest with month-by-month signal values
+**Model:** Deterministic (no LLM needed) **Output:** Scenario manifest with
+month-by-month signal values
 
 **Strategy:**
 
@@ -187,8 +191,8 @@ def generate_signal_curve(scenario, signal_type):
 
 ### Stage 5 — Organizational Content (HTML Microdata)
 
-**Model:** Qwen3-32B (MLX)
-**Output:** HTML files under `products/guide/examples/knowledge/`
+**Model:** Qwen3-32B (MLX) **Output:** HTML files under
+`products/guide/examples/knowledge/`
 
 **Strategy:**
 
@@ -198,6 +202,7 @@ def generate_signal_curve(scenario, signal_type):
 4. Post-process with an HTML parser to fix any malformed tags
 
 **Chunked generation for large files:**
+
 ```python
 # Generate articles in batches to stay within context window
 for topic_batch in chunk(article_topics, batch_size=5):
@@ -216,8 +221,8 @@ assemble_html_file(fragments, output_path)
 
 ### Stage 6 — Activity Content (Landmark Tables)
 
-**Model:** Deterministic + Qwen3-8B for evidence text
-**Output:** JSON/CSV under `products/map/examples/activity/`
+**Model:** Deterministic + Qwen3-8B for evidence text **Output:** JSON/CSV under
+`products/map/examples/activity/`
 
 **Strategy:**
 
@@ -260,8 +265,8 @@ def generate_github_events(person, scenario_signals, months):
 
 ### Stage 7 — Personal Content (Basecamp Markdown)
 
-**Model:** Qwen3-32B (MLX)
-**Output:** Markdown files under `products/basecamp/template/knowledge/`
+**Model:** Qwen3-32B (MLX) **Output:** Markdown files under
+`products/basecamp/template/knowledge/`
 
 **Strategy:**
 
@@ -274,8 +279,8 @@ def generate_github_events(person, scenario_signals, months):
 
 ## Cross-Content Validation
 
-Same validation matrix as Plan 01, executed via Node.js scripts that the
-Python orchestrator invokes:
+Same validation matrix as Plan 01, executed via Node.js scripts that the Python
+orchestrator invokes:
 
 ```sh
 # Run all validations
@@ -294,17 +299,17 @@ node scripts/generate/cross-validate.js
 
 ## Output File Mapping
 
-| Generated Content              | Target Location                              |
-| ------------------------------ | -------------------------------------------- |
-| ONTOLOGY.md                    | `products/guide/examples/knowledge/`         |
-| README.md                      | `products/guide/examples/knowledge/`         |
-| HTML microdata files           | `products/guide/examples/knowledge/`         |
-| Framework YAML                 | `products/map/examples/`                     |
-| Organization people            | `products/map/examples/activity/`            |
-| GitHub events/artifacts        | `products/map/examples/activity/`            |
-| GetDX snapshots/scores         | `products/map/examples/activity/`            |
-| Evidence records               | `products/map/examples/activity/`            |
-| Personal knowledge base        | `products/basecamp/template/knowledge/`      |
+| Generated Content       | Target Location                         |
+| ----------------------- | --------------------------------------- |
+| ONTOLOGY.md             | `products/guide/examples/knowledge/`    |
+| README.md               | `products/guide/examples/knowledge/`    |
+| HTML microdata files    | `products/guide/examples/knowledge/`    |
+| Framework YAML          | `products/map/examples/`                |
+| Organization people     | `products/map/examples/activity/`       |
+| GitHub events/artifacts | `products/map/examples/activity/`       |
+| GetDX snapshots/scores  | `products/map/examples/activity/`       |
+| Evidence records        | `products/map/examples/activity/`       |
+| Personal knowledge base | `products/basecamp/template/knowledge/` |
 
 ## CLI Interface
 
@@ -330,26 +335,26 @@ python scripts/generate/pipeline.py --validate-only
 
 ## Hardware Requirements
 
-| Resource          | Requirement                              |
-| ----------------- | ---------------------------------------- |
-| Machine           | Apple Mac Studio M4 Max                  |
-| Unified Memory    | 128 GB (models use ~25 GB total)         |
-| Disk              | ~20 GB for model weights                 |
-| Python            | 3.11+ with MLX, llama-cpp-python         |
-| Node.js           | 18+ (for validation scripts)             |
+| Resource       | Requirement                      |
+| -------------- | -------------------------------- |
+| Machine        | Apple Mac Studio M4 Max          |
+| Unified Memory | 128 GB (models use ~25 GB total) |
+| Disk           | ~20 GB for model weights         |
+| Python         | 3.11+ with MLX, llama-cpp-python |
+| Node.js        | 18+ (for validation scripts)     |
 
 ## Performance Estimate
 
-| Stage                  | Model      | Est. Time  |
-| ---------------------- | ---------- | ---------- |
-| Org Skeleton           | Qwen3-32B  | 15 min     |
-| Framework YAML         | Qwen3-8B   | 20 min     |
-| Scenario Curves        | None (det) | < 1 min    |
-| Org Content (HTML)     | Qwen3-32B  | 45 min     |
-| Activity Tables        | Mixed      | 10 min     |
-| Personal Content       | Qwen3-32B  | 10 min     |
-| Validation + Retries   | —          | 10 min     |
-| **Total**              |            | **~2 hrs** |
+| Stage                | Model      | Est. Time  |
+| -------------------- | ---------- | ---------- |
+| Org Skeleton         | Qwen3-32B  | 15 min     |
+| Framework YAML       | Qwen3-8B   | 20 min     |
+| Scenario Curves      | None (det) | < 1 min    |
+| Org Content (HTML)   | Qwen3-32B  | 45 min     |
+| Activity Tables      | Mixed      | 10 min     |
+| Personal Content     | Qwen3-32B  | 10 min     |
+| Validation + Retries | —          | 10 min     |
+| **Total**            |            | **~2 hrs** |
 
 ## Dependencies
 
@@ -367,28 +372,33 @@ ajv (already in monorepo)
 ## Implementation Phases
 
 ### Phase A — Model Setup & Scaffolding (1 day)
+
 - Download and test models on Mac Studio
 - Create Python orchestrator with model server management
 - Set up output directory structure
 
 ### Phase B — Deterministic Generators (1 day)
+
 - Implement signal curve generation
 - Implement GitHub event generation (Poisson process)
 - Implement DX survey score generation
 - Implement organization_people table generation
 
 ### Phase C — Framework Generation (2 days)
+
 - Implement YAML generation with grammar constraints
 - Validation loop with `npx fit-map validate`
 - Generate all Map example files
 
 ### Phase D — Content Generation (3 days)
+
 - Implement HTML microdata generation with Qwen3-32B
 - Implement ONTOLOGY/README generation
 - Implement Basecamp Markdown generation
 - HTML microdata parsing and validation
 
 ### Phase E — Integration & Cleanup (1 day)
+
 - Cross-content validation
 - Remove old hand-crafted content
 - Documentation and README updates
@@ -408,6 +418,6 @@ ajv (already in monorepo)
   narrative than Claude, especially for complex cross-entity HTML
 - **Hardware requirement**: Requires a high-end Apple Silicon machine
 - **Setup complexity**: Two model servers, Python + Node.js toolchains
-- **Context window limits**: 8K context may require more chunking than
-  Claude's 200K window
+- **Context window limits**: 8K context may require more chunking than Claude's
+  200K window
 - **Maintenance**: Model versions and quantizations require tracking

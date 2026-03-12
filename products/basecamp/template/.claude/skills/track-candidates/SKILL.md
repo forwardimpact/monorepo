@@ -212,8 +212,8 @@ find ~/Downloads -maxdepth 3 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -in
 ```
 
 Match images to candidates by name similarity in the filename (e.g.
-`vitalii.jpeg` matches "Vitalii Huliai", `qazi.jpeg` matches "Qazi Rehman").
-Use first name, last name, or full name matching — case-insensitive.
+`vitalii.jpeg` matches "Vitalii Huliai", `qazi.jpeg` matches "Qazi Rehman"). Use
+first name, last name, or full name matching — case-insensitive.
 
 When a headshot is found, copy it into the candidate directory with a
 standardized name:
