@@ -25,7 +25,6 @@ import {
   deriveChecklist,
   formatChecklistMarkdown,
 } from "@forwardimpact/libskill/checklist";
-import { loadJobTemplate } from "../lib/template-loader.js";
 import { toolkitToPlainList } from "../formatters/toolkit/markdown.js";
 
 /**
@@ -47,7 +46,13 @@ function formatJob(view, _options, entities, jobTemplate) {
  * @param {Object} params.options - Command options
  * @param {string} params.dataDir - Path to data directory
  */
-export async function runJobCommand({ data, args, options, dataDir }) {
+export async function runJobCommand({
+  data,
+  args,
+  options,
+  dataDir,
+  templateLoader,
+}) {
   const jobs = generateAllJobs({
     disciplines: data.disciplines,
     levels: data.levels,
@@ -310,6 +315,6 @@ export async function runJobCommand({ data, args, options, dataDir }) {
   }
 
   // Load job template for description formatting
-  const jobTemplate = await loadJobTemplate(dataDir);
+  const jobTemplate = templateLoader.load("job.template.md", dataDir);
   formatJob(view, options, { discipline, level, track }, jobTemplate);
 }

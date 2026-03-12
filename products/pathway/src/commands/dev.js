@@ -9,8 +9,8 @@ import { createServer } from "http";
 import { readFile, stat } from "fs/promises";
 import { join, extname, dirname } from "path";
 import { fileURLToPath } from "url";
-import { generateAllIndexes } from "@forwardimpact/map/index-generator";
-import { loadFrameworkConfig } from "@forwardimpact/map/loader";
+import { createIndexGenerator } from "@forwardimpact/map/index-generator";
+import { createDataLoader } from "@forwardimpact/map/loader";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -108,7 +108,8 @@ export async function runDevCommand({ dataDir, options }) {
   // Load framework config for display
   let framework;
   try {
-    framework = await loadFrameworkConfig(dataDir);
+    const loader = createDataLoader();
+    framework = await loader.loadFrameworkConfig(dataDir);
   } catch {
     // Fallback if framework config fails
     framework = { emojiIcon: "🚀", title: "Engineering Pathway" };
@@ -116,7 +117,8 @@ export async function runDevCommand({ dataDir, options }) {
 
   // Generate _index.yaml files before serving
   console.log("Generating index files...");
-  await generateAllIndexes(dataDir);
+  const indexGenerator = createIndexGenerator();
+  await indexGenerator.generateAllIndexes(dataDir);
 
   const server = createServer(async (req, res) => {
     const url = new URL(req.url, `http://localhost:${port}`);

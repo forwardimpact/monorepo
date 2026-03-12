@@ -7,7 +7,7 @@
 
 import { readRaw, listRaw } from "../storage.js";
 import { parse as parseYaml } from "yaml";
-import { loadAllData } from "../../src/loader.js";
+import { createDataLoader } from "../../src/loader.js";
 
 /**
  * Transform the most recent stored people file into DB rows.
@@ -136,7 +136,8 @@ export async function loadPeopleFile(filePath) {
  * @returns {Promise<{valid: Array<object>, errors: Array<{row: number, message: string}>}>}
  */
 export async function validatePeople(people, dataDir) {
-  const data = await loadAllData(dataDir, { validate: false });
+  const loader = createDataLoader();
+  const data = await loader.loadAllData(dataDir);
 
   const disciplineIds = new Set(data.disciplines.map((d) => d.id));
   const levelIds = new Set(data.levels.map((l) => l.id));

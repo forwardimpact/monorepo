@@ -18,7 +18,6 @@ import { getConceptEmoji } from "@forwardimpact/map/levels";
 import { formatTable, formatError } from "../lib/cli-output.js";
 import { generateSkillMarkdown } from "@forwardimpact/libskill/agent";
 import { formatAgentSkill } from "../formatters/agent/skill.js";
-import { loadSkillTemplate } from "../lib/template-loader.js";
 
 /**
  * Format skill summary output
@@ -69,7 +68,7 @@ function formatDetail(viewAndContext, framework) {
  * @param {Array} stages - All stage entities
  * @param {string} dataDir - Path to data directory for template loading
  */
-async function formatAgentDetail(skill, stages, dataDir) {
+async function formatAgentDetail(skill, stages, templateLoader, dataDir) {
   if (!skill.agent) {
     console.error(formatError(`Skill '${skill.id}' has no agent section`));
     console.error(`\nSkills with agent support:`);
@@ -79,7 +78,7 @@ async function formatAgentDetail(skill, stages, dataDir) {
     process.exit(1);
   }
 
-  const template = await loadSkillTemplate(dataDir);
+  const template = templateLoader.load("skill.template.md", dataDir);
   const skillMd = generateSkillMarkdown(skill, stages);
   const output = formatAgentSkill(skillMd, template);
   console.log(output);
@@ -119,7 +118,13 @@ const baseSkillCommand = createEntityCommand({
  * @param {Object} params.options - Command options
  * @param {string} params.dataDir - Path to data directory
  */
-export async function runSkillCommand({ data, args, options, dataDir }) {
+export async function runSkillCommand({
+  data,
+  args,
+  options,
+  dataDir,
+  templateLoader,
+}) {
   // Handle --agent flag for detail view
   if (options.agent && args.length > 0) {
     const [id] = args;
@@ -131,7 +136,7 @@ export async function runSkillCommand({ data, args, options, dataDir }) {
       process.exit(1);
     }
 
-    await formatAgentDetail(skill, data.stages, dataDir);
+    await formatAgentDetail(skill, data.stages, templateLoader, dataDir);
     return;
   }
 

@@ -72,7 +72,6 @@ async function findDataDir(providedPath) {
     throw new Error(`Data directory not found: ${providedPath}`);
   }
 
-  // Check common locations
   const candidates = [
     join(process.cwd(), "data/pathway"),
     join(process.cwd(), "examples/pathway"),
@@ -125,17 +124,17 @@ function formatValidationResults(result) {
 async function runValidate(dataDir) {
   console.log(`🔍 Validating data in: ${dataDir}\n`);
 
-  const { runSchemaValidation, loadAllData } = await import("../src/index.js");
+  const { createDataLoader, createSchemaValidator } =
+    await import("../src/index.js");
 
-  // Load data first
-  const data = await loadAllData(dataDir, { validate: false });
+  const loader = createDataLoader();
+  const validator = createSchemaValidator();
 
-  // Run full validation
-  const result = await runSchemaValidation(dataDir, data);
+  const data = await loader.loadAllData(dataDir);
+  const result = await validator.runFullValidation(dataDir, data);
 
   console.log(formatValidationResults(result));
 
-  // Print summary
   console.log("\n📊 Data Summary:");
   console.log(`   Skills:      ${data.skills?.length || 0}`);
   console.log(`   Behaviours:  ${data.behaviours?.length || 0}`);
@@ -153,9 +152,10 @@ async function runValidate(dataDir) {
 async function runGenerateIndex(dataDir) {
   console.log(`📁 Generating index files in: ${dataDir}\n`);
 
-  const { generateAllIndexes } = await import("../src/index.js");
+  const { createIndexGenerator } = await import("../src/index.js");
 
-  const results = await generateAllIndexes(dataDir);
+  const generator = createIndexGenerator();
+  const results = await generator.generateAllIndexes(dataDir);
 
   for (const [dir, files] of Object.entries(results)) {
     if (files.error) {
@@ -180,7 +180,6 @@ async function runValidateShacl() {
     const { default: N3 } = await import("n3");
     const { readFile, readdir } = await import("fs/promises");
 
-    // Find all .ttl files in the RDF directory
     const files = await readdir(rdfDir);
     const ttlFiles = files.filter((f) => f.endsWith(".ttl")).sort();
 

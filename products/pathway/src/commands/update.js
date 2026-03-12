@@ -10,7 +10,7 @@ import { cp, mkdir, rm, readFile, writeFile, access } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
 import { execFileSync, execSync } from "child_process";
-import { loadFrameworkConfig } from "@forwardimpact/map/loader";
+import { createDataLoader } from "@forwardimpact/map/loader";
 
 const INSTALL_DIR = join(homedir(), ".fit", "pathway");
 
@@ -38,7 +38,8 @@ export async function runUpdateCommand({ dataDir: _dataDir, options }) {
   }
 
   // Load framework config to get siteUrl
-  const framework = await loadFrameworkConfig(installDataDir);
+  const loader = createDataLoader();
+  const framework = await loader.loadFrameworkConfig(installDataDir);
   const siteUrl = options.url || framework.distribution?.siteUrl;
 
   if (!siteUrl) {
