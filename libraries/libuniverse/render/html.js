@@ -2,11 +2,15 @@
  * HTML Renderer — generates HTML microdata files for Guide.
  *
  * Uses TemplateLoader from libtemplate for all output.
+ * Pass 1: Deterministic templates produce complete HTML with structural microdata.
+ * Pass 2: LLM enricher rewrites prose blocks in-place (handled by enricher.js).
  */
 
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { TemplateLoader } from "@forwardimpact/libtemplate/loader";
+import { generateDrugs, generatePlatforms } from "./industry-data.js";
+import { assignLinks } from "./link-assigner.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const templates = new TemplateLoader(join(__dirname, "..", "templates"));
@@ -24,56 +28,60 @@ function titleCase(str) {
   return str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-const COURSE_TOPICS = [
-  "Introduction to Drug Discovery",
-  "Clinical Data Management",
-  "GMP Compliance Essentials",
-  "Pharmaceutical Statistics",
-  "Molecular Biology Fundamentals",
-  "Regulatory Submissions",
-  "Data Engineering for Pharma",
-  "AI in Drug Development",
-  "Quality Assurance Methods",
-  "Supply Chain Management",
-  "Cloud Infrastructure Security",
-  "API Design Patterns",
-  "Machine Learning Pipelines",
-  "DevOps Best Practices",
-  "Technical Writing for Scientists",
-];
-
-const EVENT_NAMES = [
-  "Engineering All-Hands",
-  "Tech Talk: AI in Pharma",
-  "Hackathon 2025",
-  "Architecture Review Board",
-  "Sprint Demo Day",
-  "New Hire Orientation",
-  "Compliance Training",
-  "Platform Migration Workshop",
-  "Data Science Summit",
-  "Security Awareness Week",
-];
-
 /**
  * Render HTML microdata files from entities and prose.
  * @param {object} entities
  * @param {Map<string,string>} prose
- * @returns {Map<string,string>} filename → HTML content
+ * @returns {{ files: Map<string,string>, linked: import('./link-assigner.js').LinkedEntities }}
  */
 export function renderHTML(entities, prose) {
   const files = new Map();
   const domain = entities.domain;
-  const orgName = entities.orgs[0]?.name || "Organization";
 
-  // Structural pages
+  // Generate industry data
+  const drugs = generateDrugs(domain);
+  const platforms = generatePlatforms(domain);
+
+  // Content config
+  const gc = entities.content.find((c) => c.id === "guide_html");
+  const courseCount = gc?.courses || 0;
+  const eventCount = gc?.events || 0;
+  const blogCount = gc?.blogs || 0;
+  const articleTopics = gc?.article_topics || [];
+
+  // Assign cross-links deterministically
+  const linked = assignLinks({
+    drugs,
+    platforms,
+    projects: entities.projects,
+    people: entities.people,
+    teams: entities.teams,
+    departments: entities.departments,
+    domain,
+    courseCount,
+    eventCount,
+    blogCount,
+    articleTopics,
+    seed: entities.activity?.seed || 42,
+  });
+
+  // Enrich platform and drug entities with reverse links
+  const enrichedPlatforms = enrichPlatformsWithLinks(linked);
+  const enrichedDrugs = enrichDrugsWithLinks(linked);
+
+  // --- Structural pages (unchanged) ---
   const leadershipBody = templates.render("leadership.html", {
     managers: entities.people
       .filter((p) => p.is_manager)
-      .map((m) => ({
-        ...m,
-        teamName: entities.teams.find((t) => t.id === m.team_id)?.name || "",
-      })),
+      .map((m) => {
+        const team = entities.teams.find((t) => t.id === m.team_id)
+        const dept = team ? entities.departments.find((d) => d.id === team.department) : null
+        return {
+          ...m,
+          teamName: team?.name || "",
+          departmentIri: dept?.iri || "",
+        }
+      }),
   });
   files.set(
     "organization-leadership.html",
@@ -83,7 +91,19 @@ export function renderHTML(entities, prose) {
   const deptBody = templates.render("departments.html", {
     departments: entities.departments.map((d) => ({
       ...d,
-      teams: entities.teams.filter((t) => t.department === d.id),
+      teams: entities.teams
+        .filter((t) => t.department === d.id)
+        .map((t) => ({
+          ...t,
+          members: entities.people
+            .filter((p) => p.team_id === t.id)
+            .map((p) => ({
+              iri: p.iri,
+              name: p.name,
+              jobTitle: `${p.level} ${p.discipline ? titleCase(p.discipline) : 'Engineer'}`,
+              teamIri: t.iri,
+            })),
+        })),
     })),
   });
   files.set(
@@ -100,39 +120,83 @@ export function renderHTML(entities, prose) {
   });
   files.set("roles.html", page("Engineering Roles", rolesBody, domain));
 
-  // Content-driven pages
-  const gc = entities.content.find((c) => c.id === "guide_html");
+  // --- New linked document types ---
+
+  // Projects cross-functional
+  files.set(
+    "projects-cross-functional.html",
+    page(
+      "Cross-Functional Projects",
+      templates.render("projects.html", { projects: linked.projects }),
+      domain,
+    ),
+  );
+
+  // Technology platforms dependencies
+  files.set(
+    "technology-platforms-dependencies.html",
+    page(
+      "Technology Platforms",
+      templates.render("platforms.html", { platforms: enrichedPlatforms }),
+      domain,
+    ),
+  );
+
+  // Drugs development pipeline
+  files.set(
+    "drugs-development-pipeline.html",
+    page(
+      "Drug Development Pipeline",
+      templates.render("drugs.html", { drugs: enrichedDrugs }),
+      domain,
+    ),
+  );
+
+  // --- Content-driven pages ---
   if (gc) {
-    for (const topic of gc.article_topics || []) {
+    for (const article of linked.articles || []) {
       const body = templates.render("article.html", {
-        domain: `https://${domain}`,
-        topic,
-        title: titleCase(topic),
-        orgName,
-        prose:
-          prose.get(`article_${topic}`) ||
-          `Article about ${topic.replace(/_/g, " ")}.`,
+        articles: [{
+          ...article,
+          prose:
+            prose.get(`article_${article.topic}`) ||
+            `Article about ${article.topic.replace(/_/g, " ")}.`,
+        }],
       });
       files.set(
-        `articles-${topic.replace(/_/g, "-")}.html`,
-        page(`${titleCase(topic)} - Article`, body, domain),
+        `articles-${article.topic.replace(/_/g, "-")}.html`,
+        page(`${article.title} - Article`, body, domain),
       );
     }
 
+    // Blog posts — individual files + index with blog collection wrapper
+    const blogIri = `https://${domain}/id/blog`;
+    const blogPosts = linked.blogPosts.map((post) => ({
+      ...post,
+      blogIri,
+      body:
+        prose.get(`blog_${post.index - 1}`) ||
+        `Blog post about ${post.headline.toLowerCase()}.`,
+    }));
+
+    // Individual blog post files
+    for (const post of blogPosts) {
+      files.set(
+        `blog-${post.index}.html`,
+        page(
+          post.headline,
+          templates.render("blog-post.html", post),
+          domain,
+        ),
+      );
+    }
+
+    // Blog index page
     files.set(
       "blog-posts.html",
       page(
         "Engineering Blog",
-        templates.render("blog.html", {
-          domain: `https://${domain}`,
-          posts: Array.from({ length: gc.blogs || 0 }, (_, i) => ({
-            index: i + 1,
-            body:
-              prose.get(`blog_${i}`) ||
-              `Blog post ${i + 1} about pharmaceutical engineering.`,
-            date: `2025-${String(Math.floor(i / 2) + 1).padStart(2, "0")}-15`,
-          })),
-        }),
+        templates.render("blog.html", { blogIri, posts: blogPosts }),
         domain,
       ),
     );
@@ -142,11 +206,19 @@ export function renderHTML(entities, prose) {
       page(
         "Frequently Asked Questions",
         templates.render("faq.html", {
-          domain: `https://${domain}`,
-          faqs: Array.from({ length: gc.faqs || 0 }, (_, i) => ({
-            index: i + 1,
-            answer: prose.get(`faq_${i}`) || `Answer to FAQ ${i + 1}.`,
-          })),
+          faqs: Array.from({ length: gc.faqs || 0 }, (_, i) => {
+            const entityPool = [...linked.drugs, ...linked.platforms, ...linked.projects];
+            const aboutLinks = [
+              entityPool[i % entityPool.length],
+              entityPool[(i + 3) % entityPool.length],
+            ].filter(Boolean);
+            return {
+              iri: `https://${domain}/id/faq/faq-${i + 1}`,
+              question: `FAQ Question ${i + 1}`,
+              answer: prose.get(`faq_${i}`) || `Answer to FAQ ${i + 1}.`,
+              aboutLinks,
+            };
+          }),
         }),
         domain,
       ),
@@ -172,15 +244,19 @@ export function renderHTML(entities, prose) {
       page(
         "Reviews",
         templates.render("reviews.html", {
-          domain: `https://${domain}`,
-          reviews: Array.from({ length: gc.reviews || 0 }, (_, i) => ({
-            index: i + 1,
-            rating: 3 + (i % 3),
-            author:
-              entities.people[i % entities.people.length]?.name || "Anonymous",
-            body:
-              prose.get(`review_${i}`) || "Good work on this implementation.",
-          })),
+          reviews: Array.from({ length: gc.reviews || 0 }, (_, i) => {
+            const person = entities.people[i % entities.people.length];
+            const reviewPool = [...linked.courses, ...linked.events, ...linked.platforms];
+            const reviewed = reviewPool[i % reviewPool.length];
+            return {
+              iri: `https://${domain}/id/review/review-${i + 1}`,
+              rating: 1 + (((i * 7 + 3) % 5)),
+              author: person?.name || "Anonymous",
+              authorIri: person?.iri || "",
+              body: prose.get(`review_${i}`) || "Good work on this implementation.",
+              reviewedIri: reviewed?.iri || "",
+            };
+          }),
         }),
         domain,
       ),
@@ -191,55 +267,124 @@ export function renderHTML(entities, prose) {
       page(
         "Discussion Comments",
         templates.render("comments.html", {
-          domain: `https://${domain}`,
-          comments: Array.from({ length: gc.comments || 0 }, (_, i) => ({
-            index: i + 1,
-            author:
-              entities.people[i % entities.people.length]?.name || "Anonymous",
-            body: prose.get(`comment_${i}`) || "Interesting discussion point.",
-          })),
+          comments: Array.from({ length: gc.comments || 0 }, (_, i) => {
+            const person = entities.people[i % entities.people.length];
+            const parentPool = [...linked.blogPosts, ...(linked.articles || [])];
+            const parent = parentPool[i % parentPool.length];
+            return {
+              iri: `https://${domain}/id/comment/comment-${i + 1}`,
+              author: person?.name || "Anonymous",
+              authorIri: person?.iri || "",
+              body: prose.get(`comment_${i}`) || "Interesting discussion point.",
+              date: `2025-${String((i % 12) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`,
+              aboutIri: parent?.iri || "",
+            };
+          }),
         }),
         domain,
       ),
     );
 
+    // Courses — enriched with IDs, prereqs, attendees, platform/drug links
     files.set(
       "courses-learning-catalog.html",
       page(
         "Learning Catalog",
-        templates.render("courses.html", {
-          domain: `https://${domain}`,
-          courses: Array.from({ length: gc.courses || 0 }, (_, i) => ({
-            index: i + 1,
-            title: COURSE_TOPICS[i % COURSE_TOPICS.length],
-            orgName,
-            date: `2025-${String((i % 12) + 1).padStart(2, "0")}-01`,
-          })),
-        }),
+        templates.render("courses.html", { courses: linked.courses }),
         domain,
       ),
     );
 
+    // Events — enriched with organizer, attendees, about links
     files.set(
       "events-program-calendar.html",
       page(
         "Event Calendar",
-        templates.render("events.html", {
-          domain: `https://${domain}`,
-          events: Array.from({ length: gc.events || 0 }, (_, i) => ({
-            index: i + 1,
-            title: EVENT_NAMES[i % EVENT_NAMES.length],
-            orgName,
-            date: `2025-${String((i % 12) + 1).padStart(2, "0")}-15`,
-            location: entities.orgs[0]?.location || "Cambridge, MA",
-          })),
-        }),
+        templates.render("events.html", { events: linked.events }),
         domain,
       ),
     );
   }
 
-  return files;
+  return { files, linked };
+}
+
+/**
+ * Enrich platforms with reverse links from projects and drugs.
+ * @param {import('./link-assigner.js').LinkedEntities} linked
+ * @returns {object[]}
+ */
+function enrichPlatformsWithLinks(linked) {
+  return linked.platforms.map((plat) => {
+    // Resolve dependency objects for template rendering
+    const depObjects = (plat.dependencies || [])
+      .map((depId) => linked.platforms.find((p) => p.id === depId))
+      .filter(Boolean);
+
+    // Reverse: projects that link to this platform
+    const projectLinks = linked.projects
+      .filter((proj) =>
+        proj.platformLinks.some((pl) => pl.id === plat.id),
+      )
+      .slice(0, 3);
+
+    // Reverse: drugs that use this platform
+    const drugLinks = linked.drugs
+      .filter(
+        (d) =>
+          d.platformLinks && d.platformLinks.some((pl) => pl.id === plat.id),
+      )
+      .slice(0, 2);
+
+    return {
+      ...plat,
+      dependencies: depObjects,
+      projectLinks,
+      drugLinks,
+    };
+  });
+}
+
+/**
+ * Enrich drugs with reverse links from projects, platforms, events.
+ * @param {import('./link-assigner.js').LinkedEntities} linked
+ * @returns {object[]}
+ */
+function enrichDrugsWithLinks(linked) {
+  const base = linked.drugs[0]?.iri?.replace(/\/id\/drug\/.*/, "") || "";
+
+  return linked.drugs.map((drug) => {
+    // Reverse: projects that reference this drug
+    const projectLinks = linked.projects
+      .filter((proj) => proj.drugLinks.some((dl) => dl.id === drug.id))
+      .slice(0, 3);
+
+    // Platforms associated via projects
+    const platformIds = new Set();
+    for (const proj of projectLinks) {
+      for (const pl of proj.platformLinks) platformIds.add(pl.id);
+    }
+    const platformLinks = linked.platforms
+      .filter((p) => platformIds.has(p.id))
+      .slice(0, 3);
+
+    // Events about this drug
+    const eventLinks = linked.events
+      .filter((e) => e.aboutDrugs.some((d) => d.id === drug.id))
+      .slice(0, 2);
+
+    const parentDrugIri = drug.parentDrug
+      ? `${base}/id/drug/${drug.parentDrug}`
+      : null;
+
+    return {
+      ...drug,
+      projectLinks,
+      platformLinks,
+      eventLinks,
+      parentDrugIri,
+    };
+  });
 }
 
 /**

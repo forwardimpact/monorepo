@@ -1,7 +1,30 @@
-  <article itemscope itemtype="https://schema.org/Article" itemid="{{{domain}}}/article/{{topic}}">
+{{#articles}}
+  <article itemscope itemtype="https://schema.org/ScholarlyArticle" itemid="{{{iri}}}">
     <h2 itemprop="headline">{{title}}</h2>
-    <div itemprop="articleBody">
-      <p>{{prose}}</p>
+    <meta itemprop="identifier" content="{{identifier}}" />
+    <meta itemprop="keywords" content="{{keywords}}" />
+    <time itemprop="datePublished" datetime="{{date}}">{{date}}</time>
+
+    {{#author}}
+    <span itemprop="author" itemscope itemtype="https://schema.org/Person" itemid="{{{iri}}}">
+      <span itemprop="name">{{name}}</span>
+    </span>
+    {{/author}}
+
+    {{#drugLinks}}
+    <link itemprop="about" href="{{{iri}}}" />
+    {{/drugLinks}}
+
+    {{#platformLinks}}
+    <link itemprop="about" href="{{{iri}}}" />
+    {{/platformLinks}}
+
+    {{#projectLinks}}
+    <link itemprop="about" href="{{{iri}}}" />
+    {{/projectLinks}}
+
+    <div itemprop="articleBody" data-enrich="article_{{topic}}">
+      {{prose}}
     </div>
-    <span itemprop="author">{{orgName}}</span>
   </article>
+{{/articles}}

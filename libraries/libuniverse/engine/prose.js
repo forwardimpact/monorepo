@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import { createLogger } from "@forwardimpact/libtelemetry";
 import { generateHash } from "@forwardimpact/libutil";
 import { PromptLoader } from "@forwardimpact/libprompt";
 
@@ -30,6 +31,7 @@ export class ProseEngine {
     this.llmApi = llmApi;
     this.cache = this.#loadCache();
     this.dirty = false;
+    this.log = createLogger("universe");
   }
 
   /**
@@ -74,7 +76,9 @@ export class ProseEngine {
       ],
       max_tokens: context.maxTokens || 500,
     });
-    return response.choices?.[0]?.message?.content?.trim() || null;
+    const content = response.choices?.[0]?.message?.content?.trim() || null;
+    this.log.info("prose", `Generated: ${key}`, { chars: content ? content.length : 0 });
+    return content;
   }
 
   /**
@@ -88,7 +92,10 @@ export class ProseEngine {
 
     const cacheKey = generateHash(key, JSON.stringify(messages));
 
-    if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
+    if (this.cache.has(cacheKey)) {
+      this.log.debug("prose", `Cache hit: ${key}`);
+      return this.cache.get(cacheKey);
+    }
 
     if (this.mode === "cached") {
       if (this.strict) throw new Error(`Cache miss: '${key}'`);
@@ -104,6 +111,7 @@ export class ProseEngine {
       this.cache.set(cacheKey, content);
       this.dirty = true;
     }
+    this.log.info("prose", `Generated structured: ${key}`, { chars: content ? content.length : 0 });
     return content;
   }
 

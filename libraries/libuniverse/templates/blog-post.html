@@ -1,0 +1,32 @@
+<section itemscope itemtype="https://schema.org/Blog" itemid="{{{blogIri}}}">
+  <span itemprop="name">Engineering Blog</span>
+  <article itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting" itemid="{{{iri}}}">
+    <h2 itemprop="headline">{{headline}}</h2>
+    <meta itemprop="identifier" content="{{identifier}}" />
+    <meta itemprop="keywords" content="{{keywords}}" />
+    <time itemprop="datePublished" datetime="{{date}}">{{date}}</time>
+    <link itemprop="isPartOf" href="{{{blogIri}}}" />
+
+    {{#author}}
+    <span itemprop="author" itemscope itemtype="https://schema.org/Person" itemid="{{{iri}}}">
+      <span itemprop="name">{{name}}</span>
+    </span>
+    {{/author}}
+
+    {{#aboutDrugs}}
+    <link itemprop="about" href="{{{iri}}}" />
+    {{/aboutDrugs}}
+
+    {{#aboutPlatforms}}
+    <link itemprop="about" href="{{{iri}}}" />
+    {{/aboutPlatforms}}
+
+    {{#aboutProjects}}
+    <link itemprop="about" href="{{{iri}}}" />
+    {{/aboutProjects}}
+
+    <div itemprop="articleBody" data-enrich="blog_{{index}}">
+      {{body}}
+    </div>
+  </article>
+</section>

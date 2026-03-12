@@ -1,8 +1,36 @@
 {{#events}}
-  <div itemscope itemtype="https://schema.org/Event" itemid="{{{domain}}}/event/{{index}}">
-    <span itemprop="name">{{title}}</span>
-    <span itemprop="organizer">{{orgName}}</span>
+  <div itemscope itemtype="https://schema.org/Event" itemid="{{{iri}}}">
+    <h2 itemprop="name">{{title}}</h2>
     <time itemprop="startDate">{{date}}</time>
     <span itemprop="location">{{location}}</span>
+    <meta itemprop="eventStatus" content="https://schema.org/{{eventStatus}}" />
+
+    {{#organizer}}
+    <div itemprop="organizer" itemscope itemtype="https://schema.org/Person" itemid="{{{iri}}}">
+      <span itemprop="name">{{name}}</span>
+    </div>
+    {{/organizer}}
+
+    {{#attendees}}
+    <div itemprop="attendee" itemscope itemtype="https://schema.org/Person" itemid="{{{iri}}}">
+      <span itemprop="name">{{name}}</span>
+    </div>
+    {{/attendees}}
+
+    {{#aboutProjects}}
+    <link itemprop="about" href="{{{iri}}}" />
+    {{/aboutProjects}}
+
+    {{#aboutDrugs}}
+    <link itemprop="about" href="{{{iri}}}" />
+    {{/aboutDrugs}}
+
+    {{#aboutPlatforms}}
+    <link itemprop="about" href="{{{iri}}}" />
+    {{/aboutPlatforms}}
+
+    <div itemprop="description" data-enrich="event_{{index}}">
+      {{title}} event at {{location}}.
+    </div>
   </div>
 {{/events}}

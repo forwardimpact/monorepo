@@ -5,25 +5,25 @@ Domain: `https://{{domain}}`
 ## Organizations
 
 {{#orgs}}
-- [{{name}}]({{{iri}}})
+- [{{{name}}}]({{{iri}}})
 {{/orgs}}
 
 ## Departments
 
 {{#departments}}
-- [{{name}}]({{{iri}}})
+- [{{{name}}}]({{{iri}}})
 {{/departments}}
 
 ## Teams
 
 {{#teams}}
-- [{{name}}]({{{iri}}})
+- [{{{name}}}]({{{iri}}})
 {{/teams}}
 
 ## People
 
 {{#people}}
-- [{{name}}]({{{iri}}}) — {{discipline}} {{level}}
+- [{{{name}}}]({{{iri}}}) — {{discipline}} {{level}}
 {{/people}}
 {{#hasMore}}
 - ... and {{moreCount}} more
@@ -32,5 +32,5 @@ Domain: `https://{{domain}}`
 ## Projects
 
 {{#projects}}
-- [{{name}}]({{{iri}}})
+- [{{{name}}}]({{{iri}}})
 {{/projects}}

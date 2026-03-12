@@ -1,8 +1,13 @@
+<section itemscope itemtype="https://schema.org/FAQPage">
 {{#faqs}}
-  <div itemscope itemtype="https://schema.org/Question" itemid="{{{domain}}}/faq/{{index}}">
-    <span itemprop="name">FAQ Question {{index}}</span>
+  <div itemscope itemtype="https://schema.org/Question" itemid="{{{iri}}}" itemprop="mainEntity">
+    <span itemprop="name">{{question}}</span>
     <div itemscope itemtype="https://schema.org/Answer" itemprop="acceptedAnswer">
       <span itemprop="text">{{answer}}</span>
     </div>
+    {{#aboutLinks}}
+    <link itemprop="about" href="{{{iri}}}" />
+    {{/aboutLinks}}
   </div>
 {{/faqs}}
+</section>

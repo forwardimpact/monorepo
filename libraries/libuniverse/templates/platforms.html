@@ -1,0 +1,23 @@
+{{#platforms}}
+  <div itemscope itemtype="https://schema.org/SoftwareApplication" itemid="{{{iri}}}">
+    <h2 itemprop="name">{{name}}</h2>
+    <meta itemprop="applicationCategory" content="{{category}}" />
+    <meta itemprop="softwareVersion" content="{{version}}" />
+
+    {{#dependencies}}
+    <link itemprop="softwareRequirements" href="{{{iri}}}" />
+    {{/dependencies}}
+
+    {{#projectLinks}}
+    <link itemprop="isRelatedTo" href="{{{iri}}}" />
+    {{/projectLinks}}
+
+    {{#drugLinks}}
+    <link itemprop="isRelatedTo" href="{{{iri}}}" />
+    {{/drugLinks}}
+
+    <div itemprop="description" data-enrich="platform_{{id}}">
+      {{description}}
+    </div>
+  </div>
+{{/platforms}}

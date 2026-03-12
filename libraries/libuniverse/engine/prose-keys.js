@@ -39,7 +39,7 @@ export function collectProseKeys(entities) {
       keys.set(`article_${topic}`, {
         topic: `${topic.replace(/_/g, ' ')} in pharmaceutical industry`,
         tone: 'technical, informative',
-        length: '4-5 paragraphs',
+        length: '6-8 paragraphs',
         domain: entities.domain,
       })
     }
@@ -49,7 +49,7 @@ export function collectProseKeys(entities) {
       keys.set(`blog_${i}`, {
         topic: 'pharmaceutical engineering blog post',
         tone: 'conversational, technical',
-        length: '2-3 paragraphs',
+        length: '4-5 paragraphs',
         domain: entities.domain,
       })
     }
@@ -69,7 +69,7 @@ export function collectProseKeys(entities) {
       keys.set(`howto_${topic}`, {
         topic: `how-to guide for ${topic.replace(/_/g, ' ')}`,
         tone: 'instructional',
-        length: '3-4 paragraphs',
+        length: '5-6 paragraphs',
         domain: entities.domain,
       })
     }

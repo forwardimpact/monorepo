@@ -1,0 +1,29 @@
+{{#drugs}}
+  <div itemscope itemtype="https://schema.org/Drug" itemid="{{{iri}}}">
+    <h2 itemprop="name">{{name}}</h2>
+    <meta itemprop="identifier" content="{{id}}" />
+    <span itemprop="drugClass">{{drugClass}}</span>
+    <span itemprop="activeIngredient">{{activeIngredient}}</span>
+    <meta itemprop="legalStatus" content="{{legalStatus}}" />
+
+    {{#parentDrugIri}}
+    <link itemprop="isRelatedTo" href="{{{parentDrugIri}}}" />
+    {{/parentDrugIri}}
+
+    {{#projectLinks}}
+    <link itemprop="isRelatedTo" href="{{{iri}}}" />
+    {{/projectLinks}}
+
+    {{#platformLinks}}
+    <link itemprop="isRelatedTo" href="{{{iri}}}" />
+    {{/platformLinks}}
+
+    {{#eventLinks}}
+    <link itemprop="isRelatedTo" href="{{{iri}}}" />
+    {{/eventLinks}}
+
+    <div itemprop="clinicalPharmacology" data-enrich="drug_{{id}}">
+      {{clinicalPharmacology}}
+    </div>
+  </div>
+{{/drugs}}

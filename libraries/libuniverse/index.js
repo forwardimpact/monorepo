@@ -12,3 +12,8 @@ export { renderMarkdown } from "./render/markdown.js";
 export { loadToSupabase } from "./load.js";
 export { validateCrossContent } from "./validate.js";
 export { runPipeline } from "./pipeline.js";
+export { generateDrugs, generatePlatforms } from "./render/industry-data.js";
+export { assignLinks } from "./render/link-assigner.js";
+export { enrichDocuments } from "./render/enricher.js";
+export { validateLinks } from "./render/validate-links.js";
+export { formatContent, formatFiles } from "./format.js";

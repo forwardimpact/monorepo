@@ -1,29 +1,23 @@
 #!/usr/bin/env node
 
-/**
- * fit-universe CLI — synthetic data generation pipeline.
- *
- * Usage:
- *   npx fit-universe                     # Structural generation only
- *   npx fit-universe --cached            # Use cached prose
- *   npx fit-universe --generate          # Generate prose via LLM
- *   npx fit-universe --cached --strict   # Fail on cache miss
- *   npx fit-universe --load              # Load raw docs to Supabase Storage
- *   npx fit-universe --only=pathway      # Render only one content type
- *   npx fit-universe --dry-run           # Show what would be written
- *   npx fit-universe --universe=path     # Custom universe file
- */
+// fit-universe CLI — run with --help for usage.
 
 import { resolve, join, dirname } from "path";
 import { mkdir, writeFile } from "fs/promises";
 import { fileURLToPath } from "url";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { runPipeline } from "../pipeline.js";
+import { formatContent } from "../format.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+
+  if (args.help) {
+    printHelp();
+    return;
+  }
 
   const config = await createScriptConfig("universe", {
     LLM_TOKEN: null,
@@ -118,7 +112,8 @@ async function main() {
         "examples/activity/evidence.json",
       );
       await mkdir(dirname(evidencePath), { recursive: true });
-      await writeFile(evidencePath, JSON.stringify(evidence, null, 2));
+      const formatted = await formatContent(evidencePath, JSON.stringify(evidence, null, 2));
+      await writeFile(evidencePath, formatted);
     }
   }
 
@@ -155,7 +150,8 @@ async function main() {
 function parseArgs(argv) {
   const args = {};
   for (const arg of argv) {
-    if (arg === "--cached") args.cached = true;
+    if (arg === "--help" || arg === "-h") args.help = true;
+    else if (arg === "--cached") args.cached = true;
     else if (arg === "--generate") args.generate = true;
     else if (arg === "--strict") args.strict = true;
     else if (arg === "--dry-run") args.dryRun = true;
@@ -164,6 +160,42 @@ function parseArgs(argv) {
     else if (arg.startsWith("--universe=")) args.universe = arg.slice(11);
   }
   return args;
+}
+
+function printHelp() {
+  console.log(`fit-universe — synthetic data generation pipeline
+
+Usage:
+  npx fit-universe [options]
+
+Options:
+  --generate          Generate prose via LLM (requires LLM_TOKEN)
+  --cached            Use cached prose from .prose-cache.json
+  --strict            Fail on cache miss (use with --cached)
+  --dry-run           Show what would be written without writing
+  --load              Load raw documents to Supabase Storage
+  --only=<type>       Render only one content type (html|pathway|raw|markdown)
+  --universe=<path>   Path to a custom universe DSL file
+  -h, --help          Show this help message
+
+Prose modes:
+  (default)           Structural generation only, no LLM calls
+  --cached            Read prose from .prose-cache.json
+  --generate          Call LLM to generate prose, write to cache
+
+Content types:
+  html                Organizational articles, guides, FAQs (examples/organizational)
+  pathway             YAML framework files (examples/pathway)
+  raw                 Roster, GitHub events, evidence (examples/activity)
+  markdown            Briefings, notes, KB content (examples/personal)
+
+Examples:
+  npx fit-universe                           # Structural only
+  npx fit-universe --generate                # Full generation with LLM prose
+  npx fit-universe --cached --strict         # Cached prose, fail on miss
+  npx fit-universe --only=pathway            # Generate pathway data only
+  npx fit-universe --universe=custom.dsl     # Use custom DSL file
+`);
 }
 
 main().catch((err) => {

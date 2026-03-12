@@ -1,7 +1,14 @@
 {{#reviews}}
-  <div itemscope itemtype="https://schema.org/Review" itemid="{{{domain}}}/review/{{index}}">
-    <span itemprop="author">{{author}}</span>
+  <div itemscope itemtype="https://schema.org/Review" itemid="{{{iri}}}">
+    <span itemprop="author" itemscope itemtype="https://schema.org/Person" itemid="{{{authorIri}}}">
+      <span itemprop="name">{{author}}</span>
+    </span>
     <span itemprop="reviewBody">{{body}}</span>
-    <meta itemprop="reviewRating" content="{{rating}}">
+    <div itemprop="reviewRating" itemscope itemtype="https://schema.org/Rating">
+      <meta itemprop="ratingValue" content="{{rating}}" />
+      <meta itemprop="bestRating" content="5" />
+      <meta itemprop="worstRating" content="1" />
+    </div>
+    <link itemprop="itemReviewed" href="{{{reviewedIri}}}" />
   </div>
 {{/reviews}}

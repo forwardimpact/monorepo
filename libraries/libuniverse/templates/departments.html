@@ -6,6 +6,13 @@
     <div itemscope itemtype="https://schema.org/Organization" itemid="{{{iri}}}">
       <span itemprop="name">{{name}}</span>
       <meta itemprop="numberOfEmployees" content="{{size}}">
+{{#members}}
+      <div itemprop="member" itemscope itemtype="https://schema.org/Person" itemid="{{{iri}}}">
+        <span itemprop="name">{{name}}</span>
+        <span itemprop="jobTitle">{{jobTitle}}</span>
+        <link itemprop="worksFor" href="{{{teamIri}}}" />
+      </div>
+{{/members}}
     </div>
 {{/teams}}
     </div>

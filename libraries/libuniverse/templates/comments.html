@@ -1,6 +1,10 @@
 {{#comments}}
-  <div itemscope itemtype="https://schema.org/Comment" itemid="{{{domain}}}/comment/{{index}}">
-    <span itemprop="author">{{author}}</span>
+  <div itemscope itemtype="https://schema.org/Comment" itemid="{{{iri}}}">
+    <span itemprop="author" itemscope itemtype="https://schema.org/Person" itemid="{{{authorIri}}}">
+      <span itemprop="name">{{author}}</span>
+    </span>
     <span itemprop="text">{{body}}</span>
+    <meta itemprop="dateCreated" content="{{date}}" />
+    <link itemprop="about" href="{{{aboutIri}}}" />
   </div>
 {{/comments}}

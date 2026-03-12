@@ -1,7 +1,33 @@
 {{#courses}}
-  <div itemscope itemtype="https://schema.org/Course" itemid="{{{domain}}}/course/{{index}}">
-    <span itemprop="name">{{title}}</span>
-    <span itemprop="provider">{{orgName}}</span>
+  <div itemscope itemtype="https://schema.org/Course" itemid="{{{iri}}}">
+    <h2 itemprop="name">{{title}}</h2>
+    <meta itemprop="identifier" content="{{id}}" />
     <time itemprop="startDate">{{date}}</time>
+
+    <div itemprop="provider" itemscope itemtype="https://schema.org/Organization" itemid="{{{orgIri}}}">
+      <span itemprop="name">{{orgName}}</span>
+    </div>
+
+    {{#prerequisiteIris}}
+    <link itemprop="coursePrerequisites" href="{{{.}}}" />
+    {{/prerequisiteIris}}
+
+    {{#platformLink}}
+    <link itemprop="isRelatedTo" href="{{{iri}}}" />
+    {{/platformLink}}
+
+    {{#drugLink}}
+    <link itemprop="isRelatedTo" href="{{{iri}}}" />
+    {{/drugLink}}
+
+    {{#attendees}}
+    <div itemprop="attendee" itemscope itemtype="https://schema.org/Person" itemid="{{{iri}}}">
+      <span itemprop="name">{{name}}</span>
+    </div>
+    {{/attendees}}
+
+    <div itemprop="description" data-enrich="course_{{id}}">
+      A course covering {{title}} for pharmaceutical professionals.
+    </div>
   </div>
 {{/courses}}

@@ -5,17 +5,17 @@
 ## Departments
 
 {{#departments}}
-### {{name}}
+### {{{name}}}
 
 {{#teams}}
-- **{{name}}** ({{size}} members)
+- **{{{name}}}** ({{size}} members)
 {{/teams}}
 
 {{/departments}}
 ## Projects
 
 {{#projects}}
-### {{name}}
+### {{{name}}}
 
 - Type: {{type}}
 - Timeline: {{timeline_start}} to {{timeline_end}}

@@ -1,0 +1,37 @@
+{{#projects}}
+  <article itemscope itemtype="https://schema.org/Project" itemid="{{{iri}}}">
+    <h2 itemprop="name">{{name}}</h2>
+    <meta itemprop="identifier" content="{{id}}" />
+    {{#timeline_start}}<meta itemprop="startDate" content="{{timeline_start}}" />{{/timeline_start}}
+    {{#timeline_end}}<meta itemprop="endDate" content="{{timeline_end}}" />{{/timeline_end}}
+
+    {{#leader}}
+    <div itemprop="creator" itemscope itemtype="https://schema.org/Person" itemid="{{{iri}}}">
+      <span itemprop="name">{{name}}</span>
+      <meta itemprop="email" content="{{email}}" />
+    </div>
+    {{/leader}}
+
+    {{#members}}
+    <div itemprop="contributor" itemscope itemtype="https://schema.org/Person" itemid="{{{iri}}}">
+      <span itemprop="name">{{name}}</span>
+    </div>
+    {{/members}}
+
+    {{#drugLinks}}
+    <link itemprop="about" href="{{{iri}}}" />
+    {{/drugLinks}}
+
+    {{#platformLinks}}
+    <link itemprop="isPartOf" href="{{{iri}}}" />
+    {{/platformLinks}}
+
+    {{#departmentLinks}}
+    <link itemprop="isPartOf" href="{{{iri}}}" />
+    {{/departmentLinks}}
+
+    <div itemprop="description" data-enrich="project_{{id}}">
+      {{name}} is a {{type}} project{{#phase}} currently in {{phase}}{{/phase}}.
+    </div>
+  </article>
+{{/projects}}
