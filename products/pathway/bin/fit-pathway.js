@@ -36,7 +36,7 @@ import { fileURLToPath } from "url";
 import { createDataLoader } from "@forwardimpact/map/loader";
 import { validateAllData } from "@forwardimpact/map/validation";
 import { formatError } from "../src/lib/cli-output.js";
-import { createPathwayTemplateLoader } from "../src/lib/template-loader.js";
+import { createTemplateLoader } from "@forwardimpact/libtemplate";
 
 // Import command handlers
 import { runDisciplineCommand } from "../src/commands/discipline.js";
@@ -431,7 +431,7 @@ async function main() {
 
   try {
     const loader = createDataLoader();
-    const templateLoader = createPathwayTemplateLoader(TEMPLATE_DIR);
+    const templateLoader = createTemplateLoader(TEMPLATE_DIR);
 
     const data = await loader.loadAllData(dataDir);
     validateAllData(data);
