@@ -93,10 +93,11 @@ export class DataLoader {
   async loadFrameworkConfig(dataDir) { /* ... */ }
 }
 
-export function createDataLoader(dataDir) {
-  const fs = await import("fs/promises");
-  const { parse: parseYaml } = await import("yaml");
-  return new DataLoader(fs, { parseYaml });
+import { readFile, readdir, stat } from "fs/promises";
+import { parse as parseYaml } from "yaml";
+
+export function createDataLoader() {
+  return new DataLoader({ readFile, readdir, stat }, { parseYaml });
 }
 ```
 
@@ -107,15 +108,18 @@ private methods on `DataLoader`. They use `this.#fs` and `this.loadYamlFile()`
 instead of module-scope imports.
 
 The existing `createDataLoader(dataDir)` function currently returns a plain
-object with bound methods. Replace it: the factory now creates a real
-`DataLoader` instance. The returned API stays the same (methods like `loadAll`,
-`loadQuestions`, etc.) — they become methods on the class.
+object with bound methods. Delete it entirely. The factory now creates a real
+`DataLoader` instance with class methods (`loadAllData`, `loadAgentData`,
+`loadSkillsWithAgentData`, `loadQuestionFolder`, `loadFrameworkConfig`). The old
+object shape is not preserved — callers use the class API directly.
 
 **Separate loading from validation.** `loadAllData` currently calls
-`validateAllData` inline. Remove this coupling. The caller (CLI or test) decides
-whether to validate after loading. The `loadAndValidate` convenience function
-stays as a standalone export for callers that want both steps — it receives a
-`DataLoader` and calls `loadAllData` then `validateAllData`.
+`validateAllData` inline. Remove this coupling — the DataLoader class does not
+validate. The caller (CLI or test) decides whether to validate after loading.
+Delete the old `loadAllData(dataDir, { validate: true })` convenience path
+entirely. Callers that need both steps call `loader.loadAllData(dataDir)` then
+`validateAllData(data)` explicitly. No convenience wrapper — two lines of code
+is not worth an abstraction.
 
 ### 1B: Extract SchemaValidator class from schema-validation.js
 
@@ -144,10 +148,13 @@ export class SchemaValidator {
   async runFullValidation(dataDir, loadedData) { /* ... */ }
 }
 
+import { readFile, readdir, stat } from "fs/promises";
+import Ajv from "ajv";
+import addFormats from "ajv-formats";
+
 export function createSchemaValidator() {
-  const fs = await import("fs/promises");
   const schemaDir = join(dirname(fileURLToPath(import.meta.url)), "../schema/json");
-  return new SchemaValidator(fs, schemaDir, { Ajv, addFormats });
+  return new SchemaValidator({ readFile, readdir, stat }, schemaDir, { Ajv, addFormats });
 }
 ```
 
@@ -175,9 +182,10 @@ export class IndexGenerator {
   async generateAllIndexes(dataDir) { /* ... */ }
 }
 
+import { readdir, writeFile } from "fs/promises";
+import { stringify } from "yaml";
+
 export function createIndexGenerator() {
-  const { readdir, writeFile } = await import("fs/promises");
-  const { stringify } = await import("yaml");
   return new IndexGenerator({ readdir, writeFile }, { stringify });
 }
 ```
@@ -199,9 +207,6 @@ export { createIndexGenerator } from "./index-generator.js";
 export { validateAllData, validateQuestionBank, /* ... */ } from "./validation.js";
 export * from "./levels.js";
 export { isCapability } from "./modifiers.js";
-
-// Convenience function (composes loader + validator)
-export { loadAndValidate } from "./loader.js";
 ```
 
 Delete bare function exports that are now class methods: `loadAllData`,
@@ -249,76 +254,42 @@ hard-codes the template directory path.
 
 ### Changes
 
-Delete the module-level singleton. Accept the template loader as a parameter or
-create it lazily.
-
-**Option: Lazy factory with injectable override.**
+Delete the module-level singleton. Delete the wrapper functions entirely —
+callers use `loader.load(templateName, dataDir)` directly. The template-loader
+module reduces to a single factory function with a required parameter.
 
 ```javascript
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createTemplateLoader } from "@forwardimpact/libtemplate";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const defaultTemplateDir = join(__dirname, "..", "..", "templates");
-
 /**
  * Create a template loader for pathway templates
- * @param {string} [templateDir] - Override template directory
+ * @param {string} templateDir - Path to template directory (required)
  * @returns {Object} Template loader instance
  */
-export function createPathwayTemplateLoader(templateDir = defaultTemplateDir) {
+export function createPathwayTemplateLoader(templateDir) {
+  if (!templateDir) throw new Error("templateDir is required");
   return createTemplateLoader(templateDir);
-}
-
-/**
- * Load a template file with fallback to package defaults
- * @param {Object} loader - Template loader instance
- * @param {string} templateName - Template filename
- * @param {string} dataDir - Path to data directory
- * @returns {string}
- */
-export function loadTemplate(loader, templateName, dataDir) {
-  return loader.load(templateName, dataDir);
-}
-
-export function loadAgentTemplate(loader, dataDir) {
-  return loader.load("agent.template.md", dataDir);
-}
-
-export function loadSkillTemplate(loader, dataDir) {
-  return loader.load("skill.template.md", dataDir);
-}
-
-export function loadSkillInstallTemplate(loader, dataDir) {
-  return loader.load("skill-install.template.sh", dataDir);
-}
-
-export function loadSkillReferenceTemplate(loader, dataDir) {
-  return loader.load("skill-reference.template.md", dataDir);
-}
-
-export function loadJobTemplate(loader, dataDir) {
-  return loader.load("job.template.md", dataDir);
 }
 ```
 
-Every function now requires the loader as its first parameter. The module-level
-singleton is deleted.
+No default parameter. No wrapper functions (`loadAgentTemplate`,
+`loadSkillTemplate`, `loadJobTemplate`, etc.) — these added no value over
+calling `loader.load(name, dataDir)` directly. Delete them all.
 
 **Update call sites:** The pathway CLI (`bin/fit-pathway.js`) creates the
-template loader once and passes it through to commands that need it. Commands
-that call `loadAgentTemplate(dataDir)` become
-`loadAgentTemplate(templateLoader, dataDir)`.
+template loader once with an explicit path and passes it to commands. Commands
+that called `loadAgentTemplate(dataDir)` now call
+`templateLoader.load("agent.template.md", dataDir)` directly.
 
 **Files to update:**
 
-- `products/pathway/src/commands/agent.js` — imports `loadAgentTemplate`,
-  `loadSkillTemplate`, `loadSkillInstallTemplate`, `loadSkillReferenceTemplate`
-- `products/pathway/src/commands/job.js` — likely imports `loadJobTemplate`
-- `products/pathway/src/commands/skill.js` — imports `loadSkillTemplate`
-- `products/pathway/src/formatters/agent/profile.js` — if it uses templates
-- Any other file importing from `../lib/template-loader.js`
+Every file that imports from `../lib/template-loader.js` must change. Delete all
+imports of `loadAgentTemplate`, `loadSkillTemplate`, `loadSkillInstallTemplate`,
+`loadSkillReferenceTemplate`, `loadJobTemplate`, `loadTemplate`. Replace with
+direct `templateLoader.load(name, dataDir)` calls using the loader instance
+received from the command context.
 
 Search: `grep -r "template-loader" products/pathway/src/`
 
@@ -341,6 +312,9 @@ Make `bin/fit-pathway.js` a proper composition root:
 import { createDataLoader } from "@forwardimpact/map";
 import { createPathwayTemplateLoader } from "../src/lib/template-loader.js";
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const TEMPLATE_DIR = join(__dirname, "..", "templates");
+
 async function main() {
   const args = process.argv.slice(2);
   const options = parseArgs(args);
@@ -349,12 +323,10 @@ async function main() {
 
   const dataDir = resolveDataPath(options);
   const loader = createDataLoader();
-  const templateLoader = createPathwayTemplateLoader();
+  const templateLoader = createPathwayTemplateLoader(TEMPLATE_DIR);
 
-  const data = await loader.loadAllData(dataDir, {
-    validate: true,
-    throwOnError: true,
-  });
+  const data = await loader.loadAllData(dataDir);
+  validateAllData(data);
 
   // Pass loader and templateLoader to commands that need them
   await handler({ data, args: options.args, options, dataDir, templateLoader });
@@ -582,7 +554,7 @@ const kbManager = new KBManager(fs, log);
 const socketServer = new SocketServer(SOCKET_PATH, scheduler, agentRunner, log);
 
 function loadConfig() {
-  return readJSON(CONFIG_PATH, { agents: {} });
+  return JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
 }
 
 // CLI dispatch (same switch as current code)
@@ -607,21 +579,26 @@ parameter. `activeChildren` is now inside `AgentRunner`.
 Basecamp runs on user machines, not in the service cluster. The current `log()`
 function writes to both stdout and a log file — this is appropriate for a
 user-facing daemon. **Do not replace with libtelemetry.** Instead, make the log
-function injectable:
+function injectable via constructor DI. Accept fs operations so log file writing
+is testable:
 
 ```javascript
-function createLogger(logDir) {
+function createLogger(logDir, fs) {
+  if (!logDir) throw new Error("logDir is required");
+  if (!fs) throw new Error("fs is required");
+  fs.mkdirSync(logDir, { recursive: true });
   return function log(msg) {
     const ts = new Date().toISOString();
     const line = `[${ts}] ${msg}`;
     console.log(line);
-    try {
-      mkdirSync(logDir, { recursive: true });
-      writeFileSync(join(logDir, `scheduler-${ts.slice(0, 10)}.log`), line + "\n", { flag: "a" });
-    } catch { /* best effort */ }
+    fs.appendFileSync(join(logDir, `scheduler-${ts.slice(0, 10)}.log`), line + "\n");
   };
 }
 ```
+
+No defensive try/catch — if the log directory is unwritable, the error surfaces
+immediately. The `mkdirSync` call moves to construction time so failures are
+caught at startup, not silently swallowed during operation.
 
 The composition root creates the logger and passes it to all classes. Tests
 inject a no-op logger.
@@ -675,11 +652,17 @@ npm run test:e2e       # E2E tests
 - Zero module-level mutable state (`let`, `const` with mutation) in product
   source outside of browser code
 - Zero hard-coded `fs/promises` imports in classes — fs is always injected
+- Zero `await import(` dynamic imports in product source — use static imports
+- Zero default parameters that silently resolve to real dependencies
+- Zero convenience wrapper functions that just delegate to another function
+  (e.g., `loadAgentTemplate(loader, dir)` → `loader.load(name, dir)`)
+- Zero `try/catch` blocks used for defensive "best effort" error swallowing
 - Every class constructor validates all required dependencies with `throw`
 - Every product module exports at least one `createXxx` factory or class
 - Factory functions are the only code that creates real I/O dependencies
 - `bin/` entry points serve as composition roots — they create instances and
   wire dependencies, nothing else
+- Old bare function exports are deleted, not aliased or re-exported
 - All existing tests pass after migration
 - Browser-side code (`src/main.js`, `src/pages/**`, `src/components/**`) is
   unchanged
