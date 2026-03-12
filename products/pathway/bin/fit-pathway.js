@@ -29,11 +29,14 @@
  *   --help         Show help
  */
 
-import { join, resolve } from "path";
+import { join, resolve, dirname } from "path";
 import { existsSync } from "fs";
 import { homedir } from "os";
-import { loadAllData } from "@forwardimpact/map/loader";
+import { fileURLToPath } from "url";
+import { createDataLoader } from "@forwardimpact/map/loader";
+import { validateAllData } from "@forwardimpact/map/validation";
 import { formatError } from "../src/lib/cli-output.js";
+import { createPathwayTemplateLoader } from "../src/lib/template-loader.js";
 
 // Import command handlers
 import { runDisciplineCommand } from "../src/commands/discipline.js";
@@ -53,6 +56,9 @@ import { runDevCommand } from "../src/commands/dev.js";
 import { runInitCommand } from "../src/commands/init.js";
 import { runBuildCommand } from "../src/commands/build.js";
 import { runUpdateCommand } from "../src/commands/update.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const TEMPLATE_DIR = join(__dirname, "..", "templates");
 
 const COMMANDS = {
   discipline: runDisciplineCommand,
@@ -235,9 +241,7 @@ function parseArgs(args) {
     type: "full",
     compare: null,
     data: null,
-    // Shared command options
     track: null,
-    // Questions command options
     level: null,
     maturity: null,
     skill: null,
@@ -245,20 +249,15 @@ function parseArgs(args) {
     capability: null,
     format: null,
     stats: false,
-    // Job command options
     checklist: null,
     skills: false,
     tools: false,
-    // Agent command options
     output: null,
     stage: null,
     "all-stages": false,
     agent: false,
-    // Serve command options
     port: null,
-    // Init command options
     path: null,
-    // Site command options
     clean: true,
     url: null,
   };
@@ -339,54 +338,38 @@ function printHelp() {
 
 /**
  * Resolve the data directory path.
- * Resolution order:
- * 1. --data=<path> flag (explicit override)
- * 2. PATHWAY_DATA environment variable
- * 3. ~/.fit/pathway/data/ (home directory install)
- * 4. ./data/pathway/ (monorepo primary)
- * 5. ./examples/pathway/ (monorepo fallback)
- * 6. ./data/ (organization project)
- * 7. ./examples/ (standalone fallback)
- *
  * @param {Object} options - Parsed command options
  * @returns {string} Resolved absolute path to data directory
  */
 function resolveDataPath(options) {
-  // 1. Explicit flag
   if (options.data) {
     return resolve(options.data);
   }
 
-  // 2. Environment variable
   if (process.env.PATHWAY_DATA) {
     return resolve(process.env.PATHWAY_DATA);
   }
 
-  // 3. Home directory install (~/.fit/pathway/data/)
   const homeData = join(homedir(), ".fit", "pathway", "data");
   if (existsSync(homeData)) {
     return homeData;
   }
 
-  // 4. Monorepo: ./data/pathway/
   const cwdDataPathway = join(process.cwd(), "data/pathway");
   if (existsSync(cwdDataPathway)) {
     return cwdDataPathway;
   }
 
-  // 5. Monorepo fallback: ./examples/pathway/
   const cwdExamplesPathway = join(process.cwd(), "examples/pathway");
   if (existsSync(cwdExamplesPathway)) {
     return cwdExamplesPathway;
   }
 
-  // 6. Organization project: ./data/
   const cwdData = join(process.cwd(), "data");
   if (existsSync(cwdData)) {
     return cwdData;
   }
 
-  // 7. Standalone fallback: ./examples/
   const cwdExamples = join(process.cwd(), "examples");
   if (existsSync(cwdExamples)) {
     return cwdExamples;
@@ -409,7 +392,6 @@ async function main() {
     process.exit(0);
   }
 
-  // No command: show help
   if (!options.command) {
     printHelp();
     process.exit(0);
@@ -417,7 +399,6 @@ async function main() {
 
   const command = options.command;
 
-  // Handle init command (doesn't need data directory to exist)
   if (command === "init") {
     await runInitCommand({ options });
     process.exit(0);
@@ -425,20 +406,16 @@ async function main() {
 
   const dataDir = resolveDataPath(options);
 
-  // Handle dev command (needs data directory)
   if (command === "dev") {
     await runDevCommand({ dataDir, options });
-    // dev doesn't exit, keeps running
     return;
   }
 
-  // Handle build command (generates static site)
   if (command === "build") {
     await runBuildCommand({ dataDir, options });
     process.exit(0);
   }
 
-  // Handle update command (re-downloads bundle for local install)
   if (command === "update") {
     await runUpdateCommand({ dataDir, options });
     process.exit(0);
@@ -453,12 +430,20 @@ async function main() {
   }
 
   try {
-    const data = await loadAllData(dataDir, {
-      validate: true,
-      throwOnError: true,
-    });
+    const loader = createDataLoader();
+    const templateLoader = createPathwayTemplateLoader(TEMPLATE_DIR);
 
-    await handler({ data, args: options.args, options, dataDir });
+    const data = await loader.loadAllData(dataDir);
+    validateAllData(data);
+
+    await handler({
+      data,
+      args: options.args,
+      options,
+      dataDir,
+      templateLoader,
+      loader,
+    });
   } catch (error) {
     console.error(formatError(error.message));
     process.exit(1);

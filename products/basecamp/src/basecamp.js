@@ -18,17 +18,23 @@ import {
   writeFileSync,
   existsSync,
   mkdirSync,
-  unlinkSync,
-  chmodSync,
   readdirSync,
-  statSync,
   cpSync,
   copyFileSync,
+  appendFileSync,
 } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { createServer } from "node:net";
+
+import * as posixSpawn from "./posix-spawn.js";
+import { StateManager } from "./state-manager.js";
+import { AgentRunner } from "./agent-runner.js";
+import { Scheduler, computeNextWakeAt } from "./scheduler.js";
+import { KBManager } from "./kb-manager.js";
+import { SocketServer, requestShutdown } from "./socket-server.js";
+
+// --- Paths -------------------------------------------------------------------
 
 const HOME = homedir();
 const BASECAMP_HOME = join(HOME, ".fit", "basecamp");
@@ -41,72 +47,62 @@ const __dirname =
 const SHARE_DIR = "/usr/local/share/fit-basecamp";
 const SOCKET_PATH = join(BASECAMP_HOME, "basecamp.sock");
 
-// --- posix_spawn (TCC-compliant process spawning) ---------------------------
+// --- Logging -----------------------------------------------------------------
 
-import * as posixSpawn from "./posix-spawn.js";
-
-let daemonStartedAt = null;
-
-// Maximum time an agent can be "active" before being considered stale (35 min).
-// Matches the 30-minute child_process timeout plus a buffer.
-const MAX_AGENT_RUNTIME_MS = 35 * 60_000;
-
-/** Active child PIDs spawned by posix_spawn (for graceful shutdown). */
-const activeChildren = new Set();
-
-// --- Helpers ----------------------------------------------------------------
-
-function ensureDir(dir) {
-  mkdirSync(dir, { recursive: true });
+function createLogger(logDir, fs) {
+  if (!logDir) throw new Error("logDir is required");
+  if (!fs) throw new Error("fs is required");
+  fs.mkdirSync(logDir, { recursive: true });
+  return function log(msg) {
+    const ts = new Date().toISOString();
+    const line = `[${ts}] ${msg}`;
+    console.log(line);
+    fs.appendFileSync(
+      join(logDir, `scheduler-${ts.slice(0, 10)}.log`),
+      line + "\n",
+    );
+  };
 }
 
-function readJSON(path, fallback) {
+const log = createLogger(LOG_DIR, { mkdirSync, appendFileSync });
+
+// --- Config ------------------------------------------------------------------
+
+function loadConfig() {
   try {
-    return JSON.parse(readFileSync(path, "utf8"));
+    return JSON.parse(readFileSync(CONFIG_PATH, "utf8"));
   } catch {
-    return fallback;
+    return { agents: {} };
   }
-}
-
-function writeJSON(path, data) {
-  ensureDir(dirname(path));
-  writeFileSync(path, JSON.stringify(data, null, 2) + "\n");
 }
 
 function expandPath(p) {
   return p.startsWith("~/") ? join(HOME, p.slice(2)) : resolve(p);
 }
 
-function log(msg) {
-  const ts = new Date().toISOString();
-  const line = `[${ts}] ${msg}`;
-  console.log(line);
-  try {
-    ensureDir(LOG_DIR);
-    writeFileSync(
-      join(LOG_DIR, `scheduler-${ts.slice(0, 10)}.log`),
-      line + "\n",
-      { flag: "a" },
-    );
-  } catch {
-    /* best effort */
-  }
-}
+// --- Wire dependencies -------------------------------------------------------
 
-function findClaude() {
-  const paths = [
-    "/usr/local/bin/claude",
-    join(HOME, ".claude", "bin", "claude"),
-    join(HOME, ".local", "bin", "claude"),
-    "/opt/homebrew/bin/claude",
-  ];
-  for (const p of paths) if (existsSync(p)) return p;
-  return "claude";
-}
+const fsOps = { readFileSync, writeFileSync, mkdirSync };
+const stateManager = new StateManager(STATE_PATH, fsOps);
+const agentRunner = new AgentRunner(posixSpawn, stateManager, log, CACHE_DIR);
+const scheduler = new Scheduler(loadConfig, stateManager, agentRunner, log);
+const kbManager = new KBManager(
+  {
+    existsSync,
+    mkdirSync,
+    cpSync,
+    copyFileSync,
+    readFileSync,
+    writeFileSync,
+    readdirSync,
+  },
+  log,
+);
+
+// --- Template dir resolution -------------------------------------------------
 
 /**
  * Detect if running from inside a macOS .app bundle.
- * The binary is at Basecamp.app/Contents/MacOS/fit-basecamp.
  * @returns {{ bundle: string, resources: string } | null}
  */
 function getBundlePath() {
@@ -124,533 +120,6 @@ function getBundlePath() {
   return null;
 }
 
-function loadConfig() {
-  return readJSON(CONFIG_PATH, { agents: {} });
-}
-function loadState() {
-  const raw = readJSON(STATE_PATH, null);
-  if (!raw || typeof raw !== "object" || !raw.agents) {
-    const state = { agents: {} };
-    saveState(state);
-    return state;
-  }
-  return raw;
-}
-function saveState(state) {
-  writeJSON(STATE_PATH, state);
-}
-
-// --- Cron matching ----------------------------------------------------------
-
-function matchField(field, value) {
-  if (field === "*") return true;
-  if (field.startsWith("*/")) return value % parseInt(field.slice(2)) === 0;
-  return field.split(",").some((part) => {
-    if (part.includes("-")) {
-      const [lo, hi] = part.split("-").map(Number);
-      return value >= lo && value <= hi;
-    }
-    return parseInt(part) === value;
-  });
-}
-
-function cronMatches(expr, d) {
-  const [min, hour, dom, month, dow] = expr.trim().split(/\s+/);
-  return (
-    matchField(min, d.getMinutes()) &&
-    matchField(hour, d.getHours()) &&
-    matchField(dom, d.getDate()) &&
-    matchField(month, d.getMonth() + 1) &&
-    matchField(dow, d.getDay())
-  );
-}
-
-// --- Scheduling logic -------------------------------------------------------
-
-function floorToMinute(d) {
-  const t = d.getTime();
-  return t - (t % 60_000);
-}
-
-function shouldWake(agent, agentState, now) {
-  if (agent.enabled === false) return false;
-  if (agentState.status === "active") return false;
-  const { schedule } = agent;
-  if (!schedule) return false;
-  const lastWoke = agentState.lastWokeAt
-    ? new Date(agentState.lastWokeAt)
-    : null;
-
-  if (schedule.type === "cron") {
-    if (lastWoke && floorToMinute(lastWoke) === floorToMinute(now))
-      return false;
-    return cronMatches(schedule.expression, now);
-  }
-  if (schedule.type === "interval") {
-    const ms = (schedule.minutes || 5) * 60_000;
-    return !lastWoke || now.getTime() - lastWoke.getTime() >= ms;
-  }
-  if (schedule.type === "once") {
-    return !agentState.lastWokeAt && now >= new Date(schedule.runAt);
-  }
-  return false;
-}
-
-// --- Agent execution --------------------------------------------------------
-
-function failAgent(agentState, error) {
-  Object.assign(agentState, {
-    status: "failed",
-    startedAt: null,
-    lastWokeAt: new Date().toISOString(),
-    lastError: String(error).slice(0, 500),
-  });
-}
-
-async function wakeAgent(agentName, agent, state) {
-  if (!agent.kb) {
-    log(`Agent ${agentName}: no "kb" specified, skipping.`);
-    return;
-  }
-  const kbPath = expandPath(agent.kb);
-  if (!existsSync(kbPath)) {
-    log(`Agent ${agentName}: path "${kbPath}" does not exist, skipping.`);
-    return;
-  }
-
-  const claude = findClaude();
-
-  log(`Waking agent: ${agentName} (kb: ${agent.kb})`);
-
-  const as = (state.agents[agentName] ||= {});
-  as.status = "active";
-  as.startedAt = new Date().toISOString();
-  saveState(state);
-
-  const spawnArgs = ["--agent", agentName, "--print", "-p", "Observe and act."];
-
-  try {
-    const { pid, stdoutFd, stderrFd } = posixSpawn.spawn(
-      claude,
-      spawnArgs,
-      undefined,
-      kbPath,
-    );
-    activeChildren.add(pid);
-
-    // Read stdout and stderr concurrently to avoid pipe deadlocks,
-    // then wait for the child to exit.
-    const [stdout, stderr] = await Promise.all([
-      posixSpawn.readAll(stdoutFd),
-      posixSpawn.readAll(stderrFd),
-    ]);
-    const exitCode = await posixSpawn.waitForExit(pid);
-    activeChildren.delete(pid);
-
-    if (exitCode === 0) {
-      log(`Agent ${agentName} completed. Output: ${stdout.slice(0, 200)}...`);
-      updateAgentState(as, stdout, agentName);
-    } else {
-      const errMsg = stderr || stdout || `Exit code ${exitCode}`;
-      log(`Agent ${agentName} failed: ${errMsg.slice(0, 300)}`);
-      failAgent(as, errMsg);
-    }
-  } catch (err) {
-    log(`Agent ${agentName} failed: ${err.message}`);
-    failAgent(as, err.message);
-  }
-  saveState(state);
-}
-
-/**
- * Parse Decision:/Action: lines from agent output and update state.
- * Also saves stdout to the state directory as a briefing fallback.
- * @param {object} agentState
- * @param {string} stdout
- * @param {string} agentName
- */
-function updateAgentState(agentState, stdout, agentName) {
-  const lines = stdout.split("\n");
-  const decisionLine = lines.find((l) => l.startsWith("Decision:"));
-  const actionLine = lines.find((l) => l.startsWith("Action:"));
-
-  Object.assign(agentState, {
-    status: "idle",
-    startedAt: null,
-    lastWokeAt: new Date().toISOString(),
-    lastDecision: decisionLine
-      ? decisionLine.slice(10).trim()
-      : stdout.slice(0, 200),
-    lastAction: actionLine ? actionLine.slice(8).trim() : null,
-    lastError: null,
-    wakeCount: (agentState.wakeCount || 0) + 1,
-  });
-
-  // Save output as briefing fallback so View Briefing always has content
-  const stateDir = join(CACHE_DIR, "state");
-  ensureDir(stateDir);
-  const prefix = agentName.replace(/-/g, "_");
-  writeFileSync(join(stateDir, `${prefix}_last_output.md`), stdout);
-}
-
-/**
- * Reset agents stuck in "active" state. This happens when the daemon
- * restarts while agents were running, or when a child process exits
- * without triggering cleanup (e.g. pipe error, signal).
- *
- * @param {object} state
- * @param {{ reason: string, maxAge?: number }} opts
- *   reason  — logged and stored in lastError
- *   maxAge  — if set, only reset agents active longer than this (ms)
- */
-function resetStaleAgents(state, { reason, maxAge }) {
-  let resetCount = 0;
-  for (const [name, as] of Object.entries(state.agents)) {
-    if (as.status !== "active") continue;
-    if (maxAge && as.startedAt) {
-      const elapsed = Date.now() - new Date(as.startedAt).getTime();
-      if (elapsed < maxAge) continue;
-    }
-    log(`Resetting stale agent: ${name} (${reason})`);
-    Object.assign(as, {
-      status: "interrupted",
-      startedAt: null,
-      lastError: reason,
-    });
-    resetCount++;
-  }
-  if (resetCount > 0) saveState(state);
-  return resetCount;
-}
-
-async function wakeDueAgents() {
-  const config = loadConfig(),
-    state = loadState(),
-    now = new Date();
-
-  // Reset agents that have been active longer than the maximum runtime.
-  resetStaleAgents(state, {
-    reason: "Exceeded maximum runtime",
-    maxAge: MAX_AGENT_RUNTIME_MS,
-  });
-
-  let wokeAny = false;
-  for (const [name, agent] of Object.entries(config.agents)) {
-    if (shouldWake(agent, state.agents[name] || {}, now)) {
-      await wakeAgent(name, agent, state);
-      wokeAny = true;
-    }
-  }
-  if (!wokeAny) log("No agents due.");
-}
-
-// --- Next-wake computation --------------------------------------------------
-
-/** @param {object} agent @param {object} agentState @param {Date} now */
-function computeNextWakeAt(agent, agentState, now) {
-  if (agent.enabled === false) return null;
-  const { schedule } = agent;
-  if (!schedule) return null;
-
-  if (schedule.type === "interval") {
-    const ms = (schedule.minutes || 5) * 60_000;
-    const lastWoke = agentState.lastWokeAt
-      ? new Date(agentState.lastWokeAt)
-      : null;
-    if (!lastWoke) return now.toISOString();
-    return new Date(lastWoke.getTime() + ms).toISOString();
-  }
-
-  if (schedule.type === "cron") {
-    const limit = 24 * 60;
-    const start = new Date(floorToMinute(now) + 60_000);
-    for (let i = 0; i < limit; i++) {
-      const candidate = new Date(start.getTime() + i * 60_000);
-      if (cronMatches(schedule.expression, candidate)) {
-        return candidate.toISOString();
-      }
-    }
-    return null;
-  }
-
-  if (schedule.type === "once") {
-    if (agentState.lastWokeAt) return null;
-    return schedule.runAt;
-  }
-
-  return null;
-}
-
-// --- Briefing file resolution -----------------------------------------------
-
-/**
- * Resolve the briefing file for an agent by convention:
- * 1. Scan ~/.cache/fit/basecamp/state/ for files matching {agent_name}_*.md
- * 2. Fall back to the KB's knowledge/Briefings/ directory (latest .md file)
- *
- * @param {string} agentName
- * @param {object} agentConfig
- * @returns {string|null}
- */
-function resolveBriefingFile(agentName, agentConfig) {
-  // 1. Scan state directory for agent-specific files (latest by mtime)
-  const stateDir = join(CACHE_DIR, "state");
-  if (existsSync(stateDir)) {
-    const prefix = agentName.replace(/-/g, "_") + "_";
-    const matches = readdirSync(stateDir).filter(
-      (f) => f.startsWith(prefix) && f.endsWith(".md"),
-    );
-    if (matches.length > 0) {
-      let latest = join(stateDir, matches[0]);
-      let latestMtime = statSync(latest).mtimeMs;
-      for (let i = 1; i < matches.length; i++) {
-        const p = join(stateDir, matches[i]);
-        const mt = statSync(p).mtimeMs;
-        if (mt > latestMtime) {
-          latest = p;
-          latestMtime = mt;
-        }
-      }
-      return latest;
-    }
-  }
-
-  // 2. Fall back to KB briefings directory (latest by name)
-  if (agentConfig.kb) {
-    const dir = join(expandPath(agentConfig.kb), "knowledge", "Briefings");
-    if (existsSync(dir)) {
-      const files = readdirSync(dir)
-        .filter((f) => f.endsWith(".md"))
-        .sort()
-        .reverse();
-      if (files.length > 0) return join(dir, files[0]);
-    }
-  }
-
-  return null;
-}
-
-// --- Socket server ----------------------------------------------------------
-
-/** @param {import('node:net').Socket} socket @param {object} data */
-function send(socket, data) {
-  try {
-    socket.write(JSON.stringify(data) + "\n");
-  } catch {}
-}
-
-function handleStatusRequest(socket) {
-  const config = loadConfig();
-  const state = loadState();
-  const now = new Date();
-  const agents = {};
-
-  for (const [name, agent] of Object.entries(config.agents)) {
-    const as = state.agents[name] || {};
-    agents[name] = {
-      enabled: agent.enabled !== false,
-      status: as.status || "never-woken",
-      lastWokeAt: as.lastWokeAt || null,
-      nextWakeAt: computeNextWakeAt(agent, as, now),
-      lastAction: as.lastAction || null,
-      lastDecision: as.lastDecision || null,
-      wakeCount: as.wakeCount || 0,
-      lastError: as.lastError || null,
-      kbPath: agent.kb ? expandPath(agent.kb) : null,
-      briefingFile: resolveBriefingFile(name, agent),
-    };
-    if (as.startedAt) agents[name].startedAt = as.startedAt;
-  }
-
-  send(socket, {
-    type: "status",
-    uptime: daemonStartedAt
-      ? Math.floor((Date.now() - daemonStartedAt) / 1000)
-      : 0,
-    agents,
-  });
-}
-
-function handleMessage(socket, line) {
-  let request;
-  try {
-    request = JSON.parse(line);
-  } catch {
-    send(socket, { type: "error", message: "Invalid JSON" });
-    return;
-  }
-
-  if (request.type === "status") return handleStatusRequest(socket);
-
-  if (request.type === "shutdown") {
-    log("Shutdown requested via socket.");
-    send(socket, { type: "ack", command: "shutdown" });
-    socket.end();
-    killActiveChildren();
-    process.exit(0);
-  }
-
-  if (request.type === "wake") {
-    if (!request.agent) {
-      send(socket, { type: "error", message: "Missing agent name" });
-      return;
-    }
-    const config = loadConfig();
-    const agent = config.agents[request.agent];
-    if (!agent) {
-      send(socket, {
-        type: "error",
-        message: `Agent not found: ${request.agent}`,
-      });
-      return;
-    }
-    send(socket, { type: "ack", command: "wake", agent: request.agent });
-    const state = loadState();
-    wakeAgent(request.agent, agent, state).catch(() => {});
-    return;
-  }
-
-  send(socket, {
-    type: "error",
-    message: `Unknown request type: ${request.type}`,
-  });
-}
-
-function startSocketServer() {
-  try {
-    unlinkSync(SOCKET_PATH);
-  } catch {}
-
-  const server = createServer((socket) => {
-    let buffer = "";
-    socket.on("data", (data) => {
-      buffer += data.toString();
-      let idx;
-      while ((idx = buffer.indexOf("\n")) !== -1) {
-        const line = buffer.slice(0, idx).trim();
-        buffer = buffer.slice(idx + 1);
-        if (line) handleMessage(socket, line);
-      }
-    });
-    socket.on("error", () => {});
-  });
-
-  server.listen(SOCKET_PATH, () => {
-    chmodSync(SOCKET_PATH, 0o600);
-    log(`Socket server listening on ${SOCKET_PATH}`);
-  });
-
-  server.on("error", (err) => {
-    log(`Socket server error: ${err.message}`);
-  });
-
-  const cleanup = () => {
-    killActiveChildren();
-    server.close();
-    try {
-      unlinkSync(SOCKET_PATH);
-    } catch {}
-    process.exit(0);
-  };
-  process.on("SIGTERM", cleanup);
-  process.on("SIGINT", cleanup);
-
-  return server;
-}
-
-// --- Graceful shutdown -------------------------------------------------------
-
-/**
- * Send SIGTERM to all tracked child processes (running claude sessions).
- * Called on daemon shutdown to prevent orphaned processes.
- */
-function killActiveChildren() {
-  for (const pid of activeChildren) {
-    try {
-      process.kill(pid, "SIGTERM");
-      log(`Sent SIGTERM to child PID ${pid}`);
-    } catch {
-      // Already exited
-    }
-  }
-  activeChildren.clear();
-}
-
-/**
- * Connect to the daemon socket and request graceful shutdown.
- * Waits up to 5 seconds for the daemon to exit.
- * @returns {Promise<boolean>} true if shutdown succeeded
- */
-async function requestShutdown() {
-  if (!existsSync(SOCKET_PATH)) {
-    console.log("Daemon not running (no socket).");
-    return false;
-  }
-
-  const { createConnection } = await import("node:net");
-  return new Promise((resolve) => {
-    const timeout = setTimeout(() => {
-      console.log("Shutdown timed out.");
-      socket.destroy();
-      resolve(false);
-    }, 5000);
-
-    const socket = createConnection(SOCKET_PATH, () => {
-      socket.write(JSON.stringify({ type: "shutdown" }) + "\n");
-    });
-
-    let buffer = "";
-    socket.on("data", (data) => {
-      buffer += data.toString();
-      if (buffer.includes("\n")) {
-        clearTimeout(timeout);
-        console.log("Daemon stopped.");
-        socket.destroy();
-        resolve(true);
-      }
-    });
-
-    socket.on("error", () => {
-      clearTimeout(timeout);
-      console.log("Daemon not running (connection refused).");
-      resolve(false);
-    });
-
-    socket.on("close", () => {
-      clearTimeout(timeout);
-      resolve(true);
-    });
-  });
-}
-
-// --- Daemon -----------------------------------------------------------------
-
-function daemon() {
-  daemonStartedAt = Date.now();
-  log("Scheduler daemon started. Polling every 60 seconds.");
-  log(`Config: ${CONFIG_PATH}  State: ${STATE_PATH}`);
-
-  // Reset any agents left "active" from a previous daemon session.
-  const state = loadState();
-  resetStaleAgents(state, { reason: "Daemon restarted" });
-
-  startSocketServer();
-  wakeDueAgents().catch((err) => log(`Error: ${err.message}`));
-  setInterval(async () => {
-    try {
-      await wakeDueAgents();
-    } catch (err) {
-      log(`Error: ${err.message}`);
-    }
-  }, 60_000);
-}
-
-// --- Init knowledge base ----------------------------------------------------
-
-/**
- * Resolve the template directory or exit with an error.
- * @returns {string}
- */
 function requireTemplateDir() {
   const bundle = getBundlePath();
   if (bundle) {
@@ -666,148 +135,47 @@ function requireTemplateDir() {
   process.exit(1);
 }
 
-/**
- * Copy bundled files (CLAUDE.md, skills, agents) from template to a KB.
- * Shared by --init and --update.
- * @param {string} tpl  Path to the template directory
- * @param {string} dest Path to the target knowledge base
- */
-function copyBundledFiles(tpl, dest) {
-  // CLAUDE.md
-  copyFileSync(join(tpl, "CLAUDE.md"), join(dest, "CLAUDE.md"));
-  console.log(`  Updated CLAUDE.md`);
+// --- Daemon ------------------------------------------------------------------
 
-  // Settings — merge template permissions into existing settings
-  mergeSettings(tpl, dest);
+function daemon() {
+  const daemonStartedAt = Date.now();
+  log("Scheduler daemon started. Polling every 60 seconds.");
+  log(`Config: ${CONFIG_PATH}  State: ${STATE_PATH}`);
 
-  // Skills and agents
-  for (const sub of ["skills", "agents"]) {
-    const src = join(tpl, ".claude", sub);
-    if (!existsSync(src)) continue;
-    cpSync(src, join(dest, ".claude", sub), { recursive: true });
-    const entries = readdirSync(src, { withFileTypes: true }).filter((d) =>
-      sub === "skills" ? d.isDirectory() : d.name.endsWith(".md"),
-    );
-    const names = entries.map((d) =>
-      sub === "agents" ? d.name.replace(".md", "") : d.name,
-    );
-    console.log(`  Updated ${names.length} ${sub}: ${names.join(", ")}`);
-  }
-}
+  // Reset any agents left "active" from a previous daemon session.
+  const state = stateManager.load();
+  stateManager.resetStaleAgents(state, { reason: "Daemon restarted" }, log);
 
-/**
- * Merge template settings.json into the destination's settings.json.
- * Adds any missing entries from allow, deny, and additionalDirectories
- * without removing user customizations.
- * @param {string} tpl Template directory
- * @param {string} dest Knowledge base directory
- */
-function mergeSettings(tpl, dest) {
-  const src = join(tpl, ".claude", "settings.json");
-  if (!existsSync(src)) return;
-
-  const destPath = join(dest, ".claude", "settings.json");
-
-  // No existing settings — copy template directly
-  if (!existsSync(destPath)) {
-    ensureDir(join(dest, ".claude"));
-    copyFileSync(src, destPath);
-    console.log(`  Created settings.json`);
-    return;
-  }
-
-  const template = readJSON(src, {});
-  const existing = readJSON(destPath, {});
-  const tp = template.permissions || {};
-  const ep = (existing.permissions ||= {});
-  let added = 0;
-
-  // Merge array fields
-  for (const key of ["allow", "deny", "additionalDirectories"]) {
-    if (!tp[key]?.length) continue;
-    const set = new Set((ep[key] ||= []));
-    for (const entry of tp[key]) {
-      if (!set.has(entry)) {
-        ep[key].push(entry);
-        set.add(entry);
-        added++;
-      }
-    }
-  }
-
-  // Merge scalar fields
-  if (tp.defaultMode && !ep.defaultMode) {
-    ep.defaultMode = tp.defaultMode;
-    added++;
-  }
-
-  if (added > 0) {
-    writeJSON(destPath, existing);
-    console.log(`  Updated settings.json (${added} new entries)`);
-  } else {
-    console.log(`  Settings up to date`);
-  }
-}
-
-function initKB(targetPath) {
-  const dest = expandPath(targetPath);
-  if (existsSync(join(dest, "CLAUDE.md"))) {
-    console.error(`Knowledge base already exists at ${dest}`);
-    process.exit(1);
-  }
-  const tpl = requireTemplateDir();
-
-  ensureDir(dest);
-  for (const d of [
-    "knowledge/People",
-    "knowledge/Organizations",
-    "knowledge/Projects",
-    "knowledge/Topics",
-    "knowledge/Briefings",
-  ])
-    ensureDir(join(dest, d));
-
-  // User-specific files (not overwritten by --update)
-  copyFileSync(join(tpl, "USER.md"), join(dest, "USER.md"));
-
-  // Bundled files (shared with --update)
-  copyBundledFiles(tpl, dest);
-
-  console.log(
-    `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. Edit ${dest}/USER.md with your name, email, and domain\n  2. cd ${dest} && claude`,
+  const socketServer = new SocketServer(
+    SOCKET_PATH,
+    scheduler,
+    agentRunner,
+    stateManager,
+    loadConfig,
+    log,
+    CACHE_DIR,
+    daemonStartedAt,
   );
+  socketServer.start();
+
+  scheduler.wakeDueAgents().catch((err) => log(`Error: ${err.message}`));
+  setInterval(async () => {
+    try {
+      await scheduler.wakeDueAgents();
+    } catch (err) {
+      log(`Error: ${err.message}`);
+    }
+  }, 60_000);
 }
 
-// --- Update knowledge base --------------------------------------------------
+// --- Update ------------------------------------------------------------------
 
-/**
- * Update an existing knowledge base with the latest bundled files.
- * User data (USER.md, knowledge/) is untouched.
- * Settings.json is merged — new template entries are added without
- * removing user customizations.
- * @param {string} targetPath
- */
-function updateKB(targetPath) {
-  const dest = expandPath(targetPath);
-  if (!existsSync(join(dest, "CLAUDE.md"))) {
-    console.error(`No knowledge base found at ${dest}`);
-    process.exit(1);
-  }
-  const tpl = requireTemplateDir();
-  copyBundledFiles(tpl, dest);
-  console.log(`\nKnowledge base updated: ${dest}`);
-}
-
-/**
- * Run --update for an explicit path or every unique KB in the scheduler config.
- */
-function runUpdate() {
-  if (args[1]) {
-    updateKB(args[1]);
+function runUpdate(cliArgs) {
+  if (cliArgs[1]) {
+    kbManager.update(cliArgs[1], requireTemplateDir());
     return;
   }
 
-  // Discover unique KB paths from config
   const config = loadConfig();
   const kbPaths = [
     ...new Set(
@@ -827,15 +195,15 @@ function runUpdate() {
 
   for (const kb of kbPaths) {
     console.log(`\nUpdating ${kb}...`);
-    updateKB(kb);
+    kbManager.update(kb, requireTemplateDir());
   }
 }
 
-// --- Status -----------------------------------------------------------------
+// --- Status ------------------------------------------------------------------
 
 function showStatus() {
-  const config = loadConfig(),
-    state = loadState();
+  const config = loadConfig();
+  const state = stateManager.load();
   console.log("\nBasecamp Scheduler\n==================\n");
 
   const agents = Object.entries(config.agents || {});
@@ -860,7 +228,7 @@ function showStatus() {
   }
 }
 
-// --- Validate ---------------------------------------------------------------
+// --- Validate ----------------------------------------------------------------
 
 function findInLocalOrGlobal(kbPath, subPath) {
   const local = join(kbPath, ".claude", subPath);
@@ -906,7 +274,7 @@ function validate() {
   if (errors > 0) process.exit(1);
 }
 
-// --- Help -------------------------------------------------------------------
+// --- Help --------------------------------------------------------------------
 
 function showHelp() {
   const bin = "fit-basecamp";
@@ -929,11 +297,11 @@ Logs:    ~/.fit/basecamp/logs/
 `);
 }
 
-// --- CLI entry point --------------------------------------------------------
+// --- CLI entry point ---------------------------------------------------------
 
 const args = process.argv.slice(2);
 const command = args[0];
-ensureDir(BASECAMP_HOME);
+mkdirSync(BASECAMP_HOME, { recursive: true });
 
 function requireArg(usage) {
   if (!args[1]) {
@@ -949,25 +317,29 @@ const commands = {
   "--daemon": daemon,
   "--validate": validate,
   "--stop": async () => {
-    const stopped = await requestShutdown();
+    const stopped = await requestShutdown(SOCKET_PATH);
     if (!stopped) process.exit(1);
   },
   "--status": showStatus,
-  "--init": () => initKB(requireArg("Usage: fit-basecamp --init <path>")),
-  "--update": runUpdate,
+  "--init": () =>
+    kbManager.init(
+      requireArg("Usage: fit-basecamp --init <path>"),
+      requireTemplateDir(),
+    ),
+  "--update": () => runUpdate(args),
   "--wake": async () => {
     const name = requireArg("Usage: fit-basecamp --wake <agent-name>");
-    const config = loadConfig(),
-      state = loadState(),
-      agent = config.agents[name];
+    const config = loadConfig();
+    const state = stateManager.load();
+    const agent = config.agents[name];
     if (!agent) {
       console.error(
         `Agent "${name}" not found. Available: ${Object.keys(config.agents).join(", ") || "(none)"}`,
       );
       process.exit(1);
     }
-    await wakeAgent(name, agent, state);
+    await agentRunner.wake(name, agent, state);
   },
 };
 
-await (commands[command] || wakeDueAgents)();
+await (commands[command] || (() => scheduler.wakeDueAgents()))();

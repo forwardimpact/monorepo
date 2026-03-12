@@ -27,10 +27,7 @@ import { writeFile, mkdir, readFile } from "fs/promises";
 import { join, dirname } from "path";
 import { existsSync } from "fs";
 import { stringify as stringifyYaml } from "yaml";
-import {
-  loadAgentData,
-  loadSkillsWithAgentData,
-} from "@forwardimpact/map/loader";
+import { createDataLoader } from "@forwardimpact/map/loader";
 import {
   generateStageAgentProfile,
   validateAgentProfile,
@@ -50,12 +47,6 @@ import {
   formatReference,
 } from "../formatters/agent/skill.js";
 import { formatError, formatSuccess } from "../lib/cli-output.js";
-import {
-  loadAgentTemplate,
-  loadSkillTemplate,
-  loadSkillInstallTemplate,
-  loadSkillReferenceTemplate,
-} from "../lib/template-loader.js";
 import { toolkitToPlainList } from "../formatters/toolkit/markdown.js";
 
 /**
@@ -325,10 +316,18 @@ async function writeSkills(skills, baseDir, templates) {
  * @param {Object} params.options - Command options
  * @param {string} params.dataDir - Path to data directory
  */
-export async function runAgentCommand({ data, args, options, dataDir }) {
+export async function runAgentCommand({
+  data,
+  args,
+  options,
+  dataDir,
+  templateLoader,
+  loader,
+}) {
   // Load agent-specific data
-  const agentData = await loadAgentData(dataDir);
-  const skillsWithAgent = await loadSkillsWithAgentData(dataDir);
+  const dataLoader = loader || createDataLoader();
+  const agentData = await dataLoader.loadAgentData(dataDir);
+  const skillsWithAgent = await dataLoader.loadSkillsWithAgentData(dataDir);
 
   // --list: Output clean lines for piping
   if (options.list) {
@@ -500,7 +499,7 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
     }
 
     // Load template
-    const agentTemplate = await loadAgentTemplate(dataDir);
+    const agentTemplate = templateLoader.load("agent.template.md", dataDir);
 
     // Output to console (default) or write to files (with --output)
     if (!options.output) {
@@ -575,10 +574,16 @@ export async function runAgentCommand({ data, args, options, dataDir }) {
   }
 
   // Load templates
-  const agentTemplate = await loadAgentTemplate(dataDir);
-  const skillTemplate = await loadSkillTemplate(dataDir);
-  const installTemplate = await loadSkillInstallTemplate(dataDir);
-  const referenceTemplate = await loadSkillReferenceTemplate(dataDir);
+  const agentTemplate = templateLoader.load("agent.template.md", dataDir);
+  const skillTemplate = templateLoader.load("skill.template.md", dataDir);
+  const installTemplate = templateLoader.load(
+    "skill-install.template.sh",
+    dataDir,
+  );
+  const referenceTemplate = templateLoader.load(
+    "skill-reference.template.md",
+    dataDir,
+  );
   const skillTemplates = {
     skill: skillTemplate,
     install: installTemplate,

@@ -21,8 +21,8 @@ import { join, dirname, relative, resolve } from "path";
 import { fileURLToPath } from "url";
 import { execFileSync } from "child_process";
 import Mustache from "mustache";
-import { generateAllIndexes } from "@forwardimpact/map/index-generator";
-import { loadFrameworkConfig } from "@forwardimpact/map/loader";
+import { createIndexGenerator } from "@forwardimpact/map/index-generator";
+import { createDataLoader } from "@forwardimpact/map/loader";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -85,7 +85,8 @@ export async function runBuildCommand({ dataDir, options }) {
   // Load framework config for display
   let framework;
   try {
-    framework = await loadFrameworkConfig(dataDir);
+    const loader = createDataLoader();
+    framework = await loader.loadFrameworkConfig(dataDir);
   } catch {
     framework = { emojiIcon: "🚀", title: "Engineering Pathway" };
   }
@@ -110,7 +111,8 @@ ${framework.emojiIcon} Generating ${framework.title} static site...
 
   // Generate index files in data directory
   console.log("📇 Generating index files...");
-  await generateAllIndexes(dataDir);
+  const indexGenerator = createIndexGenerator();
+  await indexGenerator.generateAllIndexes(dataDir);
 
   // Copy app assets
   console.log("📦 Copying application files...");

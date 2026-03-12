@@ -1,110 +1,19 @@
 /**
  * Basecamp scheduler unit tests
  *
- * Tests the pure scheduling functions extracted from basecamp.js.
- * Since these functions are not exported, we re-implement them here
- * to validate the logic independently.
+ * Tests the scheduling functions exported from scheduler.js.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";
 
-// Re-implement pure functions from basecamp.js for testing.
-// These are internal functions not exported from the module.
-
-function matchField(field, value) {
-  if (field === "*") return true;
-  if (field.startsWith("*/")) return value % parseInt(field.slice(2)) === 0;
-  return field.split(",").some((part) => {
-    if (part.includes("-")) {
-      const [lo, hi] = part.split("-").map(Number);
-      return value >= lo && value <= hi;
-    }
-    return parseInt(part) === value;
-  });
-}
-
-function cronMatches(expr, d) {
-  const [min, hour, dom, month, dow] = expr.trim().split(/\s+/);
-  return (
-    matchField(min, d.getMinutes()) &&
-    matchField(hour, d.getHours()) &&
-    matchField(dom, d.getDate()) &&
-    matchField(month, d.getMonth() + 1) &&
-    matchField(dow, d.getDay())
-  );
-}
-
-function floorToMinute(d) {
-  const t = d.getTime();
-  return t - (t % 60_000);
-}
-
-function shouldWake(agent, agentState, now) {
-  if (agent.enabled === false) return false;
-  if (agentState.status === "active") return false;
-  const { schedule } = agent;
-  if (!schedule) return false;
-  const lastWoke = agentState.lastWokeAt
-    ? new Date(agentState.lastWokeAt)
-    : null;
-
-  if (schedule.type === "cron") {
-    if (lastWoke && floorToMinute(lastWoke) === floorToMinute(now))
-      return false;
-    return cronMatches(schedule.expression, now);
-  }
-  if (schedule.type === "interval") {
-    const ms = (schedule.minutes || 5) * 60_000;
-    return !lastWoke || now.getTime() - lastWoke.getTime() >= ms;
-  }
-  if (schedule.type === "once") {
-    return !agentState.lastWokeAt && now >= new Date(schedule.runAt);
-  }
-  return false;
-}
-
-function failAgent(agentState, error) {
-  Object.assign(agentState, {
-    status: "failed",
-    startedAt: null,
-    lastWokeAt: new Date().toISOString(),
-    lastError: String(error).slice(0, 500),
-  });
-}
-
-function computeNextWakeAt(agent, agentState, now) {
-  if (agent.enabled === false) return null;
-  const { schedule } = agent;
-  if (!schedule) return null;
-
-  if (schedule.type === "interval") {
-    const ms = (schedule.minutes || 5) * 60_000;
-    const lastWoke = agentState.lastWokeAt
-      ? new Date(agentState.lastWokeAt)
-      : null;
-    if (!lastWoke) return now.toISOString();
-    return new Date(lastWoke.getTime() + ms).toISOString();
-  }
-
-  if (schedule.type === "cron") {
-    const limit = 24 * 60;
-    const start = new Date(floorToMinute(now) + 60_000);
-    for (let i = 0; i < limit; i++) {
-      const candidate = new Date(start.getTime() + i * 60_000);
-      if (cronMatches(schedule.expression, candidate)) {
-        return candidate.toISOString();
-      }
-    }
-    return null;
-  }
-
-  if (schedule.type === "once") {
-    if (agentState.lastWokeAt) return null;
-    return schedule.runAt;
-  }
-
-  return null;
-}
+import {
+  matchField,
+  cronMatches,
+  floorToMinute,
+  shouldWake,
+  failAgent,
+  computeNextWakeAt,
+} from "../src/scheduler.js";
 
 describe("scheduler", () => {
   describe("matchField", () => {

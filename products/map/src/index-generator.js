@@ -10,56 +10,85 @@ import { join, basename } from "path";
 import { stringify as stringifyYaml } from "yaml";
 
 /**
- * Generate _index.yaml for a directory
- * @param {string} dir - Directory path
- * @returns {Promise<string[]>} List of file IDs included
+ * Index generator class with injectable filesystem and serializer dependencies.
  */
-export async function generateDirIndex(dir) {
-  const files = await readdir(dir);
-  const yamlFiles = files.filter(
-    (f) => f.endsWith(".yaml") && !f.startsWith("_"),
-  );
+export class IndexGenerator {
+  #fs;
+  #yaml;
 
-  const fileIds = yamlFiles.map((f) => basename(f, ".yaml")).sort();
+  /**
+   * @param {{ readdir: Function, writeFile: Function }} fs
+   * @param {{ stringify: Function }} yamlSerializer
+   */
+  constructor(fs, yamlSerializer) {
+    if (!fs) throw new Error("fs is required");
+    if (!yamlSerializer) throw new Error("yamlSerializer is required");
+    this.#fs = fs;
+    this.#yaml = yamlSerializer;
+  }
 
-  const content = stringifyYaml(
-    {
-      // Auto-generated index for browser loading
-      // Do not edit manually - regenerate with: npx pathway --generate-index
-      files: fileIds,
-    },
-    { lineWidth: 0 },
-  );
+  /**
+   * Generate _index.yaml for a directory
+   * @param {string} dir - Directory path
+   * @returns {Promise<string[]>} List of file IDs included
+   */
+  async generateDirIndex(dir) {
+    const files = await this.#fs.readdir(dir);
+    const yamlFiles = files.filter(
+      (f) => f.endsWith(".yaml") && !f.startsWith("_"),
+    );
 
-  // Add header comment
-  const output = `# Auto-generated index for browser loading
+    const fileIds = yamlFiles.map((f) => basename(f, ".yaml")).sort();
+
+    const content = this.#yaml.stringify(
+      {
+        // Auto-generated index for browser loading
+        // Do not edit manually - regenerate with: npx pathway --generate-index
+        files: fileIds,
+      },
+      { lineWidth: 0 },
+    );
+
+    const output = `# Auto-generated index for browser loading
 # Do not edit manually - regenerate with: npx pathway --generate-index
 ${content}`;
 
-  await writeFile(join(dir, "_index.yaml"), output, "utf-8");
+    await this.#fs.writeFile(join(dir, "_index.yaml"), output, "utf-8");
 
-  return fileIds;
+    return fileIds;
+  }
+
+  /**
+   * Generate all index files for the data directory
+   * @param {string} dataDir - Path to the data directory
+   * @returns {Promise<Object>} Summary of generated indexes
+   */
+  async generateAllIndexes(dataDir) {
+    const directories = ["behaviours", "disciplines", "tracks", "capabilities"];
+
+    const results = {};
+
+    for (const dir of directories) {
+      const fullPath = join(dataDir, dir);
+      try {
+        const files = await this.generateDirIndex(fullPath);
+        results[dir] = files;
+      } catch (err) {
+        results[dir] = { error: err.message };
+      }
+    }
+
+    return results;
+  }
 }
 
 /**
- * Generate all index files for the data directory
- * @param {string} dataDir - Path to the data directory
- * @returns {Promise<Object>} Summary of generated indexes
+ * Create an IndexGenerator with real filesystem and serializer dependencies
+ * @returns {IndexGenerator}
  */
-export async function generateAllIndexes(dataDir) {
-  const directories = ["behaviours", "disciplines", "tracks", "capabilities"];
-
-  const results = {};
-
-  for (const dir of directories) {
-    const fullPath = join(dataDir, dir);
-    try {
-      const files = await generateDirIndex(fullPath);
-      results[dir] = files;
-    } catch (err) {
-      results[dir] = { error: err.message };
-    }
-  }
-
-  return results;
+export function createIndexGenerator() {
+  return new IndexGenerator(
+    { readdir, writeFile },
+    { stringify: stringifyYaml },
+  );
 }

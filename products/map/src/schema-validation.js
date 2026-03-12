@@ -12,22 +12,16 @@ import { fileURLToPath } from "url";
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const schemaDir = join(__dirname, "../schema/json");
-
 /**
  * Schema mappings for different file types
  * Maps directory/file patterns to schema files
  */
 const SCHEMA_MAPPINGS = {
-  // Single files at root of data directory
   "drivers.yaml": "drivers.schema.json",
   "levels.yaml": "levels.schema.json",
   "stages.yaml": "stages.schema.json",
   "framework.yaml": "framework.schema.json",
   "self-assessments.yaml": "self-assessments.schema.json",
-  // Directories - each file in directory uses the schema
   capabilities: "capability.schema.json",
   disciplines: "discipline.schema.json",
   tracks: "track.schema.json",
@@ -38,9 +32,9 @@ const SCHEMA_MAPPINGS = {
 
 /**
  * Create a validation result object
- * @param {boolean} valid - Whether validation passed
- * @param {Array<{type: string, message: string, path?: string}>} errors - Array of errors
- * @param {Array<{type: string, message: string, path?: string}>} warnings - Array of warnings
+ * @param {boolean} valid
+ * @param {Array} errors
+ * @param {Array} warnings
  * @returns {{valid: boolean, errors: Array, warnings: Array}}
  */
 function createValidationResult(valid, errors = [], warnings = []) {
@@ -49,9 +43,9 @@ function createValidationResult(valid, errors = [], warnings = []) {
 
 /**
  * Create a validation error
- * @param {string} type - Error type
- * @param {string} message - Error message
- * @param {string} [path] - Path to invalid data
+ * @param {string} type
+ * @param {string} message
+ * @param {string} [path]
  * @returns {{type: string, message: string, path?: string}}
  */
 function createError(type, message, path) {
@@ -62,9 +56,9 @@ function createError(type, message, path) {
 
 /**
  * Create a validation warning
- * @param {string} type - Warning type
- * @param {string} message - Warning message
- * @param {string} [path] - Path to concerning data
+ * @param {string} type
+ * @param {string} message
+ * @param {string} [path]
  * @returns {{type: string, message: string, path?: string}}
  */
 function createWarning(type, message, path) {
@@ -74,65 +68,16 @@ function createWarning(type, message, path) {
 }
 
 /**
- * Check if a path exists and is a directory
- * @param {string} path - Path to check
- * @returns {Promise<boolean>}
- */
-async function isDirectory(path) {
-  try {
-    const stats = await stat(path);
-    return stats.isDirectory();
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Check if a file exists
- * @param {string} path - Path to check
- * @returns {Promise<boolean>}
- */
-async function fileExists(path) {
-  try {
-    await stat(path);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Load and parse a JSON schema
- * @param {string} schemaPath - Path to the schema file
- * @returns {Promise<Object>} Parsed schema
- */
-async function loadSchema(schemaPath) {
-  const content = await readFile(schemaPath, "utf-8");
-  return JSON.parse(content);
-}
-
-/**
- * Load and parse a YAML file
- * @param {string} filePath - Path to the YAML file
- * @returns {Promise<any>} Parsed YAML content
- */
-async function loadYamlFile(filePath) {
-  const content = await readFile(filePath, "utf-8");
-  return parseYaml(content);
-}
-
-/**
  * Format Ajv errors into readable messages
- * @param {import('ajv').ErrorObject[]} ajvErrors - Ajv error objects
- * @param {string} filePath - File being validated
- * @returns {Array<{type: string, message: string, path?: string}>}
+ * @param {import('ajv').ErrorObject[]} ajvErrors
+ * @param {string} filePath
+ * @returns {Array}
  */
 function formatAjvErrors(ajvErrors, filePath) {
   return ajvErrors.map((err) => {
     const path = err.instancePath ? `${filePath}${err.instancePath}` : filePath;
     let message = err.message || "Unknown error";
 
-    // Add context for specific error types
     if (err.keyword === "additionalProperties") {
       message = `${message}: '${err.params.additionalProperty}'`;
     } else if (err.keyword === "enum") {
@@ -146,293 +91,368 @@ function formatAjvErrors(ajvErrors, filePath) {
 }
 
 /**
- * Create and configure an Ajv instance with all schemas loaded
- * @returns {Promise<Ajv>}
+ * Schema validator class with injectable dependencies.
  */
-async function createValidator() {
-  const ajv = new Ajv({
-    allErrors: true,
-    strict: false,
-    validateFormats: true,
-  });
-  addFormats(ajv);
+export class SchemaValidator {
+  #fs;
+  #schemaDir;
+  #ajvFactory;
 
-  // Load all schema files
-  const schemaFiles = await readdir(schemaDir);
-  for (const file of schemaFiles.filter((f) => f.endsWith(".schema.json"))) {
-    const schema = await loadSchema(join(schemaDir, file));
-    ajv.addSchema(schema);
+  /**
+   * @param {{ readFile: Function, readdir: Function, stat: Function }} fs
+   * @param {string} schemaDir - Path to JSON schema directory
+   * @param {{ Ajv: Function, addFormats: Function }} ajvFactory
+   */
+  constructor(fs, schemaDir, ajvFactory) {
+    if (!fs) throw new Error("fs is required");
+    if (!schemaDir) throw new Error("schemaDir is required");
+    if (!ajvFactory) throw new Error("ajvFactory is required");
+    this.#fs = fs;
+    this.#schemaDir = schemaDir;
+    this.#ajvFactory = ajvFactory;
   }
 
-  return ajv;
-}
-
-/**
- * Validate a single file against a schema
- * @param {Ajv} ajv - Configured Ajv instance
- * @param {string} filePath - Path to the YAML file
- * @param {string} schemaId - Schema $id to validate against
- * @returns {Promise<{valid: boolean, errors: Array}>}
- */
-async function validateFile(ajv, filePath, schemaId) {
-  const data = await loadYamlFile(filePath);
-  const validate = ajv.getSchema(schemaId);
-
-  if (!validate) {
-    return {
-      valid: false,
-      errors: [
-        createError("SCHEMA_NOT_FOUND", `Schema not found: ${schemaId}`),
-      ],
-    };
-  }
-
-  const valid = validate(data);
-  const errors = valid ? [] : formatAjvErrors(validate.errors || [], filePath);
-
-  return { valid, errors };
-}
-
-/**
- * Validate all files in a directory against a schema
- * @param {Ajv} ajv - Configured Ajv instance
- * @param {string} dirPath - Path to the directory
- * @param {string} schemaId - Schema $id to validate against
- * @returns {Promise<{valid: boolean, errors: Array}>}
- */
-async function validateDirectory(ajv, dirPath, schemaId) {
-  const files = await readdir(dirPath);
-  const yamlFiles = files.filter(
-    (f) => f.endsWith(".yaml") && !f.startsWith("_"),
-  );
-
-  const allErrors = [];
-  let allValid = true;
-
-  for (const file of yamlFiles) {
-    const filePath = join(dirPath, file);
-    const result = await validateFile(ajv, filePath, schemaId);
-    if (!result.valid) {
-      allValid = false;
-      allErrors.push(...result.errors);
+  /**
+   * Check if a path exists and is a directory
+   * @param {string} path
+   * @returns {Promise<boolean>}
+   */
+  async #isDirectory(path) {
+    try {
+      const stats = await this.#fs.stat(path);
+      return stats.isDirectory();
+    } catch {
+      return false;
     }
   }
 
-  return { valid: allValid, errors: allErrors };
-}
-
-/**
- * Build the schema $id from the schema filename
- * @param {string} schemaFilename - Schema filename (e.g., "capability.schema.json")
- * @returns {string} Full schema $id URL
- */
-function getSchemaId(schemaFilename) {
-  return `https://www.forwardimpact.team/schema/json/${schemaFilename}`;
-}
-
-/**
- * Validate a data directory against JSON schemas
- * @param {string} dataDir - Path to the data directory
- * @returns {Promise<{valid: boolean, errors: Array, warnings: Array, stats: Object}>}
- */
-export async function validateDataDirectory(dataDir) {
-  const ajv = await createValidator();
-  const allErrors = [];
-  const warnings = [];
-  const stats = {
-    filesValidated: 0,
-    schemasUsed: new Set(),
-  };
-
-  // Validate single files at root level
-  for (const [filename, schemaFile] of Object.entries(SCHEMA_MAPPINGS)) {
-    // Skip directory mappings
-    if (!filename.includes(".yaml")) continue;
-
-    const filePath = join(dataDir, filename);
-    if (!(await fileExists(filePath))) {
-      // Some files are optional
-      if (!["self-assessments.yaml"].includes(filename)) {
-        warnings.push(
-          createWarning("MISSING_FILE", `Optional file not found: ${filename}`),
-        );
-      }
-      continue;
-    }
-
-    const schemaId = getSchemaId(schemaFile);
-    const result = await validateFile(ajv, filePath, schemaId);
-    stats.filesValidated++;
-    stats.schemasUsed.add(schemaFile);
-
-    if (!result.valid) {
-      allErrors.push(...result.errors);
+  /**
+   * Check if a file exists
+   * @param {string} path
+   * @returns {Promise<boolean>}
+   */
+  async #fileExists(path) {
+    try {
+      await this.#fs.stat(path);
+      return true;
+    } catch {
+      return false;
     }
   }
 
-  // Validate directories
-  for (const [dirName, schemaFile] of Object.entries(SCHEMA_MAPPINGS)) {
-    // Skip single file mappings
-    if (dirName.includes(".yaml")) continue;
+  /**
+   * Load and parse a JSON schema
+   * @param {string} schemaPath
+   * @returns {Promise<Object>}
+   */
+  async #loadSchema(schemaPath) {
+    const content = await this.#fs.readFile(schemaPath, "utf-8");
+    return JSON.parse(content);
+  }
 
-    const dirPath = join(dataDir, dirName);
-    if (!(await isDirectory(dirPath))) {
-      continue;
+  /**
+   * Load and parse a YAML file
+   * @param {string} filePath
+   * @returns {Promise<any>}
+   */
+  async #loadYamlFile(filePath) {
+    const content = await this.#fs.readFile(filePath, "utf-8");
+    return parseYaml(content);
+  }
+
+  /**
+   * Create and configure an Ajv instance with all schemas loaded
+   * @returns {Promise<Ajv>}
+   */
+  async #createValidator() {
+    const ajv = new this.#ajvFactory.Ajv({
+      allErrors: true,
+      strict: false,
+      validateFormats: true,
+    });
+    this.#ajvFactory.addFormats(ajv);
+
+    const schemaFiles = await this.#fs.readdir(this.#schemaDir);
+    for (const file of schemaFiles.filter((f) => f.endsWith(".schema.json"))) {
+      const schema = await this.#loadSchema(join(this.#schemaDir, file));
+      ajv.addSchema(schema);
     }
 
-    const schemaId = getSchemaId(schemaFile);
-    const result = await validateDirectory(ajv, dirPath, schemaId);
+    return ajv;
+  }
 
-    // Count files
-    const files = await readdir(dirPath);
+  /**
+   * Validate a single file against a schema
+   * @param {Ajv} ajv
+   * @param {string} filePath
+   * @param {string} schemaId
+   * @returns {Promise<{valid: boolean, errors: Array}>}
+   */
+  async #validateFile(ajv, filePath, schemaId) {
+    const data = await this.#loadYamlFile(filePath);
+    const validate = ajv.getSchema(schemaId);
+
+    if (!validate) {
+      return {
+        valid: false,
+        errors: [
+          createError("SCHEMA_NOT_FOUND", `Schema not found: ${schemaId}`),
+        ],
+      };
+    }
+
+    const valid = validate(data);
+    const errors = valid
+      ? []
+      : formatAjvErrors(validate.errors || [], filePath);
+
+    return { valid, errors };
+  }
+
+  /**
+   * Validate all files in a directory against a schema
+   * @param {Ajv} ajv
+   * @param {string} dirPath
+   * @param {string} schemaId
+   * @returns {Promise<{valid: boolean, errors: Array}>}
+   */
+  async #validateDirectory(ajv, dirPath, schemaId) {
+    const files = await this.#fs.readdir(dirPath);
     const yamlFiles = files.filter(
       (f) => f.endsWith(".yaml") && !f.startsWith("_"),
     );
-    stats.filesValidated += yamlFiles.length;
-    stats.schemasUsed.add(schemaFile);
 
-    if (!result.valid) {
-      allErrors.push(...result.errors);
+    const allErrors = [];
+    let allValid = true;
+
+    for (const file of yamlFiles) {
+      const filePath = join(dirPath, file);
+      const result = await this.#validateFile(ajv, filePath, schemaId);
+      if (!result.valid) {
+        allValid = false;
+        allErrors.push(...result.errors);
+      }
     }
+
+    return { valid: allValid, errors: allErrors };
   }
 
-  return createValidationResult(allErrors.length === 0, allErrors, warnings);
+  /**
+   * Build the schema $id from the schema filename
+   * @param {string} schemaFilename
+   * @returns {string}
+   */
+  #getSchemaId(schemaFilename) {
+    return `https://www.forwardimpact.team/schema/json/${schemaFilename}`;
+  }
+
+  /**
+   * Validate a data directory against JSON schemas
+   * @param {string} dataDir
+   * @returns {Promise<{valid: boolean, errors: Array, warnings: Array, stats: Object}>}
+   */
+  async validateDataDirectory(dataDir) {
+    const ajv = await this.#createValidator();
+    const allErrors = [];
+    const warnings = [];
+    const stats = {
+      filesValidated: 0,
+      schemasUsed: new Set(),
+    };
+
+    for (const [filename, schemaFile] of Object.entries(SCHEMA_MAPPINGS)) {
+      if (!filename.includes(".yaml")) continue;
+
+      const filePath = join(dataDir, filename);
+      if (!(await this.#fileExists(filePath))) {
+        if (!["self-assessments.yaml"].includes(filename)) {
+          warnings.push(
+            createWarning(
+              "MISSING_FILE",
+              `Optional file not found: ${filename}`,
+            ),
+          );
+        }
+        continue;
+      }
+
+      const schemaId = this.#getSchemaId(schemaFile);
+      const result = await this.#validateFile(ajv, filePath, schemaId);
+      stats.filesValidated++;
+      stats.schemasUsed.add(schemaFile);
+
+      if (!result.valid) {
+        allErrors.push(...result.errors);
+      }
+    }
+
+    for (const [dirName, schemaFile] of Object.entries(SCHEMA_MAPPINGS)) {
+      if (dirName.includes(".yaml")) continue;
+
+      const dirPath = join(dataDir, dirName);
+      if (!(await this.#isDirectory(dirPath))) {
+        continue;
+      }
+
+      const schemaId = this.#getSchemaId(schemaFile);
+      const result = await this.#validateDirectory(ajv, dirPath, schemaId);
+
+      const files = await this.#fs.readdir(dirPath);
+      const yamlFiles = files.filter(
+        (f) => f.endsWith(".yaml") && !f.startsWith("_"),
+      );
+      stats.filesValidated += yamlFiles.length;
+      stats.schemasUsed.add(schemaFile);
+
+      if (!result.valid) {
+        allErrors.push(...result.errors);
+      }
+    }
+
+    return createValidationResult(allErrors.length === 0, allErrors, warnings);
+  }
+
+  /**
+   * Validate referential integrity (skill/behaviour references exist)
+   * @param {Object} data
+   * @returns {{valid: boolean, errors: Array, warnings: Array}}
+   */
+  validateReferentialIntegrity(data) {
+    const errors = [];
+    const warnings = [];
+
+    const skillIds = new Set((data.skills || []).map((s) => s.id));
+    const behaviourIds = new Set((data.behaviours || []).map((b) => b.id));
+    const capabilityIds = new Set((data.capabilities || []).map((c) => c.id));
+
+    for (const discipline of data.disciplines || []) {
+      const allSkillRefs = [
+        ...(discipline.coreSkills || []),
+        ...(discipline.supportingSkills || []),
+        ...(discipline.broadSkills || []),
+      ];
+
+      for (const skillId of allSkillRefs) {
+        if (!skillIds.has(skillId)) {
+          errors.push(
+            createError(
+              "INVALID_REFERENCE",
+              `Discipline '${discipline.id}' references unknown skill '${skillId}'`,
+              `disciplines/${discipline.id}`,
+            ),
+          );
+        }
+      }
+
+      for (const behaviourId of Object.keys(
+        discipline.behaviourModifiers || {},
+      )) {
+        if (!behaviourIds.has(behaviourId)) {
+          errors.push(
+            createError(
+              "INVALID_REFERENCE",
+              `Discipline '${discipline.id}' references unknown behaviour '${behaviourId}'`,
+              `disciplines/${discipline.id}`,
+            ),
+          );
+        }
+      }
+    }
+
+    for (const track of data.tracks || []) {
+      for (const capabilityId of Object.keys(track.skillModifiers || {})) {
+        if (!capabilityIds.has(capabilityId)) {
+          errors.push(
+            createError(
+              "INVALID_REFERENCE",
+              `Track '${track.id}' references unknown capability '${capabilityId}'`,
+              `tracks/${track.id}`,
+            ),
+          );
+        }
+      }
+
+      for (const behaviourId of Object.keys(track.behaviourModifiers || {})) {
+        if (!behaviourIds.has(behaviourId)) {
+          errors.push(
+            createError(
+              "INVALID_REFERENCE",
+              `Track '${track.id}' references unknown behaviour '${behaviourId}'`,
+              `tracks/${track.id}`,
+            ),
+          );
+        }
+      }
+    }
+
+    for (const driver of data.drivers || []) {
+      for (const skillId of driver.contributingSkills || []) {
+        if (!skillIds.has(skillId)) {
+          errors.push(
+            createError(
+              "INVALID_REFERENCE",
+              `Driver '${driver.id}' references unknown skill '${skillId}'`,
+              `drivers`,
+            ),
+          );
+        }
+      }
+
+      for (const behaviourId of driver.contributingBehaviours || []) {
+        if (!behaviourIds.has(behaviourId)) {
+          errors.push(
+            createError(
+              "INVALID_REFERENCE",
+              `Driver '${driver.id}' references unknown behaviour '${behaviourId}'`,
+              `drivers`,
+            ),
+          );
+        }
+      }
+    }
+
+    return createValidationResult(errors.length === 0, errors, warnings);
+  }
+
+  /**
+   * Run full validation: schema validation + referential integrity
+   * @param {string} dataDir
+   * @param {Object} [loadedData]
+   * @returns {Promise<{valid: boolean, errors: Array, warnings: Array}>}
+   */
+  async runFullValidation(dataDir, loadedData) {
+    const allErrors = [];
+    const allWarnings = [];
+
+    const schemaResult = await this.validateDataDirectory(dataDir);
+    allErrors.push(...schemaResult.errors);
+    allWarnings.push(...schemaResult.warnings);
+
+    if (loadedData) {
+      const refResult = this.validateReferentialIntegrity(loadedData);
+      allErrors.push(...refResult.errors);
+      allWarnings.push(...refResult.warnings);
+    }
+
+    return createValidationResult(
+      allErrors.length === 0,
+      allErrors,
+      allWarnings,
+    );
+  }
 }
 
 /**
- * Validate referential integrity (skill/behaviour references exist)
- * This supplements schema validation with cross-file reference checks
- * @param {Object} data - Loaded data object
- * @param {Array} data.skills - Skills
- * @param {Array} data.behaviours - Behaviours
- * @param {Array} data.disciplines - Disciplines
- * @param {Array} data.drivers - Drivers
- * @param {Array} data.capabilities - Capabilities
- * @returns {{valid: boolean, errors: Array, warnings: Array}}
+ * Create a SchemaValidator with real dependencies
+ * @returns {SchemaValidator}
  */
-export function validateReferentialIntegrity(data) {
-  const errors = [];
-  const warnings = [];
-
-  const skillIds = new Set((data.skills || []).map((s) => s.id));
-  const behaviourIds = new Set((data.behaviours || []).map((b) => b.id));
-  const capabilityIds = new Set((data.capabilities || []).map((c) => c.id));
-
-  // Validate discipline skill references
-  for (const discipline of data.disciplines || []) {
-    const allSkillRefs = [
-      ...(discipline.coreSkills || []),
-      ...(discipline.supportingSkills || []),
-      ...(discipline.broadSkills || []),
-    ];
-
-    for (const skillId of allSkillRefs) {
-      if (!skillIds.has(skillId)) {
-        errors.push(
-          createError(
-            "INVALID_REFERENCE",
-            `Discipline '${discipline.id}' references unknown skill '${skillId}'`,
-            `disciplines/${discipline.id}`,
-          ),
-        );
-      }
-    }
-
-    // Validate behaviour modifier references
-    for (const behaviourId of Object.keys(
-      discipline.behaviourModifiers || {},
-    )) {
-      if (!behaviourIds.has(behaviourId)) {
-        errors.push(
-          createError(
-            "INVALID_REFERENCE",
-            `Discipline '${discipline.id}' references unknown behaviour '${behaviourId}'`,
-            `disciplines/${discipline.id}`,
-          ),
-        );
-      }
-    }
-  }
-
-  // Validate track skill modifier references (should reference capabilities, not skills)
-  for (const track of data.tracks || []) {
-    for (const capabilityId of Object.keys(track.skillModifiers || {})) {
-      if (!capabilityIds.has(capabilityId)) {
-        errors.push(
-          createError(
-            "INVALID_REFERENCE",
-            `Track '${track.id}' references unknown capability '${capabilityId}'`,
-            `tracks/${track.id}`,
-          ),
-        );
-      }
-    }
-
-    // Validate behaviour modifier references
-    for (const behaviourId of Object.keys(track.behaviourModifiers || {})) {
-      if (!behaviourIds.has(behaviourId)) {
-        errors.push(
-          createError(
-            "INVALID_REFERENCE",
-            `Track '${track.id}' references unknown behaviour '${behaviourId}'`,
-            `tracks/${track.id}`,
-          ),
-        );
-      }
-    }
-  }
-
-  // Validate driver skill/behaviour references
-  for (const driver of data.drivers || []) {
-    for (const skillId of driver.contributingSkills || []) {
-      if (!skillIds.has(skillId)) {
-        errors.push(
-          createError(
-            "INVALID_REFERENCE",
-            `Driver '${driver.id}' references unknown skill '${skillId}'`,
-            `drivers`,
-          ),
-        );
-      }
-    }
-
-    for (const behaviourId of driver.contributingBehaviours || []) {
-      if (!behaviourIds.has(behaviourId)) {
-        errors.push(
-          createError(
-            "INVALID_REFERENCE",
-            `Driver '${driver.id}' references unknown behaviour '${behaviourId}'`,
-            `drivers`,
-          ),
-        );
-      }
-    }
-  }
-
-  return createValidationResult(errors.length === 0, errors, warnings);
-}
-
-/**
- * Run full validation: schema validation + referential integrity
- * @param {string} dataDir - Path to the data directory
- * @param {Object} [loadedData] - Pre-loaded data (if available, skips schema validation stats gathering)
- * @returns {Promise<{valid: boolean, errors: Array, warnings: Array}>}
- */
-export async function runSchemaValidation(dataDir, loadedData) {
-  const allErrors = [];
-  const allWarnings = [];
-
-  // Run schema validation
-  const schemaResult = await validateDataDirectory(dataDir);
-  allErrors.push(...schemaResult.errors);
-  allWarnings.push(...schemaResult.warnings);
-
-  // If we have loaded data, also check referential integrity
-  if (loadedData) {
-    const refResult = validateReferentialIntegrity(loadedData);
-    allErrors.push(...refResult.errors);
-    allWarnings.push(...refResult.warnings);
-  }
-
-  return createValidationResult(allErrors.length === 0, allErrors, allWarnings);
+export function createSchemaValidator() {
+  const schemaDir = join(
+    dirname(fileURLToPath(import.meta.url)),
+    "../schema/json",
+  );
+  return new SchemaValidator({ readFile, readdir, stat }, schemaDir, {
+    Ajv,
+    addFormats,
+  });
 }
