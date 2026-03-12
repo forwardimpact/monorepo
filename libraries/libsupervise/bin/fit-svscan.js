@@ -47,7 +47,7 @@ const pidPath = path.resolve(values.pid);
 const logDir = path.resolve(values.logdir);
 const shutdownTimeout = parseInt(values.timeout, 10);
 
-const tree = new SupervisionTree(logDir, { shutdownTimeout });
+const tree = new SupervisionTree(logDir, { shutdownTimeout, logger });
 
 /**
  * Handles a command from a client
