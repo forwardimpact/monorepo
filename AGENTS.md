@@ -68,18 +68,72 @@ When updating data structure: schema (`products/map/schema/`) → data
    optional chaining for non-optional data, no try-catch "just to be safe."
 4. **Simple over easy** — Reduce complexity, don't relocate it. Prefer explicit
    over implicit, direct solutions over clever abstractions, fewer layers.
-5. **OO+DI for libraries** — Library classes accept all collaborators through
-   the constructor. No module-level singletons, no inline dependency creation,
-   no default parameter fallbacks that silently create real dependencies.
+5. **OO+DI everywhere** — All libraries and products use constructor-injected
+   dependencies. No module-level singletons, no inline dependency creation, no
+   default parameter fallbacks that silently create real dependencies.
    Constructors validate that all required deps are provided. Factory functions
    (`createXxx`) are the only place that wires real implementations. Tests
    bypass factories and inject mocks directly via constructors.
    **Exceptions:** libskill (pure functions by design), libui (functional DOM),
    libsecret (stateless crypto utilities), libtype (generated protobuf code).
+   Pure stateless functions (hashing, token counting, validation) do not need DI.
 6. **JSDoc types** — All public functions (`@param`, `@returns`)
 7. **Test coverage** — New logic requires tests
 8. **No frameworks** — Vanilla JS only, ESM modules only
 9. **Co-located files** — All entities have `human:` and `agent:` sections
+
+## OO+DI Architecture
+
+Every library and product follows a standard pattern:
+
+- **Classes** accept all collaborators through the constructor
+- **Constructors** throw if required deps are missing
+- **Factory functions** (`createXxx`) wire real implementations
+- **Composition roots** (CLI `bin/` entry points) create and wire all instances
+- **Tests** bypass factories and inject mocks directly via constructors
+
+### Library Examples
+
+| Library      | Classes                                              | Factory                    |
+| ------------ | ---------------------------------------------------- | -------------------------- |
+| libsupervise | `SupervisionTree`                                    | `createSupervisionTree`    |
+| libutil      | `Finder`, `BundleDownloader`, `TarExtractor`, `Retry`| `createBundleDownloader`, `createRetry` |
+| libuniverse  | `DslParser`, `EntityGenerator`, `ProseEngine`, `PathwayGenerator`, `Renderer`, `ContentValidator`, `ContentFormatter`, `Pipeline` | `createDslParser`, `createEntityGenerator`, `createProseEngine`, `createRenderer` |
+
+Pure functions in libutil (`generateHash`, `generateUUID`, `countTokens`,
+`parseJsonBody`) and libuniverse (`collectProseKeys`, `loadSchemas`) remain
+standalone — they have no state or I/O to inject.
+
+I/O wrappers in libutil require explicit deps: `updateEnvFile(path, key, value,
+fsFns)`, `execLine(shift, deps)`, `waitFor(fn, options)`.
+
+### Product Examples
+
+| Product  | Classes                                                        | Composition Root           |
+| -------- | -------------------------------------------------------------- | -------------------------- |
+| map      | `DataLoader`, `SchemaValidator`, `IndexGenerator`              | `bin/fit-map.js`           |
+| pathway  | Uses `createDataLoader`, `createTemplateLoader` from libraries | `bin/fit-pathway.js`       |
+| basecamp | `StateManager`, `AgentRunner`, `Scheduler`, `KBManager`, `SocketServer` | `src/basecamp.js` |
+
+Basecamp uses a local `createLogger(logDir, fs)` function (not libtelemetry)
+since it is a user-facing CLI tool. The composition root wires StateManager →
+AgentRunner → Scheduler → SocketServer with explicit dependency passing.
+
+## Skill Groups
+
+Library skills are organized into 5 capability groups (not individual library
+skills). Each group teaches multi-library composition, not isolated APIs.
+
+| Group                        | Libraries                                          |
+| ---------------------------- | -------------------------------------------------- |
+| `libs-service-infrastructure`| librpc, libconfig, libtelemetry, libtype, libharness|
+| `libs-data-persistence`      | libstorage, libindex, libresource, libpolicy, libgraph, libvector |
+| `libs-llm-orchestration`     | libllm, libmemory, libprompt, libagent             |
+| `libs-web-presentation`      | libui, libformat, libweb, libdoc, libtemplate      |
+| `libs-system-utilities`      | libutil, libsecret, libsupervise, librc, libcodegen|
+
+`libskill` retains its own individual skill (pure-function design, intentionally
+exempt from OO+DI).
 
 ## Environment Management
 
