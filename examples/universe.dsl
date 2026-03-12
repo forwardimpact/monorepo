@@ -608,14 +608,14 @@ universe BioNova {
   content guide_html {
     articles 4
     article_topics [clinical, data_ai, drug_discovery, manufacturing]
-    blogs 15
-    faqs 20
+    blogs 45
+    faqs 35
     howtos 2
     howto_topics [clinical_data, gmp_procedures]
-    reviews 30
-    comments 50
-    courses 15
-    events 10
+    reviews 40
+    comments 55
+    courses 16
+    events 8
   }
 
   content basecamp_markdown {
