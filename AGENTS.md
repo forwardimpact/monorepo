@@ -68,14 +68,18 @@ When updating data structure: schema (`products/map/schema/`) → data
    optional chaining for non-optional data, no try-catch "just to be safe."
 4. **Simple over easy** — Reduce complexity, don't relocate it. Prefer explicit
    over implicit, direct solutions over clever abstractions, fewer layers.
-5. **Pure functions** — Model layer has no side effects
-6. **Use formatters** — All presentation logic in
-   `products/pathway/src/formatters/`
-7. **No transforms in views** — Pages/commands pass raw entities to formatters
-8. **JSDoc types** — All public functions (`@param`, `@returns`)
-9. **Test coverage** — New derivation logic requires tests
-10. **No frameworks** — Vanilla JS only, ESM modules only
-11. **Co-located files** — All entities have `human:` and `agent:` sections
+5. **OO+DI for libraries** — Library classes accept all collaborators through
+   the constructor. No module-level singletons, no inline dependency creation,
+   no default parameter fallbacks that silently create real dependencies.
+   Constructors validate that all required deps are provided. Factory functions
+   (`createXxx`) are the only place that wires real implementations. Tests
+   bypass factories and inject mocks directly via constructors.
+   **Exceptions:** libskill (pure functions by design), libui (functional DOM),
+   libsecret (stateless crypto utilities), libtype (generated protobuf code).
+6. **JSDoc types** — All public functions (`@param`, `@returns`)
+7. **Test coverage** — New logic requires tests
+8. **No frameworks** — Vanilla JS only, ESM modules only
+9. **Co-located files** — All entities have `human:` and `agent:` sections
 
 ## Environment Management
 
@@ -218,8 +222,6 @@ Use `npx fit-pathway level --list` to see available levels.
 - **Naming**: files `kebab-case`, functions `camelCase`, constants
   `UPPER_SNAKE_CASE`, YAML IDs `snake_case`
 - **Testing**: Node.js test runner (`node --test`), fixtures mirror YAML
-- **Formatters** per entity: `shared.js` (logic), `dom.js` (web), `markdown.js`
-  (CLI)
 
 ## Git Workflow
 
