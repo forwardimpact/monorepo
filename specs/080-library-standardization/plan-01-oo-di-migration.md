@@ -1,9 +1,10 @@
 # Plan 01 — Migrate Non-Conforming Libraries to OO+DI
 
 Three libraries need migration: libuniverse (large), libutil (medium),
-libsupervise (small). Each migration follows the same sequence: extract classes,
-inject dependencies via constructors, add factory functions, update call sites,
-verify tests.
+libsupervise (small). Each migration is a clean break — old interfaces are
+deleted, all call sites update in the same commit, no default fallbacks to real
+implementations in constructors. Factory functions are the only place that wires
+real dependencies.
 
 ## Conformance audit
 
@@ -55,36 +56,40 @@ This logger is shared across all instances and cannot be replaced in tests.
 
 ### Changes
 
-**tree.js** — Accept logger in constructor:
+**tree.js** — Require logger in constructor, delete module-level singleton:
 
 ```javascript
 class SupervisionTree {
-  constructor(logDir, config = {}) {
-    // BEFORE: uses module-level `logger`
-    // AFTER:
-    this.logger = config.logger || createLogger("tree");
+  constructor(logDir, config) {
+    if (!logDir) throw new Error("logDir is required");
+    if (!config?.logger) throw new Error("config.logger is required");
+    this.logger = config.logger;
     this.logDir = logDir;
     // ...
   }
 }
 ```
 
-Remove the module-level `const logger = createLogger("tree")` line.
+Delete the module-level `const logger = createLogger("tree")` line.
 Replace all bare `logger.xxx()` calls with `this.logger.xxx()`.
 
 **Add factory function** to index.js:
 
 ```javascript
 export function createSupervisionTree(logDir, config = {}) {
-  const logger = config.logger || createLogger("tree");
+  const logger = createLogger("tree");
   return new SupervisionTree(logDir, { ...config, logger });
 }
 ```
 
-**Update call sites** — `services/` and `bin/` files that construct
-SupervisionTree. Pass logger explicitly or rely on the default.
+The factory wires the real logger. Tests pass a mock logger directly to the
+constructor — they never call the factory.
 
-**Verify**: `npm run test --workspace=libraries/libsupervise`
+**Update all call sites in the same commit** — every file that constructs
+`SupervisionTree` directly must pass a logger. Search for `new SupervisionTree`
+across services and bin files; update each one.
+
+**Verify**: `npm run check`
 
 ## Migration 2: libutil (medium — ~2 hours)
 
@@ -116,55 +121,68 @@ dynamic imports to avoid circular dependencies with libtelemetry.
 
 ### Changes
 
-These functions are genuinely stateless — they don't hold state or need
-injected collaborators. The standard pattern says pure stateless utilities
-are acceptable as standalone exports. The fix is organizational, not
-architectural:
+Functions that wrap I/O or external processes must accept their dependencies
+explicitly — no optional parameters with real defaults. Pure stateless functions
+(zero dependencies beyond Node.js built-ins) stay as-is.
 
-1. **Keep pure stateless functions as-is** — `generateHash`, `generateUUID`,
-   `countTokens`, `createTokenizer`, `parseJsonBody` are truly stateless. No
-   migration needed.
+**Keep as pure functions (no changes):**
+- `generateHash(input)` — stateless, uses only `crypto`
+- `generateUUID()` — stateless, uses only `crypto`
+- `countTokens(text)` — stateless computation
+- `createTokenizer()` — stateless factory
+- `parseJsonBody(request)` — stateless transform
 
-2. **`execLine`** — Wraps `child_process.execSync`. Accept the exec function
-   as an optional parameter for testability:
+**Require dependencies explicitly (no defaults):**
+
+1. **`execLine`** — Wraps `child_process.execSync`. Require the exec function:
 
    ```javascript
-   export function execLine(command, args, options = {}, execFn = execSync) {
+   export function execLine(command, args, options, execFn) {
+     if (!execFn) throw new Error("execFn is required");
      return execFn(/* ... */);
    }
    ```
 
-3. **`waitFor`** — Polling utility. Accept a sleep/delay function as optional
-   parameter:
+   All call sites must pass `execSync` explicitly. This makes the I/O boundary
+   visible and testable.
+
+2. **`waitFor`** — Polling utility. Require a delay function:
 
    ```javascript
-   export function waitFor(fn, options = {}, delayFn = setTimeout) {
+   export function waitFor(fn, options, delayFn) {
+     if (!delayFn) throw new Error("delayFn is required");
      // ...
    }
    ```
 
-4. **`updateEnvFile`** — File I/O utility. Accept fs as optional parameter:
+3. **`updateEnvFile`** — File I/O. Require fs functions:
 
    ```javascript
-   export function updateEnvFile(filePath, key, value, fsFns = { readFileSync, writeFileSync }) {
+   export function updateEnvFile(filePath, key, value, fsFns) {
+     if (!fsFns?.readFileSync) throw new Error("fsFns.readFileSync is required");
+     if (!fsFns?.writeFileSync) throw new Error("fsFns.writeFileSync is required");
      // ...
    }
    ```
 
-5. **`createBundleDownloader`** — Resolve circular dependency. Currently uses
-   `await import("@forwardimpact/libtelemetry")` dynamically. Fix by accepting
-   logger as a parameter instead of importing it:
+4. **`createBundleDownloader`** — Delete the dynamic import. Require logger:
 
    ```javascript
-   export function createBundleDownloader(prefix, logger = null) {
+   export function createBundleDownloader(prefix, logger) {
+     if (!logger) throw new Error("logger is required");
      const finder = new Finder(fs, logger, process);
      // ...
    }
    ```
 
-6. **Add `createRetry` factory** if not already present.
+   The circular dependency with libtelemetry is resolved by requiring the
+   caller to create and pass the logger — no dynamic `import()` needed.
 
-**Verify**: `npm run test --workspace=libraries/libutil`
+**Update all call sites in the same commit.** Every file that calls `execLine`,
+`waitFor`, `updateEnvFile`, or `createBundleDownloader` must pass the required
+dependencies. No fallback behavior.
+
+**Verify**: `npm run check`
 
 ## Migration 3: libuniverse (large — ~6 hours)
 
@@ -195,22 +213,30 @@ CLI (fit-universe.js)         ← composition root: wires all deps
 
 ### Phase 1: Fix ProseEngine DI
 
-**engine/prose.js** — Move PromptLoader from module scope into constructor:
+**engine/prose.js** — Delete module-level PromptLoader. Require all deps in
+constructor with validation:
 
 ```javascript
 class ProseEngine {
   constructor({ cachePath, mode, strict, llmApi, promptLoader, logger }) {
+    if (!cachePath) throw new Error("cachePath is required");
+    if (!mode) throw new Error("mode is required");
+    if (!llmApi) throw new Error("llmApi is required");
+    if (!promptLoader) throw new Error("promptLoader is required");
+    if (!logger) throw new Error("logger is required");
     this.cachePath = cachePath;
     this.mode = mode;
     this.strict = strict;
     this.llmApi = llmApi;
-    this.promptLoader = promptLoader;   // was module-level
-    this.logger = logger;               // was createLogger() inline
+    this.promptLoader = promptLoader;
+    this.logger = logger;
     this.cache = new Map();
     this.dirty = false;
   }
 }
 ```
+
+Delete the module-level `const prompts = createPromptLoader(...)` line entirely.
 
 **Add factory:**
 
@@ -222,15 +248,19 @@ export function createProseEngine(options) {
 }
 ```
 
-Update pipeline.js to use the factory or pass deps explicitly.
+The factory is the only place that creates real dependencies. Tests construct
+`ProseEngine` directly with mocks.
 
 ### Phase 2: Extract DslParser
 
-Wrap `tokenizer.js` and `parser.js` into a class:
+Wrap `tokenizer.js` and `parser.js` into a class. Delete the bare
+`parseUniverse()` export.
 
 ```javascript
 export class DslParser {
   constructor(tokenizer, parser) {
+    if (!tokenizer) throw new Error("tokenizer is required");
+    if (!parser) throw new Error("parser is required");
     this.tokenizer = tokenizer;
     this.parser = parser;
   }
@@ -248,11 +278,14 @@ export function createDslParser() {
 
 ### Phase 3: Extract EntityGenerator
 
-Wrap `tier0.js`, `entities.js`, `activity.js`:
+Wrap `tier0.js`, `entities.js`, `activity.js`. Delete the bare `generate()`
+and `buildEntities()` exports.
 
 ```javascript
 export class EntityGenerator {
   constructor(rngFactory, logger) {
+    if (!rngFactory) throw new Error("rngFactory is required");
+    if (!logger) throw new Error("logger is required");
     this.rngFactory = rngFactory;
     this.logger = logger;
   }
@@ -272,15 +305,18 @@ export function createEntityGenerator(logger) {
 
 The internal `buildEntities` and `generateActivity` remain as pure functions
 called by the class — they are stateless builders that take data in and return
-data out.
+data out. They are not exported from index.js.
 
 ### Phase 4: Extract Renderer
 
-Wrap all render functions behind a single class with method dispatch:
+Wrap all render functions behind a single class. Delete the bare `renderHTML()`,
+`renderMarkdown()`, `renderRawDocuments()` exports.
 
 ```javascript
 export class Renderer {
   constructor(templateLoader, logger) {
+    if (!templateLoader) throw new Error("templateLoader is required");
+    if (!logger) throw new Error("logger is required");
     this.templateLoader = templateLoader;
     this.logger = logger;
   }
@@ -290,13 +326,23 @@ export class Renderer {
   renderRaw(entities) { /* delegates to raw.js logic */ }
   renderPathway(pathwayData) { /* delegates to pathway.js render logic */ }
 }
+
+export function createRenderer(templateDir, logger) {
+  const templateLoader = createTemplateLoader(templateDir);
+  return new Renderer(templateLoader, logger);
+}
 ```
 
 ### Phase 5: Extract PathwayGenerator
 
+Delete the bare `generatePathwayData()` export.
+
 ```javascript
 export class PathwayGenerator {
   constructor(proseEngine, promptLoader, logger) {
+    if (!proseEngine) throw new Error("proseEngine is required");
+    if (!promptLoader) throw new Error("promptLoader is required");
+    if (!logger) throw new Error("logger is required");
     this.proseEngine = proseEngine;
     this.promptLoader = promptLoader;
     this.logger = logger;
@@ -310,9 +356,12 @@ export class PathwayGenerator {
 
 ### Phase 6: Extract ContentValidator and ContentFormatter
 
+Delete the bare `validateCrossContent()` and `formatFiles()` exports.
+
 ```javascript
 export class ContentValidator {
   constructor(logger) {
+    if (!logger) throw new Error("logger is required");
     this.logger = logger;
   }
   validate(entities) { /* wraps validateCrossContent() */ }
@@ -320,6 +369,8 @@ export class ContentValidator {
 
 export class ContentFormatter {
   constructor(prettierFn, logger) {
+    if (!prettierFn) throw new Error("prettierFn is required");
+    if (!logger) throw new Error("logger is required");
     this.prettierFn = prettierFn;
     this.logger = logger;
   }
@@ -379,9 +430,12 @@ const result = await pipeline.run(source, options);
 
 ### Phase 9: Update exports
 
-**index.js** — Export classes and factories. Remove bare function exports.
-Keep `parseUniverse` as a convenience alias for `createDslParser().parse()` if
-external consumers depend on it, but prefer the class API.
+**index.js** — Export classes and factories only. Delete all bare function
+exports (`parseUniverse`, `generate`, `buildEntities`, `renderHTML`,
+`renderMarkdown`, `runPipeline`, etc.). There are no external consumers — the
+only caller is `bin/fit-universe.js`, which is updated in the same commit.
+
+No aliases, no re-exports of old function names.
 
 ### Phase 10: Update tests
 
@@ -396,22 +450,36 @@ const result = parser.parse(source);
 
 ## Migration order
 
-| Order | Library | Size | Risk | Dependencies |
-| --- | --- | --- | --- | --- |
-| 1 | libsupervise | Small | Low | No downstream consumers change |
-| 2 | libutil | Medium | Medium | Many consumers — verify all workspaces |
-| 3 | libuniverse | Large | Medium | Only fit-universe CLI consumes it |
+Each migration is a single atomic commit — library changes and all call site
+updates together. No intermediate broken states.
+
+| Order | Library | Commit scope |
+| --- | --- | --- |
+| 1 | libsupervise | Library + all SupervisionTree call sites |
+| 2 | libutil | Library + all execLine/waitFor/updateEnvFile/createBundleDownloader call sites |
+| 3 | libuniverse | Library + bin/fit-universe.js + all tests |
 
 ## Verification
 
-After all migrations:
+After each migration commit:
 
 ```sh
 npm run check          # format, lint, test, SHACL across all packages
-npm run test           # unit tests
+```
+
+After all migrations are complete:
+
+```sh
 npm run test:e2e       # E2E tests
 ```
 
-Every library constructor must accept all collaborators as parameters. No
-module-level singletons remain. Every library with classes has at least one
-`createXxx` factory function.
+**Audit checklist (run after all three migrations):**
+
+- Zero `|| createLogger` or `?? createLogger` patterns in any constructor
+- Zero module-level `const logger =` or `const prompts =` in library source
+- Zero `await import(` in library source (dynamic imports removed)
+- Zero optional dependency parameters with real defaults in constructors
+- Every class constructor validates all required dependencies with `throw`
+- Every library exports at least one `createXxx` factory function
+- Factory functions are the only code that calls `createLogger`,
+  `createPromptLoader`, or other real dependency constructors

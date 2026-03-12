@@ -1,8 +1,8 @@
 # Plan 02 — Consolidate Library Skills into Capability Groups
 
 Replace 22 individual library SKILL.md files with 5 capability-group skills.
-Each group skill teaches the agent how to compose libraries for real tasks
-instead of showing isolated APIs.
+Clean break — delete all individual library skills in the same commit that
+adds the group skills. No transition period, no coexistence.
 
 ## Current state
 
@@ -252,35 +252,46 @@ from protobuf, hashing, secrets, or environment configuration.
 3. **Generate code from proto** — new CodegenTypes(root, path, deps) →
    codegen.generate()
 
-## Implementation steps
+## Implementation
 
-### Step 1: Write group skill files
+This is a single atomic commit: create group skills, delete individual skills,
+update all references. No intermediate state where both exist.
 
-Create the 5 new SKILL.md files in `.claude/skills/libs-{capability}/`.
-Each file follows the template above with full composition recipes and
-decision guides.
+### Step 1: Complete Plan 01 first
 
-### Step 2: Delete individual library skills
+The OO+DI migrations must land before writing group skills. The composition
+recipes and DI wiring sections document the final API — writing them against
+the old API would require a second pass. Do it once, do it right.
 
-Remove all 22 individual library skill directories (but keep libskill):
+### Step 2: Write group skill files and delete individual skills (one commit)
 
-```sh
-# Delete individual library skills
-rm -rf .claude/skills/lib{agent,codegen,config,doc,format,graph,harness,index,llm,memory,policy,prompt,rc,resource,rpc,secret,storage,supervise,telemetry,type,ui,universe,util,vector,web}
-```
+In a single commit:
 
-### Step 3: Update CLAUDE.md references
+1. Create 5 new SKILL.md files in `.claude/skills/libs-{capability}/`.
+   Each follows the template above with composition recipes showing the
+   post-migration APIs.
 
-If CLAUDE.md or any other project-level config references individual library
-skills, update to reference the group skills.
+2. Delete all 22 individual library skill directories:
 
-### Step 4: Update skill descriptions in settings
+   ```sh
+   rm -rf .claude/skills/lib{agent,codegen,config,doc,format,graph,harness,index,llm,memory,policy,prompt,rc,resource,rpc,secret,storage,supervise,telemetry,type,ui,universe,util,vector,web}
+   ```
 
-The system prompt skill descriptions (shown in the `<system-reminder>` tags)
-come from the SKILL.md frontmatter. After replacing files, verify that the
-new descriptions appear correctly.
+3. Update CLAUDE.md and any project-level config that references individual
+   library skills. Replace with group skill references.
 
-### Step 5: Verify agent behaviour
+4. Update `.claude/settings.json` if it contains skill-specific permissions.
+
+No coexistence period. The old skills are deleted in the same commit the new
+ones are created.
+
+### Step 3: Update libskill skill
+
+Refresh libskill's content to include composition patterns showing how libskill
+integrates with map (upstream) and pathway (downstream). Add a note that
+libskill is intentionally pure functions — the only library exempt from OO+DI.
+
+### Step 4: Verify agent behaviour
 
 Test with representative prompts:
 
@@ -295,34 +306,5 @@ Test with representative prompts:
 5. "Set up process supervision for a new service" — should activate
    libs-system-utilities
 
-### Step 6: Update libskill skill
-
-Keep libskill as an individual skill but refresh its content to include
-composition patterns showing how libskill integrates with map (upstream) and
-pathway (downstream). Add a note that libskill is intentionally pure functions
-— the only library exempt from OO+DI.
-
-## Rollback plan
-
-If agents perform worse with grouped skills:
-
-1. The individual skills are in git history — restore with
-   `git checkout HEAD~1 -- .claude/skills/lib*/SKILL.md`
-2. Group skills and individual skills can coexist temporarily for A/B testing
-3. Group sizes can be adjusted (split a large group, merge small groups)
-   without changing the overall approach
-
-## Sequencing with Plan 01
-
-Plan 01 (OO+DI migration) and Plan 02 (skill consolidation) are independent
-and can execute in parallel. However, the composition recipes in the group
-skills should reflect the final API after OO+DI migration. Two options:
-
-- **Option A:** Write group skills first with current APIs, update recipes
-  after migration. Simpler to execute.
-- **Option B:** Execute OO+DI migration first, then write group skills with
-  final APIs. Cleaner result.
-
-**Recommendation:** Option B. The OO+DI migrations are mechanical and
-well-scoped. Complete them first so the group skills document the final
-pattern once, avoiding a documentation update pass.
+If a group skill underperforms, fix the group skill — don't restore individual
+skills. The fix is better instructions, not more skills.

@@ -80,13 +80,17 @@ Every library (except libskill and libui) follows one pattern:
 **Rules:**
 
 1. Classes accept all collaborators through the constructor — no module-level
-   singletons, no inline `createLogger()` calls, no dynamic imports.
-2. Factory functions are the convenience layer. They wire real implementations
-   and handle async initialization. Tests bypass factories and inject mocks
-   directly.
-3. Pure utility functions (hash, uuid, token counting) are acceptable only in
-   libutil as static methods on focused classes or as standalone exports when
-   they are truly stateless and have zero dependencies.
+   singletons, no inline `createLogger()` calls, no dynamic imports, no default
+   parameter fallbacks that silently create real dependencies.
+2. Constructors validate that all required dependencies are provided and throw
+   if any are missing. No optional dependencies — if a class needs it, require
+   it.
+3. Factory functions are the only place where real implementations are wired.
+   They exist for convenience; tests bypass them entirely and inject mocks
+   directly via the constructor.
+4. Pure utility functions (hash, uuid, token counting) are acceptable only in
+   libutil as standalone exports when they are truly stateless and have zero
+   dependencies beyond Node.js built-ins.
 
 **Exceptions:**
 
@@ -140,15 +144,37 @@ Group skills use the pattern `libs-{capability}`:
 - `libs-web-presentation`
 - `libs-system-utilities`
 
+## Clean break principle
+
+There are no external consumers of these libraries. Every change is a clean
+break — old interfaces are deleted, not aliased. Specifically:
+
+- **No default parameters that create real dependencies.** Constructors require
+  all deps; callers must pass them explicitly. Factory functions are the only
+  place that wires real implementations.
+- **No convenience aliases for removed functions.** When a bare function becomes
+  a class method, the old export is deleted. No re-export, no deprecation
+  notice, no shim.
+- **All call sites update in the same commit as the library change.** Every
+  service, product, CLI, and test that imports the changed library is updated
+  atomically. No phased rollout.
+- **Old skill files are deleted, not archived.** The 22 individual library
+  skills are removed from `.claude/skills/` entirely. Git history is the
+  archive.
+
 ## Success criteria
 
-1. Every library constructor accepts all collaborators as parameters. Zero
-   module-level singletons. Zero inline dependency creation.
-2. Every library has a `createXxx` factory function for convenience wiring.
-3. All existing tests pass after migration (test commands unchanged).
-4. Library skill count drops from 22 individual files to 5 group files + 1
-   individual (libskill).
-5. Coding agents can compose multi-library solutions from a single skill
+1. Every library constructor accepts all collaborators as required parameters.
+   Zero module-level singletons. Zero inline dependency creation. Zero default
+   fallbacks to real implementations.
+2. Every library has a `createXxx` factory function that wires real deps.
+   Constructors never do this themselves.
+3. All call sites (services, products, CLIs, tests) are updated in the same
+   commit as the library migration. No broken intermediate states.
+4. All existing tests pass after migration (`npm run check`).
+5. Library skill count drops from 22 individual files to 5 group files + 1
+   individual (libskill). No individual library skills remain.
+6. Coding agents can compose multi-library solutions from a single skill
    activation (verified by manual testing with representative tasks).
 
 ## Out of scope
@@ -157,5 +183,3 @@ Group skills use the pattern `libs-{capability}`:
 - Changing libui's functional DOM approach.
 - Adding new libraries or merging existing ones.
 - Changing the library dependency graph.
-- Product or service code changes beyond updating import patterns affected by
-  library API changes.
