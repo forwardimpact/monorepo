@@ -77,8 +77,8 @@ help:
 	@echo "  supabase-start    	Start Supabase via fit-rc (oneshot)"
 	@echo "  supabase-stop     	Stop Supabase via fit-rc (oneshot)"
 	@echo "  supabase-migrate  	Run Map database migrations"
-	@echo "  supabase-status   	Supabase health check"
-	@echo ""
+	@echo "  supabase-status   	Supabase health check"	@echo "  supabase-seed     \tLoad example data into Supabase"
+	@echo "  supabase-setup    \tStart + migrate + seed (full local setup)"	@echo ""
 	@echo "Docker:"
 	@echo "  docker            	Build and start Docker Compose"
 	@echo "  docker-build      	Build Docker images"
@@ -303,6 +303,13 @@ supabase-migrate:  ## Run Map database migrations
 .PHONY: supabase-status
 supabase-status:  ## Supabase health check
 	@curl -sf http://127.0.0.1:54321/rest/v1/ >/dev/null && echo "supabase: ok" || echo "supabase: not running"
+
+.PHONY: supabase-seed
+supabase-seed:  ## Load example data into Supabase
+	@node products/map/scripts/load-examples.js
+
+.PHONY: supabase-setup
+supabase-setup: supabase-up supabase-seed  ## Start + migrate + seed (full local setup)
 
 # ====================
 # Docker

@@ -7,6 +7,12 @@
 
 CREATE SCHEMA IF NOT EXISTS activity;
 
+GRANT USAGE ON SCHEMA activity TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA activity
+  GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA activity
+  GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+
 -- -----------------------------------------------------------------------------
 -- Organization People
 -- -----------------------------------------------------------------------------
@@ -144,3 +150,7 @@ CREATE TABLE activity.evidence (
   rationale               TEXT,
   created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Grant access on all tables created above
+GRANT ALL ON ALL TABLES IN SCHEMA activity TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA activity TO anon, authenticated, service_role;

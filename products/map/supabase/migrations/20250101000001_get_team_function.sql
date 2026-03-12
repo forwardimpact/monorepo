@@ -9,6 +9,7 @@ CREATE OR REPLACE FUNCTION activity.get_team(root_email TEXT)
 RETURNS SETOF activity.organization_people
 LANGUAGE sql
 STABLE
+SET search_path = ''
 AS $$
   WITH RECURSIVE team AS (
     SELECT * FROM activity.organization_people WHERE email = root_email

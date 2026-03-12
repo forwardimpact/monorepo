@@ -44,15 +44,30 @@ export async function readRaw(supabase, path) {
 
 /**
  * List raw documents under a prefix.
+ * Paginates automatically to return all results.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {string} prefix - Path prefix (e.g., 'github/', 'getdx/snapshots-info/')
  * @returns {Promise<Array<{name: string, created_at: string}>>}
  */
 export async function listRaw(supabase, prefix) {
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .list(prefix, { sortBy: { column: "created_at", order: "desc" } });
+  const PAGE_SIZE = 1000;
+  const all = [];
+  let offset = 0;
 
-  if (error) throw new Error(`listRaw(${prefix}): ${error.message}`);
-  return data;
+  while (true) {
+    const { data, error } = await supabase.storage
+      .from(BUCKET)
+      .list(prefix, {
+        sortBy: { column: "created_at", order: "desc" },
+        limit: PAGE_SIZE,
+        offset,
+      });
+
+    if (error) throw new Error(`listRaw(${prefix}): ${error.message}`);
+    all.push(...data);
+    if (data.length < PAGE_SIZE) break;
+    offset += PAGE_SIZE;
+  }
+
+  return all;
 }
