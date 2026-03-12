@@ -4,11 +4,7 @@ import { spawn } from "node:child_process";
 import { PassThrough } from "node:stream";
 import { EventEmitter } from "node:events";
 
-import { createLogger } from "@forwardimpact/libtelemetry";
-
 import { LongrunProcess } from "./longrun.js";
-
-const logger = createLogger("tree");
 
 const require = createRequire(import.meta.url);
 const LOG_BIN = require.resolve("./bin/fit-logger.js");
@@ -16,6 +12,7 @@ const LOG_BIN = require.resolve("./bin/fit-logger.js");
 /**
  * @typedef {object} TreeConfig
  * @property {number} [shutdownTimeout] - Timeout for graceful shutdown in ms (default: 3000)
+ * @property {import('@forwardimpact/libtelemetry').Logger} logger - Logger instance
  */
 
 /**
@@ -27,18 +24,21 @@ export class SupervisionTree extends EventEmitter {
   #longruns;
   #logProcesses;
   #running;
+  #logger;
 
   /**
    * Creates a new SupervisionTree
    * @param {string} logDir - Base directory for process logs
-   * @param {TreeConfig} [config] - Tree configuration
+   * @param {TreeConfig} config - Tree configuration
    */
-  constructor(logDir, config = {}) {
+  constructor(logDir, config) {
     super();
     if (!logDir) throw new Error("logDir is required");
+    if (!config?.logger) throw new Error("config.logger is required");
 
     this.#logDir = logDir;
     this.#shutdownTimeout = config.shutdownTimeout ?? 3000;
+    this.#logger = config.logger;
     this.#longruns = new Map();
     this.#logProcesses = new Map();
     this.#running = false;
@@ -104,7 +104,7 @@ export class SupervisionTree extends EventEmitter {
     this.#longruns.set(name, { longrun, stdout, stderr });
 
     await longrun.start();
-    logger.info(name, "Process added to supervision", {
+    this.#logger.info(name, "Process added to supervision", {
       pid: longrun.getState().pid,
     });
   }
@@ -145,7 +145,7 @@ export class SupervisionTree extends EventEmitter {
     });
 
     this.#logProcesses.set(name, logProcess);
-    logger.debug(name, "Log writer added to supervision", {
+    this.#logger.debug(name, "Log writer added to supervision", {
       pid: logProcess.pid,
     });
   }
@@ -159,7 +159,7 @@ export class SupervisionTree extends EventEmitter {
     const entry = this.#longruns.get(name);
     if (!entry) return;
 
-    logger.info(name, "Process removed from supervision", {
+    this.#logger.info(name, "Process removed from supervision", {
       pid: entry.longrun.getState().pid,
     });
 
@@ -171,7 +171,7 @@ export class SupervisionTree extends EventEmitter {
 
     const logProcess = this.#logProcesses.get(name);
     if (logProcess) {
-      logger.debug(name, "Removing log writer from supervision", {
+      this.#logger.debug(name, "Removing log writer from supervision", {
         pid: logProcess.pid,
       });
       logProcess.stdin.end();
