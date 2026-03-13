@@ -17,14 +17,16 @@ engineering teams:
 | **Landmark** | What does my engineering work demonstrate?      | `fit-landmark`   |
 | **Summit**   | Can this team deliver what we need?             | `fit-summit`     |
 
-**Map** defines the data model — skills, levels, behaviours, markers — and
-validates framework data. **Pathway** charts individual career progression and
-generates agent teams and skills. **Basecamp** gives every engineer a personal knowledge
-system powered by scheduled AI tasks. **Guide** is the LLM agent that interprets
-artifacts against skill markers. **Landmark** is a thin analysis layer that
-presents Guide-generated evidence and GetDX snapshot data from Map. **Summit**
-aggregates individual skill matrices into team-level capability views for
-staffing, gap analysis, and what-if planning.
+**Map** is the data product — skills, levels, behaviours, markers — owned,
+validated, and published for consumption by humans and agents. **Pathway** charts
+individual career progression and generates agent teams and skills. **Basecamp**
+gives every engineer a personal knowledge system powered by scheduled AI tasks.
+**Guide** is the LLM agent that interprets artifacts against skill markers.
+**Landmark** is a thin analysis layer that presents Guide-generated evidence and
+GetDX snapshot data from Map. **Summit** treats a team as a system, not a
+collection of individuals — it aggregates skill matrices into capability
+coverage, structural risks, and what-if staffing scenarios so leaders can build
+teams that succeed.
 
 **Tech**: Node.js 18+, Plain JS + JSDoc, YAML, npm workspaces, no frameworks
 
@@ -32,12 +34,12 @@ staffing, gap analysis, and what-if planning.
 
 ```
 products/
-  map/          Data model, validation            (fit-map)
+  map/          Data product, validation          (fit-map)
   pathway/      Web app, CLI, formatters          (fit-pathway)
   basecamp/     Knowledge system, scheduler       (fit-basecamp)
   guide/        LLM agent, artifact interpretation
   landmark/     Signal analysis on Map data       (fit-landmark)
-  summit/       Team capability planning          (fit-summit)
+  summit/       Team capability as a system        (fit-summit)
 libraries/
   libskill/     Derivation logic, job/agent models
   libuniverse/  Synthetic data DSL and generation  (fit-universe)

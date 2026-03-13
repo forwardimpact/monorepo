@@ -28,9 +28,9 @@ engineering teams:
 
 ## Products
 
-**[Map](products/map)** — Data model, schema, and validation. Defines skills,
-levels, behaviours, markers, and drivers in YAML. Single source of truth for the
-career framework.
+**[Map](products/map)** — Data product for engineering capability. Defines
+skills, levels, behaviours, markers, and drivers in YAML. Owned, validated, and
+published for consumption by humans and agents.
 
 **[Pathway](products/pathway)** — Web app and CLI for career progression. Browse
 skills, generate job definitions, and create agent teams and skills.
@@ -45,9 +45,9 @@ against skill markers. Reads source from Map, writes evidence back to Map.
 evidence, GetDX snapshot scores, and trend views. No LLM calls — query,
 aggregate, explain.
 
-**Summit** — Team capability planning from skill data. Aggregates individual
-skill matrices into coverage heatmaps, structural risk analysis, and what-if
-staffing scenarios. Fully local and deterministic.
+**Summit** — Views a team as a system, not a collection of individuals.
+Aggregates skill matrices into capability coverage, structural risks, and
+what-if staffing scenarios. Fully local and deterministic.
 
 ## Quick Start
 
