@@ -10,7 +10,6 @@ import {
   chmodSync,
   readdirSync,
   statSync,
-  readFileSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
@@ -18,7 +17,6 @@ import { computeNextWakeAt } from "./scheduler.js";
 
 export class SocketServer {
   #socketPath;
-  #scheduler;
   #agentRunner;
   #stateManager;
   #log;
@@ -55,7 +53,6 @@ export class SocketServer {
     if (!logFn) throw new Error("logFn is required");
     if (!cacheDir) throw new Error("cacheDir is required");
     this.#socketPath = socketPath;
-    this.#scheduler = scheduler;
     this.#agentRunner = agentRunner;
     this.#stateManager = stateManager;
     this.#loadConfig = loadConfig;

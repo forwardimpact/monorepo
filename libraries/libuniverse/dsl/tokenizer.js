@@ -207,7 +207,7 @@ export function tokenize(source) {
     }
 
     // Number, percent, date, or negative number
-    if (/[\d\-]/.test(source[i])) {
+    if (/[\d-]/.test(source[i])) {
       let num = "";
       if (source[i] === "-") {
         num += "-";

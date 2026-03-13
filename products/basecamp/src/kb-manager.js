@@ -13,11 +13,8 @@ import {
 } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { homedir } from "node:os";
-import { fileURLToPath } from "node:url";
-
 export class KBManager {
   #fs;
-  #log;
 
   /**
    * @param {{ existsSync: Function, mkdirSync: Function, cpSync: Function, copyFileSync: Function, readFileSync: Function, writeFileSync: Function, readdirSync: Function }} fs
@@ -27,7 +24,6 @@ export class KBManager {
     if (!fs) throw new Error("fs is required");
     if (!logFn) throw new Error("logFn is required");
     this.#fs = fs;
-    this.#log = logFn;
   }
 
   /**

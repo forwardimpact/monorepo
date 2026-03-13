@@ -107,10 +107,6 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function nowIso() {
-  return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
-}
-
 // --- Cursor operations ---
 
 function cursorGet(source) {

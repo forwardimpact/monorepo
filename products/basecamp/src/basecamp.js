@@ -30,7 +30,7 @@ import { fileURLToPath } from "node:url";
 import * as posixSpawn from "./posix-spawn.js";
 import { StateManager } from "./state-manager.js";
 import { AgentRunner } from "./agent-runner.js";
-import { Scheduler, computeNextWakeAt } from "./scheduler.js";
+import { Scheduler } from "./scheduler.js";
 import { KBManager } from "./kb-manager.js";
 import { SocketServer, requestShutdown } from "./socket-server.js";
 

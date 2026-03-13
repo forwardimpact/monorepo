@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { Buffer } from "node:buffer";
 import { createHmac } from "node:crypto";
 import { parseArgs } from "node:util";
 
