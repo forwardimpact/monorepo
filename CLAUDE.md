@@ -7,7 +7,13 @@
 > — W. Edwards Deming
 
 Six products raise quality, increase output, and bring pride of workmanship to
-engineering teams:
+engineering teams. The design follows Deming throughout: **Map** establishes
+operational definitions so "good engineering" means something concrete.
+**Pathway** and **Guide** build quality in at the point of work rather than
+inspecting it in after the fact. **Landmark** measures the system's outputs
+without blaming individuals. **Summit** treats the team as a system, not a
+collection of parts. All six share one data model and one dependency chain —
+constancy of purpose in architecture.
 
 | Product      | Question it answers                               | CLI            |
 | ------------ | ------------------------------------------------- | -------------- |
