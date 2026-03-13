@@ -19,7 +19,8 @@ engineering teams:
 
 **Map** is the data product — skills, levels, behaviours, markers — owned,
 validated, and published for consumption by humans and agents. **Pathway** charts
-individual career progression and generates agent teams and skills. **Basecamp**
+individual career progression and generates agent teams and skills to support
+and empower the engineers. **Basecamp**
 gives every engineer a personal knowledge system powered by scheduled AI tasks.
 **Guide** is the LLM agent that interprets artifacts against skill markers.
 **Landmark** is a thin analysis layer that presents Guide-generated evidence and

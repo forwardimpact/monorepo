@@ -33,7 +33,8 @@ skills, levels, behaviours, markers, and drivers in YAML. Owned, validated, and
 published for consumption by humans and agents.
 
 **[Pathway](products/pathway)** — Web app and CLI for career progression. Browse
-skills, generate job definitions, and create agent teams and skills.
+skills, generate job definitions, and create agent teams and skills to support
+and empower the engineers.
 
 **[Basecamp](products/basecamp)** — Personal knowledge system with scheduled AI
 tasks. Sync email, prep meetings, draft responses.
