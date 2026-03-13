@@ -5,7 +5,7 @@ consolidate Claude skills into capability-based groups so coding agents reliably
 discover and use libraries.
 
 ```
-specs/080-library-standardization/
+specs/070-library-standardization/
   spec.md                       This document (WHAT and WHY)
   plan-01-oo-di-migration.md    Migrate non-conforming libraries to OO+DI
   plan-02-skill-consolidation.md  Consolidate library skills into capability groups
