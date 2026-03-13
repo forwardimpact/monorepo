@@ -74,9 +74,6 @@ When updating data structure: schema (`products/map/schema/`) → data
    Constructors validate that all required deps are provided. Factory functions
    (`createXxx`) are the only place that wires real implementations. Tests
    bypass factories and inject mocks directly via constructors.
-   **Exceptions:** libskill (pure functions by design), libui (functional DOM),
-   libsecret (stateless crypto utilities), libtype (generated protobuf code).
-   Pure stateless functions (hashing, token counting, validation) do not need DI.
 6. **JSDoc types** — All public functions (`@param`, `@returns`)
 7. **Test coverage** — New logic requires tests
 8. **No frameworks** — Vanilla JS only, ESM modules only
@@ -91,6 +88,10 @@ Every library and product follows a standard pattern:
 - **Factory functions** (`createXxx`) wire real implementations
 - **Composition roots** (CLI `bin/` entry points) create and wire all instances
 - **Tests** bypass factories and inject mocks directly via constructors
+
+**Exceptions:** libskill (pure functions by design), libui (functional DOM),
+libsecret (stateless crypto utilities), libtype (generated protobuf code).
+Pure stateless functions (hashing, token counting, validation) do not need DI.
 
 ### Library Examples
 
