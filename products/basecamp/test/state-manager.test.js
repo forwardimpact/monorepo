@@ -1,21 +1,14 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
+import { createMockFs } from "@forwardimpact/libharness/mock";
 import { StateManager } from "../src/state-manager.js";
 
 describe("StateManager", () => {
   let mockFs;
-  let written;
 
   beforeEach(() => {
-    written = {};
-    mockFs = {
-      readFileSync: () => "{}",
-      writeFileSync: (path, data) => {
-        written[path] = data;
-      },
-      mkdirSync: () => {},
-    };
+    mockFs = createMockFs({ "/tmp/state.json": "{}" });
   });
 
   describe("constructor validation", () => {
@@ -42,7 +35,9 @@ describe("StateManager", () => {
   describe("load", () => {
     test("loads and returns valid state from disk", () => {
       const stateData = { agents: { planner: { status: "idle" } } };
-      mockFs.readFileSync = () => JSON.stringify(stateData);
+      mockFs = createMockFs({
+        "/tmp/state.json": JSON.stringify(stateData),
+      });
 
       const sm = new StateManager("/tmp/state.json", mockFs);
       const state = sm.load();
@@ -51,7 +46,9 @@ describe("StateManager", () => {
     });
 
     test("returns default state when file has no agents key", () => {
-      mockFs.readFileSync = () => JSON.stringify({ version: 1 });
+      mockFs = createMockFs({
+        "/tmp/state.json": JSON.stringify({ version: 1 }),
+      });
 
       const sm = new StateManager("/tmp/state.json", mockFs);
       const state = sm.load();
@@ -60,7 +57,7 @@ describe("StateManager", () => {
     });
 
     test("returns default state when file contains null", () => {
-      mockFs.readFileSync = () => "null";
+      mockFs = createMockFs({ "/tmp/state.json": "null" });
 
       const sm = new StateManager("/tmp/state.json", mockFs);
       const state = sm.load();
@@ -69,22 +66,20 @@ describe("StateManager", () => {
     });
 
     test("returns default state and saves when file does not exist", () => {
-      mockFs.readFileSync = () => {
-        throw new Error("ENOENT");
-      };
+      mockFs = createMockFs({});
 
       const sm = new StateManager("/tmp/state.json", mockFs);
       const state = sm.load();
 
       assert.deepStrictEqual(state, { agents: {} });
       // Verify it saved the default state
-      assert.ok(written["/tmp/state.json"]);
-      const saved = JSON.parse(written["/tmp/state.json"]);
-      assert.deepStrictEqual(saved, { agents: {} });
+      const saved = mockFs.data.get("/tmp/state.json");
+      assert.ok(saved);
+      assert.deepStrictEqual(JSON.parse(saved), { agents: {} });
     });
 
     test("returns default state when file contains invalid JSON", () => {
-      mockFs.readFileSync = () => "not valid json{{{";
+      mockFs = createMockFs({ "/tmp/state.json": "not valid json{{{" });
 
       const sm = new StateManager("/tmp/state.json", mockFs);
       const state = sm.load();
@@ -100,23 +95,20 @@ describe("StateManager", () => {
 
       sm.save(state);
 
-      const savedContent = written["/tmp/state.json"];
+      const savedContent = mockFs.data.get("/tmp/state.json");
       assert.ok(savedContent);
       assert.ok(savedContent.endsWith("\n"));
       assert.deepStrictEqual(JSON.parse(savedContent), state);
     });
 
     test("creates parent directory before writing", () => {
-      let createdDir = null;
-      mockFs.mkdirSync = (dir, opts) => {
-        createdDir = dir;
-        assert.deepStrictEqual(opts, { recursive: true });
-      };
-
       const sm = new StateManager("/data/basecamp/state.json", mockFs);
       sm.save({ agents: {} });
 
-      assert.strictEqual(createdDir, "/data/basecamp");
+      assert.strictEqual(mockFs.mkdirSync.mock.callCount(), 1);
+      const [dir, opts] = mockFs.mkdirSync.mock.calls[0].arguments;
+      assert.strictEqual(dir, "/data/basecamp");
+      assert.deepStrictEqual(opts, { recursive: true });
     });
   });
 
@@ -191,7 +183,8 @@ describe("StateManager", () => {
       const sm = new StateManager("/tmp/state.json", mockFs);
       sm.resetStaleAgents(state, { reason: "shutdown" }, () => {});
 
-      assert.ok(written["/tmp/state.json"]);
+      // writeFileSync should have been called (save writes to data map)
+      assert.ok(mockFs.writeFileSync.mock.callCount() > 0);
     });
 
     test("does not save when no agents are reset", () => {
@@ -201,10 +194,13 @@ describe("StateManager", () => {
         },
       };
 
+      // Reset call count from beforeEach
+      mockFs.writeFileSync.mock.resetCalls();
+
       const sm = new StateManager("/tmp/state.json", mockFs);
       sm.resetStaleAgents(state, { reason: "startup" }, () => {});
 
-      assert.strictEqual(written["/tmp/state.json"], undefined);
+      assert.strictEqual(mockFs.writeFileSync.mock.callCount(), 0);
     });
 
     test("returns zero when no agents exist", () => {
@@ -257,7 +253,7 @@ describe("StateManager", () => {
       sm.updateAgentState(agentState, stdout, "my-agent", "/tmp/cache");
 
       const outputPath = "/tmp/cache/state/my_agent_last_output.md";
-      assert.strictEqual(written[outputPath], stdout);
+      assert.strictEqual(mockFs.data.get(outputPath), stdout);
     });
 
     test("initializes wakeCount from zero", () => {

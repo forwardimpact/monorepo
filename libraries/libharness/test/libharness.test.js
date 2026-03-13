@@ -150,6 +150,31 @@ describe("libharness", () => {
       assert.strictEqual(fs.existsSync("/file.txt"), true);
       assert.strictEqual(fs.existsSync("/missing.txt"), false);
     });
+
+    test("readFileSync returns file content", () => {
+      const fs = createMockFs({ "/test.txt": "hello" });
+      const content = fs.readFileSync("/test.txt", "utf-8");
+      assert.strictEqual(content, "hello");
+    });
+
+    test("readFileSync throws ENOENT for missing file", () => {
+      const fs = createMockFs({});
+      assert.throws(() => fs.readFileSync("/missing.txt"), { code: "ENOENT" });
+    });
+
+    test("writeFileSync stores content in data map", () => {
+      const fs = createMockFs({});
+      fs.writeFileSync("/new.txt", "content");
+      assert.strictEqual(fs.data.get("/new.txt"), "content");
+      assert.strictEqual(fs.readFileSync("/new.txt", "utf-8"), "content");
+    });
+
+    test("mkdirSync adds to dirs set", () => {
+      const fs = createMockFs({});
+      fs.mkdirSync("/new/dir");
+      assert.ok(fs.dirs.has("/new/dir"));
+      assert.strictEqual(fs.existsSync("/new/dir"), true);
+    });
   });
 
   describe("pathway fixtures", () => {

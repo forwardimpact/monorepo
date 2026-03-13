@@ -99,5 +99,14 @@ export function createMockFs(files = {}) {
       }
       return encoding ? content : Buffer.from(content);
     }),
+    writeFileSync: mock.fn((path, content) => {
+      data.set(
+        path,
+        typeof content === "string" ? content : content.toString(),
+      );
+    }),
+    mkdirSync: mock.fn((path) => {
+      dirs.add(path);
+    }),
   };
 }
