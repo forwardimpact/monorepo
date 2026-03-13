@@ -15,7 +15,7 @@ engineering teams:
 | **Pathway**  | Where should I grow next?                       | `fit-pathway`    |
 | **Basecamp** | What do I need to handle today?                 | `fit-basecamp`   |
 | **Landmark** | What does my engineering work demonstrate?      | `fit-landmark`   |
-| **Summit**   | Can this team deliver what we need?             | `fit-summit`     |
+| **Summit**   | Is this team supported to reach peak performance? | `fit-summit`     |
 
 **Map** is the data product — skills, levels, behaviours, markers — owned,
 validated, and published for consumption by humans and agents. **Pathway** charts

@@ -24,7 +24,7 @@ engineering teams:
 | **Pathway**  | Where should I grow next?                       |
 | **Basecamp** | What do I need to handle today?                 |
 | **Landmark** | What does my engineering work demonstrate?      |
-| **Summit**   | Can this team deliver what we need?             |
+| **Summit**   | Is this team supported to reach peak performance? |
 
 ## Products
 
