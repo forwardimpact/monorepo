@@ -122,7 +122,8 @@ AgentRunner → Scheduler → SocketServer with explicit dependency passing.
 ## Skill Groups
 
 Library skills are organized into 5 capability groups (not individual library
-skills). Each group teaches multi-library composition, not isolated APIs.
+skills). Each group has a corresponding skill file (`.claude/skills/`) with
+decision guides, composition recipes, and DI wiring patterns.
 
 | Group                        | Libraries                                          |
 | ---------------------------- | -------------------------------------------------- |
