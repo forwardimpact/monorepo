@@ -1,8 +1,8 @@
 # Design Spec: Forward Impact Team (FIT)
 
 > A monochrome design system for six products — **Map**, **Pathway**,
-> **Guide**, **Landmark**, and **Basecamp** — built around the metaphor of
-> engineers deployed "in the field." Three characters — the Engineer, the AI
+> **Guide**, **Landmark**, **Basecamp**, and **Summit** — built around the
+> metaphor of engineers deployed "in the field." Three characters — the Engineer, the AI
 > Agent, and the Business Stakeholder — collaborate at the boundary between
 > technology and the real world. Inspired by the restraint of Ollama and
 > Moondream, adapted for a professional product suite.
@@ -15,11 +15,12 @@
 
 1. **Expedition**: Forward deployed — operating with autonomy in unfamiliar
    terrain. Basecamp is where you prepare. The Guide keeps you oriented. The
-   Pathway is how you advance. The Map shows the territory.
+   Pathway is how you advance. The Map shows the territory. The Summit is
+   the peak the team aims to reach together.
 2. **Scientific fieldwork**: Engineers embedded with business units and domain
    experts — working where the problems live.
-3. **Topographic/landscape**: Contour maps, trail markers, compass roses, and
-   cairns — tools humans use to navigate unfamiliar ground.
+3. **Topographic/landscape**: Contour maps, trail markers, compass roses,
+   cairns, and mountain peaks — tools humans use to navigate unfamiliar ground.
 
 The name **Forward Impact Team** (FIT) captures all three: "Forward" from
 forward deployed, "Impact" from the mission to change outcomes where they
@@ -47,9 +48,9 @@ and functional, not themed like an outdoor gear catalog.
 4. **Typography creates hierarchy.** No accent colors. Size, weight, and spacing
    do all the work.
 5. **Each product has a distinct terrain.** Map = charted territory. Pathway =
-   trails and elevation. Guide = stars and bearing. Landmark = vantage points.
-   Basecamp = shelter and foundation. These appear in icons and illustrations,
-   never in structural UI.
+   trails and switchbacks. Guide = stars and bearing. Landmark = vantage points.
+   Basecamp = shelter and foundation. Summit = the mountain peak. These appear
+   in icons and illustrations, never in structural UI.
 
 ---
 
@@ -128,9 +129,10 @@ Instrument Serif, 64px, weight 400:
 
 DM Sans, 18px, weight 400, gray-400:
 
-  Map, Pathway, Guide, Landmark, and Basecamp — a suite for
+  Map, Pathway, Guide, Landmark, Basecamp, and Summit — a suite for
   charting skills, navigating careers, solving problems,
-  reading signals, and sharing what you learn.
+  reading signals, sharing what you learn, and building
+  teams that reach the peak.
 ```
 
 ---
@@ -223,15 +225,15 @@ characters.
 
 All three seated side by side, each with a laptop. Engineer left, leaning
 forward. AI Agent center, upright. Stakeholder right, composed. Shoulders almost
-touching. Below them, the five product icons in a neat row.
+touching. Below them, the six product icons in a neat row.
 
 ```
      🐰💻   🤖💻   👔💻
       \      |      /
        (seated together)
 
-  🗺    ⛰     🧭    🪨      ⛺
- Map  Pathway  Guide Landmark Basecamp
+  🗺    ⛰     🧭    🪨     ⛰️     ⛺
+ Map  Pathway  Guide Landmark Summit Basecamp
 ```
 
 **Key details:** Laptops open and angled toward the viewer. Characters look at
@@ -302,25 +304,26 @@ flat while pointing at markers. Stakeholder taps a location with authority.
        (large map)
 ```
 
-#### Scene: Pathway — Plotting the Ascent
+#### Scene: Pathway — Following the Trail
 
 **Context:** Pathway product pages, skills catalogue, career features.
 
-Trio at the base of a mountain range. Two or three peaks behind them with a
-winding trail on the slopes. Engineer has one foot on the trail, pointing up. AI
-Agent studies the trail, finger pointing at a switchback. Stakeholder stands
-with arms crossed, surveying the range — they know the terrain.
+Trio on a winding mountain trail with switchbacks visible ahead. The trail
+curves through the scene with elevation markers along its length. Engineer has
+one foot forward on the trail, pointing at the next switchback. AI Agent studies
+a trail sign with distance markers. Stakeholder walks alongside, gesturing at
+the route — they know where it leads.
 
 ```
-           /\
-          /  \   /\
-    🐰   /    \ /  \   👔
-     ↗  / ~~~~ \/    \  (arms crossed)
-       🤖
-      (studying trail)
+         ╱ ─ ─ ╲
+    🐰  ╱       ╲   👔
+     ↗ ╱  ~~~    ╲  (gesturing)
+      🤖   ⬍
+    (reading sign)
 ```
 
-Mountains use lighter stroke (1.5px) for depth. Trail connects base to summit.
+Trail uses lighter stroke (1.5px) for depth. Switchbacks and elevation markers
+are the visual focus — the journey and navigation, not the destination.
 
 #### Scene: Guide — Finding North
 
@@ -361,6 +364,31 @@ outward, away from viewer — observing signals together.
 Outward-facing orientation is distinctive — most scenes have characters facing
 each other; here they face the same direction.
 
+#### Scene: Summit — Planning the Ascent
+
+**Context:** Summit product pages, team capability analysis, staffing scenarios.
+
+Trio gathered around a map spread on a flat rock, looking up at a mountain peak.
+The peak is prominent in the background — taller than the characters, with a
+flag at the top. Engineer traces a route on the map. AI Agent holds a compass.
+Stakeholder points toward the summit. Multiple faint trail lines on the peak
+show different possible routes.
+
+```
+                ⛳
+               /\
+              /  \
+    🐰  🤖  /    \  👔
+     \  🧭 /      \ /
+     ┌──────────────┐
+     │  map on rock │
+     └──────────────┘
+```
+
+The peak with flag is the focal point — the team's collective goal. Multiple
+route lines suggest different compositions. This scene owns the mountain peak
+image; Pathway owns the trail.
+
 #### Scene: Basecamp — Setting Up Camp
 
 **Context:** Basecamp product pages, knowledge management, workspace features.
@@ -393,9 +421,10 @@ focus on the interior signals Basecamp is about knowledge, not structure.
 | Onboarding — first screen    | Welcome Wave             | 320–400px |
 | Onboarding — getting started | Documentation Dig        | 280–360px |
 | Map product hero             | Charting the Territory   | 320–400px |
-| Pathway product hero         | Plotting the Ascent      | 320–400px |
+| Pathway product hero         | Following the Trail      | 320–400px |
 | Guide product hero           | Finding North            | 320–400px |
 | Landmark product hero        | Reading the Signals      | 320–400px |
+| Summit product hero          | Planning the Ascent      | 320–400px |
 | Basecamp product hero        | Setting Up Camp          | 320–400px |
 | Product cards (suite page)   | Product scenes (cropped) | 120–160px |
 | Error / empty states         | Single character         | 80–120px  |
@@ -422,19 +451,19 @@ Folded paper map, partially unfolded, with route line and position marker. The
 territory mapped out before you move through it — Map is the central data store,
 the single source of truth. Everything else references Map.
 
-### Pathway — The Mountain Trail
+### Pathway — The Switchback Trail
 
 ```
-      /\
-     /  \    /\
-    /    \  /  \
-   /      \/    \
-  ~~~~~~~~~~~~     ← winding trail at the base
+         ╱ ─ ╲
+    ╱ ─ ╱     ╲
+   ╱   ╱       ╲
+  ~~~~~~~~~~~~     ← winding trail with switchbacks
 ```
 
-Two or three overlapping peaks with a winding trail at the base. Trail line
-slightly thinner (1.5px). The career journey through challenging terrain — shows
-the route others have taken and helps you plot your own ascent.
+A winding trail with switchbacks and elevation markers — no mountain peaks. Trail
+line slightly thinner (1.5px). The career journey through challenging terrain —
+shows the route others have taken and helps you plot your own path. Peaks belong
+to Summit; Pathway owns the trail.
 
 ### Guide — The Compass
 
@@ -467,6 +496,23 @@ on a ground line. Slightly irregular edges for hand-drawn feel. Observation,
 measurement, and reference points — the cairn is human-made (not natural), just
 as Landmark's analysis derives meaning from collected data.
 
+### Summit — The Peak
+
+```
+      ⛳
+      /\
+     /  \   /\
+    /    \ /  \
+   /      \/    \
+```
+
+Two overlapping mountain peaks, the taller one in front with a small pennant
+flag at the apex. Clean triangular shapes. No fill (consistent with other
+icons). The peak is a collective goal — not individual achievement, but the
+capability the team is trying to reach together.
+
+**Flat variant:** Single peak with flag. Simplified for favicons and tab bars.
+
 ### Basecamp — The Tent
 
 ```
@@ -489,21 +535,21 @@ portable, reflecting that knowledge management should travel with you.
 | Stroke      | 2px, round caps, round joins                                  |
 | Fill        | None, except Guide's compass needle (north half)              |
 | Color       | `--gray-900` default, `--gray-400` when inactive              |
-| Ground line | 1px stroke at bottom (Pathway, Landmark, Basecamp only)       |
+| Ground line | 1px stroke at bottom (Pathway, Landmark, Summit, Basecamp)    |
 | Style       | Hand-drawn feel — slightly imperfect corners, micro-variation |
 | Sizes       | 24px (inline), 32px (nav), 48px (cards), 96px (marketing)     |
 
 ### Combined Icon: The Suite Mark
 
 ```
- ┌──┬──┐       /\              N         ┃╲          △
- │ /│× │      /  \  /\         │        ┌┸─┐       / \
- │/ │  │     /    \/  \    ───┼───    ┌────┐     /___\
- └──┴──┘    ~~~~~~~~~~~~       │      ──────
-   Map        Pathway        Guide   Landmark   Basecamp
+ ┌──┬──┐      ╱─╲             N         ┃╲         ⛳/\        △
+ │ /│× │     ╱   ╲            │        ┌┸─┐       /  \      / \
+ │/ │  │    ~~~~~~~~~~~~  ───┼───    ┌────┐     /    \    /___\
+ └──┴──┘                      │      ──────    /      \
+   Map       Pathway       Guide   Landmark   Summit   Basecamp
 ```
 
-Five icons on a shared ground line, evenly spaced.
+Six icons on a shared ground line, evenly spaced.
 
 ---
 
@@ -561,13 +607,14 @@ Base unit: `8px`
 │                                              │
 │     Chart skills. Navigate careers.          │  ← DM Sans, gray-400
 │     Solve problems. Read the signals.        │
+│     Build teams that reach the peak.         │
 │                                              │
 │           [ Explore the suite → ]            │
 │                                              │
 ├──────────────────────────────────────────────┤
-│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐│
-│  │ Map  │ │Pathwy│ │Guide │ │Landmk│ │Basecm││
-│  └──────┘ └──────┘ └──────┘ └──────┘ └──────┘│
+│ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐│
+│ │ Map  │ │Pathwy│ │Guide │ │Landmk│ │Summit│ │Basecm││
+│ └──────┘ └──────┘ └──────┘ └──────┘ └──────┘ └──────┘│
 ├──────────────────────────────────────────────┤
 │  Background: contour line texture            │
 │     "Forward deployed engineers              │  ← Instrument Serif
@@ -582,7 +629,7 @@ Base unit: `8px`
 ### Navigation Pattern
 
 ```
-[Trio icon]  FIT   |   Map  ·  Pathway  ·  Guide  ·  Landmark  ·  Basecamp       [Docs]  [Sign in]
+[Trio icon]  FIT   |   Map  ·  Pathway  ·  Guide  ·  Landmark  ·  Summit  ·  Basecamp       [Docs]  [Sign in]
 ```
 
 Current product is bold (`700`). Others are regular (`400`) in `--gray-400`. On
@@ -676,9 +723,10 @@ Each product shares the core design system with subtle differentiators:
 | Product      | Accent Metaphor                      | Empty State                                      | Tone                                              |
 | ------------ | ------------------------------------ | ------------------------------------------------ | ------------------------------------------------- |
 | **Map**      | Cartography — grids, pins, layers    | AI Agent holding blank map toward viewer         | "Chart the territory before you move through it." |
-| **Pathway**  | Elevation — trails, altitude markers | Engineer at trailhead, looking up at peaks       | "Where are you going? Let's map the route."       |
+| **Pathway**  | Trail — switchbacks, elevation marks | Engineer at trailhead, reading a trail sign       | "Where are you going? Let's map the route."       |
 | **Guide**    | Navigation — compass, stars          | AI Agent holding compass toward viewer           | "I can help you find your bearings."              |
 | **Landmark** | Observation — cairns, survey markers | AI Agent beside cairn, holding telescope outward | "What do the signals say?"                        |
+| **Summit**   | Ascent — peaks, routes, team planning | Trio looking up at peak with flag                 | "Can this team reach the peak?"                   |
 | **Basecamp** | Shelter — tents, campfire, logbooks  | Completed tent with flag, door flap open         | "Everything you know, in one place."              |
 
 ### Product-Specific UI Treatments
@@ -686,11 +734,15 @@ Each product shares the core design system with subtle differentiators:
 - **Map**: Data visualizations use map-like layouts — nodes on a terrain grid
   for skill taxonomies and org structure.
 - **Pathway**: Progress uses vertical elevation bars (filling upward) rather
-  than horizontal progress bars.
+  than horizontal progress bars. Trail-like switchback patterns for navigation
+  steps.
 - **Guide**: AI responses indented with a faint left-border in `--sand-200` —
   like a margin note in a field journal.
 - **Landmark**: Dashboard trend lines and comparison bars overlaid on a subtle
   terrain grid.
+- **Summit**: Team heatmaps use terrain-grid overlays. Capability bars fill
+  upward like ascent meters. What-if scenarios use side-by-side peak outlines
+  showing before/after team composition.
 - **Basecamp**: Document cards use warm-tinted backgrounds (`--sand-50`)
   suggesting pages in a notebook.
 
@@ -708,7 +760,8 @@ Each product shares the core design system with subtle differentiators:
   differentiation, never hues
 - **Never show them without laptops in seated poses**
 - **Never add background scenery** — no landscapes, trees, clouds (except
-  Pathway mountains and Landmark outcrop, which are product symbols)
+  Pathway trail switchbacks, Summit peak, and Landmark outcrop, which are
+  product symbols)
 - **Never outline or frame a scene** — scenes float freely in whitespace
 
 ---
