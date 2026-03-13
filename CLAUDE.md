@@ -1,5 +1,11 @@
 # Forward Impact Engineering
 
+> "The aim of leadership should be to improve the performance of man and machine,
+> to improve quality, to increase output, and simultaneously to bring pride of
+> workmanship to people."
+>
+> — W. Edwards Deming
+
 **Pathway** defines skills, behaviours, and career paths for human engineers and
 AI coding agents. **Basecamp** gives every engineer a personal knowledge system
 powered by scheduled AI tasks.
