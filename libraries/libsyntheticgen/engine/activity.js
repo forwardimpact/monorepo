@@ -523,7 +523,7 @@ function deriveInitiatives(ast, rng, people, teams, snapshots) {
 
         counter++;
         const isDeclining = dx.magnitude < 0;
-        const scorecardId = `sc_${scenario.id}_${dx.driver_id}`;
+        const scorecardId = `sc_${scenario.id}_${affect.team_id}_${dx.driver_id}`;
         const scorecardName = isDeclining
           ? `${driver.name} Remediation`
           : `${driver.name} Improvement`;
