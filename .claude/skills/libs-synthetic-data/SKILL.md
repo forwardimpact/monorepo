@@ -141,6 +141,21 @@ import { ContentFormatter } from "@forwardimpact/libsyntheticrender";
 const formatter = new ContentFormatter(prettierFormat, logger);
 ```
 
+## GetDX API References
+
+Synthetic data payloads conform to these GetDX Web API response schemas:
+
+- [teams.list](https://docs.getdx.com/webapi/methods/teams.list/) — team hierarchy
+- [snapshots.list](https://docs.getdx.com/webapi/methods/snapshots.list/) — survey snapshots
+- [snapshots.info](https://docs.getdx.com/webapi/methods/snapshots.info/) — snapshot team scores
+- [snapshots.comments.list](https://docs.getdx.com/webapi/methods/snapshots.comments.list/) — snapshot comments
+- [initiatives.list](https://docs.getdx.com/webapi/methods/initiatives.list/) — initiatives
+- [initiatives.info](https://docs.getdx.com/webapi/methods/initiatives.info/) — initiative detail
+- [initiatives.progressReport](https://docs.getdx.com/webapi/methods/initiatives.progressReport/) — progress reports
+- [scorecards.list](https://docs.getdx.com/webapi/methods/scorecards.list/) — scorecards
+- [scorecards.info](https://docs.getdx.com/webapi/methods/scorecards.info/) — scorecard detail
+- [All methods](https://docs.getdx.com/webapi/methods/) — full API reference
+
 ## Verification
 
 ```sh

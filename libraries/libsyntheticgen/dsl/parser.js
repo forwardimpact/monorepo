@@ -285,6 +285,8 @@ export function parse(tokens) {
       else if (kw.value === "quarterly_to")
         snaps.quarterly_to = parseDateValue();
       else if (kw.value === "account_id") snaps.account_id = parseStringValue();
+      else if (kw.value === "comments_per_snapshot")
+        snaps.comments_per_snapshot = parseNumberValue();
       else
         throw new Error(
           `Unexpected '${kw.value}' in snapshots at line ${kw.line}`,

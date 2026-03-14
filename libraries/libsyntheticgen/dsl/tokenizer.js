@@ -95,6 +95,7 @@ const KEYWORDS = new Set([
   "persona_levels",
   "briefings_per_persona",
   "notes_per_persona",
+  "comments_per_snapshot",
 ]);
 
 const DATE_RE = /^\d{4}-\d{2}$/;

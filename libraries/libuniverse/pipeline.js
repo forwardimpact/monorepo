@@ -163,7 +163,7 @@ export class Pipeline {
 
     if (shouldRender("raw")) {
       log.info("render", "Rendering raw documents");
-      const raw = this.renderer.renderRaw(entities);
+      const raw = this.renderer.renderRaw(entities, prose);
       for (const [path, content] of raw) {
         rawDocuments.set(path, content);
       }

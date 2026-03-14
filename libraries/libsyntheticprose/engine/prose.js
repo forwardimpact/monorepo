@@ -175,6 +175,10 @@ export class ProseEngine {
       domain: context.domain,
       role: context.role,
       audience: context.audience,
+      scenario: context.scenario,
+      driver: context.driver,
+      direction: context.direction,
+      magnitude: context.magnitude,
     });
   }
 
