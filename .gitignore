@@ -25,6 +25,9 @@ generated/
 **/config/agents/*.agent.md
 !**/config/agents/*.agent.example.md
 
+# Prose cache (LLM generation artifact)
+.prose-cache.json
+
 # Development files
 tmp/
 SCRATCHPAD*.md

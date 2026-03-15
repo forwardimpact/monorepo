@@ -420,6 +420,18 @@ describe("parse", () => {
       assert.strictEqual(ast.snapshots.quarterly_to, "2024-12");
       assert.strictEqual(ast.snapshots.account_id, "acct-123");
     });
+
+    test("parses comments_per_snapshot", () => {
+      const ast = parseDsl(`universe test {
+        snapshots {
+          quarterly_from 2024-01
+          quarterly_to 2024-12
+          account_id "acct-123"
+          comments_per_snapshot 25
+        }
+      }`);
+      assert.strictEqual(ast.snapshots.comments_per_snapshot, 25);
+    });
   });
 
   describe("scenario section", () => {

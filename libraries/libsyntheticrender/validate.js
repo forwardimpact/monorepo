@@ -27,6 +27,15 @@ export function validateCrossContent(entities) {
     checkScoreTrajectories(entities),
     checkEvidenceProficiency(entities),
     checkEvidenceSkillIds(entities),
+    checkInitiativeScorecardRefs(entities),
+    checkInitiativeOwnerEmails(entities),
+    checkInitiativeDriverRefs(entities),
+    checkCommentSnapshotRefs(entities),
+    checkCommentEmailRefs(entities),
+    checkCommentTeamRefs(entities),
+    checkScorecardCheckIds(entities),
+    checkRosterSnapshotQuarters(entities),
+    checkProjectTeamEmails(entities),
   ];
 
   const failures = checks.filter((c) => !c.passed);
@@ -352,6 +361,154 @@ function checkEvidenceSkillIds(entities) {
       hasIds || evidence.length === 0
         ? "All evidence entries have skill IDs"
         : "Some evidence entries missing skill IDs",
+  };
+}
+
+function checkInitiativeScorecardRefs(entities) {
+  const initiatives = entities.activity?.initiatives || [];
+  const scorecardIds = new Set(
+    (entities.activity?.scorecards || []).map((s) => s.id),
+  );
+  const invalid = initiatives.filter(
+    (i) => i.scorecard_id && !scorecardIds.has(i.scorecard_id),
+  );
+  return {
+    name: "initiative_scorecard_refs",
+    passed: invalid.length === 0,
+    message:
+      invalid.length === 0
+        ? "All initiative scorecard references are valid"
+        : `${invalid.length} initiatives reference unknown scorecards`,
+  };
+}
+
+function checkInitiativeOwnerEmails(entities) {
+  const initiatives = entities.activity?.initiatives || [];
+  const emails = new Set(entities.people.map((p) => p.email));
+  const invalid = initiatives.filter(
+    (i) => i.owner?.email && !emails.has(i.owner.email),
+  );
+  return {
+    name: "initiative_owner_emails",
+    passed: invalid.length === 0,
+    message:
+      invalid.length === 0
+        ? "All initiative owners are known people"
+        : `${invalid.length} initiatives with unknown owner emails`,
+  };
+}
+
+function checkInitiativeDriverRefs(entities) {
+  const initiatives = entities.activity?.initiatives || [];
+  const driverIds = new Set(
+    (entities.framework?.drivers || []).map((d) => d.id),
+  );
+  const invalid = initiatives.filter(
+    (i) => i._driver_id && !driverIds.has(i._driver_id),
+  );
+  return {
+    name: "initiative_driver_refs",
+    passed: invalid.length === 0,
+    message:
+      invalid.length === 0
+        ? "All initiative driver references are valid"
+        : `${invalid.length} initiatives reference unknown drivers`,
+  };
+}
+
+function checkCommentSnapshotRefs(entities) {
+  const comments = entities.activity?.commentKeys || [];
+  const snapshotIds = new Set(
+    (entities.activity?.snapshots || []).map((s) => s.snapshot_id),
+  );
+  const invalid = comments.filter(
+    (c) => c.snapshot_id && !snapshotIds.has(c.snapshot_id),
+  );
+  return {
+    name: "comment_snapshot_refs",
+    passed: invalid.length === 0,
+    message:
+      invalid.length === 0
+        ? "All comment snapshot references are valid"
+        : `${invalid.length} comments reference unknown snapshots`,
+  };
+}
+
+function checkCommentEmailRefs(entities) {
+  const comments = entities.activity?.commentKeys || [];
+  const emails = new Set(entities.people.map((p) => p.email));
+  const invalid = comments.filter((c) => c.email && !emails.has(c.email));
+  return {
+    name: "comment_email_refs",
+    passed: invalid.length === 0,
+    message:
+      invalid.length === 0
+        ? "All comment respondent emails are known people"
+        : `${invalid.length} comments from unknown emails`,
+  };
+}
+
+function checkCommentTeamRefs(entities) {
+  const comments = entities.activity?.commentKeys || [];
+  const teamIds = new Set(entities.teams.map((t) => t.id));
+  const invalid = comments.filter((c) => c.team_id && !teamIds.has(c.team_id));
+  return {
+    name: "comment_team_refs",
+    passed: invalid.length === 0,
+    message:
+      invalid.length === 0
+        ? "All comment team references are valid"
+        : `${invalid.length} comments reference unknown teams`,
+  };
+}
+
+function checkScorecardCheckIds(entities) {
+  const scorecards = entities.activity?.scorecards || [];
+  const allCheckIds = scorecards.flatMap((s) =>
+    (s.checks || []).map((c) => c.id),
+  );
+  const unique = new Set(allCheckIds);
+  return {
+    name: "scorecard_check_ids",
+    passed: unique.size === allCheckIds.length,
+    message:
+      unique.size === allCheckIds.length
+        ? "All scorecard check IDs are unique"
+        : `${allCheckIds.length - unique.size} duplicate scorecard check IDs`,
+  };
+}
+
+function checkRosterSnapshotQuarters(entities) {
+  const rosterSnapshots = entities.activity?.rosterSnapshots || [];
+  const snapshotIds = new Set(
+    (entities.activity?.snapshots || []).map((s) => s.snapshot_id),
+  );
+  const invalid = rosterSnapshots.filter(
+    (rs) => rs.snapshot_id && !snapshotIds.has(rs.snapshot_id),
+  );
+  return {
+    name: "roster_snapshot_quarters",
+    passed: invalid.length === 0,
+    message:
+      invalid.length === 0
+        ? "All roster snapshots align with survey snapshots"
+        : `${invalid.length} roster snapshots without matching survey snapshots`,
+  };
+}
+
+function checkProjectTeamEmails(entities) {
+  const projectTeams = entities.activity?.projectTeams || [];
+  const emails = new Set(entities.people.map((p) => p.email));
+  const invalid = projectTeams.flatMap((pt) =>
+    pt.members.filter((m) => m.email && !emails.has(m.email)),
+  );
+  return {
+    name: "project_team_emails",
+    passed: invalid.length === 0,
+    message:
+      invalid.length === 0
+        ? "All project team member emails are known people"
+        : `${invalid.length} project team members with unknown emails`,
   };
 }
 
