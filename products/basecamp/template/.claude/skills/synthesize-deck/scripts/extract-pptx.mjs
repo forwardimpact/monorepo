@@ -18,8 +18,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
 
-const DRAWING_NS = "http://schemas.openxmlformats.org/drawingml/2006/main";
-
 const HELP = `extract-pptx — extract slide text from .pptx files
 
 Usage:
