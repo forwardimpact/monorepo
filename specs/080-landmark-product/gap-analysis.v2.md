@@ -67,9 +67,9 @@ concentration risk view says "3 of 5 engineers at L3 working level." In a
 who the 3 L3s are.
 
 The real question is: who is the audience? If it's the engineering manager, they
-already see individual Pathway profiles. The aggregation isn't protecting privacy
-— it's obscuring actionability. If it's for skip-level leaders, the aggregation
-makes sense but the named growth recommendations don't.
+already see individual Pathway profiles. The aggregation isn't protecting
+privacy — it's obscuring actionability. If it's for skip-level leaders, the
+aggregation makes sense but the named growth recommendations don't.
 
 **Recommendation:** Be explicit about the audience per view. For the manager's
 1:1 tool (growth), lean into individual specificity. For the director's planning
@@ -106,9 +106,9 @@ changes their API, deprecates features, or gets acquired, both products lose
 their outcome signal.
 
 More importantly: GetDX is not unique to Forward Impact. Any competitor could
-integrate GetDX snapshots. The 10x moat should be in what you do _with_ the
-data that nobody else can replicate — and that's the marker/evidence pipeline +
-skill derivation. But the specs treat GetDX integration as a first-class feature
+integrate GetDX snapshots. The 10x moat should be in what you do _with_ the data
+that nobody else can replicate — and that's the marker/evidence pipeline + skill
+derivation. But the specs treat GetDX integration as a first-class feature
 rather than a pluggable data source.
 
 **Recommendation:** Abstract the outcome signal. Define a `driver_scores`
@@ -127,8 +127,8 @@ of it (analysis -> action). The other half (action -> outcome) is missing.
 **Recommendation:** Add a `landmark initiative impact` view that shows:
 "Initiative X completed in Q2. Target driver 'reliability' moved from 35th to
 52nd percentile in Q3." This closes the full loop and makes the system
-self-improving. It's just a join between initiative timestamps and snapshot score
-deltas — no LLM needed.
+self-improving. It's just a join between initiative timestamps and snapshot
+score deltas — no LLM needed.
 
 ### Gap 6: No team health trajectory — both products are snapshot-in-time
 
@@ -164,15 +164,15 @@ The specs position Forward Impact against an implied void — "no tool does this
 today." That's partially true for the _combination_ but not for individual
 features:
 
-| Feature                        | Exists elsewhere?                            |
-| ------------------------------ | -------------------------------------------- |
-| Skill frameworks               | Progression.fyi, Snowflake, custom           |
-| Team skill matrices            | TeamRetro, SkillsMap, various spreadsheets   |
-| Developer analytics            | LinearB, Swarmia, Jellyfish, Pluralsight Flow|
-| Survey integration             | GetDX, DX Core 4, Pulse                      |
-| What-if staffing               | No mainstream tool does this well             |
-| Evidence-based skill assessment| No tool connects artifacts to markers         |
-| Derived vs practiced gap       | Nobody does this                              |
+| Feature                         | Exists elsewhere?                             |
+| ------------------------------- | --------------------------------------------- |
+| Skill frameworks                | Progression.fyi, Snowflake, custom            |
+| Team skill matrices             | TeamRetro, SkillsMap, various spreadsheets    |
+| Developer analytics             | LinearB, Swarmia, Jellyfish, Pluralsight Flow |
+| Survey integration              | GetDX, DX Core 4, Pulse                       |
+| What-if staffing                | No mainstream tool does this well             |
+| Evidence-based skill assessment | No tool connects artifacts to markers         |
+| Derived vs practiced gap        | Nobody does this                              |
 
 The unique combination is: **evidence-based skill assessment + team-as-system
 modeling + what-if planning + outcome-weighted growth.** That's genuinely novel.
@@ -183,8 +183,8 @@ transformative.
 ## Verdict
 
 **Summit v2 is closer to 10x than Landmark v2.** Summit's what-if scenarios,
-growth alignment, and team-as-system philosophy are genuinely differentiated. The
-v2 additions (evidenced capability, outcome-weighted growth) strengthen it
+growth alignment, and team-as-system philosophy are genuinely differentiated.
+The v2 additions (evidenced capability, outcome-weighted growth) strengthen it
 meaningfully.
 
 **Landmark v2 is solid but risks being "just a dashboard."** It presents data
@@ -201,7 +201,7 @@ rather than a tool that changes how they lead.
 5. Abstract outcome sources beyond GetDX.
 
 The architecture is right. The data model is rich. The philosophy (Deming,
-systems thinking, capability not performance) is excellent. But the specs are too
-respectful of architectural boundaries at the cost of user impact. A 10x product
-doesn't care which module the insight comes from — it puts the right information
-in front of the right person at the right moment.
+systems thinking, capability not performance) is excellent. But the specs are
+too respectful of architectural boundaries at the cost of user impact. A 10x
+product doesn't care which module the insight comes from — it puts the right
+information in front of the right person at the right moment.

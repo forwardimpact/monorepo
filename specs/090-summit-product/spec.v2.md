@@ -10,11 +10,11 @@ project-based teams.
 
 ## Changes from v1
 
-| Change | Source | Gaps Closed |
-|--------|--------|-------------|
-| Add `--evidenced` flag to `coverage` and `risks` | Gap 5 (cross-product signal integration), Blind spot 1 (invisible present tense) | Derived vs practiced capability visible |
-| Add `--outcomes` flag to `growth` | Gap 8 (investment ROI), Blind spot 2 (outcomes don't inform planning) | GetDX scores weight growth recommendations |
-| Support project-based team definitions | Blind spot 5 (team boundaries don't match reality) | Ad-hoc and cross-functional teams modeled |
+| Change                                           | Source                                                                           | Gaps Closed                                |
+| ------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------ |
+| Add `--evidenced` flag to `coverage` and `risks` | Gap 5 (cross-product signal integration), Blind spot 1 (invisible present tense) | Derived vs practiced capability visible    |
+| Add `--outcomes` flag to `growth`                | Gap 8 (investment ROI), Blind spot 2 (outcomes don't inform planning)            | GetDX scores weight growth recommendations |
+| Support project-based team definitions           | Blind spot 5 (team boundaries don't match reality)                               | Ad-hoc and cross-functional teams modeled  |
 
 ## Why
 
@@ -113,8 +113,8 @@ coverage.
    structural gap and the team's sentiment about it.
 
 6. **Project-based teams** — team definitions beyond the manager hierarchy.
-   Local YAML rosters can define project teams, cross-functional groups, or
-   any ad-hoc composition referencing people from the org model.
+   Local YAML rosters can define project teams, cross-functional groups, or any
+   ad-hoc composition referencing people from the org model.
 
 ### Team Roster
 
@@ -240,6 +240,7 @@ matched evidence row for that skill at working level or above within a lookback
 window (default: 12 months).
 
 Divergence between derived and evidenced depth is the key signal:
+
 - `derived > evidenced` — capability exists on paper but isn't practiced.
 - `derived == evidenced` — capability is both expected and demonstrated.
 - `derived < evidenced` — people practice beyond their profile (growth signal).
@@ -457,18 +458,18 @@ is unchanged. Summit remains fully functional without activity data.
 
 ### Comparison with Landmark
 
-| Dimension        | Landmark                        | Summit                                    |
-| ---------------- | ------------------------------- | ----------------------------------------- |
-| **Orientation**  | Retrospective — past work       | Prospective — future capability           |
-| **Input**        | Map activity layer              | Map unified person model or YAML          |
-| **Dependencies** | Map (activity + pure layers)    | Map + libskill (+ optional activity data) |
-| **Runs where**   | Local CLI                       | Local CLI, instant                        |
-| **Focus**        | Individual evidence             | Team composition                          |
-| **Output**       | Artifacts with interpretation   | Coverage, risks, scenarios                |
-| **Determinism**  | Deterministic (reads evidence)  | Fully deterministic                       |
-| **Cost**         | Zero runtime cost               | Zero runtime cost                         |
-| **Privacy**      | Individual evidence visible     | Aggregated team views only                |
-| **Question**     | "What does my work show?"       | "Can this team deliver?"                  |
+| Dimension        | Landmark                       | Summit                                    |
+| ---------------- | ------------------------------ | ----------------------------------------- |
+| **Orientation**  | Retrospective — past work      | Prospective — future capability           |
+| **Input**        | Map activity layer             | Map unified person model or YAML          |
+| **Dependencies** | Map (activity + pure layers)   | Map + libskill (+ optional activity data) |
+| **Runs where**   | Local CLI                      | Local CLI, instant                        |
+| **Focus**        | Individual evidence            | Team composition                          |
+| **Output**       | Artifacts with interpretation  | Coverage, risks, scenarios                |
+| **Determinism**  | Deterministic (reads evidence) | Fully deterministic                       |
+| **Cost**         | Zero runtime cost              | Zero runtime cost                         |
+| **Privacy**      | Individual evidence visible    | Aggregated team views only                |
+| **Question**     | "What does my work show?"      | "Can this team deliver?"                  |
 
 Summit and Landmark are complementary but independent. An organization could use
 both, either, or neither. They address fundamentally different concerns:
@@ -624,10 +625,10 @@ v2: When `--evidenced` is used with `--format json`, output includes both
 
 ### v2 additions
 
-| Attribute              | Value                                                     |
-| ---------------------- | --------------------------------------------------------- |
-| Practiced capability   | `--evidenced` flag on `coverage` and `risks`              |
-| Outcome-weighted growth| `--outcomes` flag on `growth`                             |
-| Project teams          | `projects` section in summit.yaml, `--project` CLI flag   |
-| Optional dependency    | Map activity layer (evidence, GetDX scores) — opt-in only |
-| Design principle       | "No required external dependencies" (was "no external")   |
+| Attribute               | Value                                                     |
+| ----------------------- | --------------------------------------------------------- |
+| Practiced capability    | `--evidenced` flag on `coverage` and `risks`              |
+| Outcome-weighted growth | `--outcomes` flag on `growth`                             |
+| Project teams           | `projects` section in summit.yaml, `--project` CLI flag   |
+| Optional dependency     | Map activity layer (evidence, GetDX scores) — opt-in only |
+| Design principle        | "No required external dependencies" (was "no external")   |

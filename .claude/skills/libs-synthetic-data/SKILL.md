@@ -22,10 +22,10 @@ description: >
 
 ## Libraries
 
-| Library            | Main API                                       | Purpose                                       |
-| ------------------ | ---------------------------------------------- | --------------------------------------------- |
-| libsyntheticgen    | `DslParser`, `EntityGenerator`, `createSeededRNG` | DSL parsing, deterministic entity generation  |
-| libsyntheticprose  | `ProseEngine`, `PathwayGenerator`              | LLM prose generation, pathway framework data  |
+| Library            | Main API                                           | Purpose                                        |
+| ------------------ | -------------------------------------------------- | ---------------------------------------------- |
+| libsyntheticgen    | `DslParser`, `EntityGenerator`, `createSeededRNG`  | DSL parsing, deterministic entity generation   |
+| libsyntheticprose  | `ProseEngine`, `PathwayGenerator`                  | LLM prose generation, pathway framework data   |
 | libsyntheticrender | `Renderer`, `ContentValidator`, `ContentFormatter` | Multi-format rendering, validation, formatting |
 
 ## Decision Guide
@@ -34,16 +34,18 @@ description: >
   (`libraries/libsyntheticgen/data/default.dsl`) for quick testing. Projects
   provide their own DSL file; this monorepo's is at `examples/universe.dsl`.
 - **libsyntheticgen vs libuniverse** — Use `libsyntheticgen` directly when you
-  only need DSL parsing or entity generation without rendering. Use `libuniverse`
-  (Pipeline) when you want the full parse-generate-render-validate flow.
+  only need DSL parsing or entity generation without rendering. Use
+  `libuniverse` (Pipeline) when you want the full parse-generate-render-validate
+  flow.
 - **libsyntheticprose** — Only needed when LLM-generated content is required.
   The pipeline works without it in "no-prose" mode. Prose is injected via DI,
   never imported directly by the renderer.
-- **libsyntheticrender** — Use directly when you have entities and want to render
-  specific formats. The `Renderer` class delegates to format-specific renderers
-  (HTML, Markdown, Pathway YAML, raw documents).
-- **Pure functions** — `createSeededRNG`, `collectProseKeys`, `validateCrossContent`,
-  `formatContent` are stateless and can be used standalone.
+- **libsyntheticrender** — Use directly when you have entities and want to
+  render specific formats. The `Renderer` class delegates to format-specific
+  renderers (HTML, Markdown, Pathway YAML, raw documents).
+- **Pure functions** — `createSeededRNG`, `collectProseKeys`,
+  `validateCrossContent`, `formatContent` are stateless and can be used
+  standalone.
 
 ## Composition Recipes
 
@@ -145,15 +147,24 @@ const formatter = new ContentFormatter(prettierFormat, logger);
 
 Synthetic data payloads conform to these GetDX Web API response schemas:
 
-- [teams.list](https://docs.getdx.com/webapi/methods/teams.list/) — team hierarchy
-- [snapshots.list](https://docs.getdx.com/webapi/methods/snapshots.list/) — survey snapshots
-- [snapshots.info](https://docs.getdx.com/webapi/methods/snapshots.info/) — snapshot team scores
-- [snapshots.comments.list](https://docs.getdx.com/webapi/methods/snapshots.comments.list/) — snapshot comments
-- [initiatives.list](https://docs.getdx.com/webapi/methods/initiatives.list/) — initiatives
-- [initiatives.info](https://docs.getdx.com/webapi/methods/initiatives.info/) — initiative detail
-- [initiatives.progressReport](https://docs.getdx.com/webapi/methods/initiatives.progressReport/) — progress reports
-- [scorecards.list](https://docs.getdx.com/webapi/methods/scorecards.list/) — scorecards
-- [scorecards.info](https://docs.getdx.com/webapi/methods/scorecards.info/) — scorecard detail
+- [teams.list](https://docs.getdx.com/webapi/methods/teams.list/) — team
+  hierarchy
+- [snapshots.list](https://docs.getdx.com/webapi/methods/snapshots.list/) —
+  survey snapshots
+- [snapshots.info](https://docs.getdx.com/webapi/methods/snapshots.info/) —
+  snapshot team scores
+- [snapshots.comments.list](https://docs.getdx.com/webapi/methods/snapshots.comments.list/)
+  — snapshot comments
+- [initiatives.list](https://docs.getdx.com/webapi/methods/initiatives.list/) —
+  initiatives
+- [initiatives.info](https://docs.getdx.com/webapi/methods/initiatives.info/) —
+  initiative detail
+- [initiatives.progressReport](https://docs.getdx.com/webapi/methods/initiatives.progressReport/)
+  — progress reports
+- [scorecards.list](https://docs.getdx.com/webapi/methods/scorecards.list/) —
+  scorecards
+- [scorecards.info](https://docs.getdx.com/webapi/methods/scorecards.info/) —
+  scorecard detail
 - [All methods](https://docs.getdx.com/webapi/methods/) — full API reference
 
 ## Verification

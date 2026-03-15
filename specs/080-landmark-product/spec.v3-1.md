@@ -35,19 +35,19 @@ Landmark is not purely a presentation layer. It imports Summit's growth
 alignment computation to surface recommendations inline. This is a deliberate
 architectural choice: the user impact of contextual recommendations outweighs
 the elegance of strict separation. Recommendations are deterministic (no LLM),
-computed from the same data Landmark already reads, and rendered in context where
-the manager needs them.
+computed from the same data Landmark already reads, and rendered in context
+where the manager needs them.
 
 ## Audience Model
 
 Landmark defines explicit audiences per view. The privacy model matches the
 audience, not a blanket aggregation rule.
 
-| Audience | Views | Privacy model |
-|----------|-------|---------------|
-| **Engineer** (own data) | `evidence`, `readiness`, `timeline`, `coverage`, `voice --email` (own) | Full individual detail — it's your data |
-| **Manager** (1:1 tool) | `health`, `growth-recs`, `readiness`, `timeline`, `practiced`, `voice --manager` | Individual specificity for direct reports — managers already see Pathway profiles |
-| **Director** (planning tool) | `snapshot`, `coverage`, `practiced`, `initiative`, `voice --manager` (aggregated) | Aggregated team views — named growth recommendations removed at this scope |
+| Audience                     | Views                                                                             | Privacy model                                                                     |
+| ---------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Engineer** (own data)      | `evidence`, `readiness`, `timeline`, `coverage`, `voice --email` (own)            | Full individual detail — it's your data                                           |
+| **Manager** (1:1 tool)       | `health`, `growth-recs`, `readiness`, `timeline`, `practiced`, `voice --manager`  | Individual specificity for direct reports — managers already see Pathway profiles |
+| **Director** (planning tool) | `snapshot`, `coverage`, `practiced`, `initiative`, `voice --manager` (aggregated) | Aggregated team views — named growth recommendations removed at this scope        |
 
 The manager already knows who their three L3s are. Aggregation at the manager
 level doesn't protect privacy — it obscures actionability. For directors viewing
@@ -134,8 +134,8 @@ Landmark consumes:
 - Summit's growth alignment logic (imported as a library dependency, not a
   service call — Summit's team gap analysis and growth candidate matching run
   locally)
-- Driver-to-snapshot-score delta computation (join `getdx_initiatives` completion
-  dates against `getdx_snapshot_team_scores` across snapshots)
+- Driver-to-snapshot-score delta computation (join `getdx_initiatives`
+  completion dates against `getdx_snapshot_team_scores` across snapshots)
 
 Team semantics:
 
@@ -195,14 +195,15 @@ The `snapshots.comments.list` API returns comments with email, text, and
 timestamp. Map ingests these into `activity.getdx_snapshot_comments`. Landmark
 surfaces them alongside health and evidence views.
 
-This is the "voice of the engineers" without building a custom write path.
-GetDX already asks developers what's blocking them, what they'd most like
-improved, and how they experience their engineering environment. Landmark's job
-is to connect those voices to the capability and evidence data that explains
-_why_ they're saying it.
+This is the "voice of the engineers" without building a custom write path. GetDX
+already asks developers what's blocking them, what they'd most like improved,
+and how they experience their engineering environment. Landmark's job is to
+connect those voices to the capability and evidence data that explains _why_
+they're saying it.
 
 Comments are individual-level data (attributed by email). The audience model
 governs visibility:
+
 - Engineers see their own comments in context.
 - Managers see comments from their direct reports.
 - Directors see aggregated comment themes, not individual attribution.
@@ -270,11 +271,11 @@ Surface GetDX Initiatives alongside team health to close the analysis-to-action
 feedback loop.
 
 - List active initiatives, filtered by owner or manager scope.
-- Show initiative detail: completion percentage, linked scorecard checks,
-  due date, priority.
+- Show initiative detail: completion percentage, linked scorecard checks, due
+  date, priority.
 - Extend `health` view to include active initiatives and their status, so
-  managers see both the problem (GetDX scores, capability gaps) and the
-  response (active initiatives) in one view.
+  managers see both the problem (GetDX scores, capability gaps) and the response
+  (active initiatives) in one view.
 
 ### Evidence coverage metrics
 
@@ -300,8 +301,8 @@ Show evidenced capability alongside derived capability for a team.
 
 ### Growth recommendations in health view
 
-The health view joins objective marker evidence with GetDX snapshot outcomes.
-It extends this with actionable recommendations imported from Summit's growth
+The health view joins objective marker evidence with GetDX snapshot outcomes. It
+extends this with actionable recommendations imported from Summit's growth
 alignment logic.
 
 When health shows a gap aligned with a poorly-scoring GetDX driver, Landmark
@@ -381,10 +382,10 @@ bidirectional: it doesn't just analyze engineers — it amplifies their
 perspective.
 
 **Integration with health view:** When `health` shows a poorly-scoring driver,
-it includes representative comments from the team's snapshot responses (as
-shown in the health example above). Comments are matched to drivers via the
-snapshot structure — each comment is associated with the driver/factor context
-in which it was submitted.
+it includes representative comments from the team's snapshot responses (as shown
+in the health example above). Comments are matched to drivers via the snapshot
+structure — each comment is associated with the driver/factor context in which
+it was submitted.
 
 **"What is blocking you?"** GetDX Snapshots ask developers to rank which items
 they'd most like to see improved. Combined with open-ended comments, this
@@ -395,8 +396,8 @@ _why_.
 
 ### Initiative impact
 
-Close the full feedback loop: did completed initiatives actually move the
-scores they targeted?
+Close the full feedback loop: did completed initiatives actually move the scores
+they targeted?
 
 ```
 $ fit-landmark initiative impact --manager alice@example.com
@@ -424,8 +425,8 @@ $ fit-landmark initiative impact --manager alice@example.com
 Implementation: join `getdx_initiatives` (with completion dates and linked
 scorecard/driver) against `getdx_snapshot_team_scores` across the snapshot
 before and after completion. The delta is a simple percentile difference. No
-causal claim — just correlation. "The initiative completed and the score
-moved" is informative without being misleading.
+causal claim — just correlation. "The initiative completed and the score moved"
+is informative without being misleading.
 
 This closes the full Deming cycle: Analysis → Decision → Action → Outcome →
 Analysis.
@@ -485,33 +486,34 @@ contextual recommendation. Summit owns team-level planning and what-if
 scenarios.
 
 The boundary between Landmark and Summit remains clear:
+
 - **Landmark** answers "what do the signals say and what could you do about it?"
 - **Summit** answers "what can this team do and how should we change it?"
 
 Landmark borrows Summit's growth logic to avoid forcing the manager to context-
-switch between tools. Summit retains its full planning surface (what-if, compare,
-trajectory).
+switch between tools. Summit retains its full planning surface (what-if,
+compare, trajectory).
 
 ## Summary
 
-| Attribute              | Value                                                       |
-| ---------------------- | ----------------------------------------------------------- |
-| Package                | `@forwardimpact/landmark`                                   |
-| CLI                    | `fit-landmark`                                              |
-| Role                   | Analysis and recommendation layer on Map                    |
-| Survey source          | GetDX (external platform)                                   |
-| Data store             | Map (single source of truth)                                |
-| Org model              | Unified person model (email PK, job profiles)               |
-| Team model             | Derived from manager email subtree                          |
-| Readiness view         | Marker checklist against next-level requirements            |
-| Timeline view          | Quarterly evidence aggregation per skill per person         |
-| Initiative views       | GetDX Initiatives via Map, linked to health view            |
-| Initiative impact      | Score delta before/after initiative completion               |
-| Coverage metrics       | Interpreted/total artifact ratio per person                 |
-| Practiced view         | Evidenced depth alongside derived depth per team skill      |
-| Growth recommendations | Summit growth logic imported, surfaced inline in health     |
-| Engineer voice         | GetDX Snapshot comments surfaced via `voice` command group  |
-| Audience model         | Explicit per-view privacy: engineer, manager, director      |
-| Dependencies           | Map (activity + pure layers), libskill, Summit (growth)     |
+| Attribute              | Value                                                      |
+| ---------------------- | ---------------------------------------------------------- |
+| Package                | `@forwardimpact/landmark`                                  |
+| CLI                    | `fit-landmark`                                             |
+| Role                   | Analysis and recommendation layer on Map                   |
+| Survey source          | GetDX (external platform)                                  |
+| Data store             | Map (single source of truth)                               |
+| Org model              | Unified person model (email PK, job profiles)              |
+| Team model             | Derived from manager email subtree                         |
+| Readiness view         | Marker checklist against next-level requirements           |
+| Timeline view          | Quarterly evidence aggregation per skill per person        |
+| Initiative views       | GetDX Initiatives via Map, linked to health view           |
+| Initiative impact      | Score delta before/after initiative completion             |
+| Coverage metrics       | Interpreted/total artifact ratio per person                |
+| Practiced view         | Evidenced depth alongside derived depth per team skill     |
+| Growth recommendations | Summit growth logic imported, surfaced inline in health    |
+| Engineer voice         | GetDX Snapshot comments surfaced via `voice` command group |
+| Audience model         | Explicit per-view privacy: engineer, manager, director     |
+| Dependencies           | Map (activity + pure layers), libskill, Summit (growth)    |
 | Data contracts         | `organization_people`, `evidence`, `getdx_*`, `github_*`   |
-| Runtime cost           | Zero — local computation, fully deterministic               |
+| Runtime cost           | Zero — local computation, fully deterministic              |

@@ -144,7 +144,10 @@ describe("activity generation", () => {
     test("generates initiatives from declining scenario drivers", () => {
       const { activity } = generateFromDsl(MINI_UNIVERSE);
       const initiatives = activity.initiatives;
-      assert.ok(initiatives.length > 0, "should generate at least one initiative");
+      assert.ok(
+        initiatives.length > 0,
+        "should generate at least one initiative",
+      );
 
       // Declining deep_work with magnitude -6 should produce priority 0
       const deepWorkInit = initiatives.find(
@@ -163,7 +166,10 @@ describe("activity generation", () => {
         (i) => i._driver_id === "learning_culture",
       );
       assert.ok(risingInit, "should have initiative for rising driver");
-      assert.ok(risingInit.priority >= 3, "rising initiatives should have lower priority");
+      assert.ok(
+        risingInit.priority >= 3,
+        "rising initiatives should have lower priority",
+      );
       assert.ok(risingInit.name.includes("Sustain"));
     });
 

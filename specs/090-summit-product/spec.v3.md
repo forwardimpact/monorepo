@@ -10,22 +10,22 @@ audience model.
 
 ## Changes from v2
 
-| Change | Source | Gaps Closed |
-|--------|--------|-------------|
-| Add `trajectory` command for team capability over time | Gap analysis v2 Gap 6 (no team health trajectory) | Team capability evolution visible quarter over quarter |
-| Add allocation percentages to project teams | Gap analysis v2 Gap 7 (cross-functional teams undertreated) | Split-time engineers modeled accurately across teams |
-| Define explicit audience tiers per view | Gap analysis v2 Gap 2 (privacy model) | Right information for right audience |
-| Export growth logic as importable library function | Gap analysis v2 Gap 1 (Landmark too passive) | Landmark can surface growth recommendations inline |
+| Change                                                 | Source                                                      | Gaps Closed                                            |
+| ------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------ |
+| Add `trajectory` command for team capability over time | Gap analysis v2 Gap 6 (no team health trajectory)           | Team capability evolution visible quarter over quarter |
+| Add allocation percentages to project teams            | Gap analysis v2 Gap 7 (cross-functional teams undertreated) | Split-time engineers modeled accurately across teams   |
+| Define explicit audience tiers per view                | Gap analysis v2 Gap 2 (privacy model)                       | Right information for right audience                   |
+| Export growth logic as importable library function     | Gap analysis v2 Gap 1 (Landmark too passive)                | Landmark can surface growth recommendations inline     |
 
 ## Why
 
-| Product      | Question it answers                                     |
-| ------------ | ------------------------------------------------------- |
-| **Map**      | What does the terrain look like?                        |
-| **Pathway**  | Where am I going?                                       |
-| **Basecamp** | What do I need day-to-day?                              |
-| **Landmark** | What do the signals say — and what should I do about it?|
-| **Summit**   | _Can this team reach the peak?_                         |
+| Product      | Question it answers                                      |
+| ------------ | -------------------------------------------------------- |
+| **Map**      | What does the terrain look like?                         |
+| **Pathway**  | Where am I going?                                        |
+| **Basecamp** | What do I need day-to-day?                               |
+| **Landmark** | What do the signals say — and what should I do about it? |
+| **Summit**   | _Can this team reach the peak?_                          |
 
 Map defines skills. Pathway charts individual routes. Basecamp handles daily
 ops. Landmark presents signals and recommends actions. But none of them answer
@@ -39,15 +39,15 @@ slowly eroding?
 
 v3 makes two shifts:
 
-1. **From snapshot to trajectory.** Summit can now show how team coverage changed
-   over time as people joined, left, grew, or were promoted. This turns Summit
-   from a planning tool into a planning + tracking tool, which is where real
-   stickiness lives.
+1. **From snapshot to trajectory.** Summit can now show how team coverage
+   changed over time as people joined, left, grew, or were promoted. This turns
+   Summit from a planning tool into a planning + tracking tool, which is where
+   real stickiness lives.
 
-2. **From binary team membership to allocation-aware.** Real engineers split time
-   across teams. "Alice is 60% Platform, 40% Migration" changes the capability
-   calculus. v3 models allocation percentages so coverage analysis reflects how
-   engineers actually work.
+2. **From binary team membership to allocation-aware.** Real engineers split
+   time across teams. "Alice is 60% Platform, 40% Migration" changes the
+   capability calculus. v3 models allocation percentages so coverage analysis
+   reflects how engineers actually work.
 
 ## Design Principles
 
@@ -69,11 +69,11 @@ do, not how well it's doing it.
 **Privacy through aggregation — with audience awareness.** Refined. v3 defines
 explicit audiences:
 
-| Audience | Views | Privacy model |
-|----------|-------|---------------|
-| **Engineer** | `growth` (own team) | Sees team gaps and which growth directions help — no peer names at other levels |
-| **Manager** (1:1 tool) | `coverage`, `risks`, `growth`, `trajectory`, `what-if` | Individual specificity for direct reports — managers already see Pathway profiles |
-| **Director** (planning tool) | `coverage`, `risks`, `compare`, `trajectory`, `what-if` | Aggregated team views — named growth recommendations removed at this scope |
+| Audience                     | Views                                                   | Privacy model                                                                     |
+| ---------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Engineer**                 | `growth` (own team)                                     | Sees team gaps and which growth directions help — no peer names at other levels   |
+| **Manager** (1:1 tool)       | `coverage`, `risks`, `growth`, `trajectory`, `what-if`  | Individual specificity for direct reports — managers already see Pathway profiles |
+| **Director** (planning tool) | `coverage`, `risks`, `compare`, `trajectory`, `what-if` | Aggregated team views — named growth recommendations removed at this scope        |
 
 The manager already knows their team. Named growth recommendations ("Dan or
 Carol could develop incident_response") are appropriate for 1:1 conversations.
@@ -296,8 +296,9 @@ const recommendations = computeGrowthAlignment({
 ```
 
 This function encapsulates Summit's growth logic: identify team gaps, rank by
-impact (critical gap > SPOF reduction > coverage strengthening), match candidates
-based on proximity to the target level, and optionally weight by driver scores.
+impact (critical gap > SPOF reduction > coverage strengthening), match
+candidates based on proximity to the target level, and optionally weight by
+driver scores.
 
 Landmark imports this function and renders its output inline in the health view.
 No service boundary crossed — same process, same data.
@@ -318,28 +319,28 @@ map → libskill → pathway
 - **Summit** presents collective capability, planning, and trajectory
 
 v3 creates a deliberate dependency from Landmark to Summit's growth logic. This
-is a one-way export: Summit provides a pure function, Landmark calls it.
-Summit does not depend on Landmark.
+is a one-way export: Summit provides a pure function, Landmark calls it. Summit
+does not depend on Landmark.
 
 ### Comparison with Landmark
 
-| Dimension        | Landmark                              | Summit                                    |
-| ---------------- | ------------------------------------- | ----------------------------------------- |
-| **Orientation**  | Retrospective + recommendation        | Prospective + trajectory                  |
-| **Input**        | Map activity layer                    | Map unified person model or YAML          |
-| **Dependencies** | Map (activity + pure), Summit (growth)| Map + libskill (+ optional activity data) |
-| **Runs where**   | Local CLI                             | Local CLI, instant                        |
-| **Focus**        | Individual evidence + team signals    | Team composition + planning               |
-| **Output**       | Signals, recommendations, voice       | Coverage, risks, scenarios, trajectory    |
-| **Determinism**  | Deterministic (reads evidence)        | Fully deterministic                       |
-| **Cost**         | Zero runtime cost                     | Zero runtime cost                         |
-| **Privacy**      | Audience-aware (engineer/manager/dir) | Audience-aware (engineer/manager/dir)     |
-| **Question**     | "What do signals say & what to do?"   | "Can this team deliver & is it improving?"|
+| Dimension        | Landmark                               | Summit                                     |
+| ---------------- | -------------------------------------- | ------------------------------------------ |
+| **Orientation**  | Retrospective + recommendation         | Prospective + trajectory                   |
+| **Input**        | Map activity layer                     | Map unified person model or YAML           |
+| **Dependencies** | Map (activity + pure), Summit (growth) | Map + libskill (+ optional activity data)  |
+| **Runs where**   | Local CLI                              | Local CLI, instant                         |
+| **Focus**        | Individual evidence + team signals     | Team composition + planning                |
+| **Output**       | Signals, recommendations, voice        | Coverage, risks, scenarios, trajectory     |
+| **Determinism**  | Deterministic (reads evidence)         | Fully deterministic                        |
+| **Cost**         | Zero runtime cost                      | Zero runtime cost                          |
+| **Privacy**      | Audience-aware (engineer/manager/dir)  | Audience-aware (engineer/manager/dir)      |
+| **Question**     | "What do signals say & what to do?"    | "Can this team deliver & is it improving?" |
 
-v3 creates a deliberate overlap: Summit's `trajectory` shows team evolution
-over time while Landmark's `timeline` shows individual evidence evolution.
-Both use historical data but answer different questions — Landmark tracks what
-a person demonstrated, Summit tracks what a team could do.
+v3 creates a deliberate overlap: Summit's `trajectory` shows team evolution over
+time while Landmark's `timeline` shows individual evidence evolution. Both use
+historical data but answer different questions — Landmark tracks what a person
+demonstrated, Summit tracks what a team could do.
 
 ## Design
 
@@ -454,19 +455,19 @@ $ fit-summit coverage --project migration-q2 --format json
 
 ### v2 additions (unchanged)
 
-| Attribute              | Value                                                     |
-| ---------------------- | --------------------------------------------------------- |
-| Practiced capability   | `--evidenced` flag on `coverage` and `risks`              |
-| Outcome-weighted growth| `--outcomes` flag on `growth`                             |
-| Project teams          | `projects` section in summit.yaml, `--project` CLI flag   |
-| Optional dependency    | Map activity layer (evidence, GetDX scores) — opt-in only |
+| Attribute               | Value                                                     |
+| ----------------------- | --------------------------------------------------------- |
+| Practiced capability    | `--evidenced` flag on `coverage` and `risks`              |
+| Outcome-weighted growth | `--outcomes` flag on `growth`                             |
+| Project teams           | `projects` section in summit.yaml, `--project` CLI flag   |
+| Optional dependency     | Map activity layer (evidence, GetDX scores) — opt-in only |
 
 ### v3 additions
 
-| Attribute              | Value                                                        |
-| ---------------------- | ------------------------------------------------------------ |
-| Team trajectory        | `trajectory` command showing coverage evolution over quarters|
-| Allocation-aware teams | `allocation` field in project team YAML, effective depth     |
-| Growth logic export    | `computeGrowthAlignment` function exported for Landmark      |
-| Audience model         | Explicit per-view privacy: engineer, manager, director       |
-| Historical data        | Reads quarterly roster snapshots from Map or git history     |
+| Attribute              | Value                                                         |
+| ---------------------- | ------------------------------------------------------------- |
+| Team trajectory        | `trajectory` command showing coverage evolution over quarters |
+| Allocation-aware teams | `allocation` field in project team YAML, effective depth      |
+| Growth logic export    | `computeGrowthAlignment` function exported for Landmark       |
+| Audience model         | Explicit per-view privacy: engineer, manager, director        |
+| Historical data        | Reads quarterly roster snapshots from Map or git history      |

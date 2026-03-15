@@ -53,4 +53,5 @@ Ask Guide a question and it answers with your framework in mind:
 
 Guide works with your Map data out of the box. Point it at your framework and
 start asking questions — onboarding, career advice, skill assessment, or
-day-to-day engineering guidance grounded in your organization's actual standards.
+day-to-day engineering guidance grounded in your organization's actual
+standards.

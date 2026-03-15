@@ -11,13 +11,13 @@ growth logic.
 
 ## Why
 
-| Product      | Question it answers                                     |
-| ------------ | ------------------------------------------------------- |
-| **Map**      | What does the terrain look like?                        |
-| **Pathway**  | Where am I going?                                       |
-| **Basecamp** | What do I need day-to-day?                              |
-| **Landmark** | What do the signals say — and what should I do about it?|
-| **Summit**   | _Can this team reach the peak?_                         |
+| Product      | Question it answers                                      |
+| ------------ | -------------------------------------------------------- |
+| **Map**      | What does the terrain look like?                         |
+| **Pathway**  | Where am I going?                                        |
+| **Basecamp** | What do I need day-to-day?                               |
+| **Landmark** | What do the signals say — and what should I do about it? |
+| **Summit**   | _Can this team reach the peak?_                          |
 
 Map defines skills. Pathway charts individual routes. Basecamp handles daily
 ops. Landmark presents signals and recommends actions. But none of them answer
@@ -71,11 +71,11 @@ never creates a new way to inspect individuals.
 
 Summit defines explicit audiences per view:
 
-| Audience | Views | Privacy model |
-|----------|-------|---------------|
-| **Engineer** | `growth` (own team) | Sees team gaps and which growth directions help — no peer names at other levels |
-| **Manager** (1:1 tool) | `coverage`, `risks`, `growth`, `trajectory`, `what-if` | Individual specificity for direct reports — managers already see Pathway profiles |
-| **Director** (planning tool) | `coverage`, `risks`, `compare`, `trajectory`, `what-if` | Aggregated team views — named growth recommendations removed at this scope |
+| Audience                     | Views                                                   | Privacy model                                                                     |
+| ---------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Engineer**                 | `growth` (own team)                                     | Sees team gaps and which growth directions help — no peer names at other levels   |
+| **Manager** (1:1 tool)       | `coverage`, `risks`, `growth`, `trajectory`, `what-if`  | Individual specificity for direct reports — managers already see Pathway profiles |
+| **Director** (planning tool) | `coverage`, `risks`, `compare`, `trajectory`, `what-if` | Aggregated team views — named growth recommendations removed at this scope        |
 
 The manager already knows their team. Named growth recommendations ("Dan or
 Carol could develop incident_response") are appropriate for 1:1 conversations.
@@ -153,8 +153,8 @@ projects:
 When using Map's person model, teams are derived automatically from the manager
 hierarchy — no local file needed. When using a local file, email is included so
 entries can be cross-referenced with Map data if needed. Project teams in the
-`projects` section reference existing team members by email and resolve their job
-profiles from the org model or local team definitions.
+`projects` section reference existing team members by email and resolve their
+job profiles from the org model or local team definitions.
 
 The local file is a planning document. The unified person model is the source of
 truth. Allocation defaults to 1.0 when omitted — existing summit.yaml files work
@@ -245,6 +245,7 @@ for that skill at working level or above within a lookback window (default: 12
 months).
 
 Divergence between derived and evidenced depth is the key signal:
+
 - `derived > evidenced` — capability exists on paper but isn't practiced.
 - `derived == evidenced` — capability is both expected and demonstrated.
 - `derived < evidenced` — people practice beyond their profile (growth signal).
@@ -437,7 +438,8 @@ into — the information supports a conversation.
 
 When `--outcomes` is passed, growth recommendations incorporate GetDX driver
 scores. A gap that also shows a poorly-scoring GetDX driver gets boosted
-priority. Managers see both the structural gap and the team's sentiment about it.
+priority. Managers see both the structural gap and the team's sentiment about
+it.
 
 ```
 $ fit-summit growth platform --outcomes
@@ -547,8 +549,9 @@ const recommendations = computeGrowthAlignment({
 ```
 
 This function encapsulates Summit's growth logic: identify team gaps, rank by
-impact (critical gap > SPOF reduction > coverage strengthening), match candidates
-based on proximity to the target level, and optionally weight by driver scores.
+impact (critical gap > SPOF reduction > coverage strengthening), match
+candidates based on proximity to the target level, and optionally weight by
+driver scores.
 
 Landmark imports this function and renders its output inline in the health view.
 No service boundary crossed — same process, same data.
@@ -578,25 +581,25 @@ Summit does not depend on Landmark.
 
 ### Comparison with Landmark
 
-| Dimension        | Landmark                              | Summit                                    |
-| ---------------- | ------------------------------------- | ----------------------------------------- |
-| **Orientation**  | Retrospective + recommendation        | Prospective + trajectory                  |
-| **Input**        | Map activity layer                    | Map unified person model or YAML          |
-| **Dependencies** | Map (activity + pure), Summit (growth)| Map + libskill (+ optional activity data) |
-| **Runs where**   | Local CLI                             | Local CLI, instant                        |
-| **Focus**        | Individual evidence + team signals    | Team composition + planning               |
-| **Output**       | Signals, recommendations, voice       | Coverage, risks, scenarios, trajectory    |
-| **Determinism**  | Deterministic (reads evidence)        | Fully deterministic                       |
-| **Cost**         | Zero runtime cost                     | Zero runtime cost                         |
-| **Privacy**      | Audience-aware (engineer/manager/dir) | Audience-aware (engineer/manager/dir)     |
-| **Question**     | "What do signals say & what to do?"   | "Can this team deliver & is it improving?"|
+| Dimension        | Landmark                               | Summit                                     |
+| ---------------- | -------------------------------------- | ------------------------------------------ |
+| **Orientation**  | Retrospective + recommendation         | Prospective + trajectory                   |
+| **Input**        | Map activity layer                     | Map unified person model or YAML           |
+| **Dependencies** | Map (activity + pure), Summit (growth) | Map + libskill (+ optional activity data)  |
+| **Runs where**   | Local CLI                              | Local CLI, instant                         |
+| **Focus**        | Individual evidence + team signals     | Team composition + planning                |
+| **Output**       | Signals, recommendations, voice        | Coverage, risks, scenarios, trajectory     |
+| **Determinism**  | Deterministic (reads evidence)         | Fully deterministic                        |
+| **Cost**         | Zero runtime cost                      | Zero runtime cost                          |
+| **Privacy**      | Audience-aware (engineer/manager/dir)  | Audience-aware (engineer/manager/dir)      |
+| **Question**     | "What do signals say & what to do?"    | "Can this team deliver & is it improving?" |
 
 Summit and Landmark are complementary but independent. An organization could use
 both, either, or neither. They address fundamentally different concerns:
 Landmark is about the trail already walked, Summit is about the peak ahead.
 
-The same evidence data answers different questions in each product. Landmark asks
-"what evidence exists?" Summit asks "does evidence confirm our capability
+The same evidence data answers different questions in each product. Landmark
+asks "what evidence exists?" Summit asks "does evidence confirm our capability
 model?" Summit's `trajectory` shows team evolution over time while Landmark's
 `timeline` shows individual evidence evolution.
 
@@ -766,27 +769,27 @@ $ fit-summit coverage --project migration-q2 --format json
 
 ## Summary
 
-| Attribute              | Value                                                        |
-| ---------------------- | ------------------------------------------------------------ |
-| Package                | `@forwardimpact/summit`                                      |
-| CLI                    | `fit-summit`                                                 |
-| Delivery               | Local CLI tool, npm package                                  |
-| Icon                   | Mountain peak with flag                                      |
-| Emoji                  | ⛰️                                                           |
-| Hero scene             | "Planning the Ascent"                                        |
-| Tagline                | "See your team's capability. Plan the ascent."               |
-| Depends on             | `@forwardimpact/map`, `@forwardimpact/libskill`              |
-| Input                  | Map unified person model or local YAML + Map data            |
-| For leaders            | Capability coverage, structural risks, staffing planning     |
-| For teams              | Growth alignment, what-if scenarios, trajectory              |
-| For engineers          | Understanding which growth directions help the team          |
-| Runtime cost           | Zero — local computation, fully deterministic                |
-| Practiced capability   | `--evidenced` flag on `coverage` and `risks`                 |
-| Outcome-weighted growth| `--outcomes` flag on `growth`                                |
-| Project teams          | `projects` section in summit.yaml, `--project` CLI flag      |
-| Allocation-aware teams | `allocation` field in project team YAML, effective depth     |
-| Team trajectory        | `trajectory` command showing coverage evolution over quarters|
-| Growth logic export    | `computeGrowthAlignment` function exported for Landmark      |
-| Audience model         | Explicit per-view privacy: engineer, manager, director       |
-| Historical data        | Reads quarterly roster snapshots from Map or git history     |
-| Optional dependency    | Map activity layer (evidence, GetDX scores) — opt-in only    |
+| Attribute               | Value                                                         |
+| ----------------------- | ------------------------------------------------------------- |
+| Package                 | `@forwardimpact/summit`                                       |
+| CLI                     | `fit-summit`                                                  |
+| Delivery                | Local CLI tool, npm package                                   |
+| Icon                    | Mountain peak with flag                                       |
+| Emoji                   | ⛰️                                                            |
+| Hero scene              | "Planning the Ascent"                                         |
+| Tagline                 | "See your team's capability. Plan the ascent."                |
+| Depends on              | `@forwardimpact/map`, `@forwardimpact/libskill`               |
+| Input                   | Map unified person model or local YAML + Map data             |
+| For leaders             | Capability coverage, structural risks, staffing planning      |
+| For teams               | Growth alignment, what-if scenarios, trajectory               |
+| For engineers           | Understanding which growth directions help the team           |
+| Runtime cost            | Zero — local computation, fully deterministic                 |
+| Practiced capability    | `--evidenced` flag on `coverage` and `risks`                  |
+| Outcome-weighted growth | `--outcomes` flag on `growth`                                 |
+| Project teams           | `projects` section in summit.yaml, `--project` CLI flag       |
+| Allocation-aware teams  | `allocation` field in project team YAML, effective depth      |
+| Team trajectory         | `trajectory` command showing coverage evolution over quarters |
+| Growth logic export     | `computeGrowthAlignment` function exported for Landmark       |
+| Audience model          | Explicit per-view privacy: engineer, manager, director        |
+| Historical data         | Reads quarterly roster snapshots from Map or git history      |
+| Optional dependency     | Map activity layer (evidence, GetDX scores) — opt-in only     |

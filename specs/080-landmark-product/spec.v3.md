@@ -10,13 +10,13 @@ impact, and cross-product insights.
 
 ## Changes from v2
 
-| Change | Source | Gaps Closed |
-|--------|--------|-------------|
-| Surface Summit growth recommendations in health view | Gap analysis v2 Gap 1 (too passive) | Landmark becomes a decision engine, not just a dashboard |
-| Add engineer voice via GetDX Snapshot comments | Gap analysis v2 Gap 3 (no engineer voice) | Engineers speak through the system, not just about them |
-| Add `initiative impact` view | Gap analysis v2 Gap 5 (incomplete feedback loop) | Full action-to-outcome loop: initiative → score change |
-| Define explicit audience tiers per view | Gap analysis v2 Gap 2 (privacy model) | Right information for right audience |
-| Add `voice` command group | Gap analysis v2 Gap 3 | Snapshot comments surfaced alongside evidence and health |
+| Change                                               | Source                                           | Gaps Closed                                              |
+| ---------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------- |
+| Surface Summit growth recommendations in health view | Gap analysis v2 Gap 1 (too passive)              | Landmark becomes a decision engine, not just a dashboard |
+| Add engineer voice via GetDX Snapshot comments       | Gap analysis v2 Gap 3 (no engineer voice)        | Engineers speak through the system, not just about them  |
+| Add `initiative impact` view                         | Gap analysis v2 Gap 5 (incomplete feedback loop) | Full action-to-outcome loop: initiative → score change   |
+| Define explicit audience tiers per view              | Gap analysis v2 Gap 2 (privacy model)            | Right information for right audience                     |
+| Add `voice` command group                            | Gap analysis v2 Gap 3                            | Snapshot comments surfaced alongside evidence and health |
 
 ## Why
 
@@ -66,11 +66,11 @@ framework schema and marker definitions.
 v3 defines explicit audiences per view. The privacy model matches the audience,
 not a blanket aggregation rule.
 
-| Audience | Views | Privacy model |
-|----------|-------|---------------|
-| **Engineer** (own data) | `evidence`, `readiness`, `timeline`, `coverage`, `voice --email` (own) | Full individual detail — it's your data |
-| **Manager** (1:1 tool) | `health`, `growth-recs`, `readiness`, `timeline`, `practiced`, `voice --manager` | Individual specificity for direct reports — managers already see Pathway profiles |
-| **Director** (planning tool) | `snapshot`, `coverage`, `practiced`, `initiative`, `voice --manager` (aggregated) | Aggregated team views — named growth recommendations removed at this scope |
+| Audience                     | Views                                                                             | Privacy model                                                                     |
+| ---------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Engineer** (own data)      | `evidence`, `readiness`, `timeline`, `coverage`, `voice --email` (own)            | Full individual detail — it's your data                                           |
+| **Manager** (1:1 tool)       | `health`, `growth-recs`, `readiness`, `timeline`, `practiced`, `voice --manager`  | Individual specificity for direct reports — managers already see Pathway profiles |
+| **Director** (planning tool) | `snapshot`, `coverage`, `practiced`, `initiative`, `voice --manager` (aggregated) | Aggregated team views — named growth recommendations removed at this scope        |
 
 The manager already knows who their three L3s are. Aggregation at the manager
 level doesn't protect privacy — it obscures actionability. For directors viewing
@@ -108,7 +108,8 @@ Landmark consumes everything from v1 and v2, plus:
 
 ### v3 additions
 
-- `activity.getdx_snapshot_comments` (new table, from GetDX `snapshots.comments.list` API)
+- `activity.getdx_snapshot_comments` (new table, from GetDX
+  `snapshots.comments.list` API)
   - `snapshot_id` (FK to `getdx_snapshots`)
   - `email` (respondent)
   - `text` (open-ended comment)
@@ -117,8 +118,8 @@ Landmark consumes everything from v1 and v2, plus:
 - Summit's growth alignment logic (imported as a library dependency, not a
   service call — Summit's team gap analysis and growth candidate matching run
   locally)
-- Driver-to-snapshot-score delta computation (join `getdx_initiatives` completion
-  dates against `getdx_snapshot_team_scores` across snapshots)
+- Driver-to-snapshot-score delta computation (join `getdx_initiatives`
+  completion dates against `getdx_snapshot_team_scores` across snapshots)
 
 ### Existing contracts (v1 + v2, unchanged)
 
@@ -148,14 +149,15 @@ The `snapshots.comments.list` API returns comments with email, text, and
 timestamp. Map ingests these into `activity.getdx_snapshot_comments`. Landmark
 surfaces them alongside health and evidence views.
 
-This is the "voice of the engineers" without building a custom write path.
-GetDX already asks developers what's blocking them, what they'd most like
-improved, and how they experience their engineering environment. Landmark's job
-is to connect those voices to the capability and evidence data that explains
-_why_ they're saying it.
+This is the "voice of the engineers" without building a custom write path. GetDX
+already asks developers what's blocking them, what they'd most like improved,
+and how they experience their engineering environment. Landmark's job is to
+connect those voices to the capability and evidence data that explains _why_
+they're saying it.
 
 Comments are individual-level data (attributed by email). The audience model
 governs visibility:
+
 - Engineers see their own comments in context.
 - Managers see comments from their direct reports.
 - Directors see aggregated comment themes, not individual attribution.
@@ -219,12 +221,12 @@ Unchanged from v2.
 
 ### v3: Growth recommendations in health view
 
-The health view joins objective marker evidence with GetDX snapshot outcomes.
-v3 extends it with actionable recommendations imported from Summit's growth
+The health view joins objective marker evidence with GetDX snapshot outcomes. v3
+extends it with actionable recommendations imported from Summit's growth
 alignment logic.
 
-When health shows a gap aligned with a poorly-scoring GetDX driver, Landmark
-now surfaces who could develop that skill and what the team impact would be.
+When health shows a gap aligned with a poorly-scoring GetDX driver, Landmark now
+surfaces who could develop that skill and what the team impact would be.
 
 ```
 $ fit-landmark health --manager alice@example.com
@@ -320,8 +322,8 @@ _why_.
 
 ### v3: Initiative impact
 
-Close the full feedback loop: did completed initiatives actually move the
-scores they targeted?
+Close the full feedback loop: did completed initiatives actually move the scores
+they targeted?
 
 ```
 $ fit-landmark initiative impact --manager alice@example.com
@@ -349,8 +351,8 @@ $ fit-landmark initiative impact --manager alice@example.com
 Implementation: join `getdx_initiatives` (with completion dates and linked
 scorecard/driver) against `getdx_snapshot_team_scores` across the snapshot
 before and after completion. The delta is a simple percentile difference. No
-causal claim — just correlation. "The initiative completed and the score
-moved" is informative without being misleading.
+causal claim — just correlation. "The initiative completed and the score moved"
+is informative without being misleading.
 
 This closes the full Deming cycle: Analysis → Decision → Action → Outcome →
 Analysis. v2 closed the first half (analysis → action via initiative tracking).
@@ -415,12 +417,13 @@ contextual recommendation. Summit owns team-level planning and what-if
 scenarios.
 
 The boundary between Landmark and Summit remains clear:
+
 - **Landmark** answers "what do the signals say and what could you do about it?"
 - **Summit** answers "what can this team do and how should we change it?"
 
 Landmark borrows Summit's growth logic to avoid forcing the manager to context-
-switch between tools. Summit retains its full planning surface (what-if, compare,
-trajectory).
+switch between tools. Summit retains its full planning surface (what-if,
+compare, trajectory).
 
 ## Summary
 
@@ -436,23 +439,23 @@ trajectory).
 
 ### v2 additions (unchanged)
 
-| Attribute         | Value                                                    |
-| ----------------- | -------------------------------------------------------- |
-| Readiness view    | Marker checklist against next-level requirements         |
-| Timeline view     | Quarterly evidence aggregation per skill per person      |
-| Initiative views  | GetDX Initiatives via Map, linked to health view         |
-| Coverage metrics  | Interpreted/total artifact ratio per person              |
-| Practiced view    | Evidenced depth alongside derived depth per team skill   |
-| New dependency    | libskill derivation (for readiness marker resolution)    |
-| New data contract | `activity.getdx_initiatives` (from GetDX Initiatives API)|
+| Attribute         | Value                                                     |
+| ----------------- | --------------------------------------------------------- |
+| Readiness view    | Marker checklist against next-level requirements          |
+| Timeline view     | Quarterly evidence aggregation per skill per person       |
+| Initiative views  | GetDX Initiatives via Map, linked to health view          |
+| Coverage metrics  | Interpreted/total artifact ratio per person               |
+| Practiced view    | Evidenced depth alongside derived depth per team skill    |
+| New dependency    | libskill derivation (for readiness marker resolution)     |
+| New data contract | `activity.getdx_initiatives` (from GetDX Initiatives API) |
 
 ### v3 additions
 
-| Attribute              | Value                                                      |
-| ---------------------- | ---------------------------------------------------------- |
-| Growth recommendations | Summit growth logic imported, surfaced inline in health    |
-| Engineer voice         | GetDX Snapshot comments surfaced via `voice` command group |
-| Initiative impact      | Score delta before/after initiative completion              |
-| Audience model         | Explicit per-view privacy: engineer, manager, director     |
-| New dependency         | Summit growth alignment logic (library import)             |
-| New data contract      | `activity.getdx_snapshot_comments` (from GetDX comments API)|
+| Attribute              | Value                                                        |
+| ---------------------- | ------------------------------------------------------------ |
+| Growth recommendations | Summit growth logic imported, surfaced inline in health      |
+| Engineer voice         | GetDX Snapshot comments surfaced via `voice` command group   |
+| Initiative impact      | Score delta before/after initiative completion               |
+| Audience model         | Explicit per-view privacy: engineer, manager, director       |
+| New dependency         | Summit growth alignment logic (library import)               |
+| New data contract      | `activity.getdx_snapshot_comments` (from GetDX comments API) |

@@ -133,18 +133,21 @@ export function collectProseKeys(entities) {
     for (const ck of entities.activity.commentKeys) {
       const direction =
         ck.trajectory === "declining" ? "declining" : "improving";
-      keys.set(`snapshot_comment_${ck.snapshot_id}_${ck.email.replace(/[@.]/g, "_")}`, {
-        topic: `GetDX snapshot survey comment about ${ck.driver_name.toLowerCase()}`,
-        tone: "authentic, first-person developer voice",
-        length: "1-2 sentences",
-        maxTokens: 80,
-        domain: entities.domain,
-        role: `${ck.person_level} ${ck.person_discipline.replace(/_/g, " ")} on the ${ck.team_name}`,
-        scenario: ck.scenario_name,
-        driver: ck.driver_name,
-        direction,
-        magnitude: ck.magnitude,
-      });
+      keys.set(
+        `snapshot_comment_${ck.snapshot_id}_${ck.email.replace(/[@.]/g, "_")}`,
+        {
+          topic: `GetDX snapshot survey comment about ${ck.driver_name.toLowerCase()}`,
+          tone: "authentic, first-person developer voice",
+          length: "1-2 sentences",
+          maxTokens: 80,
+          domain: entities.domain,
+          role: `${ck.person_level} ${ck.person_discipline.replace(/_/g, " ")} on the ${ck.team_name}`,
+          scenario: ck.scenario_name,
+          driver: ck.driver_name,
+          direction,
+          magnitude: ck.magnitude,
+        },
+      );
     }
   }
 

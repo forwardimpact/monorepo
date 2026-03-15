@@ -6,8 +6,8 @@ description: How AI coding agent teams and skills are generated from the career 
 ## Overview
 
 Agent teams and skills are AI coding assistant configurations derived from the
-same career framework used for human job definitions. The derivation uses identical
-skill and behaviour logic, then filters and focuses the output for AI
+same career framework used for human job definitions. The derivation uses
+identical skill and behaviour logic, then filters and focuses the output for AI
 consumption.
 
 > Agents use the same modifier logic as human profiles — a platform track agent

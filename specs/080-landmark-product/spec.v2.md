@@ -9,13 +9,13 @@ tracking, promotion readiness, initiative integration, and evidence coverage.
 
 ## Changes from v1
 
-| Change | Source | Gaps Closed |
-|--------|--------|-------------|
-| Add `readiness` command | Gap 2 (promotion readiness) | Engineers see marker checklist for next level |
-| Add `timeline` command | Gap 1 (individual growth trajectory) | Skill profile evolution over quarters |
-| Add `initiative` command group | Gap 3 (initiative tracking), Blind spot 4 (no feedback loop) | GetDX Initiatives surface in Landmark |
-| Add evidence coverage metrics | Blind spot 3 (evidence completeness unmeasured) | Artifacts-without-evidence ratio visible |
-| Add `practiced` command | Blind spot 1 (invisible present tense) | Evidenced vs derived capability view |
+| Change                         | Source                                                       | Gaps Closed                                   |
+| ------------------------------ | ------------------------------------------------------------ | --------------------------------------------- |
+| Add `readiness` command        | Gap 2 (promotion readiness)                                  | Engineers see marker checklist for next level |
+| Add `timeline` command         | Gap 1 (individual growth trajectory)                         | Skill profile evolution over quarters         |
+| Add `initiative` command group | Gap 3 (initiative tracking), Blind spot 4 (no feedback loop) | GetDX Initiatives surface in Landmark         |
+| Add evidence coverage metrics  | Blind spot 3 (evidence completeness unmeasured)              | Artifacts-without-evidence ratio visible      |
+| Add `practiced` command        | Blind spot 1 (invisible present tense)                       | Evidenced vs derived capability view          |
 
 ## Why
 
@@ -40,8 +40,8 @@ framework schema and marker definitions. See the Map spec for the full layering
 description.
 
 v2 extends Landmark with individual-level views (readiness, timeline),
-initiative tracking via GetDX, and evidence quality metrics — all read-only,
-all consuming existing data.
+initiative tracking via GetDX, and evidence quality metrics — all read-only, all
+consuming existing data.
 
 ## Scope
 
@@ -219,11 +219,11 @@ Surface GetDX Initiatives alongside team health to close the analysis-to-action
 feedback loop.
 
 - List active initiatives, filtered by owner or manager scope.
-- Show initiative detail: completion percentage, linked scorecard checks,
-  due date, priority.
+- Show initiative detail: completion percentage, linked scorecard checks, due
+  date, priority.
 - Extend `health` view to include active initiatives and their status, so
-  managers see both the problem (GetDX scores, capability gaps) and the
-  response (active initiatives) in one view.
+  managers see both the problem (GetDX scores, capability gaps) and the response
+  (active initiatives) in one view.
 
 ### v2: Evidence coverage metrics
 
@@ -314,12 +314,12 @@ without changing the architectural role.
 
 ### v2 additions
 
-| Attribute         | Value                                                    |
-| ----------------- | -------------------------------------------------------- |
-| Readiness view    | Marker checklist against next-level requirements         |
-| Timeline view     | Quarterly evidence aggregation per skill per person      |
-| Initiative views  | GetDX Initiatives via Map, linked to health view         |
-| Coverage metrics  | Interpreted/total artifact ratio per person              |
-| Practiced view    | Evidenced depth alongside derived depth per team skill   |
-| New dependency    | libskill derivation (for readiness marker resolution)    |
-| New data contract | `activity.getdx_initiatives` (from GetDX Initiatives API)|
+| Attribute         | Value                                                     |
+| ----------------- | --------------------------------------------------------- |
+| Readiness view    | Marker checklist against next-level requirements          |
+| Timeline view     | Quarterly evidence aggregation per skill per person       |
+| Initiative views  | GetDX Initiatives via Map, linked to health view          |
+| Coverage metrics  | Interpreted/total artifact ratio per person               |
+| Practiced view    | Evidenced depth alongside derived depth per team skill    |
+| New dependency    | libskill derivation (for readiness marker resolution)     |
+| New data contract | `activity.getdx_initiatives` (from GetDX Initiatives API) |

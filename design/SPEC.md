@@ -16,8 +16,8 @@
 
 1. **Expedition**: Forward deployed — operating with autonomy in unfamiliar
    terrain. Basecamp is where you prepare. The Guide keeps you oriented. The
-   Pathway is how you advance. The Map shows the territory. The Summit is
-   the peak the team aims to reach together.
+   Pathway is how you advance. The Map shows the territory. The Summit is the
+   peak the team aims to reach together.
 2. **Scientific fieldwork**: Engineers embedded with business units and domain
    experts — working where the problems live.
 3. **Topographic/landscape**: Contour maps, trail markers, compass roses,
@@ -331,8 +331,8 @@ fun." Nobody is deferring to anyone else.
 **Context:** Pathway product pages, skills catalogue, career features.
 
 Trio on a winding trail with switchbacks ahead. Engineer is already three steps
-up the trail, turned back with one hand beckoning — impatient, wants to move.
-AI Agent stands at a trail sign, head swiveling between the sign and Engineer —
+up the trail, turned back with one hand beckoning — impatient, wants to move. AI
+Agent stands at a trail sign, head swiveling between the sign and Engineer —
 calculating whether to follow or correct course. Stakeholder stands at the fork,
 arms crossed, slight smile, waiting for the other two to sort it out — they
 already know the way.
@@ -358,8 +358,8 @@ Trio assembling an A-frame tent (character-height). Tent is half-assembled.
 Engineer pulls a tent pole with both hands, leaning back with full body weight,
 feet braced — action lines radiating from the effort. AI Agent holds the
 opposite pole with one hand, perfectly vertical, head turned toward Engineer
-with what might be concern or might be amusement. Stakeholder already inside
-the half-built tent, only their head and one arm visible through the opening —
+with what might be concern or might be amusement. Stakeholder already inside the
+half-built tent, only their head and one arm visible through the opening —
 arranging the interior before the structure is even finished.
 
 ```
@@ -427,12 +427,12 @@ expert who already knows where to look.
 **Context:** Summit product pages, team capability analysis, staffing scenarios.
 
 Trio gathered around a map on a flat rock. The peak looms in the background —
-taller than the characters, flag at the top. Engineer leans over the map,
-both hands planted on it, weight forward — the posture of someone about to
-stand up and go. AI Agent holds a compass beside the map, head swiveling
-between compass and peak — cross-referencing. Stakeholder stands slightly
-back from the rock, arms folded, looking up at the peak — already thinking
-about what happens when they get there.
+taller than the characters, flag at the top. Engineer leans over the map, both
+hands planted on it, weight forward — the posture of someone about to stand up
+and go. AI Agent holds a compass beside the map, head swiveling between compass
+and peak — cross-referencing. Stakeholder stands slightly back from the rock,
+arms folded, looking up at the peak — already thinking about what happens when
+they get there.
 
 ```
                 ⛳
@@ -445,11 +445,11 @@ about what happens when they get there.
      └──────────────┘
 ```
 
-Three different gazes: Engineer looks down (the plan), Agent looks between
-(the data), Stakeholder looks up (the goal). Engineer's weight-forward posture
-is the hacker impulse — ready to ship. Stakeholder's folded arms aren't
-resistance, they're strategic patience. This scene owns the mountain peak;
-Pathway owns the trail.
+Three different gazes: Engineer looks down (the plan), Agent looks between (the
+data), Stakeholder looks up (the goal). Engineer's weight-forward posture is the
+hacker impulse — ready to ship. Stakeholder's folded arms aren't resistance,
+they're strategic patience. This scene owns the mountain peak; Pathway owns the
+trail.
 
 ---
 
@@ -500,10 +500,10 @@ the single source of truth. Everything else references Map.
   ~~~~~~~~~~~~     ← winding trail with switchbacks
 ```
 
-A winding trail with switchbacks and elevation markers — no mountain peaks. Trail
-line slightly thinner (1.5px). The career journey through challenging terrain —
-shows the route others have taken and helps you plot your own path. Peaks belong
-to Summit; Pathway owns the trail.
+A winding trail with switchbacks and elevation markers — no mountain peaks.
+Trail line slightly thinner (1.5px). The career journey through challenging
+terrain — shows the route others have taken and helps you plot your own path.
+Peaks belong to Summit; Pathway owns the trail.
 
 ### Guide — The Compass
 
@@ -760,14 +760,14 @@ All animations respect `prefers-reduced-motion`.
 
 Each product shares the core design system with subtle differentiators:
 
-| Product      | Accent Metaphor                      | Empty State                                      | Tone                                              |
-| ------------ | ------------------------------------ | ------------------------------------------------ | ------------------------------------------------- |
-| **Map**      | Cartography — grids, pins, layers    | AI Agent holding blank map toward viewer         | "Chart the territory before you move through it." |
-| **Pathway**  | Trail — switchbacks, elevation marks | Engineer at trailhead, reading a trail sign       | "Where are you going? Let's map the route."       |
-| **Guide**    | Navigation — compass, stars          | AI Agent holding compass toward viewer           | "I can help you find your bearings."              |
-| **Landmark** | Observation — cairns, survey markers | AI Agent beside cairn, holding telescope outward | "What do the signals say?"                        |
-| **Summit**   | Ascent — peaks, routes, team planning | Trio looking up at peak with flag                 | "Can this team reach the peak?"                   |
-| **Basecamp** | Shelter — tents, campfire, logbooks  | Completed tent with flag, door flap open         | "Everything you know, in one place."              |
+| Product      | Accent Metaphor                       | Empty State                                      | Tone                                              |
+| ------------ | ------------------------------------- | ------------------------------------------------ | ------------------------------------------------- |
+| **Map**      | Cartography — grids, pins, layers     | AI Agent holding blank map toward viewer         | "Chart the territory before you move through it." |
+| **Pathway**  | Trail — switchbacks, elevation marks  | Engineer at trailhead, reading a trail sign      | "Where are you going? Let's map the route."       |
+| **Guide**    | Navigation — compass, stars           | AI Agent holding compass toward viewer           | "I can help you find your bearings."              |
+| **Landmark** | Observation — cairns, survey markers  | AI Agent beside cairn, holding telescope outward | "What do the signals say?"                        |
+| **Summit**   | Ascent — peaks, routes, team planning | Trio looking up at peak with flag                | "Can this team reach the peak?"                   |
+| **Basecamp** | Shelter — tents, campfire, logbooks   | Completed tent with flag, door flap open         | "Everything you know, in one place."              |
 
 ### Product-Specific UI Treatments
 

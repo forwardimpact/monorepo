@@ -18,13 +18,13 @@ approach where AI empowers people to do their best work.
 Six products raise quality, increase output, and bring pride of workmanship to
 engineering teams:
 
-| Product      | Question it answers                            |
-| ------------ | ---------------------------------------------- |
-| **Map**      | What does good engineering look like here?      |
-| **Pathway**  | Where does my career path go from here?         |
-| **Basecamp** | Am I prepared for what's ahead today?           |
-| **Guide**    | How do I find my bearing?                       |
-| **Landmark** | What milestones has my engineering reached?     |
+| Product      | Question it answers                               |
+| ------------ | ------------------------------------------------- |
+| **Map**      | What does good engineering look like here?        |
+| **Pathway**  | Where does my career path go from here?           |
+| **Basecamp** | Am I prepared for what's ahead today?             |
+| **Guide**    | How do I find my bearing?                         |
+| **Landmark** | What milestones has my engineering reached?       |
 | **Summit**   | Is this team supported to reach peak performance? |
 
 ## Products
@@ -39,8 +39,8 @@ career progression. Browse skills, generate job definitions, create agent teams
 and skills to support and empower the engineers, produce VS Code agent profiles,
 and build interview question sets.
 
-**[Basecamp](products/basecamp)** — Personal operations center with scheduled
-AI tasks. Syncs email and calendar, builds a knowledge graph of people, projects
+**[Basecamp](products/basecamp)** — Personal operations center with scheduled AI
+tasks. Syncs email and calendar, builds a knowledge graph of people, projects
 and topics, drafts responses, prepares meeting briefings, and runs quietly in
 the background with a macOS status menu.
 

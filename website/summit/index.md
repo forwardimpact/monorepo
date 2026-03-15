@@ -15,14 +15,15 @@ hero:
 
 > Map defines skills. Pathway charts individual routes. Basecamp handles daily
 > ops. But none of them answer the question engineering leaders ask most often:
-> "Does this team have the capability to deliver what we need?" Summit makes that
-> visible — not by ranking individuals, but by modelling the team as a system
-> with structural properties.
+> "Does this team have the capability to deliver what we need?" Summit makes
+> that visible — not by ranking individuals, but by modelling the team as a
+> system with structural properties.
 
 ### What you get
 
 - Capability coverage heatmaps across all skills in the framework
-- Structural risk detection — single points of failure, critical gaps, concentration risks
+- Structural risk detection — single points of failure, critical gaps,
+  concentration risks
 - What-if scenario simulation for roster changes before making them
 - Growth alignment connecting team gaps to individual development opportunities
 - Team roster from Map's unified person model or a local YAML planning file
@@ -68,7 +69,8 @@ $ fit-summit coverage platform
 ### Structural Risks
 
 Summit identifies single points of failure, critical gaps, and concentration
-risks — structural facts about team composition, not judgments about individuals.
+risks — structural facts about team composition, not judgments about
+individuals.
 
 ```
 $ fit-summit risks platform

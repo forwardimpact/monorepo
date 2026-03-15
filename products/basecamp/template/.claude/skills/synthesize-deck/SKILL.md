@@ -105,11 +105,12 @@ categories:
 
 For each data source mentioned or implied:
 
-| Data | Where It Lives | Format | Access | Blocker? |
-|------|---------------|--------|--------|----------|
+| Data        | Where It Lives             | Format                             | Access                          | Blocker?       |
+| ----------- | -------------------------- | ---------------------------------- | ------------------------------- | -------------- |
 | _What data_ | _System/team that owns it_ | _Structured/unstructured/API/file_ | _Do we have it? Can we get it?_ | _Yes/No + why_ |
 
 Flag any data that is:
+
 - Mentioned but doesn't seem to exist yet
 - Locked behind systems the team may not have access to
 - Unstructured and would need significant preprocessing
@@ -156,7 +157,8 @@ feature or use case, specify:
 **Format guidance:**
 
 - Prefer CSV/JSON for structured data
-- Include realistic PII-shaped data (fake names, addresses, IDs) — never real PII
+- Include realistic PII-shaped data (fake names, addresses, IDs) — never real
+  PII
 - Include both happy-path and adversarial examples
 - Consider what data would be needed to train/evaluate ML models
 
@@ -172,6 +174,7 @@ terms:
 - What AI/ML capabilities are needed and what are they actually doing?
 
 Avoid just listing the deck's branded feature names. Translate:
+
 - "Intelligent Intake Hub" → "OCR + NLP pipeline that extracts structured fields
   from scanned enrollment forms"
 - "Case Intelligence Hub" → "Dashboard pulling case status from CRM + ML risk

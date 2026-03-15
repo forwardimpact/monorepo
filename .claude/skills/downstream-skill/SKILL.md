@@ -247,5 +247,5 @@ processed. This prevents re-processing the same changelog entries.
 | 2026-03-09 | Personal     | process-hyprnote     | Incorporated: scan.mjs script + updated Before Starting section                        |
 | 2026-03-09 | Personal     | scan-open-candidates | Incorporated: state.mjs script + State Management Script section                       |
 | 2026-03-09 | Personal     | sync-apple-calendar  | Incorporated: query.mjs script + Querying Events section                               |
-| 2026-03-11 | Personal     | track-candidates     | Incorporated: headshot discovery in Step 2, headshot.jpeg output + checklist            |
+| 2026-03-11 | Personal     | track-candidates     | Incorporated: headshot discovery in Step 2, headshot.jpeg output + checklist           |
 | 2026-03-12 | Personal     | synthesize-deck      | Incorporated: new skill — PPTX to engineering brief with JTBD + dependencies           |

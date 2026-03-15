@@ -7,14 +7,15 @@ teams.
 
 Pathway is the primary interface for interacting with engineering competency
 data. It provides tools for browsing career paths, generating job descriptions,
-generating agent teams and skills, and preparing interviews—all from a unified web
-experience and command line.
+generating agent teams and skills, and preparing interviews—all from a unified
+web experience and command line.
 
 ## What It Does
 
 - **Web application** — Interactive browser for jobs, skills, and career paths
 - **CLI tools** — Command-line access to all functionality
-- **Agent teams** — Generate VS Code Custom Agent teams (`.agent.md`) and skills (`SKILL.md`)
+- **Agent teams** — Generate VS Code Custom Agent teams (`.agent.md`) and skills
+  (`SKILL.md`)
 - **Interview prep** — Build interview question sets by role
 - **Static site** — Export everything as a static site
 
@@ -34,18 +35,18 @@ npx fit-pathway agent software_engineering --track=platform --output=./.github/a
 
 ## CLI Commands
 
-| Command     | Description                  |
-| ----------- | ---------------------------- |
-| `serve`     | Start web server             |
-| `site`      | Generate static site         |
-| `init`      | Create data directory        |
-| `skill`     | Browse skills                |
-| `behaviour` | Browse behaviours            |
-| `job`       | Generate job definitions     |
+| Command     | Description                     |
+| ----------- | ------------------------------- |
+| `serve`     | Start web server                |
+| `site`      | Generate static site            |
+| `init`      | Create data directory           |
+| `skill`     | Browse skills                   |
+| `behaviour` | Browse behaviours               |
+| `job`       | Generate job definitions        |
 | `agent`     | Generate agent teams and skills |
-| `interview` | Generate interview questions |
-| `progress`  | Analyze career progression   |
-| `questions` | Browse interview questions   |
+| `interview` | Generate interview questions    |
+| `progress`  | Analyze career progression      |
+| `questions` | Browse interview questions      |
 
 Use `--help` with any command for full options.
 
