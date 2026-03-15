@@ -72,10 +72,11 @@ export class Renderer {
   /**
    * Render raw documents from entities.
    * @param {object} entities
+   * @param {Map<string,string>} [proseMap] - Optional prose map for comment text
    * @returns {Map<string,string>}
    */
-  renderRaw(entities) {
-    return renderRawDocuments(entities);
+  renderRaw(entities, proseMap) {
+    return renderRawDocuments(entities, proseMap);
   }
 
   /**

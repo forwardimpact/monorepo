@@ -261,6 +261,7 @@ universe BioNova {
     quarterly_from 2024-07
     quarterly_to 2026-01
     account_id "acct_bionova_001"
+    comments_per_snapshot 25
   }
 
   scenario oncora_push {
