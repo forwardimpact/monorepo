@@ -500,7 +500,7 @@ function generateEvidence(ast, rng, people, teams) {
  * @param {object[]} snapshots
  * @returns {{ scorecards: object[], initiatives: object[] }}
  */
-function deriveInitiatives(ast, rng, people, teams, snapshots) {
+function deriveInitiatives(ast, rng, people, teams, _snapshots) {
   const scorecards = [];
   const initiatives = [];
   const driverMap = new Map(
@@ -534,7 +534,10 @@ function deriveInitiatives(ast, rng, people, teams, snapshots) {
           name: skillId.replace(/_/g, " "),
           ordering: i,
           published: true,
-          level: { id: `lvl_${i % 3}`, name: ["Red", "Yellow", "Green"][i % 3] },
+          level: {
+            id: `lvl_${i % 3}`,
+            name: ["Red", "Yellow", "Green"][i % 3],
+          },
         }));
 
         const levels = [
@@ -552,7 +555,10 @@ function deriveInitiatives(ast, rng, people, teams, snapshots) {
           checks,
           levels,
           tags: [
-            { value: isDeclining ? "remediation" : "improvement", color: isDeclining ? "#dc2626" : "#16a34a" },
+            {
+              value: isDeclining ? "remediation" : "improvement",
+              color: isDeclining ? "#dc2626" : "#16a34a",
+            },
           ],
         });
 
@@ -570,9 +576,7 @@ function deriveInitiatives(ast, rng, people, teams, snapshots) {
           ? Math.round(rawPct * 0.7)
           : Math.round(Math.min(100, rawPct * 1.1));
 
-        const passedChecks = Math.round(
-          (pctComplete / 100) * checks.length,
-        );
+        const passedChecks = Math.round((pctComplete / 100) * checks.length);
 
         // Determine priority: more severe declining → higher priority (lower number)
         let priority;
@@ -592,7 +596,8 @@ function deriveInitiatives(ast, rng, people, teams, snapshots) {
         const manager = people.find(
           (p) => p.team_id === team.id && p.is_manager,
         );
-        const ownerPerson = manager || people.find((p) => p.team_id === team.id);
+        const ownerPerson =
+          manager || people.find((p) => p.team_id === team.id);
 
         const remainingDevDays = Math.round(
           ((100 - pctComplete) / 100) * totalDays * 0.3,
@@ -627,7 +632,11 @@ function deriveInitiatives(ast, rng, people, teams, snapshots) {
                 name: ownerPerson.name,
                 email: ownerPerson.email,
               }
-            : { id: "usr_unknown", name: "Unknown", email: "unknown@example.com" },
+            : {
+                id: "usr_unknown",
+                name: "Unknown",
+                email: "unknown@example.com",
+              },
           tags,
           // Internal fields for rendering/joining
           _scenario_id: scenario.id,
@@ -720,7 +729,11 @@ function generateCommentKeys(ast, rng, people, teams, snapshots) {
         snapshot_id: snap.snapshot_id,
         email: c.person.email,
         team_id: c.team.id,
-        timestamp: randDate(rng, new Date(snap.scheduled_for), snapDate).toISOString(),
+        timestamp: randDate(
+          rng,
+          new Date(snap.scheduled_for),
+          snapDate,
+        ).toISOString(),
         driver_id: c.driver_id,
         driver_name: c.driver_name,
         trajectory: c.trajectory,
@@ -765,7 +778,6 @@ function generateRosterSnapshots(ast, rng, people, teams, snapshots) {
   }));
 
   const levelOrder = ["L1", "L2", "L3", "L4", "L5"];
-  const namePool = people.map((p) => p.name);
   let hireCounter = 0;
 
   for (let i = 0; i < snapshots.length; i++) {
@@ -779,7 +791,12 @@ function generateRosterSnapshots(ast, rng, people, teams, snapshots) {
       for (let d = 0; d < departureCount && currentRoster.length > 10; d++) {
         const idx = rng.randomInt(0, currentRoster.length - 1);
         const departed = currentRoster[idx];
-        changes.push({ type: "depart", name: departed.name, email: departed.email, team_id: departed.team_id });
+        changes.push({
+          type: "depart",
+          name: departed.name,
+          email: departed.email,
+          team_id: departed.team_id,
+        });
         currentRoster.splice(idx, 1);
       }
 
@@ -797,7 +814,9 @@ function generateRosterSnapshots(ast, rng, people, teams, snapshots) {
         const email = `hire_${hireCounter}@${ast.domain || "example.com"}`;
         const name = `NewHire_${hireCounter}`;
         const manager = currentRoster.find(
-          (p) => p.team_id === team.id && people.find((op) => op.email === p.email)?.is_manager,
+          (p) =>
+            p.team_id === team.id &&
+            people.find((op) => op.email === p.email)?.is_manager,
         );
 
         const hire = {
@@ -884,7 +903,7 @@ function generateRosterSnapshots(ast, rng, people, teams, snapshots) {
  * @param {object[]} teams
  * @returns {object[]}
  */
-function deriveProjectTeams(ast, rng, people, teams) {
+function deriveProjectTeams(ast, rng, people, _teams) {
   const projectTeams = [];
 
   for (const project of ast.projects) {

@@ -269,17 +269,15 @@ function renderGetDXComments(entities, files, proseMap) {
           }
         }
       }
-      // Search by iterating if hash-based cache key doesn't match directly
-      if (!text && proseMap) {
-        for (const [, v] of proseMap) {
-          // The prose map uses hashed keys, so we rely on generation order
-        }
-      }
+      // Note: if text is still null, prose generation was not run for this key.
+      // The prose map uses hashed keys, so fallback iteration is not feasible.
 
       return {
         snapshot_id: ck.snapshot_id,
         email: ck.email,
-        text: text || `[${ck.driver_name} — ${ck.trajectory}] Comment pending prose generation.`,
+        text:
+          text ||
+          `[${ck.driver_name} — ${ck.trajectory}] Comment pending prose generation.`,
         timestamp: ck.timestamp,
         team_id: ck.team_id,
       };
@@ -316,7 +314,12 @@ function renderRosterSnapshots(entities, files) {
     files.set(
       `activity/roster-snapshots/${rs.quarter}.yaml`,
       YAML.stringify(
-        { quarter: rs.quarter, members: rs.members, changes: rs.changes, roster: rs.roster },
+        {
+          quarter: rs.quarter,
+          members: rs.members,
+          changes: rs.changes,
+          roster: rs.roster,
+        },
         { lineWidth: 120 },
       ),
     );
