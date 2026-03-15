@@ -6,7 +6,7 @@
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "onCreateCommand": "npm install && make codegen && make env-setup && make data-init && sed -i 's|EMBEDDING_BASE_URL=http://localhost:8090|EMBEDDING_BASE_URL=http://tei:8090|' .env.local",
+  "onCreateCommand": "bash .devcontainer/setup.sh",
   "remoteEnv": {
     "LLM_TOKEN": "${localEnv:LLM_TOKEN}",
     "LLM_BASE_URL": "${localEnv:LLM_BASE_URL}"
