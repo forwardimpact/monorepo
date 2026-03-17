@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libsupervise",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Process supervision for Forward Impact services",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

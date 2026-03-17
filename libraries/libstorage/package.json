@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libstorage",
-  "version": "0.1.54",
+  "version": "0.1.55",
   "description": "Storage abstraction layer for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
