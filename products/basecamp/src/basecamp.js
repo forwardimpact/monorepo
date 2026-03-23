@@ -19,7 +19,6 @@ import {
   existsSync,
   mkdirSync,
   readdirSync,
-  cpSync,
   copyFileSync,
   appendFileSync,
 } from "node:fs";
@@ -90,7 +89,6 @@ const kbManager = new KBManager(
   {
     existsSync,
     mkdirSync,
-    cpSync,
     copyFileSync,
     readFileSync,
     writeFileSync,
