@@ -5,7 +5,7 @@ synthetic data system.
 
 ## Clean Break
 
-⚠️ All changes in this plan MUST be implemented as clean breaks wit NO
+⚠️ All changes in this plan MUST be implemented as clean breaks with NO
 backward compatibility. There are no consumers of this code base yet and we
 do not want any legacy code paths.
 
@@ -48,8 +48,8 @@ them. No base class, no interface — just a shape.
 ### New keywords
 
 Add to the KEYWORDS list: `dataset`, `tool`, `population`, `modules`,
-`metadata`, `rows`, `fields`, `output`, `table`, `path`, `json`, `yaml`,
-`csv`, `markdown`, `parquet`, `sql`.
+`metadata`, `data`, `rows`, `fields`, `output`, `table`, `path`, `json`,
+`yaml`, `csv`, `markdown`, `parquet`, `sql`.
 
 ### New parser functions
 
@@ -65,6 +65,7 @@ function parseDataset(id) {
     else if (kw.value === 'population') ds.config.population = expectNumber()
     else if (kw.value === 'modules') ds.config.modules = parseArray()
     else if (kw.value === 'metadata') ds.config.metadata = expectString()
+    else if (kw.value === 'data') ds.config.data = parseFields()  // { tableName: "path.csv" }
     else if (kw.value === 'rows') ds.config.rows = expectNumber()
     else if (kw.value === 'fields') ds.config.fields = parseFields()
     else throw new Error(`Unexpected '${kw.value}' in dataset`)
@@ -90,11 +91,17 @@ function parseFields() {
 }
 ```
 
-**`parseOutput()`** — called when the parser encounters `output <dataset> <format> {`:
+**`parseOutput()`** — called when the parser encounters `output <dataset> <format> {`.
+Validates the format against the six known renderers at parse time:
 
 ```javascript
+const FORMATS = new Set(['json', 'yaml', 'csv', 'markdown', 'parquet', 'sql'])
+
 function parseOutput(datasetId) {
-  const format = advance().value  // json, yaml, csv, markdown, parquet, sql
+  const format = advance().value
+  if (!FORMATS.has(format)) {
+    throw new Error(`Unknown output format '${format}'. Expected one of: ${[...FORMATS].join(', ')}`)
+  }
   expect('LBRACE')
   const out = { dataset: datasetId, format, config: {} }
   while (peek().type !== 'RBRACE') {
@@ -146,7 +153,8 @@ else if (kw.value === 'output') {
   empty arrays.
 - Parse mixed DSL (org blocks + dataset blocks), verify both are present.
 - Parse error on unknown keyword inside `dataset` block.
-- Parse error on unknown format in `output` block.
+- Parse error on unknown format in `output` block (e.g. `output x xlsx {}`
+  throws with the list of valid formats).
 
 ## Phase 2 — Generic Renderers
 
@@ -223,21 +231,21 @@ function renderMarkdown(dataset, config) {
 ### Parquet renderer
 
 Use `parquet-wasm` (WebAssembly-based, no native deps, runs in Node.js).
-Convert the dataset records to Arrow-compatible column arrays, then write a
-Parquet file.
+Build an Arrow table from the dataset schema and records, then serialize to
+Parquet. The `parquet-wasm` package provides `tableFromJSON` (Arrow IPC) and
+`writeParquet` (Arrow table → Parquet bytes).
 
 ```javascript
-import { writeParquet, Table } from 'parquet-wasm/node'
+import * as parquet from 'parquet-wasm/node'
+import * as arrow from 'apache-arrow'
 
 function renderParquet(dataset, config) {
-  const table = Table.fromJSON(dataset.records)
-  const buffer = writeParquet(table)
+  const table = arrow.tableFromJSON(dataset.records)
+  const wasmTable = parquet.Table.fromIPCStream(arrow.tableToIPC(table, 'stream'))
+  const buffer = parquet.writeParquet(wasmTable)
   return new Map([[config.path, Buffer.from(buffer)]])
 }
 ```
-
-If `parquet-wasm` proves problematic, fall back to `@duckdb/node` which can
-write Parquet from JSON. Either way, this is a single dependency addition.
 
 ### SQL INSERT renderer
 
@@ -304,9 +312,10 @@ Add `renderDataset` to `libsyntheticrender/index.js`.
 
 ### Dependencies
 
-| Package       | Add to            | Reason          |
-| ------------- | ----------------- | --------------- |
-| `parquet-wasm` | libsyntheticrender | Parquet output |
+| Package        | Add to             | Reason                       |
+| -------------- | ------------------ | ---------------------------- |
+| `parquet-wasm`  | libsyntheticrender | Parquet serialization (Wasm) |
+| `apache-arrow` | libsyntheticrender | Arrow table construction     |
 
 ## Phase 3 — Faker Tool
 
@@ -339,7 +348,7 @@ class FakerTool {
 
   /**
    * @param {object} config - { rows, fields, seed }
-   * @returns {Promise<Dataset>}
+   * @returns {Promise<Dataset[]>}
    */
   async generate(config) {
     faker.seed(config.seed)
@@ -351,12 +360,12 @@ class FakerTool {
       }
       records.push(record)
     }
-    return {
+    return [{
       name: config.name,
       schema: null,
       records,
       metadata: { tool: 'faker', fields: config.fields },
-    }
+    }]
   }
 
   /**
@@ -399,16 +408,20 @@ In `libuniverse/pipeline.js`, after DSL parsing:
 
 ```javascript
 // Generate datasets from tool blocks
+// All tools return Dataset[] — Faker returns a single-element array,
+// Synthea/SDV return one dataset per resource type / table.
 const datasets = new Map()
 for (const ds of ast.datasets) {
   const tool = getTool(ds.tool, { logger })
   await tool.checkAvailability()
-  const dataset = await tool.generate({
+  const results = await tool.generate({
     ...ds.config,
     seed: ast.seed,
     name: ds.id,
   })
-  datasets.set(ds.id, dataset)
+  for (const dataset of results) {
+    datasets.set(dataset.name, dataset)
+  }
 }
 
 // Render dataset outputs
@@ -422,14 +435,24 @@ for (const out of ast.outputs) {
 }
 ```
 
-`getTool()` is a simple switch, not a registry:
+`getTool()` is a simple switch, not a registry. The composition root (CLI)
+reads environment variables and passes them as concrete values:
 
 ```javascript
 function getTool(name, deps) {
   switch (name) {
-    case 'faker': return createFakerTool(deps.logger)
-    case 'synthea': return createSyntheaTool(deps.logger)
-    case 'sdv': return createSdvTool(deps.logger)
+    case 'faker': return new FakerTool({ logger: deps.logger })
+    case 'synthea': return new SyntheaTool({
+      logger: deps.logger,
+      syntheaJar: deps.syntheaJar,
+      execFileFn: deps.execFileFn,
+      fsFns: deps.fsFns,
+    })
+    case 'sdv': return new SdvTool({
+      logger: deps.logger,
+      execFileFn: deps.execFileFn,
+      fsFns: deps.fsFns,
+    })
     default: throw new Error(`Unknown tool: ${name}`)
   }
 }
@@ -499,19 +522,25 @@ class SyntheaTool {
   /**
    * @param {object} deps
    * @param {object} deps.logger
-   * @param {string} [deps.syntheaJar] - Path to synthea-with-dependencies.jar
+   * @param {string} deps.syntheaJar - Absolute path to synthea-with-dependencies.jar
+   * @param {Function} deps.execFileFn - async (cmd, args) => { stdout }
+   * @param {object} deps.fsFns - { readFile, readdir, mkdtemp, rm }
    */
-  constructor({ logger, syntheaJar }) {
+  constructor({ logger, syntheaJar, execFileFn, fsFns }) {
     if (!logger) throw new Error('SyntheaTool requires logger')
+    if (!syntheaJar) throw new Error('SyntheaTool requires syntheaJar')
+    if (!execFileFn) throw new Error('SyntheaTool requires execFileFn')
+    if (!fsFns) throw new Error('SyntheaTool requires fsFns')
     this.logger = logger
-    this.syntheaJar = syntheaJar || process.env.SYNTHEA_JAR || 'synthea-with-dependencies.jar'
+    this.syntheaJar = syntheaJar
+    this.execFileFn = execFileFn
+    this.fsFns = fsFns
   }
 
   async checkAvailability() {
     try {
-      await exec('java', ['-version'])
-      // Check jar exists
-      await readFile(this.syntheaJar)
+      await this.execFileFn('java', ['-version'])
+      await this.fsFns.readFile(this.syntheaJar)
       return true
     } catch {
       throw new Error(
@@ -523,8 +552,9 @@ class SyntheaTool {
     }
   }
 
+  /** @returns {Promise<Dataset[]>} One dataset per FHIR resource type */
   async generate(config) {
-    const tmpDir = await mkdtemp('synthea-')
+    const tmpDir = await this.fsFns.mkdtemp('synthea-')
     const args = [
       '-jar', this.syntheaJar,
       '-p', String(config.population || 100),
@@ -539,13 +569,15 @@ class SyntheaTool {
     }
 
     this.logger.info(`Running Synthea: population=${config.population}`)
-    await execFileAsync('java', args)
+    await this.execFileFn('java', args)
 
     // Read FHIR bundles from output
     const fhirDir = join(tmpDir, 'fhir')
-    const bundleFiles = (await readdir(fhirDir)).filter(f => f.endsWith('.json'))
+    const bundleFiles = (await this.fsFns.readdir(fhirDir)).filter(f => f.endsWith('.json'))
     const bundles = await Promise.all(
-      bundleFiles.map(async f => JSON.parse(await readFile(join(fhirDir, f), 'utf-8')))
+      bundleFiles.map(async f =>
+        JSON.parse(await this.fsFns.readFile(join(fhirDir, f), 'utf-8'))
+      )
     )
 
     // Flatten bundles into datasets by resource type
@@ -571,28 +603,19 @@ class SyntheaTool {
     }
 
     // Clean up
-    await rm(tmpDir, { recursive: true })
+    await this.fsFns.rm(tmpDir, { recursive: true })
 
     return datasets
   }
 }
 ```
 
-### Multi-dataset handling
+### Multi-dataset naming
 
-Synthea is unique: it produces multiple datasets (one per FHIR resource type)
-from a single invocation. The pipeline must handle this:
-
-```javascript
-// In pipeline — tools that return arrays
-const result = await tool.generate({ ...ds.config, seed: ast.seed, name: ds.id })
-const resultDatasets = Array.isArray(result) ? result : [result]
-for (const dataset of resultDatasets) {
-  datasets.set(dataset.name, dataset)
-}
-```
-
-Output blocks reference the expanded names:
+Synthea produces multiple datasets (one per FHIR resource type) from a single
+invocation. SDV produces one per table. All tools return `Dataset[]` — Faker
+returns a single-element array. Each dataset's `name` is set by the tool
+(`{dslId}_{resourceOrTable}`), and output blocks reference these expanded names:
 
 ```
 output patients_patient csv  { path "output/patients.csv" }
@@ -639,24 +662,29 @@ universe SyntheaDemo {
 
 ### Bridge script
 
-A thin Python script that the SDV tool invokes as a subprocess:
+A thin Python script that the SDV tool invokes as a subprocess. SDV requires
+real data to fit its copula model — the `metadata` JSON describes column types
+and distributions, and the `data` CSV provides the sample to learn from:
 
 ```python
 #!/usr/bin/env python3
 """Bridge between fit-universe and SDV."""
 import json
 import sys
+import pandas as pd
 from sdv.metadata import Metadata
 from sdv.single_table import GaussianCopulaSynthesizer
 
 def main():
     config = json.load(open(sys.argv[1]))
     metadata = Metadata.load_from_json(config['metadata'])
+    seed = config.get('seed', 0)
 
     for table_name in metadata.get_tables():
+        data = pd.read_csv(config['data'][table_name])
         synth = GaussianCopulaSynthesizer(metadata, table_name=table_name)
-        synth.fit(None)  # metadata-only fitting
-        samples = synth.sample(num_rows=config['rows'])
+        synth.fit(data)
+        samples = synth.sample(num_rows=config['rows'], seed=seed)
 
         output = {
             'name': table_name,
@@ -672,15 +700,25 @@ if __name__ == '__main__':
 
 ```javascript
 class SdvTool {
-  constructor({ logger }) {
+  /**
+   * @param {object} deps
+   * @param {object} deps.logger
+   * @param {Function} deps.execFileFn - async (cmd, args) => { stdout }
+   * @param {object} deps.fsFns - { writeFile, rm }
+   */
+  constructor({ logger, execFileFn, fsFns }) {
     if (!logger) throw new Error('SdvTool requires logger')
+    if (!execFileFn) throw new Error('SdvTool requires execFileFn')
+    if (!fsFns) throw new Error('SdvTool requires fsFns')
     this.logger = logger
+    this.execFileFn = execFileFn
+    this.fsFns = fsFns
     this.scriptPath = join(import.meta.dirname, 'sdv_generate.py')
   }
 
   async checkAvailability() {
     try {
-      await execFileAsync('python3', ['-c', 'import sdv'])
+      await this.execFileFn('python3', ['-c', 'import sdv'])
       return true
     } catch {
       throw new Error(
@@ -690,19 +728,26 @@ class SdvTool {
     }
   }
 
+  /**
+   * @param {object} config - { name, metadata, data, rows, seed }
+   * @param {string} config.metadata - Path to SDV metadata JSON
+   * @param {Object<string, string>} config.data - Map of table name → CSV path
+   * @returns {Promise<Dataset[]>}
+   */
   async generate(config) {
-    const tmpConfig = join(tmpdir(), `sdv-config-${Date.now()}.json`)
-    await writeFile(tmpConfig, JSON.stringify({
+    const tmpConfig = join(tmpdir(), `sdv-config-${randomUUID()}.json`)
+    await this.fsFns.writeFile(tmpConfig, JSON.stringify({
       metadata: config.metadata,
+      data: config.data,
       rows: config.rows || 1000,
       seed: config.seed,
     }))
 
-    const { stdout } = await execFileAsync('python3', [this.scriptPath, tmpConfig])
-    await rm(tmpConfig)
+    const { stdout } = await this.execFileFn('python3', [this.scriptPath, tmpConfig])
+    await this.fsFns.rm(tmpConfig)
 
     // Parse newline-delimited JSON
-    const datasets = stdout.trim().split('\n').map(line => {
+    return stdout.trim().split('\n').map(line => {
       const obj = JSON.parse(line)
       return {
         name: `${config.name}_${obj.name}`,
@@ -711,8 +756,6 @@ class SdvTool {
         metadata: { tool: 'sdv', table: obj.name },
       }
     })
-
-    return datasets
   }
 }
 ```
@@ -728,6 +771,9 @@ universe SdvDemo {
   dataset transactions {
     tool sdv
     metadata "schemas/transactions_metadata.json"
+    data {
+      payments "data/payments_sample.csv"
+    }
     rows 10000
   }
 
@@ -770,7 +816,8 @@ universe SdvDemo {
 | Package          | Add to             | Reason                         |
 | ---------------- | ------------------ | ------------------------------ |
 | `@faker-js/faker` | libsyntheticgen    | In-process field generation    |
-| `parquet-wasm`    | libsyntheticrender | Parquet file writing           |
+| `parquet-wasm`    | libsyntheticrender | Parquet serialization (Wasm)   |
+| `apache-arrow`   | libsyntheticrender | Arrow table construction       |
 
 No new dependencies for Synthea (subprocess) or SDV (subprocess). The `yaml`
 package is already present.

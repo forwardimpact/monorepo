@@ -86,7 +86,7 @@ dynamic loading. If a fourth tool is needed later, add another class.
 | Tool        | What it wraps                  | Input                               | Output                                       |
 | ----------- | ------------------------------ | ----------------------------------- | -------------------------------------------- |
 | **Synthea** | Synthea CLI (Java)             | Population size, modules, seed      | FHIR R4 bundles → flattened patient datasets  |
-| **SDV**     | SDV library (Python)           | Metadata JSON, row count, seed      | Tabular datasets preserving distributions     |
+| **SDV**     | SDV library (Python)           | Metadata JSON, sample CSVs, row count, seed | Tabular datasets preserving distributions     |
 | **Faker**   | @faker-js/faker (JS, in-proc) | Field definitions, row count, seed  | Record arrays with realistic field values     |
 
 **Synthea tool.** Invokes `java -jar synthea.jar` as a child process with
@@ -95,11 +95,14 @@ output directory. Flattens bundles into one dataset per FHIR resource type
 (Patient, Encounter, Condition, Observation, etc.). Each record is one FHIR
 resource with its fields as properties.
 
-**SDV tool.** Invokes a Python subprocess that imports `sdv`, fits a model
-to the provided metadata (column types, distributions, constraints), and
-generates rows. A thin Python script (`tools/sdv_generate.py`) bridges the
+**SDV tool.** Invokes a Python subprocess that imports `sdv`, fits a
+GaussianCopula model to sample data described by the provided metadata (column
+types, distributions, constraints), and generates rows preserving statistical
+properties. A thin Python script (`tools/sdv_generate.py`) bridges the
 JS ↔ Python boundary — the tool writes config to a temp file, calls the
 script, reads JSON output. Each table in the metadata becomes one dataset.
+The DSL `data` block maps table names to CSV file paths containing sample data
+for fitting.
 
 **Faker tool.** Runs in-process (JS). Takes a field definition map
 (`{ name: "person.fullName", email: "internet.email", ... }`) and a row count.
@@ -153,6 +156,9 @@ universe HealthcareDemo {
   dataset claims {
     tool sdv
     metadata "schemas/claims_metadata.json"
+    data {
+      claims "data/claims_sample.csv"
+    }
     rows 50000
   }
 
