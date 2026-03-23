@@ -143,46 +143,61 @@ blocks (`org`, `department`, `team`, `people`, `project`, `framework`,
 `scenarios`, `content`) remain unchanged — they define the built-in
 org-and-pathway generation.
 
-```
-universe HealthcareDemo {
-  seed 42
+The existing `examples/universe.dsl` (BioNova) is extended with `dataset` and
+`output` blocks that exercise all three tools and all six renderers. This keeps
+a single DSL file as the canonical example while demonstrating that org-and-pathway
+blocks coexist with dataset blocks in the same universe:
 
-  dataset patients {
+```
+universe BioNova {
+  // ... existing org, department, team, people, project,
+  //     framework, scenarios, content blocks ...
+
+  // ─── Datasets ─────────────────────────────────
+
+  dataset trial_patients {
     tool synthea
-    population 1000
+    population 200
     modules [diabetes, cardiovascular]
   }
 
   dataset claims {
     tool sdv
-    metadata "schemas/claims_metadata.json"
+    metadata "schemas/bionova_claims_metadata.json"
     data {
-      claims "data/claims_sample.csv"
+      claims "data/bionova_claims_sample.csv"
     }
-    rows 50000
+    rows 5000
   }
 
-  dataset contacts {
+  dataset researchers {
     tool faker
-    rows 500
+    rows 100
     fields {
+      id "string.uuid"
       name "person.fullName"
       email "internet.email"
-      phone "phone.number"
-      company "company.name"
+      department "commerce.department"
+      specialty "science.chemicalElement"
       joined "date.past"
     }
   }
 
-  output patients json { path "output/patients.json" }
-  output patients csv  { path "output/patients.csv" }
-  output claims parquet { path "output/claims.parquet" }
-  output contacts sql  { path "output/contacts.sql" table "contacts" }
+  // ─── Outputs ──────────────────────────────────
+
+  output trial_patients_patient json     { path "output/trial_patients.json" }
+  output trial_patients_patient csv      { path "output/trial_patients.csv" }
+  output trial_patients_condition json   { path "output/trial_conditions.json" }
+  output claims_claims parquet           { path "output/claims.parquet" }
+  output claims_claims sql               { path "output/claims.sql" table "bionova_claims" }
+  output researchers yaml                { path "output/researchers.yaml" }
+  output researchers markdown            { path "output/researchers.md" }
 }
 ```
 
-A universe can mix tools freely. A universe can also combine the built-in
-org-and-pathway blocks with `dataset` blocks — they are independent.
+All three tools and all six output formats are exercised in a single universe
+definition. Dataset blocks and org-and-pathway blocks are independent — both
+run when present, neither requires the other.
 
 ### Pipeline changes
 
@@ -228,12 +243,13 @@ org/department/team blocks, no org-and-pathway code runs. Both can coexist.
    available, producing FHIR-derived datasets in any output format.
 3. `fit-universe` generates SDV tabular data when Python and SDV are available,
    producing statistically representative datasets in any output format.
-4. Existing `examples/universe.dsl` continues to work unchanged — no regression
-   in org-and-pathway generation.
+4. Existing org-and-pathway blocks in `examples/universe.dsl` continue to work
+   — no regression in org-and-pathway generation.
 5. Each tool produces deterministic output given the same seed.
 6. Each tool fails clearly when its external dependency is unavailable.
 7. All six renderers produce correct output for flat and nested record shapes.
-8. A single universe can mix built-in org blocks with `dataset` blocks.
+8. `examples/universe.dsl` mixes built-in org blocks with `dataset` blocks,
+   exercising all three tools and all six renderers.
 9. Parquet output is readable by DuckDB / Pandas without errors.
 10. SQL INSERT output is valid SQL for PostgreSQL.
 
@@ -247,7 +263,8 @@ org/department/team blocks, no org-and-pathway code runs. Both can coexist.
 - Pipeline integration: tool execution and output rendering steps.
 - Availability checks and clear error messages for external dependencies.
 - Unit tests for each tool and renderer.
-- One example DSL file per tool demonstrating usage.
+- `examples/universe.dsl` extended with `dataset` and `output` blocks
+  exercising all three tools and all six renderers.
 
 ### Out of scope
 

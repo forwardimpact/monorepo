@@ -458,47 +458,59 @@ function getTool(name, deps) {
 }
 ```
 
-### Example DSL
+### `examples/universe.dsl` extension
 
-Create `examples/faker-demo.dsl`:
+Extend the existing BioNova DSL with `dataset` and `output` blocks that exercise
+all three tools and all six renderers. The new blocks are appended after the
+existing `content` blocks:
 
 ```
-universe FakerDemo {
-  seed 42
+  // ─── Datasets ─────────────────────────────────
 
-  dataset customers {
+  dataset trial_patients {
+    tool synthea
+    population 200
+    modules [diabetes, cardiovascular]
+  }
+
+  dataset claims {
+    tool sdv
+    metadata "schemas/bionova_claims_metadata.json"
+    data {
+      claims "data/bionova_claims_sample.csv"
+    }
+    rows 5000
+  }
+
+  dataset researchers {
     tool faker
     rows 100
     fields {
       id "string.uuid"
       name "person.fullName"
       email "internet.email"
-      phone "phone.number"
-      company "company.name"
+      department "commerce.department"
+      specialty "science.chemicalElement"
       joined "date.past"
-      active "datatype.boolean"
     }
   }
 
-  dataset products {
-    tool faker
-    rows 50
-    fields {
-      id "string.uuid"
-      name "commerce.productName"
-      price "commerce.price"
-      category "commerce.department"
-      description "commerce.productDescription"
-    }
-  }
+  // ─── Outputs ──────────────────────────────────
 
-  output customers json { path "output/customers.json" }
-  output customers csv  { path "output/customers.csv" }
-  output customers sql  { path "output/customers.sql" table "customers" }
-  output products yaml  { path "output/products.yaml" }
-  output products markdown { path "output/products.md" }
-}
+  output trial_patients_patient json     { path "output/trial_patients.json" }
+  output trial_patients_patient csv      { path "output/trial_patients.csv" }
+  output trial_patients_condition json   { path "output/trial_conditions.json" }
+  output claims_claims parquet           { path "output/claims.parquet" }
+  output claims_claims sql               { path "output/claims.sql" table "bionova_claims" }
+  output researchers yaml                { path "output/researchers.yaml" }
+  output researchers markdown            { path "output/researchers.md" }
 ```
+
+This exercises all three tools (Synthea, SDV, Faker), all six output formats
+(JSON, CSV, Parquet, SQL, YAML, Markdown), and demonstrates coexistence with
+org-and-pathway blocks in a single universe. The Faker `researchers` dataset
+runs in CI without external dependencies; Synthea and SDV datasets are skipped
+with a clear message when Java/Python are unavailable.
 
 ### Tests
 
@@ -627,27 +639,6 @@ Or use a wildcard convention — `output patients * csv` — that expands to all
 datasets with the `patients_` prefix. The simpler approach (explicit names) is
 sufficient for now.
 
-### Example DSL
-
-Create `examples/synthea-demo.dsl`:
-
-```
-universe SyntheaDemo {
-  seed 42
-
-  dataset patients {
-    tool synthea
-    population 100
-    modules [diabetes]
-  }
-
-  output patients_patient csv      { path "output/patients.csv" }
-  output patients_encounter csv    { path "output/encounters.csv" }
-  output patients_condition json   { path "output/conditions.json" }
-  output patients_observation json { path "output/observations.json" }
-}
-```
-
 ### Tests
 
 - Unit test with mocked `execFile`: verify args passed to Java.
@@ -760,29 +751,6 @@ class SdvTool {
 }
 ```
 
-### Example DSL
-
-Create `examples/sdv-demo.dsl`:
-
-```
-universe SdvDemo {
-  seed 42
-
-  dataset transactions {
-    tool sdv
-    metadata "schemas/transactions_metadata.json"
-    data {
-      payments "data/payments_sample.csv"
-    }
-    rows 10000
-  }
-
-  output transactions_payments csv     { path "output/payments.csv" }
-  output transactions_payments parquet { path "output/payments.parquet" }
-  output transactions_payments sql     { path "output/payments.sql" table "payments" }
-}
-```
-
 ### Tests
 
 - Unit test with mocked subprocess: verify Python script path and config.
@@ -807,9 +775,7 @@ universe SdvDemo {
 | Create | `libraries/libsyntheticgen/tools/sdv.js`                   |
 | Create | `libraries/libsyntheticgen/tools/sdv_generate.py`          |
 | Create | `libraries/libsyntheticrender/render/dataset-renderers.js`    |
-| Create | `examples/faker-demo.dsl`                                     |
-| Create | `examples/synthea-demo.dsl`                                   |
-| Create | `examples/sdv-demo.dsl`                                       |
+| Modify | `examples/universe.dsl`                                        |
 
 ## Dependency Changes
 
@@ -837,14 +803,10 @@ Each tool and renderer has isolated unit tests:
 
 ### Integration test
 
-Parse `examples/faker-demo.dsl` → generate → render all formats → verify
-files exist with correct content. This runs in CI without external tools
-(Faker is always available).
+Parse the full `examples/universe.dsl` — verify org-and-pathway output is
+unchanged (regression) and Faker dataset blocks produce correct output in all
+rendered formats. This runs in CI without external tools (Faker is always
+available).
 
-Synthea and SDV integration tests are gated on tool availability — skip with
-a clear message if Java/Python are not installed.
-
-### Regression
-
-Run the existing `examples/universe.dsl` through the full pipeline. Verify
-identical output — no changes to org-and-pathway generation.
+Synthea and SDV dataset blocks in `examples/universe.dsl` are gated on tool
+availability — skip with a clear message if Java/Python are not installed.
