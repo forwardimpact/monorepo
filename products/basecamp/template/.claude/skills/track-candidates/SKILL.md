@@ -28,6 +28,9 @@ Run this skill:
 
 - `~/.cache/fit/basecamp/apple_mail/*.md` — synced email threads
 - `~/.cache/fit/basecamp/apple_mail/attachments/` — CV/resume attachments
+- `~/.cache/fit/basecamp/apple_calendar/*.json` — synced calendar events (for
+  cross-source inference)
+- `knowledge/Roles/*.md` — open role/requisition files (for metadata inheritance)
 - `~/.cache/fit/basecamp/state/graph_processed` — tracks processed files (shared
   with `extract-entities`)
 - `USER.md` — user identity for self-exclusion
@@ -37,6 +40,7 @@ Run this skill:
 - `knowledge/Candidates/{Full Name}/brief.md` — candidate profile note
 - `knowledge/Candidates/{Full Name}/CV.pdf` — local copy of CV (or `CV.docx`)
 - `knowledge/Candidates/{Full Name}/headshot.jpeg` — candidate headshot photo
+- `knowledge/Roles/*.md` — created/updated role files (candidate tables rebuilt)
 - `~/.cache/fit/basecamp/state/graph_processed` — updated with processed threads
 
 ---
@@ -76,6 +80,101 @@ build a mental index of known candidates.
 Also scan `knowledge/People/`, `knowledge/Organizations/`, and
 `knowledge/Projects/` to resolve recruiter names, agency orgs, and project
 links.
+
+## Step 0b: Role Sync
+
+Synchronize `knowledge/Roles/` with the current candidate pipeline. This ensures
+role files stay current and enables metadata inheritance.
+
+### Build Role Index
+
+```bash
+ls knowledge/Roles/
+```
+
+Read each Role file's Info block to build a lookup of: Req → Role file path,
+plus Hiring manager, Domain lead, recruiter, Channel for each role.
+
+### Ensure Role Files Exist
+
+Scan all candidate briefs for `**Req:**` values:
+
+```bash
+rg "^\*\*Req:\*\*" knowledge/Candidates/*/brief.md
+```
+
+For each distinct req number found in candidate briefs that does **not** have a
+matching Role file, create a stub Role file:
+
+```markdown
+# {Title from candidate Req field}
+
+## Info
+**Req:** {req number}
+**Title:** {title from Req field}
+**Level:** —
+**Track:** —
+**Discipline:** —
+**Domain lead:** —
+**Hiring manager:** —
+**Locations:** —
+**Positions:** —
+**Channel:** hr
+**Status:** open
+**Opened:** —
+**Last activity:** {today}
+
+## Connected to
+- Staffing/recruitment project
+
+## Candidates
+<!-- Rebuilt each cycle -->
+
+## Notes
+- Stub created automatically — enrich with data from emails, calendar, and imports.
+```
+
+Then attempt to enrich the stub by searching for the req number across the
+knowledge graph:
+
+```bash
+rg "{req_number}" knowledge/
+```
+
+Look for mentions in project timeline entries, People notes, and email threads.
+Extract hiring manager, domain lead, recruiter, locations, and level from the
+surrounding context.
+
+### Rebuild Candidate Tables
+
+For each Role file, rebuild the `## Candidates` table by scanning briefs:
+
+```bash
+rg -l "Req:.*{req_number}" knowledge/Candidates/*/brief.md
+```
+
+For each matching candidate, read their Status and First seen, then rebuild the
+table:
+
+```markdown
+## Candidates
+| Candidate | Status | Channel | First seen |
+|---|---|---|---|
+| [[Candidates/{Name}/brief\|{Name}]] | {status} | {channel} | {date} |
+```
+
+Sort by First seen (newest first).
+
+### Resolve Domain Lead
+
+If a Role file has a hiring manager but no domain lead, attempt to resolve it:
+
+1. Read the hiring manager's People note for a `**Reports to:**` field.
+2. Walk up the reporting chain until reaching a VP or senior leader listed in
+   a stakeholder map or organizational hierarchy note.
+3. Set `Domain lead` on the Role file.
+
+---
 
 ## Step 1: Identify Recruitment Emails
 
@@ -145,6 +244,9 @@ For each candidate found in a recruitment email, extract:
 | **Summary**           | Email body, CV                                               | Yes — 2-3 sentences |
 | **Role**              | Internal requisition profile being hired against             | If available        |
 | **Req**               | Requisition ID from hiring system                            | If available        |
+| **Channel**           | `hr` or `vendor` — see derivation rules below                | Yes                 |
+| **Hiring manager**    | Cross-source inference — see below                           | If determinable     |
+| **Domain lead**       | Resolved from hiring manager reporting chain                 | If determinable     |
 | **Internal/External** | Whether candidate is internal or external                    | If available        |
 | **Model**             | Engagement model (B2B, Direct Hire, etc.)                    | If available        |
 | **Current title**     | CV or email body                                             | If available        |
@@ -152,6 +254,52 @@ For each candidate found in a recruitment email, extract:
 | **Phone**             | Email body, CV, signature                                    | If available        |
 | **LinkedIn**          | Email body, CV                                               | If available        |
 | **Also known as**     | Alternate name spellings or transliterations                 | If available        |
+
+### Determining Channel
+
+Set `Channel` based on the candidate's source:
+
+- **`vendor`** — if the `Source` field links to an `[[Organizations/...]]` that
+  is a recruitment vendor/partner (check the org note for keywords: supplier,
+  recruitment partner, contractor, staffing), or if the `Req` field contains
+  "via {vendor name}" rather than a system ID.
+- **`hr`** — if the candidate came through a hiring system (has a numeric Req),
+  applied internally, or was submitted by an internal recruiter.
+
+### Cross-Source Inference for Hiring Manager and Domain Lead
+
+These fields are rarely available in a single email. Use the following
+resolution chain, stopping at the first match:
+
+1. **Req-first inheritance:** If the candidate has a `Req`, look up the matching
+   `knowledge/Roles/*.md` file. Inherit `Hiring manager` and `Domain lead`
+   from the Role file.
+
+2. **Calendar inference:** Search synced calendar events for interview events
+   mentioning the candidate's name:
+   ```bash
+   rg -l "{Candidate Name}" ~/.cache/fit/basecamp/apple_calendar/
+   ```
+   Read matching events. The **organizer** of an interview event (who is not the
+   user from `USER.md`) is likely the hiring manager. Record this on the
+   candidate brief and update the Role file if it was missing.
+
+3. **Email inference:** In the email thread where the candidate was submitted,
+   check the To/CC fields for internal recipients (besides the user).
+   Cross-reference against `knowledge/People/` notes — if a CC'd person has a
+   role indicating hiring manager, record them.
+
+4. **Reporting chain resolution:** Once a hiring manager is known, look up their
+   People note for a `**Reports to:**` field. Walk up the reporting chain until
+   reaching a VP or senior leader listed in a stakeholder map or organizational
+   hierarchy note — that person is the domain lead.
+
+5. **Staffing project timeline:** Search for the candidate name or their vendor
+   in the staffing/recruitment project notes. Surrounding context often mentions
+   the hiring manager.
+
+If none of these resolve a value, use `—` and leave it for enrichment in future
+cycles as more data arrives.
 
 ### Determining Gender
 
@@ -322,6 +470,9 @@ Then create `knowledge/Candidates/{Full Name}/brief.md`:
 ## Connected to
 - [[Organizations/{Agency}]] — sourced by
 - [[People/{Recruiter}]] — recruiter
+- [[Roles/{Role filename without .md}]] — applied to
+- [[People/{Hiring manager}]] — hiring manager
+- [[People/{Domain lead}]] — domain lead
 
 ## Pipeline
 - **{date}**: {event}
@@ -348,7 +499,10 @@ available:
 
 ```markdown
 **Role:** {internal requisition profile, e.g. "Staff Engineer"}
-**Req:** {requisition ID, e.g. "4950237 — Principal Software Engineer"}
+**Req:** {requisition ID — backlink to Role file, e.g. "[[Roles/4950237 — PSE Forward Deployed|4950237]]"}
+**Channel:** {hr / vendor}
+**Hiring manager:** {[[People/{name}]] or "—"}
+**Domain lead:** {[[People/{name}]] or "—"}
 **Internal/External:** {Internal / External / External (Prior Worker)}
 **Model:** {engagement model, e.g. "B2B (via Agency) — conversion to FTE not possible"}
 **Current title:** {current job title and employer}
@@ -357,6 +511,12 @@ available:
 **LinkedIn:** {LinkedIn profile URL}
 **Also known as:** {alternate name spellings}
 ```
+
+When a `Req` is known, the value should backlink to the corresponding Role file
+in `knowledge/Roles/`. Use the format:
+`[[Roles/{filename without .md}|{req number}]] — {title}` for system reqs, or
+`[[Roles/{filename without .md}|Vendor]] — {description}` for vendor pipeline
+candidates.
 
 ### Additional Sections
 
@@ -413,11 +573,12 @@ Format: one bullet per insight under `## Placement Notes`, with
 
 After writing candidate notes, verify links go both ways:
 
-| If you add...            | Then also add...                            |
-| ------------------------ | ------------------------------------------- |
-| Candidate → Organization | Organization → Candidate                    |
-| Candidate → Recruiter    | Recruiter → Candidate (in Activity section) |
-| Candidate → Project      | Project → Candidate (in People section)     |
+| If you add...            | Then also add...                                          |
+| ------------------------ | --------------------------------------------------------- |
+| Candidate → Organization | Organization → Candidate                                  |
+| Candidate → Recruiter    | Recruiter → Candidate (in Activity section)               |
+| Candidate → Project      | Project → Candidate (in People section)                   |
+| Candidate → Role         | Role → Candidate (in Candidates table — rebuilt by sync)  |
 
 Use absolute paths: `[[Candidates/Name/brief|Name]]`,
 `[[Organizations/Agency]]`, `[[People/Recruiter]]`.
@@ -473,5 +634,11 @@ produces a framework-aligned screening assessment.
 - [ ] Skills tagged using framework skill IDs where possible
 - [ ] Gender field populated only from explicit pronouns/titles (never
       name-inferred)
+- [ ] Channel field set on every candidate (`hr` or `vendor`)
+- [ ] Hiring manager and Domain lead populated via cross-source inference where
+      determinable
+- [ ] Req field backlinks to corresponding Role file in `knowledge/Roles/`
+- [ ] Connected to section includes backlink to Role file
+- [ ] Role files have up-to-date Candidates tables (rebuilt by Step 0b)
 - [ ] Headshots searched in email attachments and `~/Downloads/` (recursive)
 - [ ] Found headshots copied as `headshot.jpeg` into candidate directory

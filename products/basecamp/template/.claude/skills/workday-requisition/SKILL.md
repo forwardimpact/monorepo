@@ -43,6 +43,7 @@ Run this skill:
 
 - `knowledge/Candidates/{Full Name}/brief.md` — candidate profile note
 - `knowledge/Candidates/{Full Name}/CV.md` — resume text rendered as markdown
+- `knowledge/Roles/{Req ID} — {Title}.md` — created or updated role file
 - Updated existing candidate briefs if candidate already exists
 
 ---
@@ -161,6 +162,76 @@ The full output is a JSON object with:
 - `requisition` — metadata (id, title, location, hiringManager, recruiter)
 - `candidates` — array of candidate objects with all extracted fields
 
+## Step 1b: Create or Update Role File
+
+After parsing the export, create or update the corresponding Role file in
+`knowledge/Roles/`. The filename convention is `{Req ID} — {Short Title}.md`.
+
+```bash
+ls knowledge/Roles/ | grep "{Req ID}"
+```
+
+### If the Role file does NOT exist
+
+Create it using the requisition metadata from the export:
+
+```markdown
+# {Requisition Title}
+
+## Info
+**Req:** {Req ID}
+**Title:** {Full title from export}
+**Level:** {Infer from title: "Principal" → J100, "Staff" → J090, "Director" → J100 M-track, "Senior" → J070}
+**Track:** {P-track for IC roles, M-track for Director/Manager roles}
+**Discipline:** {Infer: "Software Engineer" → software_engineering, "Data Engineer" → data_engineering, "Data Scientist" → data_science}
+**Domain lead:** —
+**Hiring manager:** {From export metadata if available, or "—"}
+**Locations:** {Primary Location from export}
+**Positions:** —
+**Channel:** hr
+**Status:** open
+**Opened:** {Recruiting Start Date from export}
+**Last activity:** {today}
+
+## Connected to
+- Staffing/recruitment project
+
+## Candidates
+<!-- Rebuilt by track-candidates role sync -->
+
+## Notes
+- Created from requisition export on {today}.
+```
+
+### Resolving Domain Lead
+
+The export rarely contains organizational hierarchy information directly. Use
+cross-referencing to resolve it:
+
+1. **Search the knowledge graph** for mentions of the req number:
+   ```bash
+   rg "{Req ID}" knowledge/
+   ```
+   Look in project timelines, People notes, and Topics for context about which
+   area/VP owns this req.
+
+2. **Check the Hiring Manager** (if available from export): look up their People
+   note for `**Reports to:**` and walk up the chain to a VP or senior leader in
+   a stakeholder map or organizational hierarchy note.
+
+3. **Fallback**: If neither resolves, set `Domain lead: —` for enrichment by
+   later cycles of `track-candidates` or `extract-entities`.
+
+### If the Role file ALREADY exists
+
+Update it with any new metadata from the export:
+
+- Set `Hiring manager` if the export provides it and the Role file has `—`
+- Update `Last activity` to today
+- Add a Notes entry: `- Requisition export processed on {today}: {N} candidates`
+
+---
+
 ## Step 2: Build Candidate Index
 
 Scan existing candidate notes to avoid duplicates:
@@ -259,7 +330,10 @@ Then create `knowledge/Candidates/{Clean Name}/brief.md` using the
 **Status:** {pipeline status from Step 3}
 **First seen:** {Date Applied, YYYY-MM-DD}
 **Last activity:** {Date Applied, YYYY-MM-DD}
-**Req:** {Req ID} — {Req Title}
+**Req:** [[Roles/{Role filename without .md}|{Req ID}]] — {Req Title}
+**Channel:** hr
+**Hiring manager:** {From Role file or "—"}
+**Domain lead:** {From Role file or "—"}
 **Internal/External:** {Internal / External / External (Prior Worker)}
 **Current title:** {Current Job Title at Current Company}
 **Email:** {Email or "—"}
@@ -273,6 +347,9 @@ strengths. If no resume text, use Current Job Title + Total Years Experience.}
 - [CV.md](./CV.md)
 
 ## Connected to
+- [[Roles/{Role filename without .md}]] — applied to
+- {[[People/{Hiring manager}]] — hiring manager, if known}
+- {[[People/{Domain lead}]] — domain lead, if known}
 - {Referred by person, if present}
 
 ## Pipeline
@@ -369,6 +446,11 @@ screening assessment.
 - [ ] Name annotations stripped from directory names and headings
 - [ ] Existing candidates updated (not duplicated) with precise edits
 - [ ] Skills tagged using framework skill IDs where possible
-- [ ] Gender field set to `—` (Workday exports don't include gender signals)
+- [ ] Gender field set to `—` (exports don't include gender signals)
+- [ ] Role file created or updated in `knowledge/Roles/`
+- [ ] Channel set to `hr` on all imported candidates
+- [ ] Hiring manager and Domain lead inherited from Role file where available
+- [ ] Req field backlinks to Role file
+- [ ] Connected to section includes backlink to Role file
 - [ ] Insights.md updated with strategic observations
 - [ ] No duplicate candidate directories created

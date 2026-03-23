@@ -58,6 +58,9 @@ Run this skill:
 - `knowledge/Organizations/*.md` — organization notes
 - `knowledge/Projects/*.md` — project notes
 - `knowledge/Topics/*.md` — topic notes
+- `knowledge/Roles/*.md` — role/requisition files (created or enriched)
+- `knowledge/Candidates/*/brief.md` — candidate briefs (enriched with inferred
+  metadata)
 - `~/.cache/fit/basecamp/state/graph_processed` — updated with newly processed
   files
 
@@ -385,6 +388,75 @@ Log state changes in activity with `[Field → value]` notation:
 - **2025-01-20** (email): Leadership approved pilot. [Status → active]
 ```
 
+## Step 7b: Detect Recruitment Signals
+
+When processing emails and calendar events, look for signals that relate to the
+recruitment pipeline. These signals enrich `knowledge/Roles/` and
+`knowledge/Candidates/` with metadata that cannot be derived from any single
+source.
+
+### Requisition Number Detection
+
+Scan email subjects and bodies for requisition numbers (e.g. 7-digit Workday
+IDs). When found:
+
+1. Check if a Role file exists: `ls knowledge/Roles/ | grep "{req_number}"`
+2. If **no Role file exists**, create a stub (see `track-candidates` Step 0b
+   for the template). Search the knowledge graph for context:
+   ```bash
+   rg "{req_number}" knowledge/
+   ```
+3. If a Role file **does exist**, check if the email provides new metadata
+   (hiring manager, recruiter, locations) and update the Role file.
+
+### Hiring Manager Inference from Calendar Events
+
+When a calendar event title matches interview-related patterns:
+- "Interview", "Screening", "Screen", "Decomposition", "Panel", "Technical
+  Assessment", "Candidate"
+- Combined with a person name (cross-reference `knowledge/Candidates/`)
+
+Extract the **organizer** of the event. If the organizer is NOT the user (from
+`USER.md`), they are likely the hiring manager for this role. To confirm:
+
+1. Look up the organizer in `knowledge/People/` — check if they have a role
+   indicating they manage a team or are described as a hiring manager.
+2. Look up which candidate is being interviewed — check their `brief.md` for
+   a `Req` field.
+3. If a Req is known, update the corresponding `knowledge/Roles/*.md` file's
+   `Hiring manager` field (only if currently `—`).
+4. Update the candidate's `brief.md` `Hiring manager` field if currently `—`.
+
+### Recruiter Inference from Email Threads
+
+When processing email threads that reference candidates (by name match against
+`knowledge/Candidates/`), check the To/CC fields for internal recruiters:
+
+1. Cross-reference To/CC addresses against `knowledge/People/` notes.
+2. If a CC'd person's note mentions "recruiter", "talent acquisition", or a
+   similar recruiting role, they are likely the internal recruiter for this
+   candidate's role.
+3. Update the candidate's `brief.md` recruiter field and the corresponding
+   Role file if the field is currently `—`.
+
+### Domain Lead Resolution
+
+When a hiring manager is newly identified (from calendar or email inference),
+attempt to resolve the domain lead:
+
+1. Read the hiring manager's People note for a `**Reports to:**` field.
+2. Walk up the reporting chain until reaching a VP or senior leader listed in
+   a stakeholder map or organizational hierarchy note.
+3. Update both the Role file's `Domain lead` and the candidate brief's
+   `Domain lead`.
+
+**Be conservative:** Only set hiring manager/domain lead/recruiter when the
+evidence is strong. A single calendar invite organized by someone is suggestive
+but not conclusive — confirm against People notes or multiple data points before
+setting the field.
+
+---
+
 ## Step 8: Check for Duplicates
 
 Before writing:
@@ -462,4 +534,8 @@ Before completing, verify:
 - [ ] Open items are commitments (no "find their email" tasks)
 - [ ] State changes logged with `[Field → value]` notation
 - [ ] Bidirectional links are consistent
+- [ ] Requisition numbers detected and Role files created/enriched
+- [ ] Hiring manager inferred from calendar event organizers where applicable
+- [ ] Recruiter inferred from email CC fields where applicable
+- [ ] Domain lead resolved from hiring manager reporting chain where applicable
 - [ ] Graph state updated for processed files

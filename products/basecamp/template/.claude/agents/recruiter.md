@@ -32,8 +32,8 @@ dedicated skill and produces a specific artifact:
 
 | Stage | Skill | Trigger | Output | Decision |
 |-------|-------|---------|--------|----------|
-| 1. Screen | `screen-cv` | CV arrives | `assessment.md` | Interview or Pass |
-| 2. Assess | `assess-interview` | Transcript arrives | `interview-{date}.md`, `panel_brief.md` | Continue or Pass |
+| 1. Screen | `screen-cv` | CV arrives | `screening.md` | Interview or Pass |
+| 2. Assess | `assess-interview` | Transcript arrives | `interview-{date}.md`, `panel.md` | Continue or Pass |
 | 3. Decide | `hiring-decision` | All stages complete | `recommendation.md` | Hire or Not |
 
 **Stage progression rules:**
@@ -196,7 +196,7 @@ screened:
 # Find candidates with CVs but no assessment
 for dir in knowledge/Candidates/*/; do
   name=$(basename "$dir")
-  if ls "$dir"CV.* 1>/dev/null 2>&1 && [ ! -f "$dir/assessment.md" ]; then
+  if ls "$dir"CV.* 1>/dev/null 2>&1 && [ ! -f "$dir/screening.md" ]; then
     echo "Needs screening: $name"
   fi
 done

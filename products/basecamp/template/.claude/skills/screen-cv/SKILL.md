@@ -42,12 +42,27 @@ Run this skill:
 - Target role (optional): `{discipline} {level} --track={track}`
 - Existing candidate brief (if available):
   `knowledge/Candidates/{Name}/brief.md`
+- Role file (if candidate has a `Req`): `knowledge/Roles/*.md` — provides
+  `Level`, `Discipline`, `Hiring manager`, and `Domain lead` for
+  more accurate screening
 
 ## Outputs
 
-- `knowledge/Candidates/{Name}/assessment.md` — structured screening assessment
+- `knowledge/Candidates/{Name}/screening.md` — structured screening assessment
 - Updated `knowledge/Candidates/{Name}/brief.md` — skills and summary enriched
   from CV analysis
+
+## Output Filename Convention
+
+The screening assessment MUST be written to `screening.md` — no other filename.
+Do not use `assessment.md`, `cv-screening.md`, `evaluation.md`, or any variant.
+
+Before writing, check whether a file with a different name already exists that
+contains a CV screening (look for `# CV Screening` in the header). If found,
+delete the misnamed file after writing `screening.md` to avoid duplicates.
+
+When linking from `brief.md`, always use the exact text:
+`- [CV Screening](./screening.md)`
 
 ---
 
@@ -67,11 +82,31 @@ Read the candidate's CV file. Extract:
 | **Communication**       | Publications, talks, open source, documentation     |
 | **Gender**              | Pronouns, gendered titles (never infer from names)  |
 
+## Step 1b: Read Role File for Context
+
+If the candidate's brief has a `Req` field, look up the corresponding Role file:
+
+```bash
+ls knowledge/Roles/ | grep "{req_number}"
+cat "knowledge/Roles/{matching file}"
+```
+
+The Role file provides:
+
+- **Level** and **Discipline** — use as the target role if no explicit target
+  was specified by the user. This is more accurate than estimating from the CV.
+- **Hiring manager** and **Domain lead** — include in the screening output
+  header for context.
+
+If the Role file specifies a Level and Discipline, use them as the target role
+for framework comparison (unless the user explicitly specified a different
+target).
+
 ## Step 2: Look Up the Framework Reference
 
 Use `fit-pathway` to load the reference data for assessment.
 
-### If a target role is specified
+### If a target role is specified (or derived from the Role file)
 
 ```bash
 # Get the full job definition
@@ -194,12 +229,15 @@ Classify each skill as:
 
 ## Step 6: Write Screening Assessment
 
-Create `knowledge/Candidates/{Name}/assessment.md`:
+Create `knowledge/Candidates/{Name}/screening.md`:
 
 ```markdown
 # CV Screening — {Full Name}
 
 **Assessed against:** {Discipline} {Level} — {Track}
+**Req:** {Req number and title, or "—" if no req}
+**Hiring manager:** {Name from Role file, or "—"}
+**Domain lead:** {Name from Role file, or "—"}
 **Date:** {YYYY-MM-DD}
 **CV source:** [{filename}](./{filename})
 
@@ -298,7 +336,7 @@ If `knowledge/Candidates/{Name}/brief.md` exists, update it with findings:
 - Add or update the **Skills** section with framework skill IDs
 - Update **Summary** if the CV provides better context
 - Set the **Gender** field if identifiable from the CV and not already set
-- Add a link to the assessment: `- [CV Screening](./assessment.md)`
+- Add a link to the assessment: `- [CV Screening](./screening.md)`
 
 **Use precise edits — don't rewrite the entire file.**
 
@@ -320,6 +358,11 @@ to create the candidate profile from email threads.
 - [ ] Track fit analysis references specific skill modifiers from the framework
 - [ ] Interview focus areas are specific and tied to identified gaps
 - [ ] Suggested interview questions target the right uncertainties
+- [ ] Output file is named exactly `screening.md` — not `assessment.md` or any
+      variant
+- [ ] No duplicate screening file exists under a different name in the candidate
+      folder
 - [ ] Assessment file uses correct path format and links to CV
-- [ ] Candidate brief updated with skill tags and assessment link
+- [ ] Candidate brief links to screening using exact text
+      `[CV Screening](./screening.md)`
 - [ ] Gender field set only from explicit pronouns/titles (never name-inferred)

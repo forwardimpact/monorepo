@@ -31,7 +31,7 @@ Run this skill:
 ## Prerequisites
 
 - `fit-pathway` CLI installed (`npx fit-pathway` must work)
-- Screening assessment: `knowledge/Candidates/{Name}/assessment.md`
+- Screening assessment: `knowledge/Candidates/{Name}/screening.md`
 - At least one interview assessment: `knowledge/Candidates/{Name}/interview-*.md`
 - Candidate brief: `knowledge/Candidates/{Name}/brief.md`
 - Transcripts provide additional context but are not strictly required if
@@ -42,6 +42,8 @@ Run this skill:
 - All candidate artifacts in `knowledge/Candidates/{Name}/`
 - Framework data via `fit-pathway`
 - `knowledge/Candidates/Insights.md` for cross-candidate context
+- `knowledge/Roles/*.md` — the Role file for this candidate's requisition
+  (provides remaining positions, hiring manager, domain lead priorities)
 - Other active candidates at the same level (for relative positioning)
 
 ## Outputs
@@ -63,16 +65,16 @@ ls knowledge/Candidates/{Name}/
 Read in order:
 
 1. `brief.md` — pipeline history, status, context
-2. `assessment.md` — CV screening (Stage 1 output)
+2. `screening.md` — CV screening (Stage 1 output)
 3. `interview-*.md` — all interview assessments (Stage 2 outputs)
 4. `transcript-*.md` — raw transcripts for additional detail
-5. `panel_brief.md` — panel brief if it exists (for continuity)
+5. `panel.md` — panel brief if it exists (for continuity)
 
 Build a chronological evidence timeline:
 
 | Date | Stage | Source | Key Finding |
 |------|-------|--------|-------------|
-| {date} | CV Screening | assessment.md | {key finding} |
+| {date} | CV Screening | screening.md | {key finding} |
 | {date} | {Interview type} | interview-{date}.md | {key finding} |
 
 ## Step 2: Build Final Skill Profile
@@ -140,6 +142,28 @@ npx fit-pathway progress {discipline} {lower_level} --track={track}
 | Does the candidate's scope and autonomy match the level?    | Level fit               |
 | Which track energized the candidate in interviews?          | Track confirmation      |
 
+## Step 4b: Read Role Context
+
+If the candidate has a `Req` field in their brief, read the corresponding Role
+file:
+
+```bash
+ls knowledge/Roles/ | grep "{req_number}"
+cat "knowledge/Roles/{matching file}"
+```
+
+Extract and include in the recommendation:
+
+- **Remaining positions** on this req (from the Role file's `Positions` count
+  minus filled candidates in the Candidates table)
+- **Hiring manager** and their expectations (from the Role file and their People
+  note)
+- **Domain lead** and their hiring priorities (from recent meetings/emails)
+- **Other candidates** on the same req — how does this candidate compare to the
+  pipeline for this specific role?
+- **Channel** — is this a vendor candidate or HR candidate? This affects
+  onboarding timeline and engagement model.
+
 ## Step 5: Assess Against Active Pipeline
 
 Check how this candidate compares to others at the same level:
@@ -150,8 +174,8 @@ cat knowledge/Candidates/Insights.md
 
 # Check other candidates at the same level
 for dir in knowledge/Candidates/*/; do
-  if [ -f "$dir/assessment.md" ]; then
-    head -5 "$dir/assessment.md"
+  if [ -f "$dir/screening.md" ]; then
+    head -5 "$dir/screening.md"
   fi
 done
 ```
@@ -170,6 +194,10 @@ Create `knowledge/Candidates/{Name}/recommendation.md`:
 # Hiring Recommendation — {Full Name}
 
 **Role:** {Discipline} {Level} — {Track}
+**Req:** {Req number and title, or "—"}
+**Hiring manager:** {Name from Role file, or "—"}
+**Domain lead:** {Name from Role file, or "—"}
+**Channel:** {hr / vendor}
 **Date:** {YYYY-MM-DD}
 **Prepared by:** Recruiter agent (with framework analysis)
 
@@ -278,16 +306,25 @@ business impact, not just technical capability.}
 
 ---
 
+## Role Context
+
+{Context from the Role file to inform the hiring decision.}
+
+- **Requisition:** {Req number — title}
+- **Remaining positions:** {N of M filled}
+- **Hiring manager:** {name} | **Domain lead:** {name}
+- **Channel:** {hr / vendor — and implications for engagement model}
+
 ## Pipeline Context
 
 {How this candidate compares to the active pipeline. Not a ranking — context
 for the hiring decision.}
 
-- **Pipeline position:** {Where this candidate sits relative to others at the
-  same level/track}
+- **Pipeline position:** {Where this candidate sits relative to others on the
+  same requisition}
 - **Unique value:** {What this candidate offers that others in the pipeline don't}
 - **Alternative fit:** {If not hired for this role, could they fit another
-  open position?}
+  open position? Reference other Role files.}
 
 ---
 

@@ -25,6 +25,8 @@ meetings.
 - `knowledge/People/*.md` — attendee context
 - `knowledge/Organizations/*.md` — company context
 - `knowledge/Projects/*.md` — project context
+- `knowledge/Candidates/*/brief.md` — candidate context (for interview meetings)
+- `knowledge/Roles/*.md` — role/requisition context (for interview meetings)
 
 ## Outputs
 
@@ -129,6 +131,40 @@ Suggested Talking Points
 - History: reverse chronological, 3-5 most relevant items
 - Talking points: concrete, not generic
 - If no notes exist for a person, mention that and offer to create one
+
+### Interview Meeting Context
+
+When preparing for interview meetings (title contains "Interview", "Screening",
+"Decomposition", "Panel", or a candidate name from `knowledge/Candidates/`):
+
+1. **Read the candidate brief:** `knowledge/Candidates/{Name}/brief.md`
+2. **Read the Role file:** Look up the `Req` field and read the corresponding
+   `knowledge/Roles/*.md` file.
+3. **Include in the briefing:**
+   - Candidate's current status, skills, and screening recommendation
+   - Role context: hiring manager, domain lead, remaining positions
+   - Other candidates on the same requisition and their statuses (from the
+     Role file's Candidates table)
+   - Previous interview assessments if this is a second/later stage
+   - Panel brief if one exists (`panel.md`)
+4. **Format as a dedicated section:**
+
+```markdown
+## Candidate: {Name}
+**Role:** {Title from Role file} | **Req:** {req number}
+**Hiring manager:** {name} | **Domain lead:** {name}
+**Status:** {current pipeline status}
+**Screening:** {Interview / Interview with focus areas / Pass}
+
+### Pipeline for this req
+- {N} candidates total, {N} interviewed, {N} remaining positions
+
+### Key strengths
+- {from screening.md}
+
+### Focus areas for this interview
+- {from screening.md or panel.md}
+```
 
 ## Constraints
 

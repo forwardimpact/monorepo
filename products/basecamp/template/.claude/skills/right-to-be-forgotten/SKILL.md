@@ -241,7 +241,7 @@ Create the audit trail at `knowledge/Erasure/{Name}--{YYYY-MM-DD}.md`:
 ### Deleted Files
 - `knowledge/Candidates/{Name}/brief.md`
 - `knowledge/Candidates/{Name}/CV.pdf`
-- `knowledge/Candidates/{Name}/assessment.md`
+- `knowledge/Candidates/{Name}/screening.md`
 - `knowledge/People/{Name}.md`
 - {list all deleted files}
 

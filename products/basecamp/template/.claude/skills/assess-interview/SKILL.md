@@ -33,20 +33,20 @@ Run this skill:
 
 - `fit-pathway` CLI installed (`npx fit-pathway` must work)
 - At least one transcript file in `knowledge/Candidates/{Name}/`
-- Screening assessment (`assessment.md`) should exist — if not, note that
+- Screening assessment (`screening.md`) should exist — if not, note that
   `screen-cv` should run first, but proceed with transcript analysis regardless
 
 ## Inputs
 
 - Transcript file(s): `knowledge/Candidates/{Name}/transcript-{date}.md`
-- Screening assessment: `knowledge/Candidates/{Name}/assessment.md`
+- Screening assessment: `knowledge/Candidates/{Name}/screening.md`
 - Candidate brief: `knowledge/Candidates/{Name}/brief.md`
 - Target role from brief or user instruction
 
 ## Outputs
 
 - `knowledge/Candidates/{Name}/interview-{date}.md` — per-interview assessment
-- `knowledge/Candidates/{Name}/panel_brief.md` — brief for next-stage
+- `knowledge/Candidates/{Name}/panel.md` — brief for next-stage
   interviewers (if further interviews are planned)
 - Updated `knowledge/Candidates/{Name}/brief.md` — pipeline and notes enriched
 
@@ -182,7 +182,7 @@ repeat the full matrix for skills not touched by this interview.}
 
 | Skill | Screening Rating | Interview Rating | Change | Evidence |
 | --- | --- | --- | --- | --- |
-| {skill} | {from assessment.md} | {updated} | {↑ / ↓ / ―} | {specific transcript evidence} |
+| {skill} | {from screening.md} | {updated} | {↑ / ↓ / ―} | {specific transcript evidence} |
 
 ### Confirmed Strengths
 - {Strength confirmed by interview — cite specific moment}
@@ -197,11 +197,11 @@ repeat the full matrix for skills not touched by this interview.}
 
 | Behaviour | Screening Signal | Interview Observation | Updated Maturity |
 | --- | --- | --- | --- |
-| {behaviour} | {from assessment.md} | {specific observation} | {maturity level} |
+| {behaviour} | {from screening.md} | {specific observation} | {maturity level} |
 
 ## Level Assessment
 
-**Screening estimate:** {level from assessment.md}
+**Screening estimate:** {level from screening.md}
 **Interview evidence suggests:** {confirmed / adjusted level}
 
 {Paragraph explaining the level assessment. Reference specific moments from the
@@ -230,7 +230,7 @@ Attribute each to the interviewer by name.}
 ## Step 7: Generate Panel Brief (if applicable)
 
 If more interview stages are planned (the candidate is continuing to panel,
-technical assessment, etc.), create `knowledge/Candidates/{Name}/panel_brief.md`.
+technical assessment, etc.), create `knowledge/Candidates/{Name}/panel.md`.
 
 The panel brief is written **for the next interviewers** — typically business
 colleagues who are not engineers. It must:
@@ -369,7 +369,7 @@ Update `knowledge/Candidates/{Name}/brief.md`:
 - Add the interview to the **Pipeline** section with date, type, and outcome
 - Add **Interview Notes** section if not present, with key observations
 - Link to the interview assessment: `- [Interview Assessment](./interview-{date}.md)`
-- Link to panel brief if created: `- [Panel Brief](./panel_brief.md)`
+- Link to panel brief if created: `- [Panel Brief](./panel.md)`
 - Update **Status** field to reflect current pipeline stage
 
 **Use precise edits — don't rewrite the entire file.**
