@@ -59,6 +59,26 @@ quietly in the background and keeps getting smarter about your work.
 
 ---
 
+## Prerequisites
+
+Basecamp spawns `claude` as a subprocess without loading your shell profile.
+Install Claude Code via **Homebrew** (`brew install claude`) rather than the
+native binary — the Homebrew install runs on Node.js, which supports
+`NODE_EXTRA_CA_CERTS` for enterprise CA certificates.
+
+If your network requires a custom CA bundle, add an `env` block to
+`~/.fit/basecamp/scheduler.json`:
+
+```json
+{
+  "env": {
+    "NODE_EXTRA_CA_CERTS": "~/.config/ssl/ca-bundle.pem"
+  }
+}
+```
+
+---
+
 ## Quick Start
 
 ```sh

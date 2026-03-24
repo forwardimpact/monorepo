@@ -88,6 +88,21 @@ Tasks are defined in `~/.fit/basecamp/scheduler.json`:
 }
 ```
 
+### Environment Variables
+
+The top-level `env` object sets environment variables on every spawned `claude`
+process. Values support `~` expansion. This is the recommended way to pass
+corporate CA certificates or proxy settings:
+
+```json
+{
+  "env": {
+    "NODE_EXTRA_CA_CERTS": "~/.config/ssl/ca-bundle.pem"
+  },
+  "agents": { ... }
+}
+```
+
 ### Task Properties
 
 | Property           | Type         | Description                            |
