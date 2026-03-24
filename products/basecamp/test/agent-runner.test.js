@@ -20,7 +20,11 @@ const TEST_KB = join(tmpdir(), "basecamp-test-kb");
  * @param {string} [options.stderr=""]
  * @returns {{ module: Object, calls: Array }}
  */
-function createMockSpawn({ exitCode = 0, stdout = "ok", stderr: _stderr = "" } = {}) {
+function createMockSpawn({
+  exitCode = 0,
+  stdout = "ok",
+  stderr: _stderr = "",
+} = {}) {
   const calls = [];
   return {
     calls,

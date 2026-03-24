@@ -252,7 +252,10 @@ export class ServiceManager {
             await this.runOneshot(svc.name, svc.up, "up");
           } catch (err) {
             if (svc.optional) {
-              this.#logger.info(svc.name, "Optional service skipped (not available)");
+              this.#logger.info(
+                svc.name,
+                "Optional service skipped (not available)",
+              );
               continue;
             }
             throw err;
@@ -271,7 +274,9 @@ export class ServiceManager {
         } else if (response.error?.includes("already exists")) {
           this.#logger.info(svc.name, "Service started");
         } else if (svc.optional) {
-          this.#logger.info(svc.name, "Optional service skipped", { error: response.error });
+          this.#logger.info(svc.name, "Optional service skipped", {
+            error: response.error,
+          });
         } else {
           this.#logger.error(svc.name, "Add failed", { error: response.error });
         }

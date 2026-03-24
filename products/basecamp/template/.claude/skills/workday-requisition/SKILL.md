@@ -209,9 +209,11 @@ The export rarely contains organizational hierarchy information directly. Use
 cross-referencing to resolve it:
 
 1. **Search the knowledge graph** for mentions of the req number:
+
    ```bash
    rg "{Req ID}" knowledge/
    ```
+
    Look in project timelines, People notes, and Topics for context about which
    area/VP owns this req.
 

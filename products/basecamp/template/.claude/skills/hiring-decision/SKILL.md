@@ -32,7 +32,8 @@ Run this skill:
 
 - `fit-pathway` CLI installed (`npx fit-pathway` must work)
 - Screening assessment: `knowledge/Candidates/{Name}/screening.md`
-- At least one interview assessment: `knowledge/Candidates/{Name}/interview-*.md`
+- At least one interview assessment:
+  `knowledge/Candidates/{Name}/interview-*.md`
 - Candidate brief: `knowledge/Candidates/{Name}/brief.md`
 - Transcripts provide additional context but are not strictly required if
   interview assessments exist
@@ -72,9 +73,9 @@ Read in order:
 
 Build a chronological evidence timeline:
 
-| Date | Stage | Source | Key Finding |
-|------|-------|--------|-------------|
-| {date} | CV Screening | screening.md | {key finding} |
+| Date   | Stage            | Source              | Key Finding   |
+| ------ | ---------------- | ------------------- | ------------- |
+| {date} | CV Screening     | screening.md        | {key finding} |
 | {date} | {Interview type} | interview-{date}.md | {key finding} |
 
 ## Step 2: Build Final Skill Profile
@@ -104,14 +105,14 @@ For each skill, record:
 - **Final rating** — the proficiency level supported by the best evidence
 - **Best evidence source** — which stage provided the strongest signal
 - **Trajectory** — did the rating improve, decline, or hold across stages?
-- **Confidence** — high (demonstrated live), medium (discussed well), low
-  (CV only or thin evidence)
+- **Confidence** — high (demonstrated live), medium (discussed well), low (CV
+  only or thin evidence)
 
 ## Step 3: Build Final Behaviour Profile
 
 For each framework behaviour, determine the **final maturity** using the same
-evidence hierarchy. Behaviours assessed in interviews carry far more weight
-than CV signals.
+evidence hierarchy. Behaviours assessed in interviews carry far more weight than
+CV signals.
 
 ```bash
 npx fit-pathway behaviour --list
@@ -125,7 +126,8 @@ For each behaviour:
 
 ## Step 4: Confirm Level and Track
 
-Using the complete evidence profile, make a final level and track recommendation:
+Using the complete evidence profile, make a final level and track
+recommendation:
 
 ```bash
 # Compare adjacent levels
@@ -134,13 +136,13 @@ npx fit-pathway job {discipline} {target_level} --track={track}
 npx fit-pathway progress {discipline} {lower_level} --track={track}
 ```
 
-| Question                                                    | Answer informs          |
-| ----------------------------------------------------------- | ----------------------- |
+| Question                                                     | Answer informs          |
+| ------------------------------------------------------------ | ----------------------- |
 | Does the candidate meet ≥ 70% of skills at the target level? | Level confirmation      |
-| Were level concerns from screening resolved in interviews?  | Level upgrade/downgrade |
-| Did interviewers explicitly suggest a different level?      | Strong level signal     |
-| Does the candidate's scope and autonomy match the level?    | Level fit               |
-| Which track energized the candidate in interviews?          | Track confirmation      |
+| Were level concerns from screening resolved in interviews?   | Level upgrade/downgrade |
+| Did interviewers explicitly suggest a different level?       | Strong level signal     |
+| Does the candidate's scope and autonomy match the level?     | Level fit               |
+| Which track energized the candidate in interviews?           | Track confirmation      |
 
 ## Step 4b: Read Role Context
 
@@ -337,14 +339,16 @@ rests with the hiring manager. All assessments are advisory.*
 
 Update `knowledge/Candidates/{Name}/brief.md`:
 
-- Update **Status** to reflect the recommendation (`recommended` / `not-recommended`)
+- Update **Status** to reflect the recommendation (`recommended` /
+  `not-recommended`)
 - Add link: `- [Hiring Recommendation](./recommendation.md)`
 - Add final pipeline entry with the recommendation date and outcome
 
 Update `knowledge/Candidates/Insights.md` with any cross-candidate observations:
 
 - If this candidate is the strongest at their level, note it
-- If this candidate revealed a pattern about a sourcing channel, note the channel
+- If this candidate revealed a pattern about a sourcing channel, note the
+  channel
 - If the level adjustment has implications for other candidates, note it
 
 **Use precise edits — don't rewrite entire files.**

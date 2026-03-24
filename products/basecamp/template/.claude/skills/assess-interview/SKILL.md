@@ -46,8 +46,8 @@ Run this skill:
 ## Outputs
 
 - `knowledge/Candidates/{Name}/interview-{date}.md` — per-interview assessment
-- `knowledge/Candidates/{Name}/panel.md` — brief for next-stage
-  interviewers (if further interviews are planned)
+- `knowledge/Candidates/{Name}/panel.md` — brief for next-stage interviewers (if
+  further interviews are planned)
 - Updated `knowledge/Candidates/{Name}/brief.md` — pipeline and notes enriched
 
 ---
@@ -56,19 +56,19 @@ Run this skill:
 
 Read the transcript file(s). For each transcript, extract:
 
-| Field                         | What to look for                                          |
-| ----------------------------- | --------------------------------------------------------- |
-| **Interview type**            | Screening, decomposition, panel, technical, etc.          |
-| **Interviewers**              | Who conducted the interview                               |
-| **Date**                      | When the interview took place                             |
-| **Skill demonstrations**      | Concrete examples of skills applied in real-time          |
-| **Behaviour observations**    | How the candidate acted under pressure, with others       |
-| **Self-identified strengths** | What the candidate claims they're good at                 |
-| **Self-identified gaps**      | What the candidate acknowledges as growth areas           |
-| **Red flags**                 | Contradictions with CV, concerning patterns               |
-| **Interviewer feedback**      | Direct quotes or observations from interviewers           |
-| **Level signals**             | Autonomy, scope, complexity demonstrated in responses     |
-| **Track signals**             | Business immersion vs platform thinking in their answers  |
+| Field                         | What to look for                                         |
+| ----------------------------- | -------------------------------------------------------- |
+| **Interview type**            | Screening, decomposition, panel, technical, etc.         |
+| **Interviewers**              | Who conducted the interview                              |
+| **Date**                      | When the interview took place                            |
+| **Skill demonstrations**      | Concrete examples of skills applied in real-time         |
+| **Behaviour observations**    | How the candidate acted under pressure, with others      |
+| **Self-identified strengths** | What the candidate claims they're good at                |
+| **Self-identified gaps**      | What the candidate acknowledges as growth areas          |
+| **Red flags**                 | Contradictions with CV, concerning patterns              |
+| **Interviewer feedback**      | Direct quotes or observations from interviewers          |
+| **Level signals**             | Autonomy, scope, complexity demonstrated in responses    |
+| **Track signals**             | Business immersion vs platform thinking in their answers |
 
 ## Step 2: Load Framework Reference
 
@@ -122,23 +122,23 @@ how someone acts, not what they've done.
 
 For each framework behaviour, look for:
 
-| Behaviour                  | Interview Evidence                                              |
-| -------------------------- | --------------------------------------------------------------- |
-| Own the Outcome            | Takes responsibility, doesn't deflect, drives to resolution     |
-| Think in Systems           | Considers second-order effects, trade-offs, system boundaries   |
-| Communicate with Precision | Clear explanations, appropriate detail level, listens actively  |
-| Be Polymath Oriented       | Draws on diverse knowledge, makes unexpected connections        |
-| Don't Lose Your Curiosity  | Asks good questions, explores alternatives, admits not knowing  |
+| Behaviour                  | Interview Evidence                                             |
+| -------------------------- | -------------------------------------------------------------- |
+| Own the Outcome            | Takes responsibility, doesn't deflect, drives to resolution    |
+| Think in Systems           | Considers second-order effects, trade-offs, system boundaries  |
+| Communicate with Precision | Clear explanations, appropriate detail level, listens actively |
+| Be Polymath Oriented       | Draws on diverse knowledge, makes unexpected connections       |
+| Don't Lose Your Curiosity  | Asks good questions, explores alternatives, admits not knowing |
 
 Rate each behaviour using maturity levels:
 
-| Maturity        | Interview Signal                                              |
-| --------------- | ------------------------------------------------------------- |
-| `emerging`      | Behaviour not observed or only when prompted                  |
-| `developing`    | Behaviour present but inconsistent or surface-level           |
-| `practicing`    | Behaviour consistent and natural throughout the interview     |
-| `role_modeling` | Behaviour demonstrated at high level, influenced the room     |
-| `exemplifying`  | Behaviour exceptional, set the standard for the conversation  |
+| Maturity        | Interview Signal                                             |
+| --------------- | ------------------------------------------------------------ |
+| `emerging`      | Behaviour not observed or only when prompted                 |
+| `developing`    | Behaviour present but inconsistent or surface-level          |
+| `practicing`    | Behaviour consistent and natural throughout the interview    |
+| `role_modeling` | Behaviour demonstrated at high level, influenced the room    |
+| `exemplifying`  | Behaviour exceptional, set the standard for the conversation |
 
 ## Step 5: Assess Level Fit
 
@@ -150,13 +150,13 @@ should change:
 npx fit-pathway progress {discipline} {level} --track={track}
 ```
 
-| Level Signal in Interview                                            | Implication                    |
+| Level Signal in Interview                                           | Implication                    |
 | ------------------------------------------------------------------- | ------------------------------ |
-| Candidate needed guidance on structuring their approach              | Level may be lower than est.   |
-| Candidate self-directed, made sound trade-offs independently         | Level estimate confirmed        |
-| Candidate mentored or coached others during the exercise             | Level may be higher than est.  |
-| Candidate struggled with complexity appropriate to the target level  | Level should be downgraded     |
-| Interviewer explicitly suggested a different level                   | Strong signal — weight heavily |
+| Candidate needed guidance on structuring their approach             | Level may be lower than est.   |
+| Candidate self-directed, made sound trade-offs independently        | Level estimate confirmed       |
+| Candidate mentored or coached others during the exercise            | Level may be higher than est.  |
+| Candidate struggled with complexity appropriate to the target level | Level should be downgraded     |
+| Interviewer explicitly suggested a different level                  | Strong signal — weight heavily |
 
 ## Step 6: Write Interview Assessment
 
@@ -368,7 +368,8 @@ Update `knowledge/Candidates/{Name}/brief.md`:
 
 - Add the interview to the **Pipeline** section with date, type, and outcome
 - Add **Interview Notes** section if not present, with key observations
-- Link to the interview assessment: `- [Interview Assessment](./interview-{date}.md)`
+- Link to the interview assessment:
+  `- [Interview Assessment](./interview-{date}.md)`
 - Link to panel brief if created: `- [Panel Brief](./panel.md)`
 - Update **Status** field to reflect current pipeline stage
 

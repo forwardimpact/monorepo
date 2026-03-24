@@ -217,9 +217,7 @@ describe("ServiceManager", () => {
         ...mockConfig,
         init: {
           ...mockConfig.init,
-          services: [
-            { name: "required-setup", type: "oneshot", up: "false" },
-          ],
+          services: [{ name: "required-setup", type: "oneshot", up: "false" }],
         },
       };
       const deps = {

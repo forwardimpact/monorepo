@@ -118,12 +118,12 @@ make tei-start          # Start TEI (downloads model on first run)
 
 Environment is loaded by `scripts/env.sh` in layers:
 
-| Layer    | File                     | Controls                     |
-| -------- | ------------------------ | ---------------------------- |
-| Base     | `.env`                   | API credentials, secrets     |
-| Network  | `.env.{ENV}`             | localhost vs Docker DNS      |
-| Storage  | `.env.storage.{STORAGE}` | local, MinIO, or Supabase    |
-| Auth     | `.env.auth.{AUTH}`       | none, GoTrue, or Supabase    |
+| Layer   | File                     | Controls                  |
+| ------- | ------------------------ | ------------------------- |
+| Base    | `.env`                   | API credentials, secrets  |
+| Network | `.env.{ENV}`             | localhost vs Docker DNS   |
+| Storage | `.env.storage.{STORAGE}` | local, MinIO, or Supabase |
+| Auth    | `.env.auth.{AUTH}`       | none, GoTrue, or Supabase |
 
 Three variables control the stack:
 
@@ -172,19 +172,19 @@ make ingest-pipeline    # Run ingestion pipeline
 
 ### Data Directories
 
-| Path              | Contents                                 |
-| ----------------- | ---------------------------------------- |
-| `data/knowledge/` | Input HTML files                         |
-| `data/resources/` | Processed resources                      |
-| `data/vectors/`   | Embedding vector indices                 |
-| `data/graphs/`    | RDF quad index + ontology                |
-| `data/memories/`  | Conversation state                       |
-| `data/traces/`    | Distributed traces                       |
-| `data/policies/`  | Access control policies                  |
-| `data/logs/`      | Service logs                             |
-| `data/cli/`       | CLI session data                         |
-| `data/eval/`      | Evaluation results                       |
-| `data/ingest/`    | Ingestion pipeline (in/pipeline/done)    |
+| Path              | Contents                                   |
+| ----------------- | ------------------------------------------ |
+| `data/knowledge/` | Input HTML files                           |
+| `data/resources/` | Processed resources                        |
+| `data/vectors/`   | Embedding vector indices                   |
+| `data/graphs/`    | RDF quad index + ontology                  |
+| `data/memories/`  | Conversation state                         |
+| `data/traces/`    | Distributed traces                         |
+| `data/policies/`  | Access control policies                    |
+| `data/logs/`      | Service logs                               |
+| `data/cli/`       | CLI session data                           |
+| `data/eval/`      | Evaluation results                         |
+| `data/ingest/`    | Ingestion pipeline (in/pipeline/done)      |
 | `examples/`       | Example datasets (copied to data/ on init) |
 
 ---
@@ -218,12 +218,12 @@ handoffs:
 
 Key fields:
 
-| Field       | Purpose                                          |
-| ----------- | ------------------------------------------------ |
-| `name`      | Agent identifier                                 |
-| `infer`     | Whether agent can be spawned as sub-agent        |
-| `tools`     | List of tool names this agent can call           |
-| `handoffs`  | Agents this agent can hand off to                |
+| Field      | Purpose                                   |
+| ---------- | ----------------------------------------- |
+| `name`     | Agent identifier                          |
+| `infer`    | Whether agent can be spawned as sub-agent |
+| `tools`    | List of tool names this agent can call    |
+| `handoffs` | Agents this agent can hand off to         |
 
 Default agents: **planner** (creates plans), **researcher** (retrieves data),
 **editor** (synthesizes responses).
@@ -295,27 +295,27 @@ back.
 
 ### Dependencies
 
-| Package        | Purpose                           |
-| -------------- | --------------------------------- |
-| libconfig      | Load agent service configuration  |
-| librepl        | Interactive REPL framework        |
-| librpc         | gRPC client for Agent service     |
-| libstorage     | Persist CLI session state         |
-| libtelemetry   | Structured logging and tracing    |
-| libtype        | Protocol Buffer types             |
+| Package      | Purpose                          |
+| ------------ | -------------------------------- |
+| libconfig    | Load agent service configuration |
+| librepl      | Interactive REPL framework       |
+| librpc       | gRPC client for Agent service    |
+| libstorage   | Persist CLI session state        |
+| libtelemetry | Structured logging and tracing   |
+| libtype      | Protocol Buffer types            |
 
 ### Key Paths
 
-| Purpose          | Location                         |
-| ---------------- | -------------------------------- |
-| CLI entry        | `products/guide/bin/fit-guide.js` |
-| Config           | `config/config.json`             |
-| Agents           | `config/agents/*.agent.md`       |
-| Tools            | `config/tools.yml`               |
-| Environment      | `.env*` (root)                   |
-| Scripts          | `scripts/env.sh`, `scripts/env-*.js` |
-| Runtime data     | `data/`                          |
-| Example data     | `examples/organizational/`       |
+| Purpose      | Location                             |
+| ------------ | ------------------------------------ |
+| CLI entry    | `products/guide/bin/fit-guide.js`    |
+| Config       | `config/config.json`                 |
+| Agents       | `config/agents/*.agent.md`           |
+| Tools        | `config/tools.yml`                   |
+| Environment  | `.env*` (root)                       |
+| Scripts      | `scripts/env.sh`, `scripts/env-*.js` |
+| Runtime data | `data/`                              |
+| Example data | `examples/organizational/`           |
 
 ## Common Tasks
 
@@ -366,7 +366,8 @@ make rc-start
 ### Ingest New Knowledge
 
 1. Generate or obtain HTML files (e.g., `npx fit-universe --cached`)
-2. Copy HTML to `data/knowledge/` (e.g., `cp examples/organizational/*.html data/knowledge/`)
+2. Copy HTML to `data/knowledge/` (e.g.,
+   `cp examples/organizational/*.html data/knowledge/`)
 3. Run `make process-resources` to create resources
 4. Run `make process-graphs` to build graph index
 5. Run `make process-vectors` to build vector index (requires TEI)

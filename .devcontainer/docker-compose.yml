@@ -11,12 +11,8 @@ services:
   tei:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
     command: >-
-      --model-id BAAI/bge-small-en-v1.5
-      --port 8090
-      --json-output
-      --auto-truncate
-      --max-concurrent-requests 32
-      --tokenization-workers 4
+      --model-id BAAI/bge-small-en-v1.5 --port 8090 --json-output
+      --auto-truncate --max-concurrent-requests 32 --tokenization-workers 4
     volumes:
       - tei_data:/data
     environment:

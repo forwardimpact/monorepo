@@ -204,7 +204,10 @@ export class Pipeline {
         try {
           await tool.checkAvailability();
         } catch (err) {
-          log.info("pipeline", `Skipping dataset '${ds.id}': ${ds.tool} not available (${err.message})`);
+          log.info(
+            "pipeline",
+            `Skipping dataset '${ds.id}': ${ds.tool} not available (${err.message})`,
+          );
           continue;
         }
         const results = await tool.generate({
@@ -221,7 +224,10 @@ export class Pipeline {
       for (const out of ast.outputs) {
         const dataset = datasets.get(out.dataset);
         if (!dataset) {
-          log.info("pipeline", `Skipping output '${out.dataset}': dataset not generated`);
+          log.info(
+            "pipeline",
+            `Skipping output '${out.dataset}': dataset not generated`,
+          );
           continue;
         }
         const rendered = await renderDataset(dataset, out.format, out.config);

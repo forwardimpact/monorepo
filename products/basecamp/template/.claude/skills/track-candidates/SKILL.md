@@ -30,7 +30,8 @@ Run this skill:
 - `~/.cache/fit/basecamp/apple_mail/attachments/` — CV/resume attachments
 - `~/.cache/fit/basecamp/apple_calendar/*.json` — synced calendar events (for
   cross-source inference)
-- `knowledge/Roles/*.md` — open role/requisition files (for metadata inheritance)
+- `knowledge/Roles/*.md` — open role/requisition files (for metadata
+  inheritance)
 - `~/.cache/fit/basecamp/state/graph_processed` — tracks processed files (shared
   with `extract-entities`)
 - `USER.md` — user identity for self-exclusion
@@ -170,8 +171,8 @@ Sort by First seen (newest first).
 If a Role file has a hiring manager but no domain lead, attempt to resolve it:
 
 1. Read the hiring manager's People note for a `**Reports to:**` field.
-2. Walk up the reporting chain until reaching a VP or senior leader listed in
-   a stakeholder map or organizational hierarchy note.
+2. Walk up the reporting chain until reaching a VP or senior leader listed in a
+   stakeholder map or organizational hierarchy note.
 3. Set `Domain lead` on the Role file.
 
 ---
@@ -272,14 +273,16 @@ These fields are rarely available in a single email. Use the following
 resolution chain, stopping at the first match:
 
 1. **Req-first inheritance:** If the candidate has a `Req`, look up the matching
-   `knowledge/Roles/*.md` file. Inherit `Hiring manager` and `Domain lead`
-   from the Role file.
+   `knowledge/Roles/*.md` file. Inherit `Hiring manager` and `Domain lead` from
+   the Role file.
 
 2. **Calendar inference:** Search synced calendar events for interview events
    mentioning the candidate's name:
+
    ```bash
    rg -l "{Candidate Name}" ~/.cache/fit/basecamp/apple_calendar/
    ```
+
    Read matching events. The **organizer** of an interview event (who is not the
    user from `USER.md`) is likely the hiring manager. Record this on the
    candidate brief and update the Role file if it was missing.
@@ -573,12 +576,12 @@ Format: one bullet per insight under `## Placement Notes`, with
 
 After writing candidate notes, verify links go both ways:
 
-| If you add...            | Then also add...                                          |
-| ------------------------ | --------------------------------------------------------- |
-| Candidate → Organization | Organization → Candidate                                  |
-| Candidate → Recruiter    | Recruiter → Candidate (in Activity section)               |
-| Candidate → Project      | Project → Candidate (in People section)                   |
-| Candidate → Role         | Role → Candidate (in Candidates table — rebuilt by sync)  |
+| If you add...            | Then also add...                                         |
+| ------------------------ | -------------------------------------------------------- |
+| Candidate → Organization | Organization → Candidate                                 |
+| Candidate → Recruiter    | Recruiter → Candidate (in Activity section)              |
+| Candidate → Project      | Project → Candidate (in People section)                  |
+| Candidate → Role         | Role → Candidate (in Candidates table — rebuilt by sync) |
 
 Use absolute paths: `[[Candidates/Name/brief|Name]]`,
 `[[Organizations/Agency]]`, `[[People/Recruiter]]`.

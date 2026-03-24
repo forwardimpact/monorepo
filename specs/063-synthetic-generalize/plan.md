@@ -5,9 +5,9 @@ synthetic data system.
 
 ## Clean Break
 
-⚠️ All changes in this plan MUST be implemented as clean breaks with NO
-backward compatibility. There are no consumers of this code base yet and we
-do not want any legacy code paths.
+⚠️ All changes in this plan MUST be implemented as clean breaks with NO backward
+compatibility. There are no consumers of this code base yet and we do not want
+any legacy code paths.
 
 ## Overview
 
@@ -19,9 +19,9 @@ Five phases, each independently shippable:
 4. Synthea tool (Java subprocess)
 5. SDV tool (Python subprocess)
 
-Phase 1 is the foundation. Phases 2–5 are independent of each other and can
-ship in any order. Phase 3 (Faker) is the simplest tool and validates the
-full pipeline end-to-end, so it ships first.
+Phase 1 is the foundation. Phases 2–5 are independent of each other and can ship
+in any order. Phase 3 (Faker) is the simplest tool and validates the full
+pipeline end-to-end, so it ships first.
 
 ## The dataset abstraction
 
@@ -48,8 +48,8 @@ them. No base class, no interface — just a shape.
 ### New keywords
 
 Add to the KEYWORDS list: `dataset`, `tool`, `population`, `modules`,
-`metadata`, `data`, `rows`, `fields`, `output`, `table`, `path`, `json`,
-`yaml`, `csv`, `markdown`, `parquet`, `sql`.
+`metadata`, `data`, `rows`, `fields`, `output`, `table`, `path`, `json`, `yaml`,
+`csv`, `markdown`, `parquet`, `sql`.
 
 ### New parser functions
 
@@ -91,8 +91,9 @@ function parseFields() {
 }
 ```
 
-**`parseOutput()`** — called when the parser encounters `output <dataset> <format> {`.
-Validates the format against the six known renderers at parse time:
+**`parseOutput()`** — called when the parser encounters
+`output <dataset> <format> {`. Validates the format against the six known
+renderers at parse time:
 
 ```javascript
 const FORMATS = new Set(['json', 'yaml', 'csv', 'markdown', 'parquet', 'sql'])
@@ -230,9 +231,9 @@ function renderMarkdown(dataset, config) {
 
 ### Parquet renderer
 
-Use `parquet-wasm` (WebAssembly-based, no native deps, runs in Node.js).
-Build an Arrow table from the dataset schema and records, then serialize to
-Parquet. The `parquet-wasm` package provides `tableFromJSON` (Arrow IPC) and
+Use `parquet-wasm` (WebAssembly-based, no native deps, runs in Node.js). Build
+an Arrow table from the dataset schema and records, then serialize to Parquet.
+The `parquet-wasm` package provides `tableFromJSON` (Arrow IPC) and
 `writeParquet` (Arrow table → Parquet bytes).
 
 ```javascript
@@ -265,9 +266,9 @@ function renderSql(dataset, config) {
 }
 ```
 
-`sqlLiteral()` handles type coercion: strings → `'escaped'`, numbers →
-literal, booleans → `TRUE`/`FALSE`, null → `NULL`, dates → `'ISO string'`,
-objects/arrays → `'JSON string'`. Uses PostgreSQL syntax.
+`sqlLiteral()` handles type coercion: strings → `'escaped'`, numbers → literal,
+booleans → `TRUE`/`FALSE`, null → `NULL`, dates → `'ISO string'`, objects/arrays
+→ `'JSON string'`. Uses PostgreSQL syntax.
 
 ### Renderer dispatch
 
@@ -314,15 +315,15 @@ Add `renderDataset` to `libsyntheticrender/index.js`.
 
 | Package        | Add to             | Reason                       |
 | -------------- | ------------------ | ---------------------------- |
-| `parquet-wasm`  | libsyntheticrender | Parquet serialization (Wasm) |
+| `parquet-wasm` | libsyntheticrender | Parquet serialization (Wasm) |
 | `apache-arrow` | libsyntheticrender | Arrow table construction     |
 
 ## Phase 3 — Faker Tool
 
 **New file:** `libraries/libsyntheticgen/tools/faker.js`
 
-The simplest tool. Runs in-process, no external dependencies, validates the
-full tool → dataset → renderer pipeline end-to-end.
+The simplest tool. Runs in-process, no external dependencies, validates the full
+tool → dataset → renderer pipeline end-to-end.
 
 ### Class
 
@@ -398,8 +399,8 @@ function createFakerTool(logger) {
 
 ### Dependencies
 
-| Package         | Add to          | Reason                |
-| --------------- | --------------- | --------------------- |
+| Package           | Add to          | Reason                |
+| ----------------- | --------------- | --------------------- |
 | `@faker-js/faker` | libsyntheticgen | In-process generation |
 
 ### Pipeline wiring
@@ -435,8 +436,8 @@ for (const out of ast.outputs) {
 }
 ```
 
-`getTool()` is a simple switch, not a registry. The composition root (CLI)
-reads environment variables and passes them as concrete values:
+`getTool()` is a simple switch, not a registry. The composition root (CLI) reads
+environment variables and passes them as concrete values:
 
 ```javascript
 function getTool(name, deps) {
@@ -759,31 +760,31 @@ class SdvTool {
 
 ## File Inventory
 
-| Action | Path                                                          |
-| ------ | ------------------------------------------------------------- |
-| Modify | `libraries/libsyntheticgen/dsl/tokenizer.js`                  |
-| Modify | `libraries/libsyntheticgen/dsl/parser.js`                     |
-| Modify | `libraries/libsyntheticgen/index.js`                          |
-| Modify | `libraries/libsyntheticgen/package.json`                      |
-| Modify | `libraries/libsyntheticrender/render/renderer.js`             |
-| Modify | `libraries/libsyntheticrender/index.js`                       |
-| Modify | `libraries/libsyntheticrender/package.json`                   |
-| Modify | `libraries/libuniverse/pipeline.js`                           |
-| Modify | `libraries/libuniverse/bin/fit-universe.js`                   |
+| Action | Path                                                       |
+| ------ | ---------------------------------------------------------- |
+| Modify | `libraries/libsyntheticgen/dsl/tokenizer.js`               |
+| Modify | `libraries/libsyntheticgen/dsl/parser.js`                  |
+| Modify | `libraries/libsyntheticgen/index.js`                       |
+| Modify | `libraries/libsyntheticgen/package.json`                   |
+| Modify | `libraries/libsyntheticrender/render/renderer.js`          |
+| Modify | `libraries/libsyntheticrender/index.js`                    |
+| Modify | `libraries/libsyntheticrender/package.json`                |
+| Modify | `libraries/libuniverse/pipeline.js`                        |
+| Modify | `libraries/libuniverse/bin/fit-universe.js`                |
 | Create | `libraries/libsyntheticgen/tools/faker.js`                 |
 | Create | `libraries/libsyntheticgen/tools/synthea.js`               |
 | Create | `libraries/libsyntheticgen/tools/sdv.js`                   |
 | Create | `libraries/libsyntheticgen/tools/sdv_generate.py`          |
-| Create | `libraries/libsyntheticrender/render/dataset-renderers.js`    |
-| Modify | `examples/universe.dsl`                                        |
+| Create | `libraries/libsyntheticrender/render/dataset-renderers.js` |
+| Modify | `examples/universe.dsl`                                    |
 
 ## Dependency Changes
 
-| Package          | Add to             | Reason                         |
-| ---------------- | ------------------ | ------------------------------ |
-| `@faker-js/faker` | libsyntheticgen    | In-process field generation    |
-| `parquet-wasm`    | libsyntheticrender | Parquet serialization (Wasm)   |
-| `apache-arrow`   | libsyntheticrender | Arrow table construction       |
+| Package           | Add to             | Reason                       |
+| ----------------- | ------------------ | ---------------------------- |
+| `@faker-js/faker` | libsyntheticgen    | In-process field generation  |
+| `parquet-wasm`    | libsyntheticrender | Parquet serialization (Wasm) |
+| `apache-arrow`    | libsyntheticrender | Arrow table construction     |
 
 No new dependencies for Synthea (subprocess) or SDV (subprocess). The `yaml`
 package is already present.
@@ -794,9 +795,8 @@ package is already present.
 
 Each tool and renderer has isolated unit tests:
 
-- **Tools:** Test `generate()` with known seeds, verify determinism and
-  record shape. Mock external dependencies (Java, Python) at the subprocess
-  boundary.
+- **Tools:** Test `generate()` with known seeds, verify determinism and record
+  shape. Mock external dependencies (Java, Python) at the subprocess boundary.
 - **Renderers:** Test each format with a fixture dataset containing strings,
   numbers, booleans, nulls, dates, and nested objects. Verify output is valid
   (parseable JSON, valid CSV, valid SQL, readable Parquet).

@@ -43,8 +43,8 @@ Run this skill:
 - Existing candidate brief (if available):
   `knowledge/Candidates/{Name}/brief.md`
 - Role file (if candidate has a `Req`): `knowledge/Roles/*.md` — provides
-  `Level`, `Discipline`, `Hiring manager`, and `Domain lead` for
-  more accurate screening
+  `Level`, `Discipline`, `Hiring manager`, and `Domain lead` for more accurate
+  screening
 
 ## Outputs
 
@@ -231,7 +231,7 @@ Classify each skill as:
 
 Create `knowledge/Candidates/{Name}/screening.md`:
 
-```markdown
+````markdown
 # CV Screening — {Full Name}
 
 **Assessed against:** {Discipline} {Level} — {Track}
@@ -323,10 +323,11 @@ These are the specific uncertainties that interviews must resolve.}
 
 ```bash
 npx fit-pathway interview {discipline} {level} --track={track}
-```
+````
 
-{Select 3-5 questions most relevant to the identified gaps and focus areas.
-For each question, note which gap or uncertainty it targets.}
+{Select 3-5 questions most relevant to the identified gaps and focus areas. For
+each question, note which gap or uncertainty it targets.}
+
 ```
 
 ## Step 7: Enrich Candidate Brief
@@ -366,3 +367,4 @@ to create the candidate profile from email threads.
 - [ ] Candidate brief links to screening using exact text
       `[CV Screening](./screening.md)`
 - [ ] Gender field set only from explicit pronouns/titles (never name-inferred)
+```

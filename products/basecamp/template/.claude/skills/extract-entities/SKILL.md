@@ -401,8 +401,8 @@ Scan email subjects and bodies for requisition numbers (e.g. 7-digit Workday
 IDs). When found:
 
 1. Check if a Role file exists: `ls knowledge/Roles/ | grep "{req_number}"`
-2. If **no Role file exists**, create a stub (see `track-candidates` Step 0b
-   for the template). Search the knowledge graph for context:
+2. If **no Role file exists**, create a stub (see `track-candidates` Step 0b for
+   the template). Search the knowledge graph for context:
    ```bash
    rg "{req_number}" knowledge/
    ```
@@ -412,6 +412,7 @@ IDs). When found:
 ### Hiring Manager Inference from Calendar Events
 
 When a calendar event title matches interview-related patterns:
+
 - "Interview", "Screening", "Screen", "Decomposition", "Panel", "Technical
   Assessment", "Candidate"
 - Combined with a person name (cross-reference `knowledge/Candidates/`)
@@ -421,8 +422,8 @@ Extract the **organizer** of the event. If the organizer is NOT the user (from
 
 1. Look up the organizer in `knowledge/People/` — check if they have a role
    indicating they manage a team or are described as a hiring manager.
-2. Look up which candidate is being interviewed — check their `brief.md` for
-   a `Req` field.
+2. Look up which candidate is being interviewed — check their `brief.md` for a
+   `Req` field.
 3. If a Req is known, update the corresponding `knowledge/Roles/*.md` file's
    `Hiring manager` field (only if currently `—`).
 4. Update the candidate's `brief.md` `Hiring manager` field if currently `—`.
@@ -436,8 +437,8 @@ When processing email threads that reference candidates (by name match against
 2. If a CC'd person's note mentions "recruiter", "talent acquisition", or a
    similar recruiting role, they are likely the internal recruiter for this
    candidate's role.
-3. Update the candidate's `brief.md` recruiter field and the corresponding
-   Role file if the field is currently `—`.
+3. Update the candidate's `brief.md` recruiter field and the corresponding Role
+   file if the field is currently `—`.
 
 ### Domain Lead Resolution
 
@@ -445,8 +446,8 @@ When a hiring manager is newly identified (from calendar or email inference),
 attempt to resolve the domain lead:
 
 1. Read the hiring manager's People note for a `**Reports to:**` field.
-2. Walk up the reporting chain until reaching a VP or senior leader listed in
-   a stakeholder map or organizational hierarchy note.
+2. Walk up the reporting chain until reaching a VP or senior leader listed in a
+   stakeholder map or organizational hierarchy note.
 3. Update both the Role file's `Domain lead` and the candidate brief's
    `Domain lead`.
 

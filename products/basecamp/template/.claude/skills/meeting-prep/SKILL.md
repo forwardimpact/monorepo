@@ -143,8 +143,8 @@ When preparing for interview meetings (title contains "Interview", "Screening",
 3. **Include in the briefing:**
    - Candidate's current status, skills, and screening recommendation
    - Role context: hiring manager, domain lead, remaining positions
-   - Other candidates on the same requisition and their statuses (from the
-     Role file's Candidates table)
+   - Other candidates on the same requisition and their statuses (from the Role
+     file's Candidates table)
    - Previous interview assessments if this is a second/later stage
    - Panel brief if one exists (`panel.md`)
 4. **Format as a dedicated section:**

@@ -30,11 +30,11 @@ reference framework data — never rely on subjective impressions.
 Every candidate progresses through three assessment stages. Each stage has a
 dedicated skill and produces a specific artifact:
 
-| Stage | Skill | Trigger | Output | Decision |
-|-------|-------|---------|--------|----------|
-| 1. Screen | `screen-cv` | CV arrives | `screening.md` | Interview or Pass |
-| 2. Assess | `assess-interview` | Transcript arrives | `interview-{date}.md`, `panel.md` | Continue or Pass |
-| 3. Decide | `hiring-decision` | All stages complete | `recommendation.md` | Hire or Not |
+| Stage     | Skill              | Trigger             | Output                            | Decision          |
+| --------- | ------------------ | ------------------- | --------------------------------- | ----------------- |
+| 1. Screen | `screen-cv`        | CV arrives          | `screening.md`                    | Interview or Pass |
+| 2. Assess | `assess-interview` | Transcript arrives  | `interview-{date}.md`, `panel.md` | Continue or Pass  |
+| 3. Decide | `hiring-decision`  | All stages complete | `recommendation.md`               | Hire or Not       |
 
 **Stage progression rules:**
 
