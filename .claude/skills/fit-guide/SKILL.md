@@ -315,20 +315,39 @@ back.
 | Environment      | `.env*` (root)                   |
 | Scripts          | `scripts/env.sh`, `scripts/env-*.js` |
 | Runtime data     | `data/`                          |
-| Example data     | `examples/knowledge/`            |
+| Example data     | `examples/organizational/`       |
 
 ## Common Tasks
 
 ### Quick Start (New Setup)
 
 ```sh
-make env-setup
-make data-init
-make tei-install        # First time only
-make process
-make rc-start
-make cli-chat
+npm install             # Install all workspace dependencies
+make codegen            # Generate types from proto/ (required before services)
+make env-setup          # Reset .env from examples, generate secrets
+make data-init          # Create data directories
 ```
+
+Then populate `data/knowledge/` with HTML content. The synthetic data generator
+produces rich example content:
+
+```sh
+npx fit-universe --universe=examples/universe.dsl --cached   # or --generate
+cp examples/organizational/*.html data/knowledge/
+```
+
+Then process and start:
+
+```sh
+make process-fast       # Process agents, resources, tools, graphs (no vectors)
+make rc-start           # Start services (TEI/Supabase must be removed from
+                        # config/config.json if not installed)
+make cli-chat           # Verify end-to-end
+```
+
+**Note:** `config/config.json` may include `supabase` (oneshot) and `tei`
+services. Remove these entries if Supabase CLI or TEI binary are not installed,
+otherwise `fit-rc start` will fail.
 
 ### Reset Everything
 
@@ -355,10 +374,11 @@ make rc-start
 
 ### Ingest New Knowledge
 
-1. Place HTML files in `data/knowledge/`
-2. Run `make process-resources` to create resources
-3. Run `make process-vectors` to build vector index
+1. Generate or obtain HTML files (e.g., `npx fit-universe --cached`)
+2. Copy HTML to `data/knowledge/` (e.g., `cp examples/organizational/*.html data/knowledge/`)
+3. Run `make process-resources` to create resources
 4. Run `make process-graphs` to build graph index
+5. Run `make process-vectors` to build vector index (requires TEI)
 
 ## Verification
 

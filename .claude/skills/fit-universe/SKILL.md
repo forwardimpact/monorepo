@@ -117,13 +117,59 @@ All generated output writes to `examples/` at the monorepo root.
 
 ---
 
+## Prose Cache
+
+The prose cache is stored at `libraries/libuniverse/.prose-cache.json`. This
+file is pre-populated for the BioNova universe (440+ keys). Use `--cached` to
+read from it without LLM calls.
+
+When using `--generate`, new prose is appended to the cache after generation
+completes. Subsequent runs with `--cached` will reuse all generated content.
+
+---
+
+## Dataset Blocks
+
+The universe DSL may include `dataset` and `output` blocks that require external
+tools (Synthea, SDV, Faker). If these tools are not installed, the pipeline will
+fail **after** rendering but **before** writing files to disk.
+
+**Workaround:** Create a copy of the DSL without `dataset`/`output` blocks:
+
+```sh
+sed '/^  dataset /,/^  }/d; /^  output /d' examples/universe.dsl > /tmp/universe-nodatasets.dsl
+npx fit-universe --universe=/tmp/universe-nodatasets.dsl --cached
+```
+
+**Note:** The `--only` flag only gates which render types execute (html,
+pathway, raw, markdown). It does **not** skip dataset generation — datasets
+always run when present in the DSL.
+
+---
+
 ## Environment
 
 Generation requires `LLM_TOKEN` and `LLM_BASE_URL` when using `--generate` mode.
-These are always available in the standard environment (see CLAUDE.md).
+Load environment via `scripts/env.sh`:
 
 ```sh
-npx fit-universe --generate          # Uses LLM_TOKEN from environment
+ENV=local STORAGE=local AUTH=none ./scripts/env.sh npx fit-universe --generate
+```
+
+Or use the Makefile's env loading for consistency. `LLM_TOKEN` is always
+available in the standard environment (see CLAUDE.md).
+
+---
+
+## Feeding Generated Content to Guide
+
+After generation, copy HTML files to the Guide knowledge pipeline:
+
+```sh
+cp examples/organizational/*.html data/knowledge/
+make process-resources    # Create resource documents
+make process-graphs       # Build RDF graph index
+make process-vectors      # Build vector index (requires TEI)
 ```
 
 ## Verification
