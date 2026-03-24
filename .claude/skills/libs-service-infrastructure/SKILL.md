@@ -40,7 +40,8 @@ description: >
   service boundaries. Use `observe()` to wrap operations with timing.
 - **Always use `logger.info` for operational output** — sends to stderr, keeps
   stdout clean for data. `logger.debug` only prints when `DEBUG=<domain>` is
-  set.
+  set. This is the standard pattern for all CLI tools and services across the
+  monorepo.
 
 ## Composition Recipes
 

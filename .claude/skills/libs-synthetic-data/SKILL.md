@@ -46,6 +46,9 @@ description: >
 - **Pure functions** — `createSeededRNG`, `collectProseKeys`,
   `validateCrossContent`, `formatContent` are stateless and can be used
   standalone.
+- **CLI logging** — Use `createLogger` from libtelemetry for operational output.
+  `logger.info` sends to stderr (keeps stdout clean for data), `logger.debug`
+  only prints when `DEBUG=<domain>` is set.
 
 ## Composition Recipes
 

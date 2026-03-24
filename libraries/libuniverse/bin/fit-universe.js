@@ -239,6 +239,16 @@ async function main() {
     console.log(`  ${icon} ${check.name}`);
   }
 
+  // Prose cache stats
+  const { hits, generated, misses } = result.stats.prose;
+  const proseTotal = hits + generated + misses;
+  if (proseTotal > 0) {
+    const rate = Math.round((hits / proseTotal) * 100);
+    console.log(
+      `\nProse: ${hits} hits, ${generated} generated, ${misses} misses (${rate}% hit rate)`,
+    );
+  }
+
   if (!result.validation.passed) {
     console.error(`\n${result.validation.failures} validation failures`);
     process.exit(1);

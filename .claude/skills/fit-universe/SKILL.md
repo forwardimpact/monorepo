@@ -162,6 +162,15 @@ available in the standard environment (see CLAUDE.md).
 
 ---
 
+## Logging
+
+Set `DEBUG=universe` for verbose debug output during generation. Operational
+progress is logged to stderr via libtelemetry Logger (RFC 5424 format with
+timestamps). Stdout is reserved for file counts, validation results, and prose
+cache statistics.
+
+---
+
 ## Feeding Generated Content to Guide
 
 After generation, bootstrap the full Guide pipeline:

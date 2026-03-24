@@ -69,7 +69,7 @@ export class Pipeline {
    * @param {string} options.universePath - Path to the universe.dsl file
    * @param {string} [options.only=null] - Render only a specific content type
    * @param {string|null} [options.schemaDir=null] - Path to JSON schema directory
-   * @returns {Promise<{files: Map<string,string>, rawDocuments: Map<string,string>, entities: object, validation: object}>}
+   * @returns {Promise<{files: Map<string,string>, rawDocuments: Map<string,string>, entities: object, validation: object, stats: {prose: {hits: number, misses: number, generated: number}, files: number, rawDocuments: number}}>}
    */
   async run(options) {
     const { universePath, only = null, schemaDir = null } = options;
@@ -106,6 +106,9 @@ export class Pipeline {
         if (result) prose.set(key, result);
         if (this.proseEngine.mode !== "no-prose") {
           log.info("prose", `[${keyIndex}/${totalKeys}] ${key}`);
+          if (keyIndex % 25 === 0) {
+            this.proseEngine.saveCache();
+          }
         }
       }
     }
@@ -151,6 +154,11 @@ export class Pipeline {
         "examples/organizational/ONTOLOGY.md",
         this.renderer.renderOntology(entities),
       );
+
+      const htmlCount = [...files.keys()].filter((p) =>
+        p.startsWith("examples/organizational/"),
+      ).length;
+      log.info("render", `HTML: ${htmlCount} files`);
     }
 
     if (shouldRender("pathway")) {
@@ -171,6 +179,7 @@ export class Pipeline {
         for (const [name, content] of pathwayFiles) {
           files.set(`examples/pathway/${name}`, content);
         }
+        log.info("render", `Pathway: ${pathwayFiles.size} files`);
       }
     }
 
@@ -185,6 +194,10 @@ export class Pipeline {
       for (const [name, content] of activityFiles) {
         files.set(join("examples/activity", name), content);
       }
+      log.info(
+        "render",
+        `Raw: ${raw.size} documents, ${activityFiles.size} activity files`,
+      );
     }
 
     if (shouldRender("markdown")) {
@@ -193,6 +206,7 @@ export class Pipeline {
       for (const [name, content] of md) {
         files.set(join("examples/personal", name), content);
       }
+      log.info("render", `Markdown: ${md.size} files`);
     }
 
     // Dataset tool execution and output rendering
@@ -246,11 +260,20 @@ export class Pipeline {
     log.info("format", "Formatting output files with Prettier");
     const formattedFiles = await this.formatter.format(files);
     const formattedRawDocuments = await this.formatter.format(rawDocuments);
+    log.info(
+      "format",
+      `Formatted ${formattedFiles.size} files, ${formattedRawDocuments.size} raw documents`,
+    );
 
     // 6. Validate
     const validation = hasOrgBlocks
       ? this.validator.validate(entities)
       : { checks: [], failures: 0, passed: true };
+
+    log.info(
+      "validate",
+      `${validation.checks.length} checks, ${validation.failures} failures`,
+    );
 
     if (htmlLinked) {
       const linkValidation = validateLinks(htmlLinked, entities.domain);
@@ -294,6 +317,11 @@ export class Pipeline {
       rawDocuments: formattedRawDocuments,
       entities,
       validation,
+      stats: {
+        prose: this.proseEngine.stats,
+        files: formattedFiles.size,
+        rawDocuments: formattedRawDocuments.size,
+      },
     };
   }
 }

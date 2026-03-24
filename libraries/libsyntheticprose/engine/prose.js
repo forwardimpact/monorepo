@@ -46,6 +46,7 @@ export class ProseEngine {
     this.logger = logger;
     this.cache = this.#loadCache();
     this.dirty = false;
+    this.stats = { hits: 0, misses: 0, generated: 0 };
   }
 
   /**
@@ -59,15 +60,20 @@ export class ProseEngine {
 
     const cacheKey = generateHash(key, JSON.stringify(context));
 
-    if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
+    if (this.cache.has(cacheKey)) {
+      this.stats.hits++;
+      return this.cache.get(cacheKey);
+    }
 
     if (this.mode === "cached") {
+      this.stats.misses++;
       if (this.strict) throw new Error(`Cache miss: '${key}'`);
       return null;
     }
 
     // Tier 1: generate via libllm
     const prose = await this.#callLlm(key, context);
+    this.stats.generated++;
     if (prose) {
       this.cache.set(cacheKey, prose);
       this.dirty = true;
@@ -108,11 +114,13 @@ export class ProseEngine {
     const cacheKey = generateHash(key, JSON.stringify(messages));
 
     if (this.cache.has(cacheKey)) {
+      this.stats.hits++;
       this.logger.debug("prose", `Cache hit: ${key}`);
       return this.cache.get(cacheKey);
     }
 
     if (this.mode === "cached") {
+      this.stats.misses++;
       if (this.strict) throw new Error(`Cache miss: '${key}'`);
       return null;
     }
@@ -122,6 +130,7 @@ export class ProseEngine {
       max_tokens: 4000,
     });
     const content = response.choices?.[0]?.message?.content?.trim() || null;
+    this.stats.generated++;
     if (content) {
       this.cache.set(cacheKey, content);
       this.dirty = true;
@@ -159,6 +168,7 @@ export class ProseEngine {
       this.cachePath,
       JSON.stringify(Object.fromEntries(this.cache), null, 2),
     );
+    this.dirty = false;
   }
 
   /**
