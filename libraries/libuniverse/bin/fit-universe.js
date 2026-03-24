@@ -156,14 +156,7 @@ async function main() {
 
   const result = await pipeline.run({
     universePath:
-      args.universe ||
-      join(
-        dirname(
-          fileURLToPath(import.meta.resolve("@forwardimpact/libsyntheticgen")),
-        ),
-        "data",
-        "default.dsl",
-      ),
+      args.universe || join(monorepoRoot, "examples", "universe.dsl"),
     only: args.only || null,
     schemaDir,
   });

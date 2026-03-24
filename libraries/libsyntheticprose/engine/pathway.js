@@ -101,31 +101,41 @@ async function generatePathwayData({
 }) {
   const ctx = { domain, industry };
 
+  // Collect all skill IDs and behaviour IDs from DSL declarations
+  // (not from LLM output — these must be available even in no-prose mode)
+  const skillIds = framework.capabilities.flatMap((c) => c.skills || []);
+  const behaviourIds = framework.behaviours.map((b) => b.id);
+  const trackIds = framework.tracks.map((t) => t.id);
+  const capabilityIds = framework.capabilities.map((c) => c.id);
+
   // 1. Framework metadata
-  const fw = await generateEntity(
-    "framework",
-    "framework",
-    buildFrameworkPrompt(framework, ctx, schemas.framework),
-    proseEngine,
-  );
+  const fw =
+    (await generateEntity(
+      "framework",
+      "framework",
+      buildFrameworkPrompt(framework, ctx, schemas.framework),
+      proseEngine,
+    )) || buildFrameworkFallback(framework, domain);
 
-  // 2. Levels
-  const levels = await generateEntity(
-    "levels",
-    "levels",
-    buildLevelPrompt(framework.levels, ctx, schemas.levels),
-    proseEngine,
-  );
+  // 2. Levels (deterministic fallback from DSL when prose unavailable)
+  const levels =
+    (await generateEntity(
+      "levels",
+      "levels",
+      buildLevelPrompt(framework.levels, ctx, schemas.levels),
+      proseEngine,
+    )) || buildLevelsFallback(framework.levels, framework.proficiencies);
 
-  // 3. Stages
-  const stages = await generateEntity(
-    "stages",
-    "stages",
-    buildStagePrompt(framework.stages, ctx, schemas.stages),
-    proseEngine,
-  );
+  // 3. Stages (deterministic fallback from DSL when prose unavailable)
+  const stages =
+    (await generateEntity(
+      "stages",
+      "stages",
+      buildStagePrompt(framework.stages, ctx, schemas.stages),
+      proseEngine,
+    )) || buildStagesFallback(framework.stages);
 
-  // 4. Behaviours (parallel — no cross-references)
+  // 4. Behaviours (deterministic fallback from DSL when prose unavailable)
   const behaviours = await Promise.all(
     framework.behaviours.map((b) =>
       generateEntity(
@@ -133,11 +143,13 @@ async function generatePathwayData({
         b.id,
         buildBehaviourPrompt(b, ctx, schemas.behaviour),
         proseEngine,
-      ).then((data) => ({ ...data, _id: b.id })),
+      ).then((data) =>
+        data ? { ...data, _id: b.id } : buildBehaviourFallback(b),
+      ),
     ),
   );
 
-  // 5. Capabilities with skills (parallel)
+  // 5. Capabilities with skills (deterministic fallback from DSL when prose unavailable)
   const capabilities = await Promise.all(
     framework.capabilities.map((c, i) =>
       generateEntity(
@@ -149,29 +161,28 @@ async function generatePathwayData({
           schemas.capability,
         ),
         proseEngine,
-      ).then((data) => ({ ...data, _id: c.id })),
+      ).then((data) =>
+        data
+          ? { ...data, _id: c.id }
+          : buildCapabilityFallback(c, i + 1, framework.proficiencies),
+      ),
     ),
   );
 
-  // Collect all skill IDs and behaviour IDs from DSL declarations
-  // (not from LLM output — these must be available even in no-prose mode)
-  const skillIds = framework.capabilities.flatMap((c) => c.skills || []);
-  const behaviourIds = framework.behaviours.map((b) => b.id);
+  // 6. Drivers (deterministic fallback from DSL when prose unavailable)
+  const drivers =
+    (await generateEntity(
+      "drivers",
+      "drivers",
+      buildDriverPrompt(
+        framework.drivers,
+        { ...ctx, skillIds, behaviourIds },
+        schemas.drivers,
+      ),
+      proseEngine,
+    )) || buildDriversFallback(framework.drivers);
 
-  // 6. Drivers (reference skills + behaviours)
-  const drivers = await generateEntity(
-    "drivers",
-    "drivers",
-    buildDriverPrompt(
-      framework.drivers,
-      { ...ctx, skillIds, behaviourIds },
-      schemas.drivers,
-    ),
-    proseEngine,
-  );
-
-  // 7. Disciplines (reference skills, behaviours, track IDs from DSL)
-  const trackIds = framework.tracks.map((t) => t.id);
+  // 7. Disciplines (deterministic fallback from DSL when prose unavailable)
   const disciplines = await Promise.all(
     framework.disciplines.map((d) =>
       generateEntity(
@@ -183,12 +194,15 @@ async function generatePathwayData({
           schemas.discipline,
         ),
         proseEngine,
-      ).then((data) => ({ ...data, _id: d.id })),
+      ).then((data) =>
+        data
+          ? { ...data, _id: d.id }
+          : buildDisciplineFallback(d, skillIds, trackIds),
+      ),
     ),
   );
 
-  // 8. Tracks (reference capability IDs for skillModifiers)
-  const capabilityIds = framework.capabilities.map((c) => c.id);
+  // 8. Tracks (deterministic fallback from DSL when prose unavailable)
   const tracks = await Promise.all(
     framework.tracks.map((t) =>
       generateEntity(
@@ -200,7 +214,9 @@ async function generatePathwayData({
           schemas.track,
         ),
         proseEngine,
-      ).then((data) => ({ ...data, _id: t.id })),
+      ).then((data) =>
+        data ? { ...data, _id: t.id } : buildTrackFallback(t, capabilityIds),
+      ),
     ),
   );
 
@@ -339,4 +355,216 @@ function generateSelfAssessments(framework, skillIds, behaviourIds) {
   }
 
   return assessments;
+}
+
+/**
+ * Build framework metadata deterministically from DSL data.
+ * @param {object} framework - Framework AST from DSL parser
+ * @param {string} domain - Universe domain
+ * @returns {object} Schema-compliant framework object
+ */
+function buildFrameworkFallback(framework, domain) {
+  return {
+    title: `${domain} Engineering Pathway`,
+    emojiIcon: "🚀",
+  };
+}
+
+/**
+ * Build a single behaviour deterministically from DSL data.
+ * @param {object} dslBehaviour - Behaviour from DSL (id, name)
+ * @returns {object} Schema-compliant behaviour with _id
+ */
+function buildBehaviourFallback(dslBehaviour) {
+  const maturities = [
+    "emerging",
+    "developing",
+    "practicing",
+    "role_modeling",
+    "exemplifying",
+  ];
+  const maturityDescriptions = {};
+  for (const m of maturities) {
+    maturityDescriptions[m] = `${m} level of ${dslBehaviour.name}`;
+  }
+  return {
+    _id: dslBehaviour.id,
+    name: dslBehaviour.name,
+    human: {
+      description: dslBehaviour.name,
+      maturityDescriptions,
+    },
+  };
+}
+
+/**
+ * Build a single capability with skills deterministically from DSL data.
+ * @param {object} dslCapability - Capability from DSL (id, name, skills)
+ * @param {number} ordinalRank - 1-based rank
+ * @param {string[]} proficiencies - Proficiency scale
+ * @returns {object} Schema-compliant capability with _id
+ */
+function buildCapabilityFallback(dslCapability, ordinalRank, proficiencies) {
+  const profs = proficiencies || [
+    "awareness",
+    "foundational",
+    "working",
+    "practitioner",
+    "expert",
+  ];
+  const skills = (dslCapability.skills || []).map((skillId) => {
+    const name = skillId
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+    const proficiencyDescriptions = {};
+    for (const p of profs) {
+      proficiencyDescriptions[p] = `${p} level of ${name}`;
+    }
+    return {
+      id: skillId,
+      name,
+      human: {
+        description: name,
+        proficiencyDescriptions,
+      },
+    };
+  });
+  const responsibilities = {};
+  for (const p of profs) {
+    responsibilities[p] = `${p}-level responsibilities`;
+  }
+  return {
+    _id: dslCapability.id,
+    name: dslCapability.name,
+    ordinalRank,
+    skills,
+    professionalResponsibilities: responsibilities,
+    managementResponsibilities: responsibilities,
+  };
+}
+
+/**
+ * Build a single discipline deterministically from DSL data.
+ * @param {object} dslDiscipline - Discipline from DSL
+ * @param {string[]} _skillIds - All skill IDs
+ * @param {string[]} _trackIds - All track IDs
+ * @returns {object} Schema-compliant discipline with _id
+ */
+function buildDisciplineFallback(dslDiscipline, _skillIds, _trackIds) {
+  return {
+    _id: dslDiscipline.id,
+    specialization: dslDiscipline.specialization || dslDiscipline.id,
+    roleTitle: dslDiscipline.roleTitle || dslDiscipline.id,
+    isProfessional: dslDiscipline.isProfessional !== false,
+    isManagement: dslDiscipline.isProfessional === false,
+    coreSkills: dslDiscipline.core || [],
+    supportingSkills: dslDiscipline.supporting || [],
+    broadSkills: dslDiscipline.broad || [],
+    validTracks: dslDiscipline.validTracks || [null],
+  };
+}
+
+/**
+ * Build a single track deterministically from DSL data.
+ * @param {object} dslTrack - Track from DSL (id, name)
+ * @param {string[]} capabilityIds - All capability IDs
+ * @returns {object} Schema-compliant track with _id
+ */
+function buildTrackFallback(dslTrack, capabilityIds) {
+  const skillModifiers = {};
+  for (const capId of capabilityIds) {
+    skillModifiers[capId] = 0;
+  }
+  return {
+    _id: dslTrack.id,
+    name: dslTrack.name || dslTrack.id,
+    skillModifiers,
+  };
+}
+
+/**
+ * Build levels array deterministically from DSL framework data.
+ * Used as fallback when prose engine returns null (no-prose mode).
+ *
+ * @param {object[]} dslLevels - Levels from DSL parser (id, title, rank, experience)
+ * @param {string[]} proficiencies - Proficiency scale from DSL
+ * @returns {object[]} Schema-compliant levels array
+ */
+function buildLevelsFallback(dslLevels, proficiencies) {
+  const profs = proficiencies || [
+    "awareness",
+    "foundational",
+    "working",
+    "practitioner",
+    "expert",
+  ];
+  const maturities = [
+    "emerging",
+    "developing",
+    "practicing",
+    "role_modeling",
+    "exemplifying",
+  ];
+
+  return dslLevels.map((level, i) => {
+    const profIdx = Math.min(i, profs.length - 1);
+    const matIdx = Math.min(i, maturities.length - 1);
+    const secondaryIdx = Math.max(0, profIdx - 1);
+    const broadIdx = Math.max(0, profIdx - 2);
+
+    const profTitle = level.professionalTitle || `Level ${i + 1}`;
+    return {
+      id: level.id,
+      professionalTitle: profTitle,
+      managementTitle:
+        level.managementTitle || profTitle.replace("Engineer", "Manager"),
+      typicalExperienceRange: level.experience || "",
+      ordinalRank: level.rank || i + 1,
+      baseSkillProficiencies: {
+        primary: profs[profIdx],
+        secondary: profs[secondaryIdx],
+        broad: profs[broadIdx],
+      },
+      baseBehaviourMaturity: maturities[matIdx],
+    };
+  });
+}
+
+/**
+ * Build stages array deterministically from DSL stage IDs.
+ * Used as fallback when prose engine returns null (no-prose mode).
+ *
+ * @param {string[]} dslStages - Stage ID strings from DSL (e.g. ["specify", "plan", ...])
+ * @returns {object[]} Schema-compliant stages array
+ */
+function buildStagesFallback(dslStages) {
+  const nameMap = {
+    specify: "Specify",
+    plan: "Plan",
+    onboard: "Onboard",
+    code: "Code",
+    review: "Review",
+    deploy: "Deploy",
+  };
+
+  return dslStages.map((id) => ({
+    id,
+    name: nameMap[id] || id.charAt(0).toUpperCase() + id.slice(1),
+  }));
+}
+
+/**
+ * Build drivers array deterministically from DSL driver definitions.
+ * Used as fallback when prose engine returns null (no-prose mode).
+ *
+ * @param {object[]} dslDrivers - Drivers from DSL parser (id, name, skills, behaviours)
+ * @returns {object[]} Schema-compliant drivers array
+ */
+function buildDriversFallback(dslDrivers) {
+  return dslDrivers.map((driver) => ({
+    id: driver.id,
+    name: driver.name,
+    contributingSkills: driver.skills || [],
+    contributingBehaviours: driver.behaviours || [],
+  }));
 }

@@ -284,8 +284,12 @@ export class DataLoader {
   async loadQuestionFolder(questionsDir) {
     const [skillProficiencies, behaviourMaturities, capabilityLevels] =
       await Promise.all([
-        this.#loadQuestionsFromDir(join(questionsDir, "skills")),
-        this.#loadQuestionsFromDir(join(questionsDir, "behaviours")),
+        this.#loadQuestionsFromDir(join(questionsDir, "skills")).catch(
+          () => ({}),
+        ),
+        this.#loadQuestionsFromDir(join(questionsDir, "behaviours")).catch(
+          () => ({}),
+        ),
         this.#loadQuestionsFromDir(join(questionsDir, "capabilities")).catch(
           () => ({}),
         ),
