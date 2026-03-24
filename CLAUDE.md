@@ -356,6 +356,11 @@ Format: `type(scope): subject`
 1. Review with `git diff`
 2. Group related changes into logical, atomic commits
 3. Run `npm run check` and fix issues related to your changes
+   - `npm run format` — Prettier formatting (fix with `npm run format:fix`)
+   - `npm run lint` — ESLint linting (fix with `npm run lint:fix`)
+   - `npm test` — Unit tests
+   - `npm run validate` — Data file validation
+   - Use `npm run check:fix` to auto-fix formatting and lint issues
 4. Assess version impact (breaking=major, feat=minor, other=patch)
 5. Stage and commit: `git commit -m "type(scope): subject"`
 6. Push all commits to remote
@@ -383,10 +388,14 @@ make rc-start                 # Start services (supabase/tei skipped if not inst
 ### Generation
 
 ```sh
-make generate                 # Structural only (no LLM)
+make generate                 # Structural only (no LLM, deterministic fallbacks)
 make generate-cached          # With cached prose (no LLM)
 make generate-full            # With LLM prose (requires LLM_TOKEN)
 ```
+
+Structural generation produces schema-valid data for all pathway entities using
+deterministic fallbacks from the DSL. This is sufficient for running e2e tests
+and validation without LLM access (used in CI).
 
 ### Development
 
@@ -411,11 +420,16 @@ make rc-status                # Service health check
 ### Quality
 
 ```sh
-npm run check                 # Format, lint, test, SHACL
-npm run check:fix             # Auto-fix format and lint
-npm run test                  # Unit tests
-npm run test:e2e              # Playwright E2E tests
+npm run check                 # Format, lint, test, validate (run before committing)
+npm run check:fix             # Auto-fix format and lint issues
+npm run format                # Check Prettier formatting
+npm run format:fix            # Auto-fix Prettier formatting
+npm run lint                  # Check ESLint linting
+npm run lint:fix              # Auto-fix ESLint issues
+npm run test                  # Unit tests (node --test)
+npm run test:e2e              # Playwright E2E tests (requires generated data)
 npx fit-map validate          # Validate data files
+npx fit-map validate --shacl  # Validate with SHACL syntax check
 ```
 
 ### Infrastructure

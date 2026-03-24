@@ -148,6 +148,7 @@ help:
 	@echo "  dev               	Start development server"
 	@echo "  start             	Start services"
 	@echo "  test              	Run tests"
+	@echo "  test-e2e          	Run Playwright E2E tests"
 	@echo "  test-watch        	Run tests in watch mode"
 	@echo "  test-perf         	Run performance tests"
 	@echo "  lint              	Run ESLint"
@@ -560,6 +561,10 @@ test:  ## Run tests
 .PHONY: test-watch
 test-watch:  ## Run tests in watch mode
 	@npm run test:watch
+
+.PHONY: test-e2e
+test-e2e:  ## Run Playwright E2E tests (generates data + builds site automatically)
+	@npm run test:e2e
 
 .PHONY: test-perf
 test-perf:  ## Run performance tests
