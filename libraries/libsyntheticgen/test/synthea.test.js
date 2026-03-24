@@ -55,7 +55,7 @@ describe("SyntheaTool", () => {
         return { stdout: "" };
       },
       fsFns: {
-        readFile: async (path, enc) => {
+        readFile: async (path, _enc) => {
           if (path === "/synthea.jar") return Buffer.from("");
           return JSON.stringify(fhirBundle);
         },

@@ -29,7 +29,7 @@ describe("SdvTool", () => {
   });
 
   test("parses subprocess output into datasets", async () => {
-    let capturedConfig;
+    let _capturedConfig;
     const stdout = [
       JSON.stringify({ name: "orders", records: [{ id: 1, amount: 99.5 }] }),
       JSON.stringify({
@@ -41,7 +41,7 @@ describe("SdvTool", () => {
     const tool = new SdvTool({
       logger,
       execFileFn: async (cmd, args) => {
-        capturedConfig = args;
+        _capturedConfig = args;
         return { stdout };
       },
       fsFns: {
