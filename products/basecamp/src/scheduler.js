@@ -174,7 +174,7 @@ export class Scheduler {
     let wokeAny = false;
     for (const [name, agent] of Object.entries(config.agents)) {
       if (shouldWake(agent, state.agents[name] || {}, now)) {
-        await this.#agentRunner.wake(name, agent, state);
+        await this.#agentRunner.wake(name, agent, state, config.env);
         wokeAny = true;
       }
     }

@@ -203,7 +203,7 @@ export class SocketServer {
         agent: request.agent,
       });
       const state = this.#stateManager.load();
-      this.#agentRunner.wake(request.agent, agent, state).catch(() => {});
+      this.#agentRunner.wake(request.agent, agent, state, config.env).catch(() => {});
       return;
     }
 

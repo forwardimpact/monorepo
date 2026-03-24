@@ -76,12 +76,32 @@ export class AgentRunner {
   }
 
   /**
+   * Build environment for a child process.
+   * Merges the current process env with config-level env overrides.
+   * Expands ~ in values to the user's home directory.
+   * @param {Record<string, string>} [configEnv]
+   * @returns {Record<string, string>}
+   */
+  #buildSpawnEnv(configEnv) {
+    const env = { ...process.env };
+    if (configEnv) {
+      const home = homedir();
+      for (const [key, value] of Object.entries(configEnv)) {
+        const v = String(value);
+        env[key] = v.startsWith("~/") ? join(home, v.slice(2)) : v;
+      }
+    }
+    return env;
+  }
+
+  /**
    * Wake an agent by spawning its process
    * @param {string} agentName
    * @param {Object} agent
    * @param {Object} state
+   * @param {Record<string, string>} [configEnv] - Extra env vars from config
    */
-  async wake(agentName, agent, state) {
+  async wake(agentName, agent, state, configEnv) {
     if (!agent.kb) {
       this.#log(`Agent ${agentName}: no "kb" specified, skipping.`);
       return;
@@ -111,11 +131,13 @@ export class AgentRunner {
       "Observe and act.",
     ];
 
+    const env = this.#buildSpawnEnv(configEnv);
+
     try {
       const { pid, stdoutFd, stderrFd } = this.#spawn.spawn(
         claude,
         spawnArgs,
-        undefined,
+        env,
         kbPath,
       );
       this.#activeChildren.add(pid);
