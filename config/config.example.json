@@ -7,11 +7,13 @@
         "name": "supabase",
         "type": "oneshot",
         "up": "make supabase-up",
-        "down": "make supabase-down"
+        "down": "make supabase-down",
+        "optional": true
       },
       {
         "name": "tei",
-        "command": "text-embeddings-router --model-id BAAI/bge-small-en-v1.5 --port 8090 --json-output --auto-truncate --max-concurrent-requests 32 --tokenization-workers 4"
+        "command": "text-embeddings-router --model-id BAAI/bge-small-en-v1.5 --port 8090 --json-output --auto-truncate --max-concurrent-requests 32 --tokenization-workers 4",
+        "optional": true
       },
       {
         "name": "trace",

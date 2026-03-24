@@ -175,6 +175,96 @@ describe("ServiceManager", () => {
       const errorLogs = logCalls.filter((l) => l.level === "error");
       assert.ok(errorLogs.some((l) => l.msg === "Add failed"));
     });
+
+    test("skips optional oneshot service on failure", async () => {
+      const config = {
+        ...mockConfig,
+        init: {
+          ...mockConfig.init,
+          services: [
+            {
+              name: "optional-setup",
+              type: "oneshot",
+              up: "false",
+              optional: true,
+            },
+            { name: "trace", command: "npm run service:trace" },
+          ],
+        },
+      };
+      const deps = {
+        ...mockDeps,
+        execSync: (cmd) => {
+          if (cmd === "false") throw new Error("Command failed");
+        },
+      };
+      const manager = new ServiceManager(config, mockLogger, deps);
+      await manager.start();
+
+      const skipLogs = logCalls.filter(
+        (l) => l.name === "optional-setup" && l.msg.includes("Optional"),
+      );
+      assert.strictEqual(skipLogs.length, 1);
+
+      const traceLogs = logCalls.filter(
+        (l) => l.name === "trace" && l.msg === "Service started",
+      );
+      assert.strictEqual(traceLogs.length, 1);
+    });
+
+    test("throws for required oneshot service on failure", async () => {
+      const config = {
+        ...mockConfig,
+        init: {
+          ...mockConfig.init,
+          services: [
+            { name: "required-setup", type: "oneshot", up: "false" },
+          ],
+        },
+      };
+      const deps = {
+        ...mockDeps,
+        execSync: () => {
+          throw new Error("Command failed");
+        },
+      };
+      const manager = new ServiceManager(config, mockLogger, deps);
+      await assert.rejects(() => manager.start(), /Command failed/);
+    });
+
+    test("skips optional longrun service when add fails", async () => {
+      const config = {
+        ...mockConfig,
+        init: {
+          ...mockConfig.init,
+          services: [
+            { name: "optional-svc", command: "npm run svc", optional: true },
+            { name: "trace", command: "npm run service:trace" },
+          ],
+        },
+      };
+      const deps = {
+        ...mockDeps,
+        sendCommand: async (socket, cmd) => {
+          if (cmd.command === "add" && cmd.name === "optional-svc") {
+            return { ok: false, error: "binary not found" };
+          }
+          return { ok: true };
+        },
+      };
+      const manager = new ServiceManager(config, mockLogger, deps);
+      await manager.start();
+
+      const skipLogs = logCalls.filter(
+        (l) => l.name === "optional-svc" && l.msg.includes("Optional"),
+      );
+      assert.strictEqual(skipLogs.length, 1);
+
+      const traceLogs = logCalls.filter(
+        (l) => l.name === "trace" && l.msg === "Service started",
+      );
+      assert.strictEqual(traceLogs.length, 1);
+    });
   });
 
   describe("stop", () => {

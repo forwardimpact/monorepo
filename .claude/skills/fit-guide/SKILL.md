@@ -323,31 +323,22 @@ back.
 
 ```sh
 npm install             # Install all workspace dependencies
-make codegen            # Generate types from proto/ (required before services)
-make env-setup          # Reset .env from examples, generate secrets
-make data-init          # Create data directories
-```
-
-Then populate `data/knowledge/` with HTML content. The synthetic data generator
-produces rich example content:
-
-```sh
-npx fit-universe --universe=examples/universe.dsl --cached   # or --generate
-cp examples/organizational/*.html data/knowledge/
-```
-
-Then process and start:
-
-```sh
-make process-fast       # Process agents, resources, tools, graphs (no vectors)
-make rc-start           # Start services (TEI/Supabase must be removed from
-                        # config/config.json if not installed)
+make quickstart         # Bootstrap: env, generate, data, codegen, process
+make rc-start           # Start services (supabase/tei auto-skipped if not installed)
 make cli-chat           # Verify end-to-end
 ```
 
-**Note:** `config/config.json` may include `supabase` (oneshot) and `tei`
-services. Remove these entries if Supabase CLI or TEI binary are not installed,
-otherwise `fit-rc start` will fail.
+`make quickstart` chains: `env-setup` → `generate-cached` → `data-init` →
+`codegen` → `process-fast`. It generates synthetic organizational content from
+the prose cache, copies it to `data/knowledge/`, and processes all resources.
+
+For individual steps or custom generation:
+
+```sh
+make generate-full      # Generate with LLM prose (requires LLM_TOKEN)
+make data-init          # Create data dirs, copy examples/organizational/ → data/knowledge/
+make process            # Full processing including vectors (requires TEI)
+```
 
 ### Reset Everything
 

@@ -372,24 +372,59 @@ Format: `type(scope): subject`
 
 ## Common Tasks
 
+### Bootstrap (First Run)
+
+```sh
+npm install                   # Install all workspace dependencies
+make quickstart               # Full bootstrap: env, generate, data, codegen, process
+make rc-start                 # Start services (supabase/tei skipped if not installed)
+```
+
+### Generation
+
+```sh
+make generate                 # Structural only (no LLM)
+make generate-cached          # With cached prose (no LLM)
+make generate-full            # With LLM prose (requires LLM_TOKEN)
+```
+
+### Development
+
 ```sh
 npm run dev                   # Development server
+npx fit-pathway dev           # Pathway dev server
+npx fit-pathway build --url=X # Static site + install bundle
+npx fit-basecamp --init ~/Dir # Initialize knowledge base
+npx fit-basecamp --daemon     # Run scheduler
+```
+
+### Processing & Services
+
+```sh
+make process                  # Process all resources (agents, tools, vectors, graphs)
+make process-fast             # Process without vectors (no TEI required)
+make rc-start                 # Start all services
+make rc-stop                  # Stop all services
+make rc-status                # Service health check
+```
+
+### Quality
+
+```sh
 npm run check                 # Format, lint, test, SHACL
 npm run check:fix             # Auto-fix format and lint
 npm run test                  # Unit tests
 npm run test:e2e              # Playwright E2E tests
 npx fit-map validate          # Validate data files
-npx fit-pathway dev           # Pathway dev server
-npx fit-pathway build --url=X # Static site + install bundle
-npx fit-basecamp --init ~/Dir # Initialize knowledge base
-npx fit-basecamp --daemon     # Run scheduler
-npx fit-universe              # Generate synthetic data (structural only)
-npx fit-universe --generate   # Generate with LLM prose
-make rc-start                 # Start all services
-make rc-status                # Service health check
-make process                  # Process all resources (agents, tools, vectors, graphs)
+```
+
+### Infrastructure
+
+```sh
 make codegen                  # Generate types, services, clients from proto/
 make env-setup                # Initialize environment from examples
+make data-init                # Create data dirs, copy example data to data/knowledge/
+make config-reset             # Reset config files from examples
 ```
 
 See each product's skill file for full CLI reference.

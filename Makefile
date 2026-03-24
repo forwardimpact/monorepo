@@ -35,10 +35,18 @@ help:
 	@echo "  STORAGE=local     	Storage backend: local (default), minio, or supabase"
 	@echo "  AUTH=none         	Auth backend: none (default), gotrue, or supabase"
 	@echo ""
+	@echo "Quick Start:"
+	@echo "  quickstart        	Bootstrap from scratch (env, generate, data, codegen, process)"
+	@echo ""
 	@echo "Data Management:"
 	@echo "  data-init         	Initialize data directories"
 	@echo "  data-clean        	Remove generated data"
 	@echo "  data-reset        	Clean, init, and regenerate code"
+	@echo ""
+	@echo "Generation:"
+	@echo "  generate          	Generate synthetic data (structural only)"
+	@echo "  generate-cached   	Generate synthetic data with cached prose"
+	@echo "  generate-full     	Generate synthetic data with LLM prose"
 	@echo ""
 	@echo "Code Generation:"
 	@echo "  codegen           	Generate all (types, services, clients)"
@@ -150,15 +158,22 @@ help:
 	@echo "  check-fix         	Run all checks with auto-fix"
 
 # ====================
+# Quick Start
+# ====================
+
+.PHONY: quickstart
+quickstart: env-setup generate-cached data-init codegen process-fast  ## Bootstrap from scratch (env, generate, data, codegen, process)
+
+# ====================
 # Data Management
 # ====================
 
 .PHONY: data-init
 data-init:  ## Initialize data directories
 	@mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/knowledge data/logs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
-	@if [ -d examples/knowledge ] && [ -z "$$(ls -A data/knowledge 2>/dev/null)" ]; then \
-		cp -r examples/knowledge/* data/knowledge/ 2>/dev/null || true; \
-		echo "Copied example knowledge data to data/knowledge/"; \
+	@if [ -d examples/organizational ] && [ -z "$$(ls -A data/knowledge 2>/dev/null)" ]; then \
+		cp -r examples/organizational/* data/knowledge/ 2>/dev/null || true; \
+		echo "Copied example organizational data to data/knowledge/"; \
 	fi
 
 .PHONY: data-clean
@@ -167,6 +182,22 @@ data-clean:  ## Remove generated data
 
 .PHONY: data-reset
 data-reset: data-clean data-init codegen  ## Clean, init, and regenerate code
+
+# ====================
+# Generation
+# ====================
+
+.PHONY: generate
+generate:  ## Generate synthetic data (structural only)
+	@$(ENVLOAD) npx fit-universe
+
+.PHONY: generate-cached
+generate-cached:  ## Generate synthetic data with cached prose
+	@$(ENVLOAD) npx fit-universe --cached
+
+.PHONY: generate-full
+generate-full:  ## Generate synthetic data with LLM prose
+	@$(ENVLOAD) npx fit-universe --generate
 
 # ====================
 # Code Generation

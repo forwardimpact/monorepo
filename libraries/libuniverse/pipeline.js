@@ -201,7 +201,12 @@ export class Pipeline {
       const datasets = new Map();
       for (const ds of ast.datasets) {
         const tool = this.toolFactory(ds.tool, { logger: log });
-        await tool.checkAvailability();
+        try {
+          await tool.checkAvailability();
+        } catch (err) {
+          log.info("pipeline", `Skipping dataset '${ds.id}': ${ds.tool} not available (${err.message})`);
+          continue;
+        }
         const results = await tool.generate({
           ...ds.config,
           seed: ast.seed,
@@ -216,10 +221,8 @@ export class Pipeline {
       for (const out of ast.outputs) {
         const dataset = datasets.get(out.dataset);
         if (!dataset) {
-          throw new Error(
-            `Unknown dataset '${out.dataset}' in output block. ` +
-              `Available: ${[...datasets.keys()].join(", ")}`,
-          );
+          log.info("pipeline", `Skipping output '${out.dataset}': dataset not generated`);
+          continue;
         }
         const rendered = await renderDataset(dataset, out.format, out.config);
         for (const [path, content] of rendered) {

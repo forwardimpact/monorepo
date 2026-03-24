@@ -25,6 +25,7 @@ const SVSCAN_BIN =
  * @property {string} [command] - Command to run for longrun services
  * @property {string} [up] - Command to run on start for oneshot services
  * @property {string} [down] - Command to run on stop for oneshot services
+ * @property {boolean} [optional] - When true, skip with warning on failure
  */
 
 /**
@@ -246,7 +247,17 @@ export class ServiceManager {
 
     for (const svc of services) {
       if (svc.type === "oneshot") {
-        if (svc.up) await this.runOneshot(svc.name, svc.up, "up");
+        if (svc.up) {
+          try {
+            await this.runOneshot(svc.name, svc.up, "up");
+          } catch (err) {
+            if (svc.optional) {
+              this.#logger.info(svc.name, "Optional service skipped (not available)");
+              continue;
+            }
+            throw err;
+          }
+        }
       } else {
         this.#logger.debug(svc.name, "Starting service");
         const response = await this.#sendCommand(paths.socketPath, {
@@ -259,6 +270,8 @@ export class ServiceManager {
           this.#logger.info(svc.name, "Service started");
         } else if (response.error?.includes("already exists")) {
           this.#logger.info(svc.name, "Service started");
+        } else if (svc.optional) {
+          this.#logger.info(svc.name, "Optional service skipped", { error: response.error });
         } else {
           this.#logger.error(svc.name, "Add failed", { error: response.error });
         }

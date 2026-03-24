@@ -130,20 +130,21 @@ completes. Subsequent runs with `--cached` will reuse all generated content.
 
 ## Dataset Blocks
 
-The universe DSL may include `dataset` and `output` blocks that require external
-tools (Synthea, SDV, Faker). If these tools are not installed, the pipeline will
-fail **after** rendering but **before** writing files to disk.
+The universe DSL may include `dataset` and `output` blocks that use external
+tools (Synthea, SDV, Faker). Unavailable tools are automatically skipped with an
+info log — the pipeline continues and writes all other generated files normally.
 
-**Workaround:** Create a copy of the DSL without `dataset`/`output` blocks:
+Tool availability:
 
-```sh
-sed '/^  dataset /,/^  }/d; /^  output /d' examples/universe.dsl > /tmp/universe-nodatasets.dsl
-npx fit-universe --universe=/tmp/universe-nodatasets.dsl --cached
-```
+| Tool    | Requirement         | Always available? |
+| ------- | ------------------- | ----------------- |
+| Faker   | Built-in (pure JS)  | Yes               |
+| Synthea | Java + JAR file     | No                |
+| SDV     | Python + sdv module | No                |
 
-**Note:** The `--only` flag only gates which render types execute (html,
-pathway, raw, markdown). It does **not** skip dataset generation — datasets
-always run when present in the DSL.
+**Note:** The `--only` flag gates which render types execute (html, pathway,
+raw, markdown). It does **not** affect dataset generation — datasets run when
+present in the DSL but skip gracefully if the tool is unavailable.
 
 ---
 
@@ -163,13 +164,20 @@ available in the standard environment (see CLAUDE.md).
 
 ## Feeding Generated Content to Guide
 
-After generation, copy HTML files to the Guide knowledge pipeline:
+After generation, bootstrap the full Guide pipeline:
 
 ```sh
-cp examples/organizational/*.html data/knowledge/
-make process-resources    # Create resource documents
-make process-graphs       # Build RDF graph index
-make process-vectors      # Build vector index (requires TEI)
+make quickstart       # Generates, copies to data/knowledge/, processes all resources
+make rc-start         # Start services
+```
+
+Or run individual steps:
+
+```sh
+make data-init              # Copies examples/organizational/ → data/knowledge/
+make process-resources      # Create resource index from knowledge files
+make process-graphs         # Build RDF graph from resources
+make process-vectors        # Generate vector embeddings (requires TEI)
 ```
 
 ## Verification
