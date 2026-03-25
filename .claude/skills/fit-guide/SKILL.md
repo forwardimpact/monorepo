@@ -51,8 +51,8 @@ make cli-chat ARGS="--help"      # Pass arguments via ARGS
 echo "Tell me about X" | make cli-chat   # Piped single prompt
 ```
 
-**Always use `make cli-chat`** — it loads the required environment automatically.
-Running `npx fit-guide` directly requires env to be loaded first
+**Always use `make cli-chat`** — it loads the required environment
+automatically. Running `npx fit-guide` directly requires env to be loaded first
 (`. scripts/env.sh && npx fit-guide`).
 
 The CLI connects to the Agent gRPC service, maintains conversation context
