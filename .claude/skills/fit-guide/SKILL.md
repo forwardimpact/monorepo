@@ -46,12 +46,14 @@ against skill markers.
 ### Conversational Agent
 
 ```sh
-npx fit-guide                    # Interactive REPL — multi-turn conversations
-echo "Tell me about X" | npx fit-guide   # Piped single prompt
-printf "Q1\nQ2\n" | npx fit-guide        # Piped multi-prompt
-make cli-chat                    # Same as npx fit-guide (via Makefile)
+make cli-chat                    # Interactive REPL — multi-turn conversations
 make cli-chat ARGS="--help"      # Pass arguments via ARGS
+echo "Tell me about X" | make cli-chat   # Piped single prompt
 ```
+
+**Always use `make cli-chat`** — it loads the required environment automatically.
+Running `npx fit-guide` directly requires env to be loaded first
+(`. scripts/env.sh && npx fit-guide`).
 
 The CLI connects to the Agent gRPC service, maintains conversation context
 across turns, and persists REPL state via libstorage.

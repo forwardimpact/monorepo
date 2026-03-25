@@ -26,6 +26,13 @@ The agent maintains conversation context across multiple turns.
     echo "Tell me about the company" | npx fit-guide
     printf "What is microservices?\\nWhat are the benefits?\\n" | npx fit-guide`;
 
+if (!process.env.SERVICE_SECRET) {
+  console.error(
+    "Error: environment not loaded. Run via 'make cli-chat' or load env first:\n\n  . scripts/env.sh && npx fit-guide\n",
+  );
+  process.exit(1);
+}
+
 const config = await createServiceConfig("agent");
 const logger = createLogger("cli");
 const tracer = await createTracer("cli");

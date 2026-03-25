@@ -70,3 +70,5 @@ switch (command) {
     help();
     process.exit(1);
 }
+
+process.exit(0);

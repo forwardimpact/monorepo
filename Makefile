@@ -164,6 +164,13 @@ help:
 
 .PHONY: quickstart
 quickstart: env-setup generate-cached data-init codegen process-fast  ## Bootstrap from scratch (env, generate, data, codegen, process)
+	@echo ""
+	@echo "=== Quickstart complete ==="
+	@printf "  Knowledge files: %s\n" "$$(find data/knowledge -name '*.html' 2>/dev/null | wc -l | tr -d ' ')"
+	@printf "  Resources:       %s\n" "$$(find data/resources -type f 2>/dev/null | wc -l | tr -d ' ')"
+	@printf "  Graph indices:   %s\n" "$$(find data/graphs -type f 2>/dev/null | wc -l | tr -d ' ')"
+	@echo ""
+	@echo "Next: make rc-start && make cli-chat"
 
 # ====================
 # Data Management
