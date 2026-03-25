@@ -14,8 +14,8 @@ web experience and command line.
 
 - **Web application** — Interactive browser for jobs, skills, and career paths
 - **CLI tools** — Command-line access to all functionality
-- **Agent teams** — Generate VS Code Custom Agent teams (`.agent.md`) and skills
-  (`SKILL.md`)
+- **Agent teams** — Generate Claude Code agent teams (`.claude/agents/`) and
+  skills (`.claude/skills/`)
 - **Interview prep** — Build interview question sets by role
 - **Static site** — Export everything as a static site
 
@@ -30,7 +30,7 @@ npx fit-pathway skill --list
 npx fit-pathway job software_engineering senior --track=platform
 
 # Generate agent teams and skills
-npx fit-pathway agent software_engineering --track=platform --output=./.github/agents
+npx fit-pathway agent software_engineering --track=platform --output=.
 ```
 
 ## CLI Commands

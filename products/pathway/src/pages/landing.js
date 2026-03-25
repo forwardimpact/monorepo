@@ -299,7 +299,7 @@ export function renderLanding() {
           p(
             {},
             "Generate coding agent team configurations from discipline × track combinations " +
-              "for GitHub Copilot custom agents.",
+              "for Claude Code agents.",
           ),
           div(
             { className: "page-actions", style: "justify-content: center" },

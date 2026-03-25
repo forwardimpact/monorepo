@@ -2,16 +2,17 @@
  * Agent Generation Model
  *
  * Pure functions for generating AI coding agent configurations
- * from Engineering Pathway data. Outputs follow GitHub Copilot specifications:
- * - Agent Profiles (.agent.md files)
- * - Agent Skills (SKILL.md files)
+ * from Engineering Pathway data. Outputs follow the Claude Code agent
+ * specification:
+ * - Agent Profiles (.md files in .claude/agents/)
+ * - Agent Skills (SKILL.md files in .claude/skills/)
  *
  * Agent profiles are derived using the SAME modifier logic as human job profiles.
  * Emphasized behaviours and skills (those with positive modifiers) drive agent
  * identity, creating distinct profiles for each discipline × track combination.
  *
  * Stage-based agents (plan, code, review) use lifecycle stages for tool sets,
- * handoffs, and constraints. See concept/lifecycle.md for details.
+ * stage transitions, and constraints. See concept/lifecycle.md for details.
  *
  * NOTE: This module uses prepareAgentProfile() from profile.js for unified
  * skill/behaviour derivation. The deriveAgentSkills() and deriveAgentBehaviours()
@@ -342,12 +343,17 @@ function estimateBodyDataLength(bodyData) {
 }
 
 /**
- * Validate agent profile against spec constraints
+ * Validate agent profile against Claude Code spec constraints
  * @param {Object} profile - Generated profile
  * @returns {Array<string>} Array of error messages (empty if valid)
  */
 export function validateAgentProfile(profile) {
   const errors = [];
+
+  // Required: name
+  if (!profile.frontmatter.name) {
+    errors.push("Missing required field: name");
+  }
 
   // Required: description
   if (!profile.frontmatter.description) {
@@ -361,15 +367,26 @@ export function validateAgentProfile(profile) {
     }
   }
 
-  // Body length limit (30,000 chars) - estimate from bodyData fields
+  // Model field
+  if (
+    profile.frontmatter.model &&
+    !["sonnet", "opus", "haiku", "inherit"].includes(profile.frontmatter.model)
+  ) {
+    errors.push("Model must be one of: sonnet, opus, haiku, inherit");
+  }
+
+  // Skills format
+  if (
+    profile.frontmatter.skills &&
+    !Array.isArray(profile.frontmatter.skills)
+  ) {
+    errors.push("Skills must be an array");
+  }
+
+  // Body length estimate
   const bodyLength = estimateBodyDataLength(profile.bodyData);
   if (bodyLength > 30000) {
     errors.push(`Body exceeds 30,000 character limit (${bodyLength})`);
-  }
-
-  // Tools format
-  if (profile.frontmatter.tools && !Array.isArray(profile.frontmatter.tools)) {
-    errors.push("Tools must be an array");
   }
 
   return errors;
@@ -419,56 +436,35 @@ export function validateAgentSkill(skill) {
 // =============================================================================
 
 /**
- * Derive handoff buttons for a stage-based agent
- * Generates handoff button definitions from stage.handoffs with rich prompts
- * that include summary instructions and target stage entry criteria
+ * Derive stage transition data for a stage-based agent.
+ * Generates structured transition descriptions from stage.handoffs with
+ * summary instructions and target stage entry criteria. Used to render
+ * the "Stage transitions" body section in the agent profile.
  * @param {Object} params - Parameters
  * @param {Object} params.stage - Stage definition
- * @param {Object} params.discipline - Human discipline definition (for naming)
- * @param {Object} params.track - Human track definition (for naming)
  * @param {Array} params.stages - All stages (to look up target stage entry criteria)
- * @returns {Array<{label: string, agent: string, prompt: string, send: boolean}>} Handoff definitions
+ * @returns {Array<{targetStageName: string, summaryInstruction: string, entryCriteria: string[]}>} Transition definitions
  */
-export function deriveHandoffs({ stage, discipline, track, stages }) {
+export function deriveStageTransitions({ stage, stages }) {
   if (!stage.handoffs || stage.handoffs.length === 0) {
     return [];
   }
-
-  // Build base name for target agents (matches filename without .agent.md)
-  const abbrev = getDisciplineAbbreviation(discipline.id);
-  const baseName = `${abbrev}-${toKebabCase(track.id)}`;
 
   return stage.handoffs.map((handoff) => {
     // Find the target stage to get its confirmChecklist
     const targetStage = stages.find((s) => s.id === handoff.targetStage);
     const confirmChecklist = targetStage?.confirmChecklist || [];
+    const targetStageName =
+      targetStage?.name.charAt(0).toUpperCase() + targetStage?.name.slice(1) ||
+      handoff.targetStage;
 
-    // Build rich prompt - formatted for single-line display
-    const promptParts = [handoff.prompt];
-
-    // Add summary instruction
-    promptParts.push(
-      `Summarize what was completed in the ${stage.name} stage.`,
-    );
-
-    // Add confirm checklist from target stage with inline numbered list
-    if (confirmChecklist.length > 0) {
-      const formattedCriteria = confirmChecklist
-        .map((item, index) => `(${index + 1}) ${item}`)
-        .join(", ");
-      promptParts.push(
-        `Before starting, the ${targetStage.name} stage requires: ${formattedCriteria}.`,
-      );
-      promptParts.push(
-        `If critical items are missing, hand back to ${stage.name}.`,
-      );
-    }
+    // Build summary instruction
+    const summaryInstruction = `${handoff.prompt} Summarize what was completed in the ${stage.name} stage.`;
 
     return {
-      label: handoff.label,
-      agent: `${baseName}-${handoff.targetStage}`,
-      prompt: promptParts.join(" "),
-      send: true,
+      targetStageName,
+      summaryInstruction,
+      entryCriteria: confirmChecklist,
     };
   });
 }
@@ -486,7 +482,7 @@ export function deriveHandoffs({ stage, discipline, track, stages }) {
  * @param {Array} params.derivedBehaviours - Behaviours sorted by maturity
  * @param {Array} params.agentBehaviours - Agent behaviour definitions
  * @param {Array} params.skills - All skill definitions (for agent section lookup)
- * @param {Array<{id: string, name: string, description: string}>} [params.agentIndex] - List of all available agents
+ * @param {Array} params.stages - All stages (for stage transition derivation)
  * @returns {Object} Structured profile body data
  */
 function buildStageProfileBodyData({
@@ -499,7 +495,7 @@ function buildStageProfileBodyData({
   derivedBehaviours,
   agentBehaviours,
   skills,
-  agentIndex,
+  stages,
 }) {
   const name = `${humanDiscipline.specialization || humanDiscipline.name} - ${humanTrack.name}`;
   const stageName = stage.name.charAt(0).toUpperCase() + stage.name.slice(1);
@@ -543,13 +539,11 @@ function buildStageProfileBodyData({
     ...(agentTrack.constraints || []),
   ];
 
-  // Filter agent index to only include agents with same track and stage (different disciplines)
-  // Agent IDs follow pattern: {discipline-abbrev}-{track-id-kebab}-{stage-id}
-  const trackSuffix = `-${toKebabCase(humanTrack.id)}-${stage.id}`;
-  const currentAgentId = `${getDisciplineAbbreviation(humanDiscipline.id)}${trackSuffix}`;
-  const filteredAgentIndex = (agentIndex || []).filter(
-    (agent) => agent.id.endsWith(trackSuffix) && agent.id !== currentAgentId,
-  );
+  // Stage transitions for body section
+  const stageTransitions = deriveStageTransitions({ stage, stages });
+
+  // Skill dirnames for frontmatter skills: array
+  const skillDirnames = skillIndex.map((s) => s.dirname);
 
   return {
     title: `${name} - ${stageName} Agent`,
@@ -560,11 +554,11 @@ function buildStageProfileBodyData({
     identity: identity.trim(),
     priority: priority ? priority.trim() : null,
     skillIndex,
+    skillDirnames,
     roleContext,
     workingStyles,
     constraints,
-    agentIndex: filteredAgentIndex,
-    hasAgentIndex: filteredAgentIndex.length > 0,
+    stageTransitions,
   };
 }
 
@@ -581,8 +575,7 @@ function buildStageProfileBodyData({
  * @param {Array} params.agentBehaviours - Agent behaviour definitions
  * @param {Object} params.agentDiscipline - Agent discipline definition
  * @param {Object} params.agentTrack - Agent track definition
- * @param {Array} params.stages - All stages (for handoff entry criteria)
- * @returns {Object} Agent definition with skills, behaviours, tools, handoffs, constraints
+ * @returns {Object} Agent definition with skills, behaviours, constraints
  */
 export function deriveStageAgent({
   discipline,
@@ -594,7 +587,6 @@ export function deriveStageAgent({
   agentBehaviours,
   agentDiscipline,
   agentTrack,
-  stages,
 }) {
   // Derive skills and behaviours
   const allSkills = deriveAgentSkills({
@@ -614,21 +606,12 @@ export function deriveStageAgent({
     behaviours,
   });
 
-  // Derive handoffs from stage
-  const handoffs = deriveHandoffs({
-    stage,
-    discipline,
-    track,
-    stages,
-  });
-
   return {
     stage,
     discipline,
     track,
     derivedSkills: focusedSkills,
     derivedBehaviours,
-    handoffs,
     constraints: [
       ...(stage.constraints || []),
       ...(agentDiscipline.constraints || []),
@@ -641,7 +624,7 @@ export function deriveStageAgent({
 }
 
 /**
- * Generate a stage-specific agent profile (.agent.md)
+ * Generate a stage-specific agent profile (.md) for Claude Code
  * Produces the complete profile with frontmatter, bodyData, and filename
  * @param {Object} params - Parameters
  * @param {Object} params.discipline - Human discipline definition
@@ -653,8 +636,7 @@ export function deriveStageAgent({
  * @param {Array} params.agentBehaviours - Agent behaviour definitions
  * @param {Object} params.agentDiscipline - Agent discipline definition
  * @param {Object} params.agentTrack - Agent track definition
- * @param {Array} params.stages - All stages (for handoff entry criteria)
- * @param {Array<{id: string, name: string, description: string}>} [params.agentIndex] - List of all available agents
+ * @param {Array} params.stages - All stages (for stage transition derivation)
  * @returns {Object} Profile with frontmatter, bodyData, and filename
  */
 export function generateStageAgentProfile({
@@ -668,7 +650,6 @@ export function generateStageAgentProfile({
   agentDiscipline,
   agentTrack,
   stages,
-  agentIndex,
 }) {
   // Derive the complete agent
   const agent = deriveStageAgent({
@@ -681,13 +662,12 @@ export function generateStageAgentProfile({
     agentBehaviours,
     agentDiscipline,
     agentTrack,
-    stages,
   });
 
-  // Build names (abbreviated form used consistently for filename, name, and handoffs)
+  // Build names
   const abbrev = getDisciplineAbbreviation(discipline.id);
   const fullName = `${abbrev}-${toKebabCase(track.id)}-${stage.id}`;
-  const filename = `${fullName}.agent.md`;
+  const filename = `${fullName}.md`;
 
   // Build description using shared helper
   const description = buildAgentDescription(discipline, track, stage);
@@ -703,15 +683,15 @@ export function generateStageAgentProfile({
     derivedBehaviours: agent.derivedBehaviours,
     agentBehaviours,
     skills,
-    agentIndex,
+    stages,
   });
 
-  // Build frontmatter
+  // Build frontmatter (Claude Code agent spec)
   const frontmatter = {
     name: fullName,
     description,
-    infer: true,
-    ...(agent.handoffs.length > 0 && { handoffs: agent.handoffs }),
+    model: "sonnet",
+    skills: bodyData.skillDirnames,
   };
 
   return {

@@ -3,22 +3,13 @@
 name: {{name}}
 {{/name}}
 description: {{{description}}}
-{{#infer}}
-infer: {{infer}}
-{{/infer}}
-{{#handoffs.length}}
-handoffs:
-{{#handoffs}}
-  - label: {{label}}
-{{#agent}}
-    agent: {{agent}}
-{{/agent}}
-    prompt: "{{{prompt}}}"
-{{#send}}
-    send: {{send}}
-{{/send}}
-{{/handoffs}}
-{{/handoffs.length}}
+model: sonnet
+{{#skills.length}}
+skills:
+{{#skills}}
+  - {{.}}
+{{/skills}}
+{{/skills.length}}
 ---
 
 # {{title}}
@@ -52,19 +43,8 @@ handoffs:
 
 ## Required skills
 
-**MANDATORY:** Before starting work, you MUST read ALL listed skill files below,
-not just the most relevant one. Every skill contributes project-specific
-guidance, required tools, and technology standards. Pre-training knowledge alone
-is insufficient—skills contain organizational standards that override general
-knowledge.
-
-**FIRST ACTION:** Read every skill file listed below. For each skill, note
-its `<read_then_do_{{stageId}}>` and `<do_then_confirm_{{stageId}}>` checklist
-items. List all checklist items from all skills before beginning any work. Do
-not start implementation until every skill has been read and its checklists
-acknowledged.
-
-Each skill contains marked-up sections and references for precise navigation:
+Skills listed in the `skills:` frontmatter are automatically loaded into your
+context. Each skill contains stage-specific checklists:
 
 - `<read_then_do_{{stageId}}>` — Read-Then-Do checklist for the
   {{stageName}} stage. Read and understand these items BEFORE starting work.
@@ -86,35 +66,35 @@ Each skill contains marked-up sections and references for precise navigation:
   steps.
 {{/isOnboard}}
 
-| Skill | Location | Use when |
-| ----- | -------- | -------- |
+| Skill | Use when |
+| ----- | -------- |
 {{#skillIndex}}
-| {{{name}}} | `.claude/skills/{{dirname}}/SKILL.md` | {{{useWhen}}} |
+| {{{name}}} | {{{useWhen}}} |
 {{/skillIndex}}
 {{/hasSkills}}
-{{#hasAgentIndex}}
+{{#hasStageTransitions}}
 
-## Required subagent delegations
+## Stage transitions
+{{#stageTransitions}}
 
-**MANDATORY:** You MUST delegate work outside your speciality using the
-`runSubagent` tool. Do not attempt work that another agent is better suited for.
+When your work is complete, the next stage is **{{targetStageName}}**.
 
-You are part of an agentic team with specialized roles. Attempting work outside
-your speciality produces inferior results and violates team structure. If you
-cannot delegate due to a blocking constraint, document in your output: (1) the
-specialized work required, (2) the specific constraint preventing delegation,
-and (3) the compromised approach with acknowledged limitations.
+{{{summaryInstruction}}}
+{{#hasEntryCriteria}}
 
-| Agent name | Speciality | Description |
-| ---------- | ---------- | ----------- |
-{{#agentIndex}}
-| `{{id}}` | {{{name}}} | {{{description}}} |
-{{/agentIndex}}
-{{/hasAgentIndex}}
+The {{targetStageName}} stage requires the following entry criteria:
+{{#entryCriteria}}
+- [ ] {{{.}}}
+{{/entryCriteria}}
+
+If critical items are missing, continue working in the current stage.
+{{/hasEntryCriteria}}
+{{/stageTransitions}}
+{{/hasStageTransitions}}
 
 ## Return format
 
-When completing work (for handoff or as a subagent), provide:
+When completing work, provide:
 
 1. **Work completed**: What was accomplished
 2. **Checklist status**: Items verified from skill Do-Then-Confirm checklists

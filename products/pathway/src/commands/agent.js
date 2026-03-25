@@ -2,7 +2,8 @@
  * Agent Command
  *
  * CLI command for generating AI coding agent configurations
- * from Engineering Pathway data.
+ * from Engineering Pathway data. Outputs follow the Claude Code
+ * agent specification.
  *
  * All agents are stage-specific. Use --stage for a single stage
  * or --all-stages (default) for all stages.
@@ -26,7 +27,6 @@
 import { writeFile, mkdir, readFile } from "fs/promises";
 import { join, dirname } from "path";
 import { existsSync } from "fs";
-import { stringify as stringifyYaml } from "yaml";
 import { createDataLoader } from "@forwardimpact/map/loader";
 import {
   generateStageAgentProfile,
@@ -36,7 +36,6 @@ import {
   deriveAgentSkills,
   generateSkillMarkdown,
   deriveToolkit,
-  buildAgentIndex,
   getDisciplineAbbreviation,
   toKebabCase,
 } from "@forwardimpact/libskill";
@@ -58,13 +57,13 @@ async function ensureDir(filePath) {
 }
 
 /**
- * Generate VS Code settings file with required settings
+ * Generate Claude Code settings file
  * Merges with existing settings if file exists
  * @param {string} baseDir - Base output directory
- * @param {Object} vscodeSettings - Settings loaded from data
+ * @param {Object} claudeCodeSettings - Settings loaded from data
  */
-async function generateVSCodeSettings(baseDir, vscodeSettings) {
-  const settingsPath = join(baseDir, ".vscode", "settings.json");
+async function generateClaudeCodeSettings(baseDir, claudeCodeSettings) {
+  const settingsPath = join(baseDir, ".claude", "settings.json");
 
   let settings = {};
   if (existsSync(settingsPath)) {
@@ -72,7 +71,7 @@ async function generateVSCodeSettings(baseDir, vscodeSettings) {
     settings = JSON.parse(content);
   }
 
-  const merged = { ...settings, ...vscodeSettings };
+  const merged = { ...settings, ...claudeCodeSettings };
 
   await ensureDir(settingsPath);
   await writeFile(
@@ -81,64 +80,6 @@ async function generateVSCodeSettings(baseDir, vscodeSettings) {
     "utf-8",
   );
   console.log(formatSuccess(`Updated: ${settingsPath}`));
-}
-
-/**
- * Generate devcontainer.json from template with VS Code settings embedded
- * @param {string} baseDir - Base output directory
- * @param {Object} devcontainerConfig - Devcontainer config loaded from data
- * @param {Object} vscodeSettings - VS Code settings to embed in customizations
- */
-async function generateDevcontainer(
-  baseDir,
-  devcontainerConfig,
-  vscodeSettings,
-) {
-  if (!devcontainerConfig || Object.keys(devcontainerConfig).length === 0) {
-    return;
-  }
-
-  const devcontainerPath = join(baseDir, ".devcontainer", "devcontainer.json");
-
-  // Build devcontainer.json with VS Code settings embedded
-  const devcontainer = {
-    ...devcontainerConfig,
-    customizations: {
-      vscode: {
-        settings: vscodeSettings,
-      },
-    },
-  };
-
-  await ensureDir(devcontainerPath);
-  await writeFile(
-    devcontainerPath,
-    JSON.stringify(devcontainer, null, 2) + "\n",
-    "utf-8",
-  );
-  console.log(formatSuccess(`Created: ${devcontainerPath}`));
-}
-
-/**
- * Generate GitHub Actions workflow for Copilot Coding Agent setup steps
- * @param {string} baseDir - Base output directory
- * @param {Object|null} copilotSetupSteps - Workflow config loaded from data
- */
-async function generateCopilotSetupSteps(baseDir, copilotSetupSteps) {
-  if (!copilotSetupSteps) {
-    return;
-  }
-
-  const workflowPath = join(
-    baseDir,
-    ".github",
-    "workflows",
-    "copilot-setup-steps.yml",
-  );
-
-  await ensureDir(workflowPath);
-  await writeFile(workflowPath, stringifyYaml(copilotSetupSteps), "utf-8");
-  console.log(formatSuccess(`Created: ${workflowPath}`));
 }
 
 /**
@@ -258,7 +199,7 @@ function listAgentCombinations(data, agentData, verbose = false) {
  * @param {string} template - Mustache template for agent profile
  */
 async function writeProfile(profile, baseDir, template) {
-  const profilePath = join(baseDir, ".github", "agents", profile.filename);
+  const profilePath = join(baseDir, ".claude", "agents", profile.filename);
   const profileContent = formatAgentProfile(profile, template);
   await ensureDir(profilePath);
   await writeFile(profilePath, profileContent, "utf-8");
@@ -451,15 +392,6 @@ export async function runAgentCommand({
 
   const baseDir = options.output || ".";
 
-  // Build agent index for all valid combinations
-  const agentIndex = buildAgentIndex({
-    disciplines: data.disciplines,
-    tracks: data.tracks,
-    stages: data.stages,
-    agentDisciplines: agentData.disciplines,
-    agentTracks: agentData.tracks,
-  });
-
   // Common params for stage-based generation
   const stageParams = {
     discipline: humanDiscipline,
@@ -471,7 +403,6 @@ export async function runAgentCommand({
     agentDiscipline,
     agentTrack,
     stages: data.stages,
-    agentIndex,
   };
 
   // Handle --stage flag for single stage agent
@@ -508,13 +439,7 @@ export async function runAgentCommand({
     }
 
     await writeProfile(profile, baseDir, agentTemplate);
-    await generateVSCodeSettings(baseDir, agentData.vscodeSettings);
-    await generateDevcontainer(
-      baseDir,
-      agentData.devcontainer,
-      agentData.vscodeSettings,
-    );
-    await generateCopilotSetupSteps(baseDir, agentData.copilotSetupSteps);
+    await generateClaudeCodeSettings(baseDir, agentData.claudeCodeSettings);
     console.log("");
     console.log(
       formatSuccess(`Generated stage agent: ${profile.frontmatter.name}`),
@@ -522,8 +447,7 @@ export async function runAgentCommand({
     return;
   }
 
-  // Default behavior: generate all stage agents (or single stage if --stage specified)
-  // No generic agents - all agents are stage-specific
+  // Default behavior: generate all stage agents
   const profiles = [];
 
   // Generate all stage agents
@@ -603,13 +527,7 @@ export async function runAgentCommand({
     await writeProfile(profile, baseDir, agentTemplate);
   }
   const fileCount = await writeSkills(skillFiles, baseDir, skillTemplates);
-  await generateVSCodeSettings(baseDir, agentData.vscodeSettings);
-  await generateDevcontainer(
-    baseDir,
-    agentData.devcontainer,
-    agentData.vscodeSettings,
-  );
-  await generateCopilotSetupSteps(baseDir, agentData.copilotSetupSteps);
+  await generateClaudeCodeSettings(baseDir, agentData.claudeCodeSettings);
 
   console.log("");
   console.log(formatSuccess(`Generated ${profiles.length} agents:`));

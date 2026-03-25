@@ -28,7 +28,6 @@ import {
   deriveAgentSkills,
   deriveReferenceLevel,
   deriveToolkit,
-  buildAgentIndex,
 } from "@forwardimpact/libskill";
 import {
   createSelectWithValue,
@@ -259,15 +258,6 @@ export async function renderAgentBuilder() {
     // Get reference level for derivation
     const level = deriveReferenceLevel(data.levels);
 
-    // Build agent index for all valid combinations
-    const agentIndex = buildAgentIndex({
-      disciplines: data.disciplines,
-      tracks: data.tracks,
-      stages,
-      agentDisciplines: agentData.disciplines,
-      agentTracks: agentData.tracks,
-    });
-
     // Build context for generation
     const context = {
       humanDiscipline,
@@ -279,10 +269,8 @@ export async function renderAgentBuilder() {
       skills: data.skills,
       behaviours: data.behaviours,
       agentBehaviours: agentData.behaviours,
-      vscodeSettings: agentData.vscodeSettings,
-      devcontainer: agentData.devcontainer,
+      claudeCodeSettings: agentData.claudeCodeSettings,
       templates,
-      agentIndex,
     };
 
     // Generate preview based on stage selection
@@ -316,7 +304,7 @@ export async function renderAgentBuilder() {
       p(
         { className: "page-description" },
         "Generate coding agent teams from discipline × track × stage combinations. " +
-          "Export complete agent profiles and skill files for GitHub Copilot.",
+          "Export complete agent profiles and skill files for Claude Code.",
       ),
     ),
 
@@ -456,10 +444,8 @@ function createAllStagesPreview(context) {
     skills,
     behaviours,
     agentBehaviours,
-    vscodeSettings,
-    devcontainer,
+    claudeCodeSettings,
     templates,
-    agentIndex,
   } = context;
 
   // Generate all stage agents
@@ -474,7 +460,6 @@ function createAllStagesPreview(context) {
       agentBehaviours,
       agentDiscipline,
       agentTrack,
-      stages,
     });
 
     const profile = generateStageAgentProfile({
@@ -488,7 +473,6 @@ function createAllStagesPreview(context) {
       agentDiscipline,
       agentTrack,
       stages,
-      agentIndex,
     });
 
     return { stage, derived, profile };
@@ -521,8 +505,7 @@ function createAllStagesPreview(context) {
     createDownloadAllButton(
       stageAgents,
       skillFiles,
-      vscodeSettings,
-      devcontainer,
+      claudeCodeSettings,
       context,
     ),
 
@@ -532,7 +515,7 @@ function createAllStagesPreview(context) {
       h2({}, `Agents (${stageAgents.length})`),
       p(
         { className: "text-muted" },
-        "Stage-specific agents with appropriate tools, constraints, and handoffs.",
+        "Stage-specific agents with skills, constraints, and stage transitions.",
       ),
       div(
         { className: "agent-cards-grid" },
@@ -598,11 +581,9 @@ function createSingleStagePreview(context, stage) {
     skills,
     behaviours,
     agentBehaviours,
-    vscodeSettings,
-    devcontainer,
+    claudeCodeSettings,
     stages,
     templates,
-    agentIndex,
   } = context;
 
   const profile = generateStageAgentProfile({
@@ -616,7 +597,6 @@ function createSingleStagePreview(context, stage) {
     agentDiscipline,
     agentTrack,
     stages,
-    agentIndex,
   });
 
   // Get skills for this stage (using full derived skills)
@@ -645,8 +625,7 @@ function createSingleStagePreview(context, stage) {
     createDownloadSingleButton(
       profile,
       skillFiles,
-      vscodeSettings,
-      devcontainer,
+      claudeCodeSettings,
       templates,
     ),
 
@@ -756,16 +735,14 @@ function buildSkillFileCard(skill, templates) {
  * Create download all button for all stages
  * @param {Array} stageAgents - Array of {stage, derived, profile}
  * @param {Array} skillFiles - Array of skill file objects
- * @param {Object} vscodeSettings - VS Code settings
- * @param {Object} devcontainer - Devcontainer config
+ * @param {Object} claudeCodeSettings - Claude Code settings
  * @param {Object} context - Context with discipline/track info and templates
  * @returns {HTMLElement}
  */
 function createDownloadAllButton(
   stageAgents,
   skillFiles,
-  vscodeSettings,
-  devcontainer,
+  claudeCodeSettings,
   context,
 ) {
   const { humanDiscipline, humanTrack, templates } = context;
@@ -783,10 +760,10 @@ function createDownloadAllButton(
       const JSZip = await importJSZip();
       const zip = new JSZip();
 
-      // Add all stage agent profiles
+      // Add all stage agent profiles to .claude/agents/
       for (const { profile } of stageAgents) {
         const content = formatAgentProfile(profile, templates.agent);
-        zip.file(`.github/agents/${profile.filename}`, content);
+        zip.file(`.claude/agents/${profile.filename}`, content);
       }
 
       // Add skills (SKILL.md + optional install script + optional reference)
@@ -812,27 +789,11 @@ function createDownloadAllButton(
         }
       }
 
-      // Add VS Code settings
-      if (Object.keys(vscodeSettings).length > 0) {
+      // Add Claude Code settings
+      if (Object.keys(claudeCodeSettings).length > 0) {
         zip.file(
-          ".vscode/settings.json",
-          JSON.stringify(vscodeSettings, null, 2) + "\n",
-        );
-      }
-
-      // Add devcontainer.json with VS Code settings embedded
-      if (devcontainer && Object.keys(devcontainer).length > 0) {
-        const devcontainerJson = {
-          ...devcontainer,
-          customizations: {
-            vscode: {
-              settings: vscodeSettings,
-            },
-          },
-        };
-        zip.file(
-          ".devcontainer/devcontainer.json",
-          JSON.stringify(devcontainerJson, null, 2) + "\n",
+          ".claude/settings.json",
+          JSON.stringify(claudeCodeSettings, null, 2) + "\n",
         );
       }
 
@@ -861,16 +822,14 @@ function createDownloadAllButton(
  * Create download button for single stage
  * @param {Object} profile - Agent profile
  * @param {Array} skillFiles - Skill files
- * @param {Object} vscodeSettings - VS Code settings
- * @param {Object} devcontainer - Devcontainer config
+ * @param {Object} claudeCodeSettings - Claude Code settings
  * @param {{agent: string, skill: string}} templates - Mustache templates
  * @returns {HTMLElement}
  */
 function createDownloadSingleButton(
   profile,
   skillFiles,
-  vscodeSettings,
-  devcontainer,
+  claudeCodeSettings,
   templates,
 ) {
   const btn = document.createElement("button");
@@ -885,9 +844,9 @@ function createDownloadSingleButton(
       const JSZip = await importJSZip();
       const zip = new JSZip();
 
-      // Add profile
+      // Add profile to .claude/agents/
       const content = formatAgentProfile(profile, templates.agent);
-      zip.file(`.github/agents/${profile.filename}`, content);
+      zip.file(`.claude/agents/${profile.filename}`, content);
 
       // Add skills (SKILL.md + optional install script + optional reference)
       for (const skill of skillFiles) {
@@ -912,27 +871,11 @@ function createDownloadSingleButton(
         }
       }
 
-      // Add VS Code settings
-      if (Object.keys(vscodeSettings).length > 0) {
+      // Add Claude Code settings
+      if (Object.keys(claudeCodeSettings).length > 0) {
         zip.file(
-          ".vscode/settings.json",
-          JSON.stringify(vscodeSettings, null, 2) + "\n",
-        );
-      }
-
-      // Add devcontainer.json with VS Code settings embedded
-      if (devcontainer && Object.keys(devcontainer).length > 0) {
-        const devcontainerJson = {
-          ...devcontainer,
-          customizations: {
-            vscode: {
-              settings: vscodeSettings,
-            },
-          },
-        };
-        zip.file(
-          ".devcontainer/devcontainer.json",
-          JSON.stringify(devcontainerJson, null, 2) + "\n",
+          ".claude/settings.json",
+          JSON.stringify(claudeCodeSettings, null, 2) + "\n",
         );
       }
 
@@ -982,7 +925,7 @@ function createHelpSection() {
         p(
           {},
           "Agents are generated for each stage: Plan (research), Code (implement), and Review (verify). " +
-            "Each stage has specific tools, constraints, and handoffs.",
+            "Each stage has specific skills, constraints, and stage transitions.",
         ),
       ),
       div(
@@ -990,8 +933,8 @@ function createHelpSection() {
         div({ className: "detail-item-label" }, "Agent Profiles"),
         p(
           {},
-          "The .agent.md files contain the agent's identity, capabilities, and constraints. " +
-            "Place them in .github/agents/ to register with GitHub Copilot.",
+          "The .md files contain the agent's identity, skills, and constraints. " +
+            "Place them in .claude/agents/ for Claude Code to discover.",
         ),
       ),
       div(
