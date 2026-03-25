@@ -12,7 +12,9 @@
     "./processor/graph.js": "./processor/graph.js"
   },
   "bin": {
-    "fit-process-graphs": "./bin/fit-process-graphs.js"
+    "fit-process-graphs": "./bin/fit-process-graphs.js",
+    "fit-subjects": "./bin/fit-subjects.js",
+    "fit-query": "./bin/fit-query.js"
   },
   "engines": {
     "node": ">=22.0.0"
