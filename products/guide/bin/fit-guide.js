@@ -28,7 +28,7 @@ The agent maintains conversation context across multiple turns.
 
 if (!process.env.SERVICE_SECRET) {
   console.error(
-    "Error: environment not loaded. Run via 'make cli-chat' or load env first:\n\n  . scripts/env.sh && npx fit-guide\n",
+    "Error: SERVICE_SECRET is not set. For local development, use: make cli-chat",
   );
   process.exit(1);
 }
