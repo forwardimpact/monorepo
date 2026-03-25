@@ -25,7 +25,7 @@ async function main() {
   const response = await client.callUnary("GetWindow", {
     resource_id: resourceId,
     model,
-    max_tokens: config.maxTokens || 4096,
+    max_tokens: config.max_tokens || 4096,
   });
 
   console.log(JSON.stringify(response, null, 2));
