@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { createScriptConfig } from "@forwardimpact/libconfig";
+import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createLlmApi } from "@forwardimpact/libllm";
 
 /**
@@ -20,13 +20,13 @@ async function main() {
   }
 
   const window = JSON.parse(input);
-  const config = await createScriptConfig("llm");
+  const agentConfig = await createServiceConfig("agent");
 
   const llm = createLlmApi(
-    await config.llmToken(),
-    config.model,
-    config.llmBaseUrl(),
-    config.embeddingBaseUrl(),
+    await agentConfig.llmToken(),
+    agentConfig.model,
+    agentConfig.llmBaseUrl(),
+    agentConfig.embeddingBaseUrl(),
   );
 
   const response = await llm.createCompletions(window);
