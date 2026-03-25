@@ -15,7 +15,8 @@ async function main() {
     process.exit(1);
   }
 
-  const model = process.argv[3] || "default";
+  const agentConfig = await createServiceConfig("agent");
+  const model = process.argv[3] || agentConfig.model;
   const config = await createServiceConfig("memory");
   const logger = createLogger("cli");
   const tracer = await createTracer("cli");
