@@ -6,6 +6,9 @@
   "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "bin": {
+    "fit-completion": "./bin/fit-completion.js"
+  },
   "engines": {
     "node": ">=22.0.0"
   },

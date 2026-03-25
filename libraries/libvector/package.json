@@ -12,7 +12,8 @@
     "./processor/vector.js": "./processor/vector.js"
   },
   "bin": {
-    "fit-process-vectors": "./bin/fit-process-vectors.js"
+    "fit-process-vectors": "./bin/fit-process-vectors.js",
+    "fit-search": "./bin/fit-search.js"
   },
   "engines": {
     "node": ">=22.0.0"

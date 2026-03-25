@@ -10,6 +10,9 @@
     ".": "./index.js",
     "./index/memory.js": "./index/memory.js"
   },
+  "bin": {
+    "fit-window": "./bin/fit-window.js"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
