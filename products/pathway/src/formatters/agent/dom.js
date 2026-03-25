@@ -17,14 +17,14 @@ import { getStageEmoji } from "../stage/shared.js";
  * @param {Object} deployment.profile - Agent profile
  * @param {Array} deployment.skills - Agent skills
  * @param {Array} [deployment.roleAgents] - Role variant agents (plan, review)
- * @param {Object} [deployment.vscodeSettings] - VS Code settings to include in download
+ * @param {Object} [deployment.claudeCodeSettings] - Claude Code settings to include in download
  * @returns {HTMLElement}
  */
 export function agentDeploymentToDOM({
   profile,
   skills,
   roleAgents = [],
-  vscodeSettings = {},
+  claudeCodeSettings = {},
 }) {
   const profileContent = formatAgentProfile(profile);
   const agentName = profile.frontmatter.name;
@@ -37,7 +37,7 @@ export function agentDeploymentToDOM({
       profile,
       skills,
       roleAgents,
-      vscodeSettings,
+      claudeCodeSettings,
       agentName,
     ),
 
@@ -90,7 +90,7 @@ export function agentDeploymentToDOM({
  * @param {Object} profile - Agent profile
  * @param {Array} skills - Agent skills
  * @param {Array} roleAgents - Role variant agents
- * @param {Object} vscodeSettings - VS Code settings to include
+ * @param {Object} claudeCodeSettings - Claude Code settings to include
  * @param {string} agentName - Agent name for zip filename
  * @returns {HTMLElement}
  */
@@ -98,7 +98,7 @@ function createDownloadButton(
   profile,
   skills,
   roleAgents,
-  vscodeSettings,
+  claudeCodeSettings,
   agentName,
 ) {
   const btn = button(
@@ -115,7 +115,7 @@ function createDownloadButton(
         profile,
         skills,
         roleAgents,
-        vscodeSettings,
+        claudeCodeSettings,
         agentName,
       );
     } finally {
@@ -167,28 +167,28 @@ function createRoleAgentCard(agent) {
  * @param {Object} profile - Agent profile
  * @param {Array} skills - Agent skills
  * @param {Array} roleAgents - Role variant agents
- * @param {Object} vscodeSettings - VS Code settings to include
+ * @param {Object} claudeCodeSettings - Claude Code settings to include
  * @param {string} agentName - Agent name for zip filename
  */
 async function downloadAllAsZip(
   profile,
   skills,
   roleAgents,
-  vscodeSettings,
+  claudeCodeSettings,
   agentName,
 ) {
   // Dynamically import JSZip
   const JSZip = await importJSZip();
   const zip = new JSZip();
 
-  // Add main profile to .github/agents/ folder
+  // Add main profile to .claude/agents/ folder
   const profileContent = formatAgentProfile(profile);
-  zip.file(`.github/agents/${profile.filename}`, profileContent);
+  zip.file(`.claude/agents/${profile.filename}`, profileContent);
 
-  // Add role agent profiles to .github/agents/ folder
+  // Add role agent profiles to .claude/agents/ folder
   for (const roleAgent of roleAgents) {
     const roleContent = formatAgentProfile(roleAgent);
-    zip.file(`.github/agents/${roleAgent.filename}`, roleContent);
+    zip.file(`.claude/agents/${roleAgent.filename}`, roleContent);
   }
 
   // Add skills to .claude/skills/ folder
@@ -197,11 +197,11 @@ async function downloadAllAsZip(
     zip.file(`.claude/skills/${skill.dirname}/SKILL.md`, skillContent);
   }
 
-  // Add VS Code settings for multi-agent features
-  if (Object.keys(vscodeSettings).length > 0) {
+  // Add Claude Code settings
+  if (Object.keys(claudeCodeSettings).length > 0) {
     zip.file(
-      ".vscode/settings.json",
-      JSON.stringify(vscodeSettings, null, 2) + "\n",
+      ".claude/settings.json",
+      JSON.stringify(claudeCodeSettings, null, 2) + "\n",
     );
   }
 
@@ -235,13 +235,12 @@ async function importJSZip() {
  * @param {Object} profile - Generated profile with frontmatter and body
  * @param {Object} options - Options
  * @param {Array} [options.stages] - All stages for emoji lookup
- * @param {Object} [options.vscodeSettings] - VS Code settings for download
+ * @param {Object} [options.claudeCodeSettings] - Claude Code settings for download
  * @returns {HTMLElement}
  */
 export function stageAgentToDOM(stageAgent, profile, options = {}) {
-  const { vscodeSettings = {}, stages = [] } = options;
-  const { stage, tools, handoffs, constraints, checklist, derivedSkills } =
-    stageAgent;
+  const { claudeCodeSettings = {}, stages = [] } = options;
+  const { stage, tools, constraints, checklist, derivedSkills } = stageAgent;
   const stageEmoji = getStageEmoji(stages, stage.id);
   const profileContent = formatAgentProfile(profile);
 
@@ -283,25 +282,6 @@ export function stageAgentToDOM(stageAgent, profile, options = {}) {
             ...constraints.map((c) =>
               div({ className: "constraint-item" }, `⚠️ ${c}`),
             ),
-          ),
-        )
-      : null,
-
-    // Handoffs section
-    handoffs.length > 0
-      ? section(
-          { className: "agent-section" },
-          h3({}, "Handoffs"),
-          div(
-            { className: "handoff-buttons" },
-            ...handoffs.map((h) => {
-              const targetEmoji = getStageEmoji(stages, h.target);
-              return div(
-                { className: "handoff-button-preview" },
-                span({ className: "handoff-icon" }, targetEmoji),
-                span({ className: "handoff-label" }, h.label),
-              );
-            }),
           ),
         )
       : null,
@@ -353,7 +333,7 @@ export function stageAgentToDOM(stageAgent, profile, options = {}) {
     ),
 
     // Download button
-    createStageAgentDownloadButton(profile, vscodeSettings),
+    createStageAgentDownloadButton(profile, claudeCodeSettings),
   );
 }
 
@@ -387,10 +367,10 @@ function createChecklistPreview(checklist) {
 /**
  * Create download button for stage agent
  * @param {Object} profile - Agent profile
- * @param {Object} vscodeSettings - VS Code settings
+ * @param {Object} claudeCodeSettings - Claude Code settings
  * @returns {HTMLElement}
  */
-function createStageAgentDownloadButton(profile, vscodeSettings) {
+function createStageAgentDownloadButton(profile, claudeCodeSettings) {
   const btn = button(
     { className: "btn btn-primary download-all-btn" },
     "📥 Download Agent Profile",
@@ -406,13 +386,13 @@ function createStageAgentDownloadButton(profile, vscodeSettings) {
 
       // Add profile
       const profileContent = formatAgentProfile(profile);
-      zip.file(`.github/agents/${profile.filename}`, profileContent);
+      zip.file(`.claude/agents/${profile.filename}`, profileContent);
 
-      // Add VS Code settings
-      if (Object.keys(vscodeSettings).length > 0) {
+      // Add Claude Code settings
+      if (Object.keys(claudeCodeSettings).length > 0) {
         zip.file(
-          ".vscode/settings.json",
-          JSON.stringify(vscodeSettings, null, 2) + "\n",
+          ".claude/settings.json",
+          JSON.stringify(claudeCodeSettings, null, 2) + "\n",
         );
       }
 

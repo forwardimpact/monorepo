@@ -371,21 +371,13 @@ export class DataLoader {
     const tracksDir = join(dataDir, "tracks");
     const behavioursDir = join(dataDir, "behaviours");
 
-    const [
-      disciplineFiles,
-      trackFiles,
-      behaviourFiles,
-      vscodeSettings,
-      devcontainer,
-      copilotSetupSteps,
-    ] = await Promise.all([
-      this.#loadDisciplinesFromDir(disciplinesDir),
-      this.#loadTracksFromDir(tracksDir),
-      this.#loadBehavioursFromDir(behavioursDir),
-      this.#loadRepoFile(dataDir, "vscode-settings.yaml", {}),
-      this.#loadRepoFile(dataDir, "devcontainer.yaml", {}),
-      this.#loadRepoFile(dataDir, "copilot-setup-steps.yaml", null),
-    ]);
+    const [disciplineFiles, trackFiles, behaviourFiles, claudeCodeSettings] =
+      await Promise.all([
+        this.#loadDisciplinesFromDir(disciplinesDir),
+        this.#loadTracksFromDir(tracksDir),
+        this.#loadBehavioursFromDir(behavioursDir),
+        this.#loadRepoFile(dataDir, "claude-code-settings.yaml", {}),
+      ]);
 
     const disciplines = disciplineFiles
       .filter((d) => d.agent)
@@ -412,9 +404,7 @@ export class DataLoader {
       disciplines,
       tracks,
       behaviours,
-      vscodeSettings,
-      devcontainer,
-      copilotSetupSteps,
+      claudeCodeSettings,
     };
   }
 

@@ -287,27 +287,15 @@ export async function loadAllData(dataDir = "./data") {
  * @returns {Promise<Object>}
  */
 export async function loadAgentDataBrowser(dataDir = "./data") {
-  const [
-    disciplines,
-    tracks,
-    behaviours,
-    vscodeSettings,
-    devcontainer,
-    copilotSetupSteps,
-  ] = await Promise.all([
-    loadDisciplinesFromDir(`${dataDir}/disciplines`),
-    loadTracksFromDir(`${dataDir}/tracks`),
-    loadBehavioursFromDir(`${dataDir}/behaviours`),
-    tryLoadYamlFile(`${dataDir}/repository/vscode-settings.yaml`).then(
-      (r) => r ?? tryLoadYamlFile(`${dataDir}/vscode-settings.yaml`),
-    ),
-    tryLoadYamlFile(`${dataDir}/repository/devcontainer.yaml`).then(
-      (r) => r ?? tryLoadYamlFile(`${dataDir}/devcontainer.yaml`),
-    ),
-    tryLoadYamlFile(`${dataDir}/repository/copilot-setup-steps.yaml`).then(
-      (r) => r ?? tryLoadYamlFile(`${dataDir}/copilot-setup-steps.yaml`),
-    ),
-  ]);
+  const [disciplines, tracks, behaviours, claudeCodeSettings] =
+    await Promise.all([
+      loadDisciplinesFromDir(`${dataDir}/disciplines`),
+      loadTracksFromDir(`${dataDir}/tracks`),
+      loadBehavioursFromDir(`${dataDir}/behaviours`),
+      tryLoadYamlFile(`${dataDir}/repository/claude-code-settings.yaml`).then(
+        (r) => r ?? tryLoadYamlFile(`${dataDir}/claude-code-settings.yaml`),
+      ),
+    ]);
 
   return {
     disciplines: disciplines
@@ -319,8 +307,6 @@ export async function loadAgentDataBrowser(dataDir = "./data") {
     behaviours: behaviours
       .filter((b) => b.agent)
       .map((b) => ({ id: b.id, ...b.agent })),
-    vscodeSettings: vscodeSettings || {},
-    devcontainer: devcontainer || {},
-    copilotSetupSteps: copilotSetupSteps || null,
+    claudeCodeSettings: claudeCodeSettings || {},
   };
 }

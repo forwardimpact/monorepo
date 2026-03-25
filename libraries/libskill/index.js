@@ -102,7 +102,7 @@ export {
   generateSkillMarkdown,
   validateAgentProfile,
   validateAgentSkill,
-  deriveHandoffs,
+  deriveStageTransitions,
   deriveStageAgent,
   generateStageAgentProfile,
   buildAgentIndex,
