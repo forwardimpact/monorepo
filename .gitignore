@@ -32,8 +32,15 @@ generated/
 tmp/
 SCRATCHPAD*.md
 
+# Development files
+tmp/
+SCRATCHPAD*.md
+
 # CLI output
 output/
+
+# Private Claude memory (operational notes, session state)
+.claude/memory/
 
 # Built static site
 public/

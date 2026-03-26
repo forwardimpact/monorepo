@@ -66,8 +66,8 @@ changelogs.
 ### Step 2: Identify Unprocessed Entries
 
 Read each skill's changelog and identify entries that haven't been processed
-yet. Track processing state in this skill's Memory section (below). Compare
-changelog dates against the last processed date in Memory.
+yet. Track processing state in `.claude/memory/downstream-skill.md` (gitignored).
+Record what was reviewed, what was incorporated, and what was deferred.
 
 For each unprocessed entry, record:
 
@@ -178,7 +178,7 @@ npx fit-map validate
 Summarize what was done:
 
 ```markdown
-## Downstream Sync: <date>
+## Downstream Sync
 
 ### Incorporated
 - **<skill>**: <one-line summary of what was brought upstream>
@@ -192,60 +192,11 @@ Summarize what was done:
 
 ### Step 7: Update Memory
 
-After processing, update the Memory section below with the date and what was
-processed. This prevents re-processing the same changelog entries.
+After processing, update `.claude/memory/downstream-skill.md` with:
 
-## Memory
+- What was processed (skill names and change summaries)
+- What was incorporated upstream
+- What was deferred and why
 
-### 2026-03-12
-
-**Installation:** Personal (`~/Documents/Personal/`)
-
-**Processed changelogs:**
-
-- **meeting-prep** (2026-03-09) — Incorporated: use sync-apple-calendar query
-  script in Step 1 instead of raw `ls`/`cat`
-- **process-hyprnote** (2026-03-09) — Incorporated: scan.mjs script for finding
-  unprocessed sessions, updated "Before Starting" section
-- **scan-open-candidates** (2026-03-09) — Incorporated: state.mjs script for
-  managing all 5 head-hunter state files, added State Management Script section
-- **sync-apple-calendar** (2026-03-09) — Incorporated: query.mjs script for
-  filtering events by date/time, added Querying Events section
-- **track-candidates** (2026-03-11) — Incorporated: headshot discovery in Step 2
-  (email attachments + Downloads search), added headshot.jpeg to outputs and
-  quality checklist
-- **synthesize-deck** (no changelog) — Incorporated: new general-purpose skill,
-  added to upstream template (PPTX → engineering brief with JTBD, dependencies,
-  synthetic data needs)
-
-### 2026-03-06
-
-**Installation:** Personal (`~/Documents/Personal/`)
-
-**Processed changelogs:**
-
-- **draft-emails** (2026-03-05) — Already synced upstream (identical)
-- **sync-apple-mail** (2026-03-04) — Already synced upstream (identical)
-- **track-candidates** (2026-03-04) — Already synced upstream (identical)
-- **workday-requisition** (2026-03-06, 2026-03-06 (2), 2026-03-06 (3)) —
-  Incorporated: header-driven column mapping, dual-format sheet/header
-  detection, expanded Step/Disposition status table, raw step preservation
-
-> **Keep this section up to date.** After every downstream sync, record what was
-> processed here. This prevents re-processing the same entries and provides an
-> audit trail.
-
-### Sync Log
-
-| Date       | Installation | Skill                | Action                                                                                 |
-| ---------- | ------------ | -------------------- | -------------------------------------------------------------------------------------- |
-| 2026-03-04 | Personal     | sync-apple-mail      | Incorporated ROWID-based sync fix for late-arriving emails                             |
-| 2026-03-04 | Personal     | track-candidates     | Incorporated field renames, new fields, statuses, and template                         |
-| 2026-03-04 | Personal     | track-candidates     | Deferred: relaxed gender policy (name-based inference)                                 |
-| 2026-03-05 | Personal     | draft-emails         | Incorporated: no sign-off rule, drafted→handled rename, --draft flag, body padding fix |
-| 2026-03-09 | Personal     | meeting-prep         | Incorporated: use query.mjs in Step 1 instead of raw ls/cat                            |
-| 2026-03-09 | Personal     | process-hyprnote     | Incorporated: scan.mjs script + updated Before Starting section                        |
-| 2026-03-09 | Personal     | scan-open-candidates | Incorporated: state.mjs script + State Management Script section                       |
-| 2026-03-09 | Personal     | sync-apple-calendar  | Incorporated: query.mjs script + Querying Events section                               |
-| 2026-03-11 | Personal     | track-candidates     | Incorporated: headshot discovery in Step 2, headshot.jpeg output + checklist           |
-| 2026-03-12 | Personal     | synthesize-deck      | Incorporated: new skill — PPTX to engineering brief with JTBD + dependencies           |
+Keep the note concise — just enough state to avoid re-processing the same
+changes. Do not maintain a detailed audit trail of every change.

@@ -319,115 +319,19 @@ Follow the full specify → plan → onboard → code chain. Each stage is a
 6. Check that each stage reads the artefacts from the previous stage
 7. Verify each stage reads its own stage-specific checklists
 
-## Memory
+## Private Evaluation Memory
 
-> **Keep this section up to date.** After every evaluation session, add a dated
-> note with findings. This prevents repeating past evaluations and preserves
-> decisions about skill improvements.
+Store private evaluation notes in `.claude/memory/eval.md` (gitignored):
 
-### Eval Log
+- **Known skill issues** discovered during prior evaluations
+- **Persistent agent problems** and root causes
+- **Deferred fixes** and why they were deferred
+- **Environment-specific quirks** (corporate proxy, etc.)
+- **Next evaluation focus areas**
 
-- **2026-02-11**: de-platform-specify — Agent read skill files
-  (architecture-design, data-modeling) and followed checklists. Created spec
-  with 16 NEEDS CLARIFICATION markers but wrote them into the spec document
-  rather than asking interactively. Checklist status reported in return format.
-  Handoff recommendation correct (not ready for Plan until questions resolved).
-- **2026-02-11**: se-forward-deployed-specify — Agent read all 5 skill files
-  (problem-discovery, full-stack-development, rapid-prototyping,
-  retrieval-augmentation, data-integration). Created comprehensive spec.md with
-  20 NEEDS CLARIFICATION markers, 4 user stories, 6 assumptions. Correctly
-  triaged blocking vs deferrable questions. Noted subagent delegation
-  constraints (de/ds agents unavailable). Did NOT ask questions interactively —
-  wrote them into the document instead. Handoff recommendation correct (not
-  ready for Plan until 6 blocking questions resolved). Attempted plan handoff
-  via --continue failed — copilot CLI does not support agent handoffs; requires
-  separate session.
-- **2026-02-11**: se-forward-deployed — Full specify → plan → onboard → code
-  chain evaluated. Each stage ran as a separate copilot session with --agent
-  flag. **Specify:** Read 5 skills. Wrote 20 clarifications into doc rather than
-  asking interactively. Correct handoff recommendation. **Plan:** Read spec.md +
-  4 skills. Produced 904-line plan with full DDL, 6 API contracts, data pipeline
-  design, Great Expectations rules. All required tools from skills mapped with
-  rationale. Identified delegation to DE/DS agents. Checklist verification
-  section included. **Onboard:** Read plan.md + 3 skills + install scripts +
-  references. Installed mise, just, Python deps (DuckDB, Polars, GE, oracledb),
-  scaffolded Next.js, created docker-compose, generated mock data (5 CSV
-  formats + Parquet), applied DB migration, seeded 50 batches. Verified all
-  imports, DuckDB reads, dev server HTTP 200, just recipes. Created
-  .env.example. Full checklist pass. **Code:** Read plan.md + full-stack skill.
-  Built 2 API routes (search with parametric quality filtering, batch detail
-  with timeline), 2 frontend pages (search + batch detail with 3-panel layout).
-  TypeScript + ESLint clean. Tested APIs with curl. End-to-end M2 milestone
-  complete.
+Do NOT store:
 
-  **Skill issues found:**
-  1. **problem-discovery specify checklist**: Missing `ASK the user` prefix on
-     items — agents write questions into documents instead of asking
-     interactively. Both de-platform and se-forward-deployed exhibited this.
-     **Fixed:** Added `ASK the user` prefix to readChecklist items in
-     delivery.yaml.
-  2. **full-stack-development onboard checklist**:
-     `ASK the user for required credentials` item worked — agent requested
-     credentials in prompt context, not interactively, but did use them
-     correctly from the prompt.
-  3. **CLI positional arg ignored**:
-     `npx fit-pathway agent software_engineering forward_deployed --skills`
-     silently ignored the positional `forward_deployed` arg and showed base
-     discipline skills instead of track-specific skills. The correct syntax is
-     `--track=forward_deployed`. **Fixed:** CLI now rejects unexpected
-     positional args with a helpful suggestion.
-  4. **Plan/specify agent constraint wording**: Constraint "Do not make code
-     edits or execute commands" is confusing — writing plan.md/spec.md is
-     correct behaviour. **Fixed:** Changed to "Do not write implementation code
-     or execute system commands" in stages.yaml.
-  5. **Code agent did not read all skills**: Only read full-stack-development
-     skill. Did not read rapid-prototyping or data-integration skills even
-     though they have code-stage checklists. **Fixed:** Agent template now says
-     "you MUST read ALL listed skill files" instead of "relevant skill files."
-  6. **Onboard agent did not run install.sh scripts**: Skill files reference
-     `scripts/install.sh` and the agent definition mentions them, but the agent
-     installed tools manually via brew/npm instead of running the generated
-     install scripts. **Fixed:** Agent template now mandates running install.sh
-     before manual setup.
-
-- **2026-02-11**: se-forward-deployed — Full specify → plan → onboard → code
-  chain evaluated (2nd run, post-fixes). Prompt: pharma quality event tracker
-  with NL search, dashboards, Oracle EBS/SAP QM integration, offline kiosks. 50K
-  historical events in CSV, 2K SOP PDFs. 2-week demo deadline. **Specify:** Read
-  5/5 skills. Created 336-line spec.md with 27 NEEDS CLARIFICATION markers. 5
-  epics, 13 user stories with acceptance criteria. Correctly triaged 4 critical
-  (demo-blocking) vs remaining (planning-level). Still did NOT ask questions
-  interactively — wrote all into document despite `ASK the user` prefix in
-  checklist items. Handoff recommendation correct. After answering via
-  --continue, updated spec to "Ready for Planning" with 6 remaining post-demo
-  items. **Plan:** Read spec.md + all 5 skills. Produced 911-line plan.md with
-  ascii architecture diagram, Next.js + Supabase/pgvector + Python RAG (FastAPI/
-  LangChain) + Langfuse. Full DDL for 3 tables, 8 API contracts, hybrid search
-  design, 5-phase 10-day schedule, documented shortcuts, risk register. Full
-  checklist verification section for all 5 skills. **Onboard:** Read plan.md +
-  all 5 skills + all 4 install scripts + all 5 references. Did NOT run
-  install.sh — installed manually (same issue as 1st eval). Set up mise,
-  Next.js, Python projects with uv, Supabase (3 tables + pgvector),
-  docker-compose, .env files, justfile. Hit SSL cert issue with embedding model
-  download (corporate proxy). Timed out at 15min. **Code:** Read spec.md +
-  plan.md but only 2/5 skills (rapid-prototyping, data-integration). Did NOT
-  read full-stack-development (most relevant for code stage). Created seed
-  script (60 events), 2 API routes (list with filtering/sorting/pagination,
-  detail with status history), 4 frontend components. Build + ESLint clean. API
-  tested with curl. US-1.1/US-1.2 done.
-
-  **Persistent issues (not fixed by previous changes):**
-  1. **Specify agent writes questions into doc instead of asking**:
-     `ASK the user` prefix in checklist items is insufficient. Agent treats
-     spec-writing as "the work" and embeds questions as NEEDS CLARIFICATION
-     markers. Need stronger agent template language or structural change
-     (separate pre-work interactive phase).
-  2. **Onboard agent ignores install.sh mandate**: Agent reads scripts but then
-     installs manually. Template language "MUST run" is ignored. Need either:
-     (a) numbered step 1 in agent body, or (b) do_then_confirm checklist item
-     "Verify install.sh was run for each skill."
-  3. **Code agent still skips skills**: Read 2/5 despite "MUST read ALL"
-     language. In 1st eval read only 1/5 (full-stack), in 2nd eval read 2/5
-     (rapid-prototyping, data-integration) but missed full-stack. The
-     instruction is present but routinely ignored. Need structural fix: inline
-     skill content in agent def, or auto-read via tool setup.
+- Detailed action-by-action logs of everything the agent did
+- Long dated journals or narrative histories
+- Sensitive user details from evaluation prompts
+- Secrets, tokens, or credentials

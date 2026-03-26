@@ -186,6 +186,15 @@ Ask: _"If someone skipped this check, what could go wrong?"_ If the answer is
 4. **Study the updated skill** by running `npx fit-pathway skill <name> --agent`
 5. **Iterate** until the skill document is clear, complete, and well-structured
 6. **Run validation**: `npx fit-map validate`
+7. **Update memory**: Record decisions in `.claude/memory/improve-skill.md`
+
+**Memory guidelines:**
+
+- Store private operational notes in `.claude/memory/improve-skill.md` (gitignored)
+- Record: protected tools, known decision reversals, deferred changes, open issues
+- Do NOT mirror public skill content into private memory
+- Do NOT store credentials or secrets
+- Keep notes concise — checkpoint state, not detailed journaling
 
 ### Tool References Review
 
@@ -481,12 +490,9 @@ stages:
 2. Apply fixes directly to the capability file (both locations if applicable)
 3. Run `npx fit-map validate` to verify changes
 
-## Memory
-
-> **Keep this section up to date.** After every review or tweak to the skill
-> improvement process, add a dated note here. This prevents repeating past
-> mistakes and preserves decisions made during reviews. When completing a
-> review, check this section first and update it with any new decisions.
+Do not keep dated review logs or action histories in this public skill file.
+If you need to retain working notes, store them in a private local note or a
+non-committed workspace file.
 
 ### Protected Tools
 
@@ -516,13 +522,3 @@ guideline:
 - **AWS Step Functions** (in `cloud_platforms`) — Critical for modern serverless
   practices. Essential for orchestrating multi-step workflows with error
   handling, retries, and state management.
-
-### Review Log
-
-- **2026-02-10**: Restored GitHub Models, Playwright, Colima, and Step Functions
-  after initial review incorrectly removed them as "nice-to-have". Added this
-  Memory section to prevent recurrence.
-- **2026-02-11**: DX overhaul — Replaced Colima with Rancher Desktop, pip with
-  uv, added mise and just. All Python skills use `uv sync` instead of
-  `pip install`. Skills provide composable Docker Compose, justfile, and mise
-  fragments in implementationReference for Tier 3 project-level assembly.
