@@ -734,9 +734,8 @@ export function generateStageAgentProfile({
  * @returns {string} Agent description
  */
 function buildAgentDescription(discipline, track, stage) {
-  const disciplineDesc = discipline.description.trim().split("\n")[0];
   const stageSummary = stage.summary || stage.name;
-  return `${stageSummary} agent for ${discipline.specialization || discipline.name} on ${track.name} track. ${disciplineDesc}`;
+  return `${stageSummary} for ${discipline.specialization || discipline.name} (${track.name}).`;
 }
 
 /**
