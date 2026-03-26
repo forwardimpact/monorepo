@@ -1,0 +1,95 @@
+name: Publish Skills
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.claude/skills/fit-*/**'
+      - '.github/workflows/publish-skills.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: monorepo
+
+      - uses: actions/checkout@v4
+        with:
+          repository: forwardimpact/skills
+          token: ${{ secrets.SKILLS_PUBLISH_TOKEN }}
+          path: skills-repo
+
+      - name: Sync skills
+        run: |
+          # Clean existing skills (full replace, not merge)
+          rm -rf skills-repo/skills
+
+          # Copy each fit-* skill directory
+          mkdir -p skills-repo/skills
+          for skill_dir in monorepo/.claude/skills/fit-*/; do
+            skill_name=$(basename "$skill_dir")
+            cp -r "$skill_dir" "skills-repo/skills/$skill_name"
+          done
+
+      - name: Generate README
+        run: |
+          cat > skills-repo/README.md << 'EOF'
+          # Forward Impact Skills
+
+          Agent skills for the [Forward Impact](https://forwardimpact.team)
+          engineering framework. Install with
+          [npx skills](https://github.com/vercel-labs/skills):
+
+          ```bash
+          npx skills add forwardimpact/skills
+          ```
+
+          ## Available Skills
+
+          | Skill | Description |
+          | --- | --- |
+          EOF
+
+          # Strip leading whitespace from heredoc
+          sed -i 's/^          //' skills-repo/README.md
+
+          # Append a table row for each skill from its SKILL.md frontmatter
+          for skill_dir in skills-repo/skills/*/; do
+            skill_md="$skill_dir/SKILL.md"
+            if [ -f "$skill_md" ]; then
+              name=$(sed -n 's/^name: *//p' "$skill_md" | head -1)
+              desc=$(awk '
+                /^description:/ {
+                  sub(/^description: *>? */, "")
+                  if ($0 != "") { desc = $0 }
+                  while (getline > 0) {
+                    if (/^  /) { gsub(/^  /, ""); desc = desc " " $0 }
+                    else { break }
+                  }
+                  gsub(/^ +/, "", desc)
+                  gsub(/ +$/, "", desc)
+                  print desc
+                  exit
+                }
+              ' "$skill_md")
+              echo "| **${name}** | ${desc} |" >> skills-repo/README.md
+            fi
+          done
+
+      - name: Commit and push
+        working-directory: skills-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to publish"
+          else
+            git commit -m "chore: sync skills from monorepo"
+            git push
+          fi
