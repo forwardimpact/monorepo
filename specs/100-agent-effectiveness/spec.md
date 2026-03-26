@@ -3,7 +3,7 @@
 Pathway generates stage-specific Claude Code agents from discipline x track x
 stage combinations. The current template and assembly pipeline produce agents
 that are structurally correct but not structurally effective. This spec
-identifies 10 structural issues — problems with how information is organized,
+identifies 9 structural issues — problems with how information is organized,
 layered, and delivered to the agent — independent of the quality of the
 underlying curated content.
 
@@ -31,53 +31,20 @@ should say what the agent _does_, not repeat what it _is called_.
 
 ```yaml
 # Current
-description: This stage covers development and initial testing of engineering
-  solutions. agent for Software Engineering on Platform Engineering track.
-  Software Engineers design, develop, and maintain software systems with a focus
-  on scalable architecture and code quality. They collaborate across teams to
-  deliver robust solutions that meet business and technical requirements.
+description: Code agent for Software Engineering on Platform track. Builds and
+  maintains software systems, focusing on code quality, architecture, and
+  reliable delivery of business value. In the AI era, emphasizes verification
+  and review of AI-generated code.
 ```
 
-The word "agent" appears mid-sentence with no article. The discipline
-description ("Software Engineers design, develop...") restates what the body
-already contains. Compare all 6 agents — they share the same trailing sentence.
+The first sentence restates the agent name. The trailing sentences are identical
+across all 6 agents — only the stage word changes. The description should say
+what the agent does in your workflow (e.g. "Implements the solution. Writes
+code, writes tests, iterates until complete.").
 
 ---
 
-## 2. Priority renders as an orphaned paragraph under Core identity
-
-### What
-
-The `priority` field renders as a bare paragraph directly below the `identity`
-text, with no heading, label, or structural separator.
-
-### Why it matters
-
-Without a visual cue, the agent reads priority as a continuation of identity
-rather than a distinct directive. Priority is meant to be the single most
-important thing the agent should optimize for — it deserves structural weight.
-When identity is 2 sentences and priority is 1 sentence, they blur into a
-3-sentence block with no hierarchy.
-
-### Example
-
-```markdown
-## Core identity
-
-You specialize in platform engineering to support pharmaceutical innovation
-as a Software Engineer.
-
-Ensure platform scalability and reliability to meet the evolving needs of
-pharmaceutical development.
-```
-
-Is the second paragraph identity or priority? The template produces this from
-two separate data fields (`identity` and `priority`), but the output has no
-structural distinction between them.
-
----
-
-## 3. Constraints are a flat merge with no layering
+## 2. Constraints are a flat merge with no layering
 
 ### What
 
@@ -98,22 +65,25 @@ and track constraints overlap.
 ```markdown
 ## Constraints
 
-- Do not bypass testing or documentation steps.          ← stage
-- Ensure all work complies with pharmaceutical quality.  ← stage
-- Avoid unauthorized changes to specifications.          ← stage
-- Do not generate insecure or untested code.             ← discipline
-- Avoid introducing performance bottlenecks.             ← discipline
-- Never ignore code review feedback or best practices.   ← discipline
-- Must comply with pharmaceutical industry regulations.  ← track
-- Prioritize data security and integrity.                ← track
+- Implement one task at a time, verify before moving on        ← stage
+- Write tests alongside implementation                         ← stage
+- Track progress with the todo tool                            ← stage
+- Committing code without running tests                        ← discipline
+- Making changes without understanding the existing codebase   ← discipline
+- Over-engineering simple solutions                            ← discipline
+- Maintain backward compatibility                              ← track
+- Document breaking changes with migration guides              ← track
 ```
 
-8 constraints with no grouping. The specify agent, code agent, and review agent
-all share the same 5 discipline + track constraints — only the first 3 vary.
+The stage constraints are imperatives ("Implement one task at a time"). The
+discipline constraints are bare gerunds ("Committing code without running
+tests") — they lack a verb framing like "Avoid" or "Do not". Syntactically
+inconsistent within the same list. The specify, code, and review agents all
+share the same discipline + track constraints — only the stage entries vary.
 
 ---
 
-## 4. All 6 agents load the identical skills array
+## 3. All 6 agents load the identical skills array
 
 ### What
 
@@ -127,7 +97,11 @@ contain 6 stages of checklists each (specify through deploy), but the agent only
 uses one stage's checklists. Loading all skills regardless of stage relevance
 wastes context on checklists and guidance the agent will never act on. A specify
 agent has no use for `sre-practices` code-stage checklists. A review agent
-doesn't need `full-stack-development` onboard-stage install scripts.
+doesn't need `code-quality-review` onboard-stage install scripts.
+
+Each skill is ~185 lines. 5 skills × 185 lines = ~925 lines of skill context
+per agent. Each skill has 6 stage sections of ~20 lines each. Only 1 stage
+section is relevant. That means ~83% of loaded checklist content is noise.
 
 ### Example
 
@@ -135,25 +109,25 @@ doesn't need `full-stack-development` onboard-stage install scripts.
 # se-platform-specify.md
 skills:
   - architecture-design
-  - code-review
-  - full-stack-development
+  - code-quality-review
   - cloud-platforms
+  - devops-cicd
   - sre-practices
 
 # se-platform-code.md
 skills:
   - architecture-design
-  - code-review
-  - full-stack-development
+  - code-quality-review
   - cloud-platforms
+  - devops-cicd
   - sre-practices
 
 # se-platform-review.md
 skills:
   - architecture-design
-  - code-review
-  - full-stack-development
+  - code-quality-review
   - cloud-platforms
+  - devops-cicd
   - sre-practices
 ```
 
@@ -162,7 +136,7 @@ relevance information (the `agent.stages` object) that could filter this.
 
 ---
 
-## 5. Required skills section is meta-instructions about skill loading
+## 4. Required skills section is meta-instructions about skill loading
 
 ### What
 
@@ -206,79 +180,7 @@ context. Each skill contains stage-specific checklists:
 
 ---
 
-## 6. Stage description and Core identity overlap in purpose
-
-### What
-
-The body opens with a `stageDescription` paragraph (from `stages.yaml`), then
-immediately follows with `## Core identity` containing the discipline/track
-identity. Both answer "who is this agent and what does it do."
-
-### Why it matters
-
-The agent receives two competing identity statements in the first 5 lines. The
-stage description says what the agent does in this stage. The core identity says
-what role the agent plays. These are not independent concerns — they're the same
-concern at different scopes. The opening of an agent profile is the
-highest-value real estate for steering behaviour. Splitting identity across two
-blocks weakens both.
-
-### Example
-
-```markdown
-# Software Engineering - Platform Engineering - Code Agent
-
-You develop and implement engineering solutions according to the specifications
-and plan. You write, test, and document code or processes while adhering to
-pharmaceutical quality standards. You prepare work for review.
-
-## Core identity
-
-You specialize in platform engineering to support pharmaceutical innovation as
-a Software Engineer.
-```
-
-The first paragraph (stage description) is more specific and actionable than the
-core identity section. The core identity is generic across all 6 stages.
-
----
-
-## 7. No tools or disallowedTools in frontmatter
-
-### What
-
-The generated agent profiles do not use Claude Code's `tools` or
-`disallowedTools` frontmatter fields. All agents have unrestricted tool access.
-
-### Why it matters
-
-Stage boundaries naturally map to tool restrictions. A review agent should read
-and comment, not write production code. A specify agent should research and
-document, not execute deployments. Without tool restrictions, agents can take
-actions that violate their stage's purpose. Claude Code supports both `tools`
-(allowlist) and `disallowedTools` (denylist) in frontmatter — the stage and
-skill data could drive these.
-
-### Example
-
-```yaml
-# se-platform-review.md — reviews code, should not write it
----
-name: se-platform-review
-description: ...
-model: sonnet
-skills:
-  - architecture-design
-  - code-review
-  ...
----
-# No tools: or disallowedTools: field
-# Agent can freely use Edit, Write, Bash — defeating the review boundary
-```
-
----
-
-## 8. Working styles use subsection headings for list-weight content
+## 5. Working styles use subsection headings for list-weight content
 
 ### What
 
@@ -300,29 +202,36 @@ A flat list would convey the same information with less structural noise.
 ```markdown
 ## Working style
 
-### Systemic Analyst
+### Consider the whole system
 
-The agent should analyze information holistically, identifying
-interconnections and potential impacts across the pharmaceutical system.
+For every change:
+1. Identify upstream and downstream impacts
+2. Consider non-functional requirements (performance, security)
+3. Document assumptions and trade-offs
 
-### Precise Communicator
+### Communicate with clarity
 
-The agent should deliver information clearly and accurately, ensuring
-responses are concise and unambiguous.
+When providing output:
+1. Separate blocking issues from suggestions
+2. Explain the "why" behind each recommendation
+3. Provide concrete examples or alternatives
 
-### Outcome Steward
+### Investigate before acting
 
-The agent should proactively monitor task progress, anticipate potential
-issues, and communicate clearly about outcomes.
+Before taking action:
+1. Confirm your understanding of the goal
+2. Identify unknowns that could affect the approach
+3. Research unfamiliar areas via subagent if needed
 ```
 
-3 subsections, each 1-2 sentences. This occupies roughly the same vertical space
+3 subsections with numbered lists. This occupies roughly the same vertical space
 as the "Required skills" and "Stage transitions" sections, despite carrying less
-actionable information.
+actionable information. The headings create structural weight that a flat list or
+bold-title paragraphs would avoid.
 
 ---
 
-## 9. Return format is static and stage-agnostic
+## 6. Return format is static and stage-agnostic
 
 ### What
 
@@ -358,39 +267,140 @@ different work products.
 
 ---
 
-## 10. Section ordering puts context before action
+## 7. Stage transitions contain self-referential handoffs
 
 ### What
 
-The current section order is: title → stage description → core identity → role
-context → working style → required skills → stage transitions → return format →
-constraints.
+Stage transition blocks include handoffs that loop back to the current stage.
+The specify agent renders three transition blocks: two that hand off to Specify
+itself ("Refine spec.md", "Create alternative spec.md") and one that hands
+forward to Plan. The plan agent similarly has two self-loops plus one forward
+handoff.
 
 ### Why it matters
 
-Claude Code agents read their prompt top-to-bottom. The most actionable sections
-— skills (what capabilities to use), constraints (what boundaries to respect),
-and stage transitions (when to stop) — appear in the bottom half. The top half
-is occupied by context sections (identity, role context, working style) that set
-tone but don't drive behaviour. Front-loading context means the agent processes
-the "nice to know" before the "need to know."
+Self-referential transitions ("When your work is complete, the next stage is
+**Specify**" — while already in the specify agent) are confusing. They look
+structurally identical to forward transitions but represent revision cycles. The
+agent already has a "continue working in the current stage" clause under each
+transition's entry criteria. The self-loops duplicate that intent with more
+ambiguity — the agent now has two conflicting ways to express "I'm not done
+yet."
 
 ### Example
 
-Approximate line counts per section in `se-platform-code.md`:
+```markdown
+# se-platform-specify.md — Stage transitions section
 
-```
-Lines  1-11   Frontmatter (name, description, model, skills)
-Lines 13-15   Title + stage description (context)
-Lines 17-21   Core identity + priority (context)
-Lines 23-25   Role context (context)
-Lines 27-39   Working style — 3 subsections (context)
-Lines 41-62   Required skills — meta-instructions + table (action)
-Lines 64-75   Stage transitions (action)
-Lines 77-83   Return format (action)
-Lines 85-95   Constraints (action)
+When your work is complete, the next stage is **Specify**.
+
+Refine spec.md with more detail or clarity. Summarize what was completed
+in the Specify stage.
+
+When your work is complete, the next stage is **Specify**.
+
+Create an alternative spec.md exploring a different approach. Summarize
+what was completed in the Specify stage.
+
+When your work is complete, the next stage is **Plan**.
+
+Create the plan files based on spec.md. Summarize what was completed
+in the Specify stage.
 ```
 
-Context occupies lines 13-39 (27 lines). Actionable guidance occupies lines
-41-95 (55 lines) but starts at line 41 — below the fold of what the agent
-attends to most closely.
+The first two transitions hand off to the agent's own stage. The same pattern
+appears in plan (2 self-loops + 1 forward) and review (1 back to code, 1 back
+to plan, 1 forward to deploy). Self-loops should either be omitted or rendered
+as a distinct "Revision" section so the agent can distinguish "iterate on my
+work" from "pass work to the next stage."
+
+---
+
+## 8. Constraint format is syntactically inconsistent
+
+### What
+
+Stage constraints use imperative verbs ("Implement one task at a time", "Write
+tests alongside implementation"). Discipline and track constraints use bare
+gerunds without a framing verb ("Committing code without running tests", "Making
+changes without understanding the existing codebase").
+
+### Why it matters
+
+The agent receives a flat list where some items are instructions ("do X") and
+others are noun phrases ("doing Y") with no verb to indicate whether they mean
+"avoid doing Y" or "remember when doing Y." This is a data quality issue at the
+source — `agentDiscipline.constraints` and `agentTrack.constraints` use a
+different grammatical pattern than `stage.constraints`. The template or assembly
+code could normalize the format, or the constraint data should enforce a
+consistent pattern.
+
+### Example
+
+```markdown
+## Constraints
+
+- Implement one task at a time, verify before moving on   ← imperative ✓
+- Write tests alongside implementation                    ← imperative ✓
+- Track progress with the todo tool                       ← imperative ✓
+- Committing code without running tests                   ← gerund, no verb ✗
+- Making changes without understanding the existing codebase  ← gerund, no verb ✗
+- Ignoring error handling and edge cases                  ← gerund, no verb ✗
+- Over-engineering simple solutions                       ← gerund, no verb ✗
+- Maintain backward compatibility                        ← imperative ✓
+- Document breaking changes with migration guides         ← imperative ✓
+```
+
+The gerund entries need a framing verb ("Avoid committing code without running
+tests") to be parseable as constraints rather than topic labels.
+
+---
+
+## 9. No applyTo in agent frontmatter
+
+### What
+
+The generated agent profiles do not use Claude Code's `applyTo` frontmatter
+field. No agent is scoped to specific file types or paths.
+
+### Why it matters
+
+Claude Code uses `applyTo` globs to scope when an agent is suggested or
+relevant. Stage agents have natural file affinities: a specify agent works on
+`specs/**/*.md`, a deploy agent works on CI/CD configs and infrastructure files,
+an onboard agent works on environment setup files. Without `applyTo`, Claude Code
+cannot use file context to suggest the right agent — the user must always select
+manually from a flat list of 6 agents with near-identical descriptions.
+
+The stage data already contains enough information to derive reasonable globs.
+Stage handoff checklists reference specific file patterns (`spec.md`,
+`00-overview.md`, `01-*.md`, `scripts/install.sh`). These could drive `applyTo`
+values in the frontmatter.
+
+### Example
+
+```yaml
+# se-platform-specify.md — could scope to spec files
+---
+name: se-platform-specify
+description: ...
+applyTo: "specs/**/*.md"
+---
+
+# se-platform-deploy.md — could scope to CI/CD and infra
+---
+name: se-platform-deploy
+description: ...
+applyTo: "{.github/**,Makefile,Dockerfile,docker-compose*.yml}"
+---
+
+# se-platform-onboard.md — could scope to env and config
+---
+name: se-platform-onboard
+description: ...
+applyTo: "{.env*,package.json,justfile,docker-compose.dev.yml}"
+---
+```
+
+Currently none of the 6 agents have `applyTo`. All are equally weighted
+regardless of what file the user is working in.
