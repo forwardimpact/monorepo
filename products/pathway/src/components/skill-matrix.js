@@ -22,17 +22,20 @@ import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/map/levels";
 import { truncate } from "../formatters/shared.js";
 
 /**
- * Sort skills by level descending (expert first), then alphabetically
+ * Sort skills by capability group order, then by level descending within each group
  * @param {SkillMatrixItem[]} skills
+ * @param {string[]} capabilityOrder - Ordered capability IDs
  * @returns {SkillMatrixItem[]}
  */
-function sortByLevelDescending(skills) {
+function sortByCapabilityThenLevel(skills, capabilityOrder) {
+  const orderMap = new Map(capabilityOrder.map((id, i) => [id, i]));
   return [...skills].sort((a, b) => {
-    const levelA = SKILL_PROFICIENCY_ORDER.indexOf(a.level);
-    const levelB = SKILL_PROFICIENCY_ORDER.indexOf(b.level);
-    if (levelB !== levelA) {
-      return levelB - levelA;
-    }
+    const capA = orderMap.has(a.capability) ? orderMap.get(a.capability) : capabilityOrder.length;
+    const capB = orderMap.has(b.capability) ? orderMap.get(b.capability) : capabilityOrder.length;
+    if (capA !== capB) return capA - capB;
+    const levelA = SKILL_PROFICIENCY_ORDER.indexOf(a.proficiency);
+    const levelB = SKILL_PROFICIENCY_ORDER.indexOf(b.proficiency);
+    if (levelB !== levelA) return levelB - levelA;
     return a.skillName.localeCompare(b.skillName);
   });
 }
@@ -40,14 +43,19 @@ function sortByLevelDescending(skills) {
 /**
  * Create a skill matrix table
  * @param {SkillMatrixItem[]} skillMatrix - Skill matrix entries
+ * @param {Object} [options]
+ * @param {string[]} [options.capabilityOrder] - Capability IDs in desired display order
  * @returns {HTMLElement}
  */
-export function createSkillMatrix(skillMatrix) {
+export function createSkillMatrix(skillMatrix, options = {}) {
   if (!skillMatrix || skillMatrix.length === 0) {
     return div({ className: "empty-state" }, "No skills in matrix");
   }
 
-  const sortedSkills = sortByLevelDescending(skillMatrix);
+  const { capabilityOrder } = options;
+  const sortedSkills = capabilityOrder
+    ? sortByCapabilityThenLevel(skillMatrix, capabilityOrder)
+    : [...skillMatrix];
 
   const rows = sortedSkills.map((skill) => {
     const levelIndex = getSkillProficiencyIndex(skill.proficiency);

@@ -29,6 +29,7 @@ import { getStageOrder } from "@forwardimpact/map/levels";
  * @property {Array} skillMatrix
  * @property {Array} behaviourProfile
  * @property {Array} derivedResponsibilities
+ * @property {string[]} capabilityOrder - Capability IDs in display order (from derivedResponsibilities)
  * @property {Array} driverCoverage
  * @property {Array} toolkit - De-duplicated tools from skills
  * @property {Object} checklists - Handoff checklists keyed by handoff type
@@ -109,6 +110,7 @@ export function prepareJobDetail({
     skillMatrix: job.skillMatrix,
     behaviourProfile: job.behaviourProfile,
     derivedResponsibilities: job.derivedResponsibilities || [],
+    capabilityOrder: (job.derivedResponsibilities || []).map((r) => r.capability),
     // Derived toolkit
     toolkit,
     // Transformed driver coverage for display

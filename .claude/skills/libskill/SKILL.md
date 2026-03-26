@@ -61,9 +61,21 @@ import { prepareAgentProfile } from "@forwardimpact/libskill/profile";
 
 ### job.js / job-cache.js
 
-Job preparation and caching for web pages.
+Job preparation and caching for web pages. `prepareJobDetail` transforms a raw
+derived job into a view model for the job page. Key fields:
+
+- `skillMatrix` — raw skill matrix from derivation
+- `behaviourProfile` — raw behaviour profile from derivation
+- `derivedResponsibilities` — responsibilities sorted by proficiency desc, skill
+  count desc, ordinal rank (used by job description formatter)
+- `capabilityOrder` — `string[]` of capability IDs in display order, derived
+  from `derivedResponsibilities`. Use this when ordering skills by capability
+  instead of extracting order from `derivedResponsibilities` directly.
+- `toolkit` — de-duplicated tools from skill references
+- `checklists` — stage handoff checklists
 
 ```javascript
+import { prepareJobDetail } from "@forwardimpact/libskill/job";
 import { getOrCreateJob } from "@forwardimpact/libskill/job-cache";
 ```
 

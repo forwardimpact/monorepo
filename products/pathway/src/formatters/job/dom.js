@@ -2,7 +2,7 @@
  * Job formatting for DOM/web output
  */
 
-import { div, h1, h2, p, a, span, section } from "../../lib/render.js";
+import { div, h1, h2, a, section } from "../../lib/render.js";
 import { createBackLink } from "../../components/nav.js";
 import {
   createDetailSection,
@@ -117,7 +117,9 @@ export function jobToDOM(view, options = {}) {
 
           createDetailSection({
             title: "Skill Matrix",
-            content: createSkillMatrix(view.skillMatrix),
+            content: createSkillMatrix(view.skillMatrix, {
+              capabilityOrder: view.capabilityOrder,
+            }),
           }),
 
           // Toolkit (after skill matrix)
@@ -125,21 +127,6 @@ export function jobToDOM(view, options = {}) {
             ? createDetailSection({
                 title: "Tool Kit",
                 content: createToolkitTable(view.toolkit),
-              })
-            : null,
-
-          // Driver coverage
-          view.driverCoverage.length > 0
-            ? createDetailSection({
-                title: "Driver Coverage",
-                content: div(
-                  {},
-                  p(
-                    { className: "text-muted", style: "margin-bottom: 1rem" },
-                    "How well this job aligns with organizational outcome drivers.",
-                  ),
-                  createDriverCoverageDisplay(view.driverCoverage),
-                ),
               })
             : null,
         )
@@ -162,48 +149,6 @@ export function jobToDOM(view, options = {}) {
         })
       : null,
   );
-}
-
-/**
- * Create driver coverage display
- */
-function createDriverCoverageDisplay(coverage) {
-  const items = coverage.map((c) => {
-    const percentage = Math.round(c.coverage * 100);
-
-    return div(
-      { className: "driver-coverage-item" },
-      div(
-        { className: "driver-coverage-header" },
-        a(
-          {
-            href: `#/driver/${c.id}`,
-            className: "driver-coverage-name",
-          },
-          c.name,
-        ),
-        span({ className: "driver-coverage-score" }, `${percentage}%`),
-      ),
-      div(
-        { className: "progress-bar" },
-        div({
-          className: "progress-bar-fill",
-          style: `width: ${percentage}%; background: ${getScoreColor(c.coverage)}`,
-        }),
-      ),
-    );
-  });
-
-  return div({ className: "driver-coverage" }, ...items);
-}
-
-/**
- * Get color based on score
- */
-function getScoreColor(score) {
-  if (score >= 0.8) return "#10b981"; // Green
-  if (score >= 0.5) return "#f59e0b"; // Yellow
-  return "#ef4444"; // Red
 }
 
 /**
@@ -243,6 +188,7 @@ export function createJobDescriptionSection({
         "Copy this markdown-formatted job description for use in job postings, documentation, or sharing.",
       toHtml: markdownToHtml,
       minHeight: 450,
+      open: true,
     }),
   );
 }
