@@ -45,7 +45,7 @@
     "@forwardimpact/libtemplate": "^0.2.0",
     "@forwardimpact/libui": "^1.0.0",
     "mustache": "^4.2.0",
-    "simple-icons": "^16.7.0",
+    "simple-icons": "^16.13.0",
     "yaml": "^2.3.4"
   },
   "engines": {
