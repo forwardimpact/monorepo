@@ -33,7 +33,7 @@
   "devDependencies": {
     "jsdom": "^27.4.0",
     "microdata-rdf-streaming-parser": "^3.0.0",
-    "n3": "^1.26.0",
+    "n3": "^2.0.3",
     "rdf-canonize": "^4.0.1",
     "@forwardimpact/libharness": "^0.1.5"
   },

@@ -19,7 +19,7 @@
     "@forwardimpact/libgraph": "^0.1.49",
     "@forwardimpact/libresource": "^0.1.89",
     "@forwardimpact/librpc": "^0.1.77",
-    "n3": "^1.26.0"
+    "n3": "^2.0.3"
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.5"
