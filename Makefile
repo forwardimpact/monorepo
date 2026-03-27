@@ -179,11 +179,7 @@ quickstart: env-setup generate-cached data-init codegen process-fast install-hoo
 
 .PHONY: data-init
 data-init:  ## Initialize data directories
-	@mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/knowledge data/logs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
-	@if [ -d examples/organizational ] && [ -z "$$(ls -A data/knowledge 2>/dev/null)" ]; then \
-		cp -r examples/organizational/* data/knowledge/ 2>/dev/null || true; \
-		echo "Copied example organizational data to data/knowledge/"; \
-	fi
+	@mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/knowledge data/logs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants data/activity data/pathway data/personal
 
 .PHONY: data-clean
 data-clean:  ## Remove generated data

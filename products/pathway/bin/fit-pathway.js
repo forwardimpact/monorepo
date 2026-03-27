@@ -30,11 +30,13 @@
  */
 
 import { join, resolve, dirname } from "path";
-import { existsSync } from "fs";
-import { homedir } from "os";
 import { fileURLToPath } from "url";
+import fs from "fs/promises";
+import { homedir } from "os";
 import { createDataLoader } from "@forwardimpact/map/loader";
 import { validateAllData } from "@forwardimpact/map/validation";
+import { Finder } from "@forwardimpact/libutil";
+import { createLogger } from "@forwardimpact/libtelemetry";
 import { formatError } from "../src/lib/cli-output.js";
 import { createTemplateLoader } from "@forwardimpact/libtemplate";
 
@@ -337,50 +339,6 @@ function printHelp() {
 }
 
 /**
- * Resolve the data directory path.
- * @param {Object} options - Parsed command options
- * @returns {string} Resolved absolute path to data directory
- */
-function resolveDataPath(options) {
-  if (options.data) {
-    return resolve(options.data);
-  }
-
-  if (process.env.PATHWAY_DATA) {
-    return resolve(process.env.PATHWAY_DATA);
-  }
-
-  const homeData = join(homedir(), ".fit", "pathway", "data");
-  if (existsSync(homeData)) {
-    return homeData;
-  }
-
-  const cwdDataPathway = join(process.cwd(), "data/pathway");
-  if (existsSync(cwdDataPathway)) {
-    return cwdDataPathway;
-  }
-
-  const cwdExamplesPathway = join(process.cwd(), "examples/pathway");
-  if (existsSync(cwdExamplesPathway)) {
-    return cwdExamplesPathway;
-  }
-
-  const cwdData = join(process.cwd(), "data");
-  if (existsSync(cwdData)) {
-    return cwdData;
-  }
-
-  const cwdExamples = join(process.cwd(), "examples");
-  if (existsSync(cwdExamples)) {
-    return cwdExamples;
-  }
-
-  throw new Error(
-    "No data directory found. Create ./data/pathway/ or use --data=<path>",
-  );
-}
-
-/**
  * Main CLI entry point
  */
 async function main() {
@@ -404,7 +362,20 @@ async function main() {
     process.exit(0);
   }
 
-  const dataDir = resolveDataPath(options);
+  let dataDir;
+  if (options.data) {
+    dataDir = resolve(options.data);
+  } else {
+    const logger = createLogger("pathway");
+    const finder = new Finder(fs, logger, process);
+    try {
+      dataDir = join(finder.findData("data", homedir()), "pathway");
+    } catch {
+      throw new Error(
+        "No data directory found. Use --data=<path> to specify location.",
+      );
+    }
+  }
 
   if (command === "dev") {
     await runDevCommand({ dataDir, options });

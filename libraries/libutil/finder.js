@@ -48,6 +48,25 @@ export class Finder {
   }
 
   /**
+   * Resolve a data directory by upward traversal, with HOME fallback.
+   * @param {string} baseName - Directory name to find (e.g. "data")
+   * @param {string} homeDir - User home directory path
+   * @returns {string} Absolute path to found directory
+   */
+  findData(baseName, homeDir) {
+    const cwd = this.#process.cwd();
+    const found = this.findUpward(cwd, baseName);
+    if (found) return found;
+
+    const homePath = path.join(homeDir, ".fit", baseName);
+    if (fs.existsSync(homePath)) return homePath;
+
+    throw new Error(
+      `No ${baseName} directory found from ${cwd} or ${homePath}.`,
+    );
+  }
+
+  /**
    * Find the project root directory
    * @param {string} startPath - Starting directory path
    * @returns {string} Project root directory path

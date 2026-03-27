@@ -9,12 +9,16 @@
  *   echo "Tell me about the company" | npx fit-guide
  */
 
+import { resolve } from "path";
+import fs from "fs/promises";
+import { homedir } from "os";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { Repl } from "@forwardimpact/librepl";
 import { createClient, createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { agent, common } from "@forwardimpact/libtype";
 import { createStorage } from "@forwardimpact/libstorage";
+import { Finder } from "@forwardimpact/libutil";
 
 const usage = `**Usage:** <message>
 
@@ -31,6 +35,23 @@ if (!process.env.SERVICE_SECRET) {
     "Error: SERVICE_SECRET is not set. For local development, use: make cli-chat",
   );
   process.exit(1);
+}
+
+// Parse --data flag from CLI args
+const dataArg = process.argv.find((a) => a.startsWith("--data="));
+let dataDir;
+if (dataArg) {
+  dataDir = resolve(dataArg.slice(7));
+} else {
+  const guideLogger = createLogger("cli");
+  const finder = new Finder(fs, guideLogger, process);
+  try {
+    dataDir = finder.findData("data", homedir());
+  } catch {
+    throw new Error(
+      "No data directory found. Use --data=<path> to specify location.",
+    );
+  }
 }
 
 const config = await createServiceConfig("agent");
@@ -88,6 +109,7 @@ const repl = new Repl({
   storage,
   state: {
     resource_id: null,
+    dataDir,
   },
   onLine: handlePrompt,
   afterLine: (state) => {

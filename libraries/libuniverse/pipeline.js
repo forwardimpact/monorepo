@@ -138,25 +138,25 @@ export class Pipeline {
           entities.domain,
         );
         for (const [name, content] of enriched) {
-          files.set(join("examples/organizational", name), content);
+          files.set(join("data/knowledge", name), content);
         }
       } else {
         for (const [name, content] of htmlFiles) {
-          files.set(join("examples/organizational", name), content);
+          files.set(join("data/knowledge", name), content);
         }
       }
 
       files.set(
-        "examples/organizational/README.md",
+        "data/knowledge/README.md",
         this.renderer.renderReadme(entities, prose),
       );
       files.set(
-        "examples/organizational/ONTOLOGY.md",
+        "data/knowledge/ONTOLOGY.md",
         this.renderer.renderOntology(entities),
       );
 
       const htmlCount = [...files.keys()].filter((p) =>
-        p.startsWith("examples/organizational/"),
+        p.startsWith("data/knowledge/"),
       ).length;
       log.info("render", `HTML: ${htmlCount} files`);
     }
@@ -177,7 +177,7 @@ export class Pipeline {
         });
         const pathwayFiles = this.renderer.renderPathway(pathwayData);
         for (const [name, content] of pathwayFiles) {
-          files.set(`examples/pathway/${name}`, content);
+          files.set(`data/pathway/${name}`, content);
         }
         log.info("render", `Pathway: ${pathwayFiles.size} files`);
       }
@@ -192,7 +192,7 @@ export class Pipeline {
 
       const activityFiles = this.renderer.renderActivity(entities);
       for (const [name, content] of activityFiles) {
-        files.set(join("examples/activity", name), content);
+        files.set(join("data/activity", name), content);
       }
       log.info(
         "render",
@@ -204,7 +204,7 @@ export class Pipeline {
       log.info("render", "Rendering markdown");
       const md = this.renderer.renderMarkdown(entities, prose);
       for (const [name, content] of md) {
-        files.set(join("examples/personal", name), content);
+        files.set(join("data/personal", name), content);
       }
       log.info("render", `Markdown: ${md.size} files`);
     }
@@ -292,10 +292,7 @@ export class Pipeline {
 
       const orgFiles = new Map();
       for (const [path, content] of formattedFiles) {
-        if (
-          path.startsWith("examples/organizational/") &&
-          path.endsWith(".html")
-        ) {
+        if (path.startsWith("data/knowledge/") && path.endsWith(".html")) {
           orgFiles.set(path, content);
         }
       }
