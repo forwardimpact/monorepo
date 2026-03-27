@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/map",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "description": "Public data model for career frameworks, consumed by AI agents and engineers",
   "license": "Apache-2.0",
   "repository": {
@@ -46,6 +46,7 @@
     "./activity/transform": "./activity/transform/index.js"
   },
   "dependencies": {
+    "@forwardimpact/libutil": "^0.1.64",
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "yaml": "^2.8.3"
