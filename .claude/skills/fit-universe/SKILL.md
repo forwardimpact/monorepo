@@ -40,12 +40,12 @@ npx fit-universe --universe=path     # Custom universe file
 
 Use `--only=<type>` to generate a single content type:
 
-| Type       | Output Directory          | Contents                        |
-| ---------- | ------------------------- | ------------------------------- |
-| `html`     | `examples/organizational` | Articles, guides, FAQs, courses |
-| `pathway`  | `examples/pathway`        | YAML framework files            |
-| `raw`      | `examples/activity`       | Roster, GitHub events, evidence |
-| `markdown` | `examples/personal`       | Briefings, notes, KB content    |
+| Type       | Output Directory   | Contents                        |
+| ---------- | ------------------ | ------------------------------- |
+| `html`     | `data/knowledge`   | Articles, guides, FAQs, courses |
+| `pathway`  | `data/pathway`     | YAML framework files            |
+| `raw`      | `data/activity`    | Roster, GitHub events, evidence |
+| `markdown` | `data/personal`    | Briefings, notes, KB content    |
 
 ### Prose Modes
 
@@ -183,7 +183,7 @@ make rc-start         # Start services
 Or run individual steps:
 
 ```sh
-make data-init              # Copies examples/organizational/ → data/knowledge/
+make data-init              # Creates data directories
 make process-resources      # Create resource index from knowledge files
 make process-graphs         # Build RDF graph from resources
 make process-vectors        # Generate vector embeddings (requires TEI)
@@ -196,5 +196,5 @@ reports pass/fail for each check. Validate the generated pathway data
 separately:
 
 ```sh
-npx fit-map validate --data=examples/pathway
+npx fit-map validate
 ```

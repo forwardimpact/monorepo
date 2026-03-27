@@ -317,7 +317,6 @@ back.
 | Environment  | `.env*` (root)                       |
 | Scripts      | `scripts/env.sh`, `scripts/env-*.js` |
 | Runtime data | `data/`                              |
-| Example data | `examples/organizational/`           |
 
 ## Common Tasks
 
@@ -332,13 +331,13 @@ make cli-chat           # Verify end-to-end
 
 `make quickstart` chains: `env-setup` → `generate-cached` → `data-init` →
 `codegen` → `process-fast`. It generates synthetic organizational content from
-the prose cache, copies it to `data/knowledge/`, and processes all resources.
+the prose cache directly into `data/`, and processes all resources.
 
 For individual steps or custom generation:
 
 ```sh
 make generate-full      # Generate with LLM prose (requires LLM_TOKEN)
-make data-init          # Create data dirs, copy examples/organizational/ → data/knowledge/
+make data-init          # Create data directories
 make process            # Full processing including vectors (requires TEI)
 ```
 
@@ -367,10 +366,8 @@ make rc-start
 
 ### Ingest New Knowledge
 
-1. Generate or obtain HTML files (e.g., `npx fit-universe --cached`)
-2. Copy HTML to `data/knowledge/` (e.g.,
-   `cp examples/organizational/*.html data/knowledge/`)
-3. Run `make process-resources` to create resources
+1. Generate HTML files (e.g., `npx fit-universe --cached` writes directly to `data/knowledge/`)
+2. Run `make process-resources` to create resources
 4. Run `make process-graphs` to build graph index
 5. Run `make process-vectors` to build vector index (requires TEI)
 

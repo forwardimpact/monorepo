@@ -53,7 +53,7 @@ quickly verify data is loading correctly after changes.
 ## Data Structure
 
 ```
-data/pathway/              (or examples/pathway/ fallback, or ./data/ in org projects)
+data/pathway/              (resolved via Finder.findData upward traversal)
 ├── framework.yaml         # Framework metadata, entity definitions
 ├── levels.yaml            # Career levels (J040, J060, etc.)
 ├── stages.yaml            # Lifecycle stages (plan, code, review, etc.)

@@ -163,15 +163,13 @@ npx fit-pathway skill <id> --agent  # Output as agent SKILL.md format
 
 ## Data Resolution
 
-The CLI resolves data in this order:
+The CLI resolves data via `Finder.findData` from `@forwardimpact/libutil`:
 
-1. `--data=<path>` flag (explicit)
-2. `PATHWAY_DATA` environment variable
-3. `~/.fit/pathway/data/` (engineer install)
-4. `./data/pathway/` (monorepo primary)
-5. `./examples/pathway/` (monorepo fallback)
-6. `./data/` (organization project)
-7. `./examples/` (standalone fallback)
+1. `--data=<path>` flag (explicit override)
+2. Upward traversal from CWD — `findUpward` looking for `data/` (up to 3 parents)
+3. `~/.fit/data/` (user-global fallback)
+
+The method returns the base `data/` path; pathway appends `pathway/`.
 
 ---
 
