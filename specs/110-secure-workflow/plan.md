@@ -87,36 +87,33 @@ Add step before the publish step:
 
 **File:** `.github/workflows/check.yml`
 
-Add a new `secrets` job:
+Add a new `audit` job that runs `make audit` — the single Makefile target that
+combines npm audit and gitleaks (see step 9). This keeps CI and local developer
+workflows identical.
+
 ```yaml
-secrets:
+audit:
   runs-on: ubuntu-latest
   steps:
     - uses: actions/checkout@{SHA} # v4
       with:
         fetch-depth: 0
-    - uses: gitleaks/gitleaks-action@{SHA} # v2
-      env:
-        GITLEAKS_LICENSE: ""
-```
-
-Note: `gitleaks-action` v2 works without a license key for public repos. For
-private repos, use a direct install approach instead:
-
-```yaml
-secrets:
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@{SHA} # v4
+    - uses: actions/setup-node@{SHA} # v4
       with:
-        fetch-depth: 0
+        node-version: 22
+        cache: npm
+    - run: npm ci
     - name: Install gitleaks
       run: |
         curl -sSfL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_8.24.3_linux_x64.tar.gz | tar xz
         sudo mv gitleaks /usr/local/bin/
-    - name: Run gitleaks
-      run: gitleaks detect --source . --verbose
+    - name: Run audit
+      run: make audit
 ```
+
+The job installs gitleaks from the official release, then delegates to
+`make audit` which runs both `npm audit` and `gitleaks detect`. One target,
+same checks locally and in CI.
 
 ### 5b. Gitleaks config
 
@@ -228,19 +225,29 @@ Harmonize version ranges for shared dependencies:
 
 After changes: `npm install` to regenerate lockfile, then run tests.
 
-## 9. Update Makefile Security Target
+## 9. Rename and Centralize `make audit`
 
-Enhance the existing `make security` target and add it to `check`.
+Rename the existing `make audit` target to `make audit` and expand it to run
+both npm audit and gitleaks in a single command. This is the single source of
+truth for security checks — CI runs `make audit`, developers run `make audit`,
+the pre-commit hook runs gitleaks directly (staged files only).
 
 **File:** `Makefile`
 
+Replace the existing target:
 ```makefile
-security:  ## Run security audit
+.PHONY: audit
+audit:  ## Run security audit (npm vulnerabilities + secret scanning)
 	@npm audit --audit-level=high --workspaces
+	@echo ""
+	@if command -v gitleaks >/dev/null 2>&1; then \
+		gitleaks detect --source . --verbose; \
+	else \
+		echo "Warning: gitleaks not installed, skipping secret scan"; \
+	fi
 ```
 
-Change from `--audit-level=low` to `--audit-level=high` to focus on actionable
-vulnerabilities.
+Delete the old `security` target entirely — clean break, no alias.
 
 ## 10. Create SECURITY.md
 
@@ -274,7 +281,7 @@ tooling and the new security checks:
   security rules, `npm audit`, CI secret scanning
 - **Before Submitting a PR** checklist:
   - `npm run check` passes (format, lint, test, validate)
-  - `make security` passes (npm audit)
+  - `make audit` passes (npm audit)
   - No secrets or credentials in commits
   - Dependencies: use existing packages (e.g. `yaml` not `js-yaml`), align
     version ranges with existing usage
@@ -300,8 +307,8 @@ Add a new `## Security` section after the `## Code Style` section. Contents:
   staged changes for secrets before every commit.
 - **Secret scanning** — Never commit `.env` files, API keys, tokens, or
   credentials. The CI runs gitleaks on every PR.
-- **npm audit** — `make security` runs `npm audit --audit-level=high`. Publish
-  workflows block on audit failures.
+- **Audit** — `make audit` runs npm audit and gitleaks in one command. The same
+  target runs in CI and locally. Publish workflows block on audit failures.
 - **ESLint security** — `eslint-plugin-security` is enabled. Do not disable
   security rules without justification.
 - **Dependency policy** — Minimize external dependencies. Use `yaml` (not
@@ -319,7 +326,7 @@ Add a new `## Security` section after the `## Code Style` section. Contents:
 Add to the existing "Before Committing" numbered list (after step 3):
 
 ```markdown
-4. Run `make security` to check for known vulnerabilities
+4. Run `make audit` to check for vulnerabilities and leaked secrets
 ```
 
 (Renumber subsequent steps accordingly.)
@@ -334,7 +341,7 @@ security workflows.
 Add a security note to the skill referencing:
 - Pre-commit hooks: `make install-hooks`
 - Secret generation uses `libsecret` — never hardcode secrets
-- `make security` for audit checks
+- `make audit` for npm audit + gitleaks secret scanning
 
 **File:** `.claude/skills/libs-web-presentation/SKILL.md`
 
@@ -366,10 +373,11 @@ After all changes:
 3. `npm run check:fix` + `npm run check` (ensure green)
 4. GitHub Actions hardening (SHA pins, permissions, audit gate)
 5. Dependabot config
-6. Gitleaks config + CI job + pre-commit hook script
-7. Makefile updates (install-hooks, security target)
-8. Create SECURITY.md
-9. Create CONTRIBUTING.md
-10. Update CLAUDE.md (Security section + Before Committing checklist)
-11. Update Claude skills (libs-system-utilities, libs-web-presentation)
-12. Final `npm run check` + commit
+6. Gitleaks config + pre-commit hook script
+7. Makefile updates (rename `security` → `audit` with npm audit + gitleaks, add `install-hooks`)
+8. CI audit job (`make audit` in check.yml)
+9. Create SECURITY.md
+10. Create CONTRIBUTING.md
+11. Update CLAUDE.md (Security section + Before Committing checklist)
+12. Update Claude skills (libs-system-utilities, libs-web-presentation)
+13. Final `npm run check` + commit
