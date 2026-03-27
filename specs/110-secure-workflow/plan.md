@@ -9,10 +9,43 @@ open-source tools with no additional infrastructure.
 
 ---
 
-## 1. Pin GitHub Actions to SHA Hashes
+## 1. Reduce and Pin Third-Party GitHub Actions
 
-All workflows use version tags (`@v4`) which are mutable. Pin to commit SHAs for
-supply-chain safety. Add a comment with the version tag for readability.
+### Supply chain assessment
+
+| Action | Maintainer | Risk | Decision |
+|--------|-----------|------|----------|
+| `actions/checkout` | GitHub (first-party) | Low | **Keep** — pin to SHA |
+| `actions/setup-node` | GitHub (first-party) | Low | **Keep** — pin to SHA |
+| `actions/configure-pages` | GitHub (first-party) | Low | **Keep** — pin to SHA |
+| `actions/upload-pages-artifact` | GitHub (first-party) | Low | **Keep** — pin to SHA |
+| `actions/deploy-pages` | GitHub (first-party) | Low | **Keep** — pin to SHA |
+| `denoland/setup-deno` | Deno (official org) | Low | **Keep** — pin to SHA |
+| `softprops/action-gh-release` | Personal maintainer | **Medium** | **Remove** — replace with `gh` CLI |
+
+**`softprops/action-gh-release`** is the only action not maintained by a
+first-party org. It is a personal project (softprops = Doug Tangren). The usage
+in `publish-macos.yml` is straightforward — create a release with a tag, name,
+auto-generated notes, and one file attachment. The pre-installed `gh` CLI on
+GitHub-hosted runners does this natively with zero third-party dependency:
+
+```yaml
+- name: Create GitHub Release
+  run: |
+    gh release create "${{ steps.meta.outputs.tag }}" \
+      --title "Basecamp ${{ steps.meta.outputs.version }}" \
+      --generate-notes \
+      products/basecamp/${{ steps.verify.outputs.pkg_file }}
+  env:
+    GH_TOKEN: ${{ github.token }}
+```
+
+This eliminates the only non-org third-party action in the repo.
+
+### Actions to pin (look up current SHAs at implementation time)
+
+After removing `softprops/action-gh-release`, only first-party and official org
+actions remain:
 
 **Files to modify:**
 - `.github/workflows/check.yml`
@@ -21,14 +54,11 @@ supply-chain safety. Add a comment with the version tag for readability.
 - `.github/workflows/publish-skills.yml`
 - `.github/workflows/website.yaml`
 
-**Actions to pin (look up current SHAs at implementation time):**
-
 | Action | Current | Pin to SHA |
 |--------|---------|------------|
 | `actions/checkout` | `@v4` | SHA + `# v4` comment |
 | `actions/setup-node` | `@v4` | SHA + `# v4` comment |
 | `denoland/setup-deno` | `@v2` | SHA + `# v2` comment |
-| `softprops/action-gh-release` | `@v2` | SHA + `# v2` comment |
 | `actions/configure-pages` | `@v5` | SHA + `# v5` comment |
 | `actions/upload-pages-artifact` | `@v3` | SHA + `# v3` comment |
 | `actions/deploy-pages` | `@v4` | SHA + `# v4` comment |
