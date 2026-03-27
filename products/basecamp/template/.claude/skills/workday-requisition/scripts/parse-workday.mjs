@@ -19,10 +19,8 @@
  *   node scripts/parse-workday.mjs <path-to-xlsx> --summary
  *   node scripts/parse-workday.mjs -h|--help
  *
- * Requires: npm install xlsx
+ * Requires: npm install read-excel-file
  */
-
-import { readFileSync } from "node:fs";
 
 if (
   process.argv.includes("-h") ||
@@ -39,16 +37,16 @@ Usage:
 Output (JSON):
   { requisition: { id, title, ... }, candidates: [ { name, ... }, ... ] }
 
-Requires: npm install xlsx`);
+Requires: npm install read-excel-file`);
   process.exit(process.argv.length < 3 ? 1 : 0);
 }
 
-let XLSX;
+let readXlsxFile;
 try {
-  XLSX = await import("xlsx");
+  readXlsxFile = (await import("read-excel-file/node")).default;
 } catch {
   console.error(
-    "Error: xlsx package not found. Install it first:\n  npm install xlsx",
+    "Error: read-excel-file package not found. Install it first:\n  npm install read-excel-file",
   );
   process.exit(1);
 }
@@ -56,13 +54,20 @@ try {
 const filePath = process.argv[2];
 const summaryMode = process.argv.includes("--summary");
 
-const data = readFileSync(filePath);
-const wb = XLSX.read(data, { type: "buffer", cellDates: true });
+/** Read a sheet by number (1-indexed) or name, returning rows as arrays of strings. */
+async function readSheet(file, sheet) {
+  const rows = await readXlsxFile(file, { sheet });
+  // Normalise null cells to empty strings to match previous behaviour
+  return rows.map((row) => row.map((cell) => (cell == null ? "" : cell)));
+}
+
+// Get sheet names to find the candidates sheet
+const sheets = await readXlsxFile(filePath, { getSheets: true });
+const sheetNames = sheets.map((s) => s.name);
 
 // --- Sheet 1: Requisition metadata ---
 
-const ws1 = wb.Sheets[wb.SheetNames[0]];
-const sheet1Rows = XLSX.utils.sheet_to_json(ws1, { header: 1, defval: "" });
+const sheet1Rows = await readSheet(filePath, 1);
 
 /** Extract the requisition ID and title from the header row. */
 function parseReqHeader(headerText) {
@@ -113,10 +118,9 @@ const requisition = {
 //   - Old format: 3+ sheets, candidates on a sheet named "Candidates" or Sheet3
 //   - New format: 2 sheets, candidates on Sheet2
 const candSheetName =
-  wb.SheetNames.find((n) => n.toLowerCase() === "candidates") ||
-  wb.SheetNames[Math.min(2, wb.SheetNames.length - 1)];
-const ws3 = wb.Sheets[candSheetName];
-const candRows = XLSX.utils.sheet_to_json(ws3, { header: 1, defval: "" });
+  sheetNames.find((n) => n.toLowerCase() === "candidates") ||
+  sheetNames[Math.min(2, sheetNames.length - 1)];
+const candRows = await readSheet(filePath, candSheetName);
 
 // Find the header row dynamically — look for a row containing "Stage"
 // Old format: row 3 (index 2). New format: row 8 (index 7).

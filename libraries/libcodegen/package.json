@@ -17,12 +17,12 @@
   },
   "dependencies": {
     "@grpc/proto-loader": "^0.8.0",
-    "mustache": "^4.2.0",
-    "protobufjs": "^7.5.4",
-    "protobufjs-cli": "^1.2.0"
+    "mustache": "^4.2.0"
   },
   "devDependencies": {
-    "@forwardimpact/libharness": "^0.1.5"
+    "@forwardimpact/libharness": "^0.1.5",
+    "protobufjs": "^7.5.4",
+    "protobufjs-cli": "^2.0.0"
   },
   "publishConfig": {
     "access": "public"

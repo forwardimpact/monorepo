@@ -30,7 +30,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "xlsx": "^0.18.5"
+    "read-excel-file": "^7.0.3"
   },
   "publishConfig": {
     "access": "public"

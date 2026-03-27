@@ -28,9 +28,9 @@ Run this skill:
 
 - A Workday requisition export file (`.xlsx`) accessible on the filesystem
   (typically in `~/Downloads/`)
-- The `xlsx` npm package installed in the KB root:
+- The `read-excel-file` npm package installed in the KB root:
   ```bash
-  npm install xlsx
+  npm install read-excel-file
   ```
 - User identity configured in `USER.md`
 
@@ -135,9 +135,9 @@ Names may include parenthetical annotations:
 
 1. Read `USER.md` to get the user's name, email, and domain.
 2. Confirm the XLSX file path with the user (or use the provided path).
-3. Ensure the `xlsx` package is installed:
+3. Ensure the `read-excel-file` package is installed:
    ```bash
-   npm list xlsx 2>/dev/null || npm install xlsx
+   npm list read-excel-file 2>/dev/null || npm install read-excel-file
    ```
 
 ## Step 1: Parse the Export
