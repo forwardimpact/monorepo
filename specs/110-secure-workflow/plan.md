@@ -383,6 +383,111 @@ Add a dependency note:
 No changes needed to other skills — the CLAUDE.md security section covers the
 general rules that all skills inherit.
 
+## 13. Create `security-audit` Claude Skill
+
+**New file:** `.claude/skills/security-audit/SKILL.md`
+
+A skill that guides Claude to perform a holistic security review of the
+monorepo. Unlike the other skills (which are about building specific products or
+using specific libraries), this skill articulates security principles and tells
+the agent what to look for — not how to fix it.
+
+The skill should be principle-driven, not prescriptive. It defines what "secure"
+means for this repo and lets the agent reason about violations.
+
+### Frontmatter
+
+```yaml
+---
+name: security-audit
+description: >
+  Perform a holistic security review of the monorepo. Assess GitHub Actions
+  supply chain, dependency hygiene, credential leak controls, CI audit gates,
+  and application-level vulnerabilities. Use when reviewing PRs for security
+  impact, auditing the repo posture, or investigating a reported vulnerability.
+---
+```
+
+### Content structure
+
+The skill body should cover the following areas as **principles with
+check-items**, not step-by-step instructions:
+
+**1. Supply Chain — GitHub Actions**
+- All third-party actions must be pinned to full SHA hashes with a version
+  comment (`# v4`). Tag-only references (`@v4`) are not acceptable.
+- Only first-party (GitHub `actions/*`) or official org actions are permitted.
+  Personal-maintainer actions must be replaced with CLI equivalents (e.g.
+  `gh release create` instead of `softprops/action-gh-release`).
+- All workflows must declare explicit `permissions` with least privilege.
+- Dependabot must be configured to propose updates to action SHAs.
+
+**2. Supply Chain — npm Dependencies**
+- Minimize the number of external dependencies. Before adding a new package,
+  check if an existing dependency or Node.js built-in can serve the same
+  purpose.
+- No duplicate packages serving the same purpose (e.g. two YAML parsers, two
+  markdown renderers). Consolidate to one.
+- Version ranges for the same package must be aligned across all workspaces.
+- `npm audit --audit-level=high` must pass. Publish workflows must gate on
+  audit results.
+
+**3. Credential & Secret Leak Prevention**
+- `.env` files, API keys, tokens, and credentials must never be committed.
+  `.gitignore` must cover all sensitive file patterns.
+- Gitleaks must be configured with a `.gitleaks.toml` allowlist for known
+  false positives (e.g. `.env.*.example` files).
+- A pre-commit hook must run gitleaks on staged changes.
+- CI must run gitleaks on every push and pull request.
+- Secrets in GitHub Actions must use `secrets.*` — never hardcode values in
+  workflow files.
+
+**4. Static Analysis**
+- ESLint must include `eslint-plugin-security` recommended rules.
+- Security rules must not be disabled without explicit justification in a
+  comment.
+
+**5. Application Security (OWASP Top 10)**
+
+When reviewing application code, check for:
+- **Injection** — Unsanitized user input in shell commands (`child_process`),
+  database queries, or template rendering. Prefer parameterized APIs.
+- **Broken Authentication** — Hardcoded credentials, weak token generation,
+  missing token expiry.
+- **Sensitive Data Exposure** — Secrets logged to console or trace output,
+  error messages leaking internal paths or stack traces to clients.
+- **Security Misconfiguration** — Overly permissive CORS, missing security
+  headers, debug mode enabled in production configs.
+- **Vulnerable Components** — Dependencies with known CVEs (`npm audit`),
+  outdated packages with unpatched vulnerabilities.
+- **Insufficient Logging** — Security-relevant events (auth failures, access
+  denied, config changes) not logged.
+- **Server-Side Request Forgery (SSRF)** — User-controlled URLs passed to
+  `fetch`/`undici` without validation.
+- **Insecure Deserialization** — Untrusted YAML/JSON parsed without schema
+  validation (all YAML data should be validated against JSON Schema via
+  `fit-map validate`).
+
+**6. CI/CD Security**
+- The `make audit` target must be the single source of truth for security
+  checks, running both npm audit and gitleaks.
+- Publish workflows must not run if audit checks fail.
+- CI and local developer workflows must run the same checks (same Makefile
+  target).
+
+**7. Audit Workflow**
+
+Provide guidance on how to perform a review:
+- Run `make audit` locally and report findings.
+- Review `.github/workflows/` for unpinned actions, missing permissions,
+  exposed secrets.
+- Review `package.json` files for unnecessary or duplicate dependencies.
+- Review `.gitignore` and `.gitleaks.toml` for coverage gaps.
+- Review `eslint.config.js` for disabled security rules.
+- Grep for common vulnerability patterns: `eval(`, `child_process.exec(`,
+  `innerHTML`, `dangerouslySetInnerHTML`, `new Function(`, unsanitized
+  template literals in SQL/shell contexts.
+
 ---
 
 ## Verification
@@ -410,4 +515,5 @@ After all changes:
 10. Create CONTRIBUTING.md
 11. Update CLAUDE.md (Security section + Before Committing checklist)
 12. Update Claude skills (libs-system-utilities, libs-web-presentation)
-13. Final `npm run check` + commit
+13. Create `security-audit` Claude skill
+14. Final `npm run check` + commit
