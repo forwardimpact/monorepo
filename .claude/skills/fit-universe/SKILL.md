@@ -40,12 +40,12 @@ npx fit-universe --universe=path     # Custom universe file
 
 Use `--only=<type>` to generate a single content type:
 
-| Type       | Output Directory   | Contents                        |
-| ---------- | ------------------ | ------------------------------- |
-| `html`     | `data/knowledge`   | Articles, guides, FAQs, courses |
-| `pathway`  | `data/pathway`     | YAML framework files            |
-| `raw`      | `data/activity`    | Roster, GitHub events, evidence |
-| `markdown` | `data/personal`    | Briefings, notes, KB content    |
+| Type       | Output Directory | Contents                        |
+| ---------- | ---------------- | ------------------------------- |
+| `html`     | `data/knowledge` | Articles, guides, FAQs, courses |
+| `pathway`  | `data/pathway`   | YAML framework files            |
+| `raw`      | `data/activity`  | Roster, GitHub events, evidence |
+| `markdown` | `data/personal`  | Briefings, notes, KB content    |
 
 ### Prose Modes
 

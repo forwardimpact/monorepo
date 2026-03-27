@@ -54,6 +54,20 @@ function showLoading() {
 }
 
 /**
+ * Escape HTML special characters to prevent XSS
+ * @param {string} text
+ * @returns {string}
+ */
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/**
  * Render error slide
  * @param {string} title
  * @param {string} message
@@ -62,8 +76,8 @@ function renderError(title, message) {
   const container = getSlideContent();
   container.innerHTML = `
     <div class="slide-error">
-      <h1>${title}</h1>
-      <p>${message}</p>
+      <h1>${escapeHtml(title)}</h1>
+      <p>${escapeHtml(message)}</p>
       <a href="#/">← Back to Index</a>
     </div>
   `;

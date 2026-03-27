@@ -9,7 +9,7 @@
 import { cp, mkdir, rm, readFile, writeFile, access } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
-import { execFileSync, execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { createDataLoader } from "@forwardimpact/map/loader";
 
 const INSTALL_DIR = join(homedir(), ".fit", "pathway");
@@ -112,9 +112,13 @@ export async function runUpdateCommand({ dataDir: _dataDir, options }) {
     // 6. Update global pathway package if version changed
     if (oldVersion !== newVersion) {
       console.log(`   Updating pathway ${oldVersion} → ${newVersion}...`);
-      execSync(`npm install -g @forwardimpact/pathway@${newVersion}`, {
-        stdio: "ignore",
-      });
+      execFileSync(
+        "npm",
+        ["install", "-g", `@forwardimpact/pathway@${newVersion}`],
+        {
+          stdio: "ignore",
+        },
+      );
       console.log("   ✓ Global package updated");
     }
 

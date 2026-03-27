@@ -366,10 +366,11 @@ make rc-start
 
 ### Ingest New Knowledge
 
-1. Generate HTML files (e.g., `npx fit-universe --cached` writes directly to `data/knowledge/`)
+1. Generate HTML files (e.g., `npx fit-universe --cached` writes directly to
+   `data/knowledge/`)
 2. Run `make process-resources` to create resources
-4. Run `make process-graphs` to build graph index
-5. Run `make process-vectors` to build vector index (requires TEI)
+3. Run `make process-graphs` to build graph index
+4. Run `make process-vectors` to build vector index (requires TEI)
 
 ## Verification
 

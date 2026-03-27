@@ -3,6 +3,20 @@
  */
 
 /**
+ * Escape HTML special characters to prevent XSS
+ * @param {string} text
+ * @returns {string}
+ */
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/**
  * @typedef {Object} RadarDataPoint
  * @property {string} label - Label for this axis
  * @property {number} value - Current value
@@ -393,9 +407,9 @@ export class RadarChart {
     const y = event.clientY - rect.top;
 
     this.tooltip.innerHTML = `
-      <strong>${data.label}</strong><br>
+      <strong>${escapeHtml(data.label)}</strong><br>
       Value: ${data.value}/${data.maxValue}
-      ${data.description ? `<br><small>${data.description}</small>` : ""}
+      ${data.description ? `<br><small>${escapeHtml(data.description)}</small>` : ""}
     `;
 
     this.tooltip.style.left = `${x + 10}px`;
@@ -815,9 +829,9 @@ export class ComparisonRadarChart {
     const typeLabel = type === "current" ? "Current" : "Target";
 
     this.tooltip.innerHTML = `
-      <strong>${data.label}</strong><br>
+      <strong>${escapeHtml(data.label)}</strong><br>
       ${typeLabel}: ${data.value}/${data.maxValue}
-      ${data.description ? `<br><small>${data.description}</small>` : ""}
+      ${data.description ? `<br><small>${escapeHtml(data.description)}</small>` : ""}
     `;
 
     this.tooltip.style.left = `${x + 10}px`;
@@ -844,7 +858,7 @@ export class ComparisonRadarChart {
           : "<span style='color: #94a3b8'>No change</span>";
 
     this.tooltip.innerHTML = `
-      <strong>${currentData.label}</strong><br>
+      <strong>${escapeHtml(currentData.label)}</strong><br>
       Current: ${currentData.value}/${currentData.maxValue}<br>
       Target: ${targetData.value}/${targetData.maxValue}<br>
       ${diffText}

@@ -166,7 +166,8 @@ npx fit-pathway skill <id> --agent  # Output as agent SKILL.md format
 The CLI resolves data via `Finder.findData` from `@forwardimpact/libutil`:
 
 1. `--data=<path>` flag (explicit override)
-2. Upward traversal from CWD — `findUpward` looking for `data/` (up to 3 parents)
+2. Upward traversal from CWD — `findUpward` looking for `data/` (up to 3
+   parents)
 3. `~/.fit/data/` (user-global fallback)
 
 The method returns the base `data/` path; pathway appends `pathway/`.

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import fsAsync from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { parseArgs } from "node:util";
 
 import protoLoader from "@grpc/proto-loader";
@@ -42,10 +42,13 @@ async function createBundle(sourcePath) {
 
   // Create tar.gz archive using system tar command
   try {
-    const directoriesArg = directories.join(" ");
-    execSync(`tar -czf "${bundlePath}" -C "${sourcePath}" ${directoriesArg}`, {
-      stdio: "pipe",
-    });
+    execFileSync(
+      "tar",
+      ["-czf", bundlePath, "-C", sourcePath, ...directories],
+      {
+        stdio: "pipe",
+      },
+    );
   } catch (error) {
     throw new Error(`Failed to create bundle: ${error.message}`);
   }
