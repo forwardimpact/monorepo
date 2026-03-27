@@ -257,6 +257,79 @@ describe("Finder", () => {
     });
   });
 
+  describe("findData", () => {
+    test("finds data/ in CWD via findUpward", () => {
+      const dataDir = path.join(tempDir, "data");
+      fs.mkdirSync(dataDir);
+
+      const cwdFinder = new Finder(fsPromises, mockLogger, {
+        cwd: () => tempDir,
+      });
+      const result = cwdFinder.findData("data", "/nonexistent-home");
+
+      assert.strictEqual(result, dataDir);
+    });
+
+    test("finds data/ in a parent directory via findUpward", () => {
+      const dataDir = path.join(tempDir, "data");
+      fs.mkdirSync(dataDir);
+      const subDir = path.join(tempDir, "products", "pathway");
+      fs.mkdirSync(subDir, { recursive: true });
+
+      const cwdFinder = new Finder(fsPromises, mockLogger, {
+        cwd: () => subDir,
+      });
+      const result = cwdFinder.findData("data", "/nonexistent-home");
+
+      assert.strictEqual(result, dataDir);
+    });
+
+    test("falls back to ~/.fit/data/ when CWD traversal fails", () => {
+      const fakeHome = path.join(tempDir, "fakehome");
+      const homeFitData = path.join(fakeHome, ".fit", "data");
+      fs.mkdirSync(homeFitData, { recursive: true });
+
+      const isolatedDir = path.join(tempDir, "isolated");
+      fs.mkdirSync(isolatedDir);
+
+      const cwdFinder = new Finder(fsPromises, mockLogger, {
+        cwd: () => isolatedDir,
+      });
+      const result = cwdFinder.findData("data", fakeHome);
+
+      assert.strictEqual(result, homeFitData);
+    });
+
+    test("throws when neither CWD traversal nor HOME fallback finds directory", () => {
+      const isolatedDir = path.join(tempDir, "isolated");
+      fs.mkdirSync(isolatedDir);
+
+      const cwdFinder = new Finder(fsPromises, mockLogger, {
+        cwd: () => isolatedDir,
+      });
+
+      assert.throws(() => cwdFinder.findData("data", "/nonexistent-home"), {
+        message: /No data directory found/,
+      });
+    });
+
+    test("CWD takes priority over HOME when both exist", () => {
+      const cwdData = path.join(tempDir, "data");
+      fs.mkdirSync(cwdData);
+
+      const fakeHome = path.join(tempDir, "fakehome");
+      const homeFitData = path.join(fakeHome, ".fit", "data");
+      fs.mkdirSync(homeFitData, { recursive: true });
+
+      const cwdFinder = new Finder(fsPromises, mockLogger, {
+        cwd: () => tempDir,
+      });
+      const result = cwdFinder.findData("data", fakeHome);
+
+      assert.strictEqual(result, cwdData);
+    });
+  });
+
   describe("findPackagePath", () => {
     test("finds package in local monorepo structure", () => {
       // Create mock monorepo structure

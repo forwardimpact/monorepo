@@ -12,9 +12,12 @@
  *   --help                      Show help
  */
 
-import { stat } from "fs/promises";
+import fs from "fs/promises";
 import { join, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { homedir } from "os";
+import { Finder } from "@forwardimpact/libutil";
+import { createLogger } from "@forwardimpact/libtelemetry";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -49,45 +52,30 @@ function parseArgs(args) {
 }
 
 /**
- * Check if a directory exists
- */
-async function dirExists(path) {
-  try {
-    const stats = await stat(path);
-    return stats.isDirectory();
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Find the data directory
+ * @param {string|undefined} providedPath - Explicit path from --data flag
+ * @returns {Promise<string>} Resolved data directory path
  */
 async function findDataDir(providedPath) {
   if (providedPath) {
     const resolved = resolve(providedPath);
-    if (await dirExists(resolved)) {
-      return resolved;
+    try {
+      await fs.access(resolved);
+    } catch {
+      throw new Error(`Data directory not found: ${providedPath}`);
     }
-    throw new Error(`Data directory not found: ${providedPath}`);
+    return resolved;
   }
 
-  const candidates = [
-    join(process.cwd(), "data/pathway"),
-    join(process.cwd(), "examples/pathway"),
-    join(process.cwd(), "data"),
-    join(process.cwd(), "examples"),
-  ];
-
-  for (const candidate of candidates) {
-    if (await dirExists(candidate)) {
-      return candidate;
-    }
+  const logger = createLogger("map");
+  const finder = new Finder(fs, logger, process);
+  try {
+    return join(finder.findData("data", homedir()), "pathway");
+  } catch {
+    throw new Error(
+      "No data directory found. Use --data=<path> to specify location.",
+    );
   }
-
-  throw new Error(
-    "No data directory found. Use --data=PATH to specify location.",
-  );
 }
 
 /**

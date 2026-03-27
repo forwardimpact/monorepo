@@ -190,26 +190,19 @@ async function main() {
       }
     } else if (!args.dryRun) {
       for (const [storagePath, content] of result.rawDocuments) {
-        const fullPath = join(
-          monorepoRoot,
-          "examples/activity/raw",
-          storagePath,
-        );
+        const fullPath = join(monorepoRoot, "data/activity/raw", storagePath);
         await mkdir(dirname(fullPath), { recursive: true });
         await writeFile(fullPath, content);
       }
       console.log(
-        `${result.rawDocuments.size} raw documents written to examples/activity/raw/`,
+        `${result.rawDocuments.size} raw documents written to data/activity/raw/`,
       );
     }
 
     // Write evidence directly (no raw source system for evidence)
     const evidence = result.entities.activity?.evidence;
     if (evidence && !args.dryRun && !args.load) {
-      const evidencePath = join(
-        monorepoRoot,
-        "examples/activity/evidence.json",
-      );
+      const evidencePath = join(monorepoRoot, "data/activity/evidence.json");
       await mkdir(dirname(evidencePath), { recursive: true });
       const formatted = await formatContent(
         evidencePath,
@@ -296,10 +289,10 @@ Prose modes:
   --generate          Call LLM to generate prose, write to cache
 
 Content types:
-  html                Organizational articles, guides, FAQs (examples/organizational)
-  pathway             YAML framework files (examples/pathway)
-  raw                 Roster, GitHub events, evidence (examples/activity)
-  markdown            Briefings, notes, KB content (examples/personal)
+  html                Organizational articles, guides, FAQs (data/knowledge)
+  pathway             YAML framework files (data/pathway)
+  raw                 Roster, GitHub events, evidence (data/activity)
+  markdown            Briefings, notes, KB content (data/personal)
 
 Examples:
   npx fit-universe                           # Structural only
