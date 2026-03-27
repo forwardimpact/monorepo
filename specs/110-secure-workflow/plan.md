@@ -7,6 +7,17 @@ linting, unpinned GitHub Actions, no audit gates on publish workflows, and
 duplicate/inconsistent dependencies. This plan addresses these gaps using simple
 open-source tools with no additional infrastructure.
 
+### Current State
+
+- **Existing `make security` target** — runs `npm audit --audit-level=low
+  --workspaces`. Will be replaced by `make audit` with higher severity threshold
+  and gitleaks.
+- **Permissions** — `check.yml` is the only workflow missing an explicit
+  `permissions` block. The other four workflows already declare least-privilege
+  permissions.
+- **`.gitignore`** — Already covers `**/.env`, `**/.env.*` with allowlist for
+  `.env.*.example`. No changes needed.
+
 ---
 
 ## 1. Reduce and Pin Third-Party GitHub Actions
@@ -40,7 +51,9 @@ GitHub-hosted runners does this natively with zero third-party dependency:
     GH_TOKEN: ${{ github.token }}
 ```
 
-This eliminates the only non-org third-party action in the repo.
+This eliminates the only non-org third-party action in the repo. The workflow
+already has `permissions: { contents: write }` which is required for
+`gh release create`.
 
 ### Actions to pin (look up current SHAs at implementation time)
 
@@ -65,8 +78,10 @@ actions remain:
 
 ## 2. Add Least-Privilege Permissions to check.yml
 
-`check.yml` has no `permissions` block — it inherits repo defaults. Add explicit
-minimal permissions.
+`check.yml` is the only workflow missing an explicit `permissions` block — it
+inherits repo defaults. The other workflows (`publish-npm.yml`,
+`publish-macos.yml`, `publish-skills.yml`, `website.yaml`) already declare
+explicit permissions. Add minimal permissions to `check.yml`.
 
 **File:** `.github/workflows/check.yml`
 
@@ -99,9 +114,12 @@ updates:
         update-types: [minor, patch]
 ```
 
-## 4. Add npm Audit Gate to Publish Workflow
+## 4. Add npm Audit Gate to Publish Workflows
 
 Block npm publish if there are known vulnerabilities at high/critical severity.
+The existing `make security` target uses `--audit-level=low` which is too noisy
+for a gate — `high` catches actionable vulnerabilities without blocking on
+low-severity advisories that often have no fix available.
 
 **File:** `.github/workflows/publish-npm.yml`
 
@@ -111,6 +129,16 @@ Add step before the publish step:
   run: npm audit --audit-level=high --workspaces
 ```
 
+**File:** `.github/workflows/publish-macos.yml`
+
+Add step before the build step:
+```yaml
+- name: Security audit
+  run: npm audit --audit-level=high --workspaces
+```
+
+This gates both publish pathways (npm packages and macOS installer).
+
 ## 5. Add Gitleaks Secret Scanning
 
 ### 5a. CI check (GitHub Actions)
@@ -119,7 +147,8 @@ Add step before the publish step:
 
 Add a new `audit` job that runs `make audit` — the single Makefile target that
 combines npm audit and gitleaks (see step 9). This keeps CI and local developer
-workflows identical.
+workflows identical. The job runs in parallel with the existing `check` job (no
+`needs:` dependency).
 
 ```yaml
 audit:
@@ -135,11 +164,19 @@ audit:
     - run: npm ci
     - name: Install gitleaks
       run: |
-        curl -sSfL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_8.24.3_linux_x64.tar.gz | tar xz
+        GITLEAKS_VERSION="8.24.3"
+        curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar xz
         sudo mv gitleaks /usr/local/bin/
     - name: Run audit
       run: make audit
 ```
+
+**Notes:**
+- `fetch-depth: 0` is required for gitleaks to scan full git history.
+- The gitleaks version is pinned explicitly. Update it via Dependabot or
+  manually when new versions ship.
+- The download URL uses the versioned release path (not `/latest/download/`)
+  to ensure reproducible installs.
 
 The job installs gitleaks from the official release, then delegates to
 `make audit` which runs both `npm audit` and `gitleaks detect`. One target,
@@ -193,7 +230,14 @@ install-hooks:  ## Install git pre-commit hooks
 	@sh scripts/install-hooks.sh
 ```
 
-Update the `quickstart` target to include `install-hooks`.
+Update the `quickstart` target to include `install-hooks`. Current definition:
+```makefile
+quickstart: env-setup generate-cached data-init codegen process-fast
+```
+Becomes:
+```makefile
+quickstart: env-setup generate-cached data-init codegen process-fast install-hooks
+```
 
 ## 6. Add ESLint Security Plugin
 
@@ -222,9 +266,10 @@ The `yaml` package (v2) is the modern, actively maintained YAML parser. `js-yaml
 (v4) is legacy. Consolidate to `yaml` across the monorepo.
 
 **Packages using `js-yaml`:**
-- `libraries/libdoc/package.json` — `frontmatter.js` imports it
-- `libraries/libtool/package.json` — `processor/tool.js` imports it
-- `libraries/libagent/package.json` — listed as dep but **not imported anywhere**
+- `libraries/libdoc/package.json` (`^4.1.1`) — `frontmatter.js` imports it
+- `libraries/libtool/package.json` (`^4.1.0`) — `processor/tool.js` imports it
+- `libraries/libagent/package.json` (`^4.1.1`) — listed as dep but **not
+  imported anywhere** (confirmed via grep — zero import/require statements)
 
 **Changes:**
 1. `libraries/libdoc/package.json`: Replace `js-yaml` with `yaml`
@@ -242,24 +287,33 @@ The `yaml` package (v2) is the modern, actively maintained YAML parser. `js-yaml
 
 Harmonize version ranges for shared dependencies:
 
-| Package | Current ranges | Align to |
-|---------|---------------|----------|
-| `ajv` | ^8.12.0 (libsyntheticprose), ^8.17.1 (map) | ^8.17.1 |
-| `ajv-formats` | ^2.1.1 (libsyntheticprose), ^3.0.1 (map) | ^3.0.1 |
-| `marked` | ^14.1.4 (libdoc), ^15.0.12 (libformat) | ^15.0.12 |
+| Package | Current ranges | Align to | Risk |
+|---------|---------------|----------|------|
+| `ajv` | ^8.12.0 (libsyntheticprose), ^8.17.1 (map) | ^8.17.1 | Minor bump, same major — low risk |
+| `ajv-formats` | ^2.1.1 (libsyntheticprose), ^3.0.1 (map) | ^3.0.1 | **Major version bump** — verify API compatibility |
+| `marked` | ^14.1.4 (libdoc), ^15.0.12 (libformat) | ^15.0.12 | **Major version bump** — verify API compatibility |
 
 **Files to modify:**
 - `libraries/libsyntheticprose/package.json`: bump ajv to ^8.17.1, ajv-formats
   to ^3.0.1
 - `libraries/libdoc/package.json`: bump marked to ^15.0.12
 
-After changes: `npm install` to regenerate lockfile, then run tests.
+**Important:** `ajv-formats` ^2 → ^3 and `marked` ^14 → ^15 are major version
+bumps. Before committing:
+1. Check the changelogs for breaking changes
+2. Review how each library uses the affected API (`ajvFormats(ajv)` call
+   pattern, `marked.parse()` options)
+3. Run tests for the affected packages: `npm test --workspace=@forwardimpact/libsyntheticprose --workspace=@forwardimpact/libdoc`
+
+After changes: `npm install` to regenerate lockfile, then run full tests.
 
 ## 9. Rename and Centralize `make audit`
 
-Rename the existing `make audit` target to `make audit` and expand it to run
-both npm audit and gitleaks in a single command. This is the single source of
-truth for security checks — CI runs `make audit`, developers run `make audit`,
+Rename the existing `make security` target (currently runs
+`npm audit --audit-level=low --workspaces`) to `make audit` and expand it to
+run both npm audit and gitleaks in a single command. Raise the audit level from
+`low` to `high` to match the publish gate threshold. This is the single source
+of truth for security checks — CI runs `make audit`, developers run `make audit`,
 the pre-commit hook runs gitleaks directly (staged files only).
 
 **File:** `Makefile`
@@ -277,7 +331,8 @@ audit:  ## Run security audit (npm vulnerabilities + secret scanning)
 	fi
 ```
 
-Delete the old `security` target entirely — clean break, no alias.
+Delete the old `security` target entirely — clean break, no alias. Update any
+references to `make security` in documentation or skills.
 
 ## 10. Create SECURITY.md
 
@@ -490,6 +545,17 @@ Provide guidance on how to perform a review:
 
 ---
 
+## Risks and Mitigations
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| `ajv-formats` ^2→^3 breaks libsyntheticprose | Build failure | Test before committing; review changelog for breaking changes |
+| `marked` ^14→^15 breaks libdoc | Build failure | Test before committing; review changelog for breaking changes |
+| `eslint-plugin-security` flags existing code | Lint failures | Run `npm run lint` early (step 2); fix or disable with justification |
+| Gitleaks flags false positives in history | CI audit job fails | Tune `.gitleaks.toml` allowlist; use `--no-git` for path-only scan if history is too noisy |
+| SHA pins go stale | Missed security updates | Dependabot auto-proposes updates weekly |
+| `npm audit --audit-level=high` blocks publish on unfixable advisory | Cannot publish | Temporarily add advisory to `.npmrc` `audit-ignore` or lower threshold; document the exception |
+
 ## Verification
 
 After all changes:
@@ -500,20 +566,29 @@ After all changes:
 4. `gitleaks detect --source . --verbose` — Verify no existing leaks flagged
 5. Review each modified workflow file for correct SHA pins
 6. Test pre-commit hook: `sh scripts/install-hooks.sh && echo "test" > .env.test && git add .env.test` — should warn about potential secret
+7. Verify `make audit` runs both npm audit and gitleaks
+8. Verify `js-yaml` no longer appears in any `package.json`
 
 ## Order of Operations
 
-1. Dependency consolidation (YAML parsers, version alignment) + `npm install`
-2. ESLint security plugin install + config update
-3. `npm run check:fix` + `npm run check` (ensure green)
-4. GitHub Actions hardening (SHA pins, permissions, audit gate)
-5. Dependabot config
-6. Gitleaks config + pre-commit hook script
-7. Makefile updates (rename `security` → `audit` with npm audit + gitleaks, add `install-hooks`)
-8. CI audit job (`make audit` in check.yml)
-9. Create SECURITY.md
-10. Create CONTRIBUTING.md
-11. Update CLAUDE.md (Security section + Before Committing checklist)
-12. Update Claude skills (libs-system-utilities, libs-web-presentation)
-13. Create `security-audit` Claude skill
-14. Final `npm run check` + commit
+Each numbered step is one logical commit. Run `npm run check` at gates marked
+with ✓ to catch breakage early.
+
+1. **Dependency consolidation** — Replace `js-yaml` with `yaml` in libdoc,
+   libtool; remove unused `js-yaml` from libagent; align ajv, ajv-formats,
+   marked versions; `npm install` ✓
+2. **ESLint security plugin** — Install `eslint-plugin-security`, update
+   `eslint.config.js`; `npm run check:fix` ✓
+3. **GitHub Actions hardening** — Pin all actions to SHA, add permissions to
+   `check.yml`, replace `softprops/action-gh-release` with `gh` CLI, add audit
+   gate to publish workflows
+4. **Dependabot config** — Add `.github/dependabot.yml`
+5. **Gitleaks + pre-commit hook** — Add `.gitleaks.toml`, `scripts/install-hooks.sh`
+6. **Makefile updates** — Rename `security` → `audit` (npm audit + gitleaks),
+   add `install-hooks` target, add to `quickstart`
+7. **CI audit job** — Add `audit` job to `check.yml` (runs `make audit`)
+8. **Documentation** — Create `SECURITY.md`, `CONTRIBUTING.md`
+9. **CLAUDE.md + skills** — Add Security section, update Before Committing
+   checklist, update libs-system-utilities and libs-web-presentation skills
+10. **Security audit skill** — Create `.claude/skills/security-audit/SKILL.md`
+11. **Final verification** — `npm run check` + `make audit` ✓
