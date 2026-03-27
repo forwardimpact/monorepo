@@ -33,15 +33,24 @@ findData(baseName, homeDir) {
   if (found) return found;
 
   const homePath = path.join(homeDir, ".fit", baseName);
-  if (fs.existsSync(homePath)) return homePath;
+  if (existsSync(homePath)) return homePath;
 
   throw new Error(
-    `No ${baseName} directory found. Use --data=<path> to specify location.`,
+    `No ${baseName} directory found from ${cwd} or ${homePath}.`,
   );
 }
 ```
 
-Uses `findUpward` from CWD (walks up to 3 parents), then checks `~/.fit/{baseName}/`.
+Uses `findUpward` from CWD (walks up to 3 parents), then checks
+`~/.fit/{baseName}/`.
+
+**Sync fs note:** This method uses `existsSync` for the HOME check, consistent
+with `findUpward` which also uses `existsSync` rather than the injected async
+`this.#fs`. Both methods are synchronous path-resolution operations where async
+I/O adds complexity without benefit.
+
+**Error message:** The error describes the problem without referencing CLI flags.
+Each caller adds its own `--data` guidance when catching the error.
 
 ### 2. Add tests in `libraries/libutil/test/finder.test.js`
 
@@ -59,119 +68,134 @@ Uses real temp directories (matching the existing test pattern with `tempDir`).
 
 - **Delete** local `resolveDataPath` function (lines 340–381)
 - **Remove** `PATHWAY_DATA` env var support
-- **Import** `Finder` from `@forwardimpact/libutil` and `homedir` from `os`
+- **Import** `Finder` from `@forwardimpact/libutil`, `homedir` from `os`,
+  `createLogger` from `@forwardimpact/libtelemetry`
 - **Change** call site (~line 407):
 
 ```js
 import { Finder } from "@forwardimpact/libutil";
 import { homedir } from "os";
+import { createLogger } from "@forwardimpact/libtelemetry";
+import fs from "fs/promises";
 
 // In main():
 let dataDir;
 if (options.data) {
   dataDir = resolve(options.data);
 } else {
+  const logger = createLogger("pathway");
   const finder = new Finder(fs, logger, process);
-  dataDir = join(finder.findData("data", homedir()), "pathway");
+  try {
+    dataDir = join(finder.findData("data", homedir()), "pathway");
+  } catch {
+    throw new Error(
+      "No data directory found. Use --data=<path> to specify location.",
+    );
+  }
 }
 ```
 
-Note: pathway already has a logger or can use a minimal one. If no logger
-exists in the CLI entry point, create one or use `createMockLogger` — check
-what's available. Alternatively, if the CLI doesn't already have a logger,
-the simplest path is to create a `createLogger("cli")` or use the existing
-imports.
+**Logger:** fit-pathway currently has no logger. Create one via
+`createLogger("pathway")` from libtelemetry. The Finder constructor requires
+it. The logger instance can be reused if pathway adds logging elsewhere later.
 
 ### 4. Modify `products/map/bin/fit-map.js`
 
 - **Delete** `dirExists` helper (lines 54–61) and `findDataDir` (lines 66–91)
-- **Import** `Finder` from `@forwardimpact/libutil` and `homedir` from `os`
+- **Import** `Finder` from `@forwardimpact/libutil`, `homedir` from `os`,
+  `createLogger` from `@forwardimpact/libtelemetry`
 - **Change** call sites:
 
 ```js
 let dataDir;
 if (options.data) {
   const resolved = resolve(options.data);
-  if (!(await dirExists(resolved))) {
+  try {
+    await fs.access(resolved);
+  } catch {
     throw new Error(`Data directory not found: ${options.data}`);
   }
   dataDir = resolved;
 } else {
+  const logger = createLogger("map");
   const finder = new Finder(fs, logger, process);
-  dataDir = join(finder.findData("data", homedir()), "pathway");
+  try {
+    dataDir = join(finder.findData("data", homedir()), "pathway");
+  } catch {
+    throw new Error(
+      "No data directory found. Use --data=<path> to specify location.",
+    );
+  }
 }
 ```
+
+**Note:** The old `dirExists` helper is replaced with `fs.access` for the
+explicit `--data` path check. The auto-discovery path uses Finder directly.
 
 ### 5. Modify `products/guide/bin/fit-guide.js`
 
 - **Import** `Finder` from `@forwardimpact/libutil` and `homedir` from `os`
-- **Add** data path resolution:
+- **Add** `--data` flag to CLI argument parsing
+- **Add** data path resolution using the existing `logger` (fit-guide already
+  creates one via `createLogger("cli")`):
 
 ```js
-const finder = new Finder(fs, logger, process);
-const dataDir = finder.findData("data", homedir());
+import { Finder } from "@forwardimpact/libutil";
+import { homedir } from "os";
+
+// After existing logger/config setup:
+let dataDir;
+if (options.data) {
+  dataDir = resolve(options.data);
+} else {
+  const finder = new Finder(fs, logger, process);
+  try {
+    dataDir = finder.findData("data", homedir());
+  } catch {
+    throw new Error(
+      "No data directory found. Use --data=<path> to specify location.",
+    );
+  }
+}
 ```
 
-Makes the base data path available for guide's resource/index loading.
+**Consumer:** The resolved `dataDir` is passed to guide's `DataLoader` for
+loading framework YAML files (disciplines, capabilities, behaviours) directly
+from disk, enabling guide to interpret artifacts against skill markers without
+requiring the gRPC agent service to be running.
 
-### 6. Improve libs-\* skill files for capability-oriented discovery
+### 6. Change `fit-universe` output to `data/`
 
-During initial planning for this feature, `Finder` was not discovered or
-considered because the `libs-system-utilities` skill only lists
-`countTokens`, `generateHash`, `generateUuid` as libutil's main API. The
-`Finder` class, `BundleDownloader`, `Retry`, `execLine`, `updateEnvFile`, and
-`waitFor` are all absent — making them invisible to agents scanning skills for
-relevant capabilities.
+The generation pipeline currently writes to `examples/` subdirectories. Change
+all output paths to write to `data/` instead:
 
-The root cause is structural: the **Libraries** table lists API names (classes,
-functions) rather than describing capabilities. An agent planning "data path
-resolution" searches for concepts like "find directories" or "upward traversal"
-— not `Finder`. Listing `Finder` helps only if you already know it exists.
+#### `libraries/libuniverse/pipeline.js`
 
-#### Approach: capability-oriented Libraries table
+Replace output path prefixes:
 
-Replace the current `Main API` column with a `Capabilities` column that
-describes what the library can do in task-oriented language. Keep API names in
-a separate `Key Exports` column so both discovery paths work.
+| Before | After |
+|--------|-------|
+| `examples/organizational/` | `data/knowledge/` |
+| `examples/pathway/` | `data/pathway/` |
+| `examples/activity/` | `data/activity/` |
+| `examples/personal/` | `data/personal/` |
 
-**Before** (API inventory):
+#### `libraries/libuniverse/bin/fit-universe.js`
 
-```
-| Library | Main API                                      | Purpose                   |
-| ------- | --------------------------------------------- | ------------------------- |
-| libutil | `countTokens`, `generateHash`, `generateUuid` | Token counting, hashing … |
-```
+Update hardcoded `examples/activity/raw/` and `examples/activity/evidence.json`
+paths to `data/activity/raw/` and `data/activity/evidence.json`.
 
-**After** (capability-oriented):
+#### `Makefile`
 
-```
-| Library | Capabilities                                                          | Key Exports                                                            |
-| ------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| libutil | Path resolution and upward directory search, bundle download and      | `Finder`, `BundleDownloader`, `TarExtractor`, `Retry`,                 |
-|         | extraction, retry with backoff, child process execution, token        | `ProcessorBase`, `countTokens`, `generateHash`, `execLine`,            |
-|         | counting, hashing, env file management                               | `updateEnvFile`, `waitFor`                                             |
-```
+- **`data-init`**: Remove the conditional copy from `examples/organizational/`
+  to `data/knowledge/`. The `generate` targets now write directly to `data/`.
+  Keep the directory creation step.
+- **`generate` targets**: No command changes needed — the pipeline code handles
+  the new paths.
 
-#### Apply consistently across all six skill files
+#### `examples/universe.dsl`
 
-For each `libs-*` skill file:
-
-1. **Libraries table** — replace `Main API` + `Purpose` columns with
-   `Capabilities` + `Key Exports`. Capabilities use task-oriented language
-   that matches how agents search ("store files to cloud", "evaluate access
-   policies", "resolve project paths"). Key Exports lists all public classes
-   and functions from the library's `index.js`.
-2. **Decision Guide** — expand to cover the full API surface, not just the
-   most common classes. Add entries for newly surfaced capabilities (e.g.
-   `Finder.findUpward` vs `findData` vs `findProjectRoot`).
-3. **DI Wiring** — ensure every class with a constructor is documented. Fix
-   incorrect claims like libutil's "Pure functions — no DI, no classes."
-
-#### Verification for skill files
-
-For each library in each skill file, diff the `Key Exports` column against the
-library's `index.js` exports. Every public export should appear. Run
-`grep "^export" libraries/{lib}/index.js` to enumerate.
+Stays at `examples/universe.dsl`. This is an input file, not output.
 
 ## Files
 
@@ -179,17 +203,19 @@ library's `index.js` exports. Every public export should appear. Run
 |------|--------|
 | `libraries/libutil/finder.js` | Add `findData` method |
 | `libraries/libutil/test/finder.test.js` | Add `findData` test cases |
-| `products/pathway/bin/fit-pathway.js` | Replace local resolution |
+| `products/pathway/bin/fit-pathway.js` | Replace local resolution, add logger |
 | `products/map/bin/fit-map.js` | Replace local resolution |
-| `products/guide/bin/fit-guide.js` | Add data path resolution |
-| `.claude/skills/libs-system-utilities/SKILL.md` | Surface full libutil API |
-| `.claude/skills/libs-*/SKILL.md` | Audit all six for missing exports |
+| `products/guide/bin/fit-guide.js` | Add data path resolution, add `--data` flag |
+| `libraries/libuniverse/pipeline.js` | Change output paths from `examples/` to `data/` |
+| `libraries/libuniverse/bin/fit-universe.js` | Change output paths from `examples/` to `data/` |
+| `Makefile` | Remove `examples/ → data/` copy step from `data-init` |
 
 ## Verification
 
 1. `node --test libraries/libutil/test/finder.test.js` — new + existing tests pass
 2. `npm test` — all tests pass
-3. `npx fit-map validate` — finds `data/pathway/` via upward traversal
-4. `npx fit-pathway skill --list` — works from monorepo root
-5. `npx fit-map validate --data=./examples/pathway` — CLI flag override works
-6. `npm run lint && npm run format` — clean
+3. `make generate` — writes to `data/` not `examples/`
+4. `npx fit-map validate` — finds `data/pathway/` via upward traversal
+5. `npx fit-pathway skill --list` — works from monorepo root
+6. `npx fit-map validate --data=/some/path` — CLI flag override works
+7. `npm run lint && npm run format` — clean
