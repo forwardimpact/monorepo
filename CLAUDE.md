@@ -343,6 +343,23 @@ Use `npx fit-pathway level --list` to see available levels.
   `UPPER_SNAKE_CASE`, YAML IDs `snake_case`
 - **Testing**: Node.js test runner (`node --test`), fixtures mirror YAML
 
+## Security
+
+- **Pre-commit hooks** — Run `make install-hooks` after cloning. Gitleaks scans
+  staged changes for secrets before every commit.
+- **Secret scanning** — Never commit `.env` files, API keys, tokens, or
+  credentials. The CI runs gitleaks on every PR.
+- **Audit** — `make audit` runs npm audit and gitleaks in one command. The same
+  target runs in CI and locally. Publish workflows block on audit failures.
+- **ESLint security** — `eslint-plugin-security` is enabled. Do not disable
+  security rules without justification.
+- **Dependency policy** — Minimize external dependencies. Use `yaml` (not
+  `js-yaml`). Align version ranges across workspaces. Check for existing
+  packages before adding new ones.
+- **GitHub Actions** — All third-party actions are pinned to SHA hashes. Use
+  `Dependabot` for updates. Never change a pin to a tag.
+- **Reporting** — See `SECURITY.md`. Contact `hi.security@senzilla.io`.
+
 ## Git Workflow
 
 Format: `type(scope): subject`
@@ -361,9 +378,10 @@ Format: `type(scope): subject`
    - `npm test` — Unit tests
    - `npm run validate` — Data file validation
    - Use `npm run check:fix` to auto-fix formatting and lint issues
-4. Assess version impact (breaking=major, feat=minor, other=patch)
-5. Stage and commit: `git commit -m "type(scope): subject"`
-6. Push all commits to remote
+4. Run `make audit` to check for vulnerabilities and leaked secrets
+5. Assess version impact (breaking=major, feat=minor, other=patch)
+6. Stage and commit: `git commit -m "type(scope): subject"`
+7. Push all commits to remote
 
 **Always commit your work before finishing a task.**
 

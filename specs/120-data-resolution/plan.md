@@ -49,8 +49,8 @@ with `findUpward` which also uses `existsSync` rather than the injected async
 `this.#fs`. Both methods are synchronous path-resolution operations where async
 I/O adds complexity without benefit.
 
-**Error message:** The error describes the problem without referencing CLI flags.
-Each caller adds its own `--data` guidance when catching the error.
+**Error message:** The error describes the problem without referencing CLI
+flags. Each caller adds its own `--data` guidance when catching the error.
 
 ### 2. Add tests in `libraries/libutil/test/finder.test.js`
 
@@ -96,8 +96,8 @@ if (options.data) {
 ```
 
 **Logger:** fit-pathway currently has no logger. Create one via
-`createLogger("pathway")` from libtelemetry. The Finder constructor requires
-it. The logger instance can be reused if pathway adds logging elsewhere later.
+`createLogger("pathway")` from libtelemetry. The Finder constructor requires it.
+The logger instance can be reused if pathway adds logging elsewhere later.
 
 ### 4. Modify `products/map/bin/fit-map.js`
 
@@ -173,12 +173,12 @@ all output paths to write to `data/` instead:
 
 Replace output path prefixes:
 
-| Before | After |
-|--------|-------|
+| Before                     | After             |
+| -------------------------- | ----------------- |
 | `examples/organizational/` | `data/knowledge/` |
-| `examples/pathway/` | `data/pathway/` |
-| `examples/activity/` | `data/activity/` |
-| `examples/personal/` | `data/personal/` |
+| `examples/pathway/`        | `data/pathway/`   |
+| `examples/activity/`       | `data/activity/`  |
+| `examples/personal/`       | `data/personal/`  |
 
 #### `libraries/libuniverse/bin/fit-universe.js`
 
@@ -199,20 +199,21 @@ Stays at `examples/universe.dsl`. This is an input file, not output.
 
 ## Files
 
-| File | Action |
-|------|--------|
-| `libraries/libutil/finder.js` | Add `findData` method |
-| `libraries/libutil/test/finder.test.js` | Add `findData` test cases |
-| `products/pathway/bin/fit-pathway.js` | Replace local resolution, add logger |
-| `products/map/bin/fit-map.js` | Replace local resolution |
-| `products/guide/bin/fit-guide.js` | Add data path resolution, add `--data` flag |
-| `libraries/libuniverse/pipeline.js` | Change output paths from `examples/` to `data/` |
-| `libraries/libuniverse/bin/fit-universe.js` | Change output paths from `examples/` to `data/` |
-| `Makefile` | Remove `examples/ → data/` copy step from `data-init` |
+| File                                        | Action                                                |
+| ------------------------------------------- | ----------------------------------------------------- |
+| `libraries/libutil/finder.js`               | Add `findData` method                                 |
+| `libraries/libutil/test/finder.test.js`     | Add `findData` test cases                             |
+| `products/pathway/bin/fit-pathway.js`       | Replace local resolution, add logger                  |
+| `products/map/bin/fit-map.js`               | Replace local resolution                              |
+| `products/guide/bin/fit-guide.js`           | Add data path resolution, add `--data` flag           |
+| `libraries/libuniverse/pipeline.js`         | Change output paths from `examples/` to `data/`       |
+| `libraries/libuniverse/bin/fit-universe.js` | Change output paths from `examples/` to `data/`       |
+| `Makefile`                                  | Remove `examples/ → data/` copy step from `data-init` |
 
 ## Verification
 
-1. `node --test libraries/libutil/test/finder.test.js` — new + existing tests pass
+1. `node --test libraries/libutil/test/finder.test.js` — new + existing tests
+   pass
 2. `npm test` — all tests pass
 3. `make generate` — writes to `data/` not `examples/`
 4. `npx fit-map validate` — finds `data/pathway/` via upward traversal

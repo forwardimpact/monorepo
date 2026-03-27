@@ -153,3 +153,12 @@ const generator = new ServiceGenerator("./proto");
 // DefinitionGenerator — accepts proto directory
 const generator = new DefinitionGenerator("./proto");
 ```
+
+## Security
+
+- **Pre-commit hooks** — Run `make install-hooks` to install gitleaks secret
+  scanning on staged changes.
+- **Secret generation** — Always use `libsecret` for generating secrets and
+  tokens. Never hardcode secrets in source code.
+- **Audit** — Run `make audit` for combined npm audit and gitleaks secret
+  scanning.

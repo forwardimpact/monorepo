@@ -1,4 +1,4 @@
-import yaml from "js-yaml";
+import { parse } from "yaml";
 
 /**
  * Parse simple front matter from markdown content
@@ -20,7 +20,7 @@ export function parseFrontMatter(content) {
   }
 
   const [, frontMatter, remainingContent] = match;
-  const parsedData = yaml.load(frontMatter);
+  const parsedData = parse(frontMatter);
 
   return {
     data: parsedData || {},

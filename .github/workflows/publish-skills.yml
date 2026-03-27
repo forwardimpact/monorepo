@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - '.claude/skills/fit-*/**'
-      - '.github/workflows/publish-skills.yml'
+      - ".claude/skills/fit-*/**"
+      - ".github/workflows/publish-skills.yml"
   workflow_dispatch:
 
 permissions:
@@ -15,11 +15,11 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           path: monorepo
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           repository: forwardimpact/skills
           token: ${{ secrets.SKILLS_PUBLISH_TOKEN }}

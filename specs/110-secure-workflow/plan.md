@@ -9,9 +9,9 @@ open-source tools with no additional infrastructure.
 
 ### Current State
 
-- **Existing `make security` target** — runs `npm audit --audit-level=low
-  --workspaces`. Will be replaced by `make audit` with higher severity threshold
-  and gitleaks.
+- **Existing `make security` target** — runs
+  `npm audit --audit-level=low --workspaces`. Will be replaced by `make audit`
+  with higher severity threshold and gitleaks.
 - **Permissions** — `check.yml` is the only workflow missing an explicit
   `permissions` block. The other four workflows already declare least-privilege
   permissions.
@@ -24,15 +24,15 @@ open-source tools with no additional infrastructure.
 
 ### Supply chain assessment
 
-| Action | Maintainer | Risk | Decision |
-|--------|-----------|------|----------|
-| `actions/checkout` | GitHub (first-party) | Low | **Keep** — pin to SHA |
-| `actions/setup-node` | GitHub (first-party) | Low | **Keep** — pin to SHA |
-| `actions/configure-pages` | GitHub (first-party) | Low | **Keep** — pin to SHA |
-| `actions/upload-pages-artifact` | GitHub (first-party) | Low | **Keep** — pin to SHA |
-| `actions/deploy-pages` | GitHub (first-party) | Low | **Keep** — pin to SHA |
-| `denoland/setup-deno` | Deno (official org) | Low | **Keep** — pin to SHA |
-| `softprops/action-gh-release` | Personal maintainer | **Medium** | **Remove** — replace with `gh` CLI |
+| Action                          | Maintainer           | Risk       | Decision                           |
+| ------------------------------- | -------------------- | ---------- | ---------------------------------- |
+| `actions/checkout`              | GitHub (first-party) | Low        | **Keep** — pin to SHA              |
+| `actions/setup-node`            | GitHub (first-party) | Low        | **Keep** — pin to SHA              |
+| `actions/configure-pages`       | GitHub (first-party) | Low        | **Keep** — pin to SHA              |
+| `actions/upload-pages-artifact` | GitHub (first-party) | Low        | **Keep** — pin to SHA              |
+| `actions/deploy-pages`          | GitHub (first-party) | Low        | **Keep** — pin to SHA              |
+| `denoland/setup-deno`           | Deno (official org)  | Low        | **Keep** — pin to SHA              |
+| `softprops/action-gh-release`   | Personal maintainer  | **Medium** | **Remove** — replace with `gh` CLI |
 
 **`softprops/action-gh-release`** is the only action not maintained by a
 first-party org. It is a personal project (softprops = Doug Tangren). The usage
@@ -61,20 +61,21 @@ After removing `softprops/action-gh-release`, only first-party and official org
 actions remain:
 
 **Files to modify:**
+
 - `.github/workflows/check.yml`
 - `.github/workflows/publish-npm.yml`
 - `.github/workflows/publish-macos.yml`
 - `.github/workflows/publish-skills.yml`
 - `.github/workflows/website.yaml`
 
-| Action | Current | Pin to SHA |
-|--------|---------|------------|
-| `actions/checkout` | `@v4` | SHA + `# v4` comment |
-| `actions/setup-node` | `@v4` | SHA + `# v4` comment |
-| `denoland/setup-deno` | `@v2` | SHA + `# v2` comment |
-| `actions/configure-pages` | `@v5` | SHA + `# v5` comment |
-| `actions/upload-pages-artifact` | `@v3` | SHA + `# v3` comment |
-| `actions/deploy-pages` | `@v4` | SHA + `# v4` comment |
+| Action                          | Current | Pin to SHA           |
+| ------------------------------- | ------- | -------------------- |
+| `actions/checkout`              | `@v4`   | SHA + `# v4` comment |
+| `actions/setup-node`            | `@v4`   | SHA + `# v4` comment |
+| `denoland/setup-deno`           | `@v2`   | SHA + `# v2` comment |
+| `actions/configure-pages`       | `@v5`   | SHA + `# v5` comment |
+| `actions/upload-pages-artifact` | `@v3`   | SHA + `# v3` comment |
+| `actions/deploy-pages`          | `@v4`   | SHA + `# v4` comment |
 
 ## 2. Add Least-Privilege Permissions to check.yml
 
@@ -86,6 +87,7 @@ explicit permissions. Add minimal permissions to `check.yml`.
 **File:** `.github/workflows/check.yml`
 
 Add top-level:
+
 ```yaml
 permissions:
   contents: read
@@ -124,6 +126,7 @@ low-severity advisories that often have no fix available.
 **File:** `.github/workflows/publish-npm.yml`
 
 Add step before the publish step:
+
 ```yaml
 - name: Security audit
   run: npm audit --audit-level=high --workspaces
@@ -132,6 +135,7 @@ Add step before the publish step:
 **File:** `.github/workflows/publish-macos.yml`
 
 Add step before the build step:
+
 ```yaml
 - name: Security audit
   run: npm audit --audit-level=high --workspaces
@@ -172,21 +176,23 @@ audit:
 ```
 
 **Notes:**
+
 - `fetch-depth: 0` is required for gitleaks to scan full git history.
 - The gitleaks version is pinned explicitly. Update it via Dependabot or
   manually when new versions ship.
-- The download URL uses the versioned release path (not `/latest/download/`)
-  to ensure reproducible installs.
+- The download URL uses the versioned release path (not `/latest/download/`) to
+  ensure reproducible installs.
 
 The job installs gitleaks from the official release, then delegates to
-`make audit` which runs both `npm audit` and `gitleaks detect`. One target,
-same checks locally and in CI.
+`make audit` which runs both `npm audit` and `gitleaks detect`. One target, same
+checks locally and in CI.
 
 ### 5b. Gitleaks config
 
 **New file:** `.gitleaks.toml`
 
 Minimal config to reduce false positives on example/template env files:
+
 ```toml
 [allowlist]
   paths = [
@@ -225,30 +231,35 @@ echo "Pre-commit hook installed"
 ```
 
 **File:** `Makefile` — Add target:
+
 ```makefile
 install-hooks:  ## Install git pre-commit hooks
 	@sh scripts/install-hooks.sh
 ```
 
 Update the `quickstart` target to include `install-hooks`. Current definition:
+
 ```makefile
 quickstart: env-setup generate-cached data-init codegen process-fast
 ```
+
 Becomes:
+
 ```makefile
 quickstart: env-setup generate-cached data-init codegen process-fast install-hooks
 ```
 
 ## 6. Add ESLint Security Plugin
 
-Add `eslint-plugin-security` for detecting common security anti-patterns
-(eval, non-literal RegExp, non-literal require, etc.).
+Add `eslint-plugin-security` for detecting common security anti-patterns (eval,
+non-literal RegExp, non-literal require, etc.).
 
 **Install:** `npm install -D eslint-plugin-security`
 
 **File:** `eslint.config.js`
 
 Add the security plugin's recommended config:
+
 ```js
 import security from "eslint-plugin-security";
 
@@ -262,16 +273,18 @@ export default [
 
 ## 7. Consolidate Duplicate YAML Parsers
 
-The `yaml` package (v2) is the modern, actively maintained YAML parser. `js-yaml`
-(v4) is legacy. Consolidate to `yaml` across the monorepo.
+The `yaml` package (v2) is the modern, actively maintained YAML parser.
+`js-yaml` (v4) is legacy. Consolidate to `yaml` across the monorepo.
 
 **Packages using `js-yaml`:**
+
 - `libraries/libdoc/package.json` (`^4.1.1`) — `frontmatter.js` imports it
 - `libraries/libtool/package.json` (`^4.1.0`) — `processor/tool.js` imports it
 - `libraries/libagent/package.json` (`^4.1.1`) — listed as dep but **not
   imported anywhere** (confirmed via grep — zero import/require statements)
 
 **Changes:**
+
 1. `libraries/libdoc/package.json`: Replace `js-yaml` with `yaml`
 2. `libraries/libdoc/frontmatter.js`: Change `import yaml from "js-yaml"` →
    `import { parse } from "yaml"` and update API calls (`yaml.load()` →
@@ -280,45 +293,49 @@ The `yaml` package (v2) is the modern, actively maintained YAML parser. `js-yaml
 4. `libraries/libtool/processor/tool.js`: Same API migration
 5. `libraries/libagent/package.json`: Remove unused `js-yaml` dependency
 
-**API difference:** `js-yaml` uses `yaml.load(str)` / `yaml.dump(obj)`.
-`yaml` package uses `parse(str)` / `stringify(obj)`.
+**API difference:** `js-yaml` uses `yaml.load(str)` / `yaml.dump(obj)`. `yaml`
+package uses `parse(str)` / `stringify(obj)`.
 
 ## 8. Align Dependency Versions
 
 Harmonize version ranges for shared dependencies:
 
-| Package | Current ranges | Align to | Risk |
-|---------|---------------|----------|------|
-| `ajv` | ^8.12.0 (libsyntheticprose), ^8.17.1 (map) | ^8.17.1 | Minor bump, same major — low risk |
-| `ajv-formats` | ^2.1.1 (libsyntheticprose), ^3.0.1 (map) | ^3.0.1 | **Major version bump** — verify API compatibility |
-| `marked` | ^14.1.4 (libdoc), ^15.0.12 (libformat) | ^15.0.12 | **Major version bump** — verify API compatibility |
+| Package       | Current ranges                             | Align to | Risk                                              |
+| ------------- | ------------------------------------------ | -------- | ------------------------------------------------- |
+| `ajv`         | ^8.12.0 (libsyntheticprose), ^8.17.1 (map) | ^8.17.1  | Minor bump, same major — low risk                 |
+| `ajv-formats` | ^2.1.1 (libsyntheticprose), ^3.0.1 (map)   | ^3.0.1   | **Major version bump** — verify API compatibility |
+| `marked`      | ^14.1.4 (libdoc), ^15.0.12 (libformat)     | ^15.0.12 | **Major version bump** — verify API compatibility |
 
 **Files to modify:**
+
 - `libraries/libsyntheticprose/package.json`: bump ajv to ^8.17.1, ajv-formats
   to ^3.0.1
 - `libraries/libdoc/package.json`: bump marked to ^15.0.12
 
 **Important:** `ajv-formats` ^2 → ^3 and `marked` ^14 → ^15 are major version
 bumps. Before committing:
+
 1. Check the changelogs for breaking changes
 2. Review how each library uses the affected API (`ajvFormats(ajv)` call
    pattern, `marked.parse()` options)
-3. Run tests for the affected packages: `npm test --workspace=@forwardimpact/libsyntheticprose --workspace=@forwardimpact/libdoc`
+3. Run tests for the affected packages:
+   `npm test --workspace=@forwardimpact/libsyntheticprose --workspace=@forwardimpact/libdoc`
 
 After changes: `npm install` to regenerate lockfile, then run full tests.
 
 ## 9. Rename and Centralize `make audit`
 
 Rename the existing `make security` target (currently runs
-`npm audit --audit-level=low --workspaces`) to `make audit` and expand it to
-run both npm audit and gitleaks in a single command. Raise the audit level from
+`npm audit --audit-level=low --workspaces`) to `make audit` and expand it to run
+both npm audit and gitleaks in a single command. Raise the audit level from
 `low` to `high` to match the publish gate threshold. This is the single source
-of truth for security checks — CI runs `make audit`, developers run `make audit`,
-the pre-commit hook runs gitleaks directly (staged files only).
+of truth for security checks — CI runs `make audit`, developers run
+`make audit`, the pre-commit hook runs gitleaks directly (staged files only).
 
 **File:** `Makefile`
 
 Replace the existing target:
+
 ```makefile
 .PHONY: audit
 audit:  ## Run security audit (npm vulnerabilities + secret scanning)
@@ -341,13 +358,14 @@ references to `make security` in documentation or skills.
 A standard security policy file that GitHub surfaces in the repo's Security tab.
 
 Contents:
+
 - **Supported Versions** — Only the latest major version of each published
   package is supported. No backports to older major versions.
 - **Reporting a Vulnerability** — Email `hi.security@senzilla.io` with a
   description, reproduction steps, and impact assessment. Acknowledge receipt
   within 3 business days, target resolution within 30 days for critical issues.
-- **Scope** — Covers all packages published under `@forwardimpact/*` on npm
-  and the GitHub releases (macOS installer).
+- **Scope** — Covers all packages published under `@forwardimpact/*` on npm and
+  the GitHub releases (macOS installer).
 - **Out of Scope** — Self-hosted instances running unsupported/modified
   versions, issues in upstream dependencies (report those upstream).
 
@@ -424,6 +442,7 @@ security workflows.
 **File:** `.claude/skills/libs-system-utilities/SKILL.md`
 
 Add a security note to the skill referencing:
+
 - Pre-commit hooks: `make install-hooks`
 - Secret generation uses `libsecret` — never hardcode secrets
 - `make audit` for npm audit + gitleaks secret scanning
@@ -431,6 +450,7 @@ Add a security note to the skill referencing:
 **File:** `.claude/skills/libs-web-presentation/SKILL.md`
 
 Add a dependency note:
+
 - Use `yaml` package (not `js-yaml`) for YAML parsing
 - Use `marked` ^15.x for markdown parsing
 - Run `npm audit` after adding dependencies
@@ -469,6 +489,7 @@ The skill body should cover the following areas as **principles with
 check-items**, not step-by-step instructions:
 
 **1. Supply Chain — GitHub Actions**
+
 - All third-party actions must be pinned to full SHA hashes with a version
   comment (`# v4`). Tag-only references (`@v4`) are not acceptable.
 - Only first-party (GitHub `actions/*`) or official org actions are permitted.
@@ -478,26 +499,29 @@ check-items**, not step-by-step instructions:
 - Dependabot must be configured to propose updates to action SHAs.
 
 **2. Supply Chain — npm Dependencies**
+
 - Minimize the number of external dependencies. Before adding a new package,
   check if an existing dependency or Node.js built-in can serve the same
   purpose.
 - No duplicate packages serving the same purpose (e.g. two YAML parsers, two
   markdown renderers). Consolidate to one.
 - Version ranges for the same package must be aligned across all workspaces.
-- `npm audit --audit-level=high` must pass. Publish workflows must gate on
-  audit results.
+- `npm audit --audit-level=high` must pass. Publish workflows must gate on audit
+  results.
 
 **3. Credential & Secret Leak Prevention**
+
 - `.env` files, API keys, tokens, and credentials must never be committed.
   `.gitignore` must cover all sensitive file patterns.
-- Gitleaks must be configured with a `.gitleaks.toml` allowlist for known
-  false positives (e.g. `.env.*.example` files).
+- Gitleaks must be configured with a `.gitleaks.toml` allowlist for known false
+  positives (e.g. `.env.*.example` files).
 - A pre-commit hook must run gitleaks on staged changes.
 - CI must run gitleaks on every push and pull request.
 - Secrets in GitHub Actions must use `secrets.*` — never hardcode values in
   workflow files.
 
 **4. Static Analysis**
+
 - ESLint must include `eslint-plugin-security` recommended rules.
 - Security rules must not be disabled without explicit justification in a
   comment.
@@ -505,12 +529,13 @@ check-items**, not step-by-step instructions:
 **5. Application Security (OWASP Top 10)**
 
 When reviewing application code, check for:
+
 - **Injection** — Unsanitized user input in shell commands (`child_process`),
   database queries, or template rendering. Prefer parameterized APIs.
 - **Broken Authentication** — Hardcoded credentials, weak token generation,
   missing token expiry.
-- **Sensitive Data Exposure** — Secrets logged to console or trace output,
-  error messages leaking internal paths or stack traces to clients.
+- **Sensitive Data Exposure** — Secrets logged to console or trace output, error
+  messages leaking internal paths or stack traces to clients.
 - **Security Misconfiguration** — Overly permissive CORS, missing security
   headers, debug mode enabled in production configs.
 - **Vulnerable Components** — Dependencies with known CVEs (`npm audit`),
@@ -524,6 +549,7 @@ When reviewing application code, check for:
   `fit-map validate`).
 
 **6. CI/CD Security**
+
 - The `make audit` target must be the single source of truth for security
   checks, running both npm audit and gitleaks.
 - Publish workflows must not run if audit checks fail.
@@ -533,28 +559,29 @@ When reviewing application code, check for:
 **7. Audit Workflow**
 
 Provide guidance on how to perform a review:
+
 - Run `make audit` locally and report findings.
-- Review `.github/workflows/` for unpinned actions, missing permissions,
-  exposed secrets.
+- Review `.github/workflows/` for unpinned actions, missing permissions, exposed
+  secrets.
 - Review `package.json` files for unnecessary or duplicate dependencies.
 - Review `.gitignore` and `.gitleaks.toml` for coverage gaps.
 - Review `eslint.config.js` for disabled security rules.
 - Grep for common vulnerability patterns: `eval(`, `child_process.exec(`,
-  `innerHTML`, `dangerouslySetInnerHTML`, `new Function(`, unsanitized
-  template literals in SQL/shell contexts.
+  `innerHTML`, `dangerouslySetInnerHTML`, `new Function(`, unsanitized template
+  literals in SQL/shell contexts.
 
 ---
 
 ## Risks and Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| `ajv-formats` ^2→^3 breaks libsyntheticprose | Build failure | Test before committing; review changelog for breaking changes |
-| `marked` ^14→^15 breaks libdoc | Build failure | Test before committing; review changelog for breaking changes |
-| `eslint-plugin-security` flags existing code | Lint failures | Run `npm run lint` early (step 2); fix or disable with justification |
-| Gitleaks flags false positives in history | CI audit job fails | Tune `.gitleaks.toml` allowlist; use `--no-git` for path-only scan if history is too noisy |
-| SHA pins go stale | Missed security updates | Dependabot auto-proposes updates weekly |
-| `npm audit --audit-level=high` blocks publish on unfixable advisory | Cannot publish | Temporarily add advisory to `.npmrc` `audit-ignore` or lower threshold; document the exception |
+| Risk                                                                | Impact                  | Mitigation                                                                                     |
+| ------------------------------------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------- |
+| `ajv-formats` ^2→^3 breaks libsyntheticprose                        | Build failure           | Test before committing; review changelog for breaking changes                                  |
+| `marked` ^14→^15 breaks libdoc                                      | Build failure           | Test before committing; review changelog for breaking changes                                  |
+| `eslint-plugin-security` flags existing code                        | Lint failures           | Run `npm run lint` early (step 2); fix or disable with justification                           |
+| Gitleaks flags false positives in history                           | CI audit job fails      | Tune `.gitleaks.toml` allowlist; use `--no-git` for path-only scan if history is too noisy     |
+| SHA pins go stale                                                   | Missed security updates | Dependabot auto-proposes updates weekly                                                        |
+| `npm audit --audit-level=high` blocks publish on unfixable advisory | Cannot publish          | Temporarily add advisory to `.npmrc` `audit-ignore` or lower threshold; document the exception |
 
 ## Verification
 
@@ -565,7 +592,9 @@ After all changes:
 3. `npm run check` — Ensure lint, format, test, validate all pass
 4. `gitleaks detect --source . --verbose` — Verify no existing leaks flagged
 5. Review each modified workflow file for correct SHA pins
-6. Test pre-commit hook: `sh scripts/install-hooks.sh && echo "test" > .env.test && git add .env.test` — should warn about potential secret
+6. Test pre-commit hook:
+   `sh scripts/install-hooks.sh && echo "test" > .env.test && git add .env.test`
+   — should warn about potential secret
 7. Verify `make audit` runs both npm audit and gitleaks
 8. Verify `js-yaml` no longer appears in any `package.json`
 
@@ -583,7 +612,8 @@ with ✓ to catch breakage early.
    `check.yml`, replace `softprops/action-gh-release` with `gh` CLI, add audit
    gate to publish workflows
 4. **Dependabot config** — Add `.github/dependabot.yml`
-5. **Gitleaks + pre-commit hook** — Add `.gitleaks.toml`, `scripts/install-hooks.sh`
+5. **Gitleaks + pre-commit hook** — Add `.gitleaks.toml`,
+   `scripts/install-hooks.sh`
 6. **Makefile updates** — Rename `security` → `audit` (npm audit + gitleaks),
    add `install-hooks` target, add to `quickstart`
 7. **CI audit job** — Add `audit` job to `check.yml` (runs `make audit`)

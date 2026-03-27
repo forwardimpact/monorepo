@@ -1,0 +1,6 @@
+[allowlist]
+  paths = [
+    '''\.env\..*\.example$''',
+    '''\.env\.example$''',
+    '''config/.*\.example\..*''',
+  ]

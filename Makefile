@@ -141,7 +141,8 @@ help:
 	@echo "Utilities:"
 	@echo "  config-reset     	Reset config files from examples"
 	@echo "  download-bundle   	Download generated code bundle from S3"
-	@echo "  security          	Run security audit"
+	@echo "  audit             	Run security audit (npm + gitleaks)"
+	@echo "  install-hooks     	Install git pre-commit hooks"
 	@echo "  spellcheck        	Check spelling in documentation"
 	@echo ""
 	@echo "NPM Scripts (pass-through):"
@@ -163,7 +164,7 @@ help:
 # ====================
 
 .PHONY: quickstart
-quickstart: env-setup generate-cached data-init codegen process-fast  ## Bootstrap from scratch (env, generate, data, codegen, process)
+quickstart: env-setup generate-cached data-init codegen process-fast install-hooks  ## Bootstrap from scratch (env, generate, data, codegen, process)
 	@echo ""
 	@echo "=== Quickstart complete ==="
 	@printf "  Knowledge files: %s\n" "$$(find data/knowledge -name '*.html' 2>/dev/null | wc -l | tr -d ' ')"
@@ -541,9 +542,19 @@ config-reset: ## Reset config files from examples
 download-bundle:  ## Download generated code bundle from S3
 	@$(ENVLOAD) npx --workspace=@forwardimpact/libutil fit-download-bundle
 
-.PHONY: security
-security:  ## Run security audit
-	@npm audit --audit-level=low --workspaces
+.PHONY: audit
+audit:  ## Run security audit (npm vulnerabilities + secret scanning)
+	@npm audit --audit-level=high --workspaces
+	@echo ""
+	@if command -v gitleaks >/dev/null 2>&1; then \
+		gitleaks detect --source . --verbose; \
+	else \
+		echo "Warning: gitleaks not installed, skipping secret scan"; \
+	fi
+
+.PHONY: install-hooks
+install-hooks:  ## Install git pre-commit hooks
+	@sh scripts/install-hooks.sh
 
 .PHONY: spellcheck
 spellcheck:  ## Check spelling in documentation

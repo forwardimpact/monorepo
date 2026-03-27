@@ -10,9 +10,9 @@ Three CLI products need to resolve a data directory:
 - **fit-map** has a 4-candidate discovery function with no env var or home
   directory support.
 - **fit-guide** resolves data indirectly through `libstorage` (which uses
-  `Finder.findUpward` internally), but cannot resolve the pathway data
-  directory for loading framework YAML files directly without the service
-  infrastructure running.
+  `Finder.findUpward` internally), but cannot resolve the pathway data directory
+  for loading framework YAML files directly without the service infrastructure
+  running.
 
 Each product reimplements resolution with different priority orders, different
 env vars, and different fallback candidates. There is no way for a user to set
@@ -47,24 +47,24 @@ work from any subdirectory within the monorepo.
 
 ## What Changes
 
-| Before | After |
-|--------|-------|
-| `PATHWAY_DATA` env var (pathway only) | Dropped — clean break, no replacement |
-| `~/.fit/pathway/data` home path | `~/.fit/data/` (products append suffix) |
-| `examples/pathway/`, `examples/` fallbacks | Dropped — `fit-universe` writes to `data/` |
-| `fit-universe` outputs to `examples/` | Outputs to `data/` |
-| `make data-init` copies examples → data | No copy step needed |
-| fit-map: no home fallback | Full resolution via Finder |
-| fit-guide: indirect via libstorage only | Direct resolution via Finder for framework data |
-| Three bespoke implementations | One method on Finder |
+| Before                                     | After                                           |
+| ------------------------------------------ | ----------------------------------------------- |
+| `PATHWAY_DATA` env var (pathway only)      | Dropped — clean break, no replacement           |
+| `~/.fit/pathway/data` home path            | `~/.fit/data/` (products append suffix)         |
+| `examples/pathway/`, `examples/` fallbacks | Dropped — `fit-universe` writes to `data/`      |
+| `fit-universe` outputs to `examples/`      | Outputs to `data/`                              |
+| `make data-init` copies examples → data    | No copy step needed                             |
+| fit-map: no home fallback                  | Full resolution via Finder                      |
+| fit-guide: indirect via libstorage only    | Direct resolution via Finder for framework data |
+| Three bespoke implementations              | One method on Finder                            |
 
 ## Why
 
 - **Consistency** — one resolution order across all products.
 - **One data location** — `data/` is the single source, not `examples/` with
   fallbacks and copy steps.
-- **Reuse** — Finder already handles upward path traversal for libstorage;
-  data path resolution is the same pattern with a HOME fallback.
+- **Reuse** — Finder already handles upward path traversal for libstorage; data
+  path resolution is the same pattern with a HOME fallback.
 - **fit-guide needs it** — currently cannot load framework YAML files without
   service infrastructure running.
 - **Fewer bugs** — one implementation to maintain instead of three diverging
@@ -72,11 +72,12 @@ work from any subdirectory within the monorepo.
 
 ## Migration
 
-- **`PATHWAY_DATA` env var**: Removed without replacement. Users who set this
-  in `.bashrc` or CI must switch to `--data=<path>` or place data in `data/`
-  or `~/.fit/data/`. No deprecation shim — clean break.
+- **`PATHWAY_DATA` env var**: Removed without replacement. Users who set this in
+  `.bashrc` or CI must switch to `--data=<path>` or place data in `data/` or
+  `~/.fit/data/`. No deprecation shim — clean break.
 - **`examples/` as output**: `fit-universe` writes to `data/` instead. The
   `examples/universe.dsl` input file stays where it is. Existing `examples/`
   output directories become stale and should be removed after migration.
-- **`make data-init` copy step**: The `examples/organizational/ → data/knowledge/`
-  copy is replaced by `fit-universe` writing directly to `data/knowledge/`.
+- **`make data-init` copy step**: The
+  `examples/organizational/ → data/knowledge/` copy is replaced by
+  `fit-universe` writing directly to `data/knowledge/`.

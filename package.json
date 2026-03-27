@@ -75,6 +75,7 @@
     "@playwright/test": "^1.49.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-security": "^4.0.0",
     "prettier": "^3.7.4",
     "serve": "^14.2.5"
   },

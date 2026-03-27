@@ -1,6 +1,6 @@
 import { join } from "node:path";
 
-import yaml from "js-yaml";
+import { parse as parseYaml } from "yaml";
 import pkg from "protobufjs";
 import { access } from "node:fs/promises";
 
@@ -58,7 +58,7 @@ export class ToolProcessor extends ProcessorBase {
    */
   async #loadToolDescriptors() {
     const data = await this.#configStorage.get("tools.yml");
-    return yaml.load(data.toString()) || {};
+    return parseYaml(data.toString()) || {};
   }
 
   /**

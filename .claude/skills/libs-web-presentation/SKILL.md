@@ -150,3 +150,9 @@ const rendered = loader.render(name, dataDir, variables);
 // createTemplateLoader — convenience factory
 const loader = createTemplateLoader(defaultsDir);
 ```
+
+## Dependencies
+
+- Use the `yaml` package (not `js-yaml`) for YAML parsing
+- Use `marked` ^15.x for markdown parsing
+- Run `npm audit` after adding dependencies
