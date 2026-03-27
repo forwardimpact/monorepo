@@ -34,7 +34,7 @@
     "jsdom": "^27.4.0",
     "microdata-rdf-streaming-parser": "^3.0.0",
     "n3": "^1.26.0",
-    "rdf-canonize": "^4.0.1",
+    "rdf-canonize": "^5.0.0",
     "@forwardimpact/libharness": "^0.1.5"
   },
   "publishConfig": {
