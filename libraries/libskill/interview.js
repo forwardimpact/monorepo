@@ -464,7 +464,7 @@ export function deriveShortInterview({
   let preferSkill = true;
 
   while (totalMinutes < targetMinutes) {
-    let nextQuestion = null;
+    let nextQuestion;
 
     if (preferSkill && skillIndex < skillQuestions.length) {
       nextQuestion = skillQuestions[skillIndex++];

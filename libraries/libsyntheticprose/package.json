@@ -19,9 +19,9 @@
     "@forwardimpact/libutil": "^0.1.61",
     "@forwardimpact/libtelemetry": "^0.1.23",
     "@forwardimpact/libprompt": "^0.1.0",
-    "ajv": "^8.17.1",
+    "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
-    "yaml": "^2.3.0"
+    "yaml": "^2.8.3"
   },
   "engines": {
     "node": ">=18.0.0"

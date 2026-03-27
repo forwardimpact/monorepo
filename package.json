@@ -72,12 +72,13 @@
     "generate": "fit-universe"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.0",
-    "eslint": "^9.39.1",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.58.2",
+    "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-security": "^4.0.0",
-    "prettier": "^3.7.4",
-    "serve": "^14.2.5"
+    "prettier": "^3.8.1",
+    "serve": "^14.2.6"
   },
   "engines": {
     "node": ">=18.0.0"

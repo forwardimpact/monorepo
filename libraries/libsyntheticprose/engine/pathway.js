@@ -133,7 +133,10 @@ async function generatePathwayData({
         b.id,
         buildBehaviourPrompt(b, ctx, schemas.behaviour),
         proseEngine,
-      ).then((data) => ({ ...data, _id: b.id })),
+      ).then((data) => ({
+        ...data,
+        _id: b.id,
+      })),
     ),
   );
 
@@ -149,7 +152,10 @@ async function generatePathwayData({
           schemas.capability,
         ),
         proseEngine,
-      ).then((data) => ({ ...data, _id: c.id })),
+      ).then((data) => ({
+        ...data,
+        _id: c.id,
+      })),
     ),
   );
 
@@ -183,7 +189,10 @@ async function generatePathwayData({
           schemas.discipline,
         ),
         proseEngine,
-      ).then((data) => ({ ...data, _id: d.id })),
+      ).then((data) => ({
+        ...data,
+        _id: d.id,
+      })),
     ),
   );
 
@@ -200,7 +209,10 @@ async function generatePathwayData({
           schemas.track,
         ),
         proseEngine,
-      ).then((data) => ({ ...data, _id: t.id })),
+      ).then((data) => ({
+        ...data,
+        _id: t.id,
+      })),
     ),
   );
 
@@ -267,7 +279,7 @@ function createRng(seed) {
 function jitter(rng, base, max) {
   const r = rng();
   // 50% same, 20% +1, 15% -1, 10% +2, 5% -2
-  let offset = 0;
+  let offset;
   if (r < 0.5) offset = 0;
   else if (r < 0.7) offset = 1;
   else if (r < 0.85) offset = -1;
@@ -323,7 +335,7 @@ function generateSelfAssessments(framework, skillIds, behaviourIds) {
     for (const behaviourId of behaviourIds) {
       // Behaviours use tighter variance: ±1 only (no ±2 outliers)
       const r = rng();
-      let offset = 0;
+      let offset;
       if (r < 0.55) offset = 0;
       else if (r < 0.8) offset = 1;
       else offset = -1;

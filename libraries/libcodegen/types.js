@@ -4,14 +4,17 @@
  */
 export class CodegenTypes {
   #base;
+  #pbjsPath;
 
   /**
    * Creates a new types generator with base functionality
    * @param {object} base - CodegenBase instance providing shared utilities
+   * @param {string} [pbjsPath] - Absolute path to the pbjs binary (resolved from protobufjs-cli)
    */
-  constructor(base) {
+  constructor(base, pbjsPath) {
     if (!base) throw new Error("CodegenBase instance is required");
     this.#base = base;
+    this.#pbjsPath = pbjsPath || null;
   }
 
   /**
@@ -85,8 +88,14 @@ export class CodegenTypes {
       ...protoFiles,
     ];
 
-    await this.#base.run("npx", ["pbjs", ...args], {
-      cwd: this.#base.projectRoot,
-    });
+    if (this.#pbjsPath) {
+      await this.#base.run(process.execPath, [this.#pbjsPath, ...args], {
+        cwd: this.#base.projectRoot,
+      });
+    } else {
+      await this.#base.run("npx", ["pbjs", ...args], {
+        cwd: this.#base.projectRoot,
+      });
+    }
   }
 }

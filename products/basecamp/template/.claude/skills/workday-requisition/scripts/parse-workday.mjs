@@ -199,7 +199,7 @@ function parseName(raw) {
   const match = name.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
   if (match) {
     const annotation = match[2].trim();
-    let ie = "";
+    let ie;
     if (/prior\s*worker/i.test(annotation)) ie = "External (Prior Worker)";
     else if (/internal/i.test(annotation)) ie = "Internal";
     else ie = annotation;

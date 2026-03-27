@@ -434,14 +434,14 @@ make rc-start                 # Start services (supabase/tei skipped if not inst
 ### Generation
 
 ```sh
-make generate                 # Structural only (no LLM, deterministic fallbacks)
-make generate-cached          # With cached prose (no LLM)
-make generate-full            # With LLM prose (requires LLM_TOKEN)
+make generate                 # Cached prose (default, no LLM needed)
+make generate-update          # Generate new prose via LLM and update cache
+make generate-no-prose        # Structural only, no prose (minimal data)
 ```
 
-Structural generation produces schema-valid data for all pathway entities using
-deterministic fallbacks from the DSL. This is sufficient for running e2e tests
-and validation without LLM access (used in CI).
+Generation uses cached prose by default from `.prose-cache.json`. Use
+`make generate-update` to call the LLM and refresh the cache. The `no-prose`
+mode produces minimal structural data without prose content.
 
 ### Development
 

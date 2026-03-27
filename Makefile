@@ -45,8 +45,8 @@ help:
 	@echo ""
 	@echo "Generation:"
 	@echo "  generate          	Generate synthetic data (structural only)"
-	@echo "  generate-cached   	Generate synthetic data with cached prose"
-	@echo "  generate-full     	Generate synthetic data with LLM prose"
+	@echo "  generate-update   	Generate synthetic data with LLM and update cache"
+	@echo "  generate-no-prose 	Generate synthetic data (structural only)"
 	@echo ""
 	@echo "Code Generation:"
 	@echo "  codegen           	Generate all (types, services, clients)"
@@ -164,7 +164,7 @@ help:
 # ====================
 
 .PHONY: quickstart
-quickstart: env-setup generate-cached data-init codegen process-fast install-hooks  ## Bootstrap from scratch (env, generate, data, codegen, process)
+quickstart: env-setup generate data-init codegen process-fast install-hooks  ## Bootstrap from scratch (env, generate, data, codegen, process)
 	@echo ""
 	@echo "=== Quickstart complete ==="
 	@printf "  Knowledge files: %s\n" "$$(find data/knowledge -name '*.html' 2>/dev/null | wc -l | tr -d ' ')"
@@ -193,16 +193,16 @@ data-reset: data-clean data-init codegen  ## Clean, init, and regenerate code
 # ====================
 
 .PHONY: generate
-generate:  ## Generate synthetic data (structural only)
+generate:  ## Generate synthetic data (cached prose)
 	@$(ENVLOAD) npx fit-universe
 
-.PHONY: generate-cached
-generate-cached:  ## Generate synthetic data with cached prose
-	@$(ENVLOAD) npx fit-universe --cached
-
-.PHONY: generate-full
-generate-full:  ## Generate synthetic data with LLM prose
+.PHONY: generate-update
+generate-update:  ## Generate synthetic data with LLM and update prose cache
 	@$(ENVLOAD) npx fit-universe --generate
+
+.PHONY: generate-no-prose
+generate-no-prose:  ## Generate synthetic data (structural only, no prose)
+	@$(ENVLOAD) npx fit-universe --no-prose
 
 # ====================
 # Code Generation

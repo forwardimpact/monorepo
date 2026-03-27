@@ -52,7 +52,11 @@ async function main() {
     SUPABASE_SERVICE_ROLE_KEY: null,
   });
 
-  const mode = args.cached ? "cached" : args.generate ? "generate" : "no-prose";
+  const mode = args.noProse
+    ? "no-prose"
+    : args.generate
+      ? "generate"
+      : "cached";
 
   let llmApi = null;
   if (mode === "generate") {
@@ -256,7 +260,7 @@ function parseArgs(argv) {
   const args = {};
   for (const arg of argv) {
     if (arg === "--help" || arg === "-h") args.help = true;
-    else if (arg === "--cached") args.cached = true;
+    else if (arg === "--no-prose") args.noProse = true;
     else if (arg === "--generate") args.generate = true;
     else if (arg === "--strict") args.strict = true;
     else if (arg === "--dry-run") args.dryRun = true;
@@ -274,9 +278,9 @@ Usage:
   npx fit-universe [options]
 
 Options:
-  --generate          Generate prose via LLM (requires LLM_TOKEN)
-  --cached            Use cached prose from .prose-cache.json
-  --strict            Fail on cache miss (use with --cached)
+  --generate          Generate prose via LLM and update cache (requires LLM_TOKEN)
+  --no-prose          Skip prose entirely (structural scaffolding only)
+  --strict            Fail on cache miss (use with default cached mode)
   --dry-run           Show what would be written without writing
   --load              Load raw documents to Supabase Storage
   --only=<type>       Render only one content type (html|pathway|raw|markdown)
@@ -284,9 +288,9 @@ Options:
   -h, --help          Show this help message
 
 Prose modes:
-  (default)           Structural generation only, no LLM calls
-  --cached            Read prose from .prose-cache.json
-  --generate          Call LLM to generate prose, write to cache
+  (default)           Use cached prose from .prose-cache.json
+  --generate          Call LLM to generate prose and update the cache
+  --no-prose          No prose — produces minimal structural data only
 
 Content types:
   html                Organizational articles, guides, FAQs (data/knowledge)
@@ -295,9 +299,10 @@ Content types:
   markdown            Briefings, notes, KB content (data/personal)
 
 Examples:
-  npx fit-universe                           # Structural only
-  npx fit-universe --generate                # Full generation with LLM prose
-  npx fit-universe --cached --strict         # Cached prose, fail on miss
+  npx fit-universe                           # Cached prose (default)
+  npx fit-universe --generate                # Generate new prose via LLM
+  npx fit-universe --strict                  # Cached prose, fail on miss
+  npx fit-universe --no-prose                # Structural only, no prose
   npx fit-universe --only=pathway            # Generate pathway data only
   npx fit-universe --universe=custom.dsl     # Use custom DSL file
 `);

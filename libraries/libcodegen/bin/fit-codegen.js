@@ -50,7 +50,9 @@ async function createBundle(sourcePath) {
       },
     );
   } catch (error) {
-    throw new Error(`Failed to create bundle: ${error.message}`);
+    throw new Error(`Failed to create bundle: ${error.message}`, {
+      cause: error,
+    });
   }
 }
 
@@ -125,8 +127,16 @@ function parseFlags() {
  */
 function createCodegen(projectRoot, path, mustache, protoLoader, fs) {
   const base = new CodegenBase(projectRoot, path, mustache, protoLoader, fs);
+  const pbjsPath = path.resolve(
+    __dirname,
+    "..",
+    "node_modules",
+    "protobufjs-cli",
+    "bin",
+    "pbjs",
+  );
   return {
-    types: new CodegenTypes(base),
+    types: new CodegenTypes(base, pbjsPath),
     services: new CodegenServices(base),
     definitions: new CodegenDefinitions(base),
   };

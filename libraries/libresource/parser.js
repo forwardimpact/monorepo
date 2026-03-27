@@ -158,7 +158,9 @@ export class Parser {
         quads.push(quad);
       }
     } catch (error) {
-      throw new Error(`Microdata parsing failed: ${error.message}`);
+      throw new Error(`Microdata parsing failed: ${error.message}`, {
+        cause: error,
+      });
     }
 
     return this.#skolemizer.skolemize(quads);
