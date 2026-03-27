@@ -36,8 +36,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Security audit
-        run: npm audit --audit-level=high --workspaces
+      - uses: ./.github/actions/audit
 
       - name: Generate code
         run: npx fit-codegen --all

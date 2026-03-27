@@ -73,10 +73,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Install gitleaks
-        run: |
-          GITLEAKS_VERSION="8.24.3"
-          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar xz
-          sudo mv gitleaks /usr/local/bin/
-      - name: Run audit
-        run: make audit
+      - uses: ./.github/actions/audit
+        with:
+          secret-scanning: "true"

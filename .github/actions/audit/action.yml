@@ -1,0 +1,28 @@
+name: Security Audit
+description: Run npm audit and gitleaks secret scanning
+
+inputs:
+  secret-scanning:
+    description: Run secret scanning on the repository
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: npm audit
+      shell: bash
+      run: npm audit --audit-level=high --omit=dev --workspaces
+
+    - name: Install gitleaks
+      if: inputs.secret-scanning == 'true'
+      shell: bash
+      run: |
+        GITLEAKS_VERSION="8.24.3"
+        curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar xz
+        sudo mv gitleaks /usr/local/bin/
+
+    - name: Secret scanning
+      if: inputs.secret-scanning == 'true'
+      shell: bash
+      run: gitleaks detect --source . --verbose

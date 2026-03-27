@@ -30,8 +30,7 @@ jobs:
       - name: Install just
         run: brew install just
 
-      - name: Security audit
-        run: npm audit --audit-level=high --workspaces
+      - uses: ./.github/actions/audit
 
       - name: Build .pkg installer
         working-directory: products/basecamp

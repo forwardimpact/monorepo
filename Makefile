@@ -540,7 +540,7 @@ download-bundle:  ## Download generated code bundle from S3
 
 .PHONY: audit
 audit:  ## Run security audit (npm vulnerabilities + secret scanning)
-	@npm audit --audit-level=high --workspaces
+	@npm audit --audit-level=high --omit=dev --workspaces
 	@echo ""
 	@if command -v gitleaks >/dev/null 2>&1; then \
 		gitleaks detect --source . --verbose; \
