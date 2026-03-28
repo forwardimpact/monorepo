@@ -1,0 +1,41 @@
+name: Claude Prompt
+description: Install Claude Code and run a prompt in non-interactive mode
+
+inputs:
+  prompt:
+    description: The prompt to send to Claude Code
+    required: true
+  allowed-tools:
+    description: Comma-separated list of tools to allow without prompting
+    required: false
+    default: "Bash,Read,Glob,Grep,Write,Edit"
+  model:
+    description: Claude model to use
+    required: false
+    default: "opus"
+  max-turns:
+    description: Maximum number of agentic turns
+    required: false
+    default: "50"
+
+runs:
+  using: composite
+  steps:
+    - name: Install Claude Code
+      shell: bash
+      run: npm install -g @anthropic-ai/claude-code
+
+    - name: Configure Git identity
+      shell: bash
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+    - name: Run Claude Code
+      shell: bash
+      run: |
+        claude --print \
+          --model "${{ inputs.model }}" \
+          --max-turns "${{ inputs.max-turns }}" \
+          --allowedTools "${{ inputs.allowed-tools }}" \
+          "${{ inputs.prompt }}"
