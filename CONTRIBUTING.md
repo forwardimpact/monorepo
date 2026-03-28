@@ -39,11 +39,13 @@ See `CLAUDE.md` for detailed architecture, style rules, and conventions.
 
 ## Dependency Policy
 
-- Minimize external dependencies
+- Minimize external dependencies — check if an existing package or Node.js
+  built-in can serve the same purpose before adding a new one (e.g. use `yaml`
+  not `js-yaml`)
 - Consolidate packages serving the same purpose (one YAML parser, one markdown
   renderer)
 - Align version ranges for the same package across all workspaces
-- Run `npm audit` after adding dependencies
+- Run `npm audit --audit-level=high` after adding or updating dependencies
 
 ## Reporting Security Issues
 
