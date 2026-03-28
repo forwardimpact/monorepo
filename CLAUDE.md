@@ -11,9 +11,9 @@
 Improve the performance of developers and agents, improve quality, increase
 output, and bring pride of workmanship to engineering teams.
 
-## Audiences
+## Users
 
-Three audiences use the system. Every product serves at least two.
+Three user groups use the system. Every product serves at least two.
 
 - **Leadership** — Define what good engineering looks like, staff teams to
   succeed, and measure outcomes without blaming individuals.
@@ -32,7 +32,7 @@ without blaming individuals. **Summit** treats the team as a system, not a
 collection of parts. All six share one data model and one dependency chain —
 constancy of purpose in architecture.
 
-| Product      | Question it answers                               | Audiences              | CLI            |
+| Product      | Question it answers                               | Users                  | CLI            |
 | ------------ | ------------------------------------------------- | ---------------------- | -------------- |
 | **Map**      | What does good engineering look like here?        | Leadership, Agents     | `fit-map`      |
 | **Pathway**  | Where does my career path go from here?           | Developers, Agents     | `fit-pathway`  |
