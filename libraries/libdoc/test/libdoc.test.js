@@ -438,7 +438,7 @@ function createTestHarness({
   sourceFiles,
   mdFiles,
   rootFiles = [],
-  template = '<html><head>{{markdownUrl}}{{canonicalUrl}}</head><body>{{title}}</body></html>',
+  template = "<html><head>{{markdownUrl}}{{canonicalUrl}}</head><body>{{title}}</body></html>",
 }) {
   const files = new Map();
   const dirs = new Set();
@@ -501,7 +501,9 @@ function createTestHarness({
   const mockMustache = (tpl, ctx) =>
     tpl
       .replace(/\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (_, key, inner) =>
-        ctx[key] ? inner.replace(/\{\{(\w+)\}\}/g, (__, k) => ctx[k] || "") : "",
+        ctx[key]
+          ? inner.replace(/\{\{(\w+)\}\}/g, (__, k) => ctx[k] || "")
+          : "",
       )
       .replace(/\{\{(\w+)\}\}/g, (_, key) => ctx[key] || "");
   const mockPrettier = { format: async (html) => html };
@@ -539,7 +541,10 @@ test("DocsBuilder writes markdown companion with title prepend", async () => {
   assert.ok(rootMd.includes("Welcome content"), "companion has body");
 
   const aboutMd = files.get("dist/about/index.md");
-  assert.ok(aboutMd.startsWith("# About\n\n"), "about companion starts with # title");
+  assert.ok(
+    aboutMd.startsWith("# About\n\n"),
+    "about companion starts with # title",
+  );
 });
 
 test("DocsBuilder transforms markdown body links in companions", async () => {
@@ -580,7 +585,9 @@ test("DocsBuilder generates sitemap.xml with baseUrl", async () => {
 
   assert.ok(files.has("dist/sitemap.xml"), "sitemap.xml should be generated");
   const sitemap = files.get("dist/sitemap.xml");
-  assert.ok(sitemap.includes('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'));
+  assert.ok(
+    sitemap.includes('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'),
+  );
   assert.ok(sitemap.includes("<loc>https://example.com/</loc>"));
   assert.ok(sitemap.includes("<loc>https://example.com/about/</loc>"));
 });
@@ -622,7 +629,10 @@ test("DocsBuilder skips sitemap when no baseUrl", async () => {
 
   assert.ok(!files.has("dist/sitemap.xml"), "no sitemap without baseUrl");
   // Companions should still be produced
-  assert.ok(files.has("dist/index.md"), "companion still produced without baseUrl");
+  assert.ok(
+    files.has("dist/index.md"),
+    "companion still produced without baseUrl",
+  );
 });
 
 test("DocsBuilder adds alternate and canonical link tags", async () => {
@@ -667,7 +677,7 @@ test("DocsBuilder omits canonical tag when no baseUrl", async () => {
 
   const html = files.get("dist/index.html");
   assert.ok(html.includes('href="index.md"'), "alternate still present");
-  assert.ok(!html.includes("rel=\"canonical\""), "no canonical without baseUrl");
+  assert.ok(!html.includes('rel="canonical"'), "no canonical without baseUrl");
 });
 
 test("DocsBuilder augments llms.txt with page links", async () => {
@@ -686,7 +696,10 @@ test("DocsBuilder augments llms.txt with page links", async () => {
 
   const sourceFiles = new Map([
     ["src/index.md", "---\ntitle: Home\n---\nContent"],
-    ["src/about.md", "---\ntitle: About\ndescription: About page\n---\nContent"],
+    [
+      "src/about.md",
+      "---\ntitle: About\ndescription: About page\n---\nContent",
+    ],
     ["src/map.md", "---\ntitle: Map\ndescription: Data product\n---\nContent"],
     ["src/llms.txt", llmsContent],
   ]);
@@ -859,11 +872,16 @@ test("DocsBuilder copies root-level static files and skips .md, template, CNAME"
   assert.ok(copied.has("dist/favicon.ico"), "favicon.ico copied");
   assert.ok(!copied.has("dist/CNAME"), "CNAME not copied");
   assert.ok(!copied.has("dist/index.template.html"), "template not copied");
-  assert.ok(!copied.has("dist/index.md") || !copied.get("dist/index.md")?.includes("src/index.md"), ".md not copied as static");
+  assert.ok(
+    !copied.has("dist/index.md") ||
+      !copied.get("dist/index.md")?.includes("src/index.md"),
+    ".md not copied as static",
+  );
 });
 
 test("DocsBuilder classifies docs pages under Documentation in llms.txt", async () => {
-  const llmsContent = "# Site\n\n## Products\n\n## Documentation\n\n## Optional\n";
+  const llmsContent =
+    "# Site\n\n## Products\n\n## Documentation\n\n## Optional\n";
 
   // We need a mock that handles subdirectories for docs/
   const sourceFiles = new Map([

@@ -53,19 +53,19 @@ reflects the current codebase.
 
 ## Key Files to Cross-Reference
 
-| Document Topic     | Source of Truth                       |
-| ------------------ | ------------------------------------- |
-| Skills & Levels    | `data/pathway/capabilities/`          |
-| Behaviours         | `data/pathway/behaviours/`            |
-| Disciplines        | `data/pathway/disciplines/`           |
-| Tracks             | `data/pathway/tracks/`                |
-| Levels             | `data/pathway/levels.yaml`            |
-| Stages             | `data/pathway/stages.yaml`            |
-| Job Derivation     | `libraries/libpathway/src/job.js`     |
-| Agent Derivation   | `libraries/libpathway/src/agent.js`   |
-| CLI Commands       | `products/pathway/bin/fit-pathway.js` |
-| Templates          | `products/pathway/templates/`         |
-| Agent instructions | `CLAUDE.md`                           |
+| Document Topic     | Source of Truth                          |
+| ------------------ | ---------------------------------------- |
+| Skills & Levels    | `data/pathway/capabilities/`             |
+| Behaviours         | `data/pathway/behaviours/`               |
+| Disciplines        | `data/pathway/disciplines/`              |
+| Tracks             | `data/pathway/tracks/`                   |
+| Levels             | `data/pathway/levels.yaml`               |
+| Stages             | `data/pathway/stages.yaml`               |
+| Job Derivation     | `libraries/libpathway/src/job.js`        |
+| Agent Derivation   | `libraries/libpathway/src/agent.js`      |
+| CLI Commands       | `products/pathway/bin/fit-pathway.js`    |
+| Templates          | `products/pathway/templates/`            |
+| Agent instructions | `CLAUDE.md`                              |
 | LLM / SEO outputs  | `website/llms.txt`, `website/robots.txt` |
 
 ## CLI Verification
