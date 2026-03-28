@@ -165,13 +165,15 @@ libdoc skips llms.txt generation entirely (even when `--base-url` is provided).
 This keeps the feature opt-in per site — only sites that author a curated file
 get llms.txt output.
 
-**Build ordering.** Currently `#copyStaticAssets` runs at the end of `build()`
-and copies all files from `public/` to the dist root. This means a raw
-`llms.txt` in `public/` would be copied as-is, overwriting any augmented version
-written earlier. To avoid this, sitemap generation and llms.txt link generation
-must run **after** `#copyStaticAssets`, overwriting the plain copy with the
-augmented version. Alternatively, `#copyStaticAssets` can skip `llms.txt` when
-llms.txt generation is active. Either approach works — the plan should pick one.
+**Build ordering.** `#copyStaticAssets` runs at the end of `build()` and has
+code to copy all files from `public/` to the dist root (this code path is
+currently unused — no `public/` directory exists in any site today, so it early
+returns). This spec introduces `website/public/` with `robots.txt` and the
+curated `llms.txt`, activating this code path. Since `#copyStaticAssets` copies
+`llms.txt` as-is, it would overwrite any augmented version written earlier. To
+avoid this, sitemap and llms.txt generation must run **after**
+`#copyStaticAssets`, or `#copyStaticAssets` must skip `llms.txt` when generation
+is active. The plan should pick one approach.
 
 The curated file provides the H1, blockquote, prose, and H2 section headers
 with descriptions for each section. libdoc appends markdown links under each H2
@@ -239,9 +241,13 @@ Sitemap: https://www.forwardimpact.team/sitemap.xml
 This tells crawlers where to find the sitemap. The `Allow: /` is explicit but
 redundant (default behavior) — included for clarity.
 
-`#copyStaticAssets` in `build()` already copies individual files from the source
-`public/` directory to the dist root, so `robots.txt` is included in builds
-automatically with no code changes.
+No `public/` directory exists in the website today — this spec introduces it.
+`#copyStaticAssets` in `build()` already has code to copy individual files from
+a source `public/` directory to the dist root, but it has never been exercised
+(the code path returns early at the `existsSync` check). Creating
+`website/public/` activates this existing code path. The `CNAME` file, by
+contrast, lives at `website/CNAME` and is copied by a separate workflow step —
+not by libdoc.
 
 ### 6. GitHub Actions workflow update
 
