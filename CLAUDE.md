@@ -353,7 +353,7 @@ follow those rules. Additionally:
   `Dependabot` for updates. Never change a pin to a tag.
 - **Reporting** — See `SECURITY.md`. Contact `hi.security@senzilla.io`.
 
-### Policy Ownership
+## Policy Ownership
 
 Each policy area has one canonical location. Other files reference it instead of
 restating the rules. Update the canonical location only — if the same rule

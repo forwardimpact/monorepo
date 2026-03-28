@@ -73,11 +73,12 @@ gh pr view <number> --json title,body,headRefName,files,commits,statusCheckRollu
 gh pr diff <number>
 ```
 
-Classify the PR:
+Classify the PR and determine which checks apply. Check 1 (CI passes) applies to
+every PR. Additional checks depend on the update type:
 
-- **npm update** — labels include `javascript`. Evaluate checks 3, 4, 5, 6.
-- **GitHub Actions update** — labels include `github_actions`. Evaluate checks
-  2, 7.
+- **npm update** — labels include `javascript`. Also evaluate checks 3, 4, 5, 6.
+- **GitHub Actions update** — labels include `github_actions`. Also evaluate
+  checks 2, 7.
 - **Both** — Evaluate all checks.
 
 Determine the update type from the PR title and body:

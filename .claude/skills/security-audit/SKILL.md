@@ -30,20 +30,21 @@ audit, additionally verify:
 
 ## 3. Credential & Secret Leak Prevention
 
-- `.env` files, API keys, tokens, and credentials must never be committed.
-  `.gitignore` must cover all sensitive file patterns.
-- Gitleaks must be configured with a `.gitleaks.toml` allowlist for known false
-  positives (e.g. `.env.*.example` files).
-- A pre-commit hook must run gitleaks on staged changes.
-- CI must run gitleaks on every push and pull request.
-- Secrets in GitHub Actions must use `secrets.*` — never hardcode values in
-  workflow files.
+Pre-commit hooks, CI secret scanning, and the "no secrets in commits" rule are
+defined in CONTRIBUTING.md § Security Workflows. During a security audit,
+additionally verify:
+
+- `.gitignore` covers all sensitive file patterns (`.env`, credentials, keys)
+- `.gitleaks.toml` allowlist exists for known false positives (e.g.
+  `.env.*.example` files)
+- Secrets in GitHub Actions use `secrets.*` — no hardcoded values in workflow
+  files
 
 ## 4. Static Analysis
 
-- ESLint must include `eslint-plugin-security` recommended rules.
-- Security rules must not be disabled without explicit justification in a
-  comment.
+ESLint security rules are defined in CONTRIBUTING.md § Security Workflows.
+During a security audit, verify no security rules have been disabled in
+`eslint.config.js` without an inline justification comment.
 
 ## 5. Application Security (OWASP Top 10)
 
