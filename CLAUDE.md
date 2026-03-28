@@ -1,7 +1,5 @@
 # Forward Impact Engineering
 
-@CONTRIBUTING.md
-
 > "The aim of leadership should be to improve the performance of [developers]
 > and [agents], to improve quality, to increase output, and simultaneously to
 > bring pride of workmanship to people."
@@ -78,6 +76,8 @@ No LLM calls — query, aggregate, explain.
 aggregates skill matrices into capability coverage, structural risks, and
 what-if staffing scenarios so leadership can build teams that succeed. Fully
 local and deterministic — no external dependencies, no LLM calls.
+
+@CONTRIBUTING.md
 
 ## Structure
 
