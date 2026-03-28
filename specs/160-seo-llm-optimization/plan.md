@@ -49,14 +49,33 @@ new flag.
 
 ---
 
-### Step 2 — `build()` signature and page inventory
+### Step 2 — `build()` signature, CNAME fallback, and page inventory
 
 **File:** `libraries/libdoc/builder.js`
 
 **2a.** Change `build(docsDir, distDir)` to
 `build(docsDir, distDir, baseUrl)`.
 
-**2b.** Collect a page inventory during the per-page loop. After front matter
+**2b.** At the top of `build()`, after the initial setup, resolve the effective
+base URL. If `baseUrl` is not provided, check for a `CNAME` file in the source
+directory and derive the URL from it:
+
+```javascript
+// Resolve base URL: explicit flag > CNAME fallback > undefined
+if (!baseUrl) {
+  const cnamePath = this.#path.join(docsDir, "CNAME");
+  if (this.#fs.existsSync(cnamePath)) {
+    const hostname = this.#fs.readFileSync(cnamePath, "utf-8").trim();
+    baseUrl = `https://${hostname}`;
+  }
+}
+```
+
+This means `npx fit-doc build --src=website --out=dist` automatically picks up
+`website/CNAME` (`www.forwardimpact.team`) and generates sitemap/llms.txt
+without needing `--base-url`. The explicit flag takes precedence when both exist.
+
+**2c.** Collect a page inventory during the per-page loop. After front matter
 parsing (line ~269), push each page's metadata into an array:
 
 ```javascript
@@ -356,21 +375,10 @@ if (baseUrl) {
 
 ### Step 7 — GitHub Actions workflow update
 
-**File:** `.github/workflows/website.yaml`
-
-Change the build step (line 34) from:
-
-```yaml
-run: npx fit-doc build --src=website --out=dist
-```
-
-to:
-
-```yaml
-run: npx fit-doc build --src=website --out=dist --base-url=https://www.forwardimpact.team
-```
-
-**Verify:** Workflow passes with the new flag.
+No workflow changes needed. The CNAME fallback (step 2b) means the existing
+build command `npx fit-doc build --src=website --out=dist` automatically derives
+the base URL from `website/CNAME`. The CNAME copy step and schema file copy
+steps remain unchanged.
 
 ---
 
@@ -402,8 +410,13 @@ Add test cases for:
 6. **llms.txt skipped when no curated file** — When no `llms.txt` in source
    root, no `llms.txt` in output even with `baseUrl`.
 
-7. **No baseUrl** — Markdown companions and alternate link still produced;
-   sitemap and llms.txt augmentation skipped.
+7. **No baseUrl, no CNAME** — Markdown companions and alternate link still
+   produced; sitemap and llms.txt augmentation skipped.
+
+7a. **CNAME fallback** — When `baseUrl` is omitted but a `CNAME` file exists
+    in the source directory, `build()` derives `https://{hostname}` and
+    generates sitemap/llms.txt. Verify the explicit `--base-url` flag takes
+    precedence over CNAME when both are present.
 
 8. **Static file copying** — Non-markdown, non-template root files (e.g.
    `robots.txt`) are copied to dist. `.md` files, `index.template.html`, and
@@ -421,7 +434,8 @@ the new output files.
 
 Add to the libdoc section:
 
-- `--base-url` CLI flag: enables sitemap.xml and llms.txt link generation
+- `--base-url` CLI flag and CNAME fallback: enables sitemap.xml and llms.txt
+  link generation
 - `sitemap.xml`: auto-generated from page inventory, minimal format
 - `.html.md` companions: written for every page, markdown body with transformed
   links
@@ -455,11 +469,10 @@ curated `website/llms.txt` section structure.
 | File | Action |
 |------|--------|
 | `libraries/libdoc/bin/fit-doc.js` | Modify — add `--base-url` option |
-| `libraries/libdoc/builder.js` | Modify — `build()` signature, page inventory, companion output, `#copyStaticAssets` refactor, sitemap, llms.txt |
+| `libraries/libdoc/builder.js` | Modify — `build()` signature, CNAME fallback, page inventory, companion output, `#copyStaticAssets` refactor, sitemap, llms.txt |
 | `website/index.template.html` | Modify — add `<link rel="alternate">` tag |
 | `website/robots.txt` | Create |
 | `website/llms.txt` | Create |
-| `.github/workflows/website.yaml` | Modify — add `--base-url` flag |
 | `libraries/libdoc/test/libdoc.test.js` | Modify — add test cases |
 | `.claude/skills/libs-web-presentation/SKILL.md` | Modify |
 | `.claude/skills/website/SKILL.md` | Modify |
@@ -469,16 +482,15 @@ curated `website/llms.txt` section structure.
 
 Steps 1–4 can be developed together (they touch different parts of the same
 files but have no circular dependencies). Step 5 modifies `#copyStaticAssets`
-and creates the static files. Step 6 depends on step 2b (page inventory) and
-step 5 (static files copied to dist). Step 7 is independent. Step 8 should be
-written alongside or after steps 1–6. Step 9 is independent and can be done
-last.
+and creates the static files. Step 6 depends on step 2c (page inventory) and
+step 5 (static files copied to dist). Step 7 is a no-op (CNAME fallback
+eliminates the need for workflow changes). Step 8 should be written alongside or
+after steps 1–6. Step 9 is independent and can be done last.
 
 Recommended commit sequence:
 
-1. Steps 1–4: `feat(libdoc): add base-url flag, markdown companions, and alternate link tag`
+1. Steps 1–4: `feat(libdoc): add base-url flag with CNAME fallback, markdown companions, and alternate link tag`
 2. Step 5: `feat(libdoc): refactor static file copying, add robots.txt and llms.txt`
 3. Step 6: `feat(libdoc): generate sitemap.xml and augment llms.txt at build time`
-4. Step 7: `chore(website): pass base-url in GitHub Actions build step`
-5. Step 8: `test(libdoc): add tests for SEO and LLM optimization outputs`
-6. Step 9: `docs: update skills for SEO and LLM optimization`
+4. Step 8: `test(libdoc): add tests for SEO and LLM optimization outputs`
+5. Step 9: `docs: update skills for SEO and LLM optimization`
