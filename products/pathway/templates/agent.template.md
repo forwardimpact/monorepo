@@ -3,7 +3,7 @@
 name: {{name}}
 {{/name}}
 description: {{{description}}}
-model: sonnet
+model: opus
 {{#skills.length}}
 skills:
 {{#skills}}

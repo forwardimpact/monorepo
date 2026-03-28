@@ -713,7 +713,7 @@ export function generateStageAgentProfile({
   const frontmatter = {
     name: fullName,
     description,
-    model: "sonnet",
+    model: "opus",
     skills: bodyData.skillDirnames,
   };
 
