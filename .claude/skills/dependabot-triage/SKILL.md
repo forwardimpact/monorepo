@@ -34,7 +34,7 @@ where the canonical rule lives, and what triage action to take on failure.
 | #   | Check                                      | Policy source                            | On failure                                                                                 |
 | --- | ------------------------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------ |
 | 1   | All CI checks pass                         | CONTRIBUTING.md § Before Submitting a PR | **Fix** if caused by the PR's changes. If pre-existing on main, skip and recommend rebase. |
-| 2   | Actions pinned to SHA with version comment | CLAUDE.md § Security; security-audit § 1 | **Fix** — update all workflow files to the new SHA.                                        |
+| 2   | Actions pinned to SHA with version comment | CONTRIBUTING.md § Security; security-audit § 1 | **Fix** — update all workflow files to the new SHA.                                        |
 | 3   | No duplicate dependencies                  | CONTRIBUTING.md § Dependency Policy      | **Close** with explanation.                                                                |
 | 4   | Version ranges aligned across workspaces   | CONTRIBUTING.md § Dependency Policy      | **Fix** — align all workspace ranges.                                                      |
 | 5   | npm audit clean (`--audit-level=high`)     | CONTRIBUTING.md § Dependency Policy      | **Close** if the update introduces the vulnerability. Skip if pre-existing.                |
