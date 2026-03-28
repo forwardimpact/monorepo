@@ -353,6 +353,21 @@ follow those rules. Additionally:
   `Dependabot` for updates. Never change a pin to a tag.
 - **Reporting** — See `SECURITY.md`. Contact `hi.security@senzilla.io`.
 
+### Policy Ownership
+
+Each policy area has one canonical location. Other files reference it instead of
+restating the rules. Update the canonical location only — if the same rule
+appears in two places, remove the duplicate and add a reference.
+
+| Policy area                          | Canonical location                       |
+| ------------------------------------ | ---------------------------------------- |
+| Security workflows (hooks, scanning) | CONTRIBUTING.md § Security Workflows     |
+| Dependency hygiene                   | CONTRIBUTING.md § Dependency Policy      |
+| PR checklist                         | CONTRIBUTING.md § Before Submitting a PR |
+| GitHub Actions SHA pinning           | CLAUDE.md § Security                     |
+| Supply chain & app security          | `.claude/skills/security-audit`          |
+| Dependabot triage process            | `.claude/skills/dependabot-triage`       |
+
 ## Git Workflow
 
 Format: `type(scope): subject`
