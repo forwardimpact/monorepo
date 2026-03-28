@@ -5,7 +5,7 @@ universe DSL to raise the fidelity and cross-entity coherence of generated
 content so that tests and evaluations produce more reliable, meaningful results.
 
 ```
-specs/140-synthetic-fidelity/
+specs/150-synthetic-fidelity/
   spec.md                       This document (WHAT and WHY)
 ```
 
