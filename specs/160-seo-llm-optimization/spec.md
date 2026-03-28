@@ -11,11 +11,11 @@ means:
    deeper documentation pages. Without a sitemap, new or updated pages may take
    weeks to appear in search results.
 
-2. **LLM agents** that visit the site to answer user questions must parse complex
-   HTML with navigation, styling, and scripts to extract content. This is
-   imprecise and wastes context window tokens on boilerplate. The llms.txt
-   standard (https://llmstxt.org) exists specifically to solve this — providing a
-   curated, markdown-formatted entry point that LLMs can consume directly.
+2. **LLM agents** that visit the site to answer user questions must parse
+   complex HTML with navigation, styling, and scripts to extract content. This
+   is imprecise and wastes context window tokens on boilerplate. The llms.txt
+   standard (https://llmstxt.org) exists specifically to solve this — providing
+   a curated, markdown-formatted entry point that LLMs can consume directly.
 
 3. **Per-page markdown** does not exist in the built output. When an LLM agent
    or downstream tool needs the content of a single page in clean markdown, the
@@ -44,8 +44,8 @@ files. The website has no manually curated LLM entry point either.
   `<link rel="alternate" type="text/markdown">` tag to the HTML template so
   every page advertises its markdown companion in the `<head>`. Add a
   `<link rel="canonical">` tag when a base URL is available to prevent
-  duplicate-content issues from trailing-slash ambiguity. Same discovery
-  pattern as RSS feeds.
+  duplicate-content issues from trailing-slash ambiguity. Same discovery pattern
+  as RSS feeds.
 
 - **libdoc: llms.txt link generation** — At build time, libdoc reads a manually
   curated `llms.txt` from the source directory root and appends auto-generated
@@ -96,12 +96,12 @@ This value is passed through to `DocsBuilder.build()` as a third parameter:
 `build(docsDir, distDir, baseUrl)`. It is required for sitemap generation and
 llms.txt link generation.
 
-**CNAME fallback.** When `--base-url` is omitted, `build()` checks for a
-`CNAME` file in the source directory root. If found, it reads the hostname
-(e.g., `www.forwardimpact.team`) and constructs `https://{hostname}` as the
-base URL. This means sites with a `CNAME` file get sitemap and llms.txt
-generation automatically without needing to pass `--base-url`. The explicit
-flag takes precedence when both are present.
+**CNAME fallback.** When `--base-url` is omitted, `build()` checks for a `CNAME`
+file in the source directory root. If found, it reads the hostname (e.g.,
+`www.forwardimpact.team`) and constructs `https://{hostname}` as the base URL.
+This means sites with a `CNAME` file get sitemap and llms.txt generation
+automatically without needing to pass `--base-url`. The explicit flag takes
+precedence when both are present.
 
 When neither `--base-url` nor `CNAME` is available, libdoc skips sitemap and
 llms.txt link generation. Markdown companions are still produced since they
@@ -137,8 +137,8 @@ These are optional in the protocol and add maintenance burden without meaningful
 benefit for a site of this size.
 
 Static files copied from the source root (like `robots.txt`) and files copied by
-post-build workflow steps (schema files, CNAME) are not included in the
-sitemap — libdoc only knows about pages it builds from markdown sources.
+post-build workflow steps (schema files, CNAME) are not included in the sitemap
+— libdoc only knows about pages it builds from markdown sources.
 
 ### 3. libdoc: per-page markdown output
 
@@ -147,12 +147,12 @@ For each page built from a `.md` source, DocsBuilder writes a co-located
 
 Output path mapping:
 
-| HTML output                    | Markdown output                    |
-| ------------------------------ | ---------------------------------- |
-| `index.html`                   | `index.md`                         |
-| `about/index.html`             | `about/index.md`                   |
-| `docs/map/index.html`          | `docs/map/index.md`                |
-| `docs/model/core/index.html`   | `docs/model/core/index.md`         |
+| HTML output                  | Markdown output            |
+| ---------------------------- | -------------------------- |
+| `index.html`                 | `index.md`                 |
+| `about/index.html`           | `about/index.md`           |
+| `docs/map/index.html`        | `docs/map/index.md`        |
+| `docs/model/core/index.html` | `docs/model/core/index.md` |
 
 **Why co-located `index.md` instead of `.html.md`?** The llms.txt specification
 suggests appending `.md` to the HTML URL (e.g., `index.html.md`), but `.html.md`
@@ -173,8 +173,8 @@ from source-relative references (e.g., `[Core](./core.md)`) to directory-style
 URLs (e.g., `[Core](core/)`), so the markdown companions work as standalone
 documents that link to the live site. This requires a new markdown-specific link
 transformer — the existing `#transformMarkdownLinks(html)` operates on HTML
-`href` attributes (`href="./core.md"` → `href="core/"`), whereas companion
-files need transformation of markdown link syntax (`[text](./core.md)` →
+`href` attributes (`href="./core.md"` → `href="core/"`), whereas companion files
+need transformation of markdown link syntax (`[text](./core.md)` →
 `[text](core/)`). The transformation rules are the same (index.md → `./`,
 file.md → `file/`, dir/index.md → `dir/`), just applied to markdown link syntax
 `[...](...)` instead of HTML `href="..."`.
@@ -238,8 +238,8 @@ root. Since llms.txt link generation needs to augment this file, sitemap and
 llms.txt generation must run **after** `#copyStaticAssets`. The plan should
 confirm this ordering.
 
-The curated file provides the H1, blockquote, prose, and H2 section headers
-with descriptions for each section. libdoc appends markdown links under each H2
+The curated file provides the H1, blockquote, prose, and H2 section headers with
+descriptions for each section. libdoc appends markdown links under each H2
 section based on the page inventory — the same inventory used for `sitemap.xml`.
 
 Each link follows the llms.txt format:
@@ -249,13 +249,11 @@ Each link follows the llms.txt format:
 ```
 
 Links point to the co-located markdown companion files (not the HTML pages), so
-LLMs retrieving linked content get clean markdown. The page title
-comes from front matter `title`, and the description from front matter
-`description`. Pages without a `description` in front matter omit the colon and
-description suffix.
+LLMs retrieving linked content get clean markdown. The page title comes from
+front matter `title`, and the description from front matter `description`. Pages
+without a `description` in front matter omit the colon and description suffix.
 
-The curated `llms.txt` in `website/` defines the section structure. For
-example:
+The curated `llms.txt` in `website/` defines the section structure. For example:
 
 ```markdown
 # Forward Impact
@@ -276,8 +274,8 @@ data model is YAML-based and drives all products.
 ```
 
 The `## Optional` section follows the llms.txt specification convention for
-content that is less important or supplementary (e.g., the about page, the
-home page).
+content that is less important or supplementary (e.g., the about page, the home
+page).
 
 libdoc appends the relevant page links under each H2, matching pages to sections
 based on their URL path structure:
@@ -330,8 +328,8 @@ sitemap with correct MIME types.
 
 Update the libdoc section to document:
 
-- The `--base-url` CLI flag, CNAME fallback, and their effect on sitemap/llms.txt
-  generation
+- The `--base-url` CLI flag, CNAME fallback, and their effect on
+  sitemap/llms.txt generation
 - The `sitemap.xml` automatic generation behavior with sorted page inventory
 - The co-located `index.md` companion convention for per-page markdown
 - The `<link rel="alternate" type="text/markdown">` tag and `markdownUrl`
@@ -356,8 +354,8 @@ Update to document:
 #### update-docs skill
 
 Add a reminder that when pages are added to or removed from the website, the
-curated `llms.txt` section structure in `website/llms.txt` may need
-updating (e.g., adding a new H2 section for a new product area).
+curated `llms.txt` section structure in `website/llms.txt` may need updating
+(e.g., adding a new H2 section for a new product area).
 
 ## Success Criteria
 
@@ -395,8 +393,8 @@ updating (e.g., adding a new H2 section for a new product area).
    generation
 
 8a. When `--base-url` is omitted but a `CNAME` file exists in the source
-    directory, libdoc derives the base URL as `https://{hostname}` and generates
-    sitemap, canonical tags, and llms.txt normally
+directory, libdoc derives the base URL as `https://{hostname}` and generates
+sitemap, canonical tags, and llms.txt normally
 
 9. When the curated `llms.txt` does not exist in the source directory, libdoc
    skips llms.txt generation even when `--base-url` is provided
@@ -405,5 +403,5 @@ updating (e.g., adding a new H2 section for a new product area).
     describe the new outputs and conventions
 
 11. Existing tests pass; new tests cover sitemap generation, markdown companion
-    output (including title prepend and link transformation), alternate link tag,
-    canonical link tag, page sort order, and llms.txt link appending
+    output (including title prepend and link transformation), alternate link
+    tag, canonical link tag, page sort order, and llms.txt link appending

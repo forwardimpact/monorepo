@@ -6,15 +6,16 @@ All new functionality lives in `DocsBuilder`. The `build()` method signature
 gains a third parameter (`baseUrl`), and after the existing page loop + static
 asset copy, a new post-build phase generates `sitemap.xml` and augments
 `llms.txt`. Markdown companions, the alternate `<link>` tag, and the canonical
-`<link>` tag are woven into the existing per-page loop. No new classes or
-files — everything fits naturally into the builder's current structure.
+`<link>` tag are woven into the existing per-page loop. No new classes or files
+— everything fits naturally into the builder's current structure.
 
 **Static file convention.** Static files (`robots.txt`, `llms.txt`) live in the
 website root alongside markdown content — there is no `public/` subdirectory.
 The dead `public/` code path in `#copyStaticAssets` is replaced with root-level
-static file copying that picks up non-markdown, non-template files automatically.
+static file copying that picks up non-markdown, non-template files
+automatically.
 
-**Ordering strategy for `llms.txt`:** Run sitemap/llms.txt generation *after*
+**Ordering strategy for `llms.txt`:** Run sitemap/llms.txt generation _after_
 `#copyStaticAssets`. The curated `llms.txt` gets copied to dist as a regular
 static file, then the post-build phase reads it back, appends links, and
 overwrites it. This keeps `#copyStaticAssets` generic.
@@ -57,8 +58,7 @@ new flag.
 
 **File:** `libraries/libdoc/builder.js`
 
-**2a.** Change `build(docsDir, distDir)` to
-`build(docsDir, distDir, baseUrl)`.
+**2a.** Change `build(docsDir, distDir)` to `build(docsDir, distDir, baseUrl)`.
 
 **2b.** At the top of `build()`, after the initial setup, resolve the effective
 base URL. If `baseUrl` is not provided, check for a `CNAME` file in the source
@@ -77,7 +77,8 @@ if (!baseUrl) {
 
 This means `npx fit-doc build --src=website --out=dist` automatically picks up
 `website/CNAME` (`www.forwardimpact.team`) and generates sitemap/llms.txt
-without needing `--base-url`. The explicit flag takes precedence when both exist.
+without needing `--base-url`. The explicit flag takes precedence when both
+exist.
 
 **2c.** Collect a page inventory during the per-page loop. After front matter
 parsing (line ~269), push each page's metadata into an array:
@@ -146,13 +147,13 @@ this.#fs.writeFileSync(companionPath, companionContent, "utf-8");
 ```
 
 The `outputPath` variable already holds the path without extension (e.g.,
-`index`, `about/index`, `docs/map/index`). Appending `.md` produces
-`index.md`, `about/index.md`, etc. — co-located with the `.html` file.
+`index`, `about/index`, `docs/map/index`). Appending `.md` produces `index.md`,
+`about/index.md`, etc. — co-located with the `.html` file.
 
-The content prepends `# {title}` from front matter as the first line. The
-source markdown after front matter extraction has no title heading — it relies
-on the HTML template to render the title. Without prepending, a companion
-for "About" would be an orphaned document with no heading.
+The content prepends `# {title}` from front matter as the first line. The source
+markdown after front matter extraction has no title heading — it relies on the
+HTML template to render the title. Without prepending, a companion for "About"
+would be an orphaned document with no heading.
 
 **Verify:** Every `index.html` in dist has a sibling `index.md`.
 
@@ -192,8 +193,8 @@ multiple paths (with or without trailing slash, with or without `index.html`).
 When `baseUrl` is not available, the value is empty and the `{{#canonicalUrl}}`
 conditional omits the tag entirely.
 
-**Verify:** Every built HTML page has the `<link rel="alternate">` tag.
-Pages built with a `baseUrl` also have `<link rel="canonical">`.
+**Verify:** Every built HTML page has the `<link rel="alternate">` tag. Pages
+built with a `baseUrl` also have `<link rel="canonical">`.
 
 ---
 
@@ -395,6 +396,7 @@ if (baseUrl) {
 ```
 
 **Verify:**
+
 - `dist/sitemap.xml` has one `<url>` per page, sorted by URL.
 - `dist/llms.txt` has curated content + page links under each H2.
 - Without `--base-url` or CNAME, neither file is generated/augmented.
@@ -426,8 +428,8 @@ sitemap with `application/xml`. Without this, both fall through to `text/plain`.
 **Note on production:** GitHub Pages does not support custom MIME type
 configuration. `.md` files are typically served as `text/plain`, which is
 acceptable for LLM consumption but not ideal. This is a hosting limitation, not
-something libdoc can fix. The `<link rel="alternate">` tag provides the
-semantic signal that the content is markdown regardless of the served MIME type.
+something libdoc can fix. The `<link rel="alternate">` tag provides the semantic
+signal that the content is markdown regardless of the served MIME type.
 
 **Verify:** `npx fit-doc serve` returns `Content-Type: text/markdown` for
 `/about/index.md`.
@@ -471,11 +473,11 @@ Add test cases for:
 6. **Page sort order** — Verify sitemap and llms.txt entries appear in
    alphabetical URL path order regardless of file discovery order.
 
-7. **llms.txt augmentation** — When `baseUrl` is provided and curated
-   `llms.txt` exists in the source root, the output `llms.txt` contains curated
-   content plus auto-generated links under each H2. Verify section
-   classification (product pages → Products, docs → Documentation, others →
-   Optional). Verify links point to `index.md` companion files.
+7. **llms.txt augmentation** — When `baseUrl` is provided and curated `llms.txt`
+   exists in the source root, the output `llms.txt` contains curated content
+   plus auto-generated links under each H2. Verify section classification
+   (product pages → Products, docs → Documentation, others → Optional). Verify
+   links point to `index.md` companion files.
 
 8. **llms.txt skipped when no curated file** — When no `llms.txt` in source
    root, no `llms.txt` in output even with `baseUrl`.
@@ -483,10 +485,10 @@ Add test cases for:
 9. **No baseUrl, no CNAME** — Markdown companions and alternate link still
    produced; sitemap, canonical tags, and llms.txt augmentation skipped.
 
-9a. **CNAME fallback** — When `baseUrl` is omitted but a `CNAME` file exists
-    in the source directory, `build()` derives `https://{hostname}` and
-    generates sitemap/llms.txt/canonical. Verify the explicit `--base-url` flag
-    takes precedence over CNAME when both are present.
+9a. **CNAME fallback** — When `baseUrl` is omitted but a `CNAME` file exists in
+the source directory, `build()` derives `https://{hostname}` and generates
+sitemap/llms.txt/canonical. Verify the explicit `--base-url` flag takes
+precedence over CNAME when both are present.
 
 10. **Static file copying** — Non-markdown, non-template root files (e.g.
     `robots.txt`) are copied to dist. `.md` files, `index.template.html`, and
@@ -615,18 +617,18 @@ Add a row to the **Key Files to Cross-Reference** table (line ~51):
 
 ## File Summary
 
-| File | Action |
-|------|--------|
-| `libraries/libdoc/bin/fit-doc.js` | Modify — add `--base-url` option |
-| `libraries/libdoc/builder.js` | Modify — `build()` signature, CNAME fallback, page inventory with sort, companion output with title prepend, canonical URL, `#copyStaticAssets` refactor, sitemap, llms.txt |
-| `libraries/libdoc/server.js` | Modify — add `md` and `xml` to content-type map |
-| `website/index.template.html` | Modify — add `<link rel="alternate">` and `<link rel="canonical">` tags |
-| `website/robots.txt` | Create |
-| `website/llms.txt` | Create |
-| `libraries/libdoc/test/libdoc.test.js` | Modify — add test cases |
-| `.claude/skills/libs-web-presentation/SKILL.md` | Modify |
-| `.claude/skills/website/SKILL.md` | Modify |
-| `.claude/skills/update-docs/SKILL.md` | Modify |
+| File                                            | Action                                                                                                                                                                      |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `libraries/libdoc/bin/fit-doc.js`               | Modify — add `--base-url` option                                                                                                                                            |
+| `libraries/libdoc/builder.js`                   | Modify — `build()` signature, CNAME fallback, page inventory with sort, companion output with title prepend, canonical URL, `#copyStaticAssets` refactor, sitemap, llms.txt |
+| `libraries/libdoc/server.js`                    | Modify — add `md` and `xml` to content-type map                                                                                                                             |
+| `website/index.template.html`                   | Modify — add `<link rel="alternate">` and `<link rel="canonical">` tags                                                                                                     |
+| `website/robots.txt`                            | Create                                                                                                                                                                      |
+| `website/llms.txt`                              | Create                                                                                                                                                                      |
+| `libraries/libdoc/test/libdoc.test.js`          | Modify — add test cases                                                                                                                                                     |
+| `.claude/skills/libs-web-presentation/SKILL.md` | Modify                                                                                                                                                                      |
+| `.claude/skills/website/SKILL.md`               | Modify                                                                                                                                                                      |
+| `.claude/skills/update-docs/SKILL.md`           | Modify                                                                                                                                                                      |
 
 ## Ordering
 
@@ -640,8 +642,11 @@ steps 1–7. Step 10 is independent and can be done last.
 
 Recommended commit sequence:
 
-1. Steps 1–4: `feat(libdoc): add base-url flag with CNAME fallback, markdown companions, alternate and canonical link tags`
-2. Step 5: `feat(libdoc): refactor static file copying, add robots.txt and llms.txt`
-3. Steps 6–7: `feat(libdoc): generate sitemap.xml, augment llms.txt, update server content types`
+1. Steps 1–4:
+   `feat(libdoc): add base-url flag with CNAME fallback, markdown companions, alternate and canonical link tags`
+2. Step 5:
+   `feat(libdoc): refactor static file copying, add robots.txt and llms.txt`
+3. Steps 6–7:
+   `feat(libdoc): generate sitemap.xml, augment llms.txt, update server content types`
 4. Step 9: `test(libdoc): add tests for SEO and LLM optimization outputs`
 5. Step 10: `docs: update skills for SEO and LLM optimization`
