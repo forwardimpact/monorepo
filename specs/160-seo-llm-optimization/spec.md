@@ -51,6 +51,11 @@ files. The website has no manually curated LLM entry point either.
 - **website: robots.txt** — A `website/public/robots.txt` that references the
   sitemap location.
 
+- **website: public/ directory** — Create `website/public/` (does not currently
+  exist) to hold `robots.txt` and `llms.txt`. libdoc's `#copyStaticAssets`
+  already copies files from `public/` to the dist root, so these files are
+  automatically included in builds.
+
 - **CLI and workflow** — A `--base-url` flag for `fit-doc build` and
   corresponding updates to the GitHub Actions website workflow.
 
@@ -64,21 +69,24 @@ files. The website has no manually curated LLM entry point either.
 - RSS or Atom feeds
 - Search indexing or full-text search
 - Changes to the HTML template or visual design
+- `llms-full.txt` (single concatenated file of all page content)
 
 ## Changes
 
 ### 1. libdoc: `--base-url` CLI flag
 
-Add a `--base-url` option to `fit-doc build`:
+Add a `--base-url` option to `fit-doc build` in `bin/fit-doc.js` (which uses
+`parseArgs` from `node:util`):
 
 ```
 fit-doc build --src=website --out=dist --base-url=https://www.forwardimpact.team
 ```
 
-This value is passed through to `DocsBuilder.build()` as a third parameter. It
-is required for sitemap generation and llms.txt link generation. When omitted,
-libdoc skips sitemap and llms.txt link generation (markdown companions are still
-produced since they don't need an absolute URL).
+This value is passed through to `DocsBuilder.build()` as a third parameter:
+`build(docsDir, distDir, baseUrl)`. It is required for sitemap generation and
+llms.txt link generation. When omitted (or `undefined`), libdoc skips sitemap
+and llms.txt link generation. Markdown companions are still produced since they
+don't need an absolute URL.
 
 ### 2. libdoc: sitemap.xml generation
 
@@ -133,12 +141,22 @@ version of those pages at the same URL as the original page, but with `.md`
 appended."
 
 The markdown content is the source markdown after front matter extraction — the
-same content that gets passed to the marked parser. Internal links are
-transformed to use directory-style URLs (the same transformation applied for
-HTML output), so the markdown files work as standalone documents that link to the
-live site. This is a transformation step, not just front matter stripping — the
-link rewriter that converts `./core.md` to `/docs/model/core/` runs on the
-markdown body before writing it.
+same content that gets passed to the marked parser.
+
+**Link transformation.** Internal links in the markdown body must be transformed
+from source-relative references (e.g., `[Core](./core.md)`) to directory-style
+URLs (e.g., `[Core](/docs/model/core/)`), so the markdown companions work as
+standalone documents that link to the live site. This requires a new
+markdown-specific link transformer — the existing `#transformMarkdownLinks(html)`
+operates on HTML `href` attributes (`href="./core.md"` → `href="core/"`),
+whereas companion files need transformation of markdown link syntax
+(`[text](./core.md)` → `[text](core/)`). The transformation rules are the same
+(index.md → `./`, file.md → `file/`, dir/index.md → `dir/`), just applied to
+markdown link syntax `[...](...)` instead of HTML `href="..."`.
+
+Links use relative paths (not absolute URLs with the base-url), matching the
+same convention as HTML output. This keeps companion files consistent with their
+HTML counterparts and avoids coupling them to a specific domain.
 
 ### 4. libdoc: llms.txt link generation
 
@@ -146,6 +164,11 @@ libdoc reads the manually curated `llms.txt` from the source `public/`
 directory and appends auto-generated link sections before writing it to the
 output root. This combines human-authored context (project description, section
 headers) with machine-generated completeness (every page linked).
+
+If the curated `llms.txt` does not exist in the source `public/` directory,
+libdoc skips llms.txt generation entirely (even when `--base-url` is provided).
+This keeps the feature opt-in per site — only sites that author a curated file
+get llms.txt output.
 
 The curated file provides the H1, blockquote, prose, and H2 section headers
 with descriptions for each section. libdoc appends markdown links under each H2
@@ -159,7 +182,8 @@ Each link follows the llms.txt format:
 
 Links point to the `.html.md` markdown companion files (not the HTML pages), so
 LLMs retrieving linked content get clean markdown. The page title comes from
-front matter `title`, and the description from front matter `description`.
+front matter `title`, and the description from front matter `description`. Pages
+without a `description` in front matter omit the colon and description suffix.
 
 The curated `llms.txt` in `website/public/` defines the section structure. For
 example:
@@ -182,15 +206,26 @@ data model is YAML-based and drives all products.
 ## Optional
 ```
 
+The `## Optional` section follows the llms.txt specification convention for
+content that is less important or supplementary (e.g., the about page, the
+home page).
+
 libdoc appends the relevant page links under each H2, matching pages to sections
-based on their URL path structure. Pages at the top level (e.g., `/map/`,
-`/pathway/`) go under their corresponding H2. Documentation pages (`/docs/...`)
-go under Documentation. The mapping logic and section assignment are
-implementation details for the plan.
+based on their URL path structure:
 
-### 5. website: robots.txt
+- Product pages at the top level (`/map/`, `/pathway/`, `/basecamp/`, etc.) →
+  **Products**
+- Documentation pages (`/docs/...`) → **Documentation**
+- Everything else (`/`, `/about/`) → **Optional**
 
-A new file at `website/public/robots.txt`:
+The root page (`/`) and the about page are supplementary for LLM consumption —
+the product and documentation pages contain the substantive content. The exact
+mapping rules and any edge cases are implementation details for the plan.
+
+### 5. website: robots.txt and public/ directory
+
+Create `website/public/` directory (does not currently exist) and add
+`website/public/robots.txt`:
 
 ```
 User-agent: *
@@ -200,7 +235,9 @@ Sitemap: https://www.forwardimpact.team/sitemap.xml
 ```
 
 This tells crawlers where to find the sitemap. The `Allow: /` is explicit but
-redundant (default behavior) — included for clarity.
+redundant (default behavior) — included for clarity. libdoc's existing
+`#copyStaticAssets` method already copies individual files from `public/` to the
+dist root, so `robots.txt` is automatically included in builds.
 
 ### 6. GitHub Actions workflow update
 
@@ -232,6 +269,7 @@ Update the libdoc section to document:
 
 Update to document:
 
+- The `website/public/` directory and its role (static files copied to dist root)
 - The `llms.txt` source file location (`website/public/llms.txt`), its purpose,
   and that it contains curated section structure with links appended at build
   time
@@ -258,7 +296,8 @@ updating (e.g., adding a new H2 section for a new product area).
 2. `dist/sitemap.xml` is valid XML conforming to the Sitemaps protocol
 
 3. Each `.html.md` output file contains the page body in clean markdown with
-   directory-style internal links (transformed, not raw source links)
+   directory-style internal links (transformed from source `.md` references, not
+   raw source links)
 
 4. `dist/llms.txt` follows the llms.txt specification with an H1, blockquote,
    and H2-delimited link sections where links point to `.html.md` files
@@ -269,8 +308,11 @@ updating (e.g., adding a new H2 section for a new product area).
 6. When `--base-url` is omitted, libdoc still produces `.html.md` files but
    skips `sitemap.xml` generation and llms.txt link generation
 
-7. The `libs-web-presentation`, `website`, and `update-docs` skills accurately
+7. When the curated `llms.txt` does not exist in the source `public/` directory,
+   libdoc skips llms.txt generation even when `--base-url` is provided
+
+8. The `libs-web-presentation`, `website`, and `update-docs` skills accurately
    describe the new outputs and conventions
 
-8. Existing tests pass; new tests cover sitemap generation, markdown output, and
-   llms.txt link appending
+9. Existing tests pass; new tests cover sitemap generation, markdown companion
+   output (including link transformation), and llms.txt link appending
