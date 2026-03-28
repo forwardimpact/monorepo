@@ -80,7 +80,7 @@ files. The website has no manually curated LLM entry point either.
 
 ## Changes
 
-### 1. libdoc: `--base-url` CLI flag
+### 1. libdoc: `--base-url` CLI flag and CNAME fallback
 
 Add a `--base-url` option to `fit-doc build` in `bin/fit-doc.js` (which uses
 `parseArgs` from `node:util`):
@@ -91,8 +91,17 @@ fit-doc build --src=website --out=dist --base-url=https://www.forwardimpact.team
 
 This value is passed through to `DocsBuilder.build()` as a third parameter:
 `build(docsDir, distDir, baseUrl)`. It is required for sitemap generation and
-llms.txt link generation. When omitted (or `undefined`), libdoc skips sitemap
-and llms.txt link generation. Markdown companions are still produced since they
+llms.txt link generation.
+
+**CNAME fallback.** When `--base-url` is omitted, `build()` checks for a
+`CNAME` file in the source directory root. If found, it reads the hostname
+(e.g., `www.forwardimpact.team`) and constructs `https://{hostname}` as the
+base URL. This means sites with a `CNAME` file get sitemap and llms.txt
+generation automatically without needing to pass `--base-url`. The explicit
+flag takes precedence when both are present.
+
+When neither `--base-url` nor `CNAME` is available, libdoc skips sitemap and
+llms.txt link generation. Markdown companions are still produced since they
 don't need an absolute URL.
 
 ### 2. libdoc: sitemap.xml generation
@@ -287,17 +296,11 @@ step — not by libdoc — so `#copyStaticAssets` skips it.
 
 ### 7. GitHub Actions workflow update
 
-Update `.github/workflows/website.yaml` to pass `--base-url` to the build
-command:
-
-```yaml
-- name: Build website
-  run: npx fit-doc build --src=website --out=dist --base-url=https://www.forwardimpact.team
-```
-
-No other workflow changes needed. The CNAME copy step and schema file copy steps
-remain unchanged — those files are not part of libdoc's page inventory and are
-not included in the sitemap or llms.txt.
+No workflow changes needed. The CNAME fallback (change 1) means
+`npx fit-doc build --src=website --out=dist` automatically derives the base URL
+from `website/CNAME`. The existing build command works as-is. The CNAME copy
+step and schema file copy steps remain unchanged — those files are not part of
+libdoc's page inventory and are not included in the sitemap or llms.txt.
 
 ### 8. Skill updates
 
@@ -356,9 +359,13 @@ updating (e.g., adding a new H2 section for a new product area).
 6. All `.html.md` links in `dist/llms.txt` resolve to existing files in the
    built output
 
-7. When `--base-url` is omitted, libdoc still produces `.html.md` files and the
-   `<link rel="alternate">` tag but skips `sitemap.xml` generation and llms.txt
-   link generation
+7. When neither `--base-url` nor a `CNAME` file is available, libdoc still
+   produces `.html.md` files and the `<link rel="alternate">` tag but skips
+   `sitemap.xml` generation and llms.txt link generation
+
+7a. When `--base-url` is omitted but a `CNAME` file exists in the source
+    directory, libdoc derives the base URL as `https://{hostname}` and
+    generates sitemap and llms.txt normally
 
 8. When the curated `llms.txt` does not exist in the source directory, libdoc
    skips llms.txt generation even when `--base-url` is provided
