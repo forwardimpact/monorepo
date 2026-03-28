@@ -1,59 +1,81 @@
 # Forward Impact Engineering
 
-> "The aim of leadership should be to improve the performance of man and
-> machine, to improve quality, to increase output, and simultaneously to bring
-> pride of workmanship to people."
+> "The aim of leadership should be to improve the performance of [developers]
+> and [agents], to improve quality, to increase output, and simultaneously to
+> bring pride of workmanship to people."
 >
-> — W. Edwards Deming
+> — W. Edwards Deming (paraphrased)
 
-Six products raise quality, increase output, and bring pride of workmanship to
-engineering teams. The design follows Deming throughout: **Map** establishes
-operational definitions so "good engineering" means something concrete.
-**Pathway** and **Guide** build quality in at the point of work rather than
-inspecting it in after the fact. **Landmark** measures the system's outputs
+## Goal
+
+Improve the performance of developers and agents, improve quality, increase
+output, and bring pride of workmanship to engineering teams.
+
+## Audiences
+
+Three audiences use the system. Every product serves at least two.
+
+- **Leadership** — Define what good engineering looks like, staff teams to
+  succeed, and measure outcomes without blaming individuals.
+- **Developers** — Understand expectations, find growth areas, stay prepared for
+  daily work, and receive guidance grounded in their organization's framework.
+- **Agents** — Operate with the same shared definitions, skill markers, and
+  quality standards that humans use, so human–agent collaboration is coherent.
+
+## Products
+
+Six products provide the means. The design follows Deming throughout: **Map**
+establishes operational definitions so "good engineering" means something
+concrete. **Pathway** and **Guide** build quality in at the point of work rather
+than inspecting it in after the fact. **Landmark** measures the system's outputs
 without blaming individuals. **Summit** treats the team as a system, not a
 collection of parts. All six share one data model and one dependency chain —
 constancy of purpose in architecture.
 
-| Product      | Question it answers                               | CLI            |
-| ------------ | ------------------------------------------------- | -------------- |
-| **Map**      | What does good engineering look like here?        | `fit-map`      |
-| **Pathway**  | Where does my career path go from here?           | `fit-pathway`  |
-| **Basecamp** | Am I prepared for what's ahead today?             | `fit-basecamp` |
-| **Guide**    | How do I find my bearing?                         | `fit-guide`    |
-| **Landmark** | What milestones has my engineering reached?       | `fit-landmark` |
-| **Summit**   | Is this team supported to reach peak performance? | `fit-summit`   |
+| Product      | Question it answers                               | Audiences              | CLI            |
+| ------------ | ------------------------------------------------- | ---------------------- | -------------- |
+| **Map**      | What does good engineering look like here?        | Leadership, Agents     | `fit-map`      |
+| **Pathway**  | Where does my career path go from here?           | Developers, Agents     | `fit-pathway`  |
+| **Basecamp** | Am I prepared for what's ahead today?             | Developers, Agents     | `fit-basecamp` |
+| **Guide**    | How do I find my bearing?                         | Developers             | `fit-guide`    |
+| **Landmark** | What milestones has my engineering reached?       | Leadership, Developers | `fit-landmark` |
+| **Summit**   | Is this team supported to reach peak performance? | Leadership             | `fit-summit`   |
 
 **Map** is the data product that provides shared context for every product in
 the suite. Teams define their engineering framework once — skills, levels,
 behaviours, markers — import operational signals continuously (organization
 hierarchy, GitHub activity, GetDX snapshots), and publish that data for
-consumption by humans and agents.
+consumption by humans and agents. Leadership authors the definitions; agents
+consume them as operational context.
 
 **Pathway** is the interface to the engineering framework — a web app, CLI, and
 static site generator. Feed it a discipline, track, and level and it produces a
 complete job definition. It generates agent teams and skills to support and
 empower the engineers, VS Code agent profiles, and interview question sets.
+Developers see their career path; agents receive the skill definitions they work
+against.
 
 **Basecamp** is a personal operations center. It syncs email and calendar,
 builds a knowledge graph of people, projects, and topics, drafts responses,
 prepares meeting briefings, and organizes files — all running as scheduled AI
-tasks in the background with a macOS status menu.
+tasks in the background with a macOS status menu. Developers stay prepared;
+agents handle the background work.
 
 **Guide** is an AI agent that understands your organization's engineering
 framework — skills, levels, behaviours, and expectations — and reasons about
-them in context. It helps engineers onboard, find growth areas, and interpret
+them in context. It helps developers onboard, find growth areas, and interpret
 engineering artifacts against skill markers.
 
 **Landmark** is the analysis layer for engineering-system signals. It combines
 objective marker evidence from GitHub artifacts with subjective outcomes from
 GetDX snapshots, then presents team-level and individual views grounded in your
-framework. No LLM calls — query, aggregate, explain.
+framework. Leadership sees system outcomes; developers see their own progress.
+No LLM calls — query, aggregate, explain.
 
 **Summit** treats a team as a system, not a collection of individuals. It
 aggregates skill matrices into capability coverage, structural risks, and
-what-if staffing scenarios so leaders can build teams that succeed. Fully local
-and deterministic — no external dependencies, no LLM calls.
+what-if staffing scenarios so leadership can build teams that succeed. Fully
+local and deterministic — no external dependencies, no LLM calls.
 
 **Tech**: Node.js 18+, Plain JS + JSDoc, YAML, npm workspaces, no frameworks
 
