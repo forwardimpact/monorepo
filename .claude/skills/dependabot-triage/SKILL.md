@@ -26,37 +26,27 @@ installation instructions. Verify with:
 gh auth status
 ```
 
-## Policies
+## Policy Checklist
 
-These policies are derived from CONTRIBUTING.md, CLAUDE.md, and the
-security-audit skill. Every Dependabot PR must be evaluated against **all** of
-them.
+Each PR is evaluated against existing policies. The table below lists the check,
+where the canonical rule lives, and what triage action to take on failure.
 
-### Policy 1: CI Checks Pass
+| #   | Check                                      | Policy source                            | On failure                                                                                 |
+| --- | ------------------------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 1   | All CI checks pass                         | CONTRIBUTING.md § Before Submitting a PR | **Fix** if caused by the PR's changes. If pre-existing on main, skip and recommend rebase. |
+| 2   | Actions pinned to SHA with version comment | CLAUDE.md § Security; security-audit § 1 | **Fix** — update all workflow files to the new SHA.                                        |
+| 3   | No duplicate dependencies                  | CONTRIBUTING.md § Dependency Policy      | **Close** with explanation.                                                                |
+| 4   | Version ranges aligned across workspaces   | CONTRIBUTING.md § Dependency Policy      | **Fix** — align all workspace ranges.                                                      |
+| 5   | npm audit clean (`--audit-level=high`)     | CONTRIBUTING.md § Dependency Policy      | **Close** if the update introduces the vulnerability. Skip if pre-existing.                |
+| 6   | No unnecessary dependencies                | CONTRIBUTING.md § Dependency Policy      | **Close** with explanation.                                                                |
+| 7   | First-party or official org actions only   | security-audit § 1                       | **Close** with explanation.                                                                |
 
-All CI checks (lint, format, test, e2e, audit) must pass. A PR with any failing
-check cannot be merged.
+### GitHub Actions SHA Inventory
 
-**Action if violated:** If the failure is in the PR's own changes (e.g. a
-breaking API change needs a code fix), attempt to fix it on a new branch. If the
-failure is environmental or unrelated to the PR's changes (e.g. a flaky test or
-a pre-existing audit failure on main), note it in the triage report but do not
-close the PR — recommend a rebase after main is fixed.
+When evaluating check 2, verify the PR updates **all** workflow files that
+reference the action — not just the one Dependabot found. Current usage:
 
-### Policy 2: GitHub Actions Pinned to SHA
-
-From CLAUDE.md Security section: "All third-party actions are pinned to SHA
-hashes. Use Dependabot for updates. Never change a pin to a tag."
-
-When Dependabot updates a GitHub Action, verify:
-
-- The `uses:` line is pinned to a full 40-character SHA hash
-- A version comment (e.g. `# v5`) follows the SHA on the same line
-- The SHA is **not** replaced with a tag reference (e.g. `@v5`)
-
-The current pinned actions in the repository are:
-
-| Action                          | Workflow files using it                                                         |
+| Action                          | Workflow files                                                                  |
 | ------------------------------- | ------------------------------------------------------------------------------- |
 | `actions/checkout`              | check.yml, publish-npm.yml, publish-macos.yml, publish-skills.yml, website.yaml |
 | `actions/setup-node`            | check.yml, publish-npm.yml, website.yaml                                        |
@@ -64,62 +54,6 @@ The current pinned actions in the repository are:
 | `actions/upload-pages-artifact` | website.yaml                                                                    |
 | `actions/deploy-pages`          | website.yaml                                                                    |
 | `denoland/setup-deno`           | publish-macos.yml                                                               |
-
-When a GitHub Actions PR updates one action, **all workflow files** that
-reference that action must be updated to the same new SHA. If Dependabot only
-updated some files, that is a fixable issue.
-
-**Action if violated:** Fix on a new branch — update all workflow files to use
-the new SHA with the correct version comment.
-
-### Policy 3: No Duplicate Dependencies
-
-From CONTRIBUTING.md: "Consolidate packages serving the same purpose (one YAML
-parser, one markdown renderer)."
-
-A new dependency (or a major version bump that changes a package's scope) must
-not introduce overlap with existing packages.
-
-**Action if violated:** Close the PR with a comment explaining the conflict.
-
-### Policy 4: Version Range Alignment
-
-From CONTRIBUTING.md: "Align version ranges for the same package across all
-workspaces."
-
-If the updated package appears in multiple `package.json` files, all must use
-compatible version ranges after the update.
-
-**Action if violated:** Fix on a new branch — align all workspace version
-ranges.
-
-### Policy 5: npm Audit Clean
-
-From CONTRIBUTING.md: "Run npm audit after adding dependencies" and
-`npm audit --audit-level=high` must pass.
-
-**Action if violated:** If the update itself introduces a high-severity
-vulnerability, close the PR. If the audit failure is pre-existing and unrelated,
-note it but do not block the PR on it.
-
-### Policy 6: No Unnecessary Dependencies
-
-From CONTRIBUTING.md: "Minimize external dependencies. Use existing packages."
-
-Major version bumps that pull in significant new transitive dependencies should
-be scrutinised. Check `npm ls <package>` and the changelog for scope changes.
-
-**Action if violated:** Close the PR with a comment explaining why.
-
-### Policy 7: First-Party or Official Actions Only
-
-From the security-audit skill: "Only first-party (GitHub `actions/*`) or
-official org actions are permitted."
-
-A Dependabot PR that introduces a new action from a personal maintainer account
-must be closed.
-
-**Action if violated:** Close the PR with a comment.
 
 ## Process
 
@@ -141,10 +75,10 @@ gh pr diff <number>
 
 Classify the PR:
 
-- **npm update** — labels include `javascript`. Check policies 3, 4, 5, 6.
-- **GitHub Actions update** — labels include `github_actions`. Check policies
+- **npm update** — labels include `javascript`. Evaluate checks 3, 4, 5, 6.
+- **GitHub Actions update** — labels include `github_actions`. Evaluate checks
   2, 7.
-- **Both** — Check all policies.
+- **Both** — Evaluate all checks.
 
 Determine the update type from the PR title and body:
 

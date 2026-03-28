@@ -21,14 +21,12 @@ description: >
 
 ## 2. Supply Chain — npm Dependencies
 
-- Minimize the number of external dependencies. Before adding a new package,
-  check if an existing dependency or Node.js built-in can serve the same
-  purpose.
-- No duplicate packages serving the same purpose (e.g. two YAML parsers, two
-  markdown renderers). Consolidate to one.
-- Version ranges for the same package must be aligned across all workspaces.
-- `npm audit --audit-level=high` must pass. Publish workflows must gate on audit
-  results.
+Dependency policy rules (minimize deps, no duplicates, align version ranges, npm
+audit) are defined in CONTRIBUTING.md § Dependency Policy. During a security
+audit, additionally verify:
+
+- Publish workflows gate on `npm audit` results (not just CI)
+- No packages with known CVEs remain unpatched (see § 5 Vulnerable Components)
 
 ## 3. Credential & Secret Leak Prevention
 
@@ -71,11 +69,12 @@ When reviewing application code, check for:
 
 ## 6. CI/CD Security
 
-- The `make audit` target must be the single source of truth for security
-  checks, running both npm audit and gitleaks.
-- Publish workflows must not run if audit checks fail.
-- CI and local developer workflows must run the same checks (same Makefile
-  target).
+CI check requirements (`npm run check`, `make audit`) are defined in
+CONTRIBUTING.md § Before Submitting a PR. During a security audit, additionally
+verify:
+
+- Publish workflows block on audit failures (not just PR checks)
+- CI and local developer workflows run the same checks (same Makefile target)
 
 ## 7. Audit Workflow
 
