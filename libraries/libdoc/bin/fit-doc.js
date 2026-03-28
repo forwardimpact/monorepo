@@ -22,8 +22,9 @@ Options:
   -h, --help     Show this help message
 
 Build options:
-  --src=<dir>    Source directory (default: website)
-  --out=<dir>    Output directory (default: dist)
+  --src=<dir>       Source directory (default: website)
+  --out=<dir>       Output directory (default: dist)
+  --base-url=<url>  Base URL for sitemap, canonical links, and llms.txt
 
 Serve options:
   --src=<dir>    Source directory (default: website)
@@ -44,13 +45,14 @@ function error(message) {
  * @param {import("../builder.js").DocsBuilder} builder
  * @param {string} docsDir
  * @param {string} distDir
+ * @param {string} [baseUrl]
  */
-async function runBuild(builder, docsDir, distDir) {
+async function runBuild(builder, docsDir, distDir, baseUrl) {
   if (!fs.existsSync(docsDir)) {
     error(`Source directory not found: ${docsDir}`);
   }
 
-  await builder.build(docsDir, distDir);
+  await builder.build(docsDir, distDir, baseUrl);
 }
 
 /**
@@ -65,7 +67,7 @@ async function runServe(builder, server, docsDir, distDir, options) {
     error(`Source directory not found: ${docsDir}`);
   }
 
-  await builder.build(docsDir, distDir);
+  await builder.build(docsDir, distDir, options.baseUrl);
 
   if (options.watch) {
     server.watch(docsDir, distDir);
@@ -95,6 +97,7 @@ async function main() {
     options: {
       src: { type: "string", default: "website" },
       out: { type: "string", default: "dist" },
+      "base-url": { type: "string" },
       port: { type: "string", short: "p", default: "3000" },
       watch: { type: "boolean", short: "w", default: false },
       help: { type: "boolean", short: "h", default: false },
@@ -110,6 +113,7 @@ async function main() {
   const workingDir = process.env.INIT_CWD || process.cwd();
   const docsDir = path.join(workingDir, values.src);
   const distDir = path.join(workingDir, values.out);
+  const baseUrl = values["base-url"];
 
   const builder = new DocsBuilder(
     fs,
@@ -122,12 +126,13 @@ async function main() {
 
   try {
     if (command === "build") {
-      await runBuild(builder, docsDir, distDir);
+      await runBuild(builder, docsDir, distDir, baseUrl);
     } else {
       const server = new DocsServer(fs, Hono, serve, builder);
       await runServe(builder, server, docsDir, distDir, {
         port: parseInt(values.port, 10),
         watch: values.watch,
+        baseUrl,
       });
     }
   } catch (err) {

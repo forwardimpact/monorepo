@@ -132,6 +132,8 @@ export class DocsServer {
         css: "text/css",
         js: "application/javascript",
         json: "application/json",
+        md: "text/markdown",
+        xml: "application/xml",
         png: "image/png",
         jpg: "image/jpeg",
         jpeg: "image/jpeg",

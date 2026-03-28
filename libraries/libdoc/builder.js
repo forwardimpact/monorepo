@@ -83,6 +83,28 @@ export class DocsBuilder {
   }
 
   /**
+   * Transform markdown-syntax links from .md references to directory-style URLs
+   * Same rules as #transformMarkdownLinks but for [text](path) syntax
+   * @param {string} markdown - Markdown content to transform
+   * @returns {string} Markdown with transformed links
+   */
+  #transformMarkdownBodyLinks(markdown) {
+    return markdown.replace(
+      /\[([^\]]*)\]\(([^)]*?)\.md(#[^)]*)?\)/g,
+      (_match, text, path, hash) => {
+        const fragment = hash || "";
+        if (path === "index" || path === "./index") {
+          return `[${text}](./${fragment})`;
+        }
+        if (path.endsWith("/index")) {
+          return `[${text}](${path.slice(0, -5)}${fragment})`;
+        }
+        return `[${text}](${path}/${fragment})`;
+      },
+    );
+  }
+
+  /**
    * Generate table of contents from h2 headings
    * @param {string} html - HTML content to extract headings from
    * @returns {string} HTML list of ToC links
@@ -133,16 +155,19 @@ export class DocsBuilder {
       console.log("  ✓ assets/");
     }
 
-    // Copy public files (favicon, etc.)
-    const publicDir = this.#path.join(docsDir, "public");
-    if (!this.#fs.existsSync(publicDir)) return;
-
+    // Copy root-level static files (robots.txt, llms.txt, etc.)
+    const skipFiles = new Set(["index.template.html", "CNAME"]);
     this.#fs
-      .readdirSync(publicDir, { withFileTypes: true })
-      .filter((entry) => entry.isFile())
+      .readdirSync(docsDir, { withFileTypes: true })
+      .filter(
+        (entry) =>
+          entry.isFile() &&
+          !entry.name.endsWith(".md") &&
+          !skipFiles.has(entry.name),
+      )
       .forEach((entry) => {
         this.#fs.copyFileSync(
-          this.#path.join(publicDir, entry.name),
+          this.#path.join(docsDir, entry.name),
           this.#path.join(distDir, entry.name),
         );
         console.log(`  ✓ ${entry.name}`);
@@ -226,13 +251,113 @@ export class DocsBuilder {
   }
 
   /**
+   * Generate sitemap.xml from page inventory
+   * @param {Array<{urlPath: string}>} pages - Sorted page inventory
+   * @param {string} baseUrl - Base URL for the site
+   * @param {string} distDir - Destination distribution directory
+   */
+  #generateSitemap(pages, baseUrl, distDir) {
+    const urls = pages
+      .map((p) => `  <url>\n    <loc>${baseUrl}${p.urlPath}</loc>\n  </url>`)
+      .join("\n");
+    const xml = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      urls,
+      "</urlset>",
+      "",
+    ].join("\n");
+    this.#fs.writeFileSync(
+      this.#path.join(distDir, "sitemap.xml"),
+      xml,
+      "utf-8",
+    );
+    console.log("  ✓ sitemap.xml");
+  }
+
+  /**
+   * Augment llms.txt with auto-generated page links under each H2 section
+   * @param {Array<{urlPath: string, title: string, description: string}>} pages - Sorted page inventory
+   * @param {string} baseUrl - Base URL for the site
+   * @param {string} distDir - Destination distribution directory
+   */
+  #augmentLlmsTxt(pages, baseUrl, distDir) {
+    const llmsPath = this.#path.join(distDir, "llms.txt");
+    if (!this.#fs.existsSync(llmsPath)) return;
+
+    const content = this.#fs.readFileSync(llmsPath, "utf-8");
+    const lines = content.split("\n");
+
+    // Map pages to sections
+    const sections = { Products: [], Documentation: [], Optional: [] };
+    const productSlugs = new Set([
+      "map",
+      "pathway",
+      "basecamp",
+      "guide",
+      "landmark",
+      "summit",
+    ]);
+
+    for (const page of pages) {
+      const topSegment = page.urlPath.split("/").filter(Boolean)[0];
+      if (page.urlPath.startsWith("/docs/")) {
+        sections.Documentation.push(page);
+      } else if (topSegment && productSlugs.has(topSegment)) {
+        sections.Products.push(page);
+      } else {
+        sections.Optional.push(page);
+      }
+    }
+
+    const linkLine = (page) => {
+      const mdUrl =
+        page.urlPath === "/"
+          ? `${baseUrl}/index.md`
+          : `${baseUrl}${page.urlPath}index.md`;
+      const desc = page.description ? `: ${page.description}` : "";
+      return `- [${page.title}](${mdUrl})${desc}`;
+    };
+
+    // Reassemble: insert links after each H2
+    const output = [];
+    for (const line of lines) {
+      output.push(line);
+      const h2Match = line.match(/^## (.+)$/);
+      if (h2Match) {
+        const sectionName = h2Match[1].trim();
+        const pageList = sections[sectionName];
+        if (pageList?.length) {
+          output.push("");
+          for (const page of pageList) {
+            output.push(linkLine(page));
+          }
+        }
+      }
+    }
+
+    this.#fs.writeFileSync(llmsPath, output.join("\n"), "utf-8");
+    console.log("  ✓ llms.txt (augmented)");
+  }
+
+  /**
    * Build documentation from Markdown files
    * @param {string} docsDir - Source documentation directory
    * @param {string} distDir - Destination distribution directory
+   * @param {string} [baseUrl] - Base URL for sitemap, canonical links, and llms.txt
    * @returns {Promise<void>}
    */
-  async build(docsDir, distDir) {
+  async build(docsDir, distDir, baseUrl) {
     console.log("Building documentation...");
+
+    // Resolve base URL: explicit flag > CNAME fallback > undefined
+    if (!baseUrl) {
+      const cnamePath = this.#path.join(docsDir, "CNAME");
+      if (this.#fs.existsSync(cnamePath)) {
+        const hostname = this.#fs.readFileSync(cnamePath, "utf-8").trim();
+        baseUrl = `https://${hostname}`;
+      }
+    }
 
     // Clean and create dist directory
     if (this.#fs.existsSync(distDir)) {
@@ -265,6 +390,9 @@ export class DocsBuilder {
       }
     }
 
+    // Page inventory for sitemap and llms.txt generation
+    const pages = [];
+
     for (const mdFile of mdFiles) {
       const { data: frontMatter, content: markdown } = this.#matter(
         this.#fs.readFileSync(this.#path.join(docsDir, mdFile), "utf-8"),
@@ -292,6 +420,14 @@ export class DocsBuilder {
       const urlPath = this.#urlPathFromMdFile(mdFile);
       const breadcrumbs = this.#buildBreadcrumbs(urlPath, pageTitles);
 
+      // Collect page inventory for sitemap and llms.txt
+      pages.push({
+        mdFile,
+        urlPath,
+        title: frontMatter.title,
+        description: frontMatter.description || "",
+      });
+
       // Render template with context
       const outputHtml = this.#mustacheRender(template, {
         title: frontMatter.title,
@@ -309,6 +445,8 @@ export class DocsBuilder {
         hasHeroCta: heroCta.length > 0,
         hasBreadcrumbs: !!breadcrumbs,
         breadcrumbs,
+        markdownUrl: "index.md",
+        canonicalUrl: baseUrl ? baseUrl + urlPath : "",
       });
 
       // Format HTML with prettier
@@ -361,9 +499,26 @@ export class DocsBuilder {
         "utf-8",
       );
       console.log(`  ✓ ${outputPath}.html`);
+
+      // Write markdown companion (index.md alongside index.html)
+      const companionContent = `# ${frontMatter.title}\n\n${this.#transformMarkdownBodyLinks(markdown)}`;
+      this.#fs.writeFileSync(
+        this.#path.join(distDir, outputPath + ".md"),
+        companionContent,
+        "utf-8",
+      );
     }
 
+    // Sort page inventory for deterministic output
+    pages.sort((a, b) => a.urlPath.localeCompare(b.urlPath));
+
     this.#copyStaticAssets(docsDir, distDir);
+
+    if (baseUrl) {
+      this.#generateSitemap(pages, baseUrl, distDir);
+      this.#augmentLlmsTxt(pages, baseUrl, distDir);
+    }
+
     console.log("Documentation build complete!");
   }
 }

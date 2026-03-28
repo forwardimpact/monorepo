@@ -1,0 +1,15 @@
+# Forward Impact
+
+> Engineering framework platform. Define what good engineering looks like,
+> generate career paths, AI agent profiles, and team capability analysis.
+> Six products: Map, Pathway, Basecamp, Guide, Landmark, Summit.
+
+Forward Impact helps engineering organizations define skills, levels, and
+behaviours in a shared framework that humans and AI agents both use. The
+data model is YAML-based and drives all products.
+
+## Products
+
+## Documentation
+
+## Optional
