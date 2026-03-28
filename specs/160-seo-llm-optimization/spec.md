@@ -39,6 +39,11 @@ files. The website has no manually curated LLM entry point either.
   companion `.md` file following the llms.txt convention: the markdown version
   lives at the HTML URL with `.md` appended (e.g., `/about/index.html.md`).
 
+- **libdoc: markdown alternate link in HTML** — Add a
+  `<link rel="alternate" type="text/markdown">` tag to the HTML template so
+  every page advertises its markdown companion in the `<head>`. Same discovery
+  pattern as RSS feeds.
+
 - **libdoc: llms.txt link generation** — At build time, libdoc reads a manually
   curated `llms.txt` from the source directory's `public/` folder and appends
   auto-generated link sections for all built pages. The link generation reuses
@@ -63,7 +68,8 @@ files. The website has no manually curated LLM entry point either.
 - JSON-LD structured data / schema.org markup
 - RSS or Atom feeds
 - Search indexing or full-text search
-- Changes to the HTML template or visual design
+- Visual design changes to the HTML template (the `<link rel="alternate">` tag
+  added by this spec is metadata only — no visible change)
 - `llms-full.txt` (single concatenated file of all page content)
 
 ## Changes
@@ -105,7 +111,7 @@ During `build()`, after all pages are processed, DocsBuilder produces a
 Each generated HTML page gets a `<loc>` entry using its clean URL path
 (directory-style, trailing slash). The page inventory used to generate
 `sitemap.xml` entries is the same list used for llms.txt link generation
-(change 4).
+(change 5).
 
 No `<lastmod>`, `<changefreq>`, or `<priority>` elements — keep it minimal.
 These are optional in the protocol and add maintenance burden without meaningful
@@ -153,7 +159,28 @@ Links use relative paths (not absolute URLs with the base-url), matching the
 same convention as HTML output. This keeps companion files consistent with their
 HTML counterparts and avoids coupling them to a specific domain.
 
-### 4. libdoc: llms.txt link generation
+### 4. libdoc: markdown alternate link in HTML
+
+Add a `<link rel="alternate">` tag to `index.template.html` so each HTML page
+advertises its markdown companion in the `<head>`:
+
+```html
+<link rel="alternate" type="text/markdown" href="{{markdownUrl}}" />
+```
+
+This is the same discovery pattern used for RSS/Atom feeds (`<link rel="alternate" type="application/rss+xml">`). An LLM agent or tool visiting
+any page can find the markdown version from the HTML itself, without needing to
+know the `.md` URL convention or having seen `llms.txt` first.
+
+The builder passes `markdownUrl` in the template context — a relative URL
+pointing to the companion file. For a page at `about/index.html`, the value is
+`index.html.md` (relative to the page's own directory). This keeps URLs
+consistent regardless of where the site is hosted.
+
+The template tag is unconditional — every page built from markdown has a
+companion file, so no `{{#hasMarkdown}}` guard is needed.
+
+### 5. libdoc: llms.txt link generation
 
 libdoc reads the manually curated `llms.txt` from the source `public/`
 directory and appends auto-generated link sections before writing it to the
@@ -227,7 +254,7 @@ The root page (`/`) and the about page are supplementary for LLM consumption —
 the product and documentation pages contain the substantive content. The exact
 mapping rules and any edge cases are implementation details for the plan.
 
-### 5. website: robots.txt
+### 6. website: robots.txt
 
 A new file at `website/public/robots.txt`:
 
@@ -249,7 +276,7 @@ a source `public/` directory to the dist root, but it has never been exercised
 contrast, lives at `website/CNAME` and is copied by a separate workflow step —
 not by libdoc.
 
-### 6. GitHub Actions workflow update
+### 7. GitHub Actions workflow update
 
 Update `.github/workflows/website.yaml` to pass `--base-url` to the build
 command:
@@ -263,7 +290,7 @@ No other workflow changes needed. The CNAME copy step and schema file copy steps
 remain unchanged — those files are not part of libdoc's page inventory and are
 not included in the sitemap or llms.txt.
 
-### 7. Skill updates
+### 8. Skill updates
 
 #### libs-web-presentation skill
 
@@ -272,6 +299,8 @@ Update the libdoc section to document:
 - The `--base-url` CLI flag and its effect on sitemap/llms.txt generation
 - The `sitemap.xml` automatic generation behavior
 - The per-page `.html.md` markdown output and the llms.txt URL convention
+- The `<link rel="alternate" type="text/markdown">` tag and `markdownUrl`
+  template variable
 - The llms.txt link generation from curated source + auto-generated links
 - That sitemap and llms.txt link generation share the same page inventory
 
@@ -308,20 +337,27 @@ updating (e.g., adding a new H2 section for a new product area).
    directory-style internal links (transformed from source `.md` references, not
    raw source links)
 
-4. `dist/llms.txt` follows the llms.txt specification with an H1, blockquote,
+4. Every generated HTML page contains a
+   `<link rel="alternate" type="text/markdown" href="...">` tag in the `<head>`
+   pointing to its `.html.md` companion, and the href resolves to an existing
+   file in the built output
+
+5. `dist/llms.txt` follows the llms.txt specification with an H1, blockquote,
    and H2-delimited link sections where links point to `.html.md` files
 
-5. All `.html.md` links in `dist/llms.txt` resolve to existing files in the
+6. All `.html.md` links in `dist/llms.txt` resolve to existing files in the
    built output
 
-6. When `--base-url` is omitted, libdoc still produces `.html.md` files but
-   skips `sitemap.xml` generation and llms.txt link generation
+7. When `--base-url` is omitted, libdoc still produces `.html.md` files and the
+   `<link rel="alternate">` tag but skips `sitemap.xml` generation and llms.txt
+   link generation
 
-7. When the curated `llms.txt` does not exist in the source `public/` directory,
+8. When the curated `llms.txt` does not exist in the source `public/` directory,
    libdoc skips llms.txt generation even when `--base-url` is provided
 
-8. The `libs-web-presentation`, `website`, and `update-docs` skills accurately
+9. The `libs-web-presentation`, `website`, and `update-docs` skills accurately
    describe the new outputs and conventions
 
-9. Existing tests pass; new tests cover sitemap generation, markdown companion
-   output (including link transformation), and llms.txt link appending
+10. Existing tests pass; new tests cover sitemap generation, markdown companion
+    output (including link transformation), alternate link tag, and llms.txt link
+    appending
