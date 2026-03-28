@@ -45,16 +45,22 @@ files. The website has no manually curated LLM entry point either.
   pattern as RSS feeds.
 
 - **libdoc: llms.txt link generation** — At build time, libdoc reads a manually
-  curated `llms.txt` from the source directory's `public/` folder and appends
-  auto-generated link sections for all built pages. The link generation reuses
-  the same page inventory used for `sitemap.xml`.
+  curated `llms.txt` from the source directory root and appends auto-generated
+  link sections for all built pages. The link generation reuses the same page
+  inventory used for `sitemap.xml`.
 
-- **website: llms.txt** — A manually curated file in `website/public/llms.txt`
+- **libdoc: static file copying** — Replace the dead `public/` directory code
+  path in `#copyStaticAssets` with root-level static file copying. Non-markdown,
+  non-template files in the source directory root (like `robots.txt` and
+  `llms.txt`) are copied to the dist root. This aligns with the website
+  convention where all content lives directly in `website/`.
+
+- **website: llms.txt** — A manually curated file at `website/llms.txt`
   containing the H1, blockquote, prose, and H2 section headers. libdoc appends
   the page links at build time.
 
-- **website: robots.txt** — A `website/public/robots.txt` that references the
-  sitemap location.
+- **website: robots.txt** — A `website/robots.txt` that references the sitemap
+  location.
 
 - **CLI and workflow** — A `--base-url` flag for `fit-doc build` and
   corresponding updates to the GitHub Actions website workflow.
@@ -117,7 +123,7 @@ No `<lastmod>`, `<changefreq>`, or `<priority>` elements — keep it minimal.
 These are optional in the protocol and add maintenance burden without meaningful
 benefit for a site of this size.
 
-Static files copied from `public/` (like `robots.txt`) and files copied by
+Static files copied from the source root (like `robots.txt`) and files copied by
 post-build workflow steps (schema files, CNAME) are not included in the
 sitemap — libdoc only knows about pages it builds from markdown sources.
 
@@ -180,27 +186,33 @@ consistent regardless of where the site is hosted.
 The template tag is unconditional — every page built from markdown has a
 companion file, so no `{{#hasMarkdown}}` guard is needed.
 
-### 5. libdoc: llms.txt link generation
+### 5. libdoc: static file copying and llms.txt link generation
 
-libdoc reads the manually curated `llms.txt` from the source `public/`
-directory and appends auto-generated link sections before writing it to the
-output root. This combines human-authored context (project description, section
-headers) with machine-generated completeness (every page linked).
+**Static file copying.** `#copyStaticAssets` currently has a dead code path that
+copies files from a `public/` subdirectory — this has never been exercised
+because no `public/` directory exists. Replace this with root-level static file
+copying: scan the source directory root for non-markdown (`.md`), non-template
+(`index.template.html`) files and copy them to the dist root. This picks up
+`robots.txt`, `llms.txt`, and any future static files without requiring a
+separate directory. Skip directories (already handled: `assets/` is copied
+separately, subdirectories like `docs/` contain markdown content) and known
+non-distributable files (`CNAME`, which is copied by the workflow).
 
-If the curated `llms.txt` does not exist in the source `public/` directory,
-libdoc skips llms.txt generation entirely (even when `--base-url` is provided).
-This keeps the feature opt-in per site — only sites that author a curated file
-get llms.txt output.
+**llms.txt link generation.** libdoc reads the manually curated `llms.txt` from
+the source directory root and appends auto-generated link sections before
+writing it to the output root. This combines human-authored context (project
+description, section headers) with machine-generated completeness (every page
+linked).
 
-**Build ordering.** `#copyStaticAssets` runs at the end of `build()` and has
-code to copy all files from `public/` to the dist root (this code path is
-currently unused — no `public/` directory exists in any site today, so it early
-returns). This spec introduces `website/public/` with `robots.txt` and the
-curated `llms.txt`, activating this code path. Since `#copyStaticAssets` copies
-`llms.txt` as-is, it would overwrite any augmented version written earlier. To
-avoid this, sitemap and llms.txt generation must run **after**
-`#copyStaticAssets`, or `#copyStaticAssets` must skip `llms.txt` when generation
-is active. The plan should pick one approach.
+If the curated `llms.txt` does not exist in the source directory, libdoc skips
+llms.txt generation entirely (even when `--base-url` is provided). This keeps
+the feature opt-in per site — only sites that author a curated file get llms.txt
+output.
+
+**Build ordering.** `#copyStaticAssets` copies `llms.txt` as-is from the source
+root. Since llms.txt link generation needs to augment this file, sitemap and
+llms.txt generation must run **after** `#copyStaticAssets`. The plan should
+confirm this ordering.
 
 The curated file provides the H1, blockquote, prose, and H2 section headers
 with descriptions for each section. libdoc appends markdown links under each H2
@@ -217,7 +229,7 @@ LLMs retrieving linked content get clean markdown. The page title comes from
 front matter `title`, and the description from front matter `description`. Pages
 without a `description` in front matter omit the colon and description suffix.
 
-The curated `llms.txt` in `website/public/` defines the section structure. For
+The curated `llms.txt` in `website/` defines the section structure. For
 example:
 
 ```markdown
@@ -256,7 +268,7 @@ mapping rules and any edge cases are implementation details for the plan.
 
 ### 6. website: robots.txt
 
-A new file at `website/public/robots.txt`:
+A new file at `website/robots.txt`:
 
 ```
 User-agent: *
@@ -268,13 +280,10 @@ Sitemap: https://www.forwardimpact.team/sitemap.xml
 This tells crawlers where to find the sitemap. The `Allow: /` is explicit but
 redundant (default behavior) — included for clarity.
 
-No `public/` directory exists in the website today — this spec introduces it.
-`#copyStaticAssets` in `build()` already has code to copy individual files from
-a source `public/` directory to the dist root, but it has never been exercised
-(the code path returns early at the `existsSync` check). Creating
-`website/public/` activates this existing code path. The `CNAME` file, by
-contrast, lives at `website/CNAME` and is copied by a separate workflow step —
-not by libdoc.
+This file lives in the website root alongside other content files. The updated
+`#copyStaticAssets` (change 5) copies it to the dist root automatically. The
+`CNAME` file also lives at `website/CNAME` but is copied by a separate workflow
+step — not by libdoc — so `#copyStaticAssets` skips it.
 
 ### 7. GitHub Actions workflow update
 
@@ -308,9 +317,8 @@ Update the libdoc section to document:
 
 Update to document:
 
-- The `llms.txt` source file location (`website/public/llms.txt`), its purpose,
-  and that it contains curated section structure with links appended at build
-  time
+- The `llms.txt` source file location (`website/llms.txt`), its purpose, and
+  that it contains curated section structure with links appended at build time
 - The `robots.txt` file
 - The `.html.md` convention for per-page markdown
 - That adding or removing H2 sections in `llms.txt` requires updating the
@@ -319,7 +327,7 @@ Update to document:
 #### update-docs skill
 
 Add a reminder that when pages are added to or removed from the website, the
-curated `llms.txt` section structure in `website/public/llms.txt` may need
+curated `llms.txt` section structure in `website/llms.txt` may need
 updating (e.g., adding a new H2 section for a new product area).
 
 ## Success Criteria
@@ -329,7 +337,7 @@ updating (e.g., adding a new H2 section for a new product area).
    - `dist/sitemap.xml` with a `<url>` entry for every HTML page
    - An `.html.md` file alongside every `.html` file in the output
    - `dist/llms.txt` containing the curated content plus auto-generated links
-   - `dist/robots.txt` copied from `website/public/robots.txt`
+   - `dist/robots.txt` copied from `website/robots.txt`
 
 2. `dist/sitemap.xml` is valid XML conforming to the Sitemaps protocol
 
@@ -352,8 +360,8 @@ updating (e.g., adding a new H2 section for a new product area).
    `<link rel="alternate">` tag but skips `sitemap.xml` generation and llms.txt
    link generation
 
-8. When the curated `llms.txt` does not exist in the source `public/` directory,
-   libdoc skips llms.txt generation even when `--base-url` is provided
+8. When the curated `llms.txt` does not exist in the source directory, libdoc
+   skips llms.txt generation even when `--base-url` is provided
 
 9. The `libs-web-presentation`, `website`, and `update-docs` skills accurately
    describe the new outputs and conventions

@@ -9,11 +9,15 @@ asset copy, a new post-build phase generates `sitemap.xml` and augments
 the existing per-page loop. No new classes or files — everything fits naturally
 into the builder's current structure.
 
+**Static file convention.** Static files (`robots.txt`, `llms.txt`) live in the
+website root alongside markdown content — there is no `public/` subdirectory.
+The dead `public/` code path in `#copyStaticAssets` is replaced with root-level
+static file copying that picks up non-markdown, non-template files automatically.
+
 **Ordering strategy for `llms.txt`:** Run sitemap/llms.txt generation *after*
-`#copyStaticAssets`. The curated `llms.txt` gets copied to dist by
-`#copyStaticAssets` as a normal public file, then the post-build phase reads it
-back, appends links, and overwrites it. This avoids special-casing
-`#copyStaticAssets` and keeps that method generic.
+`#copyStaticAssets`. The curated `llms.txt` gets copied to dist as a regular
+static file, then the post-build phase reads it back, appends links, and
+overwrites it. This keeps `#copyStaticAssets` generic.
 
 ## Changes
 
@@ -146,9 +150,55 @@ same.
 
 ---
 
-### Step 5 — Static files: `robots.txt` and curated `llms.txt`
+### Step 5 — Refactor `#copyStaticAssets` and add static files
 
-**File:** `website/public/robots.txt` (new)
+**File:** `libraries/libdoc/builder.js`
+
+**5a.** Replace the dead `public/` code path in `#copyStaticAssets` (lines
+136–150) with root-level static file copying. After copying `assets/`, scan the
+source directory root for files that are not markdown (`.md`), not the template
+(`index.template.html`), and not workflow-managed (`CNAME`), and copy them to
+the dist root:
+
+```javascript
+#copyStaticAssets(docsDir, distDir) {
+  // Copy assets directory (CSS, JS, images)
+  if (
+    this.#copyDir(
+      this.#path.join(docsDir, "assets"),
+      this.#path.join(distDir, "assets"),
+    )
+  ) {
+    console.log("  ✓ assets/");
+  }
+
+  // Copy root-level static files (robots.txt, llms.txt, etc.)
+  const skipFiles = new Set(["index.template.html", "CNAME"]);
+  this.#fs
+    .readdirSync(docsDir, { withFileTypes: true })
+    .filter(
+      (entry) =>
+        entry.isFile() &&
+        !entry.name.endsWith(".md") &&
+        !skipFiles.has(entry.name),
+    )
+    .forEach((entry) => {
+      this.#fs.copyFileSync(
+        this.#path.join(docsDir, entry.name),
+        this.#path.join(distDir, entry.name),
+      );
+      console.log(`  ✓ ${entry.name}`);
+    });
+}
+```
+
+This replaces the `public/` directory scanning with root-level file scanning.
+The skip list excludes files that are either processed by the builder (`.md`
+files, template) or managed by external workflow steps (`CNAME`).
+
+**5b.** Create the static files in the website root.
+
+**File:** `website/robots.txt` (new)
 
 ```
 User-agent: *
@@ -157,7 +207,7 @@ Allow: /
 Sitemap: https://www.forwardimpact.team/sitemap.xml
 ```
 
-**File:** `website/public/llms.txt` (new)
+**File:** `website/llms.txt` (new)
 
 ```markdown
 # Forward Impact
@@ -177,10 +227,8 @@ data model is YAML-based and drives all products.
 ## Optional
 ```
 
-These are copied to dist by the existing `#copyStaticAssets` method. No changes
-to that method needed.
-
-**Verify:** `dist/robots.txt` and `dist/llms.txt` exist after build.
+**Verify:** `dist/robots.txt` and `dist/llms.txt` exist after build. No
+`public/` directory involved.
 
 ---
 
@@ -210,9 +258,9 @@ to that method needed.
 **6b.** Add private method
 `#augmentLlmsTxt(pages, baseUrl, distDir)`:
 
-Reads `dist/llms.txt` (already copied by `#copyStaticAssets`). If it doesn't
-exist, returns early. Parses the file to find H2 section headers. Classifies
-each page into a section based on URL path:
+Reads `dist/llms.txt` (already copied by `#copyStaticAssets` from the source
+root). If it doesn't exist, returns early. Parses the file to find H2 section
+headers. Classifies each page into a section based on URL path:
 
 - Top-level product pages (`/map/`, `/pathway/`, `/basecamp/`, `/guide/`,
   `/landmark/`, `/summit/`) → **Products**
@@ -346,15 +394,20 @@ Add test cases for:
    with correct `<url>` entries. When omitted, no `sitemap.xml`.
 
 5. **llms.txt augmentation** — When `baseUrl` is provided and curated
-   `llms.txt` exists in public/, the output `llms.txt` contains curated content
-   plus auto-generated links under each H2. Verify section classification
-   (product pages → Products, docs → Documentation, others → Optional).
+   `llms.txt` exists in the source root, the output `llms.txt` contains curated
+   content plus auto-generated links under each H2. Verify section
+   classification (product pages → Products, docs → Documentation, others →
+   Optional).
 
-6. **llms.txt skipped when no curated file** — When no `llms.txt` in public/,
-   no `llms.txt` in output even with `baseUrl`.
+6. **llms.txt skipped when no curated file** — When no `llms.txt` in source
+   root, no `llms.txt` in output even with `baseUrl`.
 
 7. **No baseUrl** — Markdown companions and alternate link still produced;
    sitemap and llms.txt augmentation skipped.
+
+8. **Static file copying** — Non-markdown, non-template root files (e.g.
+   `robots.txt`) are copied to dist. `.md` files, `index.template.html`, and
+   `CNAME` are not copied as static files.
 
 All tests use the existing mock pattern (Maps for files, Sets for directories).
 Extend the mock `fs` to track `writeFileSync` calls and `existsSync` checks for
@@ -374,16 +427,18 @@ Add to the libdoc section:
   links
 - `<link rel="alternate" type="text/markdown">`: template variable
   `markdownUrl`, always `index.html.md`
-- `llms.txt`: curated file in `public/` + auto-appended links per H2 section
+- `llms.txt`: curated file in source root + auto-appended links per H2 section
 - Page inventory shared between sitemap and llms.txt generation
+- `#copyStaticAssets` copies root-level non-markdown, non-template files (no
+  `public/` directory)
 
 **File:** `.claude/skills/website/SKILL.md`
 
 Add:
 
-- `website/public/llms.txt`: curated section structure, links appended at build
-  time by libdoc
-- `website/public/robots.txt`: references sitemap location
+- `website/llms.txt`: curated section structure, links appended at build time by
+  libdoc
+- `website/robots.txt`: references sitemap location
 - `.html.md` convention: every page has a markdown companion
 - Adding/removing H2 sections in `llms.txt` requires updating section mapping
   in `builder.js`
@@ -391,7 +446,7 @@ Add:
 **File:** `.claude/skills/update-docs/SKILL.md`
 
 Add a reminder that adding or removing website pages may require updating the
-curated `website/public/llms.txt` section structure.
+curated `website/llms.txt` section structure.
 
 ---
 
@@ -400,10 +455,10 @@ curated `website/public/llms.txt` section structure.
 | File | Action |
 |------|--------|
 | `libraries/libdoc/bin/fit-doc.js` | Modify — add `--base-url` option |
-| `libraries/libdoc/builder.js` | Modify — `build()` signature, page inventory, companion output, sitemap, llms.txt |
+| `libraries/libdoc/builder.js` | Modify — `build()` signature, page inventory, companion output, `#copyStaticAssets` refactor, sitemap, llms.txt |
 | `website/index.template.html` | Modify — add `<link rel="alternate">` tag |
-| `website/public/robots.txt` | Create |
-| `website/public/llms.txt` | Create |
+| `website/robots.txt` | Create |
+| `website/llms.txt` | Create |
 | `.github/workflows/website.yaml` | Modify — add `--base-url` flag |
 | `libraries/libdoc/test/libdoc.test.js` | Modify — add test cases |
 | `.claude/skills/libs-web-presentation/SKILL.md` | Modify |
@@ -413,15 +468,16 @@ curated `website/public/llms.txt` section structure.
 ## Ordering
 
 Steps 1–4 can be developed together (they touch different parts of the same
-files but have no circular dependencies). Step 5 is independent. Step 6 depends
-on step 2b (page inventory) and step 5 (curated files existing). Step 7 is
-independent. Step 8 should be written alongside or after steps 1–6. Step 9 is
-independent and can be done last.
+files but have no circular dependencies). Step 5 modifies `#copyStaticAssets`
+and creates the static files. Step 6 depends on step 2b (page inventory) and
+step 5 (static files copied to dist). Step 7 is independent. Step 8 should be
+written alongside or after steps 1–6. Step 9 is independent and can be done
+last.
 
 Recommended commit sequence:
 
 1. Steps 1–4: `feat(libdoc): add base-url flag, markdown companions, and alternate link tag`
-2. Step 5: `feat(website): add robots.txt and curated llms.txt`
+2. Step 5: `feat(libdoc): refactor static file copying, add robots.txt and llms.txt`
 3. Step 6: `feat(libdoc): generate sitemap.xml and augment llms.txt at build time`
 4. Step 7: `chore(website): pass base-url in GitHub Actions build step`
 5. Step 8: `test(libdoc): add tests for SEO and LLM optimization outputs`
