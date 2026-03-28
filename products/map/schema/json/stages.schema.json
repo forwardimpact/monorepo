@@ -14,7 +14,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "enum": ["specify", "plan", "onboard", "code", "review", "deploy"],
+          "enum": ["specify", "plan", "scaffold", "code", "review", "deploy"],
           "description": "Stage identifier"
         },
         "name": {
@@ -77,7 +77,7 @@
       "properties": {
         "targetStage": {
           "type": "string",
-          "enum": ["specify", "plan", "onboard", "code", "review", "deploy"],
+          "enum": ["specify", "plan", "scaffold", "code", "review", "deploy"],
           "description": "The stage to transition to"
         },
         "label": {

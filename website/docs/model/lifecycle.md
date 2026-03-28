@@ -18,20 +18,20 @@ conditions, and checklists that ensure quality transitions.
 ```mermaid
 flowchart LR
     specify["🎯 Specify"] --> plan["📐 Plan"]
-    plan --> onboard["🔧 Onboard"]
-    onboard --> code["💻 Code"]
+    plan --> scaffold["🔧 Scaffold"]
+    scaffold --> code["💻 Code"]
     code --> review["🔍 Review"]
     review --> deploy["🚀 Deploy"]
 ```
 
-| Stage       | Icon | Purpose                                               |
-| ----------- | ---- | ----------------------------------------------------- |
-| **specify** | 🎯   | Define WHAT users need and WHY                        |
-| **plan**    | 📐   | Design HOW to build (architecture, technical choices) |
-| **onboard** | 🔧   | Prepare dev environment, dependencies, credentials    |
-| **code**    | 💻   | Implement the solution and write tests                |
-| **review**  | 🔍   | Verify implementation against acceptance criteria     |
-| **deploy**  | 🚀   | Ship to production, monitor CI/CD                     |
+| Stage        | Icon | Purpose                                               |
+| ------------ | ---- | ----------------------------------------------------- |
+| **specify**  | 🎯   | Define WHAT users need and WHY                        |
+| **plan**     | 📐   | Design HOW to build (architecture, technical choices) |
+| **scaffold** | 🔧   | Prepare dev environment, dependencies, credentials    |
+| **code**     | 💻   | Implement the solution and write tests                |
+| **review**   | 🔍   | Verify implementation against acceptance criteria     |
+| **deploy**   | 🚀   | Ship to production, monitor CI/CD                     |
 
 ---
 
@@ -49,18 +49,18 @@ that specify where work can flow next:
 
 ### Plan Stage
 
-| Handoff                 | Target  | Trigger             |
-| ----------------------- | ------- | ------------------- |
-| Refine/Alternative Plan | plan    | Design needs rework |
-| Onboard                 | onboard | Plan accepted       |
+| Handoff                 | Target   | Trigger             |
+| ----------------------- | -------- | ------------------- |
+| Refine/Alternative Plan | plan     | Design needs rework |
+| Scaffold                | scaffold | Plan accepted       |
 
-### Onboard Stage
+### Scaffold Stage
 
-| Handoff     | Target  | Trigger                                     |
-| ----------- | ------- | ------------------------------------------- |
-| Retry Setup | onboard | Environment setup failed                    |
-| Update Plan | plan    | Plan needs revision based on setup findings |
-| Code        | code    | Environment ready                           |
+| Handoff     | Target   | Trigger                                     |
+| ----------- | -------- | ------------------------------------------- |
+| Retry Setup | scaffold | Environment setup failed                    |
+| Update Plan | plan     | Plan needs revision based on setup findings |
+| Code        | code     | Environment ready                           |
 
 ### Code Stage
 

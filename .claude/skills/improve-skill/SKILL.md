@@ -69,12 +69,12 @@ a skill object:
 
 - `instructions`, `installScript`, `implementationReference` must be strings
   (use YAML `|` block scalar)
-- `implementationReference` must NOT contain `<onboarding_steps>` tags (extract
+- `implementationReference` must NOT contain `<scaffolding_steps>` tags (extract
   to `installScript` instead)
 - `toolReferences` entries require `name`, `description`, `useWhen`; `url` and
   `simpleIcon` are optional
-- `agent.stages` must use valid stage IDs: `specify`, `plan`, `onboard`, `code`,
-  `review`, `deploy`
+- `agent.stages` must use valid stage IDs: `specify`, `plan`, `scaffold`,
+  `code`, `review`, `deploy`
 - Each stage requires `focus` (string), `readChecklist` (array),
   `confirmChecklist` (array)
 
@@ -150,7 +150,7 @@ The `implementationReference` field (string, YAML `|` block scalar) contains
 - Must NOT duplicate tool information (already in `toolReferences`)
 - Must NOT contain workflow steps (those go in `instructions`)
 - Must NOT contain install commands (those go in `installScript`)
-- Must NOT contain `<onboarding_steps>` tags (validation will reject them)
+- Must NOT contain `<scaffolding_steps>` tags (validation will reject them)
 - Should include a **Verification** section with runnable commands
 - Should include a **Common Pitfalls** section where relevant
 
@@ -250,7 +250,7 @@ Check that `implementationReference` (if present):
 
 - **Shows complete, working code** (not fragments or pseudocode)
 - **Does NOT contain** tool tables or "Technology Stack" sections
-- **Does NOT contain** `<onboarding_steps>` tags (validation will reject them;
+- **Does NOT contain** `<scaffolding_steps>` tags (validation will reject them;
   extract to `installScript` instead)
 - **Does NOT contain** step-by-step workflow guidance (use `instructions`
   instead)
@@ -272,7 +272,7 @@ After reviewing individual fields, check cross-field consistency:
 
 ### Stage Checklists Review
 
-Each stage (`specify`, `plan`, `onboard`, `code`, `review`, `deploy`) has a
+Each stage (`specify`, `plan`, `scaffold`, `code`, `review`, `deploy`) has a
 `readChecklist` and `confirmChecklist`. Review all stages for the skill.
 
 #### Writing Effective Checklists
@@ -287,8 +287,8 @@ Good examples by stage:
 
 - **specify**:
   `ASK the user what business problem this should solve — get a concrete problem statement`
-- **onboard**: `ASK the user for a valid GITHUB_TOKEN with Models access`
-- **onboard**:
+- **scaffold**: `ASK the user for a valid GITHUB_TOKEN with Models access`
+- **scaffold**:
   `ASK the user for database credentials (connection string, API key)`
 
 Bad: `Configure API keys` (vague, agent may skip or guess)
@@ -319,7 +319,7 @@ Replace vague quality bars with concrete numbers:
 
 **4. Cover security and credentials explicitly**
 
-Every `onboard` checklist should address credentials:
+Every `scaffold` checklist should address credentials:
 
 - readChecklist: `ASK the user for [specific credential]`
 - confirmChecklist: `All credentials stored in .env — NEVER hardcoded in code`
@@ -341,24 +341,24 @@ against them:
 
 - **specify**: Gather requirements from user, define success criteria
 - **plan**: Technical decisions, architecture, evaluation methodology
-- **onboard**: Environment setup, credentials, tool installation, data access
+- **scaffold**: Environment setup, credentials, tool installation, data access
 - **code**: Implementation, testing, experiment tracking
 - **review**: Validation against criteria, edge cases, bias checks
 - **deploy**: Production readiness, monitoring, rollback, documentation
 
 #### Checklist Anti-Patterns
 
-| Anti-Pattern                    | Fix                                                |
-| ------------------------------- | -------------------------------------------------- |
-| Vague items ("check quality")   | Be specific ("retrieval precision@5 > 0.8")        |
-| Missing user prompts in onboard | Add `ASK the user for` credential/config items     |
-| No verification commands        | Add runnable commands that prove success           |
-| Duplicating focus text          | Checklists complement focus, don't repeat it       |
-| Too few items (< 4)             | Cover all critical failure modes for the stage     |
-| Too many items (> 10)           | Keep only items where skipping causes real failure |
-| Generic across skills           | Tailor to the skill's unique domain risks          |
-| No security checks              | Add credential storage and .gitignore verification |
-| Missing rollback/recovery       | Deploy stage should always cover rollback          |
+| Anti-Pattern                     | Fix                                                |
+| -------------------------------- | -------------------------------------------------- |
+| Vague items ("check quality")    | Be specific ("retrieval precision@5 > 0.8")        |
+| Missing user prompts in scaffold | Add `ASK the user for` credential/config items     |
+| No verification commands         | Add runnable commands that prove success           |
+| Duplicating focus text           | Checklists complement focus, don't repeat it       |
+| Too few items (< 4)              | Cover all critical failure modes for the stage     |
+| Too many items (> 10)            | Keep only items where skipping causes real failure |
+| Generic across skills            | Tailor to the skill's unique domain risks          |
+| No security checks               | Add credential storage and .gitignore verification |
+| Missing rollback/recovery        | Deploy stage should always cover rollback          |
 
 ### Common Problems to Fix (All Sections)
 
@@ -366,14 +366,14 @@ against them:
 | ----------------------------- | ------------------------------------------------- |
 | Too many tools                | Keep only 2-4 essential tools for core outcome    |
 | Mixed content in one field    | Split across instructions/installScript/reference |
-| `<onboarding_steps>` tags     | Extract to `installScript` field                  |
+| `<scaffolding_steps>` tags    | Extract to `installScript` field                  |
 | Workflow steps in reference   | Move to `instructions` field                      |
 | Install commands in reference | Move to `installScript` field                     |
 | Tool lists in reference       | Remove (already in `toolReferences`)              |
 | Code without context          | Add prose explaining what each section achieves   |
 | SKILL.md over 200 lines       | Move code examples to `implementationReference`   |
 | Vague checklists              | Add ASK items, commands, and thresholds           |
-| Missing ASK items             | Onboard and specify stages need user prompts      |
+| Missing ASK items             | Scaffold and specify stages need user prompts     |
 | No credential checks          | Add .env and .gitignore verification              |
 
 ### Good Structure Pattern
@@ -390,7 +390,7 @@ against them:
     description: Build robust data pipelines
     useWhen: Working with data ingestion or ETL
     stages:
-      onboard:
+      scaffold:
         focus: Set up data tools and verify data access
         readChecklist:
           - ASK the user for database connection string
@@ -469,7 +469,7 @@ against them:
 
 ```yaml
 stages:
-  onboard:
+  scaffold:
     focus: |
       Set up the development environment...
     readChecklist:

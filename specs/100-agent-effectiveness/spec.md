@@ -87,7 +87,7 @@ share the same discipline + track constraints — only the stage entries vary.
 
 ### What
 
-Every stage agent — specify, plan, onboard, code, review, deploy — lists the
+Every stage agent — specify, plan, scaffold, code, review, deploy — lists the
 same 5 skills in its `skills:` frontmatter.
 
 ### Why it matters
@@ -97,7 +97,7 @@ contain 6 stages of checklists each (specify through deploy), but the agent only
 uses one stage's checklists. Loading all skills regardless of stage relevance
 wastes context on checklists and guidance the agent will never act on. A specify
 agent has no use for `sre-practices` code-stage checklists. A review agent
-doesn't need `code-quality-review` onboard-stage install scripts.
+doesn't need `code-quality-review` scaffold-stage install scripts.
 
 Each skill is ~185 lines. 5 skills × 185 lines = ~925 lines of skill context per
 agent. Each skill has 6 stage sections of ~20 lines each. Only 1 stage section
@@ -368,7 +368,7 @@ field. No agent is scoped to specific file types or paths.
 Claude Code uses `applyTo` globs to scope when an agent is suggested or
 relevant. Stage agents have natural file affinities: a specify agent works on
 `specs/**/*.md`, a deploy agent works on CI/CD configs and infrastructure files,
-an onboard agent works on environment setup files. Without `applyTo`, Claude
+a scaffold agent works on environment setup files. Without `applyTo`, Claude
 Code cannot use file context to suggest the right agent — the user must always
 select manually from a flat list of 6 agents with near-identical descriptions.
 
@@ -394,9 +394,9 @@ description: ...
 applyTo: "{.github/**,Makefile,Dockerfile,docker-compose*.yml}"
 ---
 
-# se-platform-onboard.md — could scope to env and config
+# se-platform-scaffold.md — could scope to env and config
 ---
-name: se-platform-onboard
+name: se-platform-scaffold
 description: ...
 applyTo: "{.env*,package.json,justfile,docker-compose.dev.yml}"
 ---

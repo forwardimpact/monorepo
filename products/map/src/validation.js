@@ -338,15 +338,15 @@ function validateSkill(skill, index, requiredStageIds = []) {
     );
   }
 
-  // Error if implementationReference still contains <onboarding_steps> tags (migration aid)
+  // Error if implementationReference still contains <scaffolding_steps> tags (migration aid)
   if (
     typeof skill.implementationReference === "string" &&
-    skill.implementationReference.includes("<onboarding_steps>")
+    skill.implementationReference.includes("<scaffolding_steps>")
   ) {
     errors.push(
       createError(
         "INVALID_FIELD",
-        "Skill implementationReference contains <onboarding_steps> tags. Extract install commands to skill.installScript instead.",
+        "Skill implementationReference contains <scaffolding_steps> tags. Extract install commands to skill.installScript instead.",
         `${path}.implementationReference`,
       ),
     );
@@ -2089,7 +2089,7 @@ export function validateAgentData({ humanData, agentData }) {
 
   // Validate skills with agent sections have complete stage coverage
   const skillsWithAgent = (humanData.skills || []).filter((s) => s.agent);
-  const requiredStages = ["plan", "onboard", "code", "review"];
+  const requiredStages = (humanData.stages || []).map((s) => s.id);
 
   for (const skill of skillsWithAgent) {
     const stages = skill.agent.stages || {};

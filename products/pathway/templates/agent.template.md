@@ -49,12 +49,6 @@ skills:
 {{#skillIndex}}
 | {{{name}}} | {{{useWhen}}} |
 {{/skillIndex}}
-{{#isOnboard}}
-
-For each skill, run `bash .claude/skills/<skill-name>/scripts/install.sh`
-BEFORE any manual setup. Consult `references/REFERENCE.md` for implementation
-patterns.
-{{/isOnboard}}
 {{/hasSkills}}
 {{#hasStageTransitions}}
 

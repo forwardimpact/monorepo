@@ -31,9 +31,8 @@ import { flattenToLine } from "../template-preprocess.js";
  * @param {Object} params.bodyData - Structured body data
  * @param {string} params.bodyData.title - Agent title
  * @param {string} params.bodyData.stageDescription - Stage description text
- * @param {string} params.bodyData.stageId - Stage identifier (e.g. "plan", "code", "onboard")
- * @param {string} params.bodyData.stageName - Human-readable stage name (e.g. "Plan", "Code", "Onboard")
- * @param {boolean} params.bodyData.isOnboard - Whether this is the onboard stage
+ * @param {string} params.bodyData.stageId - Stage identifier (e.g. "plan", "code", "scaffold")
+ * @param {string} params.bodyData.stageName - Human-readable stage name (e.g. "Plan", "Code", "Scaffold")
  * @param {string} params.bodyData.identity - Core identity text
  * @param {string} [params.bodyData.priority] - Priority/philosophy statement
  * @param {Array<{name: string, dirname: string, useWhen: string}>} params.bodyData.skillIndex - Skill index entries
@@ -91,7 +90,6 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
     stageDescription: trimValue(bodyData.stageDescription),
     stageId: bodyData.stageId,
     stageName: bodyData.stageName,
-    isOnboard: bodyData.isOnboard,
     identity: trimValue(bodyData.identity),
     priority: trimValue(bodyData.priority),
     skillIndex,

@@ -54,7 +54,7 @@ export function buildCapabilityPrompt(skeleton, ctx, schema) {
       "    Not all skills need all 6 stages. Use these criteria:",
       "      - specify: include if the skill informs what to build or constrains requirements",
       "      - plan: include if the skill drives architecture or design decisions",
-      "      - onboard: include if the skill requires tooling, dependencies, or env setup",
+      "      - scaffold: include if the skill requires tooling, dependencies, or env setup",
       "      - code: include if the skill is directly exercised during implementation",
       "      - review: include if the skill has quality criteria to verify",
       "      - deploy: include if the skill has production or operational concerns",

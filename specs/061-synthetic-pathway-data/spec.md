@@ -144,7 +144,7 @@ framework {
     }
   }
 
-  stages [specify, plan, onboard, code, review, deploy]
+  stages [specify, plan, scaffold, code, review, deploy]
 }
 ```
 

@@ -28,7 +28,7 @@ export function buildStagePrompt(stageIds, ctx, schema) {
       "## Instructions",
       "- Output a JSON array of stage objects.",
       "- For each stage ID, generate:",
-      "  - id: The stage ID (must be one of: specify, plan, onboard, code, review, deploy).",
+      `  - id: The stage ID (must be one of: ${stageIds.join(", ")}).`,
       '  - name: Human-readable name (e.g., "Specify", "Plan").',
       "  - emojiIcon: A single emoji for this stage.",
       '  - description: 2-3 sentences in second person ("You...").',

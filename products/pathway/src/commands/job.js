@@ -279,7 +279,7 @@ export async function runJobCommand({
 
   // --checklist: Show checklist for a specific stage
   if (options.checklist) {
-    const validStages = ["plan", "code"];
+    const validStages = data.stages.map((s) => s.id);
     if (!validStages.includes(options.checklist)) {
       console.error(`Invalid stage: ${options.checklist}`);
       console.error(`Available: ${validStages.join(", ")}`);

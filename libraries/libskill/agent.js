@@ -571,7 +571,6 @@ function buildStageProfileBodyData({
     stageDescription: stage.description,
     stageId: stage.id,
     stageName,
-    isOnboard: stage.id === "onboard",
     identity: identity.trim(),
     priority: priority ? priority.trim() : null,
     skillIndex,

@@ -130,14 +130,14 @@ The fix has two parts: curate the data, then filter in code.
 Remove `agent.stages` entries for stages where the skill is not meaningfully
 relevant. Use these criteria:
 
-| Stage   | Skill belongs here when...                          |
-| ------- | --------------------------------------------------- |
-| specify | It informs what to build or constrains requirements |
-| plan    | It drives architecture or design decisions          |
-| onboard | It requires tooling, dependencies, or env setup     |
-| code    | It is directly exercised during implementation      |
-| review  | It has quality criteria to verify                   |
-| deploy  | It has production or operational concerns           |
+| Stage    | Skill belongs here when...                          |
+| -------- | --------------------------------------------------- |
+| specify  | It informs what to build or constrains requirements |
+| plan     | It drives architecture or design decisions          |
+| scaffold | It requires tooling, dependencies, or env setup     |
+| code     | It is directly exercised during implementation      |
+| review   | It has quality criteria to verify                   |
+| deploy   | It has production or operational concerns           |
 
 Example — `problem_discovery` keeps only specify + plan:
 
@@ -153,16 +153,16 @@ agent:
       focus: ...
       readChecklist: [...]
       confirmChecklist: [...]
-    # onboard, code, review, deploy — removed
+    # scaffold, code, review, deploy — removed
 ```
 
-Example — `devops` keeps onboard + code + deploy:
+Example — `devops` keeps scaffold + code + deploy:
 
 ```yaml
 agent:
   name: devops-cicd
   stages:
-    onboard:
+    scaffold:
       focus: ...
     code:
       focus: ...
@@ -222,7 +222,7 @@ Remove the 10-line block that explains how Claude Code loads skills and how to
 interpret checklist tags. Keep only the skill table and the `<required_tools>` /
 install script references.
 
-Replace with the skill table plus a conditional onboard block:
+Replace with the skill table plus a conditional scaffold block:
 
 ```mustache
 {{#hasSkills}}
@@ -245,7 +245,7 @@ patterns.
 
 The checklist tag names (`<read_then_do_code>`, `<do_then_confirm_code>`) are
 self-explanatory inside the skill files. The agent doesn't need an explanation
-of the mechanism. The onboard install guidance is kept because it's actionable.
+of the mechanism. The scaffold install guidance is kept because it's actionable.
 
 ---
 

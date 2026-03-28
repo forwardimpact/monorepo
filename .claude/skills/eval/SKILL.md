@@ -163,8 +163,8 @@ cat <<'EOF' | copilot --allow-all --model=claude-opus-4.6 --agent=<shortname>-pl
 Create plan.md based on the spec in specs/feature/spec.md.
 EOF
 
-# Stage 3: onboard — NEW session, different agent
-echo "Set up the dev environment based on plan.md" | copilot --allow-all --model=claude-opus-4.6 --agent=<shortname>-onboard
+# Stage 3: scaffold — NEW session, different agent
+echo "Set up the dev environment based on plan.md" | copilot --allow-all --model=claude-opus-4.6 --agent=<shortname>-scaffold
 
 # Stage 4: code — NEW session, different agent
 echo "Implement the tasks in plan.md" | copilot --allow-all --model=claude-opus-4.6 --agent=<shortname>-code
@@ -308,13 +308,13 @@ Run through one full stage with realistic multi-turn interaction:
 
 ### Multi-Stage Chain Eval (30 min)
 
-Follow the full specify → plan → onboard → code chain. Each stage is a
+Follow the full specify → plan → scaffold → code chain. Each stage is a
 **separate copilot session** with its own `--agent` flag:
 
 1. Run the specify agent with a feature request
 2. Answer questions via `--continue` until the stage completes
 3. Start a **new session** with the plan agent, pointing it at spec.md
-4. Start a **new session** with the onboard agent, pointing it at plan.md
+4. Start a **new session** with the scaffold agent, pointing it at plan.md
 5. Start a **new session** with the code agent, pointing it at plan.md
 6. Check that each stage reads the artefacts from the previous stage
 7. Verify each stage reads its own stage-specific checklists
