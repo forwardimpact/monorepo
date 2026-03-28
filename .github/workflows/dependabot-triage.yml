@@ -1,0 +1,39 @@
+name: Dependabot Triage
+
+on:
+  schedule:
+    # Every 3 days at 06:17 UTC (off-minute to avoid :00 stampede)
+    - cron: "17 6 */3 * *"
+  workflow_dispatch: # Manual trigger for testing or on-demand triage
+
+concurrency:
+  group: dependabot-triage
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Triage Dependabot PRs
+        uses: ./.github/actions/claude
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.CLAUDE_GH_PAT }}
+          CLAUDE_CODE_USE_BEDROCK: "0"
+        with:
+          prompt: "/dependabot-triage"
+          model: "opus"
+          max-turns: "50"
