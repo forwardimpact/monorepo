@@ -12,6 +12,11 @@ Create specification and implementation plan documents for features, changes,
 and improvements. A spec defines WHAT to build and WHY. A plan defines HOW to
 build it.
 
+**Spec and plan are independent deliverables.** Only produce what the user asked
+for. If they ask for a spec, write the spec and stop — do not continue to a
+plan. If they ask for a plan (and a spec already exists), write the plan only.
+Write both only when explicitly requested.
+
 ## When to Use
 
 - Starting a new feature or significant change
@@ -72,6 +77,8 @@ on these qualities:
 
 ## Process
 
+### Writing a spec
+
 1. **Clarify first.** Ask the user questions before writing anything. Understand
    the motivation, desired scope, constraints, and what success looks like to
    them. Don't assume — a brief conversation up front prevents major rewrites
@@ -80,8 +87,15 @@ on these qualities:
    the current state before proposing changes.
 3. **Write the spec.** Focus on WHAT and WHY. Do not include implementation
    details — those go in the plan.
-4. **Review the spec.** Present it to the user for feedback before writing the
-   plan.
-5. **Write the plan.** Translate the approved spec into concrete steps. Each
+4. **Review the spec.** Present it to the user for feedback. Stop here unless
+   the user also asked for a plan.
+
+### Writing a plan
+
+1. **Find the spec.** A plan requires an existing spec in the same directory. If
+   no spec exists yet, ask the user whether to write one first.
+2. **Research.** Read the spec, relevant code, data files, and existing plans.
+   Understand the current state before proposing changes.
+3. **Write the plan.** Translate the approved spec into concrete steps. Each
    step should be independently verifiable.
-6. **Review the plan.** Present it to the user for approval before implementing.
+4. **Review the plan.** Present it to the user for approval before implementing.
