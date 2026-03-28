@@ -31,7 +31,7 @@ audit, additionally verify:
 ## 3. Credential & Secret Leak Prevention
 
 Pre-commit hooks, CI secret scanning, and the "no secrets in commits" rule are
-defined in CONTRIBUTING.md § Security Workflows. During a security audit,
+defined in CONTRIBUTING.md § Security. During a security audit,
 additionally verify:
 
 - `.gitignore` covers all sensitive file patterns (`.env`, credentials, keys)
@@ -42,7 +42,7 @@ additionally verify:
 
 ## 4. Static Analysis
 
-ESLint security rules are defined in CONTRIBUTING.md § Security Workflows.
+ESLint security rules are defined in CONTRIBUTING.md § Security.
 During a security audit, verify no security rules have been disabled in
 `eslint.config.js` without an inline justification comment.
 
