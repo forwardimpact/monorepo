@@ -40,6 +40,7 @@ where the canonical rule lives, and what triage action to take on failure.
 | 5   | npm audit clean (`--audit-level=high`)     | CONTRIBUTING.md § Dependency Policy      | **Close** if the update introduces the vulnerability. Skip if pre-existing.                |
 | 6   | No unnecessary dependencies                | CONTRIBUTING.md § Dependency Policy      | **Close** with explanation.                                                                |
 | 7   | First-party or official org actions only   | security-audit § 1                       | **Close** with explanation.                                                                |
+| 8   | Peer and transitive dependency compat      | CONTRIBUTING.md § Dependency Policy      | **Close** — cannot merge until co-dependent packages release compatible versions.          |
 
 ### GitHub Actions SHA Inventory
 
@@ -76,7 +77,7 @@ gh pr diff <number>
 Classify the PR and determine which checks apply. Check 1 (CI passes) applies to
 every PR. Additional checks depend on the update type:
 
-- **npm update** — labels include `javascript`. Also evaluate checks 3, 4, 5, 6.
+- **npm update** — labels include `javascript`. Also evaluate checks 3, 4, 5, 6, 8.
 - **GitHub Actions update** — labels include `github_actions`. Also evaluate
   checks 2, 7.
 - **Both** — Evaluate all checks.
@@ -87,6 +88,21 @@ Determine the update type from the PR title and body:
 - **Minor** (`x.Y.0`) — Low risk. Merge if all checks pass.
 - **Major** (`X.0.0`) — Requires closer review. Check changelogs for breaking
   changes, scope changes, and new transitive dependencies.
+
+#### Check 8: Peer and Transitive Dependency Compatibility (npm major updates)
+
+For every npm major version bump, verify the updated package does not break
+co-installed packages. Run `npm ls <package>` on the PR branch and check for:
+
+- **`invalid`** — a resolved version violates another package's declared range
+  (peer or regular dependency). The major bump cannot land until those packages
+  release compatible versions.
+- **`deduped` across mismatched majors** — if the same package resolves to
+  multiple major versions in the tree, the update may cause subtle runtime
+  issues (e.g. type mismatches, duplicate registrations). Investigate before
+  merging.
+
+If the tree is clean (single version, no `invalid` markers), the check passes.
 
 ### Step 3: Check CI Status
 
