@@ -27,12 +27,11 @@ and agent profile generation. Three audiences use `fit-pathway` differently:
 - Generating AI agent configurations from the framework
 - Answering questions about roles, skill expectations, or career paths
 
-**Development and maintenance:**
+**Framework setup and publishing:**
 
-- Adding or modifying web app pages, CLI commands, or formatters
-- Updating agent or skill output templates
-- Working with the Mustache template system
 - Setting up an organization's career framework project
+- Building a static site for the framework
+- Running a local development server to preview changes
 
 ---
 
@@ -157,6 +156,17 @@ npx fit-pathway job software_engineering J060 --track=forward_deployed --skills
 
 ## CLI Reference
 
+### Getting Started
+
+```sh
+npx fit-pathway init                          # Create ./data/ with example framework data
+npx fit-pathway dev                           # Run live development server (default port 3000)
+npx fit-pathway dev --port=8080               # Dev server on custom port
+npx fit-pathway build --output=./public --url=https://example.com  # Static site
+npx fit-pathway update                        # Update local ~/.fit/pathway/ installation
+npx fit-pathway update --url=URL              # Update from custom source URL
+```
+
 ### Entity Browsing
 
 All entity commands support three modes:
@@ -195,16 +205,25 @@ npx fit-pathway agent <discipline> --track=<track> --skills         # Skill IDs 
 npx fit-pathway agent <discipline> --track=<track> --tools          # Tool names only
 ```
 
-### Interview & Progression
+### Interview, Progress & Questions
 
 ```sh
 npx fit-pathway interview <discipline> <level>
 npx fit-pathway interview <d> <l> --track=<t> --type=mission
 npx fit-pathway progress <discipline> <level>
 npx fit-pathway progress <d> <l> --compare=<to_level>
+npx fit-pathway questions
 npx fit-pathway questions --level=practitioner
-npx fit-pathway questions --skill=<id> --format=yaml
+npx fit-pathway questions --maturity=practicing
+npx fit-pathway questions --skill=<id>
+npx fit-pathway questions --behaviour=<id>
+npx fit-pathway questions --capability=<id>
+npx fit-pathway questions --stats
+npx fit-pathway questions --format=yaml          # table, yaml, json
 ```
+
+Interview types: `mission` (skill questions), `decomposition` (capability
+questions), `stakeholder` (behaviour questions).
 
 ### Skill Detail
 
@@ -217,110 +236,25 @@ npx fit-pathway skill <id> --agent  # Output as agent SKILL.md format
 
 - Agent profiles: `.github/agents/{id}.agent.md` (VS Code Custom Agents)
 - Skill files: `.claude/skills/{skill-name}/SKILL.md` (Agent Skills Standard)
-- Templates: `products/pathway/templates/`
 
 ---
 
 ## Data Resolution
 
-The CLI resolves data via `Finder.findData` from `@forwardimpact/libutil`:
+The CLI resolves the data directory in this order:
 
 1. `--data=<path>` flag (explicit override)
-2. Upward traversal from CWD — `findUpward` looking for `data/` (up to 3
-   parents)
+2. Upward traversal from CWD — looks for `data/` (up to 3 parents)
 3. `~/.fit/data/` (user-global fallback)
 
-The method returns the base `data/` path; pathway appends `pathway/`.
+Use `npx fit-pathway init` to create a local `./data/` directory with example
+framework data to get started.
 
 ---
-
-## Developing Pathway
-
-### Package Structure
-
-```
-products/pathway/
-  bin/
-    fit-pathway.js    # CLI entry point, arg parsing, help text, command dispatch
-  src/
-    commands/         # CLI command handlers (one per entity/feature)
-    formatters/       # Entity → output (DOM/markdown), grouped by entity
-    pages/            # Web app page handlers
-    components/       # Reusable UI components (pathway-specific)
-    lib/              # Shared utilities (cli-output, template-loader)
-    slides/           # Slide presentation handlers
-  templates/          # Mustache templates for agent/skill/install output
-```
-
-### Formatter Layer
-
-All presentation logic lives in formatters. Pages and commands pass raw entities
-— no transforms in views.
-
-```
-src/formatters/{entity}/
-  shared.js    # Helpers shared between outputs
-  dom.js       # Entity → DOM elements (web app)
-  markdown.js  # Entity → markdown string (CLI)
-```
-
-### CLI Command Pattern
-
-Commands export an async handler. Entity commands use `createEntityCommand` from
-`command-factory.js`. Composite commands (job, interview, progress) use
-`createCompositeCommand`.
-
-```javascript
-// Entity command (discipline, track, skill, etc.)
-export const runFooCommand = createEntityCommand({
-  entityName: "foo",
-  pluralName: "foos",
-  findEntity: (data, id) => data.foos.find((f) => f.id === id),
-  presentDetail: (entity, data, options) => ({ /* view */ }),
-  formatSummary: (items, data) => { /* console output */ },
-  formatDetail: (view, framework) => { /* console output */ },
-  formatListItem: (item) => `${item.id}, ${item.name}`,
-});
-```
-
-### Page Structure
-
-Pages export a `render` function and optionally a `cleanup`:
-
-```javascript
-export function render(container, params) {
-  // render page content using libui helpers
-}
-
-export function cleanup() {
-  // cleanup subscriptions
-}
-```
-
-### CSS
-
-Pathway uses the libui CSS design system. See the **libui** skill for layer
-order, design tokens, file conventions, and naming rules. Pathway adds
-product-specific styles in `css/pages/` and `css/views/`.
-
-### Adding a New Command
-
-1. Create `src/commands/{command}.js`
-2. Export async handler function
-3. Register in command dispatch (`bin/fit-pathway.js`)
-4. Add help text in `HELP_TEXT` constant
-
-### Adding a New Page
-
-1. Create `src/pages/{page}.js`
-2. Export `render(container, params)` and optionally `cleanup()`
-3. Register route in `src/lib/router.js`
-4. Use formatters from `src/formatters/` for presentation
 
 ## Verification
 
 ```sh
-npm run test        # Unit tests
-npm run test:e2e    # Playwright E2E tests
-npm run check       # Full check (format, lint, test)
+npx fit-map validate    # Validate data files after changes
+npx fit-pathway dev     # Preview changes in browser
 ```

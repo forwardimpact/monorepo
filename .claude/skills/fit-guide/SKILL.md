@@ -34,11 +34,6 @@ against skill markers.
 - Initializing data directories and example knowledge
 - Running evaluations against the agent platform
 
-**Development:**
-
-- Modifying the Guide CLI entry point (`products/guide/bin/fit-guide.js`)
-- Working with the Guide package dependencies
-
 ---
 
 ## How It Works
@@ -93,7 +88,7 @@ automatically. Running `npx fit-guide` directly requires env to be loaded first
 (`. scripts/env.sh && npx fit-guide`).
 
 The CLI connects to the Agent gRPC service, maintains conversation context
-across turns, and persists REPL state via libstorage.
+across turns, and persists session state locally.
 
 ### Supporting CLI Tools
 
@@ -319,41 +314,6 @@ make eval-reset         # Reset evaluation state (logs, traces, memories)
 Evaluation config: `config/eval.yml`
 
 ---
-
-## Product Structure
-
-```
-products/guide/
-  bin/fit-guide.js      # CLI entry point (REPL client)
-  package.json          # Package definition
-```
-
-Guide is a thin CLI wrapper. It creates a `Repl` instance (from `librepl`) that
-sends user messages to the Agent gRPC service via `librpc` and streams responses
-back.
-
-### Dependencies
-
-| Package      | Purpose                          |
-| ------------ | -------------------------------- |
-| libconfig    | Load agent service configuration |
-| librepl      | Interactive REPL framework       |
-| librpc       | gRPC client for Agent service    |
-| libstorage   | Persist CLI session state        |
-| libtelemetry | Structured logging and tracing   |
-| libtype      | Protocol Buffer types            |
-
-### Key Paths
-
-| Purpose      | Location                             |
-| ------------ | ------------------------------------ |
-| CLI entry    | `products/guide/bin/fit-guide.js`    |
-| Config       | `config/config.json`                 |
-| Agents       | `config/agents/*.agent.md`           |
-| Tools        | `config/tools.yml`                   |
-| Environment  | `.env*` (root)                       |
-| Scripts      | `scripts/env.sh`, `scripts/env-*.js` |
-| Runtime data | `data/`                              |
 
 ## Common Tasks
 

@@ -36,9 +36,10 @@ Generation flows through four stages:
    seeded RNG) into a full entity graph: orgs, departments, teams, people with
    roles and skill assignments, repos, and projects
 3. **Prose generation** — prose keys are collected from the entity graph (one
-   per article, FAQ, briefing, etc.) with context (topic, tone, length). In
-   `--cached` mode these are read from `.prose-cache.json`; in `--generate`
-   mode each key is sent to an LLM and the result saved to the cache
+   per article, FAQ, briefing, etc.) with context (topic, tone, length). By
+   default these are read from `.prose-cache.json`; with `--generate` each
+   key is sent to an LLM and the result saved to the cache; with `--no-prose`
+   this stage is skipped entirely
 4. **Rendering** — entities and prose are rendered into output formats: YAML
    framework files (`pathway`), HTML articles (`html`), JSON/YAML activity
    records (`raw`), and Markdown briefings (`markdown`)
@@ -52,20 +53,20 @@ schemas.
 
 ### Prose Caching
 
-The prose cache maps each content key to its generated text. Using `--cached`
-makes generation fully repeatable without LLM calls. Using `--generate`
-appends new entries to the cache, so subsequent `--cached` runs include all
-previously generated content.
+The prose cache maps each content key to its generated text. The default mode
+reads from the cache, making generation fully repeatable without LLM calls.
+Using `--generate` appends new entries to the cache, so subsequent default
+runs include all previously generated content.
 
 ---
 
 ## CLI Reference
 
 ```sh
-npx fit-universe                     # Structural generation only (no LLM)
-npx fit-universe --cached            # Use cached prose (fast, repeatable)
+npx fit-universe                     # Use cached prose (default, repeatable)
 npx fit-universe --generate          # Generate prose via LLM (requires LLM_TOKEN)
-npx fit-universe --cached --strict   # Fail on cache miss
+npx fit-universe --no-prose          # Structural scaffolding only (no prose at all)
+npx fit-universe --strict            # Fail on cache miss (with default cached mode)
 npx fit-universe --load              # Load raw docs to Supabase Storage
 npx fit-universe --only=pathway      # Render only one content type
 npx fit-universe --dry-run           # Show what would be written
@@ -85,11 +86,11 @@ Use `--only=<type>` to generate a single content type:
 
 ### Prose Modes
 
-| Mode       | Flag         | Description                   |
-| ---------- | ------------ | ----------------------------- |
-| `no-prose` | _(default)_  | Structural only, no LLM calls |
-| `cached`   | `--cached`   | Read from `.prose-cache.json` |
-| `generate` | `--generate` | Call LLM, write to cache      |
+| Mode       | Flag         | Description                                    |
+| ---------- | ------------ | ---------------------------------------------- |
+| `cached`   | _(default)_  | Read from `.prose-cache.json` (no LLM needed)  |
+| `generate` | `--generate` | Call LLM, write new entries to cache            |
+| `no-prose` | `--no-prose` | Structural scaffolding only, no prose at all    |
 
 ---
 
@@ -147,20 +148,27 @@ configurations, and briefing counts.
 
 This monorepo's universe DSL is `examples/universe.dsl`. Use `--universe=path`
 to specify a different file. Without `--universe`, the CLI falls back to the
-minimal reference DSL bundled with libsyntheticgen.
+minimal reference DSL bundled with the package.
 
-All generated output writes to `examples/` at the monorepo root.
+Generated output writes to `data/` directories at the monorepo root:
+
+| Type       | Output Directory |
+| ---------- | ---------------- |
+| `html`     | `data/knowledge` |
+| `pathway`  | `data/pathway`   |
+| `raw`      | `data/activity`  |
+| `markdown` | `data/personal`  |
 
 ---
 
 ## Prose Cache
 
 The prose cache is stored at `libraries/libuniverse/.prose-cache.json`. This
-file is pre-populated for the BioNova universe (440+ keys). Use `--cached` to
-read from it without LLM calls.
+file is pre-populated for the BioNova universe (440+ keys). The default mode
+reads from it without LLM calls.
 
 When using `--generate`, new prose is appended to the cache after generation
-completes. Subsequent runs with `--cached` will reuse all generated content.
+completes. Subsequent default runs will reuse all generated content.
 
 ---
 

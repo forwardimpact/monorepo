@@ -23,14 +23,11 @@ native macOS app bundle (`Basecamp.app`) with TCC-compliant process management.
 - Starting, stopping, or monitoring the scheduler daemon
 - Validating agent/skill references
 
-**Development and maintenance:**
+**Knowledge base customization:**
 
-- Modifying the scheduler logic (task execution, scheduling, state)
-- Working with the build system (Deno compile, Swift build, app bundle)
-- Adding or modifying KB template files (CLAUDE.md, USER.md)
-- Adding or modifying KB skills (sync, extract, draft, etc.)
-- Changing install/uninstall scripts
-- Working with the Swift app launcher or status menu
+- Adding or modifying KB skills
+- Configuring scheduled tasks in `scheduler.json`
+- Customizing KB template files (CLAUDE.md, USER.md)
 
 ---
 
@@ -136,68 +133,6 @@ Synced data lives outside the KB:
 
 ---
 
-## Developing Basecamp
-
-### Package Structure
-
-```
-products/basecamp/
-  src/
-    basecamp.js           # Main entry point and CLI (single-file, cross-platform)
-    posix-spawn.js        # Deno FFI wrapper for posix_spawn (macOS)
-  macos/
-    Basecamp/             # Swift package: app launcher + status menu
-      Package.swift
-      Sources/
-        main.swift        # App entry point, NSApplication lifecycle
-        AppDelegate.swift # Manages scheduler process and status menu
-        ProcessManager.swift # posix_spawn wrapper, child lifecycle
-        StatusMenu.swift  # Status bar UI
-        DaemonConnection.swift # Unix socket IPC with scheduler
-    Info.plist            # App bundle metadata
-    Basecamp.entitlements # TCC entitlements
-  config/
-    scheduler.json        # Default scheduler configuration
-  pkg/
-    build.js              # Build orchestrator (Deno + Swift + app)
-    macos/                # macOS-specific build scripts and installer
-  template/               # KB template (copied on --init)
-    CLAUDE.md             # Claude Code instructions for KB
-    USER.md               # User identity template
-    .claude/
-      settings.json       # Claude Code permissions
-      skills/             # KB skills (built-in)
-```
-
-### Scheduler (`src/basecamp.js`)
-
-Single-file CLI, no dependencies. Key functions:
-
-- `shouldRun(task, taskState, now)` — Schedule evaluation
-- `runTask(taskName, task, config, state)` — Task execution via posix_spawn
-- `initKB(targetPath)` — Knowledge base initialization
-- `cronMatches(expr, date)` — Cron expression matching
-- `validate()` — Validate agent/skill references exist
-
-### posix_spawn FFI (`src/posix-spawn.js`)
-
-Deno FFI wrapper. Calls `responsibility_spawnattrs_setdisclaim` so child
-processes inherit TCC attributes from the responsible binary (Basecamp.app).
-
-### Swift Launcher (`macos/Basecamp/`)
-
-- `AppDelegate.swift` — Manages ProcessManager and StatusMenu
-- `ProcessManager.swift` — Spawns scheduler via posix_spawn, monitors child
-- `StatusMenu.swift` — Status bar UI
-- `DaemonConnection.swift` — Socket protocol (status, restart, run commands)
-
-### Build System (`pkg/build.js`)
-
-1. Compiles `src/basecamp.js` via `deno compile`
-2. Builds Swift app launcher via `swift build`
-3. Assembles `Basecamp.app` bundle (via `build-app.sh`)
-4. Optionally creates macOS installer package (.pkg)
-
 ## Common Tasks
 
 ### Adding a New KB Skill
@@ -207,20 +142,11 @@ processes inherit TCC attributes from the responsible binary (Basecamp.app).
 3. Write the skill workflow (trigger, prerequisites, inputs, outputs, steps)
 4. Update `template/CLAUDE.md` to list the new skill
 5. If scheduled, add a default task entry to `config/scheduler.json`
-
-### Modifying the Swift Launcher
-
-- Source: `macos/Basecamp/Sources/`
-- Bundle metadata: `macos/Info.plist`
-- Entitlements: `macos/Basecamp.entitlements`
-- Build: `just build-launcher` or
-  `swift build -c release --package-path macos/Basecamp`
+6. Run `fit-basecamp --update` to push the new skill to existing KBs
 
 ## Verification
 
 ```sh
 fit-basecamp --status       # Check config and agent state
 fit-basecamp --validate     # Verify agent/skill references exist
-just build                  # Verify full build works
-just build-app              # Verify app bundle assembles
 ```

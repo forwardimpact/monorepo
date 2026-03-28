@@ -71,10 +71,12 @@ available.
 ## CLI
 
 ```sh
-npx fit-map validate                # Validate all data (JSON schema + referential)
-npx fit-map validate --shacl        # Validate RDF/SHACL syntax
-npx fit-map validate --data=PATH    # Validate a specific data directory
-npx fit-map generate-index          # Generate _index.yaml files for browser loading
+npx fit-map validate                    # Validate all data (JSON schema + referential)
+npx fit-map validate --shacl            # Validate RDF/SHACL syntax
+npx fit-map validate --data=PATH        # Validate a specific data directory
+npx fit-map generate-index              # Generate _index.yaml files for browser loading
+npx fit-map people import <file>        # Import people from CSV/YAML (validates against framework)
+npx fit-map people import <f> --data=P  # Import with custom data directory
 ```
 
 Validation output includes a data summary showing entity counts. Use this to
@@ -85,7 +87,7 @@ quickly verify data is loading correctly after changes.
 ## Data Structure
 
 ```
-data/pathway/              (resolved via Finder.findData upward traversal)
+data/pathway/
 ├── framework.yaml         # Framework metadata, entity definitions
 ├── levels.yaml            # Career levels (J040, J060, etc.)
 ├── stages.yaml            # Lifecycle stages (plan, code, review, etc.)
@@ -104,49 +106,6 @@ Entity files use **co-located content** — `human:` and `agent:` sections in th
 same YAML file. All entities have an `id` field used for cross-references.
 
 ---
-
-## Product Structure
-
-```
-products/map/
-  bin/
-    fit-map.js             # CLI entry point
-  src/
-    loader.js              # Load and parse YAML data files
-    validation.js          # Referential integrity validation
-    schema-validation.js   # JSON Schema validation
-    index-generator.js     # Generate _index.yaml for browser
-    levels.js              # Skill proficiencies, behaviour maturities
-    modifiers.js           # Modifier utilities
-  schema/
-    json/                  # JSON Schema definitions (public)
-    rdf/                   # RDF/SHACL ontology (public)
-```
-
-## Key Modules
-
-### loader.js
-
-```javascript
-import { loadAllData, loadCapabilities } from "@forwardimpact/map/loader";
-const data = await loadAllData("./data");
-// data.skills, data.behaviours, data.disciplines, data.tracks, data.levels, ...
-```
-
-### validation.js
-
-Validates referential integrity (e.g., discipline references valid skill IDs).
-
-### levels.js
-
-Exports proficiency and maturity constants used by derivation:
-
-```javascript
-import {
-  SKILL_PROFICIENCIES,
-  BEHAVIOUR_MATURITIES,
-} from "@forwardimpact/map/levels";
-```
 
 ## Schema Definitions
 
