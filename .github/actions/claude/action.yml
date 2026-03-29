@@ -46,35 +46,42 @@ runs:
     - name: Run Claude Code
       id: run
       shell: bash
+      env:
+        PROMPT: ${{ inputs.prompt }}
+        AGENT: ${{ inputs.agent }}
+        MODEL: ${{ inputs.model }}
+        MAX_TURNS: ${{ inputs.max-turns }}
+        TOOLS: ${{ inputs.allowed-tools }}
+        TRACE_ENABLED: ${{ inputs.trace }}
       run: |
         AGENT_FLAG=""
-        if [ -n "${{ inputs.agent }}" ]; then
-          AGENT_FLAG="--agent ${{ inputs.agent }}"
+        if [ -n "$AGENT" ]; then
+          AGENT_FLAG="--agent $AGENT"
         fi
 
-        if [ "${{ inputs.trace }}" = "true" ]; then
+        if [ "$TRACE_ENABLED" = "true" ]; then
           TRACE_DIR=$(mktemp -d)
           echo "trace-dir=$TRACE_DIR" >> "$GITHUB_OUTPUT"
 
-          echo "${{ inputs.prompt }}" | claude --print \
+          echo "$PROMPT" | claude --print \
             --output-format stream-json --verbose \
-            --model "${{ inputs.model }}" \
-            --max-turns "${{ inputs.max-turns }}" \
-            --allowedTools "${{ inputs.allowed-tools }}" \
+            --model "$MODEL" \
+            --max-turns "$MAX_TURNS" \
+            --allowedTools "$TOOLS" \
             $AGENT_FLAG \
             > "$TRACE_DIR/trace.ndjson"
 
           npx fit-trace --output-format text < "$TRACE_DIR/trace.ndjson"
         else
-          echo "${{ inputs.prompt }}" | claude --print \
-            --model "${{ inputs.model }}" \
-            --max-turns "${{ inputs.max-turns }}" \
-            --allowedTools "${{ inputs.allowed-tools }}" \
+          echo "$PROMPT" | claude --print \
+            --model "$MODEL" \
+            --max-turns "$MAX_TURNS" \
+            --allowedTools "$TOOLS" \
             $AGENT_FLAG
         fi
 
     - name: Upload trace artifact
-      if: inputs.trace == 'true'
+      if: always() && inputs.trace == 'true'
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       with:
         name: ${{ inputs.trace-name }}

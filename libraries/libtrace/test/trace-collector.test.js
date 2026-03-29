@@ -169,6 +169,47 @@ describe("TraceCollector", () => {
       const trace = collector.toJSON();
       assert.strictEqual(trace.turns.length, 0);
     });
+
+    test("skips assistant event with missing message", () => {
+      const collector = new TraceCollector();
+      collector.addLine(JSON.stringify({ type: "assistant" }));
+      collector.addLine(JSON.stringify({ type: "assistant", message: null }));
+
+      assert.strictEqual(collector.toJSON().turns.length, 0);
+    });
+
+    test("skips user event with non-array content", () => {
+      const collector = new TraceCollector();
+      collector.addLine(
+        JSON.stringify({
+          type: "user",
+          message: { role: "user", content: "plain string" },
+        }),
+      );
+      collector.addLine(
+        JSON.stringify({ type: "user", message: { role: "user" } }),
+      );
+      collector.addLine(JSON.stringify({ type: "user" }));
+
+      assert.strictEqual(collector.toJSON().turns.length, 0);
+    });
+
+    test("uses event timestamp when present in system init", () => {
+      const collector = new TraceCollector();
+      collector.addLine(
+        JSON.stringify({
+          type: "system",
+          subtype: "init",
+          timestamp: "2026-01-15T10:00:00Z",
+          session_id: "sess-ts",
+        }),
+      );
+
+      assert.strictEqual(
+        collector.toJSON().metadata.timestamp,
+        "2026-01-15T10:00:00Z",
+      );
+    });
   });
 
   describe("toJSON", () => {
@@ -236,6 +277,32 @@ describe("TraceCollector", () => {
       assert.ok(text.includes("Duration: 5s"));
     });
 
+    test("truncates long tool input summaries", () => {
+      const collector = new TraceCollector();
+      const longCommand = "x".repeat(300);
+      collector.addLine(
+        JSON.stringify({
+          type: "assistant",
+          message: {
+            content: [
+              {
+                type: "tool_use",
+                name: "Bash",
+                input: { command: longCommand },
+              },
+            ],
+          },
+        }),
+      );
+
+      const text = collector.toText();
+      assert.ok(text.includes("> Tool: Bash"));
+      assert.ok(text.includes("..."));
+      // Total line should be truncated, not the full 300+ chars
+      const toolLine = text.split("\n").find((l) => l.startsWith("> Tool:"));
+      assert.ok(toolLine.length < 250);
+    });
+
     test("returns empty string for empty input", () => {
       const collector = new TraceCollector();
       const text = collector.toText();
@@ -248,6 +315,14 @@ describe("TraceCollector", () => {
     test("returns a TraceCollector instance", () => {
       const collector = createTraceCollector();
       assert.ok(collector instanceof TraceCollector);
+    });
+
+    test("accepts injectable clock for deterministic timestamps", () => {
+      const fixedTime = "2026-01-01T00:00:00Z";
+      const collector = createTraceCollector({ now: () => fixedTime });
+      const trace = collector.toJSON();
+
+      assert.strictEqual(trace.metadata.timestamp, fixedTime);
     });
   });
 });
