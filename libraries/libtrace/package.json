@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Process Claude Code stream-json output into structured traces",
   "license": "Apache-2.0",
-  "author": "Forward Impact Team",
+  "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
   "bin": {

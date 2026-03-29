@@ -5,7 +5,13 @@
  * structured JSON trace (toJSON) or human-readable text (toText).
  */
 export class TraceCollector {
-  constructor() {
+  /**
+   * @param {object} [deps]
+   * @param {function} [deps.now] - Returns ISO timestamp string. Defaults to () => new Date().toISOString()
+   */
+  constructor(deps = {}) {
+    /** @type {function} */
+    this.now = deps.now ?? (() => new Date().toISOString());
     /** @type {object|null} */
     this.metadata = null;
     /** @type {Array<object>} */
@@ -56,7 +62,7 @@ export class TraceCollector {
   handleSystem(event) {
     if (event.subtype === "init") {
       this.metadata = {
-        timestamp: new Date().toISOString(),
+        timestamp: event.timestamp ?? this.now(),
         sessionId: event.session_id ?? null,
         model: event.model ?? null,
         claudeCodeVersion: event.claude_code_version ?? null,
@@ -163,7 +169,7 @@ export class TraceCollector {
     return {
       version: "1.0.0",
       metadata: this.metadata ?? {
-        timestamp: new Date().toISOString(),
+        timestamp: this.now(),
         sessionId: null,
         model: null,
         claudeCodeVersion: null,
@@ -205,7 +211,7 @@ export class TraceCollector {
 
     if (this.result) {
       const duration = formatDuration(this.result.durationMs);
-      const cost = this.result.totalCostUsd.toFixed(4);
+      const cost = Number(this.result.totalCostUsd).toFixed(4);
       lines.push("");
       lines.push(
         `--- Result: ${this.result.result} | Turns: ${this.result.numTurns} | Cost: $${cost} | Duration: ${duration} ---`,
@@ -244,8 +250,10 @@ function formatDuration(ms) {
 
 /**
  * Factory function for TraceCollector.
+ * @param {object} [deps]
+ * @param {function} [deps.now] - Returns ISO timestamp string
  * @returns {TraceCollector}
  */
-export function createTraceCollector() {
-  return new TraceCollector();
+export function createTraceCollector(deps) {
+  return new TraceCollector(deps);
 }
