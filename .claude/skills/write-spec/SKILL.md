@@ -87,7 +87,8 @@ on these qualities:
    the current state before proposing changes.
 3. **Write the spec.** Focus on WHAT and WHY. Do not include implementation
    details — those go in the plan.
-4. **Review the spec.** Present it to the user for feedback. Stop here unless
+4. **Update STATUS.** Add the spec to `specs/STATUS` with status `draft`.
+5. **Review the spec.** Present it to the user for feedback. Stop here unless
    the user also asked for a plan.
 
 ### Writing a plan
@@ -98,4 +99,5 @@ on these qualities:
    Understand the current state before proposing changes.
 3. **Write the plan.** Translate the approved spec into concrete steps. Each
    step should be independently verifiable.
-4. **Review the plan.** Present it to the user for approval before implementing.
+4. **Update STATUS.** Set the spec's status to `planned` in `specs/STATUS`.
+5. **Review the plan.** Present it to the user for approval before implementing.

@@ -1,0 +1,34 @@
+# Spec Status Tracker
+#
+# Statuses:  draft → planned → active → done
+#
+#   draft    Spec or plan incomplete, competing versions unresolved
+#   planned  Spec and plan approved, ready for implementation
+#   active   Implementation in progress
+#   done     Implemented
+#
+# Format: {id}\t{status}
+# Update this file when creating, planning, or implementing a spec.
+
+010	done
+020	done
+030	done
+040	done
+050	done
+051	done
+052	done
+060	done
+061	done
+062	done
+063	done
+070	done
+080	draft
+090	draft
+100	done
+110	done
+120	done
+130	done
+140	done
+150	planned
+160	done
+170	draft

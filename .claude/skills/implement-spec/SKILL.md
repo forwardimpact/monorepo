@@ -73,7 +73,11 @@ Break the plan into ordered, atomic tasks. Each task should:
 Use TodoWrite to track progress. Group related changes that must land together
 (e.g., schema + data + code for the same feature).
 
-### 5. Implement step by step
+### 5. Update STATUS
+
+Set the spec's status to `active` in `specs/STATUS` before starting work.
+
+### 6. Implement step by step
 
 For each task:
 
@@ -86,7 +90,7 @@ For each task:
    the repository's git workflow (`type(scope): subject`). Commit after each
    verified step — do not batch unrelated changes.
 
-### 6. Final verification
+### 7. Final verification
 
 After all tasks are complete:
 
@@ -94,7 +98,8 @@ After all tasks are complete:
 2. Run any spec-specific verification commands mentioned in the plan.
 3. Review the full diff (`git diff` from the starting point) against the spec's
    success criteria. Confirm every criterion is met.
-4. Push all commits to the remote branch.
+4. **Update STATUS.** Set the spec's status to `done` in `specs/STATUS`.
+5. Push all commits to the remote branch.
 
 ## Handling Problems
 
