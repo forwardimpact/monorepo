@@ -24,14 +24,17 @@ products/pathway/src/
   formatters/     Output formatting (core layer)
     agent/        Agent profile formatters
     behaviour/    Behaviour formatters
-    capability/   Capability formatters
-    checklist/    Checklist formatters
     discipline/   Discipline formatters
     driver/       Driver formatters
-    level/        Level formatters
+    interview/    Interview question formatters
     job/          Job definition formatters
+    level/        Level formatters
+    progress/     Progression formatters
+    questions/    Question formatters
     skill/        Skill formatters
     stage/        Stage formatters
+    tool/         Tool formatters
+    toolkit/      Toolkit formatters
     track/        Track formatters
   lib/            Shared utilities
   pages/          Web page modules
@@ -88,14 +91,17 @@ export function skillProficiencyMarkdown(level) {
 | ---------- | ------------------------ | ---------------------------------- |
 | Agent      | `formatters/agent/`      | Profile, skill document formatting |
 | Behaviour  | `formatters/behaviour/`  | Maturity display, profile tables   |
-| Capability | `formatters/capability/` | Capability cards, skill grouping   |
-| Checklist  | `formatters/checklist/`  | Read/confirm checklist formatting  |
 | Discipline | `formatters/discipline/` | Discipline cards, tier display     |
 | Driver     | `formatters/driver/`     | Coverage display, driver cards     |
-| Level      | `formatters/level/`      | Level badges, level tables         |
+| Interview  | `formatters/interview/`  | Interview question formatting      |
 | Job        | `formatters/job/`        | Full job document formatting       |
+| Level      | `formatters/level/`      | Level badges, level tables         |
+| Progress   | `formatters/progress/`   | Progression and gap formatting     |
+| Questions  | `formatters/questions/`  | Question display formatting        |
 | Skill      | `formatters/skill/`      | Level badges, matrix tables        |
 | Stage      | `formatters/stage/`      | Stage cards, lifecycle flow        |
+| Tool       | `formatters/tool/`       | Tool list formatting               |
+| Toolkit    | `formatters/toolkit/`    | Toolkit grouping and display       |
 | Track      | `formatters/track/`      | Modifier display, track cards      |
 
 ---
@@ -147,20 +153,20 @@ Data model, validation, and loading.
 
 Pure business logic and derivation.
 
-| File                 | Purpose                                                 |
-| -------------------- | ------------------------------------------------------- |
-| `src/derivation.js`  | Core derivation functions (skills, behaviours, drivers) |
-| `src/agent.js`       | Agent team and skill generation                         |
-| `src/job.js`         | Job preparation for display                             |
-| `src/job-cache.js`   | Job caching for performance                             |
-| `src/profile.js`     | Unified profile derivation (human + agent)              |
-| `src/modifiers.js`   | Capability and skill modifier resolution                |
-| `src/checklist.js`   | Stage transition checklist derivation                   |
-| `src/toolkit.js`     | Tool derivation from skill references                   |
-| `src/interview.js`   | Interview question selection                            |
-| `src/progression.js` | Career path analysis and gap identification             |
-| `src/matching.js`    | Job matching and gap analysis                           |
-| `src/policies/`      | Filtering, sorting, and threshold policies              |
+| File             | Purpose                                                 |
+| ---------------- | ------------------------------------------------------- |
+| `derivation.js`  | Core derivation functions (skills, behaviours, drivers) |
+| `agent.js`       | Agent team and skill generation                         |
+| `job.js`         | Job preparation for display                             |
+| `job-cache.js`   | Job caching for performance                             |
+| `profile.js`     | Unified profile derivation (human + agent)              |
+| `modifiers.js`   | Capability and skill modifier resolution                |
+| `checklist.js`   | Stage transition checklist derivation                   |
+| `toolkit.js`     | Tool derivation from skill references                   |
+| `interview.js`   | Interview question selection                            |
+| `progression.js` | Career path analysis and gap identification             |
+| `matching.js`    | Job matching and gap analysis                           |
+| `policies/`      | Filtering, sorting, and threshold policies              |
 
 ### Pathway (`products/pathway/`)
 
@@ -184,7 +190,7 @@ Presentation layer -- formatters, pages, components.
 
 Agent output uses Mustache templates in `products/pathway/templates/`.
 
-### Agent Profile Template (`agent.md.mustache`)
+### Agent Profile Template (`agent.template.md`)
 
 | Variable           | Source                             |
 | ------------------ | ---------------------------------- |
@@ -195,7 +201,7 @@ Agent output uses Mustache templates in `products/pathway/templates/`.
 | `{constraints}`    | Stage constraints                  |
 | `{handoffs}`       | Stage transition definitions       |
 
-### Skill Document Template (`skill.md.mustache`)
+### Skill Document Template (`skill.template.md`)
 
 Variables: `skillName`, `description`, `useWhen`, `stages` (with `focus`,
 `activities`, `ready` per stage).
@@ -209,16 +215,15 @@ module.
 
 ### Key Functions
 
-| Function                   | Module               | Purpose                           |
-| -------------------------- | -------------------- | --------------------------------- |
-| `deriveReferenceLevel()`   | agent.js             | Auto-select appropriate level     |
-| `deriveAgentSkills()`      | agent.js             | Filter and sort skills for agents |
-| `deriveAgentBehaviours()`  | agent.js             | Working style generation          |
-| `generateSkillMarkdown()`  | agent.js             | Generate SKILL.md content         |
-| `prepareAgentProfile()`    | profile.js           | Unified agent profile preparation |
-| `filterAgentSkills()`      | policies/composed.js | Skill filtering policy            |
-| `sortAgentSkills()`        | policies/composed.js | Skill sorting policy              |
-| `focusAgentSkills()`       | policies/composed.js | Skill focusing policy             |
+| Function                  | Module               | Purpose                           |
+| ------------------------- | -------------------- | --------------------------------- |
+| `deriveReferenceLevel()`  | agent.js             | Auto-select appropriate level     |
+| `deriveAgentSkills()`     | agent.js             | Filter and sort skills for agents |
+| `deriveAgentBehaviours()` | agent.js             | Working style generation          |
+| `generateSkillMarkdown()` | agent.js             | Generate SKILL.md content         |
+| `prepareAgentProfile()`   | profile.js           | Unified agent profile preparation |
+| `sortAgentSkills()`       | policies/composed.js | Skill sorting policy              |
+| `focusAgentSkills()`      | policies/composed.js | Skill focusing policy             |
 
 ### Imports
 

@@ -45,12 +45,16 @@ controls.
 
 ```
 products/basecamp/macos/
-  Package.swift
-  Sources/
-    StatusMenu.swift    # Status menu implementation
+  Info.plist
+  Basecamp.entitlements
   Basecamp/
-    Basecamp.entitlements
-    Info.plist
+    Package.swift
+    Sources/
+      main.swift              # App entry point
+      AppDelegate.swift       # Application delegate
+      StatusMenu.swift        # Status menu implementation
+      DaemonConnection.swift  # Daemon IPC
+      ProcessManager.swift    # Process lifecycle
 ```
 
 ### Building

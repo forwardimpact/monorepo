@@ -12,10 +12,10 @@ these files, ensuring structural correctness and enabling tooling integration.
 
 ## Schema Formats
 
-| Format      | Package Path    | Purpose                      |
-| ----------- | --------------- | ---------------------------- |
-| JSON Schema | `schema/json/`  | YAML validation tooling      |
-| RDF/SHACL   | `schema/rdf/`   | Linked data interoperability |
+| Format      | Package Path   | Purpose                      |
+| ----------- | -------------- | ---------------------------- |
+| JSON Schema | `schema/json/` | YAML validation tooling      |
+| RDF/SHACL   | `schema/rdf/`  | Linked data interoperability |
 
 Paths are relative to `products/map/` (published as `@forwardimpact/map`).
 
@@ -25,13 +25,13 @@ Paths are relative to `products/map/` (published as `@forwardimpact/map`).
 
 | Entity       | Question                  | File Location            | Schema                                |
 | ------------ | ------------------------- | ------------------------ | ------------------------------------- |
-| Disciplines  | What kind of engineer?    | `disciplines/{id}.yaml`  | `schema/json/discipline.schema.json` |
-| Levels       | What career level?        | `levels.yaml`            | `schema/json/levels.schema.json`     |
-| Tracks       | Where/how do you work?    | `tracks/{id}.yaml`       | `schema/json/track.schema.json`      |
+| Disciplines  | What kind of engineer?    | `disciplines/{id}.yaml`  | `schema/json/discipline.schema.json`  |
+| Levels       | What career level?        | `levels.yaml`            | `schema/json/levels.schema.json`      |
+| Tracks       | Where/how do you work?    | `tracks/{id}.yaml`       | `schema/json/track.schema.json`       |
 | Skills       | What can you do?          | `capabilities/{id}.yaml` | (within capability schema)            |
-| Behaviours   | How do you approach work? | `behaviours/{id}.yaml`   | `schema/json/behaviour.schema.json`  |
-| Capabilities | What capability area?     | `capabilities/{id}.yaml` | `schema/json/capability.schema.json` |
-| Stages       | What lifecycle phase?     | `stages.yaml`            | `schema/json/stages.schema.json`     |
+| Behaviours   | How do you approach work? | `behaviours/{id}.yaml`   | `schema/json/behaviour.schema.json`   |
+| Capabilities | What capability area?     | `capabilities/{id}.yaml` | `schema/json/capability.schema.json`  |
+| Stages       | What lifecycle phase?     | `stages.yaml`            | `schema/json/stages.schema.json`      |
 | Drivers      | What outcomes matter?     | `drivers.yaml`           | `schema/json/drivers.schema.json`     |
 | Questions    | How do you assess this?   | `capabilities/{id}.yaml` | `schema/json/*-questions.schema.json` |
 

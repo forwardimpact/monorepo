@@ -10,7 +10,7 @@ a single DSL file. It produces career framework definitions, organizational
 documents, developer activity records, and personal knowledge base content --
 everything needed to develop, demo, or test the system without real data.
 
-Generated output lands in `examples/` at the monorepo root.
+Generated output lands in `data/` at the monorepo root.
 
 ---
 
@@ -77,7 +77,7 @@ orchestrator.
 ## Writing a Universe File
 
 A universe file defines the shape of the synthetic world. The default lives at
-`libraries/libuniverse/data/default.dsl`.
+`data/synthetic/story.dsl`.
 
 ```dsl
 universe MyCompany {
@@ -143,23 +143,23 @@ universe MyCompany {
 
 ## What Gets Generated
 
-### Framework data (`examples/pathway/`)
+### Framework data (`data/pathway/`)
 
 Complete YAML files matching the Map schema -- levels, capabilities with skills,
 disciplines, behaviours, tracks, stages, and drivers. These files are valid
 input for `fit-pathway` and `fit-map validate`.
 
-### Organizational documents (`examples/organizational/`)
+### Organizational documents (`data/organizational/`)
 
 HTML articles, guides, FAQs, and course outlines for an internal engineering
 knowledge base.
 
-### Activity data (`examples/activity/`)
+### Activity data (`data/activity/`)
 
 Roster (organization people), GitHub events and artifacts, GetDX snapshots and
 team scores, and skill evidence records.
 
-### Personal content (`examples/personal/`)
+### Personal content (`data/personal/`)
 
 Markdown briefings and notes for Basecamp knowledge bases.
 
@@ -188,7 +188,7 @@ The CLI runs cross-content validation automatically after generation. To
 validate the generated pathway data against the Map schema manually:
 
 ```sh
-npx fit-map validate --data=examples/pathway
+npx fit-map validate --data=data/pathway
 ```
 
 ---
