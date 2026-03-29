@@ -59,6 +59,25 @@ Real user goals that the docs should serve but currently don't:
 | Contributor  | Understand the data model and derivation logic  | Good content exists but buried among user-facing content                |
 | Contributor  | Generate test data for development              | Universe page exists but is disconnected from any development workflow  |
 
+### Agents don't use the docs hierarchy
+
+The suite defines three user groups — Leadership, Developers, and Agents. But
+agents don't navigate a documentation site. They consume context through
+machine-readable artifacts that already exist alongside it:
+
+- **`llms.txt`** — The curated entry point an LLM agent fetches when visiting
+  the site, with links to markdown companions of each page.
+- **SKILL.md files and `.agent.md` profiles** — Generated from framework data
+  via `fit-pathway agent`, injected directly into agent context. This is the
+  primary interface agents use.
+- **JSON Schema files** — Published at `/schema/json/` for programmatic
+  validation, not for reading prose.
+
+The documentation hierarchy is a human concern. The three audiences for the
+docs are **Leadership**, **Developers**, and **Contributors** — not the three
+product user groups. Agents are well-served by the machine-readable artifacts;
+improving the docs IA does not need to account for agent navigation patterns.
+
 ### Missing documentation
 
 - **Guide** has a product page but no documentation page at all.
