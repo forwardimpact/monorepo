@@ -248,6 +248,6 @@ npx fit-map validate
 
 For deeper context beyond this skill's scope:
 
-- [Universe Internals](/docs/internals/universe/index.md) — Synthetic data
-  pipeline architecture, DSL parsing, entity generation, prose engine, and
-  rendering
+- [Universe Internals](https://www.forwardimpact.team/docs/internals/universe/index.md)
+  — Synthetic data pipeline architecture, DSL parsing, entity generation, prose
+  engine, and rendering

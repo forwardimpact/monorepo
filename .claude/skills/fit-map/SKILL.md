@@ -194,7 +194,8 @@ npx fit-map validate
 
 For deeper context beyond this skill's scope:
 
-- [Authoring Frameworks Guide](/docs/guides/authoring-frameworks/index.md) —
-  Task-oriented guide to defining your engineering framework in YAML
-- [YAML Schema Reference](/docs/reference/yaml-schema/index.md) — File format
-  reference for every entity type with examples and published schema links
+- [Authoring Frameworks Guide](https://www.forwardimpact.team/docs/guides/authoring-frameworks/index.md)
+  — Task-oriented guide to defining your engineering framework in YAML
+- [YAML Schema Reference](https://www.forwardimpact.team/docs/reference/yaml-schema/index.md)
+  — File format reference for every entity type with examples and published
+  schema links

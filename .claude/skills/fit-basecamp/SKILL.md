@@ -155,8 +155,8 @@ fit-basecamp --validate     # Verify agent/skill references exist
 
 For deeper context beyond this skill's scope:
 
-- [Knowledge Systems Guide](/docs/guides/knowledge-systems/index.md) —
-  Task-oriented guide to setting up and using Basecamp for personal knowledge
+- [Knowledge Systems Guide](https://www.forwardimpact.team/docs/guides/knowledge-systems/index.md)
+  — Task-oriented guide to setting up and using Basecamp for personal knowledge
   management
-- [CLI Reference](/docs/reference/cli/index.md) — Complete command reference for
-  all Forward Impact CLI tools
+- [CLI Reference](https://www.forwardimpact.team/docs/reference/cli/index.md) —
+  Complete command reference for all Forward Impact CLI tools

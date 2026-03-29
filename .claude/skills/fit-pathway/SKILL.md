@@ -263,9 +263,9 @@ npx fit-pathway dev     # Preview changes in browser
 
 For deeper context beyond this skill's scope:
 
-- [Agent Teams Guide](/docs/guides/agent-teams/index.md) — How to generate and
-  install AI coding agent teams from your career framework
-- [Career Paths Guide](/docs/guides/career-paths/index.md) — Browse jobs,
-  skills, and career progression between levels
-- [CLI Reference](/docs/reference/cli/index.md) — Complete command reference for
-  all Forward Impact CLI tools
+- [Agent Teams Guide](https://www.forwardimpact.team/docs/guides/agent-teams/index.md)
+  — How to generate and install AI coding agent teams from your career framework
+- [Career Paths Guide](https://www.forwardimpact.team/docs/guides/career-paths/index.md)
+  — Browse jobs, skills, and career progression between levels
+- [CLI Reference](https://www.forwardimpact.team/docs/reference/cli/index.md) —
+  Complete command reference for all Forward Impact CLI tools
