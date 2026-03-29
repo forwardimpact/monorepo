@@ -90,7 +90,7 @@ organized by audience and task:
     cli/                     CLI commands for all products
     model/                   Entity reference (disciplines, levels, tracks, etc.)
     lifecycle/               Stages, handoffs, checklists
-    yaml-schema/             YAML file format reference per entity type
+    yaml-schema/             YAML file format reference, links to /schema/json/ and /schema/rdf/
   internals/                 Architecture and code (primary audience: contributors)
     map/                     Data product architecture, layering, queries
     pathway/                 Formatter pattern, module structure, templates
@@ -121,6 +121,15 @@ and Pathway (previewing results) — because that's the actual workflow.
 with arguments and options. The model reference defines every entity. The YAML
 schema reference shows the exact format for every file type. No prose narrative
 — just structured, scannable information.
+
+**Link to existing schema artifacts, don't duplicate.** The JSON Schema and
+RDF/SHACL files from `products/map/schema/` are already copied to the website at
+build time by the GitHub Actions workflow (`website.yaml`), published at
+`/schema/json/` and `/schema/rdf/`. Documentation pages — particularly the YAML
+schema reference and the authoring guide — should link to these published schema
+files rather than reproducing their content. For example, the YAML schema
+reference for capabilities should link to `/schema/json/capability.schema.json`
+as the authoritative format definition.
 
 **Internals are for contributors, clearly separated.** Module structures,
 formatter patterns, code imports, query functions, and architectural decisions
@@ -172,7 +181,7 @@ multiple audiences.
 | `/docs/guides/team-capability/`            | Summit product usage (new — no docs exist today)          |
 | `/docs/guides/career-paths/`               | Using Pathway to browse jobs, skills, and progression     |
 | `/docs/reference/cli/`                     | Unified CLI reference for all products                    |
-| `/docs/reference/yaml-schema/`             | YAML file format reference per entity type                |
+| `/docs/reference/yaml-schema/`             | YAML file format overview with examples; links to published schemas at `/schema/json/` and `/schema/rdf/` for authoritative definitions |
 | `/docs/internals/guide/`                   | Guide architecture (new — no docs exist today)            |
 | `/docs/internals/summit/`                  | Summit architecture (new — no docs exist today)           |
 
