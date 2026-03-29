@@ -9,7 +9,7 @@ hero:
   subtitle: Navigate engineering skills and careers with clarity. Whether you're an engineer exploring career progression, a manager building job descriptions, or a team lead deploying AI coding agents — Pathway delivers it through a web app, a CLI, and a static site generator.
   cta:
     - label: Documentation
-      href: /docs/pathway/
+      href: /docs/guides/career-paths/
     - label: View on npm
       href: https://www.npmjs.com/package/@forwardimpact/pathway
       secondary: true

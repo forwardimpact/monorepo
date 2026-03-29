@@ -243,3 +243,11 @@ separately:
 ```sh
 npx fit-map validate
 ```
+
+## Documentation
+
+For deeper context beyond this skill's scope:
+
+- [Universe Internals](/docs/internals/universe/index.md) — Synthetic data
+  pipeline architecture, DSL parsing, entity generation, prose engine, and
+  rendering

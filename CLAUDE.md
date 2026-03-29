@@ -79,6 +79,21 @@ local and deterministic — no external dependencies, no LLM calls.
 
 @CONTRIBUTING.md
 
+## Distribution Model
+
+The monorepo is open source — the repository is public and the products are
+designed for external consumption. Organizations install Pathway, Map, and other
+products in their own environments, bringing their own framework data. Coding
+agents at those installations drive the CLIs (`fit-map`, `fit-pathway`, etc.).
+
+Skills in `.claude/skills/` serve two distinct purposes:
+
+- **Internal skills** (library groups like `libs-*`, product internals) help
+  contributors to the monorepo understand architecture and make changes.
+- **Published skills** (`fit-*`) help users and agents at external installations
+  understand how the products **work** — not how they are **implemented**. These
+  skills link to documentation for progressive disclosure, not to source code.
+
 ## Structure
 
 **Tech**: Node.js 18+, Plain JS + JSDoc, YAML, npm workspaces, no frameworks

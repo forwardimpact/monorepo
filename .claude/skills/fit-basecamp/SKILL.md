@@ -150,3 +150,13 @@ Synced data lives outside the KB:
 fit-basecamp --status       # Check config and agent state
 fit-basecamp --validate     # Verify agent/skill references exist
 ```
+
+## Documentation
+
+For deeper context beyond this skill's scope:
+
+- [Knowledge Systems Guide](/docs/guides/knowledge-systems/index.md) —
+  Task-oriented guide to setting up and using Basecamp for personal knowledge
+  management
+- [CLI Reference](/docs/reference/cli/index.md) — Complete command reference for
+  all Forward Impact CLI tools

@@ -376,3 +376,10 @@ make cli-chat           # Should get agent responses
 make cli-search ARGS="test query"  # Should return search results
 make cli-subjects       # Should list graph entities
 ```
+
+## Documentation
+
+For deeper context beyond this skill's scope:
+
+- [Finding Your Bearing Guide](/docs/guides/finding-your-bearing/index.md) — How
+  Guide helps engineers navigate their engineering framework

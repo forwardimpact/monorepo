@@ -189,3 +189,12 @@ Always run validation after changes:
 ```sh
 npx fit-map validate
 ```
+
+## Documentation
+
+For deeper context beyond this skill's scope:
+
+- [Authoring Frameworks Guide](/docs/guides/authoring-frameworks/index.md) —
+  Task-oriented guide to defining your engineering framework in YAML
+- [YAML Schema Reference](/docs/reference/yaml-schema/index.md) — File format
+  reference for every entity type with examples and published schema links

@@ -9,7 +9,7 @@ hero:
   subtitle: Set up camp. Basecamp is your personal operations center — it syncs your email and calendar, builds a knowledge graph, drafts responses, prepares meeting briefs, and organizes your files. All running as scheduled AI tasks in the background.
   cta:
     - label: Documentation
-      href: /docs/basecamp/
+      href: /docs/guides/knowledge-systems/
     - label: View on npm
       href: https://www.npmjs.com/package/@forwardimpact/basecamp
       secondary: true

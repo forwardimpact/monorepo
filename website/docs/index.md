@@ -1,91 +1,47 @@
 ---
 title: Documentation
-description: Technical documentation for the FIT suite — Map, Pathway, Guide, Landmark, and Basecamp.
+description: Technical documentation for the Forward Impact suite — getting started, guides, reference, and internals.
 layout: product
 toc: false
 hero:
   image: /assets/heros/documentation.svg
   alt: An engineer, an AI robot, and a business professional sorting through stacks of papers and documentation together
-  subtitle: Technical reference for the Forward Impact Team suite. Everything you need to define your engineering framework, derive roles and agents, and set up personal knowledge systems.
+  subtitle: Everything you need to define your engineering framework, derive roles and agents, and set up personal knowledge systems.
 ---
 
 <div class="grid">
 
-<a href="/docs/map/">
+<a href="/docs/getting-started/">
 
-### Map
+### Getting Started
 
-Data model, YAML format, validation, schema definitions, and programmatic
-access.
-
-</a>
-
-<a href="/docs/model/">
-
-### Model
-
-How disciplines, levels, tracks, skills, and behaviours combine to produce role
-definitions.
+Quickstart guides for leadership, developers, and contributors.
 
 </a>
 
-<a href="/docs/model/lifecycle/">
+<a href="/docs/guides/">
 
-### Lifecycle
+### Guides
 
-Engineering stages from specify through deploy — handoffs, checklists, and
-quality gates.
-
-</a>
-
-<a href="/docs/pathway/">
-
-### Pathway
-
-Web app, CLI commands, formatters, agent generation, and output templates.
+Task-oriented guides: authoring frameworks, agent teams, career paths, knowledge
+systems, engineering signals, team capability, and finding your bearing.
 
 </a>
 
-<a href="/docs/pathway/agents/">
-
-### Agents
-
-Agent profile derivation, SKILL.md format, stage-specific agents, and handoff
-flow.
-
-</a>
-
-<a href="/docs/pathway/reference/">
+<a href="/docs/reference/">
 
 ### Reference
 
-File organization, co-located file structure, CLI commands, and output formats.
+CLI commands, entity model, lifecycle stages, and YAML schema format.
 
 </a>
 
-<a href="/docs/universe/">
+<a href="/docs/internals/">
 
-### Generating Synthetic Data
+### Internals
 
-Universe DSL, fit-universe CLI, prose generation, and output validation.
-
-</a>
-
-<a href="/docs/basecamp/">
-
-### Basecamp
-
-Scheduler configuration, knowledge base structure, built-in skills, CLI
-reference.
-
-</a>
-
-<a href="/docs/landmark/">
-
-### Landmark
-
-Analysis views, manager-derived team slicing, marker evidence, and snapshot
-trend reporting on Map data.
+Architecture and code: Map, Pathway, libskill, Basecamp, Guide, Landmark,
+Summit, and Universe.
 
 </a>
 
