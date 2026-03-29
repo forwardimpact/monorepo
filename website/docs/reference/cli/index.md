@@ -38,6 +38,16 @@ All entity commands support three output modes:
 Entity commands: `discipline`, `level`, `track`, `behaviour`, `driver`, `stage`,
 `skill`, `tool`.
 
+**Global options** (apply to all fit-pathway commands):
+
+| Option          | Description                  |
+| --------------- | ---------------------------- |
+| `--data=<path>` | Path to data directory       |
+| `--json`        | Output as JSON               |
+| `--list`        | Output IDs only (for piping) |
+| `--version`     | Show version number          |
+| `--help`        | Show help message            |
+
 ```sh
 npx fit-pathway skill --list          # List all skill IDs
 npx fit-pathway skill <id>            # Show skill details
@@ -111,6 +121,7 @@ npx fit-pathway progress <d> <l> --compare=<to_level>
 
 npx fit-pathway questions
 npx fit-pathway questions --level=practitioner
+npx fit-pathway questions --maturity=practicing
 npx fit-pathway questions --skill=<id>
 npx fit-pathway questions --behaviour=<id>
 npx fit-pathway questions --capability=<id>
@@ -133,14 +144,15 @@ npx fit-pathway questions --format=yaml
 
 **Questions options:**
 
-| Option              | Description                 |
-| ------------------- | --------------------------- |
-| `--level=<level>`   | Filter by proficiency level |
-| `--skill=<id>`      | Filter by skill ID          |
-| `--behaviour=<id>`  | Filter by behaviour ID      |
-| `--capability=<id>` | Filter by capability ID     |
-| `--stats`           | Show question statistics    |
-| `--format=<format>` | Output format (e.g. `yaml`) |
+| Option                  | Description                  |
+| ----------------------- | ---------------------------- |
+| `--level=<level>`       | Filter by proficiency level  |
+| `--maturity=<maturity>` | Filter by behaviour maturity |
+| `--skill=<id>`          | Filter by skill ID           |
+| `--behaviour=<id>`      | Filter by behaviour ID       |
+| `--capability=<id>`     | Filter by capability ID      |
+| `--stats`               | Show question statistics     |
+| `--format=<format>`     | Output format (e.g. `yaml`)  |
 
 ### Build and Development
 
@@ -283,14 +295,17 @@ Documentation site builder.
 ```sh
 npx fit-doc build --src=website --out=dist    # Build static site
 npx fit-doc serve --src=website               # Development server
+npx fit-doc serve --src=website --port=8080   # Custom port
 npx fit-doc build --src=website --out=dist --base-url=https://example.com  # With base URL
 ```
 
-| Option             | Description                   |
-| ------------------ | ----------------------------- |
-| `--src=<dir>`      | Source directory              |
-| `--out=<dir>`      | Output directory (build only) |
-| `--base-url=<url>` | Base URL for absolute links   |
+| Option             | Description                         |
+| ------------------ | ----------------------------------- |
+| `--src=<dir>`      | Source directory                    |
+| `--out=<dir>`      | Output directory (build only)       |
+| `--base-url=<url>` | Base URL for absolute links         |
+| `--port=<port>`    | Dev server port (default: 3000)     |
+| `--watch`, `-w`    | Watch for changes (serve mode only) |
 
 ---
 

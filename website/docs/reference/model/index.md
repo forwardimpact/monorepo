@@ -56,6 +56,7 @@ erDiagram
 | **Skill**      | Technical or professional capability              | What can you do?          |
 | **Capability** | Skill grouping for modifiers and responsibilities | What capability area?     |
 | **Behaviour**  | Approach to work and mindset                      | How do you approach work? |
+| **Stage**      | Lifecycle phase with constraints and handoffs     | What part of the process? |
 | **Driver**     | Organizational outcome                            | What outcomes matter?     |
 
 ---

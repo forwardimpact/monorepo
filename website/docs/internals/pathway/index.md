@@ -9,7 +9,7 @@ description: "Presentation layer architecture — module structure, formatter pa
 Map (data) -> Model (derivation) -> Presentation (display)
 ```
 
-Pathway receives fully derived data from `@forwardimpact/libpathway` and formats
+Pathway receives fully derived data from `@forwardimpact/libskill` and formats
 it for display. Pathway never performs derivation -- it only presents.
 
 ---
@@ -143,7 +143,7 @@ Data model, validation, and loading.
 | `src/index-generator.js`   | Browser index generation                                    |
 | `src/index.js`             | Public API exports                                          |
 
-### Model (`libraries/libpathway/`)
+### Model (`libraries/libskill/`)
 
 Pure business logic and derivation.
 
@@ -214,7 +214,7 @@ module.
 | `deriveReferenceLevel()`   | agent.js             | Auto-select appropriate level     |
 | `deriveAgentSkills()`      | agent.js             | Filter and sort skills for agents |
 | `deriveAgentBehaviours()`  | agent.js             | Working style generation          |
-| `substituteTemplateVars()` | agent.js             | Template variable replacement     |
+| `generateSkillMarkdown()`  | agent.js             | Generate SKILL.md content         |
 | `prepareAgentProfile()`    | profile.js           | Unified agent profile preparation |
 | `filterAgentSkills()`      | policies/composed.js | Skill filtering policy            |
 | `sortAgentSkills()`        | policies/composed.js | Skill sorting policy              |
@@ -223,8 +223,8 @@ module.
 ### Imports
 
 ```javascript
-import { prepareAgentProfile } from "@forwardimpact/libpathway/profile";
-import { deriveReferenceLevel, deriveAgentSkills } from "@forwardimpact/libpathway/agent";
+import { prepareAgentProfile } from "@forwardimpact/libskill/profile";
+import { deriveReferenceLevel, deriveAgentSkills } from "@forwardimpact/libskill/agent";
 ```
 
 ---

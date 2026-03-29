@@ -116,22 +116,30 @@ while an "implementation" stage agent focuses on code quality and test coverage.
 
 ## Generating Agents
 
-Generate agent profiles for a discipline:
-
-```sh
-npx fit-pathway agent software_engineering --output=./agents
-```
-
-Apply a track modifier to adjust the skill emphasis:
+Generate agent profiles for a discipline and track:
 
 ```sh
 npx fit-pathway agent software_engineering --track=platform --output=./agents
 ```
 
-Generate agents for a specific level:
+The output directory contains stage-specific `.agent.md` files and a `skills/`
+directory with individual `SKILL.md` files:
+
+```
+./agents/
+├── plan.agent.md
+├── code.agent.md
+├── review.agent.md
+└── skills/
+    ├── ARCHITECTURE.md
+    ├── API-DESIGN.md
+    └── ...
+```
+
+Generate a single stage agent:
 
 ```sh
-npx fit-pathway agent software_engineering --level=L4 --output=./agents
+npx fit-pathway agent software_engineering --track=platform --stage=plan
 ```
 
 List available disciplines and tracks:

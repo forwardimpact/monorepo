@@ -39,7 +39,7 @@ Each discipline classifies every skill into one of three tiers:
 | broadSkills      | `BROAD`     | General awareness              |
 
 A lookup map is built once per discipline via `buildSkillTypeMap()` for O(1)
-access during derivation. Individual lookups use `getSkillType()`.
+access during derivation. Individual lookups use `getSkillTypeForDiscipline()`.
 
 ### Step 2: Get Base Proficiency from Level
 
@@ -76,7 +76,7 @@ for every skill in the discipline. Behaviours are derived by
 | Function                    | Module        | Purpose                                        |
 | --------------------------- | ------------- | ---------------------------------------------- |
 | `buildSkillTypeMap()`       | derivation.js | Build O(1) skill type lookup for a discipline  |
-| `getSkillType()`            | derivation.js | Determine skill tier (primary/secondary/broad) |
+| `getSkillTypeForDiscipline()` | derivation.js | Determine skill tier (primary/secondary/broad) |
 | `deriveSkillProficiency()`  | derivation.js | Full skill derivation pipeline for one skill   |
 | `deriveSkillMatrix()`       | derivation.js | Derive all skills for a job                    |
 | `deriveBehaviourProfile()`  | derivation.js | Derive all behaviours for a job                |
@@ -91,7 +91,7 @@ for every skill in the discipline. Behaviours are derived by
 | Function                | Module       | Purpose                               |
 | ----------------------- | ------------ | ------------------------------------- |
 | `deriveChecklist()`     | checklist.js | Derive stage transition checklists    |
-| `getStageOrder()`       | levels.js    | Return stage ordering for comparisons |
+| `getStageOrder()`       | orderings.js | Return stage ordering for comparisons |
 | `compareByStageOrder()` | orderings.js | Sort stages by lifecycle order        |
 
 ### Lifecycle Data Structure
@@ -131,22 +131,22 @@ import {
   deriveBehaviourProfile,
   deriveResponsibilities,
   calculateDriverCoverage,
-} from "@forwardimpact/libpathway/derivation";
+} from "@forwardimpact/libskill/derivation";
 
 // Profile preparation (human + agent)
-import { prepareAgentProfile } from "@forwardimpact/libpathway/profile";
+import { prepareAgentProfile } from "@forwardimpact/libskill/profile";
 
 // Agent derivation
-import { deriveReferenceLevel, deriveAgentSkills } from "@forwardimpact/libpathway/agent";
+import { deriveReferenceLevel, deriveAgentSkills } from "@forwardimpact/libskill/agent";
 
 // Lifecycle
-import { deriveChecklist } from "@forwardimpact/libpathway/checklist";
+import { deriveChecklist } from "@forwardimpact/libskill/checklist";
 
 // Career progression
-import { analyzeProgression } from "@forwardimpact/libpathway/progression";
+import { analyzeProgression } from "@forwardimpact/libskill/progression";
 
 // Job matching
-import { matchJob } from "@forwardimpact/libpathway/matching";
+import { calculateJobMatch, findMatchingJobs } from "@forwardimpact/libskill/matching";
 ```
 
 ---

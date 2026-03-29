@@ -31,7 +31,8 @@ npx fit-pathway skill --list
 npx fit-pathway level --list
 npx fit-pathway track --list
 npx fit-pathway behaviour --list
-npx fit-pathway capability --list
+npx fit-pathway driver --list
+npx fit-pathway stage --list
 ```
 
 ## View a Job Definition

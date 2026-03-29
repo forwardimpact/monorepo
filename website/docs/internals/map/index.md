@@ -122,17 +122,19 @@ Map's `activity/queries/` modules expose reusable query functions that form part
 of the data product contract. Consumers import these rather than querying
 Supabase directly.
 
-| Module         | Function                                              | Purpose                                            |
-| -------------- | ----------------------------------------------------- | -------------------------------------------------- |
-| `org.js`       | `getOrganization()`                                   | All people from `organization_people`              |
-| `org.js`       | `getTeam(managerEmail)`                               | Recursive walk of `manager_email` hierarchy        |
-| `snapshots.js` | `listSnapshots()`                                     | All snapshots ordered by `scheduled_for`           |
-| `snapshots.js` | `getSnapshotScores(snapshotId, { managerEmail })`     | Team scores, optionally filtered by manager's team |
-| `snapshots.js` | `getItemTrend(itemId, { managerEmail })`              | Score trajectory across snapshots                  |
-| `snapshots.js` | `getSnapshotComparison(snapshotId, { managerEmail })` | Scores with comparative metrics                    |
-| `evidence.js`  | `getEvidence({ skillId, email })`                     | Evidence rows, filtered by skill or person         |
-| `evidence.js`  | `getPracticePatterns({ skillId, managerEmail })`      | Aggregated evidence across a manager's team        |
-| `artifacts.js` | `getArtifacts({ email, type })`                       | GitHub artifacts, filtered by person or type       |
+All query functions take a `supabase` client as their first parameter.
+
+| Module         | Function                                                        | Purpose                                            |
+| -------------- | --------------------------------------------------------------- | -------------------------------------------------- |
+| `org.js`       | `getOrganization(supabase)`                                     | All people from `organization_people`              |
+| `org.js`       | `getTeam(supabase, managerEmail)`                               | Recursive walk of `manager_email` hierarchy        |
+| `snapshots.js` | `listSnapshots(supabase)`                                       | All snapshots ordered by `scheduled_for`           |
+| `snapshots.js` | `getSnapshotScores(supabase, snapshotId, { managerEmail })`     | Team scores, optionally filtered by manager's team |
+| `snapshots.js` | `getItemTrend(supabase, itemId, { managerEmail })`              | Score trajectory across snapshots                  |
+| `snapshots.js` | `getSnapshotComparison(supabase, snapshotId, { managerEmail })` | Scores with comparative metrics                    |
+| `evidence.js`  | `getEvidence(supabase, { skillId, email })`                     | Evidence rows, filtered by skill or person         |
+| `evidence.js`  | `getPracticePatterns(supabase, { skillId, managerEmail })`      | Aggregated evidence across a manager's team        |
+| `artifacts.js` | `getArtifacts(supabase, { email, type })`                       | GitHub artifacts, filtered by person or type       |
 
 ---
 
@@ -169,11 +171,12 @@ dependency -- these imports are never published.
 
 ```javascript
 // Pure layer imports
-import { loadAllData } from "@forwardimpact/map";
-import { validateAll } from "@forwardimpact/map/validation";
+import { createDataLoader } from "@forwardimpact/map";
+import { validateAllData } from "@forwardimpact/map/validation";
 import { SKILL_PROFICIENCIES, BEHAVIOUR_MATURITIES } from "@forwardimpact/map/levels";
 
-const data = await loadAllData("./data");
+const loader = createDataLoader({ dataDir: "./data" });
+const data = await loader.load();
 ```
 
 For activity datasets, consumers import query functions from

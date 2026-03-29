@@ -65,7 +65,9 @@ directory.
 ## Set up Basecamp
 
 Basecamp is your personal operations center. It syncs email and calendar, builds
-a knowledge graph, drafts responses, and prepares meeting briefings.
+a knowledge graph, drafts responses, and prepares meeting briefings. The full
+desktop experience (macOS status menu app) requires macOS; the CLI scheduler
+works on any platform.
 
 Initialize a knowledge base in a directory of your choice:
 
