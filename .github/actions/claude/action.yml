@@ -21,6 +21,14 @@ inputs:
     description: Maximum number of agentic turns
     required: false
     default: "50"
+  trace:
+    description: Enable trace capture and artifact upload
+    required: false
+    default: "true"
+  trace-name:
+    description: Artifact name for the trace
+    required: false
+    default: "claude-trace"
 
 runs:
   using: composite
@@ -36,14 +44,38 @@ runs:
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
     - name: Run Claude Code
+      id: run
       shell: bash
       run: |
         AGENT_FLAG=""
         if [ -n "${{ inputs.agent }}" ]; then
           AGENT_FLAG="--agent ${{ inputs.agent }}"
         fi
-        echo "${{ inputs.prompt }}" | claude --print \
-          --model "${{ inputs.model }}" \
-          --max-turns "${{ inputs.max-turns }}" \
-          --allowedTools "${{ inputs.allowed-tools }}" \
-          $AGENT_FLAG
+
+        if [ "${{ inputs.trace }}" = "true" ]; then
+          TRACE_DIR=$(mktemp -d)
+          echo "trace-dir=$TRACE_DIR" >> "$GITHUB_OUTPUT"
+
+          echo "${{ inputs.prompt }}" | claude --print \
+            --output-format stream-json --verbose \
+            --model "${{ inputs.model }}" \
+            --max-turns "${{ inputs.max-turns }}" \
+            --allowedTools "${{ inputs.allowed-tools }}" \
+            $AGENT_FLAG \
+            > "$TRACE_DIR/trace.ndjson"
+
+          npx fit-trace --output-format text < "$TRACE_DIR/trace.ndjson"
+        else
+          echo "${{ inputs.prompt }}" | claude --print \
+            --model "${{ inputs.model }}" \
+            --max-turns "${{ inputs.max-turns }}" \
+            --allowedTools "${{ inputs.allowed-tools }}" \
+            $AGENT_FLAG
+        fi
+
+    - name: Upload trace artifact
+      if: inputs.trace == 'true'
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: ${{ inputs.trace-name }}
+        path: ${{ steps.run.outputs.trace-dir }}

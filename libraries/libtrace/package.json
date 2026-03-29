@@ -1,0 +1,21 @@
+{
+  "name": "@forwardimpact/libtrace",
+  "version": "0.1.0",
+  "description": "Process Claude Code stream-json output into structured traces",
+  "license": "Apache-2.0",
+  "author": "Forward Impact Team",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "fit-trace": "./bin/fit-trace.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
