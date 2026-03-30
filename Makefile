@@ -69,21 +69,6 @@ codegen-definition:  ## Generate definitions only
 
 # Processing
 
-.PHONY: transform-pdf
-transform-pdf:  ## Transform PDF documents
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libtransform transform-pdf
-
-.PHONY: ingest
-ingest: ingest-load ingest-pipeline  ## Load and process ingestion pipeline
-
-.PHONY: ingest-load
-ingest-load:  ## Load documents into pipeline
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libingest ingest-load
-
-.PHONY: ingest-pipeline
-ingest-pipeline:  ## Run ingestion pipeline
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libingest ingest-pipeline
-
 .PHONY: process
 process: process-agents process-resources process-tools process-graphs process-vectors  ## Process all resources
 
