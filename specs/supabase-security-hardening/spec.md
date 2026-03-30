@@ -7,9 +7,9 @@ Proposed
 ## Problem
 
 The Supabase edge functions in `products/map/supabase/functions/` have two
-application-level vulnerabilities that allow attackers to inject forged data into
-the engineering signal pipeline and make cross-origin authenticated requests from
-untrusted websites.
+application-level vulnerabilities that allow attackers to inject forged data
+into the engineering signal pipeline and make cross-origin authenticated
+requests from untrusted websites.
 
 Both findings are rated HIGH because they directly affect data integrity (the
 foundation of Landmark's signal analysis) and authentication boundaries for all
@@ -19,8 +19,8 @@ edge functions.
 
 ### 1. Missing Webhook Signature Verification
 
-**Severity:** HIGH
-**File:** `products/map/supabase/functions/github-webhook/index.ts`
+**Severity:** HIGH **File:**
+`products/map/supabase/functions/github-webhook/index.ts`
 
 The GitHub webhook handler accepts POST requests and immediately processes the
 payload -- storing raw JSON to Supabase Storage, upserting rows into
@@ -35,9 +35,8 @@ Supabase project ID and function name) can forge webhook payloads. This enables:
 - Pollution of the `github_events` table with fabricated event data
 - Corruption of Landmark's engineering signal analysis, which relies on these
   tables for objective marker evidence
-- Association of forged artifacts with real people via the
-  `organization_people` lookup (line 61-65), attributing fabricated work to
-  real engineers
+- Association of forged artifacts with real people via the `organization_people`
+  lookup (line 61-65), attributing fabricated work to real engineers
 
 The current code checks only for the presence of `X-GitHub-Delivery` and
 `X-GitHub-Event` headers (lines 8-13), both of which are trivially spoofed.
@@ -46,8 +45,7 @@ The current code checks only for the presence of `X-GitHub-Delivery` and
 
 ### 2. Wildcard CORS Configuration
 
-**Severity:** HIGH
-**File:** `products/map/supabase/functions/_shared/cors.ts`
+**Severity:** HIGH **File:** `products/map/supabase/functions/_shared/cors.ts`
 
 The shared CORS headers export sets `Access-Control-Allow-Origin: "*"`, allowing
 any website on the internet to make cross-origin requests to every Supabase edge
@@ -55,8 +53,9 @@ function that uses these headers. The `Access-Control-Allow-Headers` list
 includes `authorization` and `apikey`, confirming that these functions expect
 authenticated requests.
 
-**Risk:** A malicious website can make authenticated cross-origin requests to the
-edge functions if the user's browser holds valid session tokens. This enables:
+**Risk:** A malicious website can make authenticated cross-origin requests to
+the edge functions if the user's browser holds valid session tokens. This
+enables:
 
 - CSRF-like attacks against data-mutating endpoints (`people-upload`,
   `github-webhook`, `getdx-sync`, `transform`)
@@ -86,14 +85,14 @@ The approach:
    signature is computed over the exact bytes GitHub signed.
 3. Extract the `X-Hub-Signature-256` header. Return 401 if missing.
 4. Compute `HMAC-SHA256(secret, rawBody)` using the Web Crypto API
-   (`crypto.subtle.importKey` + `crypto.subtle.sign`), which is available in
-   the Deno runtime.
+   (`crypto.subtle.importKey` + `crypto.subtle.sign`), which is available in the
+   Deno runtime.
 5. Compare the computed signature against the provided signature using a
    constant-time comparison to prevent timing attacks. Deno provides
    `crypto.subtle.timingSafeEqual` (or implement via `Uint8Array` comparison
    with `crypto.timingSafeEqual` equivalent). Return 401 if they do not match.
-6. Only after verification succeeds, parse the raw body as JSON and proceed
-   with existing processing logic.
+6. Only after verification succeeds, parse the raw body as JSON and proceed with
+   existing processing logic.
 
 The verification logic should be extracted into a reusable function in
 `_shared/` since other webhook integrations (e.g., GetDX) may need similar
@@ -111,12 +110,12 @@ The approach:
 2. Modify `_shared/cors.ts` to export a function (rather than a static object)
    that accepts the incoming `Request` and returns the appropriate CORS headers.
 3. The function reads the `Origin` header from the request, checks it against
-   the allowlist, and returns that specific origin in `Access-Control-Allow-Origin`
-   if it matches. If the origin is not in the allowlist, omit the
-   `Access-Control-Allow-Origin` header entirely (the browser will block the
-   response).
-4. Add `Vary: Origin` to responses so caches and CDNs do not serve a
-   response with one origin's CORS headers to a request from a different origin.
+   the allowlist, and returns that specific origin in
+   `Access-Control-Allow-Origin` if it matches. If the origin is not in the
+   allowlist, omit the `Access-Control-Allow-Origin` header entirely (the
+   browser will block the response).
+4. Add `Vary: Origin` to responses so caches and CDNs do not serve a response
+   with one origin's CORS headers to a request from a different origin.
 5. Update all edge functions that handle OPTIONS preflight requests to use the
    new function.
 
@@ -126,14 +125,14 @@ must set explicit origins.
 
 ## Files to Change
 
-| File | Change |
-| --- | --- |
-| `products/map/supabase/functions/_shared/cors.ts` | Replace static wildcard headers with origin-validating function |
-| `products/map/supabase/functions/_shared/verify-webhook.ts` | New file: reusable HMAC-SHA256 signature verification |
-| `products/map/supabase/functions/github-webhook/index.ts` | Add signature verification before payload processing |
-| `products/map/supabase/functions/transform/index.ts` | Update CORS import to use new function |
-| `products/map/supabase/functions/people-upload/index.ts` | Update CORS import to use new function |
-| `products/map/supabase/functions/getdx-sync/index.ts` | Update CORS import to use new function |
+| File                                                        | Change                                                          |
+| ----------------------------------------------------------- | --------------------------------------------------------------- |
+| `products/map/supabase/functions/_shared/cors.ts`           | Replace static wildcard headers with origin-validating function |
+| `products/map/supabase/functions/_shared/verify-webhook.ts` | New file: reusable HMAC-SHA256 signature verification           |
+| `products/map/supabase/functions/github-webhook/index.ts`   | Add signature verification before payload processing            |
+| `products/map/supabase/functions/transform/index.ts`        | Update CORS import to use new function                          |
+| `products/map/supabase/functions/people-upload/index.ts`    | Update CORS import to use new function                          |
+| `products/map/supabase/functions/getdx-sync/index.ts`       | Update CORS import to use new function                          |
 
 ## Testing
 
@@ -145,8 +144,9 @@ must set explicit origins.
   Confirm it returns 401.
 - **Invalid signature:** Send a POST with a well-formed but incorrect signature.
   Confirm it returns 401.
-- **Valid signature:** Compute a correct HMAC-SHA256 signature for a test payload
-  and send it. Confirm the function processes the webhook and returns 200.
+- **Valid signature:** Compute a correct HMAC-SHA256 signature for a test
+  payload and send it. Confirm the function processes the webhook and
+  returns 200.
 - **Timing safety:** Verify the comparison uses a constant-time function (code
   review, not a runtime test).
 
