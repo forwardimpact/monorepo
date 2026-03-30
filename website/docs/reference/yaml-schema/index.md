@@ -25,6 +25,7 @@ Paths are relative to `products/map/` (published as `@forwardimpact/map`).
 
 | Entity       | Question                  | File Location            | Schema                                |
 | ------------ | ------------------------- | ------------------------ | ------------------------------------- |
+| Framework    | What is this framework?   | `framework.yaml`         | `schema/json/framework.schema.json`   |
 | Levels       | What career level?        | `levels.yaml`            | `schema/json/levels.schema.json`      |
 | Disciplines  | What kind of engineer?    | `disciplines/{id}.yaml`  | `schema/json/discipline.schema.json`  |
 | Tracks       | Where/how do you work?    | `tracks/{id}.yaml`       | `schema/json/track.schema.json`       |
@@ -71,6 +72,23 @@ SKILL.md files when using `npx fit-pathway skill <id> --agent`.
 ---
 
 ## Entity Examples
+
+### Framework
+
+```yaml
+title: Acme Engineering Pathway
+description: Engineering career framework for Acme Corp.
+tag: acme
+entityDefinitions:
+  discipline:
+    title: Discipline
+    description: Engineering specialization
+  skill:
+    title: Skill
+    description: Technical or professional capability
+distribution:
+  siteUrl: https://pathway.acme.com
+```
 
 ### Level
 

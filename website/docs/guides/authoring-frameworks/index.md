@@ -23,6 +23,7 @@ Framework definitions live in YAML files under a data directory:
 
 ```
 data/
+├── framework.yaml        # Framework metadata and display configuration
 ├── levels.yaml           # Career levels
 ├── stages.yaml           # Engineering lifecycle phases
 ├── drivers.yaml          # Organizational outcomes
@@ -36,6 +37,47 @@ data/
 Single-entity files (disciplines, tracks, behaviours, capabilities) are named by
 identifier — `data/disciplines/software_engineering.yaml`. Collection files
 (levels, stages, drivers) contain all entries in one file.
+
+## Framework Configuration
+
+Every framework needs a `framework.yaml` at the root of the data directory. It
+defines metadata and display configuration for the Pathway web app.
+
+```yaml
+# data/framework.yaml
+title: Acme Engineering Pathway
+description: Engineering career framework for Acme Corp.
+tag: acme
+entityDefinitions:
+  discipline:
+    title: Discipline
+    emojiIcon: "\U0001F3AF"
+    description: Engineering specialization
+  level:
+    title: Level
+    emojiIcon: "\U0001F4CA"
+    description: Career level
+  skill:
+    title: Skill
+    emojiIcon: "\U0001F527"
+    description: Technical or professional capability
+  behaviour:
+    title: Behaviour
+    emojiIcon: "\U0001F9E0"
+    description: Approach to work
+distribution:
+  siteUrl: https://pathway.acme.com
+```
+
+**Required fields**: `title`.
+
+**Optional fields**: `description`, `tag`, `emojiIcon`, `entityDefinitions`,
+`distribution`.
+
+The `entityDefinitions` object controls how each entity type is labelled in the
+web app — its title, emoji icon, and description. The `distribution.siteUrl` is
+the base URL for the published static site, used by `npx fit-pathway update` to
+download framework bundles.
 
 ## Levels
 
@@ -174,8 +216,9 @@ agent:
 
 `skillModifiers` keys are **capability IDs**, not individual skill IDs. A
 modifier of `+1` raises the proficiency of every skill in that capability by one
-step; `-1` lowers it. Positive modifiers are capped at the level's maximum base
-proficiency to prevent unrealistic inflation.
+step; `-1` lowers it. Track modifiers can be any integer, while discipline
+`behaviourModifiers` are restricted to -1, 0, or 1. Positive skill modifiers are
+capped at the level's maximum base proficiency to prevent unrealistic inflation.
 
 ## Capabilities
 
