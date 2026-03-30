@@ -296,21 +296,6 @@ cli-tiktoken:  ## Token counting
 cli-unary:  ## Unary gRPC calls
 	@$(ENVLOAD) npx --workspace=@forwardimpact/librpc fit-unary $(ARGS)
 
-# Evaluation
-
-.PHONY: eval
-eval:  ## Run evaluation suite
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libeval evaluation
-
-.PHONY: eval-report
-eval-report:  ## Generate evaluation report
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libeval eval-report
-
-.PHONY: eval-reset
-eval-reset:  ## Reset evaluation state
-	@rm -rf data/*.log data/logs/* data/cli/* data/eval/* data/memories/* data/resources/common.Conversation.* data/traces/*
-	@$(ENVLOAD) npx fit-rc restart --silent
-
 # Environment
 
 .PHONY: env-setup
