@@ -50,6 +50,7 @@ website/docs/
     landmark/                Analysis pipeline, view composition
     summit/                  Capability aggregation, scenario modeling
     universe/                Synthetic data pipeline, DSL, prose engine
+    operations/              Environment, services, and common tasks
 ```
 
 ## Audience Rules
@@ -177,10 +178,46 @@ is structured.
 4. **Check `llms.txt`.** Verify the Documentation section in `website/llms.txt`
    reflects the current page inventory.
 
+## Repository Documentation
+
+The documentation lives in two layers: repository-root files and the website.
+
+**Root documents** (checked into the repo root):
+
+| File              | Purpose                                         | Audience         |
+| ----------------- | ----------------------------------------------- | ---------------- |
+| `CLAUDE.md`       | Architecture context for coding agents          | Agents           |
+| `CONTRIBUTING.md` | PR workflow, git conventions, quality, security | All contributors |
+| `SECURITY.md`     | Vulnerability reporting                         | All contributors |
+
+**Website documentation** (`website/docs/`):
+
+The four-tier hierarchy described below. Contributor-facing reference material
+(environment, services, tasks) lives at `docs/internals/operations/` — extracted
+from CONTRIBUTING.md to keep the workflow focused.
+
+**Relationship between the layers:**
+
+- CONTRIBUTING.md is the canonical source for PR workflow and policies.
+  `CLAUDE.md` references it rather than duplicating workflow rules.
+- The Policy Ownership table in CONTRIBUTING.md defines which file owns which
+  policy area. Consult it before moving or duplicating policy content.
+- `website/docs/getting-started/contributors/` provides an onboarding narrative
+  that links to CONTRIBUTING.md for the full guide.
+- `website/docs/internals/operations/` holds operational reference (environment,
+  config, services, tasks) that supports CONTRIBUTING.md without cluttering it.
+
+When updating documentation that touches both root files and the website, ensure
+the canonical source stays in one place and other locations reference it.
+
 ## Source of Truth
 
 | Documentation topic | Verify against                              |
 | ------------------- | ------------------------------------------- |
+| PR workflow         | `CONTRIBUTING.md`                           |
+| Architecture        | `CLAUDE.md`                                 |
+| Policy ownership    | `CONTRIBUTING.md` § Policy Ownership        |
+| Operations          | `website/docs/internals/operations/`        |
 | Skills and levels   | `data/pathway/capabilities/`                |
 | Behaviours          | `data/pathway/behaviours/`                  |
 | Disciplines         | `data/pathway/disciplines/`                 |

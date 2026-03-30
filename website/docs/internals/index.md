@@ -79,4 +79,13 @@ rendering, and validation.
 
 </a>
 
+<a href="/docs/internals/operations/">
+
+### Operations
+
+Environment configuration, service management, and common development tasks for
+the monorepo.
+
+</a>
+
 </div>

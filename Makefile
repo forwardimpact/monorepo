@@ -539,9 +539,14 @@ download-bundle:  ## Download generated code bundle from S3
 	@$(ENVLOAD) npx --workspace=@forwardimpact/libutil fit-download-bundle
 
 .PHONY: audit
-audit:  ## Run security audit (npm vulnerabilities + secret scanning)
+audit: audit-vulnerabilities audit-secrets  ## Run security audit (vulnerability + secret scanning)
+
+.PHONY: audit-vulnerabilities
+audit-vulnerabilities:  ## Check dependencies for known vulnerabilities
 	@npm audit --audit-level=high --omit=dev --workspaces
-	@echo ""
+
+.PHONY: audit-secrets
+audit-secrets:  ## Scan repository for leaked secrets
 	@if command -v gitleaks >/dev/null 2>&1; then \
 		gitleaks detect --source . --verbose; \
 	else \

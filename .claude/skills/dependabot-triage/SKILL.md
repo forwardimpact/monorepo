@@ -47,14 +47,14 @@ where the canonical rule lives, and what triage action to take on failure.
 When evaluating check 2, verify the PR updates **all** workflow files that
 reference the action — not just the one Dependabot found. Current usage:
 
-| Action                          | Workflow files                                                                  |
-| ------------------------------- | ------------------------------------------------------------------------------- |
-| `actions/checkout`              | check.yml, publish-npm.yml, publish-macos.yml, publish-skills.yml, website.yaml |
-| `actions/setup-node`            | check.yml, publish-npm.yml, website.yaml                                        |
-| `actions/configure-pages`       | website.yaml                                                                    |
-| `actions/upload-pages-artifact` | website.yaml                                                                    |
-| `actions/deploy-pages`          | website.yaml                                                                    |
-| `denoland/setup-deno`           | publish-macos.yml                                                               |
+| Action                          | Workflow files                                                                                                              |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `actions/checkout`              | check-quality.yml, check-test.yml, check-security.yml, publish-npm.yml, publish-macos.yml, publish-skills.yml, website.yaml |
+| `actions/setup-node`            | check-quality.yml, check-test.yml, check-security.yml, publish-npm.yml, website.yaml                                        |
+| `actions/configure-pages`       | website.yaml                                                                                                                |
+| `actions/upload-pages-artifact` | website.yaml                                                                                                                |
+| `actions/deploy-pages`          | website.yaml                                                                                                                |
+| `denoland/setup-deno`           | publish-macos.yml                                                                                                           |
 
 ## Process
 

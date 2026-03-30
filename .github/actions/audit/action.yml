@@ -2,6 +2,10 @@ name: Security Audit
 description: Run npm audit and gitleaks secret scanning
 
 inputs:
+  vulnerability-scanning:
+    description: Run dependency vulnerability scanning
+    required: false
+    default: "true"
   secret-scanning:
     description: Run secret scanning on the repository
     required: false
@@ -10,7 +14,8 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: npm audit
+    - name: Vulnerability scanning
+      if: inputs.vulnerability-scanning == 'true'
       shell: bash
       run: npm audit --audit-level=high --omit=dev --workspaces
 

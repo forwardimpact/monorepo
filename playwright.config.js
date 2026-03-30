@@ -26,7 +26,7 @@ export default defineConfig({
     command: "npm start",
     url: "http://localhost:3000/",
     reuseExistingServer: !process.env.CI,
-    timeout: 10000,
+    timeout: 30000,
     stdout: "pipe",
     stderr: "pipe",
   },
