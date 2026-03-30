@@ -56,11 +56,11 @@ Assess `plan.md` (or plan variants) against these criteria:
 
 If all criteria are met, approve. If any criterion falls short, request changes.
 
-| Situation | Action |
-|-----------|--------|
-| Spec + plan approved | Set status to `planned` |
+| Situation                  | Action                                      |
+| -------------------------- | ------------------------------------------- |
+| Spec + plan approved       | Set status to `planned`                     |
 | Spec approved, no plan yet | Keep status at `review` (plan still needed) |
-| Changes requested | Set status to `draft` |
+| Changes requested          | Set status to `draft`                       |
 
 ## What NOT to Do
 

@@ -1,9 +1,9 @@
 # Design Spec: Forward Impact Team (FIT)
 
-> A monochrome design system for six open-source products — **Map**, **Pathway**,
-> **Basecamp**, **Guide**, **Landmark**, and **Summit** — built around the
-> metaphor of engineers deployed "in the field." Three characters — the
-> Engineer, the AI Agent, and the Business Stakeholder — collaborate at the
+> A monochrome design system for six open-source products — **Map**,
+> **Pathway**, **Basecamp**, **Guide**, **Landmark**, and **Summit** — built
+> around the metaphor of engineers deployed "in the field." Three characters —
+> the Engineer, the AI Agent, and the Business Stakeholder — collaborate at the
 > boundary between technology and the real world. Inspired by the restraint of
 > Ollama and the character-driven warmth of Go's Gopher, adapted for a
 > professional product suite.
@@ -146,10 +146,10 @@ DM Sans, 18px, weight 400, gray-400:
 
 The visual identity is built around three characters who embody the
 collaborative dynamic at the heart of forward deployed engineering — and mirror
-the suite's three audiences (Developers, Agents, Leadership). They are
-always shown together — working side by side, consulting, collaborating. They
-replace the solo hero with a team, reflecting that forward deployed work happens
-at the intersection of engineering, AI, and business.
+the suite's three audiences (Developers, Agents, Leadership). They are always
+shown together — working side by side, consulting, collaborating. They replace
+the solo hero with a team, reflecting that forward deployed work happens at the
+intersection of engineering, AI, and business.
 
 ### Design Specifications
 
@@ -745,14 +745,14 @@ white backgrounds.
 
 ### Footer (Dark)
 
-| Property         | Value                                                    |
-| ---------------- | -------------------------------------------------------- |
-| Background       | `--gray-900`                                             |
-| Text (primary)   | `#e8e5e0`                                                |
-| Text (secondary) | `--gray-400`                                             |
-| Border           | `--gray-700` for dividers                                |
-| Logo             | Trio silhouette + "FIT" in white                         |
-| Licenses         | Apache-2.0 (code), CC BY 4.0 (docs) — in `--gray-400`   |
+| Property         | Value                                                 |
+| ---------------- | ----------------------------------------------------- |
+| Background       | `--gray-900`                                          |
+| Text (primary)   | `#e8e5e0`                                             |
+| Text (secondary) | `--gray-400`                                          |
+| Border           | `--gray-700` for dividers                             |
+| Logo             | Trio silhouette + "FIT" in white                      |
+| Licenses         | Apache-2.0 (code), CC BY 4.0 (docs) — in `--gray-400` |
 
 ---
 
@@ -775,14 +775,14 @@ All animations respect `prefers-reduced-motion`.
 
 Each product shares the core design system with subtle differentiators:
 
-| Product      | Accent Metaphor                       | Empty State                                      | Tone                                                       |
-| ------------ | ------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
-| **Map**      | Cartography — grids, pins, layers     | AI Agent holding blank map toward viewer         | "Chart the territory before you move through it."          |
-| **Pathway**  | Trail — switchbacks, elevation marks  | Engineer at trailhead, reading a trail sign      | "Navigate the trail."                                      |
-| **Guide**    | Navigation — compass, stars           | AI Agent holding compass toward viewer           | "Find your bearing."                                       |
-| **Landmark** | Observation — cairns, survey markers  | AI Agent beside cairn, holding telescope outward | "Check the cairn."                                         |
-| **Basecamp** | Shelter — tents, campfire, logbooks   | Completed tent with flag, door flap open         | "Set up camp."                                             |
-| **Summit**   | Ascent — peaks, routes, team planning | Trio looking up at peak with flag                | "Reach the peak."                                          |
+| Product      | Accent Metaphor                       | Empty State                                      | Tone                                              |
+| ------------ | ------------------------------------- | ------------------------------------------------ | ------------------------------------------------- |
+| **Map**      | Cartography — grids, pins, layers     | AI Agent holding blank map toward viewer         | "Chart the territory before you move through it." |
+| **Pathway**  | Trail — switchbacks, elevation marks  | Engineer at trailhead, reading a trail sign      | "Navigate the trail."                             |
+| **Guide**    | Navigation — compass, stars           | AI Agent holding compass toward viewer           | "Find your bearing."                              |
+| **Landmark** | Observation — cairns, survey markers  | AI Agent beside cairn, holding telescope outward | "Check the cairn."                                |
+| **Basecamp** | Shelter — tents, campfire, logbooks   | Completed tent with flag, door flap open         | "Set up camp."                                    |
+| **Summit**   | Ascent — peaks, routes, team planning | Trio looking up at peak with flag                | "Reach the peak."                                 |
 
 ### Product-Specific UI Treatments
 
@@ -910,4 +910,5 @@ Each product shares the core design system with subtle differentiators:
 
 ---
 
-_Design spec for the Forward Impact Team (FIT) product suite. Updated March 2026._
+_Design spec for the Forward Impact Team (FIT) product suite. Updated
+March 2026._

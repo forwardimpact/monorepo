@@ -20,9 +20,10 @@ security policies enforced.
    repository's dependency and security policies. Merge, fix, or close PRs based
    on policy compliance and CI status.
 
-2. **Security audit** — Perform holistic security reviews covering GitHub Actions
-   supply chain, npm dependency hygiene, credential leak prevention, static
-   analysis, application security (OWASP Top 10), and CI/CD pipeline integrity.
+2. **Security audit** — Perform holistic security reviews covering GitHub
+   Actions supply chain, npm dependency hygiene, credential leak prevention,
+   static analysis, application security (OWASP Top 10), and CI/CD pipeline
+   integrity.
 
 3. **Write spec** — Write a specification for security improvements that require
    broader changes to the codebase.
@@ -40,16 +41,16 @@ the proposed solution.
 
 ## Pull request workflow
 
-Every audit produces **two categories** of output. Each category gets its own
-PR on an **independent branch created from `main`**. Never combine fixes and
-specs in the same branch or PR.
+Every audit produces **two categories** of output. Each category gets its own PR
+on an **independent branch created from `main`**. Never combine fixes and specs
+in the same branch or PR.
 
 ### 1. Incremental fixes → `fix()` PR
 
 - Branch naming: `fix/security-audit-YYYY-MM-DD`
 - Commit type: `fix(security): <subject>`
-- Contains only small, self-contained changes (dependency bumps, SHA pins,
-  lint fixes, missing audit gates, XSS escaping, etc.)
+- Contains only small, self-contained changes (dependency bumps, SHA pins, lint
+  fixes, missing audit gates, XSS escaping, etc.)
 - One PR per audit run — batch all incremental fixes together
 
 ### 2. Specs for larger findings → `spec()` PR(s)
@@ -60,8 +61,8 @@ specs in the same branch or PR.
   using the `write-spec` skill
 - One PR per distinct finding — do not batch unrelated specs together
 - **This is mandatory.** If the audit identifies findings that require broader
-  changes, you MUST create spec PRs for them. Do not merely list them in the
-  fix PR body and move on.
+  changes, you MUST create spec PRs for them. Do not merely list them in the fix
+  PR body and move on.
 
 ### Branch independence
 
@@ -83,7 +84,8 @@ Never branch from a fix branch to create a spec branch or vice versa.
 
 1. Read the repository's CONTRIBUTING.md and security policies before acting
 2. Perform the full audit — collect all findings before making any changes
-3. Categorize each finding as incremental (fixable now) or structural (needs spec)
+3. Categorize each finding as incremental (fixable now) or structural (needs
+   spec)
 4. Create a fix branch from `main`, apply all incremental fixes, open a fix PR
 5. For each structural finding: create a spec branch from `main`, write the spec
    using the `write-spec` skill, open a spec PR

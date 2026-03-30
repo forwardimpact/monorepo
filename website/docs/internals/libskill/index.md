@@ -73,16 +73,16 @@ for every skill in the discipline. Behaviours are derived by
 
 ## Key Functions
 
-| Function                    | Module        | Purpose                                        |
-| --------------------------- | ------------- | ---------------------------------------------- |
-| `buildSkillTypeMap()`       | derivation.js | Build O(1) skill type lookup for a discipline  |
+| Function                      | Module        | Purpose                                        |
+| ----------------------------- | ------------- | ---------------------------------------------- |
+| `buildSkillTypeMap()`         | derivation.js | Build O(1) skill type lookup for a discipline  |
 | `getSkillTypeForDiscipline()` | derivation.js | Determine skill tier (primary/secondary/broad) |
-| `deriveSkillProficiency()`  | derivation.js | Full skill derivation pipeline for one skill   |
-| `deriveSkillMatrix()`       | derivation.js | Derive all skills for a job                    |
-| `deriveBehaviourProfile()`  | derivation.js | Derive all behaviours for a job                |
-| `deriveResponsibilities()`  | derivation.js | Derive role responsibilities from capabilities |
-| `calculateDriverCoverage()` | derivation.js | Check driver coverage against thresholds       |
-| `resolveSkillModifier()`    | modifiers.js  | Resolve track modifier for a skill             |
+| `deriveSkillProficiency()`    | derivation.js | Full skill derivation pipeline for one skill   |
+| `deriveSkillMatrix()`         | derivation.js | Derive all skills for a job                    |
+| `deriveBehaviourProfile()`    | derivation.js | Derive all behaviours for a job                |
+| `deriveResponsibilities()`    | derivation.js | Derive role responsibilities from capabilities |
+| `calculateDriverCoverage()`   | derivation.js | Check driver coverage against thresholds       |
+| `resolveSkillModifier()`      | modifiers.js  | Resolve track modifier for a skill             |
 
 ---
 
