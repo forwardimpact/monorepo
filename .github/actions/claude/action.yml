@@ -109,9 +109,7 @@ runs:
             --max-turns "$MAX_TURNS" \
             --allowedTools "$TOOLS" \
             $AGENT_FLAG \
-            > "$TRACE_DIR/trace.ndjson"
-
-          npx fit-eval output --format=text < "$TRACE_DIR/trace.ndjson"
+            | npx fit-eval tee "$TRACE_DIR/trace.ndjson"
         else
           echo "$PROMPT" | claude --print \
             --model "$MODEL" \
