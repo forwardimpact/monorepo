@@ -17,6 +17,14 @@ generated/
 !**/.env.*.example
 !**/.env.example
 
+# Private keys and certificates
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+
 # Local config (use *.example.* templates)
 **/config/config.json
 **/config/tools.yml
