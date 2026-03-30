@@ -33,5 +33,5 @@ jobs:
           cache: npm
       - run: make install
       - run: npx playwright install --with-deps chromium
-      - run: make generate
+      - run: make synthetic
       - run: npm run test:e2e

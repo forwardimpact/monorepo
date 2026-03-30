@@ -105,14 +105,14 @@ make rc-start                 # Start services (supabase/tei skipped if not inst
 ### Generation
 
 ```sh
-make generate                 # Cached prose (default, no LLM needed)
-make generate-update          # Generate new prose via LLM and update cache
-make generate-no-prose        # Structural only, no prose (minimal data)
+make synthetic                # Cached prose (default, no LLM needed)
+make synthetic-update         # Generate new prose via LLM and update cache
+make synthetic-no-prose       # Structural only, no prose (minimal data)
 ```
 
 Generation uses cached prose by default from `data/synthetic/prose-cache.json`.
-Use `make generate-update` to call the LLM and refresh the cache. The `no-prose`
-mode produces minimal structural data without prose content.
+Use `make synthetic-update` to call the LLM and refresh the cache. The
+`no-prose` mode produces minimal structural data without prose content.
 
 ### Development
 
