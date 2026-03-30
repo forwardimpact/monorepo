@@ -77,10 +77,12 @@ aggregates skill matrices into capability coverage, structural risks, and
 what-if staffing scenarios so leadership can build teams that succeed. Fully
 local and deterministic — no external dependencies, no LLM calls.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for pull request workflow, git
-conventions, quality commands, and security policies. See
-[Operations Reference](website/docs/internals/operations/) for environment
-setup, service management, and common tasks.
+### How We Work
+
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Pull request workflow, git
+  conventions, quality commands, and security policies.
+- **[Operations Reference](website/docs/internals/operations/)** — Environment
+  setup, service management, and common tasks.
 
 ## Distribution Model
 
