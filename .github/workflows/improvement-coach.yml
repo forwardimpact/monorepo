@@ -28,7 +28,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      - run: make install
 
       - name: Analyze Agent Traces
         uses: ./.github/actions/claude

@@ -6,6 +6,13 @@ STORAGE ?= local
 AUTH ?= none
 ENVLOAD = ENV=$(ENV) STORAGE=$(STORAGE) AUTH=$(AUTH) ./scripts/env.sh
 
+# Install
+
+.PHONY: install
+install:  ## Install dependencies and generate code
+	@npm ci
+	@npx --workspace=@forwardimpact/libcodegen fit-codegen --all
+
 # Quick Start
 
 .PHONY: quickstart

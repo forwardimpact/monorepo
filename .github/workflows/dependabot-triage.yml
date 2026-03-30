@@ -27,7 +27,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      - run: make install
 
       - name: Triage Dependabot PRs
         uses: ./.github/actions/claude

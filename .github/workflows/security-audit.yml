@@ -25,7 +25,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      - run: make install
 
       - name: Run Security Audit
         uses: ./.github/actions/claude

@@ -11,5 +11,17 @@
       "WebSearch",
       "Task"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "make install"
+          }
+        ]
+      }
+    ]
   }
 }

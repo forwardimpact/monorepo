@@ -28,8 +28,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
-      - run: npx fit-codegen --all
+      - run: make install
 
       - name: Review and Release
         uses: ./.github/actions/claude

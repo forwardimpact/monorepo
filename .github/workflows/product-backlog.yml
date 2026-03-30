@@ -28,7 +28,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      - run: make install
 
       - name: Triage Product Backlog
         uses: ./.github/actions/claude

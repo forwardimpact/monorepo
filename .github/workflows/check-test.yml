@@ -18,8 +18,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npx fit-codegen --all
+      - run: make install
       - run: npx fit-universe
       - run: npm test
       - run: npm run validate -- --shacl
@@ -32,8 +31,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npx fit-codegen --all
+      - run: make install
       - run: npx playwright install --with-deps chromium
       - run: npx fit-universe
       - run: npx fit-map generate-index
