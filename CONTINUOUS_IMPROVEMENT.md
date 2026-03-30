@@ -1,7 +1,6 @@
 # Continuous Improvement System
 
-> "It is not enough to do your best; you must know what to do, and then do your
-> best."
+> "Improve constantly and forever the system of production and service."
 >
 > — W. Edwards Deming
 
