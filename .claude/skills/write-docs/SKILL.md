@@ -200,24 +200,15 @@ from CONTRIBUTING.md to keep the workflow focused.
 
 - CONTRIBUTING.md is the canonical source for PR workflow and policies.
   `CLAUDE.md` references it rather than duplicating workflow rules.
-- The Policy Ownership table in CONTRIBUTING.md defines which file owns which
-  policy area. Consult it before moving or duplicating policy content.
 - `website/docs/getting-started/contributors/` provides an onboarding narrative
   that links to CONTRIBUTING.md for the full guide.
 - `website/docs/internals/operations/` holds operational reference (environment,
   config, services, tasks) that supports CONTRIBUTING.md without cluttering it.
 
-When updating documentation that touches both root files and the website, ensure
-the canonical source stays in one place and other locations reference it.
-
 ## Source of Truth
 
 | Documentation topic | Verify against                              |
 | ------------------- | ------------------------------------------- |
-| PR workflow         | `CONTRIBUTING.md`                           |
-| Architecture        | `CLAUDE.md`                                 |
-| Policy ownership    | `CONTRIBUTING.md` § Policy Ownership        |
-| Operations          | `website/docs/internals/operations/`        |
 | Skills and levels   | `data/pathway/capabilities/`                |
 | Behaviours          | `data/pathway/behaviours/`                  |
 | Disciplines         | `data/pathway/disciplines/`                 |

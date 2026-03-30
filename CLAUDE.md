@@ -90,6 +90,24 @@ Commit format: `type(scope): subject` — see CONTRIBUTING.md § Git Conventions
 Run `npm run check` before every commit to catch format, lint, and test failures
 early.
 
+## Policy Ownership
+
+Each policy area has one canonical location. Other files reference it, never
+restate it. Update the canonical location only.
+
+| Policy area                          | Canonical location                   |
+| ------------------------------------ | ------------------------------------ |
+| Core rules & architecture            | CLAUDE.md                            |
+| Development workflow & practices     | CONTRIBUTING.md                      |
+| Environment, services, tasks         | `website/docs/internals/operations/` |
+| Security workflows (hooks, scanning) | CONTRIBUTING.md § Security           |
+| Dependency hygiene                   | CONTRIBUTING.md § Dependency Policy  |
+| GitHub Actions SHA pinning           | CONTRIBUTING.md § Security           |
+| Supply chain & app security          | `.claude/skills/security-audit`      |
+| Dependabot triage process            | `.claude/skills/dependabot-triage`   |
+| Release readiness (PR rebase/CI)     | `.claude/skills/release-readiness`   |
+| Release process (versioning/tags)    | `.claude/skills/release-review`      |
+
 ## Distribution Model
 
 The monorepo is open source — the repository is public and the products are
