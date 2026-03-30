@@ -1,170 +1,15 @@
-# Monorepo Makefile
-# ====================
-# Platform automation commands. Run `make help` for usage.
-#
-# Environment Variables:
-#   ENV=local|docker       Network configuration (default: local)
-#   STORAGE=local|minio|supabase  Storage backend (default: local)
-#   AUTH=none|gotrue|supabase  Authentication backend (default: none)
-#
-# Examples:
-#   make cli-chat                         # Uses local env, local storage
-#   make cli-chat ENV=docker STORAGE=minio  # Uses docker env, minio storage
-#   make eval ENV=local STORAGE=supabase AUTH=supabase  # Uses local env, supabase
-#
-# NOTE: Help text in the `help` target and inline `##` comments for each target
-# must be kept in sync. Descriptions should make sense when read in isolation.
-
-# ====================
-# Environment Configuration
-# ====================
+# Monorepo Makefile — platform automation beyond npm scripts.
+# Targets use `## comment` for inline docs; run `grep '##' Makefile` to list.
 
 ENV ?= local
 STORAGE ?= local
 AUTH ?= none
-
-# Helper script to load environment files
 ENVLOAD = ENV=$(ENV) STORAGE=$(STORAGE) AUTH=$(AUTH) ./scripts/env.sh
 
-.PHONY: help
-help:
-	@echo "Usage: make <target> [ENV=local|docker] [STORAGE=local|minio|supabase] [AUTH=none|gotrue|supabase]"
-	@echo ""
-	@echo "Environment Variables:"
-	@echo "  ENV=local         	Network config: local (default) or docker"
-	@echo "  STORAGE=local     	Storage backend: local (default), minio, or supabase"
-	@echo "  AUTH=none         	Auth backend: none (default), gotrue, or supabase"
-	@echo ""
-	@echo "Quick Start:"
-	@echo "  quickstart        	Bootstrap from scratch (env, generate, data, codegen, process)"
-	@echo ""
-	@echo "Data Management:"
-	@echo "  data-init         	Initialize data directories"
-	@echo "  data-clean        	Remove generated data"
-	@echo "  data-reset        	Clean, init, and regenerate code"
-	@echo ""
-	@echo "Generation:"
-	@echo "  generate          	Generate synthetic data (structural only)"
-	@echo "  generate-update   	Generate synthetic data with LLM and update cache"
-	@echo "  generate-no-prose 	Generate synthetic data (structural only)"
-	@echo ""
-	@echo "Code Generation:"
-	@echo "  codegen           	Generate all (types, services, clients)"
-	@echo "  codegen-type      	Generate types only"
-	@echo "  codegen-client    	Generate clients only"
-	@echo "  codegen-service	Generate service bases only"
-	@echo "  codegen-definition	Generate definitions only"
-	@echo ""
-	@echo "Processing:"
-	@echo "  transform         	Transform documents (PDF)"
-	@echo "  ingest            	Load and process ingestion pipeline"
-	@echo "  ingest-load       	Load documents into pipeline"
-	@echo "  ingest-pipeline  	Run ingestion pipeline"
-	@echo "  process          	Process all resources"
-	@echo "  process-fast      	Process without vectors"
-	@echo "  process-agents	Process assistant definitions"
-	@echo "  process-resources 	Process knowledge resources"
-	@echo "  process-tools     	Process tool definitions"
-	@echo "  process-vectors   	Process vector indices"
-	@echo "  process-graphs    	Process graph indices"
-	@echo ""
-	@echo "Services:"
-	@echo "  rc-start          	Start services via rc"
-	@echo "  rc-stop           	Stop services via rc"
-	@echo "  rc-restart        	Restart services via rc"
-	@echo "  rc-status         	Show service status"
-	@echo ""
-	@echo "TEI (Text Embeddings Inference):"
-	@echo "  tei-install       	Install TEI binary via cargo"
-	@echo "  tei-start         	Start TEI embedding service"
-	@echo ""
-	@echo "Map Supabase:"
-	@echo "  supabase-install  	Install Supabase CLI (brew)"
-	@echo "  supabase-up       	Start local Supabase instance"
-	@echo "  supabase-down     	Stop local Supabase instance"
-	@echo "  supabase-start    	Start Supabase via fit-rc (oneshot)"
-	@echo "  supabase-stop     	Stop Supabase via fit-rc (oneshot)"
-	@echo "  supabase-migrate  	Run Map database migrations"
-	@echo "  supabase-status   	Supabase health check"	@echo "  supabase-seed     \tLoad example data into Supabase"
-	@echo "  supabase-setup    \tStart + migrate + seed (full local setup)"	@echo ""
-	@echo "Docker:"
-	@echo "  docker            	Build and start Docker Compose"
-	@echo "  docker-build      	Build Docker images"
-	@echo "  docker-up         	Start Docker Compose (core services only)"
-	@echo "  docker-up-minio   	Start Docker Compose with MinIO storage"
-	@echo "  docker-up-supabase Start Docker Compose with Supabase"
-	@echo "  docker-down       	Stop Docker Compose"
-	@echo ""
-	@echo "Storage Management: (use STORAGE=minio|supabase)"
-	@echo "  storage-setup     	Full setup (start, wait, init, upload)"
-	@echo "  storage-start     	Start storage backend containers"
-	@echo "  storage-stop      	Stop storage backend containers"
-	@echo "  storage-wait      	Wait for storage to be ready"
-	@echo "  storage-init      	Create bucket in storage backend"
-	@echo "  storage-upload    	Upload data to storage backend"
-	@echo "  storage-download  	Download data from storage backend"
-	@echo "  storage-list      	List storage contents"
-	@echo ""
-	@echo "Auth Management: (use AUTH=gotrue|supabase)"
-	@echo "  auth-start        	Start auth backend containers"
-	@echo "  auth-stop         	Stop auth backend containers"
-	@echo "  auth-user         	Create demo auth user"
-	@echo ""
-	@echo "Documentation:"
-	@echo "  docs              	Serve documentation"
-	@echo "  docs-build        	Build documentation"
-	@echo "  docs-watch        	Serve with live reload"
-	@echo ""
-	@echo "CLI Tools:"
-	@echo "  cli-chat          	Agent conversations"
-	@echo "  cli-search        	Vector similarity search"
-	@echo "  cli-query         	Graph triple pattern queries"
-	@echo "  cli-subjects      	List graph subjects by type"
-	@echo "  cli-visualize     	Trace visualization"
-	@echo "  cli-window        	Fetch memory window as JSON"
-	@echo "  cli-completion    	Send window to LLM API"
-	@echo "  cli-tiktoken      	Token counting"
-	@echo "  cli-unary         	Unary gRPC calls"
-	@echo ""
-	@echo "Evaluation:"
-	@echo "  eval              	Run evaluation suite"
-	@echo "  eval-report       	Generate evaluation report"
-	@echo "  eval-reset        	Reset evaluation state"
-	@echo ""
-	@echo "Environment:"
-	@echo "  env-setup         	Set up all environment secrets and storage config"
-	@echo "  env-github         GitHub token utility"
-	@echo "  env-secrets       	Generate service and JWT secrets"
-	@echo "  env-storage       	Generate storage backend credentials"
-	@echo "  env-reset         	Reset environment config from examples"
-	@echo ""
-	@echo "Utilities:"
-	@echo "  config-reset     	Reset config files from examples"
-	@echo "  download-bundle   	Download generated code bundle from S3"
-	@echo "  audit             	Run security audit (npm + gitleaks)"
-	@echo "  install-hooks     	Install git pre-commit hooks"
-	@echo "  spellcheck        	Check spelling in documentation"
-	@echo ""
-	@echo "NPM Scripts (pass-through):"
-	@echo "  dev               	Start development server"
-	@echo "  start             	Start services"
-	@echo "  test              	Run tests"
-	@echo "  test-e2e          	Run Playwright E2E tests"
-	@echo "  test-watch        	Run tests in watch mode"
-	@echo "  test-perf         	Run performance tests"
-	@echo "  lint              	Run ESLint"
-	@echo "  lint-fix          	Run ESLint with auto-fix"
-	@echo "  format            	Check formatting with Prettier"
-	@echo "  format-fix        	Fix formatting with Prettier"
-	@echo "  check             	Run all checks (spelling, format, lint)"
-	@echo "  check-fix         	Run all checks with auto-fix"
-
-# ====================
 # Quick Start
-# ====================
 
 .PHONY: quickstart
-quickstart: env-setup generate data-init codegen process-fast install-hooks  ## Bootstrap from scratch (env, generate, data, codegen, process)
+quickstart: env-setup generate data-init codegen process-fast install-hooks  ## Bootstrap from scratch
 	@echo ""
 	@echo "=== Quickstart complete ==="
 	@printf "  Knowledge files: %s\n" "$$(find data/knowledge -name '*.html' 2>/dev/null | wc -l | tr -d ' ')"
@@ -173,9 +18,7 @@ quickstart: env-setup generate data-init codegen process-fast install-hooks  ## 
 	@echo ""
 	@echo "Next: make rc-start && make cli-chat"
 
-# ====================
 # Data Management
-# ====================
 
 .PHONY: data-init
 data-init:  ## Initialize data directories
@@ -188,9 +31,7 @@ data-clean:  ## Remove generated data
 .PHONY: data-reset
 data-reset: data-clean data-init codegen  ## Clean, init, and regenerate code
 
-# ====================
 # Generation
-# ====================
 
 .PHONY: generate
 generate:  ## Generate synthetic data (cached prose)
@@ -204,9 +45,7 @@ generate-update:  ## Generate synthetic data with LLM and update prose cache
 generate-no-prose:  ## Generate synthetic data (structural only, no prose)
 	@$(ENVLOAD) npx fit-universe --no-prose
 
-# ====================
 # Code Generation
-# ====================
 
 .PHONY: codegen
 codegen:  ## Generate all (types, services, clients)
@@ -228,15 +67,10 @@ codegen-service:  ## Generate service bases only
 codegen-definition:  ## Generate definitions only
 	@npx --workspace=@forwardimpact/libcodegen fit-codegen --definition
 
-# ====================
 # Processing
-# ====================
-
-.PHONY: transform
-transform: transform-pdf  ## Transform documents (PDF)
 
 .PHONY: transform-pdf
-transform-pdf:  ## Transform documents (PDF)
+transform-pdf:  ## Transform PDF documents
 	@$(ENVLOAD) npx --workspace=@forwardimpact/libtransform transform-pdf
 
 .PHONY: ingest
@@ -276,9 +110,7 @@ process-vectors:  ## Process vector indices
 process-graphs:  ## Process graph indices
 	@$(ENVLOAD) npx --workspace=@forwardimpact/libgraph fit-process-graphs
 
-# ====================
 # Services
-# ====================
 
 .PHONY: rc-start
 rc-start:  ## Start services via rc
@@ -296,21 +128,17 @@ rc-restart:  ## Restart services via rc
 rc-status:  ## Show service status
 	@$(ENVLOAD) npx fit-rc status
 
-# ====================
 # TEI (Text Embeddings Inference)
-# ====================
 
 .PHONY: tei-install
-tei-install:  ## Install TEI binary via cargo from huggingface/text-embeddings-inference
+tei-install:  ## Install TEI binary via cargo
 	@cargo install --git https://github.com/huggingface/text-embeddings-inference --features candle text-embeddings-router
 
 .PHONY: tei-start
-tei-start:  ## Start TEI embedding service (downloads model on first run)
+tei-start:  ## Start TEI embedding service
 	@$(ENVLOAD) npx fit-rc start tei
 
-# ====================
-# Map Supabase
-# ====================
+# Supabase
 
 .PHONY: supabase-install
 supabase-install:  ## Install Supabase CLI (brew)
@@ -345,14 +173,9 @@ supabase-seed:  ## Load example data into Supabase
 	@node products/map/scripts/load-examples.js
 
 .PHONY: supabase-setup
-supabase-setup: supabase-up supabase-seed  ## Start + migrate + seed (full local setup)
+supabase-setup: supabase-up supabase-seed  ## Start + migrate + seed
 
-# ====================
 # Docker
-# ====================
-
-.PHONY: docker
-docker: docker-build docker-up  ## Build and start Docker Compose
 
 .PHONY: docker-build
 docker-build:  ## Build Docker images
@@ -374,9 +197,7 @@ docker-up-supabase:  ## Start Docker Compose with Supabase
 docker-down:  ## Stop Docker Compose
 	@docker compose --profile minio --profile supabase down
 
-# ====================
-# Storage Management
-# ====================
+# Storage
 
 .PHONY: storage-setup
 storage-setup: storage-start storage-wait storage-init storage-upload  ## Full setup (start, wait, init, upload)
@@ -409,9 +230,7 @@ storage-download:  ## Download data from storage backend
 storage-list:  ## List storage contents
 	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage list
 
-# ====================
-# Auth Management
-# ====================
+# Auth
 
 .PHONY: auth-start
 auth-start:  ## Start auth backend containers
@@ -425,12 +244,7 @@ auth-stop:  ## Stop auth backend containers
 auth-user:  ## Create demo auth user
 	$(ENVLOAD) node scripts/auth-user.js
 
-# ====================
 # Documentation
-# ====================
-
-.PHONY: docs
-docs: docs-serve  ## Serve documentation
 
 .PHONY: docs-build
 docs-build:  ## Build documentation
@@ -444,9 +258,7 @@ docs-serve:  ## Serve documentation
 docs-watch:  ## Serve with live reload
 	@npx --workspace=@forwardimpact/libdoc docs-serve --watch
 
-# ====================
 # CLI Tools
-# ====================
 
 .PHONY: cli-chat
 cli-chat: ## Agent conversations
@@ -484,9 +296,7 @@ cli-tiktoken:  ## Token counting
 cli-unary:  ## Unary gRPC calls
 	@$(ENVLOAD) npx --workspace=@forwardimpact/librpc fit-unary $(ARGS)
 
-# ====================
 # Evaluation
-# ====================
 
 .PHONY: eval
 eval:  ## Run evaluation suite
@@ -501,9 +311,7 @@ eval-reset:  ## Reset evaluation state
 	@rm -rf data/*.log data/logs/* data/cli/* data/eval/* data/memories/* data/resources/common.Conversation.* data/traces/*
 	@$(ENVLOAD) npx fit-rc restart --silent
 
-# ====================
 # Environment
-# ====================
 
 .PHONY: env-setup
 env-setup: env-reset env-secrets env-storage  ## Set up all environment secrets and storage config
@@ -524,9 +332,7 @@ env-storage:  ## Generate storage backend credentials
 env-github:  ## GitHub token utility
 	@$(ENVLOAD) node scripts/env-github.js
 
-# ====================
 # Utilities
-# ====================
 
 .PHONY: config-reset
 config-reset: ## Reset config files from examples
@@ -560,55 +366,3 @@ install-hooks:  ## Install git pre-commit hooks
 .PHONY: spellcheck
 spellcheck:  ## Check spelling in documentation
 	@npx spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' '!**/*-prompt.md' --dictionaries .dictionary.txt --no-suggestions
-
-# ====================
-# NPM Scripts (pass-through)
-# ====================
-
-.PHONY: dev
-dev:  ## Start development server
-	@npm run dev
-
-.PHONY: start
-start:  ## Start services
-	@npm run start
-
-.PHONY: test
-test:  ## Run tests
-	@npm run test
-
-.PHONY: test-watch
-test-watch:  ## Run tests in watch mode
-	@npm run test:watch
-
-.PHONY: test-e2e
-test-e2e:  ## Run Playwright E2E tests (generates data + builds site automatically)
-	@npm run test:e2e
-
-.PHONY: test-perf
-test-perf:  ## Run performance tests
-	@npm run test:perf
-
-.PHONY: lint
-lint:  ## Run ESLint
-	@npm run lint
-
-.PHONY: lint-fix
-lint-fix:  ## Run ESLint with auto-fix
-	@npm run lint:fix
-
-.PHONY: format
-format:  ## Check formatting with Prettier
-	@npm run format
-
-.PHONY: format-fix
-format-fix:  ## Fix formatting with Prettier
-	@npm run format:fix
-
-.PHONY: check
-check:  ## Run all checks (spelling, format, lint)
-	@npm run check
-
-.PHONY: check-fix
-check-fix:  ## Run all checks with auto-fix
-	@npm run check:fix
