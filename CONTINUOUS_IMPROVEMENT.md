@@ -9,7 +9,9 @@ This monorepo runs an autonomous continuous improvement system powered by Claude
 Code agents on GitHub Actions. Six scheduled workflows, four agent personas, and
 eight skills form a closed feedback loop that keeps the codebase secure,
 release-ready, and steadily improving — without human intervention for routine
-tasks.
+tasks. This is a repo self-maintenance system, not part of the Forward Impact
+products — it maintains the project, not the engineering frameworks the products
+serve.
 
 ## Architecture
 
@@ -34,7 +36,7 @@ NDJSON, and uploads it as a workflow artifact.
 | Agent                 | Purpose                                                                         | Skills                                        |
 | --------------------- | ------------------------------------------------------------------------------- | --------------------------------------------- |
 | **security-engineer** | Patch dependencies, harden supply chain, enforce security policies              | dependabot-triage, security-audit, write-spec |
-| **release-engineer**  | Keep PR branches merge-ready, cut releases, verify publish workflows            | release-readiness, release-review, gh-cli     |
+| **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases           | release-readiness, release-review, gh-cli     |
 | **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements         | grounded-theory-analysis, write-spec, gh-cli  |
 | **product-manager**   | Review PRs for product alignment, verify contributor trust, merge qualified PRs | product-backlog, review-spec, gh-cli          |
 
@@ -46,7 +48,7 @@ than attempting the fix.
 
 | Workflow              | Schedule               | Agent             | What it does                                                                |
 | --------------------- | ---------------------- | ----------------- | --------------------------------------------------------------------------- |
-| **release-readiness** | Daily 05:23 UTC        | release-engineer  | Rebase open PRs on main, fix lint/format failures, report status            |
+| **release-readiness** | Daily 05:23 UTC        | release-engineer  | Rebase open PRs on main, fix lint/format failures, repair main CI if broken |
 | **security-audit**    | Every 2 days 04:43 UTC | security-engineer | Audit supply chain, dependencies, credentials, OWASP Top 10                 |
 | **dependabot-triage** | Every 3 days 06:17 UTC | security-engineer | Evaluate Dependabot PRs against policy, merge/fix/close                     |
 | **release-review**    | Weekly Mon 07:37 UTC   | release-engineer  | Find unreleased changes, bump versions, tag, push, verify publish           |
@@ -116,11 +118,11 @@ trusted sources — our own agents acting without external input.
 The product-backlog workflow applies a **two-tier gate** that limits what
 external contributors can merge directly:
 
-| PR type          | What merges                          | Who implements the change   |
-| ---------------- | ------------------------------------ | --------------------------- |
-| `fix` / `bug`    | The contributor's code (small patch) | The external contributor    |
-| `spec`           | A specification document (WHAT/WHY)  | Trusted agents, not the contributor |
-| Everything else  | Nothing — PR is skipped              | N/A                         |
+| PR type         | What merges                          | Who implements the change           |
+| --------------- | ------------------------------------ | ----------------------------------- |
+| `fix` / `bug`   | The contributor's code (small patch) | The external contributor            |
+| `spec`          | A specification document (WHAT/WHY)  | Trusted agents, not the contributor |
+| Everything else | Nothing — PR is skipped              | N/A                                 |
 
 **Trivial fixes** (`fix`, `bug`) from top-20 contributors merge the
 contributor's own code, gated by CI and trust checks. These are small,
@@ -165,15 +167,16 @@ graph TD
     style RE fill:#bbf,stroke:#333
 ```
 
-| Merge point           | Source                    | Trust model                              |
-| --------------------- | ------------------------- | ---------------------------------------- |
-| **product-backlog**   | External fix/bug PRs      | Top-20 contributor gate + CI             |
-| **product-backlog**   | External spec PRs         | Top-20 gate + CI + review-spec           |
+| Merge point           | Source                    | Trust model                                    |
+| --------------------- | ------------------------- | ---------------------------------------------- |
+| **product-backlog**   | External fix/bug PRs      | Top-20 contributor gate + CI                   |
+| **product-backlog**   | External spec PRs         | Top-20 gate + CI + review-spec                 |
 | **product-backlog**   | Agent implementation PRs  | Top-20 gate + CI (agents are top contributors) |
-| **dependabot-triage** | Dependabot PRs            | Trusted bot, policy-gated                |
-| **release-readiness** | Agent-authored rebases    | Agent-only, no external input            |
-| **release-review**    | Agent-authored tags/bumps | Agent-only, no external input            |
-| **improvement-coach** | Agent-authored fix/spec   | Agent-only, traces as evidence           |
+| **dependabot-triage** | Dependabot PRs            | Trusted bot, policy-gated                      |
+| **release-readiness** | Agent-authored rebases    | Agent-only, no external input                  |
+| **release-review**    | Agent-authored tags/bumps | Agent-only, no external input                  |
+| **release-engineer**  | Trivial CI fixes on main  | Agent-only, mechanical fixes only              |
+| **improvement-coach** | Agent-authored fix/spec   | Agent-only, traces as evidence                 |
 
 This design concentrates external-contribution risk at a single auditable point
 and limits external influence to small patches and proposals. Significant code
@@ -203,6 +206,14 @@ code.
 The release engineer never resolves substantive merge conflicts. The security
 engineer never weakens existing policies. The improvement coach never speculates
 without trace evidence.
+
+**Main branch CI repair.** The release engineer is the only agent allowed to
+push directly to `main`, and only for trivial CI fixes — formatting, lint, and
+lock file drift that `npm run check:fix` resolves. Without this privilege, a
+single formatting regression on `main` would cause every rebased PR to inherit a
+failing Quality workflow, creating permanent release blockage. The scope is
+strictly mechanical: if `npm run check:fix` does not resolve the failure, the
+release engineer must stop and report rather than attempt code-level fixes.
 
 **Trace-driven observability.** Every workflow captures a full execution trace
 as an artifact, giving the improvement coach (and humans) complete visibility

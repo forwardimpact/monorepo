@@ -207,27 +207,28 @@ from CONTRIBUTING.md to keep the workflow focused.
 
 ## Source of Truth
 
-| Documentation topic | Verify against                              |
-| ------------------- | ------------------------------------------- |
-| Skills and levels   | `data/pathway/capabilities/`                |
-| Behaviours          | `data/pathway/behaviours/`                  |
-| Disciplines         | `data/pathway/disciplines/`                 |
-| Tracks              | `data/pathway/tracks/`                      |
-| Levels              | `data/pathway/levels.yaml`                  |
-| Stages              | `data/pathway/stages.yaml`                  |
-| Drivers             | `data/pathway/drivers.yaml`                 |
-| Job derivation      | `libraries/libskill/src/job.js`             |
-| Agent derivation    | `libraries/libskill/src/agent.js`           |
-| Map validation      | `products/map/src/`                         |
-| Pathway CLI         | `products/pathway/bin/fit-pathway.js`       |
-| Basecamp CLI        | `products/basecamp/bin/fit-basecamp.js`     |
-| Landmark CLI        | `products/landmark/bin/fit-landmark.js`     |
-| Summit CLI          | `products/summit/bin/fit-summit.js`         |
-| Universe CLI        | `libraries/libuniverse/bin/fit-universe.js` |
-| Templates           | `products/pathway/templates/`               |
-| JSON Schema         | `products/map/schema/json/`                 |
-| RDF/SHACL Schema    | `products/map/schema/rdf/`                  |
-| LLM / SEO outputs   | `website/llms.txt`, `website/robots.txt`    |
+| Documentation topic   | Verify against                              |
+| --------------------- | ------------------------------------------- |
+| Skills and levels     | `data/pathway/capabilities/`                |
+| Behaviours            | `data/pathway/behaviours/`                  |
+| Disciplines           | `data/pathway/disciplines/`                 |
+| Tracks                | `data/pathway/tracks/`                      |
+| Levels                | `data/pathway/levels.yaml`                  |
+| Stages                | `data/pathway/stages.yaml`                  |
+| Drivers               | `data/pathway/drivers.yaml`                 |
+| Job derivation        | `libraries/libskill/src/job.js`             |
+| Agent derivation      | `libraries/libskill/src/agent.js`           |
+| Map validation        | `products/map/src/`                         |
+| Pathway CLI           | `products/pathway/bin/fit-pathway.js`       |
+| Basecamp CLI          | `products/basecamp/bin/fit-basecamp.js`     |
+| Landmark CLI          | `products/landmark/bin/fit-landmark.js`     |
+| Summit CLI            | `products/summit/bin/fit-summit.js`         |
+| Universe CLI          | `libraries/libuniverse/bin/fit-universe.js` |
+| Templates             | `products/pathway/templates/`               |
+| JSON Schema           | `products/map/schema/json/`                 |
+| RDF/SHACL Schema      | `products/map/schema/rdf/`                  |
+| LLM / SEO outputs     | `website/llms.txt`, `website/robots.txt`    |
+| Repo self-maintenance | `CONTINUOUS_IMPROVEMENT.md`                 |
 
 ## Layouts
 

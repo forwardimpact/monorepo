@@ -138,9 +138,9 @@ git checkout origin/<headRefName> -- specs/<matched-directory>/
 4. If the spec does not meet quality criteria, skip the PR and comment with
    findings (include the `review-spec` decision and note that status should
    remain `draft`)
-5. If the spec passes review, proceed to merge. The spec will land on `main`
-   at whatever status the spec PR branch contains (typically `review`). A plan
-   must still be written and approved before implementation can begin
+5. If the spec passes review, proceed to merge. The spec will land on `main` at
+   whatever status the spec PR branch contains (typically `review`). A plan must
+   still be written and approved before implementation can begin
 
 ### Step 6: Merge
 

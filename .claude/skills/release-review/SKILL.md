@@ -35,8 +35,37 @@ gh run list --branch main --limit 5 --json name,conclusion,headBranch
 ```
 
 All recent workflow runs (Quality, Test, Security) must show
-`conclusion: success`. If any are failing, **stop** — do not release from a
-broken `main`. Report the failures and exit.
+`conclusion: success`. If any are failing, attempt to repair trivial failures
+before giving up — see § Repair Trivial CI Failures on Main below. If failures
+persist after the repair attempt, **stop** — do not release from a broken
+`main`. Report the remaining failures and exit.
+
+### Repair Trivial CI Failures on Main
+
+When a workflow fails due to formatting, lint, or lock file drift — issues that
+`npm run check:fix` can resolve — fix them directly on `main`. The release
+engineer is the **only** agent allowed to push directly to `main`, and only for
+these mechanical fixes that would otherwise block every PR and release.
+
+```sh
+git checkout main
+git pull origin main
+npm run check:fix
+npm run check            # Verify the fix resolves all failures
+```
+
+If `npm run check` passes after the fix:
+
+```sh
+git add <fixed-files>
+git commit -m "chore: fix formatting on main"
+git push origin main
+```
+
+Wait for CI to re-run and confirm green before proceeding with the release.
+
+If `npm run check` still fails after `check:fix`, the failure is not trivial —
+**stop** and report the failures. Do not attempt code-level fixes on `main`.
 
 ## Tag Prefix Mapping
 

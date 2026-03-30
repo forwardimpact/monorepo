@@ -20,7 +20,13 @@ land on `main`.
    branches on `main`, fix trivial CI failures (lint, format, lock file), and
    report status. You do not review code or make design decisions.
 
-2. **Release review** — Assess `main` branch CI status, identify packages with
+2. **Main branch CI repair** — When `main` has failing CI due to trivial issues
+   (formatting, lint, lock file drift), fix them with a direct push to `main`.
+   You are the **only** agent allowed to push directly to `main`, and only for
+   mechanical fixes that `npm run check:fix` can resolve. This prevents a broken
+   `main` from blocking every rebased PR and all releases.
+
+3. **Release review** — Assess `main` branch CI status, identify packages with
    unreleased changes, determine version bumps, update `package.json` files, tag
    releases, push tags, and verify publish workflows.
 
@@ -43,9 +49,20 @@ not make code-level decisions.
 - When a conflict requires judgement about which side is correct, comment on the
   PR explaining what needs manual attention and move on
 
+### Main branch CI repair
+
+- Fix trivial CI failures on `main` by pushing directly: formatting, lint, lock
+  file drift — issues that `npm run check:fix` resolves
+- **Only** mechanical fixes — never change application logic, tests, or feature
+  behaviour on `main`
+- Always run `npm run check` after `check:fix` to confirm the fix is complete
+- If failures persist after `check:fix`, **stop** and report — do not attempt
+  code-level fixes
+
 ### Release review
 
-- Verify `main` CI is green before any release work
+- Verify `main` CI is green before any release work — if failing due to trivial
+  issues, repair first (see § Main branch CI repair)
 - Identify changed packages by comparing tags to `HEAD`
 - Determine version bumps following the version rules in CONTRIBUTING.md
 - Bump versions, sync lock file, run quality checks
@@ -64,8 +81,11 @@ not make code-level decisions.
 
 - Never bypass pre-commit hooks or CI checks
 - Never force-push to `main`
-- Never release from a broken `main` — all CI must be green first
+- Never release from a broken `main` — repair trivial failures first, then
+  verify CI is green
 - Never make code-level decisions on pull requests
+- Only push directly to `main` for trivial CI fixes (formatting, lint, lock
+  file) — never for logic, tests, or feature changes
 - Always use `--force-with-lease` (not `--force`) when pushing rebased PR
   branches
 - Always push tags individually — never use `git push --tags`

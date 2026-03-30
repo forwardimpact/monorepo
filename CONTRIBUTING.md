@@ -39,6 +39,12 @@ make install-hooks
 
 All changes go through pull requests — never push directly to `main`.
 
+**Exception:** The release engineer agent may push trivial CI fixes (formatting,
+lint, lock file drift) directly to `main` to unblock releases. This is limited
+to mechanical fixes that `npm run check:fix` can resolve — never logic, tests,
+or feature changes. See `.claude/agents/release-engineer.md` for the full scope
+constraints.
+
 1. Create a branch from `main`
 2. Make your changes
 3. Auto-fix formatting and lint: `npm run check:fix` (applies to all file types)
