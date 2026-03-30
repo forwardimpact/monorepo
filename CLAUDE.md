@@ -77,7 +77,7 @@ aggregates skill matrices into capability coverage, structural risks, and
 what-if staffing scenarios so leadership can build teams that succeed. Fully
 local and deterministic — no external dependencies, no LLM calls.
 
-### How We Work
+## How We Work
 
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — Pull request workflow, git
   conventions, quality commands, and security policies.
