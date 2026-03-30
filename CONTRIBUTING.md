@@ -5,7 +5,6 @@
 ```sh
 npm install
 make quickstart
-make install-hooks
 ```
 
 ## Core Rules
@@ -108,8 +107,6 @@ npx fit-map validate --shacl  # Validate with SHACL syntax check
 
 Security policies apply to all contributors — human and agent.
 
-- **Pre-commit hooks** — `make install-hooks` installs a hook that auto-formats
-  staged files and scans for secrets via gitleaks.
 - **ESLint security rules** — `eslint-plugin-security` is enabled in
   `eslint.config.js`. Do not disable security rules without justification.
 - **npm audit** — `npm audit --audit-level=high` runs in CI and gates publish

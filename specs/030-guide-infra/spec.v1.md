@@ -535,5 +535,3 @@ node -e "import('crypto').then(c => console.log(c.randomBytes(32).toString('hex'
 - How much detail on the agent/tool interaction at query time? The current spec
   focuses on the offline processing, not the runtime query flow.
 - Should we document the gRPC service layer or keep it as internal?
-- The evaluation framework (`make eval`) is mentioned in config but not covered
-  here.

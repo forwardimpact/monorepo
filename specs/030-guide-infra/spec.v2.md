@@ -580,10 +580,8 @@ npx fit-basecamp --init ~/Documents
 ### Docker from Root
 
 ```bash
-# Build and run everything
-make docker
-
-# With storage backend
+# Build and run with storage backend
+make docker-build
 make docker-up-minio STORAGE=minio
 ```
 

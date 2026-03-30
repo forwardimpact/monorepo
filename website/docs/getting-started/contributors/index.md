@@ -15,12 +15,10 @@ git clone https://github.com/forwardimpact/monorepo.git
 cd monorepo
 npm install
 make quickstart
-make install-hooks
 ```
 
 The `quickstart` target bootstraps environment files, generates data, runs
-codegen, and processes resources. The `install-hooks` target sets up a
-pre-commit hook that scans for secrets using gitleaks.
+codegen, and processes resources.
 
 ## Generate synthetic data
 

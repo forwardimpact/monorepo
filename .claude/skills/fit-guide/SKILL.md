@@ -194,15 +194,6 @@ make process-vectors    # Build vector indices from data/resources/
 make process-graphs     # Build graph indices from data/resources/
 ```
 
-### Ingestion
-
-```sh
-make transform          # Transform documents (PDF → HTML)
-make ingest             # Load + pipeline (full ingestion)
-make ingest-load        # Load documents into pipeline
-make ingest-pipeline    # Run ingestion pipeline
-```
-
 ### Data Directories
 
 | Path              | Contents                                   |
@@ -275,7 +266,6 @@ agent delegation (`run_sub_agent`, `list_sub_agents`), and handoff control
 ## Docker
 
 ```sh
-make docker             # Build and start full stack
 make docker-build       # Build images only
 make docker-up          # Start core services
 make docker-up-minio    # Start with MinIO storage
@@ -299,18 +289,6 @@ make storage-upload     # Upload data to backend
 make storage-download   # Download data from backend
 make storage-list       # List storage contents
 ```
-
----
-
-## Evaluation
-
-```sh
-make eval               # Run evaluation suite
-make eval-report        # Generate evaluation report
-make eval-reset         # Reset evaluation state (logs, traces, memories)
-```
-
-Evaluation config: `config/eval.yml`
 
 ---
 

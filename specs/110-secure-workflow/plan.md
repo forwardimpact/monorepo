@@ -378,7 +378,7 @@ Keep it short and direct — no legal boilerplate.
 A developer-facing guide covering how to contribute safely. References existing
 tooling and the new security checks:
 
-- **Getting Started** — `npm install`, `make quickstart`, `make install-hooks`
+- **Getting Started** — `npm install`, `make quickstart`
 - **Development Workflow** — Branch, code, `npm run check`, commit, push
 - **Security Workflows** — Pre-commit secret scanning (gitleaks), ESLint
   security rules, `npm audit`, CI secret scanning
@@ -406,8 +406,6 @@ Add a new `## Security` section after the `## Code Style` section. Contents:
 ```markdown
 ## Security
 
-- **Pre-commit hooks** — Run `make install-hooks` after cloning. Gitleaks scans
-  staged changes for secrets before every commit.
 - **Secret scanning** — Never commit `.env` files, API keys, tokens, or
   credentials. The CI runs gitleaks on every PR.
 - **Audit** — `make audit` runs npm audit and gitleaks in one command. The same
@@ -443,7 +441,6 @@ security workflows.
 
 Add a security note to the skill referencing:
 
-- Pre-commit hooks: `make install-hooks`
 - Secret generation uses `libsecret` — never hardcode secrets
 - `make audit` for npm audit + gitleaks secret scanning
 
