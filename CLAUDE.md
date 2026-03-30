@@ -107,7 +107,7 @@ restate it. Update the canonical location only.
 | Dependabot triage process                    | `.claude/skills/dependabot-triage`    |
 | Release readiness (PR rebase/CI)             | `.claude/skills/release-readiness`    |
 | Release process (versioning/tags)            | `.claude/skills/release-review`       |
-| Repo self-maintenance (CI agents, PDSA loop) | `CONTINUOUS_IMPROVEMENT.md`           |
+| Repo self-maintenance (CI agents, feedback loop) | `CONTINUOUS_IMPROVEMENT.md`           |
 
 ## Distribution Model
 
