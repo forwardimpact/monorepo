@@ -34,5 +34,4 @@ jobs:
       - run: make install
       - run: npx playwright install --with-deps chromium
       - run: make generate
-      - run: npx fit-map generate-index
       - run: npm run test:e2e

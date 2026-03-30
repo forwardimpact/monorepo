@@ -27,14 +27,17 @@ quickstart: env-setup generate data-init codegen process-fast  ## Bootstrap from
 .PHONY: generate
 generate:  ## Generate synthetic data (cached prose)
 	@$(ENVLOAD) npx fit-universe
+	@npx fit-map generate-index
 
 .PHONY: generate-update
 generate-update:  ## Generate synthetic data with LLM and update prose cache
 	@$(ENVLOAD) npx fit-universe --generate
+	@npx fit-map generate-index
 
 .PHONY: generate-no-prose
 generate-no-prose:  ## Generate synthetic data (structural only, no prose)
 	@$(ENVLOAD) npx fit-universe --no-prose
+	@npx fit-map generate-index
 
 .PHONY: codegen
 codegen:  ## Generate all (types, services, clients)
