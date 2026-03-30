@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { TraceCollector, createTraceCollector } from "@forwardimpact/libtrace";
+import { TraceCollector, createTraceCollector } from "@forwardimpact/libeval";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturePath = path.join(__dirname, "fixtures", "stream.ndjson");

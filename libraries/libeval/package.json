@@ -1,5 +1,5 @@
 {
-  "name": "@forwardimpact/libtrace",
+  "name": "@forwardimpact/libeval",
   "version": "0.1.0",
   "description": "Process Claude Code stream-json output into structured traces",
   "license": "Apache-2.0",
@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "fit-trace": "./bin/fit-trace.js"
+    "fit-eval": "./bin/fit-eval.js"
   },
   "engines": {
     "node": ">=22.0.0"

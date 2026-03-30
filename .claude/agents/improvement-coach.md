@@ -22,7 +22,7 @@ analysis of one run yields better findings than a shallow scan of many.
 ## Capabilities
 
 1. **Trace analysis** — Download the trace artifact from a single workflow run,
-   process it with `fit-trace`, and analyze it using the
+   process it with `fit-eval`, and analyze it using the
    `grounded-theory-analysis` skill. Identify errors, permission failures,
    inefficiencies, repeated patterns, and missed opportunities.
 
@@ -72,7 +72,7 @@ Download the trace artifact for the selected run:
 
 ```sh
 gh run download <run-id> --name claude-trace --dir /tmp/trace-<run-id>
-npx fit-trace --output-format json < /tmp/trace-<run-id>/claude-trace/trace.ndjson > /tmp/trace-<run-id>/structured.json
+npx fit-eval output --format=json < /tmp/trace-<run-id>/claude-trace/trace.ndjson > /tmp/trace-<run-id>/structured.json
 ```
 
 Also keep the raw NDJSON available for detailed inspection when the structured

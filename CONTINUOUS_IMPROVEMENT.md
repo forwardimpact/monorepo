@@ -66,7 +66,7 @@ on **one trace** — depth over breadth. It:
 
 1. **Selects** a single completed run from the other five workflows (preferring
    failures, but successful runs are valid targets for inefficiency analysis).
-2. **Downloads** the execution trace artifact and processes it with `fit-trace`.
+2. **Downloads** the execution trace artifact and processes it with `fit-eval`.
 3. **Deep-analyzes** every turn, tool call, and result using grounded theory
    methodology (open coding, axial coding, selective coding) — no skimming.
 4. **Categorizes** findings as trivial fix, improvement, or observation.

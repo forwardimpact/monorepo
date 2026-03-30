@@ -23,10 +23,10 @@ derive actionable findings — never impose categories before examining the data
 
 ## Input
 
-The primary input is a structured trace produced by `fit-trace`:
+The primary input is a structured trace produced by `fit-eval`:
 
 ```sh
-npx fit-trace --output-format json < trace.ndjson > structured.json
+npx fit-eval output --format=json < trace.ndjson > structured.json
 ```
 
 The structured trace contains:

@@ -45,7 +45,7 @@
     "libraries/libsyntheticgen",
     "libraries/libsyntheticprose",
     "libraries/libsyntheticrender",
-    "libraries/libtrace",
+    "libraries/libeval",
     "libraries/libuniverse",
     "products/guide",
     "services/agent",
