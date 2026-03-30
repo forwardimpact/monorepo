@@ -38,11 +38,9 @@ jobs:
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           prompt: >
-            Download trace artifacts from the most recent runs of all
-            agent-driven workflows (security-audit, dependabot-triage,
-            release-readiness, release-review). Analyze each trace using the
-            grounded-theory-analysis skill. Implement trivial fixes as PRs and
-            write specs for larger improvements.
+            Pick one recent agent workflow run at random and deep-analyze its
+            trace using the grounded-theory-analysis skill. Implement trivial
+            fixes as PRs and write specs for larger improvements.
           agent: "improvement-coach"
           model: "opus"
           max-turns: "50"
