@@ -1,14 +1,15 @@
 # Spec Status Tracker
 #
-# Statuses:  draft → planned → active → done
+# Statuses:  draft → review → planned → active → done
 #
-#   draft    Spec or plan incomplete, competing versions unresolved
-#   planned  Spec and plan approved, ready for implementation
+#   draft    Spec or plan incomplete, still being written
+#   review   Ready for review, not yet approved
+#   planned  Reviewed and approved, ready for implementation
 #   active   Implementation in progress
 #   done     Implemented
 #
 # Format: {id}\t{status}
-# Update this file when creating, planning, or implementing a spec.
+# Update this file when creating, planning, reviewing, or implementing a spec.
 
 010	done
 020	done

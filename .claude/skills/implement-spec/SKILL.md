@@ -14,7 +14,7 @@ changes methodically.
 
 ## When to Use
 
-- A spec and plan exist and are approved for implementation
+- A spec and plan exist with STATUS `planned` (has passed review)
 - The user says "implement spec NNN" or "execute the plan for NNN"
 - Resuming a partially completed implementation
 
