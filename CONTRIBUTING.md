@@ -80,27 +80,8 @@ scope:
 **Version rules** — pre-1.0 packages (`0.x.y`) bump patch for any change.
 Post-1.0 packages use semver: breaking=major, feat=minor, fix/refactor=patch.
 
-**Finding changed packages:**
-
-```sh
-# For each package, compare latest tag to HEAD:
-latest=$(git tag --sort=-creatordate --list "${prefix}@v*" | head -1)
-git log "${latest}..HEAD" --oneline -- "${directory}"
-```
-
-**Release steps:**
-
-1. Commit all pending code changes first (version bumps go in a separate commit)
-2. Bump `version` in each changed `package.json`
-3. Update cross-workspace deps when bumping a major version (e.g. pathway's dep
-   on libskill: `^3.0.0` → `^4.0.0`)
-4. Run `npm install --package-lock-only` to sync `package-lock.json`
-5. Run `npm run check:fix` to ensure formatting and lint pass
-6. Commit: `chore({pkg}): bump to {version}` (or batch:
-   `chore: bump versions for release`)
-7. Tag at the final commit: `git tag {pkg}@v{version}`
-8. Push commits, then push each tag individually (not `--tags`)
-9. Verify each workflow: `gh run list --limit <n>`
+The release engineer agent handles version bumps, tagging, and publishing. See
+`.claude/skills/release-review` for the full release procedure.
 
 ## Quality Commands
 
@@ -160,3 +141,5 @@ restating the rules. Update the canonical location only.
 | GitHub Actions SHA pinning           | CONTRIBUTING.md § Security           |
 | Supply chain & app security          | `.claude/skills/security-audit`      |
 | Dependabot triage process            | `.claude/skills/dependabot-triage`   |
+| Release readiness (PR rebase/CI)     | `.claude/skills/release-readiness`   |
+| Release process (versioning/tags)    | `.claude/skills/release-review`      |
