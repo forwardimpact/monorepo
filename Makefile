@@ -1,19 +1,16 @@
-# Monorepo Makefile — platform automation beyond npm scripts.
-# Targets use `## comment` for inline docs; run `grep '##' Makefile` to list.
+# Monorepo Makefile — run `grep '##' Makefile` to list targets.
 
 ENV ?= local
 STORAGE ?= local
 AUTH ?= none
 ENVLOAD = ENV=$(ENV) STORAGE=$(STORAGE) AUTH=$(AUTH) ./scripts/env.sh
 
-# Install
+# ── Core ──────────────────────────────────────────────────────────
 
 .PHONY: install
 install:  ## Install dependencies and generate code
 	@npm ci
 	@npx --workspace=@forwardimpact/libcodegen fit-codegen --all
-
-# Quick Start
 
 .PHONY: quickstart
 quickstart: env-setup generate data-init codegen process-fast install-hooks  ## Bootstrap from scratch
@@ -25,20 +22,7 @@ quickstart: env-setup generate data-init codegen process-fast install-hooks  ## 
 	@echo ""
 	@echo "Next: make rc-start && make cli-chat"
 
-# Data Management
-
-.PHONY: data-init
-data-init:  ## Initialize data directories
-	@mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/knowledge data/logs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants data/activity data/pathway data/personal
-
-.PHONY: data-clean
-data-clean:  ## Remove generated data
-	@rm -rf generated data/cli data/eval data/logs data/graphs data/knowledge data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
-
-.PHONY: data-reset
-data-reset: data-clean data-init codegen  ## Clean, init, and regenerate code
-
-# Generation
+# ── Generate ──────────────────────────────────────────────────────
 
 .PHONY: generate
 generate:  ## Generate synthetic data (cached prose)
@@ -51,8 +35,6 @@ generate-update:  ## Generate synthetic data with LLM and update prose cache
 .PHONY: generate-no-prose
 generate-no-prose:  ## Generate synthetic data (structural only, no prose)
 	@$(ENVLOAD) npx fit-universe --no-prose
-
-# Code Generation
 
 .PHONY: codegen
 codegen:  ## Generate all (types, services, clients)
@@ -74,7 +56,7 @@ codegen-service:  ## Generate service bases only
 codegen-definition:  ## Generate definitions only
 	@npx --workspace=@forwardimpact/libcodegen fit-codegen --definition
 
-# Processing
+# ── Process ───────────────────────────────────────────────────────
 
 .PHONY: process
 process: process-agents process-resources process-tools process-graphs process-vectors  ## Process all resources
@@ -102,7 +84,20 @@ process-vectors:  ## Process vector indices
 process-graphs:  ## Process graph indices
 	@$(ENVLOAD) npx --workspace=@forwardimpact/libgraph fit-process-graphs
 
-# Services
+# ── Data ──────────────────────────────────────────────────────────
+
+.PHONY: data-init
+data-init:  ## Initialize data directories
+	@mkdir -p generated data/cli data/eval data/graphs data/ingest/in data/ingest/pipeline data/ingest/done data/knowledge data/logs data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants data/activity data/pathway data/personal
+
+.PHONY: data-clean
+data-clean:  ## Remove generated data
+	@rm -rf generated data/cli data/eval data/logs data/graphs data/knowledge data/memories data/policies data/resources data/traces data/vectors data/teams-tenant-configs data/teams-resource-ids data/tenants
+
+.PHONY: data-reset
+data-reset: data-clean data-init codegen  ## Clean, init, and regenerate code
+
+# ── Services ──────────────────────────────────────────────────────
 
 .PHONY: rc-start
 rc-start:  ## Start services via rc
@@ -120,137 +115,7 @@ rc-restart:  ## Restart services via rc
 rc-status:  ## Show service status
 	@$(ENVLOAD) npx fit-rc status
 
-# TEI (Text Embeddings Inference)
-
-.PHONY: tei-install
-tei-install:  ## Install TEI binary via cargo
-	@cargo install --git https://github.com/huggingface/text-embeddings-inference --features candle text-embeddings-router
-
-.PHONY: tei-start
-tei-start:  ## Start TEI embedding service
-	@$(ENVLOAD) npx fit-rc start tei
-
-# Supabase
-
-.PHONY: supabase-install
-supabase-install:  ## Install Supabase CLI (brew)
-	@which supabase >/dev/null 2>&1 || brew install supabase/tap/supabase
-
-.PHONY: supabase-up
-supabase-up:  ## Start local Supabase instance
-	@cd products/map && supabase start --workdir .
-
-.PHONY: supabase-down
-supabase-down:  ## Stop local Supabase instance
-	@cd products/map && supabase stop --workdir .
-
-.PHONY: supabase-start
-supabase-start:  ## Start Supabase via fit-rc (oneshot)
-	@$(ENVLOAD) npx fit-rc start supabase
-
-.PHONY: supabase-stop
-supabase-stop:  ## Stop Supabase via fit-rc (oneshot)
-	@$(ENVLOAD) npx fit-rc stop supabase
-
-.PHONY: supabase-migrate
-supabase-migrate:  ## Run Map database migrations
-	@cd products/map && supabase db reset --workdir .
-
-.PHONY: supabase-status
-supabase-status:  ## Supabase health check
-	@curl -sf http://127.0.0.1:54321/rest/v1/ >/dev/null && echo "supabase: ok" || echo "supabase: not running"
-
-.PHONY: supabase-seed
-supabase-seed:  ## Load example data into Supabase
-	@node products/map/scripts/load-examples.js
-
-.PHONY: supabase-setup
-supabase-setup: supabase-up supabase-seed  ## Start + migrate + seed
-
-# Docker
-
-.PHONY: docker-build
-docker-build:  ## Build Docker images
-	@. ./.env.build && docker --log-level debug compose build --no-cache
-
-.PHONY: docker-up
-docker-up:  ## Start Docker Compose (core services only)
-	@docker compose up
-
-.PHONY: docker-up-minio
-docker-up-minio:  ## Start Docker Compose with MinIO storage
-	@docker compose --env-file .env --env-file .env.docker --env-file .env.storage.minio --profile minio up
-
-.PHONY: docker-up-supabase
-docker-up-supabase:  ## Start Docker Compose with Supabase
-	@docker compose --env-file .env --env-file .env.docker --env-file .env.storage.supabase --profile supabase up
-
-.PHONY: docker-down
-docker-down:  ## Stop Docker Compose
-	@docker compose --profile minio --profile supabase down
-
-# Storage
-
-.PHONY: storage-setup
-storage-setup: storage-start storage-wait storage-init storage-upload  ## Full setup (start, wait, init, upload)
-
-.PHONY: storage-start
-storage-start:  ## Start storage backend containers
-	@docker compose --env-file .env --env-file .env.$(ENV) --env-file .env.storage.$(STORAGE) --profile $(STORAGE) up -d storage-$(STORAGE)
-
-.PHONY: storage-stop
-storage-stop:  ## Stop storage backend containers
-	@docker compose --profile minio --profile supabase down
-
-.PHONY: storage-wait
-storage-wait:  ## Wait for storage to be ready
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage wait
-
-.PHONY: storage-init
-storage-init:  ## Create bucket in storage backend
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage create-bucket
-
-.PHONY: storage-upload
-storage-upload:  ## Upload data to storage backend
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage upload
-
-.PHONY: storage-download
-storage-download:  ## Download data from storage backend
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage download
-
-.PHONY: storage-list
-storage-list:  ## List storage contents
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage list
-
-# Auth
-
-.PHONY: auth-start
-auth-start:  ## Start auth backend containers
-	@docker compose --env-file .env --env-file .env.$(ENV) --env-file .env.auth.$(AUTH) --profile $(AUTH) up -d auth-$(AUTH)
-
-.PHONY: auth-stop
-auth-stop:  ## Stop auth backend containers
-	@docker compose --profile gotrue --profile supabase down
-
-.PHONY: auth-user
-auth-user:  ## Create demo auth user
-	$(ENVLOAD) node scripts/auth-user.js
-
-# Documentation
-
-.PHONY: docs-build
-docs-build:  ## Build documentation
-	@npx --workspace=@forwardimpact/libdoc docs-build
-
-.PHONY: docs-serve
-docs-serve:  ## Serve documentation
-	@npx --workspace=@forwardimpact/libdoc docs-serve
-
-.PHONY: docs-watch
-docs-watch:  ## Serve with live reload
-	@npx --workspace=@forwardimpact/libdoc docs-serve --watch
-
-# CLI Tools
+# ── CLI ───────────────────────────────────────────────────────────
 
 .PHONY: cli-chat
 cli-chat: ## Agent conversations
@@ -288,7 +153,46 @@ cli-tiktoken:  ## Token counting
 cli-unary:  ## Unary gRPC calls
 	@$(ENVLOAD) npx --workspace=@forwardimpact/librpc fit-unary $(ARGS)
 
-# Environment
+# ── Docs ──────────────────────────────────────────────────────────
+
+.PHONY: docs-build
+docs-build:  ## Build documentation
+	@npx --workspace=@forwardimpact/libdoc docs-build
+
+.PHONY: docs-serve
+docs-serve:  ## Serve documentation
+	@npx --workspace=@forwardimpact/libdoc docs-serve
+
+.PHONY: docs-watch
+docs-watch:  ## Serve with live reload
+	@npx --workspace=@forwardimpact/libdoc docs-serve --watch
+
+# ── Quality ───────────────────────────────────────────────────────
+
+.PHONY: audit
+audit: audit-vulnerabilities audit-secrets  ## Run security audit (vulnerability + secret scanning)
+
+.PHONY: audit-vulnerabilities
+audit-vulnerabilities:  ## Check dependencies for known vulnerabilities
+	@npm audit --audit-level=high --omit=dev --workspaces
+
+.PHONY: audit-secrets
+audit-secrets:  ## Scan repository for leaked secrets
+	@if command -v gitleaks >/dev/null 2>&1; then \
+		gitleaks detect --source . --verbose; \
+	else \
+		echo "Warning: gitleaks not installed, skipping secret scan"; \
+	fi
+
+.PHONY: spellcheck
+spellcheck:  ## Check spelling in documentation
+	@npx spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' '!**/*-prompt.md' --dictionaries .dictionary.txt --no-suggestions
+
+.PHONY: install-hooks
+install-hooks:  ## Install git pre-commit hooks
+	@sh scripts/install-hooks.sh
+
+# ── Environment ───────────────────────────────────────────────────
 
 .PHONY: env-setup
 env-setup: env-reset env-secrets env-storage  ## Set up all environment secrets and storage config
@@ -309,8 +213,6 @@ env-storage:  ## Generate storage backend credentials
 env-github:  ## GitHub token utility
 	@$(ENVLOAD) node scripts/env-github.js
 
-# Utilities
-
 .PHONY: config-reset
 config-reset: ## Reset config files from examples
 	@cp config/config.example.json config/config.json
@@ -321,25 +223,118 @@ config-reset: ## Reset config files from examples
 download-bundle:  ## Download generated code bundle from S3
 	@$(ENVLOAD) npx --workspace=@forwardimpact/libutil fit-download-bundle
 
-.PHONY: audit
-audit: audit-vulnerabilities audit-secrets  ## Run security audit (vulnerability + secret scanning)
+# ── Docker ────────────────────────────────────────────────────────
 
-.PHONY: audit-vulnerabilities
-audit-vulnerabilities:  ## Check dependencies for known vulnerabilities
-	@npm audit --audit-level=high --omit=dev --workspaces
+.PHONY: docker-build
+docker-build:  ## Build Docker images
+	@. ./.env.build && docker --log-level debug compose build --no-cache
 
-.PHONY: audit-secrets
-audit-secrets:  ## Scan repository for leaked secrets
-	@if command -v gitleaks >/dev/null 2>&1; then \
-		gitleaks detect --source . --verbose; \
-	else \
-		echo "Warning: gitleaks not installed, skipping secret scan"; \
-	fi
+.PHONY: docker-up
+docker-up:  ## Start Docker Compose (core services only)
+	@docker compose up
 
-.PHONY: install-hooks
-install-hooks:  ## Install git pre-commit hooks
-	@sh scripts/install-hooks.sh
+.PHONY: docker-up-minio
+docker-up-minio:  ## Start Docker Compose with MinIO storage
+	@docker compose --env-file .env --env-file .env.docker --env-file .env.storage.minio --profile minio up
 
-.PHONY: spellcheck
-spellcheck:  ## Check spelling in documentation
-	@npx spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' '!**/*-prompt.md' --dictionaries .dictionary.txt --no-suggestions
+.PHONY: docker-up-supabase
+docker-up-supabase:  ## Start Docker Compose with Supabase
+	@docker compose --env-file .env --env-file .env.docker --env-file .env.storage.supabase --profile supabase up
+
+.PHONY: docker-down
+docker-down:  ## Stop Docker Compose
+	@docker compose --profile minio --profile supabase down
+
+# ── Storage ───────────────────────────────────────────────────────
+
+.PHONY: storage-setup
+storage-setup: storage-start storage-wait storage-init storage-upload  ## Full setup (start, wait, init, upload)
+
+.PHONY: storage-start
+storage-start:  ## Start storage backend containers
+	@docker compose --env-file .env --env-file .env.$(ENV) --env-file .env.storage.$(STORAGE) --profile $(STORAGE) up -d storage-$(STORAGE)
+
+.PHONY: storage-stop
+storage-stop:  ## Stop storage backend containers
+	@docker compose --profile minio --profile supabase down
+
+.PHONY: storage-wait
+storage-wait:  ## Wait for storage to be ready
+	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage wait
+
+.PHONY: storage-init
+storage-init:  ## Create bucket in storage backend
+	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage create-bucket
+
+.PHONY: storage-upload
+storage-upload:  ## Upload data to storage backend
+	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage upload
+
+.PHONY: storage-download
+storage-download:  ## Download data from storage backend
+	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage download
+
+.PHONY: storage-list
+storage-list:  ## List storage contents
+	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage list
+
+# ── Auth ──────────────────────────────────────────────────────────
+
+.PHONY: auth-start
+auth-start:  ## Start auth backend containers
+	@docker compose --env-file .env --env-file .env.$(ENV) --env-file .env.auth.$(AUTH) --profile $(AUTH) up -d auth-$(AUTH)
+
+.PHONY: auth-stop
+auth-stop:  ## Stop auth backend containers
+	@docker compose --profile gotrue --profile supabase down
+
+.PHONY: auth-user
+auth-user:  ## Create demo auth user
+	$(ENVLOAD) node scripts/auth-user.js
+
+# ── Supabase ──────────────────────────────────────────────────────
+
+.PHONY: supabase-install
+supabase-install:  ## Install Supabase CLI (brew)
+	@which supabase >/dev/null 2>&1 || brew install supabase/tap/supabase
+
+.PHONY: supabase-up
+supabase-up:  ## Start local Supabase instance
+	@cd products/map && supabase start --workdir .
+
+.PHONY: supabase-down
+supabase-down:  ## Stop local Supabase instance
+	@cd products/map && supabase stop --workdir .
+
+.PHONY: supabase-start
+supabase-start:  ## Start Supabase via fit-rc (oneshot)
+	@$(ENVLOAD) npx fit-rc start supabase
+
+.PHONY: supabase-stop
+supabase-stop:  ## Stop Supabase via fit-rc (oneshot)
+	@$(ENVLOAD) npx fit-rc stop supabase
+
+.PHONY: supabase-migrate
+supabase-migrate:  ## Run Map database migrations
+	@cd products/map && supabase db reset --workdir .
+
+.PHONY: supabase-status
+supabase-status:  ## Supabase health check
+	@curl -sf http://127.0.0.1:54321/rest/v1/ >/dev/null && echo "supabase: ok" || echo "supabase: not running"
+
+.PHONY: supabase-seed
+supabase-seed:  ## Load example data into Supabase
+	@node products/map/scripts/load-examples.js
+
+.PHONY: supabase-setup
+supabase-setup: supabase-up supabase-seed  ## Start + migrate + seed
+
+# ── TEI ───────────────────────────────────────────────────────────
+
+.PHONY: tei-install
+tei-install:  ## Install TEI binary via cargo
+	@cargo install --git https://github.com/huggingface/text-embeddings-inference --features candle text-embeddings-router
+
+.PHONY: tei-start
+tei-start:  ## Start TEI embedding service
+	@$(ENVLOAD) npx fit-rc start tei
