@@ -59,6 +59,8 @@ runs:
         if ! git clone "https://x-access-token:${GH_TOKEN}@${REPO_URL#https://}" "$WIKI_DIR" 2>/dev/null; then
           mkdir -p "$WIKI_DIR"
           git -C "$WIKI_DIR" init
+          git -C "$WIKI_DIR" config user.name "github-actions[bot]"
+          git -C "$WIKI_DIR" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           echo "# Agent Memory" > "$WIKI_DIR/Home.md"
           git -C "$WIKI_DIR" add .
           git -C "$WIKI_DIR" commit -m "Initialize wiki for agent memory"
@@ -119,7 +121,8 @@ runs:
         fi
 
     - name: Upload trace artifact
-      if: always() && inputs.trace == 'true'
+      if:
+        always() && inputs.trace == 'true' && steps.run.outputs.trace-dir != ''
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       with:
         name: ${{ inputs.trace-name }}
