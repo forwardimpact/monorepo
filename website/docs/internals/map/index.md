@@ -111,8 +111,7 @@ GitHub Events -> Map (github_events -> github_artifacts)
 
 Guide reads artifacts without evidence rows, assesses each against skill markers
 from capability YAML, and writes evidence back with `skill_id`, `level_id`,
-`marker_text`, `matched`, and `rationale`. Landmark reads evidence for
-presentation.
+`marker_text`, `matched`, and `rationale`.
 
 ---
 
@@ -144,7 +143,7 @@ Framework drivers are the GetDX drivers. The driver `id` in `drivers.yaml`
 matches the `item_id` in `getdx_snapshot_team_scores` -- no separate mapping is
 needed. Each driver declares `contributingSkills` and `contributingBehaviours`,
 linking the survey-measured outcome back to framework definitions. This is what
-makes the health view possible: Landmark juxtaposes a driver's GetDX score with
+makes health views possible: a driver's GetDX score can be juxtaposed with
 marker evidence for its contributing skills.
 
 ---
@@ -155,7 +154,6 @@ The data product serves five consumers through two interfaces:
 
 | Product      | Layer    | Consumes                                               |
 | ------------ | -------- | ------------------------------------------------------ |
-| **Landmark** | Activity | Snapshots, evidence, organization, markers             |
 | **Guide**    | Activity | Artifacts (reads), evidence (writes), markers (reads)  |
 | **Pathway**  | Pure     | Framework schema (skills, disciplines, levels, tracks) |
 | **Basecamp** | Pure     | Framework schema                                       |

@@ -42,73 +42,83 @@ Create `data/levels.yaml` with your level definitions. Each level sets baseline
 expectations for skill proficiency and behaviour maturity.
 
 ```yaml
-levels:
-  - id: L1
-    title: Junior Engineer
-    baseSkillProficiencies:
-      core: foundational
-      supporting: awareness
-      broad: awareness
-    baseBehaviourMaturity: emerging
+- id: L1
+  professionalTitle: Junior Engineer
+  managementTitle: Junior Manager
+  ordinalRank: 1
+  baseSkillProficiencies:
+    primary: foundational
+    secondary: awareness
+    broad: awareness
+  baseBehaviourMaturity: emerging
 
-  - id: L2
-    title: Engineer
-    baseSkillProficiencies:
-      core: working
-      supporting: foundational
-      broad: awareness
-    baseBehaviourMaturity: developing
+- id: L2
+  professionalTitle: Engineer
+  managementTitle: Manager
+  ordinalRank: 2
+  baseSkillProficiencies:
+    primary: working
+    secondary: foundational
+    broad: awareness
+  baseBehaviourMaturity: developing
 
-  - id: L3
-    title: Senior Engineer
-    baseSkillProficiencies:
-      core: practitioner
-      supporting: working
-      broad: foundational
-    baseBehaviourMaturity: practicing
+- id: L3
+  professionalTitle: Senior Engineer
+  managementTitle: Senior Manager
+  ordinalRank: 3
+  baseSkillProficiencies:
+    primary: practitioner
+    secondary: working
+    broad: foundational
+  baseBehaviourMaturity: practicing
 ```
 
 ### Define a capability and skill
 
 Create `data/capabilities/delivery.yaml` with one capability containing a skill.
-Each skill has a `human:` section describing what the proficiency levels mean
-for people.
+Each skill needs a `human:` section with a description and proficiency
+descriptions at all five levels.
 
 ```yaml
-id: delivery
-title: Delivery
+name: Delivery
 description: Ship working software reliably.
 skills:
   - id: task_execution
-    title: Task Execution
+    name: Task Execution
     human:
-      awareness: >
-        Understands the team's delivery workflow and follows guidance
-        to complete assigned tasks.
-      foundational: >
-        Breaks work into steps, estimates effort, and completes tasks
-        with minimal guidance.
-      working: >
-        Independently plans and delivers work, adjusting approach when
-        requirements change.
-      practitioner: >
-        Leads delivery across multiple workstreams, mentoring others
-        on effective execution.
-      expert: >
-        Defines delivery practices that scale across the organization.
+      description: Breaking down and completing engineering work
+      proficiencyDescriptions:
+        awareness: >
+          Understands the team's delivery workflow and follows guidance
+          to complete assigned tasks.
+        foundational: >
+          Breaks work into steps, estimates effort, and completes tasks
+          with minimal guidance.
+        working: >
+          Independently plans and delivers work, adjusting approach when
+          requirements change.
+        practitioner: >
+          Leads delivery across multiple workstreams, mentoring others
+          on effective execution.
+        expert: >
+          Defines delivery practices that scale across the organization.
 ```
 
 ### Define a discipline
 
-Create `data/disciplines/software_engineering.yaml` referencing your capability.
+Create `data/disciplines/software_engineering.yaml` referencing your capability
+skill.
 
 ```yaml
-id: software_engineering
-title: Software Engineering
-type: professional
+specialization: Software Engineering
+roleTitle: Software Engineer
 coreSkills:
-  - delivery/task_execution
+  - task_execution
+validTracks:
+  - null
 ```
+
+Use `null` in `validTracks` to allow a trackless (generalist) configuration.
 
 ## Validate
 
@@ -134,6 +144,7 @@ Browse disciplines, levels, and skills to verify everything looks correct.
 ## Next steps
 
 - [Authoring frameworks](/docs/guides/authoring-frameworks/) -- full guide to
-  defining skills, behaviours, tracks, and stages
+  defining all entity types: levels, disciplines, tracks, capabilities, skills,
+  behaviours, stages, and drivers
 - [YAML schema reference](/docs/reference/yaml-schema/) -- complete file format
   documentation

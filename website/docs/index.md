@@ -24,7 +24,7 @@ Quickstart guides for leadership, developers, and contributors.
 ### Guides
 
 Task-oriented guides: authoring frameworks, agent teams, career paths, knowledge
-systems, engineering signals, team capability, and finding your bearing.
+systems, team capability, and finding your bearing.
 
 </a>
 
@@ -40,8 +40,8 @@ CLI commands, entity model, lifecycle stages, and YAML schema format.
 
 ### Internals
 
-Architecture and code: Map, Pathway, libskill, Basecamp, Guide, Landmark,
-Summit, and Universe.
+Architecture and code: Map, Pathway, libskill, Basecamp, Guide, Summit, and
+Universe.
 
 </a>
 

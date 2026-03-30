@@ -59,7 +59,7 @@ npm run check:fix
 ## Understand the structure
 
 ```
-products/       Six products (map, pathway, basecamp, guide, landmark, summit)
+products/       Six products (map, pathway, basecamp, guide, summit, landmark)
 libraries/      Shared libraries (libskill, libui, libdoc, etc.)
 services/       gRPC microservices (agent, graph, llm, memory, etc.)
 data/           Generated and framework data
@@ -70,8 +70,7 @@ website/        Documentation website
 
 **Products** answer specific questions for specific users. Map defines what good
 engineering looks like. Pathway renders career frameworks. Basecamp manages
-personal knowledge. Guide interprets artifacts. Landmark analyzes signals.
-Summit models team capability.
+personal knowledge. Guide interprets artifacts. Summit models team capability.
 
 **Libraries** provide shared logic following OO+DI patterns -- classes accept
 dependencies through constructors, factory functions wire real implementations,

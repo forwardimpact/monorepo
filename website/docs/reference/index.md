@@ -12,7 +12,7 @@ toc: false
 ### CLI Reference
 
 Commands, arguments, and options for fit-map, fit-pathway, fit-basecamp,
-fit-landmark, fit-summit, fit-universe, and fit-doc.
+fit-summit, fit-universe, and fit-doc.
 
 </a>
 

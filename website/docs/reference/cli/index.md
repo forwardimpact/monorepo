@@ -200,36 +200,6 @@ fit-basecamp --update [path]         # Update KB with latest templates
 
 ---
 
-## fit-landmark
-
-Signal analysis on engineering framework data. Combines GitHub evidence with
-GetDX snapshots.
-
-```sh
-fit-landmark evidence --skill <id>                          # Personal evidence
-fit-landmark practice --skill <id> --manager <username>     # Practice patterns
-fit-landmark snapshot trend --item <id> --manager <username> # Snapshot trends
-fit-landmark snapshot compare --snapshot <id> --manager <username> # Snapshot comparison
-fit-landmark health --manager <username>                     # Health views
-```
-
-| Command            | Description                                         |
-| ------------------ | --------------------------------------------------- |
-| `evidence`         | View evidence for a skill                           |
-| `practice`         | View practice patterns across a manager's team      |
-| `snapshot trend`   | Track score trajectory for an item across snapshots |
-| `snapshot compare` | Compare a snapshot with benchmarks                  |
-| `health`           | Team health view combining signals and evidence     |
-
-| Option             | Description                |
-| ------------------ | -------------------------- |
-| `--skill <id>`     | Skill ID to query          |
-| `--manager <user>` | Manager username for scope |
-| `--item <id>`      | Snapshot item ID           |
-| `--snapshot <id>`  | Snapshot ID for comparison |
-
----
-
 ## fit-summit
 
 Team capability analysis. Deterministic, no LLM calls.

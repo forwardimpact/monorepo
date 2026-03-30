@@ -52,15 +52,6 @@ pipeline, conversation memory, and service stack.
 
 </a>
 
-<a href="/docs/internals/landmark/">
-
-### Landmark
-
-Analysis pipeline — data inputs, query contracts, view composition, and product
-position in the suite.
-
-</a>
-
 <a href="/docs/internals/summit/">
 
 ### Summit

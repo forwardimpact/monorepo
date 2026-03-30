@@ -92,7 +92,7 @@ get the same foundational answer, because the source of truth is shared.
 Guide works with your Map data out of the box. If you have authored a framework
 (skills, levels, behaviours defined in YAML) and validated it with Map, Guide
 can reason about it immediately. There is no separate setup or configuration —
-Guide reads from the same data that Pathway, Landmark, and Summit use.
+Guide reads from the same data that Pathway and Summit use.
 
 ## Related Documentation
 

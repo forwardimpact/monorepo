@@ -11,8 +11,8 @@ toc: false
 
 ### Authoring Frameworks
 
-Define your engineering framework in YAML — entities, skills, behaviours,
-markers, and validation.
+Define your engineering framework in YAML — levels, disciplines, tracks,
+capabilities, skills, behaviours, stages, and drivers.
 
 </a>
 
@@ -40,15 +40,6 @@ progression between levels.
 
 Set up Basecamp for personal knowledge management — scheduler, tasks, and
 knowledge base structure.
-
-</a>
-
-<a href="/docs/guides/engineering-signals/">
-
-### Engineering Signals
-
-Use Landmark to analyze marker evidence, snapshot trends, and team-scoped
-engineering signals.
 
 </a>
 
