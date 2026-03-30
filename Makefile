@@ -22,7 +22,7 @@ quickstart: env-setup synthetic data-init codegen process-fast  ## Bootstrap fro
 	@echo ""
 	@echo "Next: make rc-start && make cli-chat"
 
-# ── Generate ──────────────────────────────────────────────────────
+# ── Synthetic ─────────────────────────────────────────────────────
 
 .PHONY: synthetic
 synthetic:  ## Generate synthetic data (cached prose)
