@@ -151,6 +151,16 @@ gh pr comment <number> --body "Product backlog triage: all gates pass — type i
 gh pr merge <number> --squash --auto
 ```
 
+After merging, verify the PR state changed:
+
+```sh
+gh pr view <number> --json state --jq '.state'
+```
+
+The result should be `MERGED`. If the state is still `OPEN` (e.g. auto-merge was
+enabled but hasn't triggered yet), note this in the summary rather than
+reporting the PR as merged.
+
 ### Step 7: Report Summary
 
 After processing all PRs, produce a summary table:
