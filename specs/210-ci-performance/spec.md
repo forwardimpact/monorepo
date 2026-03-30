@@ -1,7 +1,7 @@
 # 210 — CI Performance: Full Bun Migration
 
-Every pull request triggers three GitHub Actions workflows that collectively spin
-up six jobs. Five of those six jobs independently run `npm ci` against 46
+Every pull request triggers three GitHub Actions workflows that collectively
+spin up six jobs. Five of those six jobs independently run `npm ci` against 46
 workspaces, installing 225 MB of node_modules from scratch each time. Beyond CI,
 another six scheduled agent workflows and three publish workflows all pay the
 same cost. The package manager is the single largest time sink across the entire
@@ -17,24 +17,24 @@ local development, and production.
 
 The `make install` step (`npm ci` + codegen) runs in 12 of 15 workflow jobs:
 
-| Workflow | Job | Runs `make install`? |
-|---|---|---|
-| check-quality.yml | lint | yes |
-| check-quality.yml | format | yes |
-| check-test.yml | test | yes |
-| check-test.yml | e2e | yes |
-| check-security.yml | vulnerability-scanning | yes |
-| check-security.yml | secret-scanning | no |
-| publish-npm.yml | publish | yes |
-| publish-macos.yml | build | no (uses npm run directly) |
-| publish-skills.yml | publish | no (no install needed) |
-| website.yaml | build | yes (npm ci) |
-| security-audit.yml | audit | yes |
-| release-readiness.yml | readiness | yes |
-| release-review.yml | review | yes |
-| product-backlog.yml | backlog | yes |
-| improvement-coach.yml | coach | yes |
-| dependabot-triage.yml | triage | yes |
+| Workflow              | Job                    | Runs `make install`?       |
+| --------------------- | ---------------------- | -------------------------- |
+| check-quality.yml     | lint                   | yes                        |
+| check-quality.yml     | format                 | yes                        |
+| check-test.yml        | test                   | yes                        |
+| check-test.yml        | e2e                    | yes                        |
+| check-security.yml    | vulnerability-scanning | yes                        |
+| check-security.yml    | secret-scanning        | no                         |
+| publish-npm.yml       | publish                | yes                        |
+| publish-macos.yml     | build                  | no (uses npm run directly) |
+| publish-skills.yml    | publish                | no (no install needed)     |
+| website.yaml          | build                  | yes (npm ci)               |
+| security-audit.yml    | audit                  | yes                        |
+| release-readiness.yml | readiness              | yes                        |
+| release-review.yml    | review                 | yes                        |
+| product-backlog.yml   | backlog                | yes                        |
+| improvement-coach.yml | coach                  | yes                        |
+| dependabot-triage.yml | triage                 | yes                        |
 
 Each `npm ci` invocation resolves, downloads, and links 652 packages across 46
 workspaces. Even with GitHub Actions npm caching enabled (`cache: npm` on
@@ -101,8 +101,8 @@ The monorepo is well-suited for this migration:
   `node:crypto`, `node:child_process`, `node:async_hooks` (AsyncLocalStorage),
   `node:net`, and `node:stream` — all fully supported by Bun.
 - **Compatible test framework.** Tests use `node:test` and `node:assert` with
-  `describe`, `test`, `beforeEach`, `mock.fn()` — all supported by Bun's
-  Node.js compatibility layer.
+  `describe`, `test`, `beforeEach`, `mock.fn()` — all supported by Bun's Node.js
+  compatibility layer.
 - **No problematic APIs.** No usage of `node:vm`, `node:worker_threads`,
   `node:inspector`, or `node:diagnostics_channel`.
 
@@ -117,9 +117,10 @@ Scope of Bun adoption:
 - **Script runner: yes.** `bun run` replaces `npm run` for executing package
   scripts, eliminating npm's shell-spawning overhead.
 - **Test runner: no.** Keep `node:test` as the test API. Tests continue to use
-  `import { test, describe } from "node:test"` and `import assert from
-  "node:assert"`. Bun executes them via `bun --test` or `bun run node --test` —
-  the test _API_ stays the same, only the _runner process_ changes.
+  `import { test, describe } from "node:test"` and
+  `import assert from "node:assert"`. Bun executes them via `bun --test` or
+  `bun run node --test` — the test _API_ stays the same, only the _runner
+  process_ changes.
 
 ### Remove package-lock.json
 
@@ -141,8 +142,8 @@ This includes:
   product-backlog, improvement-coach, dependabot-triage
 
 The `.github/actions/claude` composite action switches its global install from
-`npm install -g @anthropic-ai/claude-code` to `bun install -g
-@anthropic-ai/claude-code`.
+`npm install -g @anthropic-ai/claude-code` to
+`bun install -g @anthropic-ai/claude-code`.
 
 The `.github/actions/audit` composite action adapts vulnerability scanning to
 work with Bun's lockfile, either via `bun pm` or by retaining a targeted
@@ -153,8 +154,8 @@ work with Bun's lockfile, either via `bun pm` or by retaining a targeted
 The vulnerability-scanning job currently runs `make install` (full dependency
 tree + codegen) just to execute `npm audit`. The audit reads package metadata,
 not installed code. With Bun as the package manager, the job installs
-dependencies (fast) but skips codegen entirely. If `bun audit` or equivalent
-is not available, a lightweight `npm audit` against the lockfile can be retained
+dependencies (fast) but skips codegen entirely. If `bun audit` or equivalent is
+not available, a lightweight `npm audit` against the lockfile can be retained
 without the full install.
 
 ### Increase Playwright parallelism
@@ -190,8 +191,8 @@ check time by roughly 40%.
   Separate jobs provide faster signal — a developer sees "lint failed" or
   "format failed" immediately without waiting for the full suite. The cost of
   separate jobs drops dramatically when install takes 2 seconds instead of 45.
-- **Rewriting tests to `bun:test`.** Tests keep the `node:test` API. This
-  avoids rewriting 110 test files and maintains portability.
+- **Rewriting tests to `bun:test`.** Tests keep the `node:test` API. This avoids
+  rewriting 110 test files and maintains portability.
 - **Basecamp's Deno dependency.** The macOS build uses Deno via `just pkg`.
   That's a separate toolchain concern unrelated to the npm-to-Bun migration.
 
@@ -206,12 +207,13 @@ check time by roughly 40%.
 3. **E2E parallelism.** Playwright E2E tests run with 2 workers in CI, confirmed
    by Playwright's output log showing `Running N tests using 2 workers`.
 4. **Local check time.** `bun run check` completes at least 30% faster on a
-   developer machine compared to the sequential baseline, measured across 5 runs.
+   developer machine compared to the sequential baseline, measured across 5
+   runs.
 5. **Zero test regressions.** All 110 existing test files pass under Bun. All
    E2E specs pass. No new test flakiness introduced.
-6. **All workflows green.** Every workflow in `.github/workflows/` succeeds after
-   the migration — verified by a full CI run on the migration PR plus manual
-   triggering of publish and agent workflows (or dry-run equivalents).
+6. **All workflows green.** Every workflow in `.github/workflows/` succeeds
+   after the migration — verified by a full CI run on the migration PR plus
+   manual triggering of publish and agent workflows (or dry-run equivalents).
 7. **Single lockfile.** `package-lock.json` is deleted. `bun.lock` is the sole
    lockfile. No lockfile drift is possible.
 8. **Audit integrity.** Vulnerability scanning continues to detect the same
