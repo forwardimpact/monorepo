@@ -77,7 +77,7 @@ the product manager performed trust checks on every merged PR (see §
 Accountability below).
 
 This means the system studies its own behaviour and feeds corrections back in —
-a PDSA cycle (Plan-Do-Study-Act) running autonomously on a weekly cadence.
+a closed feedback loop running autonomously on a weekly cadence.
 
 ```mermaid
 graph TD
