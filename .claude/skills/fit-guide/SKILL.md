@@ -310,7 +310,7 @@ the prose cache directly into `data/`, and processes all resources.
 For individual steps or custom generation:
 
 ```sh
-make generate-full      # Generate with LLM prose (requires LLM_TOKEN)
+make synthetic-update   # Generate with LLM prose (requires LLM_TOKEN)
 make data-init          # Create data directories
 make process            # Full processing including vectors (requires TEI)
 ```

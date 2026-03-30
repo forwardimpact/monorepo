@@ -272,7 +272,7 @@ Source material: existing CLI examples from Pathway and Basecamp docs.
 Content outline:
 
 - Clone and install (`npm install`, `make quickstart`)
-- Generate synthetic data (`make generate`)
+- Generate synthetic data (`make synthetic`)
 - Run checks (`npm run check`)
 - Understand the structure (link to Internals)
 - Next steps: link to relevant Internals pages

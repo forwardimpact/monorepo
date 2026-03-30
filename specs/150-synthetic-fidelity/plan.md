@@ -492,14 +492,14 @@ messages include the full system and user prompts, any change to prompt text
 different cache key.
 
 This means Tier 2 changes will **not** match existing cache entries — every
-entity will be regenerated on the next `make generate-update` run. This is the
+entity will be regenerated on the next `make synthetic-update` run. This is the
 desired behaviour (we want the new prompts to produce coherent prose), but it
 means the first generation after Tier 2 ships will be a full LLM run, not a
 cache-only run.
 
-**Action:** After completing Tier 2, run `make generate-update` to regenerate
+**Action:** After completing Tier 2, run `make synthetic-update` to regenerate
 all prose and update `.prose-cache.json`. Commit the updated cache so that
-subsequent `make generate` (cached mode) works without LLM calls.
+subsequent `make synthetic` (cached mode) works without LLM calls.
 
 ---
 
@@ -680,7 +680,7 @@ and platform names. The following references need updating:
 | `MolecularForge`      | Platform name/IRI | OK — exists in `industry-data.js`                                     | No change needed                    |
 | `Oncora`              | Drug name         | OK — exists in `industry-data.js`                                     | No change needed                    |
 
-Run `make generate` in no-prose mode and cross-reference every named entity and
+Run `make synthetic` in no-prose mode and cross-reference every named entity and
 IRI in `eval.example.yml` against the generated output. Update all broken
 references in a single commit.
 
@@ -834,7 +834,7 @@ approximately 90% of the dominant topic.
 Add a `checkProseLength` check to `validateCrossContent`. Before setting final
 ranges, measure the current distributions:
 
-**Step 1 — Measure baselines:** Run `make generate-update` and compute
+**Step 1 — Measure baselines:** Run `make synthetic-update` and compute
 min/mean/max character counts for each prose field type across all generated
 entities. Record the distributions.
 
@@ -936,6 +936,6 @@ After all tiers:
 ```sh
 npm run test                    # Unit tests pass
 npm run check                   # Lint + format + test
-make generate                   # Generation succeeds
+make synthetic                  # Generation succeeds
 npx fit-map validate            # Data validation passes
 ```

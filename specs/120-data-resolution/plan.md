@@ -215,7 +215,7 @@ Stays at `examples/universe.dsl`. This is an input file, not output.
 1. `node --test libraries/libutil/test/finder.test.js` — new + existing tests
    pass
 2. `npm test` — all tests pass
-3. `make generate` — writes to `data/` not `examples/`
+3. `make synthetic` — writes to `data/` not `examples/`
 4. `npx fit-map validate` — finds `data/pathway/` via upward traversal
 5. `npx fit-pathway skill --list` — works from monorepo root
 6. `npx fit-map validate --data=/some/path` — CLI flag override works

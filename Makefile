@@ -13,7 +13,7 @@ install:  ## Install dependencies and generate code
 	@npx --workspace=@forwardimpact/libcodegen fit-codegen --all
 
 .PHONY: quickstart
-quickstart: env-setup generate data-init codegen process-fast  ## Bootstrap from scratch
+quickstart: env-setup synthetic data-init codegen process-fast  ## Bootstrap from scratch
 	@echo ""
 	@echo "=== Quickstart complete ==="
 	@printf "  Knowledge files: %s\n" "$$(find data/knowledge -name '*.html' 2>/dev/null | wc -l | tr -d ' ')"
@@ -24,18 +24,18 @@ quickstart: env-setup generate data-init codegen process-fast  ## Bootstrap from
 
 # ── Generate ──────────────────────────────────────────────────────
 
-.PHONY: generate
-generate:  ## Generate synthetic data (cached prose)
+.PHONY: synthetic
+synthetic:  ## Generate synthetic data (cached prose)
 	@$(ENVLOAD) npx fit-universe
 	@npx fit-map generate-index
 
-.PHONY: generate-update
-generate-update:  ## Generate synthetic data with LLM and update prose cache
+.PHONY: synthetic-update
+synthetic-update:  ## Generate synthetic data with LLM and update prose cache
 	@$(ENVLOAD) npx fit-universe --generate
 	@npx fit-map generate-index
 
-.PHONY: generate-no-prose
-generate-no-prose:  ## Generate synthetic data (structural only, no prose)
+.PHONY: synthetic-no-prose
+synthetic-no-prose:  ## Generate synthetic data (structural only, no prose)
 	@$(ENVLOAD) npx fit-universe --no-prose
 	@npx fit-map generate-index
 

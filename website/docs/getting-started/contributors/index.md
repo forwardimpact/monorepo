@@ -25,7 +25,7 @@ codegen, and processes resources.
 The monorepo includes a synthetic data pipeline for testing and development:
 
 ```sh
-make generate
+make synthetic
 ```
 
 This uses cached prose from `data/synthetic/prose-cache.json` and requires no
@@ -35,8 +35,8 @@ activity data that the products consume during development and testing.
 Other generation modes:
 
 ```sh
-make generate-update     # Regenerate prose via LLM and update the cache
-make generate-no-prose   # Structural data only, no prose content
+make synthetic-update     # Regenerate prose via LLM and update the cache
+make synthetic-no-prose   # Structural data only, no prose content
 ```
 
 ## Run checks

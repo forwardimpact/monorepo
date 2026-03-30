@@ -549,5 +549,5 @@ proficiency for each level — e.g., L5 assessments should not have a majority o
 
 ### Baseline
 
-22. `make generate && npm run test` passes with no regressions.
+22. `make synthetic && npm run test` passes with no regressions.
 23. `npx fit-map validate` passes on generated data.
