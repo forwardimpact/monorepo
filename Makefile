@@ -13,7 +13,7 @@ install:  ## Install dependencies and generate code
 	@npx --workspace=@forwardimpact/libcodegen fit-codegen --all
 
 .PHONY: quickstart
-quickstart: env-setup generate data-init codegen process-fast install-hooks  ## Bootstrap from scratch
+quickstart: env-setup generate data-init codegen process-fast  ## Bootstrap from scratch
 	@echo ""
 	@echo "=== Quickstart complete ==="
 	@printf "  Knowledge files: %s\n" "$$(find data/knowledge -name '*.html' 2>/dev/null | wc -l | tr -d ' ')"
@@ -184,13 +184,6 @@ audit-secrets:  ## Scan repository for leaked secrets
 		echo "Warning: gitleaks not installed, skipping secret scan"; \
 	fi
 
-.PHONY: spellcheck
-spellcheck:  ## Check spelling in documentation
-	@npx spellchecker --quiet --files '**/*.md' '**/*.html' '!examples/**' '!**/*-prompt.md' --dictionaries .dictionary.txt --no-suggestions
-
-.PHONY: install-hooks
-install-hooks:  ## Install git pre-commit hooks
-	@sh scripts/install-hooks.sh
 
 # ── Environment ───────────────────────────────────────────────────
 
