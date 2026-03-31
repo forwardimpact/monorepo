@@ -3,6 +3,10 @@ title: Guide Internals
 description: "Agent infrastructure — orchestration pipeline, tool execution, knowledge pipeline, and service stack."
 ---
 
+> **Note:** Guide and its service stack (`fit-rc`, `fit-guide`) are
+> monorepo-only tools not published to npm. Running Guide requires a full
+> monorepo checkout.
+
 ## Architecture
 
 Guide is an AI agent that understands your organization's engineering framework

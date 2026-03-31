@@ -7,6 +7,10 @@ description:
 
 # Operations Reference
 
+> **Note:** The commands on this page (`make` targets, `fit-rc`, environment
+> scripts) require a full monorepo checkout. For npm-based installs, see
+> [Getting Started: Developers](/docs/getting-started/developers/).
+
 Day-to-day reference for environment setup, service management, and common
 development tasks. For the PR workflow and contributing guidelines, see
 [CONTRIBUTING.md](https://github.com/forwardimpact/monorepo/blob/main/CONTRIBUTING.md).
