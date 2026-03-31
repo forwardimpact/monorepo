@@ -71,6 +71,7 @@ playwright-report/
 
 # Package files
 node_modules/
+package-lock.json
 
 # Supabase local state
 **/.branches/
