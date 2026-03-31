@@ -1,15 +1,15 @@
 # 210 — CI Performance: Full Bun Migration
 
 Every pull request triggers three GitHub Actions workflows that collectively
-spin up six jobs. Five of those six jobs independently run `npm ci` against 50
+spin up six jobs. Five of those six jobs independently run `npm ci` against 45
 workspaces, installing 225 MB of node_modules from scratch each time. Beyond CI,
 another six scheduled agent workflows and three publish workflows all pay the
 same cost. The package manager is the single largest time sink across the entire
 GitHub Actions footprint.
 
-This spec defines a full migration from Node.js + npm to Bun as the runtime,
-package manager, and script runner across the entire project — CI workflows,
-local development, and production.
+This spec defines the desired outcomes: dramatically faster installs, parallel
+CI checks, parallel E2E tests, and a leaner audit job — along with a unified
+runtime and package manager to reduce toolchain friction.
 
 ## Problem
 
@@ -36,7 +36,7 @@ The `make install` step (`npm ci` + codegen) runs in 12 of 16 workflow jobs:
 | improvement-coach.yml | coach                  | yes                        |
 | dependabot-triage.yml | triage                 | yes                        |
 
-Each `npm ci` invocation resolves, downloads, and links 652 packages across 50
+Each `npm ci` invocation resolves, downloads, and links 652 packages across 45
 workspaces. Even with GitHub Actions npm caching enabled (`cache: npm` on
 setup-node), the restore-cache + `npm ci` + codegen step costs 30-60 seconds per
 job. Across all workflows, the monorepo pays this cost 12 times per trigger
@@ -80,70 +80,45 @@ on Bun as the single runtime eliminates the Node.js dependency for contributors,
 aligns the runtime with the package manager, and simplifies the toolchain to one
 install.
 
-## Proposal
+## Desired Outcomes
 
-### Migrate fully to Bun
+1. **Fast installs.** Package installation in CI should take seconds, not 30-60
+   seconds per job. The package manager should leverage a global cache and avoid
+   re-resolving dependencies on every run.
 
-Replace Node.js + npm with Bun as the runtime, package manager, and script
-runner across the entire project.
+2. **Single lockfile.** The project should have exactly one lockfile maintained
+   by one package manager. No drift risk from parallel lockfiles.
 
-The monorepo is well-suited for this migration:
+3. **Unified runtime and package manager.** A single tool should serve as
+   runtime, package manager, and script runner — reducing the number of tools
+   contributors must install and eliminating version matrix friction.
+
+4. **Lean vulnerability scanning.** The audit job should install only what
+   `npm audit` needs (dependency metadata), not the full dependency tree and
+   codegen output.
+
+5. **Parallel E2E tests.** Playwright should use available CPU cores in CI
+   instead of forcing a single worker on a 4-vCPU runner.
+
+6. **Parallel local checks.** The `check` script should run independent steps
+   concurrently rather than sequentially.
+
+7. **Preserved test API.** Tests continue to use `node:test` imports. The test
+   _API_ stays the same — only the _runner process_ changes.
+
+### Codebase suitability
+
+The monorepo is well-suited for an alternative runtime:
 
 - **Pure JavaScript codebase.** No native addons, no node-gyp, no compiled
-  binaries. All 50 workspace packages are plain JS + JSDoc.
+  binaries. All 45 workspace packages are plain JS + JSDoc.
 - **Pure JS gRPC.** Uses `@grpc/grpc-js` (pure JavaScript HTTP/2
   implementation), not the native C++ `grpc` package.
 - **Compatible Node.js APIs.** The codebase uses `node:fs`, `node:path`,
   `node:crypto`, `node:child_process`, `node:async_hooks` (AsyncLocalStorage),
-  `node:net`, and `node:stream` — all supported by Bun.
+  `node:net`, and `node:stream`.
 - **No problematic APIs.** No usage of `node:vm`, `node:worker_threads`,
   `node:inspector`, or `node:diagnostics_channel`.
-
-Scope of Bun adoption:
-
-- **Runtime: yes.** Bun replaces Node.js as the execution runtime. CLI entry
-  points (`bin/fit-*.js`) and services run under Bun. The `engines` field in all
-  38 workspace package.json files changes from Node.js to Bun.
-- **Package manager: yes.** Bun's installer replaces `npm ci` and `npm install`
-  everywhere. A single Bun lockfile replaces `package-lock.json`.
-- **Script runner: yes.** Bun replaces `npm run` for executing package scripts
-  and `npx` for bin execution (13 scripts across 9 package.json files, plus 40
-  Makefile targets).
-- **Test runner: no.** Keep `node:test` as the test API. Tests continue to use
-  `import { test, describe } from "node:test"` and
-  `import assert from "node:assert"`. The test _API_ stays the same, only the
-  _runner process_ changes.
-
-### Remove npm lockfile
-
-Delete `package-lock.json` and use a single Bun lockfile. Maintaining two
-lockfiles creates drift risk — a dependency added via one package manager won't
-appear in the other's lockfile. Since the entire project standardizes on Bun,
-the npm lockfile serves no purpose.
-
-### Migrate all workflows
-
-Every GitHub Actions workflow that currently uses `actions/setup-node` switches
-to Bun's setup action. All 13 workflow files and both composite actions are
-affected.
-
-### Optimize vulnerability scanning
-
-The vulnerability-scanning job should skip codegen and use only the lightweight
-install needed for audit. The audit reads package metadata, not installed code.
-
-### Increase Playwright parallelism
-
-Increase the Playwright CI worker count to use available CPU cores instead of
-forcing a single worker. The runner has 4 vCPUs — using partial parallelism
-reduces E2E wall-clock time without risking memory pressure from concurrent
-Chromium instances.
-
-### Parallelize the local check script
-
-Replace the sequential `&&` chain in the `check` script with parallel execution.
-Format and lint have no interdependency. Test and validate have no
-interdependency. Running both pairs concurrently reduces local check time.
 
 ## Scope
 
@@ -155,21 +130,27 @@ interdependency. Running both pairs concurrently reduces local check time.
 - Both composite actions in `.github/actions/` (claude, audit)
 - GitHub Actions caching strategy (`cache: npm` in setup-node → Bun equivalent)
 
-**Package configuration (38 files):**
+**Package configuration (45 workspace files + root):**
 
 - Root `package.json` — scripts (5 `npx` scripts, 1 `node --test` script),
   engines field
-- 25 library `package.json` files — `node --test` test scripts, engines fields
+- 33 library `package.json` files — `node --test` test scripts, engines fields
 - 4 product `package.json` files — `node` start/CLI scripts, engines fields
 - 8 service `package.json` files — `npx download` + `node server.js` start
   scripts, `node --watch` dev scripts, `node --test` test scripts, engines
   fields
 
+**Shebang lines (46 files):**
+
+- 46 JS files with `#!/usr/bin/env node` shebang lines, including all CLI entry
+  points (`bin/fit-*.js`) and service entry points. 24 packages define `bin`
+  fields pointing to these files.
+
 **Build and tooling:**
 
 - Makefile — `install` target (`npm ci`), 39 targets using `npx`, 1 using
   `npm audit`
-- `playwright.config.js` — CI worker count
+- `playwright.config.js` — CI worker count and `webServer` command
 - `package-lock.json` → replaced by Bun lockfile
 
 **Documentation:**
@@ -186,7 +167,7 @@ interdependency. Running both pairs concurrently reduces local check time.
   separate jobs drops dramatically when install takes seconds instead of a
   minute.
 - **Rewriting tests to `bun:test`.** Tests keep the `node:test` API. This avoids
-  rewriting 104 test files and maintains portability.
+  rewriting 99 test files and maintains portability.
 - **Basecamp's Deno dependency.** The macOS build uses Deno via `just pkg`.
   That's a separate toolchain concern unrelated to the npm-to-Bun migration.
 
@@ -214,12 +195,67 @@ The publish-npm workflow uses `npm publish --workspace=...` with
 `NODE_AUTH_TOKEN`. Bun's publish command must support workspace-scoped
 publishing and npm registry authentication.
 
+### HTTP/2 support for gRPC
+
+`@grpc/grpc-js` depends on `node:http2` internally for all inter-service
+communication. Bun's HTTP/2 implementation has historically been incomplete.
+This affects every microservice (agent, graph, llm, memory, tool, trace, vector,
+web) — not just the stream patterns in librpc. Validation must cover actual
+service startup and gRPC call round-trips, not only unit tests.
+
+### process.execPath behavioral change
+
+`process.execPath` returns the path to the `bun` binary instead of `node`. Two
+files depend on this value: `libraries/libcodegen/types.js` (passes it to spawn
+for protobuf compilation) and `products/basecamp/src/basecamp.js` (derives macOS
+bundle directory from the executable path). Both need verification or
+adjustment.
+
+### Shebang lines in bin entries
+
+46 files use `#!/usr/bin/env node` shebang lines. When invoked via `bunx` or
+`bun run`, Bun ignores the shebang and runs the file under its own runtime.
+However, direct execution (`./bin/fit-pathway.js`) would still invoke Node.js.
+Shebangs must be updated to `#!/usr/bin/env bun` for consistency, or the project
+must document that direct execution requires Bun.
+
+### Test runner semantics (bun --test vs node --test)
+
+`bun --test` invokes Bun's built-in test runner (`bun:test`), not Node's
+`node:test`. Since all 99 test files import from `node:test`, the correct
+invocation to run them under Bun's runtime while preserving the `node:test` API
+is `bun run node --test` (or `bun node --test`), not `bun --test`. Using the
+wrong invocation would either fail or silently use a different test API.
+
+### Audit without package-lock.json
+
+`npm audit` reads `package-lock.json` to resolve the dependency graph. After
+deleting the npm lockfile and switching to `bun.lock`, `bunx npm audit` may not
+function correctly without a `package-lock.json` present. The plan must validate
+this approach or generate a temporary lockfile for the audit step.
+
+### AsyncLocalStorage context propagation
+
+libtelemetry uses `AsyncLocalStorage` for distributed trace context propagation
+across gRPC calls. Bun has historically had edge cases with `AsyncLocalStorage`
+in concurrent async scenarios. This is critical infrastructure — broken context
+propagation would silently corrupt traces.
+
+### createRequire and WASM resolution
+
+Four files use `createRequire(import.meta.url)` for dynamic module resolution
+(librc, libutil/finder, libsupervise, libsyntheticrender). Additionally,
+libsyntheticrender resolves a `parquet-wasm` `.wasm` file via `require.resolve`.
+Bun's module resolution may differ in edge cases, particularly for WASM assets.
+
 ### Dependabot ecosystem
 
 Dependabot does not have a stable `bun` ecosystem, but it is available as a beta
 ecosystem. Enabling `enable-beta-ecosystems: true` in `.github/dependabot.yml`
 and changing the ecosystem from `npm` to `bun` maintains automated dependency
-update coverage.
+update coverage. Beta features can be removed or changed without notice — if
+Dependabot drops Bun support, the fallback is to maintain a `package-lock.json`
+solely for Dependabot by running `npm install --package-lock-only` in CI.
 
 ### First-run cache performance
 
@@ -240,8 +276,8 @@ for install time should reflect cached performance, which is the common case.
 4. **Local check time.** The parallelized check script completes at least 30%
    faster on a developer machine compared to the sequential baseline, measured
    across 5 runs.
-5. **Zero test regressions.** All 104 existing test files pass under Bun. All
-   E2E specs pass. No new test flakiness introduced.
+5. **Zero test regressions.** All 99 existing test files pass under Bun. All E2E
+   specs pass. No new test flakiness introduced.
 6. **All workflows green.** Every workflow in `.github/workflows/` succeeds
    after the migration — verified by a full CI run on the migration PR plus
    manual triggering of publish and agent workflows (or dry-run equivalents).
@@ -252,5 +288,9 @@ for install time should reflect cached performance, which is the common case.
    new approaches against the same dependency state.
 9. **Subprocess compatibility.** All libsupervise, librc, and libcodegen tests
    pass under Bun. Process supervision start/stop/restart cycles work correctly.
-10. **gRPC streaming.** librpc client streaming tests pass under Bun, confirming
-    PassThrough + objectMode transform compatibility.
+10. **gRPC round-trip.** At least one gRPC service starts under Bun and
+    completes a request-response cycle and a streaming call. librpc unit tests
+    alone are insufficient — a live service validates HTTP/2, stream piping, and
+    AsyncLocalStorage trace propagation together.
+11. **Shebang consistency.** All 46 bin entry points use `#!/usr/bin/env bun`
+    and execute correctly when invoked directly.

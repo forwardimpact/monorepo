@@ -50,7 +50,7 @@ Replace all `npx` and `node` references in scripts. Change `engines` field.
   "dev": "bunx fit-pathway dev",
   "check": "bun run format && bun run lint && bun run test && bun run validate -- --json",
   "check:fix": "bun run format:fix && bun run lint:fix",
-  "test": "find ./tests ./libraries ./products ./services -name '*.test.js' -not -path '*/node_modules/*' | xargs bun --test",
+  "test": "find ./tests ./libraries ./products ./services -name '*.test.js' -not -path '*/node_modules/*' | xargs bun run node --test",
   "test:e2e": "bunx playwright test",
   "validate": "bunx fit-map validate"
 }
@@ -61,14 +61,14 @@ addressed in Phase 1.6.
 
 **Files modified:** `package.json`
 
-### 1.3 Update workspace package.json files (38 files)
+### 1.3 Update workspace package.json files (45 files)
 
 Three categories of changes across all workspace packages:
 
-**Libraries (25 files)** — change `engines` from `"node": ">=22.0.0"` (or
+**Libraries (33 files)** — change `engines` from `"node": ">=22.0.0"` (or
 `">=18.0.0"` for libdoc, libprompt, libskill, and the libsynthetic* packages) to
 `"bun": ">=1.2.0"`. Change test scripts from `node --test test/*.test.js`to`bun
---test test/\*.test.js`.
+run node --test test/\*.test.js`.
 
 **Products (4 files)** — change `engines`. Change `node` invocations in scripts:
 
@@ -81,10 +81,17 @@ Three categories of changes across all workspace packages:
 
 - `start`: `npx download && node server.js` → `bunx download && bun server.js`
 - `dev`: `node --watch server.js` → `bun --watch server.js`
-- `test`: `node --test test/*.test.js` → `bun --test test/*.test.js`
+- `test`: `node --test test/*.test.js` → `bun run node --test test/*.test.js`
 
-**Files modified:** 38 workspace `package.json` files (25 libraries, 4 products,
-8 services). Full list in spec § Scope.
+**Decision:** Test scripts use `bun run node --test` (not `bun --test`). The
+`bun --test` command invokes Bun's built-in test runner (`bun:test`), which is a
+different API from `node:test`. Since all 99 test files import from `node:test`,
+the correct approach is to run Node's test runner under Bun's runtime via
+`bun run node --test`. This preserves the test API while using Bun as the
+execution engine.
+
+**Files modified:** 45 workspace `package.json` files (33 libraries, 4 products,
+8 services).
 
 ### 1.4 Update Makefile
 
@@ -106,28 +113,39 @@ install:
 	@bunx --workspace=@forwardimpact/libcodegen fit-codegen --all
 
 audit-vulnerabilities:
-	@bunx npm audit --audit-level=high --omit=dev --workspaces
+	@npm install --package-lock-only --ignore-scripts 2>/dev/null
+	@npm audit --audit-level=high --omit=dev --workspaces
+	@rm -f package-lock.json
 ```
 
 All 40 `npx` targets follow the same `npx` → `bunx` pattern. The `--workspace`
 flag syntax is the same in Bun.
 
-**Decision:** `audit-vulnerabilities` uses `bunx npm audit` since Bun does not
-have a native audit command. This shells out to npm's audit logic against the
-installed dependency tree without requiring a global npm install.
+**Decision:** `audit-vulnerabilities` generates a temporary `package-lock.json`
+on the fly since `npm audit` requires it and the migration deletes the permanent
+lockfile. The target runs `npm install --package-lock-only` (metadata only, no
+`node_modules`), then `npm audit`, then cleans up. This requires `npm` to be
+available on the system (ensured by `setup-node` in CI workflows that run
+audit).
 
 **Files modified:** `Makefile`
 
 ### 1.5 Update Playwright config
 
-Change the CI worker count from 1 to `"50%"`:
+Change the CI worker count from 1 to `"50%"` and update the webServer command:
 
 ```js
 // Before
 workers: process.env.CI ? 1 : undefined,
+// ...
+webServer: {
+  command: "npm start",
 
 // After
 workers: process.env.CI ? "50%" : undefined,
+// ...
+webServer: {
+  command: "bun start",
 ```
 
 On `ubuntu-latest` (4 vCPUs), this gives 2 parallel workers.
@@ -162,6 +180,37 @@ If any background job fails, `wait` returns non-zero and the script fails.
 
 **Files modified:** `package.json` (already listed in 1.2, but the check script
 change happens here)
+
+### 1.7 Update shebang lines (46 files)
+
+Replace `#!/usr/bin/env node` with `#!/usr/bin/env bun` in all 46 files that
+have shebang lines. This includes all CLI entry points (`bin/fit-*.js`), service
+entry points (`server.js`), and utility scripts.
+
+```sh
+# Find and replace all shebangs
+grep -rl '#!/usr/bin/env node' --include='*.js' . | grep -v node_modules | \
+  xargs sed -i 's|#!/usr/bin/env node|#!/usr/bin/env bun|'
+```
+
+**Files modified:** 46 JS files with shebang lines (see `grep -rl` output for
+full list).
+
+### 1.8 Verify process.execPath usage
+
+Two files use `process.execPath` and may break when it returns the Bun binary
+path instead of Node:
+
+- `libraries/libcodegen/types.js:92` — passes `process.execPath` to
+  `this.#base.run()` for protobuf compilation. Verify that protobuf tools
+  execute correctly when invoked via the Bun binary.
+- `products/basecamp/src/basecamp.js:108` — derives macOS bundle directory from
+  the executable path. This path is only used in the macOS `.app` bundle context
+  where the executable is the Deno-compiled binary, not Bun, so no change is
+  needed. Add a comment clarifying this assumption.
+
+**Files modified:** `products/basecamp/src/basecamp.js` (comment only),
+`libraries/libcodegen/types.js` (verify, potentially no change needed)
 
 ## Phase 2: CI Workflows
 
@@ -209,7 +258,7 @@ replace `npm run` / `npm test` with `bun run` / `bun test`, replace `npx` with
     bun-version: latest
 - run: make install
 - run: bunx fit-universe
-- run: bun test
+- run: bun run test
 - run: bun run validate -- --shacl
 
 # Before (e2e job)
@@ -233,12 +282,18 @@ replace `npm run` / `npm test` with `bun run` / `bun test`, replace `npx` with
 - uses: oven-sh/setup-bun@735343cf11a0fad2539a9800e109ac7e0bafc0e6 # v2
   with:
     bun-version: latest
+- uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+  with:
+    node-version: 22
 - run: bun install --frozen-lockfile
 ```
 
 **Decision:** The vulnerability-scanning job replaces `make install` with bare
 `bun install --frozen-lockfile` — it skips codegen entirely since `npm audit`
-only needs the dependency tree metadata.
+only needs the dependency tree metadata. `setup-node` is retained alongside
+`setup-bun` because `npm audit` requires the `npm` CLI and reads
+`package-lock.json`. The audit composite action generates a temporary lockfile
+on the fly (see § 2.5).
 
 **Files modified:** `check-quality.yml`, `check-test.yml`, `check-security.yml`
 
@@ -270,7 +325,7 @@ only needs the dependency tree metadata.
     node-version: "22"
     registry-url: "https://registry.npmjs.org"
 - run: make install
-- run: bun test
+- run: bun run test
 - name: Extract package name from tag
   run: |
     # Use bun-compatible package resolution instead of npm query
@@ -393,12 +448,16 @@ manipulation with `bun -e` (same V8 API, Bun supports `-e`).
 - run: npm audit --audit-level=high --omit=dev --workspaces
 
 # After
-- run: bunx npm audit --audit-level=high --omit=dev --workspaces
+- run: npm install --package-lock-only --ignore-scripts 2>/dev/null
+- run: npm audit --audit-level=high --omit=dev --workspaces
+- run: rm -f package-lock.json
 ```
 
-**Decision:** The audit action uses `bunx npm audit` to run npm's audit command.
-This avoids depending on a native `bun audit` command that doesn't exist yet,
-while still benefiting from Bun as the runtime.
+**Decision:** Since `npm audit` requires `package-lock.json` and the migration
+deletes it, the audit action generates a temporary lockfile on the fly. This
+avoids depending on a native `bun audit` command that doesn't exist, and avoids
+maintaining a permanent npm lockfile. The `setup-node` action is required in any
+workflow that runs this composite action to ensure `npm` is available.
 
 **Files modified:** `.github/actions/claude/action.yml`,
 `.github/actions/audit/action.yml`
@@ -456,20 +515,43 @@ Before committing, manually verify:
 1. `make install` completes without errors
 2. `make codegen` generates code correctly
 3. `make rc-start` / `make rc-stop` work (libsupervise + librc paths)
-4. `bun run test` — all 104 test files pass
+4. `bun run test` — all 99 test files pass
 5. `bun run test:e2e` — Playwright shows 2 workers in output
 6. `bun run check` — format, lint, test, validate all pass
+7. Direct execution of a bin entry: `./bin/fit-pathway.js --help` confirms the
+   updated shebang invokes Bun
 
-### 4.2 gRPC streaming verification
+### 4.2 gRPC service round-trip verification
 
-Run librpc tests specifically to confirm PassThrough stream + objectMode +
-custom transform works under Bun:
+Unit tests alone are insufficient — `@grpc/grpc-js` depends on `node:http2`
+internally, and Bun's HTTP/2 support must be validated with a live service.
+
+1. Run librpc unit tests:
+   ```sh
+   cd libraries/librpc && bun run node --test test/*.test.js
+   ```
+2. Start a gRPC service and confirm a round-trip call:
+   ```sh
+   make rc-start
+   # Run a health check or simple RPC against one of the services
+   make rc-stop
+   ```
+3. Run libtelemetry tests to confirm AsyncLocalStorage trace context
+   propagation:
+   ```sh
+   cd libraries/libtelemetry && bun run node --test test/*.test.js
+   ```
+
+### 4.3 Audit validation
+
+Verify the temporary-lockfile audit approach produces correct results:
 
 ```sh
-cd libraries/librpc && bun --test test/*.test.js
+# Compare audit output before and after migration
+# (run once with npm ci + npm audit, once with bun install + make audit-vulnerabilities)
 ```
 
-### 4.3 CI workflow dry run
+### 4.4 CI workflow dry run
 
 Push to a feature branch and verify all 13 workflows pass. For publish and agent
 workflows that don't trigger on PRs, use `workflow_dispatch` where available.
@@ -482,7 +564,8 @@ workflows that don't trigger on PRs, use `workflow_dispatch` where available.
 | Lockfile          | `package-lock.json`              | Delete |
 | Gitignore         | `.gitignore`                     | Modify |
 | Package config    | `package.json` (root)            | Modify |
-| Package config    | 38 workspace `package.json`      | Modify |
+| Package config    | 45 workspace `package.json`      | Modify |
+| Shebang lines     | 46 JS files with `bin` entries   | Modify |
 | Build             | `Makefile`                       | Modify |
 | Test config       | `playwright.config.js`           | Modify |
 | CI workflows      | 13 files in `.github/workflows/` | Modify |
@@ -490,4 +573,4 @@ workflows that don't trigger on PRs, use `workflow_dispatch` where available.
 | Dependabot        | `.github/dependabot.yml`         | Modify |
 | Documentation     | `CONTRIBUTING.md`                | Modify |
 | Documentation     | Operations docs (TBD)            | Modify |
-| **Total**         | **~60 files**                    |        |
+| **Total**         | **~115 files**                   |        |
