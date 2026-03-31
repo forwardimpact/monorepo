@@ -15,6 +15,9 @@
   "scripts": {
     "test": "bun run node --test test/*.test.js"
   },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.0"
+  },
   "publishConfig": {
     "access": "public"
   }

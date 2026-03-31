@@ -2,10 +2,14 @@
 
 import { runOutputCommand } from "../src/commands/output.js";
 import { runTeeCommand } from "../src/commands/tee.js";
+import { runRunCommand } from "../src/commands/run.js";
+import { runSuperviseCommand } from "../src/commands/supervise.js";
 
 const COMMANDS = {
   output: runOutputCommand,
   tee: runTeeCommand,
+  run: runRunCommand,
+  supervise: runSuperviseCommand,
 };
 
 const HELP_TEXT = `
@@ -17,6 +21,25 @@ Usage:
 Commands:
   output [--format=json|text]    Process trace and output formatted result
   tee [output.ndjson]            Stream text to stdout, optionally save raw NDJSON
+  run [options]                  Run a single agent via the Claude Agent SDK
+  supervise [options]            Run a supervised agent ↔ supervisor relay loop
+
+Run options:
+  --task=PATH          Path to task file (required)
+  --cwd=DIR            Agent working directory (default: .)
+  --model=MODEL        Claude model to use (default: opus)
+  --max-turns=N        Maximum agentic turns (default: 50)
+  --output=PATH        Write NDJSON trace to file (default: stdout)
+  --allowed-tools=LIST Comma-separated tools (default: Bash,Read,Glob,Grep,Write,Edit)
+
+Supervise options:
+  --task=PATH               Path to task file (required)
+  --supervisor-cwd=DIR      Supervisor working directory (default: .)
+  --agent-cwd=DIR           Agent working directory (default: temp directory)
+  --model=MODEL             Claude model to use (default: opus)
+  --max-turns=N             Maximum supervisor ↔ agent exchanges (default: 20)
+  --output=PATH             Write NDJSON trace to file (default: stdout)
+  --allowed-tools=LIST      Comma-separated tools for agent (default: Bash,Read,Glob,Grep,Write,Edit)
 
 Options:
   --help      Show this help message
@@ -27,6 +50,8 @@ Examples:
   fit-eval output --format=json < trace.ndjson
   fit-eval tee < trace.ndjson
   fit-eval tee output.ndjson < trace.ndjson
+  fit-eval run --task=.github/tasks/security-audit.md --model=opus
+  fit-eval supervise --task=scenarios/guide-setup/task.md --supervisor-cwd=.
 `.trim();
 
 async function main() {
