@@ -731,7 +731,94 @@ fit-eval supervise \
   --agent-cwd=/tmp/guide-eval
 ```
 
-## Step 12 — Remove old action
+## Step 12 — Guide onboarding scenario (product-manager supervised)
+
+**New files:**
+
+```
+scenarios/guide-onboarding/
+  task.md              Task for the agent
+  agent/
+    CLAUDE.md          Minimal agent persona
+```
+
+This scenario uses the `product-manager` agent profile as the supervisor,
+running from the monorepo root. The product-manager has deep knowledge of the
+product suite, documentation structure, and user experience expectations — it
+acts as a product-aware observer evaluating whether the Guide onboarding
+experience actually works for a new user.
+
+Unlike the Guide setup scenario (Step 11), which tests whether a developer can
+*install and configure* the platform from scratch, this scenario tests the
+end-to-end *user journey*: visit the website, follow the getting-started docs,
+install fit-guide, and run real prompts against it. The product-manager
+supervisor evaluates the experience from a product quality perspective — are the
+docs clear? Do the commands work? Is the output useful?
+
+### `scenarios/guide-onboarding/task.md`
+
+> You are a developer trying out the Forward Impact Guide product for the first
+> time. Start at www.forwardimpact.team, find the Guide product page, and follow
+> the instructions to install and run fit-guide.
+>
+> Your goal is to get fit-guide working and run a few prompts with it:
+>
+> 1. Install the @forwardimpact/guide package from npm
+> 2. Follow any setup instructions from the documentation
+> 3. Run at least three different fit-guide prompts — try asking it about skills,
+>    career progression, or engineering practices
+> 4. Write notes about your experience in ./notes/, including:
+>    - How clear the installation instructions were
+>    - Whether the commands worked as documented
+>    - How useful the responses were
+>    - Any errors or confusing moments
+>
+> Work independently. Do not clone the monorepo — install from npm as a user
+> would.
+
+### `scenarios/guide-onboarding/agent/CLAUDE.md`
+
+> You are a developer trying a product for the first time. Follow documentation
+> as written — do not look for workarounds or alternative approaches unless the
+> documented path fails. If something is unclear or doesn't work, note it and
+> try to proceed. Write honest notes about your experience in ./notes/ as you go.
+
+### Invocation
+
+The product-manager runs from the monorepo root, inheriting all its skills,
+product knowledge, and CLAUDE.md context:
+
+```
+fit-eval supervise \
+  --task=scenarios/guide-onboarding/task.md \
+  --supervisor-agent=product-manager \
+  --supervisor-cwd=. \
+  --agent-cwd=/tmp/guide-onboarding
+```
+
+The product-manager's existing profile gives it the right perspective — it knows
+the product suite, understands user expectations, and has access to the spec and
+product-feedback skills. It does not need a custom supervisor CLAUDE.md because
+its agent profile already encodes product awareness.
+
+**Supervisor behaviour (derived from product-manager profile):**
+
+- Nudges when the agent skips documented steps or misses a key feature
+- Answers questions about product capabilities (the product-manager knows the
+  full product suite)
+- Evaluates whether the documentation led to a successful outcome
+- Declares DONE when the agent has run at least three prompts and written notes,
+  or when it's clear the onboarding path is broken
+
+**What this scenario reveals:**
+
+- Whether the website-to-CLI pipeline works end-to-end for a new user
+- Documentation gaps or inaccuracies in the Guide getting-started flow
+- Package installation issues (missing deps, version conflicts)
+- Whether fit-guide produces useful output for common first-time queries
+- Product quality signals the product-manager can feed back into issue triage
+
+## Step 13 — Remove old action
 
 **Deleted:** `.github/actions/claude/action.yml`
 
@@ -752,9 +839,11 @@ to avoid breaking CI during the transition.
 | `libraries/libeval/test/supervisor.test.js` | Supervisor tests |
 | `.github/actions/fit-eval/action.yml` | New composite action |
 | `.github/tasks/*.md` (7 files) | Task files for CI workflows |
-| `scenarios/guide-setup/task.md` | Guide scenario task |
-| `scenarios/guide-setup/supervisor/CLAUDE.md` | Supervisor context |
-| `scenarios/guide-setup/agent/CLAUDE.md` | Agent context |
+| `scenarios/guide-setup/task.md` | Guide setup scenario task |
+| `scenarios/guide-setup/supervisor/CLAUDE.md` | Guide setup supervisor context |
+| `scenarios/guide-setup/agent/CLAUDE.md` | Guide setup agent context |
+| `scenarios/guide-onboarding/task.md` | Guide onboarding scenario task |
+| `scenarios/guide-onboarding/agent/CLAUDE.md` | Guide onboarding agent context |
 
 ### Modified files
 
@@ -781,13 +870,14 @@ to avoid breaking CI during the transition.
 
 Steps 1–7 can be implemented and tested locally without affecting CI. Steps
 8–10 (action + migration) should be done in a single commit to avoid a state
-where some workflows use the old action and some use the new one. Step 11 (Guide
-scenario) is independent and can land separately. Step 12 (delete old action)
-lands after migration is verified.
+where some workflows use the old action and some use the new one. Steps 11–12
+(scenarios) are independent of each other and can land separately. Step 13
+(delete old action) lands after migration is verified.
 
 Recommended commit sequence:
 
 1. Steps 1–7: `feat(libeval): add AgentRunner, Supervisor, and run/supervise commands`
 2. Steps 8–10: `feat(ci): migrate workflows from claude action to fit-eval action`
 3. Step 11: `feat(eval): add Guide setup supervised evaluation scenario`
-4. Step 12: `chore(ci): remove deprecated .github/actions/claude/`
+4. Step 12: `feat(eval): add Guide onboarding scenario with product-manager supervisor`
+5. Step 13: `chore(ci): remove deprecated .github/actions/claude/`
