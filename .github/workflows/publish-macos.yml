@@ -25,10 +25,10 @@ jobs:
       - name: Install Deno
         uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2
         with:
-          deno-version: v2.x
+          deno-version: "2.2.8"
 
       - name: Install just
-        run: brew install just
+        run: brew install just@1.40.0
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
