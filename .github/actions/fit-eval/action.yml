@@ -111,7 +111,9 @@ runs:
         fi
 
     - name: Upload trace artifact
-      if: always() && inputs.trace == 'true' && steps.setup.outputs.trace-dir != ''
+      if:
+        always() && inputs.trace == 'true' && steps.setup.outputs.trace-dir !=
+        ''
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       with:
         name: ${{ inputs.trace-name }}

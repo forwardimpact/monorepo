@@ -27,20 +27,28 @@ function createMockRunner(responses, messages) {
   });
 
   // Override run and resume to return scripted responses
-  runner.run = async (task) => {
+  runner.run = async (_task) => {
     const resp = responses[callIndex++];
     // Buffer messages for drainOutput
-    const msgs = messages?.[callIndex - 1] ?? [{ type: "assistant", content: resp.text }];
+    const msgs = messages?.[callIndex - 1] ?? [
+      { type: "assistant", content: resp.text },
+    ];
     for (const m of msgs) {
       runner.buffer.push(JSON.stringify(m));
     }
     runner.sessionId = "mock-session";
-    return { success: resp.success ?? true, text: resp.text, sessionId: "mock-session" };
+    return {
+      success: resp.success ?? true,
+      text: resp.text,
+      sessionId: "mock-session",
+    };
   };
 
-  runner.resume = async (prompt) => {
+  runner.resume = async (_prompt) => {
     const resp = responses[callIndex++];
-    const msgs = messages?.[callIndex - 1] ?? [{ type: "assistant", content: resp.text }];
+    const msgs = messages?.[callIndex - 1] ?? [
+      { type: "assistant", content: resp.text },
+    ];
     for (const m of msgs) {
       runner.buffer.push(JSON.stringify(m));
     }
@@ -53,7 +61,10 @@ function createMockRunner(responses, messages) {
 describe("isDone", () => {
   test("detects EVALUATION_COMPLETE on its own line", () => {
     assert.strictEqual(isDone("EVALUATION_COMPLETE"), true);
-    assert.strictEqual(isDone("Some text\nEVALUATION_COMPLETE\nMore text"), true);
+    assert.strictEqual(
+      isDone("Some text\nEVALUATION_COMPLETE\nMore text"),
+      true,
+    );
     assert.strictEqual(isDone("Done.\n\nEVALUATION_COMPLETE"), true);
   });
 
@@ -182,17 +193,12 @@ describe("Supervisor", () => {
   });
 
   test("output contains tagged lines with correct source and turn", async () => {
-    const agentMessages = [
-      [{ type: "assistant", content: "Working" }],
-    ];
+    const agentMessages = [[{ type: "assistant", content: "Working" }]];
     const supervisorMessages = [
       [{ type: "assistant", content: "EVALUATION_COMPLETE" }],
     ];
 
-    const agentRunner = createMockRunner(
-      [{ text: "Working" }],
-      agentMessages,
-    );
+    const agentRunner = createMockRunner([{ text: "Working" }], agentMessages);
     const supervisorRunner = createMockRunner(
       [{ text: "EVALUATION_COMPLETE" }],
       supervisorMessages,
@@ -209,7 +215,10 @@ describe("Supervisor", () => {
     await supervisor.run("Task");
 
     const data = output.read()?.toString() ?? "";
-    const lines = data.trim().split("\n").filter((l) => l.length > 0);
+    const lines = data
+      .trim()
+      .split("\n")
+      .filter((l) => l.length > 0);
 
     // Should have: agent turn 0, supervisor turn 1, orchestrator summary
     assert.ok(lines.length >= 3);
@@ -231,11 +240,12 @@ describe("Supervisor", () => {
   });
 
   test("events are nested under event key (no field collisions)", async () => {
-    const sourceEvent = { type: "assistant", source: "sdk-internal", content: "test" };
-    const agentRunner = createMockRunner(
-      [{ text: "Done" }],
-      [[sourceEvent]],
-    );
+    const sourceEvent = {
+      type: "assistant",
+      source: "sdk-internal",
+      content: "test",
+    };
+    const agentRunner = createMockRunner([{ text: "Done" }], [[sourceEvent]]);
     const supervisorRunner = createMockRunner(
       [{ text: "EVALUATION_COMPLETE" }],
       [[{ type: "assistant", content: "ok" }]],
@@ -252,7 +262,10 @@ describe("Supervisor", () => {
     await supervisor.run("Task");
 
     const data = output.read()?.toString() ?? "";
-    const lines = data.trim().split("\n").filter((l) => l.length > 0);
+    const lines = data
+      .trim()
+      .split("\n")
+      .filter((l) => l.length > 0);
 
     const tagged = JSON.parse(lines[0]);
     // The original event's `source` field is preserved inside `event`

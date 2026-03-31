@@ -58,8 +58,7 @@ export class Supervisor {
       if (turn === 1) {
         supervisorResult = await this.supervisorRunner.run(supervisorPrompt);
       } else {
-        supervisorResult =
-          await this.supervisorRunner.resume(supervisorPrompt);
+        supervisorResult = await this.supervisorRunner.resume(supervisorPrompt);
       }
       this.emitTagged("supervisor", turn);
 
