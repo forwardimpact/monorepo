@@ -1,0 +1,118 @@
+name: Fit Eval
+description: Run agent tasks via fit-eval CLI using the Claude Agent SDK
+
+inputs:
+  task:
+    description: Path to task file (markdown or text)
+    required: true
+  mode:
+    description: Execution mode — "run" (single agent) or "supervise"
+    required: false
+    default: "run"
+  cwd:
+    description: Agent working directory (for "run" mode)
+    required: false
+    default: "."
+  supervisor-cwd:
+    description: Supervisor working directory (for "supervise" mode)
+    required: false
+    default: "."
+  agent-cwd:
+    description: Agent working directory (for "supervise" mode)
+    required: false
+  model:
+    description: Claude model to use
+    required: false
+    default: "opus"
+  max-turns:
+    description: Maximum turns
+    required: false
+    default: "50"
+  allowed-tools:
+    description: Comma-separated list of allowed tools
+    required: false
+    default: "Bash,Read,Glob,Grep,Write,Edit"
+  trace:
+    description: Enable trace capture and artifact upload
+    required: false
+    default: "true"
+  trace-name:
+    description: Artifact name for the trace
+    required: false
+    default: "eval-trace"
+  app-slug:
+    description: GitHub App slug for git identity
+    required: false
+    default: forward-impact-ci
+  app-id:
+    description: GitHub App ID for git identity email
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Configure Git identity
+      shell: bash
+      env:
+        APP_SLUG: ${{ inputs.app-slug }}
+        APP_ID: ${{ inputs.app-id }}
+      run: |
+        git config user.name "${APP_SLUG}[bot]"
+        git config user.email "${APP_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
+
+    - name: Setup trace directory
+      if: inputs.trace == 'true'
+      id: setup
+      shell: bash
+      run: |
+        TRACE_DIR=$(mktemp -d)
+        echo "trace-dir=$TRACE_DIR" >> "$GITHUB_OUTPUT"
+
+    - name: Run fit-eval
+      shell: bash
+      env:
+        MODE: ${{ inputs.mode }}
+        TASK: ${{ inputs.task }}
+        CWD: ${{ inputs.cwd }}
+        SUPERVISOR_CWD: ${{ inputs.supervisor-cwd }}
+        AGENT_CWD: ${{ inputs.agent-cwd }}
+        MODEL: ${{ inputs.model }}
+        MAX_TURNS: ${{ inputs.max-turns }}
+        TOOLS: ${{ inputs.allowed-tools }}
+        TRACE_ENABLED: ${{ inputs.trace }}
+        TRACE_DIR: ${{ steps.setup.outputs.trace-dir }}
+      run: |
+        # Build args array to avoid quoting issues with spaces in paths
+        args=()
+
+        if [ "$TRACE_ENABLED" = "true" ] && [ -n "$TRACE_DIR" ]; then
+          args+=("--output=$TRACE_DIR/trace.ndjson")
+        fi
+
+        if [ "$MODE" = "supervise" ]; then
+          agent_cwd="${AGENT_CWD:-$(mktemp -d)}"
+
+          bunx fit-eval supervise \
+            --task="$TASK" \
+            --supervisor-cwd="$SUPERVISOR_CWD" \
+            --agent-cwd="$agent_cwd" \
+            --model="$MODEL" \
+            --max-turns="$MAX_TURNS" \
+            --allowed-tools="$TOOLS" \
+            "${args[@]}"
+        else
+          bunx fit-eval run \
+            --task="$TASK" \
+            --cwd="$CWD" \
+            --model="$MODEL" \
+            --max-turns="$MAX_TURNS" \
+            --allowed-tools="$TOOLS" \
+            "${args[@]}"
+        fi
+
+    - name: Upload trace artifact
+      if: always() && inputs.trace == 'true' && steps.setup.outputs.trace-dir != ''
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: ${{ inputs.trace-name }}
+        path: ${{ steps.setup.outputs.trace-dir }}

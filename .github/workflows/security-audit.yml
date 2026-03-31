@@ -37,14 +37,13 @@ jobs:
       - run: make install
 
       - name: Run Security Audit
-        uses: ./.github/actions/claude
+        uses: ./.github/actions/fit-eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           app-id: ${{ secrets.CI_APP_ID }}
-          prompt: "Perform a security audit of the repository."
-          agent: "security-engineer"
+          task: .github/tasks/security-audit.md
           model: "opus"
           max-turns: "50"

@@ -38,19 +38,13 @@ jobs:
       - run: make install
 
       - name: Triage Open Issues
-        uses: ./.github/actions/claude
+        uses: ./.github/actions/fit-eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           app-id: ${{ secrets.CI_APP_ID }}
-          prompt: >
-            Review all open GitHub issues for product alignment. Classify each
-            issue by type — trivial fix/bug, product-aligned, or out of scope.
-            Implement trivial fixes as PRs. Write specs for product-aligned
-            issues using the spec skill. Label and comment on out-of-scope
-            issues.
-          agent: "product-manager"
+          task: .github/tasks/product-feedback.md
           model: "opus"
           max-turns: "50"

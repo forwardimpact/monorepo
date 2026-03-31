@@ -37,14 +37,13 @@ jobs:
       - run: make install
 
       - name: Triage Dependabot PRs
-        uses: ./.github/actions/claude
+        uses: ./.github/actions/fit-eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           app-id: ${{ secrets.CI_APP_ID }}
-          prompt: "Review and triage open Dependabot pull requests."
-          agent: "security-engineer"
+          task: .github/tasks/dependabot-triage.md
           model: "opus"
           max-turns: "50"

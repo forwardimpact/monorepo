@@ -38,14 +38,13 @@ jobs:
       - run: make install
 
       - name: Check PR Readiness
-        uses: ./.github/actions/claude
+        uses: ./.github/actions/fit-eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           app-id: ${{ secrets.CI_APP_ID }}
-          prompt: "Check all open pull requests for merge readiness."
-          agent: "release-engineer"
+          task: .github/tasks/release-readiness.md
           model: "opus"
           max-turns: "50"

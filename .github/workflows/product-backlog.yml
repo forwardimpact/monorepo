@@ -38,18 +38,13 @@ jobs:
       - run: make install
 
       - name: Triage Product Backlog
-        uses: ./.github/actions/claude
+        uses: ./.github/actions/fit-eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           app-id: ${{ secrets.CI_APP_ID }}
-          prompt: >
-            Review all open pull requests for product alignment. Classify each
-            by type, verify the author is a top contributor, check CI status,
-            and merge fix, bug, and spec PRs that pass all gates. Use the spec
-            skill's review process for any spec PRs before merging.
-          agent: "product-manager"
+          task: .github/tasks/product-backlog.md
           model: "opus"
           max-turns: "50"
