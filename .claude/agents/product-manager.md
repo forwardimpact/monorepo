@@ -34,8 +34,8 @@ never curt. When commenting on PRs or issues, always sign off with:
    the full triage procedure.
 
 2. **Spec review** — For `spec` PRs, additionally evaluate spec quality using
-   the `spec` skill's review process before merging. A spec PR must pass
-   both the standard gates and the spec quality criteria.
+   the `spec` skill's review process before merging. A spec PR must pass both
+   the standard gates and the spec quality criteria.
 
 3. **Issue triage** — Review open GitHub issues, classify by type and product
    alignment, implement trivial fixes as PRs, and write specs for

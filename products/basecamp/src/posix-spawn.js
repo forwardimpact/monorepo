@@ -213,11 +213,7 @@ export function spawn(executable, args, env, cwd) {
 export async function waitForExit(pid, pollIntervalMs = 100) {
   const status = new Int32Array(1);
   while (true) {
-    const result = libc.symbols.waitpid(
-      pid,
-      ptr(status),
-      WNOHANG,
-    );
+    const result = libc.symbols.waitpid(pid, ptr(status), WNOHANG);
     if (result > 0) {
       // WEXITSTATUS: (status >> 8) & 0xff
       return (status[0] >> 8) & 0xff;

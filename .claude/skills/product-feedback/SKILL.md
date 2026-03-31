@@ -172,8 +172,7 @@ gh issue edit <number> --add-label "triaged"
 
 ### Step 4: Handle Product-Aligned Issues
 
-For issues classified as product-aligned, write a spec using the `spec`
-skill:
+For issues classified as product-aligned, write a spec using the `spec` skill:
 
 1. Comment on the issue to acknowledge it and explain next steps:
 

@@ -44,6 +44,7 @@ export default [
     files: ["products/basecamp/**/*.js", "products/basecamp/**/*.mjs"],
     languageOptions: {
       globals: {
+        Bun: "readonly",
         Buffer: "readonly",
         clearTimeout: "readonly",
         Deno: "readonly",

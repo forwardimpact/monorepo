@@ -34,12 +34,12 @@ the composite action (see § Authentication below).
 
 ## Agents
 
-| Agent                 | Purpose                                                                   | Skills                                                |
-| --------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------- |
-| **security-engineer** | Patch dependencies, harden supply chain, enforce security policies        | dependabot-triage, security-audit, spec               |
-| **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | release-readiness, release-review, gh-cli             |
-| **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | grounded-theory-analysis, spec, gh-cli                |
-| **product-manager**   | Review PRs for product alignment, triage issues, verify contributor trust | product-backlog, product-feedback, spec, gh-cli       |
+| Agent                 | Purpose                                                                   | Skills                                          |
+| --------------------- | ------------------------------------------------------------------------- | ----------------------------------------------- |
+| **security-engineer** | Patch dependencies, harden supply chain, enforce security policies        | dependabot-triage, security-audit, spec         |
+| **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | release-readiness, release-review, gh-cli       |
+| **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | grounded-theory-analysis, spec, gh-cli          |
+| **product-manager**   | Review PRs for product alignment, triage issues, verify contributor trust | product-backlog, product-feedback, spec, gh-cli |
 
 Each agent has explicit scope constraints — it knows what it must _not_ do. When
 a finding exceeds an agent's scope, it writes a formal spec (`specs/`) rather

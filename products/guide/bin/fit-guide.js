@@ -138,9 +138,7 @@ try {
           state.resource_id = response.resource_id;
         }
         if (response.messages?.length > 0) {
-          const text = response.messages
-            .map((msg) => msg.content)
-            .join("\n");
+          const text = response.messages.map((msg) => msg.content).join("\n");
           outputStream.write(text);
         }
       }

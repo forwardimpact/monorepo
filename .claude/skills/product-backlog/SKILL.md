@@ -37,12 +37,12 @@ gh auth status
 
 Each PR must pass all applicable gates before merge:
 
-| #   | Gate                                  | Verification                       | On failure                                                           |
-| --- | ------------------------------------- | ---------------------------------- | -------------------------------------------------------------------- |
-| 1   | Author is trusted                     | CI app or top-20 lookup (Step 2)   | **Skip** — comment that only trusted authors' PRs are auto-merged    |
-| 2   | PR type is `fix`, `bug`, or `spec`    | Parse title prefix (Step 3)        | **Skip** — comment that the PR type is outside product-manager scope |
-| 3   | All CI checks pass                    | `gh pr checks` (Step 4)            | **Skip** — comment that CI must be green                             |
-| 4   | Spec quality approved (spec PRs only) | Apply `spec` review (Step 5) | **Skip** — comment with review findings                              |
+| #   | Gate                                  | Verification                     | On failure                                                           |
+| --- | ------------------------------------- | -------------------------------- | -------------------------------------------------------------------- |
+| 1   | Author is trusted                     | CI app or top-20 lookup (Step 2) | **Skip** — comment that only trusted authors' PRs are auto-merged    |
+| 2   | PR type is `fix`, `bug`, or `spec`    | Parse title prefix (Step 3)      | **Skip** — comment that the PR type is outside product-manager scope |
+| 3   | All CI checks pass                    | `gh pr checks` (Step 4)          | **Skip** — comment that CI must be green                             |
+| 4   | Spec quality approved (spec PRs only) | Apply `spec` review (Step 5)     | **Skip** — comment with review findings                              |
 
 ## Process
 
@@ -135,8 +135,8 @@ Skip the PR and comment with the specific failing checks.
 
 ### Step 5: Review Spec PRs
 
-For PRs classified as `spec`, apply the `spec` skill's review process
-before merging:
+For PRs classified as `spec`, apply the `spec` skill's review process before
+merging:
 
 1. Identify the spec directory from the changed files (look for
    `specs/{NNN}-*/spec.md`):
@@ -152,8 +152,8 @@ git fetch origin <headRefName>
 git checkout origin/<headRefName> -- specs/<matched-directory>/
 ```
 
-3. Read the spec and evaluate it against the `spec` review criteria. Since
-   you cannot commit changes, report your decision and target status — do not
+3. Read the spec and evaluate it against the `spec` review criteria. Since you
+   cannot commit changes, report your decision and target status — do not
    attempt to update `specs/STATUS` directly
 4. If the spec does not meet quality criteria, skip the PR and comment with
    findings (include the review decision and note that status should remain

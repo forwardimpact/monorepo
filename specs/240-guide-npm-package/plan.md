@@ -9,8 +9,8 @@ library dependencies are already published — no upstream work is needed.
 
 The key challenge is that Guide is a service client, not a standalone tool. Map
 validates YAML files locally; Pathway derives job definitions from data files.
-Guide connects to gRPC services (agent, llm, memory, graph, vector, tool,
-trace, web) and cannot do anything without them. The CLI currently hard-exits on
+Guide connects to gRPC services (agent, llm, memory, graph, vector, tool, trace,
+web) and cannot do anything without them. The CLI currently hard-exits on
 missing `SERVICE_SECRET` with a monorepo-specific error message. This plan
 replaces that hard exit with a helpful onboarding experience.
 
@@ -66,15 +66,15 @@ would be misleading. The package is a CLI tool.
 Check that the pinned dependency versions in `package.json` resolve to published
 versions on npm. The current pins are:
 
-| Dependency | Pinned | Latest tag |
-|---|---|---|
-| `@forwardimpact/libconfig` | `^0.1.58` | Verify |
-| `@forwardimpact/librepl` | `^0.1.0` | Verify |
-| `@forwardimpact/libutil` | `^0.1.64` | Verify |
-| `@forwardimpact/librpc` | `^0.1.77` | Verify |
-| `@forwardimpact/libstorage` | `^0.1.53` | Verify |
-| `@forwardimpact/libtelemetry` | `^0.1.22` | Verify |
-| `@forwardimpact/libtype` | `^0.1.63` | Verify |
+| Dependency                    | Pinned    | Latest tag |
+| ----------------------------- | --------- | ---------- |
+| `@forwardimpact/libconfig`    | `^0.1.58` | Verify     |
+| `@forwardimpact/librepl`      | `^0.1.0`  | Verify     |
+| `@forwardimpact/libutil`      | `^0.1.64` | Verify     |
+| `@forwardimpact/librpc`       | `^0.1.77` | Verify     |
+| `@forwardimpact/libstorage`   | `^0.1.53` | Verify     |
+| `@forwardimpact/libtelemetry` | `^0.1.22` | Verify     |
+| `@forwardimpact/libtype`      | `^0.1.63` | Verify     |
 
 All are already published with `"publishConfig": { "access": "public" }`. Use
 `npm view @forwardimpact/<pkg> version` to confirm each resolves. If any pin is
@@ -329,12 +329,12 @@ package with the correct description and keywords.
 
 ## File Change Summary
 
-| Category | Files | Action |
-|---|---|---|
-| Package metadata | `products/guide/package.json` | Modify |
+| Category           | Files                             | Action |
+| ------------------ | --------------------------------- | ------ |
+| Package metadata   | `products/guide/package.json`     | Modify |
 | CLI error handling | `products/guide/bin/fit-guide.js` | Modify |
-| README | `products/guide/README.md` | Create |
-| **Total** | **3 files** | |
+| README             | `products/guide/README.md`        | Create |
+| **Total**          | **3 files**                       |        |
 
 ## What This Does NOT Change
 
@@ -348,7 +348,7 @@ package with the correct description and keywords.
 
 **Low.** The changes are additive — package metadata, a README, and better error
 messages. The existing functionality when services are running is untouched. The
-publish workflow is generic and already handles all other packages. The only risk
-is that an npm user installs Guide expecting standalone functionality and is
-disappointed — but the README, `--help`, and onboarding message all set
+publish workflow is generic and already handles all other packages. The only
+risk is that an npm user installs Guide expecting standalone functionality and
+is disappointed — but the README, `--help`, and onboarding message all set
 expectations clearly.

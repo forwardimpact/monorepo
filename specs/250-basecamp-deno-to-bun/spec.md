@@ -10,16 +10,15 @@ product and library runs on Bun. This creates unnecessary friction:
 - **Developer setup.** Contributors working on Basecamp must install a second
   JavaScript runtime that nothing else in the repo uses.
 - **Dual configuration.** Basecamp maintains both `deno.json` (tasks,
-  compilerOptions) and `package.json` (scripts, npm metadata) for the same
-  entry point.
+  compilerOptions) and `package.json` (scripts, npm metadata) for the same entry
+  point.
 - **Cognitive overhead.** The justfile, build script, and package.json all
   reference `deno run --allow-all` or `deno compile` while the rest of the
   monorepo uses `bun`.
 
 Bun now supports `bun build --compile` for producing standalone binaries and
-`bun:ffi` for native library calls — the two Deno-specific capabilities
-Basecamp relies on. Eliminating Deno simplifies the toolchain to a single
-runtime.
+`bun:ffi` for native library calls — the two Deno-specific capabilities Basecamp
+relies on. Eliminating Deno simplifies the toolchain to a single runtime.
 
 ## Scope
 
@@ -37,18 +36,18 @@ runtime.
    - `Deno.open()` — async fd read via `/dev/fd/N`
    - `Deno.env.toObject()` — environment snapshot for child process
 
-3. **Build script.** Migrate `pkg/build.js` from `#!/usr/bin/env -S deno run
-   --allow-all` to run under Bun. Replace `Deno?.args` with
-   `process.argv.slice(2)` (already partially done as fallback). The script
-   otherwise uses only `node:fs`, `node:path`, and `node:child_process` — no
-   other Deno APIs.
+3. **Build script.** Migrate `pkg/build.js` from
+   `#!/usr/bin/env -S deno run --allow-all` to run under Bun. Replace
+   `Deno?.args` with `process.argv.slice(2)` (already partially done as
+   fallback). The script otherwise uses only `node:fs`, `node:path`, and
+   `node:child_process` — no other Deno APIs.
 
-4. **Justfile recipes.** Update all recipes that reference `deno run --allow-all`
-   or `deno compile` to use `bun` / `bun build --compile` equivalents.
+4. **Justfile recipes.** Update all recipes that reference
+   `deno run --allow-all` or `deno compile` to use `bun` / `bun build --compile`
+   equivalents.
 
-5. **Package configuration.** Remove `deno.json` entirely. Update
-   `package.json` build scripts from `deno run --allow-all pkg/build.js` to
-   `bun pkg/build.js`.
+5. **Package configuration.** Remove `deno.json` entirely. Update `package.json`
+   build scripts from `deno run --allow-all pkg/build.js` to `bun pkg/build.js`.
 
 6. **CI workflow.** Remove the `Install Deno` step from
    `.github/workflows/publish-macos.yml`. The workflow already installs Bun.
@@ -65,14 +64,14 @@ runtime.
 
 ## Affected files
 
-| File | Change |
-|------|--------|
-| `products/basecamp/src/posix-spawn.js` | Rewrite FFI from Deno to `bun:ffi` |
-| `products/basecamp/pkg/build.js` | Shebang → `#!/usr/bin/env bun`, `deno compile` → `bun build --compile`, remove `Deno?.args` |
-| `products/basecamp/justfile` | All `deno` commands → `bun` equivalents |
-| `products/basecamp/package.json` | Build scripts → `bun pkg/build.js` |
-| `products/basecamp/deno.json` | Delete |
-| `.github/workflows/publish-macos.yml` | Remove `Install Deno` step |
+| File                                   | Change                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `products/basecamp/src/posix-spawn.js` | Rewrite FFI from Deno to `bun:ffi`                                                          |
+| `products/basecamp/pkg/build.js`       | Shebang → `#!/usr/bin/env bun`, `deno compile` → `bun build --compile`, remove `Deno?.args` |
+| `products/basecamp/justfile`           | All `deno` commands → `bun` equivalents                                                     |
+| `products/basecamp/package.json`       | Build scripts → `bun pkg/build.js`                                                          |
+| `products/basecamp/deno.json`          | Delete                                                                                      |
+| `.github/workflows/publish-macos.yml`  | Remove `Install Deno` step                                                                  |
 
 ## Success criteria
 

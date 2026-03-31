@@ -18,28 +18,29 @@ find-and-replace.
 
 Replace Deno FFI primitives with Bun equivalents:
 
-| Deno API | Bun equivalent | Notes |
-|---|---|---|
-| `Deno.dlopen(path, symbols)` | `import { dlopen, FFIType, ptr, toArrayBuffer } from "bun:ffi"` then `dlopen(path, symbols)` | Bun's `dlopen` returns `{ symbols }` identically |
-| `Deno.UnsafePointer.of(buf)` | `ptr(buf)` | Returns a `number` (not BigInt) |
-| `Deno.UnsafePointer.value(p)` | Direct use — `ptr()` already returns a number | Deno wraps pointers in objects; Bun doesn't |
-| `Deno.open("/dev/fd/N")` | `Bun.file("/dev/fd/N").stream()` | For async pipe reads in `readAll()` |
-| `Deno.env.toObject()` | `process.env` (spread to plain object) | `{ ...process.env }` gives `Record<string, string>` |
+| Deno API                      | Bun equivalent                                                                               | Notes                                               |
+| ----------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `Deno.dlopen(path, symbols)`  | `import { dlopen, FFIType, ptr, toArrayBuffer } from "bun:ffi"` then `dlopen(path, symbols)` | Bun's `dlopen` returns `{ symbols }` identically    |
+| `Deno.UnsafePointer.of(buf)`  | `ptr(buf)`                                                                                   | Returns a `number` (not BigInt)                     |
+| `Deno.UnsafePointer.value(p)` | Direct use — `ptr()` already returns a number                                                | Deno wraps pointers in objects; Bun doesn't         |
+| `Deno.open("/dev/fd/N")`      | `Bun.file("/dev/fd/N").stream()`                                                             | For async pipe reads in `readAll()`                 |
+| `Deno.env.toObject()`         | `process.env` (spread to plain object)                                                       | `{ ...process.env }` gives `Record<string, string>` |
 
 Specific changes:
 
 1. Remove `/// <reference lib="deno.ns" />` and the Deno comment header.
 2. Add `import { dlopen, ptr } from "bun:ffi"` at the top.
-3. Replace both `Deno.dlopen()` calls with `dlopen()` from `bun:ffi`. The
-   symbol definition format is identical — both use
+3. Replace both `Deno.dlopen()` calls with `dlopen()` from `bun:ffi`. The symbol
+   definition format is identical — both use
    `{ parameters: [...], result: "..." }`. Both runtimes support the `"buffer"`
    parameter type for accepting TypedArrays (used by `posix_spawn` and
    `posix_spawn_file_actions_addchdir_np`), so no type changes are needed.
    Verify `"buffer"` works by loading the library: if Bun doesn't recognize the
    type, `dlopen()` throws immediately.
-4. In `buildStringArray()`: replace `Deno.UnsafePointer.value(Deno.UnsafePointer.of(buffers[i]))`
-   with `BigInt(ptr(buffers[i]))`. The `BigInt64Array` needs BigInt values, and
-   Bun's `ptr()` returns a number.
+4. In `buildStringArray()`: replace
+   `Deno.UnsafePointer.value(Deno.UnsafePointer.of(buffers[i]))` with
+   `BigInt(ptr(buffers[i]))`. The `BigInt64Array` needs BigInt values, and Bun's
+   `ptr()` returns a number.
 5. In `createPipe()`: replace `Deno.UnsafePointer.of(fds)` with `ptr(fds)`.
 6. In `readAll()`: replace `Deno.open("/dev/fd/N")` with
    `Bun.file("/dev/fd/N").stream()`, then collect the stream to text. The
@@ -72,14 +73,14 @@ Full build verification happens after justfile updates.
 
 **File:** `products/basecamp/justfile`
 
-| Recipe | Current | New |
-|---|---|---|
+| Recipe            | Current                                                            | New                                                 |
+| ----------------- | ------------------------------------------------------------------ | --------------------------------------------------- |
 | `build-scheduler` | `deno compile --allow-all --no-check --output ... src/basecamp.js` | `bun build --compile --outfile ... src/basecamp.js` |
-| `run` | `deno run --allow-all src/basecamp.js` | `bun src/basecamp.js` |
-| `daemon` | `deno run --allow-all src/basecamp.js --daemon` | `bun src/basecamp.js --daemon` |
-| `run-task` | `deno run --allow-all src/basecamp.js --run "{{ task }}"` | `bun src/basecamp.js --run "{{ task }}"` |
-| `status` | `deno run --allow-all src/basecamp.js --status` | `bun src/basecamp.js --status` |
-| `init` | `deno run --allow-all src/basecamp.js --init "{{ path }}"` | `bun src/basecamp.js --init "{{ path }}"` |
+| `run`             | `deno run --allow-all src/basecamp.js`                             | `bun src/basecamp.js`                               |
+| `daemon`          | `deno run --allow-all src/basecamp.js --daemon`                    | `bun src/basecamp.js --daemon`                      |
+| `run-task`        | `deno run --allow-all src/basecamp.js --run "{{ task }}"`          | `bun src/basecamp.js --run "{{ task }}"`            |
+| `status`          | `deno run --allow-all src/basecamp.js --status`                    | `bun src/basecamp.js --status`                      |
+| `init`            | `deno run --allow-all src/basecamp.js --init "{{ path }}"`         | `bun src/basecamp.js --init "{{ path }}"`           |
 
 Update the `build-scheduler` comment from "Compile standalone Deno scheduler
 binary" to "Compile standalone scheduler binary".
@@ -98,8 +99,8 @@ Update the three build scripts:
 "build:pkg": "bun pkg/build.js --pkg"
 ```
 
-Remove the `compilerOptions` field if present (that's in `deno.json`, but
-verify `package.json` doesn't also carry Deno-specific config).
+Remove the `compilerOptions` field if present (that's in `deno.json`, but verify
+`package.json` doesn't also carry Deno-specific config).
 
 **File:** `products/basecamp/deno.json` — delete entirely.
 
@@ -139,9 +140,9 @@ Run the success criteria from the spec:
 
 Steps 1–2 must come before 3–5 because the justfile `build-scheduler` recipe
 calls the build script, which compiles source that includes the FFI module. If
-the FFI module still references `Deno.*` when we switch to `bun build
---compile`, compilation will fail. The CI step (5) is last because it's
-independent and lowest risk.
+the FFI module still references `Deno.*` when we switch to
+`bun build --compile`, compilation will fail. The CI step (5) is last because
+it's independent and lowest risk.
 
 ## Risks
 

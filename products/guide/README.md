@@ -2,9 +2,9 @@
 
 > How do I find my bearing?
 
-Guide is an AI agent that understands your organization's engineering
-framework — skills, levels, behaviours, and expectations — and reasons about
-them in context. It helps developers onboard, find growth areas, and interpret
+Guide is an AI agent that understands your organization's engineering framework
+— skills, levels, behaviours, and expectations — and reasons about them in
+context. It helps developers onboard, find growth areas, and interpret
 engineering artifacts against skill markers.
 
 Guide is part of the [Forward Impact](https://www.forwardimpact.team) product
@@ -20,10 +20,10 @@ bun install @forwardimpact/guide
 
 ## Service Requirements
 
-Guide is a client for the Forward Impact knowledge platform. Unlike Map
-(local YAML validation) and Pathway (local job derivation), Guide connects to
-a gRPC service stack for LLM orchestration, memory, knowledge graphs, and
-vector search.
+Guide is a client for the Forward Impact knowledge platform. Unlike Map (local
+YAML validation) and Pathway (local job derivation), Guide connects to a gRPC
+service stack for LLM orchestration, memory, knowledge graphs, and vector
+search.
 
 The following services must be running:
 
@@ -81,8 +81,8 @@ bunx fit-guide --version
 
 - [@forwardimpact/map](https://www.npmjs.com/package/@forwardimpact/map) —
   Engineering framework validation and data product
-- [@forwardimpact/pathway](https://www.npmjs.com/package/@forwardimpact/pathway) —
-  Career progression web app and CLI
+- [@forwardimpact/pathway](https://www.npmjs.com/package/@forwardimpact/pathway)
+  — Career progression web app and CLI
 
 ## Documentation
 
