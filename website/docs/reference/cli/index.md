@@ -6,8 +6,7 @@ description: Commands, arguments, and options for all Forward Impact CLI tools.
 > **Availability:** `fit-pathway`, `fit-map`, and `fit-basecamp` are published
 > to npm and can be installed standalone. `fit-guide`, `fit-summit`, `fit-rc`,
 > `fit-doc`, and `fit-universe` are monorepo-only tools that require a full
-> checkout of the
-> [monorepo](https://github.com/forwardimpact/monorepo).
+> checkout of the [monorepo](https://github.com/forwardimpact/monorepo).
 
 ## fit-map
 
