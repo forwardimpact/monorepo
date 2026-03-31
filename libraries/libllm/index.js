@@ -5,7 +5,6 @@ import {
   createTokenizer,
   createRetry,
 } from "@forwardimpact/libutil";
-import { ProxyAgent } from "undici";
 import { fixMultiToolUseParallel } from "./hallucination.js";
 
 // Note: getBudget has moved to @forwardimpact/libmemory as getModelBudget
@@ -282,12 +281,10 @@ export function createProxyAwareFetch(process = global.process) {
     return fetch;
   }
 
-  const agent = new ProxyAgent(httpsProxy);
-
   return (url, options = {}) => {
     return fetch(url, {
       ...options,
-      dispatcher: agent,
+      proxy: httpsProxy,
     });
   };
 }

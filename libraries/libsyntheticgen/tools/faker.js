@@ -2,9 +2,9 @@
  * Faker tool — generates datasets using @faker-js/faker in-process.
  */
 
-import { faker } from "@faker-js/faker";
-
 export class FakerTool {
+  #faker;
+
   /**
    * @param {object} deps
    * @param {object} deps.logger
@@ -15,10 +15,28 @@ export class FakerTool {
   }
 
   /**
-   * Faker is always available (JS dependency).
+   * Lazily load the faker module.
+   * @returns {Promise<object>}
+   */
+  async #loadFaker() {
+    if (this.#faker) return this.#faker;
+    try {
+      const mod = await import("@faker-js/faker");
+      this.#faker = mod.faker;
+    } catch {
+      throw new Error(
+        "FakerTool requires @faker-js/faker. Install with: bun add @faker-js/faker",
+      );
+    }
+    return this.#faker;
+  }
+
+  /**
+   * Check that faker is available.
    * @returns {Promise<boolean>}
    */
   async checkAvailability() {
+    await this.#loadFaker();
     return true;
   }
 
@@ -32,6 +50,7 @@ export class FakerTool {
    * @returns {Promise<Dataset[]>}
    */
   async generate(config) {
+    const faker = await this.#loadFaker();
     faker.seed(config.seed);
     this.logger.info(
       "faker",
@@ -41,7 +60,7 @@ export class FakerTool {
     for (let i = 0; i < config.rows; i++) {
       const record = {};
       for (const [field, provider] of Object.entries(config.fields)) {
-        record[field] = this.callProvider(provider);
+        record[field] = this.#callProvider(faker, provider);
       }
       records.push(record);
     }
@@ -57,10 +76,11 @@ export class FakerTool {
 
   /**
    * Resolve a dotted provider path like "person.fullName" to a Faker call.
+   * @param {object} faker
    * @param {string} provider
    * @returns {*}
    */
-  callProvider(provider) {
+  #callProvider(faker, provider) {
     const parts = provider.split(".");
     let fn = faker;
     for (const part of parts) {

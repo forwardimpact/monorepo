@@ -46,7 +46,6 @@
     "@forwardimpact/libui": "^1.0.0",
     "@forwardimpact/libutil": "^0.1.64",
     "mustache": "^4.2.0",
-    "simple-icons": "^16.14.0",
     "yaml": "^2.8.3"
   },
   "engines": {

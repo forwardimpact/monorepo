@@ -17,8 +17,7 @@
   },
   "dependencies": {
     "@forwardimpact/libtype": "^0.1.63",
-    "@forwardimpact/libutil": "^0.1.60",
-    "undici": "^7.24.6"
+    "@forwardimpact/libutil": "^0.1.60"
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.5"

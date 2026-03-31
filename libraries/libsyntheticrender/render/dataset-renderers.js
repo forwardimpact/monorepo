@@ -110,8 +110,16 @@ function renderMarkdown(dataset, config) {
  * @returns {Promise<Map<string, Buffer>>}
  */
 async function renderParquet(dataset, config) {
-  const arrow = await import("apache-arrow");
-  const parquetModule = await import("parquet-wasm/esm/parquet_wasm.js");
+  let arrow, parquetModule;
+  try {
+    arrow = await import("apache-arrow");
+    parquetModule = await import("parquet-wasm/esm/parquet_wasm.js");
+  } catch {
+    throw new Error(
+      "Parquet rendering requires apache-arrow and parquet-wasm. " +
+        "Install with: bun add apache-arrow parquet-wasm",
+    );
+  }
   const { readFileSync } = await import("fs");
   const { createRequire } = await import("module");
   const require = createRequire(import.meta.url);
