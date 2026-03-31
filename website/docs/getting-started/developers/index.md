@@ -25,6 +25,20 @@ cd monorepo
 bun install
 ```
 
+## Data directory convention
+
+The Pathway and Map CLIs expect framework data at `./data/pathway/`, not
+`./data/` directly. The CLI resolves the data directory by walking upward from
+the current working directory looking for a `data/` folder, then appends
+`/pathway`.
+
+To override, use the `--data` flag pointing to the `pathway` subdirectory
+directly:
+
+```sh
+bunx fit-pathway discipline --list --data=./my-data/pathway
+```
+
 ## Browse your job definition
 
 Use the Pathway CLI to explore the engineering framework your organization has
