@@ -25,9 +25,9 @@
     "fit-pathway": "./bin/fit-pathway.js"
   },
   "scripts": {
-    "start": "node ./bin/fit-pathway.js serve",
-    "pathway": "node ./bin/fit-pathway.js",
-    "site": "node ./bin/fit-pathway.js site"
+    "start": "bun ./bin/fit-pathway.js serve",
+    "pathway": "bun ./bin/fit-pathway.js",
+    "site": "bun ./bin/fit-pathway.js site"
   },
   "files": [
     "bin/",
@@ -50,7 +50,7 @@
     "yaml": "^2.8.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "bun": ">=1.2.0"
   },
   "publishConfig": {
     "access": "public"

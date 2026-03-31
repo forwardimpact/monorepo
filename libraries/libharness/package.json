@@ -16,7 +16,7 @@
     "README.md"
   ],
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "bun run node --test test/*.test.js"
   },
   "keywords": [
     "test",
@@ -31,5 +31,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "engines": {
+    "bun": ">=1.2.0"
   }
 }

@@ -16,10 +16,10 @@
     "fit-process-resources": "./bin/fit-process-resources.js"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "bun": ">=1.2.0"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
     "@forwardimpact/libllm": "^0.1.71",

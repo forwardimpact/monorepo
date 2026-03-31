@@ -5,9 +5,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "node --watch server.js",
-    "start": "npx download && node server.js",
-    "test": "node --test test/*.test.js"
+    "dev": "bun --watch server.js",
+    "start": "bunx download && bun server.js",
+    "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
     "@forwardimpact/libconfig": "^0.1.58",
@@ -18,5 +18,8 @@
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.5"
+  },
+  "engines": {
+    "bun": ">=1.2.0"
   }
 }

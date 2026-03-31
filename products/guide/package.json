@@ -10,7 +10,7 @@
     "fit-guide": "./bin/fit-guide.js"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "bun": ">=1.2.0"
   },
   "dependencies": {
     "@forwardimpact/libconfig": "^0.1.58",

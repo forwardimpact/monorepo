@@ -25,7 +25,7 @@
     "./frontmatter": "./frontmatter.js"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.11",
@@ -38,7 +38,7 @@
     "yaml": "^2.8.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "bun": ">=1.2.0"
   },
   "publishConfig": {
     "access": "public"

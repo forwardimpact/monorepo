@@ -10,10 +10,10 @@
     "fit-rc": "./bin/fit-rc.js"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "bun": ">=1.2.0"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
     "@forwardimpact/libconfig": "^0.1.58",

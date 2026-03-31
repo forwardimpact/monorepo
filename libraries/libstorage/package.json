@@ -10,10 +10,10 @@
     "fit-storage": "./bin/fit-storage.js"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "bun": ">=1.2.0"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1018.0",

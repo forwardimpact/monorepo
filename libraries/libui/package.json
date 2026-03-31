@@ -33,7 +33,7 @@
     "./css/*": "./css/*"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "bun": ">=1.2.0"
   },
   "publishConfig": {
     "access": "public"

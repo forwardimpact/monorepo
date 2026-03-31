@@ -15,8 +15,8 @@
     "fit-map": "./bin/fit-map.js"
   },
   "scripts": {
-    "generate-index": "node ./bin/fit-map.js generate-index",
-    "validate": "node ./bin/fit-map.js validate"
+    "generate-index": "bun ./bin/fit-map.js generate-index",
+    "validate": "bun ./bin/fit-map.js validate"
   },
   "files": [
     "bin/",
@@ -55,7 +55,7 @@
     "n3": "^2.0.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "bun": ">=1.2.0"
   },
   "publishConfig": {
     "access": "public"

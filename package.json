@@ -58,18 +58,18 @@
     "services/web"
   ],
   "scripts": {
-    "prestart": "npx fit-pathway build",
-    "start": "npx serve public",
-    "dev": "npx fit-pathway dev",
-    "check": "npm run format && npm run lint && npm run test && npm run validate -- --json",
-    "check:fix": "npm run format:fix && npm run lint:fix",
+    "prestart": "bunx fit-pathway build",
+    "start": "bunx serve public",
+    "dev": "bunx fit-pathway dev",
+    "check": "bun run format & bun run lint & bun run test & bun run validate -- --json & wait",
+    "check:fix": "bun run format:fix && bun run lint:fix",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "test": "find ./tests ./libraries ./products ./services -name '*.test.js' -not -path '*/node_modules/*' | xargs node --test",
-    "test:e2e": "npx playwright test",
-    "validate": "npx fit-map validate",
+    "test": "find ./tests ./libraries ./products ./services -name '*.test.js' -not -path '*/node_modules/*' | xargs bun run node --test",
+    "test:e2e": "bunx playwright test",
+    "validate": "bunx fit-map validate",
     "generate": "fit-universe"
   },
   "devDependencies": {
@@ -82,6 +82,6 @@
     "serve": "^14.2.6"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "bun": ">=1.2.0"
   }
 }

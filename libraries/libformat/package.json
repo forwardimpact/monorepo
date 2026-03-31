@@ -7,10 +7,10 @@
   "type": "module",
   "main": "index.js",
   "engines": {
-    "node": ">=22.0.0"
+    "bun": ">=1.2.0"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
     "marked": "^17.0.5",

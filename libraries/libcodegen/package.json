@@ -10,10 +10,10 @@
     "fit-codegen": "./bin/fit-codegen.js"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "bun": ">=1.2.0"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
     "@grpc/proto-loader": "^0.8.0",
