@@ -3,8 +3,8 @@
 ## Approach
 
 Build bottom-up: AgentRunner first (the building block), then Supervisor (which
-composes it), then CLI commands, then the GitHub Action, then workflow migration,
-then the Guide scenario. Each step is independently testable.
+composes it), then CLI commands, then the GitHub Action, then workflow
+migration, then the Guide scenario. Each step is independently testable.
 
 The `run` command emits raw stream-json NDJSON — identical to what the `claude`
 binary produces today — so TraceCollector works without changes. The `supervise`
@@ -13,8 +13,8 @@ stream that requires filtering for TraceCollector compatibility. This asymmetry
 is intentional: `run` is a drop-in replacement, `supervise` is a new capability.
 
 Agent profiles (`.claude/agents/*.md`) are passed through to the SDK via the
-`--agent` flag. The `supervise` command supports separate profiles for supervisor
-and agent, since they serve different roles.
+`--agent` flag. The `supervise` command supports separate profiles for
+supervisor and agent, since they serve different roles.
 
 ## Step 1 — Add the Agent SDK dependency
 
@@ -114,6 +114,7 @@ export function createAgentRunner(deps) {
 **New file:** `libraries/libeval/test/agent-runner.test.js`
 
 Mock `query` to return canned event streams. Verify:
+
 - NDJSON lines written to output stream match expected events
 - `sessionId` captured from init event
 - `resume()` passes `sessionId` to `query()`
@@ -148,17 +149,17 @@ export class Supervisor {
 }
 ```
 
-| Dependency         | Type       | Purpose                                         |
-| ------------------ | ---------- | ----------------------------------------------- |
-| `supervisorCwd`    | `string`   | Path to supervisor workspace directory           |
-| `agentCwd`         | `string`   | Path to agent workspace directory                |
-| `query`            | `function` | SDK query function (injected for testing)        |
-| `output`           | `Writable` | Stream to emit NDJSON lines to                   |
-| `model`            | `string`   | Claude model identifier                          |
-| `maxTurns`         | `number`   | Maximum supervisor ↔ agent exchanges             |
-| `allowedTools`     | `string[]` | Tools the agent may use                          |
-| `supervisorAgent`  | `string`   | Supervisor agent profile name (optional)         |
-| `agentAgent`       | `string`   | Agent agent profile name (optional)              |
+| Dependency        | Type       | Purpose                                   |
+| ----------------- | ---------- | ----------------------------------------- |
+| `supervisorCwd`   | `string`   | Path to supervisor workspace directory    |
+| `agentCwd`        | `string`   | Path to agent workspace directory         |
+| `query`           | `function` | SDK query function (injected for testing) |
+| `output`          | `Writable` | Stream to emit NDJSON lines to            |
+| `model`           | `string`   | Claude model identifier                   |
+| `maxTurns`        | `number`   | Maximum supervisor ↔ agent exchanges      |
+| `allowedTools`    | `string[]` | Tools the agent may use                   |
+| `supervisorAgent` | `string`   | Supervisor agent profile name (optional)  |
+| `agentAgent`      | `string`   | Agent agent profile name (optional)       |
 
 ### Internal composition
 
@@ -207,8 +208,8 @@ agent profile.
 
 ### `emitTagged(source, turn, events)` — output wrapping
 
-For each raw NDJSON event from the SDK, wraps it with `source` and `turn`
-fields before writing to the output stream:
+For each raw NDJSON event from the SDK, wraps it with `source` and `turn` fields
+before writing to the output stream:
 
 ```javascript
 emitTagged(source, turn, events) {
@@ -246,6 +247,7 @@ export function createSupervisor(deps) {
 **New file:** `libraries/libeval/test/supervisor.test.js`
 
 Mock `query` to simulate a multi-turn relay. Verify:
+
 - Agent receives task on turn 0
 - Supervisor receives agent output on each turn
 - Supervisor DONE terminates the loop
@@ -320,11 +322,13 @@ export async function runRunCommand(args) {
 ### Typical invocations
 
 Single agent in CI (replaces the claude action):
+
 ```
 fit-eval run --task=.github/tasks/security-audit.md --agent=security-engineer --model=opus --max-turns=50
 ```
 
 Single agent with trace file:
+
 ```
 fit-eval run --task=.github/tasks/release-readiness.md --agent=release-engineer --output=traces/release.ndjson
 ```
@@ -365,6 +369,7 @@ Options:
 ### Typical invocations
 
 Supervisor inherits monorepo context:
+
 ```
 fit-eval supervise \
   --task=scenarios/guide-setup/task.md \
@@ -373,6 +378,7 @@ fit-eval supervise \
 ```
 
 Both purpose-built (fully isolated scenario):
+
 ```
 fit-eval supervise \
   --task=scenarios/guide-setup/task.md \
@@ -381,6 +387,7 @@ fit-eval supervise \
 ```
 
 Different agent profiles:
+
 ```
 fit-eval supervise \
   --task=scenarios/guide-setup/task.md \
@@ -389,9 +396,11 @@ fit-eval supervise \
 ```
 
 Minimal (defaults):
+
 ```
 fit-eval supervise --task=task.md
 ```
+
 Supervisor runs from the current directory. Agent gets a temp directory.
 
 ## Step 6 — Register commands in CLI entry point
@@ -594,6 +603,7 @@ runs:
 ```
 
 Key differences from the old action:
+
 - No `claude` binary installation step
 - No piping through stdin — task is a file path
 - No `fit-eval tee` post-processing — the `run` command handles trace output
@@ -607,15 +617,15 @@ Key differences from the old action:
 One markdown file per CI workflow, containing the prompt that was previously
 inline in the workflow YAML.
 
-| Workflow              | Task file                            | Current inline prompt                                              |
-| --------------------- | ------------------------------------ | ------------------------------------------------------------------ |
-| security-audit        | `.github/tasks/security-audit.md`    | "Perform a security audit of the repository."                      |
-| product-backlog       | `.github/tasks/product-backlog.md`   | Review all open PRs for product alignment...                       |
-| product-feedback      | `.github/tasks/product-feedback.md`  | Review all open GitHub issues for product alignment                |
-| improvement-coach     | `.github/tasks/improvement-coach.md` | Pick one random agent workflow trace and deep-analyze it            |
-| dependabot-triage     | `.github/tasks/dependabot-triage.md` | Review and triage open Dependabot pull requests                    |
-| release-readiness     | `.github/tasks/release-readiness.md` | Check all open pull requests for merge readiness                   |
-| release-review        | `.github/tasks/release-review.md`    | Review main branch for unreleased changes and cut new versions     |
+| Workflow          | Task file                            | Current inline prompt                                          |
+| ----------------- | ------------------------------------ | -------------------------------------------------------------- |
+| security-audit    | `.github/tasks/security-audit.md`    | "Perform a security audit of the repository."                  |
+| product-backlog   | `.github/tasks/product-backlog.md`   | Review all open PRs for product alignment...                   |
+| product-feedback  | `.github/tasks/product-feedback.md`  | Review all open GitHub issues for product alignment            |
+| improvement-coach | `.github/tasks/improvement-coach.md` | Pick one random agent workflow trace and deep-analyze it       |
+| dependabot-triage | `.github/tasks/dependabot-triage.md` | Review and triage open Dependabot pull requests                |
+| release-readiness | `.github/tasks/release-readiness.md` | Check all open pull requests for merge readiness               |
+| release-review    | `.github/tasks/release-review.md`    | Review main branch for unreleased changes and cut new versions |
 
 Each file contains the full prompt text. Some may be expanded from the terse
 inline versions to include more context now that they're standalone files.
@@ -678,34 +688,37 @@ scenarios/guide-setup/
 
 > You are a developer evaluating the Forward Impact engineering platform. Go to
 > www.forwardimpact.team, find the Guide product, read the documentation, and
-> try to install and configure it in a fresh project. Do not clone the monorepo —
-> install from npm. Write notes about your experience in ./notes/.
+> try to install and configure it in a fresh project. Do not clone the monorepo
+> — install from npm. Write notes about your experience in ./notes/.
 
 ### `scenarios/guide-setup/supervisor/CLAUDE.md`
 
 Encodes the supervisor's judgement rules:
 
 > ## When to intervene
+>
 > - The agent is stuck in a loop (retrying the same failing command)
 > - The agent is going down a dead end (e.g. trying to clone the monorepo)
 > - The agent asks a question you can answer
 > - The agent has missed something important
 >
 > ## When to let them continue
+>
 > - The agent is making progress, even if slowly
 > - The agent is troubleshooting a real issue (let them learn)
 > - The agent found an alternative path that still works
 >
 > ## Completion criteria
+>
 > - The agent has installed @forwardimpact packages from npm
 > - The agent has initialized framework data with fit-pathway init
 > - The agent has run fit-map validate
 > - The agent has written an assessment to ./notes/
 > - Output DONE when all criteria are met (or clearly unachievable)
 
-In practice, the supervisor can also run from the monorepo root (`--supervisor-cwd=.`)
-to inherit the full project context. The purpose-built directory is for fully
-isolated scenarios.
+In practice, the supervisor can also run from the monorepo root
+(`--supervisor-cwd=.`) to inherit the full project context. The purpose-built
+directory is for fully isolated scenarios.
 
 ### `scenarios/guide-setup/agent/CLAUDE.md`
 
@@ -724,6 +737,7 @@ fit-eval supervise \
 ```
 
 Or using the monorepo as supervisor context:
+
 ```
 fit-eval supervise \
   --task=scenarios/guide-setup/task.md \
@@ -749,8 +763,8 @@ acts as a product-aware observer evaluating whether the Guide onboarding
 experience actually works for a new user.
 
 Unlike the Guide setup scenario (Step 11), which tests whether a developer can
-*install and configure* the platform from scratch, this scenario tests the
-end-to-end *user journey*: visit the website, follow the getting-started docs,
+_install and configure_ the platform from scratch, this scenario tests the
+end-to-end _user journey_: visit the website, follow the getting-started docs,
 install fit-guide, and run real prompts against it. The product-manager
 supervisor evaluates the experience from a product quality perspective — are the
 docs clear? Do the commands work? Is the output useful?
@@ -765,8 +779,8 @@ docs clear? Do the commands work? Is the output useful?
 >
 > 1. Install the @forwardimpact/guide package from npm
 > 2. Follow any setup instructions from the documentation
-> 3. Run at least three different fit-guide prompts — try asking it about skills,
->    career progression, or engineering practices
+> 3. Run at least three different fit-guide prompts — try asking it about
+>    skills, career progression, or engineering practices
 > 4. Write notes about your experience in ./notes/, including:
 >    - How clear the installation instructions were
 >    - Whether the commands worked as documented
@@ -781,7 +795,8 @@ docs clear? Do the commands work? Is the output useful?
 > You are a developer trying a product for the first time. Follow documentation
 > as written — do not look for workarounds or alternative approaches unless the
 > documented path fails. If something is unclear or doesn't work, note it and
-> try to proceed. Write honest notes about your experience in ./notes/ as you go.
+> try to proceed. Write honest notes about your experience in ./notes/ as you
+> go.
 
 ### Invocation
 
@@ -829,55 +844,58 @@ to avoid breaking CI during the transition.
 
 ### New files
 
-| File | Purpose |
-| ---- | ------- |
-| `libraries/libeval/src/agent-runner.js` | AgentRunner class |
-| `libraries/libeval/src/supervisor.js` | Supervisor class |
-| `libraries/libeval/src/commands/run.js` | `run` command handler |
-| `libraries/libeval/src/commands/supervise.js` | `supervise` command handler |
-| `libraries/libeval/test/agent-runner.test.js` | AgentRunner tests |
-| `libraries/libeval/test/supervisor.test.js` | Supervisor tests |
-| `.github/actions/fit-eval/action.yml` | New composite action |
-| `.github/tasks/*.md` (7 files) | Task files for CI workflows |
-| `scenarios/guide-setup/task.md` | Guide setup scenario task |
-| `scenarios/guide-setup/supervisor/CLAUDE.md` | Guide setup supervisor context |
-| `scenarios/guide-setup/agent/CLAUDE.md` | Guide setup agent context |
-| `scenarios/guide-onboarding/task.md` | Guide onboarding scenario task |
-| `scenarios/guide-onboarding/agent/CLAUDE.md` | Guide onboarding agent context |
+| File                                          | Purpose                        |
+| --------------------------------------------- | ------------------------------ |
+| `libraries/libeval/src/agent-runner.js`       | AgentRunner class              |
+| `libraries/libeval/src/supervisor.js`         | Supervisor class               |
+| `libraries/libeval/src/commands/run.js`       | `run` command handler          |
+| `libraries/libeval/src/commands/supervise.js` | `supervise` command handler    |
+| `libraries/libeval/test/agent-runner.test.js` | AgentRunner tests              |
+| `libraries/libeval/test/supervisor.test.js`   | Supervisor tests               |
+| `.github/actions/fit-eval/action.yml`         | New composite action           |
+| `.github/tasks/*.md` (7 files)                | Task files for CI workflows    |
+| `scenarios/guide-setup/task.md`               | Guide setup scenario task      |
+| `scenarios/guide-setup/supervisor/CLAUDE.md`  | Guide setup supervisor context |
+| `scenarios/guide-setup/agent/CLAUDE.md`       | Guide setup agent context      |
+| `scenarios/guide-onboarding/task.md`          | Guide onboarding scenario task |
+| `scenarios/guide-onboarding/agent/CLAUDE.md`  | Guide onboarding agent context |
 
 ### Modified files
 
-| File | Change |
-| ---- | ------ |
-| `libraries/libeval/package.json` | Add Agent SDK dependency |
-| `libraries/libeval/bin/fit-eval.js` | Register `run` and `supervise` commands |
-| `libraries/libeval/index.js` | Export AgentRunner and Supervisor |
-| `.github/workflows/security-audit.yml` | Migrate to fit-eval action |
-| `.github/workflows/product-backlog.yml` | Migrate to fit-eval action |
-| `.github/workflows/product-feedback.yml` | Migrate to fit-eval action |
-| `.github/workflows/improvement-coach.yml` | Migrate to fit-eval action |
-| `.github/workflows/dependabot-triage.yml` | Migrate to fit-eval action |
-| `.github/workflows/release-readiness.yml` | Migrate to fit-eval action |
-| `.github/workflows/release-review.yml` | Migrate to fit-eval action |
+| File                                      | Change                                  |
+| ----------------------------------------- | --------------------------------------- |
+| `libraries/libeval/package.json`          | Add Agent SDK dependency                |
+| `libraries/libeval/bin/fit-eval.js`       | Register `run` and `supervise` commands |
+| `libraries/libeval/index.js`              | Export AgentRunner and Supervisor       |
+| `.github/workflows/security-audit.yml`    | Migrate to fit-eval action              |
+| `.github/workflows/product-backlog.yml`   | Migrate to fit-eval action              |
+| `.github/workflows/product-feedback.yml`  | Migrate to fit-eval action              |
+| `.github/workflows/improvement-coach.yml` | Migrate to fit-eval action              |
+| `.github/workflows/dependabot-triage.yml` | Migrate to fit-eval action              |
+| `.github/workflows/release-readiness.yml` | Migrate to fit-eval action              |
+| `.github/workflows/release-review.yml`    | Migrate to fit-eval action              |
 
 ### Deleted files
 
-| File | Reason |
-| ---- | ------ |
+| File                                | Reason                      |
+| ----------------------------------- | --------------------------- |
 | `.github/actions/claude/action.yml` | Replaced by fit-eval action |
 
 ## Ordering
 
-Steps 1–7 can be implemented and tested locally without affecting CI. Steps
-8–10 (action + migration) should be done in a single commit to avoid a state
-where some workflows use the old action and some use the new one. Steps 11–12
+Steps 1–7 can be implemented and tested locally without affecting CI. Steps 8–10
+(action + migration) should be done in a single commit to avoid a state where
+some workflows use the old action and some use the new one. Steps 11–12
 (scenarios) are independent of each other and can land separately. Step 13
 (delete old action) lands after migration is verified.
 
 Recommended commit sequence:
 
-1. Steps 1–7: `feat(libeval): add AgentRunner, Supervisor, and run/supervise commands`
-2. Steps 8–10: `feat(ci): migrate workflows from claude action to fit-eval action`
+1. Steps 1–7:
+   `feat(libeval): add AgentRunner, Supervisor, and run/supervise commands`
+2. Steps 8–10:
+   `feat(ci): migrate workflows from claude action to fit-eval action`
 3. Step 11: `feat(eval): add Guide setup supervised evaluation scenario`
-4. Step 12: `feat(eval): add Guide onboarding scenario with product-manager supervisor`
+4. Step 12:
+   `feat(eval): add Guide onboarding scenario with product-manager supervisor`
 5. Step 13: `chore(ci): remove deprecated .github/actions/claude/`

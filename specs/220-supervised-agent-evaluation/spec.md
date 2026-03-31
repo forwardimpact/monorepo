@@ -27,8 +27,8 @@ respond. Real evaluation requires an adaptive supervisor that can observe and
 intervene.
 
 The single-agent case is simpler but equally important: every CI workflow that
-runs a Claude agent should use the same `fit-eval` CLI rather than reimplementing
-agent invocation in shell scripts.
+runs a Claude agent should use the same `fit-eval` CLI rather than
+reimplementing agent invocation in shell scripts.
 
 ### Prerequisites
 
@@ -46,8 +46,8 @@ Add two subcommands to the `fit-eval` CLI that share a common structure:
 
 Runs one Claude Agent SDK session to completion. Takes a task file, a working
 directory, and an optional agent profile. Produces an NDJSON trace to stdout (or
-a file). This is the direct replacement for the `claude` binary + shell scripting
-in CI workflows.
+a file). This is the direct replacement for the `claude` binary + shell
+scripting in CI workflows.
 
 The agent receives the task, works autonomously, and the command exits when the
 agent is done. The output is the agent's trace — raw Claude Code stream-json
@@ -61,13 +61,13 @@ Runs two Claude Agent SDK sessions in a relay loop:
   docs, installing packages, running commands, writing files. When it finishes a
   turn of work or gets stuck, it reports back.
 - A **supervisor** that observes the agent's output after each turn and makes a
-  judgement call: let the agent continue, provide guidance, answer a question, or
-  declare the evaluation complete.
+  judgement call: let the agent continue, provide guidance, answer a question,
+  or declare the evaluation complete.
 
 The agent drives its own exploration. The supervisor does not dictate steps — it
-watches, nudges, and evaluates. This models how a senior engineer might observe a
-junior developer working through an unfamiliar setup: they don't hand-hold every
-step, but they're available when things go sideways.
+watches, nudges, and evaluates. This models how a senior engineer might observe
+a junior developer working through an unfamiliar setup: they don't hand-hold
+every step, but they're available when things go sideways.
 
 The supervisor and agent may use different agent profiles, allowing distinct
 personas (e.g. a `security-engineer` supervisor observing a general-purpose
@@ -106,9 +106,9 @@ project. The agent's `CLAUDE.md` and `.claude/settings.json` at this path
 control its persona and tool permissions.
 
 **Task file** — The task given to the agent on the first turn. A plain text or
-markdown file read once at startup and passed to the agent as its initial prompt.
-Task files live in `.github/tasks/` for CI workflows and in scenario directories
-for supervised evaluations.
+markdown file read once at startup and passed to the agent as its initial
+prompt. Task files live in `.github/tasks/` for CI workflows and in scenario
+directories for supervised evaluations.
 
 ### Interaction Model
 
@@ -148,11 +148,11 @@ is a drop-in replacement for `claude --output-format stream-json`.
 **`fit-eval supervise`** emits an interleaved NDJSON stream. Each line from
 either agent's SDK stream is tagged with a `source` and `turn` field:
 
-| Source          | What it contains                                          |
-| --------------- | --------------------------------------------------------- |
-| `agent`         | Full SDK event stream — tool calls, text, token usage     |
-| `supervisor`    | Lighter stream — mostly text decisions, few/no tool calls |
-| `orchestrator`  | Final summary line with aggregate turns and success       |
+| Source         | What it contains                                          |
+| -------------- | --------------------------------------------------------- |
+| `agent`        | Full SDK event stream — tool calls, text, token usage     |
+| `supervisor`   | Lighter stream — mostly text decisions, few/no tool calls |
+| `orchestrator` | Final summary line with aggregate turns and success       |
 
 Filter by `source=="agent"` to extract a standard trace compatible with
 TraceCollector, `fit-eval output`, and `fit-eval tee`.
@@ -164,15 +164,15 @@ The `.github/actions/claude/` action is replaced with a
 `fit-eval supervise` depending on inputs. No `claude` binary installation, no
 shell-script flag construction — just `bunx fit-eval run --task=...`.
 
-Workflows declare *what* to run, not *how* to invoke Claude. Task files in
+Workflows declare _what_ to run, not _how_ to invoke Claude. Task files in
 `.github/tasks/` replace inline prompt strings. Agent profiles previously
 selected via the `agent:` input continue to work via the `--agent` flag.
 
 ### Agent Profile Migration
 
 The four existing agent profiles (`security-engineer`, `product-manager`,
-`release-engineer`, `improvement-coach`) in `.claude/agents/` are unchanged.
-The `--agent` flag on both `run` and `supervise` replaces the action's `agent:`
+`release-engineer`, `improvement-coach`) in `.claude/agents/` are unchanged. The
+`--agent` flag on both `run` and `supervise` replaces the action's `agent:`
 input. The `supervise` command accepts separate flags for the supervisor and
 agent profiles, since they may need different personas.
 
@@ -209,15 +209,15 @@ task file in `.github/tasks/`. The `agent:` input maps to the `--agent` flag.
 7. **Task files** — `.github/tasks/` directory with one markdown task file per
    CI workflow, replacing inline prompt strings.
 
-8. **Guide setup scenario** — A supervised scenario demonstrating the pattern.
-   A task file and CLAUDE.md context that encode a Guide product setup
-   evaluation. Custom supervisor context with explicit judgement rules.
+8. **Guide setup scenario** — A supervised scenario demonstrating the pattern. A
+   task file and CLAUDE.md context that encode a Guide product setup evaluation.
+   Custom supervisor context with explicit judgement rules.
 
 9. **Guide onboarding scenario** — A supervised scenario using the existing
-   `product-manager` agent profile as the supervisor. Tests the end-to-end
-   user journey: visit the website, follow getting-started docs, install
-   fit-guide, and run real prompts. The product-manager evaluates from a
-   product quality perspective.
+   `product-manager` agent profile as the supervisor. Tests the end-to-end user
+   journey: visit the website, follow getting-started docs, install fit-guide,
+   and run real prompts. The product-manager evaluates from a product quality
+   perspective.
 
 ### Out of scope
 
@@ -229,8 +229,8 @@ task file in `.github/tasks/`. The `agent:` input maps to the `--agent` flag.
 ## Example: Guide Setup Scenario
 
 The first scenario demonstrates the pattern. The supervisor runs from the
-monorepo root (inheriting all skills and project context). The agent starts in
-a fresh temp directory.
+monorepo root (inheriting all skills and project context). The agent starts in a
+fresh temp directory.
 
 **Task:** Go to www.forwardimpact.team, find the Guide product, read the
 documentation, and try to install and configure it in a fresh project. Do not
@@ -259,8 +259,8 @@ docs, troubleshoot errors, write notes."
   function, tests bypass factory and inject mocks directly
 - `fit-eval run` works end-to-end with any combination of flags
 - NDJSON output is raw stream-json, directly compatible with TraceCollector
-- Produces the same trace quality as the current `claude` binary + `fit-eval tee`
-  pipeline
+- Produces the same trace quality as the current `claude` binary +
+  `fit-eval tee` pipeline
 - Agent profiles work via `--agent` flag
 
 **`fit-eval supervise` (supervised agent):**
