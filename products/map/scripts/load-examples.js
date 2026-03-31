@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Load example data from examples/activity/raw/ into the local Supabase instance.
  *

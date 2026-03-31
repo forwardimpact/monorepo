@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 import { updateEnvFile } from "@forwardimpact/libsecret";
 import { createInterface } from "node:readline";
 

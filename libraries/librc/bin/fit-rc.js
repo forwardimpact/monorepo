@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Service manager CLI (s6-rc equivalent).
  * Communicates with svscan daemon via Unix socket.

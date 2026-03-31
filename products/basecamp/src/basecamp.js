@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 // Basecamp — CLI and scheduler for autonomous agent teams.
 //

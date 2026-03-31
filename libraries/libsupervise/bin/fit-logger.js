@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 import { parseArgs } from "node:util";
 import readline from "node:readline";
 

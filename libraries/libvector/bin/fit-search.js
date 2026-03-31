@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createLlmApi } from "@forwardimpact/libllm";
 import { createStorage } from "@forwardimpact/libstorage";
