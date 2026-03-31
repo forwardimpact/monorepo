@@ -58,6 +58,17 @@ reference the action — not just the one Dependabot found. Current usage:
 
 ## Process
 
+### Step 0: Read Memory for Triage History
+
+Before listing PRs, read all files in the memory directory. From previous
+`dependabot-triage-*.md` entries, extract:
+
+- PRs that were previously closed, merged, or deferred and their outcomes
+- Packages that repeatedly fail Check 8 (peer/transitive compatibility)
+
+Also check entries from other agents — the security engineer may have flagged
+dependency issues, or the improvement coach may have noted triage mistakes.
+
 ### Step 1: List Open Dependabot PRs
 
 ```sh
@@ -93,17 +104,24 @@ Determine the update type from the PR title and body:
 #### Check 8: Peer and Transitive Dependency Compatibility (npm major updates)
 
 For every npm major version bump, verify the updated package does not break
-co-installed packages. Run `npm ls <package>` on the PR branch and check for:
+co-installed packages. Run `bun pm ls` on the PR branch and check for:
 
 - **`invalid`** — a resolved version violates another package's declared range
   (peer or regular dependency). The major bump cannot land until those packages
   release compatible versions.
+- **Nested duplicates in `bun.lock`** — if the lockfile creates a nested entry
+  for the old major version under a co-dependent package (e.g.
+  `@grpc/proto-loader/protobufjs@7` alongside a top-level `protobufjs@8`), the
+  bump forces two major versions into the tree. This causes version splitting
+  (sometimes called "dependency indirection") and **fails this check**. Close
+  the PR until all co-dependent packages release compatible ranges.
 - **`deduped` across mismatched majors** — if the same package resolves to
   multiple major versions in the tree, the update may cause subtle runtime
   issues (e.g. type mismatches, duplicate registrations). Investigate before
   merging.
 
-If the tree is clean (single version, no `invalid` markers), the check passes.
+If the tree is clean (single version, no `invalid` markers, no nested
+duplicates), the check passes.
 
 ### Step 3: Check CI Status
 
@@ -204,10 +222,22 @@ After processing all PRs, produce a summary table:
 ```
 | PR  | Title                          | Action | Reason                     |
 | --- | ------------------------------ | ------ | -------------------------- |
-| #67 | bump protobufjs 7.5.4 to 8.0.0 | merge  | All policies pass, CI green |
+| #67 | bump protobufjs 7.5.4 to 8.0.0 | close  | Check 8: @grpc/proto-loader peers on ^7 |
 | #61 | bump upload-pages-artifact ...  | fix    | Missing SHA pins in ...    |
 | #58 | bump configure-pages ...        | close  | Introduces tag reference   |
 ```
 
 Include any PRs that were skipped (e.g. waiting for main to be fixed) with a
 note explaining why.
+
+### Memory: what to record for dependabot triage
+
+When writing your memory entry at the end of the run, include these
+triage-specific fields in addition to the standard agent memory fields:
+
+- **PR triage table** — Each PR processed with action taken (merged, closed,
+  fixed), which policy checks failed, and the reason for the decision
+- **Compatibility blockers** — Packages closed due to Check 8 (peer/transitive
+  incompatibility), noting which co-dependent packages need compatible releases
+- **Reverted merges** — Any PRs that were merged but later reverted, with the
+  root cause (e.g. lockfile duplication missed during triage)

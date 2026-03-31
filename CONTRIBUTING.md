@@ -126,6 +126,11 @@ Security policies apply to all contributors — human and agent.
   renderer)
 - Align version ranges for the same package across all workspaces
 - Verify peer and transitive dependency compatibility before merging major
-  version bumps — run `bun pm ls` and confirm no `invalid` markers
+  version bumps — run `bun pm ls` and confirm no `invalid` markers. Also inspect
+  `bun.lock` for **nested duplicates** (the same package resolved at two
+  different major versions, e.g. a top-level `protobufjs@8` alongside
+  `@grpc/proto-loader/protobufjs@7`). A major bump that forces co-installed
+  packages onto a separate version violates this policy — close the PR until all
+  dependents release compatible ranges
 - Run `npm audit --audit-level=high` after adding or updating dependencies (use
   `make audit-vulnerabilities` which generates a temporary lockfile)
