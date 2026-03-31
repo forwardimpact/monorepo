@@ -23,10 +23,14 @@
   "dependencies": {
     "@forwardimpact/libsyntheticgen": "^0.1.0",
     "@forwardimpact/libtemplate": "^0.2.0",
-    "apache-arrow": "^21.1.0",
-    "parquet-wasm": "^0.7.1",
-    "prettier": "^3.8.1",
     "yaml": "^2.8.3"
+  },
+  "peerDependencies": {
+    "prettier": "^3.0.0"
+  },
+  "optionalDependencies": {
+    "apache-arrow": "^21.1.0",
+    "parquet-wasm": "^0.7.1"
   },
   "engines": {
     "bun": ">=1.2.0"

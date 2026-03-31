@@ -26,9 +26,13 @@
     "@forwardimpact/libsyntheticprose": "^0.1.0",
     "@forwardimpact/libsyntheticrender": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.23",
-    "@forwardimpact/libtemplate": "^0.2.0",
-    "@supabase/supabase-js": "^2.101.0",
-    "prettier": "^3.8.1"
+    "@forwardimpact/libtemplate": "^0.2.0"
+  },
+  "peerDependencies": {
+    "prettier": "^3.0.0"
+  },
+  "optionalDependencies": {
+    "@supabase/supabase-js": "^2.101.0"
   },
   "engines": {
     "bun": ">=1.2.0"

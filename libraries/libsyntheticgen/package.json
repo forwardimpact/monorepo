@@ -24,9 +24,11 @@
     "./tools/sdv": "./tools/sdv.js"
   },
   "dependencies": {
-    "@faker-js/faker": "^10.4.0",
     "@forwardimpact/libutil": "^0.1.61",
     "seedrandom": "^3.0.5"
+  },
+  "optionalDependencies": {
+    "@faker-js/faker": "^10.4.0"
   },
   "engines": {
     "bun": ">=1.2.0"

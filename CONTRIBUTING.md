@@ -134,3 +134,50 @@ Security policies apply to all contributors — human and agent.
   dependents release compatible ranges
 - Run `make audit-vulnerabilities` after adding or updating dependencies
   (generates a temporary lockfile for `npm audit --audit-level=high`)
+
+### Dependency Classification
+
+Every external dependency must be classified into one of these categories. Apply
+the decision rules in order — the first match wins.
+
+| Category             | Rule                                                                                        | Field                                       | Examples                                         |
+| -------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------ |
+| **Always needed**    | Imported synchronously at load time, unconditionally                                        | `dependencies`                              | yaml, mustache, marked, hono, @grpc/grpc-js, ajv |
+| **Backend-specific** | Only needed when a `process.env` value selects that backend; alternative backends exist     | `optionalDependencies` + dynamic `import()` | @aws-sdk/client-s3, @supabase/supabase-js        |
+| **Feature-gated**    | Only loaded when the user explicitly enables a feature; core functionality works without it | `optionalDependencies` + dynamic `import()` | apache-arrow, parquet-wasm, @faker-js/faker      |
+| **Build-tool**       | Used only by consumers who already have the tool installed (formatters, linters)            | `peerDependencies`                          | prettier                                         |
+| **Build-time only**  | Used in `bin/` scripts or code generation, never by library consumers                       | `devDependencies`                           | protobufjs-cli, @grpc/proto-loader               |
+
+**Rules:**
+
+1. Code that uses a backend-specific or feature-gated dependency **must** use
+   dynamic `import()` and handle the missing-module error gracefully.
+2. A dependency that appears in multiple workspaces at the same pinned version
+   is fine — bun hoists it to one copy. Do not remove it from a published
+   package just to "deduplicate" if that package needs it at runtime.
+3. Prefer Bun/Node.js built-ins over npm packages (e.g. `fetch` with `proxy`
+   option over `undici`, `crypto.randomUUID()` over `uuid`).
+
+### Optional Dependency Pattern
+
+When a dependency is backend-specific or feature-gated, follow this pattern:
+
+1. List the package in `optionalDependencies` in `package.json`.
+2. Use dynamic `import()` at the point of use — never at the top of the module.
+3. Wrap the import in `try/catch` and throw a descriptive error naming the
+   missing package and the install command:
+
+```js
+let createClient;
+try {
+  ({ createClient } = await import("@supabase/supabase-js"));
+} catch {
+  throw new Error(
+    "--load requires @supabase/supabase-js. Install with: bun add @supabase/supabase-js",
+  );
+}
+```
+
+The error message **must** include: what feature triggered the need, the package
+name, and the exact install command. Do not silently fall back or swallow the
+error — let the caller decide how to handle it.

@@ -179,7 +179,14 @@ async function main() {
   // Handle raw documents (activity data)
   if (result.rawDocuments.size > 0) {
     if (args.load) {
-      const { createClient } = await import("@supabase/supabase-js");
+      let createClient;
+      try {
+        ({ createClient } = await import("@supabase/supabase-js"));
+      } catch {
+        throw new Error(
+          "--load requires @supabase/supabase-js. Install with: bun add @supabase/supabase-js",
+        );
+      }
       const { loadToSupabase } = await import("../load.js");
       const supabase = createClient(
         config.SUPABASE_URL,

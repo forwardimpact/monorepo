@@ -29,9 +29,7 @@
   "engines": {
     "bun": ">=1.2.0"
   },
-  "dependencies": {
-    "read-excel-file": "^7.0.3"
-  },
+  "dependencies": {},
   "publishConfig": {
     "access": "public"
   }
