@@ -179,29 +179,15 @@ graph TD
 | **release-engineer**  | Trivial CI fixes on main  | Agent-only, mechanical fixes only              |
 | **improvement-coach** | Agent-authored fix/spec   | Agent-only, traces as evidence                 |
 
-This design concentrates external-contribution risk at a single auditable point
-and limits external influence to small patches and proposals. Significant code
-changes always pass through trusted agents — even when the original idea came
-from outside. The improvement coach is responsible for verifying that the
-product manager performed trust checks on every merged PR (see § Accountability
-below).
+This design concentrates external-contribution risk at a single auditable point.
+The improvement coach verifies that the product manager performed trust checks
+on every merged PR (see § Accountability below).
 
 ## Design Principles
-
-**Single external merge point.** Only the product-backlog workflow merges
-external contributions. All other workflows operate on trusted sources (our own
-agents, Dependabot). This constraint simplifies security auditing — there is
-exactly one place to verify that contributor trust was checked.
 
 **Fix-or-spec discipline.** Every agent separates mechanical fixes (`fix/`
 branches) from structural improvements (`spec/` branches). No agent mixes the
 two in a single PR.
-
-**Spec-to-implementation handoff.** External contributors may propose specs, but
-trusted agents always perform the planning and implementation. This ensures that
-significant code changes are authored by agents operating within the system's
-scope constraints and trace-driven accountability — never by unaudited external
-code.
 
 **Explicit scope constraints.** Each agent definition lists what it must not do.
 The release engineer never resolves substantive merge conflicts. The security
@@ -210,19 +196,12 @@ without trace evidence.
 
 **Main branch CI repair.** The release engineer is the only agent allowed to
 push directly to `main`, and only for trivial CI fixes — formatting, lint, and
-lock file drift that `npm run check:fix` resolves. Without this privilege, a
-single formatting regression on `main` would cause every rebased PR to inherit a
-failing Quality workflow, creating permanent release blockage. The scope is
-strictly mechanical: if `npm run check:fix` does not resolve the failure, the
-release engineer must stop and report rather than attempt code-level fixes.
+lock file drift that `npm run check:fix` resolves. If `npm run check:fix` does
+not resolve the failure, the release engineer must stop and report.
 
 **Trace-driven observability.** Every workflow captures a full execution trace
-as an artifact, giving the improvement coach (and humans) complete visibility
-into what each agent did and why.
-
-**Grounded findings.** The improvement coach must quote specific tool calls,
-error messages, or token counts from traces. Speculation without evidence is
-prohibited.
+as an artifact. The improvement coach must quote specific tool calls, error
+messages, or token counts — speculation without evidence is prohibited.
 
 **Least privilege.** The security-audit workflow runs with `contents: read`
 only. Workflows that need to push use `contents: write` with a scoped
@@ -230,27 +209,18 @@ installation token generated per run by the GitHub App.
 
 ## Shared Memory
 
-Agents share a persistent memory backed by the repository's **GitHub wiki**. The
-wiki is a separate git repository (`{repo}.wiki.git`) that the composite action
-clones before each run and pushes after.
+Agents share persistent memory backed by the repository's **GitHub wiki**,
+mounted as a git submodule at `.claude/memory/`.
 
-The composite action's `wiki` input (default `true`) controls this behaviour:
+- **`make memory-init`** (called by `make install` / `SessionStart` hook) —
+  initializes the submodule from `{repo}.wiki.git`.
+- **`make memory-commit`** (`Stop` hook) — commits and pushes memory changes
+  when a session ends.
 
-1. **Before Claude runs** — clone the wiki to `/tmp/wiki` (or initialize it on
-   first use) and set `autoMemoryDirectory` in `.claude/settings.json` to point
-   there.
-2. **During the run** — Claude Code reads existing memory and writes new entries
-   via its auto-memory mechanism.
-3. **After Claude finishes** — commit and push any wiki changes. The push is
-   non-fatal so a failure does not break the workflow.
-
-Every agent is instructed to write to memory at the end of each run, recording
-actions taken, decisions, observations for teammates, and deferred work. This
-gives each subsequent run — by the same agent or a different one — context about
-what has already happened and what still needs attention.
-
-To disable wiki memory for a specific workflow, pass `wiki: "false"` to the
-composite action.
+During a run, Claude Code reads and writes memory files in `.claude/memory/`.
+Each agent records actions taken, decisions, observations for teammates, and
+deferred work so subsequent runs have context about what happened and what still
+needs attention.
 
 ## Authentication
 
