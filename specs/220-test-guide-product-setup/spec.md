@@ -2,9 +2,10 @@
 
 ## What
 
-An automated test that uses the `claude` CLI binary to simulate a new user
+An automated test that uses the `claude` CLI binary to simulate a new developer
 discovering and installing the Forward Impact Guide product by reading the public
-website at www.forwardimpact.team.
+website at www.forwardimpact.team — from a **clean project directory**, not by
+cloning the monorepo.
 
 ## Why
 
@@ -12,30 +13,46 @@ Guide's documentation lives on the website. Before real users (or their AI
 agents) try to install Guide, we need confidence that the published docs contain
 enough information for an LLM to follow the setup flow end-to-end. This test
 exercises that path: point Claude at the website, let it read the docs, then have
-it clone, install, configure, and verify Guide.
+it install packages from npm, configure framework data, and assess the
+experience.
+
+The test deliberately avoids cloning the monorepo because that gives access to
+all internal tooling, CLAUDE.md context, and Makefile targets. A real external
+user would install packages from npm and follow the website docs.
 
 ## Scope
 
-Five sequential prompts submitted to `claude -p`:
+Five sequential prompts submitted to `claude --print --output-format=stream-json`:
 
-| Step | Prompt            | What it tests                                       |
-| ---- | ----------------- | --------------------------------------------------- |
-| 1    | `01-discover`     | Read product and getting-started pages               |
-| 2    | `02-deep-dive`    | Read architecture, CLI reference, operations docs    |
-| 3    | `03-install`      | Clone the monorepo and install dependencies          |
-| 4    | `04-configure`    | Run `make quickstart` to bootstrap env, data, config |
-| 5    | `05-verify`       | Start services and verify end-to-end functionality   |
+| Step | Prompt         | What it tests                                        |
+| ---- | -------------- | ---------------------------------------------------- |
+| 1    | `01-discover`  | Read product and getting-started pages               |
+| 2    | `02-research`  | Read architecture, CLI, operations, schema docs      |
+| 3    | `03-install`   | `bun init` + `bun install @forwardimpact/*` from npm |
+| 4    | `04-configure` | `fit-pathway init`, validate, generate jobs & agents |
+| 5    | `05-assess`    | Produce a structured assessment of the experience    |
 
-## Test workspace
+## Output
 
-The runner script (`run.sh`) creates a workspace **outside** the monorepo at
-`/home/user/guide-setup-test/`. Each step writes notes and logs to that
-workspace so results are inspectable after the run.
+Each step produces NDJSON stream output capturing every event:
+
+- `logs/<step>.ndjson` — Full event stream (init, assistant, tool_use,
+  tool_result, result)
+- `logs/<step>.txt` — Extracted human-readable text
+- `notes/<step>.md` — Claude's own written summaries
+
+The `analyze.mjs` script processes all NDJSON logs and reports:
+
+- Per-step cost, duration, token usage, and tool call counts
+- Documentation URL coverage (which pages were fetched vs expected)
+- Command coverage (which CLI commands were attempted)
+- Tool usage distribution
+- Error patterns and permission denials
 
 ## Success criteria
 
 - Steps 1-2 produce accurate summaries of Guide's purpose and architecture
-- Step 3 successfully clones and installs dependencies
-- Step 4 bootstraps the environment without manual intervention
-- Step 5 starts services and gets a response from the agent (TEI/vector
-  failures are acceptable in minimal environments)
+- Step 3 discovers which @forwardimpact packages are on npm and installs them
+- Step 4 initializes framework data and generates job/agent definitions
+- Step 5 produces a useful assessment with specific documentation gaps
+- The analysis report identifies actionable improvements

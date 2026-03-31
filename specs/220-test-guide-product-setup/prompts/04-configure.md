@@ -1,23 +1,31 @@
-# Step 4: Configure and bootstrap the Guide product
+# Step 4: Configure the framework data
 
-Now that the monorepo is installed, configure the Guide product following the
-operations reference you read earlier.
+Using the packages you installed in the previous step, set up the engineering
+framework data that Guide needs to operate.
 
-Working inside the ./monorepo directory:
+Working in the current directory:
 
-1. Run `make quickstart` to bootstrap the environment. This chains:
-   env-setup → generate-cached → data-init → codegen → process-fast
-2. If `make quickstart` fails, run the steps individually:
-   a. `make env-setup` — reset .env files and generate secrets
-   b. `make data-init` — create data directories and copy example knowledge
-   c. `make codegen` — generate types from proto definitions
-   d. `make process-fast` — process agents, resources, tools, and graphs
-3. Verify the configuration:
-   a. Check that `config/config.json` exists
-   b. Check that `config/agents/` contains agent definition files
-   c. Check that `config/tools.yml` exists
-   d. Check that `data/knowledge/` contains HTML files
-   e. Check that `data/resources/` contains processed resources
-   f. Check that `data/graphs/` contains graph index files
+1. Initialize framework data:
+   - Run `bunx fit-pathway init` to create example data
+   - If that doesn't work, check `bunx fit-pathway --help` for the right command
+2. Explore the generated data:
+   - List what's in the ./data/ directory
+   - Run `bunx fit-pathway discipline --list` to see available disciplines
+   - Run `bunx fit-pathway level --list` to see available levels
+   - Run `bunx fit-pathway track --list` to see available tracks
+3. Validate the data:
+   - Run `bunx fit-map validate` to check data integrity
+   - Run `bunx fit-map validate --data=./data` if the default path doesn't work
+4. Generate a job definition to verify everything works:
+   - Run `bunx fit-pathway job --list` to see valid combinations
+   - Run `bunx fit-pathway job <discipline> <level>` with one valid combination
+5. Generate agent profiles:
+   - Run `bunx fit-pathway agent --list` to see valid combinations
+   - Run `bunx fit-pathway agent <discipline> --track=<track> --output=./agents`
 
-Report what happened at each step. Save a log to ./notes/04-configure-log.md
+Write a detailed log to ./notes/04-configure.md covering:
+- Each command you ran and its output (summarized)
+- Whether the data was generated correctly
+- Whether validation passed
+- The structure of generated agent profiles
+- Any issues encountered
