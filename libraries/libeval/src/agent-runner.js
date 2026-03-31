@@ -17,7 +17,15 @@ export class AgentRunner {
    * @param {string[]} [deps.allowedTools] - Tools the agent may use
    * @param {string} [deps.permissionMode] - SDK permission mode
    */
-  constructor({ cwd, query, output, model, maxTurns, allowedTools, permissionMode }) {
+  constructor({
+    cwd,
+    query,
+    output,
+    model,
+    maxTurns,
+    allowedTools,
+    permissionMode,
+  }) {
     if (!cwd) throw new Error("cwd is required");
     if (!query) throw new Error("query is required");
     if (!output) throw new Error("output is required");
