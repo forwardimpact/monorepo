@@ -491,7 +491,7 @@
         "@forwardimpact/libtemplate": "^0.2.0",
         "@forwardimpact/libui": "^1.0.0",
         "@forwardimpact/libutil": "^0.1.64",
-        "@forwardimpact/map": "^0.14.0",
+        "@forwardimpact/map": "^0.15.5",
         "mustache": "^4.2.0",
         "yaml": "^2.8.3",
       },
@@ -1591,8 +1591,6 @@
     "@eslint-community/eslint-utils/eslint-visitor-keys": ["eslint-visitor-keys@3.4.3", "", {}, "sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag=="],
 
     "@forwardimpact/libskill/@forwardimpact/map": ["@forwardimpact/map@0.13.0", "", { "dependencies": { "ajv": "^8.17.1", "ajv-formats": "^3.0.1", "yaml": "^2.3.4" }, "bin": { "fit-map": "bin/fit-map.js" } }, "sha512-ucjZB4UXjkXCTU+abr1syfNw8ZK+Ak10hgBF3I7dp9fC0wxyNXrEmGLJl2pwGkaDW1mp01EOr/Bwm+tw1Dj0eQ=="],
-
-    "@forwardimpact/pathway/@forwardimpact/map": ["@forwardimpact/map@0.14.0", "", { "dependencies": { "ajv": "^8.17.1", "ajv-formats": "^3.0.1", "yaml": "^2.3.4" }, "bin": { "fit-map": "bin/fit-map.js" } }, "sha512-+yZIzOG3FQfJxQ2sPRnJ07nCHYslpjPWL7ySWqWzOB942nle/vtamEXaf3kX6p9CK5M5q/f7LUflSfV6WkN9tw=="],
 
     "ansi-align/string-width": ["string-width@4.2.3", "", { "dependencies": { "emoji-regex": "^8.0.0", "is-fullwidth-code-point": "^3.0.0", "strip-ansi": "^6.0.1" } }, "sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g=="],
 
