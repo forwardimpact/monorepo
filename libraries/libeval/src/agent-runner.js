@@ -74,13 +74,13 @@ export class AgentRunner {
       if (message.type === "system" && message.subtype === "init") {
         this.sessionId = message.session_id;
       }
-      if ("result" in message) {
-        text = message.result;
-        stopReason = message.stop_reason;
+      if (message.type === "result") {
+        text = message.result ?? "";
+        stopReason = message.subtype;
       }
     }
 
-    const success = stopReason === "end_turn";
+    const success = stopReason === "success";
     return { success, text, sessionId: this.sessionId };
   }
 
@@ -101,13 +101,13 @@ export class AgentRunner {
       this.output.write(line + "\n");
       this.buffer.push(line);
 
-      if ("result" in message) {
-        text = message.result;
-        stopReason = message.stop_reason;
+      if (message.type === "result") {
+        text = message.result ?? "";
+        stopReason = message.subtype;
       }
     }
 
-    const success = stopReason === "end_turn";
+    const success = stopReason === "success";
     return { success, text };
   }
 

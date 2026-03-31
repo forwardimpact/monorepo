@@ -88,7 +88,7 @@ describe("AgentRunner", () => {
     const messages = [
       { type: "system", subtype: "init", session_id: "sess-1" },
       { type: "assistant", content: "Working on it..." },
-      { result: "Done.", stop_reason: "end_turn" },
+      { type: "result", subtype: "success", result: "Done." },
     ];
 
     const output = new PassThrough();
@@ -113,7 +113,7 @@ describe("AgentRunner", () => {
   test("run() captures sessionId from init event", async () => {
     const messages = [
       { type: "system", subtype: "init", session_id: "my-session" },
-      { result: "OK", stop_reason: "end_turn" },
+      { type: "result", subtype: "success", result: "OK" },
     ];
 
     const output = new PassThrough();
@@ -130,7 +130,7 @@ describe("AgentRunner", () => {
   test("run() passes options to query", async () => {
     let captured = null;
     const query = mockQuery(
-      [{ result: "OK", stop_reason: "end_turn" }],
+      [{ type: "result", subtype: "success", result: "OK" }],
       (params) => {
         captured = params;
       },
@@ -158,8 +158,8 @@ describe("AgentRunner", () => {
     assert.strictEqual(captured.options.allowDangerouslySkipPermissions, true);
   });
 
-  test("run() returns success=false on non-end_turn stop_reason", async () => {
-    const messages = [{ result: "Stopped", stop_reason: "max_tokens" }];
+  test("run() returns success=false on non-success subtype", async () => {
+    const messages = [{ type: "result", subtype: "error", result: "Stopped" }];
 
     const output = new PassThrough();
     const runner = new AgentRunner({
@@ -178,7 +178,7 @@ describe("AgentRunner", () => {
 
     const initMessages = [
       { type: "system", subtype: "init", session_id: "sess-42" },
-      { result: "First done", stop_reason: "end_turn" },
+      { type: "result", subtype: "success", result: "First done" },
     ];
 
     let callCount = 0;
@@ -188,7 +188,7 @@ describe("AgentRunner", () => {
         for (const m of initMessages) yield m;
       } else {
         resumeCapture = params;
-        yield { result: "Resumed", stop_reason: "end_turn" };
+        yield { type: "result", subtype: "success", result: "Resumed" };
       }
     };
 
@@ -207,7 +207,7 @@ describe("AgentRunner", () => {
   test("drainOutput() returns buffered lines and clears buffer", async () => {
     const messages = [
       { type: "assistant", content: "Line 1" },
-      { result: "Line 2", stop_reason: "end_turn" },
+      { type: "result", subtype: "success", result: "Line 2" },
     ];
 
     const output = new PassThrough();
