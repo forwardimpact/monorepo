@@ -209,9 +209,15 @@ task file in `.github/tasks/`. The `agent:` input maps to the `--agent` flag.
 7. **Task files** — `.github/tasks/` directory with one markdown task file per
    CI workflow, replacing inline prompt strings.
 
-8. **Guide setup scenario** — The first supervised scenario, demonstrating the
-   pattern. A task file and CLAUDE.md context that encode a Guide product setup
-   evaluation.
+8. **Guide setup scenario** — A supervised scenario demonstrating the pattern.
+   A task file and CLAUDE.md context that encode a Guide product setup
+   evaluation. Custom supervisor context with explicit judgement rules.
+
+9. **Guide onboarding scenario** — A supervised scenario using the existing
+   `product-manager` agent profile as the supervisor. Tests the end-to-end
+   user journey: visit the website, follow getting-started docs, install
+   fit-guide, and run real prompts. The product-manager evaluates from a
+   product quality perspective.
 
 ### Out of scope
 
@@ -275,10 +281,19 @@ docs, troubleshoot errors, write notes."
 - Task files in `.github/tasks/` replace inline prompt strings
 - Agent profile selection preserved via `--agent` flag
 
-**Guide scenario (the first supervised evaluation):**
+**Guide setup scenario (custom supervisor context):**
 
 - The agent discovers Guide from the website without being told specific URLs
 - The agent installs `@forwardimpact` packages from npm
 - The agent initializes framework data and attempts job/agent generation
 - The agent produces notes with specific documentation feedback
 - The supervisor intervenes only when the agent is genuinely stuck
+
+**Guide onboarding scenario (product-manager supervisor):**
+
+- The product-manager agent profile works as a supervisor without modification
+- The agent follows website documentation to install and run fit-guide
+- The agent runs at least three different fit-guide prompts
+- The agent produces notes evaluating the onboarding experience
+- The product-manager nudges based on its product knowledge, not custom rules
+- The scenario reveals documentation gaps and product quality issues
