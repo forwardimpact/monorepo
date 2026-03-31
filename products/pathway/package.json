@@ -40,7 +40,7 @@
     "./commands": "./src/commands/index.js"
   },
   "dependencies": {
-    "@forwardimpact/map": "^0.14.0",
+    "@forwardimpact/map": "^0.15.5",
     "@forwardimpact/libskill": "^4.0.0",
     "@forwardimpact/libtemplate": "^0.2.0",
     "@forwardimpact/libui": "^1.0.0",
