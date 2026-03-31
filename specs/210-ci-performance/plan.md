@@ -8,9 +8,10 @@ phase is independently testable. The ordering ensures that `make install` works
 under Bun before any workflow references it, and that all workflows are updated
 before documentation is adjusted.
 
-Throughout, `npx` becomes `bunx`, `npm run` becomes `bun run`, `npm ci`/`npm
-install` becomes `bun install`, and `node` as a script runner becomes `bun`.
-The `node:test` API is preserved — only the process that executes tests changes.
+Throughout, `npx` becomes `bunx`, `npm run` becomes `bun run`,
+`npm ci`/`npm install` becomes `bun install`, and `node` as a script runner
+becomes `bun`. The `node:test` API is preserved — only the process that executes
+tests changes.
 
 ## Phase 1: Local Tooling
 
@@ -20,9 +21,8 @@ Run `bun install` at the repo root to generate `bun.lock`. Delete
 `package-lock.json`. Add `package-lock.json` to `.gitignore` to prevent
 accidental regeneration.
 
-**Files created:** `bun.lock`
-**Files deleted:** `package-lock.json`
-**Files modified:** `.gitignore`
+**Files created:** `bun.lock` **Files deleted:** `package-lock.json` **Files
+modified:** `.gitignore`
 
 ### 1.2 Update root package.json
 
@@ -66,17 +66,19 @@ addressed in Phase 1.6.
 Three categories of changes across all workspace packages:
 
 **Libraries (25 files)** — change `engines` from `"node": ">=22.0.0"` (or
-`">=18.0.0"` for libdoc, libprompt, libskill, and the libsynthetic* packages)
-to `"bun": ">=1.2.0"`. Change test scripts from `node --test test/*.test.js` to
-`bun --test test/*.test.js`.
+`">=18.0.0"` for libdoc, libprompt, libskill, and the libsynthetic* packages) to
+`"bun": ">=1.2.0"`. Change test scripts from `node --test test/*.test.js`to`bun
+--test test/\*.test.js`.
 
 **Products (4 files)** — change `engines`. Change `node` invocations in scripts:
+
 - basecamp: `node src/basecamp.js` → `bun src/basecamp.js`
 - map: `node ./bin/fit-map.js ...` → `bun ./bin/fit-map.js ...`
 - pathway: `node ./bin/fit-pathway.js ...` → `bun ./bin/fit-pathway.js ...`
 - guide: update similarly
 
 **Services (8 files)** — change `engines`. Change scripts:
+
 - `start`: `npx download && node server.js` → `bunx download && bun server.js`
 - `dev`: `node --watch server.js` → `bun --watch server.js`
 - `test`: `node --test test/*.test.js` → `bun --test test/*.test.js`
@@ -86,8 +88,8 @@ to `"bun": ">=1.2.0"`. Change test scripts from `node --test test/*.test.js` to
 
 ### 1.4 Update Makefile
 
-Replace `npm ci` with `bun install`, all `npx` with `bunx`, and `npm audit`
-with the Bun equivalent.
+Replace `npm ci` with `bun install`, all `npx` with `bunx`, and `npm audit` with
+the Bun equivalent.
 
 ```makefile
 # Before
@@ -292,9 +294,9 @@ only needs the dependency tree metadata.
 **Decision:** Keep `actions/setup-node` alongside `oven-sh/setup-bun` in the
 publish workflow only. The `setup-node` action with `registry-url` configures
 the `.npmrc` for authenticated publishing. `npm publish` is retained for
-registry publishing since it is battle-tested. Bun handles install and test;
-npm handles the final publish step. The `npm query` command is replaced with
-a Node.js script that reads workspace package.json files directly.
+registry publishing since it is battle-tested. Bun handles install and test; npm
+handles the final publish step. The `npm query` command is replaced with a
+Node.js script that reads workspace package.json files directly.
 
 **publish-macos.yml:**
 
@@ -394,9 +396,9 @@ manipulation with `bun -e` (same V8 API, Bun supports `-e`).
 - run: bunx npm audit --audit-level=high --omit=dev --workspaces
 ```
 
-**Decision:** The audit action uses `bunx npm audit` to run npm's audit
-command. This avoids depending on a native `bun audit` command that doesn't
-exist yet, while still benefiting from Bun as the runtime.
+**Decision:** The audit action uses `bunx npm audit` to run npm's audit command.
+This avoids depending on a native `bun audit` command that doesn't exist yet,
+while still benefiting from Bun as the runtime.
 
 **Files modified:** `.github/actions/claude/action.yml`,
 `.github/actions/audit/action.yml`
@@ -426,15 +428,15 @@ coverage after migration.
 
 Update 16 lines referencing npm commands:
 
-| Section | Before | After |
-|---|---|---|
-| Getting Started | `npm install` | `bun install` |
-| PR Workflow | `npm run check:fix` | `bun run check:fix` |
-| PR Workflow | `npm run check` | `bun run check` |
-| Quality Commands (8 lines) | `npm run ...` / `npx ...` | `bun run ...` / `bunx ...` |
-| Security | `npm audit --audit-level=high` | `bunx npm audit --audit-level=high` |
-| Dependency Policy | `npm ls <package>` | `bun pm ls` |
-| Dependency Policy | `npm audit --audit-level=high` | `bunx npm audit --audit-level=high` |
+| Section                    | Before                         | After                               |
+| -------------------------- | ------------------------------ | ----------------------------------- |
+| Getting Started            | `npm install`                  | `bun install`                       |
+| PR Workflow                | `npm run check:fix`            | `bun run check:fix`                 |
+| PR Workflow                | `npm run check`                | `bun run check`                     |
+| Quality Commands (8 lines) | `npm run ...` / `npx ...`      | `bun run ...` / `bunx ...`          |
+| Security                   | `npm audit --audit-level=high` | `bunx npm audit --audit-level=high` |
+| Dependency Policy          | `npm ls <package>`             | `bun pm ls`                         |
+| Dependency Policy          | `npm audit --audit-level=high` | `bunx npm audit --audit-level=high` |
 
 **Files modified:** `CONTRIBUTING.md`
 
@@ -469,24 +471,23 @@ cd libraries/librpc && bun --test test/*.test.js
 
 ### 4.3 CI workflow dry run
 
-Push to a feature branch and verify all 13 workflows pass. For publish and
-agent workflows that don't trigger on PRs, use `workflow_dispatch` where
-available.
+Push to a feature branch and verify all 13 workflows pass. For publish and agent
+workflows that don't trigger on PRs, use `workflow_dispatch` where available.
 
 ## File Change Summary
 
-| Category | Files | Action |
-|---|---|---|
-| Lockfile | `bun.lock` | Create |
-| Lockfile | `package-lock.json` | Delete |
-| Gitignore | `.gitignore` | Modify |
-| Package config | `package.json` (root) | Modify |
-| Package config | 38 workspace `package.json` | Modify |
-| Build | `Makefile` | Modify |
-| Test config | `playwright.config.js` | Modify |
-| CI workflows | 13 files in `.github/workflows/` | Modify |
-| Composite actions | 2 files in `.github/actions/` | Modify |
-| Dependabot | `.github/dependabot.yml` | Modify |
-| Documentation | `CONTRIBUTING.md` | Modify |
-| Documentation | Operations docs (TBD) | Modify |
-| **Total** | **~60 files** | |
+| Category          | Files                            | Action |
+| ----------------- | -------------------------------- | ------ |
+| Lockfile          | `bun.lock`                       | Create |
+| Lockfile          | `package-lock.json`              | Delete |
+| Gitignore         | `.gitignore`                     | Modify |
+| Package config    | `package.json` (root)            | Modify |
+| Package config    | 38 workspace `package.json`      | Modify |
+| Build             | `Makefile`                       | Modify |
+| Test config       | `playwright.config.js`           | Modify |
+| CI workflows      | 13 files in `.github/workflows/` | Modify |
+| Composite actions | 2 files in `.github/actions/`    | Modify |
+| Dependabot        | `.github/dependabot.yml`         | Modify |
+| Documentation     | `CONTRIBUTING.md`                | Modify |
+| Documentation     | Operations docs (TBD)            | Modify |
+| **Total**         | **~60 files**                    |        |

@@ -1,7 +1,7 @@
 # 210 — CI Performance: Full Bun Migration
 
-Every pull request triggers three GitHub Actions workflows that collectively spin
-up six jobs. Five of those six jobs independently run `npm ci` against 50
+Every pull request triggers three GitHub Actions workflows that collectively
+spin up six jobs. Five of those six jobs independently run `npm ci` against 50
 workspaces, installing 225 MB of node_modules from scratch each time. Beyond CI,
 another six scheduled agent workflows and three publish workflows all pay the
 same cost. The package manager is the single largest time sink across the entire
@@ -17,24 +17,24 @@ local development, and production.
 
 The `make install` step (`npm ci` + codegen) runs in 12 of 16 workflow jobs:
 
-| Workflow | Job | Runs `make install`? |
-|---|---|---|
-| check-quality.yml | lint | yes |
-| check-quality.yml | format | yes |
-| check-test.yml | test | yes |
-| check-test.yml | e2e | yes |
-| check-security.yml | vulnerability-scanning | yes |
-| check-security.yml | secret-scanning | no |
-| publish-npm.yml | publish | yes |
-| publish-macos.yml | build | no (uses npm run directly) |
-| publish-skills.yml | publish | no (no install needed) |
-| website.yaml | build | yes (npm ci) |
-| security-audit.yml | audit | yes |
-| release-readiness.yml | readiness | yes |
-| release-review.yml | review | yes |
-| product-backlog.yml | backlog | yes |
-| improvement-coach.yml | coach | yes |
-| dependabot-triage.yml | triage | yes |
+| Workflow              | Job                    | Runs `make install`?       |
+| --------------------- | ---------------------- | -------------------------- |
+| check-quality.yml     | lint                   | yes                        |
+| check-quality.yml     | format                 | yes                        |
+| check-test.yml        | test                   | yes                        |
+| check-test.yml        | e2e                    | yes                        |
+| check-security.yml    | vulnerability-scanning | yes                        |
+| check-security.yml    | secret-scanning        | no                         |
+| publish-npm.yml       | publish                | yes                        |
+| publish-macos.yml     | build                  | no (uses npm run directly) |
+| publish-skills.yml    | publish                | no (no install needed)     |
+| website.yaml          | build                  | yes (npm ci)               |
+| security-audit.yml    | audit                  | yes                        |
+| release-readiness.yml | readiness              | yes                        |
+| release-review.yml    | review                 | yes                        |
+| product-backlog.yml   | backlog                | yes                        |
+| improvement-coach.yml | coach                  | yes                        |
+| dependabot-triage.yml | triage                 | yes                        |
 
 Each `npm ci` invocation resolves, downloads, and links 652 packages across 50
 workspaces. Even with GitHub Actions npm caching enabled (`cache: npm` on
@@ -75,8 +75,8 @@ or generated code.
 ### Two runtimes add friction
 
 The project currently requires Node.js as the runtime while npm serves as the
-package manager. Basecamp already uses Deno for its macOS build. Standardizing on
-Bun as the single runtime eliminates the Node.js dependency for contributors,
+package manager. Basecamp already uses Deno for its macOS build. Standardizing
+on Bun as the single runtime eliminates the Node.js dependency for contributors,
 aligns the runtime with the package manager, and simplifies the toolchain to one
 install.
 
@@ -110,16 +110,16 @@ Scope of Bun adoption:
   and `npx` for bin execution (13 scripts across 9 package.json files, plus 40
   Makefile targets).
 - **Test runner: no.** Keep `node:test` as the test API. Tests continue to use
-  `import { test, describe } from "node:test"` and `import assert from
-  "node:assert"`. The test _API_ stays the same, only the _runner process_
-  changes.
+  `import { test, describe } from "node:test"` and
+  `import assert from "node:assert"`. The test _API_ stays the same, only the
+  _runner process_ changes.
 
 ### Remove npm lockfile
 
 Delete `package-lock.json` and use a single Bun lockfile. Maintaining two
 lockfiles creates drift risk — a dependency added via one package manager won't
-appear in the other's lockfile. Since the entire project standardizes on Bun, the
-npm lockfile serves no purpose.
+appear in the other's lockfile. Since the entire project standardizes on Bun,
+the npm lockfile serves no purpose.
 
 ### Migrate all workflows
 
@@ -150,25 +150,30 @@ interdependency. Running both pairs concurrently reduces local check time.
 ### In scope
 
 **CI infrastructure:**
+
 - All 13 GitHub Actions workflow files in `.github/workflows/`
 - Both composite actions in `.github/actions/` (claude, audit)
 - GitHub Actions caching strategy (`cache: npm` in setup-node → Bun equivalent)
 
 **Package configuration (38 files):**
+
 - Root `package.json` — scripts (5 `npx` scripts, 1 `node --test` script),
   engines field
 - 25 library `package.json` files — `node --test` test scripts, engines fields
 - 4 product `package.json` files — `node` start/CLI scripts, engines fields
 - 8 service `package.json` files — `npx download` + `node server.js` start
-  scripts, `node --watch` dev scripts, `node --test` test scripts, engines fields
+  scripts, `node --watch` dev scripts, `node --test` test scripts, engines
+  fields
 
 **Build and tooling:**
+
 - Makefile — `install` target (`npm ci`), 39 targets using `npx`, 1 using
   `npm audit`
 - `playwright.config.js` — CI worker count
 - `package-lock.json` → replaced by Bun lockfile
 
 **Documentation:**
+
 - CONTRIBUTING.md — 16 lines referencing `npm run`, `npx`, `npm audit`,
   `npm install`, `npm ls`
 - `.github/dependabot.yml` — ecosystem configuration
@@ -180,8 +185,8 @@ interdependency. Running both pairs concurrently reduces local check time.
   "format failed" immediately without waiting for the full suite. The cost of
   separate jobs drops dramatically when install takes seconds instead of a
   minute.
-- **Rewriting tests to `bun:test`.** Tests keep the `node:test` API. This
-  avoids rewriting 104 test files and maintains portability.
+- **Rewriting tests to `bun:test`.** Tests keep the `node:test` API. This avoids
+  rewriting 104 test files and maintains portability.
 - **Basecamp's Deno dependency.** The macOS build uses Deno via `just pkg`.
   That's a separate toolchain concern unrelated to the npm-to-Bun migration.
 
@@ -199,15 +204,15 @@ before and after migration.
 ### Stream piping edge cases
 
 librpc's gRPC client uses `PassThrough` streams in objectMode with custom
-transforms. libsupervise pipes child process stdout/stderr with `{ end: false }`.
-These are relatively uncommon stream patterns that need explicit testing under
-Bun.
+transforms. libsupervise pipes child process stdout/stderr with
+`{ end: false }`. These are relatively uncommon stream patterns that need
+explicit testing under Bun.
 
 ### npm publish workflow
 
 The publish-npm workflow uses `npm publish --workspace=...` with
-`NODE_AUTH_TOKEN`. Bun's publish command must support workspace-scoped publishing
-and npm registry authentication.
+`NODE_AUTH_TOKEN`. Bun's publish command must support workspace-scoped
+publishing and npm registry authentication.
 
 ### Dependabot ecosystem
 
@@ -237,9 +242,9 @@ for install time should reflect cached performance, which is the common case.
    across 5 runs.
 5. **Zero test regressions.** All 104 existing test files pass under Bun. All
    E2E specs pass. No new test flakiness introduced.
-6. **All workflows green.** Every workflow in `.github/workflows/` succeeds after
-   the migration — verified by a full CI run on the migration PR plus manual
-   triggering of publish and agent workflows (or dry-run equivalents).
+6. **All workflows green.** Every workflow in `.github/workflows/` succeeds
+   after the migration — verified by a full CI run on the migration PR plus
+   manual triggering of publish and agent workflows (or dry-run equivalents).
 7. **Single lockfile.** `package-lock.json` is deleted. Bun's lockfile is the
    sole lockfile. No lockfile drift is possible.
 8. **Audit integrity.** Vulnerability scanning continues to detect the same
