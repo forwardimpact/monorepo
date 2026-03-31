@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.5",
-    "protobufjs": "^7.5.4",
+    "protobufjs": "^8.0.0",
     "protobufjs-cli": "^2.0.0"
   },
   "publishConfig": {
