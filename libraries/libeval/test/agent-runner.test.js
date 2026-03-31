@@ -1,0 +1,240 @@
+import { describe, test } from "node:test";
+import assert from "node:assert";
+import { PassThrough } from "node:stream";
+
+import { AgentRunner, createAgentRunner } from "@forwardimpact/libeval";
+
+/**
+ * Create a mock query function that yields canned messages.
+ * @param {object[]} messages - Messages to yield
+ * @param {function} [captureOptions] - Callback to capture query options
+ * @returns {function}
+ */
+function mockQuery(messages, captureOptions) {
+  return async function* (params) {
+    if (captureOptions) captureOptions(params);
+    for (const msg of messages) {
+      yield msg;
+    }
+  };
+}
+
+/**
+ * Collect all NDJSON lines written to a PassThrough stream.
+ * @param {PassThrough} stream
+ * @returns {string[]}
+ */
+function collectLines(stream) {
+  const data = stream.read();
+  if (!data) return [];
+  return data
+    .toString()
+    .trim()
+    .split("\n")
+    .filter((l) => l.length > 0);
+}
+
+describe("AgentRunner", () => {
+  test("constructor throws on missing cwd", () => {
+    assert.throws(
+      () =>
+        new AgentRunner({
+          query: async function* () {},
+          output: new PassThrough(),
+        }),
+      /cwd is required/,
+    );
+  });
+
+  test("constructor throws on missing query", () => {
+    assert.throws(
+      () => new AgentRunner({ cwd: "/tmp", output: new PassThrough() }),
+      /query is required/,
+    );
+  });
+
+  test("constructor throws on missing output", () => {
+    assert.throws(
+      () =>
+        new AgentRunner({
+          cwd: "/tmp",
+          query: async function* () {},
+        }),
+      /output is required/,
+    );
+  });
+
+  test("constructor uses defaults for optional params", () => {
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query: async function* () {},
+      output: new PassThrough(),
+    });
+    assert.strictEqual(runner.model, "opus");
+    assert.strictEqual(runner.maxTurns, 50);
+    assert.deepStrictEqual(runner.allowedTools, [
+      "Bash",
+      "Read",
+      "Glob",
+      "Grep",
+      "Write",
+      "Edit",
+    ]);
+    assert.strictEqual(runner.permissionMode, "bypassPermissions");
+    assert.strictEqual(runner.sessionId, null);
+  });
+
+  test("run() writes NDJSON lines to output stream", async () => {
+    const messages = [
+      { type: "system", subtype: "init", session_id: "sess-1" },
+      { type: "assistant", content: "Working on it..." },
+      { result: "Done.", stop_reason: "end_turn" },
+    ];
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query: mockQuery(messages),
+      output,
+    });
+
+    const result = await runner.run("Test task");
+    const lines = collectLines(output);
+
+    assert.strictEqual(lines.length, 3);
+    assert.deepStrictEqual(JSON.parse(lines[0]), messages[0]);
+    assert.deepStrictEqual(JSON.parse(lines[1]), messages[1]);
+    assert.deepStrictEqual(JSON.parse(lines[2]), messages[2]);
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.text, "Done.");
+    assert.strictEqual(result.sessionId, "sess-1");
+  });
+
+  test("run() captures sessionId from init event", async () => {
+    const messages = [
+      { type: "system", subtype: "init", session_id: "my-session" },
+      { result: "OK", stop_reason: "end_turn" },
+    ];
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query: mockQuery(messages),
+      output,
+    });
+
+    await runner.run("Task");
+    assert.strictEqual(runner.sessionId, "my-session");
+  });
+
+  test("run() passes options to query", async () => {
+    let captured = null;
+    const query = mockQuery(
+      [{ result: "OK", stop_reason: "end_turn" }],
+      (params) => {
+        captured = params;
+      },
+    );
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/work",
+      query,
+      output,
+      model: "sonnet",
+      maxTurns: 10,
+      allowedTools: ["Read", "Grep"],
+      permissionMode: "plan",
+    });
+
+    await runner.run("My task");
+
+    assert.strictEqual(captured.prompt, "My task");
+    assert.strictEqual(captured.options.cwd, "/work");
+    assert.strictEqual(captured.options.model, "sonnet");
+    assert.strictEqual(captured.options.maxTurns, 10);
+    assert.deepStrictEqual(captured.options.allowedTools, ["Read", "Grep"]);
+    assert.strictEqual(captured.options.permissionMode, "plan");
+    assert.strictEqual(captured.options.allowDangerouslySkipPermissions, true);
+  });
+
+  test("run() returns success=false on non-end_turn stop_reason", async () => {
+    const messages = [{ result: "Stopped", stop_reason: "max_tokens" }];
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query: mockQuery(messages),
+      output,
+    });
+
+    const result = await runner.run("Task");
+    assert.strictEqual(result.success, false);
+    assert.strictEqual(result.text, "Stopped");
+  });
+
+  test("resume() passes sessionId via options.resume", async () => {
+    let resumeCapture = null;
+
+    const initMessages = [
+      { type: "system", subtype: "init", session_id: "sess-42" },
+      { result: "First done", stop_reason: "end_turn" },
+    ];
+
+    let callCount = 0;
+    const query = async function* (params) {
+      callCount++;
+      if (callCount === 1) {
+        for (const m of initMessages) yield m;
+      } else {
+        resumeCapture = params;
+        yield { result: "Resumed", stop_reason: "end_turn" };
+      }
+    };
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({ cwd: "/tmp", query, output });
+
+    await runner.run("Initial task");
+    const result = await runner.resume("Follow up");
+
+    assert.strictEqual(resumeCapture.options.resume, "sess-42");
+    assert.strictEqual(resumeCapture.prompt, "Follow up");
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.text, "Resumed");
+  });
+
+  test("drainOutput() returns buffered lines and clears buffer", async () => {
+    const messages = [
+      { type: "assistant", content: "Line 1" },
+      { result: "Line 2", stop_reason: "end_turn" },
+    ];
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query: mockQuery(messages),
+      output,
+    });
+
+    await runner.run("Task");
+
+    const drained = runner.drainOutput();
+    assert.strictEqual(drained.length, 2);
+    assert.deepStrictEqual(JSON.parse(drained[0]), messages[0]);
+    assert.deepStrictEqual(JSON.parse(drained[1]), messages[1]);
+
+    // Buffer should be empty after drain
+    const secondDrain = runner.drainOutput();
+    assert.strictEqual(secondDrain.length, 0);
+  });
+
+  test("createAgentRunner factory returns an AgentRunner instance", () => {
+    const runner = createAgentRunner({
+      cwd: "/tmp",
+      query: async function* () {},
+      output: new PassThrough(),
+    });
+    assert.ok(runner instanceof AgentRunner);
+  });
+});
