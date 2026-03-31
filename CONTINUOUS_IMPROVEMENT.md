@@ -36,10 +36,10 @@ the composite action (see § Authentication below).
 
 | Agent                 | Purpose                                                                   | Skills                                                |
 | --------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------- |
-| **security-engineer** | Patch dependencies, harden supply chain, enforce security policies        | dependabot-triage, security-audit, write-spec         |
+| **security-engineer** | Patch dependencies, harden supply chain, enforce security policies        | dependabot-triage, security-audit, spec               |
 | **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | release-readiness, release-review, gh-cli             |
-| **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | grounded-theory-analysis, write-spec, gh-cli          |
-| **product-manager**   | Review PRs for product alignment, triage issues, verify contributor trust | product-backlog, product-feedback, write-spec, gh-cli |
+| **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | grounded-theory-analysis, spec, gh-cli                |
+| **product-manager**   | Review PRs for product alignment, triage issues, verify contributor trust | product-backlog, product-feedback, spec, gh-cli       |
 
 Each agent has explicit scope constraints — it knows what it must _not_ do. When
 a finding exceeds an agent's scope, it writes a formal spec (`specs/`) rather
@@ -107,7 +107,7 @@ graph TD
 | **release-readiness**        | Mechanical PR preparation — rebase, fix, report                               |
 | **release-review**           | Version bumps, tagging, publish verification                                  |
 | **grounded-theory-analysis** | Qualitative trace analysis adapted from research methodology                  |
-| **write-spec**               | Spec and plan authoring for changes that exceed agent scope                   |
+| **spec**                     | Spec and plan lifecycle — write, review, approve, track status                |
 | **gh-cli**                   | GitHub CLI installation and usage patterns for CI                             |
 | **product-backlog**          | PR triage with type classification, contributor verification, and merge gates |
 | **product-feedback**         | Issue triage with classification, fix PRs for bugs, and specs for features    |
@@ -137,7 +137,7 @@ lookup for these PRs and proceeds directly to type classification and CI checks.
 
 **Specs** (`spec`) from top-20 contributors merge only the specification
 document — a description of what should change and why. The spec passes through
-an additional `write-spec` review quality gate. Critically, **planning and
+an additional `spec` review quality gate. Critically, **planning and
 implementation of approved specs is performed by trusted agents**, not by the
 external contributor. The contributor proposes _what_ to change; the system's
 own agents decide _how_ and write the code. This separation means that even a
@@ -189,7 +189,7 @@ graph TD
 | Merge point           | Source                    | Trust model                                     |
 | --------------------- | ------------------------- | ----------------------------------------------- |
 | **product-backlog**   | External fix/bug PRs      | Top-20 contributor gate + CI                    |
-| **product-backlog**   | External spec PRs         | Top-20 gate + CI + write-spec review            |
+| **product-backlog**   | External spec PRs         | Top-20 gate + CI + spec review                  |
 | **product-backlog**   | CI app PRs                | Trusted app identity (`forward-impact-ci`) + CI |
 | **dependabot-triage** | Dependabot PRs            | Trusted bot, policy-gated                       |
 | **release-readiness** | Agent-authored rebases    | Agent-only, no external input                   |

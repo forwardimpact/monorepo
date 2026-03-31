@@ -3,7 +3,7 @@ name: product-feedback
 description: >
   Triage open GitHub issues for product alignment. Implement trivial fixes or
   bugs directly as PRs. For product-aligned feature requests and improvements,
-  write specs using the write-spec skill and open PRs for them.
+  write specs using the spec skill and open PRs for them.
 ---
 
 # Product Feedback Triage
@@ -172,7 +172,7 @@ gh issue edit <number> --add-label "triaged"
 
 ### Step 4: Handle Product-Aligned Issues
 
-For issues classified as product-aligned, write a spec using the `write-spec`
+For issues classified as product-aligned, write a spec using the `spec`
 skill:
 
 1. Comment on the issue to acknowledge it and explain next steps:
@@ -197,7 +197,7 @@ git pull origin main
 git checkout -b spec/issue-<number>-<short-description>
 ```
 
-4. Write the spec following the `write-spec` skill process. The spec should:
+4. Write the spec following the `spec` skill process. The spec should:
    - Reference the original issue (`#<number>`)
    - Define the problem from the issue reporter's perspective
    - Scope the change to what the issue describes
@@ -237,7 +237,7 @@ Addresses #<number>
 
 ## Review
 
-This spec needs review before implementation can begin. See the `write-spec`
+This spec needs review before implementation can begin. See the `spec`
 skill for the review process.
 EOF
 )"
@@ -316,7 +316,7 @@ triage-specific fields in addition to the standard agent memory fields:
 - **Do not close unclear issues** — ask for more information and label with
   `needs-info` instead.
 - **Do not skip the spec process** — product-aligned issues must go through the
-  `write-spec` skill, not be implemented ad-hoc.
+  `spec` skill, not be implemented ad-hoc.
 - **Do not make architectural decisions** — if a bug fix requires design work,
   classify it as product-aligned and write a spec.
 - **Do not bypass quality checks** — run `bun run check` before every commit.

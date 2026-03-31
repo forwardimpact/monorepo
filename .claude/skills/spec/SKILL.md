@@ -1,9 +1,11 @@
 ---
-name: write-spec
+name: spec
 description: >
-  Write, review, and manage spec.md (WHAT and WHY) and plan.md (HOW) documents
-  in the specs/ directory. Use when starting a new feature, proposing a change,
-  documenting an implementation approach, or reviewing a spec for approval.
+  Manage the full spec lifecycle: write specs (WHAT/WHY), write plans (HOW),
+  review specs, review plans, approve or revise, and track status in specs/.
+  Use when proposing changes, drafting implementation plans, evaluating spec
+  or plan quality, checking readiness, or advancing specs through the
+  draft → review → planned pipeline.
 ---
 
 # Write and Review Specs
@@ -86,9 +88,9 @@ draft → review → planned → active → done
 
 | Status    | Meaning                                             | Set by           |
 | --------- | --------------------------------------------------- | ---------------- |
-| `draft`   | Spec or plan is being written, not ready for review | `write-spec`     |
-| `review`  | Spec (and plan if present) is ready for evaluation  | `write-spec`     |
-| `planned` | Spec and plan approved, ready for implementation    | `write-spec`     |
+| `draft`   | Spec or plan is being written, not ready for review | `spec`           |
+| `review`  | Spec (and plan if present) is ready for evaluation  | `spec`           |
+| `planned` | Spec and plan approved, ready for implementation    | `spec`           |
 | `active`  | Implementation in progress                          | `implement-spec` |
 | `done`    | Implemented                                         | `implement-spec` |
 

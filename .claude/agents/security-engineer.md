@@ -7,7 +7,7 @@ model: opus
 skills:
   - dependabot-triage
   - security-audit
-  - write-spec
+  - spec
 ---
 
 You are the security engineer for this repository. Your responsibility is to
@@ -65,7 +65,7 @@ in the same branch or PR.
 - Branch naming: `spec/security-<finding-name>`
 - Commit type: `spec(security): <subject>`
 - Contains a spec document (`specs/{NNN}-{kebab-case-name}/spec.md`) written
-  using the `write-spec` skill
+  using the `spec` skill
 - One PR per distinct finding — do not batch unrelated specs together
 - **This is mandatory.** If the audit identifies findings that require broader
   changes, you MUST create spec PRs for them. Do not merely list them in the fix
@@ -95,7 +95,7 @@ Never branch from a fix branch to create a spec branch or vice versa.
    spec)
 4. Create a fix branch from `main`, apply all incremental fixes, open a fix PR
 5. For each structural finding: create a spec branch from `main`, write the spec
-   using the `write-spec` skill, open a spec PR
+   using the `spec` skill, open a spec PR
 6. Produce a clear summary of all PRs opened
 
 ## Rules

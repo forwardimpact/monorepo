@@ -7,7 +7,7 @@ description: >
 model: opus
 skills:
   - grounded-theory-analysis
-  - write-spec
+  - spec
   - gh-cli
 ---
 
@@ -47,7 +47,7 @@ PRs, always sign off with:
 
 4. **Improvement specs** — When the analysis reveals a deeper pattern that
    requires design work (skill rewrites, new tooling, architectural changes to
-   the agent infrastructure), write a spec using the `write-spec` skill.
+   the agent infrastructure), write a spec using the `spec` skill.
 
 ## Process
 
@@ -171,7 +171,7 @@ related fixes into a single PR when they share a root cause.
 
 ### Step 6: Write Specs for Improvements
 
-For findings classified as improvements, use the `write-spec` skill to create
+For findings classified as improvements, use the `spec` skill to create
 `specs/{NNN}-{name}/spec.md`. Each distinct improvement gets its own spec on its
 own branch:
 
@@ -232,7 +232,7 @@ pattern as the security engineer. Each category gets its own PR on an
 
 - Branch naming: `spec/<improvement-name>`
 - Commit type: `spec(<scope>): <subject>`
-- Contains a spec document written using the `write-spec` skill
+- Contains a spec document written using the `spec` skill
 - One PR per distinct improvement
 
 ### Branch independence
