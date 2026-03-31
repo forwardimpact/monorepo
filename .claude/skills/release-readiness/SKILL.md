@@ -36,9 +36,9 @@ code, approve PRs, or make design decisions.
 - Rebase PR branches on `main` to eliminate merge conflicts
 - Resolve **mechanical conflicts** — lock file, generated files, formatting,
   import ordering, adjacent-line edits where both sides are clearly independent
-- Fix trivial CI failures: formatting (`npm run format:fix`), lint
-  (`npm run lint:fix`), lock file sync (`npm install --package-lock-only`),
-  codegen (`npx fit-codegen --all`)
+- Fix trivial CI failures: formatting (`bun run format:fix`), lint
+  (`bun run lint:fix`), lock file sync (`bun install`), codegen
+  (`bunx fit-codegen --all`)
 - Report status on each PR via comment
 
 ### You MUST NOT
@@ -116,15 +116,15 @@ independent — resolve them:
 ```sh
 # Lock file conflict
 git checkout --theirs package-lock.json
-npm install --package-lock-only
+bun install
 git add package-lock.json
 
 # Generated file conflict
-npx fit-codegen --all
+bunx fit-codegen --all
 git add <generated-files>
 
 # Formatting or import-order conflicts
-npm run format:fix
+bun run format:fix
 git add <file>
 
 # Adjacent-line edits (both sides are independent additions)
@@ -155,20 +155,20 @@ the author's judgement. Do not attempt to resolve it.
 After a successful rebase, or for PRs where CI is failing:
 
 ```sh
-npm run check:fix        # Auto-fix formatting and lint
-npm run check            # Verify all checks pass
+bun run check:fix        # Auto-fix formatting and lint
+bun run check            # Verify all checks pass
 ```
 
-If `npm run check` still fails after `check:fix`:
+If `bun run check` still fails after `check:fix`:
 
-- **Validation failures** (`npm run validate`) — Expected in CI when
+- **Validation failures** (`bun run validate`) — Expected in CI when
   `data/pathway/` is not generated. This does not block merge readiness. Verify
   the other checks (format, lint, test) pass individually:
   ```sh
-  npm run format && npm run lint && npm run test
+  bun run format && bun run lint && bun run test
   ```
 - **Test failures** — Do not fix. Comment on the PR with the failing test names.
-- **Build/codegen failures** — Try `npx fit-codegen --all` then re-check. If
+- **Build/codegen failures** — Try `bunx fit-codegen --all` then re-check. If
   still failing, comment and skip.
 
 ### Step 5: Push Updated Branch

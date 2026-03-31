@@ -170,7 +170,7 @@ git checkout -b fix/dependabot-<number> origin/<dependabot-branch>
 ```
 
 2. Make the necessary fixes (update workflow files, align versions, etc.)
-3. Run `npm run check` and `make audit` to verify fixes
+3. Run `bun run check` and `make audit` to verify fixes
 4. Commit and push the fix branch:
 
 ```sh

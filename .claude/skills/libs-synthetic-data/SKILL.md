@@ -175,6 +175,6 @@ Synthetic data payloads conform to these GetDX Web API response schemas:
 ```sh
 node --test libraries/libsyntheticgen/test/    # DSL + entity generation tests
 node --test libraries/libsyntheticrender/test/ # Validation tests
-npx fit-universe --dry-run                     # Full pipeline dry run
-npx fit-universe --dry-run --only=html         # Single content type
+bunx fit-universe --dry-run                     # Full pipeline dry run
+bunx fit-universe --dry-run --only=html         # Single content type
 ```

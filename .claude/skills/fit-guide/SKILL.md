@@ -83,8 +83,8 @@ echo "Tell me about X" | make cli-chat   # Piped single prompt
 ```
 
 **Always use `make cli-chat`** — it loads the required environment
-automatically. Running `npx fit-guide` directly requires env to be loaded first
-(`. scripts/env.sh && npx fit-guide`).
+automatically. Running `bunx fit-guide` directly requires env to be loaded first
+(`. scripts/env.sh && bunx fit-guide`).
 
 The CLI connects to the Agent gRPC service, maintains conversation context
 across turns, and persists session state locally.
@@ -297,7 +297,7 @@ make storage-list       # List storage contents
 ### Quick Start (New Setup)
 
 ```sh
-npm install             # Install all workspace dependencies
+bun install             # Install all workspace dependencies
 make quickstart         # Bootstrap: env, generate, data, codegen, process
 make rc-start           # Start services (supabase/tei auto-skipped if not installed)
 make cli-chat           # Verify end-to-end
@@ -340,7 +340,7 @@ make rc-start
 
 ### Ingest New Knowledge
 
-1. Generate HTML files (e.g., `npx fit-universe --cached` writes directly to
+1. Generate HTML files (e.g., `bunx fit-universe --cached` writes directly to
    `data/knowledge/`)
 2. Run `make process-resources` to create resources
 3. Run `make process-graphs` to build graph index

@@ -277,7 +277,7 @@ function printHelp() {
   console.log(`fit-universe — synthetic data generation pipeline
 
 Usage:
-  npx fit-universe [options]
+  bunx fit-universe [options]
 
 Options:
   --generate          Generate prose via LLM and update cache (requires LLM_TOKEN)
@@ -302,12 +302,12 @@ Content types:
   markdown            Briefings, notes, KB content (data/personal)
 
 Examples:
-  npx fit-universe                           # Cached prose (default)
-  npx fit-universe --generate                # Generate new prose via LLM
-  npx fit-universe --strict                  # Cached prose, fail on miss
-  npx fit-universe --no-prose                # Structural only, no prose
-  npx fit-universe --only=pathway            # Generate pathway data only
-  npx fit-universe --story=custom.dsl        # Use custom DSL file
+  bunx fit-universe                           # Cached prose (default)
+  bunx fit-universe --generate                # Generate new prose via LLM
+  bunx fit-universe --strict                  # Cached prose, fail on miss
+  bunx fit-universe --no-prose                # Structural only, no prose
+  bunx fit-universe --only=pathway            # Generate pathway data only
+  bunx fit-universe --story=custom.dsl        # Use custom DSL file
 `);
 }
 

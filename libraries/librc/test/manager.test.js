@@ -17,8 +17,8 @@ describe("ServiceManager", () => {
       init: {
         log_dir: "data/logs",
         services: [
-          { name: "trace", command: "npm run service:trace" },
-          { name: "vector", command: "npm run service:vector" },
+          { name: "trace", command: "bun run service:trace" },
+          { name: "vector", command: "bun run service:vector" },
           {
             name: "setup",
             type: "oneshot",
@@ -188,7 +188,7 @@ describe("ServiceManager", () => {
               up: "false",
               optional: true,
             },
-            { name: "trace", command: "npm run service:trace" },
+            { name: "trace", command: "bun run service:trace" },
           ],
         },
       };
@@ -236,8 +236,8 @@ describe("ServiceManager", () => {
         init: {
           ...mockConfig.init,
           services: [
-            { name: "optional-svc", command: "npm run svc", optional: true },
-            { name: "trace", command: "npm run service:trace" },
+            { name: "optional-svc", command: "bun run svc", optional: true },
+            { name: "trace", command: "bun run service:trace" },
           ],
         },
       };

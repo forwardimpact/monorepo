@@ -13,7 +13,7 @@ installation, data generation, and running the quality checks.
 ```sh
 git clone https://github.com/forwardimpact/monorepo.git
 cd monorepo
-npm install
+bun install
 make quickstart
 ```
 
@@ -44,7 +44,7 @@ make synthetic-no-prose   # Structural data only, no prose content
 Run the full quality suite before committing:
 
 ```sh
-npm run check
+bun run check
 ```
 
 This runs formatting (Prettier), linting (ESLint), unit tests (`node --test`),
@@ -53,7 +53,7 @@ and data validation (`fit-map validate`) in sequence.
 To auto-fix formatting and lint issues:
 
 ```sh
-npm run check:fix
+bun run check:fix
 ```
 
 ## Understand the structure
@@ -83,7 +83,7 @@ tests inject mocks directly.
 
 1. Create a branch from `main`
 2. Make your changes
-3. Run `npm run check`
+3. Run `bun run check`
 4. Run `make audit` (npm audit + gitleaks secret scanning)
 5. Commit and push
 

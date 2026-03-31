@@ -30,7 +30,7 @@ Run this skill:
 
 ## Prerequisites
 
-- `fit-pathway` CLI installed (`npx fit-pathway` must work)
+- `fit-pathway` CLI installed (`bunx fit-pathway` must work)
 - Screening assessment: `knowledge/Candidates/{Name}/screening.md`
 - At least one interview assessment:
   `knowledge/Candidates/{Name}/interview-*.md`
@@ -94,10 +94,10 @@ selecting the highest-fidelity evidence available:
 
 ```bash
 # Load the framework reference for final comparison
-npx fit-pathway job {discipline} {level} --track={track} --skills
+bunx fit-pathway job {discipline} {level} --track={track} --skills
 
 # Check progression if level is borderline
-npx fit-pathway progress {discipline} {level} --track={track}
+bunx fit-pathway progress {discipline} {level} --track={track}
 ```
 
 For each skill, record:
@@ -115,7 +115,7 @@ evidence hierarchy. Behaviours assessed in interviews carry far more weight than
 CV signals.
 
 ```bash
-npx fit-pathway behaviour --list
+bunx fit-pathway behaviour --list
 ```
 
 For each behaviour:
@@ -131,9 +131,9 @@ recommendation:
 
 ```bash
 # Compare adjacent levels
-npx fit-pathway job {discipline} {lower_level} --track={track}
-npx fit-pathway job {discipline} {target_level} --track={track}
-npx fit-pathway progress {discipline} {lower_level} --track={track}
+bunx fit-pathway job {discipline} {lower_level} --track={track}
+bunx fit-pathway job {discipline} {target_level} --track={track}
+bunx fit-pathway progress {discipline} {lower_level} --track={track}
 ```
 
 | Question                                                     | Answer informs          |

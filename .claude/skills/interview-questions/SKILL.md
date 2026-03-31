@@ -389,7 +389,7 @@ Every question must pass all of these. No exceptions. No "it's close enough."
 4. **Draft questions** — Follow the guidelines above. Write something that would
    make a great engineer say "oh, interesting." If you wouldn't want to answer
    the question yourself, it's not good enough.
-5. **Validate** — `npx fit-map validate`
+5. **Validate** — `bunx fit-map validate`
 6. **Gut check against the quality checklist** — Be your own harshest critic
 
 ### Refining Existing Questions
@@ -405,7 +405,7 @@ Every question must pass all of these. No exceptions. No "it's close enough."
 5. **Add `context`** to decomposition/simulation questions that lack scenario
    depth. If the context is thin, the role-play will be thin.
 6. **Add `followUps`** that introduce genuine curveballs, not small variations
-7. **Validate** — `npx fit-map validate`
+7. **Validate** — `bunx fit-map validate`
 
 ### Writing `lookingFor` Items
 
@@ -497,5 +497,5 @@ Questions are located in `data/pathway/questions/`.
 Always run after creating or modifying questions:
 
 ```sh
-npx fit-map validate
+bunx fit-map validate
 ```

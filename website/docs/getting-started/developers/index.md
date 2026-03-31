@@ -14,7 +14,7 @@ knowledge base.
 Install the packages directly:
 
 ```sh
-npm install @forwardimpact/pathway @forwardimpact/basecamp
+bun install @forwardimpact/pathway @forwardimpact/basecamp
 ```
 
 Or from the monorepo:
@@ -22,7 +22,7 @@ Or from the monorepo:
 ```sh
 git clone https://github.com/forwardimpact/monorepo.git
 cd monorepo
-npm install
+bun install
 ```
 
 ## Browse your job definition
@@ -31,16 +31,16 @@ Use the Pathway CLI to explore the engineering framework your organization has
 defined.
 
 ```sh
-npx fit-pathway discipline --list    # See available disciplines
-npx fit-pathway level --list         # See available levels
-npx fit-pathway track --list         # See available tracks
+bunx fit-pathway discipline --list    # See available disciplines
+bunx fit-pathway level --list         # See available levels
+bunx fit-pathway track --list         # See available tracks
 ```
 
 Generate a complete job definition by combining a discipline, level, and
 optional track:
 
 ```sh
-npx fit-pathway job software_engineering L3 --track=platform
+bunx fit-pathway job software_engineering L3 --track=platform
 ```
 
 This produces a full view of the skills, behaviours, and expectations for that
@@ -51,7 +51,7 @@ role.
 Create AI agent definitions matched to your role's skill profile:
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform --output=./agents
+bunx fit-pathway agent software_engineering --track=platform --output=./agents
 ```
 
 This generates a set of `.agent.md` files and a `skills/` directory. Each agent
@@ -72,19 +72,19 @@ works on any platform.
 Initialize a knowledge base in a directory of your choice:
 
 ```sh
-npx fit-basecamp --init ~/Documents/Personal
+bunx fit-basecamp --init ~/Documents/Personal
 ```
 
 Check the status of your knowledge base:
 
 ```sh
-npx fit-basecamp --status
+bunx fit-basecamp --status
 ```
 
 Run the scheduler in the background to keep everything up to date:
 
 ```sh
-npx fit-basecamp --daemon
+bunx fit-basecamp --daemon
 ```
 
 Basecamp runs as a macOS status menu app with scheduled AI tasks handling the

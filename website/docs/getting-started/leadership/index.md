@@ -11,15 +11,14 @@ the browser.
 
 ## Prerequisites
 
-- Node.js 18+
-- npm
+- Bun 1.0+
 
 ## Install
 
 Install the packages directly:
 
 ```sh
-npm install @forwardimpact/map @forwardimpact/pathway
+bun install @forwardimpact/map @forwardimpact/pathway
 ```
 
 Or clone the monorepo:
@@ -27,7 +26,7 @@ Or clone the monorepo:
 ```sh
 git clone https://github.com/forwardimpact/monorepo.git
 cd monorepo
-npm install
+bun install
 ```
 
 ## Create your first framework
@@ -125,7 +124,7 @@ Use `null` in `validTracks` to allow a trackless (generalist) configuration.
 Run the validator to check your YAML files against the schema:
 
 ```sh
-npx fit-map validate
+bunx fit-map validate
 ```
 
 Fix any errors the validator reports before moving on.
@@ -135,7 +134,7 @@ Fix any errors the validator reports before moving on.
 Start the development server to see your framework in the browser:
 
 ```sh
-npx fit-pathway dev
+bunx fit-pathway dev
 # Open http://localhost:3000
 ```
 

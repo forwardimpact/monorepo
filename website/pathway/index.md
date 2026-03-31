@@ -62,8 +62,8 @@ The interactive browser gives you:
 ## Quick Start
 
 ```sh
-npx fit-pathway dev                                       # Launch web app
-npx fit-pathway job software_engineering L3 --track=platform  # Job definition
-npx fit-pathway agent software_engineering --track=platform   # Agent profiles
-npx fit-pathway build --url=https://pathway.myorg.com         # Static site
+bunx fit-pathway dev                                       # Launch web app
+bunx fit-pathway job software_engineering L3 --track=platform  # Job definition
+bunx fit-pathway agent software_engineering --track=platform   # Agent profiles
+bunx fit-pathway build --url=https://pathway.myorg.com         # Static site
 ```

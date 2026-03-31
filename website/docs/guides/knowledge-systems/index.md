@@ -13,11 +13,11 @@ meeting briefings, organizing notes, and keeping you ready for the day ahead.
 
 The scheduler runs tasks on a configurable schedule. It supports three modes:
 
-| Mode            | Command                                  | Description                    |
-| --------------- | ---------------------------------------- | ------------------------------ |
-| **Run once**    | `npx fit-basecamp`                       | Execute all due tasks and exit |
-| **Daemon**      | `npx fit-basecamp --daemon`              | Run continuously on schedule   |
-| **Single task** | `npx fit-basecamp --task daily_briefing` | Run one specific task          |
+| Mode            | Command                                   | Description                    |
+| --------------- | ----------------------------------------- | ------------------------------ |
+| **Run once**    | `bunx fit-basecamp`                       | Execute all due tasks and exit |
+| **Daemon**      | `bunx fit-basecamp --daemon`              | Run continuously on schedule   |
+| **Single task** | `bunx fit-basecamp --task daily_briefing` | Run one specific task          |
 
 The scheduler tracks task state in a `state.json` file, recording when each task
 last ran and whether it succeeded. On each cycle, it checks which tasks are due
@@ -27,7 +27,7 @@ Logs are written to a log directory inside your knowledge base, one file per
 task per run. Check recent activity:
 
 ```sh
-npx fit-basecamp --status
+bunx fit-basecamp --status
 ```
 
 ## Task Configuration
@@ -114,7 +114,7 @@ personal workflows.
 Set up a new knowledge base:
 
 ```sh
-npx fit-basecamp --init ~/Documents/Personal
+bunx fit-basecamp --init ~/Documents/Personal
 ```
 
 This creates the directory structure, copies default skill definitions, and
@@ -123,13 +123,13 @@ and add your own notes and files.
 
 ## Key Commands
 
-| Command                         | Description                     |
-| ------------------------------- | ------------------------------- |
-| `npx fit-basecamp --init <dir>` | Initialize a new knowledge base |
-| `npx fit-basecamp`              | Run all due tasks once          |
-| `npx fit-basecamp --daemon`     | Run continuously                |
-| `npx fit-basecamp --task <id>`  | Run a single task               |
-| `npx fit-basecamp --status`     | Show scheduler status           |
+| Command                          | Description                     |
+| -------------------------------- | ------------------------------- |
+| `bunx fit-basecamp --init <dir>` | Initialize a new knowledge base |
+| `bunx fit-basecamp`              | Run all due tasks once          |
+| `bunx fit-basecamp --daemon`     | Run continuously                |
+| `bunx fit-basecamp --task <id>`  | Run a single task               |
+| `bunx fit-basecamp --status`     | Show scheduler status           |
 
 ## Paths and Directories
 

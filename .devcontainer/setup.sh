@@ -2,7 +2,7 @@
 set -e
 
 # Install dependencies
-npm install
+bun install
 
 # Generate types, services, clients from proto/
 make codegen
@@ -18,7 +18,7 @@ sed -i 's|EMBEDDING_BASE_URL=http://localhost:8090|EMBEDDING_BASE_URL=http://tei
 
 # Remove tei and supabase from rc services — TEI runs as a Docker sidecar,
 # Supabase is not needed for the minimal devcontainer workflows
-node --input-type=module -e "
+bun -e "
 import { readFileSync, writeFileSync } from 'node:fs';
 const c = JSON.parse(readFileSync('config/config.json', 'utf8'));
 c.init.services = c.init.services.filter(s => s.name !== 'tei' && s.name !== 'supabase');

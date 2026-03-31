@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Extract text from PowerPoint (.pptx) slides.
  *

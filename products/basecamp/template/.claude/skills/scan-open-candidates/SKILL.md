@@ -24,14 +24,14 @@ Run this skill:
 ## Prerequisites
 
 - `WebFetch` tool available (Claude Code built-in — no curl/wget needed)
-- `fit-pathway` CLI available (`npx fit-pathway`)
+- `fit-pathway` CLI available (`bunx fit-pathway`)
 - Memory directory at `~/.cache/fit/basecamp/head-hunter/`
 
 ## Inputs
 
 - `~/.cache/fit/basecamp/head-hunter/cursor.tsv` — source rotation state
 - `~/.cache/fit/basecamp/head-hunter/seen.tsv` — deduplication index
-- Framework data via `npx fit-pathway skill --list` and `npx fit-pathway job`
+- Framework data via `bunx fit-pathway skill --list` and `bunx fit-pathway job`
 
 ## Outputs
 
@@ -314,7 +314,7 @@ the candidate — let the user decide.
 
 ### Filter 4: Skill Alignment
 
-Run `npx fit-pathway skill --list` to get the framework skill inventory. Check
+Run `bunx fit-pathway skill --list` to get the framework skill inventory. Check
 whether the candidate mentions skills that map to framework capabilities:
 
 **Strong signals (forward-deployed track):**

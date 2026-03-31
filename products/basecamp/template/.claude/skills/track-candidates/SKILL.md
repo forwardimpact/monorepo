@@ -606,7 +606,7 @@ When a candidate's email or CV mentions technical skills, map them to the
 engineering framework using `fit-pathway`:
 
 ```bash
-npx fit-pathway skill --list
+bunx fit-pathway skill --list
 ```
 
 Use framework skill IDs (e.g. `data_integration`, `full_stack_development`,

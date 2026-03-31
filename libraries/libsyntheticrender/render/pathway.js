@@ -104,7 +104,7 @@ function toYaml(data, schemaName) {
 function renderIndex(ids) {
   const content = [
     "# Auto-generated index for browser loading",
-    "# Do not edit manually - regenerate with: npx pathway --generate-index",
+    "# Do not edit manually - regenerate with: bunx pathway --generate-index",
   ];
   return content.join("\n") + "\n" + YAML.stringify({ files: ids });
 }

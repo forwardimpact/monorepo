@@ -26,7 +26,7 @@ derive actionable findings — never impose categories before examining the data
 The primary input is a structured trace produced by `fit-eval`:
 
 ```sh
-npx fit-eval output --format=json < trace.ndjson > structured.json
+bunx fit-eval output --format=json < trace.ndjson > structured.json
 ```
 
 The structured trace contains:

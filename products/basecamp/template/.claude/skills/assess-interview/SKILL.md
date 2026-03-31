@@ -31,7 +31,7 @@ Run this skill:
 
 ## Prerequisites
 
-- `fit-pathway` CLI installed (`npx fit-pathway` must work)
+- `fit-pathway` CLI installed (`bunx fit-pathway` must work)
 - At least one transcript file in `knowledge/Candidates/{Name}/`
 - Screening assessment (`screening.md`) should exist — if not, note that
   `screen-cv` should run first, but proceed with transcript analysis regardless
@@ -76,21 +76,21 @@ Load the same framework reference used in the screening assessment:
 
 ```bash
 # Get the job definition (use the role from the screening assessment or brief)
-npx fit-pathway job {discipline} {level} --track={track}
+bunx fit-pathway job {discipline} {level} --track={track}
 
 # Get skill detail for skills being re-rated
-npx fit-pathway skill {skill_id}
+bunx fit-pathway skill {skill_id}
 
 # Get behaviour definitions
-npx fit-pathway behaviour --list
+bunx fit-pathway behaviour --list
 ```
 
 If the screening assessment recommended a different level than originally
 targeted (e.g. J100 → J090), load **both** levels for comparison:
 
 ```bash
-npx fit-pathway job {discipline} {original_level} --track={track}
-npx fit-pathway job {discipline} {recommended_level} --track={track}
+bunx fit-pathway job {discipline} {original_level} --track={track}
+bunx fit-pathway job {discipline} {recommended_level} --track={track}
 ```
 
 ## Step 3: Re-rate Skills with Interview Evidence
@@ -147,7 +147,7 @@ should change:
 
 ```bash
 # Compare what changes between levels
-npx fit-pathway progress {discipline} {level} --track={track}
+bunx fit-pathway progress {discipline} {level} --track={track}
 ```
 
 | Level Signal in Interview                                           | Implication                    |
@@ -242,10 +242,10 @@ colleagues who are not engineers. It must:
 
 ```bash
 # Get the framework expectations for the role
-npx fit-pathway job {discipline} {level} --track={track}
+bunx fit-pathway job {discipline} {level} --track={track}
 
 # Get interview questions relevant to remaining gaps
-npx fit-pathway interview {discipline} {level} --track={track}
+bunx fit-pathway interview {discipline} {level} --track={track}
 ```
 
 ```markdown

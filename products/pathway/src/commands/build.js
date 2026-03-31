@@ -215,7 +215,7 @@ Output: ${outputDir}
 ${siteUrl ? `\nDistribution:\n  ${outputDir}/bundle.tar.gz\n  ${outputDir}/install.sh\n` : ""}
 To serve locally:
   cd ${relative(process.cwd(), outputDir) || "."}
-  npx serve .
+  bunx serve .
 `);
 }
 

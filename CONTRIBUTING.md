@@ -73,7 +73,7 @@ change that requires design review before implementation (e.g.
 
 ### Releasing
 
-**Tag prefix mapping** — tag prefix matches the directory name, not the npm
+**Tag prefix mapping** — tag prefix matches the directory name, not the package
 scope:
 
 | Directory          | Tag prefix | Example tag         |
@@ -109,8 +109,8 @@ Security policies apply to all contributors — human and agent.
 
 - **ESLint security rules** — `eslint-plugin-security` is enabled in
   `eslint.config.js`. Do not disable security rules without justification.
-- **npm audit** — `npm audit --audit-level=high` runs in CI (via temporary
-  lockfile generation) and gates publish workflows.
+- **Vulnerability audit** — `npm audit --audit-level=high` runs in CI (via
+  temporary lockfile generation) and gates publish workflows.
 - **CI secret scanning** — Gitleaks runs on every push and pull request via the
   `audit` job in `check-security.yml`.
 - **GitHub Actions** — All third-party actions are pinned to SHA hashes. Use
@@ -132,5 +132,5 @@ Security policies apply to all contributors — human and agent.
   `@grpc/proto-loader/protobufjs@7`). A major bump that forces co-installed
   packages onto a separate version violates this policy — close the PR until all
   dependents release compatible ranges
-- Run `npm audit --audit-level=high` after adding or updating dependencies (use
-  `make audit-vulnerabilities` which generates a temporary lockfile)
+- Run `make audit-vulnerabilities` after adding or updating dependencies
+  (generates a temporary lockfile for `npm audit --audit-level=high`)

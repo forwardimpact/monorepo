@@ -59,14 +59,14 @@ canonical dataset.
 
 ```sh
 # List available entities
-npx fit-pathway skill --data=data/pathway --list
-npx fit-pathway discipline --data=data/pathway --list
-npx fit-pathway track --data=data/pathway --list
-npx fit-pathway level --data=data/pathway --list
+bunx fit-pathway skill --data=data/pathway --list
+bunx fit-pathway discipline --data=data/pathway --list
+bunx fit-pathway track --data=data/pathway --list
+bunx fit-pathway level --data=data/pathway --list
 
 # Generate sample outputs to compare with docs
-npx fit-pathway job software_engineering L3 --data=data/pathway
-npx fit-pathway agent software_engineering --data=data/pathway --track=platform
+bunx fit-pathway job software_engineering L3 --data=data/pathway
+bunx fit-pathway agent software_engineering --data=data/pathway --track=platform
 ```
 
 ## Commit

@@ -31,7 +31,7 @@ Run this skill:
 
 ## Prerequisites
 
-- `fit-pathway` CLI installed (`npx fit-pathway` must work)
+- `fit-pathway` CLI installed (`bunx fit-pathway` must work)
 - A CV file (PDF or DOCX) accessible on the filesystem
 - Optionally, a target role specified by the user (discipline + level + track)
 
@@ -110,10 +110,10 @@ Use `fit-pathway` to load the reference data for assessment.
 
 ```bash
 # Get the full job definition
-npx fit-pathway job {discipline} {level} --track={track}
+bunx fit-pathway job {discipline} {level} --track={track}
 
 # Get the skill matrix for comparison
-npx fit-pathway job {discipline} {level} --track={track} --skills
+bunx fit-pathway job {discipline} {level} --track={track} --skills
 ```
 
 ### If no target role is specified
@@ -122,13 +122,13 @@ Estimate the most likely discipline and level from the CV, then look it up:
 
 ```bash
 # See available disciplines and their tracks
-npx fit-pathway discipline
+bunx fit-pathway discipline
 
 # See available levels
-npx fit-pathway level
+bunx fit-pathway level
 
 # Look up the estimated role
-npx fit-pathway job {discipline} {level} --track={track}
+bunx fit-pathway job {discipline} {level} --track={track}
 ```
 
 **Estimation heuristics:**
@@ -146,8 +146,8 @@ npx fit-pathway job {discipline} {level} --track={track}
 Use `fit-pathway` to compare tracks:
 
 ```bash
-npx fit-pathway track forward_deployed
-npx fit-pathway track platform
+bunx fit-pathway track forward_deployed
+bunx fit-pathway track platform
 ```
 
 Map CV evidence to track indicators:
@@ -169,7 +169,7 @@ proficiency based on CV evidence:
 
 ```bash
 # Get skill detail for nuanced assessment
-npx fit-pathway skill {skill_id}
+bunx fit-pathway skill {skill_id}
 ```
 
 Use the proficiency definitions from the framework:
@@ -195,7 +195,7 @@ rates `awareness` at most.
 Check the CV for behaviour signals aligned with the framework:
 
 ```bash
-npx fit-pathway behaviour --list
+bunx fit-pathway behaviour --list
 ```
 
 Map CV evidence to behaviours:
@@ -214,7 +214,7 @@ Compare the candidate's estimated skill profile against the target job:
 
 ```bash
 # If comparing progression potential
-npx fit-pathway progress {discipline} {level} --track={track}
+bunx fit-pathway progress {discipline} {level} --track={track}
 ```
 
 Classify each skill as:
@@ -322,7 +322,7 @@ These are the specific uncertainties that interviews must resolve.}
 {Generate role-specific questions using the framework:}
 
 ```bash
-npx fit-pathway interview {discipline} {level} --track={track}
+bunx fit-pathway interview {discipline} {level} --track={track}
 ````
 
 {Select 3-5 questions most relevant to the identified gaps and focus areas. For

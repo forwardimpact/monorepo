@@ -70,12 +70,12 @@ filesystem access — the web app loads them to know which entities are availabl
 ## CLI
 
 ```sh
-npx fit-map validate                    # Validate all data (JSON schema + referential)
-npx fit-map validate --shacl            # Validate RDF/SHACL syntax
-npx fit-map validate --data=PATH        # Validate a specific data directory
-npx fit-map generate-index              # Generate _index.yaml files for browser loading
-npx fit-map people import <file>        # Import people from CSV/YAML (validates against framework)
-npx fit-map people import <f> --data=P  # Import with custom data directory
+bunx fit-map validate                    # Validate all data (JSON schema + referential)
+bunx fit-map validate --shacl            # Validate RDF/SHACL syntax
+bunx fit-map validate --data=PATH        # Validate a specific data directory
+bunx fit-map generate-index              # Generate _index.yaml files for browser loading
+bunx fit-map people import <file>        # Import people from CSV/YAML (validates against framework)
+bunx fit-map people import <f> --data=P  # Import with custom data directory
 ```
 
 Validation output includes a data summary showing entity counts. Use this to
@@ -133,7 +133,7 @@ in sync.
 4. Reference skill in disciplines (coreSkills/supportingSkills/broadSkills)
 5. Add questions: `data/pathway/questions/skills/{skill_id}.yaml`
 6. Optionally add `agent:` section for AI coding agent support
-7. Run `npx fit-map validate`
+7. Run `bunx fit-map validate`
 
 ### Add Interview Questions
 
@@ -187,7 +187,7 @@ toolReferences:
 Always run validation after changes:
 
 ```sh
-npx fit-map validate
+bunx fit-map validate
 ```
 
 ## Documentation

@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Parse a Workday requisition export (.xlsx) and output structured JSON.
  *
@@ -15,11 +15,11 @@
  *                       resumeText, internalExternal } ]
  *
  * Usage:
- *   node scripts/parse-workday.mjs <path-to-xlsx>
- *   node scripts/parse-workday.mjs <path-to-xlsx> --summary
- *   node scripts/parse-workday.mjs -h|--help
+ *   bun scripts/parse-workday.mjs <path-to-xlsx>
+ *   bun scripts/parse-workday.mjs <path-to-xlsx> --summary
+ *   bun scripts/parse-workday.mjs -h|--help
  *
- * Requires: npm install read-excel-file
+ * Requires: bun install read-excel-file
  */
 
 if (
@@ -30,14 +30,14 @@ if (
   console.log(`parse-workday — extract candidates from a Workday requisition export
 
 Usage:
-  node scripts/parse-workday.mjs <path-to-xlsx>            Full JSON output
-  node scripts/parse-workday.mjs <path-to-xlsx> --summary  Name + status only
-  node scripts/parse-workday.mjs -h|--help                 Show this help
+  bun scripts/parse-workday.mjs <path-to-xlsx>            Full JSON output
+  bun scripts/parse-workday.mjs <path-to-xlsx> --summary  Name + status only
+  bun scripts/parse-workday.mjs -h|--help                 Show this help
 
 Output (JSON):
   { requisition: { id, title, ... }, candidates: [ { name, ... }, ... ] }
 
-Requires: npm install read-excel-file`);
+Requires: bun install read-excel-file`);
   process.exit(process.argv.length < 3 ? 1 : 0);
 }
 
@@ -46,7 +46,7 @@ try {
   readXlsxFile = (await import("read-excel-file/node")).default;
 } catch {
   console.error(
-    "Error: read-excel-file package not found. Install it first:\n  npm install read-excel-file",
+    "Error: read-excel-file package not found. Install it first:\n  bun install read-excel-file",
   );
   process.exit(1);
 }

@@ -3,9 +3,9 @@
   "permissions": {
     "defaultMode": "acceptEdits",
     "allow": [
-      "Bash(node *)",
-      "Bash(npm install *)",
-      "Bash(npx *)",
+      "Bash(bun *)",
+      "Bash(bun install *)",
+      "Bash(bunx *)",
       "Bash(rg *)",
       "Bash(find *)",
       "Bash(cat *)",

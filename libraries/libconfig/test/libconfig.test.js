@@ -473,7 +473,7 @@ describe("libconfig", () => {
             init: {
               log_dir: "data/logs",
               shutdown_timeout: 5000,
-              services: [{ name: "api", command: "npm start" }],
+              services: [{ name: "api", command: "bun start" }],
             },
           }),
         ),

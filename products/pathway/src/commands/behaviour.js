@@ -4,10 +4,10 @@
  * Handles behaviour summary, listing, and detail display in the terminal.
  *
  * Usage:
- *   npx pathway behaviour              # Summary with stats
- *   npx pathway behaviour --list       # IDs only (for piping)
- *   npx pathway behaviour <id>         # Detail view
- *   npx pathway behaviour --validate   # Validation checks
+ *   bunx pathway behaviour              # Summary with stats
+ *   bunx pathway behaviour --list       # IDs only (for piping)
+ *   bunx pathway behaviour <id>         # Detail view
+ *   bunx pathway behaviour --validate   # Validation checks
  */
 
 import { createEntityCommand } from "./command-factory.js";
@@ -43,8 +43,8 @@ function formatSummary(behaviours, data) {
 
   console.log(formatTable(["ID", "Name", "Drivers"], rows));
   console.log(`\nTotal: ${behaviours.length} behaviours`);
-  console.log(`\nRun 'npx pathway behaviour --list' for IDs and names`);
-  console.log(`Run 'npx pathway behaviour <id>' for details\n`);
+  console.log(`\nRun 'bunx pathway behaviour --list' for IDs and names`);
+  console.log(`Run 'bunx pathway behaviour <id>' for details\n`);
 }
 
 /**

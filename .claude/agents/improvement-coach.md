@@ -84,7 +84,7 @@ Download the trace artifact for the selected run:
 
 ```sh
 gh run download <run-id> --name claude-trace --dir /tmp/trace-<run-id>
-npx fit-eval output --format=json < /tmp/trace-<run-id>/claude-trace/trace.ndjson > /tmp/trace-<run-id>/structured.json
+bunx fit-eval output --format=json < /tmp/trace-<run-id>/claude-trace/trace.ndjson > /tmp/trace-<run-id>/structured.json
 ```
 
 Also keep the raw NDJSON available for detailed inspection when the structured
@@ -252,7 +252,7 @@ You perform **analysis and improvement only**. You do not:
   messages, or token counts
 - Never speculate about root causes without trace evidence
 - Follow the repository's commit conventions (`type(scope): subject`)
-- Run `npm run check` before committing
+- Run `bun run check` before committing
 
 ## Memory
 

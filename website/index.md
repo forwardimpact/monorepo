@@ -169,7 +169,7 @@ engineers deliver with confidence and pride.
 Define and publish an engineering career framework for your team:
 
 ```sh
-npx fit-pathway build --url=https://pathway.myorg.com
+bunx fit-pathway build --url=https://pathway.myorg.com
 ```
 
 ### For engineers
@@ -177,9 +177,9 @@ npx fit-pathway build --url=https://pathway.myorg.com
 Install the CLI and explore what's available:
 
 ```sh
-npx fit-pathway skill --list        # Browse all skills
-npx fit-pathway job se L3            # Generate a job definition
-npx fit-pathway agent se --track=dx  # Generate agent profiles
+bunx fit-pathway skill --list        # Browse all skills
+bunx fit-pathway job se L3            # Generate a job definition
+bunx fit-pathway agent se --track=dx  # Generate agent profiles
 ```
 
 ### For personal productivity
@@ -187,8 +187,8 @@ npx fit-pathway agent se --track=dx  # Generate agent profiles
 Set up Basecamp and let scheduled AI tasks keep you organized:
 
 ```sh
-npx fit-basecamp --init ~/Documents/Team
-npx fit-basecamp --daemon
+bunx fit-basecamp --init ~/Documents/Team
+bunx fit-basecamp --daemon
 ```
 
   </div>

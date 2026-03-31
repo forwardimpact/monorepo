@@ -65,8 +65,8 @@ export async function runInitCommand({ options }) {
 
 Next steps:
   1. Edit data files to match your organization
-  2. npx pathway --validate
-  3. npx pathway serve
+  2. bunx pathway --validate
+  3. bunx pathway serve
 
 Data structure:
   data/

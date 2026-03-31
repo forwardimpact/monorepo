@@ -4,10 +4,10 @@
  * Handles discipline summary, listing, and detail display in the terminal.
  *
  * Usage:
- *   npx pathway discipline              # Summary with stats
- *   npx pathway discipline --list       # IDs only (for piping)
- *   npx pathway discipline <id>         # Detail view
- *   npx pathway discipline --validate   # Validation checks
+ *   bunx pathway discipline              # Summary with stats
+ *   bunx pathway discipline --list       # IDs only (for piping)
+ *   bunx pathway discipline <id>         # Detail view
+ *   bunx pathway discipline --validate   # Validation checks
  */
 
 import { createEntityCommand } from "./command-factory.js";
@@ -43,8 +43,8 @@ function formatSummary(disciplines) {
 
   console.log(formatTable(["ID", "Specialization", "Type", "Tracks"], rows));
   console.log(`\nTotal: ${disciplines.length} disciplines`);
-  console.log(`\nRun 'npx pathway discipline --list' for IDs and names`);
-  console.log(`Run 'npx pathway discipline <id>' for details\n`);
+  console.log(`\nRun 'bunx pathway discipline --list' for IDs and names`);
+  console.log(`Run 'bunx pathway discipline <id>' for details\n`);
 }
 
 /**

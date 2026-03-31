@@ -76,7 +76,7 @@ distribution:
 
 The `entityDefinitions` object controls how each entity type is labelled in the
 web app — its title, emoji icon, and description. The `distribution.siteUrl` is
-the base URL for the published static site, used by `npx fit-pathway update` to
+the base URL for the published static site, used by `bunx fit-pathway update` to
 download framework bundles.
 
 ## Levels
@@ -482,7 +482,7 @@ engineering produces. They connect skills and behaviours to measurable goals.
 Validate your framework data at any time:
 
 ```sh
-npx fit-map validate
+bunx fit-map validate
 ```
 
 This checks that all YAML files conform to the expected schema — required fields
@@ -492,7 +492,7 @@ proficiency levels use valid values.
 For additional schema validation including SHACL syntax checks:
 
 ```sh
-npx fit-map validate --shacl
+bunx fit-map validate --shacl
 ```
 
 Run validation before committing changes to catch structural issues early.

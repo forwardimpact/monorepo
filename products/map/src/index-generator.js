@@ -43,14 +43,14 @@ export class IndexGenerator {
     const content = this.#yaml.stringify(
       {
         // Auto-generated index for browser loading
-        // Do not edit manually - regenerate with: npx pathway --generate-index
+        // Do not edit manually - regenerate with: bunx pathway --generate-index
         files: fileIds,
       },
       { lineWidth: 0 },
     );
 
     const output = `# Auto-generated index for browser loading
-# Do not edit manually - regenerate with: npx pathway --generate-index
+# Do not edit manually - regenerate with: bunx pathway --generate-index
 ${content}`;
 
     await this.#fs.writeFile(join(dir, "_index.yaml"), output, "utf-8");

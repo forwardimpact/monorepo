@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Sync Apple Calendar events to ~/.cache/fit/basecamp/apple_calendar/ as JSON.
  *

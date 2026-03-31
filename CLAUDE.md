@@ -87,7 +87,7 @@ local and deterministic — no external dependencies, no LLM calls.
 
 Commit format: `type(scope): subject` — see CONTRIBUTING.md § Git Conventions.
 
-Run `npm run check` before every commit — code **and** documentation. It formats
+Run `bun run check` before every commit — code **and** documentation. It formats
 and lints many file types (JS, YAML, Markdown, JSON), not just source code.
 
 ## Policy Ownership
@@ -126,7 +126,7 @@ Skills in `.claude/skills/` serve two distinct purposes:
 
 ## Structure
 
-**Tech**: Node.js 18+, Plain JS + JSDoc, YAML, npm workspaces, no frameworks
+**Tech**: Bun 1.2+, Plain JS + JSDoc, YAML, bun workspaces, no frameworks
 
 ```
 products/
@@ -252,7 +252,7 @@ exempt from OO+DI).
 ## Domain Concepts
 
 > Entities are defined in YAML under `data/pathway/`. Use
-> `npx fit-pathway <entity> --list` to discover available values.
+> `bunx fit-pathway <entity> --list` to discover available values.
 
 ### Core Entities
 
@@ -284,13 +284,13 @@ sections generate SKILL.md files for AI coding agents.
   handoff checklists
 - **Stages** define lifecycle phases with constraints, handoffs, and checklists
 - **Tools** are derived from `toolReferences` in skills at runtime via
-  `npx fit-pathway tool`
+  `bunx fit-pathway tool`
 
-Validate data: `npx fit-map validate`
+Validate data: `bunx fit-map validate`
 
 ### Vocabulary Standards
 
-Use `npx fit-pathway level --list` to see available levels.
+Use `bunx fit-pathway level --list` to see available levels.
 
 | Level          | Autonomy              | Scope                    | Verbs                             |
 | -------------- | --------------------- | ------------------------ | --------------------------------- |

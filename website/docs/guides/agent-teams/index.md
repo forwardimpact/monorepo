@@ -119,7 +119,7 @@ while an "implementation" stage agent focuses on code quality and test coverage.
 Generate agent profiles for a discipline and track:
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform --output=./agents
+bunx fit-pathway agent software_engineering --track=platform --output=./agents
 ```
 
 The output directory contains stage-specific `.agent.md` files and a `skills/`
@@ -139,14 +139,14 @@ directory with individual `SKILL.md` files:
 Generate a single stage agent:
 
 ```sh
-npx fit-pathway agent software_engineering --track=platform --stage=plan
+bunx fit-pathway agent software_engineering --track=platform --stage=plan
 ```
 
 List available disciplines and tracks:
 
 ```sh
-npx fit-pathway discipline --list
-npx fit-pathway track --list
+bunx fit-pathway discipline --list
+bunx fit-pathway track --list
 ```
 
 ## Related Documentation

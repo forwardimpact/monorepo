@@ -43,18 +43,18 @@ persist after the repair attempt, **stop** — do not release from a broken
 ### Repair Trivial CI Failures on Main
 
 When a workflow fails due to formatting, lint, or lock file drift — issues that
-`npm run check:fix` can resolve — fix them directly on `main`. The release
+`bun run check:fix` can resolve — fix them directly on `main`. The release
 engineer is the **only** agent allowed to push directly to `main`, and only for
 these mechanical fixes that would otherwise block every PR and release.
 
 ```sh
 git checkout main
 git pull origin main
-npm run check:fix
-npm run check            # Verify the fix resolves all failures
+bun run check:fix
+bun run check            # Verify the fix resolves all failures
 ```
 
-If `npm run check` passes after the fix:
+If `bun run check` passes after the fix:
 
 ```sh
 git add <fixed-files>
@@ -64,7 +64,7 @@ git push origin main
 
 Wait for CI to re-run and confirm green before proceeding with the release.
 
-If `npm run check` still fails after `check:fix`, the failure is not trivial —
+If `bun run check` still fails after `check:fix`, the failure is not trivial —
 **stop** and report the failures. Do not attempt code-level fixes on `main`.
 
 ## Tag Prefix Mapping
@@ -152,17 +152,17 @@ Update the range (e.g. `^3.0.0` → `^4.0.0`) in each dependent's `package.json`
 ### Step 5: Sync Lock File
 
 ```sh
-npm install --package-lock-only
+bun install
 ```
 
 ### Step 6: Verify Quality
 
 ```sh
-npm run check:fix    # Auto-fix formatting and lint
-npm run check        # Full validation — must pass cleanly
+bun run check:fix    # Auto-fix formatting and lint
+bun run check        # Full validation — must pass cleanly
 ```
 
-If `npm run check` fails, diagnose and fix. Do not release with failing checks.
+If `bun run check` fails, diagnose and fix. Do not release with failing checks.
 
 ### Step 7: Commit Version Bumps
 

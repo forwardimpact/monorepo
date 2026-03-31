@@ -63,11 +63,11 @@ function printUsage() {
   process.stdout.write(
     [
       "Usage:",
-      `  npx fit-codegen --all                              # Generate all code`,
-      `  npx fit-codegen --type                             # Generate protobuf types only`,
-      `  npx fit-codegen --service                          # Generate service bases only`,
-      `  npx fit-codegen --client                           # Generate clients only`,
-      `  npx fit-codegen --definition                       # Generate service definitions only`,
+      `  bunx fit-codegen --all                              # Generate all code`,
+      `  bunx fit-codegen --type                             # Generate protobuf types only`,
+      `  bunx fit-codegen --service                          # Generate service bases only`,
+      `  bunx fit-codegen --client                           # Generate clients only`,
+      `  bunx fit-codegen --definition                       # Generate service definitions only`,
     ].join("\n") + "\n",
   );
 }

@@ -151,7 +151,7 @@ files:
 After updating capability data, validate:
 
 ```bash
-npx fit-map validate
+bunx fit-map validate
 ```
 
 ### Step 5: Verify Changes
@@ -167,7 +167,7 @@ git diff products/basecamp/template/.claude/skills/
 2. **Run validation** if capability data was changed:
 
 ```bash
-npx fit-map validate
+bunx fit-map validate
 ```
 
 3. **Check for consistency** — if a skill was updated in the template, ensure

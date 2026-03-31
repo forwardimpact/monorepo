@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Convert HTML slides to PDF using Playwright.
  *
@@ -7,7 +7,7 @@
  * colours and images preserved. Defaults to reading from /tmp and writing to
  * ~/Desktop when no arguments are given.
  *
- * Requires: npm install playwright && npx playwright install chromium
+ * Requires: bun install playwright && bunx playwright install chromium
  */
 
 import { join } from "node:path";
@@ -16,13 +16,13 @@ import { homedir } from "node:os";
 
 const HELP = `convert-to-pdf — render HTML slides to PDF via Playwright
 
-Usage: node scripts/convert-to-pdf.mjs [input.html] [output.pdf] [-h|--help]
+Usage: bun scripts/convert-to-pdf.mjs [input.html] [output.pdf] [-h|--help]
 
 Arguments:
   input.html   HTML slides file (default: /tmp/basecamp-presentation.html)
   output.pdf   Output PDF path (default: ~/Desktop/presentation.pdf)
 
-Requires: npm install playwright && npx playwright install chromium`;
+Requires: bun install playwright && bunx playwright install chromium`;
 
 if (process.argv.includes("-h") || process.argv.includes("--help")) {
   console.log(HELP);

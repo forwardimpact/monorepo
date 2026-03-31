@@ -196,7 +196,7 @@ without trace evidence.
 
 **Main branch CI repair.** The release engineer is the only agent allowed to
 push directly to `main`, and only for trivial CI fixes — formatting, lint, and
-lock file drift that `npm run check:fix` resolves. If `npm run check:fix` does
+lock file drift that `bun run check:fix` resolves. If `bun run check:fix` does
 not resolve the failure, the release engineer must stop and report.
 
 **Trace-driven observability.** Every workflow captures a full execution trace

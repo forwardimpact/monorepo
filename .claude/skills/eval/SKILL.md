@@ -37,7 +37,7 @@ The output of an eval is **a list of skill improvements**, not a score.
 ### 1. Discover Available Agents
 
 ```sh
-npx fit-pathway agent --list
+bunx fit-pathway agent --list
 ```
 
 Output is `<shortname> <discipline> <track>`, one per line. The shortname (first
@@ -50,7 +50,7 @@ carries a different set of skills depending on its discipline and track. To see
 which skills a given agent will use:
 
 ```sh
-npx fit-pathway agent software_engineering --track=forward_deployed --skills
+bunx fit-pathway agent software_engineering --track=forward_deployed --skills
 ```
 
 **Important:** Always use `--track=<id>` as a flag, not a positional argument.
@@ -59,7 +59,7 @@ The CLI rejects unexpected positional args.
 Then study any individual skill in detail:
 
 ```sh
-npx fit-pathway skill <name>
+bunx fit-pathway skill <name>
 ```
 
 This is the fastest way to understand what an agent is expected to do before
@@ -72,7 +72,7 @@ Run from the **monorepo root** (where `package.json` with workspaces lives):
 ```sh
 cd /path/to/pathway-community
 EVAL_DIR=$(mktemp -d)
-npx fit-pathway agent <discipline> --track=<track> --output=$EVAL_DIR
+bunx fit-pathway agent <discipline> --track=<track> --output=$EVAL_DIR
 ```
 
 This creates:
@@ -188,7 +188,7 @@ stages — they exercise skills most heavily.
 
 ```sh
 # Example: evaluate the SE Platform specify agent
-npx fit-pathway agent software_engineering --track=platform --output=$EVAL_DIR
+bunx fit-pathway agent software_engineering --track=platform --output=$EVAL_DIR
 ```
 
 ### Step 2: Read the Skills Before Evaluating
@@ -197,8 +197,8 @@ Before running the agent, read the skill files yourself so you know what the
 agent _should_ do. Start by listing the agent's skills and reviewing them:
 
 ```sh
-npx fit-pathway agent <discipline> <track> --skills
-npx fit-pathway skill <name> --agent
+bunx fit-pathway agent <discipline> <track> --skills
+bunx fit-pathway skill <name> --agent
 ```
 
 For each skill, check:
@@ -280,7 +280,7 @@ After fixing, regenerate and re-evaluate:
 
 ```sh
 EVAL_DIR=$(mktemp -d)
-npx fit-pathway agent <discipline> --track=<track> --output=$EVAL_DIR
+bunx fit-pathway agent <discipline> --track=<track> --output=$EVAL_DIR
 # Re-run the same eval prompt
 ```
 

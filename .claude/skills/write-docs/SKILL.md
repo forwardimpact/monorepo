@@ -149,7 +149,7 @@ is structured.
 6. **Add cross-links.** Link to related pages within the hierarchy. Guides link
    to Reference for lookup details. Getting Started links to Guides for next
    steps. Internals link to Reference for the user-facing model.
-7. **Build and check.** Run `npx fit-doc build --src=website --out=dist` to
+7. **Build and check.** Run `bunx fit-doc build --src=website --out=dist` to
    confirm the page renders and all links resolve.
 
 ### Updating existing pages
@@ -163,7 +163,7 @@ is structured.
 4. **Verify YAML examples.** Check against schemas in
    `products/map/schema/json/`.
 5. **Check cross-links.** Ensure all internal links resolve to pages that exist.
-6. **Build and check.** Run `npx fit-doc build --src=website --out=dist`.
+6. **Build and check.** Run `bunx fit-doc build --src=website --out=dist`.
 
 ### Auditing documentation
 

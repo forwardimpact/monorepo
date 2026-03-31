@@ -1,7 +1,7 @@
 /**
  * CLI Command Mapping
  *
- * Maps hash routes to their equivalent `npx fit-pathway` CLI commands.
+ * Maps hash routes to their equivalent `bunx fit-pathway` CLI commands.
  */
 
 /**
@@ -11,122 +11,122 @@
  */
 const ROUTE_COMMANDS = [
   // Landing
-  { pattern: /^\/$/, toCommand: () => "npx fit-pathway" },
+  { pattern: /^\/$/, toCommand: () => "bunx fit-pathway" },
 
   // Entity lists
-  { pattern: /^\/skill$/, toCommand: () => "npx fit-pathway skill" },
-  { pattern: /^\/behaviour$/, toCommand: () => "npx fit-pathway behaviour" },
+  { pattern: /^\/skill$/, toCommand: () => "bunx fit-pathway skill" },
+  { pattern: /^\/behaviour$/, toCommand: () => "bunx fit-pathway behaviour" },
   {
     pattern: /^\/discipline$/,
-    toCommand: () => "npx fit-pathway discipline",
+    toCommand: () => "bunx fit-pathway discipline",
   },
-  { pattern: /^\/track$/, toCommand: () => "npx fit-pathway track" },
-  { pattern: /^\/level$/, toCommand: () => "npx fit-pathway level" },
-  { pattern: /^\/driver$/, toCommand: () => "npx fit-pathway driver" },
-  { pattern: /^\/stage$/, toCommand: () => "npx fit-pathway stage" },
-  { pattern: /^\/tool$/, toCommand: () => "npx fit-pathway tool" },
+  { pattern: /^\/track$/, toCommand: () => "bunx fit-pathway track" },
+  { pattern: /^\/level$/, toCommand: () => "bunx fit-pathway level" },
+  { pattern: /^\/driver$/, toCommand: () => "bunx fit-pathway driver" },
+  { pattern: /^\/stage$/, toCommand: () => "bunx fit-pathway stage" },
+  { pattern: /^\/tool$/, toCommand: () => "bunx fit-pathway tool" },
 
   // Entity details
   {
     pattern: /^\/skill\/(.+)$/,
-    toCommand: (m) => `npx fit-pathway skill ${m[1]}`,
+    toCommand: (m) => `bunx fit-pathway skill ${m[1]}`,
   },
   {
     pattern: /^\/behaviour\/(.+)$/,
-    toCommand: (m) => `npx fit-pathway behaviour ${m[1]}`,
+    toCommand: (m) => `bunx fit-pathway behaviour ${m[1]}`,
   },
   {
     pattern: /^\/discipline\/(.+)$/,
-    toCommand: (m) => `npx fit-pathway discipline ${m[1]}`,
+    toCommand: (m) => `bunx fit-pathway discipline ${m[1]}`,
   },
   {
     pattern: /^\/track\/(.+)$/,
-    toCommand: (m) => `npx fit-pathway track ${m[1]}`,
+    toCommand: (m) => `bunx fit-pathway track ${m[1]}`,
   },
   {
     pattern: /^\/level\/(.+)$/,
-    toCommand: (m) => `npx fit-pathway level ${m[1]}`,
+    toCommand: (m) => `bunx fit-pathway level ${m[1]}`,
   },
   {
     pattern: /^\/driver\/(.+)$/,
-    toCommand: (m) => `npx fit-pathway driver ${m[1]}`,
+    toCommand: (m) => `bunx fit-pathway driver ${m[1]}`,
   },
   {
     pattern: /^\/stage\/(.+)$/,
-    toCommand: (m) => `npx fit-pathway stage ${m[1]}`,
+    toCommand: (m) => `bunx fit-pathway stage ${m[1]}`,
   },
 
   // Job builder + detail
   {
     pattern: /^\/job-builder$/,
-    toCommand: () => "npx fit-pathway job --list",
+    toCommand: () => "bunx fit-pathway job --list",
   },
   {
     pattern: /^\/job\/([^/]+)\/([^/]+)\/([^/]+)$/,
-    toCommand: (m) => `npx fit-pathway job ${m[1]} ${m[2]} --track=${m[3]}`,
+    toCommand: (m) => `bunx fit-pathway job ${m[1]} ${m[2]} --track=${m[3]}`,
   },
   {
     pattern: /^\/job\/([^/]+)\/([^/]+)$/,
-    toCommand: (m) => `npx fit-pathway job ${m[1]} ${m[2]}`,
+    toCommand: (m) => `bunx fit-pathway job ${m[1]} ${m[2]}`,
   },
 
   // Interview builder + detail
   {
     pattern: /^\/interview-prep$/,
-    toCommand: () => "npx fit-pathway interview --list",
+    toCommand: () => "bunx fit-pathway interview --list",
   },
   {
     pattern: /^\/interview\/([^/]+)\/([^/]+)\/([^/]+)$/,
     toCommand: (m) =>
-      `npx fit-pathway interview ${m[1]} ${m[2]} --track=${m[3]}`,
+      `bunx fit-pathway interview ${m[1]} ${m[2]} --track=${m[3]}`,
   },
   {
     pattern: /^\/interview\/([^/]+)\/([^/]+)$/,
-    toCommand: (m) => `npx fit-pathway interview ${m[1]} ${m[2]}`,
+    toCommand: (m) => `bunx fit-pathway interview ${m[1]} ${m[2]}`,
   },
 
   // Career progress builder + detail
   {
     pattern: /^\/career-progress$/,
-    toCommand: () => "npx fit-pathway progress --list",
+    toCommand: () => "bunx fit-pathway progress --list",
   },
   {
     pattern: /^\/progress\/([^/]+)\/([^/]+)\/([^/]+)$/,
     toCommand: (m) =>
-      `npx fit-pathway progress ${m[1]} ${m[2]} --track=${m[3]}`,
+      `bunx fit-pathway progress ${m[1]} ${m[2]} --track=${m[3]}`,
   },
   {
     pattern: /^\/progress\/([^/]+)\/([^/]+)$/,
-    toCommand: (m) => `npx fit-pathway progress ${m[1]} ${m[2]}`,
+    toCommand: (m) => `bunx fit-pathway progress ${m[1]} ${m[2]}`,
   },
 
   // Self-assessment
   {
     pattern: /^\/self-assessment$/,
-    toCommand: () => "npx fit-pathway self-assessment",
+    toCommand: () => "bunx fit-pathway self-assessment",
   },
   {
     pattern: /^\/self-assessment\/results$/,
-    toCommand: () => "npx fit-pathway self-assessment",
+    toCommand: () => "bunx fit-pathway self-assessment",
   },
 
   // Agent builder + detail
   {
     pattern: /^\/agent-builder$/,
-    toCommand: () => "npx fit-pathway agent --list",
+    toCommand: () => "bunx fit-pathway agent --list",
   },
   {
     pattern: /^\/agent\/([^/]+)\/([^/]+)\/([^/]+)$/,
     toCommand: (m) =>
-      `npx fit-pathway agent ${m[1]} --track=${m[2]} --stage=${m[3]}`,
+      `bunx fit-pathway agent ${m[1]} --track=${m[2]} --stage=${m[3]}`,
   },
   {
     pattern: /^\/agent\/([^/]+)\/([^/]+)$/,
-    toCommand: (m) => `npx fit-pathway agent ${m[1]} --track=${m[2]}`,
+    toCommand: (m) => `bunx fit-pathway agent ${m[1]} --track=${m[2]}`,
   },
   {
     pattern: /^\/agent\/([^/]+)$/,
-    toCommand: (m) => `npx fit-pathway agent ${m[1]}`,
+    toCommand: (m) => `bunx fit-pathway agent ${m[1]}`,
   },
 ];
 
@@ -141,5 +141,5 @@ export function getCliCommand(hashPath) {
     const match = path.match(pattern);
     if (match) return toCommand(match);
   }
-  return "npx fit-pathway";
+  return "bunx fit-pathway";
 }

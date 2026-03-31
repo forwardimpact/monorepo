@@ -5,8 +5,8 @@
  * Conversational agent interface for the Guide knowledge platform.
  *
  * Usage:
- *   npx fit-guide
- *   echo "Tell me about the company" | npx fit-guide
+ *   bunx fit-guide
+ *   echo "Tell me about the company" | bunx fit-guide
  */
 
 import { resolve } from "path";
@@ -27,8 +27,8 @@ The agent maintains conversation context across multiple turns.
 
 **Examples:**
 
-    echo "Tell me about the company" | npx fit-guide
-    printf "What is microservices?\\nWhat are the benefits?\\n" | npx fit-guide`;
+    echo "Tell me about the company" | bunx fit-guide
+    printf "What is microservices?\\nWhat are the benefits?\\n" | bunx fit-guide`;
 
 if (!process.env.SERVICE_SECRET) {
   console.error(

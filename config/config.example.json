@@ -17,35 +17,35 @@
       },
       {
         "name": "trace",
-        "command": "npm run dev -w @forwardimpact/svctrace"
+        "command": "bun run dev -w @forwardimpact/svctrace"
       },
       {
         "name": "vector",
-        "command": "npm run dev -w @forwardimpact/svcvector"
+        "command": "bun run dev -w @forwardimpact/svcvector"
       },
       {
         "name": "graph",
-        "command": "npm run dev -w @forwardimpact/svcgraph"
+        "command": "bun run dev -w @forwardimpact/svcgraph"
       },
       {
         "name": "llm",
-        "command": "npm run dev -w @forwardimpact/svcllm"
+        "command": "bun run dev -w @forwardimpact/svcllm"
       },
       {
         "name": "memory",
-        "command": "npm run dev -w @forwardimpact/svcmemory"
+        "command": "bun run dev -w @forwardimpact/svcmemory"
       },
       {
         "name": "tool",
-        "command": "npm run dev -w @forwardimpact/svctool"
+        "command": "bun run dev -w @forwardimpact/svctool"
       },
       {
         "name": "agent",
-        "command": "npm run dev -w @forwardimpact/svcagent"
+        "command": "bun run dev -w @forwardimpact/svcagent"
       },
       {
         "name": "web",
-        "command": "npm run dev -w @forwardimpact/svcweb"
+        "command": "bun run dev -w @forwardimpact/svcweb"
       }
     ]
   },

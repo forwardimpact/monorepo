@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Parse a macOS Mail .emlx or .partial.emlx file and output the plain text body.
  *

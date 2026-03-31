@@ -82,10 +82,10 @@ If your network requires a custom CA bundle, add an `env` block to
 ## Quick Start
 
 ```sh
-npx fit-basecamp --init ~/Documents/Team   # Initialize knowledge base
-npx fit-basecamp --daemon                   # Start the scheduler
-npx fit-basecamp --status                   # Check what's happening
-npx fit-basecamp --run sync-mail            # Run a task now
+bunx fit-basecamp --init ~/Documents/Team   # Initialize knowledge base
+bunx fit-basecamp --daemon                   # Start the scheduler
+bunx fit-basecamp --status                   # Check what's happening
+bunx fit-basecamp --run sync-mail            # Run a task now
 ```
 
 ### macOS Privacy & Security

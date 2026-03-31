@@ -63,15 +63,15 @@ include all previously generated content.
 ## CLI Reference
 
 ```sh
-npx fit-universe                     # Use cached prose (default, repeatable)
-npx fit-universe --generate          # Generate prose via LLM (requires LLM_TOKEN)
-npx fit-universe --no-prose          # Structural scaffolding only (no prose at all)
-npx fit-universe --strict            # Fail on cache miss (with default cached mode)
-npx fit-universe --load              # Load raw docs to Supabase Storage
-npx fit-universe --only=pathway      # Render only one content type
-npx fit-universe --dry-run           # Show what would be written
-npx fit-universe --story=path        # Custom story DSL file
-npx fit-universe --cache=path        # Custom prose cache file
+bunx fit-universe                     # Use cached prose (default, repeatable)
+bunx fit-universe --generate          # Generate prose via LLM (requires LLM_TOKEN)
+bunx fit-universe --no-prose          # Structural scaffolding only (no prose at all)
+bunx fit-universe --strict            # Fail on cache miss (with default cached mode)
+bunx fit-universe --load              # Load raw docs to Supabase Storage
+bunx fit-universe --only=pathway      # Render only one content type
+bunx fit-universe --dry-run           # Show what would be written
+bunx fit-universe --story=path        # Custom story DSL file
+bunx fit-universe --cache=path        # Custom prose cache file
 ```
 
 ### Content Types
@@ -199,7 +199,7 @@ Generation requires `LLM_TOKEN` and `LLM_BASE_URL` when using `--generate` mode.
 Load environment via `scripts/env.sh`:
 
 ```sh
-ENV=local STORAGE=local AUTH=none ./scripts/env.sh npx fit-universe --generate
+ENV=local STORAGE=local AUTH=none ./scripts/env.sh bunx fit-universe --generate
 ```
 
 Or use the Makefile's env loading for consistency. `LLM_TOKEN` is always
@@ -241,7 +241,7 @@ reports pass/fail for each check. Validate the generated pathway data
 separately:
 
 ```sh
-npx fit-map validate
+bunx fit-map validate
 ```
 
 ## Documentation

@@ -23,7 +23,7 @@ land on `main`.
 2. **Main branch CI repair** — When `main` has failing CI due to trivial issues
    (formatting, lint, lock file drift), fix them with a direct push to `main`.
    You are the **only** agent allowed to push directly to `main`, and only for
-   mechanical fixes that `npm run check:fix` can resolve. This prevents a broken
+   mechanical fixes that `bun run check:fix` can resolve. This prevents a broken
    `main` from blocking every rebased PR and all releases.
 
 3. **Release review** — Assess `main` branch CI status, identify packages with
@@ -52,10 +52,10 @@ not make code-level decisions.
 ### Main branch CI repair
 
 - Fix trivial CI failures on `main` by pushing directly: formatting, lint, lock
-  file drift — issues that `npm run check:fix` resolves
+  file drift — issues that `bun run check:fix` resolves
 - **Only** mechanical fixes — never change application logic, tests, or feature
   behaviour on `main`
-- Always run `npm run check` after `check:fix` to confirm the fix is complete
+- Always run `bun run check` after `check:fix` to confirm the fix is complete
 - If failures persist after `check:fix`, **stop** and report — do not attempt
   code-level fixes
 

@@ -4,9 +4,9 @@
  * Handles stage summary, listing, and detail display in the terminal.
  *
  * Usage:
- *   npx pathway stage              # Summary with lifecycle flow
- *   npx pathway stage --list       # IDs only (for piping)
- *   npx pathway stage <id>         # Detail view
+ *   bunx pathway stage              # Summary with lifecycle flow
+ *   bunx pathway stage --list       # IDs only (for piping)
+ *   bunx pathway stage <id>         # Detail view
  */
 
 import { createEntityCommand } from "./command-factory.js";
@@ -52,8 +52,8 @@ function formatSummary(stages, _data) {
 
   console.log(formatTable(["ID", "Name", "Mode", "Tools", "Handoffs"], rows));
   console.log(`\nTotal: ${stages.length} stages`);
-  console.log(`\nRun 'npx pathway stage --list' for IDs and names`);
-  console.log(`Run 'npx pathway stage <id>' for details\n`);
+  console.log(`\nRun 'bunx pathway stage --list' for IDs and names`);
+  console.log(`Run 'bunx pathway stage <id>' for details\n`);
 }
 
 /**

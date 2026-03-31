@@ -26,13 +26,13 @@ progression roadmaps, and gap analyses.
 Explore what is defined in your framework:
 
 ```sh
-npx fit-pathway discipline --list
-npx fit-pathway skill --list
-npx fit-pathway level --list
-npx fit-pathway track --list
-npx fit-pathway behaviour --list
-npx fit-pathway driver --list
-npx fit-pathway stage --list
+bunx fit-pathway discipline --list
+bunx fit-pathway skill --list
+bunx fit-pathway level --list
+bunx fit-pathway track --list
+bunx fit-pathway behaviour --list
+bunx fit-pathway driver --list
+bunx fit-pathway stage --list
 ```
 
 ## View a Job Definition
@@ -40,13 +40,13 @@ npx fit-pathway stage --list
 See the full job definition for a specific role:
 
 ```sh
-npx fit-pathway job software_engineering L3
+bunx fit-pathway job software_engineering L3
 ```
 
 Apply a track to see how the role shifts in a specific context:
 
 ```sh
-npx fit-pathway job software_engineering L3 --track=platform
+bunx fit-pathway job software_engineering L3 --track=platform
 ```
 
 The output includes the role's skill expectations with proficiency levels,
@@ -87,13 +87,13 @@ maturity scale:
 See what is expected at your current level:
 
 ```sh
-npx fit-pathway progress software_engineering L3 --track=platform
+bunx fit-pathway progress software_engineering L3 --track=platform
 ```
 
 Compare your current level with a target level to see what changes:
 
 ```sh
-npx fit-pathway progress software_engineering L3 --track=platform --compare=L4
+bunx fit-pathway progress software_engineering L3 --track=platform --compare=L4
 ```
 
 The comparison highlights:

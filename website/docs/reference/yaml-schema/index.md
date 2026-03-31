@@ -67,7 +67,7 @@ Paths are relative to `products/map/` (published as `@forwardimpact/map`).
 All entities use `human:` and `agent:` sections in the same YAML file. The
 `human:` section contains descriptions for people. The `agent:` section contains
 instructions for AI coding agents. Skills with an `agent:` section generate
-SKILL.md files when using `npx fit-pathway skill <id> --agent`.
+SKILL.md files when using `bunx fit-pathway skill <id> --agent`.
 
 ---
 
@@ -282,8 +282,8 @@ agent:
 ## Validation
 
 ```sh
-npx fit-map validate          # Full validation (JSON Schema + referential integrity)
-npx fit-map validate --shacl  # Include RDF/SHACL validation
+bunx fit-map validate          # Full validation (JSON Schema + referential integrity)
+bunx fit-map validate --shacl  # Include RDF/SHACL validation
 ```
 
 Validation checks:

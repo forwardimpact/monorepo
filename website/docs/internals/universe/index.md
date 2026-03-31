@@ -18,19 +18,19 @@ Generated output lands in `data/` at the monorepo root.
 
 ```sh
 # Generate structural data (no LLM needed)
-npx fit-universe
+bunx fit-universe
 
 # Generate with LLM-written prose (requires LLM_TOKEN)
-npx fit-universe --generate
+bunx fit-universe --generate
 
 # Use cached prose for fast, repeatable runs
-npx fit-universe --cached
+bunx fit-universe --cached
 
 # Preview what would be generated
-npx fit-universe --dry-run
+bunx fit-universe --dry-run
 
 # Generate only pathway framework data
-npx fit-universe --only=pathway
+bunx fit-universe --only=pathway
 ```
 
 ---
@@ -188,7 +188,7 @@ The CLI runs cross-content validation automatically after generation. To
 validate the generated pathway data against the Map schema manually:
 
 ```sh
-npx fit-map validate --data=data/pathway
+bunx fit-map validate --data=data/pathway
 ```
 
 ---
@@ -198,7 +198,7 @@ npx fit-map validate --data=data/pathway
 Point to any DSL file with `--story=path`:
 
 ```sh
-npx fit-universe --story=./my-story.dsl --generate
+bunx fit-universe --story=./my-story.dsl --generate
 ```
 
 This is useful for generating data for different organizational shapes, team

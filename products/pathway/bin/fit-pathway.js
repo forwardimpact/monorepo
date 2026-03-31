@@ -6,7 +6,7 @@
  * interview questions, career progression analysis, and AI agent configurations.
  *
  * Usage:
- *   npx fit-pathway <command> [options]
+ *   bunx fit-pathway <command> [options]
  *
  * Commands:
  *   discipline [<id>]           Show disciplines
@@ -88,7 +88,7 @@ const HELP_TEXT = `
 Engineering Pathway CLI
 
 Usage:
-  npx fit-pathway <command> [options]
+  bunx fit-pathway <command> [options]
 
 Global Options:
   --list            Output IDs only (for piping to other commands)
@@ -131,15 +131,15 @@ JOB COMMAND
 Generate job definitions from discipline × level × track combinations.
 
 Usage:
-  npx fit-pathway job                                  Summary with stats
-  npx fit-pathway job --track=<track>                  Summary filtered by track
-  npx fit-pathway job --list                           All valid combinations
-  npx fit-pathway job --list --track=<track>            Combinations for a track
-  npx fit-pathway job <discipline> <level>             Detail view (trackless)
-  npx fit-pathway job <d> <l> --track=<track>          Detail view (with track)
-  npx fit-pathway job <d> <l> --skills                 Plain list of skill IDs
-  npx fit-pathway job <d> <l> --tools                  Plain list of tool names
-  npx fit-pathway job <d> <l> --checklist=<stage>      Show handoff checklist
+  bunx fit-pathway job                                  Summary with stats
+  bunx fit-pathway job --track=<track>                  Summary filtered by track
+  bunx fit-pathway job --list                           All valid combinations
+  bunx fit-pathway job --list --track=<track>            Combinations for a track
+  bunx fit-pathway job <discipline> <level>             Detail view (trackless)
+  bunx fit-pathway job <d> <l> --track=<track>          Detail view (with track)
+  bunx fit-pathway job <d> <l> --skills                 Plain list of skill IDs
+  bunx fit-pathway job <d> <l> --tools                  Plain list of tool names
+  bunx fit-pathway job <d> <l> --checklist=<stage>      Show handoff checklist
 
 Options:
   --track=TRACK       Track specialization (e.g., platform, forward_deployed)
@@ -149,11 +149,11 @@ Options:
   --checklist=STAGE   Show checklist for stage handoff (plan, code)
 
 Examples:
-  npx fit-pathway job                                  # overview of all jobs
-  npx fit-pathway job --track=forward_deployed         # jobs on a specific track
-  npx fit-pathway job --list --track=forward_deployed  # list for piping
-  npx fit-pathway job software_engineering J060        # trackless job detail
-  npx fit-pathway job software_engineering J060 --track=platform  # with track
+  bunx fit-pathway job                                  # overview of all jobs
+  bunx fit-pathway job --track=forward_deployed         # jobs on a specific track
+  bunx fit-pathway job --list --track=forward_deployed  # list for piping
+  bunx fit-pathway job software_engineering J060        # trackless job detail
+  bunx fit-pathway job software_engineering J060 --track=platform  # with track
 
 ────────────────────────────────────────────────────────────────────────────────
 AGENT COMMAND
@@ -162,12 +162,12 @@ AGENT COMMAND
 Generate AI coding agent configurations from discipline × track × stage.
 
 Usage:
-  npx fit-pathway agent                                Summary with stats
-  npx fit-pathway agent --list                         All valid combinations
-  npx fit-pathway agent <discipline> --track=<track>   Generate all stage agents
-  npx fit-pathway agent <d> --track=<t> --stage=<s>    Generate single stage agent
-  npx fit-pathway agent <d> --track=<t> --skills       Plain list of skill IDs
-  npx fit-pathway agent <d> --track=<t> --tools        Plain list of tool names
+  bunx fit-pathway agent                                Summary with stats
+  bunx fit-pathway agent --list                         All valid combinations
+  bunx fit-pathway agent <discipline> --track=<track>   Generate all stage agents
+  bunx fit-pathway agent <d> --track=<t> --stage=<s>    Generate single stage agent
+  bunx fit-pathway agent <d> --track=<t> --skills       Plain list of skill IDs
+  bunx fit-pathway agent <d> --track=<t> --tools        Plain list of tool names
 
 Options:
   --track=TRACK       Track for the agent (required for generation)
@@ -177,10 +177,10 @@ Options:
   --tools             Output plain list of tool names (for piping)
 
 Examples:
-  npx fit-pathway agent software_engineering --track=platform
-  npx fit-pathway agent software_engineering --track=platform --stage=plan
-  npx fit-pathway agent software_engineering --track=platform --output=./agents
-  npx fit-pathway agent software_engineering --track=platform --skills
+  bunx fit-pathway agent software_engineering --track=platform
+  bunx fit-pathway agent software_engineering --track=platform --stage=plan
+  bunx fit-pathway agent software_engineering --track=platform --output=./agents
+  bunx fit-pathway agent software_engineering --track=platform --skills
 
 ────────────────────────────────────────────────────────────────────────────────
 INTERVIEW COMMAND
@@ -189,9 +189,9 @@ INTERVIEW COMMAND
 Generate interview question sets based on job requirements.
 
 Usage:
-  npx fit-pathway interview <discipline> <level>                     All types
-  npx fit-pathway interview <d> <l> --track=<track>                  With track
-  npx fit-pathway interview <d> <l> --track=<t> --type=<type>        Single type
+  bunx fit-pathway interview <discipline> <level>                     All types
+  bunx fit-pathway interview <d> <l> --track=<track>                  With track
+  bunx fit-pathway interview <d> <l> --track=<t> --type=<type>        Single type
 
 Options:
   --track=TRACK       Track specialization
@@ -205,9 +205,9 @@ PROGRESS COMMAND
 Analyze career progression between levels.
 
 Usage:
-  npx fit-pathway progress <discipline> <level>
-  npx fit-pathway progress <d> <l> --track=<track>
-  npx fit-pathway progress <d> <l> --compare=<to_level>
+  bunx fit-pathway progress <discipline> <level>
+  bunx fit-pathway progress <d> <l> --track=<track>
+  bunx fit-pathway progress <d> <l> --compare=<to_level>
 
 Options:
   --track=TRACK        Track specialization
@@ -220,10 +220,10 @@ QUESTIONS COMMAND
 Browse and filter interview questions.
 
 Usage:
-  npx fit-pathway questions
-  npx fit-pathway questions --level=practitioner
-  npx fit-pathway questions --skill=architecture_design
-  npx fit-pathway questions --stats
+  bunx fit-pathway questions
+  bunx fit-pathway questions --level=practitioner
+  bunx fit-pathway questions --skill=architecture_design
+  bunx fit-pathway questions --stats
 
 Options:
   --level=LEVEL        Filter by skill proficiency
@@ -411,7 +411,7 @@ async function main() {
 
   if (!handler) {
     console.error(formatError(`Unknown command: ${command}`));
-    console.error(`Run 'npx fit-pathway --help' for usage.`);
+    console.error(`Run 'bunx fit-pathway --help' for usage.`);
     process.exit(1);
   }
 

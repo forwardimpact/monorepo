@@ -4,11 +4,11 @@
  * Handles skill summary, listing, and detail display in the terminal.
  *
  * Usage:
- *   npx pathway skill              # Summary with stats
- *   npx pathway skill --list       # IDs only (for piping)
- *   npx pathway skill <id>         # Detail view
- *   npx pathway skill <id> --agent # Agent SKILL.md output
- *   npx pathway skill --validate   # Validation checks
+ *   bunx pathway skill              # Summary with stats
+ *   bunx pathway skill --list       # IDs only (for piping)
+ *   bunx pathway skill <id>         # Detail view
+ *   bunx pathway skill <id> --agent # Agent SKILL.md output
+ *   bunx pathway skill --validate   # Validation checks
  */
 
 import { createEntityCommand } from "./command-factory.js";
@@ -40,8 +40,8 @@ function formatSummary(skills, data) {
 
   console.log(formatTable(["Capability", "Count", "Agent"], rows));
   console.log(`\nTotal: ${skills.length} skills`);
-  console.log(`\nRun 'npx pathway skill --list' for IDs`);
-  console.log(`Run 'npx pathway skill <id>' for details\n`);
+  console.log(`\nRun 'bunx pathway skill --list' for IDs`);
+  console.log(`Run 'bunx pathway skill <id>' for details\n`);
 }
 
 /**
@@ -73,7 +73,7 @@ async function formatAgentDetail(skill, stages, templateLoader, dataDir) {
     console.error(formatError(`Skill '${skill.id}' has no agent section`));
     console.error(`\nSkills with agent support:`);
     console.error(
-      `  npx pathway skill --list | xargs -I{} sh -c 'npx pathway skill {} --json | jq -e .skill.agent > /dev/null && echo {}'`,
+      `  bunx pathway skill --list | xargs -I{} sh -c 'bunx pathway skill {} --json | jq -e .skill.agent > /dev/null && echo {}'`,
     );
     process.exit(1);
   }

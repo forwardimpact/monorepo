@@ -11,17 +11,17 @@
  * By default, outputs to console. Use --output to write files.
  *
  * Usage:
- *   npx pathway agent <discipline> [--track=<track>]
- *   npx pathway agent <discipline> --track=<track> --stage=plan
- *   npx pathway agent <discipline> --track=<track> --output=./agents
- *   npx pathway agent <discipline> [--track=<track>] --skills  # Plain list of skill IDs
- *   npx pathway agent <discipline> [--track=<track>] --tools   # Plain list of tool names
- *   npx pathway agent --list
+ *   bunx pathway agent <discipline> [--track=<track>]
+ *   bunx pathway agent <discipline> --track=<track> --stage=plan
+ *   bunx pathway agent <discipline> --track=<track> --output=./agents
+ *   bunx pathway agent <discipline> [--track=<track>] --skills  # Plain list of skill IDs
+ *   bunx pathway agent <discipline> [--track=<track>] --tools   # Plain list of tool names
+ *   bunx pathway agent --list
  *
  * Examples:
- *   npx pathway agent software_engineering --track=platform
- *   npx pathway agent software_engineering --track=platform --stage=plan
- *   npx pathway agent software_engineering --track=platform --output=./agents
+ *   bunx pathway agent software_engineering --track=platform
+ *   bunx pathway agent software_engineering --track=platform --stage=plan
+ *   bunx pathway agent software_engineering --track=platform --output=./agents
  */
 
 import { writeFile, mkdir, readFile } from "fs/promises";
@@ -117,9 +117,9 @@ function showAgentSummary(data, agentData, skillsWithAgent) {
   );
   console.log(`Stages:      ${data.stages.length} available`);
   console.log(`\nValid combinations: ${validCombinations}`);
-  console.log(`\nRun 'npx pathway agent --list' for all combinations`);
+  console.log(`\nRun 'bunx pathway agent --list' for all combinations`);
   console.log(
-    `Run 'npx pathway agent <discipline> <track>' to generate files\n`,
+    `Run 'bunx pathway agent <discipline> <track>' to generate files\n`,
   );
 }
 
@@ -181,7 +181,7 @@ function listAgentCombinations(data, agentData, verbose = false) {
       );
       const humanTrack = data.tracks.find((t) => t.id === track.id);
       if (humanDiscipline && humanTrack) {
-        console.log(`  npx pathway agent ${discipline.id} ${track.id}`);
+        console.log(`  bunx pathway agent ${discipline.id} ${track.id}`);
       }
     }
   }
@@ -298,11 +298,11 @@ export async function runAgentCommand({
   if (!disciplineId) {
     console.error(
       formatError(
-        "Usage: npx pathway agent <discipline_id> [--track=<track_id>]",
+        "Usage: bunx pathway agent <discipline_id> [--track=<track_id>]",
       ),
     );
     console.error(
-      "\nRun 'npx pathway agent --list' to see available combinations.",
+      "\nRun 'bunx pathway agent --list' to see available combinations.",
     );
     process.exit(1);
   }

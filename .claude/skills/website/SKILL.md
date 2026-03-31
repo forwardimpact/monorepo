@@ -89,7 +89,7 @@ specs, and character guidelines.
 The site is published via GitHub Actions in `.github/workflows/website.yaml`:
 
 1. **Trigger**: push to `main` or manual `workflow_dispatch`
-2. **Build**: `npx fit-doc build --src=website --out=dist` — libdoc reads
+2. **Build**: `bunx fit-doc build --src=website --out=dist` — libdoc reads
    `CNAME` to derive the base URL automatically. Produces HTML pages, co-located
    `index.md` markdown companions, `sitemap.xml`, augmented `llms.txt`, and
    copies `robots.txt` to dist.
@@ -101,8 +101,8 @@ The site is published via GitHub Actions in `.github/workflows/website.yaml`:
 ### Local Preview
 
 ```sh
-npx fit-doc serve --watch    # Live-reload dev server
-npx fit-doc build --src=website --out=dist   # Full production build
+bunx fit-doc serve --watch    # Live-reload dev server
+bunx fit-doc build --src=website --out=dist   # Full production build
 ```
 
 ## Common Tasks
@@ -112,7 +112,7 @@ npx fit-doc build --src=website --out=dist   # Full production build
 1. Create `website/{section}/index.md` with front matter (`title`,
    `description`, `layout` if needed)
 2. Add navigation links from related pages
-3. Preview with `npx fit-doc serve --watch`
+3. Preview with `bunx fit-doc serve --watch`
 4. Check if `website/llms.txt` needs a new H2 section for the page's URL
    category. If the page falls under an existing section (Products,
    Documentation, Optional), no change is needed — libdoc appends links

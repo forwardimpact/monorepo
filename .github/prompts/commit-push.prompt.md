@@ -9,7 +9,7 @@ Follow the conventions in `CLAUDE.md` (Git Workflow section).
 1. Run `git diff` to review all changes
 2. Group related changes into logical, atomic commits
 3. Separate feature/logic changes from formatting changes
-4. Run `npm run check` to validate changes
+4. Run `bun run check` to validate changes
 5. Assess version bump level for affected packages:
    - Breaking changes → major
    - New features → minor

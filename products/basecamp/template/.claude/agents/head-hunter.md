@@ -49,20 +49,20 @@ Your single source of truth for what "good engineering" looks like is the
 
 ```bash
 # List all available jobs
-npx fit-pathway job --list
+bunx fit-pathway job --list
 
 # See what a specific role expects
-npx fit-pathway job software_engineering J060 --track=forward_deployed
-npx fit-pathway job software_engineering J060 --track=platform
+bunx fit-pathway job software_engineering J060 --track=forward_deployed
+bunx fit-pathway job software_engineering J060 --track=platform
 
 # See skill detail
-npx fit-pathway skill {skill_id}
+bunx fit-pathway skill {skill_id}
 
 # List all skills
-npx fit-pathway skill --list
+bunx fit-pathway skill --list
 
 # Compare what changes between levels
-npx fit-pathway progress software_engineering J060 --compare=J070
+bunx fit-pathway progress software_engineering J060 --compare=J070
 ```
 
 ### Track Profiles (Quick Reference)
@@ -307,7 +307,7 @@ For each post, apply these filters in order:
    candidates.
 
 4. **Skill alignment** — Does the candidate mention skills that map to framework
-   capabilities? Use `npx fit-pathway skill --list` to check. Look for:
+   capabilities? Use `bunx fit-pathway skill --list` to check. Look for:
    - Software engineering skills (full-stack, data integration, cloud, etc.)
    - Data engineering / data science skills
    - Non-traditional backgrounds (law, policy, academia) + technical skills =
@@ -323,7 +323,7 @@ For each candidate that passes filters, run the relevant `fit-pathway` command
 to see what the closest matching role expects:
 
 ```bash
-npx fit-pathway job {discipline} {estimated_level} --track={best_track}
+bunx fit-pathway job {discipline} {estimated_level} --track={best_track}
 ```
 
 Assess fit as:

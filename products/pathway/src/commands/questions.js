@@ -4,10 +4,10 @@
  * Browse and compare interview questions across skills and behaviours.
  *
  * Usage:
- *   npx pathway questions                    # Summary with stats
- *   npx pathway questions --list             # Question IDs (for piping)
- *   npx pathway questions --level=practitioner  # Filter by level
- *   npx pathway questions --stats            # Detailed statistics
+ *   bunx pathway questions                    # Summary with stats
+ *   bunx pathway questions --list             # Question IDs (for piping)
+ *   bunx pathway questions --level=practitioner  # Filter by level
+ *   bunx pathway questions --stats            # Detailed statistics
  */
 
 import {
@@ -97,9 +97,9 @@ function showQuestionsSummary(data) {
   console.log("\nBehaviour Questions:");
   console.log(formatTable(["Maturity", "Count"], behaviourRows));
 
-  console.log(`\nRun 'npx pathway questions --list' for question IDs`);
-  console.log(`Run 'npx pathway questions --stats' for detailed stats`);
-  console.log(`Run 'npx pathway questions --level=practitioner' to filter\n`);
+  console.log(`\nRun 'bunx pathway questions --list' for question IDs`);
+  console.log(`Run 'bunx pathway questions --stats' for detailed stats`);
+  console.log(`Run 'bunx pathway questions --level=practitioner' to filter\n`);
 }
 
 /**

@@ -28,9 +28,9 @@ Run this skill:
 
 - A Workday requisition export file (`.xlsx`) accessible on the filesystem
   (typically in `~/Downloads/`)
-- The `read-excel-file` npm package installed in the KB root:
+- The `read-excel-file` package installed in the KB root:
   ```bash
-  npm install read-excel-file
+  bun install read-excel-file
   ```
 - User identity configured in `USER.md`
 
@@ -137,7 +137,7 @@ Names may include parenthetical annotations:
 2. Confirm the XLSX file path with the user (or use the provided path).
 3. Ensure the `read-excel-file` package is installed:
    ```bash
-   npm list read-excel-file 2>/dev/null || npm install read-excel-file
+   bun pm ls read-excel-file 2>/dev/null || bun install read-excel-file
    ```
 
 ## Step 1: Parse the Export
@@ -359,7 +359,7 @@ strengths. If no resume text, use Current Job Title + Total Years Experience.}
 
 ## Skills
 {Extract key technical skills from resume text — use framework IDs where
-possible via `npx fit-pathway skill --list`}
+possible via `bunx fit-pathway skill --list`}
 
 ## Education
 {Degrees and Fields of Study from the export columns}
@@ -426,7 +426,7 @@ When resume text mentions technical skills, map them to the engineering
 framework:
 
 ```bash
-npx fit-pathway skill --list
+bunx fit-pathway skill --list
 ```
 
 Use framework skill IDs in the **Skills** section of each brief. If a candidate

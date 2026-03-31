@@ -234,17 +234,17 @@ import { deriveReferenceLevel, deriveAgentSkills } from "@forwardimpact/libskill
 
 ---
 
-## NPM Scripts
+## Scripts
 
 | Script              | Purpose                         |
 | ------------------- | ------------------------------- |
-| `npm start`         | Build and serve the static site |
-| `npm run dev`       | Live development server         |
-| `npm run check`     | Format, lint, test, validate    |
-| `npm run check:fix` | Auto-fix formatting and linting |
-| `npm run test`      | Run unit tests                  |
-| `npm run test:e2e`  | Run Playwright E2E tests        |
-| `npm run validate`  | Validate data files             |
+| `bun start`         | Build and serve the static site |
+| `bun run dev`       | Live development server         |
+| `bun run check`     | Format, lint, test, validate    |
+| `bun run check:fix` | Auto-fix formatting and linting |
+| `bun run test`      | Run unit tests                  |
+| `bun run test:e2e`  | Run Playwright E2E tests        |
+| `bun run validate`  | Validate data files             |
 
 ---
 

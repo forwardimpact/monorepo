@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Sync Apple Mail threads to ~/.cache/fit/basecamp/apple_mail/ as markdown.
  *

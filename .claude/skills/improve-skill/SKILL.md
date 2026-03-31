@@ -65,7 +65,7 @@ a skill object:
 `isHumanOnly`, `human`, `agent`, `toolReferences`, `instructions`,
 `installScript`, `implementationReference`.
 
-**Validation rules** (enforced by `npx fit-map validate`):
+**Validation rules** (enforced by `bunx fit-map validate`):
 
 - `instructions`, `installScript`, `implementationReference` must be strings
   (use YAML `|` block scalar)
@@ -103,7 +103,7 @@ When reviewing content, decide where each piece belongs:
 
 1. **Is it a tool name, URL, or "use when" description?** → `toolReferences`
 2. **Is it a numbered workflow step or process guidance?** → `instructions`
-3. **Is it a `pip install`, `npm install`, or `set -e` shell command?** →
+3. **Is it a `pip install`, `bun install`, or `set -e` shell command?** →
    `installScript`
 4. **Is it a code example, config snippet, or verification command?** →
    `implementationReference`
@@ -183,9 +183,10 @@ Ask: _"If someone skipped this check, what could go wrong?"_ If the answer is
 1. **Identify the capability** to review (ask if not specified)
 2. **Read the capability file** from `data/pathway/capabilities/{id}.yaml`
 3. **For each skill with an `agent:` section**, review and improve
-4. **Study the updated skill** by running `npx fit-pathway skill <name> --agent`
+4. **Study the updated skill** by running
+   `bunx fit-pathway skill <name> --agent`
 5. **Iterate** until the skill document is clear, complete, and well-structured
-6. **Run validation**: `npx fit-map validate`
+6. **Run validation**: `bunx fit-map validate`
 7. **Update memory**: Record decisions in `.claude/memory/improve-skill.md`
 
 **Memory guidelines:**
@@ -254,7 +255,7 @@ Check that `implementationReference` (if present):
   extract to `installScript` instead)
 - **Does NOT contain** step-by-step workflow guidance (use `instructions`
   instead)
-- **Does NOT contain** `pip install` / `npm install` commands (use
+- **Does NOT contain** `pip install` / `bun install` commands (use
   `installScript` instead)
 - **Includes verification** so the reader knows when they've succeeded
 - **Includes Common Pitfalls** section where relevant
@@ -490,7 +491,7 @@ stages:
 
 1. Summarize issues found
 2. Apply fixes directly to the capability file (both locations if applicable)
-3. Run `npx fit-map validate` to verify changes
+3. Run `bunx fit-map validate` to verify changes
 
 Do not keep dated review logs or action histories in this public skill file. If
 you need to retain working notes, store them in a private local note or a

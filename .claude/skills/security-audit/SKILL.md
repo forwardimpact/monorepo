@@ -70,7 +70,7 @@ When reviewing application code, check for:
 
 ## 6. CI/CD Security
 
-CI check requirements (`npm run check`, `make audit`) are defined in
+CI check requirements (`bun run check`, `make audit`) are defined in
 CONTRIBUTING.md § Before Submitting a PR. During a security audit, additionally
 verify:
 

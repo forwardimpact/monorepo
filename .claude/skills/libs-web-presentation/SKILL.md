@@ -79,9 +79,9 @@ import { DocsBuilder } from "@forwardimpact/libdoc";
 const builder = new DocsBuilder({ srcDir: "website", outDir: "public" });
 await builder.build();
 
-// CLI: npx fit-doc build --src=website --out=dist
-// CLI: npx fit-doc build --src=website --out=dist --base-url=https://example.com
-// CLI: npx fit-doc serve --watch
+// CLI: bunx fit-doc build --src=website --out=dist
+// CLI: bunx fit-doc build --src=website --out=dist --base-url=https://example.com
+// CLI: bunx fit-doc serve --watch
 ```
 
 ## DI Wiring
@@ -181,4 +181,4 @@ const loader = createTemplateLoader(defaultsDir);
 
 - Use the `yaml` package (not `js-yaml`) for YAML parsing
 - Use `marked` ^15.x for markdown parsing
-- Run `npm audit` after adding dependencies
+- Run `make audit-vulnerabilities` after adding dependencies

@@ -179,5 +179,5 @@ const profile = generateStageAgentProfile(discipline, track, stage);
 Run tests after changes:
 
 ```sh
-npm run test
+bun run test
 ```

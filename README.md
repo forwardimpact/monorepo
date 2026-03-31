@@ -36,9 +36,9 @@ engineering teams:
 ```sh
 git clone https://github.com/forwardimpact/monorepo.git
 cd monorepo
-npm install
+bun install
 make quickstart
-npm start
+bun start
 ```
 
 Open http://localhost:3000 to explore.

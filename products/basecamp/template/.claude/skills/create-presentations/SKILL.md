@@ -35,7 +35,7 @@ Run when the user asks to create a presentation, slide deck, or pitch deck.
 1.  Check `knowledge/` for relevant context about the company, product, team,
     etc.
 2.  Ensure Playwright is installed:
-    `npm install playwright && npx playwright install chromium`
+    `bun install playwright && bunx playwright install chromium`
 3.  Create an HTML file at `/tmp/basecamp-presentation.html` with slides
     (1280x720px each)
 4.  Include the required CSS from [references/slide.css](references/slide.css)

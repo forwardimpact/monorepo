@@ -8,12 +8,12 @@ description: Commands, arguments, and options for all Forward Impact CLI tools.
 Data validation and index generation.
 
 ```sh
-npx fit-map validate                    # Validate all data (JSON Schema + referential integrity)
-npx fit-map validate --shacl            # Validate RDF/SHACL syntax
-npx fit-map validate --data=PATH        # Validate a specific data directory
-npx fit-map generate-index              # Generate _index.yaml files for browser loading
-npx fit-map people import <file>        # Import people from CSV/YAML
-npx fit-map people import <f> --data=P  # Import with custom data directory
+bunx fit-map validate                    # Validate all data (JSON Schema + referential integrity)
+bunx fit-map validate --shacl            # Validate RDF/SHACL syntax
+bunx fit-map validate --data=PATH        # Validate a specific data directory
+bunx fit-map generate-index              # Generate _index.yaml files for browser loading
+bunx fit-map people import <file>        # Import people from CSV/YAML
+bunx fit-map people import <f> --data=P  # Import with custom data directory
 ```
 
 | Option          | Description                     |
@@ -29,11 +29,11 @@ npx fit-map people import <f> --data=P  # Import with custom data directory
 
 All entity commands support three output modes:
 
-| Mode    | Pattern                        | Description                 |
-| ------- | ------------------------------ | --------------------------- |
-| Summary | `npx fit-pathway <command>`    | Concise overview with stats |
-| List    | `npx fit-pathway <cmd> --list` | IDs for piping              |
-| Detail  | `npx fit-pathway <cmd> <id>`   | Full entity details         |
+| Mode    | Pattern                         | Description                 |
+| ------- | ------------------------------- | --------------------------- |
+| Summary | `bunx fit-pathway <command>`    | Concise overview with stats |
+| List    | `bunx fit-pathway <cmd> --list` | IDs for piping              |
+| Detail  | `bunx fit-pathway <cmd> <id>`   | Full entity details         |
 
 Entity commands: `discipline`, `level`, `track`, `behaviour`, `driver`, `stage`,
 `skill`, `tool`.
@@ -49,24 +49,24 @@ Entity commands: `discipline`, `level`, `track`, `behaviour`, `driver`, `stage`,
 | `--help`        | Show help message            |
 
 ```sh
-npx fit-pathway skill --list          # List all skill IDs
-npx fit-pathway skill <id>            # Show skill details
-npx fit-pathway skill <id> --agent    # Output as agent SKILL.md format
-npx fit-pathway tool --list           # List tools derived from skill toolReferences
+bunx fit-pathway skill --list          # List all skill IDs
+bunx fit-pathway skill <id>            # Show skill details
+bunx fit-pathway skill <id> --agent    # Output as agent SKILL.md format
+bunx fit-pathway tool --list           # List tools derived from skill toolReferences
 ```
 
 ### Job Generation
 
 ```sh
-npx fit-pathway job                                       # Summary with stats
-npx fit-pathway job --track=<track>                       # Summary filtered by track
-npx fit-pathway job --list                                # Valid combinations
-npx fit-pathway job --list --track=<track>                # Combinations for a track
-npx fit-pathway job <discipline> <level>                  # Trackless job
-npx fit-pathway job <discipline> <level> --track=<track>  # With track
-npx fit-pathway job <discipline> <level> --checklist=code # With checklist
-npx fit-pathway job <discipline> <level> --skills         # Skill IDs only
-npx fit-pathway job <discipline> <level> --tools          # Tool names only
+bunx fit-pathway job                                       # Summary with stats
+bunx fit-pathway job --track=<track>                       # Summary filtered by track
+bunx fit-pathway job --list                                # Valid combinations
+bunx fit-pathway job --list --track=<track>                # Combinations for a track
+bunx fit-pathway job <discipline> <level>                  # Trackless job
+bunx fit-pathway job <discipline> <level> --track=<track>  # With track
+bunx fit-pathway job <discipline> <level> --checklist=code # With checklist
+bunx fit-pathway job <discipline> <level> --skills         # Skill IDs only
+bunx fit-pathway job <discipline> <level> --tools          # Tool names only
 ```
 
 **Arguments:**
@@ -87,12 +87,12 @@ npx fit-pathway job <discipline> <level> --tools          # Tool names only
 ### Agent Generation
 
 ```sh
-npx fit-pathway agent --list                                         # Valid combinations
-npx fit-pathway agent <discipline> --track=<track>                   # Preview
-npx fit-pathway agent <discipline> --track=<track> --output=./agents # Write files
-npx fit-pathway agent <discipline> --track=<track> --stage=plan      # Single stage
-npx fit-pathway agent <discipline> --track=<track> --skills          # Skill IDs only
-npx fit-pathway agent <discipline> --track=<track> --tools           # Tool names only
+bunx fit-pathway agent --list                                         # Valid combinations
+bunx fit-pathway agent <discipline> --track=<track>                   # Preview
+bunx fit-pathway agent <discipline> --track=<track> --output=./agents # Write files
+bunx fit-pathway agent <discipline> --track=<track> --stage=plan      # Single stage
+bunx fit-pathway agent <discipline> --track=<track> --skills          # Skill IDs only
+bunx fit-pathway agent <discipline> --track=<track> --tools           # Tool names only
 ```
 
 **Arguments:**
@@ -113,20 +113,20 @@ npx fit-pathway agent <discipline> --track=<track> --tools           # Tool name
 ### Interview, Progress, and Questions
 
 ```sh
-npx fit-pathway interview <discipline> <level>
-npx fit-pathway interview <d> <l> --track=<t> --type=mission
+bunx fit-pathway interview <discipline> <level>
+bunx fit-pathway interview <d> <l> --track=<t> --type=mission
 
-npx fit-pathway progress <discipline> <level>
-npx fit-pathway progress <d> <l> --compare=<to_level>
+bunx fit-pathway progress <discipline> <level>
+bunx fit-pathway progress <d> <l> --compare=<to_level>
 
-npx fit-pathway questions
-npx fit-pathway questions --level=practitioner
-npx fit-pathway questions --maturity=practicing
-npx fit-pathway questions --skill=<id>
-npx fit-pathway questions --behaviour=<id>
-npx fit-pathway questions --capability=<id>
-npx fit-pathway questions --stats
-npx fit-pathway questions --format=yaml
+bunx fit-pathway questions
+bunx fit-pathway questions --level=practitioner
+bunx fit-pathway questions --maturity=practicing
+bunx fit-pathway questions --skill=<id>
+bunx fit-pathway questions --behaviour=<id>
+bunx fit-pathway questions --capability=<id>
+bunx fit-pathway questions --stats
+bunx fit-pathway questions --format=yaml
 ```
 
 **Interview options:**
@@ -157,11 +157,11 @@ npx fit-pathway questions --format=yaml
 ### Build and Development
 
 ```sh
-npx fit-pathway init                          # Create ./data/ with example framework data
-npx fit-pathway dev                           # Run live development server
-npx fit-pathway dev --port=8080               # Dev server on custom port
-npx fit-pathway build --output=./public --url=https://example.com  # Static site
-npx fit-pathway update                        # Update local installation
+bunx fit-pathway init                          # Create ./data/ with example framework data
+bunx fit-pathway dev                           # Run live development server
+bunx fit-pathway dev --port=8080               # Dev server on custom port
+bunx fit-pathway build --output=./public --url=https://example.com  # Static site
+bunx fit-pathway update                        # Update local installation
 ```
 
 | Option           | Description                     |
@@ -234,15 +234,15 @@ fit-summit what-if <team> --add "{ discipline: se, level: L3, track: platform }"
 Synthetic data generation from a universe DSL file.
 
 ```sh
-npx fit-universe                     # Use cached prose (default)
-npx fit-universe --generate          # Generate prose via LLM
-npx fit-universe --no-prose          # Structural scaffolding only
-npx fit-universe --strict            # Fail on cache miss
-npx fit-universe --load              # Load raw docs to storage
-npx fit-universe --only=pathway      # Render only one content type
-npx fit-universe --dry-run           # Show what would be written
-npx fit-universe --story=path        # Custom story DSL file
-npx fit-universe --cache=path        # Custom prose cache file
+bunx fit-universe                     # Use cached prose (default)
+bunx fit-universe --generate          # Generate prose via LLM
+bunx fit-universe --no-prose          # Structural scaffolding only
+bunx fit-universe --strict            # Fail on cache miss
+bunx fit-universe --load              # Load raw docs to storage
+bunx fit-universe --only=pathway      # Render only one content type
+bunx fit-universe --dry-run           # Show what would be written
+bunx fit-universe --story=path        # Custom story DSL file
+bunx fit-universe --cache=path        # Custom prose cache file
 ```
 
 | Option           | Description                         |
@@ -263,10 +263,10 @@ npx fit-universe --cache=path        # Custom prose cache file
 Documentation site builder.
 
 ```sh
-npx fit-doc build --src=website --out=dist    # Build static site
-npx fit-doc serve --src=website               # Development server
-npx fit-doc serve --src=website --port=8080   # Custom port
-npx fit-doc build --src=website --out=dist --base-url=https://example.com  # With base URL
+bunx fit-doc build --src=website --out=dist    # Build static site
+bunx fit-doc serve --src=website               # Development server
+bunx fit-doc serve --src=website --port=8080   # Custom port
+bunx fit-doc build --src=website --out=dist --base-url=https://example.com  # With base URL
 ```
 
 | Option             | Description                         |

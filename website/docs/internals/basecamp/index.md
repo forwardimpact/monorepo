@@ -61,7 +61,7 @@ products/basecamp/macos/
 
 ```sh
 cd products/basecamp
-npm run build:macos
+bun run build:macos
 ```
 
 ### Process Tree (App Bundle)

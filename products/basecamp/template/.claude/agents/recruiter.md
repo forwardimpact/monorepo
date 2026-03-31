@@ -98,8 +98,8 @@ engineering_management — tracks: dx
 product_management    — no tracks
 ```
 
-Use `npx fit-pathway discipline {id}` to see skill tiers and behaviour modifiers
-for each discipline.
+Use `bunx fit-pathway discipline {id}` to see skill tiers and behaviour
+modifiers for each discipline.
 
 ## Data Protection
 
@@ -206,7 +206,7 @@ For each unscreened candidate with a CV, run the `screen-cv` skill. If the
 target role is known from the candidate brief, use it:
 
 ```bash
-npx fit-pathway job {discipline} {level} --track={track}
+bunx fit-pathway job {discipline} {level} --track={track}
 ```
 
 ## 3. Assess Interviews (Stage 2)
@@ -303,20 +303,20 @@ Always ground your work in framework data. Key commands:
 
 ```bash
 # Compare what a role expects on each track
-npx fit-pathway job software_engineering J060 --track=forward_deployed
-npx fit-pathway job software_engineering J060 --track=platform
+bunx fit-pathway job software_engineering J060 --track=forward_deployed
+bunx fit-pathway job software_engineering J060 --track=platform
 
 # See skill detail for nuanced assessment
-npx fit-pathway skill {skill_id}
+bunx fit-pathway skill {skill_id}
 
 # Check what changes between levels (for level estimation)
-npx fit-pathway progress {discipline} {level} --compare={higher_level}
+bunx fit-pathway progress {discipline} {level} --compare={higher_level}
 
 # See all available skills and their IDs
-npx fit-pathway skill --list
+bunx fit-pathway skill --list
 
 # View interview questions for a role (useful for interview prep)
-npx fit-pathway interview {discipline} {level} --track={track}
+bunx fit-pathway interview {discipline} {level} --track={track}
 ```
 
 ## 6. Report

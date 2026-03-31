@@ -37,7 +37,8 @@ Ask: _"Could someone complete this skill without this tool?"_ If yes, omit it.
 1. **Identify the capability** to review (ask if not specified)
 2. **Read the capability file** from `data/pathway/capabilities/{id}.yaml`
 3. **For each skill with an `agent:` section**, review and improve
-4. **Study the updated skill** by running `npx fit-pathway skill <name> --agent`
+4. **Study the updated skill** by running
+   `bunx fit-pathway skill <name> --agent`
 5. **Iterate** until the skill document is clear, complete, and well-structured
 
 ### Tool References Review
@@ -113,7 +114,7 @@ Check that `implementationReference`:
 
 1. Summarize issues found
 2. Apply fixes directly to the capability file
-3. Run `npx fit-map validate` to verify changes
+3. Run `bunx fit-map validate` to verify changes
 
 ## Examples
 

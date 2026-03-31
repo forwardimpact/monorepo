@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Summarize the contents of ~/Desktop/ and ~/Downloads/.
  *
