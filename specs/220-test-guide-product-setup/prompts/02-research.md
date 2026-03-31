@@ -16,6 +16,7 @@ Fetch and read these pages from www.forwardimpact.team:
    https://www.forwardimpact.team/docs/reference/model/
 
 After reading, write a summary to ./notes/02-architecture.md:
+
 - The Guide service stack (what services are needed and their ports)
 - The agent orchestration pipeline (planner, researcher, editor)
 - The knowledge pipeline (how data flows from HTML to graph + vector stores)

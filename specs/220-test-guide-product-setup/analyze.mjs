@@ -152,7 +152,10 @@ const extraUrls = allFetches.filter((u) => !expectedUrls.includes(u));
 // Key commands we expect the install/configure steps to try
 const expectedCommands = [
   { pattern: /bun init/, label: "bun init" },
-  { pattern: /bun install.*@forwardimpact/, label: "bun install @forwardimpact" },
+  {
+    pattern: /bun install.*@forwardimpact/,
+    label: "bun install @forwardimpact",
+  },
   { pattern: /fit-pathway.*--help/, label: "fit-pathway --help" },
   { pattern: /fit-map.*--help/, label: "fit-map --help" },
   { pattern: /fit-guide.*--help/, label: "fit-guide --help" },
@@ -320,7 +323,12 @@ const jsonReport = {
     bashCommands: s.bashCommands,
     writes: s.writes,
   })),
-  docCoverage: { expected: expectedUrls, fetched: [...fetchedUrls], missed: missedUrls, extra: [...new Set(extraUrls)] },
+  docCoverage: {
+    expected: expectedUrls,
+    fetched: [...fetchedUrls],
+    missed: missedUrls,
+    extra: [...new Set(extraUrls)],
+  },
   cmdCoverage,
   toolCounts,
 };

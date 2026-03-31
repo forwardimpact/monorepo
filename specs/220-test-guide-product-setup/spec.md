@@ -3,17 +3,17 @@
 ## What
 
 An automated test that uses the `claude` CLI binary to simulate a new developer
-discovering and installing the Forward Impact Guide product by reading the public
-website at www.forwardimpact.team — from a **clean project directory**, not by
-cloning the monorepo.
+discovering and installing the Forward Impact Guide product by reading the
+public website at www.forwardimpact.team — from a **clean project directory**,
+not by cloning the monorepo.
 
 ## Why
 
 Guide's documentation lives on the website. Before real users (or their AI
 agents) try to install Guide, we need confidence that the published docs contain
 enough information for an LLM to follow the setup flow end-to-end. This test
-exercises that path: point Claude at the website, let it read the docs, then have
-it install packages from npm, configure framework data, and assess the
+exercises that path: point Claude at the website, let it read the docs, then
+have it install packages from npm, configure framework data, and assess the
 experience.
 
 The test deliberately avoids cloning the monorepo because that gives access to
@@ -22,7 +22,8 @@ user would install packages from npm and follow the website docs.
 
 ## Scope
 
-Five sequential prompts submitted to `claude --print --output-format=stream-json`:
+Five sequential prompts submitted to
+`claude --print --output-format=stream-json`:
 
 | Step | Prompt         | What it tests                                        |
 | ---- | -------------- | ---------------------------------------------------- |

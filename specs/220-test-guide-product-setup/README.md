@@ -25,7 +25,8 @@ public website — from a **clean project**, not by cloning the monorepo.
 
 Each step produces two log files:
 
-- `logs/<step>.ndjson` — Full ndjson stream from `claude --output-format=stream-json`
+- `logs/<step>.ndjson` — Full ndjson stream from
+  `claude --output-format=stream-json`
 - `logs/<step>.txt` — Extracted human-readable text
 
 The analysis script processes all ndjson files and reports:
@@ -39,5 +40,5 @@ The analysis script processes all ndjson files and reports:
 ## Design
 
 The test deliberately installs from npm, not from the monorepo source. This
-tests what a real external user would experience. If Guide can't be installed
-as a standalone package, the test surfaces that gap.
+tests what a real external user would experience. If Guide can't be installed as
+a standalone package, the test surfaces that gap.

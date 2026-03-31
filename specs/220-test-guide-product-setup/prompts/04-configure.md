@@ -24,6 +24,7 @@ Working in the current directory:
    - Run `bunx fit-pathway agent <discipline> --track=<track> --output=./agents`
 
 Write a detailed log to ./notes/04-configure.md covering:
+
 - Each command you ran and its output (summarized)
 - Whether the data was generated correctly
 - Whether validation passed
