@@ -3,6 +3,11 @@ title: CLI Reference
 description: Commands, arguments, and options for all Forward Impact CLI tools.
 ---
 
+> **Availability:** `fit-pathway`, `fit-map`, and `fit-basecamp` are published
+> to npm and can be installed standalone. `fit-guide`, `fit-summit`, `fit-rc`,
+> `fit-doc`, and `fit-universe` are monorepo-only tools that require a full
+> checkout of the [monorepo](https://github.com/forwardimpact/monorepo).
+
 ## fit-map
 
 Data validation and index generation.
@@ -24,6 +29,19 @@ bunx fit-map people import <f> --data=P  # Import with custom data directory
 ---
 
 ## fit-pathway
+
+### Data Directory Resolution
+
+By default, `fit-pathway` walks upward from the current working directory
+looking for a `data/` folder, then appends `/pathway`. Framework data must be in
+`./data/pathway/` (not `./data/` directly).
+
+Use `--data` to override, pointing to the `pathway` subdirectory directly:
+
+```sh
+bunx fit-pathway discipline --list --data=./data/pathway
+bunx fit-pathway job software_engineering L3 --data=./custom-path/pathway
+```
 
 ### Entity Browsing
 
