@@ -127,16 +127,8 @@ function parseFlags() {
  */
 function createCodegen(projectRoot, path, mustache, protoLoader, fs) {
   const base = new CodegenBase(projectRoot, path, mustache, protoLoader, fs);
-  const pbjsPath = path.resolve(
-    __dirname,
-    "..",
-    "node_modules",
-    "protobufjs-cli",
-    "bin",
-    "pbjs",
-  );
   return {
-    types: new CodegenTypes(base, pbjsPath),
+    types: new CodegenTypes(base),
     services: new CodegenServices(base),
     definitions: new CodegenDefinitions(base),
   };
