@@ -33,6 +33,13 @@ inputs:
     description: Clone the repository wiki for shared agent memory
     required: false
     default: "true"
+  app-slug:
+    description: GitHub App slug for git identity
+    required: false
+    default: forward-impact-ci
+  app-id:
+    description: GitHub App ID for git identity email
+    required: true
 
 runs:
   using: composite
@@ -43,14 +50,20 @@ runs:
 
     - name: Configure Git identity
       shell: bash
+      env:
+        APP_SLUG: ${{ inputs.app-slug }}
+        APP_ID: ${{ inputs.app-id }}
       run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config user.name "${APP_SLUG}[bot]"
+        git config user.email "${APP_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
 
     - name: Clone wiki for shared memory
       id: clone-wiki
       if: inputs.wiki == 'true'
       shell: bash
+      env:
+        APP_SLUG: ${{ inputs.app-slug }}
+        APP_ID: ${{ inputs.app-id }}
       run: |
         WIKI_DIR="/tmp/wiki"
         REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.wiki.git"
@@ -62,8 +75,8 @@ runs:
           mkdir -p "$WIKI_DIR"
           git -C "$WIKI_DIR" init
           git -C "$WIKI_DIR" remote add origin "$WIKI_REMOTE"
-          git -C "$WIKI_DIR" config user.name "github-actions[bot]"
-          git -C "$WIKI_DIR" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$WIKI_DIR" config user.name "${APP_SLUG}[bot]"
+          git -C "$WIKI_DIR" config user.email "${APP_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
           echo "# Agent Memory" > "$WIKI_DIR/Home.md"
           git -C "$WIKI_DIR" add .
           git -C "$WIKI_DIR" commit -m "Initialize wiki for agent memory"
@@ -134,11 +147,14 @@ runs:
     - name: Push wiki changes
       if: always() && inputs.wiki == 'true'
       shell: bash
+      env:
+        APP_SLUG: ${{ inputs.app-slug }}
+        APP_ID: ${{ inputs.app-id }}
       run: |
         WIKI_DIR="${{ steps.clone-wiki.outputs.wiki-dir }}"
         cd "$WIKI_DIR"
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config user.name "${APP_SLUG}[bot]"
+        git config user.email "${APP_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
 
         # Stage and commit any uncommitted changes in the wiki
         git add -A

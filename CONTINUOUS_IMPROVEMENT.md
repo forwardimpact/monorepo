@@ -26,9 +26,11 @@ graph TD
 ```
 
 All workflows use a shared composite action (`.github/actions/claude/`) that
-installs Claude Code, configures a bot Git identity, runs a prompt against an
-agent profile in non-interactive mode, captures a full execution trace as
-NDJSON, and uploads it as a workflow artifact.
+installs Claude Code, configures the GitHub App's bot Git identity, runs a
+prompt against an agent profile in non-interactive mode, captures a full
+execution trace as NDJSON, and uploads it as a workflow artifact. Each workflow
+generates a short-lived installation token from the GitHub App before invoking
+the composite action (see § Authentication below).
 
 ## Agents
 
@@ -223,7 +225,8 @@ error messages, or token counts from traces. Speculation without evidence is
 prohibited.
 
 **Least privilege.** The security-audit workflow runs with `contents: read`
-only. Workflows that need to push use `contents: write` with a scoped token.
+only. Workflows that need to push use `contents: write` with a scoped
+installation token generated per run by the GitHub App.
 
 ## Shared Memory
 
@@ -248,6 +251,33 @@ what has already happened and what still needs attention.
 
 To disable wiki memory for a specific workflow, pass `wiki: "false"` to the
 composite action.
+
+## Authentication
+
+Agent workflows authenticate to GitHub using a **GitHub App** instead of a
+personal access token (PAT). Each workflow run generates a short-lived
+installation token via `actions/create-github-app-token`, scoped to the
+repository the App is installed on. This provides three benefits over PATs:
+
+1. **No token expiry management.** Installation tokens are generated on demand
+   and expire after one hour. There is no long-lived secret to rotate.
+2. **Distinct bot identity.** Commits and API calls appear as the App's bot
+   account (`forward-impact-ci[bot]`), not a personal GitHub user. This makes
+   the audit trail unambiguous — agent actions are clearly separated from human
+   actions.
+3. **One-click setup for downstream installations.** The Forward Impact CI App
+   is public. Organizations that install the monorepo can add the App to their
+   repository and store `CI_APP_ID` and `CI_APP_PRIVATE_KEY` as repository
+   secrets. Organizations that prefer full control can create their own GitHub
+   App with the same permissions and override the `app-slug` input in the
+   composite action.
+
+The token generation step runs at the workflow level before `actions/checkout`,
+so the checkout token triggers downstream workflows and the same token is passed
+to the composite action via the `GH_TOKEN` environment variable. The
+`security-audit` workflow generates an App token for API access but uses the
+default `GITHUB_TOKEN` for checkout, preserving its `contents: read` least
+privilege constraint.
 
 ## Accountability
 

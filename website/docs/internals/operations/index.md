@@ -144,3 +144,50 @@ make config-reset             # Reset config files from examples
 ```
 
 See each product's skill file for full CLI reference.
+
+## CI Agent Authentication
+
+The continuous improvement system authenticates to GitHub using a **GitHub App**
+that generates short-lived installation tokens per workflow run. Two setup
+options are available:
+
+### Option 1: Forward Impact CI App (recommended)
+
+The Forward Impact organization publishes a public GitHub App. Repositories
+within the org (or trusted forks where the org manages secrets centrally)
+install the App and use the org-managed credentials.
+
+1. Install the **Forward Impact CI** App on your repository from its public
+   listing.
+2. Store the following as repository secrets:
+   - `CI_APP_ID` — the App's numeric ID (provided by the App owner)
+   - `CI_APP_PRIVATE_KEY` — the PEM-encoded private key (provided by the App
+     owner)
+3. Store `ANTHROPIC_API_KEY` as a repository secret.
+4. The agent workflows will generate installation tokens automatically.
+
+### Option 2: Create your own GitHub App
+
+Organizations that want full control create their own GitHub App.
+
+1. Create a GitHub App with these repository permissions:
+
+   | Permission        | Access     | Used by                                       |
+   | ----------------- | ---------- | --------------------------------------------- |
+   | **Contents**      | Read/Write | All agent workflows (push commits, read code) |
+   | **Pull requests** | Read/Write | Triage, backlog, release workflows            |
+   | **Issues**        | Read/Write | Improvement coach (open issues for findings)  |
+   | **Actions**       | Read       | Improvement coach (download trace artifacts)  |
+   | **Metadata**      | Read       | All (granted by default)                      |
+
+2. Disable webhooks (not needed — token-only usage).
+3. Install the App on your repository.
+4. Generate a private key and store as repository secrets:
+   - `CI_APP_ID` — your App's numeric ID
+   - `CI_APP_PRIVATE_KEY` — your App's PEM-encoded private key
+5. Override the `app-slug` input in the composite action to match your App's
+   slug. Each workflow passes `app-id` to the composite action; the `app-slug`
+   input defaults to `forward-impact-ci` and must be changed to your App's slug.
+
+Private keys are per-App, not per-installation. Only the App owner can generate
+and distribute them.
