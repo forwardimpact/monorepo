@@ -1,21 +1,53 @@
-# Spec 220 — Supervised Agent Evaluation
+# Spec 220 — Agent Execution and Supervised Evaluation
 
 ## Problem
 
-We need a way to give an agent an open-ended task — "read the Forward Impact
-website and try to set up the Guide product" — and have a second agent supervise
-the process: watching what the agent does, answering questions it gets stuck on,
-nudging it when it goes off track, and deciding when the task is complete.
+We need two things:
 
-Sequential CLI invocations cannot do this. Each invocation is independent — the
-agent loses context between steps and cannot learn from its own prior actions.
-If the agent gets stuck or has a question, there is no way to respond. Real
-evaluation requires an adaptive supervisor that can observe and intervene.
+1. **A single-agent runner.** Today our CI workflows shell out to the `claude`
+   binary, pipe prompts through stdin, and capture stream-json output via shell
+   scripting. This works but is fragile — the GitHub action hardcodes a specific
+   Claude Code version, constructs CLI flags with string interpolation, and uses
+   `fit-eval tee` as a post-processor. The `claude` binary is an implementation
+   detail that should not leak into workflow definitions. We need a single CLI
+   command that takes a task, runs an agent via the Claude Agent SDK, and
+   produces a structured trace — replacing both the `claude` binary and the
+   shell glue around it.
+
+2. **A supervised runner.** We need a way to give an agent an open-ended task —
+   "read the Forward Impact website and try to set up the Guide product" — and
+   have a second agent supervise the process: watching what the agent does,
+   answering questions it gets stuck on, nudging it when it goes off track, and
+   deciding when the task is complete.
+
+Sequential CLI invocations cannot solve the supervision case. Each invocation is
+independent — the agent loses context between steps and cannot learn from its
+own prior actions. If the agent gets stuck or has a question, there is no way to
+respond. Real evaluation requires an adaptive supervisor that can observe and
+intervene.
+
+The single-agent case is simpler but equally important: every CI workflow that
+runs a Claude agent should use the same `fit-eval` CLI rather than reimplementing
+agent invocation in shell scripts.
 
 ## Solution
 
-Add a `supervise` subcommand to the `fit-eval` CLI. It runs two Claude Agent SDK
-sessions in a relay loop:
+Add two subcommands to the `fit-eval` CLI that share a common structure:
+
+### `fit-eval run` — Single Agent
+
+Runs one Claude Agent SDK session to completion. Takes a task file and a working
+directory. Produces an NDJSON trace to stdout (or a file). This is the direct
+replacement for the `claude` binary + shell scripting in CI workflows.
+
+The agent receives the task, works autonomously, and the command exits when the
+agent is done. The output is the agent's trace — the same NDJSON format that
+TraceCollector already understands, tagged with `source: "agent"` for
+consistency with the supervised format.
+
+### `fit-eval supervise` — Supervised Agent
+
+Runs two Claude Agent SDK sessions in a relay loop:
 
 - An **agent** that receives a task and works on it autonomously — fetching
   docs, installing packages, running commands, writing files. When it finishes a
@@ -29,50 +61,97 @@ watches, nudges, and evaluates. This models how a senior engineer might observe 
 junior developer working through an unfamiliar setup: they don't hand-hold every
 step, but they're available when things go sideways.
 
+### Shared Design
+
+Both commands share the same structure:
+
+- Task file as input (read once at startup)
+- Working directory for the agent
+- NDJSON trace as output
+- Model and max-turns configuration
+- Agent context from CLAUDE.md at the working directory
+
 All scenario-specific intelligence lives in CLAUDE.md files at each agent's
-working directory. The orchestration loop is generic — it knows nothing about
+working directory. The orchestration is generic — it knows nothing about
 Guide, website docs, or npm packages. To evaluate a different scenario, point
 the agents at different directories with different CLAUDE.md files.
+
+### CI Integration
+
+The `.github/actions/claude/` action is replaced with a
+`.github/actions/fit-eval/` action that calls `fit-eval run` or
+`fit-eval supervise` depending on inputs. No `claude` binary installation, no
+shell-script flag construction — just `bunx fit-eval run --task=... --cwd=...`.
+Workflows declare *what* to run, not *how* to invoke Claude.
 
 ## Scope
 
 ### In scope
 
-1. **`fit-eval supervise` subcommand** — Accepts a task file, supervisor cwd,
+1. **`fit-eval run` subcommand** — Accepts a task file and working directory.
+   Runs a single agent via the SDK's `query()` function. Produces an NDJSON
+   trace to stdout or a file. Replaces the `claude` binary invocation in CI.
+
+2. **`fit-eval supervise` subcommand** — Accepts a task file, supervisor cwd,
    and agent cwd as flags. Runs the supervisor ↔ agent relay using the SDK's
    `query()` function with session resumption. Each cwd can be any directory —
    an existing project, a fresh temp dir, etc.
 
-2. **Supervisor class** (`src/supervisor.js`) — The generic relay loop. Accepts
-   a `query` function and a writable output stream via constructor DI. Manages
-   session resumption for both agents, emits NDJSON events to the output stream,
-   enforces turn limits. Returns a structured result.
+3. **AgentRunner class** (`src/agent-runner.js`) — Runs a single agent session.
+   Accepts a `query` function and a writable output stream via constructor DI.
+   Emits NDJSON events tagged with `source: "agent"`. Used directly by the
+   `run` command and composed into the Supervisor for the `supervise` command.
 
-3. **`supervise` command handler** (`src/commands/supervise.js`) — Parses CLI
-   args, validates that paths exist, wires real dependencies, runs the
-   Supervisor, and writes output.
+4. **Supervisor class** (`src/supervisor.js`) — The generic relay loop. Composes
+   an AgentRunner with a supervisor session. Accepts a `query` function and a
+   writable output stream via constructor DI. Manages session resumption for
+   both agents, emits NDJSON events to the output stream, enforces turn limits.
+   Returns a structured result.
 
-4. **Guide setup scenario** — The first scenario, demonstrating the pattern.
-   A task file and two directories (or one existing project for the supervisor)
-   that encode the Guide product setup evaluation. Location TBD in plan.
+5. **Command handlers** — `src/commands/run.js` and `src/commands/supervise.js`
+   parse CLI args, validate paths, wire real dependencies, run the appropriate
+   class, and write output.
 
-5. **Single combined NDJSON stream** — Both agents' SDK event streams are
-   merged into one output, each line tagged with `source` (agent, supervisor,
-   orchestrator) and `turn` number. Filter by `source=="agent"` to get a
-   standard trace compatible with TraceCollector, `fit-eval output`, and
-   `fit-eval tee`.
+6. **`.github/actions/fit-eval/` action** — Replaces `.github/actions/claude/`.
+   Accepts `task`, `mode` (run or supervise), `cwd`, and optional supervisor
+   flags. Calls `bunx fit-eval run` or `bunx fit-eval supervise` with the
+   appropriate flags. No Claude Code installation, no shell scripting. All
+   existing workflows migrate to this action.
+
+7. **Guide setup scenario** — The first scenario, demonstrating the supervised
+   pattern. A task file and two directories (or one existing project for the
+   supervisor) that encode the Guide product setup evaluation. Location TBD in
+   plan.
+
+8. **Symmetric NDJSON output** — Both commands produce the same NDJSON format.
+   The `run` command emits lines with `source: "agent"` and a final
+   `source: "orchestrator"` summary. The `supervise` command emits the same
+   agent lines plus `source: "supervisor"` lines and a richer orchestrator
+   summary. Filter by `source=="agent"` on either output to get a standard
+   trace compatible with TraceCollector, `fit-eval output`, and `fit-eval tee`.
 
 ### Out of scope
 
 - Parallel agents (single agent per run).
 - Nested supervision (two layers only).
 - MCP server integration (built-in Claude Code tools only).
-- CI integration (manual invocation for now).
 - Changes to TraceCollector's event schema.
 
 ## Architecture
 
 ### CLI Interface
+
+```
+fit-eval run [options]
+
+Options:
+  --task=PATH          Path to task file (task description for the agent)
+  --cwd=DIR            Agent working directory (default: .)
+  --model=MODEL        Claude model to use (default: from config)
+  --max-turns=N        Maximum agentic turns (default: 50)
+  --output=PATH        Write NDJSON trace to file (default: stdout)
+  --allowed-tools=LIST Comma-separated tools (default: Bash,Read,Glob,Grep,Write,Edit)
+```
 
 ```
 fit-eval supervise [options]
@@ -81,9 +160,15 @@ Options:
   --task=PATH          Path to task file (task description for the agent)
   --supervisor-cwd=DIR Supervisor working directory (default: .)
   --agent-cwd=DIR      Agent working directory (default: temp directory)
+  --model=MODEL        Claude model to use (default: from config)
   --max-turns=N        Maximum supervisor ↔ agent exchanges (default: 20)
   --output=PATH        Write NDJSON trace to file (default: stdout)
+  --allowed-tools=LIST Comma-separated tools (default: Bash,Read,Glob,Grep,Write,Edit)
 ```
+
+Both commands share common flags (`--task`, `--model`, `--max-turns`, `--output`,
+`--allowed-tools`). The `supervise` command adds `--supervisor-cwd` and
+`--agent-cwd` while `run` has a single `--cwd`.
 
 All flags are independent — any combination works. This means the supervisor can
 run from an existing project (inheriting its CLAUDE.md, `.claude/skills/`, and
@@ -109,6 +194,24 @@ markdown file. Lives anywhere — it is read once at startup and passed to the
 agent as its initial prompt.
 
 ### Typical Configurations
+
+**Single agent in CI (replaces the claude action):**
+```
+fit-eval run \
+  --task=tasks/security-audit.md \
+  --cwd=. \
+  --model=opus \
+  --max-turns=50
+```
+Equivalent to what the current `.github/actions/claude/` action does, but
+without installing or invoking the `claude` binary.
+
+**Single agent with trace file:**
+```
+fit-eval run \
+  --task=tasks/release-readiness.md \
+  --output=traces/release.ndjson
+```
 
 **Supervisor inherits monorepo context:**
 ```
@@ -170,19 +273,41 @@ sessions.
 ### Class Design
 
 ```
+AgentRunner
+  constructor({ cwd, query, output, model, maxTurns, allowedTools })
+  async run(task): { success, turns, sessionId }
+
 Supervisor
-  constructor({ supervisorCwd, agentCwd, query, output })
-  async run(task, { maxTurns }): { success, turns }
+  constructor({ supervisorCwd, agentCwd, query, output, model, maxTurns, allowedTools })
+  async run(task): { success, turns }
 ```
 
-**Constructor dependencies:**
+**AgentRunner** is the building block. It runs a single agent session and emits
+NDJSON with `source: "agent"`. The `run` command uses it directly. The
+Supervisor composes it internally for the agent side of the relay.
 
-| Dependency       | Type       | Purpose                                  |
-| ---------------- | ---------- | ---------------------------------------- |
-| `supervisorCwd`  | `string`   | Path to supervisor workspace directory   |
-| `agentCwd`       | `string`   | Path to agent workspace directory        |
+**AgentRunner constructor dependencies:**
+
+| Dependency     | Type       | Purpose                                   |
+| -------------- | ---------- | ----------------------------------------- |
+| `cwd`          | `string`   | Agent working directory                   |
+| `query`        | `function` | SDK query function (injected for testing) |
+| `output`       | `Writable` | Stream to emit NDJSON lines to            |
+| `model`        | `string`   | Claude model identifier                   |
+| `maxTurns`     | `number`   | Maximum agentic turns                     |
+| `allowedTools` | `string[]` | Tools the agent may use                   |
+
+**Supervisor constructor dependencies:**
+
+| Dependency       | Type       | Purpose                                   |
+| ---------------- | ---------- | ----------------------------------------- |
+| `supervisorCwd`  | `string`   | Path to supervisor workspace directory    |
+| `agentCwd`       | `string`   | Path to agent workspace directory         |
 | `query`          | `function` | SDK query function (injected for testing) |
-| `output`         | `Writable` | Stream to emit NDJSON lines to           |
+| `output`         | `Writable` | Stream to emit NDJSON lines to            |
+| `model`          | `string`   | Claude model identifier                   |
+| `maxTurns`       | `number`   | Maximum supervisor ↔ agent exchanges      |
+| `allowedTools`   | `string[]` | Tools the agent may use                   |
 
 The `query` function is the Claude Agent SDK's `query()`. Injecting it means
 tests can substitute a mock that returns canned responses without hitting the
@@ -250,15 +375,140 @@ can process unchanged. The full interleaved stream gives the complete picture.
 
 ### Integration with Existing libeval
 
-The `supervise` command adds to fit-eval alongside `output` and `tee`:
+The `run` and `supervise` commands add to fit-eval alongside `output` and `tee`:
 
 ```javascript
 const COMMANDS = {
   output: runOutputCommand,
   tee: runTeeCommand,
+  run: runRunCommand,
   supervise: runSuperviseCommand,
 };
 ```
+
+### GitHub Action: `.github/actions/fit-eval/`
+
+Replaces `.github/actions/claude/`. The new action is a thin wrapper around the
+`fit-eval` CLI — no Claude Code installation, no shell-script flag construction.
+
+**Inputs:**
+
+```yaml
+inputs:
+  task:
+    description: Path to task file (markdown or text)
+    required: true
+  mode:
+    description: Execution mode — "run" (single agent) or "supervise"
+    required: false
+    default: "run"
+  cwd:
+    description: Agent working directory (for "run" mode)
+    required: false
+    default: "."
+  supervisor-cwd:
+    description: Supervisor working directory (for "supervise" mode)
+    required: false
+    default: "."
+  agent-cwd:
+    description: Agent working directory (for "supervise" mode)
+    required: false
+  model:
+    description: Claude model to use
+    required: false
+    default: "opus"
+  max-turns:
+    description: Maximum turns
+    required: false
+    default: "50"
+  allowed-tools:
+    description: Comma-separated list of allowed tools
+    required: false
+    default: "Bash,Read,Glob,Grep,Write,Edit"
+  trace:
+    description: Enable trace capture and artifact upload
+    required: false
+    default: "true"
+  trace-name:
+    description: Artifact name for the trace
+    required: false
+    default: "eval-trace"
+  app-slug:
+    description: GitHub App slug for git identity
+    required: false
+    default: forward-impact-ci
+  app-id:
+    description: GitHub App ID for git identity email
+    required: true
+```
+
+**Core step (replaces the claude binary invocation):**
+
+```yaml
+- name: Run fit-eval
+  shell: bash
+  env:
+    MODE: ${{ inputs.mode }}
+    TASK: ${{ inputs.task }}
+    CWD: ${{ inputs.cwd }}
+    SUPERVISOR_CWD: ${{ inputs.supervisor-cwd }}
+    AGENT_CWD: ${{ inputs.agent-cwd }}
+    MODEL: ${{ inputs.model }}
+    MAX_TURNS: ${{ inputs.max-turns }}
+    TOOLS: ${{ inputs.allowed-tools }}
+    TRACE_DIR: ${{ steps.setup.outputs.trace-dir }}
+  run: |
+    if [ "$MODE" = "supervise" ]; then
+      bunx fit-eval supervise \
+        --task="$TASK" \
+        --supervisor-cwd="$SUPERVISOR_CWD" \
+        --agent-cwd="${AGENT_CWD:-$(mktemp -d)}" \
+        --model="$MODEL" \
+        --max-turns="$MAX_TURNS" \
+        --allowed-tools="$TOOLS" \
+        --output="$TRACE_DIR/trace.ndjson"
+    else
+      bunx fit-eval run \
+        --task="$TASK" \
+        --cwd="$CWD" \
+        --model="$MODEL" \
+        --max-turns="$MAX_TURNS" \
+        --allowed-tools="$TOOLS" \
+        --output="$TRACE_DIR/trace.ndjson"
+    fi
+```
+
+**What changes in workflows:** Each workflow replaces `uses: ./.github/actions/claude`
+with `uses: ./.github/actions/fit-eval` and replaces `prompt:` with `task:` (a
+path to a task file instead of an inline string). The `agent:` input is replaced
+by CLAUDE.md files in the agent's working directory. Example migration:
+
+```yaml
+# Before
+- uses: ./.github/actions/claude
+  with:
+    prompt: "Perform a security audit of the repository."
+    agent: security-engineer
+    model: opus
+    max-turns: 50
+    app-id: ${{ vars.APP_ID }}
+  env:
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+# After
+- uses: ./.github/actions/fit-eval
+  with:
+    task: .github/tasks/security-audit.md
+    model: opus
+    max-turns: 50
+    app-id: ${{ vars.APP_ID }}
+  env:
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+Task files (`.github/tasks/*.md`) contain the prompt text that was previously
+inline in the workflow YAML. Agent profiles previously selected via the `agent:`
+input are now encoded as CLAUDE.md context in the agent's working directory.
 
 ## Example: Guide Setup Scenario
 
@@ -324,16 +574,41 @@ CLAUDE.md):
 
 ## Success Criteria
 
-**Generic (the `supervise` command):**
+**`fit-eval run` (single agent):**
 
-- `Supervisor` follows the OO+DI pattern — constructor injection, factory
+- `AgentRunner` follows the OO+DI pattern — constructor injection, factory
   function, tests bypass factory and inject mocks directly
+- `fit-eval run` works end-to-end with any combination of flags
+- NDJSON output is directly compatible with TraceCollector (no filtering needed)
+- Produces the same trace quality as the current `claude` binary + `fit-eval tee`
+  pipeline
+
+**`fit-eval supervise` (supervised agent):**
+
+- `Supervisor` composes `AgentRunner` — does not duplicate its logic
 - `fit-eval supervise` works end-to-end with any combination of flags
 - NDJSON output is filterable to a standard TraceCollector-compatible trace
+  (filter by `source=="agent"`)
 - Turn limits are enforced
 - The supervisor terminates cleanly via DONE rather than hitting maxTurns
 
-**Guide scenario (the first workspace):**
+**Output symmetry:**
+
+- Both commands produce NDJSON with `source` and `turn` fields
+- Both commands emit an `orchestrator` summary line at the end
+- `run` output is a strict subset of `supervise` output (agent + orchestrator
+  lines only)
+- Piping either command's output through `fit-eval output` produces a valid
+  formatted trace
+
+**CI migration:**
+
+- `.github/actions/fit-eval/` action replaces `.github/actions/claude/`
+- All existing workflows work with the new action
+- No `claude` binary or `@anthropic-ai/claude-code` installation in CI
+- Task files in `.github/tasks/` replace inline prompt strings
+
+**Guide scenario (the first supervised workspace):**
 
 - The agent discovers Guide from the website without being told specific URLs
 - The agent installs `@forwardimpact` packages from npm
