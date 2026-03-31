@@ -2,6 +2,7 @@ import { readFileSync, createWriteStream, mkdtempSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { tmpdir } from "node:os";
 import { createSupervisor } from "../supervisor.js";
+import { createTeeWriter } from "../tee-writer.js";
 
 /**
  * Parse a --key=value or --key value flag from args.
@@ -51,7 +52,17 @@ export async function runSuperviseCommand(args) {
   ).split(",");
 
   const taskContent = readFileSync(task, "utf8");
-  const output = outputPath ? createWriteStream(outputPath) : process.stdout;
+
+  // When --output is specified, stream text to stdout while writing NDJSON to file.
+  // Otherwise, write NDJSON directly to stdout (backwards-compatible).
+  const fileStream = outputPath ? createWriteStream(outputPath) : null;
+  const output = fileStream
+    ? createTeeWriter({
+        fileStream,
+        textStream: process.stdout,
+        mode: "supervised",
+      })
+    : process.stdout;
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
   const supervisor = createSupervisor({
@@ -66,8 +77,9 @@ export async function runSuperviseCommand(args) {
 
   const result = await supervisor.run(taskContent);
 
-  if (outputPath && output !== process.stdout) {
+  if (fileStream) {
     await new Promise((r) => output.end(r));
+    await new Promise((r) => fileStream.end(r));
   }
 
   process.exit(result.success ? 0 : 1);
