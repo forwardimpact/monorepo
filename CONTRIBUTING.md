@@ -61,8 +61,7 @@ reformats files, it re-stages them automatically — just re-run your commit.
 
 Format: `type(scope): subject`
 
-- **Types**: `feat`, `fix`, `refactor`, `docs`, `style`, `test`, `chore`,
-  `perf`, `spec`
+- **Types**: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `spec`
 - **Scope**: package name (`map`, `libskill`, `libui`, `pathway`, `basecamp`),
   or domain area (`security`) for specs
 - **Breaking**: add `!` after scope
@@ -93,10 +92,6 @@ The release engineer agent handles version bumps, tagging, and publishing. See
 ```sh
 bun run check                 # Format, lint, test, validate — ALL file types (run before every commit)
 bun run check:fix             # Auto-fix format and lint issues
-bun run format                # Check Prettier formatting
-bun run format:fix            # Auto-fix Prettier formatting
-bun run lint                  # Check ESLint linting
-bun run lint:fix              # Auto-fix ESLint issues
 bun run test                  # Unit tests (bun run node --test)
 bun run test:e2e              # Playwright E2E tests (requires generated data)
 bunx fit-map validate         # Validate data files
@@ -119,11 +114,9 @@ Security policies apply to all contributors — human and agent.
 
 ## Dependency Policy
 
-- Minimize external dependencies — check if an existing package or Node.js
-  built-in can serve the same purpose before adding a new one (e.g. use `yaml`
-  not `js-yaml`)
-- Consolidate packages serving the same purpose (one YAML parser, one markdown
-  renderer)
+- Minimize external dependencies — prefer existing packages and Node.js
+  built-ins over new ones, and consolidate packages that serve the same purpose
+  (e.g. one YAML parser, one markdown renderer)
 - Align version ranges for the same package across all workspaces
 - Verify peer and transitive dependency compatibility before merging major
   version bumps — run `bun pm ls` and confirm no `invalid` markers. Also inspect
@@ -133,7 +126,6 @@ Security policies apply to all contributors — human and agent.
   packages onto a separate version violates this policy — close the PR until all
   dependents release compatible ranges
 - Run `make audit-vulnerabilities` after adding or updating dependencies
-  (generates a temporary lockfile for `npm audit --audit-level=high`)
 
 ### Dependency Classification
 

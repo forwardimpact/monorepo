@@ -39,7 +39,7 @@ the composite action (see § Authentication below).
 | **security-engineer** | Patch dependencies, harden supply chain, enforce security policies              | dependabot-triage, security-audit, write-spec |
 | **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases           | release-readiness, release-review, gh-cli     |
 | **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements         | grounded-theory-analysis, write-spec, gh-cli  |
-| **product-manager**   | Review PRs for product alignment, verify contributor trust, merge qualified PRs | product-backlog, review-spec, gh-cli          |
+| **product-manager**   | Review PRs for product alignment, verify contributor trust, merge qualified PRs | product-backlog, write-spec, gh-cli           |
 
 Each agent has explicit scope constraints — it knows what it must _not_ do. When
 a finding exceeds an agent's scope, it writes a formal spec (`specs/`) rather
@@ -131,7 +131,7 @@ mechanical patches where the code diff is the deliverable.
 
 **Specs** (`spec`) from top-20 contributors merge only the specification
 document — a description of what should change and why. The spec passes through
-an additional `review-spec` quality gate. Critically, **planning and
+an additional `write-spec` review quality gate. Critically, **planning and
 implementation of approved specs is performed by trusted agents**, not by the
 external contributor. The contributor proposes _what_ to change; the system's
 own agents decide _how_ and write the code. This separation means that even a
@@ -171,7 +171,7 @@ graph TD
 | Merge point           | Source                    | Trust model                                    |
 | --------------------- | ------------------------- | ---------------------------------------------- |
 | **product-backlog**   | External fix/bug PRs      | Top-20 contributor gate + CI                   |
-| **product-backlog**   | External spec PRs         | Top-20 gate + CI + review-spec                 |
+| **product-backlog**   | External spec PRs         | Top-20 gate + CI + write-spec review           |
 | **product-backlog**   | Agent implementation PRs  | Top-20 gate + CI (agents are top contributors) |
 | **dependabot-triage** | Dependabot PRs            | Trusted bot, policy-gated                      |
 | **release-readiness** | Agent-authored rebases    | Agent-only, no external input                  |
@@ -185,19 +185,16 @@ on every merged PR (see § Accountability below).
 
 ## Design Principles
 
-**Fix-or-spec discipline.** Every agent separates mechanical fixes (`fix/`
-branches) from structural improvements (`spec/` branches). No agent mixes the
-two in a single PR.
+**Fix-or-spec discipline.** Agents separate mechanical fixes (`fix/` branches)
+from structural improvements (`spec/` branches) — never mixed in one PR.
 
 **Explicit scope constraints.** Each agent definition lists what it must not do.
 The release engineer never resolves substantive merge conflicts. The security
 engineer never weakens existing policies. The improvement coach never speculates
 without trace evidence.
 
-**Main branch CI repair.** The release engineer is the only agent allowed to
-push directly to `main`, and only for trivial CI fixes — formatting, lint, and
-lock file drift that `bun run check:fix` resolves. If `bun run check:fix` does
-not resolve the failure, the release engineer must stop and report.
+**Main branch CI repair.** See CONTRIBUTING.md § Pull Request Workflow for the
+release engineer's direct-to-`main` exception and its scope constraints.
 
 **Trace-driven observability.** Every workflow captures a full execution trace
 as an artifact. The improvement coach must quote specific tool calls, error

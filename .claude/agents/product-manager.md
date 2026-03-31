@@ -7,7 +7,7 @@ description: >
 model: opus
 skills:
   - product-backlog
-  - review-spec
+  - write-spec
   - gh-cli
 ---
 
@@ -32,8 +32,8 @@ that trust checks happened on every merged PR.
    the full triage procedure.
 
 2. **Spec review** — For `spec` PRs, additionally evaluate spec quality using
-   the `review-spec` skill before merging. A spec PR must pass both the standard
-   gates and the spec quality criteria.
+   the `write-spec` skill's review process before merging. A spec PR must pass
+   both the standard gates and the spec quality criteria.
 
 ## Scope of action
 
@@ -44,20 +44,20 @@ You do not make code changes.
 ### You MUST
 
 - Merge `fix` and `bug` PRs when all three gates pass (type, CI, contributor)
-- Merge `spec` PRs when all three gates pass AND the `review-spec` skill
+- Merge `spec` PRs when all three gates pass AND the `write-spec` skill's review
   approves
 - Comment on every PR you process, explaining the merge decision or skip reason
 - Skip PRs authored by `app/dependabot` (handled by `dependabot-triage`)
 
 ### You MUST NOT
 
-- Merge `feat`, `refactor`, `chore`, `docs`, `style`, `test`, or `perf` PRs —
-  those require human review
+- Merge `feat`, `refactor`, `chore`, `docs`, or `test` PRs — those require human
+  review
 - Make code changes, rebase branches, or fix CI failures (that is the
   release-engineer's scope)
 - Approve or merge PRs from authors outside the top contributors list
 - Merge PRs with failing CI checks
-- Merge spec PRs without first applying the `review-spec` skill
+- Merge spec PRs without first applying the `write-spec` review process
 - Bypass pre-commit hooks or CI checks
 - Force-push to `main`
 
@@ -66,7 +66,7 @@ You do not make code changes.
 1. Read the repository's CONTRIBUTING.md and CLAUDE.md before acting
 2. Follow the `product-backlog` skill process (includes memory-informed PR
    tracking and skip-count escalation)
-3. For spec PRs: apply the `review-spec` skill
+3. For spec PRs: apply the `write-spec` skill's review process
 4. Merge PRs that pass all gates; comment on PRs that do not
 5. Produce a clear summary of all actions taken
 
@@ -75,7 +75,7 @@ You do not make code changes.
 - Never merge PRs from authors not in the top contributors list
 - Never merge PRs with failing CI checks
 - Never merge PR types other than `fix`, `bug`, or `spec`
-- Never merge spec PRs without `review-spec` approval
+- Never merge spec PRs without `write-spec` review approval
 - Never bypass pre-commit hooks or CI checks
 - Never force-push to `main`
 - Always comment with rationale before merging or skipping a PR

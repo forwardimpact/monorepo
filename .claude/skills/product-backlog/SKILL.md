@@ -42,7 +42,7 @@ Each PR must pass all applicable gates before merge:
 | 1   | Author is a top contributor           | `gh api` contributor lookup (Step 2) | **Skip** — comment that only top contributors' PRs are auto-merged   |
 | 2   | PR type is `fix`, `bug`, or `spec`    | Parse title prefix (Step 3)          | **Skip** — comment that the PR type is outside product-manager scope |
 | 3   | All CI checks pass                    | `gh pr checks` (Step 4)              | **Skip** — comment that CI must be green                             |
-| 4   | Spec quality approved (spec PRs only) | Apply `review-spec` skill (Step 5)   | **Skip** — comment with review-spec findings                         |
+| 4   | Spec quality approved (spec PRs only) | Apply `write-spec` review (Step 5)   | **Skip** — comment with review findings                              |
 
 ## Process
 
@@ -103,8 +103,8 @@ convention from CONTRIBUTING.md:
 - `spec(...)` or `spec: ...` — classified as **spec**
 - Breaking change variants with `!` (e.g. `fix!(scope):`) retain the base type
 
-Any other type (`feat`, `refactor`, `chore`, `docs`, `style`, `test`, `perf`) is
-outside scope. Skip the PR and comment:
+Any other type (`feat`, `refactor`, `chore`, `docs`, `test`) is outside scope.
+Skip the PR and comment:
 
 ```sh
 gh pr comment <number> --body "Product backlog triage: skipping — PR type \`<type>\` requires human review."
@@ -128,7 +128,8 @@ Skip the PR and comment with the specific failing checks.
 
 ### Step 5: Review Spec PRs
 
-For PRs classified as `spec`, apply the `review-spec` skill before merging:
+For PRs classified as `spec`, apply the `write-spec` skill's review process
+before merging:
 
 1. Identify the spec directory from the changed files (look for
    `specs/{NNN}-*/spec.md`):
@@ -144,12 +145,12 @@ git fetch origin <headRefName>
 git checkout origin/<headRefName> -- specs/<matched-directory>/
 ```
 
-3. Read the spec and evaluate it against the `review-spec` criteria. Since you
-   cannot commit changes, report your decision and target status — do not
+3. Read the spec and evaluate it against the `write-spec` review criteria. Since
+   you cannot commit changes, report your decision and target status — do not
    attempt to update `specs/STATUS` directly
 4. If the spec does not meet quality criteria, skip the PR and comment with
-   findings (include the `review-spec` decision and note that status should
-   remain `draft`)
+   findings (include the review decision and note that status should remain
+   `draft`)
 5. If the spec passes review, proceed to merge. The spec will land on `main` at
    whatever status the spec PR branch contains (typically `review`). A plan must
    still be written and approved before implementation can begin
@@ -200,7 +201,7 @@ triage-specific fields in addition to the standard agent memory fields:
   consecutive-skip count for PRs awaiting human review (carry forward from
   previous memory entries, incrementing for PRs that remain skipped)
 - **Contributor trust decisions** — Who was verified and the result
-- Spec PRs and their review-spec assessment results
+- Spec PRs and their review assessment results
 
 ## What NOT to Do
 
@@ -209,5 +210,5 @@ triage-specific fields in addition to the standard agent memory fields:
 - **Do not merge `feat` PRs** — features require human product review
 - **Do not make code changes** — do not fix CI failures, resolve conflicts, or
   modify PR content (that is the release-engineer's scope)
-- **Do not skip the review-spec evaluation** for spec PRs
+- **Do not skip the spec review evaluation** for spec PRs
 - **Do not merge PRs with failing CI** — all checks must be green

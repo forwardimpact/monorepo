@@ -1,16 +1,16 @@
 ---
 name: write-spec
 description: >
-  Write spec.md (WHAT and WHY) and plan.md (HOW) documents in the specs/
-  directory. Use when starting a new feature, proposing a change, or
-  documenting an implementation approach.
+  Write, review, and manage spec.md (WHAT and WHY) and plan.md (HOW) documents
+  in the specs/ directory. Use when starting a new feature, proposing a change,
+  documenting an implementation approach, or reviewing a spec for approval.
 ---
 
-# Write Spec and Plan
+# Write and Review Specs
 
-Create specification and implementation plan documents for features, changes,
-and improvements. A spec defines WHAT to build and WHY. A plan defines HOW to
-build it.
+Create, review, and manage specification and implementation plan documents for
+features, changes, and improvements. A spec defines WHAT to build and WHY. A
+plan defines HOW to build it.
 
 **Spec and plan are independent deliverables.** Only produce what the user asked
 for. If they ask for a spec, write the spec and stop — do not continue to a
@@ -22,7 +22,8 @@ Write both only when explicitly requested.
 - Starting a new feature or significant change
 - Documenting a proposed improvement with rationale
 - Writing an implementation plan for an approved spec
-- Reviewing or refining an existing spec or plan
+- Reviewing a spec before implementation ("review spec NNN", "is spec NNN
+  ready?")
 
 ## Directory Structure
 
@@ -87,15 +88,55 @@ draft → review → planned → active → done
 | --------- | --------------------------------------------------- | ---------------- |
 | `draft`   | Spec or plan is being written, not ready for review | `write-spec`     |
 | `review`  | Spec (and plan if present) is ready for evaluation  | `write-spec`     |
-| `planned` | Spec and plan approved, ready for implementation    | `review-spec`    |
+| `planned` | Spec and plan approved, ready for implementation    | `write-spec`     |
 | `active`  | Implementation in progress                          | `implement-spec` |
 | `done`    | Implemented                                         | `implement-spec` |
 
-A spec without a plan can be reviewed and approved, but remains at `review`
-until a plan is added and also approved — only then does it advance to
-`planned`. This means `review` has two sub-states: awaiting first review, and
-approved-but-needs-plan. The `review-spec` skill resolves this ambiguity by
-inspecting the spec directory contents.
+A spec without a plan can be reviewed and approved. If approved but no plan
+exists, the status returns to `draft` — the spec content is approved but the
+deliverable is incomplete. Add a plan and set status back to `review` when
+ready. Only specs with both spec and plan approved advance to `planned`.
+
+## Reviewing a Spec
+
+Evaluate a specification and its plan against quality criteria, then advance it
+toward implementation or send it back for revision. This is the gate between
+writing and implementing.
+
+### 1. Read the spec directory
+
+Read every file in `specs/{NNN}-*/` — `spec.md`, all `plan*.md` files, and any
+supporting documents.
+
+### 2. Evaluate the spec
+
+Assess `spec.md` against the same qualities listed in "Writing a Spec" above:
+problem is clear with evidence, scope is specific, success is verifiable, and no
+implementation details have leaked in.
+
+### 3. Evaluate the plan (if present)
+
+Assess `plan.md` against the same qualities listed in "Writing a Plan" above:
+approach is stated, changes are concrete, blast radius is visible, ordering is
+explicit, and decisions are explained.
+
+### 4. Decide
+
+If all criteria are met, approve. If any criterion falls short, request changes.
+
+| Situation                  | Decision | Target status |
+| -------------------------- | -------- | ------------- |
+| Spec + plan approved       | Approve  | `planned`     |
+| Spec approved, no plan yet | Approve  | `draft`       |
+| Changes requested          | Revise   | `draft`       |
+
+### 5. Update STATUS
+
+Update `specs/STATUS` to reflect the decision from Step 4.
+
+If you are operating in a context where you cannot commit changes (e.g.,
+evaluating a spec PR for another workflow), report your decision and target
+status clearly — the caller is responsible for acting on it.
 
 ## Process
 
@@ -112,8 +153,7 @@ inspecting the spec directory contents.
 4. **Update STATUS.** Add the spec to `specs/STATUS` with status `draft`.
 5. **Present the spec.** Share it with the user for feedback. Iterate until they
    are satisfied, then set status to `review` — signalling it is ready for
-   formal evaluation via `review-spec`. Stop here unless the user also asked for
-   a plan.
+   formal evaluation. Stop here unless the user also asked for a plan.
 
 ### Writing a plan
 
@@ -126,5 +166,12 @@ inspecting the spec directory contents.
 4. **Present the plan.** Share it with the user for feedback.
 5. **Update STATUS.** When the user is satisfied with both spec and plan, set
    the spec's status to `review` in `specs/STATUS` — signalling it is ready for
-   formal evaluation via `review-spec`. Do not set `review` while the plan is
-   still being iterated on.
+   formal evaluation. Do not set `review` while the plan is still being iterated
+   on.
+
+## What NOT to Do
+
+- **Do not approve without reading.** Every criterion must be checked against
+  the actual content.
+- When reviewing, **do not rewrite the spec or plan.** The review evaluates — it
+  does not author. If changes are needed, return the status to `draft`.
