@@ -25,8 +25,8 @@ memory-commit:  ## Commit and push agent memory changes
 
 .PHONY: install
 install: memory-init  ## Install dependencies and generate code
-	@npm ci
-	@npx --workspace=@forwardimpact/libcodegen fit-codegen --all
+	@bun install --frozen-lockfile
+	@bunx --workspace=@forwardimpact/libcodegen fit-codegen --all
 
 .PHONY: quickstart
 quickstart: env-setup synthetic data-init codegen process-fast  ## Bootstrap from scratch
@@ -42,38 +42,38 @@ quickstart: env-setup synthetic data-init codegen process-fast  ## Bootstrap fro
 
 .PHONY: synthetic
 synthetic:  ## Generate synthetic data (cached prose)
-	@$(ENVLOAD) npx fit-universe
-	@npx fit-map generate-index
+	@$(ENVLOAD) bunx fit-universe
+	@bunx fit-map generate-index
 
 .PHONY: synthetic-update
 synthetic-update:  ## Generate synthetic data with LLM and update prose cache
-	@$(ENVLOAD) npx fit-universe --generate
-	@npx fit-map generate-index
+	@$(ENVLOAD) bunx fit-universe --generate
+	@bunx fit-map generate-index
 
 .PHONY: synthetic-no-prose
 synthetic-no-prose:  ## Generate synthetic data (structural only, no prose)
-	@$(ENVLOAD) npx fit-universe --no-prose
-	@npx fit-map generate-index
+	@$(ENVLOAD) bunx fit-universe --no-prose
+	@bunx fit-map generate-index
 
 .PHONY: codegen
 codegen:  ## Generate all (types, services, clients)
-	@npx --workspace=@forwardimpact/libcodegen fit-codegen --all
+	@bunx --workspace=@forwardimpact/libcodegen fit-codegen --all
 
 .PHONY: codegen-type
 codegen-type:  ## Generate types only
-	@npx --workspace=@forwardimpact/libcodegen fit-codegen --type
+	@bunx --workspace=@forwardimpact/libcodegen fit-codegen --type
 
 .PHONY: codegen-client
 codegen-client:  ## Generate clients only
-	@npx --workspace=@forwardimpact/libcodegen fit-codegen --client
+	@bunx --workspace=@forwardimpact/libcodegen fit-codegen --client
 
 .PHONY: codegen-service
 codegen-service:  ## Generate service bases only
-	@npx --workspace=@forwardimpact/libcodegen fit-codegen --service
+	@bunx --workspace=@forwardimpact/libcodegen fit-codegen --service
 
 .PHONY: codegen-definition
 codegen-definition:  ## Generate definitions only
-	@npx --workspace=@forwardimpact/libcodegen fit-codegen --definition
+	@bunx --workspace=@forwardimpact/libcodegen fit-codegen --definition
 
 # ── Process ───────────────────────────────────────────────────────
 
@@ -85,23 +85,23 @@ process-fast: process-agents process-resources process-tools process-graphs  ## 
 
 .PHONY: process-agents
 process-agents:  ## Process assistant definitions
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libagent fit-process-agents
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libagent fit-process-agents
 
 .PHONY: process-resources
 process-resources:  ## Process knowledge resources
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libresource fit-process-resources
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libresource fit-process-resources
 
 .PHONY: process-tools
 process-tools:  ## Process tool definitions
-	@$(ENVLOAD) npx fit-process-tools
+	@$(ENVLOAD) bunx fit-process-tools
 
 .PHONY: process-vectors
 process-vectors:  ## Process vector indices
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libvector fit-process-vectors
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libvector fit-process-vectors
 
 .PHONY: process-graphs
 process-graphs:  ## Process graph indices
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libgraph fit-process-graphs
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libgraph fit-process-graphs
 
 # ── Data ──────────────────────────────────────────────────────────
 
@@ -120,71 +120,71 @@ data-reset: data-clean data-init codegen  ## Clean, init, and regenerate code
 
 .PHONY: rc-start
 rc-start:  ## Start services via rc
-	@$(ENVLOAD) npx fit-rc start
+	@$(ENVLOAD) bunx fit-rc start
 
 .PHONY: rc-stop
 rc-stop:  ## Stop services via rc
-	@$(ENVLOAD) npx fit-rc stop
+	@$(ENVLOAD) bunx fit-rc stop
 
 .PHONY: rc-restart
 rc-restart:  ## Restart services via rc
-	@$(ENVLOAD) npx fit-rc restart
+	@$(ENVLOAD) bunx fit-rc restart
 
 .PHONY: rc-status
 rc-status:  ## Show service status
-	@$(ENVLOAD) npx fit-rc status
+	@$(ENVLOAD) bunx fit-rc status
 
 # ── CLI ───────────────────────────────────────────────────────────
 
 .PHONY: cli-chat
 cli-chat: ## Agent conversations
-	@$(ENVLOAD) npx fit-guide $(ARGS)
+	@$(ENVLOAD) bunx fit-guide $(ARGS)
 
 .PHONY: cli-search
 cli-search: ## Vector similarity search
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libvector fit-search $(ARGS)
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libvector fit-search $(ARGS)
 
 .PHONY: cli-query
 cli-query: ## Graph triple pattern queries
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libgraph fit-query $(ARGS)
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libgraph fit-query $(ARGS)
 
 .PHONY: cli-subjects
 cli-subjects: ## List graph subjects by type
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libgraph fit-subjects $(ARGS)
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libgraph fit-subjects $(ARGS)
 
 .PHONY: cli-visualize
 cli-visualize:  ## Trace visualization
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libtelemetry fit-visualize $(ARGS)
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libtelemetry fit-visualize $(ARGS)
 
 .PHONY: cli-window
 cli-window:  ## Fetch memory window as JSON
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libmemory fit-window $(ARGS)
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libmemory fit-window $(ARGS)
 
 .PHONY: cli-completion
 cli-completion:  ## Send window to LLM API
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libllm fit-completion $(ARGS)
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libllm fit-completion $(ARGS)
 
 .PHONY: cli-tiktoken
 cli-tiktoken:  ## Token counting
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libutil fit-tiktoken $(ARGS)
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libutil fit-tiktoken $(ARGS)
 
 .PHONY: cli-unary
 cli-unary:  ## Unary gRPC calls
-	@$(ENVLOAD) npx --workspace=@forwardimpact/librpc fit-unary $(ARGS)
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/librpc fit-unary $(ARGS)
 
 # ── Docs ──────────────────────────────────────────────────────────
 
 .PHONY: docs-build
 docs-build:  ## Build documentation
-	@npx --workspace=@forwardimpact/libdoc docs-build
+	@bunx --workspace=@forwardimpact/libdoc docs-build
 
 .PHONY: docs-serve
 docs-serve:  ## Serve documentation
-	@npx --workspace=@forwardimpact/libdoc docs-serve
+	@bunx --workspace=@forwardimpact/libdoc docs-serve
 
 .PHONY: docs-watch
 docs-watch:  ## Serve with live reload
-	@npx --workspace=@forwardimpact/libdoc docs-serve --watch
+	@bunx --workspace=@forwardimpact/libdoc docs-serve --watch
 
 # ── Quality ───────────────────────────────────────────────────────
 
@@ -193,7 +193,9 @@ audit: audit-vulnerabilities audit-secrets  ## Run security audit (vulnerability
 
 .PHONY: audit-vulnerabilities
 audit-vulnerabilities:  ## Check dependencies for known vulnerabilities
+	@npm install --package-lock-only --ignore-scripts 2>/dev/null
 	@npm audit --audit-level=high --omit=dev --workspaces
+	@rm -f package-lock.json
 
 .PHONY: audit-secrets
 audit-secrets:  ## Scan repository for leaked secrets
@@ -215,15 +217,15 @@ env-reset: config-reset ## Reset environment config from examples
 
 .PHONY: env-secrets
 env-secrets:  ## Generate service and JWT secrets
-	@node scripts/env-secrets.js
+	@bun scripts/env-secrets.js
 
 .PHONY: env-storage
 env-storage:  ## Generate storage backend credentials
-	@node scripts/env-storage.js
+	@bun scripts/env-storage.js
 
 .PHONY: env-github
 env-github:  ## GitHub token utility
-	@$(ENVLOAD) node scripts/env-github.js
+	@$(ENVLOAD) bun scripts/env-github.js
 
 .PHONY: config-reset
 config-reset: ## Reset config files from examples
@@ -233,7 +235,7 @@ config-reset: ## Reset config files from examples
 
 .PHONY: download-bundle
 download-bundle:  ## Download generated code bundle from S3
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libutil fit-download-bundle
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libutil fit-download-bundle
 
 # ── Docker ────────────────────────────────────────────────────────
 
@@ -272,23 +274,23 @@ storage-stop:  ## Stop storage backend containers
 
 .PHONY: storage-wait
 storage-wait:  ## Wait for storage to be ready
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage wait
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libstorage fit-storage wait
 
 .PHONY: storage-init
 storage-init:  ## Create bucket in storage backend
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage create-bucket
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libstorage fit-storage create-bucket
 
 .PHONY: storage-upload
 storage-upload:  ## Upload data to storage backend
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage upload
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libstorage fit-storage upload
 
 .PHONY: storage-download
 storage-download:  ## Download data from storage backend
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage download
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libstorage fit-storage download
 
 .PHONY: storage-list
 storage-list:  ## List storage contents
-	@$(ENVLOAD) npx --workspace=@forwardimpact/libstorage fit-storage list
+	@$(ENVLOAD) bunx --workspace=@forwardimpact/libstorage fit-storage list
 
 # ── Auth ──────────────────────────────────────────────────────────
 
@@ -302,7 +304,7 @@ auth-stop:  ## Stop auth backend containers
 
 .PHONY: auth-user
 auth-user:  ## Create demo auth user
-	$(ENVLOAD) node scripts/auth-user.js
+	$(ENVLOAD) bun scripts/auth-user.js
 
 # ── Supabase ──────────────────────────────────────────────────────
 
@@ -320,11 +322,11 @@ supabase-down:  ## Stop local Supabase instance
 
 .PHONY: supabase-start
 supabase-start:  ## Start Supabase via fit-rc (oneshot)
-	@$(ENVLOAD) npx fit-rc start supabase
+	@$(ENVLOAD) bunx fit-rc start supabase
 
 .PHONY: supabase-stop
 supabase-stop:  ## Stop Supabase via fit-rc (oneshot)
-	@$(ENVLOAD) npx fit-rc stop supabase
+	@$(ENVLOAD) bunx fit-rc stop supabase
 
 .PHONY: supabase-migrate
 supabase-migrate:  ## Run Map database migrations
@@ -336,7 +338,7 @@ supabase-status:  ## Supabase health check
 
 .PHONY: supabase-seed
 supabase-seed:  ## Load example data into Supabase
-	@node products/map/scripts/load-examples.js
+	@bun products/map/scripts/load-examples.js
 
 .PHONY: supabase-setup
 supabase-setup: supabase-up supabase-seed  ## Start + migrate + seed
@@ -349,4 +351,4 @@ tei-install:  ## Install TEI binary via cargo
 
 .PHONY: tei-start
 tei-start:  ## Start TEI embedding service
-	@$(ENVLOAD) npx fit-rc start tei
+	@$(ENVLOAD) bunx fit-rc start tei
