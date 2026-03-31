@@ -131,6 +131,11 @@ external contributors can merge directly:
 contributor's own code, gated by CI and trust checks. These are small,
 mechanical patches where the code diff is the deliverable.
 
+**CI app PRs** authored by `app/forward-impact-ci` are trusted by identity —
+they were created by one of our own agent workflows (product-feedback,
+improvement-coach, etc.). The product manager skips the top-20 contributor
+lookup for these PRs and proceeds directly to type classification and CI checks.
+
 **Specs** (`spec`) from top-20 contributors merge only the specification
 document — a description of what should change and why. The spec passes through
 an additional `write-spec` review quality gate. Critically, **planning and
@@ -180,7 +185,7 @@ graph TD
 | --------------------- | ------------------------- | ---------------------------------------------- |
 | **product-backlog**   | External fix/bug PRs      | Top-20 contributor gate + CI                   |
 | **product-backlog**   | External spec PRs         | Top-20 gate + CI + write-spec review           |
-| **product-backlog**   | Agent implementation PRs  | Top-20 gate + CI (agents are top contributors) |
+| **product-backlog**   | CI app PRs                | Trusted app identity (`forward-impact-ci`) + CI |
 | **dependabot-triage** | Dependabot PRs            | Trusted bot, policy-gated                      |
 | **release-readiness** | Agent-authored rebases    | Agent-only, no external input                  |
 | **release-review**    | Agent-authored tags/bumps | Agent-only, no external input                  |

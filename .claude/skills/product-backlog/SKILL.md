@@ -39,7 +39,7 @@ Each PR must pass all applicable gates before merge:
 
 | #   | Gate                                  | Verification                         | On failure                                                           |
 | --- | ------------------------------------- | ------------------------------------ | -------------------------------------------------------------------- |
-| 1   | Author is a top contributor           | `gh api` contributor lookup (Step 2) | **Skip** — comment that only top contributors' PRs are auto-merged   |
+| 1   | Author is trusted                     | CI app or top-20 lookup (Step 2)     | **Skip** — comment that only trusted authors' PRs are auto-merged    |
 | 2   | PR type is `fix`, `bug`, or `spec`    | Parse title prefix (Step 3)          | **Skip** — comment that the PR type is outside product-manager scope |
 | 3   | All CI checks pass                    | `gh pr checks` (Step 4)              | **Skip** — comment that CI must be green                             |
 | 4   | Spec quality approved (spec PRs only) | Apply `write-spec` review (Step 5)   | **Skip** — comment with review findings                              |
@@ -70,8 +70,19 @@ Skip PRs authored by `app/dependabot` — those are handled by the
 
 ### Step 2: Verify Contributor Trust
 
-Look up the repository's top contributors using the GitHub API. See the `gh-cli`
-skill for CLI usage patterns.
+First, check whether the PR author is the repository's own CI app:
+
+```sh
+gh pr view <number> --json author --jq '.author.login'
+```
+
+If the author is `app/forward-impact-ci`, the PR was created by one of our own
+agent workflows (product-feedback, improvement-coach, etc.). These PRs are
+**trusted by definition** — skip the contributor lookup and proceed directly to
+Step 3.
+
+For all other authors, look up the repository's top contributors using the
+GitHub API. See the `gh-cli` skill for CLI usage patterns.
 
 ```sh
 gh api repos/{owner}/{repo}/contributors \
@@ -80,11 +91,7 @@ gh api repos/{owner}/{repo}/contributors \
 
 This returns the top 20 human contributors by commit count (excluding bots like
 `dependabot[bot]`). The `{owner}/{repo}` placeholder is resolved automatically
-by `gh` when run inside the repository. The PR author must appear in this list:
-
-```sh
-gh pr view <number> --json author --jq '.author.login'
-```
+by `gh` when run inside the repository. The PR author must appear in this list.
 
 If the author is not in the top contributors list, skip the PR and comment:
 
