@@ -115,14 +115,14 @@ export class AgentRunner {
 }
 ```
 
-| Dependency       | Type       | Purpose                                   |
-| ---------------- | ---------- | ----------------------------------------- |
-| `cwd`            | `string`   | Agent working directory                   |
-| `query`          | `function` | SDK query function (injected for testing) |
-| `output`         | `Writable` | Stream to emit NDJSON lines to            |
-| `model`          | `string`   | Claude model identifier                   |
-| `maxTurns`       | `number`   | Maximum agentic turns                     |
-| `allowedTools`   | `string[]` | Tools the agent may use                   |
+| Dependency       | Type       | Purpose                                          |
+| ---------------- | ---------- | ------------------------------------------------ |
+| `cwd`            | `string`   | Agent working directory                          |
+| `query`          | `function` | SDK query function (injected for testing)        |
+| `output`         | `Writable` | Stream to emit NDJSON lines to                   |
+| `model`          | `string`   | Claude model identifier                          |
+| `maxTurns`       | `number`   | Maximum agentic turns                            |
+| `allowedTools`   | `string[]` | Tools the agent may use                          |
 | `permissionMode` | `string`   | SDK permission mode (default: bypassPermissions) |
 
 Note: Agent profiles (`.claude/agents/*.md`) are not passed as constructor
@@ -201,8 +201,8 @@ async resume(prompt) {
 }
 ```
 
-Returns `{ success, text }` where `text` is the agent's final text response
-(for the supervisor to observe).
+Returns `{ success, text }` where `text` is the agent's final text response (for
+the supervisor to observe).
 
 ### Factory function
 
@@ -219,9 +219,11 @@ export function createAgentRunner(deps) {
 Mock `query` as an async generator yielding canned message objects. Verify:
 
 - NDJSON lines written to output stream match expected messages
-- `sessionId` captured from `{ type: "system", subtype: "init", session_id }` event
+- `sessionId` captured from `{ type: "system", subtype: "init", session_id }`
+  event
 - `resume()` passes `sessionId` via `options.resume` to `query()`
-- `run()` passes `cwd`, `allowedTools`, `maxTurns`, `model`, `permissionMode` to `query()`
+- `run()` passes `cwd`, `allowedTools`, `maxTurns`, `model`, `permissionMode` to
+  `query()`
 - Missing required deps throw
 - `result` message yields `text` and `stop_reason` in return value
 
@@ -255,8 +257,8 @@ export class Supervisor {
 }
 ```
 
-| Dependency         | Type          | Purpose                                        |
-| ------------------ | ------------- | ---------------------------------------------- |
+| Dependency         | Type          | Purpose                                         |
+| ------------------ | ------------- | ----------------------------------------------- |
 | `agentRunner`      | `AgentRunner` | Runs the agent sessions (injected, not created) |
 | `supervisorRunner` | `AgentRunner` | Runs the supervisor sessions (injected)         |
 | `output`           | `Writable`    | Stream to emit tagged NDJSON lines to           |
@@ -317,11 +319,11 @@ CLAUDE.md and agent profile.
 
 ### `emitTagged(source, turn)` — output wrapping
 
-Each AgentRunner writes raw NDJSON to its own PassThrough stream. After a
-runner completes a turn, the Supervisor drains that stream and re-emits each
-line wrapped with `source` and `turn` metadata. The original event is nested
-under an `event` key to prevent field collisions (the SDK may emit messages with
-their own `source` or `type` fields):
+Each AgentRunner writes raw NDJSON to its own PassThrough stream. After a runner
+completes a turn, the Supervisor drains that stream and re-emits each line
+wrapped with `source` and `turn` metadata. The original event is nested under an
+`event` key to prevent field collisions (the SDK may emit messages with their
+own `source` or `type` fields):
 
 ```javascript
 emitTagged(source, turn) {
@@ -358,8 +360,8 @@ function isDone(text) {
 }
 ```
 
-This avoids false positives from natural language ("not done yet", "the agent
-is DONE installing"). The signal is deliberately not a common English word.
+This avoids false positives from natural language ("not done yet", "the agent is
+DONE installing"). The signal is deliberately not a common English word.
 Supervisor context files (CLAUDE.md, agent profiles) instruct the supervisor to
 emit `EVALUATION_COMPLETE` on its own line when criteria are met.
 
@@ -379,9 +381,9 @@ drainOutput() {
 ```
 
 When AgentRunner is used directly by `fit-eval run`, it writes to the real
-output stream (stdout or file) as before. When composed inside a Supervisor,
-the factory wires it with an in-memory buffer that the Supervisor drains after
-each turn.
+output stream (stdout or file) as before. When composed inside a Supervisor, the
+factory wires it with an in-memory buffer that the Supervisor drains after each
+turn.
 
 ### Factory function
 
@@ -427,7 +429,8 @@ Mock `query` to simulate a multi-turn relay. Verify:
 - `EVALUATION_COMPLETE` embedded in a sentence does NOT terminate the loop
 - maxTurns limit enforced
 - Output stream contains tagged lines with correct `source` and `turn`
-- Each tagged line nests the original event under an `event` key (no field collisions)
+- Each tagged line nests the original event under an `event` key (no field
+  collisions)
 - Orchestrator summary emitted at the end
 - Both runners are injected — tests bypass factory and inject mocks directly
 
@@ -449,8 +452,8 @@ Options:
   --allowed-tools=LIST Comma-separated tools (default: Bash,Read,Glob,Grep,Write,Edit)
 ```
 
-Agent profiles are loaded automatically by the SDK from `.claude/agents/`
-within `--cwd`. No explicit `--agent` flag is needed.
+Agent profiles are loaded automatically by the SDK from `.claude/agents/` within
+`--cwd`. No explicit `--agent` flag is needed.
 
 ### Handler
 
@@ -496,8 +499,8 @@ export async function runRunCommand(args) {
 ```
 
 Note: The `--agent` CLI flag is no longer needed. Agent profiles are loaded
-automatically by the SDK from `.claude/agents/` within the working directory.
-To use a specific agent profile, ensure the `--cwd` points to a directory that
+automatically by the SDK from `.claude/agents/` within the working directory. To
+use a specific agent profile, ensure the `--cwd` points to a directory that
 contains the desired `.claude/` configuration.
 
 ### Typical invocations
@@ -810,10 +813,10 @@ To:
     app-id: ${{ secrets.CI_APP_ID }}
 ```
 
-The `prompt:` input becomes `task:` (a file path). The `agent:` input is
-removed — the SDK loads agent profiles from `.claude/agents/` within the
-working directory automatically. All other inputs are unchanged. Environment
-variables are unchanged.
+The `prompt:` input becomes `task:` (a file path). The `agent:` input is removed
+— the SDK loads agent profiles from `.claude/agents/` within the working
+directory automatically. All other inputs are unchanged. Environment variables
+are unchanged.
 
 ### Migration checklist
 
@@ -868,7 +871,8 @@ Encodes the supervisor's judgement rules:
 > - The agent has initialized framework data with fit-pathway init
 > - The agent has run fit-map validate
 > - The agent has written an assessment to ./notes/
-> - Output EVALUATION_COMPLETE on its own line when all criteria are met (or clearly unachievable)
+> - Output EVALUATION_COMPLETE on its own line when all criteria are met (or
+>   clearly unachievable)
 
 In practice, the supervisor can also run from the monorepo root
 (`--supervisor-cwd=.`) to inherit the full project context. The purpose-built
