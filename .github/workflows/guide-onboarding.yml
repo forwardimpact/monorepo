@@ -1,10 +1,10 @@
-name: Guide Installation
+name: Guide Onboarding
 
 on:
   workflow_dispatch: # Manual trigger for on-demand evaluation
 
 concurrency:
-  group: guide-installation
+  group: guide-onboarding
   cancel-in-progress: true
 
 permissions:
@@ -39,10 +39,10 @@ jobs:
         shell: bash
         run: |
           agent_dir=$(mktemp -d)
-          cp scenarios/guide-setup/agent/CLAUDE.md "$agent_dir/CLAUDE.md"
+          cp scenarios/guide-onboarding/agent/CLAUDE.md "$agent_dir/CLAUDE.md"
           echo "dir=$agent_dir" >> "$GITHUB_OUTPUT"
 
-      - name: Evaluate Guide Installation
+      - name: Evaluate Guide Onboarding
         uses: ./.github/actions/fit-eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -51,10 +51,10 @@ jobs:
         with:
           app-id: ${{ secrets.CI_APP_ID }}
           mode: "supervise"
-          task: scenarios/guide-setup/task.md
-          supervisor-cwd: scenarios/guide-setup/supervisor
+          task: scenarios/guide-onboarding/task.md
+          supervisor-cwd: "."
           agent-cwd: ${{ steps.agent-workspace.outputs.dir }}
           model: "opus"
           max-turns: "20"
           allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,WebFetch,WebSearch"
-          trace-name: "guide-installation-trace"
+          trace-name: "guide-onboarding-trace"
