@@ -27,7 +27,7 @@
     "@forwardimpact/libsyntheticrender": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.23",
     "@forwardimpact/libtemplate": "^0.2.0",
-    "@supabase/supabase-js": "^2.100.1",
+    "@supabase/supabase-js": "^2.101.0",
     "prettier": "^3.8.1"
   },
   "engines": {
