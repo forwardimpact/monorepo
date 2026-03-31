@@ -1,0 +1,56 @@
+name: Product Feedback
+
+on:
+  schedule:
+    # Weekly on Thursdays at 10:31 UTC (off-minute to avoid :00 stampede)
+    - cron: "31 10 * * 4"
+  workflow_dispatch: # Manual trigger for on-demand issue triage
+
+concurrency:
+  group: product-feedback
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Generate installation token
+        id: app-token
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3
+        with:
+          app-id: ${{ secrets.CI_APP_ID }}
+          private-key: ${{ secrets.CI_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+          submodules: true
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: latest
+
+      - run: make install
+
+      - name: Triage Open Issues
+        uses: ./.github/actions/claude
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          CLAUDE_CODE_USE_BEDROCK: "0"
+        with:
+          app-id: ${{ secrets.CI_APP_ID }}
+          prompt: >
+            Review all open GitHub issues for product alignment. Classify each
+            issue by type — trivial fix/bug, product-aligned, or out of scope.
+            Implement trivial fixes as PRs. Write specs for product-aligned
+            issues using the write-spec skill. Label and comment on out-of-scope
+            issues.
+          agent: "product-manager"
+          model: "opus"
+          max-turns: "50"

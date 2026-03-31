@@ -5,8 +5,8 @@
 > — W. Edwards Deming
 
 This monorepo runs an autonomous continuous improvement system powered by Claude
-Code agents on GitHub Actions. Six scheduled workflows, four agent personas, and
-eight skills form a closed feedback loop that keeps the codebase secure,
+Code agents on GitHub Actions. Seven scheduled workflows, four agent personas, and
+nine skills form a closed feedback loop that keeps the codebase secure,
 release-ready, and steadily improving — without human intervention for routine
 tasks. This is a repo self-maintenance system, not part of the Forward Impact
 products — it maintains the project, not the engineering frameworks the products
@@ -39,7 +39,7 @@ the composite action (see § Authentication below).
 | **security-engineer** | Patch dependencies, harden supply chain, enforce security policies              | dependabot-triage, security-audit, write-spec |
 | **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases           | release-readiness, release-review, gh-cli     |
 | **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements         | grounded-theory-analysis, write-spec, gh-cli  |
-| **product-manager**   | Review PRs for product alignment, verify contributor trust, merge qualified PRs | product-backlog, write-spec, gh-cli           |
+| **product-manager**   | Review PRs for product alignment, triage issues, verify contributor trust       | product-backlog, product-feedback, write-spec, gh-cli |
 
 Each agent has explicit scope constraints — it knows what it must _not_ do. When
 a finding exceeds an agent's scope, it writes a formal spec (`specs/`) rather
@@ -55,6 +55,7 @@ than attempting the fix.
 | **release-review**    | Weekly Mon 07:37 UTC   | release-engineer  | Find unreleased changes, bump versions, tag, push, verify publish           |
 | **improvement-coach** | Weekly Wed 08:47 UTC   | improvement-coach | Deep-analyze a single random agent trace, open fix PRs or write specs       |
 | **product-backlog**   | Daily 09:13 UTC        | product-manager   | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs |
+| **product-feedback**  | Weekly Thu 10:31 UTC   | product-manager   | Triage open issues, implement trivial fixes, write specs for aligned requests |
 
 All schedules use off-minute values to avoid API load spikes. Every workflow
 supports `workflow_dispatch` for manual runs, uses concurrency groups, and has a
@@ -65,7 +66,7 @@ supports `workflow_dispatch` for manual runs, uses concurrency groups, and has a
 The improvement coach is the meta-agent that closes the loop. Each cycle focuses
 on **one trace** — depth over breadth. It:
 
-1. **Selects** a single completed run from the other five workflows (preferring
+1. **Selects** a single completed run from the other six workflows (preferring
    failures, but successful runs are valid targets for inefficiency analysis).
 2. **Downloads** the execution trace artifact and processes it with `fit-eval`.
 3. **Deep-analyzes** every turn, tool call, and result using grounded theory
@@ -85,7 +86,7 @@ graph TD
     IC["Improvement Coach<br/>downloads traces, analyzes, audits trust checks"]
     SE["Security Engineer<br/>audit, triage"]
     RE["Release Engineer<br/>readiness, cuts"]
-    PM["Product Manager<br/>backlog, merge"]
+    PM["Product Manager<br/>backlog, feedback, merge"]
     CB["Codebase (main)"]
 
     IC -- "fix PRs / specs" --> CB
@@ -109,6 +110,7 @@ graph TD
 | **write-spec**               | Spec and plan authoring for changes that exceed agent scope                   |
 | **gh-cli**                   | GitHub CLI installation and usage patterns for CI                             |
 | **product-backlog**          | PR triage with type classification, contributor verification, and merge gates |
+| **product-feedback**         | Issue triage with classification, fix PRs for bugs, and specs for features    |
 
 ## Trust Boundary
 
@@ -145,6 +147,7 @@ The product manager skips these PR types entirely, requiring human review.
 ```mermaid
 graph TD
     EXT["External contribution"]
+    ISS["GitHub issues"]
     PM["Product Manager<br/>top-20 gate + CI"]
     CB["Codebase (main)"]
     SE["Security Engineer<br/>Dependabot only"]
@@ -154,6 +157,11 @@ graph TD
     EXT -- "spec PR" --> PM
     PM -- "merge fix/bug code" --> CB
     PM -- "merge spec document" --> CB
+
+    ISS -- "bug report" --> PM
+    ISS -- "feature request" --> PM
+    PM -- "fix PR (agent-authored)" --> CB
+    PM -- "spec PR (agent-authored)" --> CB
 
     CB -- "spec available" --> TA
     TA["Trusted Agents<br/>plan + implement spec"]
@@ -178,6 +186,7 @@ graph TD
 | **release-review**    | Agent-authored tags/bumps | Agent-only, no external input                  |
 | **release-engineer**  | Trivial CI fixes on main  | Agent-only, mechanical fixes only              |
 | **improvement-coach** | Agent-authored fix/spec   | Agent-only, traces as evidence                 |
+| **product-feedback**  | Agent-authored fix/spec   | Agent-only, issues as input                    |
 
 This design concentrates external-contribution risk at a single auditable point.
 The improvement coach verifies that the product manager performed trust checks

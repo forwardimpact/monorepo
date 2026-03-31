@@ -1,4 +1,7 @@
 {
+  "memory": {
+    "enabled": true
+  },
   "permissions": {
     "defaultMode": "acceptEdits",
     "allow": ["Edit(.claude/**)", "Write(.claude/**)"]
