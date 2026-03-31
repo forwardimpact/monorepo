@@ -15,23 +15,35 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Extract package name from tag
-        id: package
-        run: |
-          TAG_NAME="${GITHUB_REF_NAME%%@v*}"
-          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
-          # Find the npm package name and directory from the tag
-          # Use exact suffix match to avoid e.g. "pathway" matching "libpathway"
-          PKG_JSON=$(npm query "[name]" --json | jq -r --arg t "${TAG_NAME}" '[.[] | select(.name | endswith("/" + $t))][0]')
-          echo "npm_name=$(echo "$PKG_JSON" | jq -r '.name')" >> $GITHUB_OUTPUT
-          echo "dir_name=$(echo "$PKG_JSON" | jq -r '.path')" >> $GITHUB_OUTPUT
+      - uses: oven-sh/setup-bun@735343cf11a0fad2539a9800e109ac7e0bafc0e6 # v2
+        with:
+          bun-version: latest
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
-          cache: "npm"
+
+      - name: Extract package name from tag
+        id: package
+        run: |
+          TAG_NAME="${GITHUB_REF_NAME%%@v*}"
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          # Find the npm package name and directory from the tag
+          PKG_JSON=$(bun -e "
+            const { workspaces } = require('./package.json');
+            const tag = '${TAG_NAME}';
+            for (const ws of workspaces) {
+              const pkg = require('./' + ws + '/package.json');
+              if (pkg.name.endsWith('/' + tag)) {
+                console.log(JSON.stringify({ name: pkg.name, path: ws }));
+                break;
+              }
+            }
+          ")
+          echo "npm_name=$(echo "$PKG_JSON" | jq -r '.name')" >> $GITHUB_OUTPUT
+          echo "dir_name=$(echo "$PKG_JSON" | jq -r '.path')" >> $GITHUB_OUTPUT
 
       - name: Install dependencies and generate code
         run: make install
@@ -39,7 +51,7 @@ jobs:
       - uses: ./.github/actions/audit
 
       - name: Run tests
-        run: npm run test
+        run: bun run test
 
       - name: Copy LICENSE to package
         run: cp LICENSE ${{ steps.package.outputs.dir_name }}/

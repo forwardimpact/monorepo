@@ -30,10 +30,14 @@ jobs:
       - name: Install just
         run: brew install just
 
+      - uses: oven-sh/setup-bun@735343cf11a0fad2539a9800e109ac7e0bafc0e6 # v2
+        with:
+          bun-version: latest
+
       - uses: ./.github/actions/audit
 
       - name: Run tests
-        run: npm run test
+        run: bun run test
 
       - name: Build .pkg installer
         working-directory: products/basecamp
