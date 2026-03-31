@@ -47,24 +47,36 @@ analysis of one run yields better findings than a shallow scan of many.
 
 If the user specifies a workflow name, run ID, or URL, use that run.
 
-Otherwise, **pick one at random** from recent completed runs that produced
-traces. First, discover what's available:
+Otherwise, select a run using memory-informed rotation:
 
-```sh
-for workflow in security-audit dependabot-triage release-readiness release-review product-backlog; do
-  echo "=== $workflow ==="
-  gh run list --workflow "$workflow.yml" --limit 5 \
-    --json databaseId,status,conclusion,createdAt,headBranch \
-    --jq '.[] | "\(.databaseId)\t\(.status)\t\(.conclusion)\t\(.createdAt)"'
-done
-```
+1. **Read memory** — Read all files in the memory directory. From your own
+   entries (`improvement-coach-*.md`), extract the workflow name and run ID from
+   each previous coaching cycle.
 
-From the results, randomly select one completed run. Prefer runs with
-non-success conclusions (failure, cancelled) as they are more likely to contain
-actionable findings, but successful runs are also valid targets — they may
-reveal inefficiencies or wasted effort.
+2. **Discover available runs**:
 
-Announce which run you selected and why before proceeding.
+   ```sh
+   for workflow in security-audit dependabot-triage release-readiness release-review product-backlog; do
+     echo "=== $workflow ==="
+     gh run list --workflow "$workflow.yml" --limit 5 \
+       --json databaseId,status,conclusion,createdAt,headBranch \
+       --jq '.[] | "\(.databaseId)\t\(.status)\t\(.conclusion)\t\(.createdAt)"'
+   done
+   ```
+
+3. **Avoid duplicates** — Skip any run ID you have already analyzed (per
+   memory). This ensures each coaching cycle covers new ground.
+
+4. **Rotate across agents** — Track which agent workflows you have analyzed
+   recently. Prefer the agent whose workflow you have analyzed least recently,
+   to ensure all agents receive coaching attention over time.
+
+5. **Prefer failures** — Among eligible runs for the selected workflow, prefer
+   runs with non-success conclusions (failure, cancelled) as they are more
+   likely to contain actionable findings. Successful runs are still valid.
+
+Announce which run you selected and why (including which agents you've covered
+recently) before proceeding.
 
 ### Step 2: Download and Process the Trace
 
@@ -245,22 +257,26 @@ You perform **analysis and improvement only**. You do not:
 ## Memory
 
 You have access to a shared memory directory that persists across runs and is
-shared with all CI agents. **Always write to memory at the end of your run.**
+shared with all CI agents. **Always read memory at the start and write to memory
+at the end of your run.**
 
-Record:
+At the start of every run, read all files in the memory directory — both your
+own entries (`improvement-coach-*.md`) and entries from other agents. From your
+own entries, extract run IDs already analyzed (to avoid duplicates), agent
+workflow coverage dates (to rotate), and recurring patterns (to track whether
+past findings were addressed). Check other agents' entries for observations
+worth investigating in traces.
 
-- **Actions taken** — What you did this run (traces analyzed, fixes applied,
-  specs written)
-- **Decisions and rationale** — Why you chose a particular action, especially
-  when alternatives existed
-- **Observations for teammates** — Patterns, recurring issues, or context that
-  other agents would benefit from knowing
-- **Blockers and deferred work** — Issues you could not resolve and why, so the
-  next run (or another agent) can pick them up
+At the end of every run, write a file named `improvement-coach-YYYY-MM-DD.md`
+with:
 
-Additionally record:
-
-- Which workflow run and trace you analyzed (workflow name, run ID, date)
-- Key findings and their categories (fix, spec, observation)
-- Patterns emerging across multiple coaching cycles
+- **Trace analyzed** — Workflow name, run ID, date, outcome
+- **Agent coverage** — Updated table of all agent workflows with the date you
+  last analyzed each (copy from memory, update today's entry)
+- **Actions taken** — Fixes applied, specs written
+- **Findings** — Key findings and their categories (fix, spec, observation)
+- **Recurring patterns** — Patterns that have appeared across multiple cycles,
+  noting whether past findings were addressed
+- **Observations for teammates** — Context other agents would benefit from
+- **Blockers and deferred work** — Issues you could not resolve
 - Trust audit results when analyzing product-backlog traces

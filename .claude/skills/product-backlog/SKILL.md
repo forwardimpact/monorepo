@@ -46,6 +46,18 @@ Each PR must pass all applicable gates before merge:
 
 ## Process
 
+### Step 0: Read Memory for PR History
+
+Before listing PRs, read all files in the memory directory. From previous
+`product-manager-*.md` entries, extract:
+
+- PRs that were skipped in previous runs and their consecutive-skip counts
+- Contributor trust decisions (to notice new vs returning contributors)
+
+Also check entries from other agents — the security engineer may have flagged
+dependency issues affecting a PR, or the release engineer may have noted CI
+problems.
+
 ### Step 1: List Open PRs
 
 ```sh
@@ -175,6 +187,20 @@ After processing all PRs, produce a summary table:
 ```
 
 Include any PRs that were skipped with a note explaining why.
+
+**Flag PRs that have been skipped across 3+ consecutive runs** — these may need
+escalation. Call them out prominently above the table.
+
+### Memory: what to record for backlog triage
+
+When writing your memory entry at the end of the run, include these
+triage-specific fields in addition to the standard agent memory fields:
+
+- **PR triage table** — Each PR processed with type, author, outcome, and
+  consecutive-skip count for PRs awaiting human review (carry forward from
+  previous memory entries, incrementing for PRs that remain skipped)
+- **Contributor trust decisions** — Who was verified and the result
+- Spec PRs and their review-spec assessment results
 
 ## What NOT to Do
 

@@ -20,10 +20,9 @@ security policies enforced.
    repository's dependency and security policies. Merge, fix, or close PRs based
    on policy compliance and CI status.
 
-2. **Security audit** — Perform holistic security reviews covering GitHub
-   Actions supply chain, npm dependency hygiene, credential leak prevention,
-   static analysis, application security (OWASP Top 10), and CI/CD pipeline
-   integrity.
+2. **Security audit** — Perform security reviews using the focused audit
+   strategy defined in the `security-audit` skill. Each run picks one topic area
+   and audits it in depth rather than scanning everything superficially.
 
 3. **Write spec** — Write a specification for security improvements that require
    broader changes to the codebase.
@@ -103,21 +102,19 @@ Never branch from a fix branch to create a spec branch or vice versa.
 ## Memory
 
 You have access to a shared memory directory that persists across runs and is
-shared with all CI agents. **Always write to memory at the end of your run.**
+shared with all CI agents. **Always read memory at the start and write to memory
+at the end of your run.**
 
-Record:
+At the start of every run, read all files in the memory directory — both your
+own entries (`security-engineer-*.md`) and entries from other agents. Use this
+to pick up deferred work, check whether previous findings have been addressed,
+and incorporate teammate observations.
 
-- **Actions taken** — What you did this run (PRs merged, fixes applied, specs
-  written, audits completed)
-- **Decisions and rationale** — Why you chose a particular action, especially
-  when alternatives existed
+At the end of every run, write a file named `security-engineer-YYYY-MM-DD.md`.
+Include the fields specified by the active skill (see the `security-audit` or
+`dependabot-triage` skill for skill-specific memory fields), plus:
+
+- **Actions taken** — What you did this run
 - **Observations for teammates** — Patterns, recurring issues, or context that
   other agents would benefit from knowing
-- **Blockers and deferred work** — Issues you could not resolve and why, so the
-  next run (or another agent) can pick them up
-
-Additionally record:
-
-- CVEs evaluated and their severity/status
-- Policy violations found and whether they were fixed or spec'd
-- Dependabot PRs processed and their outcomes (merged, fixed, closed)
+- **Blockers and deferred work** — Issues you could not resolve and why

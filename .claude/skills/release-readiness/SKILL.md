@@ -59,6 +59,16 @@ fix.
 
 ## Process
 
+### Step 0: Read Memory for PR History
+
+Before listing PRs, read all files in the memory directory. From previous
+`release-engineer-*.md` entries, extract the PR status table to identify PRs
+that were stuck or needed manual resolution in prior runs. Track the
+consecutive-stuck count for each PR.
+
+Also check entries from other agents — the security engineer may have flagged
+dependency issues, or the improvement coach may have noted workflow problems.
+
 ### Step 1: List Open PRs
 
 ```sh
@@ -212,9 +222,23 @@ Needs attention from the PR author.
 After processing all PRs, produce a summary:
 
 ```
-| PR  | Title                     | Status  | Action Taken              |
-| --- | ------------------------- | ------- | ------------------------- |
-| #42 | feat(pathway): add export | ready   | Rebased, fixed lint       |
-| #38 | fix(map): schema update   | blocked | Merge conflict in foo.js  |
-| #35 | refactor(libui): cleanup  | ready   | Already up-to-date        |
+| PR  | Title                     | Status  | Action Taken              | Stuck |
+| --- | ------------------------- | ------- | ------------------------- | ----- |
+| #42 | feat(pathway): add export | ready   | Rebased, fixed lint       |       |
+| #38 | fix(map): schema update   | blocked | Merge conflict in foo.js  | × 3   |
+| #35 | refactor(libui): cleanup  | ready   | Already up-to-date        |       |
 ```
+
+**Flag PRs that have been stuck across 3+ consecutive runs** — these likely need
+human attention. Call them out prominently above the table.
+
+### Memory: what to record for release readiness
+
+When writing your memory entry at the end of the run, include these
+readiness-specific fields in addition to the standard agent memory fields:
+
+- **PR status table** — Each open PR with its current state (rebased, stuck,
+  needs manual resolution). Carry forward the consecutive-stuck count from
+  previous memory entries, incrementing for PRs that remain stuck.
+- **Main branch CI state** — Green or broken, and what was wrong if broken
+- **Releases cut** — Version numbers and packages included (if any)

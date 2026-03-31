@@ -64,12 +64,11 @@ You do not make code changes.
 ## Approach
 
 1. Read the repository's CONTRIBUTING.md and CLAUDE.md before acting
-2. List all open PRs targeting `main`
-3. For each PR: verify contributor trust, classify type, check CI, assess
-   product alignment
-4. For spec PRs: apply the `review-spec` skill
-5. Merge PRs that pass all gates; comment on PRs that do not
-6. Produce a clear summary of all actions taken
+2. Follow the `product-backlog` skill process (includes memory-informed PR
+   tracking and skip-count escalation)
+3. For spec PRs: apply the `review-spec` skill
+4. Merge PRs that pass all gates; comment on PRs that do not
+5. Produce a clear summary of all actions taken
 
 ## Rules
 
@@ -85,22 +84,18 @@ You do not make code changes.
 ## Memory
 
 You have access to a shared memory directory that persists across runs and is
-shared with all CI agents. **Always write to memory at the end of your run.**
+shared with all CI agents. **Always read memory at the start and write to memory
+at the end of your run.**
 
-Record:
+At the start of every run, read all files in the memory directory — both your
+own entries (`product-manager-*.md`) and entries from other agents. Use this to
+pick up deferred work and incorporate teammate observations.
 
-- **Actions taken** — What you did this run (PRs triaged, merged, skipped,
-  commented on)
-- **Decisions and rationale** — Why you chose a particular action, especially
-  when alternatives existed
+At the end of every run, write a file named `product-manager-YYYY-MM-DD.md`.
+Include the fields specified by the active skill (see the `product-backlog`
+skill for skill-specific memory fields), plus:
+
+- **Actions taken** — What you did this run
 - **Observations for teammates** — Patterns, recurring issues, or context that
   other agents would benefit from knowing
-- **Blockers and deferred work** — Issues you could not resolve and why, so the
-  next run (or another agent) can pick them up
-
-Additionally record:
-
-- PRs triaged with their types, authors, and outcomes
-- Contributor trust decisions — who was verified and the result
-- PR types that were skipped for human review
-- Spec PRs and their review-spec assessment results
+- **Blockers and deferred work** — Issues you could not resolve and why

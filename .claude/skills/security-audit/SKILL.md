@@ -77,9 +77,72 @@ verify:
 - Publish workflows block on audit failures (not just PR checks)
 - CI and local developer workflows run the same checks (same Makefile target)
 
-## 7. Audit Workflow
+## 7. Focused Audit Strategy
 
-How to perform a review:
+Each audit run covers **one topic** in depth. This produces higher-quality
+findings than a shallow pass over everything.
+
+### Topic areas
+
+| Topic                        | What to audit                                                          |
+| ---------------------------- | ---------------------------------------------------------------------- |
+| `actions-supply-chain`       | GitHub Actions SHA pins, permissions, third-party action usage         |
+| `npm-dependencies`           | `npm audit`, duplicate deps, outdated packages, CVE triage             |
+| `credential-leak-prevention` | `.gitignore`, `.gitleaks.toml`, secrets in workflows, pre-commit hooks |
+| `static-analysis`            | ESLint security rules, disabled rules, lint config gaps                |
+| `app-security-services`      | OWASP Top 10 in `services/` code (injection, SSRF, auth, etc.)         |
+| `app-security-libraries`     | OWASP Top 10 in `libraries/` code                                      |
+| `app-security-products`      | OWASP Top 10 in `products/` code                                       |
+| `cicd-pipeline`              | CI/CD workflow integrity, publish gates, audit gates                   |
+
+### Topic selection process
+
+1. **Read memory** — At the start of the audit, read all files in the memory
+   directory. Look for previous `security-engineer-*.md` entries to find which
+   topics have been covered and when.
+
+2. **Build a coverage map** — From memory, construct a list of topics with their
+   last audit date. Topics never audited go to the top. Among audited topics,
+   the oldest goes next.
+
+3. **Revisit threshold** — If every topic has been covered within the last 4
+   runs (approximately 8 days), revisit the oldest one. This ensures periodic
+   re-examination as the codebase evolves.
+
+4. **Announce your pick** — Before starting the audit, state which topic you
+   selected and why (e.g., "Selecting `app-security-services` — never audited"
+   or "Revisiting `actions-supply-chain` — last audited 2026-03-20, oldest
+   topic").
+
+5. **Go deep** — Audit the selected topic thoroughly. Read every relevant file,
+   not just a sample. For application security topics, read the actual source
+   files in the target directory, don't just grep for patterns.
+
+### Cross-referencing teammate observations
+
+When reading memory, also check entries from other agents. The improvement coach
+may have noted security-relevant patterns in traces. The release engineer may
+have flagged dependency issues during releases. Use these observations to inform
+your audit focus within the selected topic.
+
+### Memory: what to record for security audits
+
+When writing your memory entry at the end of the run, include these
+audit-specific fields in addition to the standard agent memory fields:
+
+- **Topic audited** — Which topic area and why it was selected
+- **Coverage map** — Updated table of all topics with their last audit date
+  (copy from memory, update the row for today's topic)
+- **Findings summary** — What you found, severity, and disposition (fixed,
+  spec'd, or deferred)
+- **Deferred work** — Issues that need follow-up in a future run, with enough
+  context that your next run can pick them up without re-investigating
+- CVEs evaluated and their severity/status
+- Policy violations found and whether they were fixed or spec'd
+
+## 8. Audit Checklist
+
+How to perform the deep review for the selected topic:
 
 - Run `make audit` locally and report findings.
 - Review `.github/workflows/` for unpinned actions, missing permissions, exposed
@@ -91,7 +154,7 @@ How to perform a review:
   `innerHTML`, `dangerouslySetInnerHTML`, `new Function(`, unsanitized template
   literals in SQL/shell contexts.
 
-## 8. Output Requirements
+## 9. Output Requirements
 
 Every audit must produce **both** output categories when applicable:
 

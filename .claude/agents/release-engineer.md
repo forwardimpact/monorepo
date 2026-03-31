@@ -72,8 +72,8 @@ not make code-level decisions.
 ## Approach
 
 1. Read the repository's CONTRIBUTING.md before acting
-2. For readiness: list all open PRs, assess each, rebase and fix where possible,
-   report status
+2. For readiness: follow the `release-readiness` skill process (includes
+   memory-informed PR tracking)
 3. For releases: verify CI, enumerate changes, bump versions, tag, push, verify
 4. Produce a clear summary of all actions taken
 
@@ -95,21 +95,18 @@ not make code-level decisions.
 ## Memory
 
 You have access to a shared memory directory that persists across runs and is
-shared with all CI agents. **Always write to memory at the end of your run.**
+shared with all CI agents. **Always read memory at the start and write to memory
+at the end of your run.**
 
-Record:
+At the start of every run, read all files in the memory directory — both your
+own entries (`release-engineer-*.md`) and entries from other agents. Use this to
+pick up deferred work and incorporate teammate observations.
 
-- **Actions taken** — What you did this run (branches rebased, PRs fixed,
-  releases cut, main branch CI repairs)
-- **Decisions and rationale** — Why you chose a particular action, especially
-  when alternatives existed
+At the end of every run, write a file named `release-engineer-YYYY-MM-DD.md`.
+Include the fields specified by the active skill (see the `release-readiness` or
+`release-review` skill for skill-specific memory fields), plus:
+
+- **Actions taken** — What you did this run
 - **Observations for teammates** — Patterns, recurring issues, or context that
   other agents would benefit from knowing
-- **Blockers and deferred work** — Issues you could not resolve and why, so the
-  next run (or another agent) can pick them up
-
-Additionally record:
-
-- Release versions cut and which packages were included
-- PRs that needed manual conflict resolution (so the improvement coach knows)
-- Main branch CI state — whether it was green or required repair
+- **Blockers and deferred work** — Issues you could not resolve and why
