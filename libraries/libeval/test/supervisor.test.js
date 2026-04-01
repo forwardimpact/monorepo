@@ -29,12 +29,13 @@ function createMockRunner(responses, messages) {
   // Override run and resume to return scripted responses
   runner.run = async (_task) => {
     const resp = responses[callIndex++];
-    // Buffer messages for drainOutput
     const msgs = messages?.[callIndex - 1] ?? [
       { type: "assistant", content: resp.text },
     ];
     for (const m of msgs) {
-      runner.buffer.push(JSON.stringify(m));
+      const line = JSON.stringify(m);
+      runner.buffer.push(line);
+      if (runner.onLine) runner.onLine(line);
     }
     runner.sessionId = "mock-session";
     return {
@@ -50,7 +51,9 @@ function createMockRunner(responses, messages) {
       { type: "assistant", content: resp.text },
     ];
     for (const m of msgs) {
-      runner.buffer.push(JSON.stringify(m));
+      const line = JSON.stringify(m);
+      runner.buffer.push(line);
+      if (runner.onLine) runner.onLine(line);
     }
     return { success: resp.success ?? true, text: resp.text };
   };
@@ -211,6 +214,8 @@ describe("Supervisor", () => {
       output,
       maxTurns: 10,
     });
+    agentRunner.onLine = (line) => supervisor.emitLine(line);
+    supervisorRunner.onLine = (line) => supervisor.emitLine(line);
 
     await supervisor.run("Task");
 
@@ -258,6 +263,8 @@ describe("Supervisor", () => {
       output,
       maxTurns: 10,
     });
+    agentRunner.onLine = (line) => supervisor.emitLine(line);
+    supervisorRunner.onLine = (line) => supervisor.emitLine(line);
 
     await supervisor.run("Task");
 
@@ -273,7 +280,7 @@ describe("Supervisor", () => {
     assert.strictEqual(tagged.event.source, "sdk-internal");
   });
 
-  test("drains agent output and emits summary when agent errors on turn 0", async () => {
+  test("emits agent output and summary when agent errors on turn 0", async () => {
     const agentMessages = [[{ type: "assistant", content: "Partial work" }]];
     const agentRunner = createMockRunner(
       [{ text: "Partial work", success: false }],
@@ -296,6 +303,8 @@ describe("Supervisor", () => {
       output,
       maxTurns: 10,
     });
+    agentRunner.onLine = (line) => supervisor.emitLine(line);
+    supervisorRunner.onLine = (line) => supervisor.emitLine(line);
 
     const result = await supervisor.run("Task");
 

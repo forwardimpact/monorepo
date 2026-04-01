@@ -36,6 +36,10 @@ export class Supervisor {
     this.supervisorRunner = supervisorRunner;
     this.output = output;
     this.maxTurns = maxTurns ?? 20;
+    /** @type {"agent"|"supervisor"} */
+    this.currentSource = "agent";
+    /** @type {number} */
+    this.currentTurn = 0;
   }
 
   /**
@@ -45,8 +49,9 @@ export class Supervisor {
    */
   async run(task) {
     // Turn 0: Agent receives the task and starts working
+    this.currentSource = "agent";
+    this.currentTurn = 0;
     let agentResult = await this.agentRunner.run(task);
-    this.emitTagged("agent", 0);
 
     if (agentResult.error) {
       this.emitSummary({ success: false, turns: 0 });
@@ -59,13 +64,14 @@ export class Supervisor {
         `The agent reported:\n\n${agentResult.text}\n\n` +
         `Decide: provide guidance, answer a question, or say EVALUATION_COMPLETE on its own line.`;
 
+      this.currentSource = "supervisor";
+      this.currentTurn = turn;
       let supervisorResult;
       if (turn === 1) {
         supervisorResult = await this.supervisorRunner.run(supervisorPrompt);
       } else {
         supervisorResult = await this.supervisorRunner.resume(supervisorPrompt);
       }
-      this.emitTagged("supervisor", turn);
 
       if (supervisorResult.error) {
         this.emitSummary({ success: false, turns: turn });
@@ -78,8 +84,9 @@ export class Supervisor {
       }
 
       // Supervisor's response becomes the agent's next input
+      this.currentSource = "agent";
+      this.currentTurn = turn;
       agentResult = await this.agentRunner.resume(supervisorResult.text);
-      this.emitTagged("agent", turn);
 
       if (agentResult.error) {
         this.emitSummary({ success: false, turns: turn });
@@ -92,19 +99,18 @@ export class Supervisor {
   }
 
   /**
-   * Drain a runner's buffered output and re-emit each line tagged with
-   * source and turn metadata.
-   * @param {"agent"|"supervisor"} source
-   * @param {number} turn
+   * Emit a single NDJSON line tagged with the current source and turn.
+   * Called in real-time via the AgentRunner onLine callback.
+   * @param {string} line - Raw NDJSON line from the runner
    */
-  emitTagged(source, turn) {
-    const runner =
-      source === "agent" ? this.agentRunner : this.supervisorRunner;
-    for (const line of runner.drainOutput()) {
-      const event = JSON.parse(line);
-      const tagged = { source, turn, event };
-      this.output.write(JSON.stringify(tagged) + "\n");
-    }
+  emitLine(line) {
+    const event = JSON.parse(line);
+    const tagged = {
+      source: this.currentSource,
+      turn: this.currentTurn,
+      event,
+    };
+    this.output.write(JSON.stringify(tagged) + "\n");
   }
 
   /**
@@ -143,6 +149,11 @@ export function createSupervisor({
   maxTurns,
   allowedTools,
 }) {
+  // Forward-reference: onLine captures `supervisor` before construction completes.
+  // This is safe because onLine is only called during run(), after construction.
+  let supervisor;
+  const onLine = (line) => supervisor.emitLine(line);
+
   const agentRunner = createAgentRunner({
     cwd: agentCwd,
     query,
@@ -150,6 +161,7 @@ export function createSupervisor({
     model,
     maxTurns: 50,
     allowedTools,
+    onLine,
   });
 
   const supervisorRunner = createAgentRunner({
@@ -159,7 +171,14 @@ export function createSupervisor({
     model,
     maxTurns: 10,
     allowedTools: ["Read", "Glob", "Grep"],
+    onLine,
   });
 
-  return new Supervisor({ agentRunner, supervisorRunner, output, maxTurns });
+  supervisor = new Supervisor({
+    agentRunner,
+    supervisorRunner,
+    output,
+    maxTurns,
+  });
+  return supervisor;
 }

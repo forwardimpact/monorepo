@@ -16,6 +16,7 @@ export class AgentRunner {
    * @param {number} [deps.maxTurns] - Maximum agentic turns
    * @param {string[]} [deps.allowedTools] - Tools the agent may use
    * @param {string} [deps.permissionMode] - SDK permission mode
+   * @param {function} [deps.onLine] - Callback invoked with each NDJSON line as it's produced
    */
   constructor({
     cwd,
@@ -25,6 +26,7 @@ export class AgentRunner {
     maxTurns,
     allowedTools,
     permissionMode,
+    onLine,
   }) {
     if (!cwd) throw new Error("cwd is required");
     if (!query) throw new Error("query is required");
@@ -43,6 +45,7 @@ export class AgentRunner {
       "Edit",
     ];
     this.permissionMode = permissionMode ?? "bypassPermissions";
+    this.onLine = onLine ?? null;
     this.sessionId = null;
     this.buffer = [];
   }
@@ -72,6 +75,7 @@ export class AgentRunner {
         const line = JSON.stringify(message);
         this.output.write(line + "\n");
         this.buffer.push(line);
+        if (this.onLine) this.onLine(line);
 
         if (message.type === "system" && message.subtype === "init") {
           this.sessionId = message.session_id;
@@ -107,6 +111,7 @@ export class AgentRunner {
         const line = JSON.stringify(message);
         this.output.write(line + "\n");
         this.buffer.push(line);
+        if (this.onLine) this.onLine(line);
 
         if (message.type === "result") {
           text = message.result ?? "";
