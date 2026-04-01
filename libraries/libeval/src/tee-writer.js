@@ -107,7 +107,6 @@ export class TeeWriter extends Writable {
     if (parsed.event) {
       if (parsed.source && parsed.source !== this.lastSource) {
         this.lastSource = parsed.source;
-        this.textStream.write(`\n[${parsed.source}]\n`);
       }
       this.collector.addLine(JSON.stringify(parsed.event));
       this.flushTurns();
@@ -119,15 +118,19 @@ export class TeeWriter extends Writable {
    */
   flushTurns() {
     const turns = this.collector.turns;
+    const prefix =
+      this.mode === "supervised" && this.lastSource
+        ? `[${this.lastSource}] `
+        : "";
     while (this.turnsEmitted < turns.length) {
       const turn = turns[this.turnsEmitted++];
       if (turn.role === "assistant") {
         for (const block of turn.content) {
           if (block.type === "text") {
-            this.textStream.write(block.text + "\n");
+            this.textStream.write(`${prefix}${block.text}\n`);
           } else if (block.type === "tool_use") {
             const input = summarizeInput(block.input);
-            this.textStream.write(`> Tool: ${block.name} ${input}\n`);
+            this.textStream.write(`${prefix}> Tool: ${block.name} ${input}\n`);
           }
         }
       }

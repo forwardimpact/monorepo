@@ -187,11 +187,9 @@ describe("TeeWriter", () => {
     assert.strictEqual(fileLines.length, 3);
     assert.strictEqual(JSON.parse(fileLines[0]).source, "agent");
 
-    // Text should show source labels
-    assert.ok(textData.includes("[agent]"));
-    assert.ok(textData.includes("Working on it"));
-    assert.ok(textData.includes("[supervisor]"));
-    assert.ok(textData.includes("Looks good"));
+    // Text should show source prefixes on content lines
+    assert.ok(textData.includes("[agent] Working on it"));
+    assert.ok(textData.includes("[supervisor] Looks good"));
     assert.ok(textData.includes("Evaluation completed after 1 turns"));
   });
 
@@ -254,9 +252,9 @@ describe("TeeWriter", () => {
     await writeLines(writer, events);
 
     const textData = collect(textStream);
-    // [agent] label should appear only once
-    const agentLabels = textData.split("[agent]").length - 1;
-    assert.strictEqual(agentLabels, 1);
+    // [agent] prefix should appear on each content line
+    assert.ok(textData.includes("[agent] Step 1"));
+    assert.ok(textData.includes("[agent] Step 2"));
   });
 
   test("handles partial lines across chunks", async () => {
