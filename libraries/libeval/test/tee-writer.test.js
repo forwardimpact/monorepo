@@ -304,9 +304,7 @@ describe("TeeWriter", () => {
     assert.ok(textData.includes("> Tool: Bash"));
     assert.ok(textData.includes("..."));
     // Truncated to ~200 chars
-    const toolLine = textData
-      .split("\n")
-      .find((l) => l.startsWith("> Tool:"));
+    const toolLine = textData.split("\n").find((l) => l.startsWith("> Tool:"));
     assert.ok(toolLine.length < 250);
   });
 
