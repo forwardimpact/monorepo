@@ -1,5 +1,7 @@
 import { createWriteStream } from "fs";
-import { createTraceCollector } from "@forwardimpact/libeval";
+import { PassThrough } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import { createTeeWriter } from "../tee-writer.js";
 
 /**
  * Tee command — stream text output to stdout while optionally saving the raw
@@ -12,46 +14,18 @@ import { createTraceCollector } from "@forwardimpact/libeval";
 export async function runTeeCommand(args) {
   const outputPath = args.find((a) => !a.startsWith("-")) ?? null;
   const fileStream = outputPath ? createWriteStream(outputPath) : null;
-  const collector = createTraceCollector();
-  const turnsEmitted = { count: 0 };
+
+  // TeeWriter requires a fileStream; when no output file is specified,
+  // use a PassThrough as a no-op sink (NDJSON is not saved).
+  const sink = fileStream ?? new PassThrough();
+  const tee = createTeeWriter({
+    fileStream: sink,
+    textStream: process.stdout,
+    mode: "raw",
+  });
 
   try {
-    let buffer = "";
-
-    for await (const chunk of process.stdin) {
-      buffer += chunk.toString("utf8");
-
-      let newlineIdx;
-      while ((newlineIdx = buffer.indexOf("\n")) !== -1) {
-        const line = buffer.slice(0, newlineIdx);
-        buffer = buffer.slice(newlineIdx + 1);
-
-        if (fileStream) {
-          fileStream.write(line + "\n");
-        }
-
-        collector.addLine(line);
-        flushNewTurns(collector, turnsEmitted);
-      }
-    }
-
-    // Process any remaining data without a trailing newline
-    if (buffer.trim()) {
-      if (fileStream) {
-        fileStream.write(buffer + "\n");
-      }
-      collector.addLine(buffer);
-      flushNewTurns(collector, turnsEmitted);
-    }
-
-    // Emit the result summary at the end
-    if (collector.result) {
-      const text = collector.toText();
-      const lastNewline = text.lastIndexOf("\n---");
-      if (lastNewline !== -1) {
-        process.stdout.write(text.slice(lastNewline) + "\n");
-      }
-    }
+    await pipeline(process.stdin, tee);
   } finally {
     if (fileStream) {
       await new Promise((resolve, reject) => {
@@ -60,40 +34,4 @@ export async function runTeeCommand(args) {
       });
     }
   }
-}
-
-/**
- * Write text for any new turns that haven't been emitted yet.
- * @param {import("@forwardimpact/libeval").TraceCollector} collector
- * @param {{ count: number }} turnsEmitted
- */
-function flushNewTurns(collector, turnsEmitted) {
-  const turns = collector.turns;
-  while (turnsEmitted.count < turns.length) {
-    const turn = turns[turnsEmitted.count];
-    turnsEmitted.count++;
-
-    if (turn.role === "assistant") {
-      for (const block of turn.content) {
-        if (block.type === "text") {
-          process.stdout.write(block.text + "\n");
-        } else if (block.type === "tool_use") {
-          const inputSummary = summarizeInput(block.input);
-          process.stdout.write(`> Tool: ${block.name} ${inputSummary}\n`);
-        }
-      }
-    }
-  }
-}
-
-/**
- * Summarize tool input for text display, truncated to keep logs readable.
- * @param {object} input - Tool input object
- * @returns {string} Truncated summary
- */
-function summarizeInput(input) {
-  if (!input || typeof input !== "object") return "";
-  const json = JSON.stringify(input);
-  if (json.length <= 200) return json;
-  return json.slice(0, 197) + "...";
 }
