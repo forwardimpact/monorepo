@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { parseArgs } from "node:util";
 
 import { createScriptConfig } from "@forwardimpact/libconfig";

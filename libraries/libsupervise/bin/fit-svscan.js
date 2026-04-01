@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * svscan - Supervision daemon that manages a SupervisionTree.
  * Listens on a Unix domain socket for control commands.

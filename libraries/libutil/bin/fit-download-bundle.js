@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 import { spawn } from "node:child_process";
 import { createScriptConfig } from "@forwardimpact/libconfig";

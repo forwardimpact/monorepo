@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 import fs from "node:fs/promises";
 import { parseArgs } from "node:util";

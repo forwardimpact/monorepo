@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { createResourceIndex } from "@forwardimpact/libresource";
 import { createLogger } from "@forwardimpact/libtelemetry";
 

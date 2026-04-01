@@ -116,6 +116,14 @@ designed for external consumption. Organizations install Pathway, Map, and other
 products in their own environments, bringing their own framework data. Coding
 agents at those installations drive the CLIs (`fit-map`, `fit-pathway`, etc.).
 
+### Product Distribution
+
+Pathway is installed via a generated `install.sh` script (see
+`products/pathway/templates/install.template.sh`) that installs the npm package
+globally and downloads organization data to `~/.fit/data/pathway/`.
+
+### Skills Distribution
+
 Skills in `.claude/skills/` serve two distinct purposes:
 
 - **Internal skills** (library groups like `libs-*`, product internals) help
@@ -124,9 +132,17 @@ Skills in `.claude/skills/` serve two distinct purposes:
   understand how the products **work** — not how they are **implemented**. These
   skills link to documentation for progressive disclosure, not to source code.
 
+Published skills are synced to the `forwardimpact/skills` repository on push to
+`main` (see `.github/workflows/publish-skills.yml`). Users install them with
+`npx skills add forwardimpact/skills`.
+
 ## Structure
 
 **Tech**: Bun 1.2+, Plain JS + JSDoc, YAML, bun workspaces, no frameworks
+
+**Runtime policy**: Development uses Bun throughout (test runner, workspace
+management, scripts). User-facing CLI entry points (`bin/fit-*.js`) use
+`#!/usr/bin/env node` for compatibility — customers may not have Bun installed.
 
 ```
 products/

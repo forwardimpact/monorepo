@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 import { runOutputCommand } from "../src/commands/output.js";
 import { runTeeCommand } from "../src/commands/tee.js";

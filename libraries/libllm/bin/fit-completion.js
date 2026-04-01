@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createLlmApi } from "@forwardimpact/libllm";
 

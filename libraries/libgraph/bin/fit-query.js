@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { createGraphIndex, parseGraphQuery } from "@forwardimpact/libgraph";
 
 /**
