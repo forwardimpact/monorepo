@@ -39,6 +39,30 @@ The structured trace contains:
 When the structured trace lacks detail, refer back to the raw NDJSON for the
 full event stream.
 
+### Handling Large Traces
+
+Structured traces often exceed file size limits (256KB). Use `jq` to extract
+sections:
+
+```sh
+# Extract metadata and summary
+jq '.metadata, .summary' structured.json
+
+# Count turns
+jq '.turns | length' structured.json
+
+# Read turns in batches
+jq '.turns[0:20]' structured.json   # First 20 turns
+jq '.turns[50:70]' structured.json  # Turns 50-70
+jq '.turns[-10:]' structured.json   # Last 10 turns
+
+# Find errors
+jq '.turns[] | select(.role == "tool_result" and .isError == true) | {index, content: .content[0:200]}' structured.json
+
+# Count tool usage
+jq '[.turns[] | select(.role == "assistant") | .content[] | select(.type == "tool_use") | .name] | group_by(.) | map({tool: .[0], count: length}) | sort_by(-.count)' structured.json
+```
+
 ## Process
 
 ### Phase 1: Open Coding
