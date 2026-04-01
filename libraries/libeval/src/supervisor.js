@@ -9,6 +9,7 @@
 
 import { PassThrough } from "node:stream";
 import { createAgentRunner } from "./agent-runner.js";
+import { TraceCollector } from "./trace-collector.js";
 
 /**
  * Check if the supervisor's response signals evaluation completion.
@@ -92,9 +93,12 @@ export class Supervisor {
         return { success: false, turns: turn };
       }
 
-      // Agent's output goes back to the supervisor
+      // Build the full agent transcript from buffered NDJSON events so the
+      // supervisor sees tool calls and reasoning, not just the SDK result summary.
+      const agentTranscript = this.extractTranscript(this.agentRunner);
+
       const supervisorPrompt =
-        `The agent reported:\n\n${agentResult.text}\n\n` +
+        `The agent reported:\n\n${agentTranscript}\n\n` +
         `Decide: provide guidance, answer a question, or say EVALUATION_COMPLETE on its own line.`;
 
       this.currentSource = "supervisor";
@@ -114,6 +118,21 @@ export class Supervisor {
 
     this.emitSummary({ success: false, turns: this.maxTurns });
     return { success: false, turns: this.maxTurns };
+  }
+
+  /**
+   * Extract a human-readable transcript from an AgentRunner's buffered output.
+   * Drains the buffer and replays events through a TraceCollector.
+   * @param {import("./agent-runner.js").AgentRunner} runner
+   * @returns {string}
+   */
+  extractTranscript(runner) {
+    const lines = runner.drainOutput();
+    const collector = new TraceCollector();
+    for (const line of lines) {
+      collector.addLine(line);
+    }
+    return collector.toText() || "[The agent produced no output.]";
   }
 
   /**
