@@ -138,6 +138,8 @@ export class Supervisor {
  * @param {string} [deps.model] - Claude model identifier
  * @param {number} [deps.maxTurns] - Maximum supervisor ↔ agent exchanges
  * @param {string[]} [deps.allowedTools] - Tools the agent may use
+ * @param {string} [deps.supervisorProfile] - Supervisor agent profile name
+ * @param {string} [deps.agentProfile] - Agent profile name
  * @returns {Supervisor}
  */
 export function createSupervisor({
@@ -148,6 +150,8 @@ export function createSupervisor({
   model,
   maxTurns,
   allowedTools,
+  supervisorProfile,
+  agentProfile,
 }) {
   // Forward-reference: onLine captures `supervisor` before construction completes.
   // This is safe because onLine is only called during run(), after construction.
@@ -163,6 +167,7 @@ export function createSupervisor({
     allowedTools,
     onLine,
     settingSources: ["project"],
+    agentProfile,
   });
 
   const supervisorRunner = createAgentRunner({
@@ -174,6 +179,7 @@ export function createSupervisor({
     allowedTools: ["Read", "Glob", "Grep"],
     onLine,
     settingSources: ["project"],
+    agentProfile: supervisorProfile,
   });
 
   supervisor = new Supervisor({

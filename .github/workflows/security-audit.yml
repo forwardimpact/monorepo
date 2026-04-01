@@ -45,5 +45,6 @@ jobs:
         with:
           app-id: ${{ secrets.CI_APP_ID }}
           task: .github/tasks/security-audit.md
+          agent-profile: "security-engineer"
           model: "opus"
           max-turns: "50"

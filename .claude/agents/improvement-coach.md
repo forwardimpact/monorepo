@@ -88,18 +88,36 @@ recently) before proceeding.
 
 ### Step 2: Download and Process the Trace
 
-Download the trace artifact for the selected run:
+Every workflow run uploads trace artifacts with consistent names:
+
+- **`combined-trace`** — full interleaved agent + supervisor trace (supervised
+  runs only). **Prefer this for analysis** — it gives the most holistic view.
+- **`agent-trace`** — agent events only (all runs). In supervised runs the
+  events are unwrapped to match the format of a regular run.
+- **`supervisor-trace`** — supervisor events only (supervised runs only).
+
+For supervised runs, download the combined trace:
 
 ```sh
-gh run download <run-id> --name claude-trace --dir /tmp/trace-<run-id>
-bunx fit-eval output --format=json < /tmp/trace-<run-id>/claude-trace/trace.ndjson > /tmp/trace-<run-id>/structured.json
+gh run download <run-id> --name combined-trace --dir /tmp/trace-<run-id>
+bunx fit-eval output --format=json < /tmp/trace-<run-id>/trace.ndjson > /tmp/trace-<run-id>/structured.json
 ```
+
+For non-supervised runs (which only have `agent-trace`):
+
+```sh
+gh run download <run-id> --name agent-trace --dir /tmp/trace-<run-id>
+bunx fit-eval output --format=json < /tmp/trace-<run-id>/trace.ndjson > /tmp/trace-<run-id>/structured.json
+```
+
+Download `agent-trace` or `supervisor-trace` separately when you need to isolate
+one side of the conversation.
 
 Also keep the raw NDJSON available for detailed inspection when the structured
 summary is insufficient.
 
-If the selected run has no `claude-trace` artifact, pick a different run and
-note why you moved on.
+If the selected run has no trace artifacts, pick a different run and note why
+you moved on.
 
 ### Step 3: Deep-Analyze the Trace
 

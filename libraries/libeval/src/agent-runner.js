@@ -18,6 +18,7 @@ export class AgentRunner {
    * @param {string} [deps.permissionMode] - SDK permission mode
    * @param {function} [deps.onLine] - Callback invoked with each NDJSON line as it's produced
    * @param {string[]} [deps.settingSources] - SDK setting sources (e.g. ['project'] to load CLAUDE.md)
+   * @param {string} [deps.agentProfile] - Agent profile name to pass as --agent to the Claude CLI
    */
   constructor({
     cwd,
@@ -29,6 +30,7 @@ export class AgentRunner {
     permissionMode,
     onLine,
     settingSources,
+    agentProfile,
   }) {
     if (!cwd) throw new Error("cwd is required");
     if (!query) throw new Error("query is required");
@@ -49,6 +51,7 @@ export class AgentRunner {
     this.permissionMode = permissionMode ?? "bypassPermissions";
     this.onLine = onLine ?? null;
     this.settingSources = settingSources ?? [];
+    this.agentProfile = agentProfile ?? null;
     this.sessionId = null;
     this.buffer = [];
   }
@@ -74,6 +77,7 @@ export class AgentRunner {
           permissionMode: this.permissionMode,
           allowDangerouslySkipPermissions: true,
           settingSources: this.settingSources,
+          ...(this.agentProfile && { extraArgs: { agent: this.agentProfile } }),
         },
       })) {
         const line = JSON.stringify(message);

@@ -46,5 +46,6 @@ jobs:
         with:
           app-id: ${{ secrets.CI_APP_ID }}
           task: .github/tasks/product-feedback.md
+          agent-profile: "product-manager"
           model: "opus"
           max-turns: "50"

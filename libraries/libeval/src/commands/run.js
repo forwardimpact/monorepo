@@ -30,6 +30,7 @@ function parseFlag(args, name) {
  *   --max-turns=N        Maximum agentic turns (default: 50)
  *   --output=PATH        Write NDJSON trace to file (default: stdout)
  *   --allowed-tools=LIST Comma-separated tools (default: Bash,Read,Glob,Grep,Write,Edit)
+ *   --agent-profile=NAME Agent profile name (passed as --agent to Claude CLI)
  *
  * @param {string[]} args - Command arguments
  */
@@ -41,6 +42,7 @@ export async function runRunCommand(args) {
   const model = parseFlag(args, "model") ?? "opus";
   const maxTurns = parseInt(parseFlag(args, "max-turns") ?? "50", 10);
   const outputPath = parseFlag(args, "output");
+  const agentProfile = parseFlag(args, "agent-profile") ?? undefined;
   const allowedTools = (
     parseFlag(args, "allowed-tools") ?? "Bash,Read,Glob,Grep,Write,Edit"
   ).split(",");
@@ -63,6 +65,7 @@ export async function runRunCommand(args) {
     maxTurns,
     allowedTools,
     settingSources: ["project"],
+    agentProfile,
   });
 
   const result = await runner.run(taskContent);

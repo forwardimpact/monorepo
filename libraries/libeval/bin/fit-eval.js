@@ -31,6 +31,7 @@ Run options:
   --max-turns=N        Maximum agentic turns (default: 50)
   --output=PATH        Write NDJSON trace to file (default: stdout)
   --allowed-tools=LIST Comma-separated tools (default: Bash,Read,Glob,Grep,Write,Edit)
+  --agent-profile=NAME Agent profile name (passed as --agent to Claude CLI)
 
 Supervise options:
   --task=PATH               Path to task file (required)
@@ -40,6 +41,8 @@ Supervise options:
   --max-turns=N             Maximum supervisor ↔ agent exchanges (default: 20)
   --output=PATH             Write NDJSON trace to file (default: stdout)
   --allowed-tools=LIST      Comma-separated tools for agent (default: Bash,Read,Glob,Grep,Write,Edit)
+  --supervisor-profile=NAME Supervisor agent profile name (passed as --agent to Claude CLI)
+  --agent-profile=NAME      Agent profile name (passed as --agent to Claude CLI)
 
 Options:
   --help      Show this help message

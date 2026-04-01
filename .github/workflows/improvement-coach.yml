@@ -46,5 +46,6 @@ jobs:
         with:
           app-id: ${{ secrets.CI_APP_ID }}
           task: .github/tasks/improvement-coach.md
+          agent-profile: "improvement-coach"
           model: "opus"
           max-turns: "50"

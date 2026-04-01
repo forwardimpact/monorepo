@@ -1,10 +1,10 @@
-name: Guide Installation
+name: Guide Setup
 
 on:
   workflow_dispatch: # Manual trigger for on-demand evaluation
 
 concurrency:
-  group: guide-installation
+  group: guide-setup
   cancel-in-progress: true
 
 permissions:
@@ -42,7 +42,7 @@ jobs:
           cp scenarios/guide-setup/agent/CLAUDE.md "$agent_dir/CLAUDE.md"
           echo "dir=$agent_dir" >> "$GITHUB_OUTPUT"
 
-      - name: Evaluate Guide Installation
+      - name: Evaluate Guide Setup
         uses: ./.github/actions/fit-eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -52,9 +52,9 @@ jobs:
           app-id: ${{ secrets.CI_APP_ID }}
           mode: "supervise"
           task: scenarios/guide-setup/task.md
-          supervisor-cwd: scenarios/guide-setup/supervisor
+          supervisor-cwd: "."
           agent-cwd: ${{ steps.agent-workspace.outputs.dir }}
+          supervisor-profile: "product-manager"
           model: "opus"
           max-turns: "20"
           allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,WebFetch,WebSearch"
-          trace-name: "guide-installation-trace"

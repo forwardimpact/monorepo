@@ -32,14 +32,18 @@ inputs:
     description: Comma-separated list of allowed tools
     required: false
     default: "Bash,Read,Glob,Grep,Write,Edit"
+  supervisor-profile:
+    description:
+      Supervisor agent profile name (passed as --agent to Claude CLI, supervise
+      mode only)
+    required: false
+  agent-profile:
+    description: Agent profile name (passed as --agent to Claude CLI)
+    required: false
   trace:
     description: Enable trace capture and artifact upload
     required: false
     default: "true"
-  trace-name:
-    description: Artifact name for the trace
-    required: false
-    default: "eval-trace"
   app-slug:
     description: GitHub App slug for git identity
     required: false
@@ -79,6 +83,8 @@ runs:
         MODEL: ${{ inputs.model }}
         MAX_TURNS: ${{ inputs.max-turns }}
         TOOLS: ${{ inputs.allowed-tools }}
+        SUPERVISOR_PROFILE: ${{ inputs.supervisor-profile }}
+        AGENT_PROFILE: ${{ inputs.agent-profile }}
         TRACE_ENABLED: ${{ inputs.trace }}
         TRACE_DIR: ${{ steps.setup.outputs.trace-dir }}
       run: |
@@ -92,6 +98,13 @@ runs:
         if [ "$MODE" = "supervise" ]; then
           agent_cwd="${AGENT_CWD:-$(mktemp -d)}"
 
+          if [ -n "$SUPERVISOR_PROFILE" ]; then
+            args+=("--supervisor-profile=$SUPERVISOR_PROFILE")
+          fi
+          if [ -n "$AGENT_PROFILE" ]; then
+            args+=("--agent-profile=$AGENT_PROFILE")
+          fi
+
           bunx fit-eval supervise \
             --task="$TASK" \
             --supervisor-cwd="$SUPERVISOR_CWD" \
@@ -101,6 +114,10 @@ runs:
             --allowed-tools="$TOOLS" \
             "${args[@]}"
         else
+          if [ -n "$AGENT_PROFILE" ]; then
+            args+=("--agent-profile=$AGENT_PROFILE")
+          fi
+
           bunx fit-eval run \
             --task="$TASK" \
             --cwd="$CWD" \
@@ -110,11 +127,45 @@ runs:
             "${args[@]}"
         fi
 
-    - name: Upload trace artifact
+    - name: Split supervised trace
+      if:
+        always() && inputs.trace == 'true' && inputs.mode == 'supervise' &&
+        steps.setup.outputs.trace-dir != ''
+      shell: bash
+      env:
+        TRACE_DIR: ${{ steps.setup.outputs.trace-dir }}
+      run: |
+        # Extract agent events (unwrapped) so the trace matches a regular run
+        jq -c 'select(.source == "agent") | .event' "$TRACE_DIR/trace.ndjson" \
+          > "$TRACE_DIR/agent-trace.ndjson"
+        # Extract supervisor events (unwrapped)
+        jq -c 'select(.source == "supervisor") | .event' "$TRACE_DIR/trace.ndjson" \
+          > "$TRACE_DIR/supervisor-trace.ndjson"
+
+    - name: Upload agent trace
       if:
         always() && inputs.trace == 'true' && steps.setup.outputs.trace-dir !=
         ''
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       with:
-        name: ${{ inputs.trace-name }}
-        path: ${{ steps.setup.outputs.trace-dir }}
+        name: agent-trace
+        path: |
+          ${{ inputs.mode == 'supervise' && format('{0}/agent-trace.ndjson', steps.setup.outputs.trace-dir) || format('{0}/trace.ndjson', steps.setup.outputs.trace-dir) }}
+
+    - name: Upload supervisor trace
+      if:
+        always() && inputs.trace == 'true' && inputs.mode == 'supervise' &&
+        steps.setup.outputs.trace-dir != ''
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: supervisor-trace
+        path: ${{ steps.setup.outputs.trace-dir }}/supervisor-trace.ndjson
+
+    - name: Upload combined trace
+      if:
+        always() && inputs.trace == 'true' && inputs.mode == 'supervise' &&
+        steps.setup.outputs.trace-dir != ''
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: combined-trace
+        path: ${{ steps.setup.outputs.trace-dir }}/trace.ndjson

@@ -32,6 +32,8 @@ function parseFlag(args, name) {
  *   --max-turns=N             Maximum supervisor ↔ agent exchanges (default: 20)
  *   --output=PATH             Write NDJSON trace to file (default: stdout)
  *   --allowed-tools=LIST      Comma-separated tools for the agent (default: Bash,Read,Glob,Grep,Write,Edit)
+ *   --supervisor-profile=NAME Supervisor agent profile name (passed as --agent to Claude CLI)
+ *   --agent-profile=NAME      Agent profile name (passed as --agent to Claude CLI)
  *
  * @param {string[]} args - Command arguments
  */
@@ -47,6 +49,8 @@ export async function runSuperviseCommand(args) {
   const model = parseFlag(args, "model") ?? "opus";
   const maxTurns = parseInt(parseFlag(args, "max-turns") ?? "20", 10);
   const outputPath = parseFlag(args, "output");
+  const supervisorProfile = parseFlag(args, "supervisor-profile") ?? undefined;
+  const agentProfile = parseFlag(args, "agent-profile") ?? undefined;
   const allowedTools = (
     parseFlag(args, "allowed-tools") ?? "Bash,Read,Glob,Grep,Write,Edit"
   ).split(",");
@@ -73,6 +77,8 @@ export async function runSuperviseCommand(args) {
     model,
     maxTurns,
     allowedTools,
+    supervisorProfile,
+    agentProfile,
   });
 
   const result = await supervisor.run(taskContent);
