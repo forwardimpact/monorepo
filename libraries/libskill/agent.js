@@ -522,6 +522,12 @@ function buildStageProfileBodyData({
     ? substituteTemplateVars(rawPriority, humanDiscipline)
     : null;
 
+  // Build teamInstructions - from track agent section (optional)
+  const rawTeamInstructions = agentTrack.teamInstructions;
+  const teamInstructions = rawTeamInstructions
+    ? substituteTemplateVars(rawTeamInstructions, humanDiscipline)
+    : null;
+
   // Build skill index from derived skills (already focused by deriveStageAgent)
   // Filter to only include skills that have stage-specific guidance for this stage
   const skillIndex = derivedSkills
@@ -582,6 +588,7 @@ function buildStageProfileBodyData({
     trackConstraints,
     returnFormat,
     stageTransitions,
+    teamInstructions: teamInstructions ? teamInstructions.trim() : null,
   };
 }
 
@@ -789,4 +796,15 @@ export function buildAgentIndex({
   }
 
   return agents;
+}
+
+/**
+ * Interpolate teamInstructions from a track's agent section
+ * @param {Object} agentTrack - Agent track definition
+ * @param {Object} humanDiscipline - Human discipline (with roleTitle, specialization)
+ * @returns {string|null} Interpolated team instructions or null
+ */
+export function interpolateTeamInstructions(agentTrack, humanDiscipline) {
+  if (!agentTrack?.teamInstructions) return null;
+  return substituteTemplateVars(agentTrack.teamInstructions, humanDiscipline);
 }

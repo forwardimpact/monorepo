@@ -18,6 +18,7 @@ import { getStageEmoji } from "../stage/shared.js";
  * @param {Array} deployment.skills - Agent skills
  * @param {Array} [deployment.roleAgents] - Role variant agents (plan, review)
  * @param {Object} [deployment.claudeCodeSettings] - Claude Code settings to include in download
+ * @param {string|null} [deployment.teamInstructions] - Team instructions content for CLAUDE.md
  * @returns {HTMLElement}
  */
 export function agentDeploymentToDOM({
@@ -25,6 +26,7 @@ export function agentDeploymentToDOM({
   skills,
   roleAgents = [],
   claudeCodeSettings = {},
+  teamInstructions = null,
 }) {
   const profileContent = formatAgentProfile(profile);
   const agentName = profile.frontmatter.name;
@@ -39,6 +41,7 @@ export function agentDeploymentToDOM({
       roleAgents,
       claudeCodeSettings,
       agentName,
+      teamInstructions,
     ),
 
     // Profile section
@@ -92,6 +95,7 @@ export function agentDeploymentToDOM({
  * @param {Array} roleAgents - Role variant agents
  * @param {Object} claudeCodeSettings - Claude Code settings to include
  * @param {string} agentName - Agent name for zip filename
+ * @param {string|null} teamInstructions - Team instructions content for CLAUDE.md
  * @returns {HTMLElement}
  */
 function createDownloadButton(
@@ -100,6 +104,7 @@ function createDownloadButton(
   roleAgents,
   claudeCodeSettings,
   agentName,
+  teamInstructions,
 ) {
   const btn = button(
     { className: "btn btn-primary download-all-btn" },
@@ -117,6 +122,7 @@ function createDownloadButton(
         roleAgents,
         claudeCodeSettings,
         agentName,
+        teamInstructions,
       );
     } finally {
       btn.disabled = false;
@@ -169,6 +175,7 @@ function createRoleAgentCard(agent) {
  * @param {Array} roleAgents - Role variant agents
  * @param {Object} claudeCodeSettings - Claude Code settings to include
  * @param {string} agentName - Agent name for zip filename
+ * @param {string|null} teamInstructions - Team instructions content for CLAUDE.md
  */
 async function downloadAllAsZip(
   profile,
@@ -176,6 +183,7 @@ async function downloadAllAsZip(
   roleAgents,
   claudeCodeSettings,
   agentName,
+  teamInstructions,
 ) {
   // Dynamically import JSZip
   const JSZip = await importJSZip();
@@ -184,6 +192,11 @@ async function downloadAllAsZip(
   // Add main profile to .claude/agents/ folder
   const profileContent = formatAgentProfile(profile);
   zip.file(`.claude/agents/${profile.filename}`, profileContent);
+
+  // Add team instructions to .claude/CLAUDE.md
+  if (teamInstructions) {
+    zip.file(".claude/CLAUDE.md", teamInstructions.trim() + "\n");
+  }
 
   // Add role agent profiles to .claude/agents/ folder
   for (const roleAgent of roleAgents) {

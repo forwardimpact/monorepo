@@ -71,6 +71,12 @@ fit:behaviourWeight a rdf:Property ;
     rdfs:domain fit:AssessmentWeights ;
     rdfs:range xsd:decimal .
 
+fit:teamInstructions a rdf:Property ;
+    rdfs:label "teamInstructions"@en ;
+    rdfs:comment "Shared instructions for the team-level instructions file"@en ;
+    rdfs:domain fit:TrackAgentSection ;
+    rdfs:range xsd:string .
+
 # =============================================================================
 # SHACL SHAPES
 # =============================================================================
@@ -171,6 +177,13 @@ fit:TrackAgentSectionShape a sh:NodeShape ;
         sh:datatype xsd:string ;
         sh:name "constraints" ;
         sh:description "Additional constraints specific to this track" ;
+    ] ;
+    sh:property [
+        sh:path fit:teamInstructions ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:name "teamInstructions" ;
+        sh:description "Shared instructions included in the team-level instructions file" ;
     ] .
 
 # -----------------------------------------------------------------------------

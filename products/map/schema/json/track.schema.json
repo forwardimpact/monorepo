@@ -87,6 +87,10 @@
           "type": "array",
           "description": "Additional constraints specific to this track",
           "items": { "type": "string" }
+        },
+        "teamInstructions": {
+          "type": "string",
+          "description": "Shared instructions included in the team-level instructions file (e.g. CLAUDE.md). Provides cross-cutting context, conventions, and coordination rules that apply to all agents and skills in this track's exported team."
         }
       },
       "additionalProperties": false

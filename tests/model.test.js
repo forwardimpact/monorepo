@@ -3663,4 +3663,46 @@ describe("Agent Module", () => {
   });
 });
 
+// ============================================================================
+// interpolateTeamInstructions Tests
+// ============================================================================
+
+import { interpolateTeamInstructions } from "@forwardimpact/libskill/agent";
+
+describe("interpolateTeamInstructions", () => {
+  const discipline = {
+    roleTitle: "Software Engineer",
+    specialization: "Backend Engineering",
+  };
+
+  it("replaces {roleTitle} and {specialization} placeholders", () => {
+    const agentTrack = {
+      teamInstructions:
+        "This team supports the {roleTitle} track.\nSpecialization: {specialization}.",
+    };
+    const result = interpolateTeamInstructions(agentTrack, discipline);
+    assert.strictEqual(
+      result,
+      "This team supports the Software Engineer track.\nSpecialization: Backend Engineering.",
+    );
+  });
+
+  it("returns null when teamInstructions is absent", () => {
+    const agentTrack = { identity: "test" };
+    const result = interpolateTeamInstructions(agentTrack, discipline);
+    assert.strictEqual(result, null);
+  });
+
+  it("returns null when agentTrack is null", () => {
+    const result = interpolateTeamInstructions(null, discipline);
+    assert.strictEqual(result, null);
+  });
+
+  it("returns string unchanged when no placeholders present", () => {
+    const agentTrack = { teamInstructions: "Static instructions." };
+    const result = interpolateTeamInstructions(agentTrack, discipline);
+    assert.strictEqual(result, "Static instructions.");
+  });
+});
+
 console.log("Running tests...");

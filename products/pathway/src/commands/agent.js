@@ -38,6 +38,7 @@ import {
   deriveToolkit,
   getDisciplineAbbreviation,
   toKebabCase,
+  interpolateTeamInstructions,
 } from "@forwardimpact/libskill";
 import { formatAgentProfile } from "../formatters/agent/profile.js";
 import {
@@ -205,6 +206,21 @@ async function writeProfile(profile, baseDir, template) {
   await writeFile(profilePath, profileContent, "utf-8");
   console.log(formatSuccess(`Created: ${profilePath}`));
   return profilePath;
+}
+
+/**
+ * Write team instructions to CLAUDE.md
+ * @param {string|null} teamInstructions - Interpolated team instructions content
+ * @param {string} baseDir - Base output directory
+ * @returns {string|null} Path written, or null if skipped
+ */
+async function writeTeamInstructions(teamInstructions, baseDir) {
+  if (!teamInstructions) return null;
+  const filePath = join(baseDir, ".claude", "CLAUDE.md");
+  await ensureDir(filePath);
+  await writeFile(filePath, teamInstructions.trim() + "\n", "utf-8");
+  console.log(formatSuccess(`Created: ${filePath}`));
+  return filePath;
 }
 
 /**
@@ -434,10 +450,18 @@ export async function runAgentCommand({
 
     // Output to console (default) or write to files (with --output)
     if (!options.output) {
+      const teamInstructions = interpolateTeamInstructions(agentTrack, humanDiscipline);
+      if (teamInstructions) {
+        console.log("# Team Instructions (CLAUDE.md)\n");
+        console.log(teamInstructions.trim());
+        console.log("\n---\n");
+      }
       console.log(formatAgentProfile(profile, agentTemplate));
       return;
     }
 
+    const teamInstructions = interpolateTeamInstructions(agentTrack, humanDiscipline);
+    await writeTeamInstructions(teamInstructions, baseDir);
     await writeProfile(profile, baseDir, agentTemplate);
     await generateClaudeCodeSettings(baseDir, agentData.claudeCodeSettings);
     console.log("");
@@ -516,6 +540,12 @@ export async function runAgentCommand({
 
   // Output to console (default) or write to files (with --output)
   if (!options.output) {
+    const teamInstructions = interpolateTeamInstructions(agentTrack, humanDiscipline);
+    if (teamInstructions) {
+      console.log("# Team Instructions (CLAUDE.md)\n");
+      console.log(teamInstructions.trim());
+      console.log("\n---\n");
+    }
     for (const profile of profiles) {
       console.log(formatAgentProfile(profile, agentTemplate));
       console.log("\n---\n");
@@ -523,6 +553,8 @@ export async function runAgentCommand({
     return;
   }
 
+  const teamInstructions = interpolateTeamInstructions(agentTrack, humanDiscipline);
+  await writeTeamInstructions(teamInstructions, baseDir);
   for (const profile of profiles) {
     await writeProfile(profile, baseDir, agentTemplate);
   }
