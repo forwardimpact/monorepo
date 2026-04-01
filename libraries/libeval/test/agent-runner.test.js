@@ -281,6 +281,28 @@ describe("AgentRunner", () => {
     assert.match(result.error.message, /Process crashed/);
   });
 
+  test("run() succeeds when SDK throws after emitting successful result", async () => {
+    async function* creditExhaustedQuery() {
+      yield { type: "system", subtype: "init", session_id: "sess-credit" };
+      yield { type: "assistant", content: "Analysis complete." };
+      yield { type: "result", subtype: "success", result: "Done." };
+      throw new Error("Credit balance is too low");
+    }
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query: () => creditExhaustedQuery(),
+      output,
+    });
+
+    const result = await runner.run("Task");
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.text, "Done.");
+    assert.ok(result.error);
+    assert.match(result.error.message, /Credit balance/);
+  });
+
   test("createAgentRunner factory returns an AgentRunner instance", () => {
     const runner = createAgentRunner({
       cwd: "/tmp",

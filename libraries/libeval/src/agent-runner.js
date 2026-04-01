@@ -89,7 +89,10 @@ export class AgentRunner {
       error = err;
     }
 
-    const success = !error && stopReason === "success";
+    // If the SDK already emitted a successful result, honour it even when the
+    // stream throws afterwards (e.g. "Credit balance is too low" during
+    // cleanup). Only treat errors as fatal when no result was received yet.
+    const success = stopReason === "success";
     return { success, text, sessionId: this.sessionId, error };
   }
 
@@ -122,7 +125,7 @@ export class AgentRunner {
       error = err;
     }
 
-    const success = !error && stopReason === "success";
+    const success = stopReason === "success";
     return { success, text, error };
   }
 
