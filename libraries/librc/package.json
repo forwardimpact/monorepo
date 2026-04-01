@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/librc",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Service manager for Forward Impact",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

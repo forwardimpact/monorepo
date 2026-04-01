@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libdoc",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Documentation build and serve tools for static site generation from Markdown",
   "license": "Apache-2.0",
   "repository": {
