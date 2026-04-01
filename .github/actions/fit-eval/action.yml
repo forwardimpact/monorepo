@@ -29,9 +29,14 @@ inputs:
     required: false
     default: "200"
   allowed-tools:
-    description: Comma-separated list of allowed tools
+    description: Comma-separated list of allowed tools for the agent
     required: false
     default: "Bash,Read,Glob,Grep,Write,Edit"
+  supervisor-allowed-tools:
+    description:
+      Comma-separated list of allowed tools for the supervisor (supervise mode
+      only)
+    required: false
   supervisor-profile:
     description:
       Supervisor agent profile name (passed as --agent to Claude CLI, supervise
@@ -83,6 +88,7 @@ runs:
         MODEL: ${{ inputs.model }}
         MAX_TURNS: ${{ inputs.max-turns }}
         TOOLS: ${{ inputs.allowed-tools }}
+        SUPERVISOR_TOOLS: ${{ inputs.supervisor-allowed-tools }}
         SUPERVISOR_PROFILE: ${{ inputs.supervisor-profile }}
         AGENT_PROFILE: ${{ inputs.agent-profile }}
         TRACE_ENABLED: ${{ inputs.trace }}
@@ -100,6 +106,9 @@ runs:
 
           if [ -n "$SUPERVISOR_PROFILE" ]; then
             args+=("--supervisor-profile=$SUPERVISOR_PROFILE")
+          fi
+          if [ -n "$SUPERVISOR_TOOLS" ]; then
+            args+=("--supervisor-allowed-tools=$SUPERVISOR_TOOLS")
           fi
           if [ -n "$AGENT_PROFILE" ]; then
             args+=("--agent-profile=$AGENT_PROFILE")

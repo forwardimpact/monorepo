@@ -175,6 +175,7 @@ export class Supervisor {
  * @param {string} [deps.model] - Claude model identifier
  * @param {number} [deps.maxTurns] - Maximum supervisor ↔ agent exchanges
  * @param {string[]} [deps.allowedTools] - Tools the agent may use
+ * @param {string[]} [deps.supervisorAllowedTools] - Tools the supervisor may use (default: Read, Glob, Grep)
  * @param {string} [deps.supervisorProfile] - Supervisor agent profile name
  * @param {string} [deps.agentProfile] - Agent profile name
  * @returns {Supervisor}
@@ -187,6 +188,7 @@ export function createSupervisor({
   model,
   maxTurns,
   allowedTools,
+  supervisorAllowedTools,
   supervisorProfile,
   agentProfile,
 }) {
@@ -218,7 +220,7 @@ export function createSupervisor({
     output: new PassThrough(),
     model,
     maxTurns: 10,
-    allowedTools: ["Read", "Glob", "Grep"],
+    allowedTools: supervisorAllowedTools ?? ["Read", "Glob", "Grep"],
     onLine,
     settingSources: ["project"],
     agentProfile: supervisorProfile,

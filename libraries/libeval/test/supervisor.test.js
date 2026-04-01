@@ -372,6 +372,38 @@ describe("Supervisor", () => {
     assert.ok(supervisor instanceof Supervisor);
   });
 
+  test("createSupervisor uses default supervisor tools when none specified", () => {
+    const supervisor = createSupervisor({
+      supervisorCwd: "/tmp/sup",
+      agentCwd: "/tmp/agent",
+      query: async function* () {},
+      output: new PassThrough(),
+    });
+    assert.deepStrictEqual(supervisor.supervisorRunner.allowedTools, [
+      "Read",
+      "Glob",
+      "Grep",
+    ]);
+  });
+
+  test("createSupervisor passes custom supervisor tools", () => {
+    const supervisor = createSupervisor({
+      supervisorCwd: "/tmp/sup",
+      agentCwd: "/tmp/agent",
+      query: async function* () {},
+      output: new PassThrough(),
+      supervisorAllowedTools: ["Bash", "Read", "Glob", "Grep", "Write", "Edit"],
+    });
+    assert.deepStrictEqual(supervisor.supervisorRunner.allowedTools, [
+      "Bash",
+      "Read",
+      "Glob",
+      "Grep",
+      "Write",
+      "Edit",
+    ]);
+  });
+
   test("createSupervisor wires system prompts to both runners", () => {
     const supervisor = createSupervisor({
       supervisorCwd: "/tmp/sup",

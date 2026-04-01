@@ -54,6 +54,10 @@ export async function runSuperviseCommand(args) {
   const allowedTools = (
     parseFlag(args, "allowed-tools") ?? "Bash,Read,Glob,Grep,Write,Edit"
   ).split(",");
+  const supervisorAllowedToolsRaw = parseFlag(args, "supervisor-allowed-tools");
+  const supervisorAllowedTools = supervisorAllowedToolsRaw
+    ? supervisorAllowedToolsRaw.split(",")
+    : undefined;
 
   const taskContent = readFileSync(task, "utf8");
 
@@ -77,6 +81,7 @@ export async function runSuperviseCommand(args) {
     model,
     maxTurns,
     allowedTools,
+    supervisorAllowedTools,
     supervisorProfile,
     agentProfile,
   });

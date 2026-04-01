@@ -9,6 +9,7 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   evaluate:
@@ -58,3 +59,4 @@ jobs:
           model: "opus"
           max-turns: "50"
           allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,WebFetch,WebSearch"
+          supervisor-allowed-tools: "Bash,Read,Glob,Grep,Write,Edit"
