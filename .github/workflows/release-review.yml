@@ -2,8 +2,8 @@ name: Release Review
 
 on:
   schedule:
-    # Weekly on Mondays at 07:37 UTC (off-minute to avoid :00 stampede)
-    - cron: "37 7 * * 1"
+    # Tue, Thu, Sat at 09:37 UTC — cuts releases after merges settle
+    - cron: "37 9 * * 2,4,6"
   workflow_dispatch: # Manual trigger for on-demand releases
 
 concurrency:

@@ -47,15 +47,20 @@ than attempting the fix.
 
 ## Workflows
 
-| Workflow              | Schedule               | Agent             | What it does                                                                  |
-| --------------------- | ---------------------- | ----------------- | ----------------------------------------------------------------------------- |
-| **release-readiness** | Daily 05:23 UTC        | release-engineer  | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
-| **security-audit**    | Every 2 days 04:43 UTC | security-engineer | Audit supply chain, dependencies, credentials, OWASP Top 10                   |
-| **dependabot-triage** | Every 3 days 06:17 UTC | security-engineer | Evaluate Dependabot PRs against policy, merge/fix/close                       |
-| **release-review**    | Weekly Mon 07:37 UTC   | release-engineer  | Find unreleased changes, bump versions, tag, push, verify publish             |
-| **improvement-coach** | Weekly Wed 08:47 UTC   | improvement-coach | Deep-analyze a single random agent trace, open fix PRs or write specs         |
-| **product-backlog**   | Daily 09:13 UTC        | product-manager   | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
-| **product-feedback**  | Weekly Thu 10:31 UTC   | product-manager   | Triage open issues, implement trivial fixes, write specs for aligned requests |
+Workflows are sequenced as a daily pipeline: work creators (04–05 UTC) →
+preparers (06 UTC) → mergers (08 UTC) → releasers (09 UTC) → analyzers
+(10 UTC). Each step runs after enough time for CI to complete on the previous
+step’s output. Same-agent workflows never overlap within a day.
+
+| Workflow              | Schedule                 | Agent             | What it does                                                                  |
+| --------------------- | ------------------------ | ----------------- | ----------------------------------------------------------------------------- |
+| **security-audit**    | Tue & Fri 04:07 UTC      | security-engineer | Audit supply chain, dependencies, credentials, OWASP Top 10                   |
+| **dependabot-triage** | Mon & Thu 04:43 UTC      | security-engineer | Evaluate Dependabot PRs against policy, merge/fix/close                       |
+| **product-feedback**  | Mon, Wed, Fri 05:17 UTC  | product-manager   | Triage open issues, implement trivial fixes, write specs for aligned requests |
+| **release-readiness** | Daily 06:23 UTC          | release-engineer  | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
+| **product-backlog**   | Daily 08:13 UTC          | product-manager   | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
+| **release-review**    | Tue, Thu, Sat 09:37 UTC  | release-engineer  | Find unreleased changes, bump versions, tag, push, verify publish             |
+| **improvement-coach** | Wed & Sat 10:47 UTC      | improvement-coach | Deep-analyze a single random agent trace, open fix PRs or write specs         |
 
 All schedules use off-minute values to avoid API load spikes. Every workflow
 supports `workflow_dispatch` for manual runs, uses concurrency groups, and has a
@@ -79,7 +84,7 @@ the product manager performed trust checks on every merged PR (see §
 Accountability below).
 
 This means the system studies its own behaviour and feeds corrections back in —
-a closed feedback loop running autonomously on a weekly cadence.
+a closed feedback loop running on a 2–3 day cadence.
 
 ```mermaid
 graph TD

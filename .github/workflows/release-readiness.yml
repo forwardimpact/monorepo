@@ -2,8 +2,8 @@ name: Release Readiness
 
 on:
   schedule:
-    # Daily at 05:23 UTC (off-minute to avoid :00 stampede)
-    - cron: "23 5 * * *"
+    # Daily at 06:23 UTC — prepares PRs after work creators finish
+    - cron: "23 6 * * *"
   workflow_dispatch: # Manual trigger for on-demand readiness checks
 
 concurrency:

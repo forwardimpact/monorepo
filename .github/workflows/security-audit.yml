@@ -2,8 +2,8 @@ name: Security Audit
 
 on:
   schedule:
-    # Every 2 days at 04:43 UTC (off-minute to avoid :00 stampede)
-    - cron: "43 4 */2 * *"
+    # Tue & Fri at 04:07 UTC — runs before preparers and mergers
+    - cron: "7 4 * * 2,5"
   workflow_dispatch: # Manual trigger for on-demand audits
 
 concurrency:

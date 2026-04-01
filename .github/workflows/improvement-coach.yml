@@ -2,8 +2,8 @@ name: Improvement Coach
 
 on:
   schedule:
-    # Weekly on Wednesdays at 08:47 UTC (off-minute to avoid :00 stampede)
-    - cron: "47 8 * * 3"
+    # Wed & Sat at 10:47 UTC — analyzes traces after all other agents
+    - cron: "47 10 * * 3,6"
   workflow_dispatch: # Manual trigger for on-demand analysis
 
 concurrency:

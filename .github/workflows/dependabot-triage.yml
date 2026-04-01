@@ -2,8 +2,8 @@ name: Dependabot Triage
 
 on:
   schedule:
-    # Every 3 days at 06:17 UTC (off-minute to avoid :00 stampede)
-    - cron: "17 6 */3 * *"
+    # Mon & Thu at 04:43 UTC — runs before preparers and mergers
+    - cron: "43 4 * * 1,4"
   workflow_dispatch: # Manual trigger for testing or on-demand triage
 
 concurrency:

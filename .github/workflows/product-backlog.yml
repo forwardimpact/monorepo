@@ -2,8 +2,8 @@ name: Product Backlog
 
 on:
   schedule:
-    # Daily at 09:13 UTC (off-minute to avoid :00 stampede)
-    - cron: "13 9 * * *"
+    # Daily at 08:13 UTC — merges PRs after CI runs on rebased branches
+    - cron: "13 8 * * *"
   workflow_dispatch: # Manual trigger for on-demand backlog triage
 
 concurrency:
