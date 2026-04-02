@@ -39,6 +39,7 @@ export function renderPathway(pathwayData) {
   if (pathwayData.capabilities) {
     const capIds = [];
     for (const cap of pathwayData.capabilities) {
+      if (!cap) continue;
       const id = cap._id || cap.id;
       const data = stripInternal(cap);
       files.set(`capabilities/${id}.yaml`, toYaml(data, "capability"));
@@ -50,6 +51,7 @@ export function renderPathway(pathwayData) {
   if (pathwayData.behaviours) {
     const behIds = [];
     for (const beh of pathwayData.behaviours) {
+      if (!beh) continue;
       const id = beh._id || beh.id;
       const data = stripInternal(beh);
       files.set(`behaviours/${id}.yaml`, toYaml(data, "behaviour"));
@@ -61,6 +63,7 @@ export function renderPathway(pathwayData) {
   if (pathwayData.disciplines) {
     const discIds = [];
     for (const disc of pathwayData.disciplines) {
+      if (!disc) continue;
       const id = disc._id || disc.id;
       const data = stripInternal(disc);
       files.set(`disciplines/${id}.yaml`, toYaml(data, "discipline"));
@@ -72,6 +75,7 @@ export function renderPathway(pathwayData) {
   if (pathwayData.tracks) {
     const trackIds = [];
     for (const track of pathwayData.tracks) {
+      if (!track) continue;
       const id = track._id || track.id;
       const data = stripInternal(track);
       files.set(`tracks/${id}.yaml`, toYaml(data, "track"));

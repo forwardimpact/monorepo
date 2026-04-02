@@ -104,6 +104,11 @@ export class ProseEngine {
 
   /**
    * Generate or retrieve a structured response (pre-built messages).
+   *
+   * Cache key uses only the entity key (e.g. "pathway:track:platform"),
+   * not the prompt content — prompts are the generation mechanism, not
+   * the identity.
+   *
    * @param {string} key - Cache key
    * @param {object[]} messages - Pre-built messages array [{role, content}]
    * @returns {Promise<string|null>}
@@ -111,7 +116,7 @@ export class ProseEngine {
   async generateStructured(key, messages, { maxTokens = 4000 } = {}) {
     if (this.mode === "no-prose") return null;
 
-    const cacheKey = generateHash(key, JSON.stringify(messages));
+    const cacheKey = generateHash(key);
 
     if (this.cache.has(cacheKey)) {
       this.stats.hits++;

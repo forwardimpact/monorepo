@@ -168,6 +168,19 @@ async function main() {
 
   // Write filesystem files (HTML, Pathway, Markdown)
   if (!args.dryRun) {
+    // Clean generated directories to remove stale files from prior runs
+    const generatedDirs = new Set();
+    for (const relPath of result.files.keys()) {
+      const parts = relPath.split("/");
+      // Collect top-level output directories (e.g., data/pathway, data/knowledge)
+      if (parts.length >= 2) {
+        generatedDirs.add(join(monorepoRoot, parts[0], parts[1]));
+      }
+    }
+    for (const dir of generatedDirs) {
+      await rm(dir, { recursive: true, force: true });
+    }
+
     for (const [relPath, content] of result.files) {
       const fullPath = join(monorepoRoot, relPath);
       await mkdir(dirname(fullPath), { recursive: true });

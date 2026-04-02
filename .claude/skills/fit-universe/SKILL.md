@@ -55,8 +55,22 @@ schemas.
 
 The prose cache maps each content key to its generated text. The default mode
 reads from the cache, making generation fully repeatable without LLM calls.
-Using `--generate` appends new entries to the cache, so subsequent default runs
-include all previously generated content.
+Using `--generate` regenerates all entries and writes the updated cache.
+
+Structured pathway entities (framework, levels, behaviours, capabilities, etc.)
+use a stable cache key derived from the entity key alone (e.g.
+`pathway:track:platform`). This means prompt changes (such as adding context
+forwarding or updating preambles) do not invalidate existing cache entries —
+use `--generate` to regenerate with updated prompts.
+
+General prose entries (articles, comments, briefings) use a cache key that
+includes the content context (topic, tone, length).
+
+### Output Cleanup
+
+The CLI cleans output directories before writing new files, preventing stale
+files from prior runs from persisting. This means each run produces a clean,
+complete output set.
 
 ---
 
@@ -165,11 +179,14 @@ Generated output writes to `data/` directories at the monorepo root:
 ## Prose Cache
 
 The prose cache is stored at `data/synthetic/prose-cache.json`. This file is
-pre-populated for the BioNova universe (530+ keys). The default mode reads from
-it without LLM calls.
+pre-populated for the BioNova universe. The default mode reads from it without
+LLM calls.
 
-When using `--generate`, new prose is appended to the cache after generation
-completes. Subsequent default runs will reuse all generated content.
+When using `--generate`, prose is regenerated and the cache is written after
+generation completes. To do a full regeneration, delete the cache file first
+and run with `--generate`.
+
+Use `just synthetic-update` to regenerate synthetic data with LLM prose.
 
 ---
 

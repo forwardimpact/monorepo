@@ -22,11 +22,11 @@ description: >
 
 ## Libraries
 
-| Library            | Main API                                           | Purpose                                        |
-| ------------------ | -------------------------------------------------- | ---------------------------------------------- |
-| libsyntheticgen    | `DslParser`, `EntityGenerator`, `createSeededRNG`  | DSL parsing, deterministic entity generation   |
-| libsyntheticprose  | `ProseEngine`, `PathwayGenerator`                  | LLM prose generation, pathway framework data   |
-| libsyntheticrender | `Renderer`, `ContentValidator`, `ContentFormatter` | Multi-format rendering, validation, formatting |
+| Library            | Main API                                           | Purpose                                                |
+| ------------------ | -------------------------------------------------- | ------------------------------------------------------ |
+| libsyntheticgen    | `DslParser`, `EntityGenerator`, `createSeededRNG`  | DSL parsing, deterministic entity generation, vocabulary |
+| libsyntheticprose  | `ProseEngine`, `PathwayGenerator`                  | LLM prose generation, pathway framework data           |
+| libsyntheticrender | `Renderer`, `ContentValidator`, `ContentFormatter` | Multi-format rendering, validation, formatting         |
 
 ## Decision Guide
 
@@ -46,6 +46,23 @@ description: >
 - **Pure functions** — `createSeededRNG`, `collectProseKeys`,
   `validateCrossContent`, `formatContent` are stateless and can be used
   standalone.
+- **Shared vocabulary** — `PROFICIENCY_LEVELS`, `MATURITY_LEVELS`, and
+  `STAGE_NAMES` are exported from `libsyntheticgen/vocabulary.js` (re-exported
+  from the package index). All prompt builders, validators, and renderers import
+  from this single source — never hardcode these values.
+- **Prose caching** — `ProseEngine.generateStructured` uses a stable cache key
+  derived from the entity key alone (e.g. `pathway:track:platform`), not from
+  the prompt content. Prompt changes do not invalidate the cache. Use
+  `--generate` to regenerate with updated prompts.
+- **Prior output forwarding** — `PathwayGenerator` threads generated data from
+  earlier steps into downstream prompts: levels → behaviours → capabilities →
+  disciplines/tracks. A shared voice preamble (`buildPreamble`) enforces
+  consistent terminology across all entity builders.
+- **Null safety** — `generateEntity` returns `null` on cache miss; callers
+  propagate `null` rather than spreading into empty objects. The pathway
+  renderer skips null entries.
+- **Output cleanup** — The CLI cleans output directories before writing to
+  prevent stale files from prior runs persisting.
 - **CLI logging** — Use `createLogger` from libtelemetry for operational output.
   `logger.info` sends to stderr (keeps stdout clean for data), `logger.debug`
   only prints when `DEBUG=<domain>` is set.
@@ -116,6 +133,9 @@ const generator = createEntityGenerator(logger); // or: new EntityGenerator(rngF
 
 // Pure functions — no DI
 import { createSeededRNG, collectProseKeys } from "@forwardimpact/libsyntheticgen";
+
+// Shared vocabulary — single source of truth for all libraries
+import { PROFICIENCY_LEVELS, MATURITY_LEVELS, STAGE_NAMES } from "@forwardimpact/libsyntheticgen";
 ```
 
 ### libsyntheticprose
@@ -174,7 +194,10 @@ Synthetic data payloads conform to these GetDX Web API response schemas:
 
 ```sh
 node --test libraries/libsyntheticgen/test/    # DSL + entity generation tests
-node --test libraries/libsyntheticrender/test/ # Validation tests
-bunx fit-universe --dry-run                     # Full pipeline dry run
-bunx fit-universe --dry-run --only=html         # Single content type
+node --test libraries/libsyntheticprose/test/  # Prose engine + prompt builder tests
+node --test libraries/libsyntheticrender/test/ # Validation + rendering tests
+node --test libraries/libuniverse/test/        # Pipeline integration tests
+bunx fit-universe --dry-run                    # Full pipeline dry run
+bunx fit-universe --dry-run --only=html        # Single content type
+bunx fit-map validate                          # Validate generated pathway data
 ```

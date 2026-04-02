@@ -145,10 +145,7 @@ async function generatePathwayData({
         b.id,
         buildBehaviourPrompt(b, ctx, schemas.behaviour, priorOutput),
         proseEngine,
-      ).then((data) => ({
-        ...data,
-        _id: b.id,
-      })),
+      ).then((data) => (data ? { ...data, _id: b.id } : null)),
     ),
   );
 
@@ -168,10 +165,7 @@ async function generatePathwayData({
         ),
         proseEngine,
         { maxTokens: BASE_TOKENS + (c.skills || []).length * PER_SKILL_TOKENS },
-      ).then((data) => ({
-        ...data,
-        _id: c.id,
-      })),
+      ).then((data) => (data ? { ...data, _id: c.id } : null)),
     ),
   );
 
@@ -209,10 +203,7 @@ async function generatePathwayData({
           priorOutput,
         ),
         proseEngine,
-      ).then((data) => ({
-        ...data,
-        _id: d.id,
-      })),
+      ).then((data) => (data ? { ...data, _id: d.id } : null)),
     ),
   );
 
@@ -230,10 +221,7 @@ async function generatePathwayData({
           priorOutput,
         ),
         proseEngine,
-      ).then((data) => ({
-        ...data,
-        _id: t.id,
-      })),
+      ).then((data) => (data ? { ...data, _id: t.id } : null)),
     ),
   );
 
@@ -259,12 +247,14 @@ async function generatePathwayData({
 
 /**
  * Generate a single entity via the prose engine.
+ * Returns null (not an empty object) on cache miss so callers can
+ * distinguish missing data from valid empty data.
  *
  * @param {string} entityType - Entity type for cache key prefix
  * @param {string} entityId - Entity ID for cache key
  * @param {{ system: string, user: string }} prompt - Built prompt
  * @param {import('./prose.js').ProseEngine} proseEngine - Prose engine
- * @returns {Promise<object|null>} Parsed JSON data
+ * @returns {Promise<object|null>} Parsed JSON data, or null on miss
  */
 async function generateEntity(
   entityType,
