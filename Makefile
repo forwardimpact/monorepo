@@ -19,7 +19,7 @@ memory-update:  ## Initialize and update agent memory submodule (wiki)
 	fi
 
 .PHONY: memory-commit
-memory-commit: memory-update  ## Commit and push agent memory changes
+memory-commit:  ## Commit and push agent memory changes
 	@if [ -d .claude/memory/.git ] || [ -f .claude/memory/.git ]; then \
 		cd .claude/memory && git add -A && \
 		if ! git diff --cached --quiet; then \
