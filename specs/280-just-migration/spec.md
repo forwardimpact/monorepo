@@ -54,15 +54,42 @@ immune to this failure mode.
 ### 3. Make-specific boilerplate
 
 Every target in the Makefile requires a `.PHONY` declaration because Make is a
-build system, not a command runner. The current file has **50+ `.PHONY`
+build system, not a command runner. The current file has **74 `.PHONY`
 declarations** for what are all command-runner tasks. `just` treats all recipes
 as commands by default — no `.PHONY` needed.
+
+## Why Just
+
+`just` is chosen over alternatives (`task`, `mise`, `npm scripts`, plain shell)
+for one decisive capability: ancestor-directory search. When a recipe runs from
+any subdirectory within the repo, `just` walks parent directories to find the
+`justfile` at the root — the exact behaviour needed to fix the Claude Code hook
+failures. No other command runner offers this with the same simplicity. `just`
+also has zero runtime dependencies (single static binary), a Makefile-like
+syntax that minimizes migration friction, built-in dotenv loading, and a mature
+GitHub Action (`extractions/setup-just`) for CI.
+
+## Prerequisites
+
+### Developer installation
+
+Unlike `make` (pre-installed on macOS and most Linux distributions), `just` must
+be installed separately. Installation: `brew install just` (macOS),
+`cargo install just`, or download a pre-built binary. The `README.md` and
+onboarding documentation must include this as a prerequisite.
+
+### Hook bootstrap
+
+The `.claude/settings.json` `SessionStart` hook calls `just install`. If `just`
+is not yet installed, the hook fails silently (same behaviour as today if `make`
+were missing). The `README.md` prerequisite section and `CONTRIBUTING.md`
+onboarding steps must instruct developers to install `just` before first use.
 
 ## Scope
 
 ### In scope
 
-1. **Replace `Makefile` with `justfile`** — translate all 50+ Make targets to
+1. **Replace `Makefile` with `justfile`** — translate all 74 Make targets to
    `just` recipes with identical names and behaviour.
 
 2. **Replace `scripts/env.sh` with native `just` dotenv loading** — collapse
@@ -107,8 +134,8 @@ as commands by default — no `.PHONY` needed.
 The current system has 9 `.env.*.example` files and a shell script that layers
 them at runtime based on three axis variables (`ENV`, `STORAGE`, `AUTH`). This
 complexity exists to avoid duplicating a handful of variables across profiles.
-In practice, the auth files contain 2–3 variables each and storage files contain
-3–6. The layering machinery costs more than the duplication it prevents.
+In practice, the auth files contain 2–3 active variables each and storage files
+contain 2–4. The layering machinery costs more than the duplication it prevents.
 
 ### Design: Complete profile files
 
@@ -144,7 +171,8 @@ The 6 axis-specific files are deleted:
 - `.env.storage.minio.example`
 - `.env.storage.supabase.example`
 
-Their contents (2–6 variables each) are folded into the profile files above.
+Their contents (2–4 active variables each) are folded into the profile files
+above.
 
 ### Justfile dotenv configuration
 
@@ -157,21 +185,26 @@ recipes, no shell script. Every recipe sees the full environment natively.
 
 For the Docker Compose targets that currently pass `--env-file` flags explicitly
 (e.g., `docker compose --env-file .env --env-file .env.docker ...`), these
-simplify to just `docker compose` since all variables are already in the
-environment via `just`'s dotenv loading.
+simplify to just `docker compose` since all variables are already in the shell
+environment via `just`'s dotenv loading. Docker Compose resolves `${VAR}`
+references in `docker-compose.yml` from the shell environment first, then falls
+back to `.env` in the project directory — so variables exported by `just` are
+available to compose without `--env-file` flags.
 
 ### Setup flow
 
 ```sh
-cp .env.example .env                  # secrets and credentials
-cp .env.local.example .env            # append or use local profile
+just env-reset                        # local profile (default): .env.example + .env.local.example
 #  — or —
-cp .env.docker-native.example .env    # append or use docker + gotrue/minio
+just env-reset docker-native          # .env.example + .env.docker-native.example
 #  — or —
-cp .env.docker-supabase.example .env  # append or use docker + supabase
+just env-reset docker-supabase        # .env.example + .env.docker-supabase.example
 ```
 
-The `env-reset` recipe handles this automatically, same as today but simpler.
+The `env-reset` recipe copies `.env.example → .env` (base credentials) and
+appends `.env.local.example` by default, giving users a working local
+environment in one command — the same outcome as today. Users who want Docker
+profiles pass an argument or copy the appropriate profile file manually.
 
 ### Trade-offs
 
@@ -228,10 +261,30 @@ The `env-reset` recipe handles this automatically, same as today but simpler.
 | `README.md` | `make quickstart` → `just quickstart` |
 | `CONTRIBUTING.md` | `make quickstart` → `just quickstart`, `make audit` → `just audit`, `make audit-vulnerabilities` → `just audit-vulnerabilities` |
 | `CONTINUOUS_IMPROVEMENT.md` | `make memory-update` → `just memory-update`, `make memory-commit` → `just memory-commit`, `make install` → `just install` |
+| `website/docs/internals/operations/index.md` | 29 `make` references → `just` |
+| `website/docs/internals/guide/index.md` | `make rc-start` → `just rc-start` |
+| `products/guide/README.md` | `make services` → `just services` |
+| `.claude/skills/fit-guide/SKILL.md` | 69 `make` command references → `just` |
+| `.claude/skills/fit-universe/SKILL.md` | 6 `make` command references → `just` |
+| `.claude/skills/libs-system-utilities/SKILL.md` | `make codegen`, `make audit` → `just` |
+| `.claude/skills/libs-web-presentation/SKILL.md` | `make audit-vulnerabilities` → `just` |
+| `.claude/skills/dependabot-triage/SKILL.md` | `make audit` → `just` |
 | `config/config.example.json` | `make supabase-up` → `just supabase-up`, `make supabase-down` → `just supabase-down` |
 | `.devcontainer/setup.sh` | `make codegen` → `just codegen`, `make env-setup` → `just env-setup`, `make data-init` → `just data-init` |
 | `scripts/auth-user.js` | Error messages: `make auth-user` → `just auth-user`, etc. |
 | `.prettierignore` | `**/Makefile` → `**/justfile` |
+
+## Transition
+
+This is a breaking change for developer workflow. All developers must install
+`just` before pulling the migration commit. Existing local `.env.local`,
+`.env.storage.*`, and `.env.auth.*` files become stale after migration — users
+should re-run `just env-setup` to regenerate from the new profile structure.
+
+Communicate the change via the pull request description and, if applicable, a
+team channel announcement. The PR description should include: (1) install
+`just`, (2) pull the branch, (3) run `just env-setup` to regenerate environment
+files.
 
 ## Success Criteria
 
@@ -247,8 +300,9 @@ The `env-reset` recipe handles this automatically, same as today but simpler.
    output before and after migration.
 
 4. **Claude Code hooks succeed after cwd change** — simulate the failure case:
-   `cd /tmp && just memory-commit` (invoked from outside the repo) should either
-   succeed or fail gracefully, not with "justfile not found."
+   `cd libraries/libskill && just memory-commit` (invoked from a subdirectory)
+   should find the root justfile and succeed. This is the actual failure
+   scenario — agent sessions navigate into subdirectories within the repo.
 
 5. **No file in the repo references `make ` as a command invocation** — except
    historical spec documents in `specs/` which are immutable records.
