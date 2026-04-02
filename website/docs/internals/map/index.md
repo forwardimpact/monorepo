@@ -198,3 +198,12 @@ import { getArtifacts } from "@forwardimpact/map/activity/queries/artifacts";
   framework data
 - [YAML Schema Reference](/docs/reference/yaml-schema/) -- Schema format
   documentation
+
+## Update Workflow
+
+When updating data structures, follow the dependency chain in a single commit:
+
+1. Schema (`products/map/schema/`)
+2. Data (`data/pathway/`)
+3. Derivation (`libraries/libskill/`)
+4. Formatters (`products/pathway/src/formatters/`)

@@ -41,41 +41,44 @@ constancy of purpose in architecture.
 | **Landmark** | What milestones has my engineering reached?       | Leadership, Developers | `fit-landmark` |
 | **Summit**   | Is this team supported to reach peak performance? | Leadership             | `fit-summit`   |
 
-**Map** is the data product that provides shared context for every product in
-the suite. Teams define their engineering framework once — skills, levels,
-behaviours, markers — import operational signals continuously (organization
-hierarchy, GitHub activity, GetDX snapshots), and publish that data for
-consumption by humans and agents. Leadership authors the definitions; agents
-consume them as operational context.
+**Map** — Data product providing shared context for every product. Teams define
+their engineering framework in YAML; Map validates, stores, and publishes that
+data for humans and agents.
 
-**Pathway** is the interface to the engineering framework — a web app, CLI, and
-static site generator. Feed it a discipline, track, and level and it produces a
-complete job definition. It generates agent teams and skills to support and
-empower the engineers, VS Code agent profiles, and interview question sets.
-Developers see their career path; agents receive the skill definitions they work
-against.
+- Product overview: [website/map/index.md](website/map/index.md)
+- Internal documentation: [website/docs/internals/map/index.md](website/docs/internals/map/index.md)
 
-**Basecamp** is a personal operations center. It syncs email and calendar,
-builds a knowledge graph of people, projects, and topics, drafts responses,
-prepares meeting briefings, and organizes files — all running as scheduled AI
-tasks in the background with a macOS status menu. Developers stay prepared;
-agents handle the background work.
+**Pathway** — Interface to the engineering framework: web app, CLI, and static
+site generator. Produces job definitions, agent profiles, and interview
+questions from framework data.
 
-**Guide** is an AI agent that understands your organization's engineering
-framework — skills, levels, behaviours, and expectations — and reasons about
-them in context. It helps developers onboard, find growth areas, and interpret
-engineering artifacts against skill markers.
+- Product overview: [website/pathway/index.md](website/pathway/index.md)
+- Internal documentation: [website/docs/internals/pathway/index.md](website/docs/internals/pathway/index.md)
 
-**Landmark** is the analysis layer for engineering-system signals. It combines
-objective marker evidence from GitHub artifacts with subjective outcomes from
-GetDX snapshots, then presents team-level and individual views grounded in your
-framework. Leadership sees system outcomes; developers see their own progress.
-No LLM calls — query, aggregate, explain.
+**Basecamp** — Personal operations center with scheduled AI tasks, knowledge
+graphs, and meeting briefings, running in the background via a macOS status
+menu.
 
-**Summit** treats a team as a system, not a collection of individuals. It
-aggregates skill matrices into capability coverage, structural risks, and
-what-if staffing scenarios so leadership can build teams that succeed. Fully
-local and deterministic — no external dependencies, no LLM calls.
+- Product overview: [website/basecamp/index.md](website/basecamp/index.md)
+- Internal documentation: [website/docs/internals/basecamp/index.md](website/docs/internals/basecamp/index.md)
+
+**Guide** — AI agent that reasons about your organization's engineering
+framework in context, helping developers onboard and find growth areas.
+
+- Product overview: [website/guide/index.md](website/guide/index.md)
+- Internal documentation: [website/docs/internals/guide/index.md](website/docs/internals/guide/index.md)
+
+**Landmark** — Analysis layer combining objective GitHub artifact evidence with
+subjective GetDX snapshots. No LLM calls — query, aggregate, explain.
+
+- Product overview: [website/landmark/index.md](website/landmark/index.md)
+
+**Summit** — Treats a team as a system: aggregates skill matrices into
+capability coverage, structural risks, and staffing scenarios. Fully local and
+deterministic.
+
+- Product overview: [website/summit/index.md](website/summit/index.md)
+- Internal documentation: [website/docs/internals/summit/index.md](website/docs/internals/summit/index.md)
 
 ## Required Development Workflow
 
@@ -170,25 +173,6 @@ specs/
 **Data-driven monorepo.** Entities (disciplines, tracks, skills, levels,
 behaviours) are defined in YAML files. Different installations may have
 completely different data while using the same model.
-
-### Dependency Chain
-
-```
-map → libskill → pathway
-      libui   ↗
-         libskill → summit
-
-map → guide → landmark
-```
-
-- **Map → libskill → Pathway**: schema, data, derivation, formatters.
-- **libskill → Summit**: aggregates individual skill matrices into team views.
-- **Map → Guide → Landmark**: Map stores data, Guide interprets artifacts
-  against markers, Landmark presents evidence and snapshots.
-
-When updating data structure: schema (`products/map/schema/`) → data
-(`data/pathway/`) → derivation (`libraries/libskill/`) → formatters
-(`products/pathway/src/formatters/`). All in the same commit.
 
 ### Key Paths
 
@@ -304,14 +288,6 @@ sections generate SKILL.md files for AI coding agents.
 
 Validate data: `bunx fit-map validate`
 
-### Vocabulary Standards
-
-Use `bunx fit-pathway level --list` to see available levels.
-
-| Level          | Autonomy              | Scope                    | Verbs                             |
-| -------------- | --------------------- | ------------------------ | --------------------------------- |
-| `awareness`    | with guidance         | team                     | understand, follow, use, learn    |
-| `foundational` | with minimal guidance | team                     | apply, create, explain, identify  |
-| `working`      | independently         | team                     | design, own, troubleshoot, decide |
-| `practitioner` | lead, mentor          | area (2–5 teams)         | lead, mentor, establish, evaluate |
-| `expert`       | define, shape         | business unit / function | define, shape, innovate, pioneer  |
+Vocabulary standards (level autonomy, scope, and verb conventions) are
+documented in the
+[Authoring Frameworks guide](website/docs/guides/authoring-frameworks/index.md).

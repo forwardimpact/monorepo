@@ -36,7 +36,7 @@ website/docs/
     agent-teams/             Generate and install agent teams
     career-paths/            Browse jobs, skills, progression
     knowledge-systems/       Basecamp setup, scheduler, KB structure
-    engineering-signals/     Landmark views, GetDX, GitHub integration
+    engineering-signals/     Landmark views, GetDX, GitHub integration (planned)
     team-capability/         Summit team modeling
     finding-your-bearing/    Guide usage and configuration
   reference/                 "I need to look something up"
@@ -50,7 +50,7 @@ website/docs/
     libskill/                Derivation engine, policies, caching
     basecamp/                Scheduler architecture, state management
     guide/                   Agent infrastructure, artifact interpretation
-    landmark/                Analysis pipeline, view composition
+    landmark/                Analysis pipeline, view composition (planned)
     summit/                  Capability aggregation, scenario modeling
     universe/                Synthetic data pipeline, DSL, prose engine
     operations/              Environment, services, and common tasks
