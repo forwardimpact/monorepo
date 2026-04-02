@@ -28,7 +28,8 @@ async function main() {
   );
 
   const embeddings = await llm.createEmbeddings([query]);
-  const results = await vectorIndex.queryItems(embeddings, { limit: 10 });
+  const vectors = embeddings.data.map((d) => d.embedding);
+  const results = await vectorIndex.queryItems(vectors, { limit: 10 });
 
   for (const identifier of results) {
     console.log(`${String(identifier)}\t${identifier.score?.toFixed(4) ?? ""}`);

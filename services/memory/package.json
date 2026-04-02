@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "bun --watch server.js",
+    "dev": "node --watch server.js",
     "start": "bunx download && bun server.js",
     "test": "bun run node --test test/*.test.js"
   },

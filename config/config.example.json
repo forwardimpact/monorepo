@@ -17,35 +17,35 @@
       },
       {
         "name": "trace",
-        "command": "bun run dev -w @forwardimpact/svctrace"
+        "command": "bun run --filter @forwardimpact/svctrace dev"
       },
       {
         "name": "vector",
-        "command": "bun run dev -w @forwardimpact/svcvector"
+        "command": "bun run --filter @forwardimpact/svcvector dev"
       },
       {
         "name": "graph",
-        "command": "bun run dev -w @forwardimpact/svcgraph"
+        "command": "bun run --filter @forwardimpact/svcgraph dev"
       },
       {
         "name": "llm",
-        "command": "bun run dev -w @forwardimpact/svcllm"
+        "command": "bun run --filter @forwardimpact/svcllm dev"
       },
       {
         "name": "memory",
-        "command": "bun run dev -w @forwardimpact/svcmemory"
+        "command": "bun run --filter @forwardimpact/svcmemory dev"
       },
       {
         "name": "tool",
-        "command": "bun run dev -w @forwardimpact/svctool"
+        "command": "bun run --filter @forwardimpact/svctool dev"
       },
       {
         "name": "agent",
-        "command": "bun run dev -w @forwardimpact/svcagent"
+        "command": "bun run --filter @forwardimpact/svcagent dev"
       },
       {
         "name": "web",
-        "command": "bun run dev -w @forwardimpact/svcweb"
+        "command": "bun run --filter @forwardimpact/svcweb dev"
       }
     ]
   },
