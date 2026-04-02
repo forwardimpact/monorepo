@@ -23,8 +23,7 @@ when it gets stuck. When you are satisfied the agent has completed the task
 adequately, say EVALUATION_SUCCESSFUL in your response, then continue with
 post-evaluation work in the same turn.
 
-After signaling success, use your `product-feedback` skill (Part 2) to
-process the agent's reported feedback. Assess each feedback item for product
-alignment and create GitHub issues for bugs, documentation gaps, and
-product-aligned improvements. Skip feedback that is environmental or outside
-product control. Include a summary of all issues created in your final output.
+After signaling success, create GitHub issues for the bugs, documentation gaps,
+and product-aligned improvements the agent reported. Use `gh issue create` for
+each actionable item. Skip feedback that is environmental or outside product
+control. Include a summary of all issues created in your final output.

@@ -121,7 +121,11 @@ export class AgentRunner {
     try {
       for await (const message of this.query({
         prompt,
-        options: { resume: this.sessionId },
+        options: {
+          resume: this.sessionId,
+          permissionMode: this.permissionMode,
+          allowDangerouslySkipPermissions: true,
+        },
       })) {
         const line = JSON.stringify(message);
         this.output.write(line + "\n");

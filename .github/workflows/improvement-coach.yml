@@ -45,7 +45,7 @@ jobs:
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           app-id: ${{ secrets.CI_APP_ID }}
-          task-text: Analyze a recent agent trace.
+          task-text: Walk the gemba and act on findings.
           agent-profile: "improvement-coach"
           model: "opus"
           max-turns: "200"
