@@ -3,8 +3,6 @@ title: "Getting Started: Leadership"
 description: "Install the CLI tools, author your first engineering framework, validate, and preview."
 ---
 
-# Getting Started: Leadership
-
 This guide walks you through creating your first engineering framework. By the
 end you will have a working set of YAML definitions that validate and preview in
 the browser.

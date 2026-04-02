@@ -3,8 +3,6 @@ title: "Career Paths"
 description: "Browse job definitions, understand skill proficiencies, and analyze career progression."
 ---
 
-# Career Paths
-
 Pathway shows you what engineering roles look like at every level — the skills
 expected, the behaviours valued, and how roles change across disciplines and
 tracks. It turns framework definitions into concrete job descriptions,

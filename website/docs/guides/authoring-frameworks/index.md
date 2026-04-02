@@ -3,8 +3,6 @@ title: "Authoring Frameworks"
 description: "Write career framework definitions in YAML — disciplines, levels, tracks, capabilities, skills, behaviours, stages, and drivers."
 ---
 
-# Authoring Frameworks
-
 A career framework is a set of YAML files that define what good engineering
 looks like in your organization. These files are the single source of truth for
 human job definitions, AI agent teams, interview question banks, and career

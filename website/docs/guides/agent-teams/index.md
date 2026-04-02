@@ -3,8 +3,6 @@ title: "Agent Teams"
 description: "Generate, structure, and maintain AI coding agent teams derived from your career framework."
 ---
 
-# Agent Teams
-
 Agent teams are AI coding assistant configurations derived from the same career
 framework used for human job definitions. The same skills, behaviours, and
 proficiency levels that describe what a senior engineer does also describe what

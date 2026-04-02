@@ -3,8 +3,6 @@ title: "Finding Your Bearing"
 description: "Use Guide to navigate your engineering framework — onboarding, growth areas, and contextual help."
 ---
 
-# Finding Your Bearing
-
 Guide is an AI agent that understands your organization's engineering framework
 — skills, levels, behaviours, disciplines, tracks, and career progression — and
 reasons about them in context. Instead of reading through YAML files and

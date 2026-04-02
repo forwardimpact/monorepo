@@ -3,8 +3,6 @@ title: "Team Capability"
 description: "Model team capability with Summit — coverage heatmaps, structural risks, and what-if staffing scenarios."
 ---
 
-# Team Capability
-
 Summit treats a team as a system, not a collection of individuals. It aggregates
 individual skill matrices into team-level views — capability coverage,
 structural risks, and what-if staffing scenarios. Everything runs locally with

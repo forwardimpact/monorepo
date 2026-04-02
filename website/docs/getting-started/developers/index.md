@@ -3,8 +3,6 @@ title: "Getting Started: Developers"
 description: "Install CLI tools, browse job definitions, generate agent teams, set up Guide, and configure Basecamp."
 ---
 
-# Getting Started: Developers
-
 Get up and running with the Forward Impact CLI tools. This guide covers browsing
 your career framework, generating AI agent teams, interpreting engineering
 artifacts with Guide, and setting up your personal knowledge base.

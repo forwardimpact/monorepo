@@ -3,8 +3,6 @@ title: "Knowledge Systems"
 description: "Set up Basecamp for personal knowledge management — scheduler, tasks, and knowledge base structure."
 ---
 
-# Knowledge Systems
-
 Basecamp is a personal knowledge system. It schedules AI tasks that run in the
 background against your personal knowledge base — syncing email, preparing
 meeting briefings, organizing notes, and keeping you ready for the day ahead.
