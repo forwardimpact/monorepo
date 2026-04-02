@@ -1,4 +1,4 @@
-name: Guide Setup
+name: "Gemba: Guide Setup"
 
 on:
   workflow_dispatch: # Manual trigger for on-demand evaluation

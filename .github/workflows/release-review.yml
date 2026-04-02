@@ -1,4 +1,4 @@
-name: Release Review
+name: "Gemba: Release Review"
 
 on:
   schedule:
