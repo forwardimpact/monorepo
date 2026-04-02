@@ -34,12 +34,12 @@ the composite action (see § Authentication below).
 
 ## Agents
 
-| Agent                 | Purpose                                                                   | Skills                                          |
-| --------------------- | ------------------------------------------------------------------------- | ----------------------------------------------- |
-| **security-engineer** | Patch dependencies, harden supply chain, enforce security policies        | dependabot-triage, security-audit, spec         |
-| **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | release-readiness, release-review, gh-cli       |
+| Agent                 | Purpose                                                                   | Skills                                             |
+| --------------------- | ------------------------------------------------------------------------- | -------------------------------------------------- |
+| **security-engineer** | Patch dependencies, harden supply chain, enforce security policies        | dependabot-triage, security-audit, spec            |
+| **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | release-readiness, release-review, gh-cli          |
 | **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | gemba-walk, grounded-theory-analysis, spec, gh-cli |
-| **product-manager**   | Review PRs for product alignment, triage issues, verify contributor trust | product-backlog, product-feedback, spec, gh-cli |
+| **product-manager**   | Review PRs for product alignment, triage issues, verify contributor trust | product-backlog, product-feedback, spec, gh-cli    |
 
 Each agent has explicit scope constraints — it knows what it must _not_ do. When
 a finding exceeds an agent's scope, it writes a formal spec (`specs/`) rather
@@ -48,19 +48,19 @@ than attempting the fix.
 ## Workflows
 
 Workflows are sequenced as a daily pipeline: work creators (04–05 UTC) →
-preparers (06 UTC) → mergers (08 UTC) → releasers (09 UTC) → analyzers
-(10 UTC). Each step runs after enough time for CI to complete on the previous
-step’s output. Same-agent workflows never overlap within a day.
+preparers (06 UTC) → mergers (08 UTC) → releasers (09 UTC) → analyzers (10 UTC).
+Each step runs after enough time for CI to complete on the previous step’s
+output. Same-agent workflows never overlap within a day.
 
-| Workflow              | Schedule                 | Agent             | What it does                                                                  |
-| --------------------- | ------------------------ | ----------------- | ----------------------------------------------------------------------------- |
-| **security-audit**    | Tue & Fri 04:07 UTC      | security-engineer | Audit supply chain, dependencies, credentials, OWASP Top 10                   |
-| **dependabot-triage** | Mon & Thu 04:43 UTC      | security-engineer | Evaluate Dependabot PRs against policy, merge/fix/close                       |
-| **product-feedback**  | Mon, Wed, Fri 05:17 UTC  | product-manager   | Triage open issues, implement trivial fixes, write specs for aligned requests |
-| **release-readiness** | Daily 06:23 UTC          | release-engineer  | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
-| **product-backlog**   | Daily 08:13 UTC          | product-manager   | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
-| **release-review**    | Tue, Thu, Sat 09:37 UTC  | release-engineer  | Find unreleased changes, bump versions, tag, push, verify publish             |
-| **improvement-coach** | Wed & Sat 10:47 UTC      | improvement-coach | Deep-analyze a single random agent trace, open fix PRs or write specs         |
+| Workflow              | Schedule                | Agent             | What it does                                                                  |
+| --------------------- | ----------------------- | ----------------- | ----------------------------------------------------------------------------- |
+| **security-audit**    | Tue & Fri 04:07 UTC     | security-engineer | Audit supply chain, dependencies, credentials, OWASP Top 10                   |
+| **dependabot-triage** | Mon & Thu 04:43 UTC     | security-engineer | Evaluate Dependabot PRs against policy, merge/fix/close                       |
+| **product-feedback**  | Mon, Wed, Fri 05:17 UTC | product-manager   | Triage open issues, implement trivial fixes, write specs for aligned requests |
+| **release-readiness** | Daily 06:23 UTC         | release-engineer  | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
+| **product-backlog**   | Daily 08:13 UTC         | product-manager   | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
+| **release-review**    | Tue, Thu, Sat 09:37 UTC | release-engineer  | Find unreleased changes, bump versions, tag, push, verify publish             |
+| **improvement-coach** | Wed & Sat 10:47 UTC     | improvement-coach | Deep-analyze a single random agent trace, open fix PRs or write specs         |
 
 All schedules use off-minute values to avoid API load spikes. Every workflow
 supports `workflow_dispatch` for manual runs, uses concurrency groups, and has a
@@ -287,3 +287,49 @@ check:
 If trust verification is missing or incomplete, the improvement coach must open
 a fix PR or spec to correct the gap. This is the mechanism that holds the
 product manager accountable — trace evidence, not trust.
+
+## Authoring Best Practices
+
+Lessons from trace analysis and grounded-theory coding of agent workflow runs.
+
+### Task texts must activate the full workflow
+
+A workflow's `task-text` becomes the agent's first user message. If it only
+names the analysis phase ("Analyze a recent agent trace"), the agent completes
+analysis and stops — it never reaches the action phase. Task texts must name the
+complete cycle: "Walk the gemba and act on findings."
+
+### Profiles and skills: signal over length
+
+Shorter agent profiles produce better task activation than longer ones. When a
+profile contains redundant scope constraints, MUST/MUST NOT checklists that
+repeat skill content, or verbose memory boilerplate, the agent spends tokens
+parsing instructions instead of acting. Prefer:
+
+- **One sentence per constraint** — not a paragraph
+- **No duplication between profile and skill** — the profile says _when_ to use
+  a skill; the skill says _how_
+- **Constraints, not procedures** — profiles define boundaries; skills define
+  steps
+
+### Shared patterns must be consistent
+
+When multiple agents or skills share a structural element (memory instructions,
+prerequisites format, section headings), use the same wording everywhere. During
+trace analysis, inconsistency between files correlated with agents skipping
+steps that were worded differently from what they'd seen in other contexts.
+
+### resume() must propagate session state
+
+When an agent SDK session is resumed (e.g., after a supervisor handoff), all
+session configuration — especially `permissionMode` — must be passed again. The
+SDK does not persist configuration across resume boundaries. A resumed session
+that drops `bypassPermissions` falls back to `acceptEdits`, blocking Bash tool
+calls and stalling the workflow.
+
+### Supervisor tasks must not reference unavailable skills
+
+When a supervisor resumes a session, the resumed agent may not have access to
+the same skills as the original. Task definitions for supervised workflows
+should use direct tool calls (e.g., `gh issue create`) rather than referencing
+skills that may be unavailable in the resumed context.
