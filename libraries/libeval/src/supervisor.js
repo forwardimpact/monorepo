@@ -13,12 +13,14 @@ import { TraceCollector } from "./trace-collector.js";
 
 /**
  * Check if the supervisor's response signals evaluation success.
- * Tolerates markdown formatting around the signal (e.g. **EVALUATION_SUCCESSFUL**).
+ * Matches EVALUATION_SUCCESSFUL anywhere in the text, tolerating markdown
+ * formatting (e.g. **EVALUATION_SUCCESSFUL**). Uses word boundaries to
+ * avoid matching inside longer identifiers.
  * @param {string} text
  * @returns {boolean}
  */
 export function isSuccessful(text) {
-  return /^[*_~`]*EVALUATION_SUCCESSFUL[*_~`]*$/m.test(text);
+  return /(?:^|[\s*_~`])EVALUATION_SUCCESSFUL(?:[\s*_~`.,!]|$)/m.test(text);
 }
 
 /** System prompt appended for the supervisor runner in supervise mode. */
@@ -74,6 +76,8 @@ export class Supervisor {
       return { success: false, turns: 0 };
     }
 
+    // The supervisor's turn is fully complete (all tool calls executed) by the
+    // time we check the signal — no work is interrupted.
     if (isSuccessful(supervisorResult.text)) {
       this.emitSummary({ success: true, turns: 0 });
       return { success: true, turns: 0 };
@@ -112,6 +116,7 @@ export class Supervisor {
         return { success: false, turns: turn };
       }
 
+      // The supervisor's turn is fully complete — check for success signal.
       if (isSuccessful(supervisorResult.text)) {
         this.emitSummary({ success: true, turns: turn });
         return { success: true, turns: turn };

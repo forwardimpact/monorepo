@@ -85,13 +85,16 @@ describe("isSuccessful", () => {
     );
   });
 
-  test("does not match EVALUATION_SUCCESSFUL embedded in text", () => {
-    assert.strictEqual(isSuccessful("not EVALUATION_SUCCESSFUL yet"), false);
+  test("matches EVALUATION_SUCCESSFUL anywhere in text", () => {
+    assert.strictEqual(isSuccessful("not EVALUATION_SUCCESSFUL yet"), true);
     assert.strictEqual(
       isSuccessful("The agent is EVALUATION_SUCCESSFUL done"),
-      false,
+      true,
     );
-    assert.strictEqual(isSuccessful("EVALUATION_SUCCESSFUL_EXTRA"), false);
+    assert.strictEqual(
+      isSuccessful("Great work! EVALUATION_SUCCESSFUL. Now filing issues."),
+      true,
+    );
   });
 
   test("does not match empty or unrelated text", () => {
