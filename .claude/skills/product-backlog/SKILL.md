@@ -26,12 +26,7 @@ confirm trust checks happened on every merged PR.
 
 ## Prerequisites
 
-The `gh` CLI must be installed and authenticated. See the `gh-cli` skill for
-installation instructions. Verify with:
-
-```sh
-gh auth status
-```
+The `gh` CLI must be installed and authenticated. Verify with `gh auth status`.
 
 ## Gate Checklist
 
@@ -199,10 +194,9 @@ Include any PRs that were skipped with a note explaining why.
 **Flag PRs that have been skipped across 3+ consecutive runs** — these may need
 escalation. Call them out prominently above the table.
 
-### Memory: what to record for backlog triage
+### Memory: what to record
 
-When writing your memory entry at the end of the run, include these
-triage-specific fields in addition to the standard agent memory fields:
+Include these fields in addition to standard agent memory fields:
 
 - **PR triage table** — Each PR processed with type, author, outcome, and
   consecutive-skip count for PRs awaiting human review (carry forward from
@@ -210,12 +204,4 @@ triage-specific fields in addition to the standard agent memory fields:
 - **Contributor trust decisions** — Who was verified and the result
 - Spec PRs and their review assessment results
 
-## What NOT to Do
-
-- **Do not merge PRs from untrusted authors** — the contributor trust gate is a
-  security boundary, never override it
-- **Do not merge `feat` PRs** — features require human product review
-- **Do not make code changes** — do not fix CI failures, resolve conflicts, or
-  modify PR content (that is the release-engineer's scope)
-- **Do not skip the spec review evaluation** for spec PRs
 - **Do not merge PRs with failing CI** — all checks must be green

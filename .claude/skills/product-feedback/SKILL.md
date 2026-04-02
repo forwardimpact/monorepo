@@ -23,17 +23,12 @@ Manage product feedback in both directions:
 - Scheduled to process community feedback regularly
 - On-demand when the issue backlog needs attention
 - After supervising a user testing or evaluation session where the agent
-  reported feedback about product experience (installation, documentation,
-  CLI output, error messages, etc.)
+  reported feedback about product experience (installation, documentation, CLI
+  output, error messages, etc.)
 
 ## Prerequisites
 
-The `gh` CLI must be installed and authenticated. See the `gh-cli` skill for
-installation instructions. Verify with:
-
-```sh
-gh auth status
-```
+The `gh` CLI must be installed and authenticated. Verify with `gh auth status`.
 
 ## Part 1: Triaging Open Issues
 
@@ -305,10 +300,9 @@ After processing all issues, produce a summary table:
 | #1    | Integration with Jira           | out of scope   | needs-info     | Asked for use case detail  |
 ```
 
-### Memory: what to record for product feedback triage
+### Memory: what to record
 
-When writing your memory entry at the end of the run, include these
-triage-specific fields in addition to the standard agent memory fields:
+Include these fields in addition to standard agent memory fields:
 
 - **Issue triage table** — Each issue processed with category, action taken, and
   outcome (PR number, spec number, or close reason)
@@ -337,8 +331,8 @@ Use this process when you have observed or received product feedback from:
 
 #### Step 1: Extract Feedback Items
 
-Review the agent's output and identify distinct feedback items. Each item
-should describe a single observation — don't merge unrelated feedback.
+Review the agent's output and identify distinct feedback items. Each item should
+describe a single observation — don't merge unrelated feedback.
 
 Examples of feedback items:
 
@@ -353,12 +347,12 @@ Examples of feedback items:
 
 Use the same product alignment criteria as inbound triage:
 
-| Category            | Criteria                                                       | Action              |
-| ------------------- | -------------------------------------------------------------- | ------------------- |
-| **Bug**             | Something is broken — crashes, errors, incorrect output        | Create bug issue    |
-| **Product-aligned** | Missing feature or improvement that serves the product vision  | Create feature issue |
-| **Documentation**   | Instructions unclear, missing steps, or outdated content       | Create docs issue   |
-| **Out of scope**    | Not actionable, environmental, or outside product control      | Skip — note in summary |
+| Category            | Criteria                                                      | Action                 |
+| ------------------- | ------------------------------------------------------------- | ---------------------- |
+| **Bug**             | Something is broken — crashes, errors, incorrect output       | Create bug issue       |
+| **Product-aligned** | Missing feature or improvement that serves the product vision | Create feature issue   |
+| **Documentation**   | Instructions unclear, missing steps, or outdated content      | Create docs issue      |
+| **Out of scope**    | Not actionable, environmental, or outside product control     | Skip — note in summary |
 
 #### Step 3: Create GitHub Issues
 
@@ -410,30 +404,12 @@ Produce a summary table of all feedback items:
 | 4 | Slow response in CI environment       | out of scope   | skipped      |  —    |
 ```
 
-### Memory: what to record for user testing feedback
+### Memory: what to record
 
-When writing your memory entry after processing user testing feedback, include:
+Include these fields in addition to standard agent memory fields:
 
 - **Feedback items table** — Each item with category, action taken, and issue
   number if created
 - **Scenario tested** — Which evaluation scenario produced the feedback
 - **Product quality patterns** — Recurring themes across testing sessions that
   suggest systemic issues
-
-## What NOT to Do
-
-- **Do not implement features directly** — features require a spec, even if the
-  fix seems straightforward. Only trivial bugs and small fixes get direct PRs.
-- **Do not close unclear issues** — ask for more information and label with
-  `needs-info` instead.
-- **Do not skip the spec process** — product-aligned issues must go through the
-  `spec` skill, not be implemented ad-hoc.
-- **Do not make architectural decisions** — if a bug fix requires design work,
-  classify it as product-aligned and write a spec.
-- **Do not bypass quality checks** — run `bun run check` before every commit.
-- **Do not process issues already labelled `triaged` or `wontfix`** — those have
-  been handled.
-- **Do not create issues for environmental or infrastructure feedback** — only
-  product-level feedback gets issues.
-- **Do not create duplicate issues** — search for existing issues before
-  creating new ones.
