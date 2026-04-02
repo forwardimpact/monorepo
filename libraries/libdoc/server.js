@@ -128,12 +128,12 @@ export class DocsServer {
       // Set content type based on extension
       const ext = filePath.split(".").pop();
       const contentTypes = {
-        html: "text/html",
-        css: "text/css",
-        js: "application/javascript",
-        json: "application/json",
-        md: "text/markdown",
-        xml: "application/xml",
+        html: "text/html; charset=utf-8",
+        css: "text/css; charset=utf-8",
+        js: "application/javascript; charset=utf-8",
+        json: "application/json; charset=utf-8",
+        md: "text/markdown; charset=utf-8",
+        xml: "application/xml; charset=utf-8",
         png: "image/png",
         jpg: "image/jpeg",
         jpeg: "image/jpeg",
@@ -142,7 +142,7 @@ export class DocsServer {
         ico: "image/x-icon",
       };
 
-      const contentType = contentTypes[ext] || "text/plain";
+      const contentType = contentTypes[ext] || "text/plain; charset=utf-8";
       return c.body(content, 200, {
         "Content-Type": contentType,
       });
