@@ -58,6 +58,19 @@ jobs:
       - name: Copy LICENSE to package
         run: cp LICENSE ${{ steps.package.outputs.dir_name }}/
 
+      - name: Resolve symlinks in package
+        run: |
+          # Find and resolve symlinks to real directories/files
+          # This ensures npm publish includes actual content, not broken symlinks
+          cd ${{ steps.package.outputs.dir_name }}
+          find . -type l | while read -r link; do
+            target=$(readlink -f "$link")
+            if [ -e "$target" ]; then
+              rm "$link"
+              cp -r "$target" "$link"
+            fi
+          done
+
       - name: Publish to npm
         run:
           npm publish --workspace=${{ steps.package.outputs.npm_name }}
