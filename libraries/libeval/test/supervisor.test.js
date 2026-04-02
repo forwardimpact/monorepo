@@ -448,10 +448,46 @@ describe("Supervisor", () => {
     });
   });
 
+  test("createSupervisor blocks Task and TaskOutput on supervisor by default", () => {
+    const supervisor = createSupervisor({
+      supervisorCwd: "/tmp/sup",
+      agentCwd: "/tmp/agent",
+      query: async function* () {},
+      output: new PassThrough(),
+    });
+    assert.deepStrictEqual(supervisor.supervisorRunner.disallowedTools, [
+      "Task",
+      "TaskOutput",
+    ]);
+    // Agent should not have disallowed tools
+    assert.deepStrictEqual(supervisor.agentRunner.disallowedTools, []);
+  });
+
+  test("createSupervisor merges custom supervisorDisallowedTools with defaults", () => {
+    const supervisor = createSupervisor({
+      supervisorCwd: "/tmp/sup",
+      agentCwd: "/tmp/agent",
+      query: async function* () {},
+      output: new PassThrough(),
+      supervisorDisallowedTools: ["WebSearch", "Task"],
+    });
+    const disallowed = supervisor.supervisorRunner.disallowedTools;
+    assert.ok(disallowed.includes("Task"));
+    assert.ok(disallowed.includes("TaskOutput"));
+    assert.ok(disallowed.includes("WebSearch"));
+    // No duplicates
+    assert.strictEqual(disallowed.length, new Set(disallowed).size);
+  });
+
   test("system prompt constants are non-empty strings", () => {
     assert.ok(typeof SUPERVISOR_SYSTEM_PROMPT === "string");
     assert.ok(typeof AGENT_SYSTEM_PROMPT === "string");
     assert.ok(SUPERVISOR_SYSTEM_PROMPT.length > 0);
     assert.ok(AGENT_SYSTEM_PROMPT.length > 0);
+  });
+
+  test("SUPERVISOR_SYSTEM_PROMPT explains relay mechanism", () => {
+    assert.ok(SUPERVISOR_SYSTEM_PROMPT.includes("relay"));
+    assert.ok(SUPERVISOR_SYSTEM_PROMPT.includes("EVALUATION_SUCCESSFUL"));
   });
 });

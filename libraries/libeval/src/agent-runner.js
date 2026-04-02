@@ -20,6 +20,7 @@ export class AgentRunner {
    * @param {string[]} [deps.settingSources] - SDK setting sources (e.g. ['project'] to load CLAUDE.md)
    * @param {string} [deps.agentProfile] - Agent profile name to pass as --agent to the Claude CLI
    * @param {string|object} [deps.systemPrompt] - SDK system prompt (string replaces default; {type:'preset', preset:'claude_code', append} appends)
+   * @param {string[]} [deps.disallowedTools] - Tools to explicitly remove from the model's context
    */
   constructor({
     cwd,
@@ -33,6 +34,7 @@ export class AgentRunner {
     settingSources,
     agentProfile,
     systemPrompt,
+    disallowedTools,
   }) {
     if (!cwd) throw new Error("cwd is required");
     if (!query) throw new Error("query is required");
@@ -55,6 +57,7 @@ export class AgentRunner {
     this.settingSources = settingSources ?? [];
     this.agentProfile = agentProfile ?? null;
     this.systemPrompt = systemPrompt ?? null;
+    this.disallowedTools = disallowedTools ?? [];
     this.sessionId = null;
     this.buffer = [];
   }
@@ -80,6 +83,7 @@ export class AgentRunner {
           permissionMode: this.permissionMode,
           allowDangerouslySkipPermissions: true,
           settingSources: this.settingSources,
+          ...(this.disallowedTools.length > 0 && { disallowedTools: this.disallowedTools }),
           ...(this.systemPrompt && { systemPrompt: this.systemPrompt }),
           ...(this.agentProfile && { extraArgs: { agent: this.agentProfile } }),
         },

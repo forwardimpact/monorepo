@@ -24,12 +24,9 @@ export function isSuccessful(text) {
 }
 
 /** System prompt appended for the supervisor runner in supervise mode. */
-export const SUPERVISOR_SYSTEM_PROMPT = [
-  "You supervise another AI agent.",
-  "Guide its work: provide feedback, answer questions, and give direction when it gets stuck.",
-  "When the agent's work meets the task requirements, write EVALUATION_SUCCESSFUL in your response.",
-  "You may continue with follow-up work (e.g. filing issues) in the same turn after the signal.",
-].join(" ");
+export const SUPERVISOR_SYSTEM_PROMPT =
+  "You supervise another AI agent through a relay — your output becomes the agent's next input. " +
+  "Guide the agent, answer its questions, and write EVALUATION_SUCCESSFUL when their task is complete.";
 
 /** System prompt appended for the agent runner in supervise mode. */
 export const AGENT_SYSTEM_PROMPT =
@@ -183,6 +180,7 @@ export class Supervisor {
  * @param {number} [deps.maxTurns] - Maximum supervisor ↔ agent exchanges
  * @param {string[]} [deps.allowedTools] - Tools the agent may use
  * @param {string[]} [deps.supervisorAllowedTools] - Tools the supervisor may use (default: Bash, Read, Glob, Grep, Write, Edit)
+ * @param {string[]} [deps.supervisorDisallowedTools] - Tools to explicitly block from the supervisor
  * @param {string} [deps.supervisorProfile] - Supervisor agent profile name
  * @param {string} [deps.agentProfile] - Agent profile name
  * @returns {Supervisor}
@@ -195,6 +193,7 @@ export function createSupervisor({
   model,
   maxTurns,
   allowedTools,
+  supervisorDisallowedTools,
   supervisorAllowedTools,
   supervisorProfile,
   agentProfile,
@@ -221,6 +220,14 @@ export function createSupervisor({
     },
   });
 
+  // Block Task/TaskOutput so the supervisor cannot spawn its own sub-agents.
+  // The relay loop handles agent communication — letting the supervisor use
+  // Task would bypass the relay and produce an empty agent trace.
+  const defaultDisallowed = ["Task", "TaskOutput"];
+  const disallowedTools = supervisorDisallowedTools
+    ? [...new Set([...defaultDisallowed, ...supervisorDisallowedTools])]
+    : defaultDisallowed;
+
   const supervisorRunner = createAgentRunner({
     cwd: supervisorCwd,
     query,
@@ -235,6 +242,7 @@ export function createSupervisor({
       "Write",
       "Edit",
     ],
+    disallowedTools,
     onLine,
     settingSources: ["project"],
     agentProfile: supervisorProfile,
