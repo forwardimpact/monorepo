@@ -3,10 +3,6 @@ title: Guide Internals
 description: "Agent infrastructure — orchestration pipeline, tool execution, knowledge pipeline, and service stack."
 ---
 
-> **Note:** Guide and its service stack (`fit-rc`, `fit-guide`) are
-> monorepo-only tools not published to npm. Running Guide requires a full
-> monorepo checkout.
-
 ## Architecture
 
 Guide is an AI agent that understands your organization's engineering framework
@@ -32,8 +28,8 @@ each is executed via the Tool service. Available tool types include:
 - **Graph queries** -- `get_ontology`, `get_subjects`, `query_by_pattern` for
   structured knowledge graph lookups
 - **Vector search** -- Semantic similarity search across embedded documents
-- **Agent delegation** -- `list_handoffs`, `run_handoff` for multi-agent
-  coordination
+- **Agent delegation** -- `list_sub_agents`, `run_sub_agent` for isolated
+  task delegation; `list_handoffs`, `run_handoff` for conversation handoffs
 
 Tool descriptors are defined in `config/tools.yml`, which maps tool names to
 descriptions, parameters, and evaluation criteria. The Tool service resolves
