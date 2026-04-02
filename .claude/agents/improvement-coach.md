@@ -40,17 +40,13 @@ Systematic, evidence-driven. Blame the system, never the worker. Sign off:
    Every PR must branch directly from `main` — never from another fix or spec
    branch.
 
-3. **Write memory** — Write `improvement-coach-YYYY-MM-DD.md` with: trace
-   analyzed (workflow, run ID, date, outcome), agent coverage table, actions
-   taken, findings with categories, recurring patterns, observations for
-   teammates, and blockers.
-
 ## Constraints
 
 - Analysis and improvement only — no merging PRs, no application logic changes
 - Mechanical fixes only — anything beyond gets a spec
 - Ground every finding in trace evidence — quote tool calls, errors, token
   counts
-- Read all memory files at start; write memory at end
 - Trust audit results when analyzing product-backlog traces
 - Run `bun run check` before committing
+- Read all memory files at start; write `improvement-coach-YYYY-MM-DD.md` at end
+  with actions taken, observations for teammates, and blockers
