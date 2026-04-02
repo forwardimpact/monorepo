@@ -9,10 +9,12 @@ description: >
 
 # Grounded Theory Analysis for Agent Traces
 
-Analyze Claude Code execution traces to discover patterns, failures, and
-improvement opportunities. The method is adapted from grounded theory: start
-with raw data, build codes from observations, group codes into themes, and
-derive actionable findings — never impose categories before examining the data.
+Analyze Claude Code execution traces using grounded theory methodology adapted
+from Strauss & Corbin. The method treats trace data as qualitative text: start
+with raw observations, build codes from the data's own language, relate codes
+through a paradigm model, and converge on a core category that explains the
+central phenomenon. The output is a substantive theory of what happened and why
+— not a list of bugs.
 
 ## When to Use
 
@@ -67,9 +69,15 @@ jq '[.turns[] | select(.role == "assistant") | .content[] | select(.type == "too
 
 ### Phase 1: Open Coding
 
-Read through the trace sequentially. For each turn, create a **code** — a short
-label describing what happened. Do not use pre-defined categories. Let the codes
-emerge from the data.
+Read through the trace sequentially, turn by turn. For each meaningful unit
+(a tool call, a decision point, a failure, a recovery), assign a **code** — a
+short label that captures what happened in the data's own terms.
+
+**Use in-vivo codes** — labels drawn from the trace's own language (error
+messages, command names, the agent's reasoning text). In-vivo codes preserve
+the data's meaning and resist analyst bias.
+
+Do not use pre-defined categories. Let codes emerge from the data.
 
 Focus on:
 
@@ -83,106 +91,225 @@ Focus on:
 Example codes from a real trace:
 
 ```
-turn-03: auth-check-passed        — gh auth status succeeded
-turn-07: branch-behind-main       — PR detected as 11 commits behind
-turn-12: rebase-succeeded         — git rebase origin/main completed
-turn-13: push-permission-denied   — git push returned 403
-turn-14: retry-with-auth-setup    — agent ran gh auth setup-git
-turn-15: duplicate-auth-header    — push failed with 400 (two credentials)
-turn-16: retry-failed-again       — same error on second attempt
-turn-17: graceful-degradation     — agent commented on PR with manual instructions
+turn-03: "logged in to github.com"   — gh auth status succeeded
+turn-07: "11 commits behind"         — PR detected as stale
+turn-12: rebase-completed            — git rebase origin/main succeeded
+turn-13: "403 forbidden"             — git push returned permission denied
+turn-14: setup-git-retry             — agent ran gh auth setup-git
+turn-15: "two credentials supplied"  — push failed with duplicate auth header
+turn-16: identical-retry             — same push command, same error
+turn-17: commented-manual-steps      — agent commented on PR with manual instructions
 ```
+
+**Write memos** as you code. A memo is a short analytical note recording your
+thinking — why a code surprised you, a tentative connection between codes, or a
+question the data raises. Memos are the engine of theory development; they
+capture emerging ideas before they're lost. Write them inline as you encounter
+them, not as an afterthought.
+
+Example memo:
+
+> **Memo (turn 15):** The agent received a clear error message ("two
+> credentials supplied") but did not investigate _which_ two credentials were
+> in play. It retried the same operation instead. This suggests the agent's
+> error-handling repertoire is limited to retry — it lacks a "diagnose
+> credential conflict" skill. Compare to turn 12 where it successfully
+> recovered from a different error by changing approach. What distinguishes
+> recoverable from non-recoverable errors in the agent's behaviour?
 
 ### Phase 2: Axial Coding
 
-Group related codes into **categories**. Look for relationships:
+Relate codes to each other using the **paradigm model** — a structured way of
+asking how categories connect:
 
-- **Causal chains** — A leads to B leads to C (permission denied → retry →
-  duplicate header → failure)
-- **Repeated patterns** — The same code appears across multiple turns or
-  multiple traces
+```
+Causal conditions  →  Phenomenon  →  Context  →  Actions/Interactions  →  Consequences
+(what triggered it)   (what is it)   (where)     (what was done)          (what resulted)
+```
+
+Group related codes into **categories**. For each category, fill in the
+paradigm:
+
+- **Causal conditions** — What triggered this pattern? (a missing permission, a
+  stale branch, an ambiguous skill instruction)
+- **Phenomenon** — What is the core event or pattern? Name it.
+- **Context** — What environmental conditions shaped it? (CI environment,
+  token type, workflow permissions, time pressure)
+- **Actions/Interactions** — What did the agent do in response? What strategies
+  did it use?
+- **Consequences** — What was the outcome? (wasted tokens, failed task,
+  successful workaround, degraded output)
+
+Example:
+
+```
+Category: CREDENTIAL_CONFLICT_LOOP
+
+Causal conditions:
+  - Checkout token (GITHUB_TOKEN) configured git credentials at clone time
+  - GH_TOKEN (App installation token) set separately for API calls
+  - Agent invoked `gh auth setup-git`, adding a second credential
+
+Phenomenon:
+  - Git push fails because two credential helpers supply conflicting tokens
+
+Context:
+  - Happens only when pushing to the main repo (not worktrees)
+  - Worktree pushes use a fresh clone with a single credential
+
+Actions/Interactions:
+  - Agent retried the push 3 times with the same configuration (turn 14–16)
+  - Agent did not inspect git credential config
+  - Agent fell back to commenting on the PR (turn 17)
+
+Consequences:
+  - 3 wasted turns (≈4,200 tokens)
+  - PR left un-pushed; manual intervention required
+  - Agent's fallback preserved the PR from being abandoned entirely
+```
+
+Look for relationships across categories:
+
+- **Causal chains** — A leads to B leads to C
+- **Repeated patterns** — The same phenomenon across different contexts
 - **Contrasts** — The same operation succeeded in one context but failed in
-  another (why?)
-- **Temporal patterns** — Things that happen early vs. late in a session,
-  patterns in tool call ordering
-
-Example categories:
-
-```
-CREDENTIAL_MISMATCH
-  - push-permission-denied (turn 13)
-  - retry-with-auth-setup (turn 14)
-  - duplicate-auth-header (turn 15)
-  Root: checkout token differs from GH_TOKEN
-
-SUCCESSFUL_WORKTREE_PUSH
-  - worktree-push-succeeded (turns 20, 25, 30)
-  Contrast: main-repo push failed, worktree pushes succeeded
-
-WASTED_RETRIES
-  - retry-failed-again (turn 16)
-  - second-auth-reconfigure (turn 17)
-  Pattern: agent retried identical failing operation 3 times
-```
+  another
+- **Temporal patterns** — Things that happen early vs. late in a session
 
 ### Phase 3: Selective Coding
 
-Identify the **core themes** — the central findings that explain the most
-important patterns in the data. Each theme should be:
+Identify the **core category** — the single central phenomenon that integrates
+the most categories and explains the most variance in the trace. All other
+categories should relate to it.
 
-- **Grounded** — directly traceable to specific turns in the trace
-- **Actionable** — implies a concrete change to workflow, skill, or
+The core category is not the biggest bug or the most expensive failure. It is
+the conceptual thread that, when pulled, connects the most findings. Ask:
+
+- Which category do other categories orbit around?
+- If I could change one thing about this system, which category would that
+  address?
+- What is the "story" this trace tells?
+
+From the core category, derive **theoretical propositions** — testable
+statements about agent behaviour:
+
+```
+Core category: INADEQUATE ERROR DIAGNOSIS
+
+Propositions:
+1. When the agent encounters an error it has not seen before, it defaults to
+   retrying the same operation rather than investigating the error's cause.
+2. The agent's recovery success rate correlates with whether the error message
+   maps to a known pattern in its skill documentation.
+3. Adding diagnostic steps to skill error-handling sections would reduce wasted
+   retry turns by an estimated 40-60% for credential-related failures.
+```
+
+Each proposition must be:
+
+- **Grounded** — traceable to specific codes, categories, and turn numbers
+- **Testable** — future traces can confirm or refute it
+- **Actionable** — implies a concrete change to skills, workflows, or
   infrastructure
-- **Evidenced** — includes token counts, error messages, or timing data
-
-For each theme, determine:
-
-1. **What happened** — factual description with turn references
-2. **Why it happened** — root cause analysis based on trace evidence
-3. **Impact** — cost in tokens, time, or failed outcomes
-4. **Recommendation** — specific change to prevent recurrence
 
 ### Phase 4: Cross-Trace Patterns (when analyzing multiple traces)
 
 When analyzing traces from multiple workflow runs:
 
-- **Compare** — Do the same categories appear across traces?
+- **Constant comparison** — Compare new codes and categories against those from
+  previous traces. Does the same core category appear? Do propositions hold?
 - **Trend** — Are costs increasing, decreasing, or stable?
 - **Divergence** — Did the same workflow behave differently across runs? Why?
-- **Saturation** — When new traces stop producing new codes, the analysis is
-  complete for this cycle
+- **Theoretical saturation** — When new traces stop producing new codes or
+  categories, the theory is saturated for this phenomenon. State this
+  explicitly: "After N traces, no new codes emerged for [category]. Analysis
+  is saturated." More data past saturation adds noise, not insight.
 
-## Output Format
+## Output: The Analysis Report
 
-Structure findings as:
+Structure the report as a grounded theory analysis, not an incident report.
 
 ```markdown
-## Trace Analysis: <workflow-name> (Run <run-id>)
+## Grounded Theory Analysis: <workflow-name> (Run <run-id>)
 
-### Summary
-- **Outcome**: <success|partial|failure>
-- **Cost**: $X.XX | **Turns**: NN | **Duration**: Xm Xs
-- **Tokens**: NNN,NNN in / NN,NNN out
+### Trace Overview
+| Field     | Value                              |
+| --------- | ---------------------------------- |
+| Workflow  | <name>                             |
+| Run ID    | <id>                               |
+| Date      | <date>                             |
+| Outcome   | <success / partial / failure>      |
+| Cost      | $X.XX                              |
+| Turns     | NN                                 |
+| Tokens    | NNN,NNN in / NN,NNN out            |
+| Duration  | Xm Xs                              |
 
-### Codes (sequential)
-| Turn | Code                     | Detail                              |
-| ---- | ------------------------ | ----------------------------------- |
-| 3    | auth-check-passed        | gh auth status → logged in          |
-| 13   | push-permission-denied   | git push → 403 github-actions[bot]  |
+### Memos
 
-### Categories
+> **Memo (turn NN):** <Analytical reflection — what surprised you, what
+> connection you noticed, what question the data raises.>
+
+> **Memo (turn NN):** ...
+
+<Include all memos written during open coding. These are the analytical
+backbone of the report — they show how the theory developed.>
+
+### Open Codes
+
+| Turn | In-Vivo Code                  | Detail                              |
+| ---- | ----------------------------- | ----------------------------------- |
+| 3    | "logged in to github.com"     | gh auth status → authenticated      |
+| 13   | "403 forbidden"               | git push → permission denied        |
+| 15   | "two credentials supplied"    | duplicate auth header on push       |
+
+<List all codes assigned during Phase 1. Use the data's own language for
+in-vivo codes. Include enough codes to support the categories — not every
+turn needs a code, but every significant event does.>
+
+### Categories (Axial Coding)
+
 #### CATEGORY_NAME
-- Codes: turn-13, turn-14, turn-15
-- Root cause: ...
-- Impact: ...
+- **Causal conditions**: <what triggered this pattern>
+- **Phenomenon**: <the core event, named>
+- **Context**: <environmental factors>
+- **Actions/Interactions**: <what the agent did>
+- **Consequences**: <what resulted — with token counts, turn numbers>
+- **Codes**: turn-NN, turn-NN, turn-NN
 
-### Themes
-#### 1. Theme Name
-- **What**: ...
-- **Why**: ...
-- **Impact**: ...
-- **Recommendation**: trivial fix | spec needed | observation
-- **Evidence**: turn NN — `<quoted error or command>`
+#### CATEGORY_NAME
+...
+
+### Core Category & Propositions (Selective Coding)
+
+**Core category: <NAME>**
+
+<One paragraph explaining the core category — the central phenomenon that
+integrates the most categories. Explain why this category, not another, is
+the core. Reference the categories it connects.>
+
+**Propositions:**
+
+1. <Testable statement about agent behaviour, grounded in specific turns.>
+2. <Testable statement...>
+3. <Testable statement...>
+
+### Actionable Findings
+
+<Translate propositions into concrete actions. Each finding traces back
+to a proposition, which traces to categories, which trace to codes, which
+trace to specific turns. This traceability chain is the report's integrity.>
+
+| # | Proposition | Category | Finding                           | Action            |
+| - | ----------- | -------- | --------------------------------- | ----------------- |
+| 1 | P1          | CRED_... | Agent lacks credential diagnostic | Spec: skill update |
+| 2 | P3          | WASTE_.. | 3 identical retries, no backoff   | Fix: add retry cap |
+| 3 | —           | —        | High token usage in triage phase  | Observe            |
+
+### Saturation Notes
+
+<State whether this analysis reached saturation or whether more traces are
+needed. If prior analyses exist, note whether the same core category
+appeared and whether propositions held or were revised.>
 ```
 
 ## Analysis Principles
@@ -190,16 +317,33 @@ Structure findings as:
 - **Let the data speak.** Do not start with a hypothesis. Read the trace, create
   codes, then look for patterns. Preconceived categories cause you to miss
   unexpected findings.
+- **Write memos constantly.** Memos capture your evolving understanding. A
+  grounded theory analysis without memos is just sorting — the memos are where
+  theory happens.
+- **Use in-vivo codes.** Preserve the data's own language. When the trace says
+  "403 forbidden", code it as "403 forbidden", not "authorization failure".
+  Analyst-imposed labels obscure what actually happened.
+- **Apply the paradigm model.** Every category should answer: what caused it,
+  what is it, what context shaped it, what was done, and what resulted. Incomplete
+  paradigms indicate incomplete analysis.
+- **Seek the core category.** The goal is not a list of findings — it is a
+  theory. The core category is the conceptual center that makes sense of
+  everything else. If your analysis has no core category, you stopped at axial
+  coding.
 - **Quote, don't paraphrase.** When citing evidence, use exact error messages,
   command text, or token counts from the trace. Approximate language weakens
   findings.
 - **Distinguish symptoms from causes.** A "permission denied" error is a
   symptom. The cause might be a missing workflow permission, a misconfigured
-  token, or a branch protection rule. Follow the causal chain.
+  token, or a branch protection rule. The paradigm model forces you to trace
+  causal conditions.
 - **Count what matters.** Token usage, retry counts, wasted turns, and cost are
-  objective measures. Use them to prioritize findings.
+  objective measures. Use them to ground propositions in evidence.
 - **Compare to intent.** Read the agent's skill documentation to understand what
   it was supposed to do, then compare to what it actually did. Gaps between
   intent and execution are findings.
-- **Recognize saturation.** When analyzing multiple traces, stop when new traces
-  stop producing new codes. More data past saturation adds noise, not insight.
+- **Recognize saturation.** When new traces stop producing new codes, state it.
+  More data past saturation adds noise, not insight.
+- **Maintain traceability.** Every proposition traces to categories, every
+  category to codes, every code to a turn number. If you cannot trace a finding
+  back to the data, it is speculation, not grounded theory.

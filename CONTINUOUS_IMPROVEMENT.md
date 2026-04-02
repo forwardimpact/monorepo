@@ -38,7 +38,7 @@ the composite action (see § Authentication below).
 | --------------------- | ------------------------------------------------------------------------- | ----------------------------------------------- |
 | **security-engineer** | Patch dependencies, harden supply chain, enforce security policies        | dependabot-triage, security-audit, spec         |
 | **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | release-readiness, release-review, gh-cli       |
-| **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | grounded-theory-analysis, spec, gh-cli          |
+| **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | gemba-walk, grounded-theory-analysis, spec, gh-cli |
 | **product-manager**   | Review PRs for product alignment, triage issues, verify contributor trust | product-backlog, product-feedback, spec, gh-cli |
 
 Each agent has explicit scope constraints — it knows what it must _not_ do. When
@@ -111,6 +111,7 @@ graph TD
 | **dependabot-triage**        | Policy-based evaluation and action on Dependabot PRs                          |
 | **release-readiness**        | Mechanical PR preparation — rebase, fix, report                               |
 | **release-review**           | Version bumps, tagging, publish verification                                  |
+| **gemba-walk**               | Trace observation process — select, download, analyze, report                 |
 | **grounded-theory-analysis** | Qualitative trace analysis adapted from research methodology                  |
 | **spec**                     | Spec and plan lifecycle — write, review, approve, track status                |
 | **gh-cli**                   | GitHub CLI installation and usage patterns for CI                             |

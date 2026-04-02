@@ -1,4 +1,4 @@
-name: Security Audit
+name: "Gemba: Security Audit"
 
 on:
   schedule:

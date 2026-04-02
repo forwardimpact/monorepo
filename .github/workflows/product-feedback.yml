@@ -1,4 +1,4 @@
-name: Product Feedback
+name: "Gemba: Product Feedback"
 
 on:
   schedule:
