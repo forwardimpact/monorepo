@@ -417,15 +417,12 @@ describe("Supervisor", () => {
       agentCwd: "/tmp/agent",
       query: async function* () {},
       output: new PassThrough(),
-      supervisorAllowedTools: ["Bash", "Read", "Glob", "Grep", "Write", "Edit"],
+      supervisorAllowedTools: ["Read", "Glob", "Grep"],
     });
     assert.deepStrictEqual(supervisor.supervisorRunner.allowedTools, [
-      "Bash",
       "Read",
       "Glob",
       "Grep",
-      "Write",
-      "Edit",
     ]);
   });
 

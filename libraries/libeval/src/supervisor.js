@@ -20,14 +20,14 @@ import { TraceCollector } from "./trace-collector.js";
  * @returns {boolean}
  */
 export function isSuccessful(text) {
-  return /(?:^|[\s*_~`])EVALUATION_SUCCESSFUL(?:[\s*_~`.,!]|$)/m.test(text);
+  return /(?:^|[\s*_~`])EVALUATION_SUCCESSFUL(?:[\s*_~`.,!?]|$)/m.test(text);
 }
 
 /** System prompt appended for the supervisor runner in supervise mode. */
 export const SUPERVISOR_SYSTEM_PROMPT = [
   "You supervise another AI agent.",
   "Guide its work: provide feedback, answer questions, and give direction when it gets stuck.",
-  "When the agent's work meets the task requirements, write EVALUATION_SUCCESSFUL on its own line — plain text, no markdown formatting.",
+  "When the agent's work meets the task requirements, write EVALUATION_SUCCESSFUL in your response.",
   "You may continue with follow-up work (e.g. filing issues) in the same turn after the signal.",
 ].join(" ");
 
@@ -182,7 +182,7 @@ export class Supervisor {
  * @param {string} [deps.model] - Claude model identifier
  * @param {number} [deps.maxTurns] - Maximum supervisor ↔ agent exchanges
  * @param {string[]} [deps.allowedTools] - Tools the agent may use
- * @param {string[]} [deps.supervisorAllowedTools] - Tools the supervisor may use (default: Read, Glob, Grep)
+ * @param {string[]} [deps.supervisorAllowedTools] - Tools the supervisor may use (default: Bash, Read, Glob, Grep, Write, Edit)
  * @param {string} [deps.supervisorProfile] - Supervisor agent profile name
  * @param {string} [deps.agentProfile] - Agent profile name
  * @returns {Supervisor}
