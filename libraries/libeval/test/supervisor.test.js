@@ -80,7 +80,9 @@ describe("isSuccessful", () => {
     assert.strictEqual(isSuccessful("_EVALUATION_SUCCESSFUL_"), true);
     assert.strictEqual(isSuccessful("`EVALUATION_SUCCESSFUL`"), true);
     assert.strictEqual(
-      isSuccessful("Good work.\n\n**EVALUATION_SUCCESSFUL**\n\nNow filing issues."),
+      isSuccessful(
+        "Good work.\n\n**EVALUATION_SUCCESSFUL**\n\nNow filing issues.",
+      ),
       true,
     );
   });

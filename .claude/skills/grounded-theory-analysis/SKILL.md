@@ -69,13 +69,13 @@ jq '[.turns[] | select(.role == "assistant") | .content[] | select(.type == "too
 
 ### Phase 1: Open Coding
 
-Read through the trace sequentially, turn by turn. For each meaningful unit
-(a tool call, a decision point, a failure, a recovery), assign a **code** — a
-short label that captures what happened in the data's own terms.
+Read through the trace sequentially, turn by turn. For each meaningful unit (a
+tool call, a decision point, a failure, a recovery), assign a **code** — a short
+label that captures what happened in the data's own terms.
 
 **Use in-vivo codes** — labels drawn from the trace's own language (error
-messages, command names, the agent's reasoning text). In-vivo codes preserve
-the data's meaning and resist analyst bias.
+messages, command names, the agent's reasoning text). In-vivo codes preserve the
+data's meaning and resist analyst bias.
 
 Do not use pre-defined categories. Let codes emerge from the data.
 
@@ -109,13 +109,13 @@ them, not as an afterthought.
 
 Example memo:
 
-> **Memo (turn 15):** The agent received a clear error message ("two
-> credentials supplied") but did not investigate _which_ two credentials were
-> in play. It retried the same operation instead. This suggests the agent's
-> error-handling repertoire is limited to retry — it lacks a "diagnose
-> credential conflict" skill. Compare to turn 12 where it successfully
-> recovered from a different error by changing approach. What distinguishes
-> recoverable from non-recoverable errors in the agent's behaviour?
+> **Memo (turn 15):** The agent received a clear error message ("two credentials
+> supplied") but did not investigate _which_ two credentials were in play. It
+> retried the same operation instead. This suggests the agent's error-handling
+> repertoire is limited to retry — it lacks a "diagnose credential conflict"
+> skill. Compare to turn 12 where it successfully recovered from a different
+> error by changing approach. What distinguishes recoverable from
+> non-recoverable errors in the agent's behaviour?
 
 ### Phase 2: Axial Coding
 
@@ -133,8 +133,8 @@ paradigm:
 - **Causal conditions** — What triggered this pattern? (a missing permission, a
   stale branch, an ambiguous skill instruction)
 - **Phenomenon** — What is the core event or pattern? Name it.
-- **Context** — What environmental conditions shaped it? (CI environment,
-  token type, workflow permissions, time pressure)
+- **Context** — What environmental conditions shaped it? (CI environment, token
+  type, workflow permissions, time pressure)
 - **Actions/Interactions** — What did the agent do in response? What strategies
   did it use?
 - **Consequences** — What was the outcome? (wasted tokens, failed task,
@@ -222,8 +222,8 @@ When analyzing traces from multiple workflow runs:
 - **Divergence** — Did the same workflow behave differently across runs? Why?
 - **Theoretical saturation** — When new traces stop producing new codes or
   categories, the theory is saturated for this phenomenon. State this
-  explicitly: "After N traces, no new codes emerged for [category]. Analysis
-  is saturated." More data past saturation adds noise, not insight.
+  explicitly: "After N traces, no new codes emerged for [category]. Analysis is
+  saturated." More data past saturation adds noise, not insight.
 
 ## Output: The Analysis Report
 
@@ -324,8 +324,8 @@ appeared and whether propositions held or were revised.>
   "403 forbidden", code it as "403 forbidden", not "authorization failure".
   Analyst-imposed labels obscure what actually happened.
 - **Apply the paradigm model.** Every category should answer: what caused it,
-  what is it, what context shaped it, what was done, and what resulted. Incomplete
-  paradigms indicate incomplete analysis.
+  what is it, what context shaped it, what was done, and what resulted.
+  Incomplete paradigms indicate incomplete analysis.
 - **Seek the core category.** The goal is not a list of findings — it is a
   theory. The core category is the conceptual center that makes sense of
   everything else. If your analysis has no core category, you stopped at axial

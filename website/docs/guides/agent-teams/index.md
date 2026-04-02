@@ -107,51 +107,51 @@ information flows **downward only** — team instructions inform agent behavior,
 agent profiles select which skills to load, skills contain the procedure.
 Information never flows upward.
 
-| Layer                  | File                         | Answers                                                 | Loaded by             |
-| ---------------------- | ---------------------------- | ------------------------------------------------------- | --------------------- |
-| **Team instructions**  | `.claude/CLAUDE.md`          | What platform? What conventions? What env vars?         | Every agent, always   |
-| **Agent profile**      | `.claude/agents/*.agent.md`  | Who am I? What stage? What constraints?                 | One agent at a time   |
-| **Skill**              | `.claude/skills/*/SKILL.md`  | How do I do X? What must I verify?                      | On demand, per skill  |
+| Layer                 | File                        | Answers                                         | Loaded by            |
+| --------------------- | --------------------------- | ----------------------------------------------- | -------------------- |
+| **Team instructions** | `.claude/CLAUDE.md`         | What platform? What conventions? What env vars? | Every agent, always  |
+| **Agent profile**     | `.claude/agents/*.agent.md` | Who am I? What stage? What constraints?         | One agent at a time  |
+| **Skill**             | `.claude/skills/*/SKILL.md` | How do I do X? What must I verify?              | On demand, per skill |
 
 ### How YAML Fields Map to Layers
 
-Each layer draws from specific fields in the framework YAML. Understanding
-where each field ends up helps you decide where to put new content.
+Each layer draws from specific fields in the framework YAML. Understanding where
+each field ends up helps you decide where to put new content.
 
-| Source File | YAML Field | Exported To | Layer |
-| --- | --- | --- | --- |
-| `tracks/*.yaml` | `agent.teamInstructions` | `.claude/CLAUDE.md` | Team instructions |
-| `disciplines/*.yaml` | `agent.identity` | `.agent.md` → identity section | Agent profile |
-| `disciplines/*.yaml` | `agent.priority` | `.agent.md` → priority section | Agent profile |
-| `disciplines/*.yaml` | `agent.constraints` | `.agent.md` → constraints list | Agent profile |
-| `tracks/*.yaml` | `agent.identity` | `.agent.md` → identity (overrides discipline) | Agent profile |
-| `tracks/*.yaml` | `agent.priority` | `.agent.md` → priority (overrides discipline) | Agent profile |
-| `tracks/*.yaml` | `agent.constraints` | `.agent.md` → constraints (appended) | Agent profile |
-| `tracks/*.yaml` | `roleContext` | `.agent.md` → role context section | Agent profile |
-| `behaviours/*.yaml` | `agent.workingStyle` | `.agent.md` → working style bullets | Agent profile |
-| `stages.yaml` | `description` | `.agent.md` → stage description | Agent profile |
-| `stages.yaml` | `constraints` | `.agent.md` → constraints list | Agent profile |
-| `stages.yaml` | `returnFormat` | `.agent.md` → return format | Agent profile |
-| `stages.yaml` | `handoffs` | `.agent.md` → stage transitions | Agent profile |
-| `capabilities/*.yaml` | `skills[].agent.stages` | `SKILL.md` → checklists | Skill |
-| `capabilities/*.yaml` | `skills[].agent.description` | `SKILL.md` → description | Skill |
-| `capabilities/*.yaml` | `skills[].toolReferences` | `SKILL.md` → tools section | Skill |
-| `capabilities/*.yaml` | `skills[].markers` | `SKILL.md` → markers section | Skill |
-| `capabilities/*.yaml` | `skills[].instructions` | `SKILL.md` → instructions | Skill |
-| `capabilities/*.yaml` | `skills[].installScript` | `skills/*/scripts/install.sh` | Skill |
-| `capabilities/*.yaml` | `skills[].implementationReference` | `skills/*/references/REFERENCE.md` | Skill |
+| Source File           | YAML Field                         | Exported To                                   | Layer             |
+| --------------------- | ---------------------------------- | --------------------------------------------- | ----------------- |
+| `tracks/*.yaml`       | `agent.teamInstructions`           | `.claude/CLAUDE.md`                           | Team instructions |
+| `disciplines/*.yaml`  | `agent.identity`                   | `.agent.md` → identity section                | Agent profile     |
+| `disciplines/*.yaml`  | `agent.priority`                   | `.agent.md` → priority section                | Agent profile     |
+| `disciplines/*.yaml`  | `agent.constraints`                | `.agent.md` → constraints list                | Agent profile     |
+| `tracks/*.yaml`       | `agent.identity`                   | `.agent.md` → identity (overrides discipline) | Agent profile     |
+| `tracks/*.yaml`       | `agent.priority`                   | `.agent.md` → priority (overrides discipline) | Agent profile     |
+| `tracks/*.yaml`       | `agent.constraints`                | `.agent.md` → constraints (appended)          | Agent profile     |
+| `tracks/*.yaml`       | `roleContext`                      | `.agent.md` → role context section            | Agent profile     |
+| `behaviours/*.yaml`   | `agent.workingStyle`               | `.agent.md` → working style bullets           | Agent profile     |
+| `stages.yaml`         | `description`                      | `.agent.md` → stage description               | Agent profile     |
+| `stages.yaml`         | `constraints`                      | `.agent.md` → constraints list                | Agent profile     |
+| `stages.yaml`         | `returnFormat`                     | `.agent.md` → return format                   | Agent profile     |
+| `stages.yaml`         | `handoffs`                         | `.agent.md` → stage transitions               | Agent profile     |
+| `capabilities/*.yaml` | `skills[].agent.stages`            | `SKILL.md` → checklists                       | Skill             |
+| `capabilities/*.yaml` | `skills[].agent.description`       | `SKILL.md` → description                      | Skill             |
+| `capabilities/*.yaml` | `skills[].toolReferences`          | `SKILL.md` → tools section                    | Skill             |
+| `capabilities/*.yaml` | `skills[].markers`                 | `SKILL.md` → markers section                  | Skill             |
+| `capabilities/*.yaml` | `skills[].instructions`            | `SKILL.md` → instructions                     | Skill             |
+| `capabilities/*.yaml` | `skills[].installScript`           | `skills/*/scripts/install.sh`                 | Skill             |
+| `capabilities/*.yaml` | `skills[].implementationReference` | `skills/*/references/REFERENCE.md`            | Skill             |
 
 **Key patterns:**
 
 - `agent.teamInstructions` is the only field that produces `.claude/CLAUDE.md`.
   It lives on the track because team instructions are context-specific — a
   platform track and a forward-deployed track serve different conventions.
-- `agent.identity` on a track _overrides_ the discipline's identity. Use
-  this when the track fundamentally changes how the agent introduces itself.
-- `agent.constraints` from discipline, track, and stage are all _appended_
-  — they are additive, not overriding.
-- `roleContext` is a shared field (used in both human job descriptions and
-  agent profiles). It is not inside the `agent:` section.
+- `agent.identity` on a track _overrides_ the discipline's identity. Use this
+  when the track fundamentally changes how the agent introduces itself.
+- `agent.constraints` from discipline, track, and stage are all _appended_ —
+  they are additive, not overriding.
+- `roleContext` is a shared field (used in both human job descriptions and agent
+  profiles). It is not inside the `agent:` section.
 
 ### Layer 1: Team Instructions (CLAUDE.md)
 
@@ -241,8 +241,8 @@ should behave. Each profile is a persona with constraints.
 are about identity and boundaries, not procedures.
 
 **Maintenance signal:** If you're adding platform-specific content to an agent
-profile, it probably belongs in CLAUDE.md. If you're adding procedural steps,
-it belongs in a skill.
+profile, it probably belongs in CLAUDE.md. If you're adding procedural steps, it
+belongs in a skill.
 
 #### Example
 
@@ -354,9 +354,9 @@ single-line pointer is acceptable — but never duplicate the procedure.
 
 ## Checklist Quality
 
-Checklists in skills are the agent's primary interface with your framework.
-For the basic rules on writing checklist items (verb-first, one action per
-line, ≤ 120 chars), see
+Checklists in skills are the agent's primary interface with your framework. For
+the basic rules on writing checklist items (verb-first, one action per line, ≤
+120 chars), see
 [Writing Good Checklists](/docs/guides/authoring-frameworks/#writing-good-checklists)
 in the Authoring Frameworks guide.
 
@@ -394,13 +394,13 @@ setup appears in three or more skills.
 **Problem:** When a value changes, only some copies get updated. The agent
 receives contradictory instructions.
 
-**Fix:** Move the fact to CLAUDE.md. Remove it from all skills. Do not add
-"see CLAUDE.md" pointers — the agent already has it loaded.
+**Fix:** Move the fact to CLAUDE.md. Remove it from all skills. Do not add "see
+CLAUDE.md" pointers — the agent already has it loaded.
 
 ### 2. Contradictory Guidance Across Layers
 
-**Symptom:** CLAUDE.md says "never do X" but a skill says "do X as a
-fallback." Or one skill says "always" and another says "sometimes."
+**Symptom:** CLAUDE.md says "never do X" but a skill says "do X as a fallback."
+Or one skill says "always" and another says "sometimes."
 
 **Problem:** The agent has no way to resolve the contradiction. It may follow
 either instruction unpredictably.
@@ -411,15 +411,15 @@ carries the summary; the canonical skill carries the details.
 
 ### 3. Narrative Embedded in Checklists
 
-**Symptom:** Checklist items are paragraphs of teaching material with the
-actual action buried inside.
+**Symptom:** Checklist items are paragraphs of teaching material with the actual
+action buried inside.
 
 **Problem:** Agents parse checklists mechanically. Long items obscure the
-action, and the explanatory content is wasted — it's not in a position where
-the agent learns from it (that's what instructions are for).
+action, and the explanatory content is wasted — it's not in a position where the
+agent learns from it (that's what instructions are for).
 
-**Fix:** Extract the explanation to the skill's instructions section. Reduce
-the checklist item to one actionable line.
+**Fix:** Extract the explanation to the skill's instructions section. Reduce the
+checklist item to one actionable line.
 
 ### 4. Unclear Tool Ownership
 

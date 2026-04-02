@@ -60,8 +60,8 @@ Using `--generate` regenerates all entries and writes the updated cache.
 Structured pathway entities (framework, levels, behaviours, capabilities, etc.)
 use a stable cache key derived from the entity key alone (e.g.
 `pathway:track:platform`). This means prompt changes (such as adding context
-forwarding or updating preambles) do not invalidate existing cache entries —
-use `--generate` to regenerate with updated prompts.
+forwarding or updating preambles) do not invalidate existing cache entries — use
+`--generate` to regenerate with updated prompts.
 
 General prose entries (articles, comments, briefings) use a cache key that
 includes the content context (topic, tone, length).
@@ -183,8 +183,8 @@ pre-populated for the BioNova universe. The default mode reads from it without
 LLM calls.
 
 When using `--generate`, prose is regenerated and the cache is written after
-generation completes. To do a full regeneration, delete the cache file first
-and run with `--generate`.
+generation completes. To do a full regeneration, delete the cache file first and
+run with `--generate`.
 
 Use `just synthetic-update` to regenerate synthetic data with LLM prose.
 

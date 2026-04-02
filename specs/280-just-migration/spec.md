@@ -9,11 +9,11 @@ as a layered dotenv loader. Three problems have accumulated:
 
 Environment loading is split across two systems that must stay in sync:
 
-- **`Makefile`** declares `ENVLOAD = ENV=$(ENV) STORAGE=$(STORAGE) AUTH=$(AUTH)
-  ./scripts/env.sh` and prefixes every recipe that needs environment variables
-  with `@$(ENVLOAD)`.
-- **`scripts/env.sh`** sources up to four files in order: `.env`,
-  `.env.${ENV}`, `.env.storage.${STORAGE}`, `.env.auth.${AUTH}`.
+- **`Makefile`** declares
+  `ENVLOAD = ENV=$(ENV) STORAGE=$(STORAGE) AUTH=$(AUTH) ./scripts/env.sh` and
+  prefixes every recipe that needs environment variables with `@$(ENVLOAD)`.
+- **`scripts/env.sh`** sources up to four files in order: `.env`, `.env.${ENV}`,
+  `.env.storage.${STORAGE}`, `.env.auth.${AUTH}`.
 
 This indirection creates maintenance burden (every env-dependent recipe must
 remember the `$(ENVLOAD)` prefix), obscures the load order from anyone reading
@@ -22,17 +22,17 @@ shell exec wrappers.
 
 There are **9 `.env.*.example` files** at the repo root today:
 
-| File | Purpose |
-| --- | --- |
-| `.env.example` | Base secrets and API credentials |
-| `.env.local.example` | Local dev networking (service URLs, ports) |
-| `.env.docker.example` | Docker Compose proxy/networking |
-| `.env.auth.none.example` | Auth disabled |
-| `.env.auth.gotrue.example` | GoTrue auth config |
-| `.env.auth.supabase.example` | Supabase auth config |
-| `.env.storage.local.example` | Local filesystem storage |
-| `.env.storage.minio.example` | MinIO storage config |
-| `.env.storage.supabase.example` | Supabase storage config |
+| File                            | Purpose                                    |
+| ------------------------------- | ------------------------------------------ |
+| `.env.example`                  | Base secrets and API credentials           |
+| `.env.local.example`            | Local dev networking (service URLs, ports) |
+| `.env.docker.example`           | Docker Compose proxy/networking            |
+| `.env.auth.none.example`        | Auth disabled                              |
+| `.env.auth.gotrue.example`      | GoTrue auth config                         |
+| `.env.auth.supabase.example`    | Supabase auth config                       |
+| `.env.storage.local.example`    | Local filesystem storage                   |
+| `.env.storage.minio.example`    | MinIO storage config                       |
+| `.env.storage.supabase.example` | Supabase storage config                    |
 
 ### 2. Agentic workflow failures from working directory changes
 
@@ -92,8 +92,8 @@ onboarding steps must instruct developers to install `just` before first use.
 1. **Replace `Makefile` with `justfile`** — translate all 74 Make targets to
    `just` recipes with identical names and behaviour.
 
-2. **Replace `scripts/env.sh` with native `just` dotenv loading** — collapse
-   the 9 `.env.*.example` files and shell-script loader into a small set of
+2. **Replace `scripts/env.sh` with native `just` dotenv loading** — collapse the
+   9 `.env.*.example` files and shell-script loader into a small set of
    complete, self-contained profile files loaded by `just`'s built-in
    `set dotenv-load`. No generation step, no helper recipes, no scripts.
 
@@ -123,8 +123,8 @@ onboarding steps must instruct developers to install `just` before first use.
 
 ### Out of scope
 
-- Changing the actual commands that recipes run (the `bun`, `bunx`, `docker
-  compose` invocations remain identical).
+- Changing the actual commands that recipes run (the `bun`, `bunx`,
+  `docker compose` invocations remain identical).
 - Refactoring service definitions, codegen, or processing pipelines.
 - Historical spec documents in `specs/` — these are immutable records and will
   not be updated.
@@ -141,12 +141,12 @@ contain 2–4. The layering machinery costs more than the duplication it prevent
 
 Collapse the 9 example files into **4 complete, self-contained profiles**:
 
-| File | Contents | When to use |
-| --- | --- | --- |
-| `.env.example` | API credentials, service secrets, database, debug | Always — copy to `.env` |
-| `.env.local.example` | All of: service URLs (localhost), `STORAGE_TYPE=local`, `AUTH_TYPE=none` | Local development |
-| `.env.docker-native.example` | Proxy config, service URLs (docker), GoTrue auth, MinIO storage | Docker with native services |
-| `.env.docker-supabase.example` | Proxy config, service URLs (docker), Supabase auth + storage | Docker with Supabase |
+| File                           | Contents                                                                 | When to use                 |
+| ------------------------------ | ------------------------------------------------------------------------ | --------------------------- |
+| `.env.example`                 | API credentials, service secrets, database, debug                        | Always — copy to `.env`     |
+| `.env.local.example`           | All of: service URLs (localhost), `STORAGE_TYPE=local`, `AUTH_TYPE=none` | Local development           |
+| `.env.docker-native.example`   | Proxy config, service URLs (docker), GoTrue auth, MinIO storage          | Docker with native services |
+| `.env.docker-supabase.example` | Proxy config, service URLs (docker), Supabase auth + storage             | Docker with Supabase        |
 
 Each profile file is **complete** — it contains every variable needed for that
 environment, including the auth and storage settings that were previously in
@@ -208,71 +208,71 @@ profiles pass an argument or copy the appropriate profile file manually.
 
 ### Trade-offs
 
-| Aspect | Current (Make + env.sh) | Proposed (just) |
-| --- | --- | --- |
-| Env load mechanism | External shell script + exec wrapper | Native `set dotenv-load` |
-| Working directory resilience | None — fails if cwd changes | Just walks ancestors to find justfile |
-| New recipe cost | 3 lines (.PHONY + target + command) | 1–2 lines (recipe + command) |
-| Env example files | 9 files + layering script | 4 complete profile files |
-| scripts/env.sh | Required | Deleted |
-| Variable pass-through | `ENVLOAD` prefix on every recipe | None — automatic |
-| Auth/storage switching | Change `AUTH`/`STORAGE` variable | Edit `.env` directly |
+| Aspect                       | Current (Make + env.sh)              | Proposed (just)                       |
+| ---------------------------- | ------------------------------------ | ------------------------------------- |
+| Env load mechanism           | External shell script + exec wrapper | Native `set dotenv-load`              |
+| Working directory resilience | None — fails if cwd changes          | Just walks ancestors to find justfile |
+| New recipe cost              | 3 lines (.PHONY + target + command)  | 1–2 lines (recipe + command)          |
+| Env example files            | 9 files + layering script            | 4 complete profile files              |
+| scripts/env.sh               | Required                             | Deleted                               |
+| Variable pass-through        | `ENVLOAD` prefix on every recipe     | None — automatic                      |
+| Auth/storage switching       | Change `AUTH`/`STORAGE` variable     | Edit `.env` directly                  |
 
 ## Affected Files
 
 ### Deleted
 
-| File | Reason |
-| --- | --- |
-| `Makefile` | Replaced by `justfile` |
-| `scripts/env.sh` | Replaced by native just dotenv loading |
-| `.env.docker.example` | Replaced by `docker-native` and `docker-supabase` profiles |
-| `.env.auth.none.example` | Folded into `.env.local.example` |
-| `.env.auth.gotrue.example` | Folded into `.env.docker-native.example` |
-| `.env.auth.supabase.example` | Folded into `.env.docker-supabase.example` |
-| `.env.storage.local.example` | Folded into `.env.local.example` |
-| `.env.storage.minio.example` | Folded into `.env.docker-native.example` |
-| `.env.storage.supabase.example` | Folded into `.env.docker-supabase.example` |
+| File                            | Reason                                                     |
+| ------------------------------- | ---------------------------------------------------------- |
+| `Makefile`                      | Replaced by `justfile`                                     |
+| `scripts/env.sh`                | Replaced by native just dotenv loading                     |
+| `.env.docker.example`           | Replaced by `docker-native` and `docker-supabase` profiles |
+| `.env.auth.none.example`        | Folded into `.env.local.example`                           |
+| `.env.auth.gotrue.example`      | Folded into `.env.docker-native.example`                   |
+| `.env.auth.supabase.example`    | Folded into `.env.docker-supabase.example`                 |
+| `.env.storage.local.example`    | Folded into `.env.local.example`                           |
+| `.env.storage.minio.example`    | Folded into `.env.docker-native.example`                   |
+| `.env.storage.supabase.example` | Folded into `.env.docker-supabase.example`                 |
 
 ### Created
 
-| File | Purpose |
-| --- | --- |
-| `justfile` | All recipes from Makefile, with dotenv configuration |
-| `.env.docker-native.example` | Complete Docker profile with GoTrue auth + MinIO storage |
-| `.env.docker-supabase.example` | Complete Docker profile with Supabase auth + storage |
+| File                           | Purpose                                                  |
+| ------------------------------ | -------------------------------------------------------- |
+| `justfile`                     | All recipes from Makefile, with dotenv configuration     |
+| `.env.docker-native.example`   | Complete Docker profile with GoTrue auth + MinIO storage |
+| `.env.docker-supabase.example` | Complete Docker profile with Supabase auth + storage     |
 
 ### Modified
 
-| File | Change |
-| --- | --- |
-| `.claude/settings.json` | `make install` → `just install`, `make memory-commit` → `just memory-commit` |
-| `.github/workflows/check-quality.yml` | `make install` → `just install`, add just installation step |
-| `.github/workflows/check-test.yml` | `make install` → `just install`, `make synthetic` → `just synthetic`, add just installation step |
-| `.github/workflows/dependabot-triage.yml` | `make install` → `just install`, add just installation step |
-| `.github/workflows/guide-setup.yml` | `make install` → `just install`, add just installation step |
-| `.github/workflows/improvement-coach.yml` | `make install` → `just install`, add just installation step |
-| `.github/workflows/product-backlog.yml` | `make install` → `just install`, add just installation step |
-| `.github/workflows/product-feedback.yml` | `make install` → `just install`, add just installation step |
-| `.github/workflows/publish-npm.yml` | `make install` → `just install`, add just installation step |
-| `.github/workflows/release-readiness.yml` | `make install` → `just install`, add just installation step |
-| `.github/workflows/release-review.yml` | `make install` → `just install`, add just installation step |
-| `.github/workflows/security-audit.yml` | `make install` → `just install`, add just installation step |
-| `README.md` | `make quickstart` → `just quickstart` |
-| `CONTRIBUTING.md` | `make quickstart` → `just quickstart`, `make audit` → `just audit`, `make audit-vulnerabilities` → `just audit-vulnerabilities` |
-| `CONTINUOUS_IMPROVEMENT.md` | `make memory-update` → `just memory-update`, `make memory-commit` → `just memory-commit`, `make install` → `just install` |
-| `website/docs/internals/operations/index.md` | 29 `make` references → `just` |
-| `website/docs/internals/guide/index.md` | `make rc-start` → `just rc-start` |
-| `products/guide/README.md` | `make services` → `just services` |
-| `.claude/skills/fit-guide/SKILL.md` | 69 `make` command references → `just` |
-| `.claude/skills/fit-universe/SKILL.md` | 6 `make` command references → `just` |
-| `.claude/skills/libs-system-utilities/SKILL.md` | `make codegen`, `make audit` → `just` |
-| `.claude/skills/libs-web-presentation/SKILL.md` | `make audit-vulnerabilities` → `just` |
-| `.claude/skills/dependabot-triage/SKILL.md` | `make audit` → `just` |
-| `config/config.example.json` | `make supabase-up` → `just supabase-up`, `make supabase-down` → `just supabase-down` |
-| `.devcontainer/setup.sh` | `make codegen` → `just codegen`, `make env-setup` → `just env-setup`, `make data-init` → `just data-init` |
-| `scripts/auth-user.js` | Error messages: `make auth-user` → `just auth-user`, etc. |
-| `.prettierignore` | `**/Makefile` → `**/justfile` |
+| File                                            | Change                                                                                                                          |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `.claude/settings.json`                         | `make install` → `just install`, `make memory-commit` → `just memory-commit`                                                    |
+| `.github/workflows/check-quality.yml`           | `make install` → `just install`, add just installation step                                                                     |
+| `.github/workflows/check-test.yml`              | `make install` → `just install`, `make synthetic` → `just synthetic`, add just installation step                                |
+| `.github/workflows/dependabot-triage.yml`       | `make install` → `just install`, add just installation step                                                                     |
+| `.github/workflows/guide-setup.yml`             | `make install` → `just install`, add just installation step                                                                     |
+| `.github/workflows/improvement-coach.yml`       | `make install` → `just install`, add just installation step                                                                     |
+| `.github/workflows/product-backlog.yml`         | `make install` → `just install`, add just installation step                                                                     |
+| `.github/workflows/product-feedback.yml`        | `make install` → `just install`, add just installation step                                                                     |
+| `.github/workflows/publish-npm.yml`             | `make install` → `just install`, add just installation step                                                                     |
+| `.github/workflows/release-readiness.yml`       | `make install` → `just install`, add just installation step                                                                     |
+| `.github/workflows/release-review.yml`          | `make install` → `just install`, add just installation step                                                                     |
+| `.github/workflows/security-audit.yml`          | `make install` → `just install`, add just installation step                                                                     |
+| `README.md`                                     | `make quickstart` → `just quickstart`                                                                                           |
+| `CONTRIBUTING.md`                               | `make quickstart` → `just quickstart`, `make audit` → `just audit`, `make audit-vulnerabilities` → `just audit-vulnerabilities` |
+| `CONTINUOUS_IMPROVEMENT.md`                     | `make memory-update` → `just memory-update`, `make memory-commit` → `just memory-commit`, `make install` → `just install`       |
+| `website/docs/internals/operations/index.md`    | 29 `make` references → `just`                                                                                                   |
+| `website/docs/internals/guide/index.md`         | `make rc-start` → `just rc-start`                                                                                               |
+| `products/guide/README.md`                      | `make services` → `just services`                                                                                               |
+| `.claude/skills/fit-guide/SKILL.md`             | 69 `make` command references → `just`                                                                                           |
+| `.claude/skills/fit-universe/SKILL.md`          | 6 `make` command references → `just`                                                                                            |
+| `.claude/skills/libs-system-utilities/SKILL.md` | `make codegen`, `make audit` → `just`                                                                                           |
+| `.claude/skills/libs-web-presentation/SKILL.md` | `make audit-vulnerabilities` → `just`                                                                                           |
+| `.claude/skills/dependabot-triage/SKILL.md`     | `make audit` → `just`                                                                                                           |
+| `config/config.example.json`                    | `make supabase-up` → `just supabase-up`, `make supabase-down` → `just supabase-down`                                            |
+| `.devcontainer/setup.sh`                        | `make codegen` → `just codegen`, `make env-setup` → `just env-setup`, `make data-init` → `just data-init`                       |
+| `scripts/auth-user.js`                          | Error messages: `make auth-user` → `just auth-user`, etc.                                                                       |
+| `.prettierignore`                               | `**/Makefile` → `**/justfile`                                                                                                   |
 
 ## Transition
 
@@ -288,16 +288,17 @@ files.
 
 ## Success Criteria
 
-1. **`just install` works from any subdirectory** — run `cd libraries/libskill
-   && just install` and verify it finds the root justfile and succeeds.
+1. **`just install` works from any subdirectory** — run
+   `cd libraries/libskill && just install` and verify it finds the root justfile
+   and succeeds.
 
 2. **All CI workflows pass** — every GitHub Actions workflow that previously
    used `make` passes with `just`.
 
 3. **Dotenv loading produces identical environments** — for the default local
    profile, the environment variables available to recipes match what
-   `scripts/env.sh` previously produced. Verify by comparing `env | sort`
-   output before and after migration.
+   `scripts/env.sh` previously produced. Verify by comparing `env | sort` output
+   before and after migration.
 
 4. **Claude Code hooks succeed after cwd change** — simulate the failure case:
    `cd libraries/libskill && just memory-commit` (invoked from a subdirectory)

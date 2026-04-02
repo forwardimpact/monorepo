@@ -13,8 +13,8 @@ and agent profile generation. Three audiences use `fit-pathway` differently:
 
 | Audience          | Goal                                                | How they run it                                   |
 | ----------------- | --------------------------------------------------- | ------------------------------------------------- |
-| **Maintainers**   | Develop and improve `@forwardimpact/pathway` itself | `npx fit-pathway` from the monorepo workspace    |
-| **Organizations** | Publish a career framework for their engineers      | `npx fit-pathway build` in a standalone project  |
+| **Maintainers**   | Develop and improve `@forwardimpact/pathway` itself | `npx fit-pathway` from the monorepo workspace     |
+| **Organizations** | Publish a career framework for their engineers      | `npx fit-pathway build` in a standalone project   |
 | **Engineers**     | Explore jobs, skills, and career progression        | `fit-pathway` installed globally on their machine |
 
 ## When to Use This Skill
@@ -171,8 +171,8 @@ npx fit-pathway update --url=URL              # Update from custom source URL
 
 All entity commands support three modes:
 
-| Mode    | Pattern                         | Description                 |
-| ------- | ------------------------------- | --------------------------- |
+| Mode    | Pattern                        | Description                 |
+| ------- | ------------------------------ | --------------------------- |
 | Summary | `npx fit-pathway <command>`    | Concise overview with stats |
 | List    | `npx fit-pathway <cmd> --list` | IDs for piping              |
 | Detail  | `npx fit-pathway <cmd> <id>`   | Full entity details         |
@@ -270,12 +270,12 @@ high-quality output.
   skills, behaviours, stages, drivers. Includes proficiency vocabulary
   standards, co-located human/agent content patterns, checklist quality rules,
   and validation workflows
-- [Agent Teams Guide](https://www.forwardimpact.team/docs/guides/agent-teams/)
-  — How to generate, structure, and maintain exported agent teams. Covers the
+- [Agent Teams Guide](https://www.forwardimpact.team/docs/guides/agent-teams/) —
+  How to generate, structure, and maintain exported agent teams. Covers the
   three-layer architecture (CLAUDE.md → agent profiles → skills), information
   flow rules, anti-patterns to avoid, and the maintenance checklist for
   reviewing exported output
 - [Career Paths Guide](https://www.forwardimpact.team/docs/guides/career-paths/)
   — Browse jobs, skills, and career progression between levels
-- [CLI Reference](https://www.forwardimpact.team/docs/reference/cli/) —
-  Complete command reference for all Forward Impact CLI tools
+- [CLI Reference](https://www.forwardimpact.team/docs/reference/cli/) — Complete
+  command reference for all Forward Impact CLI tools

@@ -36,9 +36,9 @@ data/
 └── questions/                  # Interview question banks (by type)
 ```
 
-Single-entity files (disciplines, tracks, behaviours, capabilities) are named
-by identifier — `disciplines/software_engineering.yaml`. Collection files
-(levels, stages, drivers) contain all entries in one file.
+Single-entity files (disciplines, tracks, behaviours, capabilities) are named by
+identifier — `disciplines/software_engineering.yaml`. Collection files (levels,
+stages, drivers) contain all entries in one file.
 
 Initialize a data directory with example content:
 
@@ -93,9 +93,9 @@ distribution:
 
 **Optional:** `description`, `tag`, `entityDefinitions`, `distribution`
 
-The `entityDefinitions` object controls how each entity type is labelled in
-the web app. The `distribution.siteUrl` is the base URL for the published
-static site, used by `bunx fit-pathway update` to download framework bundles.
+The `entityDefinitions` object controls how each entity type is labelled in the
+web app. The `distribution.siteUrl` is the base URL for the published static
+site, used by `bunx fit-pathway update` to download framework bundles.
 
 ---
 
@@ -104,8 +104,8 @@ static site, used by `bunx fit-pathway update` to download framework bundles.
 Levels define career progression with base expectations for skill proficiency
 and behaviour maturity. Every level sets three baseline proficiencies
 (`primary`, `secondary`, `broad`) that map to how a discipline classifies its
-skills (`coreSkills`, `supportingSkills`, `broadSkills`). Disciplines and
-tracks then modify these baselines.
+skills (`coreSkills`, `supportingSkills`, `broadSkills`). Disciplines and tracks
+then modify these baselines.
 
 ### Proficiency Scale
 
@@ -120,8 +120,8 @@ All skills use the same five-level scale:
 | `expert`       | define, shape         | business unit / function | define, shape, innovate, pioneer  |
 
 Use the vocabulary standards from this table when writing proficiency
-descriptions. "Independently resolves incidents" belongs at `working`;
-"defines incident response strategy" belongs at `expert`.
+descriptions. "Independently resolves incidents" belongs at `working`; "defines
+incident response strategy" belongs at `expert`.
 
 ### Example
 
@@ -255,9 +255,9 @@ false), `hidden`, `minLevel`, `description`, `supportingSkills`, `broadSkills`,
 
 ### Co-located Human and Agent Content
 
-Disciplines include parallel `human:` and `agent:` sections. Variables in
-braces (`{roleTitle}`, `{roleName}`, `{specialization}`) are substituted at
-render time.
+Disciplines include parallel `human:` and `agent:` sections. Variables in braces
+(`{roleTitle}`, `{roleName}`, `{specialization}`) are substituted at render
+time.
 
 ```yaml
 # Continuation of data/disciplines/software_engineering.yaml
@@ -290,8 +290,8 @@ agent:
   configurations.
 - `behaviourModifiers`: Integer adjustments to behaviour maturity. Discipline
   modifiers are capped at ±1.
-- `coreSkills` / `supportingSkills` / `broadSkills`: Skill IDs from
-  capability files. These determine the T-shape of the discipline.
+- `coreSkills` / `supportingSkills` / `broadSkills`: Skill IDs from capability
+  files. These determine the T-shape of the discipline.
 
 ### How Derivation Uses Disciplines
 
@@ -308,8 +308,8 @@ Track modifiers then shift these proficiencies up or down per capability.
 
 ## Tracks
 
-Tracks are pure modifiers that adjust skill and behaviour expectations based
-on work context. They do not define role types — _disciplines_ define roles. A
+Tracks are pure modifiers that adjust skill and behaviour expectations based on
+work context. They do not define role types — _disciplines_ define roles. A
 track represents how you work (your context), not who you are.
 
 "Platform Engineering" is a track. It applies modifiers to capabilities for
@@ -380,33 +380,32 @@ agent:
 The `agent:` section on a track controls what the exported agent team receives.
 All subfields are optional:
 
-- `identity`: Overrides the discipline's `agent.identity`. Use when the
-  track fundamentally changes how the agent introduces itself. Supports
-  `{roleTitle}` and `{specialization}` template variables.
+- `identity`: Overrides the discipline's `agent.identity`. Use when the track
+  fundamentally changes how the agent introduces itself. Supports `{roleTitle}`
+  and `{specialization}` template variables.
 - `priority`: Overrides the discipline's `agent.priority`.
-- `constraints`: Appended to the discipline and stage constraints (not
-  replacing them).
-- `teamInstructions`: Markdown content written to `.claude/CLAUDE.md` in
-  the exported agent team. This is the only field that produces team-level
-  instructions. Use it for cross-cutting platform facts, conventions, and
-  skill coordination tables — content every agent needs regardless of stage.
-  See the [Agent Teams guide](/docs/guides/agent-teams/#layer-1-team-instructions-claudemd)
+- `constraints`: Appended to the discipline and stage constraints (not replacing
+  them).
+- `teamInstructions`: Markdown content written to `.claude/CLAUDE.md` in the
+  exported agent team. This is the only field that produces team-level
+  instructions. Use it for cross-cutting platform facts, conventions, and skill
+  coordination tables — content every agent needs regardless of stage. See the
+  [Agent Teams guide](/docs/guides/agent-teams/#layer-1-team-instructions-claudemd)
   for what to include and exclude.
 
 ### Modifier Mechanics
 
-- `skillModifiers`: Keys are capability IDs, not individual skill IDs.
-  A modifier of `+1` raises all skills in that capability by one proficiency
-  level. A modifier of `-2` lowers them by two. Results are clamped to the
-  valid proficiency range.
+- `skillModifiers`: Keys are capability IDs, not individual skill IDs. A
+  modifier of `+1` raises all skills in that capability by one proficiency
+  level. A modifier of `-2` lowers them by two. Results are clamped to the valid
+  proficiency range.
 - `behaviourModifiers`: Integer adjustments to behaviour maturity. Track
-  behaviour modifiers are not capped like discipline modifiers — they can
-  exceed ±1.
-- `minLevel`: If set, this track only applies at the specified level and
-  above.
+  behaviour modifiers are not capped like discipline modifiers — they can exceed
+  ±1.
+- `minLevel`: If set, this track only applies at the specified level and above.
 
-Skills from capabilities the track modifies positively — but that aren't in
-the base discipline — are added as broad-type "track-added" skills.
+Skills from capabilities the track modifies positively — but that aren't in the
+base discipline — are added as broad-type "track-added" skills.
 
 ---
 
@@ -468,9 +467,9 @@ skills:
 
 ## Skills
 
-Skills are the most detailed entity in the framework. Each skill lives
-inside a capability file and requires a `human:` section (for engineers)
-and optionally an `agent:` section (for AI agents).
+Skills are the most detailed entity in the framework. Each skill lives inside a
+capability file and requires a `human:` section (for engineers) and optionally
+an `agent:` section (for AI agents).
 
 ### Minimal Skill
 
@@ -537,8 +536,8 @@ skills:
 
 ### Writing Good Checklists
 
-Checklists are the skill's primary interface with agents. They must be
-scannable and actionable — agents parse them mechanically.
+Checklists are the skill's primary interface with agents. They must be scannable
+and actionable — agents parse them mechanically.
 
 **Good checklist items** — one action, one line:
 
@@ -596,8 +595,8 @@ skills:
 
 ### Tool References
 
-Skills can declare tools that agents need. These are collected during
-derivation and exported with the agent team:
+Skills can declare tools that agents need. These are collected during derivation
+and exported with the agent team:
 
 ```yaml
 toolReferences:
@@ -751,8 +750,8 @@ agent:
     3. Don't hand off until you've validated the work
 ```
 
-**Required:** `name`, `human` (with `description` and `maturityDescriptions`
-at all five levels)
+**Required:** `name`, `human` (with `description` and `maturityDescriptions` at
+all five levels)
 
 **Optional:** `id`, `agent` (with `title` and `workingStyle`)
 
@@ -766,14 +765,14 @@ and should not do at each phase.
 
 ### Standard Stages
 
-| Stage       | Purpose                              |
-| ----------- | ------------------------------------ |
-| `specify`   | Author requirements and criteria     |
-| `plan`      | Design solutions, create plans       |
-| `scaffold`  | Generate project structure           |
-| `code`      | Implement solutions and write tests  |
-| `review`    | Review code for correctness          |
-| `deploy`    | Ship changes to production           |
+| Stage      | Purpose                             |
+| ---------- | ----------------------------------- |
+| `specify`  | Author requirements and criteria    |
+| `plan`     | Design solutions, create plans      |
+| `scaffold` | Generate project structure          |
+| `code`     | Implement solutions and write tests |
+| `review`   | Review code for correctness         |
+| `deploy`   | Ship changes to production          |
 
 ### Example
 
@@ -842,8 +841,8 @@ and should not do at each phase.
 
 **Required:** `id`, `name`
 
-**Optional:** `emojiIcon`, `description`, `summary`, `handoffs`,
-`constraints`, `readChecklist`, `confirmChecklist`, `returnFormat`
+**Optional:** `emojiIcon`, `description`, `summary`, `handoffs`, `constraints`,
+`readChecklist`, `confirmChecklist`, `returnFormat`
 
 ### Field Details
 
@@ -891,8 +890,8 @@ engineering produces. They connect skills and behaviours to measurable goals.
 
 **Optional:** `description`, `contributingSkills`, `contributingBehaviours`
 
-Aim for 3–7 drivers — fewer is better. Use business-friendly IDs, not
-technical jargon.
+Aim for 3–7 drivers — fewer is better. Use business-friendly IDs, not technical
+jargon.
 
 ---
 
@@ -904,18 +903,18 @@ Validate framework data at any time:
 bunx fit-map validate
 ```
 
-This checks that all YAML files conform to the expected schema — required
-fields are present, identifiers are consistent, cross-references resolve,
-and proficiency levels use valid values.
+This checks that all YAML files conform to the expected schema — required fields
+are present, identifiers are consistent, cross-references resolve, and
+proficiency levels use valid values.
 
 ### Common Validation Errors
 
-| Error                         | Typical Cause                                                   | Fix                                                         |
-| ----------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------- |
-| Cross-reference mismatch      | Skill ID in `coreSkills` doesn't exist in any capability        | Check spelling against actual skill IDs in capability files |
-| Invalid proficiency level     | Using a non-standard level like `intermediate`                  | Use only: awareness, foundational, working, practitioner, expert |
-| Missing required field        | A skill is missing `human.proficiencyDescriptions`              | Add the missing field at all five proficiency levels        |
-| Duplicate ID                  | Two entities share the same identifier                          | Rename one to be unique                                     |
+| Error                     | Typical Cause                                            | Fix                                                              |
+| ------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------- |
+| Cross-reference mismatch  | Skill ID in `coreSkills` doesn't exist in any capability | Check spelling against actual skill IDs in capability files      |
+| Invalid proficiency level | Using a non-standard level like `intermediate`           | Use only: awareness, foundational, working, practitioner, expert |
+| Missing required field    | A skill is missing `human.proficiencyDescriptions`       | Add the missing field at all five proficiency levels             |
+| Duplicate ID              | Two entities share the same identifier                   | Rename one to be unique                                          |
 
 ### Preview Changes
 
@@ -925,8 +924,8 @@ After editing YAML files, preview the results in the Pathway web app:
 bunx fit-pathway dev
 ```
 
-This starts a local development server so you can see how your framework
-renders before publishing.
+This starts a local development server so you can see how your framework renders
+before publishing.
 
 ---
 

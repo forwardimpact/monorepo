@@ -140,18 +140,17 @@ agents.
 
 The proficiency scale and behaviour maturity scale appear in multiple guides.
 When the same table appears in more than one page, column values must match
-exactly — same casing, same punctuation, same wording. The canonical tables
-live in the Authoring Frameworks guide. Other guides that reproduce them must
-match.
+exactly — same casing, same punctuation, same wording. The canonical tables live
+in the Authoring Frameworks guide. Other guides that reproduce them must match.
 
 ### Field names vs concept names
 
 The framework uses two naming layers that must not be conflated:
 
-| Layer              | Names                                       | Where used                       |
-| ------------------ | ------------------------------------------- | -------------------------------- |
-| Discipline tiers   | `coreSkills`, `supportingSkills`, `broadSkills` | Discipline YAML files            |
-| Level proficiencies | `primary`, `secondary`, `broad`             | `baseSkillProficiencies` in levels.yaml |
+| Layer               | Names                                           | Where used                              |
+| ------------------- | ----------------------------------------------- | --------------------------------------- |
+| Discipline tiers    | `coreSkills`, `supportingSkills`, `broadSkills` | Discipline YAML files                   |
+| Level proficiencies | `primary`, `secondary`, `broad`                 | `baseSkillProficiencies` in levels.yaml |
 
 `primary` maps to `coreSkills`, `secondary` to `supportingSkills`, `broad` to
 `broadSkills`. When documenting levels, use the field names (`primary`,
@@ -162,8 +161,8 @@ relationship, state the mapping explicitly.
 ### Required/optional field lists
 
 When a guide lists required and optional fields for an entity, verify against
-the JSON schema in `products/map/schema/json/`. The schema's `required` array
-is the single source of truth — do not guess from examples or convention.
+the JSON schema in `products/map/schema/json/`. The schema's `required` array is
+the single source of truth — do not guess from examples or convention.
 
 ### Casing conventions
 

@@ -46,27 +46,31 @@ their engineering framework in YAML; Map validates, stores, and publishes that
 data for humans and agents.
 
 - Product overview: [website/map/index.md](website/map/index.md)
-- Internal documentation: [website/docs/internals/map/index.md](website/docs/internals/map/index.md)
+- Internal documentation:
+  [website/docs/internals/map/index.md](website/docs/internals/map/index.md)
 
 **Pathway** — Interface to the engineering framework: web app, CLI, and static
 site generator. Produces job definitions, agent profiles, and interview
 questions from framework data.
 
 - Product overview: [website/pathway/index.md](website/pathway/index.md)
-- Internal documentation: [website/docs/internals/pathway/index.md](website/docs/internals/pathway/index.md)
+- Internal documentation:
+  [website/docs/internals/pathway/index.md](website/docs/internals/pathway/index.md)
 
 **Basecamp** — Personal operations center with scheduled AI tasks, knowledge
 graphs, and meeting briefings, running in the background via a macOS status
 menu.
 
 - Product overview: [website/basecamp/index.md](website/basecamp/index.md)
-- Internal documentation: [website/docs/internals/basecamp/index.md](website/docs/internals/basecamp/index.md)
+- Internal documentation:
+  [website/docs/internals/basecamp/index.md](website/docs/internals/basecamp/index.md)
 
 **Guide** — AI agent that reasons about your organization's engineering
 framework in context, helping developers onboard and find growth areas.
 
 - Product overview: [website/guide/index.md](website/guide/index.md)
-- Internal documentation: [website/docs/internals/guide/index.md](website/docs/internals/guide/index.md)
+- Internal documentation:
+  [website/docs/internals/guide/index.md](website/docs/internals/guide/index.md)
 
 **Landmark** — Analysis layer combining objective GitHub artifact evidence with
 subjective GetDX snapshots. No LLM calls — query, aggregate, explain.
@@ -78,7 +82,8 @@ capability coverage, structural risks, and staffing scenarios. Fully local and
 deterministic.
 
 - Product overview: [website/summit/index.md](website/summit/index.md)
-- Internal documentation: [website/docs/internals/summit/index.md](website/docs/internals/summit/index.md)
+- Internal documentation:
+  [website/docs/internals/summit/index.md](website/docs/internals/summit/index.md)
 
 ## Required Development Workflow
 

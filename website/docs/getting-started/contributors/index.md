@@ -6,8 +6,9 @@ description: "Clone the monorepo, generate synthetic data, run checks, and under
 Set up the Forward Impact monorepo for development. This guide covers
 installation, data generation, and running the quality checks.
 
-> External users install products via npm (see [Leadership](/docs/getting-started/leadership/)
-> or [Developers](/docs/getting-started/developers/)). This page is for
+> External users install products via npm (see
+> [Leadership](/docs/getting-started/leadership/) or
+> [Developers](/docs/getting-started/developers/)). This page is for
 > contributors working on the monorepo itself.
 
 ## Prerequisites
@@ -101,7 +102,7 @@ scope for breaking changes.
 
 ## Next steps
 
-- [Architecture internals](/docs/internals/) — dependency chains, data flow,
-  and design decisions
+- [Architecture internals](/docs/internals/) — dependency chains, data flow, and
+  design decisions
 - [CONTRIBUTING.md](https://github.com/forwardimpact/monorepo/blob/main/CONTRIBUTING.md)
   — full contributing guide with PR checklist and release process

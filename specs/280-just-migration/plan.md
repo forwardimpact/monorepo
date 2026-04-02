@@ -84,8 +84,9 @@ justfile in Phase 2) to copy `.env.example → .env` and append a profile file
 (defaulting to `local`), plus config resets. This preserves the current UX where
 `env-reset` produces a fully working environment in one command.
 
-**Verify:** `diff <(ENV=local STORAGE=local AUTH=none ./scripts/env.sh env | sort) <(cat .env .env.local | grep -v '^#' | grep '=' | sort)` — the variables
-must match for the default local profile.
+**Verify:**
+`diff <(ENV=local STORAGE=local AUTH=none ./scripts/env.sh env | sort) <(cat .env .env.local | grep -v '^#' | grep '=' | sort)`
+— the variables must match for the default local profile.
 
 ---
 
@@ -108,12 +109,12 @@ the `@` prefix on every recipe line. `ARGS` allows passing arguments like
 
 ### 2.2 Translate Core recipes
 
-| Make target      | Just recipe                                             | Notes                                   |
-| ---------------- | ------------------------------------------------------- | --------------------------------------- |
-| `memory-update`  | Same shell body                                         | No `ENVLOAD` needed                     |
-| `memory-commit`  | Same shell body                                         | No `ENVLOAD` needed                     |
-| `install`        | `just memory-update` then `bun install --frozen-lockfile` then codegen | Dependency expressed as `install: memory-update` |
-| `quickstart`     | `just env-setup && just synthetic && just data-init && just codegen && just process-fast` | Dependency chain |
+| Make target     | Just recipe                                                                               | Notes                                            |
+| --------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `memory-update` | Same shell body                                                                           | No `ENVLOAD` needed                              |
+| `memory-commit` | Same shell body                                                                           | No `ENVLOAD` needed                              |
+| `install`       | `just memory-update` then `bun install --frozen-lockfile` then codegen                    | Dependency expressed as `install: memory-update` |
+| `quickstart`    | `just env-setup && just synthetic && just data-init && just codegen && just process-fast` | Dependency chain                                 |
 
 ### 2.3 Translate Synthetic recipes
 
@@ -146,7 +147,7 @@ Targets: `data-init`, `data-clean`, `data-reset`.
 `data-init` keeps its `mkdir -p` chain. `data-reset` uses dependency:
 `data-reset: data-clean data-init codegen`.
 
-### 2.6 Translate Service recipes (rc-*)
+### 2.6 Translate Service recipes (rc-\*)
 
 Drop `@$(ENVLOAD)`. Targets: `rc-start`, `rc-stop`, `rc-restart`, `rc-status`.
 
@@ -159,8 +160,8 @@ cli-chat:
     bunx fit-guide {{ARGS}}
 ```
 
-Targets: `cli-chat`, `cli-search`, `cli-query`, `cli-subjects`,
-`cli-visualize`, `cli-window`, `cli-completion`, `cli-tiktoken`, `cli-unary`.
+Targets: `cli-chat`, `cli-search`, `cli-query`, `cli-subjects`, `cli-visualize`,
+`cli-window`, `cli-completion`, `cli-tiktoken`, `cli-unary`.
 
 ### 2.8 Translate Docs recipes
 
@@ -173,11 +174,11 @@ Targets: `audit`, `audit-vulnerabilities`, `audit-secrets`.
 
 ### 2.10 Translate Environment recipes
 
-Key change: `env-reset` copies `.env.example` *and* appends a profile file by
-default (`local`), producing a complete working local environment in one
-command — preserving the current UX where `env-reset` gives you everything you
-need. Users who want a Docker profile pass an argument:
-`just env-reset docker-native` or `just env-reset docker-supabase`.
+Key change: `env-reset` copies `.env.example` _and_ appends a profile file by
+default (`local`), producing a complete working local environment in one command
+— preserving the current UX where `env-reset` gives you everything you need.
+Users who want a Docker profile pass an argument: `just env-reset docker-native`
+or `just env-reset docker-supabase`.
 
 ```just
 env-reset PROFILE="local": config-reset
@@ -214,8 +215,8 @@ docker-up-minio:
     docker compose --profile minio up
 ```
 
-This works because `just`'s `set dotenv-load` sets variables *as environment
-variables* in the recipe's shell, not just as `just` variables. Verified
+This works because `just`'s `set dotenv-load` sets variables _as environment
+variables_ in the recipe's shell, not just as `just` variables. Verified
 empirically: `env | grep VAR` inside a recipe shows dotenv values.
 
 Targets: `docker-build`, `docker-up`, `docker-up-minio`, `docker-up-supabase`,
@@ -224,14 +225,16 @@ Targets: `docker-build`, `docker-up`, `docker-up-minio`, `docker-up-supabase`,
 ### 2.12 Translate Storage recipes
 
 Same `--env-file` simplification as Docker (shell env vars are visible to
-`docker compose`). Targets: `storage-setup`,
-`storage-start`, `storage-stop`, `storage-wait`, `storage-init`,
-`storage-upload`, `storage-download`, `storage-list`.
+`docker compose`). Targets: `storage-setup`, `storage-start`, `storage-stop`,
+`storage-wait`, `storage-init`, `storage-upload`, `storage-download`,
+`storage-list`.
 
-`storage-start` currently uses `--env-file .env --env-file .env.$(ENV) --env-file .env.storage.$(STORAGE)` — all these vars come from dotenv-load now, but the
-`--profile` flag still needs the storage type. The compose profiles are named
-`minio` and `supabase`, matching the `STORAGE` variable values used in the
-Makefile. Use a recipe parameter defaulting to `minio`:
+`storage-start` currently uses
+`--env-file .env --env-file .env.$(ENV) --env-file .env.storage.$(STORAGE)` —
+all these vars come from dotenv-load now, but the `--profile` flag still needs
+the storage type. The compose profiles are named `minio` and `supabase`,
+matching the `STORAGE` variable values used in the Makefile. Use a recipe
+parameter defaulting to `minio`:
 
 ```just
 storage-start PROFILE="minio":
@@ -256,9 +259,9 @@ auth-start PROFILE="gotrue":
 
 ### 2.14 Translate Supabase recipes
 
-Direct translation. Targets: `supabase-install`, `supabase-up`,
-`supabase-down`, `supabase-start`, `supabase-stop`, `supabase-migrate`,
-`supabase-status`, `supabase-setup`.
+Direct translation. Targets: `supabase-install`, `supabase-up`, `supabase-down`,
+`supabase-start`, `supabase-stop`, `supabase-migrate`, `supabase-status`,
+`supabase-setup`.
 
 ### 2.15 Translate TEI recipes
 
@@ -267,8 +270,8 @@ Targets: `tei-install`, `tei-start`.
 ### 2.16 Add recipe groups with comments
 
 `just` supports `[group]` attributes or `# group` comments for
-`just --list --list-heading` categorization. Use section-header comments matching
-the existing Makefile sections:
+`just --list --list-heading` categorization. Use section-header comments
+matching the existing Makefile sections:
 
 ```just
 # ── Core ──────────────────────────────────────────────────
@@ -319,22 +322,22 @@ Pin to SHA per the repo's security policy (CONTRIBUTING.md § Security).
 
 **Modify (12 files):**
 
-| Workflow | Make targets used |
-| --- | --- |
-| `.github/workflows/check-quality.yml` | `make install` (2 jobs) |
-| `.github/workflows/check-test.yml` | `make install` (2 jobs), `make synthetic` |
-| `.github/workflows/dependabot-triage.yml` | `make install` |
-| `.github/workflows/guide-setup.yml` | `make install` |
-| `.github/workflows/improvement-coach.yml` | `make install` |
-| `.github/workflows/product-backlog.yml` | `make install` |
-| `.github/workflows/product-feedback.yml` | `make install` |
-| `.github/workflows/publish-npm.yml` | `make install` |
-| `.github/workflows/release-readiness.yml` | `make install` |
-| `.github/workflows/release-review.yml` | `make install` |
-| `.github/workflows/security-audit.yml` | `make install` |
+| Workflow                                  | Make targets used                         |
+| ----------------------------------------- | ----------------------------------------- |
+| `.github/workflows/check-quality.yml`     | `make install` (2 jobs)                   |
+| `.github/workflows/check-test.yml`        | `make install` (2 jobs), `make synthetic` |
+| `.github/workflows/dependabot-triage.yml` | `make install`                            |
+| `.github/workflows/guide-setup.yml`       | `make install`                            |
+| `.github/workflows/improvement-coach.yml` | `make install`                            |
+| `.github/workflows/product-backlog.yml`   | `make install`                            |
+| `.github/workflows/product-feedback.yml`  | `make install`                            |
+| `.github/workflows/publish-npm.yml`       | `make install`                            |
+| `.github/workflows/release-readiness.yml` | `make install`                            |
+| `.github/workflows/release-review.yml`    | `make install`                            |
+| `.github/workflows/security-audit.yml`    | `make install`                            |
 
-Note: `check-security.yml`, `publish-skills.yml`, and `publish-macos.yml` do
-not use `make` — leave unchanged.
+Note: `check-security.yml`, `publish-skills.yml`, and `publish-macos.yml` do not
+use `make` — leave unchanged.
 
 **Verify:** Push to a branch, confirm all CI jobs pass.
 
@@ -346,36 +349,36 @@ not use `make` — leave unchanged.
 
 Replace all `make <recipe>` references with `just <recipe>` in:
 
-| File | Approximate changes |
-| --- | --- |
-| `README.md` | 1 (`make quickstart`) |
-| `CONTRIBUTING.md` | 3 (`make quickstart`, `make audit`, `make audit-vulnerabilities`) |
-| `CONTINUOUS_IMPROVEMENT.md` | 3 (`make memory-update`, `make install`, `make memory-commit`) |
-| `website/docs/internals/operations/index.md` | 29 references |
-| `website/docs/internals/guide/index.md` | 1 (`make rc-start`) |
-| `products/guide/README.md` | 1 (`make services`) |
+| File                                         | Approximate changes                                               |
+| -------------------------------------------- | ----------------------------------------------------------------- |
+| `README.md`                                  | 1 (`make quickstart`)                                             |
+| `CONTRIBUTING.md`                            | 3 (`make quickstart`, `make audit`, `make audit-vulnerabilities`) |
+| `CONTINUOUS_IMPROVEMENT.md`                  | 3 (`make memory-update`, `make install`, `make memory-commit`)    |
+| `website/docs/internals/operations/index.md` | 29 references                                                     |
+| `website/docs/internals/guide/index.md`      | 1 (`make rc-start`)                                               |
+| `products/guide/README.md`                   | 1 (`make services`)                                               |
 
 ### 4.2 Skill files
 
 Replace `make <recipe>` with `just <recipe>` in:
 
-| File | Approximate changes |
-| --- | --- |
-| `.claude/skills/fit-guide/SKILL.md` | 69 references |
-| `.claude/skills/fit-universe/SKILL.md` | 6 references |
+| File                                            | Approximate changes              |
+| ----------------------------------------------- | -------------------------------- |
+| `.claude/skills/fit-guide/SKILL.md`             | 69 references                    |
+| `.claude/skills/fit-universe/SKILL.md`          | 6 references                     |
 | `.claude/skills/libs-system-utilities/SKILL.md` | 3 (`make codegen`, `make audit`) |
 | `.claude/skills/libs-web-presentation/SKILL.md` | 1 (`make audit-vulnerabilities`) |
-| `.claude/skills/dependabot-triage/SKILL.md` | 1 (`make audit`) |
+| `.claude/skills/dependabot-triage/SKILL.md`     | 1 (`make audit`)                 |
 
 ### 4.3 Config and scripts
 
-| File | Change |
-| --- | --- |
-| `config/config.example.json` | `make supabase-up` → `just supabase-up`, `make supabase-down` → `just supabase-down` |
-| `config/config.json` | Same changes (if not gitignored) |
-| `.devcontainer/setup.sh` | `make codegen` → `just codegen`, `make env-setup` → `just env-setup`, `make data-init` → `just data-init` |
-| `scripts/auth-user.js` | Error messages: `make auth-user` → `just auth-user`, `make env-storage` → `just env-storage`, `make env-secrets` → `just env-secrets` |
-| `.prettierignore` | `**/Makefile` → `**/justfile` |
+| File                         | Change                                                                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `config/config.example.json` | `make supabase-up` → `just supabase-up`, `make supabase-down` → `just supabase-down`                                                  |
+| `config/config.json`         | Same changes (if not gitignored)                                                                                                      |
+| `.devcontainer/setup.sh`     | `make codegen` → `just codegen`, `make env-setup` → `just env-setup`, `make data-init` → `just data-init`                             |
+| `scripts/auth-user.js`       | Error messages: `make auth-user` → `just auth-user`, `make env-storage` → `just env-storage`, `make env-secrets` → `just env-secrets` |
+| `.prettierignore`            | `**/Makefile` → `**/justfile`                                                                                                         |
 
 ### 4.4 CLAUDE.md
 
@@ -384,7 +387,9 @@ any, become `justfile`. The CLAUDE.md currently references `bun run check`
 directly, not `make`, so this may require no changes. Verify and update only if
 needed.
 
-**Verify:** `grep -rn 'make [a-z]' --include='*.md' --include='*.js' --include='*.json' --include='*.yml' --include='*.sh' . | grep -v specs/ | grep -v node_modules/ | grep -v .git/` — should return zero results (excluding specs/ which are immutable records).
+**Verify:**
+`grep -rn 'make [a-z]' --include='*.md' --include='*.js' --include='*.json' --include='*.yml' --include='*.sh' . | grep -v specs/ | grep -v node_modules/ | grep -v .git/`
+— should return zero results (excluding specs/ which are immutable records).
 
 ---
 
@@ -392,35 +397,37 @@ needed.
 
 ### 5.1 Delete files
 
-| File | Reason |
-| --- | --- |
-| `Makefile` | Replaced by `justfile` |
-| `scripts/env.sh` | Replaced by native just dotenv loading |
-| `.env.docker.example` | Replaced by `.env.docker-native.example` and `.env.docker-supabase.example` |
-| `.env.auth.none.example` | Folded into `.env.local.example` |
-| `.env.auth.gotrue.example` | Folded into `.env.docker-native.example` |
-| `.env.auth.supabase.example` | Folded into `.env.docker-supabase.example` |
-| `.env.storage.local.example` | Folded into `.env.local.example` |
-| `.env.storage.minio.example` | Folded into `.env.docker-native.example` |
-| `.env.storage.supabase.example` | Folded into `.env.docker-supabase.example` |
+| File                            | Reason                                                                      |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| `Makefile`                      | Replaced by `justfile`                                                      |
+| `scripts/env.sh`                | Replaced by native just dotenv loading                                      |
+| `.env.docker.example`           | Replaced by `.env.docker-native.example` and `.env.docker-supabase.example` |
+| `.env.auth.none.example`        | Folded into `.env.local.example`                                            |
+| `.env.auth.gotrue.example`      | Folded into `.env.docker-native.example`                                    |
+| `.env.auth.supabase.example`    | Folded into `.env.docker-supabase.example`                                  |
+| `.env.storage.local.example`    | Folded into `.env.local.example`                                            |
+| `.env.storage.minio.example`    | Folded into `.env.docker-native.example`                                    |
+| `.env.storage.supabase.example` | Folded into `.env.docker-supabase.example`                                  |
 
-**Verify:** `ls Makefile scripts/env.sh .env.auth.* .env.storage.* .env.docker.example 2>&1` — all should report "No such file or directory".
+**Verify:**
+`ls Makefile scripts/env.sh .env.auth.* .env.storage.* .env.docker.example 2>&1`
+— all should report "No such file or directory".
 
 ---
 
 ## Commit Plan
 
-| # | Commit message | Phase |
-| --- | --- | --- |
-| 1 | `feat(env): consolidate 9 dotenv examples into 4 profiles` | 1 |
-| 2 | `feat(build): replace Makefile with justfile` | 2 |
-| 3 | `fix(ci): migrate hooks and workflows from make to just` | 3 |
-| 4 | `docs: update all make references to just` | 4.1–4.2 |
-| 5 | `fix: update config, scripts, and ignore files for just` | 4.3–4.4 |
-| 6 | `chore: delete Makefile, env.sh, and obsolete dotenv files` | 5 |
+| #   | Commit message                                              | Phase   |
+| --- | ----------------------------------------------------------- | ------- |
+| 1   | `feat(env): consolidate 9 dotenv examples into 4 profiles`  | 1       |
+| 2   | `feat(build): replace Makefile with justfile`               | 2       |
+| 3   | `fix(ci): migrate hooks and workflows from make to just`    | 3       |
+| 4   | `docs: update all make references to just`                  | 4.1–4.2 |
+| 5   | `fix: update config, scripts, and ignore files for just`    | 4.3–4.4 |
+| 6   | `chore: delete Makefile, env.sh, and obsolete dotenv files` | 5       |
 
-Commits 1–2 can be squashed if the env consolidation is tightly coupled with
-the justfile creation. Commits 3–6 are independent of each other but must follow
+Commits 1–2 can be squashed if the env consolidation is tightly coupled with the
+justfile creation. Commits 3–6 are independent of each other but must follow
 commits 1–2.
 
 ---
@@ -436,5 +443,6 @@ After all commits:
 4. `just synthetic` — generates data without errors.
 5. `just env-setup` — resets env, generates secrets.
 6. All CI workflows pass on the PR.
-7. `grep -rn 'make [a-z]' . --include='*.md' --include='*.js' --include='*.json' --include='*.yml' --include='*.sh' | grep -v specs/ | grep -v node_modules/` — zero results.
+7. `grep -rn 'make [a-z]' . --include='*.md' --include='*.js' --include='*.json' --include='*.yml' --include='*.sh' | grep -v specs/ | grep -v node_modules/`
+   — zero results.
 8. `ls Makefile scripts/env.sh` — "No such file or directory".

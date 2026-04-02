@@ -22,11 +22,11 @@ description: >
 
 ## Libraries
 
-| Library            | Main API                                           | Purpose                                                |
-| ------------------ | -------------------------------------------------- | ------------------------------------------------------ |
+| Library            | Main API                                           | Purpose                                                  |
+| ------------------ | -------------------------------------------------- | -------------------------------------------------------- |
 | libsyntheticgen    | `DslParser`, `EntityGenerator`, `createSeededRNG`  | DSL parsing, deterministic entity generation, vocabulary |
-| libsyntheticprose  | `ProseEngine`, `PathwayGenerator`                  | LLM prose generation, pathway framework data           |
-| libsyntheticrender | `Renderer`, `ContentValidator`, `ContentFormatter` | Multi-format rendering, validation, formatting         |
+| libsyntheticprose  | `ProseEngine`, `PathwayGenerator`                  | LLM prose generation, pathway framework data             |
+| libsyntheticrender | `Renderer`, `ContentValidator`, `ContentFormatter` | Multi-format rendering, validation, formatting           |
 
 ## Decision Guide
 
