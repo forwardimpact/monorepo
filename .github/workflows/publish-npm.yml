@@ -55,6 +55,20 @@ jobs:
       - name: Run tests
         run: bun run test
 
+      - name: Smoke test npm package
+        run: |
+          PACK_DIR=$(mktemp -d)
+          TARBALL=$(npm pack --workspace=${{ steps.package.outputs.npm_name }} --pack-destination="$PACK_DIR")
+          cd "$PACK_DIR"
+          npm init -y
+          npm install "$TARBALL"
+          # Verify the CLI entry point loads (--help exits 0 without services)
+          BIN=$(node -e "const p=require('./${{ steps.package.outputs.dir_name }}/package.json'); const b=Object.values(p.bin||{})[0]; if(b) console.log(b)")
+          if [ -n "$BIN" ]; then
+            node "node_modules/${{ steps.package.outputs.npm_name }}/$BIN" --help
+          fi
+          rm -rf "$PACK_DIR"
+
       - name: Copy LICENSE to package
         run: cp LICENSE ${{ steps.package.outputs.dir_name }}/
 
