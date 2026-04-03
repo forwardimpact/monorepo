@@ -180,6 +180,56 @@ function createCodegen(
 }
 
 /**
+ * Count files recursively in a directory
+ * @param {string} dirPath - Directory to count files in
+ * @returns {number} Total file count
+ */
+function countFiles(dirPath) {
+  let count = 0;
+  if (!fs.existsSync(dirPath)) return count;
+  for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+    const fullPath = path.join(dirPath, entry.name);
+    if (entry.isDirectory()) {
+      count += countFiles(fullPath);
+    } else {
+      count++;
+    }
+  }
+  return count;
+}
+
+/**
+ * Print a summary of generated code
+ * @param {string} sourcePath - Path to generated directory
+ * @param {object} flags - Parsed generation flags
+ */
+function printSummary(sourcePath, flags) {
+  const totalFiles = countFiles(sourcePath);
+  const lines = [`Generated ${totalFiles} files in ./${path.relative(process.cwd(), sourcePath)}/`];
+
+  const dirs = fs.existsSync(sourcePath)
+    ? fs.readdirSync(sourcePath, { withFileTypes: true }).filter((e) => e.isDirectory())
+    : [];
+
+  if (dirs.length > 0) {
+    for (const dir of dirs) {
+      const label = { types: "Protocol Buffer types", proto: "Proto source files", services: "Service bases and clients", definitions: "Service definitions" }[dir.name];
+      if (label) lines.push(`  ${dir.name}/  — ${label}`);
+    }
+  }
+
+  const generated = [
+    flags.doTypes && "types",
+    flags.doServices && "services",
+    flags.doClients && "clients",
+    flags.doDefinitions && "definitions",
+  ].filter(Boolean);
+  lines.push(`\nCode generation complete (${generated.join(", ")}).`);
+
+  process.stdout.write(lines.join("\n") + "\n");
+}
+
+/**
  * Execute code generation tasks
  * @param {object} codegens - Codegen instances
  * @param {string} sourcePath - Generated source path
@@ -251,6 +301,8 @@ async function runCodegen(protoDirs, projectRoot, finder) {
 
   await finder.createPackageSymlinks(sourcePath);
   await createBundle(sourcePath);
+
+  printSummary(sourcePath, parsedFlags);
 }
 
 /**
