@@ -75,13 +75,13 @@ data/
 Validate your data to make sure everything is connected:
 
 ```sh
-bunx fit-map validate
+npx fit-map validate
 ```
 
 Browse what's defined:
 
 ```sh
-bunx fit-pathway skill --list       # All skills
-bunx fit-pathway discipline --list  # Engineering specialties
-bunx fit-pathway level --list       # Career levels
+npx fit-pathway skill --list       # All skills
+npx fit-pathway discipline --list  # Engineering specialties
+npx fit-pathway level --list       # Career levels
 ```

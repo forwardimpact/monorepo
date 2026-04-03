@@ -62,7 +62,7 @@ graph LR
 Generate agent profiles for a discipline and track:
 
 ```sh
-bunx fit-pathway agent software_engineering --track=platform --output=./agents
+npx fit-pathway agent software_engineering --track=platform --output=./agents
 ```
 
 Output directory structure:
@@ -82,19 +82,19 @@ Output directory structure:
 Generate a single stage agent:
 
 ```sh
-bunx fit-pathway agent software_engineering --track=platform --stage=code
+npx fit-pathway agent software_engineering --track=platform --stage=code
 ```
 
 Preview without writing files:
 
 ```sh
-bunx fit-pathway agent software_engineering --track=platform
+npx fit-pathway agent software_engineering --track=platform
 ```
 
 List valid discipline/track combinations:
 
 ```sh
-bunx fit-pathway agent --list
+npx fit-pathway agent --list
 ```
 
 ---

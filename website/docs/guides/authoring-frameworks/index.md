@@ -43,13 +43,13 @@ stages, drivers) contain all entries in one file.
 Initialize a data directory with example content:
 
 ```sh
-bunx fit-pathway init
+npx fit-pathway init
 ```
 
 Validate at any time:
 
 ```sh
-bunx fit-map validate
+npx fit-map validate
 ```
 
 ---
@@ -95,7 +95,7 @@ distribution:
 
 The `entityDefinitions` object controls how each entity type is labelled in the
 web app. The `distribution.siteUrl` is the base URL for the published static
-site, used by `bunx fit-pathway update` to download framework bundles.
+site, used by `npx fit-pathway update` to download framework bundles.
 
 ---
 
@@ -900,7 +900,7 @@ jargon.
 Validate framework data at any time:
 
 ```sh
-bunx fit-map validate
+npx fit-map validate
 ```
 
 This checks that all YAML files conform to the expected schema — required fields
@@ -921,7 +921,7 @@ proficiency levels use valid values.
 After editing YAML files, preview the results in the Pathway web app:
 
 ```sh
-bunx fit-pathway dev
+npx fit-pathway dev
 ```
 
 This starts a local development server so you can see how your framework renders

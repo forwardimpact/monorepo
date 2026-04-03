@@ -118,30 +118,28 @@ expectations, and markers — not generic career advice.
 Basecamp is your personal operations center. It syncs email and calendar, builds
 a knowledge graph, drafts responses, and prepares meeting briefings.
 
-> **Note:** Basecamp requires [Bun](https://bun.sh) 1.2+ as its runtime.
-
 ### Install
 
 ```sh
-bun install @forwardimpact/basecamp
+npm install @forwardimpact/basecamp
 ```
 
 ### Initialize a knowledge base
 
 ```sh
-bunx fit-basecamp --init ~/Documents/Personal
+npx fit-basecamp --init ~/Documents/Personal
 ```
 
 ### Check status
 
 ```sh
-bunx fit-basecamp --status
+npx fit-basecamp --status
 ```
 
 ### Run the scheduler
 
 ```sh
-bunx fit-basecamp --daemon
+npx fit-basecamp --daemon
 ```
 
 Basecamp runs as a macOS status menu app with scheduled AI tasks handling
