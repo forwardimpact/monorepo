@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libgraph",
-  "version": "0.1.54",
+  "version": "0.1.55",
   "description": "RDF graph index and processing utilities",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

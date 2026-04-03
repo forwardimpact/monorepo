@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libtype",
-  "version": "0.1.65",
+  "version": "0.1.66",
   "description": "Shared type definitions and data models for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

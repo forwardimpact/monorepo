@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libllm",
-  "version": "0.1.76",
+  "version": "0.1.77",
   "description": "LLM API client for OpenAI-compatible endpoints",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

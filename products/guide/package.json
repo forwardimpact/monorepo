@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/guide",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Conversational agent for engineering framework guidance — How do I find my bearing?",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

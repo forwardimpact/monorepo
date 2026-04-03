@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libharness",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Test harness and mock infrastructure for guide tests",
   "type": "module",
   "main": "index.js",

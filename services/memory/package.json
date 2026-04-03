@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcmemory",
-  "version": "0.1.85",
+  "version": "0.1.86",
   "description": "Memory service for managing transient resources and memory windows",
   "type": "module",
   "main": "index.js",

@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcvector",
-  "version": "0.1.109",
+  "version": "0.1.110",
   "description": "Vector similarity search service for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

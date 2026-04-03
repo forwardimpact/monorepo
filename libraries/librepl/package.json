@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/librepl",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Interactive REPL utilities and command-line interfaces for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
