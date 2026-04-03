@@ -50,6 +50,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           LLM_TOKEN: ${{ steps.llm-token.outputs.token }}
+          LLM_BASE_URL: https://models.github.ai/orgs/forwardimpact
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
