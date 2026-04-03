@@ -59,3 +59,4 @@ jobs:
           model: "opus"
           max-turns: "50"
           allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,WebFetch,WebSearch"
+          supervisor-allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,Skill,TodoWrite"
