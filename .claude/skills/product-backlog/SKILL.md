@@ -61,7 +61,7 @@ gh pr list --state open --base main \
 ```
 
 Skip PRs authored by `app/dependabot` — those are handled by the
-`dependabot-triage` skill.
+`security-update` skill.
 
 ### Step 2: Verify Contributor Trust
 

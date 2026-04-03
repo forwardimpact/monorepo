@@ -36,7 +36,7 @@ the composite action (see § Authentication below).
 
 | Agent                   | Purpose                                                                   | Skills                                             |
 | ----------------------- | ------------------------------------------------------------------------- | -------------------------------------------------- |
-| **security-specialist** | Patch dependencies, harden supply chain, enforce security policies        | dependabot-triage, security-audit, spec            |
+| **security-specialist** | Patch dependencies, harden supply chain, enforce security policies        | security-update, security-audit, spec              |
 | **release-manager**     | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | release-readiness, release-review, gh-cli          |
 | **improvement-coach**   | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | gemba-walk, grounded-theory-analysis, spec, gh-cli |
 | **product-manager**     | Review PRs for product alignment, triage issues, verify contributor trust | product-backlog, product-feedback, spec, gh-cli    |
@@ -55,7 +55,7 @@ output. Same-agent workflows never overlap within a day.
 | Workflow              | Schedule                | Agent               | What it does                                                                  |
 | --------------------- | ----------------------- | ------------------- | ----------------------------------------------------------------------------- |
 | **security-audit**    | Tue & Fri 04:07 UTC     | security-specialist | Audit supply chain, dependencies, credentials, OWASP Top 10                   |
-| **dependabot-triage** | Mon & Thu 04:43 UTC     | security-specialist | Evaluate Dependabot PRs against policy, merge/fix/close                       |
+| **security-update**   | Mon & Thu 04:43 UTC     | security-specialist | Apply security updates: triage Dependabot PRs, address audit findings         |
 | **product-feedback**  | Mon, Wed, Fri 05:17 UTC | product-manager     | Triage open issues, implement trivial fixes, write specs for aligned requests |
 | **release-readiness** | Daily 06:23 UTC         | release-manager     | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
 | **product-backlog**   | Daily 08:13 UTC         | product-manager     | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
@@ -108,7 +108,7 @@ graph TD
 | Skill                        | Purpose                                                                       |
 | ---------------------------- | ----------------------------------------------------------------------------- |
 | **security-audit**           | Seven-area security review (supply chain, deps, credentials, OWASP, CI)       |
-| **dependabot-triage**        | Policy-based evaluation and action on Dependabot PRs                          |
+| **security-update**          | Security updates: Dependabot triage, npm audit findings, vulnerability fixes  |
 | **release-readiness**        | Mechanical PR preparation — rebase, fix, report                               |
 | **release-review**           | Version bumps, tagging, publish verification                                  |
 | **gemba-walk**               | Trace observation process — select, download, analyze, report                 |
@@ -197,7 +197,7 @@ graph TD
 | **product-backlog**   | External fix/bug PRs      | Top-20 contributor gate + CI                    |
 | **product-backlog**   | External spec PRs         | Top-20 gate + CI + spec review                  |
 | **product-backlog**   | CI app PRs                | Trusted app identity (`forward-impact-ci`) + CI |
-| **dependabot-triage** | Dependabot PRs            | Trusted bot, policy-gated                       |
+| **security-update**   | Dependabot PRs            | Trusted bot, policy-gated                       |
 | **release-readiness** | Agent-authored rebases    | Agent-only, no external input                   |
 | **release-review**    | Agent-authored tags/bumps | Agent-only, no external input                   |
 | **release-manager**   | Trivial CI fixes on main  | Agent-only, mechanical fixes only               |

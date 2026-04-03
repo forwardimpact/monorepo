@@ -35,7 +35,7 @@ gh pr list --state open --base main \
   --json number,title,headRefName,author,updatedAt,mergeable,mergeStateStatus
 ```
 
-Skip PRs authored by `app/dependabot` (handled by `dependabot-triage`).
+Skip PRs authored by `app/dependabot` (handled by `security-update`).
 
 ### Step 2: Assess Each PR
 

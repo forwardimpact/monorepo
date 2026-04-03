@@ -1,20 +1,24 @@
 ---
-name: dependabot-triage
+name: security-update
 description: >
-  Triage open Dependabot PRs by applying repository policies from
-  CONTRIBUTING.md. Merge PRs that pass all checks and policies, fix minor
-  issues on a new branch, or close PRs that violate policy.
+  Apply security updates to the repository. Triage open Dependabot PRs against
+  repository policies, review npm audit findings, and action dependency
+  vulnerabilities. Merge PRs that pass all checks, fix minor issues on a new
+  branch, or close PRs that violate policy.
 ---
 
-# Dependabot Triage
+# Security Update
 
-Triage all open Dependabot pull requests against the repository's dependency and
-security policies, then take action: merge, fix, or close each PR.
+Apply security updates to the repository — dependency bumps, vulnerability
+remediation, and Dependabot PR triage — against the repository's dependency and
+security policies.
 
 ## When to Use
 
 - Reviewing and actioning open Dependabot PRs
 - Batch-processing accumulated Dependabot PRs
+- Addressing npm audit findings or CVE advisories
+- Applying security patches to dependencies
 
 ## Prerequisites
 

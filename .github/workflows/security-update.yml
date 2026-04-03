@@ -1,4 +1,4 @@
-name: "Gemba: Dependabot Triage"
+name: "Gemba: Security Update"
 
 on:
   schedule:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch: # Manual trigger for testing or on-demand triage
 
 concurrency:
-  group: dependabot-triage
+  group: security-update
   cancel-in-progress: true
 
 permissions:
@@ -32,7 +32,7 @@ jobs:
 
       - uses: ./.github/actions/bootstrap
 
-      - name: Triage Dependabot PRs
+      - name: Apply security updates
         uses: ./.github/actions/fit-eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -40,7 +40,7 @@ jobs:
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           app-id: ${{ secrets.CI_APP_ID }}
-          task-text: Triage Dependabot PRs.
+          task-text: Apply security updates, triage Dependabot PRs and address npm audit findings.
           agent-profile: "security-specialist"
           model: "opus"
           max-turns: "200"

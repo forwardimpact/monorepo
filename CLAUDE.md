@@ -108,7 +108,7 @@ restate.
 | Repo self-maintenance †        | `CONTINUOUS_IMPROVEMENT.md`                   | Internal |
 | Environment, services, tasks † | `website/docs/internals/operations/`          | Internal |
 | Supply chain & app security †  | `.claude/skills/security-audit`               | Internal |
-| Dependabot triage †            | `.claude/skills/dependabot-triage`            | Internal |
+| Security update †              | `.claude/skills/security-update`              | Internal |
 | Release readiness / review †   | `.claude/skills/release-readiness`, `-review` | Internal |
 | Product internals              | `website/docs/internals/{product}/`           | Internal |
 | Getting started — Contributors | `website/docs/getting-started/contributors/`  | Internal |
