@@ -26,13 +26,13 @@ import { Repl } from "@forwardimpact/librepl";
 const repl = new Repl(app, formatterFn, readlineModule, processModule, osModule);
 ```
 
-| Parameter        | Default                    | Purpose                          |
-| ---------------- | -------------------------- | -------------------------------- |
-| `app`            | `{}`                       | Application configuration object |
-| `formatterFn`    | `createTerminalFormatter`  | Factory that returns a formatter |
-| `readlineModule` | Node `readline`            | Readline module                  |
-| `processModule`  | `global.process`           | Process object (stdin/stdout)    |
-| `osModule`       | Node `os`                  | OS module (user info for UID)    |
+| Parameter        | Default                   | Purpose                          |
+| ---------------- | ------------------------- | -------------------------------- |
+| `app`            | `{}`                      | Application configuration object |
+| `formatterFn`    | `createTerminalFormatter` | Factory that returns a formatter |
+| `readlineModule` | Node `readline`           | Readline module                  |
+| `processModule`  | `global.process`          | Process object (stdin/stdout)    |
+| `osModule`       | Node `os`                 | OS module (user info for UID)    |
 
 In production, only `app` is provided. The remaining parameters exist for
 testing — inject mocks to verify behaviour without real I/O.
@@ -62,17 +62,17 @@ const repl = new Repl({
 });
 ```
 
-| Property     | Type                                              | Purpose                                      |
-| ------------ | ------------------------------------------------- | -------------------------------------------- |
-| `prompt`     | `string`                                          | Prompt string (default `"> "`)               |
-| `usage`      | `string`                                          | Static help text shown before command list    |
-| `state`      | `object`                                          | Initial state values                         |
-| `storage`    | `StorageInterface`                                | Optional storage for state persistence       |
-| `commands`   | `object`                                          | Custom command definitions                   |
-| `setup`      | `(state) => Promise<void>`                        | Runs once before the REPL accepts input      |
-| `onLine`     | `(line, state, output) => Promise<void>`          | Handles non-command input (line is trimmed)  |
-| `beforeLine` | `(state) => Promise<void>`                        | Hook before each non-empty line is processed |
-| `afterLine`  | `(state) => Promise<void>`                        | Hook called after each line is processed     |
+| Property     | Type                                     | Purpose                                      |
+| ------------ | ---------------------------------------- | -------------------------------------------- |
+| `prompt`     | `string`                                 | Prompt string (default `"> "`)               |
+| `usage`      | `string`                                 | Static help text shown before command list   |
+| `state`      | `object`                                 | Initial state values                         |
+| `storage`    | `StorageInterface`                       | Optional storage for state persistence       |
+| `commands`   | `object`                                 | Custom command definitions                   |
+| `setup`      | `(state) => Promise<void>`               | Runs once before the REPL accepts input      |
+| `onLine`     | `(line, state, output) => Promise<void>` | Handles non-command input (line is trimmed)  |
+| `beforeLine` | `(state) => Promise<void>`               | Hook before each non-empty line is processed |
+| `afterLine`  | `(state) => Promise<void>`               | Hook called after each line is processed     |
 
 ---
 
@@ -148,11 +148,11 @@ commands: {
 
 Commands work in both modes with different syntax:
 
-| Mode            | Syntax                    | Example                       |
-| --------------- | ------------------------- | ----------------------------- |
-| Interactive     | `/<command> [args...]`    | `/name Alice`                 |
-| CLI arguments   | `--<command> [args...]`   | `--name Alice`                |
-| Piped input     | `/<command> [args...]`    | `echo "/name Alice" \| bunx …` |
+| Mode          | Syntax                  | Example                        |
+| ------------- | ----------------------- | ------------------------------ |
+| Interactive   | `/<command> [args...]`  | `/name Alice`                  |
+| CLI arguments | `--<command> [args...]` | `--name Alice`                 |
+| Piped input   | `/<command> [args...]`  | `echo "/name Alice" \| bunx …` |
 
 `/`-prefixed commands work in both interactive and piped input. `--` flags are
 parsed from CLI arguments before the REPL starts. In CLI mode, dashes in flag
@@ -169,11 +169,11 @@ If an unrecognized command is entered interactively, the help output is shown.
 
 Three commands are always registered (user commands can override them):
 
-| Command  | Type    | Behaviour                                                         |
-| -------- | ------- | ----------------------------------------------------------------- |
-| `clear`  | boolean | Resets state to initial values and saves. Returns `false` (exits in CLI mode). |
-| `help`   | boolean | Displays usage text and all commands. Returns `false` (exits in CLI mode).     |
-| `exit`   | boolean | Exits the process. Hidden from CLI help via `cli: false`.         |
+| Command | Type    | Behaviour                                                                      |
+| ------- | ------- | ------------------------------------------------------------------------------ |
+| `clear` | boolean | Resets state to initial values and saves. Returns `false` (exits in CLI mode). |
+| `help`  | boolean | Displays usage text and all commands. Returns `false` (exits in CLI mode).     |
+| `exit`  | boolean | Exits the process. Hidden from CLI help via `cli: false`.                      |
 
 ---
 
@@ -182,8 +182,8 @@ Three commands are always registered (user commands can override them):
 When `app.storage` is provided (any `StorageInterface` implementation), the REPL
 automatically loads state on startup and saves it after every line.
 
-State is keyed by the system UID (`os.userInfo().uid`), stored as
-`{uid}.json`. This means each OS user gets independent state.
+State is keyed by the system UID (`os.userInfo().uid`), stored as `{uid}.json`.
+This means each OS user gets independent state.
 
 ```js
 import { createStorage } from "@forwardimpact/libstorage";
@@ -309,10 +309,10 @@ const repl = new Repl(
 
 ## Module Index
 
-| File                | Purpose                                       |
-| ------------------- | --------------------------------------------- |
-| `index.js`          | `Repl` class — constructor, lifecycle, I/O    |
-| `test/librepl.test.js` | Unit tests with fully mocked dependencies |
+| File                   | Purpose                                    |
+| ---------------------- | ------------------------------------------ |
+| `index.js`             | `Repl` class — constructor, lifecycle, I/O |
+| `test/librepl.test.js` | Unit tests with fully mocked dependencies  |
 
 ---
 

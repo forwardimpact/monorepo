@@ -28,47 +28,42 @@ products via npm.
 
 ### Map — `fit-map`
 
-Helps leadership and agents answer *what does good engineering look like here?*
+Helps leadership and agents answer _what does good engineering look like here?_
 Validates, stores, and publishes YAML frameworks.
 [Overview](website/map/index.md) ·
 [Internals](website/docs/internals/map/index.md)
 
 ### Pathway — `fit-pathway`
 
-Helps engineers and agents answer *where does my career path go from here?*
-Web app, CLI, and static site generator for job definitions, agent profiles, and
-interview questions.
-[Overview](website/pathway/index.md) ·
+Helps engineers and agents answer _where does my career path go from here?_ Web
+app, CLI, and static site generator for job definitions, agent profiles, and
+interview questions. [Overview](website/pathway/index.md) ·
 [Internals](website/docs/internals/pathway/index.md)
 
 ### Basecamp — `fit-basecamp`
 
-Helps engineers and agents answer *am I prepared for what's ahead today?*
+Helps engineers and agents answer _am I prepared for what's ahead today?_
 Personal operations center providing scheduled AI tasks, knowledge graphs, and
-meeting briefings (macOS status menu).
-[Overview](website/basecamp/index.md) ·
+meeting briefings (macOS status menu). [Overview](website/basecamp/index.md) ·
 [Internals](website/docs/internals/basecamp/index.md)
 
 ### Guide — `fit-guide`
 
-Helps engineers answer *how do I find my bearing?*
-AI agent that reasons about your engineering framework in context.
-[Overview](website/guide/index.md) ·
+Helps engineers answer _how do I find my bearing?_ AI agent that reasons about
+your engineering framework in context. [Overview](website/guide/index.md) ·
 [Internals](website/docs/internals/guide/index.md)
 
 ### Landmark — `fit-landmark`
 
-Helps leadership and engineers answer *what milestones has my engineering
-reached?* Analysis layer combining GitHub artifact evidence with GetDX
-snapshots. No LLM calls.
-[Overview](website/landmark/index.md)
+Helps leadership and engineers answer _what milestones has my engineering
+reached?_ Analysis layer combining GitHub artifact evidence with GetDX
+snapshots. No LLM calls. [Overview](website/landmark/index.md)
 
 ### Summit — `fit-summit`
 
-Helps leadership answer *is this team supported to reach peak performance?*
+Helps leadership answer _is this team supported to reach peak performance?_
 Models team capability as a system: skill matrices, coverage gaps, risks, and
-staffing scenarios.
-[Overview](website/summit/index.md) ·
+staffing scenarios. [Overview](website/summit/index.md) ·
 [Internals](website/docs/internals/summit/index.md)
 
 ## Distribution Model
