@@ -3,7 +3,6 @@
 import fs from "node:fs";
 import fsAsync from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { parseArgs } from "node:util";
 
@@ -19,9 +18,6 @@ import {
   CodegenDefinitions,
 } from "@forwardimpact/libcodegen";
 import { createStorage } from "@forwardimpact/libstorage";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /**
  * Create tar.gz bundle of all directories inside sourcePath
@@ -63,11 +59,11 @@ function printUsage() {
   process.stdout.write(
     [
       "Usage:",
-      `  bunx fit-codegen --all                              # Generate all code`,
-      `  bunx fit-codegen --type                             # Generate protobuf types only`,
-      `  bunx fit-codegen --service                          # Generate service bases only`,
-      `  bunx fit-codegen --client                           # Generate clients only`,
-      `  bunx fit-codegen --definition                       # Generate service definitions only`,
+      `  npx fit-codegen --all                              # Generate all code`,
+      `  npx fit-codegen --type                             # Generate protobuf types only`,
+      `  npx fit-codegen --service                          # Generate service bases only`,
+      `  npx fit-codegen --client                           # Generate clients only`,
+      `  npx fit-codegen --definition                       # Generate service definitions only`,
     ].join("\n") + "\n",
   );
 }
@@ -117,16 +113,65 @@ function parseFlags() {
 }
 
 /**
- * Create codegen instances
+ * Discover proto directories from installed @forwardimpact/* packages
+ * and the project root. Scans node_modules for packages that include
+ * a proto/ subdirectory, plus the project's own proto/ if present.
  * @param {string} projectRoot - Project root directory path
+ * @returns {string[]} Array of absolute paths to proto directories
+ */
+function discoverProtoDirs(projectRoot) {
+  const protoDirs = [];
+
+  // Scan node_modules/@forwardimpact/*/proto/ for package-owned protos
+  // Use fs.statSync to follow workspace symlinks (entry.isDirectory() is false for symlinks)
+  const scopeDir = path.join(projectRoot, "node_modules", "@forwardimpact");
+  if (fs.existsSync(scopeDir)) {
+    for (const name of fs.readdirSync(scopeDir)) {
+      const protoDir = path.join(scopeDir, name, "proto");
+      if (fs.existsSync(protoDir) && fs.statSync(protoDir).isDirectory()) {
+        protoDirs.push(fs.realpathSync(protoDir));
+      }
+    }
+  }
+
+  // Also check workspace-linked packages (monorepo with symlinked node_modules)
+  // The loop above handles this since workspace packages appear in node_modules
+
+  // Include the project's own proto/ directory for custom protos
+  const projectProtoDir = path.join(projectRoot, "proto");
+  if (fs.existsSync(projectProtoDir)) {
+    protoDirs.push(projectProtoDir);
+  }
+
+  return protoDirs;
+}
+
+/**
+ * Create codegen instances
+ * @param {string[]} protoDirs - Array of proto directory paths
+ * @param {string} projectRoot - Project root for tools/ discovery
  * @param {object} path - Path module
  * @param {object} mustache - Mustache module
  * @param {object} protoLoader - Proto loader module
  * @param {object} fs - File system module
  * @returns {object} Codegen instances
  */
-function createCodegen(projectRoot, path, mustache, protoLoader, fs) {
-  const base = new CodegenBase(projectRoot, path, mustache, protoLoader, fs);
+function createCodegen(
+  protoDirs,
+  projectRoot,
+  path,
+  mustache,
+  protoLoader,
+  fs,
+) {
+  const base = new CodegenBase(
+    protoDirs,
+    projectRoot,
+    path,
+    mustache,
+    protoLoader,
+    fs,
+  );
   return {
     types: new CodegenTypes(base),
     services: new CodegenServices(base),
@@ -175,11 +220,12 @@ async function executeGeneration(codegens, sourcePath, flags) {
 }
 
 /**
- * Simplified main function
+ * Run code generation pipeline
+ * @param {string[]} protoDirs - Discovered proto directories
  * @param {string} projectRoot - Project root directory path
  * @param {object} finder - Finder instance for path management
  */
-async function runCodegen(projectRoot, finder) {
+async function runCodegen(protoDirs, projectRoot, finder) {
   const parsedFlags = parseFlags();
 
   if (!parsedFlags.hasGenerationFlags()) {
@@ -193,34 +239,18 @@ async function runCodegen(projectRoot, finder) {
 
   await generatedStorage.ensureBucket();
 
-  const codegens = createCodegen(projectRoot, path, mustache, protoLoader, fs);
+  const codegens = createCodegen(
+    protoDirs,
+    projectRoot,
+    path,
+    mustache,
+    protoLoader,
+    fs,
+  );
   await executeGeneration(codegens, sourcePath, parsedFlags);
 
   await finder.createPackageSymlinks(sourcePath);
   await createBundle(sourcePath);
-}
-
-/**
- * Find the monorepo root directory (the one with workspaces)
- * @param {string} startPath - Starting directory path
- * @returns {string} Project root directory path
- */
-function findMonorepoRoot(startPath) {
-  let current = startPath;
-  for (let depth = 0; depth < 10; depth++) {
-    const packageJsonPath = path.join(current, "package.json");
-    if (fs.existsSync(packageJsonPath)) {
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
-      // Check if this package.json has workspaces (indicates monorepo root)
-      if (packageJson.workspaces) {
-        return current;
-      }
-    }
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
-  }
-  throw new Error("Could not find monorepo root");
 }
 
 /**
@@ -230,9 +260,18 @@ async function main() {
   try {
     const logger = new Logger("codegen");
     const finder = new Finder(fsAsync, logger, process);
-    const projectRoot = findMonorepoRoot(__dirname);
+    const projectRoot = finder.findProjectRoot(process.cwd());
 
-    await runCodegen(projectRoot, finder);
+    const protoDirs = discoverProtoDirs(projectRoot);
+    if (protoDirs.length === 0) {
+      throw new Error(
+        "No proto directories found. Ensure @forwardimpact packages " +
+          "with proto/ directories are installed, or add proto files " +
+          "to your project's proto/ directory.",
+      );
+    }
+
+    await runCodegen(protoDirs, projectRoot, finder);
   } catch (err) {
     process.stderr.write(`Error: ${err.message}\n`);
     process.exit(1);

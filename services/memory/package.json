@@ -22,5 +22,11 @@
   "engines": {
     "bun": ">=1.2.0",
     "node": ">=18.0.0"
+  },
+  "files": [
+    "proto/"
+  ],
+  "publishConfig": {
+    "access": "public"
   }
 }

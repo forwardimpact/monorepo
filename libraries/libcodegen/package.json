@@ -17,13 +17,16 @@
     "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
+    "@forwardimpact/libstorage": "^0.1.53",
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libutil": "^0.1.64",
     "@grpc/proto-loader": "^0.8.0",
-    "mustache": "^4.2.0"
-  },
-  "devDependencies": {
-    "@forwardimpact/libharness": "^0.1.5",
+    "mustache": "^4.2.0",
     "protobufjs": "^7.5.4",
     "protobufjs-cli": "^2.0.0"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
   },
   "publishConfig": {
     "access": "public"

@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+
 /**
  * Handles JavaScript type generation from protobuf files
  * Specializes in Protocol Buffer to JavaScript type conversion
@@ -70,7 +72,15 @@ export class CodegenTypes {
    * @returns {Promise<void>}
    */
   async generateJavaScriptTypes(protoFiles, outFile) {
+    // Resolve pbjs binary from protobufjs-cli package — works in both Bun and Node
+    const require = createRequire(import.meta.url);
+    const pbjsBin = require.resolve("protobufjs-cli/bin/pbjs");
+
+    // Pass all proto directories as include paths so cross-file imports resolve
+    const includePaths = this.#base.includeDirs.flatMap((dir) => ["-p", dir]);
+
     const args = [
+      pbjsBin,
       "-t",
       "static-module",
       "-w",
@@ -80,12 +90,13 @@ export class CodegenTypes {
       "--no-service",
       "--force-message",
       "--keep-case",
+      ...includePaths,
       "-o",
       outFile,
       ...protoFiles,
     ];
 
-    await this.#base.run("bunx", ["pbjs", ...args], {
+    await this.#base.run(process.execPath, args, {
       cwd: this.#base.projectRoot,
     });
   }

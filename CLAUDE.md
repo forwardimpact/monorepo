@@ -70,10 +70,15 @@ External users install products with `npm install`, bringing their own framework
 data. All CLIs use `#!/usr/bin/env node` — no Bun required.
 
 Products depending on `librpc` (currently Guide) need generated gRPC clients.
-External users run `npx fit-codegen --all` after install.
+External users run `npx fit-codegen --all` after install. Generated code is
+**installation-specific** and must never be bundled in npm packages — each
+installation can define custom `.proto` files for custom gRPC services that
+Guide dynamically picks up. Proto files are co-located with their owning
+packages (`services/*/proto/`, `products/guide/proto/`) and auto-discovered by
+`fit-codegen` from installed `@forwardimpact/*` packages.
 `@forwardimpact/libcodegen` must be a dependency of any product needing
-generated code. Without this step, imports fail with a missing
-`generated/services/exports.js` error.
+generated code. See [Codegen Internals](website/docs/internals/codegen/index.md)
+for the full pipeline.
 
 Published skills (`fit-*` in `.claude/skills/`) help external users understand
 how products **work** — not how they are **implemented**. Synced to
@@ -110,6 +115,7 @@ restate.
 | Supply chain & app security †  | `.claude/skills/security-audit`               | Internal |
 | Security update †              | `.claude/skills/security-update`              | Internal |
 | Release readiness / review †   | `.claude/skills/release-readiness`, `-review` | Internal |
+| Codegen pipeline †             | `website/docs/internals/codegen/`             | Internal |
 | Product internals              | `website/docs/internals/{product}/`           | Internal |
 | Getting started — Contributors | `website/docs/getting-started/contributors/`  | Internal |
 | Product pages                  | `website/{product}/index.md`                  | External |

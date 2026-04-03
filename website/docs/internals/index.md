@@ -70,6 +70,15 @@ rendering, and validation.
 
 </a>
 
+<a href="/docs/internals/codegen/">
+
+### Codegen
+
+Code generation pipeline — proto discovery, type compilation, service client
+generation, and installation-specific design.
+
+</a>
+
 <a href="/docs/internals/operations/">
 
 ### Operations

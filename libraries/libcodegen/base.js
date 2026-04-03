@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
  * Implements dependency injection pattern with explicit validation
  */
 export class CodegenBase {
+  #protoDirs;
   #projectRoot;
   #path;
   #mustache;
@@ -14,19 +15,24 @@ export class CodegenBase {
 
   /**
    * Creates a new codegen base instance with dependency injection
-   * @param {string} projectRoot - Project root directory path
+   * @param {string[]} protoDirs - Array of proto directory paths to scan
+   * @param {string} projectRoot - Project root directory path (for tools/ discovery)
    * @param {object} path - Path module for file operations
    * @param {object} mustache - Mustache template rendering module
    * @param {object} protoLoader - Protocol buffer loader module
    * @param {object} fs - File system module (sync operations only)
    */
-  constructor(projectRoot, path, mustache, protoLoader, fs) {
+  constructor(protoDirs, projectRoot, path, mustache, protoLoader, fs) {
+    if (!protoDirs || !Array.isArray(protoDirs) || protoDirs.length === 0) {
+      throw new Error("protoDirs must be a non-empty array");
+    }
     if (!projectRoot) throw new Error("projectRoot is required");
     if (!path) throw new Error("path module is required");
     if (!mustache) throw new Error("mustache module is required");
     if (!protoLoader) throw new Error("protoLoader module is required");
     if (!fs) throw new Error("fs module is required");
 
+    this.#protoDirs = protoDirs;
     this.#projectRoot = projectRoot;
     this.#path = path;
     this.#mustache = mustache;
@@ -35,36 +41,46 @@ export class CodegenBase {
   }
 
   /**
-   * Collect all proto files from project proto directory and tools directory
+   * Collect all proto files from discovered proto directories and tools directory.
+   * Deduplicates by filename (last occurrence wins), maintains common.proto-first
+   * ordering, and includes all discovered directories as proto include paths.
    * @param {object} opts - Collection options
    * @param {boolean} opts.includeTools - Whether to include tool proto files
    * @returns {string[]} Array of absolute proto file paths
    */
   collectProtoFiles(opts = {}) {
     const { includeTools = true } = opts;
-    const protoDir = this.#path.join(this.#projectRoot, "proto");
 
-    const discovered = this.#fs
-      .readdirSync(protoDir)
-      .filter((f) => f.endsWith(".proto"))
-      .sort();
+    // Collect from all proto directories, dedup by filename (last wins)
+    const byName = new Map();
+    for (const dir of this.#protoDirs) {
+      if (!this.#fs.existsSync(dir)) continue;
+      for (const file of this.#fs.readdirSync(dir)) {
+        if (file.endsWith(".proto")) {
+          byName.set(file, this.#path.join(dir, file));
+        }
+      }
+    }
 
-    const ordered = discovered.includes("common.proto")
+    // Sort and ensure common.proto comes first
+    const sorted = Array.from(byName.keys()).sort();
+    const ordered = sorted.includes("common.proto")
       ? [
-          this.#path.join(protoDir, "common.proto"),
-          ...discovered
+          byName.get("common.proto"),
+          ...sorted
             .filter((f) => f !== "common.proto")
-            .map((f) => this.#path.join(protoDir, f)),
+            .map((f) => byName.get(f)),
         ]
-      : discovered.map((f) => this.#path.join(protoDir, f));
+      : sorted.map((f) => byName.get(f));
 
     if (includeTools) {
       try {
+        const toolsDir = this.#path.join(this.#projectRoot, "tools");
         ordered.push(
           ...this.#fs
-            .readdirSync(this.#path.join(this.#projectRoot, "tools"))
+            .readdirSync(toolsDir)
             .filter((f) => f.endsWith(".proto"))
-            .map((f) => this.#path.join(this.#projectRoot, "tools", f)),
+            .map((f) => this.#path.join(toolsDir, f)),
         );
       } catch {
         // tools directory may not exist; ignore
@@ -72,6 +88,14 @@ export class CodegenBase {
     }
 
     return ordered;
+  }
+
+  /**
+   * Get all proto include directories for cross-file import resolution
+   * @returns {string[]} Array of absolute paths to proto directories
+   */
+  get includeDirs() {
+    return this.#protoDirs.filter((dir) => this.#fs.existsSync(dir));
   }
 
   /**
@@ -145,7 +169,7 @@ export class CodegenBase {
    */
   parseProtoFile(protoPath) {
     const def = this.#protoLoader.loadSync(protoPath, {
-      includeDirs: [this.#path.dirname(protoPath)],
+      includeDirs: this.includeDirs,
       keepCase: true,
     });
 
