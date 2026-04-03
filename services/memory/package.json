@@ -24,7 +24,8 @@
     "node": ">=18.0.0"
   },
   "files": [
-    "proto/"
+    "proto/",
+    "server.js"
   ],
   "publishConfig": {
     "access": "public"

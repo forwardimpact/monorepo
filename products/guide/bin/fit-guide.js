@@ -24,7 +24,7 @@ Usage:
 
 Options:
   --data=<path>   Path to framework data directory
-  --init          Generate secrets and update .env
+  --init          Generate secrets, .env, and config/config.json
   --help, -h      Show this help message
   --version, -v   Show version
 
@@ -70,6 +70,37 @@ if (process.argv.includes("--init")) {
   console.log("SERVICE_SECRET was updated in .env");
   console.log("JWT_SECRET is set in .env");
   console.log("JWT_ANON_KEY was updated in .env");
+
+  // Generate config/config.json with minimal service tree
+  const configDir = resolve("config");
+  const configPath = resolve("config", "config.json");
+
+  try {
+    await fs.access(configPath);
+    console.log("config/config.json already exists, skipping.");
+  } catch {
+    await fs.mkdir(configDir, { recursive: true });
+
+    const config = {
+      init: {
+        log_dir: "data/logs",
+        shutdown_timeout: 3000,
+        services: [
+          { name: "trace", command: "node -e \"import('@forwardimpact/svctrace/server.js')\"" },
+          { name: "vector", command: "node -e \"import('@forwardimpact/svcvector/server.js')\"" },
+          { name: "graph", command: "node -e \"import('@forwardimpact/svcgraph/server.js')\"" },
+          { name: "llm", command: "node -e \"import('@forwardimpact/svcllm/server.js')\"" },
+          { name: "memory", command: "node -e \"import('@forwardimpact/svcmemory/server.js')\"" },
+          { name: "tool", command: "node -e \"import('@forwardimpact/svctool/server.js')\"" },
+          { name: "agent", command: "node -e \"import('@forwardimpact/svcagent/server.js')\"" },
+        ],
+      },
+    };
+
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2) + "\n");
+    console.log("config/config.json created with service configuration.");
+  }
+
   process.exit(0);
 }
 

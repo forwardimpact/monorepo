@@ -24,7 +24,8 @@
     "@forwardimpact/libharness": "^0.1.5"
   },
   "files": [
-    "proto/"
+    "proto/",
+    "server.js"
   ],
   "publishConfig": {
     "access": "public"
