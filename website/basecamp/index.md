@@ -8,8 +8,8 @@ hero:
   alt: An engineer, an AI robot, and a business professional setting up an A-frame tent together
   subtitle: Set up camp. Basecamp is your personal operations center — it syncs your email and calendar, builds a knowledge graph, drafts responses, prepares meeting briefs, and organizes your files. All running as scheduled AI tasks in the background.
   cta:
-    - label: Documentation
-      href: /docs/guides/knowledge-systems/
+    - label: For Engineers
+      href: /docs/getting-started/engineers/
     - label: View on npm
       href: https://www.npmjs.com/package/@forwardimpact/basecamp
       secondary: true

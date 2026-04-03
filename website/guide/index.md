@@ -8,8 +8,11 @@ hero:
   alt: An engineer, an AI robot holding a compass, and a business professional gathered together, finding their bearings
   subtitle: Find your bearing. Guide is an AI agent that understands your organization's skills, levels, and career paths — helping engineers onboard, grow, and stay on course.
   cta:
-    - label: Explore the docs
-      href: /docs/
+    - label: For Engineers
+      href: /docs/getting-started/engineers/
+    - label: View on npm
+      href: https://www.npmjs.com/package/@forwardimpact/guide
+      secondary: true
 ---
 
 > The Guide doesn't carry you — it shows you which way to go. Most AI assistants

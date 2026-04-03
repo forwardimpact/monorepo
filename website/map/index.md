@@ -8,8 +8,10 @@ hero:
   alt: An engineer, an AI robot, and a business professional kneel around a large unfolded map, tracing routes together
   subtitle: Map is the data product for the FIT suite. It defines your framework in plain YAML and stores operational signals — organization hierarchy, GitHub activity, and GetDX snapshot results — in one model.
   cta:
-    - label: Documentation
-      href: /docs/guides/authoring-frameworks/
+    - label: For Leadership
+      href: /docs/getting-started/leadership/
+    - label: For Engineers
+      href: /docs/getting-started/engineers/
     - label: View on npm
       href: https://www.npmjs.com/package/@forwardimpact/map
       secondary: true

@@ -6,10 +6,12 @@ toc: false
 hero:
   subtitle: Landmark is the analysis layer for engineering-system signals. It reads Map data to show marker evidence, practice patterns, and snapshot trends for manager-defined teams.
   cta:
-    - label: Read the spec
-      href: https://github.com/forwardimpact/monorepo/tree/main/specs/04-landmark-product
-    - label: Coming soon
-      href: /docs/
+    - label: For Leadership
+      href: /docs/getting-started/leadership/
+    - label: For Engineers
+      href: /docs/getting-started/engineers/
+    - label: View on npm
+      href: https://www.npmjs.com/package/@forwardimpact/landmark
       secondary: true
 ---
 

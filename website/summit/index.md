@@ -6,10 +6,10 @@ toc: false
 hero:
   subtitle: Summit treats a team as a system, not a collection of individuals. It aggregates skill matrices into capability coverage, structural risks, and what-if staffing scenarios so leaders can build teams that succeed.
   cta:
-    - label: Read the spec
-      href: https://github.com/forwardimpact/monorepo/tree/main/specs/090-summit-product
-    - label: Coming soon
-      href: /docs/
+    - label: For Leadership
+      href: /docs/getting-started/leadership/
+    - label: View on npm
+      href: https://www.npmjs.com/package/@forwardimpact/summit
       secondary: true
 ---
 
