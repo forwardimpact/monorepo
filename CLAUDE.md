@@ -26,36 +26,49 @@ products via npm.
 
 ## Products
 
-| Product      | Question it answers                               | Users                 | CLI            |
-| ------------ | ------------------------------------------------- | --------------------- | -------------- |
-| **Map**      | What does good engineering look like here?        | Leadership, Agents    | `fit-map`      |
-| **Pathway**  | Where does my career path go from here?           | Engineers, Agents     | `fit-pathway`  |
-| **Basecamp** | Am I prepared for what's ahead today?             | Engineers, Agents     | `fit-basecamp` |
-| **Guide**    | How do I find my bearing?                         | Engineers             | `fit-guide`    |
-| **Landmark** | What milestones has my engineering reached?       | Leadership, Engineers | `fit-landmark` |
-| **Summit**   | Is this team supported to reach peak performance? | Leadership            | `fit-summit`   |
+### Map — `fit-map`
 
-**Map** — Data product: validates, stores, and publishes YAML frameworks.
+Helps leadership and agents answer *what does good engineering look like here?*
+Validates, stores, and publishes YAML frameworks.
 [Overview](website/map/index.md) ·
 [Internals](website/docs/internals/map/index.md)
 
-**Pathway** — Web app, CLI, static site generator for job definitions, agent
-profiles, and interview questions. [Overview](website/pathway/index.md) ·
+### Pathway — `fit-pathway`
+
+Helps engineers and agents answer *where does my career path go from here?*
+Web app, CLI, and static site generator for job definitions, agent profiles, and
+interview questions.
+[Overview](website/pathway/index.md) ·
 [Internals](website/docs/internals/pathway/index.md)
 
-**Basecamp** — Personal operations center: scheduled AI tasks, knowledge graphs,
-meeting briefings (macOS status menu). [Overview](website/basecamp/index.md) ·
+### Basecamp — `fit-basecamp`
+
+Helps engineers and agents answer *am I prepared for what's ahead today?*
+Personal operations center providing scheduled AI tasks, knowledge graphs, and
+meeting briefings (macOS status menu).
+[Overview](website/basecamp/index.md) ·
 [Internals](website/docs/internals/basecamp/index.md)
 
-**Guide** — AI agent reasoning about your engineering framework in context.
+### Guide — `fit-guide`
+
+Helps engineers answer *how do I find my bearing?*
+AI agent that reasons about your engineering framework in context.
 [Overview](website/guide/index.md) ·
 [Internals](website/docs/internals/guide/index.md)
 
-**Landmark** — Analysis layer: GitHub artifact evidence + GetDX snapshots. No
-LLM calls. [Overview](website/landmark/index.md)
+### Landmark — `fit-landmark`
 
-**Summit** — Team capability as a system: skill matrices, coverage, risks,
-staffing scenarios. [Overview](website/summit/index.md) ·
+Helps leadership and engineers answer *what milestones has my engineering
+reached?* Analysis layer combining GitHub artifact evidence with GetDX
+snapshots. No LLM calls.
+[Overview](website/landmark/index.md)
+
+### Summit — `fit-summit`
+
+Helps leadership answer *is this team supported to reach peak performance?*
+Models team capability as a system: skill matrices, coverage gaps, risks, and
+staffing scenarios.
+[Overview](website/summit/index.md) ·
 [Internals](website/docs/internals/summit/index.md)
 
 ## Distribution Model
@@ -69,16 +82,13 @@ contributors.
 External users install products with `npm install`, bringing their own framework
 data. All CLIs use `#!/usr/bin/env node` — no Bun required.
 
-Products depending on `librpc` (currently Guide) need generated gRPC clients.
-External users run `npx fit-codegen --all` after install. Generated code is
+Products using gRPC (currently Guide) require generated clients. External users
+run `npx fit-codegen --all` after install. Generated code is
 **installation-specific** and must never be bundled in npm packages — each
-installation can define custom `.proto` files for custom gRPC services that
-Guide dynamically picks up. Proto files are co-located with their owning
-packages (`services/*/proto/`, `products/guide/proto/`) and auto-discovered by
-`fit-codegen` from installed `@forwardimpact/*` packages.
-`@forwardimpact/libcodegen` must be a dependency of any product needing
-generated code. See [Codegen Internals](website/docs/internals/codegen/index.md)
-for the full pipeline.
+install may define custom `.proto` files that `fit-codegen` auto-discovers from
+`@forwardimpact/*` packages. See
+[Codegen Internals](website/docs/internals/codegen/index.md) for the full
+pipeline.
 
 Published skills (`fit-*` in `.claude/skills/`) help external users understand
 how products **work** — not how they are **implemented**. Synced to
@@ -116,6 +126,7 @@ restate.
 | Security update †              | `.claude/skills/security-update`              | Internal |
 | Release readiness / review †   | `.claude/skills/release-readiness`, `-review` | Internal |
 | Codegen pipeline †             | `website/docs/internals/codegen/`             | Internal |
+| REPL API                       | `website/docs/internals/librepl/`             | Internal |
 | Product internals              | `website/docs/internals/{product}/`           | Internal |
 | Getting started — Contributors | `website/docs/getting-started/contributors/`  | Internal |
 | Product pages                  | `website/{product}/index.md`                  | External |
