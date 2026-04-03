@@ -5,8 +5,8 @@
  * Conversational agent interface for the Guide knowledge platform.
  *
  * Usage:
- *   bunx fit-guide
- *   echo "Tell me about the company" | bunx fit-guide
+ *   npx fit-guide
+ *   echo "Tell me about the company" | npx fit-guide
  */
 
 import { resolve } from "path";
