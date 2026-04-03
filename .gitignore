@@ -38,9 +38,8 @@ SCRATCHPAD*.md
 # CLI output
 output/
 
-# Private Claude memory is a git submodule (wiki repo)
-# Ignore local memory files that are not in the submodule
-.claude/memory-local/
+# Claude Code local settings (per-machine, not shared)
+.claude/settings.local.json
 
 # Built static site
 public/
