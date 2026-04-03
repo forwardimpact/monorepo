@@ -149,6 +149,102 @@ describe("TraceCollector", () => {
       assert.strictEqual(trace.summary.tokenUsage.inputTokens, 5000);
     });
 
+    test("unwraps combined supervised trace format {source, turn, event}", () => {
+      const collector = new TraceCollector();
+
+      // System init wrapped in supervisor envelope
+      collector.addLine(
+        JSON.stringify({
+          source: "agent",
+          turn: 0,
+          event: {
+            type: "system",
+            subtype: "init",
+            session_id: "sess-supervised",
+            model: "claude-opus-4-6",
+            tools: ["Bash"],
+          },
+        }),
+      );
+
+      // Assistant message wrapped in supervisor envelope
+      collector.addLine(
+        JSON.stringify({
+          source: "agent",
+          turn: 1,
+          event: {
+            type: "assistant",
+            message: {
+              content: [{ type: "text", text: "I ran the tests." }],
+              usage: { input_tokens: 100, output_tokens: 50 },
+            },
+          },
+        }),
+      );
+
+      // Tool result wrapped in supervisor envelope
+      collector.addLine(
+        JSON.stringify({
+          source: "agent",
+          turn: 1,
+          event: {
+            type: "user",
+            message: {
+              role: "user",
+              content: [
+                {
+                  type: "tool_result",
+                  tool_use_id: "toolu_sup",
+                  content: "All tests passed",
+                },
+              ],
+            },
+          },
+        }),
+      );
+
+      // Result event wrapped in supervisor envelope
+      collector.addLine(
+        JSON.stringify({
+          source: "supervisor",
+          turn: 1,
+          event: {
+            type: "result",
+            subtype: "success",
+            total_cost_usd: 0.44,
+            duration_ms: 30000,
+            num_turns: 2,
+          },
+        }),
+      );
+
+      const trace = collector.toJSON();
+      assert.strictEqual(trace.metadata.sessionId, "sess-supervised");
+      assert.strictEqual(trace.turns.length, 2);
+      assert.strictEqual(trace.turns[0].role, "assistant");
+      assert.strictEqual(trace.turns[0].content[0].text, "I ran the tests.");
+      assert.strictEqual(trace.turns[1].role, "tool_result");
+      assert.strictEqual(trace.turns[1].content, "All tests passed");
+      assert.strictEqual(trace.summary.result, "success");
+      assert.strictEqual(trace.summary.totalCostUsd, 0.44);
+    });
+
+    test("skips orchestrator summary lines from supervised traces", () => {
+      const collector = new TraceCollector();
+      collector.addLine(
+        JSON.stringify({
+          source: "orchestrator",
+          type: "summary",
+          success: true,
+          turns: 3,
+        }),
+      );
+
+      // Orchestrator summaries have no inner event and no recognized type
+      // after unwrap — they should be silently skipped.
+      assert.strictEqual(collector.toJSON().turns.length, 0);
+    });
+
     test("skips rate_limit_event and unknown types", () => {
       const collector = new TraceCollector();
       collector.addLine(
