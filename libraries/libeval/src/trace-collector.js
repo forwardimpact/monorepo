@@ -38,6 +38,13 @@ export class TraceCollector {
       return;
     }
 
+    // Unwrap combined supervised trace format {source, turn, event}.
+    // The Supervisor emits this wrapper; when replayed through addLine the
+    // inner event is the one we need.
+    if (event.event && !event.type && typeof event.source === "string") {
+      event = event.event;
+    }
+
     switch (event.type) {
       case "system":
         this.handleSystem(event);
