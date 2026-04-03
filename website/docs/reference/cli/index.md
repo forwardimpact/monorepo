@@ -288,16 +288,16 @@ npx fit-rc status             # Show service status
 npx fit-rc start <service>   # Start up to a specific service
 ```
 
-| Command   | Description                             |
-| --------- | --------------------------------------- |
-| `start`   | Start services in dependency order      |
-| `stop`    | Graceful shutdown of all services       |
-| `restart` | Stop and restart all services           |
-| `status`  | Show running status of each service     |
+| Command   | Description                         |
+| --------- | ----------------------------------- |
+| `start`   | Start services in dependency order  |
+| `stop`    | Graceful shutdown of all services   |
+| `restart` | Stop and restart all services       |
+| `status`  | Show running status of each service |
 
-| Option          | Description       |
-| --------------- | ----------------- |
-| `-s`, `--silent` | Suppress output  |
+| Option           | Description       |
+| ---------------- | ----------------- |
+| `-s`, `--silent` | Suppress output   |
 | `-h`, `--help`   | Show help message |
 
 ---
