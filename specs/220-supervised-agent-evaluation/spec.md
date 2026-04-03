@@ -66,11 +66,11 @@ Runs two Claude Agent SDK sessions in a relay loop:
 
 The agent drives its own exploration. The supervisor does not dictate steps — it
 watches, nudges, and evaluates. This models how a senior engineer might observe
-a junior developer working through an unfamiliar setup: they don't hand-hold
+a junior engineer working through an unfamiliar setup: they don't hand-hold
 every step, but they're available when things go sideways.
 
 The supervisor and agent may use different agent profiles, allowing distinct
-personas (e.g. a `security-engineer` supervisor observing a general-purpose
+personas (e.g. a `security-specialist` supervisor observing a general-purpose
 agent).
 
 ### Shared Design
@@ -101,7 +101,7 @@ context. Or it can be a purpose-built directory with a custom `CLAUDE.md` that
 encodes scenario-specific judgement rules.
 
 **Agent cwd** — Where the agent works. Typically a fresh directory for
-evaluation scenarios (simulating a new developer), but can also be an existing
+evaluation scenarios (simulating a new engineer), but can also be an existing
 project. The agent's `CLAUDE.md` and `.claude/settings.json` at this path
 control its persona and tool permissions.
 
@@ -170,8 +170,8 @@ selected via the `agent:` input continue to work via the `--agent` flag.
 
 ### Agent Profile Migration
 
-The four existing agent profiles (`security-engineer`, `product-manager`,
-`release-engineer`, `improvement-coach`) in `.claude/agents/` are unchanged. The
+The four existing agent profiles (`security-specialist`, `product-manager`,
+`release-manager`, `improvement-coach`) in `.claude/agents/` are unchanged. The
 `--agent` flag on both `run` and `supervise` replaces the action's `agent:`
 input. The `supervise` command accepts separate flags for the supervisor and
 agent profiles, since they may need different personas.

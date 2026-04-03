@@ -12,12 +12,12 @@ Map's activity layer is designed around Supabase — the SQL schema, the ingesti
 code, and the query functions all use the Supabase client. But the Supabase
 instance itself has no defined infrastructure: there is no configuration for
 local development, no edge function deployment, no storage bucket setup, and no
-migration runner. Every developer must manually configure Supabase or skip the
+migration runner. Every engineer must manually configure Supabase or skip the
 activity layer entirely.
 
 This blocks three workflows:
 
-1. **Local development.** Without a local Supabase instance, developers cannot
+1. **Local development.** Without a local Supabase instance, engineers cannot
    run or test the activity pipeline. The ingestion code, transforms, and
    queries all require a Supabase client connected to a real instance.
 
@@ -147,7 +147,7 @@ Postgres instance, Storage, and Edge Functions runtime. The monorepo wraps this
 behind `make supabase-start` so that environment loading, config reading, and
 service ordering are handled consistently.
 
-Developers run the full ELT pipeline locally with:
+Engineers run the full ELT pipeline locally with:
 
 ```sh
 make env-setup                    # Generate secrets including Map Supabase keys

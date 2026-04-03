@@ -71,7 +71,7 @@ GitHub Action (`extractions/setup-just`) for CI.
 
 ## Prerequisites
 
-### Developer installation
+### Engineer installation
 
 Unlike `make` (pre-installed on macOS and most Linux distributions), `just` must
 be installed separately. Installation: `brew install just` (macOS),
@@ -83,7 +83,7 @@ onboarding documentation must include this as a prerequisite.
 The `.claude/settings.json` `SessionStart` hook calls `just install`. If `just`
 is not yet installed, the hook fails silently (same behaviour as today if `make`
 were missing). The `README.md` prerequisite section and `CONTRIBUTING.md`
-onboarding steps must instruct developers to install `just` before first use.
+onboarding steps must instruct engineers to install `just` before first use.
 
 ## Scope
 
@@ -276,7 +276,7 @@ profiles pass an argument or copy the appropriate profile file manually.
 
 ## Transition
 
-This is a breaking change for developer workflow. All developers must install
+This is a breaking change for engineer workflow. All engineers must install
 `just` before pulling the migration commit. Existing local `.env.local`,
 `.env.storage.*`, and `.env.auth.*` files become stale after migration — users
 should re-run `just env-setup` to regenerate from the new profile structure.

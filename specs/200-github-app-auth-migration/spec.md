@@ -16,7 +16,7 @@ as `CLAUDE_GH_TOKEN`. This creates three problems:
    automated warning before expiry.
 
 2. **Individual identity.** The PAT is tied to a specific GitHub user account.
-   Commits and API calls made by the agents appear as that individual developer,
+   Commits and API calls made by the agents appear as that individual engineer,
    not as the automation system. This obscures the audit trail — it is unclear
    whether a push, merge, or comment came from a human or an agent. It also
    means the individual's account must remain active and retain the necessary

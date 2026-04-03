@@ -15,8 +15,13 @@ Landmark, and Summit.
 ## Install
 
 ```sh
-bun install @forwardimpact/guide
+npm install @forwardimpact/guide
+npx fit-codegen --all
 ```
+
+Guide depends on gRPC service clients generated from Protocol Buffer
+definitions. The `fit-codegen` step produces these — without it, imports fail
+with a missing module error.
 
 ## Service Requirements
 
@@ -38,12 +43,11 @@ The following services must be running:
 
 ## Quick Start
 
-1. Clone the monorepo and start the service stack:
+1. Install and generate service clients:
 
    ```sh
-   git clone https://github.com/forwardimpact/monorepo
-   cd monorepo
-   just rc-start
+   npm install @forwardimpact/guide
+   npx fit-codegen --all
    ```
 
 2. Set the service secret in your environment:
@@ -55,26 +59,26 @@ The following services must be running:
 3. Run Guide:
 
    ```sh
-   bunx fit-guide
+   npx fit-guide
    ```
 
 ## CLI Usage
 
 ```sh
 # Start an interactive conversation
-bunx fit-guide
+npx fit-guide
 
 # Pipe a question directly
-echo "Tell me about the company" | bunx fit-guide
+echo "Tell me about the company" | npx fit-guide
 
 # Specify a framework data directory
-bunx fit-guide --data=./my-data
+npx fit-guide --data=./my-data
 
 # Show help
-bunx fit-guide --help
+npx fit-guide --help
 
 # Show version
-bunx fit-guide --version
+npx fit-guide --version
 ```
 
 ## Related Packages

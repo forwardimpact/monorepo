@@ -183,12 +183,12 @@ each artifact.
 
 ### GetDX Snapshot Comments as Engineer Voice
 
-GetDX Snapshots collect two categories of developer input that serve as the
+GetDX Snapshots collect two categories of engineer input that serve as the
 engineer's voice:
 
-1. **Perceptual measures** — how developers feel about tools, workflows, and
+1. **Perceptual measures** — how engineers feel about tools, workflows, and
    processes. These capture pain, friction, and toil.
-2. **Open-ended comments** — free-text responses where developers describe
+2. **Open-ended comments** — free-text responses where engineers describe
    blockers, context, and frustrations in their own words.
 
 The `snapshots.comments.list` API returns comments with email, text, and
@@ -196,10 +196,10 @@ timestamp. Map ingests these into `activity.getdx_snapshot_comments`. Landmark
 surfaces them alongside health and evidence views.
 
 This is the "voice of the engineers" without building a custom write path. GetDX
-already asks developers what's blocking them, what they'd most like improved,
-and how they experience their engineering environment. Landmark's job is to
-connect those voices to the capability and evidence data that explains _why_
-they're saying it.
+already asks engineers what's blocking them, what they'd most like improved, and
+how they experience their engineering environment. Landmark's job is to connect
+those voices to the capability and evidence data that explains _why_ they're
+saying it.
 
 Comments are individual-level data (attributed by email). The audience model
 governs visibility:
@@ -387,11 +387,11 @@ in the health example above). Comments are matched to drivers via the snapshot
 structure — each comment is associated with the driver/factor context in which
 it was submitted.
 
-**"What is blocking you?"** GetDX Snapshots ask developers to rank which items
+**"What is blocking you?"** GetDX Snapshots ask engineers to rank which items
 they'd most like to see improved. Combined with open-ended comments, this
 provides a structured answer to "what is blocking you?" that Landmark can
 present alongside structural capability data. The snapshot's perceptual measures
-capture how developers _feel_ about their environment; the comments capture
+capture how engineers _feel_ about their environment; the comments capture
 _why_.
 
 ### Initiative impact

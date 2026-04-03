@@ -203,9 +203,9 @@ supabase-status:  ## Supabase health check
 	@curl -sf http://127.0.0.1:54321/rest/v1/ >/dev/null && echo "supabase: ok" || echo "supabase: not running"
 ```
 
-These integrate with `make rc-start` via the oneshot service entry — when a
-developer runs `make rc-start`, fit-rc executes `make supabase-up` first
-(because it appears first in `init.services`), then starts the remaining longrun
+These integrate with `make rc-start` via the oneshot service entry — when an
+engineer runs `make rc-start`, fit-rc executes `make supabase-up` first (because
+it appears first in `init.services`), then starts the remaining longrun
 services.
 
 ### Docker Compose

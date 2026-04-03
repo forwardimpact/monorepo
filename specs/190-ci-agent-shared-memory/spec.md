@@ -2,7 +2,7 @@
 
 ## Problem
 
-The CI agents (release-engineer, security-engineer, improvement-coach,
+The CI agents (release-manager, security-specialist, improvement-coach,
 product-manager) are stateless — each workflow run starts from scratch with no
 knowledge of what happened in previous runs or what teammate agents discovered.
 This limits their effectiveness: agents repeat investigations, miss patterns
@@ -100,11 +100,11 @@ analyzed, PRs triaged, and contributor trust decisions.
 
 ## Files to modify
 
-| File                                  | Change                                       |
-| ------------------------------------- | -------------------------------------------- |
-| `.github/actions/claude/action.yml`   | Add `wiki` input, clone/configure/push steps |
-| `.claude/agents/release-engineer.md`  | Add Memory section                           |
-| `.claude/agents/security-engineer.md` | Add Memory section                           |
-| `.claude/agents/improvement-coach.md` | Add Memory section                           |
-| `.claude/agents/product-manager.md`   | Add Memory section                           |
-| `CONTINUOUS_IMPROVEMENT.md`           | Add Shared Memory section                    |
+| File                                    | Change                                       |
+| --------------------------------------- | -------------------------------------------- |
+| `.github/actions/claude/action.yml`     | Add `wiki` input, clone/configure/push steps |
+| `.claude/agents/release-manager.md`     | Add Memory section                           |
+| `.claude/agents/security-specialist.md` | Add Memory section                           |
+| `.claude/agents/improvement-coach.md`   | Add Memory section                           |
+| `.claude/agents/product-manager.md`     | Add Memory section                           |
+| `CONTINUOUS_IMPROVEMENT.md`             | Add Shared Memory section                    |

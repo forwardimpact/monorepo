@@ -50,7 +50,7 @@ Determine which workflow to use from the task prompt:
 - PR triage is the **sole external merge point** — contributor trust
   verification is your most critical responsibility
 - Only merge `fix`, `bug`, and `spec` PRs — other types require human review
-- Never make code changes on PR branches (release-engineer scope) — only on your
+- Never make code changes on PR branches (release-manager scope) — only on your
   own `fix/` branches from issues
 - Features always get a spec, never a direct implementation
 - Run `bun run check` before every commit

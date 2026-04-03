@@ -57,7 +57,7 @@ vision. The six products and their questions:
 | **Summit**   | Is this team supported to reach peak performance? |
 
 An issue is product-aligned if it describes a need that one of these products
-should address for its users (Leadership, Developers, or Agents).
+should address for its users (Leadership, Engineers, or Agents).
 
 ### Process
 

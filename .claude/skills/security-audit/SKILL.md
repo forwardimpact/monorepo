@@ -67,7 +67,7 @@ Each run covers **one topic** in depth.
 
 ### Topic selection
 
-1. Read memory — find previous `security-engineer-*.md` entries and last audit
+1. Read memory — find previous `security-specialist-*.md` entries and last audit
    dates per topic.
 2. Build coverage map — never-audited topics go first, then oldest.
 3. Revisit threshold — if all topics covered within last 4 runs, revisit oldest.

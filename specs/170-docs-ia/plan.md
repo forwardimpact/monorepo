@@ -48,7 +48,7 @@ validates that `fit-doc build` handles the new nesting.
 | ---------------------------------------------------- | ----------------------------- | -------------- |
 | `website/docs/getting-started/index.md`              | Getting Started               | product (grid) |
 | `website/docs/getting-started/leadership/index.md`   | Getting Started: Leadership   | default        |
-| `website/docs/getting-started/developers/index.md`   | Getting Started: Developers   | default        |
+| `website/docs/getting-started/engineers/index.md`    | Getting Started: Engineers    | default        |
 | `website/docs/getting-started/contributors/index.md` | Getting Started: Contributors | default        |
 | `website/docs/guides/index.md`                       | Guides                        | product (grid) |
 | `website/docs/guides/authoring-frameworks/index.md`  | Authoring Frameworks          | default        |
@@ -251,9 +251,9 @@ Content outline:
 Source material: `data/pathway/` example files, `CONTRIBUTING.md` quickstart
 section, Map validation docs.
 
-### 3.2 — Getting Started: Developers
+### 3.2 — Getting Started: Engineers
 
-`website/docs/getting-started/developers/index.md`
+`website/docs/getting-started/engineers/index.md`
 
 Content outline:
 
@@ -415,7 +415,7 @@ Replace the flat nine-card grid with a four-section layout:
 
 ### Getting Started
 
-Quickstart guides for leadership, developers, and contributors.
+Quickstart guides for leadership, engineers, and contributors.
 
 </a>
 
@@ -470,7 +470,7 @@ Update the `## Documentation` section to reflect the new hierarchy:
 ```
 ## Documentation
 
-- Getting Started: Leadership, Developers, Contributors
+- Getting Started: Leadership, Engineers, Contributors
 - Guides: Authoring Frameworks, Agent Teams, Career Paths, Knowledge Systems,
   Engineering Signals, Team Capability, Finding Your Bearing
 - Reference: CLI, Core Model, Lifecycle, YAML Schema
@@ -534,7 +534,7 @@ npx fit-doc build --src=website --out=dist
 ```
 website/docs/getting-started/index.md
 website/docs/getting-started/leadership/index.md
-website/docs/getting-started/developers/index.md
+website/docs/getting-started/engineers/index.md
 website/docs/getting-started/contributors/index.md
 website/docs/guides/index.md
 website/docs/guides/authoring-frameworks/index.md

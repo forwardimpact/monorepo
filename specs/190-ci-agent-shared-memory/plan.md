@@ -112,10 +112,10 @@ Record:
 
 **Agent-specific additions:**
 
-- **release-engineer**: Release versions cut, PRs needing manual conflict
+- **release-manager**: Release versions cut, PRs needing manual conflict
   resolution, main branch CI state
-- **security-engineer**: CVEs evaluated, policy violations found, Dependabot PRs
-  processed and their outcomes
+- **security-specialist**: CVEs evaluated, policy violations found, Dependabot
+  PRs processed and their outcomes
 - **improvement-coach**: Traces analyzed, key findings, patterns across coaching
   cycles
 - **product-manager**: PRs triaged, contributor trust decisions, merge outcomes,

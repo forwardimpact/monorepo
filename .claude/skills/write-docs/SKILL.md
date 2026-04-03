@@ -23,13 +23,13 @@ Documentation is organized by audience and task, not by product.
 ## Information Architecture
 
 The documentation is a four-tier hierarchy serving three user groups
-(Leadership, Developers, Contributors):
+(Leadership, Engineers, Contributors):
 
 ```
 website/docs/
   getting-started/           "I'm new, get me going fast"
     leadership/              Author your first framework
-    developers/              Install tools and agent teams
+    engineers/               Install tools and agent teams
     contributors/            Set up the development environment
   guides/                    "I have a specific task to accomplish"
     authoring-frameworks/    YAML structure, entities, validation
@@ -61,12 +61,12 @@ website/docs/
 Every sentence belongs to exactly one audience. When writing or reviewing, apply
 these rules strictly:
 
-| Content type                                                  | Audience               | Section                 |
-| ------------------------------------------------------------- | ---------------------- | ----------------------- |
-| How to accomplish a task with the products                    | Leadership, Developers | Getting Started, Guides |
-| Entity definitions, CLI synopsis, YAML format                 | All users              | Reference               |
-| Module structures, code imports, class names, `src/` paths    | Contributors           | Internals               |
-| Internal architecture, data flow diagrams, formatter patterns | Contributors           | Internals               |
+| Content type                                                  | Audience              | Section                 |
+| ------------------------------------------------------------- | --------------------- | ----------------------- |
+| How to accomplish a task with the products                    | Leadership, Engineers | Getting Started, Guides |
+| Entity definitions, CLI synopsis, YAML format                 | All users             | Reference               |
+| Module structures, code imports, class names, `src/` paths    | Contributors          | Internals               |
+| Internal architecture, data flow diagrams, formatter patterns | Contributors          | Internals               |
 
 **Never mix audiences on the same page.** If a page mentions both CLI usage and
 module internals, split it. User-facing pages (Getting Started, Guides,

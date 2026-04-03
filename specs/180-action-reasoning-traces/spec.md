@@ -56,7 +56,7 @@ Three deliverables:
   the action handles everything internally
 - Dashboards, trend analysis, or cost reporting tools — those consume the traces
   later
-- Changes to the `security-engineer` agent or any skills
+- Changes to the `security-specialist` agent or any skills
 - Extended thinking / reasoning token capture (not supported by Claude Code CLI
   in stream-json mode)
 

@@ -4,7 +4,7 @@ The website documentation (`/docs/`) is organized by product, not by what users
 need to accomplish. Every page mixes usage instructions with internal
 architecture, and there is no hierarchy beyond a flat grid of nine links. The
 result: a leadership user trying to author YAML files has to read through module
-structures and import statements; a developer trying to install agent teams has
+structures and import statements; an engineer trying to install agent teams has
 to piece together information scattered across three pages; and a contributor
 looking for internals has to skim past CLI tutorials to find the code reference.
 
@@ -33,7 +33,7 @@ internally" content. For example:
 - **Map** (`/docs/map/`) explains YAML file structure (useful for Leadership
   authoring frameworks) alongside internal layering rules, query functions, and
   the `activity/` module boundary (useful only for contributors).
-- **Pathway** (`/docs/pathway/`) explains CLI commands (useful for Developers)
+- **Pathway** (`/docs/pathway/`) explains CLI commands (useful for Engineers)
   alongside module structure, formatter patterns, and code examples showing
   `shared.js` / `dom.js` / `markdown.js` conventions (useful only for
   contributors).
@@ -53,15 +53,15 @@ Real user goals that the docs should serve but currently don't:
 | Leadership  | Author a framework from scratch                    | Read Map docs (mixed with internals), guess at YAML structure from examples |
 | Leadership  | Validate and publish framework data                | Buried in Map docs as a CLI command among many                              |
 | Leadership  | Connect GetDX and GitHub signals                   | Only in Map docs under "Ingestion Surfaces", mixed with schema details      |
-| Developer   | Install agent teams for Claude Code                | Spread across Agents page, Reference page, and Pathway CLI section          |
-| Developer   | Set up Basecamp for personal knowledge             | Single page, adequate but isolated with no onboarding path                  |
-| Developer   | Understand role expectations and find growth areas | No Guide docs exist at all                                                  |
+| Engineer    | Install agent teams for Claude Code                | Spread across Agents page, Reference page, and Pathway CLI section          |
+| Engineer    | Set up Basecamp for personal knowledge             | Single page, adequate but isolated with no onboarding path                  |
+| Engineer    | Understand role expectations and find growth areas | No Guide docs exist at all                                                  |
 | Contributor | Understand the data model and derivation logic     | Good content exists but buried among user-facing content                    |
 | Contributor | Generate test data for development                 | Universe page exists but is disconnected from any development workflow      |
 
 ### Agents need progressive disclosure, not just SKILL.md
 
-The suite defines three user groups — Leadership, Developers, and Agents. Agents
+The suite defines three user groups — Leadership, Engineers, and Agents. Agents
 consume context primarily through machine-readable artifacts:
 
 - **`llms.txt`** — The curated entry point an LLM agent fetches when visiting
@@ -98,8 +98,8 @@ pipeline logic mixed with `DataLoader` class internals.
 The documentation hierarchy is still primarily a human concern. But the new IA
 must also produce clean, stable URLs for the Guides and Reference sections that
 published skills can link to for optional deep-dives. The three audiences for
-the docs remain **Leadership**, **Developers**, and **Contributors** — agents
-are served by SKILL.md as their primary interface, with documentation URLs as a
+the docs remain **Leadership**, **Engineers**, and **Contributors** — agents are
+served by SKILL.md as their primary interface, with documentation URLs as a
 progressive-disclosure layer.
 
 ### Missing documentation
@@ -119,7 +119,7 @@ organized by audience and task:
 /docs/
   getting-started/           Quickstart guides per user group
     leadership/              Author your first framework
-    developers/              Install tools and agent teams
+    engineers/               Install tools and agent teams
     contributors/            Set up the development environment
   guides/                    Task-oriented guides (primary audience: users)
     authoring-frameworks/    YAML structure, entities, validation
@@ -151,7 +151,7 @@ organized by audience and task:
 users are trying to do:
 
 1. **Getting Started** — "I'm new, get me going fast" (all user groups)
-2. **Guides** — "I have a specific task to accomplish" (Leadership + Developers)
+2. **Guides** — "I have a specific task to accomplish" (Leadership + Engineers)
 3. **Reference** — "I need to look something up" (all user groups)
 4. **Internals** — "I need to understand how this works" (Contributors)
 
@@ -226,7 +226,7 @@ multiple audiences.
 | Page                                  | Purpose                                                                                                                                 |
 | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `/docs/getting-started/leadership/`   | Author your first framework: install, create YAML, validate, preview                                                                    |
-| `/docs/getting-started/developers/`   | Install CLI tools, generate agent teams, set up Basecamp                                                                                |
+| `/docs/getting-started/engineers/`    | Install CLI tools, generate agent teams, set up Basecamp                                                                                |
 | `/docs/getting-started/contributors/` | Clone, install, generate data, run tests, understand structure                                                                          |
 | `/docs/guides/finding-your-bearing/`  | Guide product usage (new — no docs exist today)                                                                                         |
 | `/docs/guides/team-capability/`       | Summit product usage (new — no docs exist today)                                                                                        |
@@ -334,7 +334,7 @@ top-level documentation sections so LLM agents can navigate the new structure.
    authoring guide without encountering module structures, code imports, or
    internal architecture.
 
-3. A developer can navigate from `/docs/` to agent team installation
+3. An engineer can navigate from `/docs/` to agent team installation
    instructions without needing to visit more than two pages (the guide and
    optionally the CLI reference).
 

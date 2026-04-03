@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Quickstart guides for leadership, developers, and contributors.
+description: Quickstart guides for leadership, engineers, and contributors.
 layout: product
 toc: false
 ---
@@ -16,9 +16,9 @@ preview.
 
 </a>
 
-<a href="/docs/getting-started/developers/">
+<a href="/docs/getting-started/engineers/">
 
-### Developers
+### Engineers
 
 Install CLI tools, browse job definitions, generate agent teams, set up Guide,
 and configure Basecamp.

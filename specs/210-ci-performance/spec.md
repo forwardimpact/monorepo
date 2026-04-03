@@ -51,7 +51,7 @@ npm run format && npm run lint && npm run test && npm run validate -- --json
 ```
 
 Format and lint are independent. Test and validate are independent. Running them
-sequentially wastes time on developer machines and in any CI job that runs the
+sequentially wastes time on engineer machines and in any CI job that runs the
 combined check.
 
 ### Playwright E2E runs single-threaded in CI
@@ -162,7 +162,7 @@ The monorepo is well-suited for an alternative runtime:
 ### Out of scope
 
 - **Merging CI jobs.** Lint, format, test, and E2E remain separate jobs.
-  Separate jobs provide faster signal — a developer sees "lint failed" or
+  Separate jobs provide faster signal — an engineer sees "lint failed" or
   "format failed" immediately without waiting for the full suite. The cost of
   separate jobs drops dramatically when install takes seconds instead of a
   minute.
@@ -274,7 +274,7 @@ for install time should reflect cached performance, which is the common case.
 3. **E2E parallelism.** Playwright E2E tests run with multiple workers in CI,
    confirmed by Playwright's output log showing more than 1 worker.
 4. **Local check time.** The parallelized check script completes at least 30%
-   faster on a developer machine compared to the sequential baseline, measured
+   faster on an engineer machine compared to the sequential baseline, measured
    across 5 runs.
 5. **Zero test regressions.** All 99 existing test files pass under Bun. All E2E
    specs pass. No new test flakiness introduced.

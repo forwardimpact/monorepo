@@ -1,6 +1,6 @@
 # 160 — Pin Bun Version in CI Workflows
 
-**Status:** draft **Author:** security-engineer **Created:** 2026-03-31
+**Status:** draft **Author:** security-specialist **Created:** 2026-03-31
 
 ## Problem
 

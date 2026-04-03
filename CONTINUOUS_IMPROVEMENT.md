@@ -34,12 +34,12 @@ the composite action (see § Authentication below).
 
 ## Agents
 
-| Agent                 | Purpose                                                                   | Skills                                             |
-| --------------------- | ------------------------------------------------------------------------- | -------------------------------------------------- |
-| **security-engineer** | Patch dependencies, harden supply chain, enforce security policies        | dependabot-triage, security-audit, spec            |
-| **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | release-readiness, release-review, gh-cli          |
-| **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | gemba-walk, grounded-theory-analysis, spec, gh-cli |
-| **product-manager**   | Review PRs for product alignment, triage issues, verify contributor trust | product-backlog, product-feedback, spec, gh-cli    |
+| Agent                   | Purpose                                                                   | Skills                                             |
+| ----------------------- | ------------------------------------------------------------------------- | -------------------------------------------------- |
+| **security-specialist** | Patch dependencies, harden supply chain, enforce security policies        | dependabot-triage, security-audit, spec            |
+| **release-manager**     | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | release-readiness, release-review, gh-cli          |
+| **improvement-coach**   | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | gemba-walk, grounded-theory-analysis, spec, gh-cli |
+| **product-manager**     | Review PRs for product alignment, triage issues, verify contributor trust | product-backlog, product-feedback, spec, gh-cli    |
 
 Each agent has explicit scope constraints — it knows what it must _not_ do. When
 a finding exceeds an agent's scope, it writes a formal spec (`specs/`) rather
@@ -52,15 +52,15 @@ preparers (06 UTC) → mergers (08 UTC) → releasers (09 UTC) → analyzers (10
 Each step runs after enough time for CI to complete on the previous step’s
 output. Same-agent workflows never overlap within a day.
 
-| Workflow              | Schedule                | Agent             | What it does                                                                  |
-| --------------------- | ----------------------- | ----------------- | ----------------------------------------------------------------------------- |
-| **security-audit**    | Tue & Fri 04:07 UTC     | security-engineer | Audit supply chain, dependencies, credentials, OWASP Top 10                   |
-| **dependabot-triage** | Mon & Thu 04:43 UTC     | security-engineer | Evaluate Dependabot PRs against policy, merge/fix/close                       |
-| **product-feedback**  | Mon, Wed, Fri 05:17 UTC | product-manager   | Triage open issues, implement trivial fixes, write specs for aligned requests |
-| **release-readiness** | Daily 06:23 UTC         | release-engineer  | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
-| **product-backlog**   | Daily 08:13 UTC         | product-manager   | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
-| **release-review**    | Tue, Thu, Sat 09:37 UTC | release-engineer  | Find unreleased changes, bump versions, tag, push, verify publish             |
-| **improvement-coach** | Wed & Sat 10:47 UTC     | improvement-coach | Deep-analyze a single random agent trace, open fix PRs or write specs         |
+| Workflow              | Schedule                | Agent               | What it does                                                                  |
+| --------------------- | ----------------------- | ------------------- | ----------------------------------------------------------------------------- |
+| **security-audit**    | Tue & Fri 04:07 UTC     | security-specialist | Audit supply chain, dependencies, credentials, OWASP Top 10                   |
+| **dependabot-triage** | Mon & Thu 04:43 UTC     | security-specialist | Evaluate Dependabot PRs against policy, merge/fix/close                       |
+| **product-feedback**  | Mon, Wed, Fri 05:17 UTC | product-manager     | Triage open issues, implement trivial fixes, write specs for aligned requests |
+| **release-readiness** | Daily 06:23 UTC         | release-manager     | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
+| **product-backlog**   | Daily 08:13 UTC         | product-manager     | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
+| **release-review**    | Tue, Thu, Sat 09:37 UTC | release-manager     | Find unreleased changes, bump versions, tag, push, verify publish             |
+| **improvement-coach** | Wed & Sat 10:47 UTC     | improvement-coach   | Deep-analyze a single random agent trace, open fix PRs or write specs         |
 
 All schedules use off-minute values to avoid API load spikes. Every workflow
 supports `workflow_dispatch` for manual runs, uses concurrency groups, and has a
@@ -89,8 +89,8 @@ a closed feedback loop running on a 2–3 day cadence.
 ```mermaid
 graph TD
     IC["Improvement Coach<br/>downloads traces, analyzes, audits trust checks"]
-    SE["Security Engineer<br/>audit, triage"]
-    RE["Release Engineer<br/>readiness, cuts"]
+    SE["Security Specialist<br/>audit, triage"]
+    RE["Release Manager<br/>readiness, cuts"]
     PM["Product Manager<br/>backlog, feedback, merge"]
     CB["Codebase (main)"]
 
@@ -166,8 +166,8 @@ graph TD
     ISS["GitHub issues"]
     PM["Product Manager<br/>trust gate + CI"]
     CB["Codebase (main)"]
-    SE["Security Engineer<br/>Dependabot only"]
-    RE["Release Engineer<br/>rebase + release"]
+    SE["Security Specialist<br/>Dependabot only"]
+    RE["Release Manager<br/>rebase + release"]
 
     EXT -- "fix / bug PR" --> PM
     EXT -- "spec PR" --> PM
@@ -200,7 +200,7 @@ graph TD
 | **dependabot-triage** | Dependabot PRs            | Trusted bot, policy-gated                       |
 | **release-readiness** | Agent-authored rebases    | Agent-only, no external input                   |
 | **release-review**    | Agent-authored tags/bumps | Agent-only, no external input                   |
-| **release-engineer**  | Trivial CI fixes on main  | Agent-only, mechanical fixes only               |
+| **release-manager**   | Trivial CI fixes on main  | Agent-only, mechanical fixes only               |
 | **improvement-coach** | Agent-authored fix/spec   | Agent-only, traces as evidence                  |
 | **product-feedback**  | Agent-authored fix/spec   | Agent-only, issues as input                     |
 
@@ -214,12 +214,12 @@ on every merged PR (see § Accountability below).
 from structural improvements (`spec/` branches) — never mixed in one PR.
 
 **Explicit scope constraints.** Each agent definition lists what it must not do.
-The release engineer never resolves substantive merge conflicts. The security
+The release manager never resolves substantive merge conflicts. The security
 engineer never weakens existing policies. The improvement coach never speculates
 without trace evidence.
 
 **Main branch CI repair.** See CONTRIBUTING.md § Pull Request Workflow for the
-release engineer's direct-to-`main` exception and its scope constraints.
+release manager's direct-to-`main` exception and its scope constraints.
 
 **Trace-driven observability.** Every workflow captures a full execution trace
 as an artifact. The improvement coach must quote specific tool calls, error

@@ -5,7 +5,7 @@ description: "Environment configuration, service management, and common developm
 
 > **Note:** The commands on this page (`just` recipes, `fit-rc`, environment
 > scripts) require a full monorepo checkout. For npm-based installs, see
-> [Getting Started: Developers](/docs/getting-started/developers/).
+> [Getting Started: Engineers](/docs/getting-started/engineers/).
 
 Day-to-day reference for environment setup, service management, and common
 development tasks. For the PR workflow and contributing guidelines, see

@@ -7,7 +7,7 @@ product and library runs on Bun. This creates unnecessary friction:
 
 - **CI complexity.** The `publish-macos.yml` workflow installs both Deno 2.2.8
   and Bun. No other workflow needs Deno.
-- **Developer setup.** Contributors working on Basecamp must install a second
+- **Engineer setup.** Contributors working on Basecamp must install a second
   JavaScript runtime that nothing else in the repo uses.
 - **Dual configuration.** Basecamp maintains both `deno.json` (tasks,
   compilerOptions) and `package.json` (scripts, npm metadata) for the same entry

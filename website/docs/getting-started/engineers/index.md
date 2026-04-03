@@ -1,5 +1,5 @@
 ---
-title: "Getting Started: Developers"
+title: "Getting Started: Engineers"
 description: "Install CLI tools, browse job definitions, generate agent teams, set up Guide, and configure Basecamp."
 ---
 
@@ -84,7 +84,11 @@ engineering artifacts against your skill markers.
 
 ```sh
 npm install @forwardimpact/guide
+npx fit-codegen --all
 ```
+
+The `fit-codegen` step generates gRPC service clients that Guide needs. Without
+it, imports fail with a missing module error.
 
 ### Prerequisites
 

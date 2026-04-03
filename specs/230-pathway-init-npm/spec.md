@@ -10,7 +10,7 @@ the entire getting-started experience for npm users.
 
 ### The init command is the front door for new users
 
-`fit-pathway init` is how developers bootstrap a framework data directory. It is
+`fit-pathway init` is how engineers bootstrap a framework data directory. It is
 the first command a new user runs after installing the package. When it crashes,
 there is no workaround short of manually creating YAML files from scratch — a
 task that requires knowledge of the schema, entity relationships, and directory
@@ -40,7 +40,7 @@ manual intervention, undermining the self-service model.
 ## What
 
 Make `fit-pathway init` work when Pathway is installed from npm, so that a
-developer can run `bun install @forwardimpact/pathway && bunx fit-pathway init`
+engineer can run `bun install @forwardimpact/pathway && bunx fit-pathway init`
 and get a functional framework data directory.
 
 ### Requirements

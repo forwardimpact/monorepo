@@ -796,7 +796,7 @@ Each workflow changes from:
 - uses: ./.github/actions/claude
   with:
     prompt: "Perform a security audit of the repository."
-    agent: "security-engineer"
+    agent: "security-specialist"
     model: "opus"
     max-turns: "50"
     app-id: ${{ secrets.CI_APP_ID }}
@@ -843,7 +843,7 @@ scenarios/guide-setup/
 
 ### `scenarios/guide-setup/task.md`
 
-> You are a developer evaluating the Forward Impact engineering platform. Go to
+> You are an engineer evaluating the Forward Impact engineering platform. Go to
 > www.forwardimpact.team, find the Guide product, read the documentation, and
 > try to install and configure it in a fresh project. Do not clone the monorepo
 > — install from npm. Write notes about your experience in ./notes/.
@@ -880,7 +880,7 @@ directory is for fully isolated scenarios.
 
 ### `scenarios/guide-setup/agent/CLAUDE.md`
 
-> You are a developer evaluating a new product. Work independently — read docs,
+> You are an engineer evaluating a new product. Work independently — read docs,
 > try commands, troubleshoot errors. If you get genuinely stuck and can't find
 > the answer in documentation, say so clearly and describe what you've tried.
 > Write notes about your experience in ./notes/ as you go.
@@ -920,7 +920,7 @@ product suite, documentation structure, and user experience expectations — it
 acts as a product-aware observer evaluating whether the Guide onboarding
 experience actually works for a new user.
 
-Unlike the Guide setup scenario (Step 11), which tests whether a developer can
+Unlike the Guide setup scenario (Step 11), which tests whether an engineer can
 _install and configure_ the platform from scratch, this scenario tests the
 end-to-end _user journey_: visit the website, follow the getting-started docs,
 install fit-guide, and run real prompts against it. The product-manager
@@ -929,7 +929,7 @@ docs clear? Do the commands work? Is the output useful?
 
 ### `scenarios/guide-onboarding/task.md`
 
-> You are a developer trying out the Forward Impact Guide product for the first
+> You are an engineer trying out the Forward Impact Guide product for the first
 > time. Start at www.forwardimpact.team, find the Guide product page, and follow
 > the instructions to install and run fit-guide.
 >
@@ -950,7 +950,7 @@ docs clear? Do the commands work? Is the output useful?
 
 ### `scenarios/guide-onboarding/agent/CLAUDE.md`
 
-> You are a developer trying a product for the first time. Follow documentation
+> You are an engineer trying a product for the first time. Follow documentation
 > as written — do not look for workarounds or alternative approaches unless the
 > documented path fails. If something is unclear or doesn't work, note it and
 > try to proceed. Write honest notes about your experience in ./notes/ as you

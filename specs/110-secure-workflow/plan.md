@@ -150,7 +150,7 @@ This gates both publish pathways (npm packages and macOS installer).
 **File:** `.github/workflows/check.yml`
 
 Add a new `audit` job that runs `make audit` — the single Makefile target that
-combines npm audit and gitleaks (see step 9). This keeps CI and local developer
+combines npm audit and gitleaks (see step 9). This keeps CI and local engineer
 workflows identical. The job runs in parallel with the existing `check` job (no
 `needs:` dependency).
 
@@ -329,8 +329,8 @@ Rename the existing `make security` target (currently runs
 `npm audit --audit-level=low --workspaces`) to `make audit` and expand it to run
 both npm audit and gitleaks in a single command. Raise the audit level from
 `low` to `high` to match the publish gate threshold. This is the single source
-of truth for security checks — CI runs `make audit`, developers run
-`make audit`, the pre-commit hook runs gitleaks directly (staged files only).
+of truth for security checks — CI runs `make audit`, engineers run `make audit`,
+the pre-commit hook runs gitleaks directly (staged files only).
 
 **File:** `Makefile`
 
@@ -375,7 +375,7 @@ Keep it short and direct — no legal boilerplate.
 
 **New file:** `CONTRIBUTING.md`
 
-A developer-facing guide covering how to contribute safely. References existing
+An engineer-facing guide covering how to contribute safely. References existing
 tooling and the new security checks:
 
 - **Getting Started** — `npm install`, `make quickstart`
@@ -550,7 +550,7 @@ When reviewing application code, check for:
 - The `make audit` target must be the single source of truth for security
   checks, running both npm audit and gitleaks.
 - Publish workflows must not run if audit checks fail.
-- CI and local developer workflows must run the same checks (same Makefile
+- CI and local engineer workflows must run the same checks (same Makefile
   target).
 
 **7. Audit Workflow**

@@ -38,10 +38,10 @@ just quickstart
 
 All changes go through pull requests — never push directly to `main`.
 
-**Exception:** The release engineer agent may push trivial CI fixes (formatting,
+**Exception:** The release manager agent may push trivial CI fixes (formatting,
 lint, lock file drift) directly to `main` to unblock releases. This is limited
 to mechanical fixes that `bun run check:fix` can resolve — never logic, tests,
-or feature changes. See `.claude/agents/release-engineer.md` for the full scope
+or feature changes. See `.claude/agents/release-manager.md` for the full scope
 constraints.
 
 1. Create a branch from `main`
@@ -84,7 +84,7 @@ scope:
 **Version rules** — pre-1.0 packages (`0.x.y`) bump patch for any change.
 Post-1.0 packages use semver: breaking=major, feat=minor, fix/refactor=patch.
 
-The release engineer agent handles version bumps, tagging, and publishing. See
+The release manager agent handles version bumps, tagging, and publishing. See
 `.claude/skills/release-review` for the full release procedure.
 
 ## Quality Commands

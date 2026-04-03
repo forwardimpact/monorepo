@@ -47,6 +47,6 @@ jobs:
         with:
           app-id: ${{ secrets.CI_APP_ID }}
           task-text: Review for new releases.
-          agent-profile: "release-engineer"
+          agent-profile: "release-manager"
           model: "opus"
           max-turns: "200"

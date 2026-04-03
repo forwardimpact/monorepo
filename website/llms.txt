@@ -12,7 +12,7 @@ data model is YAML-based and drives all products.
 
 ## Documentation
 
-- Getting Started: Leadership, Developers, Contributors
+- Getting Started: Leadership, Engineers, Contributors
 - Guides: Authoring Frameworks, Agent Teams, Career Paths, Knowledge Systems,
   Engineering Signals, Team Capability, Finding Your Bearing
 - Reference: CLI, Core Model, Lifecycle, YAML Schema

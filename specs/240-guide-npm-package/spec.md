@@ -6,7 +6,7 @@
 
 Guide is a core product in the Forward Impact suite. The website describes it
 alongside Map, Pathway, Basecamp, Landmark, and Summit. The product page at
-`/guide/` explains what Guide does and how it fits into the suite. A developer
+`/guide/` explains what Guide does and how it fits into the suite. An engineer
 or agent reading this documentation will naturally attempt:
 
 ```
@@ -24,12 +24,12 @@ product but cannot be installed like one.
 ### Bad first impression for new users
 
 Spec 220 (test-guide-product-setup) specifically tests the experience of a new
-developer discovering Guide through the website and attempting to install it.
+engineer discovering Guide through the website and attempting to install it.
 That test exercises the path: read the docs, install packages from npm,
 configure framework data. The install step fails because the package does not
 exist on npm.
 
-This is the first interaction many developers will have with the product. A 404
+This is the first interaction many engineers will have with the product. A 404
 on `npm install` signals that the project is incomplete, abandoned, or
 internal-only — none of which are true.
 
@@ -79,8 +79,8 @@ stack is not running.
   are needed, how to start them, and links to documentation
 - When services are available, delegates to the full Guide functionality
 
-This gives developers a working install, a helpful CLI, and a clear path
-forward. The package is small and its dependencies are already published.
+This gives engineers a working install, a helpful CLI, and a clear path forward.
+The package is small and its dependencies are already published.
 
 **Option B: Full product publish.** Remove `"private": true` and publish the
 existing Guide package as-is. This requires that all seven library dependencies

@@ -15,7 +15,7 @@ hero:
 
 ### Getting Started
 
-Quickstart guides for leadership, developers, and contributors.
+Quickstart guides for leadership, engineers, and contributors.
 
 </a>
 
