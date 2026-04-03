@@ -113,7 +113,6 @@ restate.
 | Product internals              | `website/docs/internals/{product}/`           | Internal |
 | Getting started — Contributors | `website/docs/getting-started/contributors/`  | Internal |
 | Product pages                  | `website/{product}/index.md`                  | External |
-| Product READMEs                | `products/{product}/README.md`                | External |
 | Getting started — Engineers    | `website/docs/getting-started/engineers/`     | External |
 | Getting started — Leadership   | `website/docs/getting-started/leadership/`    | External |
 | User guides                    | `website/docs/guides/`                        | External |
@@ -122,8 +121,7 @@ restate.
 ## Contributor Workflow
 
 Everything below this point is for internal contributors. External users should
-consult the product READMEs or
-[Getting Started guides](website/docs/getting-started/).
+consult the [Getting Started guides](website/docs/getting-started/).
 
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — PR workflow, git conventions, quality
   commands, security policies. **Read before your first commit.**

@@ -33,15 +33,24 @@ engineering teams:
 
 ## Quick Start
 
+Install Pathway and Guide from npm, then generate installation-specific service
+code:
+
 ```sh
-git clone https://github.com/forwardimpact/monorepo.git
-cd monorepo
-bun install
-just quickstart
-bun start
+npm install @forwardimpact/pathway @forwardimpact/guide
+npx fit-codegen --all
 ```
 
-Open http://localhost:3000 to explore.
+Browse your engineering framework:
+
+```sh
+npx fit-pathway discipline --list
+npx fit-pathway job software_engineering L3
+```
+
+Guide requires a running service stack — see the
+[getting started guide](website/docs/getting-started/engineers/index.md) for
+setup.
 
 ## Learn More
 
