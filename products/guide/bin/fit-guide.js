@@ -63,15 +63,18 @@ Run bunx fit-guide --help for CLI options.`);
   process.exit(1);
 }
 
-import { createServiceConfig } from "@forwardimpact/libconfig";
-import { Repl } from "@forwardimpact/librepl";
-import { createClient, createTracer } from "@forwardimpact/librpc";
-import { createLogger } from "@forwardimpact/libtelemetry";
-import { agent, common } from "@forwardimpact/libtype";
-import { createStorage } from "@forwardimpact/libstorage";
-import { Finder } from "@forwardimpact/libutil";
+try {
+  const { createServiceConfig } = await import("@forwardimpact/libconfig");
+  const { Repl } = await import("@forwardimpact/librepl");
+  const { createClient, createTracer } = await import(
+    "@forwardimpact/librpc"
+  );
+  const { createLogger } = await import("@forwardimpact/libtelemetry");
+  const { agent, common } = await import("@forwardimpact/libtype");
+  const { createStorage } = await import("@forwardimpact/libstorage");
+  const { Finder } = await import("@forwardimpact/libutil");
 
-const usage = `**Usage:** <message>
+  const usage = `**Usage:** <message>
 
 Send conversational messages to the Agent service for processing.
 The agent maintains conversation context across multiple turns.
@@ -81,24 +84,23 @@ The agent maintains conversation context across multiple turns.
     echo "Tell me about the company" | bunx fit-guide
     printf "What is microservices?\\nWhat are the benefits?\\n" | bunx fit-guide`;
 
-// Parse --data flag from CLI args
-const dataArg = process.argv.find((a) => a.startsWith("--data="));
-let dataDir;
-if (dataArg) {
-  dataDir = resolve(dataArg.slice(7));
-} else {
-  const guideLogger = createLogger("cli");
-  const finder = new Finder(fs, guideLogger, process);
-  try {
-    dataDir = finder.findData("data", homedir());
-  } catch {
-    throw new Error(
-      "No data directory found. Use --data=<path> to specify location.",
-    );
+  // Parse --data flag from CLI args
+  const dataArg = process.argv.find((a) => a.startsWith("--data="));
+  let dataDir;
+  if (dataArg) {
+    dataDir = resolve(dataArg.slice(7));
+  } else {
+    const guideLogger = createLogger("cli");
+    const finder = new Finder(fs, guideLogger, process);
+    try {
+      dataDir = finder.findData("data", homedir());
+    } catch {
+      throw new Error(
+        "No data directory found. Use --data=<path> to specify location.",
+      );
+    }
   }
-}
 
-try {
   const config = await createServiceConfig("agent");
   const logger = createLogger("cli");
   const tracer = await createTracer("cli");
