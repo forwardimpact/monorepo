@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libtelemetry",
-  "version": "0.1.28",
+  "version": "0.1.29",
   "description": "OpenTelemetry-based tracing library for Guide microservices",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
