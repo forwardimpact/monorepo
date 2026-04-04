@@ -132,6 +132,17 @@ if (process.argv.includes("--init")) {
           },
         ],
       },
+      service: {
+        agent: {
+          agent: "common.Agent.planner",
+        },
+        llm: {
+          temperature: 0.32,
+        },
+        memory: {
+          max_tokens: 4096,
+        },
+      },
     };
 
     await fs.writeFile(configPath, JSON.stringify(config, null, 2) + "\n");
@@ -148,13 +159,14 @@ if (!process.env.SERVICE_SECRET) {
 Guide requires a running service stack to function. The following
 services must be available:
 
-  agent, llm, memory, graph, vector, tool, trace, web
+  agent, llm, memory, graph, vector, tool, trace
 
 To get started:
 
   1. Run: npx fit-guide --init
-  2. Start the service stack: npx fit-rc start
-  3. Run: npx fit-guide
+  2. Load environment: set -a && source .env && set +a
+  3. Start the service stack: npx fit-rc start
+  4. Run: npx fit-guide
 
 Documentation: https://www.forwardimpact.team/guide
 Run npx fit-guide --help for CLI options.`);
