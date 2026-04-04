@@ -118,9 +118,136 @@ const KEYWORDS = new Set([
 
 const DATE_RE = /^\d{4}-\d{2}$/;
 
+const SINGLE_CHAR_TOKENS = {
+  "{": "LBRACE",
+  "}": "RBRACE",
+  "[": "LBRACKET",
+  "]": "RBRACKET",
+  ",": "COMMA",
+};
+
 /**
  * @typedef {{ type: string, value: string, line: number }} Token
  */
+
+/** @param {string} source @param {{ i: number, line: number }} s */
+function skipMultiLineComment(source, s) {
+  s.i += 2;
+  while (
+    s.i < source.length - 1 &&
+    !(source[s.i] === "*" && source[s.i + 1] === "/")
+  ) {
+    if (source[s.i] === "\n") s.line++;
+    s.i++;
+  }
+  s.i += 2;
+}
+
+/** @param {string} source @param {{ i: number, line: number }} s @returns {string} */
+function readStringLiteral(source, s) {
+  s.i++; // opening quote
+  let str = "";
+  while (s.i < source.length && source[s.i] !== '"') {
+    if (source[s.i] === "\\" && s.i + 1 < source.length) {
+      s.i++;
+      if (source[s.i] === "n") str += "\n";
+      else if (source[s.i] === "t") str += "\t";
+      else str += source[s.i];
+    } else {
+      str += source[s.i];
+    }
+    s.i++;
+  }
+  s.i++; // closing quote
+  return str;
+}
+
+/** @param {string} source @param {{ i: number, line: number }} s @returns {string} */
+function readAtIdentifier(source, s) {
+  s.i++; // skip @
+  let name = "";
+  while (s.i < source.length && /[a-zA-Z0-9_]/.test(source[s.i])) {
+    name += source[s.i];
+    s.i++;
+  }
+  return name;
+}
+
+/** @param {string} source @param {{ i: number, line: number }} s @returns {{ type: string, value: string }} */
+function readNumeric(source, s) {
+  let num = "";
+  if (source[s.i] === "-") {
+    num += "-";
+    s.i++;
+  }
+  while (s.i < source.length && /[\d.]/.test(source[s.i])) {
+    num += source[s.i];
+    s.i++;
+  }
+  if (source[s.i] === "-" && /^\d{4}$/.test(num)) {
+    num += "-";
+    s.i++;
+    while (s.i < source.length && /\d/.test(source[s.i])) {
+      num += source[s.i];
+      s.i++;
+    }
+    if (DATE_RE.test(num)) return { type: "DATE", value: num };
+  }
+  if (source[s.i] === "%") {
+    s.i++;
+    return { type: "PERCENT", value: num };
+  }
+  return { type: "NUMBER", value: num };
+}
+
+/** @param {string} source @param {{ i: number, line: number }} s @returns {{ type: string, value: string }} */
+function readWord(source, s) {
+  let word = "";
+  while (s.i < source.length && /[a-zA-Z0-9_]/.test(source[s.i])) {
+    word += source[s.i];
+    s.i++;
+  }
+  return { type: KEYWORDS.has(word) ? "KEYWORD" : "IDENT", value: word };
+}
+
+/** @param {string} source @param {{ i: number, line: number }} s @returns {boolean} */
+function skipWhitespaceOrComment(source, s) {
+  const ch = source[s.i];
+  if (ch === " " || ch === "\t" || ch === "\r") {
+    s.i++;
+    return true;
+  }
+  if (ch === "\n") {
+    s.line++;
+    s.i++;
+    return true;
+  }
+  if (ch === "/" && source[s.i + 1] === "/") {
+    while (s.i < source.length && source[s.i] !== "\n") s.i++;
+    return true;
+  }
+  if (ch === "/" && source[s.i + 1] === "*") {
+    skipMultiLineComment(source, s);
+    return true;
+  }
+  return false;
+}
+
+/** @param {string} ch @param {string} source @param {{ i: number, line: number }} s @returns {{ type: string, value: string } | null} */
+function readToken(ch, source, s) {
+  const singleType = SINGLE_CHAR_TOKENS[ch];
+  if (singleType) {
+    s.i++;
+    return { type: singleType, value: ch };
+  }
+  if (ch === '"')
+    return { type: "STRING", value: readStringLiteral(source, s) };
+  if (ch === "@")
+    return { type: "AT_IDENT", value: readAtIdentifier(source, s) };
+  if (/[\d-]/.test(ch)) return readNumeric(source, s);
+  if (/[a-zA-Z_]/.test(ch)) return readWord(source, s);
+  return null;
+}
 
 /**
  * Tokenize DSL source into a token stream.
@@ -129,154 +256,21 @@ const DATE_RE = /^\d{4}-\d{2}$/;
  */
 export function tokenize(source) {
   const tokens = [];
-  let i = 0;
-  let line = 1;
+  const s = { i: 0, line: 1 };
 
-  while (i < source.length) {
-    // Skip whitespace
-    if (source[i] === " " || source[i] === "\t" || source[i] === "\r") {
-      i++;
-      continue;
-    }
+  while (s.i < source.length) {
+    if (skipWhitespaceOrComment(source, s)) continue;
 
-    // Newline
-    if (source[i] === "\n") {
-      line++;
-      i++;
+    const ch = source[s.i];
+    const tok = readToken(ch, source, s);
+    if (tok) {
+      tokens.push({ type: tok.type, value: tok.value, line: s.line });
       continue;
     }
 
-    // Single-line comment
-    if (source[i] === "/" && source[i + 1] === "/") {
-      while (i < source.length && source[i] !== "\n") i++;
-      continue;
-    }
-
-    // Multi-line comment
-    if (source[i] === "/" && source[i + 1] === "*") {
-      i += 2;
-      while (
-        i < source.length - 1 &&
-        !(source[i] === "*" && source[i + 1] === "/")
-      ) {
-        if (source[i] === "\n") line++;
-        i++;
-      }
-      i += 2;
-      continue;
-    }
-
-    // String literal
-    if (source[i] === '"') {
-      i++;
-      let str = "";
-      while (i < source.length && source[i] !== '"') {
-        if (source[i] === "\\" && i + 1 < source.length) {
-          i++;
-          if (source[i] === "n") str += "\n";
-          else if (source[i] === "t") str += "\t";
-          else str += source[i];
-        } else {
-          str += source[i];
-        }
-        i++;
-      }
-      i++; // closing quote
-      tokens.push({ type: "STRING", value: str, line });
-      continue;
-    }
-
-    // Braces and brackets
-    if (source[i] === "{") {
-      tokens.push({ type: "LBRACE", value: "{", line });
-      i++;
-      continue;
-    }
-    if (source[i] === "}") {
-      tokens.push({ type: "RBRACE", value: "}", line });
-      i++;
-      continue;
-    }
-    if (source[i] === "[") {
-      tokens.push({ type: "LBRACKET", value: "[", line });
-      i++;
-      continue;
-    }
-    if (source[i] === "]") {
-      tokens.push({ type: "RBRACKET", value: "]", line });
-      i++;
-      continue;
-    }
-    if (source[i] === ",") {
-      tokens.push({ type: "COMMA", value: ",", line });
-      i++;
-      continue;
-    }
-
-    // @identifier
-    if (source[i] === "@") {
-      i++;
-      let name = "";
-      while (i < source.length && /[a-zA-Z0-9_]/.test(source[i])) {
-        name += source[i];
-        i++;
-      }
-      tokens.push({ type: "AT_IDENT", value: name, line });
-      continue;
-    }
-
-    // Number, percent, date, or negative number
-    if (/[\d-]/.test(source[i])) {
-      let num = "";
-      if (source[i] === "-") {
-        num += "-";
-        i++;
-      }
-      while (i < source.length && /[\d.]/.test(source[i])) {
-        num += source[i];
-        i++;
-      }
-      // Check for date (YYYY-MM)
-      if (source[i] === "-" && /^\d{4}$/.test(num)) {
-        num += "-";
-        i++;
-        while (i < source.length && /\d/.test(source[i])) {
-          num += source[i];
-          i++;
-        }
-        if (DATE_RE.test(num)) {
-          tokens.push({ type: "DATE", value: num, line });
-          continue;
-        }
-      }
-      // Check for percent
-      if (source[i] === "%") {
-        tokens.push({ type: "PERCENT", value: num, line });
-        i++;
-        continue;
-      }
-      tokens.push({ type: "NUMBER", value: num, line });
-      continue;
-    }
-
-    // Identifier or keyword
-    if (/[a-zA-Z_]/.test(source[i])) {
-      let word = "";
-      while (i < source.length && /[a-zA-Z0-9_]/.test(source[i])) {
-        word += source[i];
-        i++;
-      }
-      if (KEYWORDS.has(word)) {
-        tokens.push({ type: "KEYWORD", value: word, line });
-      } else {
-        tokens.push({ type: "IDENT", value: word, line });
-      }
-      continue;
-    }
-
-    throw new Error(`Unexpected character '${source[i]}' at line ${line}`);
+    throw new Error(`Unexpected character '${ch}' at line ${s.line}`);
   }
 
-  tokens.push({ type: "EOF", value: "", line });
+  tokens.push({ type: "EOF", value: "", line: s.line });
   return tokens;
 }

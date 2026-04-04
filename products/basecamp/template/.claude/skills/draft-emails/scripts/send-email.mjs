@@ -59,52 +59,35 @@ function recipientLines(type, addrs) {
     .join("\n");
 }
 
-function main() {
-  const args = process.argv.slice(2);
-  let to = "",
-    cc = "",
-    bcc = "",
-    subject = "",
-    body = "",
-    draft = "";
-
+function parseArgs(args) {
+  const parsed = { to: "", cc: "", bcc: "", subject: "", body: "", draft: "" };
+  const keyMap = {
+    "--to": "to",
+    "--cc": "cc",
+    "--bcc": "bcc",
+    "--subject": "subject",
+    "--body": "body",
+    "--draft": "draft",
+  };
   for (let i = 0; i < args.length; i++) {
-    switch (args[i]) {
-      case "--to":
-        to = args[++i] ?? "";
-        break;
-      case "--cc":
-        cc = args[++i] ?? "";
-        break;
-      case "--bcc":
-        bcc = args[++i] ?? "";
-        break;
-      case "--subject":
-        subject = args[++i] ?? "";
-        break;
-      case "--body":
-        body = args[++i] ?? "";
-        break;
-      case "--draft":
-        draft = args[++i] ?? "";
-        break;
-    }
+    const key = keyMap[args[i]];
+    if (key) parsed[key] = args[++i] ?? "";
   }
-
-  if (!to || !subject || !body) {
+  if (!parsed.to || !parsed.subject || !parsed.body) {
     console.error("Error: --to, --subject, and --body are required.");
     console.error("Run with --help for usage info.");
     process.exit(1);
   }
-
-  // Strip leading two-space padding from each line and trim overall whitespace
-  body = body
+  parsed.body = parsed.body
     .split("\n")
     .map((line) => line.replace(/^ {2}/, ""))
     .join("\n")
     .trim();
+  return parsed;
+}
 
-  const lines = [
+function buildAppleScript({ to, cc, bcc, subject, body }) {
+  return [
     'tell application "Mail"',
     `    set newMessage to make new outgoing message with properties {subject:"${escapeAS(subject)}", content:"${escapeAS(body)}", visible:false}`,
     "    tell newMessage",
@@ -117,35 +100,38 @@ function main() {
   ]
     .filter(Boolean)
     .join("\n");
+}
 
+function handleDraftCleanup(draft) {
+  if (!draft) return;
+  try {
+    unlinkSync(draft);
+    console.log(`Removed draft: ${draft}`);
+  } catch {
+    /* ignore */
+  }
+  const draftBasename = basename(draft, ".md");
+  const emailId = draftBasename.replace(/_draft$/, "");
+  if (emailId) {
+    appendFileSync("drafts/handled", emailId + "\n");
+    console.log(`Marked as handled: ${emailId}`);
+  }
+}
+
+function main() {
+  const parsed = parseArgs(process.argv.slice(2));
+  const script = buildAppleScript(parsed);
   const tmp = join(mkdtempSync(join(tmpdir(), "send-email-")), "mail.scpt");
   try {
-    writeFileSync(tmp, lines);
+    writeFileSync(tmp, script);
     execFileSync("osascript", [tmp], { stdio: "inherit" });
-    console.log(`Sent: ${subject}`);
-
-    // Clean up draft and mark thread as handled
-    if (draft) {
-      try {
-        unlinkSync(draft);
-        console.log(`Removed draft: ${draft}`);
-      } catch {
-        // ignore if draft already gone
-      }
-
-      // Extract email ID from draft filename (e.g. "drafts/12345_draft.md" → "12345")
-      const draftBasename = basename(draft, ".md");
-      const emailId = draftBasename.replace(/_draft$/, "");
-      if (emailId) {
-        appendFileSync("drafts/handled", emailId + "\n");
-        console.log(`Marked as handled: ${emailId}`);
-      }
-    }
+    console.log(`Sent: ${parsed.subject}`);
+    handleDraftCleanup(parsed.draft);
   } finally {
     try {
       unlinkSync(tmp);
     } catch {
-      // ignore cleanup errors
+      /* ignore */
     }
   }
 }

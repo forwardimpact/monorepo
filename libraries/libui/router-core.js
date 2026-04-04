@@ -45,6 +45,7 @@ function parsePattern(pattern) {
     })
     .replace(/\//g, "\\/");
   return {
+    // eslint-disable-next-line security/detect-non-literal-regexp -- route patterns are developer-defined, not user input
     regex: new RegExp(`^${regexStr}$`),
     paramNames,
   };

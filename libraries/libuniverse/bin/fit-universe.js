@@ -35,64 +35,173 @@ import { Pipeline } from "../pipeline.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
+/**
+ * Resolve the LLM API client when running in generate mode.
+ * @param {object} config
+ * @returns {Promise<object|null>}
+ */
+async function resolveLlmApi(config) {
+  const { createLlmApi } = await import("@forwardimpact/libllm");
+  const token = await config.llmToken();
+  const baseUrl = config.llmBaseUrl();
+  let embeddingBaseUrl;
+  try {
+    embeddingBaseUrl = config.embeddingBaseUrl();
+  } catch {
+    embeddingBaseUrl = baseUrl;
+  }
+  return createLlmApi(
+    token,
+    config.LLM_MODEL || "openai/gpt-4.1-mini",
+    baseUrl,
+    embeddingBaseUrl,
+  );
+}
 
-  if (args.help) {
-    printHelp();
-    return;
+/**
+ * Write filesystem output files from the pipeline result.
+ * @param {Map<string,string>} files
+ * @param {string} monorepoRoot
+ */
+async function writeOutputFiles(files, monorepoRoot) {
+  const generatedDirs = new Set();
+  for (const relPath of files.keys()) {
+    const parts = relPath.split("/");
+    if (parts.length >= 2) {
+      generatedDirs.add(join(monorepoRoot, parts[0], parts[1]));
+    }
+  }
+  for (const dir of generatedDirs) {
+    await rm(dir, { recursive: true, force: true });
   }
 
-  const config = await createScriptConfig("universe", {
-    LLM_TOKEN: null,
-    LLM_MODEL: "openai/gpt-4.1-mini",
-    LLM_BASE_URL: null,
-    LLM_EMBEDDING_BASE_URL: null,
-    SUPABASE_URL: null,
-    SUPABASE_SERVICE_ROLE_KEY: null,
-  });
+  for (const [relPath, content] of files) {
+    const fullPath = join(monorepoRoot, relPath);
+    await mkdir(dirname(fullPath), { recursive: true });
+    await writeFile(fullPath, content);
+  }
+  console.log(`${files.size} files written`);
+}
 
-  const mode = args.noProse
-    ? "no-prose"
-    : args.generate
-      ? "generate"
-      : "cached";
+/**
+ * Handle raw documents: load to Supabase, write locally, or skip (dry-run).
+ * @param {object} result
+ * @param {object} args
+ * @param {object} config
+ * @param {string} monorepoRoot
+ */
+async function handleRawDocuments(result, args, config, monorepoRoot) {
+  if (result.rawDocuments.size === 0) return;
 
-  let llmApi = null;
-  if (mode === "generate") {
-    const { createLlmApi } = await import("@forwardimpact/libllm");
-    const token = await config.llmToken();
-    const baseUrl = config.llmBaseUrl();
-    let embeddingBaseUrl;
-    try {
-      embeddingBaseUrl = config.embeddingBaseUrl();
-    } catch {
-      embeddingBaseUrl = baseUrl;
-    }
-    llmApi = createLlmApi(
-      token,
-      config.LLM_MODEL || "openai/gpt-4.1-mini",
-      baseUrl,
-      embeddingBaseUrl,
+  if (args.load) {
+    await loadRawToSupabase(result.rawDocuments, config);
+  } else if (!args.dryRun) {
+    await writeRawLocally(result.rawDocuments, monorepoRoot);
+  }
+
+  const evidence = result.entities.activity?.evidence;
+  if (evidence && !args.dryRun && !args.load) {
+    const evidencePath = join(monorepoRoot, "data/activity/evidence.json");
+    await mkdir(dirname(evidencePath), { recursive: true });
+    const formatted = await formatContent(
+      evidencePath,
+      JSON.stringify(evidence, null, 2),
+    );
+    await writeFile(evidencePath, formatted);
+  }
+}
+
+/**
+ * Load raw documents to Supabase Storage.
+ * @param {Map<string,string>} rawDocuments
+ * @param {object} config
+ */
+async function loadRawToSupabase(rawDocuments, config) {
+  let createClient;
+  try {
+    ({ createClient } = await import("@supabase/supabase-js"));
+  } catch {
+    throw new Error(
+      "--load requires @supabase/supabase-js. Install with: bun add @supabase/supabase-js",
+    );
+  }
+  const { loadToSupabase } = await import("../load.js");
+  const supabase = createClient(
+    config.SUPABASE_URL,
+    config.SUPABASE_SERVICE_ROLE_KEY,
+  );
+  const loadResult = await loadToSupabase(supabase, rawDocuments);
+  console.log(`${loadResult.loaded} raw documents loaded to Supabase Storage`);
+  if (loadResult.errors.length > 0) {
+    console.error(`${loadResult.errors.length} errors:`);
+    for (const err of loadResult.errors) console.error(`  ${err}`);
+  }
+}
+
+/**
+ * Write raw documents to local filesystem.
+ * @param {Map<string,string>} rawDocuments
+ * @param {string} monorepoRoot
+ */
+async function writeRawLocally(rawDocuments, monorepoRoot) {
+  for (const [storagePath, content] of rawDocuments) {
+    const fullPath = join(monorepoRoot, "data/activity/raw", storagePath);
+    await mkdir(dirname(fullPath), { recursive: true });
+    await writeFile(fullPath, content);
+  }
+  console.log(
+    `${rawDocuments.size} raw documents written to data/activity/raw/`,
+  );
+}
+
+/**
+ * Print dry-run summary.
+ * @param {object} result
+ * @param {boolean} load
+ */
+function printDryRun(result, load) {
+  console.log("\nFilesystem files:");
+  for (const [path] of result.files) console.log(`  ${path}`);
+  console.log(`\nRaw documents (${load ? "Supabase Storage" : "local"}):`);
+  for (const [path] of result.rawDocuments) console.log(`  raw/${path}`);
+  console.log(
+    `\n  ${result.files.size + result.rawDocuments.size} total (dry run)`,
+  );
+}
+
+/**
+ * Print validation and prose stats.
+ * @param {object} result
+ */
+function printReport(result) {
+  console.log("\nValidation:");
+  for (const check of result.validation.checks) {
+    const icon = check.passed ? "✓" : "✗";
+    console.log(`  ${icon} ${check.name}`);
+  }
+
+  const { hits, generated, misses } = result.stats.prose;
+  const proseTotal = hits + generated + misses;
+  if (proseTotal > 0) {
+    const rate = Math.round((hits / proseTotal) * 100);
+    console.log(
+      `\nProse: ${hits} hits, ${generated} generated, ${misses} misses (${rate}% hit rate)`,
     );
   }
 
-  const monorepoRoot = resolve(__dirname, "../../..");
-  const schemaDir = join(monorepoRoot, "products/map/schema/json");
-  const cachePath =
-    args.cache || join(monorepoRoot, "data", "synthetic", "prose-cache.json");
+  if (!result.validation.passed) {
+    console.error(`\n${result.validation.failures} validation failures`);
+    process.exit(1);
+  }
+}
 
-  const libsyntheticproseDir = dirname(
-    fileURLToPath(import.meta.resolve("@forwardimpact/libsyntheticprose")),
-  );
-  const libsyntheticrenderDir = dirname(
-    fileURLToPath(import.meta.resolve("@forwardimpact/libsyntheticrender")),
-  );
-  const promptDir = join(libsyntheticproseDir, "prompts");
-  const templateDir = join(libsyntheticrenderDir, "templates");
-
-  // Wire all dependencies (composition root)
-  const logger = createLogger("universe");
+/**
+ * Wire all pipeline dependencies and create a Pipeline instance.
+ * @param {object} opts
+ * @returns {Pipeline}
+ */
+function createPipeline(opts) {
+  const { logger, mode, cachePath, llmApi, promptDir, templateDir } = opts;
   const promptLoader = new PromptLoader(promptDir);
   const templateLoader = new TemplateLoader(templateDir);
 
@@ -101,7 +210,7 @@ async function main() {
   const proseEngine = new ProseEngine({
     cachePath,
     mode,
-    strict: !!args.strict,
+    strict: opts.strict,
     llmApi,
     promptLoader,
     logger,
@@ -147,7 +256,7 @@ async function main() {
     }
   }
 
-  const pipeline = new Pipeline({
+  return new Pipeline({
     dslParser,
     entityGenerator,
     proseEngine,
@@ -158,6 +267,54 @@ async function main() {
     toolFactory,
     logger,
   });
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+
+  if (args.help) {
+    printHelp();
+    return;
+  }
+
+  const config = await createScriptConfig("universe", {
+    LLM_TOKEN: null,
+    LLM_MODEL: "openai/gpt-4.1-mini",
+    LLM_BASE_URL: null,
+    LLM_EMBEDDING_BASE_URL: null,
+    SUPABASE_URL: null,
+    SUPABASE_SERVICE_ROLE_KEY: null,
+  });
+
+  const mode = args.noProse
+    ? "no-prose"
+    : args.generate
+      ? "generate"
+      : "cached";
+
+  const llmApi = mode === "generate" ? await resolveLlmApi(config) : null;
+
+  const monorepoRoot = resolve(__dirname, "../../..");
+  const schemaDir = join(monorepoRoot, "products/map/schema/json");
+  const cachePath =
+    args.cache || join(monorepoRoot, "data", "synthetic", "prose-cache.json");
+
+  const libsyntheticproseDir = dirname(
+    fileURLToPath(import.meta.resolve("@forwardimpact/libsyntheticprose")),
+  );
+  const libsyntheticrenderDir = dirname(
+    fileURLToPath(import.meta.resolve("@forwardimpact/libsyntheticrender")),
+  );
+
+  const pipeline = createPipeline({
+    logger: createLogger("universe"),
+    mode,
+    cachePath,
+    strict: !!args.strict,
+    llmApi,
+    promptDir: join(libsyntheticproseDir, "prompts"),
+    templateDir: join(libsyntheticrenderDir, "templates"),
+  });
 
   const result = await pipeline.run({
     universePath:
@@ -166,111 +323,17 @@ async function main() {
     schemaDir,
   });
 
-  // Write filesystem files (HTML, Pathway, Markdown)
   if (!args.dryRun) {
-    // Clean generated directories to remove stale files from prior runs
-    const generatedDirs = new Set();
-    for (const relPath of result.files.keys()) {
-      const parts = relPath.split("/");
-      // Collect top-level output directories (e.g., data/pathway, data/knowledge)
-      if (parts.length >= 2) {
-        generatedDirs.add(join(monorepoRoot, parts[0], parts[1]));
-      }
-    }
-    for (const dir of generatedDirs) {
-      await rm(dir, { recursive: true, force: true });
-    }
-
-    for (const [relPath, content] of result.files) {
-      const fullPath = join(monorepoRoot, relPath);
-      await mkdir(dirname(fullPath), { recursive: true });
-      await writeFile(fullPath, content);
-    }
-    console.log(`${result.files.size} files written`);
+    await writeOutputFiles(result.files, monorepoRoot);
   }
 
-  // Handle raw documents (activity data)
-  if (result.rawDocuments.size > 0) {
-    if (args.load) {
-      let createClient;
-      try {
-        ({ createClient } = await import("@supabase/supabase-js"));
-      } catch {
-        throw new Error(
-          "--load requires @supabase/supabase-js. Install with: bun add @supabase/supabase-js",
-        );
-      }
-      const { loadToSupabase } = await import("../load.js");
-      const supabase = createClient(
-        config.SUPABASE_URL,
-        config.SUPABASE_SERVICE_ROLE_KEY,
-      );
-      const loadResult = await loadToSupabase(supabase, result.rawDocuments);
-      console.log(
-        `${loadResult.loaded} raw documents loaded to Supabase Storage`,
-      );
-      if (loadResult.errors.length > 0) {
-        console.error(`${loadResult.errors.length} errors:`);
-        for (const err of loadResult.errors) console.error(`  ${err}`);
-      }
-    } else if (!args.dryRun) {
-      for (const [storagePath, content] of result.rawDocuments) {
-        const fullPath = join(monorepoRoot, "data/activity/raw", storagePath);
-        await mkdir(dirname(fullPath), { recursive: true });
-        await writeFile(fullPath, content);
-      }
-      console.log(
-        `${result.rawDocuments.size} raw documents written to data/activity/raw/`,
-      );
-    }
+  await handleRawDocuments(result, args, config, monorepoRoot);
 
-    // Write evidence directly (no raw source system for evidence)
-    const evidence = result.entities.activity?.evidence;
-    if (evidence && !args.dryRun && !args.load) {
-      const evidencePath = join(monorepoRoot, "data/activity/evidence.json");
-      await mkdir(dirname(evidencePath), { recursive: true });
-      const formatted = await formatContent(
-        evidencePath,
-        JSON.stringify(evidence, null, 2),
-      );
-      await writeFile(evidencePath, formatted);
-    }
-  }
-
-  // Dry run output
   if (args.dryRun) {
-    console.log("\nFilesystem files:");
-    for (const [path] of result.files) console.log(`  ${path}`);
-    console.log(
-      `\nRaw documents (${args.load ? "Supabase Storage" : "local"}):`,
-    );
-    for (const [path] of result.rawDocuments) console.log(`  raw/${path}`);
-    console.log(
-      `\n  ${result.files.size + result.rawDocuments.size} total (dry run)`,
-    );
+    printDryRun(result, args.load);
   }
 
-  // Report validation
-  console.log("\nValidation:");
-  for (const check of result.validation.checks) {
-    const icon = check.passed ? "✓" : "✗";
-    console.log(`  ${icon} ${check.name}`);
-  }
-
-  // Prose cache stats
-  const { hits, generated, misses } = result.stats.prose;
-  const proseTotal = hits + generated + misses;
-  if (proseTotal > 0) {
-    const rate = Math.round((hits / proseTotal) * 100);
-    console.log(
-      `\nProse: ${hits} hits, ${generated} generated, ${misses} misses (${rate}% hit rate)`,
-    );
-  }
-
-  if (!result.validation.passed) {
-    console.error(`\n${result.validation.failures} validation failures`);
-    process.exit(1);
-  }
+  printReport(result);
 }
 
 /**

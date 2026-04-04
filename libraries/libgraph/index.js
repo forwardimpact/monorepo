@@ -49,6 +49,7 @@ export function parseGraphQuery(line) {
   }
 
   // Use regex to split on spaces but preserve quoted strings
+  // eslint-disable-next-line security/detect-unsafe-regex -- bounded negated char classes; parses internal RDF triples, not user input
   const terms = trimmed.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
 
   if (terms.length !== 3) {

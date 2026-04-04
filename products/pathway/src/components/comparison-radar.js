@@ -16,6 +16,115 @@ import {
 import { compareByCapability } from "@forwardimpact/libskill/policies";
 
 /**
+ * Build sorted skill entries from current and target matrices
+ * @param {Array} currentMatrix
+ * @param {Array} targetMatrix
+ * @param {Object} options
+ * @returns {{currentData: Array, targetData: Array}}
+ */
+function buildSkillComparisonData(currentMatrix, targetMatrix, options) {
+  const allSkillIds = new Set([
+    ...currentMatrix.map((s) => s.skillId),
+    ...targetMatrix.map((s) => s.skillId),
+  ]);
+
+  const skillEntries = [];
+  for (const skillId of allSkillIds) {
+    const currentSkill = currentMatrix.find((s) => s.skillId === skillId);
+    const targetSkill = targetMatrix.find((s) => s.skillId === skillId);
+    skillEntries.push({
+      skillId,
+      skillName: currentSkill?.skillName || targetSkill?.skillName,
+      capability: currentSkill?.capability || targetSkill?.capability || "",
+      currentSkill,
+      targetSkill,
+    });
+  }
+
+  const capabilityComparator = options.capabilities
+    ? compareByCapability(options.capabilities)
+    : (a, b) => a.capability.localeCompare(b.capability);
+  skillEntries.sort((a, b) => {
+    const capDiff = capabilityComparator(a, b);
+    return capDiff !== 0 ? capDiff : a.skillName.localeCompare(b.skillName);
+  });
+
+  const currentData = [];
+  const targetData = [];
+
+  for (const { skillName, currentSkill, targetSkill } of skillEntries) {
+    currentData.push({
+      label: skillName,
+      value: currentSkill ? getSkillProficiencyIndex(currentSkill.level) : 0,
+      maxValue: 5,
+      description: currentSkill
+        ? `${formatLevel(currentSkill.type)} - ${formatLevel(currentSkill.level)}`
+        : "Not required",
+    });
+    targetData.push({
+      label: skillName,
+      value: targetSkill ? getSkillProficiencyIndex(targetSkill.level) : 0,
+      maxValue: 5,
+      description: targetSkill
+        ? `${formatLevel(targetSkill.type)} - ${formatLevel(targetSkill.level)}`
+        : "Not required",
+    });
+  }
+
+  return { currentData, targetData };
+}
+
+/**
+ * Build behaviour comparison data from current and target profiles
+ * @param {Array} currentProfile
+ * @param {Array} targetProfile
+ * @returns {{currentData: Array, targetData: Array}}
+ */
+function buildBehaviourComparisonData(currentProfile, targetProfile) {
+  const allBehaviourIds = new Set([
+    ...currentProfile.map((b) => b.behaviourId),
+    ...targetProfile.map((b) => b.behaviourId),
+  ]);
+
+  const currentData = [];
+  const targetData = [];
+
+  for (const behaviourId of allBehaviourIds) {
+    const currentBehaviour = currentProfile.find(
+      (b) => b.behaviourId === behaviourId,
+    );
+    const targetBehaviour = targetProfile.find(
+      (b) => b.behaviourId === behaviourId,
+    );
+    const behaviourName =
+      currentBehaviour?.behaviourName || targetBehaviour?.behaviourName;
+
+    currentData.push({
+      label: behaviourName,
+      value: currentBehaviour
+        ? getBehaviourMaturityIndex(currentBehaviour.maturity)
+        : 0,
+      maxValue: 5,
+      description: currentBehaviour
+        ? `${formatLevel(currentBehaviour.maturity)}`
+        : "Not required",
+    });
+    targetData.push({
+      label: behaviourName,
+      value: targetBehaviour
+        ? getBehaviourMaturityIndex(targetBehaviour.maturity)
+        : 0,
+      maxValue: 5,
+      description: targetBehaviour
+        ? `${formatLevel(targetBehaviour.maturity)}`
+        : "Not required",
+    });
+  }
+
+  return { currentData, targetData };
+}
+
+/**
  * Create a comparison skill radar chart
  * @param {SkillMatrixItem[]} currentMatrix - Current skill matrix entries
  * @param {SkillMatrixItem[]} targetMatrix - Target skill matrix entries
@@ -54,65 +163,11 @@ export function createComparisonSkillRadar(
     const wrapper = container.querySelector(".radar-chart-wrapper");
     if (!wrapper || !currentMatrix || currentMatrix.length === 0) return;
 
-    // Build aligned data arrays that include all skills from both matrices
-    // This handles new skills (in target but not current) and removed skills (in current but not target)
-    const allSkillIds = new Set([
-      ...currentMatrix.map((s) => s.skillId),
-      ...targetMatrix.map((s) => s.skillId),
-    ]);
-
-    // Build skill entries with capability info for sorting
-    const skillEntries = [];
-    for (const skillId of allSkillIds) {
-      const currentSkill = currentMatrix.find((s) => s.skillId === skillId);
-      const targetSkill = targetMatrix.find((s) => s.skillId === skillId);
-      const capability =
-        currentSkill?.capability || targetSkill?.capability || "";
-      const skillName = currentSkill?.skillName || targetSkill?.skillName;
-
-      skillEntries.push({
-        skillId,
-        skillName,
-        capability,
-        currentSkill,
-        targetSkill,
-      });
-    }
-
-    // Sort by capability order, then by skill name within capability
-    const capabilityComparator = options.capabilities
-      ? compareByCapability(options.capabilities)
-      : (a, b) => a.capability.localeCompare(b.capability);
-    skillEntries.sort((a, b) => {
-      const capDiff = capabilityComparator(a, b);
-      if (capDiff !== 0) return capDiff;
-      return a.skillName.localeCompare(b.skillName);
-    });
-
-    const currentData = [];
-    const targetData = [];
-
-    for (const entry of skillEntries) {
-      const { skillName, currentSkill, targetSkill } = entry;
-
-      currentData.push({
-        label: skillName,
-        value: currentSkill ? getSkillProficiencyIndex(currentSkill.level) : 0,
-        maxValue: 5,
-        description: currentSkill
-          ? `${formatLevel(currentSkill.type)} - ${formatLevel(currentSkill.level)}`
-          : "Not required",
-      });
-
-      targetData.push({
-        label: skillName,
-        value: targetSkill ? getSkillProficiencyIndex(targetSkill.level) : 0,
-        maxValue: 5,
-        description: targetSkill
-          ? `${formatLevel(targetSkill.type)} - ${formatLevel(targetSkill.level)}`
-          : "Not required",
-      });
-    }
+    const { currentData, targetData } = buildSkillComparisonData(
+      currentMatrix,
+      targetMatrix,
+      options,
+    );
 
     const chart = new ComparisonRadarChart({
       container: wrapper,
@@ -173,50 +228,10 @@ export function createComparisonBehaviourRadar(
     const wrapper = container.querySelector(".radar-chart-wrapper");
     if (!wrapper || !currentProfile || currentProfile.length === 0) return;
 
-    // Build aligned data arrays that include all behaviours from both profiles
-    // This handles new behaviours (in target but not current) and removed behaviours (in current but not target)
-    const allBehaviourIds = new Set([
-      ...currentProfile.map((b) => b.behaviourId),
-      ...targetProfile.map((b) => b.behaviourId),
-    ]);
-
-    const currentData = [];
-    const targetData = [];
-
-    for (const behaviourId of allBehaviourIds) {
-      const currentBehaviour = currentProfile.find(
-        (b) => b.behaviourId === behaviourId,
-      );
-      const targetBehaviour = targetProfile.find(
-        (b) => b.behaviourId === behaviourId,
-      );
-
-      // Use whichever behaviour entry exists for the label
-      const behaviourName =
-        currentBehaviour?.behaviourName || targetBehaviour?.behaviourName;
-
-      currentData.push({
-        label: behaviourName,
-        value: currentBehaviour
-          ? getBehaviourMaturityIndex(currentBehaviour.maturity)
-          : 0,
-        maxValue: 5,
-        description: currentBehaviour
-          ? `${formatLevel(currentBehaviour.maturity)}`
-          : "Not required",
-      });
-
-      targetData.push({
-        label: behaviourName,
-        value: targetBehaviour
-          ? getBehaviourMaturityIndex(targetBehaviour.maturity)
-          : 0,
-        maxValue: 5,
-        description: targetBehaviour
-          ? `${formatLevel(targetBehaviour.maturity)}`
-          : "Not required",
-      });
-    }
+    const { currentData, targetData } = buildBehaviourComparisonData(
+      currentProfile,
+      targetProfile,
+    );
 
     const chart = new ComparisonRadarChart({
       container: wrapper,

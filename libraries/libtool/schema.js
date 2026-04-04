@@ -1,3 +1,24 @@
+/** @type {Record<string, string>} */
+const PROTO_TYPE_MAP = {
+  string: "string",
+  int32: "integer",
+  int64: "integer",
+  uint32: "integer",
+  uint64: "integer",
+  float: "number",
+  double: "number",
+  bool: "boolean",
+};
+
+/**
+ * Resolve protobuf type to JSON schema type string.
+ * @param {string} protoType
+ * @returns {string}
+ */
+function resolveJsonType(protoType) {
+  return PROTO_TYPE_MAP[protoType] || "object";
+}
+
 /**
  * Map protobuf field type to JSON schema property type
  * @param {object} field - Protobuf field definition
@@ -10,54 +31,13 @@ export function mapFieldToSchema(field, description) {
       description || field.comment || `${field.name || "field"} field`,
   };
 
-  // Handle repeated fields (arrays) first, before scalar type mapping
   if (field.rule === "repeated") {
     property.type = "array";
-    switch (field.type) {
-      case "string":
-        property.items = { type: "string" };
-        break;
-      case "int32":
-      case "int64":
-      case "uint32":
-      case "uint64":
-        property.items = { type: "integer" };
-        break;
-      case "float":
-      case "double":
-        property.items = { type: "number" };
-        break;
-      case "bool":
-        property.items = { type: "boolean" };
-        break;
-      default:
-        property.items = { type: "object" };
-    }
+    property.items = { type: resolveJsonType(field.type) };
     return property;
   }
 
-  // Map scalar protobuf types to JSON schema types
-  switch (field.type) {
-    case "string":
-      property.type = "string";
-      break;
-    case "int32":
-    case "int64":
-    case "uint32":
-    case "uint64":
-      property.type = "integer";
-      break;
-    case "float":
-    case "double":
-      property.type = "number";
-      break;
-    case "bool":
-      property.type = "boolean";
-      break;
-    default:
-      property.type = "object";
-  }
-
+  property.type = resolveJsonType(field.type);
   return property;
 }
 

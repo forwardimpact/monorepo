@@ -244,6 +244,34 @@ function parsePart(raw) {
  * @param {Buffer} raw
  * @returns {Array<{ contentType: string, charset: string, body: Buffer }>}
  */
+function extractNextPart(raw, delim, pos) {
+  const start = raw.indexOf(delim, pos);
+  if (start === -1) return null;
+  let afterDelim = start + delim.length;
+  if (
+    afterDelim + 1 < raw.length &&
+    raw[afterDelim] === 0x2d &&
+    raw[afterDelim + 1] === 0x2d
+  ) {
+    return null;
+  }
+  while (
+    afterDelim < raw.length &&
+    (raw[afterDelim] === 0x0d || raw[afterDelim] === 0x0a)
+  ) {
+    afterDelim++;
+  }
+  const nextBoundary = raw.indexOf(delim, afterDelim);
+  const partEnd = nextBoundary === -1 ? raw.length : nextBoundary;
+  let trimEnd = partEnd;
+  if (trimEnd > 0 && raw[trimEnd - 1] === 0x0a) trimEnd--;
+  if (trimEnd > 0 && raw[trimEnd - 1] === 0x0d) trimEnd--;
+  return {
+    subRaw: raw.subarray(afterDelim, trimEnd),
+    nextPos: nextBoundary === -1 ? raw.length : nextBoundary,
+  };
+}
+
 function walkParts(raw) {
   const part = parsePart(raw);
   if (!part.contentType.startsWith("multipart/")) {
@@ -261,37 +289,10 @@ function walkParts(raw) {
   let pos = bodyStart;
 
   while (pos < raw.length) {
-    const start = raw.indexOf(delim, pos);
-    if (start === -1) break;
-    let afterDelim = start + delim.length;
-    // Check for terminal --
-    if (
-      afterDelim + 1 < raw.length &&
-      raw[afterDelim] === 0x2d &&
-      raw[afterDelim + 1] === 0x2d
-    ) {
-      break;
-    }
-    // Skip to start of part content (after CRLF or LF)
-    while (
-      afterDelim < raw.length &&
-      (raw[afterDelim] === 0x0d || raw[afterDelim] === 0x0a)
-    ) {
-      afterDelim++;
-    }
-    // Find next boundary
-    const nextBoundary = raw.indexOf(delim, afterDelim);
-    const partEnd = nextBoundary === -1 ? raw.length : nextBoundary;
-
-    // Trim trailing CRLF before boundary
-    let trimEnd = partEnd;
-    if (trimEnd > 0 && raw[trimEnd - 1] === 0x0a) trimEnd--;
-    if (trimEnd > 0 && raw[trimEnd - 1] === 0x0d) trimEnd--;
-
-    const subRaw = raw.subarray(afterDelim, trimEnd);
-    // Recurse for nested multipart
-    parts.push(...walkParts(subRaw));
-    pos = nextBoundary === -1 ? raw.length : nextBoundary;
+    const result = extractNextPart(raw, delim, pos);
+    if (!result) break;
+    parts.push(...walkParts(result.subRaw));
+    pos = result.nextPos;
   }
 
   return parts;

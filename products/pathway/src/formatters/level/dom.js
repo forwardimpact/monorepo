@@ -35,14 +35,98 @@ import { createJsonLdScript, levelToJsonLd } from "../json-ld.js";
  * @param {boolean} [options.showBackLink=true] - Whether to show back navigation link
  * @returns {HTMLElement}
  */
+/**
+ * Create a proficiency row for the base skill table
+ * @param {string} label
+ * @param {string} badgeClass
+ * @param {string|undefined} proficiency
+ * @returns {HTMLElement}
+ */
+function createProficiencyRow(label, badgeClass, proficiency) {
+  return tr(
+    {},
+    td({}, span({ className: `badge ${badgeClass}` }, label)),
+    td(
+      {},
+      proficiency
+        ? createLevelDots(
+            SKILL_PROFICIENCY_ORDER.indexOf(proficiency),
+            SKILL_PROFICIENCY_ORDER.length,
+          )
+        : span({ className: "text-muted" }, "—"),
+    ),
+  );
+}
+
+/**
+ * Create the base skill proficiencies and behaviour maturity section
+ * @param {Object} view
+ * @returns {HTMLElement}
+ */
+function createBaseProfileSection(view) {
+  const profs = view.baseSkillProficiencies || {};
+  return div(
+    { className: "detail-section" },
+    div(
+      { className: "content-columns" },
+      div(
+        { className: "column" },
+        heading2({ className: "section-title" }, "Base Skill Proficiencies"),
+        table(
+          { className: "level-table" },
+          thead({}, tr({}, th({}, "Type"), th({}, "Level"))),
+          tbody(
+            {},
+            createProficiencyRow("Primary", "badge-primary", profs.primary),
+            createProficiencyRow(
+              "Secondary",
+              "badge-secondary",
+              profs.secondary,
+            ),
+            createProficiencyRow("Broad", "badge-broad", profs.broad),
+          ),
+        ),
+      ),
+      div(
+        { className: "column" },
+        heading2({ className: "section-title" }, "Base Behaviour Maturity"),
+        view.baseBehaviourMaturity
+          ? table(
+              { className: "level-table" },
+              thead({}, tr({}, th({}, "Maturity"), th({}, "Level"))),
+              tbody(
+                {},
+                tr(
+                  {},
+                  td(
+                    {},
+                    view.baseBehaviourMaturity.charAt(0).toUpperCase() +
+                      view.baseBehaviourMaturity.slice(1),
+                  ),
+                  td(
+                    {},
+                    createLevelDots(
+                      BEHAVIOUR_MATURITY_ORDER.indexOf(
+                        view.baseBehaviourMaturity,
+                      ),
+                      BEHAVIOUR_MATURITY_ORDER.length,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : p({ className: "text-muted" }, "—"),
+      ),
+    ),
+  );
+}
+
 export function levelToDOM(level, { framework, showBackLink = true } = {}) {
   const view = prepareLevelDetail(level);
   const emoji = framework ? getConceptEmoji(framework, "level") : "📊";
   return div(
     { className: "detail-page level-detail" },
-    // JSON-LD structured data
     createJsonLdScript(levelToJsonLd(level)),
-    // Header
     div(
       { className: "page-header" },
       showBackLink ? createBackLink("/level", "← Back to Levels") : null,
@@ -68,7 +152,6 @@ export function levelToDOM(level, { framework, showBackLink = true } = {}) {
         : null,
     ),
 
-    // Titles section
     view.professionalTitle || view.managementTitle
       ? div(
           { className: "detail-section" },
@@ -93,7 +176,6 @@ export function levelToDOM(level, { framework, showBackLink = true } = {}) {
         )
       : null,
 
-    // Expectations
     view.expectations && Object.keys(view.expectations).length > 0
       ? div(
           { className: "detail-section" },
@@ -111,103 +193,6 @@ export function levelToDOM(level, { framework, showBackLink = true } = {}) {
         )
       : null,
 
-    // Base Skill Proficiencies and Base Behaviour Maturity in two columns
-    div(
-      { className: "detail-section" },
-      div(
-        { className: "content-columns" },
-        // Base Skill Proficiencies column
-        div(
-          { className: "column" },
-          heading2({ className: "section-title" }, "Base Skill Proficiencies"),
-          table(
-            { className: "level-table" },
-            thead({}, tr({}, th({}, "Type"), th({}, "Level"))),
-            tbody(
-              {},
-              tr(
-                {},
-                td({}, span({ className: "badge badge-primary" }, "Primary")),
-                td(
-                  {},
-                  view.baseSkillProficiencies?.primary
-                    ? createLevelDots(
-                        SKILL_PROFICIENCY_ORDER.indexOf(
-                          view.baseSkillProficiencies.primary,
-                        ),
-                        SKILL_PROFICIENCY_ORDER.length,
-                      )
-                    : span({ className: "text-muted" }, "—"),
-                ),
-              ),
-              tr(
-                {},
-                td(
-                  {},
-                  span({ className: "badge badge-secondary" }, "Secondary"),
-                ),
-                td(
-                  {},
-                  view.baseSkillProficiencies?.secondary
-                    ? createLevelDots(
-                        SKILL_PROFICIENCY_ORDER.indexOf(
-                          view.baseSkillProficiencies.secondary,
-                        ),
-                        SKILL_PROFICIENCY_ORDER.length,
-                      )
-                    : span({ className: "text-muted" }, "—"),
-                ),
-              ),
-              tr(
-                {},
-                td({}, span({ className: "badge badge-broad" }, "Broad")),
-                td(
-                  {},
-                  view.baseSkillProficiencies?.broad
-                    ? createLevelDots(
-                        SKILL_PROFICIENCY_ORDER.indexOf(
-                          view.baseSkillProficiencies.broad,
-                        ),
-                        SKILL_PROFICIENCY_ORDER.length,
-                      )
-                    : span({ className: "text-muted" }, "—"),
-                ),
-              ),
-            ),
-          ),
-        ),
-        // Base Behaviour Maturity column
-        div(
-          { className: "column" },
-          heading2({ className: "section-title" }, "Base Behaviour Maturity"),
-          view.baseBehaviourMaturity
-            ? table(
-                { className: "level-table" },
-                thead({}, tr({}, th({}, "Maturity"), th({}, "Level"))),
-                tbody(
-                  {},
-                  tr(
-                    {},
-                    td(
-                      {},
-                      view.baseBehaviourMaturity.charAt(0).toUpperCase() +
-                        view.baseBehaviourMaturity.slice(1),
-                    ),
-                    td(
-                      {},
-                      createLevelDots(
-                        BEHAVIOUR_MATURITY_ORDER.indexOf(
-                          view.baseBehaviourMaturity,
-                        ),
-                        BEHAVIOUR_MATURITY_ORDER.length,
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            : p({ className: "text-muted" }, "—"),
-        ),
-      ),
-    ),
+    createBaseProfileSection(view),
   );
 }

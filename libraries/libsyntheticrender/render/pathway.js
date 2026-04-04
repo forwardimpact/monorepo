@@ -6,6 +6,41 @@
 
 import YAML from "yaml";
 
+/** @type {Array<[string, string, string]>} [dataKey, directory, schemaName] */
+const SINGLE_FILE_ENTITIES = [
+  ["framework", "framework.yaml", "framework"],
+  ["levels", "levels.yaml", "levels"],
+  ["stages", "stages.yaml", "stages"],
+  ["drivers", "drivers.yaml", "drivers"],
+  ["selfAssessments", "self-assessments.yaml", "self-assessments"],
+];
+
+/** @type {Array<[string, string, string]>} [dataKey, directory, schemaName] */
+const MULTI_FILE_ENTITIES = [
+  ["capabilities", "capabilities", "capability"],
+  ["behaviours", "behaviours", "behaviour"],
+  ["disciplines", "disciplines", "discipline"],
+  ["tracks", "tracks", "track"],
+];
+
+/**
+ * Render a multi-file entity group into YAML files with an index.
+ * @param {Map<string,string>} files
+ * @param {object[]} entities
+ * @param {string} dir
+ * @param {string} schemaName
+ */
+function renderEntityGroup(files, entities, dir, schemaName) {
+  const ids = [];
+  for (const entity of entities) {
+    if (!entity) continue;
+    const id = entity._id || entity.id;
+    files.set(`${dir}/${id}.yaml`, toYaml(stripInternal(entity), schemaName));
+    ids.push(id);
+  }
+  files.set(`${dir}/_index.yaml`, renderIndex(ids));
+}
+
 /**
  * Render pathway YAML files from generated entity data.
  *
@@ -15,73 +50,16 @@ import YAML from "yaml";
 export function renderPathway(pathwayData) {
   const files = new Map();
 
-  // Single-file entities
-  if (pathwayData.framework) {
-    files.set("framework.yaml", toYaml(pathwayData.framework, "framework"));
-  }
-  if (pathwayData.levels) {
-    files.set("levels.yaml", toYaml(pathwayData.levels, "levels"));
-  }
-  if (pathwayData.stages) {
-    files.set("stages.yaml", toYaml(pathwayData.stages, "stages"));
-  }
-  if (pathwayData.drivers) {
-    files.set("drivers.yaml", toYaml(pathwayData.drivers, "drivers"));
-  }
-  if (pathwayData.selfAssessments) {
-    files.set(
-      "self-assessments.yaml",
-      toYaml(pathwayData.selfAssessments, "self-assessments"),
-    );
+  for (const [key, filename, schema] of SINGLE_FILE_ENTITIES) {
+    if (pathwayData[key]) {
+      files.set(filename, toYaml(pathwayData[key], schema));
+    }
   }
 
-  // Multi-file entities (one YAML per entity)
-  if (pathwayData.capabilities) {
-    const capIds = [];
-    for (const cap of pathwayData.capabilities) {
-      if (!cap) continue;
-      const id = cap._id || cap.id;
-      const data = stripInternal(cap);
-      files.set(`capabilities/${id}.yaml`, toYaml(data, "capability"));
-      capIds.push(id);
+  for (const [key, dir, schema] of MULTI_FILE_ENTITIES) {
+    if (pathwayData[key]) {
+      renderEntityGroup(files, pathwayData[key], dir, schema);
     }
-    files.set("capabilities/_index.yaml", renderIndex(capIds));
-  }
-
-  if (pathwayData.behaviours) {
-    const behIds = [];
-    for (const beh of pathwayData.behaviours) {
-      if (!beh) continue;
-      const id = beh._id || beh.id;
-      const data = stripInternal(beh);
-      files.set(`behaviours/${id}.yaml`, toYaml(data, "behaviour"));
-      behIds.push(id);
-    }
-    files.set("behaviours/_index.yaml", renderIndex(behIds));
-  }
-
-  if (pathwayData.disciplines) {
-    const discIds = [];
-    for (const disc of pathwayData.disciplines) {
-      if (!disc) continue;
-      const id = disc._id || disc.id;
-      const data = stripInternal(disc);
-      files.set(`disciplines/${id}.yaml`, toYaml(data, "discipline"));
-      discIds.push(id);
-    }
-    files.set("disciplines/_index.yaml", renderIndex(discIds));
-  }
-
-  if (pathwayData.tracks) {
-    const trackIds = [];
-    for (const track of pathwayData.tracks) {
-      if (!track) continue;
-      const id = track._id || track.id;
-      const data = stripInternal(track);
-      files.set(`tracks/${id}.yaml`, toYaml(data, "track"));
-      trackIds.push(id);
-    }
-    files.set("tracks/_index.yaml", renderIndex(trackIds));
   }
 
   return files;

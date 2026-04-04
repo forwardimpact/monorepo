@@ -37,6 +37,106 @@ import { createJsonLdScript, skillToJsonLd } from "../json-ld.js";
  * @param {string} [context.agentSkillContent] - Pre-generated SKILL.md content for agent file viewer
  * @returns {HTMLElement}
  */
+/**
+ * Create the required tools section
+ * @param {Object} view
+ * @param {boolean} showBackLink
+ * @returns {HTMLElement}
+ */
+function createToolsSection(view, showBackLink) {
+  return div(
+    { className: "detail-section" },
+    heading2({ className: "section-title" }, "Required Tools"),
+    table(
+      { className: "tools-table" },
+      thead({}, tr({}, th({}, "Tool"), th({}, "Use When"))),
+      tbody(
+        {},
+        ...view.toolReferences.map((tool) =>
+          tr(
+            {},
+            td(
+              { className: "tool-name-cell" },
+              tool.simpleIcon
+                ? createToolIcon(tool.simpleIcon, tool.name)
+                : null,
+              tool.url
+                ? a(
+                    {
+                      href: tool.url,
+                      target: "_blank",
+                      rel: "noopener noreferrer",
+                    },
+                    tool.name,
+                    span({ className: "external-icon" }, " ↗"),
+                  )
+                : tool.name,
+            ),
+            td({}, tool.useWhen),
+          ),
+        ),
+      ),
+    ),
+    showBackLink
+      ? p(
+          { className: "see-all-link" },
+          a({ href: "#/tool" }, "See all tools →"),
+        )
+      : null,
+  );
+}
+
+/**
+ * Create the related disciplines and drivers section
+ * @param {Object} view
+ * @param {boolean} showBackLink
+ * @returns {HTMLElement|null}
+ */
+function createRelationsSection(view, showBackLink) {
+  if (
+    view.relatedDisciplines.length === 0 &&
+    view.relatedDrivers.length === 0
+  ) {
+    return null;
+  }
+  return div(
+    { className: "detail-section" },
+    div(
+      { className: "content-columns" },
+      view.relatedDisciplines.length > 0
+        ? div(
+            { className: "column" },
+            heading2({ className: "section-title" }, "Used in Disciplines"),
+            ...view.relatedDisciplines.map((d) =>
+              div(
+                { className: "list-item" },
+                showBackLink
+                  ? a({ href: `#/discipline/${d.id}` }, d.name)
+                  : span({}, d.name),
+                " ",
+                span({ className: `badge badge-${d.skillType}` }, d.skillType),
+              ),
+            ),
+          )
+        : null,
+      view.relatedDrivers.length > 0
+        ? div(
+            { className: "column" },
+            heading2({ className: "section-title" }, "Linked to Drivers"),
+            ...view.relatedDrivers.map((d) =>
+              div(
+                { className: "list-item" },
+                showBackLink
+                  ? a({ href: `#/driver/${d.id}` }, d.name)
+                  : span({}, d.name),
+              ),
+            ),
+          )
+        : null,
+    ),
+  );
+}
+
 export function skillToDOM(
   skill,
   {
@@ -57,9 +157,7 @@ export function skillToDOM(
   });
   return div(
     { className: "detail-page skill-detail" },
-    // JSON-LD structured data
     createJsonLdScript(skillToJsonLd(skill, { capabilities })),
-    // Header
     div(
       { className: "page-header" },
       showBackLink ? createBackLink("/skill", "← Back to Skills") : null,
@@ -88,7 +186,6 @@ export function skillToDOM(
       p({ className: "page-description" }, view.description),
     ),
 
-    // Level descriptions
     div(
       { className: "detail-section" },
       heading2({ className: "section-title" }, "Level Descriptions"),
@@ -109,55 +206,8 @@ export function skillToDOM(
       ),
     ),
 
-    // Used in Disciplines and Linked to Drivers in two columns
-    view.relatedDisciplines.length > 0 || view.relatedDrivers.length > 0
-      ? div(
-          { className: "detail-section" },
-          div(
-            { className: "content-columns" },
-            // Used in Disciplines column
-            view.relatedDisciplines.length > 0
-              ? div(
-                  { className: "column" },
-                  heading2(
-                    { className: "section-title" },
-                    "Used in Disciplines",
-                  ),
-                  ...view.relatedDisciplines.map((d) =>
-                    div(
-                      { className: "list-item" },
-                      showBackLink
-                        ? a({ href: `#/discipline/${d.id}` }, d.name)
-                        : span({}, d.name),
-                      " ",
-                      span(
-                        { className: `badge badge-${d.skillType}` },
-                        d.skillType,
-                      ),
-                    ),
-                  ),
-                )
-              : null,
-            // Linked to Drivers column
-            view.relatedDrivers.length > 0
-              ? div(
-                  { className: "column" },
-                  heading2({ className: "section-title" }, "Linked to Drivers"),
-                  ...view.relatedDrivers.map((d) =>
-                    div(
-                      { className: "list-item" },
-                      showBackLink
-                        ? a({ href: `#/driver/${d.id}` }, d.name)
-                        : span({}, d.name),
-                    ),
-                  ),
-                )
-              : null,
-          ),
-        )
-      : null,
+    createRelationsSection(view, showBackLink),
 
-    // Related tracks
     view.relatedTracks.length > 0
       ? div(
           { className: "detail-section" },
@@ -180,51 +230,10 @@ export function skillToDOM(
         )
       : null,
 
-    // Required Tools
     showToolsAndPatterns && view.toolReferences.length > 0
-      ? div(
-          { className: "detail-section" },
-          heading2({ className: "section-title" }, "Required Tools"),
-          table(
-            { className: "tools-table" },
-            thead({}, tr({}, th({}, "Tool"), th({}, "Use When"))),
-            tbody(
-              {},
-              ...view.toolReferences.map((tool) =>
-                tr(
-                  {},
-                  td(
-                    { className: "tool-name-cell" },
-                    tool.simpleIcon
-                      ? createToolIcon(tool.simpleIcon, tool.name)
-                      : null,
-                    tool.url
-                      ? a(
-                          {
-                            href: tool.url,
-                            target: "_blank",
-                            rel: "noopener noreferrer",
-                          },
-                          tool.name,
-                          span({ className: "external-icon" }, " ↗"),
-                        )
-                      : tool.name,
-                  ),
-                  td({}, tool.useWhen),
-                ),
-              ),
-            ),
-          ),
-          showBackLink
-            ? p(
-                { className: "see-all-link" },
-                a({ href: "#/tool" }, "See all tools →"),
-              )
-            : null,
-        )
+      ? createToolsSection(view, showBackLink)
       : null,
 
-    // Agent Skill Files
     showToolsAndPatterns &&
       (agentSkillContent || view.implementationReference || view.installScript)
       ? div(

@@ -7,7 +7,6 @@
 
 import {
   SkillType,
-  SKILL_PROFICIENCY_ORDER,
   getSkillProficiencyIndex,
   getBehaviourMaturityIndex,
   clampSkillProficiency,
@@ -22,6 +21,11 @@ import {
   THRESHOLD_DRIVER_SKILL_PROFICIENCY,
   THRESHOLD_DRIVER_BEHAVIOUR_MATURITY,
 } from "./policies/thresholds.js";
+import { isValidJobCombination as _isValidJobCombination } from "./derivation-validation.js";
+import { deriveResponsibilities as _deriveResponsibilities } from "./derivation-responsibilities.js";
+
+export { isValidJobCombination } from "./derivation-validation.js";
+export { deriveResponsibilities } from "./derivation-responsibilities.js";
 
 /**
  * Build a Map of skillId → skillType for a discipline
@@ -64,10 +68,6 @@ export function getSkillTypeForDiscipline(discipline, skillId) {
 
 /**
  * Find the highest base skill proficiency index for a level
- *
- * This returns the maximum skill proficiency index across primary, secondary, and broad
- * skill types for the given level. Used to cap positive skill modifiers.
- *
  * @param {import('./levels.js').Level} level - The level
  * @returns {number} The highest base skill proficiency index
  */
@@ -86,13 +86,6 @@ export function findMaxBaseSkillProficiency(level) {
 
 /**
  * Derive the skill proficiency for a specific skill given discipline, track, and level
- *
- * Resolves capability-based modifiers (e.g., { scale: 1 }) by looking up the skill's capability.
- *
- * Positive modifiers are capped at the highest base skill proficiency for the level,
- * ensuring skills cannot exceed what's appropriate for that career level.
- * Negative modifiers can still bring skills below their base to create emphasis.
- *
  * @param {Object} params
  * @param {import('./levels.js').Discipline} params.discipline - The discipline
  * @param {import('./levels.js').Track} [params.track] - The track (optional)
@@ -108,16 +101,11 @@ export function deriveSkillProficiency({
   skillId,
   skills,
 }) {
-  // 1. Determine skill type for discipline
   const skillType = getSkillTypeForDiscipline(discipline, skillId);
-
-  // 2. Get base level from level for that skill type
-  // Track-added skills (null skillType) use broad as base
   const effectiveType = skillType || SkillType.BROAD;
   const baseLevel = level.baseSkillProficiencies[effectiveType];
   const baseIndex = getSkillProficiencyIndex(baseLevel);
 
-  // 3. Apply track modifier via capability lookup (if track provided)
   const effectiveTrack = track || { skillModifiers: {} };
   const modifier = resolveSkillModifier(
     skillId,
@@ -125,22 +113,17 @@ export function deriveSkillProficiency({
     skills,
   );
 
-  // Track-added skills require a positive modifier to be included
   if (!skillType && modifier <= 0) {
     return null;
   }
 
   let modifiedIndex = baseIndex + modifier;
 
-  // 4. Cap positive modifications at the level's highest base skill proficiency
-  // Negative modifiers can bring skills below base to create emphasis,
-  // but positive modifiers should not push skills beyond the level ceiling
   if (modifier > 0) {
     const maxIndex = findMaxBaseSkillProficiency(level);
     modifiedIndex = Math.min(modifiedIndex, maxIndex);
   }
 
-  // 5. Clamp to valid range
   return clampSkillProficiency(modifiedIndex);
 }
 
@@ -159,17 +142,12 @@ export function deriveBehaviourMaturity({
   track = null,
   behaviourId,
 }) {
-  // 1. Get base maturity from level
   const baseMaturity = level.baseBehaviourMaturity;
   const baseIndex = getBehaviourMaturityIndex(baseMaturity);
-
-  // 2. Calculate behaviour modifiers (additive from discipline and track)
   const disciplineModifier = discipline.behaviourModifiers?.[behaviourId] ?? 0;
   const effectiveTrack = track || { behaviourModifiers: {} };
   const trackModifier = effectiveTrack.behaviourModifiers?.[behaviourId] ?? 0;
   const totalModifier = disciplineModifier + trackModifier;
-
-  // 3. Apply modifier and clamp
   const modifiedIndex = baseIndex + totalModifier;
   return clampBehaviourMaturity(modifiedIndex);
 }
@@ -187,14 +165,12 @@ export function deriveSkillMatrix({ discipline, level, track = null, skills }) {
   const matrix = [];
   const effectiveTrack = track || { skillModifiers: {} };
 
-  // Collect all skills for this discipline
   const allDisciplineSkills = new Set([
     ...(discipline.coreSkills || []),
     ...(discipline.supportingSkills || []),
     ...(discipline.broadSkills || []),
   ]);
 
-  // Collect capabilities with positive track modifiers
   const trackCapabilities = new Set(
     Object.entries(effectiveTrack.skillModifiers || {})
       .filter(([_, modifier]) => modifier > 0)
@@ -202,7 +178,6 @@ export function deriveSkillMatrix({ discipline, level, track = null, skills }) {
   );
 
   for (const skill of skills) {
-    // Include skill if it's in the discipline OR in a track-modified capability
     const inDiscipline = allDisciplineSkills.has(skill.id);
     const inTrackCapability = trackCapabilities.has(skill.capability);
 
@@ -216,10 +191,9 @@ export function deriveSkillMatrix({ discipline, level, track = null, skills }) {
       level,
       track,
       skillId: skill.id,
-      skills, // Pass skills array to enable capability-based modifiers
+      skills,
     });
 
-    // Skip if deriveSkillProficiency returns null (track-added skill with no positive modifier)
     if (proficiency === null) {
       continue;
     }
@@ -236,8 +210,6 @@ export function deriveSkillMatrix({ discipline, level, track = null, skills }) {
     });
   }
 
-  // Sort by type (primary first, then secondary, then broad, then track) and then by name
-  // Use ORDER_SKILL_TYPE from policies for canonical ordering
   matrix.sort((a, b) => {
     const typeCompare =
       ORDER_SKILL_TYPE.indexOf(a.type) - ORDER_SKILL_TYPE.indexOf(b.type);
@@ -281,102 +253,13 @@ export function deriveBehaviourProfile({
     });
   }
 
-  // Sort by name
   profile.sort((a, b) => a.behaviourName.localeCompare(b.behaviourName));
 
   return profile;
 }
 
 /**
- * Check if a job combination is valid
- * @param {Object} params
- * @param {import('./levels.js').Discipline} params.discipline - The discipline
- * @param {import('./levels.js').Level} params.level - The level
- * @param {import('./levels.js').Track} [params.track] - The track (optional)
- * @param {import('./levels.js').JobValidationRules} [params.validationRules] - Optional validation rules
- * @param {Array<import('./levels.js').Level>} [params.levels] - Optional array of all levels for minLevel validation
- * @returns {boolean} True if the combination is valid
- */
-export function isValidJobCombination({
-  discipline,
-  level,
-  track = null,
-  validationRules,
-  levels,
-}) {
-  // 1. Check discipline's minLevel constraint
-  if (discipline.minLevel && levels) {
-    const minLevelObj = levels.find((g) => g.id === discipline.minLevel);
-    if (minLevelObj && level.ordinalRank < minLevelObj.ordinalRank) {
-      return false;
-    }
-  }
-
-  // 2. Handle trackless vs tracked jobs based on validTracks
-  // validTracks semantics:
-  // - null in array means "allow trackless (generalist)"
-  // - string values mean "allow this specific track"
-  // - empty array = discipline cannot have any jobs
-  if (!track) {
-    // Trackless job: only valid if null is in validTracks
-    // Note: for backwards compatibility, empty array also allows trackless
-    const validTracks = discipline.validTracks ?? [];
-    if (validTracks.length === 0) {
-      // Empty array = allow trackless (legacy behavior)
-      return true;
-    }
-    // Check if null is explicitly in the array
-    return validTracks.includes(null);
-  }
-
-  // 3. Check discipline's validTracks constraint for tracked jobs
-  // Only string entries matter here (null = trackless, not a track ID)
-  const validTracks = discipline.validTracks ?? [];
-  if (validTracks.length > 0) {
-    const trackIds = validTracks.filter((t) => t !== null);
-    if (trackIds.length > 0 && !trackIds.includes(track.id)) {
-      return false;
-    }
-    // If validTracks only contains null (no track IDs), reject all tracks
-    if (trackIds.length === 0) {
-      return false;
-    }
-  }
-
-  // 4. Check track's minLevel constraint
-  if (track.minLevel && levels) {
-    const minLevelObj = levels.find((g) => g.id === track.minLevel);
-    if (minLevelObj && level.ordinalRank < minLevelObj.ordinalRank) {
-      return false;
-    }
-  }
-
-  // 5. Apply framework-level validation rules
-  if (validationRules?.invalidCombinations) {
-    for (const combo of validationRules.invalidCombinations) {
-      const disciplineMatch =
-        !combo.discipline || combo.discipline === discipline.id;
-      const trackMatch = !combo.track || combo.track === track.id;
-      const levelMatch = !combo.level || combo.level === level.id;
-
-      if (disciplineMatch && trackMatch && levelMatch) {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
-
-/**
  * Generate a job title from discipline, track, and level
- *
- * Rules:
- * - Management discipline without track: ${level.managementTitle}, ${discipline.specialization}
- * - Management discipline with track: ${level.managementTitle}, ${track.name}
- * - IC discipline with track: ${level.professionalTitle} ${discipline.roleTitle} - ${track.name}
- * - IC discipline without track: ${level.professionalTitle} ${discipline.roleTitle}
- *
  * @param {import('./levels.js').Discipline} discipline - The discipline
  * @param {import('./levels.js').Level} level - The level
  * @param {import('./levels.js').Track} [track] - The track (optional)
@@ -386,27 +269,21 @@ export function generateJobTitle(discipline, level, track = null) {
   const { roleTitle, isManagement } = discipline;
   const { professionalTitle, managementTitle } = level;
 
-  // Management discipline (no track needed)
   if (isManagement && !track) {
     return `${managementTitle}, ${roleTitle}`;
   }
 
-  // Management discipline with track
   if (isManagement && track) {
-    return `${managementTitle}, ${roleTitle} – ${track.name}`;
+    return `${managementTitle}, ${roleTitle} \u2013 ${track.name}`;
   }
 
-  // IC discipline with track
   if (track) {
     if (professionalTitle.startsWith("Level")) {
-      // Professional track with Level level: "Software Engineer Level II - Platform"
       return `${roleTitle} ${professionalTitle} - ${track.name}`;
     }
-    // Professional track with non-Level level: "Staff Software Engineer - Platform"
     return `${professionalTitle} ${roleTitle} - ${track.name}`;
   }
 
-  // IC discipline without track (generalist)
   if (professionalTitle.startsWith("Level")) {
     return `${roleTitle} ${professionalTitle}`;
   }
@@ -425,116 +302,6 @@ function generateJobId(discipline, level, track = null) {
     return `${discipline.id}_${level.id}_${track.id}`;
   }
   return `${discipline.id}_${level.id}`;
-}
-
-/**
- * Derive role responsibilities from skill matrix and capabilities
- *
- * Responsibilities are determined by finding the maximum skill proficiency
- * achieved in each capability, then looking up the corresponding
- * responsibility statement from the capability definition.
- *
- * Capabilities are sorted by their maximum skill proficiency (descending),
- * so Expert-level capabilities appear before Practitioner-level, etc.
- * Within the same proficiency, capabilities with more skills at that
- * proficiency are sorted first.
- *
- * Uses professionalResponsibilities for professional disciplines (isProfessional: true)
- * and managementResponsibilities for management disciplines (isManagement: true).
- *
- * @param {Object} params
- * @param {import('./levels.js').SkillMatrixEntry[]} params.skillMatrix - Derived skill matrix for the job
- * @param {Object[]} params.capabilities - Capability definitions with responsibilities
- * @param {import('./levels.js').Discipline} params.discipline - The discipline (determines which responsibilities to use)
- * @returns {Array<{capability: string, capabilityName: string, emojiIcon: string, responsibility: string, level: string}>}
- */
-export function deriveResponsibilities({
-  skillMatrix,
-  capabilities,
-  discipline,
-}) {
-  if (!capabilities || capabilities.length === 0) {
-    return [];
-  }
-
-  // Determine which responsibility set to use based on discipline type
-  // Management disciplines use managementResponsibilities, professional disciplines use professionalResponsibilities
-  const responsibilityKey = discipline?.isManagement
-    ? "managementResponsibilities"
-    : "professionalResponsibilities";
-
-  // Group skills by capability and find max proficiency per capability
-  const capabilityProficiencies = new Map();
-
-  for (const skill of skillMatrix) {
-    const currentProficiency = capabilityProficiencies.get(skill.capability);
-    const skillProficiencyIndex = SKILL_PROFICIENCY_ORDER.indexOf(
-      skill.proficiency,
-    );
-    const currentIndex = currentProficiency
-      ? SKILL_PROFICIENCY_ORDER.indexOf(currentProficiency)
-      : -1;
-
-    if (skillProficiencyIndex > currentIndex) {
-      capabilityProficiencies.set(skill.capability, skill.proficiency);
-    }
-  }
-
-  // Count skills per capability at each capability's max proficiency
-  const capabilitySkillCounts = new Map();
-  for (const skill of skillMatrix) {
-    const capMaxProf = capabilityProficiencies.get(skill.capability);
-    if (skill.proficiency === capMaxProf) {
-      const count = capabilitySkillCounts.get(skill.capability) || 0;
-      capabilitySkillCounts.set(skill.capability, count + 1);
-    }
-  }
-
-  // Build capability lookup map
-  const capabilityMap = new Map(capabilities.map((c) => [c.id, c]));
-
-  // Build responsibilities from all capabilities with meaningful proficiencies
-  const responsibilities = [];
-
-  for (const [capabilityId, proficiency] of capabilityProficiencies) {
-    if (proficiency === "awareness") continue; // Skip awareness-only capabilities
-
-    const capability = capabilityMap.get(capabilityId);
-    const responsibilityText = capability?.[responsibilityKey]?.[proficiency];
-    if (responsibilityText) {
-      responsibilities.push({
-        capability: capabilityId,
-        capabilityName: capability.name,
-        emojiIcon: capability.emojiIcon || "💡",
-        ordinalRank: capability.ordinalRank ?? 999,
-        responsibility: responsibilityText,
-        proficiency,
-        proficiencyIndex: SKILL_PROFICIENCY_ORDER.indexOf(proficiency),
-        skillCount: capabilitySkillCounts.get(capabilityId) || 0,
-      });
-    }
-  }
-
-  // Sort by proficiency descending (expert first), then by skill count descending,
-  // then by capability order as tiebreaker
-  responsibilities.sort((a, b) => {
-    if (b.proficiencyIndex !== a.proficiencyIndex) {
-      return b.proficiencyIndex - a.proficiencyIndex;
-    }
-    if (b.skillCount !== a.skillCount) {
-      return b.skillCount - a.skillCount;
-    }
-    return a.ordinalRank - b.ordinalRank;
-  });
-
-  // Remove internal fields from output
-  return responsibilities.map(
-    ({
-      proficiencyIndex: _proficiencyIndex,
-      skillCount: _skillCount,
-      ...rest
-    }) => rest,
-  );
 }
 
 /**
@@ -558,9 +325,8 @@ export function deriveJob({
   capabilities,
   validationRules,
 }) {
-  // Check if combination is valid
   if (
-    !isValidJobCombination({
+    !_isValidJobCombination({
       discipline,
       level,
       track,
@@ -579,10 +345,9 @@ export function deriveJob({
     behaviours,
   });
 
-  // Derive responsibilities if capabilities are provided
   let derivedResponsibilities = [];
   if (capabilities && capabilities.length > 0) {
-    derivedResponsibilities = deriveResponsibilities({
+    derivedResponsibilities = _deriveResponsibilities({
       skillMatrix,
       capabilities,
       discipline,
@@ -612,7 +377,6 @@ export function deriveJob({
 export function calculateDriverCoverage({ job, drivers }) {
   const coverageResults = [];
 
-  // Create lookup maps for the job's skills and behaviours
   const jobSkillProficiencies = new Map(
     job.skillMatrix.map((s) => [s.skillId, s.proficiency]),
   );
@@ -624,7 +388,6 @@ export function calculateDriverCoverage({ job, drivers }) {
     const contributingSkills = driver.contributingSkills || [];
     const contributingBehaviours = driver.contributingBehaviours || [];
 
-    // Calculate skill coverage (Working+ level threshold)
     const coveredSkills = [];
     const missingSkills = [];
 
@@ -648,7 +411,6 @@ export function calculateDriverCoverage({ job, drivers }) {
         ? coveredSkills.length / contributingSkills.length
         : 1;
 
-    // Calculate behaviour coverage (Practicing+ maturity threshold)
     const coveredBehaviours = [];
     const missingBehaviours = [];
     const practicingIndex = getBehaviourMaturityIndex(
@@ -669,7 +431,6 @@ export function calculateDriverCoverage({ job, drivers }) {
         ? coveredBehaviours.length / contributingBehaviours.length
         : 1;
 
-    // Overall score is weighted average (50/50)
     const overallScore = (skillCoverage + behaviourCoverage) / 2;
 
     coverageResults.push({
@@ -685,7 +446,6 @@ export function calculateDriverCoverage({ job, drivers }) {
     });
   }
 
-  // Sort by overall score descending
   coverageResults.sort((a, b) => b.overallScore - a.overallScore);
 
   return coverageResults;
@@ -724,7 +484,6 @@ export function isSeniorLevel(level) {
 
 /**
  * Generate all valid job definitions from the data
- * Generates both trackless jobs and jobs with tracks based on discipline.validTracks
  * @param {Object} params
  * @param {import('./levels.js').Discipline[]} params.disciplines - All disciplines
  * @param {import('./levels.js').Level[]} params.levels - All levels
@@ -746,9 +505,8 @@ export function generateAllJobs({
 
   for (const discipline of disciplines) {
     for (const level of levels) {
-      // First, generate trackless job for this discipline/level
       if (
-        isValidJobCombination({
+        _isValidJobCombination({
           discipline,
           level,
           track: null,
@@ -769,10 +527,9 @@ export function generateAllJobs({
         }
       }
 
-      // Then, generate jobs with valid tracks
       for (const track of tracks) {
         if (
-          !isValidJobCombination({
+          !_isValidJobCombination({
             discipline,
             level,
             track,

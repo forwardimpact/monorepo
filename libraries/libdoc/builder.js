@@ -57,15 +57,16 @@ export class DocsBuilder {
 
   /**
    * Transform .md links to match the HTML output structure
-   * - index.md → ./
-   * - file.md → file/
-   * - dir/index.md → dir/
-   * - dir/file.md → dir/file/
+   * - index.md -> ./
+   * - file.md -> file/
+   * - dir/index.md -> dir/
+   * - dir/file.md -> dir/file/
    * @param {string} html - HTML content to transform
    * @returns {string} HTML with transformed links
    */
   #transformMarkdownLinks(html) {
     return html.replace(
+      // eslint-disable-next-line security/detect-unsafe-regex -- bounded negated char classes on internal HTML; no backtracking risk
       /href="([^"]*?)\.md(#[^"]*)?"/g,
       (_match, path, hash) => {
         const fragment = hash || "";
@@ -90,6 +91,7 @@ export class DocsBuilder {
    */
   #transformMarkdownBodyLinks(markdown) {
     return markdown.replace(
+      // eslint-disable-next-line security/detect-unsafe-regex -- bounded negated char classes on internal markdown; no backtracking risk
       /\[([^\]]*)\]\(([^)]*?)\.md(#[^)]*)?\)/g,
       (_match, text, path, hash) => {
         const fragment = hash || "";
@@ -341,6 +343,197 @@ export class DocsBuilder {
   }
 
   /**
+   * Resolve the base URL from an explicit value or CNAME file
+   * @param {string|undefined} baseUrl - Explicit base URL
+   * @param {string} docsDir - Source docs directory
+   * @returns {string|undefined}
+   */
+  #resolveBaseUrl(baseUrl, docsDir) {
+    if (baseUrl) return baseUrl;
+    const cnamePath = this.#path.join(docsDir, "CNAME");
+    if (this.#fs.existsSync(cnamePath)) {
+      const hostname = this.#fs.readFileSync(cnamePath, "utf-8").trim();
+      return `https://${hostname}`;
+    }
+    return undefined;
+  }
+
+  /**
+   * Collect page titles from all markdown files (first pass)
+   * @param {string[]} mdFiles - Relative paths to markdown files
+   * @param {string} docsDir - Source docs directory
+   * @returns {Map<string, string>}
+   */
+  #collectPageTitles(mdFiles, docsDir) {
+    const pageTitles = new Map();
+    for (const mdFile of mdFiles) {
+      const { data } = this.#matter(
+        this.#fs.readFileSync(this.#path.join(docsDir, mdFile), "utf-8"),
+      );
+      if (data.title) {
+        pageTitles.set(this.#urlPathFromMdFile(mdFile), data.title);
+      }
+    }
+    return pageTitles;
+  }
+
+  /**
+   * Build hero section template variables from front matter
+   * @param {object} frontMatter - Parsed front matter
+   * @returns {object} Hero-related template variables
+   */
+  #buildHeroVars(frontMatter) {
+    const hero = frontMatter.hero;
+    const heroCta =
+      hero?.cta?.map((item) => ({
+        ...item,
+        btnClass: item.secondary ? "btn-secondary" : "btn-primary",
+      })) || [];
+
+    return {
+      hasHero: !!hero,
+      heroImage: hero?.image || "",
+      heroAlt: hero?.alt || "",
+      heroTitle: hero?.title || frontMatter.title,
+      heroSubtitle: hero?.subtitle || frontMatter.description || "",
+      heroCta,
+      hasHeroCta: heroCta.length > 0,
+    };
+  }
+
+  /**
+   * Build template variables from front matter and rendered HTML
+   * @param {object} frontMatter - Parsed front matter
+   * @param {string} html - Rendered HTML content
+   * @param {string} urlPath - URL path for this page
+   * @param {Map<string, string>} pageTitles - Map of URL paths to page titles
+   * @param {string|undefined} baseUrl - Base URL for canonical links
+   * @returns {object} Mustache template variables
+   */
+  #buildTemplateVars(frontMatter, html, urlPath, pageTitles, baseUrl) {
+    const toc = frontMatter.toc !== false ? this.#generateToc(html) : "";
+    const breadcrumbs = this.#buildBreadcrumbs(urlPath, pageTitles);
+
+    return {
+      title: frontMatter.title,
+      description: frontMatter.description || "",
+      content: html,
+      toc,
+      hasToc: !!toc,
+      layout: frontMatter.layout || "",
+      ...this.#buildHeroVars(frontMatter),
+      hasBreadcrumbs: !!breadcrumbs,
+      breadcrumbs,
+      markdownUrl: "index.md",
+      canonicalUrl: baseUrl ? baseUrl + urlPath : "",
+    };
+  }
+
+  /**
+   * Compute output path and write HTML + companion Markdown files
+   * @param {string} mdFile - Relative path to the markdown file
+   * @param {string} distDir - Destination distribution directory
+   * @param {string} finalHtml - Formatted HTML content
+   * @param {string} companionContent - Companion Markdown content
+   */
+  #writePageFiles(mdFile, distDir, finalHtml, companionContent) {
+    const baseName = mdFile.replace(".md", "");
+    const isIndex = baseName === "index" || baseName.endsWith("/index");
+    const outputPath = isIndex ? baseName : this.#path.join(baseName, "index");
+    const outputDir = this.#path.dirname(this.#path.join(distDir, outputPath));
+
+    this.#fs.mkdirSync(outputDir, { recursive: true });
+    this.#fs.writeFileSync(
+      this.#path.join(distDir, outputPath + ".html"),
+      finalHtml,
+      "utf-8",
+    );
+    console.log(`  ✓ ${outputPath}.html`);
+
+    this.#fs.writeFileSync(
+      this.#path.join(distDir, outputPath + ".md"),
+      companionContent,
+      "utf-8",
+    );
+  }
+
+  /**
+   * Render a single markdown file to HTML and write output files
+   * @param {string} mdFile - Relative path to the markdown file
+   * @param {string} docsDir - Source docs directory
+   * @param {string} distDir - Destination distribution directory
+   * @param {string} template - HTML template string
+   * @param {Map<string, string>} pageTitles - Map of URL paths to page titles
+   * @param {string|undefined} baseUrl - Base URL for canonical links
+   * @returns {Promise<{mdFile: string, urlPath: string, title: string, description: string}|null>}
+   */
+  async #renderPage(mdFile, docsDir, distDir, template, pageTitles, baseUrl) {
+    const { data: frontMatter, content: markdown } = this.#matter(
+      this.#fs.readFileSync(this.#path.join(docsDir, mdFile), "utf-8"),
+    );
+
+    if (!frontMatter.title) {
+      console.error(`Error: Missing 'title' in front matter of ${mdFile}`);
+      return null;
+    }
+
+    const rawHtml = this.#marked(markdown);
+    const html = this.#transformMarkdownLinks(rawHtml);
+    const urlPath = this.#urlPathFromMdFile(mdFile);
+    const vars = this.#buildTemplateVars(
+      frontMatter,
+      html,
+      urlPath,
+      pageTitles,
+      baseUrl,
+    );
+    const outputHtml = this.#mustacheRender(template, vars);
+    const finalHtml = await this.#formatAndPostProcess(outputHtml);
+    const companionContent = `# ${frontMatter.title}\n\n${this.#transformMarkdownBodyLinks(markdown)}`;
+
+    this.#writePageFiles(mdFile, distDir, finalHtml, companionContent);
+
+    return {
+      mdFile,
+      urlPath,
+      title: frontMatter.title,
+      description: frontMatter.description || "",
+    };
+  }
+
+  /**
+   * Format HTML with prettier and unescape Mermaid code blocks
+   * @param {string} outputHtml - Raw HTML string
+   * @returns {Promise<string>}
+   */
+  async #formatAndPostProcess(outputHtml) {
+    const formattedHtml = await this.#prettier.format(outputHtml, {
+      parser: "html",
+      printWidth: 80,
+      tabWidth: 2,
+      useTabs: false,
+    });
+
+    const mermaidBlocks = formattedHtml.match(
+      /<code class="language-mermaid">[\s\S]*?<\/code>/g,
+    );
+    if (!mermaidBlocks) return formattedHtml;
+
+    return formattedHtml.replace(
+      /<code class="language-mermaid">([\s\S]*?)<\/code>/g,
+      (_match, code) => {
+        const unescapedCode = code
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'");
+        return `<code class="language-mermaid">${unescapedCode}</code>`;
+      },
+    );
+  }
+
+  /**
    * Build documentation from Markdown files
    * @param {string} docsDir - Source documentation directory
    * @param {string} distDir - Destination distribution directory
@@ -350,14 +543,7 @@ export class DocsBuilder {
   async build(docsDir, distDir, baseUrl) {
     console.log("Building documentation...");
 
-    // Resolve base URL: explicit flag > CNAME fallback > undefined
-    if (!baseUrl) {
-      const cnamePath = this.#path.join(docsDir, "CNAME");
-      if (this.#fs.existsSync(cnamePath)) {
-        const hostname = this.#fs.readFileSync(cnamePath, "utf-8").trim();
-        baseUrl = `https://${hostname}`;
-      }
-    }
+    baseUrl = this.#resolveBaseUrl(baseUrl, docsDir);
 
     // Clean and create dist directory
     if (this.#fs.existsSync(distDir)) {
@@ -372,144 +558,27 @@ export class DocsBuilder {
     }
     const template = this.#fs.readFileSync(templatePath, "utf-8");
 
-    // Process each Markdown file (recursive)
     const mdFiles = this.#findMarkdownFiles(docsDir);
 
     if (mdFiles.length === 0) {
       console.warn(`Warning: No Markdown files found in ${docsDir}`);
     }
 
-    // First pass: collect page titles by URL path for breadcrumbs
-    const pageTitles = new Map();
-    for (const mdFile of mdFiles) {
-      const { data } = this.#matter(
-        this.#fs.readFileSync(this.#path.join(docsDir, mdFile), "utf-8"),
-      );
-      if (data.title) {
-        pageTitles.set(this.#urlPathFromMdFile(mdFile), data.title);
-      }
-    }
+    const pageTitles = this.#collectPageTitles(mdFiles, docsDir);
 
-    // Page inventory for sitemap and llms.txt generation
     const pages = [];
-
     for (const mdFile of mdFiles) {
-      const { data: frontMatter, content: markdown } = this.#matter(
-        this.#fs.readFileSync(this.#path.join(docsDir, mdFile), "utf-8"),
-      );
-
-      if (!frontMatter.title) {
-        console.error(`Error: Missing 'title' in front matter of ${mdFile}`);
-        continue;
-      }
-
-      // Convert Markdown to HTML and transform .md links
-      const rawHtml = this.#marked(markdown);
-      const html = this.#transformMarkdownLinks(rawHtml);
-      const toc = frontMatter.toc !== false ? this.#generateToc(html) : "";
-
-      // Extract hero and layout data from front matter
-      const hero = frontMatter.hero;
-      const heroCta =
-        hero?.cta?.map((item) => ({
-          ...item,
-          btnClass: item.secondary ? "btn-secondary" : "btn-primary",
-        })) || [];
-
-      // Generate breadcrumbs for pages two or more levels deep
-      const urlPath = this.#urlPathFromMdFile(mdFile);
-      const breadcrumbs = this.#buildBreadcrumbs(urlPath, pageTitles);
-
-      // Collect page inventory for sitemap and llms.txt
-      pages.push({
+      const page = await this.#renderPage(
         mdFile,
-        urlPath,
-        title: frontMatter.title,
-        description: frontMatter.description || "",
-      });
-
-      // Render template with context
-      const outputHtml = this.#mustacheRender(template, {
-        title: frontMatter.title,
-        description: frontMatter.description || "",
-        content: html,
-        toc,
-        hasToc: !!toc,
-        layout: frontMatter.layout || "",
-        hasHero: !!hero,
-        heroImage: hero?.image || "",
-        heroAlt: hero?.alt || "",
-        heroTitle: hero?.title || frontMatter.title,
-        heroSubtitle: hero?.subtitle || frontMatter.description || "",
-        heroCta,
-        hasHeroCta: heroCta.length > 0,
-        hasBreadcrumbs: !!breadcrumbs,
-        breadcrumbs,
-        markdownUrl: "index.md",
-        canonicalUrl: baseUrl ? baseUrl + urlPath : "",
-      });
-
-      // Format HTML with prettier
-      const formattedHtml = await this.#prettier.format(outputHtml, {
-        parser: "html",
-        printWidth: 80,
-        tabWidth: 2,
-        useTabs: false,
-      });
-
-      // Post-process: Unescape HTML entities in Mermaid code blocks
-      // Prettier escapes entities, but Mermaid.js needs raw syntax
-      let finalHtml = formattedHtml;
-      const mermaidBlocks = formattedHtml.match(
-        /<code class="language-mermaid">[\s\S]*?<\/code>/g,
+        docsDir,
+        distDir,
+        template,
+        pageTitles,
+        baseUrl,
       );
-      if (mermaidBlocks) {
-        finalHtml = formattedHtml.replace(
-          /<code class="language-mermaid">([\s\S]*?)<\/code>/g,
-          (_match, code) => {
-            const unescapedCode = code
-              .replace(/&amp;/g, "&")
-              .replace(/&lt;/g, "<")
-              .replace(/&gt;/g, ">")
-              .replace(/&quot;/g, '"')
-              .replace(/&#39;/g, "'");
-            return `<code class="language-mermaid">${unescapedCode}</code>`;
-          },
-        );
-      }
-
-      // Determine output path:
-      // index.md → index.html
-      // dir/index.md → dir/index.html
-      // example.md → example/index.html
-      // dir/example.md → dir/example/index.html
-      const baseName = mdFile.replace(".md", "");
-      const isIndex = baseName === "index" || baseName.endsWith("/index");
-      const outputPath = isIndex
-        ? baseName
-        : this.#path.join(baseName, "index");
-      const outputDir = this.#path.dirname(
-        this.#path.join(distDir, outputPath),
-      );
-
-      this.#fs.mkdirSync(outputDir, { recursive: true });
-      this.#fs.writeFileSync(
-        this.#path.join(distDir, outputPath + ".html"),
-        finalHtml,
-        "utf-8",
-      );
-      console.log(`  ✓ ${outputPath}.html`);
-
-      // Write markdown companion (index.md alongside index.html)
-      const companionContent = `# ${frontMatter.title}\n\n${this.#transformMarkdownBodyLinks(markdown)}`;
-      this.#fs.writeFileSync(
-        this.#path.join(distDir, outputPath + ".md"),
-        companionContent,
-        "utf-8",
-      );
+      if (page) pages.push(page);
     }
 
-    // Sort page inventory for deterministic output
     pages.sort((a, b) => a.urlPath.localeCompare(b.urlPath));
 
     this.#copyStaticAssets(docsDir, distDir);

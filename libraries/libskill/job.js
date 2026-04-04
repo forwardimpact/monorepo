@@ -8,9 +8,9 @@
 import {
   calculateDriverCoverage,
   generateJobTitle,
-  isValidJobCombination,
   getDisciplineSkillIds,
 } from "./derivation.js";
+import { isValidJobCombination } from "./derivation-validation.js";
 import { deriveChecklist } from "./checklist.js";
 import { deriveToolkit } from "./toolkit.js";
 import { getOrCreateJob } from "./job-cache.js";
@@ -36,6 +36,47 @@ import { getStageOrder } from "@forwardimpact/map/levels";
  */
 
 /**
+ * Derive checklists for all stages
+ * @param {Object} job - The job definition
+ * @param {Array} skills - All skills
+ * @param {Array} capabilities - Capability definitions
+ * @param {Array} stages - Stage definitions
+ * @returns {Object} Checklists keyed by stage ID
+ */
+function deriveAllChecklists(job, skills, capabilities, stages) {
+  const checklists = {};
+  const stageIds = getStageOrder(stages);
+  for (const stageId of stageIds) {
+    checklists[stageId] = deriveChecklist({
+      stageId,
+      skillMatrix: job.skillMatrix,
+      skills,
+      capabilities,
+    });
+  }
+  return checklists;
+}
+
+/**
+ * Format driver coverage for display
+ * @param {Array} driverCoverage - Raw driver coverage data
+ * @returns {Array} Formatted driver coverage
+ */
+function formatDriverCoverage(driverCoverage) {
+  return driverCoverage.map((d) => ({
+    id: d.driverId,
+    name: d.driverName,
+    coverage: d.overallScore,
+    skillsCovered: d.coveredSkills?.length || 0,
+    skillsTotal:
+      (d.coveredSkills?.length || 0) + (d.missingSkills?.length || 0),
+    behavioursCovered: d.coveredBehaviours?.length || 0,
+    behavioursTotal:
+      (d.coveredBehaviours?.length || 0) + (d.missingBehaviours?.length || 0),
+  }));
+}
+
+/**
  * Prepare a job for detail view
  * @param {Object} params
  * @param {Object} params.discipline
@@ -58,7 +99,6 @@ export function prepareJobDetail({
   capabilities,
   stages,
 }) {
-  // Track is optional (null = generalist)
   if (!discipline || !level) return null;
 
   const job = getOrCreateJob({
@@ -72,30 +112,12 @@ export function prepareJobDetail({
 
   if (!job) return null;
 
-  const driverCoverage = calculateDriverCoverage({
-    job,
-    drivers,
-  });
-
-  // Derive checklists for each stage from loaded stage data
-  const checklists = {};
-  if (capabilities && stages) {
-    const stageIds = getStageOrder(stages);
-    for (const stageId of stageIds) {
-      checklists[stageId] = deriveChecklist({
-        stageId,
-        skillMatrix: job.skillMatrix,
-        skills,
-        capabilities,
-      });
-    }
-  }
-
-  // Derive toolkit from skill matrix
-  const toolkit = deriveToolkit({
-    skillMatrix: job.skillMatrix,
-    skills,
-  });
+  const driverCoverage = calculateDriverCoverage({ job, drivers });
+  const checklists =
+    capabilities && stages
+      ? deriveAllChecklists(job, skills, capabilities, stages)
+      : {};
+  const toolkit = deriveToolkit({ skillMatrix: job.skillMatrix, skills });
 
   return {
     title: job.title,
@@ -106,28 +128,14 @@ export function prepareJobDetail({
     trackId: track?.id || null,
     trackName: track?.name || null,
     expectations: job.expectations || {},
-    // Raw model data for components that need the original shape
     skillMatrix: job.skillMatrix,
     behaviourProfile: job.behaviourProfile,
     derivedResponsibilities: job.derivedResponsibilities || [],
     capabilityOrder: (job.derivedResponsibilities || []).map(
       (r) => r.capability,
     ),
-    // Derived toolkit
     toolkit,
-    // Transformed driver coverage for display
-    driverCoverage: driverCoverage.map((d) => ({
-      id: d.driverId,
-      name: d.driverName,
-      coverage: d.overallScore,
-      skillsCovered: d.coveredSkills?.length || 0,
-      skillsTotal:
-        (d.coveredSkills?.length || 0) + (d.missingSkills?.length || 0),
-      behavioursCovered: d.coveredBehaviours?.length || 0,
-      behavioursTotal:
-        (d.coveredBehaviours?.length || 0) + (d.missingBehaviours?.length || 0),
-    })),
-    // Derived checklists by handoff type
+    driverCoverage: formatDriverCoverage(driverCoverage),
     checklists,
   };
 }

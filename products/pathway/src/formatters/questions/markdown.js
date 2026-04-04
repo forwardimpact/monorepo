@@ -223,10 +223,43 @@ function formatTable(view) {
 }
 
 /**
- * Format single source deep dive
- * @param {Object} view - Questions view
- * @returns {string}
+ * Format a single question's detail lines
+ * @param {string[]} lines
+ * @param {Object} q - Flattened question
  */
+function formatQuestionDetail(lines, q) {
+  lines.push(`  • [${q.id}] ${q.text}`);
+  lines.push(`    Duration: ${q.expectedDurationMinutes} min`);
+  if (q.context) {
+    lines.push(`    Context: ${q.context}`);
+  }
+  if (q.simulationPrompts && q.simulationPrompts.length > 0) {
+    lines.push("    Steer the simulation:");
+    for (const prompt of q.simulationPrompts) {
+      lines.push(`      - ${prompt}`);
+    }
+  }
+  if (q.decompositionPrompts && q.decompositionPrompts.length > 0) {
+    lines.push("    Guide candidate thinking:");
+    for (const prompt of q.decompositionPrompts) {
+      lines.push(`      - ${prompt}`);
+    }
+  }
+  if (q.lookingFor.length > 0) {
+    lines.push("    Looking for:");
+    for (const item of q.lookingFor) {
+      lines.push(`      - ${item}`);
+    }
+  }
+  if (q.followUps.length > 0) {
+    lines.push("    Follow-ups:");
+    for (const fu of q.followUps) {
+      lines.push(`      → ${fu}`);
+    }
+  }
+  lines.push("");
+}
+
 function formatSingleSource(view) {
   const lines = [];
   const { questions, stats } = view;
@@ -259,36 +292,7 @@ function formatSingleSource(view) {
 
     lines.push(level.toUpperCase());
     for (const q of byLevel[level]) {
-      lines.push(`  • [${q.id}] ${q.text}`);
-      lines.push(`    Duration: ${q.expectedDurationMinutes} min`);
-      if (q.context) {
-        lines.push(`    Context: ${q.context}`);
-      }
-      if (q.simulationPrompts && q.simulationPrompts.length > 0) {
-        lines.push("    Steer the simulation:");
-        for (const prompt of q.simulationPrompts) {
-          lines.push(`      - ${prompt}`);
-        }
-      }
-      if (q.decompositionPrompts && q.decompositionPrompts.length > 0) {
-        lines.push("    Guide candidate thinking:");
-        for (const prompt of q.decompositionPrompts) {
-          lines.push(`      - ${prompt}`);
-        }
-      }
-      if (q.lookingFor.length > 0) {
-        lines.push("    Looking for:");
-        for (const item of q.lookingFor) {
-          lines.push(`      - ${item}`);
-        }
-      }
-      if (q.followUps.length > 0) {
-        lines.push("    Follow-ups:");
-        for (const fu of q.followUps) {
-          lines.push(`      → ${fu}`);
-        }
-      }
-      lines.push("");
+      formatQuestionDetail(lines, q);
     }
   }
 

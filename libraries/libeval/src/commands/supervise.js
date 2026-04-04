@@ -20,6 +20,42 @@ function parseFlag(args, name) {
 }
 
 /**
+ * Parse all supervise flags from args into an options object.
+ * @param {string[]} args
+ * @returns {object}
+ */
+function parseSuperviseOptions(args) {
+  const taskFile = parseFlag(args, "task-file");
+  const taskText = parseFlag(args, "task-text");
+  if (taskFile && taskText)
+    throw new Error("--task-file and --task-text are mutually exclusive");
+  if (!taskFile && !taskText)
+    throw new Error("--task-file or --task-text is required");
+
+  const supervisorAllowedToolsRaw = parseFlag(args, "supervisor-allowed-tools");
+
+  return {
+    taskContent: taskFile ? readFileSync(taskFile, "utf8") : taskText,
+    supervisorCwd: resolve(parseFlag(args, "supervisor-cwd") ?? "."),
+    agentCwd: resolve(
+      parseFlag(args, "agent-cwd") ??
+        mkdtempSync(join(tmpdir(), "fit-eval-agent-")),
+    ),
+    model: parseFlag(args, "model") ?? "opus",
+    maxTurns: parseInt(parseFlag(args, "max-turns") ?? "20", 10),
+    outputPath: parseFlag(args, "output"),
+    supervisorProfile: parseFlag(args, "supervisor-profile") ?? undefined,
+    agentProfile: parseFlag(args, "agent-profile") ?? undefined,
+    allowedTools: (
+      parseFlag(args, "allowed-tools") ?? "Bash,Read,Glob,Grep,Write,Edit"
+    ).split(","),
+    supervisorAllowedTools: supervisorAllowedToolsRaw
+      ? supervisorAllowedToolsRaw.split(",")
+      : undefined,
+  };
+}
+
+/**
  * Supervise command — run two agents in a relay loop via the Claude Agent SDK.
  *
  * Usage: fit-eval supervise [options]
@@ -30,7 +66,7 @@ function parseFlag(args, name) {
  *   --supervisor-cwd=DIR      Supervisor working directory (default: .)
  *   --agent-cwd=DIR           Agent working directory (default: temp directory)
  *   --model=MODEL             Claude model to use (default: opus)
- *   --max-turns=N             Maximum supervisor ↔ agent exchanges (default: 20)
+ *   --max-turns=N             Maximum supervisor / agent exchanges (default: 20)
  *   --output=PATH             Write NDJSON trace to file (default: stdout)
  *   --allowed-tools=LIST      Comma-separated tools for the agent (default: Bash,Read,Glob,Grep,Write,Edit)
  *   --supervisor-profile=NAME Supervisor agent profile name (passed as --agent to Claude CLI)
@@ -39,36 +75,13 @@ function parseFlag(args, name) {
  * @param {string[]} args - Command arguments
  */
 export async function runSuperviseCommand(args) {
-  const taskFile = parseFlag(args, "task-file");
-  const taskText = parseFlag(args, "task-text");
-  if (taskFile && taskText)
-    throw new Error("--task-file and --task-text are mutually exclusive");
-  if (!taskFile && !taskText)
-    throw new Error("--task-file or --task-text is required");
-
-  const supervisorCwd = resolve(parseFlag(args, "supervisor-cwd") ?? ".");
-  const agentCwd = resolve(
-    parseFlag(args, "agent-cwd") ??
-      mkdtempSync(join(tmpdir(), "fit-eval-agent-")),
-  );
-  const model = parseFlag(args, "model") ?? "opus";
-  const maxTurns = parseInt(parseFlag(args, "max-turns") ?? "20", 10);
-  const outputPath = parseFlag(args, "output");
-  const supervisorProfile = parseFlag(args, "supervisor-profile") ?? undefined;
-  const agentProfile = parseFlag(args, "agent-profile") ?? undefined;
-  const allowedTools = (
-    parseFlag(args, "allowed-tools") ?? "Bash,Read,Glob,Grep,Write,Edit"
-  ).split(",");
-  const supervisorAllowedToolsRaw = parseFlag(args, "supervisor-allowed-tools");
-  const supervisorAllowedTools = supervisorAllowedToolsRaw
-    ? supervisorAllowedToolsRaw.split(",")
-    : undefined;
-
-  const taskContent = taskFile ? readFileSync(taskFile, "utf8") : taskText;
+  const opts = parseSuperviseOptions(args);
 
   // When --output is specified, stream text to stdout while writing NDJSON to file.
   // Otherwise, write NDJSON directly to stdout (backwards-compatible).
-  const fileStream = outputPath ? createWriteStream(outputPath) : null;
+  const fileStream = opts.outputPath
+    ? createWriteStream(opts.outputPath)
+    : null;
   const output = fileStream
     ? createTeeWriter({
         fileStream,
@@ -79,19 +92,19 @@ export async function runSuperviseCommand(args) {
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
   const supervisor = createSupervisor({
-    supervisorCwd,
-    agentCwd,
+    supervisorCwd: opts.supervisorCwd,
+    agentCwd: opts.agentCwd,
     query,
     output,
-    model,
-    maxTurns,
-    allowedTools,
-    supervisorAllowedTools,
-    supervisorProfile,
-    agentProfile,
+    model: opts.model,
+    maxTurns: opts.maxTurns,
+    allowedTools: opts.allowedTools,
+    supervisorAllowedTools: opts.supervisorAllowedTools,
+    supervisorProfile: opts.supervisorProfile,
+    agentProfile: opts.agentProfile,
   });
 
-  const result = await supervisor.run(taskContent);
+  const result = await supervisor.run(opts.taskContent);
 
   if (fileStream) {
     await new Promise((r) => output.end(r));

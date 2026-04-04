@@ -235,6 +235,62 @@ Options:
   --format=FORMAT      Output format: table, yaml, json
 `;
 
+/** Boolean flags: exact match sets the field to true */
+const BOOLEAN_FLAGS = {
+  "--version": "version",
+  "-v": "version",
+  "--help": "help",
+  "-h": "help",
+  "--list": "list",
+  "-l": "list",
+  "--json": "json",
+  "--stats": "stats",
+  "--all-roles": "all-roles",
+  "--all-stages": "all-stages",
+  "--agent": "agent",
+  "--skills": "skills",
+  "--tools": "tools",
+};
+
+/** Negation flags: exact match sets the field to false */
+const NEGATION_FLAGS = { "--no-clean": "clean" };
+
+/** Value flags: --key=val sets result[field] = val */
+const VALUE_FLAGS = {
+  "--type": "type",
+  "--compare": "compare",
+  "--data": "data",
+  "--track": "track",
+  "--output": "output",
+  "--level": "level",
+  "--maturity": "maturity",
+  "--skill": "skill",
+  "--behaviour": "behaviour",
+  "--capability": "capability",
+  "--format": "format",
+  "--role": "role",
+  "--stage": "stage",
+  "--checklist": "checklist",
+  "--path": "path",
+  "--url": "url",
+};
+
+/**
+ * Try to parse a --key=value argument using the VALUE_FLAGS table
+ * @param {string} arg
+ * @param {Object} result
+ * @returns {boolean} true if the arg was handled
+ */
+function parseValueFlag(arg, result) {
+  const eqIndex = arg.indexOf("=");
+  if (eqIndex === -1) return false;
+  const key = arg.slice(0, eqIndex);
+  const field = VALUE_FLAGS[key];
+  if (!field) return false;
+  result[field] = arg.slice(eqIndex + 1);
+  return true;
+}
+
 /**
  * Parse command line arguments
  * @param {string[]} args
@@ -273,62 +329,14 @@ function parseArgs(args) {
   };
 
   for (const arg of args) {
-    if (arg === "--version" || arg === "-v") {
-      result.version = true;
-    } else if (arg === "--help" || arg === "-h") {
-      result.help = true;
-    } else if (arg === "--list" || arg === "-l") {
-      result.list = true;
-    } else if (arg === "--json") {
-      result.json = true;
-    } else if (arg.startsWith("--type=")) {
-      result.type = arg.slice(7);
-    } else if (arg.startsWith("--compare=")) {
-      result.compare = arg.slice(10);
-    } else if (arg.startsWith("--data=")) {
-      result.data = arg.slice(7);
-    } else if (arg.startsWith("--track=")) {
-      result.track = arg.slice(8);
-    } else if (arg.startsWith("--output=")) {
-      result.output = arg.slice(9);
-    } else if (arg.startsWith("--level=")) {
-      result.level = arg.slice(8);
-    } else if (arg.startsWith("--maturity=")) {
-      result.maturity = arg.slice(11);
-    } else if (arg.startsWith("--skill=")) {
-      result.skill = arg.slice(8);
-    } else if (arg.startsWith("--behaviour=")) {
-      result.behaviour = arg.slice(12);
-    } else if (arg.startsWith("--capability=")) {
-      result.capability = arg.slice(14);
-    } else if (arg.startsWith("--format=")) {
-      result.format = arg.slice(9);
-    } else if (arg === "--stats") {
-      result.stats = true;
-    } else if (arg.startsWith("--role=")) {
-      result.role = arg.slice(7);
-    } else if (arg === "--all-roles") {
-      result["all-roles"] = true;
-    } else if (arg.startsWith("--stage=")) {
-      result.stage = arg.slice(8);
-    } else if (arg === "--all-stages") {
-      result["all-stages"] = true;
-    } else if (arg === "--agent") {
-      result.agent = true;
-    } else if (arg.startsWith("--checklist=")) {
-      result.checklist = arg.slice(12);
-    } else if (arg === "--skills") {
-      result.skills = true;
-    } else if (arg === "--tools") {
-      result.tools = true;
+    if (BOOLEAN_FLAGS[arg]) {
+      result[BOOLEAN_FLAGS[arg]] = true;
+    } else if (NEGATION_FLAGS[arg]) {
+      result[NEGATION_FLAGS[arg]] = false;
     } else if (arg.startsWith("--port=")) {
       result.port = parseInt(arg.slice(7), 10);
-    } else if (arg.startsWith("--path=")) {
-      result.path = arg.slice(7);
-    } else if (arg === "--no-clean") {
-      result.clean = false;
-    } else if (arg.startsWith("--url=")) {
-      result.url = arg.slice(6);
+    } else if (parseValueFlag(arg, result)) {
+      // handled
     } else if (!arg.startsWith("-")) {
       if (!result.command) {
         result.command = arg;

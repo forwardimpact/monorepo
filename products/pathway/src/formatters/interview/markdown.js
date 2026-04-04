@@ -6,6 +6,91 @@ import { formatLevel } from "../../lib/render.js";
 import { getConceptEmoji } from "@forwardimpact/map/levels";
 
 /**
+ * Append follow-ups to lines
+ * @param {string[]} lines
+ * @param {Object} q - Question object
+ */
+function appendFollowUps(lines, q) {
+  if (q.followUps.length > 0) {
+    lines.push("", "**Follow-ups:**");
+    for (const followUp of q.followUps) {
+      lines.push(`  → ${followUp}`);
+    }
+  }
+}
+
+/**
+ * Append looking-for items to lines
+ * @param {string[]} lines
+ * @param {Object} q - Question object
+ */
+function appendLookingFor(lines, q) {
+  if (q.lookingFor && q.lookingFor.length > 0) {
+    lines.push("", "**What to look for:**");
+    for (const item of q.lookingFor) {
+      lines.push(`- ${item}`);
+    }
+  }
+}
+
+/**
+ * Format skill question sections
+ * @param {string[]} lines
+ * @param {Array} sections
+ * @param {string} emoji
+ */
+function formatSkillSections(lines, sections, emoji) {
+  if (sections.length === 0) return;
+  lines.push(`## ${emoji} Skill Questions`, "");
+  for (const section of sections) {
+    lines.push(`### ${section.name} (${formatLevel(section.level)})`, "");
+    for (const q of section.questions) {
+      lines.push(`**Q**: ${q.question}`);
+      appendFollowUps(lines, q);
+      appendLookingFor(lines, q);
+      lines.push("");
+    }
+  }
+}
+
+/**
+ * Format scenario-based question sections (capability or behaviour)
+ * @param {string[]} lines
+ * @param {Array} sections
+ * @param {string} heading
+ * @param {string} promptsKey - Key for guided prompts
+ * @param {string} promptsLabel - Display label for prompts
+ */
+function formatScenarioSections(
+  lines,
+  sections,
+  heading,
+  promptsKey,
+  promptsLabel,
+) {
+  if (sections.length === 0) return;
+  lines.push(`## ${heading}`, "");
+  for (const section of sections) {
+    lines.push(`### ${section.name} (${formatLevel(section.level)})`, "");
+    for (const q of section.questions) {
+      lines.push(`**Scenario**: ${q.question}`);
+      if (q.context) {
+        lines.push(`> ${q.context}`);
+      }
+      if (q[promptsKey] && q[promptsKey].length > 0) {
+        lines.push("", `**${promptsLabel}:**`);
+        for (const prompt of q[promptsKey]) {
+          lines.push(`- ${prompt}`);
+        }
+      }
+      appendFollowUps(lines, q);
+      appendLookingFor(lines, q);
+      lines.push("");
+    }
+  }
+}
+
+/**
  * Format interview detail as markdown
  * @param {Object} view - Interview detail view from presenter
  * @param {Object} options - Options (e.g., type, framework)
@@ -24,102 +109,29 @@ export function interviewToMarkdown(view, { framework } = {}) {
     "",
   ];
 
-  // Group sections by type
   const skillSections = view.sections.filter((s) => s.type === "skill");
   const behaviourSections = view.sections.filter((s) => s.type === "behaviour");
   const capabilitySections = view.sections.filter(
     (s) => s.type === "capability",
   );
 
-  // Skill questions
-  if (skillSections.length > 0) {
-    lines.push(`## ${skillEmoji} Skill Questions`, "");
-    for (const section of skillSections) {
-      lines.push(`### ${section.name} (${formatLevel(section.level)})`, "");
-      for (const q of section.questions) {
-        lines.push(`**Q**: ${q.question}`);
-        if (q.followUps.length > 0) {
-          lines.push("", "**Follow-ups:**");
-          for (const followUp of q.followUps) {
-            lines.push(`  → ${followUp}`);
-          }
-        }
-        if (q.lookingFor && q.lookingFor.length > 0) {
-          lines.push("", "**What to look for:**");
-          for (const item of q.lookingFor) {
-            lines.push(`- ${item}`);
-          }
-        }
-        lines.push("");
-      }
-    }
-  }
+  formatSkillSections(lines, skillSections, skillEmoji);
 
-  // Capability decomposition questions
-  if (capabilitySections.length > 0) {
-    lines.push(`## 🧩 Decomposition Questions`, "");
-    for (const section of capabilitySections) {
-      lines.push(`### ${section.name} (${formatLevel(section.level)})`, "");
-      for (const q of section.questions) {
-        lines.push(`**Scenario**: ${q.question}`);
-        if (q.context) {
-          lines.push(`> ${q.context}`);
-        }
-        if (q.decompositionPrompts && q.decompositionPrompts.length > 0) {
-          lines.push("", "**Guide the candidate through:**");
-          for (const prompt of q.decompositionPrompts) {
-            lines.push(`- ${prompt}`);
-          }
-        }
-        if (q.followUps.length > 0) {
-          lines.push("", "**Follow-ups:**");
-          for (const followUp of q.followUps) {
-            lines.push(`  → ${followUp}`);
-          }
-        }
-        if (q.lookingFor && q.lookingFor.length > 0) {
-          lines.push("", "**What to look for:**");
-          for (const item of q.lookingFor) {
-            lines.push(`- ${item}`);
-          }
-        }
-        lines.push("");
-      }
-    }
-  }
+  formatScenarioSections(
+    lines,
+    capabilitySections,
+    "🧩 Decomposition Questions",
+    "decompositionPrompts",
+    "Guide the candidate through",
+  );
 
-  // Behaviour stakeholder simulation questions
-  if (behaviourSections.length > 0) {
-    lines.push(`## ${behaviourEmoji} Stakeholder Simulation`, "");
-    for (const section of behaviourSections) {
-      lines.push(`### ${section.name} (${formatLevel(section.level)})`, "");
-      for (const q of section.questions) {
-        lines.push(`**Scenario**: ${q.question}`);
-        if (q.context) {
-          lines.push(`> ${q.context}`);
-        }
-        if (q.simulationPrompts && q.simulationPrompts.length > 0) {
-          lines.push("", "**Steer the simulation:**");
-          for (const prompt of q.simulationPrompts) {
-            lines.push(`- ${prompt}`);
-          }
-        }
-        if (q.followUps.length > 0) {
-          lines.push("", "**Follow-ups:**");
-          for (const followUp of q.followUps) {
-            lines.push(`  → ${followUp}`);
-          }
-        }
-        if (q.lookingFor && q.lookingFor.length > 0) {
-          lines.push("", "**What to look for:**");
-          for (const item of q.lookingFor) {
-            lines.push(`- ${item}`);
-          }
-        }
-        lines.push("");
-      }
-    }
-  }
+  formatScenarioSections(
+    lines,
+    behaviourSections,
+    `${behaviourEmoji} Stakeholder Simulation`,
+    "simulationPrompts",
+    "Steer the simulation",
+  );
 
   return lines.join("\n");
 }

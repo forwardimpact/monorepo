@@ -15,6 +15,157 @@
 const ENRICH_PATTERN =
   /(<div[^>]+data-enrich="([^"]+)"[^>]*>)([\s\S]*?)(<\/div>)/g;
 
+/** @param {string} schemaType @param {object[]} items @param {number} [limit] */
+function toMentions(schemaType, items, limit) {
+  const sliced = limit !== undefined ? items.slice(0, limit) : items;
+  return sliced.map((item) => ({
+    type: schemaType,
+    name: item.name,
+    iri: item.iri,
+  }));
+}
+
+function enrichProject(linked, id) {
+  const proj = linked.projects.find((p) => p.id === id);
+  if (!proj) return null;
+  const mentions = [
+    ...toMentions("Drug", proj.drugLinks),
+    ...toMentions("SoftwareApplication", proj.platformLinks),
+    ...toMentions("Person", proj.members, 3),
+  ];
+  const narrative = {};
+  if (proj.milestones?.length) narrative.milestones = proj.milestones;
+  if (proj.risks?.length) narrative.risks = proj.risks;
+  if (proj.technical_choices?.length)
+    narrative.technical_choices = proj.technical_choices;
+  return {
+    entityType: "Project",
+    entityName: proj.name,
+    mentionTargets: mentions,
+    ...(Object.keys(narrative).length > 0 && { narrative }),
+  };
+}
+
+function enrichPlatform(linked, id) {
+  const plat = linked.platforms.find((p) => p.id === id);
+  if (!plat) return null;
+  const deps = plat.dependencies || [];
+  const depPlatforms = deps
+    .map((d) =>
+      linked.platforms.find((p) => p.id === (typeof d === "string" ? d : d.id)),
+    )
+    .filter(Boolean);
+  return {
+    entityType: "SoftwareApplication",
+    entityName: plat.name,
+    mentionTargets: [
+      ...toMentions("SoftwareApplication", depPlatforms),
+      ...toMentions("Project", plat.projectLinks || [], 2),
+      ...toMentions("Drug", plat.drugLinks || [], 2),
+    ],
+  };
+}
+
+function enrichDrug(linked, id) {
+  const drug = linked.drugs.find((d) => d.id === id);
+  if (!drug) return null;
+  const mentions = [
+    ...toMentions("Project", drug.projectLinks || [], 2),
+    ...toMentions("SoftwareApplication", drug.platformLinks || [], 2),
+  ];
+  if (drug.parentDrug) {
+    const parent = linked.drugs.find((d) => d.id === drug.parentDrug);
+    if (parent)
+      mentions.push({ type: "Drug", name: parent.name, iri: parent.iri });
+  }
+  return {
+    entityType: "Drug",
+    entityName: drug.name,
+    mentionTargets: mentions,
+  };
+}
+
+function enrichCourse(linked, id) {
+  const course = linked.courses.find((c) => c.id === id);
+  if (!course) return null;
+  const mentions = [
+    ...(course.platformLink
+      ? [
+          {
+            type: "SoftwareApplication",
+            name: course.platformLink.name,
+            iri: course.platformLink.iri,
+          },
+        ]
+      : []),
+    ...(course.drugLink
+      ? [{ type: "Drug", name: course.drugLink.name, iri: course.drugLink.iri }]
+      : []),
+    ...toMentions("Person", course.attendees, 2),
+  ];
+  return {
+    entityType: "Course",
+    entityName: course.title,
+    mentionTargets: mentions,
+  };
+}
+
+function enrichEvent(linked, id) {
+  const idx = parseInt(id, 10) - 1;
+  const event = linked.events[idx];
+  if (!event) return null;
+  return {
+    entityType: "Event",
+    entityName: event.title,
+    mentionTargets: [
+      { type: "Person", name: event.organizer.name, iri: event.organizer.iri },
+      ...toMentions("Project", event.aboutProjects, 2),
+      ...toMentions("Drug", event.aboutDrugs, 2),
+      ...toMentions("Person", event.attendees, 2),
+    ],
+  };
+}
+
+function enrichBlog(linked, id) {
+  const idx = parseInt(id, 10) - 1;
+  const post = linked.blogPosts[idx];
+  if (!post) return null;
+  return {
+    entityType: "BlogPosting",
+    entityName: post.headline,
+    mentionTargets: [
+      ...toMentions("Drug", post.aboutDrugs, 2),
+      ...toMentions("SoftwareApplication", post.aboutPlatforms, 2),
+      ...toMentions("Person", post.mentionsPeople, 3),
+    ],
+  };
+}
+
+function enrichArticle(linked, id) {
+  const article = linked.articles?.find((a) => a.topic === id);
+  if (!article) return null;
+  return {
+    entityType: "ScholarlyArticle",
+    entityName: article.title,
+    mentionTargets: [
+      ...toMentions("Drug", article.drugLinks || [], 2),
+      ...toMentions("SoftwareApplication", article.platformLinks || [], 2),
+      ...toMentions("Project", article.projectLinks || [], 2),
+      ...toMentions("Person", article.authorLinks || [], 2),
+    ],
+  };
+}
+
+const ENRICH_HANDLERS = {
+  project: enrichProject,
+  platform: enrichPlatform,
+  drug: enrichDrug,
+  course: enrichCourse,
+  event: enrichEvent,
+  blog: enrichBlog,
+  article: enrichArticle,
+};
+
 /**
  * Build entity context for enrichment from linked entities.
  * @param {string} enrichKey
@@ -24,201 +175,8 @@ const ENRICH_PATTERN =
 function buildEnrichContext(enrichKey, linked) {
   const [type, ...rest] = enrichKey.split("_");
   const id = rest.join("_");
-
-  switch (type) {
-    case "project": {
-      const proj = linked.projects.find((p) => p.id === id);
-      if (!proj) return null;
-      const mentions = [
-        ...proj.drugLinks.map((d) => ({
-          type: "Drug",
-          name: d.name,
-          iri: d.iri,
-        })),
-        ...proj.platformLinks.map((p) => ({
-          type: "SoftwareApplication",
-          name: p.name,
-          iri: p.iri,
-        })),
-        ...proj.members
-          .slice(0, 3)
-          .map((m) => ({ type: "Person", name: m.name, iri: m.iri })),
-      ];
-      const narrative = {};
-      if (proj.milestones?.length) narrative.milestones = proj.milestones;
-      if (proj.risks?.length) narrative.risks = proj.risks;
-      if (proj.technical_choices?.length)
-        narrative.technical_choices = proj.technical_choices;
-      return {
-        entityType: "Project",
-        entityName: proj.name,
-        mentionTargets: mentions,
-        ...(Object.keys(narrative).length > 0 && { narrative }),
-      };
-    }
-    case "platform": {
-      const plat = linked.platforms.find((p) => p.id === id);
-      if (!plat) return null;
-      const deps = plat.dependencies || [];
-      const depPlatforms = deps
-        .map((d) =>
-          linked.platforms.find(
-            (p) => p.id === (typeof d === "string" ? d : d.id),
-          ),
-        )
-        .filter(Boolean);
-      const mentions = [
-        ...depPlatforms.map((p) => ({
-          type: "SoftwareApplication",
-          name: p.name,
-          iri: p.iri,
-        })),
-        ...(plat.projectLinks || [])
-          .slice(0, 2)
-          .map((p) => ({ type: "Project", name: p.name, iri: p.iri })),
-        ...(plat.drugLinks || [])
-          .slice(0, 2)
-          .map((d) => ({ type: "Drug", name: d.name, iri: d.iri })),
-      ];
-      return {
-        entityType: "SoftwareApplication",
-        entityName: plat.name,
-        mentionTargets: mentions,
-      };
-    }
-    case "drug": {
-      const drug = linked.drugs.find((d) => d.id === id);
-      if (!drug) return null;
-      const mentions = [
-        ...(drug.projectLinks || [])
-          .slice(0, 2)
-          .map((p) => ({ type: "Project", name: p.name, iri: p.iri })),
-        ...(drug.platformLinks || []).slice(0, 2).map((p) => ({
-          type: "SoftwareApplication",
-          name: p.name,
-          iri: p.iri,
-        })),
-      ];
-      if (drug.parentDrug) {
-        const parent = linked.drugs.find((d) => d.id === drug.parentDrug);
-        if (parent)
-          mentions.push({ type: "Drug", name: parent.name, iri: parent.iri });
-      }
-      return {
-        entityType: "Drug",
-        entityName: drug.name,
-        mentionTargets: mentions,
-      };
-    }
-    case "course": {
-      const course = linked.courses.find((c) => c.id === id);
-      if (!course) return null;
-      const mentions = [
-        ...(course.platformLink
-          ? [
-              {
-                type: "SoftwareApplication",
-                name: course.platformLink.name,
-                iri: course.platformLink.iri,
-              },
-            ]
-          : []),
-        ...(course.drugLink
-          ? [
-              {
-                type: "Drug",
-                name: course.drugLink.name,
-                iri: course.drugLink.iri,
-              },
-            ]
-          : []),
-        ...course.attendees
-          .slice(0, 2)
-          .map((a) => ({ type: "Person", name: a.name, iri: a.iri })),
-      ];
-      return {
-        entityType: "Course",
-        entityName: course.title,
-        mentionTargets: mentions,
-      };
-    }
-    case "event": {
-      const idx = parseInt(id, 10) - 1;
-      const event = linked.events[idx];
-      if (!event) return null;
-      const mentions = [
-        {
-          type: "Person",
-          name: event.organizer.name,
-          iri: event.organizer.iri,
-        },
-        ...event.aboutProjects
-          .slice(0, 2)
-          .map((p) => ({ type: "Project", name: p.name, iri: p.iri })),
-        ...event.aboutDrugs
-          .slice(0, 2)
-          .map((d) => ({ type: "Drug", name: d.name, iri: d.iri })),
-        ...event.attendees
-          .slice(0, 2)
-          .map((a) => ({ type: "Person", name: a.name, iri: a.iri })),
-      ];
-      return {
-        entityType: "Event",
-        entityName: event.title,
-        mentionTargets: mentions,
-      };
-    }
-    case "blog": {
-      const idx = parseInt(id, 10) - 1;
-      const post = linked.blogPosts[idx];
-      if (!post) return null;
-      const mentions = [
-        ...post.aboutDrugs
-          .slice(0, 2)
-          .map((d) => ({ type: "Drug", name: d.name, iri: d.iri })),
-        ...post.aboutPlatforms.slice(0, 2).map((p) => ({
-          type: "SoftwareApplication",
-          name: p.name,
-          iri: p.iri,
-        })),
-        ...post.mentionsPeople
-          .slice(0, 3)
-          .map((p) => ({ type: "Person", name: p.name, iri: p.iri })),
-      ];
-      return {
-        entityType: "BlogPosting",
-        entityName: post.headline,
-        mentionTargets: mentions,
-      };
-    }
-    case "article": {
-      const article = linked.articles?.find((a) => a.topic === id);
-      if (!article) return null;
-      const mentions = [
-        ...(article.drugLinks || [])
-          .slice(0, 2)
-          .map((d) => ({ type: "Drug", name: d.name, iri: d.iri })),
-        ...(article.platformLinks || []).slice(0, 2).map((p) => ({
-          type: "SoftwareApplication",
-          name: p.name,
-          iri: p.iri,
-        })),
-        ...(article.projectLinks || [])
-          .slice(0, 2)
-          .map((p) => ({ type: "Project", name: p.name, iri: p.iri })),
-        ...(article.authorLinks || [])
-          .slice(0, 2)
-          .map((a) => ({ type: "Person", name: a.name, iri: a.iri })),
-      ];
-      return {
-        entityType: "ScholarlyArticle",
-        entityName: article.title,
-        mentionTargets: mentions,
-      };
-    }
-    default:
-      return null;
-  }
+  const handler = ENRICH_HANDLERS[type];
+  return handler ? handler(linked, id) : null;
 }
 
 /**

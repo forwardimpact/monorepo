@@ -5,6 +5,27 @@
  */
 
 import { PROFICIENCY_LEVELS } from "@forwardimpact/libsyntheticgen/vocabulary.js";
+import {
+  checkWebhookPayloadSchemas,
+  checkWebhookDeliveryIds,
+  checkWebhookSenderUsernames,
+  checkGetDXTeamsResponse,
+  checkGetDXSnapshotsListResponse,
+  checkGetDXSnapshotsInfoResponses,
+  checkSnapshotScoreDriverIds,
+  checkScoreTrajectories,
+  checkEvidenceProficiency,
+  checkEvidenceSkillIds,
+  checkInitiativeScorecardRefs,
+  checkInitiativeOwnerEmails,
+  checkInitiativeDriverRefs,
+  checkCommentSnapshotRefs,
+  checkCommentEmailRefs,
+  checkCommentTeamRefs,
+  checkScorecardCheckIds,
+  checkRosterSnapshotQuarters,
+  checkProjectTeamEmails,
+} from "./validate-activity.js";
 
 /**
  * Validate cross-content integrity of generated entities.
@@ -67,32 +88,9 @@ function checkPeopleCoverage(entities) {
   };
 }
 
-function checkPathwayValidity(entities) {
-  const fw = entities.framework;
-  const hasFramework = fw && fw.proficiencies && fw.proficiencies.length > 0;
-
-  // Check for extended pathway structure (capabilities as objects with skills)
-  const hasPathwayEntities =
-    fw?.capabilities?.length > 0 && typeof fw.capabilities[0] === "object";
-
-  if (!hasPathwayEntities) {
-    // Legacy flat-array format — just check proficiencies exist
-    return {
-      name: "pathway_validity",
-      passed: !!hasFramework,
-      message: hasFramework
-        ? "Framework config present with proficiencies"
-        : "Missing framework configuration or proficiencies",
-    };
-  }
-
-  // Extended pathway — validate cross-references
+function validateDisciplineSkills(disciplines, skillIds) {
   const errors = [];
-  const skillIds = new Set(fw.capabilities.flatMap((c) => c.skills || []));
-  const behaviourIds = new Set(fw.behaviours.map((b) => b.id));
-
-  // Check discipline skill references
-  for (const disc of fw.disciplines || []) {
+  for (const disc of disciplines || []) {
     for (const skillId of [
       ...(disc.core || []),
       ...(disc.supporting || []),
@@ -105,9 +103,12 @@ function checkPathwayValidity(entities) {
       }
     }
   }
+  return errors;
+}
 
-  // Check driver skill/behaviour references
-  for (const driver of fw.drivers || []) {
+function validateDriverRefs(drivers, skillIds, behaviourIds) {
+  const errors = [];
+  for (const driver of drivers || []) {
     for (const skillId of driver.skills || []) {
       if (!skillIds.has(skillId)) {
         errors.push(
@@ -123,6 +124,31 @@ function checkPathwayValidity(entities) {
       }
     }
   }
+  return errors;
+}
+
+function checkPathwayValidity(entities) {
+  const fw = entities.framework;
+  const hasFramework = fw && fw.proficiencies && fw.proficiencies.length > 0;
+  const hasPathwayEntities =
+    fw?.capabilities?.length > 0 && typeof fw.capabilities[0] === "object";
+
+  if (!hasPathwayEntities) {
+    return {
+      name: "pathway_validity",
+      passed: !!hasFramework,
+      message: hasFramework
+        ? "Framework config present with proficiencies"
+        : "Missing framework configuration or proficiencies",
+    };
+  }
+
+  const skillIds = new Set(fw.capabilities.flatMap((c) => c.skills || []));
+  const behaviourIds = new Set(fw.behaviours.map((b) => b.id));
+  const errors = [
+    ...validateDisciplineSkills(fw.disciplines, skillIds),
+    ...validateDriverRefs(fw.drivers, skillIds, behaviourIds),
+  ];
 
   return {
     name: "pathway_validity",
@@ -193,309 +219,6 @@ function checkGithubUsernames(entities) {
   };
 }
 
-function checkWebhookPayloadSchemas(entities) {
-  const webhooks = entities.activity?.webhooks || [];
-  const invalid = webhooks.filter(
-    (w) =>
-      !w.delivery_id ||
-      !w.event_type ||
-      !w.payload?.repository ||
-      !w.payload?.sender,
-  );
-  return {
-    name: "webhook_payload_schemas",
-    passed: invalid.length === 0,
-    message:
-      invalid.length === 0
-        ? `All ${webhooks.length} webhooks have valid schemas`
-        : `${invalid.length} webhooks missing required fields`,
-  };
-}
-
-function checkWebhookDeliveryIds(entities) {
-  const webhooks = entities.activity?.webhooks || [];
-  const ids = webhooks.map((w) => w.delivery_id);
-  const unique = new Set(ids);
-  return {
-    name: "webhook_delivery_ids",
-    passed: unique.size === ids.length,
-    message:
-      unique.size === ids.length
-        ? "All webhook delivery IDs are unique"
-        : `${ids.length - unique.size} duplicate webhook delivery IDs`,
-  };
-}
-
-function checkWebhookSenderUsernames(entities) {
-  const webhooks = entities.activity?.webhooks || [];
-  const knownUsernames = new Set(entities.people.map((p) => p.github));
-  const unknown = webhooks.filter(
-    (w) =>
-      w.payload?.sender?.login && !knownUsernames.has(w.payload.sender.login),
-  );
-  return {
-    name: "webhook_sender_usernames",
-    passed: unknown.length === 0,
-    message:
-      unknown.length === 0
-        ? "All webhook senders are known users"
-        : `${unknown.length} webhooks from unknown senders`,
-  };
-}
-
-function checkGetDXTeamsResponse(entities) {
-  const teams = entities.activity?.activityTeams || [];
-  const hasRequired = teams.every((t) => t.getdx_team_id && t.name);
-  return {
-    name: "getdx_teams_response",
-    passed: hasRequired && teams.length > 0,
-    message:
-      hasRequired && teams.length > 0
-        ? `${teams.length} GetDX teams with valid structure`
-        : "GetDX teams response missing or invalid",
-  };
-}
-
-function checkGetDXSnapshotsListResponse(entities) {
-  const snapshots = entities.activity?.snapshots || [];
-  const hasRequired = snapshots.every(
-    (s) => s.snapshot_id && s.scheduled_for && s.completed_at,
-  );
-  return {
-    name: "getdx_snapshots_list_response",
-    passed: hasRequired && snapshots.length > 0,
-    message:
-      hasRequired && snapshots.length > 0
-        ? `${snapshots.length} snapshots with valid structure`
-        : "GetDX snapshots list response missing or invalid",
-  };
-}
-
-function checkGetDXSnapshotsInfoResponses(entities) {
-  const scores = entities.activity?.scores || [];
-  const hasRequired = scores.every(
-    (s) =>
-      s.snapshot_id &&
-      s.getdx_team_id &&
-      s.item_id &&
-      typeof s.score === "number",
-  );
-  return {
-    name: "getdx_snapshots_info_responses",
-    passed: hasRequired && scores.length > 0,
-    message:
-      hasRequired && scores.length > 0
-        ? `${scores.length} snapshot scores with valid structure`
-        : "GetDX snapshot scores missing or invalid",
-  };
-}
-
-function checkSnapshotScoreDriverIds(entities) {
-  const scores = entities.activity?.scores || [];
-  const validDrivers = new Set(
-    (entities.framework?.drivers || []).map((d) => d.id),
-  );
-  const invalid = scores.filter((s) => !validDrivers.has(s.item_id));
-  return {
-    name: "snapshot_score_driver_ids",
-    passed: invalid.length === 0,
-    message:
-      invalid.length === 0
-        ? "All score driver IDs are valid"
-        : `${invalid.length} scores with unknown driver IDs`,
-  };
-}
-
-function checkScoreTrajectories(entities) {
-  const scores = entities.activity?.scores || [];
-  const outOfRange = scores.filter((s) => s.score < 0 || s.score > 100);
-  return {
-    name: "score_trajectories",
-    passed: outOfRange.length === 0,
-    message:
-      outOfRange.length === 0
-        ? "All scores within 0–100 range"
-        : `${outOfRange.length} scores out of 0–100 range`,
-  };
-}
-
-function checkEvidenceProficiency(entities) {
-  const evidence = entities.activity?.evidence || [];
-  const VALID_PROFICIENCIES = new Set(PROFICIENCY_LEVELS);
-  const invalid = evidence.filter(
-    (e) => e.proficiency && !VALID_PROFICIENCIES.has(e.proficiency),
-  );
-  return {
-    name: "evidence_proficiency",
-    passed: invalid.length === 0,
-    message:
-      invalid.length === 0
-        ? "All evidence proficiency levels are valid"
-        : `${invalid.length} evidence entries with invalid proficiency`,
-  };
-}
-
-function checkEvidenceSkillIds(entities) {
-  const evidence = entities.activity?.evidence || [];
-  const hasIds = evidence.every((e) => e.skill_id);
-  return {
-    name: "evidence_skill_ids",
-    passed: hasIds || evidence.length === 0,
-    message:
-      hasIds || evidence.length === 0
-        ? "All evidence entries have skill IDs"
-        : "Some evidence entries missing skill IDs",
-  };
-}
-
-function checkInitiativeScorecardRefs(entities) {
-  const initiatives = entities.activity?.initiatives || [];
-  const scorecardIds = new Set(
-    (entities.activity?.scorecards || []).map((s) => s.id),
-  );
-  const invalid = initiatives.filter(
-    (i) => i.scorecard_id && !scorecardIds.has(i.scorecard_id),
-  );
-  return {
-    name: "initiative_scorecard_refs",
-    passed: invalid.length === 0,
-    message:
-      invalid.length === 0
-        ? "All initiative scorecard references are valid"
-        : `${invalid.length} initiatives reference unknown scorecards`,
-  };
-}
-
-function checkInitiativeOwnerEmails(entities) {
-  const initiatives = entities.activity?.initiatives || [];
-  const emails = new Set(entities.people.map((p) => p.email));
-  const invalid = initiatives.filter(
-    (i) => i.owner?.email && !emails.has(i.owner.email),
-  );
-  return {
-    name: "initiative_owner_emails",
-    passed: invalid.length === 0,
-    message:
-      invalid.length === 0
-        ? "All initiative owners are known people"
-        : `${invalid.length} initiatives with unknown owner emails`,
-  };
-}
-
-function checkInitiativeDriverRefs(entities) {
-  const initiatives = entities.activity?.initiatives || [];
-  const driverIds = new Set(
-    (entities.framework?.drivers || []).map((d) => d.id),
-  );
-  const invalid = initiatives.filter(
-    (i) => i._driver_id && !driverIds.has(i._driver_id),
-  );
-  return {
-    name: "initiative_driver_refs",
-    passed: invalid.length === 0,
-    message:
-      invalid.length === 0
-        ? "All initiative driver references are valid"
-        : `${invalid.length} initiatives reference unknown drivers`,
-  };
-}
-
-function checkCommentSnapshotRefs(entities) {
-  const comments = entities.activity?.commentKeys || [];
-  const snapshotIds = new Set(
-    (entities.activity?.snapshots || []).map((s) => s.snapshot_id),
-  );
-  const invalid = comments.filter(
-    (c) => c.snapshot_id && !snapshotIds.has(c.snapshot_id),
-  );
-  return {
-    name: "comment_snapshot_refs",
-    passed: invalid.length === 0,
-    message:
-      invalid.length === 0
-        ? "All comment snapshot references are valid"
-        : `${invalid.length} comments reference unknown snapshots`,
-  };
-}
-
-function checkCommentEmailRefs(entities) {
-  const comments = entities.activity?.commentKeys || [];
-  const emails = new Set(entities.people.map((p) => p.email));
-  const invalid = comments.filter((c) => c.email && !emails.has(c.email));
-  return {
-    name: "comment_email_refs",
-    passed: invalid.length === 0,
-    message:
-      invalid.length === 0
-        ? "All comment respondent emails are known people"
-        : `${invalid.length} comments from unknown emails`,
-  };
-}
-
-function checkCommentTeamRefs(entities) {
-  const comments = entities.activity?.commentKeys || [];
-  const teamIds = new Set(entities.teams.map((t) => t.id));
-  const invalid = comments.filter((c) => c.team_id && !teamIds.has(c.team_id));
-  return {
-    name: "comment_team_refs",
-    passed: invalid.length === 0,
-    message:
-      invalid.length === 0
-        ? "All comment team references are valid"
-        : `${invalid.length} comments reference unknown teams`,
-  };
-}
-
-function checkScorecardCheckIds(entities) {
-  const scorecards = entities.activity?.scorecards || [];
-  const allCheckIds = scorecards.flatMap((s) =>
-    (s.checks || []).map((c) => c.id),
-  );
-  const unique = new Set(allCheckIds);
-  return {
-    name: "scorecard_check_ids",
-    passed: unique.size === allCheckIds.length,
-    message:
-      unique.size === allCheckIds.length
-        ? "All scorecard check IDs are unique"
-        : `${allCheckIds.length - unique.size} duplicate scorecard check IDs`,
-  };
-}
-
-function checkRosterSnapshotQuarters(entities) {
-  const rosterSnapshots = entities.activity?.rosterSnapshots || [];
-  const snapshotIds = new Set(
-    (entities.activity?.snapshots || []).map((s) => s.snapshot_id),
-  );
-  const invalid = rosterSnapshots.filter(
-    (rs) => rs.snapshot_id && !snapshotIds.has(rs.snapshot_id),
-  );
-  return {
-    name: "roster_snapshot_quarters",
-    passed: invalid.length === 0,
-    message:
-      invalid.length === 0
-        ? "All roster snapshots align with survey snapshots"
-        : `${invalid.length} roster snapshots without matching survey snapshots`,
-  };
-}
-
-function checkProjectTeamEmails(entities) {
-  const projectTeams = entities.activity?.projectTeams || [];
-  const emails = new Set(entities.people.map((p) => p.email));
-  const invalid = projectTeams.flatMap((pt) =>
-    pt.members.filter((m) => m.email && !emails.has(m.email)),
-  );
-  return {
-    name: "project_team_emails",
-    passed: invalid.length === 0,
-    message:
-      invalid.length === 0
-        ? "All project team member emails are known people"
-        : `${invalid.length} project team members with unknown emails`,
-  };
-}
-
 // ─── E1: Prose length validation ────────────────
 
 const PROSE_RANGES = {
@@ -504,44 +227,32 @@ const PROSE_RANGES = {
   maturityDescription: { min: 20, max: 500 },
 };
 
+function validateDescriptionLengths(items, label) {
+  const errors = [];
+  for (const item of items || []) {
+    if (typeof item !== "object" || !item.description) continue;
+    const len = item.description.length;
+    if (
+      len < PROSE_RANGES.description.min ||
+      len > PROSE_RANGES.description.max
+    ) {
+      errors.push(
+        `${label} '${item.id || item.name}' description: ${len} chars`,
+      );
+    }
+  }
+  return errors;
+}
+
 function checkProseLength(entities) {
   const fw = entities.framework;
   if (!fw)
     return { name: "prose_length", passed: true, message: "No framework data" };
 
-  const errors = [];
-
-  // Check capabilities for description and proficiency descriptions
-  for (const cap of fw.capabilities || []) {
-    if (typeof cap !== "object") continue;
-    if (cap.description) {
-      const len = cap.description.length;
-      if (
-        len < PROSE_RANGES.description.min ||
-        len > PROSE_RANGES.description.max
-      ) {
-        errors.push(
-          `Capability '${cap.id || cap.name}' description: ${len} chars`,
-        );
-      }
-    }
-  }
-
-  // Check behaviours for description
-  for (const beh of fw.behaviours || []) {
-    if (typeof beh !== "object") continue;
-    if (beh.description) {
-      const len = beh.description.length;
-      if (
-        len < PROSE_RANGES.description.min ||
-        len > PROSE_RANGES.description.max
-      ) {
-        errors.push(
-          `Behaviour '${beh.id || beh.name}' description: ${len} chars`,
-        );
-      }
-    }
-  }
+  const errors = [
+    ...validateDescriptionLengths(fw.capabilities, "Capability"),
+    ...validateDescriptionLengths(fw.behaviours, "Behaviour"),
+  ];
 
   return {
     name: "prose_length",
@@ -556,6 +267,39 @@ function checkProseLength(entities) {
 // ─── E2: Proficiency monotonicity ──────────────
 
 const PROF_INDEX = Object.fromEntries(PROFICIENCY_LEVELS.map((p, i) => [p, i]));
+
+function collectAllSkillIds(levels, levelIds) {
+  const skillIds = new Set();
+  for (const levelId of levelIds) {
+    const baselines =
+      levels[levelId]?.baselines || levels[levelId]?.skillBaselines || {};
+    for (const skillId of Object.keys(baselines)) {
+      skillIds.add(skillId);
+    }
+  }
+  return skillIds;
+}
+
+function getBaselines(levels, levelId) {
+  return levels[levelId]?.baselines || levels[levelId]?.skillBaselines || {};
+}
+
+function findMonotonicityViolations(levels, levelIds, skillIds) {
+  const violations = [];
+  for (const skillId of skillIds) {
+    let prevIdx = -1;
+    for (const levelId of levelIds) {
+      const prof = getBaselines(levels, levelId)[skillId];
+      if (!prof || PROF_INDEX[prof] === undefined) continue;
+      const idx = PROF_INDEX[prof];
+      if (idx < prevIdx) {
+        violations.push(`Skill '${skillId}' decreases at level '${levelId}'`);
+      }
+      prevIdx = idx;
+    }
+  }
+  return violations;
+}
 
 function checkProficiencyMonotonicity(entities) {
   const pathway = entities.pathway;
@@ -577,31 +321,8 @@ function checkProficiencyMonotonicity(entities) {
     };
   }
 
-  const violations = [];
-  // For each skill, check that proficiency is non-decreasing across levels
-  const skillIds = new Set();
-  for (const levelId of levelIds) {
-    const baselines =
-      levels[levelId]?.baselines || levels[levelId]?.skillBaselines || {};
-    for (const skillId of Object.keys(baselines)) {
-      skillIds.add(skillId);
-    }
-  }
-
-  for (const skillId of skillIds) {
-    let prevIdx = -1;
-    for (const levelId of levelIds) {
-      const baselines =
-        levels[levelId]?.baselines || levels[levelId]?.skillBaselines || {};
-      const prof = baselines[skillId];
-      if (!prof || PROF_INDEX[prof] === undefined) continue;
-      const idx = PROF_INDEX[prof];
-      if (idx < prevIdx) {
-        violations.push(`Skill '${skillId}' decreases at level '${levelId}'`);
-      }
-      prevIdx = idx;
-    }
-  }
+  const skillIds = collectAllSkillIds(levels, levelIds);
+  const violations = findMonotonicityViolations(levels, levelIds, skillIds);
 
   return {
     name: "proficiency_monotonicity",

@@ -13,9 +13,7 @@ export {
   deriveBehaviourMaturity,
   deriveSkillMatrix,
   deriveBehaviourProfile,
-  isValidJobCombination,
   generateJobTitle,
-  deriveResponsibilities,
   deriveJob,
   calculateDriverCoverage,
   getDisciplineSkillIds,
@@ -23,6 +21,9 @@ export {
   isSeniorLevel,
   generateAllJobs,
 } from "./derivation.js";
+
+export { isValidJobCombination } from "./derivation-validation.js";
+export { deriveResponsibilities } from "./derivation-responsibilities.js";
 
 // Job operations
 export {
@@ -62,10 +63,14 @@ export {
   findMatchingJobs,
   estimateBestFitLevel,
   findRealisticMatches,
+} from "./matching.js";
+
+// Development path and candidate analysis
+export {
   deriveDevelopmentPath,
   findNextStepJob,
   analyzeCandidate,
-} from "./matching.js";
+} from "./matching-development.js";
 
 // Progression
 export {
@@ -87,10 +92,13 @@ export {
   deriveShortInterview,
   deriveBehaviourQuestions,
   deriveFocusedInterview,
+} from "./interview.js";
+
+export {
   deriveMissionFitInterview,
   deriveDecompositionInterview,
   deriveStakeholderInterview,
-} from "./interview.js";
+} from "./interview-specialized.js";
 
 // Agent generation
 export {
@@ -100,14 +108,20 @@ export {
   deriveAgentSkills,
   deriveAgentBehaviours,
   generateSkillMarkdown,
+  deriveStageTransitions,
+} from "./agent.js";
+
+export {
   validateAgentProfile,
   validateAgentSkill,
-  deriveStageTransitions,
+} from "./agent-validation.js";
+
+export {
   deriveStageAgent,
   generateStageAgentProfile,
   buildAgentIndex,
   interpolateTeamInstructions,
-} from "./agent.js";
+} from "./agent-stage.js";
 
 // Checklists
 export { deriveChecklist, formatChecklistMarkdown } from "./checklist.js";

@@ -152,6 +152,7 @@ function getUtcOffset(dt, tzName) {
     const tzPart = parts.find((p) => p.type === "timeZoneName");
     if (tzPart) {
       // "GMT+2" → "+02:00", "GMT-5:30" → "-05:30", "GMT" → "+00:00"
+      // eslint-disable-next-line security/detect-unsafe-regex -- fixed pattern matching trusted Intl API output; no backtracking risk
       const match = tzPart.value.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
       if (match) {
         const sign = match[1];
@@ -168,6 +169,129 @@ function getUtcOffset(dt, tzName) {
 }
 
 // --- Main ---
+
+function fetchEvents(db, startTs, endTs) {
+  return query(
+    db,
+    `
+    SELECT
+      ci.ROWID AS id,
+      ci.summary,
+      ci.start_date,
+      ci.end_date,
+      ci.start_tz,
+      ci.end_tz,
+      ci.all_day,
+      ci.description,
+      ci.has_attendees,
+      ci.conference_url,
+      loc.title AS location,
+      cal.title AS calendar_name,
+      org.address AS organizer_email,
+      org.display_name AS organizer_name
+    FROM CalendarItem ci
+    LEFT JOIN Location loc ON loc.ROWID = ci.location_id
+    LEFT JOIN Calendar cal ON cal.ROWID = ci.calendar_id
+    LEFT JOIN Identity org ON org.ROWID = ci.organizer_id
+    WHERE ci.start_date <= ${endTs}
+      AND COALESCE(ci.end_date, ci.start_date) >= ${startTs}
+      AND ci.summary IS NOT NULL
+      AND ci.summary != ''
+    ORDER BY ci.start_date ASC
+    LIMIT 1000;
+  `,
+  );
+}
+
+function fetchAttendeesByEvent(db, eventIds) {
+  const attendeesByEvent = {};
+  if (eventIds.length === 0) return attendeesByEvent;
+  const idList = eventIds.join(",");
+  const attendeesRaw = query(
+    db,
+    `
+    SELECT p.owner_id, p.email, p.status, p.role, p.is_self, p.entity_type, i.display_name
+    FROM Participant p
+    LEFT JOIN Identity i ON i.ROWID = p.identity_id
+    WHERE p.owner_id IN (${idList}) AND p.entity_type = 7;
+  `,
+  );
+  for (const a of attendeesRaw) {
+    attendeesByEvent[a.owner_id] ??= [];
+    attendeesByEvent[a.owner_id].push(a);
+  }
+  return attendeesByEvent;
+}
+
+function buildAttendeeList(rawAttendees) {
+  const attendees = [];
+  for (const a of rawAttendees) {
+    if (!a.email) continue;
+    attendees.push({
+      email: a.email,
+      name: (a.display_name ?? "").trim() || null,
+      status: STATUS_MAP[a.status] ?? "unknown",
+      role: ROLE_MAP[a.role] ?? "unknown",
+      self: Boolean(a.is_self),
+    });
+  }
+  return attendees.length > 0 ? attendees : null;
+}
+
+function buildOrganizer(ev) {
+  let orgEmail = ev.organizer_email ?? null;
+  if (orgEmail?.startsWith("mailto:")) orgEmail = orgEmail.slice(7);
+  if (!orgEmail) return null;
+  return { email: orgEmail, name: (ev.organizer_name ?? "").trim() || null };
+}
+
+function tzOrNull(tz) {
+  return tz !== "_float" ? tz : null;
+}
+
+function buildEventJson(ev, attendeesByEvent) {
+  return {
+    id: `apple_cal_${ev.id}`,
+    summary: ev.summary,
+    start: {
+      dateTime: coredataToIso(ev.start_date, ev.start_tz),
+      timeZone: tzOrNull(ev.start_tz),
+    },
+    end: {
+      dateTime: coredataToIso(ev.end_date ?? ev.start_date, ev.end_tz),
+      timeZone: tzOrNull(ev.end_tz),
+    },
+    allDay: Boolean(ev.all_day),
+    location: ev.location || null,
+    description: ev.description || null,
+    conferenceUrl: ev.conference_url || null,
+    calendar: ev.calendar_name || null,
+    organizer: buildOrganizer(ev),
+    attendees: buildAttendeeList(attendeesByEvent[ev.id] ?? []),
+  };
+}
+
+function writeEventFiles(events, attendeesByEvent) {
+  const writtenIds = new Set();
+  for (const ev of events) {
+    const eventJson = buildEventJson(ev, attendeesByEvent);
+    const filename = `${ev.id}.json`;
+    writeFileSync(join(OUTDIR, filename), JSON.stringify(eventJson, null, 2));
+    writtenIds.add(filename);
+  }
+  return writtenIds;
+}
+
+function cleanupStaleFiles(writtenIds) {
+  let removed = 0;
+  for (const fname of readdirSync(OUTDIR)) {
+    if (fname.endsWith(".json") && !writtenIds.has(fname)) {
+      unlinkSync(join(OUTDIR, fname));
+      removed++;
+    }
+  }
+  return removed;
+}
 
 function main() {
   let daysBack = 30;
@@ -188,127 +312,11 @@ function main() {
   const db = openDb(dbPath);
 
   try {
-    // Fetch events with a single query
-    const events = query(
-      db,
-      `
-      SELECT
-        ci.ROWID AS id,
-        ci.summary,
-        ci.start_date,
-        ci.end_date,
-        ci.start_tz,
-        ci.end_tz,
-        ci.all_day,
-        ci.description,
-        ci.has_attendees,
-        ci.conference_url,
-        loc.title AS location,
-        cal.title AS calendar_name,
-        org.address AS organizer_email,
-        org.display_name AS organizer_name
-      FROM CalendarItem ci
-      LEFT JOIN Location loc ON loc.ROWID = ci.location_id
-      LEFT JOIN Calendar cal ON cal.ROWID = ci.calendar_id
-      LEFT JOIN Identity org ON org.ROWID = ci.organizer_id
-      WHERE ci.start_date <= ${endTs}
-        AND COALESCE(ci.end_date, ci.start_date) >= ${startTs}
-        AND ci.summary IS NOT NULL
-        AND ci.summary != ''
-      ORDER BY ci.start_date ASC
-      LIMIT 1000;
-    `,
-    );
-
-    // Collect event IDs for batch attendee query
+    const events = fetchEvents(db, startTs, endTs);
     const eventIds = events.map((ev) => String(ev.id));
-
-    // Batch-fetch all attendees in one query
-    const attendeesByEvent = {};
-    if (eventIds.length > 0) {
-      const idList = eventIds.join(",");
-      const attendeesRaw = query(
-        db,
-        `
-        SELECT
-          p.owner_id,
-          p.email,
-          p.status,
-          p.role,
-          p.is_self,
-          p.entity_type,
-          i.display_name
-        FROM Participant p
-        LEFT JOIN Identity i ON i.ROWID = p.identity_id
-        WHERE p.owner_id IN (${idList})
-          AND p.entity_type = 7;
-      `,
-      );
-      for (const a of attendeesRaw) {
-        attendeesByEvent[a.owner_id] ??= [];
-        attendeesByEvent[a.owner_id].push(a);
-      }
-    }
-
-    // Write event JSON files
-    const writtenIds = new Set();
-    for (const ev of events) {
-      const eid = ev.id;
-
-      // Organizer — strip mailto: prefix
-      let orgEmail = ev.organizer_email ?? null;
-      if (orgEmail?.startsWith("mailto:")) orgEmail = orgEmail.slice(7);
-
-      // Attendees
-      const attendees = [];
-      for (const a of attendeesByEvent[eid] ?? []) {
-        if (!a.email) continue;
-        attendees.push({
-          email: a.email,
-          name: (a.display_name ?? "").trim() || null,
-          status: STATUS_MAP[a.status] ?? "unknown",
-          role: ROLE_MAP[a.role] ?? "unknown",
-          self: Boolean(a.is_self),
-        });
-      }
-
-      const isAllDay = Boolean(ev.all_day);
-
-      const eventJson = {
-        id: `apple_cal_${eid}`,
-        summary: ev.summary,
-        start: {
-          dateTime: coredataToIso(ev.start_date, ev.start_tz),
-          timeZone: ev.start_tz !== "_float" ? ev.start_tz : null,
-        },
-        end: {
-          dateTime: coredataToIso(ev.end_date ?? ev.start_date, ev.end_tz),
-          timeZone: ev.end_tz !== "_float" ? ev.end_tz : null,
-        },
-        allDay: isAllDay,
-        location: ev.location || null,
-        description: ev.description || null,
-        conferenceUrl: ev.conference_url || null,
-        calendar: ev.calendar_name || null,
-        organizer: orgEmail
-          ? { email: orgEmail, name: (ev.organizer_name ?? "").trim() || null }
-          : null,
-        attendees: attendees.length > 0 ? attendees : null,
-      };
-
-      const filename = `${eid}.json`;
-      writeFileSync(join(OUTDIR, filename), JSON.stringify(eventJson, null, 2));
-      writtenIds.add(filename);
-    }
-
-    // Clean up events outside the window
-    let removed = 0;
-    for (const fname of readdirSync(OUTDIR)) {
-      if (fname.endsWith(".json") && !writtenIds.has(fname)) {
-        unlinkSync(join(OUTDIR, fname));
-        removed++;
-      }
-    }
+    const attendeesByEvent = fetchAttendeesByEvent(db, eventIds);
+    const writtenIds = writeEventFiles(events, attendeesByEvent);
+    const removed = cleanupStaleFiles(writtenIds);
 
     console.log("Apple Calendar Sync Complete");
     console.log(`Events synced: ${writtenIds.size}`);

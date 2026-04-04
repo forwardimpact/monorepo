@@ -13,6 +13,15 @@ export default [
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
       "no-console": "off",
+      "max-lines": [
+        "error",
+        { max: 400, skipBlankLines: true, skipComments: true },
+      ],
+      complexity: ["error", 15],
+      "security/detect-object-injection": "off",
+      "security/detect-non-literal-fs-filename": "off",
+      "security/detect-unsafe-regex": "error",
+      "security/detect-non-literal-regexp": "error",
     },
     languageOptions: {
       ecmaVersion: 2022,

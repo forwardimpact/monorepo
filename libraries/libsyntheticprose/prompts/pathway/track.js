@@ -1,4 +1,5 @@
 import { buildPreamble } from "./preamble.js";
+import { buildPriorContextLines } from "./prior-context.js";
 
 /**
  * Prompt template for a single track entity.
@@ -50,40 +51,7 @@ export function buildTrackPrompt(skeleton, ctx, schema, priorOutput) {
       "- agent.priority: 1 sentence stating the track-specific priority.",
       "- agent.constraints: 1-2 additional constraints specific to this track.",
       "",
-      ...(priorOutput?.levels ||
-      priorOutput?.behaviours ||
-      priorOutput?.capabilities
-        ? [
-            "",
-            "## Previously generated context",
-            ...(priorOutput.levels && Array.isArray(priorOutput.levels)
-              ? [
-                  "Level titles:",
-                  ...priorOutput.levels.map(
-                    (l) => `- ${l.id}: ${l.professionalTitle || l.id}`,
-                  ),
-                ]
-              : []),
-            ...(priorOutput.behaviours && Array.isArray(priorOutput.behaviours)
-              ? [
-                  "Behaviour names:",
-                  ...priorOutput.behaviours.map(
-                    (b) => `- ${b._id || b.id}: ${b.name || b._id || b.id}`,
-                  ),
-                ]
-              : []),
-            ...(priorOutput.capabilities &&
-            Array.isArray(priorOutput.capabilities)
-              ? [
-                  "Capability names and skill IDs:",
-                  ...priorOutput.capabilities.map(
-                    (c) =>
-                      `- ${c._id || c.id}: ${c.name || c._id || c.id} (skills: ${(c.skills || []).map((s) => s.id || s).join(", ")})`,
-                  ),
-                ]
-              : []),
-          ]
-        : []),
+      ...buildPriorContextLines(priorOutput),
       "",
       "Output a single JSON object for this track.",
     ].join("\n"),

@@ -7,11 +7,6 @@ import { render, div, h1, h2, p, a, label, section } from "../lib/render.js";
 import { getState } from "../lib/state.js";
 import { createBackLink } from "../components/nav.js";
 import { createStatCard } from "../components/card.js";
-import {
-  createComparisonSkillRadar,
-  createComparisonBehaviourRadar,
-} from "../components/comparison-radar.js";
-import { createProgressionTable } from "../components/progression-table.js";
 import { renderError } from "../components/error-page.js";
 import {
   createSelectWithValue,
@@ -23,6 +18,7 @@ import {
   getDefaultTargetLevel,
   isValidCombination,
 } from "../formatters/progress/shared.js";
+import { buildComparisonResult } from "./progress-comparison.js";
 
 /**
  * Render career progress detail page
@@ -223,10 +219,8 @@ function createComparisonSelectorsSection({
    * Update the comparison results based on current selections
    */
   function updateComparison() {
-    // Clear previous results
     comparisonResultsContainer.innerHTML = "";
 
-    // Track can be empty string for generalist, but discipline and level are required
     if (!selectedDisciplineId || !selectedLevelId) {
       comparisonResultsContainer.appendChild(
         div(
@@ -244,16 +238,12 @@ function createComparisonSelectorsSection({
       (d) => d.id === selectedDisciplineId,
     );
     const targetLevel = data.levels.find((g) => g.id === selectedLevelId);
-    // selectedTrackId can be empty string for generalist
     const targetTrack = selectedTrackId
       ? data.tracks.find((t) => t.id === selectedTrackId)
       : null;
 
-    if (!targetDiscipline || !targetLevel) {
-      return;
-    }
+    if (!targetDiscipline || !targetLevel) return;
 
-    // Check if comparing to same role
     if (
       targetDiscipline.id === discipline.id &&
       targetLevel.id === currentLevel.id &&
@@ -271,7 +261,6 @@ function createComparisonSelectorsSection({
       return;
     }
 
-    // Use formatter shared module to analyze the progression
     const progressionView = prepareCustomProgression({
       discipline,
       currentLevel,
@@ -293,102 +282,17 @@ function createComparisonSelectorsSection({
       return;
     }
 
-    const { skillChanges, behaviourChanges, summary, target } = progressionView;
-
-    // Build flat comparison result sections
-    const result = div(
-      { className: "comparison-result" },
-
-      // Summary stats
-      div(
-        { className: "grid grid-6" },
-        summary.skillsGained > 0
-          ? createStatCard({ value: summary.skillsGained, label: "New Skills" })
-          : null,
-        createStatCard({
-          value: summary.skillsUp,
-          label: "Skills to Grow",
-        }),
-        summary.skillsDown > 0
-          ? createStatCard({
-              value: summary.skillsDown,
-              label: "Skills Decrease",
-            })
-          : null,
-        summary.skillsLost > 0
-          ? createStatCard({
-              value: summary.skillsLost,
-              label: "Skills Removed",
-            })
-          : null,
-        createStatCard({
-          value: summary.behavioursUp,
-          label: "Behaviours to Mature",
-        }),
-        summary.behavioursDown > 0
-          ? createStatCard({
-              value: summary.behavioursDown,
-              label: "Behaviours Decrease",
-            })
-          : null,
-      ),
-
-      // Comparison radars
-      div(
-        { className: "section auto-grid-lg" },
-        createComparisonSkillRadar(
-          currentJobView.skillMatrix,
-          target.skillMatrix,
-          {
-            title: "Skills Comparison",
-            currentLabel: `Current (${currentLevel.id})`,
-            targetLabel: `Target (${targetLevel.id})`,
-            size: 400,
-            capabilities: data.capabilities,
-          },
-        ),
-        createComparisonBehaviourRadar(
-          currentJobView.behaviourProfile,
-          target.behaviourProfile,
-          {
-            title: "Behaviours Comparison",
-            currentLabel: `Current (${currentLevel.id})`,
-            targetLabel: `Target (${targetLevel.id})`,
-            size: 400,
-          },
-        ),
-      ),
-
-      // Skill changes section
-      section(
-        { className: "section section-detail" },
-        h2({ className: "section-title" }, "Skill Changes"),
-        createProgressionTable(skillChanges, "skill"),
-      ),
-
-      // Behaviour changes section
-      section(
-        { className: "section section-detail" },
-        h2({ className: "section-title" }, "Behaviour Changes"),
-        createProgressionTable(behaviourChanges, "behaviour"),
-      ),
-
-      // Link to target job
-      div(
-        { className: "page-actions" },
-        a(
-          {
-            href: targetTrack
-              ? `#/job/${targetDiscipline.id}/${targetLevel.id}/${targetTrack.id}`
-              : `#/job/${targetDiscipline.id}/${targetLevel.id}`,
-            className: "btn btn-secondary",
-          },
-          `View ${targetLevel.id}${targetTrack ? ` ${targetTrack.name}` : ""} Job Definition →`,
-        ),
+    comparisonResultsContainer.appendChild(
+      buildComparisonResult(
+        progressionView,
+        currentJobView,
+        currentLevel,
+        targetLevel,
+        targetTrack,
+        targetDiscipline,
+        data,
       ),
     );
-
-    comparisonResultsContainer.appendChild(result);
   }
 
   // Get initial available options
@@ -453,7 +357,6 @@ function createComparisonSelectorsSection({
         trackSelectEl.appendChild(opt);
       }
 
-      // Try to keep current selection if valid
       const hasValidTrack = availableOptions.tracks.find(
         (t) => t.id === selectedTrackId,
       );
@@ -461,9 +364,6 @@ function createComparisonSelectorsSection({
         selectedTrackId === "" && availableOptions.allowsTrackless;
       if (hasValidTrack || isValidGeneralist) {
         trackSelectEl.value = selectedTrackId;
-      } else if (availableOptions.allowsTrackless) {
-        selectedTrackId = "";
-        trackSelectEl.value = "";
       } else {
         selectedTrackId = "";
         trackSelectEl.value = "";

@@ -63,6 +63,275 @@ export class Pipeline {
   }
 
   /**
+   * Generate prose for all entity keys.
+   * @param {object} entities
+   * @returns {Promise<Map<string, string>>}
+   */
+  async #generateProse(entities) {
+    const prose = new Map();
+    const proseKeys = collectProseKeys(entities);
+    const totalKeys = proseKeys.size;
+    let keyIndex = 0;
+    if (this.proseEngine.mode !== "no-prose") {
+      this.logger.info(
+        "pipeline",
+        `Generating prose (${this.proseEngine.mode} mode, ${totalKeys} keys)`,
+      );
+    }
+    for (const [key, context] of proseKeys) {
+      keyIndex++;
+      const result = await this.proseEngine.generateProse(key, context);
+      if (result) prose.set(key, result);
+      if (this.proseEngine.mode !== "no-prose") {
+        this.logger.info("prose", `[${keyIndex}/${totalKeys}] ${key}`);
+        if (keyIndex % 25 === 0) {
+          this.proseEngine.saveCache();
+        }
+      }
+    }
+    return prose;
+  }
+
+  /**
+   * Render HTML content (two-pass: skeleton then enrichment).
+   * @param {object} entities
+   * @param {Map<string, string>} prose
+   * @param {Map<string, string>} files - Accumulates output files
+   * @returns {{ linked: object|null }}
+   */
+  async #renderHtml(entities, prose, files) {
+    this.logger.info(
+      "render",
+      "Rendering HTML (Pass 1: deterministic skeleton)",
+    );
+    const { files: htmlFiles, linked } = this.renderer.renderHtml(
+      entities,
+      prose,
+    );
+
+    if (this.proseEngine.mode !== "no-prose") {
+      this.logger.info(
+        "render",
+        "Enriching HTML (Pass 2: LLM prose enrichment)",
+      );
+      const enriched = await this.renderer.enrichHtml(
+        htmlFiles,
+        linked,
+        this.proseEngine,
+        entities.domain,
+      );
+      for (const [name, content] of enriched) {
+        files.set(join("data/knowledge", name), content);
+      }
+    } else {
+      for (const [name, content] of htmlFiles) {
+        files.set(join("data/knowledge", name), content);
+      }
+    }
+
+    files.set(
+      "data/knowledge/README.md",
+      this.renderer.renderReadme(entities, prose),
+    );
+    files.set(
+      "data/knowledge/ONTOLOGY.md",
+      this.renderer.renderOntology(entities),
+    );
+
+    const htmlCount = [...files.keys()].filter((p) =>
+      p.startsWith("data/knowledge/"),
+    ).length;
+    this.logger.info("render", `HTML: ${htmlCount} files`);
+
+    return { linked };
+  }
+
+  /**
+   * Render pathway YAML files.
+   * @param {object} entities
+   * @param {string|null} schemaDir
+   * @param {Map<string, string>} files
+   */
+  async #renderPathway(entities, schemaDir, files) {
+    this.logger.info("render", "Rendering pathway");
+    const hasPathwayFramework =
+      entities.framework?.capabilities?.length > 0 &&
+      typeof entities.framework.capabilities[0] === "object";
+
+    if (hasPathwayFramework && schemaDir) {
+      const schemas = loadSchemas(schemaDir);
+      const pathwayData = await this.pathwayGenerator.generate({
+        framework: entities.framework,
+        domain: entities.domain,
+        industry: entities.industry,
+        schemas,
+      });
+      const pathwayFiles = this.renderer.renderPathway(pathwayData);
+      for (const [name, content] of pathwayFiles) {
+        files.set(`data/pathway/${name}`, content);
+      }
+      this.logger.info("render", `Pathway: ${pathwayFiles.size} files`);
+    }
+  }
+
+  /**
+   * Render raw documents and activity files.
+   * @param {object} entities
+   * @param {Map<string, string>} prose
+   * @param {Map<string, string>} files
+   * @param {Map<string, string>} rawDocuments
+   */
+  #renderRaw(entities, prose, files, rawDocuments) {
+    this.logger.info("render", "Rendering raw documents");
+    const raw = this.renderer.renderRaw(entities, prose);
+    for (const [path, content] of raw) {
+      rawDocuments.set(path, content);
+    }
+
+    const activityFiles = this.renderer.renderActivity(entities);
+    for (const [name, content] of activityFiles) {
+      files.set(join("data/activity", name), content);
+    }
+    this.logger.info(
+      "render",
+      `Raw: ${raw.size} documents, ${activityFiles.size} activity files`,
+    );
+  }
+
+  /**
+   * Render markdown content files.
+   * @param {object} entities
+   * @param {Map<string, string>} prose
+   * @param {Map<string, string>} files
+   */
+  #renderMarkdown(entities, prose, files) {
+    this.logger.info("render", "Rendering markdown");
+    const md = this.renderer.renderMarkdown(entities, prose);
+    for (const [name, content] of md) {
+      files.set(join("data/personal", name), content);
+    }
+    this.logger.info("render", `Markdown: ${md.size} files`);
+  }
+
+  /**
+   * Execute dataset tools and render their outputs.
+   * @param {object} ast
+   * @param {Map<string, string>} files
+   */
+  async #processDatasets(ast, files) {
+    this.logger.info(
+      "pipeline",
+      `Generating ${ast.datasets.length} dataset(s)`,
+    );
+    const datasets = new Map();
+    for (const ds of ast.datasets) {
+      const tool = this.toolFactory(ds.tool, { logger: this.logger });
+      try {
+        await tool.checkAvailability();
+      } catch (err) {
+        this.logger.info(
+          "pipeline",
+          `Skipping dataset '${ds.id}': ${ds.tool} not available (${err.message})`,
+        );
+        continue;
+      }
+      const results = await tool.generate({
+        ...ds.config,
+        seed: ast.seed,
+        name: ds.id,
+      });
+      for (const dataset of results) {
+        datasets.set(dataset.name, dataset);
+      }
+    }
+
+    this.logger.info(
+      "pipeline",
+      `Rendering ${ast.outputs.length} dataset output(s)`,
+    );
+    for (const out of ast.outputs) {
+      const dataset = datasets.get(out.dataset);
+      if (!dataset) {
+        this.logger.info(
+          "pipeline",
+          `Skipping output '${out.dataset}': dataset not generated`,
+        );
+        continue;
+      }
+      const rendered = await renderDataset(dataset, out.format, out.config);
+      for (const [path, content] of rendered) {
+        files.set(path, content);
+      }
+    }
+  }
+
+  /**
+   * Run validation checks on rendered output.
+   * @param {object} entities
+   * @param {boolean} hasOrgBlocks
+   * @param {object|null} htmlLinked
+   * @param {Map<string, string>} formattedFiles
+   * @returns {object}
+   */
+  #validate(entities, hasOrgBlocks, htmlLinked, formattedFiles) {
+    const validation = hasOrgBlocks
+      ? this.validator.validate(entities)
+      : { checks: [], failures: 0, passed: true };
+
+    this.logger.info(
+      "validate",
+      `${validation.checks.length} checks, ${validation.failures} failures`,
+    );
+
+    if (htmlLinked) {
+      this.#validateHtml(htmlLinked, entities, formattedFiles, validation);
+    }
+
+    return validation;
+  }
+
+  /**
+   * Run HTML-specific validation (link density + structure).
+   * @param {object} htmlLinked
+   * @param {object} entities
+   * @param {Map<string, string>} formattedFiles
+   * @param {object} validation - Mutated in place
+   */
+  #validateHtml(htmlLinked, entities, formattedFiles, validation) {
+    const linkValidation = validateLinks(htmlLinked, entities.domain);
+    validation.checks.push({
+      name: "link_density",
+      passed: linkValidation.passed,
+    });
+    if (!linkValidation.passed) {
+      validation.failures++;
+      validation.passed = false;
+      this.logger.error(
+        "validate",
+        `Link validation: ${linkValidation.failures} failures`,
+      );
+    }
+
+    const orgFiles = new Map();
+    for (const [path, content] of formattedFiles) {
+      if (path.startsWith("data/knowledge/") && path.endsWith(".html")) {
+        orgFiles.set(path, content);
+      }
+    }
+    const htmlValidation = validateHTML(orgFiles, entities.domain);
+    for (const check of htmlValidation.checks) {
+      validation.checks.push(check);
+    }
+    if (!htmlValidation.passed) {
+      validation.failures += htmlValidation.failures;
+      validation.passed = false;
+      for (const c of htmlValidation.checks.filter((c) => !c.passed)) {
+        this.logger.error("validate", c.message);
+      }
+    }
+  }
+
+  /**
    * Run the full generation pipeline.
    *
    * @param {object} options
@@ -73,44 +342,21 @@ export class Pipeline {
    */
   async run(options) {
     const { universePath, only = null, schemaDir = null } = options;
-    const log = this.logger;
 
     // 1. Parse DSL
-    log.info("pipeline", "Parsing universe DSL");
+    this.logger.info("pipeline", "Parsing universe DSL");
     const source = await readFile(universePath, "utf-8");
     const ast = this.dslParser.parse(source);
 
-    // 2–4. Org-and-pathway generation (only when org blocks are present)
+    // 2-4. Org-and-pathway generation (only when org blocks are present)
     const hasOrgBlocks = ast.people !== null;
     let entities = { domain: ast.domain, industry: ast.industry };
-    const prose = new Map();
+    let prose = new Map();
 
     if (hasOrgBlocks) {
-      // 2. Generate entity graph (Tier 0)
-      log.info("pipeline", "Generating entity graph");
+      this.logger.info("pipeline", "Generating entity graph");
       entities = this.entityGenerator.generate(ast);
-
-      // 3. Prose generation (Tier 1/2)
-      const proseKeys = collectProseKeys(entities);
-      const totalKeys = proseKeys.size;
-      let keyIndex = 0;
-      if (this.proseEngine.mode !== "no-prose") {
-        log.info(
-          "pipeline",
-          `Generating prose (${this.proseEngine.mode} mode, ${totalKeys} keys)`,
-        );
-      }
-      for (const [key, context] of proseKeys) {
-        keyIndex++;
-        const result = await this.proseEngine.generateProse(key, context);
-        if (result) prose.set(key, result);
-        if (this.proseEngine.mode !== "no-prose") {
-          log.info("prose", `[${keyIndex}/${totalKeys}] ${key}`);
-          if (keyIndex % 25 === 0) {
-            this.proseEngine.saveCache();
-          }
-        }
-      }
+      prose = await this.#generateProse(entities);
     }
 
     // 4. Render outputs
@@ -121,193 +367,46 @@ export class Pipeline {
     const shouldRender = (type) => hasOrgBlocks && (!only || only === type);
 
     if (shouldRender("html")) {
-      log.info("render", "Rendering HTML (Pass 1: deterministic skeleton)");
-      const { files: htmlFiles, linked } = this.renderer.renderHtml(
-        entities,
-        prose,
-      );
-      htmlLinked = linked;
-
-      // Pass 2: LLM enrichment of prose blocks
-      if (this.proseEngine.mode !== "no-prose") {
-        log.info("render", "Enriching HTML (Pass 2: LLM prose enrichment)");
-        const enriched = await this.renderer.enrichHtml(
-          htmlFiles,
-          linked,
-          this.proseEngine,
-          entities.domain,
-        );
-        for (const [name, content] of enriched) {
-          files.set(join("data/knowledge", name), content);
-        }
-      } else {
-        for (const [name, content] of htmlFiles) {
-          files.set(join("data/knowledge", name), content);
-        }
-      }
-
-      files.set(
-        "data/knowledge/README.md",
-        this.renderer.renderReadme(entities, prose),
-      );
-      files.set(
-        "data/knowledge/ONTOLOGY.md",
-        this.renderer.renderOntology(entities),
-      );
-
-      const htmlCount = [...files.keys()].filter((p) =>
-        p.startsWith("data/knowledge/"),
-      ).length;
-      log.info("render", `HTML: ${htmlCount} files`);
+      const result = await this.#renderHtml(entities, prose, files);
+      htmlLinked = result.linked;
     }
 
     if (shouldRender("pathway")) {
-      log.info("render", "Rendering pathway");
-      const hasPathwayFramework =
-        entities.framework?.capabilities?.length > 0 &&
-        typeof entities.framework.capabilities[0] === "object";
-
-      if (hasPathwayFramework && schemaDir) {
-        const schemas = loadSchemas(schemaDir);
-        const pathwayData = await this.pathwayGenerator.generate({
-          framework: entities.framework,
-          domain: entities.domain,
-          industry: entities.industry,
-          schemas,
-        });
-        const pathwayFiles = this.renderer.renderPathway(pathwayData);
-        for (const [name, content] of pathwayFiles) {
-          files.set(`data/pathway/${name}`, content);
-        }
-        log.info("render", `Pathway: ${pathwayFiles.size} files`);
-      }
+      await this.#renderPathway(entities, schemaDir, files);
     }
 
     if (shouldRender("raw")) {
-      log.info("render", "Rendering raw documents");
-      const raw = this.renderer.renderRaw(entities, prose);
-      for (const [path, content] of raw) {
-        rawDocuments.set(path, content);
-      }
-
-      const activityFiles = this.renderer.renderActivity(entities);
-      for (const [name, content] of activityFiles) {
-        files.set(join("data/activity", name), content);
-      }
-      log.info(
-        "render",
-        `Raw: ${raw.size} documents, ${activityFiles.size} activity files`,
-      );
+      this.#renderRaw(entities, prose, files, rawDocuments);
     }
 
     if (shouldRender("markdown")) {
-      log.info("render", "Rendering markdown");
-      const md = this.renderer.renderMarkdown(entities, prose);
-      for (const [name, content] of md) {
-        files.set(join("data/personal", name), content);
-      }
-      log.info("render", `Markdown: ${md.size} files`);
+      this.#renderMarkdown(entities, prose, files);
     }
 
-    // Dataset tool execution and output rendering
     if (ast.datasets.length > 0 && this.toolFactory) {
-      log.info("pipeline", `Generating ${ast.datasets.length} dataset(s)`);
-      const datasets = new Map();
-      for (const ds of ast.datasets) {
-        const tool = this.toolFactory(ds.tool, { logger: log });
-        try {
-          await tool.checkAvailability();
-        } catch (err) {
-          log.info(
-            "pipeline",
-            `Skipping dataset '${ds.id}': ${ds.tool} not available (${err.message})`,
-          );
-          continue;
-        }
-        const results = await tool.generate({
-          ...ds.config,
-          seed: ast.seed,
-          name: ds.id,
-        });
-        for (const dataset of results) {
-          datasets.set(dataset.name, dataset);
-        }
-      }
-
-      log.info("pipeline", `Rendering ${ast.outputs.length} dataset output(s)`);
-      for (const out of ast.outputs) {
-        const dataset = datasets.get(out.dataset);
-        if (!dataset) {
-          log.info(
-            "pipeline",
-            `Skipping output '${out.dataset}': dataset not generated`,
-          );
-          continue;
-        }
-        const rendered = await renderDataset(dataset, out.format, out.config);
-        for (const [path, content] of rendered) {
-          files.set(path, content);
-        }
-      }
+      await this.#processDatasets(ast, files);
     }
 
-    // Save prose cache after all generation
     if (hasOrgBlocks) {
       this.proseEngine.saveCache();
     }
 
     // 5. Format outputs with Prettier
-    log.info("format", "Formatting output files with Prettier");
+    this.logger.info("format", "Formatting output files with Prettier");
     const formattedFiles = await this.formatter.format(files);
     const formattedRawDocuments = await this.formatter.format(rawDocuments);
-    log.info(
+    this.logger.info(
       "format",
       `Formatted ${formattedFiles.size} files, ${formattedRawDocuments.size} raw documents`,
     );
 
     // 6. Validate
-    const validation = hasOrgBlocks
-      ? this.validator.validate(entities)
-      : { checks: [], failures: 0, passed: true };
-
-    log.info(
-      "validate",
-      `${validation.checks.length} checks, ${validation.failures} failures`,
+    const validation = this.#validate(
+      entities,
+      hasOrgBlocks,
+      htmlLinked,
+      formattedFiles,
     );
-
-    if (htmlLinked) {
-      const linkValidation = validateLinks(htmlLinked, entities.domain);
-      validation.checks.push({
-        name: "link_density",
-        passed: linkValidation.passed,
-      });
-      if (!linkValidation.passed) {
-        validation.failures++;
-        validation.passed = false;
-        log.error(
-          "validate",
-          `Link validation: ${linkValidation.failures} failures`,
-        );
-      }
-
-      const orgFiles = new Map();
-      for (const [path, content] of formattedFiles) {
-        if (path.startsWith("data/knowledge/") && path.endsWith(".html")) {
-          orgFiles.set(path, content);
-        }
-      }
-      const htmlValidation = validateHTML(orgFiles, entities.domain);
-      for (const check of htmlValidation.checks) {
-        validation.checks.push(check);
-      }
-      if (!htmlValidation.passed) {
-        validation.failures += htmlValidation.failures;
-        validation.passed = false;
-        for (const c of htmlValidation.checks.filter((c) => !c.passed)) {
-          log.error("validate", c.message);
-        }
-      }
-    }
 
     return {
       files: formattedFiles,

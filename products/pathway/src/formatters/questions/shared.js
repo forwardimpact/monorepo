@@ -112,6 +112,119 @@ function getSkillCapability(skillId, skills) {
 const ROLE_TYPES = ["professionalQuestions", "managementQuestions"];
 
 /**
+ * Check whether skill questions should be included given the current filter
+ * @param {string} skillId
+ * @param {Array} skills
+ * @param {QuestionsFilter} filter
+ * @returns {boolean}
+ */
+function shouldIncludeSkill(skillId, skills, filter) {
+  if (filter.skills && !filter.skills.includes(skillId)) return false;
+  if (filter.behaviours) return false;
+  if (filter.maturity) return false;
+  if (filter.capability) {
+    const capability = getSkillCapability(skillId, skills);
+    if (capability !== filter.capability) return false;
+  }
+  return true;
+}
+
+/**
+ * Check whether behaviour questions should be included given the current filter
+ * @param {string} behaviourId
+ * @param {QuestionsFilter} filter
+ * @returns {boolean}
+ */
+function shouldIncludeBehaviour(behaviourId, filter) {
+  if (filter.behaviours && !filter.behaviours.includes(behaviourId))
+    return false;
+  if (filter.capability) return false;
+  if (filter.skills) return false;
+  if (filter.level) return false;
+  return true;
+}
+
+/**
+ * Flatten skill questions from a single skill entry
+ * @param {string} skillId
+ * @param {Object} roleTypes
+ * @param {Array} skills
+ * @param {QuestionsFilter} filter
+ * @param {FlattenedQuestion[]} out
+ */
+function flattenSkillQuestions(skillId, roleTypes, skills, filter, out) {
+  const skillName = getSkillName(skillId, skills);
+
+  for (const roleType of ROLE_TYPES) {
+    const levels = roleTypes[roleType];
+    if (!levels) continue;
+
+    for (const [level, levelQuestions] of Object.entries(levels)) {
+      if (filter.level && level !== filter.level) continue;
+
+      for (const q of levelQuestions) {
+        out.push({
+          source: skillId,
+          sourceName: skillName,
+          sourceType: "skill",
+          level,
+          id: q.id,
+          text: q.text,
+          lookingFor: q.lookingFor || [],
+          expectedDurationMinutes: q.expectedDurationMinutes || 5,
+          followUps: q.followUps || [],
+          context: q.context || null,
+          decompositionPrompts: q.decompositionPrompts || [],
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Flatten behaviour questions from a single behaviour entry
+ * @param {string} behaviourId
+ * @param {Object} roleTypes
+ * @param {Array} behaviours
+ * @param {QuestionsFilter} filter
+ * @param {FlattenedQuestion[]} out
+ */
+function flattenBehaviourQuestions(
+  behaviourId,
+  roleTypes,
+  behaviours,
+  filter,
+  out,
+) {
+  const behaviourName = getBehaviourName(behaviourId, behaviours);
+
+  for (const roleType of ROLE_TYPES) {
+    const maturities = roleTypes[roleType];
+    if (!maturities) continue;
+
+    for (const [maturity, maturityQuestions] of Object.entries(maturities)) {
+      if (filter.maturity && maturity !== filter.maturity) continue;
+
+      for (const q of maturityQuestions) {
+        out.push({
+          source: behaviourId,
+          sourceName: behaviourName,
+          sourceType: "behaviour",
+          level: maturity,
+          id: q.id,
+          text: q.text,
+          lookingFor: q.lookingFor || [],
+          expectedDurationMinutes: q.expectedDurationMinutes || 5,
+          followUps: q.followUps || [],
+          context: q.context || null,
+          simulationPrompts: q.simulationPrompts || [],
+        });
+      }
+    }
+  }
+}
+
+/**
  * Flatten all questions from question bank
  * @param {Object} questionBank
  * @param {Array} skills
@@ -122,82 +235,41 @@ const ROLE_TYPES = ["professionalQuestions", "managementQuestions"];
 export function flattenQuestions(questionBank, skills, behaviours, filter) {
   const questions = [];
 
-  // Process skill questions
   for (const [skillId, roleTypes] of Object.entries(
     questionBank.skillProficiencies || {},
   )) {
-    const skillName = getSkillName(skillId, skills);
-    const capability = getSkillCapability(skillId, skills);
-
-    if (filter.skills && !filter.skills.includes(skillId)) continue;
-    if (filter.behaviours) continue;
-    if (filter.capability && capability !== filter.capability) continue;
-    if (filter.maturity) continue;
-
-    for (const roleType of ROLE_TYPES) {
-      const levels = roleTypes[roleType];
-      if (!levels) continue;
-
-      for (const [level, levelQuestions] of Object.entries(levels)) {
-        if (filter.level && level !== filter.level) continue;
-
-        for (const q of levelQuestions) {
-          questions.push({
-            source: skillId,
-            sourceName: skillName,
-            sourceType: "skill",
-            level,
-            id: q.id,
-            text: q.text,
-            lookingFor: q.lookingFor || [],
-            expectedDurationMinutes: q.expectedDurationMinutes || 5,
-            followUps: q.followUps || [],
-            context: q.context || null,
-            decompositionPrompts: q.decompositionPrompts || [],
-          });
-        }
-      }
-    }
+    if (!shouldIncludeSkill(skillId, skills, filter)) continue;
+    flattenSkillQuestions(skillId, roleTypes, skills, filter, questions);
   }
 
-  // Process behaviour questions
   for (const [behaviourId, roleTypes] of Object.entries(
     questionBank.behaviourMaturities || {},
   )) {
-    const behaviourName = getBehaviourName(behaviourId, behaviours);
-
-    if (filter.behaviours && !filter.behaviours.includes(behaviourId)) continue;
-    if (filter.capability) continue;
-    if (filter.skills) continue;
-    if (filter.level) continue;
-
-    for (const roleType of ROLE_TYPES) {
-      const maturities = roleTypes[roleType];
-      if (!maturities) continue;
-
-      for (const [maturity, maturityQuestions] of Object.entries(maturities)) {
-        if (filter.maturity && maturity !== filter.maturity) continue;
-
-        for (const q of maturityQuestions) {
-          questions.push({
-            source: behaviourId,
-            sourceName: behaviourName,
-            sourceType: "behaviour",
-            level: maturity,
-            id: q.id,
-            text: q.text,
-            lookingFor: q.lookingFor || [],
-            expectedDurationMinutes: q.expectedDurationMinutes || 5,
-            followUps: q.followUps || [],
-            context: q.context || null,
-            simulationPrompts: q.simulationPrompts || [],
-          });
-        }
-      }
-    }
+    if (!shouldIncludeBehaviour(behaviourId, filter)) continue;
+    flattenBehaviourQuestions(
+      behaviourId,
+      roleTypes,
+      behaviours,
+      filter,
+      questions,
+    );
   }
 
   return questions;
+}
+
+/**
+ * Count questions across role types for a given level/maturity
+ * @param {Object} roleTypes - Role type map
+ * @param {string} levelKey - Level or maturity key
+ * @returns {number}
+ */
+function countQuestionsForLevel(roleTypes, levelKey) {
+  let count = 0;
+  for (const roleType of ROLE_TYPES) {
+    count += (roleTypes[roleType]?.[levelKey] || []).length;
+  }
+  return count;
 }
 
 /**
@@ -222,11 +294,7 @@ export function calculateStats(questions, questionBank) {
   )) {
     skillStats[skillId] = {};
     for (const level of SKILL_PROFICIENCIES) {
-      let count = 0;
-      for (const roleType of ROLE_TYPES) {
-        count += (roleTypes[roleType]?.[level] || []).length;
-      }
-      skillStats[skillId][level] = count;
+      skillStats[skillId][level] = countQuestionsForLevel(roleTypes, level);
     }
     skillStats[skillId].total = Object.values(skillStats[skillId]).reduce(
       (a, b) => a + b,
@@ -240,11 +308,10 @@ export function calculateStats(questions, questionBank) {
   )) {
     behaviourStats[behaviourId] = {};
     for (const maturity of BEHAVIOUR_MATURITIES) {
-      let count = 0;
-      for (const roleType of ROLE_TYPES) {
-        count += (roleTypes[roleType]?.[maturity] || []).length;
-      }
-      behaviourStats[behaviourId][maturity] = count;
+      behaviourStats[behaviourId][maturity] = countQuestionsForLevel(
+        roleTypes,
+        maturity,
+      );
     }
     behaviourStats[behaviourId].total = Object.values(
       behaviourStats[behaviourId],

@@ -26,6 +26,48 @@ export function render(content) {
 }
 
 /**
+ * Apply a single attribute/property to an element
+ * @param {HTMLElement} element
+ * @param {string} key
+ * @param {*} value
+ */
+function applyAttribute(element, key, value) {
+  if (key === "className") {
+    element.className = value;
+  } else if (key === "style" && typeof value === "object") {
+    Object.assign(element.style, value);
+  } else if (key.startsWith("on") && typeof value === "function") {
+    element.addEventListener(key.slice(2).toLowerCase(), value);
+  } else if (key === "dataset" && typeof value === "object") {
+    Object.assign(element.dataset, value);
+  } else if (typeof value === "boolean") {
+    if (value) {
+      element.setAttribute(key, "");
+    }
+  } else {
+    element.setAttribute(key, value);
+  }
+}
+
+/**
+ * Append a child node (or array of nodes) to an element
+ * @param {HTMLElement} element
+ * @param {HTMLElement|string|number|null|boolean|Array} child
+ */
+function appendNode(element, child) {
+  if (child == null || child === false) return;
+  if (typeof child === "string" || typeof child === "number") {
+    element.appendChild(document.createTextNode(String(child)));
+  } else if (child instanceof HTMLElement) {
+    element.appendChild(child);
+  } else if (Array.isArray(child)) {
+    for (const c of child) {
+      appendNode(element, c);
+    }
+  }
+}
+
+/**
  * Create an element with attributes and children
  * @param {string} tag - HTML tag name
  * @param {Object} [attrs] - Attributes and properties
@@ -36,40 +78,11 @@ export function createElement(tag, attrs = {}, ...children) {
   const element = document.createElement(tag);
 
   for (const [key, value] of Object.entries(attrs)) {
-    if (key === "className") {
-      element.className = value;
-    } else if (key === "style" && typeof value === "object") {
-      Object.assign(element.style, value);
-    } else if (key.startsWith("on") && typeof value === "function") {
-      element.addEventListener(key.slice(2).toLowerCase(), value);
-    } else if (key === "dataset" && typeof value === "object") {
-      Object.assign(element.dataset, value);
-    } else if (typeof value === "boolean") {
-      // Handle boolean attributes - only set if true, skip if false
-      if (value) {
-        element.setAttribute(key, "");
-      }
-    } else {
-      element.setAttribute(key, value);
-    }
+    applyAttribute(element, key, value);
   }
 
   for (const child of children) {
-    if (child == null || child === false) continue;
-    if (typeof child === "string" || typeof child === "number") {
-      element.appendChild(document.createTextNode(String(child)));
-    } else if (child instanceof HTMLElement) {
-      element.appendChild(child);
-    } else if (Array.isArray(child)) {
-      child.forEach((c) => {
-        if (c == null || c === false) return;
-        if (c instanceof HTMLElement) {
-          element.appendChild(c);
-        } else if (typeof c === "string" || typeof c === "number") {
-          element.appendChild(document.createTextNode(String(c)));
-        }
-      });
-    }
+    appendNode(element, child);
   }
 
   return element;

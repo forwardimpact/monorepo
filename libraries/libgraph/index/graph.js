@@ -136,6 +136,7 @@ export class GraphIndex extends IndexBase {
     // Parse ontology to find skos:altLabel for this type
     // Look for pattern: schema:TypeShape ... skos:altLabel "SynonymName"
     const typeName = this.#extractLocalName(typeUri);
+    // eslint-disable-next-line security/detect-non-literal-regexp -- pattern built from internal RDF type name, not user input
     const altLabelPattern = new RegExp(
       `schema:${typeName}Shape[^.]*skos:altLabel\\s+"([^"]+)"`,
       "g",

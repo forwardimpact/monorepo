@@ -33,6 +33,107 @@ import { createToolkitTable } from "../toolkit/dom.js";
  * @param {string} [options.jobTemplate] - Mustache template for job description
  * @returns {HTMLElement}
  */
+/**
+ * Build a job data object from a view for template rendering
+ * @param {Object} view
+ * @returns {Object}
+ */
+function buildJobFromView(view) {
+  return {
+    title: view.title,
+    skillMatrix: view.skillMatrix,
+    behaviourProfile: view.behaviourProfile,
+    expectations: view.expectations,
+    derivedResponsibilities: view.derivedResponsibilities,
+  };
+}
+
+/**
+ * Create the tables section for a job detail view
+ * @param {Object} view
+ * @returns {HTMLElement}
+ */
+function createJobTablesSection(view) {
+  return div(
+    { className: "job-tables-section" },
+    createDetailSection({
+      title: "Behaviour Profile",
+      content: createBehaviourProfile(view.behaviourProfile),
+    }),
+    createDetailSection({
+      title: "Skill Matrix",
+      content: createSkillMatrix(view.skillMatrix, {
+        capabilityOrder: view.capabilityOrder,
+      }),
+    }),
+    view.toolkit && view.toolkit.length > 0
+      ? createDetailSection({
+          title: "Tool Kit",
+          content: createToolkitTable(view.toolkit),
+        })
+      : null,
+  );
+}
+
+/**
+ * Create the page header with breadcrumb links
+ * @param {Object} view
+ * @param {boolean} showBackLink
+ * @returns {HTMLElement}
+ */
+function createJobHeader(view, showBackLink) {
+  return div(
+    { className: "page-header" },
+    showBackLink
+      ? createBackLink("/job-builder", "← Back to Job Builder")
+      : null,
+    h1({ className: "page-title" }, view.title),
+    div(
+      { className: "page-description" },
+      "Generated from: ",
+      a({ href: `#/discipline/${view.disciplineId}` }, view.disciplineName),
+      " × ",
+      a({ href: `#/level/${view.levelId}` }, view.levelId),
+      " × ",
+      a({ href: `#/track/${view.trackId}` }, view.trackName),
+    ),
+  );
+}
+
+/**
+ * Create the expectations section if expectations exist
+ * @param {Object} view
+ * @returns {HTMLElement|null}
+ */
+function createExpectationsSection(view) {
+  if (!view.expectations || Object.keys(view.expectations).length === 0) {
+    return null;
+  }
+  return createDetailSection({
+    title: "Expectations",
+    content: createExpectationsCard(view.expectations),
+  });
+}
+
+/**
+ * Create the radar charts section
+ * @param {Object} view
+ * @returns {HTMLElement}
+ */
+function createRadarSection(view) {
+  return div(
+    { className: "section auto-grid-lg" },
+    createBehaviourRadar(view.behaviourProfile, {
+      title: "Behaviours Radar",
+      size: 420,
+    }),
+    createSkillRadar(view.skillMatrix, {
+      title: "Skills Radar",
+      size: 420,
+    }),
+  );
+}
+
 export function jobToDOM(view, options = {}) {
   const {
     showBackLink = true,
@@ -46,107 +147,22 @@ export function jobToDOM(view, options = {}) {
   } = options;
 
   const hasEntities = discipline && level && jobTemplate;
+  const job = hasEntities ? buildJobFromView(view) : null;
+  const descParams = hasEntities
+    ? { job, discipline, level, track, template: jobTemplate }
+    : null;
 
   return div(
     { className: "job-detail-page" },
-    // Header
-    div(
-      { className: "page-header" },
-      showBackLink
-        ? createBackLink("/job-builder", "← Back to Job Builder")
-        : null,
-      h1({ className: "page-title" }, view.title),
-      div(
-        { className: "page-description" },
-        "Generated from: ",
-        a({ href: `#/discipline/${view.disciplineId}` }, view.disciplineName),
-        " × ",
-        a({ href: `#/level/${view.levelId}` }, view.levelId),
-        " × ",
-        a({ href: `#/track/${view.trackId}` }, view.trackName),
-      ),
-    ),
-
-    // Expectations card
-    view.expectations && Object.keys(view.expectations).length > 0
-      ? createDetailSection({
-          title: "Expectations",
-          content: createExpectationsCard(view.expectations),
-        })
+    createJobHeader(view, showBackLink),
+    createExpectationsSection(view),
+    createRadarSection(view),
+    showJobDescriptionHtml && descParams
+      ? createJobDescriptionHtml(descParams)
       : null,
-
-    // Radar charts
-    div(
-      { className: "section auto-grid-lg" },
-      createBehaviourRadar(view.behaviourProfile, {
-        title: "Behaviours Radar",
-        size: 420,
-      }),
-      createSkillRadar(view.skillMatrix, {
-        title: "Skills Radar",
-        size: 420,
-      }),
-    ),
-
-    // Job Description HTML (for print view)
-    showJobDescriptionHtml && hasEntities
-      ? createJobDescriptionHtml({
-          job: {
-            title: view.title,
-            skillMatrix: view.skillMatrix,
-            behaviourProfile: view.behaviourProfile,
-            expectations: view.expectations,
-            derivedResponsibilities: view.derivedResponsibilities,
-          },
-          discipline,
-          level,
-          track,
-          template: jobTemplate,
-        })
-      : null,
-
-    // Behaviour profile, Skill matrix, Toolkit, Driver coverage tables
-    showTables
-      ? div(
-          { className: "job-tables-section" },
-          // Behaviour profile table
-          createDetailSection({
-            title: "Behaviour Profile",
-            content: createBehaviourProfile(view.behaviourProfile),
-          }),
-
-          createDetailSection({
-            title: "Skill Matrix",
-            content: createSkillMatrix(view.skillMatrix, {
-              capabilityOrder: view.capabilityOrder,
-            }),
-          }),
-
-          // Toolkit (after skill matrix)
-          view.toolkit && view.toolkit.length > 0
-            ? createDetailSection({
-                title: "Tool Kit",
-                content: createToolkitTable(view.toolkit),
-              })
-            : null,
-        )
-      : null,
-
-    // Job Description (copyable markdown)
-    showJobDescriptionMarkdown && hasEntities
-      ? createJobDescriptionSection({
-          job: {
-            title: view.title,
-            skillMatrix: view.skillMatrix,
-            behaviourProfile: view.behaviourProfile,
-            expectations: view.expectations,
-            derivedResponsibilities: view.derivedResponsibilities,
-          },
-          discipline,
-          level,
-          track,
-          template: jobTemplate,
-        })
+    showTables ? createJobTablesSection(view) : null,
+    showJobDescriptionMarkdown && descParams
+      ? createJobDescriptionSection(descParams)
       : null,
   );
 }

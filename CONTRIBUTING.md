@@ -103,7 +103,15 @@ bunx fit-map validate --shacl # Validate with SHACL syntax check
 Security policies apply to all contributors — human and agent.
 
 - **ESLint security rules** — `eslint-plugin-security` is enabled in
-  `eslint.config.js`. Do not disable security rules without justification.
+  `eslint.config.js` with all active rules set to `"error"`. Two high-noise,
+  low-signal rules (`detect-object-injection`, `detect-non-literal-fs-filename`)
+  are turned off. To suppress a security rule for a verified false positive, add
+  an inline disable with an audit justification:
+  ```js
+  // eslint-disable-next-line security/detect-unsafe-regex -- <why this is safe>
+  ```
+  Never use block-level or file-level disables for security rules. Each
+  suppression must explain why the flagged code is safe.
 - **Vulnerability audit** — `npm audit --audit-level=high` runs in CI (via
   temporary lockfile generation) and gates publish workflows.
 - **CI secret scanning** — Gitleaks runs on every push and pull request via the

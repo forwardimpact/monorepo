@@ -14,6 +14,80 @@ import { BEHAVIOUR_MATURITY_ORDER } from "@forwardimpact/map/levels";
 import { trimValue, trimFields } from "../shared.js";
 
 /**
+ * Build expectations paragraph from job expectations
+ * @param {Object|undefined} expectations
+ * @returns {string}
+ */
+function buildExpectationsParagraph(expectations) {
+  if (!expectations) return "";
+  const exp = expectations;
+  const sentences = [];
+
+  if (exp.impactScope) {
+    sentences.push(`This role encompasses ${exp.impactScope.toLowerCase()}.`);
+  }
+  if (exp.autonomyExpectation) {
+    let autonomySentence = `You will ${exp.autonomyExpectation.toLowerCase()}`;
+    if (exp.influenceScope) {
+      autonomySentence +=
+        `, ${exp.influenceScope.toLowerCase()}` +
+        (exp.influenceScope.endsWith(".") ? "" : ".");
+    } else {
+      autonomySentence += exp.autonomyExpectation.endsWith(".") ? "" : ".";
+    }
+    sentences.push(autonomySentence);
+  } else if (exp.influenceScope) {
+    sentences.push(
+      exp.influenceScope + (exp.influenceScope.endsWith(".") ? "" : "."),
+    );
+  }
+  if (exp.complexityHandled) {
+    sentences.push(`You will handle ${exp.complexityHandled.toLowerCase()}.`);
+  }
+  return sentences.length > 0 ? sentences.join(" ") : "";
+}
+
+/**
+ * Build capability skill sections at the highest proficiency
+ * @param {Object} job
+ * @returns {Array}
+ */
+function buildCapabilitySkills(job) {
+  const derivedResponsibilities = job.derivedResponsibilities || [];
+  if (derivedResponsibilities.length === 0) return [];
+
+  const highestProficiency = derivedResponsibilities[0].proficiency;
+  const topResponsibilities = derivedResponsibilities.filter(
+    (r) => r.proficiency === highestProficiency,
+  );
+
+  const skillsByCapability = {};
+  for (const skill of job.skillMatrix) {
+    if (skill.proficiency !== highestProficiency) continue;
+    if (!skillsByCapability[skill.capability]) {
+      skillsByCapability[skill.capability] = [];
+    }
+    skillsByCapability[skill.capability].push(skill);
+  }
+
+  return topResponsibilities
+    .filter((r) => skillsByCapability[r.capability]?.length > 0)
+    .map((r) => {
+      const skills = [...skillsByCapability[r.capability]].sort((a, b) =>
+        (a.skillName || "").localeCompare(b.skillName || ""),
+      );
+      return {
+        capabilityHeading: r.capabilityName.toUpperCase(),
+        responsibilityDescription: r.responsibility,
+        skills: skills.map((s) => ({
+          skillName: s.skillName,
+          proficiencyDescription: s.proficiencyDescription || "",
+        })),
+      };
+    });
+}
+
+/**
  * Prepare job data for template rendering
  * @param {Object} params
  * @param {Object} params.job - The job definition
@@ -29,42 +103,7 @@ function prepareJobDescriptionData({ job, discipline, level, track }) {
   roleSummary = roleSummary.replace(/\{roleTitle\}/g, roleTitle);
   roleSummary = roleSummary.replace(/\{specialization\}/g, specialization);
 
-  // Build expectations paragraph
-  let expectationsParagraph = "";
-  if (job.expectations) {
-    const exp = job.expectations;
-    const expectationSentences = [];
-
-    if (exp.impactScope) {
-      expectationSentences.push(
-        `This role encompasses ${exp.impactScope.toLowerCase()}.`,
-      );
-    }
-    if (exp.autonomyExpectation) {
-      let autonomySentence = `You will ${exp.autonomyExpectation.toLowerCase()}`;
-      if (exp.influenceScope) {
-        autonomySentence +=
-          `, ${exp.influenceScope.toLowerCase()}` +
-          (exp.influenceScope.endsWith(".") ? "" : ".");
-      } else {
-        autonomySentence += exp.autonomyExpectation.endsWith(".") ? "" : ".";
-      }
-      expectationSentences.push(autonomySentence);
-    } else if (exp.influenceScope) {
-      expectationSentences.push(
-        exp.influenceScope + (exp.influenceScope.endsWith(".") ? "" : "."),
-      );
-    }
-    if (exp.complexityHandled) {
-      expectationSentences.push(
-        `You will handle ${exp.complexityHandled.toLowerCase()}.`,
-      );
-    }
-
-    if (expectationSentences.length > 0) {
-      expectationsParagraph = expectationSentences.join(" ");
-    }
-  }
+  const expectationsParagraph = buildExpectationsParagraph(job.expectations);
 
   // Sort behaviours by maturity level (highest first)
   const sortedBehaviours = [...job.behaviourProfile].sort((a, b) => {
@@ -76,45 +115,7 @@ function prepareJobDescriptionData({ job, discipline, level, track }) {
     return indexB - indexA;
   });
 
-  // Build capability skill sections at the highest skill proficiency
-  let capabilitySkills = [];
-  const derivedResponsibilities = job.derivedResponsibilities || [];
-  if (derivedResponsibilities.length > 0) {
-    // derivedResponsibilities is sorted: highest proficiency first, then by skill count
-    const highestProficiency = derivedResponsibilities[0].proficiency;
-
-    // Filter responsibilities to only the highest proficiency
-    const topResponsibilities = derivedResponsibilities.filter(
-      (r) => r.proficiency === highestProficiency,
-    );
-
-    // Group skill matrix entries by capability at the highest level
-    const skillsByCapability = {};
-    for (const skill of job.skillMatrix) {
-      if (skill.proficiency !== highestProficiency) continue;
-      if (!skillsByCapability[skill.capability]) {
-        skillsByCapability[skill.capability] = [];
-      }
-      skillsByCapability[skill.capability].push(skill);
-    }
-
-    // Build capability sections in skill count order
-    capabilitySkills = topResponsibilities
-      .filter((r) => skillsByCapability[r.capability]?.length > 0)
-      .map((r) => {
-        const skills = [...skillsByCapability[r.capability]].sort((a, b) =>
-          (a.skillName || "").localeCompare(b.skillName || ""),
-        );
-        return {
-          capabilityHeading: r.capabilityName.toUpperCase(),
-          responsibilityDescription: r.responsibility,
-          skills: skills.map((s) => ({
-            skillName: s.skillName,
-            proficiencyDescription: s.proficiencyDescription || "",
-          })),
-        };
-      });
-  }
+  const capabilitySkills = buildCapabilitySkills(job);
 
   // Build qualification summary with placeholder replacement
   const qualificationSummary =

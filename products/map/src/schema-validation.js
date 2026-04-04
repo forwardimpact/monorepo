@@ -90,6 +90,100 @@ function formatAjvErrors(ajvErrors, filePath) {
   });
 }
 
+function checkDisciplineRefs(disciplines, skillIds, behaviourIds) {
+  const errors = [];
+  for (const discipline of disciplines) {
+    const allSkillRefs = [
+      ...(discipline.coreSkills || []),
+      ...(discipline.supportingSkills || []),
+      ...(discipline.broadSkills || []),
+    ];
+    for (const skillId of allSkillRefs) {
+      if (!skillIds.has(skillId)) {
+        errors.push(
+          createError(
+            "INVALID_REFERENCE",
+            `Discipline '${discipline.id}' references unknown skill '${skillId}'`,
+            `disciplines/${discipline.id}`,
+          ),
+        );
+      }
+    }
+    for (const behaviourId of Object.keys(
+      discipline.behaviourModifiers || {},
+    )) {
+      if (!behaviourIds.has(behaviourId)) {
+        errors.push(
+          createError(
+            "INVALID_REFERENCE",
+            `Discipline '${discipline.id}' references unknown behaviour '${behaviourId}'`,
+            `disciplines/${discipline.id}`,
+          ),
+        );
+      }
+    }
+  }
+  return errors;
+}
+
+function checkTrackRefs(tracks, capabilityIds, behaviourIds) {
+  const errors = [];
+  for (const track of tracks) {
+    for (const capabilityId of Object.keys(track.skillModifiers || {})) {
+      if (!capabilityIds.has(capabilityId)) {
+        errors.push(
+          createError(
+            "INVALID_REFERENCE",
+            `Track '${track.id}' references unknown capability '${capabilityId}'`,
+            `tracks/${track.id}`,
+          ),
+        );
+      }
+    }
+    for (const behaviourId of Object.keys(track.behaviourModifiers || {})) {
+      if (!behaviourIds.has(behaviourId)) {
+        errors.push(
+          createError(
+            "INVALID_REFERENCE",
+            `Track '${track.id}' references unknown behaviour '${behaviourId}'`,
+            `tracks/${track.id}`,
+          ),
+        );
+      }
+    }
+  }
+  return errors;
+}
+
+function checkDriverRefs(drivers, skillIds, behaviourIds) {
+  const errors = [];
+  for (const driver of drivers) {
+    for (const skillId of driver.contributingSkills || []) {
+      if (!skillIds.has(skillId)) {
+        errors.push(
+          createError(
+            "INVALID_REFERENCE",
+            `Driver '${driver.id}' references unknown skill '${skillId}'`,
+            `drivers`,
+          ),
+        );
+      }
+    }
+    for (const behaviourId of driver.contributingBehaviours || []) {
+      if (!behaviourIds.has(behaviourId)) {
+        errors.push(
+          createError(
+            "INVALID_REFERENCE",
+            `Driver '${driver.id}' references unknown behaviour '${behaviourId}'`,
+            `drivers`,
+          ),
+        );
+      }
+    }
+  }
+  return errors;
+}
+
 /**
  * Schema validator class with injectable dependencies.
  */
@@ -325,91 +419,13 @@ export class SchemaValidator {
     const behaviourIds = new Set((data.behaviours || []).map((b) => b.id));
     const capabilityIds = new Set((data.capabilities || []).map((c) => c.id));
 
-    for (const discipline of data.disciplines || []) {
-      const allSkillRefs = [
-        ...(discipline.coreSkills || []),
-        ...(discipline.supportingSkills || []),
-        ...(discipline.broadSkills || []),
-      ];
-
-      for (const skillId of allSkillRefs) {
-        if (!skillIds.has(skillId)) {
-          errors.push(
-            createError(
-              "INVALID_REFERENCE",
-              `Discipline '${discipline.id}' references unknown skill '${skillId}'`,
-              `disciplines/${discipline.id}`,
-            ),
-          );
-        }
-      }
-
-      for (const behaviourId of Object.keys(
-        discipline.behaviourModifiers || {},
-      )) {
-        if (!behaviourIds.has(behaviourId)) {
-          errors.push(
-            createError(
-              "INVALID_REFERENCE",
-              `Discipline '${discipline.id}' references unknown behaviour '${behaviourId}'`,
-              `disciplines/${discipline.id}`,
-            ),
-          );
-        }
-      }
-    }
-
-    for (const track of data.tracks || []) {
-      for (const capabilityId of Object.keys(track.skillModifiers || {})) {
-        if (!capabilityIds.has(capabilityId)) {
-          errors.push(
-            createError(
-              "INVALID_REFERENCE",
-              `Track '${track.id}' references unknown capability '${capabilityId}'`,
-              `tracks/${track.id}`,
-            ),
-          );
-        }
-      }
-
-      for (const behaviourId of Object.keys(track.behaviourModifiers || {})) {
-        if (!behaviourIds.has(behaviourId)) {
-          errors.push(
-            createError(
-              "INVALID_REFERENCE",
-              `Track '${track.id}' references unknown behaviour '${behaviourId}'`,
-              `tracks/${track.id}`,
-            ),
-          );
-        }
-      }
-    }
-
-    for (const driver of data.drivers || []) {
-      for (const skillId of driver.contributingSkills || []) {
-        if (!skillIds.has(skillId)) {
-          errors.push(
-            createError(
-              "INVALID_REFERENCE",
-              `Driver '${driver.id}' references unknown skill '${skillId}'`,
-              `drivers`,
-            ),
-          );
-        }
-      }
-
-      for (const behaviourId of driver.contributingBehaviours || []) {
-        if (!behaviourIds.has(behaviourId)) {
-          errors.push(
-            createError(
-              "INVALID_REFERENCE",
-              `Driver '${driver.id}' references unknown behaviour '${behaviourId}'`,
-              `drivers`,
-            ),
-          );
-        }
-      }
-    }
+    errors.push(
+      ...checkDisciplineRefs(data.disciplines || [], skillIds, behaviourIds),
+    );
+    errors.push(
+      ...checkTrackRefs(data.tracks || [], capabilityIds, behaviourIds),
+    );
+    errors.push(...checkDriverRefs(data.drivers || [], skillIds, behaviourIds));
 
     return createValidationResult(errors.length === 0, errors, warnings);
   }
