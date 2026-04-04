@@ -16,15 +16,17 @@ evidence.
 ## Install
 
 ```sh
-npm install @forwardimpact/pathway @forwardimpact/guide @forwardimpact/basecamp @forwardimpact/landmark
+npm install @forwardimpact/pathway @forwardimpact/guide @forwardimpact/basecamp
 ```
 
-This gives you four CLI tools:
+This gives you three CLI tools:
 
 - `fit-pathway` — browse job definitions and generate agent teams
 - `fit-guide` — AI agent that understands your engineering framework
 - `fit-basecamp` — personal knowledge base with scheduled AI tasks
-- `fit-landmark` — review your engineering evidence and readiness
+
+Landmark (`@forwardimpact/landmark`) is not yet published to npm. Once
+available, install it separately with `npm install @forwardimpact/landmark`.
 
 ---
 
@@ -104,7 +106,11 @@ engineering artifacts against your skill markers.
 
 ### Install and configure
 
+Guide requires framework data. If you haven't already initialized it in the
+Pathway section above, run `npx fit-pathway init` first.
+
 ```sh
+npx fit-pathway init          # skip if you already have data/pathway/
 npx fit-codegen --all
 npx fit-guide --init
 ```
