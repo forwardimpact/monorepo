@@ -84,7 +84,14 @@ function renderStructuralPages(files, entities, templates, domain) {
   );
 }
 
-function renderLinkedPages(files, linked, enrichedPlatforms, enrichedDrugs, templates, domain) {
+function renderLinkedPages(
+  files,
+  linked,
+  enrichedPlatforms,
+  enrichedDrugs,
+  templates,
+  domain,
+) {
   files.set(
     "projects-cross-functional.html",
     page(
@@ -114,7 +121,15 @@ function renderLinkedPages(files, linked, enrichedPlatforms, enrichedDrugs, temp
   );
 }
 
-function renderContentPages(files, gc, linked, entities, prose, templates, domain) {
+function renderContentPages(
+  files,
+  gc,
+  linked,
+  entities,
+  prose,
+  templates,
+  domain,
+) {
   for (const article of linked.articles || []) {
     const body = templates.render("article.html", {
       articles: [
@@ -140,11 +155,21 @@ function renderContentPages(files, gc, linked, entities, prose, templates, domai
 
   files.set(
     "courses-learning-catalog.html",
-    page(templates, "Learning Catalog", templates.render("courses.html", { courses: linked.courses }), domain),
+    page(
+      templates,
+      "Learning Catalog",
+      templates.render("courses.html", { courses: linked.courses }),
+      domain,
+    ),
   );
   files.set(
     "events-program-calendar.html",
-    page(templates, "Event Calendar", templates.render("events.html", { events: linked.events }), domain),
+    page(
+      templates,
+      "Event Calendar",
+      templates.render("events.html", { events: linked.events }),
+      domain,
+    ),
   );
 }
 
@@ -161,13 +186,23 @@ function renderBlogPages(files, linked, prose, templates, domain) {
   for (const post of blogPosts) {
     files.set(
       `blog-${post.index}.html`,
-      page(templates, post.headline, templates.render("blog-post.html", post), domain),
+      page(
+        templates,
+        post.headline,
+        templates.render("blog-post.html", post),
+        domain,
+      ),
     );
   }
 
   files.set(
     "blog-posts.html",
-    page(templates, "Engineering Blog", templates.render("blog.html", { blogIri, posts: blogPosts }), domain),
+    page(
+      templates,
+      "Engineering Blog",
+      templates.render("blog.html", { blogIri, posts: blogPosts }),
+      domain,
+    ),
   );
 }
 
@@ -179,7 +214,11 @@ function renderFaqPage(files, gc, linked, prose, templates, domain) {
       "Frequently Asked Questions",
       templates.render("faq.html", {
         faqs: Array.from({ length: gc.faqs || 0 }, (_, i) => {
-          const entityPool = [...linked.drugs, ...linked.platforms, ...linked.projects];
+          const entityPool = [
+            ...linked.drugs,
+            ...linked.platforms,
+            ...linked.projects,
+          ];
           const aboutLinks = [
             entityPool[i % entityPool.length],
             entityPool[(i + 3) % entityPool.length],
@@ -214,7 +253,15 @@ function renderHowtoPages(files, gc, prose, templates, domain) {
   }
 }
 
-function renderReviewsPage(files, gc, linked, entities, prose, templates, domain) {
+function renderReviewsPage(
+  files,
+  gc,
+  linked,
+  entities,
+  prose,
+  templates,
+  domain,
+) {
   files.set(
     "reviews.html",
     page(
@@ -223,14 +270,19 @@ function renderReviewsPage(files, gc, linked, entities, prose, templates, domain
       templates.render("reviews.html", {
         reviews: Array.from({ length: gc.reviews || 0 }, (_, i) => {
           const person = entities.people[i % entities.people.length];
-          const reviewPool = [...linked.courses, ...linked.events, ...linked.platforms];
+          const reviewPool = [
+            ...linked.courses,
+            ...linked.events,
+            ...linked.platforms,
+          ];
           const reviewed = reviewPool[i % reviewPool.length];
           return {
             iri: `https://${domain}/id/review/review-${i + 1}`,
             rating: 1 + ((i * 7 + 3) % 5),
             author: person?.name || "Anonymous",
             authorIri: person?.iri || "",
-            body: prose.get(`review_${i}`) || "Good work on this implementation.",
+            body:
+              prose.get(`review_${i}`) || "Good work on this implementation.",
             reviewedIri: reviewed?.iri || "",
           };
         }),
@@ -240,7 +292,15 @@ function renderReviewsPage(files, gc, linked, entities, prose, templates, domain
   );
 }
 
-function renderCommentsPage(files, gc, linked, entities, prose, templates, domain) {
+function renderCommentsPage(
+  files,
+  gc,
+  linked,
+  entities,
+  prose,
+  templates,
+  domain,
+) {
   files.set(
     "comments.html",
     page(
@@ -333,7 +393,14 @@ export function renderHTML(entities, prose, templates) {
   const enrichedDrugs = enrichDrugsWithLinks(linked);
 
   renderStructuralPages(files, entities, templates, domain);
-  renderLinkedPages(files, linked, enrichedPlatforms, enrichedDrugs, templates, domain);
+  renderLinkedPages(
+    files,
+    linked,
+    enrichedPlatforms,
+    enrichedDrugs,
+    templates,
+    domain,
+  );
 
   if (gc) {
     renderContentPages(files, gc, linked, entities, prose, templates, domain);

@@ -16,9 +16,7 @@ import {
   formatChecklistMarkdown,
 } from "@forwardimpact/libskill/checklist";
 
-import {
-  deriveSkillProficiency,
-} from "@forwardimpact/libskill/derivation";
+import { deriveSkillProficiency } from "@forwardimpact/libskill/derivation";
 
 import {
   testSkills,
@@ -358,5 +356,3 @@ describe("Checklist Derivation", () => {
     });
   });
 });
-
-

@@ -3,7 +3,11 @@ import {
   getBehaviourMaturityIndex,
 } from "../levels.js";
 
-import { createValidationResult, createError, createWarning } from "./common.js";
+import {
+  createValidationResult,
+  createError,
+  createWarning,
+} from "./common.js";
 
 /**
  * @param {import('../levels.js').SelfAssessment} selfAssessment
@@ -121,20 +125,35 @@ export function validateQuestionBank(questionBank, skills, behaviours) {
 
   if (questionBank.skillProficiencies) {
     errors.push(
-      ...validateSkillQuestions(questionBank.skillProficiencies, skillIds, validRoleTypes, warnings),
+      ...validateSkillQuestions(
+        questionBank.skillProficiencies,
+        skillIds,
+        validRoleTypes,
+        warnings,
+      ),
     );
   }
 
   if (questionBank.behaviourMaturities) {
     errors.push(
-      ...validateBehaviourQuestions(questionBank.behaviourMaturities, behaviourIds, validRoleTypes, warnings),
+      ...validateBehaviourQuestions(
+        questionBank.behaviourMaturities,
+        behaviourIds,
+        validRoleTypes,
+        warnings,
+      ),
     );
   }
 
   return createValidationResult(errors.length === 0, errors, warnings);
 }
 
-function validateSkillQuestions(skillProficiencies, skillIds, validRoleTypes, warnings) {
+function validateSkillQuestions(
+  skillProficiencies,
+  skillIds,
+  validRoleTypes,
+  warnings,
+) {
   const errors = [];
 
   Object.entries(skillProficiencies).forEach(([skillId, roleTypeQuestions]) => {
@@ -189,7 +208,12 @@ function validateSkillQuestions(skillProficiencies, skillIds, validRoleTypes, wa
   return errors;
 }
 
-function validateBehaviourQuestions(behaviourMaturities, behaviourIds, validRoleTypes, warnings) {
+function validateBehaviourQuestions(
+  behaviourMaturities,
+  behaviourIds,
+  validRoleTypes,
+  warnings,
+) {
   const errors = [];
 
   Object.entries(behaviourMaturities).forEach(

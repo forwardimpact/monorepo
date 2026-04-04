@@ -52,9 +52,7 @@ function enrichPlatform(linked, id) {
   const deps = plat.dependencies || [];
   const depPlatforms = deps
     .map((d) =>
-      linked.platforms.find(
-        (p) => p.id === (typeof d === "string" ? d : d.id),
-      ),
+      linked.platforms.find((p) => p.id === (typeof d === "string" ? d : d.id)),
     )
     .filter(Boolean);
   return {
@@ -80,7 +78,11 @@ function enrichDrug(linked, id) {
     if (parent)
       mentions.push({ type: "Drug", name: parent.name, iri: parent.iri });
   }
-  return { entityType: "Drug", entityName: drug.name, mentionTargets: mentions };
+  return {
+    entityType: "Drug",
+    entityName: drug.name,
+    mentionTargets: mentions,
+  };
 }
 
 function enrichCourse(linked, id) {
@@ -88,14 +90,24 @@ function enrichCourse(linked, id) {
   if (!course) return null;
   const mentions = [
     ...(course.platformLink
-      ? [{ type: "SoftwareApplication", name: course.platformLink.name, iri: course.platformLink.iri }]
+      ? [
+          {
+            type: "SoftwareApplication",
+            name: course.platformLink.name,
+            iri: course.platformLink.iri,
+          },
+        ]
       : []),
     ...(course.drugLink
       ? [{ type: "Drug", name: course.drugLink.name, iri: course.drugLink.iri }]
       : []),
     ...toMentions("Person", course.attendees, 2),
   ];
-  return { entityType: "Course", entityName: course.title, mentionTargets: mentions };
+  return {
+    entityType: "Course",
+    entityName: course.title,
+    mentionTargets: mentions,
+  };
 }
 
 function enrichEvent(linked, id) {

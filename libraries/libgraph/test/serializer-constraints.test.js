@@ -10,20 +10,14 @@ describe("ShaclSerializer - constraints and ordering", () => {
     serializer = new ShaclSerializer();
     const data = {
       classSubjects: new Map([
-        [
-          "https://schema.org/Person",
-          new Set(["http://example.org/person1"]),
-        ],
+        ["https://schema.org/Person", new Set(["http://example.org/person1"])],
         [
           "https://schema.org/Organization",
           new Set(["http://example.org/org1"]),
         ],
       ]),
       subjectClasses: new Map([
-        [
-          "http://example.org/person1",
-          new Set(["https://schema.org/Person"]),
-        ],
+        ["http://example.org/person1", new Set(["https://schema.org/Person"])],
         [
           "http://example.org/org1",
           new Set(["https://schema.org/Organization"]),
@@ -65,16 +59,10 @@ describe("ShaclSerializer - constraints and ordering", () => {
     serializer = new ShaclSerializer();
     const data = {
       classSubjects: new Map([
-        [
-          "https://schema.org/Person",
-          new Set(["http://example.org/person1"]),
-        ],
+        ["https://schema.org/Person", new Set(["http://example.org/person1"])],
       ]),
       subjectClasses: new Map([
-        [
-          "http://example.org/person1",
-          new Set(["https://schema.org/Person"]),
-        ],
+        ["http://example.org/person1", new Set(["https://schema.org/Person"])],
       ]),
       classPredicates: new Map([
         [
@@ -151,16 +139,10 @@ describe("ShaclSerializer - constraints and ordering", () => {
     serializer = new ShaclSerializer();
     const data = {
       classSubjects: new Map([
-        [
-          "https://schema.org/Person",
-          new Set(["http://example.org/person1"]),
-        ],
+        ["https://schema.org/Person", new Set(["http://example.org/person1"])],
       ]),
       subjectClasses: new Map([
-        [
-          "http://example.org/person1",
-          new Set(["https://schema.org/Person"]),
-        ],
+        ["http://example.org/person1", new Set(["https://schema.org/Person"])],
       ]),
       classPredicates: new Map([
         [
@@ -205,16 +187,10 @@ describe("ShaclSerializer - constraints and ordering", () => {
     serializer = new ShaclSerializer();
     const data = {
       classSubjects: new Map([
-        [
-          "https://schema.org/Person",
-          new Set(["http://example.org/person1"]),
-        ],
+        ["https://schema.org/Person", new Set(["http://example.org/person1"])],
       ]),
       subjectClasses: new Map([
-        [
-          "http://example.org/person1",
-          new Set(["https://schema.org/Person"]),
-        ],
+        ["http://example.org/person1", new Set(["https://schema.org/Person"])],
       ]),
       classPredicates: new Map([
         [
@@ -260,16 +236,10 @@ describe("ShaclSerializer - constraints and ordering", () => {
     serializer = new ShaclSerializer();
     const data = {
       classSubjects: new Map([
-        [
-          "https://schema.org/Person",
-          new Set(["http://example.org/person1"]),
-        ],
+        ["https://schema.org/Person", new Set(["http://example.org/person1"])],
       ]),
       subjectClasses: new Map([
-        [
-          "http://example.org/person1",
-          new Set(["https://schema.org/Person"]),
-        ],
+        ["http://example.org/person1", new Set(["https://schema.org/Person"])],
       ]),
       classPredicates: new Map([
         [

@@ -113,8 +113,18 @@ export function deriveAgentSkills({ discipline, track, level, skills }) {
  * @param {Array} params.behaviours - All available behaviours
  * @returns {Array} Behaviours sorted by derived maturity (highest first)
  */
-export function deriveAgentBehaviours({ discipline, track, level, behaviours }) {
-  const profile = deriveBehaviourProfile({ discipline, level, track, behaviours });
+export function deriveAgentBehaviours({
+  discipline,
+  track,
+  level,
+  behaviours,
+}) {
+  const profile = deriveBehaviourProfile({
+    discipline,
+    level,
+    track,
+    behaviours,
+  });
   return sortAgentBehaviours(profile);
 }
 
@@ -225,4 +235,3 @@ export {
   buildAgentIndex,
   interpolateTeamInstructions,
 } from "./agent-stage.js";
-

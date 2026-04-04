@@ -96,10 +96,7 @@ function validateTrackAssessmentWeights(track, path) {
       ),
     );
   }
-  if (
-    typeof skillWeight === "number" &&
-    typeof behaviourWeight === "number"
-  ) {
+  if (typeof skillWeight === "number" && typeof behaviourWeight === "number") {
     const sum = skillWeight + behaviourWeight;
     if (Math.abs(sum - 1.0) > 0.001) {
       errors.push(

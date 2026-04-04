@@ -196,10 +196,24 @@ function matchesFilters(ev, f, ref) {
     if (inRange(ev.start, ref.now, cutoff)) return true;
   }
   if (f.date) {
-    if (inRange(ev.start, dayStart(f.date + "T00:00:00"), dayEnd(f.date + "T00:00:00"))) return true;
+    if (
+      inRange(
+        ev.start,
+        dayStart(f.date + "T00:00:00"),
+        dayEnd(f.date + "T00:00:00"),
+      )
+    )
+      return true;
   }
   if (f.rangeStart && f.rangeEnd) {
-    if (inRange(ev.start, dayStart(f.rangeStart + "T00:00:00"), dayEnd(f.rangeEnd + "T00:00:00"))) return true;
+    if (
+      inRange(
+        ev.start,
+        dayStart(f.rangeStart + "T00:00:00"),
+        dayEnd(f.rangeEnd + "T00:00:00"),
+      )
+    )
+      return true;
   }
   return false;
 }

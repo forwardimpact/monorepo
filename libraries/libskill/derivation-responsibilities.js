@@ -58,7 +58,11 @@ function countSkillsAtMaxProficiency(skillMatrix, capabilityProficiencies) {
  * @param {import('./levels.js').Discipline} params.discipline - The discipline (determines which responsibilities to use)
  * @returns {Array<{capability: string, capabilityName: string, emojiIcon: string, responsibility: string, level: string}>}
  */
-export function deriveResponsibilities({ skillMatrix, capabilities, discipline }) {
+export function deriveResponsibilities({
+  skillMatrix,
+  capabilities,
+  discipline,
+}) {
   if (!capabilities || capabilities.length === 0) {
     return [];
   }

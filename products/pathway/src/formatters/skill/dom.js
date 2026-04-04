@@ -93,7 +93,10 @@ function createToolsSection(view, showBackLink) {
  * @returns {HTMLElement|null}
  */
 function createRelationsSection(view, showBackLink) {
-  if (view.relatedDisciplines.length === 0 && view.relatedDrivers.length === 0) {
+  if (
+    view.relatedDisciplines.length === 0 &&
+    view.relatedDrivers.length === 0
+  ) {
     return null;
   }
   return div(
@@ -111,10 +114,7 @@ function createRelationsSection(view, showBackLink) {
                   ? a({ href: `#/discipline/${d.id}` }, d.name)
                   : span({}, d.name),
                 " ",
-                span(
-                  { className: `badge badge-${d.skillType}` },
-                  d.skillType,
-                ),
+                span({ className: `badge badge-${d.skillType}` }, d.skillType),
               ),
             ),
           )

@@ -11,9 +11,7 @@ import {
   deriveStakeholderInterview,
 } from "@forwardimpact/libskill/interview";
 
-import {
-  deriveJob,
-} from "@forwardimpact/libskill/derivation";
+import { deriveJob } from "@forwardimpact/libskill/derivation";
 
 import {
   testSkills,
@@ -277,5 +275,3 @@ describe("Interview", () => {
     });
   });
 });
-
-

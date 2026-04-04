@@ -1,9 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
 
-import {
-  getSkillProficiencyIndex,
-} from "@forwardimpact/map/levels";
+import { getSkillProficiencyIndex } from "@forwardimpact/map/levels";
 
 import {
   getPositiveTrackCapabilities,

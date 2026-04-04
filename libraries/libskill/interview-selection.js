@@ -130,8 +130,7 @@ export function selectWithinBudget(allQuestions, timeBudget, defaultMinutes) {
 
   for (const q of allQuestions) {
     if (selectedIds.has(q.targetId)) continue;
-    const questionTime =
-      q.question.expectedDurationMinutes || defaultMinutes;
+    const questionTime = q.question.expectedDurationMinutes || defaultMinutes;
     if (
       totalMinutes + questionTime <=
       timeBudget + TOLERANCE_INTERVIEW_BUDGET_MINUTES
@@ -145,8 +144,7 @@ export function selectWithinBudget(allQuestions, timeBudget, defaultMinutes) {
 
   for (const q of allQuestions) {
     if (selected.includes(q)) continue;
-    const questionTime =
-      q.question.expectedDurationMinutes || defaultMinutes;
+    const questionTime = q.question.expectedDurationMinutes || defaultMinutes;
     if (
       totalMinutes + questionTime <=
       timeBudget + TOLERANCE_INTERVIEW_BUDGET_MINUTES
@@ -172,12 +170,8 @@ export function selectWithinBudget(allQuestions, timeBudget, defaultMinutes) {
  * @returns {Array} All skill questions with priority
  */
 export function generateSkillCandidates(job, questionBank, options) {
-  const {
-    includeBelowLevel,
-    deterministic,
-    maxQuestionsPerSkill,
-    roleType,
-  } = options;
+  const { includeBelowLevel, deterministic, maxQuestionsPerSkill, roleType } =
+    options;
   const allSkillQuestions = [];
 
   for (const skill of job.skillMatrix) {
@@ -205,7 +199,11 @@ export function generateSkillCandidates(job, questionBank, options) {
       questionsAdded++;
     }
 
-    if (includeBelowLevel && targetLevelIndex > 0 && questionsAdded < maxQuestionsPerSkill) {
+    if (
+      includeBelowLevel &&
+      targetLevelIndex > 0 &&
+      questionsAdded < maxQuestionsPerSkill
+    ) {
       const belowLevel = SKILL_PROFICIENCY_ORDER[targetLevelIndex - 1];
       const belowQuestions = getSkillQuestions(
         questionBank,

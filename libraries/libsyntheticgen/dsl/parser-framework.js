@@ -184,8 +184,7 @@ export function createFrameworkParsers(helpers) {
       } else if (t.type === "KEYWORD") {
         const val = advance().value;
         items.push(val === "null" ? null : val);
-      } else
-        throw new Error(`Unexpected ${t.type} in array at line ${t.line}`);
+      } else throw new Error(`Unexpected ${t.type} in array at line ${t.line}`);
       if (peek().type === "COMMA") advance();
     }
     expect("RBRACKET");

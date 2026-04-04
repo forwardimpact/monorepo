@@ -240,8 +240,10 @@ function readToken(ch, source, s) {
     s.i++;
     return { type: singleType, value: ch };
   }
-  if (ch === '"') return { type: "STRING", value: readStringLiteral(source, s) };
-  if (ch === "@") return { type: "AT_IDENT", value: readAtIdentifier(source, s) };
+  if (ch === '"')
+    return { type: "STRING", value: readStringLiteral(source, s) };
+  if (ch === "@")
+    return { type: "AT_IDENT", value: readAtIdentifier(source, s) };
   if (/[\d-]/.test(ch)) return readNumeric(source, s);
   if (/[a-zA-Z_]/.test(ch)) return readWord(source, s);
   return null;

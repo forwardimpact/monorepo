@@ -89,7 +89,10 @@ export function createRadarSvg(size, extraClasses = []) {
  * @param {number} params.angleSlice
  * @param {number} params.dataLength
  */
-export function drawLevelRings(svg, { levels, radius, center, angleSlice, dataLength }) {
+export function drawLevelRings(
+  svg,
+  { levels, radius, center, angleSlice, dataLength },
+) {
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
   group.classList.add("radar-levels");
 
@@ -154,10 +157,7 @@ export function drawAxisLines(svg, { radius, center, angleSlice, dataLength }) {
     const x = center + radius * Math.cos(angle);
     const y = center + radius * Math.sin(angle);
 
-    const line = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "line",
-    );
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
     line.setAttribute("x1", center);
     line.setAttribute("y1", center);
     line.setAttribute("x2", x);

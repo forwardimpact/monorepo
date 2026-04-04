@@ -149,7 +149,15 @@ function pluralize(type, count) {
  * @param {Function} params.createRow
  * @returns {HTMLElement}
  */
-function createProgressionGroup({ items, icon, label, headerClass, tableClass, headers, createRow }) {
+function createProgressionGroup({
+  items,
+  icon,
+  label,
+  headerClass,
+  tableClass,
+  headers,
+  createRow,
+}) {
   return div(
     { className: "progression-group" },
     div(
@@ -178,7 +186,13 @@ function createProgressionGroup({ items, icon, label, headerClass, tableClass, h
  * @param {Function} params.createRow
  * @returns {HTMLElement}
  */
-function createCollapsibleGroup({ items, type, isSkill, tableClass, createRow }) {
+function createCollapsibleGroup({
+  items,
+  type,
+  isSkill,
+  tableClass,
+  createRow,
+}) {
   const noChangeHeaders = tr(
     {},
     th({}, isSkill ? "Skill" : "Behaviour"),

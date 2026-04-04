@@ -3,7 +3,6 @@ import assert from "node:assert";
 
 import { S3Storage } from "../index.js";
 
-
 describe("S3Storage - operations", () => {
   let s3Storage;
   let mockClient;
@@ -48,12 +47,7 @@ describe("S3Storage - operations", () => {
       }),
     };
 
-    s3Storage = new S3Storage(
-      "test-prefix",
-      "guide",
-      mockClient,
-      mockCommands,
-    );
+    s3Storage = new S3Storage("test-prefix", "guide", mockClient, mockCommands);
   });
 
   test("find lists objects with extension", async () => {

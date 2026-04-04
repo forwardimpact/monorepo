@@ -1,9 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
 
-import {
-  validateAllData,
-} from "@forwardimpact/map/validation";
+import { validateAllData } from "@forwardimpact/map/validation";
 
 import {
   testSkills,

@@ -119,8 +119,7 @@ function addBasecampKeys(keys, basecampContent, entities, domain, orgName) {
  */
 function addSnapshotCommentKeys(keys, commentKeys, domain, orgName) {
   for (const ck of commentKeys) {
-    const direction =
-      ck.trajectory === "declining" ? "declining" : "improving";
+    const direction = ck.trajectory === "declining" ? "declining" : "improving";
     keys.set(
       `snapshot_comment_${ck.snapshot_id}_${ck.email.replace(/[@.]/g, "_")}`,
       {

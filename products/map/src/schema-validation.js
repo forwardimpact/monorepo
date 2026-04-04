@@ -425,9 +425,7 @@ export class SchemaValidator {
     errors.push(
       ...checkTrackRefs(data.tracks || [], capabilityIds, behaviourIds),
     );
-    errors.push(
-      ...checkDriverRefs(data.drivers || [], skillIds, behaviourIds),
-    );
+    errors.push(...checkDriverRefs(data.drivers || [], skillIds, behaviourIds));
 
     return createValidationResult(errors.length === 0, errors, warnings);
   }

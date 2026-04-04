@@ -225,13 +225,18 @@ function createComparisonSelectorsSection({
       comparisonResultsContainer.appendChild(
         div(
           { className: "comparison-placeholder" },
-          p({ className: "text-muted" }, "Select a discipline and level to see the comparison."),
+          p(
+            { className: "text-muted" },
+            "Select a discipline and level to see the comparison.",
+          ),
         ),
       );
       return;
     }
 
-    const targetDiscipline = data.disciplines.find((d) => d.id === selectedDisciplineId);
+    const targetDiscipline = data.disciplines.find(
+      (d) => d.id === selectedDisciplineId,
+    );
     const targetLevel = data.levels.find((g) => g.id === selectedLevelId);
     const targetTrack = selectedTrackId
       ? data.tracks.find((t) => t.id === selectedTrackId)
@@ -247,7 +252,10 @@ function createComparisonSelectorsSection({
       comparisonResultsContainer.appendChild(
         div(
           { className: "comparison-placeholder" },
-          p({ className: "text-muted" }, "Select a different role to compare with your current role."),
+          p(
+            { className: "text-muted" },
+            "Select a different role to compare with your current role.",
+          ),
         ),
       );
       return;
@@ -276,8 +284,13 @@ function createComparisonSelectorsSection({
 
     comparisonResultsContainer.appendChild(
       buildComparisonResult(
-        progressionView, currentJobView, currentLevel,
-        targetLevel, targetTrack, targetDiscipline, data,
+        progressionView,
+        currentJobView,
+        currentLevel,
+        targetLevel,
+        targetTrack,
+        targetDiscipline,
+        data,
       ),
     );
   }

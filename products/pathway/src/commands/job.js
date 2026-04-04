@@ -270,8 +270,7 @@ function reportInvalidCombination(discipline, level, track, data) {
     : `${discipline.id} × ${level.id}`;
   console.error(`Invalid combination: ${combo}`);
   if (track) {
-    const validTracks =
-      discipline.validTracks?.filter((t) => t !== null) || [];
+    const validTracks = discipline.validTracks?.filter((t) => t !== null) || [];
     if (validTracks.length > 0) {
       console.error(
         `Valid tracks for ${discipline.id}: ${validTracks.join(", ")}`,
@@ -282,9 +281,7 @@ function reportInvalidCombination(discipline, level, track, data) {
   }
   if (discipline.minLevel) {
     const levelIndex = data.levels.findIndex((g) => g.id === level.id);
-    const minIndex = data.levels.findIndex(
-      (g) => g.id === discipline.minLevel,
-    );
+    const minIndex = data.levels.findIndex((g) => g.id === discipline.minLevel);
     if (levelIndex >= 0 && minIndex >= 0 && levelIndex < minIndex) {
       console.error(
         `${discipline.id} requires minimum level: ${discipline.minLevel}`,

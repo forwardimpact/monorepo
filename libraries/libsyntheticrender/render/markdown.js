@@ -54,7 +54,15 @@ function buildPersonaContext(person, entities, date) {
   };
 }
 
-function renderPersonaProjects(files, prefix, ctx, person, entities, prose, templates) {
+function renderPersonaProjects(
+  files,
+  prefix,
+  ctx,
+  person,
+  entities,
+  prose,
+  templates,
+) {
   const personProjects = entities.projects.filter((proj) =>
     (proj.teams || []).includes(person.team_id),
   );

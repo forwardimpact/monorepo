@@ -1,4 +1,8 @@
-import { createValidationResult, createError, createWarning } from "./common.js";
+import {
+  createValidationResult,
+  createError,
+  createWarning,
+} from "./common.js";
 
 function validateAgentDisciplines(agentDisciplines, humanDisciplineIds) {
   const errors = [];
@@ -221,11 +225,12 @@ export function validateAgentData({ humanData, agentData }) {
   const stageIds = new Set((humanData.stages || []).map((s) => s.id));
 
   errors.push(
-    ...validateAgentDisciplines(agentData.disciplines || [], humanDisciplineIds),
+    ...validateAgentDisciplines(
+      agentData.disciplines || [],
+      humanDisciplineIds,
+    ),
   );
-  errors.push(
-    ...validateAgentTracks(agentData.tracks || [], humanTrackIds),
-  );
+  errors.push(...validateAgentTracks(agentData.tracks || [], humanTrackIds));
   errors.push(
     ...validateAgentBehaviours(agentData.behaviours || [], humanBehaviourIds),
   );
@@ -237,9 +242,7 @@ export function validateAgentData({ humanData, agentData }) {
   errors.push(...stageResult.errors);
   warnings.push(...stageResult.warnings);
 
-  errors.push(
-    ...validateStageHandoffs(humanData.stages || [], stageIds),
-  );
+  errors.push(...validateStageHandoffs(humanData.stages || [], stageIds));
 
   warnings.push(...buildCoverageWarnings(skillsWithAgent, requiredStages));
 

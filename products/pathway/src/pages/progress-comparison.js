@@ -41,14 +41,23 @@ export function buildComparisonResult(
         : null,
       createStatCard({ value: summary.skillsUp, label: "Skills to Grow" }),
       summary.skillsDown > 0
-        ? createStatCard({ value: summary.skillsDown, label: "Skills Decrease" })
+        ? createStatCard({
+            value: summary.skillsDown,
+            label: "Skills Decrease",
+          })
         : null,
       summary.skillsLost > 0
         ? createStatCard({ value: summary.skillsLost, label: "Skills Removed" })
         : null,
-      createStatCard({ value: summary.behavioursUp, label: "Behaviours to Mature" }),
+      createStatCard({
+        value: summary.behavioursUp,
+        label: "Behaviours to Mature",
+      }),
       summary.behavioursDown > 0
-        ? createStatCard({ value: summary.behavioursDown, label: "Behaviours Decrease" })
+        ? createStatCard({
+            value: summary.behavioursDown,
+            label: "Behaviours Decrease",
+          })
         : null,
     ),
     div(

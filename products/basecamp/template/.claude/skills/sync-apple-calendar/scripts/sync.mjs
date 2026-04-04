@@ -253,8 +253,14 @@ function buildEventJson(ev, attendeesByEvent) {
   return {
     id: `apple_cal_${ev.id}`,
     summary: ev.summary,
-    start: { dateTime: coredataToIso(ev.start_date, ev.start_tz), timeZone: tzOrNull(ev.start_tz) },
-    end: { dateTime: coredataToIso(ev.end_date ?? ev.start_date, ev.end_tz), timeZone: tzOrNull(ev.end_tz) },
+    start: {
+      dateTime: coredataToIso(ev.start_date, ev.start_tz),
+      timeZone: tzOrNull(ev.start_tz),
+    },
+    end: {
+      dateTime: coredataToIso(ev.end_date ?? ev.start_date, ev.end_tz),
+      timeZone: tzOrNull(ev.end_tz),
+    },
     allDay: Boolean(ev.all_day),
     location: ev.location || null,
     description: ev.description || null,

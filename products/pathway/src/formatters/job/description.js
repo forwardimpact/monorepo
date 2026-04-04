@@ -24,9 +24,7 @@ function buildExpectationsParagraph(expectations) {
   const sentences = [];
 
   if (exp.impactScope) {
-    sentences.push(
-      `This role encompasses ${exp.impactScope.toLowerCase()}.`,
-    );
+    sentences.push(`This role encompasses ${exp.impactScope.toLowerCase()}.`);
   }
   if (exp.autonomyExpectation) {
     let autonomySentence = `You will ${exp.autonomyExpectation.toLowerCase()}`;
@@ -44,9 +42,7 @@ function buildExpectationsParagraph(expectations) {
     );
   }
   if (exp.complexityHandled) {
-    sentences.push(
-      `You will handle ${exp.complexityHandled.toLowerCase()}.`,
-    );
+    sentences.push(`You will handle ${exp.complexityHandled.toLowerCase()}.`);
   }
   return sentences.length > 0 ? sentences.join(" ") : "";
 }

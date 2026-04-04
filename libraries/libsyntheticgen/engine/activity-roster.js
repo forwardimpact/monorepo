@@ -176,7 +176,14 @@ export function generateRosterSnapshots(ast, rng, people, teams, snapshots) {
     if (i > 0) {
       changes = [
         ...simulateDepartures(rng, currentRoster),
-        ...simulateHires(rng, currentRoster, teams, people, ast.domain, hireCounter),
+        ...simulateHires(
+          rng,
+          currentRoster,
+          teams,
+          people,
+          ast.domain,
+          hireCounter,
+        ),
         ...simulatePromotions(rng, currentRoster),
         ...simulateTransfers(rng, currentRoster, teams, people),
       ];

@@ -2,16 +2,7 @@
  * Self-assessment wizard step renderers
  */
 
-import {
-  div,
-  h2,
-  h3,
-  h4,
-  p,
-  span,
-  button,
-  a,
-} from "../lib/render.js";
+import { div, h2, h3, h4, p, span, button, a } from "../lib/render.js";
 import { createBadge } from "../components/card.js";
 import { createDisciplineSelect } from "../lib/form-controls.js";
 import {
@@ -47,7 +38,14 @@ function createTipCard(icon, title, text) {
  * @param {Function} rerender - Function to trigger re-render
  * @returns {HTMLElement}
  */
-export function createLevelButton(item, level, index, type, assessmentState, rerender) {
+export function createLevelButton(
+  item,
+  level,
+  index,
+  type,
+  assessmentState,
+  rerender,
+) {
   const stateKey = type === "skill" ? "skills" : "behaviours";
   const currentLevel = assessmentState[stateKey][item.id];
   const isSelected = currentLevel === level;
@@ -179,7 +177,12 @@ export function renderIntroStep(data, assessmentState) {
  * @param {Function} rerender
  * @returns {HTMLElement}
  */
-function createSkillAssessmentItem(skill, relevance, assessmentState, rerender) {
+function createSkillAssessmentItem(
+  skill,
+  relevance,
+  assessmentState,
+  rerender,
+) {
   const currentLevel = assessmentState.skills[skill.id];
 
   return div(
@@ -202,7 +205,14 @@ function createSkillAssessmentItem(skill, relevance, assessmentState, rerender) 
     div(
       { className: "level-selector" },
       ...SKILL_PROFICIENCY_ORDER.map((level, index) =>
-        createLevelButton(skill, level, index, "skill", assessmentState, rerender),
+        createLevelButton(
+          skill,
+          level,
+          index,
+          "skill",
+          assessmentState,
+          rerender,
+        ),
       ),
       button(
         {
@@ -228,7 +238,13 @@ function createSkillAssessmentItem(skill, relevance, assessmentState, rerender) 
  * @param {Function} formatCapability
  * @returns {HTMLElement}
  */
-export function renderSkillsStep(step, data, assessmentState, rerender, formatCapability) {
+export function renderSkillsStep(
+  step,
+  data,
+  assessmentState,
+  rerender,
+  formatCapability,
+) {
   const { capability, items } = step;
   const selectedDiscipline = assessmentState.discipline
     ? data.disciplines.find((d) => d.id === assessmentState.discipline)
@@ -288,7 +304,12 @@ export function renderSkillsStep(step, data, assessmentState, rerender, formatCa
     div(
       { className: "assessment-items" },
       ...sortedItems.map((skill) =>
-        createSkillAssessmentItem(skill, getSkillRelevance(skill), assessmentState, rerender),
+        createSkillAssessmentItem(
+          skill,
+          getSkillRelevance(skill),
+          assessmentState,
+          rerender,
+        ),
       ),
     ),
   );
@@ -321,7 +342,14 @@ function createBehaviourAssessmentItem(behaviour, assessmentState, rerender) {
     div(
       { className: "level-selector" },
       ...BEHAVIOUR_MATURITY_ORDER.map((level, index) =>
-        createLevelButton(behaviour, level, index, "behaviour", assessmentState, rerender),
+        createLevelButton(
+          behaviour,
+          level,
+          index,
+          "behaviour",
+          assessmentState,
+          rerender,
+        ),
       ),
       button(
         {

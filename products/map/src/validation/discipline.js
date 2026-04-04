@@ -201,7 +201,11 @@ export function validateDiscipline(
 
   if (discipline.agent) {
     errors.push(
-      ...validateAgentIdentitySection(discipline.agent, `${path}.agent`, "Discipline"),
+      ...validateAgentIdentitySection(
+        discipline.agent,
+        `${path}.agent`,
+        "Discipline",
+      ),
     );
   }
 

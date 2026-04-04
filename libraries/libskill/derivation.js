@@ -21,12 +21,8 @@ import {
   THRESHOLD_DRIVER_SKILL_PROFICIENCY,
   THRESHOLD_DRIVER_BEHAVIOUR_MATURITY,
 } from "./policies/thresholds.js";
-import {
-  isValidJobCombination as _isValidJobCombination,
-} from "./derivation-validation.js";
-import {
-  deriveResponsibilities as _deriveResponsibilities,
-} from "./derivation-responsibilities.js";
+import { isValidJobCombination as _isValidJobCombination } from "./derivation-validation.js";
+import { deriveResponsibilities as _deriveResponsibilities } from "./derivation-responsibilities.js";
 
 export { isValidJobCombination } from "./derivation-validation.js";
 export { deriveResponsibilities } from "./derivation-responsibilities.js";

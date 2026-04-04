@@ -210,8 +210,7 @@ describe("GraphIndex - Essential Functionality", () => {
       predicate: null,
       object: null,
     };
-    const nonExistentResults =
-      await graphIndex.queryItems(nonExistentPattern);
+    const nonExistentResults = await graphIndex.queryItems(nonExistentPattern);
     assert.strictEqual(
       nonExistentResults.length,
       0,

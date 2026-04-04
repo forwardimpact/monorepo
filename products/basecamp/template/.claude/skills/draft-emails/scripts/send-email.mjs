@@ -61,7 +61,14 @@ function recipientLines(type, addrs) {
 
 function parseArgs(args) {
   const parsed = { to: "", cc: "", bcc: "", subject: "", body: "", draft: "" };
-  const keyMap = { "--to": "to", "--cc": "cc", "--bcc": "bcc", "--subject": "subject", "--body": "body", "--draft": "draft" };
+  const keyMap = {
+    "--to": "to",
+    "--cc": "cc",
+    "--bcc": "bcc",
+    "--subject": "subject",
+    "--body": "body",
+    "--draft": "draft",
+  };
   for (let i = 0; i < args.length; i++) {
     const key = keyMap[args[i]];
     if (key) parsed[key] = args[++i] ?? "";
@@ -71,7 +78,11 @@ function parseArgs(args) {
     console.error("Run with --help for usage info.");
     process.exit(1);
   }
-  parsed.body = parsed.body.split("\n").map((line) => line.replace(/^ {2}/, "")).join("\n").trim();
+  parsed.body = parsed.body
+    .split("\n")
+    .map((line) => line.replace(/^ {2}/, ""))
+    .join("\n")
+    .trim();
   return parsed;
 }
 
@@ -86,12 +97,19 @@ function buildAppleScript({ to, cc, bcc, subject, body }) {
     "    end tell",
     "    send newMessage",
     "end tell",
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function handleDraftCleanup(draft) {
   if (!draft) return;
-  try { unlinkSync(draft); console.log(`Removed draft: ${draft}`); } catch { /* ignore */ }
+  try {
+    unlinkSync(draft);
+    console.log(`Removed draft: ${draft}`);
+  } catch {
+    /* ignore */
+  }
   const draftBasename = basename(draft, ".md");
   const emailId = draftBasename.replace(/_draft$/, "");
   if (emailId) {
@@ -110,7 +128,11 @@ function main() {
     console.log(`Sent: ${parsed.subject}`);
     handleDraftCleanup(parsed.draft);
   } finally {
-    try { unlinkSync(tmp); } catch { /* ignore */ }
+    try {
+      unlinkSync(tmp);
+    } catch {
+      /* ignore */
+    }
   }
 }
 

@@ -9,10 +9,7 @@ import {
   composeFilters,
 } from "../policies/filters.js";
 
-import {
-  isPrimary,
-  isAgentEligible,
-} from "../policies/predicates.js";
+import { isPrimary, isAgentEligible } from "../policies/predicates.js";
 
 function skill(overrides = {}) {
   return {
@@ -207,4 +204,3 @@ describe("filters", () => {
 // =============================================================================
 // Orderings
 // =============================================================================
-

@@ -137,8 +137,7 @@ export function createBlockParsers(helpers) {
         proj[kw.value] = parseStringValue();
       else if (PROJECT_DATE_KEYS.has(kw.value))
         proj[kw.value] = parseDateValue();
-      else if (PROJECT_ARRAY_KEYS.has(kw.value))
-        proj[kw.value] = parseArray();
+      else if (PROJECT_ARRAY_KEYS.has(kw.value)) proj[kw.value] = parseArray();
       else
         throw new Error(
           `Unexpected '${kw.value}' in project at line ${kw.line}`,

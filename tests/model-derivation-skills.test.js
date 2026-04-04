@@ -337,5 +337,4 @@ describe("Derivation", () => {
       assert.strictEqual(getLevelRank({ ...testLevel, ordinalRank: 5 }), 5);
     });
   });
-
 });

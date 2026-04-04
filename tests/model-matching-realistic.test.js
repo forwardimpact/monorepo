@@ -1,9 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
 
-import {
-  findRealisticMatches,
-} from "@forwardimpact/libskill/matching";
+import { findRealisticMatches } from "@forwardimpact/libskill/matching";
 
 import {
   testSkills,

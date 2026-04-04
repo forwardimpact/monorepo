@@ -1,6 +1,4 @@
-import {
-  Capability,
-} from "@forwardimpact/map/levels";
+import { Capability } from "@forwardimpact/map/levels";
 
 export const testSkills = [
   {

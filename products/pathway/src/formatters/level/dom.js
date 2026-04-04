@@ -78,7 +78,11 @@ function createBaseProfileSection(view) {
           tbody(
             {},
             createProficiencyRow("Primary", "badge-primary", profs.primary),
-            createProficiencyRow("Secondary", "badge-secondary", profs.secondary),
+            createProficiencyRow(
+              "Secondary",
+              "badge-secondary",
+              profs.secondary,
+            ),
             createProficiencyRow("Broad", "badge-broad", profs.broad),
           ),
         ),

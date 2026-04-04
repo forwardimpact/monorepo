@@ -116,7 +116,12 @@ function findValidCombinations(data, agentData) {
  * @param {Object} agentData - Agent-specific data
  */
 function listAgentCombinationsCompact(data, agentData) {
-  for (const { discipline, track, humanDiscipline, humanTrack } of findValidCombinations(data, agentData)) {
+  for (const {
+    discipline,
+    track,
+    humanDiscipline,
+    humanTrack,
+  } of findValidCombinations(data, agentData)) {
     const abbrev = getDisciplineAbbreviation(discipline.id);
     const agentName = `${abbrev}-${toKebabCase(track.id)}`;
     const specName = humanDiscipline.specialization || humanDiscipline.id;

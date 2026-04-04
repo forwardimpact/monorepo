@@ -30,7 +30,10 @@ export function validateAgentIdentitySection(agent, agentPath, entityName) {
         ),
       );
     }
-  } else if (agent.identity !== undefined && typeof agent.identity !== "string") {
+  } else if (
+    agent.identity !== undefined &&
+    typeof agent.identity !== "string"
+  ) {
     errors.push(
       createError(
         "INVALID_VALUE",

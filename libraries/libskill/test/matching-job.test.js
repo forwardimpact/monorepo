@@ -1,10 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 
-import {
-  MatchTier,
-  calculateJobMatch,
-} from "../matching.js";
+import { MatchTier, calculateJobMatch } from "../matching.js";
 
 describe("calculateJobMatch", () => {
   test("perfect match returns score of 1.0 with no gaps", () => {
@@ -305,4 +302,3 @@ describe("calculateJobMatch", () => {
 // =============================================================================
 // estimateBestFitLevel
 // =============================================================================
-

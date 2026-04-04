@@ -131,9 +131,7 @@ async function loadRawToSupabase(rawDocuments, config) {
     config.SUPABASE_SERVICE_ROLE_KEY,
   );
   const loadResult = await loadToSupabase(supabase, rawDocuments);
-  console.log(
-    `${loadResult.loaded} raw documents loaded to Supabase Storage`,
-  );
+  console.log(`${loadResult.loaded} raw documents loaded to Supabase Storage`);
   if (loadResult.errors.length > 0) {
     console.error(`${loadResult.errors.length} errors:`);
     for (const err of loadResult.errors) console.error(`  ${err}`);
@@ -164,9 +162,7 @@ async function writeRawLocally(rawDocuments, monorepoRoot) {
 function printDryRun(result, load) {
   console.log("\nFilesystem files:");
   for (const [path] of result.files) console.log(`  ${path}`);
-  console.log(
-    `\nRaw documents (${load ? "Supabase Storage" : "local"}):`,
-  );
+  console.log(`\nRaw documents (${load ? "Supabase Storage" : "local"}):`);
   for (const [path] of result.rawDocuments) console.log(`  raw/${path}`);
   console.log(
     `\n  ${result.files.size + result.rawDocuments.size} total (dry run)`,

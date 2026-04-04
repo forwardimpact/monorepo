@@ -6,10 +6,7 @@ import {
   validateQuestionBank,
 } from "@forwardimpact/map/validation";
 
-import {
-  testSkills,
-  testBehaviours,
-} from "./model-fixtures.js";
+import { testSkills, testBehaviours } from "./model-fixtures.js";
 
 describe("Validation", () => {
   describe("validateSelfAssessment", () => {

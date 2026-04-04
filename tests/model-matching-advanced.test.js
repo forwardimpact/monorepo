@@ -10,9 +10,7 @@ import {
   estimateBestFitLevel,
 } from "@forwardimpact/libskill/matching";
 
-import {
-  deriveJob,
-} from "@forwardimpact/libskill/derivation";
+import { deriveJob } from "@forwardimpact/libskill/derivation";
 
 import {
   testSkills,
@@ -264,5 +262,4 @@ describe("Matching", () => {
       assert.ok(result.confidence >= 0 && result.confidence <= 1);
     });
   });
-
 });

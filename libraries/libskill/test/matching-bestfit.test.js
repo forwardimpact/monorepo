@@ -1,9 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 
-import {
-  estimateBestFitLevel,
-} from "../matching.js";
+import { estimateBestFitLevel } from "../matching.js";
 
 describe("estimateBestFitLevel", () => {
   const levels = [

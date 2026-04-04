@@ -6,16 +6,32 @@ import {
 
 import { validateSkill } from "./validation/skill.js";
 import { validateBehaviour } from "./validation/behaviour.js";
-import { validateDiscipline, getAllDisciplineSkillIds } from "./validation/discipline.js";
+import {
+  validateDiscipline,
+  getAllDisciplineSkillIds,
+} from "./validation/discipline.js";
 import { validateTrack } from "./validation/track.js";
 import { validateDriver } from "./validation/driver.js";
-import { validateLevel, validateCapability, validateStage } from "./validation/level.js";
+import {
+  validateLevel,
+  validateCapability,
+  validateStage,
+} from "./validation/level.js";
 import { validateAgentData } from "./validation/agent.js";
-import { validateSelfAssessment, validateQuestionBank } from "./validation/questions.js";
+import {
+  validateSelfAssessment,
+  validateQuestionBank,
+} from "./validation/questions.js";
 
 export { validateSelfAssessment, validateQuestionBank, validateAgentData };
 
-function validateEntityList(items, entityName, validateFn, allErrors, allWarnings) {
+function validateEntityList(
+  items,
+  entityName,
+  validateFn,
+  allErrors,
+  allWarnings,
+) {
   if (!items || items.length === 0) {
     allErrors.push(
       createError("MISSING_REQUIRED", `At least one ${entityName} is required`),
@@ -110,7 +126,14 @@ export function validateAllData({
     disciplines,
     "discipline",
     (discipline, index) =>
-      validateDiscipline(discipline, index, skillIds, behaviourIds, trackIdSet, levelIdSet),
+      validateDiscipline(
+        discipline,
+        index,
+        skillIds,
+        behaviourIds,
+        trackIdSet,
+        levelIdSet,
+      ),
     allErrors,
     allWarnings,
   );

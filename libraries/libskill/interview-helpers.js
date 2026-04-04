@@ -231,7 +231,11 @@ export function generateSkillCandidates({
       questionsAdded++;
     }
 
-    if (includeBelowLevel && targetLevelIndex > 0 && questionsAdded < maxQuestionsPerSkill) {
+    if (
+      includeBelowLevel &&
+      targetLevelIndex > 0 &&
+      questionsAdded < maxQuestionsPerSkill
+    ) {
       const belowLevel = SKILL_PROFICIENCY_ORDER[targetLevelIndex - 1];
       const belowQuestions = getSkillQuestions(
         questionBank,
@@ -317,9 +321,11 @@ export function selectWithinBudget(candidates, timeBudget, defaultMinutes) {
 
   for (const q of candidates) {
     if (coveredIds.has(q.targetId)) continue;
-    const questionTime =
-      q.question.expectedDurationMinutes || defaultMinutes;
-    if (totalMinutes + questionTime <= timeBudget + TOLERANCE_INTERVIEW_BUDGET_MINUTES) {
+    const questionTime = q.question.expectedDurationMinutes || defaultMinutes;
+    if (
+      totalMinutes + questionTime <=
+      timeBudget + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    ) {
       selected.push(q);
       coveredIds.add(q.targetId);
       totalMinutes += questionTime;
@@ -328,9 +334,11 @@ export function selectWithinBudget(candidates, timeBudget, defaultMinutes) {
 
   for (const q of candidates) {
     if (selected.includes(q)) continue;
-    const questionTime =
-      q.question.expectedDurationMinutes || defaultMinutes;
-    if (totalMinutes + questionTime <= timeBudget + TOLERANCE_INTERVIEW_BUDGET_MINUTES) {
+    const questionTime = q.question.expectedDurationMinutes || defaultMinutes;
+    if (
+      totalMinutes + questionTime <=
+      timeBudget + TOLERANCE_INTERVIEW_BUDGET_MINUTES
+    ) {
       selected.push(q);
       coveredIds.add(q.targetId);
       totalMinutes += questionTime;
@@ -348,8 +356,7 @@ export function selectWithinBudget(candidates, timeBudget, defaultMinutes) {
  */
 export function calculateTotalDuration(questions, defaultMinutes) {
   return questions.reduce(
-    (sum, q) =>
-      sum + (q.question.expectedDurationMinutes || defaultMinutes),
+    (sum, q) => sum + (q.question.expectedDurationMinutes || defaultMinutes),
     0,
   );
 }

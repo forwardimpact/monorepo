@@ -47,12 +47,7 @@ describe("S3Storage", () => {
       }),
     };
 
-    s3Storage = new S3Storage(
-      "test-prefix",
-      "guide",
-      mockClient,
-      mockCommands,
-    );
+    s3Storage = new S3Storage("test-prefix", "guide", mockClient, mockCommands);
   });
 
   test("put sends PutObjectCommand", async () => {
@@ -104,9 +99,7 @@ describe("S3Storage", () => {
       { id: 1, name: "first" },
       { id: 2, name: "second" },
     ];
-    const jsonlContent = jsonlData
-      .map((obj) => JSON.stringify(obj))
-      .join("\n");
+    const jsonlContent = jsonlData.map((obj) => JSON.stringify(obj)).join("\n");
     mockClient.send = mock.fn(() =>
       Promise.resolve({
         Body: [Buffer.from(jsonlContent)],
@@ -206,10 +199,7 @@ describe("S3Storage", () => {
     const putCall = mockCommands.PutObjectCommand.mock.calls[0].arguments[0];
     assert.strictEqual(putCall.Key, "test-prefix/file.txt");
     // The body should be the concatenation of existing + new data with added newline
-    assert.strictEqual(
-      putCall.Body.toString(),
-      "existing dataappended data\n",
-    );
+    assert.strictEqual(putCall.Body.toString(), "existing dataappended data\n");
   });
 
   test("delete sends DeleteObjectCommand", async () => {
@@ -252,5 +242,4 @@ describe("S3Storage", () => {
 
     assert.strictEqual(exists, false);
   });
-
 });

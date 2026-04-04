@@ -219,7 +219,6 @@ function checkGithubUsernames(entities) {
   };
 }
 
-
 // ─── E1: Prose length validation ────────────────
 
 const PROSE_RANGES = {

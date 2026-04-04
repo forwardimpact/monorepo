@@ -2,10 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
-import {
-  AgentRunner,
-  Supervisor,
-} from "@forwardimpact/libeval";
+import { AgentRunner, Supervisor } from "@forwardimpact/libeval";
 import { isSuccessful } from "../src/supervisor.js";
 
 /**

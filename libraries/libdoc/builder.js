@@ -439,12 +439,8 @@ export class DocsBuilder {
   #writePageFiles(mdFile, distDir, finalHtml, companionContent) {
     const baseName = mdFile.replace(".md", "");
     const isIndex = baseName === "index" || baseName.endsWith("/index");
-    const outputPath = isIndex
-      ? baseName
-      : this.#path.join(baseName, "index");
-    const outputDir = this.#path.dirname(
-      this.#path.join(distDir, outputPath),
-    );
+    const outputPath = isIndex ? baseName : this.#path.join(baseName, "index");
+    const outputDir = this.#path.dirname(this.#path.join(distDir, outputPath));
 
     this.#fs.mkdirSync(outputDir, { recursive: true });
     this.#fs.writeFileSync(

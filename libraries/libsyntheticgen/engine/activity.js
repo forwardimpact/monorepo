@@ -204,8 +204,7 @@ function applyScenarioEffects(ast, snapDate, team, driverId, base) {
       const dx = (affect.dx_drivers || []).find(
         (d) => d.driver_id === driverId,
       );
-      if (dx)
-        adjusted += dx.magnitude * ((snapDate - start) / (end - start));
+      if (dx) adjusted += dx.magnitude * ((snapDate - start) / (end - start));
     }
   }
   return adjusted;

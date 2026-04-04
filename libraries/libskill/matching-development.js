@@ -21,7 +21,16 @@ import {
   WEIGHT_SAME_TRACK_BONUS,
 } from "./policies/thresholds.js";
 
-import { calculateJobMatch, findMatchingJobs } from "./matching.js";
+import {
+  calculateJobMatch,
+  findMatchingJobs,
+  estimateBestFitLevel,
+} from "./matching.js";
+
+import {
+  RANGE_LEVEL_OFFSET,
+  RANGE_READY_LEVEL_OFFSET,
+} from "./policies/thresholds.js";
 
 /**
  * Type weight lookup for development path priority
@@ -272,5 +281,118 @@ export function analyzeCandidate({
     developmentPath,
     skillProfile,
     behaviourProfile,
+  };
+}
+
+/**
+ * Find realistic job matches with tier filtering
+ * @param {Object} params
+ * @param {Object} params.selfAssessment - The self-assessment
+ * @param {Array} params.disciplines - All disciplines
+ * @param {Array} params.levels - All levels
+ * @param {Array} params.tracks - All tracks
+ * @param {Array} params.skills - All skills
+ * @param {Array} params.behaviours - All behaviours
+ * @param {Object} [params.validationRules] - Optional validation rules
+ * @param {boolean} [params.filterByLevel=true] - Whether to filter to +/-1 level
+ * @param {number} [params.topN=20] - Maximum matches to return
+ * @returns {Object} Matches grouped by tier with metadata
+ */
+export function findRealisticMatches({
+  selfAssessment,
+  disciplines,
+  levels,
+  tracks,
+  skills,
+  behaviours,
+  validationRules,
+  filterByLevel = true,
+  topN = 20,
+}) {
+  const estimatedLevel = estimateBestFitLevel({
+    selfAssessment,
+    levels,
+    skills,
+  });
+
+  const bestFitLevel = estimatedLevel.level.ordinalRank;
+  const levelRange = {
+    min: bestFitLevel - RANGE_LEVEL_OFFSET,
+    max: bestFitLevel + RANGE_LEVEL_OFFSET,
+  };
+
+  const allMatches = findMatchingJobs({
+    selfAssessment,
+    disciplines,
+    levels,
+    tracks,
+    skills,
+    behaviours,
+    validationRules,
+    topN: 100,
+  });
+
+  let filteredMatches = allMatches;
+  if (filterByLevel) {
+    filteredMatches = allMatches.filter(
+      (m) =>
+        m.job.level.ordinalRank >= levelRange.min &&
+        m.job.level.ordinalRank <= levelRange.max,
+    );
+  }
+
+  const matchesByTier = { 1: [], 2: [], 3: [], 4: [] };
+  for (const match of filteredMatches)
+    matchesByTier[match.analysis.tier.tier].push(match);
+
+  for (const tierNum of Object.keys(matchesByTier)) {
+    matchesByTier[tierNum].sort((a, b) => {
+      const levelDiff = b.job.level.ordinalRank - a.job.level.ordinalRank;
+      if (levelDiff !== 0) return levelDiff;
+      return b.analysis.overallScore - a.analysis.overallScore;
+    });
+  }
+
+  const strongAndGoodMatches = [...matchesByTier[1], ...matchesByTier[2]];
+  let highestMatchedLevel = 0;
+  for (const match of strongAndGoodMatches) {
+    if (match.job.level.ordinalRank > highestMatchedLevel) {
+      highestMatchedLevel = match.job.level.ordinalRank;
+    }
+  }
+
+  if (highestMatchedLevel > 0) {
+    const minLevelForReady = highestMatchedLevel - RANGE_READY_LEVEL_OFFSET;
+    const minLevelForStretch = highestMatchedLevel;
+
+    matchesByTier[1] = matchesByTier[1].filter(
+      (m) => m.job.level.ordinalRank >= minLevelForReady,
+    );
+    matchesByTier[2] = matchesByTier[2].filter(
+      (m) => m.job.level.ordinalRank >= minLevelForReady,
+    );
+    matchesByTier[3] = matchesByTier[3].filter(
+      (m) => m.job.level.ordinalRank >= minLevelForStretch,
+    );
+    matchesByTier[4] = matchesByTier[4].filter(
+      (m) => m.job.level.ordinalRank >= minLevelForStretch,
+    );
+  }
+
+  const allFilteredMatches = [
+    ...matchesByTier[1],
+    ...matchesByTier[2],
+    ...matchesByTier[3],
+    ...matchesByTier[4],
+  ];
+
+  return {
+    matches: allFilteredMatches.slice(0, topN),
+    matchesByTier,
+    estimatedLevel: {
+      level: estimatedLevel.level,
+      confidence: estimatedLevel.confidence,
+    },
+    levelRange,
   };
 }

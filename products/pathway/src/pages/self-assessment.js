@@ -3,14 +3,7 @@
  * A step-by-step interface for users to assess their skills and behaviours
  */
 
-import {
-  render,
-  div,
-  h1,
-  p,
-  span,
-  button,
-} from "../lib/render.js";
+import { render, div, h1, p, span, button } from "../lib/render.js";
 import { getState } from "../lib/state.js";
 import {
   groupSkillsByCapability,
@@ -146,9 +139,20 @@ function renderStepContent(step, data) {
     case "intro":
       return renderIntroStep(data, assessmentState);
     case "skills":
-      return renderSkillsStep(step, data, assessmentState, renderSelfAssessment, formatCapability);
+      return renderSkillsStep(
+        step,
+        data,
+        assessmentState,
+        renderSelfAssessment,
+        formatCapability,
+      );
     case "behaviours":
-      return renderBehavioursStep(step, data, assessmentState, renderSelfAssessment);
+      return renderBehavioursStep(
+        step,
+        data,
+        assessmentState,
+        renderSelfAssessment,
+      );
     case "results":
       return renderResultsPreview(data, assessmentState, calculateProgress);
     default:

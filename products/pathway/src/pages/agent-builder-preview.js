@@ -178,7 +178,12 @@ export function createAllStagesPreview(context) {
 
   return div(
     { className: "agent-deployment" },
-    createDownloadAllButton(stageAgents, skillFiles, claudeCodeSettings, context),
+    createDownloadAllButton(
+      stageAgents,
+      skillFiles,
+      claudeCodeSettings,
+      context,
+    ),
     section(
       { className: "agent-section" },
       h2({}, `Agents (${stageAgents.length})`),
@@ -196,7 +201,9 @@ export function createAllStagesPreview(context) {
               span({ className: "file-card-emoji" }, stageEmoji),
               h3({}, `${stage.name} Agent`),
             ],
-            files: [{ filename: profile.filename, content, language: "markdown" }],
+            files: [
+              { filename: profile.filename, content, language: "markdown" },
+            ],
             maxHeight: 400,
           });
         }),
@@ -250,7 +257,12 @@ export function createSingleStagePreview(context, stage) {
 
   return div(
     { className: "agent-deployment" },
-    createDownloadSingleButton(profile, skillFiles, claudeCodeSettings, templates),
+    createDownloadSingleButton(
+      profile,
+      skillFiles,
+      claudeCodeSettings,
+      templates,
+    ),
     section(
       { className: "agent-section" },
       h2({}, "Agent"),
@@ -264,7 +276,9 @@ export function createSingleStagePreview(context, stage) {
               span({ className: "file-card-emoji" }, stageEmoji),
               h3({}, `${stage.name} Agent`),
             ],
-            files: [{ filename: profile.filename, content, language: "markdown" }],
+            files: [
+              { filename: profile.filename, content, language: "markdown" },
+            ],
             maxHeight: 400,
           });
         })(),

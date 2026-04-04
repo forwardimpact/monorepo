@@ -40,9 +40,7 @@ describe("LlmApi", () => {
         }),
       ),
     };
-    mockFetch.mock.mockImplementationOnce(() =>
-      Promise.resolve(mockResponse),
-    );
+    mockFetch.mock.mockImplementationOnce(() => Promise.resolve(mockResponse));
 
     const messages = [{ role: "user", content: "Hello" }];
     const tools = undefined;
@@ -76,9 +74,7 @@ describe("LlmApi", () => {
         }),
       ),
     };
-    mockFetch.mock.mockImplementationOnce(() =>
-      Promise.resolve(mockResponse),
-    );
+    mockFetch.mock.mockImplementationOnce(() => Promise.resolve(mockResponse));
 
     const messages = [{ role: "user", content: "Hello" }];
 
@@ -96,9 +92,7 @@ describe("LlmApi", () => {
       statusText: "Not Found",
       text: mock.fn(() => Promise.resolve("Error details")),
     };
-    mockFetch.mock.mockImplementationOnce(() =>
-      Promise.resolve(mockResponse),
-    );
+    mockFetch.mock.mockImplementationOnce(() => Promise.resolve(mockResponse));
 
     const messages = [{ role: "user", content: "Hello" }];
 
@@ -115,9 +109,7 @@ describe("LlmApi", () => {
       text: mock.fn(() => Promise.resolve("Invalid request details")),
     };
 
-    mockFetch.mock.mockImplementationOnce(() =>
-      Promise.resolve(errorResponse),
-    );
+    mockFetch.mock.mockImplementationOnce(() => Promise.resolve(errorResponse));
 
     const messages = [{ role: "user", content: "Hello" }];
 
@@ -168,9 +160,7 @@ describe("LlmApi", () => {
         }),
       ),
     };
-    mockFetch.mock.mockImplementationOnce(() =>
-      Promise.resolve(mockResponse),
-    );
+    mockFetch.mock.mockImplementationOnce(() => Promise.resolve(mockResponse));
 
     const messages = [{ role: "user", content: "Query the graph" }];
     const result = await llmApi.createCompletions({ messages });
@@ -226,9 +216,7 @@ describe("LlmApi", () => {
         }),
       ),
     };
-    mockFetch.mock.mockImplementationOnce(() =>
-      Promise.resolve(mockResponse),
-    );
+    mockFetch.mock.mockImplementationOnce(() => Promise.resolve(mockResponse));
 
     const result = await llmApi.createCompletions({
       messages: [{ role: "user", content: "Search" }],
@@ -270,9 +258,7 @@ describe("LlmApi", () => {
         }),
       ),
     };
-    mockFetch.mock.mockImplementationOnce(() =>
-      Promise.resolve(mockResponse),
-    );
+    mockFetch.mock.mockImplementationOnce(() => Promise.resolve(mockResponse));
 
     const result = await llmApi.createCompletions({
       messages: [{ role: "user", content: "Test" }],
@@ -299,9 +285,7 @@ describe("LlmApi", () => {
         ]),
       ),
     };
-    mockFetch.mock.mockImplementationOnce(() =>
-      Promise.resolve(mockResponse),
-    );
+    mockFetch.mock.mockImplementationOnce(() => Promise.resolve(mockResponse));
 
     const texts = ["Hello", "World"];
     const result = await llmApi.createEmbeddings(texts);
@@ -360,9 +344,7 @@ describe("LlmApi", () => {
       text: mock.fn(() => Promise.resolve("Invalid request details")),
     };
 
-    mockFetch.mock.mockImplementationOnce(() =>
-      Promise.resolve(errorResponse),
-    );
+    mockFetch.mock.mockImplementationOnce(() => Promise.resolve(errorResponse));
 
     const texts = ["Hello"];
 
@@ -403,9 +385,7 @@ describe("LlmApi", () => {
         }),
       ),
     };
-    mockFetch.mock.mockImplementationOnce(() =>
-      Promise.resolve(mockResponse),
-    );
+    mockFetch.mock.mockImplementationOnce(() => Promise.resolve(mockResponse));
 
     const result = await llmApi.listModels();
 
@@ -429,9 +409,7 @@ describe("LlmApi", () => {
       statusText: "Unauthorized",
       text: mock.fn(() => Promise.resolve("Auth error details")),
     };
-    mockFetch.mock.mockImplementationOnce(() =>
-      Promise.resolve(mockResponse),
-    );
+    mockFetch.mock.mockImplementationOnce(() => Promise.resolve(mockResponse));
 
     await assert.rejects(() => llmApi.listModels(), {
       message: /HTTP 401: Unauthorized/,

@@ -1,7 +1,4 @@
-import {
-  Capability,
-  SKILL_PROFICIENCY_ORDER,
-} from "../levels.js";
+import { Capability, SKILL_PROFICIENCY_ORDER } from "../levels.js";
 
 import { createError, createWarning } from "./common.js";
 
@@ -159,7 +156,11 @@ function validateSkillAgentStages(skill, agentPath, requiredStageIds) {
       continue;
     }
     errors.push(
-      ...validateStageFields(stageId, stageData, `${agentPath}.stages.${stageId}`),
+      ...validateStageFields(
+        stageId,
+        stageData,
+        `${agentPath}.stages.${stageId}`,
+      ),
     );
   }
 
@@ -293,22 +294,39 @@ function validateSkillToolReferences(skill, path) {
     const toolPath = `${path}.toolReferences[${i}]`;
     if (!tool.name) {
       errors.push(
-        createError("MISSING_REQUIRED", "Tool reference missing name", `${toolPath}.name`),
+        createError(
+          "MISSING_REQUIRED",
+          "Tool reference missing name",
+          `${toolPath}.name`,
+        ),
       );
     }
     if (!tool.description) {
       errors.push(
-        createError("MISSING_REQUIRED", "Tool reference missing description", `${toolPath}.description`),
+        createError(
+          "MISSING_REQUIRED",
+          "Tool reference missing description",
+          `${toolPath}.description`,
+        ),
       );
     }
     if (!tool.useWhen) {
       errors.push(
-        createError("MISSING_REQUIRED", "Tool reference missing useWhen", `${toolPath}.useWhen`),
+        createError(
+          "MISSING_REQUIRED",
+          "Tool reference missing useWhen",
+          `${toolPath}.useWhen`,
+        ),
       );
     }
     if (tool.url !== undefined && typeof tool.url !== "string") {
       errors.push(
-        createError("INVALID_VALUE", "Tool reference url must be a string", `${toolPath}.url`, tool.url),
+        createError(
+          "INVALID_VALUE",
+          "Tool reference url must be a string",
+          `${toolPath}.url`,
+          tool.url,
+        ),
       );
     }
   });
@@ -357,7 +375,10 @@ function validateSkillMarkers(skill, path) {
       continue;
     }
     for (const section of ["human", "agent"]) {
-      if (levelMarkers[section] !== undefined && !Array.isArray(levelMarkers[section])) {
+      if (
+        levelMarkers[section] !== undefined &&
+        !Array.isArray(levelMarkers[section])
+      ) {
         errors.push(
           createError(
             "INVALID_VALUE",
@@ -393,4 +414,3 @@ export function validateSkill(skill, index, requiredStageIds = []) {
 
   return { errors, warnings };
 }
-

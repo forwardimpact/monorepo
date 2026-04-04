@@ -81,11 +81,8 @@ function buildInitiative(params) {
   const completeBy = new Date(endDate);
   completeBy.setMonth(completeBy.getMonth() + 3);
 
-  const manager = people.find(
-    (p) => p.team_id === team.id && p.is_manager,
-  );
-  const ownerPerson =
-    manager || people.find((p) => p.team_id === team.id);
+  const manager = people.find((p) => p.team_id === team.id && p.is_manager);
+  const ownerPerson = manager || people.find((p) => p.team_id === team.id);
 
   const remainingDevDays = Math.round(
     ((100 - pctComplete) / 100) * totalDays * 0.3,

@@ -8,9 +8,7 @@ import {
   findNextStepJob,
 } from "@forwardimpact/libskill/matching";
 
-import {
-  deriveJob,
-} from "@forwardimpact/libskill/derivation";
+import { deriveJob } from "@forwardimpact/libskill/derivation";
 
 import {
   testSkills,
@@ -418,5 +416,4 @@ describe("Matching", () => {
       assert.strictEqual(result, null);
     });
   });
-
 });

@@ -14,9 +14,7 @@ function formatLevels(levels) {
 function formatBehaviours(behaviours) {
   return [
     "Behaviour names:",
-    ...behaviours.map(
-      (b) => `- ${b._id || b.id}: ${b.name || b._id || b.id}`,
-    ),
+    ...behaviours.map((b) => `- ${b._id || b.id}: ${b.name || b._id || b.id}`),
   ];
 }
 
@@ -39,9 +37,12 @@ function formatCapabilities(capabilities) {
 export function buildPriorContextLines(priorOutput) {
   if (!priorOutput) return [];
   const lines = [];
-  if (Array.isArray(priorOutput.levels)) lines.push(...formatLevels(priorOutput.levels));
-  if (Array.isArray(priorOutput.behaviours)) lines.push(...formatBehaviours(priorOutput.behaviours));
-  if (Array.isArray(priorOutput.capabilities)) lines.push(...formatCapabilities(priorOutput.capabilities));
+  if (Array.isArray(priorOutput.levels))
+    lines.push(...formatLevels(priorOutput.levels));
+  if (Array.isArray(priorOutput.behaviours))
+    lines.push(...formatBehaviours(priorOutput.behaviours));
+  if (Array.isArray(priorOutput.capabilities))
+    lines.push(...formatCapabilities(priorOutput.capabilities));
   if (lines.length === 0) return [];
   return ["", "## Previously generated context", ...lines];
 }

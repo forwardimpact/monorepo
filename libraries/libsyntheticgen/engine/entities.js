@@ -53,7 +53,16 @@ function pickArchetype(rng, archetypeKeys, archetypeWeights) {
     : "steady_contributor";
 }
 
-function createManagers(rng, teams, managerAssignments, discKeys, discWeights, archetypeKeys, archetypeWeights, domain) {
+function createManagers(
+  rng,
+  teams,
+  managerAssignments,
+  discKeys,
+  discWeights,
+  archetypeKeys,
+  archetypeWeights,
+  domain,
+) {
   const people = [];
   for (const team of teams) {
     if (!team.manager) continue;
@@ -76,7 +85,20 @@ function createManagers(rng, teams, managerAssignments, discKeys, discWeights, a
   return people;
 }
 
-function fillRemainingPeople(rng, people, count, available, levelKeys, levelWeights, discKeys, discWeights, archetypeKeys, archetypeWeights, teams, domain) {
+function fillRemainingPeople(
+  rng,
+  people,
+  count,
+  available,
+  levelKeys,
+  levelWeights,
+  discKeys,
+  discWeights,
+  archetypeKeys,
+  archetypeWeights,
+  teams,
+  domain,
+) {
   let idx = 0;
   while (people.length < count && idx < available.length) {
     const name = available[idx++];
@@ -122,8 +144,30 @@ function generatePeople(ast, rng, teams, domain, logger) {
   const discWeights = Object.values(disciplines);
   const available = rng.shuffle(GREEK_NAMES.filter((n) => !usedNames.has(n)));
 
-  const people = createManagers(rng, teams, managerAssignments, discKeys, discWeights, archetypeKeys, archetypeWeights, domain);
-  fillRemainingPeople(rng, people, count, available, levelKeys, levelWeights, discKeys, discWeights, archetypeKeys, archetypeWeights, teams, domain);
+  const people = createManagers(
+    rng,
+    teams,
+    managerAssignments,
+    discKeys,
+    discWeights,
+    archetypeKeys,
+    archetypeWeights,
+    domain,
+  );
+  fillRemainingPeople(
+    rng,
+    people,
+    count,
+    available,
+    levelKeys,
+    levelWeights,
+    discKeys,
+    discWeights,
+    archetypeKeys,
+    archetypeWeights,
+    teams,
+    domain,
+  );
 
   if (people.length < count && logger) {
     logger.warn(

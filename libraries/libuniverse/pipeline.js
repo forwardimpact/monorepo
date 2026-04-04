@@ -100,14 +100,20 @@ export class Pipeline {
    * @returns {{ linked: object|null }}
    */
   async #renderHtml(entities, prose, files) {
-    this.logger.info("render", "Rendering HTML (Pass 1: deterministic skeleton)");
+    this.logger.info(
+      "render",
+      "Rendering HTML (Pass 1: deterministic skeleton)",
+    );
     const { files: htmlFiles, linked } = this.renderer.renderHtml(
       entities,
       prose,
     );
 
     if (this.proseEngine.mode !== "no-prose") {
-      this.logger.info("render", "Enriching HTML (Pass 2: LLM prose enrichment)");
+      this.logger.info(
+        "render",
+        "Enriching HTML (Pass 2: LLM prose enrichment)",
+      );
       const enriched = await this.renderer.enrichHtml(
         htmlFiles,
         linked,
@@ -213,7 +219,10 @@ export class Pipeline {
    * @param {Map<string, string>} files
    */
   async #processDatasets(ast, files) {
-    this.logger.info("pipeline", `Generating ${ast.datasets.length} dataset(s)`);
+    this.logger.info(
+      "pipeline",
+      `Generating ${ast.datasets.length} dataset(s)`,
+    );
     const datasets = new Map();
     for (const ds of ast.datasets) {
       const tool = this.toolFactory(ds.tool, { logger: this.logger });
@@ -236,7 +245,10 @@ export class Pipeline {
       }
     }
 
-    this.logger.info("pipeline", `Rendering ${ast.outputs.length} dataset output(s)`);
+    this.logger.info(
+      "pipeline",
+      `Rendering ${ast.outputs.length} dataset output(s)`,
+    );
     for (const out of ast.outputs) {
       const dataset = datasets.get(out.dataset);
       if (!dataset) {

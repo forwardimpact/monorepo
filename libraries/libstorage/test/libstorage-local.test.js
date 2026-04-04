@@ -70,12 +70,8 @@ describe("LocalStorage", () => {
       { id: 1, name: "first" },
       { id: 2, name: "second" },
     ];
-    const jsonlContent = jsonlData
-      .map((obj) => JSON.stringify(obj))
-      .join("\n");
-    mockFs.readFile = mock.fn(() =>
-      Promise.resolve(Buffer.from(jsonlContent)),
-    );
+    const jsonlContent = jsonlData.map((obj) => JSON.stringify(obj)).join("\n");
+    mockFs.readFile = mock.fn(() => Promise.resolve(Buffer.from(jsonlContent)));
 
     const result = await localStorage.get("data.jsonl");
 
@@ -247,12 +243,8 @@ describe("LocalStorage", () => {
 
     mockFs.stat = mock.fn((path) => {
       const timestamps = {
-        "/test/base/common.File.hash001.txt": new Date(
-          "2024-01-01T00:00:00Z",
-        ),
-        "/test/base/common.File.hash002.txt": new Date(
-          "2024-01-02T00:00:00Z",
-        ),
+        "/test/base/common.File.hash001.txt": new Date("2024-01-01T00:00:00Z"),
+        "/test/base/common.File.hash002.txt": new Date("2024-01-02T00:00:00Z"),
         "/test/base/other:prefix.txt": new Date("2024-01-03T00:00:00Z"),
       };
       return Promise.resolve({

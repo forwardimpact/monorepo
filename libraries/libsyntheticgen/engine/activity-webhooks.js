@@ -108,7 +108,16 @@ function getMultipliers(scenarios, teamId, week) {
  * Generate push webhooks for a team week.
  * @returns {object[]}
  */
-function generatePushEvents(rng, members, cm, orgName, team, week, weekEnd, counter) {
+function generatePushEvents(
+  rng,
+  members,
+  cm,
+  orgName,
+  team,
+  week,
+  weekEnd,
+  counter,
+) {
   const webhooks = [];
   const pushCount = Math.round(members.length * cm * 0.3);
   for (let i = 0; i < pushCount; i++) {
@@ -152,7 +161,16 @@ function generatePushEvents(rng, members, cm, orgName, team, week, weekEnd, coun
  * Generate PR webhooks for a team week.
  * @returns {object[]}
  */
-function generatePREvents(rng, members, pm, orgName, team, week, weekEnd, counter) {
+function generatePREvents(
+  rng,
+  members,
+  pm,
+  orgName,
+  team,
+  week,
+  weekEnd,
+  counter,
+) {
   const webhooks = [];
   const prCount = Math.round(members.length * pm * 0.15);
   for (let i = 0; i < prCount; i++) {
@@ -256,10 +274,28 @@ export function generateWebhooks(ast, rng, people, teams) {
       const { cm, pm } = getMultipliers(ast.scenarios, team.id, week);
 
       webhooks.push(
-        ...generatePushEvents(rng, members, cm, orgName, team, week, weekEnd, counter),
+        ...generatePushEvents(
+          rng,
+          members,
+          cm,
+          orgName,
+          team,
+          week,
+          weekEnd,
+          counter,
+        ),
       );
       webhooks.push(
-        ...generatePREvents(rng, members, pm, orgName, team, week, weekEnd, counter),
+        ...generatePREvents(
+          rng,
+          members,
+          pm,
+          orgName,
+          team,
+          week,
+          weekEnd,
+          counter,
+        ),
       );
     }
 
