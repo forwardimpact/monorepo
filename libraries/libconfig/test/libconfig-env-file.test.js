@@ -1,6 +1,6 @@
 import { test, describe, mock, afterEach } from "node:test";
 import assert from "node:assert";
-import { writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { writeFileSync, mkdirSync, rmSync, chmodSync } from "node:fs";
 import path from "node:path";
 import { tmpdir } from "node:os";
 
@@ -144,6 +144,24 @@ describe("libconfig - .env file loading", () => {
     });
   });
 
+  test("throws on non-ENOENT errors (e.g. permission denied)", async (t) => {
+    if (process.getuid?.() === 0) {
+      t.skip("cannot enforce file permissions as root");
+      return;
+    }
+
+    writeEnvFile("JWT_SECRET=secret\n");
+    chmodSync(envPath, 0o000);
+
+    await assert.rejects(
+      () => createConfig("test", "svc", {}, createProcess(), mockStorageFn),
+      (error) => error.code === "EACCES",
+    );
+
+    // Restore permissions so afterEach cleanup works
+    chmodSync(envPath, 0o644);
+  });
+
   test("does not set .env values on the data object", async () => {
     writeEnvFile("JWT_SECRET=secret\nGITHUB_TOKEN=token\n");
 
@@ -210,5 +228,60 @@ describe("libconfig - .env file loading", () => {
     assert.strictEqual(config.jwtSecret(), "jwt-sec");
     assert.strictEqual(config.jwtAnonKey(), "anon-key");
     assert.strictEqual(config.jwtAuthUrl(), "https://auth.example.com");
+  });
+
+  test("values do not leak via Object.keys or JSON.stringify", async () => {
+    writeEnvFile("JWT_SECRET=secret\nGITHUB_TOKEN=token\n");
+
+    const config = await createConfig(
+      "test",
+      "svc",
+      {},
+      createProcess(),
+      mockStorageFn,
+    );
+
+    assert.ok(!Object.keys(config).includes("JWT_SECRET"));
+    assert.ok(!Object.keys(config).includes("GITHUB_TOKEN"));
+    const serialized = JSON.stringify(config);
+    assert.ok(!serialized.includes("secret"));
+    assert.ok(!serialized.includes("token"));
+  });
+
+  test("ignores export prefix on keys", async () => {
+    writeEnvFile("export JWT_SECRET=should-be-ignored\n");
+
+    const config = await createConfig(
+      "test",
+      "svc",
+      {},
+      createProcess(),
+      mockStorageFn,
+    );
+
+    // "export JWT_SECRET" is not in allowed keys, so it is dropped
+    assert.throws(() => config.jwtSecret(), {
+      message: "JWT_SECRET not found in environment",
+    });
+  });
+
+  test("handles adversarial values safely", async () => {
+    writeEnvFile(
+      [
+        "JWT_SECRET=value\x00with-null",
+        "GITHUB_TOKEN=" + "a".repeat(10000),
+      ].join("\n"),
+    );
+
+    const config = await createConfig(
+      "test",
+      "svc",
+      {},
+      createProcess(),
+      mockStorageFn,
+    );
+
+    assert.strictEqual(config.jwtSecret(), "value\x00with-null");
+    assert.strictEqual(config.ghToken().length, 10000);
   });
 });

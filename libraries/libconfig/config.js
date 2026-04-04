@@ -309,8 +309,8 @@ export class Config {
         }
         this.#envOverrides[key] = value;
       }
-    } catch {
-      // .env file not found or unreadable — continue without it
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
     }
   }
 
