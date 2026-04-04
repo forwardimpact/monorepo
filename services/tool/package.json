@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svctool",
-  "version": "0.1.92",
+  "version": "0.1.93",
   "description": "Tool service providing various utility functions for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

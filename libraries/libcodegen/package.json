@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libcodegen",
-  "version": "0.1.38",
+  "version": "0.1.39",
   "description": "Protocol Buffer code generation utilities for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

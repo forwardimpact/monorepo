@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcllm",
-  "version": "0.1.97",
+  "version": "0.1.98",
   "description": "Language model service providing embeddings and completions for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
