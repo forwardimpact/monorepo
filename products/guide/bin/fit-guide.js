@@ -102,13 +102,34 @@ if (process.argv.includes("--init")) {
         log_dir: "data/logs",
         shutdown_timeout: 3000,
         services: [
-          { name: "trace", command: "node -e \"import('@forwardimpact/svctrace/server.js')\"" },
-          { name: "vector", command: "node -e \"import('@forwardimpact/svcvector/server.js')\"" },
-          { name: "graph", command: "node -e \"import('@forwardimpact/svcgraph/server.js')\"" },
-          { name: "llm", command: "node -e \"import('@forwardimpact/svcllm/server.js')\"" },
-          { name: "memory", command: "node -e \"import('@forwardimpact/svcmemory/server.js')\"" },
-          { name: "tool", command: "node -e \"import('@forwardimpact/svctool/server.js')\"" },
-          { name: "agent", command: "node -e \"import('@forwardimpact/svcagent/server.js')\"" },
+          {
+            name: "trace",
+            command: "node -e \"import('@forwardimpact/svctrace/server.js')\"",
+          },
+          {
+            name: "vector",
+            command: "node -e \"import('@forwardimpact/svcvector/server.js')\"",
+          },
+          {
+            name: "graph",
+            command: "node -e \"import('@forwardimpact/svcgraph/server.js')\"",
+          },
+          {
+            name: "llm",
+            command: "node -e \"import('@forwardimpact/svcllm/server.js')\"",
+          },
+          {
+            name: "memory",
+            command: "node -e \"import('@forwardimpact/svcmemory/server.js')\"",
+          },
+          {
+            name: "tool",
+            command: "node -e \"import('@forwardimpact/svctool/server.js')\"",
+          },
+          {
+            name: "agent",
+            command: "node -e \"import('@forwardimpact/svcagent/server.js')\"",
+          },
         ],
       },
     };
