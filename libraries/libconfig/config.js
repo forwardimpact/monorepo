@@ -1,4 +1,5 @@
 import path from "node:path";
+import { readFile } from "node:fs/promises";
 import { createStorage } from "@forwardimpact/libstorage";
 
 /** @typedef {import("@forwardimpact/libstorage").StorageInterface} StorageInterface */
@@ -7,6 +8,17 @@ import { createStorage } from "@forwardimpact/libstorage";
  * Centralized configuration management class
  */
 export class Config {
+  static #ALLOWED_ENV_KEYS = new Set([
+    "GITHUB_CLIENT_ID",
+    "GITHUB_TOKEN",
+    "LLM_TOKEN",
+    "LLM_BASE_URL",
+    "EMBEDDING_BASE_URL",
+    "JWT_SECRET",
+    "JWT_ANON_KEY",
+    "JWT_AUTH_URL",
+  ]);
+
   #llmToken = null;
   #llmBaseUrl = null;
   #embeddingBaseUrl = null;
@@ -15,6 +27,7 @@ export class Config {
   #jwtAuthUrl = null;
   #ghToken = null;
   #ghClientId = null;
+  #envOverrides = {};
   #fileData = null;
   #storage = null;
   #process;
@@ -50,6 +63,7 @@ export class Config {
   async load() {
     this.#storage = this.#storageFn("config", null, this.#process);
 
+    await this.#loadEnvFile();
     await this.#loadFileData();
 
     const namespaceUpper = this.namespace.toUpperCase();
@@ -96,8 +110,9 @@ export class Config {
   ghClientId() {
     if (this.#ghClientId) return this.#ghClientId;
 
-    if (this.#process.env.GITHUB_CLIENT_ID) {
-      this.#ghClientId = this.#process.env.GITHUB_CLIENT_ID;
+    const value = this.#env("GITHUB_CLIENT_ID");
+    if (value) {
+      this.#ghClientId = value;
       return this.#ghClientId;
     }
 
@@ -111,8 +126,9 @@ export class Config {
   ghToken() {
     if (this.#ghToken) return this.#ghToken;
 
-    if (this.#process.env.GITHUB_TOKEN) {
-      this.#ghToken = this.#process.env.GITHUB_TOKEN;
+    const value = this.#env("GITHUB_TOKEN");
+    if (value) {
+      this.#ghToken = value;
       return this.#ghToken;
     }
 
@@ -126,8 +142,9 @@ export class Config {
   async llmToken() {
     if (this.#llmToken) return this.#llmToken;
 
-    if (this.#process.env.LLM_TOKEN) {
-      this.#llmToken = this.#process.env.LLM_TOKEN;
+    const value = this.#env("LLM_TOKEN");
+    if (value) {
+      this.#llmToken = value;
       return this.#llmToken;
     }
 
@@ -142,8 +159,9 @@ export class Config {
   llmBaseUrl() {
     if (this.#llmBaseUrl) return this.#llmBaseUrl;
 
-    if (this.#process.env.LLM_BASE_URL) {
-      this.#llmBaseUrl = this.#process.env.LLM_BASE_URL.replace(/\/+$/, "");
+    const value = this.#env("LLM_BASE_URL");
+    if (value) {
+      this.#llmBaseUrl = value.replace(/\/+$/, "");
       return this.#llmBaseUrl;
     }
 
@@ -160,11 +178,9 @@ export class Config {
   embeddingBaseUrl() {
     if (this.#embeddingBaseUrl) return this.#embeddingBaseUrl;
 
-    if (this.#process.env.EMBEDDING_BASE_URL) {
-      this.#embeddingBaseUrl = this.#process.env.EMBEDDING_BASE_URL.replace(
-        /\/+$/,
-        "",
-      );
+    const value = this.#env("EMBEDDING_BASE_URL");
+    if (value) {
+      this.#embeddingBaseUrl = value.replace(/\/+$/, "");
       return this.#embeddingBaseUrl;
     }
 
@@ -181,8 +197,9 @@ export class Config {
   jwtSecret() {
     if (this.#jwtSecret) return this.#jwtSecret;
 
-    if (this.#process.env.JWT_SECRET) {
-      this.#jwtSecret = this.#process.env.JWT_SECRET;
+    const value = this.#env("JWT_SECRET");
+    if (value) {
+      this.#jwtSecret = value;
       return this.#jwtSecret;
     }
 
@@ -198,8 +215,9 @@ export class Config {
   jwtAnonKey() {
     if (this.#jwtAnonKey) return this.#jwtAnonKey;
 
-    if (this.#process.env.JWT_ANON_KEY) {
-      this.#jwtAnonKey = this.#process.env.JWT_ANON_KEY;
+    const value = this.#env("JWT_ANON_KEY");
+    if (value) {
+      this.#jwtAnonKey = value;
       return this.#jwtAnonKey;
     }
 
@@ -213,7 +231,7 @@ export class Config {
   jwtAuthUrl() {
     if (this.#jwtAuthUrl) return this.#jwtAuthUrl;
 
-    const url = this.#process.env.JWT_AUTH_URL || "http://localhost:9999";
+    const url = this.#env("JWT_AUTH_URL") || "http://localhost:9999";
     this.#jwtAuthUrl = url.replace(/\/+$/, "");
     return this.#jwtAuthUrl;
   }
@@ -248,8 +266,52 @@ export class Config {
     this.#jwtAuthUrl = null;
     this.#ghToken = null;
     this.#ghClientId = null;
+    this.#envOverrides = {};
     this.#fileData = null;
     this.#storage = null;
+  }
+
+  /**
+   * Returns the value for the given environment key, checking process.env
+   * first then falling back to values loaded from .env file.
+   * @param {string} key - Environment variable name
+   * @returns {string|undefined}
+   * @private
+   */
+  #env(key) {
+    return this.#process.env[key] ?? this.#envOverrides[key];
+  }
+
+  /**
+   * Loads allowed environment variables from a .env file in the working
+   * directory. Process environment variables always take precedence.
+   * Only keys matching Config methods are loaded; all others are ignored.
+   * @returns {Promise<void>}
+   * @private
+   */
+  async #loadEnvFile() {
+    try {
+      const envPath = path.join(this.#process.cwd(), ".env");
+      const content = await readFile(envPath, "utf8");
+      for (const line of content.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const eqIndex = trimmed.indexOf("=");
+        if (eqIndex === -1) continue;
+        const key = trimmed.slice(0, eqIndex).trim();
+        if (!Config.#ALLOWED_ENV_KEYS.has(key)) continue;
+        let value = trimmed.slice(eqIndex + 1).trim();
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
+          value = value.slice(1, -1);
+        }
+        this.#envOverrides[key] = value;
+      }
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
   }
 
   /**
