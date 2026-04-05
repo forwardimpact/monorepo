@@ -20,7 +20,7 @@ install from npm as a user would, not clone the monorepo.
 
 Observe the agent's progress, answer any questions it has, and provide guidance
 when it gets stuck. When you are satisfied the agent has completed the task
-adequately, say EVALUATION_SUCCESSFUL in your response, then continue with
+adequately, say EVALUATION_COMPLETE in your response, then continue with
 post-evaluation work in the same turn.
 
 After signaling success, create GitHub issues for the bugs, documentation gaps,

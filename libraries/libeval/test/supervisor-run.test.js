@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
 import { AgentRunner, Supervisor } from "@forwardimpact/libeval";
-import { isSuccessful } from "../src/supervisor.js";
+import { isComplete } from "../src/supervisor.js";
 
 /**
  * Create a mock AgentRunner that yields pre-scripted responses.
@@ -56,50 +56,50 @@ function createMockRunner(responses, messages) {
   return runner;
 }
 
-describe("isSuccessful", () => {
-  test("detects EVALUATION_SUCCESSFUL on its own line", () => {
-    assert.strictEqual(isSuccessful("EVALUATION_SUCCESSFUL"), true);
+describe("isComplete", () => {
+  test("detects EVALUATION_COMPLETE on its own line", () => {
+    assert.strictEqual(isComplete("EVALUATION_COMPLETE"), true);
     assert.strictEqual(
-      isSuccessful("Some text\nEVALUATION_SUCCESSFUL\nMore text"),
+      isComplete("Some text\nEVALUATION_COMPLETE\nMore text"),
       true,
     );
-    assert.strictEqual(isSuccessful("Done.\n\nEVALUATION_SUCCESSFUL"), true);
+    assert.strictEqual(isComplete("Done.\n\nEVALUATION_COMPLETE"), true);
   });
 
   test("tolerates markdown formatting around the signal", () => {
-    assert.strictEqual(isSuccessful("**EVALUATION_SUCCESSFUL**"), true);
-    assert.strictEqual(isSuccessful("*EVALUATION_SUCCESSFUL*"), true);
-    assert.strictEqual(isSuccessful("__EVALUATION_SUCCESSFUL__"), true);
-    assert.strictEqual(isSuccessful("_EVALUATION_SUCCESSFUL_"), true);
-    assert.strictEqual(isSuccessful("`EVALUATION_SUCCESSFUL`"), true);
+    assert.strictEqual(isComplete("**EVALUATION_COMPLETE**"), true);
+    assert.strictEqual(isComplete("*EVALUATION_COMPLETE*"), true);
+    assert.strictEqual(isComplete("__EVALUATION_COMPLETE__"), true);
+    assert.strictEqual(isComplete("_EVALUATION_COMPLETE_"), true);
+    assert.strictEqual(isComplete("`EVALUATION_COMPLETE`"), true);
     assert.strictEqual(
-      isSuccessful(
-        "Good work.\n\n**EVALUATION_SUCCESSFUL**\n\nNow filing issues.",
+      isComplete(
+        "Good work.\n\n**EVALUATION_COMPLETE**\n\nNow filing issues.",
       ),
       true,
     );
   });
 
-  test("matches EVALUATION_SUCCESSFUL anywhere in text", () => {
-    assert.strictEqual(isSuccessful("not EVALUATION_SUCCESSFUL yet"), true);
+  test("matches EVALUATION_COMPLETE anywhere in text", () => {
+    assert.strictEqual(isComplete("not EVALUATION_COMPLETE yet"), true);
     assert.strictEqual(
-      isSuccessful("The agent is EVALUATION_SUCCESSFUL done"),
+      isComplete("The agent is EVALUATION_COMPLETE done"),
       true,
     );
     assert.strictEqual(
-      isSuccessful("Great work! EVALUATION_SUCCESSFUL. Now filing issues."),
+      isComplete("Great work! EVALUATION_COMPLETE. Now filing issues."),
       true,
     );
   });
 
   test("does not match empty or unrelated text", () => {
-    assert.strictEqual(isSuccessful(""), false);
-    assert.strictEqual(isSuccessful("All done!"), false);
-    assert.strictEqual(isSuccessful("DONE"), false);
+    assert.strictEqual(isComplete(""), false);
+    assert.strictEqual(isComplete("All done!"), false);
+    assert.strictEqual(isComplete("DONE"), false);
   });
 
-  test("does not match old EVALUATION_COMPLETE signal", () => {
-    assert.strictEqual(isSuccessful("EVALUATION_COMPLETE"), false);
+  test("does not match old EVALUATION_SUCCESSFUL signal", () => {
+    assert.strictEqual(isComplete("EVALUATION_SUCCESSFUL"), false);
   });
 });
 
@@ -137,11 +137,11 @@ describe("Supervisor - run and turns", () => {
     );
   });
 
-  test("completes on EVALUATION_SUCCESSFUL from supervisor at turn 0", async () => {
+  test("completes on EVALUATION_COMPLETE from supervisor at turn 0", async () => {
     const agentRunner = createMockRunner([]);
 
     const supervisorRunner = createMockRunner([
-      { text: "EVALUATION_SUCCESSFUL" },
+      { text: "EVALUATION_COMPLETE" },
     ]);
 
     const output = new PassThrough();
@@ -165,7 +165,7 @@ describe("Supervisor - run and turns", () => {
 
     const supervisorRunner = createMockRunner([
       { text: "Welcome! Please install the packages." },
-      { text: "Good work.\n\nEVALUATION_SUCCESSFUL" },
+      { text: "Good work.\n\nEVALUATION_COMPLETE" },
     ]);
 
     const output = new PassThrough();
@@ -182,7 +182,7 @@ describe("Supervisor - run and turns", () => {
     assert.strictEqual(result.turns, 1);
   });
 
-  test("detects EVALUATION_SUCCESSFUL in streamed messages when result text differs", async () => {
+  test("detects EVALUATION_COMPLETE in streamed messages when result text differs", async () => {
     const agentRunner = createMockRunner([
       { text: "I installed the packages." },
     ]);
@@ -196,7 +196,7 @@ describe("Supervisor - run and turns", () => {
             content: [
               {
                 type: "text",
-                text: "Good work.\n\nEVALUATION_SUCCESSFUL\n\nNow filing issues.",
+                text: "Good work.\n\nEVALUATION_COMPLETE\n\nNow filing issues.",
               },
             ],
           },
@@ -236,6 +236,76 @@ describe("Supervisor - run and turns", () => {
     assert.strictEqual(result.turns, 1);
   });
 
+  test("relays only the last assistant text block to the agent", async () => {
+    // Supervisor emits reasoning text ("Let me research...") then a tool call,
+    // then a final task message. Only the final message should reach the agent.
+    const supervisorMessages = [
+      // Turn 0: multiple assistant messages with reasoning + task
+      [
+        {
+          type: "assistant",
+          message: {
+            content: [
+              { type: "text", text: "Let me research the product first." },
+            ],
+          },
+        },
+        {
+          type: "assistant",
+          message: {
+            content: [
+              {
+                type: "text",
+                text: "Hello! Here is your task: install the packages.",
+              },
+            ],
+          },
+        },
+      ],
+      // Turn 1: evaluation
+      undefined,
+    ];
+
+    let capturedAgentPrompt = null;
+    const agentRunner = createMockRunner([
+      { text: "I installed the packages." },
+    ]);
+    const origRun = agentRunner.run;
+    agentRunner.run = async (task) => {
+      capturedAgentPrompt = task;
+      return origRun.call(agentRunner, task);
+    };
+
+    const supervisorRunner = createMockRunner(
+      [
+        // SDK result text = last message text (but relay should use buffer)
+        { text: "Hello! Here is your task: install the packages." },
+        { text: "EVALUATION_COMPLETE" },
+      ],
+      supervisorMessages,
+    );
+
+    const output = new PassThrough();
+    const supervisor = new Supervisor({
+      agentRunner,
+      supervisorRunner,
+      output,
+      maxTurns: 10,
+    });
+
+    await supervisor.run("Evaluate the product");
+
+    // Agent should receive only the final text, not the reasoning
+    assert.strictEqual(
+      capturedAgentPrompt,
+      "Hello! Here is your task: install the packages.",
+    );
+    assert.ok(
+      !capturedAgentPrompt.includes("research"),
+      "Reasoning text should not leak to agent",
+    );
+  });
+
   test("runs multiple turns before completion", async () => {
     const agentRunner = createMockRunner([
       { text: "Started working." },
@@ -247,7 +317,7 @@ describe("Supervisor - run and turns", () => {
       { text: "Here is your task. Do the work." },
       { text: "Keep going, you need to do more." },
       { text: "Almost there, continue." },
-      { text: "EVALUATION_SUCCESSFUL" },
+      { text: "EVALUATION_COMPLETE" },
     ]);
 
     const output = new PassThrough();

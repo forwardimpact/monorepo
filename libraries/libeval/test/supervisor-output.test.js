@@ -64,12 +64,12 @@ describe("Supervisor - output and events", () => {
   test("output contains tagged lines with correct source and turn", async () => {
     const supervisorMessages = [
       [{ type: "assistant", content: "Go ahead" }],
-      [{ type: "assistant", content: "EVALUATION_SUCCESSFUL" }],
+      [{ type: "assistant", content: "EVALUATION_COMPLETE" }],
     ];
     const agentMessages = [[{ type: "assistant", content: "Working" }]];
 
     const supervisorRunner = createMockRunner(
-      [{ text: "Go ahead" }, { text: "EVALUATION_SUCCESSFUL" }],
+      [{ text: "Go ahead" }, { text: "EVALUATION_COMPLETE" }],
       supervisorMessages,
     );
     const agentRunner = createMockRunner([{ text: "Working" }], agentMessages);
@@ -118,7 +118,7 @@ describe("Supervisor - output and events", () => {
       content: "test",
     };
     const supervisorRunner = createMockRunner(
-      [{ text: "Go" }, { text: "EVALUATION_SUCCESSFUL" }],
+      [{ text: "Go" }, { text: "EVALUATION_COMPLETE" }],
       [
         [{ type: "assistant", content: "Go" }],
         [{ type: "assistant", content: "ok" }],
@@ -302,6 +302,6 @@ describe("Supervisor - createSupervisor factory", () => {
 
   test("SUPERVISOR_SYSTEM_PROMPT explains relay mechanism", () => {
     assert.ok(SUPERVISOR_SYSTEM_PROMPT.includes("relay"));
-    assert.ok(SUPERVISOR_SYSTEM_PROMPT.includes("EVALUATION_SUCCESSFUL"));
+    assert.ok(SUPERVISOR_SYSTEM_PROMPT.includes("EVALUATION_COMPLETE"));
   });
 });
