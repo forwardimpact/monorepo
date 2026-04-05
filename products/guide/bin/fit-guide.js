@@ -87,66 +87,32 @@ if (process.argv.includes("--init")) {
   console.log("JWT_ANON_KEY was updated in .env");
   console.log("Service URLs written to .env (ports 3002–3008).");
 
-  // Generate config/config.json with minimal service tree
+  // Copy starter config into ./config/ (config.json, agents/, tools.yml)
+  const starterDir = new URL("../starter", import.meta.url).pathname;
   const configDir = resolve("config");
-  const configPath = resolve("config", "config.json");
 
   try {
-    await fs.access(configPath);
-    console.log("config/config.json already exists, skipping.");
+    await fs.access(starterDir);
   } catch {
-    await fs.mkdir(configDir, { recursive: true });
+    console.error("Error: Starter data not found in package.");
+    console.error("This may indicate a corrupted package installation.");
+    process.exit(1);
+  }
 
-    const config = {
-      init: {
-        log_dir: "data/logs",
-        shutdown_timeout: 3000,
-        services: [
-          {
-            name: "trace",
-            command: "node -e \"import('@forwardimpact/svctrace/server.js')\"",
-          },
-          {
-            name: "vector",
-            command: "node -e \"import('@forwardimpact/svcvector/server.js')\"",
-          },
-          {
-            name: "graph",
-            command: "node -e \"import('@forwardimpact/svcgraph/server.js')\"",
-          },
-          {
-            name: "llm",
-            command: "node -e \"import('@forwardimpact/svcllm/server.js')\"",
-          },
-          {
-            name: "memory",
-            command: "node -e \"import('@forwardimpact/svcmemory/server.js')\"",
-          },
-          {
-            name: "tool",
-            command: "node -e \"import('@forwardimpact/svctool/server.js')\"",
-          },
-          {
-            name: "agent",
-            command: "node -e \"import('@forwardimpact/svcagent/server.js')\"",
-          },
-        ],
-      },
-      service: {
-        agent: {
-          agent: "common.Agent.planner",
-        },
-        llm: {
-          temperature: 0.32,
-        },
-        memory: {
-          max_tokens: 4096,
-        },
-      },
-    };
+  try {
+    await fs.access(configDir);
+    console.log("config/ already exists, skipping starter copy.");
+  } catch {
+    await fs.cp(starterDir, configDir, { recursive: true });
+    console.log(`config/ created with starter configuration.
 
-    await fs.writeFile(configPath, JSON.stringify(config, null, 2) + "\n");
-    console.log("config/config.json created with service configuration.");
+  config/
+  ├── config.json                  # Service configuration
+  ├── agents/
+  │   ├── planner.agent.md         # Plans retrieval strategy
+  │   ├── researcher.agent.md      # Retrieves data
+  │   └── editor.agent.md          # Synthesizes response
+  └── tools.yml                    # Tool definitions`);
   }
 
   process.exit(0);
@@ -171,6 +137,47 @@ To get started:
 Documentation: https://www.forwardimpact.team/guide
 Run npx fit-guide --help for CLI options.`);
   process.exit(1);
+}
+
+// Pre-flight validation: check config and environment before connecting
+{
+  const configPath = resolve("config", "config.json");
+  let configData;
+  try {
+    configData = JSON.parse(await fs.readFile(configPath, "utf8"));
+  } catch {
+    console.error(
+      `Error: config/config.json not found or invalid.\nRun: npx fit-guide --init`,
+    );
+    process.exit(1);
+  }
+
+  const agentConfig = configData?.service?.agent;
+  const errors = [];
+
+  if (!agentConfig?.agent) {
+    errors.push(
+      `No agent configured. Add a "service.agent.agent" field to config/config.json.`,
+    );
+  }
+  if (!agentConfig?.model) {
+    errors.push(
+      `No model configured. Add a "service.agent.model" field to config/config.json.`,
+    );
+  }
+  if (!process.env.LLM_TOKEN) {
+    errors.push(`LLM_TOKEN is not set in the environment. Add it to .env.`);
+  }
+  if (!process.env.LLM_BASE_URL) {
+    errors.push(`LLM_BASE_URL is not set in the environment. Add it to .env.`);
+  }
+
+  if (errors.length > 0) {
+    console.error(
+      `Configuration errors:\n\n  ${errors.join("\n  ")}\n\nSee: https://www.forwardimpact.team/docs/reference/configuration/`,
+    );
+    process.exit(1);
+  }
 }
 
 try {

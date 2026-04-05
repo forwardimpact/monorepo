@@ -26,7 +26,8 @@
   },
   "files": [
     "bin/",
-    "proto/"
+    "proto/",
+    "starter/"
   ],
   "engines": {
     "bun": ">=1.2.0",

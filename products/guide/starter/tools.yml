@@ -1,0 +1,68 @@
+get_ontology:
+  purpose:
+    Returns all entity types and relationship predicates in the knowledge graph.
+  applicability:
+    Required before constructing queries to learn the correct vocabulary.
+  instructions:
+    No input parameters. Returns a SHACL ontology with types and predicates.
+  evaluation: Complete schema showing available types and predicates.
+  parameters: {}
+
+get_subjects:
+  purpose: Lists entity URIs in the graph, optionally filtered by type.
+  applicability:
+    Use after get_ontology to find URIs needed for query_by_pattern.
+  instructions: 'Optional ''type'' field (e.g. "schema:Organization").'
+  evaluation: List of all entities matching the type filter.
+  parameters:
+    type: Entity type URI to filter by (e.g. "schema:Organization").
+
+query_by_pattern:
+  purpose:
+    Retrieves structured data by traversing graph relationships using triple
+    patterns.
+  applicability:
+    Use after get_ontology and get_subjects to query entity relationships.
+  instructions:
+    "Optional 'subject', 'predicate', 'object'. Use '?' for wildcards."
+  evaluation: Structured facts matching the triple pattern.
+  parameters:
+    subject: Subject URI (use "?" as wildcard).
+    predicate: Predicate URI (use "?" as wildcard).
+    object: Object URI or literal (use "?" as wildcard).
+
+search_content:
+  purpose: Find detailed content using semantic similarity search.
+  applicability:
+    Use for open-ended questions or when graph queries are insufficient.
+  instructions: Text query in 'input' field.
+  evaluation: Array of content strings matching your query.
+  parameters:
+    input: Text query to search for.
+
+list_sub_agents:
+  purpose: List available sub-agents for delegation.
+  instructions: No input parameters. Only agents with infer=true are returned.
+  evaluation: List of agent IDs that can be passed to run_sub_agent.
+  parameters: {}
+
+run_sub_agent:
+  purpose: Run a sub-agent with a task in an isolated child conversation.
+  instructions: "'agent_id' from list_sub_agents and 'prompt' with the task."
+  evaluation: Complete response from the sub-agent.
+  parameters:
+    agent_id: Agent identifier from list_sub_agents.
+    prompt: Task description for the sub-agent.
+
+list_handoffs:
+  purpose: List valid handoff labels available from the current agent.
+  instructions: No input parameters.
+  evaluation: List of labels that can be passed to run_handoff.
+  parameters: {}
+
+run_handoff:
+  purpose: Hand off conversation control to another agent.
+  instructions: "'label' from list_handoffs."
+  evaluation: Conversation control transferred to the target agent.
+  parameters:
+    label: Handoff label from list_handoffs.
