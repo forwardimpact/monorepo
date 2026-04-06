@@ -110,18 +110,25 @@ npx fit-guide --init
 The `fit-codegen` step generates gRPC service clients that Guide needs. Without
 it, imports fail with a missing module error.
 
+The `--init` step generates:
+
+- `.env` — service secrets and port assignments
+- `config/config.json` — service configuration with agent, LLM, memory, and tool
+  settings
+- `config/agents/` — agent definitions (planner, researcher, editor)
+- `config/tools.yml` — tool descriptors for the agent pipeline
+
 ### Configure LLM credentials
 
-Guide needs access to an LLM provider. Add your credentials to the `.env` file
-created by `--init`:
+Guide needs access to an LLM provider. Open `.env` in your editor and append:
 
-```sh
-echo 'LLM_TOKEN=your-api-key' >> .env
-echo 'LLM_BASE_URL=https://api.anthropic.com' >> .env
+```
+LLM_TOKEN=your-api-key
+LLM_BASE_URL=https://api.anthropic.com
 ```
 
-Replace the values with your actual API key and provider endpoint. Without these
-variables, Guide fails at runtime with a `13 INTERNAL` gRPC error.
+Replace the values with your actual API key and provider endpoint. Guide
+validates these on startup and reports which variables are missing.
 
 ### Start the service stack
 
@@ -134,7 +141,7 @@ npx fit-rc start
 ```
 
 This supervises all required microservices (trace, vector, graph, llm, memory,
-tool, agent) in dependency order. Stop them with `npx fit-rc stop`.
+tool, agent, web) in dependency order. Stop them with `npx fit-rc stop`.
 
 ### Usage
 
@@ -178,10 +185,22 @@ background work. The CLI scheduler works on any platform.
 
 ## Troubleshooting
 
-### Guide: `13 INTERNAL: Cannot read properties of undefined`
+### Guide: configuration errors on startup
 
-The LLM credentials are missing or incorrect. Verify that `LLM_TOKEN` and
-`LLM_BASE_URL` are set in your `.env` file, then reload:
+Guide validates configuration before connecting. If you see errors about missing
+`service.agent.agent`, `service.agent.model`, `LLM_TOKEN`, or `LLM_BASE_URL`,
+check that:
+
+1. You ran `npx fit-guide --init` (creates `config/config.json` with the
+   `service` section)
+2. Your `.env` file contains `LLM_TOKEN` and `LLM_BASE_URL`
+3. You sourced the environment: `set -a && source .env && set +a`
+
+### Guide: `13 INTERNAL` gRPC error
+
+A `13 INTERNAL` error during a conversation usually means the LLM service cannot
+reach the provider. Verify that `LLM_TOKEN` and `LLM_BASE_URL` are correct in
+`.env`, then restart the services:
 
 ```sh
 set -a && source .env && set +a
@@ -207,11 +226,6 @@ cat data/logs/llm/current   # View the LLM service log (example)
 
 Each microservice writes to `data/logs/{service}/current`. Common causes are
 missing environment variables or port conflicts.
-
-### Guide: agent configuration not found
-
-Ensure `service.agent` is configured in `config/config.json`. Running
-`npx fit-guide --init` generates the default configuration.
 
 ---
 

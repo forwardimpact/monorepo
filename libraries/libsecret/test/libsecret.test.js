@@ -231,6 +231,26 @@ describe("libsecret", () => {
       assert.ok(content.includes("SECOND_KEY=second-value"));
     });
 
+    test("output always ends with trailing newline", async () => {
+      await updateEnvFile("KEY_A", "value-a", envPath);
+      let content = await fs.readFile(envPath, "utf8");
+      assert.ok(content.endsWith("\n"), "new file should end with newline");
+
+      await updateEnvFile("KEY_B", "value-b", envPath);
+      content = await fs.readFile(envPath, "utf8");
+      assert.ok(
+        content.endsWith("\n"),
+        "file with appended key should end with newline",
+      );
+
+      await updateEnvFile("KEY_A", "updated", envPath);
+      content = await fs.readFile(envPath, "utf8");
+      assert.ok(
+        content.endsWith("\n"),
+        "file with updated key should end with newline",
+      );
+    });
+
     test("uses default .env path when not specified", async () => {
       // This test creates a file in the current directory, so we mock it carefully
       const defaultPath = path.join(tempDir, ".env");

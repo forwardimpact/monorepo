@@ -86,8 +86,9 @@ export async function updateEnvFile(key, value, envPath = ".env") {
     lines.push(envLine);
   }
 
-  // Write back to file
-  await fs.writeFile(fullPath, lines.join("\n"));
+  // Write back to file — ensure trailing newline for POSIX compatibility
+  const output = lines.join("\n");
+  await fs.writeFile(fullPath, output.endsWith("\n") ? output : output + "\n");
 }
 
 /**
