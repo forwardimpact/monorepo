@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/map",
-  "version": "0.15.11",
+  "version": "0.15.12",
   "description": "Public data model for career frameworks, consumed by AI agents and engineers",
   "license": "Apache-2.0",
   "repository": {

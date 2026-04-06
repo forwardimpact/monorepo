@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libvector",
-  "version": "0.1.76",
+  "version": "0.1.77",
   "description": "Vector operations and index management library for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
