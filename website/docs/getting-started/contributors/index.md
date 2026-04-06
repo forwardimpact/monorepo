@@ -49,14 +49,16 @@ just synthetic-no-prose   # Structural data only, no prose content
 
 ## Run checks
 
-Run the full quality suite before committing:
+Run formatting and linting, then unit tests, before committing:
 
 ```sh
 bun run check
+bun run test
 ```
 
-This runs formatting (Prettier), linting (ESLint), unit tests (`node --test`),
-and data validation (`fit-map validate`) in sequence.
+`bun run check` runs formatting (Prettier) and linting (ESLint) sequentially so
+failures are easy to spot. `bun run test` runs unit tests (`node --test`)
+separately so test output does not bury check failures.
 
 To auto-fix formatting and lint issues:
 
@@ -91,7 +93,7 @@ tests inject mocks directly.
 
 1. Create a branch from `main`
 2. Make your changes
-3. Run `bun run check`
+3. Run `bun run check` and `bun run test`
 4. Run `just audit` (npm audit + gitleaks secret scanning)
 5. Commit and push
 

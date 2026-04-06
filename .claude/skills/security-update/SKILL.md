@@ -86,7 +86,7 @@ to Dependabot branches):
 ```sh
 git fetch origin <dependabot-branch>
 git checkout -b fix/dependabot-<number> origin/<dependabot-branch>
-# Make fixes, run bun run check && just audit
+# Make fixes, run bun run check && bun run test && just audit
 git commit -m "fix(deps): <description for PR #number>"
 git push -u origin fix/dependabot-<number>
 gh pr create --title "chore(deps): <description> (fixed)" \

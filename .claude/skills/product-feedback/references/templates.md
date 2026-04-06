@@ -75,6 +75,7 @@ git checkout main && git pull origin main
 git checkout -b fix/issue-<number>-<short-description>
 # ... implement fix ...
 bun run check
+bun run test
 git add <changed-files>
 git commit -m "fix(<scope>): <description>
 
@@ -111,6 +112,7 @@ git checkout main && git pull origin main
 git checkout -b spec/issue-<number>-<short-description>
 # ... write spec using spec skill ...
 bun run check
+bun run test
 git add specs/<NNN>-<name>/spec.md specs/STATUS
 git commit -m "spec(<scope>): <description>
 

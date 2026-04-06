@@ -142,7 +142,8 @@ consult the [Getting Started guides](website/docs/getting-started/).
 
 Commit format: `type(scope): subject` — see CONTRIBUTING.md § Git Conventions.
 
-Run `bun run check` before every commit — code **and** documentation.
+Run `bun run check` and `bun run test` before every commit — code **and**
+documentation.
 
 ## LLM Environment
 

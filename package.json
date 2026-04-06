@@ -19,7 +19,7 @@
     "prestart": "bunx fit-pathway build",
     "start": "bunx serve public",
     "dev": "bunx fit-pathway dev",
-    "check": "bun run format & p1=$!; bun run lint & p2=$!; bun run test & p3=$!; wait $p1 && wait $p2 && wait $p3",
+    "check": "bun run format && bun run lint",
     "check:fix": "bun run format:fix && bun run lint:fix",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

@@ -211,7 +211,7 @@ import { deriveReferenceLevel, deriveAgentSkills } from "@forwardimpact/libskill
 | ------------------- | ------------------------------- |
 | `bun start`         | Build and serve the static site |
 | `bun run dev`       | Live development server         |
-| `bun run check`     | Format, lint, test, validate    |
+| `bun run check`     | Format and lint                 |
 | `bun run check:fix` | Auto-fix formatting and linting |
 | `bun run test`      | Run unit tests                  |
 | `bun run test:e2e`  | Run Playwright E2E tests        |

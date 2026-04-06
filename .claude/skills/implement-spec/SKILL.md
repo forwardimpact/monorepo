@@ -94,7 +94,8 @@ For each task:
 
 After all tasks are complete:
 
-1. Run `bun run check` to verify formatting, lint, tests, and validation pass.
+1. Run `bun run check` to verify formatting and lint pass, then `bun run test`
+   to verify unit tests pass.
 2. Run any spec-specific verification commands mentioned in the plan.
 3. Review the full diff (`git diff` from the starting point) against the spec's
    success criteria. Confirm every criterion is met.

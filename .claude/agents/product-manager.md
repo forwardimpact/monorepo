@@ -50,7 +50,7 @@ Determine which workflow to use from the task prompt:
 - Never make code changes on PR branches (release-manager scope) — only on your
   own `fix/` branches from issues
 - Features always get a spec, never a direct implementation
-- Run `bun run check` before every commit
+- Run `bun run check` and `bun run test` before every commit
 - Read `product-manager.md` at start (plus other agents' summaries for
   cross-agent context); write daily log to `product-manager-YYYY-MM-DD.md` and
   update `product-manager.md` at end with actions taken, observations for

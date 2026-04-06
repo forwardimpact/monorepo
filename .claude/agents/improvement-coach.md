@@ -46,7 +46,7 @@ Systematic, evidence-driven. Blame the system, never the worker. Sign off:
 - Ground every finding in trace evidence — quote tool calls, errors, token
   counts
 - Trust audit results when analyzing product-backlog traces
-- Run `bun run check` before committing
+- Run `bun run check` and `bun run test` before committing
 - Read `improvement-coach.md` at start (plus other agents' summaries for
   cross-agent context); write daily log to `improvement-coach-YYYY-MM-DD.md` and
   update `improvement-coach.md` at end with actions taken, observations for
