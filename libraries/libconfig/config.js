@@ -218,6 +218,7 @@ export class Config {
 
     let value = this.#env(key);
     if (value) {
+      value = value.trim();
       if (transform) value = transform(value);
       this.#cache.set(key, value);
       return value;
