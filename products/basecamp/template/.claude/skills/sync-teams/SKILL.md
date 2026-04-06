@@ -116,6 +116,7 @@ For each chat to sync (up to 10 per run to keep runtime reasonable):
      - Relative: `"Yesterday at 2:22 PM."`, `"Thursday, April 2, 2026 1:39 PM."`
    - Convert all relative timestamps to absolute dates using today's date.
 3. **Read the full message text** using JavaScript:
+
    ```javascript
    const pane = document.querySelector('[data-tid="message-pane-layout"]');
    pane.innerText;
@@ -125,6 +126,7 @@ For each chat to sync (up to 10 per run to keep runtime reasonable):
      Read in chunks: `text.substring(0, 2500)`, `text.substring(2500, 5000)`,
      etc., until you've captured the full content.
    - The total text length is available via `pane.innerText.length`.
+
 4. **Parse the innerText.** Messages appear in this pattern:
 
    ```
