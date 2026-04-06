@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcagent",
-  "version": "0.1.116",
+  "version": "0.1.117",
   "description": "Core orchestration service for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
