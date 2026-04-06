@@ -88,7 +88,7 @@ fallback).
 Scan existing notes to avoid duplicates and resolve entities:
 
 ```bash
-ls knowledge/People/ knowledge/Organizations/ knowledge/Projects/ knowledge/Topics/ knowledge/Goals/ knowledge/Priorities/ 2>/dev/null
+ls knowledge/People/ knowledge/Organizations/ knowledge/Projects/ knowledge/Topics/ knowledge/Goals/ knowledge/Priorities/ knowledge/Conditions/ 2>/dev/null
 ```
 
 For each existing note, read the header fields to build a mental index of known

@@ -2,6 +2,107 @@
 
 Templates for creating new knowledge base notes.
 
+## Priorities
+
+Priorities are **not auto-created** by extract-entities. They are set
+deliberately by the user. This template is for manual creation only.
+
+```markdown
+# {Priority Name}
+
+## About
+{2-3 sentences: what this strategic direction means and why it matters}
+
+**Status:** {active|paused|retired}
+**Owner:** [[People/{Person}]]
+**Set:** {YYYY-MM-DD}
+
+## What this means
+{Bullet list of concrete implications — what does pursuing this priority look like?}
+
+## Goals
+{Time-bound targets that ladder to this priority — backlinks to knowledge/Goals/}
+
+## Projects
+- [[Projects/{Project}]] — {relationship}
+
+## Key facts
+{substantive facts only — leave empty if none}
+```
+
+## Goals
+
+Goals are **not auto-created** by extract-entities. They are set deliberately
+by the user. This template is for manual creation only.
+
+```markdown
+# {Goal Name}
+
+## Info
+**Priority:** [[Priorities/{Priority}]]
+**Status:** {on track|at risk|off track|achieved|abandoned}
+**Owner:** [[People/{Person}]]
+**Target date:** {YYYY-MM-DD}
+**Set:** {YYYY-MM-DD}
+
+## Outcome
+{1-2 sentences: what measurable success looks like}
+
+## Blockers
+{Active Conditions that impede this goal — link to knowledge/Conditions/}
+- [[Conditions/{Condition}]] — {impact on this goal}
+
+## Projects
+- [[Projects/{Project}]] — {how it contributes}
+
+## Progress
+- **{YYYY-MM-DD}**: {Update on progress toward the outcome}
+
+## Key facts
+{substantive facts only — leave empty if none}
+
+## Risks
+{known risks to achieving this goal — leave empty if none}
+```
+
+## Conditions
+
+Conditions are time-bound organizational states that affect multiple entities.
+They can be **auto-created** by the librarian agent when cross-cutting patterns
+are detected, or manually created by the user. They have a clear lifecycle:
+active → resolved.
+
+```markdown
+# {Condition Name}
+
+## Info
+**Status:** {active|resolved}
+**Since:** {YYYY-MM-DD}
+**Resolved:** {YYYY-MM-DD or —}
+**Trigger:** {What caused this condition}
+**Blocker:** {Who/what must act for this to resolve}
+**Resolution signal:** {What would indicate this condition has ended}
+
+## Affects
+{Goals, Projects, Roles, and People impacted by this condition}
+- [[Goals/{Goal}]] — {how it's affected}
+- [[Projects/{Project}]] — {how it's affected}
+- [[Roles/{Role}]] — {how it's affected}
+
+## Agent implications
+{How agents should modify their behavior while this condition is active}
+- **recruiter:** {e.g. "Hold offers. Continue interviews. Contractor route viable."}
+- **postman:** {e.g. "Don't flag recruitment emails as urgent."}
+- **chief-of-staff:** {e.g. "Surface in every briefing until resolved."}
+- **head-hunter:** {e.g. "Continue scouting but note freeze in prospect notes."}
+
+## Activity
+- **{YYYY-MM-DD}** ({source}): {Update — new information, escalation, progress toward resolution}
+
+## Key facts
+{substantive facts only — leave empty if none}
+```
+
 ## People
 
 ```markdown
@@ -82,6 +183,9 @@ Templates for creating new knowledge base notes.
 ## Summary
 {2-3 sentences}
 
+## Goals
+- [[Goals/{Goal}]] — {how this project contributes}
+
 ## People
 - [[People/{Person}]] — {role}
 
@@ -89,6 +193,7 @@ Templates for creating new knowledge base notes.
 - [[Organizations/{Org}]] — {relationship}
 
 ## Related
+- [[Priorities/{Priority}]] — {relationship}
 - [[Topics/{Topic}]] — {relationship}
 
 ## Timeline

@@ -61,6 +61,8 @@ Run this skill:
 - `knowledge/Topics/*.md` — topic notes
 - `knowledge/Goals/*.md` — goal notes (updated only, never auto-created)
 - `knowledge/Priorities/*.md` — priority notes (updated only, never auto-created)
+- `knowledge/Conditions/*.md` — condition notes (created when cross-cutting
+  patterns detected, or updated with new activity)
 - `knowledge/Roles/*.md` — role/requisition files (created or enriched)
 - `knowledge/Candidates/*/brief.md` — candidate briefs (enriched with inferred
   metadata)
@@ -93,7 +95,7 @@ changed.
 Before processing, scan all existing notes to build an index:
 
 ```bash
-find knowledge/People knowledge/Organizations knowledge/Projects knowledge/Topics knowledge/Goals knowledge/Priorities -name "*.md" 2>/dev/null
+find knowledge/People knowledge/Organizations knowledge/Projects knowledge/Topics knowledge/Goals knowledge/Priorities knowledge/Conditions -name "*.md" 2>/dev/null
 ```
 
 For each note, extract key fields:
@@ -519,6 +521,67 @@ When a Priority link is useful for context (not every mention needs one):
 **Be conservative:** Don't over-link. A project that already links to a Goal
 which links to a Priority doesn't need a redundant direct Priority link.
 
+## Step 7d: Detect and Manage Conditions
+
+Conditions are time-bound organizational states (hiring freezes, reorgs, budget
+holds, leadership transitions) that affect multiple entities simultaneously.
+They are the "weather" of the knowledge graph.
+
+### Detecting Conditions
+
+When processing a batch of source files, watch for **cross-cutting signals** —
+the same constraint or state referenced across 3+ different entity updates in
+the same processing run. Signals include:
+
+| Signal | Example | Potential Condition |
+|--------|---------|-------------------|
+| "on hold", "paused", "frozen", "blocked" | "All recruitment is on hold" | Hiring Freeze |
+| "reorg", "restructuring", "transition" | "Team may move outside division" | Organizational Restructure |
+| "budget", "cost reduction", "headcount" | "30% reduction planned" | Budget Constraint |
+| "waiting on", "pending approval from" | "Waiting on leadership decision" | Leadership Decision Pending |
+| "new CTO", "leadership change" | "New CTO starting next month" | Leadership Transition |
+
+### Creating a Condition
+
+When a cross-cutting pattern is detected:
+
+1. Check if a matching Condition already exists:
+   ```bash
+   ls knowledge/Conditions/ 2>/dev/null
+   ```
+2. If **no match exists**, create a new Condition note using the template in
+   `references/TEMPLATES.md`. Name it descriptively (e.g. "Hiring Freeze Q2",
+   "Division Reorg").
+3. If a **match exists**, update it with new activity and any changes to status,
+   blocker, or affected entities.
+
+### Updating Affected Entities
+
+When a Condition is created or updated:
+
+1. Add `[[Conditions/{Condition}]]` to the `## Blockers` section of affected
+   Goals
+2. Add `[Status → on hold]` state changes to affected Projects where
+   appropriate
+3. Add a `## Blockers` entry to affected Role files if recruitment is frozen
+4. Log the Condition reference in activity entries:
+   `- **YYYY-MM-DD** (source): {update}. See [[Conditions/{Condition}]]`
+
+### Resolving Conditions
+
+When source content indicates a Condition has ended:
+
+- "approved", "freeze lifted", "reorg complete", "back on track"
+
+Update the Condition: `**Status:** resolved`, `**Resolved:** {date}`. Remove
+`[[Conditions/{Condition}]]` from Goal `## Blockers` sections. Log with
+`[Status → resolved]`.
+
+**Be conservative:** Only create Conditions for genuinely cross-cutting states
+that affect 3+ entities. A single project being "on hold" is a project status
+change, not a Condition. A hiring freeze affecting 20 roles across 5 teams is a
+Condition.
+
 ---
 
 ## Step 8: Check for Duplicates
@@ -565,10 +628,14 @@ After writing, verify links go both ways:
 | Project → Goal         | Goal → Project (in Projects section)          |
 | Goal → Priority        | Priority → Goal (in Goals section)            |
 | Project → Priority     | Priority → Project (in Projects section)      |
+| Condition → Goal       | Goal → Condition (in Blockers section)        |
+| Condition → Project    | Project → Condition (in Related section)      |
+| Condition → Role       | Role → Condition (in notes or status field)   |
 
 Always use absolute links: `[[People/Sarah Chen]]`,
 `[[Organizations/Acme Corp]]`, `[[Projects/Acme Integration]]`,
-`[[Goals/Goal Name]]`, `[[Priorities/Priority Name]]`.
+`[[Goals/Goal Name]]`, `[[Priorities/Priority Name]]`,
+`[[Conditions/Condition Name]]`.
 
 ## Step 11: Update Graph State
 
@@ -606,6 +673,10 @@ Before completing, verify:
 - [ ] Goal progress updated where source content references existing goals
 - [ ] Priority links added to Projects/Topics where appropriate (not over-linked)
 - [ ] No new Goal or Priority entities auto-created (user-set only)
+- [ ] Conditions detected when 3+ entities reference same constraint in a batch
+- [ ] Existing Conditions updated with new activity when referenced
+- [ ] Goal Blockers section updated when Conditions affect goals
+- [ ] Condition resolution detected and status updated when evidence supports it
 - [ ] Requisition numbers detected and Role files created/enriched
 - [ ] Hiring manager inferred from calendar event organizers where applicable
 - [ ] Recruiter inferred from email CC fields where applicable

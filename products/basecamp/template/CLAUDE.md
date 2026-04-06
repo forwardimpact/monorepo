@@ -68,6 +68,7 @@ This directory is a knowledge base. Everything is relative to this root:
 │   ├── Candidates/         # Recruitment candidate profiles
 │   ├── Goals/              # Strategic goals (user-created only)
 │   ├── Priorities/         # Strategic priorities (user-created only)
+│   ├── Conditions/         # Organizational conditions (hiring freezes, reorgs)
 │   ├── Roles/              # Role/requisition files
 │   ├── Tasks/              # Per-person task boards
 │   └── Weeklies/           # Weekly priorities snapshots
