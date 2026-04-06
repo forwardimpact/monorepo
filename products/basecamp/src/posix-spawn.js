@@ -121,8 +121,9 @@ function createPipe() {
  */
 export async function readAll(fd) {
   const stream = Bun.file(`/dev/fd/${fd}`).stream();
-  libc.symbols.close(fd); // Original fd no longer needed after dup
-  return new Response(stream).text();
+  const text = await new Response(stream).text();
+  libc.symbols.close(fd);
+  return text;
 }
 
 /**
