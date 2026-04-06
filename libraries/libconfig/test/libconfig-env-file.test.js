@@ -64,20 +64,35 @@ describe("libconfig - .env file loading", () => {
     assert.strictEqual(config.jwtSecret(), "env-value");
   });
 
-  test("ignores keys not in allowed list", async () => {
-    writeEnvFile("RANDOM_KEY=should-be-ignored\nJWT_SECRET=allowed\n");
+  test("loads non-allowed keys into process.env", async () => {
+    writeEnvFile(
+      "SERVICE_SECRET=my-secret\nSERVICE_AGENT_URL=grpc://localhost:3002\nJWT_SECRET=allowed\n",
+    );
 
+    const mockProcess = createProcess();
     const config = await createConfig(
       "test",
       "svc",
       {},
-      createProcess(),
+      mockProcess,
       mockStorageFn,
     );
 
     assert.strictEqual(config.jwtSecret(), "allowed");
-    // RANDOM_KEY should not appear on the config data object
-    assert.strictEqual(config.RANDOM_KEY, undefined);
+    assert.strictEqual(mockProcess.env.SERVICE_SECRET, "my-secret");
+    assert.strictEqual(
+      mockProcess.env.SERVICE_AGENT_URL,
+      "grpc://localhost:3002",
+    );
+  });
+
+  test("process.env takes precedence for non-allowed keys", async () => {
+    writeEnvFile("SERVICE_SECRET=from-file\n");
+
+    const mockProcess = createProcess({ SERVICE_SECRET: "from-env" });
+    await createConfig("test", "svc", {}, mockProcess, mockStorageFn);
+
+    assert.strictEqual(mockProcess.env.SERVICE_SECRET, "from-env");
   });
 
   test("skips comments and blank lines", async () => {
@@ -248,8 +263,8 @@ describe("libconfig - .env file loading", () => {
     assert.ok(!serialized.includes("token"));
   });
 
-  test("ignores export prefix on keys", async () => {
-    writeEnvFile("export JWT_SECRET=should-be-ignored\n");
+  test("strips export prefix on keys", async () => {
+    writeEnvFile("export JWT_SECRET=exported-value\n");
 
     const config = await createConfig(
       "test",
@@ -259,10 +274,7 @@ describe("libconfig - .env file loading", () => {
       mockStorageFn,
     );
 
-    // "export JWT_SECRET" is not in allowed keys, so it is dropped
-    assert.throws(() => config.jwtSecret(), {
-      message: "JWT_SECRET not found in environment",
-    });
+    assert.strictEqual(config.jwtSecret(), "exported-value");
   });
 
   test("handles adversarial values safely", async () => {

@@ -63,12 +63,12 @@ describe("Proxy Support", () => {
     assert.ok(llm instanceof LlmApi);
   });
 
-  test("createLlmApi throws when embeddingBaseUrl is not provided", async () => {
-    const { createLlmApi, DEFAULT_BASE_URL } = await import("../index.js");
+  test("createLlmApi works without embeddingBaseUrl", async () => {
+    const { createLlmApi, LlmApi, DEFAULT_BASE_URL } =
+      await import("../index.js");
 
-    assert.throws(() => createLlmApi("test-token", "gpt-4", DEFAULT_BASE_URL), {
-      message: /embeddingBaseUrl is required/,
-    });
+    const llm = createLlmApi("test-token", "gpt-4", DEFAULT_BASE_URL);
+    assert.ok(llm instanceof LlmApi);
   });
 
   test("createLlmApi works when HTTPS_PROXY environment variable is set", async () => {

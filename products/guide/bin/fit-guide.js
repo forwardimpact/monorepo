@@ -119,66 +119,18 @@ if (process.argv.includes("--init")) {
   process.exit(0);
 }
 
-// SERVICE_SECRET gate — provide onboarding instructions instead of a cryptic error
-if (!process.env.SERVICE_SECRET) {
+// Quick onboarding check — if --init has never been run, guide the user
+try {
+  await fs.access(resolve("config", "config.json"));
+} catch {
   console.log(`fit-guide — Conversational agent for the Guide knowledge platform
 
-Guide requires a running service stack to function. The following
-services must be available:
-
-  agent, llm, memory, graph, vector, tool, trace, web
-
-To get started:
-
-  1. Run: npx fit-guide --init
-  2. Load environment: set -a && source .env && set +a
-  3. Start the service stack: npx fit-rc start
-  4. Run: npx fit-guide
+Run npx fit-guide --init to generate configuration, then
+npx fit-rc start to launch the service stack.
 
 Documentation: https://www.forwardimpact.team/guide
 Run npx fit-guide --help for CLI options.`);
   process.exit(1);
-}
-
-// Pre-flight validation: check config and environment before connecting
-{
-  const configPath = resolve("config", "config.json");
-  let configData;
-  try {
-    configData = JSON.parse(await fs.readFile(configPath, "utf8"));
-  } catch {
-    console.error(
-      `Error: config/config.json not found or invalid.\nRun: npx fit-guide --init`,
-    );
-    process.exit(1);
-  }
-
-  const agentConfig = configData?.service?.agent;
-  const errors = [];
-
-  if (!agentConfig?.agent) {
-    errors.push(
-      `No agent configured. Add a "service.agent.agent" field to config/config.json.`,
-    );
-  }
-  if (!agentConfig?.model) {
-    errors.push(
-      `No model configured. Add a "service.agent.model" field to config/config.json.`,
-    );
-  }
-  if (!process.env.LLM_TOKEN) {
-    errors.push(`LLM_TOKEN is not set in the environment. Add it to .env.`);
-  }
-  if (!process.env.LLM_BASE_URL) {
-    errors.push(`LLM_BASE_URL is not set in the environment. Add it to .env.`);
-  }
-
-  if (errors.length > 0) {
-    console.error(
-      `Configuration errors:\n\n  ${errors.join("\n  ")}\n\nSee: https://www.forwardimpact.team/docs/reference/configuration/`,
-    );
-    process.exit(1);
-  }
 }
 
 try {

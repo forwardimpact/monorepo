@@ -355,22 +355,64 @@ describe("LlmApi", () => {
     assert.strictEqual(mockFetch.mock.callCount(), 1);
   });
 
-  test("LlmApi throws when embeddingBaseUrl is not provided", () => {
+  test("LlmApi falls back to baseUrl when embeddingBaseUrl is null", () => {
     const teiMockFetch = mock.fn();
     const teiRetry = new Retry();
 
-    assert.throws(
-      () =>
-        new LlmApi(
-          "test-token",
-          "gpt-4",
-          DEFAULT_BASE_URL,
-          null,
-          teiRetry,
-          teiMockFetch,
-        ),
-      { message: /embeddingBaseUrl is required/ },
+    const llm = new LlmApi(
+      "test-token",
+      "gpt-4",
+      DEFAULT_BASE_URL,
+      null,
+      teiRetry,
+      teiMockFetch,
     );
+
+    assert.ok(llm instanceof LlmApi);
+  });
+
+  test("createEmbeddings uses OpenAI-compatible format when embeddingBaseUrl matches baseUrl", async () => {
+    const oaiMockFetch = mock.fn();
+    const oaiRetry = new Retry();
+    const oaiLlm = new LlmApi(
+      "test-token",
+      "gpt-4",
+      DEFAULT_BASE_URL,
+      null,
+      oaiRetry,
+      oaiMockFetch,
+    );
+
+    const mockResponse = {
+      ok: true,
+      json: mock.fn(() =>
+        Promise.resolve({
+          object: "list",
+          data: [{ object: "embedding", index: 0, embedding: [0.1, 0.2, 0.3] }],
+          model: "text-embedding-ada-002",
+          usage: { prompt_tokens: 5, completion_tokens: 0, total_tokens: 5 },
+        }),
+      ),
+    };
+    oaiMockFetch.mock.mockImplementationOnce(() =>
+      Promise.resolve(mockResponse),
+    );
+
+    const result = await oaiLlm.createEmbeddings(["Hello"]);
+
+    assert.strictEqual(oaiMockFetch.mock.callCount(), 1);
+    const [url, options] = oaiMockFetch.mock.calls[0].arguments;
+    assert.ok(url.endsWith("/embeddings"));
+    assert.ok(!url.endsWith("/embed"));
+    assert.strictEqual(options.method, "POST");
+
+    const body = JSON.parse(options.body);
+    assert.deepStrictEqual(body.input, ["Hello"]);
+    assert.strictEqual(body.model, "gpt-4");
+
+    assert.strictEqual(result.data.length, 1);
+    assert.deepStrictEqual(result.data[0].embedding, [0.1, 0.2, 0.3]);
+    assert.strictEqual(result.model, "text-embedding-ada-002");
   });
 
   test("listModels makes correct API call", async () => {

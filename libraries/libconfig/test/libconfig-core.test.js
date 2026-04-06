@@ -255,7 +255,7 @@ describe("libconfig - Config methods", () => {
 
   test("ghClientId throws when not set in environment", () => {
     assert.throws(() => config.ghClientId(), {
-      message: "GitHub client ID not found in environment",
+      message: "GITHUB_CLIENT_ID not found in environment",
     });
   });
 

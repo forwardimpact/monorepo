@@ -37,6 +37,7 @@ export class LlmApi {
   #model;
   #baseURL;
   #embeddingBaseURL;
+  #useTeiEmbeddings;
   #headers;
   #fetch;
   #tokenizer;
@@ -48,7 +49,7 @@ export class LlmApi {
    * @param {string} token - LLM API token
    * @param {string} model - Default model to use for completions
    * @param {string} baseUrl - Base URL for the LLM API
-   * @param {string} embeddingBaseUrl - Base URL for TEI embeddings (required)
+   * @param {string} embeddingBaseUrl - Base URL for embeddings (TEI endpoint or OpenAI-compatible)
    * @param {import("@forwardimpact/libutil").Retry} retry - Retry instance for handling transient errors
    * @param {(url: string, options?: object) => Promise<Response>} fetchFn - HTTP client function (defaults to fetch if not provided)
    * @param {() => object} tokenizerFn - Tokenizer instance for counting tokens
@@ -65,7 +66,6 @@ export class LlmApi {
     temperature = 0.3,
   ) {
     if (!baseUrl) throw new Error("baseUrl is required");
-    if (!embeddingBaseUrl) throw new Error("embeddingBaseUrl is required");
     if (!retry) throw new Error("retry is required");
     if (typeof fetchFn !== "function")
       throw new Error("Invalid fetch function");
@@ -74,7 +74,10 @@ export class LlmApi {
 
     this.#model = model;
     this.#baseURL = normalizeBaseUrl(baseUrl);
-    this.#embeddingBaseURL = embeddingBaseUrl;
+    this.#embeddingBaseURL = embeddingBaseUrl || this.#baseURL;
+    this.#useTeiEmbeddings =
+      !!embeddingBaseUrl &&
+      normalizeBaseUrl(embeddingBaseUrl) !== this.#baseURL;
     this.#headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -144,11 +147,25 @@ export class LlmApi {
   }
 
   /**
-   * Creates embeddings using TEI (Text Embeddings Inference)
+   * Creates embeddings via TEI or OpenAI-compatible endpoint.
+   * Uses TEI format when EMBEDDING_BASE_URL is explicitly set to a
+   * different host; otherwise uses the OpenAI-compatible /embeddings
+   * endpoint on the LLM base URL.
    * @param {string[]} input - Array of text strings to embed
    * @returns {Promise<import("@forwardimpact/libtype").common.Embeddings>} Embeddings response
    */
   async createEmbeddings(input) {
+    if (this.#useTeiEmbeddings) {
+      return this.#createTeiEmbeddings(input);
+    }
+    return this.#createOpenAIEmbeddings(input);
+  }
+
+  /**
+   * TEI (Text Embeddings Inference) format: POST /embed
+   * @param {string[]} input
+   */
+  async #createTeiEmbeddings(input) {
     const response = await this.#retry.execute(() =>
       this.#fetch(`${this.#embeddingBaseURL}/embed`, {
         method: "POST",
@@ -170,6 +187,41 @@ export class LlmApi {
       })),
       model: "bge-small-en-v1.5",
       usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+    });
+  }
+
+  /**
+   * OpenAI-compatible format: POST /embeddings
+   * @param {string[]} input
+   */
+  async #createOpenAIEmbeddings(input) {
+    const response = await this.#retry.execute(() =>
+      this.#fetch(`${this.#embeddingBaseURL}/embeddings`, {
+        method: "POST",
+        headers: this.#headers,
+        body: JSON.stringify({
+          input,
+          model: this.#model,
+        }),
+      }),
+    );
+
+    await this.#throwIfNotOk(response);
+    const json = await response.json();
+
+    return common.Embeddings.fromObject({
+      object: json.object || "list",
+      data: json.data.map((item) => ({
+        object: item.object || "embedding",
+        index: item.index,
+        embedding: item.embedding,
+      })),
+      model: json.model || this.#model,
+      usage: json.usage || {
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0,
+      },
     });
   }
 
@@ -294,7 +346,7 @@ export function createProxyAwareFetch(process = global.process) {
  * @param {string} token - LLM API token
  * @param {string} model - Model to use
  * @param {string} baseUrl - Base URL for the LLM API (required, e.g. https://models.github.ai/orgs/{org})
- * @param {string} embeddingBaseUrl - Base URL for TEI embeddings (required)
+ * @param {string|null} embeddingBaseUrl - Base URL for embeddings (null falls back to baseUrl with OpenAI-compatible format)
  * @param {number} [temperature] - Temperature for completions
  * @param {(url: string, options?: object) => Promise<Response>} [fetchFn] - HTTP client function
  * @param {() => object} [tokenizerFn] - Tokenizer factory function
@@ -312,11 +364,6 @@ export function createLlmApi(
   if (!baseUrl) {
     throw new Error(
       "baseUrl is required. Set LLM_BASE_URL to https://models.github.ai/orgs/{YOUR_ORG} for org-level PATs.",
-    );
-  }
-  if (!embeddingBaseUrl) {
-    throw new Error(
-      "embeddingBaseUrl is required. Set EMBEDDING_BASE_URL for TEI endpoint.",
     );
   }
   const retry = createRetry();

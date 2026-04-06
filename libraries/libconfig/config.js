@@ -4,29 +4,33 @@ import { createStorage } from "@forwardimpact/libstorage";
 
 /** @typedef {import("@forwardimpact/libstorage").StorageInterface} StorageInterface */
 
+/** @param {string} url */
+function stripTrailingSlashes(url) {
+  return url.replace(/\/+$/, "");
+}
+
 /**
  * Centralized configuration management class
  */
 export class Config {
-  static #ALLOWED_ENV_KEYS = new Set([
+  // Keys containing secrets or tokens. Values from .env are loaded into
+  // a private map (#envOverrides) instead of process.env, so they never
+  // leak through child-process inheritance or process.env inspection.
+  // Getter methods read via #env(), which checks process.env first —
+  // so shell-exported credentials still work; .env is the fallback.
+  static #CREDENTIAL_KEYS = new Set([
     "GITHUB_CLIENT_ID",
     "GITHUB_TOKEN",
     "LLM_TOKEN",
-    "LLM_BASE_URL",
-    "EMBEDDING_BASE_URL",
     "JWT_SECRET",
     "JWT_ANON_KEY",
     "JWT_AUTH_URL",
   ]);
 
-  #llmToken = null;
-  #llmBaseUrl = null;
-  #embeddingBaseUrl = null;
-  #jwtSecret = null;
-  #jwtAnonKey = null;
-  #jwtAuthUrl = null;
-  #ghToken = null;
-  #ghClientId = null;
+  // Cached credential values — populated on first access via getter methods
+  #cache = new Map();
+
+  // Private store for credential values loaded from .env
   #envOverrides = {};
   #fileData = null;
   #storage = null;
@@ -63,23 +67,29 @@ export class Config {
   async load() {
     this.#storage = this.#storageFn("config", null, this.#process);
 
+    // 1. Load .env — credentials go to #envOverrides, everything else
+    //    goes to process.env (so SERVICE_*_URL etc. are available below)
     await this.#loadEnvFile();
+    // 2. Load config/config.json for file-based configuration
     await this.#loadFileData();
 
     const namespaceUpper = this.namespace.toUpperCase();
     const nameUpper = this.name.toUpperCase();
     const fileData = this.#getFileData(this.namespace, this.name);
 
+    // Merge: constructor defaults → config.json values
     const data = { ...this.defaults, ...fileData };
 
-    // Set defaults
+    // Apply network defaults for service binding
     if (data.protocol === undefined) data.protocol = "grpc";
     if (data.host === undefined) data.host = "0.0.0.0";
     if (data.port === undefined) data.port = 3000;
     if (data.path === undefined) data.path = "";
     data.url = `${data.protocol}://${data.host}:${data.port}${data.path}`;
 
-    // Let the environment override any config file values
+    // 3. Environment overrides — SERVICE_{NAME}_{PARAM} env vars win over
+    //    config file values. These are on process.env (set by shell or by
+    //    #loadEnvFile for non-credential keys like SERVICE_AGENT_URL).
     for (const param of Object.keys(data)) {
       const varName = `${namespaceUpper}_${nameUpper}_${param.toUpperCase()}`;
       if (this.#process.env[varName] !== undefined) {
@@ -91,7 +101,7 @@ export class Config {
       }
     }
 
-    // URL takes precedence if set and all components are extracted from it.
+    // 4. Re-parse URL after overrides so host/port/protocol stay consistent
     if (data.url !== undefined) {
       const parsed = new URL(data.url);
       data.protocol = parsed.protocol.replace(":", "");
@@ -100,140 +110,58 @@ export class Config {
       data.path = parsed.pathname.replace(/\/+$/, "");
     }
 
+    // Expose merged config as instance properties (url, host, port, model, etc.)
     Object.assign(this, data);
   }
 
-  /**
-   * Gets the GitHub client ID from environment variable
-   * @returns {string} GitHub client ID
-   */
+  /** @returns {string} GitHub client ID */
   ghClientId() {
-    if (this.#ghClientId) return this.#ghClientId;
-
-    const value = this.#env("GITHUB_CLIENT_ID");
-    if (value) {
-      this.#ghClientId = value;
-      return this.#ghClientId;
-    }
-
-    throw new Error("GitHub client ID not found in environment");
+    return this.#resolve("GITHUB_CLIENT_ID");
   }
 
-  /**
-   * Gets the GitHub token from environment variable
-   * @returns {string} GitHub token
-   */
+  /** @returns {string} GitHub token */
   ghToken() {
-    if (this.#ghToken) return this.#ghToken;
-
-    const value = this.#env("GITHUB_TOKEN");
-    if (value) {
-      this.#ghToken = value;
-      return this.#ghToken;
-    }
-
-    throw new Error("GitHub token not found in environment");
+    return this.#resolve("GITHUB_TOKEN");
   }
 
-  /**
-   * Gets the LLM API token from environment variable
-   * @returns {Promise<string>} LLM API token
-   */
+  /** @returns {Promise<string>} LLM API token (async for caller compatibility) */
   async llmToken() {
-    if (this.#llmToken) return this.#llmToken;
-
-    const value = this.#env("LLM_TOKEN");
-    if (value) {
-      this.#llmToken = value;
-      return this.#llmToken;
-    }
-
-    throw new Error("LLM token not found in environment");
+    return this.#resolve("LLM_TOKEN");
   }
 
-  /**
-   * Gets the LLM API base URL from environment variable
-   * @returns {string} LLM API base URL with trailing slashes removed
-   * @throws {Error} If LLM_BASE_URL is not set in environment
-   */
+  /** @returns {string} LLM API base URL with trailing slashes removed */
   llmBaseUrl() {
-    if (this.#llmBaseUrl) return this.#llmBaseUrl;
-
-    const value = this.#env("LLM_BASE_URL");
-    if (value) {
-      this.#llmBaseUrl = value.replace(/\/+$/, "");
-      return this.#llmBaseUrl;
-    }
-
-    throw new Error(
-      "LLM_BASE_URL not found in environment. Set to https://models.github.ai/orgs/{YOUR_ORG} for org-level PATs.",
-    );
+    return this.#resolve("LLM_BASE_URL", stripTrailingSlashes);
   }
 
   /**
-   * Gets the embedding API base URL from environment variable.
-   * @returns {string} Embedding API base URL with trailing slashes removed
-   * @throws {Error} If EMBEDDING_BASE_URL is not set in environment
+   * Embedding API base URL. Uses EMBEDDING_BASE_URL if set, otherwise
+   * falls back to LLM_BASE_URL (OpenAI-compatible /embeddings endpoint).
+   * @returns {string}
    */
   embeddingBaseUrl() {
-    if (this.#embeddingBaseUrl) return this.#embeddingBaseUrl;
-
-    const value = this.#env("EMBEDDING_BASE_URL");
-    if (value) {
-      this.#embeddingBaseUrl = value.replace(/\/+$/, "");
-      return this.#embeddingBaseUrl;
-    }
-
-    throw new Error(
-      "EMBEDDING_BASE_URL not found in environment. Set to your TEI endpoint URL.",
+    return this.#resolve("EMBEDDING_BASE_URL", stripTrailingSlashes, () =>
+      this.llmBaseUrl(),
     );
   }
 
-  /**
-   * Gets the JWT secret from environment variable
-   * @returns {string} JWT secret for HS256 signature verification
-   * @throws {Error} If JWT_SECRET is not set in environment
-   */
+  /** @returns {string} JWT secret for HS256 signature verification */
   jwtSecret() {
-    if (this.#jwtSecret) return this.#jwtSecret;
-
-    const value = this.#env("JWT_SECRET");
-    if (value) {
-      this.#jwtSecret = value;
-      return this.#jwtSecret;
-    }
-
-    throw new Error("JWT_SECRET not found in environment");
+    return this.#resolve("JWT_SECRET");
   }
 
-  /**
-   * Gets the JWT anonymous key from environment variable.
-   * Used for public/unauthenticated Supabase API access.
-   * @returns {string} JWT anon key
-   * @throws {Error} If JWT_ANON_KEY is not set in environment
-   */
+  /** @returns {string} JWT anon key for unauthenticated Supabase access */
   jwtAnonKey() {
-    if (this.#jwtAnonKey) return this.#jwtAnonKey;
-
-    const value = this.#env("JWT_ANON_KEY");
-    if (value) {
-      this.#jwtAnonKey = value;
-      return this.#jwtAnonKey;
-    }
-
-    throw new Error("JWT_ANON_KEY not found in environment");
+    return this.#resolve("JWT_ANON_KEY");
   }
 
-  /**
-   * Gets the JWT authentication service URL from environment variable
-   * @returns {string} JWT auth service URL with trailing slashes removed (defaults to http://localhost:9999)
-   */
+  /** @returns {string} JWT auth service URL (defaults to http://localhost:9999) */
   jwtAuthUrl() {
-    if (this.#jwtAuthUrl) return this.#jwtAuthUrl;
-
-    const url = this.#env("JWT_AUTH_URL") || "http://localhost:9999";
-    this.#jwtAuthUrl = url.replace(/\/+$/, "");
-    return this.#jwtAuthUrl;
+    return this.#resolve(
+      "JWT_AUTH_URL",
+      stripTrailingSlashes,
+      () => "http://localhost:9999",
+    );
   }
 
   /**
@@ -258,22 +186,16 @@ export class Config {
    * @returns {void}
    */
   reset() {
-    this.#llmToken = null;
-    this.#llmBaseUrl = null;
-    this.#embeddingBaseUrl = null;
-    this.#jwtSecret = null;
-    this.#jwtAnonKey = null;
-    this.#jwtAuthUrl = null;
-    this.#ghToken = null;
-    this.#ghClientId = null;
+    this.#cache.clear();
     this.#envOverrides = {};
     this.#fileData = null;
     this.#storage = null;
   }
 
   /**
-   * Returns the value for the given environment key, checking process.env
-   * first then falling back to values loaded from .env file.
+   * Resolves an environment variable. Shell environment (process.env)
+   * always wins; .env credential values in #envOverrides are the fallback.
+   * Non-credential .env keys are already on process.env (set by #loadEnvFile).
    * @param {string} key - Environment variable name
    * @returns {string|undefined}
    * @private
@@ -283,9 +205,39 @@ export class Config {
   }
 
   /**
-   * Loads allowed environment variables from a .env file in the working
-   * directory. Process environment variables always take precedence.
-   * Only keys matching Config methods are loaded; all others are ignored.
+   * Cached lookup: read from env, apply optional transform, cache, and
+   * return. If the env var is unset, calls fallback or throws.
+   * @param {string} key - Environment variable name
+   * @param {((v: string) => string)|null} [transform] - Optional value transform (e.g. strip slashes)
+   * @param {(() => string)|null} [fallback] - Returns default when key is missing; omit to throw
+   * @returns {string}
+   * @private
+   */
+  #resolve(key, transform = null, fallback = null) {
+    if (this.#cache.has(key)) return this.#cache.get(key);
+
+    let value = this.#env(key);
+    if (value) {
+      if (transform) value = transform(value);
+      this.#cache.set(key, value);
+      return value;
+    }
+
+    if (fallback) {
+      const resolved = fallback();
+      this.#cache.set(key, resolved);
+      return resolved;
+    }
+
+    throw new Error(`${key} not found in environment`);
+  }
+
+  /**
+   * Loads environment variables from a .env file in the working directory.
+   * Credential keys (tokens, secrets) are loaded into a private override
+   * map so they never leak onto process.env. All other keys (SERVICE_*_URL,
+   * LLM_BASE_URL, etc.) are set directly on process.env when not already
+   * present.
    * @returns {Promise<void>}
    * @private
    */
@@ -296,20 +248,39 @@ export class Config {
       for (const line of content.split("\n")) {
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith("#")) continue;
-        const eqIndex = trimmed.indexOf("=");
+
+        // Strip optional `export ` prefix (e.g. `export JWT_SECRET=xxx`)
+        const stripped = trimmed.startsWith("export ")
+          ? trimmed.slice(7)
+          : trimmed;
+        const eqIndex = stripped.indexOf("=");
         if (eqIndex === -1) continue;
-        const key = trimmed.slice(0, eqIndex).trim();
-        if (!Config.#ALLOWED_ENV_KEYS.has(key)) continue;
-        let value = trimmed.slice(eqIndex + 1).trim();
+
+        const key = stripped.slice(0, eqIndex).trim();
+        let value = stripped.slice(eqIndex + 1).trim();
+        // Strip matched surrounding quotes
         if (
           (value.startsWith('"') && value.endsWith('"')) ||
           (value.startsWith("'") && value.endsWith("'"))
         ) {
           value = value.slice(1, -1);
         }
-        this.#envOverrides[key] = value;
+
+        if (Config.#CREDENTIAL_KEYS.has(key)) {
+          // Credentials → private map. #env() reads them without
+          // exposing them on process.env. Shell env still wins at
+          // read time because #env() checks process.env first.
+          this.#envOverrides[key] = value;
+        } else if (this.#process.env[key] === undefined) {
+          // Non-credentials → process.env so that service URL
+          // resolution and child processes can see them.
+          // Shell env takes precedence (only set if undefined).
+          this.#process.env[key] = value;
+        }
       }
     } catch (error) {
+      // Missing .env is normal (not yet initialized); any other
+      // filesystem error is a real problem.
       if (error?.code !== "ENOENT") throw error;
     }
   }
