@@ -47,10 +47,12 @@ constraints.
 1. Create a branch from `main`
 2. Make your changes
 3. Auto-fix formatting and lint: `bun run check:fix` (applies to all file types)
-4. Verify all checks pass: `bun run check` (required for code **and** docs)
-5. Run security audit: `just audit`
-6. Commit: `git commit -m "type(scope): subject"`
-7. Push and open a pull request against `main`
+4. Verify formatting and lint pass: `bun run check` (required for code **and**
+   docs)
+5. Run unit tests: `bun run test`
+6. Run security audit: `just audit`
+7. Commit: `git commit -m "type(scope): subject"`
+8. Push and open a pull request against `main`
 
 **Always commit your work before finishing a task.**
 
@@ -90,9 +92,9 @@ The release manager agent handles version bumps, tagging, and publishing. See
 ## Quality Commands
 
 ```sh
-bun run check                 # Format, lint, test, validate — ALL file types (run before every commit)
+bun run check                 # Format and lint — ALL file types (run before every commit)
 bun run check:fix             # Auto-fix format and lint issues
-bun run test                  # Unit tests (bun run node --test)
+bun run test                  # Unit tests (run before every commit)
 bun run test:e2e              # Playwright E2E tests (requires generated data)
 bunx fit-map validate         # Validate data files
 bunx fit-map validate --shacl # Validate with SHACL syntax check

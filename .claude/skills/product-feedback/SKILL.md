@@ -84,7 +84,7 @@ Classify as **trivial fix/bug** (clear, reproducible, mechanical fix),
 
 #### Step 3: Handle Trivial Fixes
 
-Implement the fix, run `bun run check`, create a fix PR. See
+Implement the fix, run `bun run check` and `bun run test`, create a fix PR. See
 `references/templates.md` § Fix PRs for branch, commit, and PR body templates.
 Label the issue `triaged`.
 

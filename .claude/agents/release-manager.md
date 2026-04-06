@@ -42,7 +42,7 @@ Determine which workflow to use from the task prompt:
 - Never release from a broken `main` — repair trivial failures first
 - Push tags individually — never `git push --tags`
 - Release in dependency order when multiple packages change together
-- Run `bun run check` before committing
+- Run `bun run check` and `bun run test` before committing
 - Read `release-manager.md` at start (plus other agents' summaries for
   cross-agent context); write daily log to `release-manager-YYYY-MM-DD.md` and
   update `release-manager.md` at end with actions taken, observations for
