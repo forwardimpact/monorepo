@@ -17,12 +17,12 @@
     "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
+    "@forwardimpact/libdoc": "^0.2.0",
     "@forwardimpact/libsecret": "^0.1.3",
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@forwardimpact/libtype": "^0.1.63"
   },
   "devDependencies": {
-    "@forwardimpact/libdoc": "^0.2.0",
     "@forwardimpact/libharness": "^0.1.5"
   },
   "publishConfig": {

@@ -29,13 +29,13 @@
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@forwardimpact/libtype": "^0.1.63",
     "@forwardimpact/libutil": "^0.1.60",
-    "html-minifier-terser": "^7.2.0"
-  },
-  "devDependencies": {
+    "html-minifier-terser": "^7.2.0",
     "jsdom": "^29.0.1",
     "microdata-rdf-streaming-parser": "^3.0.0",
     "n3": "^2.0.3",
-    "rdf-canonize": "^5.0.0",
+    "rdf-canonize": "^5.0.0"
+  },
+  "devDependencies": {
     "@forwardimpact/libharness": "^0.1.5"
   },
   "publishConfig": {
