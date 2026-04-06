@@ -89,6 +89,9 @@ export class AgentService extends AgentBase {
 
     // Normalize agent_id to fully qualified identifier if needed
     let agentId = req.agent_id;
+    if (!agentId) {
+      throw new Error("RunSubAgent requires an agent_id parameter");
+    }
     if (!agentId.startsWith("common.Agent.")) {
       agentId = `common.Agent.${agentId}`;
     }
