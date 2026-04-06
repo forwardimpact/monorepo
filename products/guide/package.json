@@ -50,7 +50,8 @@
     "@forwardimpact/svcmemory": "^0.1.87",
     "@forwardimpact/svctool": "^0.1.91",
     "@forwardimpact/svctrace": "^0.1.34",
-    "@forwardimpact/svcvector": "^0.1.111"
+    "@forwardimpact/svcvector": "^0.1.111",
+    "@forwardimpact/svcweb": "^0.1.5"
   },
   "publishConfig": {
     "access": "public"

@@ -30,6 +30,10 @@
       {
         "name": "agent",
         "command": "node -e \"import('@forwardimpact/svcagent/server.js')\""
+      },
+      {
+        "name": "web",
+        "command": "node -e \"import('@forwardimpact/svcweb/server.js')\""
       }
     ]
   },

@@ -144,6 +144,13 @@ Commit format: `type(scope): subject` — see CONTRIBUTING.md § Git Conventions
 
 Run `bun run check` before every commit — code **and** documentation.
 
+## LLM Environment
+
+If `LLM_TOKEN` is not set in `.env` it will **always** be set in the shell
+environment. Testers or contributors never need to generate or configure an LLM
+key — `libconfig` reads `LLM_TOKEN` and `LLM_BASE_URL` from the process
+environment, so testing with an LLM will always "just work".
+
 ## Structure
 
 Plain JS + JSDoc, YAML, no frameworks.

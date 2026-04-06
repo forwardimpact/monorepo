@@ -69,6 +69,7 @@ if (process.argv.includes("--init")) {
 
   // Assign unique ports so services don't all bind to the default 3000
   const serviceUrls = {
+    SERVICE_WEB_URL: "http://localhost:3001",
     SERVICE_AGENT_URL: "grpc://localhost:3002",
     SERVICE_MEMORY_URL: "grpc://localhost:3003",
     SERVICE_LLM_URL: "grpc://localhost:3004",
@@ -85,7 +86,7 @@ if (process.argv.includes("--init")) {
   console.log("SERVICE_SECRET was updated in .env");
   console.log("JWT_SECRET is set in .env");
   console.log("JWT_ANON_KEY was updated in .env");
-  console.log("Service URLs written to .env (ports 3002–3008).");
+  console.log("Service URLs written to .env (ports 3001–3008).");
 
   // Copy starter config into ./config/ (config.json, agents/, tools.yml)
   const starterDir = new URL("../starter", import.meta.url).pathname;
@@ -125,7 +126,7 @@ if (!process.env.SERVICE_SECRET) {
 Guide requires a running service stack to function. The following
 services must be available:
 
-  agent, llm, memory, graph, vector, tool, trace
+  agent, llm, memory, graph, vector, tool, trace, web
 
 To get started:
 
