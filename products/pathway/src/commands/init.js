@@ -47,8 +47,8 @@ export async function runInitCommand({ options }) {
 
 Next steps:
   1. Edit data files to match your organization
-  2. bunx fit-map validate
-  3. bunx fit-pathway dev
+  2. npx fit-map validate
+  3. npx fit-pathway dev
 
 Data structure:
   data/pathway/
