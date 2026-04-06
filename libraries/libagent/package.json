@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libagent",
-  "version": "0.1.46",
+  "version": "0.1.47",
   "description": "Agent orchestration library for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
