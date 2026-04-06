@@ -206,7 +206,7 @@ describe("libconfig - Config getters", () => {
       mockStorageFn,
     );
     assert.throws(() => config.ghToken(), {
-      message: "GitHub token not found in environment",
+      message: "GITHUB_TOKEN not found in environment",
     });
   });
 
@@ -240,7 +240,7 @@ describe("libconfig - Config getters", () => {
       mockStorageFn,
     );
     await assert.rejects(() => config.llmToken(), {
-      message: "LLM token not found in environment",
+      message: "LLM_TOKEN not found in environment",
     });
   });
 
