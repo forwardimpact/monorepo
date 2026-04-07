@@ -87,7 +87,7 @@ shape of `services/graph/` and `services/vector/`. It is wired into
 fit-guide's tool router via `config/tools.yml` and the `tool.endpoints`
 section of `config/config.json`, and registered in fit-guide's starter
 configuration so external installations get it automatically when they run
-`fit-guide --init`.
+`npx fit-guide --init`.
 
 Interview questions are intentionally **not** exposed as a tool in this spec.
 The question-bank schema is the least mature part of Map and is expected to
@@ -125,18 +125,24 @@ Two coordinated changes:
   same structure as `services/graph/`: `proto/pathway.proto`, `index.js`
   (`PathwayService` class extending the generated base), `server.js`
   composition root, `package.json`, `test/`
-- Proto service `pathway.Pathway` with RPC methods that wrap libskill:
+- Proto service `pathway.Pathway` with RPC methods that wrap libskill. Each
+  RPC composes existing libskill primitives — no new derivation logic is
+  introduced; the service is a transport layer over libskill:
   - `ListJobs(ListJobsRequest) → ToolCallResult` — enumerate valid
-    `(discipline, level, track)` combinations
+    `(discipline, level, track)` combinations via libskill
+    `generateAllJobs` / `getValidLevelTrackCombinations`
   - `DeriveJob(DeriveJobRequest) → ToolCallResult` — call libskill `deriveJob`
     for a given discipline/level/track and return the skill matrix and
     behaviour profile
   - `ListAgents(ListAgentsRequest) → ToolCallResult` — enumerate valid agent
     `(discipline, track)` combinations
-  - `DeriveAgent(DeriveAgentRequest) → ToolCallResult` — call libskill agent
-    derivation for a given discipline/track, optionally filtered by stage
-  - `DeriveProgression(DeriveProgressionRequest) → ToolCallResult` — call
-    libskill progression for `(discipline, from_level, to_level, track)`
+  - `DeriveAgent(DeriveAgentRequest) → ToolCallResult` — compose libskill
+    `deriveReferenceLevel`, `deriveAgentSkills`, and `deriveAgentBehaviours`
+    for a given discipline/track, optionally filtered by stage (the same
+    composition `npx fit-pathway agent` performs)
+  - `AnalyzeProgression(AnalyzeProgressionRequest) → ToolCallResult` — call
+    libskill `analyzeProgression` (or `analyzeCustomProgression`) for
+    `(discipline, from_level, to_level, track)`
   - `DeriveToolkit(DeriveToolkitRequest) → ToolCallResult` — call libskill
     `deriveToolkit` for a given job
 - Tool descriptions added to `config/tools.example.yml` and the published
@@ -147,7 +153,8 @@ Two coordinated changes:
   mapping each tool name to its `pathway.Pathway.*` method and request type
 - The new service registered in the `init.services` array of both
   `config/config.example.json` and `products/guide/starter/config.json` so
-  `fit-guide --init` produces a configuration that launches it
+  `npx fit-guide --init` produces a configuration that `npx fit-rc start`
+  will launch alongside the other services
 - Service composition root loads pathway YAML through the same data
   resolution rules used by `fit-pathway` (via libskill loaders) and rejects
   startup if the data directory is missing
@@ -168,7 +175,7 @@ Two coordinated changes:
 ## Success Criteria
 
 After running the full pipeline (`just quickstart` or `just process`) and
-starting fit-guide:
+starting services with `npx fit-rc start`:
 
 1. `fit-map export` produces HTML files in `data/knowledge/` with valid
    microdata for each base framework entity type
@@ -177,18 +184,18 @@ starting fit-guide:
    and `fit:Tool` types
 3. `ARGS="fit:Skill" just cli-subjects` returns all skills defined in pathway
    YAML
-4. `fit-guide --init` in a fresh directory produces a `config/config.json`
+4. `npx fit-guide --init` in a fresh directory produces a `config/config.json`
    whose `init.services` array includes the pathway service and whose
    `service.tool.endpoints` includes `derive_job`, `derive_agent`,
-   `derive_progression`, `derive_toolkit`, `list_jobs`, and `list_agents`
-5. After `npx fit-guide start`, the pathway service is running and the tool
-   service successfully resolves each pathway tool against the running
-   endpoint (verifiable via the tool service's endpoint health check)
+   `analyze_progression`, `derive_toolkit`, `list_jobs`, and `list_agents`
+5. After `npx fit-rc start`, `npx fit-rc status` shows the pathway service
+   running and the tool service successfully resolves each pathway tool
+   against the running endpoint
 6. fit-guide answers "What skills are defined in the engineering framework?"
    with a list of actual skill names from the data (graph path)
-7. fit-guide answers "What does a senior software engineer at L3 on the
+7. fit-guide answers "What does a senior software engineer on the
    forward-deployed track need to demonstrate?" with the same skill matrix
-   and behaviours that `npx fit-pathway job software_engineering J060
-   --track=forward_deployed` produces (tool path)
-8. fit-guide answers "What changes between L2 and L3 for a platform engineer?"
-   with the same delta that `npx fit-pathway progress` produces
+   and behaviours that the equivalent `npx fit-pathway job <discipline>
+   <level> --track=forward_deployed` invocation produces (tool path)
+8. fit-guide answers a "what changes between two levels" question with the
+   same delta that `npx fit-pathway progress` produces for the same inputs
