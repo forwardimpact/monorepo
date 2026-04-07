@@ -3,10 +3,10 @@
 ## Problem
 
 When a user asks fit-guide about the engineering framework — skills,
-capabilities, levels, behaviours, jobs, agents — the agent returns sparse or
-empty results. Graph queries like `get_subjects("fit:Skill")` return nothing
-because pathway framework data never enters the RDF graph, and no tool exists
-that lets the agent ask libskill to derive a job or agent profile.
+capabilities, levels, behaviours, jobs, agent profiles — Guide returns sparse
+or empty results. Graph queries like `get_subjects("fit:Skill")` return
+nothing because pathway framework data never enters the RDF graph, and no
+tool exists that lets Guide ask libskill to derive a job or agent profile.
 
 The knowledge pipeline has one working flow and two gaps:
 
@@ -94,6 +94,84 @@ The question-bank schema is the least mature part of Map and is expected to
 change soon; introducing a tool surface for it now would lock in an unstable
 contract.
 
+## Terminology Risk
+
+Two Pathway domain words collide head-on with concepts the Guide LLM agent
+already knows about. Naming the new tools naively would create persistent
+ambiguity that degrades Guide's reasoning, increases hallucinated tool calls,
+and is hard to fix later because tool names appear in every conversation
+turn's tool catalogue.
+
+### Collision 1: "agent"
+
+In Pathway, an **agent profile** is a static role description — a YAML
+artifact derived from `(discipline, track)` that describes the skills and
+behaviours an AI agent operating in that role should have. It is rendered to
+`.agent.md` files for VS Code Custom Agents. It is *data*, not an executable
+entity.
+
+Guide already has tools for delegating work to other LLM agents:
+`list_sub_agents`, `run_sub_agent`, `list_handoffs`, `run_handoff`. A tool
+named `list_agents` or `derive_agent` sits adjacent to those in the catalogue
+and would predictably be misread as "list more LLM agents I can delegate to"
+or "spawn a new agent for this discipline." The likely failure modes:
+
+- Guide invokes `list_agents` when the user asks "who can help with this
+  task?" expecting runnable sub-agents and gets back framework role
+  definitions, then either gives up or hallucinates a follow-up `run_agent`
+  call that does not exist.
+- Guide skips the real `list_sub_agents` because `list_agents` looks like a
+  more general version, missing actual delegation opportunities.
+- Tool-filter ranking surfaces both clusters together for queries about
+  "agents," wasting the prompt budget on near-duplicate-looking entries.
+
+### Collision 2: "tool"
+
+In Pathway, a **toolkit** is the set of software tools (Python, Kubernetes,
+Figma, etc.) referenced by the skills in a job, derived via libskill's
+`deriveToolkit`. It is a list of *technologies the human or AI doing the job
+uses*, harvested from `toolReferences` on skill definitions.
+
+Guide's entire interface to the world is "LLM tools" — function calls it
+emits to the tool service. LLM agents are explicitly trained to reason about
+their own tool catalogue and many are post-trained on meta-tools like
+`list_tools` or `describe_tool`. A Pathway tool named `derive_toolkit`,
+`list_tools`, or `get_tools` would land directly on top of that prior. The
+likely failure modes:
+
+- Guide calls `derive_toolkit` to introspect its own tool catalogue (treating
+  it as a meta-tool) and receives an irrelevant list of software
+  technologies.
+- The user asks "what tools do you have?" and Guide answers with a Pathway
+  toolkit instead of its real LLM tool list.
+- Documentation, prompts, and trace analysis become harder to read because
+  the word "tool" is overloaded in every sentence.
+
+### Mitigation
+
+Three reinforcing measures:
+
+1. **Namespace prefix.** Every tool exposed by `services/pathway/` is named
+   `pathway_*`. The prefix is the same word the product is called and
+   immediately marks the tool as a query against framework data, not a
+   meta-operation on Guide itself.
+2. **Avoid "agent" and "tool" as bare nouns.** Replace "agent" with
+   "agent_profile" (the suffix signals data, matching the `.agent.md` artifact
+   it produces) and replace "toolkit"/"tools" with "software" (the concrete
+   thing the toolkit lists).
+3. **Verb choice signals intent.** Use `list_*` for enumeration and
+   `describe_*` for "give me details about one." Avoid `derive_*`, `get_*`,
+   and `analyze_*` because those overlap with how Guide is trained to talk
+   about its own internal operations.
+
+The resulting tool names are listed under
+[Included — Pathway derivation service](#included--pathway-derivation-service)
+below. Each tool's `purpose` and `applicability` text in
+`config/tools.example.yml` must additionally contain an explicit one-sentence
+disambiguation, for example: *"Pathway agent profiles are static role
+descriptions in framework data — they are NOT runnable LLM sub-agents. Use
+`list_sub_agents` for delegation."*
+
 ## Scope
 
 Two coordinated changes:
@@ -127,27 +205,29 @@ Two coordinated changes:
   composition root, `package.json`, `test/`
 - Proto service `pathway.Pathway` with RPC methods that wrap libskill. Each
   RPC composes existing libskill primitives — no new derivation logic is
-  introduced; the service is a transport layer over libskill:
-  - `ListJobs(ListJobsRequest) → ToolCallResult` — enumerate valid
-    `(discipline, level, track)` combinations via libskill
-    `generateAllJobs` / `getValidLevelTrackCombinations`
-  - `DeriveJob(DeriveJobRequest) → ToolCallResult` — call libskill `deriveJob`
-    for a given discipline/level/track and return the skill matrix and
-    behaviour profile
-  - `ListAgents(ListAgentsRequest) → ToolCallResult` — enumerate valid agent
-    `(discipline, track)` combinations
-  - `DeriveAgent(DeriveAgentRequest) → ToolCallResult` — compose libskill
-    `deriveReferenceLevel`, `deriveAgentSkills`, and `deriveAgentBehaviours`
-    for a given discipline/track, optionally filtered by stage (the same
-    composition `npx fit-pathway agent` performs)
-  - `AnalyzeProgression(AnalyzeProgressionRequest) → ToolCallResult` — call
-    libskill `analyzeProgression` (or `analyzeCustomProgression`) for
-    `(discipline, from_level, to_level, track)`
-  - `DeriveToolkit(DeriveToolkitRequest) → ToolCallResult` — call libskill
-    `deriveToolkit` for a given job
+  introduced; the service is a transport layer over libskill. Tool names use
+  the `pathway_*` prefix and avoid the bare nouns "agent" and "tool" (see
+  [Terminology Risk](#terminology-risk)):
+
+  | Tool name (LLM-facing)        | RPC                  | libskill primitives                                              |
+  | ----------------------------- | -------------------- | ---------------------------------------------------------------- |
+  | `pathway_list_jobs`           | `ListJobs`           | `generateAllJobs` / `getValidLevelTrackCombinations`             |
+  | `pathway_describe_job`        | `DescribeJob`        | `deriveJob`                                                      |
+  | `pathway_list_agent_profiles` | `ListAgentProfiles`  | `getValidLevelTrackCombinations` filtered to discipline × track  |
+  | `pathway_describe_agent_profile` | `DescribeAgentProfile` | `deriveReferenceLevel` + `deriveAgentSkills` + `deriveAgentBehaviours` (the composition `npx fit-pathway agent` performs) |
+  | `pathway_describe_progression` | `DescribeProgression` | `analyzeProgression` / `analyzeCustomProgression`              |
+  | `pathway_list_job_software`   | `ListJobSoftware`    | `deriveToolkit`                                                  |
+
+  All RPCs return `tool.ToolCallResult`. Request messages live in
+  `proto/pathway.proto` and follow the naming `<RpcName>Request`.
 - Tool descriptions added to `config/tools.example.yml` and the published
-  starter `products/guide/starter/tools.yml`, one entry per RPC above, each
-  with `purpose`, `applicability`, `instructions`, `evaluation`, `parameters`
+  starter `products/guide/starter/tools.yml`, one entry per tool above, each
+  with `purpose`, `applicability`, `instructions`, `evaluation`, `parameters`.
+  Each `purpose` and `applicability` block must contain an explicit
+  disambiguation sentence per the
+  [Terminology Risk](#terminology-risk) mitigation — calling out that
+  Pathway agent profiles are not LLM sub-agents and that
+  `pathway_list_job_software` lists technologies, not Guide's own LLM tools
 - Endpoint wiring added to `config/config.example.json` and
   `products/guide/starter/config.json` under `service.tool.endpoints`,
   mapping each tool name to its `pathway.Pathway.*` method and request type
@@ -165,8 +245,9 @@ Two coordinated changes:
   HTML file in `data/knowledge/`
 - Changes to the graph processor — it already indexes any resource with RDF
   content
-- Materializing derived entities (jobs, agents, progressions) into the RDF
-  graph — derived data is exposed exclusively via tool calls
+- Materializing derived entities (jobs, agent profiles, progressions) into
+  the RDF graph — derived data is exposed exclusively via the
+  `pathway_*` tool calls
 - An LLM tool for interview questions — the question-bank schema is expected
   to change soon and is deferred to a follow-up spec
 - Changes to agent prompts beyond what is needed to advertise the new tools
@@ -186,8 +267,11 @@ starting services with `npx fit-rc start`:
    YAML
 4. `npx fit-guide --init` in a fresh directory produces a `config/config.json`
    whose `init.services` array includes the pathway service and whose
-   `service.tool.endpoints` includes `derive_job`, `derive_agent`,
-   `analyze_progression`, `derive_toolkit`, `list_jobs`, and `list_agents`
+   `service.tool.endpoints` includes `pathway_list_jobs`,
+   `pathway_describe_job`, `pathway_list_agent_profiles`,
+   `pathway_describe_agent_profile`, `pathway_describe_progression`, and
+   `pathway_list_job_software` — and contains no tool whose name is a bare
+   `derive_*`, `list_agents`, `list_tools`, or `derive_toolkit`
 5. After `npx fit-rc start`, `npx fit-rc status` shows the pathway service
    running and the tool service successfully resolves each pathway tool
    against the running endpoint
@@ -199,3 +283,12 @@ starting services with `npx fit-rc start`:
    <level> --track=forward_deployed` invocation produces (tool path)
 8. fit-guide answers a "what changes between two levels" question with the
    same delta that `npx fit-pathway progress` produces for the same inputs
+9. **Terminology disambiguation holds in practice.** Two adversarial probes
+   pass:
+   - "What tools do you have?" — Guide answers with its own LLM tool
+     catalogue (graph, vector, sub-agent, handoff, pathway tools), not with
+     a Pathway software list. Guide does **not** call
+     `pathway_list_job_software` to answer this.
+   - "What other agents can you hand work off to?" — Guide answers using
+     `list_sub_agents` / `list_handoffs`, not by calling
+     `pathway_list_agent_profiles`.
