@@ -159,13 +159,18 @@ npx fit-pathway job software_engineering J060 --track=forward_deployed --skills
 ### Getting Started
 
 ```sh
-npx fit-pathway init                          # Create ./data/ with example framework data
+npx fit-pathway init                          # Create ./data/pathway/ with example framework data
 npx fit-pathway dev                           # Run live development server (default port 3000)
 npx fit-pathway dev --port=8080               # Dev server on custom port
 npx fit-pathway build --output=./public --url=https://example.com  # Static site
 npx fit-pathway update                        # Update local ~/.fit/data/pathway/ installation
 npx fit-pathway update --url=URL              # Update from custom source URL
 ```
+
+`init` writes a starter framework into `./data/pathway/` (`framework.yaml`,
+`levels.yaml`, `stages.yaml`, `drivers.yaml`, plus `disciplines/`,
+`capabilities/`, `behaviours/`, and `tracks/` directories). After init, validate
+with `npx fit-map validate` and explore with any of the entity commands below.
 
 ### Entity Browsing
 
