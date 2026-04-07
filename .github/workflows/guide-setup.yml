@@ -28,6 +28,7 @@ jobs:
         with:
           app-id: ${{ secrets.LLM_APP_ID }}
           private-key: ${{ secrets.LLM_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
