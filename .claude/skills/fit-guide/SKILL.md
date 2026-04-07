@@ -72,19 +72,71 @@ allows, ensuring tool call/response pairs are never split.
 
 ---
 
+## Initialization
+
+Run `npx fit-guide --init` once in a fresh project directory. It generates
+secrets, writes a `.env` file, and copies a starter `config/` tree:
+
+```sh
+mkdir my-guide && cd my-guide
+npx fit-guide --init
+```
+
+What `--init` produces:
+
+| File / directory           | Purpose                                               |
+| -------------------------- | ----------------------------------------------------- |
+| `.env`                     | `SERVICE_SECRET`, `JWT_SECRET`, `JWT_ANON_KEY`, ports |
+| `config/config.json`       | Service composition, tool endpoints, init order       |
+| `config/agents/*.agent.md` | Starter `planner`, `researcher`, `editor` definitions |
+| `config/tools.yml`         | Starter tool descriptors                              |
+
+`--init` does not generate the LLM credentials — set `LLM_TOKEN` and
+`LLM_BASE_URL` in `.env` (or in your shell) before starting services. After
+init, generate the proto/codegen layer once with `npx fit-codegen --all`, then
+process the starter content and bring up the stack:
+
+```sh
+npx fit-codegen --all     # Generate gRPC stubs from installed @forwardimpact/* packages
+npx fit-process-agents    # Register starter agent definitions
+npx fit-process-resources # Process starter knowledge HTML
+npx fit-process-tools     # Register starter tool descriptors
+npx fit-process-graphs    # Build the RDF index
+npx fit-process-vectors   # Build the vector index (skip if no embeddings backend)
+npx fit-rc start          # Launch the service stack
+npx fit-guide             # Verify end-to-end with an interactive prompt
+```
+
+If you already have a `data/pathway/` framework from
+[`npx fit-pathway init`](../fit-pathway/SKILL.md), Guide picks it up
+automatically — Map exports framework entities to `data/knowledge/` during
+processing so they appear in the graph alongside other content.
+
+---
+
 ## CLI Reference
 
 ### Conversational Agent
 
 ```sh
-just cli-chat                    # Interactive REPL — multi-turn conversations
-just cli-chat ARGS="--help"      # Pass arguments via ARGS
-echo "Tell me about X" | just cli-chat   # Piped single prompt
+npx fit-guide                              # Interactive REPL — multi-turn conversations
+npx fit-guide --help                       # Auto-generated flag and /command listing
+npx fit-guide --version                    # Print package version
+npx fit-guide --init                       # First-run bootstrap (see Initialization)
+npx fit-guide --data <path>                # Override the framework data directory
+npx fit-guide --data=<path>                # Equivalent inline form
+npx fit-guide --streaming                  # Use the streaming gRPC endpoint (default: unary)
+echo "Tell me about X" | npx fit-guide     # Piped single prompt
 ```
 
-**Always use `just cli-chat`** — it loads the required environment
-automatically. Running `npx fit-guide` directly requires env to be loaded first
-(`. scripts/env.sh && npx fit-guide`).
+The CLI is built on `@forwardimpact/librepl`, so every flag has a matching
+`/command` form inside the interactive REPL: `/help`, `/clear`, `/exit`,
+`/version`, `/data <path>`, `/streaming`.
+
+**Transport.** `npx fit-guide` calls the agent service via the unary RPC by
+default (`agent.ProcessUnary`). The streaming RPC (`agent.ProcessStream`) is
+opt-in via `--streaming` because some HTTP/2 proxies drop streamed responses;
+the unary path works in every environment that the agent client can reach.
 
 The CLI connects to the Agent gRPC service, maintains conversation context
 across turns, and persists session state locally.
@@ -92,14 +144,10 @@ across turns, and persists session state locally.
 ### Supporting CLI Tools
 
 ```sh
-just cli-search ARGS="query text"   # Vector similarity search
-just cli-query ARGS="s p o"         # Graph triple pattern queries
-just cli-subjects ARGS="type"       # List graph subjects by type
-just cli-visualize                  # Trace visualization
-just cli-window                     # Fetch memory window as JSON
-just cli-completion                 # Send window to LLM API
-just cli-tiktoken ARGS="text"       # Token counting
-just cli-unary ARGS="service method"  # Unary gRPC calls
+npx fit-search "query text"              # Vector similarity search
+npx fit-query <s> <p> <o>                # Graph triple pattern queries
+npx fit-subjects <type>                  # List graph subjects by type
+npx fit-rc status                        # Service health
 ```
 
 ---
@@ -112,14 +160,16 @@ fit-rc and defined in `config/config.json`.
 ### Service Lifecycle
 
 ```sh
-just env-setup          # Reset .env files from examples, generate secrets
-just data-init          # Create data directories, copy example knowledge
-just process            # Process agents, resources, tools, graphs, vectors
-just process-fast       # Process without vectors (faster)
-just rc-start           # Start all services
-just rc-status          # Check service health
-just rc-stop            # Stop all services
-just rc-restart         # Restart all services
+npx fit-guide --init      # First-run bootstrap (.env, config/)
+npx fit-codegen --all     # Generate gRPC stubs from installed packages
+npx fit-process-resources # Process knowledge HTML into typed resources
+npx fit-process-tools     # Register tool descriptors
+npx fit-process-graphs    # Build the RDF graph index
+npx fit-process-vectors   # Build the vector index
+npx fit-rc start          # Start all services
+npx fit-rc status         # Check service health
+npx fit-rc stop           # Stop all services
+npx fit-rc restart        # Restart all services
 ```
 
 ### Service Order
@@ -136,45 +186,23 @@ Services start in dependency order (defined in `config/config.json`):
 8. **agent** — Agent orchestration (fit-guide connects here)
 9. **web** — HTTP API gateway
 
-### TEI Setup (First Time)
-
-```sh
-just tei-install        # Install via cargo (one-time)
-just tei-start          # Start TEI (downloads model on first run)
-```
-
 ---
 
 ## Environment
 
-### Layered Configuration
+`npx fit-guide --init` writes a single `.env` file with everything the service
+stack needs except your LLM credentials:
 
-Environment is loaded by `scripts/env.sh` in layers:
+| Variable                                       | Source                |
+| ---------------------------------------------- | --------------------- |
+| `SERVICE_SECRET`, `JWT_SECRET`, `JWT_ANON_KEY` | Generated by `--init` |
+| `SERVICE_*_URL` (agent, llm, memory, …)        | Written by `--init`   |
+| `LLM_TOKEN`, `LLM_BASE_URL`                    | **Set manually**      |
 
-| Layer   | File                     | Controls                  |
-| ------- | ------------------------ | ------------------------- |
-| Base    | `.env`                   | API credentials, secrets  |
-| Network | `.env.{ENV}`             | localhost vs Docker DNS   |
-| Storage | `.env.storage.{STORAGE}` | local, MinIO, or Supabase |
-| Auth    | `.env.auth.{AUTH}`       | none, GoTrue, or Supabase |
-
-Three variables control the stack:
-
-| Variable  | Values                       | Default |
-| --------- | ---------------------------- | ------- |
-| `ENV`     | `local`, `docker`            | `local` |
-| `STORAGE` | `local`, `minio`, `supabase` | `local` |
-| `AUTH`    | `none`, `gotrue`, `supabase` | `none`  |
-
-### Setup Commands
-
-```sh
-just env-setup          # Full setup: reset + secrets + storage credentials
-just env-reset          # Reset .env and config files from examples
-just env-secrets        # Generate SERVICE_SECRET, JWT_SECRET, JWT_ANON_KEY
-just env-storage        # Generate storage backend credentials
-just env-github         # Configure GitHub token (LLM_TOKEN, LLM_BASE_URL)
-```
+`LLM_TOKEN` and `LLM_BASE_URL` point at any OpenAI-compatible chat completions
+endpoint (e.g. `https://models.github.ai/orgs/<org>` for GitHub Models). The
+agent service reads them from the process environment, so you can either add
+them to `.env` or export them in your shell — both work.
 
 ---
 
@@ -182,16 +210,15 @@ just env-github         # Configure GitHub token (LLM_TOKEN, LLM_BASE_URL)
 
 ### Processing
 
-All processing runs from the monorepo root via `make` targets:
+Run each processor from your project root after `npx fit-guide --init`. They are
+independent and idempotent — re-run any step after editing its inputs:
 
 ```sh
-just process            # All: agents + resources + tools + graphs + vectors
-just process-fast       # All except vectors (faster iteration)
-just process-agents     # Process agent definitions from config/agents/
-just process-resources  # Process knowledge resources from data/knowledge/
-just process-tools      # Process tool definitions from config/tools.yml + proto/
-just process-vectors    # Build vector indices from data/resources/
-just process-graphs     # Build graph indices from data/resources/
+npx fit-process-agents    # Process agent definitions from config/agents/
+npx fit-process-resources # Process knowledge resources from data/knowledge/
+npx fit-process-tools     # Register tool descriptors from config/tools.yml + protos
+npx fit-process-graphs    # Build the graph index from data/resources/
+npx fit-process-vectors   # Build the vector index from data/resources/
 ```
 
 ### Data Directories
@@ -252,7 +279,8 @@ Key fields:
 Default agents: **planner** (creates plans), **researcher** (retrieves data),
 **editor** (synthesizes responses).
 
-Reset from examples: `just config-reset`
+To restore the starter agents, delete `config/agents/` and re-run
+`npx fit-guide --init`.
 
 ### Tool Descriptors (`config/tools.yml`)
 
@@ -263,96 +291,61 @@ agent delegation (`run_sub_agent`, `list_sub_agents`), and handoff control
 
 ---
 
-## Docker
-
-```sh
-just docker-build       # Build images only
-just docker-up          # Start core services
-just docker-up-minio    # Start with MinIO storage
-just docker-up-supabase # Start with Supabase
-just docker-down        # Stop all containers
-```
-
-Docker networking uses `.env.docker` with service aliases (`agent.local`,
-`tei.local`, etc.).
-
----
-
-## Storage Backends
-
-```sh
-just storage-setup      # Full: start + wait + init + upload
-just storage-start      # Start storage containers
-just storage-stop       # Stop storage containers
-just storage-init       # Create bucket
-just storage-upload     # Upload data to backend
-just storage-download   # Download data from backend
-just storage-list       # List storage contents
-```
-
----
-
 ## Common Tasks
 
 ### Quick Start (New Setup)
 
 ```sh
-npm install             # Install all workspace dependencies
-just quickstart         # Bootstrap: env, generate, data, codegen, process
-just rc-start           # Start services (supabase/tei auto-skipped if not installed)
-just cli-chat           # Verify end-to-end
-```
-
-`just quickstart` chains: `env-setup` → `generate-cached` → `data-init` →
-`codegen` → `process-fast`. It generates synthetic organizational content from
-the prose cache directly into `data/`, and processes all resources.
-
-For individual steps or custom generation:
-
-```sh
-just synthetic-update   # Generate with LLM prose (requires LLM_TOKEN)
-just data-init          # Create data directories
-just process            # Full processing including vectors (requires TEI)
+mkdir my-guide && cd my-guide
+npx fit-guide --init      # Generate secrets, .env, and starter config/
+# Set LLM_TOKEN and LLM_BASE_URL in .env, then:
+npx fit-codegen --all     # Generate gRPC stubs
+npx fit-process-agents    # Register starter agents
+npx fit-process-resources # Process starter knowledge
+npx fit-process-tools     # Register starter tools
+npx fit-process-graphs    # Build the graph index
+npx fit-process-vectors   # Build the vector index (skip if no embeddings backend)
+npx fit-rc start          # Launch the service stack
+npx fit-guide             # Verify end-to-end
 ```
 
 ### Reset Everything
 
 ```sh
-just rc-stop
-just data-reset
-just process
-just rc-start
+npx fit-rc stop
+rm -rf data/resources data/graphs data/vectors data/memories
+npx fit-process-agents && npx fit-process-resources && npx fit-process-tools \
+  && npx fit-process-graphs && npx fit-process-vectors
+npx fit-rc start
 ```
 
 ### Add a New Agent
 
-1. Create `config/agents/{name}.agent.example.md` with YAML front matter
-2. Copy to `config/agents/{name}.agent.md` (or run `just config-reset`)
-3. Run `just process-agents` to register it
-4. Reference from other agents' `handoffs` list
+1. Create `config/agents/{name}.agent.md` with YAML front matter
+2. Run `npx fit-process-agents` to register it
+3. Reference from other agents' `handoffs` list
 
 ### Add a New Tool
 
-1. Add tool definition to `config/tools.example.yml`
-2. Copy to `config/tools.yml` (or run `just config-reset`)
-3. Run `just process-tools` to register it
-4. Add tool name to agent definitions that should use it
+1. Add tool definition to `config/tools.yml`
+2. Run `npx fit-process-tools` to register it
+3. Add tool name to agent definitions that should use it
 
 ### Ingest New Knowledge
 
-1. Generate HTML files (e.g., `npx fit-universe --cached` writes directly to
-   `data/knowledge/`)
-2. Run `just process-resources` to create resources
-3. Run `just process-graphs` to build graph index
-4. Run `just process-vectors` to build vector index (requires TEI)
+1. Drop HTML files into `data/knowledge/` (or generate them with
+   `npx fit-universe --cached`)
+2. Run `npx fit-process-resources` to create resources
+3. Run `npx fit-process-graphs` to build graph index
+4. Run `npx fit-process-vectors` to build vector index
 
 ## Verification
 
 ```sh
-just rc-status          # All services should show "running"
-just cli-chat           # Should get agent responses
-just cli-search ARGS="test query"  # Should return search results
-just cli-subjects       # Should list graph entities
+npx fit-rc status                       # All services should show "up"
+echo "hello" | npx fit-guide            # Should return an agent response
+npx fit-search "test query"             # Should return vector search results
+npx fit-subjects fit:Skill              # Should list framework skill entities
 ```
 
 ## Documentation
