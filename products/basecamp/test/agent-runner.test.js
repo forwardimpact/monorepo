@@ -31,9 +31,9 @@ function createMockSpawn({
     module: {
       spawn(executable, args, env, cwd) {
         calls.push({ executable, args, env, cwd });
-        return { pid: 999, stdoutFd: 3, stderrFd: 4 };
+        return { pid: 999, stdoutFile: "/tmp/mock-stdout", stderrFile: "/tmp/mock-stderr" };
       },
-      readAll: async () => stdout,
+      readOutput: () => stdout,
       waitForExit: async () => exitCode,
     },
   };

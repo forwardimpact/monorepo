@@ -6,6 +6,9 @@
 // processes (claude) inherit TCC attributes from the responsible binary.
 
 import { dlopen, ptr } from "bun:ffi";
+import { openSync, closeSync, readFileSync, unlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 // responsibility_spawnattrs_setdisclaim makes the spawned child disclaim
 // TCC "responsible process" status, so macOS checks the parent's responsible
@@ -14,14 +17,16 @@ const {
   symbols: { responsibility_spawnattrs_setdisclaim: setDisclaim },
 } = dlopen("/usr/lib/system/libquarantine.dylib", {
   responsibility_spawnattrs_setdisclaim: {
-    parameters: ["pointer", "i32"],
-    result: "i32",
+    args: ["pointer", "i32"],
+    returns: "i32",
   },
 });
 
+// Bun's dlopen requires `args`/`returns` field names — the `parameters`/
+// `result` aliases silently return undefined, causing null-pointer crashes.
 const libc = dlopen("libSystem.B.dylib", {
   posix_spawn: {
-    parameters: [
+    args: [
       "pointer", // pid_t *pid
       "buffer", // const char *path
       "pointer", // posix_spawn_file_actions_t *
@@ -29,47 +34,35 @@ const libc = dlopen("libSystem.B.dylib", {
       "pointer", // char *const argv[]
       "pointer", // char *const envp[]
     ],
-    result: "i32",
+    returns: "i32",
   },
   posix_spawnattr_init: {
-    parameters: ["pointer"],
-    result: "i32",
+    args: ["pointer"],
+    returns: "i32",
   },
   posix_spawnattr_destroy: {
-    parameters: ["pointer"],
-    result: "i32",
+    args: ["pointer"],
+    returns: "i32",
   },
   posix_spawn_file_actions_init: {
-    parameters: ["pointer"],
-    result: "i32",
+    args: ["pointer"],
+    returns: "i32",
   },
   posix_spawn_file_actions_adddup2: {
-    parameters: ["pointer", "i32", "i32"], // file_actions, fd, newfd
-    result: "i32",
-  },
-  posix_spawn_file_actions_addclose: {
-    parameters: ["pointer", "i32"], // file_actions, fd
-    result: "i32",
+    args: ["pointer", "i32", "i32"], // file_actions, fd, newfd
+    returns: "i32",
   },
   posix_spawn_file_actions_addchdir_np: {
-    parameters: ["pointer", "buffer"], // file_actions, path
-    result: "i32",
+    args: ["pointer", "buffer"], // file_actions, path
+    returns: "i32",
   },
   posix_spawn_file_actions_destroy: {
-    parameters: ["pointer"],
-    result: "i32",
-  },
-  pipe: {
-    parameters: ["pointer"], // int fildes[2]
-    result: "i32",
-  },
-  close: {
-    parameters: ["i32"],
-    result: "i32",
+    args: ["pointer"],
+    returns: "i32",
   },
   waitpid: {
-    parameters: ["i32", "pointer", "i32"],
-    result: "i32",
+    args: ["i32", "pointer", "i32"],
+    returns: "i32",
   },
 });
 
@@ -101,43 +94,34 @@ function buildStringArray(strings) {
 }
 
 /**
- * Create a pipe and return [readFd, writeFd].
- * @returns {[number, number]}
+ * Read captured output from a temp file and clean up.
+ * @param {string} filePath
+ * @returns {string}
  */
-function createPipe() {
-  const fds = new Int32Array(2);
-  const result = libc.symbols.pipe(ptr(fds));
-  if (result !== 0) throw new Error("pipe() failed");
-  return [fds[0], fds[1]];
-}
-
-/**
- * Read all data from a file descriptor until EOF.
- * Opens via /dev/fd/N so reads go through Bun's async I/O and
- * properly yield to the event loop (socket server, timers, etc. stay
- * responsive while a child process runs).
- * @param {number} fd
- * @returns {Promise<string>}
- */
-export async function readAll(fd) {
-  const stream = Bun.file(`/dev/fd/${fd}`).stream();
-  const text = await new Response(stream).text();
-  libc.symbols.close(fd);
-  return text;
+export function readOutput(filePath) {
+  try {
+    return readFileSync(filePath, "utf-8");
+  } catch {
+    return "";
+  } finally {
+    try {
+      unlinkSync(filePath);
+    } catch {}
+  }
 }
 
 /**
  * Spawn a child process using posix_spawn so TCC attributes inherit from
  * the calling process (the responsible binary).
  *
- * Stdout and stderr are captured via pipes. Use `readAll()` on the returned
- * file descriptors, then call `waitForExit()` with the PID.
+ * Stdout and stderr are captured via temp files. Call `waitForExit()` with
+ * the PID, then `readOutput()` on the returned file paths.
  *
  * @param {string} executable - Absolute path to the executable
  * @param {string[]} args - Arguments (argv[0] should be the executable name)
  * @param {Record<string, string>} [env] - Environment (defaults to current)
  * @param {string} [cwd] - Working directory for the child process
- * @returns {{ pid: number, stdoutFd: number, stderrFd: number }}
+ * @returns {{ pid: number, stdoutFile: string, stderrFile: string }}
  */
 export function spawn(executable, args, env, cwd) {
   const argv = buildStringArray([executable, ...args]);
@@ -147,9 +131,12 @@ export function spawn(executable, args, env, cwd) {
     .map(([k, v]) => `${k}=${v}`);
   const envp = buildStringArray(envStrings);
 
-  // Create pipes for stdout and stderr capture
-  const [stdoutRead, stdoutWrite] = createPipe();
-  const [stderrRead, stderrWrite] = createPipe();
+  // Capture stdout/stderr via temp files instead of pipes.
+  const tag = `basecamp-${process.pid}-${Date.now()}`;
+  const stdoutFile = join(tmpdir(), `${tag}-stdout`);
+  const stderrFile = join(tmpdir(), `${tag}-stderr`);
+  const stdoutFd = openSync(stdoutFile, "w", 0o600);
+  const stderrFd = openSync(stderrFile, "w", 0o600);
 
   // Allocate attr and file_actions on the heap
   const attrBuf = new Uint8Array(512); // posix_spawnattr_t is opaque, 512 is generous
@@ -170,12 +157,9 @@ export function spawn(executable, args, env, cwd) {
     libc.symbols.posix_spawn_file_actions_addchdir_np(fa, cstr(cwd));
   }
 
-  // Redirect child stdout (fd 1) and stderr (fd 2) to pipe write ends
-  libc.symbols.posix_spawn_file_actions_adddup2(fa, stdoutWrite, 1);
-  libc.symbols.posix_spawn_file_actions_adddup2(fa, stderrWrite, 2);
-  // Close the read ends in the child (parent reads from these)
-  libc.symbols.posix_spawn_file_actions_addclose(fa, stdoutRead);
-  libc.symbols.posix_spawn_file_actions_addclose(fa, stderrRead);
+  // Redirect child stdout (fd 1) and stderr (fd 2) to temp files
+  libc.symbols.posix_spawn_file_actions_adddup2(fa, stdoutFd, 1);
+  libc.symbols.posix_spawn_file_actions_adddup2(fa, stderrFd, 2);
 
   const pidBuf = new Int32Array(1);
 
@@ -188,20 +172,20 @@ export function spawn(executable, args, env, cwd) {
     ptr(envp.pointer),
   );
 
-  // Close write ends in the parent (child owns them now)
-  libc.symbols.close(stdoutWrite);
-  libc.symbols.close(stderrWrite);
+  // Close file fds in the parent (child has its own copies)
+  closeSync(stdoutFd);
+  closeSync(stderrFd);
 
   libc.symbols.posix_spawnattr_destroy(attr);
   libc.symbols.posix_spawn_file_actions_destroy(fa);
 
   if (result !== 0) {
-    libc.symbols.close(stdoutRead);
-    libc.symbols.close(stderrRead);
+    try { unlinkSync(stdoutFile); } catch {}
+    try { unlinkSync(stderrFile); } catch {}
     throw new Error(`posix_spawn failed with error code ${result}`);
   }
 
-  return { pid: pidBuf[0], stdoutFd: stdoutRead, stderrFd: stderrRead };
+  return { pid: pidBuf[0], stdoutFile, stderrFile };
 }
 
 /**

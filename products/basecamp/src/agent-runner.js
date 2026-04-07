@@ -134,7 +134,7 @@ export class AgentRunner {
     const env = this.#buildSpawnEnv(configEnv);
 
     try {
-      const { pid, stdoutFd, stderrFd } = this.#spawn.spawn(
+      const { pid, stdoutFile, stderrFile } = this.#spawn.spawn(
         claude,
         spawnArgs,
         env,
@@ -142,12 +142,11 @@ export class AgentRunner {
       );
       this.#activeChildren.add(pid);
 
-      const [stdout, stderr] = await Promise.all([
-        this.#spawn.readAll(stdoutFd),
-        this.#spawn.readAll(stderrFd),
-      ]);
       const exitCode = await this.#spawn.waitForExit(pid);
       this.#activeChildren.delete(pid);
+
+      const stdout = this.#spawn.readOutput(stdoutFile);
+      const stderr = this.#spawn.readOutput(stderrFile);
 
       if (exitCode === 0) {
         this.#log(
