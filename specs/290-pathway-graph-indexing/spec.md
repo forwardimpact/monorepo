@@ -1,23 +1,30 @@
-# 290: Export Framework Data as HTML Microdata from Map
+# 290: Make Pathway Framework Data Queryable from fit-guide
 
 ## Problem
 
 When a user asks fit-guide about the engineering framework — skills,
-capabilities, levels, behaviours — the agent returns sparse or empty results.
-Graph queries like `get_subjects("fit:Skill")` return nothing because pathway
-framework data never enters the RDF graph.
+capabilities, levels, behaviours, jobs, agents — the agent returns sparse or
+empty results. Graph queries like `get_subjects("fit:Skill")` return nothing
+because pathway framework data never enters the RDF graph, and no tool exists
+that lets the agent ask libskill to derive a job or agent profile.
 
-The knowledge pipeline has one working flow and one gap:
+The knowledge pipeline has one working flow and two gaps:
 
 1. **HTML knowledge flow** (working): `data/knowledge/*.html` → resource
    processor (microdata extraction) → `data/resources/` → graph processor →
    `data/graphs/` (RDF quads). Agents can query articles, courses, and org
    content successfully.
 
-2. **Framework data** (gap): `data/pathway/*.yaml` is loaded by fit-map for
-   validation and by libskill for derivation, but it never enters the knowledge
-   pipeline. No HTML representation exists, so the resource processor has
-   nothing to extract.
+2. **Framework data — base entities** (gap): `data/pathway/*.yaml` is loaded
+   by fit-map for validation and by libskill for derivation, but it never
+   enters the knowledge pipeline. No HTML representation exists, so the
+   resource processor has nothing to extract.
+
+3. **Framework data — derived entities** (gap): jobs, agent profiles, career
+   progressions, and toolkits are computed on demand by libskill from
+   discipline × level × track combinations. fit-guide has no way to invoke
+   libskill, so it cannot answer questions like "what does the FDE software
+   engineer at L3 need?" even when the base entities are available.
 
 The RDF schemas already exist (`products/map/schema/rdf/` — `capability.ttl`,
 `defs.ttl`, `discipline.ttl`, `levels.ttl`, etc.) but are only used for SHACL
@@ -46,35 +53,65 @@ Meanwhile, content queries work fine:
 
 ## Design Rationale
 
-Map is the data product — it owns the framework data, the YAML schema, and the
-RDF/SHACL definitions. Exporting framework data for downstream consumption is
-Map's responsibility, not the knowledge pipeline's.
+Framework data has two distinct shapes and each calls for a different
+mechanism.
 
-The existing knowledge pipeline already handles HTML with microdata. Rather than
-building a separate pathway-to-RDF converter, Map should export framework
-entities as HTML files with embedded microdata — the same format the resource
-processor already consumes. This keeps Map as the single owner of how framework
-data is represented and avoids adding framework-specific logic to the resource
-processor or graph processor.
+**Base entities** (skills, capabilities, levels, behaviours, disciplines,
+tracks, stages, drivers, tools) are *defined* in YAML. They have stable
+identity, are bounded in number, and benefit from graph traversal — agents
+should be able to enumerate types, walk relationships, and pattern-match
+across them. These belong in the RDF graph.
 
-The export uses `libtemplate` to render Mustache templates — one template per
-entity type. Templates live in `products/map/templates/` and produce HTML with
-microdata attributes (`itemscope`, `itemtype`, `itemprop`, `itemid`) using the
-vocabulary defined in `products/map/schema/rdf/`.
+Map is the data product: it owns the YAML data, the schema, and the RDF/SHACL
+definitions. Exporting base entities for downstream consumption is therefore
+Map's responsibility, not the knowledge pipeline's. Rather than building a
+separate pathway-to-RDF converter, Map exports each entity as an HTML file
+with embedded microdata — the same format the resource processor already
+consumes. This avoids adding framework-specific logic to the resource
+processor or graph processor and keeps Map as the single owner of how
+framework data is represented.
+
+**Derived entities** (jobs, agent profiles, career progressions, toolkits) are
+*computed* by libskill from `discipline × level × track` combinations. The
+combinatorial space is large and grows with framework size, so materializing
+every combination as a graph instance would explode the graph with
+near-duplicate triples and degrade query precision. More importantly,
+libskill's derivation logic continues to evolve — any materialized snapshot
+would drift from the live algorithm. Derivation should therefore be exposed
+as gRPC tool endpoints that fit-guide calls on demand, executing the same
+libskill code path that powers Pathway. This guarantees Guide and Pathway
+never disagree.
+
+A new `services/pathway/` gRPC service hosts these endpoints, mirroring the
+shape of `services/graph/` and `services/vector/`. It is wired into
+fit-guide's tool router via `config/tools.yml` and the `tool.endpoints`
+section of `config/config.json`, and registered in fit-guide's starter
+configuration so external installations get it automatically when they run
+`fit-guide --init`.
+
+Interview questions are intentionally **not** exposed as a tool in this spec.
+The question-bank schema is the least mature part of Map and is expected to
+change soon; introducing a tool surface for it now would lock in an unstable
+contract.
 
 ## Scope
 
-Add a `fit-map export` command that reads `data/pathway/` YAML, renders HTML
-microdata files via templates, and writes them to `data/knowledge/`. The
-existing resource processor then picks them up alongside all other HTML content.
+Two coordinated changes:
 
-### Included
+1. Add a `fit-map export` command that reads `data/pathway/` YAML, renders HTML
+   microdata files via templates, and writes them to `data/knowledge/` so the
+   resource processor picks them up alongside all other HTML content.
+2. Add a new `services/pathway/` gRPC service that exposes libskill derivation
+   as fit-guide tool endpoints, and register it in fit-guide's runtime
+   configuration.
+
+### Included — Base entity export from Map
 
 - New `fit-map export` CLI command that loads framework data and renders HTML
   microdata files to `data/knowledge/`
-- Mustache templates in `products/map/templates/` — one per entity type:
+- Templates in `products/map/templates/` — one per base entity type:
   capability (with nested skills), level, behaviour, discipline, track, stage,
-  driver
+  driver, tool
 - Templates use the `fit:` vocabulary from `products/map/schema/rdf/` for
   `itemtype` and `itemprop` values
 - New `just export-framework` recipe that runs `fit-map export`
@@ -82,28 +119,76 @@ existing resource processor then picks them up alongside all other HTML content.
   `process-resources`)
 - `just quickstart` includes the new step
 
+### Included — Pathway derivation service
+
+- New `services/pathway/` package (`@forwardimpact/svcpathway`) following the
+  same structure as `services/graph/`: `proto/pathway.proto`, `index.js`
+  (`PathwayService` class extending the generated base), `server.js`
+  composition root, `package.json`, `test/`
+- Proto service `pathway.Pathway` with RPC methods that wrap libskill:
+  - `ListJobs(ListJobsRequest) → ToolCallResult` — enumerate valid
+    `(discipline, level, track)` combinations
+  - `DeriveJob(DeriveJobRequest) → ToolCallResult` — call libskill `deriveJob`
+    for a given discipline/level/track and return the skill matrix and
+    behaviour profile
+  - `ListAgents(ListAgentsRequest) → ToolCallResult` — enumerate valid agent
+    `(discipline, track)` combinations
+  - `DeriveAgent(DeriveAgentRequest) → ToolCallResult` — call libskill agent
+    derivation for a given discipline/track, optionally filtered by stage
+  - `DeriveProgression(DeriveProgressionRequest) → ToolCallResult` — call
+    libskill progression for `(discipline, from_level, to_level, track)`
+  - `DeriveToolkit(DeriveToolkitRequest) → ToolCallResult` — call libskill
+    `deriveToolkit` for a given job
+- Tool descriptions added to `config/tools.example.yml` and the published
+  starter `products/guide/starter/tools.yml`, one entry per RPC above, each
+  with `purpose`, `applicability`, `instructions`, `evaluation`, `parameters`
+- Endpoint wiring added to `config/config.example.json` and
+  `products/guide/starter/config.json` under `service.tool.endpoints`,
+  mapping each tool name to its `pathway.Pathway.*` method and request type
+- The new service registered in the `init.services` array of both
+  `config/config.example.json` and `products/guide/starter/config.json` so
+  `fit-guide --init` produces a configuration that launches it
+- Service composition root loads pathway YAML through the same data
+  resolution rules used by `fit-pathway` (via libskill loaders) and rejects
+  startup if the data directory is missing
+
 ### Not Included
 
 - Changes to the resource processor — it already extracts microdata from any
   HTML file in `data/knowledge/`
 - Changes to the graph processor — it already indexes any resource with RDF
   content
-- Changes to agent prompts — agents already have instructions to query for
-  skills and capabilities
-- New query types or tools — existing `get_subjects`, `query_by_pattern`, and
-  `get_ontology` should surface the new data
+- Materializing derived entities (jobs, agents, progressions) into the RDF
+  graph — derived data is exposed exclusively via tool calls
+- An LLM tool for interview questions — the question-bank schema is expected
+  to change soon and is deferred to a follow-up spec
+- Changes to agent prompts beyond what is needed to advertise the new tools
+- A web UI for the pathway service — fit-guide is the only consumer in scope
 
 ## Success Criteria
 
-After running the full pipeline (`just quickstart` or `just process`):
+After running the full pipeline (`just quickstart` or `just process`) and
+starting fit-guide:
 
 1. `fit-map export` produces HTML files in `data/knowledge/` with valid
-   microdata for each framework entity type
+   microdata for each base framework entity type
 2. `just cli-subjects` lists `fit:Skill`, `fit:Capability`, `fit:Level`,
-   `fit:Behaviour`, and `fit:Discipline` types
+   `fit:Behaviour`, `fit:Discipline`, `fit:Track`, `fit:Stage`, `fit:Driver`,
+   and `fit:Tool` types
 3. `ARGS="fit:Skill" just cli-subjects` returns all skills defined in pathway
    YAML
-4. fit-guide answers "What skills are defined in the engineering framework?"
-   with a list of actual skill names from the data
-5. fit-guide answers "What does L3 require?" with specific proficiency and
-   maturity expectations
+4. `fit-guide --init` in a fresh directory produces a `config/config.json`
+   whose `init.services` array includes the pathway service and whose
+   `service.tool.endpoints` includes `derive_job`, `derive_agent`,
+   `derive_progression`, `derive_toolkit`, `list_jobs`, and `list_agents`
+5. After `npx fit-guide start`, the pathway service is running and the tool
+   service successfully resolves each pathway tool against the running
+   endpoint (verifiable via the tool service's endpoint health check)
+6. fit-guide answers "What skills are defined in the engineering framework?"
+   with a list of actual skill names from the data (graph path)
+7. fit-guide answers "What does a senior software engineer at L3 on the
+   forward-deployed track need to demonstrate?" with the same skill matrix
+   and behaviours that `npx fit-pathway job software_engineering J060
+   --track=forward_deployed` produces (tool path)
+8. fit-guide answers "What changes between L2 and L3 for a platform engineer?"
+   with the same delta that `npx fit-pathway progress` produces
