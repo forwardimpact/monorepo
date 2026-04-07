@@ -17,39 +17,39 @@
       },
       {
         "name": "trace",
-        "command": "bun run --filter @forwardimpact/svctrace dev"
+        "command": "node --watch services/trace/server.js"
       },
       {
         "name": "vector",
-        "command": "bun run --filter @forwardimpact/svcvector dev"
+        "command": "node --watch services/vector/server.js"
       },
       {
         "name": "graph",
-        "command": "bun run --filter @forwardimpact/svcgraph dev"
+        "command": "node --watch services/graph/server.js"
       },
       {
         "name": "pathway",
-        "command": "bun run --filter @forwardimpact/svcpathway dev"
+        "command": "node --watch services/pathway/server.js"
       },
       {
         "name": "llm",
-        "command": "bun run --filter @forwardimpact/svcllm dev"
+        "command": "node --watch services/llm/server.js"
       },
       {
         "name": "memory",
-        "command": "bun run --filter @forwardimpact/svcmemory dev"
+        "command": "node --watch services/memory/server.js"
       },
       {
         "name": "tool",
-        "command": "bun run --filter @forwardimpact/svctool dev"
+        "command": "node --watch services/tool/server.js"
       },
       {
         "name": "agent",
-        "command": "bun run --filter @forwardimpact/svcagent dev"
+        "command": "node --watch services/agent/server.js"
       },
       {
         "name": "web",
-        "command": "bun run --filter @forwardimpact/svcweb dev"
+        "command": "node --watch services/web/server.js"
       }
     ]
   },
