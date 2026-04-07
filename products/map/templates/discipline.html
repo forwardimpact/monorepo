@@ -1,0 +1,21 @@
+<article
+  itemscope
+  itemtype="https://www.forwardimpact.team/schema/rdf/Discipline"
+  itemid="{{{iri}}}"
+>
+  <meta itemprop="id" content="{{id}}" />
+  <h1 itemprop="name">{{name}}</h1>
+  {{#specialization}}
+  <meta itemprop="specialization" content="{{specialization}}" />
+  {{/specialization}} {{#roleTitle}}
+  <meta itemprop="roleTitle" content="{{roleTitle}}" />
+  {{/roleTitle}}
+  <p itemprop="description">{{description}}</p>
+  {{#coreSkills}}
+  <link itemprop="coreSkill" href="{{{iri}}}" />
+  {{/coreSkills}} {{#supportingSkills}}
+  <link itemprop="supportingSkill" href="{{{iri}}}" />
+  {{/supportingSkills}} {{#broadSkills}}
+  <link itemprop="broadSkill" href="{{{iri}}}" />
+  {{/broadSkills}}
+</article>

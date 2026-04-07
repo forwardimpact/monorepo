@@ -1,0 +1,14 @@
+<article
+  itemscope
+  itemtype="https://www.forwardimpact.team/schema/rdf/Driver"
+  itemid="{{{iri}}}"
+>
+  <meta itemprop="id" content="{{id}}" />
+  <h1 itemprop="name">{{name}}</h1>
+  <p itemprop="description">{{description}}</p>
+  {{#contributingSkills}}
+  <link itemprop="contributingSkill" href="{{{iri}}}" />
+  {{/contributingSkills}} {{#contributingBehaviours}}
+  <link itemprop="contributingBehaviour" href="{{{iri}}}" />
+  {{/contributingBehaviours}}
+</article>

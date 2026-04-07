@@ -1,0 +1,19 @@
+<article
+  itemscope
+  itemtype="https://www.forwardimpact.team/schema/rdf/Level"
+  itemid="{{{iri}}}"
+>
+  <meta itemprop="id" content="{{id}}" />
+  <h1 itemprop="name">{{name}}</h1>
+  {{#shortName}}
+  <meta itemprop="shortName" content="{{shortName}}" />
+  {{/shortName}}
+  <p itemprop="description">{{description}}</p>
+  <meta itemprop="position" content="{{position}}" />
+  {{#typicalExperienceRange}}
+  <meta
+    itemprop="typicalExperienceRange"
+    content="{{typicalExperienceRange}}"
+  />
+  {{/typicalExperienceRange}}
+</article>

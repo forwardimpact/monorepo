@@ -97,7 +97,7 @@ describe("progressionIri", () => {
 });
 
 describe("DERIVED_ENTITY_TYPES", () => {
-  test("contains exactly the seven canonical derived-entity IRIs", () => {
+  test("contains exactly the canonical derived-entity IRIs", () => {
     assert.deepStrictEqual(DERIVED_ENTITY_TYPES, [
       `${VOCAB_BASE}Job`,
       `${VOCAB_BASE}AgentProfile`,
@@ -105,8 +105,11 @@ describe("DERIVED_ENTITY_TYPES", () => {
       `${VOCAB_BASE}SkillProficiency`,
       `${VOCAB_BASE}SkillChange`,
       `${VOCAB_BASE}BehaviourChange`,
-      `${VOCAB_BASE}SkillModifier`,
     ]);
+  });
+
+  test("does not include SkillModifier (it is part of the base Track definition)", () => {
+    assert.ok(!DERIVED_ENTITY_TYPES.includes(`${VOCAB_BASE}SkillModifier`));
   });
 
   test("every entry begins with VOCAB_BASE", () => {

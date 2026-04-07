@@ -70,10 +70,14 @@ codegen-definition:
 # ── Process ───────────────────────────────────────────────────────
 
 # Process all resources
-process: process-agents process-resources process-tools process-graphs process-vectors
+process: export-framework process-agents process-resources process-tools process-graphs process-vectors
 
 # Process without vectors
-process-fast: process-agents process-resources process-tools process-graphs
+process-fast: export-framework process-agents process-resources process-tools process-graphs
+
+# Export framework entities to HTML/microdata
+export-framework:
+    bunx --workspace=@forwardimpact/map fit-map export
 
 # Process assistant definitions
 process-agents:

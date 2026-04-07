@@ -1,0 +1,29 @@
+<article
+  itemscope
+  itemtype="https://www.forwardimpact.team/schema/rdf/Capability"
+  itemid="{{{iri}}}"
+>
+  <meta itemprop="id" content="{{id}}" />
+  <h1 itemprop="name">{{name}}</h1>
+  <p itemprop="description">{{description}}</p>
+  {{#professionalResponsibilities}}
+  <div itemprop="professionalResponsibility">
+    <meta itemprop="level" content="{{level}}" />
+    <span itemprop="description">{{description}}</span>
+  </div>
+  {{/professionalResponsibilities}} {{#managementResponsibilities}}
+  <div itemprop="managementResponsibility">
+    <meta itemprop="level" content="{{level}}" />
+    <span itemprop="description">{{description}}</span>
+  </div>
+  {{/managementResponsibilities}} {{#skills}}
+  <div
+    itemprop="skill"
+    itemscope
+    itemtype="https://www.forwardimpact.team/schema/rdf/Skill"
+    itemid="{{{iri}}}"
+  >
+    {{> skill-inline.html}}
+  </div>
+  {{/skills}}
+</article>

@@ -1,0 +1,17 @@
+<article
+  itemscope
+  itemtype="https://www.forwardimpact.team/schema/rdf/Behaviour"
+  itemid="{{{iri}}}"
+>
+  <meta itemprop="id" content="{{id}}" />
+  <h1 itemprop="name">{{name}}</h1>
+  <p itemprop="description">{{description}}</p>
+  {{#maturities}}
+  <div itemprop="maturity">
+    <meta itemprop="level" content="{{level}}" />
+    <span itemprop="description">{{description}}</span>
+  </div>
+  {{/maturities}} {{#relatedDrivers}}
+  <link itemprop="relatedDriver" href="{{{iri}}}" />
+  {{/relatedDrivers}}
+</article>

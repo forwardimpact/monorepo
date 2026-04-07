@@ -1,0 +1,16 @@
+<article
+  itemscope
+  itemtype="https://www.forwardimpact.team/schema/rdf/Stage"
+  itemid="{{{iri}}}"
+>
+  <meta itemprop="id" content="{{id}}" />
+  <h1 itemprop="name">{{name}}</h1>
+  <meta itemprop="position" content="{{position}}" />
+  {{#summary}}
+  <p itemprop="summary">{{summary}}</p>
+  {{/summary}}
+  <p itemprop="description">{{description}}</p>
+  {{#constraints}}
+  <span itemprop="constraint">{{.}}</span>
+  {{/constraints}}
+</article>

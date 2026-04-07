@@ -488,12 +488,17 @@
         "fit-map": "./bin/fit-map.js",
       },
       "dependencies": {
+        "@forwardimpact/libtemplate": "^0.2.0",
         "@forwardimpact/libutil": "^0.1.64",
         "ajv": "^8.18.0",
         "ajv-formats": "^3.0.1",
         "yaml": "^2.8.3",
       },
       "devDependencies": {
+        "@forwardimpact/libgraph": "workspace:*",
+        "@forwardimpact/libresource": "workspace:*",
+        "@forwardimpact/libstorage": "workspace:*",
+        "microdata-rdf-streaming-parser": "^3.0.0",
         "n3": "^2.0.3",
       },
     },

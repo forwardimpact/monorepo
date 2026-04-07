@@ -1,0 +1,17 @@
+<article
+  itemscope
+  itemtype="https://www.forwardimpact.team/schema/rdf/Tool"
+  itemid="{{{iri}}}"
+>
+  <meta itemprop="id" content="{{id}}" />
+  <h1 itemprop="name">{{name}}</h1>
+  {{#url}}
+  <link itemprop="url" href="{{{url}}}" />
+  {{/url}} {{#description}}
+  <p itemprop="description">{{description}}</p>
+  {{/description}} {{#useWhen}}
+  <p itemprop="useWhen">{{useWhen}}</p>
+  {{/useWhen}} {{#usedBySkills}}
+  <link itemprop="usedBySkill" href="{{{iri}}}" />
+  {{/usedBySkills}}
+</article>

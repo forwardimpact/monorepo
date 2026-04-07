@@ -1,0 +1,19 @@
+<meta itemprop="id" content="{{id}}" />
+<h1 itemprop="name">{{name}}</h1>
+<p itemprop="description">{{description}}</p>
+{{#capabilityIri}}
+<link itemprop="capability" href="{{{capabilityIri}}}" />
+{{/capabilityIri}} {{#isHumanOnly}}
+<meta itemprop="isHumanOnly" content="true" />
+{{/isHumanOnly}} {{#proficiencies}}
+<div itemprop="proficiency">
+  <meta itemprop="level" content="{{level}}" />
+  <span itemprop="description">{{description}}</span>
+</div>
+{{/proficiencies}} {{#relatedDisciplines}}
+<link itemprop="relatedDiscipline" href="{{{iri}}}" />
+{{/relatedDisciplines}} {{#relatedTracks}}
+<link itemprop="relatedTrack" href="{{{iri}}}" />
+{{/relatedTracks}} {{#relatedDrivers}}
+<link itemprop="relatedDriver" href="{{{iri}}}" />
+{{/relatedDrivers}}

@@ -21,12 +21,15 @@
   "files": [
     "bin/",
     "src/",
-    "schema/"
+    "schema/",
+    "templates/"
   ],
   "exports": {
     ".": "./src/index.js",
     "./iri": "./src/iri.js",
     "./loader": "./src/loader.js",
+    "./renderer": "./src/renderer.js",
+    "./exporter": "./src/exporter.js",
     "./validation": "./src/validation.js",
     "./schema-validation": "./src/schema-validation.js",
     "./index-generator": "./src/index-generator.js",
@@ -47,12 +50,17 @@
     "./activity/transform": "./activity/transform/index.js"
   },
   "dependencies": {
+    "@forwardimpact/libtemplate": "^0.2.0",
     "@forwardimpact/libutil": "^0.1.64",
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "yaml": "^2.8.3"
   },
   "devDependencies": {
+    "@forwardimpact/libgraph": "^0.1.59",
+    "@forwardimpact/libresource": "^0.1.98",
+    "@forwardimpact/libstorage": "^0.1.61",
+    "microdata-rdf-streaming-parser": "^3.0.0",
     "n3": "^2.0.3"
   },
   "engines": {

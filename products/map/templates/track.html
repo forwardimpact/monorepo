@@ -1,0 +1,19 @@
+<article
+  itemscope
+  itemtype="https://www.forwardimpact.team/schema/rdf/Track"
+  itemid="{{{iri}}}"
+>
+  <meta itemprop="id" content="{{id}}" />
+  <h1 itemprop="name">{{name}}</h1>
+  <p itemprop="description">{{description}}</p>
+  {{#skillModifiers}}
+  <div
+    itemprop="skillModifier"
+    itemscope
+    itemtype="https://www.forwardimpact.team/schema/rdf/SkillModifier"
+  >
+    <link itemprop="skill" href="{{{skillIri}}}" />
+    <meta itemprop="modifier" content="{{modifier}}" />
+  </div>
+  {{/skillModifiers}}
+</article>

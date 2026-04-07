@@ -51,6 +51,12 @@ export const progressionIri = (discipline, from, to, track) =>
  * assertion and any Pathway service serializer code that wants to enumerate
  * "what we emit" will pick it up automatically. This eliminates the textual
  * coupling between the two systems.
+ *
+ * Note: `SkillModifier` is intentionally NOT in this list. Skill modifiers
+ * are part of the base Track definition (they live in the YAML, not in any
+ * derived view), so the Map export renders them as nested typed items under
+ * `track.html`. SkillProficiency, SkillChange and BehaviourChange remain
+ * derived: they only exist as part of Job/AgentProfile/Progression outputs.
  */
 export const DERIVED_ENTITY_TYPES = [
   `${VOCAB_BASE}Job`,
@@ -59,5 +65,4 @@ export const DERIVED_ENTITY_TYPES = [
   `${VOCAB_BASE}SkillProficiency`,
   `${VOCAB_BASE}SkillChange`,
   `${VOCAB_BASE}BehaviourChange`,
-  `${VOCAB_BASE}SkillModifier`,
 ];

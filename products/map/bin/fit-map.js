@@ -8,6 +8,7 @@
  * Commands:
  *   validate [--json|--shacl]   Run validation (default: --json)
  *   generate-index [--data=PATH] Generate _index.yaml files
+ *   export [--output=PATH]       Render entities to HTML microdata
  *   people import <file>        Import people from CSV/YAML
  *   --help                      Show help
  */
@@ -135,6 +136,60 @@ async function runValidate(dataDir) {
 }
 
 /**
+ * Resolve the output directory for `fit-map export`. Defaults to the
+ * sibling `knowledge/` directory next to the data root that the existing
+ * `Finder` would have located.
+ * @param {string|undefined} providedPath
+ * @returns {Promise<string>}
+ */
+async function findOutputDir(providedPath) {
+  if (providedPath) return resolve(providedPath);
+  const logger = createLogger("map");
+  const finder = new Finder(fs, logger, process);
+  const dataRoot = finder.findData("data", homedir());
+  return join(dataRoot, "knowledge");
+}
+
+/**
+ * Export command — render every base entity to HTML microdata.
+ */
+async function runExport(dataDir, outputDir) {
+  console.log(`📤 Exporting framework to: ${outputDir}\n`);
+
+  const { createDataLoader, createExporter, createRenderer } =
+    await import("../src/index.js");
+
+  const loader = createDataLoader();
+  const data = await loader.loadAllData(dataDir);
+
+  const exporter = await createExporter({ renderer: createRenderer() });
+  const result = await exporter.exportAll({ data, outputDir });
+
+  const counts = {};
+  for (const path of result.written) {
+    const segments = path.split("/");
+    const type = segments[segments.length - 2];
+    counts[type] = (counts[type] || 0) + 1;
+  }
+
+  console.log("✅ Export complete\n");
+  for (const [type, count] of Object.entries(counts).sort()) {
+    console.log(`   ${type.padEnd(12)} ${count}`);
+  }
+  console.log(`   ${"total".padEnd(12)} ${result.written.length}`);
+
+  if (result.errors.length > 0) {
+    console.log("\n❌ Errors:");
+    for (const err of result.errors) {
+      console.log(`   ${err.path}: ${err.error}`);
+    }
+    return 1;
+  }
+
+  return 0;
+}
+
+/**
  * Generate index command
  */
 async function runGenerateIndex(dataDir) {
@@ -252,12 +307,14 @@ Usage:
 Commands:
   validate              Run validation (default: JSON schema validation)
   generate-index        Generate _index.yaml files for directories
+  export                Render base entities to HTML microdata in <data>/knowledge/pathway/
   people import <file>  Import people from CSV/YAML (validates against framework)
 
 Options:
   --json                JSON schema + referential validation (default)
   --shacl               SHACL schema syntax validation
   --data=PATH           Path to data directory (default: ./data or ./examples)
+  --output=PATH         Output directory for export (default: <repo>/data/knowledge)
   --help, -h            Show this help message
 
 Examples:
@@ -265,6 +322,8 @@ Examples:
   fit-map validate --shacl
   fit-map validate --data=./my-data
   fit-map generate-index
+  fit-map export
+  fit-map export --output=./build/knowledge
   fit-map people import ./org/people.yaml
 `);
 }
@@ -298,6 +357,12 @@ async function main() {
       case "generate-index": {
         const dataDir = await findDataDir(options.data);
         exitCode = await runGenerateIndex(dataDir);
+        break;
+      }
+      case "export": {
+        const dataDir = await findDataDir(options.data);
+        const outputDir = await findOutputDir(options.output);
+        exitCode = await runExport(dataDir, outputDir);
         break;
       }
       case "people": {
