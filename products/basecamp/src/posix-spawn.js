@@ -180,8 +180,12 @@ export function spawn(executable, args, env, cwd) {
   libc.symbols.posix_spawn_file_actions_destroy(fa);
 
   if (result !== 0) {
-    try { unlinkSync(stdoutFile); } catch {}
-    try { unlinkSync(stderrFile); } catch {}
+    try {
+      unlinkSync(stdoutFile);
+    } catch {}
+    try {
+      unlinkSync(stderrFile);
+    } catch {}
     throw new Error(`posix_spawn failed with error code ${result}`);
   }
 
