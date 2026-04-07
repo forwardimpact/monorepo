@@ -148,17 +148,18 @@ commands: {
 
 Commands work in both modes with different syntax:
 
-| Mode          | Syntax                  | Example                        |
-| ------------- | ----------------------- | ------------------------------ |
-| Interactive   | `/<command> [args...]`  | `/name Alice`                  |
-| CLI arguments | `--<command> [args...]` | `--name Alice`                 |
-| Piped input   | `/<command> [args...]`  | `echo "/name Alice" \| bunx …` |
+| Mode          | Syntax                                         | Example                         |
+| ------------- | ---------------------------------------------- | ------------------------------- |
+| Interactive   | `/<command> [args...]`                         | `/name Alice`                   |
+| CLI arguments | `--<command> <value>` or `--<command>=<value>` | `--name Alice` / `--name=Alice` |
+| Piped input   | `/<command> [args...]`                         | `echo "/name Alice" \| bunx …`  |
 
 `/`-prefixed commands work in both interactive and piped input. `--` flags are
-parsed from CLI arguments before the REPL starts. In CLI mode, dashes in flag
-names are converted to underscores for lookup (e.g. `--resource-id` maps to the
-`resource_id` command). Boolean commands consume no argument; all others consume
-the next CLI argument as `args[0]`.
+parsed from CLI arguments before the REPL starts. Both `--key value` (next argv
+entry) and `--key=value` (inline) forms are accepted for non-boolean commands;
+they are equivalent. In CLI mode, dashes in flag names are converted to
+underscores for lookup (e.g. `--resource-id` maps to the `resource_id` command).
+Boolean commands consume no argument; all others receive the value as `args[0]`.
 
 In interactive mode, command names are lowercased before lookup. CLI mode does
 not lowercase — it only converts dashes to underscores.

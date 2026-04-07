@@ -128,7 +128,11 @@ export class Repl {
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
       if (arg.startsWith("--")) {
-        const commandName = arg.slice(2).replace(/-/g, "_");
+        // Support both --key value and --key=value forms
+        const eqIdx = arg.indexOf("=");
+        const flagName = eqIdx === -1 ? arg.slice(2) : arg.slice(2, eqIdx);
+        const inlineValue = eqIdx === -1 ? null : arg.slice(eqIdx + 1);
+        const commandName = flagName.replace(/-/g, "_");
         const command = this.#app.commands[commandName];
 
         if (command && command.handler) {
@@ -136,8 +140,11 @@ export class Repl {
           // Boolean type commands don't consume an argument
           if (command.type === "boolean") {
             result = await command.handler([], this.state);
+          } else if (inlineValue !== null) {
+            // --key=value form
+            result = await command.handler([inlineValue], this.state);
           } else if (i + 1 < args.length) {
-            // Non-boolean commands consume the next argument
+            // --key value form
             const value = args[i + 1];
             result = await command.handler([value], this.state);
             i++; // Skip the value argument

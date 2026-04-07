@@ -9,43 +9,48 @@
  *   echo "Tell me about the company" | npx fit-guide
  */
 
-import { resolve } from "path";
 import fs from "fs/promises";
 import { homedir } from "os";
+import { resolve } from "path";
 
-// --help flag (works without SERVICE_SECRET)
-if (process.argv.includes("--help") || process.argv.includes("-h")) {
-  console.log(`fit-guide — Conversational agent for the Guide knowledge platform
+import { Repl } from "@forwardimpact/librepl";
 
-Usage:
-  npx fit-guide                   Start interactive conversation
-  npx fit-guide --data=<path>     Specify framework data directory
-  echo "question" | npx fit-guide Pipe a question directly
+const usage = `**fit-guide** — Conversational agent for the Guide knowledge platform
 
-Options:
-  --data=<path>   Path to framework data directory
-  --init          Generate secrets, .env, and config/config.json
-  --help, -h      Show this help message
-  --version, -v   Show version
+Send conversational messages to the Agent service for processing.
+The agent maintains conversation context across multiple turns.
 
-Guide connects to the Forward Impact service stack to provide
-AI-powered guidance grounded in your engineering framework.
+**Examples:**
 
-Documentation: https://www.forwardimpact.team/guide`);
-  process.exit(0);
-}
+    echo "Tell me about the company" | npx fit-guide
+    printf "What is microservices?\\nWhat are the benefits?\\n" | npx fit-guide
 
-// --version flag (works without SERVICE_SECRET)
-if (process.argv.includes("--version") || process.argv.includes("-v")) {
+Documentation: https://www.forwardimpact.team/guide`;
+
+// Module-level service handles, populated by setup() after CLI args are parsed.
+// Kept outside REPL state so they aren't serialized to storage.
+let dataDir = null;
+let useStreaming = false;
+let agentClient = null;
+let agentConfig = null;
+let logger = null;
+
+/**
+ * Prints the package version and exits the REPL early.
+ * @returns {Promise<void>}
+ */
+async function showVersion() {
   const { version } = JSON.parse(
     await fs.readFile(new URL("../package.json", import.meta.url), "utf8"),
   );
   console.log(version);
-  process.exit(0);
 }
 
-// --init flag (works without SERVICE_SECRET)
-if (process.argv.includes("--init")) {
+/**
+ * Generates secrets, writes .env, and copies starter config into ./config/.
+ * @returns {Promise<void>}
+ */
+async function runInit() {
   const { generateJWT, generateSecret, getOrGenerateSecret, updateEnvFile } =
     await import("@forwardimpact/libsecret");
 
@@ -115,94 +120,79 @@ if (process.argv.includes("--init")) {
   │   └── editor.agent.md          # Synthesizes response
   └── tools.yml                    # Tool definitions`);
   }
-
-  process.exit(0);
 }
 
-// Quick onboarding check — if --init has never been run, guide the user
-try {
-  await fs.access(resolve("config", "config.json"));
-} catch {
-  console.log(`fit-guide — Conversational agent for the Guide knowledge platform
+/**
+ * Resolves the data directory, validates the local config, and wires up the
+ * agent service client. Runs after CLI flag handlers, before the REPL loop.
+ * @returns {Promise<void>}
+ */
+async function setupServices() {
+  // Onboarding check — guide the user if --init has never been run
+  try {
+    await fs.access(resolve("config", "config.json"));
+  } catch {
+    console.log(`fit-guide — Conversational agent for the Guide knowledge platform
 
 Run npx fit-guide --init to generate configuration, then
 npx fit-rc start to launch the service stack.
 
 Documentation: https://www.forwardimpact.team/guide
 Run npx fit-guide --help for CLI options.`);
-  process.exit(1);
-}
+    process.exit(1);
+  }
 
-try {
   const { createServiceConfig } = await import("@forwardimpact/libconfig");
-  const { Repl } = await import("@forwardimpact/librepl");
   const { createClient, createTracer } = await import("@forwardimpact/librpc");
   const { createLogger } = await import("@forwardimpact/libtelemetry");
-  const { agent, common } = await import("@forwardimpact/libtype");
-  const { createStorage } = await import("@forwardimpact/libstorage");
   const { Finder } = await import("@forwardimpact/libutil");
 
-  const usage = `**Usage:** <message>
+  logger = createLogger("cli");
 
-Send conversational messages to the Agent service for processing.
-The agent maintains conversation context across multiple turns.
-
-**Examples:**
-
-    echo "Tell me about the company" | npx fit-guide
-    printf "What is microservices?\\nWhat are the benefits?\\n" | npx fit-guide`;
-
-  // Parse --data flag from CLI args
-  const dataArg = process.argv.find((a) => a.startsWith("--data="));
-  let dataDir;
-  if (dataArg) {
-    dataDir = resolve(dataArg.slice(7));
-  } else {
-    const guideLogger = createLogger("cli");
-    const finder = new Finder(fs, guideLogger, process);
+  if (!dataDir) {
+    const finder = new Finder(fs, logger, process);
     try {
       dataDir = finder.findData("data", homedir());
     } catch {
       throw new Error(
-        "No data directory found. Use --data=<path> to specify location.",
+        "No data directory found. Use --data <path> to specify location.",
       );
     }
   }
 
-  const config = await createServiceConfig("agent");
-  const logger = createLogger("cli");
+  agentConfig = await createServiceConfig("agent");
   const tracer = await createTracer("cli");
-  const agentClient = await createClient("agent", logger, tracer);
+  agentClient = await createClient("agent", logger, tracer);
+}
 
-  // Create storage for persisting REPL state
-  const storage = createStorage("cli");
+/**
+ * Sends a user prompt to the agent service via either the streaming or unary
+ * RPC and writes the response back through the REPL output stream.
+ * @param {string} prompt - The user's input prompt
+ * @param {object} state - REPL state (carries resource_id across turns)
+ * @param {import("stream").Writable} outputStream - Stream to write results to
+ * @returns {Promise<void>}
+ */
+async function handlePrompt(prompt, state, outputStream) {
+  const { agent, common } = await import("@forwardimpact/libtype");
 
-  /**
-   * Handles user prompts by adding them to message history,
-   * sending to the Agent service, and returning the response
-   * @param {string} prompt - The user's input prompt
-   * @param {object} state - The REPL state object
-   * @param {import("stream").Writable} outputStream - Stream to write results to
-   */
-  async function handlePrompt(prompt, state, outputStream) {
-    try {
-      // Create user message - content is just a string
-      const userMessage = common.Message.fromObject({
-        role: "user",
-        content: prompt,
-      });
+  const userMessage = common.Message.fromObject({
+    role: "user",
+    content: prompt,
+  });
+  const request = agent.AgentRequest.fromObject({
+    messages: [userMessage],
+    llm_token: await agentConfig.llmToken(),
+    resource_id: state.resource_id,
+    model: agentConfig.model,
+    agent: agentConfig.agent,
+  });
 
-      // Create typed request using agent.AgentRequest
-      const request = agent.AgentRequest.fromObject({
-        messages: [userMessage],
-        llm_token: await config.llmToken(),
-        resource_id: state.resource_id,
-        model: config.model,
-        agent: config.agent,
-      });
+  const rpcName = useStreaming ? "ProcessStream" : "ProcessUnary";
 
+  try {
+    if (useStreaming) {
       const stream = agentClient.ProcessStream(request);
-
       for await (const response of stream) {
         if (response.resource_id) {
           state.resource_id = response.resource_id;
@@ -212,29 +202,69 @@ The agent maintains conversation context across multiple turns.
           outputStream.write(text);
         }
       }
-    } catch (err) {
-      logger.exception("ProcessStream", err);
-      throw err;
+    } else {
+      const response = await agentClient.ProcessUnary(request);
+      if (response.resource_id) {
+        state.resource_id = response.resource_id;
+      }
+      if (response.messages?.length > 0) {
+        const text = response.messages.map((msg) => msg.content).join("\n");
+        outputStream.write(text);
+      }
     }
+  } catch (err) {
+    logger.exception(rpcName, err);
+    throw err;
   }
+}
 
-  // Create REPL with dependency injection
-  const repl = new Repl({
-    usage,
-    storage,
-    state: {
-      resource_id: null,
-      dataDir,
-    },
-    onLine: handlePrompt,
-    afterLine: (state) => {
-      return logger.debug("ProcessStream", "Stream ended", {
-        resource_id: state.resource_id,
-      });
-    },
-  });
+const { createStorage } = await import("@forwardimpact/libstorage");
+const storage = createStorage("cli");
 
-  repl.start();
+const repl = new Repl({
+  prompt: "> ",
+  usage,
+  storage,
+  state: {
+    resource_id: null,
+  },
+  commands: {
+    version: {
+      usage: "Show version",
+      type: "boolean",
+      handler: async () => {
+        await showVersion();
+        return false;
+      },
+    },
+    init: {
+      usage: "Generate secrets, .env, and config/config.json",
+      type: "boolean",
+      handler: async () => {
+        await runInit();
+        return false;
+      },
+    },
+    data: {
+      usage: "Path to framework data directory",
+      handler: ([path]) => {
+        dataDir = resolve(path);
+      },
+    },
+    streaming: {
+      usage: "Use the streaming agent endpoint (default: unary)",
+      type: "boolean",
+      handler: () => {
+        useStreaming = true;
+      },
+    },
+  },
+  setup: setupServices,
+  onLine: handlePrompt,
+});
+
+try {
+  await repl.start();
 } catch (err) {
   console.error(`Failed to connect to the Guide service stack.
 
