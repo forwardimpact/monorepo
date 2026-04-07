@@ -26,7 +26,9 @@ If a specific workflow name, run ID, or URL is provided, use that run.
 
 Otherwise, select a run using memory-informed rotation:
 
-1. **Read memory** — Extract workflow names and run IDs from previous cycles.
+1. **Read memory** — Per the agent profile, read your summary, the current
+   week's log, and teammates' summaries. Extract workflow names and run IDs from
+   previous cycles.
 
 2. **Discover available runs**:
 

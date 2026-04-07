@@ -43,9 +43,10 @@ All comment templates and the report format are in `references/templates.md`.
 
 ### Step 0: Read Memory
 
-Read all memory files. From previous `product-manager-*.md` entries, extract PRs
-skipped in previous runs with consecutive-skip counts, and contributor trust
-decisions. Check other agents' entries for relevant observations.
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). From prior `product-manager` entries, extract PRs skipped
+in previous runs with consecutive-skip counts and contributor trust decisions
+carried forward.
 
 ### Step 1: List Open PRs
 
@@ -129,6 +130,8 @@ Comment for the template. Verify state changed to `MERGED`.
 Produce a summary table (see `references/templates.md` § Report Summary).
 
 ### Memory: What to Record
+
+Append to the current week's log (see agent profile for the file path):
 
 - **PR triage table** — Each PR with type, author, outcome, and consecutive-skip
   count (carry forward, incrementing for PRs that remain skipped)

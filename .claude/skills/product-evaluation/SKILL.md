@@ -103,7 +103,7 @@ Produce a final summary with:
 
 ## Memory: what to record
 
-Include these fields in addition to standard agent memory fields:
+Append to the current week's log (see agent profile for the file path):
 
 - **Scenario** — Which evaluation scenario was run (from the task)
 - **Product tested** — Which product was evaluated

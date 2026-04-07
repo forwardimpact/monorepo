@@ -45,7 +45,8 @@ action-to-workflow mapping.
 
 ### Step 0: Read Memory
 
-Read all memory files. Extract previous triage outcomes and packages that
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). Extract previous triage outcomes and packages that
 repeatedly fail Check 8.
 
 ### Step 1: List Open Dependabot PRs
@@ -110,6 +111,8 @@ gh pr close <number> --comment "Dependabot triage: closing because <reason>. Pol
 ```
 
 ### Memory: What to Record
+
+Append to the current week's log (see agent profile for the file path):
 
 - **PR triage table** — Each PR with action, failed checks, and reason
 - **Compatibility blockers** — Packages closed due to Check 8

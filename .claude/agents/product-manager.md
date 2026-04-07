@@ -51,7 +51,11 @@ Determine which workflow to use from the task prompt:
   own `fix/` branches from issues
 - Features always get a spec, never a direct implementation
 - Run `bun run check` and `bun run test` before every commit
-- Read `product-manager.md` at start (plus other agents' summaries for
-  cross-agent context); write daily log to `product-manager-YYYY-MM-DD.md` and
-  update `product-manager.md` at end with actions taken, observations for
-  teammates, and blockers
+- **Memory**: Before starting work, read `.claude/memory/product-manager.md` and
+  the other three agent summaries for cross-agent context. Append this run as a
+  new `## YYYY-MM-DD` section at the end of the current week's log
+  `.claude/memory/product-manager-$(date +%G-W%V).md` — create the file if
+  missing with an `# Product Manager — YYYY-Www` heading; one file per ISO week.
+  Use `###` subheadings for the fields skills specify to record. At the end,
+  update `.claude/memory/product-manager.md` with actions taken, observations
+  for teammates, and open blockers.

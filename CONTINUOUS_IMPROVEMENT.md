@@ -190,8 +190,18 @@ Agents share persistent memory via the repository's **GitHub wiki**, mounted as
 a git submodule at `.claude/memory/`. Synced by `just memory-pull` (on
 `SessionStart`) and `just memory-push` (on `Stop`).
 
-Each agent records actions, decisions, observations for teammates, and deferred
-work so subsequent runs have context.
+Each agent maintains two kinds of file:
+
+- A rolling **summary** — `<agent>.md`, latest state (coverage, backlog,
+  blockers, observations for teammates).
+- A **weekly log** — `<agent>-<YYYY>-W<VV>.md`, keyed by ISO week-year and week
+  number (`date +%G-W%V`). One file per agent per week provides continuity
+  across the weekly CI cadence without fragmenting context into daily files.
+
+Every scheduled run must read the summary and the current week's log before
+acting, append that run's findings to the week's log, and update the summary at
+the end. The canonical memory instruction block lives in each agent profile;
+skills reference it without restating paths.
 
 ## Authentication
 

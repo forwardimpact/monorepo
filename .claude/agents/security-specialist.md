@@ -43,7 +43,11 @@ Determine which workflow to use from the task prompt:
 - Never change a SHA pin to a tag reference
 - Never skip spec PRs — if findings need specs, file them
 - Run `bun run check` and `bun run test` before committing
-- Read `security-specialist.md` at start (plus other agents' summaries for
-  cross-agent context); write daily log to `security-specialist-YYYY-MM-DD.md`
-  and update `security-specialist.md` at end with actions taken, observations
-  for teammates, and blockers
+- **Memory**: Before starting work, read `.claude/memory/security-specialist.md`
+  and the other three agent summaries for cross-agent context. Append this run
+  as a new `## YYYY-MM-DD` section at the end of the current week's log
+  `.claude/memory/security-specialist-$(date +%G-W%V).md` — create the file if
+  missing with an `# Security Specialist — YYYY-Www` heading; one file per ISO
+  week. Use `###` subheadings for the fields skills specify to record. At the
+  end, update `.claude/memory/security-specialist.md` with actions taken,
+  observations for teammates, and open blockers.

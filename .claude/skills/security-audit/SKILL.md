@@ -67,16 +67,12 @@ Each run covers **one topic** in depth.
 
 ### Topic selection
 
-1. Read memory — find previous `security-specialist-*.md` entries and last audit
-   dates per topic.
+1. Read memory per the agent profile (your summary, the current week's log, and
+   teammates' summaries). Find last audit dates per topic in the coverage map.
 2. Build coverage map — never-audited topics go first, then oldest.
 3. Revisit threshold — if all topics covered within last 4 runs, revisit oldest.
 4. Announce your pick and why before starting.
 5. Go deep — read every relevant file, not just grep for patterns.
-
-### Cross-referencing
-
-Check other agents' memory entries for security-relevant observations.
 
 ## 8. Audit Checklist
 
@@ -97,7 +93,7 @@ profile.
 
 ### Memory: what to record
 
-Include these fields in addition to standard agent memory fields:
+Append to the current week's log (see agent profile for the file path):
 
 - **Topic audited** — Which topic and why selected
 - **Coverage map** — Updated table of all topics with last audit date

@@ -58,9 +58,9 @@ address for its users (Leadership, Engineers, or Agents).
 
 #### Step 0: Read Memory
 
-Read all files in the memory directory. From previous `product-manager-*.md`
-entries, extract issues previously processed and recurring themes. Also check
-entries from other agents (improvement coach, security engineer).
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). Extract issues previously processed and recurring themes
+from prior `product-manager` entries.
 
 #### Step 1: List Open Issues
 
@@ -106,6 +106,8 @@ Produce a summary table of all issues processed. See `references/templates.md` �
 Report Summary Tables for the format.
 
 ### Memory: What to Record
+
+Append to the current week's log (see agent profile for the file path):
 
 - **Issue triage table** — Each issue with category, action, and outcome
 - **Recurring themes** — Patterns across issues, with frequency and alignment
@@ -155,6 +157,8 @@ For each product-aligned item with no existing match, create a GitHub issue. See
 Produce a summary table. See `references/templates.md` § Report Summary Tables.
 
 ### Memory: What to Record
+
+Append to the current week's log (see agent profile for the file path):
 
 - **Feedback items table** — Each item with category, action, and issue number
 - **Scenario tested** — Which evaluation scenario produced the feedback

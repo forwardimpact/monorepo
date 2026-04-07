@@ -24,9 +24,9 @@ The `gh` CLI must be installed and authenticated. Verify with `gh auth status`.
 
 ### Step 0: Read Memory for PR History
 
-Read all memory files. From previous `release-manager-*.md` entries, extract the
-PR status table to track consecutive-stuck counts. Check other agents' entries
-for relevant observations.
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). Extract the PR status table from prior `release-manager`
+entries to track consecutive-stuck counts.
 
 ### Step 1: List Open PRs
 
@@ -121,7 +121,7 @@ Comment on each PR:
 
 ### Memory: what to record
 
-Include these fields in addition to standard agent memory fields:
+Append to the current week's log (see agent profile for the file path):
 
 - **PR status table** — Each PR with state and consecutive-stuck count
 - **Main branch CI state** — Green or broken, and what was wrong
