@@ -2,59 +2,9 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
-import { AgentRunner, Supervisor } from "@forwardimpact/libeval";
+import { Supervisor } from "@forwardimpact/libeval";
 import { isComplete } from "../src/supervisor.js";
-
-/**
- * Create a mock AgentRunner that yields pre-scripted responses.
- * Each call to run() or resume() pops the next response from the array.
- * @param {object[]} responses - Array of {text, success} objects
- * @param {object[]} [messages] - Messages to buffer per turn
- * @returns {AgentRunner}
- */
-function createMockRunner(responses, messages) {
-  const output = new PassThrough();
-  let callIndex = 0;
-
-  const runner = new AgentRunner({
-    cwd: "/tmp",
-    query: async function* () {},
-    output,
-  });
-
-  runner.run = async (_task) => {
-    const resp = responses[callIndex++];
-    const msgs = messages?.[callIndex - 1] ?? [
-      { type: "assistant", content: resp.text },
-    ];
-    for (const m of msgs) {
-      const line = JSON.stringify(m);
-      runner.buffer.push(line);
-      if (runner.onLine) runner.onLine(line);
-    }
-    runner.sessionId = "mock-session";
-    return {
-      success: resp.success ?? true,
-      text: resp.text,
-      sessionId: "mock-session",
-    };
-  };
-
-  runner.resume = async (_prompt) => {
-    const resp = responses[callIndex++];
-    const msgs = messages?.[callIndex - 1] ?? [
-      { type: "assistant", content: resp.text },
-    ];
-    for (const m of msgs) {
-      const line = JSON.stringify(m);
-      runner.buffer.push(line);
-      if (runner.onLine) runner.onLine(line);
-    }
-    return { success: resp.success ?? true, text: resp.text };
-  };
-
-  return runner;
-}
+import { createMockRunner } from "./mock-runner.js";
 
 describe("isComplete", () => {
   test("detects EVALUATION_COMPLETE on its own line", () => {

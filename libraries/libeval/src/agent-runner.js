@@ -17,6 +17,7 @@ export class AgentRunner {
    * @param {string[]} [deps.allowedTools] - Tools the agent may use
    * @param {string} [deps.permissionMode] - SDK permission mode
    * @param {function} [deps.onLine] - Callback invoked with each NDJSON line as it's produced
+   * @param {function} [deps.onBatch] - Async callback invoked with a batch of NDJSON lines at flush boundaries (assistant text blocks and result messages). Receives `(lines, { abort })` where calling `abort()` stops the in-flight SDK session via the AbortController. Optional; assignable at runtime so the Supervisor can swap it per turn.
    * @param {string[]} [deps.settingSources] - SDK setting sources (e.g. ['project'] to load CLAUDE.md)
    * @param {string} [deps.agentProfile] - Agent profile name to pass as --agent to the Claude CLI
    * @param {string|object} [deps.systemPrompt] - SDK system prompt (string replaces default; {type:'preset', preset:'claude_code', append} appends)
@@ -31,6 +32,7 @@ export class AgentRunner {
     allowedTools,
     permissionMode,
     onLine,
+    onBatch,
     settingSources,
     agentProfile,
     systemPrompt,
@@ -54,26 +56,27 @@ export class AgentRunner {
     ];
     this.permissionMode = permissionMode ?? "bypassPermissions";
     this.onLine = onLine ?? null;
+    this.onBatch = onBatch ?? null;
     this.settingSources = settingSources ?? [];
     this.agentProfile = agentProfile ?? null;
     this.systemPrompt = systemPrompt ?? null;
     this.disallowedTools = disallowedTools ?? [];
     this.sessionId = null;
     this.buffer = [];
+    /** @type {AbortController|null} */
+    this.currentAbortController = null;
   }
 
   /**
    * Run a new agent session with the given task.
    * @param {string} task - The task prompt
-   * @returns {Promise<{success: boolean, text: string, sessionId: string|null}>}
+   * @returns {Promise<{success: boolean, text: string, sessionId: string|null, error: Error|null, aborted: boolean}>}
    */
   async run(task) {
-    let text = "";
-    let stopReason = null;
-    let error = null;
-
+    const abortController = new AbortController();
+    this.currentAbortController = abortController;
     try {
-      for await (const message of this.query({
+      const iterator = this.query({
         prompt: task,
         options: {
           cwd: this.cwd,
@@ -83,17 +86,80 @@ export class AgentRunner {
           permissionMode: this.permissionMode,
           allowDangerouslySkipPermissions: true,
           settingSources: this.settingSources,
+          abortController,
           ...(this.disallowedTools.length > 0 && {
             disallowedTools: this.disallowedTools,
           }),
           ...(this.systemPrompt && { systemPrompt: this.systemPrompt }),
           ...(this.agentProfile && { extraArgs: { agent: this.agentProfile } }),
         },
-      })) {
+      });
+      return await this.#consumeQuery(iterator);
+    } finally {
+      this.currentAbortController = null;
+    }
+  }
+
+  /**
+   * Resume an existing session with a follow-up prompt.
+   * @param {string} prompt - The follow-up prompt
+   * @returns {Promise<{success: boolean, text: string, sessionId: string|null, error: Error|null, aborted: boolean}>}
+   */
+  async resume(prompt) {
+    const abortController = new AbortController();
+    this.currentAbortController = abortController;
+    try {
+      const iterator = this.query({
+        prompt,
+        options: {
+          resume: this.sessionId,
+          permissionMode: this.permissionMode,
+          allowDangerouslySkipPermissions: true,
+          abortController,
+        },
+      });
+      return await this.#consumeQuery(iterator);
+    } finally {
+      this.currentAbortController = null;
+    }
+  }
+
+  /**
+   * Shared consumer for both `run()` and `resume()`. Iterates the SDK query
+   * iterator, mirroring every line to the output stream / buffer / onLine
+   * callback, and — when `onBatch` is set — flushes accumulated lines to it
+   * at natural boundaries (assistant messages with text blocks, and the
+   * terminal `result` message).
+   *
+   * INVARIANT: the `await this.onBatch(...)` call below is the ONLY
+   * suspension point in this loop. While it is pending, no further lines
+   * are pulled from the SDK generator. The Supervisor relies on this — its
+   * onBatch callback flips `currentSource` to "supervisor" for the duration
+   * of its mid-turn LLM call, and the invariant guarantees no agent line
+   * can arrive concurrently and be mis-tagged.
+   *
+   * If the supervisor calls `abort()` from inside the callback, the next
+   * iteration of the for-await loop will throw. We catch the throw, check
+   * `currentAbortController.signal.aborted` (avoiding fragility around
+   * AbortError vs DOMException shapes), and report `aborted: true` so the
+   * caller can distinguish "supervisor asked us to stop" from a real error.
+   * @param {AsyncIterable<object>} iterator
+   * @returns {Promise<{success: boolean, text: string, sessionId: string|null, error: Error|null, aborted: boolean}>}
+   */
+  async #consumeQuery(iterator) {
+    let text = "";
+    let stopReason = null;
+    let error = null;
+    let aborted = false;
+    const pendingBatch = [];
+
+    try {
+      for await (const message of iterator) {
         const line = JSON.stringify(message);
         this.output.write(line + "\n");
         this.buffer.push(line);
         if (this.onLine) this.onLine(line);
+        if (this.onBatch) pendingBatch.push(line);
 
         if (message.type === "system" && message.subtype === "init") {
           this.sessionId = message.session_id;
@@ -102,53 +168,28 @@ export class AgentRunner {
           text = message.result ?? "";
           stopReason = message.subtype;
         }
-      }
-    } catch (err) {
-      error = err;
-    }
 
-    // If the SDK already emitted a successful result, honour it even when the
-    // stream throws afterwards (e.g. "Credit balance is too low" during
-    // cleanup). Only treat errors as fatal when no result was received yet.
-    const success = stopReason === "success";
-    return { success, text, sessionId: this.sessionId, error };
-  }
-
-  /**
-   * Resume an existing session with a follow-up prompt.
-   * @param {string} prompt - The follow-up prompt
-   * @returns {Promise<{success: boolean, text: string}>}
-   */
-  async resume(prompt) {
-    let text = "";
-    let stopReason = null;
-    let error = null;
-
-    try {
-      for await (const message of this.query({
-        prompt,
-        options: {
-          resume: this.sessionId,
-          permissionMode: this.permissionMode,
-          allowDangerouslySkipPermissions: true,
-        },
-      })) {
-        const line = JSON.stringify(message);
-        this.output.write(line + "\n");
-        this.buffer.push(line);
-        if (this.onLine) this.onLine(line);
-
-        if (message.type === "result") {
-          text = message.result ?? "";
-          stopReason = message.subtype;
+        const shouldFlush =
+          this.onBatch &&
+          (message.type === "result" ||
+            (message.type === "assistant" && hasTextBlock(message)));
+        if (shouldFlush) {
+          const batchLines = pendingBatch.splice(0, pendingBatch.length);
+          await this.onBatch(batchLines, {
+            abort: () => this.currentAbortController?.abort(),
+          });
         }
       }
     } catch (err) {
-      error = err;
+      if (this.currentAbortController?.signal.aborted) {
+        aborted = true;
+      } else {
+        error = err;
+      }
     }
 
     const success = stopReason === "success";
-    return { success, text, error };
+    return { success, text, sessionId: this.sessionId, error, aborted };
   }
 
   /**
@@ -160,6 +201,23 @@ export class AgentRunner {
     this.buffer = [];
     return lines;
   }
+}
+
+/**
+ * Whether an SDK assistant message contains at least one text block.
+ * Tool-only assistant messages return false so they accumulate into the
+ * pending batch and flush with the next text block (or with the terminal
+ * `result` message), keeping supervisor LLM cost bounded.
+ * @param {object} message
+ * @returns {boolean}
+ */
+function hasTextBlock(message) {
+  const content = message.message?.content ?? message.content;
+  if (!Array.isArray(content)) return false;
+  for (const block of content) {
+    if (block.type === "text" && block.text) return true;
+  }
+  return false;
 }
 
 /**

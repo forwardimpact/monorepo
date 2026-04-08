@@ -23,26 +23,26 @@ breaking encapsulation or the existing non-supervised `fit-eval run` path.
 
 ### Key design decisions (answers to the spec's open questions)
 
-- **Batching granularity → per agent assistant message.** Flush the batch to
-  the supervisor each time the agent emits a message of type `assistant`
-  containing a text block (tool-only assistant messages are accumulated into
-  the pending batch and flushed with the next text block). This is the
-  granularity at which the agent surfaces *intent* in natural language, which
-  is what the supervisor needs to judge "is this a dead end?". Per-event
-  batching would multiply supervisor cost by 5–20x; per-turn batching is what
-  we have today. Per-assistant-message keeps supervisor cost within 2–5x of
-  today's per-turn cost in typical evaluations, which is inside the spec's
-  "same order of magnitude" bound. A final implicit flush happens at the SDK
-  `result` message so the turn-ending review still runs.
+- **Batching granularity → per agent assistant message.** Flush the batch to the
+  supervisor each time the agent emits a message of type `assistant` containing
+  a text block (tool-only assistant messages are accumulated into the pending
+  batch and flushed with the next text block). This is the granularity at which
+  the agent surfaces _intent_ in natural language, which is what the supervisor
+  needs to judge "is this a dead end?". Per-event batching would multiply
+  supervisor cost by 5–20x; per-turn batching is what we have today.
+  Per-assistant-message keeps supervisor cost within 2–5x of today's per-turn
+  cost in typical evaluations, which is inside the spec's "same order of
+  magnitude" bound. A final implicit flush happens at the SDK `result` message
+  so the turn-ending review still runs.
 
 - **Supervisor concurrency → serialized (agent paused during supervisor
-  evaluation).** While the supervisor runs its LLM call for a batch, the
-  agent's `for await` loop is simply not pulling from the SDK generator; the
-  SDK session is idle but alive. This is deterministic (critical for tests),
-  requires no locks, and matches the mental model documented in
-  `product-evaluation/SKILL.md` — the supervisor *watches* the agent, it does
-  not race it. True concurrency can be explored in a follow-up spec if
-  per-batch latency becomes a measurable problem.
+  evaluation).** While the supervisor runs its LLM call for a batch, the agent's
+  `for await` loop is simply not pulling from the SDK generator; the SDK session
+  is idle but alive. This is deterministic (critical for tests), requires no
+  locks, and matches the mental model documented in
+  `product-evaluation/SKILL.md` — the supervisor _watches_ the agent, it does
+  not race it. True concurrency can be explored in a follow-up spec if per-batch
+  latency becomes a measurable problem.
 
 - **Interrupt mechanism → `AbortController` passed in `query()` options.** The
   SDK exposes `abortController?: AbortController` on the options object
@@ -52,16 +52,16 @@ breaking encapsulation or the existing non-supervised `fit-eval run` path.
   server-side (by `session_id` captured in the init message) and
   `AgentRunner.resume(sessionId, newPrompt)` picks up from where it left off —
   the agent keeps its context and continues with the intervention as new input,
-  exactly as the spec requires. The `Query.interrupt()` method is only
-  available for streaming *input* mode, which we do not use, so
-  `AbortController` is the correct choice.
+  exactly as the spec requires. The `Query.interrupt()` method is only available
+  for streaming _input_ mode, which we do not use, so `AbortController` is the
+  correct choice.
 
 ## Concrete changes
 
 ### 1. `libraries/libeval/src/supervisor.js` — add `isIntervention`
 
-Alongside `isComplete`, add a parallel detector for the new intervention
-signal. Same regex shape, same markdown tolerance, different keyword.
+Alongside `isComplete`, add a parallel detector for the new intervention signal.
+Same regex shape, same markdown tolerance, different keyword.
 
 ```js
 /**
@@ -73,15 +73,15 @@ export function isIntervention(text) {
 }
 ```
 
-Export it from `libraries/libeval/index.js` (the package barrel —
-`src/index.js` does not exist) alongside `isComplete`.
+Export it from `libraries/libeval/index.js` (the package barrel — `src/index.js`
+does not exist) alongside `isComplete`.
 
 ### 2. `libraries/libeval/src/agent-runner.js` — accept `onBatch` and `abortController`
 
 Extract the body of the existing `for await` loop into a private helper
-`#consumeQuery(iterator)` so `run()` and `resume()` share identical
-batch/abort handling. Scope is tight: the existing options gap in `resume()`
-(it deliberately omits `systemPrompt`, `allowedTools`, etc. because the SDK
+`#consumeQuery(iterator)` so `run()` and `resume()` share identical batch/abort
+handling. Scope is tight: the existing options gap in `resume()` (it
+deliberately omits `systemPrompt`, `allowedTools`, etc. because the SDK
 preserves them server-side across resumes) is **not** expanded. We only add
 `abortController` to both option blocks.
 
@@ -89,44 +89,45 @@ The shared consumer loop:
 
 - Tracks a `pendingBatch` array of raw NDJSON lines emitted since the last
   flush.
-- On every iteration, writes the line to `this.output`, pushes to
-  `this.buffer`, fires `this.onLine(line)`, and appends to `pendingBatch`
-  (exactly the existing side effects — just in one place).
+- On every iteration, writes the line to `this.output`, pushes to `this.buffer`,
+  fires `this.onLine(line)`, and appends to `pendingBatch` (exactly the existing
+  side effects — just in one place).
 - When the message is `assistant` with at least one text block, or when the
   message is `result`, awaits `this.onBatch(pendingBatch, { abort })` where
-  `abort()` calls `this.currentAbortController.abort()`. Clears
-  `pendingBatch` after the callback. `onBatch` is a no-op when not set.
+  `abort()` calls `this.currentAbortController.abort()`. Clears `pendingBatch`
+  after the callback. `onBatch` is a no-op when not set.
 - Wraps the iteration in a try/catch that treats an aborted signal as a
   controlled exit. To avoid fragility around `AbortError` vs `DOMException`
   shapes from the SDK, the catch block checks
-  `this.currentAbortController?.signal.aborted` — if true, swallow the error
-  and set `aborted = true`; otherwise rethrow as before.
+  `this.currentAbortController?.signal.aborted` — if true, swallow the error and
+  set `aborted = true`; otherwise rethrow as before.
 - On controlled abort, the method returns
   `{ success: false, text, sessionId, error: null, aborted: true }` so the
   caller can distinguish "supervisor asked us to stop" from "real error".
 
 `run()` and `resume()` both:
 
-- Create a fresh `AbortController`, assign it to
-  `this.currentAbortController` before starting the query so the outer
-  supervisor (or the `onBatch` callback) can abort it.
+- Create a fresh `AbortController`, assign it to `this.currentAbortController`
+  before starting the query so the outer supervisor (or the `onBatch` callback)
+  can abort it.
 - Pass that controller to the SDK via `options.abortController`.
 - Call the shared `#consumeQuery` helper.
 - Clear `this.currentAbortController` in a `finally` block.
 
 Constructor changes:
+
 - Add `onBatch` to the deps list (optional; defaults to `null`; assignable at
   runtime so the Supervisor can swap it per turn).
 - Add `currentAbortController` as an instance field initialised to `null`.
 
-Keep `drainOutput()` and `buffer` unchanged — the existing supervisor
-tag/emit path is untouched because every line still writes to `buffer` and
-still calls `onLine`. `onBatch` is purely additive.
+Keep `drainOutput()` and `buffer` unchanged — the existing supervisor tag/emit
+path is untouched because every line still writes to `buffer` and still calls
+`onLine`. `onBatch` is purely additive.
 
 ### 3. `libraries/libeval/src/supervisor.js` — mid-turn loop in `Supervisor.run()`
 
-Replace the body of the existing agent-turn branch inside the `for` loop with
-an inner loop that drives the agent through interventions. Pseudocode:
+Replace the body of the existing agent-turn branch inside the `for` loop with an
+inner loop that drives the agent through interventions. Pseudocode:
 
 ```
 for each turn 1..maxTurns:
@@ -221,70 +222,67 @@ for each turn 1..maxTurns:
 
 Concrete details:
 
-- **`interventionSignalSeen` flag.** Add it next to `completeSignalSeen`,
-  reset at every supervisor invocation, set inside `emitLine` when a
-  supervisor assistant text block matches `isIntervention(...)`. This mirrors
-  the existing pattern exactly.
+- **`interventionSignalSeen` flag.** Add it next to `completeSignalSeen`, reset
+  at every supervisor invocation, set inside `emitLine` when a supervisor
+  assistant text block matches `isIntervention(...)`. This mirrors the existing
+  pattern exactly.
 
 - **`lastSupervisorResult` on the Supervisor instance.** The outer while-loop
   needs to read the supervisor's text to build the next relay, but the
-  supervisor call now happens inside `onBatch` (a closure). Store the result
-  on `this.lastSupervisorResult` from within the callback so the outer loop
-  can read it after the abort.
+  supervisor call now happens inside `onBatch` (a closure). Store the result on
+  `this.lastSupervisorResult` from within the callback so the outer loop can
+  read it after the abort.
 
-- **Source-flip invariant.** `onBatch` must be called synchronously from
-  inside the agent's `for await` loop — i.e. directly after yielding an
+- **Source-flip invariant.** `onBatch` must be called synchronously from inside
+  the agent's `for await` loop — i.e. directly after yielding an
   assistant-with-text or result message, with no scheduling gap. The
-  `AgentRunner` is the only place that flips `currentSource`; there is
-  exactly one `await` point (the `await this.onBatch(...)` inside the
-  consumer loop), and while that await is pending, no further lines are
-  pulled from the SDK generator, so no agent line can be tagged as
-  `source:"supervisor"`. This is load-bearing and documented as a comment
-  in the `#consumeQuery` helper.
+  `AgentRunner` is the only place that flips `currentSource`; there is exactly
+  one `await` point (the `await this.onBatch(...)` inside the consumer loop),
+  and while that await is pending, no further lines are pulled from the SDK
+  generator, so no agent line can be tagged as `source:"supervisor"`. This is
+  load-bearing and documented as a comment in the `#consumeQuery` helper.
 
 - **`MAX_INTERVENTIONS_PER_TURN = 5`.** Rationale: the intervention budget
   should be small enough that a looping supervisor burns its quota fast
-  (observability — requirement 6) but large enough that a legitimate
-  "intervene, observe, intervene again" pattern has headroom. 5 gives room
-  for 2–3 genuine corrections plus noise; the outer `maxTurns` budget (20 by
-  default) still bounds overall runtime. Not a hot knob; internal constant,
-  not a CLI flag.
+  (observability — requirement 6) but large enough that a legitimate "intervene,
+  observe, intervene again" pattern has headroom. 5 gives room for 2–3 genuine
+  corrections plus noise; the outer `maxTurns` budget (20 by default) still
+  bounds overall runtime. Not a hot knob; internal constant, not a CLI flag.
 
 - **Orchestrator events.** Add an `emitOrchestratorEvent(event)` helper that
-  writes `{source:"orchestrator", turn:currentTurn, event}` NDJSON lines.
-  Event types emitted by this spec:
+  writes `{source:"orchestrator", turn:currentTurn, event}` NDJSON lines. Event
+  types emitted by this spec:
   - `mid_turn_review` — written before each mid-turn supervisor call.
   - `intervention_requested` — supervisor wrote `EVALUATION_INTERVENTION`.
-  - `intervention_relayed` — the intervention text has been passed to the
-    agent as the new prompt.
+  - `intervention_relayed` — the intervention text has been passed to the agent
+    as the new prompt.
   - `intervention_limit` — the per-turn intervention budget was hit.
   - `complete_requested` — supervisor wrote `EVALUATION_COMPLETE` mid-turn.
-  These are additive — the improvement coach's parser already reads `source`
-  and ignores unknown `event.type` values.
+    These are additive — the improvement coach's parser already reads `source`
+    and ignores unknown `event.type` values.
 
 - **`renderBatch(batchLines)`.** A small helper that runs the batch lines
-  through a fresh `TraceCollector` (same path `extractTranscript` already
-  uses) and returns the text, or `"[empty]"` when the batch is empty.
+  through a fresh `TraceCollector` (same path `extractTranscript` already uses)
+  and returns the text, or `"[empty]"` when the batch is empty.
 
 - **Turn tagging during mid-turn review.** `currentTurn` stays equal to the
-  agent's turn number and `currentSource` flips to `supervisor` for the
-  duration of the mid-turn call. Mid-turn supervisor lines appear tagged
+  agent's turn number and `currentSource` flips to `supervisor` for the duration
+  of the mid-turn call. Mid-turn supervisor lines appear tagged
   `{source:"supervisor", turn:N}` and are distinguishable from end-of-turn
-  reviews by the surrounding `mid_turn_review` / `intervention_*`
-  orchestrator events — which is why those events are emitted *before* the
-  supervisor call, not after. The spec requires mid-turn interventions to be
-  *visible*, not to introduce a new turn-numbering scheme.
+  reviews by the surrounding `mid_turn_review` / `intervention_*` orchestrator
+  events — which is why those events are emitted _before_ the supervisor call,
+  not after. The spec requires mid-turn interventions to be _visible_, not to
+  introduce a new turn-numbering scheme.
 
 - **Supervisor buffer accumulation is intentional.** The mid-turn
-  `extractLastText(supervisorRunner, ...)` call reads
-  `supervisorRunner.buffer`, which accumulates across every supervisor
-  invocation (mid-turn and end-of-turn) because `drainOutput()` is only
-  called by `extractTranscript()` for the *agent* runner. This is
-  deliberate: scanning backwards for the last assistant text block returns
-  the most recent message regardless of how many mid-turn reviews have
-  already happened. No new drain is needed and no duplicate lines will be
-  re-emitted — `emitLine` has already written each line exactly once to the
-  output stream as it arrived.
+  `extractLastText(supervisorRunner, ...)` call reads `supervisorRunner.buffer`,
+  which accumulates across every supervisor invocation (mid-turn and
+  end-of-turn) because `drainOutput()` is only called by `extractTranscript()`
+  for the _agent_ runner. This is deliberate: scanning backwards for the last
+  assistant text block returns the most recent message regardless of how many
+  mid-turn reviews have already happened. No new drain is needed and no
+  duplicate lines will be re-emitted — `emitLine` has already written each line
+  exactly once to the output stream as it arrived.
 
 ### 4. `libraries/libeval/src/supervisor.js` — prompt updates
 
@@ -310,33 +308,33 @@ remain.
 
 ### 5. `libraries/libeval/src/commands/supervise.js` — nothing
 
-No changes needed. The CLI path goes through `createSupervisor(...)` and the
-new behaviour is entirely internal to `Supervisor.run()` and `AgentRunner`.
+No changes needed. The CLI path goes through `createSupervisor(...)` and the new
+behaviour is entirely internal to `Supervisor.run()` and `AgentRunner`.
 
 ### 6. `libraries/libeval/test/supervisor-run.test.js` — new tests
 
 Extend the mock runner in the existing test file so `run`/`resume` honour an
-`onBatch` callback, firing it once per scripted message. Add three new tests
-in the `Supervisor - run and turns` describe block:
+`onBatch` callback, firing it once per scripted message. Add three new tests in
+the `Supervisor - run and turns` describe block:
 
 - **`observation without intervention does not interrupt the agent`** —
-  supervisor responds "Keep going." to each batch; agent's SDK session
-  completes its scripted turn normally; end-of-turn review then emits
+  supervisor responds "Keep going." to each batch; agent's SDK session completes
+  its scripted turn normally; end-of-turn review then emits
   `EVALUATION_COMPLETE`; result is `{success:true, turns:1}`; the total turn
   count matches what the equivalent scenario produced before this spec.
 
 - **`EVALUATION_INTERVENTION from mid-turn batch interrupts and relays`** —
   supervisor responds `EVALUATION_INTERVENTION stop and do X` to the first
   batch; assert that `agentRunner.resume` is called a second time with the
-  intervention text as its prompt (capture via mock), and that the second
-  resume call completes the turn; assert the final tagged trace contains an
+  intervention text as its prompt (capture via mock), and that the second resume
+  call completes the turn; assert the final tagged trace contains an
   orchestrator event with `type: "intervention_requested"` and another with
   `type: "intervention_relayed"`.
 
 - **`EVALUATION_INTERVENTION and EVALUATION_COMPLETE in the same turn`** —
   supervisor intervenes on batch 1, then on the next batch writes
-  `EVALUATION_COMPLETE`; assert final result is `{success:true}` and the
-  agent's second resume was aborted in favour of the completion path.
+  `EVALUATION_COMPLETE`; assert final result is `{success:true}` and the agent's
+  second resume was aborted in favour of the completion path.
 
 ### 7. `libraries/libeval/test/supervisor-run.test.js` — `isIntervention` coverage
 
@@ -351,20 +349,20 @@ the NDJSON output and assert:
 
 - At least one line has `source === "orchestrator"` and
   `event.type === "intervention_requested"`.
-- At least one agent line and at least one supervisor line share the same
-  `turn` value (mid-turn supervisor activity).
+- At least one agent line and at least one supervisor line share the same `turn`
+  value (mid-turn supervisor activity).
 - The final summary line is still emitted and still has
   `source === "orchestrator"`, `type === "summary"`.
 
-This protects the improvement coach's parser contract: new event sources /
-types are additive, never rename existing ones.
+This protects the improvement coach's parser contract: new event sources / types
+are additive, never rename existing ones.
 
 ### 9. `.claude/skills/product-evaluation/SKILL.md` — document intervention
 
-Update "Step 2: Supervise the Session" with a single paragraph on *when* to
+Update "Step 2: Supervise the Session" with a single paragraph on _when_ to
 intervene — the mechanics (batches, `EVALUATION_INTERVENTION`,
-`EVALUATION_COMPLETE`) already live in `SUPERVISOR_SYSTEM_PROMPT` and must
-not be restated here (per CLAUDE.md / CONTINUOUS_IMPROVEMENT.md's
+`EVALUATION_COMPLETE`) already live in `SUPERVISOR_SYSTEM_PROMPT` and must not
+be restated here (per CLAUDE.md / CONTINUOUS_IMPROVEMENT.md's
 instruction-layering rule):
 
 ```
@@ -379,17 +377,17 @@ the struggle has become noise.
 Dependencies force this order:
 
 1. **`isIntervention` + export** — small, self-contained, tested in isolation.
-2. **`AgentRunner.onBatch` + `AbortController` plumbing** — no behaviour
-   change yet (supervisor doesn't pass `onBatch`, so old tests still pass).
+2. **`AgentRunner.onBatch` + `AbortController` plumbing** — no behaviour change
+   yet (supervisor doesn't pass `onBatch`, so old tests still pass).
 3. **`Supervisor.run()` mid-turn loop + orchestrator events +
    `interventionSignalSeen` flag** — wire the supervisor to use the new
    AgentRunner hooks.
 4. **Prompt updates** (`SUPERVISOR_SYSTEM_PROMPT`, `AGENT_SYSTEM_PROMPT`) —
-   independent of the runtime changes; done last among source changes so
-   earlier steps can be verified in isolation.
+   independent of the runtime changes; done last among source changes so earlier
+   steps can be verified in isolation.
 5. **Tests** — added alongside their corresponding source changes (step 1:
-   `isIntervention` tests; step 2: onBatch mock; step 3: the three
-   intervention tests + output trace test).
+   `isIntervention` tests; step 2: onBatch mock; step 3: the three intervention
+   tests + output trace test).
 6. **`product-evaluation/SKILL.md`** — documentation, done once behaviour is
    stable.
 7. **`bun run check` + `bun run test`** across the libeval package.
@@ -397,6 +395,7 @@ Dependencies force this order:
 ## Blast radius
 
 **Modified:**
+
 - `libraries/libeval/src/supervisor.js`
 - `libraries/libeval/src/agent-runner.js`
 - `libraries/libeval/index.js` (export `isIntervention` — barrel lives at the
@@ -410,10 +409,11 @@ Dependencies force this order:
 **Deleted:** none.
 
 **Unchanged (deliberately):**
+
 - `libraries/libeval/src/commands/supervise.js` — CLI surface is untouched.
 - `libraries/libeval/src/commands/run.js` — non-supervised path is out of scope.
-- `libraries/libeval/src/trace-collector.js` — batch rendering reuses it via
-  the existing `extractTranscript` pattern.
+- `libraries/libeval/src/trace-collector.js` — batch rendering reuses it via the
+  existing `extractTranscript` pattern.
 - `libraries/libeval/src/tee-writer.js` — output formatting is downstream of
   `Supervisor.output.write()` and sees the new orchestrator events without
   modification.
@@ -421,22 +421,22 @@ Dependencies force this order:
 
 ## Pre-implementation smoke test
 
-Before wiring `onBatch` through `Supervisor.run()`, the implementer must
-confirm one SDK-level assumption with a ~20-line disposable script:
+Before wiring `onBatch` through `Supervisor.run()`, the implementer must confirm
+one SDK-level assumption with a ~20-line disposable script:
 
 - **Does the SDK session survive an `AbortController.abort()` mid-stream and
-  continue with full context on `resume(sessionId)`?** Script: start a
-  `query()` with a long-running task, abort the controller after the first
-  assistant message, then call a second `query({ prompt: "follow up", options: { resume: sessionId } })`
-  and confirm the second session sees the first turn's history. If the
-  aborted session is not resumable (e.g. the SDK discards the server-side
-  checkpoint on abort), the plan needs to fall back to a different interrupt
-  mechanism — most likely pushing a sentinel tool-denial and letting the
-  turn end naturally. Running this smoke first avoids rewriting the mid-turn
-  loop under pressure.
+  continue with full context on `resume(sessionId)`?** Script: start a `query()`
+  with a long-running task, abort the controller after the first assistant
+  message, then call a second
+  `query({ prompt: "follow up", options: { resume: sessionId } })` and confirm
+  the second session sees the first turn's history. If the aborted session is
+  not resumable (e.g. the SDK discards the server-side checkpoint on abort), the
+  plan needs to fall back to a different interrupt mechanism — most likely
+  pushing a sentinel tool-denial and letting the turn end naturally. Running
+  this smoke first avoids rewriting the mid-turn loop under pressure.
 
-This is the only SDK behaviour the plan cannot verify from the `.d.ts`
-surface alone.
+This is the only SDK behaviour the plan cannot verify from the `.d.ts` surface
+alone.
 
 ## Verification
 
@@ -444,15 +444,16 @@ surface alone.
 - `bun run test --filter=@forwardimpact/libeval` passes, including the new
   intervention tests and all pre-existing `supervisor-run` and
   `supervisor-output` tests.
-- Manual smoke: `bunx fit-eval supervise --task-text="..." --output=trace.ndjson`
-  on a scenario that is known to dead-end (candidate: `guide-setup`), then
+- Manual smoke:
+  `bunx fit-eval supervise --task-text="..." --output=trace.ndjson` on a
+  scenario that is known to dead-end (candidate: `guide-setup`), then
   `grep intervention_requested trace.ndjson` — at least one hit.
 - Manual smoke (feature-invisible-when-not-needed): a clean scenario produces
-  zero `intervention_requested` events and substantively the same turn count
-  as on `master`.
-- Improvement coach parser sanity: run `.claude/skills/gemba-walk` over the
-  new trace; it should load and display without parser errors.
+  zero `intervention_requested` events and substantively the same turn count as
+  on `master`.
+- Improvement coach parser sanity: run `.claude/skills/gemba-walk` over the new
+  trace; it should load and display without parser errors.
 - Degenerate all-tools turn: the implicit flush at the SDK `result` message
-  guarantees the supervisor sees at least one batch per turn even when the
-  agent produces only tool calls and no assistant text. Verified by the
-  "observation without intervention" test, which uses a result-only mock.
+  guarantees the supervisor sees at least one batch per turn even when the agent
+  produces only tool calls and no assistant text. Verified by the "observation
+  without intervention" test, which uses a result-only mock.

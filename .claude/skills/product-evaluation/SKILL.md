@@ -50,6 +50,11 @@ independent exploration is the signal.
 
 ### Step 2: Supervise the Session
 
+Intervene when the agent heads down a dead end, burns turn budget on the wrong
+thing, or has misread the documentation — but intervene sparingly. The agent's
+independent struggle is part of the signal; step in only when the struggle has
+become noise.
+
 Each turn, you see the agent's full output. Decide how to respond:
 
 | Agent State              | Your Response                                |

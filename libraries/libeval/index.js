@@ -5,5 +5,7 @@ export {
   createSupervisor,
   SUPERVISOR_SYSTEM_PROMPT,
   AGENT_SYSTEM_PROMPT,
+  isComplete,
+  isIntervention,
 } from "./src/supervisor.js";
 export { TeeWriter, createTeeWriter } from "./src/tee-writer.js";

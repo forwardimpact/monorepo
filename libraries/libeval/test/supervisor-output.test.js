@@ -3,62 +3,12 @@ import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
 import {
-  AgentRunner,
   Supervisor,
   createSupervisor,
   SUPERVISOR_SYSTEM_PROMPT,
   AGENT_SYSTEM_PROMPT,
 } from "@forwardimpact/libeval";
-
-/**
- * Create a mock AgentRunner that yields pre-scripted responses.
- * @param {object[]} responses - Array of {text, success} objects
- * @param {object[]} [messages] - Messages to buffer per turn
- * @returns {AgentRunner}
- */
-function createMockRunner(responses, messages) {
-  const output = new PassThrough();
-  let callIndex = 0;
-
-  const runner = new AgentRunner({
-    cwd: "/tmp",
-    query: async function* () {},
-    output,
-  });
-
-  runner.run = async (_task) => {
-    const resp = responses[callIndex++];
-    const msgs = messages?.[callIndex - 1] ?? [
-      { type: "assistant", content: resp.text },
-    ];
-    for (const m of msgs) {
-      const line = JSON.stringify(m);
-      runner.buffer.push(line);
-      if (runner.onLine) runner.onLine(line);
-    }
-    runner.sessionId = "mock-session";
-    return {
-      success: resp.success ?? true,
-      text: resp.text,
-      sessionId: "mock-session",
-    };
-  };
-
-  runner.resume = async (_prompt) => {
-    const resp = responses[callIndex++];
-    const msgs = messages?.[callIndex - 1] ?? [
-      { type: "assistant", content: resp.text },
-    ];
-    for (const m of msgs) {
-      const line = JSON.stringify(m);
-      runner.buffer.push(line);
-      if (runner.onLine) runner.onLine(line);
-    }
-    return { success: resp.success ?? true, text: resp.text };
-  };
-
-  return runner;
-}
+import { createMockRunner } from "./mock-runner.js";
 
 describe("Supervisor - output and events", () => {
   test("output contains tagged lines with correct source and turn", async () => {
@@ -148,6 +98,113 @@ describe("Supervisor - output and events", () => {
     const tagged = JSON.parse(lines[1]);
     assert.strictEqual(tagged.source, "agent");
     assert.strictEqual(tagged.event.source, "sdk-internal");
+  });
+
+  test("mid-turn intervention emits orchestrator events and shares the agent's turn id", async () => {
+    // Agent emits one structured assistant text block on its first call —
+    // supervisor intervenes mid-turn. Resume then completes naturally and
+    // the end-of-turn review signals EVALUATION_COMPLETE.
+    const agentMessages = [
+      [
+        {
+          type: "assistant",
+          message: {
+            content: [{ type: "text", text: "Trying the wrong thing." }],
+          },
+        },
+      ],
+      [
+        {
+          type: "assistant",
+          message: {
+            content: [{ type: "text", text: "Switching to the right thing." }],
+          },
+        },
+      ],
+    ];
+
+    const supervisorMessages = [
+      undefined,
+      [
+        {
+          type: "assistant",
+          message: {
+            content: [
+              {
+                type: "text",
+                text: "EVALUATION_INTERVENTION Switch to the right path.",
+              },
+            ],
+          },
+        },
+      ],
+      undefined,
+      undefined,
+    ];
+
+    const agentRunner = createMockRunner(
+      [{ text: "Trying the wrong thing." }, { text: "Switching." }],
+      agentMessages,
+    );
+    const supervisorRunner = createMockRunner(
+      [
+        { text: "Welcome." },
+        { text: "EVALUATION_INTERVENTION Switch to the right path." },
+        { text: "Keep going." },
+        { text: "Done. EVALUATION_COMPLETE" },
+      ],
+      supervisorMessages,
+    );
+
+    const output = new PassThrough();
+    const supervisor = new Supervisor({
+      agentRunner,
+      supervisorRunner,
+      output,
+      maxTurns: 10,
+    });
+    agentRunner.onLine = (line) => supervisor.emitLine(line);
+    supervisorRunner.onLine = (line) => supervisor.emitLine(line);
+
+    const result = await supervisor.run("Task");
+    assert.strictEqual(result.success, true);
+
+    const lines = (output.read()?.toString() ?? "")
+      .trim()
+      .split("\n")
+      .filter((l) => l.length > 0)
+      .map((l) => JSON.parse(l));
+
+    // (1) Orchestrator event with intervention_requested.
+    const interventionRequested = lines.find(
+      (l) =>
+        l.source === "orchestrator" &&
+        l.event?.type === "intervention_requested",
+    );
+    assert.ok(
+      interventionRequested,
+      "Trace must contain intervention_requested orchestrator event",
+    );
+
+    // (2) At least one agent line and one supervisor line share a turn id —
+    //     mid-turn supervisor activity is tagged with the agent's turn.
+    const agentTurns = new Set(
+      lines.filter((l) => l.source === "agent").map((l) => l.turn),
+    );
+    const supervisorTurns = new Set(
+      lines.filter((l) => l.source === "supervisor").map((l) => l.turn),
+    );
+    const sharedTurns = [...agentTurns].filter((t) => supervisorTurns.has(t));
+    assert.ok(
+      sharedTurns.length > 0,
+      "At least one turn id must appear on both agent and supervisor lines",
+    );
+
+    // (3) Final summary line still emitted.
+    const summary = lines[lines.length - 1];
+    assert.strictEqual(summary.source, "orchestrator");
+    assert.strictEqual(summary.type, "summary");
+    assert.strictEqual(summary.success, true);
   });
 
   test("emits supervisor output and summary when supervisor errors on turn 0", async () => {
