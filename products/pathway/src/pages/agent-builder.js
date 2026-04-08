@@ -30,6 +30,7 @@ import {
   createSingleStagePreview,
   createHelpSection,
 } from "./agent-builder-preview.js";
+import { createInstallSection } from "./agent-builder-install.js";
 
 /** All stages option value */
 const ALL_STAGES_VALUE = "all";
@@ -79,6 +80,7 @@ async function getTemplates() {
  */
 export async function renderAgentBuilder() {
   const { data } = getState();
+  const siteUrl = data.framework?.distribution?.siteUrl;
 
   // Show loading state
   render(
@@ -260,8 +262,27 @@ export async function renderAgentBuilder() {
       templates,
     };
 
+    // Install section (ecosystem-tool install commands) — appears above the
+    // preview cards so the install action is visible before users scroll
+    // through the generated files. Only rendered when the framework has a
+    // published distribution site URL, since the packs only exist at that
+    // URL after a `fit-pathway build`. Must come after the stage-validity
+    // guard below so an invalid stage id (e.g. from a stale bookmark) does
+    // not pair the install card with a "Stage not found" error.
+    function appendInstallSection() {
+      const installSection = createInstallSection({
+        discipline: humanDiscipline,
+        track: humanTrack,
+        siteUrl,
+      });
+      if (installSection) {
+        previewContainer.appendChild(installSection);
+      }
+    }
+
     // Generate preview based on stage selection
     if (stage === ALL_STAGES_VALUE) {
+      appendInstallSection();
       previewContainer.appendChild(createAllStagesPreview(context));
     } else {
       const stageObj = stages.find((s) => s.id === stage);
@@ -274,6 +295,7 @@ export async function renderAgentBuilder() {
         );
         return;
       }
+      appendInstallSection();
       previewContainer.appendChild(createSingleStagePreview(context, stageObj));
     }
   }

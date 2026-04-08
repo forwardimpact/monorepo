@@ -33,6 +33,54 @@
     gap: var(--space-xl);
   }
 
+  /* Install section — ecosystem-tool install commands shown between the
+     dropdowns and the preview cards. Uses the same surface treatment as
+     the form so the two blocks read as a matched pair. */
+  .agent-install-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .agent-install-header h2 {
+    margin: 0 0 var(--space-sm) 0;
+  }
+
+  .agent-install-description {
+    margin: 0;
+  }
+
+  .agent-install-commands {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .agent-install-command {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .agent-install-command-label {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+  }
+
+  /* Allow the command prompts inside the install section to grow beyond the
+     600px center-aligned default used on the landing hero. */
+  .agent-install-command .command-prompt {
+    max-width: none;
+    margin: 0;
+  }
+
   /* Agent section — spacing container, no surface */
   .agent-section {
     margin-bottom: var(--space-lg);
