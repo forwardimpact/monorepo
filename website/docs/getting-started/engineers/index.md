@@ -103,7 +103,7 @@ engineering artifacts against your skill markers.
 ### Install and configure
 
 ```sh
-npx fit-codegen --all
+npx fit-codegen --all    # provided by @forwardimpact/libcodegen (a dependency of guide)
 npx fit-guide --init
 ```
 
@@ -138,9 +138,9 @@ Before starting the services, process the framework data and agent definitions
 into the indexes that Guide's services read at runtime:
 
 ```sh
-npx fit-process-agents
-npx fit-process-resources
-npx fit-process-graphs
+npx fit-process-agents    # provided by @forwardimpact/libagent
+npx fit-process-resources # provided by @forwardimpact/libresource
+npx fit-process-graphs    # provided by @forwardimpact/libgraph
 ```
 
 These steps transform your `config/agents/` and `data/pathway/` into the
@@ -150,7 +150,7 @@ update framework data or agent definitions.
 ### Start the service stack
 
 ```sh
-npx fit-rc start
+npx fit-rc start          # provided by @forwardimpact/librc
 ```
 
 This supervises all required microservices (trace, vector, graph, llm, memory,
