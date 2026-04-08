@@ -33,7 +33,7 @@ jobs:
       - uses: ./.github/actions/bootstrap
 
       - name: Run Security Audit
-        uses: ./.github/actions/fit-eval
+        uses: ./.github/actions/gemba-action
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}

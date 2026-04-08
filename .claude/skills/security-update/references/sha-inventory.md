@@ -11,7 +11,7 @@ workflow files and composite actions that reference the action.
 | `actions/create-github-app-token` | guide-setup.yml (×2), improvement-coach.yml, product-backlog.yml, product-feedback.yml, publish-skills.yml, release-readiness.yml, release-review.yml, security-audit.yml, security-update.yml                                                                                                          |
 | `actions/setup-node`              | check-security.yml, publish-npm.yml, website.yaml                                                                                                                                                                                                                                                       |
 | `actions/cache`                   | check-test.yml                                                                                                                                                                                                                                                                                          |
-| `actions/upload-artifact`         | .github/actions/fit-eval/action.yml (×3)                                                                                                                                                                                                                                                                |
+| `actions/upload-artifact`         | .github/actions/gemba-action/action.yml (×3)                                                                                                                                                                                                                                                                |
 | `actions/configure-pages`         | website.yaml                                                                                                                                                                                                                                                                                            |
 | `actions/upload-pages-artifact`   | website.yaml                                                                                                                                                                                                                                                                                            |
 | `actions/deploy-pages`            | website.yaml                                                                                                                                                                                                                                                                                            |
@@ -27,7 +27,7 @@ file changes are needed — only the composite action's `action.yml`.
 | Composite action            | Third-party actions used       |
 | --------------------------- | ------------------------------ |
 | `.github/actions/bootstrap` | `oven-sh/setup-bun`            |
-| `.github/actions/fit-eval`  | `actions/upload-artifact` (×3) |
+| `.github/actions/gemba-action`  | `actions/upload-artifact` (×3) |
 
 ## Verification
 
