@@ -23,12 +23,23 @@ canonical query shapes used in the steps below.
 
 ## Pre-Flight: Verify Main Branch CI
 
+<read_do_checklist>
+
+- [ ] Ran
+      `gh run list --branch main --limit 5 --json name,conclusion,headBranch`.
+- [ ] All recent workflows show `conclusion: success`.
+- [ ] If any are failing due to trivial issues (formatting, lint, lock file
+      drift), repaired via `bun run check:fix` on `main`, committed, and pushed.
+- [ ] Waited for CI to confirm green. If failures persist after `check:fix`,
+      **stop** — do not release from a broken `main`.
+
+</read_do_checklist>
+
+Worked examples:
+
 ```sh
 gh run list --branch main --limit 5 --json name,conclusion,headBranch
 ```
-
-All recent workflows must show `conclusion: success`. If any are failing due to
-trivial issues (formatting, lint, lock file drift), repair first:
 
 ```sh
 git checkout main && git pull origin main
@@ -37,9 +48,6 @@ bun run check            # Must pass
 git add <fixed-files> && git commit -m "chore: fix formatting on main"
 git push origin main
 ```
-
-Wait for CI to confirm green. If failures persist after `check:fix`, **stop** —
-do not release from a broken `main`.
 
 ## Tag Prefix Mapping
 

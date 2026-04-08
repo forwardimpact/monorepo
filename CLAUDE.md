@@ -112,8 +112,20 @@ consult the [Getting Started guides](website/docs/getting-started/).
 - **[Operations Reference](website/docs/internals/operations/index.md)** —
   Environment setup, service management, common tasks.
 
-Two checklists frame every contribution, following Atul Gawande's _Checklist
-Manifesto_:
+### Checklists
+
+Two checklist types frame every contribution, following Atul Gawande's
+_Checklist Manifesto_ (Ch. 6):
+
+- **READ-DO** — Read each item, then do it. Entry gate: internalize before
+  starting. Marked with `<read_do_checklist>` tags.
+- **DO-CONFIRM** — Do from memory, then pause and confirm every item. Exit gate:
+  verify before proceeding. Marked with `<do_confirm_checklist>` tags.
+
+When you encounter these tags anywhere in the instruction stack —
+CONTRIBUTING.md, agent profiles, skills — follow the protocol the tag names:
+read-then-do for entry gates, do-then-confirm for exit gates. Not every list is
+a checklist — only tagged blocks carry the halt-and-verify obligation.
 
 - **Before starting**, run [CONTRIBUTING.md § READ-DO](CONTRIBUTING.md#read-do)
   — the rules to hold in mind while writing, including _Simple over easy_.

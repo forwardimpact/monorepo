@@ -38,12 +38,18 @@ All comment templates and the report format are in `references/templates.md`.
 
 ## Gate Checklist
 
-| #   | Gate                                  | Verification                       | On failure                                                   |
-| --- | ------------------------------------- | ---------------------------------- | ------------------------------------------------------------ |
-| 1   | Author is trusted                     | CI app or top-20 lookup (Step 2)   | Mark **blocked** — comment that only trusted authors merge   |
-| 2   | PR type is `fix`, `bug`, or `spec`    | Parse title prefix (Step 3)        | Mark **blocked** — comment that the PR type is outside scope |
-| 3   | All CI checks pass                    | `gh pr checks` (Step 4)            | Mark **blocked** — comment with the failing checks           |
-| 4   | Spec quality approved (spec PRs only) | Apply `gemba-spec` review (Step 5) | Mark **blocked** — comment with review findings              |
+<do_confirm_checklist>
+
+- [ ] **Author is trusted** — CI app or top-20 lookup (Step 2). On failure, mark
+      **blocked** and comment that only trusted authors merge.
+- [ ] **PR type is `fix`, `bug`, or `spec`** — parse title prefix (Step 3). On
+      failure, mark **blocked** and comment that the PR type is outside scope.
+- [ ] **All CI checks pass** — `gh pr checks` (Step 4). On failure, mark
+      **blocked** and comment with the failing checks.
+- [ ] **Spec quality approved** (spec PRs only) — apply `gemba-spec` review
+      (Step 5). On failure, mark **blocked** and comment with review findings.
+
+</do_confirm_checklist>
 
 A PR that passes all four gates is marked **mergeable** in the report;
 `gemba-product-merge` then performs the merge in the Do phase.

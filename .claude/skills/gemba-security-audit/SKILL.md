@@ -76,13 +76,18 @@ Each run covers **one topic** in depth.
 
 ## 8. Audit Checklist
 
-- Run `just audit` locally and report findings.
-- Review `.github/workflows/` for unpinned actions, missing permissions.
-- Review `package.json` files for unnecessary or duplicate dependencies.
-- Review `.gitignore` and `.gitleaks.toml` for coverage gaps.
-- Review `eslint.config.js` for disabled security rules.
-- Grep for vulnerability patterns: `eval(`, `child_process.exec(`, `innerHTML`,
-  `new Function(`, unsanitized template literals in SQL/shell contexts.
+<do_confirm_checklist>
+
+- [ ] Ran `just audit` locally and reported findings.
+- [ ] Reviewed `.github/workflows/` for unpinned actions, missing permissions.
+- [ ] Reviewed `package.json` files for unnecessary or duplicate dependencies.
+- [ ] Reviewed `.gitignore` and `.gitleaks.toml` for coverage gaps.
+- [ ] Reviewed `eslint.config.js` for disabled security rules.
+- [ ] Grepped for vulnerability patterns: `eval(`, `child_process.exec(`,
+      `innerHTML`, `new Function(`, unsanitized template literals in SQL/shell
+      contexts.
+
+</do_confirm_checklist>
 
 ## 9. Output
 

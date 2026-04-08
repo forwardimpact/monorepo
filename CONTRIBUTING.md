@@ -30,6 +30,8 @@ checks.
 Read every item before starting, and hold them while writing. Entry gate — don't
 start until all are internalized.
 
+<read_do_checklist>
+
 - [ ] **Understand the task.** What is it actually asking? Which files will I
       touch, and which will I not?
 - [ ] **Smallest plan.** No unrequested features, abstractions, or refactors. If
@@ -46,16 +48,22 @@ start until all are internalized.
       shims, aliases, or feature flags for the old path. If there are no
       consumers yet, remove the old interface entirely.
 
+</read_do_checklist>
+
 ### DO-CONFIRM
 
 Before committing, verify every item. Exit gate — don't proceed until all are
 confirmed.
+
+<do_confirm_checklist>
 
 - [ ] `bun run check` passes — format and lint, all file types.
 - [ ] `bun run test` passes — new logic has tests.
 - [ ] My diff only contains changes the task required — no unrequested
       refactors, no scope creep.
 - [ ] Commit format: `type(scope): subject` (see § Git Conventions).
+
+</do_confirm_checklist>
 
 ## Pull Request Workflow
 
