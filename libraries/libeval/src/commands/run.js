@@ -32,6 +32,7 @@ function parseFlag(args, name) {
  *   --output=PATH        Write NDJSON trace to file (default: stdout)
  *   --allowed-tools=LIST Comma-separated tools (default: Bash,Read,Glob,Grep,Write,Edit)
  *   --agent-profile=NAME Agent profile name (passed as --agent to Claude CLI)
+ *   --task-amend=TEXT     Additional text appended to the task prompt
  *
  * @param {string[]} args - Command arguments
  */
@@ -49,11 +50,14 @@ export async function runRunCommand(args) {
   const maxTurns = maxTurnsRaw === "0" ? 0 : parseInt(maxTurnsRaw, 10);
   const outputPath = parseFlag(args, "output");
   const agentProfile = parseFlag(args, "agent-profile") ?? undefined;
+  const taskAmend = parseFlag(args, "task-amend") ?? undefined;
   const allowedTools = (
-    parseFlag(args, "allowed-tools") ?? "Bash,Read,Glob,Grep,Write,Edit"
+    parseFlag(args, "allowed-tools") ??
+      "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
   ).split(",");
 
-  const taskContent = taskFile ? readFileSync(taskFile, "utf8") : taskText;
+  let taskContent = taskFile ? readFileSync(taskFile, "utf8") : taskText;
+  if (taskAmend) taskContent += `\n\n${taskAmend}`;
 
   // When --output is specified, stream text to stdout while writing NDJSON to file.
   // Otherwise, write NDJSON directly to stdout (backwards-compatible).

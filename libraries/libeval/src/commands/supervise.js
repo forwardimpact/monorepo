@@ -34,8 +34,12 @@ function parseSuperviseOptions(args) {
 
   const supervisorAllowedToolsRaw = parseFlag(args, "supervisor-allowed-tools");
 
+  const taskAmend = parseFlag(args, "task-amend") ?? undefined;
+  let taskContent = taskFile ? readFileSync(taskFile, "utf8") : taskText;
+  if (taskAmend) taskContent += `\n\n${taskAmend}`;
+
   return {
-    taskContent: taskFile ? readFileSync(taskFile, "utf8") : taskText,
+    taskContent,
     supervisorCwd: resolve(parseFlag(args, "supervisor-cwd") ?? "."),
     agentCwd: resolve(
       parseFlag(args, "agent-cwd") ??
@@ -50,7 +54,8 @@ function parseSuperviseOptions(args) {
     supervisorProfile: parseFlag(args, "supervisor-profile") ?? undefined,
     agentProfile: parseFlag(args, "agent-profile") ?? undefined,
     allowedTools: (
-      parseFlag(args, "allowed-tools") ?? "Bash,Read,Glob,Grep,Write,Edit"
+      parseFlag(args, "allowed-tools") ??
+        "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
     ).split(","),
     supervisorAllowedTools: supervisorAllowedToolsRaw
       ? supervisorAllowedToolsRaw.split(",")
@@ -74,6 +79,7 @@ function parseSuperviseOptions(args) {
  *   --allowed-tools=LIST      Comma-separated tools for the agent (default: Bash,Read,Glob,Grep,Write,Edit)
  *   --supervisor-profile=NAME Supervisor agent profile name (passed as --agent to Claude CLI)
  *   --agent-profile=NAME      Agent profile name (passed as --agent to Claude CLI)
+ *   --task-amend=TEXT          Additional text appended to the task prompt
  *
  * @param {string[]} args - Command arguments
  */

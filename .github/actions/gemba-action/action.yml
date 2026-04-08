@@ -34,7 +34,7 @@ inputs:
   allowed-tools:
     description: Comma-separated list of allowed tools for the agent
     required: false
-    default: "Bash,Read,Glob,Grep,Write,Edit"
+    default: "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
   supervisor-allowed-tools:
     description:
       Comma-separated list of allowed tools for the supervisor (supervise mode
@@ -47,6 +47,9 @@ inputs:
     required: false
   agent-profile:
     description: Agent profile name (passed as --agent to Claude CLI)
+    required: false
+  task-amend:
+    description: Additional text appended to the task prompt for steering
     required: false
   trace:
     description: Enable trace capture and artifact upload
@@ -95,6 +98,7 @@ runs:
         SUPERVISOR_TOOLS: ${{ inputs.supervisor-allowed-tools }}
         SUPERVISOR_PROFILE: ${{ inputs.supervisor-profile }}
         AGENT_PROFILE: ${{ inputs.agent-profile }}
+        TASK_AMEND: ${{ inputs.task-amend }}
         TRACE_ENABLED: ${{ inputs.trace }}
         TRACE_DIR: ${{ steps.setup.outputs.trace-dir }}
       run: |
@@ -112,6 +116,10 @@ runs:
         else
           echo "::error::Either task-file or task-text is required"
           exit 1
+        fi
+
+        if [ -n "$TASK_AMEND" ]; then
+          args+=("--task-amend=$TASK_AMEND")
         fi
 
         if [ "$TRACE_ENABLED" = "true" ] && [ -n "$TRACE_DIR" ]; then
