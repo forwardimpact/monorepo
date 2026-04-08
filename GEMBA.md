@@ -34,41 +34,6 @@ installs Claude Code, runs a prompt against an agent profile, captures the
 execution trace as NDJSON, and uploads it as an artifact. Authentication via
 GitHub App tokens (see § Authentication).
 
-## Agents
-
-| Agent                 | Purpose                                                                   | PDSA phases    | Skills                                                                                                                       |
-| --------------------- | ------------------------------------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **security-engineer** | Patch dependencies, harden supply chain, enforce security policies        | Study, Do, Act | gemba-security-audit, gemba-security-update, gemba-spec                                                                       |
-| **staff-engineer**    | Own the full spec → plan → implement arc for approved specs               | Plan, Do       | gemba-plan, gemba-implement, gemba-gh-cli                                                                                     |
-| **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | Do             | gemba-release-readiness, gemba-release-review, gemba-gh-cli                                                                   |
-| **improvement-coach** | Walk traces, audit invariants, fix trivial issues, spec larger ones       | Study, Act     | gemba-walk, gemba-grounded-theory-analysis, gemba-trace-audit, gemba-spec, gemba-gh-cli                                       |
-| **product-manager**   | Triage issues and PRs, merge fix/bug/spec PRs, supervise evaluations      | Study, Act, Do | gemba-product-classify, gemba-product-merge, gemba-product-triage, gemba-product-evaluation, gemba-spec, gemba-plan, gemba-gh-cli |
-
-Each agent has explicit scope constraints — it knows what it must _not_ do. When
-a finding exceeds an agent's scope, it writes a formal spec (`specs/`) rather
-than attempting the fix.
-
-## Workflows
-
-Daily pipeline: work creators (04–05 UTC) → preparers (06 UTC) → planners
-(07:11 UTC) → implementers (07:53 UTC) → mergers (08 UTC) → releasers (09
-UTC) → analyzers (10 UTC). Same-agent workflows never overlap.
-
-| Workflow              | Schedule                | Agent             | Phase       | What it does                                                                  |
-| --------------------- | ----------------------- | ----------------- | ----------- | ----------------------------------------------------------------------------- |
-| **security-audit**    | Tue & Fri 04:07 UTC     | security-engineer | Study       | Audit supply chain, dependencies, credentials, OWASP Top 10                   |
-| **security-update**   | Mon & Thu 04:43 UTC     | security-engineer | Do          | Apply security updates: triage Dependabot PRs, address audit findings         |
-| **product-feedback**  | Mon, Wed, Fri 05:17 UTC | product-manager   | Study → Act | Triage open issues, implement trivial fixes, write specs for aligned requests |
-| **release-readiness** | Daily 06:23 UTC         | release-engineer  | Do          | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
-| **plan-specs**        | Daily 07:11 UTC         | staff-engineer    | Plan        | Pick up approved specs without plans and produce execution-ready plan.md       |
-| **implement-plans**   | Daily 07:53 UTC         | staff-engineer    | Do          | Pick up approved plans (`status: planned`) and execute via implement-spec      |
-| **product-backlog**   | Daily 08:13 UTC         | product-manager   | Study → Do  | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
-| **release-review**    | Tue, Thu, Sat 09:37 UTC | release-engineer  | Do          | Find unreleased changes, bump versions, tag, push, verify publish             |
-| **improvement-coach** | Wed & Sat 10:47 UTC     | improvement-coach | Study → Act | Deep-analyze a single random agent trace, open fix PRs or write specs         |
-
-Off-minute schedules avoid API load spikes. All workflows support
-`workflow_dispatch`, use concurrency groups, and have a 30-minute timeout.
-
 ## The PDSA Loop
 
 The system runs as a continuous **Plan–Do–Study–Act** cycle. Plans are
@@ -113,13 +78,13 @@ Study phase.
 The Study phase closes observation over the Do phase. Three study streams
 feed the next Act phase:
 
+- **Security engineer** studies the **repository's security posture** —
+  supply chain, dependencies, credentials, OWASP Top 10 — in `security-audit`.
 - **Product manager** studies **external feedback** — open issues, external
   PRs, contributor activity — in `product-feedback` and `product-backlog`.
   Triages against product alignment, verifies trust, classifies work, and
   gates merges. Product evaluation sessions feed the same stream with
   observations from first-time users.
-- **Security specialist** studies the **repository's security posture** —
-  supply chain, dependencies, credentials, OWASP Top 10 — in `security-audit`.
 - **Improvement coach** studies **internal agent behaviour**. Each cycle
   focuses on **one trace** — depth over breadth: select a run → download the
   trace → deep-analyze every turn via grounded theory (open coding → axial
@@ -143,6 +108,42 @@ insight into new inputs for the next cycle:
 Fix-or-spec discipline keeps mechanical repairs (`fix/` branches) separate
 from structural improvements (`spec/` branches) — never mixed in one PR.
 
+## Agents
+
+| Agent                 | Phase          | Purpose                                                                   | Skills                                                                                                                            |
+| --------------------- | -------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **staff-engineer**    | Plan, Do       | Own the full spec → plan → implement arc for approved specs               | gemba-plan, gemba-implement, gemba-gh-cli                                                                                          |
+| **security-engineer** | Do, Study, Act | Patch dependencies, harden supply chain, enforce security policies        | gemba-security-update, gemba-security-audit, gemba-spec                                                                            |
+| **release-engineer**  | Do             | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | gemba-release-readiness, gemba-release-review, gemba-gh-cli                                                                        |
+| **product-manager**   | Do, Study, Act | Triage issues and PRs, merge fix/bug/spec PRs, supervise evaluations      | gemba-plan, gemba-product-merge, gemba-product-triage, gemba-product-classify, gemba-product-evaluation, gemba-spec, gemba-gh-cli |
+| **improvement-coach** | Study, Act     | Walk traces, audit invariants, fix trivial issues, spec larger ones       | gemba-walk, gemba-grounded-theory-analysis, gemba-trace-audit, gemba-spec, gemba-gh-cli                                            |
+
+Each agent has explicit scope constraints — it knows what it must _not_ do. When
+a finding exceeds an agent's scope, it writes a formal spec (`specs/`) rather
+than attempting the fix.
+
+## Workflows
+
+Daily pipeline follows the PDSA cycle: **Plan** (04 UTC) → **Do** (05–07 UTC)
+→ **Study** (08 UTC) → **Study → Act** (09–11 UTC). Times respect dependencies
+(plans before implementation, rebase before merge, merge before release) and
+same-agent workflows never overlap.
+
+| Workflow              | Phase       | Schedule                | Agent             | What it does                                                                  |
+| --------------------- | ----------- | ----------------------- | ----------------- | ----------------------------------------------------------------------------- |
+| **plan-specs**        | Plan        | Daily 04:11 UTC         | staff-engineer    | Pick up approved specs without plans and produce execution-ready plan.md      |
+| **implement-plans**   | Do          | Daily 05:07 UTC         | staff-engineer    | Pick up approved plans (`status: planned`) and execute via implement-spec     |
+| **security-update**   | Do          | Mon & Thu 05:43 UTC     | security-engineer | Apply security updates: triage Dependabot PRs, address audit findings         |
+| **release-readiness** | Do          | Daily 06:23 UTC         | release-engineer  | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
+| **release-review**    | Do          | Tue, Thu, Sat 07:53 UTC | release-engineer  | Find unreleased changes, bump versions, tag, push, verify publish             |
+| **product-backlog**   | Study → Do  | Daily 07:13 UTC         | product-manager   | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
+| **security-audit**    | Study       | Tue & Fri 08:37 UTC     | security-engineer | Audit supply chain, dependencies, credentials, OWASP Top 10                   |
+| **product-feedback**  | Study → Act | Mon, Wed, Fri 09:17 UTC | product-manager   | Triage open issues, implement trivial fixes, write specs for aligned requests |
+| **improvement-coach** | Study → Act | Wed & Sat 10:47 UTC     | improvement-coach | Deep-analyze a single random agent trace, open fix PRs or write specs         |
+
+Off-minute schedules avoid API load spikes. All workflows support
+`workflow_dispatch`, use concurrency groups, and have a 30-minute timeout.
+
 ## Skills
 
 Each skill owns exactly one PDSA phase (or none for utilities). Reading an
@@ -152,20 +153,20 @@ All Gemba skills are namespaced with the `gemba-` prefix.
 
 | Skill                              | Phase | Purpose                                                                       |
 | ---------------------------------- | ----- | ----------------------------------------------------------------------------- |
+| **gemba-plan**                     | Plan  | Write and review plans (HOW); advance approved specs from `review → planned`  |
+| **gemba-security-update**          | Do    | Security updates: Dependabot triage, npm audit findings, vulnerability fixes  |
+| **gemba-implement**                | Do    | Execute an approved plan step by step; advance `planned → active → done`     |
+| **gemba-product-merge**            | Do    | Merge PRs marked mergeable by `gemba-product-classify`                        |
+| **gemba-release-readiness**        | Do    | Mechanical PR preparation — rebase, fix, report                               |
+| **gemba-release-review**           | Do    | Version bumps, tagging, publish verification                                  |
 | **gemba-security-audit**           | Study | Seven-area security review (supply chain, deps, credentials, OWASP, CI)       |
+| **gemba-product-triage**           | Study | Classify open issues for product alignment; produce a triage report           |
+| **gemba-product-classify**         | Study | Classify open PRs for mergeability — trust, type, CI, spec review             |
+| **gemba-product-evaluation**       | Study | Supervise product evaluation sessions, capture feedback, create issues        |
 | **gemba-walk**                     | Study | Open-ended trace observation via grounded theory                              |
 | **gemba-grounded-theory-analysis** | Study | Qualitative trace analysis adapted from research methodology                  |
 | **gemba-trace-audit**              | Study | Verify named per-agent invariants against a trace; quoted evidence required   |
-| **gemba-product-evaluation**       | Study | Supervise product evaluation sessions, capture feedback, create issues        |
-| **gemba-product-triage**           | Study | Classify open issues for product alignment; produce a triage report           |
-| **gemba-product-classify**         | Study | Classify open PRs for mergeability — trust, type, CI, spec review             |
 | **gemba-spec**                     | Act   | Write and review specs (WHAT/WHY); manage `draft → review` status             |
-| **gemba-plan**                     | Plan  | Write and review plans (HOW); advance approved specs from `review → planned`  |
-| **gemba-security-update**          | Do    | Security updates: Dependabot triage, npm audit findings, vulnerability fixes  |
-| **gemba-release-readiness**        | Do    | Mechanical PR preparation — rebase, fix, report                               |
-| **gemba-release-review**           | Do    | Version bumps, tagging, publish verification                                  |
-| **gemba-product-merge**            | Do    | Merge PRs marked mergeable by `gemba-product-classify`                        |
-| **gemba-implement**                | Do    | Execute an approved plan step by step; advance `planned → active → done`     |
 | **gemba-gh-cli**                   | —     | GitHub CLI installation and usage patterns for CI (utility, no PDSA phase)    |
 
 ## Trust Boundary
@@ -227,17 +228,17 @@ graph TD
 
 | Merge point           | Source                    | Trust model                                     |
 | --------------------- | ------------------------- | ----------------------------------------------- |
+| **plan-specs**        | Agent-authored `plan.md`  | Agent-only, against approved specs              |
+| **implement-plans**   | Agent-authored impl PRs   | Agent-only, against approved plans              |
+| **security-update**   | Dependabot PRs            | Trusted bot, policy-gated                       |
+| **release-readiness** | Agent-authored rebases    | Agent-only, no external input                   |
 | **product-backlog**   | External fix/bug PRs      | Top-20 contributor gate + CI                    |
 | **product-backlog**   | External spec PRs         | Top-20 gate + CI + spec review                  |
 | **product-backlog**   | CI app PRs                | Trusted app identity (`forward-impact-ci`) + CI |
-| **security-update**   | Dependabot PRs            | Trusted bot, policy-gated                       |
-| **release-readiness** | Agent-authored rebases    | Agent-only, no external input                   |
-| **plan-specs**        | Agent-authored `plan.md`  | Agent-only, against approved specs              |
-| **implement-plans**   | Agent-authored impl PRs   | Agent-only, against approved plans              |
 | **release-review**    | Agent-authored tags/bumps | Agent-only, no external input                   |
-| **release-engineer**  | Trivial CI fixes on main  | Agent-only, mechanical fixes only               |
-| **improvement-coach** | Agent-authored fix/spec   | Agent-only, traces as evidence                  |
 | **product-feedback**  | Agent-authored fix/spec   | Agent-only, issues as input                     |
+| **improvement-coach** | Agent-authored fix/spec   | Agent-only, traces as evidence                  |
+| **release-engineer**  | Trivial CI fixes on main  | Agent-only, mechanical fixes only               |
 
 ## Design Principles
 
@@ -340,9 +341,9 @@ skills                   — how to do it (procedures, checklists, templates)
 | Violation                                   | Symptom                                   |
 | ------------------------------------------- | ----------------------------------------- |
 | Task restates skill procedures              | Agent follows task wording, skips skill   |
+| Task references skills unavailable to agent | Agent stalls searching for missing skill  |
 | Profile copies skill checklists             | Tokens wasted parsing redundant text      |
 | Skill description parrots system prompt     | Contradictions when system prompt evolves |
-| Task references skills unavailable to agent | Agent stalls searching for missing skill  |
 
 ### Skill length and progressive disclosure
 
