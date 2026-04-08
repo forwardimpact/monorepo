@@ -45,7 +45,7 @@ export class AgentRunner {
     this.query = query;
     this.output = output;
     this.model = model ?? "opus";
-    this.maxTurns = maxTurns ?? 50;
+    this.maxTurns = maxTurns ?? 50; // 0 means unlimited (omit from SDK)
     this.allowedTools = allowedTools ?? [
       "Bash",
       "Read",
@@ -81,7 +81,7 @@ export class AgentRunner {
         options: {
           cwd: this.cwd,
           allowedTools: this.allowedTools,
-          maxTurns: this.maxTurns,
+          ...(this.maxTurns > 0 && { maxTurns: this.maxTurns }),
           model: this.model,
           permissionMode: this.permissionMode,
           allowDangerouslySkipPermissions: true,

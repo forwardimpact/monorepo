@@ -135,7 +135,8 @@ export class Supervisor {
       return { success: true, turns: 0 };
     }
 
-    for (let turn = 1; turn <= this.maxTurns; turn++) {
+    const turnLimit = this.maxTurns === 0 ? Infinity : this.maxTurns;
+    for (let turn = 1; turn <= turnLimit; turn++) {
       // Only the supervisor's final message is relayed to the agent.
       // Extract the last assistant text block from the buffer to avoid
       // leaking intermediate reasoning (research, tool calls, notes).

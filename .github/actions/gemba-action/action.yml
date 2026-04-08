@@ -28,7 +28,7 @@ inputs:
     required: false
     default: "opus"
   max-turns:
-    description: Maximum turns
+    description: Maximum turns (0 = unlimited)
     required: false
     default: "200"
   allowed-tools:
@@ -131,11 +131,14 @@ runs:
             args+=("--agent-profile=$AGENT_PROFILE")
           fi
 
+          if [ "$MAX_TURNS" != "0" ]; then
+            args+=("--max-turns=$MAX_TURNS")
+          fi
+
           bunx fit-eval supervise \
             --supervisor-cwd="$SUPERVISOR_CWD" \
             --agent-cwd="$agent_cwd" \
             --model="$MODEL" \
-            --max-turns="$MAX_TURNS" \
             --allowed-tools="$TOOLS" \
             "${args[@]}"
         else
@@ -143,10 +146,13 @@ runs:
             args+=("--agent-profile=$AGENT_PROFILE")
           fi
 
+          if [ "$MAX_TURNS" != "0" ]; then
+            args+=("--max-turns=$MAX_TURNS")
+          fi
+
           bunx fit-eval run \
             --cwd="$CWD" \
             --model="$MODEL" \
-            --max-turns="$MAX_TURNS" \
             --allowed-tools="$TOOLS" \
             "${args[@]}"
         fi

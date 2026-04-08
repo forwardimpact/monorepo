@@ -28,7 +28,7 @@ function parseFlag(args, name) {
  *   --task-text=STRING   Inline task text (mutually exclusive with --task-file)
  *   --cwd=DIR            Agent working directory (default: .)
  *   --model=MODEL        Claude model to use (default: opus)
- *   --max-turns=N        Maximum agentic turns (default: 50)
+ *   --max-turns=N        Maximum agentic turns (default: 50, 0 = unlimited)
  *   --output=PATH        Write NDJSON trace to file (default: stdout)
  *   --allowed-tools=LIST Comma-separated tools (default: Bash,Read,Glob,Grep,Write,Edit)
  *   --agent-profile=NAME Agent profile name (passed as --agent to Claude CLI)
@@ -45,7 +45,8 @@ export async function runRunCommand(args) {
 
   const cwd = resolve(parseFlag(args, "cwd") ?? ".");
   const model = parseFlag(args, "model") ?? "opus";
-  const maxTurns = parseInt(parseFlag(args, "max-turns") ?? "50", 10);
+  const maxTurnsRaw = parseFlag(args, "max-turns") ?? "50";
+  const maxTurns = maxTurnsRaw === "0" ? 0 : parseInt(maxTurnsRaw, 10);
   const outputPath = parseFlag(args, "output");
   const agentProfile = parseFlag(args, "agent-profile") ?? undefined;
   const allowedTools = (

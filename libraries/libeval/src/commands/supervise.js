@@ -42,7 +42,10 @@ function parseSuperviseOptions(args) {
         mkdtempSync(join(tmpdir(), "fit-eval-agent-")),
     ),
     model: parseFlag(args, "model") ?? "opus",
-    maxTurns: parseInt(parseFlag(args, "max-turns") ?? "20", 10),
+    maxTurns: (() => {
+      const raw = parseFlag(args, "max-turns") ?? "20";
+      return raw === "0" ? 0 : parseInt(raw, 10);
+    })(),
     outputPath: parseFlag(args, "output"),
     supervisorProfile: parseFlag(args, "supervisor-profile") ?? undefined,
     agentProfile: parseFlag(args, "agent-profile") ?? undefined,
@@ -66,7 +69,7 @@ function parseSuperviseOptions(args) {
  *   --supervisor-cwd=DIR      Supervisor working directory (default: .)
  *   --agent-cwd=DIR           Agent working directory (default: temp directory)
  *   --model=MODEL             Claude model to use (default: opus)
- *   --max-turns=N             Maximum supervisor / agent exchanges (default: 20)
+ *   --max-turns=N             Maximum supervisor / agent exchanges (default: 20, 0 = unlimited)
  *   --output=PATH             Write NDJSON trace to file (default: stdout)
  *   --allowed-tools=LIST      Comma-separated tools for the agent (default: Bash,Read,Glob,Grep,Write,Edit)
  *   --supervisor-profile=NAME Supervisor agent profile name (passed as --agent to Claude CLI)

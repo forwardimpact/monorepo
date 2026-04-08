@@ -29,7 +29,7 @@ Run options:
   --task-text=STRING   Inline task text (mutually exclusive with --task-file)
   --cwd=DIR            Agent working directory (default: .)
   --model=MODEL        Claude model to use (default: opus)
-  --max-turns=N        Maximum agentic turns (default: 50)
+  --max-turns=N        Maximum agentic turns (default: 50, 0 = unlimited)
   --output=PATH        Write NDJSON trace to file (default: stdout)
   --allowed-tools=LIST Comma-separated tools (default: Bash,Read,Glob,Grep,Write,Edit)
   --agent-profile=NAME Agent profile name (passed as --agent to Claude CLI)
@@ -40,7 +40,7 @@ Supervise options:
   --supervisor-cwd=DIR      Supervisor working directory (default: .)
   --agent-cwd=DIR           Agent working directory (default: temp directory)
   --model=MODEL             Claude model to use (default: opus)
-  --max-turns=N             Maximum supervisor ↔ agent exchanges (default: 20)
+  --max-turns=N             Maximum supervisor ↔ agent exchanges (default: 20, 0 = unlimited)
   --output=PATH             Write NDJSON trace to file (default: stdout)
   --allowed-tools=LIST      Comma-separated tools for agent (default: Bash,Read,Glob,Grep,Write,Edit)
   --supervisor-allowed-tools=LIST

@@ -43,4 +43,4 @@ jobs:
           task-text: Implement an approved plan.
           agent-profile: "staff-engineer"
           model: "opus"
-          max-turns: "200"
+          max-turns: "0"
