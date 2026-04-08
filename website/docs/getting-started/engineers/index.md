@@ -164,6 +164,26 @@ npx fit-guide                                        # Start interactive convers
 echo "What skills should I focus on for L3?" | npx fit-guide  # Pipe a question
 ```
 
+Example pipe-mode output:
+
+```
+L3 engineers in your organization focus on three skill areas:
+
+**System Design** — Design components that interact with other teams'
+services, make technology choices within your domain, and document
+architectural decisions.
+
+**Technical Leadership** — Lead small cross-functional projects, unblock
+peers on technical decisions, and mentor junior engineers on best
+practices.
+
+**Operational Awareness** — Own reliability for your services, set up
+monitoring and alerting, and participate in incident response rotations.
+
+Based on your current profile, prioritize System Design and Technical
+Leadership to close the gap to L3.
+```
+
 Guide reasons about your organization's specific skill definitions, behaviour
 expectations, and markers — not generic career advice.
 
