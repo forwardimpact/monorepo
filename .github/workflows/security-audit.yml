@@ -41,6 +41,6 @@ jobs:
         with:
           app-id: ${{ secrets.CI_APP_ID }}
           task-text: Audit one topic and act on findings.
-          agent-profile: "security-specialist"
+          agent-profile: "security-engineer"
           model: "opus"
           max-turns: "200"

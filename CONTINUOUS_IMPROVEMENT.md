@@ -6,7 +6,7 @@
 
 Autonomous repo self-maintenance powered by Claude Code agents on GitHub
 Actions, structured as a continuous **Plan–Do–Study–Act** (PDSA) loop. Seven
-scheduled workflows, four agent personas, and eleven skills form a
+scheduled workflows, five agent personas, and eleven skills form a
 self-reinforcing PDSA cycle that keeps the codebase secure, release-ready, and
 steadily improving. Product evaluation sessions feed the Study phase with
 observations from the user's perspective. This system maintains the project —
@@ -30,12 +30,13 @@ GitHub App tokens (see § Authentication).
 
 ## Agents
 
-| Agent                   | Purpose                                                                   | PDSA phases    | Skills                                                              |
-| ----------------------- | ------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------- |
-| **security-specialist** | Patch dependencies, harden supply chain, enforce security policies        | Study, Do, Act | security-update, security-audit, spec                               |
-| **release-manager**     | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | Do             | release-readiness, release-review, gh-cli                           |
-| **improvement-coach**   | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | Study, Act, Do | gemba-walk, grounded-theory-analysis, spec, gh-cli                  |
-| **product-manager**     | Review PRs for product alignment, triage issues, verify contributor trust | Study, Act, Do | product-backlog, product-feedback, product-evaluation, spec, gh-cli |
+| Agent                 | Purpose                                                                   | PDSA phases    | Skills                                                              |
+| --------------------- | ------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------- |
+| **security-engineer** | Patch dependencies, harden supply chain, enforce security policies        | Study, Do, Act | security-update, security-audit, spec                               |
+| **staff-engineer**    | Turn approved specs into execution-ready plans for trusted agents to ship | Plan           | spec, gh-cli                                                        |
+| **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | Do             | release-readiness, release-review, gh-cli                           |
+| **improvement-coach** | Deep-analyze agent traces, fix trivial issues, spec larger improvements   | Study, Act, Do | gemba-walk, grounded-theory-analysis, spec, gh-cli                  |
+| **product-manager**   | Review PRs for product alignment, triage issues, verify contributor trust | Study, Act, Do | product-backlog, product-feedback, product-evaluation, spec, gh-cli |
 
 Each agent has explicit scope constraints — it knows what it must _not_ do. When
 a finding exceeds an agent's scope, it writes a formal spec (`specs/`) rather
@@ -49,13 +50,13 @@ overlap.
 
 | Workflow              | Schedule                | Agent               | Phase       | What it does                                                                  |
 | --------------------- | ----------------------- | ------------------- | ----------- | ----------------------------------------------------------------------------- |
-| **security-audit**    | Tue & Fri 04:07 UTC     | security-specialist | Study       | Audit supply chain, dependencies, credentials, OWASP Top 10                   |
-| **security-update**   | Mon & Thu 04:43 UTC     | security-specialist | Do          | Apply security updates: triage Dependabot PRs, address audit findings         |
-| **product-feedback**  | Mon, Wed, Fri 05:17 UTC | product-manager     | Study → Act | Triage open issues, implement trivial fixes, write specs for aligned requests |
-| **release-readiness** | Daily 06:23 UTC         | release-manager     | Do          | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
-| **product-backlog**   | Daily 08:13 UTC         | product-manager     | Study → Do  | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
-| **release-review**    | Tue, Thu, Sat 09:37 UTC | release-manager     | Do          | Find unreleased changes, bump versions, tag, push, verify publish             |
-| **improvement-coach** | Wed & Sat 10:47 UTC     | improvement-coach   | Study → Act | Deep-analyze a single random agent trace, open fix PRs or write specs         |
+| **security-audit**    | Tue & Fri 04:07 UTC     | security-engineer | Study       | Audit supply chain, dependencies, credentials, OWASP Top 10                   |
+| **security-update**   | Mon & Thu 04:43 UTC     | security-engineer | Do          | Apply security updates: triage Dependabot PRs, address audit findings         |
+| **product-feedback**  | Mon, Wed, Fri 05:17 UTC | product-manager   | Study → Act | Triage open issues, implement trivial fixes, write specs for aligned requests |
+| **release-readiness** | Daily 06:23 UTC         | release-engineer  | Do          | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
+| **product-backlog**   | Daily 08:13 UTC         | product-manager   | Study → Do  | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
+| **release-review**    | Tue, Thu, Sat 09:37 UTC | release-engineer  | Do          | Find unreleased changes, bump versions, tag, push, verify publish             |
+| **improvement-coach** | Wed & Sat 10:47 UTC     | improvement-coach | Study → Act | Deep-analyze a single random agent trace, open fix PRs or write specs         |
 
 Off-minute schedules avoid API load spikes. All workflows support
 `workflow_dispatch`, use concurrency groups, and have a 30-minute timeout.
@@ -181,8 +182,8 @@ graph TD
     ISS["GitHub issues"]
     PM["Product Manager<br/>trust gate + CI"]
     CB["Codebase (main)"]
-    SE["Security Specialist<br/>Dependabot only"]
-    RE["Release Manager<br/>rebase + release"]
+    SE["Security Engineer<br/>Dependabot only"]
+    RE["Release Engineer<br/>rebase + release"]
 
     EXT -- "fix / bug PR" --> PM
     EXT -- "spec PR" --> PM
@@ -215,7 +216,7 @@ graph TD
 | **security-update**   | Dependabot PRs            | Trusted bot, policy-gated                       |
 | **release-readiness** | Agent-authored rebases    | Agent-only, no external input                   |
 | **release-review**    | Agent-authored tags/bumps | Agent-only, no external input                   |
-| **release-manager**   | Trivial CI fixes on main  | Agent-only, mechanical fixes only               |
+| **release-engineer**  | Trivial CI fixes on main  | Agent-only, mechanical fixes only               |
 | **improvement-coach** | Agent-authored fix/spec   | Agent-only, traces as evidence                  |
 | **product-feedback**  | Agent-authored fix/spec   | Agent-only, issues as input                     |
 
@@ -228,7 +229,7 @@ graph TD
   improvements (`spec/` branches) are never mixed in one PR.
 - **Explicit scope constraints.** Each agent lists what it must _not_ do.
 - **Main branch CI repair.** See CONTRIBUTING.md § Pull Request Workflow for the
-  release manager's direct-to-`main` exception.
+  release engineer's direct-to-`main` exception.
 - **Trace-driven observability.** Every workflow captures a full execution
   trace. The improvement coach must quote specific evidence — no speculation.
 - **Least privilege.** `security-audit` runs `contents: read` only. Write

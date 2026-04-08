@@ -43,6 +43,6 @@ jobs:
           task-text:
             Apply security updates, triage Dependabot PRs and address npm audit
             findings.
-          agent-profile: "security-specialist"
+          agent-profile: "security-engineer"
           model: "opus"
           max-turns: "200"

@@ -63,12 +63,12 @@ All changes go through pull requests — never push directly to `main`.
 
 **Always commit your work before finishing a task.**
 
-**Exception:** The release manager agent may push trivial CI fixes (formatting,
+**Exception:** The release engineer agent may push trivial CI fixes (formatting,
 lint, lock file drift) directly to `main` to unblock releases. This is limited
 to mechanical fixes that `bun run check:fix` can resolve — never logic, tests,
 or feature changes. See
-[.claude/agents/release-manager.md](.claude/agents/release-manager.md) for the
-full scope constraints.
+[.claude/agents/release-engineer.md](.claude/agents/release-engineer.md) for
+the full scope constraints.
 
 The pre-commit hook auto-formats staged files and scans for secrets. If the hook
 reformats files, it re-stages them automatically — just re-run your commit.

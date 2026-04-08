@@ -25,7 +25,7 @@ The `gh` CLI must be installed and authenticated. Verify with `gh auth status`.
 ### Step 0: Read Memory for PR History
 
 Read memory per the agent profile (your summary, the current week's log, and
-teammates' summaries). Extract the PR status table from prior `release-manager`
+teammates' summaries). Extract the PR status table from prior `release-engineer`
 entries to track consecutive-stuck counts.
 
 ### Step 1: List Open PRs

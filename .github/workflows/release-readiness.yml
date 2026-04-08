@@ -42,6 +42,6 @@ jobs:
         with:
           app-id: ${{ secrets.CI_APP_ID }}
           task-text: Check release readiness.
-          agent-profile: "release-manager"
+          agent-profile: "release-engineer"
           model: "opus"
           max-turns: "200"
