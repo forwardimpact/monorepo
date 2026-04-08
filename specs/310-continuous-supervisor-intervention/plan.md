@@ -292,20 +292,16 @@ Update the two system prompt constants:
 
 ```js
 export const SUPERVISOR_SYSTEM_PROMPT =
-  "You supervise another AI agent through a relay. " +
-  "You will see the agent's work in batches as it happens; for each batch, " +
-  "respond with a brief acknowledgement to let the agent continue, or write " +
-  "EVALUATION_INTERVENTION followed by a corrective message to stop the " +
-  "agent mid-turn and relay new instructions. " +
-  "Only your final message in each response is relayed to the agent. " +
-  "Write EVALUATION_COMPLETE when the task is complete.";
+  "You supervise another AI agent, seeing its work in batches. " +
+  "Reply briefly to let it continue, or write EVALUATION_INTERVENTION " +
+  "followed by new instructions to stop it mid-turn. " +
+  "Write EVALUATION_COMPLETE when the task is done. " +
+  "Only your final message is relayed.";
 
 export const AGENT_SYSTEM_PROMPT =
-  "You are being supervised by another AI agent. " +
-  "The supervisor may interrupt you mid-task with new instructions — treat " +
-  "any new prompt from the supervisor as authoritative and adjust course. " +
-  "When requirements are ambiguous or you are uncertain, stop and ask a " +
-  "clarifying question before proceeding.";
+  "A supervisor watches your work and may interrupt with new instructions " +
+  "mid-task. Treat any new prompt as authoritative and adjust course. " +
+  "When uncertain, stop and ask a clarifying question.";
 ```
 
 The assertions in `supervisor-output.test.js` lines 303-306 (`includes("relay")`
@@ -365,29 +361,18 @@ types are additive, never rename existing ones.
 
 ### 9. `.claude/skills/product-evaluation/SKILL.md` — document intervention
 
-Update "Step 2: Supervise the Session" to describe the mid-turn signal. The
-current table already lists agent states and responses; add a paragraph
-before/after it:
+Update "Step 2: Supervise the Session" with a single paragraph on *when* to
+intervene — the mechanics (batches, `EVALUATION_INTERVENTION`,
+`EVALUATION_COMPLETE`) already live in `SUPERVISOR_SYSTEM_PROMPT` and must
+not be restated here (per CLAUDE.md / CONTINUOUS_IMPROVEMENT.md's
+instruction-layering rule):
 
 ```
-You now see the agent's work in streaming batches, not just at the end of
-each turn. For each batch you may:
-
-- Write a brief acknowledgement (e.g. "Continue.") to let the agent keep going.
-- Write EVALUATION_INTERVENTION followed by a corrective message to stop the
-  agent mid-turn and relay new instructions. Use this when the agent is
-  heading down a dead end, burning turn budget on the wrong thing, or has
-  misread the documentation. The system will interrupt the agent's current
-  SDK session and resume it with your message as the next prompt.
-- Write EVALUATION_COMPLETE when the task is fully done (Step 3).
-
-Intervene sparingly. The agent's independent struggle is part of the signal;
-intervene only when the struggle has become noise.
+Intervene when the agent heads down a dead end, burns turn budget on the
+wrong thing, or has misread the documentation — but intervene sparingly.
+The agent's independent struggle is part of the signal; step in only when
+the struggle has become noise.
 ```
-
-Do **not** restate mechanics that already live in `SUPERVISOR_SYSTEM_PROMPT`
-(per CLAUDE.md / CONTINUOUS_IMPROVEMENT.md's instruction-layering rule). The
-skill's job is *when* to intervene; the prompt's job is *how*.
 
 ## Ordering
 
