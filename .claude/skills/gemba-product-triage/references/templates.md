@@ -136,7 +136,7 @@ Addresses #<number>
 
 ## Review
 
-This spec needs review before implementation can begin. See the `spec`
+This spec needs review before implementation can begin. See the `gemba-spec`
 skill for the review process.
 EOF
 )"

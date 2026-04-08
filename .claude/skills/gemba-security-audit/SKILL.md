@@ -1,5 +1,5 @@
 ---
-name: security-audit
+name: gemba-security-audit
 description: >
   Perform a holistic security review of the monorepo. Assess GitHub Actions
   supply chain, dependency hygiene, credential leak controls, CI audit gates,

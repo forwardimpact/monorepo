@@ -1,5 +1,5 @@
 ---
-name: product-evaluation
+name: gemba-product-evaluation
 description: >
   Supervise a product evaluation session where an agent tries a product as a
   first-time external user. Guide the session, capture feedback, and create
@@ -105,7 +105,7 @@ Then for each actionable item:
 2. **Check duplicates** — Search existing open issues before creating new ones
 3. **Create or comment** — File a new issue or add a comment with new context
    on a matching existing issue. Issue body templates live in
-   `../product-triage/references/templates.md` § New Issues from User Testing
+   `../gemba-product-triage/references/templates.md` § New Issues from User Testing
 4. **Summarize** — Add the item (with its issue number) to the summary table
 
 ### Step 5: Report

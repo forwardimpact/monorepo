@@ -1,5 +1,5 @@
 ---
-name: gh-cli
+name: gemba-gh-cli
 description: Install and use the GitHub CLI (gh). Use when interacting with GitHub issues, pull requests, releases, and API from the command line.
 ---
 
@@ -21,7 +21,7 @@ pull requests, and the GitHub API.
 The `gh` CLI may not be pre-installed. Install from the official tarball:
 
 ```sh
-bash .claude/skills/gh-cli/scripts/install.sh [version]
+bash .claude/skills/gemba-gh-cli/scripts/install.sh [version]
 ```
 
 Default version is `2.63.2`. Pass a version argument to override.

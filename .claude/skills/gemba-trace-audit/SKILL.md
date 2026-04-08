@@ -1,5 +1,5 @@
 ---
-name: trace-audit
+name: gemba-trace-audit
 description: >
   Audit an agent's workflow trace against named per-agent invariants.
   Confirms that scope-critical actions (e.g. contributor trust verification
@@ -17,7 +17,7 @@ honest. This skill verifies those invariants against a real execution
 trace and produces a structured audit report.
 
 This skill complements [`gemba-walk`](../gemba-walk/SKILL.md): the gemba
-walk is open-ended exploration with grounded theory; trace-audit is
+walk is open-ended exploration with grounded theory; gemba-trace-audit is
 targeted verification against a fixed checklist. Both consume the same
 trace artifacts; both feed findings into the Act phase via fix-or-spec
 discipline.
@@ -42,7 +42,7 @@ This is the canonical list of invariants the audit checks. Each invariant
 names: which trace it applies to, what evidence to look for, and the
 severity of a violation.
 
-### product-manager / product-classify traces
+### product-manager / product-backlog traces
 
 | Invariant                                          | Evidence to find                                                                                            | Severity   |
 | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------- |
@@ -125,8 +125,8 @@ Findings flow through the standard fix-or-spec discipline:
 - **Trivial fix** (mechanical, obvious) → branch from `main` as
   `fix/audit-<short-name>`, fix, push, open PR
 - **Structural finding** (requires design or workflow change) → branch
-  from `main` as `spec/audit-<short-name>`, write a spec via the `spec`
-  skill, push, open PR
+  from `main` as `spec/audit-<short-name>`, write a spec via the
+  `gemba-spec` skill, push, open PR
 
 A high-severity finding without a fix PR or spec by the end of the run
 is itself a process failure — record it and escalate.

@@ -1,16 +1,16 @@
 ---
-name: spec
+name: gemba-spec
 description: >
   Write and review specifications (WHAT/WHY) for features, changes, and
   improvements. Manage spec status in specs/STATUS through draft → review.
   Use when proposing changes, capturing findings as actionable specs, or
-  evaluating spec quality. Pair with the `plan` skill for the HOW side.
+  evaluating spec quality. Pair with the `gemba-plan` skill for the HOW side.
 phase: Act
 ---
 
 # Write and Review Specs
 
-A spec defines WHAT to build and WHY. Pair with the [`plan`](../plan/SKILL.md)
+A spec defines WHAT to build and WHY. Pair with the [`gemba-plan`](../gemba-plan/SKILL.md)
 skill — once a spec is approved, the staff engineer turns it into a plan that
 translates the WHAT/WHY into HOW.
 
@@ -29,7 +29,7 @@ asked for. If they ask for a spec, write the spec and stop.
 ```
 specs/{NNN}-{kebab-case-name}/
   spec.md    WHAT and WHY      (this skill)
-  plan.md    HOW               (the `plan` skill)
+  plan.md    HOW               (the `gemba-plan` skill)
 ```
 
 Number directories sequentially. Use the next available number.
@@ -62,15 +62,15 @@ draft → review → planned → active → done
 
 | Status    | Meaning                                             | Set by           |
 | --------- | --------------------------------------------------- | ---------------- |
-| `draft`   | Spec is being written, not ready for review         | `spec`           |
-| `review`  | Spec is ready for evaluation                        | `spec`           |
-| `planned` | Spec approved and a plan is approved                | `plan`           |
-| `active`  | Implementation in progress                          | `implement-spec` |
-| `done`    | Implemented                                         | `implement-spec` |
+| `draft`   | Spec is being written, not ready for review         | `gemba-spec`           |
+| `review`  | Spec is ready for evaluation                        | `gemba-spec`           |
+| `planned` | Spec approved and a plan is approved                | `gemba-plan`           |
+| `active`  | Implementation in progress                          | `gemba-implement-spec` |
+| `done`    | Implemented                                         | `gemba-implement-spec` |
 
-This skill owns the `draft` and `review` transitions. The `plan` skill advances
-to `planned` once both spec and plan are approved. The `implement-spec` skill
-owns `active` and `done`.
+This skill owns the `draft` and `review` transitions. The `gemba-plan` skill
+advances to `planned` once both spec and plan are approved. The
+`gemba-implement-spec` skill owns `active` and `done`.
 
 ## Reviewing a Spec
 
@@ -87,7 +87,7 @@ request changes and return status to `draft`.
 | Changes requested         | Revise   | `draft`       |
 
 *The spec stays at `review` until a plan is also approved — at which point
-the `plan` skill advances it to `planned`.
+the `gemba-plan` skill advances it to `planned`.
 
 If you are operating in a context where you cannot commit changes (e.g.,
 evaluating a spec PR for another workflow), report your decision and target
@@ -110,7 +110,7 @@ status clearly — the caller is responsible for acting on it.
 
 ## What NOT to Do
 
-- **Do not write the plan.** That belongs to the `plan` skill (Plan phase).
+- **Do not write the plan.** That belongs to the `gemba-plan` skill (Plan phase).
   Drafting implementation steps in the spec couples WHAT to HOW and forces
   rewrites whenever the implementation strategy changes.
 - **Do not approve without reading.** Every criterion must be checked against

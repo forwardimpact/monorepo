@@ -71,16 +71,17 @@ If no trace artifacts exist, pick a different run and note why.
 
 ### 3. Observe the Work
 
-Apply the `grounded-theory-analysis` skill to the trace. Read it **in full** —
-every turn, every tool call, every result.
+Apply the `gemba-grounded-theory-analysis` skill to the trace. Read it **in
+full** — every turn, every tool call, every result.
 
 #### Invariant audit
 
-After observing the trace, run the `trace-audit` skill against it. trace-audit
-verifies the named per-agent invariants for the trace's owner — including the
-critical contributor-trust check on every product-classify trace, since
-product-classify is the sole external merge point. High-severity audit failures
-must result in a fix PR or spec just like any other gemba finding.
+After observing the trace, run the `gemba-trace-audit` skill against it.
+gemba-trace-audit verifies the named per-agent invariants for the trace's
+owner — including the critical contributor-trust check on every
+gemba-product-classify trace, since gemba-product-classify is the sole
+external merge point. High-severity audit failures must result in a fix PR
+or spec just like any other gemba finding.
 
 ### 4. Categorize Findings
 
@@ -93,4 +94,4 @@ must result in a fix PR or spec just like any other gemba finding.
 ### 5. Report
 
 Produce the full grounded theory analysis report as defined in the
-`grounded-theory-analysis` skill. Prefix with run selection context.
+`gemba-grounded-theory-analysis` skill. Prefix with run selection context.

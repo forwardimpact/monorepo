@@ -1,5 +1,5 @@
 ---
-name: grounded-theory-analysis
+name: gemba-grounded-theory-analysis
 description: >
   Analyze Claude Code execution traces using grounded theory methodology.
   Extract patterns from raw trace data without preconceived categories, then
@@ -43,10 +43,10 @@ When the structured trace lacks detail, refer back to the raw NDJSON.
 Use `scripts/trace-queries.sh` to extract sections from large traces:
 
 ```sh
-bash .claude/skills/grounded-theory-analysis/scripts/trace-queries.sh structured.json overview
-bash .claude/skills/grounded-theory-analysis/scripts/trace-queries.sh structured.json batch 0 20
-bash .claude/skills/grounded-theory-analysis/scripts/trace-queries.sh structured.json errors
-bash .claude/skills/grounded-theory-analysis/scripts/trace-queries.sh structured.json tools
+bash .claude/skills/gemba-grounded-theory-analysis/scripts/trace-queries.sh structured.json overview
+bash .claude/skills/gemba-grounded-theory-analysis/scripts/trace-queries.sh structured.json batch 0 20
+bash .claude/skills/gemba-grounded-theory-analysis/scripts/trace-queries.sh structured.json errors
+bash .claude/skills/gemba-grounded-theory-analysis/scripts/trace-queries.sh structured.json tools
 ```
 
 Commands: `overview`, `count`, `batch N M`, `tail N`, `errors`, `tools`.

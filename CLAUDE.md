@@ -243,11 +243,13 @@ above.
 - **Environment, services, tasks** —
   [Operations Reference](website/docs/internals/operations/)
 - **Supply chain & app security** —
-  [security-audit skill](.claude/skills/security-audit)
-- **Security update** — [security-update skill](.claude/skills/security-update)
+  [gemba-security-audit skill](.claude/skills/gemba-security-audit)
+- **Security update** —
+  [gemba-security-update skill](.claude/skills/gemba-security-update)
 - **Release readiness** —
-  [release-readiness skill](.claude/skills/release-readiness)
-- **Release review** — [release-review skill](.claude/skills/release-review)
+  [gemba-release-readiness skill](.claude/skills/gemba-release-readiness)
+- **Release review** —
+  [gemba-release-review skill](.claude/skills/gemba-release-review)
 - **Codegen pipeline** — [Codegen Internals](website/docs/internals/codegen/)
 - **REPL API** — [librepl internals](website/docs/internals/librepl/)
 - **Getting started (contributors)** —

@@ -1,10 +1,10 @@
 ---
-name: product-classify
+name: gemba-product-classify
 description: >
   Classify open pull requests for mergeability — verify contributor trust,
   parse PR type, check CI status, and review spec quality on spec PRs.
   Produces a classification report listing which PRs are ready to merge.
-  Does not perform the merge itself — that belongs to the `product-merge`
+  Does not perform the merge itself — that belongs to the `gemba-product-merge`
   skill.
 phase: Study
 ---
@@ -14,13 +14,13 @@ phase: Study
 Triage all open pull requests, verify contributor trust, run the gate
 checks, and produce a report stating which PRs are ready to merge and
 which are blocked. The merge action itself belongs to the
-[`product-merge`](../product-merge/SKILL.md) skill (Do phase).
+[`gemba-product-merge`](../gemba-product-merge/SKILL.md) skill (Do phase).
 
 This skill handles **all non-Dependabot PRs** — both external contributions
 and PRs created by our own CI app (`forward-impact-ci`). Because external
 contributions merge here, contributor trust verification is the most
 critical gate. The improvement coach audits classification traces via the
-[`trace-audit`](../trace-audit/SKILL.md) skill to confirm trust checks
+[`gemba-trace-audit`](../gemba-trace-audit/SKILL.md) skill to confirm trust checks
 happened on every PR that advanced to merge.
 
 ## When to Use
@@ -42,10 +42,10 @@ All comment templates and the report format are in `references/templates.md`.
 | 1   | Author is trusted                     | CI app or top-20 lookup (Step 2) | Mark **blocked** — comment that only trusted authors merge            |
 | 2   | PR type is `fix`, `bug`, or `spec`    | Parse title prefix (Step 3)      | Mark **blocked** — comment that the PR type is outside scope          |
 | 3   | All CI checks pass                    | `gh pr checks` (Step 4)          | Mark **blocked** — comment with the failing checks                    |
-| 4   | Spec quality approved (spec PRs only) | Apply `spec` review (Step 5)     | Mark **blocked** — comment with review findings                       |
+| 4   | Spec quality approved (spec PRs only) | Apply `gemba-spec` review (Step 5) | Mark **blocked** — comment with review findings                     |
 
 A PR that passes all four gates is marked **mergeable** in the report;
-`product-merge` then performs the merge in the Do phase.
+`gemba-product-merge` then performs the merge in the Do phase.
 
 ## Process
 
@@ -63,7 +63,7 @@ gh pr list --state open --base main \
   --json number,title,headRefName,author,updatedAt,mergeable,mergeStateStatus,labels
 ```
 
-Skip PRs authored by `app/dependabot` — handled by `security-update`.
+Skip PRs authored by `app/dependabot` — handled by `gemba-security-update`.
 
 ### Step 2: Verify Contributor Trust
 
@@ -84,7 +84,7 @@ gh api repos/{owner}/{repo}/contributors \
 ```
 
 The PR author must appear in this list. If not, mark **blocked** and
-record the decision (the trace-audit skill checks that this lookup
+record the decision (the gemba-trace-audit skill checks that this lookup
 happened on every classified PR).
 
 ### Step 3: Classify PR Type
@@ -113,7 +113,7 @@ Mark **blocked** with the specific failing checks.
 
 ### Step 5: Review Spec PRs
 
-For `spec` PRs, apply the `spec` skill's review process:
+For `spec` PRs, apply the `gemba-spec` skill's review process:
 
 1. Identify the spec directory from changed files:
    ```sh
@@ -135,7 +135,7 @@ For each PR, record: number, title, type, author, trust check result, CI
 status, spec review (if applicable), and final verdict — **mergeable** or
 **blocked** with reason. The report is the deliverable of this skill.
 
-The report is consumed by the `product-merge` skill, which performs the
+The report is consumed by the `gemba-product-merge` skill, which performs the
 actual merge for each mergeable PR.
 
 ## Memory: What to Record
@@ -145,5 +145,5 @@ Append to the current week's log (see agent profile for the file path):
 - **PR classification table** — Each PR with type, author, trust check,
   CI, verdict, and consecutive-block count
 - **Contributor trust decisions** — Who was verified and the result (this
-  is the data the trace-audit skill checks)
+  is the data the gemba-trace-audit skill checks)
 - **Spec review results** — Spec PRs and their assessment

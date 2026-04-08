@@ -1,7 +1,7 @@
 ---
-name: product-merge
+name: gemba-product-merge
 description: >
-  Merge pull requests that have been marked mergeable by the `product-classify`
+  Merge pull requests that have been marked mergeable by the `gemba-product-classify`
   skill. Posts the merge comment, performs the merge, verifies the new state,
   and updates the run report.
 phase: Do
@@ -9,33 +9,33 @@ phase: Do
 
 # Product PR Merge
 
-Merge each PR that the [`product-classify`](../product-classify/SKILL.md)
+Merge each PR that the [`gemba-product-classify`](../gemba-product-classify/SKILL.md)
 skill marked **mergeable** in its classification report. This is the Do
-half of the product backlog workflow — `product-classify` decides which PRs
+half of the product backlog workflow — `gemba-product-classify` decides which PRs
 qualify, this skill performs the action.
 
 ## When to Use
 
-- Immediately after `product-classify` produces a report with at least
+- Immediately after `gemba-product-classify` produces a report with at least
   one mergeable PR
 - On-demand when a specific pre-classified PR is ready to merge
 
 This skill **must not** classify PRs itself. If you find a PR that has
-not been classified, return to `product-classify` first. The phase
+not been classified, return to `gemba-product-classify` first. The phase
 boundary exists so that trust verification cannot be skipped.
 
 ## Prerequisites
 
-- A current classification report from `product-classify` listing which
+- A current classification report from `gemba-product-classify` listing which
   PRs are mergeable
 - The `gh` CLI installed and authenticated
-- Comment templates in `../product-classify/references/templates.md`
+- Comment templates in `../gemba-product-classify/references/templates.md`
 
 ## Process
 
 ### Step 1: Read the Classification Report
 
-The classification report comes from the most recent `product-classify`
+The classification report comes from the most recent `gemba-product-classify`
 run (in this same agent session, or recorded in this week's memory log).
 Process only PRs marked **mergeable**.
 

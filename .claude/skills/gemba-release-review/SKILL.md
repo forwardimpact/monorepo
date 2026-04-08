@@ -1,5 +1,5 @@
 ---
-name: release-review
+name: gemba-release-review
 description: >
   Review the main branch for unreleased changes and cut new versions. Determine
   version bumps, update package.json files, tag releases, push tags, and verify

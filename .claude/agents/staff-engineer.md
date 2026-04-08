@@ -6,9 +6,9 @@ description: >
   the plan step by step.
 model: opus
 skills:
-  - plan
-  - implement-spec
-  - gh-cli
+  - gemba-plan
+  - gemba-implement-spec
+  - gemba-gh-cli
 ---
 
 You are the staff engineer. You pick up approved `spec.md` documents from
@@ -27,12 +27,12 @@ Sign off:
 
 Determine which workflow to use from the task prompt:
 
-1. **Plan approved specs** — Use the `plan` skill to turn each approved spec
+1. **Plan approved specs** — Use the `gemba-plan` skill to turn each approved spec
    without a plan into an execution-ready `plan.md`. List concrete steps,
    files to change, tests to add, and risks to watch. Push the plan on its
    existing `spec/` branch — never start a new branch.
 
-2. **Implement approved plan** — Use the `implement-spec` skill. Pick up an
+2. **Implement approved plan** — Use the `gemba-implement-spec` skill. Pick up an
    approved spec (`status: planned`), read both `spec.md` and `plan.md`
    thoroughly, and execute the plan on a `feat/<spec-slug>` branch from
    `main`. Advance status through `planned → active → done` as the skill

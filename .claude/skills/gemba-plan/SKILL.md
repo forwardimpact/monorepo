@@ -1,5 +1,5 @@
 ---
-name: plan
+name: gemba-plan
 description: >
   Write and review implementation plans (HOW) for approved specs. Translate
   an approved spec.md into concrete steps, files, tests, and risks for a
@@ -10,7 +10,7 @@ phase: Plan
 # Write and Review Plans
 
 A plan defines HOW to implement an approved spec. Pair with the
-[`spec`](../spec/SKILL.md) skill — the spec captures WHAT/WHY, the plan
+[`gemba-spec`](../gemba-spec/SKILL.md) skill — the spec captures WHAT/WHY, the plan
 captures HOW.
 
 **A plan requires an existing approved spec.** Without an approved spec there
@@ -64,7 +64,7 @@ changes and return status to `draft`.
 | Plan approved but spec still under review | Wait     | (no change)   |
 | Plan changes requested                    | Revise   | `draft`       |
 
-The full status lifecycle lives in the [`spec`](../spec/SKILL.md#status-lifecycle)
+The full status lifecycle lives in the [`gemba-spec`](../gemba-spec/SKILL.md#status-lifecycle)
 skill — this skill owns only the `review → planned` transition.
 
 If you cannot commit changes (e.g., evaluating a plan PR for another
@@ -89,12 +89,12 @@ responsible for acting on it.
 
 ## What NOT to Do
 
-- **Do not write or revise the spec.** That belongs to the `spec` skill (Act
-  phase). If the spec is wrong or unclear, return it to `draft` and let the
-  spec author fix it.
+- **Do not write or revise the spec.** That belongs to the `gemba-spec`
+  skill (Act phase). If the spec is wrong or unclear, return it to `draft`
+  and let the spec author fix it.
 - **Do not bundle multiple specs into one plan.** One plan per spec — even
   when specs share a theme. Bundling defeats independent review and rollback.
-- **Do not implement.** This skill writes the plan; `implement-spec` (Do
-  phase) executes it.
+- **Do not implement.** This skill writes the plan; `gemba-implement-spec`
+  (Do phase) executes it.
 - **Do not approve a plan whose spec is still under review.** Both must be
   approved before advancing to `planned`.

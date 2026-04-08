@@ -1,5 +1,5 @@
 ---
-name: release-readiness
+name: gemba-release-readiness
 description: >
   Check open pull requests for merge readiness. Rebase branches on main, fix
   trivial CI failures (lint, format, lock file), and report status. Do not make
@@ -36,7 +36,7 @@ gh pr list --state open --base main \
   --json number,title,headRefName,author,updatedAt,mergeable,mergeStateStatus
 ```
 
-Skip PRs authored by `app/dependabot` (handled by `security-update`).
+Skip PRs authored by `app/dependabot` (handled by `gemba-security-update`).
 
 ### Step 2: Assess Each PR
 
