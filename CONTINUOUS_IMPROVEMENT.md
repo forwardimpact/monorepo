@@ -33,8 +33,8 @@ GitHub App tokens (see § Authentication).
 | Agent                 | Purpose                                                                   | PDSA phases    | Skills                                                                                            |
 | --------------------- | ------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------- |
 | **security-engineer** | Patch dependencies, harden supply chain, enforce security policies        | Study, Do, Act | security-audit, security-update, spec                                                             |
-| **staff-engineer**    | Turn approved specs into execution-ready plans for trusted agents to ship | Plan           | plan, gh-cli                                                                                      |
-| **release-engineer**  | Keep PR branches merge-ready, implement plans, repair main CI, cut releases | Do           | release-readiness, release-review, implement-spec, gh-cli                                         |
+| **staff-engineer**    | Own the full spec → plan → implement arc for approved specs               | Plan, Do       | plan, implement-spec, gh-cli                                                                      |
+| **release-engineer**  | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | Do             | release-readiness, release-review, gh-cli                                                         |
 | **improvement-coach** | Walk traces, audit invariants, fix trivial issues, spec larger ones       | Study, Act     | gemba-walk, grounded-theory-analysis, trace-audit, spec, gh-cli                                   |
 | **product-manager**   | Triage issues and PRs, merge fix/bug/spec PRs, supervise evaluations      | Study, Act, Do | product-classify, product-merge, product-triage, product-evaluation, spec, plan, gh-cli           |
 
@@ -55,7 +55,7 @@ UTC) → analyzers (10 UTC). Same-agent workflows never overlap.
 | **product-feedback**  | Mon, Wed, Fri 05:17 UTC | product-manager   | Study → Act | Triage open issues, implement trivial fixes, write specs for aligned requests |
 | **release-readiness** | Daily 06:23 UTC         | release-engineer  | Do          | Rebase open PRs on main, fix lint/format failures, repair main CI if broken   |
 | **plan-specs**        | Daily 07:11 UTC         | staff-engineer    | Plan        | Pick up approved specs without plans and produce execution-ready plan.md       |
-| **implement-plans**   | Daily 07:53 UTC         | release-engineer  | Do          | Pick up approved plans (`status: planned`) and execute via implement-spec      |
+| **implement-plans**   | Daily 07:53 UTC         | staff-engineer    | Do          | Pick up approved plans (`status: planned`) and execute via implement-spec      |
 | **product-backlog**   | Daily 08:13 UTC         | product-manager   | Study → Do  | Classify open PRs by type, verify contributor trust, merge fix/bug/spec PRs   |
 | **release-review**    | Tue, Thu, Sat 09:37 UTC | release-engineer  | Do          | Find unreleased changes, bump versions, tag, push, verify publish             |
 | **improvement-coach** | Wed & Sat 10:47 UTC     | improvement-coach | Study → Act | Deep-analyze a single random agent trace, open fix PRs or write specs         |
@@ -192,7 +192,7 @@ graph TD
     PM["Product Manager<br/>trust gate + CI"]
     CB["Codebase (main)"]
     SE["Security Engineer<br/>Dependabot only"]
-    RE["Release Engineer<br/>rebase + release + implement"]
+    RE["Release Engineer<br/>rebase + release"]
 
     EXT -- "fix / bug PR" --> PM
     EXT -- "spec PR" --> PM

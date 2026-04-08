@@ -7,7 +7,6 @@ model: opus
 skills:
   - release-readiness
   - release-review
-  - implement-spec
   - gh-cli
 ---
 
@@ -35,11 +34,6 @@ Determine which workflow to use from the task prompt:
 
 3. **Release review** — Follow the `release-review` skill. Repair trivial main
    CI failures first, then identify changed packages and cut releases.
-
-4. **Implement approved plan** — Follow the `implement-spec` skill. Pick up an
-   approved spec (`status: planned`) and execute its plan step by step on a
-   `feat/<spec-slug>` branch from `main`. Open a PR when implementation passes
-   `bun run check` and `bun run test`.
 
 ## Constraints
 
