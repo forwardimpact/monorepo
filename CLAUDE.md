@@ -1,15 +1,12 @@
 # Forward Impact Engineering
 
+## Goal
+
 > "The aim of leadership should be to improve the performance of [engineers] and
 > [agents], to improve quality, to increase output, and simultaneously to bring
 > pride of workmanship to people."
 >
-> — W. Edwards Deming (paraphrased)
-
-## Goal
-
-Improve the performance of engineers and agents, improve quality, increase
-output, and bring pride of workmanship to engineering teams.
+> — W. Edwards Deming
 
 ## Users
 
@@ -239,8 +236,7 @@ above.
 
 - **Core rules & architecture** — [CLAUDE.md](CLAUDE.md)
 - **Contributor workflow** — [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Security policies** —
-  [CONTRIBUTING.md § Security](CONTRIBUTING.md#security)
+- **Security policies** — [CONTRIBUTING.md § Security](CONTRIBUTING.md#security)
 - **Dependency policy** —
   [CONTRIBUTING.md § Dependency Policy](CONTRIBUTING.md#dependency-policy)
 - **Repo self-maintenance** —
@@ -249,8 +245,7 @@ above.
   [Operations Reference](website/docs/internals/operations/)
 - **Supply chain & app security** —
   [security-audit skill](.claude/skills/security-audit)
-- **Security update** —
-  [security-update skill](.claude/skills/security-update)
+- **Security update** — [security-update skill](.claude/skills/security-update)
 - **Release readiness** —
   [release-readiness skill](.claude/skills/release-readiness)
 - **Release review** — [release-review skill](.claude/skills/release-review)

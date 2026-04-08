@@ -4,18 +4,20 @@
 [![Test](https://github.com/forwardimpact/monorepo/actions/workflows/check-test.yml/badge.svg)](https://github.com/forwardimpact/monorepo/actions/workflows/check-test.yml)
 [![Security](https://github.com/forwardimpact/monorepo/actions/workflows/check-security.yml/badge.svg)](https://github.com/forwardimpact/monorepo/actions/workflows/check-security.yml)
 
-> "The aim of leadership should be to improve the performance of man and
-> machine, to improve quality, to increase output, and simultaneously to bring
-> pride of workmanship to people."
->
-> — W. Edwards Deming
-
 ## The Problem
 
 Organizations force AI adoption onto engineers without regard for well-being,
 quality of their output, or sustainability—creating disharmony between
 leadership, engineers, and the AI strategy. What's missing is a human-centered
 approach where AI empowers people to do their best work.
+
+## The Goal
+
+> "The aim of leadership should be to improve the performance of [engineers] and
+> [agents], to improve quality, to increase output, and simultaneously to bring
+> pride of workmanship to people."
+>
+> — W. Edwards Deming
 
 ## The Vision
 
