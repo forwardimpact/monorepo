@@ -6,13 +6,13 @@ description: GitHub CLI usage for Gemba agents running in GitHub Actions. Covers
 # GitHub CLI for Gemba workflows
 
 Canonical `gh` usage for Gemba agents. By the time a skill invokes `gh`, the
-workflow has already provisioned `GH_TOKEN` — the agent's concern is using
-`gh` consistently, not authenticating it.
+workflow has already provisioned `GH_TOKEN` — the agent's concern is using `gh`
+consistently, not authenticating it.
 
 ## When to use
 
-- You are a Gemba skill running inside a scheduled GitHub Actions workflow
-  and need to read from or write to GitHub.
+- You are a Gemba skill running inside a scheduled GitHub Actions workflow and
+  need to read from or write to GitHub.
 - You need the canonical shape for a cross-skill operation (e.g. contributor
   lookup) so your call matches what `gemba-trace-audit` verifies.
 
@@ -38,10 +38,10 @@ issues. Always use the script above.
 remote may fail. Use `gh api` directly with explicit `{owner}/{repo}` paths
 instead of the convenience commands.
 
-**Check the active identity if something looks wrong.** `gh auth status`
-reports who `gh` is acting as. If write operations are not landing under the
-expected bot identity, stop and report — do not try to re-authenticate from
-inside the skill.
+**Check the active identity if something looks wrong.** `gh auth status` reports
+who `gh` is acting as. If write operations are not landing under the expected
+bot identity, stop and report — do not try to re-authenticate from inside the
+skill.
 
 ## Gemba query patterns
 
@@ -74,12 +74,11 @@ gh api repos/{owner}/{repo}/contributors \
   --jq '[.[] | select(.type == "User")] | .[0:20] | .[].login'
 ```
 
-The `select(.type == "User")` filter excludes bot accounts from the
-top-20 ranking — a bot with high contribution volume must not gate
-human authors.
+The `select(.type == "User")` filter excludes bot accounts from the top-20
+ranking — a bot with high contribution volume must not gate human authors.
 
-`app/forward-impact-ci` short-circuits the gate — skip the lookup for CI app
-PRs and proceed directly to type classification.
+`app/forward-impact-ci` short-circuits the gate — skip the lookup for CI app PRs
+and proceed directly to type classification.
 
 ### PR inspection
 
@@ -142,5 +141,5 @@ gh release create <tag> --title "<title>" --notes "<notes>"
 ## Generic reference
 
 For `gh` operations not covered above, see
-[`references/commands.md`](references/commands.md) for a quick reference
-card, or run `gh help <command>`.
+[`references/commands.md`](references/commands.md) for a quick reference card,
+or run `gh help <command>`.

@@ -55,7 +55,7 @@ function parseSuperviseOptions(args) {
     agentProfile: parseFlag(args, "agent-profile") ?? undefined,
     allowedTools: (
       parseFlag(args, "allowed-tools") ??
-        "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
+      "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
     ).split(","),
     supervisorAllowedTools: supervisorAllowedToolsRaw
       ? supervisorAllowedToolsRaw.split(",")

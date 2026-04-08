@@ -67,8 +67,8 @@ All changes go through pull requests — never push directly to `main`.
 lint, lock file drift) directly to `main` to unblock releases. This is limited
 to mechanical fixes that `bun run check:fix` can resolve — never logic, tests,
 or feature changes. See
-[.claude/agents/release-engineer.md](.claude/agents/release-engineer.md) for
-the full scope constraints.
+[.claude/agents/release-engineer.md](.claude/agents/release-engineer.md) for the
+full scope constraints.
 
 The pre-commit hook auto-formats staged files and scans for secrets. If the hook
 reformats files, it re-stages them automatically — just re-run your commit.
@@ -98,8 +98,8 @@ change that requires design review before implementation (e.g.
 Post-1.0 packages use semver: breaking=major, feat=minor, fix/refactor=patch.
 
 The release manager agent handles version bumps, tagging, and publishing. See
-the [gemba-release-review skill](.claude/skills/gemba-release-review) for the full release
-procedure.
+the [gemba-release-review skill](.claude/skills/gemba-release-review) for the
+full release procedure.
 
 ## Quality Commands
 

@@ -80,11 +80,11 @@ full** — every turn, every tool call, every result.
 #### Invariant audit
 
 After observing the trace, run the `gemba-trace-audit` skill against it.
-gemba-trace-audit verifies the named per-agent invariants for the trace's
-owner — including the critical contributor-trust check on every
-gemba-product-classify trace, since gemba-product-classify is the sole
-external merge point. High-severity audit failures must result in a fix PR
-or spec just like any other gemba finding.
+gemba-trace-audit verifies the named per-agent invariants for the trace's owner
+— including the critical contributor-trust check on every gemba-product-classify
+trace, since gemba-product-classify is the sole external merge point.
+High-severity audit failures must result in a fix PR or spec just like any other
+gemba finding.
 
 ### 4. Categorize Findings
 

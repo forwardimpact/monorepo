@@ -1,12 +1,11 @@
 # GitHub CLI Quick Reference
 
-Appendix to [`SKILL.md`](../SKILL.md). For operations Gemba skills reuse
-across workflows (PR triage, contributor lookup, trace downloads, release
-creation), use the canonical shapes in § Gemba query patterns instead —
-matching shapes lets `gemba-trace-audit` verify the calls happened.
+Appendix to [`SKILL.md`](../SKILL.md). For operations Gemba skills reuse across
+workflows (PR triage, contributor lookup, trace downloads, release creation),
+use the canonical shapes in § Gemba query patterns instead — matching shapes
+lets `gemba-trace-audit` verify the calls happened.
 
-This file is a generic `gh` crib sheet for one-off operations not covered
-there.
+This file is a generic `gh` crib sheet for one-off operations not covered there.
 
 ## Pull Requests
 

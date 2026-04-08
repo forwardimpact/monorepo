@@ -5,10 +5,10 @@
 Add a `generatePacks` function to `build.js` alongside the existing
 `generateBundle`. For each valid discipline/track combination, reuse the
 agent-derivation functions from libskill to produce the same files
-`fit-pathway agent --output` writes today, archive each as a `.tar.gz` pack,
-and emit two manifest files — one for `npx skills` (well-known discovery) and
-one for Microsoft APM — both derived from a single in-memory list so they
-cannot desync.
+`fit-pathway agent --output` writes today, archive each as a `.tar.gz` pack, and
+emit two manifest files — one for `npx skills` (well-known discovery) and one
+for Microsoft APM — both derived from a single in-memory list so they cannot
+desync.
 
 All new output lands in `outputDir/packs/` alongside the existing
 `bundle.tar.gz` and `install.sh`. No new files besides the test, no new
@@ -37,9 +37,9 @@ dependencies, no changes to the existing install path.
    `type: "archive"` with a `sha256:` digest. This is the Cloudflare/Vercel
    agent-skills discovery RFC format (schema version 0.2.0).
 
-5. **APM manifest as `apm.yml` at site root.** APM resolves packages by
-   fetching a manifest from the target URL. We emit a top-level `apm.yml`
-   listing each pack as a skill entry with its download URL.
+5. **APM manifest as `apm.yml` at site root.** APM resolves packages by fetching
+   a manifest from the target URL. We emit a top-level `apm.yml` listing each
+   pack as a skill entry with its download URL.
 
 ---
 
@@ -120,20 +120,20 @@ const skillsWithAgent = await loader.loadSkillsWithAgentData(dataDir);
 
 **Pack generation loop** — for each valid combination:
 
-1. Derive the agent name: `${getDisciplineAbbreviation(discipline.id)}-${toKebabCase(track.id)}`
+1. Derive the agent name:
+   `${getDisciplineAbbreviation(discipline.id)}-${toKebabCase(track.id)}`
 2. Compute `stageParams` and call `generateStageAgentProfile` for each stage
    (same as `handleAllStages` in `agent.js`)
 3. Call `deriveAgentSkills` + `generateSkillMarkdown` for skills
 4. Load templates via `templateLoader.load("agent.template.md", dataDir)` etc.
 5. Write files to `outputDir/_packs/<agent-name>/.claude/...` using the
-   formatter functions (`formatAgentProfile`, `formatAgentSkill`, etc.)
-   and direct `writeFile` calls — no console logging
+   formatter functions (`formatAgentProfile`, `formatAgentSkill`, etc.) and
+   direct `writeFile` calls — no console logging
 6. Archive with deterministic tar (Step 4 below)
 7. Compute SHA-256 digest
 8. Collect `{ name, description, url, digest }` into an array
 
-After the loop, emit both manifests (Steps 5–6 below), then clean up
-`_packs/`.
+After the loop, emit both manifests (Steps 5–6 below), then clean up `_packs/`.
 
 **Pack file layout** (mirrors `agent-io.js` output exactly):
 
@@ -151,8 +151,8 @@ _packs/<agent-name>/
     settings.json             (Claude Code settings)
 ```
 
-**Why call formatters directly instead of `agent-io.js` write functions:**
-Those functions log each file and merge with existing settings on disk. Pack
+**Why call formatters directly instead of `agent-io.js` write functions:** Those
+functions log each file and merge with existing settings on disk. Pack
 generation needs clean, silent writes to a temp directory. The formatters are
 the right reuse boundary.
 
@@ -176,6 +176,7 @@ execFileSync("tar", [
 ```
 
 **Determinism flags:**
+
 - `--sort=name` — consistent file ordering regardless of filesystem
 - `--mtime=1970-01-01` — strips modification timestamps
 - `--owner=0 --group=0 --numeric-owner` — strips user/group metadata
@@ -235,8 +236,7 @@ skills:
     digest: "sha256:abc123..."
 ```
 
-Built with string concatenation — the structure is flat, no YAML library
-needed.
+Built with string concatenation — the structure is flat, no YAML library needed.
 
 ---
 
@@ -306,29 +306,29 @@ Tests use the existing starter data at `products/pathway/starter/` as input.
    identical.
 
 6. **Existing bundle is unchanged.** After a full `runBuildCommand` with
-   `siteUrl`, verify `bundle.tar.gz` and `install.sh` are present and
-   unchanged from a build without packs.
+   `siteUrl`, verify `bundle.tar.gz` and `install.sh` are present and unchanged
+   from a build without packs.
 
 ---
 
 ## File Change Summary
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `products/pathway/src/commands/build.js` | Modify | Add imports, `generatePacks` function, call from `runBuildCommand` |
-| `products/pathway/src/commands/agent.js` | Modify | Export `findValidCombinations` |
-| `products/pathway/src/commands/build.test.js` | Create | Tests for pack generation and manifests |
+| File                                          | Action | Purpose                                                            |
+| --------------------------------------------- | ------ | ------------------------------------------------------------------ |
+| `products/pathway/src/commands/build.js`      | Modify | Add imports, `generatePacks` function, call from `runBuildCommand` |
+| `products/pathway/src/commands/agent.js`      | Modify | Export `findValidCombinations`                                     |
+| `products/pathway/src/commands/build.test.js` | Create | Tests for pack generation and manifests                            |
 
 ---
 
 ## Risks and Open Questions
 
-1. **macOS tar determinism.** The `--sort=name` flag is supported on macOS
-   Big Sur+ (bsdtar 3.5+). Mitigation: the monorepo targets darwin 24.6.0.
+1. **macOS tar determinism.** The `--sort=name` flag is supported on macOS Big
+   Sur+ (bsdtar 3.5+). Mitigation: the monorepo targets darwin 24.6.0.
 
 2. **APM format stability.** Microsoft APM is early-stage. The manifest format
-   may change. The `apm.yml` generation is a small string-building block
-   within `generatePacks` — easy to update.
+   may change. The `apm.yml` generation is a small string-building block within
+   `generatePacks` — easy to update.
 
 3. **`npx skills` well-known discovery adoption.** The `.well-known` discovery
    path follows the published RFC but is relatively new. If `npx skills` does
@@ -336,16 +336,15 @@ Tests use the existing starter data at `products/pathway/starter/` as input.
    the current CLI version and adjust the manifest path if needed.
 
 4. **Large number of combinations.** If a framework has many disciplines and
-   tracks, the cartesian product could produce many packs. The starter data
-   has a manageable number. The loop should log progress so large builds give
+   tracks, the cartesian product could produce many packs. The starter data has
+   a manageable number. The loop should log progress so large builds give
    feedback.
 
 5. **Integration testing against `npx skills` and APM.** The automated tests
-   validate manifest structure and archive contents but do not invoke the
-   actual tools. The spec's success criteria 2 and 3 require the packs to
-   install cleanly. This must be verified manually after implementation by
-   running `npx skills add` and `apm install` against a locally served build
-   output.
+   validate manifest structure and archive contents but do not invoke the actual
+   tools. The spec's success criteria 2 and 3 require the packs to install
+   cleanly. This must be verified manually after implementation by running
+   `npx skills add` and `apm install` against a locally served build output.
 
 6. **Existing `bundle.tar.gz` stays non-deterministic.** The deterministic tar
    flags apply only to pack archives. The existing `generateBundle` is

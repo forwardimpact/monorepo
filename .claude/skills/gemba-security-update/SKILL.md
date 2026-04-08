@@ -28,16 +28,16 @@ canonical query shapes used in the steps below.
 
 ## Policy Checklist
 
-| #   | Check                                      | Policy source                                  | On failure                                                                   |
-| --- | ------------------------------------------ | ---------------------------------------------- | ---------------------------------------------------------------------------- |
-| 1   | All CI checks pass                         | CONTRIBUTING.md § Before Submitting a PR       | **Fix** if caused by PR. If pre-existing on main, skip and recommend rebase. |
+| #   | Check                                      | Policy source                                        | On failure                                                                   |
+| --- | ------------------------------------------ | ---------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 1   | All CI checks pass                         | CONTRIBUTING.md § Before Submitting a PR             | **Fix** if caused by PR. If pre-existing on main, skip and recommend rebase. |
 | 2   | Actions pinned to SHA with version comment | CONTRIBUTING.md § Security; gemba-security-audit § 1 | **Fix** — update all workflow files to the new SHA.                          |
-| 3   | No duplicate dependencies                  | CONTRIBUTING.md § Dependency Policy            | **Close** with explanation.                                                  |
-| 4   | Version ranges aligned across workspaces   | CONTRIBUTING.md § Dependency Policy            | **Fix** — align all workspace ranges.                                        |
-| 5   | npm audit clean (`--audit-level=high`)     | CONTRIBUTING.md § Dependency Policy            | **Close** if update introduces vulnerability. Skip if pre-existing.          |
-| 6   | No unnecessary dependencies                | CONTRIBUTING.md § Dependency Policy            | **Close** with explanation.                                                  |
+| 3   | No duplicate dependencies                  | CONTRIBUTING.md § Dependency Policy                  | **Close** with explanation.                                                  |
+| 4   | Version ranges aligned across workspaces   | CONTRIBUTING.md § Dependency Policy                  | **Fix** — align all workspace ranges.                                        |
+| 5   | npm audit clean (`--audit-level=high`)     | CONTRIBUTING.md § Dependency Policy                  | **Close** if update introduces vulnerability. Skip if pre-existing.          |
+| 6   | No unnecessary dependencies                | CONTRIBUTING.md § Dependency Policy                  | **Close** with explanation.                                                  |
 | 7   | First-party or official org actions only   | gemba-security-audit § 1                             | **Close** with explanation.                                                  |
-| 8   | Peer and transitive dependency compat      | CONTRIBUTING.md § Dependency Policy            | **Close** until co-dependent packages release compatible versions.           |
+| 8   | Peer and transitive dependency compat      | CONTRIBUTING.md § Dependency Policy                  | **Close** until co-dependent packages release compatible versions.           |
 
 When evaluating Check 2 (SHA pinning), verify the PR updates **all** workflow
 files referencing the action. See `references/sha-inventory.md` for the full

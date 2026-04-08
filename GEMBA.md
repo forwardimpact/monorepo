@@ -6,17 +6,17 @@
 
 Gemba is the Forward Impact repo self-maintenance system: autonomous agents
 running on GitHub Actions that keep the codebase secure, release-ready, and
-steadily improving. The name comes from the Toyota Production System concept
-of _genba_ (現場) — "the real place where work happens." Gemba agents walk the
-real place (the execution traces of prior runs) and act on what they find.
+steadily improving. The name comes from the Toyota Production System concept of
+_genba_ (現場) — "the real place where work happens." Gemba agents walk the real
+place (the execution traces of prior runs) and act on what they find.
 
 Within Gemba, **Plan–Do–Study–Act** (PDSA, after Deming) is the improvement
 method. Every workflow belongs to a PDSA phase, findings from Study always
-re-enter the loop as specs or fix PRs, and the cycle runs on a schedule.
-Nine scheduled workflows, five agent personas, and fifteen skills form a
+re-enter the loop as specs or fix PRs, and the cycle runs on a schedule. Nine
+scheduled workflows, five agent personas, and fifteen skills form a
 self-reinforcing PDSA cycle. Product evaluation sessions feed the Study phase
-with observations from the user's perspective. Gemba maintains the project —
-not the engineering frameworks the products serve.
+with observations from the user's perspective. Gemba maintains the project — not
+the engineering frameworks the products serve.
 
 ## Architecture
 
@@ -36,10 +36,10 @@ GitHub App tokens (see § Authentication).
 
 ## The PDSA Loop
 
-The system runs as a continuous **Plan–Do–Study–Act** cycle. Plans are
-executed, outputs are studied, findings become new specs, and the cycle
-restarts. Each phase produces the artifacts the next phase consumes, forming
-a self-reinforcing loop rather than a one-shot pipeline.
+The system runs as a continuous **Plan–Do–Study–Act** cycle. Plans are executed,
+outputs are studied, findings become new specs, and the cycle restarts. Each
+phase produces the artifacts the next phase consumes, forming a self-reinforcing
+loop rather than a one-shot pipeline.
 
 ```mermaid
 graph LR
@@ -54,41 +54,40 @@ graph LR
 ### Plan — turn specs into executable plans
 
 Approved specs become concrete plans. Agents use the `gemba-plan` skill to
-transform an approved `spec.md` (the WHAT/WHY) into a `plan.md` (the HOW)
-with steps, files to change, tests to add, and risks to watch — enough for
-any trusted agent to pick up and execute.
+transform an approved `spec.md` (the WHAT/WHY) into a `plan.md` (the HOW) with
+steps, files to change, tests to add, and risks to watch — enough for any
+trusted agent to pick up and execute.
 
 ### Do — execute plans and run scheduled workflows
 
 The Do phase is where work happens. It has two modes:
 
-- **Implement approved plans** via the `gemba-implement` skill — trusted
-  agents open PRs that complete the plan step by step.
+- **Implement approved plans** via the `gemba-implement` skill — trusted agents
+  open PRs that complete the plan step by step.
 - **Run scheduled workflows** that exercise, harden, and release the codebase
-  (`security-update`, `release-readiness`, `release-review`,
-  `product-backlog`). Each run produces the artifacts the Study phase
-  consumes: PRs, tagged releases, audit reports, execution traces, and GitHub
-  issues.
+  (`security-update`, `release-readiness`, `release-review`, `product-backlog`).
+  Each run produces the artifacts the Study phase consumes: PRs, tagged
+  releases, audit reports, execution traces, and GitHub issues.
 
-Every scheduled run captures a full execution trace — raw evidence for the
-Study phase.
+Every scheduled run captures a full execution trace — raw evidence for the Study
+phase.
 
 ### Study — analyze outputs and feedback
 
-The Study phase closes observation over the Do phase. Three study streams
-feed the next Act phase:
+The Study phase closes observation over the Do phase. Three study streams feed
+the next Act phase:
 
-- **Security engineer** studies the **repository's security posture** —
-  supply chain, dependencies, credentials, OWASP Top 10 — in `security-audit`.
-- **Product manager** studies **external feedback** — open issues, external
-  PRs, contributor activity — in `product-feedback` and `product-backlog`.
-  Triages against product alignment, verifies trust, classifies work, and
-  gates merges. Product evaluation sessions feed the same stream with
-  observations from first-time users.
-- **Improvement coach** studies **internal agent behaviour**. Each cycle
-  focuses on **one trace** — depth over breadth: select a run → download the
-  trace → deep-analyze every turn via grounded theory (open coding → axial
-  coding → selective coding) → categorize findings with quoted evidence.
+- **Security engineer** studies the **repository's security posture** — supply
+  chain, dependencies, credentials, OWASP Top 10 — in `security-audit`.
+- **Product manager** studies **external feedback** — open issues, external PRs,
+  contributor activity — in `product-feedback` and `product-backlog`. Triages
+  against product alignment, verifies trust, classifies work, and gates merges.
+  Product evaluation sessions feed the same stream with observations from
+  first-time users.
+- **Improvement coach** studies **internal agent behaviour**. Each cycle focuses
+  on **one trace** — depth over breadth: select a run → download the trace →
+  deep-analyze every turn via grounded theory (open coding → axial coding →
+  selective coding) → categorize findings with quoted evidence.
 
 When analyzing a **product-backlog** trace, the coach also verifies that the
 product manager performed trust checks on every merged PR (see §
@@ -99,24 +98,23 @@ Accountability).
 Findings from the Study phase do not fix themselves. The Act phase converts
 insight into new inputs for the next cycle:
 
-- **Trivial findings** become fix PRs directly (short-circuit through the
-  loop).
-- **Structural findings** become new `spec.md` documents capturing WHAT needs
-  to change and WHY, written with the `gemba-spec` skill. These enter the
-  backlog and start the next Plan phase.
+- **Trivial findings** become fix PRs directly (short-circuit through the loop).
+- **Structural findings** become new `spec.md` documents capturing WHAT needs to
+  change and WHY, written with the `gemba-spec` skill. These enter the backlog
+  and start the next Plan phase.
 
-Fix-or-spec discipline keeps mechanical repairs (`fix/` branches) separate
-from structural improvements (`spec/` branches) — never mixed in one PR.
+Fix-or-spec discipline keeps mechanical repairs (`fix/` branches) separate from
+structural improvements (`spec/` branches) — never mixed in one PR.
 
 ## Agents
 
-| Agent                 | Phase          | Purpose                                                                   | Skills                                                                                                                            |
-| --------------------- | -------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **staff-engineer**    | Plan, Do       | Own the full spec → plan → implement arc for approved specs               | gemba-plan, gemba-implement, gemba-gh-cli                                                                                          |
-| **security-engineer** | Do, Study, Act | Patch dependencies, harden supply chain, enforce security policies        | gemba-security-update, gemba-security-audit, gemba-spec                                                                            |
-| **release-engineer**  | Do             | Keep PR branches merge-ready, repair trivial CI on main, cut releases     | gemba-release-readiness, gemba-release-review, gemba-gh-cli                                                                        |
-| **product-manager**   | Do, Study, Act | Triage issues and PRs, merge fix/bug/spec PRs, supervise evaluations      | gemba-plan, gemba-product-merge, gemba-product-triage, gemba-product-classify, gemba-product-evaluation, gemba-spec, gemba-gh-cli |
-| **improvement-coach** | Study, Act     | Walk traces, audit invariants, fix trivial issues, spec larger ones       | gemba-walk, gemba-grounded-theory-analysis, gemba-trace-audit, gemba-spec, gemba-gh-cli                                            |
+| Agent                 | Phase          | Purpose                                                               | Skills                                                                                                                            |
+| --------------------- | -------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **staff-engineer**    | Plan, Do       | Own the full spec → plan → implement arc for approved specs           | gemba-plan, gemba-implement, gemba-gh-cli                                                                                         |
+| **security-engineer** | Do, Study, Act | Patch dependencies, harden supply chain, enforce security policies    | gemba-security-update, gemba-security-audit, gemba-spec                                                                           |
+| **release-engineer**  | Do             | Keep PR branches merge-ready, repair trivial CI on main, cut releases | gemba-release-readiness, gemba-release-review, gemba-gh-cli                                                                       |
+| **product-manager**   | Do, Study, Act | Triage issues and PRs, merge fix/bug/spec PRs, supervise evaluations  | gemba-plan, gemba-product-merge, gemba-product-triage, gemba-product-classify, gemba-product-evaluation, gemba-spec, gemba-gh-cli |
+| **improvement-coach** | Study, Act     | Walk traces, audit invariants, fix trivial issues, spec larger ones   | gemba-walk, gemba-grounded-theory-analysis, gemba-trace-audit, gemba-spec, gemba-gh-cli                                           |
 
 Each agent has explicit scope constraints — it knows what it must _not_ do. When
 a finding exceeds an agent's scope, it writes a formal spec (`specs/`) rather
@@ -124,8 +122,8 @@ than attempting the fix.
 
 ## Workflows
 
-Daily pipeline follows the PDSA cycle: **Plan** (04 UTC) → **Do** (05–07 UTC)
-→ **Study** (08 UTC) → **Study → Act** (09–11 UTC). Times respect dependencies
+Daily pipeline follows the PDSA cycle: **Plan** (04 UTC) → **Do** (05–07 UTC) →
+**Study** (08 UTC) → **Study → Act** (09–11 UTC). Times respect dependencies
 (plans before implementation, rebase before merge, merge before release) and
 same-agent workflows never overlap.
 
@@ -151,23 +149,23 @@ agent's skill list reveals its phase coverage at a glance.
 
 All Gemba skills are namespaced with the `gemba-` prefix.
 
-| Skill                              | Phase | Purpose                                                                       |
-| ---------------------------------- | ----- | ----------------------------------------------------------------------------- |
-| **gemba-plan**                     | Plan  | Write and review plans (HOW); advance approved specs from `review → planned`  |
-| **gemba-security-update**          | Do    | Security updates: Dependabot triage, npm audit findings, vulnerability fixes  |
-| **gemba-implement**                | Do    | Execute an approved plan step by step; advance `planned → active → done`      |
-| **gemba-product-merge**            | Do    | Merge PRs marked mergeable by `gemba-product-classify`                        |
-| **gemba-release-readiness**        | Do    | Mechanical PR preparation — rebase, fix, report                               |
-| **gemba-release-review**           | Do    | Version bumps, tagging, publish verification                                  |
-| **gemba-security-audit**           | Study | Seven-area security review (supply chain, deps, credentials, OWASP, CI)       |
-| **gemba-product-triage**           | Study | Classify open issues for product alignment; produce a triage report           |
-| **gemba-product-classify**         | Study | Classify open PRs for mergeability — trust, type, CI, spec review             |
-| **gemba-product-evaluation**       | Study | Supervise product evaluation sessions, capture feedback, create issues        |
-| **gemba-walk**                     | Study | Open-ended trace observation via grounded theory                              |
-| **gemba-grounded-theory-analysis** | Study | Qualitative trace analysis adapted from research methodology                  |
-| **gemba-trace-audit**              | Study | Verify named per-agent invariants against a trace; quoted evidence required   |
-| **gemba-spec**                     | Act   | Write and review specs (WHAT/WHY); manage `draft → review` status             |
-| **gemba-gh-cli**                   | —     | GitHub CLI installation and usage patterns for CI (utility, no PDSA phase)    |
+| Skill                              | Phase | Purpose                                                                      |
+| ---------------------------------- | ----- | ---------------------------------------------------------------------------- |
+| **gemba-plan**                     | Plan  | Write and review plans (HOW); advance approved specs from `review → planned` |
+| **gemba-security-update**          | Do    | Security updates: Dependabot triage, npm audit findings, vulnerability fixes |
+| **gemba-implement**                | Do    | Execute an approved plan step by step; advance `planned → active → done`     |
+| **gemba-product-merge**            | Do    | Merge PRs marked mergeable by `gemba-product-classify`                       |
+| **gemba-release-readiness**        | Do    | Mechanical PR preparation — rebase, fix, report                              |
+| **gemba-release-review**           | Do    | Version bumps, tagging, publish verification                                 |
+| **gemba-security-audit**           | Study | Seven-area security review (supply chain, deps, credentials, OWASP, CI)      |
+| **gemba-product-triage**           | Study | Classify open issues for product alignment; produce a triage report          |
+| **gemba-product-classify**         | Study | Classify open PRs for mergeability — trust, type, CI, spec review            |
+| **gemba-product-evaluation**       | Study | Supervise product evaluation sessions, capture feedback, create issues       |
+| **gemba-walk**                     | Study | Open-ended trace observation via grounded theory                             |
+| **gemba-grounded-theory-analysis** | Study | Qualitative trace analysis adapted from research methodology                 |
+| **gemba-trace-audit**              | Study | Verify named per-agent invariants against a trace; quoted evidence required  |
+| **gemba-spec**                     | Act   | Write and review specs (WHAT/WHY); manage `draft → review` status            |
+| **gemba-gh-cli**                   | —     | GitHub CLI installation and usage patterns for CI (utility, no PDSA phase)   |
 
 ## Trust Boundary
 
@@ -243,8 +241,8 @@ graph TD
 ## Design Principles
 
 - **PDSA over pipeline.** Every workflow belongs to a phase of the Plan–Do–
-  Study–Act cycle. Findings from Study always re-enter the loop as specs or
-  fix PRs — nothing is observed without a downstream action.
+  Study–Act cycle. Findings from Study always re-enter the loop as specs or fix
+  PRs — nothing is observed without a downstream action.
 - **Fix-or-spec discipline.** Mechanical fixes (`fix/` branches) and structural
   improvements (`spec/` branches) are never mixed in one PR.
 - **Explicit scope constraints.** Each agent lists what it must _not_ do.
@@ -292,15 +290,15 @@ App token for API access.
 
 ## Accountability
 
-Cross-agent accountability runs through the `trace-audit` skill. The
-improvement coach invokes it on every gemba walk to verify named per-agent
-invariants against the actual trace — for example, that the product manager
-ran a contributor lookup before marking any non-CI-app PR mergeable. The
-canonical invariant list lives in
+Cross-agent accountability runs through the `trace-audit` skill. The improvement
+coach invokes it on every gemba walk to verify named per-agent invariants
+against the actual trace — for example, that the product manager ran a
+contributor lookup before marking any non-CI-app PR mergeable. The canonical
+invariant list lives in
 [.claude/skills/gemba-trace-audit/SKILL.md](.claude/skills/gemba-trace-audit/SKILL.md);
 new accountability rules are added there as new specs land, not in this
-document. High-severity audit failures must result in a fix PR or spec —
-silent acceptance is itself a process failure.
+document. High-severity audit failures must result in a fix PR or spec — silent
+acceptance is itself a process failure.
 
 ## Authoring Best Practices
 

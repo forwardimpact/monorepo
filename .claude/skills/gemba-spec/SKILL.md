@@ -10,9 +10,9 @@ phase: Act
 
 # Write and Review Specs
 
-A spec defines WHAT to build and WHY. Pair with the [`gemba-plan`](../gemba-plan/SKILL.md)
-skill — once a spec is approved, the staff engineer turns it into a plan that
-translates the WHAT/WHY into HOW.
+A spec defines WHAT to build and WHY. Pair with the
+[`gemba-plan`](../gemba-plan/SKILL.md) skill — once a spec is approved, the
+staff engineer turns it into a plan that translates the WHAT/WHY into HOW.
 
 **Spec and plan are independent deliverables.** Only produce the one the user
 asked for. If they ask for a spec, write the spec and stop.
@@ -60,13 +60,13 @@ Specs track progress in `specs/STATUS`. The lifecycle is:
 draft → review → planned → active → done
 ```
 
-| Status    | Meaning                                             | Set by           |
-| --------- | --------------------------------------------------- | ---------------- |
-| `draft`   | Spec is being written, not ready for review         | `gemba-spec`           |
-| `review`  | Spec is ready for evaluation                        | `gemba-spec`           |
-| `planned` | Spec approved and a plan is approved                | `gemba-plan`           |
-| `active`  | Implementation in progress                          | `gemba-implement`      |
-| `done`    | Implemented                                         | `gemba-implement`      |
+| Status    | Meaning                                     | Set by            |
+| --------- | ------------------------------------------- | ----------------- |
+| `draft`   | Spec is being written, not ready for review | `gemba-spec`      |
+| `review`  | Spec is ready for evaluation                | `gemba-spec`      |
+| `planned` | Spec approved and a plan is approved        | `gemba-plan`      |
+| `active`  | Implementation in progress                  | `gemba-implement` |
+| `done`    | Implemented                                 | `gemba-implement` |
 
 This skill owns the `draft` and `review` transitions. The `gemba-plan` skill
 advances to `planned` once both spec and plan are approved. The
@@ -75,19 +75,19 @@ advances to `planned` once both spec and plan are approved. The
 ## Reviewing a Spec
 
 Evaluate `spec.md` against the qualities listed in "Writing a Spec" above:
-problem is clear with evidence, scope is specific, success is verifiable, and
-no implementation details have leaked in.
+problem is clear with evidence, scope is specific, success is verifiable, and no
+implementation details have leaked in.
 
-If all criteria are met, approve the spec. If any criterion falls short,
-request changes and return status to `draft`.
+If all criteria are met, approve the spec. If any criterion falls short, request
+changes and return status to `draft`.
 
-| Situation                 | Decision | Target status |
-| ------------------------- | -------- | ------------- |
-| Spec content is approved  | Approve  | `review`*     |
-| Changes requested         | Revise   | `draft`       |
+| Situation                | Decision | Target status |
+| ------------------------ | -------- | ------------- |
+| Spec content is approved | Approve  | `review`\*    |
+| Changes requested        | Revise   | `draft`       |
 
-*The spec stays at `review` until a plan is also approved — at which point
-the `gemba-plan` skill advances it to `planned`.
+\*The spec stays at `review` until a plan is also approved — at which point the
+`gemba-plan` skill advances it to `planned`.
 
 If you are operating in a context where you cannot commit changes (e.g.,
 evaluating a spec PR for another workflow), report your decision and target
@@ -95,24 +95,24 @@ status clearly — the caller is responsible for acting on it.
 
 ## Process
 
-1. **Clarify first.** Ask the user (or upstream finding source) questions
-   before writing anything. Understand the motivation, desired scope,
-   constraints, and what success looks like. A brief conversation up front
-   prevents major rewrites later.
-2. **Research.** Read relevant code, data files, and existing specs.
-   Understand the current state before proposing changes.
+1. **Clarify first.** Ask the user (or upstream finding source) questions before
+   writing anything. Understand the motivation, desired scope, constraints, and
+   what success looks like. A brief conversation up front prevents major
+   rewrites later.
+2. **Research.** Read relevant code, data files, and existing specs. Understand
+   the current state before proposing changes.
 3. **Write the spec.** Focus on WHAT and WHY. Do not include implementation
    details — those go in the plan.
 4. **Update STATUS.** Add the spec to `specs/STATUS` with status `draft`.
 5. **Present the spec.** Share it for feedback. Iterate until satisfied, then
-   set status to `review` — signalling it is ready for formal evaluation.
-   Stop here. The plan is the staff engineer's job.
+   set status to `review` — signalling it is ready for formal evaluation. Stop
+   here. The plan is the staff engineer's job.
 
 ## What NOT to Do
 
-- **Do not write the plan.** That belongs to the `gemba-plan` skill (Plan phase).
-  Drafting implementation steps in the spec couples WHAT to HOW and forces
-  rewrites whenever the implementation strategy changes.
+- **Do not write the plan.** That belongs to the `gemba-plan` skill (Plan
+  phase). Drafting implementation steps in the spec couples WHAT to HOW and
+  forces rewrites whenever the implementation strategy changes.
 - **Do not approve without reading.** Every criterion must be checked against
   the actual content.
 - **Do not rewrite during review.** Reviews evaluate — they do not author. If

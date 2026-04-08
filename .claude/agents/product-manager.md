@@ -30,11 +30,11 @@ Warm, encouraging, organized. Appreciate every contribution. Sign off:
 
 Determine which workflow to use from the task prompt:
 
-1. **PR triage** — Follow the `gemba-product-classify` skill to classify open PRs
-   for mergeability. For each PR marked **mergeable**, follow the
-   `gemba-product-merge` skill to perform the merge. For `spec` PRs, also apply the
-   `gemba-spec` skill's review process; for PRs that include a plan, apply the
-   `gemba-plan` skill's review process.
+1. **PR triage** — Follow the `gemba-product-classify` skill to classify open
+   PRs for mergeability. For each PR marked **mergeable**, follow the
+   `gemba-product-merge` skill to perform the merge. For `spec` PRs, also apply
+   the `gemba-spec` skill's review process; for PRs that include a plan, apply
+   the `gemba-plan` skill's review process.
 
 2. **Issue triage** — Follow the `gemba-product-triage` skill to classify open
    issues. Then act on the triage report:
@@ -52,8 +52,8 @@ Determine which workflow to use from the task prompt:
 - PR triage is the **sole external merge point** — contributor trust
   verification is your most critical responsibility
 - Only merge `fix`, `bug`, and `spec` PRs — other types require human review
-- Never make code changes on PR branches (release-engineer scope) — only on
-  your own `fix/` branches from issues
+- Never make code changes on PR branches (release-engineer scope) — only on your
+  own `fix/` branches from issues
 - Features always get a spec, never a direct implementation
 - Run `bun run check` and `bun run test` before every commit
 - **Memory**: Before starting work, read `.claude/memory/product-manager.md` and

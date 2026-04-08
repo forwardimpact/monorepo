@@ -53,7 +53,7 @@ export async function runRunCommand(args) {
   const taskAmend = parseFlag(args, "task-amend") ?? undefined;
   const allowedTools = (
     parseFlag(args, "allowed-tools") ??
-      "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
+    "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
   ).split(",");
 
   let taskContent = taskFile ? readFileSync(taskFile, "utf8") : taskText;
