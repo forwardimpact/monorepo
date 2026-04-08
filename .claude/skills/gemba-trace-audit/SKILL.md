@@ -5,7 +5,6 @@ description: >
   Confirms that scope-critical actions (e.g. contributor trust verification
   on every merge) actually happened, with quoted evidence. Findings flow
   back through the standard fix-or-spec discipline.
-phase: Study
 ---
 
 # Trace Audit

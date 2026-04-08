@@ -4,7 +4,6 @@ description: >
   Merge pull requests that have been marked mergeable by the `gemba-product-classify`
   skill. Posts the merge comment, performs the merge, verifies the new state,
   and updates the run report.
-phase: Do
 ---
 
 # Product PR Merge

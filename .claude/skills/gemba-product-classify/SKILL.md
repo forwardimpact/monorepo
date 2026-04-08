@@ -6,7 +6,6 @@ description: >
   Produces a classification report listing which PRs are ready to merge.
   Does not perform the merge itself — that belongs to the `gemba-product-merge`
   skill.
-phase: Study
 ---
 
 # Product PR Classification

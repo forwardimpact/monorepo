@@ -4,7 +4,6 @@ description: >
   Write and review implementation plans (HOW) for approved specs. Translate
   an approved spec.md into concrete steps, files, tests, and risks for a
   trusted agent to execute. Advances status from review → planned.
-phase: Plan
 ---
 
 # Write and Review Plans
