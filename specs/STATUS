@@ -8,7 +8,7 @@
 #   active   Implementation in progress
 #   done     Implemented
 #
-# Format: {id}\t{status}
+# Format: {id}	{status}
 # Update this file when creating, planning, reviewing, or implementing a spec.
 
 010	done
