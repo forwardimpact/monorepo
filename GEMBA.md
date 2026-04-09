@@ -165,7 +165,7 @@ All Gemba skills are namespaced with the `gemba-` prefix.
 
 ## Trust Boundary
 
-Product-backlog is the sole external merge point — every other merge path
+PR classification is the sole external merge point — every other merge path
 operates on trusted sources (our agents, Dependabot). External contributions
 pass through a two-tier gate:
 
