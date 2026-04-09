@@ -39,6 +39,11 @@ if [ "$MODE" = "pull" ]; then
         git rebase --abort 2>/dev/null || true
         git reset --hard origin/master
     }
+    cd ..
+    git add "$WIKI_DIR"
+    if ! git diff --cached --quiet -- "$WIKI_DIR"; then
+        git commit -m "chore: update wiki submodule"
+    fi
     exit 0
 fi
 
@@ -56,3 +61,8 @@ if ! git rebase origin/master 2>/dev/null; then
     }
 fi
 git push origin master 2>/dev/null || true
+cd ..
+git add "$WIKI_DIR"
+if ! git diff --cached --quiet -- "$WIKI_DIR"; then
+    git commit -m "chore: update wiki submodule"
+fi
