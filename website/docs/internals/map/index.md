@@ -7,7 +7,7 @@ description: "Data product architecture — internal layering, activity model, i
 
 ```
 products/map/
-  src/              Pure data model (published to npm)
+  src/              Pure data model
     loader.js       YAML file loading and parsing
     validation.js   Referential integrity and data validation
     schema-validation.js  JSON Schema validation
@@ -15,31 +15,45 @@ products/map/
     modifiers.js    Capability and skill modifier utilities
     index-generator.js  Browser index generation
     index.js        Public API exports
-  schema/           JSON Schema + RDF/SHACL (published to npm)
+  schema/           JSON Schema + RDF/SHACL
     json/           JSON Schema definitions
     rdf/            RDF/SHACL definitions
-  activity/         Operational layer (NOT published to npm)
-    migrations/     SQL schema definitions
-    extract/        Data extraction utilities
-    transform/      Data transformation utilities
-    storage.js      Storage interface
+  activity/         Node-only operational helpers
+    validate/       Local-only people validation (uses src/loader.js)
     queries/        Reusable query functions
       org.js        Organization and team queries
       snapshots.js  GetDX snapshot queries
       evidence.js   Evidence queries
       artifacts.js  GitHub artifact queries
+  supabase/         Supabase project (config, migrations, edge functions)
+    functions/
+      _shared/
+        activity/   Canonical ELT helpers (Deno + Node compatible)
+          storage.js    Raw bucket storage interface
+          extract/      Data extraction (github, getdx, people)
+          transform/    Data transformation (github, getdx, people, index)
+      github-webhook/   Webhook receiver for GitHub events
+      people-upload/    People roster upload + transform
+      getdx-sync/       GetDX API extract + transform
+      transform/        Full raw-bucket reprocess
+    migrations/     Activity schema DDL
   bin/fit-map.js    CLI entry point (routes to both layers)
 ```
 
 **Pure layer** (`src/`, `schema/`) -- Framework schema, validation, data
-loading. Zero infrastructure dependencies. Published to npm.
+loading. Zero infrastructure dependencies.
 
-**Activity layer** (`activity/`) -- Supabase migrations, ingestion pipelines,
-query functions. Requires runtime infrastructure. Excluded from npm publish.
+**Activity layer** (`supabase/functions/_shared/activity/`, `activity/`) -- ELT
+helpers, query functions, Supabase project configuration, database migrations,
+and edge functions. Canonical extract/transform code lives in
+`_shared/activity/` so both Deno edge functions and the Node CLI share one
+source of truth. `activity/queries/` and `activity/validate/` remain Node-only.
+Both layers ship in the `@forwardimpact/map` npm package so external
+installations get a complete, deployable data product.
 
-**Layering rule:** `activity/` may import from `src/` (e.g., to validate
-`discipline` values during people import). `src/` must never import from
-`activity/`.
+**Layering rule:** `activity/validate/` may import from `src/` (e.g., to
+validate `discipline` values during people validation). `src/` must never import
+from `activity/` or `supabase/`.
 
 **Join convention:** Framework entity IDs (`discipline`, `level`, `track`,
 `skill_id`, `level_id`, `driver.id`) serve as natural join keys between the
@@ -159,9 +173,11 @@ The data product serves five consumers through two interfaces:
 | **Basecamp** | Pure     | Framework schema                                       |
 | **libskill** | Pure     | Framework schema for derivation                        |
 
-Pure-layer consumers install `@forwardimpact/map` from npm. Activity-layer
-consumers import from `@forwardimpact/map/activity/queries` as a workspace
-dependency -- these imports are never published.
+Both layers ship with `@forwardimpact/map` on npm. Pure-layer consumers import
+the framework loader and validation modules. Activity-layer consumers import
+query functions and ingestion helpers from `@forwardimpact/map/activity/*` and
+deploy the Supabase configuration in `node_modules/@forwardimpact/map/supabase/`
+to stand up the database.
 
 ---
 
@@ -178,10 +194,10 @@ const data = await loader.load();
 ```
 
 For activity datasets, consumers import query functions from
-`@forwardimpact/map/activity/queries` as workspace dependencies:
+`@forwardimpact/map/activity/queries`:
 
 ```javascript
-// Activity layer imports (workspace only, not published)
+// Activity layer imports
 import { getOrganization, getTeam } from "@forwardimpact/map/activity/queries/org";
 import { listSnapshots, getSnapshotScores } from "@forwardimpact/map/activity/queries/snapshots";
 import { getEvidence } from "@forwardimpact/map/activity/queries/evidence";

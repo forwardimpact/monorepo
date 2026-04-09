@@ -1,9 +1,12 @@
 ---
 name: fit-map
 description: >
-  Work with the @forwardimpact/map product. Use when validating framework data,
-  browsing entity definitions, or adding/modifying skills, capabilities,
-  behaviours, disciplines, tracks, levels, questions, or schema definitions.
+  Work with the @forwardimpact/map product. Use when validating framework
+  data, browsing entity definitions, adding/modifying skills, capabilities,
+  behaviours, disciplines, tracks, levels, questions, or schema definitions,
+  or when running the activity layer — pushing people rosters, syncing GetDX
+  snapshots, ingesting GitHub webhook artifacts, and verifying the activity
+  database.
 ---
 
 # Map Product
@@ -11,7 +14,10 @@ description: >
 A public data model for consumption by AI agents and engineers. Map is the
 foundation of all Forward Impact products — it defines how engineering
 competencies, career progression, and agent capabilities are structured in a
-machine-readable format.
+machine-readable format. Map ships two layers: a **framework layer** (YAML files
+validated against JSON Schema and RDF/SHACL) and an **activity layer** (a
+Supabase project with `organization_people`, GitHub artifacts, GetDX snapshots,
+and marker evidence).
 
 Making the data model well understood is a first-class goal. It is published in
 structured formats (JSON Schema, RDF/SHACL) so that AI agents can reliably
@@ -19,20 +25,31 @@ interpret and work with career framework data.
 
 ## When to Use
 
-**Data validation and inspection:**
+**Framework-layer validation and inspection:**
 
 - Validating framework data integrity after changes
 - Checking data summary (skill counts, entity counts)
 - Generating browser index files for the web app
+- Exporting base entities to HTML microdata
 - Understanding what entities exist in the data
 
-**Data authoring and schema work:**
+**Framework-layer authoring and schema work:**
 
 - Adding or modifying skills in capability files
 - Adding new behaviours, disciplines, tracks, or levels
 - Adding interview questions
 - Working with JSON Schema or RDF/SHACL definitions
 - Improving schema documentation for public consumption
+
+**Activity-layer operations:**
+
+- Starting, stopping, and checking the local Supabase stack
+- Applying activity-schema migrations
+- Validating a people roster against the framework
+- Pushing a people roster into `activity.organization_people`
+- Syncing GetDX snapshots into the activity database
+- Reprocessing the `raw` bucket after a transform fix or backfill
+- Verifying the activity database is populated and reachable
 
 ---
 
@@ -69,17 +86,81 @@ filesystem access — the web app loads them to know which entities are availabl
 
 ## CLI
 
+### Framework commands
+
 ```sh
-npx fit-map validate                    # Validate all data (JSON schema + referential)
-npx fit-map validate --shacl            # Validate RDF/SHACL syntax
-npx fit-map validate --data=PATH        # Validate a specific data directory
-npx fit-map generate-index              # Generate _index.yaml files for browser loading
-npx fit-map people import <file>        # Import people from CSV/YAML (validates against framework)
-npx fit-map people import <f> --data=P  # Import with custom data directory
+npx fit-map validate                        # Validate all data (JSON schema + referential)
+npx fit-map validate --shacl                # Validate RDF/SHACL syntax
+npx fit-map validate --data=PATH            # Validate a specific data directory
+npx fit-map generate-index                  # Generate _index.yaml files for browser loading
+npx fit-map export                          # Render base entities to HTML microdata
+npx fit-map export --output=PATH            # Export to a custom directory
 ```
 
 Validation output includes a data summary showing entity counts. Use this to
 quickly verify data is loading correctly after changes.
+
+### People commands
+
+```sh
+npx fit-map people validate <file>          # Validate a people file against the framework (no DB)
+npx fit-map people push <file>              # Store raw + upsert into activity.organization_people
+```
+
+`people validate` is a local pre-flight check — it never opens a Supabase
+connection. `people push` writes the raw file to the `raw` bucket for audit,
+then calls the shared `transformPeople` helper to upsert rows into
+`activity.organization_people` (manager-less rows first so foreign keys
+resolve). Both accept YAML or CSV with the same column names.
+
+### Activity commands
+
+```sh
+npx fit-map activity start                  # Start the bundled local Supabase stack
+npx fit-map activity stop                   # Stop the local stack
+npx fit-map activity status                 # Report local stack health
+npx fit-map activity migrate                # Reset + re-apply migrations (drops data)
+npx fit-map activity transform              # Reprocess every raw document in the raw bucket
+npx fit-map activity transform people       # Reprocess only people
+npx fit-map activity transform getdx        # Reprocess only GetDX
+npx fit-map activity transform github       # Reprocess only GitHub webhooks
+npx fit-map activity verify                 # Smoke-test the activity database
+```
+
+The activity commands wrap the bundled Supabase project so consumers don't need
+to `cd` into `node_modules/@forwardimpact/map`. `activity transform` reads from
+the `raw` bucket and upserts on natural keys — safe to re-run. `activity verify`
+reads `organization_people` and at least one derived table and exits non-zero if
+either is empty.
+
+### GetDX commands
+
+```sh
+GETDX_API_TOKEN=xxx npx fit-map getdx sync  # Extract + transform GetDX snapshots
+```
+
+Fetches `teams.list`, `snapshots.list`, and `snapshots.info` for every undeleted
+snapshot, stores each response under `raw/getdx/`, and upserts
+`activity.getdx_teams`, `activity.getdx_snapshots`, and
+`activity.getdx_snapshot_team_scores`. The CLI and the hosted `getdx-sync` edge
+function run the same extract-and-transform code — pick whichever fits your
+deployment.
+
+### Edge functions (hosted-only)
+
+Four edge functions ship in the bundled Supabase project and deploy with
+`supabase functions deploy`:
+
+| Function         | Trigger                                    | Responsibility                                                                        |
+| ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `github-webhook` | POST from a configured GitHub webhook      | Store raw payload + upsert `github_events`, `github_artifacts` with email resolution  |
+| `people-upload`  | POST with a CSV/YAML body                  | Store raw upload + upsert `organization_people` (equivalent to `fit-map people push`) |
+| `getdx-sync`     | Scheduled POST (cron, GitHub Actions, etc) | Fetch + store + transform GetDX (equivalent to `fit-map getdx sync`)                  |
+| `transform`      | On-demand POST                             | Reprocess the `raw` bucket end-to-end (equivalent to `fit-map activity transform`)    |
+
+Every edge function returns a JSON response with per-target counts and errors.
+Full walk-through in the
+[leadership getting-started guide](https://www.forwardimpact.team/docs/getting-started/leadership/#activity-ingest-github-activity).
 
 ---
 

@@ -22,7 +22,9 @@
     "bin/",
     "src/",
     "schema/",
-    "templates/"
+    "templates/",
+    "activity/",
+    "supabase/"
   ],
   "exports": {
     ".": "./src/index.js",
