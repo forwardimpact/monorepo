@@ -1,10 +1,13 @@
 /**
  * Test-only mock factory for AgentRunner. Yields pre-scripted responses,
  * and (when an `onBatch` callback is set) fires it at the same boundaries
- * the real AgentRunner would: assistant messages with at least one text
- * block, and the terminal `result` message. If the callback calls
- * `abort()`, the mock stops iterating that response's messages and
- * reports `aborted: true`.
+ * the real AgentRunner would: every `runner.batchSize` assistant messages
+ * with a text block, and the terminal `result` message. Tool-only
+ * assistant messages accumulate into the pending batch without counting
+ * toward the threshold. If the callback calls `abort()`, the mock stops
+ * iterating that response's messages and reports `aborted: true` — any
+ * lines that never made it through a flush boundary then ship in a
+ * terminal batch, mirroring the real runner's finally-flush.
  *
  * Intentionally a regular module (not a test file) so describe/test blocks
  * here would not run. Lives under test/ to make its scope explicit.
@@ -12,24 +15,7 @@
 
 import { PassThrough } from "node:stream";
 import { AgentRunner } from "@forwardimpact/libeval";
-
-/**
- * Whether a scripted message should trigger an onBatch flush. Mirrors the
- * real AgentRunner: assistant-with-text-block or terminal `result` message.
- * Tool-only or string-content messages accumulate without flushing.
- * @param {object} message
- * @returns {boolean}
- */
-export function shouldFlush(message) {
-  if (message.type === "result") return true;
-  if (message.type !== "assistant") return false;
-  const content = message.message?.content ?? message.content;
-  if (!Array.isArray(content)) return false;
-  for (const block of content) {
-    if (block.type === "text" && block.text) return true;
-  }
-  return false;
-}
+import { hasTextBlock } from "../src/agent-runner.js";
 
 /**
  * Create a mock AgentRunner that yields pre-scripted responses. Each call
@@ -50,18 +36,44 @@ export function createMockRunner(responses, messages) {
 
   const consume = async (msgs) => {
     let aborted = false;
+    const pendingBatch = [];
+    let assistantTextCount = 0;
     for (const m of msgs) {
       const line = JSON.stringify(m);
       runner.buffer.push(line);
       if (runner.onLine) runner.onLine(line);
-      if (runner.onBatch && shouldFlush(m)) {
-        await runner.onBatch([line], {
+      if (runner.onBatch) pendingBatch.push(line);
+
+      if (hasTextBlock(m)) {
+        assistantTextCount++;
+      }
+
+      const shouldFlush =
+        runner.onBatch &&
+        (m.type === "result" || assistantTextCount >= runner.batchSize);
+      if (shouldFlush) {
+        assistantTextCount = 0;
+        const batchLines = pendingBatch.splice(0);
+        await runner.onBatch(batchLines, {
           abort: () => {
             aborted = true;
           },
         });
         if (aborted) break;
       }
+    }
+    // Terminal flush: mirror the real AgentRunner's abnormal-end path —
+    // an aborted scripted run delivers any pending tail so the supervisor
+    // sees the partial state. Natural-end without a `result` marker is
+    // treated as a simplified stub (no phantom flush), matching the real
+    // runner's rule that terminal flush only fires on error/abort.
+    if (aborted && runner.onBatch && pendingBatch.length > 0) {
+      const batchLines = pendingBatch.splice(0);
+      await runner.onBatch(batchLines, {
+        abort: () => {
+          aborted = true;
+        },
+      });
     }
     return aborted;
   };

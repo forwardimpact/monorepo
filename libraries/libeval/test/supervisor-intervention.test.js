@@ -65,6 +65,9 @@ describe("Supervisor - mid-turn intervention", () => {
     // Supervisor responds with "Keep going." — neither signal flag is set,
     // so the agent's SDK session completes naturally and the end-of-turn
     // review then emits EVALUATION_COMPLETE.
+    //
+    // batchSize = 1 keeps this test focused on intervention semantics, not
+    // on the coarser default batching (3) exercised by agent-runner.test.js.
     const agentMessages = [
       [
         {
@@ -80,6 +83,7 @@ describe("Supervisor - mid-turn intervention", () => {
       [{ text: "I'm working on it." }],
       agentMessages,
     );
+    agentRunner.batchSize = 1;
 
     const supervisorRunner = createMockRunner([
       { text: "Welcome! Please install." },
@@ -167,6 +171,7 @@ describe("Supervisor - mid-turn intervention", () => {
       ],
       agentMessages,
     );
+    agentRunner.batchSize = 1;
 
     // Supervisor responses (in order):
     //   0: turn 0 introduction
@@ -277,6 +282,7 @@ describe("Supervisor - mid-turn intervention", () => {
       [{ text: "Trying X." }, { text: "Trying Y." }],
       agentMessages,
     );
+    agentRunner.batchSize = 1;
 
     const supervisorMessages = [
       undefined,

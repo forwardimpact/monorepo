@@ -146,6 +146,7 @@ describe("Supervisor - output and events", () => {
       [{ text: "Trying the wrong thing." }, { text: "Switching." }],
       agentMessages,
     );
+    agentRunner.batchSize = 1;
     const supervisorRunner = createMockRunner(
       [
         { text: "Welcome." },
