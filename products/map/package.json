@@ -42,18 +42,20 @@
     "./activity/queries/snapshots": "./activity/queries/snapshots.js",
     "./activity/queries/evidence": "./activity/queries/evidence.js",
     "./activity/queries/artifacts": "./activity/queries/artifacts.js",
-    "./activity/storage": "./activity/storage.js",
-    "./activity/extract/github": "./activity/extract/github.js",
-    "./activity/extract/getdx": "./activity/extract/getdx.js",
-    "./activity/extract/people": "./activity/extract/people.js",
-    "./activity/transform/github": "./activity/transform/github.js",
-    "./activity/transform/getdx": "./activity/transform/getdx.js",
-    "./activity/transform/people": "./activity/transform/people.js",
-    "./activity/transform": "./activity/transform/index.js"
+    "./activity/validate/people": "./activity/validate/people.js",
+    "./activity/storage": "./supabase/functions/_shared/activity/storage.js",
+    "./activity/extract/github": "./supabase/functions/_shared/activity/extract/github.js",
+    "./activity/extract/getdx": "./supabase/functions/_shared/activity/extract/getdx.js",
+    "./activity/extract/people": "./supabase/functions/_shared/activity/extract/people.js",
+    "./activity/transform/github": "./supabase/functions/_shared/activity/transform/github.js",
+    "./activity/transform/getdx": "./supabase/functions/_shared/activity/transform/getdx.js",
+    "./activity/transform/people": "./supabase/functions/_shared/activity/transform/people.js",
+    "./activity/transform": "./supabase/functions/_shared/activity/transform/index.js"
   },
   "dependencies": {
     "@forwardimpact/libtemplate": "^0.2.0",
     "@forwardimpact/libutil": "^0.1.64",
+    "@supabase/supabase-js": "^2.48.0",
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "yaml": "^2.8.3"

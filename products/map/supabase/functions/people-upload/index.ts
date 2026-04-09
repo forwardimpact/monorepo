@@ -1,4 +1,6 @@
 import { createSupabaseClient } from "../_shared/supabase.ts";
+import { extractPeopleFile } from "../_shared/activity/extract/people.js";
+import { transformPeople } from "../_shared/activity/transform/people.js";
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
@@ -7,29 +9,30 @@ Deno.serve(async (req) => {
 
   const contentType = req.headers.get("Content-Type") || "";
   const isCSV = contentType.includes("text/csv");
-  const ext = isCSV ? "csv" : "yaml";
+  const format = isCSV ? "csv" : "yaml";
   const body = await req.text();
-  const timestamp = new Date().toISOString();
 
   const supabase = createSupabaseClient();
 
-  // Extract: store raw file
-  const path = `people/${timestamp}.${ext}`;
-  const { error: storeError } = await supabase.storage
-    .from("raw")
-    .upload(path, body, {
-      contentType: isCSV ? "text/csv" : "application/x-yaml",
-      upsert: true,
-    });
-
-  if (storeError) {
-    return new Response(JSON.stringify({ error: storeError.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+  const extractResult = await extractPeopleFile(supabase, body, format);
+  if (!extractResult.stored) {
+    return json({ ok: false, stored: false, error: extractResult.error }, 500);
   }
 
-  return new Response(JSON.stringify({ stored: true, path }), {
-    headers: { "Content-Type": "application/json" },
+  const { imported, errors } = await transformPeople(supabase);
+
+  return json({
+    ok: errors.length === 0,
+    stored: true,
+    path: extractResult.path,
+    imported,
+    errors,
   });
 });
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}

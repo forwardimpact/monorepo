@@ -80,7 +80,7 @@
     },
     "libraries/libeval": {
       "name": "@forwardimpact/libeval",
-      "version": "0.1.7",
+      "version": "0.1.8",
       "bin": {
         "fit-eval": "./bin/fit-eval.js",
       },
@@ -102,7 +102,7 @@
     },
     "libraries/libgraph": {
       "name": "@forwardimpact/libgraph",
-      "version": "0.1.59",
+      "version": "0.1.60",
       "bin": {
         "fit-process-graphs": "./bin/fit-process-graphs.js",
         "fit-subjects": "./bin/fit-subjects.js",
@@ -198,7 +198,7 @@
     },
     "libraries/librepl": {
       "name": "@forwardimpact/librepl",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "dependencies": {
         "@forwardimpact/libformat": "^0.1.0",
       },
@@ -208,7 +208,7 @@
     },
     "libraries/libresource": {
       "name": "@forwardimpact/libresource",
-      "version": "0.1.98",
+      "version": "0.1.99",
       "bin": {
         "fit-process-resources": "./bin/fit-process-resources.js",
       },
@@ -251,7 +251,7 @@
     },
     "libraries/libskill": {
       "name": "@forwardimpact/libskill",
-      "version": "4.1.5",
+      "version": "4.1.6",
       "dependencies": {
         "@forwardimpact/map": "^0.13.0",
       },
@@ -329,7 +329,7 @@
     },
     "libraries/libtelemetry": {
       "name": "@forwardimpact/libtelemetry",
-      "version": "0.1.30",
+      "version": "0.1.31",
       "bin": {
         "fit-visualize": "./bin/fit-visualize.js",
       },
@@ -343,7 +343,7 @@
     },
     "libraries/libtemplate": {
       "name": "@forwardimpact/libtemplate",
-      "version": "0.2.4",
+      "version": "0.2.5",
       "dependencies": {
         "mustache": "^4.2.0",
       },
@@ -456,7 +456,7 @@
     },
     "products/guide": {
       "name": "@forwardimpact/guide",
-      "version": "0.1.16",
+      "version": "0.1.17",
       "bin": {
         "fit-guide": "./bin/fit-guide.js",
       },
@@ -483,28 +483,29 @@
     },
     "products/map": {
       "name": "@forwardimpact/map",
-      "version": "0.15.12",
+      "version": "0.15.13",
       "bin": {
         "fit-map": "./bin/fit-map.js",
       },
       "dependencies": {
         "@forwardimpact/libtemplate": "^0.2.0",
         "@forwardimpact/libutil": "^0.1.64",
+        "@supabase/supabase-js": "^2.48.0",
         "ajv": "^8.18.0",
         "ajv-formats": "^3.0.1",
         "yaml": "^2.8.3",
       },
       "devDependencies": {
-        "@forwardimpact/libgraph": "workspace:*",
-        "@forwardimpact/libresource": "workspace:*",
-        "@forwardimpact/libstorage": "workspace:*",
+        "@forwardimpact/libgraph": "^0.1.59",
+        "@forwardimpact/libresource": "^0.1.98",
+        "@forwardimpact/libstorage": "^0.1.61",
         "microdata-rdf-streaming-parser": "^3.0.0",
         "n3": "^2.0.3",
       },
     },
     "products/pathway": {
       "name": "@forwardimpact/pathway",
-      "version": "0.25.20",
+      "version": "0.25.21",
       "bin": {
         "fit-pathway": "./bin/fit-pathway.js",
       },
@@ -574,7 +575,7 @@
     },
     "services/pathway": {
       "name": "@forwardimpact/svcpathway",
-      "version": "0.1.0",
+      "version": "0.1.3",
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.58",
         "@forwardimpact/librpc": "^0.1.77",

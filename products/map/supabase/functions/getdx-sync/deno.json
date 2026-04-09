@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "yaml": "npm:yaml@2",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2"
+  }
+}
