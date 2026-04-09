@@ -104,7 +104,7 @@ gh pr close <number> --comment "..."
 
 ### List and view issues
 
-Used by `gemba-product-triage` and `gemba-product-feedback`.
+Used by `gemba-product-triage`.
 
 ```sh
 gh issue list --state open --limit 50 \
