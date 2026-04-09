@@ -29,10 +29,11 @@ graph TD
     W --> A --> S
 ```
 
-All workflows use a shared composite action (`.github/actions/claude/`) that
-installs Claude Code, runs a prompt against an agent profile, captures the
-execution trace as NDJSON, and uploads it as an artifact. Authentication via
-GitHub App tokens (see § Authentication).
+All workflows use two shared composite actions:
+`.github/actions/bootstrap/` (sets up Bun and installs dependencies) and
+`.github/actions/gemba-action/` (runs a task against an agent profile via
+`fit-eval`, captures the execution trace as NDJSON, and uploads it as an
+artifact). Authentication via GitHub App tokens (see § Authentication).
 
 ## The PDSA Loop
 
