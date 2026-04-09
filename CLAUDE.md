@@ -114,24 +114,14 @@ consult the [Getting Started guides](website/docs/getting-started/).
 
 ### Checklists
 
-Two checklist types frame every contribution, following Atul Gawande's
-_Checklist Manifesto_ (Ch. 6):
+`<read_do_checklist>` tags are entry gates — read each item, then do it.
+`<do_confirm_checklist>` tags are exit gates — do from memory, then confirm.
+Follow the protocol whenever you encounter these tags in the instruction stack.
 
-- **READ-DO** — Read each item, then do it. Entry gate: internalize before
-  starting. Marked with `<read_do_checklist>` tags.
-- **DO-CONFIRM** — Do from memory, then pause and confirm every item. Exit gate:
-  verify before proceeding. Marked with `<do_confirm_checklist>` tags.
-
-When you encounter these tags anywhere in the instruction stack —
-CONTRIBUTING.md, agent profiles, skills — follow the protocol the tag names:
-read-then-do for entry gates, do-then-confirm for exit gates. Not every list is
-a checklist — only tagged blocks carry the halt-and-verify obligation.
-
-- **Before starting**, run [CONTRIBUTING.md § READ-DO](CONTRIBUTING.md#read-do)
-  — the rules to hold in mind while writing, including _Simple over easy_.
-- **Before committing**, run
-  [CONTRIBUTING.md § DO-CONFIRM](CONTRIBUTING.md#do-confirm) — the gates to
-  verify, including `bun run check`, `bun run test`, and commit format.
+- **Before starting** — run
+  [CONTRIBUTING.md § READ-DO](CONTRIBUTING.md#read-do).
+- **Before committing** — run
+  [CONTRIBUTING.md § DO-CONFIRM](CONTRIBUTING.md#do-confirm).
 
 ## LLM Environment
 
