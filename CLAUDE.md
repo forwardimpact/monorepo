@@ -170,6 +170,7 @@ data/
   synthetic/           # synthetic data DSL and generated artifacts
 specs/
   {feature}/           # feature specifications and plans
+wiki/                  # GitHub wiki submodule — internal notes and shared agent memory
 ```
 
 Data-driven: entities defined in YAML, each external installation may have
@@ -252,6 +253,8 @@ above.
 - **Dependency policy** —
   [CONTRIBUTING.md § Dependency Policy](CONTRIBUTING.md#dependency-policy)
 - **Repo self-maintenance** — [GEMBA.md](GEMBA.md)
+- **Shared agent memory** — [wiki/](wiki/) (GitHub wiki submodule; gemba agents
+  read and write per-agent summaries and weekly logs here)
 - **Environment, services, tasks** —
   [Operations Reference](website/docs/internals/operations/)
 - **Supply chain & app security** —
