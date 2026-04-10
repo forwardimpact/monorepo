@@ -27,7 +27,7 @@ canonical query shapes used in the steps below.
 
 ## Policy Checklist
 
-<do_confirm_checklist>
+<do_confirm_checklist goal="Verify dependency policy compliance">
 
 - [ ] **All CI checks pass** (CONTRIBUTING.md § Before Submitting a PR). On
       failure: **fix** if caused by PR; if pre-existing on main, skip and

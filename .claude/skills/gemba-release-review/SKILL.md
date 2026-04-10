@@ -33,7 +33,7 @@ had publish failures from prior `release-engineer` entries.
 
 ## Pre-Flight: Verify Main Branch CI
 
-<read_do_checklist>
+<read_do_checklist goal="Verify main branch CI before releasing">
 
 - [ ] Ran
       `gh run list --branch main --limit 5 --json name,conclusion,headBranch`.

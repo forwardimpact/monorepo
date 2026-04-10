@@ -77,7 +77,7 @@ Each run covers **one topic** in depth.
 
 ## 8. Audit Checklist
 
-<do_confirm_checklist>
+<do_confirm_checklist goal="Confirm all audit areas reviewed">
 
 - [ ] Ran `just audit` locally and reported findings.
 - [ ] Reviewed `.github/workflows/` for unpinned actions, missing permissions.
