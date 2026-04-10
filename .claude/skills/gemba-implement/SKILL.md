@@ -2,9 +2,8 @@
 name: gemba-implement
 description: >
   Implement a spec by studying its spec.md and plan, then executing the plan
-  step by step. Use when a spec has status `planned` and is ready for
-  execution, or the user says "implement spec", "execute plan", or "build
-  spec NNN".
+  step by step. Use when a spec and plan are approved and ready for
+  implementation.
 ---
 
 # Implement Spec

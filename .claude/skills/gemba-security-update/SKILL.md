@@ -3,8 +3,8 @@ name: gemba-security-update
 description: >
   Apply security updates to the repository. Triage open Dependabot PRs against
   repository policies, review npm audit findings, and action dependency
-  vulnerabilities. Use when processing Dependabot PRs, addressing npm audit
-  findings, remediating CVEs, or running scheduled security update sweeps.
+  vulnerabilities. Merge PRs that pass all checks, fix minor issues on a new
+  branch, or close PRs that violate policy.
 ---
 
 # Security Update
@@ -27,7 +27,7 @@ canonical query shapes used in the steps below.
 
 ## Policy Checklist
 
-<do_confirm_checklist goal="Verify dependency policy compliance">
+<do_confirm_checklist>
 
 - [ ] **All CI checks pass** (CONTRIBUTING.md § Before Submitting a PR). On
       failure: **fix** if caused by PR; if pre-existing on main, skip and

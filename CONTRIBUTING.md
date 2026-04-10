@@ -30,7 +30,7 @@ checks.
 Read every item before starting, and hold them while writing. Entry gate — don't
 start until all are internalized.
 
-<read_do_checklist goal="Internalize constraints before writing code">
+<read_do_checklist>
 
 - [ ] **Understand the task.** What is it actually asking? Which files will I
       touch, and which will I not?
@@ -55,7 +55,7 @@ start until all are internalized.
 Before committing, verify every item. Exit gate — don't proceed until all are
 confirmed.
 
-<do_confirm_checklist goal="Verify quality before committing">
+<do_confirm_checklist>
 
 - [ ] `bun run check` passes — format and lint, all file types.
 - [ ] `bun run test` passes — new logic has tests.

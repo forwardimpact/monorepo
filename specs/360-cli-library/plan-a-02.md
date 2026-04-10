@@ -1,7 +1,9 @@
 # 360 Part 02 — Migrate product CLIs
 
-Migrate the four product CLIs to use libcli. These are the most complex CLIs and
-the most visible to external users.
+Migrate three product CLIs to use libcli. These are the most complex CLIs and
+the most visible to external users. Basecamp is handled separately in
+[part 05](plan-a-05.md) because it also requires a structural refactor from
+flag-based commands to positional subcommands.
 
 **Depends on:** Part 01 (libcli library must exist).
 
@@ -16,13 +18,11 @@ the most visible to external users.
 | `products/map/bin/fit-map.js`            | Rewrite to use Cli class                        |
 | `products/guide/package.json`            | Add `@forwardimpact/libcli` dependency          |
 | `products/guide/bin/fit-guide.js`        | Use Cli for initial parsing                     |
-| `products/basecamp/package.json`         | Add `@forwardimpact/libcli` dependency          |
-| `products/basecamp/src/basecamp.js`      | Rewrite CLI entry to use Cli class              |
 
 ## Order
 
 1. Migrate pathway first (it's the source of the formatting code)
-2. Map, guide, basecamp in any order
+2. Map, guide in any order
 
 ## Steps
 
@@ -76,16 +76,30 @@ The kept functions currently call the local `colorize()` — they switch to the
 libcli import. Behavior is identical (the default `proc` parameter handles
 production use).
 
-**Update other pathway files** that import from `cli-output.js`. Search for
-imports of the removed functions across `products/pathway/src/` and update them
-to import from `@forwardimpact/libcli` instead. Common imports to redirect:
+**Update other pathway files** that import from `cli-output.js`. The following
+13 files import generic formatters that move to libcli — redirect their imports
+to `@forwardimpact/libcli`:
 
-- `formatTable` — used in command handlers for tabular output
-- `formatHeader`, `formatSubheader` — used in command handlers for section
-  titles
-- `formatError` — used in `bin/fit-pathway.js` (line 41) and command handlers
-- `formatSection`, `formatBullet`, `formatListItem` — used in command handlers
-- `horizontalRule`, `indent` — used in command handlers
+| File                                           | Functions imported                                     |
+| ---------------------------------------------- | ------------------------------------------------------ |
+| `products/pathway/bin/fit-pathway.js`          | `formatError`                                          |
+| `products/pathway/src/commands/skill.js`       | `formatTable`, `formatError`                           |
+| `products/pathway/src/commands/track.js`       | `formatTable`                                          |
+| `products/pathway/src/commands/agent.js`       | `formatError`, `formatSuccess`                         |
+| `products/pathway/src/commands/behaviour.js`   | `formatTable`                                          |
+| `products/pathway/src/commands/level.js`       | `formatTable`                                          |
+| `products/pathway/src/commands/driver.js`      | `formatTable`, `formatHeader`, `formatSubheader`, `formatBullet` |
+| `products/pathway/src/commands/discipline.js`  | `formatTable`                                          |
+| `products/pathway/src/commands/job.js`         | `formatTable`                                          |
+| `products/pathway/src/commands/agent-io.js`    | `formatSuccess`                                        |
+| `products/pathway/src/commands/questions.js`   | `formatTable`                                          |
+| `products/pathway/src/commands/stage.js`       | `formatTable`, `formatHeader`, `formatSubheader`, `formatBullet` |
+| `products/pathway/src/commands/tool.js`        | `formatTable`, `formatHeader`, `formatSubheader`       |
+
+Each file switches from `import { fn } from "../lib/cli-output.js"` to
+`import { fn } from "@forwardimpact/libcli"`. Domain-specific formatters
+(`formatSkillProficiency`, etc.) continue to import from the local
+`cli-output.js`.
 
 #### 1c. Rewrite `products/pathway/bin/fit-pathway.js`
 
@@ -243,7 +257,15 @@ Add `@forwardimpact/libcli` dependency.
 #### 2b. Rewrite `products/map/bin/fit-map.js`
 
 **Current state:** 448 lines with `showHelp()` function (line 235), inline
-`parseArgs` call (line 375), and `console.error` for error output.
+`parseArgs` call (line 375), and `console.error` for error output. Has no
+`VERSION` constant — add one by reading `package.json` (same pattern as
+fit-pathway lines 66–68):
+
+```js
+const { version: VERSION } = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+);
+```
 
 Create a definition object. Map has subcommands with sub-subcommands
 (`people validate`, `activity start`). Since libcli doesn't do nested subcommand
@@ -296,100 +318,78 @@ doesn't own.
 
 Add `@forwardimpact/libcli` dependency.
 
-#### 3b. Update `products/guide/bin/fit-guide.js`
+#### 3b. Rewrite `products/guide/bin/fit-guide.js`
 
-**Current state:** Repl-based interactive CLI (279 lines). The `usage` variable
-(line 18) is a string passed to Repl configuration.
+**Current state:** Repl-based interactive CLI (280 lines). The Repl's
+`commands` config (lines 231–261) handles `--version`, `--init`, `--data`, and
+`--streaming` as CLI flags parsed during `repl.start()`. These are CLI-time
+concerns, not interactive Repl commands.
 
-Guide is a Repl-based CLI — the migration is minimal:
-
-- Add a definition object with `name`, `version`, `description`, and a `usage`
-  string
-- Use `createCli(definition)` to handle `--help` and `--version` before entering
-  the Repl session
-- The Repl session itself is unchanged
-- Replace `console.error()` in the catch block (line 269) with `cli.error()` or
-  `logger.exception()`
+**The change:** Move all CLI flags out of the Repl and into a libcli definition.
+The CLI entry point handles them before starting the Repl. The Repl becomes
+purely interactive.
 
 ```js
-const cli = createCli(definition);
-const parsed = cli.parse(process.argv.slice(2));
-if (!parsed) process.exit(0);
+import { createCli } from "@forwardimpact/libcli";
 
-// Existing Repl setup continues from here
-```
-
-### 4. Migrate basecamp
-
-#### 4a. Update `products/basecamp/package.json`
-
-Add `@forwardimpact/libcli` dependency.
-
-#### 4b. Rewrite `products/basecamp/src/basecamp.js`
-
-**Current state:** 348 lines with `showHelp()` function (line 281), manual
-`args[0]` command dispatch (lines 304–347), and `console.error` for errors.
-
-Create a definition object:
-
-```js
 const definition = {
-  name: "fit-basecamp",
+  name: "fit-guide",
   version: VERSION,
-  description: "Schedule autonomous agents across knowledge bases",
-  commands: [
-    { name: "--daemon", description: "Run continuously (poll every 60s)" },
-    { name: "--wake", args: "<agent>", description: "Wake a specific agent immediately" },
-    { name: "--init", args: "<path>", description: "Initialize a new knowledge base" },
-    { name: "--update", args: "[path]", description: "Update KB with latest CLAUDE.md, agents and skills" },
-    { name: "--stop", description: "Gracefully stop daemon and all running agents" },
-    { name: "--validate", description: "Validate agent definitions exist" },
-    { name: "--status", description: "Show agent status" },
-  ],
+  description: "Conversational agent for the Guide knowledge platform",
   options: {
-    daemon:   { type: "boolean", description: "Run as daemon" },
-    wake:     { type: "string", description: "Agent to wake" },
-    init:     { type: "string", description: "KB path to initialize" },
-    update:   { type: "string", description: "KB path to update" },
-    stop:     { type: "boolean", description: "Stop daemon" },
-    validate: { type: "boolean", description: "Validate definitions" },
-    status:   { type: "boolean", description: "Show agent status" },
-    help:     { type: "boolean", short: "h", description: "Show this help" },
+    init:      { type: "boolean", description: "Generate secrets, .env, and config" },
+    data:      { type: "string",  description: "Path to framework data directory" },
+    streaming: { type: "boolean", description: "Use streaming agent endpoint" },
+    help:      { type: "boolean", short: "h", description: "Show this help" },
+    version:   { type: "boolean", description: "Show version" },
   },
+  examples: [
+    'echo "Tell me about the company" | npx fit-guide',
+    "npx fit-guide --init",
+  ],
 };
-```
 
-**Note:** Basecamp uses flags as commands (`--daemon`, `--wake <name>`, etc.)
-rather than positional subcommands. The `commands` array in the definition is
-**cosmetic only** — it populates the "Commands:" section of help output so users
-see the familiar flag-based interface. Actual dispatch goes through the
-`options` values (`values.daemon`, `values.wake`, etc.), not positional command
-routing. Do not attempt to match positionals against the commands array for
-basecamp.
-
-Replace `showHelp()` and the command dispatch block with:
-
-```js
 const cli = createCli(definition);
 const parsed = cli.parse(process.argv.slice(2));
 if (!parsed) process.exit(0);
 
 const { values } = parsed;
-if (values.daemon) { daemon(); }
-else if (values.wake) { /* wake logic */ }
-else if (values.init) { /* init logic */ }
-else if (values.update !== undefined) { /* update logic */ }
-else if (values.stop) { /* stop logic */ }
-else if (values.validate) { validate(); }
-else if (values.status) { showStatus(); }
-else { await scheduler.wakeDueAgents(); }
+
+// Handle one-shot CLI commands before entering Repl
+if (values.init) { await runInit(); process.exit(0); }
+if (values.data) dataDir = resolve(values.data);
+if (values.streaming) useStreaming = true;
+
+// Repl is now purely interactive — no CLI flag parsing
+const repl = new Repl({
+  prompt: "> ",
+  usage,
+  storage,
+  state: { resource_id: null },
+  commands: {},
+  setup: setupServices,
+  onLine: handlePrompt,
+});
+await repl.start();
 ```
 
-Replace `console.error` calls with `cli.error()` where the error should carry
-the CLI name prefix. Keep the custom `log()` function for daemon operational
-output — that's internal logging, not CLI error output.
+**What's deleted:**
 
-### 5. Add Logger where missing
+- The `commands` object passed to the Repl (lines 231–261) — `version`,
+  `init`, `data`, `streaming` entries all move to the libcli definition
+- The `showVersion()` function (lines 42–47) — `cli.parse()` handles
+  `--version` directly
+
+**What's kept:**
+
+- `runInit()` function (lines 53–123) — called by the CLI entry point
+- `setupServices()` function (lines 130–166) — called by Repl setup
+- `handlePrompt()` function (lines 176–219) — Repl onLine handler
+- All service wiring and imports
+
+Replace `console.error()` in the catch block (line 269) with `cli.error()`.
+
+### 4. Add Logger where missing
 
 The spec requires every CLI to create a Logger. Check each product CLI:
 
@@ -397,12 +397,7 @@ The spec requires every CLI to create a Logger. Check each product CLI:
   for Finder. Keep as-is — Logger is already wired.
 - **fit-map**: Already creates `createLogger()` for Finder (line 37). Keep.
 - **fit-guide**: Already creates `createLogger("cli")` (line 150). Keep.
-- **fit-basecamp**: Has a custom `createLogger` (line 51) that writes to files.
-  This is intentional for daemon logging. Add a libtelemetry Logger for error
-  output alongside the existing file logger, or leave as-is since basecamp's
-  logging model is deliberately different (file-based).
-
-### 6. Verification
+### 5. Verification
 
 For each product CLI:
 
@@ -419,10 +414,6 @@ bunx fit-map validate             # Normal operation unchanged
 
 bunx fit-guide --help
 bunx fit-guide --help --json
-
-bunx fit-basecamp --help
-bunx fit-basecamp --help --json
-bunx fit-basecamp --status        # Normal operation unchanged
 ```
 
 Run full test suite: `bun run check && bun run test`

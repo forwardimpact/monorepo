@@ -1,11 +1,6 @@
 ---
 name: gemba-gh-cli
-description: >
-  GitHub CLI usage for Gemba agents running in GitHub Actions. Covers sandbox
-  installation, CI runner quirks, and the repeated gh query patterns Gemba
-  skills use for PR triage, contributor lookup, trace downloads, and release
-  operations. Use when running gh commands in CI, installing gh on a runner,
-  or looking up canonical query shapes for GitHub API calls.
+description: GitHub CLI usage for Gemba agents running in GitHub Actions. Covers sandbox installation, CI runner quirks, and the repeated gh query patterns Gemba skills use for PR triage, contributor lookup, trace downloads, and release operations. Generic gh reference included as appendix.
 ---
 
 # GitHub CLI for Gemba workflows
