@@ -21,7 +21,8 @@ breadth.
 
 ## Checklists
 
-<read_do_checklist goal="Internalize grounded theory principles before reading the trace">
+<read_do_checklist goal="Internalize grounded theory principles before reading
+the trace">
 
 - [ ] Begin with no hypothesis — let codes emerge from the data.
 - [ ] Use in-vivo codes: the trace's own language ("403 forbidden"), not
@@ -218,9 +219,9 @@ Append to the current week's log (see agent profile for the file path):
 
 ## Analysis Principles
 
-The READ-DO checklist covers grounded theory fundamentals (no hypothesis, in-vivo
-codes, memos during coding, full trace read, core category). These principles
-add practical guidance:
+The READ-DO checklist covers grounded theory fundamentals (no hypothesis,
+in-vivo codes, memos during coding, full trace read, core category). These
+principles add practical guidance:
 
 - **Quote, don't paraphrase.** Exact error messages, commands, token counts.
 - **Distinguish symptoms from causes.** The paradigm model forces you to trace

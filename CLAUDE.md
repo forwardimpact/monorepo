@@ -115,14 +115,13 @@ consult the [Getting Started guides](website/docs/getting-started/).
 ### Checklists
 
 The repo uses tagged checklists as forcing functions at natural pause points.
-Design principles and authoring rules live in
-[CHECKLISTS.md](CHECKLISTS.md) — read it before creating or revising a
-checklist.
+Design principles and authoring rules live in [CHECKLISTS.md](CHECKLISTS.md) —
+read it before creating or revising a checklist.
 
 Two types, encoded in the tag name:
 
-- **`<read_do_checklist>`** — Entry gate. Read each item, then do it. Use
-  before starting work.
+- **`<read_do_checklist>`** — Entry gate. Read each item, then do it. Use before
+  starting work.
 - **`<do_confirm_checklist>`** — Exit gate. Do from memory, then pause and
   confirm every item. Use before crossing a boundary (commit, merge, publish).
 

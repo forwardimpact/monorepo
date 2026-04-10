@@ -18,7 +18,8 @@ modes of operation:
 
 ## Checklists
 
-<read_do_checklist goal="Load documentation standards before writing or reviewing">
+<read_do_checklist goal="Load documentation standards before writing or
+reviewing">
 
 - [ ] Read [`references/standards.md`](references/standards.md) — audience
       rules, formatting conventions, terminology.
