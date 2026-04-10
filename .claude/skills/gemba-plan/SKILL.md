@@ -18,10 +18,62 @@ no commitment to implement, and a plan has nothing to translate.
 ## When to Use
 
 - Turning an approved spec (`status: review` with content approved) into an
-  execution-ready `plan.md`
+  execution-ready plan
 - Reviewing a plan before it advances to `planned` ("review plan NNN", "is plan
   NNN ready?")
-- Choosing between competing plan variants for the same spec
+- Creating an alternative plan variant for the same spec
+
+## Naming Convention
+
+Plans live alongside their spec in `specs/{NNN}-{name}/`.
+
+### Default plan
+
+The first (and usually only) plan is always **`plan-a.md`**. Do not use
+`plan.md` or other shorthands — the letter suffix keeps naming consistent
+whether one plan or several exist.
+
+### Alternative plans
+
+When exploring competing approaches for the same spec, create additional
+variants using sequential letters:
+
+```
+plan-a.md    ← default (always created first)
+plan-b.md    ← alternative approach
+plan-c.md    ← another alternative
+```
+
+Each variant should open with a brief rationale explaining how it differs from
+plan-a. When the spec advances to `planned`, **plan-a is the plan that will be
+implemented** unless the approver explicitly selects a different variant.
+
+### Large plan decomposition
+
+When a plan is too large to implement as a single unit — many files, multiple
+independent phases, or risk of exceeding context — decompose it into numbered
+parts:
+
+```
+plan-a.md       ← overview, strategy, and part index
+plan-a-01.md    ← part 1 (independently executable)
+plan-a-02.md    ← part 2 (independently executable)
+plan-a-03.md    ← part 3 (independently executable)
+```
+
+**Rules for decomposition:**
+
+- `plan-a.md` contains the overall approach, rationale, cross-cutting concerns,
+  and a numbered index linking to each part with a one-line summary.
+- Each part (`plan-a-NN.md`) is independently executable — it has its own scope,
+  file list, ordering, and verification steps. The implementer can complete and
+  commit each part without needing the others to be finished.
+- Parts are numbered in execution order. State inter-part dependencies
+  explicitly (e.g., "part 02 depends on part 01 for the new type definitions").
+- A single-part plan does not need decomposition — only decompose when there is
+  a concrete benefit (size, independence, parallelism).
+
+Alternative plans can also be decomposed (`plan-b.md`, `plan-b-01.md`, etc.).
 
 ## Writing a Plan (HOW)
 
@@ -44,12 +96,9 @@ on these qualities:
 - **Risks surfaced.** Flag steps that require judgement, ambiguous decisions, or
   unknowns. The implementer should never be surprised by a step.
 
-When a spec has multiple competing plans, use numbered variants:
-`plan-01-approach-a.md`, `plan-02-approach-b.md`.
-
 ## Reviewing a Plan
 
-Evaluate `plan.md` against the qualities listed in "Writing a Plan" above:
+Evaluate the plan against the qualities listed in "Writing a Plan" above:
 approach is stated, changes are concrete, blast radius is visible, ordering is
 explicit, decisions are explained, and risks are surfaced.
 
@@ -62,6 +111,10 @@ return status to `draft`.
 | Spec approved + plan approved             | Approve  | `planned`     |
 | Plan approved but spec still under review | Wait     | (no change)   |
 | Plan changes requested                    | Revise   | `draft`       |
+
+When multiple plan variants exist (plan-a, plan-b, etc.), the review should
+note which variant is approved. If no variant is explicitly selected, plan-a is
+the default.
 
 The full status lifecycle lives in the
 [`gemba-spec`](../gemba-spec/SKILL.md#status-lifecycle) skill — this skill owns
@@ -80,8 +133,10 @@ acting on it.
    the problem, scope, and success criteria without referring back.
 3. **Research the codebase.** Read the files the plan will target. Verify
    current state matches what the spec assumes.
-4. **Write the plan.** Translate the approved spec into concrete steps. Each
-   step should be independently verifiable. Surface risks explicitly.
+4. **Write the plan.** Create `plan-a.md`. Translate the approved spec into
+   concrete steps. Each step should be independently verifiable. Surface risks
+   explicitly. If the plan is large, decompose it into parts (see § Large plan
+   decomposition).
 5. **Present the plan.** Share it for feedback.
 6. **Update STATUS.** When both spec and plan are approved, advance the spec's
    status from `review` to `planned`. Do not advance while the plan is still
@@ -98,3 +153,5 @@ acting on it.
   executes it.
 - **Do not approve a plan whose spec is still under review.** Both must be
   approved before advancing to `planned`.
+- **Do not use `plan.md` as a filename.** Always use `plan-a.md` (or
+  `plan-b.md`, etc.) for naming consistency.

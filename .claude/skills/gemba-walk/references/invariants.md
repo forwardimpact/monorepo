@@ -48,13 +48,13 @@ acceptance.
 | Invariant                                   | Evidence to find                                             | Severity   |
 | ------------------------------------------- | ------------------------------------------------------------ | ---------- |
 | Approved spec read before plan written      | A `Read` call on `specs/<NNN>/spec.md` before any plan edits | **Medium** |
-| Risks section present in produced `plan.md` | The plan file content includes a risks section               | **Low**    |
+| Risks section present in produced plan      | The plan file (`plan-a.md` or variant) content includes a risks section | **Low**    |
 
 ## staff-engineer / implement-plans traces
 
 | Invariant                                           | Evidence to find                                                       | Severity   |
 | --------------------------------------------------- | ---------------------------------------------------------------------- | ---------- |
-| Both `spec.md` and `plan.md` read before first edit | `Read` calls on both files before any `Edit`/`Write`                   | **High**   |
+| Both `spec.md` and plan read before first edit | `Read` calls on `spec.md` and `plan-a.md` (or selected variant) before any `Edit`/`Write` | **High**   |
 | Status advanced to `active` before implementation   | `specs/STATUS` edit setting the spec to `active` before the first edit | **Medium** |
 | `bun run check` and `bun run test` ran before push  | Tool calls invoking these commands before any push                     | **Medium** |
 | Status advanced to `done` after final push          | `specs/STATUS` edit setting the spec to `done` after the push          | **Medium** |

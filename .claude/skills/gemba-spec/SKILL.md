@@ -27,8 +27,8 @@ asked for. If they ask for a spec, write the spec and stop.
 
 ```
 specs/{NNN}-{kebab-case-name}/
-  spec.md    WHAT and WHY      (this skill)
-  plan.md    HOW               (the `gemba-plan` skill)
+  spec.md      WHAT and WHY      (this skill)
+  plan-a.md    HOW               (the `gemba-plan` skill)
 ```
 
 Number directories sequentially. Use the next available number.

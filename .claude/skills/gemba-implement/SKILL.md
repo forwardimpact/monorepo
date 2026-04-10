@@ -1,7 +1,7 @@
 ---
 name: gemba-implement
 description: >
-  Implement a spec by studying its spec.md and plan.md, then executing the plan
+  Implement a spec by studying its spec.md and plan, then executing the plan
   step by step. Use when a spec and plan are approved and ready for
   implementation.
 ---
@@ -26,8 +26,8 @@ through the steps below.
 
 ### 1. Study the spec deeply
 
-Read every file in the spec directory — `spec.md`, all `plan*.md` files, and any
-supporting documents. Understand:
+Read every file in the spec directory — `spec.md`, all `plan-*.md` files, and
+any supporting documents. Understand:
 
 - **The problem.** What pain or gap does this address? What evidence supports
   it?
@@ -39,9 +39,13 @@ supporting documents. Understand:
 Do not start coding until you can explain the problem and its boundaries without
 referring back to the spec.
 
-### 2. Study the plan deeply
+### 2. Select and study the plan
 
-Read the plan (or the selected plan variant if multiple exist). Understand:
+**Default rule: implement plan-a.** When multiple plan variants exist
+(`plan-a.md`, `plan-b.md`, etc.), implement `plan-a.md` unless the user or the
+plan review explicitly selects a different variant.
+
+Read the selected plan thoroughly. Understand:
 
 - **Overall strategy.** What is the approach and why was it chosen?
 - **Every concrete change.** File paths, functions, before/after code, new
@@ -51,7 +55,11 @@ Read the plan (or the selected plan variant if multiple exist). Understand:
   what?
 - **Design decisions.** Why were non-obvious choices made?
 
-If multiple plan variants exist, ask the user which one to implement.
+**Multi-part plans.** If the plan is decomposed into parts (`plan-a.md` +
+`plan-a-01.md`, `plan-a-02.md`, etc.), start by reading the overview in
+`plan-a.md` for strategy and the part index. Then work through parts in numbered
+order. Each part is independently executable — complete and verify each part
+before moving to the next.
 
 ### 3. Research the current codebase
 
@@ -76,6 +84,9 @@ Break the plan into ordered, atomic tasks. Each task should:
 
 Use TodoWrite to track progress. Group related changes that must land together
 (e.g., schema + data + code for the same feature).
+
+For multi-part plans, organize tasks by part — complete all tasks for part 01
+before starting part 02, unless the plan explicitly allows parallel execution.
 
 ### 5. Update STATUS
 
@@ -132,3 +143,5 @@ After all tasks are complete:
   Follow it unless you have a concrete reason not to (and note why).
 - **Do not batch all changes into one commit.** Atomic commits make review,
   bisection, and rollback possible.
+- **Do not implement a non-default plan variant without explicit direction.**
+  Always implement plan-a unless told otherwise.

@@ -44,7 +44,7 @@ loop rather than a one-shot pipeline.
 
 ```mermaid
 graph LR
-    P["Plan<br/>plan.md (HOW) for<br/>approved specs"]
+    P["Plan<br/>plan-a.md (HOW) for<br/>approved specs"]
     D["Do<br/>implement plans; run<br/>workflows; ship PRs,<br/>issues, releases, traces"]
     S["Study<br/>triage feedback;<br/>analyze traces;<br/>audit posture"]
     A["Act<br/>spec.md (WHAT/WHY)<br/>capturing findings"]
@@ -55,7 +55,7 @@ graph LR
 ### Plan — turn specs into executable plans
 
 Approved specs become concrete plans. Agents use the `gemba-plan` skill to
-transform an approved `spec.md` (the WHAT/WHY) into a `plan.md` (the HOW) with
+transform an approved `spec.md` (the WHAT/WHY) into a `plan-a.md` (the HOW) with
 steps, files to change, tests to add, and risks to watch — enough for any
 trusted agent to pick up and execute.
 
@@ -133,7 +133,7 @@ release) and same-agent workflows never overlap.
 | **security-update**   | Do             | Mon & Thu 04:43 UTC                     | security-engineer | Apply security updates: triage Dependabot PRs, address audit findings       |
 | **product-manager**   | Do, Study, Act | Daily 08:13 UTC + Mon/Wed/Fri 05:17 UTC | product-manager   | Classify and merge open PRs, then triage open issues into fixes and specs   |
 | **release-readiness** | Do             | Daily 06:23 UTC                         | release-engineer  | Rebase open PRs on main, fix lint/format failures, repair main CI if broken |
-| **plan-specs**        | Plan           | Daily 07:11 UTC                         | staff-engineer    | Pick up approved specs without plans and produce execution-ready plan.md    |
+| **plan-specs**        | Plan           | Daily 07:11 UTC                         | staff-engineer    | Pick up approved specs without plans and produce execution-ready plan-a.md  |
 | **implement-plans**   | Do             | Daily 07:53 UTC                         | staff-engineer    | Pick up approved plans (`status: planned`) and execute via implement-spec   |
 | **release-review**    | Do             | Tue, Thu, Sat 09:37 UTC                 | release-engineer  | Find unreleased changes, bump versions, tag, push, verify publish           |
 | **improvement-coach** | Study → Act    | Wed & Sat 10:47 UTC                     | improvement-coach | Deep-analyze a single random agent trace, open fix PRs or write specs       |
@@ -222,7 +222,7 @@ graph TD
 
 | Merge point           | Source                    | Trust model                                     |
 | --------------------- | ------------------------- | ----------------------------------------------- |
-| **plan-specs**        | Agent-authored `plan.md`  | Agent-only, against approved specs              |
+| **plan-specs**        | Agent-authored `plan-a.md` | Agent-only, against approved specs             |
 | **implement-plans**   | Agent-authored impl PRs   | Agent-only, against approved plans              |
 | **security-update**   | Dependabot PRs            | Trusted bot, policy-gated                       |
 | **release-readiness** | Agent-authored rebases    | Agent-only, no external input                   |
