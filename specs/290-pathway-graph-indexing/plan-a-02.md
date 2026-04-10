@@ -1,14 +1,14 @@
 # Plan: 290 — Stream A: Map HTML Export
 
-> **Part 2 of 3.** Read [plan.md](plan.md) for the overall decomposition.
+> **Part 2 of 3.** Read [plan-a.md](plan-a.md) for the overall decomposition.
 >
-> **Depends on:** [plan-foundation.md](plan-foundation.md) — must be merged
+> **Depends on:** [plan-a-01.md](plan-a-01.md) — must be merged
 > first. This plan imports `@forwardimpact/map/iri` and uses
 > `TemplateLoader.renderWithPartials()`, both introduced there. It also relies
 > on F1 (parser widening) and F2 (graph prefix) for the end-to-end pipeline test
 > to pass.
 >
-> **Independent of:** [plan-pathway-service.md](plan-pathway-service.md) —
+> **Independent of:** [plan-a-03.md](plan-a-03.md) —
 > Stream A and Stream B can land in either order after foundation.
 
 ## Scope
@@ -494,7 +494,7 @@ Also delete any microdata-only test files under
 | 6   | Guide answers "what skills..." via graph path       | A stream end-to-end; manual LLM check       |
 
 Criteria 4, 5, 7, 8, 9 are covered by
-[plan-pathway-service.md](plan-pathway-service.md).
+[plan-a-03.md](plan-a-03.md).
 
 ## File summary
 
