@@ -1,4 +1,4 @@
-# Guide Status Flag
+# Guide Status Command
 
 **Depends on:** [360 — CLI Library](../360-cli-library/spec.md) (libcli must
 exist before this spec is implemented).
@@ -34,7 +34,7 @@ rather than forcing users through a trial-and-error loop.
 
 ## Goal
 
-Add a `--status` flag to `fit-guide` that checks system readiness and reports a
+Add a `status` command to `fit-guide` that checks system readiness and reports a
 clear verdict: the health of each required service, the presence and quantity of
 framework data, the validity of LLM credentials, and an overall ready/not-ready
 summary.
@@ -43,11 +43,15 @@ summary.
 
 In scope:
 
-- A `--status` flag declared in the libcli definition for
-  `products/guide/bin/fit-guide.js`. Handled before the Repl starts — when
-  `--status` is present, run the status checks, print the report, and exit
-  without entering the interactive session (same early-exit pattern as
-  `--version` and `--init`).
+- A `status` command declared in the libcli definition for
+  `products/guide/bin/fit-guide.js`. Handled before the Repl starts — when the
+  first positional argument is `status`, run the status checks, print the
+  report, and exit without entering the interactive session (same early-exit
+  pattern as `--version` and the `init` command).
+- Promote the existing `--init` flag to an `init` command for consistency —
+  `init` and `status` are both actions, not modifiers on the REPL session. This
+  aligns fit-guide with other products (`fit-map init`, `fit-map validate`) that
+  use commands for distinct operations.
 - Health checks against each required service: agent, llm, memory, graph,
   vector, tool, trace, web. Each check reports pass/fail with the service URL.
 - Data inventory queries: resource counts from the resource index, triple counts
@@ -56,10 +60,9 @@ In scope:
   make an LLM call --- just verify the credential is configured).
 - A structured summary written to stdout using libcli's `SummaryRenderer` with a
   clear "ready" or "not ready" verdict line.
-- Machine-readable output via `--status --json`, producing a JSON object with
-  the same sections (services, data, credentials, verdict). This is standard
-  libcli convention and essentially free when the status data is already
-  structured.
+- Machine-readable output via `status --json`, producing a JSON object with the
+  same sections (services, data, credentials, verdict). This is standard libcli
+  convention and essentially free when the status data is already structured.
 - Exit code: 0 if all checks pass (ready), 1 if any check fails (not ready).
   Follows libcli's exit code convention (1 for runtime errors, 2 for usage
   errors).
@@ -159,36 +162,65 @@ Out of scope:
 
 ## Success criteria
 
-- `npx fit-guide --status` on a correctly configured and running system prints
-  the structured summary (via `SummaryRenderer`) with all services showing "ok",
+- `npx fit-guide status` on a correctly configured and running system prints the
+  structured summary (via `SummaryRenderer`) with all services showing "ok",
   non-zero data counts, credentials configured, and `Status: ready`. Exits 0.
-- `npx fit-guide --status --json` on a correctly configured system outputs the
+- `npx fit-guide status --json` on a correctly configured system outputs the
   JSON representation of the same status data. Exits 0.
-- `npx fit-guide --status` on a system with missing services or credentials
-  prints the structured summary with specific failures identified and
+- `npx fit-guide status` on a system with missing services or credentials prints
+  the structured summary with specific failures identified and
   `Status: not ready`. Exits 1.
+- `npx fit-guide init` works identically to the current `npx fit-guide --init`.
 - `bun run check` passes with the new code.
 - Tests cover both the "ready" and "not ready" paths, injecting mock service
   clients to simulate healthy and unhealthy states. Tests follow the existing
   OO+DI pattern: bypass factories, inject mocks directly.
-- The `--status` flag appears in `--help` output automatically via the libcli
-  definition — no separate help text maintenance required.
+- The `status` and `init` commands appear in `--help` output automatically via
+  the libcli definition — no separate help text maintenance required.
 - No new external dependencies are introduced. The implementation uses libcli
-  (for flag definition, summary rendering, error formatting), librpc, libconfig,
-  and libtelemetry.
+  (for command definition, summary rendering, error formatting), librpc,
+  libconfig, and libtelemetry.
 
 ## Integration with libcli (spec 360)
 
 After spec 360 is implemented, fit-guide will use libcli for initial argument
-parsing before entering the Repl session. The `--status` flag is declared in the
-libcli definition alongside `--version`, `--init`, `--data`, `--streaming`,
-`--help`, and `--json`. When `cli.parse()` returns values with `status: true`,
-the entry point runs the status checks and exits without starting the Repl.
+parsing before entering the Repl session. The `status` and `init` commands are
+declared in the libcli definition's `commands` array alongside the existing
+flags (`--version`, `--data`, `--streaming`, `--help`, `--json`). When
+`cli.parse()` returns positionals with `status` or `init` as the first
+argument, the entry point dispatches to the corresponding handler and exits
+without starting the Repl. This follows the same command dispatch pattern used
+by `fit-map` and `fit-pathway`.
 
 This mirrors the pattern described in spec 360 § "What this is not": "A
 REPL-based CLI (fit-guide, fit-visualize) could use libcli for help formatting
 and argument parsing of the initial invocation, and librepl for the interactive
 session."
+
+The help output separates commands from options, making the distinction clear:
+
+```
+fit-guide 1.0.0 — Conversational agent for the Guide knowledge platform
+
+Usage: fit-guide [command] [options]
+
+Commands:
+  status              Check system readiness
+  init                Generate secrets, .env, and config
+
+Options:
+  --data=<path>       Path to framework data directory
+  --streaming         Use streaming agent endpoint
+  --json              Output as JSON
+  --help, -h          Show this help
+  --version           Show version
+
+Examples:
+  npx fit-guide status
+  npx fit-guide status --json
+  npx fit-guide init
+  echo "Tell me about the company" | npx fit-guide
+```
 
 The `SummaryRenderer` from libcli renders each status section (Services, Data,
 Credentials). The verdict line is appended after the summary sections. Logger is
