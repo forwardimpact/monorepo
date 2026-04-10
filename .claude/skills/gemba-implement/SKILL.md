@@ -23,8 +23,7 @@ changes methodically.
 Also run the CONTRIBUTING.md § READ-DO before starting — those universal rules
 apply alongside the skill-specific ones below.
 
-<read_do_checklist goal="Internalize scope and study constraints before writing
-code">
+<read_do_checklist goal="Internalize scope and constraints before coding">
 
 - [ ] Read the full spec and all plan files before writing any code.
 - [ ] Implement plan-a unless explicitly directed to a different variant.

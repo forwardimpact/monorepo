@@ -36,8 +36,7 @@ would after setting their own `LLM_TOKEN`.
 
 ## Checklists
 
-<read_do_checklist goal="Protect evaluation integrity before briefing the
-agent">
+<read_do_checklist goal="Protect evaluation integrity before briefing agent">
 
 - [ ] Do not reveal monorepo internals, skills, or internal documentation to the
       agent.

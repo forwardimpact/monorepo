@@ -106,8 +106,8 @@ protected outcome without opening the file.
   ambiguous — the reader does not know whether to READ-DO or DO-CONFIRM.
 - Do not use a generic `<checklist>` tag. The tag name encodes the type.
 - Every opening tag must include a `goal` attribute stating the protected
-  outcome. Keep it short enough that the full tag fits on one line (preserves
-  grep benefit).
+  outcome. The full tag must fit on one line (≤ 80 chars) so `rg` returns the
+  goal in a single match — Prettier's `proseWrap` will break longer lines.
 - Items use markdown checkbox syntax (`- [ ]`).
 
 ### Placement

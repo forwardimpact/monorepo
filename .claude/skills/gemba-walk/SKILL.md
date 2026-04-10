@@ -21,8 +21,7 @@ breadth.
 
 ## Checklists
 
-<read_do_checklist goal="Internalize grounded theory principles before reading
-the trace">
+<read_do_checklist goal="Internalize grounded theory before reading the trace">
 
 - [ ] Begin with no hypothesis — let codes emerge from the data.
 - [ ] Use in-vivo codes: the trace's own language ("403 forbidden"), not
