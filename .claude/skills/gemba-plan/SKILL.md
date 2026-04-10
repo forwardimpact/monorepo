@@ -112,9 +112,9 @@ return status to `draft`.
 | Plan approved but spec still under review | Wait     | (no change)   |
 | Plan changes requested                    | Revise   | `draft`       |
 
-When multiple plan variants exist (plan-a, plan-b, etc.), the review should
-note which variant is approved. If no variant is explicitly selected, plan-a is
-the default.
+When multiple plan variants exist (plan-a, plan-b, etc.), the review should note
+which variant is approved. If no variant is explicitly selected, plan-a is the
+default.
 
 The full status lifecycle lives in the
 [`gemba-spec`](../gemba-spec/SKILL.md#status-lifecycle) skill — this skill owns

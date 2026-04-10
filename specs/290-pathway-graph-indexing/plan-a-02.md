@@ -2,14 +2,14 @@
 
 > **Part 2 of 3.** Read [plan-a.md](plan-a.md) for the overall decomposition.
 >
-> **Depends on:** [plan-a-01.md](plan-a-01.md) — must be merged
-> first. This plan imports `@forwardimpact/map/iri` and uses
+> **Depends on:** [plan-a-01.md](plan-a-01.md) — must be merged first. This plan
+> imports `@forwardimpact/map/iri` and uses
 > `TemplateLoader.renderWithPartials()`, both introduced there. It also relies
 > on F1 (parser widening) and F2 (graph prefix) for the end-to-end pipeline test
 > to pass.
 >
-> **Independent of:** [plan-a-03.md](plan-a-03.md) —
-> Stream A and Stream B can land in either order after foundation.
+> **Independent of:** [plan-a-03.md](plan-a-03.md) — Stream A and Stream B can
+> land in either order after foundation.
 
 ## Scope
 
@@ -493,8 +493,7 @@ Also delete any microdata-only test files under
 | 3   | `ARGS="fit:Skill" just cli-subjects` returns all    | A6 pipeline test; manual after `quickstart` |
 | 6   | Guide answers "what skills..." via graph path       | A stream end-to-end; manual LLM check       |
 
-Criteria 4, 5, 7, 8, 9 are covered by
-[plan-a-03.md](plan-a-03.md).
+Criteria 4, 5, 7, 8, 9 are covered by [plan-a-03.md](plan-a-03.md).
 
 ## File summary
 

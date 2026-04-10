@@ -180,10 +180,10 @@ from the central `examples/` root (see the plan's "Downstream Changes" section).
 Five plans explore fundamentally different approaches. Each is a complete,
 self-contained document:
 
-| Plan                             | Approach                          | LLM             | Language | Key trade-off                                                      |
-| -------------------------------- | --------------------------------- | --------------- | -------- | ------------------------------------------------------------------ |
-| [A](plan-a.md) ★                | Custom DSL with tiered generation | Any (cached)    | Node.js  | Deterministic structure + LLM prose; custom parser maintenance     |
-| [B](plan-b.md)                   | Claude API with validation loops  | Claude (remote) | Node.js  | Highest prose quality; API cost and dependency                     |
-| [C](plan-c.md)                   | Local models on Mac Studio M4 Max | Qwen3 (local)   | Python   | No API cost; hardware requirement and lower quality                |
-| [D](plan-d.md)                   | Distilabel DAG pipeline           | Any (pluggable) | Python   | Production orchestration; Python dependency and framework coupling |
-| [E](plan-e.md)                   | Deterministic templates           | None            | Node.js  | Instant, free, reproducible; formulaic prose                       |
+| Plan             | Approach                          | LLM             | Language | Key trade-off                                                      |
+| ---------------- | --------------------------------- | --------------- | -------- | ------------------------------------------------------------------ |
+| [A](plan-a.md) ★ | Custom DSL with tiered generation | Any (cached)    | Node.js  | Deterministic structure + LLM prose; custom parser maintenance     |
+| [B](plan-b.md)   | Claude API with validation loops  | Claude (remote) | Node.js  | Highest prose quality; API cost and dependency                     |
+| [C](plan-c.md)   | Local models on Mac Studio M4 Max | Qwen3 (local)   | Python   | No API cost; hardware requirement and lower quality                |
+| [D](plan-d.md)   | Distilabel DAG pipeline           | Any (pluggable) | Python   | Production orchestration; Python dependency and framework coupling |
+| [E](plan-e.md)   | Deterministic templates           | None            | Node.js  | Instant, free, reproducible; formulaic prose                       |

@@ -2,14 +2,14 @@
 
 > **Part 3 of 3.** Read [plan-a.md](plan-a.md) for the overall decomposition.
 >
-> **Depends on:** [plan-a-01.md](plan-a-01.md) — must be merged
-> first. The serializer in B3 imports IRI helpers from `@forwardimpact/map/iri`,
-> which is exported by foundation step F3.
+> **Depends on:** [plan-a-01.md](plan-a-01.md) — must be merged first. The
+> serializer in B3 imports IRI helpers from `@forwardimpact/map/iri`, which is
+> exported by foundation step F3.
 >
-> **Independent of:** [plan-a-02.md](plan-a-02.md) — Stream A and
-> Stream B can land in either order after foundation. The pathway service does
-> not flow data through the resource/graph pipeline, so it has no runtime
-> dependency on Map's HTML export.
+> **Independent of:** [plan-a-02.md](plan-a-02.md) — Stream A and Stream B can
+> land in either order after foundation. The pathway service does not flow data
+> through the resource/graph pipeline, so it has no runtime dependency on Map's
+> HTML export.
 
 ## Scope
 

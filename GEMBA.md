@@ -220,19 +220,19 @@ graph TD
     style RE fill:#bbf,stroke:#333
 ```
 
-| Merge point           | Source                    | Trust model                                     |
-| --------------------- | ------------------------- | ----------------------------------------------- |
-| **plan-specs**        | Agent-authored `plan-a.md` | Agent-only, against approved specs             |
-| **implement-plans**   | Agent-authored impl PRs   | Agent-only, against approved plans              |
-| **security-update**   | Dependabot PRs            | Trusted bot, policy-gated                       |
-| **release-readiness** | Agent-authored rebases    | Agent-only, no external input                   |
-| **product-manager**   | External fix/bug PRs      | Top-20 contributor gate + CI                    |
-| **product-manager**   | External spec PRs         | Top-20 gate + CI + spec review                  |
-| **product-manager**   | CI app PRs                | Trusted app identity (`forward-impact-ci`) + CI |
-| **product-manager**   | Agent-authored fix/spec   | Agent-only, issues as input                     |
-| **release-review**    | Agent-authored tags/bumps | Agent-only, no external input                   |
-| **improvement-coach** | Agent-authored fix/spec   | Agent-only, traces as evidence                  |
-| **release-engineer**  | Trivial CI fixes on main  | Agent-only, mechanical fixes only               |
+| Merge point           | Source                     | Trust model                                     |
+| --------------------- | -------------------------- | ----------------------------------------------- |
+| **plan-specs**        | Agent-authored `plan-a.md` | Agent-only, against approved specs              |
+| **implement-plans**   | Agent-authored impl PRs    | Agent-only, against approved plans              |
+| **security-update**   | Dependabot PRs             | Trusted bot, policy-gated                       |
+| **release-readiness** | Agent-authored rebases     | Agent-only, no external input                   |
+| **product-manager**   | External fix/bug PRs       | Top-20 contributor gate + CI                    |
+| **product-manager**   | External spec PRs          | Top-20 gate + CI + spec review                  |
+| **product-manager**   | CI app PRs                 | Trusted app identity (`forward-impact-ci`) + CI |
+| **product-manager**   | Agent-authored fix/spec    | Agent-only, issues as input                     |
+| **release-review**    | Agent-authored tags/bumps  | Agent-only, no external input                   |
+| **improvement-coach** | Agent-authored fix/spec    | Agent-only, traces as evidence                  |
+| **release-engineer**  | Trivial CI fixes on main   | Agent-only, mechanical fixes only               |
 
 ## Design Principles
 
