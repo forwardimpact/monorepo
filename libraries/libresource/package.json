@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libresource",
-  "version": "0.1.99",
+  "version": "0.1.100",
   "description": "Resource management for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

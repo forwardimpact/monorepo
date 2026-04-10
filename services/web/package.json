@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcweb",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Web interface service for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
