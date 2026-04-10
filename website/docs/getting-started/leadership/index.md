@@ -422,6 +422,30 @@ step that didn't run.
 If verification passes, your activity layer is ready for Landmark, Summit, and
 Guide.
 
+### Trying the activity layer with synthetic data
+
+If you want to explore the activity layer before connecting real data sources,
+Map can populate the database with synthetic data — a realistic roster, GitHub
+events, and GetDX snapshots generated from a template.
+
+First, generate synthetic data (requires the `@forwardimpact/universe` package):
+
+```sh
+npx fit-universe data/synthetic/story.dsl
+```
+
+Then seed the activity database:
+
+```sh
+npx fit-map activity seed
+```
+
+This uploads the generated roster and raw documents, runs all transforms, and
+verifies the result. The database will contain realistic but fictional data you
+can query with Landmark or Summit. When you are ready to switch to real data,
+push your actual roster with `npx fit-map people push` — it overwrites the
+synthetic entries.
+
 ---
 
 ## Pathway

@@ -21,7 +21,7 @@ install: wiki-pull
     bunx --workspace=@forwardimpact/libcodegen fit-codegen --all
 
 # Bootstrap from scratch
-quickstart: env-setup synthetic data-init codegen process-fast
+quickstart: env-setup synthetic data-init codegen process-fast _quickstart-seed
     echo ""
     echo "=== Quickstart complete ==="
     printf "  Knowledge files: %s\n" "$(find data/knowledge -name '*.html' 2>/dev/null | wc -l | tr -d ' ')"
@@ -29,6 +29,16 @@ quickstart: env-setup synthetic data-init codegen process-fast
     printf "  Graph indices:   %s\n" "$(find data/graphs -type f 2>/dev/null | wc -l | tr -d ' ')"
     echo ""
     echo "Next: just rc-start && just cli-chat"
+
+# Conditionally seed if Docker is running
+_quickstart-seed:
+    #!/usr/bin/env bash
+    if timeout 3 docker info --format '{{.ID}}' >/dev/null 2>&1; then
+      echo "Docker detected — seeding activity database..."
+      just supabase-up && just supabase-migrate && just seed
+    else
+      echo "Docker not running — skipping activity seed (run 'just seed-full' later)"
+    fi
 
 # ── Synthetic ─────────────────────────────────────────────────────
 
@@ -302,6 +312,15 @@ auth-stop:
 # Create demo auth user
 auth-user:
     bun scripts/auth-user.js
+
+# ── Activity Seed ─────────────────────────────────────────────────
+
+# Seed the activity database from synthetic data (requires Supabase running)
+seed:
+    bunx fit-map activity seed
+
+# Full synthetic-to-database workflow
+seed-full: supabase-up supabase-migrate synthetic seed
 
 # ── Supabase ──────────────────────────────────────────────────────
 

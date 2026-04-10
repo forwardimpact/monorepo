@@ -1,4 +1,5 @@
 import { runSupabase } from "../supabase-cli.js";
+import { storeRaw } from "@forwardimpact/map/activity/storage";
 import { transformAll } from "@forwardimpact/map/activity/transform";
 import { transformPeople } from "@forwardimpact/map/activity/transform/people";
 import { transformAllGetDX } from "@forwardimpact/map/activity/transform/getdx";
@@ -99,6 +100,93 @@ export async function verify(supabase) {
 
   console.log("\nActivity layer verified");
   return 0;
+}
+
+/**
+ * Seed the activity database from synthetic data.
+ * @param {object} options
+ * @param {string} options.data - Path to data directory
+ * @param {import('@supabase/supabase-js').SupabaseClient} options.supabase
+ * @returns {Promise<number>} exit code
+ */
+export async function seed({ data, supabase }) {
+  const { readFile } = await import("fs/promises");
+  const { join } = await import("path");
+
+  const activityDir = join(data, "activity");
+  const rawDir = join(activityDir, "raw");
+
+  // 1. Upload roster to Supabase Storage (people/ prefix)
+  const rosterPath = join(activityDir, "roster.yaml");
+  const rosterContent = await readFile(rosterPath, "utf-8");
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const stored = await storeRaw(
+    supabase,
+    `people/${timestamp}.yaml`,
+    rosterContent,
+    "text/yaml",
+  );
+  if (!stored.stored) {
+    console.error(`Failed to upload roster: ${stored.error}`);
+    return 1;
+  }
+  report("Upload roster", { stored: 1 });
+
+  // 2. Upload raw documents (github/, getdx/ prefixes)
+  const uploaded = await uploadRawDir(supabase, rawDir);
+  report("Upload raw", {
+    stored: uploaded.count,
+    errors: uploaded.errors.length,
+  });
+  for (const err of uploaded.errors) console.error(`  ${err}`);
+
+  // 3. Run all transforms
+  const result = await transformAll(supabase);
+  report("Transform people", result.people);
+  report("Transform getdx", result.getdx);
+  report("Transform github", result.github);
+
+  // 4. Verify
+  return verify(supabase);
+}
+
+async function uploadRawDir(supabase, rawDir) {
+  const { readFile, readdir } = await import("fs/promises");
+  const { join, relative } = await import("path");
+
+  const errors = [];
+  let count = 0;
+
+  async function walk(dir) {
+    let entries;
+    try {
+      entries = await readdir(dir, { withFileTypes: true });
+    } catch {
+      return; // directory doesn't exist — skip silently
+    }
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        await walk(fullPath);
+      } else {
+        const storagePath = relative(rawDir, fullPath);
+        const content = await readFile(fullPath, "utf-8");
+        const contentType =
+          fullPath.endsWith(".yaml") || fullPath.endsWith(".yml")
+            ? "text/yaml"
+            : "application/json";
+        const result = await storeRaw(supabase, storagePath, content, contentType);
+        if (result.stored) {
+          count++;
+        } else {
+          errors.push(`${storagePath}: ${result.error}`);
+        }
+      }
+    }
+  }
+
+  await walk(rawDir);
+  return { count, errors };
 }
 
 function report(target, counts) {

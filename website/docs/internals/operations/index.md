@@ -115,6 +115,26 @@ Generation uses cached prose by default from `data/synthetic/prose-cache.json`.
 Use `just synthetic-update` to call the LLM and refresh the cache. The
 `no-prose` mode produces minimal structural data without prose content.
 
+### Activity Seed (synthetic data)
+
+Populate the activity database from synthetic data in one command:
+
+```sh
+bunx fit-map activity seed
+```
+
+Or use the full workflow from scratch:
+
+```sh
+just seed-full
+```
+
+This runs: `supabase-up → supabase-migrate → synthetic → seed`.
+
+The seed command uploads the synthetic roster and raw documents (GitHub events,
+GetDX responses) to Supabase Storage, then runs all transforms and verifies the
+result. Idempotent — safe to run repeatedly.
+
 ### Development
 
 ```sh

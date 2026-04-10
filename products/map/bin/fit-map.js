@@ -51,7 +51,7 @@ const definition = {
     },
     {
       name: "activity",
-      args: "<start|stop|status|migrate|transform|verify>",
+      args: "<start|stop|status|migrate|transform|verify|seed>",
       description: "Manage activity stack",
     },
     {
@@ -355,6 +355,12 @@ async function dispatchActivity(subcommand, rest, values) {
       return activity.transform(rest[0] ?? "all", await mapClient(values));
     case "verify":
       return activity.verify(await mapClient(values));
+    case "seed": {
+      const dataDir = await findDataDir(values.data);
+      // findDataDir returns .../pathway; seed needs the parent data/ dir
+      const data = dirname(dataDir);
+      return activity.seed({ data, supabase: await mapClient(values) });
+    }
     default:
       cli.usageError(`unknown activity subcommand: ${subcommand || "(none)"}`);
       return 1;
