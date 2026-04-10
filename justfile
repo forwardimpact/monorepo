@@ -33,7 +33,7 @@ quickstart: env-setup synthetic data-init codegen process-fast _quickstart-seed
 # Conditionally seed if Docker is running
 _quickstart-seed:
     #!/usr/bin/env bash
-    if timeout 3 docker info --format '{{.ID}}' >/dev/null 2>&1; then
+    if timeout 3 docker info --format '{{"{{"}}.ID{{"}}"}}' >/dev/null 2>&1; then
       echo "Docker detected — seeding activity database..."
       just supabase-up && just supabase-migrate && just seed
     else
