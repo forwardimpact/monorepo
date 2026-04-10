@@ -75,8 +75,11 @@ plan-a-03.md    ← part 3 (independently executable)
 - The overview (`plan-a.md`) must include an **Execution** section that
   translates the dependency graph into a concrete execution recommendation. When
   parts are independent after a shared prerequisite, recommend launching them as
-  concurrent `staff-engineer` sub-agents once the prerequisite merges. When
-  parts are strictly sequential, say so.
+  concurrent sub-agents once the prerequisite merges. When parts are strictly
+  sequential, say so. Route each part to the agent whose skills match the work:
+  `staff-engineer` for code and infrastructure, `technical-writer` for
+  documentation (`website/`, wiki, CLAUDE.md, CONTRIBUTING.md). A single plan
+  may use both agents for different parts.
 
 Alternative plans can also be decomposed (`plan-b.md`, `plan-b-01.md`, etc.).
 
@@ -101,10 +104,11 @@ on these qualities:
 - **Risks surfaced.** Flag steps that require judgement, ambiguous decisions, or
   unknowns. The implementer should never be surprised by a step.
 - **Execution recommendation.** Close with a concrete recommendation on how to
-  execute the plan. Recommend the `staff-engineer` sub-agent for implementation.
-  For decomposed plans, state which parts can run as parallel `staff-engineer`
-  agents and which must run sequentially — translate the dependency structure
-  into an actionable execution strategy.
+  execute the plan. Route each part to the agent whose skills match the work —
+  `staff-engineer` for code and infrastructure changes, `technical-writer` for
+  documentation changes (`website/`, wiki, root docs). For decomposed plans,
+  state which parts can run in parallel and which must run sequentially —
+  translate the dependency structure into an actionable execution strategy.
 
 ## Reviewing a Plan
 
