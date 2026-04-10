@@ -6,7 +6,7 @@
  * talk to Supabase.
  */
 
-import { parse as parseYaml } from "yaml";
+import { parseYamlPeople, parseCsv } from "../parse-people.js";
 import { createDataLoader } from "../../src/loader.js";
 
 /**
@@ -89,23 +89,3 @@ export async function validatePeople(people, dataDir) {
   return { valid, errors };
 }
 
-function parseCsv(csv) {
-  const lines = csv.trim().split("\n");
-  if (lines.length < 2) return [];
-
-  const headers = lines[0].split(",").map((h) => h.trim());
-  return lines.slice(1).map((line) => {
-    const values = line.split(",").map((v) => v.trim());
-    return Object.fromEntries(headers.map((h, i) => [h, values[i] || null]));
-  });
-}
-
-function parseYamlPeople(content) {
-  const data = parseYaml(content);
-  if (Array.isArray(data)) return data;
-  const rows = data.people || data.roster || [];
-  return rows.map((row) => ({
-    ...row,
-    github_username: row.github_username || row.github || null,
-  }));
-}

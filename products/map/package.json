@@ -43,6 +43,7 @@
     "./activity/queries/snapshots": "./activity/queries/snapshots.js",
     "./activity/queries/evidence": "./activity/queries/evidence.js",
     "./activity/queries/artifacts": "./activity/queries/artifacts.js",
+    "./activity/parse-people": "./activity/parse-people.js",
     "./activity/validate/people": "./activity/validate/people.js",
     "./activity/storage": "./supabase/functions/_shared/activity/storage.js",
     "./activity/extract/github": "./supabase/functions/_shared/activity/extract/github.js",
