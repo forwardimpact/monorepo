@@ -384,6 +384,13 @@ skill, the gate checklist, the process steps, classification criteria, and
 memory instructions. If the agent needs it on every run to know _what to do
 next_, it belongs in the SKILL.md.
 
+**Checklists in skills** follow the conventions in
+[CHECKLISTS.md](CHECKLISTS.md): wrap in `<read_do_checklist>` or
+`<do_confirm_checklist>` tags with a `goal` attribute, place at the top of the
+skill (or at the relevant pause point), and keep to 5–9 killer items. The goal
+attribute must be short enough that the full opening tag fits on one line — this
+keeps `rg '<read_do_checklist'` results self-describing.
+
 **Guideline, not a hard rule.** Some skills (e.g. `spec` at 179 lines) are
 entirely instructional with no templates or scripts to extract — that's fine.
 The goal is not to hit a line count but to separate procedure from supporting

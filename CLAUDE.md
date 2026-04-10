@@ -117,11 +117,17 @@ consult the [Getting Started guides](website/docs/getting-started/).
 `<read_do_checklist>` tags are entry gates — read each item, then do it.
 `<do_confirm_checklist>` tags are exit gates — do from memory, then confirm.
 Follow the protocol whenever you encounter these tags in the instruction stack.
+See [CHECKLISTS.md](CHECKLISTS.md) for the full approach.
 
-- **Before starting** — run
-  [CONTRIBUTING.md § READ-DO](CONTRIBUTING.md#read-do).
-- **Before committing** — run
-  [CONTRIBUTING.md § DO-CONFIRM](CONTRIBUTING.md#do-confirm).
+Discover all checklists relevant to your work:
+
+```sh
+rg '<read_do_checklist'     # entry gates — before starting
+rg '<do_confirm_checklist'  # exit gates — before committing
+```
+
+The [CONTRIBUTING.md](CONTRIBUTING.md#read-do) checklists apply to every task.
+Skills may define additional checklists for specific workflows.
 
 ## LLM Environment
 
