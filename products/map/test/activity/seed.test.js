@@ -118,6 +118,36 @@ describe("activity/seed", () => {
     await rm(tmpDir, { recursive: true });
   });
 
+  test("idempotent: two seed calls produce same upsert state", async () => {
+    const data = await setupSeedDir();
+    const fake = createFakeSeedClient();
+
+    await seed({ data, supabase: fake });
+    const firstUpserts = fake.upsertCalls.length;
+    const firstUploads = fake.uploads.length;
+
+    await seed({ data, supabase: fake });
+    const secondUpserts = fake.upsertCalls.length - firstUpserts;
+    const secondUploads = fake.uploads.length - firstUploads;
+
+    // Same number of operations each run
+    assert.strictEqual(secondUpserts, firstUpserts);
+    assert.strictEqual(secondUploads, firstUploads);
+
+    // Same people upserted both times
+    const firstPeopleRows = fake.upsertCalls
+      .slice(0, firstUpserts)
+      .flatMap((c) => c.rows.map((r) => r.email))
+      .sort();
+    const secondPeopleRows = fake.upsertCalls
+      .slice(firstUpserts)
+      .flatMap((c) => c.rows.map((r) => r.email))
+      .sort();
+    assert.deepStrictEqual(secondPeopleRows, firstPeopleRows);
+
+    await rm(tmpDir, { recursive: true });
+  });
+
   test("returns 1 when roster upload fails", async () => {
     const data = await setupSeedDir();
     const fake = createFakeSeedClient();

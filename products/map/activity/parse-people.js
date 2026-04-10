@@ -15,8 +15,7 @@ import { parse as parseYaml } from "yaml";
  */
 export function parseYamlPeople(content) {
   const data = parseYaml(content);
-  if (Array.isArray(data)) return data;
-  const rows = data.people || data.roster || [];
+  const rows = Array.isArray(data) ? data : data.people || data.roster || [];
   return rows.map((row) => ({
     ...row,
     github_username: row.github_username || row.github || null,
