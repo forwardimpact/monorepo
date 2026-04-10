@@ -53,7 +53,7 @@ programmatic consumption:
 
 Every CLI re-implements the same setup sequence:
 
-1. Parse arguments (17 use `node:util parseArgs`, 3 use custom parsers)
+1. Parse arguments (11 use `node:util parseArgs`, others parse `process.argv` manually)
 2. Handle `--help` and `--version` flags
 3. Dispatch to a command handler
 4. Format errors and write to stderr
@@ -329,11 +329,12 @@ linking to this new page.
 7. **No new dependencies.** libcli uses only Node.js built-ins and existing
    monorepo libraries. No external CLI framework is introduced.
 
-8. **Every CLI uses Logger.** Each CLI creates a Logger via
-   `createLogger(domain)` at startup. Progress, status, errors, warnings,
-   summaries, and validation results go through Logger with structured
-   attributes. Raw `console.error()` and `console.log()` are only used for
-   pure data output and help/version text.
+8. **Every CLI creates a Logger.** Each CLI creates a Logger via
+   `createLogger(domain)` at startup and uses it according to the decision
+   matrix. CLIs that are predominantly pure-data output (e.g. fit-query,
+   fit-subjects) still create a Logger for errors and exceptions — only their
+   primary result uses `console.log`. Raw `console.error()` is not used in
+   any CLI entry point.
 
 9. **CLI development internals page exists.**
    `website/docs/internals/libcli/index.md` documents the standard CLI
