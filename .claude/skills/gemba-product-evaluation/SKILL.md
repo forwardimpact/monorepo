@@ -3,9 +3,7 @@ name: gemba-product-evaluation
 description: >
   Supervise a product evaluation session where an agent tries a product as a
   first-time external user. Guide the session, capture feedback, and create
-  GitHub issues for actionable findings. Use when running fit-eval supervise,
-  testing a product from the external user perspective, or conducting a
-  first-time user experience review.
+  GitHub issues for actionable findings.
 ---
 
 # Product Evaluation

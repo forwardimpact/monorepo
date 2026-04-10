@@ -3,8 +3,7 @@ name: gemba-product-classify
 description: >
   Classify open pull requests for mergeability — verify contributor trust,
   parse PR type, check CI status, review spec quality on spec PRs, and merge
-  PRs that pass all gates. Use when reviewing open PRs for product alignment,
-  deciding if a PR can be merged, or running scheduled PR classification.
+  PRs that pass all gates.
 ---
 
 # Product PR Classification
@@ -36,7 +35,7 @@ All comment templates and the report format are in `references/templates.md`.
 
 ## Gate Checklist
 
-<do_confirm_checklist goal="Verify trust, type, CI, and spec quality">
+<do_confirm_checklist>
 
 - [ ] **Author is trusted** — CI app or top-20 lookup (Step 2). On failure, mark
       **blocked** and comment that only trusted authors merge.

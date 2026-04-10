@@ -2,10 +2,8 @@
 name: gemba-release-readiness
 description: >
   Check open pull requests for merge readiness. Rebase branches on main, fix
-  trivial CI failures (lint, format, lock file), and report status. Do not
-  make code-level decisions or approve PRs. Use when preparing PRs for merge,
-  running scheduled readiness checks, or fixing mechanical CI failures like
-  lint, format, or lock file drift.
+  trivial CI failures (lint, format, lock file), and report status. Do not make
+  code-level decisions or approve PRs.
 ---
 
 # Release Readiness

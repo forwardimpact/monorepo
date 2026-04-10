@@ -3,9 +3,7 @@ name: gemba-release-review
 description: >
   Review the main branch for unreleased changes and cut new versions. Determine
   version bumps, update package.json files, tag releases, push tags, and verify
-  publish workflows. Canonical source for the release procedure. Use when
-  cutting a release, checking for unreleased changes, or running the scheduled
-  weekly release cycle.
+  publish workflows. Canonical source for the release procedure.
 ---
 
 # Release Review
@@ -33,7 +31,7 @@ had publish failures from prior `release-engineer` entries.
 
 ## Pre-Flight: Verify Main Branch CI
 
-<read_do_checklist goal="Verify main branch CI before releasing">
+<read_do_checklist>
 
 - [ ] Ran
       `gh run list --branch main --limit 5 --json name,conclusion,headBranch`.

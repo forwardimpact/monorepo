@@ -4,8 +4,7 @@ description: >
   Perform a holistic security review of the monorepo. Assess GitHub Actions
   supply chain, dependency hygiene, credential leak controls, CI audit gates,
   and application-level vulnerabilities. Use when reviewing PRs for security
-  impact, auditing the repo security posture, investigating a reported
-  vulnerability, or checking for credential leaks and supply chain risks.
+  impact, auditing the repo posture, or investigating a reported vulnerability.
 ---
 
 # Security Audit
@@ -77,7 +76,7 @@ Each run covers **one topic** in depth.
 
 ## 8. Audit Checklist
 
-<do_confirm_checklist goal="Confirm all audit areas reviewed">
+<do_confirm_checklist>
 
 - [ ] Ran `just audit` locally and reported findings.
 - [ ] Reviewed `.github/workflows/` for unpinned actions, missing permissions.

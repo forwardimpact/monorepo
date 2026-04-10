@@ -395,52 +395,10 @@ skill, the gate checklist, the process steps, classification criteria, and
 memory instructions. If the agent needs it on every run to know _what to do
 next_, it belongs in the SKILL.md.
 
-**Checklists in skills** follow the conventions in
-[CHECKLISTS.md](CHECKLISTS.md): wrap in `<read_do_checklist>` or
-`<do_confirm_checklist>` tags with a `goal` attribute, place at the top of the
-skill (or at the relevant pause point), and keep to 5–9 killer items. The goal
-attribute must be short enough that the full opening tag fits on one line — this
-keeps `rg '<read_do_checklist'` results self-describing.
-
 **Guideline, not a hard rule.** Some skills (e.g. `spec` at 179 lines) are
 entirely instructional with no templates or scripts to extract — that's fine.
 The goal is not to hit a line count but to separate procedure from supporting
 material so the core instructions stay scannable.
-
-### Skill description triggers
-
-The `description` field in SKILL.md frontmatter is the primary activation
-mechanism — the model reads truncated descriptions (~250 chars) in the
-system-reminder to decide which skill to invoke. A description without trigger
-conditions is a skill that never fires at the right time.
-
-**Rules:**
-
-1. **Every description must include a "Use when" clause.** State the contexts
-   that should activate the skill — scheduled runs, specific user phrases,
-   prerequisite states.
-2. **Front-load triggers within 250 characters.** Descriptions are truncated in
-   the system-reminder preview. Keep the core purpose sentence short so "Use
-   when" appears before the cutoff.
-3. **Name specific user phrases.** Include the exact words a user or task would
-   say: "implement spec", "write plan", "cut a release". Generic summaries
-   ("handles PR operations") do not trigger reliably.
-4. **Replace implementation detail with trigger conditions.** The description
-   tells the model _when_ to activate, not _how_ the skill works. Swap
-   operational detail (merge/fix/close mechanics) for actionable contexts
-   (Dependabot PRs, npm audit findings, scheduled sweeps).
-5. **Include automated contexts.** Skills invoked by scheduled workflows should
-   name the schedule pattern: "running scheduled PR classification", "running
-   the weekly release cycle".
-
-**Common violations:**
-
-| Violation                                 | Symptom                                  |
-| ----------------------------------------- | ---------------------------------------- |
-| No "Use when" clause                      | Skill not activated when context matches |
-| "Use when" buried past 250 chars          | Trigger conditions truncated in preview  |
-| Generic capability summary only           | Model cannot distinguish similar skills  |
-| Implementation detail instead of triggers | Description consumed by HOW, not WHEN    |
 
 ### Shared patterns must be consistent
 

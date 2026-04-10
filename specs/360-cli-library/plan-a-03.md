@@ -78,26 +78,109 @@ For every CLI: add `@forwardimpact/libcli` to the package's `dependencies` in
 ### fit-eval (`libraries/libeval/bin/fit-eval.js`)
 
 **Current:** 101 lines. `HELP_TEXT` const (lines 15–63), manual
-`process.argv.slice(2)` parsing (line 66), `console.error` for errors.
+`process.argv.slice(2)` parsing (line 66), `console.error` for errors. The
+`run` and `supervise` handlers each have a custom `parseFlag()` function that
+scans raw argv for `--key=value` patterns.
 
 **Changes:**
 
-1. Create definition with commands for `output`, `tee`, `run`, `supervise`.
+1. Declare **all** flags from all sub-commands in the top-level definition.
+   Handlers receive parsed `values` instead of raw argv. The custom
+   `parseFlag()` functions in `run.js` and `supervise.js` are deleted.
+
+   ```js
+   const definition = {
+     name: "fit-eval",
+     version: VERSION,
+     description: "Process Claude Code stream-json output",
+     commands: [
+       { name: "output", args: "[--format=FORMAT]", description: "Process trace and output formatted result" },
+       { name: "tee", args: "[output.ndjson]", description: "Stream text to stdout, optionally save raw NDJSON" },
+       { name: "run", args: "[options]", description: "Run a single agent via the Claude Agent SDK" },
+       { name: "supervise", args: "[options]", description: "Run a supervised agent-supervisor relay loop" },
+     ],
+     options: {
+       // Shared
+       format:  { type: "string", description: "Output format (json|text)" },
+       help:    { type: "boolean", short: "h", description: "Show this help" },
+       version: { type: "boolean", description: "Show version" },
+       // run + supervise
+       "task-file":    { type: "string", description: "Path to task file" },
+       "task-text":    { type: "string", description: "Inline task text" },
+       "task-amend":   { type: "string", description: "Additional text appended to task" },
+       model:          { type: "string", description: "Claude model (default: opus)" },
+       "max-turns":    { type: "string", description: "Max agentic turns (default: 50)" },
+       output:         { type: "string", description: "Write NDJSON trace to file" },
+       cwd:            { type: "string", description: "Working directory" },
+       "agent-profile":      { type: "string", description: "Agent profile name" },
+       "allowed-tools":      { type: "string", description: "Comma-separated tool list" },
+       // supervise-only
+       "supervisor-cwd":     { type: "string", description: "Supervisor working directory" },
+       "agent-cwd":          { type: "string", description: "Agent working directory" },
+       "supervisor-profile": { type: "string", description: "Supervisor profile name" },
+       "supervisor-allowed-tools": { type: "string", description: "Supervisor tool list" },
+     },
+     examples: [
+       "fit-eval output --format=text < trace.ndjson",
+       "fit-eval run --task-file=task.md --model=opus",
+       "fit-eval supervise --task-file=task.md --supervisor-cwd=.",
+     ],
+   };
+   ```
 
 2. Replace `HELP_TEXT` and manual arg parsing with `cli.parse()`.
 
-3. The `run` and `supervise` commands accept many flags (`--task-file`,
-   `--model`, etc.) that are parsed inside the command handlers, not at
-   top-level. Keep these as-is — libcli parses the top-level command, each
-   handler parses its own flags internally.
+3. Update handler signatures. Handlers receive `values` (parsed options object)
+   instead of raw `args`:
 
-4. Replace `console.error` with `cli.error()` and `cli.usageError()`.
+   ```js
+   const parsed = cli.parse(process.argv.slice(2));
+   if (!parsed) process.exit(0);
 
-5. Add Logger: `const logger = createLogger("eval");` and use
+   const { values, positionals } = parsed;
+   const [command, ...args] = positionals;
+   const handler = COMMANDS[command];
+
+   if (!handler) {
+     cli.usageError(`unknown command "${command}"`);
+     process.exit(2);
+   }
+
+   await handler(values, args);
+   ```
+
+4. Update `run.js` and `supervise.js`:
+
+   - Delete `parseFlag()` function (duplicated in both files)
+   - Delete `parseRunOptions()` / `parseSuperviseOptions()` functions
+   - Change handler signatures from `(args)` to `(values, args)`
+   - Read flags directly from `values` instead of scanning argv:
+     `values["task-file"]` instead of `parseFlag(args, "task-file")`
+   - Validation logic (`--task-file` and `--task-text` mutually exclusive,
+     one required) stays but reads from `values`
+
+5. Update `output.js`: Change signature to `(values, args)`, read
+   `values.format` instead of scanning args.
+
+6. Update `tee.js`: Change signature to `(values, args)`, read output path
+   from `args[0]` (already a positional).
+
+7. Replace `console.error` with `cli.error()` and `cli.usageError()`.
+
+8. Add Logger: `const logger = createLogger("eval");` and use
    `logger.exception()` in the catch block.
 
-**Delete:** `HELP_TEXT` const (lines 15–63), manual `--help`/`--version`
-handling (lines 68–83).
+**Delete:**
+
+- `HELP_TEXT` const (lines 15–63)
+- Manual `--help`/`--version` handling (lines 68–83)
+- `parseFlag()` in `run.js` (lines 12–19) and `supervise.js` (lines 13–20)
+- `parseRunOptions()` in `run.js` (lines 26–51)
+- `parseSuperviseOptions()` in `supervise.js` (lines 27–64)
+
+**Trade-off:** The `--help` output shows all flags in a flat list, including
+supervise-only flags like `--supervisor-cwd`. This is acceptable — per-command
+help is out of scope per the spec, and the flat list is still grep-friendly.
 
 ### fit-universe (`libraries/libuniverse/bin/fit-universe.js`)
 
@@ -321,8 +404,11 @@ Same pattern.
 **Current:** 90 lines. Repl-based interactive CLI with usage string in Repl
 config.
 
-Same approach as fit-guide: add definition, use `cli.parse()` for initial
-`--help`/`--version`, then enter Repl session unchanged.
+Same approach as fit-guide (part 02): declare all CLI flags in the libcli
+definition, handle them in the CLI entry point before starting the Repl. Move
+any CLI-time concerns out of the Repl's `commands` config. Use `cli.parse()`
+for `--help`/`--version` and any CLI flags, then start the Repl for the
+interactive session.
 
 ## Package.json updates
 
@@ -349,7 +435,9 @@ Every library package that has a CLI needs `@forwardimpact/libcli` added to
 | `libraries/libtool/package.json`      | fit-process-tools                           |
 | `libraries/libtelemetry/package.json` | fit-visualize                               |
 
-All add: `"@forwardimpact/libcli": "workspace:*"` to `dependencies`.
+Basecamp (`products/basecamp/package.json`) is handled in
+[part 05](plan-a-05.md). All packages above add:
+`"@forwardimpact/libcli": "workspace:*"` to `dependencies`.
 
 ## Execution order
 

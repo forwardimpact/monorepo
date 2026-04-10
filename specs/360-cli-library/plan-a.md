@@ -72,10 +72,25 @@ class Cli {
 }
 ```
 
-`parse()` wraps `node:util parseArgs` using the definition's options, handles
-`--help` (with `--json` support) and `--version` internally, and returns parsed
-results or `null` when it handled the request itself. This eliminates the
-per-CLI boilerplate of checking for help/version flags.
+`parse()` wraps `node:util parseArgs` (always `strict: true`) using the
+definition's options, handles `--help` (with `--json` support) and `--version`
+internally, and returns parsed results or `null` when it handled the request
+itself. This eliminates the per-CLI boilerplate of checking for help/version
+flags.
+
+**Every CLI declares every flag it accepts.** There is no `strict: false` mode,
+no `prescreen()`, no pass-through of unknown flags. CLIs that previously
+delegated flag parsing to sub-command handlers (fit-eval) or to a Repl
+(fit-guide, fit-visualize) are restructured:
+
+- **fit-eval**: All sub-command flags (`--task-file`, `--model`,
+  `--max-turns`, etc.) move into the top-level definition. Handlers receive
+  parsed `values` instead of raw argv. The custom `parseFlag()` function is
+  deleted. Unused flags for a given sub-command are harmlessly `undefined`.
+- **fit-guide, fit-visualize**: CLI flags (`--init`, `--data`, `--streaming`)
+  move out of the Repl's `commands` config and into the libcli definition. The
+  CLI entry point handles them before starting the Repl. The Repl becomes
+  purely interactive — no CLI flag parsing.
 
 Typical entry point pattern after migration:
 
@@ -126,13 +141,14 @@ describing all commands, options, and descriptions.
 class SummaryRenderer {
   constructor({ process })
 
-  render({ title, items })  // "title\n  label  — description\n..."
+  render({ title, items }, stream)  // "title\n  label  — description\n..."
 }
 ```
 
 Accepts a title string and an array of `{ label, description }` items. Pads
-labels for column alignment. This standardizes the pattern already used by
-fit-codegen's `printSummary()`.
+labels for column alignment. `stream` defaults to `this.#proc.stdout` when
+omitted. This standardizes the pattern already used by fit-codegen's
+`printSummary()`.
 
 #### Color and formatting (migrated from pathway)
 
@@ -177,14 +193,18 @@ directly." libcli and libtelemetry are peers — both used by CLI entry points.
 
 ## Parts
 
-| Part               | Scope                                                | Depends on | Files              |
-| ------------------ | ---------------------------------------------------- | ---------- | ------------------ |
-| [01](plan-a-01.md) | Create libcli library                                | —          | ~12 new            |
-| [02](plan-a-02.md) | Migrate product CLIs (pathway, map, guide, basecamp) | 01         | ~8 modified        |
-| [03](plan-a-03.md) | Migrate library CLIs (22 CLIs across 17 packages)    | 01         | ~22 modified       |
-| [04](plan-a-04.md) | Documentation (internals page, index update)         | 01         | ~2 new, 2 modified |
+| Part               | Scope                                                | Depends on | Files               |
+| ------------------ | ---------------------------------------------------- | ---------- | ------------------- |
+| [01](plan-a-01.md) | Create libcli library                                | —          | ~12 new             |
+| [02](plan-a-02.md) | Migrate product CLIs (pathway, map, guide)           | 01         | ~7 modified         |
+| [03](plan-a-03.md) | Migrate library CLIs (22 CLIs across 17 packages)    | 01         | ~22 modified        |
+| [04](plan-a-04.md) | Documentation (internals page, index update)         | 01         | ~2 new, 2 modified  |
+| [05](plan-a-05.md) | Refactor Basecamp CLI to positional subcommands      | 01         | ~3 modified, 1 new  |
+| [06](plan-a-06.md) | Update documentation referencing CLI output          | 02–05      | ~12 modified        |
 
-Parts 02, 03, and 04 all depend on part 01 but are independent of each other.
+Parts 02, 03, 04, and 05 all depend on part 01 but are independent of each
+other. Part 06 depends on parts 02–05 (it updates documentation to match the
+new CLI output formats, including basecamp's new positional subcommands).
 
 ## Cross-cutting concerns
 
@@ -197,6 +217,7 @@ test scenarios:
 - `Cli.parse()` returns null and writes help when `--help` is passed
 - `Cli.parse()` returns null and writes JSON help when `--help --json` is passed
 - `Cli.parse()` returns null and writes version when `--version` is passed
+- `Cli.parse()` throws on unknown flags (strict parseArgs, always)
 - `Cli.error()` writes prefixed message to stderr and sets exitCode = 1
 - `Cli.usageError()` sets exitCode = 2
 - `HelpRenderer.render()` produces one-line-per-command output
@@ -244,5 +265,19 @@ After each part, run:
    Don't over-engineer these.
 
 4. **Repl-based CLIs** — fit-guide and fit-visualize use librepl for interactive
-   sessions. libcli handles only the initial argument parsing and help; the Repl
-   session is unchanged. The spec explicitly scopes this out.
+   sessions. CLI flags (`--init`, `--data`, `--streaming`) move from the Repl's
+   `commands` config to the libcli definition and are handled by the CLI entry
+   point before starting the Repl. The Repl becomes purely interactive. The
+   Repl's `commands` object loses its CLI flag entries but retains any truly
+   interactive commands.
+
+5. **Basecamp flag-to-subcommand refactor** — Part 05 converts basecamp from
+   flag-based commands (`--daemon`, `--wake`, `--init`) to positional
+   subcommands (`daemon`, `wake`, `init`). This is a breaking change with no
+   backwards compatibility. All documentation and skill files referencing the
+   old flag syntax must be updated in part 06.
+
+6. **Documentation drift** — Part 06 updates all docs that show CLI output
+   samples or reference CLI syntax. If any file is missed, external users see
+   stale examples. The file list in part 06 was compiled by searching the full
+   repo; the implementer should re-verify with a grep before committing.

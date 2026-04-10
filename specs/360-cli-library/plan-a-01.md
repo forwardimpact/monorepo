@@ -29,19 +29,34 @@ and tests.
   "name": "@forwardimpact/libcli",
   "version": "0.1.0",
   "description": "Shared CLI infrastructure for the Forward Impact monorepo",
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
   "type": "module",
   "main": "index.js",
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "test": "bun run node --test test/*.test.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "libraries/libcli"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
-    "@forwardimpact/libharness": "workspace:*"
+    "@forwardimpact/libharness": "^0.1.5"
   }
 }
 ```
 
-No runtime dependencies. libcli uses only `node:util` (for `parseArgs`).
-libharness is a devDependency for test mocking.
+Follows the standard library package.json pattern (cf. libformat). No runtime
+dependencies. libcli uses only `node:util` (for `parseArgs`). libharness is a
+devDependency for test mocking.
 
 Run `bun install` after creating this file to register the workspace package.
 
@@ -182,11 +197,14 @@ export class SummaryRenderer {
     this.#proc = process;
   }
 
-  render({ title, items }, stream) {
+  render({ title, items }, stream = this.#proc.stdout) {
     // Write title line, then indented items with aligned labels
   }
 }
 ```
+
+`stream` defaults to `this.#proc.stdout` when omitted, so callers can use
+`summary.render({ title, items })` without passing a stream explicitly.
 
 **Output format:**
 
@@ -287,6 +305,10 @@ export function createCli(definition) {
   Tests bypass the factory and inject mocks.
 - `allowPositionals: true` is always set — CLIs that don't want positionals can
   validate themselves. This keeps the API simple.
+- `parseArgs` always runs with `strict: true` (the default). Every CLI declares
+  every flag it accepts in the definition. CLIs that previously delegated flag
+  parsing to sub-command handlers (fit-eval) or to a Repl (fit-guide) are
+  restructured to declare all flags upfront. There is no `strict: false` mode.
 
 ### 7. Create index.js
 
@@ -349,7 +371,7 @@ output.
 - `parse` returns null and writes version when `--version` is passed
 - `error` writes prefixed message to stderr and sets exitCode to 1
 - `usageError` writes prefixed message to stderr and sets exitCode to 2
-- `parse` throws on unknown flags (default parseArgs behavior)
+- `parse` throws on unknown flags (strict parseArgs, always)
 
 Mock process:
 
