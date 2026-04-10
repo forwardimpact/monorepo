@@ -74,6 +74,11 @@ plan-a-03.md    ← part 3 (independently executable)
   explicitly (e.g., "part 02 depends on part 01 for the new type definitions").
 - A single-part plan does not need decomposition — only decompose when there is
   a concrete benefit (size, independence, parallelism).
+- The overview (`plan-a.md`) must include an **Execution** section that
+  translates the dependency graph into a concrete execution recommendation. When
+  parts are independent after a shared prerequisite, recommend launching them as
+  concurrent `staff-engineer` sub-agents once the prerequisite merges. When
+  parts are strictly sequential, say so.
 
 Alternative plans can also be decomposed (`plan-b.md`, `plan-b-01.md`, etc.).
 
@@ -97,12 +102,18 @@ on these qualities:
   This prevents future re-debate.
 - **Risks surfaced.** Flag steps that require judgement, ambiguous decisions, or
   unknowns. The implementer should never be surprised by a step.
+- **Execution recommendation.** Close with a concrete recommendation on how to
+  execute the plan. Recommend the `staff-engineer` sub-agent for implementation.
+  For decomposed plans, state which parts can run as parallel `staff-engineer`
+  agents and which must run sequentially — translate the dependency structure
+  into an actionable execution strategy.
 
 ## Reviewing a Plan
 
 Evaluate the plan against the qualities listed in "Writing a Plan" above:
 approach is stated, changes are concrete, blast radius is visible, ordering is
-explicit, decisions are explained, and risks are surfaced.
+explicit, decisions are explained, risks are surfaced, and an execution
+recommendation is present.
 
 If all criteria are met **and** the spec is also approved, advance the spec to
 `planned` in `specs/STATUS`. If any criterion falls short, request changes and
