@@ -142,7 +142,8 @@ case "seed":
 Add `--data` option parsing. Update the `activity` command definition's args
 string from `"<start|stop|status|migrate|transform|verify>"` to
 `"<start|stop|status|migrate|transform|verify|seed>"` (line 54 in `fit-map.js`).
-Mark the seed entry with `[internal]` in the description.
+The description should clearly state the command populates the activity database
+from synthetic data — no `[internal]` label needed.
 
 ### Modify: `justfile`
 
@@ -193,6 +194,35 @@ This runs: `supabase-up → supabase-migrate → synthetic → seed`.
 The seed command uploads the synthetic roster and raw documents (GitHub events,
 GetDX responses) to Supabase Storage, then runs all transforms and verifies the
 result. Idempotent — safe to run repeatedly.
+```
+
+### Modify: `website/docs/getting-started/leadership/index.md`
+
+Add a note about seeding after the activity verify section (around line 422
+where verification is discussed). External users who want to explore the
+activity layer without real GitHub webhooks or GetDX tokens can use synthetic
+data to populate the database.
+
+```markdown
+### Trying the activity layer with synthetic data
+
+If you want to explore the activity layer before connecting real data sources,
+Map can populate the database with synthetic data — a realistic roster, GitHub
+events, and GetDX snapshots generated from a template.
+
+First, generate synthetic data (requires the `@forwardimpact/universe` package):
+
+    npx fit-universe data/synthetic/story.dsl
+
+Then seed the activity database:
+
+    npx fit-map activity seed
+
+This uploads the generated roster and raw documents, runs all transforms, and
+verifies the result. The database will contain realistic but fictional data you
+can query with Landmark or Summit. When you are ready to switch to real data,
+push your actual roster with `npx fit-map people push` — it overwrites the
+synthetic entries.
 ```
 
 ### Create: `products/map/test/activity/seed.test.js`

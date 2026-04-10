@@ -46,8 +46,14 @@ This plan is decomposed into four independently executable parts:
 
 ## Open question resolutions
 
-- **Seed in `--help`**: Show the command with `[internal]` label. Hiding it
-  completely is fragile and makes discoverability worse for contributors.
+- **Seed in `--help`**: Show the command in help output with a clear description
+  that it populates the activity database from synthetic data. No `[internal]`
+  label — external users exploring Map should be able to discover and use it.
+- **Getting-started documentation**: The spec listed the getting-started
+  leadership guide as out of scope, but the seed command is useful for external
+  users who want to try the activity layer without real data sources. Part 03
+  adds an informational note to `website/docs/getting-started/leadership/` after
+  the activity verify section, explaining how to seed with synthetic data.
 - **Docker detection**: Use `docker info --format '{{.ID}}' 2>/dev/null` with a
   3-second timeout. Fast, silent on failure, returns exit 1 when Docker daemon is
   not running.
