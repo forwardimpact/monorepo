@@ -99,7 +99,9 @@ function showQuestionsSummary(data) {
 
   console.log(`\nRun 'npx fit-pathway questions --list' for question IDs`);
   console.log(`Run 'npx fit-pathway questions --stats' for detailed stats`);
-  console.log(`Run 'npx fit-pathway questions --level=practitioner' to filter\n`);
+  console.log(
+    `Run 'npx fit-pathway questions --level=practitioner' to filter\n`,
+  );
 }
 
 /**

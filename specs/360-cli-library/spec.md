@@ -13,19 +13,19 @@ harms both human and agent users.
 No two CLIs produce help text the same way. Observed patterns across the
 codebase:
 
-| CLI            | Help format                        | Error format               | Summary format               |
-| -------------- | ---------------------------------- | -------------------------- | ---------------------------- |
-| fit-pathway    | `HELP_TEXT` const, 150-line block  | `formatError()` from local | `formatTable()` from local   |
-| fit-map        | `showHelp()` function              | `console.error()`          | custom counts table          |
-| fit-codegen    | `printUsage()` with array.join     | `logger.error()`           | `printSummary()` custom      |
-| fit-eval       | `HELP_TEXT` const with `.trim()`   | raw `console.error()`      | delegated per-command        |
-| fit-rc         | `help()` via `logger.info()` calls | `logger.exception()`       | logger-based                 |
-| fit-query      | inline `console.error()` one-liner | `console.error()`          | one value per line           |
-| fit-universe   | `printHelp()` function             | `process.exit(1)`          | `printReport()` with ✓/✗    |
+| CLI          | Help format                        | Error format               | Summary format             |
+| ------------ | ---------------------------------- | -------------------------- | -------------------------- |
+| fit-pathway  | `HELP_TEXT` const, 150-line block  | `formatError()` from local | `formatTable()` from local |
+| fit-map      | `showHelp()` function              | `console.error()`          | custom counts table        |
+| fit-codegen  | `printUsage()` with array.join     | `logger.error()`           | `printSummary()` custom    |
+| fit-eval     | `HELP_TEXT` const with `.trim()`   | raw `console.error()`      | delegated per-command      |
+| fit-rc       | `help()` via `logger.info()` calls | `logger.exception()`       | logger-based               |
+| fit-query    | inline `console.error()` one-liner | `console.error()`          | one value per line         |
+| fit-universe | `printHelp()` function             | `process.exit(1)`          | `printReport()` with ✓/✗   |
 
-Formatting utilities exist only inside pathway's `src/lib/cli-output.js` —
-271 lines of color handling, table formatting, and section helpers that no other
-CLI can reach because they live in a product, not a library.
+Formatting utilities exist only inside pathway's `src/lib/cli-output.js` — 271
+lines of color handling, table formatting, and section helpers that no other CLI
+can reach because they live in a product, not a library.
 
 ### Output is hostile to AI agents
 
@@ -53,7 +53,8 @@ programmatic consumption:
 
 Every CLI re-implements the same setup sequence:
 
-1. Parse arguments (11 use `node:util parseArgs`, others parse `process.argv` manually)
+1. Parse arguments (11 use `node:util parseArgs`, others parse `process.argv`
+   manually)
 2. Handle `--help` and `--version` flags
 3. Dispatch to a command handler
 4. Format errors and write to stderr
@@ -130,10 +131,10 @@ Examples:
 
 ### Summary output
 
-After a command runs, CLIs produce a summary. libcli provides a standard
-summary renderer that accepts structured data (counts, labels, status
-indicators) and produces consistent output. Summaries are compact — a few lines,
-not a screenful.
+After a command runs, CLIs produce a summary. libcli provides a standard summary
+renderer that accepts structured data (counts, labels, status indicators) and
+produces consistent output. Summaries are compact — a few lines, not a
+screenful.
 
 Example:
 
@@ -183,18 +184,18 @@ pure data that a caller will pipe or parse as the primary result.**
 
 Decision matrix:
 
-| Output type                        | Use Logger? | Why                                                     |
-| ---------------------------------- | ----------- | ------------------------------------------------------- |
-| Progress updates                   | Yes         | Structured attributes (`items="3/10"`) beat free text   |
-| Processing status                  | Yes         | Agents can filter by level and parse attributes          |
-| Errors and exceptions              | Yes         | Preserves trace context (`trace_id`, `span_id`)         |
-| Warnings                           | Yes         | Consistent level filtering                              |
-| Completion summaries               | Yes         | `logger.info` with structured counts                    |
-| Startup/shutdown events            | Yes         | Operational context for debugging                       |
-| Validation results                 | Yes         | Structured pass/fail with attributes                    |
-| Help text                          | No          | Rendered by libcli, not operational output               |
-| Pure data output (`--json`, query) | No          | Primary result for piping — `console.log` / stdout      |
-| Version string                     | No          | Single value, rendered by libcli                         |
+| Output type                        | Use Logger? | Why                                                   |
+| ---------------------------------- | ----------- | ----------------------------------------------------- |
+| Progress updates                   | Yes         | Structured attributes (`items="3/10"`) beat free text |
+| Processing status                  | Yes         | Agents can filter by level and parse attributes       |
+| Errors and exceptions              | Yes         | Preserves trace context (`trace_id`, `span_id`)       |
+| Warnings                           | Yes         | Consistent level filtering                            |
+| Completion summaries               | Yes         | `logger.info` with structured counts                  |
+| Startup/shutdown events            | Yes         | Operational context for debugging                     |
+| Validation results                 | Yes         | Structured pass/fail with attributes                  |
+| Help text                          | No          | Rendered by libcli, not operational output            |
+| Pure data output (`--json`, query) | No          | Primary result for piping — `console.log` / stdout    |
+| Version string                     | No          | Single value, rendered by libcli                      |
 
 When in doubt, use Logger. Over-logging with structured attributes is better
 than under-logging with raw `console.log` — an agent can always ignore Logger
@@ -276,8 +277,8 @@ linking to this new page.
 - **A CLI framework like commander or yargs.** libcli is a thin library that
   wraps Node.js built-ins (`parseArgs`) and provides output formatting. It does
   not introduce subcommand routing trees, middleware chains, plugin systems, or
-  lifecycle hooks. It follows the monorepo's dependency policy: prefer built-ins,
-  keep it small.
+  lifecycle hooks. It follows the monorepo's dependency policy: prefer
+  built-ins, keep it small.
 
 - **A replacement for libformat.** libformat converts markdown to HTML or
   terminal output. libcli formats CLI-specific structures (help text, summaries,
@@ -290,8 +291,8 @@ linking to this new page.
   argument parsing of the initial invocation, and librepl for the interactive
   session.
 
-- **A replacement for libtelemetry.** libtelemetry provides the Logger class
-  and will continue to own it. libcli _uses_ Logger for operational output and
+- **A replacement for libtelemetry.** libtelemetry provides the Logger class and
+  will continue to own it. libcli _uses_ Logger for operational output and
   establishes conventions for when and how CLIs should log. libcli does not
   wrap, extend, or re-export Logger — CLIs import Logger from libtelemetry
   directly.
@@ -310,16 +311,16 @@ linking to this new page.
 2. **Structured help available.** `fit-<name> -h --json` outputs a JSON object
    describing all commands, options, and their descriptions for every CLI.
 
-3. **Consistent error format.** Every CLI prefixes errors with its name,
-   writes to stderr, and uses exit code 1 (runtime) or 2 (usage).
+3. **Consistent error format.** Every CLI prefixes errors with its name, writes
+   to stderr, and uses exit code 1 (runtime) or 2 (usage).
 
 4. **Help text defined as data.** No CLI contains a hand-authored `HELP_TEXT`
    template string. Commands, options, and descriptions are declared as
    structured objects that libcli renders.
 
 5. **pathway's generic formatting in libcli.** `supportsColor`, `formatTable`,
-   `formatError`, `formatSection`, `horizontalRule`, `indent`, `colorize`,
-   and ANSI constants are importable from `@forwardimpact/libcli`, not from
+   `formatError`, `formatSection`, `horizontalRule`, `indent`, `colorize`, and
+   ANSI constants are importable from `@forwardimpact/libcli`, not from
    pathway's local `cli-output.js`.
 
 6. **Boilerplate eliminated.** `--help`, `--version`, argument parsing, and
@@ -333,14 +334,14 @@ linking to this new page.
    `createLogger(domain)` at startup and uses it according to the decision
    matrix. CLIs that are predominantly pure-data output (e.g. fit-query,
    fit-subjects) still create a Logger for errors and exceptions — only their
-   primary result uses `console.log`. Raw `console.error()` is not used in
-   any CLI entry point.
+   primary result uses `console.log`. Raw `console.error()` is not used in any
+   CLI entry point.
 
 9. **CLI development internals page exists.**
-   `website/docs/internals/libcli/index.md` documents the standard CLI
-   patterns: Logger decision matrix, help text declaration, error handling,
-   summary rendering, argument parsing, and a complete minimal example. The
-   internals index links to it.
+   `website/docs/internals/libcli/index.md` documents the standard CLI patterns:
+   Logger decision matrix, help text declaration, error handling, summary
+   rendering, argument parsing, and a complete minimal example. The internals
+   index links to it.
 
 ## Out of scope
 

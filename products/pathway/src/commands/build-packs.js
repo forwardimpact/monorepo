@@ -341,12 +341,7 @@ async function buildSkillEntry(skillDir, name) {
  *   The skill entries written, for use in the aggregate manifest.
  */
 async function writePackRepository(packsOutputDir, packStagingDir, packName) {
-  const wellKnownDir = join(
-    packsOutputDir,
-    packName,
-    ".well-known",
-    "skills",
-  );
+  const wellKnownDir = join(packsOutputDir, packName, ".well-known", "skills");
   await mkdir(wellKnownDir, { recursive: true });
 
   // Discover individual skills from the staged pack's .claude/skills/

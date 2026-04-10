@@ -169,7 +169,9 @@ function resolveJobEntities(data, args, options) {
       console.error(
         `Track must be passed as a flag, not a positional argument:`,
       );
-      console.error(`  npx fit-pathway job ${args[0]} <level> --track=${args[1]}`);
+      console.error(
+        `  npx fit-pathway job ${args[0]} <level> --track=${args[1]}`,
+      );
       console.error(`Levels: ${data.levels.map((g) => g.id).join(", ")}`);
     } else {
       console.error(`Level not found: ${args[1]}`);
