@@ -75,10 +75,10 @@ plan-a-03.md    ← part 3 (independently executable)
 - A single-part plan does not need decomposition — only decompose when there is
   a concrete benefit (size, independence, parallelism).
 - The overview (`plan-a.md`) must include an **Execution** section that
-  translates the dependency graph into a concrete execution recommendation.
-  When parts are independent after a shared prerequisite, recommend launching
-  them as concurrent `staff-engineer` sub-agents once the prerequisite merges.
-  When parts are strictly sequential, say so.
+  translates the dependency graph into a concrete execution recommendation. When
+  parts are independent after a shared prerequisite, recommend launching them as
+  concurrent `staff-engineer` sub-agents once the prerequisite merges. When
+  parts are strictly sequential, say so.
 
 Alternative plans can also be decomposed (`plan-b.md`, `plan-b-01.md`, etc.).
 
@@ -103,10 +103,10 @@ on these qualities:
 - **Risks surfaced.** Flag steps that require judgement, ambiguous decisions, or
   unknowns. The implementer should never be surprised by a step.
 - **Execution recommendation.** Close with a concrete recommendation on how to
-  execute the plan. Recommend the `staff-engineer` sub-agent for
-  implementation. For decomposed plans, state which parts can run as parallel
-  `staff-engineer` agents and which must run sequentially — translate the
-  dependency structure into an actionable execution strategy.
+  execute the plan. Recommend the `staff-engineer` sub-agent for implementation.
+  For decomposed plans, state which parts can run as parallel `staff-engineer`
+  agents and which must run sequentially — translate the dependency structure
+  into an actionable execution strategy.
 
 ## Reviewing a Plan
 
