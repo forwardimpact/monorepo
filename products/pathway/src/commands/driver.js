@@ -4,10 +4,10 @@
  * Handles driver summary, listing, and detail display in the terminal.
  *
  * Usage:
- *   bunx pathway driver              # Summary with stats
- *   bunx pathway driver --list       # IDs only (for piping)
- *   bunx pathway driver <id>         # Detail view
- *   bunx pathway driver --validate   # Validation checks
+ *   npx fit-pathway driver              # Summary with stats
+ *   npx fit-pathway driver --list       # IDs only (for piping)
+ *   npx fit-pathway driver <id>         # Detail view
+ *   npx fit-pathway driver --validate   # Validation checks
  */
 
 import { createEntityCommand } from "./command-factory.js";
@@ -52,8 +52,8 @@ function formatSummary(drivers, data) {
 
   console.log(formatTable(["ID", "Name", "Skills", "Behaviours"], rows));
   console.log(`\nTotal: ${drivers.length} drivers`);
-  console.log(`\nRun 'bunx pathway driver --list' for IDs and names`);
-  console.log(`Run 'bunx pathway driver <id>' for details\n`);
+  console.log(`\nRun 'npx fit-pathway driver --list' for IDs and names`);
+  console.log(`Run 'npx fit-pathway driver <id>' for details\n`);
 }
 
 /**

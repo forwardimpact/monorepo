@@ -4,9 +4,9 @@
  * Shows career progression analysis in the terminal.
  *
  * Usage:
- *   bunx pathway progress <discipline> <level>                            # Progress for trackless job
- *   bunx pathway progress <discipline> <level> --track=<track>            # Progress with track
- *   bunx pathway progress <discipline> <from_level> --compare=<to_level>  # Compare levels
+ *   npx fit-pathway progress <discipline> <level>                            # Progress for trackless job
+ *   npx fit-pathway progress <discipline> <level> --track=<track>            # Progress with track
+ *   npx fit-pathway progress <discipline> <from_level> --compare=<to_level>  # Compare levels
  */
 
 import { createCompositeCommand } from "./command-factory.js";
@@ -80,5 +80,5 @@ export const runProgressCommand = createCompositeCommand({
     }),
   formatter: formatProgress,
   usageExample:
-    "bunx pathway progress software_engineering L3 --track=platform --compare=L4",
+    "npx fit-pathway progress software_engineering L3 --track=platform --compare=L4",
 });

@@ -4,9 +4,9 @@
  * Generates and displays interview questions in the terminal.
  *
  * Usage:
- *   bunx fit-pathway interview <discipline> <level>                                  # All interview types
- *   bunx fit-pathway interview <discipline> <level> --track=<track>                  # With track
- *   bunx fit-pathway interview <discipline> <level> --track=<track> --type=mission   # Single type
+ *   npx fit-pathway interview <discipline> <level>                                  # All interview types
+ *   npx fit-pathway interview <discipline> <level> --track=<track>                  # With track
+ *   npx fit-pathway interview <discipline> <level> --track=<track> --type=mission   # Single type
  */
 
 import { createCompositeCommand } from "./command-factory.js";
@@ -109,5 +109,5 @@ export const runInterviewCommand = createCompositeCommand({
     }
   },
   usageExample:
-    "bunx fit-pathway interview software_engineering J090 --track=platform --type=mission",
+    "npx fit-pathway interview software_engineering J090 --track=platform --type=mission",
 });

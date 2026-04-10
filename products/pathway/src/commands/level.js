@@ -4,10 +4,10 @@
  * Handles level summary, listing, and detail display in the terminal.
  *
  * Usage:
- *   bunx pathway level              # Summary with stats
- *   bunx pathway level --list       # IDs only (for piping)
- *   bunx pathway level <id>         # Detail view
- *   bunx pathway level --validate   # Validation checks
+ *   npx fit-pathway level              # Summary with stats
+ *   npx fit-pathway level --list       # IDs only (for piping)
+ *   npx fit-pathway level <id>         # Detail view
+ *   npx fit-pathway level --validate   # Validation checks
  */
 
 import { createEntityCommand } from "./command-factory.js";
@@ -57,8 +57,8 @@ function formatSummary(levels, data) {
     ),
   );
   console.log(`\nTotal: ${levels.length} levels`);
-  console.log(`\nRun 'bunx pathway level --list' for IDs and titles`);
-  console.log(`Run 'bunx pathway level <id>' for details\n`);
+  console.log(`\nRun 'npx fit-pathway level --list' for IDs and titles`);
+  console.log(`Run 'npx fit-pathway level <id>' for details\n`);
 }
 
 /**

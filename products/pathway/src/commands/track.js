@@ -4,10 +4,10 @@
  * Handles track summary, listing, and detail display in the terminal.
  *
  * Usage:
- *   bunx pathway track              # Summary with stats
- *   bunx pathway track --list       # IDs only (for piping)
- *   bunx pathway track <id>         # Detail view
- *   bunx pathway track --validate   # Validation checks
+ *   npx fit-pathway track              # Summary with stats
+ *   npx fit-pathway track --list       # IDs only (for piping)
+ *   npx fit-pathway track <id>         # Detail view
+ *   npx fit-pathway track --validate   # Validation checks
  */
 
 import { createEntityCommand } from "./command-factory.js";
@@ -49,8 +49,8 @@ function formatSummary(tracks, data) {
 
   console.log(formatTable(["ID", "Name", "Modifiers", "Disciplines"], rows));
   console.log(`\nTotal: ${tracks.length} tracks`);
-  console.log(`\nRun 'bunx pathway track --list' for IDs and names`);
-  console.log(`Run 'bunx pathway track <id>' for details\n`);
+  console.log(`\nRun 'npx fit-pathway track --list' for IDs and names`);
+  console.log(`Run 'npx fit-pathway track <id>' for details\n`);
 }
 
 /**

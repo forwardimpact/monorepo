@@ -11,17 +11,17 @@
  * By default, outputs to console. Use --output to write files.
  *
  * Usage:
- *   bunx pathway agent <discipline> [--track=<track>]
- *   bunx pathway agent <discipline> --track=<track> --stage=plan
- *   bunx pathway agent <discipline> --track=<track> --output=./agents
- *   bunx pathway agent <discipline> [--track=<track>] --skills  # Plain list of skill IDs
- *   bunx pathway agent <discipline> [--track=<track>] --tools   # Plain list of tool names
- *   bunx pathway agent --list
+ *   npx fit-pathway agent <discipline> [--track=<track>]
+ *   npx fit-pathway agent <discipline> --track=<track> --stage=plan
+ *   npx fit-pathway agent <discipline> --track=<track> --output=./agents
+ *   npx fit-pathway agent <discipline> [--track=<track>] --skills  # Plain list of skill IDs
+ *   npx fit-pathway agent <discipline> [--track=<track>] --tools   # Plain list of tool names
+ *   npx fit-pathway agent --list
  *
  * Examples:
- *   bunx pathway agent software_engineering --track=platform
- *   bunx pathway agent software_engineering --track=platform --stage=plan
- *   bunx pathway agent software_engineering --track=platform --output=./agents
+ *   npx fit-pathway agent software_engineering --track=platform
+ *   npx fit-pathway agent software_engineering --track=platform --stage=plan
+ *   npx fit-pathway agent software_engineering --track=platform --output=./agents
  */
 
 import { createDataLoader } from "@forwardimpact/map/loader";
@@ -82,9 +82,9 @@ function showAgentSummary(data, agentData, skillsWithAgent) {
   );
   console.log(`Stages:      ${data.stages.length} available`);
   console.log(`\nValid combinations: ${validCombinations}`);
-  console.log(`\nRun 'bunx pathway agent --list' for all combinations`);
+  console.log(`\nRun 'npx fit-pathway agent --list' for all combinations`);
   console.log(
-    `Run 'bunx pathway agent <discipline> <track>' to generate files\n`,
+    `Run 'npx fit-pathway agent <discipline> <track>' to generate files\n`,
   );
 }
 
@@ -158,7 +158,7 @@ function listAgentCombinationsVerbose(data, agentData) {
 
   console.log("\n## Valid combinations:\n");
   for (const { discipline, track } of findValidCombinations(data, agentData)) {
-    console.log(`  bunx pathway agent ${discipline.id} ${track.id}`);
+    console.log(`  npx fit-pathway agent ${discipline.id} ${track.id}`);
   }
 
   console.log("\n## Available stages:\n");

@@ -4,9 +4,9 @@
  * Handles tool summary, listing, and detail display in the terminal.
  *
  * Usage:
- *   bunx pathway tool              # Summary with stats
- *   bunx pathway tool --list       # Tool names only (for piping)
- *   bunx pathway tool <name>       # Detail view for specific tool
+ *   npx fit-pathway tool              # Summary with stats
+ *   npx fit-pathway tool --list       # Tool names only (for piping)
+ *   npx fit-pathway tool <name>       # Detail view for specific tool
  */
 
 import { truncate } from "../formatters/shared.js";
@@ -89,9 +89,9 @@ function formatSummary(tools, totalCount) {
     console.log(`(showing top 15 by usage)`);
   }
   console.log(
-    `\nRun 'bunx pathway tool --list' for all tool names and descriptions`,
+    `\nRun 'npx fit-pathway tool --list' for all tool names and descriptions`,
   );
-  console.log(`Run 'bunx pathway tool <name>' for details\n`);
+  console.log(`Run 'npx fit-pathway tool <name>' for details\n`);
 }
 
 /**

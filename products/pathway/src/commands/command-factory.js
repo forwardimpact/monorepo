@@ -89,7 +89,7 @@ export function createEntityCommand({
 function handleValidate({ data, _entityName, pluralName, validate }) {
   if (!validate) {
     console.log(`No specific validation for ${pluralName}.`);
-    console.log(`Run 'bunx pathway --validate' for full data validation.`);
+    console.log(`Run 'npx fit-pathway --validate' for full data validation.`);
     return;
   }
 
@@ -178,7 +178,7 @@ export function createCompositeCommand({
   return async function runCommand({ data, args, options }) {
     if (args.length < requiredArgs.length) {
       const argsList = requiredArgs.map((arg) => `<${arg}>`).join(" ");
-      console.error(`Usage: bunx pathway ${commandName} ${argsList}`);
+      console.error(`Usage: npx fit-pathway ${commandName} ${argsList}`);
       if (usageExample) {
         console.error(`Example: ${usageExample}`);
       }
