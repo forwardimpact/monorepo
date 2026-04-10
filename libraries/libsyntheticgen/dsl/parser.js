@@ -182,5 +182,18 @@ export function parse(tokens) {
 
   if (peek().type === "RBRACE") advance();
 
+  // Validate distribution keys against framework levels (when both exist)
+  if (ast.people?.distribution && ast.framework?.levels?.length) {
+    const levelIds = new Set(ast.framework.levels.map((l) => l.id));
+    for (const key of Object.keys(ast.people.distribution)) {
+      if (!levelIds.has(key)) {
+        const have = ast.framework.levels.map((l) => l.id).join(", ");
+        throw new Error(
+          `distribution key "${key}" does not match any framework level (have: ${have})`,
+        );
+      }
+    }
+  }
+
   return ast;
 }

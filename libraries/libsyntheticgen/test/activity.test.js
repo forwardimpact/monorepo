@@ -139,6 +139,68 @@ const MINI_UNIVERSE = `universe test {
   }
 }`;
 
+describe("DSL distribution key validation", () => {
+  test("rejects distribution keys that don't match framework levels", () => {
+    const source = `
+      universe test {
+        domain "Testing"
+        org hq { name "HQ" }
+        department eng {
+          name "Eng"
+          parent hq
+          headcount 3
+          team alpha { name "A" size 3 }
+        }
+        people {
+          count 5
+          distribution { L1 50% L2 50% }
+        }
+        framework {
+          levels {
+            J040 { title "Junior" rank 1 }
+            J060 { title "Mid" rank 2 }
+          }
+        }
+      }
+    `;
+    assert.throws(
+      () => parse(tokenize(source)),
+      /distribution key "L1" does not match any framework level/,
+    );
+  });
+
+  test("accepts distribution keys matching framework levels", () => {
+    const source = `
+      universe test {
+        domain "Testing"
+        org hq { name "HQ" }
+        department eng {
+          name "Eng"
+          parent hq
+          headcount 3
+          team alpha { name "A" size 3 }
+        }
+        people {
+          count 5
+          distribution { J040 50% J060 50% }
+        }
+        framework {
+          levels {
+            J040 { title "Junior" rank 1 }
+            J060 { title "Mid" rank 2 }
+          }
+        }
+      }
+    `;
+    assert.doesNotThrow(() => parse(tokenize(source)));
+  });
+
+  test("skips validation when framework has no levels", () => {
+    // MINI_UNIVERSE uses L1-L4 without framework levels — should still parse
+    assert.doesNotThrow(() => parse(tokenize(MINI_UNIVERSE)));
+  });
+});
+
 describe("activity generation", () => {
   describe("deriveInitiatives", () => {
     test("generates initiatives from declining scenario drivers", () => {
