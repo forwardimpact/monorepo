@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/map",
-  "version": "0.15.15",
+  "version": "0.15.16",
   "description": "Public data model for career frameworks, consumed by AI agents and engineers",
   "license": "Apache-2.0",
   "repository": {
@@ -54,7 +54,7 @@
     "./activity/transform": "./supabase/functions/_shared/activity/transform/index.js"
   },
   "dependencies": {
-    "@forwardimpact/libcli": "workspace:*",
+    "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libtemplate": "^0.2.0",
     "@forwardimpact/libutil": "^0.1.64",
     "@supabase/supabase-js": "^2.103.0",

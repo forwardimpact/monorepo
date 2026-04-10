@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libuniverse",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Synthetic data universe DSL and generation engine",
   "license": "Apache-2.0",
   "repository": {
@@ -19,7 +19,7 @@
     "./load": "./load.js"
   },
   "dependencies": {
-    "@forwardimpact/libcli": "workspace:*",
+    "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.59",
     "@forwardimpact/libllm": "^0.1.72",
     "@forwardimpact/libprompt": "^0.1.0",

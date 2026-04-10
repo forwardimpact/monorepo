@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libtelemetry",
-  "version": "0.1.32",
+  "version": "0.1.33",
   "description": "OpenTelemetry-based tracing library for Guide microservices",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -23,7 +23,7 @@
     "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
-    "@forwardimpact/libcli": "workspace:*",
+    "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libindex": "^0.1.27",
     "jmespath": "^0.16.0"
   },

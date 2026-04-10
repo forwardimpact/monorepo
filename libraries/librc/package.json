@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/librc",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "description": "Service manager for Forward Impact",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -21,7 +21,7 @@
     "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
-    "@forwardimpact/libcli": "workspace:*",
+    "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.58",
     "@forwardimpact/libsupervise": "^0.1.6",
     "@forwardimpact/libtelemetry": "^0.1.22"

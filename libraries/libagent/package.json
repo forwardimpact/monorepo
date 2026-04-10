@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libagent",
-  "version": "0.1.48",
+  "version": "0.1.49",
   "description": "Agent orchestration library for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -17,7 +17,7 @@
     "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
-    "@forwardimpact/libcli": "workspace:*",
+    "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libdoc": "^0.2.0",
     "@forwardimpact/libsecret": "^0.1.3",
     "@forwardimpact/libtelemetry": "^0.1.22",

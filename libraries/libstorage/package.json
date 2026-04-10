@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libstorage",
-  "version": "0.1.62",
+  "version": "0.1.63",
   "description": "Storage abstraction layer for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1028.0",
-    "@forwardimpact/libcli": "workspace:*",
+    "@forwardimpact/libcli": "^0.1.0",
     "@aws-sdk/credential-providers": "^3.1028.0",
     "@forwardimpact/libconfig": "^0.1.58",
     "@forwardimpact/libsecret": "^0.1.3",

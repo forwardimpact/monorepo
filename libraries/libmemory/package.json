@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libmemory",
-  "version": "0.1.42",
+  "version": "0.1.43",
   "description": "Memory management library for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -21,7 +21,7 @@
     "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
-    "@forwardimpact/libcli": "workspace:*",
+    "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libindex": "^0.1.27"
   },
   "devDependencies": {

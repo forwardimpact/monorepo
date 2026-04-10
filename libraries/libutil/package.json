@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libutil",
-  "version": "0.1.71",
+  "version": "0.1.72",
   "description": "Utility functions and utilities for Guide",
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -18,7 +18,7 @@
     "test": "bun run node --test test/*.test.js"
   },
   "dependencies": {
-    "@forwardimpact/libcli": "workspace:*",
+    "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.22"
   },
   "devDependencies": {

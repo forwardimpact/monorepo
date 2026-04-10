@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/basecamp",
-  "version": "2.12.0",
+  "version": "2.12.1",
   "description": "Claude Code-native personal knowledge system with autonomous agents",
   "license": "Apache-2.0",
   "repository": {
@@ -31,7 +31,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@forwardimpact/libcli": "workspace:*"
+    "@forwardimpact/libcli": "^0.1.0"
   },
   "publishConfig": {
     "access": "public"
