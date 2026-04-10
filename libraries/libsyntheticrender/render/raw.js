@@ -85,7 +85,7 @@ function renderGetDXPayloads(entities, files) {
       ancestors: t.ancestors || [],
     }));
     files.set(
-      "getdx/teams.list.json",
+      "getdx/teams-list/latest.json",
       JSON.stringify({ ok: true, teams: teamsList }, null, 2),
     );
   }
@@ -103,7 +103,7 @@ function renderGetDXPayloads(entities, files) {
       total_count: s.total_count,
     }));
     files.set(
-      "getdx/snapshots.list.json",
+      "getdx/snapshots-list/latest.json",
       JSON.stringify({ ok: true, snapshots: snapshotsList }, null, 2),
     );
   }
@@ -141,7 +141,7 @@ function renderGetDXPayloads(entities, files) {
       }));
 
       files.set(
-        `getdx/snapshots/${snapshotId}.json`,
+        `getdx/snapshots-info/${snapshotId}.json`,
         JSON.stringify(
           { ok: true, snapshot: { team_scores: teamScores } },
           null,

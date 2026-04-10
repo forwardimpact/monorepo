@@ -84,6 +84,9 @@ export async function transformAllGitHub(supabase) {
   const allErrors = [];
 
   for (const file of files) {
+    // Skip non-webhook files (e.g. index.json)
+    if (!file.name.startsWith("evt-")) continue;
+
     const result = await transformGitHubWebhook(
       supabase,
       `github/${file.name}`,
