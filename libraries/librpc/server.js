@@ -5,6 +5,7 @@ import {
   createObserver,
   capitalizeFirstLetter,
 } from "./base.js";
+import { healthDefinition, createHealthHandlers } from "./health.js";
 
 /**
  * gRPC Server class using pre-compiled service definitions
@@ -62,6 +63,12 @@ export class Server extends Rpc {
     const wrappedHandlers = this.#wrapHandlers(handlers, definition);
 
     this.#server.addService(definition, wrappedHandlers);
+
+    // Register standard gRPC health check (no auth, no observer wrapping)
+    this.#server.addService(
+      healthDefinition,
+      createHealthHandlers(serviceName),
+    );
 
     const uri = `${this.config.host}:${this.config.port}`;
     await this.#bindServer(uri);

@@ -29,11 +29,11 @@ const definition = {
   name: "fit-guide",
   version: VERSION,
   description: "Conversational agent for the Guide knowledge platform",
+  commands: [
+    { name: "status", description: "Check system readiness" },
+    { name: "init", description: "Generate secrets, .env, and config" },
+  ],
   options: {
-    init: {
-      type: "boolean",
-      description: "Generate secrets, .env, and config",
-    },
     data: {
       type: "string",
       description: "Path to framework data directory",
@@ -42,12 +42,18 @@ const definition = {
       type: "boolean",
       description: "Use streaming agent endpoint",
     },
+    json: {
+      type: "boolean",
+      description: "Output as JSON",
+    },
     help: { type: "boolean", short: "h", description: "Show this help" },
     version: { type: "boolean", description: "Show version" },
   },
   examples: [
+    "npx fit-guide status",
+    "npx fit-guide status --json",
+    "npx fit-guide init",
     'echo "Tell me about the company" | npx fit-guide',
-    "npx fit-guide --init",
   ],
 };
 
@@ -64,6 +70,43 @@ The agent maintains conversation context across multiple turns.
     printf "What is microservices?\\nWhat are the benefits?\\n" | npx fit-guide
 
 Documentation: https://www.forwardimpact.team/guide`;
+
+/**
+ * Prints the status result using SummaryRenderer.
+ * @param {import("@forwardimpact/libcli").SummaryRenderer} summary
+ * @param {object} result - Status result from runStatus
+ */
+function printStatusSummary(summary, result) {
+  summary.render({
+    title: "Services",
+    items: Object.entries(result.services).map(([name, info]) => ({
+      label: name,
+      description: `${info.status === "ok" ? "ok" : "unreachable"}  ${info.url}`,
+    })),
+  });
+
+  process.stdout.write("\n");
+
+  summary.render({
+    title: "Data",
+    items: [
+      { label: "resources", description: String(result.data.resources) },
+      { label: "triples", description: String(result.data.triples) },
+      { label: "agents", description: String(result.data.agents) },
+    ],
+  });
+
+  process.stdout.write("\n");
+
+  summary.render({
+    title: "Credentials",
+    items: [{ label: "LLM_TOKEN", description: result.credentials.LLM_TOKEN }],
+  });
+
+  process.stdout.write("\n");
+
+  process.stdout.write(`Status: ${result.verdict}\n`);
+}
 
 // Module-level service handles, populated by setup() after CLI args are parsed.
 // Kept outside REPL state so they aren't serialized to storage.
@@ -161,7 +204,7 @@ async function setupServices() {
   } catch {
     console.log(`fit-guide — Conversational agent for the Guide knowledge platform
 
-Run npx fit-guide --init to generate configuration, then
+Run npx fit-guide init to generate configuration, then
 npx fit-rc start to launch the service stack.
 
 Documentation: https://www.forwardimpact.team/guide
@@ -249,12 +292,48 @@ async function handlePrompt(prompt, state, outputStream) {
 const parsed = cli.parse(process.argv.slice(2));
 if (!parsed) process.exit(0);
 
-const { values } = parsed;
+const { values, positionals } = parsed;
+const command = positionals[0] || null;
 
-if (values.init) {
+if (command === "init") {
   await runInit();
   process.exit(0);
 }
+
+if (command === "status") {
+  try {
+    await fs.access(resolve("config", "config.json"));
+  } catch {
+    cli.error(
+      "No config found. Run npx fit-guide init to generate configuration.",
+    );
+    process.exit(1);
+  }
+
+  const { runStatus } = await import("../lib/status.js");
+  const { createServiceConfig } = await import("@forwardimpact/libconfig");
+  const { healthDefinition } = await import("@forwardimpact/librpc");
+  const grpcMod = (await import("@grpc/grpc-js")).default;
+  const fsPromises = await import("fs/promises");
+
+  const result = await runStatus({
+    createServiceConfig,
+    grpc: grpcMod,
+    healthDefinition,
+    fs: fsPromises,
+  });
+
+  if (values.json) {
+    process.stdout.write(JSON.stringify(result, null, 2) + "\n");
+  } else {
+    const { SummaryRenderer } = await import("@forwardimpact/libcli");
+    const summary = new SummaryRenderer({ process });
+    printStatusSummary(summary, result);
+  }
+
+  process.exit(result.verdict === "ready" ? 0 : 1);
+}
+
 if (values.data) dataDir = resolve(values.data);
 if (values.streaming) useStreaming = true;
 

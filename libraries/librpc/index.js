@@ -10,6 +10,11 @@ export { createGrpc, createAuth, Rpc } from "./base.js";
 export { Client } from "./client.js";
 export { Interceptor, HmacAuth } from "./auth.js";
 export { Server } from "./server.js";
+export {
+  healthDefinition,
+  createHealthHandlers,
+  ServingStatus,
+} from "./health.js";
 
 // Export services and clients objects for runtime access
 export const services = exports.services || {};

@@ -40,6 +40,8 @@ export default [
         location: "readonly",
         localStorage: "readonly",
         setTimeout: "readonly",
+        clearTimeout: "readonly",
+        AbortController: "readonly",
         Blob: "readonly",
         ClipboardItem: "readonly",
         confirm: "readonly",
