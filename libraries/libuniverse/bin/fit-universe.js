@@ -139,14 +139,13 @@ async function writeOutputFiles(files, monorepoRoot) {
  * Handle raw documents: load to Supabase, write locally, or skip (dry-run).
  * @param {object} result
  * @param {object} args
- * @param {object} config
  * @param {string} monorepoRoot
  */
-async function handleRawDocuments(result, args, config, monorepoRoot) {
+async function handleRawDocuments(result, args, monorepoRoot) {
   if (result.rawDocuments.size === 0) return;
 
   if (args.load) {
-    await loadRawToSupabase(result.rawDocuments, config);
+    await loadRawToSupabase(result.rawDocuments);
   } else if (!args.dryRun) {
     await writeRawLocally(result.rawDocuments, monorepoRoot);
   }
@@ -168,7 +167,7 @@ async function handleRawDocuments(result, args, config, monorepoRoot) {
  * @param {Map<string,string>} rawDocuments
  * @param {object} config
  */
-async function loadRawToSupabase(rawDocuments, config) {
+async function loadRawToSupabase(rawDocuments) {
   let createClient;
   try {
     ({ createClient } = await import("@supabase/supabase-js"));
@@ -177,11 +176,20 @@ async function loadRawToSupabase(rawDocuments, config) {
       "--load requires @supabase/supabase-js. Install with: bun add @supabase/supabase-js",
     );
   }
+  const url = process.env.MAP_SUPABASE_URL;
+  const key = process.env.MAP_SUPABASE_SERVICE_ROLE_KEY;
+  if (!url) {
+    throw new Error(
+      "MAP_SUPABASE_URL is not set. Run `fit-map activity start` and export the URL it prints.",
+    );
+  }
+  if (!key) {
+    throw new Error(
+      "MAP_SUPABASE_SERVICE_ROLE_KEY is not set. Run `just env-secrets` to generate it.",
+    );
+  }
   const { loadToSupabase } = await import("../load.js");
-  const supabase = createClient(
-    config.SUPABASE_URL,
-    config.SUPABASE_SERVICE_ROLE_KEY,
-  );
+  const supabase = createClient(url, key);
   const loadResult = await loadToSupabase(supabase, rawDocuments);
   console.log(`${loadResult.loaded} raw documents loaded to Supabase Storage`);
   if (loadResult.errors.length > 0) {
@@ -332,8 +340,6 @@ async function main() {
     LLM_MODEL: "openai/gpt-4.1-mini",
     LLM_BASE_URL: null,
     LLM_EMBEDDING_BASE_URL: null,
-    SUPABASE_URL: null,
-    SUPABASE_SERVICE_ROLE_KEY: null,
   });
 
   const mode = values["no-prose"]
@@ -380,7 +386,6 @@ async function main() {
   await handleRawDocuments(
     result,
     { load: values.load, dryRun: values["dry-run"] },
-    config,
     monorepoRoot,
   );
 
