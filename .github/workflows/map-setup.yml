@@ -49,12 +49,11 @@ jobs:
         run: |
           agent_dir=$(mktemp -d)
 
-          # Generate synthetic framework data (pathway YAML)
-          bunx fit-universe --no-prose --only=pathway
-          cp -r data/pathway "$agent_dir/data/pathway"
+          # Generate all synthetic data using cached prose
+          bunx fit-universe
 
-          # Generate synthetic activity data (people roster, GitHub events)
-          bunx fit-universe --no-prose --only=raw
+          mkdir -p "$agent_dir/data"
+          cp -r data/pathway "$agent_dir/data/pathway"
           cp -r data/activity "$agent_dir/data/activity"
 
           # Install the Supabase CLI so the agent has it on PATH
