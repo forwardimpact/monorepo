@@ -126,6 +126,14 @@ acting on it.
 
 ## Process
 
+### Step 0: Read Memory
+
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). Extract specs previously planned and any deferred work
+from prior `staff-engineer` entries.
+
+### Steps
+
 1. **Find the spec.** A plan requires an approved spec in the same directory. If
    no spec exists or the spec has not yet been approved, stop — the spec skill
    must run first.
@@ -141,6 +149,15 @@ acting on it.
 6. **Update STATUS.** When both spec and plan are approved, advance the spec's
    status from `review` to `planned`. Do not advance while the plan is still
    being iterated on.
+
+## Memory: what to record
+
+Append to the current week's log (see agent profile for the file path):
+
+- **Specs planned** — Spec number, name, and status transition
+- **Plan decisions** — Key approach choices and why (so the implementer has
+  context)
+- **Deferred specs** — Specs skipped and why (not approved, missing info, etc.)
 
 ## What NOT to Do
 

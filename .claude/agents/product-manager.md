@@ -55,7 +55,7 @@ Determine which workflow to use from the task prompt:
 - Features always get a spec, never a direct implementation
 - Run `bun run check` and `bun run test` before every commit
 - **Memory**: Before starting work, read `wiki/product-manager.md` and the other
-  three agent summaries for cross-agent context. Append this run as a new
+  agent summaries for cross-agent context. Append this run as a new
   `## YYYY-MM-DD` section at the end of the current week's log
   `wiki/product-manager-$(date +%G-W%V).md` — create the file if missing with an
   `# Product Manager — YYYY-Www` heading; one file per ISO week. Use `###`

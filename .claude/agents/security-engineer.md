@@ -44,7 +44,7 @@ Determine which workflow to use from the task prompt:
 - Never skip spec PRs — if findings need specs, file them
 - Run `bun run check` and `bun run test` before committing
 - **Memory**: Before starting work, read `wiki/security-engineer.md` and the
-  other three agent summaries for cross-agent context. Append this run as a new
+  other agent summaries for cross-agent context. Append this run as a new
   `## YYYY-MM-DD` section at the end of the current week's log
   `wiki/security-engineer-$(date +%G-W%V).md` — create the file if missing with
   an `# Security Engineer — YYYY-Www` heading; one file per ISO week. Use `###`

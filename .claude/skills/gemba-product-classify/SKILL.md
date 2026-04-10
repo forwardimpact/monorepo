@@ -157,7 +157,7 @@ For each PR marked **mergeable** in the report:
    the failure in the run report and move on — do **not** retry without
    re-running Steps 1–6, since the gate state may have changed.
 
-## Memory: What to Record
+## Memory: what to record
 
 Append to the current week's log (see agent profile for the file path):
 

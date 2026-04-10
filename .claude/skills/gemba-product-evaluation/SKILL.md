@@ -36,6 +36,12 @@ would after setting their own `LLM_TOKEN`.
 
 ## Process
 
+### Step 0: Read Memory
+
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). Extract prior evaluation scenarios and recurring friction
+points from previous `product-manager` entries.
+
 ### Step 1: Brief the Agent
 
 Your first response becomes the agent's initial prompt. Include:

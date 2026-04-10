@@ -101,7 +101,7 @@ The triage report is consumed by the calling agent, which then takes action:
 This skill stops at the report. Do not implement fixes or write specs from
 within gemba-product-triage — the phase boundary matters.
 
-## Memory: What to Record
+## Memory: what to record
 
 Append to the current week's log (see agent profile for the file path):
 

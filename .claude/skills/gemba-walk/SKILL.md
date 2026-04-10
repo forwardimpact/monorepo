@@ -27,9 +27,9 @@ If a specific workflow name, run ID, or URL is provided, use that run.
 
 Otherwise, select a run using memory-informed rotation:
 
-1. **Read memory** — Per the agent profile, read your summary, the current
-   week's log, and teammates' summaries. Extract workflow names and run IDs from
-   previous cycles.
+1. **Read memory** — Read memory per the agent profile (your summary, the
+   current week's log, and teammates' summaries). Extract workflow names and run
+   IDs from previous cycles.
 
 2. **Discover available runs**:
 
@@ -173,6 +173,20 @@ same fix-or-spec discipline:
 
 Every PR must branch directly from `main` — never from another fix or spec
 branch.
+
+### Memory: what to record
+
+Append to the current week's log (see agent profile for the file path):
+
+- **Trace analyzed** — Workflow name, run ID, date, conclusion, branch
+- **Actionable findings** — Each finding with severity, category (trivial fix /
+  improvement / observation), and action taken (PR number or spec name)
+- **Core category** — The central phenomenon and theoretical propositions
+- **Invariant audit results** — Each invariant checked with PASS/FAIL and quoted
+  evidence
+- **Saturation notes** — Patterns confirmed, refuted, or newly emerged compared
+  to prior cycles
+- **Observations for teammates** — Callouts for specific agents
 
 ## Analysis Principles
 

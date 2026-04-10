@@ -20,6 +20,12 @@ changes methodically.
 
 ## Process
 
+### Step 0: Read Memory
+
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). Extract specs previously implemented and any blockers
+from prior `staff-engineer` entries.
+
 Before starting: run the READ-DO checklist in CONTRIBUTING.md § Core Rules.
 Those rules apply to every implementation task — hold them in mind as you work
 through the steps below.
@@ -131,6 +137,17 @@ After all tasks are complete:
   using the spec's intent, codebase conventions, and CONTRIBUTING.md § Core
   Rules (Invariants and the READ-DO / DO-CONFIRM checklists). Do not ask for
   permission on routine decisions — only flag genuine ambiguity.
+
+## Memory: what to record
+
+Append to the current week's log (see agent profile for the file path):
+
+- **Spec implemented** — Spec number, name, and status transition (planned →
+  active → done)
+- **PR opened** — PR number and branch name
+- **Blockers encountered** — Plan deviations, codebase divergences, test
+  failures, and how they were resolved
+- **Deferred specs** — Specs skipped and why (not ready, missing plan, etc.)
 
 ## What NOT to Do
 

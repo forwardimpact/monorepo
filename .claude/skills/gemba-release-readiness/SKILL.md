@@ -23,7 +23,7 @@ canonical query shapes used in the steps below.
 
 ## Process
 
-### Step 0: Read Memory for PR History
+### Step 0: Read Memory
 
 Read memory per the agent profile (your summary, the current week's log, and
 teammates' summaries). Extract the PR status table from prior `release-engineer`

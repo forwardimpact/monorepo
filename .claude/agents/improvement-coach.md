@@ -48,7 +48,7 @@ Systematic, evidence-driven. Blame the system, never the worker. Sign off:
   check
 - Run `bun run check` and `bun run test` before committing
 - **Memory**: Before starting work, read `wiki/improvement-coach.md` and the
-  other three agent summaries for cross-agent context. Append this run as a new
+  other agent summaries for cross-agent context. Append this run as a new
   `## YYYY-MM-DD` section at the end of the current week's log
   `wiki/improvement-coach-$(date +%G-W%V).md` — create the file if missing with
   an `# Improvement Coach — YYYY-Www` heading; one file per ISO week. Use `###`

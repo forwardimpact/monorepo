@@ -268,6 +268,20 @@ acting, append that run's findings to the week's log, and update the summary at
 the end. The canonical memory instruction block lives in each agent profile;
 skills reference it without restating paths.
 
+**Skill responsibilities.** Every entry-point skill (the primary skill for a
+scheduled workflow) must include two memory elements:
+
+1. A **read step** — "Read memory per the agent profile (your summary, the
+   current week's log, and teammates' summaries)." followed by domain-specific
+   extraction (what to look for in prior entries).
+2. A **"Memory: what to record"** section — a bulleted list of the specific
+   fields to append to the weekly log.
+
+Sub-skills invoked within a workflow (e.g. `gemba-spec` called as the Act phase
+inside another workflow) do not need their own memory instructions — the
+entry-point skill's recording list and the agent profile's write protocol cover
+them. Utility skills with no PDSA phase (e.g. `gemba-gh-cli`) are also exempt.
+
 ## Authentication
 
 Workflows authenticate via a **GitHub App** (`forward-impact-ci`), not a PAT.

@@ -21,6 +21,14 @@ determine version bumps, and cut releases.
 See [`gemba-gh-cli`](../gemba-gh-cli/SKILL.md) for `gh` installation and the
 canonical query shapes used in the steps below.
 
+## Process
+
+### Step 0: Read Memory
+
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). Extract previous release outcomes and any packages that
+had publish failures from prior `release-engineer` entries.
+
 ## Pre-Flight: Verify Main Branch CI
 
 <read_do_checklist>
@@ -137,6 +145,16 @@ If a publish fails, investigate with `gh run view <run-id> --log-failed`.
 | -------- | -------- | ------ | --------------- | ------- |
 | libskill | 4.0.3    | 4.0.4  | libskill@v4.0.4 | ✓       |
 ```
+
+### Memory: what to record
+
+Append to the current week's log (see agent profile for the file path):
+
+- **Packages assessed** — Which packages had unreleased changes
+- **Releases cut** — Package name, previous version, new version, tag, publish
+  status
+- **Publish failures** — Package and reason (so the next run can revisit)
+- **Main branch CI state** — Green or broken, and what was repaired
 
 ## Edge Cases
 

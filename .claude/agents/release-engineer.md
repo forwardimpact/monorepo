@@ -44,7 +44,7 @@ Determine which workflow to use from the task prompt:
 - Release in dependency order when multiple packages change together
 - Run `bun run check` and `bun run test` before committing
 - **Memory**: Before starting work, read `wiki/release-engineer.md` and the
-  other three agent summaries for cross-agent context. Append this run as a new
+  other agent summaries for cross-agent context. Append this run as a new
   `## YYYY-MM-DD` section at the end of the current week's log
   `wiki/release-engineer-$(date +%G-W%V).md` — create the file if missing with
   an `# Release Engineer — YYYY-Www` heading; one file per ISO week. Use `###`
