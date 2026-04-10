@@ -1,12 +1,12 @@
 # Plan: 290 — Stream B: Pathway Derivation Service
 
-> **Part 3 of 3.** Read [plan.md](plan.md) for the overall decomposition.
+> **Part 3 of 3.** Read [plan-a.md](plan-a.md) for the overall decomposition.
 >
-> **Depends on:** [plan-foundation.md](plan-foundation.md) — must be merged
+> **Depends on:** [plan-a-01.md](plan-a-01.md) — must be merged
 > first. The serializer in B3 imports IRI helpers from `@forwardimpact/map/iri`,
 > which is exported by foundation step F3.
 >
-> **Independent of:** [plan-map-export.md](plan-map-export.md) — Stream A and
+> **Independent of:** [plan-a-02.md](plan-a-02.md) — Stream A and
 > Stream B can land in either order after foundation. The pathway service does
 > not flow data through the resource/graph pipeline, so it has no runtime
 > dependency on Map's HTML export.
@@ -324,7 +324,7 @@ both streams reference it instead of duplicating the list.
 Stream A templates must never emit any class in this list, otherwise the
 resource processor would materialize them into the graph, violating the spec's
 "No materialization of derived entities" constraint. (Stream A's renderer test
-enforces this with a negative assertion — see plan-map-export.md A2c.)
+enforces this with a negative assertion — see plan-a-02.md A2c.)
 
 Classes and predicates used per RPC:
 
@@ -628,7 +628,7 @@ This is the automated form of success criteria 7 and 8.
 
 (The complementary end-to-end test for Stream A — exporter → resource → graph →
 `getSubjects("fit:Skill")` — lives in `products/map/test/pipeline.test.js` and
-is owned by plan-map-export.md.)
+is owned by plan-a-02.md.)
 
 ## Verification against success criteria
 
@@ -640,7 +640,7 @@ is owned by plan-map-export.md.)
 | 8   | Guide answers progression delta matching fit-pathway     | B7 `DescribeProgression` integration test      |
 | 9   | Adversarial terminology probes pass                      | B6 disambiguation sentences; manual LLM check  |
 
-Criteria 1, 2, 3, and 6 are covered by [plan-map-export.md](plan-map-export.md).
+Criteria 1, 2, 3, and 6 are covered by [plan-a-02.md](plan-a-02.md).
 
 ## File summary
 

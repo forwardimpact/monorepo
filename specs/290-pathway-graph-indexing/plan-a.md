@@ -8,31 +8,31 @@ the overall shape, then read whichever sub-plan you are implementing in full.
 
 | #   | Document                                           | Scope                                                                                                                           |
 | --- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | [plan-foundation.md](plan-foundation.md)           | Cross-cutting infrastructure: parser widening, graph prefix, shared IRI module, libtemplate partials                            |
-| 2   | [plan-map-export.md](plan-map-export.md)           | Stream A — Mustache templates, view builders, renderer, exporter, `fit-map export` CLI, justfile, end-to-end pipeline test      |
-| 3   | [plan-pathway-service.md](plan-pathway-service.md) | Stream B — `services/pathway/` gRPC service, proto, libskill-backed RPCs, Turtle serializer, fit-guide wiring, integration test |
+| 1   | [plan-a-01.md](plan-a-01.md)           | Cross-cutting infrastructure: parser widening, graph prefix, shared IRI module, libtemplate partials                            |
+| 2   | [plan-a-02.md](plan-a-02.md)           | Stream A — Mustache templates, view builders, renderer, exporter, `fit-map export` CLI, justfile, end-to-end pipeline test      |
+| 3   | [plan-a-03.md](plan-a-03.md) | Stream B — `services/pathway/` gRPC service, proto, libskill-backed RPCs, Turtle serializer, fit-guide wiring, integration test |
 
 ## Dependency order
 
 ```
-plan-foundation.md  (no dependencies — must merge first)
+plan-a-01.md  (no dependencies — must merge first)
         │
         ├──────────────────────┐
         ▼                      ▼
-plan-map-export.md     plan-pathway-service.md
+plan-a-02.md     plan-a-03.md
    (Stream A)               (Stream B)
 ```
 
-- **plan-foundation.md** has no dependencies. It introduces the parser widening,
+- **plan-a-01.md** has no dependencies. It introduces the parser widening,
   the `fit:` prefix in libgraph, the shared `@forwardimpact/map/iri` module, and
   the `renderWithPartials` method on libtemplate's loader. None of those four
   changes are independently useful; they ship as one PR.
-- **plan-map-export.md** depends on the foundation: it imports
+- **plan-a-02.md** depends on the foundation: it imports
   `@forwardimpact/map/iri` from view-builders, and the `capability.html`
   template uses `renderWithPartials`. Its end-to-end pipeline test relies on the
   parser widening and graph prefix from foundation to make `fit:` queries
   resolve.
-- **plan-pathway-service.md** depends on the foundation only — its Turtle
+- **plan-a-03.md** depends on the foundation only — its Turtle
   serializer imports IRI helpers from `@forwardimpact/map/iri`. It does **not**
   depend on Stream A: the pathway service does not flow data through the
   resource/graph pipeline, so it can be implemented and tested independently.
@@ -82,15 +82,15 @@ streams are written and tested separately.
 
 | #   | Spec success criterion                                   | Plan                                         |
 | --- | -------------------------------------------------------- | -------------------------------------------- |
-| 1   | `fit-map export` produces HTML in `data/knowledge/`      | plan-map-export.md (A3, A4)                  |
-| 2   | `just cli-subjects` lists `fit:*` types                  | plan-foundation.md + plan-map-export.md (A6) |
-| 3   | `ARGS="fit:Skill" just cli-subjects` returns all skills  | plan-foundation.md + plan-map-export.md (A6) |
-| 4   | `npx fit-guide --init` emits pathway endpoints           | plan-pathway-service.md (B5)                 |
-| 5   | `npx fit-rc status` shows pathway running, tools resolve | plan-pathway-service.md (B1–B5)              |
-| 6   | Guide answers "what skills…" via graph path              | plan-map-export.md                           |
-| 7   | Guide answers L3 FDE question matching `fit-pathway`     | plan-pathway-service.md (B7)                 |
-| 8   | Guide answers progression delta matching `fit-pathway`   | plan-pathway-service.md (B7)                 |
-| 9   | Adversarial terminology probes pass                      | plan-pathway-service.md (B6)                 |
+| 1   | `fit-map export` produces HTML in `data/knowledge/`      | plan-a-02.md (A3, A4)                  |
+| 2   | `just cli-subjects` lists `fit:*` types                  | plan-a-01.md + plan-a-02.md (A6) |
+| 3   | `ARGS="fit:Skill" just cli-subjects` returns all skills  | plan-a-01.md + plan-a-02.md (A6) |
+| 4   | `npx fit-guide --init` emits pathway endpoints           | plan-a-03.md (B5)                 |
+| 5   | `npx fit-rc status` shows pathway running, tools resolve | plan-a-03.md (B1–B5)              |
+| 6   | Guide answers "what skills…" via graph path              | plan-a-02.md                           |
+| 7   | Guide answers L3 FDE question matching `fit-pathway`     | plan-a-03.md (B7)                 |
+| 8   | Guide answers progression delta matching `fit-pathway`   | plan-a-03.md (B7)                 |
+| 9   | Adversarial terminology probes pass                      | plan-a-03.md (B6)                 |
 
 ## Out of scope reminders (from spec)
 

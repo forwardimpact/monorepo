@@ -1,9 +1,8 @@
 # Plan: 290 — Foundation (cross-cutting infrastructure)
 
-> **Part 1 of 3.** Read [plan.md](plan.md) for the overall decomposition. This
-> plan has **no dependencies** and unblocks both
-> [plan-map-export.md](plan-map-export.md) and
-> [plan-pathway-service.md](plan-pathway-service.md).
+> **Part 1 of 3.** Read [plan-a.md](plan-a.md) for the overall decomposition.
+> This plan has **no dependencies** and unblocks both
+> [plan-a-02.md](plan-a-02.md) and [plan-a-03.md](plan-a-03.md).
 
 ## Scope
 
@@ -31,7 +30,7 @@ cross-cutting — the rest are operational consolidation:
    by Stream A only._
 
 **Honest framing:** F1, F2, and F4 are logically Stream A prerequisites. They
-are bundled into the foundation PR rather than plan-map-export.md for three
+are bundled into the foundation PR rather than plan-a-02.md for three
 operational reasons:
 
 - They are all small, mechanical, and isolated. Shipping them in a separate tiny
