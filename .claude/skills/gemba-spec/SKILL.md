@@ -3,8 +3,9 @@ name: gemba-spec
 description: >
   Write and review specifications (WHAT/WHY) for features, changes, and
   improvements. Manage spec status in specs/STATUS through draft → review.
-  Use when proposing changes, capturing findings as actionable specs, or
-  evaluating spec quality. Pair with the `gemba-plan` skill for the HOW side.
+  Use when the user says "write spec", "draft spec", "review spec", proposes
+  a new feature or change, or captures a finding as actionable work. Pair with
+  the `gemba-plan` skill for the HOW side.
 ---
 
 # Write and Review Specs

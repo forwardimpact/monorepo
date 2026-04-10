@@ -1,9 +1,10 @@
 ---
 name: gemba-product-triage
 description: >
-  Classify open GitHub issues by product alignment and decide what action
-  each needs — trivial fix, spec, or out-of-scope. Produce a triage report
-  for the agent to act on. Does not implement fixes or write specs itself.
+  Classify open GitHub issues by product alignment and decide what action each
+  needs — trivial fix, spec, or out-of-scope. Produce a triage report for the
+  agent to act on. Use when triaging issues, reviewing open issues for product
+  fit, or running scheduled issue classification.
 ---
 
 # Product Issue Triage

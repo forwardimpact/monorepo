@@ -3,7 +3,8 @@ name: gemba-product-classify
 description: >
   Classify open pull requests for mergeability — verify contributor trust,
   parse PR type, check CI status, review spec quality on spec PRs, and merge
-  PRs that pass all gates.
+  PRs that pass all gates. Use when reviewing open PRs for product alignment,
+  deciding if a PR can be merged, or running scheduled PR classification.
 ---
 
 # Product PR Classification

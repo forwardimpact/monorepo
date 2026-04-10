@@ -3,8 +3,8 @@ name: gemba-security-update
 description: >
   Apply security updates to the repository. Triage open Dependabot PRs against
   repository policies, review npm audit findings, and action dependency
-  vulnerabilities. Merge PRs that pass all checks, fix minor issues on a new
-  branch, or close PRs that violate policy.
+  vulnerabilities. Use when processing Dependabot PRs, addressing npm audit
+  findings, remediating CVEs, or running scheduled security update sweeps.
 ---
 
 # Security Update
