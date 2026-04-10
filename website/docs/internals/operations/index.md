@@ -15,26 +15,18 @@ development tasks. For the PR workflow and contributing guidelines, see
 
 ## Environment Management
 
-Environment is configured via layered `.env` files, loaded by `scripts/env.sh`:
+Environment is configured via profile-based `.env` files, managed by
+`just env-setup`:
 
 ```sh
-# Load order (later files override earlier):
-.env                      # Base: API credentials, service secrets
-.env.{ENV}                # Network: local (localhost) or docker (container DNS)
-.env.storage.{STORAGE}    # Storage: local, minio (S3), or supabase
-.env.auth.{AUTH}           # Auth: none, gotrue, or supabase
+# Available profiles (complete, self-contained):
+.env.local.example            # Local dev: localhost, no auth, filesystem storage
+.env.docker-native.example    # Docker networking with MinIO storage
+.env.docker-supabase.example  # Docker networking with Supabase storage and auth
 ```
 
-Three variables control the environment stack:
-
-| Variable  | Values                       | Default |
-| --------- | ---------------------------- | ------- |
-| `ENV`     | `local`, `docker`            | `local` |
-| `STORAGE` | `local`, `minio`, `supabase` | `local` |
-| `AUTH`    | `none`, `gotrue`, `supabase` | `none`  |
-
-All `just` recipes automatically load environment from `.env`. Configure
-profiles via `just env-reset`:
+`just env-reset` copies a profile to `.env`. All `just` recipes automatically
+load `.env` via `set dotenv-load`. Configure profiles via `just env-reset`:
 
 ```sh
 just rc-start                              # local env, local storage, no auth

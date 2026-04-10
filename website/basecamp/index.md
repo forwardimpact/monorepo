@@ -85,7 +85,7 @@ If your network requires a custom CA bundle, add an `env` block to
 npx fit-basecamp --init ~/Documents/Team   # Initialize knowledge base
 npx fit-basecamp --daemon                   # Start the scheduler
 npx fit-basecamp --status                   # Check what's happening
-npx fit-basecamp --run sync-mail            # Run a task now
+npx fit-basecamp --wake sync-mail           # Wake a specific agent now
 ```
 
 ### macOS Privacy & Security

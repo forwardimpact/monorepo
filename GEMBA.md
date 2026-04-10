@@ -123,20 +123,19 @@ than attempting the fix.
 
 ## Workflows
 
-Daily pipeline follows the PDSA cycle: **Plan** (04 UTC) → **Do** (05–07 UTC) →
-**Study** (08 UTC) → **Study → Act** (09–11 UTC). Times respect dependencies
-(plans before implementation, rebase before merge, merge before release) and
-same-agent workflows never overlap.
+Workflows span 04–11 UTC, loosely following a PDSA cycle. Times respect
+dependencies (plans before implementation, rebase before merge, merge before
+release) and same-agent workflows never overlap.
 
 | Workflow              | Phase          | Schedule                                | Agent             | What it does                                                                |
 | --------------------- | -------------- | --------------------------------------- | ----------------- | --------------------------------------------------------------------------- |
-| **plan-specs**        | Plan           | Daily 04:11 UTC                         | staff-engineer    | Pick up approved specs without plans and produce execution-ready plan.md    |
-| **implement-plans**   | Do             | Daily 05:07 UTC                         | staff-engineer    | Pick up approved plans (`status: planned`) and execute via implement-spec   |
-| **security-update**   | Do             | Mon & Thu 05:43 UTC                     | security-engineer | Apply security updates: triage Dependabot PRs, address audit findings       |
-| **release-readiness** | Do             | Daily 06:23 UTC                         | release-engineer  | Rebase open PRs on main, fix lint/format failures, repair main CI if broken |
-| **release-review**    | Do             | Tue, Thu, Sat 07:53 UTC                 | release-engineer  | Find unreleased changes, bump versions, tag, push, verify publish           |
+| **security-audit**    | Study          | Tue & Fri 04:07 UTC                     | security-engineer | Audit supply chain, dependencies, credentials, OWASP Top 10                 |
+| **security-update**   | Do             | Mon & Thu 04:43 UTC                     | security-engineer | Apply security updates: triage Dependabot PRs, address audit findings       |
 | **product-manager**   | Do, Study, Act | Daily 08:13 UTC + Mon/Wed/Fri 05:17 UTC | product-manager   | Classify and merge open PRs, then triage open issues into fixes and specs   |
-| **security-audit**    | Study          | Tue & Fri 08:37 UTC                     | security-engineer | Audit supply chain, dependencies, credentials, OWASP Top 10                 |
+| **release-readiness** | Do             | Daily 06:23 UTC                         | release-engineer  | Rebase open PRs on main, fix lint/format failures, repair main CI if broken |
+| **plan-specs**        | Plan           | Daily 07:11 UTC                         | staff-engineer    | Pick up approved specs without plans and produce execution-ready plan.md    |
+| **implement-plans**   | Do             | Daily 07:53 UTC                         | staff-engineer    | Pick up approved plans (`status: planned`) and execute via implement-spec   |
+| **release-review**    | Do             | Tue, Thu, Sat 09:37 UTC                 | release-engineer  | Find unreleased changes, bump versions, tag, push, verify publish           |
 | **improvement-coach** | Study → Act    | Wed & Sat 10:47 UTC                     | improvement-coach | Deep-analyze a single random agent trace, open fix PRs or write specs       |
 
 Off-minute schedules avoid API load spikes. All workflows support

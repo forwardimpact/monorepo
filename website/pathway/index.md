@@ -26,7 +26,7 @@ hero:
 
 - An interactive web app to explore roles, skills, and career paths
 - A CLI for generating job descriptions and agent profiles
-- VS Code Custom Agent profiles derived from your framework
+- Claude Code agent profiles derived from your framework
 - Agent skill files following the open Agent Skills Standard
 - A static site export for publishing your career framework
 - Interview question sets tailored to each role
@@ -65,7 +65,7 @@ The interactive browser gives you:
 
 ```sh
 npx fit-pathway dev                                       # Launch web app
-npx fit-pathway job software_engineering L3 --track=platform  # Job definition
+npx fit-pathway job software_engineering J060 --track=platform  # Job definition
 npx fit-pathway agent software_engineering --track=platform   # Agent profiles
 npx fit-pathway build --url=https://pathway.myorg.com         # Static site
 ```

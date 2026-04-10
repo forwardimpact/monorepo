@@ -98,9 +98,9 @@ tests inject mocks directly.
 5. Commit and push
 
 Commit messages follow conventional format: `type(scope): subject`. Types
-include `feat`, `fix`, `refactor`, `docs`, `style`, `test`, `chore`, and `perf`.
-Scope is the package name (e.g., `map`, `libskill`, `pathway`). Add `!` after
-scope for breaking changes.
+include `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, and `spec`. Scope is
+the package name (e.g., `map`, `libskill`, `pathway`). Add `!` after scope for
+breaking changes.
 
 ## Next steps
 

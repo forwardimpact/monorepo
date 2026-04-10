@@ -75,9 +75,9 @@ Edit `data/pathway/levels.yaml` to define your level structure. Each level sets
 baseline expectations for skill proficiency and behaviour maturity.
 
 ```yaml
-- id: L1
-  professionalTitle: Junior Engineer
-  managementTitle: Junior Manager
+- id: J040
+  professionalTitle: Level I
+  managementTitle: Associate
   ordinalRank: 1
   baseSkillProficiencies:
     primary: foundational
@@ -85,9 +85,9 @@ baseline expectations for skill proficiency and behaviour maturity.
     broad: awareness
   baseBehaviourMaturity: emerging
 
-- id: L2
-  professionalTitle: Engineer
-  managementTitle: Manager
+- id: J060
+  professionalTitle: Level II
+  managementTitle: Senior Associate
   ordinalRank: 2
   baseSkillProficiencies:
     primary: working

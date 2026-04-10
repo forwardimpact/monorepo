@@ -137,9 +137,9 @@ products/
   map/                 # fit-map — data product, validation
     schema/json/       #   JSON Schema
     schema/rdf/        #   RDF/SHACL
+    starter/           #   framework YAML (installs to data/pathway/)
   pathway/             # fit-pathway — web app, CLI, formatters
     src/formatters/    #   output formatters
-    starter/           #   framework YAML (installs to data/pathway/)
   basecamp/            # fit-basecamp — knowledge system, scheduler
     template/          #   KB template
   guide/               # fit-guide — LLM agent, artifact interpretation
@@ -151,7 +151,7 @@ libraries/
   libui/               # web UI framework, components, CSS
   libdoc/              # fit-doc — documentation build/serve
 services/
-  agent/ graph/ llm/ memory/ tool/ trace/ vector/ web/
+  agent/ graph/ llm/ memory/ pathway/ tool/ trace/ vector/ web/
 config/
   config.json          # service definitions, model settings, eval config
   tools.yml            # tool endpoint definitions
@@ -162,6 +162,9 @@ specs/
   {feature}/           # feature specifications and plans
 wiki/                  # GitHub wiki submodule — internal notes and shared agent memory
 ```
+
+Git tracks `*.example.*` templates in `config/` — the live files above are
+gitignored and created from examples during setup.
 
 Data-driven: entities defined in YAML, each external installation may have
 completely different framework data while using the same product code.
@@ -188,12 +191,13 @@ files in [.claude/skills/](.claude/skills/):
   libharness
 - **`libs-data-persistence`** — libstorage, libindex, libresource, libpolicy,
   libgraph, libvector
-- **`libs-llm-orchestration`** — libllm, libmemory, libprompt, libagent
-- **`libs-web-presentation`** — libui, libformat, libweb, libdoc, libtemplate
+- **`libs-llm-orchestration`** — libllm, libmemory, libprompt, libagent, libtool
+- **`libs-web-presentation`** — libui, libformat, libweb, libdoc, libtemplate,
+  librepl
 - **`libs-system-utilities`** — libutil, libsecret, libsupervise, librc,
-  libcodegen
+  libcodegen, libeval
 - **`libs-synthetic-data`** — libsyntheticgen, libsyntheticprose,
-  libsyntheticrender
+  libsyntheticrender, libuniverse
 
 `libskill` retains its own skill (pure-function design, exempt from OO+DI).
 

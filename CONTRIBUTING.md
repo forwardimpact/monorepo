@@ -78,9 +78,6 @@ or feature changes. See
 [.claude/agents/release-engineer.md](.claude/agents/release-engineer.md) for the
 full scope constraints.
 
-The pre-commit hook auto-formats staged files and scans for secrets. If the hook
-reformats files, it re-stages them automatically — just re-run your commit.
-
 ## Git Conventions
 
 Format: `type(scope): subject`
@@ -105,7 +102,7 @@ change that requires design review before implementation (e.g.
 **Version rules** — pre-1.0 packages (`0.x.y`) bump patch for any change.
 Post-1.0 packages use semver: breaking=major, feat=minor, fix/refactor=patch.
 
-The release manager agent handles version bumps, tagging, and publishing. See
+The release engineer agent handles version bumps, tagging, and publishing. See
 the [gemba-release-review skill](.claude/skills/gemba-release-review) for the
 full release procedure.
 
@@ -138,7 +135,7 @@ Security policies apply to all contributors — human and agent.
 - **Vulnerability audit** — `npm audit --audit-level=high` runs in CI (via
   temporary lockfile generation) and gates publish workflows.
 - **CI secret scanning** — Gitleaks runs on every push and pull request via the
-  `audit` job in
+  `secret-scanning` job in
   [.github/workflows/check-security.yml](.github/workflows/check-security.yml).
 - **GitHub Actions** — All third-party actions are pinned to SHA hashes. Use
   `Dependabot` for updates. Never change a pin to a tag.

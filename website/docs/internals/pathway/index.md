@@ -45,7 +45,7 @@ products/pathway/src/
 
 ## Formatter Pattern
 
-Every entity has three formatter files:
+Formatters follow a three-file pattern (not all entities need every file):
 
 | File          | Purpose                                  | Imports   |
 | ------------- | ---------------------------------------- | --------- |
@@ -177,7 +177,7 @@ Agent output uses Mustache templates in `products/pathway/templates/`.
 Variables: `skillName`, `description`, `useWhen`, `stages` (with `focus`,
 `activities`, `ready` per stage).
 
-Template substitution is handled by `substituteTemplateVars()` in the agent
+Template substitution is handled by Mustache rendering in the agent formatter
 module.
 
 ---

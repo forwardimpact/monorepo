@@ -109,4 +109,4 @@ Landmark queries Map's central store:
 
 Landmark is currently in development. Product direction is specified in the
 Landmark and Map specs under `specs/080-landmark-product` and
-`specs/03-map-data-store`.
+`specs/050-map-data-product`.
