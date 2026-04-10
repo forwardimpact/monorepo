@@ -4,6 +4,8 @@ description: >
   Classify open GitHub issues by product alignment and decide what action
   each needs — trivial fix, spec, or out-of-scope. Produce a triage report
   for the agent to act on. Does not implement fixes or write specs itself.
+  Use when the user says "triage issues", "review open issues", "what issues
+  need attention", "classify issues", or "check the issue backlog".
 ---
 
 # Product Issue Triage

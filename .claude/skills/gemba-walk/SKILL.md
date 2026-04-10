@@ -3,7 +3,10 @@ name: gemba-walk
 description: >
   Walk the gemba of an agent workflow run. Select a trace, download it, observe
   the work as it actually happened, apply grounded theory analysis, and produce
-  a structured findings report. "Go see, ask why, show respect."
+  a structured findings report. "Go see, ask why, show respect." Use when the
+  user says "gemba walk", "walk a trace", "analyze a workflow run", "review
+  agent trace", "what happened in the last run", "coaching cycle", or "inspect
+  a CI run".
 ---
 
 # Gemba Walk for Agent Workflows

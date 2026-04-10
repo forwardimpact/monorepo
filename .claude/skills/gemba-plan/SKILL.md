@@ -3,7 +3,9 @@ name: gemba-plan
 description: >
   Write and review implementation plans (HOW) for approved specs. Translate
   an approved spec.md into concrete steps, files, tests, and risks for a
-  trusted agent to execute. Advances status from review → planned.
+  trusted agent to execute. Advances status from review → planned. Use when
+  the user says "plan spec N", "write a plan", "create an implementation
+  plan", "how should we implement spec N", or "review the plan".
 ---
 
 # Write and Review Plans

@@ -4,7 +4,9 @@ description: >
   Apply security updates to the repository. Triage open Dependabot PRs against
   repository policies, review npm audit findings, and action dependency
   vulnerabilities. Merge PRs that pass all checks, fix minor issues on a new
-  branch, or close PRs that violate policy.
+  branch, or close PRs that violate policy. Use when the user says "handle
+  Dependabot PRs", "apply security patches", "fix CVEs", "run npm audit",
+  "update dependencies for security", or "process security PRs".
 ---
 
 # Security Update

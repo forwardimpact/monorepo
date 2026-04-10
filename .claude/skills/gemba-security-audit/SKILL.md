@@ -4,7 +4,9 @@ description: >
   Perform a holistic security review of the monorepo. Assess GitHub Actions
   supply chain, dependency hygiene, credential leak controls, CI audit gates,
   and application-level vulnerabilities. Use when reviewing PRs for security
-  impact, auditing the repo posture, or investigating a reported vulnerability.
+  impact, auditing the repo posture, investigating a reported vulnerability,
+  or when the user says "security audit", "security review", "check for
+  vulnerabilities", or "check our security posture".
 ---
 
 # Security Audit

@@ -4,7 +4,9 @@ description: >
   Write and review specifications (WHAT/WHY) for features, changes, and
   improvements. Manage spec status in specs/STATUS through draft → review.
   Use when proposing changes, capturing findings as actionable specs, or
-  evaluating spec quality. Pair with the `gemba-plan` skill for the HOW side.
+  evaluating spec quality, or when the user says "write a spec", "spec this
+  out", "propose a feature", "draft a specification", "review spec N", or
+  "capture this as a spec". Pair with the `gemba-plan` skill for the HOW side.
 ---
 
 # Write and Review Specs

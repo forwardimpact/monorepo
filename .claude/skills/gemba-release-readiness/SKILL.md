@@ -3,7 +3,9 @@ name: gemba-release-readiness
 description: >
   Check open pull requests for merge readiness. Rebase branches on main, fix
   trivial CI failures (lint, format, lock file), and report status. Do not make
-  code-level decisions or approve PRs.
+  code-level decisions or approve PRs. Use when the user says "check release
+  readiness", "are PRs ready to merge", "rebase PRs on main", "fix CI on PRs",
+  "update PR branches", or "prepare PRs for merge".
 ---
 
 # Release Readiness
