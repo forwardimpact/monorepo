@@ -41,7 +41,7 @@ Public barrel for the aggregation surface. In this part it exports:
 
 ```js
 export { computeCoverage, resolveTeam, derivePersonMatrix } from "./coverage.js";
-export { meetsWorking, effectiveDepth } from "./depth.js";
+export { meetsWorking, computeEffectiveDepth } from "./depth.js";
 ```
 
 ### `products/summit/src/aggregation/coverage.js`
@@ -68,8 +68,15 @@ Core functions (all pure, named exports only):
     type: "reporting" | "project",
     members: PersonMatrix[],
     effectiveFte: number,
+    managerEmail?: string, // populated for Map-sourced reporting teams;
+                           // null for YAML-defined and project teams
   };
   ```
+- `managerEmail` is copied from the reporting team's root manager
+  when the team was loaded via `loadRosterFromMap`; it's `null` for
+  YAML teams and for project teams regardless of source. Part 07's
+  evidence loader uses this to scope `getPracticePatterns` to the
+  right manager hierarchy.
 - Throws `TeamNotFoundError` when the id doesn't resolve; the handler
   catches this and prints the spec.md:721 message.
 
@@ -115,7 +122,7 @@ export function meetsWorking(proficiency) {
   return skillProficiencyMeetsRequirement(proficiency, SkillProficiency.WORKING);
 }
 
-export function effectiveDepth(holders) {
+export function computeEffectiveDepth(holders) {
   return holders
     .filter((h) => meetsWorking(h.proficiency))
     .reduce((sum, h) => sum + h.allocation, 0);
@@ -123,7 +130,9 @@ export function effectiveDepth(holders) {
 ```
 
 This encapsulates the "working+" decision so future refactors only
-touch one place.
+touch one place. The function is named `computeEffectiveDepth` (not
+`effectiveDepth`) to avoid clashing with the `SkillCoverage.effectiveDepth`
+field — grep for either name should give an unambiguous result.
 
 ### `products/summit/src/lib/audience.js`
 
@@ -278,7 +287,7 @@ export {
   resolveTeam,
   derivePersonMatrix,
   meetsWorking,
-  effectiveDepth,
+  computeEffectiveDepth,
 } from "./aggregation/index.js";
 export { Audience, resolveAudience, withAudienceFilter } from "./lib/audience.js";
 ```

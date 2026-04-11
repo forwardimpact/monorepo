@@ -64,10 +64,16 @@ according to `scenario.type`:
   Same unknown-name error as `"remove"`. Rejects moves between
   reporting and project teams in the same scenario — that's a
   different workflow.
-- `"promote"` — locates the named member in the team, looks up the
-  next level via `libskill.getNextLevel(currentLevel, data.levels)`.
-  If no next level exists (already at top), throws `ScenarioError`.
-  Otherwise mutates `job.level` to the next level id.
+- `"promote"` — locates the named member in the team, resolves their
+  current level object by id against `data.levels`, then looks up the
+  next level via `libskill.getNextLevel({ level: currentLevel, levels:
+  data.levels })` (destructured params — see
+  `libraries/libskill/src/progression.js:374`). Note `getNextLevel`
+  takes the level *object*, not the level id, so the handler must
+  resolve the object first via
+  `data.levels.find(l => l.id === member.job.level)`. If no next
+  level exists (already at top), throws `ScenarioError`. Otherwise
+  mutates `job.level` to the next level's id.
 
 Pure: the input roster is never modified.
 
@@ -264,16 +270,21 @@ feat(summit): add what-if scenario simulation and what-if command
 ## Risks
 
 - **Deep clone semantics.** `structuredClone` works for JSON-ish
-  objects but throws on functions or non-plain class instances. The
-  `Roster` object must contain only serialisable data — enforce via
-  test ("a cloned roster is deep-equal to the original").
+  objects and also handles `Map` / `Set` natively, so the
+  `Roster`'s `Map<string, RosterTeam>` fields are safe. It does
+  throw on functions and non-plain class instances — the `Roster`
+  object must contain only plain data, no class instances. Enforce
+  via test: "a cloned roster is deep-equal to the original and any
+  class instance inside throws a clear error at clone time."
 - **Scenario combinatorics.** Multiple mutation flags in one
   invocation should be rejected rather than silently combined.
   Enforce in `parseScenario`.
-- **`--promote` next-level lookup.** `libskill.getNextLevel` requires
-  the full `levels` array, not a single level. Check the existing
-  export signature; if it takes a different shape, wrap it in a thin
-  helper.
+- **`--promote` next-level lookup.** `libskill.getNextLevel` is
+  `({ level, levels })` — it takes the full level *object* (not the
+  id) plus the full `levels` array. The handler resolves the level
+  object by id before calling. Keep the resolution in one helper so
+  tests can exercise "no such level id" and "no next level" paths
+  independently.
 - **Move scenarios + project teams.** The spec's move examples are
   reporting-team-to-reporting-team only. A move into a project team
   would have ambiguous allocation semantics. Reject cross-type moves

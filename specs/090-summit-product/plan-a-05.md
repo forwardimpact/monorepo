@@ -14,8 +14,12 @@ exported signature must match spec.md:575–584 exactly.
   here), "Growth Logic Export" (spec.md:569–591).
 - Part 02's `TeamCoverage`.
 - Part 03's `detectRisks` (SPOFs and critical gaps drive impact tiers).
-- `libskill`'s `deriveDevelopmentPath` and `getNextLevel` for candidate
-  ranking.
+- Part 02's `derivePersonMatrix` — Summit already has each member's
+  current skill proficiencies, so candidate ranking uses that matrix
+  directly rather than calling libskill's `deriveDevelopmentPath`.
+  (`deriveDevelopmentPath({ selfAssessment, targetJob })` is a
+  self-assessment-vs-target-job gap analysis, not a "likely growth
+  direction" function; it's the wrong tool for Summit's use case.)
 
 ## Approach
 
@@ -58,34 +62,89 @@ Summit never passes them; they become non-null in Part 07.
 
 #### `computeGrowthAlignment({ team, mapData, evidence?, driverScores? })`
 
+**Error behaviour (public contract).** The function is Summit's one
+cross-product library export, so its failure modes must be stable for
+Landmark to rely on:
+
+- A `team` entry whose `job.discipline` is not present in
+  `mapData.disciplines` → **throws** `GrowthContractError` with code
+  `UNKNOWN_DISCIPLINE` and the offending person's email. Silent
+  skipping would hide data quality problems from Landmark.
+- A `team` entry whose `job.level` is not in `mapData.levels` →
+  throws `GrowthContractError` with code `UNKNOWN_LEVEL`.
+- A `team` entry whose `job.track` is set but not in `mapData.tracks`
+  → throws `GrowthContractError` with code `UNKNOWN_TRACK`.
+- An empty `team` array → returns `[]` (no recommendations; not an
+  error). This lets Landmark render "no team data" rather than
+  catching an exception for an expected empty case.
+- `evidence` or `driverScores` both default to `undefined`; when
+  absent, the function behaves as if they were empty. Passing
+  `null` explicitly is treated the same as `undefined`.
+
+The public error class is exported from the package root:
+
+```js
+export class GrowthContractError extends Error {
+  constructor(code, message, context) {
+    super(message);
+    this.code = code;
+    this.context = context;
+  }
+}
+```
+
 Algorithm:
 
 1. Resolve each team member into a `PersonMatrix` via
-   `derivePersonMatrix`.
+   `derivePersonMatrix` (Part 02). The matrix contains the current
+   proficiency per skill, which is the only "current state" input
+   growth needs.
 2. Compute `coverage` via `computeCoverage({ id: "__growth", type:
    "reporting", members: personMatrices, effectiveFte: ... }, mapData)`.
 3. Compute `risks` via `detectRisks({ resolvedTeam, coverage, data: mapData })`.
-4. Build the candidate pool: for each team member, compute their
-   `developmentPath = deriveDevelopmentPath(person, mapData)` — this
-   tells Summit what the person could reasonably grow into next.
+4. Build a per-person lookup: `Map<email, Map<skillId, proficiency>>`
+   derived from each `PersonMatrix.matrix`. Skills not in the matrix
+   map to `null` (meaning "not in this person's discipline/track at
+   all").
 5. For each skill `s` in `mapData.skills`:
    - Determine the `impact` tier:
      - `"critical"` if `risks.criticalGaps` contains `s`
      - `"spof-reduction"` if `risks.singlePointsOfFailure` contains `s`
-     - `"coverage-strengthening"` otherwise, only if the team holds `s`
-       at < expert max proficiency
-     - Skip skills already at expert max proficiency
-   - Find candidates: members whose derivation path includes growing
-     toward working+ in `s`. Rank by proximity:
-     - Already at foundational → highest priority candidate
-     - At awareness → medium
-     - Not on derivation path → excluded
-   - If evidence was passed, exclude candidates with `evidenced_depth >
-     0` for the skill (they already practice it). This branch is only
-     reachable from Part 07.
+     - `"coverage-strengthening"` otherwise, only if the team's
+       `coverage.skills[s].maxProficiency` is below expert
+     - Skip skills where every team member is already at expert
+   - Find candidates: iterate every team member; their current
+     proficiency for `s` is `personLookup.get(email).get(skillId)`.
+     Classify each member:
+     - current proficiency `null` (skill not in discipline/track) →
+       excluded
+     - current proficiency already `≥ working` → excluded (they
+       already contribute)
+     - current proficiency `foundational` → highest priority
+       candidate
+     - current proficiency `awareness` → medium priority candidate
+     - current proficiency missing entirely → lowest priority
+       candidate (they'd need to start from zero)
+   - If `evidence` was passed (Part 07), exclude candidates whose
+     email appears in `evidence.get(skillId).practitioners` — they
+     already practice the skill and don't need growth help.
+   - Sort candidates by proximity (foundational > awareness >
+     missing), then by job level ascending (lower levels get
+     priority — earlier in their career, more impact).
    - Emit a `GrowthRecommendation` with `skillId`, `impact`,
      `candidates`, and (Part 07) `driverContext`.
-6. Sort: critical first, then SPOF-reduction, then coverage-strengthening.
+6. Sort recommendations: critical first, then SPOF-reduction, then
+   coverage-strengthening.
+
+**Why not `deriveDevelopmentPath`?** `libskill.deriveDevelopmentPath`
+takes `{ selfAssessment, targetJob }` and returns a ranked list of
+gaps between the two. Summit already has every member's current
+matrix (Part 02's `PersonMatrix`), so the "where are they now" half
+is free. Summit also doesn't have a single "target job" per member —
+the target is the team's gap skill, not a whole job. Calling
+`deriveDevelopmentPath` would require fabricating a synthetic target
+job per skill per member, which is strictly more work than the
+direct-lookup approach above.
 
 #### `rankCandidates(skillId, team, data): Array<Candidate>`
 
@@ -218,16 +277,22 @@ feat(summit): add growth alignment command and public computeGrowthAlignment exp
   This is deliberate — the signature must be stable from Part 05
   onward.
 - **Multi-discipline teams.** A team with mixed disciplines has
-  different candidate pools per discipline. Handled by letting
-  `deriveDevelopmentPath` compute per-person — just make sure the
-  outer loop doesn't dedupe candidates across disciplines.
+  different candidate pools per discipline (because each member's
+  matrix is computed against their own discipline). This falls out
+  naturally from the per-person lookup table — the outer loop over
+  `mapData.skills` touches every skill regardless of discipline, and
+  each member's own matrix decides whether they are a candidate.
+  Just make sure the outer loop does not dedupe candidates across
+  disciplines.
 
 ## Notes for the implementer
 
 - The signature comes first. Write the test that asserts the exact
-  parameter names, then implement.
-- `deriveDevelopmentPath` may not exist in libskill with that exact
-  name. If the actual export is different, update the plan rather than
-  papering over the mismatch.
+  parameter names from spec.md:577–584, then implement.
+- Do **not** call `deriveDevelopmentPath` in `computeGrowthAlignment`.
+  Summit has all the information it needs in the `PersonMatrix`
+  objects already produced by Part 02. `deriveDevelopmentPath` is a
+  "here's your gap to this specific job" function, which is not the
+  question growth alignment answers.
 - Keep growth.js logic-only. The formatters own the narrative prose;
   the aggregation function returns structured data.

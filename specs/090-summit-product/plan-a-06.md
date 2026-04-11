@@ -315,10 +315,13 @@ feat(summit): add compare and trajectory commands with git history parsing
   snapshots. "Join" means an email appears only in the later
   snapshot. "Leave" means vice versa. Implement explicitly; add a
   fixture test.
-- **Quarter boundaries.** ISO quarters are `Q1 = Jan-Mar`, `Q2 =
-  Apr-Jun`, etc. Use the commit's ISO week-year for year boundaries
-  (spec says "quarterly" but doesn't specify which calendar system —
-  Gregorian-ISO is the sensible default).
+- **Quarter boundaries.** Use Gregorian calendar quarters: `Q1 =
+  Jan–Mar`, `Q2 = Apr–Jun`, `Q3 = Jul–Sep`, `Q4 = Oct–Dec`. The
+  year for a commit is the Gregorian year of its author date in
+  UTC. (Earlier drafts referenced "ISO week-year" — that applies to
+  ISO weeks, not calendar quarters, and would produce wrong results
+  for commits in late December / early January. Stick with plain
+  Gregorian quarters.)
 - **Compare with different formats in left vs. right.** When one team
   has allocation-based effective depths and the other doesn't, the
   diff compares headcount-only. Document in the formatter.

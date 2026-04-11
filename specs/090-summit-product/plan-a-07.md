@@ -5,9 +5,11 @@
 Layer two optional cross-cutting flags over the deterministic commands
 shipped in Parts 02–06:
 
-- `--evidenced` — available on `coverage`, `risks`, `growth`,
-  `trajectory`. Reads Map's activity schema for evidence aggregates
-  via `getEvidence` / `getPracticePatterns`.
+- `--evidenced` — available on `coverage`, `risks`, and `growth`.
+  Reads Map's activity schema for evidence aggregates via `getEvidence`
+  / `getPracticePatterns`. **Not supported on `trajectory`** — see
+  "trajectory.js" section below for the rationale; the command
+  prints a "not yet supported" message when the flag is set.
 - `--outcomes` — available on `growth`. Reads GetDX driver scores via
   `getSnapshotScores` / `getItemTrend` and reweights recommendations.
 
@@ -51,31 +53,19 @@ data flow:
 
 ## Files Created
 
-### `products/summit/src/lib/supabase.js`
+### `products/summit/src/lib/supabase.js` (no-op in this part)
 
-Mirrors `products/map/src/lib/client.js` but local to Summit:
+The `createSummitClient` factory and `SupabaseUnavailableError` class
+already exist from Part 01 — the Map-sourced roster path depends on
+them. Part 07 adds **no new code** to `src/lib/supabase.js`; it only
+adds new callers (the evidence and outcomes decorators below) that
+reuse the existing factory.
 
-```js
-import { createClient } from "@supabase/supabase-js";
-
-export function createSummitClient(opts = {}) {
-  const url = opts.url ?? process.env.MAP_SUPABASE_URL;
-  const key = opts.serviceRoleKey ?? process.env.MAP_SUPABASE_SERVICE_ROLE_KEY;
-  const schema = opts.schema ?? "activity";
-
-  if (!url || !key) {
-    throw new EvidenceUnavailableError(
-      "No Supabase connection. Run `fit-map activity start` and export MAP_SUPABASE_URL / MAP_SUPABASE_SERVICE_ROLE_KEY.",
-    );
-  }
-
-  return createClient(url, key, { db: { schema } });
-}
-```
-
-DI point: the command handlers accept an optional `supabase` parameter
-to make tests injectable. Production dispatches through
-`createSummitClient`.
+Part 07's evidence error class `EvidenceUnavailableError` extends
+`SupabaseUnavailableError` so a single `catch` block in the command
+handlers can detect "no Supabase" uniformly. DI point unchanged:
+command handlers accept an optional `supabase` parameter to make
+tests injectable; production dispatches through `createSummitClient`.
 
 ### `products/summit/src/evidence/index.js`
 
@@ -227,16 +217,32 @@ Two optional decorators:
 
 ### `products/summit/src/commands/trajectory.js`
 
-Optional evidence decoration: when `--evidenced` is set, each
-quarter's coverage is decorated with the evidence map *as of that
-quarter*. The spec's example (spec.md:528–536) shows per-quarter
-evidenced numbers. Implementation caveat: getting historical evidence
-is hard because the Map activity schema does not store per-quarter
-snapshots of evidence. For Part 07, apply the current evidence map to
-every quarter — this is a known simplification. Document in the
-formatter with a footnote: "Evidence reflects current data applied
-uniformly across quarters. Historical evidence snapshots are not yet
-supported."
+**Evidence is NOT supported on `trajectory` in this part.** The spec's
+example (spec.md:528–536) shows per-quarter evidenced numbers, but
+Map's activity schema does not store per-quarter snapshots of
+evidence. Shipping `--evidenced` on `trajectory` with "current
+evidence applied uniformly across all quarters" would be misleading
+— a reader would reasonably assume the Q1 column reflects Q1
+evidence, and be wrong.
+
+When `--evidenced` is passed to `trajectory`, the handler prints:
+
+```
+Evidence on trajectory is not yet supported. Historical evidence
+snapshots would require new Map infrastructure (see spec 090 Part 07
+notes). Run `fit-summit trajectory <team>` without --evidenced to see
+derivation-only trajectory.
+```
+
+…and exits `0`. `--evidenced` remains supported on `coverage`,
+`risks`, and `growth` as described elsewhere in Part 07.
+
+A future spec can add historical evidence snapshots to Map's
+activity schema alongside the historical roster snapshots feature
+already deferred in plan-a.md. When that lands, trajectory +
+evidence becomes a natural follow-up plan; until then, the command
+surfaces the limitation explicitly rather than shipping a broken
+implementation.
 
 ### `products/summit/src/formatters/coverage/text.js`
 
@@ -274,8 +280,9 @@ export {
 
 ### `products/summit/package.json`
 
-Add `@supabase/supabase-js` as a direct dependency (match Map's
-version range).
+No change — `@supabase/supabase-js` is already a Part 01 dependency
+(the Map-sourced roster path uses it). Part 07 only adds new
+importers, not new dependencies.
 
 ### `products/summit/test/cli.test.js`
 
@@ -307,15 +314,14 @@ feat(summit): add evidence decorator and outcome weighting for coverage/risks/gr
 ## Risks
 
 - **Supabase dependency weight.** `@supabase/supabase-js` pulls in a
-  non-trivial tree. Summit's core commands still must not require it
-  — the import must be lazy or conditional. Guard with:
-  ```js
-  async function maybeLoadSupabase() {
-    return import("@supabase/supabase-js"); // only loaded when --evidenced/--outcomes
-  }
-  ```
-  and wrap `createSummitClient` to use the dynamic import. This keeps
-  cold-start cost low for core commands.
+  non-trivial tree. Summit already takes this cost at Part 01 because
+  the Map-sourced roster path needs the client. Core commands that
+  run with `--roster <path>` don't touch the network, but they do
+  pay the import cost at process startup. If that cost becomes
+  noticeable in practice, a later refactor can move
+  `createSummitClient` to a dynamic-import wrapper; for this plan,
+  accept the eager import as consistent with how Map itself loads
+  `@supabase/supabase-js`.
 - **Degraded modes multiply.** `--evidenced` has three failure modes:
   no env vars, connection failed, empty evidence. Each needs a distinct
   error message. Test each path.
@@ -334,9 +340,12 @@ feat(summit): add evidence decorator and outcome weighting for coverage/risks/gr
 
 - Keep the evidence and outcomes code behind the flag. Do not let
   these paths run as the default for any command.
-- The `maybeLoadSupabase` dynamic-import trick must actually work — a
-  test ensures that a fresh process running `fit-summit coverage`
-  without `--evidenced` never requires `@supabase/supabase-js`.
+- `@supabase/supabase-js` is already imported at startup because of
+  Part 01's Map-sourced roster path. Do **not** reintroduce lazy
+  imports in this part — they'd create an inconsistency with how the
+  loader already works. If import cost becomes a concern, file a
+  follow-up spec that moves supabase-js behind a dynamic import
+  consistently across the package.
 - Document the `lookbackMonths` option in the command help text; it's
   on the `options` table in bin/fit-summit.js (as a number-valued
   string option).

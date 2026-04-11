@@ -78,9 +78,11 @@ Pure functions:
   `resolvedTeam.members`' disciplines/tracks:
   - Union of `discipline.coreSkills` and `discipline.supportingSkills`
     across all team disciplines.
-  - Plus any skills in capabilities where a track's `skillModifiers` is
-    > 0 (imported from `@forwardimpact/libskill/modifiers`
-    `expandModifiersToSkills`).
+  - Plus any skills in capabilities where a track's `skillModifiers`
+    is > 0. Use `expandModifiersToSkills({ skillModifiers, skills })`
+    from `@forwardimpact/libskill/modifiers` — destructured
+    parameters, takes the track's `skillModifiers` object and the
+    full `skills` array, returns a skillId→modifier map.
 - A skill is a critical gap when it's in the "needed" set AND its
   `headcountDepth === 0` in the team coverage.
 - The `reason` string cites the mechanism: `"platform track broad skill

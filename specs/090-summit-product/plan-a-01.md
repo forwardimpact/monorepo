@@ -56,6 +56,7 @@ and project allocations. No analytical commands exist yet.
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libutil": "^0.1.64",
     "@forwardimpact/libtelemetry": "^0.1.0",
+    "@supabase/supabase-js": "^2.103.0",
     "yaml": "^2.8.3"
   },
   "engines": { "bun": ">=1.2.0", "node": ">=18.0.0" },
@@ -75,12 +76,19 @@ export { loadRoster, parseRosterYaml } from "./roster/index.js";
 
 ### `products/summit/src/roster/index.js`
 
+Barrel file that re-exports the roster surface:
+
 ```js
 export { parseRosterYaml } from "./yaml.js";
 export { loadRosterFromMap } from "./map.js";
 export { validateRosterAgainstFramework } from "./schema.js";
 export { loadRoster } from "./loader.js";
 ```
+
+Note: `src/roster/loader.js` is the only non-trivial orchestrator
+here and is listed separately below. The four files `yaml.js`,
+`map.js`, `schema.js`, `loader.js` all live under `src/roster/` in
+this part.
 
 ### `products/summit/src/roster/yaml.js`
 
@@ -116,29 +124,81 @@ export { loadRoster } from "./loader.js";
 - Calls `getOrganization(supabase)` from
   `@forwardimpact/map/activity/queries/org`.
 - Groups people by `manager_email` to produce one reporting team per
-  manager. The team id is the manager's email local-part (e.g.
-  `alice@example.com` → `alice`).
+  manager. **Team id derivation:** use the full manager email as team
+  id (lowercased). This is less friendly than the email local-part
+  but is unambiguous across domains and requires no collision
+  handling. A future plan variant can add a human-friendly alias
+  layer if that matters.
 - No project teams — those only exist in YAML.
-- Maps each Map person to the `RosterPerson` shape by reading `discipline`,
-  `level`, `track`, `name`, `email` fields from the
-  `organization_people` row.
+- Maps each Map person to the `RosterPerson` shape by reading
+  `discipline`, `level`, `track`, `name`, `email`, and `manager_email`
+  fields from the `organization_people` row.
+- Populates the roster's per-team `managerEmail` field (see
+  `src/lib/supabase.js` for where this is consumed in later parts).
+
+### `products/summit/src/lib/supabase.js`
+
+Mirrors `products/map/src/lib/client.js` (which is not exported).
+Introduced in Part 01 because `loadRosterFromMap` needs a Supabase
+client from day one — the Map-sourced roster is a core feature, not
+an evidence-layer feature.
+
+```js
+import { createClient } from "@supabase/supabase-js";
+
+export class SupabaseUnavailableError extends Error {
+  constructor(reason) {
+    super(`Supabase connection unavailable: ${reason}`);
+    this.code = "SUMMIT_SUPABASE_UNAVAILABLE";
+  }
+}
+
+export function createSummitClient(opts = {}) {
+  const url = opts.url ?? process.env.MAP_SUPABASE_URL;
+  const key = opts.serviceRoleKey ?? process.env.MAP_SUPABASE_SERVICE_ROLE_KEY;
+  const schema = opts.schema ?? "activity";
+
+  if (!url || !key) {
+    throw new SupabaseUnavailableError(
+      "MAP_SUPABASE_URL / MAP_SUPABASE_SERVICE_ROLE_KEY not set. " +
+        "Run `fit-map activity start` and export the URL + key it prints, " +
+        "or use --roster <path> to load from a local YAML file instead.",
+    );
+  }
+
+  return createClient(url, key, { db: { schema } });
+}
+```
+
+The factory accepts an explicit `opts` so tests can inject fakes.
+Part 07's evidence and outcomes code reuses the same factory — it
+only adds new callers, not a new client.
 
 ### `products/summit/src/roster/loader.js`
 
 - Exports `loadRoster({ rosterPath, supabase }): Promise<Roster>`.
-- Dispatches: if `rosterPath` is provided, read the file and call
-  `parseRosterYaml`; otherwise call `loadRosterFromMap`.
-- Wraps lower-level errors with actionable messages ("No roster found.
-  Provide --roster path or configure Map's organization_people table.")
-  matching spec.md:712.
+- Dispatches:
+  - If `rosterPath` is provided, read the file and call
+    `parseRosterYaml`.
+  - Otherwise construct a Supabase client via `createSummitClient()`
+    (injected `supabase` overrides the factory for tests) and call
+    `loadRosterFromMap(supabase)`.
+- `SupabaseUnavailableError` is caught and re-thrown with the
+  spec.md:712 message ("No roster found. Provide --roster path or
+  configure Map's organization_people table.") so the caller prints
+  an actionable error rather than an env-var diagnostic.
 
 ### `products/summit/src/lib/cli.js`
 
 Shared CLI helpers used across all parts:
 
 - `createDataFromOptions(options): Promise<{ data, dataDir }>` — locates
-  the Map data directory (`--data` or `Finder.findData()`), invokes
-  `createDataLoader().loadAllData(dataDir)`, returns the parsed data.
+  the Map data directory (`--data` or, when unset, a `new Finder(fs,
+  logger, process)` instance whose `findData("data", homedir())`
+  method returns the discovered path — see
+  `products/pathway/bin/fit-pathway.js:185–194` for the instance
+  pattern), invokes `createDataLoader().loadAllData(dataDir)`, returns
+  the parsed data.
 - `getRosterSource(options): { rosterPath?: string }` — normalises
   `--roster` vs. Map-sourced.
 - Re-exports a `TEXT`/`JSON`/`MARKDOWN` constant for format selection.
@@ -308,11 +368,15 @@ feat(summit): scaffold package, roster loading, roster and validate commands
   01 creates one reporting team per manager who has direct reports; a
   person whose own report count is zero does not get their own team.
   Document this in `map.js` JSDoc and add a fixture-driven test.
-- **Email local-part collisions.** Two managers with different emails
-  but the same local part (`alice@eng.co` and `alice@ops.co`) would
-  collide in team id derivation. Fall back to the full email as team id
-  when a collision is detected; surface the fallback in `roster`
-  output.
+- **Team id shape for Map-sourced rosters.** The plan uses the full
+  manager email (lowercased) as the team id — e.g. `alice@eng.co`
+  rather than `alice`. This avoids collisions across domains and
+  requires zero collision-handling logic at the cost of more verbose
+  command lines (`fit-summit coverage alice@eng.co`). A human-friendly
+  alias layer (for example, `fit-summit roster --alias platform=alice@eng.co`)
+  is intentionally out of scope — revisit if the verbosity becomes a
+  pain point. Document the chosen scheme in `src/roster/map.js` JSDoc
+  so contributors do not accidentally reinvent local-part parsing.
 - **Dependency version drift.** Summit pins `@forwardimpact/map`
   at `^0.15.18`. If Map's activity query exports change between drafting
   the plan and implementing it, update the caret range first and re-run

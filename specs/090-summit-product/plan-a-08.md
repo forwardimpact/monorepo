@@ -114,17 +114,24 @@ full content lives on the product page.
 
 ### `specs/STATUS`
 
-Advance 090:
+**Default:** staged advancement matching the spec lifecycle:
 
-```
-090	done
-```
+- When `gemba-plan` approves this plan and the spec — advance `draft
+  → planned` in a separate commit (owned by whoever approves the
+  plan, not Part 08).
+- When Part 01 begins implementation — advance `planned → active`.
+- When Part 08 lands on `main` — advance `active → done`.
 
-(Currently `draft`.) This advancement is conditional on all parts 01–07
-being merged, tests green on `main`, and at least one published version
-of `@forwardimpact/summit` existing on npm (or queued for release via
-the next release-engineer run). If any of those are incomplete, leave
-STATUS alone and flag in the wiki log.
+Part 08 itself is responsible only for the final `active → done`
+transition. It is conditional on all parts 01–07 being merged, tests
+green on `main`, and at least one published version of
+`@forwardimpact/summit` existing on npm (or queued for release via
+the next release-engineer run). If any of those are incomplete,
+leave STATUS alone and flag in the wiki log.
+
+The earlier `draft → planned` and `planned → active` transitions may
+appear in other commits. Do not skip them — the lifecycle is an
+audit trail across the full delivery, not a single commit marker.
 
 ## Files NOT Modified
 

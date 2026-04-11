@@ -83,7 +83,18 @@ Out of scope (explicitly deferred to other specs):
 - **Privacy model.** Every command honours the audience model from
   spec.md:75–87. Part 02 introduces the `--audience` flag and the
   `withAudienceFilter()` helper, and every subsequent part feeds outputs
-  through it before rendering.
+  through it before rendering. **Plan-level elaboration:** the spec's
+  CLI options table (spec.md:746–754) does not list `--audience`. The
+  spec describes the audience model descriptively (per-view table,
+  spec.md:77–82) without prescribing how a user selects their
+  audience. This plan proposes `--audience <engineer|manager|director>`
+  as the explicit mechanism because (a) it's the simplest reversible
+  choice, (b) it keeps the privacy decision per-invocation rather than
+  baking it into an install-time config, and (c) director-scope
+  outputs are a common enough need to deserve a first-class flag.
+  Default audience is `manager`. If the spec evolves to prefer a
+  config-file approach, Part 02 is the single place that needs to
+  change.
 
 ## Data Model
 
@@ -136,6 +147,7 @@ type TeamCoverage = {
   teamType: "reporting" | "project",
   memberCount: number,
   effectiveFte: number,
+  managerEmail: string | null, // for Map-sourced reporting teams only
   capabilities: Map<string, CapabilityCoverage>,
   skills: Map<string, SkillCoverage>,
 };
@@ -195,10 +207,11 @@ products/summit/
 │   │   ├── compare.js       Part 06
 │   │   └── trajectory.js    Part 06
 │   ├── roster/
-│   │   ├── index.js         Part 01
+│   │   ├── index.js         Part 01 (barrel)
 │   │   ├── yaml.js          Part 01 (parses summit.yaml)
 │   │   ├── map.js           Part 01 (reads from Map activity)
-│   │   └── schema.js        Part 01 (validation)
+│   │   ├── schema.js        Part 01 (validation)
+│   │   └── loader.js        Part 01 (orchestrates yaml + map sources)
 │   ├── evidence/
 │   │   ├── index.js         Part 07
 │   │   └── client.js        Part 07 (thin wrapper over Map queries)
@@ -232,7 +245,9 @@ products/summit/
 │       ├── audience.js      Part 02 (privacy filters)
 │       ├── proficiency.js   Part 02 (working+ predicate, re-exports)
 │       ├── cli.js           Part 01 (shared CLI wiring)
-│       └── supabase.js      Part 07 (Supabase client factory)
+│       └── supabase.js      Part 01 (Supabase client factory — used
+│                            by Map-sourced roster from day one; Part
+│                            07 adds new callers but not a new client)
 ├── starter/
 │   └── summit.example.yaml  Part 01 (example roster in spec format)
 ├── templates/               (none — Summit renders inline)
@@ -256,26 +271,31 @@ products/summit/
 
 ## Key Dependencies
 
-All dependencies are first-party except `yaml` (shared with Pathway/Map).
-Resolve versions to the latest published releases at implementation time.
+All dependencies are first-party except `yaml` (shared with Pathway/Map)
+and `@supabase/supabase-js` (shared with Map). Resolve versions to the
+latest published releases at implementation time.
 
 ```json
 {
   "dependencies": {
-    "@forwardimpact/map": "^0.15.x",
+    "@forwardimpact/map": "^0.15.18",
     "@forwardimpact/libskill": "^4.0.0",
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libutil": "^0.1.64",
     "@forwardimpact/libtelemetry": "^0.1.0",
+    "@supabase/supabase-js": "^2.103.0",
     "yaml": "^2.8.3"
   }
 }
 ```
 
-Part 07 adds `@supabase/supabase-js` (already a Map dependency) for the
-activity-layer integration. Optional dependencies should be avoided;
-Summit's evidence code path throws a clear error when the Supabase env vars
-are missing rather than trying to degrade.
+`@supabase/supabase-js` is a Part 01 dependency, not a Part 07
+dependency: the Map-sourced roster path needs a Supabase client
+from day one (`loadRosterFromMap` calls `getOrganization(supabase)`).
+Part 07 reuses the same `createSummitClient` factory for evidence
+and outcomes — it does not introduce a new client. The evidence
+code path throws a clear `SupabaseUnavailableError` when env vars are
+missing rather than trying to degrade silently.
 
 ## Reference Patterns
 
@@ -293,16 +313,22 @@ are missing rather than trying to degrade.
   derivation (`capabilities`, `disciplines`, `tracks`, `levels`, `drivers`,
   `behaviours`). Usage: `products/pathway/bin/fit-pathway.js:219–222`.
 - **Skill matrix derivation** — `deriveSkillMatrix({ discipline, level,
-  track, skills })` is the only libskill function Summit needs in its core;
-  Part 05 may also use `deriveDevelopmentPath` when ranking growth
-  candidates. See `libraries/libskill/src/derivation.js:205–245`.
+  track, skills })` is the only libskill function Summit's core
+  analytical pipeline calls. Summit does **not** use
+  `deriveDevelopmentPath` — that function compares a self-assessment
+  to a target job, which is not the question growth alignment asks.
+  See `libraries/libskill/src/derivation.js:205–245` for
+  `deriveSkillMatrix` and plan-a-05.md's "Why not
+  deriveDevelopmentPath?" note for the rationale.
 - **Roster parsing** — The shape of Map's `parseYamlPeople()` helper
   (`products/map/src/activity/parse-people.js`) is a good reference but
   Summit's YAML has a richer structure (teams + projects with allocation),
   so Summit writes its own parser rather than extending Map's.
 - **Supabase client** — `products/map/src/lib/client.js` shows the
-  `createMapClient()` pattern Summit will mirror. Part 07 adds
-  `src/lib/supabase.js` with the same env-var contract.
+  `createMapClient()` pattern Summit will mirror. Part 01 adds
+  `src/lib/supabase.js` with the same env-var contract (Map-sourced
+  rosters need it from day one); Part 07 adds new callers for
+  evidence and outcomes.
 - **Activity queries** — Summit imports subpath exports directly:
   `@forwardimpact/map/activity/queries/org` for roster,
   `.../evidence` for Part 07, `.../snapshots` for Part 07 outcomes.
@@ -340,24 +366,32 @@ consistent:
 Each part is independently committable but they must land in order because
 later parts import from earlier ones. Recommended execution:
 
-| Order | Part | Agent            | Depends on          |
-| ----- | ---- | ---------------- | ------------------- |
-| 1     | 01   | `staff-engineer` | —                   |
-| 2     | 02   | `staff-engineer` | 01                  |
-| 3     | 03   | `staff-engineer` | 02                  |
-| 4     | 04   | `staff-engineer` | 02, 03              |
-| 5     | 05   | `staff-engineer` | 02, 03              |
-| 6     | 06   | `staff-engineer` | 02                  |
-| 7     | 07   | `staff-engineer` | 02, 03, 05          |
-| 8     | 08   | `technical-writer` | all preceding     |
+| Order | Part | Agent              | Depends on       |
+| ----- | ---- | ------------------ | ---------------- |
+| 1     | 01   | `staff-engineer`   | —                |
+| 2     | 02   | `staff-engineer`   | 01               |
+| 3     | 03   | `staff-engineer`   | 02               |
+| 4     | 04   | `staff-engineer`   | 02, 03           |
+| 5     | 05   | `staff-engineer`   | 02, 03           |
+| 6     | 06   | `staff-engineer`   | 02, 03, 04       |
+| 7     | 07   | `staff-engineer`   | 02, 03, 05       |
+| 8     | 08   | `technical-writer` | all preceding    |
 
-**Parallelism.** After Part 03 lands, Parts 04, 05, and 06 are independent
-and could in principle run on concurrent feature branches. In practice,
-because all three parts grow the same `bin/fit-summit.js` command table and
-the same `src/commands/index.js` barrel, landing them sequentially avoids
-merge conflicts and is cheaper than resolving them. Default to sequential
-execution on a single `feat/summit` branch; only parallelise if the
-implementer explicitly wants to optimise wall-clock time.
+**Why Part 06 depends on 04.** `compare` reuses `diffCoverage` and
+`diffRisks` from Part 04 (`src/aggregation/what-if.js`) — the diff
+primitives were introduced there because what-if is the first command
+that needs them. Compare is a thin transformer on top. Part 06 also
+reuses Part 03's risks detector for the same reason.
+
+**Parallelism.** After Part 03 lands, Parts 04 and 05 are independent
+and could in principle run on concurrent feature branches; Part 06
+must wait for Part 04 because it imports the diff primitives. In
+practice, because all of Parts 04–06 grow the same `bin/fit-summit.js`
+command table and the same `src/commands/index.js` barrel, landing
+them sequentially avoids merge conflicts and is cheaper than resolving
+them. Default to sequential execution on a single `feat/summit`
+branch; only parallelise if the implementer explicitly wants to
+optimise wall-clock time.
 
 **Part 07 timing.** Part 07 can be deferred indefinitely without blocking
 a first release — core Summit is useful without evidence or outcomes. A
