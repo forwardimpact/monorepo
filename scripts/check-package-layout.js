@@ -23,7 +23,7 @@ const ALLOWED_SUBDIRS = new Set([
 const IGNORED_SUBDIRS = new Set(["node_modules"]);
 
 const TIERS = ["products", "services", "libraries"];
-const strict = process.argv.includes("--strict");
+const strict = !process.argv.includes("--no-strict");
 
 const violations = [];
 const rootSourceFiles = [];
@@ -86,5 +86,5 @@ if (violations.length || rootSourceFiles.length) {
   if (strict) {
     process.exit(1);
   }
-  console.error("  (Permissive mode — not failing. Pass --strict to fail.)");
+  console.error("  (Permissive mode — not failing. Pass --no-strict to skip.)");
 }
