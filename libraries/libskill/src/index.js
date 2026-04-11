@@ -23,6 +23,7 @@ export {
   generateJobId,
   deriveJob,
   getDisciplineSkillIds,
+  getSkillTypeForDiscipline,
   generateAllJobs,
 } from "./derivation.js";
 
@@ -43,7 +44,6 @@ export { buildJobKey, createJobCache } from "./job-cache.js";
 export {
   isCapability,
   getSkillsByCapability,
-  getSkillTypeForDiscipline,
   buildCapabilityToSkillsMap,
   expandModifiersToSkills,
   extractCapabilityModifiers,

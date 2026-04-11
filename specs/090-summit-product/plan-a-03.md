@@ -2,18 +2,18 @@
 
 ## Goal
 
-Add Summit's second analytical command: `fit-summit risks <team>`.
-Implements three structural risk categories from spec.md:261–314:
+Add Summit's second analytical command: `fit-summit risks <team>`. Implements
+three structural risk categories from spec.md:261–314:
 
 1. **Single points of failure** — skills where exactly one person holds
    working+.
-2. **Critical gaps** — skills the team's discipline/track suggests it
-   needs but nobody holds at working+.
-3. **Concentration risks** — multiple engineers clustered at the same
-   level in the same capability.
+2. **Critical gaps** — skills the team's discipline/track suggests it needs but
+   nobody holds at working+.
+3. **Concentration risks** — multiple engineers clustered at the same level in
+   the same capability.
 
-All three categories are pure transformations over the `TeamCoverage`
-primitive from Part 02 — no new aggregation passes.
+All three categories are pure transformations over the `TeamCoverage` primitive
+from Part 02 — no new aggregation passes.
 
 ## Inputs
 
@@ -25,8 +25,8 @@ primitive from Part 02 — no new aggregation passes.
 
 ## Approach
 
-Risks are derived, not aggregated. Given a `TeamCoverage`, a resolved
-team, and Map data, a pure function returns a `TeamRisks` object:
+Risks are derived, not aggregated. Given a `TeamCoverage`, a resolved team, and
+Map data, a pure function returns a `TeamRisks` object:
 
 ```ts
 type TeamRisks = {
@@ -51,9 +51,9 @@ type TeamRisks = {
 };
 ```
 
-Severity tiers exist so Part 04's what-if diff can highlight risks that
-*change* severity (e.g. going from 1.0-allocation holder to
-0.4-allocation holder keeps the skill as an SPOF but increases severity).
+Severity tiers exist so Part 04's what-if diff can highlight risks that _change_
+severity (e.g. going from 1.0-allocation holder to 0.4-allocation holder keeps
+the skill as an SPOF but increases severity).
 
 ## Files Created
 
@@ -68,43 +68,42 @@ Pure functions:
 - Severity:
   - `high` when the single holder is allocated < 0.5
   - `medium` when `0.5 ≤ allocation < 1.0`
-  - `low` when `allocation === 1.0` (still a risk, but no partial
-    availability amplifier)
+  - `low` when `allocation === 1.0` (still a risk, but no partial availability
+    amplifier)
 - Returns sorted by severity (high first) then skillId.
 
 #### `detectCriticalGaps(resolvedTeam, coverage, data): Array<CriticalGap>`
 
 - "What skills does this team likely need?" is inferred from
   `resolvedTeam.members`' disciplines/tracks:
-  - Union of `discipline.coreSkills` and `discipline.supportingSkills`
-    across all team disciplines.
-  - Plus any skills in capabilities where a track's `skillModifiers`
-    is > 0. Use `expandModifiersToSkills({ skillModifiers, skills })`
-    from `@forwardimpact/libskill/modifiers` — destructured
-    parameters, takes the track's `skillModifiers` object and the
-    full `skills` array, returns a skillId→modifier map.
+  - Union of `discipline.coreSkills` and `discipline.supportingSkills` across
+    all team disciplines.
+  - Plus any skills in capabilities where a track's `skillModifiers` is > 0. Use
+    `expandModifiersToSkills({ skillModifiers, skills })` from
+    `@forwardimpact/libskill/modifiers` — destructured parameters, takes the
+    track's `skillModifiers` object and the full `skills` array, returns a
+    skillId→modifier map.
 - A skill is a critical gap when it's in the "needed" set AND its
   `headcountDepth === 0` in the team coverage.
-- The `reason` string cites the mechanism: `"platform track broad skill
-  for software_engineering"` or `"core skill for software_engineering
-  discipline"`.
+- The `reason` string cites the mechanism:
+  `"platform track broad skill for software_engineering"` or
+  `"core skill for software_engineering discipline"`.
 - Returns sorted by skillId.
 
 #### `detectConcentrationRisks(resolvedTeam, coverage, data): Array<ConcentrationRisk>`
 
 - Groups the team by `level.id` (from members' `job.level`).
 - For each level with 3+ members:
-  - For each capability where all those members have ≥ working in the
-    same proficiency: flag as concentration risk with that count.
-- The spec example (spec.md:293–296) is "3 of 5 engineers at Level III
-  working level in delivery" — so the grouping is (level, capability,
-  proficiency).
+  - For each capability where all those members have ≥ working in the same
+    proficiency: flag as concentration risk with that count.
+- The spec example (spec.md:293–296) is "3 of 5 engineers at Level III working
+  level in delivery" — so the grouping is (level, capability, proficiency).
 - Returns sorted by `count` descending.
 
 #### `detectRisks({ resolvedTeam, coverage, data }): TeamRisks`
 
-Orchestrator that calls all three and returns the combined object. Pure
-and deterministic.
+Orchestrator that calls all three and returns the combined object. Pure and
+deterministic.
 
 ### `products/summit/src/commands/risks.js`
 
@@ -113,8 +112,8 @@ Handler flow:
 1. Parse `teamId` / `--project`.
 2. Load roster, resolve team, compute coverage (reuse Part 02 helpers).
 3. Call `detectRisks({ resolvedTeam, coverage, data })`.
-4. Resolve audience and apply `withAudienceFilter` (Part 02) to strip
-   holder names from SPOF output at director scope.
+4. Resolve audience and apply `withAudienceFilter` (Part 02) to strip holder
+   names from SPOF output at director scope.
 5. Dispatch format: `risksToText`, `risksToJson`, `risksToMarkdown`.
 
 ### `products/summit/src/formatters/risks/text.js`
@@ -137,8 +136,8 @@ Renders three sections exactly matching spec.md:279–296:
     delivery skills — 3 of 5 engineers at Level III working level
 ```
 
-Use severity to pick color (red/yellow/green). Respect
-`--audience director` by replacing names with "one engineer" phrasing.
+Use severity to pick color (red/yellow/green). Respect `--audience director` by
+replacing names with "one engineer" phrasing.
 
 ### `products/summit/src/formatters/risks/json.js`
 
@@ -165,19 +164,19 @@ Minimal bulleted list rendering for docs snippets.
 
 Coverage:
 
-- SPOF detection: fixture with skill held by exactly 1 person at
-  working+ → 1 SPOF; 2 holders → 0 SPOFs.
+- SPOF detection: fixture with skill held by exactly 1 person at working+ → 1
+  SPOF; 2 holders → 0 SPOFs.
 - SPOF severity tiers: 1.0 allocation → low; 0.6 → medium; 0.3 → high.
-- Critical gaps: fixture discipline declaring `incident_response` as a
-  broad skill + team with 0 holders at working+ → 1 critical gap with
-  `reason` citing the discipline.
-- Track-specific critical gaps: adding a `platform` track member
-  surfaces a different set of gaps than `software_engineering` alone.
-- Concentration risks: fixture with 3 Level III engineers in the same
-  capability at working → 1 concentration risk with count 3.
+- Critical gaps: fixture discipline declaring `incident_response` as a broad
+  skill + team with 0 holders at working+ → 1 critical gap with `reason` citing
+  the discipline.
+- Track-specific critical gaps: adding a `platform` track member surfaces a
+  different set of gaps than `software_engineering` alone.
+- Concentration risks: fixture with 3 Level III engineers in the same capability
+  at working → 1 concentration risk with count 3.
 - Audience filter: director audience drops holder names from SPOFs.
-- Empty team: `detectRisks` on a zero-member team returns empty arrays
-  without throwing.
+- Empty team: `detectRisks` on a zero-member team returns empty arrays without
+  throwing.
 
 ## Files Modified
 
@@ -200,17 +199,16 @@ Re-export the new functions alongside the Part 02 coverage exports.
 
 ### `products/summit/test/cli.test.js`
 
-Smoke test: `bin/fit-summit.js risks platform --roster …` contains the
-"Single points of failure" header.
+Smoke test: `bin/fit-summit.js risks platform --roster …` contains the "Single
+points of failure" header.
 
 ## Verification
 
 1. `bun run check` passes.
 2. `bun run test` passes with new risks tests.
 3. `bunx fit-summit risks platform --roster … --data …` prints all three
-   sections. At least one is populated from the fixture data (if the
-   fixture team has no risks the fixture needs expansion, not the
-   detector).
+   sections. At least one is populated from the fixture data (if the fixture
+   team has no risks the fixture needs expansion, not the detector).
 4. `--format json` output validates against the shape in spec.md:793–807.
 5. `--audience director` output omits holder names.
 
@@ -222,34 +220,32 @@ feat(summit): add structural risk detection and risks command
 
 ## Risks
 
-- **Critical gap definition relies on "needed skills" inference.** The
-  spec allows some latitude here. This plan anchors on discipline
-  core+supporting+broad skills plus track modifiers > 0. Document the
-  decision in `risks.js` JSDoc so future contributors understand why
-  they might see different gaps than expected.
-- **Concentration thresholds are opinionated.** `3+ members at same
-  level in same capability` is not specified by the spec; it's inferred
-  from the spec.md:293–296 example. Surface the threshold as a constant
-  in `risks.js` (`CONCENTRATION_THRESHOLD = 3`) so it can be tuned
+- **Critical gap definition relies on "needed skills" inference.** The spec
+  allows some latitude here. This plan anchors on discipline
+  core+supporting+broad skills plus track modifiers > 0. Document the decision
+  in `risks.js` JSDoc so future contributors understand why they might see
+  different gaps than expected.
+- **Concentration thresholds are opinionated.**
+  `3+ members at same level in same capability` is not specified by the spec;
+  it's inferred from the spec.md:293–296 example. Surface the threshold as a
+  constant in `risks.js` (`CONCENTRATION_THRESHOLD = 3`) so it can be tuned
   without a refactor.
-- **Multi-discipline teams.** A team with mixed disciplines has a
-  larger "needed" set — the union. That may produce too many critical
-  gaps. Mitigation: when the team has ≥ 2 disciplines, compute per-
-  discipline gaps and intersect, rather than unioning. Decide at
-  implementation time based on fixture realism; document whichever
-  approach wins.
-- **Concentration risk false positives.** A team of 3 all at the same
-  level and proficiency is a concentration risk, but also the only
-  coverage. The detector must flag it as concentration; it's already
-  a SPOF via a different rule — that's fine, overlapping risks are a
-  feature not a bug.
+- **Multi-discipline teams.** A team with mixed disciplines has a larger
+  "needed" set — the union. That may produce too many critical gaps. Mitigation:
+  when the team has ≥ 2 disciplines, compute per- discipline gaps and intersect,
+  rather than unioning. Decide at implementation time based on fixture realism;
+  document whichever approach wins.
+- **Concentration risk false positives.** A team of 3 all at the same level and
+  proficiency is a concentration risk, but also the only coverage. The detector
+  must flag it as concentration; it's already a SPOF via a different rule —
+  that's fine, overlapping risks are a feature not a bug.
 
 ## Notes for the implementer
 
-- SPOF vs critical gap vs concentration are mutually non-exclusive. A
-  skill can appear in multiple sections.
-- Do not add severity to critical gaps — the spec treats them as
-  binary. Part 07's `--evidenced` flag can re-assess severity, but
-  that's a later-plan concern.
-- Keep risks.js dependency-light — only `coverage.js`, `depth.js`,
-  and libskill modifiers. No formatters, no I/O.
+- SPOF vs critical gap vs concentration are mutually non-exclusive. A skill can
+  appear in multiple sections.
+- Do not add severity to critical gaps — the spec treats them as binary. Part
+  07's `--evidenced` flag can re-assess severity, but that's a later-plan
+  concern.
+- Keep risks.js dependency-light — only `coverage.js`, `depth.js`, and libskill
+  modifiers. No formatters, no I/O.
