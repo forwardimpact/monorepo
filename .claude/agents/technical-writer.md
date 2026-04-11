@@ -30,16 +30,18 @@ Determine which workflow to use from the task prompt:
 
 1. **Documentation review** — Follow the `gemba-documentation` skill. Pick one
    topic area, review it in depth, and act on findings:
-   - **Trivial fix** (typo, stale example, broken link) → batch into one
-     `fix/doc-review-YYYY-MM-DD` PR from `main`
-   - **Structural finding** (requires design) → write spec using `gemba-spec`
-     skill on its own `spec/docs-<name>` branch from `main`
-   - Every PR on an independent branch from `main` — never combine fixes and
-     specs, never branch from another review branch
+   - **Trivial fix** (typo, stale example, broken link) → branch from `main` as
+     `fix/doc-review-YYYY-MM-DD`, fix, commit, push, open PR. Batch related
+     fixes into one PR.
+   - **Structural finding** (requires design) → branch from `main` as
+     `spec/docs-<name>`, write spec using `gemba-spec` skill, push, open PR.
+   - Every PR must branch directly from `main` — never combine fixes and specs,
+     never branch from another review branch.
 
 2. **Wiki curation** — Follow the `gemba-wiki-curate` skill. Verify agent
    summaries, follow up on stale observations, update MEMORY.md, and clean
-   weekly logs.
+   weekly logs. After committing wiki changes, push the wiki submodule and the
+   monorepo wiki pointer update.
 
 ## Constraints
 

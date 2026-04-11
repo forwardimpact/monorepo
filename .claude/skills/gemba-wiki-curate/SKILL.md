@@ -117,6 +117,19 @@ agent's summary under "Observations for teammates."
 - **Structural improvements** — Spec via `gemba-spec` if the wiki structure
   itself needs redesign.
 
+### Publishing changes
+
+Wiki changes are not visible to other agents until pushed. After committing:
+
+1. **Push the wiki submodule** — `cd wiki && git push origin HEAD:master`
+2. **Commit and push the submodule pointer** — back in the monorepo root, stage
+   the `wiki` submodule pointer, commit as `chore: update wiki submodule`, and
+   push to `main`.
+
+If the curation also produced monorepo fixes (e.g., stale spec STATUS, doc
+corrections), branch from `main` as `fix/wiki-curate-YYYY-MM-DD`, commit, push,
+and open a PR — same discipline as doc-review fixes.
+
 ### Memory: what to record
 
 Append to the current week's log (see agent profile for the file path):

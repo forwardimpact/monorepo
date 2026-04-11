@@ -128,6 +128,17 @@ profile.
 
 Verbs: `add` for new pages, `update` for changes, `fix` for corrections.
 
+### Publishing changes
+
+Commits are not visible until pushed. After committing on a branch:
+
+1. **Push the branch** — `git push -u origin <branch>`
+2. **Open a PR** — `gh pr create --title "<title>" --body "<body>"`
+
+Each branch gets its own PR. Fix and spec branches are independent — push and PR
+each one separately. Wiki submodule changes follow the wiki curation skill's
+publishing instructions.
+
 ### Memory: what to record
 
 Append to the current week's log (see agent profile for the file path):
