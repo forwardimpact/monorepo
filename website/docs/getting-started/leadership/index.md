@@ -15,15 +15,18 @@ signal analysis, and team capability planning.
 ## Install
 
 ```sh
-npm install @forwardimpact/map @forwardimpact/pathway @forwardimpact/landmark @forwardimpact/summit
+npm install @forwardimpact/map @forwardimpact/pathway
 ```
 
-This gives you four CLI tools:
+This gives you two CLI tools:
 
 - `fit-map` — validate framework data against published schemas
 - `fit-pathway` — browse, preview, and publish your framework
-- `fit-landmark` — analyze engineering signals and team patterns
-- `fit-summit` — model team capability, risks, and staffing scenarios
+
+> **Coming soon:** `@forwardimpact/landmark` (engineering signal analysis) and
+> `@forwardimpact/summit` (team capability planning) are under development and
+> will be published to npm when ready. The Landmark and Summit sections below
+> describe what these tools will offer.
 
 ---
 
