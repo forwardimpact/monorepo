@@ -9,6 +9,16 @@ import { loadRoster } from "../roster/index.js";
 import { computeCoverage, resolveTeam } from "../aggregation/coverage.js";
 import { detectRisks } from "../aggregation/risks.js";
 import { EmptyTeamError, TeamNotFoundError } from "../aggregation/errors.js";
+import {
+  decorateCoverageWithEvidence,
+  decorateRisksWithEvidence,
+  EvidenceUnavailableError,
+  loadEvidence,
+} from "../evidence/index.js";
+import {
+  createSummitClient,
+  SupabaseUnavailableError,
+} from "../lib/supabase.js";
 import { resolveAudience, withAudienceFilter } from "../lib/audience.js";
 import { Format, getRosterSource, resolveFormat } from "../lib/cli.js";
 import { risksToText } from "../formatters/risks/text.js";
@@ -34,9 +44,16 @@ export async function runRisksCommand({ data, args, options }) {
     return;
   }
 
-  const coverage = computeCoverage(resolved, data);
+  let coverage = computeCoverage(resolved, data);
+  let risks = detectRisks({ resolvedTeam: resolved, coverage, data });
+
+  if (options.evidenced) {
+    const evidence = await loadEvidenceSafe(resolved, options);
+    coverage = decorateCoverageWithEvidence(coverage, evidence);
+    risks = decorateRisksWithEvidence(risks, coverage, evidence);
+  }
+
   const filtered = withAudienceFilter(coverage, audience);
-  const risks = detectRisks({ resolvedTeam: resolved, coverage, data });
 
   if (format === Format.JSON) {
     process.stdout.write(
@@ -74,6 +91,25 @@ function safeResolveTeam(roster, data, target) {
   } catch (e) {
     if (e instanceof TeamNotFoundError) {
       throw new Error(`summit: ${e.message}`, { cause: e });
+    }
+    throw e;
+  }
+}
+
+async function loadEvidenceSafe(resolved, options) {
+  try {
+    const client = options.supabase ?? createSummitClient();
+    return await loadEvidence(client, {
+      team: resolved,
+      lookbackMonths: Number(options.lookbackMonths ?? 12),
+    });
+  } catch (e) {
+    if (
+      e instanceof EvidenceUnavailableError ||
+      e instanceof SupabaseUnavailableError
+    ) {
+      process.stderr.write(`summit: ${e.message}\n`);
+      return new Map();
     }
     throw e;
   }

@@ -49,3 +49,14 @@ export {
   resolveAudience,
   withAudienceFilter,
 } from "./lib/audience.js";
+export {
+  decorateCoverageWithEvidence,
+  decorateRisksWithEvidence,
+  EvidenceUnavailableError,
+  loadEvidence,
+} from "./evidence/index.js";
+export {
+  decorateRecommendationsWithOutcomes,
+  loadDriverScores,
+  mapSkillsToDrivers,
+} from "./outcomes/index.js";

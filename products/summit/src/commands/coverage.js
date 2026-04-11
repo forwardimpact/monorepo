@@ -9,6 +9,13 @@
 import { loadRoster } from "../roster/index.js";
 import { computeCoverage, resolveTeam } from "../aggregation/coverage.js";
 import { EmptyTeamError, TeamNotFoundError } from "../aggregation/errors.js";
+import {
+  decorateCoverageWithEvidence,
+  EvidenceUnavailableError,
+  loadEvidence,
+} from "../evidence/index.js";
+import { SupabaseUnavailableError } from "../lib/supabase.js";
+import { createSummitClient } from "../lib/supabase.js";
 import { resolveAudience, withAudienceFilter } from "../lib/audience.js";
 import { Format, getRosterSource, resolveFormat } from "../lib/cli.js";
 import { coverageToText } from "../formatters/coverage/text.js";
@@ -34,7 +41,12 @@ export async function runCoverageCommand({ data, args, options }) {
     return;
   }
 
-  const coverage = computeCoverage(resolved, data);
+  let coverage = computeCoverage(resolved, data);
+
+  if (options.evidenced) {
+    coverage = await decorateWithEvidence(coverage, resolved, options);
+  }
+
   const filtered = withAudienceFilter(coverage, audience);
 
   if (format === Format.JSON) {
@@ -67,6 +79,26 @@ function resolveCommandTeam(roster, data, target) {
   } catch (e) {
     if (e instanceof TeamNotFoundError) {
       throw new Error(`summit: ${e.message}`, { cause: e });
+    }
+    throw e;
+  }
+}
+
+async function decorateWithEvidence(coverage, resolved, options) {
+  try {
+    const client = options.supabase ?? createSummitClient();
+    const evidence = await loadEvidence(client, {
+      team: resolved,
+      lookbackMonths: Number(options.lookbackMonths ?? 12),
+    });
+    return decorateCoverageWithEvidence(coverage, evidence);
+  } catch (e) {
+    if (
+      e instanceof EvidenceUnavailableError ||
+      e instanceof SupabaseUnavailableError
+    ) {
+      process.stderr.write(`summit: ${e.message}\n`);
+      return decorateCoverageWithEvidence(coverage, new Map());
     }
     throw e;
   }

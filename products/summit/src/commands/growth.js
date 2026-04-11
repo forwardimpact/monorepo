@@ -7,6 +7,15 @@ import { loadRoster } from "../roster/index.js";
 import { resolveTeam } from "../aggregation/coverage.js";
 import { computeGrowthAlignment } from "../aggregation/growth.js";
 import { TeamNotFoundError } from "../aggregation/errors.js";
+import { EvidenceUnavailableError, loadEvidence } from "../evidence/index.js";
+import {
+  decorateRecommendationsWithOutcomes,
+  loadDriverScores,
+} from "../outcomes/index.js";
+import {
+  createSummitClient,
+  SupabaseUnavailableError,
+} from "../lib/supabase.js";
 import { resolveAudience } from "../lib/audience.js";
 import { Format, getRosterSource, resolveFormat } from "../lib/cli.js";
 import { growthToText } from "../formatters/growth/text.js";
@@ -42,7 +51,27 @@ export async function runGrowthCommand({ data, args, options }) {
     allocation: m.allocation,
   }));
 
-  const recommendations = computeGrowthAlignment({ team, mapData: data });
+  const evidence = options.evidenced
+    ? await loadEvidenceSafe(resolved, options)
+    : undefined;
+  const driverScores = options.outcomes
+    ? await loadScoresSafe(resolved, options)
+    : undefined;
+
+  let recommendations = computeGrowthAlignment({
+    team,
+    mapData: data,
+    evidence,
+    driverScores,
+  });
+
+  if (options.outcomes && driverScores) {
+    recommendations = decorateRecommendationsWithOutcomes(
+      recommendations,
+      driverScores,
+      data,
+    );
+  }
 
   if (format === Format.JSON) {
     process.stdout.write(
@@ -74,4 +103,36 @@ function resolveTarget(args, options) {
     );
   }
   return { teamId };
+}
+
+async function loadEvidenceSafe(resolved, options) {
+  try {
+    const client = options.supabase ?? createSummitClient();
+    return await loadEvidence(client, {
+      team: resolved,
+      lookbackMonths: Number(options.lookbackMonths ?? 12),
+    });
+  } catch (e) {
+    if (
+      e instanceof EvidenceUnavailableError ||
+      e instanceof SupabaseUnavailableError
+    ) {
+      process.stderr.write(`summit: ${e.message}\n`);
+      return new Map();
+    }
+    throw e;
+  }
+}
+
+async function loadScoresSafe(resolved, options) {
+  try {
+    const client = options.supabase ?? createSummitClient();
+    return await loadDriverScores(client, { team: resolved });
+  } catch (e) {
+    if (e instanceof SupabaseUnavailableError) {
+      process.stderr.write(`summit: ${e.message}\n`);
+      return new Map();
+    }
+    throw e;
+  }
 }
