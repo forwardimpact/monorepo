@@ -1,7 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 
-import { common } from "../index.js";
+import { common } from "../src/index.js";
 
 describe("libtype", () => {
   describe("Simple type", () => {

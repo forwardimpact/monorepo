@@ -114,7 +114,7 @@ export class Finder {
    */
   findGeneratedPath(projectRoot, packageName) {
     const packagePath = this.findPackagePath(projectRoot, packageName);
-    return path.join(packagePath, "generated");
+    return path.join(packagePath, "src", "generated");
   }
 
   /**
@@ -138,6 +138,9 @@ export class Finder {
     } catch {
       // Target doesn't exist, which is fine
     }
+
+    // Ensure the target's parent directory exists before symlinking
+    await fsAsync.mkdir(path.dirname(targetPath), { recursive: true });
 
     // Create the symlink
     await fsAsync.symlink(sourcePath, targetPath, "dir");

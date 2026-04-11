@@ -1,7 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 
-import { common, resource } from "../index.js";
+import { common, resource } from "../src/index.js";
 
 describe("Universal Resource Identifier", () => {
   test("Resource has an identifier", () => {

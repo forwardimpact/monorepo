@@ -6,7 +6,7 @@ import {
   createHealthHandlers,
   ServingStatus,
   Server,
-} from "../index.js";
+} from "../src/index.js";
 import {
   createMockConfig,
   createMockGrpcFn,

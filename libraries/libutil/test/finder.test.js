@@ -238,8 +238,13 @@ describe("Finder", () => {
       await finder.createPackageSymlinks(generatedPath);
 
       // Check that symlinks were created
-      const libtypeTarget = path.join(packagesDir, "libtype", "generated");
-      const librpcTarget = path.join(packagesDir, "librpc", "generated");
+      const libtypeTarget = path.join(
+        packagesDir,
+        "libtype",
+        "src",
+        "generated",
+      );
+      const librpcTarget = path.join(packagesDir, "librpc", "src", "generated");
 
       assert.ok(fs.existsSync(libtypeTarget));
       assert.ok(fs.lstatSync(libtypeTarget).isSymbolicLink());
@@ -352,7 +357,7 @@ describe("Finder", () => {
 
       const result = finder.findGeneratedPath(projectRoot, "libtype");
 
-      assert.strictEqual(result, path.join(packagePath, "generated"));
+      assert.strictEqual(result, path.join(packagePath, "src", "generated"));
     });
   });
 });

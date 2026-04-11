@@ -1,7 +1,7 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
-import { createAuth, HmacAuth } from "../index.js";
+import { createAuth, HmacAuth } from "../src/index.js";
 
 describe("Auth", () => {
   describe("HmacAuth", () => {

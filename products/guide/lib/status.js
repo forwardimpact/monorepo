@@ -72,8 +72,8 @@ function checkWebHealth(config, fetchFn = fetch, timeoutMs = 2000) {
  */
 async function queryDataInventory(graphConfig) {
   try {
-    const { GraphClient } =
-      await import("@forwardimpact/librpc/generated/services/graph/client.js");
+    const { clients } = await import("@forwardimpact/librpc");
+    const { GraphClient } = clients;
     const { graph } = await import("@forwardimpact/libtype");
 
     const client = new GraphClient(graphConfig);

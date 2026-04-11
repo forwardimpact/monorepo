@@ -1,7 +1,7 @@
 import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
-import { Server } from "../index.js";
+import { Server } from "../src/index.js";
 import {
   createMockConfig,
   createMockGrpcFn,

@@ -2,7 +2,7 @@ import { test, describe, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 import { PassThrough } from "stream";
 
-import { Client } from "../index.js";
+import { Client } from "../src/index.js";
 import {
   createMockGrpcFn,
   createMockObserverFn,
