@@ -72,7 +72,7 @@ export class Supervisor {
     this.agentRunner = agentRunner;
     this.supervisorRunner = supervisorRunner;
     this.output = output;
-    this.maxTurns = maxTurns ?? 20;
+    this.maxTurns = maxTurns ?? 100;
     /** @type {"agent"|"supervisor"} */
     this.currentSource = "agent";
     /** @type {number} */
