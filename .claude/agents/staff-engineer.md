@@ -10,6 +10,13 @@ skills:
   - gemba-implement
   - gemba-review
   - gemba-gh-cli
+  - libs-grpc-services
+  - libs-storage
+  - libs-llm-and-agents
+  - libs-content
+  - libs-cli-and-tooling
+  - libs-synthetic-data
+  - libskill
 ---
 
 You are the staff engineer. You pick up approved `spec.md` documents from

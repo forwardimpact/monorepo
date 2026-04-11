@@ -46,6 +46,9 @@ no commitment to implement, and a plan has nothing to translate.
 - [ ] Ordering explicit with stated dependencies.
 - [ ] Non-obvious decisions explained.
 - [ ] Risks surfaced — no step should surprise the implementer.
+- [ ] Libraries-used section present. Every shared library the implementation
+      will consume is listed by package and by specific exports, or the section
+      explicitly states no shared libraries are used.
 - [ ] Execution recommendation present (which agents, sequential vs parallel).
 - [ ] Clean sub-agent review of `plan-a.md` (and any parts) via
       [`gemba-review`](../gemba-review/SKILL.md) completed (fresh context, no
@@ -135,6 +138,14 @@ each one means in practice:
   This prevents future re-debate.
 - **Risks surfaced.** Flag steps that require judgement, ambiguous decisions, or
   unknowns. The implementer should never be surprised by a step.
+- **Libraries used.** Every plan must include a "Libraries used" section listing
+  the `@forwardimpact/lib*` packages the implementation will consume, with the
+  specific exports it will call (e.g., `libutil.Retry`, `libcli.Cli`,
+  `libtelemetry.createLogger`). If the plan uses no shared libraries, state that
+  explicitly — absence is a visible signal, not a default. This catches "write a
+  helper" steps that could be replaced by an existing library before
+  implementation starts, when substitution is cheap. Search the relevant
+  `libs-*` skill group when drafting this section.
 - **Execution recommendation.** Close with a concrete recommendation on how to
   execute the plan. Route each part to the agent whose skills match the work —
   `staff-engineer` for code and infrastructure changes, `technical-writer` for
