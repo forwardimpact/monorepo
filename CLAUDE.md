@@ -261,15 +261,14 @@ not need DI.
 Library skills are organized into capability groups with corresponding skill
 files in [.claude/skills/](.claude/skills/):
 
-- **`libs-service-infrastructure`** — librpc, libconfig, libtelemetry, libtype,
+- **`libs-grpc-services`** — librpc, libconfig, libtelemetry, libtype,
   libharness
-- **`libs-data-persistence`** — libstorage, libindex, libresource, libpolicy,
-  libgraph, libvector
-- **`libs-llm-orchestration`** — libllm, libmemory, libprompt, libagent, libtool
-- **`libs-web-presentation`** — libui, libformat, libweb, libdoc, libtemplate,
-  libcli, librepl
-- **`libs-system-utilities`** — libutil, libsecret, libsupervise, librc,
-  libcodegen, libeval
+- **`libs-storage`** — libstorage, libindex, libresource, libpolicy, libgraph,
+  libvector
+- **`libs-llm-and-agents`** — libllm, libmemory, libprompt, libagent, libtool
+- **`libs-content`** — libui, libformat, libweb, libdoc, libtemplate
+- **`libs-cli-and-tooling`** — libcli, librepl, libutil, libsecret,
+  libsupervise, librc, libcodegen, libeval
 - **`libs-synthetic-data`** — libsyntheticgen, libsyntheticprose,
   libsyntheticrender, libuniverse
 
