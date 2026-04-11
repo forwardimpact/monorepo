@@ -152,11 +152,15 @@ Before pushing, launch a fresh sub-agent (via the `Agent` tool, no prior
 conversation context) and ask it to review the full diff
 (`git diff origin/main...HEAD`) against `spec.md`, the plan, and CONTRIBUTING.md
 § Core Rules. Give the reviewer enough context to act independently — spec path,
-plan path, branch name — and instruct it to return findings grouped by severity:
-**blocker**, **high**, **medium**, **low**.
+plan path, branch name.
+
+The reviewer must **return findings only** — tell it explicitly not to invoke
+the `gemba-implement` skill (or any other skill) and not to spawn its own
+sub-agents. This prevents recursion. Grade findings using the shared vocabulary
+in [`gemba-spec` § Review Severity](../gemba-spec/SKILL.md#review-severity).
 
 Address every **blocker**, **high**, and **medium** finding before pushing.
-Low-severity findings are optional. If the reviewer raises blockers you disagree
+**Low** findings are optional. If the reviewer raises blockers you disagree
 with, resolve the disagreement explicitly (fix the code, or record the rationale
 for dismissal in the commit message) — silent dismissal is not allowed.
 

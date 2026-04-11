@@ -192,12 +192,15 @@ from prior `staff-engineer` entries.
 5. **Clean sub-agent review.** Before advancing status, launch a fresh sub-agent
    (via the `Agent` tool, no prior conversation context) and ask it to review
    `plan-a.md` (and any `plan-a-NN.md` parts) against this skill's DO-CONFIRM
-   checklist and the qualities in "Writing a Plan". Instruct it to return
-   findings grouped by severity — **blocker**, **high**, **medium**, **low**.
-   Address every blocker, high, and medium finding before moving on.
-   Low-severity findings are optional. If the reviewer raises blockers you
-   disagree with, resolve the disagreement explicitly (revise, or record the
-   rationale for dismissal) — silent dismissal is not allowed.
+   checklist and the qualities in "Writing a Plan". The reviewer must **return
+   findings only** — tell it explicitly not to invoke the `gemba-plan` skill or
+   any other skill, and not to spawn its own sub-agents. This prevents
+   recursion. Grade findings using the shared vocabulary in
+   [`gemba-spec` § Review Severity](../gemba-spec/SKILL.md#review-severity).
+   Address every **blocker**, **high**, and **medium** finding before moving on.
+   **Low** findings are optional. If the reviewer raises blockers you disagree
+   with, resolve the disagreement explicitly (revise, or record the rationale
+   for dismissal) — silent dismissal is not allowed.
 6. **Present the plan.** Share it for feedback.
 7. **Update STATUS.** When both spec and plan are approved, advance the spec's
    status from `review` to `planned`. Do not advance while the plan is still
