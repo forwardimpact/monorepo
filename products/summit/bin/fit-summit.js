@@ -15,6 +15,7 @@ import { fileURLToPath } from "node:url";
 import { createCli } from "@forwardimpact/libcli";
 
 import { runCoverageCommand } from "../src/commands/coverage.js";
+import { runRisksCommand } from "../src/commands/risks.js";
 import { runRosterCommand } from "../src/commands/roster.js";
 import { runValidateCommand } from "../src/commands/validate.js";
 import { loadMapData, resolveDataDir } from "../src/lib/cli.js";
@@ -28,6 +29,7 @@ const VERSION = JSON.parse(
 
 const COMMANDS = {
   coverage: runCoverageCommand,
+  risks: runRisksCommand,
   roster: runRosterCommand,
   validate: runValidateCommand,
 };
@@ -41,6 +43,11 @@ const definition = {
       name: "coverage",
       args: "<team>",
       description: "Show capability coverage",
+    },
+    {
+      name: "risks",
+      args: "<team>",
+      description: "Show structural risks",
     },
     { name: "roster", args: "", description: "Show current roster" },
     { name: "validate", args: "", description: "Validate roster file" },

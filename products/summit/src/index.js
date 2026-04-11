@@ -19,7 +19,12 @@ export {
 export {
   computeCoverage,
   computeEffectiveDepth,
+  CONCENTRATION_THRESHOLD,
   derivePersonMatrix,
+  detectConcentrationRisks,
+  detectCriticalGaps,
+  detectRisks,
+  detectSinglePointsOfFailure,
   EmptyTeamError,
   meetsWorking,
   resolveTeam,

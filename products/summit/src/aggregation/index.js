@@ -16,3 +16,10 @@ export {
   TeamNotFoundError,
   UnknownJobFieldError,
 } from "./errors.js";
+export {
+  CONCENTRATION_THRESHOLD,
+  detectConcentrationRisks,
+  detectCriticalGaps,
+  detectRisks,
+  detectSinglePointsOfFailure,
+} from "./risks.js";
