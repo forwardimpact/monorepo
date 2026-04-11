@@ -1,12 +1,11 @@
 ---
 name: libs-synthetic-data
 description: >
-  Synthetic data generation for testing and development. libsyntheticgen provides
-  DSL parsing and deterministic entity generation. libsyntheticprose generates
-  prose content and pathway frameworks via LLM. libsyntheticrender renders
-  entities to HTML, Markdown, YAML, and raw formats with validation. Use when
-  generating example data, creating synthetic frameworks, or modifying the
-  generation pipeline.
+  Use when parsing the universe DSL, generating deterministic entity graphs,
+  generating LLM prose or pathway framework content, rendering synthetic
+  entities to HTML, Markdown, YAML, or raw documents, validating cross-content
+  integrity and link density, running the full parse → generate → render →
+  validate pipeline, or loading generated content to Supabase.
 ---
 
 # Synthetic Data Libraries
@@ -22,11 +21,12 @@ description: >
 
 ## Libraries
 
-| Library            | Main API                                           | Purpose                                                  |
-| ------------------ | -------------------------------------------------- | -------------------------------------------------------- |
-| libsyntheticgen    | `DslParser`, `EntityGenerator`, `createSeededRNG`  | DSL parsing, deterministic entity generation, vocabulary |
-| libsyntheticprose  | `ProseEngine`, `PathwayGenerator`                  | LLM prose generation, pathway framework data             |
-| libsyntheticrender | `Renderer`, `ContentValidator`, `ContentFormatter` | Multi-format rendering, validation, formatting           |
+| Library            | Capabilities                                                                                                                            | Key Exports                                                                                                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| libsyntheticgen    | Parse the universe DSL, generate deterministic entity graphs, seed RNG for reproducibility, share proficiency/maturity/stage vocabulary | `DslParser`, `createDslParser`, `EntityGenerator`, `createEntityGenerator`, `createSeededRNG`, `collectProseKeys`, `PROFICIENCY_LEVELS`, `MATURITY_LEVELS`, `STAGE_NAMES`           |
+| libsyntheticprose  | Generate LLM prose content with a stable cache key; produce pathway framework data across levels, behaviours, and capabilities          | `ProseEngine`, `createProseEngine`, `PathwayGenerator`, `loadSchemas`                                                                                                               |
+| libsyntheticrender | Render entities to HTML, Markdown, YAML, or raw documents; validate cross-content integrity and link density                            | `Renderer`, `createRenderer`, `ContentValidator`, `ContentFormatter`, `validateCrossContent`, `formatContent`, `generateDrugs`, `generatePlatforms`, `assignLinks`, `validateLinks` |
+| libuniverse        | Run the full parse → generate → render → validate pipeline; load generated content to Supabase                                          | `Pipeline`, `loadToSupabase`                                                                                                                                                        |
 
 ## Decision Guide
 

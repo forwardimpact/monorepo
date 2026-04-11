@@ -1,14 +1,15 @@
 ---
-name: libs-web-presentation
+name: libs-content
 description: >
-  Web presentation and content rendering. libui provides DOM helpers, reactive
-  state, and routing for web apps. libformat converts markdown to HTML or ANSI.
-  libweb provides auth, CORS, and validation middleware for Hono. libdoc builds
-  static documentation sites. libtemplate loads Mustache templates. Use when
-  building web interfaces, rendering content, or serving documentation.
+  Use when building interactive web pages with DOM helpers, reactive state, or
+  SPA routing; rendering markdown content as sanitized HTML or as ANSI terminal
+  output; adding JWT auth, CORS, or input validation middleware to a Hono app;
+  building a static documentation site from markdown folders; loading Mustache
+  templates with defaults-plus-overrides resolution; wrapping a UI component in
+  an error boundary; or converting markdown to HTML for an API response.
 ---
 
-# Web Presentation
+# Content
 
 ## When to Use
 
@@ -20,13 +21,13 @@ description: >
 
 ## Libraries
 
-| Library     | Main API                                                   | Purpose                                             |
-| ----------- | ---------------------------------------------------------- | --------------------------------------------------- |
-| libui       | `createElement`, `createRouter`, `createStore`             | Functional DOM helpers, SPA routing, reactive state |
-| libformat   | `HtmlFormatter`, `TerminalFormatter`                       | Markdown to HTML or ANSI conversion                 |
-| libweb      | `AuthMiddleware`, `CorsMiddleware`, `ValidationMiddleware` | Security middleware for Hono                        |
-| libdoc      | `DocsBuilder`, `DocsServer`, `parseFrontMatter`            | Static documentation site generation                |
-| libtemplate | `TemplateLoader`, `createTemplateLoader`                   | Mustache template loading with overrides            |
+| Library     | Capabilities                                                                                                               | Key Exports                                                                                                                              |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| libui       | Create DOM elements, reactive state, stores, and SPA routers; wrap components in error boundaries; render markdown to HTML | `createElement`, `createRouter`, `createPagesRouter`, `createStore`, `createReactive`, `withErrorBoundary`, `markdownToHtml`             |
+| libformat   | Convert markdown to sanitized HTML or ANSI terminal output                                                                 | `HtmlFormatter`, `TerminalFormatter`, `createHtmlFormatter`, `createTerminalFormatter`                                                   |
+| libweb      | Add JWT auth, CORS, or request validation middleware to a Hono application                                                 | `AuthMiddleware`, `CorsMiddleware`, `ValidationMiddleware`, `createAuthMiddleware`, `createCorsMiddleware`, `createValidationMiddleware` |
+| libdoc      | Build a static documentation site with front matter, llms.txt, sitemap; serve markdown files locally                       | `DocsBuilder`, `DocsServer`, `parseFrontMatter`                                                                                          |
+| libtemplate | Load Mustache templates from a package defaults directory with per-installation override support                           | `TemplateLoader`, `createTemplateLoader`                                                                                                 |
 
 ## Decision Guide
 
@@ -106,8 +107,8 @@ const formatter = new HtmlFormatter(sanitize, marked);
 // createHtmlFormatter — factory, auto-injects production deps
 const formatter = createHtmlFormatter();
 
-// TerminalFormatter — accepts markedTerminal module
-const formatter = new TerminalFormatter(markedTerminal);
+// TerminalFormatter — accepts Marked module and markedTerminal plugin
+const formatter = new TerminalFormatter(marked, markedTerminal);
 
 // createTerminalFormatter — factory
 const formatter = createTerminalFormatter();
@@ -123,7 +124,11 @@ app.use(auth.create({ optional: true }));
 
 // ValidationMiddleware — factory, no config
 const validation = createValidationMiddleware();
-app.post("/path", validation.create({ required: ["field"], types: { field: "string" } }), handler);
+app.post(
+  "/path",
+  validation.create({ required: ["field"], types: { field: "string" } }),
+  handler,
+);
 
 // CorsMiddleware — factory, no config
 const cors = createCorsMiddleware();
@@ -182,3 +187,10 @@ const loader = createTemplateLoader(defaultsDir);
 - Use the `yaml` package (not `js-yaml`) for YAML parsing
 - Use `marked` ^15.x for markdown parsing
 - Run `just audit-vulnerabilities` after adding dependencies
+
+## Cross-references
+
+- For CLI rendering helpers (tables, colorized output, help text), see
+  `libs-cli-and-tooling` — `libcli` is the canonical CLI infrastructure.
+- For structured logging from web apps and CLIs, see `libs-grpc-services` —
+  `libtelemetry.createLogger` is the repository-wide logger.

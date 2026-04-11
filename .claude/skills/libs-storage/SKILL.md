@@ -1,14 +1,15 @@
 ---
-name: libs-data-persistence
+name: libs-storage
 description: >
-  Data persistence and retrieval. libstorage provides multi-backend file storage
-  (local, S3, Supabase). libindex provides JSONL-backed indexes. libresource
-  adds typed resources with authorization. libpolicy evaluates access control.
-  libgraph stores RDF triples. libvector stores embeddings for similarity
-  search. Use when persisting, querying, or securing data.
+  Use when persisting files or structured records to local, S3, or Supabase
+  storage; reading or writing JSONL collections with filtering; storing typed
+  resources behind access control; evaluating access policies; querying
+  knowledge graphs with RDF triple patterns; indexing embeddings for semantic
+  similarity search; parsing or serializing JSON and JSON Lines; locating
+  resources by URI prefix or identifier.
 ---
 
-# Data Persistence
+# Storage
 
 ## When to Use
 
@@ -20,30 +21,31 @@ description: >
 
 ## Libraries
 
-| Library     | Main API                                     | Purpose                                          |
-| ----------- | -------------------------------------------- | ------------------------------------------------ |
-| libstorage  | `createStorage`, `parseJsonl`                | Multi-backend file storage (local, S3, Supabase) |
-| libindex    | `Index`, `BufferedIndex`                     | JSONL storage with filtering                     |
-| libresource | `ResourceIndex`, `createResourceIndex`       | Typed resources with authorization               |
-| libpolicy   | `PolicyIndex`, `createPolicyIndex`           | Access control policy evaluation                 |
-| libgraph    | `GraphIndex`, `createGraphIndex`, `PREFIXES` | RDF triple storage and pattern queries           |
-| libvector   | `VectorIndex`, `VectorProcessor`             | Embedding storage and cosine similarity search   |
+| Library     | Capabilities                                                                                           | Key Exports                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| libstorage  | Read or write files to local, S3, or Supabase backends; parse or serialize JSON and JSON Lines content | `createStorage`, `LocalStorage`, `S3Storage`, `fromJsonLines`, `toJsonLines`           |
+| libindex    | Build JSONL-backed indexes with filtering, buffered writes, and prefix scans                           | `IndexBase`, `BufferedIndex`                                                           |
+| libresource | Store and retrieve typed resources with identifier handling and access control via a policy engine     | `ResourceIndex`, `createResourceIndex`, `toType`, `toIdentifier`                       |
+| libpolicy   | Evaluate access control policies against actor/resource tuples                                         | `Policy`, `createPolicy`                                                               |
+| libgraph    | Store RDF triples and query knowledge graphs with subject/predicate/object patterns                    | `createGraphIndex`, `parseGraphQuery`, `isWildcard`, `RDF_PREFIXES`, `ShaclSerializer` |
+| libvector   | Compute vector similarity; index embeddings for cosine similarity search via subpath entry points      | `calculateDotProduct`                                                                  |
 
 ## Decision Guide
 
 - **libstorage vs libindex** — `createStorage` for raw file operations
-  (get/put/list/delete). `Index` for structured records stored as JSONL with
+  (get/put/list/delete). `IndexBase` for structured records stored as JSONL with
   filtering logic.
-- **libindex vs libresource** — `Index` for simple JSONL collections where you
-  control the schema. `ResourceIndex` for typed entities that need access
+- **libindex vs libresource** — `IndexBase` for simple JSONL collections where
+  you control the schema. `ResourceIndex` for typed entities that need access
   control and policy evaluation.
-- **libgraph vs libvector** — `GraphIndex` for relationship queries (who reports
-  to whom, what skills belong to a capability). `VectorIndex` for semantic
-  similarity (find documents matching a query by embedding distance).
-- **libpolicy** — always used through `ResourceIndex`, rarely accessed directly.
-  Only use `PolicyIndex` directly when building custom authorization flows
-  outside the resource system.
-- **BufferedIndex** — use instead of `Index` for high-volume write workloads
+- **libgraph vs libvector** — `createGraphIndex` for relationship queries (who
+  reports to whom, what skills belong to a capability). `VectorIndex` (imported
+  from `@forwardimpact/libvector/index/vector.js`) for semantic similarity (find
+  documents matching a query by embedding distance).
+- **libpolicy** — usually used through `ResourceIndex`, rarely accessed
+  directly. Only use `Policy`/`createPolicy` directly when building custom
+  authorization flows outside the resource system.
+- **BufferedIndex** — use instead of `IndexBase` for high-volume write workloads
   that benefit from periodic flushing.
 
 ## Composition Recipes
@@ -53,29 +55,26 @@ description: >
 ```javascript
 import { createStorage } from "@forwardimpact/libstorage";
 import { createResourceIndex } from "@forwardimpact/libresource";
-import { createPolicyIndex } from "@forwardimpact/libpolicy";
+import { createPolicy } from "@forwardimpact/libpolicy";
 
-const storage = createStorage(config);
-const policyIndex = await createPolicyIndex(storage);
-const resourceIndex = await createResourceIndex(storage, policyIndex);
+const policy = createPolicy();
+const resourceIndex = createResourceIndex("conversations", policy);
 
-await resourceIndex.save(resource);
-const result = await resourceIndex.get("conversation:abc123", actor);
+await resourceIndex.put(resource);
+const results = await resourceIndex.get(["conversation:abc123"], actor);
 ```
 
 ### Recipe 2: Build a knowledge graph
 
 ```javascript
-import { createStorage } from "@forwardimpact/libstorage";
-import { createGraphIndex, PREFIXES } from "@forwardimpact/libgraph";
+import { createGraphIndex, RDF_PREFIXES } from "@forwardimpact/libgraph";
 
-const storage = createStorage(config);
-const graphIndex = await createGraphIndex(storage, "knowledge");
+const graphIndex = createGraphIndex("knowledge");
 
 await graphIndex.addTriple(subject, predicate, object);
 const results = await graphIndex.query(
-  `${PREFIXES.schema}Person`,
-  `${PREFIXES.schema}name`,
+  `${RDF_PREFIXES.schema}Person`,
+  `${RDF_PREFIXES.schema}name`,
   "?",
 );
 ```
@@ -84,20 +83,21 @@ const results = await graphIndex.query(
 
 ```javascript
 import { createStorage } from "@forwardimpact/libstorage";
-import { VectorIndex, VectorProcessor } from "@forwardimpact/libvector";
+import { VectorIndex } from "@forwardimpact/libvector/index/vector.js";
+import { VectorProcessor } from "@forwardimpact/libvector/processor/vector.js";
 import { createResourceIndex } from "@forwardimpact/libresource";
 
-const storage = createStorage(config);
+const storage = createStorage("content");
 const vectorIndex = new VectorIndex(storage, "content");
-const resourceIndex = await createResourceIndex(storage, policyIndex);
-const processor = new VectorProcessor(vectorIndex, resourceIndex, llmClient, logger);
+const resourceIndex = createResourceIndex("content");
+const processor = new VectorProcessor(
+  vectorIndex,
+  resourceIndex,
+  llmClient,
+  logger,
+);
 
 await processor.index(documents);
-const results = await vectorIndex.search(queryVector, {
-  limit: 10,
-  threshold: 0.7,
-  filter: { type: "document" },
-});
 ```
 
 ## DI Wiring
@@ -105,58 +105,59 @@ const results = await vectorIndex.search(queryVector, {
 ### libstorage
 
 ```javascript
-// createStorage — factory, returns backend based on config
-const storage = createStorage(config);
+// createStorage — factory, returns backend based on config and env
+const storage = createStorage("bucket-name", "local");
 
 // JSONL utilities — pure functions, no DI
-import { parseJsonl, serializeJsonl } from "@forwardimpact/libstorage";
+import { fromJsonLines, toJsonLines } from "@forwardimpact/libstorage";
 ```
 
 ### libindex
 
 ```javascript
-// Index — accepts storage and prefix
-class UserIndex extends Index {
+// IndexBase — accepts storage
+class UserIndex extends IndexBase {
   constructor(storage) {
     super(storage, "users");
   }
 }
 
-// BufferedIndex — accepts storage, prefix, and options
+// BufferedIndex — accepts storage and options
 const index = new BufferedIndex(storage, "logs", { flushInterval: 5000 });
 ```
 
 ### libresource
 
 ```javascript
-// ResourceIndex — factory accepts storage and policyIndex
-const index = await createResourceIndex(storage, policyIndex);
+// ResourceIndex — factory accepts prefix and optional policy
+const index = createResourceIndex("conversations");
 
-// toResourceId — pure function
-import { toResourceId } from "@forwardimpact/libresource";
-const id = toResourceId("conversation:abc123");
+// toIdentifier / toType — pure functions
+import { toIdentifier, toType } from "@forwardimpact/libresource";
+const id = toIdentifier("conversation/common.Message.abc123");
 ```
 
 ### libpolicy
 
 ```javascript
-// PolicyIndex — factory accepts storage
-const index = await createPolicyIndex(storage);
+// createPolicy — factory, optional storage backend
+const policy = createPolicy();
 ```
 
 ### libgraph
 
 ```javascript
-// GraphIndex — factory accepts storage and prefix
-const index = await createGraphIndex(storage, "knowledge");
+// createGraphIndex — factory accepts prefix
+const index = createGraphIndex("knowledge");
 ```
 
 ### libvector
 
 ```javascript
-// VectorIndex — accepts storage and prefix
-const index = new VectorIndex(storage, "content");
+// VectorIndex lives at subpath to avoid circular dependency on libindex
+import { VectorIndex } from "@forwardimpact/libvector/index/vector.js";
+import { VectorProcessor } from "@forwardimpact/libvector/processor/vector.js";
 
-// VectorProcessor — accepts vectorIndex, resourceIndex, llmClient, logger
-const processor = new VectorProcessor(vectorIndex, resourceIndex, llmClient, logger);
+const index = new VectorIndex(storage, "content");
+const processor = new VectorProcessor(index, resourceIndex, llmClient, logger);
 ```
