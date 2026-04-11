@@ -97,10 +97,10 @@ in those packages resolve correctly.
 
 | Module               | Purpose                                                      |
 | -------------------- | ------------------------------------------------------------ |
-| `base.js`            | Shared utilities: proto parsing, template loading, rendering |
-| `types.js`           | Proto-to-JavaScript type compilation via `pbjs`              |
-| `services.js`        | Service base class and client stub generation                |
-| `definitions.js`     | Pre-compiled gRPC definition generation                      |
+| `src/base.js`        | Shared utilities: proto parsing, template loading, rendering |
+| `src/types.js`       | Proto-to-JavaScript type compilation via `pbjs`              |
+| `src/services.js`    | Service base class and client stub generation                |
+| `src/definitions.js` | Pre-compiled gRPC definition generation                      |
 | `bin/fit-codegen.js` | CLI entry point: discovery, orchestration, bundling          |
 | `templates/`         | Mustache templates for generated artifacts                   |
 
@@ -110,13 +110,16 @@ in those packages resolve correctly.
 
 `librpc` imports generated code via relative paths:
 
-- `librpc/index.js` imports `./generated/services/exports.js` (service bases and
-  clients)
-- `librpc/base.js` imports `./generated/definitions/exports.js` (service
+- `librpc/src/index.js` imports `./generated/services/exports.js` (service bases
+  and clients)
+- `librpc/src/base.js` imports `./generated/definitions/exports.js` (service
   definitions for gRPC registration)
 
-These paths resolve through the symlink created by `fit-codegen` during the
-symlink step.
+These paths resolve through the per-package symlink that `fit-codegen` creates
+at `libraries/librpc/src/generated` (and `libraries/libtype/src/generated`)
+pointing at the monorepo-root `generated/` directory. The symlinks live under
+`src/` so they travel with the importing files and the package root stays free
+of generated code.
 
 ---
 

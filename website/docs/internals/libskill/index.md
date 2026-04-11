@@ -5,20 +5,20 @@ description: "Derivation engine — key functions, module index, imports, and te
 
 ## Module Index
 
-| Module           | Purpose                                                 |
-| ---------------- | ------------------------------------------------------- |
-| `derivation.js`  | Core derivation functions (skills, behaviours, drivers) |
-| `agent.js`       | Agent profile generation                                |
-| `job.js`         | Job preparation for display                             |
-| `job-cache.js`   | Job caching for performance                             |
-| `interview.js`   | Interview question selection                            |
-| `progression.js` | Career path analysis and gap identification             |
-| `checklist.js`   | Stage transition checklist derivation                   |
-| `toolkit.js`     | Tool derivation from skill references                   |
-| `profile.js`     | Profile filtering (human + agent)                       |
-| `modifiers.js`   | Capability and skill modifier resolution                |
-| `matching.js`    | Job matching and gap analysis                           |
-| `policies/`      | Ordering, sorting, filtering, and threshold policies    |
+| Module               | Purpose                                                 |
+| -------------------- | ------------------------------------------------------- |
+| `src/derivation.js`  | Core derivation functions (skills, behaviours, drivers) |
+| `src/agent.js`       | Agent profile generation                                |
+| `src/job.js`         | Job preparation for display                             |
+| `src/job-cache.js`   | Job caching for performance                             |
+| `src/interview.js`   | Interview question selection                            |
+| `src/progression.js` | Career path analysis and gap identification             |
+| `src/checklist.js`   | Stage transition checklist derivation                   |
+| `src/toolkit.js`     | Tool derivation from skill references                   |
+| `src/profile.js`     | Profile filtering (human + agent)                       |
+| `src/modifiers.js`   | Capability and skill modifier resolution                |
+| `src/matching.js`    | Job matching and gap analysis                           |
+| `src/policies/`      | Ordering, sorting, filtering, and threshold policies    |
 
 libskill is pure-function by design and intentionally exempt from OO+DI. All
 functions are stateless and side-effect-free.

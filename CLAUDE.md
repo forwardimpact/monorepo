@@ -142,36 +142,28 @@ environment, so testing with an LLM will always "just work".
 
 ## Structure
 
+### Monorepo layout
+
 ```
 products/
-  map/                 # fit-map — data product, validation
-    schema/json/       #   JSON Schema
-    schema/rdf/        #   RDF/SHACL
-    starter/           #   framework YAML (installs to data/pathway/)
-  pathway/             # fit-pathway — web app, CLI, formatters
-    src/formatters/    #   output formatters
-  basecamp/            # fit-basecamp — knowledge system, scheduler
-    template/          #   KB template
-  guide/               # fit-guide — LLM agent, artifact interpretation
-  landmark/            # fit-landmark — signal analysis on Map data
-  summit/              # fit-summit — team capability as a system
+  map/       # fit-map — data product, validation, schema, starter YAML
+  pathway/   # fit-pathway — web app, CLI, formatters
+  basecamp/  # fit-basecamp — knowledge system, scheduler, macOS app
+  guide/     # fit-guide — LLM agent, artifact interpretation
 libraries/
-  libcli/              # CLI infrastructure, help, arg parsing, formatting
-  libskill/            # derivation logic, job/agent models
-  libuniverse/         # fit-universe — synthetic data DSL and generation
-  libui/               # web UI framework, components, CSS
-  libdoc/              # fit-doc — documentation build/serve
+  lib*/      # shared infrastructure and domain libraries
 services/
   agent/ graph/ llm/ memory/ pathway/ tool/ trace/ vector/ web/
 config/
-  config.json          # service definitions, model settings, eval config
-  tools.yml            # tool endpoint definitions
-  agents/              # agent prompt files (*.agent.md)
+  config.json  # service definitions, model settings, eval config
+  tools.yml    # tool endpoint definitions
+  agents/      # agent prompt files (*.agent.md)
 data/
-  synthetic/           # synthetic data DSL and generated artifacts
+  synthetic/   # synthetic data DSL and generated artifacts
 specs/
-  {feature}/           # feature specifications and plans
-wiki/                  # GitHub wiki submodule — internal notes and shared agent memory
+  {feature}/   # feature specifications and plans
+wiki/          # GitHub wiki submodule — shared agent memory
+website/       # public site content and docs
 ```
 
 Git tracks `*.example.*` templates in `config/` — the live files above are
@@ -179,6 +171,77 @@ gitignored and created from examples during setup.
 
 Data-driven: entities defined in YAML, each external installation may have
 completely different framework data while using the same product code.
+
+### Per-package layout
+
+Every package under `products/`, `services/`, and `libraries/` follows the same
+on-disk shape (spec 390). Source files live under `src/`; the package root
+carries only metadata, declared CLI binaries, and published non-source assets.
+
+```
+<package>/
+  package.json     Required
+  justfile         Per-package task runner (optional)
+  src/             All source files (index.js + any domain subdirs)
+  bin/             One file per declared CLI binary — thin entry points only
+  config/          Checked-in configuration files (optional)
+  macos/           Packaged macOS app bundle, if the package ships one (optional)
+  pkg/             Packaging / distribution artifacts, non-source (optional)
+  proto/           Protobuf source files (optional)
+  schema/          Published schemas (JSON Schema, SHACL, etc.) (optional)
+  starter/         Starter data that installs to a consumer's data dir (optional)
+  supabase/        Supabase edge project (optional)
+  templates/       Template files consumed at runtime (optional)
+  test/            Test files
+```
+
+Any directory at the package root must be one of: `bin/`, `config/`, `macos/`,
+`pkg/`, `proto/`, `schema/`, `src/`, `starter/`, `supabase/`, `templates/`,
+`test/`. Anything else fails `bun run layout`. Source files live under `src/` —
+no `.js` or `.ts` files at the package root.
+
+`bin/` holds one file per declared CLI binary and nothing else (no
+subdirectories, no shared helpers). Each entry is a thin script that parses argv
+and hands off to code in `src/`. CLI subcommand handlers live under
+`src/commands/` and package-internal helpers live under `src/lib/`.
+
+Published `package.json` `main`, `bin`, and `exports` fields point directly at
+files under `src/`. Consumers import via subpath aliases
+(`@forwardimpact/libskill/derivation`) which the `exports` map resolves to
+`./src/derivation.js`. There is no publish-time build step and no root-level
+proxy file.
+
+### Services — the one exception
+
+Services keep `index.js` and `server.js` at the package root because the runtime
+supervisor and service harness load them by fixed path from
+`config/config.example.json`. Any additional service source files live under
+`src/`. Services do not have a `bin/` directory and do not have `src/index.js`.
+
+```
+services/<name>/
+  index.js   # Service definition / exports (fixed path)
+  server.js  # Entry point for the service process (fixed path)
+  proto/     # Protobuf source (optional — services/web is HTTP-only)
+  src/       # Any additional source files used by index.js/server.js
+  test/
+  package.json
+```
+
+### Per-package `justfile`
+
+A package may carry its own `justfile` at the root for meaningful package-local
+task targets (for example `products/basecamp/justfile`). The top-level
+`justfile` remains the primary entry point; per-package `justfile` files
+complement it.
+
+### Enforcement
+
+`bun run layout` (powered by `scripts/check-package-layout.js`) enforces the
+allowed-root-subdirs contract in strict mode. `bun run check:exports` (powered
+by `scripts/check-exports-resolve.js`) asserts that every published `main`,
+`bin`, and `exports` target resolves to a real file. Both run as part of
+`bun run check` and in the `check-quality` CI workflow.
 
 ## OO+DI Architecture
 

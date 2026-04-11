@@ -312,7 +312,7 @@ const repl = new Repl(
 
 | File                   | Purpose                                    |
 | ---------------------- | ------------------------------------------ |
-| `index.js`             | `Repl` class — constructor, lifecycle, I/O |
+| `src/index.js`         | `Repl` class — constructor, lifecycle, I/O |
 | `test/librepl.test.js` | Unit tests with fully mocked dependencies  |
 
 ---

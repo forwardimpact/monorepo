@@ -38,7 +38,7 @@ bunx fit-universe --only=pathway
 ## Pipeline Architecture
 
 The generation pipeline follows five stages orchestrated by the `Pipeline` class
-in `libraries/libuniverse/pipeline.js`:
+in `libraries/libuniverse/src/pipeline.js`:
 
 ```
 parse -> generate -> prose -> render -> validate

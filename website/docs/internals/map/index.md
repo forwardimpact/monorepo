@@ -15,16 +15,19 @@ products/map/
     modifiers.js    Capability and skill modifier utilities
     index-generator.js  Browser index generation
     index.js        Public API exports
-  schema/           JSON Schema + RDF/SHACL
-    json/           JSON Schema definitions
-    rdf/            RDF/SHACL definitions
-  activity/         Node-only operational helpers
-    validate/       Local-only people validation (uses src/loader.js)
+  src/activity/     Node-only operational helpers
+    validate/       Local-only people validation (uses ../loader.js)
     queries/        Reusable query functions
       org.js        Organization and team queries
       snapshots.js  GetDX snapshot queries
       evidence.js   Evidence queries
       artifacts.js  GitHub artifact queries
+  src/commands/     CLI subcommand handlers (activity, getdx, init, people,
+                    validate-shacl)
+  src/lib/          Package-internal helpers (client, package-root, supabase-cli)
+  schema/           JSON Schema + RDF/SHACL
+    json/           JSON Schema definitions
+    rdf/            RDF/SHACL definitions
   supabase/         Supabase project (config, migrations, edge functions)
     functions/
       _shared/
@@ -43,17 +46,17 @@ products/map/
 **Pure layer** (`src/`, `schema/`) -- Framework schema, validation, data
 loading. Zero infrastructure dependencies.
 
-**Activity layer** (`supabase/functions/_shared/activity/`, `activity/`) -- ELT
-helpers, query functions, Supabase project configuration, database migrations,
-and edge functions. Canonical extract/transform code lives in
+**Activity layer** (`supabase/functions/_shared/activity/`, `src/activity/`) --
+ELT helpers, query functions, Supabase project configuration, database
+migrations, and edge functions. Canonical extract/transform code lives in
 `_shared/activity/` so both Deno edge functions and the Node CLI share one
-source of truth. `activity/queries/` and `activity/validate/` remain Node-only.
-Both layers ship in the `@forwardimpact/map` npm package so external
+source of truth. `src/activity/queries/` and `src/activity/validate/` remain
+Node-only. Both layers ship in the `@forwardimpact/map` npm package so external
 installations get a complete, deployable data product.
 
-**Layering rule:** `activity/validate/` may import from `src/` (e.g., to
-validate `discipline` values during people validation). `src/` must never import
-from `activity/` or `supabase/`.
+**Layering rule:** `src/activity/validate/` may import from the rest of `src/`
+(e.g., to validate `discipline` values during people validation). Pure-framework
+code under `src/` must not import from `src/activity/` or `supabase/`.
 
 **Join convention:** Framework entity IDs (`discipline`, `level`, `track`,
 `skill_id`, `level_id`, `driver.id`) serve as natural join keys between the

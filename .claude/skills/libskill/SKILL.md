@@ -21,16 +21,18 @@ career progression from schema data.
 
 ```
 libraries/libskill/
-  derivation.js   # Core: deriveSkillMatrix, deriveBehaviourProfile, deriveJob
-  modifiers.js    # Skill modifier resolution
-  profile.js      # Post-processing: filtering, sorting for agents
-  job.js          # Job preparation for display
-  job-cache.js    # Job caching for pages
-  agent.js        # Agent profile/skill generation
-  checklist.js    # Stage transition checklists
-  interview.js    # Interview question selection
-  matching.js     # Job matching logic
-  progression.js  # Career progression analysis
+  src/
+    derivation.js   # Core: deriveSkillMatrix, deriveBehaviourProfile, deriveJob
+    modifiers.js    # Skill modifier resolution
+    profile.js      # Post-processing: filtering, sorting for agents
+    job.js          # Job preparation for display
+    job-cache.js    # Job caching for pages
+    agent.js        # Agent profile/skill generation
+    checklist.js    # Stage transition checklists
+    interview.js    # Interview question selection
+    matching.js     # Job matching logic
+    progression.js  # Career progression analysis
+    policies/       # Ordering, filtering, threshold policies
 ```
 
 ## Key Modules
