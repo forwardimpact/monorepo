@@ -25,7 +25,7 @@ asked for. If they ask for a spec, write the spec and stop.
 
 ## Checklists
 
-<read_do_checklist goal="Ensure the WHAT/WHY boundary when writing a spec"
+<read_do_checklist goal="Ensure the WHAT/WHY boundary when writing a spec">
 
 - [ ] Only produce the deliverable asked for — if asked for a spec, stop after
       the spec. Do not also write a plan.
@@ -133,15 +133,33 @@ status clearly — the caller is responsible for acting on it.
 5. **Clean sub-agent review.** Before advancing status, launch a fresh sub-agent
    (via the `Agent` tool, no prior conversation context) and ask it to review
    `spec.md` against this skill's DO-CONFIRM checklist and the qualities in
-   "Writing a Spec". Instruct it to return findings grouped by severity —
-   **blocker**, **high**, **medium**, **low**. Address every blocker, high, and
-   medium finding before moving on. Low-severity findings are optional. If the
-   reviewer raises blockers you disagree with, resolve the disagreement
-   explicitly (revise, or record the rationale for dismissal) — silent dismissal
-   is not allowed.
+   "Writing a Spec". The reviewer must **return findings only** — tell it
+   explicitly not to invoke the `gemba-spec` skill or any other skill, and not
+   to spawn its own sub-agents. This prevents recursion. Instruct it to grade
+   each finding using the severity vocabulary in
+   [Review Severity](#review-severity) below. Address every **blocker**,
+   **high**, and **medium** finding before moving on. **Low** findings are
+   optional. If the reviewer raises blockers you disagree with, resolve the
+   disagreement explicitly (revise, or record the rationale for dismissal) —
+   silent dismissal is not allowed.
 6. **Present the spec.** Share it for feedback. Iterate until satisfied, then
    set status to `review` — signalling it is ready for formal evaluation. Stop
    here. The plan is the staff engineer's job.
+
+## Review Severity
+
+The clean sub-agent reviewer grades each finding using this vocabulary. It is
+shared with [`gemba-plan`](../gemba-plan/SKILL.md#review-severity) and
+[`gemba-implement`](../gemba-implement/SKILL.md#review-severity) so grading is
+consistent across the spec → plan → implement arc.
+
+- **Blocker** — The work is broken, dangerous, or materially wrong. Must fix
+  before advancing (approving the spec, advancing status, merging code).
+- **High** — A correctness or clarity problem that will cause rework, confusion,
+  or bugs downstream if shipped. Fix before advancing.
+- **Medium** — A real quality or consistency issue worth fixing now while the
+  context is fresh. Fix before advancing.
+- **Low** — Nit or preference. Optional; document if dismissed.
 
 ## What NOT to Do
 

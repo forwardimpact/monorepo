@@ -2,24 +2,41 @@
 name: gemba-ship
 description: >
   Ship the current feature branch: rebase on main, fix conflicts, run checks,
-  squash commits, create a PR, wait for checks, and merge. Use when a feature
-  branch is ready to land on main.
+  open (or reuse) a PR, wait for checks, and squash-merge into main. Use when
+  a feature branch is ready to land.
 ---
 
 # Ship Feature Branch
 
-Take the current feature branch from "ready" to "merged" in one pass.
+Take the current feature branch from "ready" to "merged" in one pass. Atomic
+commits are preserved on the branch and collapsed into a single commit on `main`
+by GitHub's squash merge — so bisect and review stay useful up to the moment of
+merge.
 
 ## When to Use
 
 - The current branch is a feature branch with committed work ready to land.
-- **Not applicable on `main`** — abort immediately if
-  `git branch --show-current` returns `main`.
+- **Not applicable on `main`** — the Step 1 guard aborts the workflow if the
+  current branch is `main`.
 
 ## Prerequisites
 
 See [`gemba-gh-cli`](../gemba-gh-cli/SKILL.md) for `gh` installation and the
 canonical `gh` query shapes used below.
+
+## Checklists
+
+<do_confirm_checklist goal="Confirm the branch is safe to merge into main">
+
+- [ ] Current branch is not `main`.
+- [ ] Rebased cleanly on `origin/main` (no unresolved conflicts).
+- [ ] `bun run check` and `bun run test` pass locally.
+- [ ] PR exists and its body follows the repo's Summary / Test plan template.
+- [ ] All PR checks reported green by `gh pr checks --watch`.
+- [ ] Merge uses `--squash` so the feature lands as a single conventional commit
+      on `main`.
+
+</do_confirm_checklist>
 
 ## Process
 
@@ -27,7 +44,10 @@ canonical `gh` query shapes used below.
 
 ```sh
 branch=$(git branch --show-current)
-[ "$branch" = "main" ] && { echo "refusing to ship from main"; exit 1; }
+if [ "$branch" = "main" ]; then
+  echo "refusing to ship from main" >&2
+  return 1 2>/dev/null || exit 1
+fi
 ```
 
 ### Step 2: Rebase on Main
@@ -51,21 +71,44 @@ bun run test         # unit tests
 
 Do not proceed until all checks pass.
 
-### Step 4: Squash Commits
+### Step 4: Push the Branch
 
 ```sh
-git reset --soft origin/main
-git commit -m "<type>(<scope>): <summary>"
 git push --force-with-lease -u origin "$branch"
 ```
 
-Use the conventional-commit style already in the repo history.
+Keep atomic commits intact — squashing happens at merge time, not here.
 
-### Step 5: Create PR
+### Step 5: Create or Reuse PR
+
+Probe for an existing open PR on this branch before creating one:
 
 ```sh
-gh pr create --base main --head "$branch" --fill
+pr_number=$(gh pr list --head "$branch" --state open \
+  --json number --jq '.[0].number')
 ```
+
+If `pr_number` is empty, create a new PR using the repo's house body template
+(see
+[`gemba-gh-cli/references/commands.md`](../gemba-gh-cli/references/commands.md)):
+
+```sh
+gh pr create --base main --head "$branch" \
+  --title "<type>(<scope>): <summary>" \
+  --body "$(cat <<'EOF'
+## Summary
+
+- <what changed and why>
+
+## Test plan
+
+- [ ] `bun run check`
+- [ ] `bun run test`
+EOF
+)"
+```
+
+If a PR already exists, reuse it — do not open a duplicate.
 
 ### Step 6: Wait for Checks
 
@@ -73,10 +116,15 @@ gh pr create --base main --head "$branch" --fill
 gh pr checks "$branch" --watch
 ```
 
-If any check fails, stop and report — do not attempt code fixes here.
+If any check fails, stop and report — do not attempt code fixes from inside this
+skill. If no workflow runs against the branch at all, abort after a reasonable
+wait and investigate upstream rather than blocking forever.
 
-### Step 7: Merge
+### Step 7: Squash-Merge
 
 ```sh
-gh pr merge "$branch" --merge --delete-branch
+gh pr merge "$branch" --squash --delete-branch
 ```
+
+GitHub collapses the branch into a single conventional-style commit on `main`
+and deletes the remote branch.
