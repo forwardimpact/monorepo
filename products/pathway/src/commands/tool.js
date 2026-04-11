@@ -15,6 +15,8 @@ import {
   formatTable,
   formatHeader,
   formatSubheader,
+  formatBullet,
+  formatError,
 } from "@forwardimpact/libcli";
 
 /**
@@ -50,8 +52,8 @@ export async function runToolCommand({ data, args, options }) {
   const tool = tools.find((t) => t.name.toLowerCase() === name.toLowerCase());
 
   if (!tool) {
-    console.error(`Tool not found: ${name}`);
-    console.error(`Available: ${tools.map((t) => t.name).join(", ")}`);
+    process.stderr.write(formatError(`Tool not found: ${name}`) + "\n");
+    process.stderr.write(`Available: ${tools.map((t) => t.name).join(", ")}\n`);
     process.exit(1);
   }
 
@@ -69,7 +71,7 @@ export async function runToolCommand({ data, args, options }) {
  * @param {number} totalCount - Total tool count
  */
 function formatSummary(tools, totalCount) {
-  console.log(`\n🔧 Tools\n`);
+  process.stdout.write("\n" + formatHeader("\u{1F527} Tools") + "\n\n");
 
   // Show tools sorted by usage count
   const sorted = [...tools].sort((a, b) => b.usages.length - a.usages.length);
@@ -83,15 +85,24 @@ function formatSummary(tools, totalCount) {
         : t.description,
     ]);
 
-  console.log(formatTable(["Tool", "Skills", "Description"], rows));
-  console.log(`\nTotal: ${totalCount} tools`);
-  if (sorted.length > 15) {
-    console.log(`(showing top 15 by usage)`);
-  }
-  console.log(
-    `\nRun 'npx fit-pathway tool --list' for all tool names and descriptions`,
+  process.stdout.write(
+    formatTable(["Tool", "Skills", "Description"], rows) + "\n",
   );
-  console.log(`Run 'npx fit-pathway tool <name>' for details\n`);
+  process.stdout.write(
+    "\n" + formatSubheader(`Total: ${totalCount} tools`) + "\n",
+  );
+  if (sorted.length > 15) {
+    process.stdout.write(formatBullet("(showing top 15 by usage)") + "\n");
+  }
+  process.stdout.write("\n");
+  process.stdout.write(
+    formatBullet(
+      "Run 'npx fit-pathway tool --list' for all tool names and descriptions",
+    ) + "\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway tool <name>' for details") + "\n\n",
+  );
 }
 
 /**
@@ -99,17 +110,16 @@ function formatSummary(tools, totalCount) {
  * @param {Object} tool - Aggregated tool with usages
  */
 function formatDetail(tool) {
-  console.log(formatHeader(`\n🔧 ${tool.name}\n`));
-  console.log(`${tool.description}\n`);
+  process.stdout.write("\n" + formatHeader(`\u{1F527} ${tool.name}`) + "\n\n");
+  process.stdout.write(tool.description + "\n\n");
 
   if (tool.url) {
-    console.log(`Documentation: ${tool.url}\n`);
+    process.stdout.write(`Documentation: ${tool.url}\n\n`);
   }
 
   if (tool.usages.length > 0) {
-    console.log(formatSubheader("Used in Skills\n"));
+    process.stdout.write(formatSubheader("Used in Skills") + "\n\n");
     const rows = tool.usages.map((u) => [u.skillName, u.useWhen]);
-    console.log(formatTable(["Skill", "Use When"], rows));
-    console.log();
+    process.stdout.write(formatTable(["Skill", "Use When"], rows) + "\n\n");
   }
 }

@@ -8,7 +8,7 @@ import { marked } from "marked";
 import mustache from "mustache";
 import prettier from "prettier";
 
-import { createCli } from "@forwardimpact/libcli";
+import { createCli, formatBullet } from "@forwardimpact/libcli";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { DocsBuilder, DocsServer } from "../index.js";
 import { parseFrontMatter } from "../frontmatter.js";
@@ -101,7 +101,7 @@ async function runServe(builder, server, docsDir, distDir, options) {
   }
 
   server.serve(distDir, { port: options.port, hostname: "0.0.0.0" });
-  console.log("Press Ctrl+C to stop");
+  process.stdout.write(formatBullet("Press Ctrl+C to stop") + "\n");
 }
 
 async function main() {

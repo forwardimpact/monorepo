@@ -16,7 +16,14 @@ import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
-import { createCli } from "@forwardimpact/libcli";
+import {
+  createCli,
+  SummaryRenderer,
+  formatHeader,
+  formatSuccess,
+  formatError,
+  formatBullet,
+} from "@forwardimpact/libcli";
 import { Repl } from "@forwardimpact/librepl";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -158,10 +165,17 @@ async function runInit() {
     await updateEnvFile(key, url);
   }
 
-  console.log("SERVICE_SECRET was updated in .env");
-  console.log("JWT_SECRET is set in .env");
-  console.log("JWT_ANON_KEY was updated in .env");
-  console.log("Service URLs written to .env (ports 3001–3008).");
+  const initSummary = new SummaryRenderer({ process });
+  initSummary.render({
+    title: formatHeader("Environment (.env)"),
+    items: [
+      { label: "SERVICE_SECRET", description: "updated" },
+      { label: "JWT_SECRET", description: "set" },
+      { label: "JWT_ANON_KEY", description: "updated" },
+      { label: "Service URLs", description: "ports 3001\u20133008" },
+    ],
+  });
+  process.stdout.write("\n");
 
   // Copy starter config into ./config/ (config.json, agents/, tools.yml)
   const starterDir = new URL("../starter", import.meta.url).pathname;
@@ -170,25 +184,32 @@ async function runInit() {
   try {
     await fs.access(starterDir);
   } catch {
-    console.error("Error: Starter data not found in package.");
-    console.error("This may indicate a corrupted package installation.");
+    process.stderr.write(
+      formatError("Starter data not found in package.") + "\n",
+    );
+    process.stderr.write(
+      "This may indicate a corrupted package installation.\n",
+    );
     process.exit(1);
   }
 
   try {
     await fs.access(configDir);
-    console.log("config/ already exists, skipping starter copy.");
+    process.stdout.write(
+      formatBullet("config/ already exists, skipping starter copy.", 0) + "\n",
+    );
   } catch {
     await fs.cp(starterDir, configDir, { recursive: true });
-    console.log(`config/ created with starter configuration.
-
-  config/
+    process.stdout.write(
+      formatSuccess("config/ created with starter configuration.") + "\n\n",
+    );
+    process.stdout.write(`  config/
   \u251C\u2500\u2500 config.json                  # Service configuration
   \u251C\u2500\u2500 agents/
   \u2502   \u251C\u2500\u2500 planner.agent.md         # Plans retrieval strategy
   \u2502   \u251C\u2500\u2500 researcher.agent.md      # Retrieves data
   \u2502   \u2514\u2500\u2500 editor.agent.md          # Synthesizes response
-  \u2514\u2500\u2500 tools.yml                    # Tool definitions`);
+  \u2514\u2500\u2500 tools.yml                    # Tool definitions\n`);
   }
 }
 
@@ -202,13 +223,19 @@ async function setupServices() {
   try {
     await fs.access(resolve("config", "config.json"));
   } catch {
-    console.log(`fit-guide — Conversational agent for the Guide knowledge platform
-
-Run npx fit-guide init to generate configuration, then
-npx fit-rc start to launch the service stack.
-
-Documentation: https://www.forwardimpact.team/guide
-Run npx fit-guide --help for CLI options.`);
+    process.stdout.write(
+      formatHeader(
+        "fit-guide \u2014 Conversational agent for the Guide knowledge platform",
+      ) + "\n\n",
+    );
+    process.stdout.write(
+      "Run npx fit-guide init to generate configuration, then\n",
+    );
+    process.stdout.write("npx fit-rc start to launch the service stack.\n\n");
+    process.stdout.write(
+      "Documentation: https://www.forwardimpact.team/guide\n",
+    );
+    process.stdout.write("Run npx fit-guide --help for CLI options.\n");
     process.exit(1);
   }
 
@@ -326,7 +353,6 @@ if (command === "status") {
   if (values.json) {
     process.stdout.write(JSON.stringify(result, null, 2) + "\n");
   } else {
-    const { SummaryRenderer } = await import("@forwardimpact/libcli");
     const summary = new SummaryRenderer({ process });
     printStatusSummary(summary, result);
   }

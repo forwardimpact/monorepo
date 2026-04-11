@@ -14,7 +14,18 @@ import { readFileSync } from "fs";
 import { homedir } from "os";
 import { Finder } from "@forwardimpact/libutil";
 import { createLogger } from "@forwardimpact/libtelemetry";
-import { createCli } from "@forwardimpact/libcli";
+import {
+  createCli,
+  SummaryRenderer,
+  formatHeader,
+  formatSubheader,
+  formatSuccess,
+  formatError,
+  formatWarning,
+  formatBullet,
+} from "@forwardimpact/libcli";
+
+const summary = new SummaryRenderer({ process });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -109,27 +120,31 @@ async function findDataDir(providedPath) {
 }
 
 /**
- * Format validation results for display
+ * Format validation results for display using libcli helpers.
+ * @param {{valid: boolean, errors: Array, warnings?: Array}} result
+ * @returns {string}
  */
 function formatValidationResults(result) {
   const lines = [];
 
   if (result.valid) {
-    lines.push("Validation passed\n");
+    lines.push(formatSuccess("Validation passed"));
   } else {
-    lines.push("Validation failed\n");
-    lines.push("\nErrors:");
+    lines.push(formatError("Validation failed"));
+    lines.push("");
+    lines.push(formatSubheader("Errors"));
     for (const error of result.errors) {
       const path = error.path ? ` (${error.path})` : "";
-      lines.push(`  - ${error.type}: ${error.message}${path}`);
+      lines.push(formatBullet(`${error.type}: ${error.message}${path}`, 0));
     }
   }
 
   if (result.warnings?.length > 0) {
-    lines.push("\nWarnings:");
+    lines.push("");
+    lines.push(formatSubheader("Warnings"));
     for (const warning of result.warnings) {
       const path = warning.path ? ` (${warning.path})` : "";
-      lines.push(`  - ${warning.type}: ${warning.message}${path}`);
+      lines.push(formatBullet(`${warning.type}: ${warning.message}${path}`, 0));
     }
   }
 
@@ -140,7 +155,7 @@ function formatValidationResults(result) {
  * Validate command
  */
 async function runValidate(dataDir) {
-  console.log(`Validating data in: ${dataDir}\n`);
+  process.stdout.write(formatHeader(`Validating data in: ${dataDir}`) + "\n\n");
 
   const { createDataLoader, createSchemaValidator } =
     await import("../src/index.js");
@@ -151,15 +166,25 @@ async function runValidate(dataDir) {
   const data = await loader.loadAllData(dataDir);
   const result = await validator.runFullValidation(dataDir, data);
 
-  console.log(formatValidationResults(result));
+  process.stdout.write(formatValidationResults(result) + "\n\n");
 
-  console.log("\nData Summary:");
-  console.log(`   Skills:      ${data.skills?.length || 0}`);
-  console.log(`   Behaviours:  ${data.behaviours?.length || 0}`);
-  console.log(`   Disciplines: ${data.disciplines?.length || 0}`);
-  console.log(`   Tracks:      ${data.tracks?.length || 0}`);
-  console.log(`   Levels:      ${data.levels?.length || 0}`);
-  console.log(`   Drivers:     ${data.drivers?.length || 0}`);
+  summary.render({
+    title: formatHeader("Data Summary"),
+    items: [
+      { label: "Skills", description: String(data.skills?.length || 0) },
+      {
+        label: "Behaviours",
+        description: String(data.behaviours?.length || 0),
+      },
+      {
+        label: "Disciplines",
+        description: String(data.disciplines?.length || 0),
+      },
+      { label: "Tracks", description: String(data.tracks?.length || 0) },
+      { label: "Levels", description: String(data.levels?.length || 0) },
+      { label: "Drivers", description: String(data.drivers?.length || 0) },
+    ],
+  });
 
   return result.valid ? 0 : 1;
 }
@@ -181,7 +206,9 @@ async function findOutputDir(providedPath) {
  * Export command — render every base entity to HTML microdata.
  */
 async function runExport(dataDir, outputDir) {
-  console.log(`Exporting framework to: ${outputDir}\n`);
+  process.stdout.write(
+    formatHeader(`Exporting framework to: ${outputDir}`) + "\n\n",
+  );
 
   const { createDataLoader, createExporter, createRenderer } =
     await import("../src/index.js");
@@ -199,16 +226,24 @@ async function runExport(dataDir, outputDir) {
     counts[type] = (counts[type] || 0) + 1;
   }
 
-  console.log("Export complete\n");
-  for (const [type, count] of Object.entries(counts).sort()) {
-    console.log(`   ${type.padEnd(12)} ${count}`);
-  }
-  console.log(`   ${"total".padEnd(12)} ${result.written.length}`);
+  process.stdout.write(formatSuccess("Export complete") + "\n\n");
+  summary.render({
+    title: formatSubheader("By type"),
+    items: [
+      ...Object.entries(counts)
+        .sort()
+        .map(([type, count]) => ({
+          label: type,
+          description: String(count),
+        })),
+      { label: "total", description: String(result.written.length) },
+    ],
+  });
 
   if (result.errors.length > 0) {
-    console.log("\nErrors:");
+    process.stderr.write("\n" + formatError("Errors:") + "\n");
     for (const err of result.errors) {
-      console.log(`   ${err.path}: ${err.error}`);
+      process.stderr.write(formatBullet(`${err.path}: ${err.error}`, 1) + "\n");
     }
     return 1;
   }
@@ -220,7 +255,9 @@ async function runExport(dataDir, outputDir) {
  * Generate index command
  */
 async function runGenerateIndex(dataDir) {
-  console.log(`Generating index files in: ${dataDir}\n`);
+  process.stdout.write(
+    formatHeader(`Generating index files in: ${dataDir}`) + "\n\n",
+  );
 
   const { createIndexGenerator } = await import("../src/index.js");
 
@@ -229,67 +266,17 @@ async function runGenerateIndex(dataDir) {
 
   for (const [dir, files] of Object.entries(results)) {
     if (files.error) {
-      console.log(`  ${dir}/_index.yaml: ${files.error}`);
+      process.stdout.write(
+        formatBullet(`${dir}/_index.yaml: ${files.error}`, 0) + "\n",
+      );
     } else {
-      console.log(`  ${dir}/_index.yaml (${files.length} files)`);
+      process.stdout.write(
+        formatBullet(`${dir}/_index.yaml (${files.length} files)`, 0) + "\n",
+      );
     }
   }
 
   return 0;
-}
-
-/**
- * SHACL validation command
- */
-async function runValidateShacl() {
-  console.log("Validating SHACL schema syntax...\n");
-
-  const rdfDir = join(__dirname, "../schema/rdf");
-
-  try {
-    const { default: N3 } = await import("n3");
-    const { readFile, readdir } = await import("fs/promises");
-
-    const files = await readdir(rdfDir);
-    const ttlFiles = files.filter((f) => f.endsWith(".ttl")).sort();
-
-    if (ttlFiles.length === 0) {
-      console.error("No .ttl files found in schema/rdf/\n");
-      return 1;
-    }
-
-    let totalQuads = 0;
-    const errors = [];
-
-    for (const file of ttlFiles) {
-      const filePath = join(rdfDir, file);
-      const turtleContent = await readFile(filePath, "utf-8");
-
-      try {
-        const parser = new N3.Parser({ format: "text/turtle" });
-        const quads = parser.parse(turtleContent);
-        totalQuads += quads.length;
-        console.log(`  ${file} (${quads.length} triples)`);
-      } catch (error) {
-        errors.push({ file, error: error.message });
-        console.log(`  ${file}: ${error.message}`);
-      }
-    }
-
-    console.log();
-    if (errors.length > 0) {
-      console.error(`SHACL syntax errors in ${errors.length} file(s)\n`);
-      return 1;
-    }
-
-    console.log(
-      `SHACL syntax valid (${ttlFiles.length} files, ${totalQuads} triples)\n`,
-    );
-    return 0;
-  } catch (error) {
-    console.error(`SHACL validation error: ${error.message}\n`);
-    return 1;
-  }
 }
 
 // ── Dispatchers ──────────────────────────────────────────────────────────────
@@ -321,10 +308,12 @@ async function dispatchPeople(subcommand, rest, values) {
       return people.push(filePath, supabase);
     }
     case "import": {
-      console.error(
-        "warning: `fit-map people import` is deprecated. Use " +
-          "`fit-map people validate` to validate locally or " +
-          "`fit-map people push` to push to the database.",
+      process.stderr.write(
+        formatWarning(
+          "`fit-map people import` is deprecated. Use " +
+            "`fit-map people validate` to validate locally or " +
+            "`fit-map people push` to push to the database.",
+        ) + "\n",
       );
       const filePath = rest[0];
       if (!filePath) {
@@ -407,6 +396,8 @@ async function main() {
       }
       case "validate": {
         if (values.shacl) {
+          const { runValidateShacl } =
+            await import("./lib/commands/validate-shacl.js");
           exitCode = await runValidateShacl();
         } else {
           const dataDir = await findDataDir(values.data);

@@ -12,6 +12,12 @@
  */
 
 import { capitalize } from "../formatters/shared.js";
+import {
+  formatSuccess,
+  formatWarning,
+  formatError,
+  formatBullet,
+} from "@forwardimpact/libcli";
 
 /**
  * Create an entity command with standard behavior
@@ -88,8 +94,15 @@ export function createEntityCommand({
  */
 function handleValidate({ data, _entityName, pluralName, validate }) {
   if (!validate) {
-    console.log(`No specific validation for ${pluralName}.`);
-    console.log(`Run 'npx fit-pathway --validate' for full data validation.`);
+    process.stdout.write(
+      formatBullet(`No specific validation for ${pluralName}.`, 0) + "\n",
+    );
+    process.stdout.write(
+      formatBullet(
+        "Run 'npx fit-pathway --validate' for full data validation.",
+        0,
+      ) + "\n",
+    );
     return;
   }
 
@@ -97,21 +110,23 @@ function handleValidate({ data, _entityName, pluralName, validate }) {
   const { errors = [], warnings = [] } = result;
 
   if (errors.length === 0 && warnings.length === 0) {
-    console.log(`✅ ${capitalize(pluralName)} validation passed`);
+    process.stdout.write(
+      formatSuccess(`${capitalize(pluralName)} validation passed`) + "\n",
+    );
     return;
   }
 
   if (warnings.length > 0) {
-    console.log(`⚠️  Warnings:`);
+    process.stdout.write(formatWarning(`${warnings.length} warning(s)`) + "\n");
     for (const w of warnings) {
-      console.log(`  - ${w}`);
+      process.stdout.write(formatBullet(w, 1) + "\n");
     }
   }
 
   if (errors.length > 0) {
-    console.log(`❌ Errors:`);
+    process.stderr.write(formatError(`${errors.length} error(s)`) + "\n");
     for (const e of errors) {
-      console.log(`  - ${e}`);
+      process.stderr.write(formatBullet(e, 1) + "\n");
     }
     process.exit(1);
   }
@@ -134,15 +149,21 @@ function handleDetail({
   const entity = findEntity(data, id);
 
   if (!entity) {
-    console.error(`${capitalize(entityName)} not found: ${id}`);
-    console.error(`Available: ${data[pluralName].map((e) => e.id).join(", ")}`);
+    process.stderr.write(
+      formatError(`${capitalize(entityName)} not found: ${id}`) + "\n",
+    );
+    process.stderr.write(
+      `Available: ${data[pluralName].map((e) => e.id).join(", ")}\n`,
+    );
     process.exit(1);
   }
 
   const view = presentDetail(entity, data, options);
 
   if (!view) {
-    console.error(`Failed to present ${entityName}: ${id}`);
+    process.stderr.write(
+      formatError(`Failed to present ${entityName}: ${id}`) + "\n",
+    );
     process.exit(1);
   }
 
@@ -178,9 +199,11 @@ export function createCompositeCommand({
   return async function runCommand({ data, args, options }) {
     if (args.length < requiredArgs.length) {
       const argsList = requiredArgs.map((arg) => `<${arg}>`).join(" ");
-      console.error(`Usage: npx fit-pathway ${commandName} ${argsList}`);
+      process.stderr.write(
+        formatError(`Usage: npx fit-pathway ${commandName} ${argsList}`) + "\n",
+      );
       if (usageExample) {
-        console.error(`Example: ${usageExample}`);
+        process.stderr.write(`Example: ${usageExample}\n`);
       }
       process.exit(1);
     }
@@ -189,14 +212,16 @@ export function createCompositeCommand({
     const validationError = validateEntities(entities, data, options);
 
     if (validationError) {
-      console.error(validationError);
+      process.stderr.write(formatError(validationError) + "\n");
       process.exit(1);
     }
 
     const view = presenter(entities, data, options);
 
     if (!view) {
-      console.error(`Failed to generate ${commandName} output.`);
+      process.stderr.write(
+        formatError(`Failed to generate ${commandName} output.`) + "\n",
+      );
       process.exit(1);
     }
 

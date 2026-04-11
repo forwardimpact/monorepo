@@ -17,7 +17,12 @@ import {
 import { questionsToMarkdown } from "../formatters/questions/markdown.js";
 import { questionsToYaml } from "../formatters/questions/yaml.js";
 import { questionsToJson } from "../formatters/questions/json.js";
-import { formatTable } from "@forwardimpact/libcli";
+import {
+  formatTable,
+  formatHeader,
+  formatSubheader,
+  formatBullet,
+} from "@forwardimpact/libcli";
 
 /**
  * Parse questions command options
@@ -46,7 +51,7 @@ function showQuestionsSummary(data) {
   const { skills, behaviours } = data;
   const questions = data.questions;
 
-  console.log(`\n❓ Questions\n`);
+  process.stdout.write("\n" + formatHeader("\u2753 Questions") + "\n\n");
 
   // Skill questions by level
   const skillProficiencies = [
@@ -70,8 +75,8 @@ function showQuestionsSummary(data) {
     return [level, count];
   });
 
-  console.log("Skill Questions:");
-  console.log(formatTable(["Level", "Count"], skillRows));
+  process.stdout.write(formatSubheader("Skill Questions") + "\n");
+  process.stdout.write(formatTable(["Level", "Count"], skillRows) + "\n");
 
   // Behaviour questions by maturity
   const maturities = [
@@ -94,13 +99,24 @@ function showQuestionsSummary(data) {
     return [maturity.replace(/_/g, " "), count];
   });
 
-  console.log("\nBehaviour Questions:");
-  console.log(formatTable(["Maturity", "Count"], behaviourRows));
+  process.stdout.write("\n" + formatSubheader("Behaviour Questions") + "\n");
+  process.stdout.write(
+    formatTable(["Maturity", "Count"], behaviourRows) + "\n",
+  );
 
-  console.log(`\nRun 'npx fit-pathway questions --list' for question IDs`);
-  console.log(`Run 'npx fit-pathway questions --stats' for detailed stats`);
-  console.log(
-    `Run 'npx fit-pathway questions --level=practitioner' to filter\n`,
+  process.stdout.write("\n");
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway questions --list' for question IDs") +
+      "\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway questions --stats' for detailed stats") +
+      "\n",
+  );
+  process.stdout.write(
+    formatBullet(
+      "Run 'npx fit-pathway questions --level=practitioner' to filter",
+    ) + "\n\n",
   );
 }
 

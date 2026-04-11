@@ -15,6 +15,7 @@ import {
   INTERVIEW_TYPES,
 } from "../formatters/interview/shared.js";
 import { interviewToMarkdown } from "../formatters/interview/markdown.js";
+import { formatError, horizontalRule } from "@forwardimpact/libcli";
 
 const VALID_TYPES = Object.keys(INTERVIEW_TYPES);
 
@@ -24,7 +25,9 @@ const VALID_TYPES = Object.keys(INTERVIEW_TYPES);
  * @param {Object} options - Options including framework
  */
 function formatInterview(view, options) {
-  console.log(interviewToMarkdown(view, { framework: options.framework }));
+  process.stdout.write(
+    interviewToMarkdown(view, { framework: options.framework }) + "\n",
+  );
 }
 
 /**
@@ -35,10 +38,10 @@ function formatInterview(view, options) {
 function formatAllInterviews(views, options) {
   for (let i = 0; i < views.length; i++) {
     if (i > 0) {
-      console.log("\n" + "─".repeat(80) + "\n");
+      process.stdout.write("\n" + horizontalRule(80) + "\n\n");
     }
-    console.log(
-      interviewToMarkdown(views[i], { framework: options.framework }),
+    process.stdout.write(
+      interviewToMarkdown(views[i], { framework: options.framework }) + "\n",
     );
   }
 }
@@ -50,8 +53,10 @@ export const runInterviewCommand = createCompositeCommand({
     const interviewType = options.type === "full" ? null : options.type;
 
     if (interviewType && !INTERVIEW_TYPES[interviewType]) {
-      console.error(`Unknown interview type: ${interviewType}`);
-      console.error(`Available types: ${VALID_TYPES.join(", ")}`);
+      process.stderr.write(
+        formatError(`Unknown interview type: ${interviewType}`) + "\n",
+      );
+      process.stderr.write(`Available types: ${VALID_TYPES.join(", ")}\n`);
       process.exit(1);
     }
 

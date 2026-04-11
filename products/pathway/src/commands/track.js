@@ -13,7 +13,12 @@
 import { createEntityCommand } from "./command-factory.js";
 import { trackToMarkdown } from "../formatters/track/markdown.js";
 import { sortTracksByName } from "../formatters/track/shared.js";
-import { formatTable } from "@forwardimpact/libcli";
+import {
+  formatTable,
+  formatHeader,
+  formatSubheader,
+  formatBullet,
+} from "@forwardimpact/libcli";
 import { getConceptEmoji } from "@forwardimpact/map/levels";
 
 /**
@@ -34,7 +39,7 @@ function formatSummary(tracks, data) {
   const { framework, disciplines } = data;
   const emoji = framework ? getConceptEmoji(framework, "track") : "🛤️";
 
-  console.log(`\n${emoji} Tracks\n`);
+  process.stdout.write("\n" + formatHeader(`${emoji} Tracks`) + "\n\n");
 
   const rows = tracks.map((t) => {
     const modCount = Object.keys(t.skillModifiers || {}).length;
@@ -47,10 +52,18 @@ function formatSummary(tracks, data) {
     return [t.id, t.name, modCount, disciplineNames || "—"];
   });
 
-  console.log(formatTable(["ID", "Name", "Modifiers", "Disciplines"], rows));
-  console.log(`\nTotal: ${tracks.length} tracks`);
-  console.log(`\nRun 'npx fit-pathway track --list' for IDs and names`);
-  console.log(`Run 'npx fit-pathway track <id>' for details\n`);
+  process.stdout.write(
+    formatTable(["ID", "Name", "Modifiers", "Disciplines"], rows) + "\n",
+  );
+  process.stdout.write(
+    "\n" + formatSubheader(`Total: ${tracks.length} tracks`) + "\n\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway track --list' for IDs and names") + "\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway track <id>' for details") + "\n\n",
+  );
 }
 
 /**

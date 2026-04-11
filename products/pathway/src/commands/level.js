@@ -12,7 +12,12 @@
 
 import { createEntityCommand } from "./command-factory.js";
 import { levelToMarkdown } from "../formatters/level/markdown.js";
-import { formatTable } from "@forwardimpact/libcli";
+import {
+  formatTable,
+  formatHeader,
+  formatSubheader,
+  formatBullet,
+} from "@forwardimpact/libcli";
 import { getConceptEmoji } from "@forwardimpact/map/levels";
 import { capitalize } from "../formatters/shared.js";
 
@@ -34,7 +39,7 @@ function formatSummary(levels, data) {
   const { framework } = data;
   const emoji = framework ? getConceptEmoji(framework, "level") : "📊";
 
-  console.log(`\n${emoji} Levels\n`);
+  process.stdout.write("\n" + formatHeader(`${emoji} Levels`) + "\n\n");
 
   const rows = levels.map((g) => [
     g.id,
@@ -44,7 +49,7 @@ function formatSummary(levels, data) {
     capitalize(g.baseSkillProficiencies?.primary || "-"),
   ]);
 
-  console.log(
+  process.stdout.write(
     formatTable(
       [
         "ID",
@@ -54,11 +59,18 @@ function formatSummary(levels, data) {
         "Primary Level",
       ],
       rows,
-    ),
+    ) + "\n",
   );
-  console.log(`\nTotal: ${levels.length} levels`);
-  console.log(`\nRun 'npx fit-pathway level --list' for IDs and titles`);
-  console.log(`Run 'npx fit-pathway level <id>' for details\n`);
+  process.stdout.write(
+    "\n" + formatSubheader(`Total: ${levels.length} levels`) + "\n\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway level --list' for IDs and titles") +
+      "\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway level <id>' for details") + "\n\n",
+  );
 }
 
 /**

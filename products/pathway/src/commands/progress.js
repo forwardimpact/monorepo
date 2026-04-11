@@ -15,13 +15,14 @@ import {
   getDefaultTargetLevel,
 } from "../formatters/progress/shared.js";
 import { progressToMarkdown } from "../formatters/progress/markdown.js";
+import { formatError } from "@forwardimpact/libcli";
 
 /**
  * Format progress output
  * @param {Object} view - Presenter view
  */
 function formatProgress(view) {
-  console.log(progressToMarkdown(view));
+  process.stdout.write(progressToMarkdown(view) + "\n");
 }
 
 export const runProgressCommand = createCompositeCommand({
@@ -38,13 +39,17 @@ export const runProgressCommand = createCompositeCommand({
     if (options.compare) {
       targetLevel = data.levels.find((g) => g.id === options.compare);
       if (!targetLevel) {
-        console.error(`Target level not found: ${options.compare}`);
+        process.stderr.write(
+          formatError(`Target level not found: ${options.compare}`) + "\n",
+        );
         process.exit(1);
       }
     } else {
       targetLevel = getDefaultTargetLevel(level, data.levels);
       if (!targetLevel) {
-        console.error("No next level available for progression.");
+        process.stderr.write(
+          formatError("No next level available for progression.") + "\n",
+        );
         process.exit(1);
       }
     }

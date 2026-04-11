@@ -12,7 +12,12 @@
 
 import { createEntityCommand } from "./command-factory.js";
 import { behaviourToMarkdown } from "../formatters/behaviour/markdown.js";
-import { formatTable } from "@forwardimpact/libcli";
+import {
+  formatTable,
+  formatHeader,
+  formatSubheader,
+  formatBullet,
+} from "@forwardimpact/libcli";
 
 /**
  * Format behaviour list item for --list output
@@ -31,7 +36,7 @@ function formatListItem(behaviour) {
 function formatSummary(behaviours, data) {
   const { drivers } = data;
 
-  console.log(`\n🧠 Behaviours\n`);
+  process.stdout.write("\n" + formatHeader("\u{1F9E0} Behaviours") + "\n\n");
 
   // Summary table
   const rows = behaviours.map((b) => {
@@ -41,10 +46,17 @@ function formatSummary(behaviours, data) {
     return [b.id, b.name, linkedDrivers];
   });
 
-  console.log(formatTable(["ID", "Name", "Drivers"], rows));
-  console.log(`\nTotal: ${behaviours.length} behaviours`);
-  console.log(`\nRun 'npx fit-pathway behaviour --list' for IDs and names`);
-  console.log(`Run 'npx fit-pathway behaviour <id>' for details\n`);
+  process.stdout.write(formatTable(["ID", "Name", "Drivers"], rows) + "\n");
+  process.stdout.write(
+    "\n" + formatSubheader(`Total: ${behaviours.length} behaviours`) + "\n\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway behaviour --list' for IDs and names") +
+      "\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway behaviour <id>' for details") + "\n\n",
+  );
 }
 
 /**

@@ -32,14 +32,18 @@ import {
   deriveReferenceLevel,
   deriveAgentSkills,
   generateSkillMarkdown,
-  getDisciplineAbbreviation,
-  toKebabCase,
   interpolateTeamInstructions,
 } from "@forwardimpact/libskill/agent";
 import { deriveToolkit } from "@forwardimpact/libskill/toolkit";
 import { formatAgentProfile } from "../formatters/agent/profile.js";
-import { formatError, formatSuccess } from "@forwardimpact/libcli";
+import {
+  formatError,
+  formatSuccess,
+  formatSubheader,
+  formatBullet,
+} from "@forwardimpact/libcli";
 import { toolkitToPlainList } from "../formatters/toolkit/markdown.js";
+import { showAgentSummary, listAgentCombinations } from "./agent-list.js";
 import {
   generateClaudeCodeSettings,
   writeProfile,
@@ -47,139 +51,9 @@ import {
   writeSkills,
 } from "./agent-io.js";
 
-/**
- * Show agent summary with stats
- * @param {Object} data - Pathway data
- * @param {Object} agentData - Agent-specific data
- * @param {Array} skillsWithAgent - Skills with agent sections
- */
-function showAgentSummary(data, agentData, skillsWithAgent) {
-  // Count valid combinations
-  let validCombinations = 0;
-  for (const discipline of agentData.disciplines) {
-    for (const track of agentData.tracks) {
-      const humanDiscipline = data.disciplines.find(
-        (d) => d.id === discipline.id,
-      );
-      const humanTrack = data.tracks.find((t) => t.id === track.id);
-      if (humanDiscipline && humanTrack) {
-        validCombinations++;
-      }
-    }
-  }
-
-  const skillsWithAgentCount = skillsWithAgent.filter((s) => s.agent).length;
-
-  console.log(`\n🤖 Agent\n`);
-  console.log(
-    `Disciplines: ${agentData.disciplines.length}/${data.disciplines.length} with agent definitions`,
-  );
-  console.log(
-    `Tracks:      ${agentData.tracks.length}/${data.tracks.length} with agent definitions`,
-  );
-  console.log(
-    `Skills:      ${skillsWithAgentCount}/${skillsWithAgent.length} with agent sections`,
-  );
-  console.log(`Stages:      ${data.stages.length} available`);
-  console.log(`\nValid combinations: ${validCombinations}`);
-  console.log(`\nRun 'npx fit-pathway agent --list' for all combinations`);
-  console.log(
-    `Run 'npx fit-pathway agent <discipline> <track>' to generate files\n`,
-  );
-}
-
-/**
- * Find valid agent combination pairs
- * @param {Object} data - Pathway data
- * @param {Object} agentData - Agent-specific data
- * @returns {Array<{discipline: Object, track: Object, humanDiscipline: Object, humanTrack: Object}>}
- */
-export function findValidCombinations(data, agentData) {
-  const pairs = [];
-  for (const discipline of agentData.disciplines) {
-    for (const track of agentData.tracks) {
-      const humanDiscipline = data.disciplines.find(
-        (d) => d.id === discipline.id,
-      );
-      const humanTrack = data.tracks.find((t) => t.id === track.id);
-      if (humanDiscipline && humanTrack) {
-        pairs.push({ discipline, track, humanDiscipline, humanTrack });
-      }
-    }
-  }
-  return pairs;
-}
-
-/**
- * List available agent combinations — compact output for piping
- * @param {Object} data - Pathway data
- * @param {Object} agentData - Agent-specific data
- */
-function listAgentCombinationsCompact(data, agentData) {
-  for (const {
-    discipline,
-    track,
-    humanDiscipline,
-    humanTrack,
-  } of findValidCombinations(data, agentData)) {
-    const abbrev = getDisciplineAbbreviation(discipline.id);
-    const agentName = `${abbrev}-${toKebabCase(track.id)}`;
-    const specName = humanDiscipline.specialization || humanDiscipline.id;
-    console.log(
-      `${agentName} ${discipline.id} ${track.id}, ${specName} (${humanTrack.name})`,
-    );
-  }
-}
-
-/**
- * List available agent combinations — verbose output
- * @param {Object} data - Pathway data
- * @param {Object} agentData - Agent-specific data
- */
-function listAgentCombinationsVerbose(data, agentData) {
-  console.log("# 🤖 Available Agent Combinations\n");
-
-  const agentDisciplineIds = new Set(agentData.disciplines.map((d) => d.id));
-  const agentTrackIds = new Set(agentData.tracks.map((t) => t.id));
-
-  console.log("## Disciplines with agent definitions:\n");
-  for (const discipline of data.disciplines) {
-    const status = agentDisciplineIds.has(discipline.id) ? "✅" : "⬜";
-    console.log(
-      `  ${status} ${discipline.id} - ${discipline.specialization || discipline.name}`,
-    );
-  }
-
-  console.log("\n## Tracks with agent definitions:\n");
-  for (const track of data.tracks) {
-    const status = agentTrackIds.has(track.id) ? "✅" : "⬜";
-    console.log(`  ${status} ${track.id} - ${track.name}`);
-  }
-
-  console.log("\n## Valid combinations:\n");
-  for (const { discipline, track } of findValidCombinations(data, agentData)) {
-    console.log(`  npx fit-pathway agent ${discipline.id} ${track.id}`);
-  }
-
-  console.log("\n## Available stages:\n");
-  for (const stage of data.stages) {
-    console.log(`  --stage=${stage.id}: ${stage.description.split(" - ")[0]}`);
-  }
-}
-
-/**
- * List available agent combinations (clean output for piping)
- * @param {Object} data - Pathway data
- * @param {Object} agentData - Agent-specific data
- * @param {boolean} verbose - Show verbose output
- */
-function listAgentCombinations(data, agentData, verbose = false) {
-  if (verbose) {
-    listAgentCombinationsVerbose(data, agentData);
-  } else {
-    listAgentCombinationsCompact(data, agentData);
-  }
-}
+// Re-export so downstream consumers (build-packs, tests) can import
+// findValidCombinations from './commands/agent.js' as before.
+export { findValidCombinations } from "./agent-list.js";
 
 /**
  * Resolve and validate human + agent entities for a discipline/track pair
@@ -194,15 +68,21 @@ function resolveAgentEntities(data, agentData, disciplineId, trackId) {
   const humanTrack = trackId ? data.tracks.find((t) => t.id === trackId) : null;
 
   if (!humanDiscipline) {
-    console.error(formatError(`Unknown discipline: ${disciplineId}`));
-    console.error("\nAvailable disciplines:");
-    for (const d of data.disciplines) console.error(`  - ${d.id}`);
+    process.stderr.write(
+      formatError(`Unknown discipline: ${disciplineId}`) + "\n",
+    );
+    process.stderr.write("\nAvailable disciplines:\n");
+    for (const d of data.disciplines) {
+      process.stderr.write(formatBullet(d.id, 1) + "\n");
+    }
     process.exit(1);
   }
   if (trackId && !humanTrack) {
-    console.error(formatError(`Unknown track: ${trackId}`));
-    console.error("\nAvailable tracks:");
-    for (const t of data.tracks) console.error(`  - ${t.id}`);
+    process.stderr.write(formatError(`Unknown track: ${trackId}`) + "\n");
+    process.stderr.write("\nAvailable tracks:\n");
+    for (const t of data.tracks) {
+      process.stderr.write(formatBullet(t.id, 1) + "\n");
+    }
     process.exit(1);
   }
 
@@ -214,17 +94,23 @@ function resolveAgentEntities(data, agentData, disciplineId, trackId) {
     : null;
 
   if (!agentDiscipline) {
-    console.error(
-      formatError(`No agent definition for discipline: ${disciplineId}`),
+    process.stderr.write(
+      formatError(`No agent definition for discipline: ${disciplineId}`) + "\n",
     );
-    console.error("\nAgent definitions exist for:");
-    for (const d of agentData.disciplines) console.error(`  - ${d.id}`);
+    process.stderr.write("\nAgent definitions exist for:\n");
+    for (const d of agentData.disciplines) {
+      process.stderr.write(formatBullet(d.id, 1) + "\n");
+    }
     process.exit(1);
   }
   if (trackId && !agentTrack) {
-    console.error(formatError(`No agent definition for track: ${trackId}`));
-    console.error("\nAgent definitions exist for:");
-    for (const t of agentData.tracks) console.error(`  - ${t.id}`);
+    process.stderr.write(
+      formatError(`No agent definition for track: ${trackId}`) + "\n",
+    );
+    process.stderr.write("\nAgent definitions exist for:\n");
+    for (const t of agentData.tracks) {
+      process.stderr.write(formatBullet(t.id, 1) + "\n");
+    }
     process.exit(1);
   }
 
@@ -242,9 +128,10 @@ function printTeamInstructions(agentTrack, humanDiscipline) {
     humanDiscipline,
   });
   if (teamInstructions) {
-    console.log("# Team Instructions (CLAUDE.md)\n");
-    console.log(teamInstructions.trim());
-    console.log("\n---\n");
+    // Markdown output — headings stay literal so downstream tools parse them
+    process.stdout.write("# Team Instructions (CLAUDE.md)\n\n");
+    process.stdout.write(teamInstructions.trim() + "\n");
+    process.stdout.write("\n---\n\n");
   }
 }
 
@@ -264,17 +151,21 @@ async function handleSingleStage({
 }) {
   const stage = data.stages.find((s) => s.id === options.stage);
   if (!stage) {
-    console.error(formatError(`Unknown stage: ${options.stage}`));
-    console.error("\nAvailable stages:");
-    for (const s of data.stages) console.error(`  - ${s.id}`);
+    process.stderr.write(formatError(`Unknown stage: ${options.stage}`) + "\n");
+    process.stderr.write("\nAvailable stages:\n");
+    for (const s of data.stages) {
+      process.stderr.write(formatBullet(s.id, 1) + "\n");
+    }
     process.exit(1);
   }
 
   const profile = generateStageAgentProfile({ ...stageParams, stage });
   const errors = validateAgentProfile(profile);
   if (errors.length > 0) {
-    console.error(formatError("Profile validation failed:"));
-    for (const err of errors) console.error(`  - ${err}`);
+    process.stderr.write(formatError("Profile validation failed:") + "\n");
+    for (const err of errors) {
+      process.stderr.write(formatBullet(err, 1) + "\n");
+    }
     process.exit(1);
   }
 
@@ -283,7 +174,7 @@ async function handleSingleStage({
 
   if (!options.output) {
     printTeamInstructions(agentTrack, humanDiscipline);
-    console.log(formatAgentProfile(profile, agentTemplate));
+    process.stdout.write(formatAgentProfile(profile, agentTemplate) + "\n");
     return;
   }
 
@@ -294,9 +185,9 @@ async function handleSingleStage({
   await writeTeamInstructions(teamInstructions, baseDir);
   await writeProfile(profile, baseDir, agentTemplate);
   await generateClaudeCodeSettings(baseDir, agentData.claudeCodeSettings);
-  console.log("");
-  console.log(
-    formatSuccess(`Generated stage agent: ${profile.frontmatter.name}`),
+  process.stdout.write("\n");
+  process.stdout.write(
+    formatSuccess(`Generated stage agent: ${profile.frontmatter.name}`) + "\n",
   );
 }
 
@@ -338,10 +229,13 @@ async function handleAllStages({
   for (const profile of profiles) {
     const errors = validateAgentProfile(profile);
     if (errors.length > 0) {
-      console.error(
-        formatError(`Profile ${profile.frontmatter.name} validation failed:`),
+      process.stderr.write(
+        formatError(`Profile ${profile.frontmatter.name} validation failed:`) +
+          "\n",
       );
-      for (const err of errors) console.error(`  - ${err}`);
+      for (const err of errors) {
+        process.stderr.write(formatBullet(err, 1) + "\n");
+      }
       process.exit(1);
     }
   }
@@ -349,10 +243,13 @@ async function handleAllStages({
   for (const skill of skillFiles) {
     const errors = validateAgentSkill(skill);
     if (errors.length > 0) {
-      console.error(
-        formatError(`Skill ${skill.frontmatter.name} validation failed:`),
+      process.stderr.write(
+        formatError(`Skill ${skill.frontmatter.name} validation failed:`) +
+          "\n",
       );
-      for (const err of errors) console.error(`  - ${err}`);
+      for (const err of errors) {
+        process.stderr.write(formatBullet(err, 1) + "\n");
+      }
       process.exit(1);
     }
   }
@@ -369,8 +266,8 @@ async function handleAllStages({
   if (!options.output) {
     printTeamInstructions(agentTrack, humanDiscipline);
     for (const profile of profiles) {
-      console.log(formatAgentProfile(profile, agentTemplate));
-      console.log("\n---\n");
+      process.stdout.write(formatAgentProfile(profile, agentTemplate) + "\n");
+      process.stdout.write("\n---\n\n");
     }
     return;
   }
@@ -386,12 +283,14 @@ async function handleAllStages({
   const fileCount = await writeSkills(skillFiles, baseDir, skillTemplates);
   await generateClaudeCodeSettings(baseDir, agentData.claudeCodeSettings);
 
-  console.log("");
-  console.log(formatSuccess(`Generated ${profiles.length} agents:`));
+  process.stdout.write("\n");
+  process.stdout.write(
+    formatSuccess(`Generated ${profiles.length} agents:`) + "\n",
+  );
   for (const profile of profiles) {
-    console.log(`  - ${profile.frontmatter.name}`);
+    process.stdout.write(formatBullet(profile.frontmatter.name, 1) + "\n");
   }
-  console.log(`  Skills: ${fileCount} files`);
+  process.stdout.write(formatSubheader(`Skills: ${fileCount} files`) + "\n");
 }
 
 /**
@@ -428,10 +327,10 @@ export async function runAgentCommand({
   const trackId = options.track;
 
   if (args.length > 1) {
-    console.error(
+    process.stderr.write(
       formatError(
         `Unexpected argument: ${args[1]}. Did you mean --track=${args[1]}?`,
-      ),
+      ) + "\n",
     );
     process.exit(1);
   }

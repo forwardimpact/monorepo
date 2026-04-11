@@ -19,6 +19,7 @@ import {
   formatHeader,
   formatSubheader,
   formatBullet,
+  formatWarning,
 } from "@forwardimpact/libcli";
 
 /**
@@ -36,13 +37,13 @@ function formatListItem(stage) {
  * @param {Object} _data - Full data context (unused)
  */
 function formatSummary(stages, _data) {
-  console.log("\n🔄 Stages\n");
+  process.stdout.write("\n" + formatHeader("\u{1F504} Stages") + "\n\n");
 
   // Show lifecycle flow
   const flow = stages
     .map((s) => `${getStageEmoji(stages, s.id)} ${s.name}`)
     .join(" → ");
-  console.log(`Lifecycle: ${flow}\n`);
+  process.stdout.write(formatSubheader(`Lifecycle: ${flow}`) + "\n\n");
 
   const rows = stages.map((s) => {
     const toolCount = s.tools?.length || 0;
@@ -50,10 +51,18 @@ function formatSummary(stages, _data) {
     return [s.id, s.name, s.mode, toolCount, handoffCount];
   });
 
-  console.log(formatTable(["ID", "Name", "Mode", "Tools", "Handoffs"], rows));
-  console.log(`\nTotal: ${stages.length} stages`);
-  console.log(`\nRun 'npx fit-pathway stage --list' for IDs and names`);
-  console.log(`Run 'npx fit-pathway stage <id>' for details\n`);
+  process.stdout.write(
+    formatTable(["ID", "Name", "Mode", "Tools", "Handoffs"], rows) + "\n",
+  );
+  process.stdout.write(
+    "\n" + formatSubheader(`Total: ${stages.length} stages`) + "\n\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway stage --list' for IDs and names") + "\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway stage <id>' for details") + "\n\n",
+  );
 }
 
 /**
@@ -66,51 +75,52 @@ function formatDetail(viewAndContext, _framework) {
   const view = prepareStageDetail(stage);
   const emoji = getStageEmoji(stages, stage.id);
 
-  console.log(formatHeader(`\n${emoji} ${view.name}\n`));
-  console.log(`${view.description}\n`);
+  process.stdout.write("\n" + formatHeader(`${emoji} ${view.name}`) + "\n\n");
+  process.stdout.write(view.description + "\n\n");
 
   // Read checklist
   if (view.readChecklist.length > 0) {
-    console.log(formatSubheader("Read-Then-Do Checklist\n"));
+    process.stdout.write(formatSubheader("Read-Then-Do Checklist") + "\n\n");
     for (const item of view.readChecklist) {
-      console.log(formatBullet(item, 1));
+      process.stdout.write(formatBullet(item, 1) + "\n");
     }
-    console.log();
+    process.stdout.write("\n");
   }
 
   // Confirm checklist
   if (view.confirmChecklist.length > 0) {
-    console.log(formatSubheader("Do-Then-Confirm Checklist\n"));
+    process.stdout.write(formatSubheader("Do-Then-Confirm Checklist") + "\n\n");
     for (const item of view.confirmChecklist) {
-      console.log(formatBullet(item, 1));
+      process.stdout.write(formatBullet(item, 1) + "\n");
     }
-    console.log();
+    process.stdout.write("\n");
   }
 
   // Constraints
   if (view.constraints.length > 0) {
-    console.log(formatSubheader("Constraints\n"));
+    process.stdout.write(formatSubheader("Constraints") + "\n\n");
     for (const item of view.constraints) {
-      console.log(formatBullet(`⚠️  ${item}`, 1));
+      process.stdout.write("  " + formatWarning(item) + "\n");
     }
-    console.log();
+    process.stdout.write("\n");
   }
 
   // Handoffs
   if (view.handoffs.length > 0) {
-    console.log(formatSubheader("Handoffs\n"));
+    process.stdout.write(formatSubheader("Handoffs") + "\n\n");
     for (const handoff of view.handoffs) {
       const targetStage = stages.find((s) => s.id === handoff.target);
       const targetEmoji = getStageEmoji(stages, handoff.target);
       const targetName = targetStage?.name || handoff.target;
-      console.log(
-        formatBullet(`${targetEmoji} ${handoff.label} → ${targetName}`, 1),
+      process.stdout.write(
+        formatBullet(`${targetEmoji} ${handoff.label} → ${targetName}`, 1) +
+          "\n",
       );
       if (handoff.prompt) {
-        console.log(`      "${handoff.prompt}"`);
+        process.stdout.write(`      "${handoff.prompt}"\n`);
       }
     }
-    console.log();
+    process.stdout.write("\n");
   }
 }
 

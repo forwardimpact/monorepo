@@ -10,7 +10,14 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { tmpdir } from "os";
 import { format } from "prettier";
-import { createCli } from "@forwardimpact/libcli";
+import {
+  createCli,
+  formatHeader,
+  formatSubheader,
+  formatSuccess,
+  formatError,
+  formatBullet,
+} from "@forwardimpact/libcli";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { PromptLoader } from "@forwardimpact/libprompt";
@@ -132,7 +139,7 @@ async function writeOutputFiles(files, monorepoRoot) {
     await mkdir(dirname(fullPath), { recursive: true });
     await writeFile(fullPath, content);
   }
-  console.log(`${files.size} files written`);
+  process.stdout.write(formatSuccess(`${files.size} files written`) + "\n");
 }
 
 /**
@@ -191,10 +198,18 @@ async function loadRawToSupabase(rawDocuments) {
   const { loadToSupabase } = await import("../load.js");
   const supabase = createClient(url, key);
   const loadResult = await loadToSupabase(supabase, rawDocuments);
-  console.log(`${loadResult.loaded} raw documents loaded to Supabase Storage`);
+  process.stdout.write(
+    formatSuccess(
+      `${loadResult.loaded} raw documents loaded to Supabase Storage`,
+    ) + "\n",
+  );
   if (loadResult.errors.length > 0) {
-    console.error(`${loadResult.errors.length} errors:`);
-    for (const err of loadResult.errors) console.error(`  ${err}`);
+    process.stderr.write(
+      formatError(`${loadResult.errors.length} errors:`) + "\n",
+    );
+    for (const err of loadResult.errors) {
+      process.stderr.write(formatBullet(err, 1) + "\n");
+    }
   }
 }
 
@@ -209,8 +224,10 @@ async function writeRawLocally(rawDocuments, monorepoRoot) {
     await mkdir(dirname(fullPath), { recursive: true });
     await writeFile(fullPath, content);
   }
-  console.log(
-    `${rawDocuments.size} raw documents written to data/activity/raw/`,
+  process.stdout.write(
+    formatSuccess(
+      `${rawDocuments.size} raw documents written to data/activity/raw/`,
+    ) + "\n",
   );
 }
 
@@ -220,12 +237,24 @@ async function writeRawLocally(rawDocuments, monorepoRoot) {
  * @param {boolean} load
  */
 function printDryRun(result, load) {
-  console.log("\nFilesystem files:");
-  for (const [path] of result.files) console.log(`  ${path}`);
-  console.log(`\nRaw documents (${load ? "Supabase Storage" : "local"}):`);
-  for (const [path] of result.rawDocuments) console.log(`  raw/${path}`);
-  console.log(
-    `\n  ${result.files.size + result.rawDocuments.size} total (dry run)`,
+  process.stdout.write("\n" + formatHeader("Filesystem files") + "\n");
+  for (const [path] of result.files) {
+    process.stdout.write(formatBullet(path, 0) + "\n");
+  }
+  process.stdout.write(
+    "\n" +
+      formatHeader(`Raw documents (${load ? "Supabase Storage" : "local"})`) +
+      "\n",
+  );
+  for (const [path] of result.rawDocuments) {
+    process.stdout.write(formatBullet(`raw/${path}`, 0) + "\n");
+  }
+  process.stdout.write(
+    "\n" +
+      formatSubheader(
+        `${result.files.size + result.rawDocuments.size} total (dry run)`,
+      ) +
+      "\n",
   );
 }
 
@@ -234,23 +263,31 @@ function printDryRun(result, load) {
  * @param {object} result
  */
 function printReport(result) {
-  console.log("\nValidation:");
+  process.stdout.write("\n" + formatHeader("Validation") + "\n");
   for (const check of result.validation.checks) {
     const icon = check.passed ? "\u2713" : "\u2717";
-    console.log(`  ${icon} ${check.name}`);
+    process.stdout.write(formatBullet(`${icon} ${check.name}`, 0) + "\n");
   }
 
   const { hits, generated, misses } = result.stats.prose;
   const proseTotal = hits + generated + misses;
   if (proseTotal > 0) {
     const rate = Math.round((hits / proseTotal) * 100);
-    console.log(
-      `\nProse: ${hits} hits, ${generated} generated, ${misses} misses (${rate}% hit rate)`,
+    process.stdout.write(
+      "\n" +
+        formatSubheader(
+          `Prose: ${hits} hits, ${generated} generated, ${misses} misses (${rate}% hit rate)`,
+        ) +
+        "\n",
     );
   }
 
   if (!result.validation.passed) {
-    console.error(`\n${result.validation.failures} validation failures`);
+    process.stderr.write(
+      "\n" +
+        formatError(`${result.validation.failures} validation failures`) +
+        "\n",
+    );
     process.exit(1);
   }
 }

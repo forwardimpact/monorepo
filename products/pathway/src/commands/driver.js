@@ -38,7 +38,7 @@ function formatSummary(drivers, data) {
   const { skills, behaviours, framework } = data;
   const emoji = framework ? getConceptEmoji(framework, "driver") : "🎯";
 
-  console.log(`\n${emoji} Drivers\n`);
+  process.stdout.write("\n" + formatHeader(`${emoji} Drivers`) + "\n\n");
 
   const rows = drivers.map((d) => {
     const contributingSkills = skills.filter((s) =>
@@ -50,10 +50,19 @@ function formatSummary(drivers, data) {
     return [d.id, d.name, contributingSkills, contributingBehaviours];
   });
 
-  console.log(formatTable(["ID", "Name", "Skills", "Behaviours"], rows));
-  console.log(`\nTotal: ${drivers.length} drivers`);
-  console.log(`\nRun 'npx fit-pathway driver --list' for IDs and names`);
-  console.log(`Run 'npx fit-pathway driver <id>' for details\n`);
+  process.stdout.write(
+    formatTable(["ID", "Name", "Skills", "Behaviours"], rows) + "\n",
+  );
+  process.stdout.write(
+    "\n" + formatSubheader(`Total: ${drivers.length} drivers`) + "\n\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway driver --list' for IDs and names") +
+      "\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway driver <id>' for details") + "\n\n",
+  );
 }
 
 /**
@@ -66,25 +75,25 @@ function formatDetail(viewAndContext, framework) {
   const view = prepareDriverDetail(driver, { skills, behaviours });
   const emoji = framework ? getConceptEmoji(framework, "driver") : "🎯";
 
-  console.log(formatHeader(`\n${emoji} ${view.name}\n`));
-  console.log(`${view.description}\n`);
+  process.stdout.write("\n" + formatHeader(`${emoji} ${view.name}`) + "\n\n");
+  process.stdout.write(view.description + "\n\n");
 
   // Contributing skills
   if (view.contributingSkills.length > 0) {
-    console.log(formatSubheader("Contributing Skills\n"));
+    process.stdout.write(formatSubheader("Contributing Skills") + "\n\n");
     for (const s of view.contributingSkills) {
-      console.log(formatBullet(s.name, 1));
+      process.stdout.write(formatBullet(s.name, 1) + "\n");
     }
-    console.log();
+    process.stdout.write("\n");
   }
 
   // Contributing behaviours
   if (view.contributingBehaviours.length > 0) {
-    console.log(formatSubheader("Contributing Behaviours\n"));
+    process.stdout.write(formatSubheader("Contributing Behaviours") + "\n\n");
     for (const b of view.contributingBehaviours) {
-      console.log(formatBullet(b.name, 1));
+      process.stdout.write(formatBullet(b.name, 1) + "\n");
     }
-    console.log();
+    process.stdout.write("\n");
   }
 }
 

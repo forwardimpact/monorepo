@@ -15,7 +15,13 @@ import { createEntityCommand } from "./command-factory.js";
 import { skillToMarkdown } from "../formatters/skill/markdown.js";
 import { prepareSkillsList } from "../formatters/skill/shared.js";
 import { getConceptEmoji } from "@forwardimpact/map/levels";
-import { formatTable, formatError } from "@forwardimpact/libcli";
+import {
+  formatTable,
+  formatError,
+  formatHeader,
+  formatSubheader,
+  formatBullet,
+} from "@forwardimpact/libcli";
 import { generateSkillMarkdown } from "@forwardimpact/libskill/agent";
 import { formatAgentSkill } from "../formatters/agent/skill.js";
 
@@ -29,7 +35,7 @@ function formatSummary(skills, data) {
   const { groups, groupOrder } = prepareSkillsList(skills, capabilities);
   const emoji = framework ? getConceptEmoji(framework, "skill") : "📚";
 
-  console.log(`\n${emoji} Skills\n`);
+  process.stdout.write("\n" + formatHeader(`${emoji} Skills`) + "\n\n");
 
   // Summary table by capability
   const rows = groupOrder.map((capability) => {
@@ -38,10 +44,18 @@ function formatSummary(skills, data) {
     return [capability, count, withAgent];
   });
 
-  console.log(formatTable(["Capability", "Count", "Agent"], rows));
-  console.log(`\nTotal: ${skills.length} skills`);
-  console.log(`\nRun 'npx fit-pathway skill --list' for IDs`);
-  console.log(`Run 'npx fit-pathway skill <id>' for details\n`);
+  process.stdout.write(
+    formatTable(["Capability", "Count", "Agent"], rows) + "\n",
+  );
+  process.stdout.write(
+    "\n" + formatSubheader(`Total: ${skills.length} skills`) + "\n\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway skill --list' for IDs") + "\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway skill <id>' for details") + "\n\n",
+  );
 }
 
 /**
@@ -70,10 +84,12 @@ function formatDetail(viewAndContext, framework) {
  */
 async function formatAgentDetail(skill, stages, templateLoader, dataDir) {
   if (!skill.agent) {
-    console.error(formatError(`Skill '${skill.id}' has no agent section`));
-    console.error(`\nSkills with agent support:`);
-    console.error(
-      `  npx fit-pathway skill --list | xargs -I{} sh -c 'npx fit-pathway skill {} --json | jq -e .skill.agent > /dev/null && echo {}'`,
+    process.stderr.write(
+      formatError(`Skill '${skill.id}' has no agent section`) + "\n",
+    );
+    process.stderr.write("\nSkills with agent support:\n");
+    process.stderr.write(
+      `  npx fit-pathway skill --list | xargs -I{} sh -c 'npx fit-pathway skill {} --json | jq -e .skill.agent > /dev/null && echo {}'\n`,
     );
     process.exit(1);
   }
@@ -81,7 +97,7 @@ async function formatAgentDetail(skill, stages, templateLoader, dataDir) {
   const template = templateLoader.load("skill.template.md", dataDir);
   const skillMd = generateSkillMarkdown({ skillData: skill, stages });
   const output = formatAgentSkill(skillMd, template);
-  console.log(output);
+  process.stdout.write(output + "\n");
 }
 
 /**
@@ -131,8 +147,10 @@ export async function runSkillCommand({
     const skill = data.skills.find((s) => s.id === id);
 
     if (!skill) {
-      console.error(formatError(`Skill not found: ${id}`));
-      console.error(`Available: ${data.skills.map((s) => s.id).join(", ")}`);
+      process.stderr.write(formatError(`Skill not found: ${id}`) + "\n");
+      process.stderr.write(
+        `Available: ${data.skills.map((s) => s.id).join(", ")}\n`,
+      );
       process.exit(1);
     }
 

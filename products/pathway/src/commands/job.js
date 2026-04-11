@@ -20,7 +20,13 @@ import {
   generateJobTitle,
   generateAllJobs,
 } from "@forwardimpact/libskill/derivation";
-import { formatTable } from "@forwardimpact/libcli";
+import {
+  formatTable,
+  formatHeader,
+  formatSubheader,
+  formatBullet,
+  formatError,
+} from "@forwardimpact/libcli";
 import {
   deriveChecklist,
   formatChecklistMarkdown,
@@ -66,7 +72,9 @@ function printJobList(filteredJobs) {
  */
 function printJobSummary(filteredJobs, options) {
   const trackLabel = options.track ? ` — ${options.track}` : "";
-  console.log(`\n💼 Jobs${trackLabel}\n`);
+  process.stdout.write(
+    "\n" + formatHeader(`\u{1F4BC} Jobs${trackLabel}`) + "\n\n",
+  );
 
   const byDiscipline = {};
   for (const job of filteredJobs) {
@@ -91,15 +99,24 @@ function printJobSummary(filteredJobs, options) {
     info.count,
     info.tracks.size > 0 ? [...info.tracks].join(", ") : "—",
   ]);
-  console.log(
-    formatTable(["ID", "Specialization", "Type", "Jobs", "Tracks"], rows),
+  process.stdout.write(
+    formatTable(["ID", "Specialization", "Type", "Jobs", "Tracks"], rows) +
+      "\n",
   );
-  console.log(`\nTotal: ${filteredJobs.length} valid job combinations`);
-  console.log(
-    `\nRun 'npx fit-pathway job --list' for all combinations with titles`,
+  process.stdout.write(
+    "\n" +
+      formatSubheader(`Total: ${filteredJobs.length} valid job combinations`) +
+      "\n\n",
   );
-  console.log(
-    `Run 'npx fit-pathway job <discipline> <level> [--track=<track>]' for details\n`,
+  process.stdout.write(
+    formatBullet(
+      "Run 'npx fit-pathway job --list' for all combinations with titles",
+    ) + "\n",
+  );
+  process.stdout.write(
+    formatBullet(
+      "Run 'npx fit-pathway job <discipline> <level> [--track=<track>]' for details",
+    ) + "\n\n",
   );
 }
 
@@ -112,22 +129,28 @@ function handleSingleArg(arg, data) {
   const isLevel = data.levels.some((g) => g.id === arg);
   const isTrack = data.tracks.some((t) => t.id === arg);
   if (isLevel) {
-    console.error(
-      `Missing discipline. Usage: npx fit-pathway job <discipline> ${arg} [--track=<track>]`,
+    process.stderr.write(
+      formatError(
+        `Missing discipline. Usage: npx fit-pathway job <discipline> ${arg} [--track=<track>]`,
+      ) + "\n",
     );
-    console.error(
-      `Disciplines: ${data.disciplines.map((d) => d.id).join(", ")}`,
+    process.stderr.write(
+      `Disciplines: ${data.disciplines.map((d) => d.id).join(", ")}\n`,
     );
   } else if (isTrack) {
-    console.error(`Track must be passed as a flag: --track=${arg}`);
-    console.error(
-      `Usage: npx fit-pathway job <discipline> <level> --track=${arg}`,
+    process.stderr.write(
+      formatError(`Track must be passed as a flag: --track=${arg}`) + "\n",
+    );
+    process.stderr.write(
+      `Usage: npx fit-pathway job <discipline> <level> --track=${arg}\n`,
     );
   } else {
-    console.error(
-      "Usage: npx fit-pathway job <discipline> <level> [--track=<track>]",
+    process.stderr.write(
+      formatError(
+        "Usage: npx fit-pathway job <discipline> <level> [--track=<track>]",
+      ) + "\n",
     );
-    console.error("       npx fit-pathway job --list");
+    process.stderr.write("       npx fit-pathway job --list\n");
   }
   process.exit(1);
 }
@@ -150,14 +173,18 @@ function resolveJobEntities(data, args, options) {
     const maybeLevel = data.levels.find((g) => g.id === args[0]);
     const maybeDiscipline = data.disciplines.find((d) => d.id === args[1]);
     if (maybeLevel && maybeDiscipline) {
-      console.error(`Arguments are in the wrong order. Try:`);
-      console.error(
-        `  npx fit-pathway job ${args[1]} ${args[0]}${options.track ? ` --track=${options.track}` : ""}`,
+      process.stderr.write(
+        formatError("Arguments are in the wrong order. Try:") + "\n",
+      );
+      process.stderr.write(
+        `  npx fit-pathway job ${args[1]} ${args[0]}${options.track ? ` --track=${options.track}` : ""}\n`,
       );
     } else {
-      console.error(`Discipline not found: ${args[0]}`);
-      console.error(
-        `Available: ${data.disciplines.map((d) => d.id).join(", ")}`,
+      process.stderr.write(
+        formatError(`Discipline not found: ${args[0]}`) + "\n",
+      );
+      process.stderr.write(
+        `Available: ${data.disciplines.map((d) => d.id).join(", ")}\n`,
       );
     }
     process.exit(1);
@@ -166,23 +193,33 @@ function resolveJobEntities(data, args, options) {
   if (!level) {
     const isTrack = data.tracks.some((t) => t.id === args[1]);
     if (isTrack) {
-      console.error(
-        `Track must be passed as a flag, not a positional argument:`,
+      process.stderr.write(
+        formatError(
+          "Track must be passed as a flag, not a positional argument:",
+        ) + "\n",
       );
-      console.error(
-        `  npx fit-pathway job ${args[0]} <level> --track=${args[1]}`,
+      process.stderr.write(
+        `  npx fit-pathway job ${args[0]} <level> --track=${args[1]}\n`,
       );
-      console.error(`Levels: ${data.levels.map((g) => g.id).join(", ")}`);
+      process.stderr.write(
+        `Levels: ${data.levels.map((g) => g.id).join(", ")}\n`,
+      );
     } else {
-      console.error(`Level not found: ${args[1]}`);
-      console.error(`Available: ${data.levels.map((g) => g.id).join(", ")}`);
+      process.stderr.write(formatError(`Level not found: ${args[1]}`) + "\n");
+      process.stderr.write(
+        `Available: ${data.levels.map((g) => g.id).join(", ")}\n`,
+      );
     }
     process.exit(1);
   }
 
   if (options.track && !track) {
-    console.error(`Track not found: ${options.track}`);
-    console.error(`Available: ${data.tracks.map((t) => t.id).join(", ")}`);
+    process.stderr.write(
+      formatError(`Track not found: ${options.track}`) + "\n",
+    );
+    process.stderr.write(
+      `Available: ${data.tracks.map((t) => t.id).join(", ")}\n`,
+    );
     process.exit(1);
   }
 
@@ -198,8 +235,8 @@ function resolveJobEntities(data, args, options) {
 function handleChecklist(view, data, stageId) {
   const validStages = data.stages.map((s) => s.id);
   if (!validStages.includes(stageId)) {
-    console.error(`Invalid stage: ${stageId}`);
-    console.error(`Available: ${validStages.join(", ")}`);
+    process.stderr.write(formatError(`Invalid stage: ${stageId}`) + "\n");
+    process.stderr.write(`Available: ${validStages.join(", ")}\n`);
     process.exit(1);
   }
 
@@ -211,21 +248,24 @@ function handleChecklist(view, data, stageId) {
   });
 
   if (readChecklist.length === 0 && confirmChecklist.length === 0) {
-    console.log(`\nNo checklist items for ${stageId} stage\n`);
+    process.stdout.write(
+      "\n" +
+        formatSubheader(`No checklist items for ${stageId} stage`) +
+        "\n\n",
+    );
     return;
   }
 
+  // Markdown output (#/##) is intentional — this is consumed as markdown.
   const stageLabel = stageId.charAt(0).toUpperCase() + stageId.slice(1);
-  console.log(`\n# ${view.title} — ${stageLabel} Stage Checklist\n`);
+  process.stdout.write(`\n# ${view.title} — ${stageLabel} Stage Checklist\n\n`);
   if (readChecklist.length > 0) {
-    console.log("## Read-Then-Do\n");
-    console.log(formatChecklistMarkdown(readChecklist));
-    console.log("");
+    process.stdout.write("## Read-Then-Do\n\n");
+    process.stdout.write(formatChecklistMarkdown(readChecklist) + "\n\n");
   }
   if (confirmChecklist.length > 0) {
-    console.log("## Do-Then-Confirm\n");
-    console.log(formatChecklistMarkdown(confirmChecklist));
-    console.log("");
+    process.stdout.write("## Do-Then-Confirm\n\n");
+    process.stdout.write(formatChecklistMarkdown(confirmChecklist) + "\n\n");
   }
 }
 
@@ -247,16 +287,22 @@ function validateTrackFilter(filteredJobs, data, options) {
   if (!options.track || filteredJobs.length > 0) return;
   const trackExists = data.tracks.some((t) => t.id === options.track);
   if (!trackExists) {
-    console.error(`Track not found: ${options.track}`);
-    console.error(`Available: ${data.tracks.map((t) => t.id).join(", ")}`);
+    process.stderr.write(
+      formatError(`Track not found: ${options.track}`) + "\n",
+    );
+    process.stderr.write(
+      `Available: ${data.tracks.map((t) => t.id).join(", ")}\n`,
+    );
   } else {
-    console.error(`No jobs found for track: ${options.track}`);
+    process.stderr.write(
+      formatError(`No jobs found for track: ${options.track}`) + "\n",
+    );
     const trackDisciplines = data.disciplines
       .filter((d) => d.validTracks && d.validTracks.includes(options.track))
       .map((d) => d.id);
     if (trackDisciplines.length > 0) {
-      console.error(
-        `Disciplines with this track: ${trackDisciplines.join(", ")}`,
+      process.stderr.write(
+        `Disciplines with this track: ${trackDisciplines.join(", ")}\n`,
       );
     }
   }
@@ -274,23 +320,23 @@ function reportInvalidCombination(discipline, level, track, data) {
   const combo = track
     ? `${discipline.id} × ${level.id} × ${track.id}`
     : `${discipline.id} × ${level.id}`;
-  console.error(`Invalid combination: ${combo}`);
+  process.stderr.write(formatError(`Invalid combination: ${combo}`) + "\n");
   if (track) {
     const validTracks = discipline.validTracks?.filter((t) => t !== null) || [];
     if (validTracks.length > 0) {
-      console.error(
-        `Valid tracks for ${discipline.id}: ${validTracks.join(", ")}`,
+      process.stderr.write(
+        `Valid tracks for ${discipline.id}: ${validTracks.join(", ")}\n`,
       );
     } else {
-      console.error(`${discipline.id} does not support tracks`);
+      process.stderr.write(`${discipline.id} does not support tracks\n`);
     }
   }
   if (discipline.minLevel) {
     const levelIndex = data.levels.findIndex((g) => g.id === level.id);
     const minIndex = data.levels.findIndex((g) => g.id === discipline.minLevel);
     if (levelIndex >= 0 && minIndex >= 0 && levelIndex < minIndex) {
-      console.error(
-        `${discipline.id} requires minimum level: ${discipline.minLevel}`,
+      process.stderr.write(
+        `${discipline.id} requires minimum level: ${discipline.minLevel}\n`,
       );
     }
   }

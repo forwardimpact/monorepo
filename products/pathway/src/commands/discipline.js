@@ -12,7 +12,12 @@
 
 import { createEntityCommand } from "./command-factory.js";
 import { disciplineToMarkdown } from "../formatters/discipline/markdown.js";
-import { formatTable } from "@forwardimpact/libcli";
+import {
+  formatTable,
+  formatHeader,
+  formatSubheader,
+  formatBullet,
+} from "@forwardimpact/libcli";
 
 /**
  * Format discipline list item for --list output
@@ -32,7 +37,7 @@ function formatListItem(discipline) {
  * @param {Array} disciplines - Raw discipline entities
  */
 function formatSummary(disciplines) {
-  console.log(`\n📋 Disciplines\n`);
+  process.stdout.write("\n" + formatHeader("\u{1F4CB} Disciplines") + "\n\n");
 
   const rows = disciplines.map((d) => {
     const type = d.isProfessional ? "Professional" : "Management";
@@ -41,10 +46,19 @@ function formatSummary(disciplines) {
     return [d.id, d.specialization || d.id, type, trackStr];
   });
 
-  console.log(formatTable(["ID", "Specialization", "Type", "Tracks"], rows));
-  console.log(`\nTotal: ${disciplines.length} disciplines`);
-  console.log(`\nRun 'npx fit-pathway discipline --list' for IDs and names`);
-  console.log(`Run 'npx fit-pathway discipline <id>' for details\n`);
+  process.stdout.write(
+    formatTable(["ID", "Specialization", "Type", "Tracks"], rows) + "\n",
+  );
+  process.stdout.write(
+    "\n" + formatSubheader(`Total: ${disciplines.length} disciplines`) + "\n\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway discipline --list' for IDs and names") +
+      "\n",
+  );
+  process.stdout.write(
+    formatBullet("Run 'npx fit-pathway discipline <id>' for details") + "\n\n",
+  );
 }
 
 /**

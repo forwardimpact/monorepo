@@ -2,7 +2,12 @@
 
 import { readFileSync } from "node:fs";
 import fs from "node:fs/promises";
-import { createCli } from "@forwardimpact/libcli";
+import {
+  createCli,
+  formatHeader,
+  formatSuccess,
+  formatBullet,
+} from "@forwardimpact/libcli";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createStorage } from "@forwardimpact/libstorage";
 import { Logger } from "@forwardimpact/libtelemetry";
@@ -96,17 +101,22 @@ const commands = {
     // Use empty prefix for bucket-level operations
     const storage = createStorage("");
     const created = await storage.ensureBucket();
-    console.log(created ? "Bucket created" : "Bucket already exists");
+    process.stdout.write(
+      formatSuccess(created ? "Bucket created" : "Bucket already exists") +
+        "\n",
+    );
   },
 
   async wait() {
     await createScriptConfig("storage");
     const storage = createStorage("");
     const timeout = parseInt(values.timeout || "30000");
-    console.log(`Waiting for storage (timeout: ${timeout}ms)...`);
+    process.stdout.write(
+      formatHeader(`Waiting for storage (timeout: ${timeout}ms)`) + "\n",
+    );
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     await waitFor(() => storage.isHealthy(), { timeout }, delay);
-    console.log("Storage is ready");
+    process.stdout.write(formatSuccess("Storage is ready") + "\n");
   },
 
   async upload() {
@@ -117,7 +127,9 @@ const commands = {
       : await discoverLocalPrefixes();
 
     if (prefixes.length === 0) {
-      console.log("No prefixes to upload (data/ directory empty or not found)");
+      process.stdout.write(
+        "No prefixes to upload (data/ directory empty or not found)\n",
+      );
       return;
     }
 
@@ -142,7 +154,7 @@ const commands = {
         prefix,
       });
     }
-    console.log("Upload completed");
+    process.stdout.write(formatSuccess("Upload completed") + "\n");
   },
 
   async download() {
@@ -153,7 +165,7 @@ const commands = {
       : await discoverRemotePrefixes();
 
     if (prefixes.length === 0) {
-      console.log("No prefixes found in remote storage");
+      process.stdout.write("No prefixes found in remote storage\n");
       return;
     }
 
@@ -169,7 +181,7 @@ const commands = {
 
       logger.info("download", `Downloaded ${keys.length} files`, { prefix });
     }
-    console.log("Download completed");
+    process.stdout.write(formatSuccess("Download completed") + "\n");
   },
 
   async list() {
@@ -179,14 +191,16 @@ const commands = {
       : await discoverRemotePrefixes();
 
     if (prefixes.length === 0) {
-      console.log("No prefixes found in remote storage");
+      process.stdout.write("No prefixes found in remote storage\n");
       return;
     }
 
     for (const prefix of prefixes) {
       const storage = createStorage(prefix);
       const keys = await storage.list();
-      keys.forEach((k) => console.log(`${prefix}/${k}`));
+      for (const k of keys) {
+        process.stdout.write(formatBullet(`${prefix}/${k}`, 0) + "\n");
+      }
     }
   },
 };
