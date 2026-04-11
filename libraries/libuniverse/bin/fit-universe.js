@@ -395,8 +395,12 @@ async function main() {
   const libsyntheticproseDir = dirname(
     fileURLToPath(import.meta.resolve("@forwardimpact/libsyntheticprose")),
   );
-  const libsyntheticrenderDir = dirname(
-    fileURLToPath(import.meta.resolve("@forwardimpact/libsyntheticrender")),
+  // libsyntheticrender's main entry is src/index.js but the published
+  // templates/ tree lives at the package root — walk up one level.
+  const libsyntheticrenderPackageRoot = dirname(
+    dirname(
+      fileURLToPath(import.meta.resolve("@forwardimpact/libsyntheticrender")),
+    ),
   );
 
   const pipeline = createPipeline({
@@ -406,7 +410,7 @@ async function main() {
     strict: !!values.strict,
     llmApi,
     promptDir: join(libsyntheticproseDir, "prompts"),
-    templateDir: join(libsyntheticrenderDir, "templates"),
+    templateDir: join(libsyntheticrenderPackageRoot, "templates"),
   });
 
   const result = await pipeline.run({
