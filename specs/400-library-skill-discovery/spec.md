@@ -38,18 +38,18 @@ This is the same diagnosis spec 130 made about the inner `Libraries` tables
 but did not touch the frontmatter descriptions, which are what actually drive
 auto-trigger. The router-level miss is still open.
 
-### 2. Four libraries are not represented in any `libs-*` SKILL.md
+### 2. Five libraries are missing or incomplete in the `libs-*` SKILL.md tables
 
 `CLAUDE.md` § Skill Groups lists 33 libraries across six groups. Reality
 diverges:
 
-| Library       | Listed in CLAUDE.md group       | Present in SKILL.md? |
-| ------------- | ------------------------------- | -------------------- |
-| `libtool`     | `libs-llm-orchestration`        | **No**               |
-| `libcli`      | `libs-web-presentation`         | **No**               |
-| `librepl`     | `libs-web-presentation`         | **No**               |
-| `libeval`     | `libs-system-utilities`         | **No**               |
-| `libuniverse` | `libs-synthetic-data` (implied) | Body only, not table |
+| Library       | Listed in CLAUDE.md group       | Present in SKILL.md table? |
+| ------------- | ------------------------------- | -------------------------- |
+| `libtool`     | `libs-llm-orchestration`        | **No**                     |
+| `libcli`      | `libs-web-presentation`         | **No**                     |
+| `librepl`     | `libs-web-presentation`         | **No**                     |
+| `libeval`     | `libs-system-utilities`         | **No**                     |
+| `libuniverse` | `libs-synthetic-data` (implied) | Body only, not table       |
 
 Five libraries are silently missing from the discovery surface. `libcli` is
 particularly painful — spec 360 just landed it as the canonical CLI
@@ -83,7 +83,7 @@ plan time has no checklist that says "look for an existing library."
 
 ### 4. Trust erodes on every stale name
 
-Spec 130 found 13+ wrong names and missing exports across the six libs-\* files
+Spec 130 found 13+ wrong names and missing exports across the six `libs-*` files
 (e.g. `WindowBuilder` claimed but actual export is `MemoryWindow`; `VectorIndex`
 claimed but not exported at all). Spec 130 fixed those once, manually. There is
 no CI guard. Every library refactor can re-introduce the same class of error
@@ -99,38 +99,37 @@ would close the staleness class structurally.
 Even with capability-rewritten descriptions, the current grouping has issues
 worth addressing in the same pass:
 
-| Current group                 | Members                                                                            | Coherence problem                                                                                                                             |
-| ----------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `libs-service-infrastructure` | librpc, libconfig, libtelemetry, libtype, libharness                               | Cohesive, but `libtelemetry`'s logger is used by every CLI and library — burying it under "service infrastructure" hides it from CLI authors. |
-| `libs-data-persistence`       | libstorage, libindex, libresource, libpolicy, libgraph, libvector                  | Cohesive. Six is the practical maximum.                                                                                                       |
-| `libs-llm-orchestration`      | libllm, libmemory, libprompt, libagent, libtool                                    | Cohesive. `libtool` orphan needs to be added to the table.                                                                                    |
-| `libs-web-presentation`       | libui, libformat, libweb, libdoc, libtemplate, **libcli, librepl**                 | Mis-grouped. CLI and REPL plumbing are not "web presentation." `libformat` (markdown to terminal) is half-CLI, half-content.                  |
-| `libs-system-utilities`       | libutil, libsecret, libsupervise, librc, libcodegen, **libeval**                   | Junk drawer. Crypto, supervision, codegen, trace processing, file utilities have nothing to do with each other except "miscellaneous."        |
-| `libs-synthetic-data`         | libsyntheticgen, libsyntheticprose, libsyntheticrender, **(libuniverse implicit)** | Cohesive. `libuniverse` (the pipeline) needs to be added to the table.                                                                        |
+| Current group                 | Members                                                                             | Coherence problem                                                                                                                             |
+| ----------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `libs-service-infrastructure` | librpc, libconfig, libtelemetry, libtype, libharness                                | Cohesive, but `libtelemetry`'s logger is used by every CLI and library — burying it under "service infrastructure" hides it from CLI authors. |
+| `libs-data-persistence`       | libstorage, libindex, libresource, libpolicy, libgraph, libvector                   | Cohesive. Six is the practical maximum.                                                                                                       |
+| `libs-llm-orchestration`      | libllm, libmemory, libprompt, libagent, libtool                                     | Cohesive. `libtool` orphan needs to be added to the table.                                                                                    |
+| `libs-web-presentation`       | libui, libformat, libweb, libdoc, libtemplate, **libcli, librepl**                  | Mis-grouped. CLI and REPL plumbing are not "web presentation." `libformat` (markdown to terminal) is half-CLI, half-content.                  |
+| `libs-system-utilities`       | libutil, libsecret, libsupervise, librc, libcodegen, **libeval**                    | Junk drawer. Crypto, supervision, codegen, trace processing, file utilities have nothing to do with each other except "miscellaneous."        |
+| `libs-synthetic-data`         | libsyntheticgen, libsyntheticprose, libsyntheticrender, **libuniverse** (body only) | Cohesive. `libuniverse` (the pipeline) needs to be added to the table.                                                                        |
 
 The two worst groups by capability-fit are `libs-web-presentation` (because
 CLI/REPL belong elsewhere) and `libs-system-utilities` (junk drawer with no
 shared task vocabulary). Group names like "system utilities" carry no signal to
 the router or to a reader skimming the directory.
 
-`libskill` lives outside `libs-*` entirely as a standalone skill, citing its
-"pure functions exempt from OO+DI" status. This is a content-based exception
-leaking into the taxonomy and fragments the "where do I look for shared code"
-question.
-
 ## What changes
 
-A single follow-up change with four moves: (1) close the orphan and drift gap,
-(2) rewrite frontmatter descriptions in capability vocabulary, (3) add a
-discovery protocol to the workflow, (4) add a CI guard against staleness. The
-taxonomy reorganisation is part of move (1).
+A single follow-up change with five moves: (1) close the orphan and drift gap
+and reorganise into six task-named groups, (2) rewrite frontmatter descriptions
+in capability vocabulary and switch the inner table columns to `Capabilities` /
+`Key Exports`, (3) add a discovery protocol to the contributor workflow,
+planning skill, and agent profiles, (4) add a CI guard against `Key Exports`
+drift, (5) accept the explicit rejected alternatives listed below.
 
 ### Move 1 — Reorganise into six task-named groups, no orphans
 
-Replace the current six groups with six **task-named** groups that cover all 33
-shared libraries plus libskill. Renames are cheap (skill files are directories
-that move; CLAUDE.md § Skill Groups updates) and worth doing in the same pass as
-adding the orphans, because both moves change the same files.
+Replace the current six groups with six **task-named** groups that together
+cover all 34 packages under `libraries/` (33 shared libraries in the six
+`libs-*` groups plus `libskill` as its own standalone skill). Renames are cheap
+(skill files are directories that move; CLAUDE.md § Skill Groups updates) and
+worth doing in the same pass as adding the orphans, because both moves change
+the same files.
 
 | New group               | Members                                                                                   | Count | Rationale                                                                                                                                                                     |
 | ----------------------- | ----------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -152,19 +151,27 @@ trade-off.
 
 `libskill` keeps its own skill file but the description is rewritten so it reads
 as "domain logic for jobs, skills, agents, career progression" rather than "the
-libskill package." Naming consistency is not worth a forced merge into a
-`libs-*` group.
+libskill package." `libskill` lives outside `libs-*` because it is pure domain
+logic with no peer in `libraries/` — the same reason it is exempt from OO+DI.
+Naming consistency is not worth a forced merge into a `libs-*` group.
 
-Rejected alternative — eight smaller groups: produces single-library skills
-(e.g. `libs-codegen`) that lose router-selection competitions to broader sibling
-skills. Five groups instead of six would force `libs-content` and
-`libs-cli-and-tooling` to merge, recreating the junk drawer.
+### Move 2 — Rewrite frontmatter descriptions and switch inner tables to `Capabilities` / `Key Exports`
 
-### Move 2 — Rewrite frontmatter descriptions in capability verbs
+Two linked changes to the skill file surface:
 
-Every `libs-*` SKILL.md frontmatter `description` is rewritten as a verb-rich
-list of the actual tasks the libraries perform. The skill router matches text in
-this field, so this is the highest-leverage change.
+**2a. Frontmatter descriptions in capability verbs.** Every `libs-*` SKILL.md
+frontmatter `description` is rewritten as a verb-rich list of the actual tasks
+the libraries perform. The skill router matches text in this field, so this is
+the highest-leverage change.
+
+**2b. Inner `Libraries` table columns become `Capabilities` / `Key Exports`.**
+The current columns are `Main API` / `Purpose`. Spec 130's plan-a §1 already
+proposed this column change for the libraries that existed at the time; this
+spec extends it to every group (including the orphans) and makes it the on-disk
+contract that Move 4's CI guard enforces. `Capabilities` uses task-oriented
+language that matches how agents search; `Key Exports` lists the public classes
+and functions from the library's `src/index.js`. This column rename is
+load-bearing: Move 4's check resolves names against `Key Exports` specifically.
 
 Illustrative target shape (final wording belongs in the plan):
 
@@ -192,94 +199,124 @@ The description must:
   body documents it perfectly.
 - Stay under ~100 words so the router can skim it cheaply.
 
-Each SKILL.md body keeps its existing `Libraries` table, Decision Guide,
-Composition Recipes, and DI Wiring sections (already corrected by spec 130 for
-the libraries that are not orphans). New entries are added for the four orphans.
-The `Libraries` table column header changes from `Main API` / `Purpose` to
-`Capabilities` / `Key Exports` (spec 130's plan-a §1 already proposed this for
-the inner table; this spec extends it to the orphans and to the renamed groups).
+Each SKILL.md body keeps its existing Decision Guide, Composition Recipes, and
+DI Wiring sections (already corrected by spec 130 for the libraries that are not
+orphans). New `Libraries` table rows are added for all five orphans (`libtool`,
+`libcli`, `librepl`, `libeval`, `libuniverse`).
 
-### Move 3 — Add a library-survey step to planning and a discovery item to READ-DO
+### Move 3 — Add a discovery protocol to contributor workflow, planning, and agent profiles
 
-Two complementary additions:
+Three linked surfaces make library discovery an explicit requirement rather than
+a reflex. Each change is stated as an observable requirement; the plan owns the
+wording, placement, and exact checklist format.
 
-**CONTRIBUTING.md § READ-DO** gains a new item:
+**3a. CONTRIBUTING.md § READ-DO requires a library search before writing new
+helpers.** Every contribution must confirm that it checked `libs-*` and
+`libraries/` for an existing capability before writing a helper, utility, or
+wrapper. Observable: the READ-DO section contains a checklist item whose text
+makes this search mandatory.
 
-> - [ ] **Look in `libs-*` first.** Before writing a helper, utility, or
->       wrapper, search the `libs-*` skill groups and `libraries/` for the
->       capability. Import, don't reinvent. If a library is missing the
->       capability, extend the library — don't fork it locally.
+**3b. `gemba-plan` produces plans that enumerate the libraries they use.** Every
+`plan-a.md` must contain a section naming the `@forwardimpact/lib*` packages and
+specific exports the plan consumes. A plan that uses no libraries must say so
+explicitly — absence is a visible signal, not a default. Observable:
+`gemba-plan` SKILL.md requires the section; existing plans (as they are revised)
+include it.
 
-This applies to every contribution, human or agent. It is a one-line gate at the
-natural pause point before writing new code.
+**3c. Agent profiles that write code pre-load the relevant `libs-*` skills.** At
+minimum, the staff engineer (the agent that owns implementation) must have
+`libs-*` skills available in its profile without having to discover them at run
+time. Observable: `.claude/agents/staff-engineer.md` (and other code-writing
+agent profiles identified during planning) list the `libs-*` skills in their
+`skills:` field, so the library catalog is in context before the READ-DO and
+library-survey steps run.
 
-**`gemba-plan` SKILL.md** gains a "Library survey" step before the plan is
-written. The plan author lists every `@forwardimpact/lib*` package the plan will
-use and names specific exports. The list lives in the plan, so when
-`gemba-implement` reads the plan in step 2, the libraries are already in scope.
-This makes discovery a plan-time decision that flows naturally into
-implementation, instead of a reflex the implementer is structurally forbidden
-from acting on.
-
-The library survey is structured so that absence is visible: a plan that says
-"this feature uses no shared libraries" is a flag for the reviewer, not a
-default.
+Together these three surfaces move discovery from "rely on agent reflex" to
+"required at plan time, enforced at read-do time, pre-loaded at agent-load
+time." This matters because `gemba-implement` structurally forbids deviation
+from the plan, so discovery has to be upstream of implementation to take effect.
 
 ### Move 4 — CI guard against `Key Exports` drift
 
-A new check in `bun run check` (and the `check-quality` CI workflow) asserts
-that every entry in the `Key Exports` column of every `libs-*` SKILL.md resolves
-against `grep "^export" libraries/<lib>/src/index.js`. The check fails if:
+A new check that runs as part of `bun run check` (and the `check-quality` CI
+workflow) asserts a single invariant: **every name listed in a `Key Exports`
+cell of any `libs-*` SKILL.md resolves to a public export of the corresponding
+library package.** The check fails if:
 
-- A name in `Key Exports` is not exported from the library's `index.js`.
-- A library listed in the group's table has no entry in `Key Exports`.
+- A name in `Key Exports` is not a public export of the library (whether
+  declared as `export …`, `export { … }`, or `export { … } from …` — the plan
+  selects the resolution strategy, the spec only requires semantic correctness).
+- A library listed in the group's `Libraries` table has an empty `Key Exports`
+  cell.
 
-This is structurally identical to the existing `bun run check:exports` script
+This is structurally equivalent to the existing `bun run check:exports` script
 (spec 390), which validates that `package.json` `main`/`bin`/`exports` fields
-resolve to real files. The new script lives alongside it as
-`scripts/check-skill-exports.js`.
+resolve to real files. The new check lives alongside it in `scripts/`; the exact
+file name is a plan decision.
 
 The reverse direction (every library export must appear somewhere in the skill
 file) is intentionally **not** checked. Internal helpers and
 implementation-detail exports do not need to be advertised. Only the positive
 direction — "everything we advertise must exist" — is enforced.
 
+### Move 5 — Alternatives considered and explicitly rejected
+
+- **Eight smaller groups** (split `libs-cli-and-tooling` further): produces
+  single-library skills (e.g. `libs-codegen`, `libs-eval`) that lose router
+  selection competitions against broader sibling skills. One large cohesive
+  group with a verb-rich description outperforms several narrow ones.
+- **Five groups** (merge `libs-content` and `libs-cli-and-tooling`): forces
+  web/markdown/docs into the same group as process supervision and codegen,
+  recreating the junk drawer that this spec is trying to retire.
+- **Forced merge of `libskill` into a `libs-*` group**: `libskill` is pure
+  domain logic with no peer in `libraries/`, which is also the reason it is
+  exempt from OO+DI. Naming consistency is not worth the forced fit.
+- **Fixing descriptions without reorganising**: would leave `libcli`, `librepl`,
+  `libtool`, `libeval`, and `libuniverse` orphaned, and would lock in the
+  junk-drawer `libs-system-utilities` name as the load-time signal. Description
+  rewrites and reorganisation touch the same files, so doing them together is
+  strictly cheaper.
+- **Cross-linking product (`fit-*`) skills to `libs-*`**: worthwhile but out of
+  scope — see the Out of scope section.
+
 ## Success criteria
 
-1. **No orphans.** Every library under `libraries/` (currently 34) appears in
-   exactly one `libs-*` SKILL.md `Libraries` table or in the standalone
+1. **No orphans.** Every package under `libraries/` (34 packages today) appears
+   in exactly one `libs-*` SKILL.md `Libraries` table, or in the standalone
    `libskill` SKILL.md. Verifiable: a script that diffs `ls libraries/` against
-   the union of `Libraries` table entries returns empty.
+   the union of `Libraries` table entries plus `libskill` returns empty.
 
 2. **Capability-language descriptions.** Every `libs-*` SKILL.md frontmatter
    `description` opens with "Use when" and contains a verb-rich list of tasks.
-   No frontmatter description names a library by name in the first sentence.
+   No frontmatter description names a library by name in its first sentence.
    Verifiable by reading the six files.
 
-3. **Six task-named groups.** The `libs-*` directory contains exactly six skill
-   folders with the names from the table in Move 1. CLAUDE.md § Skill Groups
-   matches. Verifiable: `ls .claude/skills/libs-*` and `grep "libs-" CLAUDE.md`.
+3. **Six task-named groups.** The `.claude/skills/libs-*` directory contains
+   exactly six skill folders whose names match the six `libs-*` rows in Move 1's
+   table. CLAUDE.md § Skill Groups matches. Verifiable:
+   `ls .claude/skills/libs-*` and `grep "libs-" CLAUDE.md`.
 
-4. **Discovery protocol live.** CONTRIBUTING.md § READ-DO contains the new "Look
-   in `libs-*` first" item. `gemba-plan` SKILL.md contains a "Library survey"
-   step that requires plans to enumerate the libraries they use. Verifiable by
-   reading the two files.
+4. **Inner tables switched to `Capabilities` / `Key Exports`.** Every `libs-*`
+   SKILL.md `Libraries` table uses these column headers. Verifiable by reading
+   the six files.
 
-5. **`bun run check` fails on `Key Exports` drift.** A new
-   `scripts/check-skill-exports.js` runs as part of `bun run check` and the
-   `check-quality` CI workflow. Manually breaking a `Key Exports` entry (e.g.
-   renaming an export) makes `bun run check` fail with a clear error pointing at
-   the SKILL.md line. Restoring the name makes the check pass.
+5. **Discovery protocol live on all three surfaces.** CONTRIBUTING.md § READ-DO
+   contains the library-search item (Move 3a). `gemba-plan` SKILL.md requires
+   plans to enumerate the libraries they use (Move 3b).
+   `.claude/agents/staff-engineer.md` — and any other code-writing agent profile
+   identified during planning — lists the relevant `libs-*` skills in its
+   `skills:` field (Move 3c). Verifiable by reading the files.
 
-6. **`libcli`, `librepl`, `libtool`, `libeval`, `libuniverse` are
+6. **`bun run check` fails on `Key Exports` drift.** Manually renaming an
+   exported symbol in a library (without updating the SKILL.md) causes
+   `bun run check` to fail with a clear error pointing at the offending SKILL.md
+   entry. Reverting the rename (or updating the SKILL.md) makes the check pass.
+   Verifiable locally and in the `check-quality` CI workflow.
+
+7. **`libcli`, `librepl`, `libtool`, `libeval`, and `libuniverse` are
    discoverable.** Each appears in its assigned group's `Libraries` table with
-   `Capabilities` and `Key Exports` columns populated from the actual
-   `index.js`. Verifiable by reading the six files.
-
-7. **Agent profiles pre-load relevant libs-\* skills.** The
-   `.claude/agents/staff-engineer.md` `skills:` list includes the `libs-*`
-   skills the staff engineer needs at plan and implement time. Verifiable by
-   reading the file.
+   `Capabilities` and `Key Exports` cells populated from the actual public
+   exports of the package. Verifiable by reading the six files.
 
 ## Out of scope
 
@@ -291,7 +328,8 @@ direction — "everything we advertise must exist" — is enforced.
   finds.
 - **Changing `libskill`'s exemption from OO+DI.** libskill stays a pure-function
   library and stays in its own skill file.
-- **Adding new libraries.** No new packages. The four orphans already exist.
+- **Adding new libraries.** No new packages. All five orphans already exist
+  under `libraries/`.
 - **Re-numbering or renaming the underlying `libraries/<libname>/`
   directories.** Group names change; package names do not.
 - **Touching product (`fit-*`) skills.** Cross-linking from `fit-*` to `libs-*`
