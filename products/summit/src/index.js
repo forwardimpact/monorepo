@@ -18,9 +18,11 @@ export {
 } from "./lib/supabase.js";
 export {
   applyScenario,
+  bucketCommitsByQuarter,
   computeCoverage,
   computeEffectiveDepth,
   computeGrowthAlignment,
+  computeTrajectory,
   CONCENTRATION_THRESHOLD,
   derivePersonMatrix,
   detectConcentrationRisks,
@@ -41,6 +43,7 @@ export {
   TeamNotFoundError,
   UnknownJobFieldError,
 } from "./aggregation/index.js";
+export { GitUnavailableError, listCommits, showFileAt } from "./git/history.js";
 export {
   Audience,
   resolveAudience,

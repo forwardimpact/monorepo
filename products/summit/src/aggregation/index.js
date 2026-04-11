@@ -35,3 +35,4 @@ export {
   GrowthContractError,
   rankCandidates,
 } from "./growth.js";
+export { bucketCommitsByQuarter, computeTrajectory } from "./trajectory.js";

@@ -14,10 +14,12 @@ import { fileURLToPath } from "node:url";
 
 import { createCli } from "@forwardimpact/libcli";
 
+import { runCompareCommand } from "../src/commands/compare.js";
 import { runCoverageCommand } from "../src/commands/coverage.js";
 import { runGrowthCommand } from "../src/commands/growth.js";
 import { runRisksCommand } from "../src/commands/risks.js";
 import { runRosterCommand } from "../src/commands/roster.js";
+import { runTrajectoryCommand } from "../src/commands/trajectory.js";
 import { runValidateCommand } from "../src/commands/validate.js";
 import { runWhatIfCommand } from "../src/commands/what-if.js";
 import { loadMapData, resolveDataDir } from "../src/lib/cli.js";
@@ -30,10 +32,12 @@ const VERSION = JSON.parse(
 ).version;
 
 const COMMANDS = {
+  compare: runCompareCommand,
   coverage: runCoverageCommand,
   growth: runGrowthCommand,
   risks: runRisksCommand,
   roster: runRosterCommand,
+  trajectory: runTrajectoryCommand,
   validate: runValidateCommand,
   "what-if": runWhatIfCommand,
 };
@@ -62,6 +66,16 @@ const definition = {
       name: "growth",
       args: "<team>",
       description: "Show growth opportunities aligned with team needs",
+    },
+    {
+      name: "compare",
+      args: "<team1> <team2>",
+      description: "Compare two teams' coverage and risks",
+    },
+    {
+      name: "trajectory",
+      args: "<team>",
+      description: "Show team capability over time",
     },
     { name: "roster", args: "", description: "Show current roster" },
     { name: "validate", args: "", description: "Validate roster file" },
@@ -101,6 +115,19 @@ const definition = {
     allocation: {
       type: "string",
       description: "what-if: allocation fraction for --add on a project",
+    },
+    quarters: {
+      type: "string",
+      description: "trajectory: number of quarters to show (default: 4)",
+    },
+    evidenced: {
+      type: "boolean",
+      description:
+        "coverage/risks/growth: include practiced capability from Map evidence data",
+    },
+    outcomes: {
+      type: "boolean",
+      description: "growth: weight recommendations by GetDX driver scores",
     },
     help: { type: "boolean", short: "h", description: "Show help" },
     version: { type: "boolean", short: "v", description: "Show version" },
