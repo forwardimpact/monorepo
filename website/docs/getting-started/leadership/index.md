@@ -149,20 +149,29 @@ After each change, re-validate with `npx fit-map validate`.
 
 The activity layer runs on Supabase. You need the Supabase CLI to start a local
 instance and to deploy migrations and edge functions to a hosted project.
-`fit-map` wraps the CLI for every activity workflow, but it still needs the
-`supabase` binary on your `PATH`.
+`fit-map` wraps the CLI for every activity workflow and will find it whether you
+install it via Homebrew or as an npm package.
 
 ```sh
-# macOS
+# macOS via Homebrew (recommended if you have brew)
 brew install supabase/tap/supabase
+
+# Anywhere, as a project dependency
+npm install supabase
 
 # Linux / Windows — see https://supabase.com/docs/guides/local-development
 ```
+
+`fit-map` prefers a `supabase` binary on your `PATH` and falls back to
+`npx supabase` (resolving from your project's `node_modules`) if one is not
+found, so the npm-local install works without any PATH setup.
 
 Verify the install:
 
 ```sh
 supabase --version
+# or, for a project-local install:
+npx supabase --version
 ```
 
 ### Activity: start the database

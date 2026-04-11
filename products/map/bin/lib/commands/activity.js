@@ -1,4 +1,4 @@
-import { runSupabase } from "../supabase-cli.js";
+import { createSupabaseCli } from "../supabase-cli.js";
 import { storeRaw } from "@forwardimpact/map/activity/storage";
 import { transformAll } from "@forwardimpact/map/activity/transform";
 import { transformPeople } from "@forwardimpact/map/activity/transform/people";
@@ -16,8 +16,10 @@ import {
 
 const summary = new SummaryRenderer({ process });
 
+const supabaseCli = createSupabaseCli();
+
 export async function start() {
-  await runSupabase(["start"]);
+  await supabaseCli.run(["start"]);
   process.stdout.write("\n");
   process.stdout.write(
     formatSubheader("Export these variables to use the activity layer:") +
@@ -31,17 +33,17 @@ export async function start() {
 }
 
 export async function stop() {
-  await runSupabase(["stop"]);
+  await supabaseCli.run(["stop"]);
   return 0;
 }
 
 export async function status() {
-  await runSupabase(["status"]);
+  await supabaseCli.run(["status"]);
   return 0;
 }
 
 export async function migrate() {
-  await runSupabase(["db", "reset"]);
+  await supabaseCli.run(["db", "reset"]);
   return 0;
 }
 

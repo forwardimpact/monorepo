@@ -116,6 +116,13 @@ resolve). Both accept YAML or CSV with the same column names.
 
 ### Activity commands
 
+Activity commands require the Supabase CLI. Install via Homebrew
+(`brew install supabase/tap/supabase`) or npm (`npm install supabase`) —
+`fit-map` finds either and falls back to `npx supabase` for the npm-local
+install. See the
+[leadership getting-started guide](../../website/docs/getting-started/leadership/index.md#activity-install-the-supabase-cli)
+for details.
+
 ```sh
 npx fit-map activity start                  # Start the bundled local Supabase stack
 npx fit-map activity stop                   # Stop the local stack
