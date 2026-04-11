@@ -18,6 +18,7 @@ import { runCoverageCommand } from "../src/commands/coverage.js";
 import { runRisksCommand } from "../src/commands/risks.js";
 import { runRosterCommand } from "../src/commands/roster.js";
 import { runValidateCommand } from "../src/commands/validate.js";
+import { runWhatIfCommand } from "../src/commands/what-if.js";
 import { loadMapData, resolveDataDir } from "../src/lib/cli.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -32,6 +33,7 @@ const COMMANDS = {
   risks: runRisksCommand,
   roster: runRosterCommand,
   validate: runValidateCommand,
+  "what-if": runWhatIfCommand,
 };
 
 const definition = {
@@ -48,6 +50,11 @@ const definition = {
       name: "risks",
       args: "<team>",
       description: "Show structural risks",
+    },
+    {
+      name: "what-if",
+      args: "<team> [--add/--remove/--move/--promote]",
+      description: "Simulate roster changes",
     },
     { name: "roster", args: "", description: "Show current roster" },
     { name: "validate", args: "", description: "Validate roster file" },
@@ -68,6 +75,25 @@ const definition = {
       type: "string",
       default: "manager",
       description: "Privacy audience: engineer, manager, director",
+    },
+    add: { type: "string", description: "what-if: add a hypothetical person" },
+    remove: { type: "string", description: "what-if: remove a team member" },
+    move: {
+      type: "string",
+      description: "what-if: move a member between teams",
+    },
+    to: { type: "string", description: "what-if: destination team for --move" },
+    promote: {
+      type: "string",
+      description: "what-if: promote a member to the next level",
+    },
+    focus: {
+      type: "string",
+      description: "what-if: filter the diff to one capability",
+    },
+    allocation: {
+      type: "string",
+      description: "what-if: allocation fraction for --add on a project",
     },
     help: { type: "boolean", short: "h", description: "Show help" },
     version: { type: "boolean", short: "v", description: "Show version" },

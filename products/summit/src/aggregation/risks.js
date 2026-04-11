@@ -119,12 +119,7 @@ export function detectCriticalGaps(resolvedTeam, coverage, data) {
   const tracks = new Map((data.tracks ?? []).map((t) => [t.id, t]));
   const skills = data.skills ?? [];
 
-  const needed = collectNeededSkills(
-    resolvedTeam,
-    disciplines,
-    tracks,
-    skills,
-  );
+  const needed = collectNeededSkills(resolvedTeam, disciplines, tracks, skills);
   return buildCriticalGaps(needed, coverage);
 }
 

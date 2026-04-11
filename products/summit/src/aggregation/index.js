@@ -23,3 +23,10 @@ export {
   detectRisks,
   detectSinglePointsOfFailure,
 } from "./risks.js";
+export { applyScenario, diffCoverage, diffRisks } from "./what-if.js";
+export {
+  parseJobExpression,
+  parseScenario,
+  ScenarioError,
+  ScenarioType,
+} from "./scenarios.js";
