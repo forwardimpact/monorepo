@@ -596,8 +596,10 @@ are allocation-weighted project teams that can either reference existing
 reporting-team members by `email` (inheriting their job profile) or declare new
 members inline. Allocation is a fraction between 0 and 1.
 
-If your roster lives somewhere else or has a different name, pass it explicitly
-with `--roster ./path/to/summit.yaml`. All the commands below accept the flag.
+Summit does not auto-discover a roster — pass `--roster ./path/to/summit.yaml`
+explicitly to every command. All the commands below accept the flag. (If you've
+set up Map's activity layer, you can omit `--roster` and Summit will read the
+team from the `organization_people` table instead.)
 
 ### Validate the roster
 
@@ -650,9 +652,10 @@ npx fit-summit risks platform --roster ./summit.yaml
 Summit reports three kinds of risk. **Single points of failure** are skills
 where exactly one person holds working+ proficiency — losing them leaves the
 team unable to execute. **Critical gaps** are skills the discipline or track
-expects but nobody on the team practices. **Concentration risks** are clusters
-where three or more people overlap on the same (level, capability) bucket — a
-structural imbalance that suggests room for cross-training.
+expects but nobody on the team holds at working level or above. **Concentration
+risks** are clusters where three or more people overlap on the same (level,
+capability, proficiency) bucket — a structural imbalance that suggests room for
+cross-training.
 
 ### Run what-if scenarios
 
@@ -740,9 +743,10 @@ Set `--lookback-months` (default 12) to control the practice window.
 Summit has a built-in privacy model. The `--audience` flag adjusts what
 individual-level detail is shown:
 
-- `engineer` — team gaps and growth directions without peer names
-- `manager` — full individual specificity for direct reports (the default)
-- `director` — aggregated team views with individual names removed
+- `manager` (the default) and `engineer` — individual holders are visible by
+  name; appropriate for 1:1s and for engineers reviewing their own team
+- `director` — holder names are stripped; only aggregated counts remain,
+  appropriate for cross-team planning artifacts
 
 Use `--audience director` when sharing a view across teams or publishing a
 planning artifact beyond the team manager.
