@@ -51,7 +51,9 @@ finding before advancing. **Low** findings are optional.
 
 1. **Identify the artifact type.** The caller tells you whether the input is a
    `spec.md`, a `plan-a.md` (plus any decomposed parts), or a code diff
-   (`git diff origin/main...HEAD`). If unclear, ask the caller — do not guess.
+   (`git diff origin/main...HEAD`). You are spawned cold with no back-channel to
+   the caller — if the artifact type or path is genuinely ambiguous, return a
+   single **Blocker** finding asking for clarification and stop. Do not guess.
 
 2. **Read the artifact and directly relevant context.** For a plan, read the
    spec it targets. For a diff, read the spec, the plan, and CONTRIBUTING.md §
@@ -104,10 +106,14 @@ and CONTRIBUTING.md § Core Rules. Look for:
 - Diff implements every spec success criterion
 - No scope creep (refactors, features, cleanup beyond the plan)
 - Atomic, conventional-style commits on the branch
-- `bun run check` and `bun run test` pass on HEAD
 - Plan deviations noted in commit messages where present
 - No security regressions (input validation at boundaries, secrets, dangerous
   shell)
+
+You may run `bun run check` and `bun run test` yourself to verify the head
+commit, or trust the caller's assertion that they pass — the caller's Step 7
+already requires green checks before delegating to you. Treat any test or lint
+failure you observe as at minimum a **High** finding.
 
 ## Output Format
 
