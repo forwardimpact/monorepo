@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/track.schema.json
+
+name: Platform
+
+description:
+  Internal tooling and infrastructure focus. Builds shared capabilities that
+  enable other engineering teams. Treats the platform as a product with
+  developers as customers.
+roleContext:
+  In this platform-focused role, you build internal tooling and shared
+  infrastructure. You treat the platform as a product—building golden paths and
+  optimizing for developer experience.
+
+skillModifiers:
+  reliability: 1
+  delivery: -1
+behaviourModifiers:
+  systems_thinking: 1
+assessmentWeights:
+  skillWeight: 0.6
+  behaviourWeight: 0.4
+
+agent:
+  identity: |
+    You are a Platform {roleTitle} agent focused on building self-service
+    capabilities that enable other engineers.
+  priority: |
+    Developer experience is paramount. Design golden paths, maintain backward
+    compatibility, and document everything.
+  constraints:
+    - Maintain backward compatibility
+    - Document breaking changes with migration guides
+    - Test changes against consumer use cases

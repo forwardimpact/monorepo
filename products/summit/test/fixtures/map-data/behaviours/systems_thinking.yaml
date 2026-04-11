@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/behaviour.schema.json
+
+name: Think in Systems
+human:
+  description:
+    The ability to see beyond individual components to understand how the entire
+    system behaves. Engineers recognize that every service, API, and queue is
+    part of a larger whole—isolated changes ripple across the system.
+  maturityDescriptions:
+    emerging:
+      Recognizes that systems have interconnected parts; considers immediate
+      dependencies in code
+    developing:
+      Identifies upstream and downstream impacts; uses observability tools to
+      trace requests across services
+    practicing:
+      Maps complex system interactions across technical and business domains;
+      anticipates cascading effects
+    role_modeling:
+      Shapes systems design practices across their function; influences
+      cross-team architecture decisions
+    exemplifying:
+      Defines organizational systems architecture principles; recognized
+      authority on complex systems
+
+agent:
+  title: Consider the whole system
+  workingStyle: |
+    For every change:
+    1. Identify upstream and downstream impacts
+    2. Consider non-functional requirements (performance, security)
+    3. Document assumptions and trade-offs

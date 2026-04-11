@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/levels.schema.json
+
+- id: J040
+  professionalTitle: Level I
+  managementTitle: Associate
+  typicalExperienceRange: "0-2 years"
+  ordinalRank: 1
+  qualificationSummary:
+    Entry-level position suitable for recent graduates or those transitioning
+    into the field ({typicalExperienceRange}).
+  baseSkillProficiencies:
+    primary: foundational
+    secondary: awareness
+    broad: awareness
+  baseBehaviourMaturity: emerging
+  expectations:
+    impactScope: Individual tasks with guidance
+    autonomyExpectation: Work with supervision
+    influenceScope: Contribute to team discussions
+    complexityHandled: Standard tasks with established patterns
+
+- id: J060
+  professionalTitle: Level II
+  managementTitle: Senior Associate
+  typicalExperienceRange: "2-5 years"
+  ordinalRank: 2
+  qualificationSummary:
+    Mid-level position with demonstrated ability to complete tasks independently
+    ({typicalExperienceRange}).
+  baseSkillProficiencies:
+    primary: working
+    secondary: foundational
+    broad: awareness
+  baseBehaviourMaturity: developing
+  expectations:
+    impactScope: Features and small projects
+    autonomyExpectation: Work independently on familiar problems
+    influenceScope: Mentor junior team members
+    complexityHandled: Moderate complexity with some ambiguity

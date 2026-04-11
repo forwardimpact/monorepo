@@ -1,0 +1,51 @@
+{
+  "name": "@forwardimpact/summit",
+  "version": "0.1.0",
+  "description": "Team capability planning from skill data.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forwardimpact/monorepo",
+    "directory": "products/summit"
+  },
+  "homepage": "https://www.forwardimpact.team/summit",
+  "keywords": [
+    "team",
+    "capability",
+    "planning",
+    "skills",
+    "framework",
+    "engineering"
+  ],
+  "type": "module",
+  "main": "./src/index.js",
+  "bin": {
+    "fit-summit": "./bin/fit-summit.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "starter/"
+  ],
+  "exports": {
+    ".": "./src/index.js",
+    "./aggregation": "./src/aggregation/index.js",
+    "./roster": "./src/roster/index.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libskill": "^4.1.7",
+    "@forwardimpact/libtelemetry": "^0.1.33",
+    "@forwardimpact/libutil": "^0.1.72",
+    "@forwardimpact/map": "^0.15.18",
+    "@supabase/supabase-js": "^2.103.0",
+    "yaml": "^2.8.3"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

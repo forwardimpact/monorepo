@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/drivers.schema.json
+
+- id: quality
+  name: Quality
+  description: Deliver work that meets expectations consistently.
+  contributingSkills:
+    - task_completion
+    - planning
+  contributingBehaviours:
+    - systems_thinking

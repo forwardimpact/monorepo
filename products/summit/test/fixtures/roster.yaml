@@ -1,0 +1,48 @@
+# Test fixture — two reporting teams and one project team against the
+# starter framework (software_engineering + platform/forward_deployed).
+
+teams:
+  platform:
+    - name: Alice
+      email: alice@example.com
+      job:
+        discipline: software_engineering
+        level: J060
+        track: platform
+    - name: Bob
+      email: bob@example.com
+      job:
+        discipline: software_engineering
+        level: J060
+    - name: Carol
+      email: carol@example.com
+      job:
+        discipline: software_engineering
+        level: J040
+        track: platform
+
+  delivery:
+    - name: Dan
+      email: dan@example.com
+      job:
+        discipline: software_engineering
+        level: J060
+        track: forward_deployed
+    - name: Eve
+      email: eve@example.com
+      job:
+        discipline: software_engineering
+        level: J040
+
+projects:
+  migration-q2:
+    - email: alice@example.com
+      allocation: 0.6
+    - email: dan@example.com
+      allocation: 0.4
+    - name: Contractor
+      job:
+        discipline: software_engineering
+        level: J060
+        track: platform
+      allocation: 1.0

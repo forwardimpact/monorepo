@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/capability.schema.json
+
+id: reliability
+name: Reliability
+emojiIcon: "\U0001F6E1\uFE0F"
+ordinalRank: 2
+description: |
+  Ensuring systems are dependable, observable, and resilient.
+professionalResponsibilities:
+  awareness: You follow operational guidelines and escalate issues appropriately
+  foundational:
+    You implement reliability practices in your code and create basic monitoring
+  working: You design for reliability and lead incident response
+  practitioner: You establish SLOs across teams and drive reliability culture
+  expert: You shape reliability strategy across the business unit
+managementResponsibilities:
+  awareness:
+    You understand reliability requirements and support escalation processes
+  foundational:
+    You ensure your team follows reliability practices and facilitate
+    retrospectives
+  working:
+    You own team reliability outcomes and manage incident response rotations
+  practitioner:
+    You drive reliability culture across teams and own cross-team reliability
+    outcomes
+  expert:
+    You shape reliability strategy across the business unit and own enterprise
+    reliability outcomes
+skills:
+  - id: incident_response
+    name: Incident Response
+    human:
+      description:
+        Responding to production incidents effectively, from detection through
+        resolution and post-incident review.
+      proficiencyDescriptions:
+        awareness:
+          You follow incident response procedures and escalate issues using
+          established channels.
+        foundational:
+          You participate in incident response, gather diagnostic information,
+          and contribute to post-incident reviews.
+        working:
+          You lead incident response for your services, coordinate resolution,
+          and conduct blameless post-mortems.
+        practitioner:
+          You establish incident response practices across teams, lead complex
+          incidents, and drive systemic improvements.
+        expert:
+          You define incident management strategy across the organization and
+          lead response to the most critical incidents.
+    agent:
+      name: incident-response
+      description: |
+        Guide for responding to production incidents from detection through
+        resolution.
+      useWhen: |
+        Handling production issues, investigating failures, or improving
+        incident response processes.
+      stages:
+        code:
+          focus: |
+            Implement fixes for identified issues. Ensure changes are tested
+            and do not introduce regressions.
+          readChecklist:
+            - Understand the root cause of the incident
+            - Review affected systems and dependencies
+          confirmChecklist:
+            - Fix addresses the root cause
+            - Changes are tested
+            - Monitoring confirms resolution

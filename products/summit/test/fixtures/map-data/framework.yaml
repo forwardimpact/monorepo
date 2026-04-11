@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/framework.schema.json
+
+title: Engineering Pathway
+emojiIcon: "\U0001F9ED"
+description: |
+  Define what good engineering looks like for your organization.
+  Edit these files to match your skills, levels, and expectations.
+
+entityDefinitions:
+  driver:
+    title: Drivers
+    emojiIcon: "\U0001F3AF"
+    description: Organizational outcomes that productive teams achieve.
+  skill:
+    title: Skills
+    emojiIcon: "\U0001F4A1"
+    description: Capabilities required to perform work effectively.
+  behaviour:
+    title: Behaviours
+    emojiIcon: "\U0001F9E0"
+    description: Mindsets and ways of working.
+  discipline:
+    title: Disciplines
+    emojiIcon: "\U0001F52C"
+    description: Engineering specializations that define skill profiles.
+  level:
+    title: Levels
+    emojiIcon: "\U0001F4CA"
+    description: Career levels that define expectations.
+  track:
+    title: Tracks
+    emojiIcon: "\U0001F6E4\uFE0F"
+    description: Work contexts that modify expectations.
+  job:
+    title: Jobs
+    emojiIcon: "\U0001F4CB"
+    description: Role specifications combining discipline, track, and level.
+  agent:
+    title: Agents
+    emojiIcon: "\U0001F916"
+    description: AI agent configurations generated from the framework.
+  stage:
+    title: Stages
+    emojiIcon: "\U0001F504"
+    description: Phases of the engineering lifecycle.
+  tool:
+    title: Tools
+    emojiIcon: "\U0001F527"
+    description: Recommended tools referenced by skills.

@@ -1,0 +1,46 @@
+# Example Summit roster — copy to your data directory as summit.yaml.
+# All disciplines, levels, and tracks referenced here must be defined in
+# your Map framework data. This example uses the starter framework:
+#   discipline: software_engineering
+#   levels: J040 (Level I), J060 (Level II)
+#   tracks: platform, forward_deployed
+
+teams:
+  platform:
+    - name: Alice
+      email: alice@example.com
+      job:
+        discipline: software_engineering
+        level: J060
+        track: platform
+    - name: Bob
+      email: bob@example.com
+      job:
+        discipline: software_engineering
+        level: J040
+
+  delivery:
+    - name: Carol
+      email: carol@example.com
+      job:
+        discipline: software_engineering
+        level: J060
+    - name: Dan
+      email: dan@example.com
+      job:
+        discipline: software_engineering
+        level: J040
+        track: forward_deployed
+
+projects:
+  migration-q2:
+    - email: alice@example.com
+      allocation: 0.6
+    - email: carol@example.com
+      allocation: 0.4
+    - name: External Consultant
+      job:
+        discipline: software_engineering
+        level: J060
+        track: platform
+      allocation: 1.0

@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/track.schema.json
+
+name: Forward Deployed
+
+description:
+  Customer-facing engineering embedded with business units. Emphasizes rapid
+  solution delivery and domain expertise. Discovers patterns in the field that
+  Platform Engineers generalize into enterprise capabilities.
+roleContext:
+  In this forward-deployed role, you are embedded directly with business units.
+  You operate like a startup CTO—bridging the gap between building products and
+  solving real business problems through rapid delivery.
+
+skillModifiers:
+  delivery: 1
+  reliability: -1
+behaviourModifiers:
+  systems_thinking: -1
+assessmentWeights:
+  skillWeight: 0.4
+  behaviourWeight: 0.6
+
+agent:
+  identity: |
+    You are a Forward Deployed {roleTitle} agent focused on rapid problem
+    discovery and solution delivery.
+  priority: |
+    Speed matters more than perfection. Deliver working solutions quickly.
+    Discover requirements through immersion, not documentation.
+  constraints:
+    - Deliver working solutions in days, not weeks
+    - Document trade-offs explicitly
+    - Identify candidates for platform generalization

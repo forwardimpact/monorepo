@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/capability.schema.json
+
+id: delivery
+name: Delivery
+emojiIcon: "\U0001F680"
+ordinalRank: 1
+description: |
+  Building and shipping solutions that solve real problems.
+professionalResponsibilities:
+  awareness:
+    You complete assigned tasks within established patterns with guidance
+  foundational: You deliver small features end-to-end with minimal guidance
+  working: You own feature delivery from design through deployment
+  practitioner: You lead technical delivery of complex projects across teams
+  expert: You drive delivery of the most critical technical initiatives
+managementResponsibilities:
+  awareness: You track team progress and communicate status to stakeholders
+  foundational:
+    You coordinate team delivery by managing dependencies and removing blockers
+  working: You own team delivery outcomes and make resourcing decisions
+  practitioner: You drive delivery excellence across multiple teams
+  expert: You shape delivery culture across the business unit
+skills:
+  - id: task_completion
+    name: Task Completion
+    human:
+      description:
+        Completing work items reliably, from understanding requirements through
+        implementation to verification.
+      proficiencyDescriptions:
+        awareness:
+          You complete well-defined tasks with guidance, following established
+          patterns and asking for help when needed.
+        foundational:
+          You break down tasks into steps, estimate effort, and deliver
+          independently on familiar work.
+        working:
+          You manage your own workload, handle ambiguous requirements, and
+          consistently deliver on commitments.
+        practitioner:
+          You coordinate task delivery across teams, unblock others, and
+          establish completion standards for your area.
+        expert:
+          You define delivery practices across the organization and drive
+          completion of the most complex initiatives.
+    agent:
+      name: task-completion
+      description: |
+        Guide for completing work items reliably from requirements through
+        verification.
+      useWhen: |
+        Implementing features, fixing bugs, or completing any defined work item.
+      stages:
+        code:
+          focus: |
+            Implement the solution according to requirements. Write clean,
+            tested code that meets acceptance criteria.
+          readChecklist:
+            - Understand the requirements and acceptance criteria
+            - Review relevant existing code and patterns
+          confirmChecklist:
+            - Code compiles and passes tests
+            - Acceptance criteria are met
+            - Changes are documented
+
+  - id: planning
+    name: Planning
+    human:
+      description:
+        Breaking down work into manageable pieces, estimating effort, and
+        sequencing delivery for maximum impact.
+      proficiencyDescriptions:
+        awareness:
+          You follow project plans created by others and report progress
+          accurately.
+        foundational:
+          You create simple plans for your own work, estimate tasks, and
+          identify dependencies.
+        working:
+          You plan features end-to-end, manage dependencies, and adjust plans
+          based on new information.
+        practitioner:
+          You lead planning for complex projects across teams, manage risk, and
+          establish planning practices for your area.
+        expert:
+          You shape planning strategy across the organization and drive delivery
+          of the most complex programmes.
+    agent:
+      name: planning
+      description: |
+        Guide for breaking down work, estimating effort, and sequencing
+        delivery.
+      useWhen: |
+        Planning features, creating implementation plans, or sequencing work.
+      stages:
+        code:
+          focus: |
+            Follow the implementation plan. Track progress and flag deviations
+            from the plan early.
+          readChecklist:
+            - Review the implementation plan
+            - Understand task dependencies and ordering
+          confirmChecklist:
+            - Plan steps are completed in order
+            - Deviations from the plan are documented

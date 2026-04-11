@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/discipline.schema.json
+
+specialization: Software Engineering
+roleTitle: Software Engineer
+isProfessional: true
+
+# null = allow trackless (generalist)
+validTracks:
+  - null
+  - forward_deployed
+  - platform
+
+description:
+  Builds and maintains software systems, focusing on code quality, architecture,
+  and reliable delivery of business value.
+
+# Derivation inputs — one skill per tier
+coreSkills:
+  - task_completion
+supportingSkills:
+  - planning
+broadSkills:
+  - incident_response
+behaviourModifiers:
+  systems_thinking: 1
+
+# Human-specific content
+human:
+  professionalRoleSummary:
+    As a {roleTitle}, you build and maintain software systems that deliver
+    business value reliably.
+  managementRoleSummary:
+    As a {specialization} manager, you lead teams that build and maintain
+    software systems delivering business value.
+
+# Agent-specific content
+agent:
+  identity: |
+    You are a {roleTitle} agent focused on building reliable software.
+  priority: |
+    Write clean, tested code that meets requirements and follows established
+    patterns.
+  constraints:
+    - Follow existing code conventions
+    - Write tests for new functionality
+    - Document non-obvious decisions

@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/stages.schema.json
+
+- id: code
+  name: Code
+  emojiIcon: "\U0001F4BB"
+  summary: Build the solution
+  description:
+    Your primary task is to implement the solution according to the plan.
+  returnFormat:
+    - "Working code that meets acceptance criteria"
+  handoffs:
+    - targetStage: code
+      label: Continue Coding
+      prompt: Continue implementing the solution.
+  constraints:
+    - Follow the plan and spec requirements
+  readChecklist:
+    - Review the plan and acceptance criteria
+  confirmChecklist:
+    - Code compiles and passes tests
+    - Acceptance criteria are met
