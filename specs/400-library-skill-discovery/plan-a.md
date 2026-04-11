@@ -12,8 +12,8 @@ This is a documentation and tooling change. No code inside `libraries/*/src/`
 moves. The shape of the work is:
 
 1. **Move the walls** — rename five `.claude/skills/libs-*` directories so the
-   six groups match spec 400's Move 1 table, and update `CLAUDE.md § Skill
-   Groups` to match.
+   six groups match spec 400's Move 1 table, and update
+   `CLAUDE.md § Skill Groups` to match.
 2. **Repaint the signs** — rewrite every `libs-*` SKILL.md frontmatter
    description in capability verbs, switch the inner `Libraries` tables from
    `Main API` / `Purpose` to `Capabilities` / `Key Exports`, and add the five
@@ -25,18 +25,18 @@ moves. The shape of the work is:
    `bun run check` when it doesn't.
 
 The work decomposes into **four parts** on the feature branch
-`claude/spec-400-planning-a4Okz` (already checked out). Parts 01, 02, and 04
-are strictly sequential on the `libs-*` surface. Part 03 (discovery protocol)
-is independent of 01/02/04 and can run in parallel with Part 02 if executed by
-a second agent.
+`claude/spec-400-planning-a4Okz` (already checked out). Parts 01, 02, and 04 are
+strictly sequential on the `libs-*` surface. Part 03 (discovery protocol) is
+independent of 01/02/04 and can run in parallel with Part 02 if executed by a
+second agent.
 
 **Guiding principles:**
 
 1. **Directory rename before content rewrite.** Renaming a skill directory
    (`git mv`) while simultaneously rewriting its SKILL.md is a single diff but
    reviewers struggle to tell "what moved" from "what changed." Part 01 does
-   pure renames plus the CLAUDE.md anchor update; Part 02 rewrites the
-   contents. `git log --follow` keeps history intact either way.
+   pure renames plus the CLAUDE.md anchor update; Part 02 rewrites the contents.
+   `git log --follow` keeps history intact either way.
 2. **Keep existing body sections (Decision Guide, Composition Recipes, DI
    Wiring) unless the reorganisation forced a change.** Spec 130 already
    corrected their contents. Part 02's rewrite is surgical: frontmatter, the
@@ -58,16 +58,15 @@ a second agent.
 
 ## Part index
 
-Execute parts on the existing `claude/spec-400-planning-a4Okz` branch. Each
-part has its own plan file with scope, file list, ordering, and verification
-steps.
+Execute parts on the existing `claude/spec-400-planning-a4Okz` branch. Each part
+has its own plan file with scope, file list, ordering, and verification steps.
 
-| #   | File                         | Scope                                                                                                   | Agent          |
-| --- | ---------------------------- | ------------------------------------------------------------------------------------------------------- | -------------- |
-| 01  | [plan-a-01.md](plan-a-01.md) | Rename five `libs-*` skill directories; update `CLAUDE.md § Skill Groups`                              | staff-engineer |
+| #   | File                         | Scope                                                                                                    | Agent          |
+| --- | ---------------------------- | -------------------------------------------------------------------------------------------------------- | -------------- |
+| 01  | [plan-a-01.md](plan-a-01.md) | Rename five `libs-*` skill directories; update `CLAUDE.md § Skill Groups`                                | staff-engineer |
 | 02  | [plan-a-02.md](plan-a-02.md) | Rewrite frontmatter descriptions; switch inner tables to `Capabilities` / `Key Exports`; add orphan rows | staff-engineer |
 | 03  | [plan-a-03.md](plan-a-03.md) | Discovery protocol: `CONTRIBUTING.md` READ-DO, `gemba-plan` SKILL.md, `staff-engineer.md` skills list    | staff-engineer |
-| 04  | [plan-a-04.md](plan-a-04.md) | `scripts/check-skill-exports.js` + wire into `bun run check` and `check-quality` CI                     | staff-engineer |
+| 04  | [plan-a-04.md](plan-a-04.md) | `scripts/check-skill-exports.js` + wire into `bun run check` and `check-quality` CI                      | staff-engineer |
 
 ## Part dependency graph
 
@@ -83,24 +82,24 @@ steps.
     └──────────────► final verification ◄──────────┘
 ```
 
-Part 03 is the only part that does not touch `libs-*` files. If the
-implementer has parallel capacity, launch 03 as a concurrent sub-agent after
-01 merges locally. Otherwise run 01 → 02 → 03 → 04 sequentially. Either order
-is correct; the dependency arrow from 03 to "final verification" is satisfied
-by running `bun run check` and `bun run test` once at the end.
+Part 03 is the only part that does not touch `libs-*` files. If the implementer
+has parallel capacity, launch 03 as a concurrent sub-agent after 01 merges
+locally. Otherwise run 01 → 02 → 03 → 04 sequentially. Either order is correct;
+the dependency arrow from 03 to "final verification" is satisfied by running
+`bun run check` and `bun run test` once at the end.
 
 ## Execution
 
 Run every part on the existing `claude/spec-400-planning-a4Okz` branch. Each
-part ends with `bun run check` and `bun run test` passing. Commit per part
-using the convention `docs(skills): <summary>` for Parts 01–03 and
+part ends with `bun run check` and `bun run test` passing. Commit per part using
+the convention `docs(skills): <summary>` for Parts 01–03 and
 `feat(ci): add skill-exports check` for Part 04. Push after each commit.
 
 Route every part to **`staff-engineer`**. Parts 01, 02, and 04 are pure
 infrastructure/doc work inside `.claude/skills/`, `CLAUDE.md`, and `scripts/`.
-Part 03 also lives in doc-adjacent files (`CONTRIBUTING.md`, `gemba-plan`
-skill, `staff-engineer.md` agent profile) and is still staff-engineer scope —
-no `website/` or wiki changes, so no technical-writer handoff.
+Part 03 also lives in doc-adjacent files (`CONTRIBUTING.md`, `gemba-plan` skill,
+`staff-engineer.md` agent profile) and is still staff-engineer scope — no
+`website/` or wiki changes, so no technical-writer handoff.
 
 ## Cross-cutting conventions
 
@@ -109,17 +108,17 @@ assume them without repetition.
 
 ### New six-group truth table
 
-Parts 01 and 02 both depend on this table. Spec 400 Move 1 is the
-authoritative source; reproduced here for in-plan reference.
+Parts 01 and 02 both depend on this table. Spec 400 Move 1 is the authoritative
+source; reproduced here for in-plan reference.
 
-| New group             | Old group                   | Members (count)                                                                                        |
-| --------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------ |
-| libs-grpc-services    | libs-service-infrastructure | librpc, libconfig, libtelemetry, libtype, libharness (5)                                               |
-| libs-storage          | libs-data-persistence       | libstorage, libindex, libresource, libpolicy, libgraph, libvector (6)                                  |
-| libs-llm-and-agents   | libs-llm-orchestration      | libllm, libmemory, libprompt, libagent, **libtool** (5)                                                |
-| libs-content          | libs-web-presentation       | libui, libformat, libweb, libdoc, libtemplate (5)                                                      |
-| libs-cli-and-tooling  | libs-system-utilities       | **libcli**, **librepl**, libutil, libsecret, libsupervise, librc, libcodegen, **libeval** (8)          |
-| libs-synthetic-data   | libs-synthetic-data         | libsyntheticgen, libsyntheticprose, libsyntheticrender, **libuniverse** (4)                            |
+| New group            | Old group                   | Members (count)                                                                               |
+| -------------------- | --------------------------- | --------------------------------------------------------------------------------------------- |
+| libs-grpc-services   | libs-service-infrastructure | librpc, libconfig, libtelemetry, libtype, libharness (5)                                      |
+| libs-storage         | libs-data-persistence       | libstorage, libindex, libresource, libpolicy, libgraph, libvector (6)                         |
+| libs-llm-and-agents  | libs-llm-orchestration      | libllm, libmemory, libprompt, libagent, **libtool** (5)                                       |
+| libs-content         | libs-web-presentation       | libui, libformat, libweb, libdoc, libtemplate (5)                                             |
+| libs-cli-and-tooling | libs-system-utilities       | **libcli**, **librepl**, libutil, libsecret, libsupervise, librc, libcodegen, **libeval** (8) |
+| libs-synthetic-data  | libs-synthetic-data         | libsyntheticgen, libsyntheticprose, libsyntheticrender, **libuniverse** (4)                   |
 
 Standalone: `libskill` stays in `.claude/skills/libskill/`.
 
@@ -135,15 +134,14 @@ this order:
 | Library | Capabilities | Key Exports |
 ```
 
-`Capabilities` is a verb-led phrase listing what you use the library for
-("retry a flaky fetch," "supervise a daemon"). `Key Exports` is a
-comma-separated list of public symbols that resolve to a real export in the
-library package — the CI guard in Part 04 parses this column by exact match.
+`Capabilities` is a verb-led phrase listing what you use the library for ("retry
+a flaky fetch," "supervise a daemon"). `Key Exports` is a comma-separated list
+of public symbols that resolve to a real export in the library package — the CI
+guard in Part 04 parses this column by exact match.
 
-`Key Exports` cells may not be empty. A library with nothing worth
-advertising is a signal the library shouldn't be listed at all — but every
-library in `libraries/` must appear somewhere, so in practice every cell has
-content.
+`Key Exports` cells may not be empty. A library with nothing worth advertising
+is a signal the library shouldn't be listed at all — but every library in
+`libraries/` must appear somewhere, so in practice every cell has content.
 
 ### Frontmatter description contract
 
@@ -166,8 +164,8 @@ standalone: "Use when deriving a job from Discipline × Level × Track, …" —
 
 ### Git history preservation
 
-Use `git mv` for every directory rename in Part 01. Do not `rm -rf` and re-add
-— `git log --follow` on SKILL.md should track through the rename.
+Use `git mv` for every directory rename in Part 01. Do not `rm -rf` and re-add —
+`git log --follow` on SKILL.md should track through the rename.
 
 ## Known plan decisions and risks
 
@@ -195,95 +193,98 @@ Flag these to the reviewer before execution.
    reading each value in the `exports` map, parsing the referenced `.js` file,
    and collecting `export`/`export from` declarations. A name in `Key Exports`
    matches if it appears in any of those files. This mirrors the existing
-   `check-exports-resolve.js` pattern (spec 390) which also walks the
-   `exports` map.
+   `check-exports-resolve.js` pattern (spec 390) which also walks the `exports`
+   map.
 
 4. **The existing `Libraries` tables in the six files already contain stale
    names.** Example: `libs-service-infrastructure` lists `RpcServer`,
    `RpcClient`, `createClientFactory` but librpc actually exports `Server`,
-   `Client`, `createClient`, `createTracer`, `createGrpc`, `createAuth`,
-   `Rpc`, `Interceptor`, `HmacAuth`, `healthDefinition`, `createHealthHandlers`,
-   `ServingStatus` (no `RpcServer`/`RpcClient`). `libs-llm-orchestration`
-   lists `WindowBuilder`, `createWindow` but libmemory currently exports —
-   Part 02 verifies via Part 04's script while writing the tables, so every
-   new row is correct-by-construction. **Do not assume the existing
-   `Main API` column is correct.** Read `libraries/<libname>/src/index.js`
-   (and any subpath exports) directly when drafting each `Key Exports` cell.
+   `Client`, `createClient`, `createTracer`, `createGrpc`, `createAuth`, `Rpc`,
+   `Interceptor`, `HmacAuth`, `healthDefinition`, `createHealthHandlers`,
+   `ServingStatus` (no `RpcServer`/`RpcClient`). `libs-llm-orchestration` lists
+   `WindowBuilder`, `createWindow` but libmemory currently exports — Part 02
+   verifies via Part 04's script while writing the tables, so every new row is
+   correct-by-construction. **Do not assume the existing `Main API` column is
+   correct.** Read `libraries/<libname>/src/index.js` (and any subpath exports)
+   directly when drafting each `Key Exports` cell.
 
-5. **Description rewrites must cover orphan capabilities.** `libtool` moves
-   into `libs-llm-and-agents`; its verbs ("dispatch a tool call," "generate a
-   tool schema from protobuf," "describe a tool to an LLM") must appear in
-   that group's description. Same pattern for `libcli`, `librepl`, `libeval`,
+5. **Description rewrites must cover orphan capabilities.** `libtool` moves into
+   `libs-llm-and-agents`; its verbs ("dispatch a tool call," "generate a tool
+   schema from protobuf," "describe a tool to an LLM") must appear in that
+   group's description. Same pattern for `libcli`, `librepl`, `libeval`,
    `libuniverse` in their target groups. A capability absent from the
    frontmatter is invisible to the router even if it's in the inner table.
 
 6. **Agent profile change is minimal.** Only `staff-engineer.md` needs new
-   `skills:` entries in Part 03. The other five agents
-   (`improvement-coach`, `product-manager`, `release-engineer`,
-   `security-engineer`, `technical-writer`) write some code but not
-   library-consuming implementation code. `staff-engineer` owns the "writes
-   implementation code" workflow and is the only profile where pre-loading
-   the `libs-*` catalog changes router behaviour at task time. Flag to
-   reviewer if they want a broader rollout.
+   `skills:` entries in Part 03. The other five agents (`improvement-coach`,
+   `product-manager`, `release-engineer`, `security-engineer`,
+   `technical-writer`) write some code but not library-consuming implementation
+   code. `staff-engineer` owns the "writes implementation code" workflow and is
+   the only profile where pre-loading the `libs-*` catalog changes router
+   behaviour at task time. Flag to reviewer if they want a broader rollout.
 
-7. **`CLAUDE.md § Skill Groups` list ordering is preserved.** The spec's Move
-   1 table uses a specific order (grpc → storage → llm → content → cli →
+7. **`CLAUDE.md § Skill Groups` list ordering is preserved.** The spec's Move 1
+   table uses a specific order (grpc → storage → llm → content → cli →
    synthetic). Part 01 writes the new section in that order so the file reads
    the same top-to-bottom.
 
 8. **Existing `libs-synthetic-data` table only needs a `libuniverse` row added
-   and column rename.** The group name does not change and membership grows
-   by one. This is the smallest single-file change in Part 02.
+   and column rename.** The group name does not change and membership grows by
+   one. This is the smallest single-file change in Part 02.
 
 ## Risks
 
-1. **Frontmatter description length vs coverage.** The spec caps descriptions
-   at ~100 words so the router can skim them. Covering 8 libraries'
-   capabilities for `libs-cli-and-tooling` inside that cap is tight. Mitigation:
-   Part 02's verification step counts words in each description and flags any
-   over 120 for manual review; the implementer can elide redundant verbs
-   ("hash" + "generate hash" → "hash") to fit.
+1. **Frontmatter description length vs coverage.** The spec caps descriptions at
+   ~100 words so the router can skim them. Covering 8 libraries' capabilities
+   for `libs-cli-and-tooling` inside that cap is tight. Mitigation: Part 02's
+   verification step counts words in each description and flags any over 120 for
+   manual review; the implementer can elide redundant verbs ("hash" + "generate
+   hash" → "hash") to fit.
 
 2. **`Key Exports` drift between planning and implementation.** Any library
    refactor that merges while this plan is in flight can re-introduce a stale
-   name. Mitigation: Part 04 lands the check; Part 02 rebases on top of the
-   check before final commit so drift fails loudly. Order matters — Part 02
-   before Part 04 is correct because Part 04 needs rows to validate against.
-   See dependency graph above.
+   name. Mitigation: strict ordering — **Part 02 commits first with every
+   `Key Exports` cell verified by the implementer reading each library's live
+   `src/index.js` and its subpath exports manually** (not by running the Part 04
+   script, which does not exist yet). Part 04 lands afterwards and **must pass
+   on Part 02's output on first run** — any failure is fixed as a Part 04 bug
+   (parser/resolution issue) or a Part 02 bug (row edited to a non-existent
+   export) and the fix lands in the appropriate part's commit. Once Part 04 is
+   in place, any future library refactor that drops an advertised export fails
+   `bun run check` and the CI job, catching drift at the source.
 
 3. **CI check cold-start false positives.** The script has to parse every
    `libs-*/SKILL.md` and every library's `src/` export surface; a naive
    implementation that only reads `src/index.js` will miss subpath exports
-   (e.g., `libui/render`, `libtelemetry/tracer.js`). Mitigation: Part 04's
-   plan mandates parsing the full `package.json` `exports` map per library
-   and de-duping exported names across subpaths before matching. First run
-   on the final Part 02 output must return zero failures; any failure is a
-   bug in either Part 02's table or Part 04's script.
+   (e.g., `libui/render`, `libtelemetry/tracer.js`). Mitigation: Part 04's plan
+   mandates parsing the full `package.json` `exports` map per library and
+   de-duping exported names across subpaths before matching. First run on the
+   final Part 02 output must return zero failures; any failure is a bug in
+   either Part 02's table or Part 04's script.
 
 4. **Symbol name collisions between libraries.** Two libraries can export the
    same name (e.g., `generateHash` appears in both `libutil` and `libsecret`).
    The CI check resolves names per-row (which library is this row about?), so
    there is no collision at match time, but the `Capabilities` column must
-   disambiguate if both libs are in the same group so the reader knows which
-   one to reach for. `libutil` and `libsecret` are in the same
-   `libs-cli-and-tooling` group — Part 02's Decision Guide carries the
-   existing "libutil.generateHash vs libsecret.generateSecret vs
-   libsecret.hashValues" call-out (currently in `libs-system-utilities`) into
-   the new file.
+   disambiguate if both libs are in the same group so the reader knows which one
+   to reach for. `libutil` and `libsecret` are in the same
+   `libs-cli-and-tooling` group — Part 02's Decision Guide carries the existing
+   "libutil.generateHash vs libsecret.generateSecret vs libsecret.hashValues"
+   call-out (currently in `libs-system-utilities`) into the new file.
 
-5. **Skill router behaviour change on rename.** Renaming a skill directory
-   can break any external reference to the old name (e.g., docs that say "see
-   the libs-system-utilities skill"). Mitigation: grep the monorepo for the
-   five old names before committing Part 01 and update any hits. Expected
-   hits: `CLAUDE.md § Skill Groups` (Part 01 rewrites), `CLAUDE.md § Skill
-   Groups` cross-references elsewhere in CLAUDE.md (none found as of drafting
-   but grep at execution time), and `.claude/skills/*/SKILL.md` body text in
-   the moved files themselves (Part 02 catches these because it rewrites each
-   file's "When to Use" and body intro).
+5. **Skill router behaviour change on rename.** Renaming a skill directory can
+   break any external reference to the old name (e.g., docs that say "see the
+   libs-system-utilities skill"). Mitigation: grep the monorepo for the five old
+   names before committing Part 01 and update any hits. Expected hits:
+   `CLAUDE.md § Skill Groups` (Part 01 rewrites), `CLAUDE.md § Skill Groups`
+   cross-references elsewhere in CLAUDE.md (none found as of drafting but grep
+   at execution time), and `.claude/skills/*/SKILL.md` body text in the moved
+   files themselves (Part 02 catches these because it rewrites each file's "When
+   to Use" and body intro).
 
-6. **Spec 130's Decision Guide text references old group membership.** Any
-   "X vs Y" comparison in a Decision Guide may span a group boundary after
-   Part 01 (e.g., `libtelemetry.Logger` advice that currently lives in
+6. **Spec 130's Decision Guide text references old group membership.** Any "X vs
+   Y" comparison in a Decision Guide may span a group boundary after Part 01
+   (e.g., `libtelemetry.Logger` advice that currently lives in
    `libs-service-infrastructure` is still relevant to CLI authors using
    `libs-cli-and-tooling`). Mitigation: Part 02's per-file checklist includes
    "re-read the Decision Guide and update any stale cross-references"; the
@@ -301,11 +302,11 @@ Flag these to the reviewer before execution.
 - Current `CLAUDE.md § Skill Groups`: lines 259–276
 - Current `CONTRIBUTING.md § READ-DO`: lines 33–51
 - Current `gemba-plan` SKILL.md: `.claude/skills/gemba-plan/SKILL.md`
-- Current `staff-engineer.md` agent profile:
-  `.claude/agents/staff-engineer.md` lines 8–13
-- Current `libs-*` SKILL.md files: `.claude/skills/libs-{data-persistence,
-  llm-orchestration, service-infrastructure, synthetic-data, system-utilities,
-  web-presentation}/SKILL.md` and `.claude/skills/libskill/SKILL.md`
+- Current `staff-engineer.md` agent profile: `.claude/agents/staff-engineer.md`
+  lines 8–13
+- Current `libs-*` SKILL.md files:
+  `.claude/skills/libs-{data-persistence, llm-orchestration, service-infrastructure, synthetic-data, system-utilities, web-presentation}/SKILL.md`
+  and `.claude/skills/libskill/SKILL.md`
 - Existing export-resolution script (pattern for Part 04):
   `scripts/check-exports-resolve.js` (91 lines)
 - Orphan library source entry points (Part 02 reads for `Key Exports`):

@@ -2,8 +2,8 @@
 
 Part 1 of 4 of [plan-a](plan-a.md) for [spec 400](spec.md).
 
-Renames five `.claude/skills/libs-*` directories so the filesystem reflects
-the six task-named groups from spec 400 Move 1, and updates
+Renames five `.claude/skills/libs-*` directories so the filesystem reflects the
+six task-named groups from spec 400 Move 1, and updates
 `CLAUDE.md § Skill Groups` to match. **This part does not touch any SKILL.md
 content** — file bodies are rewritten in Part 02.
 
@@ -14,25 +14,24 @@ content** — file bodies are rewritten in Part 02.
   the orphan libraries added in spec 400 Move 1.
 - Leave SKILL.md file contents unchanged — Part 02 owns frontmatter and body
   rewrites.
-- Leave `libs-synthetic-data/` and `libskill/` directories in place — only
-  their CLAUDE.md § Skill Groups entries change (to add `libuniverse`).
+- Leave `libs-synthetic-data/` and `libskill/` directories in place — only their
+  CLAUDE.md § Skill Groups entries change (to add `libuniverse`).
 
 ## Files touched
 
 ### Renamed directories (five)
 
-| From                                            | To                                      |
-| ----------------------------------------------- | --------------------------------------- |
-| `.claude/skills/libs-service-infrastructure/`   | `.claude/skills/libs-grpc-services/`    |
-| `.claude/skills/libs-data-persistence/`         | `.claude/skills/libs-storage/`          |
-| `.claude/skills/libs-llm-orchestration/`        | `.claude/skills/libs-llm-and-agents/`   |
-| `.claude/skills/libs-web-presentation/`         | `.claude/skills/libs-content/`          |
-| `.claude/skills/libs-system-utilities/`         | `.claude/skills/libs-cli-and-tooling/`  |
+| From                                          | To                                     |
+| --------------------------------------------- | -------------------------------------- |
+| `.claude/skills/libs-service-infrastructure/` | `.claude/skills/libs-grpc-services/`   |
+| `.claude/skills/libs-data-persistence/`       | `.claude/skills/libs-storage/`         |
+| `.claude/skills/libs-llm-orchestration/`      | `.claude/skills/libs-llm-and-agents/`  |
+| `.claude/skills/libs-web-presentation/`       | `.claude/skills/libs-content/`         |
+| `.claude/skills/libs-system-utilities/`       | `.claude/skills/libs-cli-and-tooling/` |
 
 Each rename moves exactly one file: `SKILL.md`.
 
-Unchanged: `.claude/skills/libs-synthetic-data/`,
-`.claude/skills/libskill/`.
+Unchanged: `.claude/skills/libs-synthetic-data/`, `.claude/skills/libskill/`.
 
 ### Modified file (one)
 
@@ -56,9 +55,9 @@ Unchanged: `.claude/skills/libs-synthetic-data/`,
 
 3. **Verify.** Run `ls .claude/skills/libs-*` and spot-check that exactly six
    directories exist with the new names. Run `grep -n 'libs-' CLAUDE.md` and
-   confirm only the new names appear. Grep for the five old names
-   repo-wide (see § Verification) and confirm there are no remaining
-   references outside the Part 01 diff.
+   confirm only the new names appear. Grep for the five old names repo-wide (see
+   § Verification) and confirm there are no remaining references outside the
+   Part 01 diff.
 
 ## CLAUDE.md rewrite
 
@@ -120,16 +119,23 @@ Run at the package root after the renames and the CLAUDE.md edit:
    .claude/skills/libskill
    ```
 
-2. **No dangling references to old names anywhere in the repo.**
+2. **No dangling references to old names in live surfaces.** Scope the grep to
+   files that Part 01 is responsible for keeping current. Historic specs and
+   plans under `specs/` correctly reference the group names that existed at
+   their time of writing — **do not rewrite history**.
 
    ```sh
-   rg -n 'libs-service-infrastructure|libs-data-persistence|libs-llm-orchestration|libs-web-presentation|libs-system-utilities'
+   rg -n 'libs-service-infrastructure|libs-data-persistence|libs-llm-orchestration|libs-web-presentation|libs-system-utilities' \
+      CLAUDE.md CONTRIBUTING.md .claude/ website/docs/internals/ .github/ scripts/
    ```
 
    Expected: zero hits. If any hit is inside `.claude/skills/libs-*/SKILL.md`
-   body text (e.g., the old group name mentioned inside the file), leave it
-   for Part 02 — Part 02 rewrites those sections and will catch them. Any hit
-   outside that tree is a Part 01 blocker and must be fixed before committing.
+   body text (e.g., the old group name mentioned inside a file), leave it for
+   Part 02 — Part 02 rewrites those sections and will catch them. Any hit in
+   `CLAUDE.md`, `CONTRIBUTING.md`, the website internals, GitHub workflows, or
+   `scripts/` is a Part 01 blocker and must be fixed before committing. Hits
+   inside `specs/` are expected historical artifacts and are explicitly out of
+   scope.
 
 3. **CLAUDE.md structure check.**
 
@@ -137,8 +143,8 @@ Run at the package root after the renames and the CLAUDE.md edit:
    grep -n '^- \*\*`libs-' CLAUDE.md
    ```
 
-   Expected: six lines with the six new group names, in the order listed in
-   the CLAUDE.md rewrite block above.
+   Expected: six lines with the six new group names, in the order listed in the
+   CLAUDE.md rewrite block above.
 
 4. **`bun run check` passes.** No format/lint/layout/exports drift.
 
@@ -154,21 +160,20 @@ Run at the package root after the renames and the CLAUDE.md edit:
 
 ## Risks
 
-1. **`git mv` into a directory vs into a file.** Using
-   `git mv old new` where `new` already exists moves `old` **into** `new`.
-   The destinations in the rename table do not exist yet, so this is safe,
-   but check with `ls .claude/skills/libs-grpc-services 2>/dev/null` before
-   running `git mv` if there's any doubt.
+1. **`git mv` into a directory vs into a file.** Using `git mv old new` where
+   `new` already exists moves `old` **into** `new`. The destinations in the
+   rename table do not exist yet, so this is safe, but check with
+   `ls .claude/skills/libs-grpc-services 2>/dev/null` before running `git mv` if
+   there's any doubt.
 
 2. **Leftover references in website docs.** `website/docs/internals/` may
-   reference skill group names in prose. Step 2 of Verification catches this;
-   if anything hits, update the prose in the same commit so the rename is
-   atomic.
+   reference skill group names in prose. Step 2 of Verification catches this; if
+   anything hits, update the prose in the same commit so the rename is atomic.
 
 3. **Commit message noise.** `git mv` of a directory with one file produces a
-   clean rename diff, but if the working tree has any untracked file inside
-   the old directory, `git mv` will fail. Ensure the tree is clean
-   (`git status` shows only the Part 01 changes) before running the moves.
+   clean rename diff, but if the working tree has any untracked file inside the
+   old directory, `git mv` will fail. Ensure the tree is clean (`git status`
+   shows only the Part 01 changes) before running the moves.
 
 ## Commit
 
