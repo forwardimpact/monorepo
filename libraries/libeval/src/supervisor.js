@@ -505,7 +505,7 @@ export function createSupervisor({
     query,
     output: new PassThrough(),
     model,
-    maxTurns: 10,
+    maxTurns: 20,
     allowedTools: supervisorAllowedTools ?? [
       "Bash",
       "Read",
