@@ -31,14 +31,24 @@ Key simplification:
 - Landmark reads, recommends, and presents; it does not collect surveys or call
   LLMs.
 
-Landmark consumes Map's **activity layer** (`activity/queries/`) for all
-operational data. The activity layer currently exports four query modules:
-`org.js` (`getOrganization`, `getTeam`, `getPerson`), `evidence.js`
-(`getEvidence`, `getPracticePatterns`), `snapshots.js` (`listSnapshots`,
-`getSnapshotScores`, `getItemTrend`, `getSnapshotComparison`), and
-`artifacts.js` (`getArtifacts`, `getUnscoredArtifacts`). Landmark also imports
-from Map's **pure layer** (`src/`) for framework schema — specifically the data
-loader (`createDataLoader`) and level constants.
+Landmark consumes Map's **activity layer** (`src/activity/queries/`) for all
+operational data. The activity layer currently exports four query modules,
+published as subpath exports of `@forwardimpact/map`:
+
+- `@forwardimpact/map/activity/queries/org` (`getOrganization`, `getTeam`,
+  `getPerson`)
+- `@forwardimpact/map/activity/queries/evidence` (`getEvidence`,
+  `getPracticePatterns`)
+- `@forwardimpact/map/activity/queries/snapshots` (`listSnapshots`,
+  `getSnapshotScores`, `getItemTrend`, `getSnapshotComparison`)
+- `@forwardimpact/map/activity/queries/artifacts` (`getArtifacts`,
+  `getUnscoredArtifacts`)
+
+Landmark also imports from Map's **pure layer** (`@forwardimpact/map`) for
+framework schema — specifically the data loader (`createDataLoader`) and level
+constants from `src/levels.js`. Map's package layout follows spec 390: all
+source lives under `src/`, with the public API surfaced via the `exports` map in
+`products/map/package.json`.
 
 Landmark is not purely a presentation layer. It imports Summit's growth
 alignment computation to surface recommendations inline. This is a deliberate
@@ -146,17 +156,22 @@ migration** must be added before Landmark can use them.
   - `text` (open-ended comment)
   - `timestamp`
   - `team_id` (FK to `getdx_teams`, derived from respondent's team membership)
-  - Requires: new GetDX extract endpoint for `snapshots.comments.list`, new
-    transform step, new migration to create the table.
+  - Requires: extending the GetDX extract
+    (`products/map/supabase/functions/_shared/activity/extract/getdx.js`) to
+    call `snapshots.comments.list`, a matching transform step in
+    `supabase/functions/_shared/activity/transform/getdx.js`, and a new
+    migration to create the table.
 
 **Framework data contracts:**
 
 - Marker definitions from Map capability YAML files. The `markers` field is
-  supported by the JSON schema (`capability.schema.json`) and validated by Map
-  (`src/validation/skill.js`), but no starter capabilities currently define
-  markers. Each installation must author its own marker definitions for
-  evidence-based views to function. Without markers, the `readiness`, `health`,
-  and `evidence` commands have no criteria to evaluate against.
+  supported by the JSON schema
+  (`products/map/schema/json/capability.schema.json`) and validated by
+  `validateSkillMarkers` in `products/map/src/validation/skill.js`, but no
+  starter capabilities currently define markers. Each installation must author
+  its own marker definitions for evidence-based views to function. Without
+  markers, the `readiness`, `health`, and `evidence` commands have no criteria
+  to evaluate against.
 - Driver definitions from Map (`drivers.yaml`) — the driver `id` is the join key
   to `getdx_snapshot_team_scores.item_id`, and `contributingSkills` links
   drivers to evidence. The starter data currently defines only one driver
@@ -166,8 +181,11 @@ migration** must be added before Landmark can use them.
   should define drivers that match their GetDX scorecard items.
 - libskill derivation logic — to determine which skills apply at a target level
   for a given discipline/track (used by `readiness` command). Current libskill
-  exports: `deriveSkillMatrix`, `deriveJob`, `deriveBehaviourProfile`,
-  `getNextLevel`. All individual-level — no team aggregation.
+  exports from `libraries/libskill/src/index.js`: `deriveSkillMatrix`,
+  `deriveJob`, `deriveBehaviourProfile`, `getNextLevel`,
+  `analyzeLevelProgression`, `calculateJobMatch`, plus the rest of the
+  derivation/matching/progression/agent surface. All individual-level — no team
+  aggregation. Version 4.1.7.
 - Summit's growth alignment logic (imported as a library dependency, not a
   service call — Summit's team gap analysis and growth candidate matching run
   locally). Summit (spec 090) is currently in draft status and not yet
@@ -200,11 +218,13 @@ skills:
           - Completed a multi-file change that passes CI without human rework
 ```
 
-The `markers` field is validated by Map's JSON schema (`capability.schema.json`)
-and skill validation (`src/validation/skill.js`). Each level key must be a valid
+The `markers` field is validated by Map's JSON schema
+(`products/map/schema/json/capability.schema.json`) and skill validation
+(`products/map/src/validation/skill.js`). Each level key must be a valid
 proficiency (`awareness`, `foundational`, `working`, `practitioner`, `expert`),
 and each entry is an object with `human` and/or `agent` string arrays. The data
-loader (`src/loader.js`) carries markers through to the loaded skill objects.
+loader (`products/map/src/loader.js`) carries markers through to the loaded
+skill objects.
 
 **Current state:** No capabilities in the starter data define markers yet. The
 starter capabilities (`delivery`, `reliability`) define
@@ -539,7 +559,7 @@ silently.
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | No evidence rows exist             | `evidence`, `readiness`, `timeline`, `coverage`, `practiced` show "No evidence data available. Guide has not yet interpreted artifacts for this scope."                  |
 | No markers defined for a skill     | `marker` shows "No markers defined for {skill}. Add markers to the capability YAML." `readiness` shows "No markers defined at target level — cannot generate checklist." |
-| No GetDX snapshots ingested        | `snapshot`, `health` show "No GetDX snapshot data available. Run `fit-map getdx sync` to ingest."                                                                        |
+| No GetDX snapshots ingested        | `snapshot`, `health` show "No GetDX snapshot data available. Run `fit-map getdx sync` (or `fit-map activity seed` for synthetic data) to ingest."                        |
 | No GetDX comments table            | `voice` shows "Snapshot comments not available. The getdx_snapshot_comments table has not been created."                                                                 |
 | No GetDX initiatives table         | `initiative` shows "Initiative data not available. The getdx_initiatives table has not been created."                                                                    |
 | Summit not installed               | `health` omits the recommendation lines — shows driver scores, evidence, and comments without growth suggestions. No error.                                              |
@@ -624,14 +644,49 @@ section tracks what must be built before each Landmark capability can function.
 
 **Map activity layer — existing infrastructure (ready to consume):**
 
+Specs 350 (end-to-end activity layer) and 380 (activity seed) brought the
+activity layer to a working state. The CLI is the single entry point for every
+activity workflow; edge functions and the CLI share a single set of
+extract/transform helpers.
+
 - `organization_people` table + `getOrganization`/`getTeam`/`getPerson` queries
-- `getdx_snapshots` + `getdx_snapshot_team_scores` tables + snapshot queries
+  (`@forwardimpact/map/activity/queries/org`)
+- `getdx_snapshots`, `getdx_teams`, `getdx_snapshot_team_scores` tables +
+  snapshot queries (`@forwardimpact/map/activity/queries/snapshots`)
 - `github_events` + `github_artifacts` tables + artifact queries
+  (`@forwardimpact/map/activity/queries/artifacts`)
 - `evidence` table + `getEvidence`/`getPracticePatterns` queries
-- GetDX extract pipeline (`extract/getdx.js`) — currently calls `teams.list`,
-  `snapshots.list`, `snapshots.info`
-- GitHub extract pipeline (`extract/github.js`) + transform
-  (`transform/github.js`)
+  (`@forwardimpact/map/activity/queries/evidence`)
+- Schema migration:
+  `products/map/supabase/migrations/20250101000000_activity_schema.sql` (the
+  earlier draft under `activity/migrations/` was removed by spec 350; this is
+  now the single authoritative DDL).
+- GetDX extract pipeline at
+  `products/map/supabase/functions/_shared/activity/extract/getdx.js` —
+  currently calls `teams.list`, `snapshots.list`, `snapshots.info`. Imported by
+  both the `getdx-sync` Supabase edge function and the `fit-map getdx sync` CLI
+  command.
+- GitHub extract + transform at
+  `products/map/supabase/functions/_shared/activity/extract/github.js` and
+  `.../transform/github.js`. Single source of truth shared by the
+  `github-webhook` edge function and the CLI's reprocess path. The duplicated
+  Deno/Node implementations called out by spec 350 have been consolidated.
+- People extract/transform at
+  `supabase/functions/_shared/activity/extract/people.js` and
+  `.../transform/people.js`, plus a Deno-compatible parser at
+  `products/map/src/activity/parse-people.js` shared with the CLI validator
+  (`src/activity/validate/people.js`).
+- All four Supabase edge functions (`github-webhook`, `getdx-sync`,
+  `people-upload`, `transform`) complete their job after a single invocation and
+  report counts/errors as JSON.
+- `fit-map` CLI commands for the full activity workflow:
+  `fit-map activity start|stop|status|migrate|transform|verify|seed`,
+  `fit-map people validate|push`, and `fit-map getdx sync`. Internal
+  contributors can go from `just synthetic` to a populated database with
+  `fit-map activity seed`.
+- Activity-layer test coverage at `products/map/test/activity/` (storage,
+  transform-getdx, transform-github, transform-people, validate-people,
+  integration, seed).
 
 **Map activity layer — requires new work:**
 
@@ -664,15 +719,23 @@ is installed. The `voice` and `initiative` commands require new Map tables.
 ## Positioning
 
 ```
-                    Pure layer           Activity layer
-                  +------------------+-------------------------+
-GetDX + GitHub --> |   Map (src/)       |   Map (activity/)          |
-                  |   schema, markers  |   ingest, store, query     |
-                  +---------+--------+----------+------------+
-                            |                  |
-                         Guide              Landmark ← Summit (growth logic)
-                      (interprets)    (presents + recommends)
+                       Pure layer                 Activity layer
+                  +----------------------+--------------------------------+
+GetDX + GitHub -->| Map (src/loader.js,  | Map (src/activity/queries/*,   |
+                  | src/validation/*,    | supabase/migrations,           |
+                  | src/levels.js)       | supabase/functions/_shared/    |
+                  | schema, markers      | activity/{extract,transform})  |
+                  +-----------+----------+--------------+-----------------+
+                              |                         |
+                           Guide                Landmark ← Summit (growth logic)
+                       (interprets)         (presents + recommends)
 ```
+
+Both layers ship from the same `@forwardimpact/map` package. Source files follow
+spec 390's `src/`-rooted layout; consumers import via subpath aliases
+(`@forwardimpact/map`, `@forwardimpact/map/activity/queries/org`, …). The ingest
+pipeline that writes the activity layer is driven by Map's CLI and edge
+functions (specs 350 + 380); Landmark only ever reads.
 
 Map owns data. Guide owns interpretation. Landmark owns presentation and
 contextual recommendation. Summit owns team-level planning and what-if

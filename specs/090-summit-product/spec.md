@@ -244,8 +244,9 @@ $ fit-summit coverage platform --evidenced
 ```
 
 Summit reads evidence aggregates from Map's activity layer (via `getEvidence`
-and `getPracticePatterns` from `@forwardimpact/map/activity/queries/evidence`)
-and computes `evidenced_depth`: the count of engineers with at least one matched
+and `getPracticePatterns` from `@forwardimpact/map/activity/queries/evidence`,
+which Map publishes from `products/map/src/activity/queries/evidence.js`) and
+computes `evidenced_depth`: the count of engineers with at least one matched
 evidence row for that skill at working level or above within a lookback window
 (default: 12 months). This requires Guide to be writing evidence rows — without
 evidence data, `--evidenced` shows all-zero evidenced depths.
@@ -508,8 +509,12 @@ computes trajectory from one of two sources:
 
 1. **Map's activity layer** — if Map stores historical `organization_people`
    snapshots (roster at each quarter boundary), Summit reads them directly.
-   Map's `snapshots.js` query module exists but does not yet support historical
-   roster snapshots — this would require a new query or table extension.
+   Map's `src/activity/queries/snapshots.js` module exists and exports
+   `listSnapshots`, `getSnapshotScores`, `getItemTrend`, and
+   `getSnapshotComparison`, but those functions cover GetDX snapshot scores, not
+   roster history. Historical roster snapshots would require either a new table
+   (e.g. `activity.organization_people_history`) and a matching query module, or
+   a temporal extension to `organization_people` itself.
 2. **Git history of summit.yaml** — if using a local roster file tracked in
    version control, Summit can read prior versions to reconstruct roster
    changes.
@@ -594,11 +599,15 @@ map → libskill → pathway
            summit ──→ (growth logic) ──→ landmark
 ```
 
-- **Map** defines skills, levels, behaviours — the data model
+- **Map** defines skills, levels, behaviours — the data model. Source under
+  `products/map/src/`, with the public API published via the `exports` map in
+  `products/map/package.json` (spec 390 layout).
 - **libskill** derives individual job profiles and skill matrices. Current
-  exports: `deriveSkillMatrix`, `deriveJob`, `deriveBehaviourProfile`,
-  `getNextLevel`, `analyzeLevelProgression`, `calculateJobMatch`, and ~80 more
-  functions — all individual-level. No team aggregation exists in libskill.
+  exports from `libraries/libskill/src/index.js`: `deriveSkillMatrix`,
+  `deriveJob`, `deriveBehaviourProfile`, `getNextLevel`,
+  `analyzeLevelProgression`, `calculateJobMatch`, plus the rest of the
+  derivation/matching/progression/agent surface — all individual-level. No team
+  aggregation exists in libskill.
 - **Summit** aggregates individual matrices into team-level analysis. This is
   new logic that Summit must implement — it is not a wrapper around an existing
   libskill function.
@@ -865,30 +874,49 @@ tracks what exists and what must be built.
 
 **Existing infrastructure (ready to consume):**
 
-- **Map data loader** (`@forwardimpact/map` `createDataLoader`) — loads
+- **Map data loader** (`@forwardimpact/map` `createDataLoader`, exported from
+  `products/map/src/loader.js` via the package's `exports` map) — loads
   capabilities, disciplines, tracks, levels, drivers, behaviours from YAML.
+  Map's package layout follows spec 390: all source lives under `src/`, and
+  consumers import via subpath aliases like
+  `@forwardimpact/map/activity/queries/org`.
 - **libskill derivation** (`@forwardimpact/libskill`) — `deriveSkillMatrix`,
-  `deriveJob`, `deriveBehaviourProfile`, `getNextLevel`, and ~80 other
-  individual-level functions. Version 4.1.7.
+  `deriveJob`, `deriveBehaviourProfile`, `getNextLevel`,
+  `analyzeLevelProgression`, `calculateJobMatch`, and additional
+  individual-level functions exported from `libraries/libskill/src/index.js`.
+  Version 4.1.7. All exports operate on a single person — there is no team-level
+  aggregation.
 - **Map activity queries** — `getOrganization`, `getTeam`, `getPerson` (for
   roster from Map), `getEvidence`, `getPracticePatterns` (for `--evidenced`),
-  `getSnapshotScores` (for `--outcomes`).
+  `getSnapshotScores`, `listSnapshots`, `getItemTrend`, `getSnapshotComparison`
+  (for `--outcomes` and trend views), `getArtifacts`, `getUnscoredArtifacts`
+  (for coverage). All four query modules are published as subpath exports under
+  `@forwardimpact/map/activity/queries/*`.
+- **Map activity ingest** — Specs 350 and 380 delivered the end-to-end ELT
+  pipeline. The CLI exposes
+  `fit-map activity {start,stop,status,migrate,transform,verify,seed}`,
+  `fit-map people {validate,push}`, and `fit-map getdx sync`. Internal
+  contributors can populate the activity database from synthetic data with
+  `fit-map activity seed`. Summit consumes whatever those commands have
+  populated; Summit itself does not ingest data.
 - **Starter data** — `software_engineering` discipline (core: `task_completion`,
   supporting: `planning`, broad: `incident_response`), `platform` and
   `forward_deployed` tracks, 2 levels (`J040` Level I, `J060` Level II), 2
-  capabilities (`delivery`, `reliability`), 1 driver (`quality`), 1 behaviour
-  (`systems_thinking`).
+  capabilities (`delivery`, `reliability`), 1 driver (`quality`, contributing
+  skills `task_completion` and `planning`), 1 behaviour (`systems_thinking`). No
+  markers defined on any starter capability — see spec 080 for the marker
+  prerequisite shared with Landmark.
 
 **New work Summit must implement:**
 
-| Component              | What it enables                   | Notes                                                                                                                                                                            |
-| ---------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Team aggregation logic | `coverage`, `risks`, all commands | Iterate roster, call `deriveSkillMatrix` per person, aggregate into team-level coverage/depth counts. This is Summit's core contribution — libskill has no team-level functions. |
-| Risk detection         | `risks`                           | Single point of failure detection, critical gap identification, concentration risk analysis. Pure logic over aggregated data.                                                    |
-| What-if simulation     | `what-if`                         | Clone roster, apply mutation (add/remove/move/promote), re-aggregate, diff.                                                                                                      |
-| Growth alignment       | `growth`, export for Landmark     | Identify team gaps, rank by impact, match candidates. Export as `computeGrowthAlignment`.                                                                                        |
-| Roster loader          | All commands                      | Load from Map org model or local YAML. The YAML format is defined in this spec but no parser exists yet. An example YAML exists at `data/activity/raw/activity/summit.yaml`.     |
-| Trajectory tracking    | `trajectory`                      | Requires either historical roster snapshots from Map (not yet supported) or git history parsing of summit.yaml.                                                                  |
+| Component              | What it enables                   | Notes                                                                                                                                                                                                                                                |
+| ---------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Team aggregation logic | `coverage`, `risks`, all commands | Iterate roster, call `deriveSkillMatrix` per person, aggregate into team-level coverage/depth counts. This is Summit's core contribution — libskill has no team-level functions.                                                                     |
+| Risk detection         | `risks`                           | Single point of failure detection, critical gap identification, concentration risk analysis. Pure logic over aggregated data.                                                                                                                        |
+| What-if simulation     | `what-if`                         | Clone roster, apply mutation (add/remove/move/promote), re-aggregate, diff.                                                                                                                                                                          |
+| Growth alignment       | `growth`, export for Landmark     | Identify team gaps, rank by impact, match candidates. Export as `computeGrowthAlignment`.                                                                                                                                                            |
+| Roster loader          | All commands                      | Load from Map org model (via `@forwardimpact/map/activity/queries/org`) or local YAML. The YAML format is defined in this spec but no parser exists yet, and no example file exists in the monorepo — Summit will need to ship one with the package. |
+| Trajectory tracking    | `trajectory`                      | Requires either historical roster snapshots from Map (not yet supported) or git history parsing of summit.yaml.                                                                                                                                      |
 
 **Starter data gaps (not blockers but reduce demo value):**
 
@@ -904,11 +932,12 @@ tracks what exists and what must be built.
 
 **Cross-product dependencies:**
 
-| Dependency                      | Required for                       | Status                                                        |
-| ------------------------------- | ---------------------------------- | ------------------------------------------------------------- |
-| Landmark (spec 080)             | Consuming `computeGrowthAlignment` | Draft — Summit should ship first since Landmark depends on it |
-| Guide evidence writing          | `--evidenced` flag                 | Guide can interpret artifacts independently of Summit         |
-| Map historical roster snapshots | `trajectory` from Map source       | Not yet supported — would need new query/table                |
+| Dependency                      | Required for                       | Status                                                                                  |
+| ------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------- |
+| Landmark (spec 080)             | Consuming `computeGrowthAlignment` | Draft — Summit should ship first since Landmark depends on it                           |
+| Guide evidence writing          | `--evidenced` flag                 | Guide can interpret artifacts independently of Summit                                   |
+| Map historical roster snapshots | `trajectory` from Map source       | Not yet supported — would need a new query/table on top of the current activity schema  |
+| Map activity layer ingest       | All Map-sourced commands           | Implemented (specs 350 + 380) — populated via `fit-map activity seed` or real ETL paths |
 
 ## Summary
 
