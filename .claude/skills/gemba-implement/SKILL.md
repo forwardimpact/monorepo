@@ -148,7 +148,7 @@ After all tasks are complete, run the DO-CONFIRM checklist above.
 
 ### 8. Clean sub-agent review
 
-Before pushing, launch a fresh sub-agent (via the Task tool, no prior
+Before pushing, launch a fresh sub-agent (via the `Agent` tool, no prior
 conversation context) and ask it to review the full diff
 (`git diff origin/main...HEAD`) against `spec.md`, the plan, and CONTRIBUTING.md
 § Core Rules. Give the reviewer enough context to act independently — spec path,

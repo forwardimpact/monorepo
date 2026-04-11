@@ -131,7 +131,7 @@ status clearly — the caller is responsible for acting on it.
    details — those go in the plan.
 4. **Update STATUS.** Add the spec to `specs/STATUS` with status `draft`.
 5. **Clean sub-agent review.** Before advancing status, launch a fresh sub-agent
-   (via the Task tool, no prior conversation context) and ask it to review
+   (via the `Agent` tool, no prior conversation context) and ask it to review
    `spec.md` against this skill's DO-CONFIRM checklist and the qualities in
    "Writing a Spec". Instruct it to return findings grouped by severity —
    **blocker**, **high**, **medium**, **low**. Address every blocker, high, and

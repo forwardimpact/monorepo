@@ -190,7 +190,7 @@ from prior `staff-engineer` entries.
    explicitly. If the plan is large, decompose it into parts (see § Large plan
    decomposition).
 5. **Clean sub-agent review.** Before advancing status, launch a fresh sub-agent
-   (via the Task tool, no prior conversation context) and ask it to review
+   (via the `Agent` tool, no prior conversation context) and ask it to review
    `plan-a.md` (and any `plan-a-NN.md` parts) against this skill's DO-CONFIRM
    checklist and the qualities in "Writing a Plan". Instruct it to return
    findings grouped by severity — **blocker**, **high**, **medium**, **low**.
