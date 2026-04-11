@@ -2,16 +2,16 @@
 
 ## Goal
 
-Create the `@forwardimpact/summit` package with the spec 390 layout, wire up
-a libcli-based `fit-summit` binary, and implement the two "what can Summit
-see?" commands:
+Create the `@forwardimpact/summit` package with the spec 390 layout, wire up a
+libcli-based `fit-summit` binary, and implement the two "what can Summit see?"
+commands:
 
 - `fit-summit roster` — show current roster as Summit sees it.
 - `fit-summit validate` — validate roster against Map framework data.
 
 After this part lands, a contributor can author a `summit.yaml`, run
-`bunx fit-summit roster`, and get a clean printout of teams, members,
-and project allocations. No analytical commands exist yet.
+`bunx fit-summit roster`, and get a clean printout of teams, members, and
+project allocations. No analytical commands exist yet.
 
 ## Inputs
 
@@ -85,10 +85,9 @@ export { validateRosterAgainstFramework } from "./schema.js";
 export { loadRoster } from "./loader.js";
 ```
 
-Note: `src/roster/loader.js` is the only non-trivial orchestrator
-here and is listed separately below. The four files `yaml.js`,
-`map.js`, `schema.js`, `loader.js` all live under `src/roster/` in
-this part.
+Note: `src/roster/loader.js` is the only non-trivial orchestrator here and is
+listed separately below. The four files `yaml.js`, `map.js`, `schema.js`,
+`loader.js` all live under `src/roster/` in this part.
 
 ### `products/summit/src/roster/yaml.js`
 
@@ -97,51 +96,48 @@ this part.
 - Accepts the structure from spec.md:111–154:
   - `teams: { [teamId]: Array<PersonEntry> }`
   - `projects: { [projectId]: Array<ProjectMemberEntry> }`
-- Normalises `allocation` to 1.0 when missing and only for project
-  entries. Rejects `allocation` on reporting-team entries with a clear
-  error.
+- Normalises `allocation` to 1.0 when missing and only for project entries.
+  Rejects `allocation` on reporting-team entries with a clear error.
 - Supports the `email`-only reference form for project members (spec.md:
-  144–149): when a project entry only carries `email`, resolve the
-  person from a reporting team by email and merge in `job`, `name`.
-  External/hypothetical members must carry their own `name` and `job`.
+  144–149): when a project entry only carries `email`, resolve the person from a
+  reporting team by email and merge in `job`, `name`. External/hypothetical
+  members must carry their own `name` and `job`.
 - Returns a `Roster` object with populated `teams` and `projects` Maps.
 
 ### `products/summit/src/roster/schema.js`
 
 - Exports `validateRosterAgainstFramework(roster, data): ValidationResult`.
-- Checks every person's `job.discipline`, `job.level`, and optional
-  `job.track` against the loaded Map framework data (`data.disciplines`,
-  `data.levels`, `data.tracks`).
-- Returns `{ errors: Issue[], warnings: Issue[] }` where `Issue = { code,
-  message, context }`.
-- Does not throw — callers decide whether an error is fatal. The
-  `validate` command reports them; other commands warn and proceed with
-  what they can resolve (spec.md:713).
+- Checks every person's `job.discipline`, `job.level`, and optional `job.track`
+  against the loaded Map framework data (`data.disciplines`, `data.levels`,
+  `data.tracks`).
+- Returns `{ errors: Issue[], warnings: Issue[] }` where
+  `Issue = { code, message, context }`.
+- Does not throw — callers decide whether an error is fatal. The `validate`
+  command reports them; other commands warn and proceed with what they can
+  resolve (spec.md:713).
 
 ### `products/summit/src/roster/map.js`
 
 - Exports `loadRosterFromMap(supabase, options?): Promise<Roster>`.
 - Calls `getOrganization(supabase)` from
   `@forwardimpact/map/activity/queries/org`.
-- Groups people by `manager_email` to produce one reporting team per
-  manager. **Team id derivation:** use the full manager email as team
-  id (lowercased). This is less friendly than the email local-part
-  but is unambiguous across domains and requires no collision
-  handling. A future plan variant can add a human-friendly alias
-  layer if that matters.
+- Groups people by `manager_email` to produce one reporting team per manager.
+  **Team id derivation:** use the full manager email as team id (lowercased).
+  This is less friendly than the email local-part but is unambiguous across
+  domains and requires no collision handling. A future plan variant can add a
+  human-friendly alias layer if that matters.
 - No project teams — those only exist in YAML.
-- Maps each Map person to the `RosterPerson` shape by reading
-  `discipline`, `level`, `track`, `name`, `email`, and `manager_email`
-  fields from the `organization_people` row.
+- Maps each Map person to the `RosterPerson` shape by reading `discipline`,
+  `level`, `track`, `name`, `email`, and `manager_email` fields from the
+  `organization_people` row.
 - Populates the roster's per-team `managerEmail` field (see
   `src/lib/supabase.js` for where this is consumed in later parts).
 
 ### `products/summit/src/lib/supabase.js`
 
-Mirrors `products/map/src/lib/client.js` (which is not exported).
-Introduced in Part 01 because `loadRosterFromMap` needs a Supabase
-client from day one — the Map-sourced roster is a core feature, not
-an evidence-layer feature.
+Mirrors `products/map/src/lib/client.js` (which is not exported). Introduced in
+Part 01 because `loadRosterFromMap` needs a Supabase client from day one — the
+Map-sourced roster is a core feature, not an evidence-layer feature.
 
 ```js
 import { createClient } from "@supabase/supabase-js";
@@ -170,37 +166,35 @@ export function createSummitClient(opts = {}) {
 }
 ```
 
-The factory accepts an explicit `opts` so tests can inject fakes.
-Part 07's evidence and outcomes code reuses the same factory — it
-only adds new callers, not a new client.
+The factory accepts an explicit `opts` so tests can inject fakes. Part 07's
+evidence and outcomes code reuses the same factory — it only adds new callers,
+not a new client.
 
 ### `products/summit/src/roster/loader.js`
 
 - Exports `loadRoster({ rosterPath, supabase }): Promise<Roster>`.
 - Dispatches:
-  - If `rosterPath` is provided, read the file and call
-    `parseRosterYaml`.
-  - Otherwise construct a Supabase client via `createSummitClient()`
-    (injected `supabase` overrides the factory for tests) and call
+  - If `rosterPath` is provided, read the file and call `parseRosterYaml`.
+  - Otherwise construct a Supabase client via `createSummitClient()` (injected
+    `supabase` overrides the factory for tests) and call
     `loadRosterFromMap(supabase)`.
-- `SupabaseUnavailableError` is caught and re-thrown with the
-  spec.md:712 message ("No roster found. Provide --roster path or
-  configure Map's organization_people table.") so the caller prints
-  an actionable error rather than an env-var diagnostic.
+- `SupabaseUnavailableError` is caught and re-thrown with the spec.md:712
+  message ("No roster found. Provide --roster path or configure Map's
+  organization_people table.") so the caller prints an actionable error rather
+  than an env-var diagnostic.
 
 ### `products/summit/src/lib/cli.js`
 
 Shared CLI helpers used across all parts:
 
-- `createDataFromOptions(options): Promise<{ data, dataDir }>` — locates
-  the Map data directory (`--data` or, when unset, a `new Finder(fs,
-  logger, process)` instance whose `findData("data", homedir())`
-  method returns the discovered path — see
-  `products/pathway/bin/fit-pathway.js:185–194` for the instance
-  pattern), invokes `createDataLoader().loadAllData(dataDir)`, returns
-  the parsed data.
-- `getRosterSource(options): { rosterPath?: string }` — normalises
-  `--roster` vs. Map-sourced.
+- `createDataFromOptions(options): Promise<{ data, dataDir }>` — locates the Map
+  data directory (`--data` or, when unset, a `new Finder(fs, logger, process)`
+  instance whose `findData("data", homedir())` method returns the discovered
+  path — see `products/pathway/bin/fit-pathway.js:185–194` for the instance
+  pattern), invokes `createDataLoader().loadAllData(dataDir)`, returns the
+  parsed data.
+- `getRosterSource(options): { rosterPath?: string }` — normalises `--roster`
+  vs. Map-sourced.
 - Re-exports a `TEXT`/`JSON`/`MARKDOWN` constant for format selection.
 
 ### `products/summit/src/commands/roster.js`
@@ -220,8 +214,9 @@ Shared CLI helpers used across all parts:
 - Exports `runValidateCommand({ data, options })`.
 - Loads roster via `loadRoster()`.
 - Runs `validateRosterAgainstFramework(roster, data)`.
-- Prints each error in the form `{file} {pointer}: {value} is not defined
-  in {reference}.` as shown in spec.md:713.
+- Prints each error in the form
+  `{file} {pointer}: {value} is not defined in {reference}.` as shown in
+  spec.md:713.
 - Exits `1` on any errors, `0` on success (warnings do not fail).
 
 ### `products/summit/bin/fit-summit.js`
@@ -264,9 +259,9 @@ invoke `validateAllData(data)`, call the selected handler.
 ### `products/summit/starter/summit.example.yaml`
 
 A minimal example roster using starter framework entities
-(`software_engineering` discipline, `J040`/`J060` levels, `platform`
-track). This is the file `npx fit-summit roster` hits by default when a
-contributor runs Summit against a fresh starter install.
+(`software_engineering` discipline, `J040`/`J060` levels, `platform` track).
+This is the file `npx fit-summit roster` hits by default when a contributor runs
+Summit against a fresh starter install.
 
 ```yaml
 # Example Summit roster — copy to your data dir as summit.yaml.
@@ -299,17 +294,18 @@ Coverage for Part 01 behaviour. Tests use Bun's `node:test`:
 - Rejects `allocation` on reporting-team entries.
 - Resolves project members by `email` against reporting team data.
 - Rejects project members with only `email` when no matching person exists.
-- `loadRosterFromMap` groups people by manager_email (uses a fake
-  Supabase client injected through DI).
-- `validateRosterAgainstFramework` produces issues for each invalid field
-  with line pointers.
+- `loadRosterFromMap` groups people by manager_email (uses a fake Supabase
+  client injected through DI).
+- `validateRosterAgainstFramework` produces issues for each invalid field with
+  line pointers.
 
 ### `products/summit/test/cli.test.js`
 
 - Shells out to `bin/fit-summit.js roster --roster test/fixtures/roster.yaml`
   via `node` and asserts stdout matches snapshots.
-- Shells out to `bin/fit-summit.js validate --roster
-  test/fixtures/bad-roster.yaml` and asserts exit code 1.
+- Shells out to
+  `bin/fit-summit.js validate --roster test/fixtures/bad-roster.yaml` and
+  asserts exit code 1.
 - Shells out to `bin/fit-summit.js --help` and asserts the `roster` and
   `validate` commands appear.
 
@@ -317,8 +313,7 @@ Coverage for Part 01 behaviour. Tests use Bun's `node:test`:
 
 ### `CLAUDE.md`
 
-No change in this part. The Summit reference already exists at lines
-59–64.
+No change in this part. The Summit reference already exists at lines 59–64.
 
 ### `package.json` (root)
 
@@ -338,14 +333,14 @@ Each of these must pass before Part 01 is considered done:
 3. `bun run check:exports` passes (every `exports` target resolves).
 4. `bun run format` and `bun run lint` clean.
 5. `bun run test` includes Summit's new tests and all pass.
-6. Running `bunx fit-summit --help` from a clean checkout lists both
-   commands and the options table.
-7. Running `bunx fit-summit roster --roster
-   products/summit/starter/summit.example.yaml --data
-   products/map/starter` prints a two-team + one-project view.
-8. Running `bunx fit-summit validate --roster
-   products/summit/starter/summit.example.yaml --data
-   products/map/starter` exits 0.
+6. Running `bunx fit-summit --help` from a clean checkout lists both commands
+   and the options table.
+7. Running
+   `bunx fit-summit roster --roster products/summit/starter/summit.example.yaml --data products/map/starter`
+   prints a two-team + one-project view.
+8. Running
+   `bunx fit-summit validate --roster products/summit/starter/summit.example.yaml --data products/map/starter`
+   exits 0.
 9. Piping a deliberately invalid roster through `validate` exits 1 with
    actionable error messages.
 
@@ -360,35 +355,33 @@ feat(summit): scaffold package, roster loading, roster and validate commands
 ## Risks
 
 - **YAML format ambiguity.** The spec shows both `teams:` and `projects:`
-  top-level keys but does not define whether a standalone list of people
-  is valid. Explicitly reject it — reporters must use the `teams:`
-  wrapper. Document the decision in `schema.js` JSDoc.
-- **Manager-hierarchy team derivation.** Map's `organization_people`
-  table may have managers who themselves report to other managers. Part
-  01 creates one reporting team per manager who has direct reports; a
-  person whose own report count is zero does not get their own team.
-  Document this in `map.js` JSDoc and add a fixture-driven test.
-- **Team id shape for Map-sourced rosters.** The plan uses the full
-  manager email (lowercased) as the team id — e.g. `alice@eng.co`
-  rather than `alice`. This avoids collisions across domains and
-  requires zero collision-handling logic at the cost of more verbose
-  command lines (`fit-summit coverage alice@eng.co`). A human-friendly
-  alias layer (for example, `fit-summit roster --alias platform=alice@eng.co`)
-  is intentionally out of scope — revisit if the verbosity becomes a
-  pain point. Document the chosen scheme in `src/roster/map.js` JSDoc
-  so contributors do not accidentally reinvent local-part parsing.
-- **Dependency version drift.** Summit pins `@forwardimpact/map`
-  at `^0.15.18`. If Map's activity query exports change between drafting
-  the plan and implementing it, update the caret range first and re-run
-  the checks.
+  top-level keys but does not define whether a standalone list of people is
+  valid. Explicitly reject it — reporters must use the `teams:` wrapper.
+  Document the decision in `schema.js` JSDoc.
+- **Manager-hierarchy team derivation.** Map's `organization_people` table may
+  have managers who themselves report to other managers. Part 01 creates one
+  reporting team per manager who has direct reports; a person whose own report
+  count is zero does not get their own team. Document this in `map.js` JSDoc and
+  add a fixture-driven test.
+- **Team id shape for Map-sourced rosters.** The plan uses the full manager
+  email (lowercased) as the team id — e.g. `alice@eng.co` rather than `alice`.
+  This avoids collisions across domains and requires zero collision-handling
+  logic at the cost of more verbose command lines
+  (`fit-summit coverage alice@eng.co`). A human-friendly alias layer (for
+  example, `fit-summit roster --alias platform=alice@eng.co`) is intentionally
+  out of scope — revisit if the verbosity becomes a pain point. Document the
+  chosen scheme in `src/roster/map.js` JSDoc so contributors do not accidentally
+  reinvent local-part parsing.
+- **Dependency version drift.** Summit pins `@forwardimpact/map` at `^0.15.18`.
+  If Map's activity query exports change between drafting the plan and
+  implementing it, update the caret range first and re-run the checks.
 
 ## Notes for the implementer
 
-- Do **not** touch `bin/fit-summit.js` in later parts without revisiting
-  the commands list; keep the shape the same to minimise churn across
-  parts.
-- Do **not** pre-build the aggregation surface in Part 01. Part 02 owns
-  the first iteration and is where design time pays off.
-- If a decision about the YAML schema turns out to block Part 02 or Part
-  04 (what-if), return here and revise Part 01 before continuing — it's
-  cheaper to redo a small part than to carry a bad schema forward.
+- Do **not** touch `bin/fit-summit.js` in later parts without revisiting the
+  commands list; keep the shape the same to minimise churn across parts.
+- Do **not** pre-build the aggregation surface in Part 01. Part 02 owns the
+  first iteration and is where design time pays off.
+- If a decision about the YAML schema turns out to block Part 02 or Part 04
+  (what-if), return here and revise Part 01 before continuing — it's cheaper to
+  redo a small part than to carry a bad schema forward.

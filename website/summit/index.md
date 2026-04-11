@@ -1,6 +1,6 @@
 ---
 title: Summit
-description: See team capability as a system — coverage, structural risks, and what-if staffing scenarios from your engineering framework.
+description: See team capability as a system — coverage, structural risks, what-if staffing scenarios, growth alignment, and quarterly trajectory from your engineering framework.
 layout: product
 toc: false
 hero:
@@ -21,12 +21,67 @@ hero:
 
 ### What you get
 
-- Capability coverage heatmaps across all skills in the framework
-- Structural risk detection — single points of failure, critical gaps,
-  concentration risks
-- What-if scenario simulation for roster changes before making them
-- Growth alignment connecting team gaps to individual development opportunities
-- Team roster from Map's unified person model or a local YAML planning file
+- **Capability coverage** — per-skill headcount at working+ across the team.
+- **Structural risks** — single points of failure, critical gaps, concentration
+  risks.
+- **What-if scenarios** — simulate add / remove / move / promote before acting.
+- **Growth alignment** — connect team gaps to individual development
+  opportunities.
+- **Compare** — diff two teams' coverage and risks side by side.
+- **Trajectory** — quarterly capability evolution from git history of your
+  roster file.
+- **Roster / validate** — show the team layout Summit sees and check it against
+  your Map framework.
+
+Optional enhancements (require Map's activity layer):
+
+- `--evidenced` — compares derived coverage against practiced capability from
+  Guide's evidence rows.
+- `--outcomes` — weights growth recommendations by GetDX driver scores.
+
+Without these flags, Summit is fully local and instant — Map data plus a roster.
+
+### Install
+
+```
+npm install @forwardimpact/summit
+```
+
+### Getting started
+
+Create a roster file `summit.yaml`:
+
+```yaml
+teams:
+  platform:
+    - name: Alice
+      email: alice@example.com
+      job:
+        discipline: software_engineering
+        level: J060
+        track: platform
+    - name: Bob
+      email: bob@example.com
+      job: { discipline: software_engineering, level: J060 }
+
+projects:
+  migration-q2:
+    - email: alice@example.com
+      allocation: 0.6
+    - name: External Consultant
+      job: { discipline: software_engineering, level: J060, track: platform }
+      allocation: 1.0
+```
+
+Then run Summit against your Map data directory:
+
+```
+npx fit-summit roster --roster ./summit.yaml
+npx fit-summit coverage platform --roster ./summit.yaml
+npx fit-summit risks platform --roster ./summit.yaml
+npx fit-summit what-if platform --add "{ discipline: software_engineering, level: J060 }" --roster ./summit.yaml
+npx fit-summit growth platform --roster ./summit.yaml
+```
 
 ---
 
@@ -52,18 +107,28 @@ For each skill in the framework, Summit computes the team's collective
 proficiency by aggregating individual skill matrices derived through Pathway.
 
 ```
-$ fit-summit coverage platform
+$ npx fit-summit coverage platform
 
-  Platform team — 5 engineers
+  platform team — 3 members
 
   Capability: Delivery
-    task_decomposition        ████████░░  depth: 3 engineers at working+
-    incremental_delivery      ████████░░  depth: 3 engineers at working+
-    technical_debt_management ██████░░░░  depth: 2 engineers at working+
+    Planning              ░░░░░░░░░░  gap — no engineers at working+
+    Task Completion       ██████████  depth: 1 engineer at working+
 
   Capability: Reliability
-    observability             ██░░░░░░░░  depth: 1 engineer at foundational
-    incident_response         ░░░░░░░░░░  gap — no engineers at working+
+    Incident Response     ░░░░░░░░░░  gap — no engineers at working+
+```
+
+For project teams with allocation, coverage reports allocation-weighted
+effective depth:
+
+```
+$ npx fit-summit coverage --project migration-q2
+
+  migration-q2 project — 3 members (2.0 FTE)
+
+  Capability: Delivery
+    Task Completion       ██████████  effective depth: 1.6 at working+
 ```
 
 ### Structural Risks
@@ -73,17 +138,18 @@ risks — structural facts about team composition, not judgments about
 individuals.
 
 ```
-$ fit-summit risks platform
+$ npx fit-summit risks platform
+
+  platform team — structural risks
 
   Single points of failure:
-    capacity_planning — only Eve (L5) holds practitioner level
+    task_completion — only Bob holds working level [low]
 
   Critical gaps:
+    planning — no engineer at working level
+      supporting skill for software_engineering discipline.
     incident_response — no engineer at working level
-    Consider: hiring, cross-training, or borrowing from another team.
-
-  Concentration risks:
-    delivery skills — 3 of 5 engineers at L3 working level
+      broad skill for software_engineering discipline.
 ```
 
 ### What-If Scenarios
@@ -91,16 +157,15 @@ $ fit-summit risks platform
 Simulate roster changes and see their impact before anyone makes a decision.
 
 ```
-$ fit-summit what-if platform --add "{ discipline: se, level: L3, track: platform }"
+$ npx fit-summit what-if platform --add "{ discipline: software_engineering, level: J060 }"
+
+  Adding software_engineering J060 to platform:
 
   Capability changes:
-    + observability             depth: 1 → 2 engineers at working+
-    + incident_response         gap closed — 1 engineer at working
+    + task_completion  depth: 1 → 2
 
   Risk changes:
-    - incident_response         no longer a critical gap
-
-  This hire addresses the team's primary structural gap.
+    - task_completion no longer single point of failure
 ```
 
 ---
@@ -115,8 +180,9 @@ scores.
 Summit looks ahead: what can this team do today, and what could it do with
 different composition?
 
-**No external dependencies.** Summit uses only Map data and a team roster. No
-GitHub App, no webhooks, no LLM calls. It runs locally, instantly,
+**No external dependencies required.** Core Summit uses only Map data and a team
+roster. The `--evidenced` and `--outcomes` flags are opt-in enhancements that
+read Map's activity layer; without them Summit runs fully locally, instantly,
 deterministically.
 
 **Capability, not performance.** Summit describes what a team _can_ do based on
@@ -125,4 +191,5 @@ monitoring tool.
 
 **Privacy through aggregation.** The team view shows collective coverage, not
 individual shortcomings. When Summit identifies a gap, it's a team gap — a
-structural fact about composition.
+structural fact about composition. The `--audience director` flag strips
+individual names entirely from cross-team planning views.

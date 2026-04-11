@@ -1,146 +1,237 @@
 ---
 title: Summit Internals
-description: "Capability aggregation engine — skill matrix aggregation, structural risk detection, scenario modeling, and design principles."
+description: "Team capability aggregation — skill matrix aggregation, structural risk detection, what-if simulation, growth alignment, trajectory, and optional evidence/outcomes decorators."
 ---
 
 ## Overview
 
 Summit treats a team as a system, not a collection of individuals. It aggregates
 individual skill matrices (derived via libskill) into team-level capability
-views, detects structural risks, and supports what-if staffing scenarios.
+views, detects structural risks, simulates staffing scenarios, and recommends
+growth directions that align with team needs.
 
-Summit is fully local and deterministic -- no external dependencies, no LLM
-calls.
+Core Summit is fully local and deterministic — no network calls, no LLM
+inference. The `--evidenced` and `--outcomes` flags are opt-in decorators that
+read Map's activity layer through the shared Supabase client factory, and
+degrade gracefully when that connection is unavailable.
 
 ---
 
 ## Architecture
 
+```
+Map data  ──┐
+            ├──> Coverage  ──> Risks  ──┬──> What-if (clone + re-aggregate + diff)
+libskill ───┤                           ├──> Compare (dual snapshots + diff)
+            │                           ├──> Growth (+ Landmark export)
+Roster ─────┘                           └──> Trajectory (git-sourced snapshots)
+
+                                        ┌── Evidence decorator (Map activity)
+                                        └── Outcomes decorator (GetDX drivers)
+```
+
 Summit consumes two inputs:
 
-1. **Team roster** -- from Map's `organization_people` table, providing each
-   person's `discipline`, `level`, and `track`
-2. **Individual skill matrices** -- derived via libskill's `deriveSkillMatrix()`
-   for each team member
+1. **Team roster** — from Map's `organization_people` table (grouped by
+   `manager_email`) or a local `summit.yaml` file with `teams:` and optional
+   `projects:` sections. Project members can reference reporting team members by
+   `email` and carry an `allocation` percentage.
+2. **Individual skill matrices** — derived via libskill's `deriveSkillMatrix()`
+   for each team member using the loaded Map framework data.
 
-From these inputs, Summit computes team-level aggregations that answer staffing
-and capability questions for leadership.
+---
+
+## Package Layout
+
+Summit follows spec 390 (`bin/`, `src/`, `starter/`, `test/`):
 
 ```
-Map (roster) -> libskill (individual derivation) -> Summit (team aggregation)
+products/summit/
+├── bin/fit-summit.js         # CLI entry point
+├── src/
+│   ├── aggregation/          # coverage, risks, what-if, growth, trajectory
+│   ├── commands/             # one handler per CLI command
+│   ├── evidence/             # Part 07 evidence decorator
+│   ├── formatters/           # text / json / markdown per command
+│   ├── git/                  # git log / git show wrapper for trajectory
+│   ├── lib/                  # Supabase client, audience filter, CLI helpers
+│   ├── outcomes/             # Part 07 outcomes decorator
+│   ├── roster/               # YAML parser, Map loader, schema validator
+│   └── index.js              # Public API (Landmark imports from here)
+├── starter/summit.example.yaml
+└── test/                     # Unit tests + fixture Map data
 ```
 
----
-
-## Skill Matrix Aggregation
-
-For each skill in the framework, Summit computes the team's collective
-proficiency from individual derivations:
-
-- **Coverage count** -- how many team members have each skill at each
-  proficiency level
-- **Maximum proficiency** -- the highest individual proficiency on the team
-- **Distribution** -- the spread of proficiency levels across team members
-- **Capability coverage** -- which capabilities have adequate staffing and which
-  are understaffed
-
-This produces a team skill matrix that mirrors the structure of individual
-matrices but represents the team's collective capability.
+Downstream consumers (currently Landmark) import from the package root:
+`import { computeGrowthAlignment } from "@forwardimpact/summit"`.
 
 ---
 
-## Structural Risk Detection
+## Core Primitives
 
-Summit identifies three categories of structural risk:
+### TeamCoverage
 
-### Single Points of Failure
+`computeCoverage(resolvedTeam, data)` is the primitive every command reduces to.
+It returns a `TeamCoverage` object keyed by `skillId`, with per-skill
+`headcountDepth`, `effectiveDepth`, `maxProficiency`, per-proficiency
+`distribution`, and a list of `holders` ({ email, name, proficiency, allocation
+}). Effective depth is the allocation-weighted sum of holders at working+.
 
-A skill where only one engineer is at `practitioner` level or above. If that
-person leaves or is unavailable, the team loses its only source of deep
-expertise in that area.
+### TeamRisks
 
-### Critical Gaps
+`detectRisks({ resolvedTeam, coverage, data })` runs three pure detectors:
 
-A skill where no engineer is at `working` level or above. The team lacks the
-competence to handle this skill area independently -- all work requires external
-support or guidance.
+- **Single points of failure** — skills with exactly one working+ holder,
+  severity tiered by allocation (< 0.5 = high, 0.5–1.0 = medium, 1.0 = low).
+- **Critical gaps** — union of each member's discipline core/supporting/broad
+  skills plus positively-modified track skills, filtered by zero headcount
+  depth. Reasons cite the mechanism.
+- **Concentration risks** — (level, capability, proficiency) buckets with three
+  or more members. Threshold exposed as `CONCENTRATION_THRESHOLD = 3`.
 
-### Concentration Risks
+### Scenarios and Diffing
 
-A skill where the majority of engineers are at the same proficiency level. This
-indicates insufficient knowledge distribution -- the team has breadth but lacks
-the depth/breadth gradient needed for mentoring and knowledge transfer.
+`applyScenario(roster, data, scenario)` clones the roster and mutates the clone.
+Supported scenarios: `add`, `remove`, `move`, `promote`. Promote uses
+`libskill.getNextLevel({ level, levels })` and requires resolving the level
+object before the call.
+
+`diffCoverage(before, after)` emits one row per skill in the union of the two
+snapshots with an up/down/same direction marker. `diffRisks(before, after)`
+buckets risks into added/removed/unchanged using stable keys (skillId for
+SPOFs/gaps, `capabilityId|level|proficiency` for concentrations).
+
+### Growth Alignment (Landmark contract)
+
+`computeGrowthAlignment({ team, mapData, evidence?, driverScores? })` is
+Summit's single public cross-product export. The signature is frozen:
+
+- `team` — array of `{ email, name, job: { discipline, level, track? } }`.
+- `mapData` — loaded Map framework data.
+- `evidence` — optional `EvidenceMap` (Part 07).
+- `driverScores` — optional driver scores map (Part 07).
+
+Returns `GrowthRecommendation[]`. Empty team returns `[]`. Unknown
+discipline/level/track throws `GrowthContractError` with stable error codes so
+Landmark can branch without string matching.
+
+### Trajectory
+
+`computeTrajectory({ historicalRosters, teamId, data })` is pure — it takes a
+pre-assembled list of `{ quarter, roster }` snapshots and returns a
+`TeamTrajectory` with per-quarter coverage, roster changes, persistent gaps, and
+trend classifications. All git I/O happens in `src/commands/trajectory.js` which
+shells out to `listCommits` / `showFileAt` in `src/git/history.js`.
+
+The git helpers accept an injectable `exec` function for testability.
+`GitUnavailableError` wraps ENOENT from missing git binaries.
 
 ---
 
-## Scenario Modeling
+## Evidence and Outcomes Decorators
 
-Summit supports what-if simulations that add or remove hypothetical team members
-and recompute coverage and risks:
+The `--evidenced` and `--outcomes` flags layer on top of the deterministic
+pipeline:
 
-- **Add a member** -- specify discipline, level, and track for a hypothetical
-  hire and see how team coverage and risks change
-- **Remove a member** -- simulate a departure and identify which risks emerge
-- **Change a role** -- model a promotion or track change and see the effect on
-  team capability
+- `loadEvidence(supabase, { team, lookbackMonths })` — calls `getEvidence` from
+  `@forwardimpact/map/activity/queries/evidence`, filters by `matched === true`
+  and the lookback window, and builds a
+  `Map<skillId, { count, practitioners }>`.
+- `decorateCoverageWithEvidence(coverage, evidence)` — clones `coverage` and
+  adds `evidencedDepth` / `evidencedHolders` per skill.
+- `decorateRisksWithEvidence(risks, coverage, evidence)` — escalates skills to
+  SPOF when only one practitioner is observed and to critical gap when zero
+  practitioners exist alongside zero derived depth.
+- `loadDriverScores(supabase, { team })` — reads the latest GetDX snapshot via
+  `listSnapshots` + `getSnapshotScores` and returns a
+  `Map<driverId, { percentile, vsOrg, vsPrev }>`.
+- `decorateRecommendationsWithOutcomes(recommendations, driverScores, data)` —
+  attaches `driverContext` using the worst-scoring driver and re-sorts within
+  each impact tier. The critical > spof-reduction > coverage-strengthening
+  hierarchy is preserved — outcome weighting only breaks ties within a tier.
 
-Scenarios do not persist -- they are computed on demand and discarded. This
-enables leadership to explore staffing decisions without affecting real data.
+All evidence/outcomes code paths catch `SupabaseUnavailableError` /
+`EvidenceUnavailableError` and degrade to the deterministic output with a stderr
+note. `--evidenced` on `trajectory` is explicitly rejected with a "not yet
+supported" message: per-quarter evidence would mislead readers.
 
 ---
 
-## Design Principles
+## Audience Model
 
-### Teams as Systems
+Every command honours the audience model from the spec via
+`withAudienceFilter(coverage, audience)`. Audiences:
 
-Summit measures the team, not individuals. Individual skill matrices are inputs
-to team aggregation, but Summit never presents individual performance.
-Leadership sees capability coverage, not individual scores.
+- `engineer` — sees own-team coverage/risks/growth.
+- `manager` — full specificity; the default.
+- `director` — aggregate views only; holder identity (email, name) is stripped
+  from coverage, risks formatters show "one engineer", growth formatters replace
+  "Alice or Bob" with counts.
 
-### Plan Forward, Not Backward
+The filter is applied in each command handler before formatting — so director
+scope always gets the same filter across text, JSON, and markdown output.
 
-Summit answers "what capability do we need?" not "who is underperforming?" Risk
-detection identifies structural gaps in the team system, not deficiencies in
-individual team members.
+---
 
-### No External Dependencies
+## Data Model
 
-Summit runs entirely locally with no network calls, no LLM inference, and no
-external services. All computation is deterministic -- the same inputs always
-produce the same outputs.
+```ts
+type Roster = {
+  source: "map" | "yaml",
+  teams: Map<string, RosterTeam>,
+  projects: Map<string, RosterTeam>,
+};
 
-### Capability, Not Performance
+type TeamCoverage = {
+  teamId: string,
+  teamType: "reporting" | "project",
+  memberCount: number,
+  effectiveFte: number,
+  managerEmail: string | null,
+  capabilities: Map<string, CapabilityCoverage>,
+  skills: Map<string, SkillCoverage>,
+};
 
-Summit measures what the team can do (capability coverage), not how well they do
-it (performance). Performance measurement is outside its scope.
+type TeamRisks = {
+  singlePointsOfFailure: SingleFailureRisk[],
+  criticalGaps: CriticalGap[],
+  concentrationRisks: ConcentrationRisk[],
+};
 
-### Privacy Through Aggregation
+type GrowthRecommendation = {
+  skillId: string,
+  impact: "critical" | "spof-reduction" | "coverage-strengthening",
+  candidates: GrowthCandidate[],
+  driverContext: DriverContext | null,
+};
+```
 
-Individual skill matrices are aggregated into team views. Summit's output is
-always at the team level, preserving individual privacy while giving leadership
-the system-level view they need.
+See `products/summit/src/aggregation/*.js` for the full JSDoc types.
 
 ---
 
 ## Dependency Chain
 
 ```
-libskill -> Summit
+Map ─── loader / activity queries
+libskill ─── deriveSkillMatrix, getNextLevel, expandModifiersToSkills
+libcli ─── createCli, HelpRenderer
+libtelemetry ─── createLogger
+libutil ─── Finder
+yaml ─── parse (used by YAML roster + flow-YAML job parser)
+@supabase/supabase-js ─── createClient (Map-sourced roster + Part 07)
 ```
 
-Summit depends on libskill for individual skill matrix derivation. It uses the
-same `deriveSkillMatrix()` and `deriveBehaviourProfile()` functions that Pathway
-uses for job definitions, ensuring consistency between individual and team
-views.
-
-Map provides the team roster via `organization_people`, but Summit consumes this
-through standard data loading rather than activity-layer queries.
+Summit is a leaf dependency consumed by Landmark (spec 080), which imports
+`computeGrowthAlignment` from the package root.
 
 ---
 
 ## Related Documentation
 
-- [libskill Internals](/docs/internals/libskill/) -- Derivation engine for
-  individual skill matrices
-- [Team Capability Guide](/docs/guides/team-capability/) -- User-facing team
-  capability documentation
+- [libskill Internals](/docs/internals/libskill/) — derivation engine for
+  individual skill matrices.
+- [Map Internals](/docs/internals/map/) — framework data model and activity
+  layer.
+- [Pathway Internals](/docs/internals/pathway/) — individual career progression;
+  Summit is the team-level counterpart.
