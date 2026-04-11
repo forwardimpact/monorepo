@@ -170,9 +170,9 @@ All Gemba skills are namespaced with the `gemba-` prefix.
 | **gemba-wiki-curate**        | Study | Curate agent memory: summary accuracy, observation follow-up, log hygiene     |
 | **gemba-walk**               | Study | Open-ended trace observation, invariant audit, grounded-theory report         |
 | **gemba-spec**               | Act   | Write and review specs (WHAT/WHY); manage `draft → review` status             |
-| **gemba-ship**               | —     | Rebase, check, push, open/reuse PR, watch CI, squash-merge a feature branch   |
-| **gemba-review**             | —     | Grade a spec, plan, or diff against criteria — leaf skill, never spawns       |
 | **gemba-gh-cli**             | —     | GitHub CLI installation and usage patterns for CI (utility, no PDSA phase)    |
+| **gemba-review**             | —     | Grade a spec, plan, or diff against criteria — leaf skill, never spawns       |
+| **gemba-ship**               | —     | Rebase, check, push, open/reuse PR, watch CI, squash-merge a feature branch   |
 
 ## Trust Boundary
 
@@ -293,7 +293,8 @@ scheduled workflow) must include two memory elements:
 Sub-skills invoked within a workflow (e.g. `gemba-spec` called as the Act phase
 inside another workflow) do not need their own memory instructions — the
 entry-point skill's recording list and the agent profile's write protocol cover
-them. Utility skills with no PDSA phase (e.g. `gemba-gh-cli`) are also exempt.
+them. Utility skills with no PDSA phase (`gemba-gh-cli`, `gemba-ship`,
+`gemba-review`) are also exempt.
 
 ## Authentication
 
