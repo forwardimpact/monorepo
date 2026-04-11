@@ -17,6 +17,7 @@ export {
   SupabaseUnavailableError,
 } from "./lib/supabase.js";
 export {
+  applyScenario,
   computeCoverage,
   computeEffectiveDepth,
   CONCENTRATION_THRESHOLD,
@@ -25,9 +26,15 @@ export {
   detectCriticalGaps,
   detectRisks,
   detectSinglePointsOfFailure,
+  diffCoverage,
+  diffRisks,
   EmptyTeamError,
   meetsWorking,
+  parseJobExpression,
+  parseScenario,
   resolveTeam,
+  ScenarioError,
+  ScenarioType,
   TeamNotFoundError,
   UnknownJobFieldError,
 } from "./aggregation/index.js";
