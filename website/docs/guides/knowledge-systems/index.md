@@ -112,7 +112,7 @@ personal workflows.
 Set up a new knowledge base:
 
 ```sh
-npx fit-basecamp init ~/Documents/Personal
+npx fit-basecamp init ~/Documents/Personal/
 ```
 
 This creates the directory structure, copies default skill definitions, and
@@ -121,13 +121,16 @@ and add your own notes and files.
 
 ## Key Commands
 
-| Command                       | Description                     |
-| ----------------------------- | ------------------------------- |
-| `npx fit-basecamp init <dir>` | Initialize a new knowledge base |
-| `npx fit-basecamp`            | Run all due tasks once          |
-| `npx fit-basecamp daemon`     | Run continuously                |
-| `npx fit-basecamp wake <id>`  | Run a single task               |
-| `npx fit-basecamp status`     | Show scheduler status           |
+| Command                        | Description                             |
+| ------------------------------ | --------------------------------------- |
+| `npx fit-basecamp init <path>` | Initialize a new knowledge base         |
+| `npx fit-basecamp`             | Run all due tasks once                  |
+| `npx fit-basecamp daemon`      | Run continuously                        |
+| `npx fit-basecamp wake <id>`   | Run a single task                       |
+| `npx fit-basecamp status`      | Show scheduler status                   |
+| `npx fit-basecamp stop`        | Stop the daemon and all running agents  |
+| `npx fit-basecamp update`      | Update KB with latest agents and skills |
+| `npx fit-basecamp validate`    | Validate agent definitions              |
 
 ## Paths and Directories
 

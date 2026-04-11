@@ -38,13 +38,13 @@ npx fit-pathway stage --list
 See the full job definition for a specific role:
 
 ```sh
-npx fit-pathway job software_engineering L3
+npx fit-pathway job software_engineering J060
 ```
 
 Apply a track to see how the role shifts in a specific context:
 
 ```sh
-npx fit-pathway job software_engineering L3 --track=platform
+npx fit-pathway job software_engineering J060 --track=platform
 ```
 
 The output includes the role's skill expectations with proficiency levels,
@@ -55,13 +55,13 @@ behaviour expectations with maturity levels, responsibilities, and scope.
 Skills are assessed on a five-level proficiency scale. Each level describes
 increasing autonomy and scope:
 
-| Proficiency      | Autonomy              | Scope                    | Typical Verbs                     |
-| ---------------- | --------------------- | ------------------------ | --------------------------------- |
-| **awareness**    | with guidance         | team                     | understand, follow, use, learn    |
-| **foundational** | with minimal guidance | team                     | apply, create, explain, identify  |
-| **working**      | independently         | team                     | design, own, troubleshoot, decide |
-| **practitioner** | lead, mentor          | area (2–5 teams)         | lead, mentor, establish, evaluate |
-| **expert**       | define, shape         | business unit / function | define, shape, innovate, pioneer  |
+| Proficiency    | Autonomy              | Scope                    | Typical Verbs                     |
+| -------------- | --------------------- | ------------------------ | --------------------------------- |
+| `awareness`    | with guidance         | team                     | understand, follow, use, learn    |
+| `foundational` | with minimal guidance | team                     | apply, create, explain, identify  |
+| `working`      | independently         | team                     | design, own, troubleshoot, decide |
+| `practitioner` | lead, mentor          | area (2–5 teams)         | lead, mentor, establish, evaluate |
+| `expert`       | define, shape         | business unit / function | define, shape, innovate, pioneer  |
 
 A job definition specifies the expected proficiency for each skill. Not every
 skill needs to be at the same level — disciplines use a T-shaped model where
@@ -72,26 +72,26 @@ core skills go deeper than supporting or broad skills.
 Behaviours describe how engineers approach their work. They are assessed on a
 maturity scale:
 
-| Maturity          | Description                                                           |
-| ----------------- | --------------------------------------------------------------------- |
-| **emerging**      | Beginning to demonstrate the behaviour with support                   |
-| **developing**    | Showing the behaviour more consistently, building habits              |
-| **practicing**    | Reliably demonstrating the behaviour in daily work                    |
-| **role_modeling** | Others look to you as an example of this behaviour                    |
-| **exemplifying**  | You define and shape how the organization thinks about this behaviour |
+| Maturity        | Description                                          |
+| --------------- | ---------------------------------------------------- |
+| `emerging`      | Shows interest, needs prompting                      |
+| `developing`    | Regularly applies with some guidance                 |
+| `practicing`    | Consistently demonstrates in daily work              |
+| `role_modeling` | Influences the team's approach, others seek them out |
+| `exemplifying`  | Shapes organizational culture in this area           |
 
 ## Career Progression
 
 See what is expected at your current level:
 
 ```sh
-npx fit-pathway progress software_engineering L3 --track=platform
+npx fit-pathway progress software_engineering J040 --track=platform
 ```
 
 Compare your current level with a target level to see what changes:
 
 ```sh
-npx fit-pathway progress software_engineering L3 --track=platform --compare=L4
+npx fit-pathway progress software_engineering J040 --track=platform --compare=J060
 ```
 
 The comparison highlights:
