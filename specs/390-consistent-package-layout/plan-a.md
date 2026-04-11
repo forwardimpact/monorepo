@@ -253,12 +253,14 @@ execution if any are wrong.
 ## Risks
 
 1. **Published subpath silent blast radius.** The `@forwardimpact/map`
-   package has 25 subpath export keys (including the `activity/*` set); any
-   missed key in the rewrite breaks downstream installations only when a
-   consumer happens to import that subpath. Mitigation: Part 08 runs a
-   fresh-install smoke test in a clean directory that imports every published
-   subpath key and asserts it resolves. The test is generated from the live
-   `exports` map, so it self-updates when new keys land.
+   package ships 25 export keys (the `"."` root + 24 subpaths, including
+   the `activity/*` set). libskill ships 13. libui ships 15. Across all
+   packages there are ≈112 export keys total. Any missed key in the
+   rewrite breaks downstream installations only when a consumer happens
+   to import that subpath — not at build time. Mitigation: Part 08 runs
+   a fresh-install smoke test in a clean directory that imports every
+   published subpath key and asserts it resolves. The test is generated
+   from the live `exports` map, so it self-updates when new keys land.
 
 2. **Merge conflicts with in-flight branches.** Any open PR that edits files
    under `libraries/*` or `products/*` will conflict hard against this
@@ -285,9 +287,12 @@ execution if any are wrong.
    the existing `src/commands/` tree is unchanged.
 
 6. **`libskill/node_modules/` appears as a root subdir.** Bun installs
-   workspace deps there; it is gitignored and does not affect the layout
-   check (the check operates on `git ls-files`, not on the working tree).
-   Confirmed by `git check-ignore`.
+   workspace deps there; it is gitignored. The Part 01 layout check
+   walks the working tree (`readdirSync`), not `git ls-files`, but
+   explicitly skips `node_modules/` in its allow-list (see
+   `IGNORED_SUBDIRS` in `scripts/check-package-layout.js`). Confirmed
+   by `git check-ignore libraries/libskill/node_modules` — returns the
+   path, so it is gitignored.
 
 ## References
 
@@ -302,6 +307,7 @@ execution if any are wrong.
 - Service command paths:
   `config/config.example.json` lines 20, 24, 28, 32, 36, 40, 44, 48, 52
 - Subpath export inventory: 112 keys across 25 libraries + 2 products
+  (map alone contributes 25 keys: 1 root `"."` + 24 subpaths)
 - libharness call sites: ~23 test files across services and libraries
 
 — Staff Engineer 🛠️

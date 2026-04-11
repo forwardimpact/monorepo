@@ -24,9 +24,12 @@ All six items from spec 390's "Fix `libraries/libharness`" section:
 libraries/libharness/
 ├── index.js              ← root source, moves to src/index.js
 ├── fixture/
-│   └── index.js          ← moves to src/fixture/index.js
+│   ├── assertions.js     ← all 4 files move to src/fixture/
+│   ├── index.js
+│   ├── pathway.js
+│   └── services.js
 ├── mock/
-│   ├── index.js          ← moves to src/mock/index.js
+│   ├── index.js          ← all 13 files move to src/mock/
 │   ├── clients.js
 │   ├── config.js
 │   ├── data.js
@@ -77,7 +80,10 @@ libraries/libharness/
 ├── src/
 │   ├── index.js
 │   ├── fixture/
-│   │   └── index.js
+│   │   ├── assertions.js
+│   │   ├── index.js
+│   │   ├── pathway.js
+│   │   └── services.js
 │   └── mock/
 │       ├── index.js
 │       ├── clients.js

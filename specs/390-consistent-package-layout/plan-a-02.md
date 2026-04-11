@@ -154,6 +154,11 @@ and `libtype/src/generated` symlink into it.
 
 ## Ordering
 
+All steps below land in a **single atomic commit**. Do not commit
+intermediate states — an intermediate commit leaves the tree in a state
+where codegen writes symlinks to paths whose `src/` parent may or may not
+exist.
+
 1. Read `libraries/libutil/finder.js` lines 108–167 to confirm the exact
    shape of `findGeneratedPath` and `createPackageSymlinks`.
 2. Change `findGeneratedPath` line 117 from `"generated"` →
@@ -161,24 +166,33 @@ and `libtype/src/generated` symlink into it.
 3. Add the target-parent `mkdir -p` in `createSymlink` before the
    `fsAsync.symlink(...)` call on line 143.
 4. Move `librpc` root sources to `src/` (7 files: auth.js, base.js,
-   client.js, health.js, index.js, interceptor.js, server.js).
+   client.js, health.js, index.js, interceptor.js, server.js). Use
+   `git mv` so history is preserved.
 5. Move `libtype` root source to `src/` (1 file: index.js).
 6. Remove both old symlinks explicitly:
    `rm libraries/librpc/generated libraries/libtype/generated`.
-7. Run `just codegen` — recreates symlinks at the new `src/generated`
+7. Update `librpc` and `libtype` `package.json` files (`main`, `files`).
+8. Run `just codegen` — recreates symlinks at the new `src/generated`
    paths. Verify both symlinks now point at the monorepo-root
-   `generated/` directory.
-8. Update `librpc` and `libtype` `package.json` files (`main`, `files`).
-9. Verify internal imports still resolve — should be a no-op because the
-   symlinks moved with the importing files.
-10. Run `bun run check` and `bun run test`.
-11. Verify the monorepo-root `generated/` directory is unchanged (still
+   `generated/` directory (still absolute). If `just codegen` fails at
+   this point, **roll back the finder.js edit**, investigate, and do not
+   proceed. Do not commit a partial state.
+9. Run `bun run node --test libraries/librpc/test/*.test.js` and
+   `bun run node --test libraries/libtype/test/*.test.js`.
+10. Run `bun run check` and `bun run test` (full suite).
+11. Run `npm pack --workspace=@forwardimpact/librpc --dry-run` and
+    `npm pack --workspace=@forwardimpact/libtype --dry-run`. Confirm the
+    tarball contents include `src/*.js` and do not include the
+    `src/generated/` symlink. If either tarball's file list differs from
+    the pre-move baseline in unexpected ways, investigate before
+    committing.
+12. Verify the monorepo-root `generated/` directory is unchanged (still
     contains `types/`, `services/`, `definitions/`, `proto/`,
     `bundle.tar.gz`, `package.json`).
-12. Verify the symlinks resolve: `ls libraries/librpc/src/generated/services/`
-    should list the service subdirs;
-    `ls libraries/libtype/src/generated/types/` should list `types.js`.
-13. Commit.
+13. Verify the new symlinks resolve:
+    `ls libraries/librpc/src/generated/services/` and
+    `ls libraries/libtype/src/generated/types/`.
+14. Commit all changes as one atomic commit.
 
 ## Verification
 
@@ -201,12 +215,13 @@ and `libtype/src/generated` symlink into it.
    the root `generated/` directory, and then codegen must regenerate it.
    Codegen is idempotent but takes ~1 minute to run.
 
-2. **Symlink path is relative vs absolute.** The current implementation of
-   `createPackageSymlinks` uses either relative or absolute symlink targets.
-   Read the code to find out which before editing. A relative symlink must
-   reference `../../../generated` (from `libraries/librpc/src/generated`);
-   an absolute symlink references the full monorepo root. Preserve whichever
-   convention is currently in use.
+2. **Symlink path is absolute.** Verified on disk:
+   `libraries/librpc/generated → /home/user/monorepo/generated` — an
+   absolute path. `createSymlink()` passes `sourcePath` (the resolved
+   `generatedPath` argument to `createPackageSymlinks`) straight through
+   `fsAsync.symlink`. Absolute is fine inside a single working tree and
+   survives `just codegen` runs. The migration preserves this convention —
+   the target directory moves, the source target stays absolute.
 
 3. **Stale symlinks left behind.** If the old `libraries/librpc/generated`
    and `libraries/libtype/generated` symlinks are not removed before
@@ -222,27 +237,55 @@ and `libtype/src/generated` symlink into it.
    would break the upward search because there is no monorepo-root
    `src/generated` — the `src/` directories only exist inside packages.
 
-5. **`files` field in `package.json` for librpc and libtype.** Symlinks are
-   not typically published in npm tarballs — `npm pack` may either follow
-   them (including the target files) or skip them (leaving the consumer's
-   install broken). Today this works because the symlink target is
-   co-located inside the same package tree once codegen runs.
+5. **The published npm tarballs never contain the generated tree —
+   confirmed, and this is fine.** `npm pack --workspace=@forwardimpact/librpc
+   --dry-run` against `main` (version 0.1.88) produces a 13-file tarball
+   containing `auth.js`, `base.js`, `bin/fit-unary.js`, `client.js`,
+   `health.js`, `index.js`, `interceptor.js`, `package.json`, `server.js`,
+   and four test files. The `generated/` symlink is silently dropped by
+   `npm pack` (npm excludes dangling/absolute symlinks). No `files` field
+   exists in `librpc` or `libtype` today, so npm uses its default include
+   list.
 
-   Check with `npm pack --dry-run` in `librpc` and `libtype` post-move.
-   The `files` field should include:
+   External consumers of `@forwardimpact/librpc` install the package and
+   then run `npx fit-codegen --all` as documented in the distribution
+   model (`CLAUDE.md § Distribution Model`). fit-codegen writes the
+   generated tree into the consumer's own project root and creates
+   symlinks at `node_modules/@forwardimpact/{librpc,libtype}/generated`
+   pointing at the consumer's generated directory.
+
+   **Post-move behaviour:** after Part 02 the tarball contents become
+   `src/auth.js`, `src/base.js`, `src/client.js`, `src/health.js`,
+   `src/index.js`, `src/interceptor.js`, `src/server.js`, plus
+   `bin/fit-unary.js`, `package.json`, and `test/*.test.js`. The symlink
+   is still silently dropped. When the consumer runs `npx fit-codegen`,
+   the new `findGeneratedPath` creates the symlink at
+   `node_modules/@forwardimpact/librpc/src/generated` — which requires
+   `node_modules/@forwardimpact/librpc/src/` to exist, which it does
+   because the published tarball contains `src/*.js` files. The `mkdir -p`
+   guard added to `createSymlink()` in Part 02 ensures this works even
+   on packages that end up without a `src/` directory in the tarball.
+
+   **Contributor-local behaviour** (`just codegen` in the monorepo): the
+   symlink is created at `libraries/librpc/src/generated` pointing at
+   `/home/user/monorepo/generated` (absolute path). Running tests loads
+   through the symlink and still works.
+
+   Fresh-install smoke test (Part 08) must include at least one
+   `librpc`/`libtype` import to catch any regression.
+
+6. **Both `librpc` and `libtype` lack a `files` field.** This is the
+   reason the smoke-tested pack works: npm defaults include everything
+   not explicitly gitignored. Part 02 introduces a `files` field for
+   cleanliness:
    ```jsonc
    "files": ["src/**/*.js", "bin/**/*.js", "README.md"]
    ```
-
-   If `npm pack` does not include the generated tree, either:
-   - List `src/generated/**` explicitly in `files` (may not follow the
-     symlink either), OR
-   - Run codegen during publish and inline the generated files as real
-     files before publishing (requires a prepublish step — out of scope
-     for this spec).
-
-   The fresh-install smoke test in Part 08 catches this at the end of the
-   migration. If it fails, escalate and add a targeted fix.
+   `src/generated/**` is **not** listed — the generated files are never
+   checked into the tarball; they are regenerated client-side. If
+   `npm pack --dry-run` post-Part-02 shows a different file set than the
+   pre-move baseline (minus the moved paths), investigate before
+   committing.
 
 ## Deliverable commit
 

@@ -34,58 +34,97 @@ package root is properly walled off.
 
 ## Approach
 
-Apply the cross-cutting move recipe for each library. Because there are no
-subpath exports, the `package.json` edit is minimal:
+Apply the cross-cutting move recipe for each library. **The exact
+`package.json` shape depends on whether the library publishes a `bin/`
+directory** — see the two cases below.
+
+### Case A: tier-B library with no `bin/`
+
+Libraries: libcli, libconfig, libformat, libindex, libpolicy, librepl,
+libsecret, libweb.
+
+```jsonc
+{
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": ["src/**/*.js", "README.md"]
+}
+```
+
+### Case B: tier-B library with `bin/`
+
+Libraries: libagent, libcodegen, libeval, libllm, librc, libstorage,
+libsupervise, libutil.
+
+The library's `bin/<entry>.js` files must remain resolvable via
+`require.resolve("@forwardimpact/libfoo/bin/<entry>.js")`. An explicit
+`exports` field that only maps `"."` locks down every other subpath and
+breaks those resolvers. Therefore every tier-B library with a `bin/`
+directory gets every bin entry mirrored into the exports map as a
+subpath key:
 
 ```jsonc
 {
   "main": "./src/index.js",
   "bin": { /* unchanged */ },
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./bin/<entry-1>.js": "./bin/<entry-1>.js",
+    "./bin/<entry-2>.js": "./bin/<entry-2>.js"
   },
   "files": ["src/**/*.js", "bin/**/*.js", "README.md"]
 }
 ```
 
-**Key decision — add an `exports` field even where none exists today.** A
-bare `main` field without an `exports` field means Node resolves any
-subpath freely by falling back to on-disk file lookup, which means
-consumers could bypass the contract. The spec's rules (especially rule 1:
-"no source at the root") are weakened if subpath bypass is allowed.
-Therefore every tier-B library gets an explicit `exports` field that maps
-only `"."`. Subsequent subpath access throws, catching any accidental deep
-import at runtime.
+**Confirmed call site:** `libraries/librc/manager.js` line 12 runs
+`require.resolve("@forwardimpact/libsupervise/bin/fit-svscan.js")`. A
+monorepo-wide grep (`rg '@forwardimpact/\w+/bin/' --type js`) confirms
+this is the **only** cross-package reference into a `bin/` directory
+today. libsupervise therefore MUST keep
+`"./bin/fit-svscan.js": "./bin/fit-svscan.js"` in its exports map and —
+as a symmetry choice — also maps `./bin/fit-logger.js`.
 
-**Exception:** if an existing consumer already depends on a tier-B
-library's deep import, the import must be rewritten to either use the
-library's default export (if the needed symbol is exported from
-`index.js`) or a new subpath key must be added. Part 07 runs a discovery
-grep before the rewrite to find such consumers.
+Every other tier-B library with a `bin/` gets the bin subpath keys
+added anyway. This is zero-cost (no extra files) and future-proofs
+against new `require.resolve` calls landing from librc-style service
+managers.
 
 ## Pre-move discovery
 
-Before any tier-B library is migrated, run:
+Before any tier-B library is migrated, run two separate greps:
+
+**1. Static imports into tier-B libraries by subpath:**
 
 ```
-rg '@forwardimpact/(libagent|libcli|libcodegen|libconfig|libeval|libformat|libindex|libllm|libpolicy|librc|librepl|libsecret|libstorage|libsupervise|libutil|libweb)/[^"'\'']+' --type js
+rg '@forwardimpact/(libagent|libcli|libcodegen|libconfig|libeval|libformat|libindex|libllm|libpolicy|librc|librepl|libsecret|libstorage|libsupervise|libutil|libweb)/[^"'\''`]+' --type js -g '!libraries/*/src/**' -g '!libraries/*/test/**'
 ```
 
-Report every hit. Each hit is a call site that reaches into the library by
-subpath without being listed in the current exports map. For each hit,
-decide:
+The `-g` excludes are important: a library's own internal relative
+imports don't count as cross-package subpath access. Report every hit.
 
-- **Re-export from index.js.** Preferred — add the needed symbol to the
+**2. `require.resolve` calls into any `@forwardimpact/*` package:**
+
+```
+rg 'require\.resolve\(["'\''`]@forwardimpact' --type js
+```
+
+These are trickier because they bypass static analysis. The known hit
+is `librc/manager.js:12` into libsupervise's bin — documented above.
+Any new hit needs the same treatment: add a subpath export key.
+
+For each hit from either grep, decide:
+
+- **Re-export from index.js** (preferred). Add the needed symbol to the
   library's `src/index.js`. Consumer's import specifier changes from
   `@forwardimpact/libfoo/bar` → `@forwardimpact/libfoo`.
-- **Add a new subpath export.** Only if the symbol is large enough to
-  warrant a separate entry point. Add `"./bar": "./src/bar.js"` to the
-  library's exports and leave the consumer alone.
+- **Add a new subpath export**. Only if the symbol is large enough to
+  warrant a separate entry point.
 
 Document every decision inline in the commit message. The research phase
-already flagged four cross-package references (all in comments or
-`require.resolve` calls using package names, not subpaths) so this sweep
-is expected to be quiet.
+confirmed this sweep is expected to be quiet (only the librc/libsupervise
+`require.resolve` hit is known).
 
 ## Per-library specifics
 
@@ -102,11 +141,14 @@ factory — make sure `src/cli.js` still re-exports correctly after moving.
 ### libcodegen
 
 5 root files + `templates/` (allowed, stays) + `bin/fit-codegen.js`
-(stays). Note: libcodegen itself was modified in Part 02; verify that
-Part 02's changes to `fit-codegen.js` still work after the root sources
-move to `src/`. The edits in Part 02 modified `bin/fit-codegen.js` which
-stays at `bin/`, so its imports of `../base.js`, `../services.js`, etc.
-need to be updated to `../src/base.js`, `../src/services.js`, etc.
+(stays). **libcodegen has no `test/` directory** — skip the per-library
+test step for libcodegen; the full-suite `bun run test` at repo root
+exercises it indirectly. Note: libcodegen itself was NOT modified in
+Part 02 — Part 02 only edited `libutil/finder.js`. libcodegen's
+`fit-codegen.js` CLI entry point stays at `bin/fit-codegen.js` and its
+imports of `../base.js`, `../services.js`, etc. need to be rewritten to
+`../src/base.js`, `../src/services.js`, etc. when the root sources
+move.
 
 ### libconfig
 
@@ -138,10 +180,14 @@ complete the migration.
 
 ### librc
 
-2 root files + `bin/fit-rc.js`. **Careful:** `librc/manager.js` currently
-includes `require.resolve("@forwardimpact/libsupervise/bin/fit-svscan.js")`
-— this resolves through the libsupervise package and is unaffected by the
-move (bin/ stays at the libsupervise root).
+2 root files + `bin/fit-rc.js`. **Careful:** `librc/manager.js` line 12
+runs `require.resolve("@forwardimpact/libsupervise/bin/fit-svscan.js")`.
+After Part 07 adds an explicit `exports` field to libsupervise, this
+resolve would break unless libsupervise's exports map includes
+`"./bin/fit-svscan.js"`. Part 07's "Case B" template handles this — see
+§ libsupervise below. librc itself needs no special handling beyond
+the standard case B (its own `bin/fit-rc.js` gets mirrored into its
+own exports map).
 
 ### librepl
 
@@ -162,15 +208,39 @@ preserved.
 
 ### libsupervise
 
-6 root files + `bin/{fit-logger.js,fit-svscan.js}`. `require.resolve`
-from librc (above) keeps working because `bin/` stays at the root.
+6 root files + `bin/{fit-logger.js,fit-svscan.js}`. **Case B library
+with a known cross-package `require.resolve` consumer.** The
+`package.json` exports map MUST include both bin subpaths:
+
+```jsonc
+{
+  "main": "./src/index.js",
+  "bin": {
+    "fit-logger": "./bin/fit-logger.js",
+    "fit-svscan": "./bin/fit-svscan.js"
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./bin/fit-logger.js": "./bin/fit-logger.js",
+    "./bin/fit-svscan.js": "./bin/fit-svscan.js"
+  },
+  "files": ["src/**/*.js", "bin/**/*.js", "README.md"]
+}
+```
+
+Without the `./bin/fit-svscan.js` subpath key, `require.resolve` from
+`librc/manager.js:12` throws `ERR_PACKAGE_PATH_NOT_EXPORTED`. This is a
+**runtime breakage**, not a build-time one — the fit-rc CLI would fail
+the first time it tries to start a supervised service. Add both bin
+subpaths regardless of current consumer count.
 
 ### libutil
 
 9 root files + `bin/{fit-download-bundle.js,fit-tiktoken.js}`. **Part 02
-already edited `libutil/finder.js`** to change `createPackageSymlinks()`.
+already edited `libutil/finder.js`#findGeneratedPath** (line 117).
 After Part 07 moves `finder.js` into `src/finder.js`, the edit travels
-with it. The `bin/` entries stay.
+with the file via `git mv` and no re-edit is needed. The `bin/` entries
+stay and get mirrored into the exports map per case B.
 
 ### libweb
 
@@ -209,14 +279,19 @@ with it. The `bin/` entries stay.
 
 ## Risks
 
-1. **Adding an explicit `exports` field can break deep imports that used
-   to work.** The pre-move discovery grep catches these. If a consumer is
-   found that depends on a deep import, either:
-   - Add a new subpath key to the library's exports (preferred when the
-     internal file is a coherent module boundary), or
-   - Rewrite the consumer to import the symbol from the library's default
-     export (preferred when the deep path was incidental).
-   Do not leave the deep import broken.
+1. **Adding an explicit `exports` field can break deep imports and
+   `require.resolve` calls that used to work.** Today libsupervise
+   (and every other tier-B library) has no `exports` field, so Node
+   resolves any subpath freely. Adding
+   `{ ".": "./src/index.js" }` without the bin entries locks subpath
+   access and breaks `librc/manager.js:12`'s
+   `require.resolve("@forwardimpact/libsupervise/bin/fit-svscan.js")`
+   with `ERR_PACKAGE_PATH_NOT_EXPORTED` — at runtime, not build time.
+   This is a **load-bearing fit-rc path**: without it, services cannot
+   start. Mitigation: every tier-B library with a `bin/` directory
+   follows Case B (bin subpaths mirrored into the exports map) — see
+   § Approach. Running the pre-move discovery grep is the second line
+   of defence.
 
 2. **`libcli` is used by 22 CLIs across the monorepo** (per the staff
    engineer's Apr 10 log). All use the default export. No subpath deep

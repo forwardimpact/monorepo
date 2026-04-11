@@ -1,15 +1,28 @@
-# Plan A — Part 03: Services
+# Plan A — Part 03: Services (verification only)
 
-Bring every service into conformance with the services template: **exactly
-two** root-level source files (`index.js` and `server.js`), a `test/`
-directory, and (optionally) `proto/` and `src/`. Nothing else.
+Verify that every service already conforms to the services template —
+**exactly two** root-level source files (`index.js` and `server.js`), a
+`test/` directory, and (optionally) `proto/` and `src/`. Nothing else.
 
 ## Scope
 
-Only `services/pathway` has real work — the spec's sole service outlier. The
-other eight services already conform. This part also documents the services
-exception explicitly (the CLAUDE.md contract update itself happens in Part
-08, but the behaviour is already in place after Part 03).
+**Verification only. No file changes.** The spec describes services as a
+uniform tier with `services/pathway` as the "one outlier" whose
+`index.js` and `server.js` "still reference code at the service root
+rather than at `src/`." Re-verified against the actual codebase:
+
+- `services/pathway/index.js` line 20 imports **`./src/serialize.js`** —
+  already correctly pointing at `src/`. No root-level imports remain.
+- `services/pathway/server.js` line 10 imports `./index.js`, which is
+  the services-exception root file. This is correct per spec rule 2.
+- No stray source files exist at `services/pathway/` root besides
+  `index.js` and `server.js`.
+
+The spec inherited a stale observation — somebody already fixed pathway
+before the spec landed. Part 03 is therefore a verification-only step
+that **makes no file changes**, but it remains in the plan as an
+explicit gate: Part 01's permissive layout check must report zero drift
+for all nine services before Part 04 begins.
 
 ## Current state (from research)
 
@@ -31,83 +44,53 @@ check does not flag it.
 
 ## Files modified
 
-### services/pathway
+None. This part is verification-only.
 
-The spec states:
+If verification surfaces drift (a stray `.js` file at a service root, an
+import from `./<file>.js` where `<file>` is no longer at the root, etc.),
+fix it in Part 03 using the cross-cutting recipe in `plan-a.md` and
+document the surprise in the commit message. Expected state on a clean
+main is zero drift.
 
-> The pathway service is the one outlier in the services tier — it has
-> already grown a lone `src/serialize.js` alongside the usual `index.js` and
-> `server.js`. Under the new rules that is correct shape, but the service's
-> `index.js` and `server.js` still reference code at the service root rather
-> than at `src/`. Make the service match the services template exactly: root
-> files load from `./src/...` and any stray source file at the service root
-> moves into `src/`.
+### Optional documentation touch-up
 
-**Step 1: inspect.** Read these files to confirm current state:
+If `services/pathway/package.json` is missing `src/**` from its `files`
+field, add it now — it is published today without a `files` field (npm
+defaults). This is a belt-and-braces cleanup, not a correctness issue.
+Skip if no `files` field exists at all.
 
-- `services/pathway/index.js`
-- `services/pathway/server.js`
-- `services/pathway/src/serialize.js`
+### Other services — verify only
 
-Look specifically for:
-
-- Any import in `index.js` or `server.js` that reaches into the service root
-  for helpers (e.g., `import { foo } from "./helpers.js"` where
-  `helpers.js` sits at the service root — which would be a stray root source
-  file).
-- Any direct import of `./serialize.js` in `index.js` — this would be the
-  import path that needs to become `./src/serialize.js`.
-
-**Step 2: move any stray root source files into `src/`.** The inventory
-shows `index.js` and `server.js` only at the root, but the spec hints at
-"any stray source file at the service root moves into `src/`". Read the
-directory again at execution time; if extra files exist, move them.
-
-**Step 3: fix imports.** In `index.js` and `server.js`, rewrite any import
-that currently points at `./<file>.js` (service root) to `./src/<file>.js`.
-The two fixed-path files themselves stay at the root.
-
-**Step 4: update `services/pathway/package.json`:** add `src/` to `files` if
-not already present. The `main` field stays as `"./index.js"` because
-`index.js` is at the service root (services exception).
-
-**Step 5: run `bun run node --test services/pathway/test/*.test.js`.**
-
-### services/web — no action, but verify
-
-Confirm `services/web` has no root source files besides `index.js` and
-`server.js`. The spec's rule applies to every service; web has no `proto/`
-which is allowed.
-
-### Other services — no action
-
-`services/agent`, `graph`, `llm`, `memory`, `tool`, `trace`, `vector` already
-conform. Touch them only if the layout check reports drift — otherwise leave
-them alone.
+- `services/web` — verify: no root `.js` files besides `index.js` and
+  `server.js`; no `proto/` (HTTP-only service, allowed).
+- `services/{agent,graph,llm,memory,tool,trace,vector}` — verify: exactly
+  two root `.js` files + `proto/` + `test/`.
 
 ## Ordering
 
-1. Read the three `services/pathway/` files to confirm import targets.
-2. Read each other service directory to confirm conformance (use
-   `bun run layout` as a quick audit).
-3. Fix `services/pathway/index.js` and `server.js` imports.
-4. If any stray source file exists at a service root, move it to `src/`.
-5. Run `bun run node --test services/pathway/test/*.test.js`.
-6. Run `bun run layout` — services should no longer report any drift.
-7. Run `bun run check` and `bun run test`.
-8. Commit.
+1. Run `bun run layout` — expect zero drift under `services/*`.
+2. Spot-read `services/pathway/index.js` (line 20) and `server.js`
+   (line 10) to confirm they already import from `./src/serialize.js`
+   and `./index.js` respectively.
+3. Spot-read one other service (e.g., `services/graph/`) to confirm the
+   two-file root pattern.
+4. Run `bun run check` and `bun run test`.
+5. Commit only if any optional cleanup was applied; otherwise this part
+   is a no-op gate and the plan advances to Part 04.
 
 ## Verification
 
-- `services/pathway/index.js` and `server.js` import all non-trivial helpers
-  from `./src/...`.
 - `bun run layout` reports zero drift under `services/*`.
-- `bun run node --test services/pathway/test/*.test.js` passes.
+- `services/pathway/index.js` already imports `./src/serialize.js`
+  (confirmed on main at line 20).
+- `services/pathway/server.js` already imports `./index.js` (confirmed on
+  main at line 10) — correct per the services exception.
 - All service tests at repo root pass: `bun run test`.
-- `fit-rc start pathway` (spot check) launches the service without error —
-  the `node --watch services/pathway/server.js` command in
-  `config/config.example.json` still resolves because `server.js` is still
-  at the service root. **No config change is needed.**
+- `fit-rc start pathway` (spot check, if services are running locally)
+  launches without error — the `node --watch services/pathway/server.js`
+  command in `config/config.example.json` still resolves because
+  `server.js` is still at the service root. **No config change is
+  needed.**
 
 ## Risks
 
@@ -129,15 +112,23 @@ them alone.
 
 ## Deliverable commit
 
+Part 03 is verification-only on a clean main. It usually produces **no
+commit** — the plan advances to Part 04 directly after the layout check
+passes for `services/*`.
+
+If optional cleanup is applied (e.g., adding `files` to
+`services/pathway/package.json`), use:
+
 ```
-refactor(layout): fix services/pathway imports to src/ (part 03/08)
+refactor(layout): verify services tier conformance (part 03/08)
 
-services/pathway has the correct shape (index.js, server.js at root +
-src/ for other source files) but the root files still import from ./
-instead of ./src/. This rewrites those imports and brings pathway into
-full conformance with the services template.
+Verification step — all nine services already conform to the services
+template (two root files, proto/, test/). services/pathway was the
+spec's listed outlier but has already been fixed on main: index.js at
+line 20 imports ./src/serialize.js and server.js at line 10 imports
+./index.js (services exception).
 
-All other services already conform — no other changes.
+Optional: add src/** to services/pathway/package.json files field.
 
 Part 03 of 08 for spec 390.
 ```
