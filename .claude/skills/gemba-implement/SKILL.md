@@ -41,6 +41,8 @@ apply alongside the skill-specific ones below.
 - [ ] Spec-specific verification commands from the plan pass.
 - [ ] Full diff reviewed against the spec's success criteria — every criterion
       met.
+- [ ] Clean sub-agent review of the full diff completed (fresh context, no prior
+      bias) and every **blocker**, **high**, and **medium** finding addressed.
 - [ ] Spec status set to `done` in `specs/STATUS`.
 
 </do_confirm_checklist>
@@ -144,7 +146,21 @@ For each task:
 
 After all tasks are complete, run the DO-CONFIRM checklist above.
 
-Push all commits to the remote branch.
+### 8. Clean sub-agent review
+
+Before pushing, launch a fresh sub-agent (via the Task tool, no prior
+conversation context) and ask it to review the full diff
+(`git diff origin/main...HEAD`) against `spec.md`, the plan, and CONTRIBUTING.md
+§ Core Rules. Give the reviewer enough context to act independently — spec path,
+plan path, branch name — and instruct it to return findings grouped by severity:
+**blocker**, **high**, **medium**, **low**.
+
+Address every **blocker**, **high**, and **medium** finding before pushing.
+Low-severity findings are optional. If the reviewer raises blockers you disagree
+with, resolve the disagreement explicitly (fix the code, or record the rationale
+for dismissal in the commit message) — silent dismissal is not allowed.
+
+Push all commits to the remote branch only after the review is clean.
 
 ## Handling Problems
 

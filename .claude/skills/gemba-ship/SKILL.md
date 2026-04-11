@@ -13,8 +13,8 @@ Take the current feature branch from "ready" to "merged" in one pass.
 ## When to Use
 
 - The current branch is a feature branch with committed work ready to land.
-- **Not applicable on `main`** — abort immediately if `git branch --show-current`
-  returns `main`.
+- **Not applicable on `main`** — abort immediately if
+  `git branch --show-current` returns `main`.
 
 ## Prerequisites
 
@@ -37,8 +37,8 @@ git fetch origin main
 git rebase origin/main
 ```
 
-Resolve conflicts in place, then `git add <files> && git rebase --continue`.
-If a conflict is substantive and cannot be resolved mechanically, abort with
+Resolve conflicts in place, then `git add <files> && git rebase --continue`. If
+a conflict is substantive and cannot be resolved mechanically, abort with
 `git rebase --abort` and stop.
 
 ### Step 3: Run Checks
