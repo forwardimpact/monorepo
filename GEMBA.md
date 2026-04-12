@@ -8,7 +8,9 @@ Gemba is the Forward Impact repo self-maintenance system: autonomous agents
 running on GitHub Actions that keep the codebase secure, release-ready, and
 steadily improving. The name comes from the Toyota Production System concept of
 _genba_ (現場) — "the real place where work happens." Gemba agents walk the real
-place (the execution traces of prior runs) and act on what they find.
+place (the execution traces of prior runs) and act on what they find. Ten
+scheduled workflows, six agent personas, and sixteen skills form a
+self-reinforcing PDSA cycle.
 
 ## Architecture
 
@@ -19,9 +21,13 @@ graph LR
 
 **Workflows** define schedule, trigger, and permissions. **Agents** define
 persona, scope constraints, and skill composition. **Skills** define procedures,
-checklists, and domain knowledge. All workflows share two composite actions:
-`bootstrap/` (Bun + deps) and `gemba-action/` (runs a task via `fit-eval`,
-captures an NDJSON execution trace, uploads it as an artifact).
+checklists, and domain knowledge.
+
+All workflows share two composite actions:
+
+- `bootstrap/` — sets up Bun and installs dependencies.
+- `gemba-action/` — runs a task against an agent profile via `fit-eval`,
+  captures the execution trace as NDJSON, and uploads it as an artifact.
 
 ## The PDSA Loop
 
@@ -204,9 +210,12 @@ Agent instructions span four layers, each owning a distinct concern:
 3. **agent profile** — who you are (persona, voice, skill routing, constraints)
 4. **skills** — how to do it (procedures, checklists, templates)
 
-No layer restates another's content. Tasks name skills — they don't copy steps.
-Shared procedures belong in skills; per-run details belong in tasks. Profiles
-define boundaries; skills define steps.
+Rules:
+
+- No layer restates another's content.
+- Tasks name skills — they don't copy steps. Shared procedures belong in skills;
+  per-run details belong in tasks.
+- Profiles define boundaries; skills define steps.
 
 ### Skill structure
 
@@ -238,7 +247,7 @@ Use identical wording for shared structural elements (memory instructions,
 prerequisites, section headings) across all agents and skills. Inconsistent
 wording correlated with agents skipping steps in trace analysis.
 
-### SDK note
+### SDK caveat
 
 `resume()` does not persist `permissionMode` across resume boundaries — always
-pass all session configuration again.
+pass all session configuration again when calling `resume()`.
