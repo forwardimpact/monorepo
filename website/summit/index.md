@@ -29,7 +29,8 @@ hero:
   opportunities.
 - **Compare** — diff two teams' coverage and risks side by side.
 - **Trajectory** — quarterly capability evolution from git history of your
-  roster file.
+  roster file. Requires the roster file to be tracked in a git repository with
+  commits spanning the period you want to analyze.
 - **Roster / validate** — show the team layout Summit sees and check it against
   your Map framework.
 
@@ -72,6 +73,10 @@ projects:
       job: { discipline: software_engineering, level: J060, track: platform }
       allocation: 1.0
 ```
+
+Summit automatically looks for Map framework data in `data/pathway/` relative to
+the current working directory. If your framework data lives elsewhere, pass
+`--data ./path/to/data/pathway` to any command.
 
 Then run Summit against your Map data directory:
 
