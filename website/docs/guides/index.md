@@ -43,6 +43,15 @@ knowledge base structure.
 
 </a>
 
+<a href="/docs/guides/landmark-quickstart/">
+
+### Landmark Quickstart
+
+Get from zero to a useful health view in minutes — install Landmark, migrate the
+activity schema, and run your first health analysis.
+
+</a>
+
 <a href="/docs/guides/team-capability/">
 
 ### Team Capability

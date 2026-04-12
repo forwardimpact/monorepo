@@ -1,0 +1,87 @@
+name: "Gemba: Landmark Setup"
+
+on:
+  workflow_dispatch: # Manual trigger for on-demand evaluation
+    inputs:
+      task-amend:
+        description: "Additional text appended to the task prompt for steering"
+        required: false
+        type: string
+
+concurrency:
+  group: landmark-setup
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Generate installation token
+        id: ci-app
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3
+        with:
+          app-id: ${{ secrets.CI_APP_ID }}
+          private-key: ${{ secrets.CI_APP_PRIVATE_KEY }}
+
+      - name: Generate LLM token
+        id: llm-app
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3
+        with:
+          app-id: ${{ secrets.LLM_APP_ID }}
+          private-key: ${{ secrets.LLM_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.ci-app.outputs.token }}
+          submodules: true
+
+      - uses: ./.github/actions/bootstrap
+
+      - name: Prepare agent workspace
+        id: agent-workspace
+        shell: bash
+        run: |
+          agent_dir=$(mktemp -d)
+
+          # Generate all synthetic data using cached prose — this produces
+          # data/pathway/ (framework) and data/activity/ (roster, raw documents
+          # including GetDX snapshots, GitHub webhooks, evidence, and comments).
+          bunx fit-universe
+
+          mkdir -p "$agent_dir/data"
+          cp -r data/pathway "$agent_dir/data/pathway"
+          cp -r data/activity "$agent_dir/data/activity"
+
+          # Install the Supabase CLI so the agent has it on PATH
+          # npm global install is blocked by supabase's postinstall script
+          bun install -g supabase
+
+          cp scenarios/landmark-setup/agent/CLAUDE.md "$agent_dir/CLAUDE.md"
+          echo "dir=$agent_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Evaluate Landmark Setup
+        uses: ./.github/actions/gemba-action
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LLM_TOKEN: ${{ steps.llm-app.outputs.token }}
+          LLM_BASE_URL: https://models.github.ai/orgs/forwardimpact
+          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
+          CLAUDE_CODE_USE_BEDROCK: "0"
+        with:
+          app-id: ${{ secrets.CI_APP_ID }}
+          mode: "supervise"
+          task-file: scenarios/landmark-setup/task.md
+          supervisor-cwd: "."
+          agent-cwd: ${{ steps.agent-workspace.outputs.dir }}
+          supervisor-profile: "product-manager"
+          model: "opus"
+          max-turns: "200"
+          allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,WebFetch,WebSearch"
+          supervisor-allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,Skill,TodoWrite"
+          task-amend: ${{ inputs.task-amend }}

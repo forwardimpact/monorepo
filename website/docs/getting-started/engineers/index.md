@@ -1,11 +1,12 @@
 ---
 title: "Getting Started: Engineers"
-description: "Browse career paths with Pathway, get AI guidance with Guide, and set up your knowledge base with Basecamp."
+description: "Browse career paths with Pathway, get AI guidance with Guide, check your evidence with Landmark, and set up your knowledge base with Basecamp."
 ---
 
 Get up and running with the Forward Impact CLI tools. This guide covers browsing
 your career framework, generating AI agent teams, getting framework-aware
-guidance, and managing your personal knowledge base.
+guidance, checking your evidence and growth data, and managing your personal
+knowledge base.
 
 ## Prerequisites
 
@@ -15,13 +16,14 @@ guidance, and managing your personal knowledge base.
 ## Install
 
 ```sh
-npm install @forwardimpact/pathway @forwardimpact/guide @forwardimpact/basecamp
+npm install @forwardimpact/pathway @forwardimpact/guide @forwardimpact/landmark @forwardimpact/basecamp
 ```
 
-This gives you three CLI tools:
+This gives you four CLI tools:
 
 - `fit-pathway` — browse job definitions and generate agent teams
 - `fit-guide` — AI agent that understands your engineering framework
+- `fit-landmark` — check your evidence, readiness, and growth timeline
 - `fit-basecamp` — personal knowledge base with scheduled AI tasks
 
 ---
@@ -189,6 +191,91 @@ expectations, and markers — not generic career advice.
 
 ---
 
+## Landmark
+
+Landmark requires Map's activity layer (Supabase). If your organization has
+already set this up, Landmark works immediately. If not, see the
+[Landmark quickstart](/docs/guides/landmark-quickstart/) or the
+[leadership getting-started](/docs/getting-started/leadership/) for activity
+layer setup. One command works without Supabase: `marker` reads directly from
+your framework YAML.
+
+With the activity layer in place, Landmark gives you visibility into your own
+practice evidence and growth data — showing what your engineering record looks
+like against your framework's markers.
+
+### Browse marker definitions
+
+Look up the observable indicators defined for any skill — useful for
+understanding what evidence is expected at each proficiency level:
+
+```sh
+npx fit-landmark marker task_completion
+npx fit-landmark marker task_completion --level working
+```
+
+### Check your evidence
+
+See which markers have evidence linked to your work:
+
+```sh
+npx fit-landmark evidence --email you@example.com
+npx fit-landmark evidence --skill system_design --email you@example.com
+```
+
+Each row shows the artifact, the marker it matched, and Guide's rationale.
+Filter by `--skill` to focus on a specific area.
+
+### View your skill coverage
+
+See how complete your evidence record is across all expected skills:
+
+```sh
+npx fit-landmark coverage --email you@example.com
+```
+
+Coverage shows evidenced artifacts versus total expected markers — a quick gauge
+of where your record is strong and where it has gaps.
+
+### Check promotion readiness
+
+See which next-level markers you have already evidenced and which are still
+outstanding:
+
+```sh
+npx fit-landmark readiness --email you@example.com
+npx fit-landmark readiness --email you@example.com --target J060
+```
+
+Without `--target`, readiness checks against the next level above your current
+level. With `--target`, you can check against any specific level — useful for
+planning a multi-level trajectory.
+
+### Track your growth timeline
+
+See how your evidence has accumulated over time, aggregated by quarter:
+
+```sh
+npx fit-landmark timeline --email you@example.com
+npx fit-landmark timeline --email you@example.com --skill system_design
+```
+
+Timelines help you see whether growth is accelerating, stalling, or concentrated
+in one area. Add `--skill` to focus on a specific capability.
+
+### Read your voice comments
+
+See your own GetDX snapshot comments in a timeline view alongside evidence
+context:
+
+```sh
+npx fit-landmark voice --email you@example.com
+```
+
+All Landmark commands support `--format text|json|markdown`.
+
+---
+
 ## Basecamp
 
 Basecamp is your personal operations center. It syncs email and calendar, builds
@@ -280,6 +367,8 @@ missing environment variables or port conflicts.
   agents
 - [Finding your bearing](/docs/guides/finding-your-bearing/) — Guide usage and
   configuration
+- [Landmark quickstart](/docs/guides/landmark-quickstart/) — step-by-step guide
+  from install to a working health view
 - [Knowledge systems](/docs/guides/knowledge-systems/) — deep dive into Basecamp
   features
 - [Career paths](/docs/guides/career-paths/) — understand progression and skill
