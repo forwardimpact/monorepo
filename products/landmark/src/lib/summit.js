@@ -2,43 +2,36 @@
  * Summit growth alignment wrapper.
  *
  * Wraps Summit's computeGrowthAlignment with dynamic import for
- * optional runtime and a test injection seam.
+ * optional runtime. Node caches dynamic import() results at the module
+ * level, so no manual cache is needed.
+ *
+ * Production code uses the `summitFn` injection point on runHealthCommand
+ * for DI. This module's computeGrowth is the default wiring; summit.test.js
+ * tests it in isolation via __testOverride.
  */
 
-let cachedFn = null;
-let cachedErrorClass = null;
-let cacheSet = false;
+/** Test-only override. Set to a {fn, GrowthContractError} object to bypass import(). */
+let __testOverride = null;
 
-export async function loadSummit() {
-  if (cacheSet) return { fn: cachedFn, GrowthContractError: cachedErrorClass };
+/**
+ * Test helper — inject a stub so summit.test.js can exercise computeGrowth
+ * without touching node_modules. Pass null to clear.
+ */
+export function __setSummitForTests(override) {
+  __testOverride = override ?? null;
+}
+
+async function loadSummit() {
+  if (__testOverride) return __testOverride;
   try {
     const mod = await import("@forwardimpact/summit");
-    cachedFn = mod?.computeGrowthAlignment ?? null;
-    cachedErrorClass = mod?.GrowthContractError ?? null;
+    return {
+      fn: mod?.computeGrowthAlignment ?? null,
+      GrowthContractError: mod?.GrowthContractError ?? null,
+    };
   } catch {
-    cachedFn = null;
-    cachedErrorClass = null;
+    return { fn: null, GrowthContractError: null };
   }
-  cacheSet = true;
-  return { fn: cachedFn, GrowthContractError: cachedErrorClass };
-}
-
-/**
- * Test helper — reset cache and optionally inject a stub.
- */
-export function __setSummitForTests({ fn, GrowthContractError } = {}) {
-  cachedFn = fn ?? null;
-  cachedErrorClass = GrowthContractError ?? null;
-  cacheSet = true;
-}
-
-/**
- * Reset the cache (for tests that need fresh module resolution).
- */
-export function __resetSummitCache() {
-  cachedFn = null;
-  cachedErrorClass = null;
-  cacheSet = false;
 }
 
 /**

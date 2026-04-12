@@ -45,10 +45,5 @@ export function createLandmarkClient(opts = {}) {
  * @returns {boolean}
  */
 export function isRelationNotFoundError(err) {
-  return (
-    err?.code === "42P01" ||
-    err?.message?.includes("42P01") ||
-    err?.message?.includes("relation") ||
-    false
-  );
+  return err?.code === "42P01" || err?.message?.includes("42P01");
 }

@@ -1,14 +1,10 @@
 import { describe, it, afterEach } from "node:test";
 import assert from "node:assert/strict";
 
-import {
-  computeGrowth,
-  __setSummitForTests,
-  __resetSummitCache,
-} from "../src/lib/summit.js";
+import { computeGrowth, __setSummitForTests } from "../src/lib/summit.js";
 
 afterEach(() => {
-  __resetSummitCache();
+  __setSummitForTests(null);
 });
 
 describe("summit wrapper", () => {

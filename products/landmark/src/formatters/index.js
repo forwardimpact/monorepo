@@ -13,6 +13,7 @@ import * as evidenceFormatter from "./evidence.js";
 import * as readinessFormatter from "./readiness.js";
 import * as timelineFormatter from "./timeline.js";
 import * as coverageFormatter from "./coverage.js";
+import * as practiceFormatter from "./practice.js";
 import * as practicedFormatter from "./practiced.js";
 import * as healthFormatter from "./health.js";
 import * as voiceFormatter from "./voice.js";
@@ -26,19 +27,12 @@ const formatters = {
   readiness: readinessFormatter,
   timeline: timelineFormatter,
   coverage: coverageFormatter,
+  practice: practiceFormatter,
   practiced: practicedFormatter,
   health: healthFormatter,
   voice: voiceFormatter,
   initiative: initiativeFormatter,
 };
-
-/**
- * Register a new formatter. Used by later parts to add formatters
- * without modifying this file's static imports.
- */
-export function registerFormatter(name, formatter) {
-  formatters[name] = formatter;
-}
 
 /**
  * Format a command result into a string for output.

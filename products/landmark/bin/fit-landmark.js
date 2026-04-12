@@ -21,6 +21,7 @@ import { runEvidenceCommand } from "../src/commands/evidence.js";
 import { runReadinessCommand } from "../src/commands/readiness.js";
 import { runTimelineCommand } from "../src/commands/timeline.js";
 import { runCoverageCommand } from "../src/commands/coverage.js";
+import { runPracticeCommand } from "../src/commands/practice.js";
 import { runPracticedCommand } from "../src/commands/practiced.js";
 import { runHealthCommand } from "../src/commands/health.js";
 import { runVoiceCommand } from "../src/commands/voice.js";
@@ -44,6 +45,7 @@ const COMMANDS = {
   readiness: { handler: runReadinessCommand, needsSupabase: true },
   timeline: { handler: runTimelineCommand, needsSupabase: true },
   coverage: { handler: runCoverageCommand, needsSupabase: true },
+  practice: { handler: runPracticeCommand, needsSupabase: true },
   practiced: { handler: runPracticedCommand, needsSupabase: true },
   health: { handler: runHealthCommand, needsSupabase: true },
   voice: { handler: runVoiceCommand, needsSupabase: true },
@@ -153,10 +155,6 @@ const definition = {
     snapshot: { type: "string", description: "Snapshot id" },
     item: { type: "string", description: "Driver/item id for trend" },
     id: { type: "string", description: "Entity id (initiative, etc.)" },
-    evidenced: {
-      type: "boolean",
-      description: "Include practiced capability from evidence data",
-    },
     help: { type: "boolean", short: "h", description: "Show help" },
     version: { type: "boolean", short: "v", description: "Show version" },
   },
@@ -182,17 +180,9 @@ async function main() {
   }
 
   const entry = COMMANDS[command];
-  if (entry === undefined) {
+  if (!entry) {
     cli.usageError(`unknown command "${command}"`);
     process.exit(2);
-  }
-
-  // Not-yet-implemented stub for commands landing in later parts.
-  if (entry === null) {
-    process.stderr.write(
-      `fit-landmark: "${command}" is not yet implemented (spec 080).\n`,
-    );
-    process.exit(64);
   }
 
   try {

@@ -66,7 +66,7 @@ export async function runHealthCommand({
 
   // 4. Join scores to drivers and build driver rows
   const teamEmails = new Set(team.map((p) => p.email));
-  const drivers = await buildDriverRows(
+  const { drivers, collectedEvidence } = await buildDriverRows(
     scores,
     mapData,
     q,
@@ -98,10 +98,7 @@ export async function runHealthCommand({
     growth,
     team,
     mapData,
-    q,
-    supabase,
-    options,
-    teamEmails,
+    collectedEvidence,
     drivers,
     meta,
   );
@@ -158,6 +155,7 @@ async function buildDriverRows(
 ) {
   const driverMap = new Map((mapData.drivers ?? []).map((d) => [d.id, d]));
   const drivers = [];
+  const collectedEvidence = new Map();
 
   for (const scoreRow of scores) {
     const driver = driverMap.get(scoreRow.item_id);
@@ -174,6 +172,7 @@ async function buildDriverRows(
       supabase,
       options,
       teamEmails,
+      collectedEvidence,
     );
 
     drivers.push({
@@ -192,17 +191,28 @@ async function buildDriverRows(
     });
   }
 
-  return drivers;
+  return { drivers, collectedEvidence };
 }
 
-/** Collect evidence counts for a list of contributing skill ids. */
-async function gatherSkillEvidence(skillIds, q, supabase, options, teamEmails) {
+/** Collect evidence counts for a list of contributing skill ids. Caches raw rows in collectedEvidence. */
+async function gatherSkillEvidence(
+  skillIds,
+  q,
+  supabase,
+  options,
+  teamEmails,
+  collectedEvidence,
+) {
   const skillEvidence = [];
   for (const skillId of skillIds) {
-    const allEvidence = await q.getEvidence(supabase, { skillId });
-    const teamEvidence = options.manager
-      ? filterEvidenceByTeam(allEvidence, teamEmails)
-      : allEvidence;
+    if (!collectedEvidence.has(skillId)) {
+      const allEvidence = await q.getEvidence(supabase, { skillId });
+      const teamEvidence = options.manager
+        ? filterEvidenceByTeam(allEvidence, teamEmails)
+        : allEvidence;
+      collectedEvidence.set(skillId, teamEvidence);
+    }
+    const teamEvidence = collectedEvidence.get(skillId);
     const grouped = groupEvidenceBySkill(teamEvidence);
     const count = grouped.get(skillId)?.matched ?? 0;
     skillEvidence.push({ skillId, count });
@@ -274,10 +284,7 @@ async function computeGrowthRecommendations(
   growth,
   team,
   mapData,
-  q,
-  supabase,
-  options,
-  teamEmails,
+  collectedEvidence,
   drivers,
   meta,
 ) {
@@ -287,12 +294,7 @@ async function computeGrowthRecommendations(
     job: { discipline: p.discipline, level: p.level, track: p.track },
   }));
 
-  const summitEvidence = await buildSummitEvidence(
-    q,
-    supabase,
-    options,
-    teamEmails,
-  );
+  const summitEvidence = buildSummitEvidence(collectedEvidence);
 
   const driverScores = new Map();
   for (const d of drivers) {
@@ -326,16 +328,13 @@ async function computeGrowthRecommendations(
   return growthResult;
 }
 
-/** Build the evidence map that Summit expects. */
-async function buildSummitEvidence(q, supabase, options, teamEmails) {
-  const allEvidence = await q.getEvidence(supabase, {});
-  const teamAllEvidence = options.manager
-    ? filterEvidenceByTeam(allEvidence, teamEmails)
-    : allEvidence;
-  const evidenceBySkill = groupEvidenceBySkill(teamAllEvidence);
-
+/** Build the evidence map Summit expects from already-collected per-skill evidence. */
+function buildSummitEvidence(collectedEvidence) {
   const summitEvidence = new Map();
-  for (const [skillId, group] of evidenceBySkill) {
+  for (const [skillId, rows] of collectedEvidence) {
+    const grouped = groupEvidenceBySkill(rows);
+    const group = grouped.get(skillId);
+    if (!group) continue;
     const practitioners = new Set(
       group.rows
         .filter((r) => r.matched)
