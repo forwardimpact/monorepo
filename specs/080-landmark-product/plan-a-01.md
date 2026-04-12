@@ -72,8 +72,8 @@ products/landmark/
 - `justfile` — if other products have per-product `just` targets (e.g.
   `just pathway ...`), add an equivalent `landmark` recipe delegating to
   `bunx fit-landmark`. If no per-product recipes exist, skip this change.
-- `specs/STATUS` — do **not** change in this part; status changes are a
-  reviewer action, not an implementation step.
+- `specs/STATUS` — do **not** change in this part; status changes are a reviewer
+  action, not an implementation step.
 
 ## Implementation details
 
@@ -128,8 +128,8 @@ later parts will extend this list.
 }
 ```
 
-Do not add `@forwardimpact/summit` yet — that dependency is owned by Part 03.
-Do not add `yaml` — Landmark loads framework data through Map's loader, which
+Do not add `@forwardimpact/summit` yet — that dependency is owned by Part 03. Do
+not add `yaml` — Landmark loads framework data through Map's loader, which
 already owns YAML parsing.
 
 ### `products/landmark/bin/fit-landmark.js`
@@ -149,14 +149,13 @@ const COMMANDS = {
 ```
 
 The `createCli` definition lists the full spec-080 command set from the
-beginning (so `fit-landmark --help` prints the correct usage even though
-Parts 02–05 are not yet implemented). Unimplemented commands in Part 01
-dispatch to a shared `runNotYetImplementedCommand` stub that prints
-"`<command>` lands in spec 080 Part <NN>" and exits with code **64**
-(`EX_USAGE`-adjacent — clearly distinct from libcli's code 2 "usage error"
-so shell automation can tell "unknown command" apart from "command not yet
-implemented"). This keeps `fit-landmark --help` honest and gives downstream
-parts a fixed insertion point.
+beginning (so `fit-landmark --help` prints the correct usage even though Parts
+02–05 are not yet implemented). Unimplemented commands in Part 01 dispatch to a
+shared `runNotYetImplementedCommand` stub that prints "`<command>` lands in spec
+080 Part <NN>" and exits with code **64** (`EX_USAGE`-adjacent — clearly
+distinct from libcli's code 2 "usage error" so shell automation can tell
+"unknown command" apart from "command not yet implemented"). This keeps
+`fit-landmark --help` honest and gives downstream parts a fixed insertion point.
 
 Global options (shared with Summit's pattern):
 
@@ -177,10 +176,10 @@ options: {
 }
 ```
 
-`main()` resolves `dataDir` via `resolveDataDir(values)` (from `src/lib/cli.js`),
-loads Map data via `loadMapData(dataDir)`, creates a Supabase client lazily
-inside commands that need it, and dispatches to the handler with the shape
-described in plan-a § Cross-part conventions.
+`main()` resolves `dataDir` via `resolveDataDir(values)` (from
+`src/lib/cli.js`), loads Map data via `loadMapData(dataDir)`, creates a Supabase
+client lazily inside commands that need it, and dispatches to the handler with
+the shape described in plan-a § Cross-part conventions.
 
 Error handling: wrap the handler in try/catch. On `SupabaseUnavailableError`,
 print the message, exit code 3. On any other error, print via
@@ -197,20 +196,19 @@ Rationale: duplicating Summit's helper avoids cross-product coupling from a
 shared library change while both products' needs are still evolving. A future
 refactor can extract this into `libmap-cli` if a third consumer appears.
 
-**Data directory subpath:** Summit's `resolveDataDir` hard-codes the
-`"pathway"` subdirectory under the contributor data finder root (`join(finder
-.findData("data", homedir()), "pathway")`). This is intentional — Pathway,
-Summit, and Landmark all read the same Map data directory, which lives under
-`data/pathway/` for historical reasons. Landmark copies the literal
+**Data directory subpath:** Summit's `resolveDataDir` hard-codes the `"pathway"`
+subdirectory under the contributor data finder root
+(`join(finder .findData("data", homedir()), "pathway")`). This is intentional —
+Pathway, Summit, and Landmark all read the same Map data directory, which lives
+under `data/pathway/` for historical reasons. Landmark copies the literal
 `"pathway"` verbatim; do not rename.
 
 ### `products/landmark/src/lib/supabase.js`
 
 Copy Summit's `src/lib/supabase.js`, renaming the factory to
-`createLandmarkClient` and the error class to `SupabaseUnavailableError`
-(reuse the name; scoping is via `code: "LANDMARK_SUPABASE_UNAVAILABLE"`).
-Environment contract is identical: `MAP_SUPABASE_URL` and
-`MAP_SUPABASE_SERVICE_ROLE_KEY`.
+`createLandmarkClient` and the error class to `SupabaseUnavailableError` (reuse
+the name; scoping is via `code: "LANDMARK_SUPABASE_UNAVAILABLE"`). Environment
+contract is identical: `MAP_SUPABASE_URL` and `MAP_SUPABASE_SERVICE_ROLE_KEY`.
 
 ### `products/landmark/src/lib/context.js`
 
@@ -225,16 +223,16 @@ export async function buildContext({ dataDir, options, needsSupabase }) {
 }
 ```
 
-Commands declare `needsSupabase` via a flag on the handler module (see below)
-so the dispatcher can open a client only when necessary. `marker` declares
+Commands declare `needsSupabase` via a flag on the handler module (see below) so
+the dispatcher can open a client only when necessary. `marker` declares
 `needsSupabase: false`; everything else declares `true`.
 
 ### `products/landmark/src/lib/empty-state.js`
 
 Central registry of the spec's empty-state messages (spec § Empty States and
-Error Behavior). Export a `describeEmptyState(kind, context)` function and
-named constants for each row in the spec table. Tests assert each kind maps
-to the expected message.
+Error Behavior). Export a `describeEmptyState(kind, context)` function and named
+constants for each row in the spec table. Tests assert each kind maps to the
+expected message.
 
 ```js
 export const EMPTY_STATES = {
@@ -273,26 +271,28 @@ export async function runOrgCommand({ args, options, mapData, supabase, format }
 ```
 
 `showOrganization` calls `getOrganization(supabase)` from
-`@forwardimpact/map/activity/queries/org` and returns `{ view: people, meta: {
-format } }`. The `org team` path calls `getTeam(supabase, managerEmail)`; if the
-result is empty, set `meta.emptyState = EMPTY_STATES.MANAGER_NOT_FOUND(email)`.
+`@forwardimpact/map/activity/queries/org` and returns
+`{ view: people, meta: { format } }`. The `org team` path calls
+`getTeam(supabase, managerEmail)`; if the result is empty, set
+`meta.emptyState = EMPTY_STATES.MANAGER_NOT_FOUND(email)`.
 
 ### Command: `snapshot` — `products/landmark/src/commands/snapshot.js`
 
 Dispatches `list`, `show`, `trend`, `compare`:
 
 - `list` → `listSnapshots(supabase)`. Empty → `EMPTY_STATES.NO_SNAPSHOTS`.
-- `show` → requires `--snapshot <id>`. Calls `getSnapshotScores(supabase, id,
-  { managerEmail: options.manager })`. Empty → `EMPTY_STATES.NO_SNAPSHOTS` or
-  `MANAGER_NOT_FOUND`.
-- `trend` → requires `--item <id>`. Calls `getItemTrend(supabase, itemId,
-  { managerEmail })`. Empty → `EMPTY_STATES.NO_SNAPSHOTS`.
+- `show` → requires `--snapshot <id>`. Calls
+  `getSnapshotScores(supabase, id, { managerEmail: options.manager })`. Empty →
+  `EMPTY_STATES.NO_SNAPSHOTS` or `MANAGER_NOT_FOUND`.
+- `trend` → requires `--item <id>`. Calls
+  `getItemTrend(supabase, itemId, { managerEmail })`. Empty →
+  `EMPTY_STATES.NO_SNAPSHOTS`.
 - `compare` → requires `--snapshot <id>`. Calls **`getSnapshotComparison`**
   directly from `@forwardimpact/map/activity/queries/snapshots` — the module
   already exports it as its own function (internal implementation may wrap
-  `getSnapshotScores`, but Landmark must depend on the public contract).
-  Columns in text/markdown formatters use `vs_prev`, `vs_org`, `vs_50th`,
-  `vs_75th`, `vs_90th`.
+  `getSnapshotScores`, but Landmark must depend on the public contract). Columns
+  in text/markdown formatters use `vs_prev`, `vs_org`, `vs_50th`, `vs_75th`,
+  `vs_90th`.
 
 Cross-reference unknown `item_id` values against `mapData.drivers` to collect
 warnings: any score row whose `item_id` has no matching driver adds a warning
@@ -324,10 +324,10 @@ already exposes). Skills come from `createDataLoader().loadAllData()` which
 preserves the `markers` field per research.
 
 Explicitly calls out that no capability in the starter data currently defines
-markers. Part 02 will add them, at which point `fit-landmark marker
-task_completion` will produce real output. Until Part 02 merges, this command
-always returns the "No markers defined" empty state — and the test asserts
-exactly that path.
+markers. Part 02 will add them, at which point
+`fit-landmark marker task_completion` will produce real output. Until Part 02
+merges, this command always returns the "No markers defined" empty state — and
+the test asserts exactly that path.
 
 ### Formatters
 
@@ -350,13 +350,16 @@ wrapper around libcli formatting helpers already used by Summit.
 Every test runs against in-memory fixtures. No network, no actual Supabase.
 
 - `test/cli-command.test.js` — parses arg strings, confirms each declared
-  command routes to the correct handler, confirms `--format` defaults to
-  `text`, confirms unknown commands exit with code 2.
-- `test/org.test.js` — stub `supabase` with a controlled `from('organization_people').select()` path. Verify `getOrganization` is called, verify `org team --manager` filters, verify empty manager returns the correct empty state.
-- `test/snapshot.test.js` — four cases: `list`, `show`, `trend`, `compare`.
-  Mock the snapshot query module by passing an injected query object into the
-  command handler rather than going through `createLandmarkClient`. Tests
-  exercise the `item_id`↔driver warning path explicitly.
+  command routes to the correct handler, confirms `--format` defaults to `text`,
+  confirms unknown commands exit with code 2.
+- `test/org.test.js` — stub `supabase` with a controlled
+  `from('organization_people').select()` path. Verify `getOrganization` is
+  called, verify `org team --manager` filters, verify empty manager returns the
+  correct empty state.
+- `test/snapshot.test.js` — four cases: `list`, `show`, `trend`, `compare`. Mock
+  the snapshot query module by passing an injected query object into the command
+  handler rather than going through `createLandmarkClient`. Tests exercise the
+  `item_id`↔driver warning path explicitly.
 - `test/marker.test.js` — uses a hand-built `mapData` fixture with one skill
   that has markers and one that doesn't. Covers `--level` filtering and the
   empty-state path.
@@ -365,35 +368,34 @@ Every test runs against in-memory fixtures. No network, no actual Supabase.
   empty-state table.
 
 Mocking pattern for commands: command handlers accept an optional `queries`
-parameter (default: module imports from `@forwardimpact/map/activity/...`)
-that tests override to inject stubs. This keeps `createLandmarkClient`
-untouched by tests while still exercising the handler end-to-end.
+parameter (default: module imports from `@forwardimpact/map/activity/...`) that
+tests override to inject stubs. This keeps `createLandmarkClient` untouched by
+tests while still exercising the handler end-to-end.
 
 ## Verification
 
 After all files are written and tests pass locally:
 
-1. `cd products/landmark && bun install` — confirms workspace graph is
-   correct.
-2. `bun run layout` at the repo root — asserts Landmark's `src/`-rooted
-   package layout passes `scripts/check-package-layout.js`.
-3. `bun run check:exports` at the repo root — asserts every published
-   `main`, `bin`, `exports` target resolves to a real file
-   (`scripts/check-exports-resolve.js`). This catches invented exports
-   entries before they reach CI.
+1. `cd products/landmark && bun install` — confirms workspace graph is correct.
+2. `bun run layout` at the repo root — asserts Landmark's `src/`-rooted package
+   layout passes `scripts/check-package-layout.js`.
+3. `bun run check:exports` at the repo root — asserts every published `main`,
+   `bin`, `exports` target resolves to a real file
+   (`scripts/check-exports-resolve.js`). This catches invented exports entries
+   before they reach CI.
 4. `bun run check` at the repo root — full lint/format/layout/exports.
 5. `bun test products/landmark/test` — runs Part 01 tests in isolation.
-6. Smoke test: `bunx fit-landmark --help` prints the full command set with
-   Part 01 commands implemented and Parts 02–05 listed (dispatching to the
-   "not yet implemented" stub, exit code 64).
-7. `bunx fit-landmark marker task_completion` against the starter data
-   returns the "No markers defined" empty state, proving the command hits the
+6. Smoke test: `bunx fit-landmark --help` prints the full command set with Part
+   01 commands implemented and Parts 02–05 listed (dispatching to the "not yet
+   implemented" stub, exit code 64).
+7. `bunx fit-landmark marker task_completion` against the starter data returns
+   the "No markers defined" empty state, proving the command hits the
    spec-documented empty path.
-8. With a running `just activity` Supabase, `bunx fit-landmark org show`
-   returns the seeded `organization_people` rows.
+8. With a running `just activity` Supabase, `bunx fit-landmark org show` returns
+   the seeded `organization_people` rows.
 
 ## Deliverable
 
-A merged PR that leaves `main` with a working `fit-landmark` CLI exposing
-`org`, `snapshot`, and `marker` commands. No changes to Map, Summit, or any
-other product. No status change to `specs/STATUS`.
+A merged PR that leaves `main` with a working `fit-landmark` CLI exposing `org`,
+`snapshot`, and `marker` commands. No changes to Map, Summit, or any other
+product. No status change to `specs/STATUS`.

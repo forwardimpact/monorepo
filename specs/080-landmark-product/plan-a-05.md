@@ -1,33 +1,32 @@
 # Plan A · Part 05 — Initiatives pipeline + initiative commands
 
 Parent plan: [plan-a.md](./plan-a.md). Spec: [spec.md](./spec.md). Depends on
-[Part 03](./plan-a-03.md) being merged (extends `health.js` via the
-pre-placed `<initiatives section>` anchors). Runs in parallel with Part 04,
-which edits the disjoint `<comments section>` anchors.
+[Part 03](./plan-a-03.md) being merged (extends `health.js` via the pre-placed
+`<initiatives section>` anchors). Runs in parallel with Part 04, which edits the
+disjoint `<comments section>` anchors.
 
 This part adds the `activity.getdx_initiatives` table, extends Map's GetDX
 extract/transform pipeline to populate it from the GetDX Initiatives API,
 exports a new query module, ships `fit-landmark initiative list|show|impact`,
-and extends Part 03's health view with an active-initiatives section per
-driver (spec § Initiative tracking explicitly requires this — it is **not**
-polish).
+and extends Part 03's health view with an active-initiatives section per driver
+(spec § Initiative tracking explicitly requires this — it is **not** polish).
 
 Structurally similar to Part 04 but for the initiatives table. The impact
 command is the novel piece: it joins initiative completion dates against
-`getdx_snapshot_team_scores` across before/after snapshots to compute
-percentile deltas. The cross-snapshot join lives in Landmark, not Map —
-see § Design decision below.
+`getdx_snapshot_team_scores` across before/after snapshots to compute percentile
+deltas. The cross-snapshot join lives in Landmark, not Map — see § Design
+decision below.
 
 ## Scope
 
 **In scope**
 
-- New migration creating `activity.getdx_initiatives` with the columns spec
-  § Data Contracts enumerates.
+- New migration creating `activity.getdx_initiatives` with the columns spec §
+  Data Contracts enumerates.
 - Extend Map's GetDX extract with an Initiatives API fetch.
 - Add `transformInitiatives` and wire into `transformAllGetDX`.
-- New query module `products/map/src/activity/queries/initiatives.js`
-  exporting `listInitiatives`, `getInitiative`, and `getInitiativeImpact`.
+- New query module `products/map/src/activity/queries/initiatives.js` exporting
+  `listInitiatives`, `getInitiative`, and `getInitiativeImpact`.
 - Subpath export entry in `products/map/package.json`.
 - Landmark: `initiative list`, `initiative show`, `initiative impact`
   subcommands on a single `initiative` command file.
@@ -43,9 +42,9 @@ see § Design decision below.
 The cross-snapshot join logic (pick the snapshot before an initiative's
 `completed_at`, pick the one after, compute the delta) is **analytical
 computation**, not a raw query. Map's existing query modules in
-`products/map/src/activity/queries/` are thin `SELECT` wrappers — none of
-them implement multi-row analysis. Putting the join there would break that
-convention and force Landmark's domain logic into Map's surface area.
+`products/map/src/activity/queries/` are thin `SELECT` wrappers — none of them
+implement multi-row analysis. Putting the join there would break that convention
+and force Landmark's domain logic into Map's surface area.
 
 Instead:
 
@@ -53,12 +52,12 @@ Instead:
   existing `listSnapshots` and `getSnapshotScores`.
 - Landmark owns the analytical join in a new helper:
   `products/landmark/src/lib/initiative-helpers.js`, exporting
-  `computeInitiativeImpact({ completed, snapshots, scoresBySnapshot })`
-  as a pure function operating on already-fetched rows. The function is
-  unit-testable with in-memory fixtures; no Supabase contact.
-- `runImpact` in `src/commands/initiative.js` performs the fetches
-  (completed initiatives, all snapshots, scores per relevant snapshot) and
-  passes the result arrays into `computeInitiativeImpact`.
+  `computeInitiativeImpact({ completed, snapshots, scoresBySnapshot })` as a
+  pure function operating on already-fetched rows. The function is unit-testable
+  with in-memory fixtures; no Supabase contact.
+- `runImpact` in `src/commands/initiative.js` performs the fetches (completed
+  initiatives, all snapshots, scores per relevant snapshot) and passes the
+  result arrays into `computeInitiativeImpact`.
 
 ## Files
 
@@ -92,24 +91,23 @@ products/landmark/test/
 ### Modified
 
 - `products/map/supabase/functions/_shared/activity/extract/getdx.js` — add
-  `extractInitiatives` helper and call it once per extract (not per
-  snapshot, since initiatives are org-scoped in GetDX).
-- `products/map/supabase/functions/_shared/activity/transform/getdx.js` —
-  add `transformInitiatives` and call it from `transformAllGetDX`; update
-  the return shape to include `initiatives: number`.
+  `extractInitiatives` helper and call it once per extract (not per snapshot,
+  since initiatives are org-scoped in GetDX).
+- `products/map/supabase/functions/_shared/activity/transform/getdx.js` — add
+  `transformInitiatives` and call it from `transformAllGetDX`; update the return
+  shape to include `initiatives: number`.
 - `products/map/package.json` — add
   `"./activity/queries/initiatives": "./src/activity/queries/initiatives.js"`.
 - `products/landmark/bin/fit-landmark.js` — wire `runInitiativeCommand`.
-- `products/landmark/src/formatters/index.js` — register initiative
-  formatter.
+- `products/landmark/src/formatters/index.js` — register initiative formatter.
 - `products/landmark/src/commands/health.js` — add initiatives fetch **only
-  between the `<initiatives section>` anchors** placed by Part 03. Do not
-  touch the `<comments section>` region (that is Part 04's territory).
+  between the `<initiatives section>` anchors** placed by Part 03. Do not touch
+  the `<comments section>` region (that is Part 04's territory).
 - `products/landmark/src/formatters/health.js` — render per-driver active
   initiatives between the matching `<initiatives section>` anchors.
 - `products/landmark/test/health.test.js` — extend with assertions that
-  initiatives render per driver when present, and that missing initiatives
-  table records a warning without failing the command.
+  initiatives render per driver when present, and that missing initiatives table
+  records a warning without failing the command.
 
 ## Implementation details
 
@@ -147,14 +145,14 @@ Notes:
 
 - `completed_at` is added beyond the spec's enumeration because the impact
   computation needs it as the join key. `due_date` is the scheduled date;
-  `completed_at` is derived from GetDX's status transition. If GetDX does
-  not expose a completion timestamp, fall back to the first snapshot where
+  `completed_at` is derived from GetDX's status transition. If GetDX does not
+  expose a completion timestamp, fall back to the first snapshot where
   `completion_pct` reaches 100 (computed at transform time).
 - `tags` stored as JSONB for flexibility.
-- `scorecard_id` is the join key to `getdx_snapshot_team_scores.item_id`
-  — spec says initiatives target drivers through scorecard items, so
-  `scorecard_id === driver.id` for linked initiatives. Unlinked
-  initiatives (no scorecard) leave this null.
+- `scorecard_id` is the join key to `getdx_snapshot_team_scores.item_id` — spec
+  says initiatives target drivers through scorecard items, so
+  `scorecard_id === driver.id` for linked initiatives. Unlinked initiatives (no
+  scorecard) leave this null.
 
 ### Extract
 
@@ -180,13 +178,13 @@ async function extractInitiatives(supabase, config) {
 }
 ```
 
-Accumulate errors into the extract's return value; do not fail the whole
-extract on an initiatives fetch error.
+Accumulate errors into the extract's return value; do not fail the whole extract
+on an initiatives fetch error.
 
 **Risk:** the spec does not pin the exact GetDX Initiatives API path. The
-implementer should cross-reference GetDX docs at implementation time. If
-the path is wrong, only this function needs patching — the rest of the
-pipeline treats the payload as opaque JSON.
+implementer should cross-reference GetDX docs at implementation time. If the
+path is wrong, only this function needs patching — the rest of the pipeline
+treats the payload as opaque JSON.
 
 ### Transform
 
@@ -206,9 +204,8 @@ pipeline treats the payload as opaque JSON.
    - `completed_at` from the payload if present, else computed as
      `passed_checks === total_checks && total_checks > 0 ? now() : null`.
    - `raw` = the entire payload entry.
-4. Upsert on `id` with a **completion-preserving merge**: if the row
-   already exists and the old `completed_at` is non-null, keep the old
-   value. Use:
+4. Upsert on `id` with a **completion-preserving merge**: if the row already
+   exists and the old `completed_at` is non-null, keep the old value. Use:
 
    ```sql
    on conflict (id) do update set
@@ -227,17 +224,18 @@ pipeline treats the payload as opaque JSON.
      inserted_at = now()
    ```
 
-   This makes the transform idempotent: replaying the same extract cannot
-   shift `completed_at` forward, so the before/after snapshot selection in
-   impact computation stays deterministic.
+   This makes the transform idempotent: replaying the same extract cannot shift
+   `completed_at` forward, so the before/after snapshot selection in impact
+   computation stays deterministic.
+
 5. Return `{ initiatives: <count>, errors: [...] }`.
 
 ### Query module (thin SELECT wrappers only)
 
-Map's query module exports **two** functions —
-`listInitiatives` and `getInitiative` — that stay in line with the existing
-Map query convention (thin `SELECT` wrappers, no cross-row analysis). The
-impact computation lives in Landmark (see § Design decision above).
+Map's query module exports **two** functions — `listInitiatives` and
+`getInitiative` — that stay in line with the existing Map query convention (thin
+`SELECT` wrappers, no cross-row analysis). The impact computation lives in
+Landmark (see § Design decision above).
 
 ```js
 export async function listInitiatives(supabase, options = {}) {
@@ -329,9 +327,9 @@ export function computeInitiativeImpact({ completed, snapshots, scoresBySnapshot
 1. `listInitiatives(supabase, { ...filter, status: "completed" })`
 2. `listSnapshots(supabase)`
 3. For each unique `(snapshot_id, scorecard_id)` pair referenced by the
-   completed initiatives, `getSnapshotScores(supabase, snapshot_id, {
-   managerEmail })` once and index the result by `item_id` into
-   `scoresBySnapshot`.
+   completed initiatives,
+   `getSnapshotScores(supabase, snapshot_id, { managerEmail })` once and index
+   the result by `item_id` into `scoresBySnapshot`.
 4. Call `computeInitiativeImpact({ completed, snapshots, scoresBySnapshot })`.
 
 ### Landmark: `initiative` command
@@ -352,31 +350,31 @@ export async function runInitiativeCommand({ args, options, supabase, mapData, f
 }
 ```
 
-- `list` → `listInitiatives(supabase, { managerEmail: options.manager })`.
-  Empty → `NO_INITIATIVES`. Table-missing error → same empty state.
+- `list` → `listInitiatives(supabase, { managerEmail: options.manager })`. Empty
+  → `NO_INITIATIVES`. Table-missing error → same empty state.
 - `show` → requires `--id`. `getInitiative(supabase, options.id)`. Null →
   `"No initiative found with id ${id}."` empty state.
 - `impact` → orchestrates fetches (see § Landmark helper) and calls
-  `computeInitiativeImpact`. Renders per the spec's mocked output
-  (§ Initiative impact, lines 510–541). Initiatives with null
-  `scorecard_id` render the "no driver linked" note.
+  `computeInitiativeImpact`. Renders per the spec's mocked output (§ Initiative
+  impact, lines 510–541). Initiatives with null `scorecard_id` render the "no
+  driver linked" note.
 
 Catch `42P01` errors on the initiatives query and return `NO_INITIATIVES`,
 matching Part 04's pattern for `NO_COMMENTS`.
 
 ### Formatter
 
-`initiative.js` formatter renders the spec § Initiative impact output
-exactly: initiative name, target driver id, before/after percentile, delta,
-and any engineer voice quote (deferred — engineer voice is Part 04's
-concern; initiatives formatter only renders voice if the view object has a
-`voice` field, which Part 06 polish can add later).
+`initiative.js` formatter renders the spec § Initiative impact output exactly:
+initiative name, target driver id, before/after percentile, delta, and any
+engineer voice quote (deferred — engineer voice is Part 04's concern;
+initiatives formatter only renders voice if the view object has a `voice` field,
+which Part 06 polish can add later).
 
 ### Health view integration — active initiatives per driver
 
-Edit **only** between the `// <initiatives section>` anchors Part 03
-placed in `src/commands/health.js` and `src/formatters/health.js`. Do not
-touch the `<comments section>` region (Part 04's territory).
+Edit **only** between the `// <initiatives section>` anchors Part 03 placed in
+`src/commands/health.js` and `src/formatters/health.js`. Do not touch the
+`<comments section>` region (Part 04's territory).
 
 In `src/commands/health.js`, between the `<initiatives section>` anchors:
 
@@ -405,21 +403,21 @@ for (const driver of view.drivers) {
 // </initiatives section>
 ```
 
-`isRelationNotFoundError` was added to `src/lib/supabase.js` by Part 04; if
-this part lands before Part 04 (tie-break), add it here instead. Parts 04
-and 05 must coordinate: whichever lands first adds the helper, the second
-asserts it already exists.
+`isRelationNotFoundError` was added to `src/lib/supabase.js` by Part 04; if this
+part lands before Part 04 (tie-break), add it here instead. Parts 04 and 05 must
+coordinate: whichever lands first adds the helper, the second asserts it already
+exists.
 
-In `src/formatters/health.js`, between the matching anchors, render up to
-3 active initiatives per driver as one line each (name + completion_pct).
+In `src/formatters/health.js`, between the matching anchors, render up to 3
+active initiatives per driver as one line each (name + completion_pct).
 
 ## Tests
 
 - `transform-getdx-initiatives.test.js` — feeds mocked
-  `getdx/initiatives-list/<ts>.json` into `transformInitiatives`, asserts
-  upsert payload, including `completed_at` fallback logic.
-- `query-initiatives.test.js` — stubs Supabase query builder, verifies
-  filter chaining for `listInitiatives`, `getInitiative`, and especially
+  `getdx/initiatives-list/<ts>.json` into `transformInitiatives`, asserts upsert
+  payload, including `completed_at` fallback logic.
+- `query-initiatives.test.js` — stubs Supabase query builder, verifies filter
+  chaining for `listInitiatives`, `getInitiative`, and especially
   `getInitiativeImpact` (before/after snapshot selection, delta calculation,
   handling of unlinked initiatives).
 - `initiative.test.js`:
@@ -430,14 +428,14 @@ In `src/formatters/health.js`, between the matching anchors, render up to
     in-progress initiative (skipped in impact view).
   - `NO_INITIATIVES` empty state for the three subcommands.
 - `initiative-helpers.test.js`:
-  - Happy path: completed initiative between two snapshots produces a
-    non-null delta.
+  - Happy path: completed initiative between two snapshots produces a non-null
+    delta.
   - Edge: no snapshots before completion → null before/after.
   - Edge: no snapshots after completion → null after/delta.
   - Edge: `scorecard_id` null → null delta.
   - Edge: score missing in one of the snapshots → null delta.
-  - Idempotency: identical input yields identical output regardless of
-    snapshot array input order (the helper sorts internally).
+  - Idempotency: identical input yields identical output regardless of snapshot
+    array input order (the helper sorts internally).
 - `health.test.js` — extended with:
   - Active initiatives render per driver when the fetch returns rows.
   - Missing initiatives table records the warning, does not fail.
@@ -448,37 +446,37 @@ In `src/formatters/health.js`, between the matching anchors, render up to
 2. `fit-map getdx sync` — new extract stores initiatives document.
 3. `fit-map activity transform` — new transform step populates the table.
 4. `bun test products/map/test/activity` — new tests green.
-5. `bun test products/landmark/test` — new tests green (including the
-   extended `health.test.js`).
-6. `bun run layout && bun run check:exports && bun run check` — layout,
-   exports (confirms `./activity/queries/initiatives` subpath is wired),
-   and lint/format all green.
-7. Grep confirms only `<initiatives section>` anchors were edited in
-   `health.js` and `formatters/health.js` — the `<comments section>`
-   region remains untouched. Any edit outside the initiatives anchors is
-   a contract violation and must be reverted.
-7. Smoke tests:
+5. `bun test products/landmark/test` — new tests green (including the extended
+   `health.test.js`).
+6. `bun run layout && bun run check:exports && bun run check` — layout, exports
+   (confirms `./activity/queries/initiatives` subpath is wired), and lint/format
+   all green.
+7. Grep confirms only `<initiatives section>` anchors were edited in `health.js`
+   and `formatters/health.js` — the `<comments section>` region remains
+   untouched. Any edit outside the initiatives anchors is a contract violation
+   and must be reverted.
+8. Smoke tests:
    - `bunx fit-landmark initiative list --manager alice@example.com`
    - `bunx fit-landmark initiative show --id <id>`
    - `bunx fit-landmark initiative impact --manager alice@example.com`
 
 ## Risks
 
-- **GetDX Initiatives API shape is the primary unknown.** Same mitigation
-  as Part 04: the extract stores raw payload; the transform is the only
-  layer that parses. Patch the transform if the shape differs.
+- **GetDX Initiatives API shape is the primary unknown.** Same mitigation as
+  Part 04: the extract stores raw payload; the transform is the only layer that
+  parses. Patch the transform if the shape differs.
 - **Before/after snapshot selection is sensitive to `completed_at` fidelity.**
-  If GetDX does not supply a completion timestamp, the fallback (first
-  snapshot at 100%) is imperfect — it may delay the "before" marker by up
-  to one quarter. Document this limitation in the formatter output when the
-  fallback path is used.
-- **`scorecard_id === driver.id` join assumes parity.** Real installations
-  may need an explicit mapping layer. This part does not build one; Part 06
+  If GetDX does not supply a completion timestamp, the fallback (first snapshot
+  at 100%) is imperfect — it may delay the "before" marker by up to one quarter.
+  Document this limitation in the formatter output when the fallback path is
+  used.
+- **`scorecard_id === driver.id` join assumes parity.** Real installations may
+  need an explicit mapping layer. This part does not build one; Part 06
   documents the assumption.
 
 ## Deliverable
 
 A merged PR that ships `fit-landmark initiative list|show|impact` and the
-supporting Map pipeline. Spec § Initiative tracking and § Initiative impact
-are fully implemented except for the optional health-view integration,
-which is tracked as a Part 06 polish item.
+supporting Map pipeline. Spec § Initiative tracking and § Initiative impact are
+fully implemented except for the optional health-view integration, which is
+tracked as a Part 06 polish item.
