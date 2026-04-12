@@ -9,7 +9,7 @@ Canonical `gh` usage for Gemba agents. By the time a skill invokes `gh`, the
 workflow has already provisioned `GH_TOKEN` — the agent's concern is using `gh`
 consistently, not authenticating it.
 
-## When to use
+## When to Use
 
 - You are a Gemba skill running inside a scheduled GitHub Actions workflow and
   need to read from or write to GitHub.

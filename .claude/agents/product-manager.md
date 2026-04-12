@@ -28,7 +28,7 @@ Warm, encouraging, organized. Appreciate every contribution. Sign off:
 
 ## Workflows
 
-Determine which workflow to use from the task prompt:
+Run each applicable workflow based on the task prompt:
 
 1. **PR triage** — Follow the `gemba-product-classify` skill to classify open
    PRs and merge those that pass all gates. For `spec` PRs, also apply the

@@ -33,22 +33,20 @@ trust lookup, which the `gemba-walk` invariant audit verifies against.
 
 All comment templates and the report format are in `references/templates.md`.
 
-## Gate Checklist
+## Checklists
 
 <do_confirm_checklist goal="Verify all gates pass before merging a PR">
 
-- [ ] **Author is trusted** — CI app or top-7 lookup (Step 2). On failure, mark
-      **blocked** and comment that only trusted authors merge.
-- [ ] **PR type is `fix`, `bug`, or `spec`** — parse title prefix (Step 3). On
-      failure, mark **blocked** and comment that the PR type is outside scope.
-- [ ] **All CI checks pass** — `gh pr checks` (Step 4). On failure, mark
-      **blocked** and comment with the failing checks.
-- [ ] **Spec quality approved** (spec PRs only) — apply `gemba-spec` review
-      (Step 5). On failure, mark **blocked** and comment with review findings.
+- [ ] Author is trusted — CI app identity or top-7 contributor lookup ran.
+- [ ] PR type is `fix`, `bug`, or `spec` — parsed from title prefix.
+- [ ] All CI checks pass.
+- [ ] Spec quality approved (spec PRs only) via `gemba-spec` review.
 
 </do_confirm_checklist>
 
-A PR that passes all four gates is merged in Step 7.
+A PR that fails any gate is marked **blocked** with the reason (see Steps 2–5
+for failure-handling details). A PR that passes all four gates is merged in
+Step 7.
 
 ## Process
 

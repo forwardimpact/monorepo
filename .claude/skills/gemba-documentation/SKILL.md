@@ -16,6 +16,12 @@ modes of operation:
 - **Scheduled review** — Pick one topic, go deep, verify against source code.
 - **Interactive writing** — Write or update pages following the standards.
 
+## When to Use
+
+- Scheduled documentation review (one topic per run)
+- Writing or updating pages in `website/`
+- Auditing documentation accuracy against source code
+
 ## Checklists
 
 <read_do_checklist goal="Load documentation standards before starting">
@@ -59,14 +65,17 @@ Each run covers **one topic** in depth.
 | `llms-txt-and-seo`       | `website/llms.txt`, `website/robots.txt`, sitemap completeness        |
 | `cross-page-consistency` | Terminology, proficiency scales, field names across all pages         |
 
+### Step 0: Read Memory
+
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). Find last review dates per topic in the coverage map.
+
 ### Topic selection
 
-1. Read memory per the agent profile (your summary, the current week's log, and
-   teammates' summaries). Find last review dates per topic in the coverage map.
-2. Build coverage map — never-reviewed topics go first, then oldest.
-3. Revisit threshold — if all topics covered within last 6 runs, revisit oldest.
-4. Announce your pick and why before starting.
-5. Go deep — read every page in the topic area, not just spot-check.
+1. Build coverage map — never-reviewed topics go first, then oldest.
+2. Revisit threshold — if all topics covered within last 6 runs, revisit oldest.
+3. Announce your pick and why before starting.
+4. Go deep — read every page in the topic area, not just spot-check.
 
 ### Review process
 
@@ -117,7 +126,7 @@ Run the DO-CONFIRM checklist at the top of this skill.
 5. Check cross-links resolve.
 6. Build and check.
 
-## 3. Output
+## Output
 
 Every review must produce both categories when applicable — incremental fixes on
 a `fix/` branch and specs for structural findings on `spec/` branches. Branch
@@ -139,7 +148,7 @@ Each branch gets its own PR. Fix and spec branches are independent — push and 
 each one separately. Wiki submodule changes follow the wiki curation skill's
 publishing instructions.
 
-### Memory: what to record
+## Memory: what to record
 
 Append to the current week's log (see agent profile for the file path):
 

@@ -131,21 +131,11 @@ status clearly — the caller is responsible for acting on it.
 3. **Write the spec.** Focus on WHAT and WHY. Do not include implementation
    details — those go in the plan.
 4. **Update STATUS.** Add the spec to `specs/STATUS` with status `draft`.
-5. **Clean sub-agent review.** Before advancing status, launch a fresh sub-agent
-   (via the `Agent` tool, no prior conversation context) and instruct it to load
-   the [`gemba-review`](../gemba-review/SKILL.md) skill and grade `spec.md`.
-   `gemba-review` owns the severity vocabulary and the spec criteria; it never
-   spawns sub-agents, so the review loop bottoms out structurally — see
-   [GEMBA.md § Recursion-safe self-review](../../../GEMBA.md#recursion-safe-self-review).
-   Tell the reviewer explicitly **not** to invoke `gemba-spec` itself — defense
-   in depth on top of the structural fix. **Verify** every finding against the
-   actual artifact before acting on it — sub-agent reviewers lack prior
-   conversation context and can misread intent or flag false positives. After
-   verification, address every confirmed **blocker**, **high**, and **medium**
-   finding before moving on. **Low** findings are optional. If the reviewer
-   raises blockers you disagree with, resolve the disagreement explicitly
-   (revise, or record the rationale for dismissal) — silent dismissal is not
-   allowed.
+5. **Clean sub-agent review.** Follow the
+   [`gemba-review` caller protocol](../gemba-review/references/caller-protocol.md)
+   to launch a fresh sub-agent that grades `spec.md`. Tell the reviewer not to
+   invoke `gemba-spec`. Verify findings, address all confirmed
+   blocker/high/medium issues before advancing.
 6. **Present the spec.** Share it for feedback. Iterate until satisfied, then
    set status to `review` — signalling it is ready for formal evaluation. Stop
    here. The plan is the staff engineer's job.

@@ -44,16 +44,8 @@ Determine which workflow to use from the task prompt:
 - Planning and implementation only — never write specs (security-engineer,
   product-manager, and improvement-coach scope) and never cut releases
   (release-engineer scope)
-- One plan per spec — never bundle multiple specs into a single plan
-- Decompose into steps you (or another trusted agent) can execute mechanically —
-  if a step requires judgement or ambiguous decisions, flag it in the plan as a
-  risk
-- Never advance a spec from `draft` to `planned` without a finished plan
-- When implementing, follow the plan — do not refactor adjacent code, add
-  features the spec didn't request, or "clean up" files you happen to touch.
-  Scope discipline prevents scope creep.
-- When the plan and current codebase have diverged, adapt to the codebase and
-  note the deviation in the commit message — do not blindly replay a stale plan
+- Scope discipline: follow the plan, do not refactor adjacent code or add
+  unrequested features — the skills' checklists verify this at each step
 - Run `bun run check` and `bun run test` before committing
 - **Memory**: Before starting work, read `wiki/staff-engineer.md` and the other
   agent summaries for cross-agent context. Append this run as a new

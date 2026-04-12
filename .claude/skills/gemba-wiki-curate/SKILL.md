@@ -16,6 +16,12 @@ unacted on, and MEMORY.md falls out of sync.
 
 Each run covers all four curation areas in sequence.
 
+## When to Use
+
+- Scheduled wiki curation run
+- Auditing agent memory health
+- Checking cross-agent communication
+
 ## Curation areas
 
 | Area                    | What to check                                                  |
@@ -29,7 +35,7 @@ If time-constrained, prioritize `summary-accuracy` and `observation-follow-up`.
 
 ## Process
 
-### 1. Read all memory
+### Step 0: Read Memory
 
 Read memory per the agent profile (your summary, the current week's log, and
 teammates' summaries). Then read every file in `wiki/`:
@@ -39,7 +45,7 @@ teammates' summaries). Then read every file in `wiki/`:
 - `wiki/MEMORY.md`
 - `wiki/Home.md`
 
-### 2. Summary accuracy
+### Step 1: Summary accuracy
 
 For each agent, compare the summary against the most recent weekly log entries:
 
@@ -55,7 +61,7 @@ For each agent, compare the summary against the most recent weekly log entries:
 
 Fix inaccuracies directly in the summary files.
 
-### 3. Observation follow-up
+### Step 2: Observation follow-up
 
 Collect all "Observations for teammates" sections across all agent summaries.
 For each observation:
@@ -67,7 +73,7 @@ For each observation:
 4. Note unacted observations in the technical-writer's own summary so the target
    agent sees them on their next run.
 
-### 4. Memory index
+### Step 3: Memory index
 
 Verify `wiki/MEMORY.md`:
 
@@ -83,7 +89,7 @@ Verify `wiki/Home.md`:
 
 Update both files if they've drifted.
 
-### 5. Log hygiene
+### Step 4: Log hygiene
 
 For each weekly log file in `wiki/`:
 
@@ -96,7 +102,7 @@ For each weekly log file in `wiki/`:
 Flag format violations but do not rewrite log content — logs are historical
 records.
 
-### 6. Critical item roll-up
+### Step 5: Critical item roll-up
 
 Scan all agent summaries and recent weekly logs for items that affect multiple
 agents or the whole team:
@@ -130,7 +136,7 @@ If the curation also produced monorepo fixes (e.g., stale spec STATUS, doc
 corrections), branch from `main` as `fix/wiki-curate-YYYY-MM-DD`, commit, push,
 and open a PR — same discipline as doc-review fixes.
 
-### Memory: what to record
+## Memory: what to record
 
 Append to the current week's log (see agent profile for the file path):
 

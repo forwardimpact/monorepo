@@ -202,7 +202,7 @@ same fix-or-spec discipline:
 Every PR must branch directly from `main` — never from another fix or spec
 branch.
 
-### Memory: what to record
+## Memory: what to record
 
 Append to the current week's log (see agent profile for the file path):
 

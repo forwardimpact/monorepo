@@ -21,15 +21,7 @@ determine version bumps, and cut releases.
 See [`gemba-gh-cli`](../gemba-gh-cli/SKILL.md) for `gh` installation and the
 canonical query shapes used in the steps below.
 
-## Process
-
-### Step 0: Read Memory
-
-Read memory per the agent profile (your summary, the current week's log, and
-teammates' summaries). Extract previous release outcomes and any packages that
-had publish failures from prior `release-engineer` entries.
-
-## Pre-Flight: Verify Main Branch CI
+## Checklists
 
 <read_do_checklist goal="Confirm CI is green before cutting releases">
 
@@ -43,7 +35,27 @@ had publish failures from prior `release-engineer` entries.
 
 </read_do_checklist>
 
-Worked examples:
+<do_confirm_checklist goal="Verify releases were cut correctly before pushing">
+
+- [ ] Each changed package assessed for version bump type.
+- [ ] `bun run check` passes after all version bumps.
+- [ ] Each tag follows `{prefix}@v{version}` convention.
+- [ ] Tags pushed individually — never `git push --tags`.
+- [ ] Publish workflows verified as triggered for each tag.
+
+</do_confirm_checklist>
+
+## Process
+
+### Step 0: Read Memory
+
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). Extract previous release outcomes and any packages that
+had publish failures from prior `release-engineer` entries.
+
+### Step 1: Pre-Flight — Verify Main Branch CI
+
+Run the READ-DO checklist above before proceeding. Worked examples:
 
 ```sh
 gh run list --branch main --limit 5 --json name,conclusion,headBranch
@@ -57,7 +69,7 @@ git add <fixed-files> && git commit -m "chore: fix formatting on main"
 git push origin main
 ```
 
-## Tag Prefix Mapping
+### Step 2: Tag Prefix Mapping
 
 | Directory          | Tag prefix | Example tag         |
 | ------------------ | ---------- | ------------------- |
@@ -65,15 +77,13 @@ git push origin main
 | `products/pathway` | `pathway`  | `pathway@v0.25.0`   |
 | `services/agent`   | `svcagent` | `svcagent@v0.1.110` |
 
-## Version Rules
+### Version Rules
 
 - **Pre-1.0** (`0.x.y`): bump **patch** for any change
 - **Post-1.0**: breaking (`!` suffix) → **major**; `feat` → **minor**; else →
   **patch**
 
-## Process
-
-### Step 1: Enumerate Changed Packages
+### Step 3: Enumerate Changed Packages
 
 ```sh
 latest=$(git tag --sort=-creatordate --list "${prefix}@v*" | head -1)
@@ -86,12 +96,12 @@ fi
 
 Skip packages with no unreleased commits.
 
-### Step 2: Determine Version Bumps
+### Step 4: Determine Version Bumps
 
 Read current version from `package.json` and scan commit log since last tag.
 Apply version rules above.
 
-### Step 3: Bump, Sync, Verify
+### Step 5: Bump, Sync, Verify
 
 ```sh
 cd <package-directory>
@@ -111,7 +121,7 @@ bun install
 bun run check:fix && bun run check
 ```
 
-### Step 4: Commit and Tag
+### Step 6: Commit and Tag
 
 ```sh
 git add <package>/package.json package-lock.json
@@ -121,7 +131,7 @@ git tag <prefix>@v<version>
 
 For multiple packages: commit all bumps, then tag each.
 
-### Step 5: Push and Verify
+### Step 7: Push and Verify
 
 Push commit first, then each tag individually:
 
@@ -138,7 +148,7 @@ gh run list --limit 10 --json name,conclusion,headBranch,event
 
 If a publish fails, investigate with `gh run view <run-id> --log-failed`.
 
-### Step 6: Summary
+### Step 8: Summary
 
 ```
 | Package  | Previous | New    | Tag             | Publish |
@@ -146,7 +156,7 @@ If a publish fails, investigate with `gh run view <run-id> --log-failed`.
 | libskill | 4.0.3    | 4.0.4  | libskill@v4.0.4 | ✓       |
 ```
 
-### Memory: what to record
+## Memory: what to record
 
 Append to the current week's log (see agent profile for the file path):
 

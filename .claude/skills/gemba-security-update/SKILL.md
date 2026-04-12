@@ -25,32 +25,36 @@ security policies.
 See [`gemba-gh-cli`](../gemba-gh-cli/SKILL.md) for `gh` installation and the
 canonical query shapes used in the steps below.
 
-## Policy Checklist
+## Checklists
 
 <do_confirm_checklist goal="Verify dependency PR meets repo policies">
 
-- [ ] **All CI checks pass** (CONTRIBUTING.md § Before Submitting a PR). On
-      failure: **fix** if caused by PR; if pre-existing on main, skip and
-      recommend rebase.
-- [ ] **Actions pinned to SHA with version comment** (CONTRIBUTING.md §
-      Security; gemba-security-audit § 1). On failure: **fix** — update all
-      workflow files to the new SHA.
-- [ ] **No duplicate dependencies** (CONTRIBUTING.md § Dependency Policy). On
-      failure: **close** with explanation.
-- [ ] **Version ranges aligned across workspaces** (CONTRIBUTING.md § Dependency
-      Policy). On failure: **fix** — align all workspace ranges.
-- [ ] **`npm audit` clean (`--audit-level=high`)** (CONTRIBUTING.md § Dependency
-      Policy). On failure: **close** if update introduces vulnerability; skip if
-      pre-existing.
-- [ ] **No unnecessary dependencies** (CONTRIBUTING.md § Dependency Policy). On
-      failure: **close** with explanation.
-- [ ] **First-party or official org actions only** (gemba-security-audit § 1).
-      On failure: **close** with explanation.
-- [ ] **Peer and transitive dependency compatibility** (CONTRIBUTING.md §
-      Dependency Policy). On failure: **close** until co-dependent packages
-      release compatible versions.
+- [ ] All CI checks pass.
+- [ ] Actions pinned to SHA with version comment.
+- [ ] No duplicate dependencies.
+- [ ] Version ranges aligned across workspaces.
+- [ ] `npm audit` clean (`--audit-level=high`).
+- [ ] No unnecessary dependencies.
+- [ ] First-party or official org actions only.
+- [ ] Peer and transitive dependency compatibility verified.
 
 </do_confirm_checklist>
+
+### Policy failure dispositions
+
+When a check fails, the disposition depends on the check. The table below maps
+each check to its policy source and failure action — merge, fix, close, or skip.
+
+| Check                    | Policy source                       | Failure action                                                |
+| ------------------------ | ----------------------------------- | ------------------------------------------------------------- |
+| CI checks                | CONTRIBUTING.md § Before Submitting | **fix** if PR-caused; **skip** if pre-existing on main        |
+| SHA-pinned actions       | CONTRIBUTING.md § Security          | **fix** — update all workflow files to the new SHA            |
+| No duplicate deps        | CONTRIBUTING.md § Dependency Policy | **close** with explanation                                    |
+| Aligned version ranges   | CONTRIBUTING.md § Dependency Policy | **fix** — align all workspace ranges                          |
+| Clean npm audit          | CONTRIBUTING.md § Dependency Policy | **close** if update introduces vuln; **skip** if pre-exist    |
+| No unnecessary deps      | CONTRIBUTING.md § Dependency Policy | **close** with explanation                                    |
+| First-party actions only | gemba-security-audit § 1            | **close** with explanation                                    |
+| Peer/transitive compat   | CONTRIBUTING.md § Dependency Policy | **close** until co-dependent packages release compat versions |
 
 When evaluating the SHA-pinning check, verify the PR updates **all** workflow
 files referencing the action. See `references/sha-inventory.md` for the full
@@ -125,7 +129,7 @@ gh pr close <number> --comment "Dependabot triage: closing because <reason>. Pol
 | #61 | bump upload-pages-artifact ...  | fix    | Missing SHA pins           |
 ```
 
-### Memory: what to record
+## Memory: what to record
 
 Append to the current week's log (see agent profile for the file path):
 

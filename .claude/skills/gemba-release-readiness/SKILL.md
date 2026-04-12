@@ -16,6 +16,19 @@ branches, fix mechanical CI failures, and report status on each PR.
 - Scheduled daily to keep PRs up-to-date with `main`
 - Before a release review to ensure PRs can be merged cleanly
 
+## Checklists
+
+<do_confirm_checklist goal="Confirm readiness pass is complete before
+reporting">
+
+- [ ] Every open PR assessed — none skipped except Dependabot.
+- [ ] Behind and stale PRs rebased on `origin/main`.
+- [ ] Trivial CI failures fixed with `bun run check:fix` — not code changes.
+- [ ] Substantive conflicts aborted and commented for the author.
+- [ ] PR status table produced with consecutive-stuck counts.
+
+</do_confirm_checklist>
+
 ## Prerequisites
 
 See [`gemba-gh-cli`](../gemba-gh-cli/SKILL.md) for `gh` installation and the
@@ -120,7 +133,7 @@ Comment on each PR:
 
 **Flag PRs stuck across 3+ consecutive runs** — these need human attention.
 
-### Memory: what to record
+## Memory: what to record
 
 Append to the current week's log (see agent profile for the file path):
 

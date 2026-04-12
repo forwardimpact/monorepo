@@ -154,26 +154,13 @@ After all tasks are complete, run the DO-CONFIRM checklist above.
 
 ### 8. Clean sub-agent review
 
-Before pushing, launch a fresh sub-agent (via the `Agent` tool, no prior
-conversation context) and instruct it to load the
-[`gemba-review`](../gemba-review/SKILL.md) skill and grade the full diff
-(`git diff origin/main...HEAD`). Give the reviewer enough context to act
-independently — spec path, plan path, branch name.
-
-`gemba-review` owns the severity vocabulary and the implementation-diff
-criteria; it never spawns sub-agents, so the review loop bottoms out
-structurally — see
-[GEMBA.md § Recursion-safe self-review](../../../GEMBA.md#recursion-safe-self-review).
-Tell the reviewer explicitly **not** to invoke `gemba-implement` itself —
-defense in depth on top of the structural fix.
-
-**Verify** every finding against the actual artifact before acting on it —
-sub-agent reviewers lack prior conversation context and can misread intent or
-flag false positives. After verification, address every confirmed **blocker**,
-**high**, and **medium** finding before pushing. **Low** findings are optional.
-If the reviewer raises blockers you disagree with, resolve the disagreement
-explicitly (fix the code, or record the rationale for dismissal in the commit
-message) — silent dismissal is not allowed.
+Follow the
+[`gemba-review` caller protocol](../gemba-review/references/caller-protocol.md)
+to launch a fresh sub-agent that grades the full diff
+(`git diff origin/main...HEAD`). Provide spec path, plan path, and branch name
+so the reviewer can act independently. Tell the reviewer not to invoke
+`gemba-implement`. Verify findings, address all confirmed blocker/high/medium
+issues before pushing.
 
 Push all commits to the remote branch only after the review is clean.
 

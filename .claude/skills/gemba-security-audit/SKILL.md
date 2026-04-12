@@ -9,21 +9,44 @@ description: >
 
 # Security Audit
 
-## 1. Supply Chain — GitHub Actions
+## When to Use
+
+- Scheduled audit of the monorepo's security posture (one topic per run)
+- Reviewing a PR for security impact
+- Investigating a reported vulnerability
+
+## Checklists
+
+<do_confirm_checklist goal="Confirm audit topic was thoroughly checked">
+
+- [ ] Ran `just audit` locally and reported findings.
+- [ ] Reviewed all files relevant to the selected topic (not just grep).
+- [ ] Findings grounded in specific file paths and line numbers.
+- [ ] Each finding categorized: trivial fix, structural (spec), or observation.
+- [ ] Coverage map updated with today's date for the audited topic.
+
+</do_confirm_checklist>
+
+## Audit Areas
+
+Reference material for each topic. The focused audit strategy (§ 7) selects one
+area per run and goes deep.
+
+### 1. Supply Chain — GitHub Actions
 
 - All third-party actions pinned to full SHA with version comment (`# v4`).
 - Only first-party (`actions/*`) or official org actions permitted.
 - All workflows must declare explicit `permissions` with least privilege.
 - Dependabot configured to propose updates to action SHAs.
 
-## 2. Supply Chain — npm Dependencies
+### 2. Supply Chain — npm Dependencies
 
 Dependency policy in CONTRIBUTING.md § Dependency Policy. Additionally verify:
 
 - Publish workflows gate on `npm audit` results
 - No packages with known CVEs remain unpatched
 
-## 3. Credential & Secret Leak Prevention
+### 3. Credential & Secret Leak Prevention
 
 Rules in CONTRIBUTING.md § Security. Additionally verify:
 
@@ -31,28 +54,35 @@ Rules in CONTRIBUTING.md § Security. Additionally verify:
 - `.gitleaks.toml` allowlist exists for known false positives
 - Secrets in workflows use `secrets.*` — no hardcoded values
 
-## 4. Static Analysis
+### 4. Static Analysis
 
 Verify no security rules disabled in `eslint.config.js` without inline
 justification.
 
-## 5. Application Security (OWASP Top 10)
+### 5. Application Security (OWASP Top 10)
 
 Check for: injection (shell, SQL, template), broken auth, sensitive data
 exposure, security misconfiguration (CORS, headers), vulnerable components
 (`npm audit`), insufficient logging, SSRF, insecure deserialization (untrusted
 YAML/JSON without schema validation).
 
-## 6. CI/CD Security
+### 6. CI/CD Security
 
 Verify publish workflows block on audit failures and CI/local workflows run the
 same checks.
 
-## 7. Focused Audit Strategy
+## Process
+
+### Step 0: Read Memory
+
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). Find last audit dates per topic in the coverage map.
+
+### Step 1: Select Topic
 
 Each run covers **one topic** in depth.
 
-### Topic areas
+#### Topic areas
 
 | Topic                        | What to audit                                               |
 | ---------------------------- | ----------------------------------------------------------- |
@@ -65,38 +95,27 @@ Each run covers **one topic** in depth.
 | `app-security-products`      | OWASP Top 10 in `products/` code                            |
 | `cicd-pipeline`              | Workflow integrity, publish gates, audit gates              |
 
-### Topic selection
+#### Topic selection
 
-1. Read memory per the agent profile (your summary, the current week's log, and
-   teammates' summaries). Find last audit dates per topic in the coverage map.
-2. Build coverage map — never-audited topics go first, then oldest.
-3. Revisit threshold — if all topics covered within last 4 runs, revisit oldest.
-4. Announce your pick and why before starting.
-5. Go deep — read every relevant file, not just grep for patterns.
+1. Build coverage map — never-audited topics go first, then oldest.
+2. Revisit threshold — if all topics covered within last 4 runs, revisit oldest.
+3. Announce your pick and why before starting.
+4. Go deep — read every relevant file, not just grep for patterns.
 
-## 8. Audit Checklist
+### Step 2: Audit the Topic
 
-<do_confirm_checklist goal="Confirm all audit areas were checked">
+Go deep on the selected topic using the audit area reference above. Read every
+relevant file — do not rely on grep alone. Ground findings in specific file
+paths and line numbers.
 
-- [ ] Ran `just audit` locally and reported findings.
-- [ ] Reviewed `.github/workflows/` for unpinned actions, missing permissions.
-- [ ] Reviewed `package.json` files for unnecessary or duplicate dependencies.
-- [ ] Reviewed `.gitignore` and `.gitleaks.toml` for coverage gaps.
-- [ ] Reviewed `eslint.config.js` for disabled security rules.
-- [ ] Grepped for vulnerability patterns: `eval(`, `child_process.exec(`,
-      `innerHTML`, `new Function(`, unsanitized template literals in SQL/shell
-      contexts.
-
-</do_confirm_checklist>
-
-## 9. Output
+### Step 3: Act on Findings
 
 Every audit must produce both categories when applicable — incremental fixes on
 a `fix/` branch and specs for structural findings on `spec/` branches. Branch
 naming, commit conventions, and independence rules are defined in the agent
 profile.
 
-### Memory: what to record
+## Memory: what to record
 
 Append to the current week's log (see agent profile for the file path):
 
