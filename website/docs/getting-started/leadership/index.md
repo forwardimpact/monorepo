@@ -768,6 +768,10 @@ explicitly to every command. All the commands below accept the flag. (If you've
 set up Map's activity layer, you can omit `--roster` and Summit will read the
 team from the `organization_people` table instead.)
 
+Summit automatically looks for Map framework data in `data/pathway/` relative to
+the current working directory. If your framework data lives elsewhere, pass
+`--data ./path/to/data/pathway` to any command.
+
 ### Validate the roster
 
 Before running analysis, check that every discipline, level, and track your
@@ -886,6 +890,12 @@ at each quarter boundary and charts how capability has evolved:
 ```sh
 npx fit-summit trajectory platform --roster ./summit.yaml --quarters 4
 ```
+
+**Prerequisites:** The roster file passed to `--roster` must be tracked in a git
+repository with multiple commits over time. `trajectory` reads the git history
+of that file to reconstruct past roster states at quarter boundaries. If the
+file is not committed, has no history, or lives outside a git repository, the
+command cannot produce results.
 
 This turns "is the team getting stronger?" from a felt sense into a structural
 answer.
