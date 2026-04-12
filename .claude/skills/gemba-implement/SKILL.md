@@ -163,10 +163,13 @@ structurally — see
 Tell the reviewer explicitly **not** to invoke `gemba-implement` itself —
 defense in depth on top of the structural fix.
 
-Address every **blocker**, **high**, and **medium** finding before pushing.
-**Low** findings are optional. If the reviewer raises blockers you disagree
-with, resolve the disagreement explicitly (fix the code, or record the rationale
-for dismissal in the commit message) — silent dismissal is not allowed.
+**Verify** every finding against the actual artifact before acting on it —
+sub-agent reviewers lack prior conversation context and can misread intent or
+flag false positives. After verification, address every confirmed **blocker**,
+**high**, and **medium** finding before pushing. **Low** findings are optional.
+If the reviewer raises blockers you disagree with, resolve the disagreement
+explicitly (fix the code, or record the rationale for dismissal in the commit
+message) — silent dismissal is not allowed.
 
 Push all commits to the remote branch only after the review is clean.
 

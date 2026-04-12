@@ -198,11 +198,14 @@ from prior `staff-engineer` entries.
    out structurally — see
    [GEMBA.md § Recursion-safe self-review](../../../GEMBA.md#recursion-safe-self-review).
    Tell the reviewer explicitly **not** to invoke `gemba-plan` itself — defense
-   in depth on top of the structural fix. Address every **blocker**, **high**,
-   and **medium** finding before moving on. **Low** findings are optional. If
-   the reviewer raises blockers you disagree with, resolve the disagreement
-   explicitly (revise, or record the rationale for dismissal) — silent dismissal
-   is not allowed.
+   in depth on top of the structural fix. **Verify** every finding against the
+   actual artifact before acting on it — sub-agent reviewers lack prior
+   conversation context and can misread intent or flag false positives. After
+   verification, address every confirmed **blocker**, **high**, and **medium**
+   finding before moving on. **Low** findings are optional. If the reviewer
+   raises blockers you disagree with, resolve the disagreement explicitly
+   (revise, or record the rationale for dismissal) — silent dismissal is not
+   allowed.
 6. **Present the plan.** Share it for feedback.
 7. **Update STATUS.** When both spec and plan are approved, advance the spec's
    status from `review` to `planned`. Do not advance while the plan is still

@@ -44,8 +44,12 @@ implement arc. Grade every finding using exactly one level:
   context is fresh. Fix before advancing.
 - **Low** — Nit or preference. Optional; document if dismissed.
 
-The caller is required to address every **blocker**, **high**, and **medium**
-finding before advancing. **Low** findings are optional.
+The caller is required to **verify** every finding against the actual artifact
+before acting on it — sub-agent reviewers operate without prior conversation
+context and can misread intent, miss surrounding code, or flag false positives.
+After verification, the caller must address every confirmed **blocker**,
+**high**, and **medium** finding before advancing. **Low** findings are
+optional.
 
 ## Process
 

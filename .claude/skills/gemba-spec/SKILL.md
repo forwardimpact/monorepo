@@ -138,11 +138,14 @@ status clearly — the caller is responsible for acting on it.
    spawns sub-agents, so the review loop bottoms out structurally — see
    [GEMBA.md § Recursion-safe self-review](../../../GEMBA.md#recursion-safe-self-review).
    Tell the reviewer explicitly **not** to invoke `gemba-spec` itself — defense
-   in depth on top of the structural fix. Address every **blocker**, **high**,
-   and **medium** finding before moving on. **Low** findings are optional. If
-   the reviewer raises blockers you disagree with, resolve the disagreement
-   explicitly (revise, or record the rationale for dismissal) — silent dismissal
-   is not allowed.
+   in depth on top of the structural fix. **Verify** every finding against the
+   actual artifact before acting on it — sub-agent reviewers lack prior
+   conversation context and can misread intent or flag false positives. After
+   verification, address every confirmed **blocker**, **high**, and **medium**
+   finding before moving on. **Low** findings are optional. If the reviewer
+   raises blockers you disagree with, resolve the disagreement explicitly
+   (revise, or record the rationale for dismissal) — silent dismissal is not
+   allowed.
 6. **Present the spec.** Share it for feedback. Iterate until satisfied, then
    set status to `review` — signalling it is ready for formal evaluation. Stop
    here. The plan is the staff engineer's job.
