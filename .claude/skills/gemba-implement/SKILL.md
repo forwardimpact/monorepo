@@ -3,7 +3,9 @@ name: gemba-implement
 description: >
   Implement a spec by studying its spec.md and plan, then executing the plan
   step by step. Use when a spec and plan are approved and ready for
-  implementation.
+  implementation. Triggers: "implement spec NNN", "implement the plan for
+  spec NNN", "execute plan NNN", "build spec NNN", "start implementation of
+  NNN".
 ---
 
 # Implement Spec
@@ -15,8 +17,10 @@ changes methodically.
 ## When to Use
 
 - A spec and plan exist with STATUS `planned` (has passed review)
-- The user says "implement spec NNN" or "execute the plan for NNN"
-- Resuming a partially completed implementation
+- The user says "implement spec NNN", "implement the plan for spec NNN",
+  "execute the plan for NNN", "build spec NNN", or "start implementation of NNN"
+- Resuming a partially completed implementation ("continue spec NNN", "finish
+  implementing NNN")
 
 ## Checklists
 
