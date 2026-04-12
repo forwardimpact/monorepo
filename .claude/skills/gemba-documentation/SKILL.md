@@ -48,7 +48,7 @@ modes of operation:
 
 </do_confirm_checklist>
 
-## 1. Scheduled Review
+## Scheduled Review
 
 Each run covers **one topic** in depth.
 
@@ -96,7 +96,7 @@ teammates' summaries). Find last review dates per topic in the coverage map.
 
 Run the DO-CONFIRM checklist at the top of this skill.
 
-## 2. Interactive Writing
+## Interactive Writing
 
 ### Writing a new page
 

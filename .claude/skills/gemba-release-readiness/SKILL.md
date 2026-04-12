@@ -18,8 +18,7 @@ branches, fix mechanical CI failures, and report status on each PR.
 
 ## Checklists
 
-<do_confirm_checklist goal="Confirm readiness pass is complete before
-reporting">
+<do_confirm_checklist goal="Confirm readiness pass is complete">
 
 - [ ] Every open PR assessed — none skipped except Dependabot.
 - [ ] Behind and stale PRs rebased on `origin/main`.

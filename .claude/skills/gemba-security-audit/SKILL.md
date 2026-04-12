@@ -20,8 +20,8 @@ description: >
 <do_confirm_checklist goal="Confirm audit topic was thoroughly checked">
 
 - [ ] Ran `just audit` locally and reported findings.
-- [ ] Reviewed all files relevant to the selected topic (not just grep).
-- [ ] Findings grounded in specific file paths and line numbers.
+- [ ] Read every file in the topic's audit scope — not just grep results.
+- [ ] Each finding cites a specific file path and line number.
 - [ ] Each finding categorized: trivial fix, structural (spec), or observation.
 - [ ] Coverage map updated with today's date for the audited topic.
 
@@ -29,8 +29,8 @@ description: >
 
 ## Audit Areas
 
-Reference material for each topic. The focused audit strategy (§ 7) selects one
-area per run and goes deep.
+Reference material for each topic. The process selects one area per run and goes
+deep.
 
 ### 1. Supply Chain — GitHub Actions
 

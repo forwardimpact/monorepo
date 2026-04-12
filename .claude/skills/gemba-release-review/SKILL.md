@@ -69,7 +69,7 @@ git add <fixed-files> && git commit -m "chore: fix formatting on main"
 git push origin main
 ```
 
-### Step 2: Tag Prefix Mapping
+### Tag Prefix Mapping
 
 | Directory          | Tag prefix | Example tag         |
 | ------------------ | ---------- | ------------------- |
@@ -83,7 +83,7 @@ git push origin main
 - **Post-1.0**: breaking (`!` suffix) → **major**; `feat` → **minor**; else →
   **patch**
 
-### Step 3: Enumerate Changed Packages
+### Step 2: Enumerate Changed Packages
 
 ```sh
 latest=$(git tag --sort=-creatordate --list "${prefix}@v*" | head -1)
@@ -96,12 +96,12 @@ fi
 
 Skip packages with no unreleased commits.
 
-### Step 4: Determine Version Bumps
+### Step 3: Determine Version Bumps
 
 Read current version from `package.json` and scan commit log since last tag.
 Apply version rules above.
 
-### Step 5: Bump, Sync, Verify
+### Step 4: Bump, Sync, Verify
 
 ```sh
 cd <package-directory>
@@ -121,7 +121,7 @@ bun install
 bun run check:fix && bun run check
 ```
 
-### Step 6: Commit and Tag
+### Step 5: Commit and Tag
 
 ```sh
 git add <package>/package.json package-lock.json
@@ -131,7 +131,7 @@ git tag <prefix>@v<version>
 
 For multiple packages: commit all bumps, then tag each.
 
-### Step 7: Push and Verify
+### Step 6: Push and Verify
 
 Push commit first, then each tag individually:
 
@@ -148,7 +148,7 @@ gh run list --limit 10 --json name,conclusion,headBranch,event
 
 If a publish fails, investigate with `gh run view <run-id> --log-failed`.
 
-### Step 8: Summary
+### Step 7: Summary
 
 ```
 | Package  | Previous | New    | Tag             | Publish |

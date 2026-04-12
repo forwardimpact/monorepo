@@ -47,17 +47,18 @@ breadth.
 
 ## Process
 
+### Step 0: Read Memory
+
+Read memory per the agent profile (your summary, the current week's log, and
+teammates' summaries). Extract workflow names and run IDs from previous cycles.
+
 ### 1. Select a Run
 
 If a specific workflow name, run ID, or URL is provided, use that run.
 
 Otherwise, select a run using memory-informed rotation:
 
-1. **Read memory** — Read memory per the agent profile (your summary, the
-   current week's log, and teammates' summaries). Extract workflow names and run
-   IDs from previous cycles.
-
-2. **Discover available runs**:
+1. **Discover available runs**:
 
    ```sh
    bash .claude/skills/gemba-walk/scripts/find-runs.sh [lookback]
@@ -67,11 +68,11 @@ Otherwise, select a run using memory-informed rotation:
    only. Returns JSON sorted newest-first with `workflow`, `run_id`, `status`,
    `conclusion`, `created_at`, `branch`, and `url` fields.
 
-3. **Avoid duplicates** — Skip run IDs already analyzed (per memory).
+2. **Avoid duplicates** — Skip run IDs already analyzed (per memory).
 
-4. **Rotate across agents** — Prefer the least-recently analyzed workflow.
+3. **Rotate across agents** — Prefer the least-recently analyzed workflow.
 
-5. **Prefer failures** — Among eligible runs, prefer non-success conclusions.
+4. **Prefer failures** — Among eligible runs, prefer non-success conclusions.
 
 Announce which run you selected and why before proceeding.
 

@@ -51,7 +51,7 @@ each check to its policy source and failure action — merge, fix, close, or ski
 | SHA-pinned actions       | CONTRIBUTING.md § Security          | **fix** — update all workflow files to the new SHA            |
 | No duplicate deps        | CONTRIBUTING.md § Dependency Policy | **close** with explanation                                    |
 | Aligned version ranges   | CONTRIBUTING.md § Dependency Policy | **fix** — align all workspace ranges                          |
-| Clean npm audit          | CONTRIBUTING.md § Dependency Policy | **close** if update introduces vuln; **skip** if pre-exist    |
+| Clean npm audit          | CONTRIBUTING.md § Dependency Policy | **close** if new vuln; **skip** if pre-existing               |
 | No unnecessary deps      | CONTRIBUTING.md § Dependency Policy | **close** with explanation                                    |
 | First-party actions only | gemba-security-audit § 1            | **close** with explanation                                    |
 | Peer/transitive compat   | CONTRIBUTING.md § Dependency Policy | **close** until co-dependent packages release compat versions |
