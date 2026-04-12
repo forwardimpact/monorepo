@@ -86,18 +86,36 @@ workflows never overlap. Off-minute schedules avoid API load spikes. All support
 All Gemba skills use the `gemba-` prefix. Each owns exactly one PDSA phase (or
 none for utilities). Reading an agent's skill list reveals its phase coverage.
 
-**Plan:** gemba-plan (specs -> executable plans). **Do:** gemba-implement
-(execute plans), gemba-security-update (Dependabot triage, vulnerability fixes),
-gemba-release-readiness (rebase, lint fix), gemba-release-review (version bumps,
-tagging, publish verification). **Study:** gemba-security-audit (seven-area
-security review), gemba-product-triage (issue classification),
-gemba-product-classify (PR mergeability gate), gemba-product-evaluation (user
-testing sessions), gemba-documentation (one topic deep per run),
-gemba-wiki-curate (agent memory hygiene), gemba-walk (trace observation via
-grounded theory). **Act:** gemba-spec (write specs capturing WHAT/WHY).
-**Utility:** gemba-gh-cli (GitHub CLI patterns for CI), gemba-review (grade a
-single artifact — leaf skill, never spawns sub-agents), gemba-ship (rebase,
-push, open PR, merge a feature branch).
+**Plan**
+
+- `gemba-plan` — specs -> executable plans
+
+**Do**
+
+- `gemba-implement` — execute plans step by step
+- `gemba-security-update` — Dependabot triage, vulnerability fixes
+- `gemba-release-readiness` — rebase, lint fix
+- `gemba-release-review` — version bumps, tagging, publish verification
+
+**Study**
+
+- `gemba-security-audit` — seven-area security review
+- `gemba-product-triage` — issue classification
+- `gemba-product-classify` — PR mergeability gate
+- `gemba-product-evaluation` — user testing sessions
+- `gemba-documentation` — one topic deep per run
+- `gemba-wiki-curate` — agent memory hygiene
+- `gemba-walk` — trace observation via grounded theory
+
+**Act**
+
+- `gemba-spec` — write specs capturing WHAT/WHY
+
+**Utility**
+
+- `gemba-gh-cli` — GitHub CLI patterns for CI
+- `gemba-review` — grade a single artifact (leaf skill, never spawns sub-agents)
+- `gemba-ship` — rebase, push, open PR, merge a feature branch
 
 ## Trust Boundary
 
