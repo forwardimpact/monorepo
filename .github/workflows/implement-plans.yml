@@ -45,7 +45,10 @@ jobs:
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           app-id: ${{ secrets.CI_APP_ID }}
-          task-text: "Implement approved plans. Select the planned spec with the lowest ID and implement it. Never ask for clarification — this is an automated workflow."
+          task-text:
+            "Implement approved plans. Select the planned spec with the lowest
+            ID and implement it. Never ask for clarification — this is an
+            automated workflow."
           agent-profile: "staff-engineer"
           model: "opus"
           max-turns: "0"

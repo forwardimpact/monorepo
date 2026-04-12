@@ -1,0 +1,49 @@
+{
+  "name": "@forwardimpact/landmark",
+  "version": "0.1.0",
+  "description": "Analysis and recommendation layer on top of Map activity data.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forwardimpact/monorepo",
+    "directory": "products/landmark"
+  },
+  "homepage": "https://www.forwardimpact.team/landmark",
+  "keywords": [
+    "engineering",
+    "analytics",
+    "framework",
+    "skills",
+    "team",
+    "getdx",
+    "github"
+  ],
+  "type": "module",
+  "main": "./src/index.js",
+  "bin": {
+    "fit-landmark": "./bin/fit-landmark.js"
+  },
+  "files": [
+    "bin/",
+    "src/"
+  ],
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libtelemetry": "^0.1.33",
+    "@forwardimpact/libutil": "^0.1.72",
+    "@forwardimpact/libskill": "^4.1.7",
+    "@forwardimpact/map": "^0.15.18",
+    "@forwardimpact/summit": "^0.1.0",
+    "@supabase/supabase-js": "^2.103.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

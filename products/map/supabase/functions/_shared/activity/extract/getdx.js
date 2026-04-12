@@ -51,7 +51,7 @@ export async function extractGetDX(supabase, config) {
     if (snapshotsResult.stored) files.push(snapshotsPath);
     else errors.push(snapshotsResult.error);
 
-    // snapshots.info for each snapshot
+    // snapshots.info and snapshots.comments.list for each snapshot
     const snapshots = snapshotsResponse.snapshots || [];
     for (const snapshot of snapshots) {
       if (snapshot.deleted_at) continue;
@@ -71,9 +71,42 @@ export async function extractGetDX(supabase, config) {
       } catch (err) {
         errors.push(`snapshots.info(${snapshot.id}): ${err.message}`);
       }
+
+      // snapshots.comments.list
+      try {
+        const commentsResponse = await fetchGetDX(
+          `/snapshots.comments.list?snapshot_id=${encodeURIComponent(snapshot.id)}`,
+          config,
+        );
+        const commentsPath = `getdx/snapshots-comments/${snapshot.id}.json`;
+        const commentsResult = await storeRaw(
+          supabase,
+          commentsPath,
+          JSON.stringify(commentsResponse),
+        );
+        if (commentsResult.stored) files.push(commentsPath);
+        else errors.push(commentsResult.error);
+      } catch (err) {
+        errors.push(`snapshots.comments.list(${snapshot.id}): ${err.message}`);
+      }
     }
   } catch (err) {
     errors.push(`snapshots.list: ${err.message}`);
+  }
+
+  // initiatives.list (org-scoped, not per-snapshot)
+  try {
+    const initiativesResponse = await fetchGetDX("/initiatives.list", config);
+    const initiativesPath = `getdx/initiatives-list/${timestamp}.json`;
+    const initiativesResult = await storeRaw(
+      supabase,
+      initiativesPath,
+      JSON.stringify(initiativesResponse),
+    );
+    if (initiativesResult.stored) files.push(initiativesPath);
+    else errors.push(initiativesResult.error);
+  } catch (err) {
+    errors.push(`initiatives.list: ${err.message}`);
   }
 
   return { files, errors };

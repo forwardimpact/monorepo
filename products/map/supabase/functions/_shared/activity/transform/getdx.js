@@ -49,10 +49,37 @@ export async function transformAllGetDX(supabase) {
     errors.push(...scoresResult.errors);
   }
 
+  // Transform snapshot comments
+  let commentCount = 0;
+  const commentsFiles = await listRaw(supabase, "getdx/snapshots-comments/");
+  for (const file of commentsFiles) {
+    const commentsResult = await transformSnapshotComments(
+      supabase,
+      `getdx/snapshots-comments/${file.name}`,
+    );
+    commentCount += commentsResult.comments;
+    errors.push(...commentsResult.errors);
+  }
+
+  // Transform initiatives from the most recent initiatives-list document
+  let initiativeCount = 0;
+  const initiativesFiles = await listRaw(supabase, "getdx/initiatives-list/");
+  if (initiativesFiles.length > 0) {
+    const latestInitiatives = `getdx/initiatives-list/${initiativesFiles[0].name}`;
+    const initiativesResult = await transformInitiatives(
+      supabase,
+      latestInitiatives,
+    );
+    initiativeCount = initiativesResult.initiatives;
+    errors.push(...initiativesResult.errors);
+  }
+
   return {
     teams: teamCount,
     snapshots: snapshotCount,
     scores: scoreCount,
+    comments: commentCount,
+    initiatives: initiativeCount,
     errors,
   };
 }
@@ -176,4 +203,144 @@ async function transformSnapshotScores(supabase, path) {
   }
 
   return { scores: scoreRows.length, errors };
+}
+
+/**
+ * Transform a stored snapshots-comments document into getdx_snapshot_comments rows.
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {string} path - Storage path
+ * @returns {Promise<{comments: number, errors: Array<string>}>}
+ */
+async function transformSnapshotComments(supabase, path) {
+  const raw = JSON.parse(await readRaw(supabase, path));
+  const comments = raw.comments || [];
+  const errors = [];
+
+  // Derive snapshot_id from the path (filename is {snapshot_id}.json)
+  const snapshotId = path.split("/").pop().replace(".json", "");
+
+  // Build email → team lookup
+  const { data: people } = await supabase
+    .from("organization_people")
+    .select("email, manager_email");
+  const managerByEmail = new Map(
+    (people || []).map((p) => [p.email, p.manager_email]),
+  );
+
+  const { data: teams } = await supabase
+    .from("getdx_teams")
+    .select("getdx_team_id, manager_email");
+  const teamByManager = new Map(
+    (teams || []).map((t) => [t.manager_email, t.getdx_team_id]),
+  );
+
+  const rows = comments.map((comment) => {
+    const email = comment.email || null;
+    const commentId =
+      comment.id ||
+      `${snapshotId}::${email ?? "anon"}::${comment.timestamp ?? Date.now()}`;
+
+    // Derive team_id from email → manager → team
+    let teamId = null;
+    if (email) {
+      const managerEmail = managerByEmail.get(email);
+      if (managerEmail) {
+        teamId = teamByManager.get(managerEmail) || null;
+      }
+    }
+
+    return {
+      comment_id: commentId,
+      snapshot_id: snapshotId,
+      email,
+      team_id: teamId,
+      text: comment.text || "",
+      timestamp: comment.timestamp || new Date().toISOString(),
+      raw: comment,
+    };
+  });
+
+  if (rows.length > 0) {
+    const { error } = await supabase
+      .from("getdx_snapshot_comments")
+      .upsert(rows, { onConflict: "comment_id" });
+
+    if (error) {
+      errors.push(`Comments for ${snapshotId}: ${error.message}`);
+      return { comments: 0, errors };
+    }
+  }
+
+  return { comments: rows.length, errors };
+}
+
+/**
+ * Transform a stored initiatives-list document into getdx_initiatives rows.
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {string} path - Storage path
+ * @returns {Promise<{initiatives: number, errors: Array<string>}>}
+ */
+async function transformInitiatives(supabase, path) {
+  const raw = JSON.parse(await readRaw(supabase, path));
+  const initiatives = raw.initiatives || [];
+  const errors = [];
+
+  const rows = initiatives.map(buildInitiativeRow);
+
+  if (rows.length > 0) {
+    // Use raw upsert — Supabase JS doesn't support COALESCE in upsert,
+    // so we preserve completed_at by checking client-side.
+    for (const row of rows) {
+      const { data: existing } = await supabase
+        .from("getdx_initiatives")
+        .select("completed_at")
+        .eq("id", row.id)
+        .maybeSingle();
+
+      // Preserve earliest completed_at
+      if (existing?.completed_at) {
+        row.completed_at = existing.completed_at;
+      }
+
+      const { error } = await supabase
+        .from("getdx_initiatives")
+        .upsert(row, { onConflict: "id" });
+
+      if (error) {
+        errors.push(`Initiative ${row.id}: ${error.message}`);
+      }
+    }
+  }
+
+  return { initiatives: rows.length - errors.length, errors };
+}
+
+/** Derive completed_at from raw initiative data. */
+function deriveCompletedAt(init) {
+  if (init.completed_at) return init.completed_at;
+  const allPassed =
+    init.passed_checks != null &&
+    init.total_checks != null &&
+    init.passed_checks === init.total_checks &&
+    init.total_checks > 0;
+  return allPassed ? new Date().toISOString() : null;
+}
+
+/** Build a database row from a raw GetDX initiative object. */
+function buildInitiativeRow(init) {
+  return {
+    id: init.id,
+    name: init.name || "(unnamed)",
+    description: init.description || null,
+    scorecard_id: init.scorecard_id || null,
+    owner_email: init.owner_email || null,
+    due_date: init.due_date || null,
+    priority: init.priority || null,
+    passed_checks: init.passed_checks ?? null,
+    total_checks: init.total_checks ?? null,
+    completion_pct: init.completion_pct ?? null,
+    tags: init.tags || null,
+    completed_at: deriveCompletedAt(init),
+    raw: init,
+  };
 }

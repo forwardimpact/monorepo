@@ -50,6 +50,31 @@ skills:
         expert:
           You define incident management strategy across the organization and
           lead response to the most critical incidents.
+    markers:
+      awareness:
+        human:
+          - Followed the incident escalation procedure when encountering an
+            issue
+        agent:
+          - Identified a failing health check and raised an alert via the
+            configured channel
+      foundational:
+        human:
+          - Gathered diagnostic information during an incident and contributed
+            findings to the post-incident review
+          - Wrote a runbook entry for a recurring operational task
+        agent:
+          - Collected relevant log entries and metrics during an incident to
+            support root cause analysis
+      working:
+        human:
+          - Led incident response for a service outage and coordinated
+            resolution across teams
+          - Conducted a blameless post-mortem that produced actionable
+            follow-ups
+        agent:
+          - Diagnosed a production issue by correlating logs, metrics, and
+            recent deployments
     agent:
       name: incident-response
       description: |

@@ -8,3 +8,19 @@
     - planning
   contributingBehaviours:
     - systems_thinking
+
+- id: reliability
+  name: Reliability
+  description: Keep systems dependable and recover quickly from disruption.
+  contributingSkills:
+    - incident_response
+  contributingBehaviours:
+    - systems_thinking
+
+- id: cognitive_load
+  name: Cognitive Load
+  description: Keep day-to-day engineering tractable by managing complexity.
+  contributingSkills:
+    - planning
+  contributingBehaviours:
+    - systems_thinking

@@ -43,6 +43,27 @@ skills:
         expert:
           You define delivery practices across the organization and drive
           completion of the most complex initiatives.
+    markers:
+      awareness:
+        human:
+          - Closed an assigned task by following a documented runbook
+        agent:
+          - Completed a task by applying an existing pattern from the codebase
+      foundational:
+        human:
+          - Delivered a small feature end-to-end with minimal rework
+          - Estimated and completed a defined task within the committed
+            timeframe
+        agent:
+          - Completed a single-file change that passes CI on the first attempt
+      working:
+        human:
+          - Delivered a feature end-to-end with no revision to the initial
+            design
+          - Independently resolved a production issue within SLA
+        agent:
+          - Completed a multi-file change that passes CI without human rework
+          - Resolved an ambiguous bug report with evidence from logs and tests
     agent:
       name: task-completion
       description: |
@@ -85,6 +106,30 @@ skills:
         expert:
           You shape planning strategy across the organization and drive delivery
           of the most complex programmes.
+    markers:
+      awareness:
+        human:
+          - Followed a project plan created by others and reported status on
+            time
+        agent:
+          - Executed a prescribed sequence of implementation steps without
+            deviation
+      foundational:
+        human:
+          - Created a task breakdown for a small feature with realistic
+            estimates
+          - Identified a dependency before it became a blocker
+        agent:
+          - Generated an implementation plan that correctly orders dependent
+            changes
+      working:
+        human:
+          - Planned and delivered a feature across multiple sprints adjusting
+            for new information
+          - Managed dependencies across two or more contributors
+        agent:
+          - Produced a multi-part plan that accounts for cross-file dependencies
+            and testing strategy
     agent:
       name: planning
       description: |
