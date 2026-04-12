@@ -497,11 +497,14 @@ npx fit-pathway question software_engineering L3
 Landmark is the analysis layer for engineering-system signals. It reads Map's
 activity layer — organization roster, GitHub artifact evidence, GetDX snapshot
 outcomes, and engineer voice comments — to produce deterministic analysis views.
-No LLM calls.
+All computation runs locally with no LLM calls.
 
 Unlike Summit (which runs fully locally from a roster file), Landmark requires
 Map's activity layer (Supabase). If you set up the activity layer in the Map
-section above, Landmark is ready to go. To explore with synthetic data first:
+section above, Landmark is ready to go. To explore with synthetic data first
+(see
+[Trying the activity layer with synthetic data](#trying-the-activity-layer-with-synthetic-data)
+in the Map section):
 
 ```sh
 npx fit-map activity start
@@ -671,8 +674,14 @@ See how organizational initiatives correlate with driver score changes:
 
 ```sh
 npx fit-landmark initiative list --manager alice@example.com
-npx fit-landmark initiative show --id initiative-123
 npx fit-landmark initiative impact --manager alice@example.com
+```
+
+`initiative list` shows active initiatives with their IDs. To drill into a
+specific initiative, pass the ID from the list output:
+
+```sh
+npx fit-landmark initiative show --id <id>
 ```
 
 `initiative impact` joins initiative completion dates to snapshot score deltas,

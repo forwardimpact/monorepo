@@ -193,19 +193,16 @@ expectations, and markers — not generic career advice.
 
 ## Landmark
 
-Landmark gives you visibility into your own practice evidence and growth data.
-It reads from Map's activity layer — the same database that stores GitHub
-artifact evidence and GetDX snapshots — to show what your engineering record
-looks like against your framework's markers.
-
 Landmark requires Map's activity layer (Supabase). If your organization has
 already set this up, Landmark works immediately. If not, see the
 [Landmark quickstart](/docs/guides/landmark-quickstart/) or the
 [leadership getting-started](/docs/getting-started/leadership/) for activity
-layer setup.
+layer setup. One command works without Supabase: `marker` reads directly from
+your framework YAML.
 
-One command works without Supabase: `marker` reads directly from your framework
-YAML.
+With the activity layer in place, Landmark gives you visibility into your own
+practice evidence and growth data — showing what your engineering record looks
+like against your framework's markers.
 
 ### Browse marker definitions
 
