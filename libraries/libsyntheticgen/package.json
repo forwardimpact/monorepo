@@ -25,6 +25,7 @@
     "./engine": "./src/engine/tier0.js",
     "./engine/entities": "./src/engine/entities.js",
     "./engine/activity": "./src/engine/activity.js",
+    "./activity": "./src/activity/index.js",
     "./vocabulary": "./src/vocabulary.js",
     "./vocabulary.js": "./src/vocabulary.js",
     "./rng": "./src/engine/rng.js",

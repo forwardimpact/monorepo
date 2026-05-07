@@ -1,7 +1,16 @@
 /**
- * Webhook generation for activity data.
+ * Webhook-stream ProseActivity — binds the GitHub webhook output to the
+ * three pipeline stages: deterministic generation (events + per-event
+ * prose keys), prose-context construction (PR-body and review-body
+ * entries), and output rendering (per-event JSON + index).
  *
- * @module libterrain/engine/activity-webhooks
+ * `TOut = { events, keys }` per design 820-A — `events` feeds render,
+ * `keys` feeds prose-context. Internal branching in `proseKeys`
+ * (PR-body vs review-body) is allowed inside the per-output method
+ * body; the call sites do not name the branches (criterion #2 of spec
+ * 820 governs call sites, not method internals).
+ *
+ * @module libsyntheticgen/activity/webhook
  */
 
 import { generateHash } from "@forwardimpact/libutil";
@@ -72,7 +81,11 @@ const REVIEW_BODIES = [
   "Approved with minor suggestions.",
 ];
 
-/** @param {import('./rng.js').SeededRNG} rng @param {Date} start @param {Date} end */
+/**
+ * @param {import('../engine/rng.js').SeededRNG} rng
+ * @param {Date} start
+ * @param {Date} end
+ */
 function randDate(rng, start, end) {
   return new Date(
     start.getTime() + rng.random() * (end.getTime() - start.getTime()),
@@ -240,12 +253,12 @@ function generatePREvents(
 /**
  * Generate all webhook events from scenarios.
  * @param {import('../dsl/parser.js').TerrainAST} ast
- * @param {import('./rng.js').SeededRNG} rng
+ * @param {import('../engine/rng.js').SeededRNG} rng
  * @param {object[]} people
  * @param {object[]} teams
  * @returns {object[]}
  */
-export function generateWebhooks(ast, rng, people, teams) {
+function generateWebhookEvents(ast, rng, people, teams) {
   const webhooks = [];
   const starts = ast.scenarios.map((s) => new Date(s.timerange_start + "-01"));
   const ends = ast.scenarios.map((s) => new Date(s.timerange_end + "-28"));
@@ -418,16 +431,17 @@ function webhookToKey(wh, scenarios, peopleByLogin, teamMap) {
 }
 
 /**
- * Generate prose key metadata for webhook events.
- * Correlates each webhook's delivery_id, sender, and occurred_at with
- * scenario driver context. No RNG consumed — all inputs are deterministic.
+ * Build prose-key metadata for webhook events. Keys are capped per
+ * `ast.snapshots.webhook_prose_cap` so a small fixture does not balloon
+ * the prose budget.
+ *
  * @param {import('../dsl/parser.js').TerrainAST} ast
  * @param {object[]} webhooks
  * @param {object[]} people
  * @param {object[]} teams
  * @returns {object[]}
  */
-export function generateWebhookKeys(ast, webhooks, people, teams) {
+function generateWebhookKeys(ast, webhooks, people, teams) {
   const peopleByLogin = new Map(people.map((p) => [p.github_username, p]));
   const teamMap = new Map(teams.map((t) => [t.id, t]));
 
@@ -443,3 +457,129 @@ export function generateWebhookKeys(ast, webhooks, people, teams) {
 
   return keys;
 }
+
+/**
+ * Generate webhook events + their prose keys.
+ *
+ * @param {object} ctx
+ * @param {import('../dsl/parser.js').TerrainAST} ctx.ast
+ * @param {import('../engine/rng.js').SeededRNG} ctx.rng
+ * @param {object} ctx.entities
+ * @param {object[]} ctx.entities.people
+ * @param {object[]} ctx.entities.teams
+ * @returns {{ events: object[], keys: object[] }}
+ */
+function generateWebhook(ctx) {
+  const { ast, rng, entities } = ctx;
+  const { people, teams } = entities;
+  const events = generateWebhookEvents(ast, rng, people, teams);
+  const keys = generateWebhookKeys(ast, events, people, teams);
+  return { events, keys };
+}
+
+/**
+ * Yield prose-context entries for PR-body and review-body prose. The
+ * branch by `prose_type` is internal to this method — the call site
+ * does not see it (criterion #2 of spec 820).
+ *
+ * @param {{ keys: object[] }} output
+ * @param {{ domain: string, orgName: string }} ctx
+ * @returns {Iterable<[string, import('./index.js').ProseContext]>}
+ */
+function* webhookProseKeys(output, { domain, orgName }) {
+  for (const wk of output.keys) {
+    if (wk.prose_type === "pr_body") {
+      yield [
+        `pr_body_${wk.delivery_id}`,
+        {
+          topic:
+            `Pull request description for "${wk.title}" in ${wk.repo} ` +
+            `(${wk.additions} additions, ${wk.deletions} deletions, ${wk.changed_files} files)`,
+          tone: "technical, first-person developer voice",
+          length: "2-4 sentences",
+          maxTokens: 200,
+          domain,
+          orgName,
+          role: `${wk.person_level} ${wk.person_discipline} on the ${wk.team_name}`,
+          scenario: wk.scenario_name,
+          drivers: wk.drivers,
+        },
+      ];
+    } else if (wk.prose_type === "review_body") {
+      yield [
+        `review_body_${wk.delivery_id}`,
+        {
+          topic: `Code review (${wk.review_state}) on a PR in ${wk.repo}`,
+          tone: "professional, reviewer voice",
+          length: "1-3 sentences",
+          maxTokens: 150,
+          domain,
+          orgName,
+          role: `${wk.person_level} ${wk.person_discipline} on the ${wk.team_name}`,
+          scenario: wk.scenario_name,
+          drivers: wk.drivers,
+        },
+      ];
+    }
+  }
+}
+
+/**
+ * Inject LLM-generated PR/review prose into a webhook event in-place.
+ * @param {object} webhook
+ * @param {Map<string,string>} [proseMap]
+ */
+function injectWebhookProse(webhook, proseMap) {
+  if (!proseMap) return;
+  const prefix =
+    webhook.event_type === "pull_request"
+      ? "pr_body_"
+      : webhook.event_type === "pull_request_review"
+        ? "review_body_"
+        : null;
+  if (!prefix) return;
+
+  const body = proseMap.get(`${prefix}${webhook.delivery_id}`);
+  if (!body) return;
+
+  if (webhook.event_type === "pull_request") {
+    webhook.payload.pull_request.body = body;
+  } else {
+    webhook.payload.review.body = body;
+  }
+}
+
+/**
+ * Render webhook event JSONs (one per delivery) plus an index file.
+ *
+ * @param {{ events: object[] }} output
+ * @param {Map<string,string>} files
+ * @param {Map<string,string>} [proseMap]
+ */
+function renderWebhook(output, files, proseMap) {
+  if (!output?.events?.length) return;
+
+  for (const webhook of output.events) {
+    injectWebhookProse(webhook, proseMap);
+    const path = `github/${webhook.delivery_id}.json`;
+    files.set(path, JSON.stringify(webhook, null, 2));
+  }
+
+  // Index file for all webhooks
+  const index = output.events.map((w) => ({
+    id: w.delivery_id,
+    type: w.event_type,
+    repo: w.payload?.repository?.full_name,
+    actor: w.payload?.sender?.login,
+    created_at: w.occurred_at,
+  }));
+  files.set("github/index.json", JSON.stringify(index, null, 2));
+}
+
+/** @type {import('./index.js').ProseActivity} */
+export const webhookActivity = {
+  id: "webhook",
+  generate: generateWebhook,
+  proseKeys: webhookProseKeys,
+  render: renderWebhook,
+};

@@ -162,12 +162,23 @@ export class ProseGenerator {
   }
 
   /**
+   * Build the rendered prompt for a prose-context entry.
+   *
+   * The scalar `driver` / `direction` / `magnitude` consumed by the
+   * template's `{{#scenario}}` block are derived from `context.drivers[0]`
+   * — the top driver (sorted by `|magnitude|`) per spec 820 design-a
+   * Decision #7. Snapshot-comment and webhook contexts both populate
+   * `drivers: DriverImpact[]`; this method is a function of the
+   * `ProseContext` entry alone, with no per-output branching.
+   *
    * @param {string} key
    * @param {object} context
    * @returns {string}
    */
   #buildPrompt(key, context) {
-    const driverContext = (context.drivers || [])
+    const drivers = context.drivers || [];
+    const top = drivers[0];
+    const driverContext = drivers
       .map(
         (d) => `- ${d.driver_id}: ${d.trajectory} (magnitude: ${d.magnitude})`,
       )
@@ -182,9 +193,13 @@ export class ProseGenerator {
       role: context.role,
       audience: context.audience,
       scenario: context.scenario,
-      driver: context.driver,
-      direction: context.direction,
-      magnitude: context.magnitude,
+      driver: top?.driver_id,
+      direction: top
+        ? top.trajectory === "declining"
+          ? "declining"
+          : "improving"
+        : undefined,
+      magnitude: top?.magnitude,
       driverContext: driverContext || undefined,
     });
   }

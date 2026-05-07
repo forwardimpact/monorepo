@@ -1,8 +1,14 @@
 /**
  * Prose Keys — collects all keys that need LLM-generated prose.
  *
- * Each key maps to a context object that guides the LLM prompt.
+ * Each key maps to a context object that guides the LLM prompt. The
+ * activity-prose branches dispatch through the `PROSE_ACTIVITIES`
+ * registration (see `libsyntheticgen/activity/`); non-activity prose
+ * (org_readme, projects, guide_html, outpost_markdown) stays inline
+ * because it is not bound by the prose-bearing activity contract.
  */
+
+import { PROSE_ACTIVITIES } from "../activity/index.js";
 
 /**
  * Add guide HTML content keys (articles, blogs, FAQs, etc).
@@ -111,35 +117,6 @@ function addOutpostKeys(keys, outpostContent, entities, domain, orgName) {
 }
 
 /**
- * Add snapshot comment keys.
- * @param {Map<string, object>} keys
- * @param {object[]} commentKeys
- * @param {string} domain
- * @param {string} orgName
- */
-function addSnapshotCommentKeys(keys, commentKeys, domain, orgName) {
-  for (const ck of commentKeys) {
-    const direction = ck.trajectory === "declining" ? "declining" : "improving";
-    keys.set(
-      `snapshot_comment_${ck.snapshot_id}_${ck.email.replace(/[@.]/g, "_")}`,
-      {
-        topic: `GetDX snapshot survey comment about ${ck.driver_name.toLowerCase()}`,
-        tone: "authentic, first-person developer voice",
-        length: "1-2 sentences",
-        maxTokens: 80,
-        domain,
-        orgName,
-        role: `${ck.person_level} ${ck.person_discipline.replace(/_/g, " ")} on the ${ck.team_name}`,
-        scenario: ck.scenario_name,
-        driver: ck.driver_name,
-        direction,
-        magnitude: ck.magnitude,
-      },
-    );
-  }
-}
-
-/**
  * Collect all prose keys from the entity graph.
  * @param {object} entities - Generated entity graph from tier0
  * @returns {Map<string, object>} key -> context for prose generation
@@ -181,61 +158,17 @@ export function collectProseKeys(entities) {
     addOutpostKeys(keys, outpostContent, entities, domain, orgName);
   }
 
-  if (entities.activity?.commentKeys) {
-    addSnapshotCommentKeys(
-      keys,
-      entities.activity.commentKeys,
-      domain,
-      orgName,
-    );
-  }
-
-  if (entities.activity?.webhookKeys) {
-    addWebhookProseKeys(keys, entities.activity.webhookKeys, domain, orgName);
+  // Activity-prose dispatch — the registration is the single source of
+  // truth for which prose-bearing activity outputs exist (criterion
+  // #1 / #2 of spec 820). Non-activity prose stays inline above.
+  const pkCtx = { domain, orgName, entities };
+  for (const pa of PROSE_ACTIVITIES) {
+    const output = entities.activity?.[pa.id];
+    if (!output) continue;
+    for (const [k, ctx] of pa.proseKeys(output, pkCtx)) keys.set(k, ctx);
   }
 
   return keys;
-}
-
-/**
- * Add webhook prose keys for PR descriptions and review bodies.
- * @param {Map<string, object>} keys
- * @param {object[]} webhookKeys
- * @param {string} domain
- * @param {string} orgName
- */
-function addWebhookProseKeys(keys, webhookKeys, domain, orgName) {
-  for (const wk of webhookKeys) {
-    if (wk.prose_type === "pr_body") {
-      keys.set(`pr_body_${wk.delivery_id}`, {
-        topic:
-          `Pull request description for "${wk.title}" in ${wk.repo} ` +
-          `(${wk.additions} additions, ${wk.deletions} deletions, ${wk.changed_files} files)`,
-        tone: "technical, first-person developer voice",
-        length: "2-4 sentences",
-        maxTokens: 200,
-        domain,
-        orgName,
-        role: `${wk.person_level} ${wk.person_discipline} on the ${wk.team_name}`,
-        scenario: wk.scenario_name,
-        drivers: wk.drivers,
-      });
-    }
-
-    if (wk.prose_type === "review_body") {
-      keys.set(`review_body_${wk.delivery_id}`, {
-        topic: `Code review (${wk.review_state}) on a PR in ${wk.repo}`,
-        tone: "professional, reviewer voice",
-        length: "1-3 sentences",
-        maxTokens: 150,
-        domain,
-        orgName,
-        role: `${wk.person_level} ${wk.person_discipline} on the ${wk.team_name}`,
-        scenario: wk.scenario_name,
-        drivers: wk.drivers,
-      });
-    }
-  }
 }
 
 /**

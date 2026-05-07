@@ -163,33 +163,36 @@ describe("activity generation", () => {
     });
   });
 
-  describe("generateCommentKeys", () => {
+  describe("commentActivity.generate", () => {
     test("generates comment keys for active snapshots", () => {
       const { activity } = generateFromDsl(MINI_TERRAIN);
       assert.ok(
-        activity.commentKeys.length > 0,
+        activity.comment.keys.length > 0,
         "should generate comment keys",
       );
     });
 
     test("comment keys have required metadata", () => {
       const { activity } = generateFromDsl(MINI_TERRAIN);
-      const ck = activity.commentKeys[0];
+      const ck = activity.comment.keys[0];
       assert.ok(ck.snapshot_id);
       assert.ok(ck.email);
       assert.ok(ck.team_id);
       assert.ok(ck.timestamp);
-      assert.ok(ck.driver_id);
-      assert.ok(ck.driver_name);
-      assert.ok(ck.trajectory);
-      assert.strictEqual(typeof ck.magnitude, "number");
+      assert.ok(
+        Array.isArray(ck.drivers) && ck.drivers.length >= 1,
+        "drivers array present",
+      );
+      assert.ok(ck.driver_name, "render-time driver_name preserved");
+      assert.ok(ck.topic_driver_id, "topic_driver_id present");
+      assert.ok(ck.topic_trajectory, "topic_trajectory present");
       assert.ok(ck.scenario_name);
       assert.ok(ck.team_name);
     });
 
     test("comment keys are stable when upstream RNG drifts", () => {
       // Run once normally.
-      const baseline = generateFromDsl(MINI_TERRAIN).activity.commentKeys;
+      const baseline = generateFromDsl(MINI_TERRAIN).activity.comment.keys;
 
       // Burn an arbitrary amount of entropy from the shared RNG before
       // generateActivity runs, simulating a cross-platform difference in
@@ -198,7 +201,7 @@ describe("activity generation", () => {
       const rng = createSeededRNG(ast.seed);
       const { teams, people } = buildEntities(ast, rng);
       for (let i = 0; i < 17; i++) rng.random();
-      const drifted = generateActivity(ast, rng, people, teams).commentKeys;
+      const drifted = generateActivity(ast, rng, people, teams).comment.keys;
 
       assert.deepStrictEqual(
         drifted.map((c) => `${c.snapshot_id}|${c.email}`),
@@ -211,12 +214,12 @@ describe("activity generation", () => {
       const { activity } = generateFromDsl(MINI_TERRAIN);
       // The first snapshot overlaps with the "pressure" scenario (declining)
       const firstSnap = activity.snapshots[0];
-      const firstSnapComments = activity.commentKeys.filter(
+      const firstSnapComments = activity.comment.keys.filter(
         (ck) => ck.snapshot_id === firstSnap.snapshot_id,
       );
       if (firstSnapComments.length > 0) {
         const decliningCount = firstSnapComments.filter(
-          (ck) => ck.trajectory === "declining",
+          (ck) => ck.topic_trajectory === "declining",
         ).length;
         assert.ok(
           decliningCount >= firstSnapComments.length * 0.5,

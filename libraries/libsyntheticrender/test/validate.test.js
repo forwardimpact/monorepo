@@ -37,16 +37,19 @@ function buildEntities(overrides = {}) {
     },
     activity: {
       roster: [{ email: "zeus@acme.com" }, { email: "athena@acme.com" }],
-      webhooks: [
-        {
-          delivery_id: "d1",
-          event_type: "push",
-          payload: {
-            repository: "repo-a",
-            sender: { login: "zeus-bio" },
+      webhook: {
+        events: [
+          {
+            delivery_id: "d1",
+            event_type: "push",
+            payload: {
+              repository: "repo-a",
+              sender: { login: "zeus-bio" },
+            },
           },
-        },
-      ],
+        ],
+        keys: [],
+      },
       activityTeams: [{ getdx_team_id: "gt1", name: "Team A" }],
       snapshots: [
         {
@@ -252,9 +255,12 @@ describe("validateCrossContent", () => {
   describe("webhook checks", () => {
     test("fails with invalid webhook schemas", () => {
       const entities = buildEntities();
-      entities.activity.webhooks = [
-        { delivery_id: "d1" }, // missing event_type, payload
-      ];
+      entities.activity.webhook = {
+        events: [
+          { delivery_id: "d1" }, // missing event_type, payload
+        ],
+        keys: [],
+      };
       const result = validateCrossContent(entities);
       const check = result.checks.find(
         (c) => c.name === "webhook_payload_schemas",
@@ -264,18 +270,21 @@ describe("validateCrossContent", () => {
 
     test("fails with duplicate webhook delivery IDs", () => {
       const entities = buildEntities();
-      entities.activity.webhooks = [
-        {
-          delivery_id: "dup",
-          event_type: "push",
-          payload: { repository: "r", sender: { login: "zeus-bio" } },
-        },
-        {
-          delivery_id: "dup",
-          event_type: "push",
-          payload: { repository: "r", sender: { login: "athena-bio" } },
-        },
-      ];
+      entities.activity.webhook = {
+        events: [
+          {
+            delivery_id: "dup",
+            event_type: "push",
+            payload: { repository: "r", sender: { login: "zeus-bio" } },
+          },
+          {
+            delivery_id: "dup",
+            event_type: "push",
+            payload: { repository: "r", sender: { login: "athena-bio" } },
+          },
+        ],
+        keys: [],
+      };
       const result = validateCrossContent(entities);
       const check = result.checks.find(
         (c) => c.name === "webhook_delivery_ids",
@@ -285,16 +294,19 @@ describe("validateCrossContent", () => {
 
     test("fails with unknown webhook sender", () => {
       const entities = buildEntities();
-      entities.activity.webhooks = [
-        {
-          delivery_id: "d1",
-          event_type: "push",
-          payload: {
-            repository: "r",
-            sender: { login: "unknown-user" },
+      entities.activity.webhook = {
+        events: [
+          {
+            delivery_id: "d1",
+            event_type: "push",
+            payload: {
+              repository: "r",
+              sender: { login: "unknown-user" },
+            },
           },
-        },
-      ];
+        ],
+        keys: [],
+      };
       const result = validateCrossContent(entities);
       const check = result.checks.find(
         (c) => c.name === "webhook_sender_usernames",
