@@ -39,6 +39,7 @@ function makeEchoPromptLoader() {
 
 function makeFixture() {
   const tmpDir = mkdtempSync(join(tmpdir(), "prose-build-prompt-"));
+  const captured = [];
   const cache = new ProseCache({
     cachePath: join(tmpDir, "cache.json"),
     logger: makeLogger(),
@@ -50,22 +51,21 @@ function makeFixture() {
     logger: makeLogger(),
     llmApi: {
       // The LLM is invoked through generatePlain — we capture the
-      // rendered user prompt off the messages array via a spy.
+      // rendered user prompt off the messages array via a spy. The
+      // `captured` array is per-fixture so concurrent test runs do not
+      // race on shared module state.
       createCompletions: async ({ messages }) => {
         captured.push(messages.find((m) => m.role === "user").content);
         return { choices: [{ message: { content: "ok" } }] };
       },
     },
   });
-  return { tmpDir, generator };
+  return { tmpDir, generator, captured };
 }
-
-const captured = [];
 
 describe("ProseGenerator #buildPrompt (criterion #4)", () => {
   test("identical contexts under different cache keys render byte-equal prompts", async () => {
-    captured.length = 0;
-    const { tmpDir, generator } = makeFixture();
+    const { tmpDir, generator, captured } = makeFixture();
     try {
       const ctx = {
         topic: "snapshot survey comment about deep work",
@@ -106,8 +106,7 @@ describe("ProseGenerator #buildPrompt (criterion #4)", () => {
   });
 
   test("different drivers produce different prompts", async () => {
-    captured.length = 0;
-    const { tmpDir, generator } = makeFixture();
+    const { tmpDir, generator, captured } = makeFixture();
     try {
       const base = {
         topic: "snapshot survey comment",
