@@ -162,7 +162,7 @@ cache has misses, the output will include a warning:
 | --------- | ---------------------------------- | -------------------------------- |
 | `--story` | `data/synthetic/story.dsl`         | Path to the DSL file             |
 | `--cache` | `data/synthetic/prose-cache.json`  | Path to the prose cache file     |
-| `--model` | `claude-opus-4-7` (via config)     | LLM model for `generate`        |
+| `--model` | `claude-haiku-4-5` (via config)    | LLM model for `generate`        |
 
 All paths are relative to the working directory.
 
