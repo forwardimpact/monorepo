@@ -51,8 +51,22 @@ function tryServeHealth(req, res) {
   return true;
 }
 
-function isAuthorized(req, expectedToken) {
-  return req.headers.authorization === `Bearer ${expectedToken}`;
+/**
+ * Constant-time comparison of an HTTP `Authorization: Bearer …` header against
+ * the configured token. Avoids leaking the token via per-byte timing of
+ * `===` short-circuit. The length-mismatch fast path is safe because the
+ * expected token's length is not itself a secret.
+ *
+ * @param {{ headers: { authorization?: unknown } }} req - Incoming HTTP request
+ * @param {string} expectedToken - The configured bearer token
+ * @returns {boolean} True if the request carries the expected token
+ */
+export function isAuthorized(req, expectedToken) {
+  const auth = req.headers.authorization;
+  if (typeof auth !== "string") return false;
+  const expected = `Bearer ${expectedToken}`;
+  if (auth.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(auth), Buffer.from(expected));
 }
 
 async function dispatchExistingSession(req, res, session, logger) {

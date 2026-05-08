@@ -2,7 +2,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 import { spy } from "@forwardimpact/libharness";
 
-import { buildPromptText, createMcpService } from "../index.js";
+import { buildPromptText, createMcpService, isAuthorized } from "../index.js";
 import { registerToolsFromConfig } from "@forwardimpact/libmcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -187,24 +187,28 @@ describe("MCP service", () => {
     });
 
     test("auth rejects missing token", async () => {
-      const expectedToken = "test-bearer-token";
-      const authHeader = undefined;
-      const authorized = authHeader && authHeader === `Bearer ${expectedToken}`;
-      assert.strictEqual(authorized, undefined);
+      const req = { headers: {} };
+      assert.strictEqual(isAuthorized(req, "test-bearer-token"), false);
     });
 
     test("auth rejects wrong token", async () => {
-      const expectedToken = "test-bearer-token";
-      const authHeader = "Bearer wrong-token";
-      const authorized = authHeader && authHeader === `Bearer ${expectedToken}`;
-      assert.strictEqual(authorized, false);
+      const req = { headers: { authorization: "Bearer wrong-token-xx" } };
+      assert.strictEqual(isAuthorized(req, "test-bearer-token"), false);
+    });
+
+    test("auth rejects wrong-length token without timingSafeEqual throwing", async () => {
+      const req = { headers: { authorization: "Bearer x" } };
+      assert.strictEqual(isAuthorized(req, "test-bearer-token"), false);
+    });
+
+    test("auth rejects non-string authorization header", async () => {
+      const req = { headers: { authorization: ["Bearer test-bearer-token"] } };
+      assert.strictEqual(isAuthorized(req, "test-bearer-token"), false);
     });
 
     test("auth accepts valid token", async () => {
-      const expectedToken = "test-bearer-token";
-      const authHeader = "Bearer test-bearer-token";
-      const authorized = authHeader && authHeader === `Bearer ${expectedToken}`;
-      assert.strictEqual(authorized, true);
+      const req = { headers: { authorization: "Bearer test-bearer-token" } };
+      assert.strictEqual(isAuthorized(req, "test-bearer-token"), true);
     });
   });
 
