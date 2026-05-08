@@ -39,17 +39,24 @@ Claude Agent SDK. Handles trace capture, splitting, and artifact upload.
 | `task-amend`          | No       | —                     | Text appended to the task                |
 | `trace`               | No       | `true`                | Enable trace capture                     |
 | `timeout-minutes`     | No       | `45`                  | Max runtime in minutes                   |
+| `case`                | No       | `default`             | Case id embedded in trace filenames      |
 
 \*Exactly one of `task-text` or `task-file` is required.
 
 ## Trace Artifacts
 
-When `trace` is enabled, the action uploads these GitHub artifacts:
+When `trace` is enabled, the action uploads one artifact per run named
+`trace--<case>` containing every trace file produced. Files inside follow the
+`trace--<case>--<participant>.<role>.ndjson` convention:
 
-| Artifact            | Contents                                              | Modes                 |
-| ------------------- | ----------------------------------------------------- | --------------------- |
-| `agent-trace`       | Agent events (`trace-agent.ndjson` or `trace.ndjson`) | All                   |
-| `supervisor-trace`  | Supervisor events (`trace-supervisor.ndjson`)         | supervise             |
-| `facilitator-trace` | Facilitator events (`trace-facilitator.ndjson`)       | facilitate            |
-| `per-agent-traces`  | Per-agent files (`trace-{name}.ndjson`)               | facilitate            |
-| `combined-trace`    | Raw combined trace (`trace.ndjson`)                   | supervise, facilitate |
+| File                                              | Contents                                                   | Modes                  |
+| ------------------------------------------------- | ---------------------------------------------------------- | ---------------------- |
+| `trace--<case>.raw.ndjson`                        | Combined trace with `{source, seq, event}` envelopes       | All                    |
+| `trace--<case>--agent.agent.ndjson`               | Unwrapped agent events (run, supervise)                    | run, supervise         |
+| `trace--<case>--<profile>.agent.ndjson`           | Per-agent unwrapped events, one file per facilitate agent  | facilitate             |
+| `trace--<case>--supervisor.supervisor.ndjson`     | Unwrapped supervisor events                                | supervise              |
+| `trace--<case>--facilitator.facilitator.ndjson`   | Unwrapped facilitator events                               | facilitate             |
+
+`<case>` defaults to `default` for non-matrix runs; matrix workflows pass
+`case: ${{ matrix.<dim>.id }}` to disambiguate per-shard artifacts. The legacy
+`artifact-suffix` input is honored with a deprecation warning.

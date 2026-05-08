@@ -65,8 +65,10 @@ export class TraceGitHub {
   /**
    * Download a trace artifact from a workflow run and extract it.
    *
-   * Tries artifact names in order: combined-trace, agent-trace.
-   * The artifact zip is downloaded and extracted to the output directory.
+   * When `opts.name` is set, looks up that exact artifact. Otherwise picks the
+   * best match from the unified `trace--<case>--<participant>.<role>` naming
+   * convention: prefer a `*.raw` artifact (combined log), then any `*.agent`,
+   * then the first `trace--*` artifact found.
    *
    * @param {number|string} runId
    * @param {object} [opts]
@@ -84,13 +86,18 @@ export class TraceGitHub {
     const artifacts = data.artifacts ?? [];
 
     // Find the trace artifact.
-    const preferredNames = opts.name
-      ? [opts.name]
-      : ["combined-trace", "agent-trace"];
     let artifact = null;
-    for (const name of preferredNames) {
-      artifact = artifacts.find((a) => a.name === name);
-      if (artifact) break;
+    if (opts.name) {
+      artifact = artifacts.find((a) => a.name === opts.name);
+    } else {
+      const traceArtifacts = artifacts.filter((a) =>
+        a.name.startsWith("trace--"),
+      );
+      artifact =
+        traceArtifacts.find((a) => a.name.endsWith(".raw")) ??
+        traceArtifacts.find((a) => a.name.endsWith(".agent")) ??
+        traceArtifacts[0] ??
+        null;
     }
 
     if (!artifact) {

@@ -65,8 +65,12 @@ inputs:
     description: Maximum minutes the agent step may run before being cancelled
     required: false
     default: "45"
+  case:
+    description: Case identifier embedded in trace artifact filenames (use the matrix case id for matrix runs; defaults to "default")
+    required: false
+    default: "default"
   artifact-suffix:
-    description: Suffix appended to uploaded trace artifact names (required to disambiguate matrix runs)
+    description: (Deprecated — pass `case` instead) Legacy alias for `case`; honored with a warning when set
     required: false
     default: ""
 
@@ -77,9 +81,24 @@ runs:
       if: inputs.trace == 'true'
       id: setup
       shell: bash
+      env:
+        CASE_INPUT: ${{ inputs.case }}
+        SUFFIX_INPUT: ${{ inputs.artifact-suffix }}
       run: |
         TRACE_DIR=$(mktemp -d)
         echo "trace-dir=$TRACE_DIR" >> "$GITHUB_OUTPUT"
+        # Resolve effective case. Explicit `case` (non-default) wins; legacy
+        # `artifact-suffix` is honored with a deprecation warning; otherwise
+        # fall through to "default".
+        if [ -n "$CASE_INPUT" ] && [ "$CASE_INPUT" != "default" ]; then
+          EFFECTIVE_CASE="$CASE_INPUT"
+        elif [ -n "$SUFFIX_INPUT" ]; then
+          echo "::warning::artifact-suffix is deprecated; pass case=<id> instead"
+          EFFECTIVE_CASE="$SUFFIX_INPUT"
+        else
+          EFFECTIVE_CASE="default"
+        fi
+        echo "case=$EFFECTIVE_CASE" >> "$GITHUB_OUTPUT"
 
     - name: Run fit-eval
       shell: bash
@@ -102,6 +121,7 @@ runs:
         MCP_SERVER: ${{ inputs.mcp-server }}
         TRACE_ENABLED: ${{ inputs.trace }}
         TRACE_DIR: ${{ steps.setup.outputs.trace-dir }}
+        TRACE_CASE: ${{ steps.setup.outputs.case }}
         TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
       run: |
         # Resolve CLI — prefer local install, fall back to npx for third-party
@@ -137,7 +157,7 @@ runs:
         fi
 
         if [ "$TRACE_ENABLED" = "true" ] && [ -n "$TRACE_DIR" ]; then
-          args+=("--output=$TRACE_DIR/trace.ndjson")
+          args+=("--output=$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson")
         fi
 
         # Mode-invariant flags. --max-turns is always forwarded; the CLI
@@ -186,11 +206,12 @@ runs:
         fi
 
     - name: Split trace
-      if: always() && inputs.trace == 'true' && inputs.mode != 'run' && steps.setup.outputs.trace-dir != ''
+      if: always() && inputs.trace == 'true' && steps.setup.outputs.trace-dir != ''
       shell: bash
       env:
         TRACE_DIR: ${{ steps.setup.outputs.trace-dir }}
         MODE: ${{ inputs.mode }}
+        TRACE_CASE: ${{ steps.setup.outputs.case }}
       run: |
         if command -v fit-trace &>/dev/null; then
           TRACE_CMD="fit-trace"
@@ -199,43 +220,14 @@ runs:
         else
           TRACE_CMD="npx --yes @forwardimpact/libeval fit-trace"
         fi
-        $TRACE_CMD split "$TRACE_DIR/trace.ndjson" --mode="$MODE" --output-dir="$TRACE_DIR"
+        $TRACE_CMD split "$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson" \
+          --mode="$MODE" \
+          --case="$TRACE_CASE" \
+          --output-dir="$TRACE_DIR"
 
-    - name: Upload agent trace
+    - name: Upload trace bundle
       if: always() && inputs.trace == 'true' && steps.setup.outputs.trace-dir != ''
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       with:
-        name: agent-trace${{ inputs.artifact-suffix && format('-{0}', inputs.artifact-suffix) || '' }}
-        path: |
-          ${{ (inputs.mode == 'supervise' || inputs.mode == 'facilitate') && format('{0}/trace-agent.ndjson', steps.setup.outputs.trace-dir) || format('{0}/trace.ndjson', steps.setup.outputs.trace-dir) }}
-
-    - name: Upload supervisor trace
-      if: always() && inputs.trace == 'true' && inputs.mode == 'supervise' && steps.setup.outputs.trace-dir != ''
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-      with:
-        name: supervisor-trace${{ inputs.artifact-suffix && format('-{0}', inputs.artifact-suffix) || '' }}
-        path: ${{ steps.setup.outputs.trace-dir }}/trace-supervisor.ndjson
-
-    - name: Upload facilitator trace
-      if: always() && inputs.trace == 'true' && inputs.mode == 'facilitate' && steps.setup.outputs.trace-dir != ''
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-      with:
-        name: facilitator-trace${{ inputs.artifact-suffix && format('-{0}', inputs.artifact-suffix) || '' }}
-        path: ${{ steps.setup.outputs.trace-dir }}/trace-facilitator.ndjson
-
-    - name: Upload per-agent traces
-      if: always() && inputs.trace == 'true' && inputs.mode == 'facilitate' && steps.setup.outputs.trace-dir != ''
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-      with:
-        name: per-agent-traces${{ inputs.artifact-suffix && format('-{0}', inputs.artifact-suffix) || '' }}
-        path: |
-          ${{ steps.setup.outputs.trace-dir }}/trace-*.ndjson
-          !${{ steps.setup.outputs.trace-dir }}/trace-facilitator.ndjson
-          !${{ steps.setup.outputs.trace-dir }}/trace-agent.ndjson
-
-    - name: Upload combined trace
-      if: always() && inputs.trace == 'true' && (inputs.mode == 'supervise' || inputs.mode == 'facilitate') && steps.setup.outputs.trace-dir != ''
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-      with:
-        name: combined-trace${{ inputs.artifact-suffix && format('-{0}', inputs.artifact-suffix) || '' }}
-        path: ${{ steps.setup.outputs.trace-dir }}/trace.ndjson
+        name: trace--${{ steps.setup.outputs.case }}
+        path: ${{ steps.setup.outputs.trace-dir }}/trace--*.ndjson

@@ -23,8 +23,10 @@ npx fit-trace runs                        # list recent workflow runs
 npx fit-trace download 24497273755        # downloads to /tmp/trace-24497273755/
 ```
 
-The download produces `trace.ndjson` and `structured.json`. Both formats work
-as input to every query command below.
+The download extracts the artifact zip (`trace--<case>--<participant>.<role>.ndjson`
+files plus the combined `trace--<case>.raw.ndjson`) and produces a
+`structured.json` derived from the first NDJSON file. Both NDJSON files and
+`structured.json` work as input to every query command below.
 
 ## Orient with the overview
 
@@ -138,15 +140,19 @@ For supervised or facilitated runs, split the combined trace into per-source
 files so you can see what each agent saw independently:
 
 ```sh
-npx fit-trace split /tmp/trace-24497273755/structured.json --mode=facilitate
+npx fit-trace split /tmp/trace-24497273755/structured.json --mode=facilitate --case=demo
 ```
 
-This produces `trace-facilitator.ndjson`, `trace-<participant>.ndjson`, and a
-combined `trace-agent.ndjson` in the same directory. Each file works as input
-to every query command above.
+This produces files in the same directory following the
+`trace--<case>--<participant>.<role>.ndjson` convention:
+`trace--demo--facilitator.facilitator.ndjson` and one
+`trace--demo--<participant>.agent.ndjson` per participant. Each file works as
+input to every query command above.
 
-For supervised runs, use `--mode=supervise` to get `trace-agent.ndjson` and
-`trace-supervisor.ndjson`.
+For supervised runs, use `--mode=supervise` to get
+`trace--<case>--agent.agent.ndjson` and
+`trace--<case>--supervisor.supervisor.ndjson`. `--case` defaults to `default`;
+matrix workflows pass the case id so per-shard artifacts stay isolated.
 
 ## Navigate individual turns
 

@@ -70,10 +70,13 @@ Search options: `--limit N` (max results), `--context N` (surrounding turns),
 
 Reasoning options: `--from N` and `--to N` to limit turn range.
 
-Split mode: `run` (no-op), `supervise`, or `facilitate`. Produces
-`trace-{name}.ndjson` files (e.g., `trace-agent.ndjson`,
-`trace-facilitator.ndjson`, `trace-security-engineer.ndjson`). Use
-`--output-dir` to control where files are written.
+Split modes: `run`, `supervise`, or `facilitate`. Produces files named
+`trace--<case>--<participant>.<role>.ndjson` (e.g.,
+`trace--default--agent.agent.ndjson`,
+`trace--default--facilitator.facilitator.ndjson`,
+`trace--demo--security-engineer.agent.ndjson`). Pass `--case <id>` to embed a
+case identifier (defaults to `default`) and `--output-dir` to control where
+files are written.
 
 ### Global Options
 

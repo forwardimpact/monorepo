@@ -152,11 +152,22 @@ export async function runFilterCommand(values, args) {
 
 // --- Split command ---
 
-/** Valid agent source name pattern: lowercase letter, then lowercase alphanumeric or hyphen */
+/** Valid source name pattern: lowercase letter, then lowercase alphanumeric or hyphen. */
 const VALID_SOURCE_NAME = /^[a-z][a-z0-9-]*$/;
 
+/** Sources whose name is itself a structural role; classified into the role they represent. */
+const STRUCTURAL_ROLES = new Set(["agent", "supervisor", "facilitator"]);
+
 /**
- * Split a combined NDJSON trace into per-source files.
+ * Split a combined NDJSON trace into per-source files using the
+ * `trace--<case>--<participant>.<role>.ndjson` convention.
+ *
+ * Each valid envelope source becomes one output file. Structural sources
+ * (`agent`, `supervisor`, `facilitator`) classify into the matching role and
+ * use their own name as participant; profile-named sources (e.g.
+ * `staff-engineer`) classify as agents with the profile in the participant
+ * slot. Orchestrator events and invalid source names are dropped.
+ *
  * @param {object} values - Parsed option values
  * @param {string[]} args - [file]
  */
@@ -166,24 +177,24 @@ export async function runSplitCommand(values, args) {
 
   const mode = values.mode;
   if (!mode) throw new Error("split: --mode is required");
-
-  if (mode === "run") {
-    process.stdout.write(
-      "run mode: trace is already in final form, no split needed\n",
-    );
-    return;
+  if (!["run", "supervise", "facilitate"].includes(mode)) {
+    throw new Error(`split: invalid --mode "${mode}"`);
   }
 
+  const caseId = values.case ?? "default";
   const outputDir = values["output-dir"] || dirname(file);
   mkdirSync(outputDir, { recursive: true });
 
   const buckets = parseBuckets(readFileSync(file, "utf8"));
 
-  if (mode === "supervise") {
-    writeBucket(buckets, "agent", outputDir);
-    writeBucket(buckets, "supervisor", outputDir);
-  } else if (mode === "facilitate") {
-    splitFacilitated(buckets, outputDir);
+  for (const [source, lines] of buckets.entries()) {
+    if (!VALID_SOURCE_NAME.test(source)) continue;
+    const role = STRUCTURAL_ROLES.has(source) ? source : "agent";
+    const outPath = join(
+      outputDir,
+      `trace--${caseId}--${source}.${role}.ndjson`,
+    );
+    writeFileSync(outPath, lines.join("\n") + "\n");
   }
 }
 
@@ -217,44 +228,6 @@ function parseBuckets(content) {
   }
 
   return buckets;
-}
-
-/**
- * Write facilitated mode split: facilitator, per-agent, and combined agent files.
- * @param {Map<string, string[]>} buckets
- * @param {string} outputDir
- */
-function splitFacilitated(buckets, outputDir) {
-  writeBucket(buckets, "facilitator", outputDir);
-
-  const agentSources = [...buckets.keys()].filter(
-    (s) => s !== "facilitator" && VALID_SOURCE_NAME.test(s),
-  );
-
-  for (const name of agentSources) {
-    writeBucket(buckets, name, outputDir);
-  }
-
-  const combinedLines = agentSources.flatMap((n) => buckets.get(n) ?? []);
-  if (combinedLines.length > 0) {
-    writeFileSync(
-      join(outputDir, "trace-agent.ndjson"),
-      combinedLines.join("\n") + "\n",
-    );
-  }
-}
-
-/**
- * Write a single source bucket to a trace-{name}.ndjson file.
- * @param {Map<string, string[]>} buckets
- * @param {string} name
- * @param {string} outputDir
- */
-function writeBucket(buckets, name, outputDir) {
-  const lines = buckets.get(name);
-  if (!lines || lines.length === 0) return;
-  const outPath = join(outputDir, `trace-${name}.ndjson`);
-  writeFileSync(outPath, lines.join("\n") + "\n");
 }
 
 // --- Shared helpers ---

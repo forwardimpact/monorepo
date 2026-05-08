@@ -168,7 +168,7 @@ jobs:
           allowed-tools: "Bash,Read,Glob,Grep,Write,Edit"
           mcp-server: "guide"
           task-amend: ${{ inputs.task-amend }}
-          artifact-suffix: ${{ matrix.case.id }}
+          case: ${{ matrix.case.id }}
 
       - name: Dump service logs
         if: failure()
