@@ -12,8 +12,8 @@ development team running on GitHub Actions, organized as a daily
 features and hardening the repo, study their own execution traces and outputs,
 and act on findings — closing the loop every day. The name follows Toyota Kata:
 agents grasp the current condition (via prior-run traces), establish target
-conditions (via specs), and experiment toward them (via implementation). Eight
-workflows (five scheduled agent runs across three shifts, a daily storyboard, an
+conditions (via specs), and experiment toward them (via implementation). Four
+workflows (a sequential agent team across three shifts, a daily storyboard, an
 on-demand coaching session, an event-driven conversation responder), six agent
 personas, and fifteen skills form this cycle.
 
@@ -92,34 +92,33 @@ fallback. An agent reports clean only after exhausting all four levels.
 
 ## Workflows
 
-Seven scheduled workflows run on a three-shift Europe/Paris rhythm: **night** by
-07:00, **storyboard** at 08:00, **day** by 15:00, **swing** by 23:00. Each shift
-forms a producer → reviewer → shipper chain: product-manager triages and
-approves spec quality so staff has a fresh backlog, staff implements,
-technical-writer reviews docs, release gates and ships. The night shift — the
-full cycle before the morning storyboard — additionally slots security-engineer
-between staff and technical-writer to review code before it ships; day and swing
-skip security (CVE-driven work runs on demand via Dependabot).
-Crons are authored in UTC; Paris times below use CEST (UTC+2), the tighter
-summer bound. An eighth workflow, **agent-react**, runs on PR comments, new
-discussions, and discussion comments — the release engineer facilitates and
-routes the comment to the participant best suited to respond, and translates
-conversational approvals into the canonical `<phase>:approved` label or APPROVED
-review. All workflows support `workflow_dispatch`, use concurrency groups, and
-time out at 30 minutes. Agent workflows send a generic prompt; the agent's
-Assess section picks the action. Storyboard and coaching send specific prompts
-to the improvement coach.
+A single scheduled workflow, **agent-team**, runs the producer → reviewer →
+shipper chain on a three-shift Europe/Paris rhythm: **night** kicks off at
+03:00, **storyboard** at 08:00, **day** at 12:00, **swing** at 20:00. Each
+shift's matrix runs sequentially: product-manager triages and approves spec
+quality so staff has a fresh backlog, staff implements, technical-writer
+reviews docs, release-engineer gates and ships, improvement-coach reviews the
+shift. The night shift — the full cycle before the morning storyboard —
+additionally slots security-engineer between staff and technical-writer to
+review code before it ships; day and swing skip security (CVE-driven work runs
+on demand via Dependabot). Adding or removing an agent is a one-line edit to
+the matrix in `.github/workflows/agent-team.yml`. Crons are authored in UTC;
+Paris times below use CEST (UTC+2), the tighter summer bound. A separate
+event-driven workflow, **agent-react**, runs on PR comments, new discussions,
+and discussion comments — the release engineer facilitates and routes the
+comment to the participant best suited to respond, and translates
+conversational approvals into the canonical `<phase>:approved` label or
+APPROVED review. All workflows support `workflow_dispatch`, use concurrency
+groups, and time out at 30 minutes. Agent workflows send a generic prompt; the
+agent's Assess section picks the action. Storyboard and coaching send specific
+prompts to the improvement coach.
 
-| Workflow                    | Schedule (Paris, CEST)                | Agent                                    |
-| --------------------------- | ------------------------------------- | ---------------------------------------- |
-| **kata-storyboard**         | Daily 08:00                           | improvement-coach (facilitates 5 agents) |
-| **kata-coaching**           | `workflow_dispatch`                   | improvement-coach (facilitates 1 agent)  |
-| **agent-product-manager**   | Night 03:23 · Day 12:17 · Swing 20:17 | product-manager                          |
-| **agent-staff-engineer**    | Night 04:11 · Day 13:11 · Swing 21:11 | staff-engineer                           |
-| **agent-security-engineer** | Night 04:53                           | security-engineer                        |
-| **agent-technical-writer**  | Night 05:37 · Day 13:47 · Swing 21:47 | technical-writer                         |
-| **agent-release-engineer**  | Night 06:23 · Day 14:23 · Swing 22:23 | release-engineer                         |
-| **agent-react**             | On PR/discussion activity             | release-engineer (facilitates 4 agents)  |
+| Workflow            | Schedule (Paris, CEST)              | Agent                                                                                                                  |
+| ------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **kata-storyboard** | Daily 08:00                         | improvement-coach (facilitates 5 agents)                                                                               |
+| **kata-coaching**   | `workflow_dispatch`                 | improvement-coach (facilitates 1 agent)                                                                                |
+| **agent-team**      | Night 03:00 · Day 12:00 · Swing 20:00 | product-manager → staff-engineer → security-engineer (night only) → technical-writer → release-engineer → improvement-coach |
+| **agent-react**     | On PR/discussion activity           | release-engineer (facilitates 4 agents)                                                                                |
 
 ## Skills
 

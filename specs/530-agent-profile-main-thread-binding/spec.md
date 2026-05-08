@@ -236,11 +236,11 @@ unreliable and the spec's direction is to move off it rather than refine it.
    name (top-level `agent` in SDK query options, `--agent` CLI flag) returns no
    call sites inside libeval's source. Test fixtures and historical
    documentation may still reference it.
-3. On the next scheduled run of each agent workflow (`agent-technical-writer`,
-   `agent-security-engineer`, `agent-staff-engineer`, `agent-release-engineer`,
-   `agent-product-manager`) after the fix lands, the trace contains the
-   profile's voice marker (`— Technical Writer 📝`, `— Security Engineer 🔒`,
-   etc.) in at least one text block. The markers are authored only in
-   `.claude/agents/<name>.md`; their appearance confirms profile content reached
-   the main thread and is a signal the fix survived the scheduled-run
-   integration path, not only the libeval test harness.
+3. On the next scheduled run of the `agent-team` workflow after the fix lands,
+   the per-agent traces (technical-writer, security-engineer, staff-engineer,
+   release-engineer, product-manager) contain the profile's voice marker
+   (`— Technical Writer 📝`, `— Security Engineer 🔒`, etc.) in at least one
+   text block. The markers are authored only in `.claude/agents/<name>.md`;
+   their appearance confirms profile content reached the main thread and is a
+   signal the fix survived the scheduled-run integration path, not only the
+   libeval test harness.
