@@ -91,7 +91,7 @@
     },
     "libraries/libeval": {
       "name": "@forwardimpact/libeval",
-      "version": "0.1.30",
+      "version": "0.1.31",
       "bin": {
         "fit-eval": "./bin/fit-eval.js",
         "fit-trace": "./bin/fit-trace.js",
@@ -312,7 +312,7 @@
     },
     "libraries/libsyntheticgen": {
       "name": "@forwardimpact/libsyntheticgen",
-      "version": "0.1.18",
+      "version": "0.1.19",
       "dependencies": {
         "@forwardimpact/libutil": "^0.1.61",
         "seedrandom": "^3.0.5",
@@ -326,7 +326,7 @@
     },
     "libraries/libsyntheticprose": {
       "name": "@forwardimpact/libsyntheticprose",
-      "version": "0.1.23",
+      "version": "0.1.24",
       "dependencies": {
         "@forwardimpact/libprompt": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.23",
@@ -338,7 +338,7 @@
     },
     "libraries/libsyntheticrender": {
       "name": "@forwardimpact/libsyntheticrender",
-      "version": "0.1.22",
+      "version": "0.1.23",
       "dependencies": {
         "@forwardimpact/libsyntheticgen": "^0.1.0",
         "@forwardimpact/libtemplate": "^0.2.0",
@@ -379,7 +379,7 @@
     },
     "libraries/libterrain": {
       "name": "@forwardimpact/libterrain",
-      "version": "0.1.25",
+      "version": "0.1.26",
       "bin": {
         "fit-terrain": "./bin/fit-terrain.js",
       },
@@ -741,6 +741,8 @@
   "overrides": {
     "@anthropic-ai/sdk": "^0.91.1",
     "@hono/node-server": "^2.0.0",
+    "fast-uri": "^3.1.2",
+    "fast-xml-builder": "^1.1.7",
     "hono": "^4.12.18",
     "ip-address": "^10.2.0",
     "lodash": "^4.18.0",
@@ -1456,9 +1458,9 @@
 
     "fast-levenshtein": ["fast-levenshtein@2.0.6", "", {}, "sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw=="],
 
-    "fast-uri": ["fast-uri@3.1.0", "", {}, "sha512-iPeeDKJSWf4IEOasVVrknXpaBV0IApz/gp7S2bb7Z4Lljbl2MGJRqInZiUrQwV16cpzw/D3S5j5Julj/gT52AA=="],
+    "fast-uri": ["fast-uri@3.1.2", "", {}, "sha512-rVjf7ArG3LTk+FS6Yw81V1DLuZl1bRbNrev6Tmd/9RaroeeRRJhAt7jg/6YFxbvAQXUCavSoZhPPj6oOx+5KjQ=="],
 
-    "fast-xml-builder": ["fast-xml-builder@1.1.5", "", { "dependencies": { "path-expression-matcher": "^1.1.3" } }, "sha512-4TJn/8FKLeslLAH3dnohXqE3QSoxkhvaMzepOIZytwJXZO69Bfz0HBdDHzOTOon6G59Zrk6VQ2bEiv1t61rfkA=="],
+    "fast-xml-builder": ["fast-xml-builder@1.2.0", "", { "dependencies": { "path-expression-matcher": "^1.5.0", "xml-naming": "^0.1.0" } }, "sha512-00aAWieqff+ZJhsXA4g1g7M8k+7AYoMUUHF+/zFb5U6Uv/P0Vl4QZo84/IcufzYalLuEj9928bXN9PbbFzMF0Q=="],
 
     "fast-xml-parser": ["fast-xml-parser@5.7.2", "", { "dependencies": { "@nodable/entities": "^2.1.0", "fast-xml-builder": "^1.1.5", "path-expression-matcher": "^1.5.0", "strnum": "^2.2.3" }, "bin": { "fxparser": "src/cli/cli.js" } }, "sha512-P7oW7tLbYnhOLQk/Gv7cZgzgMPP/XN03K02/Jy6Y/NHzyIAIpxuZIM/YqAkfiXFPxA2CTm7NtCijK9EDu09u2w=="],
 
@@ -1929,6 +1931,8 @@
     "ws": ["ws@8.19.0", "", { "peerDependencies": { "bufferutil": "^4.0.1", "utf-8-validate": ">=5.0.2" }, "optionalPeers": ["bufferutil", "utf-8-validate"] }, "sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg=="],
 
     "xml-name-validator": ["xml-name-validator@5.0.0", "", {}, "sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg=="],
+
+    "xml-naming": ["xml-naming@0.1.0", "", {}, "sha512-k8KO9hrMyNk6tUWqUfkTEZbezRRpONVOzUTnc97VnCvyj6Tf9lyUR9EDAIeiVLv56jsMcoXEwjW8Kv5yPY52lw=="],
 
     "xmlchars": ["xmlchars@2.2.0", "", {}, "sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw=="],
 
