@@ -29,3 +29,10 @@ dual-record window, record only when an experiment requires it.
 **Tagging:** the `note`/`run` column should carry the experiment tag (e.g.
 `docs-ceiling-stock-W19-W20`) so post-window XmR analysis can filter the
 window cleanly.
+
+## Series phasing
+
+- **Phase 0 (pre-protocol)** — series rows up to and including 2026-04-30. First-pass topic discovery; high-variance review behavior (e.g., s4=24 internals-review 4/19 captured 5 phantom code paths from libskill that have since been fixed).
+- **Phase 1 (post-ratification)** — series rows from 2026-05-01 forward. Ceiling-first activation rule (TW Exp 30) in force; review-mode-only recording (TW Exp 35) in force.
+
+XmR analysis for ongoing process control should compute on Phase 1 only. Phase 0 rows are retained for historical context but do not characterise current process variance.
