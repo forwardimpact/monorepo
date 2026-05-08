@@ -127,26 +127,26 @@ specs merge only the document, not code.
 
 ## The Workflows
 
-Six scheduled workflows run on a three-shift Europe/Paris rhythm — **night** by
-07:00, **storyboard** at 08:00, **day** by 15:00, **swing** by 23:00 — plus an
+A single scheduled **agent-team** workflow runs the producer → reviewer →
+shipper chain on a three-shift Europe/Paris rhythm — **night** kicks off at
+03:00, **storyboard** at 08:00, **day** at 12:00, **swing** at 20:00 — plus an
 event-driven **agent-react** workflow on PR and discussion activity, and an
 on-demand **kata-coaching** workflow dispatched manually.
 
-| Workflow                    | Schedule (Paris, CEST)                | Agent                                    |
-| --------------------------- | ------------------------------------- | ---------------------------------------- |
-| **kata-storyboard**         | Daily 08:00                           | improvement-coach (facilitates 5 agents) |
-| **kata-coaching**           | `workflow_dispatch`                   | improvement-coach (facilitates 1 agent)  |
-| **agent-product-manager**   | Night 03:23 · Day 12:17 · Swing 20:17 | product-manager                          |
-| **agent-staff-engineer**    | Night 04:11 · Day 13:11 · Swing 21:11 | staff-engineer                           |
-| **agent-security-engineer** | Night 04:53                           | security-engineer                        |
-| **agent-technical-writer**  | Night 05:37                           | technical-writer                         |
-| **agent-release-engineer**  | Night 06:23 · Day 14:23 · Swing 22:23 | release-engineer                         |
-| **agent-react**             | On PR/discussion activity             | product-manager (facilitates 4 agents)   |
+| Workflow            | Schedule (Paris, CEST)              | Agent                                                                                                                  |
+| ------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **kata-storyboard** | Daily 08:00                         | improvement-coach (facilitates 5 agents)                                                                               |
+| **kata-coaching**   | `workflow_dispatch`                 | improvement-coach (facilitates 1 agent)                                                                                |
+| **agent-team**      | Night 03:00 · Day 12:00 · Swing 20:00 | product-manager → staff-engineer → security-engineer (night only) → technical-writer → release-engineer → improvement-coach |
+| **agent-react**     | On PR/discussion activity           | release-engineer (facilitates 4 agents)                                                                                |
 
-Each shift forms a **producer → reviewer → shipper** chain: the product manager
-triages and merges so staff has a fresh backlog, staff implements, release
-ships. The night shift slots security-engineer and technical-writer between
-staff and release.
+Within each shift the agent-team matrix runs sequentially: the product manager
+triages and approves spec quality so staff has a fresh backlog, staff
+implements, technical-writer reviews docs, release-engineer gates and ships,
+improvement-coach reviews the shift. The night shift additionally slots
+security-engineer between staff and technical-writer; day and swing skip
+security. Adding or removing an agent is a one-line edit to the matrix in
+`.github/workflows/agent-team.yml`.
 
 ---
 
