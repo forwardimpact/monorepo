@@ -108,7 +108,7 @@ const definition = {
       },
       examples: [
         "bunx fit-terrain generate",
-        "bunx fit-terrain generate --model=claude-opus-4-7",
+        "bunx fit-terrain generate --model=claude-sonnet-4-6",
       ],
     },
     {
@@ -142,7 +142,7 @@ const logger = createLogger("terrain");
 async function resolveLlmApi(config, modelOverride) {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const token = await config.anthropicToken();
-  const model = modelOverride || config.LLM_MODEL || "claude-opus-4-7";
+  const model = modelOverride || config.LLM_MODEL || "claude-haiku-4-5";
   const client = new Anthropic({ apiKey: token });
 
   return {
@@ -182,7 +182,7 @@ async function runVerb(options) {
   const { verb, inspectStage } = options;
 
   const config = await createScriptConfig("terrain", {
-    LLM_MODEL: "claude-opus-4-7",
+    LLM_MODEL: "claude-haiku-4-5",
   });
 
   const mode = verb === "generate" ? "generate" : "cached";

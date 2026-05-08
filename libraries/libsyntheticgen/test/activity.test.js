@@ -6,6 +6,7 @@ import { createSeededRNG } from "../src/engine/rng.js";
 import { buildEntities } from "../src/engine/entities.js";
 import { generateActivity } from "../src/engine/activity.js";
 import { assertThrowsMessage } from "@forwardimpact/libharness";
+import { MINI_TERRAIN } from "./fixtures/mini-terrain.fixture.js";
 
 /**
  * Helper: parse DSL, build entities, generate activity.
@@ -22,123 +23,6 @@ function generateFromDsl(source) {
   const activity = generateActivity(ast, rng, people, teams);
   return { ast, orgs, departments, teams, people, projects, activity };
 }
-
-const MINI_TERRAIN = `terrain test {
-  domain "test.example"
-  seed 42
-
-  org hq { name "HQ" location "NY" }
-
-  department eng {
-    name "Engineering"
-    parent hq
-    headcount 10
-
-    team alpha {
-      name "Alpha Team"
-      size 5
-      manager @zeus
-      repos ["repo-a"]
-    }
-
-    team beta {
-      name "Beta Team"
-      size 5
-      manager @hera
-      repos ["repo-b"]
-    }
-  }
-
-  people {
-    count 10
-    names "greek_mythology"
-    distribution {
-      L1 40%
-      L2 30%
-      L3 20%
-      L4 10%
-    }
-    disciplines {
-      software_engineering 80%
-      data_engineering 20%
-    }
-  }
-
-  project proj_a {
-    name "Project Alpha"
-    type "platform"
-    teams [alpha, beta]
-    timeline_start 2024-06
-    timeline_end 2025-06
-  }
-
-  snapshots {
-    quarterly_from 2024-07
-    quarterly_to 2025-07
-    account_id "acct_test"
-    comments_per_snapshot 5
-  }
-
-  scenario pressure {
-    name "Release Pressure"
-    timerange_start 2024-07
-    timerange_end 2025-01
-
-    affect alpha {
-      github_commits "spike"
-      github_prs "elevated"
-      dx_drivers {
-        deep_work { trajectory "declining" magnitude -6 }
-        ease_of_release { trajectory "declining" magnitude -4 }
-      }
-      evidence_skills [architecture_design]
-      evidence_floor "working"
-    }
-  }
-
-  scenario improvement {
-    name "Culture Improvement"
-    timerange_start 2025-01
-    timerange_end 2025-06
-
-    affect beta {
-      github_commits "moderate"
-      github_prs "moderate"
-      dx_drivers {
-        learning_culture { trajectory "rising" magnitude 5 }
-        connectedness { trajectory "rising" magnitude 3 }
-      }
-      evidence_skills [team_collaboration]
-      evidence_floor "foundational"
-    }
-  }
-
-  standard {
-    proficiencies [awareness, foundational, working, practitioner, expert]
-    drivers {
-      deep_work {
-        name "Deep Work"
-        skills [architecture_design, data_integration]
-        behaviours []
-      }
-      ease_of_release {
-        name "Ease of Release"
-        skills [change_management, sre_practices]
-        behaviours []
-      }
-      learning_culture {
-        name "Learning Culture"
-        skills [mentoring, technical_writing]
-        behaviours []
-      }
-      connectedness {
-        name "Connectedness"
-        skills [team_collaboration, stakeholder_management]
-        behaviours []
-      }
-    }
-  }
-}`;
 
 describe("DSL distribution key validation", () => {
   test("rejects distribution keys that don't match standard levels", () => {
@@ -279,33 +163,36 @@ describe("activity generation", () => {
     });
   });
 
-  describe("generateCommentKeys", () => {
+  describe("commentActivity.generate", () => {
     test("generates comment keys for active snapshots", () => {
       const { activity } = generateFromDsl(MINI_TERRAIN);
       assert.ok(
-        activity.commentKeys.length > 0,
+        activity.comment.keys.length > 0,
         "should generate comment keys",
       );
     });
 
     test("comment keys have required metadata", () => {
       const { activity } = generateFromDsl(MINI_TERRAIN);
-      const ck = activity.commentKeys[0];
+      const ck = activity.comment.keys[0];
       assert.ok(ck.snapshot_id);
       assert.ok(ck.email);
       assert.ok(ck.team_id);
       assert.ok(ck.timestamp);
-      assert.ok(ck.driver_id);
-      assert.ok(ck.driver_name);
-      assert.ok(ck.trajectory);
-      assert.strictEqual(typeof ck.magnitude, "number");
+      assert.ok(
+        Array.isArray(ck.drivers) && ck.drivers.length >= 1,
+        "drivers array present",
+      );
+      assert.ok(ck.driver_name, "render-time driver_name preserved");
+      assert.ok(ck.topic_driver_id, "topic_driver_id present");
+      assert.ok(ck.topic_trajectory, "topic_trajectory present");
       assert.ok(ck.scenario_name);
       assert.ok(ck.team_name);
     });
 
     test("comment keys are stable when upstream RNG drifts", () => {
       // Run once normally.
-      const baseline = generateFromDsl(MINI_TERRAIN).activity.commentKeys;
+      const baseline = generateFromDsl(MINI_TERRAIN).activity.comment.keys;
 
       // Burn an arbitrary amount of entropy from the shared RNG before
       // generateActivity runs, simulating a cross-platform difference in
@@ -314,7 +201,7 @@ describe("activity generation", () => {
       const rng = createSeededRNG(ast.seed);
       const { teams, people } = buildEntities(ast, rng);
       for (let i = 0; i < 17; i++) rng.random();
-      const drifted = generateActivity(ast, rng, people, teams).commentKeys;
+      const drifted = generateActivity(ast, rng, people, teams).comment.keys;
 
       assert.deepStrictEqual(
         drifted.map((c) => `${c.snapshot_id}|${c.email}`),
@@ -327,12 +214,12 @@ describe("activity generation", () => {
       const { activity } = generateFromDsl(MINI_TERRAIN);
       // The first snapshot overlaps with the "pressure" scenario (declining)
       const firstSnap = activity.snapshots[0];
-      const firstSnapComments = activity.commentKeys.filter(
+      const firstSnapComments = activity.comment.keys.filter(
         (ck) => ck.snapshot_id === firstSnap.snapshot_id,
       );
       if (firstSnapComments.length > 0) {
         const decliningCount = firstSnapComments.filter(
-          (ck) => ck.trajectory === "declining",
+          (ck) => ck.topic_trajectory === "declining",
         ).length;
         assert.ok(
           decliningCount >= firstSnapComments.length * 0.5,

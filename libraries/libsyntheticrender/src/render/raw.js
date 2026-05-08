@@ -2,11 +2,16 @@
  * Raw Document Renderer — generates individual JSON/YAML documents
  * destined for Supabase Storage or local output.
  *
- * Produces: GitHub webhooks, GetDX API payloads, people YAML,
- * roster YAML, and teams YAML.
+ * Produces: GetDX API payloads, people YAML, roster YAML, teams YAML,
+ * and (via the `PROSE_ACTIVITIES` registration in
+ * `libsyntheticgen/activity/`) per-event GitHub webhook JSON and
+ * snapshot-comment JSON. Activity-prose render branches dispatch
+ * through the registration; non-prose helpers stay inline because
+ * they are not bound by the prose-bearing activity contract.
  */
 
 import YAML from "yaml";
+import { PROSE_ACTIVITIES } from "@forwardimpact/libsyntheticgen/activity";
 
 /**
  * Render raw documents from entities.
@@ -17,11 +22,18 @@ import YAML from "yaml";
 export function renderRawDocuments(entities, proseMap) {
   const files = new Map();
 
-  renderGitHubWebhooks(entities, files, proseMap);
+  // Activity-prose render dispatch — the registration is the single
+  // source of truth for which prose-bearing activity outputs exist
+  // (criterion #1 / #2 of spec 820). Non-prose helpers stay inline.
+  for (const pa of PROSE_ACTIVITIES) {
+    const output = entities.activity?.[pa.id];
+    if (!output) continue;
+    pa.render(output, files, proseMap);
+  }
+
   renderGetDXPayloads(entities, files);
   renderGetDXInitiatives(entities, files);
   renderGetDXScorecards(entities, files);
-  renderGetDXComments(entities, files, proseMap);
   renderRosterSnapshots(entities, files);
   renderSummitYAML(entities, files);
   renderPeopleYAML(entities, files);
@@ -39,52 +51,6 @@ export function renderActivityFiles(entities) {
   files.set("roster.yaml", renderRoster(entities));
   files.set("teams.yaml", renderTeams(entities));
   return files;
-}
-
-/**
- * Render GitHub webhook JSON payloads with optional LLM-generated prose.
- * @param {object} entities
- * @param {Map<string,string>} files
- * @param {Map<string,string>} [proseMap]
- */
-function injectWebhookProse(webhook, proseMap) {
-  if (!proseMap) return;
-  const prefix =
-    webhook.event_type === "pull_request"
-      ? "pr_body_"
-      : webhook.event_type === "pull_request_review"
-        ? "review_body_"
-        : null;
-  if (!prefix) return;
-
-  const body = proseMap.get(`${prefix}${webhook.delivery_id}`);
-  if (!body) return;
-
-  if (webhook.event_type === "pull_request") {
-    webhook.payload.pull_request.body = body;
-  } else {
-    webhook.payload.review.body = body;
-  }
-}
-
-function renderGitHubWebhooks(entities, files, proseMap) {
-  if (!entities.activity?.webhooks) return;
-
-  for (const webhook of entities.activity.webhooks) {
-    injectWebhookProse(webhook, proseMap);
-    const path = `github/${webhook.delivery_id}.json`;
-    files.set(path, JSON.stringify(webhook, null, 2));
-  }
-
-  // Index file for all webhooks
-  const index = entities.activity.webhooks.map((w) => ({
-    id: w.delivery_id,
-    type: w.event_type,
-    repo: w.payload?.repository?.full_name,
-    actor: w.payload?.sender?.login,
-    created_at: w.occurred_at,
-  }));
-  files.set("github/index.json", JSON.stringify(index, null, 2));
 }
 
 /**
@@ -257,59 +223,6 @@ function renderGetDXScorecards(entities, files) {
     files.set(
       `getdx/scorecards/${sc.id}.json`,
       JSON.stringify({ ok: true, scorecard: sc }, null, 2),
-    );
-  }
-}
-
-/**
- * Render GetDX snapshot comments API payloads.
- * Uses LLM-generated prose from the prose map when available,
- * falls back to placeholder text.
- * @param {object} entities
- * @param {Map<string,string>} files
- * @param {Map<string,string>} [proseMap]
- */
-function renderGetDXComments(entities, files, proseMap) {
-  if (!entities.activity?.commentKeys) return;
-
-  // Group comments by snapshot
-  const bySnapshot = new Map();
-  for (const ck of entities.activity.commentKeys) {
-    if (!bySnapshot.has(ck.snapshot_id)) bySnapshot.set(ck.snapshot_id, []);
-    bySnapshot.get(ck.snapshot_id).push(ck);
-  }
-
-  for (const [snapshotId, keys] of bySnapshot) {
-    const comments = keys.map((ck) => {
-      // Look up LLM-generated prose
-      const proseKey = `snapshot_comment_${ck.snapshot_id}_${ck.email.replace(/[@.]/g, "_")}`;
-      let text = null;
-      if (proseMap) {
-        for (const [k, v] of proseMap) {
-          if (k.includes(proseKey) || proseKey.includes(k)) {
-            text = v;
-            break;
-          }
-        }
-      }
-      // Note: if text is still null, prose generation was not run for this key.
-      // The prose map uses hashed keys, so fallback iteration is not feasible.
-
-      return {
-        snapshot_id: ck.snapshot_id,
-        email: ck.email,
-        driver_name: ck.driver_name,
-        text:
-          text ||
-          `[${ck.driver_name} — ${ck.trajectory}] Comment pending prose generation.`,
-        timestamp: ck.timestamp,
-        team_id: ck.team_id,
-      };
-    });
-
-    files.set(
-      `getdx/snapshots-comments/${snapshotId}.json`,
-      JSON.stringify({ ok: true, comments }, null, 2),
     );
   }
 }

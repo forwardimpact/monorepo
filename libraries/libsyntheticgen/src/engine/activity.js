@@ -1,12 +1,13 @@
 /**
- * Activity generation — roster, teams, snapshots, scores, webhooks, evidence.
+ * Activity generation — roster, teams, snapshots, scores, evidence, plus
+ * the prose-bearing outputs that the `PROSE_ACTIVITIES` registration
+ * owns (see `libsyntheticgen/activity/`).
  *
  * @module libterrain/engine/activity
  */
 
-import { generateWebhooks, generateWebhookKeys } from "./activity-webhooks.js";
+import { PROSE_ACTIVITIES } from "../activity/index.js";
 import { deriveInitiatives } from "./activity-initiatives.js";
-import { generateCommentKeys } from "./activity-comments.js";
 import { generateRosterSnapshots } from "./activity-roster.js";
 
 const ALL_DRIVERS = [
@@ -69,8 +70,6 @@ export function generateActivity(ast, rng, people, teams) {
   const activityTeams = buildActivityTeams(ast, teams, people);
   const snapshots = generateSnapshots(ast);
   const scores = generateScores(ast, rng, snapshots, activityTeams);
-  const webhooks = generateWebhooks(ast, rng, people, teams);
-  const webhookKeys = generateWebhookKeys(ast, webhooks, people, teams);
   const evidence = generateEvidence(ast, rng, people, teams);
   const { scorecards, initiatives } = deriveInitiatives(
     ast,
@@ -79,7 +78,6 @@ export function generateActivity(ast, rng, people, teams) {
     teams,
     snapshots,
   );
-  const commentKeys = generateCommentKeys(ast, rng, people, teams, snapshots);
   const rosterSnapshots = generateRosterSnapshots(
     ast,
     rng,
@@ -89,19 +87,28 @@ export function generateActivity(ast, rng, people, teams) {
   );
   const projectTeams = deriveProjectTeams(ast, rng, people, teams);
 
+  // Prose-bearing outputs (criterion #1): the registration is the
+  // single source of truth for which prose-bearing outputs exist;
+  // each implementation owns its `generate` stage. Each entry attaches
+  // under entities.activity[<id>] so prose-context collection and
+  // raw rendering can dispatch through the same registration.
+  const proseOutputs = {};
+  const genCtx = { ast, rng, entities: { people, teams, snapshots } };
+  for (const pa of PROSE_ACTIVITIES) {
+    proseOutputs[pa.id] = pa.generate(genCtx);
+  }
+
   return {
     roster,
     activityTeams,
     snapshots,
     scores,
-    webhooks,
-    webhookKeys,
     evidence,
     initiatives,
     scorecards,
-    commentKeys,
     rosterSnapshots,
     projectTeams,
+    ...proseOutputs,
   };
 }
 

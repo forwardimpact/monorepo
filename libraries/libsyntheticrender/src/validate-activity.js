@@ -11,7 +11,7 @@ import { PROFICIENCY_LEVELS } from "@forwardimpact/libsyntheticgen/vocabulary.js
 
 /** Validate that all webhook entities include delivery_id, event_type, and payload sender/repository fields. */
 export function checkWebhookPayloadSchemas(entities) {
-  const webhooks = entities.activity?.webhooks || [];
+  const webhooks = entities.activity?.webhook?.events || [];
   const invalid = webhooks.filter(
     (w) =>
       !w.delivery_id ||
@@ -31,7 +31,7 @@ export function checkWebhookPayloadSchemas(entities) {
 
 /** Verify that all webhook delivery IDs are unique across the activity dataset. */
 export function checkWebhookDeliveryIds(entities) {
-  const webhooks = entities.activity?.webhooks || [];
+  const webhooks = entities.activity?.webhook?.events || [];
   const ids = webhooks.map((w) => w.delivery_id);
   const unique = new Set(ids);
   return {
@@ -46,7 +46,7 @@ export function checkWebhookDeliveryIds(entities) {
 
 /** Verify that every webhook sender login matches a known person in the people roster. */
 export function checkWebhookSenderUsernames(entities) {
-  const webhooks = entities.activity?.webhooks || [];
+  const webhooks = entities.activity?.webhook?.events || [];
   const knownUsernames = new Set(entities.people.map((p) => p.github));
   const unknown = webhooks.filter(
     (w) =>
@@ -231,7 +231,7 @@ export function checkInitiativeDriverRefs(entities) {
 
 /** Verify that every comment's snapshot_id references a snapshot that exists in the dataset. */
 export function checkCommentSnapshotRefs(entities) {
-  const comments = entities.activity?.commentKeys || [];
+  const comments = entities.activity?.comment?.keys || [];
   const snapshotIds = new Set(
     (entities.activity?.snapshots || []).map((s) => s.snapshot_id),
   );
@@ -250,7 +250,7 @@ export function checkCommentSnapshotRefs(entities) {
 
 /** Verify that every comment respondent's email matches a known person in the people roster. */
 export function checkCommentEmailRefs(entities) {
-  const comments = entities.activity?.commentKeys || [];
+  const comments = entities.activity?.comment?.keys || [];
   const emails = new Set(entities.people.map((p) => p.email));
   const invalid = comments.filter((c) => c.email && !emails.has(c.email));
   return {
@@ -265,7 +265,7 @@ export function checkCommentEmailRefs(entities) {
 
 /** Verify that every comment's team_id references a team that exists in the dataset. */
 export function checkCommentTeamRefs(entities) {
-  const comments = entities.activity?.commentKeys || [];
+  const comments = entities.activity?.comment?.keys || [];
   const teamIds = new Set(entities.teams.map((t) => t.id));
   const invalid = comments.filter((c) => c.team_id && !teamIds.has(c.team_id));
   return {
