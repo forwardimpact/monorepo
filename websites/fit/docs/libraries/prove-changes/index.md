@@ -252,7 +252,7 @@ npx fit-eval supervise \
   --agent-cwd=/tmp/refactor-sandbox \
   --allowed-tools=Read,Edit,Write,Bash,Grep,Glob \
   --max-turns=50 \
-  --output=trace.ndjson
+  --output=trace--demo.raw.ndjson
 ```
 
 Exit code `0` means the judge concluded with `success: true`; exit code `1`
@@ -268,7 +268,7 @@ npx fit-eval facilitate \
   --agent-profiles=security-engineer,release-engineer,technical-writer \
   --agent-cwd=. \
   --max-turns=20 \
-  --output=trace.ndjson
+  --output=trace--demo.raw.ndjson
 ```
 
 Participants share `--agent-cwd` by default. If two participants might edit the
@@ -286,9 +286,9 @@ After the run, confirm the trace file exists and contains the expected structure
 before investing time in analysis:
 
 ```sh
-npx fit-trace overview trace.ndjson
-npx fit-trace timeline trace.ndjson
-npx fit-trace stats trace.ndjson
+npx fit-trace overview trace--demo.raw.ndjson
+npx fit-trace timeline trace--demo.raw.ndjson
+npx fit-trace stats trace--demo.raw.ndjson
 ```
 
 `overview` reports metadata, turn count, and tool usage frequency. `timeline`
@@ -299,14 +299,19 @@ For supervised and facilitated runs, split the combined trace into per-source
 files:
 
 ```sh
-npx fit-trace split trace.ndjson --mode=supervise
-npx fit-trace split trace.ndjson --mode=facilitate
+npx fit-trace split trace--demo.raw.ndjson --mode=supervise --case=demo
+npx fit-trace split trace--demo.raw.ndjson --mode=facilitate --case=demo
 ```
 
-This produces `trace-agent.ndjson` and `trace-supervisor.ndjson` (for
-`supervise`) or `trace-facilitator.ndjson` and `trace-<participant>.ndjson`
-(for `facilitate`). Per-source traces are essential when participants disagreed
--- you can read each one's view independently.
+This produces files following the
+`trace--<case>--<participant>.<role>.ndjson` convention — for `supervise`,
+`trace--demo--agent.agent.ndjson` and
+`trace--demo--supervisor.supervisor.ndjson`; for `facilitate`,
+`trace--demo--facilitator.facilitator.ndjson` plus one
+`trace--demo--<participant>.agent.ndjson` per participant. `--case` defaults
+to `default`; pass it to disambiguate matrix shards. Per-source traces are
+essential when participants disagreed -- you can read each one's view
+independently.
 
 ## 6. Analyze traces for findings
 
@@ -315,12 +320,12 @@ like a researcher, not running a checklist. Drill into specific tools and
 message exchanges:
 
 ```sh
-npx fit-trace tool trace.ndjson Conclude
-npx fit-trace tool trace.ndjson Ask
-npx fit-trace tool trace.ndjson Announce
-npx fit-trace filter trace.ndjson --tool Edit
-npx fit-trace search trace.ndjson 'error|fail' --context 1
-npx fit-trace reasoning trace.ndjson
+npx fit-trace tool trace--demo.raw.ndjson Conclude
+npx fit-trace tool trace--demo.raw.ndjson Ask
+npx fit-trace tool trace--demo.raw.ndjson Announce
+npx fit-trace filter trace--demo.raw.ndjson --tool Edit
+npx fit-trace search trace--demo.raw.ndjson 'error|fail' --context 1
+npx fit-trace reasoning trace--demo.raw.ndjson
 ```
 
 The `Conclude` call carries the verdict -- start there when an eval fails, then

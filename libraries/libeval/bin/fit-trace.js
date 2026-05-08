@@ -182,11 +182,16 @@ const definition = {
       name: "split",
       args: "<file>",
       description:
-        "Split a combined trace into per-source files (one per agent or supervisor)",
+        "Split a combined trace into per-source files following the `trace--<case>--<participant>.<role>.ndjson` convention",
       options: {
         mode: {
           type: "string",
-          description: "Execution mode: run (no-op), supervise, or facilitate",
+          description: "Execution mode: run, supervise, or facilitate",
+        },
+        case: {
+          type: "string",
+          description:
+            "Case identifier embedded in output filenames (default: default)",
         },
         "output-dir": {
           type: "string",

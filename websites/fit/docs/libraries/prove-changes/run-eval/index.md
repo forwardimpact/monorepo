@@ -74,7 +74,7 @@ npx fit-eval supervise \
   --supervisor-allowed-tools=Read,Grep,Bash \
   --agent-cwd=/tmp/refactor-sandbox \
   --max-turns=20 \
-  --output=trace.ndjson
+  --output=trace--default.raw.ndjson
 ```
 
 `--agent-cwd` should be a sandbox copy of your repo since the target agent edits
@@ -121,28 +121,30 @@ jobs:
             --supervisor-allowed-tools=Read,Grep,Bash \
             --agent-cwd=/tmp/sandbox \
             --max-turns=20 \
-            --output=/tmp/trace/trace.ndjson
+            --output=/tmp/trace/trace--default.raw.ndjson
 
       - name: Split trace
         if: always()
         run: |
           npx --yes @forwardimpact/libeval fit-trace split \
-            /tmp/trace/trace.ndjson \
+            /tmp/trace/trace--default.raw.ndjson \
             --mode=supervise \
+            --case=default \
             --output-dir=/tmp/trace
 
       - name: Upload trace
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: eval-trace
-          path: /tmp/trace/*.ndjson
+          name: trace--default
+          path: /tmp/trace/trace--*.ndjson
 ```
 
 `if: always()` on the split and upload steps preserves the trace even when the
-eval fails -- which is when you most need it. `split --mode=supervise` produces
-`trace-agent.ndjson` and `trace-supervisor.ndjson` alongside the original
-combined trace.
+eval fails -- which is when you most need it. `split --mode=supervise --case=default`
+produces `trace--default--agent.agent.ndjson` and
+`trace--default--supervisor.supervisor.ndjson` alongside the original
+`trace--default.raw.ndjson`.
 
 ## Read the results
 
