@@ -119,9 +119,7 @@ describe("fit-trace split", () => {
         type: "assistant",
         message: { content: [{ type: "text", text: "hi" }] },
       };
-      const { dir, file } = setupTrace([
-        { source: "agent", seq: 0, event },
-      ]);
+      const { dir, file } = setupTrace([{ source: "agent", seq: 0, event }]);
 
       runSplitCommand({ mode: "run", case: "demo" }, [file]);
 
@@ -139,9 +137,7 @@ describe("fit-trace split", () => {
         type: "assistant",
         message: { content: [{ type: "text", text: "hi" }] },
       };
-      const { dir, file } = setupTrace([
-        { source: "agent", seq: 0, event },
-      ]);
+      const { dir, file } = setupTrace([{ source: "agent", seq: 0, event }]);
 
       runSplitCommand({ mode: "run" }, [file]);
 
@@ -181,9 +177,7 @@ describe("fit-trace split", () => {
         ),
       );
       assert.ok(
-        !fs.existsSync(
-          path.join(dir, "trace--demo--UPPER_CASE.agent.ndjson"),
-        ),
+        !fs.existsSync(path.join(dir, "trace--demo--UPPER_CASE.agent.ndjson")),
       );
       assert.ok(
         !fs.existsSync(
@@ -307,9 +301,7 @@ describe("fit-trace split", () => {
       );
 
       assert.ok(
-        fs.existsSync(
-          path.join(outDir, "trace--demo--agent.agent.ndjson"),
-        ),
+        fs.existsSync(path.join(outDir, "trace--demo--agent.agent.ndjson")),
       );
       assert.ok(
         fs.existsSync(
@@ -342,9 +334,7 @@ describe("fit-trace split", () => {
       );
 
       assert.ok(
-        fs.existsSync(
-          path.join(outDir, "trace--demo--agent.agent.ndjson"),
-        ),
+        fs.existsSync(path.join(outDir, "trace--demo--agent.agent.ndjson")),
       );
     });
   });
