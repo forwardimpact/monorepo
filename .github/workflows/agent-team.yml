@@ -1,11 +1,11 @@
 name: "Agent: Team"
 
-# Sequential agent team across three shifts. The matrix below is the roster —
-# add or remove an agent by editing one line. Within a shift, agents run in
-# matrix declaration order (one at a time, via `max-parallel: 1`). Each row's
-# `shifts` field is a comma-separated list controlling participation; rows
-# whose shifts do not include the current shift are skipped via the job-level
-# `if:`. KATA.md describes the shift rhythm.
+# Sequential agent team across three shifts. The roster lives in the `plan`
+# job below — add or remove an agent by editing one JSON line. Within a shift,
+# agents run in roster declaration order (one at a time, via `max-parallel:
+# 1`). Each row's `shifts` array controls participation; agents whose shifts
+# do not include the current shift are filtered out before the matrix
+# expands. KATA.md describes the shift rhythm.
 
 on:
   schedule:
@@ -32,11 +32,12 @@ permissions:
   contents: write
 
 jobs:
-  shift:
-    name: Determine shift
+  plan:
+    name: Plan shift
     runs-on: ubuntu-latest
     outputs:
-      name: ${{ steps.derive.outputs.name }}
+      shift: ${{ steps.derive.outputs.shift }}
+      agents: ${{ steps.derive.outputs.agents }}
     steps:
       - id: derive
         env:
@@ -46,31 +47,39 @@ jobs:
         run: |
           set -euo pipefail
           case "${EVENT_SCHEDULE:-}" in
-            "0 1 * * *")  name=night ;;
-            "0 10 * * *") name=day ;;
-            "0 18 * * *") name=swing ;;
-            "")           name="${INPUT_SHIFT:-night}" ;;
+            "0 1 * * *")  shift=night ;;
+            "0 10 * * *") shift=day ;;
+            "0 18 * * *") shift=swing ;;
+            "")           shift="${INPUT_SHIFT:-night}" ;;
             *)            echo "::error::Unrecognized schedule: $EVENT_SCHEDULE"; exit 1 ;;
           esac
-          echo "name=$name" >> "$GITHUB_OUTPUT"
-          echo "Shift: $name"
+
+          # Roster: edit to add or remove agents. Order = execution order
+          # within a shift. `max-turns` defaults to "200" if omitted.
+          roster='[
+            {"name":"product-manager",  "shifts":["night","day","swing"]},
+            {"name":"staff-engineer",   "shifts":["night","day","swing"], "max-turns":"0"},
+            {"name":"security-engineer","shifts":["night"]},
+            {"name":"technical-writer", "shifts":["night","day","swing"]},
+            {"name":"release-engineer", "shifts":["night","day","swing"]},
+            {"name":"improvement-coach","shifts":["night","day","swing"]}
+          ]'
+
+          agents=$(jq -c --arg s "$shift" '[.[] | select(.shifts | index($s))]' <<<"$roster")
+          echo "shift=$shift" >> "$GITHUB_OUTPUT"
+          echo "agents=$agents" >> "$GITHUB_OUTPUT"
+          echo "Shift: $shift"
+          echo "Agents: $agents"
 
   agent:
-    needs: shift
+    needs: plan
     name: ${{ matrix.agent.name }}
     runs-on: ubuntu-latest
-    if: contains(matrix.agent.shifts, needs.shift.outputs.name)
     strategy:
       max-parallel: 1
       fail-fast: false
       matrix:
-        agent:
-          - { name: product-manager, shifts: "night,day,swing" }
-          - { name: staff-engineer, shifts: "night,day,swing", max-turns: "0" }
-          - { name: security-engineer, shifts: "night" }
-          - { name: technical-writer, shifts: "night,day,swing" }
-          - { name: release-engineer, shifts: "night,day,swing" }
-          - { name: improvement-coach, shifts: "night,day,swing" }
+        agent: ${{ fromJSON(needs.plan.outputs.agents) }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: ./.github/actions/kata-action-agent
