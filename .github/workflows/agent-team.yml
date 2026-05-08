@@ -1,28 +1,17 @@
 name: "Agent: Team"
 
-# Sequential agent team across three shifts. The matrix below is the roster —
-# add or remove an agent by editing one line. Within a shift, agents run in
-# matrix declaration order (one at a time, via `max-parallel: 1`). Each row's
-# `shifts` field is a comma-separated list controlling participation; rows
-# whose shifts do not include the current shift are skipped via the job-level
-# `if:`. KATA.md describes the shift rhythm.
+# Sequential agent team. The matrix below is the roster — add or remove an
+# agent by editing one line. Agents run in declaration order, one at a time
+# (`max-parallel: 1`), on every scheduled or manual invocation. KATA.md
+# describes the rhythm.
 
 on:
   schedule:
-    - cron: "0 1 * * *" # Night shift — 03:00 Paris (CEST), full PDSA chain incl. security-engineer
-    - cron: "0 10 * * *" # Day shift   — 12:00 Paris (CEST)
-    - cron: "0 18 * * *" # Swing shift — 20:00 Paris (CEST)
+    - cron: "0 1 * * *" # 03:00 Paris (CEST)
+    - cron: "0 10 * * *" # 12:00 Paris (CEST)
+    - cron: "0 18 * * *" # 20:00 Paris (CEST)
   workflow_dispatch:
     inputs:
-      shift:
-        description: "Shift to run (controls which agents participate)"
-        required: false
-        default: night
-        type: choice
-        options:
-          - night
-          - day
-          - swing
       task-amend:
         description: "Additional text appended to the task prompt for steering"
         required: false
@@ -32,45 +21,20 @@ permissions:
   contents: write
 
 jobs:
-  shift:
-    name: Determine shift
-    runs-on: ubuntu-latest
-    outputs:
-      name: ${{ steps.derive.outputs.name }}
-    steps:
-      - id: derive
-        env:
-          EVENT_SCHEDULE: ${{ github.event.schedule }}
-          INPUT_SHIFT: ${{ inputs.shift }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          case "${EVENT_SCHEDULE:-}" in
-            "0 1 * * *")  name=night ;;
-            "0 10 * * *") name=day ;;
-            "0 18 * * *") name=swing ;;
-            "")           name="${INPUT_SHIFT:-night}" ;;
-            *)            echo "::error::Unrecognized schedule: $EVENT_SCHEDULE"; exit 1 ;;
-          esac
-          echo "name=$name" >> "$GITHUB_OUTPUT"
-          echo "Shift: $name"
-
   agent:
-    needs: shift
     name: ${{ matrix.agent.name }}
     runs-on: ubuntu-latest
-    if: contains(matrix.agent.shifts, needs.shift.outputs.name)
     strategy:
       max-parallel: 1
       fail-fast: false
       matrix:
         agent:
-          - { name: product-manager, shifts: "night,day,swing" }
-          - { name: staff-engineer, shifts: "night,day,swing", max-turns: "0" }
-          - { name: security-engineer, shifts: "night" }
-          - { name: technical-writer, shifts: "night,day,swing" }
-          - { name: release-engineer, shifts: "night,day,swing" }
-          - { name: improvement-coach, shifts: "night,day,swing" }
+          - { name: product-manager }
+          - { name: staff-engineer, max-turns: "0" }
+          - { name: security-engineer }
+          - { name: technical-writer }
+          - { name: release-engineer }
+          - { name: improvement-coach }
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: ./.github/actions/kata-action-agent
