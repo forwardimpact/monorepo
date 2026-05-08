@@ -1,28 +1,17 @@
 name: "Agent: Team"
 
-# Sequential agent team across three shifts. The roster lives in the `plan`
-# job below — add or remove an agent by editing one JSON line. Within a shift,
-# agents run in roster declaration order (one at a time, via `max-parallel:
-# 1`). Each row's `shifts` array controls participation; agents whose shifts
-# do not include the current shift are filtered out before the matrix
-# expands. KATA.md describes the shift rhythm.
+# Sequential agent team. The matrix below is the roster — add or remove an
+# agent by editing one line. Agents run in declaration order, one at a time
+# (`max-parallel: 1`), on every scheduled or manual invocation. KATA.md
+# describes the rhythm.
 
 on:
   schedule:
-    - cron: "0 1 * * *" # Night shift — 03:00 Paris (CEST), full PDSA chain incl. security-engineer
-    - cron: "0 10 * * *" # Day shift   — 12:00 Paris (CEST)
-    - cron: "0 18 * * *" # Swing shift — 20:00 Paris (CEST)
+    - cron: "0 1 * * *" # 03:00 Paris (CEST)
+    - cron: "0 10 * * *" # 12:00 Paris (CEST)
+    - cron: "0 18 * * *" # 20:00 Paris (CEST)
   workflow_dispatch:
     inputs:
-      shift:
-        description: "Shift to run (controls which agents participate)"
-        required: false
-        default: night
-        type: choice
-        options:
-          - night
-          - day
-          - swing
       task-amend:
         description: "Additional text appended to the task prompt for steering"
         required: false
@@ -32,54 +21,20 @@ permissions:
   contents: write
 
 jobs:
-  plan:
-    name: Plan shift
-    runs-on: ubuntu-latest
-    outputs:
-      shift: ${{ steps.derive.outputs.shift }}
-      agents: ${{ steps.derive.outputs.agents }}
-    steps:
-      - id: derive
-        env:
-          EVENT_SCHEDULE: ${{ github.event.schedule }}
-          INPUT_SHIFT: ${{ inputs.shift }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          case "${EVENT_SCHEDULE:-}" in
-            "0 1 * * *")  shift=night ;;
-            "0 10 * * *") shift=day ;;
-            "0 18 * * *") shift=swing ;;
-            "")           shift="${INPUT_SHIFT:-night}" ;;
-            *)            echo "::error::Unrecognized schedule: $EVENT_SCHEDULE"; exit 1 ;;
-          esac
-
-          # Roster: edit to add or remove agents. Order = execution order
-          # within a shift. `max-turns` defaults to "200" if omitted.
-          roster='[
-            {"name":"product-manager",  "shifts":["night","day","swing"]},
-            {"name":"staff-engineer",   "shifts":["night","day","swing"], "max-turns":"0"},
-            {"name":"security-engineer","shifts":["night"]},
-            {"name":"technical-writer", "shifts":["night","day","swing"]},
-            {"name":"release-engineer", "shifts":["night","day","swing"]},
-            {"name":"improvement-coach","shifts":["night","day","swing"]}
-          ]'
-
-          agents=$(jq -c --arg s "$shift" '[.[] | select(.shifts | index($s))]' <<<"$roster")
-          echo "shift=$shift" >> "$GITHUB_OUTPUT"
-          echo "agents=$agents" >> "$GITHUB_OUTPUT"
-          echo "Shift: $shift"
-          echo "Agents: $agents"
-
   agent:
-    needs: plan
     name: ${{ matrix.agent.name }}
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 1
       fail-fast: false
       matrix:
-        agent: ${{ fromJSON(needs.plan.outputs.agents) }}
+        agent:
+          - { name: product-manager }
+          - { name: staff-engineer, max-turns: "0" }
+          - { name: security-engineer }
+          - { name: technical-writer }
+          - { name: release-engineer }
+          - { name: improvement-coach }
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: ./.github/actions/kata-action-agent
