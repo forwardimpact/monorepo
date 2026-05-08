@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libstorage",
-  "version": "0.1.75",
+  "version": "0.1.76",
   "description": "Pluggable file storage — local, S3, or Supabase behind a single interface.",
   "keywords": [
     "storage",
