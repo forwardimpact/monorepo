@@ -97,7 +97,9 @@ Capabilities also define:
 - **professionalResponsibilities** -- IC role expectations per skill proficiency
 - **managementResponsibilities** -- Manager role expectations per skill
   proficiency
-- **checklists** — Phase transition items per skill proficiency
+
+Per-skill checklists (`readChecklist` and `confirmChecklist`) live on each
+skill's `agent` section, not on the capability — see [Lifecycle](../lifecycle/).
 
 ---
 

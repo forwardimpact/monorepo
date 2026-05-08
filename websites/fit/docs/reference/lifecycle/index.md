@@ -126,9 +126,9 @@ Skills define checklists as flat fields in their agent section:
 - `agent.readChecklist` — items for the read-then-do gate
 - `agent.confirmChecklist` — items for the do-then-confirm gate
 
-These fields live directly on each skill, not derived from a phase x skill
-matrix. Capability authors write checklist items at each proficiency level; the
-agent's derived proficiency determines which items apply.
+Both fields are simple arrays of strings on the skill's `agent` section — they
+are not keyed by proficiency level and are not derived from a phase x skill
+matrix. Every skill that ships an `agent:` section must define both checklists.
 
 ### Example
 
