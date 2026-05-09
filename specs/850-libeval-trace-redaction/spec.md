@@ -19,7 +19,7 @@ artifact. The workflow:
 | Actor gating | None — only event-type and label-prefix filters | `agent-react.yml:55-56` |
 | Secrets exported into the agent step's environment | `ANTHROPIC_API_KEY` and the `kata-agent-team[bot]` GitHub App installation token (as `GH_TOKEN`) | `agent-react.yml:180-181` |
 | Agent permission mode | `bypassPermissions` with `allowDangerouslySkipPermissions: true` (not overridable) | `libraries/libeval/src/agent-runner.js:14, 84-85` |
-| Default agent tools | `Bash, Read, Glob, Grep, Write, Edit, Agent, TodoWrite` — no per-command Bash gating | `.github/actions/kata-action-eval/action.yml:38`, `agent-runner.js:9` |
+| Default agent tools (workflow-effective superset) | `Bash, Read, Glob, Grep, Write, Edit, Agent, TodoWrite` — no per-command Bash gating. The runner's lower-floor default (`agent-runner.js:9`) is the 6-tool subset; the action passes the full 8-tool list which overrides it. | `.github/actions/kata-action-eval/action.yml:38` |
 | Trace artifact upload | `actions/upload-artifact@v4` for every run, including failures (`if: always()`) | `kata-action-eval/action.yml:228-233` |
 | Repo visibility | Public — workflow artifacts on a public repo are downloadable through the retention window | `CLAUDE.md` § Distribution Model |
 
@@ -51,7 +51,7 @@ against current code at HEAD.
 
 | Persona | Job | How the gap blocks progress |
 |---|---|---|
-| Platform Builders | Evaluate and Improve Agents — "stand up reproducible evals so I can prove whether agent changes improved outcomes" ([JTBD.md](../../JTBD.md) § Platform Builders: Evaluate and Improve Agents) | An eval harness whose published trace artifacts can carry CI secrets is unsafe to run in any environment that mixes external triggers with privileged credentials; consumers cannot adopt `fit-eval` for production-grade evaluations until the trace surface is closed against secret leakage. |
+| Platform Builders | Evaluate and Improve Agents — Big Hire is to prove whether agent changes improved outcomes with reproducible evidence; the JTBD is hired on Gear, of which `libeval` / `fit-eval` is the trace surface ([JTBD.md](../../JTBD.md) § Platform Builders: Evaluate and Improve Agents) | An eval harness whose published trace artifacts can carry CI secrets is unsafe to run in any environment that mixes external triggers with privileged credentials; consumers cannot adopt `fit-eval` for production-grade evaluations until the trace surface is closed against secret leakage. |
 
 ---
 
@@ -104,7 +104,7 @@ against current code at HEAD.
 | With each environment variable in the configured allowlist set to a unique sentinel value at run time, no NDJSON line emitted by the trace pipeline contains any of those sentinel values, regardless of which carrier in `trace-collector.js` they appear in (`tool_use.input.*` strings, `tool_result.content`, assistant `text`, orchestrator `summary`, system payloads). | Test seeds each carrier with each sentinel value, runs the pipeline end-to-end up to the writable stream, and asserts every emitted line passes a substring check against every sentinel. |
 | The pattern-based source redacts well-known credential-shape strings even when no allowlisted env var is set. | Test inputs include the Anthropic API key prefix shape and the GitHub PAT / installation-token prefix shapes at full canonical length; each yields the pattern-hit placeholder at the position the secret occupied. |
 | Benign content is unchanged. | Test inputs include human prose, Markdown, URLs, git SHAs, UUIDs, and quoted shell commands — all round-trip identical with no false-positive redaction. |
-| Redaction is on by default; an opt-out exists and is documented. | With no opt-out signal, redaction is enabled; with the documented opt-out signal, redaction is disabled and a warning is emitted on stderr. The opt-out surface is named in the design. |
+| Redaction is on by default; an opt-out exists and is documented. | With no opt-out signal, redaction is enabled; with the documented opt-out signal, redaction is disabled and an opt-out warning is surfaced on each run. The opt-out surface and the warning channel are named in the design. |
 | Trace replay through `toText()` (offline `fit-eval output --format=text`) preserves the placeholder strings byte-for-byte. | Test renders a captured trace containing both placeholder forms; both appear in the rendered output identically to their NDJSON form. |
 
 — Security Engineer 🔒
