@@ -106,8 +106,9 @@ workflow, **agent-react**, runs on PR comments, new discussions, and
 discussion comments — the release engineer facilitates and routes the comment
 to the participant best suited to respond, and translates conversational
 approvals into the canonical `<phase>:approved` label or APPROVED review. All
-workflows support `workflow_dispatch`, use concurrency groups, and time out
-at 30 minutes. Agent workflows send a generic prompt; the agent's Assess
+workflows support `workflow_dispatch` and time out at 45 minutes; storyboard,
+coaching, and react also use concurrency groups (agent-team serializes via the
+matrix's `max-parallel: 1`). Agent workflows send a generic prompt; the agent's Assess
 section picks the action. Storyboard and coaching send specific prompts to
 the improvement coach.
 
