@@ -137,6 +137,7 @@ for utilities). An agent's skill list reveals its phase coverage.
 | `kata-interview`          | Study   | JTBD switching interviews                     |
 | `kata-documentation`      | Study   | One topic deep per run                        |
 | `kata-wiki-curate`        | Study   | Agent memory hygiene                          |
+| `kata-pattern-synthesis`  | Study   | Coach-owned grounded coding of an obstacle/experiment/PR corpus into one spec + design |
 | `kata-spec`               | Act     | Write specs capturing WHAT/WHY                |
 | `kata-review`             | Utility | Grade a single artifact (leaf, no sub-agents) |
 | `kata-session`            | Utility | Toyota Kata coaching protocol for sessions    |
