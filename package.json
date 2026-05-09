@@ -34,12 +34,11 @@
     "data": "bun run data:check-prose && bun run data:check-schema",
     "data:check-prose": "bunx fit-terrain check",
     "data:check-schema": "LOG_LEVEL=error bunx fit-terrain validate && LOG_LEVEL=error bunx fit-map validate --data products/map/starter",
-    "context": "bun run context:check-instructions && bun run context:check-metadata && bun run context:check-jtbd && bun run context:check-dependabot && bun run context:check-terrain",
+    "context": "bun run context:check-instructions && bun run context:check-metadata && bun run context:check-jtbd && bun run context:check-dependabot",
     "context:check-instructions": "bunx coaligned instructions",
     "context:check-metadata": "bun scripts/check-metadata.mjs",
     "context:check-jtbd": "bunx coaligned jtbd",
     "context:check-dependabot": "bun scripts/check-dependabot.mjs",
-    "context:check-terrain": "bun scripts/check-terrain-callers.mjs",
     "context:fix": "bun scripts/check-metadata.mjs --fix && bunx coaligned jtbd --fix"
   },
   "dependencies": {

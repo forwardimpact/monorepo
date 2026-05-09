@@ -101,7 +101,14 @@ calls `bun run data:prose` / `data:schema`, both fixed in S2).
   `grep -n 'data/pathway' .claude/skills/kata-release-merge/SKILL.md` returns no
   matches.
 
-### S5 — Add static "no bare `bunx fit-terrain`" gate
+### S5 — Add static "no bare `bunx fit-terrain`" gate (DROPPED)
+
+> **Status (2026-05-09):** Dropped on PR #727 by @dickolsson — flagged as
+> unnecessary defensive code. Scope of PR #727 narrowed to S2 only. The
+> unwired `check-terrain-callers` recipe added to `justfile` by PR #686 is
+> removed in the same PR so no caller references the deleted script. If a
+> regression of this shape recurs, raise a new spec rather than reviving this
+> step.
 
 The gate uses two scanning modes so it cannot false-positive on the legitimate
 `fit-terrain` _names_ already in `justfile` (`build-binary fit-terrain`,
