@@ -10,16 +10,10 @@ description: >
 
 # Pattern Synthesis from Backlog
 
-Read a corpus of related issues and PRs, code it to surface the pattern those
-items collectively name, and turn that pattern into a single spec + design
-that addresses the meta-trigger, instruments any binding constraint surfaced
-across the corpus, and codifies the moves the team has been inventing per
-case.
-
-This skill is the only path through which the improvement coach writes specs
-or designs. The general "facilitation only" constraint in
-[`improvement-coach.md`](../../agents/improvement-coach.md) still applies to
-every other context.
+Read a corpus of related issues and PRs, code it to surface the pattern, and
+turn that pattern into a single spec + design that addresses the meta-trigger,
+instruments any binding constraint, and codifies the moves the team has been
+inventing per case.
 
 ## When to Use
 
@@ -118,8 +112,7 @@ The strongest propositions are **grounded** (traceable to specific items),
 
 ### Phase Boundaries
 
-The work passes through six checkpoints. Output of each is the input to the
-next; nothing is invented without an anchor in the prior step.
+Six checkpoints; output of each feeds the next.
 
 1. Gather the corpus (closed before coding).
 2. Memo each item.
