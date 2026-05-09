@@ -13,31 +13,36 @@ their docs. Existing commands need only the dispatcher rewiring — their query
 modules are untouched because RLS clamps results server-side. Each step ends
 in a green test command before the next begins.
 
-Libraries used: `@supabase/supabase-js` (`auth.admin.{listUsers,createUser,updateUserById}`), `node:crypto` (HMAC for `signTestToken`).
+Libraries used: `@supabase/supabase-js` (`auth.admin.{listUsers,createUser,updateUserById}`, `createClient`). `signTestToken` uses Node built-in `node:crypto` directly.
 
 ## Steps
 
-### 1. Enable Supabase Auth in the local stack
-
-`auth.admin.*` and `auth.email()` require the auth service running. The current
-`config.toml` has `[auth] enabled = false` — toggle it and add the JWT secret
-key.
+### 1. Enable Supabase Auth and surface its env vars
 
 - **Modified:** `products/map/supabase/config.toml`
 
 ```toml
 [auth]
 enabled = true
-site_url = "http://localhost:54321"
+site_url = "http://localhost:3000"
 jwt_expiry = 3600
 enable_signup = false
+
+[auth.email]
+enable_signup = false
+double_confirm_changes = false
+enable_confirmations = false
 ```
 
-Verify: `bunx fit-map activity start && bunx fit-map activity status` reports
-the Auth service `RUNNING`; `MAP_SUPABASE_JWT_SECRET` is exported by
-`status --output json` as `jwt_secret`. Patch `products/map/src/commands/activity.js`
-`start()` to also export `MAP_SUPABASE_ANON_KEY=${status.anon_key}` and
-`MAP_SUPABASE_JWT_SECRET=${status.jwt_secret}` in the same printed block.
+- **Modified:** `products/map/src/commands/activity.js` (in `start()`,
+  appended to the existing export block):
+
+```js
+process.stdout.write(`  export MAP_SUPABASE_ANON_KEY=${status.anon_key}\n`);
+process.stdout.write(`  export MAP_SUPABASE_JWT_SECRET=${status.jwt_secret}\n\n`);
+```
+
+Verify: `bunx fit-map activity start` prints all four env vars; `bunx fit-map activity status` reports the Auth service `RUNNING`; `bun test products/map/test/activity/supabase-cli.test.js` (extended in step 8) asserts the new export lines.
 
 ### 2. RLS + retention migration
 
@@ -122,6 +127,41 @@ COMMENT ON TABLE activity.getdx_snapshot_team_scores IS
 COMMENT ON TABLE activity.getdx_snapshots IS
   'retention.window=P730D retention.clock=imported_at';
 
+CREATE OR REPLACE FUNCTION activity._validate_retention_blob(t TEXT, blob TEXT)
+RETURNS VOID LANGUAGE plpgsql AS $fn$
+DECLARE
+  win TEXT; clk TEXT; ok BOOL;
+BEGIN
+  IF blob IS NULL OR blob = '' THEN
+    -- Empty admitted only for organization_people (null-window class).
+    IF t <> 'organization_people' THEN
+      RAISE EXCEPTION 'retention metadata missing for activity.%', t;
+    END IF;
+    RETURN;
+  END IF;
+  win := substring(blob FROM 'retention\.window=(P[0-9]+[DWMY])');
+  clk := substring(blob FROM 'retention\.clock=([a-z_][a-z0-9_]*)');
+  IF t = 'organization_people' AND win IS NULL AND clk IS NULL THEN
+    RETURN;
+  END IF;
+  IF win IS NULL OR clk IS NULL THEN
+    RAISE EXCEPTION 'retention metadata malformed for activity.%: %', t, blob;
+  END IF;
+  SELECT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'activity' AND table_name = t AND column_name = clk
+  ) INTO ok;
+  IF NOT ok THEN
+    RAISE EXCEPTION 'retention.clock=% references missing column on activity.%', clk, t;
+  END IF;
+END $fn$;
+
+CREATE OR REPLACE FUNCTION activity.retention_blob(p_table TEXT)
+RETURNS TEXT LANGUAGE sql STABLE SET search_path = '' AS $$
+  SELECT obj_description(format('activity.%I', p_table)::regclass, 'pg_class');
+$$;
+GRANT EXECUTE ON FUNCTION activity.retention_blob(TEXT) TO authenticated, service_role;
+
 DO $$
 DECLARE
   rec RECORD;
@@ -135,18 +175,10 @@ BEGIN
        'getdx_snapshot_comments','getdx_snapshot_team_scores','getdx_snapshots')
   LOOP
     blob := obj_description(format('activity.%I', rec.relname)::regclass, 'pg_class');
-    -- Validate tokens; null-window allowed (organization_people only).
     PERFORM activity._validate_retention_blob(rec.relname, blob);
   END LOOP;
 END $$;
 ```
-
-A companion `_validate_retention_blob(relname, blob)` PL/pgSQL function lives
-in the same migration above the `DO` block; it parses
-`retention.window=<P\d+[DWMY]>` and `retention.clock=<col>`, verifies the
-column exists in `information_schema.columns`, and `RAISE EXCEPTION` on any
-malformed input. Function body is short (≤30 lines) — bundle in this
-migration, not a separate file.
 
 Verify: `bunx fit-map activity migrate` succeeds; `bun test products/map/test/activity/migration-rls.test.js` (added in step 8) passes; `psql` shows `relrowsecurity = true` on all six tables and the per-table `COMMENT` blobs round-trip.
 
@@ -208,11 +240,7 @@ export function resolveIdentity(env = process.env) {
 }
 ```
 
-Note: signature verification is the database's job (Postgres rejects bad
-signatures during the request). The resolver only fails fast on missing or
-malformed tokens to satisfy criterion 3b's "no query before error" property.
-
-Verify: `bun test products/landmark/test/lib/identity.test.js` (added in step 8) — covers missing, malformed, expired, no-email, and happy paths.
+Verify: `bun test products/landmark/test/lib/identity.test.js` (added in step 8) covers missing, malformed, expired, no-email, and happy paths. Signature verification is left to Postgres at request time.
 
 ### 5. Authenticated Supabase client
 
@@ -265,100 +293,176 @@ export async function buildContext({ dataDir, options, needsSupabase, identity }
 }
 ```
 
-- **Modified:** `products/landmark/bin/fit-landmark.js`
+`createLandmarkClient`'s only caller is `buildContext`; every command receives
+`supabase` from `ctx`, so the signature flip in step 5 ripples no further than
+this file.
 
-In the `main()` flow, immediately before `buildContext`:
+- **Modified:** `products/landmark/bin/fit-landmark.js` — add `resolveIdentity`
+  import and the chokepoint in `main()`. Before/after the existing block at
+  `bin/fit-landmark.js:240-247`:
 
 ```js
-let identity = null;
-if (entry.needsSupabase) {
-  try { identity = resolveIdentity(); }
-  catch (e) {
-    if (e.code === "LANDMARK_IDENTITY_UNRESOLVED") {
-      cli.error(e.message);
-      process.exit(4);
-    }
-    throw e;
-  }
-}
-const ctx = await buildContext({ dataDir, options: values, needsSupabase: entry.needsSupabase, identity });
+// before
+import { SupabaseUnavailableError } from "../src/lib/supabase.js";
+// ...
+try {
+  const dataDir = resolveDataDir(values);
+  const ctx = await buildContext({
+    dataDir, options: values, needsSupabase: entry.needsSupabase,
+  });
+
+// after
+import { SupabaseUnavailableError } from "../src/lib/supabase.js";
+import { resolveIdentity, IdentityUnresolvedError } from "../src/lib/identity.js";
+// ...
+try {
+  const dataDir = resolveDataDir(values);
+  let identity = null;
+  if (entry.needsSupabase) identity = resolveIdentity();
+  const ctx = await buildContext({
+    dataDir, options: values, needsSupabase: entry.needsSupabase, identity,
+  });
 ```
 
-Adds `resolveIdentity` import from `../src/lib/identity.js`. The `marker`
-command keeps `needsSupabase: false` and skips identity resolution.
+And in the existing `catch` block (`bin/fit-landmark.js:268-275`), prepend the
+`IdentityUnresolvedError` branch:
 
-Verify: `bun test products/landmark/test/cli-command.test.js` after extending it
-(step 8) to cover exit codes 0 (marker, no token), 4 (any other command, no
-token), 3 (Supabase unavailable). Manually: `LANDMARK_AUTH_TOKEN= fit-landmark
-voice --email a@b` exits 4 with the auth message; `fit-landmark marker x` runs.
+```js
+} catch (error) {
+  if (error instanceof IdentityUnresolvedError) {
+    cli.error(error.message); process.exit(4);
+  }
+  if (error instanceof SupabaseUnavailableError) {
+    cli.error(error.message); process.exit(3);
+  }
+  cli.error(error.message); process.exit(1);
+}
+```
+
+Existing `--email`/`--manager` handler arguments are preserved as JS-side
+filters within the RLS-clamped result set (per design § Tier derivation and
+behavior changes); no handler signatures change.
+
+Verify: `bun test products/landmark/test/dispatcher.test.js` (added in step 8) asserts exit codes 0/3/4 by spawning the binary via `node:child_process.spawnSync`; manual smoke `LANDMARK_AUTH_TOKEN= fit-landmark voice --email a@b` exits 4, `fit-landmark marker x` exits 0.
 
 ### 7. New verbs
 
 #### 7a. `fit-landmark sources`
 
-- **Created:** `products/landmark/src/commands/sources.js`
+- **Modified:** `products/landmark/src/lib/empty-state.js` — append:
 
 ```js
+NO_SOURCES_FOR_PERSON: (email) =>
+  `No sources retained for ${email} that you can see.`,
+```
+
+- **Created:** `products/landmark/src/commands/sources.js` — exports
+  `runSourcesCommand({ args, options, supabase })` returning `{ meta, items }`
+  per design § Interfaces.
+
+```js
+import { readRetention } from "@forwardimpact/map/activity/retention";
 import { EMPTY_STATES } from "../lib/empty-state.js";
 
 export const needsSupabase = true;
 
-const SOURCE_CLASSES = [
-  { id: "organization_people", label: "Profile (organization_people)",
-    keyResolver: async (s, e) => ({ table: "organization_people", filter: q => q.eq("email", e) }) },
+const CLASSES = [
+  { id: "organization_people", label: "Profile",
+    plan: async (_s, e) => ({ table: "organization_people", filter: q => q.eq("email", e) }) },
   { id: "evidence", label: "Evidence",
-    keyResolver: async (s, e) => ({ table: "evidence",
-      select: "*,github_artifacts!inner(email)", filter: q => q.eq("github_artifacts.email", e) }) },
+    plan: async (_s, e) => ({ table: "evidence", select: "created_at,github_artifacts!inner(email)",
+      filter: q => q.eq("github_artifacts.email", e) }) },
   { id: "github_artifacts", label: "GitHub artifacts",
-    keyResolver: async (s, e) => ({ table: "github_artifacts", filter: q => q.eq("email", e) }) },
+    plan: async (_s, e) => ({ table: "github_artifacts", filter: q => q.eq("email", e) }) },
   { id: "getdx_snapshot_comments", label: "GetDX comments",
-    keyResolver: async (s, e) => ({ table: "getdx_snapshot_comments", filter: q => q.eq("email", e) }) },
+    plan: async (_s, e) => ({ table: "getdx_snapshot_comments", filter: q => q.eq("email", e) }) },
   { id: "getdx_snapshot_team_scores", label: "GetDX team scores",
-    keyResolver: async (s, e) => {
-      const { data } = await s.from("organization_people").select("getdx_team_id").eq("email", e).maybeSingle();
+    plan: async (s, e) => {
+      const { data } = await s.from("organization_people")
+        .select("getdx_team_id").eq("email", e).maybeSingle();
       const t = data?.getdx_team_id;
-      if (!t) return null;
-      return { table: "getdx_snapshot_team_scores", filter: q => q.eq("getdx_team_id", t) };
+      return t ? { table: "getdx_snapshot_team_scores", filter: q => q.eq("getdx_team_id", t) } : null;
     } },
   { id: "getdx_snapshots", label: "GetDX snapshot cycles",
-    keyResolver: async (s, e) => {
-      const c = await s.from("getdx_snapshot_comments").select("snapshot_id").eq("email", e);
-      const t = await s.from("organization_people").select("getdx_team_id").eq("email", e).maybeSingle();
-      const teamId = t.data?.getdx_team_id;
-      const sc = teamId
-        ? await s.from("getdx_snapshot_team_scores").select("snapshot_id").eq("getdx_team_id", teamId)
-        : { data: [] };
-      const ids = [...new Set([...(c.data ?? []), ...(sc.data ?? [])].map(r => r.snapshot_id))];
-      if (ids.length === 0) return null;
-      return { table: "getdx_snapshots", filter: q => q.in("snapshot_id", ids) };
+    plan: async (s, e) => {
+      // One PostgREST round-trip via the SQL helper added in step 2.
+      const { data } = await s.rpc("snapshot_ids_for_person", { p_email: e });
+      const ids = (data ?? []).map(r => r.snapshot_id);
+      return ids.length ? { table: "getdx_snapshots", filter: q => q.in("snapshot_id", ids) } : null;
     } },
 ];
+
+export async function runSourcesCommand({ options, supabase, format }) {
+  const email = options.email;
+  if (!email) throw new Error("sources: --email <e> is required");
+  const items = [];
+  for (const cls of CLASSES) {
+    const plan = await cls.plan(supabase, email);
+    if (!plan) continue;
+    const ret = await readRetention(supabase, cls.id);
+    const clock = ret.clock ?? "imported_at";
+    const sel = plan.select ?? `${clock}`;
+    const asc = plan.filter(supabase.from(plan.table).select(sel, { count: "exact" })
+      .order(clock, { ascending: true }).limit(1));
+    const desc = plan.filter(supabase.from(plan.table).select(sel)
+      .order(clock, { ascending: false }).limit(1));
+    const [{ data: oldRows, count }, { data: newRows }] = await Promise.all([asc, desc]);
+    if (!count) continue;
+    const oldest = oldRows[0]?.[clock] ?? null;
+    const newest = newRows[0]?.[clock] ?? null;
+    const falloff = ret.window && oldest ? addIso(oldest, ret.window) : null;
+    items.push({ id: cls.id, label: cls.label, count, oldest, newest,
+      window: ret.window, falloff });
+  }
+  if (!items.length) {
+    return { items: [], meta: { format, emptyState: EMPTY_STATES.NO_SOURCES_FOR_PERSON(email) } };
+  }
+  return { items, meta: { format, email } };
+}
+
+function addIso(ts, p) {
+  // Parses ISO 8601 P\d+[DWMY] subset declared in the migration grammar.
+  const m = /^P(\d+)([DWMY])$/.exec(p);
+  if (!m) return null;
+  const d = new Date(ts); const n = Number(m[1]);
+  if (m[2] === "D") d.setUTCDate(d.getUTCDate() + n);
+  if (m[2] === "W") d.setUTCDate(d.getUTCDate() + 7 * n);
+  if (m[2] === "M") d.setUTCMonth(d.getUTCMonth() + n);
+  if (m[2] === "Y") d.setUTCFullYear(d.getUTCFullYear() + n);
+  return d.toISOString();
+}
 ```
 
-The handler iterates `SOURCE_CLASSES`, resolves each, runs a `count`+`oldest`
-query (asc) and a `newest` query (desc) using the per-class `clock` from
-`retention.js`, omits zero-count classes, computes
-`falloff = oldest + window` (omitted when `window` is null), and renders.
-Empty result set → `meta.emptyState = EMPTY_STATES.NO_SOURCES_FOR_PERSON(email)`.
-
+- **Modified:** step 2 migration — append `snapshot_ids_for_person(p_email)` SQL
+  helper that UNIONs `getdx_snapshot_comments.snapshot_id` filtered by email
+  with `getdx_snapshot_team_scores.snapshot_id` joined through
+  `organization_people.getdx_team_id`. Mark it `LANGUAGE sql STABLE SECURITY
+  INVOKER` so RLS still applies inside the union; grant EXECUTE to
+  `authenticated, service_role`.
 - **Created:** `products/landmark/src/formatters/sources.js` — text/json/markdown
-  exports keyed off `view.classes[]`, mirroring `org.js` formatter shape.
+  exports mirroring `org.js` formatter shape, keyed off `result.items[]`.
 - **Modified:** `products/landmark/src/formatters/index.js` — add `sources`
-  import and registry entry.
-- **Modified:** `products/landmark/bin/fit-landmark.js` — add to `COMMANDS` map
-  (`needsSupabase: true`), add to `commands` array with `--email <e>` option,
-  add example, add documentation entry (see step 9).
+  to the imports and the `formatters` registry object.
+- **Modified:** `products/landmark/bin/fit-landmark.js` — add
+  `runSourcesCommand` import, add `sources: { handler: runSourcesCommand,
+  needsSupabase: true }` to `COMMANDS`, add the `sources` row to the
+  `commands` array with `options: { email: { type: "string", description:
+  "Email to inventory sources for" } }`, append the example
+  `"fit-landmark sources --email self@example.com"`, and add the
+  documentation entry from step 9.
 
 Verify: `bun test products/landmark/test/sources.test.js` (added in step 8) covers populated, zero, scope-clamped, and falloff cases.
 
 #### 7b. `fit-map people provision`
 
-- **Created:** `products/map/src/commands/people-provision.js`
+- **Created:** `products/map/src/commands/people-provision.js` — exports
+  `runProvisionCommand({ supabase })` returning `{ meta, summary }` per
+  design § Interfaces.
 
 ```js
 import { formatHeader, formatSuccess, formatBullet } from "@forwardimpact/libcli";
 
-const BAN_FOREVER = "876000h"; // ≈100 years
+const BAN_FOREVER = "876000h"; // ≈100 years; gotrue parses to a future banned_until.
 
 async function listAuthUsers(supabase) {
   const out = new Map();
@@ -366,6 +470,7 @@ async function listAuthUsers(supabase) {
   while (true) {
     const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
     if (error) throw new Error(`listUsers: ${error.message}`);
+    if (!data.users.length) break;
     for (const u of data.users) out.set(u.email, u);
     if (data.users.length < 1000) break;
     page += 1;
@@ -373,27 +478,26 @@ async function listAuthUsers(supabase) {
   return out;
 }
 
-export async function provision(supabase) {
+export async function runProvisionCommand({ supabase }) {
   process.stdout.write(formatHeader("Provisioning auth.users from organization_people") + "\n\n");
-  const { data: roster, error } = await supabase.schema("activity")
-    .from("organization_people").select("email");
+  const { data: roster, error } = await supabase.from("organization_people").select("email");
   if (error) throw new Error(`organization_people: ${error.message}`);
   const rosterEmails = new Set(roster.map(r => r.email));
   const authUsers = await listAuthUsers(supabase);
 
-  let created = 0, restored = 0, banned = 0, unchanged = 0;
+  const summary = { created: 0, restored: 0, decommissioned: 0, unchanged: 0 };
   for (const email of rosterEmails) {
     const existing = authUsers.get(email);
     if (!existing) {
       const { error } = await supabase.auth.admin.createUser({ email, email_confirm: true });
       if (error) throw new Error(`createUser ${email}: ${error.message}`);
-      created += 1;
+      summary.created += 1;
     } else if (existing.banned_until && new Date(existing.banned_until) > new Date()) {
       const { error } = await supabase.auth.admin.updateUserById(existing.id, { ban_duration: "none" });
       if (error) throw new Error(`unban ${email}: ${error.message}`);
-      restored += 1;
+      summary.restored += 1;
     } else {
-      unchanged += 1;
+      summary.unchanged += 1;
     }
   }
   for (const [email, user] of authUsers) {
@@ -401,40 +505,38 @@ export async function provision(supabase) {
     if (user.banned_until && new Date(user.banned_until) > new Date()) continue;
     const { error } = await supabase.auth.admin.updateUserById(user.id, { ban_duration: BAN_FOREVER });
     if (error) throw new Error(`ban ${email}: ${error.message}`);
-    banned += 1;
+    summary.decommissioned += 1;
   }
-
-  process.stdout.write(formatBullet(`created: ${created}`, 0) + "\n");
-  process.stdout.write(formatBullet(`restored: ${restored}`, 0) + "\n");
-  process.stdout.write(formatBullet(`decommissioned: ${banned}`, 0) + "\n");
-  process.stdout.write(formatBullet(`unchanged: ${unchanged}`, 0) + "\n");
+  for (const [k, v] of Object.entries(summary))
+    process.stdout.write(formatBullet(`${k}: ${v}`, 0) + "\n");
   process.stdout.write("\n" + formatSuccess("Reconciliation complete") + "\n");
-  return 0;
+  return { summary, meta: { ok: true } };
 }
 ```
 
-The auth admin API requires a service-role-keyed client; the existing
-`createMapClient` already provides that. The provisioning client needs the
-*top-level* client (not schema-scoped to `activity`) so `auth.admin.*` works —
-the function uses `supabase.schema("activity").from(...)` to query
-organization_people while keeping `auth.admin.*` accessible on the root
-client. `createMapClient` returns a client scoped to `activity`; for this
-verb pass `{ schema: "public" }` from the dispatcher so `schema("activity")`
-restores activity for the roster query.
+`supabase.auth.admin.*` reaches GoTrue via the service-role JWT; it is
+unaffected by the PostgREST schema scoping that `createMapClient` applies for
+`from(...)`. The existing `activity` schema scoping is fine — the `from(
+"organization_people")` call lands on `activity.organization_people` because
+`config.toml` puts `activity` on `extra_search_path`.
 
-- **Modified:** `products/map/bin/fit-map.js` `dispatchPeople` switch and the
-  `commands[].args` description for `people` (`<validate|push|provision> [file]`).
-  New case:
+- **Modified:** `products/map/bin/fit-map.js`:
+  - `dispatchPeople` adds the `provision` case:
 
 ```js
 case "provision": {
-  const supabase = await mapClient({ ...values, schema: "public" });
-  const { provision } = await import("../src/commands/people-provision.js");
-  return provision(supabase);
+  const supabase = await mapClient(values);
+  const { runProvisionCommand } = await import("../src/commands/people-provision.js");
+  const { summary } = await runProvisionCommand({ supabase });
+  return summary.created || summary.restored || summary.decommissioned ? 0 : 0;
 }
 ```
 
-Verify: `bun test products/map/test/activity/people-provision.test.js` (added in step 8) covers create / idempotent re-run / decommission / re-add lifecycle, asserting `id` stability across the no-op and re-add paths.
+  - `commands[]` row for `people` updates `args` to
+    `<validate|push|provision> [file]`.
+  - Update the `people` `description` to mention `provision`.
+
+Verify: `bun test products/map/test/activity/people-provision.test.js` (added in step 8) covers create / idempotent re-run / decommission / re-add lifecycle, asserting `id` stability across the no-op and re-add paths and that `banned_until` is >50 years out for decommissioned rows.
 
 ### 8. Tests
 
@@ -450,9 +552,10 @@ all are run by the existing top-level `bun run test`.
 | `products/landmark/test/lib/sign-test-token.test.js` (new) | helper round-trips header+claims; signature is HMAC-SHA256 over `MAP_SUPABASE_JWT_SECRET`. |
 | `products/landmark/test/lib/supabase.test.js` (new) | `createLandmarkClient` fails fast on missing url/anon/jwt; sets the `Authorization` header. |
 | `products/landmark/test/lib/no-service-role-in-src.test.js` (new) | criterion 3a: greps `products/landmark/src/` for `MAP_SUPABASE_SERVICE_ROLE_KEY` and `auth.admin.` — both must be zero. Greps `products/landmark/src/` for `sign-test-token` — must be zero. |
-| `products/landmark/test/cli-command.test.js` (extended) | criterion 3b — invoking `voice` with no `LANDMARK_AUTH_TOKEN` exits 4, errors before any Supabase call (assert via spy that records `from()`/`rpc()` invocations). marker command exits 0 with no token. |
+| `products/landmark/test/dispatcher.test.js` (new) | criterion 3b — `spawnSync(process.execPath, ["bin/fit-landmark.js", "voice", "--email", "a@b"], { env: {} })` exits 4 and writes the auth-required message; same harness with `marker x` exits 0; with `LANDMARK_AUTH_TOKEN` set but `MAP_SUPABASE_URL` unset exits 3. The "no Supabase query before error" half is enforced structurally — `resolveIdentity` runs before `buildContext`, which is the only construction site for the client. |
+| `products/map/test/activity/supabase-cli.test.js` (extended) | step 1 patch — `start()` prints both `MAP_SUPABASE_ANON_KEY` and `MAP_SUPABASE_JWT_SECRET` lines. |
 | `products/landmark/test/sources.test.js` (new) | criterion 5 — populated classes appear with five fields; zero-count classes omitted; criterion 6 retention mutation reflected; criterion 7 — out-of-scope email returns `NO_SOURCES_FOR_PERSON`. |
-| `products/landmark/test/regression-scope.test.js` (new) | criterion 9 — for each of `voice`, `evidence`, `readiness`, `coverage`, `timeline`, capture pre-change row sets via the existing fixtures, then re-run under an Engineer-scope JWT bound to the fixture self; assert row-set equality. |
+| `products/landmark/test/regression-scope.test.js` (new) | criterion 9 — committed golden fixtures (`products/landmark/test/golden/sources-{voice,evidence,readiness,coverage,timeline}-self.json`) are captured *before* the migration lands by running each command on the unmigrated fixture set; the new test re-runs each command under an Engineer-scope JWT bound to the same fixture self and asserts deep equality against the golden file. Fixture capture is a one-time pre-PR step recorded in the PR body. |
 | `products/map/test/activity/integration.test.js` (extended) | criterion 8 — end-to-end seed → migrate → `activity verify` passes against the migrated schema. |
 | `products/landmark/test/empty-state.test.js` (extended) | `NO_SOURCES_FOR_PERSON(email)` returns a function whose output includes the email. |
 
@@ -462,14 +565,7 @@ unit tests stub the client.
 
 Verify: `bun run test` green; `bun run check` green; `bun run format`.
 
-### 9. Empty state, retention reader, docs
-
-- **Modified:** `products/landmark/src/lib/empty-state.js` — append:
-
-```js
-NO_SOURCES_FOR_PERSON: (email) =>
-  `No sources retained for ${email} that you can see.`,
-```
+### 9. Retention reader, docs
 
 - **Created:** `products/map/src/activity/retention.js`
 
@@ -491,9 +587,8 @@ export async function readRetention(supabase, table) {
 export function clearRetentionCache() { readRetention._cache?.clear(); }
 ```
 
-`retention_blob(p_table)` is a tiny SQL helper added by the migration in
-step 2 returning `obj_description(format('activity.%I', p_table)::regclass, 'pg_class')`
-— callable by both `service_role` and `authenticated`.
+`retention_blob` and `_validate_retention_blob` are added by the migration in
+step 2.
 
 - **Created:** `websites/fit/docs/products/engineering-data-sources/index.md` —
   engineer-facing guide to `fit-landmark sources --email <self>`. Covers the
@@ -503,13 +598,36 @@ step 2 returning `obj_description(format('activity.%I', p_table)::regclass, 'pg_
   operator-facing guide to `fit-map people provision`. Covers the operator
   credential boundary (service-role required), idempotency, decommissioning
   semantics, and the engineer-side login follow-up.
-- **Modified:** `.claude/skills/fit-landmark/SKILL.md` — add the
-  `engineering-data-sources` link to `## Documentation` (matching ordering in
-  CLI `documentation[]`).
-- **Modified:** `.claude/skills/fit-map/SKILL.md` — add the
-  `provisioning-engineers` link.
-- **Modified:** `products/landmark/bin/fit-landmark.js` `definition.documentation` — add the same entry.
-- **Modified:** `products/map/bin/fit-map.js` `definition.documentation` — add the same entry.
+- **Modified:** `.claude/skills/fit-landmark/SKILL.md` `## Documentation` —
+  append, in the **same order** the CLI uses:
+
+```markdown
+- [List Engineering Data Sources](https://www.forwardimpact.team/docs/products/engineering-data-sources/index.md)
+  — list the activity rows retained about an engineer and their fall-off dates.
+```
+
+- **Modified:** `.claude/skills/fit-map/SKILL.md` `## Documentation` — append:
+
+```markdown
+- [Provision Engineer Auth Users](https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md)
+  — reconcile `auth.users` against the roster so identity-derived RLS works.
+```
+
+- **Modified:** `products/landmark/bin/fit-landmark.js` `definition.documentation` — append:
+
+```js
+{ title: "List Engineering Data Sources",
+  url: "https://www.forwardimpact.team/docs/products/engineering-data-sources/index.md",
+  description: "List the activity rows retained about an engineer and their fall-off dates." },
+```
+
+- **Modified:** `products/map/bin/fit-map.js` `definition.documentation` — append:
+
+```js
+{ title: "Provision Engineer Auth Users",
+  url: "https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md",
+  description: "Reconcile auth.users against the roster so identity-derived RLS works." },
+```
 
 Verify: `bun run context:fix` regenerates catalog rows; `bun run check` is green.
 
