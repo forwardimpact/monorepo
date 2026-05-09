@@ -71,13 +71,12 @@ the residual cost; the migration adds `idx_github_artifacts_email` and relies
 on existing PKs (`organization_people.email`, `github_artifacts.artifact_id`)
 to keep the join below sequential-scan thresholds at expected cardinalities.
 
-The `evidence` and `github_artifacts` policies recurse into
-`organization_people` whose own policy admits a row when `email = caller OR
-manager_email = caller`. For Manager M querying report A's evidence, the
-`org_people` row for A is admitted via the `manager_email` branch, so the
-outer `EXISTS` resolves cleanly without privilege escalation. For grand-
-report G, no `org_people` row is admitted, so the outer `EXISTS` is false —
-recursion terminates at depth 1 by design.
+The `EXISTS` subqueries against `organization_people` are themselves RLS-bound
+(the `org_people` policy admits self + reports). For Manager M querying
+report A's evidence, the `org_people` row for A is admitted via the
+`manager_email` branch and the outer `EXISTS` resolves; for grand-report G,
+no `org_people` row is admitted and the `EXISTS` is false — recursion
+terminates at depth 1 by design.
 
 ## Tier derivation and behavior changes
 
@@ -100,12 +99,10 @@ through the authenticated client (so subject to RLS, which is fine — the
 | `--email <out-of-scope>` | requested engineer's rows | zero rows + existing empty-state |
 
 Spec criterion 9 covers `--email <self>` parity for the five engineer-scope
-commands; the `evidence` parity case depends on every retained evidence row
-having a `github_artifacts` row with `email = self`, which is an invariant
-of the existing ingestion path (Guide writes evidence keyed by artifact, and
-artifacts are populated with `email` via the `github_username → email`
-lookup). Evidence orphaned from a person row was already invisible to
-`evidence --email <self>` pre-change.
+commands. The `evidence` parity case depends on every retained evidence row
+having a `github_artifacts` row with `email = self` — an existing ingestion
+invariant (artifact-keyed evidence + `github_username → email` lookup).
+Pre-change `evidence --email <self>` already saw nothing for orphaned rows.
 
 ## Retention metadata
 
@@ -122,9 +119,7 @@ no quoting needed because both value shapes exclude whitespace and `=`. A
 `window` of `null` (omitted) means "while employed" and the source-inventory
 column renders as such with no projected fall-off date.
 
-Windows: `organization_people` ⇒ null; `evidence`/`github_artifacts` ⇒ P180D
-from `created_at`/`occurred_at`; the three GetDX tables ⇒ P730D from
-`imported_at`/`timestamp`. Exact values land in the migration.
+Windows: `organization_people` ⇒ null; `evidence`/`github_artifacts` ⇒ P180D from `created_at`/`occurred_at`; the three GetDX tables ⇒ P730D from `imported_at`/`timestamp`. Exact values land in the migration.
 
 ## Source-inventory output
 
@@ -145,13 +140,11 @@ header names "rows visible to you" so a Manager M running `sources --email
 
 ## `get_team` interaction
 
-The recursive function (`20250101000001_get_team_function.sql`) is `LANGUAGE
-sql STABLE` with `SET search_path = ''` — implicit `SECURITY INVOKER`. The
-planner inlines `STABLE sql` functions into the calling statement; RLS on
-`organization_people` is then applied inside the recursive CTE. Under
-Manager M, the recursion bottoms out at depth 1 (direct reports admitted via
-`manager_email = caller`; their reports not admitted, so the iteration adds
-no new rows and terminates). **No change to the function.**
+`20250101000001_get_team_function.sql` is `LANGUAGE sql STABLE` with `SET
+search_path = ''` — implicit `SECURITY INVOKER`, planner-inlined into the
+caller. RLS on `organization_people` applies inside the recursive CTE: the
+recursion bottoms out at depth 1 because grand-reports are not admitted, so
+the iteration adds no new rows and terminates. **No change to the function.**
 
 ## Key decisions
 
@@ -176,34 +169,31 @@ scope conventions, the synthetic-data pipeline, and cross-product scope. The
 schema declaration this design lands is the substrate the deletion daemon
 will read from in a future spec.
 
+**Supabase Auth user provisioning.** RLS reads `auth.email()`, which assumes
+an `auth.users` row whose email matches `organization_people.email` at
+runtime. The operator-facing flow that creates that pairing (Supabase
+invite, SSO bridge, reuse of an existing identity provider) and the
+keep-in-sync rule between `auth.users` and `organization_people` are not
+designed here — without them RLS is correct but unreachable for engineers
+whose Auth user does not exist. Spec § Scope-out names "Authentication
+mechanism" as a design choice: this design names the carrier (Supabase
+Auth JWT) and the Landmark-side issuance flow (`fit-landmark login` →
+`/token?grant_type=password`); the Auth-user provisioning and SSO bridge
+are sequenced before any production rollout in a follow-up spec.
+`organization_people` ingestion continues under the existing
+`bunx fit-map people push` write path — not modified here.
+
 ## Dismissed singletons
 
 - `--email`/`--manager` ⇒ explicit error vs silent zero: silent zero with
-  `NO_SOURCES_FOR_PERSON` empty-state — the existing nine commands already
-  render empty-states for missing-data cases; an extra error path adds copy
-  surface without changing observable user behavior.
+  `NO_SOURCES_FOR_PERSON` — the existing commands already empty-state on
+  missing-data, an error path adds copy without observable benefit.
 - Service-role import lint under `products/landmark/src/`: plan-level
   concern (test or biome rule), not architectural.
 - `getdx_snapshot_team_scores` "team a report sits in" vs "team they
-  manage": the design admits team-via-direct-report by intent — the report
-  is the join key `getdx_teams.manager_email` would otherwise duplicate. If
-  a report sits in a team M does not manage, M sees that team's score
-  through them; this is consistent with the spec's "scores for teams they
-  manage" reading because reports' team membership is the canonical signal
-  of management responsibility in `organization_people`.
-
-**Supabase Auth user provisioning.** RLS reads `auth.email()`, which requires
-a Supabase Auth user whose email matches the corresponding
-`organization_people.email`. This slice assumes that pairing exists at
-runtime; the operator-facing flow (Supabase invite, SSO bridge, or reuse of
-an existing identity provider) and the issuance path that lands a JWT in
-`LANDMARK_AUTH_TOKEN` for an engineer are deferred. Without them, RLS will
-be correct but unreachable for engineers whose Auth user has not been
-created. Spec § Scope-out names "Authentication mechanism" as a design
-choice; this design names the carrier (Supabase Auth JWT) and leaves the
-issuance and Auth-user/`organization_people` keep-in-sync rules to a
-follow-up spec sequenced before any production rollout. `organization_people`
-itself continues to be provisioned by the existing `bunx fit-map people push`
-write path under the service-role key — not modified here.
+  manage": admit team-via-direct-report by intent — reports' team
+  membership in `organization_people` is the canonical signal of management
+  responsibility; alternative `getdx_teams.manager_email` join would
+  duplicate that signal.
 
 — Staff Engineer 🛠️
