@@ -93,11 +93,14 @@ products/
   map/         # fit-map — data product, validation, schema, starter YAML
   pathway/     # fit-pathway — web app, CLI, formatters
   guide/       # fit-guide — LLM agent, artifact interpretation
+  landmark/    # fit-landmark
+  summit/      # fit-summit
   outpost/     # fit-outpost — knowledge system, scheduler, macOS app
+  gear/        # fit-skills and services
 libraries/
   lib*/        # shared infrastructure and domain libraries
 services/
-  graph/ mcp/ pathway/ trace/ vector/
+  graph/ map/ mcp/ pathway/ trace/ vector/
 config/
   config.json  # service definitions
 data/
