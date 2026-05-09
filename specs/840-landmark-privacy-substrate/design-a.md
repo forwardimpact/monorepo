@@ -6,8 +6,8 @@
 | --- | --- | --- |
 | RLS migration | `products/map/supabase/migrations/<new>_landmark_rls.sql` | Enables RLS on the six tables; revokes the blanket DML grants to `anon`/`authenticated` from `20250101000000`; re-grants `SELECT` on the six tables to `authenticated`; declares one `FOR SELECT TO authenticated` policy per table; adds `idx_evidence_artifact_id` and `idx_github_artifacts_email`; encodes retention as per-table `COMMENT` with a `DO $$ ... $$` validation block that fails the migration if any of the six tables ends up with a malformed blob. `service_role` grants unchanged. |
 | Identity resolver | `products/landmark/src/lib/identity.js` (new) | Reads a Supabase Auth JWT from `LANDMARK_AUTH_TOKEN` (env) or, if unset, from `~/.config/fit-landmark/token` (mode `0600`). Verifies the `email` claim is present and `exp` is in the future. Throws `IdentityUnresolvedError` (code `LANDMARK_IDENTITY_UNRESOLVED`); the dispatcher catches and exits **4** (1 = generic, 2 = usage, 3 = `SupabaseUnavailableError`, 4 = identity). Spec criterion 3b's "no query before error" chokepoint lives here. |
-| JWT issuance — production | `fit-landmark login` (new dispatcher row) | Triggers Supabase Auth's **magic-link OTP** (`/otp` + `/verify`); on verification writes the resulting JWT to `~/.config/fit-landmark/token` with mode `0600`. Token TTL is whatever Supabase mints (typically 1h); when expired, the resolver re-throws `IdentityUnresolvedError` and the engineer re-runs `login`. No refresh-token persistence in slice 1. |
-| JWT issuance — tests/CI | `signTestToken({email})` helper under `products/landmark/test/lib/` | HMAC-signs `{ role: "authenticated", aud: "authenticated", email, sub: <uuid>, exp: now+15m, iss: "supabase" }` with `MAP_SUPABASE_JWT_SECRET` (printed by `supabase start`; carried in CI as a repo secret). The production code path cannot reach this helper — separate package boundary. |
+| JWT issuance — production | `fit-landmark login` (new dispatcher row) | Calls Supabase Auth `signInWithOtp({ email })` to send a 6-digit code by email, prompts the engineer to paste the code, then `verifyOtp({ email, token, type: "email" })` returns the JWT. Writes it to `~/.config/fit-landmark/token` (mode `0600`). Token TTL is whatever Supabase mints (typically 1h); when expired, the resolver re-throws `IdentityUnresolvedError` and the engineer re-runs `login`. No refresh-token persistence in slice 1 — token TTL ergonomics deferred alongside the auth-user provisioning spec. |
+| JWT issuance — tests/CI | `signTestToken({email})` helper at `products/landmark/test/lib/sign-test-token.js` | HMAC-signs `{ role: "authenticated", aud: "authenticated", email, sub: <uuid>, exp: now+15m, iss: "supabase" }` with `MAP_SUPABASE_JWT_SECRET`. Containment: file lives only under `test/`, never imported from `src/` (verified at the same plan-level lint that closes criterion 3a). `MAP_SUPABASE_JWT_SECRET` is a CI-only secret scoped to test workflows; production deployments do not carry it, so a CI compromise cannot mint identities against production Supabase. |
 | Authenticated client | `products/landmark/src/lib/supabase.js` (rewrite) | `createLandmarkClient(token)` builds a Supabase client with `Authorization: Bearer <jwt>` and `MAP_SUPABASE_ANON_KEY` as transport. No reference to `MAP_SUPABASE_SERVICE_ROLE_KEY` survives in `products/landmark/src/`; the service-role client lives only under `products/map/src/` for ingestion. |
 | Source-inventory command | `products/landmark/src/commands/sources.js` (new) + dispatcher row in `bin/fit-landmark.js` | Implements `fit-landmark sources --email <e>`. Iterates a static `SOURCE_CLASSES` registry — one row per RLS'd table naming the table, the `clock` column, a label, and a per-class `keyResolver(supabase, e)` returning the filter the inventory query applies. |
 | Retention reader | `products/map/src/activity/retention.js` (new) | Reads the per-table `COMMENT` blob via `pg_class`/`pg_description`, parses to `{ window, clock }`. Cached for one CLI invocation. |
@@ -84,16 +84,19 @@ round-trip cost is not worth it — empty-state copy now uniformly uses
 | `org team --manager M` | full subtree (transitive) | M + direct reports only |
 | `practice` / `practiced` / `health` `--manager M` | aggregates over full subtree | aggregates over self + direct reports |
 | `voice --manager M` | comments across full subtree | comments across self + direct reports |
-| `--manager <other>` (caller ≠ subject) | other manager's subtree | zero rows + `NO_SOURCES_FOR_PERSON` |
-| `--email <out-of-scope>` | requested engineer's rows | zero rows + existing empty-state |
-| `getdx_snapshot_comments.email IS NULL` rows | visible to anyone | invisible to all `authenticated` callers (no identity to claim them) |
-| `marker` (no Supabase) | runs without auth | unchanged — `needsSupabase: false`, identity not resolved |
+| `--manager <other>` / `--email <out-of-scope>` | requested rows | zero rows; each command renders through its own existing empty-state key (`NO_EVIDENCE`, `NO_COMMENTS_EMPTY`, `MANAGER_NOT_FOUND`, etc.). `NO_SOURCES_FOR_PERSON` is the source-inventory key only. |
+| `getdx_snapshot_comments.email IS NULL` and `github_artifacts.email IS NULL` rows | visible to anyone | invisible to all `authenticated` callers (intentional — the per-row-class scope rule has no admit branch for unattributed rows; aggregate reads `practice`/`practiced`/`coverage` lose them too). |
+| `marker` (no Supabase) | runs without auth | unchanged — `needsSupabase: false`; dispatcher skips identity resolution for this branch only. |
+
+The `--email` and `--manager` flags survive as JS-side filters within the
+RLS-clamped result set; they no longer source scope. Identity is resolved
+in `bin/fit-landmark.js` immediately before `buildContext` for every
+`needsSupabase: true` entry — the single chokepoint criterion 3b requires.
 
 Spec criterion 9 covers `--email <self>` parity for the five engineer-scope
-commands. The `evidence` parity case depends on every retained evidence row
-having a `github_artifacts` row with `email = self` — an existing
-ingestion invariant. Pre-change `evidence --email <self>` already saw
-nothing for orphaned rows.
+commands. Evidence parity depends on every retained `evidence` row having
+a `github_artifacts` row with `email = self`; pre-change
+`evidence --email <self>` already saw nothing for orphaned rows.
 
 ## Retention metadata
 
@@ -106,11 +109,12 @@ COMMENT ON TABLE activity.evidence IS
 
 Grammar: `retention.<key>=<value>` tokens, whitespace-separated; values are
 ISO 8601 durations (`P180D`, `P730D`) or column identifiers
-(`[a-z_][a-z0-9_]*`). The migration's validation block re-parses each blob
-post-write and fails the migration if any of the six tables ends up
-malformed or with `clock` referencing a column that does not exist. A
-`window` of `null` (omitted) means "while employed" and the inventory
-omits `falloff` for that class.
+(`[a-z_][a-z0-9_]*`). Null encoding: omit the entire `retention.window`
+token (and, for `organization_people`, the `retention.clock` token too) —
+the parser yields `{ window: null, clock: null }`. Migration validation
+fails if any table has neither token, an unrecognized token, a
+duration that does not parse, or a `clock` referencing a missing column.
+A null `window` renders as "while employed" with no `falloff`.
 
 | Table | Window | Clock |
 | --- | --- | --- |
@@ -123,24 +127,21 @@ omits `falloff` for that class.
 
 ## Source-inventory output
 
-Per `SOURCE_CLASSES` entry the command issues two queries through the
-authenticated client (RLS clamps both to the caller's view):
+Per `SOURCE_CLASSES` entry the command issues an asc-ordered query
+(`count` + `oldest`) and a desc-ordered query (`newest`) through the
+authenticated client; RLS clamps both to the caller's view. Two of the
+six classes need a one-shot lookup before that pair runs (still through
+the same authenticated client; cached per CLI invocation). Per-class
+`keyResolver`:
 
-1. `select(clock, { count: "exact" })` with the per-class
-   `keyResolver(supabase, e)` filter applied, ordered by `clock` ascending,
-   `limit(1)` — yields `count` and `oldest`.
-2. The same with descending order — yields `newest`.
-
-Per-class `keyResolver`:
-
-| Class | Filter |
-| --- | --- |
-| `organization_people` | `.eq("email", e)` |
-| `evidence` | `.eq("github_artifacts.email", e)` (joined inner) |
-| `github_artifacts` | `.eq("email", e)` |
-| `getdx_snapshot_comments` | `.eq("email", e)` |
-| `getdx_snapshot_team_scores` | `.eq("getdx_team_id", t)` where `t = (SELECT getdx_team_id FROM organization_people WHERE email = e)`; class omitted entirely if `t IS NULL` |
-| `getdx_snapshots` | `.in("snapshot_id", S)` where `S = union of snapshot_ids visible to caller in getdx_snapshot_comments and getdx_snapshot_team_scores filtered to e` |
+| Class | Filter | Lookup before pair |
+| --- | --- | --- |
+| `organization_people` | `.eq("email", e)` | — |
+| `evidence` | `.select("...,github_artifacts!inner(email)").eq("github_artifacts.email", e)` | — |
+| `github_artifacts` | `.eq("email", e)` | — |
+| `getdx_snapshot_comments` | `.eq("email", e)` | — |
+| `getdx_snapshot_team_scores` | `.eq("getdx_team_id", t)`; class omitted if `t IS NULL` | one query: `t = SELECT getdx_team_id FROM organization_people WHERE email = e` |
+| `getdx_snapshots` | `.in("snapshot_id", S)` | one query: `S = SELECT DISTINCT snapshot_id FROM getdx_snapshot_comments WHERE email = e UNION SELECT DISTINCT snapshot_id FROM getdx_snapshot_team_scores WHERE getdx_team_id = t` (PostgREST RPC; single round-trip) |
 
 Output fields per class: `count`, `oldest`, `newest`, `window`,
 `falloff = oldest + window` (omitted when `window` is null). Classes whose
