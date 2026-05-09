@@ -168,21 +168,26 @@ jobs:
             --repo "$GITHUB_REPOSITORY"
           echo "sha256=$(cat "${ASSET}.sha256")" >> "$GITHUB_OUTPUT"
 
+      - name: Generate installation token
+        id: ci-app
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
+        with:
+          app-id: ${{ secrets.KATA_APP_ID }}
+          private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+          repositories: homebrew-tap
+
       - name: Checkout tap repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          # HOMEBREW_TAP_PAT: classic GitHub PAT scoped to repo on
-          # forwardimpact/homebrew-tap only. Rotate annually (classic PATs
-          # expire after at most 1 year).
           repository: forwardimpact/homebrew-tap
-          token: ${{ secrets.HOMEBREW_TAP_PAT }}
+          token: ${{ steps.ci-app.outputs.token }}
           path: tap
 
       - name: Configure git identity
         working-directory: tap
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "kata-agent-team[bot]"
+          git config user.email "${{ secrets.KATA_APP_ID }}+kata-agent-team[bot]@users.noreply.github.com"
 
       - name: Update cask version and sha256
         env:
@@ -203,7 +208,7 @@ jobs:
       - name: Open cask-update PR
         working-directory: tap
         env:
-          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_PAT }}
+          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
         run: |
           CASK="${{ steps.meta.outputs.cask }}"
           VERSION="${{ steps.meta.outputs.version }}"
