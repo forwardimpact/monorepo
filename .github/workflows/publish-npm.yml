@@ -56,7 +56,26 @@ jobs:
       - name: Smoke test npm package
         env:
           NPM_NAME: ${{ steps.package.outputs.npm_name }}
+          DIR_NAME: ${{ steps.package.outputs.dir_name }}
         run: |
+          # Skip smoke install when the package's `os` field excludes the runner's
+          # platform (npm install would fail with EBADPLATFORM). Negated entries
+          # (e.g. "!win32") exclude that platform; positive entries form an
+          # allowlist. Empty/missing field → install everywhere.
+          SKIP=$(node -e "
+            const p = require('./${DIR_NAME}/package.json');
+            const os = Array.isArray(p.os) ? p.os : [];
+            if (!os.length) process.exit(0);
+            const negated = os.filter(o => o.startsWith('!')).map(o => o.slice(1));
+            const positive = os.filter(o => !o.startsWith('!'));
+            const platform = process.platform;
+            if (negated.includes(platform)) { console.log('yes'); process.exit(0); }
+            if (positive.length && !positive.includes(platform)) console.log('yes');
+          ")
+          if [ -n "$SKIP" ]; then
+            echo "::notice::Skipping smoke install for $NPM_NAME — package os field excludes $(node -e 'console.log(process.platform)')"
+            exit 0
+          fi
           PACK_DIR=$(mktemp -d)
           TARBALL=$(npm pack --workspace="$NPM_NAME" --pack-destination="$PACK_DIR")
           cd "$PACK_DIR"
