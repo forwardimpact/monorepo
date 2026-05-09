@@ -128,4 +128,18 @@ ingestion-path rewrites, higher-than-Manager tiers, and the `services/map`
 gRPC scope conventions. The schema declaration this design lands is the
 substrate the deletion daemon will read from in a future spec.
 
+**Supabase Auth user provisioning.** RLS reads `auth.email()`, which requires
+a Supabase Auth user whose email matches the corresponding
+`organization_people.email`. This slice assumes that pairing exists at
+runtime; the operator-facing flow (Supabase invite, SSO bridge, or reuse of
+an existing identity provider) and the issuance path that lands a JWT in
+`LANDMARK_AUTH_TOKEN` for an engineer are deferred. Without them, RLS will
+be correct but unreachable for engineers whose Auth user has not been
+created. Spec § Scope-out names "Authentication mechanism" as a design
+choice; this design names the carrier (Supabase Auth JWT) and leaves the
+issuance and Auth-user/`organization_people` keep-in-sync rules to a
+follow-up spec sequenced before any production rollout. `organization_people`
+itself continues to be provisioned by the existing `bunx fit-map people push`
+write path under the service-role key — not modified here.
+
 — Staff Engineer 🛠️
