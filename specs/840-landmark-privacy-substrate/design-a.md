@@ -4,25 +4,24 @@
 
 | Component | Where | Role |
 | --- | --- | --- |
-| RLS migration | `products/map/supabase/migrations/<new>_landmark_rls.sql` | Enables RLS on the six tables; revokes the blanket DML grants to `anon`/`authenticated` from `20250101000000` and re-grants `SELECT` on the six tables to `authenticated` (so policies have something to gate); declares one `FOR SELECT TO authenticated` policy per table; encodes retention as per-table `COMMENT`. `service_role` grants are unchanged. |
-| Identity resolver | `products/landmark/src/lib/identity.js` (new) | Reads a Supabase Auth JWT from `LANDMARK_AUTH_TOKEN` and verifies the `email` claim is present. Throws `IdentityUnresolvedError` (code `LANDMARK_IDENTITY_UNRESOLVED`) when no token or no `email`. The JWT itself is opaque to JS — Supabase verifies the signature on the wire. |
-| JWT issuer | `fit-landmark login --email <e>` (new dispatcher row) and `signTestToken({email})` test helper under `products/landmark/test/lib/` | Production: `login` POSTs to Supabase Auth's `/token?grant_type=password` (or magic-link, design choice deferred to plan) and writes the resulting JWT to `~/.config/fit-landmark/token`; the resolver reads from that path if `LANDMARK_AUTH_TOKEN` is unset. Tests/CI: `signTestToken({email})` HMAC-signs a JWT with the local Supabase `JWT_SECRET` (printed by `supabase start`); `MAP_SUPABASE_JWT_SECRET` carries it in CI. No production code path can mint a token without a server round-trip. |
-| Authenticated client | `products/landmark/src/lib/supabase.js` (rewrite) | `createLandmarkClient(token)` builds a Supabase client with `Authorization: Bearer <jwt>` and the `MAP_SUPABASE_ANON_KEY` transport key. No reference to `MAP_SUPABASE_SERVICE_ROLE_KEY` survives in `products/landmark/src/`. The service-role client lives only under `products/map/src/` for ingestion. |
-| Scope contract | `products/landmark/src/lib/scope.js` (new) | Frozen value `{ kind: "engineer" \| "manager", email }`. Built once in `buildContext`. Used only for empty-state copy selection and source-inventory output framing — RLS is the enforcement floor and `kind` is informational. |
-| Source-inventory command | `products/landmark/src/commands/sources.js` (new) + dispatcher row in `bin/fit-landmark.js` | Implements `fit-landmark sources --email <e>`. Iterates a static `SOURCE_CLASSES` registry (one row per RLS'd table, naming the table, its `clock` column, and a label). |
-| Retention reader | `products/map/src/activity/retention.js` (new) | Reads the per-table `COMMENT` blob via `pg_class`/`pg_description` and parses it into `{ window: <ISO 8601 duration> \| null, clock: <column name> \| null }`. Cached for the duration of one CLI invocation. |
-| Identity-error message | `products/landmark/src/lib/identity.js` carries one constant `IDENTITY_UNRESOLVED_MESSAGE`; the dispatcher's existing `cli.error(error.message)` path renders it to stderr with non-zero exit. **Not** an empty-state. | Spec criterion 3b requires non-zero exit + an authentication-named error before any query — error path, not empty-state path. |
-| Empty-state extension | `products/landmark/src/lib/empty-state.js` | One new key: `NO_SOURCES_FOR_PERSON(email)` — used by the source-inventory command when RLS clamps every class to zero rows. |
-| Documentation | new task slug `engineering-data-sources` under `websites/fit/docs/products/`; added to skill `## Documentation` and CLI `documentation[]` per `products/CLAUDE.md` | Audience: engineers reading their own row inventory. Slug is task-shaped, not product-name-shaped. |
+| RLS migration | `products/map/supabase/migrations/<new>_landmark_rls.sql` | Enables RLS on the six tables; revokes the blanket DML grants to `anon`/`authenticated` from `20250101000000`; re-grants `SELECT` on the six tables to `authenticated`; declares one `FOR SELECT TO authenticated` policy per table; adds `idx_evidence_artifact_id` and `idx_github_artifacts_email`; encodes retention as per-table `COMMENT` with a `DO $$ ... $$` validation block that fails the migration if any of the six tables ends up with a malformed blob. `service_role` grants unchanged. |
+| Identity resolver | `products/landmark/src/lib/identity.js` (new) | Reads a Supabase Auth JWT from `LANDMARK_AUTH_TOKEN` (env) or, if unset, from `~/.config/fit-landmark/token` (mode `0600`). Verifies the `email` claim is present and `exp` is in the future. Throws `IdentityUnresolvedError` (code `LANDMARK_IDENTITY_UNRESOLVED`); the dispatcher catches and exits **4** (1 = generic, 2 = usage, 3 = `SupabaseUnavailableError`, 4 = identity). Spec criterion 3b's "no query before error" chokepoint lives here. |
+| JWT issuance — production | `fit-landmark login` (new dispatcher row) | Triggers Supabase Auth's **magic-link OTP** (`/otp` + `/verify`); on verification writes the resulting JWT to `~/.config/fit-landmark/token` with mode `0600`. Token TTL is whatever Supabase mints (typically 1h); when expired, the resolver re-throws `IdentityUnresolvedError` and the engineer re-runs `login`. No refresh-token persistence in slice 1. |
+| JWT issuance — tests/CI | `signTestToken({email})` helper under `products/landmark/test/lib/` | HMAC-signs `{ role: "authenticated", aud: "authenticated", email, sub: <uuid>, exp: now+15m, iss: "supabase" }` with `MAP_SUPABASE_JWT_SECRET` (printed by `supabase start`; carried in CI as a repo secret). The production code path cannot reach this helper — separate package boundary. |
+| Authenticated client | `products/landmark/src/lib/supabase.js` (rewrite) | `createLandmarkClient(token)` builds a Supabase client with `Authorization: Bearer <jwt>` and `MAP_SUPABASE_ANON_KEY` as transport. No reference to `MAP_SUPABASE_SERVICE_ROLE_KEY` survives in `products/landmark/src/`; the service-role client lives only under `products/map/src/` for ingestion. |
+| Source-inventory command | `products/landmark/src/commands/sources.js` (new) + dispatcher row in `bin/fit-landmark.js` | Implements `fit-landmark sources --email <e>`. Iterates a static `SOURCE_CLASSES` registry — one row per RLS'd table naming the table, the `clock` column, a label, and a per-class `keyResolver(supabase, e)` returning the filter the inventory query applies. |
+| Retention reader | `products/map/src/activity/retention.js` (new) | Reads the per-table `COMMENT` blob via `pg_class`/`pg_description`, parses to `{ window, clock }`. Cached for one CLI invocation. |
+| Empty-state extension | `products/landmark/src/lib/empty-state.js` | One new key: `NO_SOURCES_FOR_PERSON(email)` — used by the source-inventory command when every class clamps to zero rows. No `kind`-conditional empty-state copy in slice 1. |
+| Documentation | new task slug `engineering-data-sources` under `websites/fit/docs/products/`; same slug carries both `sources` and `login` in the skill `## Documentation` and CLI `documentation[]` arrays per `products/CLAUDE.md`. | Audience: engineers reading their own row inventory and authenticating once a session. Slug is task-shaped, not product-name-shaped. |
 
 ## Interfaces
 
 ```
 identity.js   resolveIdentity(): { email, jwt }   throws IdentityUnresolvedError
 supabase.js   createLandmarkClient(token): SupabaseClient
-scope.js      buildScope({ identity, supabase }): Promise<Scope>   // probes manager-bit via authenticated client
 retention.js  readRetention(supabase, table): { window, clock }
-sources.js    runSourcesCommand({ args, options, supabase, scope }): { meta, items[] }
+sources.js    runSourcesCommand({ args, options, supabase }): { meta, items[] }
+login.js      runLoginCommand({ args, options }): { meta }
 ```
 
 ## Data flow
@@ -31,18 +30,13 @@ sources.js    runSourcesCommand({ args, options, supabase, scope }): { meta, ite
 sequenceDiagram
   participant CLI as fit-landmark
   participant ID as identity.js
-  participant CTX as buildContext
   participant SB as Supabase (PostgREST + RLS)
 
   CLI->>ID: resolveIdentity()
-  alt no token / no email claim
-    ID-->>CLI: throw IdentityUnresolvedError -> dispatcher exits non-zero
+  alt missing/expired/no email claim
+    ID-->>CLI: throw IdentityUnresolvedError -> dispatcher exits 4
   end
   ID-->>CLI: { email, jwt }
-  CLI->>CTX: buildContext({ identity, ... })
-  CTX->>SB: SELECT 1 FROM organization_people WHERE manager_email = email LIMIT 1
-  SB-->>CTX: row | empty -> scope.kind
-  CTX-->>CLI: { supabase(jwt), scope, ... }
   CLI->>SB: handler queries (Authorization: Bearer jwt)
   SB-->>CLI: rows admitted by per-row-class policy
 ```
@@ -51,43 +45,38 @@ sequenceDiagram
 
 Each row class has one `FOR SELECT TO authenticated` policy. `service_role`
 keeps full access via its `BYPASSRLS` attribute (Supabase default). `anon` is
-denied two ways: (a) blanket grant revoked, so the role cannot reach the
-table at all; (b) no policy admits it.
+denied two ways: blanket grant revoked, no policy admits it.
 
 | Row class | `USING` clause |
 | --- | --- |
 | `organization_people` | `email = (SELECT auth.email()) OR manager_email = (SELECT auth.email())` |
-| `evidence` | `EXISTS (SELECT 1 FROM activity.github_artifacts ga WHERE ga.artifact_id = evidence.artifact_id AND (ga.email = (SELECT auth.email()) OR EXISTS (SELECT 1 FROM activity.organization_people op WHERE op.email = ga.email AND op.manager_email = (SELECT auth.email()))))` |
+| `evidence` | `EXISTS (SELECT 1 FROM activity.github_artifacts ga WHERE ga.artifact_id = evidence.artifact_id)` |
 | `github_artifacts` | `email = (SELECT auth.email()) OR EXISTS (SELECT 1 FROM activity.organization_people op WHERE op.email = github_artifacts.email AND op.manager_email = (SELECT auth.email()))` |
 | `getdx_snapshot_comments` | `email = (SELECT auth.email()) OR EXISTS (SELECT 1 FROM activity.organization_people op WHERE op.email = getdx_snapshot_comments.email AND op.manager_email = (SELECT auth.email()))` |
 | `getdx_snapshot_team_scores` | `getdx_team_id IN (SELECT getdx_team_id FROM activity.organization_people WHERE email = (SELECT auth.email()) OR manager_email = (SELECT auth.email()))` |
 | `getdx_snapshots` | `true` |
 
-`(SELECT auth.email())` (subselect form) is the Supabase
+The `evidence` policy delegates entirely to `github_artifacts` RLS — RLS
+applies inside policy subqueries, so an `EXISTS` on `github_artifacts`
+already restricts evidence to artifacts the caller can see. The earlier
+draft duplicated the email/manager checks inside the `evidence` policy; the
+duplication was redundant and is removed. `(SELECT auth.email())` is the
+Supabase
 [performance-tuning idiom](https://supabase.com/docs/guides/database/postgres/row-level-security)
-— forces one JWT-claim evaluation per query, not per row. Per-row `EXISTS`
-subqueries on `evidence`, `github_artifacts`, `getdx_snapshot_comments` are
-the residual cost; the migration adds `idx_github_artifacts_email` and relies
-on existing PKs (`organization_people.email`, `github_artifacts.artifact_id`)
-to keep the join below sequential-scan thresholds at expected cardinalities.
-
-The `EXISTS` subqueries against `organization_people` are themselves RLS-bound
-(the `org_people` policy admits self + reports). For Manager M querying
-report A's evidence, the `org_people` row for A is admitted via the
-`manager_email` branch and the outer `EXISTS` resolves; for grand-report G,
-no `org_people` row is admitted and the `EXISTS` is false — recursion
-terminates at depth 1 by design.
+— one JWT-claim evaluation per query, not per row. The two new indexes
+keep `evidence` and `github_artifacts` lookups off sequential scans;
+`organization_people.email` is already the PK.
 
 ## Tier derivation and behavior changes
 
 Tier is derived inline by the policy expressions; no `is_manager()` helper,
 no `tier` column, no JS-side resolver. The single source of truth stays
-`organization_people.manager_email`. JS-side `scope.kind` is a one-row probe
-through the authenticated client (so subject to RLS, which is fine — the
-`org_people` policy admits the caller's own row + reports' rows; `kind =
-"manager"` iff any row with `manager_email = caller` comes back).
+`organization_people.manager_email`. The earlier draft probed for a
+JS-side `scope.kind` at every command; it was informational only and the
+round-trip cost is not worth it — empty-state copy now uniformly uses
+`NO_SOURCES_FOR_PERSON(email)` regardless of tier.
 
-**Manager-scope behavior changes** (intentional per spec criterion 4):
+**Behavior changes** (intentional per spec criterion 4):
 
 | Surface | Pre-change | Post-change |
 | --- | --- | --- |
@@ -97,12 +86,14 @@ through the authenticated client (so subject to RLS, which is fine — the
 | `voice --manager M` | comments across full subtree | comments across self + direct reports |
 | `--manager <other>` (caller ≠ subject) | other manager's subtree | zero rows + `NO_SOURCES_FOR_PERSON` |
 | `--email <out-of-scope>` | requested engineer's rows | zero rows + existing empty-state |
+| `getdx_snapshot_comments.email IS NULL` rows | visible to anyone | invisible to all `authenticated` callers (no identity to claim them) |
+| `marker` (no Supabase) | runs without auth | unchanged — `needsSupabase: false`, identity not resolved |
 
 Spec criterion 9 covers `--email <self>` parity for the five engineer-scope
 commands. The `evidence` parity case depends on every retained evidence row
-having a `github_artifacts` row with `email = self` — an existing ingestion
-invariant (artifact-keyed evidence + `github_username → email` lookup).
-Pre-change `evidence --email <self>` already saw nothing for orphaned rows.
+having a `github_artifacts` row with `email = self` — an existing
+ingestion invariant. Pre-change `evidence --email <self>` already saw
+nothing for orphaned rows.
 
 ## Retention metadata
 
@@ -113,30 +104,50 @@ COMMENT ON TABLE activity.evidence IS
   'retention.window=P180D retention.clock=created_at';
 ```
 
-Grammar: `retention.<key>=<value>` tokens whitespace-separated, values are
-ISO 8601 durations (`P180D`, `P730D`) or column names (`[a-z_][a-z0-9_]*`);
-no quoting needed because both value shapes exclude whitespace and `=`. A
-`window` of `null` (omitted) means "while employed" and the source-inventory
-column renders as such with no projected fall-off date.
+Grammar: `retention.<key>=<value>` tokens, whitespace-separated; values are
+ISO 8601 durations (`P180D`, `P730D`) or column identifiers
+(`[a-z_][a-z0-9_]*`). The migration's validation block re-parses each blob
+post-write and fails the migration if any of the six tables ends up
+malformed or with `clock` referencing a column that does not exist. A
+`window` of `null` (omitted) means "while employed" and the inventory
+omits `falloff` for that class.
 
-Windows: `organization_people` ⇒ null; `evidence`/`github_artifacts` ⇒ P180D from `created_at`/`occurred_at`; the three GetDX tables ⇒ P730D from `imported_at`/`timestamp`. Exact values land in the migration.
+| Table | Window | Clock |
+| --- | --- | --- |
+| `organization_people` | null | (n/a — while employed) |
+| `evidence` | P180D | `created_at` |
+| `github_artifacts` | P180D | `occurred_at` |
+| `getdx_snapshot_comments` | P730D | `timestamp` |
+| `getdx_snapshot_team_scores` | P730D | `imported_at` |
+| `getdx_snapshots` | P730D | `imported_at` |
 
 ## Source-inventory output
 
-For each `SOURCE_CLASSES` entry the command issues two queries through the
+Per `SOURCE_CLASSES` entry the command issues two queries through the
 authenticated client (RLS clamps both to the caller's view):
 
-1. `select(clock, { count: "exact" }).eq("email", e).order(clock).limit(1)` —
-   row count + oldest timestamp (for engineer-attributed tables; team/org
-   tables substitute the appropriate join key from `SOURCE_CLASSES`).
-2. The same with `.order(clock, { ascending: false })` — newest timestamp.
+1. `select(clock, { count: "exact" })` with the per-class
+   `keyResolver(supabase, e)` filter applied, ordered by `clock` ascending,
+   `limit(1)` — yields `count` and `oldest`.
+2. The same with descending order — yields `newest`.
 
-Output fields per row class: `count`, `oldest`, `newest`, `window` (from
-retention reader), `falloff = oldest + window` (omitted when window is
-null). Classes whose `count` is zero are filtered out before render. Counts
-reflect the **caller's view** post-RLS, not absolute totals — the rendered
-header names "rows visible to you" so a Manager M running `sources --email
-<report>` sees the same numbers `<report>` would see for themselves.
+Per-class `keyResolver`:
+
+| Class | Filter |
+| --- | --- |
+| `organization_people` | `.eq("email", e)` |
+| `evidence` | `.eq("github_artifacts.email", e)` (joined inner) |
+| `github_artifacts` | `.eq("email", e)` |
+| `getdx_snapshot_comments` | `.eq("email", e)` |
+| `getdx_snapshot_team_scores` | `.eq("getdx_team_id", t)` where `t = (SELECT getdx_team_id FROM organization_people WHERE email = e)`; class omitted entirely if `t IS NULL` |
+| `getdx_snapshots` | `.in("snapshot_id", S)` where `S = union of snapshot_ids visible to caller in getdx_snapshot_comments and getdx_snapshot_team_scores filtered to e` |
+
+Output fields per class: `count`, `oldest`, `newest`, `window`,
+`falloff = oldest + window` (omitted when `window` is null). Classes whose
+`count` is zero are filtered out before render. Counts reflect the
+**caller's view** post-RLS; the rendered header is "rows visible to you
+about <e>" so a Manager M running `sources --email <report>` sees the
+numbers `<report>` would see for themselves.
 
 ## `get_team` interaction
 
@@ -150,50 +161,38 @@ the iteration adds no new rows and terminates. **No change to the function.**
 
 | Decision | Choice | Rejected | Why |
 | --- | --- | --- | --- |
-| Caller identity carrier | Supabase Auth JWT, `auth.email()` in RLS | (a) Per-engineer Postgres role + `SET ROLE`; (b) trusted application header; (c) Supabase anonymous sign-in | (a) role explosion; (b) bypassable; (c) anonymous sign-in produces no `email` claim — defeats RLS expressions |
-| JWT issuance | `fit-landmark login` (production) + `signTestToken({email})` against `MAP_SUPABASE_JWT_SECRET` (tests/CI) | (a) Bearer-token-from-stdin only; (b) shared CI service token | (a) leaves CI without a path; (b) re-introduces the bypass the spec is closing |
+| Caller identity carrier | Supabase Auth JWT, `auth.email()` in RLS | (a) Per-engineer Postgres role + `SET ROLE`; (b) trusted application header; (c) Supabase anonymous sign-in | (a) role explosion; (b) bypassable; (c) anonymous sign-in produces no `email` claim |
+| Production login UX | Magic-link OTP (`/otp` + `/verify`) | (a) Password grant (`/token?grant_type=password`); (b) static API key per engineer | (a) Landmark would handle plaintext passwords; SSO orgs disable password grant entirely; (b) reintroduces a long-lived bearer indistinguishable from the service role |
+| JWT test issuance | `signTestToken` HMAC-signs against `MAP_SUPABASE_JWT_SECRET` with full claim set | (a) Bearer-token-from-stdin only; (b) shared CI service token | (a) leaves CI without a path; (b) bypass the spec is closing |
 | Tier source | RLS expression branch on `manager_email` | (a) `tier` column on `organization_people`; (b) recursive walk; (c) JS-side resolver | (a) duplicates state; (b) over-scoped (only direct reports needed); (c) bypassable |
-| `scope.kind` source | One-row probe via authenticated client at context build | (a) Decode JWT custom claim in JS; (b) omit kind, branch copy server-side | (a) JWT claims would need a sync surface against `org_people`; (b) every empty-state-copy site would need a probe — context-build is the single chokepoint |
-| Retention storage | Per-table `COMMENT` with `retention.<key>=<value>` blob | (a) `activity.retention_policies` table; (b) JS-side constant map | (a) sync surface; (b) decouples retention from the schema it constrains |
-| `anon` lockout | Revoke blanket grants + omit any `anon` policy | Explicit `FOR SELECT TO anon USING (false)` policies on each table | Two-belt approach (no grant + no policy) is shorter than per-table deny policies and matches Supabase's default-deny posture |
-| Evidence scope shape | RLS subquery joins to `github_artifacts` | Add `email` column to `evidence` | Adding the column broadens write-path scope (every Guide writer must populate it); PK join + new `idx_github_artifacts_email` covers the read path |
-| Source-inventory cross-tier | RLS does the filter; out-of-scope `--email` returns zero rows | App-layer pre-check via `getPerson` | Single enforcement point; double-checking risks divergence |
+| Empty-state copy | One key, tier-agnostic | Pre-probe `scope.kind` at context build to branch copy | Round-trip every command for prose-only change is a poor trade |
+| Team-score admission | Admit teams any direct report sits in (via `org_people.getdx_team_id`) | Join `getdx_teams.manager_email = caller` | The `org_people` mapping is what ingestion already maintains; `getdx_teams.manager_email` would duplicate the signal and drift |
+| Retention storage | Per-table `COMMENT` + post-write validation block | (a) `activity.retention_policies` table; (b) JS-side constant map | (a) sync surface; (b) decouples retention from the schema it constrains |
+| `anon` lockout | Revoke blanket grants + omit any `anon` policy | Explicit `FOR SELECT TO anon USING (false)` policies | Two-belt approach (no grant + no policy) matches Supabase default-deny |
+| Evidence scope shape | RLS subquery delegates to `github_artifacts` RLS | Add `email` column to `evidence` | Adding the column broadens write-path scope; `idx_evidence_artifact_id` + `idx_github_artifacts_email` cover the read path |
 | `get_team` security mode | Keep `SECURITY INVOKER` (default) so RLS applies inside the CTE | `SECURITY DEFINER` + explicit scope check inside the function | DEFINER re-implements RLS in PL/SQL — two enforcement points drift |
-| Auth failure UX | Throw `IdentityUnresolvedError` at dispatcher boundary; non-zero exit, error message, no Supabase query issued | (a) Per-handler check; (b) treat as empty-state | (a) duplicates the chokepoint; (b) violates criterion 3b's exit-code requirement |
+| Auth failure UX | Throw `IdentityUnresolvedError` at dispatcher boundary; exit code 4; no Supabase query issued | (a) Per-handler check; (b) treat as empty-state | (a) duplicates the chokepoint; (b) violates criterion 3b |
 
 ## Out of scope (restated)
 
 Issue #829 slices 2–4, retention enforcement (deletion daemon), web UI,
 ingestion-path rewrites, higher-than-Manager tiers, the `services/map` gRPC
-scope conventions, the synthetic-data pipeline, and cross-product scope. The
-schema declaration this design lands is the substrate the deletion daemon
-will read from in a future spec.
+scope conventions, the synthetic-data pipeline, cross-product scope, JWT
+refresh-token flow, and a static lint preventing service-role re-import
+under `products/landmark/src/` (plan-level: biome rule or test).
+`SOURCE_CLASSES` co-evolution with the migration when a future slice adds
+an RLS'd table is named here, enforced in that slice's spec.
 
-**Supabase Auth user provisioning.** RLS reads `auth.email()`, which assumes
-an `auth.users` row whose email matches `organization_people.email` at
-runtime. The operator-facing flow that creates that pairing (Supabase
-invite, SSO bridge, reuse of an existing identity provider) and the
-keep-in-sync rule between `auth.users` and `organization_people` are not
-designed here — without them RLS is correct but unreachable for engineers
-whose Auth user does not exist. Spec § Scope-out names "Authentication
-mechanism" as a design choice: this design names the carrier (Supabase
-Auth JWT) and the Landmark-side issuance flow (`fit-landmark login` →
-`/token?grant_type=password`); the Auth-user provisioning and SSO bridge
-are sequenced before any production rollout in a follow-up spec.
-`organization_people` ingestion continues under the existing
-`bunx fit-map people push` write path — not modified here.
-
-## Dismissed singletons
-
-- `--email`/`--manager` ⇒ explicit error vs silent zero: silent zero with
-  `NO_SOURCES_FOR_PERSON` — the existing commands already empty-state on
-  missing-data, an error path adds copy without observable benefit.
-- Service-role import lint under `products/landmark/src/`: plan-level
-  concern (test or biome rule), not architectural.
-- `getdx_snapshot_team_scores` "team a report sits in" vs "team they
-  manage": admit team-via-direct-report by intent — reports' team
-  membership in `organization_people` is the canonical signal of management
-  responsibility; alternative `getdx_teams.manager_email` join would
-  duplicate that signal.
+**Sequencing-blocker — Supabase Auth user provisioning.** RLS reads
+`auth.email()`, which assumes an `auth.users` row whose email matches
+`organization_people.email` at runtime. The operator-facing flow (Supabase
+invite, SSO bridge, existing IdP reuse) and the
+`auth.users`/`organization_people` keep-in-sync rule are not designed here.
+**This slice ships green tests but cannot be rolled out to engineers until
+that follow-up spec lands.** This design names the carrier (Supabase Auth
+JWT) and the Landmark-side issuance flow (magic-link OTP); user
+provisioning and SSO bridging are the explicit next slice.
+`organization_people` ingestion continues under `bunx fit-map people push`
+— not modified here.
 
 — Staff Engineer 🛠️
