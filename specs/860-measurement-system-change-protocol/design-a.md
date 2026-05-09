@@ -8,7 +8,7 @@ repair-move typology, the Measurement Change Disclosure (MCD) shape and
 one filled-in example, the no-silent-amendment rule, and the
 detection-grep recipe that satisfies Success #6. KATA.md § Metrics
 gains one paragraph linking to it plus one sentence admitting the
-binding-constraint metric (decision #6). The canonical-11 enumeration
+binding-constraint metric (decision #7). The canonical-11 enumeration
 gains an explicit bulleted list in `wiki/storyboard-*.md` (replacing
 the inline "11 canonical metrics" prose), with the new metric included.
 The `kata-release-merge` skill becomes the producer of one new
@@ -26,8 +26,8 @@ rule. No agent-persona files change.
 | Component | Lives in | Responsibility |
 | --- | --- | --- |
 | `measurement-protocol.md` | `.claude/agents/references/` | Names the typology, MCD shape (with one worked example), no-silent-amendment rule, and the detection-grep recipe. Sibling of `coordination-protocol.md` and `memory-protocol.md`. |
-| KATA.md § Metrics extension | `KATA.md` | One paragraph linking to the new reference, plus one sentence admitting the binding-constraint duration metric (decision #6). |
-| `time_to_first_approval_hours` metric | `wiki/metrics/kata-release-merge/{YYYY}.csv` (additional rows; `metric` column distinguishes from `prs_merged`) | New canonical-11 entry. Producer = `kata-release-merge`. One row per run; value defined under "Approval-throughput metric" below. |
+| KATA.md § Metrics extension | `KATA.md` | One paragraph linking to the new reference, plus one sentence admitting the binding-constraint duration metric (decision #7) — this is the constitutional delta, not just a pointer addition. |
+| `time_to_first_approval_hours` metric | `wiki/metrics/kata-release-merge/{YYYY}.csv` (additional rows; `metric` column distinguishes from `prs_merged`; `unit=hours`) | New canonical-11 entry. Producer = `kata-release-merge`. One row per run; value defined under "Approval-throughput metric" below. |
 | Canonical-11 enumeration | `wiki/storyboard-*.md` | New bulleted list under § Metrics, one bullet per metric mapping `{metric → producer skill}`. Replaces the current inline "11 canonical metrics" prose. |
 | `kata-release-merge` `references/metrics.md` extension | `.claude/skills/kata-release-merge/references/metrics.md` | Adds the new metric's row alongside `prs_merged`; documents the cohort predicate. |
 | Storyboard MCD hook | `.claude/skills/kata-session/references/team-storyboard.md` | Two `<do_confirm_checklist>` items: every canonical-11 change item carries an `MCD:` link; cohort read-out items enumerate the day's MCDs. |
@@ -69,11 +69,15 @@ mcd:
 ```
 
 The MCD is an embeddable YAML block (fenced) inside its host body.
-`denominator_effect` is the explicit hook for the no-silent-amendment
-rule: any value other than `none` requires a cohort read-out date and a
-linked storyboard line. One filled-in example illustrating SE Exp 33
-#787 (sidecar pre-flight) lives next to the shape in
-`measurement-protocol.md`, satisfying spec Success #2.
+`verdict_horizon` is the date the falsifier predicates are checked;
+`cohort_readout` is the storyboard meeting at which the cohort
+ratifies. The two may coincide; `verdict_horizon` ≤ `cohort_readout`
+is the only ordering constraint (predicates are checked before
+ratification, not after). `denominator_effect` is the explicit hook for
+the no-silent-amendment rule: any value other than `none` requires a
+cohort read-out date and a linked storyboard line. The reference
+`measurement-protocol.md` carries one filled-in example (illustrating
+the SE Exp 33 #787 sidecar pre-flight pattern), satisfying spec Success #2.
 
 ## Detection (Success #6)
 
@@ -102,29 +106,35 @@ links to it; no other file restates it.
 The metric is a **duration**, not a count — KATA.md § Metrics today
 binds metrics to the count of units of work; admitting a duration
 binding-constraint metric is the smallest extension that satisfies
-spec Success #4 (decision #6).
+spec Success #4 (decision #7).
 
-- **Producer:** `kata-release-merge` — the skill already iterates open
-  phase PRs and reads `<phase>:approved` signals.
-- **Cohort:** all open phase PRs surveyed this run (the same set the
-  skill already visits via `gh pr list`). For each PR, compute hours
-  from PR open to its first `<phase>:approved` signal if approved, or
-  hours from PR open to the run's start time if still open
-  (right-censored). The right-censored carry-forward interpretation
-  matches the rolling-cohort dwell that the skill's existing run notes
-  already report (`Mean dwell=… / median=… / max=…`).
-- **Signal source:** the GitHub label-event timeline plus PR-review
-  events, both of which the skill already reads. The earlier of the
-  first `<phase>:approved` label-add and the first APPROVED review per
-  PR is the first-approval timestamp. `plan:implemented` is excluded —
-  it is a state label, not an approval signal.
-- **Aggregation:** median across the cohort, in hours. Median
-  compresses to one row, retains magnitude, and is XmR-stable for the
-  bursty distribution (mean is volatile under Dependabot waves).
+- **Producer:** `kata-release-merge`. The skill already reads
+  current label/review snapshots via `gh pr view`; the new metric adds
+  the issue/PR timeline API (`gh api repos/.../issues/{n}/timeline`)
+  for first-event timestamps — an additive read-side surface on the
+  existing producer, not a new component.
+- **Cohort:** all open phase PRs surveyed this run (the set the skill
+  already visits via `gh pr list`). For each PR, compute hours from
+  PR open to its first `<phase>:approved` signal if approved, or to
+  the run start time if still open (right-censored). This matches the
+  rolling-cohort dwell already recorded in the existing CSV `note`
+  column (`Mean dwell=… / median=… / max=…` from run-68 onward). An
+  empty cohort (zero open PRs surveyed) skips the row for that run —
+  `event-driven-recast` semantics applied from day 1, avoiding the
+  empty-`value`-parses-as-`0` failure mode decision #5 cites.
+- **Signal source:** GitHub label-event timeline (`<phase>:approved`
+  label-adds) plus first-approval-review events. The earlier of the
+  two per PR is the first-approval timestamp. `plan:implemented` is a
+  state label, not an approval signal — excluded.
+- **Aggregation:** median across the cohort, in hours. Median is
+  XmR-stable for bursty cadence (mean volatile under Dependabot
+  waves). The metric is intentionally **stock-shaped** —
+  carry-forward dwell drift IS the binding-constraint signal #572
+  names; XmR here reads "approval-queue dwell stability," not
+  "per-event throughput rate."
 - **Cadence:** one row per run. `kata-release-merge` runs three times
-  daily; each run's row is distinguished by the `run` column, matching
-  the existing `prs_merged` recording shape (multiple rows per
-  calendar date are normal).
+  daily; each row is distinguished by the `run` column, matching the
+  existing `prs_merged` shape.
 
 ## Data flow
 
@@ -165,9 +175,15 @@ flowchart LR
 implementation run forward; no historical backfill (consistent with
 `historical-phasing`). Existing experiments and obstacles need not
 file retroactive MCDs — the protocol applies to canonical-11 changes
-proposed after `measurement-protocol.md` lands on `main`. Each
-storyboard file's existing inline canonical-11 prose is replaced with
-the bulleted enumeration on the implementation PR.
+proposed after `measurement-protocol.md` lands on `main`. The
+implementation PR for spec 860 is itself grandfathered: it lands the
+rule and its first canonical-set addition together; subsequent
+canonical changes use the MCD form. Each storyboard file's existing
+inline canonical-11 prose is replaced with the bulleted enumeration on
+the implementation PR; the set's cardinality grows from 11 to 12, and
+the storyboard's "≥6 of 11" target-condition denominator is updated to
+"≥6 of 12" in the same diff. The name "canonical-11" is retained
+historically as a corpus identifier even after the cardinality change.
 
 ## Out of scope (re-affirming spec)
 
