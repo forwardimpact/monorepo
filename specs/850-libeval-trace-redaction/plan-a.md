@@ -5,17 +5,11 @@ Implements [spec.md](spec.md) under the architecture in [design-a.md](design-a.m
 ## Approach
 
 Land the producer-side `Redactor` bottom-up so each layer is independently
-testable: ship `redaction.js` + its unit tests first, wire it through
-`AgentRunner` (required constructor dep, redact at `#recordLine`), then
-`Supervisor` and `Facilitator` (constructor dep + redact in each `emit*`),
+testable: `redaction.js` + unit tests, then `AgentRunner` / `Supervisor` /
+`Facilitator` (constructor dep + redact at every persistent-sink seam),
 then the three command entrypoints (build the redactor as the first
-post-parse side-effect; also redact the `commands/run.js` outer envelope
-for defence-in-depth), then update existing tests to pass
-`createNoopRedactor()` and add a producer-side integration test, then docs.
-The constructor-required design choice means every existing producer call
-site — factories, command entry, and direct `new` in tests — has to be
-updated in lock-step in steps 2–5; the test sweep in step 6 is mechanical
-once those four steps land.
+post-parse side-effect), then update existing test fixtures to pass
+`createNoopRedactor()`, then producer-side integration tests, then docs.
 
 Libraries used: none. `redaction.js` is plain JS over Node built-ins; allowlist + regex composition only.
 
@@ -115,17 +109,18 @@ export function createRedactor({
   patterns = DEFAULT_PATTERNS,
   enabled,
 } = {}) {
-  // env-driven disable when no explicit override; the warning fires only on
-  // the env-driven branch so its text — which names the env var — matches
-  // why redaction is off. Programmatic `enabled: false` (used by
-  // `createNoopRedactor` and tests) does not fire the warning.
+  // env-driven disable when no explicit override.
   const envDisabled = env.LIBEVAL_REDACTION_DISABLED === "1";
   const resolvedEnabled = enabled ?? !envDisabled;
   const resolvedAllowlist = allowlist ?? resolveAllowlistFromEnv(env);
   const envSnapshot = resolvedEnabled
     ? snapshotEnv(env, resolvedAllowlist)
     : Object.freeze({});
-  if (envDisabled && enabled === undefined) {
+  // Per design § Opt-out surface, the warning fires whenever the redactor
+  // is constructed disabled. Test fixtures that need a silent disabled
+  // redactor use `createNoopRedactor()` (below), which bypasses this fn
+  // by constructing `Redactor` directly.
+  if (!resolvedEnabled) {
     process.stderr.write(
       "libeval: trace redaction DISABLED via LIBEVAL_REDACTION_DISABLED — secrets may appear in trace artifact\n",
     );
@@ -163,8 +158,8 @@ export function createNoopRedactor() {
 | Benign fixtures pass through identically: prose, Markdown, URLs, full-length git SHAs (40 hex), UUIDs, `ghp_` prefix at <36 chars, quoted shell commands | criterion 3 |
 | `LIBEVAL_REDACTION_ENV_VARS=FOO,BAR` replaces (not extends) the allowlist; default names not redacted | design § Default env-var allowlist |
 | `LIBEVAL_REDACTION_DISABLED=1` disables redaction and emits the stderr warning exactly once; `LIBEVAL_REDACTION_DISABLED=true` and `LIBEVAL_REDACTION_DISABLED=yes` do **not** disable (literal `"1"` is the documented contract) | design § Opt-out surface, criterion 4 |
-| Programmatic `createRedactor({ enabled: false })` returns a disabled Redactor but does **not** fire the stderr warning (the warning is gated on `envDisabled && enabled === undefined`) — keeps test fixtures from spamming stderr | design § Opt-out surface |
-| Disabled Redactor's `redactValue` returns its input by reference (assert `redactor.redactValue(obj) === obj` on a top-level object and an inner nested object) | design § Interfaces (identity-on-disabled contract) |
+| Programmatic `createRedactor({ enabled: false })` also fires the stderr warning (per design § Opt-out surface — the warning fires whenever the redactor is constructed disabled, regardless of cause). Test fixtures that need silent disabling call `createNoopRedactor()`, which bypasses `createRedactor` by constructing `Redactor` directly | design § Opt-out surface |
+| Disabled Redactor's `redactValue` returns its top-level input by reference (assert `redactor.redactValue(obj) === obj`); the walk path is not invoked when `enabled === false` | design § Interfaces (identity-on-disabled contract) |
 | Empty-string env values do not poison redaction (`FOO=""` does not turn every `""` in the input into a placeholder) | snapshotEnv guard |
 | Sentinels with JSON-special chars (`"`, `\`, control chars) are excluded from sentinel fixtures via a guard helper that throws if a test seeds one — locks the design's "JSON-stable strings" rule into the test layer | design § Test surfaces |
 | `createNoopRedactor()` returns a `Redactor` whose `redactValue` is the identity function, equivalent to `createRedactor({ enabled: false })` on the redact-value contract; the noop helper is the test/library export and never fires the stderr warning regardless of env state | design § Interfaces |
@@ -411,9 +406,8 @@ Add the matching `import { createRedactor } from "../redaction.js";` at the
 top.
 
 (b) Wrap the `onLine` envelope (current lines 77–82) so the
-`{source, seq, event}` wrapper passes through the redactor — this path
-constructs its envelope from the already-stringified `line` and so does
-not transit `#recordLine`:
+`{source, seq, event}` outer object passes through the redactor — see
+design § Components ("outer envelope redact"):
 
 ```js
 // before (lines 77–82)
@@ -483,7 +477,7 @@ covers most supervisor/facilitator tests transitively.
 | File | Construction sites | Change |
 | --- | --- | --- |
 | `libraries/libeval/test/mock-runner.js` | `new AgentRunner` (line 44) | Pass `redactor: createNoopRedactor()`. Import from `../src/redaction.js`. |
-| `libraries/libeval/test/agent-runner.test.js` | 15 `new AgentRunner` sites + 1 `createAgentRunner` factory site (3 of the 15 are pre-existing throws-on-missing-{cwd,query,output} tests at lines 27, 37, 45 left untouched — they assert pre-redactor failures fire first; the remaining 12 + the factory site need the noop pass) | Add a shared `noop` const at the top of the describe block; pass it on every construction-that-needs-it. The new "throws on missing redactor" test from step 2 lives next to the existing throws tests. |
+| `libraries/libeval/test/agent-runner.test.js` | 13 sites need the noop pass: 12 `new AgentRunner` + 1 `createAgentRunner`. Three additional `new AgentRunner` sites (lines 27, 37, 45) are pre-existing throws-on-missing-{cwd,query,output} tests left untouched — they assert pre-redactor failures fire first. | Add a shared `noop` const at the top of the describe block and pass it on every construction-that-needs-it. The new "throws on missing redactor" test from step 2 lives next to the existing throws tests. |
 | `libraries/libeval/test/agent-runner-batching.test.js` | 9 `new AgentRunner` sites | Same noop const + pass-through pattern. |
 | `libraries/libeval/test/agent-runner-skill-env.test.js` | 3 `new AgentRunner` sites | Same. |
 | `libraries/libeval/test/supervisor-output.test.js` | 5 `new Supervisor` sites | Same. The mock runners are built via `createMockRunner` (already fixed via mock-runner.js). |
@@ -520,7 +514,8 @@ File-byte capture uses a `PassThrough` (or test-only `Writable`) wrapping
 | Pattern hits with no env set | Same harness with `process.env` cleared of allowlist names; messages carry an `sk-ant-`+80-char body, `ghp_`+36, `ghs_`+36, `gho_`+36, `github_pat_`+82. | Each yields `[REDACTED:pattern:KIND]` (criterion 2). |
 | Default-on, opt-out warning | Construct the redactor under test directly: `createRedactor({ env: { LIBEVAL_REDACTION_DISABLED: "1" } })` (the unit test path; this avoids mutating `process.env`). Stderr capture is a spy: `const orig = process.stderr.write; process.stderr.write = (chunk) => { captured.push(String(chunk)); return true; }; try { createRedactor({ env: {...} }); } finally { process.stderr.write = orig; }`. Then build a real `AgentRunner` with that redactor and feed sentinels via the stub query. | `captured.join("")` contains the documented warning string exactly once; sentinels reach `fileStream` unredacted (criterion 4). The literal-`"1"` contract is covered separately in the step 1 unit test. |
 | `toText()` byte-for-byte placeholder fidelity | Run sentinel + pattern fixture, capture NDJSON, replay through `TraceCollector` + `toText()`. | Both placeholder forms appear in the rendered output identically to their NDJSON form (criterion 5). |
-| `Supervisor.emitSummary` covers Conclude-handler text | Build a `Supervisor` via `createSupervisor` with real `AgentRunner`s. A stub `query` cannot dispatch MCP tools (the real SDK does that), so the test invokes the Conclude handler directly: import `createConcludeHandler` from `orchestration-toolkit.js`, build it against the supervisor's `ctx`, and call `createConcludeHandler(ctx)({ verdict: "success", summary: "<sentinel>" })` between scripted message yields — this is the same pattern existing supervisor tests use (e.g. `supervisor-output.test.js`). The handler writes the sentinel into `ctx.summary`; `Supervisor.run` then forwards it to `emitSummary` at end of session. | The `summary` event line in the collected `fileStream` bytes carries `[REDACTED:env:NAME]`, not the sentinel. This is the design risk the unit test of `redaction.js` cannot reach: the path is `Conclude` → `ctx.summary` → `Supervisor.emitSummary`, and never traverses `#recordLine`. |
+| `Supervisor.emitSummary` covers Conclude-handler text | Bypass the factory and build `new Supervisor({...})` directly (the same pattern as `supervisor-output.test.js`) so the test owns `ctx` and can inject the redactor: `const ctx = createOrchestrationContext(); const redactor = createRedactor({ env: { ANTHROPIC_API_KEY: SENTINEL } }); const supervisor = new Supervisor({ agentRunner, supervisorRunner, output, ctx, redactor, /* ... */ });` Then call the Conclude handler between scripted message yields: `createConcludeHandler(ctx)({ verdict: "success", summary: "<sentinel>" })` — this writes into `ctx.summary` and sets `ctx.concluded`, mirroring how the real MCP server handles a `tool_use` of Conclude. Drive `supervisor.run("...")` once; on the next supervisor turn, `Supervisor` observes `ctx.concluded` and calls `emitSummary` (line 109 / 225 / 320 / 339, depending on which exit path fires first). | The `summary` event line in the collected `fileStream` bytes carries `[REDACTED:env:NAME]`, not the sentinel. This is the design risk the unit test of `redaction.js` cannot reach: the path is `Conclude` → `ctx.summary` → `Supervisor.emitSummary`, and never traverses `#recordLine`. |
+| `Facilitator.emitSummary` covers Conclude-handler text (mirror of supervisor case) | Same pattern: `new Facilitator({..., ctx, redactor})` with a directly-invoked `createConcludeHandler(ctx)({ summary: "<sentinel>", verdict: "success" })`. Design § Facilitator redactor seams identifies the same Conclude-handler risk on the facilitator path; the redactor wrap at `Facilitator.emitSummary` is structurally identical, but the facilitator's exit topology differs (line 111 / 145 / 354) and a regression in either `Facilitator.emitSummary` redaction or the factory's redactor propagation would slip through a supervisor-only test. | The `summary` event line carries the placeholder, not the sentinel. |
 
 Verify: `bun test libraries/libeval/test/redaction-pipeline.test.js` green.
 
