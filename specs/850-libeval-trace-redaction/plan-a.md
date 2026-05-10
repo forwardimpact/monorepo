@@ -113,18 +113,24 @@ export function createRedactor({
   env = process.env,
   allowlist,
   patterns = DEFAULT_PATTERNS,
-  enabled = true,
+  enabled,
 } = {}) {
+  // env-driven disable when no explicit override; the warning fires only on
+  // the env-driven branch so its text — which names the env var — matches
+  // why redaction is off. Programmatic `enabled: false` (used by
+  // `createNoopRedactor` and tests) does not fire the warning.
+  const envDisabled = env.LIBEVAL_REDACTION_DISABLED === "1";
+  const resolvedEnabled = enabled ?? !envDisabled;
   const resolvedAllowlist = allowlist ?? resolveAllowlistFromEnv(env);
-  const envSnapshot = enabled
+  const envSnapshot = resolvedEnabled
     ? snapshotEnv(env, resolvedAllowlist)
     : Object.freeze({});
-  if (!enabled) {
+  if (envDisabled && enabled === undefined) {
     process.stderr.write(
       "libeval: trace redaction DISABLED via LIBEVAL_REDACTION_DISABLED — secrets may appear in trace artifact\n",
     );
   }
-  return new Redactor({ envSnapshot, patterns, enabled });
+  return new Redactor({ envSnapshot, patterns, enabled: resolvedEnabled });
 }
 
 function resolveAllowlistFromEnv(env) {
@@ -156,10 +162,13 @@ export function createNoopRedactor() {
 | Each pattern at canonical length yields `[REDACTED:pattern:KIND]` with no env vars set; covers all five `DEFAULT_PATTERNS` plus an Anthropic key embedded inside `tool_result.content` JSON | criterion 2 |
 | Benign fixtures pass through identically: prose, Markdown, URLs, full-length git SHAs (40 hex), UUIDs, `ghp_` prefix at <36 chars, quoted shell commands | criterion 3 |
 | `LIBEVAL_REDACTION_ENV_VARS=FOO,BAR` replaces (not extends) the allowlist; default names not redacted | design § Default env-var allowlist |
-| `enabled: false` returns inputs unchanged with no walk allocation (assert reference equality on the input object); construction emits the stderr warning exactly once | design § Opt-out surface |
+| `LIBEVAL_REDACTION_DISABLED=1` disables redaction and emits the stderr warning exactly once; `LIBEVAL_REDACTION_DISABLED=true` and `LIBEVAL_REDACTION_DISABLED=yes` do **not** disable (literal `"1"` is the documented contract) | design § Opt-out surface, criterion 4 |
+| Programmatic `createRedactor({ enabled: false })` returns a disabled Redactor but does **not** fire the stderr warning (the warning is gated on `envDisabled && enabled === undefined`) — keeps test fixtures from spamming stderr | design § Opt-out surface |
+| Disabled Redactor's `redactValue` returns its input by reference (assert `redactor.redactValue(obj) === obj` on a top-level object and an inner nested object) | design § Interfaces (identity-on-disabled contract) |
 | Empty-string env values do not poison redaction (`FOO=""` does not turn every `""` in the input into a placeholder) | snapshotEnv guard |
 | Sentinels with JSON-special chars (`"`, `\`, control chars) are excluded from sentinel fixtures via a guard helper that throws if a test seeds one — locks the design's "JSON-stable strings" rule into the test layer | design § Test surfaces |
-| `createNoopRedactor()` ≡ `createRedactor({ enabled: false })` semantically (both leave inputs unchanged) | design § Interfaces |
+| `createNoopRedactor()` returns a `Redactor` whose `redactValue` is the identity function, equivalent to `createRedactor({ enabled: false })` on the redact-value contract; the noop helper is the test/library export and never fires the stderr warning regardless of env state | design § Interfaces |
+| Adversarial `\b`-boundary cases — confirms the regex behaviour the Risks table relies on: `-ghp_<36>` matches, `_ghp_<36>` does NOT match (no `\b` between `_` and `g`), `.ghp_<36>` matches, `ghp_<36>` followed by `,`/`;`/`\n` matches, `ghp_<37>` (one extra word char) does NOT match | Risks table |
 
 Verify: `bun test libraries/libeval/test/redaction.test.js` green.
 
@@ -291,23 +300,31 @@ Apply the same `this.redactor.redactValue(...)` wrap inside `emitOrchestratorEve
 (line 430) and `emitSummary` (line 444). See design § Components for the
 seam catalogue and the `emitSummary` / `Conclude` rationale.
 
-Factory `createSupervisor` (line 486–579): build `agentRunner` and
-`supervisorRunner` with the same `redactor` instance the caller passed in,
-and forward it to the `new Supervisor({...})` call:
+Factory `createSupervisor` (line 486–579): build **both** runners
+(`agentRunner` at line 530–541 and `supervisorRunner` at line 548–567) with
+the same `redactor` instance the caller passed in, and forward it to the
+`new Supervisor({...})` call:
 
 ```js
-// before (line 530–541)
+// agentRunner — before (line 530)
 const agentRunner = createAgentRunner({ cwd: agentCwd, query, output: devNull, /* ... */ });
 
-// after
+// agentRunner — after
 const agentRunner = createAgentRunner({ cwd: agentCwd, query, output: devNull, redactor, /* ... */ });
+
+// supervisorRunner — before (line 548)
+const supervisorRunner = createAgentRunner({ cwd: supervisorCwd, query, output: devNull, /* ... */ });
+
+// supervisorRunner — after
+const supervisorRunner = createAgentRunner({ cwd: supervisorCwd, query, output: devNull, redactor, /* ... */ });
 ```
 
 Add `redactor` to the `createSupervisor({...})` JSDoc-typed parameter list and
 to the `new Supervisor({...})` call near the bottom (line 569). The factory
-signature gains `redactor` as a **required** parameter (throw at the top of
-the function if missing) — matching the constructor contract one level down
-so the failure surfaces at the entry point rather than inside the runner.
+signature gains `redactor` as a **required** parameter — throw at the top
+of `createSupervisor` (`if (!redactor) throw new Error("redactor is required")`) —
+matching the constructor contract one level down so the failure surfaces at
+the entry point rather than inside the runner.
 
 Verify: `bun test libraries/libeval/test/supervisor-factory.test.js` —
 expect failures in tests that build the factory without `redactor`; step 6
@@ -329,21 +346,44 @@ field for every other test in the same file.
 
 - **Modified:** `libraries/libeval/src/facilitator.js`
 
-Mirrors step 3. Constructor (line 53–80) gains `redactor` as required and
-stores `this.redactor`. Each of `emitLine` (line 327), `emitOrchestratorEvent`
-(line 341), and `emitSummary` (line 354) redacts the constructed event
-object before `JSON.stringify`. Factory `createFacilitator` (line 391–480)
-gains `redactor` as a required parameter, propagates it into every
-`createAgentRunner` call (lines 438 and 454), and forwards it to the
-`new Facilitator({...})` call (line 469).
+Mirrors step 3. Constructor (line 53–80) — note: the existing facilitator
+constructor lacks the throw-on-missing pattern that AgentRunner and
+Supervisor use, so add it explicitly:
 
-`emitLine` in the facilitator takes `(source, line)` — the same redact-
-the-tagged-object pattern applies; the source string is never a secret
-carrier but stays inside the walked object for symmetry.
+```js
+// before (around line 62, where other field assignments happen)
+constructor({ facilitatorRunner, agents, messageBus, output, /* ... */ }) {
+  this.facilitatorRunner = facilitatorRunner;
+  // ...
+}
+
+// after — add the throw at the top, matching AgentRunner/Supervisor
+constructor({ facilitatorRunner, agents, messageBus, output, /* ... */, redactor }) {
+  if (!redactor) throw new Error("redactor is required");
+  this.redactor = redactor;
+  this.facilitatorRunner = facilitatorRunner;
+  // ...
+}
+```
+
+Each of `emitLine` (line 327), `emitOrchestratorEvent` (line 341), and
+`emitSummary` (line 354) redacts the constructed event object before
+`JSON.stringify` — same pattern as supervisor step 3 above. `emitLine`
+takes `(source, line)` and the source string is not a secret carrier;
+keeping it inside the walked object preserves symmetry with supervisor.
+
+Factory `createFacilitator` (line 391–480) gains `redactor` as a required
+parameter (`if (!redactor) throw new Error("redactor is required")` at
+the top), propagates it into both `createAgentRunner` calls (the agent
+runner at line 438 and the facilitator runner at line 454), and forwards
+it to the `new Facilitator({...})` call (line 469).
 
 Verify: `bun test libraries/libeval/test/facilitator.test.js` and
 `facilitator-redirect.test.js` — same lock-step failure pattern as step 3.
-Add `createFacilitator throws on missing redactor` test mirroring step 3.
+Add a `createFacilitator throws on missing redactor` test inside
+`facilitator.test.js` (no separate `facilitator-factory.test.js` file
+exists today; group the throw test next to the existing facilitator-shape
+tests).
 
 ### 5. Command entrypoints + `index.js` exports
 
@@ -358,13 +398,13 @@ before the existing `process.env.LIBEVAL_AGENT_PROFILE = agentProfile`
 write at line 98 (which precedes `createAgentRunner` at line 108).
 
 (a) Insert the redactor construction directly after `parseRunOptions`
-(between current lines 62 and 64):
+(between current lines 62 and 64). `createRedactor` reads
+`LIBEVAL_REDACTION_DISABLED` and `LIBEVAL_REDACTION_ENV_VARS` itself from
+`process.env`, so commands pass no parameters:
 
 ```js
 // new — between current lines 62 and 64
-const redactor = createRedactor({
-  enabled: process.env.LIBEVAL_REDACTION_DISABLED !== "1",
-});
+const redactor = createRedactor();
 ```
 
 Add the matching `import { createRedactor } from "../redaction.js";` at the
@@ -398,19 +438,24 @@ const onLine = (line) => {
 - **Modified:** `libraries/libeval/src/commands/supervise.js` (line 60+) —
   same redactor construction, passed to `createSupervisor`. Supervise mode
   has no command-level `onLine` envelope; the supervisor's own `emit*`
-  seams already cover both layers.
+  seams already cover both layers. Build the redactor immediately after
+  `parseSuperviseOptions(values)` returns and **before** the existing
+  `process.env.LIBEVAL_AGENT_PROFILE = opts.agentProfile` write at line
+  89, so the env snapshot freezes before any in-process write (design key
+  decision 7).
 
 ```js
 const opts = parseSuperviseOptions(values);
-const redactor = createRedactor({
-  enabled: process.env.LIBEVAL_REDACTION_DISABLED !== "1",
-});
+const redactor = createRedactor();
 // ... existing fileStream / output / mcp setup ...
 const supervisor = createSupervisor({ /* existing fields */, redactor });
 ```
 
 - **Modified:** `libraries/libeval/src/commands/facilitate.js` — same as
-  supervise; `createFacilitator({ /* existing */, redactor })`.
+  supervise. Build the redactor immediately after
+  `parseFacilitateOptions(values)` returns and **before** the existing
+  `process.env.LIBEVAL_AGENT_PROFILE = opts.facilitatorProfile` write at
+  line 77; pass it to `createFacilitator({ /* existing */, redactor })`.
 
 - **Modified:** `libraries/libeval/src/index.js` — append:
 
@@ -449,7 +494,7 @@ covers most supervisor/facilitator tests transitively.
 | `libraries/libeval/test/facilitator.test.js` | 6 `new Facilitator` sites | Same. |
 | `libraries/libeval/test/facilitator-redirect.test.js` | 1 `new Facilitator` site | Same. |
 | `libraries/libeval/test/pending-ask.test.js` | 4 `new Facilitator` + 1 `new Supervisor` | Same. |
-| `libraries/libeval/test/amend.test.js` | 1 `createAgentRunner` + 1 `new Facilitator` + 1 `new Supervisor` | Same. |
+| `libraries/libeval/test/amend.test.js` | 5 sites total — 2 `createFacilitator` (lines 33, 56), 1 `createAgentRunner` (line 72), 1 `new Facilitator` (line 104), 1 `new Supervisor` (line 138) | Same noop pass on every site. |
 
 Verify: `cd libraries/libeval && bun test` — green across the existing
 suite (no behavioral change; redactor is identity for all of these).
@@ -473,9 +518,9 @@ File-byte capture uses a `PassThrough` (or test-only `Writable`) wrapping
 | --- | --- | --- |
 | Sentinel in every carrier shape never reaches `fileStream` | `process.env` set to unique sentinels for each default-allowlist name. Real `AgentRunner` driven by a stub async-generator `query` that yields scripted messages with the sentinels in `tool_use.input.command`, `tool_result.content` (string and JSON-stringified object forms), assistant `text`, and a `system` `init` payload field. Output is a `TeeWriter` whose `fileStream` is a `PassThrough` collected into a buffer. | The collected bytes contain no sentinel substring; every sentinel position is `[REDACTED:env:NAME]`. JSON-stable sentinel guard helper enforced (criterion 1, design § Test surfaces). |
 | Pattern hits with no env set | Same harness with `process.env` cleared of allowlist names; messages carry an `sk-ant-`+80-char body, `ghp_`+36, `ghs_`+36, `gho_`+36, `github_pat_`+82. | Each yields `[REDACTED:pattern:KIND]` (criterion 2). |
-| Default-on, opt-out warning | `LIBEVAL_REDACTION_DISABLED=1` set. Stderr capture is direct: replace `process.stderr.write` with a spy for the duration of the test (`const orig = process.stderr.write; process.stderr.write = (chunk) => { captured.push(String(chunk)); return true; }; try { … } finally { process.stderr.write = orig; }`). The redactor warns via `process.stderr.write` (step 1), so the spy collects exactly the warning bytes. | `captured.join("")` contains the documented warning string exactly once; sentinels reach `fileStream` unredacted (criterion 4). |
+| Default-on, opt-out warning | Construct the redactor under test directly: `createRedactor({ env: { LIBEVAL_REDACTION_DISABLED: "1" } })` (the unit test path; this avoids mutating `process.env`). Stderr capture is a spy: `const orig = process.stderr.write; process.stderr.write = (chunk) => { captured.push(String(chunk)); return true; }; try { createRedactor({ env: {...} }); } finally { process.stderr.write = orig; }`. Then build a real `AgentRunner` with that redactor and feed sentinels via the stub query. | `captured.join("")` contains the documented warning string exactly once; sentinels reach `fileStream` unredacted (criterion 4). The literal-`"1"` contract is covered separately in the step 1 unit test. |
 | `toText()` byte-for-byte placeholder fidelity | Run sentinel + pattern fixture, capture NDJSON, replay through `TraceCollector` + `toText()`. | Both placeholder forms appear in the rendered output identically to their NDJSON form (criterion 5). |
-| `Supervisor.emitSummary` covers Conclude-handler text | Build a `Supervisor` via `createSupervisor` with real `AgentRunner`s. The supervisor's stub `query` scripts a `tool_use` invoking the orchestration `Conclude` MCP tool with a `summary` argument that carries an env-allowlist sentinel — the supervisor toolkit's `createConcludeHandler` (orchestration-toolkit.js) writes that summary into `ctx.summary`, which `Supervisor.run` then forwards to `emitSummary`. | The `summary` event line in the collected `fileStream` bytes carries `[REDACTED:env:NAME]`, not the sentinel. This is the design risk the unit test of `redaction.js` cannot reach: the path is `Conclude` → `ctx.summary` → `Supervisor.emitSummary`, and never traverses `#recordLine`. |
+| `Supervisor.emitSummary` covers Conclude-handler text | Build a `Supervisor` via `createSupervisor` with real `AgentRunner`s. A stub `query` cannot dispatch MCP tools (the real SDK does that), so the test invokes the Conclude handler directly: import `createConcludeHandler` from `orchestration-toolkit.js`, build it against the supervisor's `ctx`, and call `createConcludeHandler(ctx)({ verdict: "success", summary: "<sentinel>" })` between scripted message yields — this is the same pattern existing supervisor tests use (e.g. `supervisor-output.test.js`). The handler writes the sentinel into `ctx.summary`; `Supervisor.run` then forwards it to `emitSummary` at end of session. | The `summary` event line in the collected `fileStream` bytes carries `[REDACTED:env:NAME]`, not the sentinel. This is the design risk the unit test of `redaction.js` cannot reach: the path is `Conclude` → `ctx.summary` → `Supervisor.emitSummary`, and never traverses `#recordLine`. |
 
 Verify: `bun test libraries/libeval/test/redaction-pipeline.test.js` green.
 
