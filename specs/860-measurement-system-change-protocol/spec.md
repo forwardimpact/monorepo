@@ -13,7 +13,7 @@ no protocol describing what happens when a producing skill changes,
 moves, or is removed. The team has invented and applied a recurring
 typology of safe repair moves to keep the measurement system honest, but
 the typology has no canonical home, the discipline that gates it ("no
-silent amendment of the canonical-11 denominator") has no canonical
+silent redefinition of the canonical-11 denominator") has no canonical
 home, and the binding constraint on enacting any of these repairs —
 human approval throughput — is not itself one of the canonical metrics
 the loop reads.
@@ -44,12 +44,12 @@ These repair moves work, but they are reinvented per case. Each issue
 restates what counts as a safe move, what the falsifier set looks like,
 and what discipline applies to the canonical-11 denominator while the
 move is in flight. There is no shared definition for any of: the move
-typology, the disclosure that must accompany a canonical-11 change, or
+typology, the redefinition that must accompany a canonical-11 change, or
 the cohort read-out that ratifies one.
 
-### The "no-silent-amendment" rule has no canonical home
+### The "no-silent-redefinition" rule has no canonical home
 
-RFC #804 invokes a "no-silent-amendment rule" to surface a conditional
+RFC #804 invokes a "no-silent-redefinition rule" to surface a conditional
 canonical-11 → canonical-10 amendment up-front, and SE Exp 33 (#787)
 keeps a sidecar CSV explicitly to "preserve the May denominator" until
 the 1-on-1 ratifies a redefinition. Both treat the rule as authoritative
@@ -73,11 +73,11 @@ it.
 ## Goal
 
 Canonicalise the measurement-system change protocol the team is already
-running implicitly. Name the safe repair moves; require a disclosure
-artifact for any change to a canonical-11 metric; place the no-silent-
-amendment rule in a single shared reference; and add an approval-
-throughput metric to the canonical-11 frame so the binding constraint is
-itself read by the same loop. The loop continues to read XmR signals
+running implicitly. Name the safe repair moves; require an operational
+redefinition artifact for any change to a canonical-11 metric; place the
+no-silent-redefinition rule in a single shared reference; and add an
+approval-throughput metric to the canonical-11 frame so the binding
+constraint is itself read by the same loop. The loop continues to read XmR signals
 unchanged; what changes is the protocol that surrounds canonical-11
 metric churn and the set of metrics the loop reads.
 
@@ -88,13 +88,13 @@ metric churn and the set of metrics the loop reads.
   pre-flight, stock-vs-flow recast, event-driven recast, XmR
   rule-semantics RFC, and habit-to-policy promotion. Each move's name
   binds to a one-sentence definition and a falsifier-set requirement.
-- **Measurement Change Disclosure (MCD).** A required artifact shape for
-  any change to a canonical-11 metric: skill removal/rename/split,
-  metric definition change, sidecar opening, denominator amendment,
-  rule-semantics challenge. The MCD names the move, the affected
+- **Operational Redefinition (Redefinition).** A required artifact shape
+  for any change to a canonical-11 metric: skill removal/rename/split,
+  metric definition change, sidecar opening, denominator redefinition,
+  rule-semantics challenge. The redefinition names the move, the affected
   metric(s), the falsifier set, the verdict horizon, and the cohort
   read-out date.
-- **No-silent-amendment rule, canonical home.** A single reference
+- **No-silent-redefinition rule, canonical home.** A single reference
   defining it. KATA.md § Metrics links to it.
 - **Canonical-11 entry for approval throughput.** Add one
   approval-throughput metric to the canonical set, with a named
@@ -103,11 +103,11 @@ metric churn and the set of metrics the loop reads.
   `wiki/metrics/{skill}/{YYYY}.csv`. The metric reads the binding
   constraint #572 names.
 - **Storyboard hook.** The storyboard meeting template requires that any
-  canonical-11 change reference an MCD, and that any cohort read-out
-  consumes the MCD set for the day.
+  canonical-11 change reference a redefinition, and that any cohort
+  read-out consumes the redefinition set for the day.
 - **KATA.md § Metrics extension.** § Metrics extends to point to the
-  repair-move typology, the MCD shape, the no-silent-amendment rule,
-  and the approval-throughput entry.
+  repair-move typology, the redefinition shape, the no-silent-redefinition
+  rule, and the approval-throughput entry.
 
 ## Scope (out)
 
@@ -124,8 +124,8 @@ metric churn and the set of metrics the loop reads.
   move is annotation-only by design (per #809).
 - **Branch-protection installation** (#564 governance gap). The
   protocol covers measurement; governance is a separate workstream.
-- **Agent-react / Discussion routing changes** beyond surfacing the MCD
-  link in cohort read-out items.
+- **Agent-react / Discussion routing changes** beyond surfacing the
+  redefinition link in cohort read-out items.
 - **Skill-pack publishing.** No external skill-pack contract changes;
   internal references only.
 - **Agent persona / scope-constraint changes.** Agents continue to own
@@ -142,11 +142,11 @@ metric churn and the set of metrics the loop reads.
 | # | Claim | Verification |
 | --- | --- | --- |
 | 1 | The repair-move typology is enumerated in one place; each named move has a one-sentence definition and a falsifier-set requirement. | Grep for the named moves (`producer-rehoming`, `mode-restriction`, `historical-phasing`, `sidecar-pre-flight`, `stock-vs-flow-recast`, `event-driven-recast`, `rule-semantics-rfc`, `habit-to-policy`) returns one canonical definition each from a single reference file. |
-| 2 | The Measurement Change Disclosure has a named shape with required fields: move name, affected metric(s), falsifier set, verdict horizon, cohort read-out date. | Static inspection of the reference: an MCD section enumerates required fields and provides one filled-in example drawn from an existing experiment (e.g. SE Exp 33 #787 sidecar pre-flight). |
-| 3 | The no-silent-amendment rule has a canonical home and is reachable from KATA.md § Metrics. | KATA.md § Metrics contains a link to a single reference section that states the rule; no other file restates it. |
+| 2 | The Operational Redefinition has a named shape with required fields: move name, affected metric(s), falsifier set, verdict horizon, cohort read-out date. | Static inspection of the reference: a redefinition section enumerates required fields and provides one filled-in example drawn from an existing experiment (e.g. SE Exp 33 #787 sidecar pre-flight). |
+| 3 | The no-silent-redefinition rule has a canonical home and is reachable from KATA.md § Metrics. | KATA.md § Metrics contains a link to a single reference section that states the rule; no other file restates it. |
 | 4 | An approval-throughput metric is added to the canonical-11 set with a named producer skill, a one-row-per-run discipline, and a CSV path under `wiki/metrics/{skill}/{YYYY}.csv`. | The metric appears in (a) the producer skill's `references/metrics.md`, (b) the canonical-11 enumeration in `wiki/storyboard-*.md`, and (c) one example row written under the producer skill's CSV path during the implementation run. |
-| 5 | The storyboard meeting template requires canonical-11 changes to reference an MCD. | The template (in the `kata-storyboard` skill or the agent persona) names the MCD as a required link for any canonical-11 change item; a worked example references an MCD by its issue or section anchor. |
-| 6 | A change to a canonical-11 metric without an MCD is detectable from `git diff` alone. | A grep for canonical-11 metric edits in the protocol's reference, in `wiki/storyboard-*.md`, or in a producer skill's `references/metrics.md` returns each change paired with a link to its MCD. The protocol's reference states the grep recipe. |
+| 5 | The storyboard meeting template requires canonical-11 changes to reference a redefinition. | The template (in the `kata-storyboard` skill or the agent persona) names the redefinition as a required link for any canonical-11 change item; a worked example references a redefinition by its issue or section anchor. |
+| 6 | A change to a canonical-11 metric without a redefinition is detectable from `git diff` alone. | A grep for canonical-11 metric edits in the protocol's reference, in `wiki/storyboard-*.md`, or in a producer skill's `references/metrics.md` returns each change paired with a link to its redefinition. The protocol's reference states the grep recipe. |
 
 ## Notes — evidence pointers (for design)
 
