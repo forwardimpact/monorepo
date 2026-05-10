@@ -1,6 +1,6 @@
 ---
 title: Kata Agent Team
-description: "An autonomous and continuously improving agentic development team — six agent personas, eight workflows, fifteen skills, organized as a Plan-Do-Study-Act loop."
+description: "An autonomous and continuously improving agentic development team — six agent personas, four workflows, fifteen skills, organized as a Plan-Do-Study-Act loop."
 ---
 
 > "What does the pattern of the Improvement Kata give us? A means for
@@ -16,7 +16,7 @@ features and hardening the repo, study their own execution traces and outputs,
 and act on findings — closing the loop every day. The name follows Toyota Kata:
 agents grasp the current condition (via prior-run traces), establish target
 conditions (via specs), and experiment toward them (via implementation). Six
-agent personas, eight workflows, fifteen skills form this cycle.
+agent personas, four workflows, fifteen skills form this cycle.
 
 This page is the internal-contributor entry point. The canonical reference is
 [`KATA.md`](https://github.com/forwardimpact/monorepo/blob/main/KATA.md) at the
@@ -45,7 +45,7 @@ approved specs. Plan and Do.
 ### Release Engineer
 
 The shipping bay. Keeps PR branches merge-ready, repairs trivial CI, cuts
-releases. Do.
+releases. The sole external merge point. Do.
 
 </a>
 
@@ -62,8 +62,8 @@ policies. Do, Study, Act.
 
 ### Product Manager
 
-The merge gate. Triages issues and PRs, merges fix/bug/spec PRs, runs
-evaluations. The sole external merge point. Do, Study, Act.
+The kanban rail. Triages issues, reviews spec quality, runs evaluations. Gates
+spec quality off the critical path via the `spec:approved` label. Study, Act.
 
 </a>
 
@@ -110,8 +110,9 @@ nothing is observed without downstream action.
 
 ## The Trust Boundary
 
-The Product Manager is the **sole external merge point**. All other merge paths
-operate on trusted sources (our agents, Dependabot).
+The Release Engineer is the **sole external merge point**. All other merge paths
+operate on trusted sources (our agents, Dependabot). The Product Manager gates
+spec **quality** off the critical path via the `spec:approved` label.
 
 | External PR type | What merges                     | Who implements                        |
 | ---------------- | ------------------------------- | ------------------------------------- |
