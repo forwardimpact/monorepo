@@ -2,7 +2,8 @@
 
 > Agent-aligned engineering standards platform. Define what good engineering
 > looks like, generate career paths, AI agent profiles, and team capability
-> analysis. Six products: Map, Pathway, Guide, Landmark, Summit, Outpost.
+> analysis. Products: Map, Pathway, Guide, Landmark, Summit, Outpost, and
+> Gear (shared libraries and services for platform builders).
 
 Forward Impact helps engineering organizations define skills, levels, and
 behaviours in a shared agent-aligned engineering standard that humans and
