@@ -20,10 +20,10 @@ fingerprint over LF-normalised bytes; the family ships a pre-staged
 `node:test` + `libharness` pattern; `createMockRunner` is consumed from
 `libraries/libeval/test/mock-runner.js` (already in tree).
 
-Libraries used: `@forwardimpact/libeval` (`AgentRunner`, `Supervisor`,
-`TraceCollector`, `createTeeWriter`, `SequenceCounter`),
-`@forwardimpact/libcli` (`createCli`), `@forwardimpact/libtelemetry`
-(`createLogger`), `zod` (schema validator).
+Libraries used: `@forwardimpact/libeval` (`createAgentRunner`,
+`createSupervisor`, `createTraceCollector`, `composeProfilePrompt`,
+`AGENT_SYSTEM_PROMPT`), `@forwardimpact/libcli` (`createCli`),
+`@forwardimpact/libtelemetry` (`createLogger`), `zod` (schema validator).
 
 ## Plan-level decisions (design left open)
 
