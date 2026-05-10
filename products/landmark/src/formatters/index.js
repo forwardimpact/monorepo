@@ -17,6 +17,7 @@ import * as practiceFormatter from "./practice.js";
 import * as practicedFormatter from "./practiced.js";
 import * as healthFormatter from "./health.js";
 import * as voiceFormatter from "./voice.js";
+import * as sourcesFormatter from "./sources.js";
 const formatters = {
   org: orgFormatter,
   snapshot: snapshotFormatter,
@@ -29,6 +30,7 @@ const formatters = {
   practiced: practicedFormatter,
   health: healthFormatter,
   voice: voiceFormatter,
+  sources: sourcesFormatter,
 };
 
 /**

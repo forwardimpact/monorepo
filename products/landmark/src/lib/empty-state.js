@@ -29,4 +29,6 @@ export const EMPTY_STATES = {
   NO_ARTIFACTS_FOR_PERSON: (email) => `No artifacts found for ${email}.`,
   NO_EVIDENCE_WITH_NOTE:
     "No evidence data found. Evidenced depth reflects Guide-interpreted artifacts only.",
+  NO_SOURCES_FOR_PERSON: (email) =>
+    `No sources retained for ${email} that you can see.`,
 };

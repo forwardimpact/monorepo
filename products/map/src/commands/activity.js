@@ -20,19 +20,21 @@ const summary = new SummaryRenderer({ process });
 const supabaseCli = createSupabaseCli();
 
 /** Start the local Supabase instance and print connection environment variables. */
-export async function start() {
-  await supabaseCli.run(["start"]);
-  const json = await supabaseCli.capture(["status", "--output", "json"]);
+export async function start({ cli = supabaseCli, out = process.stdout } = {}) {
+  await cli.run(["start"]);
+  const json = await cli.capture(["status", "--output", "json"]);
   const status = JSON.parse(json);
-  process.stdout.write("\n");
-  process.stdout.write(
+  out.write("\n");
+  out.write(
     formatSubheader("Export these variables to use the activity layer:") +
       "\n\n",
   );
-  process.stdout.write(`  export MAP_SUPABASE_URL=${status.api_url}\n`);
-  process.stdout.write(
-    `  export MAP_SUPABASE_SERVICE_ROLE_KEY=${status.service_role_key}\n\n`,
+  out.write(`  export MAP_SUPABASE_URL=${status.api_url}\n`);
+  out.write(
+    `  export MAP_SUPABASE_SERVICE_ROLE_KEY=${status.service_role_key}\n`,
   );
+  out.write(`  export MAP_SUPABASE_ANON_KEY=${status.anon_key}\n`);
+  out.write(`  export MAP_SUPABASE_JWT_SECRET=${status.jwt_secret}\n\n`);
   return 0;
 }
 

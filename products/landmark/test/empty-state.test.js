@@ -56,4 +56,10 @@ describe("EMPTY_STATES", () => {
   it("has a NO_ORGANIZATION constant", () => {
     assert.ok(EMPTY_STATES.NO_ORGANIZATION.includes("organization"));
   });
+
+  it("NO_SOURCES_FOR_PERSON is a function and includes the email", () => {
+    assert.equal(typeof EMPTY_STATES.NO_SOURCES_FOR_PERSON, "function");
+    const msg = EMPTY_STATES.NO_SOURCES_FOR_PERSON("alice@example.com");
+    assert.ok(msg.includes("alice@example.com"));
+  });
 });

@@ -156,3 +156,5 @@ npx fit-map validate
   — Add a discipline, track, or capability to the standard
 - [YAML Schema Reference](https://www.forwardimpact.team/docs/reference/yaml-schema/index.md)
   — File format reference for every entity type
+- [Provision Engineer Auth Users](https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md)
+  — Reconcile auth.users against the roster so identity-derived RLS works

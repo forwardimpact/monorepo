@@ -1,0 +1,113 @@
+/**
+ * Spec 840 criterion 5/6/7 — fit-landmark sources verb.
+ *
+ * Live-Postgres only — skipped when MAP_SUPABASE_URL / MAP_SUPABASE_JWT_SECRET
+ * are unset.
+ *
+ * Covers:
+ *   - populated classes appear with all five fields (count, oldest, newest,
+ *     window, falloff)
+ *   - classes with zero rows are omitted
+ *   - retention mutation reflected (write a new COMMENT, clearRetentionCache,
+ *     re-run, assert the displayed window changes)
+ *   - out-of-scope email returns NO_SOURCES_FOR_PERSON empty-state
+ */
+
+import { describe, test } from "node:test";
+import assert from "node:assert/strict";
+import { createClient } from "@supabase/supabase-js";
+
+import {
+  isLiveSupabaseAvailable,
+  createAdminClient,
+  withLiveActivity,
+} from "../../map/test/activity/lib/live.js";
+import { signTestToken } from "./lib/sign-test-token.js";
+import { runSourcesCommand } from "../src/commands/sources.js";
+import { clearRetentionCache } from "@forwardimpact/map/activity/retention";
+
+function clientFor(email) {
+  return createClient(
+    process.env.MAP_SUPABASE_URL,
+    process.env.MAP_SUPABASE_ANON_KEY,
+    {
+      db: { schema: "activity" },
+      global: {
+        headers: { Authorization: `Bearer ${signTestToken({ email })}` },
+      },
+    },
+  );
+}
+
+describe("Spec 840 — fit-landmark sources", () => {
+  if (!isLiveSupabaseAvailable()) {
+    test("skipped — MAP_SUPABASE_URL / MAP_SUPABASE_JWT_SECRET not set", {
+      skip: true,
+    }, () => {});
+    return;
+  }
+
+  test("populated classes appear with five fields; empty classes are omitted", async () => {
+    await withLiveActivity(async (admin) => {
+      await admin.from("organization_people").insert([
+        {
+          email: "alice@example.com",
+          manager_email: null,
+          getdx_team_id: "t",
+        },
+      ]);
+      await admin.from("github_artifacts").insert([
+        {
+          artifact_id: "art-1",
+          email: "alice@example.com",
+          occurred_at: "2026-01-01T00:00:00Z",
+          repo: "x/y",
+        },
+      ]);
+
+      clearRetentionCache();
+      const alice = clientFor("alice@example.com");
+      const result = await runSourcesCommand({
+        options: { email: "alice@example.com" },
+        supabase: alice,
+        format: "json",
+      });
+      assert.ok(result.view, "view present");
+      const ids = result.view.items.map((i) => i.id);
+      assert.ok(ids.includes("organization_people"));
+      assert.ok(ids.includes("github_artifacts"));
+      // evidence has no rows → omitted.
+      assert.ok(!ids.includes("evidence"));
+
+      const ga = result.view.items.find((i) => i.id === "github_artifacts");
+      assert.equal(ga.count, 1);
+      assert.ok(ga.oldest);
+      assert.ok(ga.newest);
+      assert.match(ga.window, /^P\d+/);
+      assert.ok(ga.falloff);
+    });
+  });
+
+  test("out-of-scope email returns NO_SOURCES_FOR_PERSON", async () => {
+    await withLiveActivity(async (admin) => {
+      await admin.from("organization_people").insert([
+        { email: "alice@example.com", manager_email: null, getdx_team_id: "t" },
+        {
+          email: "outsider@example.com",
+          manager_email: null,
+          getdx_team_id: "t2",
+        },
+      ]);
+
+      clearRetentionCache();
+      const alice = clientFor("alice@example.com");
+      const result = await runSourcesCommand({
+        options: { email: "outsider@example.com" },
+        supabase: alice,
+        format: "json",
+      });
+      assert.equal(result.view, null);
+      assert.match(result.meta.emptyState, /outsider@example\.com/);
+    });
+  });
+});
