@@ -91,6 +91,153 @@ describe("Spec 840 — RLS scope matrix", () => {
     });
   });
 
+  test("criterion 4 — scope matrix on the five other RLS'd tables", async () => {
+    await withLiveActivity(async (admin) => {
+      await admin.from("organization_people").insert([
+        {
+          email: "m@example.com",
+          manager_email: null,
+          getdx_team_id: "team-1",
+        },
+        {
+          email: "a@example.com",
+          manager_email: "m@example.com",
+          getdx_team_id: "team-1",
+        },
+        {
+          email: "b@example.com",
+          manager_email: "m@example.com",
+          getdx_team_id: "team-1",
+        },
+        {
+          email: "mprime@example.com",
+          manager_email: null,
+          getdx_team_id: "team-2",
+        },
+        {
+          email: "c@example.com",
+          manager_email: "mprime@example.com",
+          getdx_team_id: "team-2",
+        },
+      ]);
+      await admin.from("github_artifacts").insert([
+        {
+          artifact_id: "ga-a",
+          email: "a@example.com",
+          occurred_at: "2026-01-01T00:00:00Z",
+        },
+        {
+          artifact_id: "ga-b",
+          email: "b@example.com",
+          occurred_at: "2026-01-01T00:00:00Z",
+        },
+        {
+          artifact_id: "ga-c",
+          email: "c@example.com",
+          occurred_at: "2026-01-01T00:00:00Z",
+        },
+      ]);
+      await admin.from("evidence").insert([
+        { artifact_id: "ga-a", created_at: "2026-01-02T00:00:00Z" },
+        { artifact_id: "ga-b", created_at: "2026-01-02T00:00:00Z" },
+        { artifact_id: "ga-c", created_at: "2026-01-02T00:00:00Z" },
+      ]);
+      await admin
+        .from("getdx_snapshots")
+        .insert([
+          { snapshot_id: "snap-1", imported_at: "2026-01-03T00:00:00Z" },
+        ]);
+      await admin.from("getdx_snapshot_comments").insert([
+        {
+          snapshot_id: "snap-1",
+          email: "a@example.com",
+          comment_id: "cmt-a",
+          timestamp: "2026-01-04T00:00:00Z",
+        },
+        {
+          snapshot_id: "snap-1",
+          email: "b@example.com",
+          comment_id: "cmt-b",
+          timestamp: "2026-01-04T00:00:00Z",
+        },
+        {
+          snapshot_id: "snap-1",
+          email: "c@example.com",
+          comment_id: "cmt-c",
+          timestamp: "2026-01-04T00:00:00Z",
+        },
+      ]);
+      await admin.from("getdx_snapshot_team_scores").insert([
+        {
+          snapshot_id: "snap-1",
+          getdx_team_id: "team-1",
+          item_id: "x",
+          imported_at: "2026-01-05T00:00:00Z",
+          score: 4,
+        },
+        {
+          snapshot_id: "snap-1",
+          getdx_team_id: "team-2",
+          item_id: "x",
+          imported_at: "2026-01-05T00:00:00Z",
+          score: 3,
+        },
+      ]);
+
+      const A = clientFor("a@example.com");
+      const M = clientFor("m@example.com");
+
+      const aArt = await A.from("github_artifacts").select("artifact_id");
+      assert.deepEqual(
+        new Set((aArt.data ?? []).map((r) => r.artifact_id)),
+        new Set(["ga-a"]),
+      );
+      const mArt = await M.from("github_artifacts").select("artifact_id");
+      assert.deepEqual(
+        new Set((mArt.data ?? []).map((r) => r.artifact_id)),
+        new Set(["ga-a", "ga-b"]),
+      );
+
+      const aEv = await A.from("evidence").select("artifact_id");
+      assert.deepEqual(
+        new Set((aEv.data ?? []).map((r) => r.artifact_id)),
+        new Set(["ga-a"]),
+      );
+      const mEv = await M.from("evidence").select("artifact_id");
+      assert.deepEqual(
+        new Set((mEv.data ?? []).map((r) => r.artifact_id)),
+        new Set(["ga-a", "ga-b"]),
+      );
+
+      const aCmt = await A.from("getdx_snapshot_comments").select("comment_id");
+      assert.deepEqual(
+        new Set((aCmt.data ?? []).map((r) => r.comment_id)),
+        new Set(["cmt-a"]),
+      );
+      const mCmt = await M.from("getdx_snapshot_comments").select("comment_id");
+      assert.deepEqual(
+        new Set((mCmt.data ?? []).map((r) => r.comment_id)),
+        new Set(["cmt-a", "cmt-b"]),
+      );
+
+      const aScores = await A.from("getdx_snapshot_team_scores").select(
+        "getdx_team_id",
+      );
+      assert.deepEqual(
+        new Set((aScores.data ?? []).map((r) => r.getdx_team_id)),
+        new Set(["team-1"]),
+      );
+
+      // getdx_snapshots is org-wide (USING true) by design — every
+      // authenticated caller sees all snapshot rows.
+      const aSnaps = await A.from("getdx_snapshots").select("snapshot_id");
+      assert.deepEqual(
+        new Set((aSnaps.data ?? []).map((r) => r.snapshot_id)),
+        new Set(["snap-1"]),
+      );
+    });
+  });
+
   test("null-attributed rows are invisible to every authenticated caller", async () => {
     await withLiveActivity(async (admin) => {
       await admin.from("organization_people").insert([

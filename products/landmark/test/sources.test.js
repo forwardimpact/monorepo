@@ -88,6 +88,38 @@ describe("Spec 840 — fit-landmark sources", () => {
     });
   });
 
+  test("manager running sources --email <report> sees the report's classes", async () => {
+    await withLiveActivity(async (admin) => {
+      await admin.from("organization_people").insert([
+        { email: "boss@example.com", manager_email: null, getdx_team_id: "t" },
+        {
+          email: "report@example.com",
+          manager_email: "boss@example.com",
+          getdx_team_id: "t",
+        },
+      ]);
+      await admin.from("github_artifacts").insert([
+        {
+          artifact_id: "art-r",
+          email: "report@example.com",
+          occurred_at: "2026-01-01T00:00:00Z",
+          repo: "x/y",
+        },
+      ]);
+
+      clearRetentionCache();
+      const boss = clientFor("boss@example.com");
+      const result = await runSourcesCommand({
+        options: { email: "report@example.com" },
+        supabase: boss,
+        format: "json",
+      });
+      assert.ok(result.view, "manager scope should surface report rows");
+      const ids = result.view.items.map((i) => i.id);
+      assert.ok(ids.includes("github_artifacts"));
+    });
+  });
+
   test("out-of-scope email returns NO_SOURCES_FOR_PERSON", async () => {
     await withLiveActivity(async (admin) => {
       await admin.from("organization_people").insert([

@@ -33,12 +33,33 @@ describe("resolveIdentity", () => {
     );
   });
 
-  it("throws on malformed JSON payload", () => {
-    const header = Buffer.from("{}").toString("base64url");
-    const bad = `${header}.!!!.${header}`;
+  it("throws on a header that does not announce HS256 + JWT", () => {
+    const header = Buffer.from(
+      JSON.stringify({ alg: "none", typ: "JWT" }),
+    ).toString("base64url");
+    const payload = Buffer.from(
+      JSON.stringify({
+        email: "alice@example.com",
+        exp: Math.floor(Date.now() / 1000) + 900,
+      }),
+    ).toString("base64url");
+    const sig = "a".repeat(43);
+    const bad = `${header}.${payload}.${sig}`;
     assert.throws(
       () => resolveIdentity(envWith({ LANDMARK_AUTH_TOKEN: bad })),
-      /not valid JSON/,
+      /header rejected/,
+    );
+  });
+
+  it("throws on malformed JSON payload", () => {
+    const header = Buffer.from(
+      JSON.stringify({ alg: "HS256", typ: "JWT" }),
+    ).toString("base64url");
+    const payload = Buffer.from("not-json").toString("base64url");
+    const bad = `${header}.${payload}.aaaa`;
+    assert.throws(
+      () => resolveIdentity(envWith({ LANDMARK_AUTH_TOKEN: bad })),
+      /payload is not valid JSON/,
     );
   });
 
@@ -67,10 +88,41 @@ describe("resolveIdentity", () => {
             MAP_SUPABASE_JWT_SECRET: SECRET,
           }),
         ),
-      /missing email claim/,
+      /missing string email claim/,
     );
     // Sanity: signTestToken still produced a token (not the test path).
     assert.ok(token.split(".").length === 3);
+  });
+
+  it("throws when email claim is not a string", () => {
+    const header = Buffer.from(
+      JSON.stringify({ alg: "HS256", typ: "JWT" }),
+    ).toString("base64url");
+    const payload = Buffer.from(
+      JSON.stringify({
+        email: 12345,
+        exp: Math.floor(Date.now() / 1000) + 900,
+      }),
+    ).toString("base64url");
+    const bad = `${header}.${payload}.aaaa`;
+    assert.throws(
+      () => resolveIdentity(envWith({ LANDMARK_AUTH_TOKEN: bad })),
+      /missing string email claim/,
+    );
+  });
+
+  it("throws when exp claim is not a number", () => {
+    const header = Buffer.from(
+      JSON.stringify({ alg: "HS256", typ: "JWT" }),
+    ).toString("base64url");
+    const payload = Buffer.from(
+      JSON.stringify({ email: "a@b", exp: "soon" }),
+    ).toString("base64url");
+    const bad = `${header}.${payload}.aaaa`;
+    assert.throws(
+      () => resolveIdentity(envWith({ LANDMARK_AUTH_TOKEN: bad })),
+      /expired/,
+    );
   });
 
   it("throws on expired token", () => {

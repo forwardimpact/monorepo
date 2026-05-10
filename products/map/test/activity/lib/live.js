@@ -37,28 +37,56 @@ export function createAdminClient() {
   return createClient(url, key, { db: { schema: "activity" } });
 }
 
+// Each RLS'd table is truncated by deleting rows that do not match a PK
+// sentinel — the sentinel column varies per table because not every table
+// has an `email` column. Using a per-table identity column avoids the
+// "filter column does not exist" failure mode the panel flagged.
+const TABLE_PK_SENTINEL = [
+  {
+    table: "getdx_snapshot_comments",
+    column: "comment_id",
+    value: "__never__",
+  },
+  {
+    table: "getdx_snapshot_team_scores",
+    column: "snapshot_id",
+    value: "__never__",
+  },
+  { table: "evidence", column: "artifact_id", value: "__never__" },
+  { table: "github_artifacts", column: "artifact_id", value: "__never__" },
+  { table: "getdx_snapshots", column: "snapshot_id", value: "__never__" },
+  { table: "organization_people", column: "email", value: "__never__" },
+];
+
+let migrationApplied = false;
+
+async function ensureMigrationApplied() {
+  if (migrationApplied) return;
+  // Skip the per-test migrate cost when the harness has already run it
+  // once in this process. Local invocation flow:
+  //   bunx fit-map activity start
+  //   bunx fit-map activity migrate
+  //   bun run test
+  // — so the migrate command is idempotent and cheap to skip.
+  const { migrate } = await import("../../../src/commands/activity.js");
+  await migrate();
+  migrationApplied = true;
+}
+
 /**
- * Wrap an async test body in seed→test→truncate.
+ * Wrap an async test body in (lazy migrate)→seed→test→truncate.
  *
  * @param {(admin: import("@supabase/supabase-js").SupabaseClient) => Promise<void>} fn
  */
 export async function withLiveActivity(fn) {
+  await ensureMigrationApplied();
   const admin = createAdminClient();
   try {
     await fn(admin);
   } finally {
-    // Truncate the six RLS'd tables in dependency order.
-    const tables = [
-      "getdx_snapshot_comments",
-      "getdx_snapshot_team_scores",
-      "evidence",
-      "github_artifacts",
-      "getdx_snapshots",
-      "organization_people",
-    ];
-    for (const t of tables) {
+    for (const { table, column, value } of TABLE_PK_SENTINEL) {
       try {
-        await admin.from(t).delete().neq("email", "__never__");
+        await admin.from(table).delete().neq(column, value);
       } catch {
         // Last-ditch cleanup; ignore PK shape mismatch.
       }

@@ -27,7 +27,14 @@ async function listAuthUsers(supabase) {
     });
     if (error) throw new Error(`listUsers: ${error.message}`);
     if (!data.users.length) break;
-    for (const u of data.users) out.set(u.email, u);
+    for (const u of data.users) {
+      // Skip auth.users rows without an email — non-roster identities
+      // (phone-auth users, pre-confirmed test seeds) the reconciler has
+      // no opinion on. They are not Landmark callers because RLS keys
+      // off auth.email().
+      if (typeof u.email !== "string" || !u.email) continue;
+      out.set(u.email, u);
+    }
     if (data.users.length < 1000) break;
     page += 1;
   }
@@ -69,10 +76,12 @@ async function decommissionUser(supabase, email, user) {
   // gotrue's parsing of duration values >8760h is undocumented in older
   // releases; assert the resulting banned_until lands ≥50 years out so a
   // silent parse downgrade fails loudly rather than letting a still-active
-  // account masquerade as decommissioned.
-  const until = data?.user?.banned_until
+  // account masquerade as decommissioned. NaN (missing / unparseable
+  // banned_until) is treated as 0 — never as a passing comparison.
+  const parsed = data?.user?.banned_until
     ? new Date(data.user.banned_until).getTime()
     : 0;
+  const until = Number.isFinite(parsed) ? parsed : 0;
   if (until - Date.now() < FIFTY_YEARS_MS) {
     throw new Error(
       `ban ${email}: banned_until=${

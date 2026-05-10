@@ -60,6 +60,13 @@ CREATE POLICY landmark_select ON activity.getdx_snapshot_team_scores
     WHERE email = (SELECT auth.email()) OR manager_email = (SELECT auth.email())
   ));
 
+-- getdx_snapshots carries org-wide survey-cycle metadata (snapshot_id,
+-- imported_at, cycle dates) with no per-engineer or per-team identifier.
+-- Per design-a.md § RLS policy shape, every authenticated caller may
+-- read it; per-engineer clamping happens on getdx_snapshot_comments and
+-- getdx_snapshot_team_scores. Tightening this policy would break the
+-- source-inventory verb's snapshot_ids_for_person union without adding
+-- privacy: snapshot cycle metadata is not user-attributed.
 CREATE POLICY landmark_select ON activity.getdx_snapshots
   FOR SELECT TO authenticated
   USING (true);

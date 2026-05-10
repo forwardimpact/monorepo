@@ -53,7 +53,12 @@ describe("Landmark src/ + bin/ — service-role boundary (criterion 3a)", () => 
   });
 
   it("does not import anything from a /test/ path (no test-only helper in production)", async () => {
-    const hits = await grepRoots(/from\s+["'][^"']*\/test\//);
+    // Covers `import x from ".../test/..."`, `import(".../test/...")` and
+    // `require(".../test/...")` — three routes a developer could use to
+    // pull a test helper into the production code path.
+    const hits = await grepRoots(
+      /(?:from\s+|import\(\s*|require\(\s*)["'][^"']*\/test\//,
+    );
     assert.deepEqual(
       hits,
       [],
