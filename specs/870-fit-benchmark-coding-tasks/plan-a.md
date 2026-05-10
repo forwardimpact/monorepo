@@ -8,22 +8,27 @@ order: pure-data layers first (`task-family`, `result`, `permissions`,
 `apm-installer`), then per-task lifecycle (`workdir`, `scorer`, `judge`),
 then the orchestrator (`runner`), then the report path (`report`) and CLI
 (`commands/benchmark-{run,score,report}.js` + the bin). The
-agent-under-test session uses a bare libeval `AgentRunner` directly (the
-design's live supervisor is deferred — see decision P6); the judge phase
-composes a libeval `Supervisor` over an `AgentRunner` per design Decision 7.
-Family-shipped path/scoring inputs reach the LLM via prompt templating
-(`{{SCORING}}`, `{{AGENT_TRACE_PATH}}`), not process env. The runner owns
-the JSONL durable write; subcommand handlers stream to stdout for
-visibility only. `apm.lock.yaml` is treated as the unit-of-measurement
-fingerprint over LF-normalised bytes; the family ships a pre-staged
-`.claude/` that ApmInstaller copies once. Tests use the existing
-`node:test` + `libharness` pattern; `createMockRunner` is consumed from
-`libraries/libeval/test/mock-runner.js` (already in tree).
+agent-under-test session uses a bare libeval `AgentRunner` directly per
+design Decision 14 (live `Supervisor` deferred to v2); the judge phase
+composes a libeval `Supervisor` over an `AgentRunner` per design
+Decision 7. Family-shipped path/scoring inputs reach the LLM via prompt
+templating (`{{SCORING}}`, `{{AGENT_TRACE_PATH}}`), not process env. The
+runner owns the JSONL durable write; subcommand handlers stream to
+stdout for visibility only. `apm.lock.yaml` is treated as the
+unit-of-measurement fingerprint over LF-normalised bytes; the family
+ships a pre-staged `.claude/` that ApmInstaller copies once. Tests use
+`node:test` + `libharness`; the agent-under-test SDK is mocked via
+`createMockAgentQuery` (the SDK-shaped query function the runner
+accepts), and the judge supervisor is exercised via the
+`Supervisor`-with-mock-runners pattern from
+`libraries/libeval/test/supervisor-run.test.js`.
 
 Libraries used: `@forwardimpact/libeval` (`createAgentRunner`,
 `createSupervisor`, `createTraceCollector`, `composeProfilePrompt`,
 `AGENT_SYSTEM_PROMPT`), `@forwardimpact/libcli` (`createCli`),
-`@forwardimpact/libtelemetry` (`createLogger`), `zod` (schema validator).
+`@forwardimpact/libtelemetry` (`createLogger`), `zod` (schema
+validator), `yaml` (parsing `task.yaml`; add to `libraries/libeval/package.json`
+`dependencies` in Step 12 — root package already has `yaml: ^2.8.4`).
 
 ## Plan-level decisions (design left open)
 
@@ -33,9 +38,9 @@ Libraries used: `@forwardimpact/libeval` (`createAgentRunner`,
 | P2 | ApmInstaller v1 copies a pre-staged `<family>/.claude/` and hashes `apm.lock.yaml` bytes; the lockfile is not interpreted. | Re-fetch packs from lockfile `dependencies[]` via libpack. | Keeps v1 small. Lockfile-driven re-install is a follow-up spec; current families author `.claude/` once via libpack and check it in. |
 | P3 | `submission` is the agent-under-test's last `assistant.text` block on its own raw NDJSON trace file (no envelope, no source filter — bare AgentRunner writes one stream). | "Last text block before any orchestration tool call." | The agent has no orchestration tools in v1 (P6); the rejected rule has no signal. |
 | P4 | Judge `verdict`/`summary` recovered by parsing `workdir.judgeTracePath` for the last `tool_use` block where `name === "Conclude"`; map `success`→`pass`, `failure`→`fail`. | Extend `Supervisor.run()` return type. | Keeps libeval's existing surface unchanged; the judge trace already exists per design Decision 13. |
-| P5 | `--max-turns` flows directly to the agent-under-test's `AgentRunner` constructor (decision P6 makes this unambiguous). | One knob driving both judge and agent. | Judges run on libeval's default supervisor budget (20); the agent's budget is the experiment variable. |
-| P6 | **Substantive deviation from the design's component graph.** v1 defers the live help-loop supervisor depicted as `SV1` in the mermaid (`design-a.md` § Component graph). The agent-under-test runs as a bare `AgentRunner`. The family format keeps `supervisor.task.md` for forward-compatibility but the harness does not consume it in v1. | Wire `createSupervisor` over the agent (design's mermaid). | `createSupervisor` (`supervisor.js:486–567`) hardcodes agent `maxTurns: 50` and exposes no agent-side `disallowedTools` slot; threading these through requires a libeval API change outside this spec's scope. Design Decision 7's text only mandates `Supervisor` for the **judge** phase. The deviation is recorded here so reviewers can route it back to the design if the live help-loop is judged structurally required for v1. |
-| P7 | `profiles` on the `ResultRecord` is `{ agent: string\|null, supervisor: null, judge: string\|null }`; the `supervisor` slot is unconditionally `null` in v1 (P6) but the field is preserved verbatim from design § Result-record schema line 91. | Drop `supervisor` from the runner record. | The schema is locked by the merged design; P6 fills the slot with `null` rather than changing the contract. |
+| P5 | `--max-turns` flows directly to the agent-under-test's `AgentRunner` constructor (design Decision 14 makes this unambiguous). | One knob driving both judge and agent. | Judges run on libeval's default supervisor budget (20); the agent's budget is the experiment variable. |
+| P6 | Per design Decision 14, the agent-under-test runs as a bare `AgentRunner`; the family format keeps `supervisor.task.md` for forward-compatibility but the harness does not consume it in v1. | (Authorised upstream by Decision 14.) | The decision now lives in the design — this row is retained as a back-pointer because subsequent plan steps reference P6 by name. |
+| P7 | `profiles` on the `ResultRecord` is `{ agent: string\|null, supervisor: null, judge: string\|null }`; the `supervisor` slot is unconditionally `null` in v1 (design Decision 14) and the field is preserved verbatim from design § Result-record schema. | Drop `supervisor` from the runner record. | The schema is locked by the design; Decision 14 authorises the `null` value rather than changing the contract. |
 | P8 | `runScoring` and `WorkdirManager.start` decouple from each other: `runScoring(task, ctx)` takes only `{ cwd, port, runDir }`, where `runDir` is the parent of `cwd`. `Scorer` writes `<runDir>/scoring.stderr.log`. The `Workdir` handle is therefore convertible to a `runScoring` ctx via destructure. | Pass the full `Workdir` handle. | Lets `benchmark-score` synthesize a ctx from `--workdir` (a post-run dir) without inventing pgid/agentTracePath/etc. fields it cannot supply. |
 | P9 | `benchmark-score` writes a `ScoringRecord` (a separate, narrower zod schema in `result.js` exporting both `RESULT_RECORD_SCHEMA` and `SCORING_RECORD_SCHEMA`), not a `ResultRecord`. Its shape: `{ taskId, scoring, exitCode }`. | Force the full `ResultRecord` discriminated union to accept a third "scoring-only" branch. | Keeps `ResultRecord` semantically a benchmark-run output. The score subcommand is an ad-hoc grading path; its output validates against its own schema. |
 
@@ -67,10 +72,11 @@ Verify: `bunx fit-benchmark --help` exits 0 and lists three subcommands.
 ## Step 2 — TaskFamily + Task loader
 
 **Created:** `libraries/libeval/src/benchmark/task-family.js`. Export
-`async loadTaskFamily(rootPathOrGitUrl): Promise<TaskFamily>`. For git
-URLs, shallow-clone into a temp dir; `familyRevision = "git:" + sha`
-(HEAD at clone time). For local paths, compute via the algorithm in
-design § Family revision algorithm (sorted relpaths + per-file sha256 +
+`async loadTaskFamily(rootPathOrGitUrl): Promise<TaskFamily>`. Use
+`yaml.parse` (from the new `yaml` dep) for `task.yaml`. For git URLs,
+shallow-clone into a temp dir; `familyRevision = "git:" + sha` (HEAD at
+clone time). For local paths, compute via the algorithm in design §
+Family revision algorithm (sorted relpaths + per-file sha256 +
 concatenation + final sha256, NFC-normalised paths, LF separators,
 exclude `.git/` and `node_modules/`). Walk
 `tasks/<task_family_name>/<task_name>/`; produce `Task` objects with
@@ -78,10 +84,22 @@ absolute paths to `instructions.md`, `supervisor.task.md` (preserved for
 forward-compat per P6, not read), `judge.task.md`, `specs/`, `workdir/`,
 `scoring/`, plus `permissions: string[]` read from `<task>/task.yaml`
 key `permissions` (default `[]`). Read `<root>/apm.lock.yaml` bytes; LF-
-normalise; store as `apmLockBytes`. Verify: unit test loads a fixture
-family and asserts `familyRevision` is byte-identical across two
-consecutive loads and flips on a one-byte mutation under
-`tasks/tf/pass/workdir/`.
+normalise; store as `apmLockBytes`.
+
+Also export `async assertJudgeProfileStaged(family, stagingDir,
+judgeProfile): Promise<void>` — when `--judge-profile` is supplied, the
+`BenchmarkRunner` install gate (Step 9.3) calls this to assert
+`<stagingDir>/.claude/agents/<judgeProfile>.md` exists; missing throws
+before any agent session. (`createSupervisor` resolves
+`profilesDir = <supervisorCwd>/.claude/agents` at `supervisor.js:502–
+503` — and the staging tree is what gets copied into the supervisor's
+`cwd`, so the file must be present in the family's pre-staged
+`.claude/agents/`.)
+
+Verify: unit test loads a fixture family and asserts (a) `familyRevision`
+is byte-identical across two consecutive loads, (b) flips on a one-byte
+mutation under `tasks/tf/pass/workdir/`, (c) `assertJudgeProfileStaged`
+throws when the named profile is absent and resolves when present.
 
 ## Step 3 — ApmInstaller
 
@@ -112,9 +130,10 @@ class WorkdirManager {
   async start(task, runIndex): Promise<Workdir>;
   async teardown(workdir): Promise<{ portFree: boolean, descendants: number }>;
 }
-// Workdir = { cwd, port, pgid, agentTracePath, judgeTracePath, preflightError? }
-// (design § Components row 13 lists a `scaffold` field; v1 elides it —
-//  no consumer in the lifecycle. Re-introduce when a consumer appears.)
+// Workdir = { cwd, port, pgid, scaffold, agentTracePath, judgeTracePath, preflightError? }
+// `scaffold` is preserved per design § Components row 13. v1 sets it to
+// `null` (no consumer in the lifecycle yet); a future consumer can fill
+// the field without a schema change.
 ```
 
 `start` (1) creates `<runOutputDir>/runs/<task_family>__<task_name>/<runIndex>/cwd/`
@@ -288,7 +307,9 @@ class BenchmarkRunner {
    (`fs.access(path, fs.constants.X_OK)`); if any fails, throw before
    any agent session — no records written. The *runtime* preflight
    execution happens inside `wm.start` per task (Step 4 step 6); both
-   layers are required.
+   layers are required. When `opts.profiles.judge` is set, also call
+   `assertJudgeProfileStaged(family, stagingDir, opts.profiles.judge)`
+   (Step 2) so a missing judge profile fails at install, not mid-run.
 4. Open `<opts.output>/results.jsonl` in append mode (the runner — not
    the handler — owns the durable file write; handlers mirror records
    to stdout for visibility only).
@@ -323,8 +344,21 @@ class BenchmarkRunner {
       });
       const instructions = await readFile(task.paths.instructions, "utf8");
       let agentError = null;
-      try { await runner.run(instructions); }
-      catch (e) { agentError = { message: e.message }; }
+      try {
+        const result = await runner.run(instructions);
+        // AgentRunner.run() catches SDK iteration errors internally
+        // and returns them on the resolved value (agent-runner.js:182–
+        // 194); inspect the resolved shape, not just thrown errors.
+        if (!result.success) {
+          agentError = {
+            message: result.error?.message
+              ?? (result.aborted ? "aborted" : "agent did not succeed"),
+            aborted: result.aborted ?? false,
+          };
+        }
+      } catch (e) {
+        agentError = { message: e.message, aborted: false };
+      }
       await new Promise((r) => agentTraceStream.end(r));
       ```
 
@@ -349,7 +383,12 @@ class BenchmarkRunner {
 
       `lastAssistantText(json)` walks `json.turns` in order, returns the
       last `text` from any `assistant` block, or `""` if none; defined
-      locally in `runner.js`.
+      locally in `runner.js`. On the `agentError !== null` branch,
+      `costUsd` and `turns` come from the partial trace via
+      `TraceCollector.toJSON().summary`; if no `result` event ever
+      reached the trace, the collector's defaults yield `0`/`0` —
+      acceptable, and consistent with `preflightError`'s `costUsd: 0`
+      floor.
    e. `scoring = await runScoring(task, { cwd: workdir.cwd, port:
       workdir.port, runDir: dirname(workdir.cwd) })`.
    f. `judgeVerdict = await runJudge(task, workdir, scoring, { query,
@@ -364,6 +403,8 @@ class BenchmarkRunner {
       `turns` as parsed from whatever made it to the trace (often 0),
       and let scoring/judge produce their own verdicts as usual.
       `validateResultRecord(record)`; append one JSONL line; `yield record`.
+      `durationMs` is `Date.now() - t0` where `t0 = Date.now()` is
+      captured at the top of step 5.a (before `wm.start`).
    h. `await wm.teardown(workdir)`.
 6. Close the JSONL file.
 
@@ -401,14 +442,21 @@ constructs a `ScoringRecord`, runs `validateScoringRecord(record)`,
 writes one JSONL line to `--output` (or stdout). Exit `0` on
 `scoring.verdict === "pass"`, `1` otherwise.
 
-`benchmark-report` delegates to `aggregate()`. Verify: covered by
+`benchmark-report` parses `--k` (comma-separated) into an integer array
+via `s.split(",").map((t) => { const n = Number.parseInt(t, 10); if
+(!Number.isFinite(n) || n < 1) throw new Error("--k must be a comma-
+separated list of positive integers"); return n; })`, then delegates to
+`aggregate({ inputDir: opts.input, kValues })`. Verify: covered by
 Step 14.
 
-## Step 12 — Wire bin into package metadata
+## Step 12 — Wire bin + dependency into package metadata
 
 **Modified:** `libraries/libeval/package.json` — add `bin` and `exports`
-entries (Step 1). Catalog regen (`bun run context:fix`) is consolidated
-into Step 16. Verify locally: `bunx fit-benchmark --version` resolves.
+entries (Step 1) **and** add `"yaml": "^2.8.4"` to `dependencies`
+(version pinned to the root package's existing range so `bun install`
+deduplicates). Catalog regen (`bun run context:fix`) is consolidated
+into Step 16. Verify locally: `bunx fit-benchmark --version` resolves
+and `node -e "require('yaml')"` from the libeval directory succeeds.
 
 ## Step 13 — Unit tests
 
@@ -416,8 +464,10 @@ into Step 16. Verify locally: `bunx fit-benchmark --version` resolves.
 `benchmark-task-family.test.js`, `benchmark-apm-installer.test.js`,
 `benchmark-workdir.test.js`, `benchmark-permissions.test.js`,
 `benchmark-scorer.test.js`, `benchmark-judge.test.js`,
-`benchmark-result.test.js`, `benchmark-report.test.js`. Use `node:test`
-+ `@forwardimpact/libharness` helpers (`createMockAgentQuery`,
+`benchmark-result.test.js`, `benchmark-report.test.js`,
+`benchmark-runner-permissions.test.js` (the contract test for spec
+criterion 7 — see Step 14 row 7). Use `node:test` +
+`@forwardimpact/libharness` helpers (`createMockAgentQuery`,
 `createToolUseMsg`, `createTextBlockMsg`, `collectLines`, `stripAnsi`).
 The judge unit test feeds pre-baked NDJSON fixture files to
 `parseConcludeFromTrace` (Step 7); the `Supervisor`-with-mock-runners
@@ -444,10 +494,18 @@ and `{{AGENT_TRACE_PATH}}` placeholders). Family root carries
 ## Step 14 — E2E fixture test
 
 **Created:** `libraries/libeval/test/benchmark-e2e.test.js`. Drives the
-runner end-to-end against the fixture family with `runs=2`, mocking the
-agent-under-test and judge sessions via `createMockRunner` so no API
-calls fire. The table maps every spec success criterion to its
-verification location.
+runner end-to-end against the fixture family with `runs=2`. The
+agent-under-test SDK is mocked via `createMockAgentQuery`
+(`libraries/libharness/src/fixture/eval.js:133`) — the SDK-shaped query
+function `BenchmarkRunner` accepts as its `query` parameter. Its
+`onParams` callback (line 137) captures the options the runner passed
+to the SDK (including `allowedTools`/`disallowedTools`), giving the
+test a hook to assert spec criterion 7 contractually rather than by
+re-implementing SDK tool gating in the mock. The judge phase is
+exercised through `createSupervisor` with the same query mock; the
+canonical pattern is `libraries/libeval/test/supervisor-run.test.js`.
+The table maps every spec success criterion to its verification
+location.
 
 | Spec criterion | Verified by |
 |---|---|
@@ -457,7 +515,7 @@ verification location.
 | 4. Repository-state grading | E2E: `tf/repo-state` asserts SHA-256 of a file under `cwd/` |
 | 5. Process-exit grading | Step 13 `benchmark-scorer.test.js`: stub `run.sh` with explicit exit codes |
 | 6. Judge consumes scoring + agent trace; emits verdict | Step 13 `benchmark-judge.test.js`: pre-baked traces feed `parseConcludeFromTrace`; E2E exercises the full `runJudge` path with `{{SCORING}}` substituted into the judge prompt |
-| 7. Network policy via `WebFetch` (behavioural) | E2E: with default permissions, the mock SDK is scripted so the agent emits a `WebFetch` `tool_use`; assert the SDK harness rejects it with a `tool_result` whose `is_error: true` (the SDK rejects tools absent from `allowedTools` and present in `disallowedTools` — the mock query reproduces that contract). With `full_internet`, the same call succeeds. Both paths are observed in the agent trace |
+| 7. Network policy via `WebFetch` | Verified at the **contract** layer (the only layer the harness owns): Step 13 `benchmark-permissions.test.js` asserts `brokerPermissions(["full_internet"], BASE_TOOLS)` includes `"WebFetch"` in `allowedTools` and that the default state puts `"WebFetch"` in `disallowedTools`. E2E adds `benchmark-runner-permissions.test.js` (Step 13's batch) that runs the runner against `tf/pass` and `tf/pass`-with-`full_internet` in two passes, captures the params via `createMockAgentQuery`'s `onParams`, and asserts the runner forwarded the brokered allow/deny lists into the SDK call. Behavioural verification (an actual rejected `tool_result`) is deferred — `mock-runner.js` does not enforce SDK tool gating, and adding a faithful gate would re-implement the SDK; the contractual chain (PermissionsBroker output + runner forwards it + AgentRunner forwards it to the SDK at `agent-runner.js`) is sufficient for spec criterion 7 in v1, with a real-SDK integration test as follow-up |
 | 8. Skill-set reproducibility | Step 13 `benchmark-apm-installer.test.js`: hash stability + 1-byte mutation |
 | 9. Pre-flight catches broken templates; cost zero | E2E: `tf/preflight-broken` (separate invocation) produces a record with `preflightError` and `costUsd === 0` |
 | 10. Teardown leaves no descendant; port free | Step 13 `benchmark-workdir.test.js`: HTTP-listener fixture; `descendants === 0` |
@@ -525,6 +583,15 @@ The risks below are items the implementer cannot see from the plan steps.
    installed. Mitigation: the Step 15 guide must instruct authors to
    regenerate `apm.lock.yaml` after any `.claude/` edit; a content-hash
    variant is the obvious follow-up if drift bites in practice.
+4. **Supervisor-level observability deferred with SV1.** Design
+   Decision 14 defers the live supervisor for the agent-under-test;
+   the agent's tool-use stream is therefore observable only post-hoc
+   via `agentTracePath` and live-gated only by the SDK's own
+   `allowedTools`/`disallowedTools` enforcement (which v1 does not
+   re-implement in the mock — see Step 14 row 7). When SV1 lands in
+   v2, the supervisor reintroduces a live observation point, and the
+   "intervene during a run" surface returns. v1 accepts that the only
+   gate on the agent-under-test is the SDK's tool-allow contract.
 
 ## Execution recommendation
 

@@ -5,7 +5,7 @@
 | Component | Where | Role |
 | --- | --- | --- |
 | `fit-benchmark` CLI | `libraries/libeval/bin/fit-benchmark.js` (new) | Entry point. Parses subcommand (`run`/`score`/`report`), wires real dependencies, delegates to the matching command handler. Mirrors `bin/fit-eval.js` shape. Same `@forwardimpact/libeval` package; separate bin. |
-| `BenchmarkRunner` | `libraries/libeval/src/benchmark/runner.js` (new) | Sole orchestrator. Owns phase ordering for a family run: invokes `install` once, then drives each `(task, runIndex)` serially through the lifecycle by directly calling the named subsystems. Composes libeval's `Supervisor` + `AgentRunner`. Emits `ResultRecord`s as an async iterable. v1 is serial across `(task, runIndex)`; concurrent runs deferred. |
+| `BenchmarkRunner` | `libraries/libeval/src/benchmark/runner.js` (new) | Sole orchestrator. Owns phase ordering for a family run: invokes `install` once, then drives each `(task, runIndex)` serially through the lifecycle by directly calling the named subsystems. Composes libeval's `AgentRunner` directly for the agent-under-test (v1; live `Supervisor` deferred — see Decision 14) and a `Supervisor` over an `AgentRunner` for the judge phase (Decision 7). Emits `ResultRecord`s as an async iterable. v1 is serial across `(task, runIndex)`; concurrent runs deferred. |
 | `TaskFamily` | `libraries/libeval/src/benchmark/task-family.js` (new) | Loaded family: `rootPath`, `apm.lock.yaml` bytes, `familyRevision`, iterable of `Task`. Loaded once at family `install`; immutable thereafter. |
 | `Task` | same module | One task: `id` = METR-style `task_family_name/task_name`, paths to `instructions.md`, `supervisor.task.md`, `judge.task.md`, `specs/`, `workdir/`, `scoring/`; declared `permissions` array. |
 | `ApmInstaller` | `libraries/libeval/src/benchmark/apm-installer.js` (new) | At family `install`: reads `apm.yaml`/`apm.lock.yaml` (extensions match libpack at `libraries/libpack/src/stager.js:126`), materialises declared skills/agents into a single staging directory (`<output>/.apm-staging/.claude/`). Computes `skillSetHash` (sha256 over `apm.lock.yaml` bytes after LF normalisation — prevents cross-OS hash drift). At each task `start`, `WorkdirManager` copies the staging tree into the per-task CWD; `ApmInstaller` does not run per task. |
@@ -30,12 +30,11 @@ graph TD
   BR --> TF[TaskFamily]
   BR --> AI[ApmInstaller]
   BR --> WM[WorkdirManager]
-  BR --> SV1[libeval Supervisor: live]
+  BR --> AR1[AgentRunner: agent under test]
   BR --> SC[Scorer]
   BR --> JD[Judge]
   BR --> PB[PermissionsBroker]
   BR --> RR[ResultRecord validator]
-  SV1 --> AR1[AgentRunner: agent under test]
   JD --> SV2[libeval Supervisor: judge]
   SV2 --> AR2[AgentRunner: judge agent]
   AR1 --> TC1[TraceCollector → agentTracePath]
@@ -55,7 +54,7 @@ sequenceDiagram
   participant CLI as fit-benchmark run
   participant BR as BenchmarkRunner
   participant WM as WorkdirManager
-  participant SV as Supervisor + AgentRunner
+  participant AR as AgentRunner (bare; v1 — Decision 14)
   participant SC as Scorer
   participant JD as Judge
   CLI->>BR: family + runs=N
@@ -63,8 +62,8 @@ sequenceDiagram
   loop task × runIndex (serial)
     BR->>WM: start(task, i)
     WM-->>BR: Workdir { cwd, port, pgid, agentTracePath, judgeTracePath }
-    BR->>SV: runAgent(task, workdir) [trace → agentTracePath]
-    SV-->>BR: { submission, costUsd, turns }
+    BR->>AR: runAgent(task, workdir) [trace → agentTracePath]
+    AR-->>BR: { submission, costUsd, turns }
     BR->>SC: score(task, workdir)
     SC-->>BR: { verdict, details, exitCode }
     BR->>JD: judge(workdir, scoring) [trace → judgeTracePath]
@@ -174,6 +173,7 @@ validateResultRecord(record): void   // throws on schema mismatch
 | 11 | `ApmInstaller` runs once per family `install`, materialising into a single staging directory; `WorkdirManager` copies the staged tree into each per-task CWD. | Re-install per task; reference-count a shared `.claude/`. | Hashes once, copies many. Staged tree is read-only after install — task isolation is provided by the per-task copy. |
 | 12 | `Scorer` passes results via fd 3 (`$RESULTS_FD=3`) using `child_process.spawn` `stdio: ['inherit','pipe','pipe','pipe']`. POSIX-only in v1. | Sentinel file in `$WORKDIR`; stdout interleaved. | Sentinel file pollutes the post-run workdir (visible in repo-state grading); stdout interleaving requires a delimiter convention. Fd 3 is portable across POSIX shells; Windows support is deferred. |
 | 13 | Two symmetric trace fields per task-run: `agentTracePath` and `judgeTracePath`. No `tracePath` alias. | Single trace shared between supervisor and judge; discard judge trace; expose only one trace via `tracePath`. | The judge is an independent session — its trace is a first-class artifact for debugging "why did the judge fail this run?" Symmetric naming avoids the drift that arises when two field names refer to the same value, and keeps the schema explicit about which trace consumers want. |
+| 14 | Live `Supervisor` over the agent-under-test (`SV1`) is **deferred to v2**; v1 runs the agent-under-test through a bare `AgentRunner`. The judge phase still uses `Supervisor` per Decision 7. `profiles.supervisor` on the result record is therefore `null` in v1. | Wire `createSupervisor` over the agent-under-test in v1 (the original design intent). | `createSupervisor` (`supervisor.js:535`) hardcodes the agent's `maxTurns: 50` and exposes no agent-side `disallowedTools` slot — both required levers for the benchmark (per-task budget, network policy). Threading them through requires a libeval API change outside this spec's scope. The spec's per-task content (`supervisor.task.md`) is preserved by the family format for forward-compatibility; the harness simply doesn't consume it in v1. PermissionsBroker carries network-policy enforcement for v1. |
 
 ## Test surfaces
 
