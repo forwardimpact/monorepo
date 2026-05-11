@@ -1,4 +1,4 @@
-# Spec 890 — Kata-Skills Benchmark Family with Ablation Methodology
+# Spec 890 — Kata-Skills Benchmark Family (v1, no ablation)
 
 ## Problem
 
@@ -6,7 +6,7 @@ The monorepo publishes `forwardimpact/kata-skills` (the `kata-*` skill pack)
 and tells external users that installing it makes their agent teams better at
 agent-team work — writing specs, designing, planning, reviewing, releasing.
 Today that claim is taken on faith. There is no reproducible measurement of
-whether the pack changes outcomes, and no way to detect a regression when a
+agent-team outcomes against the pack, and no way to detect a regression when a
 skill is edited.
 
 Spec [#870](../870-fit-benchmark-coding-tasks/spec.md) shipped `fit-benchmark`:
@@ -16,38 +16,39 @@ bytes), and pass@k aggregation across runs. That harness is plumbing. The toy
 `tf/{pass,fail,…}` fixtures it ships only exercise the harness's own contracts
 — they do not say anything about whether the `kata-*` pack works.
 
-Three structural gaps remain between the harness and a defensible claim about
+Two structural gaps remain between the harness and a defensible baseline for
 the kata pack:
 
 1. **No task family targets the kata pack.** The kata skills do not write
    code — they write artefacts (specs, designs, plans, review findings) and
    enforce process (READ-DO/DO-CONFIRM checklists, severity-tagged findings,
-   panel reviews). The harness's three grading surfaces (running-service,
-   repo state, process exit) support artefact grading, but no concrete tasks
-   exercise the kata skills against them.
+   panel reviews). The harness supports artefact grading, but no concrete
+   tasks exercise the kata skills against it.
 
-2. **No ablation contrast.** Even a passing run with the pack installed is
-   uninterpretable on its own: a sufficiently capable model passes some tasks
-   without any skill pack. The claim "the skills moved the needle" requires
-   a paired run with the skills absent, and a result-record stream that
-   distinguishes the two arms.
+2. **No operational cadence.** A measurement nobody runs is a measurement
+   nobody trusts. Without a workflow on `main` and a path-filtered PR job,
+   drift goes unnoticed until users complain.
 
-3. **No operational cadence.** A measurement nobody runs is a measurement
-   nobody trusts. Without a scheduled job on `main` and a path-filtered PR
-   job, drift goes unnoticed until users complain.
+This spec closes those two gaps with the **smallest viable benchmark** —
+one task family, one task, one configuration, one pass@k number per run.
+Methods that compare against a counterfactual (ablation pairs,
+"with-vs-without" deltas, skill-positive thresholds) are explicitly out of
+scope here and are revisited in a follow-up spec once v1 has produced
+enough runs to know what the baseline looks like.
 
 The blast radius of the gap is the JTBD this work serves: Platform Builders
-cannot prove whether a `kata-skills` change improved agent-team outcomes.
-Kata-skill PRs ship on reviewer impressions, identical to the
-pre-`fit-benchmark` state for coding skills.
+cannot point to any reproducible kata-skill measurement at all. Kata-skill
+PRs ship on reviewer impressions, identical to the pre-`fit-benchmark` state
+for coding skills.
 
 ## Personas and Job
 
 The hire is **Platform Builders**, against the Big Hire "Help me prove whether
-agent changes improved outcomes with reproducible evidence" ([JTBD.md](../../JTBD.md)
-§ Platform Builders: Evaluate and Improve Agents). This is the same job spec
-#870 serves; this spec exercises that harness on a real published pack rather
-than toy fixtures.
+agent changes improved outcomes with reproducible evidence"
+([JTBD.md](../../JTBD.md) § Platform Builders: Evaluate and Improve Agents).
+This is the same job spec #870 serves; this spec exercises that harness on
+the real published kata pack rather than toy fixtures, producing the first
+reproducible pass@k number against `forwardimpact/kata-skills`.
 
 The downstream beneficiary is the Kata product's external audience — they
 inherit the benefit when Kata can evidence its own claim — but they are not
@@ -60,60 +61,67 @@ agents in production are not in scope.
 
 | Component | What changes |
 |---|---|
-| Benchmarks root | A new top-level `benchmarks/` directory hosts task families per skill pack under test. The directory carries a catalog README explaining the per-family layout and how to add a new family. |
-| Sibling-family ablation shape | The ablation is realised as **two sibling task families** under `benchmarks/` — a "with-kata" family that stages the `forwardimpact/kata-skills` pack into its `.claude/` tree, and a "without-kata" family that stages a minimum-viable skill set. Each family is independently a valid `fit-benchmark` family with one `apm.lock.yaml` at its root; the two lockfiles differ, so the harness's `skillSetHash` differs between arms per spec #870's contract. Naming for the two siblings is a design choice. |
-| Minimum-viable skill set | The "without-kata" family's `.claude/` tree contains exactly what `fit-benchmark`'s family-install and per-task pre-flight require — the judge agent profile under `.claude/agents/` and an empty `.claude/skills/` directory — and its `apm.lock.yaml` declares no `kata-*` packages. Definition is fixed so the ablation contrast is reproducible. |
-| Shared v1 task set | Three tasks, each targeting one kata skill whose contract is concrete enough to grade structurally. Both sibling families carry the same task tree; whether the duplication is realised by copy, symlink, or build-time templating is a design choice. Scope is fixed at three tasks; expansion is deferred. |
+| Benchmarks root | A new top-level `benchmarks/` directory hosts task families per skill pack under test. The directory carries a catalog README explaining the per-family layout and how to add a new family. The layout is forward-compatible with additional families (e.g., a future `fit-skills` family) without paint-into-a-corner constraints. |
+| Single kata-skills family | One task family under `benchmarks/` is a valid `fit-benchmark` family per spec #870's contracts: an `apm.lock.yaml` at its root, the `forwardimpact/kata-skills` pack staged under its `.claude/skills/`, and the judge agent profile staged under its `.claude/agents/`. The family's directory name is a design choice. |
+| v1 task set | The family ships exactly **one** task in v1, targeting one kata skill whose contract is concrete enough to grade structurally. Validating the single-task end-to-end loop is the v1 goal; adding tasks is deferred to a follow-up spec. |
 | Task: `kata-spec/write-feature-spec` | Agent input: a brief problem statement and a reference to a JTBD persona+job. Agent output: a `spec.md` at a prescribed path. Structural rubric: grades against the quality bar `kata-spec` itself publishes (problem stated first with evidence, specific scope naming entities and exclusions, verifiable success criteria, no implementation HOW, a named JTBD persona+job from `JTBD.md`). Judge rubric: the spec addresses the brief, not just structural compliance. Pass = structural and judge verdicts both pass. |
-| Task: `kata-plan/decompose-design` | Agent input: a frozen `spec.md` + `design-a.md` taken from a real merged spec. Agent output: a `plan-a.md`. Structural rubric: grades against the quality bar `kata-plan` itself publishes (step headings, named file paths, an Approach section and a Risks section, dependency-respecting ordering against the input design). Judge rubric: ordering and risks are non-trivial against the input design. Pass = structural and judge verdicts both pass. |
-| Task: `kata-review/grade-spec` | Agent input: a frozen fixture spec carrying a fixed count of planted flaws. Agent output: a `review.md`. Structural rubric: grades against the quality bar `kata-review` itself publishes (severity grouping, file+line citation, criterion+reason shape), and asserts that every planted flaw is caught with a citation within an allowed tolerance band of the canonical fixture location. The flaw count, the canonical citation per flaw, and the tolerance are checked-in artefacts of the fixture. Judge rubric: no spurious blocker findings against unflawed sections. Pass = structural and judge verdicts both pass. |
-| Fixture safety property | Every planted-flaw artefact and every fixture input checked into either family is unambiguously machine-skippable as a fixture without parsing the artefact body, so downstream agents crawling the repo do not consume them as real artefacts. The specific marker mechanism (front-matter token, directory marker file, path-shape convention, or any combination) and the location at which it is asserted are design choices, consistent with the verification surface in Success Criteria. |
-| Workflow triggers | A dedicated GitHub Actions workflow runs both families. It fires on three signals: manual dispatch (for cost control); a weekly schedule on `main`; and pull-request paths-filter scoped to changes that could affect benchmark outcomes (kata-skill sources and the benchmark family trees). Concurrency on the same PR ref cancels in-progress runs. |
-| Pin vs. in-repo regime | The scheduled job pins both family lockfiles at fixed `kata-skills` versions so history is comparable across time. The path-filtered PR job stages the "with-kata" family from the **in-repo** `.claude/skills/kata-*` sources (and a corresponding lockfile derived from those sources) so the change under review is what gets graded — not the previously-published `latest`, which would not yet contain the PR's edits since `kata-skills` publishes only on push to `main`. The "without-kata" family stays pinned in both regimes (its content is fixed by the minimum-viable-skill-set definition). Each result record carries an explicit regime tag in addition to `skillSetHash`, so the two regimes are distinguishable from the record alone — including when an in-repo build happens to hash-equal a pinned baseline. |
-| Cost envelope | Every workflow invocation runs the v1 task set inside a fixed cost envelope: a single pinned cheap model, a fixed run count per task, and a fixed max-turn cap per session. The envelope target is ≤ $5 per workflow invocation **measured as the median over a small sample of consecutive invocations** (so a single high-variance run does not dominate the verdict), summing the `costUsd` field already on every result record. The specific configuration values, the sample size, and the surface at which they are declared are design choices; the spec asserts the envelope target, the measurement rule, and the recording substrate. |
-| Ablation reporting | A reporting capability consumes both families' result records from a single workflow run and emits a per-task pass@k delta table. The table is written to the GitHub Actions job summary and uploaded as a workflow artefact. The headline metric is `pass@1(with) − pass@1(without)`. |
-| Reporting bar | The job summary surfaces a "skill-positive" label when the per-task pass@1 delta clears a configurable threshold on a configurable majority of v1 tasks. The threshold is documented as a value on the pass@1 lattice at the configured run count (so it is reachable, not aspirational), and is surfaced — not enforced. Merge decisions on kata-skill PRs remain reviewer judgement; the JSONL artefact is the substrate. |
-| Documentation | The benchmarks catalog README documents the per-family layout and how to add a new family. Each kata-skills family's README documents the family-local conventions and links to spec #870 for the substrate-level operational notes (skill-pack staging, sandbox flags, agent-cwd discipline, judge-profile-only-for-v1). The substrate notes are not re-enumerated in this spec or in either family README. |
+| Family staging | The kata pack is staged into the family's `.claude/` tree at build time, not checked in. The staging mechanism translates whatever the pack's publisher emits into the layout `fit-benchmark`'s family installer expects (i.e., `.claude/skills/` + an `apm.lock.yaml` whose bytes are stable across reruns so `skillSetHash` is stable). The exact translation is a design choice; the spec asserts only that the staged tree is a valid family per spec #870. |
+| Fixture safety property | Every task fixture and input checked into the family is unambiguously machine-skippable as a fixture without parsing the artefact body, so downstream agents crawling the repo do not consume them as real artefacts. The specific marker mechanism (front-matter token, directory marker file, path-shape convention, or any combination) is a design choice. |
+| Workflow triggers | A dedicated GitHub Actions workflow runs the family on three signals: manual dispatch (for cost control); a weekly schedule on `main`; and pull-request paths-filter scoped to changes that could affect benchmark outcomes (in-repo kata-skill sources and the benchmark family tree). Concurrency on the same PR ref cancels in-progress runs. |
+| PR-job staging from in-repo sources | The path-filtered PR job stages the family from the **in-repo** `.claude/skills/kata-*` sources, so the change under review is what gets graded — not the previously-published `latest`, which would not yet contain the PR's edits since `kata-skills` publishes only on push to `main`. Manual-dispatch and scheduled invocations stage from the published pack. The differentiation is internal to the build step; v1 does not extend the result-record schema to tag the regime. |
+| Cost envelope | Every workflow invocation runs the v1 task set inside a fixed cost envelope: a single pinned cheap model, a fixed run count per task, and a fixed max-turn cap per session. The envelope target is ≤ $5 per workflow invocation, summing the `costUsd` field already on every result record. The specific configuration values are design choices; the spec asserts the envelope target and the recording substrate. |
+| Reporting | The workflow writes a pass@k table for the v1 task set to the GitHub Actions job summary and uploads the result-record JSONL artefact. v1 reports the single-arm number per task; no delta, no threshold, no "skill-positive" label. |
+| Documentation | The benchmarks catalog README documents the per-family layout and how to add a new family. The family's own README documents the family-local conventions and links to spec #870 for the substrate-level operational notes (skill-pack staging, sandbox flags, agent-cwd discipline, judge-profile-only-for-v1). The substrate notes are not re-enumerated in this spec or the family README. |
 
 ### Out of scope, deferred
 
-- **Tasks for other kata skills.** v1 ships three tasks; the remaining
-  `kata-*` skills are deferred to a follow-up spec once the v1 grading
-  approach is validated.
-- **Other skill packs.** The directory layout under `benchmarks/` admits more
-  families. A family targeting the `fit-*` pack would evaluate library-CLI
-  competence rather than agent-team artefacts and is a separate spec.
+- **Ablation methodology.** v1 measures a single arm only. A counterfactual
+  arm (with-vs-without the pack, with-vs-without a specific skill) is a
+  separate spec, revisited once v1 has produced enough runs to characterise
+  baseline variance. Until then there is no "skill-positive" verdict, no
+  delta table, no paired without-kata family, and no minimum-viable
+  skill-set definition.
+- **Additional kata-skill tasks.** v1 ships one task; tasks for other
+  `kata-*` skills (`kata-plan`, `kata-review`, `kata-implement`, and the
+  rest) are deferred to a follow-up spec once the v1 loop is validated
+  end-to-end on the single task.
+- **Other skill packs.** The directory layout under `benchmarks/` admits
+  more families. A family targeting the `fit-*` pack would evaluate
+  library-CLI competence rather than agent-team artefacts and is a
+  separate spec.
 - **Cross-model comparison.** The result schema already carries `model`;
   rendering a Sonnet-vs-Haiku comparison is a separate report mode.
 - **A leaderboard or XmR control chart of pass@k over time.** The JSONL
   artefact is the substrate; visualisation comes later.
-- **Hard CI gating on the reporting bar.** v1 surfaces the delta to
-  reviewers. Promoting the bar to a merge gate requires enough history to
-  calibrate the threshold against noise, which is a follow-up decision.
+- **CI gating on pass@k.** v1 reports pass@k; merge decisions on
+  kata-skill PRs remain reviewer judgement. Promoting any number to a
+  hard merge gate requires baseline-noise calibration that v1 does not
+  yet have.
+- **Pin-vs-in-repo regime tagging on the result record.** v1 differentiates
+  the two staging paths inside the workflow build step but does not extend
+  the harness's result-record schema. A schema extension is a substrate
+  change and lands with the ablation spec when there is a second arm to
+  distinguish.
 - **Per-task agent profile.** v1 leaves the harness's agent-profile selector
-  unset so behaviour comes from the skill alone. Mixing in a kata agent
-  profile is a separate experiment.
-- **Grading-only mode.** v1 always runs the agent end-to-end.
-- **Replay from trace.** Each run is a fresh agent session.
+  unset so behaviour comes from the skill alone.
+- **Grading-only mode and replay-from-trace.** Each run is a fresh agent
+  session that runs end-to-end.
 - **Container isolation.** Inherited from spec #870 — out of scope here too.
 
 ## Success Criteria
 
 | Claim | Verification |
 |---|---|
-| The benchmarks root hosts two sibling families that the harness loads independently. | Test: `fit-benchmark run --family benchmarks/<with-kata-family>` and `fit-benchmark run --family benchmarks/<without-kata-family>` each load successfully; each family's task pre-flight passes for all three v1 tasks. |
-| The two families produce different `skillSetHash` values. | Test: a benchmark run against the with-kata family and a benchmark run against the without-kata family, on the same task, produce result records with different `skillSetHash` values; a one-byte change to either family's `apm.lock.yaml` changes that family's `skillSetHash`. |
-| The without-kata family is operationally minimal. | Test: the without-kata family's `.claude/skills/` is empty; its `.claude/agents/` contains exactly the judge profile the workflow invokes (so the harness's judge-profile pre-flight check passes); its `apm.lock.yaml` declares no `kata-*` packages; the family's per-task pre-flight passes for every v1 task. |
-| v1 ships exactly three tasks and they exercise the named skills. | Test: each sibling family's `tasks/` tree contains exactly `kata-spec/write-feature-spec`, `kata-plan/decompose-design`, and `kata-review/grade-spec`; the two trees are content-identical. |
-| Each task carries the inputs the agent needs and a hidden grading material that scores the agent's artefact against the skill's own contract. | Test: for each v1 task, the task's instructions reference its task-local input set; the task's grading material lives outside the agent's working directory per spec #870's hidden-grading contract and asserts the rubric named for that task in the In-scope table. |
-| The `kata-review/grade-spec` fixture is internally consistent. | Test: the fixture carries a checked-in flaw manifest naming the count of planted flaws, the canonical citation per flaw, and the tolerance band; the grading material reads the manifest and pass/fail is reproducible across runs of the same fixture content. |
-| Every fixture artefact is machine-skippable without parsing its body. | Test: a downstream consumer that walks the repo and applies the chosen marker mechanism does not see any planted-flaw artefact's body; the mechanism is documented in the family README and applies to every fixture under either family. |
-| Result records carry an explicit pin-vs-in-repo regime tag. | Test: the harness's result-record schema (owned by spec #870) is extended to carry the regime in effect for the run; a scheduled-job invocation writes records tagged `pinned` and a PR-job invocation writes records tagged `in-repo`, distinguishable from the record alone without reference to history. The schema extension is an in-scope change to the substrate library and is committed together with this family. |
-| The workflow fires on the three documented signals and bounds spend. | Test: the workflow file declares a manual dispatch trigger, a weekly schedule on `main`, and a pull-request trigger paths-filtered to changes that could affect benchmark outcomes (kata-skill sources and the benchmark family trees); the workflow declares per-PR-ref concurrency that cancels in-progress runs. |
-| Scheduled and PR runs use different staging regimes. | Test: the scheduled job resolves both family lockfiles to fixed versions; the PR job stages the with-kata family from the in-repo `.claude/skills/kata-*` sources and derives its lockfile from that staged tree; the without-kata family stays pinned in both regimes; the regime tag on each record reflects which path was taken. |
-| The cost envelope is asserted at the invocation site and measured from result records. | Test: the workflow pins a single model, a fixed run count, and a fixed max-turn cap at the invocation site; the median sum of `costUsd` across the workflow's configured small sample of consecutive v1 invocations is ≤ $5. |
-| Ablation reporting emits a pass@k delta table from the two arms. | Test: given the with-kata and without-kata result-record sets on the v1 task set, the reporting capability writes a markdown table to the GitHub Actions job summary listing per-task `pass@1(with)`, `pass@1(without)`, and the delta; the same table is uploaded as a workflow artefact. |
-| The reporting bar is on the pass@1 lattice and is surfaced, not enforced. | Test: the configured threshold is a value reachable as a difference of two `pass@1` values at the configured run count (so the bar is mathematically attainable); when the threshold is cleared on the configured majority of v1 tasks, the job summary marks the run "skill-positive"; the workflow exit status depends only on harness and schema outcomes, not on the bar. |
-| Documentation cites substrate operational notes rather than repeating them. | Test: the benchmarks catalog README and each family's README link to spec #870 for substrate-level operational guidance and do not re-enumerate those notes inline. |
+| The benchmarks root hosts a kata-skills family that the harness loads. | Test: `fit-benchmark run --family benchmarks/<family>` loads successfully and the family's per-task pre-flight passes for the v1 task. |
+| The family is a valid `fit-benchmark` family per spec #870. | Test: the family carries an `apm.lock.yaml` at its root; its `.claude/skills/` contains the kata pack staged from the publisher's emitted layout; its `.claude/agents/` contains the judge profile the workflow invokes; the harness's family-install and judge-profile pre-flight checks pass. |
+| `skillSetHash` is stable across reruns and changes when the lockfile changes. | Test: two runs against the same staged family produce result records with identical `skillSetHash`; a one-byte change to the family's `apm.lock.yaml` changes `skillSetHash`. |
+| v1 ships exactly one task and exercises the named skill. | Test: the family's `tasks/` tree contains exactly `kata-spec/write-feature-spec`; the task's instructions reference its task-local input set. |
+| The task carries the inputs the agent needs and hidden grading material that scores the agent's artefact against the skill's own contract. | Test: the v1 task's grading material lives outside the agent's working directory per spec #870's hidden-grading contract and asserts the rubric named in the In-scope table (the quality bar `kata-spec` publishes plus the judge's brief-addressed check). |
+| Every fixture artefact is machine-skippable without parsing its body. | Test: a downstream consumer that walks the repo and applies the chosen marker mechanism does not see the task's fixture body; the mechanism is documented in the family README. |
+| The workflow fires on the three documented signals and bounds spend. | Test: the workflow file declares a manual dispatch trigger, a weekly schedule on `main`, and a pull-request trigger paths-filtered to changes that could affect benchmark outcomes (in-repo kata-skill sources and the benchmark family tree); the workflow declares per-PR-ref concurrency that cancels in-progress runs. |
+| The PR-job staging path uses in-repo kata-skill sources. | Test: the PR job's build step stages the family's `.claude/skills/kata-*` from the in-repo skill directories rather than the published pack; the manual-dispatch and scheduled paths stage from the published pack. |
+| The cost envelope is asserted at the invocation site and measurable from result records. | Test: the workflow pins a single model, a fixed run count, and a fixed max-turn cap at the invocation site; the sum of `costUsd` across the workflow's v1 invocation is ≤ $5 on a representative run. |
+| Reporting emits a single-arm pass@k table. | Test: given the v1 task's result-record set, the reporting step writes a markdown table to the GitHub Actions job summary listing per-task `pass@1` (and any other pass@k the workflow chose to surface); the JSONL artefact is uploaded as a workflow artefact. The reporting step does not emit a delta column, a paired without-kata column, or a "skill-positive" label. |
+| Documentation cites substrate operational notes rather than repeating them. | Test: the benchmarks catalog README and the family README link to spec #870 for substrate-level operational guidance and do not re-enumerate those notes inline. |
 
 — Product Manager 🌱
