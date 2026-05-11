@@ -23,6 +23,7 @@ export {
   createSupervisedAgentToolServer,
   createFacilitatorToolServer,
   createFacilitatedAgentToolServer,
+  createJudgeToolServer,
 } from "./orchestration-toolkit.js";
 export { MessageBus, createMessageBus } from "./message-bus.js";
 export {
@@ -31,6 +32,7 @@ export {
   FACILITATOR_SYSTEM_PROMPT,
   FACILITATED_AGENT_SYSTEM_PROMPT,
 } from "./facilitator.js";
+export { Judge, createJudge, JUDGE_SYSTEM_PROMPT } from "./judge.js";
 export {
   Redactor,
   createRedactor,

@@ -1,22 +1,21 @@
 /**
- * Judge — post-scoring evaluator that runs as a libeval `Supervisor` over a
- * single `AgentRunner` and emits a final verdict via the `Conclude` tool.
+ * Benchmark adapter for the libeval `Judge`. Templates the family's
+ * `judge.task.md` ({{SCORING}} / {{AGENT_TRACE_PATH}} substitution), runs the
+ * judge against the post-run agent CWD, and returns the verdict in the
+ * benchmark's `pass`/`fail` vocabulary (mapped from libeval's
+ * `success`/`failure`).
  *
- * The judge prompt is templated from `task.paths.judge` with two
- * placeholders the family author wires in:
- *   - `{{SCORING}}`            → JSON-stringified ScoringResult
- *   - `{{AGENT_TRACE_PATH}}`   → absolute path to the agent-under-test trace
- *
- * The verdict is recovered from the judge's NDJSON trace by parsing the last
- * `Conclude` tool call (design Decision 8 / P3): `success → pass`,
- * `failure → fail`. Reusing the trace keeps libeval's `Supervisor` API
- * unchanged.
+ * The judge verdict is captured from the orchestration context's
+ * `concluded` flag directly — no trace parsing on the happy path.
+ * `parseConcludeFromTrace` is preserved for offline analysis and as a
+ * fallback when the runtime ctx isn't available (e.g. re-grading a
+ * historical run from its judge.ndjson file).
  */
 
 import { createReadStream, createWriteStream } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createInterface } from "node:readline";
-import { createSupervisor } from "../supervisor.js";
+import { createJudge } from "../judge.js";
 import { createRedactor } from "../redaction.js";
 
 /**
@@ -40,32 +39,37 @@ export async function runJudge(task, workdir, scoring, deps) {
     .replaceAll("{{AGENT_TRACE_PATH}}", workdir.agentTracePath);
 
   const output = createWriteStream(workdir.judgeTracePath);
-  const supervisor = createSupervisor({
-    supervisorCwd: workdir.cwd,
-    agentCwd: workdir.cwd,
+  const judge = createJudge({
+    cwd: workdir.cwd,
     query: deps.query,
     output,
     model: deps.model,
-    supervisorProfile: deps.judgeProfile,
-    agentProfile: undefined,
-    maxTurns: 1,
+    judgeProfile: deps.judgeProfile,
+    maxTurns: 5,
     redactor: createRedactor(),
   });
 
+  let outcome;
   try {
-    await supervisor.run(taskText);
+    outcome = await judge.run(taskText);
   } finally {
     await new Promise((r) => output.end(r));
   }
 
-  const parsed = await parseConcludeFromTrace(workdir.judgeTracePath);
-  if (parsed) return parsed;
-  return { verdict: "fail", summary: "judge did not conclude" };
+  if (outcome.verdict === null) {
+    return { verdict: "fail", summary: "judge did not conclude" };
+  }
+  return {
+    verdict: outcome.verdict === "success" ? "pass" : "fail",
+    summary: outcome.summary ?? "",
+  };
 }
 
 /**
- * Parse the last supervisor-source `Conclude` tool call from a judge trace
- * and map the verdict (`success → pass`, `failure → fail`).
+ * Parse the last judge-source (or supervisor-source, for backward compat
+ * with pre-Judge-class traces) `Conclude` tool call from an NDJSON trace
+ * and map the verdict (`success → pass`, `failure → fail`). Preserved for
+ * offline analysis; not used on the runtime happy path.
  * @param {string} tracePath
  * @returns {Promise<JudgeVerdict | null>}
  */
@@ -85,8 +89,9 @@ export async function parseConcludeFromTrace(tracePath) {
 }
 
 /**
- * Return the `Conclude` tool input if the line carries a supervisor-source
- * assistant message ending in a `Conclude` tool_use block; null otherwise.
+ * Return the `Conclude` tool input if the line carries a judge-source or
+ * supervisor-source assistant message ending in a `Conclude` tool_use
+ * block; null otherwise.
  * @param {string} line
  * @returns {{verdict: string, summary?: string} | null}
  */
@@ -103,7 +108,13 @@ function extractConcludeInput(line) {
     event.event && typeof event.source === "string"
       ? { source: event.source, inner: event.event }
       : { source: null, inner: event };
-  if (wrapped.source !== null && wrapped.source !== "supervisor") return null;
+  if (
+    wrapped.source !== null &&
+    wrapped.source !== "judge" &&
+    wrapped.source !== "supervisor"
+  ) {
+    return null;
+  }
   if (wrapped.inner.type !== "assistant") return null;
   const content = wrapped.inner.message?.content ?? wrapped.inner.content;
   if (!Array.isArray(content)) return null;

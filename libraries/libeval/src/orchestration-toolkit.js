@@ -280,6 +280,31 @@ export function createSupervisedAgentToolServer(ctx) {
 }
 
 /**
+ * Judge tools: Conclude only.
+ *
+ * The judge runs a single post-hoc session with no peer participants —
+ * Ask/Answer/Announce/Redirect/RollCall are all moot. The judge inspects
+ * the agent's working directory and trace via the host's read-only tools
+ * and emits its verdict via Conclude.
+ *
+ * @param {object} ctx - Orchestration context
+ * @returns {object} MCP server config (type: "sdk")
+ */
+export function createJudgeToolServer(ctx) {
+  return createSdkMcpServer({
+    name: "orchestration",
+    tools: [
+      tool(
+        "Conclude",
+        "End the session with a verdict and a summary. verdict='success' if the agent's work meets the criteria stated in the task; 'failure' otherwise.",
+        { verdict: z.enum(["success", "failure"]), summary: z.string() },
+        createConcludeHandler(ctx),
+      ),
+    ],
+  });
+}
+
+/**
  * Facilitator tools: Ask + Announce + Conclude + RollCall.
  *
  * Redirect is intentionally omitted. In facilitated mode the facilitator
