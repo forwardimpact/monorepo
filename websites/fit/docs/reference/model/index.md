@@ -114,13 +114,13 @@ flowchart LR
     emerging --> developing --> practicing --> role_modeling --> exemplifying
 ```
 
-| Maturity        | Description                       |
-| --------------- | --------------------------------- |
-| `emerging`      | Shows interest, needs prompting   |
-| `developing`    | Regular practice with guidance    |
-| `practicing`    | Consistent application, proactive |
-| `role_modeling` | Influences team culture           |
-| `exemplifying`  | Shapes organizational culture     |
+| Maturity        | Description                                          |
+| --------------- | ---------------------------------------------------- |
+| `emerging`      | Shows interest, needs prompting                      |
+| `developing`    | Regularly applies with some guidance                 |
+| `practicing`    | Consistently demonstrates in daily work              |
+| `role_modeling` | Influences the team's approach, others seek them out |
+| `exemplifying`  | Shapes organizational culture in this area           |
 
 ---
 
