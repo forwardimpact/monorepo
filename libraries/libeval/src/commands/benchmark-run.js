@@ -6,6 +6,7 @@
 
 import { resolve } from "node:path";
 
+import { createConfig } from "@forwardimpact/libconfig";
 import { createBenchmarkRunner } from "../benchmark/runner.js";
 
 /**
@@ -14,6 +15,8 @@ import { createBenchmarkRunner } from "../benchmark/runner.js";
  */
 export async function runBenchmarkRunCommand(values, _args) {
   const opts = parseRunOptions(values);
+  const config = await createConfig("script", "benchmark");
+  process.env.ANTHROPIC_API_KEY = await config.anthropicToken();
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
   const runner = createBenchmarkRunner({ ...opts, query });
 

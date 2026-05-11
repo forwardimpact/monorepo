@@ -32,7 +32,7 @@ const SCORING_SENTINEL = "SCORING_SENTINEL_DO_NOT_LEAK_2870c4";
  */
 async function mockRunAgent(task, workdir) {
   // Seed task-specific side effects.
-  if (task.id === "tf/repo-state") {
+  if (task.id === "repo-state") {
     await writeFile(join(workdir.cwd, "result.txt"), "hello\n");
   }
   // Stub agent that "tries to enumerate" — its assistant text mentions
@@ -146,7 +146,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
 
     // pre-flight-broken records carry preflightError and costUsd === 0 (criterion 8).
-    const broken = records.filter((r) => r.taskId === "tf/preflight-broken");
+    const broken = records.filter((r) => r.taskId === "preflight-broken");
     assert.strictEqual(broken.length, 2);
     for (const r of broken) {
       assert.ok(r.preflightError, `expected preflightError on ${r.taskId}`);
@@ -162,21 +162,21 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
   });
 
-  test("tf/pass: running-service grading via HTTP probe yields verdict='pass'", async () => {
+  test("pass: running-service grading via HTTP probe yields verdict='pass'", async () => {
     const { runner } = await setupRunner({ runs: 1 });
     const records = await collectRecords(runner);
-    const passRec = records.find((r) => r.taskId === "tf/pass");
-    assert.ok(passRec, "tf/pass record missing");
+    const passRec = records.find((r) => r.taskId === "pass");
+    assert.ok(passRec, "pass record missing");
     assert.strictEqual(passRec.scoring.verdict, "pass");
     assert.strictEqual(passRec.scoring.exitCode, 0);
     assert.strictEqual(passRec.verdict, "pass");
     assert.strictEqual(passRec.scoring.details[0].test, "probe");
   });
 
-  test("tf/repo-state: repository-state grading via SHA-256 yields verdict='pass'", async () => {
+  test("repo-state: repository-state grading via SHA-256 yields verdict='pass'", async () => {
     const { runner } = await setupRunner({ runs: 1 });
     const records = await collectRecords(runner);
-    const rs = records.find((r) => r.taskId === "tf/repo-state");
+    const rs = records.find((r) => r.taskId === "repo-state");
     assert.ok(rs);
     assert.strictEqual(rs.scoring.verdict, "pass");
     assert.strictEqual(rs.verdict, "pass");
@@ -230,10 +230,10 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     await collectRecords(runner);
     const report = await aggregate({ inputDir: out, kValues: [1] });
     assert.ok(report.tasks.length >= 3);
-    const pass = report.tasks.find((t) => t.taskId === "tf/pass");
+    const pass = report.tasks.find((t) => t.taskId === "pass");
     assert.ok(pass);
     assert.strictEqual(pass.passAtK[1], 1);
-    const fail = report.tasks.find((t) => t.taskId === "tf/fail");
+    const fail = report.tasks.find((t) => t.taskId === "fail");
     assert.strictEqual(fail.passAtK[1], 0);
   });
 
@@ -243,7 +243,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     // the partial workdir. Plan Step 13 row 1 explicitly required this
     // coverage at the integration layer.
     const failingAgent = async (task, workdir) => {
-      if (task.id === "tf/pass") {
+      if (task.id === "pass") {
         // Write a minimal trace so cost/turns are 0 and submission empty.
         await writeFile(workdir.agentTracePath, "");
         throw new Error("simulated SDK iteration error");
@@ -253,8 +253,8 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     const { runner } = await setupRunner({ runs: 1, runAgent: failingAgent });
     const records = await collectRecords(runner);
     // Every task produces exactly one record per run, including tf/pass.
-    const passRec = records.find((r) => r.taskId === "tf/pass");
-    assert.ok(passRec, "tf/pass record missing on agent failure");
+    const passRec = records.find((r) => r.taskId === "pass");
+    assert.ok(passRec, "pass record missing on agent failure");
     assert.doesNotThrow(() => validateResultRecord(passRec));
     assert.ok(passRec.agentError, "agentError signal missing");
     assert.match(passRec.agentError.message, /simulated SDK iteration error/);

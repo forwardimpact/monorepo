@@ -1,66 +1,56 @@
 # Benchmarks
 
-Top-level catalog of `fit-benchmark` task families. Each family lives under
-`benchmarks/<pack-name>/` and targets one skill pack under test.
+Task families for `fit-benchmark`. Each family lives under
+`benchmarks/<family>/` and targets one skill pack under test.
 
-## Existing families
+## Families
 
-| Family | Pack under test | v1 task |
+| Family | Pack under test | Workflow |
 | --- | --- | --- |
-| [`kata-skills/`](kata-skills/) | `forwardimpact/kata-skills` | `kata-spec/write-feature-spec` |
+| [`kata-skills/`](kata-skills/) | `forwardimpact/kata-skills` | `eval-kata.yml` |
 
-## Per-family layout
+## Task family layout
 
-A family is a valid `fit-benchmark` family per spec
-[#870](../specs/870-fit-benchmark-coding-tasks/design-a.md). At minimum it
-carries:
+```
+benchmarks/<family>/
+├── judge.md                     # family-local judge profile (checked in)
+├── scripts/stage-family.sh      # regime-aware staging script
+├── apm.lock.yaml                # build output (gitignored)
+├── .claude/                     # build output (gitignored)
+└── tasks/
+    └── <task-name>/
+        ├── instructions.md      # agent prompt
+        ├── judge.task.md        # judge prompt (templated)
+        ├── supervisor.task.md   # reserved for v2
+        ├── specs/               # copied into agent CWD
+        ├── workdir/             # copied into agent CWD
+        │   └── scripts/preflight.sh
+        └── scoring/
+            └── run.sh           # structural rubric
+```
 
-- `apm.lock.yaml` at the family root (bytes drive `skillSetHash`).
-- `.claude/skills/` — staged skill pack under test (build output, not checked in).
-- `.claude/agents/` — agent profiles (build output) plus the family-local
-  `judge.md` (checked in).
-- `tasks/<task-family>/<task-name>/` — each task with `instructions.md`,
-  `supervisor.task.md` (reserved in v1), `judge.task.md`, `specs/`,
-  `workdir/scripts/preflight.sh`, and `scoring/run.sh`.
-- `scripts/stage-family.sh` — regime-aware build script that produces the
-  `.claude/` tree and the lockfile.
+Task IDs are directory names under `tasks/` (e.g. `write-feature-spec`).
 
-The `scripts/stage-family.sh` script accepts `--regime in-repo|published` and
-is the only mechanism that touches the staged tree.
+## Adding a task
 
-## Adding a new family
+Add a directory under `benchmarks/<family>/tasks/<task-name>/` with the
+required files shown above. The workflow runs all tasks in the family
+automatically.
 
-1. Create `benchmarks/<pack>/` with a `README.md` documenting the v1 task list
-   and a link to spec #870 for substrate-level operational notes (skill-pack
-   staging, sandbox flags, agent-cwd discipline, judge-profile-only-for-v1).
-2. Check in `benchmarks/<pack>/.claude/agents/judge.md` and a `.gitignore` that
-   excludes everything else under `.claude/` plus `apm.lock.yaml`.
-3. Write `scripts/stage-family.sh` that produces a deterministic `apm.lock.yaml`
-   and stages `.claude/skills/` from the regime-selected source.
-4. Add the tasks under `tasks/<task-family>/<task-name>/`.
-5. Add a workflow under `.github/workflows/benchmark-<pack>.yml` driving the
-   three trigger signals (`workflow_dispatch`, `schedule`, `pull_request`).
+## Adding a family
+
+1. Create `benchmarks/<family>/` with `judge.md`, `.gitignore`, and
+   `scripts/stage-family.sh`.
+2. Add tasks under `tasks/`.
+3. Add a workflow under `.github/workflows/eval-<family>.yml`.
 
 ## Fixture safety
 
-Every file checked into `benchmarks/` is unambiguously machine-skippable as a
-fixture without parsing its body. Two independent mechanisms apply:
+Every file under `benchmarks/` is machine-skippable as a fixture:
 
-1. **Path predicate** — `benchmarks/**` is the primary marker. The repo-root
-   [`.rgignore`](../.rgignore) excludes the prefix from every `rg` invocation,
-   so the canonical monorepo discovery commands in [`CLAUDE.md`](../CLAUDE.md)
-   § Jobs and Checklists pick up the exclusion implicitly. Other crawlers can
-   apply the same predicate via `--glob '!benchmarks/**'` or equivalent.
-2. **Directory sentinel** — `benchmarks/.benchmark-fixture` is an empty file
-   that ancestor-walking tools without monorepo-path awareness detect by
-   looking up the directory tree.
+1. **Path predicate** — `benchmarks/**` is excluded via
+   [`.rgignore`](../.rgignore) from all `rg` invocations.
+2. **Directory sentinel** — `benchmarks/.benchmark-fixture` marks the tree
+   for ancestor-walking tools.
 
-Agent **outputs** (produced at run time inside per-task ephemeral CWDs) are
-not in scope here — they never land in the repo.
-
-## Substrate operational notes
-
-Spec [#870](../specs/870-fit-benchmark-coding-tasks/design-a.md) is the source
-of truth for: skill-pack staging contracts, sandbox flag policy, agent-cwd
-discipline, hidden-grading isolation, and the judge-profile-only-for-v1
-constraint. This catalog does not re-enumerate those notes.
+Agent outputs (produced at run time in ephemeral CWDs) never land in the repo.

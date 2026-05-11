@@ -25,10 +25,10 @@ describe("loadTaskFamily", () => {
     const tasks = family.tasks();
     const ids = tasks.map((t) => t.id);
     assert.deepStrictEqual(ids.sort(), [
-      "tf/fail",
-      "tf/pass",
-      "tf/preflight-broken",
-      "tf/repo-state",
+      "fail",
+      "pass",
+      "preflight-broken",
+      "repo-state",
     ]);
     for (const t of tasks) {
       assert.ok(t.paths.instructions.endsWith("instructions.md"));
@@ -46,10 +46,10 @@ describe("loadTaskFamily", () => {
     assert.match(a.familyRevision, /^sha256:[0-9a-f]{64}$/);
   });
 
-  test("familyRevision flips on a one-byte mutation under tasks/tf/pass/workdir/", async () => {
+  test("familyRevision flips on a one-byte mutation under tasks/pass/workdir/", async () => {
     const dir = await copyFixture();
     const a = (await loadTaskFamily(dir)).familyRevision;
-    const target = join(dir, "tasks/tf/pass/workdir/README.md");
+    const target = join(dir, "tasks/pass/workdir/README.md");
     await writeFile(target, "Service scaffold lives here.\nEXTRA\n");
     const b = (await loadTaskFamily(dir)).familyRevision;
     assert.notStrictEqual(a, b);

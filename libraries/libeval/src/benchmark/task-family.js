@@ -3,7 +3,7 @@
  *   <root>/
  *     apm.lock.yaml
  *     .claude/                # pre-staged skills + agents (P1)
- *     tasks/<task_family_name>/<task_name>/
+ *     tasks/<task_name>/
  *       instructions.md
  *       supervisor.task.md    # preserved for v2; not read in v1
  *       judge.task.md
@@ -122,32 +122,27 @@ function normalizeLf(buf) {
 async function discoverTasks(rootPath) {
   const tasksRoot = join(rootPath, "tasks");
   const tasks = [];
-  let families;
+  let entries;
   try {
-    families = await readdir(tasksRoot, { withFileTypes: true });
+    entries = await readdir(tasksRoot, { withFileTypes: true });
   } catch (e) {
     if (e.code === "ENOENT") return tasks;
     throw e;
   }
-  for (const family of families) {
-    if (!family.isDirectory()) continue;
-    const familyDir = join(tasksRoot, family.name);
-    const entries = await readdir(familyDir, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      const taskDir = join(familyDir, entry.name);
-      tasks.push({
-        id: `${family.name}/${entry.name}`,
-        paths: {
-          instructions: join(taskDir, "instructions.md"),
-          supervisor: join(taskDir, "supervisor.task.md"),
-          judge: join(taskDir, "judge.task.md"),
-          specs: join(taskDir, "specs"),
-          workdir: join(taskDir, "workdir"),
-          scoring: join(taskDir, "scoring"),
-        },
-      });
-    }
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const taskDir = join(tasksRoot, entry.name);
+    tasks.push({
+      id: entry.name,
+      paths: {
+        instructions: join(taskDir, "instructions.md"),
+        supervisor: join(taskDir, "supervisor.task.md"),
+        judge: join(taskDir, "judge.task.md"),
+        specs: join(taskDir, "specs"),
+        workdir: join(taskDir, "workdir"),
+        scoring: join(taskDir, "scoring"),
+      },
+    });
   }
   tasks.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   return tasks;
@@ -246,7 +241,7 @@ function run(cmd, args) {
 
 /**
  * @typedef {object} Task
- * @property {string} id - METR-style "task_family_name/task_name"
+ * @property {string} id - Task name (directory name under tasks/)
  * @property {{instructions: string, supervisor: string, judge: string, specs: string, workdir: string, scoring: string}} paths
  */
 

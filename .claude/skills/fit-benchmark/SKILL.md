@@ -26,16 +26,14 @@ keeps `fit-eval` low-level while letting the benchmark layer evolve.
 
 ## Task Family Format
 
-A task family is a directory laid out roughly like the
-[METR Task Standard](https://github.com/METR/task-standard) — same
-vocabulary (`task_family_name`, `task_name`, `instructions`, `submission`),
-slightly different on-disk shape:
+A task family is a directory of related coding tasks plus the skill-set
+under test:
 
 ```
 <family>/
   apm.lock.yaml          # skill-set manifest (hashed into skillSetHash)
   .claude/               # pre-staged skills + agent profiles
-  tasks/<task_family_name>/<task_name>/
+  tasks/<task-name>/
     instructions.md       # agent prompt
     supervisor.task.md    # reserved (v1 doesn't read it)
     judge.task.md         # judge prompt with {{SCORING}} and {{AGENT_TRACE_PATH}}
@@ -45,6 +43,8 @@ slightly different on-disk shape:
     scoring/              # template-only — never copied to agent CWD
       run.sh              # fd 3 = $RESULTS_FD for structured rows
 ```
+
+Task IDs are directory names under `tasks/` (e.g. `write-feature-spec`).
 
 Local paths and git URLs are both accepted. `familyRevision` becomes
 `git:<sha>` for git URLs (HEAD at clone time) and `sha256:<digest>`

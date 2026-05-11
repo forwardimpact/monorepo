@@ -1,4 +1,4 @@
-name: Benchmark — kata-skills
+name: "Eval: Kata"
 
 on:
   workflow_dispatch:
@@ -9,10 +9,10 @@ on:
       - ".claude/skills/kata-*/**"
       - ".claude/agents/*.md"
       - "benchmarks/kata-skills/**"
-      - ".github/workflows/benchmark-kata-skills.yml"
+      - ".github/workflows/eval-kata.yml"
 
 concurrency:
-  group: benchmark-kata-skills-${{ github.ref }}
+  group: eval-kata-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

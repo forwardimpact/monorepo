@@ -71,7 +71,7 @@ export const definition = {
         },
         task: {
           type: "string",
-          description: "METR-style task id (task_family_name/task_name)",
+          description: "Task id (directory name under tasks/)",
         },
         workdir: {
           type: "string",
@@ -112,7 +112,7 @@ export const definition = {
   },
   examples: [
     "fit-benchmark run --family=./families/coding --output=./runs/2026-05-11 --runs=5",
-    "fit-benchmark score --family=./families/coding --task=coding/todo-api --workdir=./runs/2026-05-11/runs/coding__todo-api/0",
+    "fit-benchmark score --family=./families/coding --task=todo-api --workdir=./runs/2026-05-11/runs/todo-api/0",
     "fit-benchmark report --input=./runs/2026-05-11 --k=1,3,5 --format=text",
   ],
   documentation: [

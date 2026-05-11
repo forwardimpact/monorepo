@@ -16,7 +16,7 @@ async function buildStubTask(runShContent) {
   await mkdir(cwd, { recursive: true });
   return {
     task: {
-      id: "tf/scorer",
+      id: "scorer",
       paths: {
         instructions: "",
         supervisor: "",

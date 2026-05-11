@@ -30,9 +30,9 @@ async function setupManager() {
 describe("WorkdirManager.start", () => {
   test("seeds the agent CWD with workdir + specs + staged .claude/ but never scoring/", async () => {
     const { family, wm } = await setupManager();
-    const task = family.tasks().find((t) => t.id === "tf/pass");
+    const task = family.tasks().find((t) => t.id === "pass");
     const wd = await wm.start(task, 0);
-    assert.ok(wd.cwd.endsWith("tf__pass/0/cwd"));
+    assert.ok(wd.cwd.endsWith("pass/0/cwd"));
     assert.ok(!wd.preflightError, "preflight should pass on tf/pass");
     // README copied from workdir/
     await assert.doesNotReject(
@@ -71,7 +71,7 @@ describe("WorkdirManager.start", () => {
 
   test("populates preflightError without throwing when preflight exits non-zero", async () => {
     const { family, wm } = await setupManager();
-    const task = family.tasks().find((t) => t.id === "tf/preflight-broken");
+    const task = family.tasks().find((t) => t.id === "preflight-broken");
     const wd = await wm.start(task, 0);
     assert.ok(wd.preflightError, "expected preflightError");
     assert.strictEqual(wd.preflightError.phase, "preflight");
@@ -124,7 +124,7 @@ exit 0
     await writeFile(join(taskRoot, "judge.task.md"), "x");
 
     const task = {
-      id: "tf/listener",
+      id: "listener",
       paths: {
         instructions: join(taskRoot, "instructions.md"),
         supervisor: join(taskRoot, "supervisor.task.md"),

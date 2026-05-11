@@ -7,7 +7,7 @@ import {
 } from "../src/benchmark/result.js";
 
 const happy = {
-  taskId: "tf/pass",
+  taskId: "pass",
   runIndex: 0,
   verdict: "pass",
   scoring: { verdict: "pass", details: [], exitCode: 0 },
@@ -25,7 +25,7 @@ const happy = {
 };
 
 const preflightFail = {
-  taskId: "tf/preflight-broken",
+  taskId: "preflight-broken",
   runIndex: 0,
   verdict: "fail",
   costUsd: 0,
@@ -42,7 +42,7 @@ const preflightFail = {
 
 const agentFailed = {
   ...happy,
-  taskId: "tf/agent-died",
+  taskId: "agent-died",
   verdict: "fail",
   scoring: { verdict: "fail", details: [], exitCode: 1 },
   judgeVerdict: { verdict: "fail", summary: "agent died" },
@@ -82,7 +82,7 @@ describe("validateScoringRecord", () => {
   test("accepts a valid scoring record", () => {
     assert.doesNotThrow(() =>
       validateScoringRecord({
-        taskId: "tf/pass",
+        taskId: "pass",
         scoring: { verdict: "pass", details: [], exitCode: 0 },
         exitCode: 0,
       }),
@@ -90,6 +90,6 @@ describe("validateScoringRecord", () => {
   });
 
   test("rejects when scoring is missing", () => {
-    assert.throws(() => validateScoringRecord({ taskId: "tf/x", exitCode: 0 }));
+    assert.throws(() => validateScoringRecord({ taskId: "x", exitCode: 0 }));
   });
 });

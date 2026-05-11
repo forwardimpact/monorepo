@@ -45,7 +45,7 @@ export async function runJudge(task, workdir, scoring, deps) {
     output,
     model: deps.model,
     judgeProfile: deps.judgeProfile,
-    maxTurns: 5,
+    maxTurns: 25,
     redactor: createRedactor(),
   });
 

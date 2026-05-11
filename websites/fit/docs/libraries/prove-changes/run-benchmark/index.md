@@ -31,7 +31,7 @@ my-coding-family/
   .claude/                               # pre-staged skills + agents
     skills/...
     agents/judge.md
-  tasks/coding/todo-api/
+  tasks/todo-api/
     instructions.md                      # what the agent should build
     judge.task.md                        # judge prompt; use {{SCORING}} and {{AGENT_TRACE_PATH}}
     supervisor.task.md                   # reserved (v1 doesn't read it)
@@ -42,12 +42,9 @@ my-coding-family/
       run.sh                             # fd 3 (= $RESULTS_FD) carries optional details
 ```
 
-The vocabulary follows the
-[METR Task Standard](https://github.com/METR/task-standard): `task family`,
-`task_family_name/task_name`, `instructions`, `submission`. The on-disk
-shape differs slightly so the hidden `scoring/` directory lives only in the
-template — `WorkdirManager` never copies it, which is the structural
-guarantee that the agent cannot peek.
+Task IDs are directory names under `tasks/` (e.g. `todo-api`). The hidden
+`scoring/` directory lives only in the template — `WorkdirManager` never
+copies it, which is the structural guarantee that the agent cannot peek.
 
 ### `instructions.md`
 
@@ -190,9 +187,9 @@ Output:
 
 - `./runs/2026-05-11/results.jsonl` — append-only, one record per
   `(task, runIndex)`. Survives partial failures.
-- `./runs/2026-05-11/runs/<task_family>__<task_name>/<runIndex>/` — per-run
-  artifacts: the agent CWD, the agent trace, the judge trace, the
-  scoring stderr log.
+- `./runs/2026-05-11/runs/<task-name>/<runIndex>/` — per-run artifacts:
+  the agent CWD, the agent trace, the judge trace, the scoring stderr
+  log.
 - `./runs/2026-05-11/.apm-staging/.claude/` — staged skills/agents.
 
 Each result record carries `skillSetHash`, `familyRevision`, the
@@ -208,8 +205,8 @@ For ad-hoc grading without an agent run:
 ```sh
 npx fit-benchmark score \
   --family=./my-coding-family \
-  --task=coding/todo-api \
-  --workdir=./runs/2026-05-11/runs/coding__todo-api/0 \
+  --task=todo-api \
+  --workdir=./runs/2026-05-11/runs/todo-api/0 \
   --output=score.jsonl
 ```
 

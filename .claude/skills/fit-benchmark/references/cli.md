@@ -36,7 +36,7 @@ subcommand. Exit code is `0` if every record's combined verdict is
 | Flag         | Required | Purpose                                                                                  |
 | ------------ | -------- | ---------------------------------------------------------------------------------------- |
 | `--family`   | yes      | Path or git URL of the task family                                                       |
-| `--task`     | yes      | METR-style task id (`task_family_name/task_name`)                                        |
+| `--task`     | yes      | Task id (directory name under `tasks/`)                                        |
 | `--workdir`  | yes      | Post-run directory. `<workdir>/cwd/` is the agent CWD; scoring runs against it.          |
 | `--output`   | no       | Output file path (defaults to stdout; one JSONL line)                                    |
 

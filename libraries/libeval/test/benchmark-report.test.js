@@ -8,7 +8,7 @@ import { aggregate, renderTextReport } from "../src/benchmark/report.js";
 
 function baseRecord(overrides) {
   return {
-    taskId: "tf/sample",
+    taskId: "sample",
     runIndex: 0,
     verdict: "pass",
     scoring: { verdict: "pass", details: [], exitCode: 0 },
@@ -39,13 +39,13 @@ describe("aggregate", () => {
   test("pass@1 = 0.4 and pass@3 = 0.9 for verdicts pass/fail/fail/pass/fail", async () => {
     const verdicts = ["pass", "fail", "fail", "pass", "fail"];
     const records = verdicts.map((v, i) =>
-      baseRecord({ taskId: "tf/x", runIndex: i, verdict: v }),
+      baseRecord({ taskId: "x", runIndex: i, verdict: v }),
     );
     const dir = await writeJsonl(records);
     const report = await aggregate({ inputDir: dir, kValues: [1, 3] });
     assert.strictEqual(report.tasks.length, 1);
     const t = report.tasks[0];
-    assert.strictEqual(t.taskId, "tf/x");
+    assert.strictEqual(t.taskId, "x");
     assert.strictEqual(t.n, 5);
     assert.strictEqual(t.c, 2);
     assert.strictEqual(t.passAtK[1], 0.4);
@@ -54,15 +54,15 @@ describe("aggregate", () => {
   });
 
   test("k > n yields a structured error row", async () => {
-    const records = [baseRecord({ taskId: "tf/x", runIndex: 0 })];
+    const records = [baseRecord({ taskId: "x", runIndex: 0 })];
     const dir = await writeJsonl(records);
     const report = await aggregate({ inputDir: dir, kValues: [3] });
     assert.deepStrictEqual(report.tasks[0].passAtK[3], { error: "k > n" });
   });
 
   test("schema-invalid records are skipped and counted under totals.skipped", async () => {
-    const good = baseRecord({ taskId: "tf/x", runIndex: 0 });
-    const bad = { taskId: "tf/x", runIndex: 1 }; // missing required fields
+    const good = baseRecord({ taskId: "x", runIndex: 0 });
+    const bad = { taskId: "x", runIndex: 1 }; // missing required fields
     const dir = await writeJsonl([good, bad]);
     const report = await aggregate({ inputDir: dir, kValues: [1] });
     assert.strictEqual(report.totals.skipped, 1);
@@ -71,15 +71,15 @@ describe("aggregate", () => {
 
   test("groups by taskId and reports tasks sorted lexicographically", async () => {
     const records = [
-      baseRecord({ taskId: "tf/b", runIndex: 0, verdict: "pass" }),
-      baseRecord({ taskId: "tf/a", runIndex: 0, verdict: "fail" }),
-      baseRecord({ taskId: "tf/a", runIndex: 1, verdict: "pass" }),
+      baseRecord({ taskId: "b", runIndex: 0, verdict: "pass" }),
+      baseRecord({ taskId: "a", runIndex: 0, verdict: "fail" }),
+      baseRecord({ taskId: "a", runIndex: 1, verdict: "pass" }),
     ];
     const dir = await writeJsonl(records);
     const report = await aggregate({ inputDir: dir, kValues: [1] });
     assert.deepStrictEqual(
       report.tasks.map((t) => t.taskId),
-      ["tf/a", "tf/b"],
+      ["a", "b"],
     );
   });
 });
@@ -87,8 +87,8 @@ describe("aggregate", () => {
 describe("renderTextReport", () => {
   test("emits a markdown table with one row per task", async () => {
     const records = [
-      baseRecord({ taskId: "tf/x", runIndex: 0, verdict: "pass" }),
-      baseRecord({ taskId: "tf/x", runIndex: 1, verdict: "fail" }),
+      baseRecord({ taskId: "x", runIndex: 0, verdict: "pass" }),
+      baseRecord({ taskId: "x", runIndex: 1, verdict: "fail" }),
     ];
     const dir = await writeJsonl(records);
     const report = await aggregate({ inputDir: dir, kValues: [1] });
