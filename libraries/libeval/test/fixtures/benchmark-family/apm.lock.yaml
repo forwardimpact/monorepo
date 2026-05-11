@@ -1,0 +1,4 @@
+apm_version: 1
+deployed_files:
+  - .claude/skills/noop/SKILL.md
+local_deployed_files: []
