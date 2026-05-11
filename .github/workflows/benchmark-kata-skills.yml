@@ -1,0 +1,61 @@
+name: Benchmark — kata-skills
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+  pull_request:
+    paths:
+      - ".claude/skills/kata-*/**"
+      - ".claude/agents/*.md"
+      - "benchmarks/kata-skills/**"
+      - ".github/workflows/benchmark-kata-skills.yml"
+
+concurrency:
+  group: benchmark-kata-skills-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: ./.github/actions/bootstrap
+      - name: Stage family
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            ./benchmarks/kata-skills/scripts/stage-family.sh --regime in-repo
+          else
+            ./benchmarks/kata-skills/scripts/stage-family.sh --regime published
+          fi
+      - name: Run benchmark
+        run: |
+          bunx fit-benchmark run \
+            --family ./benchmarks/kata-skills \
+            --output ./bench-output \
+            --runs 5 \
+            --model claude-haiku-4-5-20251001 \
+            --max-turns 25 \
+            --judge-profile judge
+      - name: Report
+        run: |
+          bunx fit-benchmark report \
+            --input ./bench-output --format text \
+            >> "$GITHUB_STEP_SUMMARY"
+      - name: Assert cost envelope (≤ $5)
+        run: |
+          [ -s ./bench-output/results.jsonl ] || { echo "results.jsonl missing or empty" >&2; exit 1; }
+          TOTAL=$(jq -s '[.[].costUsd // 0] | add' ./bench-output/results.jsonl)
+          echo "Total cost: $TOTAL USD"
+          awk -v t="$TOTAL" 'BEGIN { if (t+0 > 5) exit 1 }'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: results-jsonl
+          path: ./bench-output/results.jsonl
+          if-no-files-found: warn
