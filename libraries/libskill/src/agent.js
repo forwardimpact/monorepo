@@ -340,9 +340,9 @@ export function generateAgentProfile({
   const kebabRole = toKebabCase(roleTitle.toLowerCase().replace(/\s+/g, "-"));
   const hasTrack = track && track.id !== "null";
   const filename = hasTrack
-    ? `${kebabRole}--${toKebabCase(track.id)}.md`
-    : `${kebabRole}.md`;
-  const profileName = filename.replace(/\.md$/, "");
+    ? `${kebabRole}--${toKebabCase(track.id)}.agent.md`
+    : `${kebabRole}.agent.md`;
+  const profileName = filename.replace(/\.agent\.md$/, "");
 
   const specialization = discipline.specialization || discipline.name;
   const description = hasTrack
