@@ -106,7 +106,7 @@ Discussion, not four parallel coaching dispatches. Each headline bullet for the
 four metrics carries the new `Redefinition:` slot per
 [`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes);
 for this date the value is `—` on all four. Example:
-`- kata-release-merge / prs_actioned — … — Redefinition: —`.
+`- kata-security-update / prs_actioned — … — Redefinition: —`.
 
 ## Participant briefing template
 
