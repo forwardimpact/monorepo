@@ -13,13 +13,13 @@ substrate already shipped by spec [#870](../870-fit-benchmark-coding-tasks/desig
 | Benchmarks root | `benchmarks/` (new top-level) | Hosts task families per skill pack under test. Carries `benchmarks/README.md` (catalog: layout, how to add a family) and `benchmarks/.benchmark-fixture` (sentinel: see § Fixture-safety mechanism). Forward-compatible with future `benchmarks/fit-skills/` etc. |
 | Family root | `benchmarks/kata-skills/` (new) | The single v1 family. Directory name matches the pack id under test (`forwardimpact/kata-skills`); a future `fit-skills` family slots in alongside without renaming. Holds the family-local README, the staged `.claude/` tree, the staging script, and `tasks/`. |
 | Family README | `benchmarks/kata-skills/README.md` (new) | Documents family-local conventions (task layout, the v1 task, the marker mechanism) and links to spec #870 for substrate-level notes. Does **not** re-enumerate sandbox flags, agent-cwd discipline, or judge-profile-only-for-v1 — those are read from #870. |
-| Staging script | `benchmarks/kata-skills/scripts/stage-family.sh` (new) | The build-time mechanism that produces a valid `fit-benchmark` family tree at the family root. Accepts a regime flag (published \| in-repo); the regime selects the source of `.claude/skills/kata-*` and `.claude/agents/*`. Emits an `apm.lock.yaml` whose bytes are deterministic given the staged contents, so `skillSetHash` is stable across reruns within a regime and changes when the staged sources change. |
+| Staging script | `benchmarks/kata-skills/scripts/stage-family.sh` (new) | The build-time mechanism that produces a valid `fit-benchmark` family tree at the family root. Accepts a regime flag (published \| in-repo); the regime selects the source of `.claude/skills/kata-*` and `.claude/agents/*` and the `source_identity` recorded in the lockfile. |
 | Staged skill tree | `benchmarks/kata-skills/.claude/skills/kata-*/` (build output) | Identical layout to `.claude/skills/kata-*` in the monorepo; populated by the staging script, not checked in. |
-| Staged judge profile | `benchmarks/kata-skills/.claude/agents/judge.md` (new, checked in) | The judge agent profile the harness invokes per spec #870's judge contract. Its prompt is family-local (judges spec quality), so it ships with the family and is **not** pulled from the monorepo's `.claude/agents/`. |
-| Lockfile | `benchmarks/kata-skills/apm.lock.yaml` (build output) | Stable bytes per regime; the file the harness reads to derive `skillSetHash`. Empty `dependencies: []` in both regimes — staging is done by the script, not by `apm install` — so the harness's `ApmInstaller` materialises nothing and only hashes the bytes. |
+| Staged judge profile | `benchmarks/kata-skills/.claude/agents/judge.md` (new, checked in) | The judge agent profile the harness invokes per spec #870's judge contract — see Decision 4 for rationale. |
+| Lockfile | `benchmarks/kata-skills/apm.lock.yaml` (build output) | The file `ApmInstaller` hashes for `skillSetHash`. Bytes are deterministic per regime (see § Lockfile shape) and change when the staged sources change. |
 | v1 task | `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/` (new) | The single v1 task. METR-style `task_family_name/task_name` (`kata-spec/write-feature-spec`). Carries `instructions.md`, `supervisor.task.md` (reserved, unread in v1 per #870 Decision 14), `judge.task.md`, `specs/` (a brief plus a JTBD persona+job snippet copied into the agent CWD), `workdir/scripts/preflight.sh` (no-op `exit 0` — the task ships nothing to boot), and `scoring/run.sh` (the structural rubric). |
-| Structural rubric | `tasks/kata-spec/write-feature-spec/scoring/run.sh` (new) | Hidden grading per #870 — invoked by the harness's `Scorer` from the template path, never copied into the agent CWD. Asserts the rubric named in spec § In scope: a `spec.md` exists at the prescribed path; problem stated first with evidence; scope names specific entities and exclusions; success criteria are verifiable; no implementation HOW; a named JTBD persona+job present in `data/JTBD.md` is cited. NDJSON rows to `$RESULTS_FD`; exit code is the authoritative verdict. |
-| Judge prompt | `tasks/kata-spec/write-feature-spec/judge.task.md` (new) | Reads `{{SCORING}}` and `{{AGENT_TRACE_PATH}}` per #870. Judges whether the spec *addresses the brief*, not just structural compliance — this is the layer the rubric cannot grade. |
+| Structural rubric | `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/scoring/run.sh` (new) | Hidden grading per #870 — invoked by the harness's `Scorer` from the template path, never copied into the agent CWD. Asserts the rubric enumerated in § Grading rubric. NDJSON rows to `$RESULTS_FD`; exit code is the authoritative verdict. |
+| Judge prompt | `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/judge.task.md` (new) | Reads `{{SCORING}}` and `{{AGENT_TRACE_PATH}}` per #870. Judges whether the spec *addresses the brief* — the layer the structural rubric cannot grade. |
 | Workflow | `.github/workflows/benchmark-kata-skills.yml` (new) | Drives the three trigger signals, calls the staging script with the regime appropriate to the trigger, invokes `fit-benchmark run` + `fit-benchmark report`, writes the pass@k table to `$GITHUB_STEP_SUMMARY`, and uploads the JSONL artefact. |
 
 ## Component graph
@@ -78,20 +78,42 @@ sequenceDiagram
   alt regime = in-repo (PR job)
     STG->>FAM: copy monorepo .claude/skills/kata-* → .claude/skills/
     STG->>FAM: copy monorepo .claude/agents/*.md → .claude/agents/ (excluding judge.md)
-    STG->>FAM: write apm.lock.yaml with sha256-over-staged-contents header
+    STG->>FAM: write apm.lock.yaml (regime=in-repo; source_identity = sha256 over staged contents)
   else regime = published (schedule / dispatch)
-    STG->>FAM: fetch forwardimpact/kata-skills at pinned version
-    STG->>FAM: copy fetched skills/ → .claude/skills/; agents/ → .claude/agents/
-    STG->>FAM: write apm.lock.yaml with version+sha pin header
+    STG->>FAM: fetch forwardimpact/kata-skills at latest main commit; record its sha
+    STG->>FAM: copy fetched skills/ → .claude/skills/; agents/ → .claude/agents/ (excluding judge.md)
+    STG->>FAM: write apm.lock.yaml (regime=published; source_identity = pack version + commit sha)
   end
   WF->>FB: run --family benchmarks/kata-skills --runs N --model M --max-turns T
   FB-->>WF: results.jsonl (one record per (task, runIndex))
 ```
 
-The harness's `ApmInstaller` reads the staged `apm.lock.yaml`, computes
-`skillSetHash` over its bytes per #870 Decision 4, and materialises nothing
-(empty `dependencies`). The staged `.claude/` tree is what the per-task
-`WorkdirManager` copies into each agent CWD.
+The harness chain per `apm-installer.js:21-22` and `workdir.js:67`:
+`ApmInstaller` reads the family-root `apm.lock.yaml`, computes `skillSetHash`
+over its bytes per #870 Decision 4, and mirrors the family-root `.claude/`
+into `<output>/.apm-staging/.claude/`; `WorkdirManager` then copies that
+staging mirror into each per-task agent CWD's `.claude/`. The lockfile drives
+the hash, not materialisation (see Decision 2).
+
+## Lockfile shape
+
+`apm.lock.yaml` is a real apm-format file the substrate can parse unchanged;
+the bytes vary across regimes via a `benchmark:` metadata block the substrate
+ignores but the hash includes:
+
+```yaml
+apm_lock_version: 1
+dependencies: []
+benchmark:
+  regime: in-repo            # or "published"
+  source_identity: sha256:…  # in-repo: hash of staged contents
+                             # published: "<pack-version>@<commit-sha>"
+```
+
+Deterministic per regime: the in-repo branch hashes the staged contents after
+the copy completes; the published branch records the resolved version and
+commit sha captured during the fetch. `skillSetHash` flips iff the staged
+sources flip — the property spec #890 § Success Criteria asserts.
 
 ## Fixture-safety mechanism
 
@@ -115,8 +137,8 @@ inside per-task ephemeral CWDs) are not in scope — they never land in the repo
 | --- | --- | --- |
 | `workflow_dispatch:` | published | Manual; cost-controlled by humans. |
 | `schedule:` (weekly, `main`) | published | Cadence — drift detector. |
-| `pull_request:` with `paths:` filter | in-repo | Filter scoped to changes that could affect benchmark outcomes: `.claude/skills/kata-*/**`, `.claude/agents/**`, `benchmarks/kata-skills/**`, and the workflow file itself. |
-| Concurrency group | (all triggers) | `group: benchmark-kata-skills-${{ github.ref }}` with `cancel-in-progress: true` — supersedes in-flight runs on the same PR ref. |
+| `pull_request:` with paths filter | in-repo | Filter scoped to in-repo kata-skill sources, agent profiles, the family tree, and the workflow file. Globs are plan-level. |
+| Concurrency group | (all triggers) | Keyed on the GitHub ref; cancel-in-progress so a later push on the same PR supersedes an in-flight run. Group string is plan-level. |
 
 ## Cost envelope
 
@@ -127,9 +149,9 @@ inside per-task ephemeral CWDs) are not in scope — they never land in the repo
 | Max turns per session | 25 | `result.turns` |
 | Per-invocation budget | ≤ $5 | Σ `result.costUsd` across the JSONL |
 
-Concretes are design choices the spec permits; the substrate the design **must**
-preserve is the result-record fields above. The workflow asserts the budget
-post-run by summing `costUsd` and failing the job if it exceeds the threshold.
+Concretes are design choices the spec permits; the recording substrate the
+design **must** preserve is the result-record fields above. The budget
+assertion is workflow-level (post-run sum over JSONL) — see Decision 9.
 
 ## Grading rubric (structural)
 
@@ -143,10 +165,7 @@ quality bar `.claude/skills/kata-spec/SKILL.md` § DO-CONFIRM publishes:
 | Specific scope | A `## Scope` (or `## In scope`) section names entities and an explicit exclusion. |
 | Verifiable success | A `## Success Criteria` section pairs each claim with a command, path, or observable. |
 | No HOW leak | Absence of file-path/function-signature patterns characteristic of plan-grade content. |
-| Cites JTBD | References a persona+job present in `data/JTBD.md` (the staged copy). |
-
-The judge layer (`judge.task.md`) is independent and asks: does this spec
-*address the brief*, beyond passing the structural checks?
+| Cites JTBD | References a persona+job present in the staged `JTBD.md` excerpt (under `$WORKDIR/specs/`). |
 
 `verdict = "pass"` iff scoring **and** judge both pass, per #870's combined
 gate.
@@ -162,23 +181,11 @@ gate.
 | 5 | Fixture-safety = path predicate (`benchmarks/**`) + directory sentinel (`.benchmark-fixture`). Both, not one. | Front-matter token on every fixture file. | Front-matter requires parsing every file body, which is exactly what the spec asks the mechanism to avoid. Path + sentinel are both purely structural; together they cover walkers with and without monorepo-path awareness. |
 | 6 | One workflow file with three triggers, not three workflows. | Split `pr.yml`, `schedule.yml`, `dispatch.yml`. | The three triggers differ only in the staging regime (one conditional in a single build step). Splitting would multiply the result-upload, summary-render, and budget-assert code threefold. |
 | 7 | PR-regime staging copies from in-repo `.claude/skills/kata-*` directly; the lockfile's bytes are derived from a sha256 over those staged contents. | Run `apm install` in PR mode against a pre-published preview package. | `kata-skills` publishes only on push to `main` (per `.github/workflows/publish-skills.yml`) — a preview package does not exist for PRs. Direct copy ensures the change under review is what gets graded. |
+| 7b | Published-regime version-pin = the latest commit on `forwardimpact/kata-skills` `main` at fetch time; the resolved commit sha is recorded into the lockfile's `benchmark.source_identity`. | A monorepo-side checked-in pin file rotated on each release. | `kata-skills` has no versioning channel finer than `main`. A pin file would have to be rotated on every release and would drift between scheduled runs and the dispatched runs that prompted the rotation. Recording the resolved sha keeps the substrate-identity on the result record (via `skillSetHash`) without a second source of truth to maintain. |
 | 8 | v1 reports `pass@1` (and at most `pass@5` given runs=5). No threshold, no delta, no "skill-positive" label. | A baseline-vs-current delta against the previous scheduled run. | Spec § Out of scope, deferred — delta tables and skill-positive labels are revisited with the ablation spec. v1 surfaces the number; humans read it. |
 | 9 | Cost-envelope post-run assertion in the workflow (sum `costUsd`, fail on overrun). No per-task per-turn pre-flight cap inside the harness. | Wire a budget enforcer into `fit-benchmark` itself. | Spec asserts the envelope target and the recording substrate; the envelope is a workflow-level invariant, not a harness-level one. Keeps the harness unchanged for v1. |
 | 10 | `preflight.sh` is a no-op (`exit 0`) for the v1 task. | A real scaffold smoke probe. | The task ships no scaffold — the agent writes a markdown file. Spec #870's pre-flight contract requires the file exist and be executable; v1 satisfies the contract minimally and defers real probes to future tasks (e.g., one that asks the agent to ship code). |
 
-## Test surfaces
+## Out of scope
 
-The design names two surfaces; the plan picks fixture composition and layering.
-
-| Surface | What it covers |
-| --- | --- |
-| Staging-script unit | `stage-family.sh` produces byte-identical `apm.lock.yaml` across reruns within a regime; the bytes differ between regimes; the staged `.claude/` tree contains every `kata-*` skill from the source. |
-| End-to-end workflow | A representative PR-regime invocation completes within the cost envelope, emits a valid JSONL, and renders a pass@k table to the job summary. |
-
-## Out of scope (carried from spec)
-
-Ablation methodology, additional kata-skill tasks, other skill packs,
-cross-model comparison, leaderboards / XmR charts, CI gating on pass@k,
-result-record schema extension for regime tagging, per-task agent profiles,
-grading-only mode, replay-from-trace, and container isolation — all unchanged
-from spec § Out of scope, deferred.
+Unchanged from spec § Out of scope, deferred.
