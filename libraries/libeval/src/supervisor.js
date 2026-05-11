@@ -74,10 +74,13 @@ export class Supervisor {
     ctx,
     messageBus,
     taskAmend,
+    redactor,
   }) {
     if (!agentRunner) throw new Error("agentRunner is required");
     if (!supervisorRunner) throw new Error("supervisorRunner is required");
     if (!output) throw new Error("output is required");
+    if (!redactor) throw new Error("redactor is required");
+    this.redactor = redactor;
     this.agentRunner = agentRunner;
     this.supervisorRunner = supervisorRunner;
     this.output = output;
@@ -406,7 +409,7 @@ export class Supervisor {
       seq: this.counter.next(),
       event,
     };
-    this.output.write(JSON.stringify(tagged) + "\n");
+    this.output.write(JSON.stringify(this.redactor.redactValue(tagged)) + "\n");
   }
 
   /**
@@ -429,11 +432,13 @@ export class Supervisor {
    */
   emitOrchestratorEvent(event) {
     this.output.write(
-      JSON.stringify({
-        source: "orchestrator",
-        seq: this.counter.next(),
-        event,
-      }) + "\n",
+      JSON.stringify(
+        this.redactor.redactValue({
+          source: "orchestrator",
+          seq: this.counter.next(),
+          event,
+        }),
+      ) + "\n",
     );
   }
 
@@ -443,17 +448,19 @@ export class Supervisor {
    */
   emitSummary(result) {
     this.output.write(
-      JSON.stringify({
-        source: "orchestrator",
-        seq: this.counter.next(),
-        event: {
-          type: "summary",
-          success: result.success,
-          ...(result.verdict && { verdict: result.verdict }),
-          turns: result.turns,
-          ...(result.summary && { summary: result.summary }),
-        },
-      }) + "\n",
+      JSON.stringify(
+        this.redactor.redactValue({
+          source: "orchestrator",
+          seq: this.counter.next(),
+          event: {
+            type: "summary",
+            success: result.success,
+            ...(result.verdict && { verdict: result.verdict }),
+            turns: result.turns,
+            ...(result.summary && { summary: result.summary }),
+          },
+        }),
+      ) + "\n",
     );
   }
 }
@@ -498,7 +505,9 @@ export function createSupervisor({
   profilesDir,
   taskAmend,
   agentMcpServers,
+  redactor,
 }) {
+  if (!redactor) throw new Error("redactor is required");
   const resolvedProfilesDir =
     profilesDir ?? resolve(supervisorCwd, ".claude/agents");
   const systemPromptFor = (profile, trailer) => {
@@ -538,6 +547,7 @@ export function createSupervisor({
     settingSources: ["project"],
     systemPrompt: systemPromptFor(agentProfile, AGENT_SYSTEM_PROMPT),
     mcpServers: { orchestration: agentServer, ...agentMcpServers },
+    redactor,
   });
 
   const defaultDisallowed = ["Agent", "Task", "TaskOutput", "TaskStop"];
@@ -564,6 +574,7 @@ export function createSupervisor({
     settingSources: ["project"],
     systemPrompt: systemPromptFor(supervisorProfile, SUPERVISOR_SYSTEM_PROMPT),
     mcpServers: { orchestration: supervisorServer },
+    redactor,
   });
 
   supervisor = new Supervisor({
@@ -574,6 +585,7 @@ export function createSupervisor({
     ctx,
     messageBus,
     taskAmend,
+    redactor,
   });
   return supervisor;
 }

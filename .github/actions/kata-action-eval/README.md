@@ -60,3 +60,25 @@ When `trace` is enabled, the action uploads one artifact per run named
 `<case>` defaults to `default` for non-matrix runs; matrix workflows pass
 `case: ${{ matrix.<dim>.id }}` to disambiguate per-shard artifacts. The legacy
 `artifact-suffix` input is honored with a deprecation warning.
+
+## Trace redaction
+
+The underlying `fit-eval` CLI redacts secrets in trace artifacts before they
+reach disk. Two layers compose:
+
+- **Env-var allowlist**, defaulting to `ANTHROPIC_API_KEY`, `GH_TOKEN`,
+  `GITHUB_TOKEN`. The runtime values of these vars are replaced with
+  `[REDACTED:env:NAME]` wherever they appear in tool inputs, tool outputs,
+  assistant text, or orchestrator summaries. Override the list with
+  `LIBEVAL_REDACTION_ENV_VARS=NAME1,NAME2,…` (replaces, not extends).
+- **Credential-shape patterns**, covering Anthropic API keys (`sk-ant-`),
+  GitHub PATs (`ghp_`), installation tokens (`ghs_`), OAuth tokens (`gho_`),
+  and fine-grained PATs (`github_pat_`). Pattern hits become
+  `[REDACTED:pattern:KIND]`.
+
+Redaction is on by default. To disable, set `LIBEVAL_REDACTION_DISABLED=1` in
+the workflow `env:` block — a stderr warning fires once per run. Setting this
+in workflow YAML is reviewable in the PR diff and is **prohibited on
+public-repo CI**: workflow artifacts there are downloadable through the
+retention window, and a redaction-disabled trace could carry the workflow's
+`ANTHROPIC_API_KEY` and `GH_TOKEN` to anyone with read access.

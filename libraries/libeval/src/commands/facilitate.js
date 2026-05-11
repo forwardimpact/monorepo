@@ -1,6 +1,7 @@
 import { readFileSync, createWriteStream } from "node:fs";
 import { resolve } from "node:path";
 import { createFacilitator } from "../facilitator.js";
+import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 
 /**
@@ -62,6 +63,11 @@ function parseFacilitateOptions(values) {
 export async function runFacilitateCommand(values, _args) {
   const opts = parseFacilitateOptions(values);
 
+  // Build the redactor as the first observable side-effect after option
+  // parsing — the env snapshot must freeze BEFORE any in-process
+  // process.env writes the command performs (e.g. LIBEVAL_AGENT_PROFILE).
+  const redactor = createRedactor();
+
   const fileStream = opts.outputPath
     ? createWriteStream(opts.outputPath)
     : null;
@@ -87,6 +93,7 @@ export async function runFacilitateCommand(values, _args) {
     maxTurns: opts.maxTurns,
     facilitatorProfile: opts.facilitatorProfile,
     taskAmend: opts.taskAmend,
+    redactor,
   });
 
   const result = await facilitator.run(opts.taskContent);

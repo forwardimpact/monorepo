@@ -3,7 +3,10 @@ import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
 import { AgentRunner, createAgentRunner } from "@forwardimpact/libeval";
+import { createNoopRedactor } from "../src/redaction.js";
 import { createMockAgentQuery as mockQuery } from "@forwardimpact/libharness";
+
+const noop = () => createNoopRedactor();
 
 /**
  * Collect all NDJSON lines written to a PassThrough stream.
@@ -50,11 +53,24 @@ describe("AgentRunner", () => {
     );
   });
 
+  test("constructor throws on missing redactor", () => {
+    assert.throws(
+      () =>
+        new AgentRunner({
+          cwd: "/tmp",
+          query: async function* () {},
+          output: new PassThrough(),
+        }),
+      /redactor is required/,
+    );
+  });
+
   test("constructor uses defaults for optional params", () => {
     const runner = new AgentRunner({
       cwd: "/tmp",
       query: async function* () {},
       output: new PassThrough(),
+      redactor: noop(),
     });
     assert.strictEqual(runner.model, "claude-opus-4-7[1m]");
     assert.strictEqual(runner.maxTurns, 50);
@@ -82,6 +98,7 @@ describe("AgentRunner", () => {
       cwd: "/tmp",
       query: mockQuery(messages),
       output,
+      redactor: noop(),
     });
 
     const result = await runner.run("Test task");
@@ -107,6 +124,7 @@ describe("AgentRunner", () => {
       cwd: "/tmp",
       query: mockQuery(messages),
       output,
+      redactor: noop(),
     });
 
     await runner.run("Task");
@@ -131,6 +149,7 @@ describe("AgentRunner", () => {
       maxTurns: 10,
       allowedTools: ["Read", "Grep"],
       settingSources: ["project"],
+      redactor: noop(),
     });
 
     await runner.run("My task");
@@ -160,6 +179,7 @@ describe("AgentRunner", () => {
       query,
       output,
       maxTurns: 0,
+      redactor: noop(),
     });
 
     await runner.run("Task");
@@ -175,6 +195,7 @@ describe("AgentRunner", () => {
       cwd: "/tmp",
       query: mockQuery(messages),
       output,
+      redactor: noop(),
     });
 
     const result = await runner.run("Task");
@@ -202,7 +223,12 @@ describe("AgentRunner", () => {
     };
 
     const output = new PassThrough();
-    const runner = new AgentRunner({ cwd: "/tmp", query, output });
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query,
+      output,
+      redactor: noop(),
+    });
 
     await runner.run("Initial task");
     const result = await runner.resume("Follow up");
@@ -240,6 +266,7 @@ describe("AgentRunner", () => {
       query,
       output,
       mcpServers,
+      redactor: noop(),
     });
 
     await runner.run("Initial task");
@@ -263,6 +290,7 @@ describe("AgentRunner", () => {
       cwd: "/tmp",
       query: mockQuery(messages),
       output,
+      redactor: noop(),
     });
 
     await runner.run("Task");
@@ -289,6 +317,7 @@ describe("AgentRunner", () => {
       cwd: "/tmp",
       query: () => failingQuery(),
       output,
+      redactor: noop(),
     });
 
     const result = await runner.run("Task");
@@ -320,7 +349,12 @@ describe("AgentRunner", () => {
     };
 
     const output = new PassThrough();
-    const runner = new AgentRunner({ cwd: "/tmp", query, output });
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query,
+      output,
+      redactor: noop(),
+    });
 
     await runner.run("Task");
     const result = await runner.resume("Continue");
@@ -342,6 +376,7 @@ describe("AgentRunner", () => {
       cwd: "/tmp",
       query: () => creditExhaustedQuery(),
       output,
+      redactor: noop(),
     });
 
     const result = await runner.run("Task");
@@ -356,6 +391,7 @@ describe("AgentRunner", () => {
       cwd: "/tmp",
       query: async function* () {},
       output: new PassThrough(),
+      redactor: noop(),
     });
     assert.ok(runner instanceof AgentRunner);
   });

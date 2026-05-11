@@ -8,8 +8,11 @@ import {
   createConcludeHandler,
   createRedirectHandler,
 } from "../src/orchestration-toolkit.js";
+import { createNoopRedactor } from "../src/redaction.js";
 import { createMockRunner } from "./mock-runner.js";
 import { createToolUseMsg } from "@forwardimpact/libharness";
+
+const noop = () => createNoopRedactor();
 
 const concludeMsg = (summary, verdict = "success") =>
   createToolUseMsg("Conclude", { verdict, summary });
@@ -40,6 +43,7 @@ describe("Supervisor - output and events", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
     agentRunner.onLine = (line) => supervisor.emitLine(line);
     supervisorRunner.onLine = (line) => supervisor.emitLine(line);
@@ -105,6 +109,7 @@ describe("Supervisor - output and events", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
     agentRunner.onLine = (line) => supervisor.emitLine(line);
     supervisorRunner.onLine = (line) => supervisor.emitLine(line);
@@ -179,6 +184,7 @@ describe("Supervisor - output and events", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
     agentRunner.onLine = (line) => supervisor.emitLine(line);
     supervisorRunner.onLine = (line) => supervisor.emitLine(line);
@@ -231,6 +237,7 @@ describe("Supervisor - output and events", () => {
       supervisorRunner,
       output,
       maxTurns: 10,
+      redactor: noop(),
     });
     agentRunner.onLine = (line) => supervisor.emitLine(line);
     supervisorRunner.onLine = (line) => supervisor.emitLine(line);
@@ -276,6 +283,7 @@ describe("Supervisor - output and events", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
 
     await supervisor.run("Task");

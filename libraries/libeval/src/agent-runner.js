@@ -54,7 +54,9 @@ export class AgentRunner {
     if (!deps.cwd) throw new Error("cwd is required");
     if (!deps.query) throw new Error("query is required");
     if (!deps.output) throw new Error("output is required");
+    if (!deps.redactor) throw new Error("redactor is required");
     Object.assign(this, applyDefaults(deps));
+    this.redactor = deps.redactor;
     this.sessionId = null;
     this.buffer = [];
     /** @type {AbortController|null} */
@@ -203,12 +205,16 @@ export class AgentRunner {
    * @param {{pendingBatch: string[], assistantTextCount: number}} state
    */
   #recordLine(message, state) {
-    const line = JSON.stringify(message);
+    const redacted = this.redactor.redactValue(message);
+    const line = JSON.stringify(redacted);
     this.output.write(line + "\n");
     this.buffer.push(line);
     if (this.onLine) this.onLine(line);
     if (this.onBatch) state.pendingBatch.push(line);
 
+    // Session-id / text-block tracking reads the ORIGINAL message —
+    // these fields are not secret carriers, and the trackers rely on
+    // shape, not string contents.
     if (message.type === "system" && message.subtype === "init") {
       this.sessionId = message.session_id;
     }

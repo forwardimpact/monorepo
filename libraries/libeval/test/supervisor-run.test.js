@@ -10,8 +10,11 @@ import {
   createAnswerHandler,
 } from "../src/orchestration-toolkit.js";
 import { MessageBus } from "../src/message-bus.js";
+import { createNoopRedactor } from "../src/redaction.js";
 import { createMockRunner } from "./mock-runner.js";
 import { createToolUseMsg } from "@forwardimpact/libharness";
+
+const noop = () => createNoopRedactor();
 
 const concludeMsg = (summary, verdict = "success") =>
   createToolUseMsg("Conclude", { verdict, summary });
@@ -89,6 +92,7 @@ describe("Supervisor - run and turns", () => {
       maxTurns: 10,
       ctx,
       messageBus,
+      redactor: noop(),
     });
 
     const result = await supervisor.run("Install stuff");
@@ -127,6 +131,7 @@ describe("Supervisor - run and turns", () => {
       maxTurns: 10,
       ctx,
       messageBus,
+      redactor: noop(),
     });
 
     const result = await supervisor.run("Install stuff");
@@ -195,6 +200,7 @@ describe("Supervisor - run and turns", () => {
       maxTurns: 10,
       ctx,
       messageBus,
+      redactor: noop(),
     });
 
     await supervisor.run("Evaluate the product");
@@ -242,6 +248,7 @@ describe("Supervisor - run and turns", () => {
       maxTurns: 10,
       ctx,
       messageBus,
+      redactor: noop(),
     });
 
     const result = await supervisor.run("Do the work");
@@ -271,6 +278,7 @@ describe("Supervisor - run and turns", () => {
       maxTurns: 2,
       ctx,
       messageBus,
+      redactor: noop(),
     });
 
     const result = await supervisor.run("Endless task");
@@ -348,6 +356,7 @@ describe("Supervisor - run and turns", () => {
       maxTurns: 10,
       ctx,
       messageBus,
+      redactor: noop(),
     });
 
     const result = await supervisor.run("Install task");

@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { PassThrough } from "node:stream";
 
 import { AgentRunner } from "@forwardimpact/libeval";
+import { createNoopRedactor } from "../src/redaction.js";
 import { createMockAgentQuery as mockQuery } from "@forwardimpact/libharness";
+
+const noop = () => createNoopRedactor();
 
 describe("AgentRunner LIBEVAL_SKILL env var", () => {
   let savedSkill;
@@ -41,6 +44,7 @@ describe("AgentRunner LIBEVAL_SKILL env var", () => {
       cwd: "/tmp",
       query: mockQuery(messages),
       output: new PassThrough(),
+      redactor: noop(),
     });
 
     await runner.run("test");
@@ -77,6 +81,7 @@ describe("AgentRunner LIBEVAL_SKILL env var", () => {
       cwd: "/tmp",
       query: mockQuery(messages),
       output: new PassThrough(),
+      redactor: noop(),
     });
 
     await runner.run("test");
@@ -113,6 +118,7 @@ describe("AgentRunner LIBEVAL_SKILL env var", () => {
       cwd: "/tmp",
       query: mockQuery(messages),
       output: new PassThrough(),
+      redactor: noop(),
     });
 
     await runner.run("test");
