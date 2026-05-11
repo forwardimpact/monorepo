@@ -1,4 +1,4 @@
-# Spec 880 — Canonical-metric cardinality for system-health metrics
+# Spec 880 — Canonical-metric cardinality and the class boundary
 
 **Persona / job:** Teams Using Agents — *Run an autonomous, continuously
 improving development team that plans, ships, studies its own traces, and acts
@@ -59,9 +59,13 @@ require re-amending § Metrics.
   process-throughput metrics. Design picks the wording shape.
 - **`KATA.md` § Metrics rationale paragraph.** Remains consistent with the
   amended rule for both metric classes.
-- **Spec/design guidance pointer.** A short pointer (location chosen by
-  design) telling future spec authors when a new metric co-locates with an
-  existing producer versus needs a new dedicated one.
+- **Spec/design guidance pointer.** A short pointer placed within `KATA.md`
+  § Metrics (reachable in one link hop), telling future spec authors when a
+  new metric co-locates with an existing producer versus needs a new
+  dedicated one. The pointer's target body must contain the substring
+  `co-locates with an existing producer` — the **only** wording constraint
+  this spec imposes on design; all other phrasing (including class names,
+  rule sentence shape, and pointer prose) is design's choice.
 
 ## Scope (out)
 
@@ -133,3 +137,7 @@ than after spec-860 implementation — so the class-boundary question is on the
 record and the design phase can begin in parallel with the spec-860
 implementation run. The `kata-implement` step for this spec waits on the
 spec-860 Edit 2a wording being live in `KATA.md`.
+
+**Pre-flight check** (run before this spec's implementation):
+`rg -n 'one or more metrics' KATA.md` returns ≥1 hit. Zero hits means Edit 2a
+has not landed yet — block implementation until it does.
