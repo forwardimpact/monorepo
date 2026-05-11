@@ -123,10 +123,10 @@ describe("generatePacks", () => {
   });
 
   test("emits one raw and one APM archive per valid combination", async () => {
-    const packsDir = join(outputDir, "packs");
-    const entries = await readdir(packsDir);
-    const rawArchives = entries.filter((n) => n.endsWith(".raw.tar.gz"));
-    const apmArchives = entries.filter((n) => n.endsWith(".apm.tar.gz"));
+    const rawEntries = await readdir(join(outputDir, "packs", "raw"));
+    const apmEntries = await readdir(join(outputDir, "packs", "apm"));
+    const rawArchives = rawEntries.filter((n) => n.endsWith(".tar.gz"));
+    const apmArchives = apmEntries.filter((n) => n.endsWith(".tar.gz"));
     assert.strictEqual(rawArchives.length, validCombinations.length);
     assert.strictEqual(apmArchives.length, validCombinations.length);
   });
@@ -136,14 +136,14 @@ describe("generatePacks", () => {
   });
 
   test("each raw archive expands to the Claude Code file layout", async () => {
-    const packsDir = join(outputDir, "packs");
-    const entries = await readdir(packsDir);
-    const archive = entries.find((n) => n.endsWith(".raw.tar.gz"));
+    const rawDir = join(outputDir, "packs", "raw");
+    const entries = await readdir(rawDir);
+    const archive = entries.find((n) => n.endsWith(".tar.gz"));
     assert.ok(archive, "expected at least one raw archive");
 
     const extractDir = mkdtempSync(join(tmpdir(), "fit-pathway-extract-"));
     try {
-      execFileSync("tar", ["-xzf", join(packsDir, archive), "-C", extractDir]);
+      execFileSync("tar", ["-xzf", join(rawDir, archive), "-C", extractDir]);
       assert.ok(existsSync(join(extractDir, ".claude", "agents")));
       assert.ok(existsSync(join(extractDir, ".claude", "skills")));
       assert.ok(existsSync(join(extractDir, ".claude", "settings.json")));
@@ -153,14 +153,14 @@ describe("generatePacks", () => {
   });
 
   test("each pack has its own skill repository with individual skills", async () => {
-    const packsDir = join(outputDir, "packs");
+    const skillsDir = join(outputDir, "packs", "skills");
     const { discipline, track } = validCombinations[0];
     const abbrev = getDisciplineAbbreviation(discipline.id);
     const packName = `${abbrev}-${toKebabCase(track.id)}`;
 
     // Per-pack index must exist
     const manifestPath = join(
-      packsDir,
+      skillsDir,
       packName,
       ".well-known",
       "skills",
@@ -189,7 +189,7 @@ describe("generatePacks", () => {
 
       // Each file must exist in the per-pack well-known directory
       const skillDir = join(
-        packsDir,
+        skillsDir,
         packName,
         ".well-known",
         "skills",
@@ -216,6 +216,7 @@ describe("generatePacks", () => {
       const manifestPath = join(
         outputDir,
         "packs",
+        "skills",
         packName,
         ".well-known",
         "skills",
@@ -228,10 +229,11 @@ describe("generatePacks", () => {
     }
   });
 
-  test("aggregate repository at packs/ lists deduplicated skills", async () => {
+  test("aggregate repository at packs/skills/ lists deduplicated skills", async () => {
     const manifestPath = join(
       outputDir,
       "packs",
+      "skills",
       ".well-known",
       "skills",
       "index.json",
@@ -259,6 +261,7 @@ describe("generatePacks", () => {
       const skillDir = join(
         outputDir,
         "packs",
+        "skills",
         ".well-known",
         "skills",
         entry.name,
@@ -283,6 +286,7 @@ describe("generatePacks", () => {
           join(
             outputDir,
             "packs",
+            "skills",
             packName,
             ".well-known",
             "skills",
@@ -350,7 +354,7 @@ describe("generatePacks", () => {
       try {
         execFileSync("tar", [
           "-xzf",
-          join(outputDir, "packs", `${agentName}.raw.tar.gz`),
+          join(outputDir, "packs", "raw", `${agentName}.tar.gz`),
           "-C",
           extractDir,
         ]);
@@ -367,20 +371,20 @@ describe("generatePacks", () => {
     }
   });
 
-  test("emits one APM git repo and one skills git repo per combination", async () => {
-    const packsDir = join(outputDir, "packs");
-    const entries = await readdir(packsDir);
-    const apmGit = entries.filter((n) => n.endsWith(".apm.git"));
-    const skillsGit = entries.filter((n) => n.endsWith(".skills.git"));
-    assert.strictEqual(apmGit.length, validCombinations.length);
-    assert.strictEqual(skillsGit.length, validCombinations.length);
+  test("emits one APM git repo per combination", async () => {
+    const apmDir = join(outputDir, "packs", "apm");
+    const entries = await readdir(apmDir);
+    const gitRepos = entries.filter(
+      (n) => !n.endsWith(".tar.gz"),
+    );
+    assert.strictEqual(gitRepos.length, validCombinations.length);
   });
 
   test("APM git repo clones and yields APM bundle layout", async () => {
     const { discipline, track } = validCombinations[0];
     const abbrev = getDisciplineAbbreviation(discipline.id);
     const packName = `${abbrev}-${toKebabCase(track.id)}`;
-    const repoPath = join(outputDir, "packs", `${packName}.apm.git`);
+    const repoPath = join(outputDir, "packs", "apm", packName);
     const cloneDir = mkdtempSync(join(tmpdir(), "fit-pathway-apm-clone-"));
 
     const cleanEnv = Object.fromEntries(
@@ -398,37 +402,11 @@ describe("generatePacks", () => {
     }
   });
 
-  test("skills git repo clones and yields skill files", async () => {
-    const { discipline, track } = validCombinations[0];
-    const abbrev = getDisciplineAbbreviation(discipline.id);
-    const packName = `${abbrev}-${toKebabCase(track.id)}`;
-    const repoPath = join(outputDir, "packs", `${packName}.skills.git`);
-    const cloneDir = mkdtempSync(join(tmpdir(), "fit-pathway-skills-clone-"));
-
-    const cleanEnv = Object.fromEntries(
-      Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")),
-    );
-
-    try {
-      execFileSync("git", ["clone", repoPath, cloneDir], { env: cleanEnv });
-      const entries = await readdir(cloneDir);
-      const skillDirs = entries.filter(
-        (n) => n !== ".git" && existsSync(join(cloneDir, n, "SKILL.md")),
-      );
-      assert.ok(
-        skillDirs.length > 0,
-        "clone should contain at least one skill",
-      );
-    } finally {
-      rmSync(cloneDir, { recursive: true, force: true });
-    }
-  });
-
   test("git repos have version tag", async () => {
     const { discipline, track } = validCombinations[0];
     const abbrev = getDisciplineAbbreviation(discipline.id);
     const packName = `${abbrev}-${toKebabCase(track.id)}`;
-    const repoPath = join(outputDir, "packs", `${packName}.apm.git`);
+    const repoPath = join(outputDir, "packs", "apm", packName);
 
     const cleanEnv = Object.fromEntries(
       Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")),
@@ -454,44 +432,55 @@ describe("generatePacks", () => {
       }),
     );
 
-    // Archives must be identical
-    const firstEntries = (await readdir(join(outputDir, "packs"))).sort();
-    const secondEntries = (await readdir(join(secondDir, "packs"))).sort();
-    const firstRaw = firstEntries.filter((n) => n.endsWith(".raw.tar.gz"));
-    const secondRaw = secondEntries.filter((n) => n.endsWith(".raw.tar.gz"));
+    // Raw archives must be identical
+    const firstRaw = (await readdir(join(outputDir, "packs", "raw"))).sort();
+    const secondRaw = (await readdir(join(secondDir, "packs", "raw"))).sort();
     assert.deepStrictEqual(firstRaw, secondRaw);
 
-    const firstApm = firstEntries.filter((n) => n.endsWith(".apm.tar.gz"));
-    const secondApm = secondEntries.filter((n) => n.endsWith(".apm.tar.gz"));
-    assert.deepStrictEqual(firstApm, secondApm);
+    for (const name of firstRaw) {
+      const a = await readFile(join(outputDir, "packs", "raw", name));
+      const b = await readFile(join(secondDir, "packs", "raw", name));
+      assert.ok(a.equals(b), `raw/${name} differs between builds`);
+    }
 
-    for (const name of [...firstRaw, ...firstApm]) {
-      const a = await readFile(join(outputDir, "packs", name));
-      const b = await readFile(join(secondDir, "packs", name));
-      assert.ok(a.equals(b), `archive ${name} differs between builds`);
+    // APM archives must be identical
+    const firstApmEntries = (
+      await readdir(join(outputDir, "packs", "apm"))
+    ).sort();
+    const secondApmEntries = (
+      await readdir(join(secondDir, "packs", "apm"))
+    ).sort();
+    const firstApmTar = firstApmEntries.filter((n) => n.endsWith(".tar.gz"));
+    const secondApmTar = secondApmEntries.filter((n) => n.endsWith(".tar.gz"));
+    assert.deepStrictEqual(firstApmTar, secondApmTar);
+
+    for (const name of firstApmTar) {
+      const a = await readFile(join(outputDir, "packs", "apm", name));
+      const b = await readFile(join(secondDir, "packs", "apm", name));
+      assert.ok(a.equals(b), `apm/${name} differs between builds`);
     }
 
     // Aggregate manifest must be identical
     const firstAggregate = await readFile(
-      join(outputDir, "packs", ".well-known", "skills", "index.json"),
+      join(outputDir, "packs", "skills", ".well-known", "skills", "index.json"),
       "utf8",
     );
     const secondAggregate = await readFile(
-      join(secondDir, "packs", ".well-known", "skills", "index.json"),
+      join(secondDir, "packs", "skills", ".well-known", "skills", "index.json"),
       "utf8",
     );
     assert.strictEqual(firstAggregate, secondAggregate);
 
-    // Per-pack manifests must be identical
-    const packDirs = firstEntries.filter(
-      (n) =>
-        !n.endsWith(".tar.gz") && !n.endsWith(".git") && n !== ".well-known",
-    );
-    for (const packName of packDirs) {
+    // Per-pack skill manifests must be identical
+    const firstSkillPacks = (
+      await readdir(join(outputDir, "packs", "skills"))
+    ).filter((n) => n !== ".well-known");
+    for (const packName of firstSkillPacks) {
       const first = await readFile(
         join(
           outputDir,
           "packs",
+          "skills",
           packName,
           ".well-known",
           "skills",
@@ -503,6 +492,7 @@ describe("generatePacks", () => {
         join(
           secondDir,
           "packs",
+          "skills",
           packName,
           ".well-known",
           "skills",
@@ -513,22 +503,22 @@ describe("generatePacks", () => {
       assert.strictEqual(first, second, `manifest for ${packName} differs`);
     }
 
-    // Git repos must be byte-identical
-    const gitDirs = firstEntries.filter((n) => n.endsWith(".git"));
-    for (const gitDir of gitDirs) {
-      const firstFiles = await walkDir(join(outputDir, "packs", gitDir));
-      const secondFiles = await walkDir(join(secondDir, "packs", gitDir));
+    // APM git repos must be byte-identical
+    const gitRepos = firstApmEntries.filter((n) => !n.endsWith(".tar.gz"));
+    for (const repo of gitRepos) {
+      const firstFiles = await walkDir(join(outputDir, "packs", "apm", repo));
+      const secondFiles = await walkDir(join(secondDir, "packs", "apm", repo));
       const firstKeys = [...firstFiles.keys()].sort();
       const secondKeys = [...secondFiles.keys()].sort();
       assert.deepStrictEqual(
         firstKeys,
         secondKeys,
-        `git repo ${gitDir} file list differs`,
+        `git repo apm/${repo} file list differs`,
       );
       for (const key of firstKeys) {
         assert.ok(
           firstFiles.get(key).equals(secondFiles.get(key)),
-          `git repo ${gitDir}/${key} differs between builds`,
+          `git repo apm/${repo}/${key} differs between builds`,
         );
       }
     }

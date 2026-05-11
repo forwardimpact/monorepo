@@ -2,12 +2,11 @@
  * Pack generation for Pathway distribution.
  *
  * Emits one pre-built agent/skill pack per valid discipline/track combination
- * across four distribution channels:
- *  - Raw — `.claude/` layout archived as `{name}.raw.tar.gz` (curl | tar)
- *  - APM — deployed `.claude/` layout + `apm.lock.yaml` as `{name}.apm.tar.gz` (apm unpack)
- *  - APM git — bare git repo at `{name}.apm.git/` (apm install)
- *  - Skills — `.well-known/skills/` repository (`npx skills add`)
- *  - Skills git — bare git repo at `{name}.skills.git/` (git clone)
+ * across four distribution channels, organized by channel prefix:
+ *  - Raw — `.claude/` layout archived as `raw/{name}.tar.gz` (curl | tar)
+ *  - APM — deployed `.claude/` layout + `apm.lock.yaml` as `apm/{name}.tar.gz` (apm unpack)
+ *  - APM git — bare git repo at `apm/{name}/` (apm install)
+ *  - Skills — `.well-known/skills/` repository at `skills/{name}/` (`npx skills add`)
  *
  * An `apm.yml` project manifest for Microsoft APM is written at the site root.
  *
@@ -273,19 +272,18 @@ export async function generatePacks({
   const { packs } = await builder.build({ combinations, outputDir, version });
 
   for (const pack of packs) {
-    logger.info(`   ✓ packs/${pack.name}.raw.tar.gz`);
-    logger.info(`   ✓ packs/${pack.name}.apm.tar.gz`);
-    logger.info(`   ✓ packs/${pack.name}.apm.git/`);
-    logger.info(`   ✓ packs/${pack.name}/.well-known/skills/`);
-    logger.info(`   ✓ packs/${pack.name}.skills.git/`);
+    logger.info(`   ✓ packs/raw/${pack.name}.tar.gz`);
+    logger.info(`   ✓ packs/apm/${pack.name}.tar.gz`);
+    logger.info(`   ✓ packs/apm/${pack.name}/`);
+    logger.info(`   ✓ packs/skills/${pack.name}/`);
   }
-  logger.info("   ✓ packs/.well-known/skills/index.json (aggregate)");
+  logger.info("   ✓ packs/skills/.well-known/skills/index.json (aggregate)");
 
   await writeApmManifest(
     outputDir,
     packs.map((p) => ({
       ...p,
-      url: `${normalizedSiteUrl}/packs/${p.name}.apm.git`,
+      url: `${normalizedSiteUrl}/packs/apm/${p.name}`,
     })),
     version,
     standardTitle,

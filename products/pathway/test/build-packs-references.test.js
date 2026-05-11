@@ -66,18 +66,18 @@ describe("generatePacks — spec 660 references emission", () => {
     // both files (verbatim YAML order, byte-identical to the CLI writer
     // path because both share writeSkillReferences) and must not produce
     // the legacy REFERENCE.md anywhere.
-    const packsDir = join(outputDir, "packs");
+    const rawDir = join(outputDir, "packs", "raw");
     // incident-response lives in the platform track only; pin the pack so
     // the test does not depend on readdir() order.
-    const archive = "se-platform.raw.tar.gz";
+    const archive = "se-platform.tar.gz";
     assert.ok(
-      existsSync(join(packsDir, archive)),
+      existsSync(join(rawDir, archive)),
       `expected ${archive} to be emitted`,
     );
 
     const extractDir = mkdtempSync(join(tmpdir(), "fit-pathway-refs-extract-"));
     try {
-      execFileSync("tar", ["-xzf", join(packsDir, archive), "-C", extractDir]);
+      execFileSync("tar", ["-xzf", join(rawDir, archive), "-C", extractDir]);
       const refsDir = join(
         extractDir,
         ".claude",

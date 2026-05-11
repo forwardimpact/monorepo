@@ -2,7 +2,7 @@
  * Agent builder install section
  *
  * Surfaces the ecosystem-tool install commands (direct download, Microsoft APM,
- * `npx skills`, and `git clone`) for the currently selected discipline/track
+ * and `npx skills`) for the currently selected discipline/track
  * pack. The packs themselves are emitted by `fit-pathway build` when
  * `standard.distribution.siteUrl` is configured — see specs 520 and 700, and
  * `products/pathway/src/commands/build-packs.js`. The pack name derivation
@@ -49,7 +49,7 @@ function normalizeSiteUrl(siteUrl) {
  * @returns {string}
  */
 export function getRawCommand(siteUrl, packName) {
-  const url = `${normalizeSiteUrl(siteUrl)}/packs/${packName}.raw.tar.gz`;
+  const url = `${normalizeSiteUrl(siteUrl)}/packs/raw/${packName}.tar.gz`;
   return `curl -sL ${url} | tar xz`;
 }
 
@@ -60,7 +60,7 @@ export function getRawCommand(siteUrl, packName) {
  * @returns {string}
  */
 export function getApmInstallCommand(siteUrl, packName) {
-  return `apm install ${normalizeSiteUrl(siteUrl)}/packs/${packName}.apm.git`;
+  return `apm install ${normalizeSiteUrl(siteUrl)}/packs/apm/${packName}`;
 }
 
 /**
@@ -70,29 +70,19 @@ export function getApmInstallCommand(siteUrl, packName) {
  * @returns {string}
  */
 export function getApmCommand(siteUrl, packName) {
-  const url = `${normalizeSiteUrl(siteUrl)}/packs/${packName}.apm.tar.gz`;
-  return `curl -sLO ${url} && apm unpack ${packName}.apm.tar.gz`;
+  const url = `${normalizeSiteUrl(siteUrl)}/packs/apm/${packName}.tar.gz`;
+  return `curl -sLO ${url} && apm unpack ${packName}.tar.gz`;
 }
 
 /**
  * Build the `npx skills add` command that discovers the per-pack skill
- * repository at `<siteUrl>/packs/<packName>/.well-known/skills/index.json`.
+ * repository at `<siteUrl>/packs/skills/<packName>/.well-known/skills/index.json`.
  * @param {string} siteUrl
  * @param {string} packName
  * @returns {string}
  */
 export function getSkillsCommand(siteUrl, packName) {
-  return `npx skills add ${normalizeSiteUrl(siteUrl)}/packs/${packName}`;
-}
-
-/**
- * Build the `git clone` command for skills git repo.
- * @param {string} siteUrl
- * @param {string} packName
- * @returns {string}
- */
-export function getSkillsGitCommand(siteUrl, packName) {
-  return `git clone ${normalizeSiteUrl(siteUrl)}/packs/${packName}.skills.git`;
+  return `npx skills add ${normalizeSiteUrl(siteUrl)}/packs/skills/${packName}`;
 }
 
 /**
@@ -164,15 +154,6 @@ export function createInstallSection({ discipline, track, siteUrl }) {
         p(
           { className: "text-muted agent-install-note" },
           "Installs skills only. Does not include agents or CLAUDE.md.",
-        ),
-      ),
-      div(
-        { className: "agent-install-command" },
-        p({ className: "agent-install-command-label" }, "git clone"),
-        createCommandPrompt(getSkillsGitCommand(siteUrl, packName)),
-        p(
-          { className: "text-muted agent-install-note" },
-          "Clone skills as a git repository.",
         ),
       ),
     ),

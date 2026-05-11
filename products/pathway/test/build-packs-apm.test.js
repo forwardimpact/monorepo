@@ -69,14 +69,14 @@ describe("APM bundles", () => {
   });
 
   test("each APM bundle uses deployed .claude/ layout with apm.lock.yaml", async () => {
-    const packsDir = join(outputDir, "packs");
-    const entries = await readdir(packsDir);
-    const archive = entries.find((n) => n.endsWith(".apm.tar.gz"));
+    const apmDir = join(outputDir, "packs", "apm");
+    const entries = await readdir(apmDir);
+    const archive = entries.find((n) => n.endsWith(".tar.gz"));
     assert.ok(archive, "expected at least one APM archive");
 
     const extractDir = mkdtempSync(join(tmpdir(), "fit-pathway-apm-extract-"));
     try {
-      execFileSync("tar", ["-xzf", join(packsDir, archive), "-C", extractDir]);
+      execFileSync("tar", ["-xzf", join(apmDir, archive), "-C", extractDir]);
 
       // Deployed layout: .claude/skills/ and .claude/agents/
       assert.ok(existsSync(join(extractDir, ".claude", "skills")));
@@ -126,7 +126,6 @@ describe("APM bundles", () => {
   });
 
   test("APM bundle skills and agents match raw bundle content", async () => {
-    const packsDir = join(outputDir, "packs");
     const { discipline, track } = validCombinations[0];
     const abbrev = getDisciplineAbbreviation(discipline.id);
     const packName = `${abbrev}-${toKebabCase(track.id)}`;
@@ -136,13 +135,13 @@ describe("APM bundles", () => {
     try {
       execFileSync("tar", [
         "-xzf",
-        join(packsDir, `${packName}.raw.tar.gz`),
+        join(outputDir, "packs", "raw", `${packName}.tar.gz`),
         "-C",
         rawDir,
       ]);
       execFileSync("tar", [
         "-xzf",
-        join(packsDir, `${packName}.apm.tar.gz`),
+        join(outputDir, "packs", "apm", `${packName}.tar.gz`),
         "-C",
         apmDir,
       ]);
@@ -206,7 +205,6 @@ describe("APM bundles", () => {
   });
 
   test("apm.lock.yaml deployed_files lists all bundle files", async () => {
-    const packsDir = join(outputDir, "packs");
     const { discipline, track } = validCombinations[0];
     const abbrev = getDisciplineAbbreviation(discipline.id);
     const packName = `${abbrev}-${toKebabCase(track.id)}`;
@@ -215,7 +213,7 @@ describe("APM bundles", () => {
     try {
       execFileSync("tar", [
         "-xzf",
-        join(packsDir, `${packName}.apm.tar.gz`),
+        join(outputDir, "packs", "apm", `${packName}.tar.gz`),
         "-C",
         extractDir,
       ]);

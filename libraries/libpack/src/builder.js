@@ -15,9 +15,13 @@ export class PackBuilder {
   /** Build all packs from combinations into outputDir. */
   async build({ combinations, outputDir, version }) {
     const stagingDir = join(outputDir, "_packs");
-    const packsDir = join(outputDir, "packs");
+    const rawOutDir = join(outputDir, "packs", "raw");
+    const apmOutDir = join(outputDir, "packs", "apm");
+    const skillsOutDir = join(outputDir, "packs", "skills");
     await mkdir(stagingDir, { recursive: true });
-    await mkdir(packsDir, { recursive: true });
+    await mkdir(rawOutDir, { recursive: true });
+    await mkdir(apmOutDir, { recursive: true });
+    await mkdir(skillsOutDir, { recursive: true });
 
     const allPackEntries = [];
 
@@ -33,33 +37,28 @@ export class PackBuilder {
 
       await this.#emitters.tar.emit(
         fullDir,
-        join(packsDir, `${combo.name}.raw.tar.gz`),
+        join(rawOutDir, `${combo.name}.tar.gz`),
       );
       await this.#emitters.tar.emit(
         apmDir,
-        join(packsDir, `${combo.name}.apm.tar.gz`),
+        join(apmOutDir, `${combo.name}.tar.gz`),
       );
       await this.#emitters.git.emit(
         apmDir,
-        join(packsDir, `${combo.name}.apm.git`),
+        join(apmOutDir, combo.name),
         { version, name: combo.name },
       );
 
       const skillsSrcDir = this.#stager.skillsDir(fullDir);
       const entries = await this.#emitters.disc.emit(
         skillsSrcDir,
-        join(packsDir, combo.name),
-      );
-      await this.#emitters.git.emit(
-        skillsSrcDir,
-        join(packsDir, `${combo.name}.skills.git`),
-        { version, name: combo.name },
+        join(skillsOutDir, combo.name),
       );
 
       allPackEntries.push({ packName: combo.name, entries });
     }
 
-    await this.#emitters.disc.emitAggregate(packsDir, allPackEntries);
+    await this.#emitters.disc.emitAggregate(skillsOutDir, allPackEntries);
     await rm(stagingDir, { recursive: true, force: true });
 
     return {

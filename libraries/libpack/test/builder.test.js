@@ -98,8 +98,8 @@ describe("PackBuilder", () => {
     // tar: 2 raw + 2 APM = 4 calls
     expect(tar.calls).toHaveLength(4);
 
-    // git: 2 APM + 2 skills = 4 calls
-    expect(git.calls).toHaveLength(4);
+    // git: 2 APM = 2 calls
+    expect(git.calls).toHaveLength(2);
 
     // disc: 2 per-pack emit + 1 aggregate = 3 calls
     expect(disc.calls).toHaveLength(3);

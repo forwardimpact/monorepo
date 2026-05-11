@@ -15,7 +15,6 @@ import {
   getApmInstallCommand,
   getApmCommand,
   getSkillsCommand,
-  getSkillsGitCommand,
   createInstallSection,
 } from "../src/pages/agent-builder-install.js";
 
@@ -66,14 +65,14 @@ describe("agent-builder-install", () => {
     test("pipes download through tar for direct extraction", () => {
       assert.strictEqual(
         getRawCommand("https://example.com", "se-platform"),
-        "curl -sL https://example.com/packs/se-platform.raw.tar.gz | tar xz",
+        "curl -sL https://example.com/packs/raw/se-platform.tar.gz | tar xz",
       );
     });
 
     test("strips a trailing slash from the site URL", () => {
       assert.strictEqual(
         getRawCommand("https://example.com/", "se-platform"),
-        "curl -sL https://example.com/packs/se-platform.raw.tar.gz | tar xz",
+        "curl -sL https://example.com/packs/raw/se-platform.tar.gz | tar xz",
       );
     });
   });
@@ -82,14 +81,14 @@ describe("agent-builder-install", () => {
     test("downloads then unpacks the APM bundle", () => {
       assert.strictEqual(
         getApmCommand("https://example.com", "se-platform"),
-        "curl -sLO https://example.com/packs/se-platform.apm.tar.gz && apm unpack se-platform.apm.tar.gz",
+        "curl -sLO https://example.com/packs/apm/se-platform.tar.gz && apm unpack se-platform.tar.gz",
       );
     });
 
     test("strips a trailing slash from the site URL", () => {
       assert.strictEqual(
         getApmCommand("https://example.com/", "se-platform"),
-        "curl -sLO https://example.com/packs/se-platform.apm.tar.gz && apm unpack se-platform.apm.tar.gz",
+        "curl -sLO https://example.com/packs/apm/se-platform.tar.gz && apm unpack se-platform.tar.gz",
       );
     });
   });
@@ -98,46 +97,30 @@ describe("agent-builder-install", () => {
     test("points at the per-pack URL for well-known discovery", () => {
       assert.strictEqual(
         getSkillsCommand("https://example.com", "se-platform"),
-        "npx skills add https://example.com/packs/se-platform",
+        "npx skills add https://example.com/packs/skills/se-platform",
       );
     });
 
     test("strips a trailing slash from the site URL", () => {
       assert.strictEqual(
         getSkillsCommand("https://example.com/", "se-platform"),
-        "npx skills add https://example.com/packs/se-platform",
+        "npx skills add https://example.com/packs/skills/se-platform",
       );
     });
   });
 
   describe("getApmInstallCommand", () => {
-    test("uses .apm.git URL for native apm install", () => {
+    test("uses packs/apm/ URL for native apm install", () => {
       assert.strictEqual(
         getApmInstallCommand("https://example.com", "se-platform"),
-        "apm install https://example.com/packs/se-platform.apm.git",
+        "apm install https://example.com/packs/apm/se-platform",
       );
     });
 
     test("strips a trailing slash from the site URL", () => {
       assert.strictEqual(
         getApmInstallCommand("https://example.com/", "se-platform"),
-        "apm install https://example.com/packs/se-platform.apm.git",
-      );
-    });
-  });
-
-  describe("getSkillsGitCommand", () => {
-    test("uses .skills.git URL for git clone", () => {
-      assert.strictEqual(
-        getSkillsGitCommand("https://example.com", "se-platform"),
-        "git clone https://example.com/packs/se-platform.skills.git",
-      );
-    });
-
-    test("strips a trailing slash from the site URL", () => {
-      assert.strictEqual(
-        getSkillsGitCommand("https://example.com/", "se-platform"),
-        "git clone https://example.com/packs/se-platform.skills.git",
+        "apm install https://example.com/packs/apm/se-platform",
       );
     });
   });
@@ -204,57 +187,45 @@ describe("agent-builder-install", () => {
     test("every valid combination's getPackName matches an emitted archive", async () => {
       assert.ok(combinations.length > 0, "expected starter combinations");
 
-      const packsDir = join(outputDir, "packs");
+      const rawDir = join(outputDir, "packs", "raw");
       const archives = new Set(
-        (await readdir(packsDir)).filter((n) => n.endsWith(".raw.tar.gz")),
+        (await readdir(rawDir)).filter((n) => n.endsWith(".tar.gz")),
       );
 
       for (const { humanDiscipline, humanTrack } of combinations) {
-        const expected = `${getPackName(humanDiscipline, humanTrack)}.raw.tar.gz`;
+        const expected = `${getPackName(humanDiscipline, humanTrack)}.tar.gz`;
         assert.ok(
           archives.has(expected),
-          `expected packs/${expected} to exist — UI pack-name derivation has drifted from build-packs.js`,
+          `expected packs/raw/${expected} to exist — UI pack-name derivation has drifted from build-packs.js`,
         );
       }
     });
 
     test("apm install command references an emitted git repo", async () => {
-      const packsDir = join(outputDir, "packs");
-      const entries = new Set(await readdir(packsDir));
+      const apmDir = join(outputDir, "packs", "apm");
+      const entries = new Set(await readdir(apmDir));
       const { humanDiscipline, humanTrack } = combinations[0];
       const packName = getPackName(humanDiscipline, humanTrack);
       assert.ok(
-        entries.has(`${packName}.apm.git`),
-        `expected packs/${packName}.apm.git to exist`,
-      );
-    });
-
-    test("skills git command references an emitted git repo", async () => {
-      const packsDir = join(outputDir, "packs");
-      const entries = new Set(await readdir(packsDir));
-      const { humanDiscipline, humanTrack } = combinations[0];
-      const packName = getPackName(humanDiscipline, humanTrack);
-      assert.ok(
-        entries.has(`${packName}.skills.git`),
-        `expected packs/${packName}.skills.git to exist`,
+        entries.has(packName),
+        `expected packs/apm/${packName} to exist`,
       );
     });
 
     test("apm unpack command references a real archive", async () => {
-      const packsDir = join(outputDir, "packs");
-      const archives = new Set(await readdir(packsDir));
+      const apmDir = join(outputDir, "packs", "apm");
+      const archives = new Set(await readdir(apmDir));
       const { humanDiscipline, humanTrack } = combinations[0];
 
       const command = getApmCommand(
         "https://example.test",
         getPackName(humanDiscipline, humanTrack),
       );
-      // The curl portion downloads the archive; extract filename from URL.
-      const match = command.match(/\/packs\/([\w-]+\.apm\.tar\.gz)/);
-      assert.ok(match, "apm command should reference /packs/<name>.apm.tar.gz");
+      const match = command.match(/\/packs\/apm\/([\w-]+\.tar\.gz)/);
+      assert.ok(match, "apm command should reference /packs/apm/<name>.tar.gz");
       assert.ok(
         archives.has(match[1]),
-        `apm command references ${match[1]} but packs/ contains: ${[...archives].join(", ")}`,
+        `apm command references ${match[1]} but packs/apm/ contains: ${[...archives].join(", ")}`,
       );
     });
   });
