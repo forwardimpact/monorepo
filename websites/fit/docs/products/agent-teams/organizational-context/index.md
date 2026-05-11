@@ -3,8 +3,10 @@ title: "Give Agents Organizational Context"
 description: "Keep agents aligned as your engineering standard evolves — guidance stays clear and non-conflicting without manual reconciliation."
 ---
 
-You need to maintain alignment between your agents and the engineering standard
-as it evolves -- without bespoke prompts.
+You generated an agent team and it works -- now you need to add organizational
+context like deployment targets, platform conventions, and team-specific
+constraints. This guide shows where each type of guidance belongs and how to keep
+it consistent as the standard evolves.
 
 ## Prerequisites
 

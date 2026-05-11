@@ -112,10 +112,6 @@ The agent name is derived from the discipline's `roleTitle`, suffixed with the
 track when one is set (e.g., `software-engineer--platform`). Generalist
 configurations without a track omit the suffix.
 
-Information flows downward through these layers: team instructions are loaded by
-every agent, agent profiles are loaded one at a time, and skills are loaded on
-demand. Information never flows upward.
-
 ## Confirm the generated skills
 
 List the skill IDs the agent received to confirm they match the discipline:
@@ -154,8 +150,10 @@ confirm the following:
   correspond to the skills your standard assigns to this discipline and track.
 - **The configuration is derived, not hand-written.** Any adjustment you need
   should be made in the standard YAML data, not by editing generated files
-  directly. Re-run `npx fit-pathway agent ... --output=.` after updating your
-  standard to regenerate.
+  directly. See
+  [Give Agents Organizational Context](/docs/products/agent-teams/organizational-context/)
+  for where each type of guidance belongs and how to update agents when the
+  standard changes.
 
 ## What's next
 
