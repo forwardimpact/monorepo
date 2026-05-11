@@ -174,7 +174,8 @@ const definition = {
     {
       name: "serve",
       args: "[<dir>]",
-      description: "Serve a build directory with git smart HTTP",
+      description:
+        "Serve a build directory with git smart HTTP (default: public/)",
       options: {
         port: { type: "string", description: "Listen port (default: 3000)" },
         host: {
@@ -293,7 +294,7 @@ async function main() {
   }
 
   if (command === "serve") {
-    const dir = resolve(args[0] || "dist");
+    const dir = resolve(args[0] || "public");
     await runServeCommand({ dir, options: values });
     return;
   }

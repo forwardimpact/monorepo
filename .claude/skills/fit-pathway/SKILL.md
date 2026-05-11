@@ -122,6 +122,18 @@ standard data to get started.
 
 ---
 
+## Build and Serve
+
+```sh
+npx fit-pathway build                            # Static site to public/
+npx fit-pathway build --url=https://example.com  # With distribution packs
+npx fit-pathway serve                            # Serve public/ (port 3000)
+npx fit-pathway serve ./dist --port=8080         # Custom dir and port
+```
+
+`serve` enables git smart HTTP so `apm install` (which uses
+`git clone --depth=1`) works against the pack repos.
+
 ## Verification
 
 ```sh

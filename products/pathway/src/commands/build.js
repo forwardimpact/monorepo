@@ -218,8 +218,7 @@ ${standard.emojiIcon} Generating ${standard.title} static site...
 Output: ${outputDir}
 ${siteUrl ? `\nDistribution:\n  ${outputDir}/bundle.tar.gz\n  ${outputDir}/install.sh\n  ${outputDir}/packs/ (agent/skill packs)\n  ${outputDir}/packs/{name}/.well-known/skills/ (per-pack skill repositories)\n  ${outputDir}/packs/.well-known/skills/ (aggregate skill repository)\n  ${outputDir}/apm.yml\n` : ""}
 To serve locally:
-  cd ${relative(process.cwd(), outputDir) || "."}
-  npx serve .
+  npx fit-pathway serve ${relative(process.cwd(), outputDir) || "."}
 `);
 }
 

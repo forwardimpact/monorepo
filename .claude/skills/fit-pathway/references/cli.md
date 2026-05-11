@@ -5,7 +5,10 @@
 ```sh
 npx fit-pathway dev                           # Run live development server (default port 3000)
 npx fit-pathway dev --port=8080               # Dev server on custom port
-npx fit-pathway build --output=./public --url=https://example.com  # Static site
+npx fit-pathway build                         # Static site to public/
+npx fit-pathway build --url=https://example.com  # Static site with distribution packs
+npx fit-pathway serve                         # Serve public/ with git smart HTTP (port 3000)
+npx fit-pathway serve ./dist --port=8080      # Serve custom dir on custom port
 npx fit-pathway update                        # Update local ~/.fit/data/pathway/ installation
 npx fit-pathway update --url=URL              # Update from custom source URL
 ```

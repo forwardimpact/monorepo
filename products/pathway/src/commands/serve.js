@@ -30,6 +30,17 @@ export async function runServeCommand({ dir, options }) {
 
   const app = new Hono();
 
+  // APM appends .git to repo URLs — strip it so both
+  // /packs/apm/foo/ and /packs/apm/foo.git/ resolve to the same repo.
+  app.use("/packs/apm/*", async (c, next) => {
+    const url = new URL(c.req.url);
+    if (url.pathname.includes(".git")) {
+      url.pathname = url.pathname.replace(/\.git(?=\/|$)/, "");
+      return c.redirect(url.pathname + url.search, 301);
+    }
+    return next();
+  });
+
   // Smart HTTP ref advertisement — git checks this to detect smart HTTP
   app.get("/packs/apm/:name/info/refs", async (c) => {
     if (c.req.query("service") !== "git-upload-pack") {

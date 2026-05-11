@@ -147,6 +147,7 @@ Define and publish an agent-aligned engineering standard for your team:
 
 ```sh
 npx fit-pathway build --url=https://pathway.myorg.com
+npx fit-pathway serve
 ```
 
 ### For Empowered Engineers
