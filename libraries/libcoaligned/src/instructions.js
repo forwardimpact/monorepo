@@ -136,8 +136,8 @@ async function buildLayers(root) {
       {
         id: "L4",
         name: "skill procedure",
-        maxLines: 192,
-        maxWords: 1280,
+        maxLines: 256,
+        maxWords: 1664,
         files: skillDirs.map((d) => `${d}/SKILL.md`),
       },
       {

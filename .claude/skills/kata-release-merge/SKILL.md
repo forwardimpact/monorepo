@@ -51,6 +51,20 @@ all gates is merged in Step 8.
 Read memory per the agent profile. Extract PRs blocked in previous runs with
 consecutive-block counts.
 
+Capture this run's start timestamp once at the top of the run:
+`current_run_start=$(date -u +%FT%TZ)`. For the approval-throughput metric
+(Step 8.5), also derive the previous run's start:
+
+```sh
+prev_run_start=$(gh run list --workflow=agent-team.yml --status=completed \
+  --limit 2 --json startedAt --jq '.[1].startedAt // empty')
+# First-ever recording falls back to current_run_start - 8h
+# (median schedule gap of the 03:00/12:00/20:00 UTC cadence).
+[ -z "$prev_run_start" ] && prev_run_start=$(date -u -d "$current_run_start - 8 hours" +%FT%TZ)
+```
+
+The window for approval-throughput counting is `[prev_run_start, current_run_start)`.
+
 ### Step 1: List Open PRs
 
 ```sh
@@ -163,6 +177,37 @@ step.
 3. Verify state is `MERGED`. On race or branch-protection failure, record and
    move on — do **not** retry without re-running Steps 1–7.
 
+### Step 8.5: Collect approval-throughput count
+
+Cohort: every PR seen in Step 1 (open phase PRs) plus every phase PR
+merged this run (Step 8) — covers every phase PR with window-relevant
+activity. For each cohort PR, fetch label-add events:
+
+```sh
+gh api repos/{owner}/{repo}/issues/<number>/timeline --paginate \
+  --jq '.[] | select(.event=="labeled" and (.label.name|test("^(spec|design|plan):approved$"))) | {ts: .created_at, kind: "label", label: .label.name}'
+```
+
+And APPROVED reviews:
+
+```sh
+gh api repos/{owner}/{repo}/pulls/<number>/reviews --paginate \
+  --jq '.[] | select(.state=="APPROVED") | {ts: .submitted_at, kind: "review"}'
+```
+
+Filter events to `ts ∈ [prev_run_start, current_run_start)` (half-open;
+matches design-b § Approval-throughput metric). Sum the filtered events
+to `approvals_recorded_per_run` — no per-event de-dup; the design
+specifies a raw count. The Memory section appends one row per metric to
+`wiki/metrics/kata-release-merge/{YYYY}.csv`; the row shape mirrors the
+existing `prs_merged` rows with `metric=approvals_recorded_per_run`,
+`unit=count`, and `note="window=[<prev>,<curr>)"`. Zero is recorded as `0`.
+
+If any per-PR call fails (rate limit, scope), skip that PR, append
+`;api_errors=N` to the row's `note` field, and proceed. A blanket-failure
+case (every call errored) records `0` with a non-empty `api_errors=` so
+the next storyboard meeting can see producer health.
+
 ### Step 9: Produce the Classification Report
 
 Per PR record: number, title, type, author, trust check, CI, approval source
@@ -178,7 +223,7 @@ Append to the current week's log:
   § Invariants)
 - **Approval signals consumed** — label vs APPROVED review
 - **PRs merged this run** and **merge failures** with reasons
-- **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
+- **Metrics** — Append one row per metric per run to `wiki/metrics/{skill}/`
   per `references/metrics.md`. See KATA.md § Metrics for the
   recording-eligibility rule.
 

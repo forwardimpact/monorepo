@@ -30,7 +30,7 @@ _Tight list of metrics whose status changed since the last meeting (new signal,
 threshold crossed, classification flip). Empty if nothing changed — write
 "None." on a single line._
 
-- `{agent}` / `{metric}` — {value} {trend/badge} — {one-line reason}
+- `{agent}` / `{metric}` — {value} {trend/badge} — {one-line reason} — Redefinition: {`wiki/redefinitions/...md` or `—`}
 
 ### {agent}
 
