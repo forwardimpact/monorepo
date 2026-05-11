@@ -129,9 +129,7 @@ rg '<read_do_checklist'     --glob '!benchmarks/**'  # Entry gates — read each
 rg '<do_confirm_checklist'  --glob '!benchmarks/**'  # Exit gates — do from memory, then confirm
 ```
 
-`benchmarks/**` is excluded because the `benchmarks/` tree carries fixture
-artefacts (briefs, JTBD excerpts) that match these patterns but are not real
-artefacts. See [benchmarks/README.md](benchmarks/README.md) § Fixture safety.
+`benchmarks/**` excluded — see [benchmarks/README.md](benchmarks/README.md) § Fixture safety.
 
 **Every contribution** runs [§ READ-DO](CONTRIBUTING.md#read-do) then
 [§ DO-CONFIRM](CONTRIBUTING.md#do-confirm). Domain checklists in
