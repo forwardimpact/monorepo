@@ -10,7 +10,7 @@ live only if design-b is chosen.
 
 ## Approach
 
-Land the protocol section in `coordination-protocol.md`. Link from `KATA.md` § Metrics. Add `approvals_recorded_per_run` to `kata-release-merge` (one new row in `references/metrics.md`, one new sub-step 8.5 in `SKILL.md`). Add the `Redefinition:` slot to the Headlines bullet template in `storyboard-template.md`. The wiki-side updates (canonical enumeration, denominator increment, one observed first-row CSV entry) ship through the separate wiki checkout in the implementation run.
+Land the protocol section in `coordination-protocol.md`. Amend `KATA.md` § Metrics line 261 to admit cardinality > 1 per producing skill (so design-b § Components' "additional rows" instruction lands without textually contradicting the constitution) and add a linking paragraph. Add `approvals_recorded_per_run` to `kata-release-merge` (one new row in `references/metrics.md`, one new sub-step 8.5 in `SKILL.md`). Add the `Redefinition:` slot to the Headlines bullet template in `storyboard-template.md`. The wiki-side updates (canonical enumeration, denominator increment, one observed first-row CSV entry) ship through the separate wiki checkout in the implementation run.
 
 Libraries used: none.
 
@@ -70,11 +70,21 @@ Verify: `rg '^## Measurement-system changes$' .claude/agents/references/coordina
 `rg '^### Worked example' .claude/agents/references/coordination-protocol.md` returns one hit;
 `rg '^### Detection' .claude/agents/references/coordination-protocol.md` returns one hit.
 
-## Step 2 — `KATA.md` § Metrics linking paragraph
+## Step 2 — `KATA.md` § Metrics: cardinality amendment + linking paragraph
 
-One edit to § Metrics (currently lines 257–274). **Modified:** `KATA.md`.
+Two edits to § Metrics (currently lines 257–274). **Modified:** `KATA.md`.
 
-Insert one paragraph before the blank line that separates § Metrics from § Authentication (after line 274):
+**Edit 2a — cardinality amendment.** Line 261 currently reads:
+
+> Each such skill records exactly one metric: the **count of units of work the process produced this run** (issues triaged, PRs merged, findings filed, and so on). Pipeline stations and orchestration utilities do not record.
+
+Replace with:
+
+> Each such skill records one or more metrics, each a **count of units of work the process produced this run** (issues triaged, PRs merged, findings filed, approvals recorded, and so on). Multiple metrics from one producer land as multiple rows in `wiki/metrics/{skill}/{YYYY}.csv` (one row per metric per run). Pipeline stations and orchestration utilities do not record.
+
+The replacement preserves "count of units of work" (design-b decision #4's load-bearing commitment) and adds the minimum cardinality delta needed to admit design-b § Components' "additional rows" instruction. The "approvals recorded" example tracks the new metric Step 3 introduces.
+
+**Edit 2b — linking paragraph.** Insert one paragraph before the blank line that separates § Metrics from § Authentication (after line 274):
 
 ```markdown
 Changes to the canonical-11 set — additions, removals, conditional or
@@ -86,7 +96,7 @@ verdict horizon, and the cohort read-out date. The no-silent-redefinition rule
 lives there; this section does not restate it.
 ```
 
-Verify: `rg -n 'Measurement-system changes' KATA.md` returns one match in § Metrics; `git diff KATA.md` shows exactly one inserted paragraph and no other hunks. Line 261 is unchanged.
+Verify: `rg -n 'one or more metrics' KATA.md` returns one hit in § Metrics; `rg -n 'Measurement-system changes' KATA.md` returns one match; `git diff KATA.md` shows exactly two hunks (one replace on line 261, one append after line 274); `rg -n 'exactly one metric' KATA.md` returns 0 hits.
 
 ## Step 3 — `kata-release-merge` `references/metrics.md` new row
 
@@ -256,7 +266,7 @@ Verify locally before push: `bun run check` exits 0. PR title carries the spec i
 
 ## Risks
 
-1. **Design-b internal contradiction on metric cardinality.** Design-b § Components admits `approvals_recorded_per_run` as "additional rows" in `kata-release-merge`'s existing CSV (cardinality 2), while decision #4 commits to "preserving KATA.md 'count of units of work'" and decision #1 states "no constitutional change." KATA.md line 261 ("each such skill records exactly one metric") is unchanged on landing under this plan, so the new row textually contradicts that line. The plan honors design-b § Components' literal component table (the more concrete of the two design surfaces); the implementation PR body must surface this contradiction so the approver can either accept it (the plan's path) or block on a follow-on governance spec that amends KATA.md line 261. The plan cannot resolve a design-internal contradiction unilaterally.
+1. **Scope expansion vs design-b literal text.** Design-b decision #1 says "no constitutional change to 'count of units of work'" and decision #4 says "no KATA.md amendment is required." Step 2 Edit 2a amends KATA.md line 261 (cardinality "exactly one metric" → "one or more metrics"), preserving the "count of units of work" rule decision #4 named while resolving the cardinality contradiction with § Components' "additional rows" instruction. The amendment is the minimum delta needed to make the design's component table internally consistent on landing; the approver has explicitly directed this resolution rather than the alternative (block on a follow-on governance spec). Reviewers should weigh whether this delta is in-scope for spec 860 or belongs in a sibling governance PR.
 2. **Design-b API-surface claim is factually incorrect.** Design-b § Approval-throughput metric states "No new GitHub-API surface beyond the existing `gh pr view --json labels,timelineItems`," but `gh pr view --json` does not accept a `timelineItems` field (verified against `gh` 2.63.2 — available PR fields include `labels`, `latestReviews`, `reviews`, but not `timelineItems`). The plan uses `gh api repos/{owner}/{repo}/issues/<n>/timeline` (REST) plus `.../pulls/<n>/reviews` instead — the working surface that returns the events the metric needs. This is technically "new API surface" relative to the SKILL.md's current `gh api` calls (Step 2 contributor lookup) but no new auth or scope. Implementation PR body should note the design's surface claim was incorrect; reviewers may file a doc-correction redefinition (`move: rule-semantics-rfc` or similar) against design-b after merge.
 3. **GitHub REST timeline endpoint shape stability.** The REST timeline (`gh api .../issues/<n>/timeline`) returns events with `event: "labeled"`, `label.name`, `created_at`. A breaking change in the GitHub REST API would silently emit `0`s. The producer-rehoming move (Step 1 table row 1) is the protocol response if `xRule3` fires on eight consecutive zeros.
 4. **Wiki-vs-main-repo PR boundary on Success #6.** Design-b § Detection states cross-repo CI enforcement is the follow-on, out of scope. The detection grep works **within the wiki checkout**. For main-repo edges (`coordination-protocol.md`, `.claude/skills/*/references/metrics.md`), Success #6 holds only when those edges are accompanied by a wiki commit adding a redefinition file — a coupling the follow-on CI must verify across the two repos.
