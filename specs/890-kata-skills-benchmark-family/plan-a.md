@@ -17,7 +17,7 @@ PRs stage from in-repo `.claude/`), invokes `bunx fit-benchmark run` then
 cost envelope by summing `costUsd` across the JSONL, and uploads the JSONL
 artefact. Concurrency is keyed on `github.ref` with `cancel-in-progress`.
 
-Libraries used: `@forwardimpact/libeval` (`fit-benchmark` CLI — `run`, `report`). No new npm dependencies.
+Libraries used: `@forwardimpact/libeval` (`fit-benchmark` CLI — `run`, `report`).
 
 ## Plan-level decisions (design left open)
 
@@ -29,8 +29,6 @@ Libraries used: `@forwardimpact/libeval` (`fit-benchmark` CLI — `run`, `report
 | P4 | `apm.lock.yaml` carries `apm_lock_version: 1`, `dependencies: []`, and a `benchmark:` block; in-repo `source_identity` = `sha256:` over a deterministic manifest of staged files; published = `<pack-version>@<git-sha>`. | Hash the staging tree directly, or git ls-tree. | Substrate hashes lockfile bytes; varying `source_identity` flips `skillSetHash` deterministically. |
 | P5 | Stage all non-`judge.md` agent profiles from `monorepo/.claude/agents/*.md` (in-repo) or `<pack>/agents/*.agent.md` renamed to `<name>.md` (published). | Stage only `judge.md`. | Mirrors design § Staging-regime sequence verbatim. |
 | P6 | Cost-envelope assertion sums `costUsd` post-run; failure does not block artefact upload (`if: always()`). | Per-task budget inside the harness. | Workflow-level invariant per design Decision 9; artefact must survive overrun for investigation. |
-| P7 | `cites-jtbd` rubric tests persona name AND job name as independent substrings extracted from the staged `<job>` tag — not a single colon-joined string. | One exact-match `grep -F "Persona: Job"`. | Design § Grading rubric says "references a persona+job present in the staged excerpt"; loose substring match accepts natural spec prose ("hires Platform Builders for the Evaluate-and-Improve-Agents job"). |
-| P8 | `no-how-leak` greps for plan-template markers (`**Created:**`, `## Step N`, `### Step N`) rather than file:line patterns. | Regex against `*.js:NN` and `function NAME(`. | Specs legitimately cite substrate file:line (cf. spec 890 itself, line 91); plan-template markers are unambiguously plan-grade. |
 
 ## Step 1 — Catalog scaffolding
 
@@ -79,13 +77,25 @@ operational guidance (skill-pack staging, sandbox flags, agent-cwd
 discipline, judge-profile-only-for-v1). Does not repeat #870's content.
 
 `benchmarks/kata-skills/.claude/agents/judge.md` is the family-local judge
-profile. Frontmatter `name: judge`, `description: Judge for the
-kata-skills benchmark family.`. Body: a short prompt telling the model to
-read the scoring result and the agent trace (delivered via `{{SCORING}}` and
-`{{AGENT_TRACE_PATH}}` placeholders in the task's `judge.task.md`) and call
-`Conclude` with `verdict="success"` iff the agent's spec.md addresses the
-brief (judge-layer property — does the spec solve the stated problem, not
-just clear the structural rubric).
+profile, verbatim:
+
+```markdown
+---
+name: judge
+description: Judge for the kata-skills benchmark family.
+---
+
+You are a judge grading agent-emitted specs in the kata-skills benchmark.
+Read the scoring result and the agent trace passed in the task prompt;
+read the spec the agent wrote at `$WORKDIR/spec.md`. Decide whether the
+spec **addresses the brief** — does it propose a solution to the
+stated problem? Structural rubric compliance is graded separately;
+your job is the judgement structural checks cannot make.
+
+Call `Conclude` with `verdict="success"` if the spec addresses the
+brief, `verdict="failure"` otherwise. Include a one-sentence summary
+naming the deciding evidence.
+```
 
 `benchmarks/kata-skills/.gitignore` excludes the build outputs:
 
@@ -105,7 +115,7 @@ gitignore allows `judge.md` while excluding everything else under
 Intent: produce a valid `fit-benchmark` family tree at the family root,
 selecting source by regime, and write a deterministic `apm.lock.yaml`.
 
-**Created:** `benchmarks/kata-skills/scripts/stage-family.sh` (mode `0755`).
+**Created:** `benchmarks/kata-skills/scripts/stage-family.sh` (run `chmod +x` after creating so the executable bit is committed; `git` only preserves the mode that exists at `git add` time).
 
 ```sh
 #!/bin/sh
@@ -127,6 +137,12 @@ done
 
 CLAUDE="$FAMILY_ROOT/.claude"
 LOCK="$FAMILY_ROOT/apm.lock.yaml"
+
+# Safety: refuse to rm -rf paths outside the family root.
+case "$CLAUDE" in
+  "$FAMILY_ROOT"/.claude) ;;
+  *) echo "stage-family.sh: refusing to clean $CLAUDE outside family root" >&2; exit 1 ;;
+esac
 
 # Portable sha256. Linux has sha256sum; macOS ships shasum.
 sha256() {
@@ -216,12 +232,12 @@ File contents:
 
 | File | Contents (summary) |
 | --- | --- |
-| `instructions.md` | One paragraph: "Read `specs/brief.md` and `specs/jtbd-excerpt.md`. Following the `kata-spec` skill (staged under `.claude/skills/kata-spec/`), write a specification at `spec.md` (at the working-directory root) that addresses the brief and cites the persona+job from the JTBD excerpt. Do not write a plan or design — spec only." |
-| `supervisor.task.md` | Empty body with a comment line: `<!-- Reserved per spec #870 design Decision 14; unread in v1. -->`. Preserved for forward-compat. |
-| `judge.task.md` | Templated prompt with placeholders `{{SCORING}}` and `{{AGENT_TRACE_PATH}}` (per #870 plan Step 6 contract). Body: paste the scoring result block, paste the agent-trace path, instruct the judge to read the trace and the emitted `spec.md` and call `Conclude` with `verdict="success"` iff the spec addresses the brief (not just clears the rubric). |
-| `specs/brief.md` | The brief itself: "Spec a new `--filter-tools` flag for `fit-trace overview` that restricts the output to events involving a comma-separated list of tool names. Hire: Platform Builders, job: Evaluate and Improve Agents." |
+| `instructions.md` | One paragraph: "Read `specs/brief.md` and `specs/jtbd-excerpt.md`. Following the `kata-spec` skill (staged under `.claude/skills/kata-spec/`), write a specification at `spec.md` (at the working-directory root) that addresses the brief. Quote the JTBD persona+job verbatim using the exact `<persona>: <job>` string from the second-level heading of `specs/jtbd-excerpt.md`. Do not write a plan or design — spec only." |
+| `supervisor.task.md` | Single comment line `<!-- Reserved per spec #870 design Decision 14; unread in v1. -->`. The file's existence is forward-compat metadata — `TaskFamily` records the path but the harness does not read it in v1. |
+| `judge.task.md` | Verbatim file body: `Scoring result:\n\n\`\`\`json\n{{SCORING}}\n\`\`\`\n\nAgent trace at \`{{AGENT_TRACE_PATH}}\`. Read the trace and the agent-emitted spec at \`$WORKDIR/spec.md\`. Call \`Conclude\` with \`verdict='success'\` iff the spec addresses the brief in \`specs/brief.md\` — not just clears the structural rubric.` Placeholders match #870 plan Step 6's templating contract. |
+| `specs/brief.md` | The brief itself: "Spec a new `--filter-tools` flag for `fit-trace overview` that restricts the output to events involving a comma-separated list of tool names. The hire is the persona+job at the level-2 heading of `specs/jtbd-excerpt.md`; quote that heading verbatim in your spec's persona section." |
 | `specs/jtbd-excerpt.md` | The full `<job user="Platform Builders" goal="Evaluate and Improve Agents"> … </job>` block from `JTBD.md` (copied verbatim including the opening and closing `<job>` tags — locate the block by tag delimiter, not by line number, so it survives upstream edits to `JTBD.md`). |
-| `workdir/scripts/preflight.sh` | `#!/bin/sh` + `exit 0`. Mode `0755`. |
+| `workdir/scripts/preflight.sh` | `#!/bin/sh` + `exit 0`. Run `chmod +x` after creating so the executable bit is committed (substrate gates `install` on `fs.access(path, X_OK)` per #870 plan Step 8.3). |
 
 Verify: from the family root, `test -x tasks/kata-spec/write-feature-spec/workdir/scripts/preflight.sh`;
 `grep -q '{{SCORING}}' tasks/kata-spec/write-feature-spec/judge.task.md`
@@ -233,7 +249,7 @@ and `grep -q '{{AGENT_TRACE_PATH}}' …/judge.task.md`;
 Intent: grade the agent's emitted `$WORKDIR/spec.md` against the kata-spec
 DO-CONFIRM bar using POSIX shell only.
 
-**Created:** `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/scoring/run.sh` (mode `0755`).
+**Created:** `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/scoring/run.sh` (run `chmod +x` after creating so the executable bit is committed).
 
 ```sh
 #!/bin/sh
@@ -260,10 +276,10 @@ case "$lc_first" in
      FAIL=1 ;;
 esac
 
-# 3. Specific scope: has Scope section AND an exclusion marker
+# 3. Specific scope: has Scope section AND an exclusion heading
 HAS_SCOPE=0; HAS_EXCL=0
 grep -qiE '^## (In )?Scope( |$)' "$SPEC" && HAS_SCOPE=1
-grep -qiE '^### Out of scope|^## Out of scope|excluded?( from)?|not in scope' "$SPEC" && HAS_EXCL=1
+grep -qiE '^## Out of scope|^### Out of scope' "$SPEC" && HAS_EXCL=1
 if [ "$HAS_SCOPE" = 1 ] && [ "$HAS_EXCL" = 1 ]; then
   emit '{"test":"specific-scope","pass":true}'
 else
@@ -271,29 +287,37 @@ else
   FAIL=1
 fi
 
-# 4. Verifiable success: "## Success Criteria" (or "## Success")
-if grep -qiE '^## Success( Criteria)?( |$)' "$SPEC"; then
+# 4. Verifiable success: "## Success Criteria" (or "## Success") heading
+if grep -qiE '^## Success' "$SPEC"; then
   emit '{"test":"verifiable-success","pass":true}'
 else
   emit '{"test":"verifiable-success","pass":false,"message":"missing ## Success Criteria"}'
   FAIL=1
 fi
 
-# 5. No HOW leak: spec must not adopt plan-template markers
-if grep -qE '^\*\*Created:\*\*|^## Step [0-9]+|^### Step [0-9]+' "$SPEC"; then
-  emit '{"test":"no-how-leak","pass":false,"message":"plan-template marker detected"}'
+# 5. No HOW leak: design § Grading rubric — absence of file:line or function-signature patterns
+if grep -qE '[A-Za-z0-9_/.-]+\.(js|ts|sh|py|yml|yaml):[0-9]+|function +[A-Za-z_]+ *\(|async +function' "$SPEC"; then
+  emit '{"test":"no-how-leak","pass":false,"message":"file:line or function signature detected"}'
   FAIL=1
 else
   emit '{"test":"no-how-leak","pass":true}'
 fi
 
-# 6. Cites JTBD: spec mentions persona AND job from the staged <job> block, independently
-persona="$(awk 'match($0, /<job user="[^"]*"/) { print substr($0, RSTART+10, RLENGTH-11); exit }' "$JTBD")"
-job="$(awk 'match($0, /goal="[^"]*"/) { print substr($0, RSTART+6, RLENGTH-7); exit }' "$JTBD")"
-if [ -n "$persona" ] && [ -n "$job" ] && grep -qF "$persona" "$SPEC" && grep -qF "$job" "$SPEC"; then
+# 6. Cites JTBD: spec contains the canonical "<persona>: <job>" string from the staged <job> tag.
+# The string matches the h2 heading inside the excerpt (e.g. "## Platform Builders: Evaluate and Improve Agents")
+# and is what the brief tells the agent to quote.
+persona_job="$(awk '
+  match($0, /<job user="[^"]*" goal="[^"]*">/) {
+    s = substr($0, RSTART, RLENGTH)
+    match(s, /user="[^"]*"/); u = substr(s, RSTART+6, RLENGTH-7)
+    match(s, /goal="[^"]*"/); g = substr(s, RSTART+6, RLENGTH-7)
+    print u": "g
+    exit
+  }' "$JTBD")"
+if [ -n "$persona_job" ] && grep -qF "$persona_job" "$SPEC"; then
   emit '{"test":"cites-jtbd","pass":true}'
 else
-  emit "{\"test\":\"cites-jtbd\",\"pass\":false,\"message\":\"missing persona='$persona' or job='$job'\"}"
+  emit "{\"test\":\"cites-jtbd\",\"pass\":false,\"message\":\"missing '$persona_job'\"}"
   FAIL=1
 fi
 
@@ -325,7 +349,6 @@ on:
     paths:
       - ".claude/skills/kata-*/**"
       - ".claude/agents/*.md"
-      - ".claude/agents/references/**"
       - "benchmarks/kata-skills/**"
       - ".github/workflows/benchmark-kata-skills.yml"
 
@@ -401,7 +424,8 @@ Run, from the repo root:
 ./benchmarks/kata-skills/scripts/stage-family.sh --regime in-repo
 bunx fit-benchmark run --family ./benchmarks/kata-skills \
   --output /tmp/bench-890 --runs 1 \
-  --model claude-haiku-4-5-20251001 --max-turns 25
+  --model claude-haiku-4-5-20251001 --max-turns 25 \
+  --judge-profile judge
 bunx fit-benchmark report --input /tmp/bench-890 --format text
 bun run check
 bun run format:fix
@@ -417,35 +441,20 @@ with `pass@1`. Quality gates exit `0`.
 
 The risks below are items the implementer cannot see from the plan steps.
 
-1. **Published-regime fetch needs network.** Step 3's `published` branch
-   shallow-clones `forwardimpact/kata-skills` over HTTPS. On the
-   GitHub-hosted runner this is free; on an offline developer machine the
-   `--regime published` invocation fails by design. Document in the family
-   README that developers default to `--regime in-repo`.
-2. **`apm.yml` `version:` line shape lock-in.** Step 3's published branch
-   parses `version:` from the pack's `apm.yml` via `awk -F': '`. The
-   publish-skills workflow currently emits a flat `version: <semver>` line
-   matching that pattern; if the pack ever moves the version into a
-   nested YAML structure, the parse silently sets `VERSION` empty and the
-   lockfile carries `@<sha>` with no version. Mitigation: add a non-empty
-   assertion on `$VERSION` before writing the lockfile in a follow-up.
-3. **Haiku may not pass the rubric.** v1 pins `claude-haiku-4-5-20251001`
-   for cost. The structural rubric is strict (six checks, all must pass).
-   If Haiku consistently fails one check (e.g., `cites-jtbd` is sensitive
-   to exact-string match), pass@5 will be 0. v1 surfaces that as the
-   first signal — adjusting the rubric or the model is a follow-up spec
-   per spec § Out of scope (ablation/threshold tuning).
-4. **JTBD persona/job substring drift.** `cites-jtbd` uses `grep -F` to
-   check the persona and job strings are independently present in the
-   spec. If `JTBD.md` is regenerated with even a single-character change
-   inside `<job user="…" goal="…">`, the fixture excerpt in Step 4 drifts
-   out of sync and the rubric flips. Mitigation: a pre-commit hook on
-   `JTBD.md` could re-sync the excerpt; out of scope for v1 plan.
-5. **kata-skills repo visibility.** Step 3's published-regime clone
-   assumes `forwardimpact/kata-skills` is public (consistent with
-   `npx skills add forwardimpact/kata-skills`). If the repo is ever made
-   private, the scheduled and manual-dispatch runs fail with no
-   diagnostic; the script comment flags the assumption.
+1. **Haiku may not pass the strict rubric.** v1 pins
+   `claude-haiku-4-5-20251001` for cost. The structural rubric is six
+   checks all of which must pass; the design's literal `no-how-leak`
+   regex fires on any `*.js:NN` substring and any `function NAME(`
+   sequence in the spec body. If Haiku regularly emits substrate file
+   citations or function-named prose, pass@5 is 0. v1 surfaces that as
+   the first signal — adjusting the rubric or the model is a follow-up
+   per spec § Out of scope.
+2. **JTBD persona+job string drift.** `cites-jtbd` requires the agent to
+   emit the colon-joined `<persona>: <job>` string verbatim. If `JTBD.md`
+   is regenerated with even a single-character change inside
+   `<job user="…" goal="…">`, the fixture excerpt in Step 4 drifts out of
+   sync and the rubric flips. Mitigation: a pre-commit hook on `JTBD.md`
+   could re-sync the excerpt; out of scope for v1 plan.
 
 ## Execution recommendation
 
