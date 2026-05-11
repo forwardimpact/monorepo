@@ -342,6 +342,7 @@ and writing findings that are grounded, testable, and actionable -- see the
 <div class="grid">
 
 <!-- part:card:run-eval -->
+<!-- part:card:run-benchmark -->
 <!-- part:card:trace-analysis -->
 <!-- part:card:generate-dataset -->
 

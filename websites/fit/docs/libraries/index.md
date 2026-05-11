@@ -99,6 +99,8 @@ Builders
 
 <!-- part:card:prove-changes/run-eval -->
 
+<!-- part:card:prove-changes/run-benchmark -->
+
 <!-- part:card:prove-changes/trace-analysis -->
 
 <!-- part:card:prove-changes/generate-dataset -->
