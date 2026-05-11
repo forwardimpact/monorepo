@@ -47,6 +47,7 @@ const agentFailed = {
   scoring: { verdict: "fail", details: [], exitCode: 1 },
   judgeVerdict: { verdict: "fail", summary: "agent died" },
   submission: "",
+  agentError: { message: "iteration failed", aborted: false },
 };
 
 describe("validateResultRecord", () => {

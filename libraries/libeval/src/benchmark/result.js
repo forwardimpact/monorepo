@@ -52,6 +52,11 @@ const COMMON_FIELDS = {
   durationMs: z.number().int().min(0),
 };
 
+const AGENT_ERROR_SHAPE = z.object({
+  message: z.string(),
+  aborted: z.boolean(),
+});
+
 const HAPPY_RECORD = z.object({
   ...COMMON_FIELDS,
   scoring: SCORING_SHAPE,
@@ -59,6 +64,7 @@ const HAPPY_RECORD = z.object({
   judgeVerdict: JUDGE_VERDICT_SHAPE,
   agentTracePath: z.string(),
   judgeTracePath: z.string(),
+  agentError: AGENT_ERROR_SHAPE.optional(),
   preflightError: z.undefined().optional(),
 });
 
@@ -66,11 +72,15 @@ const PREFLIGHT_RECORD = z.object({
   ...COMMON_FIELDS,
   costUsd: z.literal(0),
   preflightError: PREFLIGHT_ERROR_SHAPE,
+  // Trace paths are populated even on preflight failure (the runner allocates
+  // them in WorkdirManager.start) so the record is uniform across branches
+  // and downstream consumers can reference them without conditional fields.
+  agentTracePath: z.string(),
+  judgeTracePath: z.string(),
   scoring: z.undefined().optional(),
   submission: z.undefined().optional(),
   judgeVerdict: z.undefined().optional(),
-  agentTracePath: z.string().optional(),
-  judgeTracePath: z.string().optional(),
+  agentError: z.undefined().optional(),
 });
 
 export const RESULT_RECORD_SCHEMA = z.union([HAPPY_RECORD, PREFLIGHT_RECORD]);

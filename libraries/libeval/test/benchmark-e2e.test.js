@@ -108,7 +108,7 @@ async function mockRunJudge(_task, workdir, scoring) {
   };
 }
 
-async function setupRunner(extraTaskFilter, runs = 2) {
+async function setupRunner({ runs = 2, runAgent = mockRunAgent } = {}) {
   const out = await mkdtemp(join(tmpdir(), "benchmark-e2e-"));
   const noopQuery = async function* () {};
   const runner = new BenchmarkRunner({
@@ -118,17 +118,10 @@ async function setupRunner(extraTaskFilter, runs = 2) {
     model: "claude-opus-4-7",
     profiles: { agent: null, judge: "judge" },
     query: noopQuery,
-    runAgent: mockRunAgent,
+    runAgent,
     runJudge: mockRunJudge,
     termGraceMs: 100,
   });
-  // Pre-filter tasks so the e2e harness can target a subset.
-  const origInit = runner.run.bind(runner);
-  if (extraTaskFilter) {
-    runner.run = async function* () {
-      yield* origInit();
-    };
-  }
   return { runner, out };
 }
 
@@ -140,7 +133,7 @@ async function collectRecords(runner) {
 
 describe("BenchmarkRunner E2E (fixture family)", () => {
   test("produces one record per (task, runIndex), including pre-flight failures", async () => {
-    const { runner, out } = await setupRunner(null, 2);
+    const { runner, out } = await setupRunner({ runs: 2 });
     const records = await collectRecords(runner);
     // 4 tasks × 2 runs = 8 records (preflight-broken records included).
     assert.strictEqual(records.length, 8);
@@ -170,7 +163,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   });
 
   test("tf/pass: running-service grading via HTTP probe yields verdict='pass'", async () => {
-    const { runner } = await setupRunner(null, 1);
+    const { runner } = await setupRunner({ runs: 1 });
     const records = await collectRecords(runner);
     const passRec = records.find((r) => r.taskId === "tf/pass");
     assert.ok(passRec, "tf/pass record missing");
@@ -181,7 +174,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   });
 
   test("tf/repo-state: repository-state grading via SHA-256 yields verdict='pass'", async () => {
-    const { runner } = await setupRunner(null, 1);
+    const { runner } = await setupRunner({ runs: 1 });
     const records = await collectRecords(runner);
     const rs = records.find((r) => r.taskId === "tf/repo-state");
     assert.ok(rs);
@@ -190,7 +183,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   });
 
   test("scoring sentinel filename never appears in the agent trace", async () => {
-    const { runner } = await setupRunner(null, 1);
+    const { runner } = await setupRunner({ runs: 1 });
     const records = await collectRecords(runner);
     for (const r of records) {
       if (!r.agentTracePath) continue;
@@ -203,7 +196,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   });
 
   test("judge prompt has {{SCORING}} substituted (verdict tracks scoring)", async () => {
-    const { runner } = await setupRunner(null, 1);
+    const { runner } = await setupRunner({ runs: 1 });
     const records = await collectRecords(runner);
     for (const r of records) {
       if (r.preflightError) continue;
@@ -216,7 +209,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   });
 
   test("traces are consumable by fit-trace overview", async () => {
-    const { runner } = await setupRunner(null, 1);
+    const { runner } = await setupRunner({ runs: 1 });
     const records = await collectRecords(runner);
     for (const r of records) {
       if (!r.agentTracePath) continue;
@@ -233,7 +226,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   });
 
   test("report aggregator computes pass@k over the JSONL file", async () => {
-    const { runner, out } = await setupRunner(null, 2);
+    const { runner, out } = await setupRunner({ runs: 2 });
     await collectRecords(runner);
     const report = await aggregate({ inputDir: out, kValues: [1] });
     assert.ok(report.tasks.length >= 3);
@@ -242,5 +235,31 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     assert.strictEqual(pass.passAtK[1], 1);
     const fail = report.tasks.find((t) => t.taskId === "tf/fail");
     assert.strictEqual(fail.passAtK[1], 0);
+  });
+
+  test("agent-execution failure still produces a record (spec criterion 1)", async () => {
+    // Force the agent session to throw for tf/pass; the runner must still
+    // produce a record, validate it, and proceed to scoring/judge against
+    // the partial workdir. Plan Step 13 row 1 explicitly required this
+    // coverage at the integration layer.
+    const failingAgent = async (task, workdir) => {
+      if (task.id === "tf/pass") {
+        // Write a minimal trace so cost/turns are 0 and submission empty.
+        await writeFile(workdir.agentTracePath, "");
+        throw new Error("simulated SDK iteration error");
+      }
+      return mockRunAgent(task, workdir);
+    };
+    const { runner } = await setupRunner({ runs: 1, runAgent: failingAgent });
+    const records = await collectRecords(runner);
+    // Every task produces exactly one record per run, including tf/pass.
+    const passRec = records.find((r) => r.taskId === "tf/pass");
+    assert.ok(passRec, "tf/pass record missing on agent failure");
+    assert.doesNotThrow(() => validateResultRecord(passRec));
+    assert.ok(passRec.agentError, "agentError signal missing");
+    assert.match(passRec.agentError.message, /simulated SDK iteration error/);
+    assert.strictEqual(passRec.agentError.aborted, false);
+    assert.strictEqual(passRec.costUsd, 0);
+    assert.strictEqual(passRec.submission, "");
   });
 });

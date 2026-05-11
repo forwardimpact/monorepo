@@ -87,8 +87,11 @@ the agent's CWD. The harness invokes it from the template path with:
 
 - `$WORKDIR` — the post-run agent CWD.
 - `$PORT` — the same port `preflight.sh` saw.
-- `$RESULTS_FD=3` — a parent-readable file descriptor for structured
-  per-test rows.
+- `$RESULTS_FD=3` — a file descriptor for structured per-test rows. The
+  harness backs this fd with a temp file under `<runDir>/` (the design
+  specifies a pipe; the implementation uses a temp file because Bun's
+  pipe setup for fd ≥ 3 is racy under load). The script sees a normal
+  writable fd either way — `>&"$RESULTS_FD"` works unchanged.
 
 The **exit code is authoritative**: `0` is pass, anything else is fail.
 Rows written to fd 3 are stored on the result record's `scoring.details`
