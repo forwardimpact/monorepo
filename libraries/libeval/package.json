@@ -32,11 +32,13 @@
   "exports": {
     ".": "./src/index.js",
     "./bin/fit-eval.js": "./bin/fit-eval.js",
-    "./bin/fit-trace.js": "./bin/fit-trace.js"
+    "./bin/fit-trace.js": "./bin/fit-trace.js",
+    "./bin/fit-benchmark.js": "./bin/fit-benchmark.js"
   },
   "bin": {
     "fit-eval": "./bin/fit-eval.js",
-    "fit-trace": "./bin/fit-trace.js"
+    "fit-trace": "./bin/fit-trace.js",
+    "fit-benchmark": "./bin/fit-benchmark.js"
   },
   "files": [
     "src/**/*.js",
