@@ -17,7 +17,15 @@ enabled = true
 file_size_limit = "50MiB"
 
 [auth]
-enabled = false
+enabled = true
+site_url = "http://localhost:3000"
+jwt_expiry = 3600
+enable_signup = false
+
+[auth.email]
+enable_signup = false
+double_confirm_changes = false
+enable_confirmations = false
 
 [edge_runtime]
 enabled = true

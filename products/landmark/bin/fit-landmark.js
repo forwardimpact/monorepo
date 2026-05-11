@@ -25,9 +25,14 @@ import { runPracticeCommand } from "../src/commands/practice.js";
 import { runPracticedCommand } from "../src/commands/practiced.js";
 import { runHealthCommand } from "../src/commands/health.js";
 import { runVoiceCommand } from "../src/commands/voice.js";
+import { runSourcesCommand } from "../src/commands/sources.js";
 import { resolveDataDir } from "../src/lib/cli.js";
 import { buildContext } from "../src/lib/context.js";
 import { SupabaseUnavailableError } from "../src/lib/supabase.js";
+import {
+  resolveIdentity,
+  IdentityUnresolvedError,
+} from "../src/lib/identity.js";
 import { formatResult } from "../src/formatters/index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -52,6 +57,7 @@ const COMMANDS = {
   practiced: { handler: runPracticedCommand, needsSupabase: true },
   health: { handler: runHealthCommand, needsSupabase: true },
   voice: { handler: runVoiceCommand, needsSupabase: true },
+  sources: { handler: runSourcesCommand, needsSupabase: true },
 };
 
 const definition = {
@@ -166,6 +172,16 @@ const definition = {
         email: { type: "string", description: "Filter by person email" },
       },
     },
+    {
+      name: "sources",
+      description: "List activity row classes retained about an engineer",
+      options: {
+        email: {
+          type: "string",
+          description: "Email to inventory sources for",
+        },
+      },
+    },
   ],
   globalOptions: {
     data: { type: "string", description: "Path to Map data directory" },
@@ -182,6 +198,7 @@ const definition = {
     "fit-landmark snapshot list",
     "fit-landmark marker task_completion",
     "fit-landmark health --manager alice@example.com",
+    "fit-landmark sources --email self@example.com",
   ],
   documentation: [
     {
@@ -215,6 +232,12 @@ const definition = {
       url: "https://www.forwardimpact.team/docs/products/growth-areas/check-progress/index.md",
       description: "See where you stand against level expectations.",
     },
+    {
+      title: "List Engineering Data Sources",
+      url: "https://www.forwardimpact.team/docs/products/engineering-data-sources/index.md",
+      description:
+        "List the activity rows retained about an engineer and their fall-off dates.",
+    },
   ],
 };
 
@@ -239,10 +262,13 @@ async function main() {
 
   try {
     const dataDir = resolveDataDir(values);
+    let identity = null;
+    if (entry.needsSupabase) identity = resolveIdentity();
     const ctx = await buildContext({
       dataDir,
       options: values,
       needsSupabase: entry.needsSupabase,
+      identity,
     });
 
     const result = await entry.handler({
@@ -266,6 +292,10 @@ async function main() {
       }
     }
   } catch (error) {
+    if (error instanceof IdentityUnresolvedError) {
+      cli.error(error.message);
+      process.exit(4);
+    }
     if (error instanceof SupabaseUnavailableError) {
       cli.error(error.message);
       process.exit(3);

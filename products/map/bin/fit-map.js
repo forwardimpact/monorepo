@@ -64,8 +64,9 @@ const definition = {
     },
     {
       name: "people",
-      args: "<validate|push> <file>",
-      description: "Validate or push people files",
+      args: "<validate|push|provision> [file]",
+      description:
+        "Validate or push people files, or provision auth.users from the roster",
       options: {
         url: { type: "string", description: "Supabase URL" },
       },
@@ -132,6 +133,12 @@ const definition = {
       title: "YAML Schema Reference",
       url: "https://www.forwardimpact.team/docs/reference/yaml-schema/index.md",
       description: "File format reference for every entity type.",
+    },
+    {
+      title: "Provision Engineer Auth Users",
+      url: "https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md",
+      description:
+        "Reconcile auth.users against the roster so identity-derived RLS works.",
     },
   ],
 };
@@ -356,6 +363,14 @@ async function dispatchPeople(subcommand, rest, values) {
       }
       const supabase = await mapClient(values);
       return people.push(filePath, supabase);
+    }
+    case "provision": {
+      const supabase = await mapClient(values);
+      const { runProvisionCommand } = await import(
+        "../src/commands/people-provision.js"
+      );
+      await runProvisionCommand({ supabase });
+      return 0;
     }
     case "import": {
       process.stderr.write(

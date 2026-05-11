@@ -1,7 +1,9 @@
 /**
  * Supabase client factory for Landmark.
  *
- * Mirrors the env-var contract used by Summit's createSummitClient.
+ * Landmark reads via the per-caller JWT minted under Supabase Auth — never
+ * the service-role key (criterion 3a). The service-role client lives only
+ * under products/map/src/ for ingestion.
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -16,27 +18,33 @@ export class SupabaseUnavailableError extends Error {
 }
 
 /**
- * Create a Supabase client configured for Map's activity schema.
+ * Create a Supabase client bound to the caller's JWT.
  *
- * @param {object} [opts]
+ * @param {object} opts
+ * @param {string} opts.jwt - Supabase Auth JWT; transports as Authorization: Bearer.
  * @param {string} [opts.url] - Override for MAP_SUPABASE_URL.
- * @param {string} [opts.serviceRoleKey] - Override for MAP_SUPABASE_SERVICE_ROLE_KEY.
+ * @param {string} [opts.anonKey] - Override for MAP_SUPABASE_ANON_KEY.
  * @param {string} [opts.schema] - Database schema (default: "activity").
  * @returns {import("@supabase/supabase-js").SupabaseClient}
  */
-export function createLandmarkClient(opts = {}) {
-  const url = opts.url ?? process.env.MAP_SUPABASE_URL;
-  const key = opts.serviceRoleKey ?? process.env.MAP_SUPABASE_SERVICE_ROLE_KEY;
-  const schema = opts.schema ?? "activity";
-
-  if (!url || !key) {
+export function createLandmarkClient({
+  jwt,
+  url = process.env.MAP_SUPABASE_URL,
+  anonKey = process.env.MAP_SUPABASE_ANON_KEY,
+  schema = "activity",
+} = {}) {
+  if (!url || !anonKey)
     throw new SupabaseUnavailableError(
-      "MAP_SUPABASE_URL / MAP_SUPABASE_SERVICE_ROLE_KEY not set. " +
-        "Run `fit-map activity start` and export the URL + key it prints.",
+      "MAP_SUPABASE_URL / MAP_SUPABASE_ANON_KEY not set. Run `fit-map activity start` and export the URL + anon key it prints.",
     );
-  }
-
-  return createClient(url, key, { db: { schema } });
+  if (!jwt)
+    throw new SupabaseUnavailableError(
+      "missing JWT — resolveIdentity must run first",
+    );
+  return createClient(url, anonKey, {
+    db: { schema },
+    global: { headers: { Authorization: `Bearer ${jwt}` } },
+  });
 }
 
 /**
