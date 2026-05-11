@@ -40,7 +40,29 @@ Section body, in order:
 
 3. **Redefinition shape** — a fenced YAML code block exactly matching design-b § Redefinition shape (file artifact). One sentence below states `verdict_horizon ≤ cohort_readout` and the `denominator_effect` enum semantics.
 4. **No-silent-redefinition rule** — blockquote verbatim from design-b § No-silent-redefinition rule (the blockquote already contains the "KATA.md § Metrics links to it; no other file restates it." sentence — do not duplicate it).
-5. **Worked example** (spec Success #2) — heading `### Worked example — SE Exp 33 (#787) sidecar pre-flight`. Inline YAML front-matter populated for the SE Exp 33 case (`move: sidecar-pre-flight`, `affected_metrics: [{skill: kata-trace, metric: findings_count}]`, falsifier `sidecar diverges from canonical at horizon`, `verdict_horizon: 2026-05-19`, `cohort_readout: 2026-05-26`, `denominator_effect: sidecar`, `links.experiment_issue: "#787"`, `links.obstacle_issue: "#788"`). The example is **inline only**; no on-disk founding redefinition file is created (design § Migration boundary grandfathers the spec 860 implementation PR).
+5. **Worked example** (spec Success #2) — heading `### Worked example — SE Exp 33 (#787) sidecar pre-flight`. The literal YAML block below goes inline under the heading (the implementer pastes it verbatim). The example is inline only; no on-disk founding redefinition file is created (design § Migration boundary grandfathers the spec 860 implementation PR). `denominator_effect: none` is used: design § Redefinition shape's "non-`none` requires a linked storyboard headline" applies, but the design's YAML shape has no field for that link, so the worked example illustrates the shape without forcing a field the design did not specify — Risk 1 already names the design's internal contradictions; this is one of them.
+
+   ```yaml
+   ---
+   move: sidecar-pre-flight
+   affected_metrics:
+     - {skill: kata-trace, metric: findings_count}
+   falsifier_set:
+     - sidecar diverges from canonical at verdict horizon
+   verdict_horizon: 2026-05-19
+   cohort_readout: 2026-05-26
+   denominator_effect: none
+   links:
+     obstacle_issue: "#788"
+     experiment_issue: "#787"
+     pr: null
+   ---
+
+   # Redefinition — SE Exp 33 (#787) sidecar pre-flight (inline example)
+
+   One paragraph context: SE Exp 33 opened a sidecar CSV to evaluate the
+   `findings_count` recasting; the cohort ratifies at the 2026-05-26 read-out.
+   ```
 6. **Detection** — heading `### Detection`. The fenced `sh` block from design-b verbatim. One sentence above states the rule ("any commit touching a canonical-11 metric edge must, in the same commit, add or modify a `wiki/redefinitions/*.md` file"); one sentence below names the edges (`wiki/storyboard-*.md`, `.claude/skills/*/references/metrics.md`, `coordination-protocol.md` § Measurement-system changes) and acknowledges per design § Detection that cross-repo enforcement (between this monorepo and the wiki repo) is the follow-on CI workstream.
 
 Verify: `rg '^## Measurement-system changes$' .claude/agents/references/coordination-protocol.md` returns one hit;
@@ -84,10 +106,12 @@ Append below the existing "Backlog … is queried, not recorded." line:
 
 ```markdown
 `prev_run_start` is the `startedAt` of the previous completed `agent-team`
-workflow run, fetched with `gh run list --workflow=agent-team.yml`. Cohort:
-all open phase PRs surveyed in SKILL.md Step 1 plus any phase PR merged
-within the window (Step 8). `plan:implemented` is a state label, excluded.
-See [`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes).
+workflow run, fetched with `gh run list --workflow=agent-team.yml`. First-ever
+recording falls back to `current_run_start - 8h` (median schedule gap of the
+03:00/12:00/20:00 UTC cadence). Cohort: all open phase PRs surveyed in
+SKILL.md Step 1 plus any phase PR merged within the window (Step 8).
+`plan:implemented` is a state label, excluded. See
+[`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes).
 ```
 
 Verify: `rg -n 'approvals_recorded_per_run' .claude/skills/kata-release-merge/references/metrics.md` returns ≥1 hit; the table renders as two data rows under one header.
@@ -153,8 +177,6 @@ If any per-PR call fails (rate limit, scope), skip that PR, append
 case (every call errored) records `0` with a non-empty `api_errors=` so
 the next storyboard meeting can see producer health.
 ````
-
-(The REST endpoints differ from design-b § Approval-throughput metric's claim of an "existing `gh pr view --json labels,timelineItems`" surface — `gh pr view --json` does not accept `timelineItems`. The plan uses the REST timeline + reviews endpoints, the working surface; this is Risk 2.)
 
 Verify: `rg -n 'approvals_recorded_per_run|prev_run_start|current_run_start' .claude/skills/kata-release-merge/SKILL.md` returns ≥4 hits; `### Step 8.5: Collect approval-throughput count` exists between `### Step 8: Merge` and `### Step 9: Produce`; the existing Step 9 body and Memory section are unchanged.
 
