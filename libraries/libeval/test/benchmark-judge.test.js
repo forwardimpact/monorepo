@@ -65,4 +65,21 @@ describe("parseConcludeFromTrace", () => {
     const parsed = await parseConcludeFromTrace(path);
     assert.strictEqual(parsed, null);
   });
+
+  test("accepts mcp__orchestration__Conclude (the SDK's namespaced form)", async () => {
+    // Live judge traces from the Claude Agent SDK report MCP-server tools
+    // under their namespaced name. The orchestration `Conclude` tool
+    // arrives as `mcp__orchestration__Conclude`.
+    const path = await writeTrace([
+      envelopeAssistant("supervisor", [
+        {
+          type: "tool_use",
+          name: "mcp__orchestration__Conclude",
+          input: { verdict: "success", summary: "ns ok" },
+        },
+      ]),
+    ]);
+    const parsed = await parseConcludeFromTrace(path);
+    assert.deepStrictEqual(parsed, { verdict: "pass", summary: "ns ok" });
+  });
 });

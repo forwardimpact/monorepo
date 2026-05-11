@@ -109,9 +109,27 @@ function extractConcludeInput(line) {
   if (!Array.isArray(content)) return null;
   let found = null;
   for (const block of content) {
-    if (block.type === "tool_use" && block.name === "Conclude" && block.input) {
+    if (
+      block.type === "tool_use" &&
+      isConcludeToolName(block.name) &&
+      block.input
+    ) {
       found = block.input;
     }
   }
   return found;
+}
+
+/**
+ * The Claude Agent SDK reports MCP tool names as
+ * `mcp__<server>__<tool>` when the model invokes them — the orchestration
+ * `Conclude` arrives as `mcp__orchestration__Conclude`. Pre-baked
+ * supervisor traces (and the libeval-internal envelopes) sometimes carry
+ * the bare `Conclude` name. Accept both forms so the parser is robust to
+ * trace source.
+ */
+function isConcludeToolName(name) {
+  if (typeof name !== "string") return false;
+  if (name === "Conclude") return true;
+  return name.endsWith("__Conclude");
 }
