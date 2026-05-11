@@ -59,6 +59,113 @@ prior phase's artifact (`specs/NNN/spec.md`, `design-a.md`, `plan-a.md`) is on
 does not unblock the next phase, even when the same agent owns both. No separate
 status tracker.
 
+## Measurement-system changes
+
+Changes to a canonical-11 metric — skill removal, rename, split, definition
+change, sidecar opening, denominator redefinition, rule-semantics challenge —
+follow one of eight named repair moves and ship with a redefinition file.
+
+| Move | Definition (one sentence) | Falsifier-set kind | Existing precedent |
+|---|---|---|---|
+| `producer-rehoming` | Reassign a metric's producing skill when the original is removed/split/renamed; record a continuity tag on the first row under the new producer. | "structural-zero rows present after rehoming run" | #788, RFC #804 |
+| `mode-restriction` | Narrow recording to one activation mode of a multi-mode skill so the series is unimodal. | "post-restriction series remains bimodal under XmR" | #772, PR #773 |
+| `historical-phasing` | Annotate a series with a Phase boundary; XmR analysis windows on Phase 1; no CSV backfill. | "Phase 1 cannot reach `predictable` after horizon" | #809, PR #811 |
+| `sidecar-pre-flight` | Record a candidate metric to a sibling CSV while the canonical metric continues; no denominator change until ratification. | "sidecar diverges from canonical at horizon" | #787 |
+| `stock-vs-flow-recast` | Replace a flow-rate metric with a stock metric on the same axis when burst architecture trips XmR by construction. | "stock series fires `xRule1` or `mrRule1` post-recast" | #768, #770 |
+| `event-driven-recast` | Replace per-day cadence with per-activation ("no row, no event"). | "per-activation series remains `insufficient_data` at horizon" | #810 |
+| `rule-semantics-rfc` | Challenge an XmR rule's blocking effect on `predictable` via Discussion RFC; quorum required. | "RFC quorum not reached by horizon" | #814 |
+| `habit-to-policy` | Promote an undocumented defensive habit into a `SKILL.md` check after a defect surfaces. | "post-promotion defect of the same shape recurs" | #817, PR #655 |
+
+The list is closed; extensions land via the spec/design/plan/implement chain.
+
+### Redefinition shape
+
+Each canonical-11 change ships a `wiki/redefinitions/{YYYY-MM-DD}-{slug}.md`
+file in the same PR. The file is YAML front-matter plus a brief prose body:
+
+```yaml
+---
+move: producer-rehoming | mode-restriction | historical-phasing |
+      sidecar-pre-flight | stock-vs-flow-recast | event-driven-recast |
+      rule-semantics-rfc | habit-to-policy
+affected_metrics:
+  - {skill: <skill>, metric: <metric>}
+falsifier_set:
+  - <predicate>
+verdict_horizon: <YYYY-MM-DD>
+cohort_readout: <YYYY-MM-DD>      # >= verdict_horizon
+denominator_effect: none | sidecar | conditional-amend | amend
+links:
+  obstacle_issue: <#NNN>?
+  experiment_issue: <#NNN>?
+  pr: <#NNN>?
+---
+
+# Redefinition — <human-readable title>
+
+<one-paragraph context: what changed, why this move, what the cohort ratifies>
+```
+
+`verdict_horizon ≤ cohort_readout` is the only ordering constraint.
+`denominator_effect` enum: `none` for sidecars and rule-semantics challenges
+that don't move the denominator; `sidecar` for a parallel CSV pending verdict;
+`conditional-amend` for a denominator change ratified at the cohort read-out;
+`amend` for an unconditional denominator change.
+
+### No-silent-redefinition rule
+
+> No change to the canonical-11 denominator (additions, removals, conditional
+> or unconditional redefinitions) lands without a redefinition file at
+> `wiki/redefinitions/{YYYY-MM-DD}-{slug}.md` whose `denominator_effect` is
+> non-`none`, a cohort read-out date on or before the storyboard meeting at
+> which the change takes effect, and a linked storyboard headline.
+>
+> This single statement lives in `coordination-protocol.md` § Measurement-system
+> changes. KATA.md § Metrics links to it; no other file restates it.
+
+### Worked example — SE Exp 33 (#787) sidecar pre-flight
+
+```yaml
+---
+move: sidecar-pre-flight
+affected_metrics:
+  - {skill: kata-trace, metric: findings_count}
+falsifier_set:
+  - sidecar diverges from canonical at verdict horizon
+verdict_horizon: 2026-05-19
+cohort_readout: 2026-05-26
+denominator_effect: none
+links:
+  obstacle_issue: "#788"
+  experiment_issue: "#787"
+  pr: null
+---
+
+# Redefinition — SE Exp 33 (#787) sidecar pre-flight (inline example)
+
+One paragraph context: SE Exp 33 opened a sidecar CSV to evaluate the
+`findings_count` recasting; the cohort ratifies at the 2026-05-26 read-out.
+```
+
+### Detection
+
+Any commit touching a canonical-11 metric edge must, in the same commit, add or
+modify a `wiki/redefinitions/*.md` file. The canonical-11 edges are
+`wiki/storyboard-*.md`, `.claude/skills/*/references/metrics.md`, and
+`coordination-protocol.md` § Measurement-system changes. Cross-repo enforcement
+between this monorepo and the wiki repo is the follow-on CI workstream.
+
+```sh
+# Commits that edit canonical-11 edges but do NOT touch wiki/redefinitions/.
+for c in $(git log --format=%H --since="<date>" -- \
+    'wiki/storyboard-*.md' \
+    '.claude/skills/*/references/metrics.md' \
+    '.claude/agents/references/coordination-protocol.md'); do
+  git diff-tree --no-commit-id --name-only -r "$c" \
+    | grep -q '^wiki/redefinitions/' || echo "$c missing redefinition"
+done
+```
+
 ## Decision questions
 
 When an output could fit multiple channels, ask in order:

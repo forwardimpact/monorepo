@@ -102,7 +102,11 @@ Per SKILL.md Step 7, pick a route per obstacle (parallel allowed):
 **Worked example — run 25247279159, 2026-05-02.** SE/RE/TW/PM each flagged a
 canonical-11 metric (`prs_actioned`, `releases_cut`, `errors_found`,
 `issues_created`). All four mapped to one shared artifact — right route: one
-Discussion, not four parallel coaching dispatches.
+Discussion, not four parallel coaching dispatches. Each headline bullet for the
+four metrics carries the new `Redefinition:` slot per
+[`coordination-protocol.md` § Measurement-system changes](../../../agents/references/coordination-protocol.md#measurement-system-changes);
+for this date the value is `—` on all four. Example:
+`- kata-security-update / prs_actioned — … — Redefinition: —`.
 
 ## Participant briefing template
 

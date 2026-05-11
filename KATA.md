@@ -258,9 +258,12 @@ they don't compete.
 
 Only skills representing **end-to-end processes** — those whose output is
 value-bearing on its own, not work-in-progress for a downstream skill — record
-metrics. Each such skill records exactly one metric: the **count of units of
-work the process produced this run** (issues triaged, PRs merged, findings
-filed, and so on). Pipeline stations and orchestration utilities do not record.
+metrics. Each such skill records one or more metrics, each a **count of units
+of work the process produced this run** (issues triaged, PRs merged, findings
+filed, approvals recorded, and so on). Multiple metrics from one producer land
+as multiple rows in `wiki/metrics/{skill}/{YYYY}.csv` —
+one row per metric per run. Pipeline stations and orchestration utilities do
+not record.
 
 The constraint is XmR-driven. Backlog counts and ages can be queried any time
 from `gh`, `git`, or `npm audit` — they're stocks and sawtooth functions, not
@@ -272,6 +275,14 @@ Each measurement is one CSV row appended to
 `wiki/metrics/{skill}/{YYYY}.csv` after the run. The storyboard meeting
 reads these via `fit-xmr` and answers "what is the actual condition now?" with
 control limits and signals — numbers, not narratives.
+
+Changes to the canonical-11 set — additions, removals, conditional or
+unconditional redefinitions — follow the protocol in
+[`coordination-protocol.md` § Measurement-system changes](.claude/agents/references/coordination-protocol.md#measurement-system-changes):
+each change ships in the same PR as a `wiki/redefinitions/{YYYY-MM-DD}-{slug}.md`
+file naming the repair move, the affected metric(s), the falsifier set, the
+verdict horizon, and the cohort read-out date. The no-silent-redefinition rule
+lives there; this section does not restate it.
 
 ## Authentication
 
