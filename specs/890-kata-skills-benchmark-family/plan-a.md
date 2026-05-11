@@ -19,16 +19,23 @@ artefact. Concurrency is keyed on `github.ref` with `cancel-in-progress`.
 
 Libraries used: `@forwardimpact/libeval` (`fit-benchmark` CLI — `run`, `report`).
 
+**Executable-bit convention.** Three new shell scripts ship in this plan —
+`scripts/stage-family.sh` (Step 3), `tasks/.../workdir/scripts/preflight.sh`
+(Step 4), and `tasks/.../scoring/run.sh` (Step 5). Run `chmod +x` on each
+after creation and *before* `git add`; Git preserves only the mode that
+exists at staging time. The workflow runner (`ubuntu-latest`) ships `jq`
+in its default image — no install step needed.
+
 ## Plan-level decisions (design left open)
 
-| # | Decision | Rejected | Why |
-|---|---|---|---|
-| P1 | Agent output path is `$WORKDIR/spec.md`; inputs live under `$WORKDIR/specs/brief.md` and `$WORKDIR/specs/jtbd-excerpt.md`. | Numbered output path inside `specs/`. | Reusing the input directory for output collides with the brief. |
-| P2 | v1 brief: spec a `--filter-tools` flag for `fit-trace overview`. | Generic "spec something" prompt. | A concrete target lets the structural rubric grade objectively. |
-| P3 | Rubric is POSIX `/bin/sh` with `awk`/`grep`/`sed`. fd-3 NDJSON; exit code is authoritative per design #870 Decision 12. | Node or Python rubric. | Matches existing fixture-family scoring scripts; no interpreter assumption. |
-| P4 | `apm.lock.yaml` carries `apm_lock_version: 1`, `dependencies: []`, and a `benchmark:` block; in-repo `source_identity` = `sha256:` over a deterministic manifest of staged files; published = `<pack-version>@<git-sha>`. | Hash the staging tree directly, or git ls-tree. | Substrate hashes lockfile bytes; varying `source_identity` flips `skillSetHash` deterministically. |
-| P5 | Stage all non-`judge.md` agent profiles from `monorepo/.claude/agents/*.md` (in-repo) or `<pack>/agents/*.agent.md` renamed to `<name>.md` (published). | Stage only `judge.md`. | Mirrors design § Staging-regime sequence verbatim. |
-| P6 | Cost-envelope assertion sums `costUsd` post-run; failure does not block artefact upload (`if: always()`). | Per-task budget inside the harness. | Workflow-level invariant per design Decision 9; artefact must survive overrun for investigation. |
+Three choices the design intentionally left open; the rest of the plan
+flows directly from design 890-a.
+
+| # | Decision | Rejected |
+|---|---|---|
+| P1 | Agent output path is `$WORKDIR/spec.md`; inputs at `$WORKDIR/specs/brief.md` and `$WORKDIR/specs/jtbd-excerpt.md`. | Numbered output path inside `specs/` collides with the brief. |
+| P2 | v1 brief: spec a `--filter-tools` flag for `fit-trace overview`. | Generic "spec something" prompt — rubric needs a concrete target to grade. |
+| P3 | Rubric is POSIX `/bin/sh` with `awk`/`grep`/`sed`. | Node/Python rubric — no interpreter assumption; matches fixture-family scoring scripts. |
 
 ## Step 1 — Catalog scaffolding
 
@@ -97,7 +104,9 @@ brief, `verdict="failure"` otherwise. Include a one-sentence summary
 naming the deciding evidence.
 ```
 
-`benchmarks/kata-skills/.gitignore` excludes the build outputs:
+`benchmarks/kata-skills/.gitignore` excludes everything the staging script
+produces. The only checked-in entry under `.claude/` is `judge.md`; the
+lockfile is regenerated on every staging run.
 
 ```
 .claude/skills/
@@ -115,7 +124,7 @@ gitignore allows `judge.md` while excluding everything else under
 Intent: produce a valid `fit-benchmark` family tree at the family root,
 selecting source by regime, and write a deterministic `apm.lock.yaml`.
 
-**Created:** `benchmarks/kata-skills/scripts/stage-family.sh` (run `chmod +x` after creating so the executable bit is committed; `git` only preserves the mode that exists at `git add` time).
+**Created:** `benchmarks/kata-skills/scripts/stage-family.sh` (executable).
 
 ```sh
 #!/bin/sh
@@ -180,11 +189,18 @@ if [ "$REGIME" = "in-repo" ]; then
   )"
 else
   TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
-  # kata-skills is public per `npx skills add forwardimpact/kata-skills`;
-  # anonymous clone works. Switch to an authenticated clone if it ever turns private.
-  git clone --depth=1 https://github.com/forwardimpact/kata-skills "$TMP/pack"
+  # kata-skills is public; thread GITHUB_TOKEN when present to avoid anonymous
+  # rate-limiting on shared CI IPs.
+  if [ -n "${GITHUB_TOKEN:-}" ]; then
+    CLONE_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/forwardimpact/kata-skills"
+  else
+    CLONE_URL="https://github.com/forwardimpact/kata-skills"
+  fi
+  git clone --depth=1 "$CLONE_URL" "$TMP/pack"
   SHA="$(cd "$TMP/pack" && git rev-parse HEAD)"
   VERSION="$(awk -F': ' '/^version:/{print $2; exit}' "$TMP/pack/apm.yml")"
+  # Strip optional quoting around the value (`version: "1.2.3"` form).
+  VERSION="${VERSION#\"}"; VERSION="${VERSION%\"}"
   [ -n "$VERSION" ] || { echo "stage-family.sh: could not parse version from apm.yml" >&2; exit 1; }
   for d in "$TMP/pack"/skills/kata-*/; do
     [ -d "$d" ] || continue
@@ -233,11 +249,30 @@ File contents:
 | File | Contents (summary) |
 | --- | --- |
 | `instructions.md` | One paragraph: "Read `specs/brief.md` and `specs/jtbd-excerpt.md`. Following the `kata-spec` skill (staged under `.claude/skills/kata-spec/`), write a specification at `spec.md` (at the working-directory root) that addresses the brief. Quote the JTBD persona+job verbatim using the exact `<persona>: <job>` string from the second-level heading of `specs/jtbd-excerpt.md`. Do not write a plan or design — spec only." |
-| `supervisor.task.md` | Single comment line `<!-- Reserved per spec #870 design Decision 14; unread in v1. -->`. The file's existence is forward-compat metadata — `TaskFamily` records the path but the harness does not read it in v1. |
-| `judge.task.md` | Verbatim file body: `Scoring result:\n\n\`\`\`json\n{{SCORING}}\n\`\`\`\n\nAgent trace at \`{{AGENT_TRACE_PATH}}\`. Read the trace and the agent-emitted spec at \`$WORKDIR/spec.md\`. Call \`Conclude\` with \`verdict='success'\` iff the spec addresses the brief in \`specs/brief.md\` — not just clears the structural rubric.` Placeholders match #870 plan Step 6's templating contract. |
+| `supervisor.task.md` | Verbatim body (single line): `<!-- Reserved per spec #870 design Decision 14; unread in v1. -->`. The file's existence is forward-compat metadata — `TaskFamily` records the path but the harness does not read it in v1. |
+| `judge.task.md` | Templated prompt with `{{SCORING}}` and `{{AGENT_TRACE_PATH}}` per #870 plan Step 6's contract. Verbatim body shown below the table. |
 | `specs/brief.md` | The brief itself: "Spec a new `--filter-tools` flag for `fit-trace overview` that restricts the output to events involving a comma-separated list of tool names. The hire is the persona+job at the level-2 heading of `specs/jtbd-excerpt.md`; quote that heading verbatim in your spec's persona section." |
 | `specs/jtbd-excerpt.md` | The full `<job user="Platform Builders" goal="Evaluate and Improve Agents"> … </job>` block from `JTBD.md` (copied verbatim including the opening and closing `<job>` tags — locate the block by tag delimiter, not by line number, so it survives upstream edits to `JTBD.md`). |
-| `workdir/scripts/preflight.sh` | `#!/bin/sh` + `exit 0`. Run `chmod +x` after creating so the executable bit is committed (substrate gates `install` on `fs.access(path, X_OK)` per #870 plan Step 8.3). |
+| `workdir/scripts/preflight.sh` | Executable. Two lines: `#!/bin/sh` and `exit 0` — the script ignores `$WORKDIR`/`$PORT` because v1 ships no scaffold. Substrate gates `install` on `fs.access(path, X_OK)` per #870 plan Step 8.3. |
+
+Verbatim `judge.task.md` body:
+
+````markdown
+Scoring result:
+
+```json
+{{SCORING}}
+```
+
+Agent trace at `{{AGENT_TRACE_PATH}}`. Read the trace and the
+agent-emitted spec at `$WORKDIR/spec.md`. Decide whether the spec
+**addresses the brief** in `specs/brief.md` — not just whether it
+clears the structural rubric.
+
+Call `Conclude` with `verdict="success"` if the spec addresses the
+brief, or `verdict="failure"` if it does not. Include a one-sentence
+`summary` naming the deciding evidence.
+````
 
 Verify: from the family root, `test -x tasks/kata-spec/write-feature-spec/workdir/scripts/preflight.sh`;
 `grep -q '{{SCORING}}' tasks/kata-spec/write-feature-spec/judge.task.md`
@@ -249,7 +284,7 @@ and `grep -q '{{AGENT_TRACE_PATH}}' …/judge.task.md`;
 Intent: grade the agent's emitted `$WORKDIR/spec.md` against the kata-spec
 DO-CONFIRM bar using POSIX shell only.
 
-**Created:** `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/scoring/run.sh` (run `chmod +x` after creating so the executable bit is committed).
+**Created:** `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/scoring/run.sh` (executable).
 
 ```sh
 #!/bin/sh
