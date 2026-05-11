@@ -17,6 +17,17 @@ no schema, no canonical-set membership change. The new page sits beside
 new markdown link. SC1–SC4 are mechanically verifiable from `rg` against the
 edited files.
 
+Two deliberate wording moves relative to the post-Edit-2a baseline that the
+implementer should not "fix" back: (1) the cardinality rule's lead phrase
+generalizes from "**produced** this run" to "**observed** this run" so the
+phrase covers both classes (`process-throughput` produces; `system-health`
+observes — "produced" alone is inaccurate for system-health metrics like
+`approvals_recorded_per_run`); (2) the rationale paragraph's closing sentence
+drops the "only shape" exclusivity claim ("Process throughput is the only
+shape that …") because design § Three components #2 admits both classes onto
+XmR. Both moves are design-mandated; neither is in the post-Edit-2a wording
+the spec was written against.
+
 Libraries used: none.
 
 ## Pre-flight check
@@ -149,19 +160,28 @@ Multiple metrics from one producer land as multiple rows in
 stations and orchestration utilities do not record.
 ```
 
-The example list `(issues triaged, PRs merged, findings filed, approvals
-recorded, and so on)` is preserved verbatim (prose forms, not canonical
-tokens — they do not trip SC2).
-
 **Verify:**
 
-- `rg -n 'process-throughput' KATA.md` returns ≥2 hits (cardinality rule
+- `rg -c 'process-throughput' KATA.md` returns ≥2 (cardinality rule
   introducing the class + rationale paragraph from Step 3).
-- `rg -n 'system-health' KATA.md` returns ≥2 hits (same surfaces).
-- `rg -n 'A new metric is .process-throughput. if it counts' KATA.md` returns
-  exactly 1 hit (the membership-criterion sentence — SC1).
-- `rg -n 'metric-class-guidance.md' KATA.md` returns exactly 1 hit (the
-  one-hop link — SC3).
+- `rg -c 'system-health' KATA.md` returns ≥2 (same surfaces).
+- Membership-criterion sentence (SC1) — three independent single-line
+  substring checks, each must appear on one line within the cardinality-rule
+  paragraph (the awk extractor from the SC2 check below scopes them):
+
+  ```sh
+  paragraph=$(awk '/^Each such skill records one or more metrics/{flag=1} flag{print} /^$/{if(flag) exit}' KATA.md)
+  printf '%s' "$paragraph" | rg -c '`process-throughput` if it counts'         # 1
+  printf '%s' "$paragraph" | rg -c '`system-health` if it counts'              # 1
+  printf '%s' "$paragraph" | rg -c 'co-locates with an existing producer'      # 1
+  ```
+
+  Each count must be `1`. The three substrings are each short enough to stay
+  on one line after `proseWrap: always` reflow (≤55 chars), so prose-wrap
+  cannot split them. Together they witness the membership-criterion sentence
+  (covers both classes, ends with the pointer phrase).
+- `rg -c 'metric-class-guidance.md' KATA.md` returns exactly 1 (the one-hop
+  link — SC3).
 - `rg -n '^Each such skill records one or more metrics' KATA.md` returns
   exactly 1 hit at column 1 (confirms the paragraph break landed — required
   for the awk anchor below to work).
@@ -218,9 +238,9 @@ shift.
 
 **Verify:**
 
-- `rg -cn 'process-throughput' KATA.md` returns ≥2 (cardinality rule + this
+- `rg -c 'process-throughput' KATA.md` returns ≥2 (cardinality rule + this
   paragraph — SC4 requires ≥1 in this paragraph).
-- `rg -cn 'system-health' KATA.md` returns ≥2 (same — SC4 requires ≥1 in this
+- `rg -c 'system-health' KATA.md` returns ≥2 (same — SC4 requires ≥1 in this
   paragraph).
 - Paragraph-scoped SC4 grep (counts class-name tokens inside this paragraph
   only — anchored on the first line, ranged to the next blank line so
@@ -259,48 +279,37 @@ the spec id (`plan(880): …` for this plan PR, `feat(880): …` or
 
 - `bun run check` exits 0.
 - `bun run test` exits 0 (no test logic changed).
-- `git diff origin/main..HEAD --stat` shows ≤3 files changed
-  (`KATA.md`, `.claude/agents/references/metric-class-guidance.md`, and at
-  most one auto-format ripple).
+- `git diff origin/main...HEAD --stat` shows exactly two paths changed
+  (`KATA.md` and `.claude/agents/references/metric-class-guidance.md`); any
+  third path is an auto-format ripple that must be inspected and either
+  reverted or justified before push.
 - `git ls-tree HEAD .claude/agents/references/metric-class-guidance.md`
   returns a blob hash.
+
+In the implementation PR body, note that this PR does **not** require a
+`wiki/redefinitions/*.md` file — KATA.md § Metrics is not in the canonical-11
+edge set listed by
+[`coordination-protocol.md` § Detection](../../.claude/agents/references/coordination-protocol.md#detection)
+(`wiki/storyboard-*.md`, `.claude/skills/*/references/metrics.md`,
+`coordination-protocol.md` § Measurement-system changes), and the canonical
+metric set is unchanged. This pre-empts a no-silent-redefinition challenge
+from reviewers reading the diff.
 
 ## Risks
 
 1. **Auto-format ripple on KATA.md.** `bun run format:fix` reflows prose
-   inside markdown paragraphs; the cardinality-rule and rationale-paragraph
-   diffs may include unrelated reflows in adjacent paragraphs. Mitigation:
-   inspect `git diff KATA.md` before push and revert lines outside the two
-   amended paragraphs.
-2. **Membership-criterion sentence rendering.** The criterion sentence inside
-   the cardinality rule paragraph is one of two sentences in a single
-   paragraph (the rule sentence plus the criterion sentence). SC2's
-   verification grep above scopes to the *paragraph* (`awk` block, not a
-   single line) so cross-line wrapping does not break the zero-hit check.
-   Reviewers may prefer the criterion split into its own paragraph; the
-   single-paragraph shape is the minimum delta that keeps the rule and its
-   criterion adjacent on the page.
-3. **Class-name styling consistency.** The pointer page (Step 1) and KATA.md
-   (Steps 2–3) both use code-tick formatting for `process-throughput` and
-   `system-health` to mark them as schema tokens rather than prose. If any
-   future audit grep expects unticked class names, both surfaces share one
-   convention. The class names are not metric names (they do not appear in
-   any `references/metrics.md` row), so SC2's zero-hit grep across the 13
-   canonical tokens is unaffected.
-4. **No redefinition file required, but reviewers may ask.** Per
-   [`coordination-protocol.md` § Detection](../../.claude/agents/references/coordination-protocol.md#detection),
-   the canonical-11 edges are `wiki/storyboard-*.md`,
-   `.claude/skills/*/references/metrics.md`, and
-   `coordination-protocol.md` § Measurement-system changes — KATA.md
-   § Metrics is **not** in that set, and the canonical metric set is
-   unchanged. The implementer should call this out in the implementation PR
-   body to pre-empt a no-silent-redefinition challenge.
-5. **Pre-flight Edit-2a regression.** If a later commit on `main` reverts
+   inside markdown paragraphs at 80-column `proseWrap: always`; the
+   cardinality-rule and rationale-paragraph diffs may include incidental
+   line-wrap changes in the two paragraphs *before* and *after* the amended
+   blocks if their column positions shift. Mitigation: inspect
+   `git diff KATA.md` after `format:fix` and either revert reflows outside
+   the two amended paragraphs or re-run `format:fix` to a fixed point.
+2. **Pre-flight Edit-2a regression.** If a later commit on `main` reverts
    spec 860's Edit 2a wording before this plan runs (`rg -n 'one or more
    metrics' KATA.md` returns 0), Step 2's "Before" text no longer matches.
    The implementer must re-read the current § Metrics text and adapt the
-   replacement to fit (the design's three-component shape is unchanged; only
-   the textual anchor for replacement shifts).
+   replacement to fit (the design's three-component shape is unchanged;
+   only the textual anchor for replacement shifts).
 
 ## Execution recommendation
 
