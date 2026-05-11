@@ -35,7 +35,9 @@ A standard is a set of YAML files that answer six questions:
 
 Skills are defined inside capability files. Every entity carries a `human:`
 section for engineers, and most can include an `agent:` section for AI coding
-agents. A discipline classifies skills into three tiers (`coreSkills`,
+agents. Skills can also carry `instructions`, `references`, and
+`toolReferences` that flow into the generated SKILL.md files agents load at
+runtime. A discipline classifies skills into three tiers (`coreSkills`,
 `supportingSkills`, `broadSkills`), and a level sets the baseline proficiency
 expected at each tier (`core`, `supporting`, `broad`). When Pathway generates a
 role, these two dimensions combine into concrete expectations.
@@ -154,6 +156,108 @@ To make a skill available to AI coding agents, add an `agent:` section:
 Checklist items should be one action per line, starting with a verb. Skills that
 cannot be automated can be marked `isHumanOnly: true`. For the full skill schema,
 see the [YAML Schema Reference](/docs/reference/yaml-schema/).
+
+### Adding instructions to skills
+
+When a skill needs a multi-step workflow beyond what the checklists convey, add
+an `instructions:` field. This is a top-level skill field (a sibling of
+`agent:`, not nested inside it) whose content renders directly into the
+SKILL.md body.
+
+`focus` is a one-line priority; checklists are entry and exit gates;
+`instructions` is the procedural workflow the agent follows between those gates.
+
+```yaml
+  - id: code_review
+    name: Code Review
+    human: # ...
+    agent:
+      name: code-review
+      # ... description, useWhen, focus, checklists
+    instructions: |
+      ## Workflow
+
+      1. Read the PR description to understand intent.
+      2. Scan the file list for scope — flag PRs that mix unrelated changes.
+      3. Review each file for correctness, edge cases, and naming.
+      4. Check test coverage for new behaviour.
+      5. Write comments that state the problem, the reason, and a suggestion.
+```
+
+Keep instructions imperative. Do not restate what the checklists already cover.
+
+### Adding references to skills
+
+When a skill needs supporting documents the agent can consult -- runbooks,
+templates, glossaries, or decision criteria -- add a `references:` array. Each
+entry becomes a separate `references/{name}.md` file alongside the SKILL.md.
+
+Each entry requires three fields:
+
+| Field   | Type   | Constraints                                |
+| ------- | ------ | ------------------------------------------ |
+| `name`  | string | Lowercase with hyphens, 1--64 characters   |
+| `title` | string | Human-readable heading for the document    |
+| `body`  | string | Markdown content of the reference document |
+
+Names must be unique within a skill and match the pattern
+`^[a-z0-9][a-z0-9_-]*$`.
+
+```yaml
+  - id: incident_response
+    name: Incident Response
+    human: # ...
+    agent:
+      name: incident-response
+      # ... description, useWhen, focus, checklists
+    references:
+      - name: runbooks
+        title: Incident Runbooks
+        body: |
+          Step-by-step procedures for the top recurring incident
+          classes. Each runbook lists detection signals, immediate
+          mitigations, and the data sources to capture for the
+          post-incident review.
+      - name: postmortem-template
+        title: Postmortem Template
+        body: |
+          Fields expected in every postmortem:
+
+          - Summary — one paragraph anyone in the company can read.
+          - Timeline — UTC timestamps, who did what.
+          - Root cause — proximate failure and systemic factor.
+          - Corrective actions — owner, due date, tracking link.
+```
+
+Instructions describe the workflow; references are supporting documents the
+agent consults when that workflow calls for domain-specific knowledge.
+
+### Adding tool references to skills
+
+When your organization has standardized on specific tools for a skill, declare
+them in a `toolReferences:` array. These render as a mandatory tools table in
+the generated SKILL.md -- agents are expected to use them and document any
+deviation.
+
+Each entry requires `name`, `description`, and `useWhen`. The optional `url`
+links to documentation and `simpleIcon` specifies a
+[Simple Icons](https://simpleicons.org/) slug for display.
+
+```yaml
+    toolReferences:
+      - name: GitHub Actions
+        url: https://docs.github.com/en/actions
+        description: CI/CD workflow automation
+        useWhen: Configuring automated builds and deployments
+      - name: Terraform
+        url: https://developer.hashicorp.com/terraform
+        simpleIcon: terraform
+        description: Infrastructure as code
+        useWhen: Provisioning or modifying cloud infrastructure
+```
+
+Only declare tools the team has decided on. If using a different tool is
+acceptable, it does not belong in `toolReferences`.
 
 ## Step 3: Define disciplines
 
