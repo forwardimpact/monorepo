@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
@@ -158,7 +158,7 @@ async function main() {
 
 // Run main only when invoked as a CLI. Importing for tests (e.g. parity)
 // should not execute the entry point.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === `file://${realpathSync(process.argv[1])}`) {
   main().catch((error) => {
     logger.exception("main", error);
     cli.error(error.message);
