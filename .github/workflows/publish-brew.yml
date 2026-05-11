@@ -14,6 +14,9 @@ on:
       - "summit@v*"
       - "gear@v*"
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: macos-14
@@ -137,6 +140,9 @@ jobs:
   tap-pr:
     needs: build
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
 
     steps:
       - name: Extract bundle and version from tag

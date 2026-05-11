@@ -4,6 +4,9 @@ on:
   push:
     tags: ["outpost@v*"]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: macos-latest
