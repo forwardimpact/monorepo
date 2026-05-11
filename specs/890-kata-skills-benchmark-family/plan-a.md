@@ -19,32 +19,22 @@ artefact. Concurrency is keyed on `github.ref` with `cancel-in-progress`.
 
 Libraries used: `@forwardimpact/libeval` (`fit-benchmark` CLI — `run`, `report`).
 
-**Executable-bit convention.** Three new shell scripts ship in this plan —
-`scripts/stage-family.sh` (Step 3), `tasks/.../workdir/scripts/preflight.sh`
-(Step 4), and `tasks/.../scoring/run.sh` (Step 5). Run `chmod +x` on each
-after creation and *before* `git add`; Git preserves only the mode that
-exists at staging time. The workflow runner (`ubuntu-latest`) ships `jq`
-in its default image — no install step needed.
-
-## Plan-level decisions (design left open)
-
-Three choices the design intentionally left open; the rest of the plan
-flows directly from design 890-a.
-
-| # | Decision | Rejected |
-|---|---|---|
-| P1 | Agent output path is `$WORKDIR/spec.md`; inputs at `$WORKDIR/specs/brief.md` and `$WORKDIR/specs/jtbd-excerpt.md`. | Numbered output path inside `specs/` collides with the brief. |
-| P2 | v1 brief: spec a `--filter-tools` flag for `fit-trace overview`. | Generic "spec something" prompt — rubric needs a concrete target to grade. |
-| P3 | Rubric is POSIX `/bin/sh` with `awk`/`grep`/`sed`. | Node/Python rubric — no interpreter assumption; matches fixture-family scoring scripts. |
-
 ## Step 1 — Catalog scaffolding
 
 Intent: establish the top-level `benchmarks/` directory with the catalog
-README and the fixture-safety sentinel.
+README and the fixture-safety sentinel; wire the path-predicate exclusion
+into the monorepo's existing fixture-discovery commands.
 
 **Created:**
 - `benchmarks/README.md`
 - `benchmarks/.benchmark-fixture` (empty)
+
+**Modified:**
+- `CLAUDE.md` — the three `rg` discovery commands listed under § Jobs and
+  Checklists must each gain `--glob '!benchmarks/**'`. Without this, the
+  fixture `<job>` block inside the task's `jtbd-excerpt.md` would be picked
+  up by the canonical discovery commands and the spec's machine-skippability
+  success criterion would not hold.
 
 Change:
 
@@ -234,7 +224,12 @@ for identical inputs).
 ## Step 4 — v1 task scaffolding
 
 Intent: ship the single v1 task with all checked-in inputs the agent needs
-plus the no-op preflight.
+plus the no-op preflight. The agent's output path is the fixed
+`$WORKDIR/spec.md`; inputs land at `$WORKDIR/specs/brief.md` and
+`$WORKDIR/specs/jtbd-excerpt.md` via the substrate's `specs/ → cwd/specs/`
+copy. The brief targets a specific named feature — a `--filter-tools` flag
+for `fit-trace overview` — so the structural rubric has a concrete subject
+to grade.
 
 **Created:**
 - `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/instructions.md`
@@ -282,7 +277,9 @@ and `grep -q '{{AGENT_TRACE_PATH}}' …/judge.task.md`;
 ## Step 5 — Scoring rubric
 
 Intent: grade the agent's emitted `$WORKDIR/spec.md` against the kata-spec
-DO-CONFIRM bar using POSIX shell only.
+DO-CONFIRM bar. The rubric runs as POSIX `/bin/sh` with `awk`/`grep`/`sed`
+only — no language runtime dependency, matching the existing fixture-family
+scoring scripts under `libraries/libeval/test/fixtures/benchmark-family/`.
 
 **Created:** `benchmarks/kata-skills/tasks/kata-spec/write-feature-spec/scoring/run.sh` (executable).
 
@@ -449,9 +446,15 @@ is `true`. The `Stage family` step branches on `github.event_name`. The
 Intent: prove the family loads and grades end-to-end on the developer's
 machine before opening the PR; run formatting and check gates.
 
-**Modified:** none (verification only). The catalog/family READMEs and
-the new workflow file may surface in `bun run context:fix`; commit any
-diff produced.
+**Preconditions:** `ANTHROPIC_API_KEY` must be set in the shell — the
+benchmark invokes a live model and will error otherwise. Run on Linux
+or macOS; the staging script and rubric are POSIX shell.
+
+**Modified by `bun run context:fix`:** the codegen step may regenerate
+catalog rows in `libraries/README.md` and other auto-managed files (the
+canonical list of touched paths is whatever `context:fix` reports). Stage
+and commit only the rows that reference the new `benchmarks/` tree;
+revert unrelated diffs.
 
 Run, from the repo root:
 
@@ -474,22 +477,15 @@ with `pass@1`. Quality gates exit `0`.
 
 ## Risks
 
-The risks below are items the implementer cannot see from the plan steps.
-
 1. **Haiku may not pass the strict rubric.** v1 pins
    `claude-haiku-4-5-20251001` for cost. The structural rubric is six
    checks all of which must pass; the design's literal `no-how-leak`
-   regex fires on any `*.js:NN` substring and any `function NAME(`
-   sequence in the spec body. If Haiku regularly emits substrate file
-   citations or function-named prose, pass@5 is 0. v1 surfaces that as
-   the first signal — adjusting the rubric or the model is a follow-up
-   per spec § Out of scope.
-2. **JTBD persona+job string drift.** `cites-jtbd` requires the agent to
-   emit the colon-joined `<persona>: <job>` string verbatim. If `JTBD.md`
-   is regenerated with even a single-character change inside
-   `<job user="…" goal="…">`, the fixture excerpt in Step 4 drifts out of
-   sync and the rubric flips. Mitigation: a pre-commit hook on `JTBD.md`
-   could re-sync the excerpt; out of scope for v1 plan.
+   regex fires on any `*.{js,ts,sh,py,yml,yaml}:NN` substring and any
+   `function NAME(` sequence. If Haiku regularly emits substrate file
+   citations or function-named prose when explaining its spec, pass@5 is
+   0. The model-behaviour-vs-rubric calibration is not observable from
+   reading the rubric alone — v1 surfaces it empirically, and adjusting
+   the rubric or the model is a follow-up per spec § Out of scope.
 
 ## Execution recommendation
 
