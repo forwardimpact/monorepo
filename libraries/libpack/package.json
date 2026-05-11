@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libpack",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pack distribution — tarballs, bare git repos, and skill discovery indices",
   "keywords": [
     "pack",
