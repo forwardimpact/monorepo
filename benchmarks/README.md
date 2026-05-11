@@ -46,10 +46,11 @@ is the only mechanism that touches the staged tree.
 Every file checked into `benchmarks/` is unambiguously machine-skippable as a
 fixture without parsing its body. Two independent mechanisms apply:
 
-1. **Path predicate** — `benchmarks/**` is the primary marker. Downstream
-   crawlers exclude this prefix with `--glob '!benchmarks/**'`. The canonical
-   monorepo discovery commands in [`CLAUDE.md`](../CLAUDE.md) § Jobs and
-   Checklists already carry this exclusion.
+1. **Path predicate** — `benchmarks/**` is the primary marker. The repo-root
+   [`.rgignore`](../.rgignore) excludes the prefix from every `rg` invocation,
+   so the canonical monorepo discovery commands in [`CLAUDE.md`](../CLAUDE.md)
+   § Jobs and Checklists pick up the exclusion implicitly. Other crawlers can
+   apply the same predicate via `--glob '!benchmarks/**'` or equivalent.
 2. **Directory sentinel** — `benchmarks/.benchmark-fixture` is an empty file
    that ancestor-walking tools without monorepo-path awareness detect by
    looking up the directory tree.

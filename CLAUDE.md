@@ -124,12 +124,13 @@ their respective README.md files. Tagged checklists gate pause points. Discover
 both with `rg`:
 
 ```sh
-rg '<job '                  --glob '!benchmarks/**'  # Jobs To Be Done
-rg '<read_do_checklist'     --glob '!benchmarks/**'  # Entry gates — read each item, then do it
-rg '<do_confirm_checklist'  --glob '!benchmarks/**'  # Exit gates — do from memory, then confirm
+rg '<job '                  # Jobs To Be Done
+rg '<read_do_checklist'     # Entry gates — read each item, then do it
+rg '<do_confirm_checklist'  # Exit gates — do from memory, then confirm
 ```
 
-`benchmarks/**` excluded — see [benchmarks/README.md](benchmarks/README.md) § Fixture safety.
+`benchmarks/` is excluded via [`.rgignore`](.rgignore) — see
+[benchmarks/README.md](benchmarks/README.md) § Fixture safety.
 
 **Every contribution** runs [§ READ-DO](CONTRIBUTING.md#read-do) then
 [§ DO-CONFIRM](CONTRIBUTING.md#do-confirm). Domain checklists in
