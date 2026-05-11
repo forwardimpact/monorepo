@@ -1,0 +1,163 @@
+/**
+ * Redactor — replaces secrets in JSON-serialisable values before they reach
+ * the trace artifact. Composes two layers: an env-var value allowlist and a
+ * set of credential-shape regexes. Both run on every primitive string.
+ *
+ * Stateless after construction: `env` is captured once so in-process
+ * `process.env` writes (e.g. agent-runner.js LIBEVAL_SKILL, commands/run.js
+ * LIBEVAL_AGENT_PROFILE) cannot smuggle a value past the redactor.
+ */
+
+export const DEFAULT_ENV_ALLOWLIST = Object.freeze([
+  "ANTHROPIC_API_KEY",
+  "GH_TOKEN",
+  "GITHUB_TOKEN",
+]);
+
+// Anchored prefixes per
+// https://github.blog/security/application-security/behind-githubs-new-authentication-token-formats/
+// Anthropic prefix is heuristic — the env-allowlist layer is the primary
+// defence for Anthropic keys.
+export const DEFAULT_PATTERNS = Object.freeze([
+  { kind: "anthropic", regex: /sk-ant-[A-Za-z0-9_-]{80,}/g },
+  { kind: "gh-pat", regex: /\bghp_[A-Za-z0-9]{36}\b/g },
+  { kind: "gh-installation", regex: /\bghs_[A-Za-z0-9]{36}\b/g },
+  { kind: "gh-oauth", regex: /\bgho_[A-Za-z0-9]{36}\b/g },
+  { kind: "gh-fine-grained", regex: /\bgithub_pat_[A-Za-z0-9_]{82}\b/g },
+]);
+
+const ENV_PLACEHOLDER = (name) => `[REDACTED:env:${name}]`;
+const PATTERN_PLACEHOLDER = (kind) => `[REDACTED:pattern:${kind}]`;
+
+/**
+ * Build a frozen { name → value } snapshot of the requested env vars.
+ * Empty strings are skipped — a leaked empty env var would otherwise
+ * cause every empty string in the trace to be replaced.
+ */
+function snapshotEnv(env, allowlist) {
+  const snap = {};
+  for (const name of allowlist) {
+    const v = env[name];
+    if (typeof v === "string" && v.length > 0) snap[name] = v;
+  }
+  return Object.freeze(snap);
+}
+
+/** Recursively walk and redact a JSON-serialisable value in place-free style. */
+function walk(value, redactString) {
+  if (typeof value === "string") return redactString(value);
+  if (Array.isArray(value)) return value.map((v) => walk(v, redactString));
+  if (value && typeof value === "object") {
+    const out = {};
+    for (const k of Object.keys(value)) out[k] = walk(value[k], redactString);
+    return out;
+  }
+  return value;
+}
+
+/** Stateless secret redactor — composes env-allowlist and pattern layers. */
+export class Redactor {
+  /**
+   * @param {object} deps
+   * @param {Readonly<Record<string, string>>} deps.envSnapshot - Frozen { name → secret } map captured at construction time.
+   * @param {ReadonlyArray<{kind: string, regex: RegExp}>} deps.patterns - Credential-shape regexes; each match becomes `[REDACTED:pattern:KIND]`.
+   * @param {boolean} deps.enabled - When false, `redactValue` returns its input by reference.
+   */
+  constructor({ envSnapshot, patterns, enabled }) {
+    this.envSnapshot = envSnapshot;
+    this.patterns = patterns;
+    this.enabled = enabled;
+  }
+
+  /**
+   * Redact any JSON-serialisable value by deep-walking and replacing secrets
+   * in every primitive string. Identity on the input when disabled.
+   * @param {unknown} value
+   * @returns {unknown}
+   */
+  redactValue(value) {
+    if (!this.enabled) return value;
+    return walk(value, (s) => this.#redactString(s));
+  }
+
+  /**
+   * Apply the env-allowlist and pattern layers to a single string.
+   * @param {string} s
+   * @returns {string}
+   */
+  #redactString(s) {
+    let out = s;
+    for (const [name, secret] of Object.entries(this.envSnapshot)) {
+      if (out.includes(secret)) {
+        out = out.split(secret).join(ENV_PLACEHOLDER(name));
+      }
+    }
+    for (const { kind, regex } of this.patterns) {
+      out = out.replace(regex, PATTERN_PLACEHOLDER(kind));
+    }
+    return out;
+  }
+}
+
+/**
+ * Build a redactor. Reads `LIBEVAL_REDACTION_DISABLED` and
+ * `LIBEVAL_REDACTION_ENV_VARS` from the supplied env (defaults to
+ * `process.env`). Fires a one-shot stderr warning when constructed
+ * disabled — bypass via `createNoopRedactor()` for silent fixtures.
+ * @param {object} [opts]
+ * @param {Record<string, string|undefined>} [opts.env] - Environment to snapshot. Defaults to `process.env`.
+ * @param {string[]} [opts.allowlist] - Override the env-var name list. Defaults to `DEFAULT_ENV_ALLOWLIST` or the parsed `LIBEVAL_REDACTION_ENV_VARS` value.
+ * @param {ReadonlyArray<{kind: string, regex: RegExp}>} [opts.patterns] - Credential-shape regexes. Defaults to `DEFAULT_PATTERNS`.
+ * @param {boolean} [opts.enabled] - Force enabled/disabled; bypasses `LIBEVAL_REDACTION_DISABLED`.
+ * @returns {Redactor}
+ */
+export function createRedactor({
+  env = process.env,
+  allowlist,
+  patterns = DEFAULT_PATTERNS,
+  enabled,
+} = {}) {
+  const envDisabled = env.LIBEVAL_REDACTION_DISABLED === "1";
+  const resolvedEnabled = enabled ?? !envDisabled;
+  const resolvedAllowlist = allowlist ?? resolveAllowlistFromEnv(env);
+  const envSnapshot = resolvedEnabled
+    ? snapshotEnv(env, resolvedAllowlist)
+    : Object.freeze({});
+  if (!resolvedEnabled) {
+    process.stderr.write(
+      "libeval: trace redaction DISABLED via LIBEVAL_REDACTION_DISABLED — secrets may appear in trace artifact\n",
+    );
+  }
+  return new Redactor({ envSnapshot, patterns, enabled: resolvedEnabled });
+}
+
+/**
+ * Parse `LIBEVAL_REDACTION_ENV_VARS` into a trimmed, non-empty name list.
+ * Falls back to `DEFAULT_ENV_ALLOWLIST` when unset or empty.
+ * @param {Record<string, string|undefined>} env
+ * @returns {string[]}
+ */
+function resolveAllowlistFromEnv(env) {
+  const override = env.LIBEVAL_REDACTION_ENV_VARS;
+  if (typeof override !== "string" || override.length === 0) {
+    return DEFAULT_ENV_ALLOWLIST;
+  }
+  return override
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Build a disabled redactor whose `redactValue` is the identity function.
+ * Test-fixture form — bypasses `createRedactor` so no stderr warning
+ * fires regardless of env state.
+ * @returns {Redactor}
+ */
+export function createNoopRedactor() {
+  return new Redactor({
+    envSnapshot: Object.freeze({}),
+    patterns: [],
+    enabled: false,
+  });
+}

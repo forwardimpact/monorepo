@@ -2,7 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
-import { Facilitator } from "@forwardimpact/libeval";
+import { Facilitator, createFacilitator } from "@forwardimpact/libeval";
 import {
   createOrchestrationContext,
   createConcludeHandler,
@@ -12,8 +12,11 @@ import {
   createAnnounceHandler,
 } from "../src/orchestration-toolkit.js";
 import { MessageBus } from "../src/message-bus.js";
+import { createNoopRedactor } from "../src/redaction.js";
 import { createMockRunner } from "./mock-runner.js";
 import { createToolUseMsg } from "@forwardimpact/libharness";
+
+const noop = () => createNoopRedactor();
 
 const concludeMsg = (summary, verdict = "success") =>
   createToolUseMsg("Conclude", { verdict, summary });
@@ -63,6 +66,7 @@ describe("Facilitator - core orchestration", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
 
     const result = await facilitator.run("Quick task");
@@ -130,6 +134,7 @@ describe("Facilitator - core orchestration", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
 
     const result = await facilitator.run("Test task");
@@ -185,6 +190,7 @@ describe("Facilitator - core orchestration", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
     facilitatorRunner.onLine = (line) =>
       facilitator.emitLine("facilitator", line);
@@ -254,6 +260,7 @@ describe("Facilitator - core orchestration", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
 
     await assert.rejects(() => facilitator.run("Test fail-fast"), {
@@ -321,6 +328,7 @@ describe("Facilitator - messaging", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
 
     await facilitator.run("Coordinate");
@@ -375,6 +383,7 @@ describe("Facilitator - messaging", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
 
     await facilitator.run("Broadcast test");
@@ -402,5 +411,22 @@ describe("Facilitator - messaging", () => {
     assert.strictEqual(parsed.length, 2);
     assert.strictEqual(parsed[0].name, "facilitator");
     assert.strictEqual(parsed[1].name, "agent-1");
+  });
+});
+
+describe("Facilitator - factory required deps", () => {
+  test("createFacilitator throws on missing redactor", () => {
+    assert.throws(
+      () =>
+        createFacilitator({
+          facilitatorCwd: "/tmp/fac",
+          agentConfigs: [
+            { name: "agent-1", role: "worker", cwd: "/tmp/agent" },
+          ],
+          query: async function* () {},
+          output: new PassThrough(),
+        }),
+      /redactor is required/,
+    );
   });
 });

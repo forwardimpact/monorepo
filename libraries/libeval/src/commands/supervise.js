@@ -2,6 +2,7 @@ import { readFileSync, createWriteStream, mkdtempSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { tmpdir } from "node:os";
 import { createSupervisor } from "../supervisor.js";
+import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 
@@ -60,6 +61,11 @@ function parseSuperviseOptions(values) {
 export async function runSuperviseCommand(values, _args) {
   const opts = parseSuperviseOptions(values);
 
+  // Build the redactor as the first observable side-effect after option
+  // parsing — the env snapshot must freeze BEFORE any in-process
+  // process.env writes the command performs (e.g. LIBEVAL_AGENT_PROFILE).
+  const redactor = createRedactor();
+
   // When --output is specified, stream text to stdout while writing NDJSON to file.
   // Otherwise, write NDJSON directly to stdout (backwards-compatible).
   const fileStream = opts.outputPath
@@ -104,6 +110,7 @@ export async function runSuperviseCommand(values, _args) {
     agentProfile: opts.agentProfile,
     taskAmend: opts.taskAmend,
     agentMcpServers,
+    redactor,
   });
 
   const result = await supervisor.run(opts.taskContent);

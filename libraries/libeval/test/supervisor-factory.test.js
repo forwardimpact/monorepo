@@ -8,17 +8,27 @@ import {
   SUPERVISOR_SYSTEM_PROMPT,
   AGENT_SYSTEM_PROMPT,
 } from "@forwardimpact/libeval";
+import { createNoopRedactor } from "../src/redaction.js";
 
 const baseOpts = () => ({
   supervisorCwd: "/tmp/sup",
   agentCwd: "/tmp/agent",
   query: async function* () {},
   output: new PassThrough(),
+  redactor: createNoopRedactor(),
 });
 
 describe("Supervisor - createSupervisor factory", () => {
   test("returns a Supervisor instance", () => {
     assert.ok(createSupervisor(baseOpts()) instanceof Supervisor);
+  });
+
+  test("createSupervisor throws on missing redactor", () => {
+    const { redactor: _omitted, ...withoutRedactor } = baseOpts();
+    assert.throws(
+      () => createSupervisor(withoutRedactor),
+      /redactor is required/,
+    );
   });
 
   test("uses default supervisor tools when none specified", () => {

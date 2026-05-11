@@ -3,10 +3,13 @@ import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
 import { AgentRunner } from "@forwardimpact/libeval";
+import { createNoopRedactor } from "../src/redaction.js";
 import {
   createMockAgentQuery as mockQuery,
   createTextBlockMsg,
 } from "@forwardimpact/libharness";
+
+const noop = () => createNoopRedactor();
 
 const textBlock = (t) => createTextBlockMsg(t);
 
@@ -23,6 +26,7 @@ describe("AgentRunner - onBatch batching", () => {
       cwd: "/tmp",
       query: async function* () {},
       output: new PassThrough(),
+      redactor: noop(),
     });
     assert.strictEqual(runner.batchSize, 3);
   });
@@ -46,6 +50,7 @@ describe("AgentRunner - onBatch batching", () => {
       cwd: "/tmp",
       query: mockQuery(messages),
       output: new PassThrough(),
+      redactor: noop(),
     });
     runner.onBatch = async (lines) => {
       batches.push(lines.map((l) => JSON.parse(l)));
@@ -76,6 +81,7 @@ describe("AgentRunner - onBatch batching", () => {
       query: mockQuery(messages),
       output: new PassThrough(),
       batchSize: 2,
+      redactor: noop(),
     });
     runner.onBatch = async (lines) => {
       batches.push(lines.length);
@@ -103,6 +109,7 @@ describe("AgentRunner - onBatch batching", () => {
       query: mockQuery(messages),
       output: new PassThrough(),
       batchSize: 1,
+      redactor: noop(),
     });
     runner.onBatch = async (lines) => {
       batches.push(lines.map((l) => JSON.parse(l)));
@@ -135,6 +142,7 @@ describe("AgentRunner - onBatch batching", () => {
       query: mockQuery(messages),
       output: new PassThrough(),
       batchSize: 5,
+      redactor: noop(),
     });
     runner.onBatch = async (lines) => {
       batches.push(lines.length);
@@ -163,6 +171,7 @@ describe("AgentRunner - terminal flush on abnormal end", () => {
       cwd: "/tmp",
       query: () => crashingQuery(),
       output: new PassThrough(),
+      redactor: noop(),
     });
     runner.onBatch = async (lines) => {
       batches.push(lines.map((l) => JSON.parse(l)));
@@ -195,6 +204,7 @@ describe("AgentRunner - terminal flush on abnormal end", () => {
       query: () => crashingQuery(),
       output: new PassThrough(),
       batchSize: 2,
+      redactor: noop(),
     });
     runner.onBatch = async (lines) => {
       batches.push(lines.length);
@@ -223,6 +233,7 @@ describe("AgentRunner - terminal flush on abnormal end", () => {
       query: () => noResultQuery(),
       output: new PassThrough(),
       batchSize: 3,
+      redactor: noop(),
     });
     runner.onBatch = async (lines) => {
       batches.push(lines.length);
@@ -247,6 +258,7 @@ describe("AgentRunner - terminal flush on abnormal end", () => {
       query: () => crashingQuery(),
       output: new PassThrough(),
       batchSize: 3,
+      redactor: noop(),
     });
     runner.onBatch = async () => {
       throw new Error("flush failure");

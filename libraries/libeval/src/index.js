@@ -31,3 +31,10 @@ export {
   FACILITATOR_SYSTEM_PROMPT,
   FACILITATED_AGENT_SYSTEM_PROMPT,
 } from "./facilitator.js";
+export {
+  Redactor,
+  createRedactor,
+  createNoopRedactor,
+  DEFAULT_ENV_ALLOWLIST,
+  DEFAULT_PATTERNS,
+} from "./redaction.js";

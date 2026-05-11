@@ -59,7 +59,10 @@ export class Facilitator {
     ctx,
     eventQueue,
     taskAmend,
+    redactor,
   }) {
+    if (!redactor) throw new Error("redactor is required");
+    this.redactor = redactor;
     this.facilitatorRunner = facilitatorRunner;
     this.agents = agents;
     this.messageBus = messageBus;
@@ -327,11 +330,13 @@ export class Facilitator {
   emitLine(source, line) {
     const event = JSON.parse(line);
     this.output.write(
-      JSON.stringify({
-        source,
-        seq: this.counter.next(),
-        event,
-      }) + "\n",
+      JSON.stringify(
+        this.redactor.redactValue({
+          source,
+          seq: this.counter.next(),
+          event,
+        }),
+      ) + "\n",
     );
   }
 
@@ -340,11 +345,13 @@ export class Facilitator {
    */
   emitOrchestratorEvent(event) {
     this.output.write(
-      JSON.stringify({
-        source: "orchestrator",
-        seq: this.counter.next(),
-        event,
-      }) + "\n",
+      JSON.stringify(
+        this.redactor.redactValue({
+          source: "orchestrator",
+          seq: this.counter.next(),
+          event,
+        }),
+      ) + "\n",
     );
   }
 
@@ -353,17 +360,19 @@ export class Facilitator {
    */
   emitSummary(result) {
     this.output.write(
-      JSON.stringify({
-        source: "orchestrator",
-        seq: this.counter.next(),
-        event: {
-          type: "summary",
-          success: result.success,
-          ...(result.verdict && { verdict: result.verdict }),
-          turns: result.turns,
-          ...(result.summary && { summary: result.summary }),
-        },
-      }) + "\n",
+      JSON.stringify(
+        this.redactor.redactValue({
+          source: "orchestrator",
+          seq: this.counter.next(),
+          event: {
+            type: "summary",
+            success: result.success,
+            ...(result.verdict && { verdict: result.verdict }),
+            turns: result.turns,
+            ...(result.summary && { summary: result.summary }),
+          },
+        }),
+      ) + "\n",
     );
   }
 }
@@ -398,7 +407,9 @@ export function createFacilitator({
   facilitatorProfile,
   profilesDir,
   taskAmend,
+  redactor,
 }) {
+  if (!redactor) throw new Error("redactor is required");
   const resolvedProfilesDir =
     profilesDir ?? resolve(facilitatorCwd, ".claude/agents");
   const systemPromptFor = (profile, trailer) => {
@@ -446,6 +457,7 @@ export function createFacilitator({
       mcpServers: { orchestration: agentServer },
       settingSources: ["project"],
       systemPrompt: systemPromptFor(config.agentProfile, agentTrailer),
+      redactor,
     });
 
     return { name: config.name, role: config.role, runner };
@@ -464,6 +476,7 @@ export function createFacilitator({
       facilitatorProfile,
       FACILITATOR_SYSTEM_PROMPT,
     ),
+    redactor,
   });
 
   facilitator = new Facilitator({
@@ -475,6 +488,7 @@ export function createFacilitator({
     ctx,
     eventQueue,
     taskAmend,
+    redactor,
   });
   return facilitator;
 }

@@ -10,8 +10,11 @@ import {
   createAnswerHandler,
 } from "../src/orchestration-toolkit.js";
 import { MessageBus } from "../src/message-bus.js";
+import { createNoopRedactor } from "../src/redaction.js";
 import { createMockRunner } from "./mock-runner.js";
 import { createToolUseMsg } from "@forwardimpact/libharness";
+
+const noop = () => createNoopRedactor();
 
 const concludeMsg = (summary, verdict = "success") =>
   createToolUseMsg("Conclude", { verdict, summary });
@@ -72,6 +75,7 @@ describe("Facilitator - re-Ask recovery", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
 
     const result = await facilitator.run("Test re-Ask recovery");

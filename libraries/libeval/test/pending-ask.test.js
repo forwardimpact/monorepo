@@ -12,8 +12,11 @@ import {
 } from "../src/orchestration-toolkit.js";
 import { isSuppressedOrchestratorEvent } from "../src/render/orchestrator-filter.js";
 import { MessageBus } from "../src/message-bus.js";
+import { createNoopRedactor } from "../src/redaction.js";
 import { createMockRunner } from "./mock-runner.js";
 import { createToolUseMsg } from "@forwardimpact/libharness";
+
+const noop = () => createNoopRedactor();
 
 const askMsg = (to, question) =>
   createToolUseMsg("Ask", { to, question }, { id: `ask-${to}` });
@@ -107,6 +110,7 @@ describe("Pending-ask enforcement — facilitated mode (SC 3)", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
 
     const result = await facilitator.run("Start");
@@ -157,6 +161,7 @@ describe("Pending-ask enforcement — facilitated mode (SC 3)", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
 
     const result = await facilitator.run("Start");
@@ -203,6 +208,7 @@ describe("Pending-ask enforcement — facilitated mode (SC 3)", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
 
     const result = await facilitator.run("Start");
@@ -260,6 +266,7 @@ describe("Pending-ask enforcement — supervised mode (SC 3)", () => {
       maxTurns: 5,
       ctx,
       messageBus,
+      redactor: noop(),
     });
 
     const result = await supervisor.run("Task");
@@ -323,6 +330,7 @@ describe("Pending-ask enforcement — broadcast Ask (SC 3)", () => {
       output,
       maxTurns: 10,
       ctx,
+      redactor: noop(),
     });
 
     const result = await facilitator.run("Start");

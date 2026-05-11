@@ -16,6 +16,7 @@
 import { PassThrough } from "node:stream";
 import { AgentRunner } from "@forwardimpact/libeval";
 import { hasTextBlock } from "../src/agent-runner.js";
+import { createNoopRedactor } from "../src/redaction.js";
 
 async function dispatchTools(toolDispatcher, message) {
   if (!toolDispatcher || message.type !== "assistant") return;
@@ -45,6 +46,7 @@ export function createMockRunner(responses, messages, { toolDispatcher } = {}) {
     cwd: "/tmp",
     query: async function* () {},
     output,
+    redactor: createNoopRedactor(),
   });
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: decomposing this closure breaks abort-callback semantics that pending-ask tests depend on

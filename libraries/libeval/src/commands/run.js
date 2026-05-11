@@ -3,6 +3,7 @@ import { Writable } from "node:stream";
 import { resolve } from "node:path";
 import { createAgentRunner } from "../agent-runner.js";
 import { composeProfilePrompt } from "../profile-prompt.js";
+import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 import { SequenceCounter } from "../sequence-counter.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
@@ -61,6 +62,11 @@ export async function runRunCommand(values, _args) {
     mcpServer,
   } = parseRunOptions(values);
 
+  // Build the redactor as the first observable side-effect after option
+  // parsing — the env snapshot must freeze BEFORE any in-process
+  // process.env writes the command performs (e.g. LIBEVAL_AGENT_PROFILE).
+  const redactor = createRedactor();
+
   // When --output is specified, stream text to stdout while writing NDJSON to file.
   // Otherwise, write NDJSON directly to stdout (backwards-compatible).
   const fileStream = outputPath ? createWriteStream(outputPath) : null;
@@ -76,9 +82,8 @@ export async function runRunCommand(values, _args) {
   });
   const onLine = (line) => {
     const event = JSON.parse(line);
-    output.write(
-      JSON.stringify({ source: "agent", seq: counter.next(), event }) + "\n",
-    );
+    const tagged = { source: "agent", seq: counter.next(), event };
+    output.write(JSON.stringify(redactor.redactValue(tagged)) + "\n");
   };
 
   let mcpServers = null;
@@ -117,6 +122,7 @@ export async function runRunCommand(values, _args) {
     systemPrompt,
     taskAmend,
     mcpServers,
+    redactor,
   });
 
   const result = await runner.run(taskContent);

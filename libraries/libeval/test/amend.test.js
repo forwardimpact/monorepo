@@ -14,8 +14,11 @@ import {
   createConcludeHandler,
 } from "../src/orchestration-toolkit.js";
 import { MessageBus } from "../src/message-bus.js";
+import { createNoopRedactor } from "../src/redaction.js";
 import { createMockRunner } from "./mock-runner.js";
 import { createToolUseMsg } from "@forwardimpact/libharness";
+
+const noop = () => createNoopRedactor();
 
 const concludeMsg = (summary, verdict = "success") =>
   createToolUseMsg("Conclude", { verdict, summary });
@@ -42,6 +45,7 @@ describe("systemPromptAmend delivery (SC 7 a)", () => {
       ],
       query: async function* () {},
       output: devNullStream(),
+      redactor: noop(),
     });
     const append = facilitator.agents[0].runner.systemPrompt.append;
     assert.ok(append.includes(FACILITATED_AGENT_SYSTEM_PROMPT));
@@ -58,6 +62,7 @@ describe("systemPromptAmend delivery (SC 7 a)", () => {
       agentConfigs: [{ name: "agent-1", role: "worker", cwd: "/tmp/agent" }],
       query: async function* () {},
       output: devNullStream(),
+      redactor: noop(),
     });
     assert.strictEqual(
       facilitator.agents[0].runner.systemPrompt.append,
@@ -77,6 +82,7 @@ describe("taskAmend delivery (SC 7 b)", () => {
       },
       output: devNullStream(),
       taskAmend: "<TEST_APPEND>",
+      redactor: noop(),
     });
     await runner.run("base task");
     assert.strictEqual(captured, "base task\n\n<TEST_APPEND>");
@@ -109,6 +115,7 @@ describe("taskAmend delivery (SC 7 b)", () => {
       maxTurns: 10,
       ctx,
       taskAmend: "<TEST_APPEND>",
+      redactor: noop(),
     });
     await facilitator.run("base task");
     assert.strictEqual(capturedTask, "base task\n\n<TEST_APPEND>");
@@ -143,6 +150,7 @@ describe("taskAmend delivery (SC 7 b)", () => {
       ctx,
       messageBus,
       taskAmend: "<TEST_APPEND>",
+      redactor: noop(),
     });
     await supervisor.run("base task");
     assert.strictEqual(capturedTask, "base task\n\n<TEST_APPEND>");
