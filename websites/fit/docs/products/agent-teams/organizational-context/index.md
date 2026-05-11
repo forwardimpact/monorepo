@@ -34,7 +34,7 @@ distinct purpose, and information flows downward -- never upward.
 | ------------------- | ----------------------------- | ---------------------- | --------------------------------------------------------- |
 | Team Instructions   | `.claude/CLAUDE.md`           | Every agent, every run | Platform conventions, environment, architectural decisions |
 | Agent Profile       | `.claude/agents/<name>.md`    | One agent at a time    | Identity, working style, constraints, skill index         |
-| Skills              | `.claude/skills/*/SKILL.md`   | On demand              | Procedural checklists, domain focus, tool references      |
+| Skills              | `.claude/skills/*/SKILL.md`   | On demand              | Procedure, references, and verification checklists        |
 
 The rules for what goes where follow from how these files are loaded:
 
@@ -44,9 +44,9 @@ The rules for what goes where follow from how these files are loaded:
 - **Agent Profile** -- content that distinguishes this agent from others.
   Identity, working style derived from emphasized behaviours, constraints
   specific to the discipline and track.
-- **Skills** -- step-by-step procedures an agent loads when it recognizes a
-  matching situation. Each skill fires independently and should be
-  self-contained within its domain.
+- **Skills** -- each skill folder holds a procedure (sequencing and decisions),
+  references (data the procedure consults), and checklists (entry and exit
+  verification). Each skill fires independently and should be self-contained.
 
 ## Place guidance in the correct layer
 

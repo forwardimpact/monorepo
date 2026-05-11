@@ -153,9 +153,13 @@ To make a skill available to AI coding agents, add an `agent:` section:
         - Code follows project conventions
 ```
 
-Checklist items should be one action per line, starting with a verb. Skills that
-cannot be automated can be marked `isHumanOnly: true`. For the full skill schema,
-see the [YAML Schema Reference](/docs/reference/yaml-schema/).
+`readChecklist` is a read-do entry gate: the agent reads each item then acts on
+it before starting work. `confirmChecklist` is a do-confirm exit gate: the agent
+works from memory, then pauses to confirm each item before proceeding. Aim for
+5--7 items per list. Each item is a single action starting with a verb -- if it
+needs explanation, the `instructions` field is incomplete. Skills that cannot be
+automated can be marked `isHumanOnly: true`. For the full skill schema, see the
+[YAML Schema Reference](/docs/reference/yaml-schema/).
 
 ### Adding instructions to skills
 
@@ -229,8 +233,9 @@ Names must be unique within a skill and match the pattern
           - Corrective actions — owner, due date, tracking link.
 ```
 
-Instructions describe the workflow; references are supporting documents the
-agent consults when that workflow calls for domain-specific knowledge.
+Instructions describe the workflow; references supply the data that workflow
+consults -- templates, examples, and lookup tables. References are declarative
+(what the data is), not procedural (what to do with it).
 
 ### Adding tool references to skills
 
