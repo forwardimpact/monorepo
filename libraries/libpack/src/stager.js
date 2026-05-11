@@ -130,14 +130,14 @@ export class PackStager {
   }
 
   /** Stage the APM git repo layout from a full staging dir.
-   *  APM install expects skills/ and agents/ at the repo root
-   *  (APM handles the target-specific .claude/ wrapping itself).
+   *  Skills live at root; agents live under .apm/agents/ (APM's
+   *  canonical source layout for agent discovery and integration).
    */
   async stageApmGit(fullDir, gitDir, packName, version) {
     const srcSkillsDir = join(fullDir, ".claude", "skills");
     const srcAgentsDir = join(fullDir, ".claude", "agents");
     const destSkillsDir = join(gitDir, "skills");
-    const destAgentsDir = join(gitDir, "agents");
+    const destAgentsDir = join(gitDir, ".apm", "agents");
 
     await mkdir(destSkillsDir, { recursive: true });
     await mkdir(destAgentsDir, { recursive: true });
