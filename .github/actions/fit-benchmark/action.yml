@@ -68,6 +68,21 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Install apm
+      shell: bash
+      run: |
+        if command -v apm &>/dev/null; then
+          echo "apm already available: $(apm --version)"
+        else
+          APM_VERSION="0.12.4"
+          ARCH=$(uname -m)
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          curl -fsSL "https://github.com/microsoft/apm/releases/download/v${APM_VERSION}/apm-${OS}-${ARCH}.tar.gz" \
+            | tar -xz -C /usr/local/bin
+          chmod +x /usr/local/bin/apm
+          echo "Installed apm $(apm --version)"
+        fi
+
     - name: Resolve paths
       id: resolve-paths
       shell: bash
