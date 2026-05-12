@@ -258,18 +258,30 @@ they don't compete.
 
 Only skills representing **end-to-end processes** — those whose output is
 value-bearing on its own, not work-in-progress for a downstream skill — record
-metrics. Each such skill records one or more metrics, each a **count of units
-of work the process produced this run** (issues triaged, PRs merged, findings
-filed, approvals recorded, and so on). Multiple metrics from one producer land
-as multiple rows in `wiki/metrics/{skill}/{YYYY}.csv` —
-one row per metric per run. Pipeline stations and orchestration utilities do
-not record.
+metrics.
 
-The constraint is XmR-driven. Backlog counts and ages can be queried any time
-from `gh`, `git`, or `npm audit` — they're stocks and sawtooth functions, not
-process data, and freezing them into CSV adds noise without signal. Process
-throughput is the only shape that, plotted run-over-run, distinguishes a stable
-process from a special-cause shift.
+Each such skill records one or more metrics, each a **count of units of work
+observed this run** (issues triaged, PRs merged, findings filed, approvals
+recorded, and so on). Metrics fall into two classes: `process-throughput`, the
+units of work the producer skill produced in its own run (one per producer
+skill — unchanged); and `system-health`, events about the loop the producer
+skill observes while producing its own units. A new metric is
+`process-throughput` if it counts units of work the producer skill produced in
+its own run, and `system-health` if it counts events about the loop that the
+producer skill observes while producing its own units; the producer of a new
+`system-health` metric co-locates with an existing producer per
+[`metric-class-guidance.md`](.claude/agents/references/metric-class-guidance.md).
+Multiple metrics from one producer land as multiple rows in
+`wiki/metrics/{skill}/{YYYY}.csv` — one row per metric per run. Pipeline
+stations and orchestration utilities do not record.
+
+The constraint is XmR-driven for both classes. Backlog counts and ages can be
+queried any time from `gh`, `git`, or `npm audit` — they're stocks and sawtooth
+functions, not process data, and freezing them into CSV adds noise without
+signal. `process-throughput` rides the producer's natural run cadence;
+`system-health` rides the producer's natural read of loop state. Plotted
+run-over-run, both classes distinguish a stable process from a special-cause
+shift.
 
 Each measurement is one CSV row appended to
 `wiki/metrics/{skill}/{YYYY}.csv` after the run. The storyboard meeting
