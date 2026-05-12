@@ -1,0 +1,154 @@
+name: FIT Benchmark
+description: Run coding-agent benchmarks via the fit-benchmark CLI — task-family execution, pass@k reporting, and result upload
+
+inputs:
+  family:
+    description: Path or git URL to a task family
+    required: true
+  output:
+    description: Run-output directory (created if missing)
+    required: false
+    default: "benchmark-runs"
+  runs:
+    description: Runs per task (integer >= 1)
+    required: false
+    default: "5"
+  agent-model:
+    description: Claude model for the agent-under-test
+    required: false
+    default: "claude-sonnet-4-6"
+  supervisor-model:
+    description: Claude model for the supervisor
+    required: false
+    default: "claude-opus-4-7"
+  judge-model:
+    description: Claude model for the judge
+    required: false
+    default: "claude-opus-4-7"
+  agent-profile:
+    description: Agent-under-test profile name
+    required: false
+  judge-profile:
+    description: Judge profile name
+    required: false
+  max-turns:
+    description: Agent turn budget (0 = unlimited)
+    required: false
+    default: "50"
+  k:
+    description: Comma-separated k values for pass@k
+    required: false
+    default: "1,3,5"
+  format:
+    description: Report output format (json or text)
+    required: false
+    default: "text"
+  summary:
+    description: Append text report to GITHUB_STEP_SUMMARY after the run
+    required: false
+    default: "true"
+  upload-results:
+    description: Upload results.jsonl as a workflow artifact
+    required: false
+    default: "true"
+  artifact-name:
+    description: Name for the uploaded results artifact
+    required: false
+    default: "benchmark-results"
+  timeout-minutes:
+    description: Maximum minutes the run step may execute before cancellation
+    required: false
+    default: "60"
+
+outputs:
+  results-path:
+    description: Absolute path to results.jsonl
+    value: ${{ steps.resolve-paths.outputs.results-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve paths
+      id: resolve-paths
+      shell: bash
+      env:
+        OUTPUT_DIR: ${{ inputs.output }}
+      run: |
+        mkdir -p "$OUTPUT_DIR"
+        echo "results-path=$(realpath "$OUTPUT_DIR")/results.jsonl" >> "$GITHUB_OUTPUT"
+
+    - name: Run benchmark
+      shell: bash
+      env:
+        FAMILY: ${{ inputs.family }}
+        OUTPUT_DIR: ${{ inputs.output }}
+        RUNS: ${{ inputs.runs }}
+        AGENT_MODEL: ${{ inputs.agent-model }}
+        SUPERVISOR_MODEL: ${{ inputs.supervisor-model }}
+        JUDGE_MODEL: ${{ inputs.judge-model }}
+        AGENT_PROFILE: ${{ inputs.agent-profile }}
+        JUDGE_PROFILE: ${{ inputs.judge-profile }}
+        MAX_TURNS: ${{ inputs.max-turns }}
+        TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
+      run: |
+        # Resolve CLI — prefer local install, fall back to bunx, then npx
+        if command -v fit-benchmark &>/dev/null; then
+          BENCH_CMD="fit-benchmark"
+        elif command -v bunx &>/dev/null; then
+          BENCH_CMD="bunx fit-benchmark"
+        else
+          BENCH_CMD="npx --yes @forwardimpact/libeval fit-benchmark"
+        fi
+
+        args=()
+        args+=("--family=$FAMILY")
+        args+=("--output=$OUTPUT_DIR")
+        args+=("--runs=$RUNS")
+        args+=("--agent-model=$AGENT_MODEL")
+        args+=("--supervisor-model=$SUPERVISOR_MODEL")
+        args+=("--judge-model=$JUDGE_MODEL")
+        args+=("--max-turns=$MAX_TURNS")
+
+        if [ -n "$AGENT_PROFILE" ]; then
+          args+=("--agent-profile=$AGENT_PROFILE")
+        fi
+        if [ -n "$JUDGE_PROFILE" ]; then
+          args+=("--judge-profile=$JUDGE_PROFILE")
+        fi
+
+        timeout "${TIMEOUT_MINUTES}m" $BENCH_CMD run "${args[@]}"
+
+    - name: Report
+      if: always() && inputs.summary == 'true'
+      shell: bash
+      env:
+        OUTPUT_DIR: ${{ inputs.output }}
+        K_VALUES: ${{ inputs.k }}
+        FORMAT: ${{ inputs.format }}
+      run: |
+        if command -v fit-benchmark &>/dev/null; then
+          BENCH_CMD="fit-benchmark"
+        elif command -v bunx &>/dev/null; then
+          BENCH_CMD="bunx fit-benchmark"
+        else
+          BENCH_CMD="npx --yes @forwardimpact/libeval fit-benchmark"
+        fi
+
+        RESULTS="$OUTPUT_DIR/results.jsonl"
+        if [ ! -s "$RESULTS" ]; then
+          echo "::warning::results.jsonl missing or empty — skipping summary"
+          exit 0
+        fi
+
+        $BENCH_CMD report \
+          --input="$OUTPUT_DIR" \
+          --k="$K_VALUES" \
+          --format="$FORMAT" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Upload results
+      if: always() && inputs.upload-results == 'true'
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.output }}/results.jsonl
+        if-no-files-found: warn
