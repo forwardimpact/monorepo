@@ -57,8 +57,8 @@ work across multiple repositories are not affected.
 ## Personas and Job
 
 The hire is **Empowered Engineers** against the *Equip Aligned Agent Teams*
-job ([JTBD.md § Empowered Engineers: Equip Aligned Agent
-Teams](../../JTBD.md)). The Little Hire — "give agents organizational context
+job (see [JTBD.md](../../JTBD.md), under the `<job user="Empowered Engineers"
+goal="Equip Aligned Agent Teams">` entry). The Little Hire — "give agents organizational context
 without bespoke prompts" — names the specific outcome this spec delivers. The
 job's **Trigger** ("an agent's work was rejected because it followed generic
 practices instead of the organization's standards") is what the persona will
@@ -124,7 +124,7 @@ persona.
 | The standard schema admits the organizational context slot. | Test: a populated slot loads through whatever loader the rest of the standard already uses, without errors; an absent slot loads without errors and the generator produces today's behavior. |
 | The slot represents the six concerns named in scope. | Test: a fixture slot populated with repo names, a team handle, a manager handle, adjacent leads with role tags, project names, and escalation paths with trigger conditions and destinations validates clean via `bunx fit-map validate` and renders all six concerns into the section the CLI emits. |
 | `bunx fit-map validate` reports line-attributable errors on malformed slots. | Test: a slot with a missing required field, an unknown field, and a type mismatch each produces a line-attributable error message via `bunx fit-map validate`; a clean slot and an absent slot each produce no errors. |
-| The user-observable outcome of the Little Hire is delivered. | Test: an engineer running `bunx fit-pathway agent <discipline> --track=<track> --output=<dir>` against a standard whose slot they populated with their team's repos, manager, adjacent leads, projects, and escalation paths reads the rendered `.claude/CLAUDE.md` and finds each named fact present in the organizational context section, without having edited the rendered file. |
+| The user-observable outcome of the Little Hire is delivered. | Test: an engineer running `bunx fit-pathway agent <discipline> --track=<track> --output=<dir>` against a standard whose slot they populated finds, via exact substring match in the rendered `.claude/CLAUDE.md` organizational context section, every repo name, the team handle, the manager handle, every adjacent-lead handle (with its role tag), every project name, every escalation trigger, and every escalation destination they wrote in the slot — without having edited the rendered file. |
 | The emitted section is detectable by downstream tooling without parsing. | Test: the section opens with a documented marker (anchor, heading, or fenced block — chosen at design); a string-match on that marker against the rendered `.claude/CLAUDE.md` returns the section, and the marker is documented in the updated `agent-teams/organizational-context/index.md` guide. |
 | Absent slot produces output identical to today. | Test: a fixture `.claude/CLAUDE.md` is captured from `main` immediately before the change for the starter's `software_engineering --track=platform` pair; running the same command after the change against the same starter (with the slot absent) produces a `.claude/CLAUDE.md` byte-identical to the fixture. |
 | The web agent-builder preview renders the same section. | Test: the agent-builder preview page (`products/pathway/src/pages/agent-builder*.js`), with a standard whose slot is populated, renders an organizational context section whose textual content is byte-identical to the corresponding section in the CLI's rendered file (web chrome and styling excluded). |
