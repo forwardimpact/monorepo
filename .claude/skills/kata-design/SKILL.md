@@ -52,8 +52,7 @@ is no commitment to implement, and a design has nothing to shape.
 - [ ] Mermaid diagrams used where they clarify structure.
 - [ ] Stays within spec scope and at the architectural level — no scope
       expansion; names components, classes, interfaces, and data structures but
-      not file-level changes, execution ordering, or implementation steps (those
-      belong in the plan).
+      not file-level changes, execution ordering, or implementation steps.
 - [ ] Under 200 lines total.
 - [ ] Clean sub-agent review panel of `design-a.md` via
       [`kata-review`](../kata-review/SKILL.md) completed (fresh context, no
@@ -61,40 +60,25 @@ is no commitment to implement, and a design has nothing to shape.
       **high**, and **medium** finding addressed.
 - [ ] Run `bun run format:fix` before pushing — commit any changes the formatter
       makes.
-- [ ] Grep `design-a.md` against breaking renames on `main` since branch
-      divergence —
+- [ ] Grep `design-a.md` against breaking renames since branch divergence —
       `git log origin/main --since '14 days ago' --grep '^feat!:\|^fix!:'`
-      enumerates breaking commits; for each, grep `design-a.md` for the renamed
-      identifier and update before push.
+      enumerates them; grep for each renamed identifier and update before push.
 - [ ] After push, verify the design landed on origin —
       `git ls-tree origin/<branch> -- specs/<NNN-slug>/design-a.md` returns a
-      blob. Empty output means the push did not persist (phantom write); re-push
-      and re-verify before signaling approval.
+      blob. Empty output means a phantom write; re-push and re-verify before
+      signaling approval.
 
 </do_confirm_checklist>
 
 ## Naming Convention
 
-Designs live alongside their spec in `specs/{NNN}-{name}/`.
-
-### Default design
-
-The first (and usually only) design is always **`design-a.md`**. Do not use
-`design.md` or other shorthands — the letter suffix keeps naming consistent
-whether one design or several exist.
-
-### Alternative designs
+Designs live alongside their spec in `specs/{NNN}-{name}/`. The first (and
+usually only) design is always **`design-a.md`** — the letter suffix keeps
+naming consistent whether one design or several exist.
 
 When exploring competing architectural approaches for the same spec, create
-additional variants using sequential letters:
-
-```
-design-a.md    ← default (always created first)
-design-b.md    ← alternative approach
-design-c.md    ← another alternative
-```
-
-Each variant should open with a brief rationale explaining how it differs from
+additional variants using sequential letters (`design-b.md`, `design-c.md`,
+…). Each variant opens with a brief rationale explaining how it differs from
 design-a. When the design is approved, **design-a is the design that will be
 planned** unless the approver explicitly selects a different variant.
 
@@ -195,7 +179,6 @@ Append to the current week's log (see agent profile for the file path):
 - **Design decisions** — Key architectural choices and why (so the planner has
   context)
 - **Deferred specs** — Specs skipped and why (not approved, missing info, etc.)
-
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
   per `references/metrics.md`. See KATA.md § Metrics for the
   recording-eligibility rule.
