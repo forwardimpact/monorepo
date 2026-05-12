@@ -31,10 +31,10 @@ describe("loadTaskFamily", () => {
       "repo-state",
     ]);
     for (const t of tasks) {
-      assert.ok(t.paths.instructions.endsWith("instructions.md"));
+      assert.ok(t.paths.instructions.endsWith("agent.task.md"));
       assert.ok(t.paths.judge.endsWith("judge.task.md"));
       assert.ok(t.paths.supervisor.endsWith("supervisor.task.md"));
-      assert.ok(t.paths.scoring.endsWith("scoring"));
+      assert.ok(t.paths.hooks.endsWith("hooks"));
       assert.ok(t.paths.workdir.endsWith("workdir"));
     }
   });

@@ -364,7 +364,7 @@ async function writeRecord(stream, record) {
  * is missing or non-executable, before any agent session starts."
  */
 async function assertPreflightExecutable(task) {
-  const path = join(task.paths.workdir, "scripts", "preflight.sh");
+  const path = join(task.paths.hooks, "preflight.sh");
   try {
     await access(path, constants.X_OK);
   } catch (e) {

@@ -11,9 +11,8 @@ import { spawn } from "node:child_process";
 import { cp, mkdir } from "node:fs/promises";
 import { createServer } from "node:net";
 import { connect } from "node:net";
-import { join, sep } from "node:path";
+import { join } from "node:path";
 
-const PREFLIGHT_REL = join("workdir", "scripts");
 const DEFAULT_TERM_GRACE_MS = 5_000;
 
 /**
@@ -56,10 +55,7 @@ export class WorkdirManager {
     const cwd = join(runDir, "cwd");
     await mkdir(cwd, { recursive: true });
 
-    await cp(task.paths.workdir, cwd, {
-      recursive: true,
-      filter: (src) => !src.endsWith(sep + PREFLIGHT_REL),
-    });
+    await cp(task.paths.workdir, cwd, { recursive: true });
     await cp(task.paths.specs, join(cwd, "specs"), {
       recursive: true,
     }).catch((e) => {
@@ -74,7 +70,7 @@ export class WorkdirManager {
     const supervisorTracePath = join(runDir, "supervisor.ndjson");
     const judgeTracePath = join(runDir, "judge.ndjson");
 
-    const preflightScript = join(task.paths.workdir, "scripts", "preflight.sh");
+    const preflightScript = join(task.paths.hooks, "preflight.sh");
     const preflight = await runPreflight(preflightScript, cwd, port);
 
     return {

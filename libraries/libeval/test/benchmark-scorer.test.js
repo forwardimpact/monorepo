@@ -6,11 +6,11 @@ import { join } from "node:path";
 
 import { runScoring } from "../src/benchmark/scorer.js";
 
-async function buildStubTask(runShContent) {
+async function buildStubTask(scoreShContent) {
   const root = await mkdtemp(join(tmpdir(), "benchmark-scorer-"));
-  await mkdir(join(root, "scoring"), { recursive: true });
-  await writeFile(join(root, "scoring", "run.sh"), runShContent);
-  await chmod(join(root, "scoring", "run.sh"), 0o755);
+  await mkdir(join(root, "hooks"), { recursive: true });
+  await writeFile(join(root, "hooks", "score.sh"), scoreShContent);
+  await chmod(join(root, "hooks", "score.sh"), 0o755);
   const runDir = await mkdtemp(join(tmpdir(), "benchmark-scorer-run-"));
   const cwd = join(runDir, "cwd");
   await mkdir(cwd, { recursive: true });
@@ -21,9 +21,9 @@ async function buildStubTask(runShContent) {
         instructions: "",
         supervisor: "",
         judge: "",
+        hooks: join(root, "hooks"),
         specs: "",
         workdir: "",
-        scoring: join(root, "scoring"),
       },
     },
     ctx: { cwd, port: 0, runDir },

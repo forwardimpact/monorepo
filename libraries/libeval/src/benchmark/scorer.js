@@ -1,10 +1,7 @@
 /**
- * Scorer — runs `<task.paths.scoring>/run.sh` from the template path against
+ * Scorer — runs `<task.paths.hooks>/score.sh` from the template path against
  * the post-run agent CWD. The exit code is authoritative for the verdict;
  * structured per-test rows arrive on fd 3 (`$RESULTS_FD=3`) as NDJSON.
- *
- * Scoring scripts are never copied into the agent CWD — they live only in the
- * task template (design Decision 3).
  */
 
 import { spawn } from "node:child_process";
@@ -32,7 +29,7 @@ import { join } from "node:path";
  */
 export function runScoring(task, ctx) {
   return new Promise((res, rej) => {
-    const script = join(task.paths.scoring, "run.sh");
+    const script = join(task.paths.hooks, "score.sh");
     const stderrLog = createWriteStream(join(ctx.runDir, "scoring.stderr.log"));
 
     // Bun's child_process pipe setup for fd >= 3 is racy under load (it

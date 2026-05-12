@@ -4,13 +4,14 @@
  *     apm.lock.yaml
  *     .claude/                # pre-staged skills + agents (P1)
  *     tasks/<task_name>/
- *       instructions.md
+ *       agent.task.md
  *       supervisor.task.md    # preserved for v2; not read in v1
  *       judge.task.md
+ *       hooks/                # harness-only; never copied to agent CWD
+ *         preflight.sh
+ *         score.sh
  *       specs/                # copied into agent CWD
- *       workdir/              # copied into agent CWD (excludes scripts/)
- *         scripts/preflight.sh
- *       scoring/              # template-only; never copied
+ *       workdir/              # copied into agent CWD
  *
  * Local paths or git URLs are both accepted; git URLs are shallow-cloned into
  * a temp dir and `familyRevision` becomes `git:<sha>` of HEAD at clone time.
@@ -105,12 +106,12 @@ async function discoverTasks(rootPath) {
     tasks.push({
       id: entry.name,
       paths: {
-        instructions: join(taskDir, "instructions.md"),
+        instructions: join(taskDir, "agent.task.md"),
         supervisor: join(taskDir, "supervisor.task.md"),
         judge: join(taskDir, "judge.task.md"),
+        hooks: join(taskDir, "hooks"),
         specs: join(taskDir, "specs"),
         workdir: join(taskDir, "workdir"),
-        scoring: join(taskDir, "scoring"),
       },
     });
   }
@@ -212,7 +213,7 @@ function run(cmd, args) {
 /**
  * @typedef {object} Task
  * @property {string} id - Task name (directory name under tasks/)
- * @property {{instructions: string, supervisor: string, judge: string, specs: string, workdir: string, scoring: string}} paths
+ * @property {{instructions: string, supervisor: string, judge: string, hooks: string, specs: string, workdir: string}} paths
  */
 
 /**

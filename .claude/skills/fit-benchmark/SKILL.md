@@ -35,14 +35,14 @@ under test:
   apm.lock.yaml          # skill-set manifest (hashed into skillSetHash)
   .claude/               # pre-staged skills + agent profiles
   tasks/<task-name>/
-    instructions.md       # agent prompt
+    agent.task.md         # agent prompt
     supervisor.task.md    # reserved (v1 doesn't read it)
     judge.task.md         # judge prompt (see § Judge Template Variables)
+    hooks/                # harness-only — never copied to agent CWD
+      preflight.sh        # smoke probe; exit 0 confirms scaffold
+      score.sh            # fd 3 = $RESULTS_FD for structured rows
     specs/                # copied into agent CWD
-    workdir/              # copied into agent CWD (excludes scripts/)
-      scripts/preflight.sh  # smoke probe; exit 0 confirms scaffold
-    scoring/              # template-only — never copied to agent CWD
-      run.sh              # fd 3 = $RESULTS_FD for structured rows
+    workdir/              # copied into agent CWD
 ```
 
 Task IDs are directory names under `tasks/` (e.g. `write-feature-spec`).
@@ -56,11 +56,11 @@ for local paths (canonical-tree hash over the file contents).
 For each `(task, runIndex)` the harness drives:
 
 1. **Setup** — copy `workdir/`, `specs/`, and the staged `.claude/` into a
-   fresh per-task CWD. Allocate a free TCP port. Run `preflight.sh`.
-2. **Agent** — run the coding agent on `instructions.md` with a fixed
+   fresh per-task CWD. Allocate a free TCP port. Run `hooks/preflight.sh`.
+2. **Agent** — run the coding agent on `agent.task.md` with a fixed
    default tool allow-list (`Bash`, `Read`, `Glob`, `Grep`, `Write`,
    `Edit`).
-3. **Score** — run `scoring/run.sh` from the template path. The exit
+3. **Score** — run `hooks/score.sh` from the template path. The exit
    code is authoritative for the verdict; fd 3 (`$RESULTS_FD=3`)
    carries optional NDJSON rows for diagnostic per-test details.
 4. **Judge** — a separate session reads the scoring outcome and the
@@ -103,7 +103,7 @@ The `judge.task.md` template supports these variables:
 
 | Variable | Source |
 | --- | --- |
-| `{{AGENT_INSTRUCTIONS}}` | Contents of `instructions.md` |
+| `{{AGENT_INSTRUCTIONS}}` | Contents of `agent.task.md` |
 | `{{AGENT_PROFILE}}` | Agent profile body (empty string if none) |
 | `{{AGENT_TRACE_PATH}}` | Path to `agent.ndjson` |
 | `{{SCORING_RESULT}}` | JSON scoring object (verdict, details, exitCode) |
@@ -115,7 +115,7 @@ The `judge.task.md` template supports these variables:
 
 ## Grading Surfaces
 
-`scoring/run.sh` decides "pass" or "fail" using any of three surfaces:
+`hooks/score.sh` decides "pass" or "fail" using any of three surfaces:
 
 | Surface | Example |
 | --- | --- |
@@ -123,7 +123,7 @@ The `judge.task.md` template supports these variables:
 | **Repository state** | Assert the SHA-256 of `$WORKDIR/result.txt`. |
 | **Process exit** | Run a command in `$WORKDIR` and treat exit-zero as pass. |
 
-The exit code of `run.sh` is the verdict. Rows written to `fd 3` (i.e.
+The exit code of `score.sh` is the verdict. Rows written to `fd 3` (i.e.
 `$RESULTS_FD`) are surfaced on the result record as `scoring.details[]`
 for diagnostic breakdowns.
 

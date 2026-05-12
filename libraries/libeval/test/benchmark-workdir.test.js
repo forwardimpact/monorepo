@@ -28,7 +28,7 @@ async function setupManager() {
 }
 
 describe("WorkdirManager.start", () => {
-  test("seeds the agent CWD with workdir + specs + staged .claude/ but never scoring/", async () => {
+  test("seeds the agent CWD with workdir + specs + staged .claude/ but never hooks/", async () => {
     const { family, wm } = await setupManager();
     const task = family.tasks().find((t) => t.id === "pass");
     const wd = await wm.start(task, 0);
@@ -54,16 +54,10 @@ describe("WorkdirManager.start", () => {
         ),
       ),
     );
-    // scoring/ MUST NOT exist in the agent CWD
+    // hooks/ MUST NOT exist in the agent CWD
     await assert.rejects(
       import("node:fs").then((m) =>
-        m.promises.access(join(wd.cwd, "scoring", "run.sh")),
-      ),
-    );
-    // scripts/ is excluded from the copy too — preflight lives in the template
-    await assert.rejects(
-      import("node:fs").then((m) =>
-        m.promises.access(join(wd.cwd, "scripts", "preflight.sh")),
+        m.promises.access(join(wd.cwd, "hooks", "score.sh")),
       ),
     );
     await wm.teardown(wd);
@@ -94,9 +88,9 @@ describe("WorkdirManager.teardown", () => {
       termGraceMs: 200,
     });
     const taskRoot = await mkdtemp(join(tmpdir(), "benchmark-listener-task-"));
-    await mkdir(join(taskRoot, "workdir", "scripts"), { recursive: true });
+    await mkdir(join(taskRoot, "hooks"), { recursive: true });
+    await mkdir(join(taskRoot, "workdir"), { recursive: true });
     await mkdir(join(taskRoot, "specs"), { recursive: true });
-    await mkdir(join(taskRoot, "scoring"), { recursive: true });
     const listener = `#!/usr/bin/env node
 const http = require("node:http");
 const server = http.createServer((_, res) => {
@@ -114,24 +108,21 @@ node "$WORKDIR/listener.js" >/dev/null 2>&1 &
 sleep 0.2
 exit 0
 `;
-    await writeFile(
-      join(taskRoot, "workdir", "scripts", "preflight.sh"),
-      preflight,
-    );
-    await chmod(join(taskRoot, "workdir", "scripts", "preflight.sh"), 0o755);
-    await writeFile(join(taskRoot, "instructions.md"), "x");
+    await writeFile(join(taskRoot, "hooks", "preflight.sh"), preflight);
+    await chmod(join(taskRoot, "hooks", "preflight.sh"), 0o755);
+    await writeFile(join(taskRoot, "agent.task.md"), "x");
     await writeFile(join(taskRoot, "supervisor.task.md"), "x");
     await writeFile(join(taskRoot, "judge.task.md"), "x");
 
     const task = {
       id: "listener",
       paths: {
-        instructions: join(taskRoot, "instructions.md"),
+        instructions: join(taskRoot, "agent.task.md"),
         supervisor: join(taskRoot, "supervisor.task.md"),
         judge: join(taskRoot, "judge.task.md"),
+        hooks: join(taskRoot, "hooks"),
         specs: join(taskRoot, "specs"),
         workdir: join(taskRoot, "workdir"),
-        scoring: join(taskRoot, "scoring"),
       },
     };
 

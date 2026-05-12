@@ -6,7 +6,7 @@
  *
  * Template variables available in `judge.task.md`:
  *
- *   {{AGENT_INSTRUCTIONS}}  — contents of instructions.md
+ *   {{AGENT_INSTRUCTIONS}}  — contents of agent.task.md
  *   {{AGENT_PROFILE}}       — agent profile body (empty string if none)
  *   {{AGENT_TRACE_PATH}}    — path to agent.ndjson
  *   {{SCORING_RESULT}}      — JSON scoring object
@@ -37,7 +37,7 @@ import { createRedactor } from "../redaction.js";
 
 /**
  * @typedef {object} JudgeContext
- * @property {string} agentInstructions - Contents of instructions.md.
+ * @property {string} agentInstructions - Contents of agent.task.md.
  * @property {string} agentProfile - Agent profile body (empty string if none).
  * @property {string} skillSetHash - SHA-256 fingerprint from apm.lock.yaml.
  */

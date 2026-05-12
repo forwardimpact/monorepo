@@ -32,21 +32,24 @@ my-coding-family/
     skills/...
     agents/judge.md
   tasks/todo-api/
-    instructions.md                      # what the agent should build
+    agent.task.md                        # what the agent should build
     judge.task.md                        # judge prompt (see § judge.task.md)
     supervisor.task.md                   # reserved (v1 doesn't read it)
+    hooks/                               # harness-only — never copied to agent CWD
+      preflight.sh                       # smoke probe; exit 0 confirms scaffold
+      score.sh                           # hidden grader; fd 3 = $RESULTS_FD
     specs/                               # copied into the agent CWD
-    workdir/                             # copied into the agent CWD (excludes scripts/)
-      scripts/preflight.sh               # smoke probe; exit 0 confirms scaffold
-    scoring/                             # NEVER copied; hidden from the agent
-      run.sh                             # fd 3 (= $RESULTS_FD) carries optional details
+    workdir/                             # copied into the agent CWD
 ```
 
-Task IDs are directory names under `tasks/` (e.g. `todo-api`). The hidden
-`scoring/` directory lives only in the template — `WorkdirManager` never
-copies it, which is the structural guarantee that the agent cannot peek.
+Task IDs are directory names under `tasks/` (e.g. `todo-api`). The directory
+splits into what the agent sees (`workdir/`, `specs/`, `.claude/`) and what the
+harness keeps hidden (`hooks/`). The agent never receives the scoring script —
+that is the structural guarantee it cannot peek at the tests.
 
-### `instructions.md`
+### What the agent sees
+
+#### `agent.task.md`
 
 Plain markdown — the prompt the agent receives.
 
@@ -56,36 +59,45 @@ exposed via the environment variable `PORT`. Respond to `GET /todos`
 with a JSON array of TODO objects.
 ```
 
-### `workdir/`
+#### `workdir/`
 
 Whatever scaffolding the agent should start with: a `package.json`, a
-README, sample data — anything checked in here ends up in the per-task
-CWD. The `scripts/` subdirectory is **not** copied; it is the home of
-`preflight.sh`.
+README, sample data — everything here is copied into the per-task CWD.
 
-### `workdir/scripts/preflight.sh`
+### What the harness controls — `hooks/`
 
-A smoke probe the harness runs before the agent starts. It receives:
+The `hooks/` directory holds lifecycle scripts the harness runs at
+specific phases. Both scripts receive `$WORKDIR` (the per-task agent
+CWD) and `$PORT` (a pre-allocated free TCP port) as environment
+variables. Neither is ever copied to the agent's working directory.
 
-- `$WORKDIR` — the per-task agent CWD (already populated with `workdir/`
-  + `specs/` + the staged `.claude/`).
-- `$PORT` — a free TCP port the harness allocated.
+#### `hooks/preflight.sh`
 
-Exit `0` means "scaffold is healthy, hand off to the agent." A non-zero
-exit short-circuits the run and produces a `preflightError` result
-record (cost zero, no agent invoked). Tasks that need no probe can
-`exit 0` immediately. The harness fails the family at install time if
-any task is missing this script or it is not executable.
+Runs before the agent starts. Exit `0` means "scaffold is healthy, hand
+off to the agent." A non-zero exit short-circuits the run and produces a
+`preflightError` result record (cost zero, no agent invoked). Tasks that
+need no probe can `exit 0` immediately. The harness fails the family at
+install time if any task is missing this script or it is not executable.
 
-### `scoring/run.sh`
+A preflight that starts a background service for the scoring probe to
+test against:
 
-The hidden grader. Lives only in the family template — never copied to
-the agent's CWD. The harness invokes it from the template path with:
+```sh
+#!/bin/sh
+node "$WORKDIR/app.js" >/dev/null 2>&1 &
+sleep 0.2
+exit 0
+```
 
-- `$WORKDIR` — the post-run agent CWD.
-- `$PORT` — the same port `preflight.sh` saw.
-- `$RESULTS_FD=3` — a parent-readable file descriptor for structured
-  per-test rows.
+The harness spawns the preflight in its own process group and tears down
+the entire group (SIGTERM, grace period, SIGKILL) after scoring
+completes — background processes do not leak across runs.
+
+#### `hooks/score.sh`
+
+Runs after the agent finishes. In addition to `$WORKDIR` and `$PORT`,
+it receives `$RESULTS_FD=3` — a file descriptor for structured per-test
+rows.
 
 The **exit code is authoritative**: `0` is pass, anything else is fail.
 Rows written to fd 3 are stored on the result record's `scoring.details`
@@ -128,14 +140,14 @@ const fd = Number(process.env.RESULTS_FD);
 fs.writeSync(fd, JSON.stringify({ test: "t1", pass: true }) + "\n");
 ```
 
-### `judge.task.md`
+### What the judge uses — `judge.task.md`
 
 The post-hoc judge's prompt. The harness substitutes these template
 variables before sending the prompt to the judge:
 
 | Variable | Description |
 | --- | --- |
-| `{{AGENT_INSTRUCTIONS}}` | Contents of `instructions.md` |
+| `{{AGENT_INSTRUCTIONS}}` | Contents of `agent.task.md` |
 | `{{AGENT_PROFILE}}` | Agent profile body (empty string if none) |
 | `{{AGENT_TRACE_PATH}}` | Absolute path to `agent.ndjson` |
 | `{{SCORING_RESULT}}` | JSON scoring object (verdict, details, exitCode) |
@@ -168,7 +180,7 @@ The judge is a separate session — not the live supervisor. Mixing the
 "help the agent finish" incentive with the "grade fairly" incentive is
 what the design avoids.
 
-### `.claude/` and `apm.lock.yaml`
+### What identifies the skill set — `.claude/` and `apm.lock.yaml`
 
 The pre-staged `.claude/` tree carries the skills and agent profiles the
 agent will see. `apm.lock.yaml` is the **manifest under test** — the
@@ -221,7 +233,7 @@ npx fit-benchmark score \
   --output=score.jsonl
 ```
 
-Useful when iterating on a `scoring/run.sh` script: re-grade an existing
+Useful when iterating on a `hooks/score.sh` script: re-grade an existing
 post-run workdir without burning agent cost.
 
 ## Aggregate Into pass@k
