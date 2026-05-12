@@ -52,7 +52,7 @@ surface.
 | `bunx fit-pathway skill --list` | One skill id per line |
 | Each entity command's default summary footer | The hint advertising what `--list` produces says "ids" — it no longer advertises titles or other descriptive columns |
 | Published example output in the Career Paths guide | Matches the new `--list` shape (id-only) |
-| Any other published guide showing the multi-column `--list` example | Aligned to the new shape |
+| Other published guides with multi-column `--list` example blocks — notably the Define Role authoring guide (which shows discipline and track examples) and any other guide returned by the discovery `rg` invocation below | Aligned to the new shape |
 | Released CHANGELOG entry | Calls out the breaking change to scraped `--list` output |
 
 ### Out of scope
@@ -75,8 +75,12 @@ surface.
 ### Backward compatibility
 
 This is a deliberate behaviour change to a published CLI surface. The
-compatibility risk is external callers that scrape the multi-column output;
-none exist in this repo. The internal search the triage relied on:
+compatibility risk is **external scrapers of the human-facing CLI output** —
+shell scripts, agents, or downstream tooling that capture the comma-separated
+shape. Programmatic in-repo call-sites that invoke the command functions
+directly with `{options: {list: true}}` are unaffected by the textual
+contract; they were not part of the search. The internal search for external
+scrapers the triage relied on:
 
 ```sh
 rg -n '(level|discipline|track|behaviour|driver|skill) --list' \
