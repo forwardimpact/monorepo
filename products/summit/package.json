@@ -56,13 +56,13 @@
     "@forwardimpact/libtelemetry": "^0.1.33",
     "@forwardimpact/libutil": "^0.1.72",
     "@forwardimpact/map": "^0.15.18",
-    "yaml": "^2.8.4"
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.14"
   },
   "optionalDependencies": {
-    "@supabase/supabase-js": "^2.105.3"
+    "@supabase/supabase-js": "^2.105.4"
   },
   "engines": {
     "bun": ">=1.2.0",

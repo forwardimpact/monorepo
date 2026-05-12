@@ -78,10 +78,10 @@
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libtemplate": "^0.2.0",
     "@forwardimpact/libutil": "^0.1.64",
-    "@supabase/supabase-js": "^2.105.3",
+    "@supabase/supabase-js": "^2.105.4",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "yaml": "^2.8.4"
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@forwardimpact/libgraph": "^0.1.59",
