@@ -1,5 +1,2 @@
 dist/
 macos/Outpost/.build/
-
-# Copied from monorepo .claude/skills/ during build
-templates/.claude/skills/fit-*/

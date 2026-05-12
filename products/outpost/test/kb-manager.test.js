@@ -144,6 +144,7 @@ describe("KBManager", () => {
     beforeEach(() => {
       mockFs = createKBMockFs({
         "/tpl/CLAUDE.md": "# Instructions",
+        "/tpl/skills-lock.json": '{"version":1,"skills":{}}',
         "/tpl/.claude/settings.json": '{"permissions":{}}',
         "/tpl/.claude/agents/postman.md": "postman content",
         "/tpl/.claude/agents/librarian.md": "librarian content",
@@ -196,6 +197,26 @@ describe("KBManager", () => {
       assert.ok(mockFs.dirs.has("/dest/.claude/skills/draft-emails"));
       assert.ok(mockFs.dirs.has("/dest/.claude/skills/meeting-prep"));
     });
+
+    test("copies skills-lock.json to destination root", () => {
+      km.copyBundledFiles("/tpl", "/dest");
+      assert.strictEqual(
+        mockFs.data.get("/dest/skills-lock.json"),
+        '{"version":1,"skills":{}}',
+      );
+    });
+
+    test("skips skills-lock.json when template has none", () => {
+      const fs = createKBMockFs({
+        "/tpl/CLAUDE.md": "# Instructions",
+        "/tpl/.claude/settings.json": '{"permissions":{}}',
+        "/dest/CLAUDE.md": "# Old",
+        "/dest/.claude/settings.json": '{"permissions":{}}',
+      });
+      const km2 = new KBManager(fs, noop);
+      km2.copyBundledFiles("/tpl", "/dest");
+      assert.strictEqual(fs.data.has("/dest/skills-lock.json"), false);
+    });
   });
 
   describe("init", () => {
@@ -203,6 +224,7 @@ describe("KBManager", () => {
       const fs = createKBMockFs({
         "/tpl/CLAUDE.md": "# Instructions",
         "/tpl/USER.md": "# User",
+        "/tpl/skills-lock.json": '{"version":1,"skills":{}}',
         "/tpl/.claude/settings.json": '{"permissions":{}}',
         "/tpl/.claude/agents/postman.md": "postman",
       });
@@ -211,6 +233,7 @@ describe("KBManager", () => {
 
       assert.ok(fs.data.has("/kb/CLAUDE.md"));
       assert.ok(fs.data.has("/kb/USER.md"));
+      assert.ok(fs.data.has("/kb/skills-lock.json"));
       assert.ok(fs.data.has("/kb/.claude/agents/postman.md"));
     });
   });

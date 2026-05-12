@@ -3,21 +3,13 @@
 // Build script for Outpost (arm64 macOS).
 //
 // Usage:
-//   bun pkg/build.js                    Prepare templates + scheduler + launcher
+//   bun pkg/build.js                    Compile scheduler + launcher
 //   bun pkg/build.js --app              Above + assemble Outpost.app
 //   bun pkg/build.js --pkg              Above + .pkg installer
-//   bun pkg/build.js --prepare-template Copy fit-* skills into templates only
 //   bun pkg/build.js --scheduler        Compile scheduler binary only
 //   bun pkg/build.js --launcher         Compile Swift launcher only
 
-import {
-  cpSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { execSync } from "node:child_process";
 
@@ -43,36 +35,6 @@ function ensureDir(dir) {
 function run(cmd, opts = {}) {
   console.log(`  $ ${cmd}`);
   return execSync(cmd, { encoding: "utf8", stdio: "inherit", ...opts });
-}
-
-// ---------------------------------------------------------------------------
-// Copy fit-* skills from monorepo into templates
-// ---------------------------------------------------------------------------
-
-const MONOREPO_SKILLS_DIR = join(PROJECT_DIR, "..", "..", ".claude", "skills");
-const TEMPLATE_SKILLS_DIR = join(PROJECT_DIR, "templates", ".claude", "skills");
-
-function prepareTemplate() {
-  console.log("\nCopying fit-* skills into templates...");
-
-  if (!existsSync(MONOREPO_SKILLS_DIR)) {
-    console.error(`  Monorepo skills not found at ${MONOREPO_SKILLS_DIR}`);
-    process.exit(1);
-  }
-
-  const fitSkills = readdirSync(MONOREPO_SKILLS_DIR, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && d.name.startsWith("fit-"))
-    .map((d) => d.name);
-
-  for (const skill of fitSkills) {
-    const src = join(MONOREPO_SKILLS_DIR, skill);
-    const dest = join(TEMPLATE_SKILLS_DIR, skill);
-    rmSync(dest, { recursive: true, force: true });
-    cpSync(src, dest, { recursive: true });
-    console.log(`  Copied ${skill}`);
-  }
-
-  console.log(`  -> ${fitSkills.length} skills copied`);
 }
 
 // ---------------------------------------------------------------------------
@@ -179,26 +141,22 @@ function buildPKG() {
 
 const args = process.argv.slice(2);
 
-// No flags → full default build (templates + scheduler + launcher).
+// No flags → full default build (scheduler + launcher).
 // Explicit flags → run only those steps; --app/--pkg imply the earlier steps.
 const all = args.length === 0;
 const want = {
-  prepareTemplate: all || args.includes("--prepare-template"),
   scheduler: all || args.includes("--scheduler"),
   launcher: all || args.includes("--launcher"),
   app: args.includes("--app") || args.includes("--pkg"),
   pkg: args.includes("--pkg"),
 };
 if (want.app || want.pkg) {
-  want.prepareTemplate = true;
   want.scheduler = true;
   want.launcher = true;
 }
 
 console.log(`Outpost Build (v${VERSION})`);
 console.log("==========================");
-
-if (want.prepareTemplate) prepareTemplate();
 // Scheduler first (before launcher exists in dist/) so the launcher binary
 // is not embedded in the compiled binary.
 if (want.scheduler) compileScheduler();
