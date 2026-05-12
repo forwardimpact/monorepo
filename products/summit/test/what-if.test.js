@@ -4,9 +4,12 @@ import assert from "node:assert/strict";
 import { parseRosterYaml } from "../src/roster/yaml.js";
 import {
   applyScenario,
+  buildWhatIfReport,
   diffCoverage,
   diffRisks,
 } from "../src/aggregation/what-if.js";
+import { computeCoverage, resolveTeam } from "../src/aggregation/coverage.js";
+import { detectRisks } from "../src/aggregation/risks.js";
 import {
   parseJobExpression,
   parseScenario,
@@ -154,6 +157,50 @@ test("diffCoverage tracks headcount direction", () => {
   assert.equal(task.before.headcountDepth, 1);
   assert.equal(task.after.headcountDepth, 2);
   assert.equal(task.direction, "up");
+});
+
+test("what-if move: source loses skill, destination gains it on the same mutation", () => {
+  const roster = parseRosterYaml(`
+teams:
+  a:
+    - name: Alice
+      email: alice@example.com
+      job: { discipline: software_engineering, level: J060 }
+    - name: Carol
+      email: carol@example.com
+      job: { discipline: software_engineering, level: J060 }
+  b:
+    - name: Bob
+      email: bob@example.com
+      job: { discipline: software_engineering, level: J060 }
+`);
+  const scenario = parseScenario({ move: "Alice", to: "b" }, { teamId: "a" });
+  function snap(r, t) {
+    const resolved = resolveTeam(r, data, t);
+    const coverage = computeCoverage(resolved, data);
+    const risks = detectRisks({ resolvedTeam: resolved, coverage, data });
+    return { coverage, risks };
+  }
+  const beforeA = snap(roster, { teamId: "a" });
+  const beforeB = snap(roster, { teamId: "b" });
+  const mutated = applyScenario(roster, data, scenario);
+  const afterA = snap(mutated, { teamId: "a" });
+  const afterB = snap(mutated, { teamId: "b" });
+  const report = buildWhatIfReport({
+    scenario,
+    teams: [
+      { teamId: "a", role: "source", before: beforeA, after: afterA },
+      { teamId: "b", role: "destination", before: beforeB, after: afterB },
+    ],
+  });
+  const srcTask = report.teamDiffs[0].coverageDiff.capabilityChanges.find(
+    (c) => c.skillId === "task_completion",
+  );
+  const dstTask = report.teamDiffs[1].coverageDiff.capabilityChanges.find(
+    (c) => c.skillId === "task_completion",
+  );
+  assert.equal(srcTask.direction, "down");
+  assert.equal(dstTask.direction, "up");
 });
 
 test("diffRisks finds resolved and new risks", () => {
