@@ -1,4 +1,4 @@
-# Spec 910 — Pathway Organizational Context Slot for Agent Generation
+# Spec 920 — Pathway Organizational Context Slot for Agent Generation
 
 ## Problem
 
