@@ -96,7 +96,11 @@ describe("fit-pathway serve", () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(existsSync(join(cloneDir, ".claude", "agents", "test-agent.md"))).toBe(true);
-    expect(existsSync(join(cloneDir, ".claude", "skills", "test-skill", "SKILL.md"))).toBe(true);
+    expect(
+      existsSync(join(cloneDir, ".claude", "agents", "test-agent.md")),
+    ).toBe(true);
+    expect(
+      existsSync(join(cloneDir, ".claude", "skills", "test-skill", "SKILL.md")),
+    ).toBe(true);
   });
 });
