@@ -77,10 +77,13 @@ runs:
           APM_VERSION="0.12.4"
           ARCH=$(uname -m)
           OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          APM_DIR="$HOME/.local/lib/apm"
+          mkdir -p "$APM_DIR" "$HOME/.local/bin"
           curl -fsSL "https://github.com/microsoft/apm/releases/download/v${APM_VERSION}/apm-${OS}-${ARCH}.tar.gz" \
-            | tar -xz -C /usr/local/lib
-          ln -sf "/usr/local/lib/apm-${OS}-${ARCH}/apm" /usr/local/bin/apm
-          echo "Installed apm $(apm --version)"
+            | tar -xz -C "$APM_DIR" --strip-components=1
+          ln -sf "$APM_DIR/apm" "$HOME/.local/bin/apm"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "Installed apm $("$APM_DIR/apm" --version)"
         fi
 
     - name: Resolve paths
