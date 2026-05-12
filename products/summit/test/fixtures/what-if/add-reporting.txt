@@ -1,0 +1,7 @@
+  Adding software_engineering J060 to platform:
+
+  Capability changes:
+    + task_completion  depth: 1 → 2
+
+  Risk changes:
+    - task_completion no longer single point of failure

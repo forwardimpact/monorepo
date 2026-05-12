@@ -1,0 +1,8 @@
+  Removing Bob from platform:
+
+  Capability changes:
+    - task_completion  depth: 1 → 0
+
+  Risk changes:
+    + task_completion became critical gap
+    - task_completion no longer single point of failure
