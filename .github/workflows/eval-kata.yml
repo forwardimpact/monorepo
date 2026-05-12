@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 jobs:
-  bench:
+  benchmark:
     runs-on: ubuntu-latest
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
