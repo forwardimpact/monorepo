@@ -109,6 +109,15 @@ test("text formatter renders both team sections for --move", () => {
     !dstSection.includes("+ task_completion became single point of failure"),
     "destination section does not carry source-side risk line",
   );
+
+  assert.ok(
+    !srcSection.includes("+ task_completion  depth:"),
+    "source section does not carry destination-side capability direction",
+  );
+  assert.ok(
+    !srcSection.includes("- task_completion no longer single point of failure"),
+    "source section does not carry destination-side risk line",
+  );
 });
 
 test("json formatter emits teams[] for --move", () => {
