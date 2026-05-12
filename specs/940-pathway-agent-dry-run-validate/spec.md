@@ -19,29 +19,29 @@ Pathway run, 2026-05-12):
 
 ### What's already covered, and what isn't
 
-`fit-pathway` invokes `validateAllData` from `@forwardimpact/map/validation`
-at the start of every command (`products/pathway/bin/fit-pathway.js:324`), so
-the entity-level checks `fit-map validate` performs — including
-foreign-key references like discipline → skill, track → behaviour modifier,
-driver → skill — already run before `agent` resolves anything. The agent
-generation path additionally runs `validateAgentProfile` and `validateAgentSkill`
-against the fully-resolved in-memory profile **before any file is written**
-(`products/pathway/src/commands/agent.js:187`), so partial-on-disk failures
-are not the gap.
+`fit-pathway` *calls* `validateAllData` from `@forwardimpact/map/validation`
+at the start of every command (`products/pathway/bin/fit-pathway.js:324`),
+which is the same entity-level reference and shape check `fit-map validate`
+performs. The agent generation path additionally calls `validateAgentProfile`
+and `validateAgentSkill` against the fully-resolved in-memory profile
+**before any file is written** (`products/pathway/src/commands/agent.js:187`),
+so partial-on-disk artefacts are not the gap.
 
 The genuine gap is what neither check looks at: the *resolved output of a
 specific discipline×track combination at the reference level*. Entity-level
 validation confirms each reference points to a published entry, but does not
-ask "after composing capabilities, applying behaviour modifiers, and filtering
-to the reference level, did this combination produce a usable agent?"
+ask "after composing capabilities, applying skill modifiers, and filtering
+to the reference level, did this combination produce a usable agent?" A
+discipline tier may reference valid published skills, yet level filtering
+reduce the matrix to empty; a non-empty skill set may produce an empty
+toolkit. Those resolution outcomes are invisible to any entity-level pass.
 
 The drift classes this spec adds to the gap:
 
 | Drift class | Already caught? | Why current checks miss it |
 | --- | --- | --- |
-| **Empty skill set after composition** | No | Each discipline tier (`coreSkills`/`supportingSkills`/`broadSkills`) may reference valid published skills, yet the level filter at the reference level (`libraries/libskill/src/agent.js`) reduces the matrix to zero — `validateAllData` checks entities one at a time, never composes them |
-| **Empty toolkit despite a non-empty skill set** | No | `deriveToolkit` reads each resolved skill's tools list; the combination may produce a non-empty skill set whose union of tools is empty |
-| **Missing reference level** | No (throws at resolution) | `deriveReferenceLevel` throws when zero levels are published; today the error is a stack trace, not a structured drift signal naming the combination |
+| **Empty skill set after composition** | No | Each discipline tier (`coreSkills`/`supportingSkills`/`broadSkills`) may reference valid published skills, yet the agent-skill filter reduces the matrix to zero at the reference level; entity-level validation checks entries one at a time and never composes them |
+| **Empty toolkit despite a non-empty skill set** | No | The toolkit is derived from the union of tools across resolved skills; the combination may produce a non-empty skill set whose toolkit is empty |
 
 Beyond the resolution gap, the published workflow ([Configuring Agent
 Teams](https://www.forwardimpact.team/docs/products/agent-teams/index.md), §
@@ -69,7 +69,7 @@ anxieties live.
 | Surface | Change | Excluded |
 | --- | --- | --- |
 | `fit-pathway agent` | Add a flag that resolves and prints the inputs Pathway would feed to the generators — discipline ID, track ID, reference level ID, the resolved skill set (each entry tagged with its source capability), behaviour set, driver set, toolkit, and the merge targets for `claudeSettings` and `vscodeSettings` — without writing any file and without producing the rendered markdown profile | Designing a richer resolved-input data structure beyond what the existing derivation functions produce |
-| `fit-pathway agent` | When invoked in a generation mode (with or without `--output`), run the per-combination resolution check named in § Drift classes; on an error-class drift, exit non-zero with a structured stderr message before any file is written | Re-implementing `fit-map validate`'s entity-level checks inside Pathway (already covered by `validateAllData` at `fit-pathway` entry) |
+| `fit-pathway agent` | When invoked in a generation mode (with or without `--output`), run the per-combination resolution check named in § Drift classes; on an error-class drift, exit non-zero with a structured stderr message before any file is written | Re-implementing entity-level reference checks inside Pathway; surfacing the `validateAllData` result that `fit-pathway` currently calls but does not act on (a separate plumbing fix tracked elsewhere) |
 | `fit-pathway` (top level) | Add a standalone validate entry point that runs the same per-combination resolution check across the set of pairs surfaced by `agent --list`, so authors can ask "is every published combination still coherent?" without picking a pair | Iterating combinations the standard does not publish (the `--list` filter defines "published") |
 | `agent --list` | Annotate each emitted row with one of three resolution states (clean / warning / error) so the discovery surface itself surfaces resolution drift; warning and error must be visually distinguishable from each other and from clean | Re-architecting `agent --list` output shape; adding new columns beyond status; surfacing rows currently filtered out by `findValidCombinations` |
 | Documentation | Update `websites/fit/docs/products/agent-teams/index.md` to add a "Validate before generating" step between Preview and Generate, so the published workflow reaches the dry-run and validate entry points; keep `.claude/skills/fit-pathway/SKILL.md` `## Documentation` and the libcli `documentation` array in parity per [skills/CLAUDE.md](https://github.com/forwardimpact/monorepo/blob/main/.claude/skills/CLAUDE.md) | Splitting a new top-level guide page; cross-linking to a guide that does not yet exist |
@@ -87,17 +87,17 @@ above.
 
 ## Drift classes the pre-generation check must catch
 
-The check exists to catch resolution-time gaps that `validateAllData` does
-not surface. The classes below are mutually exclusive with the entity-level
-checks already running:
+The check exists to catch resolution-time gaps that entity-level validation
+does not surface, and that are distinct from the cases entity-level checks
+already cover (whether or not the existing pipeline surfaces those cases to
+the user today).
 
 | Class | Trigger | Outcome |
 | --- | --- | --- |
 | **Empty skill set after composition** | The skill set resolved for the requested discipline×track at the reference level is empty even though each tier's references are individually valid | Error |
-| **Missing reference level** | `deriveReferenceLevel` cannot pick a level (zero levels published, or no matching default) — caught and surfaced as drift rather than re-thrown as an unstructured stack trace | Error |
 | **Toolkit empty** | The toolkit derived from the resolved skill set is empty despite the skill set being non-empty | Warning |
 
-The "error" rows fail the generation; the "warning" rows print and continue
+The error row fails the generation; the warning row prints and continues
 (so authors who deliberately publish a partial standard during a refactor
 still get an agent, but with the signal they need).
 
@@ -106,7 +106,7 @@ still get an agent, but with the signal they need).
 | # | Criterion | Verification |
 | --- | --- | --- |
 | 1 | The dry-run mode of `agent` prints, on stdout, each of: the discipline ID, the track ID, the reference level ID, every resolved skill ID with its source capability ID, every resolved behaviour ID, every resolved driver ID, the toolkit (list of tool IDs), and the merge targets for `claudeSettings` and `vscodeSettings`; writes no file; exits 0 when resolution is clean | A test that runs the dry-run on the starter standard for `software_engineering × platform`, asserts each named field appears in stdout, asserts no file under `cwd` was created or modified by the run, asserts exit code 0 |
-| 2 | `agent` exits non-zero on every error-class drift in § Drift classes, naming the failing discipline×track and the drift class, on stderr, before any file is written | A test for each error-class drift: mutate a fixture standard to produce that exact class (empty-skill-set: remove every behaviour modifier that admits a skill at the reference level; missing-reference-level: empty `levels.yaml`); run `agent --output=./out`; assert exit code != 0; assert stderr contains both the failing discipline ID and the drift-class name; assert `./out` was not created |
+| 2 | `agent` exits non-zero on every error-class drift in § Drift classes, naming the failing discipline×track and the drift class, on stderr, before any file is written | A test for each error-class drift: produce a fixture standard in which the chosen discipline×track resolves to an empty skill set after composition (for example, by narrowing the discipline's tier references at the reference level so no skill is admitted); run `agent --output=./out`; assert exit code != 0; assert stderr contains the discipline ID, the track ID, and the drift-class name; assert `./out` was not created |
 | 3 | The standalone validate entry point exits non-zero when any pair surfaced by `agent --list` has an error-class drift, prints one error block per failing pair, and exits 0 when every pair is clean or has only warnings | Two tests: (a) mutate the fixture to break exactly one pair, run validate, assert exit != 0, assert the broken pair appears in stderr and clean pairs do not; (b) run validate on the unmutated starter, assert exit 0 |
 | 4 | `agent --list` row-state annotation distinguishes clean, warning, and error pairwise on a single rendered run | A test that mutates the fixture to produce one error pair, one warning pair, and one clean pair, runs `agent --list`, captures the rendered rows, and asserts the three indicators are mutually distinct strings |
 | 5 | The error message on each error-class drift names both halves of the failing combination and the drift-class name | A test that breaks `software_engineering × platform`, runs `agent --output=./out`, asserts stderr contains `software_engineering`, `platform`, and the drift-class name (e.g. `empty-skill-set`); asserts `./out` was not created |
@@ -118,8 +118,10 @@ still get an agent, but with the signal they need).
 Some drift is genuinely beyond Pathway's reach and the spec calls it out so
 the success bar is honest:
 
-- **Entity-level reference breaks** — caught by `validateAllData` at
-  `fit-pathway` entry today; not re-checked by this spec.
+- **Entity-level reference breaks** — `validateAllData` already enumerates
+  these (whether or not `fit-pathway` currently surfaces the result to the
+  user); this spec does not re-implement them. Surfacing the discarded
+  result is a separate fix.
 - **Semantic staleness in prose** — a behaviour's `description` text became
   obsolete after a process change. The YAML is structurally valid and resolves
   cleanly; no agent-generation step can detect that the words are wrong.
