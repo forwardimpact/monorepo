@@ -34,6 +34,7 @@ export default [
       "**/node_modules/**",
       "**/dist/**",
       "**/generated/**",
+      ".claude/worktrees/**",
       "design/**",
       "public/**",
       "tmp/**",
