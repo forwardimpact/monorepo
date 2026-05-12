@@ -142,7 +142,8 @@ const definition = {
         track: { type: "string", description: "Track specialization" },
         output: {
           type: "string",
-          description: "Output directory for generated files",
+          description:
+            "Output directory (writes .claude/ underneath; pass your repo root)",
         },
         skills: { type: "boolean", description: "Output skill IDs" },
         tools: { type: "boolean", description: "Output tool names" },

@@ -87,10 +87,18 @@ with it.
 
 ## Generate the agent team
 
-Once the preview looks right, generate the files into your project:
+Once the preview looks right, generate the files into your project. Pass your
+repo root as `--output` -- Pathway writes a `.claude/` subtree underneath, and
+that subtree must sit at the repo root for your agents to find it:
 
 ```sh
 npx fit-pathway agent software_engineering --track=platform --output=.
+```
+
+From a sibling directory, point `--output` at the repo root explicitly:
+
+```sh
+npx fit-pathway agent software_engineering --track=platform --output=/path/to/repo
 ```
 
 Pathway writes the following structure:
