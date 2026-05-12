@@ -1,10 +1,11 @@
 ---
 name: fit-terrain
 description: >
-  Generate synthetic data for development, testing, and demos. Use when
-  creating example agent-aligned engineering standard definitions, organizational documents, activity
-  records, or knowledge base content from a terrain DSL file, or when
-  testing pipeline changes end-to-end with synthetic datasets.
+  Produce a complete eval dataset from a single DSL file so you can prove
+  agent changes with reproducible evidence. Use when setting up an eval
+  and you need to coordinate generation, rendering, and validation, when
+  bootstrapping a realistic environment for demos or testing, or when
+  regenerating a dataset after a schema change.
 ---
 
 # fit-terrain CLI
@@ -15,13 +16,17 @@ rendering into multiple output formats.
 
 ## When to Use
 
-- Generating example data for development or testing
-- Creating synthetic pathway agent-aligned engineering standards for new
-  installations
+**Generate eval datasets and test data:**
+
+- Building from cached prose (no LLM needed) — `npx fit-terrain build`
+- Regenerating prose with an LLM — `ANTHROPIC_API_KEY=... npx fit-terrain generate`
+- Validating a terrain DSL file — `npx fit-terrain check`
+
+**Bootstrap a realistic environment:**
+
+- Creating synthetic engineering standards for new installations
 - Producing organizational documents, activity records, and KB content
-- Bootstrapping a realistic environment for product evaluation or demos
-- Testing pipeline changes end-to-end
-- Writing or editing terrain DSL files
+- Testing pipeline changes end-to-end with synthetic data
 
 ---
 

@@ -1,9 +1,10 @@
 ---
 name: fit-doc
 description: >
-  Build static documentation sites from markdown with the fit-doc CLI.
-  Use when building, previewing, or configuring a fit-doc site — covers
-  commands, front matter, auto-generated outputs, and the pre-build hook.
+  Ship a documentation site that agents and humans can both navigate.
+  Use when building a static site from markdown, when previewing with
+  live reload, or when configuring front matter, templates, llms.txt
+  augmentation, content partials, or the pre-build hook.
 ---
 
 # fit-doc

@@ -1,9 +1,10 @@
 ---
 name: fit-wiki
 description: >
-  Manage the Kata agent team wiki: send cross-team memos, refresh storyboard
-  XmR charts, bootstrap and sync the wiki. Use when an agent needs to
-  communicate with teammates, update storyboard metrics, or sync wiki state.
+  Give agent teams stable memory that persists across sessions. Use when
+  an agent finishes a session and its findings would vanish without shared
+  memory, when sending a memo to a teammate, when refreshing storyboard
+  XmR charts, or when bootstrapping and syncing a wiki.
 ---
 
 # Wiki Operations
@@ -14,12 +15,21 @@ focus on domain work instead of file plumbing.
 
 ## When to Use
 
-- You have a memo for a teammate and want it to land in their
-  `## Message Inbox` so they read it on their next boot.
-- You want to broadcast a memo to every other agent on the team.
-- You need to regenerate XmR chart blocks in a storyboard markdown file.
-- You need to bootstrap a wiki working tree for a new Kata installation.
-- You need to sync wiki changes to/from the remote repository.
+**Persist findings across sessions:**
+
+- Sending a memo to a teammate — `npx fit-wiki memo --to <agent> --message "..."`
+- Broadcasting to every agent on the team — `npx fit-wiki memo --to all --message "..."`
+
+**Keep storyboard metrics current:**
+
+- Regenerating XmR chart blocks in a storyboard — `npx fit-wiki refresh`
+- Refreshing a specific storyboard file — `npx fit-wiki refresh wiki/storyboard-2026-M05.md`
+
+**Manage the wiki lifecycle:**
+
+- Bootstrapping a wiki for a new installation — `npx fit-wiki init`
+- Pushing wiki changes to remote — `npx fit-wiki push`
+- Pulling remote changes — `npx fit-wiki pull`
 
 ## Commands
 
