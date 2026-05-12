@@ -1,11 +1,13 @@
 ---
 name: fit-pathway
 description: >
-  Explore roles, skills, career progression, and agent profiles. Use when
-  looking up role expectations by discipline, track, and level, generating
-  or comparing job definitions, analyzing career progression gaps, creating
-  agent configurations, building a static agent-aligned engineering standard site, or selecting
-  interview questions.
+  See what's expected at your level, configure agents to meet your
+  organization's engineering standard, and make staffing decisions you can
+  defend. Use when expectations are unclear and you need role definitions
+  by discipline, track, and level, when agents follow generic practices
+  instead of your standard, when analyzing career progression gaps, or
+  when generating job definitions, interview questions, or a published
+  engineering standard site.
 ---
 
 # Pathway Package
@@ -20,20 +22,28 @@ and agent profile generation. Two audiences use `fit-pathway` differently:
 
 ## When to Use
 
-**CLI exploration and discovery:**
+**Understand what's expected at your level:**
 
-- Exploring disciplines, tracks, levels, skills, behaviours, or drivers
-- Generating or comparing job definitions across tracks and levels
-- Understanding the proficiency and autonomy expected at each level
-- Analyzing career progression gaps between current and target levels
-- Generating AI agent configurations from the agent-aligned engineering standard
-- Answering questions about roles, skill expectations, or career paths
+- Looking up role expectations — `npx fit-pathway job <discipline> <level>`
+- Understanding proficiency and autonomy at each level — `npx fit-pathway level <id>`
+- Analyzing career progression gaps — `npx fit-pathway progress <discipline> <level> --compare=<target>`
+- Exploring skills, behaviours, and drivers — `npx fit-pathway skill <id>`, `npx fit-pathway behaviour <id>`
 
-**Standard setup and publishing:**
+**Configure agents to meet your engineering standard:**
 
-- Setting up an organization's agent-aligned engineering standard project
-- Building a static site for the agent-aligned engineering standard
-- Running a local development server to preview changes
+- Generating agent configurations — `npx fit-pathway agent <discipline> --track=<track> --output=./agents`
+- Previewing what an agent profile includes — `npx fit-pathway agent <discipline> --track=<track>`
+
+**Make staffing decisions you can defend:**
+
+- Generating or comparing job definitions — `npx fit-pathway job <discipline> <level> --track=<track>`
+- Selecting interview questions for a role — `npx fit-pathway interview <discipline> <level>`
+
+**Publish and maintain your engineering standard:**
+
+- Setting up a standard project — `npx fit-map init`
+- Building a static site — `npx fit-pathway build`
+- Previewing changes — `npx fit-pathway dev`
 
 ---
 
@@ -147,9 +157,6 @@ npx fit-pathway dev     # Preview changes in browser
   overview, audience model, and key concepts
 - [Getting Started: Pathway for Engineers](https://www.forwardimpact.team/docs/getting-started/engineers/pathway/index.md)
   — From zero to a running Pathway site
-
-**Before editing YAML standard data**, read the relevant guide:
-
 - [Authoring Agent-Aligned Engineering Standards](https://www.forwardimpact.team/docs/products/authoring-standards/index.md)
   — End-to-end guide to defining your engineering standard in YAML
 - [Validate and Update the Standard](https://www.forwardimpact.team/docs/products/authoring-standards/update-standard/index.md)

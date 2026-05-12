@@ -1,12 +1,12 @@
 ---
 name: fit-summit
 description: >
-  Staff teams to succeed by modeling capability as a system. Use when
-  building or restructuring a team, evaluating a hire, transfer, or
-  promotion, analyzing coverage heatmaps, detecting structural risks like
-  single points of failure, simulating staffing changes with what-if
-  scenarios, aligning individual growth with team gaps, comparing teams, or
-  tracking capability trajectory over time.
+  Make staffing decisions you can defend by modeling team capability as a
+  system. Use when a post-mortem surfaces the same skill gap again, when
+  evaluating whether a hire, transfer, or promotion strengthens the team,
+  when detecting structural risks like single points of failure, or when
+  simulating what-if scenarios, aligning growth with team gaps, comparing
+  teams, and tracking capability trajectory over time.
 ---
 
 # Summit
@@ -18,30 +18,29 @@ a team _can_ do, not how well it is doing it.
 
 ## When to Use
 
-**Coverage and risk analysis:**
+**Understand what a team can do:**
 
-- Viewing per-skill headcount depth across a team
-- Detecting single points of failure, critical gaps, and concentration risks
-- Overlaying evidence from Map's activity layer (`--evidenced`)
+- Viewing per-skill headcount depth — `npx fit-summit coverage <team>`
+- Detecting single points of failure, critical gaps, and concentration risks — `npx fit-summit risks <team>`
+- Overlaying evidence from Map's activity layer — `npx fit-summit coverage <team> --evidenced`
 
-**Staffing scenarios:**
+**Make and defend staffing decisions:**
 
-- Building or restructuring a team to ensure structural coverage
-- Evaluating whether a hire, transfer, or promotion strengthens the team
-- Simulating the effect of adding, removing, moving, or promoting a team member
-- Comparing capability before and after a proposed change
-- Evaluating project-specific allocation and coverage
+- Evaluating whether a hire strengthens the team — `npx fit-summit what-if <team> --add '{ discipline: ..., level: ... }'`
+- Simulating a departure or transfer — `npx fit-summit what-if <team> --remove 'Name'`
+- Comparing capability before and after a change — `npx fit-summit what-if <team> --promote 'Name'`
+- Evaluating project-specific coverage — `npx fit-summit coverage <team> --project <name>`
 
 **Growth and trajectory:**
 
-- Identifying growth opportunities aligned with team gaps
-- Weighting recommendations by GetDX driver scores (`--outcomes`)
-- Tracking quarterly capability evolution from git history
+- Growth opportunities aligned with team gaps — `npx fit-summit growth <team>`
+- Weighting recommendations by outcome scores — `npx fit-summit growth <team> --outcomes`
+- Tracking quarterly capability evolution — `npx fit-summit trajectory <team>`
 
 **Team comparison:**
 
-- Diffing coverage and risks between two teams
-- Reviewing roster composition and validation
+- Diffing coverage and risks between teams — `npx fit-summit compare <team1> <team2>`
+- Reviewing roster composition — `npx fit-summit roster`
 
 ---
 

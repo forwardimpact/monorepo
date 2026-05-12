@@ -1,11 +1,11 @@
 ---
 name: fit-outpost
 description: >
-  Personal operations center — schedule AI agents, maintain a knowledge
-  graph, and prepare daily briefings. Use when preparing briefings from
-  email and calendar, managing email drafts, maintaining a personal
-  knowledge base, scheduling background AI tasks, checking agent status,
-  waking agents on demand, or initializing and updating a knowledge base.
+  Keep track of people, projects, and threads without depending on
+  memory. Use when context is scattered across email, calendar, and notes
+  and you need a daily briefing, when managing email drafts, or when
+  scheduling background AI tasks, maintaining a personal knowledge base,
+  checking agent status, and waking agents on demand.
 ---
 
 # Outpost Package
@@ -16,17 +16,21 @@ native macOS app bundle (`Outpost.app`) with TCC-compliant process management.
 
 ## When to Use
 
-- Preparing daily briefings from email, calendar, and knowledge context
-- Managing email drafts and response preparation
+**Be prepared and productive:**
+
+- Preparing daily briefings from email, calendar, and knowledge context — `npx fit-outpost wake briefing`
+- Managing email drafts and response preparation — `npx fit-outpost wake drafts`
 - Maintaining a personal knowledge graph of people, projects, and topics
-- Scheduling background AI tasks for syncing and organizing knowledge
-- Checking agent status and last decisions
-- Waking a specific agent immediately
-- Initializing a new knowledge base
-- Updating a KB with the latest templates and skills
-- Starting, stopping, or monitoring the scheduler daemon
-- Validating agent/skill references
-- Configuring scheduled tasks in `scheduler.json`
+
+**Manage the scheduler and knowledge base:**
+
+- Running the scheduler continuously — `npx fit-outpost daemon`
+- Checking agent status and last decisions — `npx fit-outpost status`
+- Waking a specific agent immediately — `npx fit-outpost wake <agent>`
+- Initializing a new knowledge base — `npx fit-outpost init <path>`
+- Updating with latest templates and skills — `npx fit-outpost update`
+- Stopping the scheduler — `npx fit-outpost stop`
+- Validating agent/skill references — `npx fit-outpost validate`
 
 ---
 

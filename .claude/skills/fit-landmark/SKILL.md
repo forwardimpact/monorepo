@@ -1,10 +1,12 @@
 ---
 name: fit-landmark
 description: >
-  Measure engineering outcomes and team health without blaming individuals.
-  Use when checking promotion readiness, exploring GetDX snapshot trends,
-  viewing marker evidence, surfacing engineer voice, assessing whether
-  culture investments are working, or generating growth recommendations.
+  Demonstrate engineering progress without making individuals feel
+  surveilled, and find growth areas backed by evidence. Use when the
+  quarterly review has only ticket counts and you need system-level
+  trends, when checking promotion readiness, when assessing whether
+  culture investments are working, or when exploring GetDX snapshot
+  trends, marker evidence, engineer voice, and growth timelines.
 ---
 
 # Landmark
@@ -16,14 +18,22 @@ pipeline; all Landmark computation is deterministic — no LLM calls.
 
 ## When to Use
 
-- Measuring team outcomes without blaming individuals
-- Checking an engineer's promotion readiness against marker checklists
-- Analyzing team health across GetDX drivers and skill evidence
-- Assessing whether investments in engineering culture are improving results
-- Viewing growth timelines based on Guide-interpreted evidence
-- Surfacing engineer voice from GetDX snapshot comments
-- Exploring snapshot trends and factor comparisons
-- Comparing evidenced vs derived capability across a team
+**Demonstrate engineering progress:**
+
+- Showing system-level trends — `npx fit-landmark health --manager <email>`
+- Assessing whether culture investments are working — `npx fit-landmark snapshot trend --item <id>`
+- Exploring GetDX snapshot trends and comparisons — `npx fit-landmark snapshot compare`
+
+**Find growth areas backed by evidence:**
+
+- Checking promotion readiness — `npx fit-landmark readiness --email <email>`
+- Viewing growth timelines — `npx fit-landmark timeline --email <email>`
+- Comparing evidenced vs derived capability — `npx fit-landmark practiced --manager <email>`
+
+**Surface engineer voice:**
+
+- Surfacing feedback from GetDX comments — `npx fit-landmark voice --manager <email>`
+- Viewing an individual's voice — `npx fit-landmark voice --email <email>`
 
 ---
 
