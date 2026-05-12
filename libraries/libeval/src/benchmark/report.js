@@ -65,22 +65,11 @@ export async function aggregate({ inputDir, kValues, includeRuns = false }) {
 
     if (includeRuns) {
       if (!firstRecord) firstRecord = group[0];
+      const accumulators = { allDurations, allTurns };
       task.runs = group
         .map((r) => {
           totalCost += r.costUsd ?? 0;
-          if (r.durationMs != null) allDurations.push(r.durationMs);
-          if (r.turns != null) allTurns.push(r.turns);
-          return {
-            runIndex: r.runIndex,
-            verdict: r.verdict,
-            ...(r.scoring && { scoring: r.scoring }),
-            ...(r.judgeVerdict && { judgeVerdict: r.judgeVerdict }),
-            costUsd: r.costUsd ?? 0,
-            turns: r.turns ?? 0,
-            durationMs: r.durationMs ?? 0,
-            ...(r.agentError && { agentError: r.agentError }),
-            ...(r.preflightError && { preflightError: r.preflightError }),
-          };
+          return buildRunDetail(r, accumulators);
         })
         .sort((a, b) => a.runIndex - b.runIndex);
     }
@@ -110,6 +99,30 @@ export async function aggregate({ inputDir, kValues, includeRuns = false }) {
 }
 
 /**
+ * Build a normalized per-run detail object and accumulate duration/turn
+ * samples for median calculation. Extracted from `aggregate` to keep its
+ * cognitive complexity below the lint ceiling.
+ * @param {object} r - Raw record.
+ * @param {{allDurations: number[], allTurns: number[]}} acc
+ * @returns {RunDetail}
+ */
+function buildRunDetail(r, acc) {
+  if (r.durationMs != null) acc.allDurations.push(r.durationMs);
+  if (r.turns != null) acc.allTurns.push(r.turns);
+  return {
+    runIndex: r.runIndex,
+    verdict: r.verdict,
+    ...(r.scoring && { scoring: r.scoring }),
+    ...(r.judgeVerdict && { judgeVerdict: r.judgeVerdict }),
+    costUsd: r.costUsd ?? 0,
+    turns: r.turns ?? 0,
+    durationMs: r.durationMs ?? 0,
+    ...(r.agentError && { agentError: r.agentError }),
+    ...(r.preflightError && { preflightError: r.preflightError }),
+  };
+}
+
+/**
  * Render an aggregate report as markdown. When the report contains per-run
  * detail (from `includeRuns: true`), renders a full report with summary,
  * pass@k table, and per-task detail sections. Otherwise falls back to the
@@ -130,7 +143,11 @@ export function renderTextReport(report, kValues) {
 // ---------------------------------------------------------------------------
 
 function renderCompactReport(report, kValues) {
-  const lines = [renderPassAtKTable(report, kValues), "", renderTotalsLine(report)];
+  const lines = [
+    renderPassAtKTable(report, kValues),
+    "",
+    renderTotalsLine(report),
+  ];
   return lines.join("\n");
 }
 
@@ -160,9 +177,7 @@ function renderFullReport(report, kValues) {
 
 function renderSummary(report) {
   const { totals } = report;
-  const passing = report.tasks.filter(
-    (t) => t.c > 0 && t.c === t.n,
-  ).length;
+  const passing = report.tasks.filter((t) => t.c > 0 && t.c === t.n).length;
   const lines = [
     "# Benchmark Report",
     "",
@@ -171,8 +186,7 @@ function renderSummary(report) {
   const meta = [];
   if (totals.model) meta.push(`Model: \`${totals.model}\``);
   if (totals.skillSetHash) meta.push(`Skill set: \`${totals.skillSetHash}\``);
-  if (totals.familyRevision)
-    meta.push(`Family: \`${totals.familyRevision}\``);
+  if (totals.familyRevision) meta.push(`Family: \`${totals.familyRevision}\``);
   if (meta.length) lines.push(meta.join(" | "));
 
   const stats = [];
@@ -274,6 +288,28 @@ function renderRunsTable(runs) {
 }
 
 function renderScoringChecks(runs, singleRun) {
+  const rows = collectScoringRows(runs);
+  if (!rows.length) return null;
+
+  const header = singleRun
+    ? ["Check", "Result", "Message"]
+    : ["Run", "Check", "Result", "Message"];
+  const lines = [
+    "#### Scoring Checks",
+    "",
+    `| ${header.join(" | ")} |`,
+    `| ${header.map(() => "---").join(" | ")} |`,
+  ];
+  for (const row of rows) {
+    const cells = singleRun
+      ? [row.check, row.result, row.message]
+      : [String(row.run), row.check, row.result, row.message];
+    lines.push(`| ${cells.join(" | ")} |`);
+  }
+  return lines.join("\n");
+}
+
+function collectScoringRows(runs) {
   const rows = [];
   for (const r of runs) {
     if (!r.scoring?.details?.length) continue;
@@ -286,31 +322,7 @@ function renderScoringChecks(runs, singleRun) {
       });
     }
   }
-  if (!rows.length) return null;
-
-  const lines = ["#### Scoring Checks", ""];
-  if (singleRun) {
-    const header = ["Check", "Result", "Message"];
-    lines.push(
-      `| ${header.join(" | ")} |`,
-      `| ${header.map(() => "---").join(" | ")} |`,
-    );
-    for (const row of rows) {
-      lines.push(`| ${row.check} | ${row.result} | ${row.message} |`);
-    }
-  } else {
-    const header = ["Run", "Check", "Result", "Message"];
-    lines.push(
-      `| ${header.join(" | ")} |`,
-      `| ${header.map(() => "---").join(" | ")} |`,
-    );
-    for (const row of rows) {
-      lines.push(
-        `| ${row.run} | ${row.check} | ${row.result} | ${row.message} |`,
-      );
-    }
-  }
-  return lines.join("\n");
+  return rows;
 }
 
 function renderJudgeCommentary(runs, singleRun) {
