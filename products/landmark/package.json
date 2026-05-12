@@ -70,7 +70,7 @@
     "@forwardimpact/libskill": "^5.0.0",
     "@forwardimpact/map": "^0.15.18",
     "@forwardimpact/summit": "^0.1.0",
-    "@supabase/supabase-js": "^2.105.3"
+    "@supabase/supabase-js": "^2.105.4"
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.14"

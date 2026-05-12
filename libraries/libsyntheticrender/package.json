@@ -37,7 +37,7 @@
   "dependencies": {
     "@forwardimpact/libsyntheticgen": "^0.1.0",
     "@forwardimpact/libtemplate": "^0.2.0",
-    "yaml": "^2.8.4"
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.14"
