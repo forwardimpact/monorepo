@@ -78,10 +78,13 @@ competes with, not consumers of the work.
 - **Standard-schema changes.** No additions to `levels.yaml` or any other
   starter-standard file. The persona's alternative workaround "extend the
   standard schema" (issue #880) is not what this spec adopts.
-- **`build-packs` and other downstream consumers.** The `build-packs`
-  subcommand of `fit-pathway` also generates agent profiles. Whether it
-  should accept `--level` (or accept a level-array to fan out per level)
-  is a separate spec. `build-packs` is unchanged by this spec.
+- **Downstream consumers that also default-resolve a level.** The
+  `build-packs` subcommand of `fit-pathway` generates agent profiles in
+  bulk, and the agent-builder web page renders profiles in the browser;
+  both default-resolve a level today by the same path the `agent` command
+  does. Whether either should accept a level surface (a `--level` flag
+  for `build-packs`, a level segment in the web route for agent-builder)
+  is a separate spec each. Both are unchanged by this spec.
 - **Web UI / route changes.** The agent-builder web route already encodes
   `:discipline` and `:track`. Whether the route should also encode `:level`
   is a separate spec about the web UI's calibration surface, not the CLI's.
@@ -117,10 +120,10 @@ spec asserts only the missing knob on `agent`.
 | # | Criterion | Verification |
 |---|---|---|
 | SC1 | Supplying a level changes what the agent profile encodes. For two invocations differing only in `--level`, at least one of the following differs: the set of skills emitted, a skill's derived proficiency, the set of behaviours emitted, a behaviour's derived maturity, or the `expectations` block of the rendered `CLAUDE.md`. | Run the command twice against the same fixture standard with two different `--level` values; assert that at least one of the listed fields differs in the captured output. |
-| SC2 | Absent `--level`, output is identical to today's behaviour for the same `(discipline, track)`. | Capture today's output for a pinned `(discipline, track)` against a pinned standard fixture (the `products/map/starter` standard at the merge commit). Run the new command without `--level` against the same fixture. The two outputs are byte-identical. |
+| SC2 | Absent `--level`, output is identical to today's behaviour for the same `(discipline, track)` against the same standard. | The implementation captures a baseline: today's output for a pinned `(discipline, track)` against a specific version of the `products/map/starter` standard (the version on `main` at the point the baseline is captured). After the change, running the new command without `--level` against the same standard version produces output byte-identical to the captured baseline. The baseline file is committed alongside the test so the comparison is reproducible. |
 | SC3 | The CLI rejects an unknown level value. | Run the command with a `--level` value not present in the fixture standard's levels. Stderr contains an error line; stderr contains a bulleted list with one bullet per level id present in the fixture; exit code is 1. |
 | SC4 | `--help` for the `agent` command lists `--level`. | `npx fit-pathway agent --help` stdout contains the string `--level` and a non-empty description on the same line. |
-| SC5 | The two published guides document the new flag in the profile-generation sections. | The updated guides contain at least one invocation that includes `--level`, paired with prose that answers "when do I set this explicitly?". The documented invocation, when run against the fixture standard, produces non-empty output (smoke check, not byte comparison). |
+| SC5 | The two published guides document the new flag in the profile-generation sections. | The updated guides contain at least one invocation that includes `--level`, paired with prose that answers "when do I set this explicitly?". The documented `--level` invocation, when run against the fixture standard, produces output that differs from the same command without `--level` on at least one SC1 field (so the documentation demonstrably exercises the surface rather than echoing it). |
 | SC6 | The `agent` command's `--help` output presents the level surface in the same syntactic slot as `--track`. | `npx fit-pathway agent --help` stdout is parsed; both `--track` and `--level` appear under the same options heading, with the same `--name=<type>` shape and a one-line description each. |
 
 ## Alternatives considered
