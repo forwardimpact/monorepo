@@ -20,12 +20,9 @@ import { toolkitToMarkdown } from "../toolkit/markdown.js";
  * @returns {string}
  */
 export function jobToMarkdown(view, entities = {}, jobTemplate) {
-  const lines = [
-    `# ${view.title}`,
-    "",
-    `${view.disciplineName} × ${view.levelId} × ${view.trackName}`,
-    "",
-  ];
+  const subtitleParts = [view.disciplineName, view.levelId];
+  if (view.trackName) subtitleParts.push(view.trackName);
+  const lines = [`# ${view.title}`, "", subtitleParts.join(" × "), ""];
 
   // Expectations
   if (view.expectations && Object.keys(view.expectations).length > 0) {

@@ -52,7 +52,9 @@ function buildExpectationsParagraph(expectations) {
   const sentences = [];
 
   if (exp.impactScope) {
-    sentences.push(`This role encompasses ${exp.impactScope.toLowerCase()}.`);
+    sentences.push(
+      ensurePeriod(`This role encompasses ${exp.impactScope.toLowerCase()}`),
+    );
   }
   const autonomy = buildAutonomySentence(exp);
   if (autonomy) {
