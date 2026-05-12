@@ -4,8 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   applyScenario,
-  diffCoverage,
-  diffRisks,
+  buildWhatIfReport,
 } from "../../../src/aggregation/what-if.js";
 import {
   computeCoverage,
@@ -35,24 +34,23 @@ async function main() {
     const before = snap(roster, target);
     const mutated = applyScenario(roster, data, scenario);
     const after = snap(mutated, target);
-    const coverageDiff = diffCoverage(before.coverage, after.coverage);
-    const riskDiff = diffRisks(before.risks, after.risks);
-    writeFileSync(
-      join(here, `${id}.txt`),
-      whatIfToText({ scenario, coverageDiff, riskDiff, data }),
-    );
+    const report = buildWhatIfReport({
+      scenario,
+      teams: [
+        {
+          teamId: target.teamId ?? target.projectId,
+          role: "target",
+          before,
+          after,
+        },
+      ],
+    });
+    writeFileSync(join(here, `${id}.txt`), whatIfToText({ report, data }));
     writeFileSync(
       join(here, `${id}.json`),
-      JSON.stringify(
-        whatIfToJson({ scenario, coverageDiff, riskDiff }),
-        null,
-        2,
-      ) + "\n",
+      JSON.stringify(whatIfToJson({ report }), null, 2) + "\n",
     );
-    writeFileSync(
-      join(here, `${id}.md`),
-      whatIfToMarkdown({ scenario, coverageDiff, riskDiff }),
-    );
+    writeFileSync(join(here, `${id}.md`), whatIfToMarkdown({ report }));
   }
 }
 
