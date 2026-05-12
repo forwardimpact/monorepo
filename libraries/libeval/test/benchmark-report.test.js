@@ -201,13 +201,13 @@ describe("renderTextReport (full report)", () => {
     });
     const text = renderTextReport(report, [1]);
     assert.match(text, /# Benchmark Report/);
-    assert.match(text, /\*\*Result: 1\/1 tasks passing\*\*/);
+    assert.match(text, /✅ \*\*1\/1 tasks passing\*\*/);
     assert.match(text, /## Pass@k/);
     assert.match(text, /## Task Details/);
     assert.match(text, /### alpha/);
-    assert.match(text, /\*\*PASS — 1\/1 runs passed\*\*/);
+    assert.match(text, /✅ \*\*1\/1 runs passed\*\*/);
     assert.match(text, /#### Scoring Checks/);
-    assert.match(text, /check-1 \| PASS/);
+    assert.match(text, /check-1 \| ✅/);
     assert.match(text, /#### Judge Commentary/);
     assert.match(text, /looks good/);
   });

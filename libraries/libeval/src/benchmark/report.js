@@ -178,24 +178,42 @@ function renderFullReport(report, kValues) {
 function renderSummary(report) {
   const { totals } = report;
   const passing = report.tasks.filter((t) => t.c > 0 && t.c === t.n).length;
+  const icon = statusIcon(passing === totals.tasks);
   const lines = [
     "# Benchmark Report",
     "",
-    `**Result: ${passing}/${totals.tasks} tasks passing** | ${totals.runs} runs${totals.skipped ? ` | ${totals.skipped} skipped` : ""}`,
+    `${icon} **${passing}/${totals.tasks} tasks passing** | ${totals.runs} runs${totals.skipped ? ` | ${totals.skipped} skipped` : ""}`,
   ];
+
+  const headers = [];
+  const values = [];
+  if (totals.costUsd != null) {
+    headers.push("Cost");
+    values.push(formatCost(totals.costUsd));
+  }
+  if (totals.medianDurationMs != null) {
+    headers.push("Median Duration");
+    values.push(formatDuration(totals.medianDurationMs));
+  }
+  if (totals.medianTurns != null) {
+    headers.push("Median Turns");
+    values.push(String(totals.medianTurns));
+  }
+  if (headers.length) {
+    lines.push("");
+    lines.push(`| ${headers.join(" | ")} |`);
+    lines.push(`| ${headers.map(() => "---").join(" | ")} |`);
+    lines.push(`| ${values.join(" | ")} |`);
+  }
+
   const meta = [];
   if (totals.model) meta.push(`Model: \`${totals.model}\``);
   if (totals.skillSetHash) meta.push(`Skill set: \`${totals.skillSetHash}\``);
   if (totals.familyRevision) meta.push(`Family: \`${totals.familyRevision}\``);
-  if (meta.length) lines.push(meta.join(" | "));
-
-  const stats = [];
-  if (totals.costUsd != null) stats.push(`Cost: ${formatCost(totals.costUsd)}`);
-  if (totals.medianDurationMs != null)
-    stats.push(`Median duration: ${formatDuration(totals.medianDurationMs)}`);
-  if (totals.medianTurns != null)
-    stats.push(`Median turns: ${totals.medianTurns}`);
-  if (stats.length) lines.push(stats.join(" | "));
+  if (meta.length) {
+    lines.push("");
+    lines.push(meta.join(" | "));
+  }
 
   lines.push("");
   return lines.join("\n");
@@ -229,13 +247,13 @@ function renderTotalsLine(report) {
 
 function renderTaskDetail(task) {
   const runs = task.runs ?? [];
-  const status = task.c === task.n ? "PASS" : "FAIL";
+  const icon = statusIcon(task.c === task.n);
   const singleRun = runs.length === 1;
 
   const lines = [
     `### ${task.taskId}`,
     "",
-    `**${status} — ${task.c}/${task.n} runs passed**`,
+    `${icon} **${task.c}/${task.n} runs passed**`,
   ];
 
   lines.push("", renderRunsTable(runs));
@@ -267,16 +285,16 @@ function renderRunsTable(runs) {
     const scoringCell = r.preflightError
       ? "preflight error"
       : r.scoring
-        ? r.scoring.verdict
+        ? statusIcon(r.scoring.verdict === "pass")
         : "—";
     const judgeCell = r.preflightError
       ? "—"
       : r.judgeVerdict
-        ? r.judgeVerdict.verdict
+        ? statusIcon(r.judgeVerdict.verdict === "pass")
         : "—";
     rows.push([
       String(r.runIndex),
-      r.verdict.toUpperCase(),
+      statusIcon(r.verdict === "pass"),
       scoringCell,
       judgeCell,
       formatCost(r.costUsd),
@@ -317,7 +335,7 @@ function collectScoringRows(runs) {
       rows.push({
         run: r.runIndex,
         check: escapeCell(String(d.test ?? "(unnamed)")),
-        result: d.pass ? "PASS" : "FAIL",
+        result: statusIcon(d.pass),
         message: escapeCell(String(d.message ?? "")),
       });
     }
@@ -364,6 +382,10 @@ function renderErrors(runs) {
 // ---------------------------------------------------------------------------
 // Formatting helpers
 // ---------------------------------------------------------------------------
+
+function statusIcon(pass) {
+  return pass ? "✅" : "❌";
+}
 
 function formatPassAt(v) {
   if (v == null) return "—";
