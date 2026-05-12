@@ -55,6 +55,9 @@ SCRATCHPAD*.md
 # CLI output
 output/
 
+# Benchmark run output
+benchmark-runs/
+
 # Claude Code local settings (per-machine, not shared)
 .claude/settings.local.json
 
