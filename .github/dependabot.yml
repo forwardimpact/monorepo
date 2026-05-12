@@ -21,12 +21,14 @@ updates:
       - dependency-name: protobufjs
         update-types:
           - version-update:semver-major
-      # protobufjs-cli >=2.0.2 requires protobufjs >=8 peer.
-      # We pin protobufjs@7.x because @grpc/proto-loader peer-blocks v8.
+      # protobufjs-cli@2.x requires protobufjs >=8 peer; we pin to the 1.2.x
+      # line because @grpc/proto-loader peer-blocks protobufjs v8. CVE-2026-42290
+      # and CVE-2026-44295 (pbts/pbjs) are patched in both 1.2.1+ and 2.0.2+.
       - dependency-name: protobufjs-cli
         update-types:
-          - version-update:semver-patch
+          - version-update:semver-major
           - version-update:semver-minor
+          - version-update:semver-patch
       # @anthropic-ai/claude-agent-sdk >=0.2.113 ships native binaries via
       # platform-specific optional deps. On glibc Linux runners (GitHub
       # ubuntu-latest), the musl variant wins resolution and fails to exec,
