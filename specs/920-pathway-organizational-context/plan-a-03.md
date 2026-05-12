@@ -49,28 +49,47 @@ today's `.claude/CLAUDE.md` for `software_engineering --track=platform`
 against the starter **without the slot file**.
 
 **Capture procedure** — run once before Part 03's test file lands. Output
-committed verbatim, no edits:
+committed verbatim, no edits. Invokes the worktree's local pathway binary
+(`node products/pathway/bin/fit-pathway.js`) directly so the captured bytes
+are unambiguously from `origin/main`'s code, not whatever `bunx fit-pathway`
+resolves to in the operator's bun cache:
 
 ```sh
 # From repo root on a clean checkout. Captures against origin/main
-# (before any 920 code changes are in scope).
+# before any 920 code changes are in scope.
+REPO=$(git rev-parse --show-toplevel)
 WORK=$(mktemp -d /tmp/orgctx-baseline.XXXXX)
+trap 'cd "$REPO" && git worktree remove --force "$WORK/repo" 2>/dev/null; rm -rf "$WORK"' EXIT
+
 git worktree add "$WORK/repo" origin/main
 cp -r "$WORK/repo/products/map/starter" "$WORK/data"
-test ! -f "$WORK/data/organizational-context.yaml"  # sanity
+test ! -f "$WORK/data/organizational-context.yaml"  # sanity: pre-920 main
 
 cd "$WORK/repo"
-bunx fit-pathway agent software_engineering --track=platform \
+node "$WORK/repo/products/pathway/bin/fit-pathway.js" agent \
+  software_engineering --track=platform \
   --output="$WORK/out" --data="$WORK/data"
 
+mkdir -p "$REPO/products/pathway/test/fixtures"
 cp "$WORK/out/.claude/CLAUDE.md" \
   "$REPO/products/pathway/test/fixtures/claude-md-baseline-se-platform.md"
-
-cd "$REPO" && git worktree remove "$WORK/repo"
 ```
 
 **Created:** `products/pathway/test/fixtures/claude-md-baseline-se-platform.md`
-— the captured bytes, committed verbatim. Create `fixtures/` if absent.
+— the captured bytes, committed verbatim.
+
+**Line-ending policy:** the fixture is asserted byte-identical by Step 6 case
+1, so Git's CRLF normalization on Windows checkouts (or `.gitattributes` rules
+elsewhere in the repo) would silently rewrite it and break the test on CI
+vs local. Add to `.gitattributes` (create the file if it does not exist):
+
+```
+products/pathway/test/fixtures/* text eol=lf
+```
+
+This pins LF line endings for every fixture under `fixtures/`. Verify with
+`git check-attr text eol products/pathway/test/fixtures/claude-md-baseline-se-platform.md`
+— both attributes must report set values.
 
 **Created:** `products/pathway/test/agent-baseline.test.js` — two cases:
 

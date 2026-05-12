@@ -35,7 +35,8 @@ Libraries used: none new.
 | `products/pathway/src/pages/agent-builder.js` § `buildDeriveContext` | Thread context | 02 |
 | `products/pathway/src/pages/agent-builder-preview.js` § `deriveAgentData` | Thread + compose | 02 |
 | `products/pathway/src/commands/build-packs.js` | Thread through pack pipeline | 02 |
-| `products/pathway/test/cli-command.test.js` | Append integration cases | 02 |
+| `products/pathway/test/agent-command.test.js` | **Create** integration cases (7 — slot present/absent/partial/empty/idempotent/marker-collision) | 02 |
+| `.gitattributes` | Modify (pin LF eol on `products/pathway/test/fixtures/*`) | 03 |
 | `products/map/starter/organizational-context.yaml` | **Create** (populated starter) | 03 |
 | `products/pathway/test/fixtures/claude-md-baseline-se-platform.md` | **Create** (pre-change baseline) | 03 |
 | `products/pathway/test/agent-baseline.test.js` | **Create** (byte-identical + populated tests) | 03 |
@@ -103,6 +104,14 @@ and PRs that merge in either order.
    in the design. Part 02 threads `orgSection` through it explicitly; if
    omitted, downstream consumers of the published packs would see different
    bytes than the local CLI produces against the same data.
+6. **Composer return contract flip.** `formatTeamInstructions` returns
+   `null` (instead of an empty rendered template) when both inputs are
+   null/empty/whitespace. All three call sites are updated to handle the
+   null return, but any future caller — or a publishing org with a
+   whitespace-only `teamInstructions` AND no slot — observes "no file
+   written" where today a near-empty `CLAUDE.md` is written. Behavior
+   change is intentional; documented here so a reviewer reproducing the
+   path does not file it as a regression.
 
 ## Execution recommendation
 

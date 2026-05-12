@@ -73,8 +73,9 @@ written down.
 a new step in the existing numbered procedure, between Drivers and "Configure
 the standard":
 
-- New `## Step 7: Add organizational context (optional)` (renumber the
-  subsequent step heading: Step 7 → Step 8 throughout the file).
+- New `## Step 7: Add organizational context (optional)` heading, inserted
+  between today's Step 6 (Drivers) and today's Step 7 (Configure the
+  standard, which becomes Step 8).
 - Body: one-paragraph framing (installation-scoped per-team facts, sibling
   of the existing settings files), the YAML shape with placeholder values
   (lift from design-a § Data Shape), the rendered output it produces (one-
@@ -82,22 +83,57 @@ the standard":
   for the full rendering and marker rules), and the line "run
   `bunx fit-map validate` to confirm the slot parses."
 
+**Renumber pass.** Run this search command before editing to enumerate every
+"Step 7" reference in the file (heading + any cross-references in prose):
+
+```sh
+rg -n 'Step 7' websites/fit/docs/products/authoring-standards/index.md
+```
+
+Today this returns one hit — the `## Step 7: Configure the standard` heading
+at line 428. After Step 7 (new org-context step) is inserted, that heading
+becomes `## Step 8: Configure the standard`; rerun the rg to confirm the
+file contains a clean run of `## Step 1` … `## Step 8` with no gaps and no
+duplicates. Also rg the rest of the docs tree for any external reference to
+"Step 7" of this guide:
+
+```sh
+rg -nl 'authoring-standards.*Step 7\b' websites/
+```
+
+This catches docs in other files that point back to "Step 7" of the
+authoring-standards guide. Retarget any matches in the same commit.
+
 ## Step 8 — Skill + CLI documentation parity
 
 The org-context guide URL
 (`https://www.forwardimpact.team/docs/products/agent-teams/organizational-context/index.md`)
 is already present in both the CLI `documentation` array and the skill's
-`## Documentation` section. Step 7 reframes the guide content but the URL
-and the entry's position in the list remain unchanged. Step 8 verifies that
-property and updates the `description` text on each side if Step 7's new
-framing warrants it.
+`## Documentation` section. Step 7 reframes the guide content, so Step 8
+updates the description text in both places to reflect the new framing.
+URL and entry position in the list are immutable.
 
-**Modified:** `products/pathway/bin/fit-pathway.js` § `documentation` — if
-the description text changes, update only the description field on the
-matching entry. URL and array position immutable.
+**Modified:** `products/pathway/bin/fit-pathway.js` § `documentation`. Update
+the matching entry's description text to a single sentence covering both
+the track-scoped and installation-scoped layers — proposed text:
 
-**Modified:** `.claude/skills/fit-pathway/SKILL.md` § `## Documentation` —
-same rule: description text only if needed. URL and bullet position immutable.
+```js
+{
+  title: "Give Agents Organizational Context",
+  url: "https://www.forwardimpact.team/docs/products/agent-teams/organizational-context/index.md",
+  description:
+    "Track-scoped team instructions and installation-scoped organizational context for exported agent teams.",
+},
+```
+
+**Modified:** `.claude/skills/fit-pathway/SKILL.md` § `## Documentation`.
+Update the bullet's description text to match:
+
+```markdown
+- [Give Agents Organizational Context](https://www.forwardimpact.team/docs/products/agent-teams/organizational-context/index.md)
+  — Track-scoped team instructions and installation-scoped organizational
+  context for exported agent teams.
+```
 
 ## DO-CONFIRM for Part 04
 
@@ -111,13 +147,26 @@ same rule: description text only if needed. URL and bullet position immutable.
 - `rg -n '^## Step ' websites/fit/docs/products/authoring-standards/index.md`
   returns a clean numbered run with the new Step 7 inserted (no gaps, no
   duplicates after the renumber).
-- Skill/CLI parity script (exit 0 = identical URL ordering):
+- Skill/CLI parity for the org-context entry (scope-limited — the existing
+  skill and CLI lists on `main` are not byte-identical across all entries
+  and bringing the lists into full parity is out of scope for spec 920;
+  what spec 920 requires is that *the org-context entry* sits at the same
+  position with the same URL and description in both files):
 
   ```sh
+  # The org-context guide must appear exactly once in each file with the
+  # same description text.
+  test "$(rg -c 'agent-teams/organizational-context' products/pathway/bin/fit-pathway.js)" = 1
+  test "$(rg -c 'agent-teams/organizational-context' .claude/skills/fit-pathway/SKILL.md)" = 1
+  # The description text must match between the two surfaces (extract the
+  # one-line description after the URL in each file).
   diff \
-    <(rg -No 'https://www.forwardimpact.team/docs/[^)"]*' products/pathway/bin/fit-pathway.js) \
-    <(rg -No 'https://www.forwardimpact.team/docs/[^)"]*' .claude/skills/fit-pathway/SKILL.md)
+    <(rg -A1 'agent-teams/organizational-context' products/pathway/bin/fit-pathway.js | rg -o '"[^"]+"' | tail -n1) \
+    <(rg -A1 'agent-teams/organizational-context' .claude/skills/fit-pathway/SKILL.md | tail -n1 | sed 's/^[[:space:]]*—[[:space:]]*//')
   ```
+
+  Exit 0 = the two description strings match per `products/CLAUDE.md`
+  § Linking rule, scoped to the one entry this spec touches.
 
 - `git diff origin/main...HEAD --stat` lists only the four files in this
   part's slice of the overview File map.

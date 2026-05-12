@@ -98,9 +98,41 @@ Both loaders surface `agentData.organizationalContext` with `null` fallback.
      };
 ```
 
-**Modified:** `products/pathway/src/lib/yaml-loader.js` § `loadAgentDataBrowser` —
-mirror the Node change with the existing `repository/`-then-root precedence,
-returning `organizationalContext ?? null` (not `|| {}`).
+**Modified:** `products/pathway/src/lib/yaml-loader.js` § `loadAgentDataBrowser`:
+
+```diff
+ export async function loadAgentDataBrowser(dataDir = "./data") {
+-  const [disciplines, tracks, behaviours, claudeSettings, vscodeSettings] =
++  const [
++    disciplines, tracks, behaviours,
++    claudeSettings, vscodeSettings, organizationalContext,
++  ] =
+     await Promise.all([
+       loadDisciplinesFromDir(`${dataDir}/disciplines`),
+       loadTracksFromDir(`${dataDir}/tracks`),
+       loadBehavioursFromDir(`${dataDir}/behaviours`),
+       tryLoadYamlFile(`${dataDir}/repository/claude-settings.yaml`).then(
+         (r) => r ?? tryLoadYamlFile(`${dataDir}/claude-settings.yaml`),
+       ),
+       tryLoadYamlFile(`${dataDir}/repository/vscode-settings.yaml`).then(
+         (r) => r ?? tryLoadYamlFile(`${dataDir}/vscode-settings.yaml`),
+       ),
++      tryLoadYamlFile(`${dataDir}/repository/organizational-context.yaml`).then(
++        (r) => r ?? tryLoadYamlFile(`${dataDir}/organizational-context.yaml`),
++      ),
+     ]);
+   return {
+     ...
+     claudeSettings: claudeSettings || {},
+     vscodeSettings: vscodeSettings || {},
++    organizationalContext: organizationalContext ?? null,
+   };
+ }
+```
+
+The `??` preserves the deliberate `null`-vs-`{}` divergence (design § Key
+Decisions row "Loader fallback"). `tryLoadYamlFile` returns `null` on miss;
+the `??` keeps it as `null` rather than coercing to `{}`.
 
 **Modified:** `products/map/test/data-loader.test.js` — append three cases
 exercising `#loadRepoFile` behavior for the slot:
@@ -131,7 +163,11 @@ directly after `interpolateTeamInstructions`. Contract:
   - `escalationPaths` non-empty → `- **Escalation paths:**` parent bullet,
     then `  - ${trigger} → ${destination}` one indented sub-bullet per entry.
 - Empty / absent fields suppress their bullet (no empty bullets emitted).
-- No trailing whitespace after the final bullet.
+- Section ends with exactly one trailing newline (`\n`) after the final
+  bullet — no trailing whitespace, no double-blank tail. The composer
+  concatenation `${ti}\n\n${os}` relies on this; if the section ends
+  `bullet\n` the composed output is `…body\n\n## Organizational Context
+  …\n  - last entry\n` with a single terminal newline.
 
 Reference output for the design's populated example (the byte-target the
 Part 03 populated-starter test asserts against):
@@ -156,16 +192,27 @@ Part 03 populated-starter test asserts against):
 `describe("renderOrganizationalContext")` block:
 
 1. `null` → `null`. 2. `undefined` → `null`. 3. `{}` → `null`.
-4. All-empty concerns slot → `null`.
+4. All-empty concerns slot (`{ repositories: [], team: "", manager: "", adjacentLeads: [], projects: [], escalationPaths: [] }`) → `null`.
 5. Only `manager` populated → section with one bullet only.
 6. Fully-populated design example → equals the reference output byte-for-byte.
 7. `adjacentLeads` with one entry → no trailing comma.
 8. `escalationPaths` with one entry → parent bullet + one sub-bullet.
 9. `repositories` of length 1 → no commas in the bullet.
+10. **Partial-empty:** `repositories` populated but `adjacentLeads: []` and
+    `escalationPaths: []` → section emits the `Repositories` bullet only;
+    the empty `adjacentLeads` and `escalationPaths` produce no parent
+    bullets (exercises the bullet-suppression rule for empty arrays under
+    a populated section).
+11. **Trailing-newline contract:** section ends with exactly one trailing
+    `\n` after the final bullet (not zero, not two) — pins the byte shape
+    composer concatenation relies on.
 
-**Verify:** `bun run test tests/model-agent.test.js` exits 0 and
+**Verify (run from repo root):** `bun run test tests/model-agent.test.js`
+exits 0 (the file at the repo's top-level `tests/` resolves workspace
+dependencies — `@forwardimpact/libharness`, `@forwardimpact/libskill` — only
+when invoked from the workspace root, not from inside `libraries/libskill/`).
 `rg -n 'renderOrganizationalContext' libraries/libskill/src/index.js` returns
-one hit.
+one hit (the re-export).
 
 ## DO-CONFIRM for Part 01
 
