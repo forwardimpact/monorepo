@@ -6,102 +6,103 @@
 [#875](https://github.com/forwardimpact/monorepo/issues/875) caught the
 mismatch during a `kata-interview` user-testing run: a J060 software engineer
 trying to confirm their current level and the next one above ran
-`bunx fit-pathway level --list` and got three unlabeled, comma-separated
-columns. Inferring column meaning from the synthetic-data labels alone, the
-persona reported "I almost thought I was at the wrong level."
+`bunx fit-pathway level --list` and got unlabeled, comma-separated columns.
+Inferring column meaning from the synthetic-data labels alone, the persona
+reported:
 
-JTBD: **Empowered Engineers § Understand Expectations** ([JTBD.md](../../JTBD.md))
-— the job is "see what is expected at my level and what is expected at the
-level above." The first surface the persona reaches is `--list`. Today that
-surface contradicts itself: the factory header in
-`products/pathway/src/commands/command-factory.js:9` says
+> "I almost thought I was at the wrong level."
 
-> `--list`: Clean newline-separated list of IDs (for piping)
+JTBD: **Empowered Engineers § Understand Expectations**
+([JTBD.md](../../JTBD.md)) — the job is "see what is expected at my level and
+what is expected at the level above." The first command surface the persona
+reached was `--list`. Today that surface contradicts itself: the published
+factory contract says id-only, and every entity command overrides it to emit a
+descriptive comma-separated line.
 
-but every entity command overrides `formatListItem` to emit a comma-separated
-descriptive line:
-
-| Command | Current `--list` shape |
+| Command | Current `--list` output shape |
 | --- | --- |
-| `level` | `J060, Engineer, Senior Manager` |
-| `discipline` | `se, backend, individual_contributor, [...tracks]` |
-| `track` | `backend, Backend Engineering` |
-| `behaviour` | `craftsmanship, Craftsmanship` |
-| `driver` | `quality, Quality` |
-| `skill` | `code-review, Code Review, craftsmanship` |
+| `level` | `<id>, <professionalTitle \|\| id>, <managementTitle \|\| id>` |
+| `discipline` | `<id>, <specialization \|\| id>, <type>, <tracks joined by \|>` where `<type>` is `professional` or `management` |
+| `track` | `<id>, <name>` |
+| `behaviour` | `<id>, <name>` |
+| `driver` | `<id>, <name>` |
+| `skill` | `<id>, <name>, <capability>` |
 
-The user-visible problem is small (a confusing CSV); the underlying problem is
-a contract contradiction that points two ways. Resolving it is a one-line
-documentation decision in `command-factory.js` plus six small command-file
-edits, but the resolution is a product decision — which is why this is a spec
-rather than a one-line patch.
+The user-visible problem is small (a confusing CSV on the first command); the
+underlying problem is a published contract that points two ways. This spec
+makes the implementation match the contract.
 
 ## What
 
-Make every Pathway entity command's `--list` output match the factory contract:
-**one id per line, no header, no commas**. Title and descriptive columns are
-already available in the default (non-`--list`) view, which is the canonical
-human-readable surface; `--list` becomes the canonical pipe-friendly surface.
+Every Pathway entity command's `--list` output emits **one id per line, no
+header, no commas**. Title and descriptive columns remain available in the
+default (non-`--list`) view, which is already the canonical human-readable
+surface (a labeled table). `--list` becomes the canonical pipe-friendly
+surface.
 
 ### In scope
 
-| Surface | Change |
+| Surface | After this spec |
 | --- | --- |
-| `level --list` | One `levels[].id` per line |
-| `discipline --list` | One `disciplines[].id` per line |
-| `track --list` | One `tracks[].id` per line |
-| `behaviour --list` | One `behaviours[].id` per line |
-| `driver --list` | One `drivers[].id` per line |
-| `skill --list` | One `skills[].id` per line |
-| `command-factory.js` JSDoc | Statement of contract stays as written (matches behaviour after this spec) |
-| `level.js` summary hint | Stop advertising "IDs and titles"; reflect id-only `--list` |
-| `discipline.js` summary hint | Same — match the new contract |
-| Other entity-command summary hints | Audit; align any that imply multi-column `--list` |
-| `websites/fit/docs/products/career-paths/index.md` | Update the example output block (lines 48–58 today) and the explanatory sentence at line 60 |
-| Other published guides referencing the example | Audit and align: `websites/fit/index.md`, `websites/fit/docs/products/authoring-standards/define-role/index.md`, `websites/fit/docs/products/agent-teams/index.md`, `websites/fit/docs/libraries/integrate-standard/derive-profile/index.md`, `websites/fit/docs/getting-started/engineers/pathway/index.md` |
+| `bunx fit-pathway level --list` | One level id per line |
+| `bunx fit-pathway discipline --list` | One discipline id per line |
+| `bunx fit-pathway track --list` | One track id per line |
+| `bunx fit-pathway behaviour --list` | One behaviour id per line |
+| `bunx fit-pathway driver --list` | One driver id per line |
+| `bunx fit-pathway skill --list` | One skill id per line |
+| Each entity command's default summary footer | The hint advertising what `--list` produces says "ids" — it no longer advertises titles or other descriptive columns |
+| Published example output in the Career Paths guide | Matches the new `--list` shape (id-only) |
+| Any other published guide showing the multi-column `--list` example | Aligned to the new shape |
+| Released CHANGELOG entry | Calls out the breaking change to scraped `--list` output |
 
 ### Out of scope
 
-- The data-confusion observation in #875 (BioNova synthetic `J060 → Senior
-  Manager`, `J070 → Manager` reads as inverted at a glance). That is a
-  starter-data ordering choice, not a CLI contract issue. File separately if
-  it stays a confusion source after this change.
-- Other `fit-pathway` subcommands that take `--list` for a different purpose:
-  `job --list`, `interview --list`, `progress --list`, `agent --list`. These
-  are not entity-listing commands — they list parameterised invocations of a
-  job/interview/progress/agent flow. Their `--list` semantics belong to a
-  different surface and are not part of this normalisation.
-- Adding a `--format` or `--json` flag for structured output. If users want
-  the (id, title) pair programmatically, that is a separate spec.
+- The synthetic-data ordering observation also raised in #875 (BioNova's
+  J060 → "Senior Manager" / J070 → "Manager" reads as inverted at a glance).
+  That is a starter-data ordering decision, not a CLI contract. File
+  separately if it remains a confusion source after this change.
+- Other `fit-pathway` subcommands that use `--list` for a different purpose
+  (e.g. `job --list` lists job profile rows from a parameterised search;
+  `agent --list` lists valid discipline×track agent combinations). They are
+  not entity-listing commands and their `--list` semantics are not part of
+  this normalisation. (`interview --list` and `progress --list` are also out
+  of scope; both are positional-arg commands that today exit with a usage
+  error when invoked with only `--list`, so they do not implement an entity
+  listing at all.)
+- Adding a structured-output flag (`--json`, `--format`). Programmatic
+  consumers wanting the (id, title) pair belong in a separate spec.
 
 ### Backward compatibility
 
-This is a deliberate behaviour change to a published CLI surface. The triage
-on #875 searched for callers that scrape the multi-column output and found
-none: no tests, no shell scripts, no CI workflows, no internal tooling parses
-the comma-separated shape. The risk window is therefore external callers we
-cannot enumerate. The change is acceptable because (a) the published contract
-in `command-factory.js:9` has always said id-only and only the implementation
-diverged, (b) the human-readable default view continues to expose the
-descriptive columns, and (c) the change is a strict subset of today's output
-(every existing id-only consumer is preserved). External callers parsing the
-multi-column form will break; the released changelog must call this out.
+This is a deliberate behaviour change to a published CLI surface. The
+compatibility risk is external callers that scrape the multi-column output;
+none exist in this repo. The internal search the triage relied on:
+
+```sh
+rg -n '(level|discipline|track|behaviour|driver|skill) --list' \
+   --type js --type sh --type yaml --type md
+```
+
+returned only the call-sites the spec already covers (route-binding tests in
+`products/pathway/test/cli-command.test.js` that assert the command string,
+not its output; and the documentation guides under `websites/fit/docs/`). The
+change is otherwise a strict subset of today's output — every id-only
+consumer is preserved. External callers parsing the comma-separated form
+will break; that risk is acceptable because the published contract has
+always been id-only and only the implementation diverged. The released
+CHANGELOG entry surfaces the break to external consumers.
 
 ## Verifiable success criteria
 
 | Criterion | Verification |
 | --- | --- |
-| `level --list` emits one id per line, no header, no commas | `bunx fit-pathway level --list \| grep -c ,` returns `0`; line count equals `bunx fit-pathway level \| grep -c '^J0'` |
-| `discipline --list` emits one id per line, no commas | `bunx fit-pathway discipline --list \| grep -c ,` returns `0` |
-| `track --list` emits one id per line, no commas | `bunx fit-pathway track --list \| grep -c ,` returns `0` |
-| `behaviour --list` emits one id per line, no commas | `bunx fit-pathway behaviour --list \| grep -c ,` returns `0` |
-| `driver --list` emits one id per line, no commas | `bunx fit-pathway driver --list \| grep -c ,` returns `0` |
-| `skill --list` emits one id per line, no commas | `bunx fit-pathway skill --list \| grep -c ,` returns `0` |
-| Default (non-`--list`) invocation of each entity command still renders the multi-column human-readable table | Visual: `bunx fit-pathway level` shows the `ID / Professional Title / Management Title / Experience / Core Level` table |
-| Each entity command's summary hint accurately describes what `--list` produces | Read each updated `formatSummary` function; the `--list` bullet says "ids" or "IDs", not "IDs and titles" or similar |
-| `command-factory.js:9` JSDoc matches actual behaviour | Read the file; the documented contract requires no edit beyond confirming alignment |
-| `websites/fit/docs/products/career-paths/index.md` example block matches new output | Diff the example against `bunx fit-pathway level --list` after implementation |
-| All published guides referencing `level/discipline/track/behaviour/driver/skill --list` show the new output | `rg 'fit-pathway (level\|discipline\|track\|behaviour\|driver\|skill) --list' websites/` and inspect each match |
+| For every entity command in `{level, discipline, track, behaviour, driver, skill}`, `--list` emits exactly one id per line, with no commas, no header, and no trailing whitespace | For each: `bunx fit-pathway <entity> --list` — output has zero comma characters; line count equals the count rendered in the default view's table; every line is a non-empty id matching the entity's id-character set |
+| The default invocation of each entity command still renders its multi-column human-readable table | Run `bunx fit-pathway level` and confirm a table with the `ID / Professional Title / …` headers prints; repeat for the other five entities |
+| The summary footer hint shown to a user running the default invocation accurately describes what `--list` produces | For each entity, run `bunx fit-pathway <entity>` and read the printed hint; it must not promise titles or descriptive columns from `--list` |
+| The published factory contract requires no edit to remain accurate | Read the JSDoc in `products/pathway/src/commands/command-factory.js` describing `--list`; behaviour matches the stated "Clean newline-separated list of IDs (for piping)" |
+| Published guides that today show a multi-column `--list` example show the id-only example after this spec | `rg -n 'fit-pathway (level\|discipline\|track\|behaviour\|driver\|skill) --list' websites/` — every matched code block displays the new shape |
+| The CHANGELOG entry shipped with the implementation surfaces the breaking change | Read the entry; it names the affected commands and the contract change |
+| The original persona scenario from #875 no longer reproduces the failure | A J060 persona running `bunx fit-pathway level --list` and reading the output cannot mistake which level row corresponds to their own role; the output is id-only and unambiguous on its face. Re-runnable as a `kata-interview` smoke check against the same persona, or — for an automated proxy — `bunx fit-pathway level --list` followed by `bunx fit-pathway level <id>` for the user-claimed id produces the expected role detail without contradiction |
 
 ## Persona and job — recap
 
