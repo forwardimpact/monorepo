@@ -1,0 +1,5 @@
+name: outpost
+version: 0.0.0
+dependencies:
+  apm:
+    - forwardimpact/fit-skills

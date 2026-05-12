@@ -69,10 +69,10 @@ export class KBManager {
     this.#fs.copyFileSync(join(tpl, "CLAUDE.md"), join(dest, "CLAUDE.md"));
     logger.info(`  Updated CLAUDE.md`);
 
-    const lockSrc = join(tpl, "skills-lock.json");
-    if (this.#fs.existsSync(lockSrc)) {
-      this.#fs.copyFileSync(lockSrc, join(dest, "skills-lock.json"));
-      logger.info(`  Updated skills-lock.json`);
+    const apmSrc = join(tpl, "apm.yml");
+    if (this.#fs.existsSync(apmSrc)) {
+      this.#fs.copyFileSync(apmSrc, join(dest, "apm.yml"));
+      logger.info(`  Updated apm.yml`);
     }
 
     this.mergeSettings(tpl, dest);
@@ -179,7 +179,7 @@ export class KBManager {
     this.copyBundledFiles(templateDir, dest);
 
     logger.info(
-      `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. Edit ${dest}/USER.md with your name, email, and domain\n  2. cd ${dest} && npx skills experimental_install\n  3. claude`,
+      `Knowledge base initialized at ${dest}\n\nNext steps:\n  1. Edit ${dest}/USER.md with your name, email, and domain\n  2. cd ${dest} && npx apm install\n  3. claude`,
     );
   }
 

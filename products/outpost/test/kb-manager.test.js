@@ -144,7 +144,7 @@ describe("KBManager", () => {
     beforeEach(() => {
       mockFs = createKBMockFs({
         "/tpl/CLAUDE.md": "# Instructions",
-        "/tpl/skills-lock.json": '{"version":1,"skills":{}}',
+        "/tpl/apm.yml": "name: outpost\nversion: 0.0.0\ndependencies:\n  apm:\n    - forwardimpact/fit-skills\n",
         "/tpl/.claude/settings.json": '{"permissions":{}}',
         "/tpl/.claude/agents/postman.md": "postman content",
         "/tpl/.claude/agents/librarian.md": "librarian content",
@@ -198,15 +198,12 @@ describe("KBManager", () => {
       assert.ok(mockFs.dirs.has("/dest/.claude/skills/meeting-prep"));
     });
 
-    test("copies skills-lock.json to destination root", () => {
+    test("copies apm.yml to destination root", () => {
       km.copyBundledFiles("/tpl", "/dest");
-      assert.strictEqual(
-        mockFs.data.get("/dest/skills-lock.json"),
-        '{"version":1,"skills":{}}',
-      );
+      assert.ok(mockFs.data.get("/dest/apm.yml").includes("forwardimpact/fit-skills"));
     });
 
-    test("skips skills-lock.json when template has none", () => {
+    test("skips apm.yml when template has none", () => {
       const fs = createKBMockFs({
         "/tpl/CLAUDE.md": "# Instructions",
         "/tpl/.claude/settings.json": '{"permissions":{}}',
@@ -215,7 +212,7 @@ describe("KBManager", () => {
       });
       const km2 = new KBManager(fs, noop);
       km2.copyBundledFiles("/tpl", "/dest");
-      assert.strictEqual(fs.data.has("/dest/skills-lock.json"), false);
+      assert.strictEqual(fs.data.has("/dest/apm.yml"), false);
     });
   });
 
@@ -224,7 +221,7 @@ describe("KBManager", () => {
       const fs = createKBMockFs({
         "/tpl/CLAUDE.md": "# Instructions",
         "/tpl/USER.md": "# User",
-        "/tpl/skills-lock.json": '{"version":1,"skills":{}}',
+        "/tpl/apm.yml": "name: outpost\nversion: 0.0.0\n",
         "/tpl/.claude/settings.json": '{"permissions":{}}',
         "/tpl/.claude/agents/postman.md": "postman",
       });
@@ -233,7 +230,7 @@ describe("KBManager", () => {
 
       assert.ok(fs.data.has("/kb/CLAUDE.md"));
       assert.ok(fs.data.has("/kb/USER.md"));
-      assert.ok(fs.data.has("/kb/skills-lock.json"));
+      assert.ok(fs.data.has("/kb/apm.yml"));
       assert.ok(fs.data.has("/kb/.claude/agents/postman.md"));
     });
   });
