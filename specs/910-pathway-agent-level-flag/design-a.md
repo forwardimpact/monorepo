@@ -37,7 +37,7 @@ graph LR
 | Level validation             | same module                              | Reuse the existing `requireEntity` helper with `data.levels` and an "Available levels:" header — same shape as `--track`        |
 | `deriveReferenceLevel`       | `libraries/libskill/src/agent.js`        | **Unchanged.** Remains the default path when `--level` is absent                                                                |
 | Skills + behaviours threading| `libraries/libskill/src/agent.js`        | **Unchanged.** `generateAgentProfile`, `deriveAgentSkills`, `deriveAgentBehaviours` already accept and consume `level`          |
-| Expectations threading       | `libraries/libskill/src/agent.js`        | **New.** `interpolateTeamInstructions` accepts `level` and emits `level.expectations` content alongside the existing template-var output |
+| Expectations threading       | `libraries/libskill/src/agent.js`        | **New.** `interpolateTeamInstructions` gains an **optional** `level` parameter; when present, the function composes `level.expectations` content with the existing interpolated team-instructions content (see Interface Contract). When absent, behaviour is byte-identical to today. |
 | Help reflection              | libcli rendering                         | Implicit — adding the option entry surfaces it in `--help` automatically, in the same slot/shape as `--track`                   |
 | Test fixture                 | `products/pathway/test/`                 | Pinned baseline anchoring SC2 byte-identity; the plan owns location and capture mechanics                                       |
 | Guide cascade                | `agent-teams` + `organizational-context` | Each documents `--level` once in its profile-generation section with one invocation answering "when do I set this?"             |
@@ -75,8 +75,28 @@ is `level → interpolateTeamInstructions → content`, which carries
 | D2 | Resolve level inline in `runAgentCommand`; no new library export               | Extract `resolveAgentLevel(levels, idOrNull)` into `libskill/agent.js`        | Spec defers `build-packs` and the web surface; a library extraction would tempt callers the spec says to leave alone                                            |
 | D3 | `deriveReferenceLevel` unchanged                                               | Refactor the default-resolution heuristic while touching the surface          | Spec § Out of scope: refactoring the default-resolution heuristic                                                                                               |
 | D4 | Validate via existing `requireEntity`; `--level` lives in the same options block as `--track` | New level-specific validator; ad-hoc help-line emission                       | The shared helper produces the exact error shape SC3 specifies; colocation places `--level` in the same `--help` slot as `--track` (SC6)                       |
-| D5 | Thread `level` into `interpolateTeamInstructions`; library composes expectations text into team-instructions content | Add an `expectations` field to `buildProfileBodyData` and extend `agent.template.md` | Spec § In scope names the **team-instructions / CLAUDE.md** as the surface that must reflect `level.expectations`; the persona's failure was byte-identical CLAUDE.md. Putting it in the agent profile body would solve a different surface |
+| D5 | Thread `level` into `interpolateTeamInstructions` (optional param); library composes expectations text into team-instructions content | (a) Add an `expectations` field to `buildProfileBodyData` and extend `agent.template.md`; (b) compose in `formatTeamInstructions` via a `{{expectations}}` block in `claude.template.md` | (a) targets the agent profile, not CLAUDE.md — wrong surface for the persona's failure; (b) splits the content concern across library + template, makes the formatter level-aware, and forces every existing caller to choose. The library seam keeps the formatter dumb and forces no caller to change |
 | D6 | Two guides updated; no new guide created                                       | A single new "level calibration" guide                                        | Spec names those two guides as the documentation surface; a new guide would orphan the JTBD entry point                                                          |
+
+## Interface Contract — `interpolateTeamInstructions`
+
+Signature evolution:
+
+- **Before:** `interpolateTeamInstructions({ agentTrack, humanDiscipline })` — returns
+  the interpolated `agentTrack.teamInstructions` string, or `null` when the field
+  is absent.
+- **After:** `interpolateTeamInstructions({ agentTrack, humanDiscipline, level? })` —
+  same return when `level` is omitted (preserving SC2 byte-identity); when `level`
+  is provided, returns the composition of `level.expectations` content and the
+  existing interpolated content. Returns `null` only when both inputs would
+  produce empty output.
+
+The four existing call sites (`agent.js:131,229`, `build-packs.js:113`,
+`agent-builder-preview.js:127`) keep their current invocation shape verbatim —
+all four invoke without `level` today and remain unchanged. The new behaviour
+is reached only when `runAgentCommand` is updated to pass the resolved `level`.
+This preserves the spec's out-of-scope guarantee for `build-packs` and the web
+preview while opening the seam for the `agent` command.
 
 ## Error Shape Contract (SC3 / SC6)
 
@@ -95,10 +115,11 @@ D4 records the call-site decision; this section records the externally visible s
   branch consumes the resolved entity directly, bypassing the id-based
   validation seam. The plan owns the verification.
 - **Risk 2 — Expectations content shape.** `level.expectations` is an object
-  whose key set is data-defined; the team-instructions output must remain
-  stable when `expectations` is empty (older standards without the field) and
-  reasonable when populated. The plan owns the rendering rules and a baseline
-  fixture for the empty case.
+  whose key set is data-defined. The team-instructions output must remain
+  stable in both empty cases — `expectations` empty with `teamInstructions`
+  populated, and `expectations` populated with `teamInstructions` absent — and
+  reasonable when both are populated. The plan owns the rendering rules and
+  baseline fixtures for both empty cases.
 - **Risk 3 — `agent --list` ambiguity.** Spec § In scope: `agent --list` does
   not prompt for a level. The architectural commitment is that the `--list`
   path is level-independent — `options.level` has no effect when `options.list`
