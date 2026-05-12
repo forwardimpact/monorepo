@@ -30,7 +30,11 @@ export async function runBenchmarkReportCommand(values, _args) {
     throw new Error("--format must be 'json' or 'text'");
   }
 
-  const report = await aggregate({ inputDir: resolve(inputDir), kValues });
+  const report = await aggregate({
+    inputDir: resolve(inputDir),
+    kValues,
+    includeRuns: format === "text",
+  });
   if (format === "text") {
     process.stdout.write(renderTextReport(report, kValues) + "\n");
   } else {

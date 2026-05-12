@@ -33,7 +33,7 @@ my-coding-family/
     agents/judge.md
   tasks/todo-api/
     instructions.md                      # what the agent should build
-    judge.task.md                        # judge prompt; use {{SCORING}} and {{AGENT_TRACE_PATH}}
+    judge.task.md                        # judge prompt (see § judge.task.md)
     supervisor.task.md                   # reserved (v1 doesn't read it)
     specs/                               # copied into the agent CWD
     workdir/                             # copied into the agent CWD (excludes scripts/)
@@ -130,21 +130,32 @@ fs.writeSync(fd, JSON.stringify({ test: "t1", pass: true }) + "\n");
 
 ### `judge.task.md`
 
-The post-hoc judge's prompt. The harness substitutes two placeholders:
+The post-hoc judge's prompt. The harness substitutes these template
+variables before sending the prompt to the judge:
 
-- `{{SCORING}}` — the JSON-stringified scoring outcome.
-- `{{AGENT_TRACE_PATH}}` — an absolute path to the agent-under-test's
-  NDJSON trace.
+| Variable | Description |
+| --- | --- |
+| `{{AGENT_INSTRUCTIONS}}` | Contents of `instructions.md` |
+| `{{AGENT_PROFILE}}` | Agent profile body (empty string if none) |
+| `{{AGENT_TRACE_PATH}}` | Absolute path to `agent.ndjson` |
+| `{{SCORING_RESULT}}` | JSON scoring object (verdict, details, exitCode) |
+| `{{SKILL_SET_HASH}}` | SHA-256 fingerprint from `apm.lock.yaml` |
+| `{{TASK_ID}}` | Task name (directory under `tasks/`) |
+| `{{TASK_DIR}}` | Agent working directory path |
+
+`{{SCORING}}` is accepted as a legacy alias for `{{SCORING_RESULT}}`.
 
 ```md
 Scoring outcome:
 
 \`\`\`json
-{{SCORING}}
+{{SCORING_RESULT}}
 \`\`\`
 
 The agent's full trace is at `{{AGENT_TRACE_PATH}}` — read it before
-deciding.
+deciding. The agent was given task `{{TASK_ID}}` with these instructions:
+
+{{AGENT_INSTRUCTIONS}}
 
 Call `Conclude` with `verdict='success'` when both:
 
@@ -222,13 +233,20 @@ npx fit-benchmark report \
   --format=text
 ```
 
-The estimator is the OpenAI HumanEval unbiased form:
+With `--format=text`, the report renders a full markdown document:
 
-`pass@k = 1 - C(n - c, k) / C(n, k)`
+- **Summary** — overall pass rate, model, skill-set hash, cost, median
+  duration, median turns.
+- **Pass@k table** — one row per task with the unbiased HumanEval
+  estimator: `pass@k = 1 - C(n-c, k) / C(n, k)`.
+- **Task details** — per-task sections with a runs table, scoring check
+  results, judge commentary (blockquoted), and any agent or preflight
+  errors.
 
-where `n` is the number of runs and `c` is the number of passing runs.
-The report groups by `taskId` and emits pass@k for each k value. A
-`k > n` value emits a structured error row rather than a misleading
+With `--format=json` (default), the output is the aggregated pass@k
+data only — suitable for machine consumption and before/after diffs.
+
+A `k > n` value emits a structured error row rather than a misleading
 number.
 
 ## Compare Before and After

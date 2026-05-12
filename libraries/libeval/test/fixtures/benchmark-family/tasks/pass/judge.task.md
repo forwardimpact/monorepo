@@ -1,7 +1,7 @@
 Scoring result:
 
 ```json
-{{SCORING}}
+{{SCORING_RESULT}}
 ```
 
 Agent trace at `{{AGENT_TRACE_PATH}}`. Call `Conclude` with

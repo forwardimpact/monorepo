@@ -1,5 +1,5 @@
 Scoring:
-{{SCORING}}
+{{SCORING_RESULT}}
 
 Trace: {{AGENT_TRACE_PATH}}
 

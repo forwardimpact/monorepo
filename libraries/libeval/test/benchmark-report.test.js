@@ -97,3 +97,246 @@ describe("renderTextReport", () => {
     assert.match(text, /\| x \| 2 \| 1 \| 0\.5000 \|/);
   });
 });
+
+describe("aggregate with includeRuns", () => {
+  test("returns runs arrays with expected fields", async () => {
+    const records = [
+      baseRecord({
+        taskId: "x",
+        runIndex: 0,
+        verdict: "pass",
+        costUsd: 0.1,
+        turns: 5,
+        durationMs: 3000,
+      }),
+      baseRecord({
+        taskId: "x",
+        runIndex: 1,
+        verdict: "fail",
+        costUsd: 0.2,
+        turns: 8,
+        durationMs: 5000,
+      }),
+    ];
+    const dir = await writeJsonl(records);
+    const report = await aggregate({
+      inputDir: dir,
+      kValues: [1],
+      includeRuns: true,
+    });
+    assert.strictEqual(report.tasks.length, 1);
+    const task = report.tasks[0];
+    assert.ok(Array.isArray(task.runs));
+    assert.strictEqual(task.runs.length, 2);
+    assert.strictEqual(task.runs[0].runIndex, 0);
+    assert.strictEqual(task.runs[0].verdict, "pass");
+    assert.strictEqual(task.runs[0].costUsd, 0.1);
+    assert.ok(task.runs[0].scoring);
+    assert.ok(task.runs[0].judgeVerdict);
+    assert.strictEqual(task.runs[1].runIndex, 1);
+  });
+
+  test("populates operational totals", async () => {
+    const records = [
+      baseRecord({
+        taskId: "x",
+        runIndex: 0,
+        costUsd: 0.1,
+        durationMs: 3000,
+        turns: 5,
+      }),
+      baseRecord({
+        taskId: "x",
+        runIndex: 1,
+        costUsd: 0.3,
+        durationMs: 7000,
+        turns: 9,
+      }),
+    ];
+    const dir = await writeJsonl(records);
+    const report = await aggregate({
+      inputDir: dir,
+      kValues: [1],
+      includeRuns: true,
+    });
+    assert.strictEqual(report.totals.costUsd, 0.4);
+    assert.strictEqual(report.totals.medianDurationMs, 5000);
+    assert.strictEqual(report.totals.medianTurns, 7);
+    assert.strictEqual(report.totals.model, "m");
+    assert.ok(report.totals.skillSetHash);
+  });
+
+  test("without includeRuns does not attach runs", async () => {
+    const records = [baseRecord({ taskId: "x", runIndex: 0 })];
+    const dir = await writeJsonl(records);
+    const report = await aggregate({ inputDir: dir, kValues: [1] });
+    assert.strictEqual(report.tasks[0].runs, undefined);
+    assert.strictEqual(report.totals.costUsd, undefined);
+  });
+});
+
+describe("renderTextReport (full report)", () => {
+  test("renders summary, pass@k, and task detail sections", async () => {
+    const records = [
+      baseRecord({
+        taskId: "alpha",
+        runIndex: 0,
+        verdict: "pass",
+        scoring: {
+          verdict: "pass",
+          details: [{ test: "check-1", pass: true }],
+          exitCode: 0,
+        },
+        judgeVerdict: { verdict: "pass", summary: "looks good" },
+        costUsd: 0.1,
+        turns: 5,
+        durationMs: 30000,
+      }),
+    ];
+    const dir = await writeJsonl(records);
+    const report = await aggregate({
+      inputDir: dir,
+      kValues: [1],
+      includeRuns: true,
+    });
+    const text = renderTextReport(report, [1]);
+    assert.match(text, /# Benchmark Report/);
+    assert.match(text, /\*\*Result: 1\/1 tasks passing\*\*/);
+    assert.match(text, /## Pass@k/);
+    assert.match(text, /## Task Details/);
+    assert.match(text, /### alpha/);
+    assert.match(text, /\*\*PASS — 1\/1 runs passed\*\*/);
+    assert.match(text, /#### Scoring Checks/);
+    assert.match(text, /check-1 \| PASS/);
+    assert.match(text, /#### Judge Commentary/);
+    assert.match(text, /looks good/);
+  });
+
+  test("single run omits Run column in scoring checks", async () => {
+    const records = [
+      baseRecord({
+        taskId: "x",
+        runIndex: 0,
+        scoring: {
+          verdict: "pass",
+          details: [{ test: "t1", pass: true }],
+          exitCode: 0,
+        },
+      }),
+    ];
+    const dir = await writeJsonl(records);
+    const report = await aggregate({
+      inputDir: dir,
+      kValues: [1],
+      includeRuns: true,
+    });
+    const text = renderTextReport(report, [1]);
+    const checksSection = text.split("#### Scoring Checks")[1].split("####")[0];
+    assert.match(checksSection, /\| Check \| Result \| Message \|/);
+    assert.doesNotMatch(checksSection, /\| Run \|/);
+  });
+
+  test("multi-run includes Run column in scoring checks", async () => {
+    const records = [
+      baseRecord({
+        taskId: "x",
+        runIndex: 0,
+        scoring: {
+          verdict: "pass",
+          details: [{ test: "t1", pass: true }],
+          exitCode: 0,
+        },
+      }),
+      baseRecord({
+        taskId: "x",
+        runIndex: 1,
+        scoring: {
+          verdict: "fail",
+          details: [{ test: "t1", pass: false, message: "nope" }],
+          exitCode: 1,
+        },
+      }),
+    ];
+    const dir = await writeJsonl(records);
+    const report = await aggregate({
+      inputDir: dir,
+      kValues: [1],
+      includeRuns: true,
+    });
+    const text = renderTextReport(report, [1]);
+    const checksSection = text.split("#### Scoring Checks")[1].split("####")[0];
+    assert.match(checksSection, /\| Run \| Check \| Result \| Message \|/);
+  });
+
+  test("renders errors section for agent errors", async () => {
+    const records = [
+      baseRecord({
+        taskId: "x",
+        runIndex: 0,
+        verdict: "fail",
+        agentError: { message: "boom", aborted: false },
+      }),
+    ];
+    const dir = await writeJsonl(records);
+    const report = await aggregate({
+      inputDir: dir,
+      kValues: [1],
+      includeRuns: true,
+    });
+    const text = renderTextReport(report, [1]);
+    assert.match(text, /#### Errors/);
+    assert.match(text, /Agent error — "boom"/);
+  });
+
+  test("renders errors section for preflight errors", async () => {
+    const records = [
+      {
+        taskId: "x",
+        runIndex: 0,
+        verdict: "fail",
+        costUsd: 0,
+        turns: 0,
+        profiles: { agent: null, supervisor: null, judge: null },
+        model: "m",
+        skillSetHash: "sha256:a",
+        familyRevision: "sha256:b",
+        durationMs: 100,
+        preflightError: {
+          phase: "preflight",
+          message: "script failed",
+          exitCode: 1,
+        },
+        agentTracePath: "/tmp/a.ndjson",
+        judgeTracePath: "/tmp/j.ndjson",
+      },
+    ];
+    const dir = await writeJsonl(records);
+    const report = await aggregate({
+      inputDir: dir,
+      kValues: [1],
+      includeRuns: true,
+    });
+    const text = renderTextReport(report, [1]);
+    assert.match(text, /#### Errors/);
+    assert.match(text, /Preflight error — "script failed"/);
+    assert.match(text, /preflight error/);
+  });
+
+  test("omits scoring checks section when details are empty", async () => {
+    const records = [
+      baseRecord({
+        taskId: "x",
+        runIndex: 0,
+        scoring: { verdict: "pass", details: [], exitCode: 0 },
+      }),
+    ];
+    const dir = await writeJsonl(records);
+    const report = await aggregate({
+      inputDir: dir,
+      kValues: [1],
+      includeRuns: true,
+    });
+    const text = renderTextReport(report, [1]);
+    assert.doesNotMatch(text, /#### Scoring Checks/);
+  });
+});

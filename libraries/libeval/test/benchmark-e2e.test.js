@@ -195,7 +195,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
   });
 
-  test("judge prompt has {{SCORING}} substituted (verdict tracks scoring)", async () => {
+  test("judge prompt has {{SCORING_RESULT}} substituted (verdict tracks scoring)", async () => {
     const { runner } = await setupRunner({ runs: 1 });
     const records = await collectRecords(runner);
     for (const r of records) {

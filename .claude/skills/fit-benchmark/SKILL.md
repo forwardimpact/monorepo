@@ -36,7 +36,7 @@ under test:
   tasks/<task-name>/
     instructions.md       # agent prompt
     supervisor.task.md    # reserved (v1 doesn't read it)
-    judge.task.md         # judge prompt with {{SCORING}} and {{AGENT_TRACE_PATH}}
+    judge.task.md         # judge prompt (see § Judge Template Variables)
     specs/                # copied into agent CWD
     workdir/              # copied into agent CWD (excludes scripts/)
       scripts/preflight.sh  # smoke probe; exit 0 confirms scaffold
@@ -81,7 +81,7 @@ The full flag surface lives in [references/cli.md](references/cli.md).
 | --- | --- |
 | `run` | Run every task N times against a family; append result records to `<output>/results.jsonl`. |
 | `score` | Score a single task against a post-run workdir without invoking an agent. |
-| `report` | Aggregate `results.jsonl` into pass@k via the OpenAI HumanEval estimator. |
+| `report` | Aggregate `results.jsonl` into pass@k, scoring checks, judge commentary, and operational stats. |
 
 ## Typical Workflow
 
@@ -97,6 +97,22 @@ npx fit-benchmark run \
 # 2. Aggregate into pass@k.
 npx fit-benchmark report --input=./runs/2026-05-11 --k=1,3,5 --format=text
 ```
+
+## Judge Template Variables
+
+The `judge.task.md` template supports these variables:
+
+| Variable | Source |
+| --- | --- |
+| `{{AGENT_INSTRUCTIONS}}` | Contents of `instructions.md` |
+| `{{AGENT_PROFILE}}` | Agent profile body (empty string if none) |
+| `{{AGENT_TRACE_PATH}}` | Path to `agent.ndjson` |
+| `{{SCORING_RESULT}}` | JSON scoring object (verdict, details, exitCode) |
+| `{{SKILL_SET_HASH}}` | SHA-256 fingerprint from `apm.lock.yaml` |
+| `{{TASK_ID}}` | Task name (directory under `tasks/`) |
+| `{{TASK_DIR}}` | Agent working directory path |
+
+`{{SCORING}}` is accepted as a legacy alias for `{{SCORING_RESULT}}`.
 
 ## Grading Surfaces
 

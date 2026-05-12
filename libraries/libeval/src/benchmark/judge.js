@@ -1,9 +1,20 @@
 /**
  * Benchmark adapter for the libeval `Judge`. Templates the family's
- * `judge.task.md` ({{SCORING}} / {{AGENT_TRACE_PATH}} substitution), runs the
- * judge against the post-run agent CWD, and returns the verdict in the
- * benchmark's `pass`/`fail` vocabulary (mapped from libeval's
- * `success`/`failure`).
+ * `judge.task.md` with structured context variables, runs the judge against
+ * the post-run agent CWD, and returns the verdict in the benchmark's
+ * `pass`/`fail` vocabulary (mapped from libeval's `success`/`failure`).
+ *
+ * Template variables available in `judge.task.md`:
+ *
+ *   {{AGENT_INSTRUCTIONS}}  — contents of instructions.md
+ *   {{AGENT_PROFILE}}       — agent profile body (empty string if none)
+ *   {{AGENT_TRACE_PATH}}    — path to agent.ndjson
+ *   {{SCORING_RESULT}}      — JSON scoring object
+ *   {{SKILL_SET_HASH}}      — SHA-256 from apm.lock.yaml
+ *   {{TASK_ID}}             — task name (directory under tasks/)
+ *   {{TASK_DIR}}            — agent working directory path
+ *
+ * Legacy alias: {{SCORING}} is accepted as an alias for {{SCORING_RESULT}}.
  *
  * The judge verdict is captured from the orchestration context's
  * `concluded` flag directly — no trace parsing on the happy path.
@@ -25,18 +36,33 @@ import { createRedactor } from "../redaction.js";
  */
 
 /**
+ * @typedef {object} JudgeContext
+ * @property {string} agentInstructions - Contents of instructions.md.
+ * @property {string} agentProfile - Agent profile body (empty string if none).
+ * @property {string} skillSetHash - SHA-256 fingerprint from apm.lock.yaml.
+ */
+
+/**
  * Run the judge over a completed task run.
  * @param {import("./task-family.js").Task} task
  * @param {import("./workdir.js").Workdir} workdir
  * @param {import("./scorer.js").ScoringResult} scoring
  * @param {{query: Function, model: string, judgeProfile?: string}} deps
+ * @param {JudgeContext} [context]
  * @returns {Promise<JudgeVerdict>}
  */
-export async function runJudge(task, workdir, scoring, deps) {
+export async function runJudge(task, workdir, scoring, deps, context) {
   const template = await readFile(task.paths.judge, "utf8");
+  const scoringJson = JSON.stringify(scoring, null, 2);
   const taskText = template
-    .replaceAll("{{SCORING}}", JSON.stringify(scoring, null, 2))
-    .replaceAll("{{AGENT_TRACE_PATH}}", workdir.agentTracePath);
+    .replaceAll("{{SCORING_RESULT}}", scoringJson)
+    .replaceAll("{{SCORING}}", scoringJson)
+    .replaceAll("{{AGENT_TRACE_PATH}}", workdir.agentTracePath)
+    .replaceAll("{{AGENT_INSTRUCTIONS}}", context?.agentInstructions ?? "")
+    .replaceAll("{{AGENT_PROFILE}}", context?.agentProfile ?? "")
+    .replaceAll("{{SKILL_SET_HASH}}", context?.skillSetHash ?? "")
+    .replaceAll("{{TASK_ID}}", task.id)
+    .replaceAll("{{TASK_DIR}}", workdir.cwd);
 
   const output = createWriteStream(workdir.judgeTracePath);
   const judge = createJudge({

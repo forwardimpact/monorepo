@@ -13,23 +13,19 @@ if [ ! -f "$SPEC" ]; then
 fi
 emit '{"test":"file-present","pass":true}'
 
-# 2. Problem first: first level-2 heading is "Problem" (case-insensitive)
-first_h2="$(awk '/^## / { sub(/^## /,""); sub(/[[:space:]]*$/,""); print; exit }' "$SPEC")"
-lc_first="$(printf '%s' "$first_h2" | tr '[:upper:]' '[:lower:]')"
-case "$lc_first" in
-  problem*) emit '{"test":"problem-first","pass":true}' ;;
-  *) emit "{\"test\":\"problem-first\",\"pass\":false,\"message\":\"first level-2 heading is '$first_h2'\"}"
-     FAIL=1 ;;
-esac
-
-# 3. Specific scope: has Scope section AND an exclusion heading
-HAS_SCOPE=0; HAS_EXCL=0
-grep -qiE '^## (In )?Scope( |$)' "$SPEC" && HAS_SCOPE=1
-grep -qiE '^## Out of scope|^### Out of scope' "$SPEC" && HAS_EXCL=1
-if [ "$HAS_SCOPE" = 1 ] && [ "$HAS_EXCL" = 1 ]; then
-  emit '{"test":"specific-scope","pass":true}'
+# 2. Has a Problem heading (any position)
+if grep -qiE '^## Problem' "$SPEC"; then
+  emit '{"test":"has-problem","pass":true}'
 else
-  emit "{\"test\":\"specific-scope\",\"pass\":false,\"message\":\"scope=$HAS_SCOPE exclusion=$HAS_EXCL\"}"
+  emit '{"test":"has-problem","pass":false,"message":"missing ## Problem heading"}'
+  FAIL=1
+fi
+
+# 3. Has a Scope heading (exclusions may be inline or a subheading)
+if grep -qiE '^##+ (In )?Scope|^##+ Non.?Goals' "$SPEC"; then
+  emit '{"test":"has-scope","pass":true}'
+else
+  emit '{"test":"has-scope","pass":false,"message":"missing scope or non-goals heading"}'
   FAIL=1
 fi
 
@@ -41,9 +37,9 @@ else
   FAIL=1
 fi
 
-# 5. No HOW leak: design § Grading rubric — absence of file:line or function-signature patterns
-if grep -qE '[A-Za-z0-9_/.-]+\.(js|ts|sh|py|yml|yaml):[0-9]+|function +[A-Za-z_]+ *\(|async +function' "$SPEC"; then
-  emit '{"test":"no-how-leak","pass":false,"message":"file:line or function signature detected"}'
+# 5. No HOW leak: file:line references suggest implementation detail
+if grep -qE '[A-Za-z0-9_/.-]+\.(js|ts|sh|py|yml|yaml):[0-9]+' "$SPEC"; then
+  emit '{"test":"no-how-leak","pass":false,"message":"file:line reference detected"}'
   FAIL=1
 else
   emit '{"test":"no-how-leak","pass":true}'

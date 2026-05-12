@@ -165,11 +165,22 @@ export class BenchmarkRunner {
         port: workdir.port,
         runDir: workdir.runDir,
       });
-      const judgeVerdict = await this._runJudgeHook(task, workdir, scoring, {
-        query: this.query,
-        model: this.model,
-        judgeProfile: this.profiles.judge ?? undefined,
-      });
+      const judgeContext = await this.#buildJudgeContext(
+        task,
+        workdir,
+        skillSetHash,
+      );
+      const judgeVerdict = await this._runJudgeHook(
+        task,
+        workdir,
+        scoring,
+        {
+          query: this.query,
+          model: this.model,
+          judgeProfile: this.profiles.judge ?? undefined,
+        },
+        judgeContext,
+      );
       const record = {
         taskId: task.id,
         runIndex,
@@ -274,6 +285,20 @@ export class BenchmarkRunner {
     }
     const summary = await readAgentSummary(workdir.agentTracePath);
     return { ...summary, agentError };
+  }
+
+  async #buildJudgeContext(task, workdir, skillSetHash) {
+    const agentInstructions = await readFile(task.paths.instructions, "utf8");
+    let agentProfile = "";
+    if (this.profiles.agent) {
+      const profilePath = resolvePath(
+        workdir.cwd,
+        ".claude/agents",
+        `${this.profiles.agent}.md`,
+      );
+      agentProfile = await readFile(profilePath, "utf8").catch(() => "");
+    }
+    return { agentInstructions, agentProfile, skillSetHash };
   }
 
   #buildPreflightFailureRecord({
