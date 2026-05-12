@@ -1,6 +1,6 @@
 ---
 title: "See What's Expected at Your Level"
-description: "Stop guessing what your level requires — see the skills, behaviours, and scope so expectations are clear before your next review."
+description: "Stop guessing what your level requires — see the skills, behaviours, and scope so expectations are clear before your next review, and the gap to the next level when you are ready to grow."
 ---
 
 You have started a new role, and the review form says "meets expectations" --
@@ -8,7 +8,9 @@ but nobody can point to a definition of what that means. Pathway makes those
 expectations visible: the skills your level requires, the behaviours the
 organization values, and the scope and autonomy your role implies. By the end of
 this guide you will have a concrete picture of what your level expects, grounded
-in your organization's own engineering standard.
+in your organization's own engineering standard — and the specific skill and
+behaviour gap to the next level when you are ready to grow toward it
+(see [§ See what changes at the next level](#see-what-changes-at-the-next-level)).
 
 ## Prerequisites
 

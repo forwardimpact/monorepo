@@ -113,7 +113,7 @@ const definition = {
     {
       name: "progress",
       args: "<discipline> <level>",
-      description: "Career progression analysis",
+      description: "Show the skill and behaviour gap from a level to the next",
       options: {
         track: { type: "string", description: "Track specialization" },
         compare: { type: "string", description: "Compare to level" },
@@ -207,6 +207,7 @@ const definition = {
   examples: [
     "fit-pathway discipline backend",
     "fit-pathway job software_engineering J060 --track=platform",
+    "fit-pathway progress software_engineering J060",
     "fit-pathway interview software_engineering J060 --json",
     "fit-pathway agent software_engineering --track=platform",
   ],
