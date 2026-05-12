@@ -89,13 +89,11 @@ The full flag surface lives in [references/cli.md](references/cli.md).
 # 1. Run the family. One ResultRecord streams to stdout per (task, run).
 npx fit-benchmark run \
   --family=./families/coding \
-  --output=./runs/2026-05-11 \
-  --runs=5 \
   --agent-profile=coder \
   --judge-profile=judge
 
 # 2. Aggregate into pass@k.
-npx fit-benchmark report --input=./runs/2026-05-11 --k=1,3,5 --format=text
+npx fit-benchmark report --format=text
 ```
 
 ## Judge Template Variables

@@ -47,7 +47,7 @@ import { createRedactor } from "../redaction.js";
  * @param {import("./task-family.js").Task} task
  * @param {import("./workdir.js").Workdir} workdir
  * @param {import("./scorer.js").ScoringResult} scoring
- * @param {{query: Function, model: string, judgeProfile?: string}} deps
+ * @param {{query: Function, model: string, judgeProfile?: string, profilesDir?: string}} deps
  * @param {JudgeContext} [context]
  * @returns {Promise<JudgeVerdict>}
  */
@@ -71,6 +71,7 @@ export async function runJudge(task, workdir, scoring, deps, context) {
     output,
     model: deps.model,
     judgeProfile: deps.judgeProfile,
+    profilesDir: deps.profilesDir,
     maxTurns: 25,
     redactor: createRedactor(),
   });

@@ -34,15 +34,27 @@ export const definition = {
         },
         output: {
           type: "string",
-          description: "Run-output directory (created if missing)",
+          description:
+            "Run-output directory (created if missing, default: benchmark-runs)",
         },
         runs: {
           type: "string",
-          description: "Runs per task (integer ≥ 1, default 1)",
+          description: "Runs per task (integer ≥ 1, default: 5)",
         },
-        model: {
+        "agent-model": {
           type: "string",
-          description: "Claude model id (default: claude-opus-4-7[1m])",
+          description:
+            "Claude model for the agent-under-test (default: claude-sonnet-4-6)",
+        },
+        "supervisor-model": {
+          type: "string",
+          description:
+            "Claude model for the supervisor (default: claude-opus-4-7)",
+        },
+        "judge-model": {
+          type: "string",
+          description:
+            "Claude model for the judge (default: claude-opus-4-7)",
         },
         "agent-profile": {
           type: "string",
@@ -92,7 +104,8 @@ export const definition = {
       options: {
         input: {
           type: "string",
-          description: "Run-output directory containing results.jsonl",
+          description:
+            "Run-output directory containing results.jsonl (default: benchmark-runs)",
         },
         k: {
           type: "string",
@@ -111,8 +124,10 @@ export const definition = {
     json: { type: "boolean", description: "Output help as JSON" },
   },
   examples: [
-    "fit-benchmark run --family=./families/coding --output=./runs/2026-05-11 --runs=5",
-    "fit-benchmark score --family=./families/coding --task=todo-api --workdir=./runs/2026-05-11/runs/todo-api/0",
+    "fit-benchmark run --family=./families/coding",
+    "fit-benchmark run --family=./families/coding --runs=10 --agent-model=claude-sonnet-4-6",
+    "fit-benchmark score --family=./families/coding --task=todo-api --workdir=./benchmark-runs/runs/todo-api/0",
+    "fit-benchmark report --format=text",
     "fit-benchmark report --input=./runs/2026-05-11 --k=1,3,5 --format=text",
   ],
   documentation: [

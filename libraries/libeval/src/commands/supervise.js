@@ -31,7 +31,8 @@ function parseSuperviseOptions(values) {
     agentCwd: resolve(
       values["agent-cwd"] ?? mkdtempSync(join(tmpdir(), "fit-eval-agent-")),
     ),
-    model: values.model ?? "claude-opus-4-7[1m]",
+    agentModel: values["agent-model"] ?? "claude-opus-4-7[1m]",
+    supervisorModel: values["supervisor-model"] ?? "claude-opus-4-7[1m]",
     maxTurns: (() => {
       const raw = values["max-turns"] ?? "20";
       return raw === "0" ? 0 : parseInt(raw, 10);
@@ -102,7 +103,8 @@ export async function runSuperviseCommand(values, _args) {
     agentCwd: opts.agentCwd,
     query,
     output,
-    model: opts.model,
+    agentModel: opts.agentModel,
+    supervisorModel: opts.supervisorModel,
     maxTurns: opts.maxTurns,
     allowedTools: opts.allowedTools,
     supervisorAllowedTools: opts.supervisorAllowedTools,

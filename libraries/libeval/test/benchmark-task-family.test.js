@@ -56,15 +56,17 @@ describe("loadTaskFamily", () => {
   });
 
   test("apm.lock.yaml hashes identically with LF and CRLF line endings", async () => {
+    const apmYml = "name: test\nversion: 0.0.0\ndependencies:\n  apm: []\n";
     const lfDir = await mkdtemp(join(tmpdir(), "benchmark-lf-"));
     const crlfDir = await mkdtemp(join(tmpdir(), "benchmark-crlf-"));
-    // Both must have at least a .claude/ tree for installApm.
     await cp(join(FIXTURE, ".claude"), join(lfDir, ".claude"), {
       recursive: true,
     });
     await cp(join(FIXTURE, ".claude"), join(crlfDir, ".claude"), {
       recursive: true,
     });
+    await writeFile(join(lfDir, "apm.yml"), apmYml);
+    await writeFile(join(crlfDir, "apm.yml"), apmYml);
     const content = "key: value\nother: thing\n";
     await writeFile(join(lfDir, "apm.lock.yaml"), content);
     await writeFile(
@@ -89,16 +91,16 @@ describe("assertJudgeProfileStaged", () => {
   test("resolves when the profile exists", async () => {
     const family = await loadTaskFamily(FIXTURE);
     const out = await mkdtemp(join(tmpdir(), "benchmark-stage-"));
-    const { stagingDir } = await installApm(family, out);
-    await assertJudgeProfileStaged(family, stagingDir, "judge");
+    const { judgeProfilesDir } = await installApm(family, out);
+    await assertJudgeProfileStaged(family, judgeProfilesDir, "judge");
   });
 
   test("throws when the profile is absent", async () => {
     const family = await loadTaskFamily(FIXTURE);
     const out = await mkdtemp(join(tmpdir(), "benchmark-stage-miss-"));
-    const { stagingDir } = await installApm(family, out);
+    const { judgeProfilesDir } = await installApm(family, out);
     await assert.rejects(
-      assertJudgeProfileStaged(family, stagingDir, "missing"),
+      assertJudgeProfileStaged(family, judgeProfilesDir, "missing"),
       /judge profile not staged/,
     );
   });

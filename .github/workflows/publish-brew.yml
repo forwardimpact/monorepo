@@ -1,4 +1,4 @@
-name: Publish Brew
+name: "Publish: Brew"
 
 on:
   push:

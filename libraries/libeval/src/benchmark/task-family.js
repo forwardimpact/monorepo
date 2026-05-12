@@ -53,13 +53,11 @@ export async function loadTaskFamily(rootPathOrGitUrl) {
     familyRevision = "sha256:" + (await canonicalTreeHash(rootPath));
   }
 
-  const apmLockBytes = await readApmLockBytes(rootPath);
   const tasks = await discoverTasks(rootPath);
 
   return {
     rootPath,
     familyRevision,
-    apmLockBytes,
     tasks() {
       return tasks;
     },
@@ -67,57 +65,29 @@ export async function loadTaskFamily(rootPathOrGitUrl) {
 }
 
 /**
- * Assert that `<stagingDir>/.claude/agents/<judgeProfile>.md` exists. Called
- * from `BenchmarkRunner.run()` so a missing judge profile fails the family
+ * Assert that `<judgeProfilesDir>/<judgeProfile>.md` exists. Called from
+ * `BenchmarkRunner.run()` so a missing judge profile fails the family
  * install before any agent session starts.
  * @param {TaskFamily} _family
- * @param {string} stagingDir
+ * @param {string} judgeProfilesDir
  * @param {string} judgeProfile
  * @returns {Promise<void>}
  */
 export async function assertJudgeProfileStaged(
   _family,
-  stagingDir,
+  judgeProfilesDir,
   judgeProfile,
 ) {
-  const candidate = join(stagingDir, ".claude", "agents", `${judgeProfile}.md`);
+  const candidate = join(judgeProfilesDir, `${judgeProfile}.md`);
   try {
     await access(candidate);
   } catch {
     throw new Error(
-      `judge profile not staged: ${candidate} (createSupervisor resolves profiles relative to <supervisorCwd>/.claude/agents)`,
+      `judge profile not staged: ${candidate}`,
     );
   }
 }
 
-async function readApmLockBytes(rootPath) {
-  const lockPath = join(rootPath, "apm.lock.yaml");
-  try {
-    const raw = await readFile(lockPath);
-    return normalizeLf(raw);
-  } catch (e) {
-    if (e.code === "ENOENT") {
-      throw new Error(
-        `task family missing apm.lock.yaml at ${lockPath} (matches libpack stager.js:126; .yml is not accepted)`,
-      );
-    }
-    throw e;
-  }
-}
-
-/**
- * Replace CRLF with LF so cross-OS authored lockfiles hash identically.
- * @param {Buffer} buf
- * @returns {Buffer}
- */
-function normalizeLf(buf) {
-  const out = [];
-  for (let i = 0; i < buf.length; i++) {
-    if (buf[i] === 0x0d && i + 1 < buf.length && buf[i + 1] === 0x0a) continue;
-    out.push(buf[i]);
-  }
-  return Buffer.from(out);
-}
 
 async function discoverTasks(rootPath) {
   const tasksRoot = join(rootPath, "tasks");
@@ -249,6 +219,5 @@ function run(cmd, args) {
  * @typedef {object} TaskFamily
  * @property {string} rootPath
  * @property {string} familyRevision - `git:<sha>` or `sha256:<hex>`
- * @property {Buffer} apmLockBytes - LF-normalised
  * @property {() => Task[]} tasks
  */

@@ -1,4 +1,4 @@
-name: "Kata Interview"
+name: "Kata:–- Interview"
 
 on:
   workflow_dispatch:
@@ -79,7 +79,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Run interview
-        uses: ./.github/actions/kata-action-eval
+        uses: ./.github/actions/fit-eval
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -90,7 +90,6 @@ jobs:
           supervisor-cwd: "."
           agent-cwd: ${{ steps.agent-workspace.outputs.dir }}
           supervisor-profile: "product-manager"
-          model: "claude-opus-4-7[1m]"
           max-turns: "200"
           allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,WebFetch,WebSearch"
           supervisor-allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,Skill,TodoWrite"

@@ -19,9 +19,11 @@ npx fit-benchmark <command> [options]
 | Flag               | Required | Purpose                                                                                          |
 | ------------------ | -------- | ------------------------------------------------------------------------------------------------ |
 | `--family`         | yes      | Path or git URL of the task family                                                               |
-| `--output`         | yes      | Run-output directory (created if missing)                                                        |
-| `--runs`           | no       | Runs per task (default `1`)                                                                      |
-| `--model`          | no       | Claude model id (default `claude-opus-4-7[1m]`)                                                  |
+| `--output`         | no       | Run-output directory (created if missing, default `benchmark-runs`)                              |
+| `--runs`           | no       | Runs per task (default `5`)                                                                      |
+| `--agent-model`    | no       | Claude model for the agent-under-test (default `claude-sonnet-4-6`)                              |
+| `--supervisor-model` | no     | Claude model for the supervisor (default `claude-opus-4-7`)                                      |
+| `--judge-model`    | no       | Claude model for the judge (default `claude-opus-4-7`)                                           |
 | `--agent-profile`  | no       | Agent-under-test profile name                                                                    |
 | `--judge-profile`  | no       | Judge profile name                                                                               |
 | `--max-turns`      | no       | Agent turn budget (default `50`; `0` = unlimited)                                                |
@@ -48,7 +50,7 @@ it skips agent and judge fields because no agent was invoked). Exit
 
 | Flag       | Required | Purpose                                                                              |
 | ---------- | -------- | ------------------------------------------------------------------------------------ |
-| `--input`  | yes      | Run-output directory containing `results.jsonl`                                      |
+| `--input`  | no       | Run-output directory containing `results.jsonl` (default `benchmark-runs`)           |
 | `--k`      | no       | Comma-separated `k` values (default `1,3,5`)                                         |
 | `--format` | no       | Output format `json` or `text` (default `json`)                                      |
 

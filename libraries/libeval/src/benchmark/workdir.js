@@ -24,6 +24,7 @@ const DEFAULT_TERM_GRACE_MS = 5_000;
  * @property {number} pgid - Process-group id captured from the preflight child.
  * @property {*} scaffold - Reserved per design § Components; v1 sets null.
  * @property {string} agentTracePath
+ * @property {string} supervisorTracePath
  * @property {string} judgeTracePath
  * @property {{phase: string, message: string, exitCode: number}} [preflightError]
  */
@@ -70,6 +71,7 @@ export class WorkdirManager {
 
     const port = await allocatePort();
     const agentTracePath = join(runDir, "agent.ndjson");
+    const supervisorTracePath = join(runDir, "supervisor.ndjson");
     const judgeTracePath = join(runDir, "judge.ndjson");
 
     const preflightScript = join(task.paths.workdir, "scripts", "preflight.sh");
@@ -82,6 +84,7 @@ export class WorkdirManager {
       pgid: preflight.pgid,
       scaffold: null,
       agentTracePath,
+      supervisorTracePath,
       judgeTracePath,
       ...(preflight.error && { preflightError: preflight.error }),
     };

@@ -3,7 +3,7 @@
  *
  * Phases per (task, runIndex):
  *   1. WorkdirManager.start → seed CWD + run pre-flight probe
- *   2. AgentRunner (bare; design Decision 14) → produce trace + submission
+ *   2. Supervisor relay (agent + supervisor) → produce traces + submission
  *   3. Scorer.runScoring → exit-code-driven verdict via fd-3 NDJSON
  *   4. Judge.runJudge → Conclude-driven verdict mapped to pass/fail
  *   5. WorkdirManager.teardown → process-group cleanup
@@ -15,15 +15,12 @@
  */
 
 import { createReadStream, createWriteStream } from "node:fs";
-import { access, constants, mkdir, readFile } from "node:fs/promises";
+import { access, constants, mkdir, readFile, unlink } from "node:fs/promises";
 import { createInterface } from "node:readline";
 import { join, resolve as resolvePath } from "node:path";
 
-import { createAgentRunner } from "../agent-runner.js";
-import { composeProfilePrompt } from "../profile-prompt.js";
 import { createRedactor } from "../redaction.js";
-import { AGENT_SYSTEM_PROMPT } from "../supervisor.js";
-import { createTraceCollector } from "../trace-collector.js";
+import { createSupervisor } from "../supervisor.js";
 import { installApm } from "./apm-installer.js";
 import { runJudge } from "./judge.js";
 import { validateResultRecord } from "./result.js";
@@ -40,7 +37,9 @@ export class BenchmarkRunner {
    * @param {import("./task-family.js").TaskFamily | string} opts.family
    * @param {number} opts.runs - Runs per task (≥ 1).
    * @param {string} opts.output - Run-output directory.
-   * @param {string} opts.model
+   * @param {string} opts.agentModel
+   * @param {string} opts.supervisorModel
+   * @param {string} opts.judgeModel
    * @param {{agent?: string, judge?: string}} [opts.profiles]
    * @param {Function} opts.query - SDK query (injected for testability).
    * @param {number} [opts.maxTurns] - Agent-under-test turn budget.
@@ -60,7 +59,9 @@ export class BenchmarkRunner {
     family,
     runs,
     output,
-    model,
+    agentModel,
+    supervisorModel,
+    judgeModel,
     profiles,
     query,
     maxTurns,
@@ -74,12 +75,16 @@ export class BenchmarkRunner {
     if (!Number.isInteger(runs) || runs < 1)
       throw new Error("runs must be an integer ≥ 1");
     if (!output) throw new Error("output is required");
-    if (!model) throw new Error("model is required");
+    if (!agentModel) throw new Error("agentModel is required");
+    if (!supervisorModel) throw new Error("supervisorModel is required");
+    if (!judgeModel) throw new Error("judgeModel is required");
     if (!query) throw new Error("query is required");
     this.familyInput = family;
     this.runs = runs;
     this.output = output;
-    this.model = model;
+    this.agentModel = agentModel;
+    this.supervisorModel = supervisorModel;
+    this.judgeModel = judgeModel;
     this.profiles = {
       agent: profiles?.agent ?? null,
       judge: profiles?.judge ?? null,
@@ -103,14 +108,14 @@ export class BenchmarkRunner {
         : this.familyInput;
 
     await mkdir(this.output, { recursive: true });
-    const { stagingDir, skillSetHash } = await installApm(family, this.output);
+    const { stagingDir, skillSetHash, judgeProfilesDir } = await installApm(family, this.output);
 
     const tasks = family.tasks();
     for (const task of tasks) {
       await assertPreflightExecutable(task);
     }
     if (this.profiles.judge) {
-      await assertJudgeProfileStaged(family, stagingDir, this.profiles.judge);
+      await assertJudgeProfileStaged(family, judgeProfilesDir, this.profiles.judge);
     }
 
     const wm = createWorkdirManager({
@@ -130,6 +135,7 @@ export class BenchmarkRunner {
             task,
             runIndex,
             skillSetHash,
+            judgeProfilesDir,
           );
           await writeRecord(resultsStream, record);
           yield record;
@@ -140,7 +146,7 @@ export class BenchmarkRunner {
     }
   }
 
-  async #runOne(family, wm, task, runIndex, skillSetHash) {
+  async #runOne(family, wm, task, runIndex, skillSetHash, judgeProfilesDir) {
     const t0 = Date.now();
     const workdir = await wm.start(task, runIndex);
     try {
@@ -176,8 +182,9 @@ export class BenchmarkRunner {
         scoring,
         {
           query: this.query,
-          model: this.model,
+          model: this.judgeModel,
           judgeProfile: this.profiles.judge ?? undefined,
+          profilesDir: judgeProfilesDir,
         },
         judgeContext,
       );
@@ -194,13 +201,14 @@ export class BenchmarkRunner {
         costUsd,
         turns,
         agentTracePath: workdir.agentTracePath,
+        supervisorTracePath: workdir.supervisorTracePath,
         judgeTracePath: workdir.judgeTracePath,
         profiles: {
           agent: this.profiles.agent,
           supervisor: null,
           judge: this.profiles.judge,
         },
-        model: this.model,
+        model: { agent: this.agentModel, supervisor: this.supervisorModel, judge: this.judgeModel },
         skillSetHash,
         familyRevision: family.familyRevision,
         durationMs: Date.now() - t0,
@@ -236,54 +244,43 @@ export class BenchmarkRunner {
   }
 
   /**
-   * Run the agent-under-test as a bare AgentRunner (design Decision 14).
-   * Recover cost/turns/submission from the trace by replaying it into a
-   * fresh TraceCollector — the bare runner writes a single NDJSON stream
-   * with one terminal `result` event.
-   *
-   * Inspects both thrown errors AND the resolved `{success, aborted, error}`
-   * shape returned by `AgentRunner.run()` (agent-runner.js:69, 166–194):
-   * the SDK iterator catches its own errors and resolves with `success:
-   * false`, so a try/catch alone would silently treat a failed session as
-   * a successful one (plan Step 8.5.c).
+   * Run the agent-under-test via a Supervisor relay. The supervisor writes
+   * a combined tagged NDJSON trace; after the session we split it into
+   * agent.ndjson and supervisor.ndjson and extract cost/turns/submission.
    */
   async #runAgent(task, workdir) {
-    const agentTraceStream = createWriteStream(workdir.agentTracePath);
-    const systemPrompt = this.profiles.agent
-      ? composeProfilePrompt(this.profiles.agent, {
-          profilesDir: resolvePath(workdir.cwd, ".claude/agents"),
-          trailer: AGENT_SYSTEM_PROMPT,
-        })
-      : undefined;
-    const runner = createAgentRunner({
-      cwd: workdir.cwd,
+    const combinedPath = join(workdir.runDir, ".combined.ndjson");
+    const combinedStream = createWriteStream(combinedPath);
+    const supervisor = createSupervisor({
+      supervisorCwd: workdir.cwd,
+      agentCwd: workdir.cwd,
       query: this.query,
-      output: agentTraceStream,
-      model: this.model,
+      output: combinedStream,
+      agentModel: this.agentModel,
+      supervisorModel: this.supervisorModel,
       maxTurns: this.maxTurns ?? 50,
       allowedTools: BASE_TOOLS,
-      settingSources: ["project"],
-      systemPrompt,
+      ...(this.profiles.agent && { agentProfile: this.profiles.agent }),
       redactor: createRedactor(),
     });
     const instructions = await readFile(task.paths.instructions, "utf8");
     let agentError = null;
     try {
-      const result = await runner.run(instructions);
+      const result = await supervisor.run(instructions);
       if (!result.success) {
-        agentError = {
-          message:
-            result.error?.message ??
-            (result.aborted ? "aborted" : "agent did not succeed"),
-          aborted: result.aborted ?? false,
-        };
+        agentError = { message: "supervisor did not succeed", aborted: false };
       }
     } catch (e) {
       agentError = { message: e.message ?? String(e), aborted: false };
     } finally {
-      await new Promise((r) => agentTraceStream.end(r));
+      await new Promise((r) => combinedStream.end(r));
     }
-    const summary = await readAgentSummary(workdir.agentTracePath);
+    const summary = await splitAndSummarize(
+      combinedPath,
+      workdir.agentTracePath,
+      workdir.supervisorTracePath,
+    );
+    await unlink(combinedPath).catch(() => {});
     return { ...summary, agentError };
   }
 
@@ -321,11 +318,12 @@ export class BenchmarkRunner {
         supervisor: null,
         judge: this.profiles.judge,
       },
-      model: this.model,
+      model: { agent: this.agentModel, supervisor: this.supervisorModel, judge: this.judgeModel },
       skillSetHash,
       familyRevision,
       durationMs,
       agentTracePath: workdir.agentTracePath,
+      supervisorTracePath: workdir.supervisorTracePath,
       judgeTracePath: workdir.judgeTracePath,
     };
   }
@@ -377,35 +375,66 @@ async function assertPreflightExecutable(task) {
 }
 
 /**
- * Replay the bare AgentRunner trace into a fresh TraceCollector to recover
- * cost, turn count, and the final assistant text block (the submission).
+ * Split the combined supervisor trace into agent and supervisor files, and
+ * extract cost, turn count, and submission in a single pass. Agent-source
+ * events go to `agentPath`; supervisor and orchestrator events go to
+ * `supervisorPath`.
  */
-async function readAgentSummary(tracePath) {
-  const collector = createTraceCollector();
-  const stream = createReadStream(tracePath);
-  const rl = createInterface({ input: stream, crlfDelay: Infinity });
-  for await (const line of rl) collector.addLine(line);
-  const json = collector.toJSON();
-  const summary = json.summary ?? {};
-  return {
-    costUsd:
-      typeof summary.totalCostUsd === "number" ? summary.totalCostUsd : 0,
-    turns: typeof summary.numTurns === "number" ? summary.numTurns : 0,
-    submission: lastAssistantText(json),
-  };
-}
-
-function lastAssistantText(json) {
-  const turns = json.turns ?? [];
-  for (let i = turns.length - 1; i >= 0; i--) {
-    const turn = turns[i];
-    if (turn.role !== "assistant") continue;
-    const content = turn.content ?? [];
-    for (let j = content.length - 1; j >= 0; j--) {
-      if (content[j].type === "text" && content[j].text) return content[j].text;
+async function splitAndSummarize(combinedPath, agentPath, supervisorPath) {
+  const agentStream = createWriteStream(agentPath);
+  const supStream = createWriteStream(supervisorPath);
+  const rl = createInterface({
+    input: createReadStream(combinedPath),
+    crlfDelay: Infinity,
+  });
+  let agentCost = 0;
+  let supervisorCost = 0;
+  let turns = 0;
+  let submission = "";
+  for await (const line of rl) {
+    if (!line.trim()) continue;
+    let event;
+    try {
+      event = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    const target = event.source === "agent" ? agentStream : supStream;
+    target.write(line + "\n");
+    const inner = event.event;
+    if (!inner) continue;
+    if (event.source === "agent") {
+      if (inner.type === "result" && typeof inner.total_cost_usd === "number") {
+        agentCost = inner.total_cost_usd;
+      }
+      if (inner.type === "assistant") {
+        const text = extractText(inner);
+        if (text) submission = text;
+      }
+    }
+    if (event.source === "supervisor") {
+      if (inner.type === "result" && typeof inner.total_cost_usd === "number") {
+        supervisorCost = inner.total_cost_usd;
+      }
+    }
+    if (event.source === "orchestrator" && inner.type === "summary") {
+      turns = inner.turns ?? 0;
     }
   }
-  return "";
+  await Promise.all([
+    new Promise((r) => agentStream.end(r)),
+    new Promise((r) => supStream.end(r)),
+  ]);
+  return { costUsd: agentCost + supervisorCost, turns, submission };
+}
+
+function extractText(inner) {
+  const content = inner.message?.content ?? inner.content;
+  if (!Array.isArray(content)) return null;
+  for (let i = content.length - 1; i >= 0; i--) {
+    if (content[i].type === "text" && content[i].text) return content[i].text;
+  }
+  return null;
 }
 
 /**

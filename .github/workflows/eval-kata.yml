@@ -26,38 +26,28 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: ./.github/actions/bootstrap
-      - name: Stage family
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            ./benchmarks/kata-skills/scripts/stage-family.sh --regime in-repo
-          else
-            ./benchmarks/kata-skills/scripts/stage-family.sh --regime published
-          fi
       - name: Run benchmark
         run: |
           node ./libraries/libeval/bin/fit-benchmark.js run \
             --family ./benchmarks/kata-skills \
-            --output ./bench-output \
             --runs 5 \
-            --model claude-haiku-4-5-20251001 \
             --max-turns 25 \
             --judge-profile judge
       - name: Report
         if: always()
         run: |
           node ./libraries/libeval/bin/fit-benchmark.js report \
-            --input ./bench-output --format text \
-            >> "$GITHUB_STEP_SUMMARY"
+            --format text >> "$GITHUB_STEP_SUMMARY"
       - name: Assert cost envelope (≤ $5)
         if: always()
         run: |
-          [ -s ./bench-output/results.jsonl ] || { echo "results.jsonl missing or empty" >&2; exit 1; }
-          TOTAL=$(jq -s '[.[].costUsd // 0] | add' ./bench-output/results.jsonl)
+          [ -s ./benchmark-runs/results.jsonl ] || { echo "results.jsonl missing or empty" >&2; exit 1; }
+          TOTAL=$(jq -s '[.[].costUsd // 0] | add' ./benchmark-runs/results.jsonl)
           echo "Total cost: $TOTAL USD"
           awk -v t="$TOTAL" 'BEGIN { if (t+0 > 5) exit 1 }'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: results-jsonl
-          path: ./bench-output/results.jsonl
+          path: ./benchmark-runs/results.jsonl
           if-no-files-found: warn

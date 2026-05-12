@@ -1,4 +1,4 @@
-name: Publish macOS App
+name: "Publish: macOS App"––
 
 on:
   push:

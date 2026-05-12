@@ -13,8 +13,7 @@ import { aggregate, renderTextReport } from "../benchmark/report.js";
  * @param {string[]} _args
  */
 export async function runBenchmarkReportCommand(values, _args) {
-  const inputDir = values.input;
-  if (!inputDir) throw new Error("--input is required");
+  const inputDir = values.input ?? "benchmark-runs";
   const kRaw = values.k ?? "1,3,5";
   const kValues = kRaw.split(",").map((t) => {
     const n = Number.parseInt(t.trim(), 10);

@@ -31,16 +31,17 @@ export async function runBenchmarkRunCommand(values, _args) {
 function parseRunOptions(values) {
   const family = values.family;
   if (!family) throw new Error("--family is required");
-  const output = values.output;
-  if (!output) throw new Error("--output is required");
-  const runs = Number.parseInt(values.runs ?? "1", 10);
+  const output = values.output ?? "benchmark-runs";
+  const runs = Number.parseInt(values.runs ?? "5", 10);
   if (!Number.isFinite(runs) || runs < 1)
     throw new Error("--runs must be a positive integer");
   return {
     family,
     runs,
     output: resolve(output),
-    model: values.model ?? "claude-opus-4-7[1m]",
+    agentModel: values["agent-model"] ?? "claude-sonnet-4-6",
+    supervisorModel: values["supervisor-model"] ?? "claude-opus-4-7",
+    judgeModel: values["judge-model"] ?? "claude-opus-4-7",
     profiles: {
       agent: values["agent-profile"] ?? null,
       judge: values["judge-profile"] ?? null,

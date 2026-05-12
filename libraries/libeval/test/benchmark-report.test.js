@@ -17,9 +17,10 @@ function baseRecord(overrides) {
     costUsd: 0,
     turns: 1,
     agentTracePath: "/tmp/agent.ndjson",
+    supervisorTracePath: "/tmp/supervisor.ndjson",
     judgeTracePath: "/tmp/judge.ndjson",
     profiles: { agent: null, supervisor: null, judge: null },
-    model: "m",
+    model: { agent: "a", supervisor: "s", judge: "j" },
     skillSetHash: "sha256:a",
     familyRevision: "sha256:b",
     durationMs: 100,
@@ -162,7 +163,7 @@ describe("aggregate with includeRuns", () => {
     assert.strictEqual(report.totals.costUsd, 0.4);
     assert.strictEqual(report.totals.medianDurationMs, 5000);
     assert.strictEqual(report.totals.medianTurns, 7);
-    assert.strictEqual(report.totals.model, "m");
+    assert.deepStrictEqual(report.totals.model, { agent: "a", supervisor: "s", judge: "j" });
     assert.ok(report.totals.skillSetHash);
   });
 
@@ -297,7 +298,7 @@ describe("renderTextReport (full report)", () => {
         costUsd: 0,
         turns: 0,
         profiles: { agent: null, supervisor: null, judge: null },
-        model: "m",
+        model: { agent: "a", supervisor: "s", judge: "j" },
         skillSetHash: "sha256:a",
         familyRevision: "sha256:b",
         durationMs: 100,
@@ -307,6 +308,7 @@ describe("renderTextReport (full report)", () => {
           exitCode: 1,
         },
         agentTracePath: "/tmp/a.ndjson",
+        supervisorTracePath: "/tmp/s.ndjson",
         judgeTracePath: "/tmp/j.ndjson",
       },
     ];

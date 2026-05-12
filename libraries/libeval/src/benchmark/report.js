@@ -207,7 +207,11 @@ function renderSummary(report) {
   }
 
   const meta = [];
-  if (totals.model) meta.push(`Model: \`${totals.model}\``);
+  if (totals.model) {
+    meta.push(`Agent: \`${totals.model.agent}\``);
+    meta.push(`Supervisor: \`${totals.model.supervisor}\``);
+    meta.push(`Judge: \`${totals.model.judge}\``);
+  }
   if (totals.skillSetHash) meta.push(`Skill set: \`${totals.skillSetHash}\``);
   if (totals.familyRevision) meta.push(`Family: \`${totals.familyRevision}\``);
   if (meta.length) {

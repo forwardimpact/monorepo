@@ -46,7 +46,7 @@ const COMMON_FIELDS = {
   costUsd: z.number(),
   turns: z.number().int().min(0),
   profiles: PROFILES_SHAPE,
-  model: z.string(),
+  model: z.object({ agent: z.string(), supervisor: z.string(), judge: z.string() }),
   skillSetHash: z.string(),
   familyRevision: z.string(),
   durationMs: z.number().int().min(0),
@@ -63,6 +63,7 @@ const HAPPY_RECORD = z.object({
   submission: z.string(),
   judgeVerdict: JUDGE_VERDICT_SHAPE,
   agentTracePath: z.string(),
+  supervisorTracePath: z.string(),
   judgeTracePath: z.string(),
   agentError: AGENT_ERROR_SHAPE.optional(),
   preflightError: z.undefined().optional(),
@@ -76,6 +77,7 @@ const PREFLIGHT_RECORD = z.object({
   // them in WorkdirManager.start) so the record is uniform across branches
   // and downstream consumers can reference them without conditional fields.
   agentTracePath: z.string(),
+  supervisorTracePath: z.string(),
   judgeTracePath: z.string(),
   scoring: z.undefined().optional(),
   submission: z.undefined().optional(),

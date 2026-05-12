@@ -478,7 +478,9 @@ const devNull = new Writable({
  * @param {string} deps.agentCwd
  * @param {function} deps.query
  * @param {import("stream").Writable} deps.output
- * @param {string} [deps.model]
+ * @param {string} [deps.model] - Default model for both runners.
+ * @param {string} [deps.agentModel] - Agent model override (falls back to `model`).
+ * @param {string} [deps.supervisorModel] - Supervisor model override (falls back to `model`).
  * @param {number} [deps.maxTurns]
  * @param {string[]} [deps.allowedTools]
  * @param {string[]} [deps.supervisorAllowedTools]
@@ -496,6 +498,8 @@ export function createSupervisor({
   query,
   output,
   model,
+  agentModel,
+  supervisorModel,
   maxTurns,
   allowedTools,
   supervisorDisallowedTools,
@@ -543,7 +547,7 @@ export function createSupervisor({
     cwd: agentCwd,
     query,
     output: devNull,
-    model,
+    model: agentModel ?? model,
     maxTurns: perInvocationTurns,
     allowedTools,
     onLine,
@@ -562,7 +566,7 @@ export function createSupervisor({
     cwd: supervisorCwd,
     query,
     output: devNull,
-    model,
+    model: supervisorModel ?? model,
     maxTurns: perInvocationTurns,
     allowedTools: supervisorAllowedTools ?? [
       "Bash",

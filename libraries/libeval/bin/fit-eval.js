@@ -41,7 +41,11 @@ const definition = {
           type: "string",
           description: "Additional text appended to the task",
         },
-        model: { type: "string", description: "Claude model (default: opus)" },
+        "agent-model": {
+          type: "string",
+          description:
+            "Claude model for the agent (default: claude-opus-4-7[1m])",
+        },
         "max-turns": {
           type: "string",
           description: "Max agentic turns (default: 50, 0 = unlimited)",
@@ -84,7 +88,16 @@ const definition = {
           type: "string",
           description: "Additional text appended to the task",
         },
-        model: { type: "string", description: "Claude model (default: opus)" },
+        "agent-model": {
+          type: "string",
+          description:
+            "Claude model for the agent (default: claude-opus-4-7[1m])",
+        },
+        "supervisor-model": {
+          type: "string",
+          description:
+            "Claude model for the supervisor (default: claude-opus-4-7[1m])",
+        },
         "max-turns": {
           type: "string",
           description: "Max agentic turns (default: 20, 0 = unlimited)",
@@ -136,7 +149,16 @@ const definition = {
           type: "string",
           description: "Additional text appended to the task",
         },
-        model: { type: "string", description: "Claude model (default: opus)" },
+        "agent-model": {
+          type: "string",
+          description:
+            "Claude model for agents (default: claude-opus-4-7[1m])",
+        },
+        "facilitator-model": {
+          type: "string",
+          description:
+            "Claude model for the facilitator (default: claude-opus-4-7[1m])",
+        },
         "max-turns": {
           type: "string",
           description: "Max agentic turns (default: 20, 0 = unlimited)",

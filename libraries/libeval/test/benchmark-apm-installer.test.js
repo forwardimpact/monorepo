@@ -11,15 +11,14 @@ const FIXTURE = new URL("./fixtures/benchmark-family/", import.meta.url)
   .pathname;
 
 describe("installApm", () => {
-  test("copies .claude/ into <output>/.apm-staging and produces a stable skillSetHash", async () => {
+  test("runs apm install and stages .claude/ with a stable skillSetHash", async () => {
     const family = await loadTaskFamily(FIXTURE);
     const out = await mkdtemp(join(tmpdir(), "benchmark-apm-"));
-    const { stagingDir, skillSetHash } = await installApm(family, out);
+    const { stagingDir, skillSetHash, judgeProfilesDir } = await installApm(family, out);
     assert.strictEqual(stagingDir, join(out, ".apm-staging"));
     assert.match(skillSetHash, /^sha256:[0-9a-f]{64}$/);
-    // The staged .claude/ exists and contains both skills and agents.
     await access(join(stagingDir, ".claude", "skills", "noop", "SKILL.md"));
-    await access(join(stagingDir, ".claude", "agents", "judge.md"));
+    await access(join(judgeProfilesDir, "judge.md"));
   });
 
   test("two consecutive runs on the same family produce the same skillSetHash", async () => {
@@ -35,7 +34,7 @@ describe("installApm", () => {
     assert.strictEqual(a.skillSetHash, b.skillSetHash);
   });
 
-  test("one-byte mutation to apm.lock.yaml flips the skillSetHash", async () => {
+  test("lockfile mutation flips the skillSetHash", async () => {
     const dir = await mkdtemp(join(tmpdir(), "benchmark-apm-mut-"));
     await cp(FIXTURE, dir, { recursive: true });
     const before = await installApm(
@@ -53,13 +52,14 @@ describe("installApm", () => {
     assert.notStrictEqual(before.skillSetHash, after.skillSetHash);
   });
 
-  test("throws when .claude/ is absent (P1 violation)", async () => {
+  test("throws when apm install does not produce .claude/", async () => {
     const dir = await mkdtemp(join(tmpdir(), "benchmark-apm-no-claude-"));
-    await writeFile(join(dir, "apm.lock.yaml"), "x: 1\n");
+    await writeFile(join(dir, "apm.yml"), "name: empty\nversion: 0.0.0\ndependencies:\n  apm: []\n");
+    await writeFile(join(dir, "apm.lock.yaml"), "apm_lock_version: 1\ndependencies: []\n");
     const family = await loadTaskFamily(dir);
     await assert.rejects(
       installApm(family, await mkdtemp(join(tmpdir(), "benchmark-apm-out-"))),
-      /missing \.claude\//,
+      /did not produce \.claude\//,
     );
   });
 
@@ -67,7 +67,6 @@ describe("installApm", () => {
     const family = await loadTaskFamily(FIXTURE);
     const out = await mkdtemp(join(tmpdir(), "benchmark-apm-idem-"));
     await installApm(family, out);
-    // Leave a stale file in the staging tree.
     const stale = join(out, ".apm-staging", "stale.txt");
     await writeFile(stale, "x");
     await installApm(family, out);

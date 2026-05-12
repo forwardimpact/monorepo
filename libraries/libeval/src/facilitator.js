@@ -390,7 +390,9 @@ const devNull = new Writable({
  * @param {Array<{name: string, role: string, cwd?: string, maxTurns?: number, allowedTools?: string[], agentProfile?: string, systemPromptAmend?: string}>} deps.agentConfigs
  * @param {function} deps.query
  * @param {import("stream").Writable} deps.output
- * @param {string} [deps.model]
+ * @param {string} [deps.model] - Default model for all participants.
+ * @param {string} [deps.agentModel] - Agent model override (falls back to `model`).
+ * @param {string} [deps.facilitatorModel] - Facilitator model override (falls back to `model`).
  * @param {number} [deps.maxTurns]
  * @param {string} [deps.facilitatorProfile] - Facilitator profile name; resolved into the main-thread system prompt via `composeProfilePrompt`.
  * @param {string} [deps.profilesDir] - Directory containing `<name>.md` profile files. Defaults to `<facilitatorCwd>/.claude/agents`. Resolved once from the facilitator's cwd so profiles travel with the project, not with per-agent sandboxes.
@@ -403,6 +405,8 @@ export function createFacilitator({
   query,
   output,
   model,
+  agentModel,
+  facilitatorModel,
   maxTurns,
   facilitatorProfile,
   profilesDir,
@@ -450,7 +454,7 @@ export function createFacilitator({
       cwd: config.cwd ?? facilitatorCwd,
       query,
       output: devNull,
-      model,
+      model: agentModel ?? model,
       maxTurns: config.maxTurns ?? 50,
       allowedTools: config.allowedTools,
       onLine: (line) => facilitator.emitLine(config.name, line),
@@ -467,7 +471,7 @@ export function createFacilitator({
     cwd: facilitatorCwd,
     query,
     output: devNull,
-    model,
+    model: facilitatorModel ?? model,
     maxTurns: maxTurns ?? 20,
     onLine: (line) => facilitator.emitLine("facilitator", line),
     mcpServers: { orchestration: facilitatorServer },

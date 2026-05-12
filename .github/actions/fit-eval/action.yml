@@ -1,0 +1,245 @@
+name: FIT Eval
+description: Run agent tasks via the fit-eval CLI using the Claude Agent SDK
+
+inputs:
+  task-file:
+    description: Path to task file (mutually exclusive with task-text)
+    required: false
+  task-text:
+    description: Inline task text (mutually exclusive with task-file)
+    required: false
+  mode:
+    description: Execution mode — "run", "supervise", or "facilitate"
+    required: false
+    default: "run"
+  cwd:
+    description: Agent working directory (for "run" mode)
+    required: false
+    default: "."
+  supervisor-cwd:
+    description: Supervisor working directory (for "supervise" mode)
+    required: false
+    default: "."
+  agent-cwd:
+    description: Agent working directory (for supervise and facilitate modes)
+    required: false
+    default: "."
+  agent-model:
+    description: Claude model for agents (all modes)
+    required: false
+    default: "claude-opus-4-7[1m]"
+  supervisor-model:
+    description: Claude model for the supervisor (supervise mode)
+    required: false
+    default: "claude-opus-4-7[1m]"
+  facilitator-model:
+    description: Claude model for the facilitator (facilitate mode)
+    required: false
+    default: "claude-opus-4-7[1m]"
+  max-turns:
+    description: Maximum turns (0 = unlimited)
+    required: false
+    default: "200"
+  allowed-tools:
+    description: Comma-separated list of allowed tools for the agent
+    required: false
+    default: "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
+  supervisor-allowed-tools:
+    description: Comma-separated list of allowed tools for the supervisor (supervise mode only)
+    required: false
+  supervisor-profile:
+    description: Supervisor agent profile name (supervise mode only)
+    required: false
+  agent-profile:
+    description: Agent profile name (run and supervise modes)
+    required: false
+  facilitator-profile:
+    description: Facilitator profile name (facilitate mode only)
+    required: false
+  agent-profiles:
+    description: Comma-separated agent profile names for facilitate mode
+    required: false
+  task-amend:
+    description: Additional text appended to the task prompt for steering
+    required: false
+  mcp-server:
+    description: "MCP service name to connect to (e.g. guide); adds mcp__<name>__* to allowed tools"
+    required: false
+  trace:
+    description: Enable trace capture and artifact upload
+    required: false
+    default: "true"
+  timeout-minutes:
+    description: Maximum minutes the agent step may run before being cancelled
+    required: false
+    default: "45"
+  case:
+    description: Case identifier embedded in trace artifact filenames (use the matrix case id for matrix runs; defaults to "default")
+    required: false
+    default: "default"
+  artifact-suffix:
+    description: (Deprecated — pass `case` instead) Legacy alias for `case`; honored with a warning when set
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Setup trace directory
+      if: inputs.trace == 'true'
+      id: setup
+      shell: bash
+      env:
+        CASE_INPUT: ${{ inputs.case }}
+        SUFFIX_INPUT: ${{ inputs.artifact-suffix }}
+      run: |
+        TRACE_DIR=$(mktemp -d)
+        echo "trace-dir=$TRACE_DIR" >> "$GITHUB_OUTPUT"
+        # Resolve effective case. Explicit `case` (non-default) wins; legacy
+        # `artifact-suffix` is honored with a deprecation warning; otherwise
+        # fall through to "default".
+        if [ -n "$CASE_INPUT" ] && [ "$CASE_INPUT" != "default" ]; then
+          EFFECTIVE_CASE="$CASE_INPUT"
+        elif [ -n "$SUFFIX_INPUT" ]; then
+          echo "::warning::artifact-suffix is deprecated; pass case=<id> instead"
+          EFFECTIVE_CASE="$SUFFIX_INPUT"
+        else
+          EFFECTIVE_CASE="default"
+        fi
+        echo "case=$EFFECTIVE_CASE" >> "$GITHUB_OUTPUT"
+
+    - name: Run fit-eval
+      shell: bash
+      env:
+        MODE: ${{ inputs.mode }}
+        TASK_FILE: ${{ inputs.task-file }}
+        TASK_TEXT: ${{ inputs.task-text }}
+        CWD: ${{ inputs.cwd }}
+        SUPERVISOR_CWD: ${{ inputs.supervisor-cwd }}
+        AGENT_CWD: ${{ inputs.agent-cwd }}
+        AGENT_MODEL: ${{ inputs.agent-model }}
+        SUPERVISOR_MODEL: ${{ inputs.supervisor-model }}
+        FACILITATOR_MODEL: ${{ inputs.facilitator-model }}
+        MAX_TURNS: ${{ inputs.max-turns }}
+        TOOLS: ${{ inputs.allowed-tools }}
+        SUPERVISOR_TOOLS: ${{ inputs.supervisor-allowed-tools }}
+        SUPERVISOR_PROFILE: ${{ inputs.supervisor-profile }}
+        AGENT_PROFILE: ${{ inputs.agent-profile }}
+        FACILITATOR_PROFILE: ${{ inputs.facilitator-profile }}
+        AGENT_PROFILES: ${{ inputs.agent-profiles }}
+        TASK_AMEND: ${{ inputs.task-amend }}
+        MCP_SERVER: ${{ inputs.mcp-server }}
+        TRACE_ENABLED: ${{ inputs.trace }}
+        TRACE_DIR: ${{ steps.setup.outputs.trace-dir }}
+        TRACE_CASE: ${{ steps.setup.outputs.case }}
+        TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
+      run: |
+        # Resolve CLI — prefer local install, fall back to npx for third-party
+        if command -v fit-eval &>/dev/null; then
+          EVAL_CMD="fit-eval"
+        elif command -v bunx &>/dev/null; then
+          EVAL_CMD="bunx fit-eval"
+        else
+          EVAL_CMD="npx --yes @forwardimpact/libeval fit-eval"
+        fi
+
+        args=()
+
+        # Resolve task source — exactly one of task-file or task-text is required
+        if [ -n "$TASK_FILE" ] && [ -n "$TASK_TEXT" ]; then
+          echo "::error::task-file and task-text are mutually exclusive"
+          exit 1
+        elif [ -n "$TASK_FILE" ]; then
+          args+=("--task-file=$TASK_FILE")
+        elif [ -n "$TASK_TEXT" ]; then
+          args+=("--task-text=$TASK_TEXT")
+        else
+          echo "::error::Either task-file or task-text is required"
+          exit 1
+        fi
+
+        if [ -n "$TASK_AMEND" ]; then
+          args+=("--task-amend=$TASK_AMEND")
+        fi
+
+        if [ -n "$MCP_SERVER" ]; then
+          args+=("--mcp-server=$MCP_SERVER")
+        fi
+
+        if [ "$TRACE_ENABLED" = "true" ] && [ -n "$TRACE_DIR" ]; then
+          args+=("--output=$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson")
+        fi
+
+        # Mode-invariant flags. --max-turns is always forwarded; the CLI
+        # treats "0" as unlimited, while omitting the flag silently falls
+        # back to the SDK's ~50-turn cap.
+        args+=("--max-turns=$MAX_TURNS")
+        args+=("--agent-model=$AGENT_MODEL")
+
+        if [ "$MODE" = "supervise" ]; then
+          args+=("--supervisor-model=$SUPERVISOR_MODEL")
+          if [ -n "$SUPERVISOR_PROFILE" ]; then
+            args+=("--supervisor-profile=$SUPERVISOR_PROFILE")
+          fi
+          if [ -n "$SUPERVISOR_TOOLS" ]; then
+            args+=("--supervisor-allowed-tools=$SUPERVISOR_TOOLS")
+          fi
+          if [ -n "$AGENT_PROFILE" ]; then
+            args+=("--agent-profile=$AGENT_PROFILE")
+          fi
+
+          # Composite action steps can't use the GitHub `timeout-minutes`
+          # field, so enforce the cap with the shell `timeout` command.
+          timeout "${TIMEOUT_MINUTES}m" $EVAL_CMD supervise \
+            --supervisor-cwd="$SUPERVISOR_CWD" \
+            --agent-cwd="$AGENT_CWD" \
+            --allowed-tools="$TOOLS" \
+            "${args[@]}"
+        elif [ "$MODE" = "facilitate" ]; then
+          args+=("--facilitator-model=$FACILITATOR_MODEL")
+          if [ -n "$FACILITATOR_PROFILE" ]; then
+            args+=("--facilitator-profile=$FACILITATOR_PROFILE")
+          fi
+
+          timeout "${TIMEOUT_MINUTES}m" $EVAL_CMD facilitate \
+            --facilitator-cwd="." \
+            --agent-profiles="$AGENT_PROFILES" \
+            --agent-cwd="$AGENT_CWD" \
+            "${args[@]}"
+        else
+          if [ -n "$AGENT_PROFILE" ]; then
+            args+=("--agent-profile=$AGENT_PROFILE")
+          fi
+
+          timeout "${TIMEOUT_MINUTES}m" $EVAL_CMD run \
+            --cwd="$CWD" \
+            --allowed-tools="$TOOLS" \
+            "${args[@]}"
+        fi
+
+    - name: Split trace
+      if: always() && inputs.trace == 'true' && steps.setup.outputs.trace-dir != ''
+      shell: bash
+      env:
+        TRACE_DIR: ${{ steps.setup.outputs.trace-dir }}
+        MODE: ${{ inputs.mode }}
+        TRACE_CASE: ${{ steps.setup.outputs.case }}
+      run: |
+        if command -v fit-trace &>/dev/null; then
+          TRACE_CMD="fit-trace"
+        elif command -v bunx &>/dev/null; then
+          TRACE_CMD="bunx fit-trace"
+        else
+          TRACE_CMD="npx --yes @forwardimpact/libeval fit-trace"
+        fi
+        $TRACE_CMD split "$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson" \
+          --mode="$MODE" \
+          --case="$TRACE_CASE" \
+          --output-dir="$TRACE_DIR"
+
+    - name: Upload trace bundle
+      if: always() && inputs.trace == 'true' && steps.setup.outputs.trace-dir != ''
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: trace--${{ steps.setup.outputs.case }}
+        path: ${{ steps.setup.outputs.trace-dir }}/trace--*.ndjson

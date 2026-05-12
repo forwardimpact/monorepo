@@ -16,14 +16,14 @@ npx fit-eval <command> [options]
 
 ## Shared Options (run, supervise, facilitate)
 
-| Flag           | Purpose                                                                     |
-| -------------- | --------------------------------------------------------------------------- |
-| `--task-file`  | Path to a markdown task file                                                |
-| `--task-text`  | Inline task text (alternative to `--task-file`)                             |
-| `--task-amend` | Additional text appended to the task                                        |
-| `--model`      | Claude model (default: opus)                                                |
-| `--max-turns`  | Max agentic turns (default: 50 run, 20 supervise/facilitate; 0 = unlimited) |
-| `--output`     | Write the NDJSON trace to a file                                            |
+| Flag            | Purpose                                                                     |
+| --------------- | --------------------------------------------------------------------------- |
+| `--task-file`   | Path to a markdown task file                                                |
+| `--task-text`   | Inline task text (alternative to `--task-file`)                             |
+| `--task-amend`  | Additional text appended to the task                                        |
+| `--agent-model` | Claude model for agents (default: `claude-opus-4-7[1m]`)                    |
+| `--max-turns`   | Max agentic turns (default: 50 run, 20 supervise/facilitate; 0 = unlimited) |
+| `--output`      | Write the NDJSON trace to a file                                            |
 
 ## Run-Only Options
 
@@ -35,23 +35,25 @@ npx fit-eval <command> [options]
 
 ## Supervise-Only Options
 
-| Flag                         | Purpose                      |
-| ---------------------------- | ---------------------------- |
-| `--agent-profile`            | Agent profile name           |
-| `--allowed-tools`            | Agent tool allowlist         |
-| `--supervisor-cwd`           | Supervisor working directory |
-| `--agent-cwd`                | Agent working directory      |
-| `--supervisor-profile`       | Supervisor profile name      |
-| `--supervisor-allowed-tools` | Supervisor tool allowlist    |
+| Flag                         | Purpose                                                      |
+| ---------------------------- | ------------------------------------------------------------ |
+| `--supervisor-model`         | Claude model for the supervisor (default: `claude-opus-4-7[1m]`) |
+| `--agent-profile`            | Agent profile name                                           |
+| `--allowed-tools`            | Agent tool allowlist                                         |
+| `--supervisor-cwd`           | Supervisor working directory                                 |
+| `--agent-cwd`                | Agent working directory                                      |
+| `--supervisor-profile`       | Supervisor profile name                                      |
+| `--supervisor-allowed-tools` | Supervisor tool allowlist                                    |
 
 ## Facilitate-Only Options
 
-| Flag                    | Purpose                                                         |
-| ----------------------- | --------------------------------------------------------------- |
-| `--facilitator-cwd`     | Facilitator working directory                                   |
-| `--facilitator-profile` | Facilitator profile name                                        |
-| `--agent-profiles`      | Comma-separated list of agent profile names (required)          |
-| `--agent-cwd`           | Working directory shared by participating agents (default: `.`) |
+| Flag                    | Purpose                                                                  |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `--facilitator-model`   | Claude model for the facilitator (default: `claude-opus-4-7[1m]`)        |
+| `--facilitator-cwd`     | Facilitator working directory                                            |
+| `--facilitator-profile` | Facilitator profile name                                                 |
+| `--agent-profiles`      | Comma-separated list of agent profile names (required)                   |
+| `--agent-cwd`           | Working directory shared by participating agents (default: `.`)          |
 
 ## Output Commands
 

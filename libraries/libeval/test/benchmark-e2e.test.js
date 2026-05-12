@@ -55,6 +55,7 @@ async function mockRunAgent(task, workdir) {
   ];
   const lines = messages.map((m) => JSON.stringify(m)).join("\n") + "\n";
   await writeFile(workdir.agentTracePath, lines);
+  await writeFile(workdir.supervisorTracePath, "");
   return {
     costUsd: 0.0123,
     turns: 1,
@@ -115,7 +116,9 @@ async function setupRunner({ runs = 2, runAgent = mockRunAgent } = {}) {
     family: FIXTURE,
     runs,
     output: out,
-    model: "claude-opus-4-7",
+    agentModel: "claude-sonnet-4-6",
+    supervisorModel: "claude-opus-4-7",
+    judgeModel: "claude-opus-4-7",
     profiles: { agent: null, judge: "judge" },
     query: noopQuery,
     runAgent,

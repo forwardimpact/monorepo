@@ -9,12 +9,7 @@ skill pack. Runs on manual dispatch, weekly schedule, and path-filtered PRs.
 | --- | --- | --- |
 | `write-feature-spec` | `kata-spec` | Structural rubric (six checks) + judge verdict |
 
-## Staging
+## Dependencies
 
-`scripts/stage-family.sh --regime in-repo|published` produces the `.claude/`
-tree and `apm.lock.yaml`.
-
-| Regime | Source | Trigger |
-| --- | --- | --- |
-| `in-repo` | Monorepo `.claude/skills/kata-*` | `pull_request` |
-| `published` | `forwardimpact/kata-skills` git repo | `workflow_dispatch`, `schedule` |
+Declared in `apm.yml`. `fit-benchmark run` calls `apm install --target claude`
+automatically before each run — no manual staging step required.
