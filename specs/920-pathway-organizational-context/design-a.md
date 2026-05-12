@@ -3,22 +3,23 @@
 ## Architecture
 
 The slot lives where Pathway's other installation-scoped sibling files already
-live: a single YAML file at the data directory root, loaded into `agentData` by
+live: a single YAML file at the data-directory root, loaded into `agentData` by
 the same loader that loads `claude-settings.yaml`, validated by the same Ajv
-pipeline that validates every other Pathway entity, and consumed by a new pure
-renderer that runs alongside `interpolateTeamInstructions` on both surfaces
+pipeline that validates every other Pathway entity, and rendered by a new pure
+function that runs alongside `interpolateTeamInstructions` on both surfaces
 (CLI agent command and web agent-builder preview).
 
 ```mermaid
 flowchart LR
   YAML[organizational-context.yaml] --> Loader[loader.loadAgentData]
   Schema[organizational-context.schema.json] --> Validator[SchemaValidator]
-  Loader -->|agentData.organizationalContext| CLI[agent.handleAgent]
-  Loader -->|context| Web[agent-builder-preview.deriveAgentData]
+  Loader -->|agentData.organizationalContext| CLI[agent command]
+  Loader -->|agentData.organizationalContext| Page[agent-builder page]
+  Page -->|context.organizationalContext| Preview[agent-builder-preview.deriveAgentData]
   CLI --> Composer
-  Web --> Composer
-  Composer["composeClaudeMd(teamInstructions, orgContext)"] -->|markdown| Writer[agent-io.writeTeamInstructions]
-  Composer -->|markdown| Preview[web preview pane]
+  Preview --> Composer
+  Composer["formatTeamInstructions teamInstructions, orgSection"] -->|markdown| Writer[agent-io.writeTeamInstructions]
+  Composer -->|markdown| Pane[web preview pane]
 ```
 
 The CLI and the web preview converge on the same pure composer. Byte-identical
@@ -29,18 +30,17 @@ formatting paths.
 
 | Component | Where | Responsibility |
 |---|---|---|
-| **`organizational-context.yaml`** | `products/map/starter/` | Installation-scoped data carrying the six concerns. Sibling of `claude-settings.yaml`. Ships populated with placeholders in the starter; absent in many real installations. |
-| **`organizational-context.schema.json`** | `products/map/schema/json/` | Ajv schema. Top-level concerns are optional (so partial population is valid); fields within structured entries (escalation paths, adjacent leads) are required when the entry exists. `additionalProperties: false` so unknown keys produce line-attributable errors. |
-| **`SchemaValidator` mapping** | `products/map/src/schema-validation.js` § `SCHEMA_MAPPINGS` | New entry `"organizational-context.yaml": "organizational-context.schema.json"`. No other validator change — the existing single-file path already handles `drivers.yaml`, `levels.yaml`, `standard.yaml`. |
-| **Loader extension** | `products/map/src/loader.js` § `loadAgentData` | One new `#loadRepoFile(dataDir, "organizational-context.yaml", null)` in the existing `Promise.all`, returned as `agentData.organizationalContext`. Mirrors the `claudeSettings` precedent line-for-line. `null` (not `{}`) when absent — the renderer distinguishes "no slot" from "empty slot" via nullish check. |
-| **`renderOrganizationalContext(orgContext)`** | `libraries/libskill/src/agent.js` (new export, alongside `interpolateTeamInstructions`) | Pure function. Takes the loaded YAML object (or `null`), returns a markdown section string (or `null`). Lives in `libskill` because both `fit-pathway` CLI and the web preview already import `interpolateTeamInstructions` from there. |
-| **`composeClaudeMd(teamInstructions, orgSection)`** | `products/pathway/src/formatters/agent/team-instructions.js` (extends existing module) | Composes the two pieces into the `content` slot of `claude.template.md`. When `orgSection` is `null`, output is byte-identical to today. When present, the section follows the `teamInstructions` body separated by a single blank line. |
-| **CLI call site** | `products/pathway/src/commands/agent.js` § `handleAgent` & `printTeamInstructions` | Passes `agentData.organizationalContext` through to the composer. No other CLI change. |
-| **Web call site** | `products/pathway/src/pages/agent-builder-preview.js` § `deriveAgentData` | Reads `context.organizationalContext` (supplied by the page's existing data wiring) and passes it through the same composer. Returns it in `teamInstructionsContent` — same field, no new field, no new render path on the web. |
-| **Fixture for byte-identical absent-slot test** | `products/pathway/test/fixtures/claude-md-baseline.md` | Captured from `main` immediately before this change, against the unmodified starter for `software_engineering --track=platform`. New test compares the rendered output (with slot absent) against this fixture. |
-| **`fit-pathway agent --help`** | libcli `documentation` entry on the agent command | Adds the org-context guide URL alongside the existing entries per [products/CLAUDE.md § Linking rule](../../products/CLAUDE.md). |
-| **`fit-pathway` skill** | `.claude/skills/fit-pathway/SKILL.md` § Documentation | Same URL added to the skill's documentation list (same entries, same order as `--help`). |
-| **Guide updates** | `websites/fit/docs/products/agent-teams/organizational-context/index.md` (existing) and `websites/fit/docs/products/authoring-standards/index.md` (existing) | Two-layer story: track-scoped `teamInstructions` (shared across teams) vs. installation-scoped slot (per-team facts). Authoring guide adds an entry alongside the existing six entity types. |
+| **`organizational-context.yaml`** | `products/map/starter/` | Installation-scoped data carrying the six concerns. Sibling of `claude-settings.yaml`. The starter ships an example file populated with placeholder values to teach the shape. |
+| **`organizational-context.schema.json`** | `products/map/schema/json/` | Ajv schema. Top-level concerns optional (so partial population is valid); fields within structured entries (escalation paths, adjacent leads) required when the entry exists. `additionalProperties: false` so unknown keys produce line-attributable errors. |
+| **`SchemaValidator` mapping** | `products/map/src/schema-validation.js` § `SCHEMA_MAPPINGS` + `#OPTIONAL_SILENT` | New `SCHEMA_MAPPINGS` entry alongside `claude-settings.yaml`. Added to `#OPTIONAL_SILENT` so an absent file produces no warning (the spec's "no errors when absent" criterion). The slot is canonical at the data-directory root; the `repository/` fallback the loader supports is for compatibility only and is out of scope for the validator. |
+| **Loader extension** | `products/map/src/loader.js` § `loadAgentData` | Loads the slot through the existing `#loadRepoFile` helper used by `claude-settings.yaml` and `vscode-settings.yaml`. Returned as `agentData.organizationalContext`. Absent file → `null` (not `{}`), so the renderer distinguishes "no slot" from "empty slot" via nullish check. The divergence from sibling files' `{}` fallback is deliberate; see § Key Decisions. |
+| **`renderOrganizationalContext(orgContext)`** | `libraries/libskill/src/agent.js` (new export, alongside `interpolateTeamInstructions`) | Pure function. Takes the loaded YAML object (or `null`), returns a markdown section string — or `null` when the slot is absent or has no non-empty concerns. Lives in `libskill` because both `fit-pathway` CLI and the web preview already import `interpolateTeamInstructions` from there. |
+| **`formatTeamInstructions(teamInstructions, orgSection, template)`** | `products/pathway/src/formatters/agent/team-instructions.js` (existing function, signature extended) | Composes the two pieces into the `content` slot of `claude.template.md`. When `orgSection` is `null`, output is byte-identical to today. When `teamInstructions` is null/empty and `orgSection` is non-null, the section renders alone. When both are non-null, the section follows the `teamInstructions` body separated by a single blank line. Returns `null` only when both inputs are null/empty. |
+| **CLI call site** | `products/pathway/src/commands/agent.js` (agent command handler) + `products/pathway/src/commands/agent-io.js` § `writeTeamInstructions` | The command passes `agentData.organizationalContext` through `renderOrganizationalContext` into the composer. The write-skip gate (which today returns early in `writeTeamInstructions` when `teamInstructions` is falsy) is moved to gate on both inputs: skip writing only when both `teamInstructions` and `orgSection` are null, so the slot-only case writes the file as the spec requires. |
+| **Web call site** | `products/pathway/src/pages/agent-builder-preview.js` § `deriveAgentData`, fed by `agent-builder.js` § `buildDeriveContext` | The page is extended to thread `agentData.organizationalContext` into `context.organizationalContext`. `deriveAgentData` calls the same composer, so `teamInstructionsContent` becomes non-null whenever either input is — preserving the existing field name and the existing UI card. |
+| **Pre-change baseline fixture** | A snapshot fixture captured from `main` immediately before this change ships, against a starter copy with no slot file present. | The byte-identical-absent test runs the post-change generator against a starter copy whose `organizational-context.yaml` has been removed, and compares against this fixture. The populated-starter test (separate) runs against the unmodified starter and asserts the placeholder values appear in the rendered section. |
+| **`fit-pathway agent --help`** & **`fit-pathway` skill** | libcli `documentation` array on the agent command and `## Documentation` section of `.claude/skills/fit-pathway/SKILL.md` | Both carry the org-context guide URL in the same position (per [products/CLAUDE.md § Linking rule](../../products/CLAUDE.md)). |
+| **Guide updates** | `websites/fit/docs/products/agent-teams/organizational-context/index.md` and `websites/fit/docs/products/authoring-standards/index.md` | Two-layer story: track-scoped `teamInstructions` (shared across teams) vs. installation-scoped slot (per-team facts). Guide names the marker contract verbatim. Authoring guide adds the slot entry alongside the existing entity types. |
 
 ## Data Shape
 
@@ -62,12 +62,10 @@ escalationPaths:
     destination: security@pharma.example.com
 ```
 
-Top-level keys map one-to-one with the spec's six concerns. Plural keys
-(`repositories`, `projects`) take string lists. Singular keys (`team`,
-`manager`) take a single string. `adjacentLeads` and `escalationPaths` take
-lists of objects with required fields — the schema enforces both fields
-present on each entry, which is where the spec's "line-attributable errors for
-missing required fields" surfaces.
+Top-level keys map one-to-one with the spec's six concerns. Plural keys take
+string lists; singular keys take a single string. `adjacentLeads` and
+`escalationPaths` carry lists of objects whose fields are both required when
+the entry exists.
 
 ## Rendered Section
 
@@ -75,61 +73,68 @@ missing required fields" surfaces.
 ## Organizational Context
 
 - **Repositories:** molecularforge, data-lake-infra, api-gateway
-- **Team:** @pharma-platform
-- **Manager:** @athena
-- **Adjacent leads:** @iris (DX), @prometheus (DS/AI)
+- **Team:** pharma-platform
+- **Manager:** athena
+- **Adjacent leads:** iris (DX), prometheus (DS/AI)
 - **Projects:** drug-discovery-pipeline, lab-data-portal
 - **Escalation paths:**
   - production page after hours → pagerduty://pharma-platform-oncall
   - security incident → security@pharma.example.com
 ```
 
-Section is emitted **after** the `teamInstructions` body, separated by one
-blank line. Empty lists (e.g. no projects) suppress their bullet. When the
-slot is absent, no section, no separator, no whitespace delta — the file is
-identical to what the generator produced before this change.
+Handles render as the bare strings the engineer wrote (no `@` decoration in
+v1 — spec says handles are free-form strings). The section is emitted after
+the `teamInstructions` body, separated by one blank line, whenever **at least
+one** concern in the slot has a non-empty value. When no concern is populated
+(slot file present but all fields absent or empty), the section is suppressed
+— the renderer returns `null` and behavior collapses to the absent-slot path.
+Within the section: a singular field that is missing or empty suppresses its
+bullet; a list that is empty or absent suppresses its bullet; a structured
+list with at least one entry emits the parent bullet and one sub-bullet per
+entry.
 
 ## Marker Contract
 
-The section opens with the literal line `## Organizational Context`. That
-heading is the documented marker. Downstream tooling locates the section by
-exact-string match on that line (no parsing of the body required). The guide
-documents the marker verbatim. Markdown's natural structure stays intact —
-no HTML comments, no fenced custom block. The heading is human-readable in
-the rendered file (so the engineer who opens `.claude/CLAUDE.md` sees what
-the slot produced) and machine-detectable (string match is sufficient).
+The section opens with the literal line `## Organizational Context`. Downstream
+tooling locates the section by exact-string match on that line. Because the
+section is appended **last** to the rendered file, tooling that needs the
+unique occurrence matches the **final** `## Organizational Context` in the
+file — robust against the unlikely case that a track author writes that
+heading inside `teamInstructions` prose. The guide documents both the marker
+and the last-occurrence rule.
 
 ## Key Decisions
 
 | Decision | Choice | Rejected alternative | Why |
 |---|---|---|---|
-| Slot shape | Single YAML file at `products/map/starter/organizational-context.yaml` | Directory of per-concern files (e.g. `organizational-context/repos.yaml`, `manager.yaml`) | The slot is installation-scoped and small (six concerns). Existing precedents `claude-settings.yaml` and `vscode-settings.yaml` are also single sibling files. A directory adds path management for no representational gain when the data fits in <20 lines of YAML. |
-| Slot location | Data directory root | Nested under `repository/` per the `#loadRepoFile` fallback convention | The `#loadRepoFile` helper already checks both locations transparently. Putting the example in the starter root surfaces it to a new user reading `ls products/map/starter/`. Installations that prefer the `repository/` subdirectory keep working without code change. |
-| Library home | `libraries/libskill/src/agent.js` (new export `renderOrganizationalContext`) | A new module in `products/pathway/src/formatters/agent/` | `interpolateTeamInstructions` already lives in libskill and is imported by both CLI and web preview. Keeping both renderers in the same module preserves the "one place to look for agent-instruction composition" property the web page relies on. |
-| Composer location | `products/pathway/src/formatters/agent/team-instructions.js` (extends existing) | New formatter module | `formatTeamInstructions` already owns the `content` slot of `claude.template.md`. Extending it to accept an optional org-context section keeps the single-call-site pattern intact in both `agent.js` and `agent-builder-preview.js`. |
-| Section marker | `## Organizational Context` heading | HTML comment `<!-- organizational-context -->`; fenced custom block | A heading is detectable by string match (the spec's bar), survives markdown-to-HTML rendering for the web preview, and is legible to the engineer who reads the file. Invisible markers (HTML comments) optimize for tooling at the cost of human readability for a file engineers are expected to verify. |
-| Section ordering | After `teamInstructions` body | Before | The track's `teamInstructions` is the stable identity Pathway carries today; putting the per-installation refinement after it preserves the existing top-of-file experience and keeps the absent-slot byte-identical test trivial (pure suffix presence/absence). |
-| Loader fallback | `null` when absent | `{}` when absent | The renderer needs to distinguish "no slot at all" (emit nothing, output byte-identical to today) from "slot present but empty" (emit nothing for missing keys, but the slot's presence may carry future signal). Nullish check is the unambiguous discriminator. |
-| Validation philosophy | Top-level concerns optional; structured entry fields required | All top-level concerns required | A team may know its repos and manager before knowing its escalation paths. Partial population should not block adoption. But once an engineer writes an escalation path, the `trigger` and `destination` are both meaningful — missing one is a typo to flag. |
-| Schema location | `products/map/schema/json/organizational-context.schema.json` (alongside the six existing entity schemas) | A new schema directory | The existing `SCHEMA_MAPPINGS` reads from one directory. Splitting it would force a loader change for no benefit. |
+| Slot shape | Single YAML file at `products/map/starter/organizational-context.yaml` | Directory of per-concern files | The slot is installation-scoped and small (six concerns); existing precedents (`claude-settings.yaml`, `vscode-settings.yaml`) are also single sibling files. A directory adds path management for no representational gain. |
+| Slot location | Data-directory root | Nested under `repository/` | The starter advertises the file by sitting alongside its peers; new installers see it on `ls`. The `#loadRepoFile` helper already supports both paths transparently for installations that prefer the subdirectory. |
+| Library home | `libraries/libskill/src/agent.js` | A new module under `products/pathway/src/formatters/` | `interpolateTeamInstructions` already lives in libskill and is the function both CLI and web preview import. Keeping both renderers in the same module preserves "one place to look for agent-instruction composition." |
+| Composer signature | Extend existing `formatTeamInstructions` to accept the org-section as a second argument | A new sibling function `composeClaudeMd` calling `formatTeamInstructions` internally | `formatTeamInstructions` already owns the `content` slot of `claude.template.md` and is the single call site on both surfaces. Extending its signature avoids a third name in the rendering chain. |
+| Section marker | `## Organizational Context` heading | HTML comment marker; fenced custom block | A heading is detectable by string match (the spec's bar), survives markdown-to-HTML rendering for the web preview, and is legible to the engineer who opens `.claude/CLAUDE.md`. Invisible markers optimize for tooling at the cost of human readability. |
+| Section ordering | After `teamInstructions` body | Before | Putting the per-installation refinement after the stable track identity preserves the existing top-of-file experience, keeps the absent-slot byte-identical test a pure suffix check, and gives the marker contract the "match the last occurrence" property that survives prose collisions. |
+| Section emission rule | Emit when at least one concern has a non-empty value | Emit whenever the file exists | A slot file with all fields empty or absent has no information to add to the agent; emitting an empty section would leave the file with a heading and no body. Treating that case as "effectively absent" preserves the user invariant that the slot reaches the agent only when populated. |
+| Loader fallback | `null` when absent | `{}` (matching `claudeSettings`/`vscodeSettings`) | A single nullish check at the renderer's entry covers both "no slot" and "loader could not parse"; `{}` would force the renderer to check for `null`, `undefined`, *and* the empty-object case. The existing siblings can use `{}` because their consumers ask for specific keys rather than testing the object's presence. The component table calls out the divergence so planners see it. |
+| Validation philosophy | Top-level concerns optional; structured-entry fields required | All top-level concerns required | A team may know its repos and manager before knowing its escalation paths; partial population must not block adoption. But once an engineer writes an escalation path, missing `trigger` or `destination` is a typo worth flagging. |
+| Validator silent-absence | `#OPTIONAL_SILENT` includes the new file | Warn on absent file (matching the precedent of other single-file entries in `SCHEMA_MAPPINGS` like `levels.yaml` or `drivers.yaml`) | The spec requires "no errors when the slot is absent." Silent absence honors that; warnings are user-visible noise for the (likely majority) case where the installation has no organizational facts to add. |
+| Schema location | `products/map/schema/json/organizational-context.schema.json` | A new schema directory | The existing `SCHEMA_MAPPINGS` reads from one directory; splitting it would force a loader change for no benefit. |
 
 ## Invariants Honored
 
 | Spec invariant | Where in design |
 |---|---|
-| Absent slot produces output byte-identical to today | Composer returns `teamInstructions` content unchanged when `orgContext` is `null`. Fixture captured pre-change pins the baseline. |
-| CLI and web preview render the same section | Single `renderOrganizationalContext` source in libskill; single `composeClaudeMd` in the pathway formatter. Both surfaces call the same two functions. |
-| "Don't edit outputs" preserved | All six concerns live in `organizational-context.yaml`. The composer is a pure function of `(teamInstructions, orgContext)`. Two runs of `fit-pathway agent` produce identical bytes. |
-| Section detectable by downstream tooling without parsing | `## Organizational Context` heading, exact-match contract, documented in the existing org-context guide. |
+| Absent slot produces output byte-identical to today | Composer returns `teamInstructions` content unchanged when `orgSection` is `null`; renderer returns `null` when no concern is populated; pre-change baseline fixture pins the comparison. |
+| CLI and web preview render the same section | Single `renderOrganizationalContext` in libskill; single `formatTeamInstructions` extension in the pathway formatter. Both surfaces call the same two functions. |
+| "Don't edit outputs" preserved | All six concerns live in `organizational-context.yaml`. The composer is a pure function of `(teamInstructions, orgSection, template)`; two runs produce identical bytes. |
+| Section detectable by downstream tooling without parsing | `## Organizational Context` heading at the section's start; appended last so the unique occurrence is the final match; guide documents both. |
 
 ## Scope Faithfulness
 
-Every component above maps to a Scope row in the spec. Items the spec lists
+Every component above maps to a Scope row in the spec. The slot's contents
+flow into the rendered `CLAUDE.md` and stop there; items the spec lists
 out-of-scope (per-repository overrides, roster-backed handle validation,
-per-track variation, auto-discovery, migration from other tools, structured
-access from skills, removing `teamInstructions`, localization) do not appear
-in any component, interface, or data shape above. The slot's contents flow
-into the rendered `CLAUDE.md` and stop there; downstream skills that want
-structured access get a separate spec.
+per-track variation, auto-discovery, migration, structured access from skills,
+removing `teamInstructions`, localization) do not appear in any component,
+interface, or data shape above.
 
 — Staff Engineer 🛠️
