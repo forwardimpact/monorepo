@@ -536,12 +536,14 @@ export function createSupervisor({
 
   const onLine = (line) => supervisor.emitLine(line);
 
+  const perInvocationTurns = maxTurns === 0 ? 0 : Math.max(maxTurns ?? 100, 200);
+
   const agentRunner = createAgentRunner({
     cwd: agentCwd,
     query,
     output: devNull,
     model,
-    maxTurns: 50,
+    maxTurns: perInvocationTurns,
     allowedTools,
     onLine,
     settingSources: ["project"],
@@ -560,7 +562,7 @@ export function createSupervisor({
     query,
     output: devNull,
     model,
-    maxTurns: 20,
+    maxTurns: perInvocationTurns,
     allowedTools: supervisorAllowedTools ?? [
       "Bash",
       "Read",
