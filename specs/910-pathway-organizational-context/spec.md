@@ -1,4 +1,4 @@
-# Spec 900 — Pathway Organizational Context Slot for Agent Generation
+# Spec 910 — Pathway Organizational Context Slot for Agent Generation
 
 ## Problem
 
