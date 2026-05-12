@@ -249,8 +249,8 @@ console.log(result.content);
 
 The generated client validates that the request is an instance of the expected
 type, converts it with `toObject` for the wire format, and converts the response
-back using `fromObject`. Retries are built in (10 attempts, 1-second delay by
-default).
+back using `fromObject`. Retries are built in (up to 10 retries on transient
+errors, exponential backoff starting at 1 second with jitter).
 
 For streaming RPCs, use `callStream` instead of the typed method:
 
