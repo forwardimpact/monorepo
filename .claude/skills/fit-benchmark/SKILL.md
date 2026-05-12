@@ -1,10 +1,11 @@
 ---
 name: fit-benchmark
 description: >
-  Run coding-agent task families across multiple runs, grade with hidden
-  tests the agent cannot see, and aggregate pass@k across skill-set
-  versions. Use when proving whether a skill-pack change improved coding
-  outcomes.
+  Prove whether a skill-pack change made agents better at writing code.
+  Use when a single passing eval doesn't prove anything and you need
+  multi-run pass@k evidence, when grading coding tasks with hidden tests
+  the agent cannot see, or when comparing outcomes across skill-set
+  versions.
 ---
 
 # fit-benchmark

@@ -1,10 +1,11 @@
 ---
 name: fit-eval
 description: >
-  Drive a single agent, run a supervisor–agent relay, or facilitate a
-  multi-agent session — and capture every turn as an NDJSON trace. Use for
-  agent evaluations (pass/fail verdicts) or agent collaboration (specialists
-  coordinating in one session). Pair with `fit-trace` for analysis.
+  Prove whether agent changes improved outcomes with reproducible
+  evidence. Use when an eval passes locally but fails in CI and the only
+  output is 'assertion failed', when you need a pass/fail verdict from a
+  judge agent, or when coordinating multiple specialist agents in one
+  session. Pair with `fit-trace` for trace analysis.
 ---
 
 # fit-eval

@@ -1,9 +1,10 @@
 ---
 name: fit-trace
 description: >
-  Download, query, and analyze agent execution traces. Use when investigating
-  agent behavior, debugging workflow failures, or studying how agents use
-  tools — covers CLI commands, analysis method, and worked examples.
+  See exactly what an agent did and whether a change improved outcomes.
+  Use when an agent workflow failed and you need to understand why, when
+  you want to measure token usage, cost, and efficiency across runs, or
+  when studying agent behavior patterns from NDJSON traces.
 ---
 
 # Trace Analysis
@@ -15,11 +16,22 @@ understanding what an agent did, why, and what happened as a result.
 
 ## When to Use
 
-- Investigating why an agent workflow failed or produced unexpected results
-- Understanding how an agent used its tools during a run
-- Measuring token usage, cost, and efficiency across runs
-- Debugging errors in tool calls or agent reasoning
-- Studying agent behavior patterns over time
+**Understand what an agent did:**
+
+- Getting an overview of a run — `npx fit-trace overview <file>`
+- Walking through the timeline — `npx fit-trace timeline <file>`
+- Inspecting token usage and cost — `npx fit-trace stats <file>`
+
+**Debug agent failures:**
+
+- Finding errors in tool calls — `npx fit-trace errors <file>`
+- Searching for patterns — `npx fit-trace search <file> 'permission denied'`
+- Filtering by tool — `npx fit-trace filter <file> --tool <name>`
+
+**Download traces from CI:**
+
+- Listing recent workflow runs — `npx fit-trace runs`
+- Downloading a specific run — `npx fit-trace download <run-id>`
 
 ## CLI Reference
 

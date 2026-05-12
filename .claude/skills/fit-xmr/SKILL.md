@@ -1,11 +1,11 @@
 ---
 name: fit-xmr
 description: >
-  Analyze time-series CSV metrics with Wheeler/Vacanti XmR control charts to
-  distinguish stable processes from special causes. Renders the canonical
-  14-line X+mR chart and applies the three Wheeler detection rules. Use when a
-  metric is being tracked over time and the question is whether it has
-  changed — covers signal rules, the chart layout, and how to read the report.
+  Distinguish signal from noise so the team acts on real changes, not
+  fluctuations. Use when a metric changes and the team debates whether it
+  is a real shift or just noise, when you need a compact status chart for
+  a wiki, PR, or report, or when recording and analyzing time-series
+  metrics with Wheeler/Vacanti XmR control charts.
 ---
 
 # XmR Analysis
@@ -20,12 +20,17 @@ three-rule formulation as adopted by Vacanti for agile flow metrics.
 
 ## When to Use
 
-- A metric is recorded over time (security backlog, lead time, error rate, agent
-  token usage) and you need to know whether a recent change is signal or noise.
-- A team wants compact markdown status tables for a status page, PR description,
-  or weekly report.
-- A chart needs to be pasted into a code review, wiki, console, or any other
-  monospace context.
+**Decide whether a change is signal or noise:**
+
+- Analyzing a metric over time — `npx fit-xmr analyze observations.csv --metric <name>`
+- Viewing the 14-line control chart — `npx fit-xmr chart observations.csv --metric <name>`
+- Recording a new observation — `npx fit-xmr record`
+
+**Report on process stability:**
+
+- Compact markdown status table — `npx fit-xmr summarize observations.csv`
+- Listing available metrics — `npx fit-xmr list observations.csv`
+- Validating CSV schema — `npx fit-xmr validate observations.csv`
 
 If the question is _"how is this metric trending?"_ — this is the right tool. If
 the question is _"what target should we set?"_ — this is **not** the right tool.
@@ -158,14 +163,9 @@ schema and a worked example.
 
 ```sh
 npx fit-xmr validate observations.csv
-npx fit-xmr list observations.csv
 npx fit-xmr analyze observations.csv --metric open_vulnerabilities
-npx fit-xmr chart observations.csv --metric open_vulnerabilities
 npx fit-xmr summarize observations.csv               # paste into a status page
 ```
-
-Validate first; list to see what's available; analyze for the full report
-(chart + stats + signals); chart for the chart alone; summarize for the rollup.
 
 ## Interpretation Guidance
 
