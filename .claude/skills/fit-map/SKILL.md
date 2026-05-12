@@ -1,11 +1,12 @@
 ---
 name: fit-map
 description: >
-  Define what good engineering looks like — author and validate agent-aligned engineering standard
-  definitions for skills, capabilities, behaviours, disciplines, tracks,
-  levels, and questions. Also covers activity-layer operations: pushing
-  people rosters, syncing GetDX snapshots, ingesting GitHub artifacts, and
-  verifying the activity database.
+  Define what good engineering means so roles have clear, defensible
+  expectations. Use when managers disagree on what a level requires and
+  you need a written standard, when defining or updating skills,
+  capabilities, behaviours, disciplines, tracks, levels, and questions,
+  or when pushing people rosters, syncing GetDX snapshots, ingesting
+  GitHub artifacts, and verifying the activity database.
 ---
 
 # Map Product
@@ -24,32 +25,28 @@ interpret and work with agent-aligned engineering standard data.
 
 ## When to Use
 
-**Agent-Aligned Engineering Standard-layer validation and inspection:**
-
-- Validating standard data integrity after changes
-- Checking data summary (skill counts, entity counts)
-- Generating browser index files for the web app
-- Exporting base entities to HTML microdata
-- Understanding what entities exist in the data
-
-**Agent-Aligned Engineering Standard-layer authoring and schema work:**
+**Defining or updating your engineering standard:**
 
 - Defining or tailoring engineering expectations for your organization
-- Adding or modifying skills in capability files
-- Adding new behaviours, disciplines, tracks, or levels
-- Adding interview questions
+- Adding or modifying skills, behaviours, disciplines, tracks, or levels
+- Adding interview questions to skill or behaviour files
 - Working with JSON Schema or RDF/SHACL definitions
-- Improving schema documentation for public consumption
+
+**Validating and inspecting standard data:**
+
+- Validating standard data integrity after changes — `npx fit-map validate`
+- Checking data summary (skill counts, entity counts) — `npx fit-map validate`
+- Generating browser index files — `npx fit-map generate-index`
+- Exporting base entities to HTML microdata — `npx fit-map export`
 
 **Activity-layer operations:**
 
-- Starting, stopping, and checking the local Supabase stack
-- Applying activity-schema migrations
-- Validating a people roster against the agent-aligned engineering standard
-- Pushing a people roster into `activity.organization_people`
-- Syncing GetDX snapshots into the activity database
-- Reprocessing the `raw` bucket after a transform fix or backfill
-- Verifying the activity database is populated and reachable
+- Starting and checking the local Supabase stack — `npx fit-map activity start`
+- Validating a people roster against the standard — `npx fit-map people validate <file>`
+- Pushing a people roster into the activity database — `npx fit-map people push <file>`
+- Syncing GetDX snapshots — `npx fit-map getdx sync`
+- Reprocessing the raw bucket — `npx fit-map activity transform`
+- Verifying the activity database is populated — `npx fit-map activity verify`
 
 ---
 

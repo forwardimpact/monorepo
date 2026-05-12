@@ -1,11 +1,13 @@
 ---
 name: fit-guide
 description: >
-  Ask an AI agent that understands your agent-aligned engineering standard. Use when
-  asking questions about skills, levels, and career expectations, getting
-  context-specific career guidance, interpreting engineering artifacts
-  against skill markers, setting up the Guide service stack, or ingesting
-  knowledge content.
+  Find growth areas and verify agent work, both grounded in your
+  organization's engineering standard. Use when a promotion conversation
+  ended without specifics and you need evidence of what to improve, when
+  reviewing agent output and you want a second opinion against the
+  standard, or when asking about skills, levels, and career expectations.
+  Also covers setting up the Guide service stack and ingesting knowledge
+  content.
 ---
 
 # Guide Product
@@ -21,11 +23,24 @@ Chat.
 
 ## When to Use
 
-- Career guidance specific to your organization's engineering standard
-- Interpreting engineering artifacts against skill markers
-- Asking about skills, levels, behaviours, and expectations
-- Setup: `npx fit-guide init`, `login`, knowledge processing
-- Operations: `npx fit-rc start/stop/status`, ingesting content
+**Find growth areas:**
+
+- Getting career guidance grounded in your organization's standard — `npx fit-guide "What should I focus on to reach the next level?"`
+- Asking about skills, levels, behaviours, and expectations — `npx fit-guide "What does practitioner-level delivery look like?"`
+- Checking whether recent work shows progress — `npx fit-guide "Does my recent PR show growth in code quality?"`
+
+**Verify agent work:**
+
+- Interpreting engineering artifacts against skill markers — `npx fit-guide "Review this diff against senior delivery expectations"`
+- Getting a second opinion before approving a deliverable — `npx fit-guide "Does this design doc meet the standard for system design?"`
+
+**Setup and operations:**
+
+- Bootstrap a new project — `npx fit-guide init`
+- Authenticate — `npx fit-guide login`
+- Start the service stack — `npx fit-rc start`
+- Check system readiness — `npx fit-guide status`
+- Process knowledge content — `npx fit-process-resources`, `npx fit-process-graphs`, `npx fit-process-vectors`
 
 ---
 
@@ -77,23 +92,12 @@ agent combine precise graph lookups with fuzzy semantic retrieval.
 
 ## Initialization
 
-Run `npx fit-guide init` once in a fresh project directory:
+Run `npx fit-guide init` once in a fresh project directory. It produces `.env`
+(token and port assignments) and `config/config.json` (service composition).
+Then authenticate and set up the stack:
 
 ```sh
-mkdir my-guide && cd my-guide
-npx fit-guide init
-```
-
-What `init` produces:
-
-| File / directory     | Purpose                               |
-| -------------------- | ------------------------------------- |
-| `.env`               | `MCP_TOKEN`, service port assignments |
-| `config/config.json` | Service composition and init order    |
-
-After init, authenticate and set up the stack:
-
-```sh
+npx fit-guide init          # Creates .env and config/config.json
 npx fit-codegen --all       # Generate gRPC stubs and field metadata
 npx fit-guide login         # OAuth PKCE login (or set ANTHROPIC_API_KEY in .env)
 npx fit-process-resources   # Process starter knowledge HTML
@@ -123,15 +127,6 @@ Guide requires the service stack to be running. Services are supervised by
 | 3     | graph   | gRPC            | RDF triple store            | 3003 |
 | 4     | pathway | gRPC            | Standard data service       | 3004 |
 | 5     | mcp     | Streamable HTTP | MCP tool and prompt gateway | 3005 |
-
-### Service Management
-
-```sh
-npx fit-rc start          # Start all services
-npx fit-rc status         # Check service health
-npx fit-rc stop           # Stop all services
-npx fit-rc restart        # Restart all services
-```
 
 ### MCP Endpoint Configuration
 
