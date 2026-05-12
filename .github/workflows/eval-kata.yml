@@ -43,11 +43,13 @@ jobs:
             --max-turns 25 \
             --judge-profile judge
       - name: Report
+        if: always()
         run: |
           node ./libraries/libeval/bin/fit-benchmark.js report \
             --input ./bench-output --format text \
             >> "$GITHUB_STEP_SUMMARY"
       - name: Assert cost envelope (≤ $5)
+        if: always()
         run: |
           [ -s ./bench-output/results.jsonl ] || { echo "results.jsonl missing or empty" >&2; exit 1; }
           TOTAL=$(jq -s '[.[].costUsd // 0] | add' ./bench-output/results.jsonl)
