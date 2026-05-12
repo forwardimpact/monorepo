@@ -78,8 +78,8 @@ runs:
           ARCH=$(uname -m)
           OS=$(uname -s | tr '[:upper:]' '[:lower:]')
           curl -fsSL "https://github.com/microsoft/apm/releases/download/v${APM_VERSION}/apm-${OS}-${ARCH}.tar.gz" \
-            | tar -xz -C /usr/local/bin
-          chmod +x /usr/local/bin/apm
+            | tar -xz -C /usr/local/lib
+          ln -sf "/usr/local/lib/apm-${OS}-${ARCH}/apm" /usr/local/bin/apm
           echo "Installed apm $(apm --version)"
         fi
 
