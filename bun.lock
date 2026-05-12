@@ -91,10 +91,11 @@
     },
     "libraries/libeval": {
       "name": "@forwardimpact/libeval",
-      "version": "0.1.34",
+      "version": "0.1.36",
       "bin": {
         "fit-eval": "./bin/fit-eval.js",
         "fit-trace": "./bin/fit-trace.js",
+        "fit-benchmark": "./bin/fit-benchmark.js",
       },
       "dependencies": {
         "@anthropic-ai/claude-agent-sdk": "0.2.112",
@@ -177,7 +178,7 @@
     },
     "libraries/libpack": {
       "name": "@forwardimpact/libpack",
-      "version": "0.1.2",
+      "version": "0.1.4",
     },
     "libraries/libpolicy": {
       "name": "@forwardimpact/libpolicy",
@@ -268,7 +269,7 @@
     },
     "libraries/libskill": {
       "name": "@forwardimpact/libskill",
-      "version": "5.3.0",
+      "version": "5.3.1",
       "dependencies": {
         "@forwardimpact/map": "^0.15.0",
       },
@@ -577,7 +578,7 @@
     },
     "products/outpost": {
       "name": "@forwardimpact/outpost",
-      "version": "2.12.6",
+      "version": "3.0.0",
       "bin": {
         "fit-outpost": "./bin/fit-outpost.js",
       },
@@ -589,7 +590,7 @@
     },
     "products/pathway": {
       "name": "@forwardimpact/pathway",
-      "version": "0.25.50",
+      "version": "0.25.56",
       "bin": {
         "fit-pathway": "./bin/fit-pathway.js",
       },
@@ -742,7 +743,7 @@
   },
   "overrides": {
     "@anthropic-ai/sdk": "^0.91.1",
-    "@hono/node-server": "^2.0.1",
+    "@hono/node-server": "^2.0.2",
     "fast-uri": "^3.1.2",
     "fast-xml-builder": "^1.1.7",
     "hono": "^4.12.18",

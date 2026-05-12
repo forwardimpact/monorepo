@@ -55,7 +55,7 @@
   },
   "overrides": {
     "@anthropic-ai/sdk": "^0.91.1",
-    "@hono/node-server": "^2.0.1",
+    "@hono/node-server": "^2.0.2",
     "fast-uri": "^3.1.2",
     "fast-xml-builder": "^1.1.7",
     "hono": "^4.12.18",
