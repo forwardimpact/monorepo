@@ -50,26 +50,20 @@ is no commitment to implement, and a design has nothing to shape.
 - [ ] Components, interfaces, and data flow stated before detail.
 - [ ] Each key decision names a rejected alternative and why.
 - [ ] Mermaid diagrams used where they clarify structure.
-- [ ] Stays within spec scope and at the architectural level — no scope
-      expansion; names components, classes, interfaces, and data structures but
-      not file-level changes, execution ordering, or implementation steps (those
-      belong in the plan).
+- [ ] Stays within spec scope at the architectural level — names components,
+      interfaces, and data structures but not file-level changes, execution
+      ordering, or implementation steps (plan scope).
 - [ ] Under 200 lines total.
 - [ ] Clean sub-agent review panel of `design-a.md` via
-      [`kata-review`](../kata-review/SKILL.md) completed (fresh context, no
-      prior bias, panel size per caller protocol) and every **blocker**,
-      **high**, and **medium** finding addressed.
-- [ ] Run `bun run format:fix` before pushing — commit any changes the formatter
-      makes.
-- [ ] Grep `design-a.md` against breaking renames on `main` since branch
-      divergence —
+      [`kata-review`](../kata-review/SKILL.md) completed (fresh context, panel
+      size per caller protocol) and every blocker/high/medium finding addressed.
+- [ ] Run `bun run format:fix` before pushing — commit any formatter changes.
+- [ ] Grep `design-a.md` against breaking renames on `main` since divergence —
       `git log origin/main --since '14 days ago' --grep '^feat!:\|^fix!:'`
-      enumerates breaking commits; for each, grep `design-a.md` for the renamed
-      identifier and update before push.
+      lists them; update renamed identifiers before push.
 - [ ] After push, verify the design landed on origin —
       `git ls-tree origin/<branch> -- specs/<NNN-slug>/design-a.md` returns a
-      blob. Empty output means the push did not persist (phantom write); re-push
-      and re-verify before signaling approval.
+      blob. Empty output means a phantom write; re-push and re-verify.
 
 </do_confirm_checklist>
 
@@ -192,10 +186,7 @@ When the panel passes, run `gh pr edit <number> --add-label design:approved`.
 Append to the current week's log (see agent profile for the file path):
 
 - **Specs designed** — Spec number, name, and status transition
-- **Design decisions** — Key architectural choices and why (so the planner has
-  context)
+- **Design decisions** — Key architectural choices and why (planner context)
 - **Deferred specs** — Specs skipped and why (not approved, missing info, etc.)
-
-- **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
-  per `references/metrics.md`. See KATA.md § Metrics for the
-  recording-eligibility rule.
+- **Metrics** — Append one row per run to `wiki/metrics/{skill}/` per
+  `references/metrics.md`. See KATA.md § Metrics for eligibility.

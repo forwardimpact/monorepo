@@ -409,15 +409,10 @@ describe("Supervisor - run and turns", () => {
     const { ctx, messageBus } = seedSupervise();
     const concludeHandler = createConcludeHandler(ctx);
 
-    const agentRunner = createMockRunner([
-      { text: "I wrote the spec." },
-    ]);
+    const agentRunner = createMockRunner([{ text: "I wrote the spec." }]);
 
     const supervisorRunner = createMockRunner(
-      [
-        { text: "Please write the spec." },
-        { text: "Good work." },
-      ],
+      [{ text: "Please write the spec." }, { text: "Good work." }],
       [undefined, [concludeMsg("Agent completed the task")]],
       {
         toolDispatcher: {

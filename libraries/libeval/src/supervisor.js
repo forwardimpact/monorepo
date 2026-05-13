@@ -263,9 +263,7 @@ export class Supervisor {
   async #resumeSupervisor(prompt) {
     const result = await this.supervisorRunner.resume(prompt);
     if (result.error && isSessionNotFound(result.error)) {
-      return this.supervisorRunner.run(
-        `${this.taskContext}\n\n${prompt}`,
-      );
+      return this.supervisorRunner.run(`${this.taskContext}\n\n${prompt}`);
     }
     return result;
   }
