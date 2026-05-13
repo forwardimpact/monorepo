@@ -45,6 +45,24 @@ runs:
         path: wiki
         token: ${{ inputs.token }}
 
+    - name: Install apm
+      shell: bash
+      run: |
+        if command -v apm &>/dev/null; then
+          echo "apm already available: $(apm --version)"
+        else
+          APM_VERSION="0.12.4"
+          ARCH=$(uname -m)
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          APM_DIR="$HOME/.local/lib/apm"
+          mkdir -p "$APM_DIR" "$HOME/.local/bin"
+          curl -fsSL "https://github.com/microsoft/apm/releases/download/v${APM_VERSION}/apm-${OS}-${ARCH}.tar.gz" \
+            | tar -xz -C "$APM_DIR" --strip-components=1
+          ln -sf "$APM_DIR/apm" "$HOME/.local/bin/apm"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "Installed apm $("$APM_DIR/apm" --version)"
+        fi
+
     - name: Bootstrap
       shell: bash
       run: ./scripts/bootstrap.sh
