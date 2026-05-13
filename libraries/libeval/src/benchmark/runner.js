@@ -395,6 +395,7 @@ async function assertPreflightExecutable(task) {
  * events go to `agentPath`; supervisor and orchestrator events go to
  * `supervisorPath`.
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: stream-splitting state machine
 async function splitAndSummarize(combinedPath, agentPath, supervisorPath) {
   const agentStream = createWriteStream(agentPath);
   const supStream = createWriteStream(supervisorPath);

@@ -8,6 +8,7 @@ import jmespath from "jmespath";
  * @param {string[]} args - [testName, file]
  * @returns {{ test: string, pass: boolean, message?: string }}
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: assertion dispatch by type
 export function evaluateAssertion(values, args) {
   const testName = args[0];
   if (!testName) throw new Error("assert: missing test name");

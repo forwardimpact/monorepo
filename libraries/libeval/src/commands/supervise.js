@@ -11,6 +11,7 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
  * @param {object} values - Parsed option values from cli.parse()
  * @returns {object}
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: CLI option validation
 function parseSuperviseOptions(values) {
   const taskFile = values["task-file"];
   const taskText = values["task-text"];
