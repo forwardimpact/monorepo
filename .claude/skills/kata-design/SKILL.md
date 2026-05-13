@@ -52,8 +52,7 @@ is no commitment to implement, and a design has nothing to shape.
 - [ ] Mermaid diagrams used where they clarify structure.
 - [ ] Stays within spec scope and at the architectural level — no scope
       expansion; names components, classes, interfaces, and data structures but
-      not file-level changes, execution ordering, or implementation steps (those
-      belong in the plan).
+      not file-level changes, execution ordering, or implementation steps.
 - [ ] Under 200 lines total.
 - [ ] Clean sub-agent review panel of `design-a.md` via
       [`kata-review`](../kata-review/SKILL.md) completed (fresh context, no
@@ -61,27 +60,22 @@ is no commitment to implement, and a design has nothing to shape.
       **high**, and **medium** finding addressed.
 - [ ] Run `bun run format:fix` before pushing — commit any changes the formatter
       makes.
-- [ ] Grep `design-a.md` against breaking renames on `main` since branch
-      divergence —
+- [ ] Grep `design-a.md` against breaking renames on `main` —
       `git log origin/main --since '14 days ago' --grep '^feat!:\|^fix!:'`
       enumerates breaking commits; for each, grep `design-a.md` for the renamed
       identifier and update before push.
 - [ ] After push, verify the design landed on origin —
       `git ls-tree origin/<branch> -- specs/<NNN-slug>/design-a.md` returns a
-      blob. Empty output means the push did not persist (phantom write); re-push
-      and re-verify before signaling approval.
+      blob. Empty output means the push did not persist; re-push and re-verify
+      before signaling approval.
 
 </do_confirm_checklist>
 
 ## Naming Convention
 
-Designs live alongside their spec in `specs/{NNN}-{name}/`.
-
-### Default design
-
-The first (and usually only) design is always **`design-a.md`**. Do not use
-`design.md` or other shorthands — the letter suffix keeps naming consistent
-whether one design or several exist.
+Designs live alongside their spec in `specs/{NNN}-{name}/`. The first (and
+usually only) design is always **`design-a.md`** — the letter suffix keeps
+naming consistent whether one design or several exist.
 
 ### Alternative designs
 
@@ -133,10 +127,9 @@ complete. See
 
 ## Reviewing a Design
 
-Evaluate `design-a.md` against the qualities listed in "Writing a Design" above,
-then run the DO-CONFIRM checklist at the top of this skill.
-
-If all criteria are met, apply the approval signal:
+Evaluate `design-a.md` against the qualities in "Writing a Design" above, then
+run the DO-CONFIRM checklist at the top of this skill. If all criteria are met,
+apply the approval signal:
 
 ```sh
 gh pr edit <number> --add-label design:approved
@@ -159,31 +152,27 @@ Run `git fetch origin main`, then confirm `specs/NNN/spec.md` exists on
 `origin/main`. An open PR with a `spec:approved` label is not sufficient — wait
 for the merge.
 
-### Step 2: Study the spec
+### Step 2: Study the spec and codebase
 
-Read `spec.md` end to end.
+Read `spec.md` end to end, then read the code areas the spec targets.
 
-### Step 3: Research the codebase
-
-Read the code areas the spec targets.
-
-### Step 4: Write the design
+### Step 3: Write the design
 
 Create `design-a.md`. Stay under 200 lines. Each architectural choice names a
 rejected alternative.
 
-### Step 5: Open a design PR
+### Step 4: Open a design PR
 
 The PR title carries the spec id: `design(NNN): …`.
 
-### Step 6: Clean sub-agent review panel
+### Step 5: Clean sub-agent review panel
 
 Follow the [`kata-review` caller
 protocol](../kata-review/references/caller-protocol.md). Tell each reviewer not
 to invoke `kata-design`. Address every confirmed blocker/high/medium finding
 before advancing.
 
-### Step 7: Apply approval signal
+### Step 6: Apply approval signal
 
 When the panel passes, run `gh pr edit <number> --add-label design:approved`.
 
@@ -195,7 +184,6 @@ Append to the current week's log (see agent profile for the file path):
 - **Design decisions** — Key architectural choices and why (so the planner has
   context)
 - **Deferred specs** — Specs skipped and why (not approved, missing info, etc.)
-
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
   per `references/metrics.md`. See KATA.md § Metrics for the
   recording-eligibility rule.
