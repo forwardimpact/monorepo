@@ -405,45 +405,70 @@ async function splitAndSummarize(combinedPath, agentPath, supervisorPath) {
     input: createReadStream(combinedPath),
     crlfDelay: Infinity,
   });
-  let agentCost = 0;
-  let supervisorCost = 0;
-  let turns = 0;
-  let submission = "";
+  const acc = { agentCost: 0, supervisorCost: 0, turns: 0, submission: "" };
   for await (const line of rl) {
-    if (!line.trim()) continue;
-    let event;
-    try {
-      event = JSON.parse(line);
-    } catch {
-      continue;
-    }
-    const target = event.source === "agent" ? agentStream : supStream;
-    target.write(line + "\n");
-    const inner = event.event;
-    if (!inner) continue;
-    if (event.source === "agent") {
-      if (inner.type === "result" && typeof inner.total_cost_usd === "number") {
-        agentCost = inner.total_cost_usd;
-      }
-      if (inner.type === "assistant") {
-        const text = extractText(inner);
-        if (text) submission = text;
-      }
-    }
-    if (event.source === "supervisor") {
-      if (inner.type === "result" && typeof inner.total_cost_usd === "number") {
-        supervisorCost = inner.total_cost_usd;
-      }
-    }
-    if (event.source === "orchestrator" && inner.type === "summary") {
-      turns = inner.turns ?? 0;
-    }
+    processSplitLine(line, acc, agentStream, supStream);
   }
   await Promise.all([
     new Promise((r) => agentStream.end(r)),
     new Promise((r) => supStream.end(r)),
   ]);
-  return { costUsd: agentCost + supervisorCost, turns, submission };
+  return {
+    costUsd: acc.agentCost + acc.supervisorCost,
+    turns: acc.turns,
+    submission: acc.submission,
+  };
+}
+
+function processSplitLine(line, acc, agentStream, supStream) {
+  if (!line.trim()) return;
+  const event = tryParseJson(line);
+  if (!event) return;
+  const target = event.source === "agent" ? agentStream : supStream;
+  target.write(line + "\n");
+  const inner = event.event;
+  if (!inner) return;
+  applyEventToAccumulator(event.source, inner, acc);
+}
+
+function tryParseJson(line) {
+  try {
+    return JSON.parse(line);
+  } catch {
+    return null;
+  }
+}
+
+function readResultCost(inner) {
+  if (inner.type !== "result") return null;
+  return typeof inner.total_cost_usd === "number" ? inner.total_cost_usd : null;
+}
+
+function applyAgentEvent(inner, acc) {
+  const cost = readResultCost(inner);
+  if (cost !== null) {
+    acc.agentCost = cost;
+    return;
+  }
+  if (inner.type === "assistant") {
+    const text = extractText(inner);
+    if (text) acc.submission = text;
+  }
+}
+
+function applyEventToAccumulator(source, inner, acc) {
+  if (source === "agent") {
+    applyAgentEvent(inner, acc);
+    return;
+  }
+  if (source === "supervisor") {
+    const cost = readResultCost(inner);
+    if (cost !== null) acc.supervisorCost = cost;
+    return;
+  }
+  if (source === "orchestrator" && inner.type === "summary") {
+    acc.turns = inner.turns ?? 0;
+  }
 }
 
 function extractText(inner) {

@@ -11,6 +11,15 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
  * @param {object} values - Parsed option values from cli.parse()
  * @returns {object}
  */
+function parseMaxTurns(raw) {
+  const value = raw ?? "20";
+  return value === "0" ? 0 : parseInt(value, 10);
+}
+
+function parseAllowedTools(raw) {
+  return (raw ?? "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite").split(",");
+}
+
 function parseSuperviseOptions(values) {
   const taskFile = values["task-file"];
   const taskText = values["task-text"];
@@ -21,29 +30,20 @@ function parseSuperviseOptions(values) {
 
   const supervisorAllowedToolsRaw = values["supervisor-allowed-tools"];
 
-  const taskAmend = values["task-amend"] ?? undefined;
-  const taskContent = taskFile ? readFileSync(taskFile, "utf8") : taskText;
-
   return {
-    taskContent,
-    taskAmend,
+    taskContent: taskFile ? readFileSync(taskFile, "utf8") : taskText,
+    taskAmend: values["task-amend"] ?? undefined,
     supervisorCwd: resolve(values["supervisor-cwd"] ?? "."),
     agentCwd: resolve(
       values["agent-cwd"] ?? mkdtempSync(join(tmpdir(), "fit-eval-agent-")),
     ),
     agentModel: values["agent-model"] ?? "claude-opus-4-7[1m]",
     supervisorModel: values["supervisor-model"] ?? "claude-opus-4-7[1m]",
-    maxTurns: (() => {
-      const raw = values["max-turns"] ?? "20";
-      return raw === "0" ? 0 : parseInt(raw, 10);
-    })(),
+    maxTurns: parseMaxTurns(values["max-turns"]),
     outputPath: values.output,
     supervisorProfile: values["supervisor-profile"] ?? undefined,
     agentProfile: values["agent-profile"] ?? undefined,
-    allowedTools: (
-      values["allowed-tools"] ??
-      "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
-    ).split(","),
+    allowedTools: parseAllowedTools(values["allowed-tools"]),
     supervisorAllowedTools: supervisorAllowedToolsRaw
       ? supervisorAllowedToolsRaw.split(",")
       : undefined,

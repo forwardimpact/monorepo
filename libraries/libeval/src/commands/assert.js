@@ -2,6 +2,56 @@ import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import jmespath from "jmespath";
 
+const ASSERT_MODES = [
+  {
+    key: "exists",
+    missingFileMsg: "assert: missing file argument",
+    run: (values, file) => assertExists(file),
+  },
+  {
+    key: "grep",
+    missingFileMsg: "assert: missing file argument for --grep",
+    run: (values, file) => assertGrep(values.grep, file),
+  },
+  {
+    key: "cites-job",
+    missingFileMsg: "assert: missing file argument for --cites-job",
+    run: (values, file) => assertCitesJob(values["cites-job"], file),
+  },
+  {
+    key: "query",
+    missingFileMsg: "assert: missing file argument for --query",
+    run: (values, file) => assertQuery(values.query, file),
+  },
+];
+
+function selectMode(values) {
+  const active = ASSERT_MODES.filter(
+    (m) => values[m.key] !== undefined && values[m.key] !== false,
+  );
+  if (active.length === 0) {
+    throw new Error(
+      "assert: specify one of --grep, --query, --exists, or --cites-job",
+    );
+  }
+  if (active.length > 1) {
+    throw new Error(
+      "assert: specify only one of --grep, --query, --exists, or --cites-job",
+    );
+  }
+  return active[0];
+}
+
+function applyNot(result, file) {
+  const pass = !result.pass;
+  if (pass) return { pass: true };
+  return {
+    pass: false,
+    message:
+      result.message ?? `inverted assertion failed for ${basename(file)}`,
+  };
+}
+
 /**
  * Evaluate an assertion and return the structured result.
  * @param {object} values - { grep?: string, query?: string, exists?: boolean, not?: boolean, message?: string }
@@ -13,51 +63,12 @@ export function evaluateAssertion(values, args) {
   if (!testName) throw new Error("assert: missing test name");
 
   const file = args[1];
-  const modes = [
-    values.grep,
-    values.query,
-    values.exists,
-    values["cites-job"],
-  ].filter((v) => v !== undefined && v !== false);
-  if (modes.length === 0) {
-    throw new Error(
-      "assert: specify one of --grep, --query, --exists, or --cites-job",
-    );
-  }
-  if (modes.length > 1) {
-    throw new Error(
-      "assert: specify only one of --grep, --query, --exists, or --cites-job",
-    );
-  }
+  const mode = selectMode(values);
+  if (!file) throw new Error(mode.missingFileMsg);
 
-  let result;
-  if (values.exists) {
-    if (!file) throw new Error("assert: missing file argument");
-    result = assertExists(file);
-  } else if (values.grep) {
-    if (!file) throw new Error("assert: missing file argument for --grep");
-    result = assertGrep(values.grep, file);
-  } else if (values["cites-job"]) {
-    if (!file) throw new Error("assert: missing file argument for --cites-job");
-    result = assertCitesJob(values["cites-job"], file);
-  } else {
-    if (!file) throw new Error("assert: missing file argument for --query");
-    result = assertQuery(values.query, file);
-  }
-
-  if (values.not) {
-    result.pass = !result.pass;
-    if (result.pass) {
-      delete result.message;
-    } else {
-      result.message =
-        result.message ?? `inverted assertion failed for ${basename(file)}`;
-    }
-  }
-
-  if (!result.pass && values.message) {
-    result.message = values.message;
-  }
+  let result = mode.run(values, file);
+  if (values.not) result = applyNot(result, file);
+  if (!result.pass && values.message) result.message = values.message;
 
   const output = { test: testName, pass: result.pass };
   if (result.message) output.message = result.message;
