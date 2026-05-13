@@ -223,6 +223,9 @@ export class Supervisor {
    */
   #classifyAgentOutcome(agentResult, turn, interventions) {
     if (agentResult.error && !agentResult.aborted) {
+      process.stderr.write(
+        `[supervisor] agent error on turn ${turn}: ${agentResult.error.message ?? agentResult.error}\n`,
+      );
       this.emitSummary({ success: false, turns: turn });
       return { type: "exit", exit: { success: false, turns: turn } };
     }
@@ -319,6 +322,9 @@ export class Supervisor {
     let supervisorResult = await this.supervisorRunner.resume(reviewPrompt);
 
     if (supervisorResult.error) {
+      process.stderr.write(
+        `[supervisor] supervisor error on end-of-turn review ${turn}: ${supervisorResult.error.message ?? supervisorResult.error}\n`,
+      );
       this.emitSummary({ success: false, turns: turn });
       return { exit: { success: false, turns: turn } };
     }
