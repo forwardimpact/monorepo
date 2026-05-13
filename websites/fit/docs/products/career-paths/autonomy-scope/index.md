@@ -27,14 +27,10 @@ The Expectations section appears at the top of the output:
 ```text
 ## Expectations
 
-- **Impact Scope**: Delivers components and features that contribute to
-  team-level objectives and product outcomes.
-- **Autonomy Expectation**: Works independently on defined deliverables,
-  escalating ambiguous issues to senior engineers.
-- **Influence Scope**: Influences technical decisions within the immediate
-  team through reasoned contributions.
-- **Complexity Handled**: Handles moderately complex problems with several
-  known variables and documented precedents.
+- **Impact Scope**: Features and small projects
+- **Autonomy Expectation**: Work independently on familiar problems
+- **Influence Scope**: Mentor junior team members
+- **Complexity Handled**: Moderate complexity with some ambiguity
 ```
 
 Each expectation describes a different dimension of your role:
@@ -67,14 +63,10 @@ Here is what the Expectations section looks like at each of those levels:
 **Engineer (J060):**
 
 ```text
-- **Impact Scope**: Delivers components and features that contribute to
-  team-level objectives and product outcomes.
-- **Autonomy Expectation**: Works independently on defined deliverables,
-  escalating ambiguous issues to senior engineers.
-- **Influence Scope**: Influences technical decisions within the immediate
-  team through reasoned contributions.
-- **Complexity Handled**: Handles moderately complex problems with several
-  known variables and documented precedents.
+- **Impact Scope**: Features and small projects
+- **Autonomy Expectation**: Work independently on familiar problems
+- **Influence Scope**: Mentor junior team members
+- **Complexity Handled**: Moderate complexity with some ambiguity
 ```
 
 **Senior Engineer (J070):**

@@ -101,14 +101,10 @@ Software Engineering:
 ```text
 ## Expectations
 
-- **Impact Scope**: Delivers components and features that contribute to
-  team-level objectives and product outcomes.
-- **Autonomy Expectation**: Works independently on defined deliverables,
-  escalating ambiguous issues to senior engineers.
-- **Influence Scope**: Influences technical decisions within the immediate
-  team through reasoned contributions.
-- **Complexity Handled**: Handles moderately complex problems with several
-  known variables and documented precedents.
+- **Impact Scope**: Features and small projects
+- **Autonomy Expectation**: Work independently on familiar problems
+- **Influence Scope**: Mentor junior team members
+- **Complexity Handled**: Moderate complexity with some ambiguity
 ```
 
 If your role has a track specialization, add the `--track` flag to see how the
