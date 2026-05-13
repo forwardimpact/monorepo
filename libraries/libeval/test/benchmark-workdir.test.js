@@ -5,17 +5,22 @@ import { connect } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { installApm } from "../src/benchmark/apm-installer.js";
+import { createApmInstaller } from "../src/benchmark/apm-installer.js";
 import { loadTaskFamily } from "../src/benchmark/task-family.js";
 import { createWorkdirManager } from "../src/benchmark/workdir.js";
+import { makeFakeApmSpawn } from "./mock-apm-spawn.js";
 
 const FIXTURE = new URL("./fixtures/benchmark-family/", import.meta.url)
   .pathname;
 
+function newInstaller() {
+  return createApmInstaller({ spawn: makeFakeApmSpawn() });
+}
+
 async function setupManager() {
   const family = await loadTaskFamily(FIXTURE);
   const out = await mkdtemp(join(tmpdir(), "benchmark-wm-"));
-  const { stagingDir } = await installApm(family, out);
+  const { stagingDir } = await newInstaller().install(family, out);
   return {
     family,
     out,
@@ -81,7 +86,7 @@ describe("WorkdirManager.teardown", () => {
     // process group; teardown should SIGTERM/SIGKILL it.
     const family = await loadTaskFamily(FIXTURE);
     const out = await mkdtemp(join(tmpdir(), "benchmark-wm-listener-"));
-    const { stagingDir } = await installApm(family, out);
+    const { stagingDir } = await newInstaller().install(family, out);
     const wm = createWorkdirManager({
       stagingDir,
       runOutputDir: out,

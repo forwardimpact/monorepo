@@ -21,7 +21,7 @@ import { join, resolve as resolvePath } from "node:path";
 
 import { DEFAULT_ENV_ALLOWLIST, createRedactor } from "../redaction.js";
 import { createSupervisor } from "../supervisor.js";
-import { installApm } from "./apm-installer.js";
+import { installApm as defaultInstallApm } from "./apm-installer.js";
 import { runJudge } from "./judge.js";
 import { validateResultRecord } from "./result.js";
 import { runScoring } from "./scorer.js";
@@ -64,6 +64,10 @@ export class BenchmarkRunner {
    * @param {Function} [opts.runJudge] - Test seam: replaces `runJudge`. Same
    *   contract as `runJudge(task, workdir, scoring, deps)`. Internal testing
    *   only.
+   * @param {Function} [opts.installApm] - Test seam: replaces `installApm`.
+   *   Same contract as `installApm(family, outputDir)`. Lets tests inject a
+   *   fake `apm` spawn (or skip the install entirely) so the suite never
+   *   shells out to a real `apm` binary. Internal testing only.
    */
   constructor({
     family,
@@ -81,6 +85,7 @@ export class BenchmarkRunner {
     runAgent,
     runScoring: runScoringHook,
     runJudge: runJudgeHook,
+    installApm: installApmHook,
   }) {
     if (!family) throw new Error("family is required");
     if (!Number.isInteger(runs) || runs < 1)
@@ -105,6 +110,7 @@ export class BenchmarkRunner {
     this._runAgentHook = runAgent ?? null;
     this._runScoringHook = runScoringHook ?? runScoring;
     this._runJudgeHook = runJudgeHook ?? runJudge;
+    this._installApmHook = installApmHook ?? defaultInstallApm;
   }
 
   /**
@@ -118,10 +124,8 @@ export class BenchmarkRunner {
         : this.familyInput;
 
     await mkdir(this.output, { recursive: true });
-    const { stagingDir, skillSetHash, judgeProfilesDir } = await installApm(
-      family,
-      this.output,
-    );
+    const { stagingDir, skillSetHash, judgeProfilesDir } =
+      await this._installApmHook(family, this.output);
 
     const tasks = family.tasks();
     if (this.profiles.judge) {

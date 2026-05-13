@@ -15,10 +15,15 @@ import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { createApmInstaller } from "../src/benchmark/apm-installer.js";
 import { aggregate } from "../src/benchmark/report.js";
 import { BenchmarkRunner } from "../src/benchmark/runner.js";
 import { validateResultRecord } from "../src/benchmark/result.js";
 import { createTraceQuery, createTraceCollector } from "@forwardimpact/libeval";
+import { makeFakeApmSpawn } from "./mock-apm-spawn.js";
+
+const mockInstallApm = (family, outputDir) =>
+  createApmInstaller({ spawn: makeFakeApmSpawn() }).install(family, outputDir);
 
 const FIXTURE = new URL("./fixtures/benchmark-family/", import.meta.url)
   .pathname;
@@ -123,6 +128,7 @@ async function setupRunner({ runs = 2, runAgent = mockRunAgent } = {}) {
     query: noopQuery,
     runAgent,
     runJudge: mockRunJudge,
+    installApm: mockInstallApm,
     termGraceMs: 100,
   });
   return { runner, out };

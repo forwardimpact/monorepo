@@ -8,7 +8,12 @@ import {
   assertJudgeProfileStaged,
   loadTaskFamily,
 } from "../src/benchmark/task-family.js";
-import { installApm } from "../src/benchmark/apm-installer.js";
+import { createApmInstaller } from "../src/benchmark/apm-installer.js";
+import { makeFakeApmSpawn } from "./mock-apm-spawn.js";
+
+function newInstaller() {
+  return createApmInstaller({ spawn: makeFakeApmSpawn() });
+}
 
 const FIXTURE = new URL("./fixtures/benchmark-family/", import.meta.url)
   .pathname;
@@ -75,11 +80,11 @@ describe("loadTaskFamily", () => {
     );
     const lfFamily = await loadTaskFamily(lfDir);
     const crlfFamily = await loadTaskFamily(crlfDir);
-    const lfOut = await installApm(
+    const lfOut = await newInstaller().install(
       lfFamily,
       await mkdtemp(join(tmpdir(), "benchmark-out-lf-")),
     );
-    const crlfOut = await installApm(
+    const crlfOut = await newInstaller().install(
       crlfFamily,
       await mkdtemp(join(tmpdir(), "benchmark-out-crlf-")),
     );
@@ -91,14 +96,14 @@ describe("assertJudgeProfileStaged", () => {
   test("resolves when the profile exists", async () => {
     const family = await loadTaskFamily(FIXTURE);
     const out = await mkdtemp(join(tmpdir(), "benchmark-stage-"));
-    const { judgeProfilesDir } = await installApm(family, out);
+    const { judgeProfilesDir } = await newInstaller().install(family, out);
     await assertJudgeProfileStaged(family, judgeProfilesDir, "judge");
   });
 
   test("throws when the profile is absent", async () => {
     const family = await loadTaskFamily(FIXTURE);
     const out = await mkdtemp(join(tmpdir(), "benchmark-stage-miss-"));
-    const { judgeProfilesDir } = await installApm(family, out);
+    const { judgeProfilesDir } = await newInstaller().install(family, out);
     await assert.rejects(
       assertJudgeProfileStaged(family, judgeProfilesDir, "missing"),
       /judge profile not staged/,
