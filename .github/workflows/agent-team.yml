@@ -42,6 +42,7 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           agent-profile: ${{ matrix.agent.name }}
+          case: ${{ matrix.agent.name }}
           max-turns: ${{ matrix.agent.max-turns || '200' }}
           task-text: >-
             Assess the current state of your domain and act on the highest-priority finding.
