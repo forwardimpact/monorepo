@@ -68,7 +68,8 @@ const COMMANDS = {
 const definition = {
   name: "fit-pathway",
   version: VERSION,
-  description: "Career progression for agent-aligned engineering standards",
+  description:
+    "Career progression for agent-aligned engineering standards (consumes data authored with fit-map; bootstrap: npx fit-map init)",
   commands: [
     { name: "discipline", args: "[<id>]", description: "Show disciplines" },
     { name: "level", args: "[<id>]", description: "Show levels" },
@@ -137,7 +138,8 @@ const definition = {
     {
       name: "agent",
       args: "<discipline>",
-      description: "Generate AI agent profile",
+      description:
+        "Generate AI agent profile (bootstrap data/pathway/ with: npx fit-map init)",
       options: {
         track: { type: "string", description: "Track specialization" },
         output: {
@@ -332,6 +334,14 @@ async function main() {
       loader,
     });
   } catch (error) {
+    if (error.code === "ENOENT") {
+      cli.error(
+        `data/pathway/ not found or incomplete at ${dataDir}.\n` +
+          `Pathway consumes data authored with fit-map. Bootstrap with:\n` +
+          `  npx fit-map init`,
+      );
+      process.exit(1);
+    }
     cli.error(error.message);
     process.exit(1);
   }
