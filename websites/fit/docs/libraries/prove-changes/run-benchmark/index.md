@@ -283,9 +283,10 @@ declaring an improvement.
 
 ## What's Next
 
-- [Run an Eval](/docs/libraries/prove-changes/run-eval/) — the single-run
-  agent-as-judge eval `fit-benchmark` builds on.
-- [Analyze Traces](/docs/libraries/prove-changes/trace-analysis/) — read
-  the agent and judge traces with `fit-trace`.
-- [Prove Agent Changes](/docs/libraries/prove-changes/) — the end-to-end
-  workflow `fit-benchmark` sits inside.
+<div class="grid">
+
+<!-- part:card:ci-workflow -->
+<!-- part:card:../run-eval -->
+<!-- part:card:../trace-analysis -->
+
+</div>

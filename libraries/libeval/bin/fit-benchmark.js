@@ -136,6 +136,12 @@ export const definition = {
       description:
         "Author a coding-task family, run a benchmark across multiple runs, and read the pass@k report.",
     },
+    {
+      title: "Automate with GitHub Actions",
+      url: "https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/ci-workflow/index.md",
+      description:
+        "Run benchmarks in CI with the forwardimpact/fit-benchmark action.",
+    },
   ],
 };
 

@@ -78,6 +78,36 @@ npx fit-benchmark <command> [options]
 
 The full flag surface lives in [references/cli.md](references/cli.md).
 
+## GitHub Action
+
+The `forwardimpact/fit-benchmark@v1` composite action wraps the CLI for
+GitHub Actions workflows. It installs dependencies, runs the benchmark,
+appends the report to the step summary, and uploads `results.jsonl` as
+a workflow artifact.
+
+```yaml
+- uses: forwardimpact/fit-benchmark@v1
+  with:
+    family: ./benchmarks/my-family
+    runs: "5"
+    judge-profile: judge
+```
+
+All CLI `run` flags are exposed as action inputs. Additional
+CI-specific inputs:
+
+| Input | Default | Purpose |
+| --- | --- | --- |
+| `summary` | `"true"` | Append text report to `GITHUB_STEP_SUMMARY` |
+| `upload-results` | `"true"` | Upload `results.jsonl` as a workflow artifact |
+| `artifact-name` | `"benchmark-results"` | Name for the uploaded artifact |
+| `timeout-minutes` | `"60"` | Maximum minutes before cancellation |
+| `k` | `"1,3,5"` | Comma-separated k values for the report |
+| `format` | `"text"` | Report format (`json` or `text`) |
+
+The action outputs `results-path` — the absolute path to
+`results.jsonl` — for downstream steps.
+
 | Command | Purpose |
 | --- | --- |
 | `run` | Run every task N times against a family; append result records to `<output>/results.jsonl`. |
@@ -150,3 +180,5 @@ for post-hoc analysis.
 - [Run a Benchmark](https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/index.md)
   — Author a coding-task family, run a benchmark across multiple runs,
   and read the pass@k report.
+- [Automate with GitHub Actions](https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/ci-workflow/index.md)
+  — Run benchmarks in CI with the forwardimpact/fit-benchmark action.

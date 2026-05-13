@@ -101,6 +101,8 @@ Builders
 
 <!-- part:card:prove-changes/run-benchmark -->
 
+<!-- part:card:prove-changes/run-benchmark/ci-workflow -->
+
 <!-- part:card:prove-changes/trace-analysis -->
 
 <!-- part:card:prove-changes/generate-dataset -->
