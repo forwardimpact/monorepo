@@ -40,13 +40,26 @@ describe("landmark credentials store", () => {
     );
   });
 
-  test("credentialsPath falls back to ~/.config/landmark/credentials.json", () => {
+  test("credentialsPath falls back to the platform-native location", () => {
     const env = {};
     if (process.platform === "win32") return; // covered by APPDATA branch
-    assert.equal(
-      credentialsPath(env),
-      path.join(os.homedir(), ".config", "landmark", "credentials.json"),
-    );
+    if (process.platform === "darwin") {
+      assert.equal(
+        credentialsPath(env),
+        path.join(
+          os.homedir(),
+          "Library",
+          "Application Support",
+          "landmark",
+          "credentials.json",
+        ),
+      );
+    } else {
+      assert.equal(
+        credentialsPath(env),
+        path.join(os.homedir(), ".config", "landmark", "credentials.json"),
+      );
+    }
   });
 
   test("read returns null when file missing", async () => {

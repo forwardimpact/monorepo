@@ -65,9 +65,10 @@ Logged in as you@example.com.
 
 | Platform | Path |
 | --- | --- |
-| Linux / macOS | `~/.config/landmark/credentials.json` |
+| Linux | `~/.config/landmark/credentials.json` |
+| macOS | `~/Library/Application Support/landmark/credentials.json` |
 | Windows | `%APPDATA%\landmark\credentials.json` |
-| XDG-aware | `$XDG_CONFIG_HOME/landmark/credentials.json` |
+| XDG override | `$XDG_CONFIG_HOME/landmark/credentials.json` (any platform) |
 
 The file holds `access_token`, `refresh_token`, `expires_at`, and `email`.
 Treat it like an SSH private key — never commit it, never copy it to a

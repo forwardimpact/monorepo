@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { Readable } from "node:stream";
 
 import { runLoginCommand } from "../../src/commands/login.js";
 import { readCredentials } from "../../src/lib/credentials.js";
@@ -33,9 +34,7 @@ function makeStdinFor(line) {
   // node:readline/promises reads until EOL. A Readable that emits the line
   // and then closes is enough — readline's question() resolves on first
   // line break or end-of-stream.
-  const { Readable } = require("node:stream");
-  const stream = Readable.from([`${line}\n`]);
-  return stream;
+  return Readable.from([`${line}\n`]);
 }
 
 function makeSupabaseStub({ session, onOtp, onVerify, onExchange } = {}) {

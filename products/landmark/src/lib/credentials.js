@@ -2,14 +2,14 @@
  * Per-user credentials store for the Landmark CLI.
  *
  * Persists a Supabase session ({access_token, refresh_token, expires_at,
- * email}) at an XDG-aware location with 0600 permissions:
+ * email}) at a per-platform location with 0600 permissions:
  *
- *   - $XDG_CONFIG_HOME/landmark/credentials.json (if XDG_CONFIG_HOME is set)
- *   - $HOME/.config/landmark/credentials.json   (Linux / macOS default)
- *   - %APPDATA%/landmark/credentials.json       (Windows)
- *
- * The path is overridable via `$LANDMARK_CREDENTIALS_FILE` for tests and
- * uncommon deployments.
+ *   - $LANDMARK_CREDENTIALS_FILE                              (override)
+ *   - $XDG_CONFIG_HOME/landmark/credentials.json              (XDG override)
+ *   - %APPDATA%/landmark/credentials.json                     (Windows)
+ *   - $HOME/Library/Application Support/landmark/             (macOS)
+ *     credentials.json
+ *   - $HOME/.config/landmark/credentials.json                 (Linux + other)
  *
  * No dependency on libconfig: that library's "config" bucket is rooted at
  * the codebase's config/ directory, which is right for internal contributors
@@ -23,13 +23,24 @@ import os from "node:os";
 const FILE_NAME = "credentials.json";
 const NAMESPACE = "landmark";
 
-/** Resolve the credentials file path with XDG precedence. */
+/** Resolve the credentials file path with per-platform precedence. */
 export function credentialsPath(env = process.env) {
   if (env.LANDMARK_CREDENTIALS_FILE) return env.LANDMARK_CREDENTIALS_FILE;
+  // XDG_CONFIG_HOME is honoured on every platform so a power user can
+  // override the native default. It is set on Linux by default and
+  // sometimes set on macOS by users running Homebrew-style configs.
   const xdg = env.XDG_CONFIG_HOME;
   if (xdg) return path.join(xdg, NAMESPACE, FILE_NAME);
   if (process.platform === "win32" && env.APPDATA)
     return path.join(env.APPDATA, NAMESPACE, FILE_NAME);
+  if (process.platform === "darwin")
+    return path.join(
+      os.homedir(),
+      "Library",
+      "Application Support",
+      NAMESPACE,
+      FILE_NAME,
+    );
   return path.join(os.homedir(), ".config", NAMESPACE, FILE_NAME);
 }
 

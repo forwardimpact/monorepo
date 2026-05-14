@@ -93,7 +93,27 @@ function persistSession(session, email, env) {
   );
 }
 
-function resolveAnonClient({ env, createClient }) {
+// In-process storage for the PKCE code verifier. supabase-js writes the
+// verifier here on `signInWithOtp` and reads it back on
+// `exchangeCodeForSession` — both calls run inside the same CLI process,
+// so a Map outlives the call sequence and dies when the process exits.
+// `persistSession: false` plus `autoRefreshToken: false` keep the client
+// from trying to write the session itself; we manage that via
+// `writeCredentials` once exchange succeeds.
+function createPkceStorage() {
+  const store = new Map();
+  return {
+    getItem: (key) => (store.has(key) ? store.get(key) : null),
+    setItem: (key, value) => {
+      store.set(key, value);
+    },
+    removeItem: (key) => {
+      store.delete(key);
+    },
+  };
+}
+
+function resolveAnonClient({ env, createClient, flowType = "implicit" }) {
   const url = env.MAP_SUPABASE_URL;
   const anonKey = env.MAP_SUPABASE_ANON_KEY;
   if (!url || !anonKey) {
@@ -103,7 +123,14 @@ function resolveAnonClient({ env, createClient }) {
         "from your Supabase project settings (hosted).",
     );
   }
-  return createClient(url, anonKey);
+  return createClient(url, anonKey, {
+    auth: {
+      flowType,
+      storage: createPkceStorage(),
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
 }
 
 /**
@@ -126,14 +153,19 @@ export async function runLoginCommand({
   if (!createClient) {
     ({ createClient } = await import("@supabase/supabase-js"));
   }
-  const client = resolveAnonClient({ env, createClient });
 
   const email = options.email ?? (await promptEmail(io));
   if (!email) throw new Error("fit-landmark login: email is required");
 
   if (options.otp) {
+    const client = resolveAnonClient({ env, createClient });
     return runOtpFlow({ client, email, io, env });
   }
+  // Browser flow needs PKCE so the magic-link redirect lands `?code=` (a
+  // query param the localhost listener can read) rather than the default
+  // implicit flow's `#access_token=...` URL fragment (which browsers strip
+  // before sending the request — making it invisible to the listener).
+  const client = resolveAnonClient({ env, createClient, flowType: "pkce" });
   return runBrowserFlow({ client, email, io, env, openListener });
 }
 
@@ -155,15 +187,21 @@ async function runBrowserFlow({ client, email, io, env, openListener }) {
       ".\n",
   );
 
-  const code = await Promise.race([
-    codePromise,
-    new Promise((_, rej) =>
-      setTimeout(
-        () => rej(new Error("login timed out after 5 minutes")),
-        DEFAULT_TIMEOUT_MS,
-      ),
-    ),
-  ]);
+  let timer;
+  const timeoutPromise = new Promise((_, rej) => {
+    timer = setTimeout(
+      () => rej(new Error("login timed out after 5 minutes")),
+      DEFAULT_TIMEOUT_MS,
+    );
+  });
+  let code;
+  try {
+    code = await Promise.race([codePromise, timeoutPromise]);
+  } finally {
+    // Unref so the timer never holds the event loop open past a fast
+    // successful login; clear so it doesn't fire after the fact either.
+    clearTimeout(timer);
+  }
 
   const { data, error: exchErr } =
     await client.auth.exchangeCodeForSession(code);
