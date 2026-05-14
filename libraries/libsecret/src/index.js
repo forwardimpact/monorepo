@@ -152,3 +152,54 @@ export function generateJWT(payload, secret) {
     .digest("base64url");
   return `${headerB64}.${payloadB64}.${signature}`;
 }
+
+/**
+ * Mint a Supabase-shaped HS256 JWT. Wraps generateJWT with the standard
+ * claims Supabase Auth expects on a caller token.
+ *
+ * @param {object} params
+ * @param {string} params.email - Caller email, becomes the `email` claim
+ * @param {string} params.secret - Supabase JWT secret (HMAC key)
+ * @param {number} [params.ttlSeconds] - Token lifetime in seconds
+ * @param {object} [params.claims] - Extra claims merged into the payload
+ * @returns {string} Signed JWT
+ */
+export function mintSupabaseJwt({
+  email,
+  secret,
+  ttlSeconds = 3600,
+  claims = {},
+}) {
+  if (!secret) throw new Error("mintSupabaseJwt: secret required");
+  if (!email) throw new Error("mintSupabaseJwt: email required");
+  const now = Math.floor(Date.now() / 1000);
+  return generateJWT(
+    {
+      role: "authenticated",
+      aud: "authenticated",
+      email,
+      sub: crypto.randomUUID(),
+      iss: "supabase",
+      iat: now,
+      exp: now + ttlSeconds,
+      ...claims,
+    },
+    secret,
+  );
+}
+
+/**
+ * Parse a duration string like "8760h", "365d", or "1y" into seconds.
+ * Accepted suffixes: h (hours), d (days, 86400s), y (years, 31536000s).
+ *
+ * @param {string} value
+ * @returns {number}
+ */
+export function parseDuration(value) {
+  const match = /^(\d+)([hdy])$/.exec(value);
+  if (!match) throw new Error(`parseDuration: invalid duration "${value}"`);
+  const n = Number(match[1]);
+  if (match[2] === "h") return n * 3600;
+  if (match[2] === "d") return n * 86400;
+  return n * 31536000;
+}

@@ -88,6 +88,19 @@ const definition = {
         "base-url": { type: "string", description: "GetDX API base URL" },
       },
     },
+    {
+      name: "auth",
+      args: "issue",
+      description: "Issue a Supabase-shaped JWT for an existing roster row",
+      options: {
+        url: { type: "string", description: "Supabase URL" },
+        email: { type: "string", description: "Caller email to issue for" },
+        ttl: {
+          type: "string",
+          description: "Token lifetime, e.g. 8760h (1y), 30d. Default 8760h.",
+        },
+      },
+    },
   ],
   globalOptions: {
     data: { type: "string", description: "Path to data directory" },
@@ -139,6 +152,11 @@ const definition = {
       url: "https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md",
       description:
         "Reconcile auth.users against the roster so identity-derived RLS works.",
+    },
+    {
+      title: "Issue Service-Account Tokens",
+      url: "https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md",
+      description: "Mint long-lived Supabase JWTs for unattended agents.",
     },
   ],
 };
@@ -434,6 +452,25 @@ async function dispatchGetdx(subcommand, rest, values) {
   }
 }
 
+async function dispatchAuth(subcommand, _rest, values) {
+  switch (subcommand) {
+    case "issue": {
+      const supabase = await mapClient(values);
+      const { runAuthIssueCommand } = await import(
+        "../src/commands/auth-issue.js"
+      );
+      await runAuthIssueCommand({
+        supabase,
+        options: { email: values.email, ttl: values.ttl },
+      });
+      return 0;
+    }
+    default:
+      cli.usageError(`unknown auth subcommand: ${subcommand || "(none)"}`);
+      return 1;
+  }
+}
+
 /**
  * Main entry point
  */
@@ -490,6 +527,9 @@ async function main() {
         break;
       case "getdx":
         exitCode = await dispatchGetdx(subcommand, rest, values);
+        break;
+      case "auth":
+        exitCode = await dispatchAuth(subcommand, rest, values);
         break;
       default:
         cli.usageError(`unknown command "${command}"`);

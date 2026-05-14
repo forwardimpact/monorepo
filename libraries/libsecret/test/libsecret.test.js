@@ -15,6 +15,8 @@ import {
   generateSecret,
   generateBase64Secret,
   generateJWT,
+  mintSupabaseJwt,
+  parseDuration,
 } from "../src/index.js";
 
 describe("libsecret", () => {
@@ -164,6 +166,106 @@ describe("libsecret", () => {
       const jwt1 = generateJWT(payload, "secret-1");
       const jwt2 = generateJWT(payload, "secret-2");
       assert.notStrictEqual(jwt1, jwt2);
+    });
+  });
+
+  describe("mintSupabaseJwt", () => {
+    const secret = "supabase-test-secret";
+
+    test("mints a 3-part JWT with HS256 header and Supabase claims", () => {
+      const jwt = mintSupabaseJwt({ email: "alice@example.com", secret });
+      const [headerB64, payloadB64, sig] = jwt.split(".");
+      assert.ok(sig);
+
+      const header = JSON.parse(Buffer.from(headerB64, "base64url").toString());
+      assert.deepStrictEqual(header, { alg: "HS256", typ: "JWT" });
+
+      const payload = JSON.parse(
+        Buffer.from(payloadB64, "base64url").toString(),
+      );
+      assert.strictEqual(payload.email, "alice@example.com");
+      assert.strictEqual(payload.role, "authenticated");
+      assert.strictEqual(payload.aud, "authenticated");
+      assert.strictEqual(payload.iss, "supabase");
+      assert.strictEqual(typeof payload.sub, "string");
+      assert.strictEqual(typeof payload.iat, "number");
+      assert.strictEqual(payload.exp - payload.iat, 3600);
+    });
+
+    test("honours ttlSeconds", () => {
+      const jwt = mintSupabaseJwt({
+        email: "alice@example.com",
+        secret,
+        ttlSeconds: 60,
+      });
+      const payload = JSON.parse(
+        Buffer.from(jwt.split(".")[1], "base64url").toString(),
+      );
+      assert.strictEqual(payload.exp - payload.iat, 60);
+    });
+
+    test("merges extra claims", () => {
+      const jwt = mintSupabaseJwt({
+        email: "alice@example.com",
+        secret,
+        claims: { custom: "x" },
+      });
+      const payload = JSON.parse(
+        Buffer.from(jwt.split(".")[1], "base64url").toString(),
+      );
+      assert.strictEqual(payload.custom, "x");
+    });
+
+    test("signature verifies under the same secret", () => {
+      const jwt = mintSupabaseJwt({ email: "alice@example.com", secret });
+      const [h, p, s] = jwt.split(".");
+      const expected = createHmac("sha256", secret)
+        .update(`${h}.${p}`)
+        .digest("base64url");
+      assert.strictEqual(s, expected);
+    });
+
+    test("throws when secret missing", () => {
+      assert.throws(
+        () => mintSupabaseJwt({ email: "x@y", secret: "" }),
+        /secret required/,
+      );
+    });
+
+    test("throws when email missing", () => {
+      assert.throws(
+        () => mintSupabaseJwt({ email: "", secret }),
+        /email required/,
+      );
+    });
+  });
+
+  describe("parseDuration", () => {
+    test("parses hours", () => {
+      assert.strictEqual(parseDuration("1h"), 3600);
+      assert.strictEqual(parseDuration("24h"), 86400);
+    });
+
+    test("parses days", () => {
+      assert.strictEqual(parseDuration("1d"), 86400);
+      assert.strictEqual(parseDuration("365d"), 31536000);
+    });
+
+    test("parses years", () => {
+      assert.strictEqual(parseDuration("1y"), 31536000);
+      assert.strictEqual(parseDuration("2y"), 63072000);
+    });
+
+    test("rejects bare numbers", () => {
+      assert.throws(() => parseDuration("60"), /invalid duration/);
+    });
+
+    test("rejects unknown suffix", () => {
+      assert.throws(() => parseDuration("5m"), /invalid duration/);
+    });
+
+    test("rejects empty string", () => {
+      assert.throws(() => parseDuration(""), /invalid duration/);
     });
   });
 
