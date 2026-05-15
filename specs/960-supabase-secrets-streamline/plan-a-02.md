@@ -27,33 +27,33 @@ async function main() {
     },
   });
 
-  const serviceSecret = generateSecret();
-  const databasePassword = generateSecret(16);
-  const mcpToken = generateSecret();
   const supabaseJwtSecret = await getOrGenerateSecret(
     "SUPABASE_JWT_SECRET",
     () => generateSecret(32),
   );
-  const supabaseAnonKey = mintSupabaseAnonKey({ secret: supabaseJwtSecret });
-  const supabaseServiceRoleKey = mintSupabaseServiceRoleKey({
-    secret: supabaseJwtSecret,
-  });
-  const awsAccessKeyId = generateBase64Secret(16);
-  const awsSecretAccessKey = generateBase64Secret(32);
+  const supabaseAnonKey = await getOrGenerateSecret(
+    "SUPABASE_ANON_KEY",
+    () => mintSupabaseAnonKey({ secret: supabaseJwtSecret }),
+  );
+  const supabaseServiceRoleKey = await getOrGenerateSecret(
+    "SUPABASE_SERVICE_ROLE_KEY",
+    () => mintSupabaseServiceRoleKey({ secret: supabaseJwtSecret }),
+  );
 
   const entries = [
-    ["SERVICE_SECRET", serviceSecret],
-    ["DATABASE_PASSWORD", databasePassword],
-    ["MCP_TOKEN", mcpToken],
+    ["SERVICE_SECRET", generateSecret()],
+    ["DATABASE_PASSWORD", generateSecret(16)],
+    ["MCP_TOKEN", generateSecret()],
     ["SUPABASE_JWT_SECRET", supabaseJwtSecret],
     ["SUPABASE_ANON_KEY", supabaseAnonKey],
     ["SUPABASE_SERVICE_ROLE_KEY", supabaseServiceRoleKey],
-    ["AWS_ACCESS_KEY_ID", awsAccessKeyId],
-    ["AWS_SECRET_ACCESS_KEY", awsSecretAccessKey],
+    ["AWS_ACCESS_KEY_ID", generateBase64Secret(16)],
+    ["AWS_SECRET_ACCESS_KEY", generateBase64Secret(32)],
   ];
 
   if (values.output) {
-    const content = entries.map(([k, v]) => `${k.toLowerCase()}=${v}`).join("\n") + "\n";
+    const content =
+      entries.map(([k, v]) => `${k.toLowerCase()}=${v}`).join("\n") + "\n";
     await writeFile(values.output, content);
     if (values["add-mask"]) {
       for (const [, v] of entries) console.log(`::add-mask::${v}`);
@@ -68,24 +68,9 @@ async function main() {
 main();
 ```
 
-Idempotency: `getOrGenerateSecret` returns the existing `SUPABASE_JWT_SECRET` on re-run, which yields the same anon and service-role JWTs (deterministic given identical `secret` + payload + `iat` … note: `iat` differs on re-mint, so anon/service-role keys rotate on every run unless we cache them too). To keep the anon/service-role keys stable across re-runs, wrap each in `getOrGenerateSecret` too:
+The three Supabase values are wrapped in `getOrGenerateSecret` so a re-run preserves them; the other five (`SERVICE_SECRET`, `DATABASE_PASSWORD`, `MCP_TOKEN`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) rotate every run, matching the current behaviour of `env-secrets.js:32-37` and `env-storage.js:22-27`. Rotation of `SUPABASE_JWT_SECRET` requires the operator to also delete `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` from `.env` so the derived keys re-mint against the new secret.
 
-```js
-const supabaseAnonKey = await getOrGenerateSecret(
-  "SUPABASE_ANON_KEY",
-  () => mintSupabaseAnonKey({ secret: supabaseJwtSecret }),
-);
-const supabaseServiceRoleKey = await getOrGenerateSecret(
-  "SUPABASE_SERVICE_ROLE_KEY",
-  () => mintSupabaseServiceRoleKey({ secret: supabaseJwtSecret }),
-);
-```
-
-If a contributor manually rotates `SUPABASE_JWT_SECRET` (deletes the line), the anon/service-role keys must also be deleted by hand — this is the same contract today's `JWT_SECRET` ↔ derived-keys pair carries.
-
-`SERVICE_SECRET`, `DATABASE_PASSWORD`, `MCP_TOKEN`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` re-generate every run — match the current behaviour of `env-secrets.js:32-37` and `env-storage.js:22-27`.
-
-Verification: `bun scripts/env-setup.js` against an empty `.env` writes all 8 keys; second run preserves every value; `--output /tmp/out` writes lowercase key=value pairs; `--add-mask --output /tmp/out` prints `::add-mask::` for each.
+Verification: `bun scripts/env-setup.js` against an empty `.env` writes all 8 keys; second run preserves the three Supabase values byte-identical; `--output /tmp/out` writes lowercase key=value pairs; `--add-mask --output /tmp/out` prints `::add-mask::` for each.
 
 ## Step 2 — Replace `just env-setup`, drop `env-secrets`/`env-storage`
 
@@ -94,18 +79,26 @@ Files modified: `justfile`.
 Replace lines 357–370 (current `env-setup`, `env-reset`, `env-secrets`, `env-storage` recipes) with:
 
 ```just
-# Set up all environment secrets and storage config
-env-setup: env-reset
+# Generate every secret in .env (idempotent — preserves Supabase keys across runs)
+env-setup:
     bun scripts/env-setup.js
 
-# Reset environment config from examples
+# Reset environment config from examples (wipes .env)
 env-reset PROFILE="local": config-reset
     cp -f .env.{{PROFILE}}.example .env
 ```
 
-The two old recipes (`env-secrets`, `env-storage`) are deleted in full. The composite `env-setup: env-reset env-secrets env-storage` collapses to `env-setup: env-reset` plus the script invocation.
+`env-setup` no longer depends on `env-reset`. Today's recipe wipes `.env` and regenerates on every invocation, contradicting spec § Success Criteria § "second run is idempotent". The new contract: `env-reset` is an explicit operator action for a clean slate; `env-setup` reads/preserves existing values. The two old recipes (`env-secrets`, `env-storage`) are deleted in full.
 
-Verification: `just --list | rg env-` shows `env-reset` and `env-setup` only; `just env-setup` produces a fresh `.env` with all 8 keys; second run is idempotent.
+Also update `quickstart` (line 35) so it still wipes-and-regenerates on first run:
+
+```just
+quickstart: env-reset env-setup synthetic data-init codegen process-fast _quickstart-seed
+```
+
+(`quickstart` previously ran `env-reset` transitively via the old `env-setup: env-reset …` chain; calling it explicitly preserves the current bootstrap behaviour after the dependency-restructure.)
+
+Verification: `just --list | rg env-` shows `env-reset` and `env-setup` only; `just env-reset && just env-setup` produces a fresh `.env`; a second `just env-setup` preserves all three Supabase values verbatim; `just quickstart` still wipes-and-regenerates on a fresh checkout.
 
 ## Step 3 — Delete the old scripts and their helper files
 
@@ -171,7 +164,9 @@ Verification: `diff .env.local.example .env.docker-native.example | rg SUPABASE_
 
 ## Step 6 — Bootstrap integration test
 
-Files created: `scripts/test/env-setup.test.js`.
+Files created: `tests/env-setup.test.js`.
+
+Test location is `tests/` (not `scripts/test/`) because `package.json:31`'s test command runs `find ./tests ./libraries ./products ./services -name '*.test.js'` — anything under `scripts/` is invisible to CI.
 
 Test cases (run with `bun:test`, no fixtures except a tmpdir):
 
@@ -185,7 +180,7 @@ Test cases (run with `bun:test`, no fixtures except a tmpdir):
 | `--output` shape | Lowercase keys, newline-terminated, eight rows |
 | `--add-mask` | Each value printed once as `::add-mask::<value>` |
 
-Verification: `bun test scripts/test/env-setup.test.js` green.
+Verification: `bun test tests/env-setup.test.js` green; `bun run test` (the repo-wide CI command) discovers and runs the new file.
 
 ## Dependencies
 

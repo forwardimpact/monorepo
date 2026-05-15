@@ -2,6 +2,30 @@
 
 Migrate every consumer that today reads `process.env.MAP_SUPABASE_*` to use `Config` accessors (or, for the one exempted library, the canonical unprefixed name). Each step lands one consumer plus its tests so the suite stays green between steps.
 
+## Step 0 — Bootstrap `Config` in the three product bins
+
+None of `products/{map,landmark,summit}/bin/fit-*.js` builds a `Config` today (`services/map/server.js:9` is the only existing `createServiceConfig` caller). Add an import and a top-level `await` to each before any consumer step runs.
+
+Files modified: `products/map/bin/fit-map.js`, `products/landmark/bin/fit-landmark.js`, `products/summit/bin/fit-summit.js`.
+
+Per file, add near the existing libcli/libtelemetry imports:
+
+```js
+import { createProductConfig } from "@forwardimpact/libconfig";
+// …
+const config = await createProductConfig("<product-name>");
+```
+
+Where `<product-name>` is `"map"`, `"landmark"`, or `"summit"`. Insert `config` into the handler-context payload each bin already builds:
+
+| Bin | Existing context shape | Add |
+| --- | --- | --- |
+| `products/map/bin/fit-map.js` | `commands` dispatch table calls handlers with `{supabase, options, …}` | Thread `config` through the same object |
+| `products/landmark/bin/fit-landmark.js` | `buildContext({dataDir, options, needsSupabase, identity})` at `src/lib/context.js:14` | Add `config` param; pass through |
+| `products/summit/bin/fit-summit.js` | Each handler imports `createSummitClient` directly | Pass `config` into the handler invocation, then into `createSummitClient({config})` |
+
+Verification: each bin starts (`bun products/<p>/bin/fit-<p>.js --help`) with a `.env` produced by Part 02; the `config` instance is reachable from at least one handler in each product. Test suites still green (no behaviour change yet — `config` is unused until subsequent steps).
+
 ## Step 1 — `services/map/server.js`
 
 Files modified: `services/map/server.js`.
@@ -78,7 +102,7 @@ export async function start({ cli, out = process.stdout, config } = {}) {
 }
 ```
 
-Drop the unused `formatSubheader` import if no other handler still uses it.
+Keep the `formatSubheader` import — the in-file `report` helper at line 339 still uses it.
 
 In `activity-start.test.js`:
 
@@ -113,9 +137,37 @@ export function createLandmarkClient({ jwt, config, schema = "activity" } = {}) 
 
 Error message removes `MAP_SUPABASE_*` and `fit-map activity start` and names the new bootstrap recipe.
 
-Update the JSDoc `@param` lines accordingly. Callers update in step 6.
+Update the JSDoc `@param` lines accordingly. Callers update in step 5b.
 
-Verification: tested transitively in steps 6 and 7.
+Verification: tested transitively in steps 5b, 6, and 7.
+
+## Step 5b — `products/landmark/src/lib/context.js`
+
+Files modified: `products/landmark/src/lib/context.js`.
+
+The sole caller of `createLandmarkClient` outside Landmark's own login flow is `buildContext` at line 28, currently `createLandmarkClient({ jwt: identity?.jwt })`. After Step 5 makes `config` required, this call breaks every `needsSupabase` command.
+
+Add `config` to the `buildContext` parameter object and thread it through:
+
+```js
+export async function buildContext({
+  dataDir,
+  config,
+  options,
+  needsSupabase,
+  identity = null,
+}) {
+  const mapData = await loadMapData(dataDir);
+  const supabase = needsSupabase
+    ? createLandmarkClient({ jwt: identity?.jwt, config })
+    : null;
+  // …
+}
+```
+
+Update the bin caller `products/landmark/bin/fit-landmark.js` (the `buildContext({ … })` call near line 295) to pass `config` from Step 0's `createProductConfig("landmark")` instance.
+
+Verification: `bun test products/landmark` green.
 
 ## Step 6 — `products/landmark/src/lib/identity.js`
 
@@ -207,7 +259,7 @@ In `dispatcher.test.js`:
 - Test docstring at line 7: `MAP_SUPABASE_*` → `SUPABASE_*`.
 - Test name at line 50: `MAP_SUPABASE_URL is unset` → `SUPABASE_URL is unset`.
 - Comment at line 59: `MAP_SUPABASE_URL or MAP_SUPABASE_ANON_KEY` → `SUPABASE_URL or SUPABASE_ANON_KEY`.
-- Regex at line 63: `/MAP_SUPABASE_URL/` → `/SUPABASE_URL/`.
+- Regex at line 63: `/MAP_SUPABASE_URL/` → `/just env-setup/`. (The new `SupabaseUnavailableError` message Step 5 introduces — `"Supabase URL + anon key not set. Run \`just env-setup\`."` — does not contain the literal `SUPABASE_URL`; pinning the regex to the recipe name matches both the new wording and any future variant that keeps the bootstrap instruction.)
 
 Verification: `bun test products/landmark` green.
 
@@ -287,7 +339,7 @@ The exemption is permanent (design § Per-module injection seams, libstorage row
 ```js
 // libstorage exemption (spec 960): libconfig depends on libstorage; threading
 // Config here would create a runtime cycle. Allow-listed in
-// products/landmark/test/lib/no-supabase-env-in-src.test.js.
+// libraries/libconfig/test/no-supabase-env-in-src.test.js.
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 ```
 

@@ -58,27 +58,25 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, "..", "..", "..");
-const ROOTS = ["products", "services", "libraries"];
 
 // Permanent exemptions. Both are documented in spec 960 design § Per-module
 // injection seams. Do not add entries without a corresponding design-doc note.
 const ALLOW = new Set([
   // libstorage: libconfig depends on libstorage; threading Config would cycle.
   "libraries/libstorage/src/index.js",
-  // Deno edge runtime injects SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY itself.
-  "products/map/supabase/functions/_shared/supabase.ts",
 ]);
 
-async function* walkSrcBin(dir) {
+// Walks one directory tree (src/ or bin/ or a flat services entry) and yields
+// every .js/.mjs/.cjs/.ts file under it. Excludes test/ and node_modules/.
+async function* walk(dir) {
   let entries;
   try { entries = await readdir(dir, { withFileTypes: true }); }
   catch { return; }
   for (const entry of entries) {
+    if (entry.name === "test" || entry.name === "node_modules") continue;
     const full = join(dir, entry.name);
     if (entry.isDirectory()) {
-      // Recurse into src/ and bin/ wherever they appear under products/services/libraries.
-      if (entry.name === "test" || entry.name === "node_modules") continue;
-      yield* walkSrcBin(full);
+      yield* walk(full);
     } else if (/\.(m?js|cjs|ts)$/.test(entry.name)) {
       const rel = full.slice(REPO_ROOT.length + 1);
       if (ALLOW.has(rel)) continue;
@@ -87,22 +85,44 @@ async function* walkSrcBin(dir) {
   }
 }
 
+// Discover every src/ and bin/ under products/ and libraries/, plus every
+// flat .js under services/<name>/ (services do not nest src/).
+async function* productionFiles() {
+  for (const group of ["products", "libraries"]) {
+    const root = join(REPO_ROOT, group);
+    let entries;
+    try { entries = await readdir(root, { withFileTypes: true }); }
+    catch { continue; }
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      for (const sub of ["src", "bin"]) {
+        yield* walk(join(root, entry.name, sub));
+      }
+    }
+  }
+  const servicesRoot = join(REPO_ROOT, "services");
+  let svcEntries;
+  try { svcEntries = await readdir(servicesRoot, { withFileTypes: true }); }
+  catch { return; }
+  for (const entry of svcEntries) {
+    if (entry.isDirectory()) yield* walk(join(servicesRoot, entry.name));
+  }
+}
+
 describe("Spec 960: no direct Supabase env reads in src/bin", () => {
   test("no process.env.SUPABASE_ or process.env.MAP_SUPABASE_ literals", async () => {
     const re = /process\.env\.(MAP_)?SUPABASE_/;
     const hits = [];
-    for (const root of ROOTS) {
-      for await (const file of walkSrcBin(join(REPO_ROOT, root))) {
-        const body = await readFile(file, "utf8");
-        if (re.test(body)) hits.push(file);
-      }
+    for await (const file of productionFiles()) {
+      const body = await readFile(file, "utf8");
+      if (re.test(body)) hits.push(file);
     }
     assert.deepEqual(hits, [], `Direct Supabase env reads found: ${hits.join(", ")}`);
   });
 });
 ```
 
-Restrict the walker to `src/` and `bin/` subtrees (the spec criterion's boundary). The walker `continue`s on `test` and `node_modules` and follows `src`/`bin`/anything else, so it covers `products/<p>/src/`, `products/<p>/bin/`, `services/<s>/server.js`-style flat files, and `libraries/<l>/src/` + `libraries/<l>/bin/`.
+The walker honours the spec criterion's boundary explicitly: `products/<p>/src/`, `products/<p>/bin/`, `libraries/<l>/src/`, `libraries/<l>/bin/`, and `services/<s>/**` (services don't nest src/). Directories outside `src`/`bin` (e.g. `products/map/supabase/`, `products/map/starter/`, `libraries/<l>/templates/`) are not visited at all. The Deno edge function at `products/map/supabase/functions/_shared/supabase.ts` is therefore outside scope by construction; no ALLOW entry needed for it.
 
 Verification: `bun test libraries/libconfig/test/no-supabase-env-in-src.test.js` green after Part 03 lands; a synthetic re-introduction of `process.env.SUPABASE_URL` in any src file fails the test; the libstorage and Deno-edge-function exemptions pass.
 

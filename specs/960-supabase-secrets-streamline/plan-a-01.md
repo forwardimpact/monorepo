@@ -81,7 +81,7 @@ supabaseJwtSecret() {
 
 ## Step 3 — Cover the four accessors with libconfig unit tests
 
-Files modified: `libraries/libconfig/test/config.test.js` (new test block; do not delete existing tests).
+Files modified: `libraries/libconfig/test/libconfig-getters.test.js` (accessor round-trips + throw shape), `libraries/libconfig/test/libconfig-credentials.test.js` (the `process.env` isolation assertions, mirroring the existing `ANTHROPIC_API_KEY` block).
 
 Cover, against a stub `process.env`:
 
@@ -95,7 +95,7 @@ Cover, against a stub `process.env`:
 | `SUPABASE_URL` remains on `process.env` after `Config.load()` | Mirror the existing non-credential test |
 | Each accessor throws `<KEY> not found in environment` when unset | Match the existing `#resolve` throw shape |
 
-Verification: `bun test libraries/libconfig/test/config.test.js` green.
+Verification: `bun test libraries/libconfig/test/libconfig-getters.test.js libraries/libconfig/test/libconfig-credentials.test.js` green.
 
 ## Step 4 — Publish the new libsecret exports
 
@@ -105,13 +105,11 @@ Update the exports table / example block to list `mintSupabaseAnonKey` and `mint
 
 Verification: visually inspect; no test gate.
 
-## Step 5 — Bring `package.json` versions forward
+## Step 5 — Regenerate catalog and run integration check
 
-Files modified: `libraries/libsecret/package.json`, `libraries/libconfig/package.json`.
+Files modified: none (verification only — version bumps are owned by `kata-release-cut`, not this PR).
 
-Bump the patch version of each (per repo convention for additive API changes — confirm against the most recent kata-release-cut bumps on `main` before committing the exact bump).
-
-Verification: `bun run context:fix` succeeds and produces no further changes; `bun test libraries/libsecret libraries/libconfig` green.
+Verification: `bun run context:fix` produces no diff; `bun test libraries/libsecret libraries/libconfig` green.
 
 ## Dependencies
 
