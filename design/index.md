@@ -1,24 +1,23 @@
 # Design Language
 
-> A monochrome, character-driven design language for product suites where
-> people, AI agents, and domain experts collaborate as equals. Inspired by the
-> restraint of Ollama and the character-driven warmth of Go's Gopher, adapted
-> for professional product suites.
+> A monochrome design language for product suites where people, AI agents, and
+> domain experts collaborate as equals. Inspired by the restraint of Ollama,
+> adapted for professional product suites.
 
-This document describes the abstract design language: the philosophy, the three
-characters, the scene grammar, and the cross-brand patterns for color,
-typography, spacing, components, motion, and accessibility. Concrete
-implementations — palette values, fonts, product taxonomies, icons, layouts, and
-design tokens — live in per-brand files. Brands derive from this shared language
-and stay recognizable as siblings while taking distinct stances on metaphor,
-palette, and motif. The contract for deriving a brand and the layered
-illustration checklist live in [usage.md](usage.md).
+This document describes the abstract design language: the philosophy and the
+cross-brand patterns for color, typography, spacing, components, motion, and
+accessibility. Concrete implementations — palette values, fonts, product
+taxonomies, layouts, design tokens, and any character-driven illustration
+system — live in per-brand files. Brands derive from this shared language and
+stay recognizable as siblings while taking distinct stances on metaphor,
+palette, and motif. The contract for deriving a brand lives in
+[usage.md](usage.md).
 
 **Brand implementations:**
 
 - [Forward Impact Engineering](fit/index.md) · [scenes](fit/scenes.md) ·
   [icons](fit/icons.md)
-- [Kata](kata/index.md) · [scenes](kata/scenes.md) · [icons](kata/icons.md)
+- [Kata](kata/index.md)
 
 ---
 
@@ -33,220 +32,14 @@ illustration checklist live in [usage.md](usage.md).
    black-and-white photograph. The specific warm tone is a brand decision.
 2. **Texture, not decoration.** Brand-chosen textures (e.g. contour lines)
    appear as subtle background elements, never as foreground decoration.
-3. **Three characters are the emotional core.** Hand-drawn monochrome figures
-   replace the solo hero with a team.
-4. **Typography creates hierarchy.** No accent colors. Size, weight, and spacing
+3. **Typography creates hierarchy.** No accent colors. Size, weight, and spacing
    do all the work.
-5. **Each product has its own visual motif.** Product-level differentiation
+4. **Each product has its own visual motif.** Product-level differentiation
    happens in icons and illustrations, never in structural UI.
 
 ---
 
-## 2. Character Specification
-
-This section is the complete specification for generating the three characters.
-It contains everything needed to produce them as standalone illustrations. Once
-generated, characters appear in scenes governed by [§ 3](#3-scene-grammar).
-
-### Rendering
-
-Characters use exactly four values — white, black, and one or two grays. No
-other colors, no gradients.
-
-| Property   | Specification                                                                                                                                                    |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Palette    | White for all primary surfaces. Black for all lines and strokes. One or two neutral grays for secondary surfaces (clothing, hair, accessories). No other values. |
-| Stroke     | 2px, pure black. No brown-black, no warm black, no dark-gray strokes.                                                                                            |
-| Fills      | Flat only. No gradients, no soft shading, no drop shadows, no gradient fills.                                                                                    |
-| Style      | Hand-drawn line art — like a working notebook sketch. Slightly irregular strokes, not vector-perfect.                                                            |
-| Background | Transparent or pure white. Characters are drawn without scene context when generated as a character sheet.                                                       |
-| Color      | None. Zero hue. Strictly achromatic. No brown, no tan, no ochre, no sepia, no cream, no beige, no warm tone of any kind.                                         |
-
-### Shared Traits
-
-- Round heads, simple dot eyes — expressive through posture, not facial detail
-- Roughly 2:3 proportions (wide:tall), slightly cartoonish but not childish
-- Same height — no hierarchy of size
-- Always shown together — working side by side, consulting, collaborating. They
-  replace the solo hero with a team.
-
-### The Engineer
-
-- Animal-eared hoodie (bunny or fox ears on the hood) — the signature element.
-  The hoodie signals hacker/builder culture. Hair visible under the hoodie.
-- Visible backpack — carries tools everywhere.
-- Laptop with a round citrus fruit sticker (resembles Apple logo, but a citrus
-  fruit instead).
-- Posture: leaning in, engaged, slightly informal.
-- **Identifier constraint:** never remove the hoodie ears — key identifier at
-  all sizes.
-
-### The AI Agent
-
-- Round circle head, two large dot eyes, small curved smile.
-- Headphones wrapping around the head — suggests active listening.
-- Small backpack like the others — deployed alongside humans, not above them.
-- Simple geometric body — more geometric than the human characters.
-- Laptop (pixel-art skull or space-invader sticker optional).
-- Posture: upright, attentive, slightly turned toward others.
-- **Identifier constraint:** never make the AI Agent visually dominant — equal
-  partner, same height, not floating above.
-
-### The Business Stakeholder
-
-- Business attire: collared shirt, tie, blazer. Neat hair, formal posture.
-- **No backpack** — the domain expert who already knows the territory.
-  Represents leadership and domain experts who define what good looks like.
-- Laptop with a Claude Code sticker.
-- Posture: engaged but composed, professional.
-- **Identifier constraint:** never put a backpack on the Stakeholder — absence
-  is their trait.
-
-### Group Dynamic
-
-- Seated shoulder to shoulder, each on their own laptop — equals collaborating.
-- Emotional tone: "We're figuring this out together."
-- Candid sketch of a working session, not a posed team photo.
-- Close enough that elbows might bump.
-
-### Scale
-
-48px (small inline) to 400px+ (hero). At small sizes, reduce to silhouettes
-preserving key identifiers: hoodie ears, round robot head, tie.
-
----
-
-## 3. Scene Grammar
-
-This section defines the rules for composing any scene with the characters from
-[§ 2](#2-character-specification). Individual scene prompts
-([§ 4](#4-reusable-base-scenes) and brand scene files) describe specific poses,
-objects, and interactions — they should not restate these rules.
-
-The entire scene uses the same small palette as the character sheet in
-[§ 2](#2-character-specification): white for primary surfaces, black for lines,
-and one or two neutral grays for secondary surfaces. No other values, no
-gradients.
-
-### Scene Rendering
-
-| Property   | Specification                                                                                                                                                |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Palette    | White, black, one or two grays — nothing else                                                                                                                |
-| White      | Dominant value. Most of the image is white, no large gray surfaces.                                                                                          |
-| Background | Pure white — no fills, textures, or shading                                                                                                                  |
-| Ground     | Implied by positioning — no drawn ground line, no ground plane, no floor shadow, no scattered objects on the ground. Characters float on white.              |
-| Objects    | 2px black stroke, light flat gray. Simpler than characters. Only objects named in the scene prompt — never add extra props, debris, or environmental detail. |
-| Fills      | Flat only — no gradients, no shading, no tinting                                                                                                             |
-| Detail     | Minimum strokes needed. No hatching, no texture, no decoration.                                                                                              |
-
-### Composition
-
-| Rule     | Specification                                                                                                                   |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Grouping | Shoulders overlapping or nearly touching — one cluster, not three separate figures. No vertical gap between any two characters. |
-| Space    | Generous white space around the cluster                                                                                         |
-| Framing  | Floats freely — never outlined or bordered                                                                                      |
-| Scale    | 120px (cards) to 480px+ (hero)                                                                                                  |
-| Tone     | Curious, conspiratorial, scrappy — three people who chose this                                                                  |
-
-### Constraints
-
-- **Identity** — each character keeps its [§ 2](#2-character-specification)
-  traits. Never swap accessories or features between characters. The Stakeholder
-  never has a backpack — absence is their identifier. The Engineer always has
-  one.
-- **Foreground** — characters are the most detailed elements. Background objects
-  use fewer strokes, lighter gray, and smaller scale than characters. If a
-  background element is as bold as a character, simplify it.
-- **Collaborative** — never show conflict.
-- **Monochrome** — gray for differentiation, never hues.
-- **Laptops when seated** — seated characters always have laptops.
-- **No framing** — no borders, containers, or panel edges.
-
----
-
-## 4. Reusable Base Scenes
-
-These scenes show the trio without product-specific symbols and are reusable
-across brands and contexts.
-
-### Scene: Trio at Work (Default)
-
-**Context:** Hero illustrations, suite-level marketing, default state.
-
-```
-     🐰💻   🤖💻   👔💻
-      \      |      /
-       (huddled together)
-```
-
-All three seated side by side, each with a laptop. Engineer left, cross-legged
-on the ground, laptop balanced on one knee, leaning sideways to peek at Agent's
-screen. AI Agent center, seated upright on a chair, head tilted slightly — the
-only one with correct posture. Stakeholder right, chair tipped back on two legs,
-one arm draped over the backrest, typing one-handed. Shoulders overlapping.
-Brand-specific product icons may appear in a row below.
-
-**Key details:** The trio sits at different heights — Engineer on the floor,
-Agent on a chair, Stakeholder tipped back — creating a diagonal line that feels
-informal and alive. Engineer is clearly nosing at someone else's screen.
-Stakeholder's tipped chair says "I've done this before." Agent's perfect posture
-is the deadpan counterpoint. The energy is a late-night hackathon that happens
-to include someone in a blazer.
-
-### Scene: Welcome Wave
-
-**Context:** Onboarding screens, first-time user experience, landing page.
-
-```
-    🐰🖐   🤖🖐   👔🖐
-     hey!!   hello.   welcome.
-```
-
-All three standing, facing the viewer. Engineer mid-stride toward the viewer,
-both arms out wide — too enthusiastic, slightly off-balance, hoodie ears
-bouncing. AI Agent stands still, one hand raised in a precise right-angle wave,
-head tilted in greeting. Stakeholder one step behind, hand raised palm-out at
-shoulder height — the composed anchor. Feet visible, small action lines around
-Engineer's movement.
-
-**Key details:** Engineer's over-eager stride forward creates the energy.
-Agent's geometric wave is the visual punchline — friendly but mechanically
-precise. Stakeholder's measured gesture grounds it: "Don't worry, we're
-professional too." The three different levels of enthusiasm tell you everything
-about the team dynamic in one frame.
-
-### Scene: Documentation Dig
-
-**Context:** Documentation pages, knowledge base, "getting started" flows.
-
-```
-    🐰📄  🤖📚  👔📖
-     \     |     /
-    ┌──────────────┐
-    │ papers books │
-    └──────────────┘
-       📄  📄
-```
-
-All three standing behind a waist-high table covered with documents. Engineer
-(left) holds a single sheet in both hands, head tilted, brow furrowed —
-squinting at it with a puzzled expression. AI Agent (center) stands behind a
-neatly organized stack of papers, both hands resting on the pile. Stakeholder
-(right) smiles and points with one index finger at a specific line in an open
-book on the table. Loose papers scattered on the floor under and around the
-table.
-
-**Key details:** Three speeds of documentation work: Engineer still deciphering
-a single page, Agent already organized, Stakeholder already found the answer and
-is pointing it out. The loose papers on the floor beneath the table are the
-punchline — documentation is messy work. Agent's neat stack in the center is the
-visual anchor between Engineer's confusion and Stakeholder's confidence.
-
----
-
-## 5. Color Philosophy
+## 2. Color Philosophy
 
 **Monochrome with one warm signal.**
 
@@ -269,12 +62,12 @@ Brands choose:
 - The warm-signal hue and its small ramp.
 - Inverted treatments for dark surfaces (footers, terminals).
 
-See [fit/index.md § Color Palette](fit/index.md#4-color-palette) for one
+See [fit/index.md § Color Palette](fit/index.md#6-color-palette) for one
 concrete realization.
 
 ---
 
-## 6. Typography Pattern
+## 3. Typography Pattern
 
 **Display serif. Sans for everything else. Mono for code.**
 
@@ -296,7 +89,7 @@ the brand's gray ramp.
 
 ---
 
-## 7. Spacing System
+## 4. Spacing System
 
 Base unit: `8px`. The rhythm extends from micro gaps to hero-scale margins.
 
@@ -333,7 +126,7 @@ Base unit: `8px`. The rhythm extends from micro gaps to hero-scale margins.
 
 ---
 
-## 8. Components
+## 5. Components
 
 ### Buttons
 
@@ -370,22 +163,21 @@ All buttons: sans-serif `15px`, weight `500`. Pill radius for marketing CTAs,
 
 ### Footer (Dark)
 
-| Property         | Value                                     |
-| ---------------- | ----------------------------------------- |
-| Background       | darkest gray                              |
-| Text (primary)   | warm light                                |
-| Text (secondary) | mid gray                                  |
-| Border           | dark gray for dividers                    |
-| Logo             | Trio silhouette + brand wordmark in white |
+| Property         | Value                  |
+| ---------------- | ---------------------- |
+| Background       | darkest gray           |
+| Text (primary)   | warm light             |
+| Text (secondary) | mid gray               |
+| Border           | dark gray for dividers |
+| Logo             | Brand wordmark         |
 
 ---
 
-## 9. Motion & Interaction
+## 6. Motion & Interaction
 
 | Element                | Animation                                                                                      |
 | ---------------------- | ---------------------------------------------------------------------------------------------- |
 | **Page load**          | Hero stagger: scene (0ms) → heading (100ms) → subtitle (200ms) → CTAs (300ms). 500ms ease-out. |
-| **Trio idle**          | Subtle sway per character (`translateY` ±2px, staggered 3s/3.4s/2.8s, infinite).               |
 | **Product card hover** | Icon ±3° wiggle, card lifts 2px, border warms. 200ms.                                          |
 | **Button hover**       | Background transition, 150ms. Primary adds warm shadow.                                        |
 | **Section enter**      | Fade up on scroll (`translateY(16px)` → `0`, 400ms).                                           |
@@ -395,7 +187,7 @@ All animations respect `prefers-reduced-motion`.
 
 ---
 
-## 10. Accessibility
+## 7. Accessibility
 
 | Concern                   | Solution                                                                                        |
 | ------------------------- | ----------------------------------------------------------------------------------------------- |
@@ -404,12 +196,13 @@ All animations respect `prefers-reduced-motion`.
 | **Focus states**          | 2px solid darkest-gray outline with 2px offset                                                  |
 | **Motion sensitivity**    | All animations respect `prefers-reduced-motion`                                                 |
 | **Dark mode**             | Invert system — darkest gray bg, warm-light text, white-on-dark line art                        |
-| **Scene alt text**        | All scenes include descriptive alt text identifying roles and action                            |
+| **Image alt text**        | All illustrations include descriptive alt text identifying subject and action                   |
 
 ---
 
-_The design language is brand-agnostic. For how to apply it — illustration
-layering, the contract for deriving a brand, and the four-layer CSS
-architecture that ships with it — see [usage.md](usage.md). For concrete
-palettes, fonts, products, scenes, icons, and CSS tokens, see the brand
-implementation files listed at the top of this page._
+_The design language is brand-agnostic. For how to apply it — the contract for
+deriving a brand, and the four-layer CSS architecture that ships with it — see
+[usage.md](usage.md). For concrete palettes, fonts, products, and CSS tokens —
+plus any brand-specific illustration system such as Forward Impact's three
+characters and scene grammar — see the brand implementation files listed at
+the top of this page._
