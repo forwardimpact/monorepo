@@ -159,10 +159,12 @@ init: wiki ready at wiki
 
 This clones the repository's wiki into `wiki/` and creates
 `wiki/metrics/<skill>/` directories for each skill found under
-`.claude/skills/`. The wiki URL is derived from your repository's origin remote.
+`.claude/skills/`. Set `FIT_WIKI_URL` to override the wiki URL when the
+default derivation from `origin` does not resolve.
 
-Idempotent -- safe to run on an already-initialized wiki. Authenticates using
-ambient GitHub credentials (`GITHUB_TOKEN` or `GH_TOKEN`).
+Idempotent -- safe to run on an already-initialized wiki. Authenticates
+using `GH_TOKEN` or `GITHUB_TOKEN` from the environment, or a logged-in
+`gh` CLI.
 
 ## What's next
 

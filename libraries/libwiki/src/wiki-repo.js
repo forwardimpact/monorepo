@@ -31,11 +31,31 @@ export function buildAuthArgs(args, token) {
 export class WikiRepo {
   #wikiDir;
   #parentDir;
+  #resolveToken;
 
-  /** Create a WikiRepo targeting the given wiki directory and its parent project directory. */
-  constructor({ wikiDir, parentDir }) {
+  /**
+   * Create a WikiRepo targeting the given wiki directory and its parent project directory.
+   * @param {{ wikiDir: string, parentDir: string, resolveToken: () => string | null }} opts
+   *   `resolveToken` is called lazily before each network operation. Return a
+   *   GitHub token string to authenticate, or `null` to run anonymously. The
+   *   callback owns the entire resolution policy — libwiki does not read
+   *   `process.env` directly. Throws propagate to the caller so credential
+   *   misconfiguration surfaces loudly. Commands typically pass
+   *   `() => config.ghToken()` from `@forwardimpact/libconfig`.
+   */
+  constructor({ wikiDir, parentDir, resolveToken }) {
+    if (typeof wikiDir !== "string" || wikiDir === "") {
+      throw new TypeError("WikiRepo: wikiDir must be a non-empty string");
+    }
+    if (typeof parentDir !== "string" || parentDir === "") {
+      throw new TypeError("WikiRepo: parentDir must be a non-empty string");
+    }
+    if (typeof resolveToken !== "function") {
+      throw new TypeError("WikiRepo: resolveToken callback is required");
+    }
     this.#wikiDir = wikiDir;
     this.#parentDir = parentDir;
+    this.#resolveToken = resolveToken;
   }
 
   /** Check whether the wiki directory is an initialized git repository. */
@@ -123,11 +143,14 @@ export class WikiRepo {
   }
 
   #authGit(args) {
-    const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+    const token = this.#resolveToken();
     const fullArgs = buildAuthArgs(args, token);
-    return spawnSync("git", fullArgs, {
-      stdio: "pipe",
-      env: token ? process.env : undefined,
-    });
+    // The credential helper body keeps `${GH_TOKEN:-$GITHUB_TOKEN}` literal so
+    // git's child shell expands it at auth time — the token never sits in argv.
+    // Inject the resolved token into the spawn env so the helper's lazy
+    // expansion finds it even when the resolver pulled from `.env` or
+    // `gh auth token` rather than the ambient process env.
+    const env = token ? { ...process.env, GH_TOKEN: token } : undefined;
+    return spawnSync("git", fullArgs, { stdio: "pipe", env });
   }
 }

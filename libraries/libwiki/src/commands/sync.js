@@ -1,16 +1,26 @@
 import path from "node:path";
 import fsAsync from "node:fs/promises";
 import { Finder } from "@forwardimpact/libutil";
+import { createScriptConfig } from "@forwardimpact/libconfig";
 import { WikiRepo, WikiPullConflict } from "../wiki-repo.js";
 
-/** Commit all wiki changes and push them to the remote wiki repository. */
-export function runPushCommand(values, _args, cli) {
+async function buildRepo(values) {
   const logger = { debug() {} };
   const finder = new Finder(fsAsync, logger, process);
   const projectRoot = finder.findProjectRoot(process.cwd());
   const wikiDir = path.resolve(projectRoot, values["wiki-root"] ?? "wiki");
 
-  const repo = new WikiRepo({ wikiDir, parentDir: projectRoot });
+  const config = await createScriptConfig("wiki");
+  return new WikiRepo({
+    wikiDir,
+    parentDir: projectRoot,
+    resolveToken: () => config.ghToken(),
+  });
+}
+
+/** Commit all wiki changes and push them to the remote wiki repository. */
+export async function runPushCommand(values, _args, cli) {
+  const repo = await buildRepo(values);
   repo.inheritIdentity();
 
   const result = repo.commitAndPush("wiki: update from session");
@@ -22,13 +32,8 @@ export function runPushCommand(values, _args, cli) {
 }
 
 /** Fetch and rebase the local wiki on origin/master; on rebase conflict, exit the process with code 1 and a message to resolve manually or push first. */
-export function runPullCommand(values, _args, cli) {
-  const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, process);
-  const projectRoot = finder.findProjectRoot(process.cwd());
-  const wikiDir = path.resolve(projectRoot, values["wiki-root"] ?? "wiki");
-
-  const repo = new WikiRepo({ wikiDir, parentDir: projectRoot });
+export async function runPullCommand(values, _args, cli) {
+  const repo = await buildRepo(values);
   repo.inheritIdentity();
 
   try {
