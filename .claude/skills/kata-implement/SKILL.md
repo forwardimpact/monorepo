@@ -30,7 +30,7 @@ apply alongside the skill-specific ones below.
 <read_do_checklist goal="Internalize scope and constraints before coding">
 
 - [ ] Run `git fetch origin main`, then confirm `specs/NNN/plan-a.md` exists on
-      `origin/main` (an open `plan:approved` PR is not enough — wait for merge).
+      `origin/main` — wait for the plan PR to merge before implementing.
 - [ ] Enter a new worktree with `EnterWorktree` (e.g. name `impl/NNN`). All
       implementation work happens in the worktree — never on the main working
       tree.

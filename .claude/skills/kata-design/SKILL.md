@@ -5,7 +5,8 @@ description: >
   max-200-line architectural sketch — components, interfaces, data flow, and
   key decisions with trade-offs — that gives reviewers a high-leverage point
   to redirect architecture before the full plan is written. Design is approved
-  when its PR carries the `design:approved` label or an APPROVED review.
+  when `wiki/STATUS.md` shows the spec row at `design approved` — written
+  there by a human signal that `agent-react` or the active agent propagates.
 ---
 
 # Write and Review Designs
@@ -22,8 +23,8 @@ is no commitment to implement, and a design has nothing to shape.
 
 ## When to Use
 
-- Turning a merged spec (`specs/NNN/spec.md` on `origin/main`, not just a
-  `spec:approved` label on an open PR) into an architectural design
+- Turning a merged spec (`specs/NNN/spec.md` on `origin/main`) into an
+  architectural design
 - Reviewing a design before approval ("review design NNN", "is design NNN
   ready?")
 - Revisiting a design whose direction needs rethinking before planning
@@ -33,8 +34,8 @@ is no commitment to implement, and a design has nothing to shape.
 <read_do_checklist goal="Internalize design-writing boundaries before starting">
 
 - [ ] Confirm `specs/NNN/spec.md` exists on `origin/main` after
-      `git fetch origin main`. A `spec:approved` label on an open PR is not
-      sufficient — wait for the merge.
+      `git fetch origin main` — wait for the spec PR to merge before
+      starting a design.
 - [ ] Do not write or revise the spec — return it to `draft` if it needs
       changes.
 - [ ] Do not write the plan — this skill writes the design; `kata-plan`
@@ -119,25 +120,22 @@ not restate what the artifact already shows.
 
 ## Approval
 
-A design is approved when its PR carries the `design:approved` label **or** has
-an APPROVED review by a trusted account. Once the design PR merges,
-`specs/NNN/design-a.md` exists on `main` and the phase is by definition
-complete. See
-[`coordination-protocol.md` § Approval signal](../../agents/references/coordination-protocol.md#approval-signal).
+A design is approved when `wiki/STATUS.md` shows its row at `design
+approved`. **Human-only**: agents never originate `design approved` — they
+only propagate signals already expressed by a trusted human (label, APPROVED
+review, approval comment, or in-session message), which `agent-react` or
+the active agent writes to STATUS. See
+[`approval-signals.md`](../../agents/references/approval-signals.md).
 
 ## Reviewing a Design
 
-Evaluate `design-a.md` against the qualities listed in "Writing a Design" above,
-then run the DO-CONFIRM checklist at the top of this skill.
+Evaluate `design-a.md` against the qualities listed in "Writing a Design"
+above, then run the DO-CONFIRM checklist. Report findings via PR comment.
 
-If all criteria are met, apply the approval signal:
-
-```sh
-gh pr edit <number> --add-label design:approved
-```
-
-If any criterion falls short, request changes via PR comment — do not apply the
-label.
+**Do not recommend approval, and do not apply the `design:approved` label.**
+Deciding on approval is a human-only action. Your job is to evaluate quality
+and surface findings; the release engineer reads `wiki/STATUS.md` to gate
+merge. If criteria fall short, request changes via PR comment.
 
 ## Process
 
@@ -150,8 +148,7 @@ from prior entries.
 ### Step 1: Find the spec
 
 Run `git fetch origin main`, then confirm `specs/NNN/spec.md` exists on
-`origin/main`. An open PR with a `spec:approved` label is not sufficient — wait
-for the merge.
+`origin/main` — wait for the spec PR to merge before starting a design.
 
 ### Step 2: Study the spec
 
@@ -163,23 +160,22 @@ Read the code areas the spec targets.
 
 ### Step 4: Write the design
 
-Create `design-a.md`. Stay under 200 lines. Each architectural choice names a
-rejected alternative.
+Create `design-a.md` locally; do not push yet. Stay under 200 lines. Each
+architectural choice names a rejected alternative.
 
-### Step 5: Open a design PR
-
-The PR title carries the spec id: `design(NNN): …`.
-
-### Step 6: Clean sub-agent review panel
+### Step 5: Clean sub-agent review panel
 
 Follow the [`kata-review` caller
-protocol](../kata-review/references/caller-protocol.md). Tell each reviewer not
-to invoke `kata-design`. Address every confirmed blocker/high/medium finding
-before advancing.
+protocol](../kata-review/references/caller-protocol.md), invoked on the local
+`design-a.md` before push. Tell each reviewer not to invoke `kata-design`.
+Address every confirmed blocker/high/medium finding before opening the PR —
+the PR should not become visible to `agent-react` until the panel is clean.
 
-### Step 7: Apply approval signal
+### Step 6: Open a design PR
 
-When the panel passes, run `gh pr edit <number> --add-label design:approved`.
+The PR title carries the spec id: `design(NNN): …`. Do not apply the
+`design:approved` label and do not recommend approval — those are human-only
+actions; see § Approval.
 
 ## Memory: what to record
 

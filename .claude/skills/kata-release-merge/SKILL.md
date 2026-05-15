@@ -3,8 +3,8 @@ name: kata-release-merge
 description: >
   Merge gate for open pull requests. Verify contributor trust, classify PR
   type, rebase branches on main, fix mechanical CI failures, gate on the
-  generalized approval signal (`<phase>:approved` label or APPROVED review),
-  and merge PRs that pass all gates. Sole external merge point.
+  approval state recorded in `wiki/STATUS.md`, and merge PRs that pass all
+  gates. Sole external merge point.
 ---
 
 # Release Merge
@@ -35,8 +35,8 @@ Comment templates and the report format are in `references/templates.md`.
 - [ ] Author is trusted — CI app identity or top-7 contributor lookup ran.
 - [ ] PR type parsed from title prefix.
 - [ ] All CI checks pass (after mechanical fixes if needed).
-- [ ] Approval signal present: `<phase>:approved` label OR APPROVED review by a
-      trusted account.
+- [ ] `wiki/STATUS.md` row for the spec id shows the matching phase at
+      `approved` (or `implemented` for the terminal plan row).
 - [ ] For implementation PRs: parent spec's `plan-a.md` exists on `main`.
 
 </do_confirm_checklist>
@@ -82,9 +82,9 @@ PR).
 
 Parse the title using `type(scope): subject`. Each type maps to a phase:
 
-- `spec` → spec phase, gate label `spec:approved`
-- `design` → design phase, gate label `design:approved`
-- `plan` → plan phase, gate label `plan:approved`
+- `spec` → spec phase, gate STATUS row `{NNN}\tspec\tapproved`
+- `design` → design phase, gate STATUS row `{NNN}\tdesign\tapproved`
+- `plan` → plan phase, gate STATUS row `{NNN}\tplan\tapproved`
 - `feat`, `fix`, `bug`, `refactor`, `chore` → implementation phase
 - `!` breaking variants retain the base type
 - Any other type → mark **blocked**
@@ -128,18 +128,13 @@ git push --force-with-lease origin <pr-branch>
 
 ### Step 6: Approval Gate
 
-A PR passes when **at least one** holds:
-
-1. The PR carries the matching phase label (`spec:approved` / `design:approved`
-   / `plan:approved`).
-2. The PR has at least one APPROVED review by a trusted account (top-7
-   contributor or `kata-agent-team`):
-   ```sh
-   gh pr view <number> --json reviews \
-     --jq '[.reviews[] | select(.state == "APPROVED")] | length'
-   ```
-
-If neither holds, mark **blocked** with reason `awaiting approval signal`.
+Read `wiki/STATUS.md` for the PR's spec id (`grep -P "^${spec_id}\t"`). The
+PR passes when the row shows the PR's classified phase at `approved` (or
+`implemented` for the terminal plan row on implementation PRs). If absent
+or `draft`/`cancelled`, mark **blocked** with reason `awaiting approval
+signal`. Labels and APPROVED reviews are inputs to STATUS captured by
+`agent-react`; not consulted directly here. See
+[`approval-signals.md`](../../agents/references/approval-signals.md).
 
 ### Step 7: Implementation PR Spec Check
 
@@ -148,10 +143,8 @@ spec id (e.g. `feat(...): … (#NNN)` or "implements spec NNN"):
 
 - Confirm `specs/NNN/plan-a.md` exists on `main`. If absent, mark **blocked**
   with reason `parent spec plan not on main`.
-- Apply the terminal label before merging:
-  ```sh
-  gh pr edit <number> --add-label plan:implemented
-  ```
+- Update `wiki/STATUS.md` before merging — set the spec's row to
+  `{NNN}\tplan\timplemented`. Commit the wiki change; the Stop hook pushes it.
 
 PRs not referencing a spec (one-off mechanical fixes, doc patches) skip this
 step.
@@ -172,11 +165,12 @@ Per PR record: number, title, type, author, trust check, CI, approval source
 
 Append to the current week's log:
 
-- **PR classification table** — type, author, trust, CI, approval source,
+- **PR classification table** — type, author, trust, CI, STATUS row,
   verdict, consecutive-block count
 - **Contributor trust decisions** — checked by the invariant audit (KATA.md
   § Invariants)
-- **Approval signals consumed** — label vs APPROVED review
+- **STATUS rows consumed and written** — gate reads and `plan implemented`
+  writes
 - **PRs merged this run** and **merge failures** with reasons
 - **Metrics** — Append `prs_merged` and `approvals_recorded_per_run` rows per
   `references/metrics.md` (collection recipe included). See KATA.md § Metrics

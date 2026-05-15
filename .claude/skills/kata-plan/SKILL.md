@@ -3,8 +3,9 @@ name: kata-plan
 description: >
   Write implementation plans (HOW/WHEN) for approved designs. Translate an
   approved design into concrete steps, file changes, sequencing, and risks
-  for a trusted agent to execute. Plan is approved when its PR carries the
-  `plan:approved` label or an APPROVED review.
+  for a trusted agent to execute. Plan is approved when `wiki/STATUS.md`
+  shows the spec row at `plan approved` — `staff-engineer` writes this row
+  after a clean panel review (plans may be approved by agents).
 ---
 
 # Write and Review Plans
@@ -20,8 +21,8 @@ there is no architectural direction to translate into implementation steps.
 
 ## When to Use
 
-- Turning a merged design (`specs/NNN/design-a.md` on `origin/main`, not just a
-  `design:approved` label on an open PR) into an execution-ready plan
+- Turning a merged design (`specs/NNN/design-a.md` on `origin/main`) into an
+  execution-ready plan
 - Reviewing a plan before approval ("review plan NNN", "is plan NNN ready?")
 - Creating an alternative plan variant for the same spec
 
@@ -30,8 +31,8 @@ there is no architectural direction to translate into implementation steps.
 <read_do_checklist goal="Internalize plan-writing boundaries before starting">
 
 - [ ] Confirm `specs/NNN/design-a.md` exists on `origin/main` after
-      `git fetch origin main`. A `design:approved` label on an open PR is not
-      sufficient — wait for the merge.
+      `git fetch origin main` — wait for the design PR to merge before
+      starting a plan.
 - [ ] Do not write or revise the spec — return it to `draft` if it needs
       changes.
 - [ ] Do not implement — this skill writes the plan; `kata-implement` executes
@@ -110,20 +111,23 @@ row, make it a row.
 
 ## Approval
 
-Plan is approved when its PR carries `plan:approved` or has an APPROVED review
-by a trusted account. See
+A plan is approved when `wiki/STATUS.md` shows the spec row at `plan
+approved`. Plans may be approved by `staff-engineer` after a clean
+`kata-plan` panel review; alternatively, the same human-driven signals that
+gate spec/design (label, PR comment, APPROVED review, in-session user
+message) also feed STATUS for plans. See
+[`approval-signals.md`](../../agents/references/approval-signals.md) and
 [`coordination-protocol.md` § Approval signal](../../agents/references/coordination-protocol.md#approval-signal).
 
 ## Reviewing a Plan
 
-Evaluate the plan against the DO-CONFIRM checklist. If all criteria are met,
-apply the approval signal:
+Evaluate the plan against the DO-CONFIRM checklist. If all criteria are
+met, edit `wiki/STATUS.md` to set the spec's row to `{NNN}\tplan\tapproved`
+and commit the wiki edit; the Stop hook pushes it. `kata-release-merge` will
+then merge the plan PR.
 
-```sh
-gh pr edit <number> --add-label plan:approved
-```
-
-If any falls short, request changes via PR comment — do not apply the label.
+If any criterion falls short, request changes via PR comment — do not write
+STATUS until the criteria are met.
 
 When multiple variants exist, note which is recommended (plan-a is the default).
 
@@ -137,8 +141,7 @@ deferred work from prior entries.
 ### Step 1: Find the design
 
 Run `git fetch origin main`, then confirm `specs/NNN/design-a.md` exists on
-`origin/main`. An open PR with a `design:approved` label is not sufficient —
-wait for the merge.
+`origin/main` — wait for the design PR to merge before starting a plan.
 
 ### Step 2: Study the spec and design
 
@@ -150,23 +153,28 @@ Read the files the plan will target.
 
 ### Step 4: Write the plan
 
-Create `plan-a.md`. Each step independently verifiable. Decompose into parts if
-large (see § Large plan decomposition).
+Create `plan-a.md` locally; do not push yet. Each step independently
+verifiable. Decompose into parts if large (see § Large plan decomposition).
 
-### Step 5: Open a plan PR
+### Step 5: Clean sub-agent review panel
+
+Follow the [`kata-review` caller
+protocol](../kata-review/references/caller-protocol.md), invoked on the local
+`plan-a.md` (and any parts) before push. Tell each reviewer not to invoke
+`kata-plan`. Address every confirmed blocker/high/medium finding before
+opening the PR — the PR should not become visible to `agent-react` until the
+panel is clean.
+
+### Step 6: Open a plan PR
 
 The PR title carries the spec id: `plan(NNN): …`.
 
-### Step 6: Clean sub-agent review panel
+### Step 7: Write STATUS
 
-Follow the [`kata-review` caller
-protocol](../kata-review/references/caller-protocol.md). Tell each reviewer not
-to invoke `kata-plan`. Address every confirmed blocker/high/medium finding
-before advancing.
-
-### Step 7: Apply approval signal
-
-When the panel passes, run `gh pr edit <number> --add-label plan:approved`.
+When the panel passes and the DO-CONFIRM checks are met, edit
+`wiki/STATUS.md` to set the spec's row to `{NNN}\tplan\tapproved`. Commit the
+wiki edit alongside any other wiki updates from this session; the Stop hook
+pushes the wiki commit. `kata-release-merge` will then merge the plan PR.
 
 ## Memory: what to record
 

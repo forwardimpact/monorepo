@@ -104,8 +104,8 @@ agent is a one-line edit to the matrix in
 below use CEST (UTC+2), the tighter summer bound. A separate event-driven
 workflow, **agent-react**, runs on PR comments, new discussions, and
 discussion comments — the release engineer facilitates and routes the comment
-to the participant best suited to respond, and translates conversational
-approvals into the canonical `<phase>:approved` label or APPROVED review. All
+to the participant best suited to respond, and propagates trusted-contributor
+approval signals into `wiki/STATUS.md`. All
 workflows support `workflow_dispatch` and time out at 45 minutes; storyboard,
 coaching, and react also use concurrency groups (agent-team serializes via the
 matrix's `max-parallel: 1`). Agent workflows send a generic prompt; the agent's Assess
@@ -147,13 +147,16 @@ for utilities). An agent's skill list reveals its phase coverage.
 
 The release engineer is the sole external merge point; all other merge paths
 operate on trusted sources (our agents, Dependabot). The product manager gates
-spec **quality** off the critical path via the `spec:approved` label.
+spec **quality** off the critical path via PR-comment findings; trusted
+humans translate those findings into `wiki/STATUS.md` writes that release
+engineer reads at merge time.
 
 ```mermaid
 graph TD
-    EXT["External PR"] --> RE["Release Engineer<br/>trust + CI gate"]
-    ISS["External Issue"] --> PM["Product Manager<br/>spec quality"]
-    PM -- "spec:approved" --> RE
+    EXT["External PR"] --> RE["Release Engineer<br/>trust + CI + STATUS gate"]
+    ISS["External Issue"] --> PM["Product Manager<br/>spec quality findings"]
+    PM -.->|"findings"| HU["Trusted Human<br/>writes STATUS"]
+    HU -.->|"wiki/STATUS.md"| RE
     RE -- "merge fix/bug/spec" --> CB["Codebase (main)"]
     style RE fill:#a855f7,stroke:#7c3aed,color:#fff
     CB -- "approved spec" --> TA["Trusted Agents<br/>plan + implement"]
@@ -173,21 +176,30 @@ specs merge only the document, not code.
 
 ## Approval Signal
 
-Phase progression is derived from `main` (artifact files exist) plus a uniform,
-machine-readable approval signal applied to PRs. The signal has two equivalent
-forms — both are first-class GitHub primitives, queryable, and auditable:
+Approval state is recorded in the wiki at `STATUS.md` — a markdown page
+wrapping a tab-separated body, one row per spec:
+`{id}\t{phase}\t{status}`. STATUS is the canonical approval record;
+`kata-release-merge` reads it to decide which phase PRs may merge. Signals
+from any source below feed STATUS.
 
-1. **Label** — `<phase>:approved` applied via `gh pr edit --add-label`.
-2. **APPROVED review** — `gh pr review --approve` by a trusted account (top-7
-   contributor or `kata-agent-team`).
+| Signal | Source | Captured by |
+|---|---|---|
+| `<phase>:approved` label | Human or `/ship-it` | `agent-react` |
+| APPROVED review | Trusted-account approver | `agent-react` |
+| Approval comment ("LGTM", "ship it") | Trusted contributor | `agent-react` |
+| In-session user message | Trusted user | Active agent |
+| `kata-plan` panel-clean | `staff-engineer` (plans only) | `kata-plan` skill |
 
-Four labels span the four phases: `spec:approved`, `design:approved`,
-`plan:approved`, and the terminal `plan:implemented` (set by
-`kata-release-merge` on the implementation PR before merge).
+**Human-only for spec/design.** Agents never autonomously originate `spec
+approved` or `design approved` — they only propagate signals from trusted
+humans. Plans may be approved by `staff-engineer` after `kata-plan` review.
 
-`kata-release-merge` checks for either form before merging any phase PR. The
-`agent-react` facilitator translates conversational approvals (e.g. "LGTM" from
-a trusted account) into the canonical signal.
+Phase progression is derived from `main`: a STATUS row at `{phase} approved`
+authorizes `kata-release-merge` to merge the PR; merging the PR puts the
+artifact on `main` and the next phase may begin. `kata-release-merge` writes
+the terminal `plan implemented` row on the implementation PR before merge.
+See [approval-signals.md](.claude/agents/references/approval-signals.md) for
+the full protocol.
 
 ## Design Principles
 
@@ -219,12 +231,15 @@ gitignored, and only the `Stop` hook publishes wiki commits; never
 
 Each agent maintains a **summary** (`<agent>.md`) — latest state, backlog,
 blockers, teammate observations — and a **weekly log**
-(`<agent>-<YYYY>-W<VV>.md`), one file per agent per ISO week. The canonical
-read-summary, append-log, update-summary cadence is defined in
+(`<agent>-<YYYY>-W<VV>.md`), one file per agent per ISO week. The wiki also
+holds `STATUS.md`, the canonical approval record for every spec (see §
+Approval Signal). The canonical read-summary, append-log, update-summary
+cadence is defined in
 [`memory-protocol.md`](.claude/agents/references/memory-protocol.md), an
 agent-level shared reference. Entry-point skills include a read step and a
-"Memory: what to record" section; sub-skills and utility skills are exempt. The
-wiki holds settled state — open questions live in Discussions until answered.
+"Memory: what to record" section; sub-skills and utility skills are exempt.
+The wiki holds settled state — open questions live in Discussions until
+answered.
 
 ## Coordination Channels
 
@@ -349,7 +364,8 @@ The trust gate is the most critical invariant in the system:
   PR before a mergeable verdict. Author verified against the result. A merge
   without a visible lookup is high-severity.
 - CI status checked before every mergeable verdict.
-- Phase PRs gated on `<phase>:approved` label or APPROVED review before merge.
+- Phase PRs gated on `wiki/STATUS.md` showing the spec at `{phase} approved`
+  before merge.
 - `--force-with-lease` used for rebase pushes, never `--force`.
 - Tags pushed individually, not via `--tags`.
 - Releases performed in dependency order.
@@ -366,7 +382,9 @@ The trust gate is the most critical invariant in the system:
 
 ### Product manager
 
-- Spec quality reviewed (`kata-spec` review) before applying `spec:approved`.
+- Spec quality reviewed (`kata-spec` review) and findings posted via PR
+  comment; never applies `spec:approved` and never writes the spec's STATUS
+  row directly.
 - Spec written for `needs-spec` issues when no spec PRs are pending review.
 
 ### Security engineer

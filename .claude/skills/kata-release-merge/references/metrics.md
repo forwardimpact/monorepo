@@ -6,10 +6,9 @@ Record per KATA.md § Metrics. Append one row per metric per run to
 | Metric                     | Unit  | Description                                                                                                    | Data source                                                                |
 | -------------------------- | ----- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | prs_merged                 | count | PRs merged this run                                                                                            | Run actions                                                                |
-| approvals_recorded_per_run | count | `<phase>:approved` label-add events + APPROVED review events observed in `[prev_run_start, current_run_start)` | `gh api repos/{owner}/{repo}/issues/<n>/timeline` + `.../pulls/<n>/reviews` |
+| approvals_recorded_per_run | count | Inbound human approval signals — `<phase>:approved` label-add events + APPROVED review events — observed in `[prev_run_start, current_run_start)`. These signals feed `wiki/STATUS.md` via `agent-react`. | `gh api repos/{owner}/{repo}/issues/<n>/timeline` + `.../pulls/<n>/reviews` |
 
-Backlog (`gh pr list`) is queried, not recorded. `plan:implemented` is a state
-label, excluded.
+Backlog (`gh pr list`) is queried, not recorded.
 
 ## Collection
 

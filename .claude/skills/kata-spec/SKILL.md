@@ -2,10 +2,12 @@
 name: kata-spec
 description: >
   Write specifications (WHAT/WHY) for features, changes, and improvements.
-  Spec is approved when its PR carries the `spec:approved` label or an
-  APPROVED review by a trusted account. Use when proposing changes, capturing
-  findings as actionable specs, or evaluating spec quality. Pair with the
-  `kata-plan` skill for the HOW side.
+  Spec is approved when `wiki/STATUS.md` shows the spec row at `spec
+  approved` — written there by a human signal (label, comment, APPROVED
+  review, or in-session message) that `agent-react` or the active agent
+  propagates. Use when proposing changes, capturing findings as actionable
+  specs, or evaluating spec quality. Pair with the `kata-plan` skill for
+  the HOW side.
 ---
 
 # Write and Review Specs
@@ -87,25 +89,36 @@ not restate what the artifact already shows.
 
 ## Approval
 
-A spec is approved when its PR carries the `spec:approved` label **or** has an
-APPROVED review by a trusted account (top-7 contributor or `kata-agent-team`).
-Phase progression is derived from `main`: once a spec PR merges,
-`specs/NNN/spec.md` exists on `main` and the spec is by definition approved. See
+A spec is approved when `wiki/STATUS.md` shows its row at `spec approved`.
+The decision is **human-only**: agents never autonomously originate `spec
+approved`. STATUS is written when a trusted human's signal is observed —
+`<phase>:approved` label, APPROVED review, approval comment on the PR, or a
+direct message in an interactive session. `agent-react` validates trust and
+propagates PR-side signals into STATUS; an in-session agent writes STATUS
+when the user explicitly approves. See
+[`approval-signals.md`](../../agents/references/approval-signals.md) and
 [`coordination-protocol.md` § Approval signal](../../agents/references/coordination-protocol.md#approval-signal).
+
+Phase progression is derived from `main`: once the spec PR merges,
+`specs/NNN/spec.md` exists on `main` and the next phase may begin. A STATUS
+row at `spec approved` authorizes the merge but does not by itself advance
+the phase.
 
 ## Reviewing a Spec
 
-Evaluate `spec.md` against the qualities listed in "Writing a Spec" above, then
-run the DO-CONFIRM checklist at the top of this skill.
+Evaluate `spec.md` against the qualities listed in "Writing a Spec" above,
+then run the DO-CONFIRM checklist at the top of this skill. Report your
+findings via PR comment so a trusted human reviewing the PR can act on
+them.
 
-If all criteria are met, apply the approval signal:
+**Do not recommend approval, and do not apply the `spec:approved` label.**
+Deciding on approval is a human-only action. The release engineer detects
+approval signals across multiple channels — labels, PR comments, APPROVED
+reviews, in-session user messages — and reads `wiki/STATUS.md` as the
+canonical record. Your job here is to evaluate quality and surface
+findings, not to gate the approval signal.
 
-```sh
-gh pr edit <number> --add-label spec:approved
-```
-
-If any criterion falls short, request changes via PR comment — do not apply the
-label.
+If criteria fall short, request changes via PR comment.
 
 ## Process
 
@@ -119,25 +132,22 @@ Read relevant code, data, and existing specs.
 
 ### Step 3: Write the spec
 
-WHAT and WHY only.
+WHAT and WHY only. Write `specs/NNN/spec.md` locally; do not push yet.
 
-### Step 4: Open a spec PR
-
-The PR title carries the spec id: `spec(NNN): …`. Merge of that PR is what
-advances the phase.
-
-### Step 5: Clean sub-agent review panel
+### Step 4: Clean sub-agent review panel
 
 Follow the [`kata-review` caller
-protocol](../kata-review/references/caller-protocol.md). Tell each reviewer not
-to invoke `kata-spec`. Address every confirmed blocker/high/medium finding
-before advancing.
+protocol](../kata-review/references/caller-protocol.md), invoked on the local
+`specs/NNN/spec.md` before push. Tell each reviewer not to invoke
+`kata-spec`. Address every confirmed blocker/high/medium finding before
+opening the PR — the PR should not become visible to `agent-react` until the
+panel is clean.
 
-### Step 6: Apply approval signal
+### Step 5: Open a spec PR
 
-When the panel passes and the DO-CONFIRM checks are met, run
-`gh pr edit <number> --add-label spec:approved` so `kata-release-merge` lets
-the PR through.
+The PR title carries the spec id: `spec(NNN): …`. Merge of that PR is what
+advances the phase. Do not apply the `spec:approved` label and do not
+recommend approval — those are human-only actions; see § Approval.
 
 ## Memory: what to record
 

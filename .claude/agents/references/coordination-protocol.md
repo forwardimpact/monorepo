@@ -34,30 +34,41 @@ Valid labels: `agent:staff-engineer`, `agent:product-manager`,
 ## Approval signal
 
 Phase artifacts (specs, designs, plans, implementations) are gated into `main`
-by `kata-release-merge` via a uniform, machine-readable approval signal. Two
-equivalent forms — both first-class GitHub primitives:
+by `kata-release-merge`. Approval state is recorded in `wiki/STATUS.md` — a
+markdown page in the wiki wrapping a tab-separated body, one row per spec:
+`{id}\t{phase}\t{status}`. STATUS is the canonical approval record; see
+[`approval-signals.md`](approval-signals.md) for the full signal catalogue
+and write protocol.
 
-1. **Label** — `<phase>:approved` applied to the PR. Phase labels:
-   - `spec:approved` (applied by product-manager after `kata-spec` review)
-   - `design:approved` (applied by staff-engineer after `kata-design` review)
-   - `plan:approved` (applied by staff-engineer after `kata-plan` review)
-   - `plan:implemented` (applied by `kata-release-merge` on the implementation
-     PR before merge)
-2. **APPROVED PR review** by a trusted account (top-7 contributor or
-   `kata-agent-team`): `gh pr review --approve`.
+Signals from any source below feed STATUS:
 
-`kata-release-merge` accepts either form. The `agent-react` facilitator
-(release-engineer) translates conversational approvals (e.g. "approved", "LGTM",
-"ship it" from a trusted account) into one of the canonical forms before
-concluding.
+- `<phase>:approved` label applied to the PR (human or `/ship-it`)
+- `gh pr review --approve` by a trusted account
+- Approval comment ("approve", "LGTM", "ship it") from a trusted contributor
+- Direct user message in an interactive coding session (trusted user)
+- `kata-plan` panel-clean (`staff-engineer`, plans only)
 
-**Approval is not phase progression.** The approval signal authorizes
-`kata-release-merge` to merge the PR; it does not by itself advance the phase.
-Phase progression is derived only from `main`: the next phase begins when the
-prior phase's artifact (`specs/NNN/spec.md`, `design-a.md`, `plan-a.md`) is on
-`main` — i.e. the prior phase's PR has been merged. An approved-but-unmerged PR
-does not unblock the next phase, even when the same agent owns both. No separate
-status tracker.
+**Trust rule.** Spec and design approvals must originate from a trusted human.
+Agents never autonomously originate `spec approved` or `design approved`; they
+only propagate signals already expressed by a trusted human. Plans may be
+approved by `staff-engineer` after `kata-plan` review.
+
+`agent-react` is the bridge from PR-side signals (labels, comments, reviews)
+to STATUS — it validates trust (using the same gate as `kata-release-merge`)
+and writes the matching STATUS row. The facilitator does **not** apply any
+approval label or submit an APPROVED review on behalf of any contributor; it
+only propagates signals already expressed by trusted humans into STATUS.
+
+**Approval is not phase progression.** A STATUS row at `{phase} approved`
+authorizes `kata-release-merge` to merge that PR; it does not by itself advance
+the phase. Phase progression is derived only from `main`: the next phase begins
+when the prior phase's artifact (`specs/NNN/spec.md`, `design-a.md`,
+`plan-a.md`) is on `main` — i.e. the prior phase's PR has been merged. An
+approved-but-unmerged PR does not unblock the next phase.
+
+**Labels remain as input signals**, not as gates. Humans may apply
+`<phase>:approved` labels for PR UI visibility; the label fires `agent-react`
+which validates trust and writes STATUS.
 
 ## Measurement-system changes
 

@@ -31,8 +31,9 @@ every GitHub comment and PR body with `— Staff Engineer 🛠️`.
 ## Assess
 
 Run `git fetch origin main` on every phase boundary, then route from
-`origin/main` only. A `<phase>:approved` label on an open PR — even one you just
-authored — does not advance routing. Pick the highest-priority action:
+`origin/main` only. A STATUS row at `{phase} approved` on an open PR — even
+one you just authored — does not advance routing; only merge of the prior
+phase's PR puts the artifact on `main`. Pick the highest-priority action:
 
 0. **[Action routing](.claude/agents/references/memory-protocol.md#action-routing)**
    — read Tier 1; owned priorities and storyboard items preempt domain steps.
@@ -42,7 +43,7 @@ authored — does not advance routing. Pick the highest-priority action:
    `design-a.md` is on `origin/main` but `plan-a.md` is not)
 3. **Merged plans awaiting implementation?** -- `kata-implement` on a
    `feat/<spec-slug>` branch (specs/NNN/ where `plan-a.md` is on `origin/main`
-   but no merged PR carries `plan:implemented` referencing the spec)
+   and `wiki/STATUS.md` does not yet show `plan implemented` for the spec)
 4. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
 
 ## Constraints

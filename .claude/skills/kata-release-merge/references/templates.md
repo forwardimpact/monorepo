@@ -19,7 +19,7 @@ gh pr comment <number> --body "Release merge: skipping — PR type \`<type>\` re
 ### Awaiting Approval Signal
 
 ```sh
-gh pr comment <number> --body "Release merge: blocked — awaiting approval signal. Apply \`<phase>:approved\` label or submit an APPROVED review."
+gh pr comment <number> --body "Release merge: blocked — \`wiki/STATUS.md\` row for spec NNN does not yet show \`<phase>\tapproved\`. Apply \`<phase>:approved\` label, submit an APPROVED review, or post an approval comment from a trusted account; \`agent-react\` will propagate it into STATUS."
 ```
 
 ### CI Failing
@@ -35,7 +35,7 @@ gh pr comment <number> --body "Release merge: blocked — substantive conflicts 
 ## Merge Comment
 
 ```sh
-gh pr comment <number> --body "Release merge: all gates pass — type \`<type>\`, CI green, author trusted, approval via \`<label|review>\`. Merging."
+gh pr comment <number> --body "Release merge: all gates pass — type \`<type>\`, CI green, author trusted, STATUS row \`<phase>\tapproved\`. Merging."
 gh pr merge <number> --merge --delete-branch
 ```
 
@@ -50,12 +50,12 @@ If still `OPEN`, note in the summary rather than reporting as merged.
 ## Report Summary
 
 ```
-| PR  | Title                          | Type | Author | CI    | Approval | Action  | Reason                          |
-| --- | ------------------------------ | ---- | ------ | ----- | -------- | ------- | ------------------------------- |
-| #42 | fix(map): schema validation    | fix  | alice  | green | label    | merged  | All gates pass                  |
-| #38 | spec(security): SSRF hardening | spec | bob    | green | —        | blocked | Awaiting approval signal        |
-| #35 | feat(pathway): export feature  | feat | carol  | red   | —        | blocked | CI failing: format check        |
-| #31 | fix(libui): color contrast     | fix  | eve    | green | —        | blocked | Author not in top contributors  |
+| PR  | Title                          | Type | Author | CI    | STATUS         | Action  | Reason                          |
+| --- | ------------------------------ | ---- | ------ | ----- | -------------- | ------- | ------------------------------- |
+| #42 | fix(map): schema validation    | fix  | alice  | green | n/a            | merged  | All gates pass                  |
+| #38 | spec(security): SSRF hardening | spec | bob    | green | spec draft     | blocked | STATUS row not at spec approved |
+| #35 | feat(pathway): export feature  | feat | carol  | red   | plan approved  | blocked | CI failing: format check        |
+| #31 | fix(libui): color contrast     | fix  | eve    | green | n/a            | blocked | Author not in top contributors  |
 ```
 
 **Flag PRs blocked across 3+ consecutive runs** prominently above the table —
