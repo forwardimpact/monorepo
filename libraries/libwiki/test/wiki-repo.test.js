@@ -184,3 +184,75 @@ describe("buildAuthArgs", () => {
     assert.deepEqual(result, args);
   });
 });
+
+describe("WikiRepo resolveToken", () => {
+  let bare;
+
+  beforeEach(() => {
+    bare = createBareRepo();
+    seedBareRepo(bare);
+  });
+
+  test("invokes resolveToken on network operations", () => {
+    const { parent, wikiDir } = cloneRepo(bare, "tokencb");
+    git(wikiDir, "checkout", "master");
+    let calls = 0;
+    const repo = new WikiRepo({
+      wikiDir,
+      parentDir: parent,
+      resolveToken: () => {
+        calls++;
+        return "ghp_fromcallback";
+      },
+    });
+
+    repo.fetch();
+    assert.ok(calls >= 1, "resolveToken should be called by fetch()");
+  });
+
+  test("does not invoke resolveToken on local-only operations", () => {
+    const { parent, wikiDir } = cloneRepo(bare, "tokenlocal");
+    git(wikiDir, "checkout", "master");
+    let calls = 0;
+    const repo = new WikiRepo({
+      wikiDir,
+      parentDir: parent,
+      resolveToken: () => {
+        calls++;
+        return "ghp_unused";
+      },
+    });
+
+    repo.isCloned();
+    repo.isClean();
+    repo.inheritIdentity();
+
+    assert.equal(calls, 0);
+  });
+
+  test("falls back gracefully when resolveToken throws", () => {
+    const { parent, wikiDir } = cloneRepo(bare, "tokenthrow");
+    git(wikiDir, "checkout", "master");
+    const repo = new WikiRepo({
+      wikiDir,
+      parentDir: parent,
+      resolveToken: () => {
+        throw new Error("not configured");
+      },
+    });
+
+    // fetch against a local bare repo doesn't need auth — the call should
+    // simply proceed without the credential helper instead of propagating.
+    assert.doesNotThrow(() => repo.fetch());
+  });
+
+  test("without resolveToken, falls back to process.env GH_TOKEN/GITHUB_TOKEN", () => {
+    const { parent, wikiDir } = cloneRepo(bare, "tokenenv");
+    git(wikiDir, "checkout", "master");
+    const repo = new WikiRepo({ wikiDir, parentDir: parent });
+
+    // No callback provided — fetch should succeed against local bare regardless
+    // of whether env vars are set; the constructor must accept the omission.
+    assert.doesNotThrow(() => repo.fetch());
+  });
+});

@@ -31,11 +31,20 @@ export function buildAuthArgs(args, token) {
 export class WikiRepo {
   #wikiDir;
   #parentDir;
+  #resolveToken;
 
-  /** Create a WikiRepo targeting the given wiki directory and its parent project directory. */
-  constructor({ wikiDir, parentDir }) {
+  /**
+   * Create a WikiRepo targeting the given wiki directory and its parent project directory.
+   * @param {{ wikiDir: string, parentDir: string, resolveToken?: () => string | null | undefined }} opts
+   *   `resolveToken` is called lazily per network operation to obtain a GitHub token.
+   *   When omitted, falls back to reading `GH_TOKEN` or `GITHUB_TOKEN` from `process.env`.
+   *   Commands typically pass `() => config.ghToken()` so the libconfig resolution chain
+   *   (env → `.env` overrides → `gh auth token`) is honored.
+   */
+  constructor({ wikiDir, parentDir, resolveToken }) {
     this.#wikiDir = wikiDir;
     this.#parentDir = parentDir;
+    this.#resolveToken = resolveToken;
   }
 
   /** Check whether the wiki directory is an initialized git repository. */
@@ -123,11 +132,25 @@ export class WikiRepo {
   }
 
   #authGit(args) {
-    const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+    const token = this.#token();
     const fullArgs = buildAuthArgs(args, token);
-    return spawnSync("git", fullArgs, {
-      stdio: "pipe",
-      env: token ? process.env : undefined,
-    });
+    // The credential helper body keeps `${GH_TOKEN:-$GITHUB_TOKEN}` literal so
+    // git's child shell expands it at auth time — the token never sits in argv.
+    // When libconfig resolves a token from `.env` or `gh auth token` (i.e. it
+    // is not on `process.env`), inject GH_TOKEN into the spawn env so the
+    // helper's lazy expansion still finds it.
+    const env = token ? { ...process.env, GH_TOKEN: token } : undefined;
+    return spawnSync("git", fullArgs, { stdio: "pipe", env });
+  }
+
+  #token() {
+    if (this.#resolveToken) {
+      try {
+        return this.#resolveToken() || null;
+      } catch {
+        return null;
+      }
+    }
+    return process.env.GH_TOKEN || process.env.GITHUB_TOKEN || null;
   }
 }

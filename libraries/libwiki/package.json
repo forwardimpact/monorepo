@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libconfig": "^0.1.77",
     "@forwardimpact/libutil": "^0.1.0",
     "@forwardimpact/libxmr": "^1.1.0"
   },

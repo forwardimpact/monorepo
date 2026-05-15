@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import fsAsync from "node:fs/promises";
 import { Finder } from "@forwardimpact/libutil";
+import { createScriptConfig } from "@forwardimpact/libconfig";
 import { WikiRepo } from "../wiki-repo.js";
 import { listSkills } from "../skill-roster.js";
 
@@ -21,7 +22,7 @@ export function deriveWikiUrl(parentDir) {
 }
 
 /** Clone the wiki if not already present (URL derived from origin remote), copy git identity from the parent repo, and create metric directories for each kata skill. */
-export function runInitCommand(values, _args, cli) {
+export async function runInitCommand(values, _args, cli) {
   const logger = { debug() {} };
   const finder = new Finder(fsAsync, logger, process);
   const projectRoot = finder.findProjectRoot(process.cwd());
@@ -40,7 +41,12 @@ export function runInitCommand(values, _args, cli) {
     return;
   }
 
-  const repo = new WikiRepo({ wikiDir, parentDir: projectRoot });
+  const config = await createScriptConfig("wiki");
+  const repo = new WikiRepo({
+    wikiDir,
+    parentDir: projectRoot,
+    resolveToken: () => config.ghToken(),
+  });
 
   const cloneResult = repo.ensureCloned(wikiUrl);
   if (!cloneResult.cloned) {
