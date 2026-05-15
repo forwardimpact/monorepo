@@ -32,7 +32,7 @@ install-gh:
     bash scripts/install-gh.sh
 
 # Bootstrap from scratch
-quickstart: env-setup synthetic data-init codegen process-fast _quickstart-seed
+quickstart: env-reset env-setup synthetic data-init codegen process-fast _quickstart-seed
     echo ""
     echo "=== Quickstart complete ==="
     printf "  Knowledge files: %s\n" "$(find data/knowledge -name '*.html' 2>/dev/null | wc -l | tr -d ' ')"
@@ -354,20 +354,13 @@ audit-secrets:
 
 # ── Environment ───────────────────────────────────────────────────
 
-# Set up all environment secrets and storage config
-env-setup: env-reset env-secrets env-storage
+# Generate every secret in .env (idempotent — preserves all values across runs)
+env-setup:
+    bun scripts/env-setup.js
 
-# Reset environment config from examples
+# Reset environment config from examples (wipes .env)
 env-reset PROFILE="local": config-reset
     cp -f .env.{{PROFILE}}.example .env
-
-# Generate service and JWT secrets
-env-secrets:
-    bun scripts/env-secrets.js
-
-# Generate storage backend credentials
-env-storage:
-    bun scripts/env-storage.js
 
 
 # Reset config files from examples

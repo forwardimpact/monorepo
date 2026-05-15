@@ -19,6 +19,7 @@ file_size_limit = "50MiB"
 [auth]
 enabled = true
 site_url = "http://localhost:3000"
+jwt_secret = "env(SUPABASE_JWT_SECRET)"
 jwt_expiry = 3600
 enable_signup = false
 # `fit-landmark login` (PKCE magic-link) starts a listener on an ephemeral
