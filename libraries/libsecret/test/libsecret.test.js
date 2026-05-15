@@ -16,6 +16,8 @@ import {
   generateBase64Secret,
   generateJWT,
   mintSupabaseJwt,
+  mintSupabaseAnonKey,
+  mintSupabaseServiceRoleKey,
   parseDuration,
 } from "../src/index.js";
 
@@ -236,6 +238,100 @@ describe("libsecret", () => {
       assert.throws(
         () => mintSupabaseJwt({ email: "", secret }),
         /email required/,
+      );
+    });
+  });
+
+  describe("mintSupabaseAnonKey", () => {
+    const secret = "supabase-test-secret";
+    const TEN_YEARS_SECONDS = 10 * 365 * 24 * 60 * 60;
+
+    test("returns a 3-segment HS256 JWT", () => {
+      const jwt = mintSupabaseAnonKey({ secret });
+      const parts = jwt.split(".");
+      assert.strictEqual(parts.length, 3);
+      const header = JSON.parse(Buffer.from(parts[0], "base64url").toString());
+      assert.deepStrictEqual(header, { alg: "HS256", typ: "JWT" });
+    });
+
+    test("payload contains role: anon and iss: supabase", () => {
+      const jwt = mintSupabaseAnonKey({ secret });
+      const payload = JSON.parse(
+        Buffer.from(jwt.split(".")[1], "base64url").toString(),
+      );
+      assert.strictEqual(payload.role, "anon");
+      assert.strictEqual(payload.iss, "supabase");
+      assert.strictEqual(typeof payload.iat, "number");
+      assert.strictEqual(typeof payload.exp, "number");
+    });
+
+    test("exp - iat equals the 10-year constant", () => {
+      const jwt = mintSupabaseAnonKey({ secret });
+      const payload = JSON.parse(
+        Buffer.from(jwt.split(".")[1], "base64url").toString(),
+      );
+      assert.strictEqual(payload.exp - payload.iat, TEN_YEARS_SECONDS);
+    });
+
+    test("signature verifies under the same secret", () => {
+      const jwt = mintSupabaseAnonKey({ secret });
+      const [h, p, s] = jwt.split(".");
+      const expected = createHmac("sha256", secret)
+        .update(`${h}.${p}`)
+        .digest("base64url");
+      assert.strictEqual(s, expected);
+    });
+
+    test("throws when secret missing", () => {
+      assert.throws(
+        () => mintSupabaseAnonKey({ secret: "" }),
+        /mintSupabaseAnonKey: secret required/,
+      );
+    });
+  });
+
+  describe("mintSupabaseServiceRoleKey", () => {
+    const secret = "supabase-test-secret";
+    const TEN_YEARS_SECONDS = 10 * 365 * 24 * 60 * 60;
+
+    test("returns a 3-segment HS256 JWT", () => {
+      const jwt = mintSupabaseServiceRoleKey({ secret });
+      const parts = jwt.split(".");
+      assert.strictEqual(parts.length, 3);
+      const header = JSON.parse(Buffer.from(parts[0], "base64url").toString());
+      assert.deepStrictEqual(header, { alg: "HS256", typ: "JWT" });
+    });
+
+    test("payload contains role: service_role and iss: supabase", () => {
+      const jwt = mintSupabaseServiceRoleKey({ secret });
+      const payload = JSON.parse(
+        Buffer.from(jwt.split(".")[1], "base64url").toString(),
+      );
+      assert.strictEqual(payload.role, "service_role");
+      assert.strictEqual(payload.iss, "supabase");
+    });
+
+    test("exp - iat equals the 10-year constant", () => {
+      const jwt = mintSupabaseServiceRoleKey({ secret });
+      const payload = JSON.parse(
+        Buffer.from(jwt.split(".")[1], "base64url").toString(),
+      );
+      assert.strictEqual(payload.exp - payload.iat, TEN_YEARS_SECONDS);
+    });
+
+    test("signature verifies under the same secret", () => {
+      const jwt = mintSupabaseServiceRoleKey({ secret });
+      const [h, p, s] = jwt.split(".");
+      const expected = createHmac("sha256", secret)
+        .update(`${h}.${p}`)
+        .digest("base64url");
+      assert.strictEqual(s, expected);
+    });
+
+    test("throws when secret missing", () => {
+      assert.throws(
+        () => mintSupabaseServiceRoleKey({ secret: "" }),
+        /mintSupabaseServiceRoleKey: secret required/,
       );
     });
   });

@@ -50,6 +50,9 @@ export class Config {
     "GH_TOKEN",
     "GITHUB_TOKEN",
     "MCP_TOKEN",
+    "SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_JWT_SECRET",
   ]);
 
   // Cached credential values — populated on first access via getter methods
@@ -160,6 +163,26 @@ export class Config {
   /** @returns {string} MCP bearer token */
   mcpToken() {
     return this.#resolve(["MCP_TOKEN"]);
+  }
+
+  /** @returns {string} Supabase base URL (trailing slashes stripped) */
+  supabaseUrl() {
+    return this.#resolve(["SUPABASE_URL"], stripTrailingSlashes);
+  }
+
+  /** @returns {string} Supabase anon key JWT */
+  supabaseAnonKey() {
+    return this.#resolve(["SUPABASE_ANON_KEY"]);
+  }
+
+  /** @returns {string} Supabase service-role key JWT */
+  supabaseServiceRoleKey() {
+    return this.#resolve(["SUPABASE_SERVICE_ROLE_KEY"]);
+  }
+
+  /** @returns {string} Supabase HS256 JWT signing secret */
+  supabaseJwtSecret() {
+    return this.#resolve(["SUPABASE_JWT_SECRET"]);
   }
 
   /**

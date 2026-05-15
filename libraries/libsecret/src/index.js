@@ -188,6 +188,45 @@ export function mintSupabaseJwt({
   );
 }
 
+const SUPABASE_ROLE_EXP_SECONDS = 10 * 365 * 24 * 60 * 60;
+
+function mintSupabaseRoleKey({ role, secret }) {
+  if (!secret) {
+    throw new Error(
+      `mintSupabase${role === "anon" ? "Anon" : "ServiceRole"}Key: secret required`,
+    );
+  }
+  const now = Math.floor(Date.now() / 1000);
+  return generateJWT(
+    { iss: "supabase", iat: now, exp: now + SUPABASE_ROLE_EXP_SECONDS, role },
+    secret,
+  );
+}
+
+/**
+ * Mint a long-lived Supabase anon-role HS256 JWT, used by the local
+ * Supabase stack and by anon Supabase clients.
+ *
+ * @param {object} params
+ * @param {string} params.secret - Supabase JWT secret (HMAC key)
+ * @returns {string} Signed JWT
+ */
+export function mintSupabaseAnonKey({ secret }) {
+  return mintSupabaseRoleKey({ role: "anon", secret });
+}
+
+/**
+ * Mint a long-lived Supabase service-role HS256 JWT, used for admin
+ * operations against the local Supabase stack.
+ *
+ * @param {object} params
+ * @param {string} params.secret - Supabase JWT secret (HMAC key)
+ * @returns {string} Signed JWT
+ */
+export function mintSupabaseServiceRoleKey({ secret }) {
+  return mintSupabaseRoleKey({ role: "service_role", secret });
+}
+
 /**
  * Parse a duration string like "8760h", "365d", or "1y" into seconds.
  * Accepted suffixes: h (hours), d (days, 86400s), y (years, 31536000s).

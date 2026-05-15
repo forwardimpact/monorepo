@@ -260,6 +260,35 @@ describe("libconfig - .env file loading", () => {
     assert.ok(!serialized.includes("secret"));
   });
 
+  test("Supabase secret keys are credential-isolated from process.env", async () => {
+    writeEnvFile(
+      [
+        "SUPABASE_URL=http://127.0.0.1:54321",
+        "SUPABASE_ANON_KEY=anon-jwt",
+        "SUPABASE_SERVICE_ROLE_KEY=service-role-jwt",
+        "SUPABASE_JWT_SECRET=signing-secret",
+      ].join("\n"),
+    );
+
+    const proc = createProcess();
+    const config = await createConfig("test", "svc", {}, proc, mockStorageFn);
+
+    assert.strictEqual(config.supabaseAnonKey(), "anon-jwt");
+    assert.strictEqual(config.supabaseServiceRoleKey(), "service-role-jwt");
+    assert.strictEqual(config.supabaseJwtSecret(), "signing-secret");
+
+    // SUPABASE_URL is non-credential; it must remain on process.env so
+    // docker-compose's ${SUPABASE_URL} interpolation works at the shell
+    // level (design § Key Decisions row 7).
+    assert.strictEqual(proc.env.SUPABASE_URL, "http://127.0.0.1:54321");
+    assert.strictEqual(config.supabaseUrl(), "http://127.0.0.1:54321");
+
+    // Three secret values must NOT leak onto process.env.
+    assert.strictEqual(proc.env.SUPABASE_ANON_KEY, undefined);
+    assert.strictEqual(proc.env.SUPABASE_SERVICE_ROLE_KEY, undefined);
+    assert.strictEqual(proc.env.SUPABASE_JWT_SECRET, undefined);
+  });
+
   test("strips export prefix on keys", async () => {
     writeEnvFile("export GITHUB_TOKEN=exported-value\n");
 
