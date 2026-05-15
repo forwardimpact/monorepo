@@ -16,11 +16,12 @@ to find out.
 
 - A Supabase Auth JWT bound to your engineer email. The CLI reads it from
   `LANDMARK_AUTH_TOKEN`. Test harnesses and CI fixtures mint JWTs against
-  `MAP_SUPABASE_JWT_SECRET` via the `signTestToken` helper; production-side
+  `SUPABASE_JWT_SECRET` via the `signTestToken` helper; production-side
   issuance flows (login, magic-link, SSO) are a follow-up — until then the
   command requires a manually-injected token.
-- `MAP_SUPABASE_URL` and `MAP_SUPABASE_ANON_KEY` exported in your shell. Both
-  are printed by `fit-map activity start`.
+- `SUPABASE_URL` and `SUPABASE_ANON_KEY` available in your environment.
+  Local installs generate these in `.env` via `just env-setup`; hosted
+  Supabase deployments copy them from the project's API settings.
 
 ## Run it
 

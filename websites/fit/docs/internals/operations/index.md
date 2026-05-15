@@ -36,10 +36,8 @@ just env-reset docker-native && just rc-start  # docker networking, MinIO storag
 ### Environment Setup
 
 ```sh
-just env-setup     # Reset from examples, generate secrets and storage creds
-just env-reset     # Copy .env.local.example → .env
-just env-secrets   # Generate SERVICE_SECRET, JWT_SECRET
-just env-storage   # Generate storage backend credentials
+just env-reset     # Copy .env.local.example → .env (wipes any existing values)
+just env-setup     # Generate every secret in .env (idempotent across runs)
 ```
 
 `ANTHROPIC_API_KEY` is set in the environment (provided by the hosting platform,

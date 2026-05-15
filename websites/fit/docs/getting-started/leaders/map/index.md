@@ -174,13 +174,11 @@ and `kong.yml` — inside the npm package. `fit-map activity start` runs
 npx fit-map activity start
 ```
 
-The CLI prints the local URL and the service-role key when it finishes booting.
-Copy the export commands it prints — every ingestion command needs them.
-
-```sh
-export MAP_SUPABASE_URL=http://127.0.0.1:54321
-export MAP_SUPABASE_SERVICE_ROLE_KEY=<service-role key from fit-map activity start>
-```
+The CLI prints a one-line ready confirmation when the stack is up. Every
+ingestion command reads `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
+from `.env` — `just env-setup` (for monorepo contributors) or your
+hosted Supabase project's API settings provide them. No export step
+is needed.
 
 To stop the local instance:
 
@@ -284,7 +282,7 @@ file to the hosted function instead:
 
 ```sh
 curl -X POST \
-  -H "Authorization: Bearer $MAP_SUPABASE_SERVICE_ROLE_KEY" \
+  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
   -H "Content-Type: application/x-yaml" \
   --data-binary @./people.yaml \
   https://<project-ref>.supabase.co/functions/v1/people-upload
@@ -360,7 +358,7 @@ can send an HTTP POST — GitHub Actions `schedule:` jobs, a Nomad periodic, or
 supabase secrets set GETDX_API_TOKEN=<your getdx api token>
 
 curl -X POST \
-  -H "Authorization: Bearer $MAP_SUPABASE_SERVICE_ROLE_KEY" \
+  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
   https://<project-ref>.supabase.co/functions/v1/getdx-sync
 ```
 
@@ -400,7 +398,7 @@ server-side:
 
 ```sh
 curl -X POST \
-  -H "Authorization: Bearer $MAP_SUPABASE_SERVICE_ROLE_KEY" \
+  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
   https://<project-ref>.supabase.co/functions/v1/transform
 ```
 

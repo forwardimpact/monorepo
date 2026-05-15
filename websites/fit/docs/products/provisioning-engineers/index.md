@@ -18,7 +18,7 @@ production Supabase instance. Engineers do not run it.
 
 ## Prerequisites
 
-- `MAP_SUPABASE_URL` and `MAP_SUPABASE_SERVICE_ROLE_KEY` exported in your
+- `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` exported in your
   shell. The service-role key is the same credential `fit-map people push`
   consumes — `provision` is operator-only by virtue of which env var it
   reads. It is registered on `fit-map`, not `fit-landmark`, because

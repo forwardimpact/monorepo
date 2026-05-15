@@ -22,9 +22,9 @@ see [Issue Service-Account Tokens](https://www.forwardimpact.team/docs/products/
 - An `auth.users` row paired with your roster entry. Your operator runs
   `fit-map people provision` to keep these synchronized — if your email is
   not in the roster, login will fail.
-- `MAP_SUPABASE_URL` and `MAP_SUPABASE_ANON_KEY` exported in your shell.
-  Local stacks get these from `fit-map activity start`; hosted Supabase
-  projects expose them in Project Settings → API.
+- `SUPABASE_URL` and `SUPABASE_ANON_KEY` available in your environment.
+  Local installs get these in `.env` from `just env-setup`; hosted
+  Supabase projects expose them in Project Settings → API.
 
 ## Browser flow (default)
 

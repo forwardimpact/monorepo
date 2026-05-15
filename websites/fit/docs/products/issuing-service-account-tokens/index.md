@@ -19,9 +19,9 @@ project. Engineers do not run it.
 
 ## Prerequisites
 
-- `MAP_SUPABASE_URL`, `MAP_SUPABASE_SERVICE_ROLE_KEY`, and
-  `MAP_SUPABASE_JWT_SECRET` exported in your shell.
-  - **Local stack** — `fit-map activity start` prints all three.
+- `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and
+  `SUPABASE_JWT_SECRET` available in your environment.
+  - **Local stack** — `just env-setup` writes all three to `.env`.
   - **Hosted Supabase** — find them in Project Settings → API → Project URL,
     Service Role Key, and JWT Secret.
 - The target email already has both an `organization_people` row and an
@@ -85,7 +85,7 @@ LANDMARK_AUTH_TOKEN=$JWT fit-landmark voice
 ```
 
 No magic-link, no refresh flow — the long-lived JWT verifies under
-`MAP_SUPABASE_JWT_SECRET` on the Postgres side, RLS clamps the result to
+`SUPABASE_JWT_SECRET` on the Postgres side, RLS clamps the result to
 the service-account's row class, and the agent runs unattended.
 
 ## Security guidance
