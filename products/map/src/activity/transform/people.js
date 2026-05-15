@@ -47,16 +47,23 @@ async function importPeople(supabase, people) {
     if (batch.length === 0) continue;
 
     const { error } = await supabase.from("organization_people").upsert(
-      batch.map((p) => ({
-        email: p.email,
-        name: p.name,
-        github_username: p.github_username || null,
-        discipline: p.discipline,
-        level: p.level,
-        track: p.track || null,
-        manager_email: p.manager_email || null,
-        updated_at: new Date().toISOString(),
-      })),
+      batch.map((p) => {
+        const kind = p.kind || "human";
+        // The DB check constraint enforces `level IS NULL` when
+        // `kind = 'service_account'`. Drop level for service accounts so
+        // a stale `level` field in the input does not trip the constraint.
+        return {
+          email: p.email,
+          name: p.name,
+          github_username: p.github_username || null,
+          discipline: p.discipline,
+          level: kind === "service_account" ? null : p.level,
+          track: p.track || null,
+          manager_email: p.manager_email || null,
+          kind,
+          updated_at: new Date().toISOString(),
+        };
+      }),
       { onConflict: "email" },
     );
 

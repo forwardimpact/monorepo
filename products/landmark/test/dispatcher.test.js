@@ -36,14 +36,15 @@ function run(args, env) {
 }
 
 describe("fit-landmark dispatcher exit codes", () => {
-  test("exits 4 when LANDMARK_AUTH_TOKEN is missing on a Supabase-using command", () => {
-    const res = run(
-      ["voice", "--email", "a@b.example", "--data", DATA_DIR],
-      {},
-    );
+  test("exits 4 when no identity can be resolved on a Supabase-using command", () => {
+    const res = run(["voice", "--email", "a@b.example", "--data", DATA_DIR], {
+      // Point the credentials store at a guaranteed-absent file so the
+      // store fallback does not pick up a real engineer's session.
+      LANDMARK_CREDENTIALS_FILE: "/nonexistent/landmark-creds.json",
+    });
     assert.equal(res.status, 4);
     assert.match(res.stderr, /Authentication required/);
-    assert.match(res.stderr, /LANDMARK_AUTH_TOKEN/);
+    assert.match(res.stderr, /fit-landmark login/);
   });
 
   test("exits 3 when token present but MAP_SUPABASE_URL is unset", () => {

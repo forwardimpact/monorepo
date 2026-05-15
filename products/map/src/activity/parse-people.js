@@ -19,6 +19,9 @@ export function parseYamlPeople(content) {
   return rows.map((row) => ({
     ...row,
     github_username: row.github_username || row.github || null,
+    // Default to 'human' so legacy YAML files (no `kind` field) keep
+    // ingesting against the new check constraint on organization_people.
+    kind: row.kind || "human",
   }));
 }
 
@@ -33,7 +36,11 @@ export function parseCsv(csv) {
   const headers = lines[0].split(",").map((h) => h.trim());
   return lines.slice(1).map((line) => {
     const values = line.split(",").map((v) => v.trim());
-    return Object.fromEntries(headers.map((h, i) => [h, values[i] || null]));
+    const row = Object.fromEntries(
+      headers.map((h, i) => [h, values[i] || null]),
+    );
+    row.kind = row.kind || "human";
+    return row;
   });
 }
 

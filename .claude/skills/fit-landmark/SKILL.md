@@ -125,3 +125,5 @@ npx fit-landmark health                  # Should display team health overview
   — See where you stand against level expectations
 - [List Engineering Data Sources](https://www.forwardimpact.team/docs/products/engineering-data-sources/index.md)
   — List the activity rows retained about an engineer and their fall-off dates
+- [Sign In to Landmark](https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md)
+  — Sign in via Supabase magic-link so commands resolve your identity automatically

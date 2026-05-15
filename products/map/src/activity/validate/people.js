@@ -40,6 +40,17 @@ function validatePersonRow(person, ids) {
 
   if (!person.email) rowErrors.push("missing email");
   if (!person.name) rowErrors.push("missing name");
+
+  // Service-account rows carry no Pathway job profile. Validate just the
+  // shape (email/name above; level-null below) and skip the discipline/
+  // level/track checks the human rows go through. The DB check
+  // constraint enforces level IS NULL for these rows.
+  if (person.kind === "service_account") {
+    if (person.level)
+      rowErrors.push("service_account rows must have level=null");
+    return rowErrors;
+  }
+
   if (!person.discipline) {
     rowErrors.push("missing discipline");
   } else if (!ids.disciplineIds.has(person.discipline)) {
@@ -63,14 +74,16 @@ function validatePersonRow(person, ids) {
  * @returns {object}
  */
 function normalizePersonRecord(person) {
+  const kind = person.kind || "human";
   return {
     email: person.email,
     name: person.name,
     github_username: person.github_username || null,
     discipline: person.discipline,
-    level: person.level,
+    level: kind === "service_account" ? null : person.level,
     track: person.track || null,
     manager_email: person.manager_email || null,
+    kind,
   };
 }
 

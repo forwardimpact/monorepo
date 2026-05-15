@@ -551,6 +551,7 @@
       },
       "devDependencies": {
         "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libsecret": "^0.1.14",
       },
     },
     "products/map": {
@@ -561,6 +562,7 @@
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libsecret": "^0.1.14",
         "@forwardimpact/libtemplate": "^0.2.0",
         "@forwardimpact/libutil": "^0.1.64",
         "@supabase/supabase-js": "^2.105.4",

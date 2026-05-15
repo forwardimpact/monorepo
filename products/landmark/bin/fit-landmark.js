@@ -26,6 +26,8 @@ import { runPracticedCommand } from "../src/commands/practiced.js";
 import { runHealthCommand } from "../src/commands/health.js";
 import { runVoiceCommand } from "../src/commands/voice.js";
 import { runSourcesCommand } from "../src/commands/sources.js";
+import { runLoginCommand } from "../src/commands/login.js";
+import { runLogoutCommand } from "../src/commands/logout.js";
 import { resolveDataDir } from "../src/lib/cli.js";
 import { buildContext } from "../src/lib/context.js";
 import { SupabaseUnavailableError } from "../src/lib/supabase.js";
@@ -58,6 +60,8 @@ const COMMANDS = {
   health: { handler: runHealthCommand, needsSupabase: true },
   voice: { handler: runVoiceCommand, needsSupabase: true },
   sources: { handler: runSourcesCommand, needsSupabase: true },
+  login: { handler: runLoginCommand, needsSupabase: false },
+  logout: { handler: runLogoutCommand, needsSupabase: false },
 };
 
 const definition = {
@@ -182,6 +186,21 @@ const definition = {
         },
       },
     },
+    {
+      name: "login",
+      description: "Sign in via Supabase magic-link (browser or --otp)",
+      options: {
+        email: { type: "string", description: "Email to sign in as" },
+        otp: {
+          type: "boolean",
+          description: "Skip the browser; prompt for the 6-digit code instead",
+        },
+      },
+    },
+    {
+      name: "logout",
+      description: "Delete the local credentials file",
+    },
   ],
   globalOptions: {
     data: { type: "string", description: "Path to Map data directory" },
@@ -238,6 +257,12 @@ const definition = {
       description:
         "List the activity rows retained about an engineer and their fall-off dates.",
     },
+    {
+      title: "Sign In to Landmark",
+      url: "https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md",
+      description:
+        "Sign in via Supabase magic-link so commands resolve your identity automatically.",
+    },
   ],
 };
 
@@ -263,7 +288,7 @@ async function main() {
   try {
     const dataDir = resolveDataDir(values);
     let identity = null;
-    if (entry.needsSupabase) identity = resolveIdentity();
+    if (entry.needsSupabase) identity = await resolveIdentity();
     const ctx = await buildContext({
       dataDir,
       options: values,

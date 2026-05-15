@@ -155,3 +155,5 @@ npx fit-map validate
   — File format reference for every entity type
 - [Provision Engineer Auth Users](https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md)
   — Reconcile auth.users against the roster so identity-derived RLS works
+- [Issue Service-Account Tokens](https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md)
+  — Mint long-lived Supabase JWTs for unattended agents

@@ -109,9 +109,28 @@ export function createBlockParsers(helpers) {
     return map;
   }
 
+  function parseServiceAccount() {
+    const id = parseStringOrIdent();
+    expect("LBRACE");
+    const sa = { id };
+    consumeFields(
+      {
+        name: () => {
+          sa.name = parseStringValue();
+        },
+        email: () => {
+          sa.email = parseStringValue();
+        },
+      },
+      "service_account",
+    );
+    expect("RBRACE");
+    return sa;
+  }
+
   function parsePeople() {
     expect("LBRACE");
-    const people = {};
+    const people = { service_accounts: [] };
     consumeFields(
       {
         count: () => {
@@ -128,6 +147,9 @@ export function createBlockParsers(helpers) {
         },
         archetypes: () => {
           people.archetypes = parsePeopleMap();
+        },
+        service_account: () => {
+          people.service_accounts.push(parseServiceAccount());
         },
       },
       "people",

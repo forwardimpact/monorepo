@@ -21,6 +21,10 @@ enabled = true
 site_url = "http://localhost:3000"
 jwt_expiry = 3600
 enable_signup = false
+# `fit-landmark login` (PKCE magic-link) starts a listener on an ephemeral
+# 127.0.0.1 port and asks Supabase to redirect the email link back to it.
+# The wildcard admits any port without per-engineer config churn.
+additional_redirect_urls = ["http://127.0.0.1/*"]
 
 [auth.email]
 enable_signup = false

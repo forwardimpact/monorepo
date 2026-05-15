@@ -185,6 +185,14 @@ function generatePeople(ast, rng, teams, domain, logger) {
     );
   }
 
+  // Service-account rows declared in the DSL ride the same people array
+  // because that is the structure downstream renderers and ingestion
+  // already iterate. The `kind` discriminator keeps them distinguishable
+  // from human rows for filters and the DB check constraint.
+  for (const sa of ast.people.service_accounts ?? []) {
+    people.push(makeServiceAccount(sa, domain));
+  }
+
   return people;
 }
 
@@ -198,6 +206,7 @@ function makePerson(
   managerEmail,
   hireDate = "2023-01-15",
   archetype = "steady_contributor",
+  kind = "human",
 ) {
   const id = name.toLowerCase().replace(/\s+/g, "-");
   return {
@@ -215,6 +224,36 @@ function makePerson(
     manager_email: managerEmail,
     hire_date: hireDate,
     archetype,
+    kind,
+    iri: `https://${domain}/id/person/${id}`,
+  };
+}
+
+// Service-account rows share organization_people with humans but carry
+// no Pathway job profile. They keep the `kind`, `email`, `name`, and
+// `iri` fields filled; level / manager_email / team / department are
+// null because the DB check constraint enforces `level IS NULL` when
+// `kind = 'service_account'`.
+function makeServiceAccount(sa, domain) {
+  const id = sa.id.toLowerCase().replace(/[^a-z0-9-]+/g, "-");
+  const name = sa.name || sa.id;
+  const email = sa.email || `${id}@${domain}`.replace(/\s+/g, "-");
+  return {
+    id,
+    name,
+    email,
+    github: null,
+    github_username: null,
+    discipline: "system",
+    level: null,
+    track: null,
+    team_id: null,
+    department: null,
+    is_manager: false,
+    manager_email: null,
+    hire_date: null,
+    archetype: null,
+    kind: "service_account",
     iri: `https://${domain}/id/person/${id}`,
   };
 }

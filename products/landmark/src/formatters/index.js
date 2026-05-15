@@ -18,6 +18,16 @@ import * as practicedFormatter from "./practiced.js";
 import * as healthFormatter from "./health.js";
 import * as voiceFormatter from "./voice.js";
 import * as sourcesFormatter from "./sources.js";
+
+// Login and logout write their UX directly to stdout; the dispatcher's
+// formatResult() pass would otherwise dump the {meta,summary} result on
+// top of the human-readable lines. A silent formatter sidesteps that.
+const silent = {
+  toText: () => "",
+  toJson: (_, meta) => JSON.stringify({ meta }, null, 2),
+  toMarkdown: () => "",
+};
+
 const formatters = {
   org: orgFormatter,
   snapshot: snapshotFormatter,
@@ -31,6 +41,8 @@ const formatters = {
   health: healthFormatter,
   voice: voiceFormatter,
   sources: sourcesFormatter,
+  login: silent,
+  logout: silent,
 };
 
 /**

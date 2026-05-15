@@ -365,7 +365,7 @@ function renderRoster(entities) {
     id: person.id,
     name: person.name,
     email: person.email,
-    github_username: person.github_username || person.github,
+    github_username: person.github_username || person.github || null,
     team: person.team_id,
     department: person.department,
     discipline: person.discipline,
@@ -375,6 +375,7 @@ function renderRoster(entities) {
     hire_date: person.hire_date,
     is_manager: person.is_manager || false,
     archetype: person.archetype || "steady_contributor",
+    kind: person.kind || "human",
   }));
 
   return YAML.stringify({ roster }, { lineWidth: 120 });
