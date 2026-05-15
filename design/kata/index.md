@@ -1,25 +1,27 @@
 # Kata — Brand Implementation
 
 > The Kata realization of the [shared design language](../index.md): a
-> monochrome design system for the Kata Agent Team, built around the metaphor of
-> a **mid-century Toyota production floor**. Six agent personas — the **Staff
-> Engineer**, **Release Engineer**, **Security Engineer**, **Product Manager**,
-> **Technical Writer**, and **Improvement Coach** — work the line together, the
-> way Taiichi Ohno's foremen worked the shop floor in the 1940s and 50s.
+> monochrome design system for the Kata Agent Team, built around the metaphor
+> of a **mid-century Toyota production floor**. Six agent personas — the
+> **Staff Engineer**, **Release Engineer**, **Security Engineer**, **Product
+> Manager**, **Technical Writer**, and **Improvement Coach** — work the line
+> together, the way Taiichi Ohno's foremen worked the shop floor in the 1940s
+> and 50s.
 >
-> The brand evokes the dignity of practiced work: pressed suits, soft flat caps,
-> andon cords, kanban rails, the chalk circle on a polished concrete floor.
-> Black-and-white photography. Stamp-ink red on a white card. The calm authority
-> of someone who has stood on the gemba long enough to know what good looks
-> like.
+> The brand evokes the dignity of practiced work: pressed suits, soft flat
+> caps, andon cords, kanban rails, the chalk circle on a polished concrete
+> floor. Stamp-ink red on a white card. The calm authority of someone who has
+> stood on the gemba long enough to know what good looks like.
 
-This file specifies what is Kata-specific: the production-floor metaphor, Kata's
-reading of the family characters, the six agent personas, the concrete color
-palette, the typography choices, the type scale, the layout patterns, the agent
-visual language, and the CSS design tokens. The product scenes and agent icons
-live alongside in [scenes.md](scenes.md) and [icons.md](icons.md). For the
-abstract design language and the three characters' shared visual specifications,
-see [../index.md](../index.md).
+This file specifies what is Kata-specific: the production-floor metaphor, the
+six agent personas, the concrete color palette, the typography choices, the
+type scale, the layout patterns, the agent visual language, and the CSS design
+tokens. For the abstract design language — color, typography, spacing,
+components, motion, and accessibility — see [../index.md](../index.md).
+
+Kata is a typography- and motif-driven brand. It does not ship a character
+system or illustrated scenes; its visual identity is carried by the PDSA wheel,
+the kanban-rail texture, the hanko stamp ink, and the slab-serif wordmark.
 
 ---
 
@@ -43,36 +45,12 @@ The name **Kata** captures all three: a form practiced by hand, on the floor,
 with the calm conviction that the next iteration will be a little better than
 this one.
 
-The metaphor surfaces in illustration, iconography, and motif. The UI itself is
-clean and functional, not themed like a heritage poster.
+The metaphor surfaces in motif and wordmark. The UI itself is clean and
+functional, not themed like a heritage poster.
 
 ---
 
-## 2. Characters on the Floor
-
-The [three family characters](../index.md#2-the-three-characters) live inside
-the production-floor metaphor. Their visual specifications are unchanged from
-the family — what follows are Kata-specific readings, not new shapes:
-
-- **Hand-drawn voice.** The 2px monochrome line-art reads, in Kata, as a
-  _foreman's notebook sketch_ — a quick mark made on the back of a kanban card,
-  between line walks.
-- **The Stakeholder's cap.** In Kata scenes, the Stakeholder may wear a soft
-  flat cap — the Ohno cap — when on the shop floor. Suit, tie, blazer, and
-  formal posture remain unchanged; the cap is a brand-context accessory, not a
-  substitution. They are still the domain expert who already knows the
-  territory; the cap signals _which_ territory.
-- **The Engineer's hoodie.** Reads, in Kata, as the modern descendant of the
-  cotton work-shirt: utility cloth, layered for the floor, ready for the bench.
-- **The AI Agent's headphones.** Read, in Kata, as the line operator's hearing
-  protection — present, attentive, calibrated for the noise of the shop.
-- **What the trio embodies.** Three people who chose the discipline of daily
-  improvement: hacker speed, machine precision, foreman's judgement. Working the
-  line together, in front of the storyboard, where the cards meet the rail.
-
----
-
-## 3. The Six Agent Personas
+## 2. The Six Agent Personas
 
 Kata's "products" are the six agent personas — each a recognizable archetype
 from the mid-century shop floor, mapped to a contemporary engineering role.
@@ -86,8 +64,8 @@ from the mid-century shop floor, mapped to a contemporary engineering role.
 | **Technical Writer**  | Is the manual accurate, and does the wiki reflect what we learned? |
 | **Improvement Coach** | What is the current condition, and what did we learn yesterday?    |
 
-Each agent has its own visual motif — drawn from the production-floor metaphor —
-that surfaces in icons and scenes but never in structural UI.
+Each agent has its own visual motif — drawn from the production-floor metaphor
+— that surfaces in headings and accent marks, but never in structural UI.
 
 | Agent                 | Motif                                  |
 | --------------------- | -------------------------------------- |
@@ -102,10 +80,9 @@ that surfaces in icons and scenes but never in structural UI.
 
 Above the six personas sits the **PDSA wheel** — a four-quadrant chalk circle
 marked **P · D · S · A** clockwise, the spine of [KATA.md](../../KATA.md) made
-visible. It is the brand's only repeating non-character motif, used as:
+visible. It is the brand's repeating motif, used as:
 
-- The optional accent above the second `A` in the **KATA** wordmark (see
-  [icons.md § Suite Wordmark](icons.md#suite-wordmark)).
+- The optional accent above the second `A` in the **KATA** wordmark.
 - A section divider on long pages — drawn at 16px, `--gray-300` stroke, centred,
   with 96px of vertical breathing room either side.
 - A loading state — the wheel rotates one quadrant per 800ms, looping P → D → S
@@ -129,7 +106,7 @@ may show **S** lit. Lit quadrants use a 1.5px stroke; unlit quadrants use a
 
 ---
 
-## 4. Color Palette
+## 3. Color Palette
 
 ### Core Palette
 
@@ -177,7 +154,7 @@ sandstone, but still warmer than pure neutral. Like archival paper.
 
 ---
 
-## 5. Typography
+## 4. Typography
 
 ### Font Selection
 
@@ -235,31 +212,28 @@ IBM Plex Sans, 18px, weight 400, gray-400:
   coaching — one daily kata at a time.
 ```
 
----
+### Suite Wordmark
 
-## 6. Product Scenes
+The Kata wordmark sets the four letters **KATA** in Roboto Slab 700 with
+generous letter-spacing (`0.18em`). Above the second `A` sits a small **PDSA
+wheel** — the four-quadrant chalk circle defined in
+[§ 2 The PDSA Wheel](#the-pdsa-wheel) — sized at 0.5em. The wheel acts as the
+brand's signature: a quiet visible reminder that every Kata page is a turn of
+the cycle.
 
-The Kata product scenes — Storyboard Stand-up, Walking the Gemba, the Ohno
-Circle, the Andon Cord, the Kanban Rail, the Drafting Bench, the Shipping Bay,
-and the Archivist's Desk — and the scene usage matrix live in a sibling file:
-[scenes.md](scenes.md). They extend the
-[reusable base scenes](../index.md#4-reusable-base-scenes) with Kata
-production-floor symbols.
+```
+   K A T A
+        ⊕     ← PDSA wheel (P · D · S · A clockwise)
+```
 
----
-
-## 7. Product Icons
-
-The six Kata agent icons — Staff Engineer, Release Engineer, Security Engineer,
-Product Manager, Technical Writer, Improvement Coach — plus the icon system
-rules and the combined suite mark live in a sibling file: [icons.md](icons.md).
-They share the family icon grid (24px, 2px stroke, no fill) and read as if
-stamped into the same logbook as the
-[characters](../index.md#2-the-three-characters).
+At very small sizes (under 16px wordmark height), the PDSA wheel reduces to a
+simple **stroke-only** circle in `--gray-700` — the quadrant marks are dropped,
+but the no-fill rule is preserved. Below 8px wordmark height the wheel is
+omitted entirely.
 
 ---
 
-## 8. Layout Patterns
+## 5. Layout Patterns
 
 The Kata Agent Team is **internal**. It has no public marketing site. The brand
 surfaces in four real places, ordered by how often a contributor or agent
@@ -274,10 +248,6 @@ where the brand renders for human contributors browsing the docs site.
 ```
 ┌──────────────────────────────────────────────┐
 │  Forward Impact Engineering Internals  ›  Kata  │
-│                                              │
-│       ┌──────────────────────────┐           │
-│       │  Storyboard Stand-up     │           │
-│       └──────────────────────────┘           │
 │                                              │
 │     Kata                                     │  ← Roboto Slab 700, 44px
 │                                              │
@@ -313,9 +283,8 @@ where the brand renders for human contributors browsing the docs site.
 `KATA.md` at the repo root is read by every agent at the start of a Kata run
 (per the L1 instruction layer). On GitHub it renders as plain flavored markdown
 — the brand cannot inject CSS — so the brand surfaces through **structural
-cues** only: the trio mark in the header (linked SVG), section headings that
-match the persona names, the hanko stamp emoji-equivalent (`🟥`) reserved for
-the Trust Boundary section.
+cues** only: section headings that match the persona names, the hanko stamp
+emoji-equivalent (`🟥`) reserved for the Trust Boundary section.
 
 ### Surface 3 — Agent Comments and PR/Issue Bodies
 
@@ -370,7 +339,7 @@ backgrounds.
 
 ### Concrete Components
 
-The component patterns in [../index.md § 8](../index.md#8-components)
+The component patterns in [../index.md § 5](../index.md#5-components)
 instantiate with Kata colors:
 
 - **Buttons (Primary):** `background: --gray-900`, text `#ffffff`. Hover shifts
@@ -387,26 +356,26 @@ instantiate with Kata colors:
 - **Kanban-Rail Texture:** Repeating thin horizontal lines in `--gray-100` on
   `--white-warm` or `--ink-50` sections. 1px stroke, 28px spacing, opacity 0.35.
 - **Footer (Dark):** `background: --gray-900`, primary text `#ebe8e1`, secondary
-  text `--gray-300`, dividers `--gray-700`. Trio silhouette + the word **KATA**
-  (Roboto Slab 700, letter-spaced) in white. Licenses (Apache-2.0 code, CC BY
+  text `--gray-300`, dividers `--gray-700`. The word **KATA** (Roboto Slab 700,
+  letter-spaced) plus the PDSA wheel in white. Licenses (Apache-2.0 code, CC BY
   4.0 docs) in `--gray-300`. (`--gray-300` is the on-dark equivalent of
   `--gray-400` on light — a brand convention since Kata's `--gray-400` is darker
   than the family default to satisfy AA on white.)
 
 ---
 
-## 9. Agent Visual Language
+## 6. Agent Visual Language
 
 Each agent shares the core design system with subtle differentiators:
 
-| Agent                 | Accent Metaphor                          | Empty State                                   | Tone                                     |
-| --------------------- | ---------------------------------------- | --------------------------------------------- | ---------------------------------------- |
-| **Staff Engineer**    | Drafting — set-squares, plan grid        | Engineer at empty bench, sharpening pencil    | "Draw the plan before cutting metal."    |
-| **Release Engineer**  | Shipping — crates, manifest, time stamp  | Crate ready, stamp uninked                    | "The line moves on time."                |
-| **Security Engineer** | Watch — brass keys, lantern, locked door | Lantern lit, ring of keys on a hook           | "Walk the floor with the lantern up."    |
-| **Product Manager**   | Kanban — cards on a wire, triage bin     | Empty rail, three pegs waiting                | "What's next on the rail?"               |
-| **Technical Writer**  | Archive — fountain pen, manila folder    | Open ledger, fresh page                       | "If it isn't written, it didn't happen." |
-| **Improvement Coach** | Coaching — chalk circle, five-question   | Empty circle drawn on the floor, chalk beside | "What is the current condition?"         |
+| Agent                 | Accent Metaphor                          | Empty State                                                | Tone                                     |
+| --------------------- | ---------------------------------------- | ---------------------------------------------------------- | ---------------------------------------- |
+| **Staff Engineer**    | Drafting — set-squares, plan grid        | Empty drafting bench, set-square at rest                   | "Draw the plan before cutting metal."    |
+| **Release Engineer**  | Shipping — crates, manifest, time stamp  | Sealed crate, uninked stamp on the lid                     | "The line moves on time."                |
+| **Security Engineer** | Watch — brass keys, lantern, locked door | Lantern lit on a hook, ring of keys beside it              | "Walk the floor with the lantern up."    |
+| **Product Manager**   | Kanban — cards on a wire, triage bin     | Empty rail, three pegs waiting                             | "What's next on the rail?"               |
+| **Technical Writer**  | Archive — fountain pen, manila folder    | Open ledger, fresh page, capped pen beside it              | "If it isn't written, it didn't happen." |
+| **Improvement Coach** | Coaching — chalk circle, five-question   | Empty chalk circle on the floor, stick of chalk at the rim | "What is the current condition?"         |
 
 ### Agent-Specific UI Treatments
 
@@ -429,7 +398,7 @@ Each agent shares the core design system with subtle differentiators:
 
 ---
 
-## 10. Design Tokens
+## 7. Design Tokens
 
 ```css
 :root {
@@ -518,4 +487,4 @@ stamped paper.
 ---
 
 _Kata brand implementation of the [shared design language](../index.md). Sibling
-brand to [Forward Impact Engineering](../fit/index.md). Updated April 2026._
+brand to [Forward Impact Engineering](../fit/index.md). Updated May 2026._

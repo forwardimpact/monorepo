@@ -3,6 +3,6 @@ set quiet
 # Strip metadata and crop all SVGs to content bbox
 process:
     #!/usr/bin/env bash
-    svgs=$(find fit/assets kata/assets -name '*.svg' | sort)
+    svgs=$(find fit/assets -name '*.svg' | sort)
     node scripts/svg-strip.mjs $svgs
     node scripts/svg-crop.mjs $svgs

@@ -1,7 +1,5 @@
-brand_assets := "../../design/kata/assets"
 shared_assets := "../../design/assets"
 
 build:
     mkdir -p assets
-    cp {{brand_assets}}/*.svg assets/
     cp {{shared_assets}}/*.css assets/

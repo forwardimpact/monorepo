@@ -7,7 +7,7 @@
 
    To brand this site, add a design/monorepo/ folder mirroring
    design/fit/ and replace this :root block with the brand's tokens
-   per design/usage.md § 3 CSS Architecture.
+   per design/usage.md § 2 CSS Architecture.
    ══════════════════════════════════════════════════════════════════ */
 
 :root {

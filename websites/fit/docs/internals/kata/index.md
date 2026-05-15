@@ -218,11 +218,6 @@ run generates a 1-hour installation token via `actions/create-github-app-token`
   Canonical reference, read by every agent at the start of every run.
 - **[Kata Brand](https://github.com/forwardimpact/monorepo/blob/main/design/kata/index.md)**
   — Brand implementation: palette, typography, motifs, and design tokens.
-- **[Kata Scenes](https://github.com/forwardimpact/monorepo/blob/main/design/kata/scenes.md)**
-  — Production-floor scenes: storyboard, gemba walk, Ohno circle, andon cord,
-  merge gate, drafting bench, shipping bay, archivist's desk, trace tape.
-- **[Kata Icons](https://github.com/forwardimpact/monorepo/blob/main/design/kata/icons.md)**
-  — Six agent icons and the suite mark.
 - **[COALIGNED.md](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)**
   — How `<read_do_checklist>` and `<do_confirm_checklist>` work.
 - **[CONTRIBUTING.md](https://github.com/forwardimpact/monorepo/blob/main/CONTRIBUTING.md)**

@@ -6,9 +6,9 @@
    fallback tokens keep the page rendering cleanly.
 
    To brand this site, replace the :root block with the values
-   specified in design/kata/index.md § 10 Design Tokens, and add any
+   specified in design/kata/index.md § 7 Design Tokens, and add any
    Kata-specific motifs (e.g. .section-rail, .section-philosophy).
-   See design/usage.md § 3 CSS Architecture for the full contract.
+   See design/usage.md § 2 CSS Architecture for the full contract.
    ══════════════════════════════════════════════════════════════════ */
 
 :root {

@@ -1,24 +1,28 @@
 # Forward Impact Engineering — Brand Implementation
 
 > The Forward Impact Engineering realization of the
-> [shared design language](../index.md): a monochrome design system for seven
-> open-source products — **Map**, **Pathway**, **Guide**, **Landmark**,
-> **Summit**, **Outpost**, and **Gear** — built around the metaphor of engineers
-> deployed "in the field." Three characters — the Engineer, the AI Agent, and
-> the Business Stakeholder — collaborate at the boundary between technology and
-> the real world.
+> [shared design language](../index.md): a monochrome, character-driven design
+> system for seven open-source products — **Map**, **Pathway**, **Guide**,
+> **Landmark**, **Summit**, **Outpost**, and **Gear** — built around the
+> metaphor of engineers deployed "in the field." Three characters — the
+> Engineer, the AI Agent, and the Business Stakeholder — collaborate at the
+> boundary between technology and the real world.
 >
 > The design embodies Deming's principle: improve the performance of developers
 > and agents, improve quality, increase output, and bring pride of workmanship
 > to engineering teams.
 
-This file specifies what is brand-specific: the field metaphor, this brand's
-reading of the family characters, the seven products, the concrete color
-palette, the typography choices, the type scale, the layout patterns, the
-product visual language, and the CSS design tokens. The product scenes and
-product icons live alongside in [scenes.md](scenes.md) and [icons.md](icons.md).
-For the abstract design language and the three characters' shared visual
-specifications, see [../index.md](../index.md).
+This file specifies what is brand-specific: the field metaphor, the three
+characters and the scene grammar that frames them, the reusable base scenes,
+the seven products, the concrete color palette, the typography choices, the
+type scale, the layout patterns, the product visual language, and the CSS
+design tokens. The product scenes and product icons live alongside in
+[scenes.md](scenes.md) and [icons.md](icons.md). For the abstract design
+language — color, typography, spacing, components, motion, and accessibility
+— see [../index.md](../index.md).
+
+The three characters and the scene grammar are a Forward Impact brand asset.
+Other brands derive from the shared design language without inheriting them.
 
 ---
 
@@ -45,28 +49,237 @@ and functional, not themed like an outdoor gear catalog.
 
 ---
 
-## 2. Characters in the Field
+## 2. The Three Characters in the Field
 
-The [three family characters](../index.md#2-the-three-characters) live inside
-the field metaphor. Their visual specifications are unchanged from the family —
-what follows are brand-specific readings, not new shapes:
+This section is the complete specification for generating the three characters.
+It contains everything needed to produce them as standalone illustrations. Once
+generated, characters appear in scenes governed by [§ 3](#3-scene-grammar).
 
-- **Hand-drawn voice.** The 2px monochrome line-art reads, in this brand, as a
-  _field notebook sketch_ — something an engineer might draw in the margin of a
-  logbook between deployments.
-- **The Engineer's backpack.** The constant from the field metaphor: they carry
-  their tools wherever they're deployed.
-- **The Stakeholder's role.** Represents the leadership and domain experts that
-  engineers are embedded with — product owners, engineering managers, and
-  business stakeholders who define what good engineering looks like. Their
-  absent backpack reads, in this brand, as "the territory is theirs already."
-- **What the trio embodies.** Together, the three characters embody the heart of
-  forward deployed engineering — engineer, AI, and business working at the
-  boundary between technology and the real world.
+### Rendering
+
+Characters use exactly four values — white, black, and one or two grays. No
+other colors, no gradients.
+
+| Property   | Specification                                                                                                                                                    |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Palette    | White for all primary surfaces. Black for all lines and strokes. One or two neutral grays for secondary surfaces (clothing, hair, accessories). No other values. |
+| Stroke     | 2px, pure black. No brown-black, no warm black, no dark-gray strokes.                                                                                            |
+| Fills      | Flat only. No gradients, no soft shading, no drop shadows, no gradient fills.                                                                                    |
+| Style      | Hand-drawn line art — like a working notebook sketch. Slightly irregular strokes, not vector-perfect.                                                            |
+| Background | Transparent or pure white. Characters are drawn without scene context when generated as a character sheet.                                                       |
+| Color      | None. Zero hue. Strictly achromatic. No brown, no tan, no ochre, no sepia, no cream, no beige, no warm tone of any kind.                                         |
+
+The hand-drawn voice reads, in this brand, as a _field notebook sketch_ —
+something an engineer might draw in the margin of a logbook between
+deployments.
+
+### Shared Traits
+
+- Round heads, simple dot eyes — expressive through posture, not facial detail
+- Roughly 2:3 proportions (wide:tall), slightly cartoonish but not childish
+- Same height — no hierarchy of size
+- Always shown together — working side by side, consulting, collaborating. They
+  replace the solo hero with a team.
+
+### The Engineer
+
+- Animal-eared hoodie (bunny or fox ears on the hood) — the signature element.
+  The hoodie signals hacker/builder culture. Hair visible under the hoodie.
+- Visible backpack — the constant from the field metaphor: they carry their
+  tools wherever they're deployed.
+- Laptop with a round citrus fruit sticker (resembles Apple logo, but a citrus
+  fruit instead).
+- Posture: leaning in, engaged, slightly informal.
+- **Identifier constraint:** never remove the hoodie ears — key identifier at
+  all sizes.
+
+### The AI Agent
+
+- Round circle head, two large dot eyes, small curved smile.
+- Headphones wrapping around the head — suggests active listening.
+- Small backpack like the others — deployed alongside humans, not above them.
+- Simple geometric body — more geometric than the human characters.
+- Laptop (pixel-art skull or space-invader sticker optional).
+- Posture: upright, attentive, slightly turned toward others.
+- **Identifier constraint:** never make the AI Agent visually dominant — equal
+  partner, same height, not floating above.
+
+### The Business Stakeholder
+
+- Business attire: collared shirt, tie, blazer. Neat hair, formal posture.
+- **No backpack** — the domain expert who already knows the territory.
+  Represents leadership and domain experts who define what good looks like —
+  product owners, engineering managers, and business stakeholders engineers
+  are embedded with. In this brand, the absent backpack reads as "the
+  territory is theirs already."
+- Laptop with a Claude Code sticker.
+- Posture: engaged but composed, professional.
+- **Identifier constraint:** never put a backpack on the Stakeholder — absence
+  is their trait.
+
+### Group Dynamic
+
+- Seated shoulder to shoulder, each on their own laptop — equals collaborating.
+- Emotional tone: "We're figuring this out together."
+- Candid sketch of a working session, not a posed team photo.
+- Close enough that elbows might bump.
+- Together, the three characters embody the heart of forward deployed
+  engineering — engineer, AI, and business working at the boundary between
+  technology and the real world.
+
+### Scale
+
+48px (small inline) to 400px+ (hero). At small sizes, reduce to silhouettes
+preserving key identifiers: hoodie ears, round robot head, tie.
 
 ---
 
-## 3. The Seven Products
+## 3. Scene Grammar
+
+This section defines the rules for composing any scene with the characters from
+[§ 2](#2-the-three-characters-in-the-field). Individual scene prompts
+([§ 4](#4-reusable-base-scenes) and [scenes.md](scenes.md)) describe specific
+poses, objects, and interactions — they should not restate these rules.
+
+The entire scene uses the same small palette as the character sheet in
+[§ 2](#2-the-three-characters-in-the-field): white for primary surfaces, black
+for lines, and one or two neutral grays for secondary surfaces. No other
+values, no gradients.
+
+### Scene Rendering
+
+| Property   | Specification                                                                                                                                                |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Palette    | White, black, one or two grays — nothing else                                                                                                                |
+| White      | Dominant value. Most of the image is white, no large gray surfaces.                                                                                          |
+| Background | Pure white — no fills, textures, or shading                                                                                                                  |
+| Ground     | Implied by positioning — no drawn ground line, no ground plane, no floor shadow, no scattered objects on the ground. Characters float on white.              |
+| Objects    | 2px black stroke, light flat gray. Simpler than characters. Only objects named in the scene prompt — never add extra props, debris, or environmental detail. |
+| Fills      | Flat only — no gradients, no shading, no tinting                                                                                                             |
+| Detail     | Minimum strokes needed. No hatching, no texture, no decoration.                                                                                              |
+
+### Composition
+
+| Rule     | Specification                                                                                                                   |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Grouping | Shoulders overlapping or nearly touching — one cluster, not three separate figures. No vertical gap between any two characters. |
+| Space    | Generous white space around the cluster                                                                                         |
+| Framing  | Floats freely — never outlined or bordered                                                                                      |
+| Scale    | 120px (cards) to 480px+ (hero)                                                                                                  |
+| Tone     | Curious, conspiratorial, scrappy — three people who chose this                                                                  |
+
+### Constraints
+
+- **Identity** — each character keeps its
+  [§ 2](#2-the-three-characters-in-the-field) traits. Never swap accessories or
+  features between characters. The Stakeholder never has a backpack — absence
+  is their identifier. The Engineer always has one.
+- **Foreground** — characters are the most detailed elements. Background objects
+  use fewer strokes, lighter gray, and smaller scale than characters. If a
+  background element is as bold as a character, simplify it.
+- **Collaborative** — never show conflict.
+- **Monochrome** — gray for differentiation, never hues.
+- **Laptops when seated** — seated characters always have laptops.
+- **No framing** — no borders, containers, or panel edges.
+
+### Illustration Checklist
+
+Illustrations are generated with [Grok](https://grok.com), a multi-modal LLM,
+from three layers. Each layer adds to the previous without restating it.
+
+| #   | Layer           | Source                                            | Provides                                              |
+| --- | --------------- | ------------------------------------------------- | ----------------------------------------------------- |
+| 1   | Character sheet | [§ 2](#2-the-three-characters-in-the-field)       | The three characters as standalone figures            |
+| 2   | Scene rules     | this section                                      | Composition, rendering, and constraints for any scene |
+| 3   | Scene prompt    | [§ 4](#4-reusable-base-scenes) or [scenes.md](scenes.md) | Specific poses, objects, and interactions             |
+
+A scene prompt should describe what the characters are _doing_ — posture,
+gaze, position, objects in hand — without re-specifying what they _look like_
+or how scenes are _rendered_. Those belong to layers 1 and 2.
+
+---
+
+## 4. Reusable Base Scenes
+
+These scenes show the trio without product-specific symbols. They are reused
+across contexts within the brand.
+
+### Scene: Trio at Work (Default)
+
+**Context:** Hero illustrations, suite-level marketing, default state.
+
+```
+     🐰💻   🤖💻   👔💻
+      \      |      /
+       (huddled together)
+```
+
+All three seated side by side, each with a laptop. Engineer left, cross-legged
+on the ground, laptop balanced on one knee, leaning sideways to peek at Agent's
+screen. AI Agent center, seated upright on a chair, head tilted slightly — the
+only one with correct posture. Stakeholder right, chair tipped back on two legs,
+one arm draped over the backrest, typing one-handed. Shoulders overlapping.
+Brand-specific product icons may appear in a row below.
+
+**Key details:** The trio sits at different heights — Engineer on the floor,
+Agent on a chair, Stakeholder tipped back — creating a diagonal line that feels
+informal and alive. Engineer is clearly nosing at someone else's screen.
+Stakeholder's tipped chair says "I've done this before." Agent's perfect posture
+is the deadpan counterpoint. The energy is a late-night hackathon that happens
+to include someone in a blazer.
+
+### Scene: Welcome Wave
+
+**Context:** Onboarding screens, first-time user experience, landing page.
+
+```
+    🐰🖐   🤖🖐   👔🖐
+     hey!!   hello.   welcome.
+```
+
+All three standing, facing the viewer. Engineer mid-stride toward the viewer,
+both arms out wide — too enthusiastic, slightly off-balance, hoodie ears
+bouncing. AI Agent stands still, one hand raised in a precise right-angle wave,
+head tilted in greeting. Stakeholder one step behind, hand raised palm-out at
+shoulder height — the composed anchor. Feet visible, small action lines around
+Engineer's movement.
+
+**Key details:** Engineer's over-eager stride forward creates the energy.
+Agent's geometric wave is the visual punchline — friendly but mechanically
+precise. Stakeholder's measured gesture grounds it: "Don't worry, we're
+professional too." The three different levels of enthusiasm tell you everything
+about the team dynamic in one frame.
+
+### Scene: Documentation Dig
+
+**Context:** Documentation pages, knowledge base, "getting started" flows.
+
+```
+    🐰📄  🤖📚  👔📖
+     \     |     /
+    ┌──────────────┐
+    │ papers books │
+    └──────────────┘
+       📄  📄
+```
+
+All three standing behind a waist-high table covered with documents. Engineer
+(left) holds a single sheet in both hands, head tilted, brow furrowed —
+squinting at it with a puzzled expression. AI Agent (center) stands behind a
+neatly organized stack of papers, both hands resting on the pile. Stakeholder
+(right) smiles and points with one index finger at a specific line in an open
+book on the table. Loose papers scattered on the floor under and around the
+table.
+
+**Key details:** Three speeds of documentation work: Engineer still deciphering
+a single page, Agent already organized, Stakeholder already found the answer and
+is pointing it out. The loose papers on the floor beneath the table are the
+punchline — documentation is messy work. Agent's neat stack in the center is the
+visual anchor between Engineer's confusion and Stakeholder's confidence.
+
+---
+
+## 5. The Seven Products
 
 | Product      | Question it answers                               |
 | ------------ | ------------------------------------------------- |
@@ -93,7 +306,7 @@ surfaces in icons and scenes but never in structural UI.
 
 ---
 
-## 4. Color Palette
+## 6. Color Palette
 
 ### Core Palette
 
@@ -129,7 +342,7 @@ difference accumulates across the page — warmer, more human, like paper.
 
 ---
 
-## 5. Typography
+## 7. Typography
 
 ### Font Selection
 
@@ -177,26 +390,26 @@ DM Sans, 18px, weight 400, gray-400:
 
 ---
 
-## 6. Product Scenes
+## 8. Product Scenes
 
 The product scenes — Map, Pathway, Guide, Landmark, Summit, Outpost, Gear — and
 the scene usage matrix live in a sibling file: [scenes.md](scenes.md). They
-extend the [reusable base scenes](../index.md#4-reusable-base-scenes) with
-brand-specific product symbols.
+extend the [reusable base scenes](#4-reusable-base-scenes) with brand-specific
+product symbols.
 
 ---
 
-## 7. Product Icons
+## 9. Product Icons
 
 The seven product icons — Map, Pathway, Guide, Landmark, Summit, Outpost, Gear —
 plus the icon system rules and the combined suite mark live in a sibling file:
-[icons.md](icons.md). They share the family icon grid (24px, 2px stroke, no
+[icons.md](icons.md). They share the brand icon grid (24px, 2px stroke, no
 fill) and read as if drawn in the same notebook as the
-[characters](../index.md#2-the-three-characters).
+[characters](#2-the-three-characters-in-the-field).
 
 ---
 
-## 8. Layout Patterns
+## 10. Layout Patterns
 
 ### Suite Landing Page
 
@@ -257,7 +470,7 @@ Footer:    gray-900 (#1c1a18)       — Dark footer (inverted), licenses
 
 ### Concrete Components
 
-The component patterns in [../index.md § 8](../index.md#8-components)
+The component patterns in [../index.md § 5](../index.md#5-components)
 instantiate with these colors:
 
 - **Buttons (Primary):** `background: --gray-900`, text `#ffffff`.
@@ -274,9 +487,17 @@ instantiate with these colors:
   text `--gray-400`, dividers `--gray-700`. Trio silhouette + brand wordmark in
   white. Licenses (Apache-2.0 code, CC BY 4.0 docs) in `--gray-400`.
 
+### Motion Additions
+
+Beyond the shared motion defaults in
+[../index.md § 6](../index.md#6-motion--interaction), this brand adds:
+
+- **Trio idle.** Subtle sway per character (`translateY` ±2px, staggered
+  3s/3.4s/2.8s, infinite). Respects `prefers-reduced-motion`.
+
 ---
 
-## 9. Product Visual Language
+## 11. Product Visual Language
 
 Each product shares the core design system with subtle differentiators:
 
@@ -312,7 +533,7 @@ Each product shares the core design system with subtle differentiators:
 
 ---
 
-## 10. Design Tokens
+## 12. Design Tokens
 
 ```css
 :root {
@@ -397,4 +618,4 @@ Each product shares the core design system with subtle differentiators:
 ---
 
 _Forward Impact Engineering brand implementation of the
-[shared design language](../index.md). Updated April 2026._
+[shared design language](../index.md). Updated May 2026._
