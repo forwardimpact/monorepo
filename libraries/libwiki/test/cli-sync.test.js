@@ -16,7 +16,7 @@ describe("push/pull commands", () => {
   test("push with no local changes is no-op", () => {
     const { parent, wikiDir } = cloneRepo(bare, "push-noop");
     git(wikiDir, "checkout", "master");
-    const repo = new WikiRepo({ wikiDir, parentDir: parent });
+    const repo = new WikiRepo({ wikiDir, parentDir: parent, resolveToken: () => null });
 
     const result = repo.commitAndPush("wiki: update");
     assert.equal(result.pushed, false);
@@ -26,7 +26,7 @@ describe("push/pull commands", () => {
   test("push with local change commits and pushes", () => {
     const { parent, wikiDir } = cloneRepo(bare, "push-dirty");
     git(wikiDir, "checkout", "master");
-    const repo = new WikiRepo({ wikiDir, parentDir: parent });
+    const repo = new WikiRepo({ wikiDir, parentDir: parent, resolveToken: () => null });
 
     writeFileSync(join(wikiDir, "new.md"), "content");
     const result = repo.commitAndPush("wiki: update from session");
@@ -50,7 +50,7 @@ describe("push/pull commands", () => {
     git(w1, "commit", "-m", "external push");
     git(w1, "push", "origin", "master");
 
-    const repo2 = new WikiRepo({ wikiDir: w2, parentDir: p2 });
+    const repo2 = new WikiRepo({ wikiDir: w2, parentDir: p2, resolveToken: () => null });
     repo2.pull();
 
     const content = readFileSync(join(w2, "external.md"), "utf-8");
@@ -72,7 +72,7 @@ describe("push/pull commands", () => {
     git(w2, "add", "-A");
     git(w2, "commit", "-m", "local");
 
-    const repo2 = new WikiRepo({ wikiDir: w2, parentDir: p2 });
+    const repo2 = new WikiRepo({ wikiDir: w2, parentDir: p2, resolveToken: () => null });
     assert.throws(() => repo2.pull(), WikiPullConflict);
   });
 });

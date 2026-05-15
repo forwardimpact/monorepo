@@ -32,7 +32,7 @@ describe("init command", () => {
   });
 
   test("clones wiki and creates metrics directories", () => {
-    const repo = new WikiRepo({ wikiDir, parentDir: projectDir });
+    const repo = new WikiRepo({ wikiDir, parentDir: projectDir, resolveToken: () => null });
     const result = repo.ensureCloned(bare);
     assert.equal(result.cloned, true);
 
@@ -52,7 +52,7 @@ describe("init command", () => {
   });
 
   test("idempotent — second run produces no error", () => {
-    const repo = new WikiRepo({ wikiDir, parentDir: projectDir });
+    const repo = new WikiRepo({ wikiDir, parentDir: projectDir, resolveToken: () => null });
     repo.ensureCloned(bare);
     repo.inheritIdentity();
 
@@ -73,7 +73,7 @@ describe("init command", () => {
   });
 
   test("ensureCloned returns cloned:false for unreachable URL", () => {
-    const repo = new WikiRepo({ wikiDir, parentDir: projectDir });
+    const repo = new WikiRepo({ wikiDir, parentDir: projectDir, resolveToken: () => null });
     const result = repo.ensureCloned("/nonexistent/repo.git");
     assert.equal(result.cloned, false);
   });

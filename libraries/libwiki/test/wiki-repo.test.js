@@ -17,14 +17,14 @@ describe("WikiRepo", () => {
 
   test("isCloned returns false for empty dir", () => {
     const dir = mkdtempSync(join(tmpdir(), "wiki-empty-"));
-    const repo = new WikiRepo({ wikiDir: join(dir, "wiki"), parentDir: dir });
+    const repo = new WikiRepo({ wikiDir: join(dir, "wiki"), parentDir: dir, resolveToken: () => null });
     assert.equal(repo.isCloned(), false);
   });
 
   test("ensureCloned clones and isCloned returns true", () => {
     const parent = mkdtempSync(join(tmpdir(), "wiki-parent-"));
     const wikiDir = join(parent, "wiki");
-    const repo = new WikiRepo({ wikiDir, parentDir: parent });
+    const repo = new WikiRepo({ wikiDir, parentDir: parent, resolveToken: () => null });
 
     const result = repo.ensureCloned(bare);
     assert.equal(result.cloned, true);
@@ -33,7 +33,7 @@ describe("WikiRepo", () => {
 
   test("ensureCloned is no-op when already cloned", () => {
     const { parent, wikiDir } = cloneRepo(bare, "noop");
-    const repo = new WikiRepo({ wikiDir, parentDir: parent });
+    const repo = new WikiRepo({ wikiDir, parentDir: parent, resolveToken: () => null });
 
     const result = repo.ensureCloned(bare);
     assert.equal(result.cloned, true);
@@ -43,7 +43,7 @@ describe("WikiRepo", () => {
   test("ensureCloned returns cloned:false for bad URL", () => {
     const parent = mkdtempSync(join(tmpdir(), "wiki-bad-"));
     const wikiDir = join(parent, "wiki");
-    const repo = new WikiRepo({ wikiDir, parentDir: parent });
+    const repo = new WikiRepo({ wikiDir, parentDir: parent, resolveToken: () => null });
 
     const result = repo.ensureCloned("/nonexistent/path.git");
     assert.equal(result.cloned, false);
@@ -52,7 +52,7 @@ describe("WikiRepo", () => {
   test("isClean detects dirty tree", () => {
     const { parent, wikiDir } = cloneRepo(bare, "dirty");
     git(wikiDir, "checkout", "master");
-    const repo = new WikiRepo({ wikiDir, parentDir: parent });
+    const repo = new WikiRepo({ wikiDir, parentDir: parent, resolveToken: () => null });
 
     assert.equal(repo.isClean(), true);
     writeFileSync(join(wikiDir, "new.md"), "content");
@@ -65,7 +65,7 @@ describe("WikiRepo", () => {
     git(parent, "config", "user.name", "Parent Name");
     git(parent, "config", "user.email", "parent@example.com");
 
-    const repo = new WikiRepo({ wikiDir, parentDir: parent });
+    const repo = new WikiRepo({ wikiDir, parentDir: parent, resolveToken: () => null });
     repo.inheritIdentity();
 
     assert.equal(git(wikiDir, "config", "--get", "user.name"), "Parent Name");
@@ -86,7 +86,7 @@ describe("WikiRepo", () => {
     git(w1, "commit", "-m", "clone1 change");
     git(w1, "push", "origin", "master");
 
-    const repo2 = new WikiRepo({ wikiDir: w2, parentDir: p2 });
+    const repo2 = new WikiRepo({ wikiDir: w2, parentDir: p2, resolveToken: () => null });
     repo2.pull();
 
     const content = execFileSync("cat", [join(w2, "change.md")], {
@@ -110,14 +110,14 @@ describe("WikiRepo", () => {
     git(w2, "add", "-A");
     git(w2, "commit", "-m", "clone2");
 
-    const repo2 = new WikiRepo({ wikiDir: w2, parentDir: p2 });
+    const repo2 = new WikiRepo({ wikiDir: w2, parentDir: p2, resolveToken: () => null });
     assert.throws(() => repo2.pull(), WikiPullConflict);
   });
 
   test("commitAndPush is no-op on clean tree", () => {
     const { parent, wikiDir } = cloneRepo(bare, "clean");
     git(wikiDir, "checkout", "master");
-    const repo = new WikiRepo({ wikiDir, parentDir: parent });
+    const repo = new WikiRepo({ wikiDir, parentDir: parent, resolveToken: () => null });
 
     const result = repo.commitAndPush("test");
     assert.equal(result.pushed, false);
@@ -127,7 +127,7 @@ describe("WikiRepo", () => {
   test("commitAndPush commits and pushes dirty tree", () => {
     const { parent, wikiDir } = cloneRepo(bare, "push");
     git(wikiDir, "checkout", "master");
-    const repo = new WikiRepo({ wikiDir, parentDir: parent });
+    const repo = new WikiRepo({ wikiDir, parentDir: parent, resolveToken: () => null });
 
     writeFileSync(join(wikiDir, "update.md"), "new content");
     const result = repo.commitAndPush("wiki: test push");
@@ -152,7 +152,7 @@ describe("WikiRepo", () => {
     git(w1, "push", "origin", "master");
 
     writeFileSync(join(w2, "README.md"), "local wins");
-    const repo2 = new WikiRepo({ wikiDir: w2, parentDir: p2 });
+    const repo2 = new WikiRepo({ wikiDir: w2, parentDir: p2, resolveToken: () => null });
     const result = repo2.commitAndPush("wiki: local update");
     assert.equal(result.pushed, true);
 
@@ -230,7 +230,7 @@ describe("WikiRepo resolveToken", () => {
     assert.equal(calls, 0);
   });
 
-  test("falls back gracefully when resolveToken throws", () => {
+  test("propagates errors thrown by resolveToken", () => {
     const { parent, wikiDir } = cloneRepo(bare, "tokenthrow");
     git(wikiDir, "checkout", "master");
     const repo = new WikiRepo({
@@ -241,18 +241,13 @@ describe("WikiRepo resolveToken", () => {
       },
     });
 
-    // fetch against a local bare repo doesn't need auth — the call should
-    // simply proceed without the credential helper instead of propagating.
-    assert.doesNotThrow(() => repo.fetch());
+    assert.throws(() => repo.fetch(), /not configured/);
   });
 
-  test("without resolveToken, falls back to process.env GH_TOKEN/GITHUB_TOKEN", () => {
-    const { parent, wikiDir } = cloneRepo(bare, "tokenenv");
-    git(wikiDir, "checkout", "master");
-    const repo = new WikiRepo({ wikiDir, parentDir: parent });
-
-    // No callback provided — fetch should succeed against local bare regardless
-    // of whether env vars are set; the constructor must accept the omission.
-    assert.doesNotThrow(() => repo.fetch());
+  test("constructor rejects missing resolveToken", () => {
+    assert.throws(
+      () => new WikiRepo({ wikiDir: "/tmp/x", parentDir: "/tmp/y" }),
+      TypeError,
+    );
   });
 });

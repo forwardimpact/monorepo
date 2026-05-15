@@ -35,13 +35,18 @@ export class WikiRepo {
 
   /**
    * Create a WikiRepo targeting the given wiki directory and its parent project directory.
-   * @param {{ wikiDir: string, parentDir: string, resolveToken?: () => string | null | undefined }} opts
-   *   `resolveToken` is called lazily per network operation to obtain a GitHub token.
-   *   When omitted, falls back to reading `GH_TOKEN` or `GITHUB_TOKEN` from `process.env`.
-   *   Commands typically pass `() => config.ghToken()` so the libconfig resolution chain
-   *   (env → `.env` overrides → `gh auth token`) is honored.
+   * @param {{ wikiDir: string, parentDir: string, resolveToken: () => string | null }} opts
+   *   `resolveToken` is called lazily before each network operation. Return a
+   *   GitHub token string to authenticate, or `null` to run anonymously. The
+   *   callback owns the entire resolution policy — libwiki does not read
+   *   `process.env` directly. Throws propagate to the caller so credential
+   *   misconfiguration surfaces loudly. Commands typically pass
+   *   `() => config.ghToken()` from `@forwardimpact/libconfig`.
    */
   constructor({ wikiDir, parentDir, resolveToken }) {
+    if (typeof resolveToken !== "function") {
+      throw new TypeError("WikiRepo: resolveToken callback is required");
+    }
     this.#wikiDir = wikiDir;
     this.#parentDir = parentDir;
     this.#resolveToken = resolveToken;
@@ -132,25 +137,14 @@ export class WikiRepo {
   }
 
   #authGit(args) {
-    const token = this.#token();
+    const token = this.#resolveToken();
     const fullArgs = buildAuthArgs(args, token);
     // The credential helper body keeps `${GH_TOKEN:-$GITHUB_TOKEN}` literal so
     // git's child shell expands it at auth time — the token never sits in argv.
-    // When libconfig resolves a token from `.env` or `gh auth token` (i.e. it
-    // is not on `process.env`), inject GH_TOKEN into the spawn env so the
-    // helper's lazy expansion still finds it.
+    // Inject the resolved token into the spawn env so the helper's lazy
+    // expansion finds it even when the resolver pulled from `.env` or
+    // `gh auth token` rather than the ambient process env.
     const env = token ? { ...process.env, GH_TOKEN: token } : undefined;
     return spawnSync("git", fullArgs, { stdio: "pipe", env });
-  }
-
-  #token() {
-    if (this.#resolveToken) {
-      try {
-        return this.#resolveToken() || null;
-      } catch {
-        return null;
-      }
-    }
-    return process.env.GH_TOKEN || process.env.GITHUB_TOKEN || null;
   }
 }
