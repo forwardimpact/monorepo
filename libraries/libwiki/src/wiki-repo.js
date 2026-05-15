@@ -44,6 +44,12 @@ export class WikiRepo {
    *   `() => config.ghToken()` from `@forwardimpact/libconfig`.
    */
   constructor({ wikiDir, parentDir, resolveToken }) {
+    if (typeof wikiDir !== "string" || wikiDir === "") {
+      throw new TypeError("WikiRepo: wikiDir must be a non-empty string");
+    }
+    if (typeof parentDir !== "string" || parentDir === "") {
+      throw new TypeError("WikiRepo: parentDir must be a non-empty string");
+    }
     if (typeof resolveToken !== "function") {
       throw new TypeError("WikiRepo: resolveToken callback is required");
     }

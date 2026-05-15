@@ -294,4 +294,28 @@ describe("WikiRepo resolveToken", () => {
       TypeError,
     );
   });
+
+  test("constructor rejects non-string wikiDir", () => {
+    assert.throws(
+      () =>
+        new WikiRepo({
+          wikiDir: undefined,
+          parentDir: "/tmp/y",
+          resolveToken: () => null,
+        }),
+      /wikiDir must be a non-empty string/,
+    );
+  });
+
+  test("constructor rejects non-string parentDir", () => {
+    assert.throws(
+      () =>
+        new WikiRepo({
+          wikiDir: "/tmp/x",
+          parentDir: undefined,
+          resolveToken: () => null,
+        }),
+      /parentDir must be a non-empty string/,
+    );
+  });
 });
