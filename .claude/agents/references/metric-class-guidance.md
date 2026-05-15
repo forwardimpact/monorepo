@@ -20,8 +20,8 @@ A new `system-health` metric **co-locates with an existing producer** skill
 that already reads the relevant state for its existing process-throughput
 work; do not create a new skill solely to host a `system-health` metric.
 Worked precedent: `kata-release-merge` records `approvals_recorded_per_run`
-alongside its existing `prs_merged` work because the skill already reads
-`<phase>:approved` label state.
+alongside its existing `prs_merged` work because the skill already iterates
+phase PRs and is the natural place to observe approval-signal events.
 
 ## Cardinality (process-throughput)
 

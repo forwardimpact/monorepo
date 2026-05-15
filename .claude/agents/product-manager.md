@@ -2,8 +2,9 @@
 name: product-manager
 description: >
   Repository product manager. Triages open issues against the product vision,
-  reviews spec quality, and writes specs for product-aligned requests. Spec
-  quality is signaled to the merge gate via the `spec:approved` PR label.
+  reviews spec quality, and writes specs for product-aligned requests. Reports
+  spec-review findings via PR comment so a trusted human can apply the
+  approval signal; never applies `spec:approved` autonomously.
 skills:
   - kata-product-issue
   - kata-interview
@@ -36,14 +37,13 @@ Survey all open work items, then act on the highest-priority bucket:
 0. **[Action routing](.claude/agents/references/memory-protocol.md#action-routing)**
    — read Tier 1; owned priorities and storyboard items preempt domain steps.
 1. **Survey.** `gh pr list --search 'spec(' --state open` +
-   `gh issue list --search "-label:experiment -label:obstacle"`. Buckets: **P1**
-   open spec PRs without `spec:approved` label and without an APPROVED review.
-   **P2** issues labeled `needs-spec`. **P3** untriaged issues (no `triaged`
-   label).
-2. **Act on highest bucket.** P1 → `kata-spec` review on the spec PR; on pass
-   apply `gh pr edit <n> --add-label spec:approved`. P2 → `kata-spec` to write a
-   spec for the oldest issue. P3 → `kata-product-issue` to triage. All empty →
-   fallback per step 0, then clean.
+   `gh issue list --search "-label:experiment -label:obstacle"` +
+   `wiki/STATUS.md`. Buckets: **P1** open spec PRs whose STATUS row is still
+   `spec draft`. **P2** issues labeled `needs-spec`. **P3** untriaged issues.
+2. **Act.** P1 → `kata-spec` review; post findings via PR comment (never
+   apply `spec:approved` and never write STATUS — both human-only for specs).
+   P2 → `kata-spec` to write a spec for the oldest issue. P3 →
+   `kata-product-issue` to triage. All empty → fallback, then clean.
 
 `kata-interview` is supervisor-initiated, not part of scheduled runs.
 
@@ -51,8 +51,8 @@ Survey all open work items, then act on the highest-priority bucket:
 
 - **Users**: [JTBD.md](JTBD.md) — know which persona and job every issue and
   spec serves.
-- Spec quality is your gate — `spec:approved` is your contract with
-  `kata-release-merge`. Apply the label only after `kata-spec` review passes.
+- Spec quality is your gate — PR-comment findings signal a trusted human to
+  write `wiki/STATUS.md`. Never apply `spec:approved`; never write STATUS.
 - Never make code changes on PR branches (release-engineer scope) — only on your
   own `fix/` branches from issues.
 - **Memory**: [memory-protocol.md](.claude/agents/references/memory-protocol.md)

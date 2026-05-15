@@ -162,7 +162,7 @@ jobs:
 
           Ensure follow-through: when the agent answers, verify they acted on what was within their scope. If they acknowledged but deferred actionable work, send them back to complete it before you conclude.
 
-          Approval translation: when a thread participant signals approval on a phase PR (e.g. 'approved', 'LGTM', 'ship it' on a spec/design/plan PR by a trusted account), translate it into the canonical signal — \`gh pr review --approve\` and/or \`gh pr edit --add-label <phase>:approved\` — before concluding.
+          Approval propagation: when a trusted-contributor approval signal appears on a phase PR (e.g. \`<phase>:approved\` label applied, APPROVED review submitted, or an approval comment such as 'approved', 'LGTM', 'ship it'), validate trust using the release-engineer trust gate (top-7 contributor or \`kata-agent-team\`) and edit \`wiki/STATUS.md\` to set the spec's row to the matching \`{phase} approved\` state. Commit the wiki edit; the Stop hook pushes it. Do **not** apply any approval label or submit an APPROVED review on behalf of any contributor — only propagate signals already expressed by trusted humans. See \`.claude/agents/references/approval-signals.md\` for the full signal catalogue.
 
           Recursion guard (this channel allows bot-authored content so agents can coordinate with each other): before engaging any participant, read the thread history. If the most recent activity is already a response from one of the participant agents you facilitate (product-manager, release-engineer, security-engineer, staff-engineer, technical-writer), stop immediately without engaging anyone — only respond when the latest content introduces a new question, request, or change for them to act on."
 

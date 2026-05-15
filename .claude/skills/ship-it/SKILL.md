@@ -34,16 +34,17 @@ advancing to the next phase. Examples:
 - **Implementation branch** — contains code changes implementing an approved
   plan. Ship the implementation.
 - **Non-spec branch** — contains code changes unrelated to a spec (bug fix,
-  chore, docs). Ship as-is with no STATUS update.
+  chore, docs). Ship as-is with no STATUS write.
 
 If the work on the branch is incomplete or broken, **stop and tell the user** —
 do not attempt to finish it.
 
 ## Shipping Implies Approval
 
-Shipping a spec-tracked deliverable inherently means approving it. Step 2
-applies the matching `<phase>:approved` label to the PR before the mechanical
-ship process begins.
+Shipping a spec-tracked deliverable inherently means approving it. The human
+invoker is the approver; the skill performs the typing. Step 2 writes the
+matching row in `wiki/STATUS.md` — the canonical approval record — before
+the mechanical ship process begins.
 
 ## Checklists
 
@@ -51,7 +52,7 @@ ship process begins.
 
 - [ ] Current branch is not `main`.
 - [ ] Scope limited to work already on the branch.
-- [ ] `<phase>:approved` label applied to the PR (if spec-tracked).
+- [ ] `wiki/STATUS.md` row updated for the spec (if spec-tracked).
 - [ ] Rebased cleanly on `origin/main` (no unresolved conflicts).
 - [ ] `bun run check` and `bun run test` pass locally.
 - [ ] PR exists and its body follows the repo's Summary / Test plan template.
@@ -79,20 +80,19 @@ fi
 ### Step 2: Approve the Work (spec-tracked branches only)
 
 If the branch contains spec-tracked work (a spec, design, plan, or
-implementation), apply the matching label to the PR before proceeding. The PR
-must already exist (Step 6 handles creation when it doesn't); for first ships,
-push the branch and open the PR first, then return here for the label.
+implementation), edit `wiki/STATUS.md` to set the matching row before
+proceeding. The wiki commit is pushed by the Stop hook.
 
-| Deliverable    | Label              |
-| -------------- | ------------------ |
-| `spec.md`      | `spec:approved`    |
-| `design-a.md`  | `design:approved`  |
-| `plan-a.md`    | `plan:approved`    |
-| Implementation | `plan:implemented` |
+| Deliverable    | STATUS row           |
+| -------------- | -------------------- |
+| `spec.md`      | `{NNN}\tspec\tapproved`    |
+| `design-a.md`  | `{NNN}\tdesign\tapproved`  |
+| `plan-a.md`    | `{NNN}\tplan\tapproved`    |
+| Implementation | `{NNN}\tplan\timplemented` |
 
-```sh
-gh pr edit <number> --add-label <phase>:approved
-```
+Locate the row for the spec id in the fenced code block of `wiki/STATUS.md`
+and replace it in place. If the row is absent (new spec), insert it in
+sorted-id order.
 
 Skip this step for branches with no spec association (bug fixes, chores, docs).
 
