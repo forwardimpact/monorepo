@@ -14,16 +14,29 @@ bullets — one author-facing (Writing a Spec) and one verifier-facing (DO-CONFI
 The "components" here are textual loci inside `.claude/skills/kata-spec/SKILL.md`.
 Each surface has a different role in the agent's authoring loop:
 
-| Component                              | Surface                                | Role in author loop                                                |
-| -------------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
-| **Writing-a-Spec "No HOW" bullet**     | SKILL.md, "Writing a Spec" subsection  | Drafting-time guidance — fires as the agent forms Problem evidence |
-| **DO-CONFIRM "No implementation" row** | SKILL.md, DO-CONFIRM checklist         | Verification-time guard — fires before recommending approval       |
-| READ-DO "file paths" bullet            | SKILL.md, READ-DO checklist            | **Unmodified** — already names file paths; further edit is dupe    |
-| All other SKILL.md content             | rest of file                           | **Unmodified** — outside spec scope                                |
+| Component                              | Surface                                | Layer ([COALIGNED.md](../../COALIGNED.md)) | Role in author loop                                                |
+| -------------------------------------- | -------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------ |
+| **Writing-a-Spec "No HOW" bullet**     | SKILL.md, "Writing a Spec" subsection  | L4 (procedural)                            | Drafting-time guidance — fires as the agent forms Problem evidence |
+| **DO-CONFIRM "No implementation" row** | SKILL.md, DO-CONFIRM checklist         | L6 (verificational)                        | Verification-time guard — fires before recommending approval       |
+| READ-DO "file paths" bullet            | SKILL.md, READ-DO checklist            | L6 (verificational)                        | **Unmodified** — already names file paths; further edit is dupe    |
+| All other SKILL.md content             | rest of file                           | L4 / L6                                    | **Unmodified** — outside spec scope                                |
 
 The two modified components share one vocabulary token (`file:line`). They differ
-in tense: the author-facing bullet says "do not write this shape"; the
-verifier-facing bullet says "check that this shape was not written."
+in tense: the author-facing bullet (L4) says "do not write this shape"; the
+verifier-facing bullet (L6) says "check that this shape was not written."
+
+### Layering (COALIGNED.md)
+
+The two modified surfaces sit on different layers of the
+[COALIGNED.md](../../COALIGNED.md) standard, and the design's choices honor the
+inter-layer rules:
+
+| Invariant ([COALIGNED.md](../../COALIGNED.md))                                                          | How the design honors it                                                                                                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **L4 is procedural, L6 is verificational; no layer restates another** (§ The Layers; § Layer Rules)     | The L4 bullet directs the author ("do not write `file:line`"); the L6 row verifies the artifact ("the spec body contains no `file:line` citation"). Shared *vocabulary*, not shared *prose* — separation enables the cross-bullet grep audit (Decision 1).        |
+| **A checklist item must never teach; if it needs explanation, the procedure above it is incomplete** (§ Layer Rules; § L6) | Decision 3 keeps the abstract HOW-belongs-in-the-plan rule as the L6 bullet's lead clause with `file:line` attached as a named instance; Decision 6 tail-positions the token; Decision 7 forbids worked examples — together these keep L6 verificational, not instructional. The teaching lives in the L4 bullet. |
+| **Killer items only; 5–7 items per checklist** (§ Properties of Good Checklists)                        | The DO-CONFIRM extension is **in-place** on an existing bullet (Decision 3), not a new sibling — the checklist's item count is unchanged.                                                                                                                          |
+| **Auto-loaded layers consume context on every run; keep them tight** (§ Length and Loading)             | SKILL.md is L4 (≤192 lines, auto per skill). The change is two in-bullet extensions; Decision 7 forbids worked-example or callout additions elsewhere in the file, so the L4 budget is preserved.                                                                  |
 
 ## Data flow
 
