@@ -13,10 +13,13 @@ Experiments. Full template at
 ## Planning vs. Review
 
 **Planning meeting** — first meeting of the month or no storyboard exists.
-Create the storyboard from the template. Lead the team through: establishing or
-confirming the Challenge, setting the Target Condition (measurable, by month
-end), measuring the Current Condition from metrics CSVs, identifying initial
-Obstacles, and planning the first Experiment.
+Create the storyboard from [`storyboard-template.md`](storyboard-template.md):
+for every `wiki/metrics/{skill}/{YYYY}.csv`, instantiate a `#### {metric_name}`
+block bracketed by `<!-- xmr:{metric}:{csv} -->` / `<!-- /xmr -->` — that pair
+is the contract `bunx fit-wiki refresh` depends on. Then lead the team
+through: the Challenge, the Target Condition (measurable, by month end), the
+Current Condition from metrics CSVs, initial Obstacles, and the first
+Experiment.
 
 **Review meeting** — all other team meetings. Walk through the five questions,
 update Current Condition with fresh metrics, record experiment outcomes (actual
@@ -52,22 +55,17 @@ Metrics for the recording-eligibility rule.
 
 ## Storyboard updates
 
-Run `bunx fit-wiki refresh` to regenerate all `<!-- xmr:... -->` /
-`<!-- /xmr -->` blocks in the current month's storyboard. Idempotent. Pass an
-explicit path to target a different file.
+Run `bunx fit-wiki refresh` to regenerate every `<!-- xmr:... -->` block in
+the current month's storyboard. Idempotent; pass an explicit path to target a
+different file. The headings and `_Note:_` prose sit outside the markers and
+are preserved. Rendered block contents — `**Latest:**` / `**Status:**`, the
+X+mR chart, `**Signals:**` — match the template; **do not restate `μ`, `UPL`,
+`LPL`, or zone values in prose** outside the chart.
 
-Each `#### {metric_name}` block is bracketed by markers. Everything between
-them is regenerated; the heading and `_Note:_` prose sit outside.
-
-The rendered block contains:
-
-1. `**Latest:** {value} · **Status:** {status}`. No trend arrows.
-2. The X+mR chart in a fenced code block. Chart the whole CSV — **do not
-   restate `μ`, `UPL`, `LPL`, or zone values in prose**.
-3. `**Signals:**` — fired Wheeler rules or `—`.
-4. Optional one-line note only when `signals_present` needs cross-referencing.
-
-Without markers, fall back to `bunx fit-xmr chart` and paste manually.
+If a metric is missing its marker pair, seed it from
+[`storyboard-template.md`](storyboard-template.md), then re-run
+`bunx fit-wiki refresh`. A no-op refresh is a missing-marker bug — repair,
+never paste charts by hand.
 
 Above the agent-domain sections, write a tight `### Headlines` list naming only
 metrics whose status changed since the last meeting. Agents add cross-reference

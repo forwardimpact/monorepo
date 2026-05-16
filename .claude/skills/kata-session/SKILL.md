@@ -47,8 +47,10 @@ Participant Protocol below.
 - [ ] Identify which metrics CSVs to review from `wiki/metrics/`.
 - [ ] Run `bunx fit-xmr analyze --format json` against each metrics CSV and
       record the `status`, fired-rule `signals`, and `latest` for each metric.
-- [ ] For team storyboard runs, run `bunx fit-wiki refresh` to regenerate all
-      XmR chart blocks in the current month's storyboard.
+- [ ] For team storyboard runs, seed any missing `<!-- xmr:... -->` marker
+      pair from
+      [`references/storyboard-template.md`](references/storyboard-template.md),
+      then run `bunx fit-wiki refresh`.
 
 </read_do_checklist>
 
@@ -60,8 +62,9 @@ Participant Protocol below.
       including XmR `status` and signal descriptions for each metric with
       sufficient data. Metrics with `insufficient_data` are noted.
 - [ ] Coaching metrics appended to CSV (see Facilitator Process step 6).
-- [ ] For team meetings: storyboard updated per partition protocol; experiments
-      and obstacles managed as labeled GitHub issues per
+- [ ] For team meetings: storyboard updated per partition protocol; every
+      metric block carries refresh-rendered content between `<!-- xmr:... -->`
+      markers; experiments and obstacles managed as labeled GitHub issues per
       [`issue-lifecycle.md`](references/issue-lifecycle.md).
 - [ ] For 1-on-1: agent's findings written to its own memory.
 - [ ] Weekly log updated under `## YYYY-MM-DD` with meeting type, metrics,
@@ -120,8 +123,11 @@ Mode-specific question wording (team vs. 1-on-1) lives in the overlays.
 4. **Run XmR analysis.** For every CSV in `wiki/metrics/`, run
    `bunx fit-xmr analyze <csv> --format json` and use the `status`, fired-rule
    `signals`, and `latest` fields when reporting the Condition. For team
-   storyboard runs, run `bunx fit-wiki refresh` to regenerate all XmR chart
-   blocks in the current month's storyboard. Note any
+   storyboard runs, refresh chart blocks per
+   [`team-storyboard.md` § Storyboard updates](references/team-storyboard.md#storyboard-updates) —
+   seed any missing `<!-- xmr:... -->` marker pair from
+   [`storyboard-template.md`](references/storyboard-template.md), then run
+   `bunx fit-wiki refresh`. A no-op refresh is a missing-marker bug. Note any
    `insufficient_data` metric. In facilitated mode, include `status` and
    fired-rule signals in the Q2 `Ask`.
 5. **Run the five questions.** Follow the overlay's wording. In facilitated
