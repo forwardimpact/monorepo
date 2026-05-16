@@ -1,21 +1,21 @@
 ---
 name: kata-interview
 description: >
-  Conduct a JTBD switching interview to test a Forward Impact product. Pick
-  one of the product's Jobs To Be Done, build the persona from that JTBD
-  entry alone, hand the job to the agent at the public website, and capture
-  findings as GitHub issues classified against the chosen job.
+  Conduct a JTBD switching interview to test a Forward Impact product.
+  Build a persona grounded in the installation's synthetic content with
+  the situation drawn from the chosen JTBD entry, hand the job to the
+  agent at the public website in two Ask calls, and capture findings as
+  GitHub issues classified against the job.
 ---
 
 # Switching Interview
 
-You are running a **JTBD switching interview**: an agent, briefed only with
-a persona derived from a chosen Job To Be Done, tries to get that job done
-using a Forward Impact product they encounter cold at the public website.
-The agent is in an isolated workspace with no monorepo access. You run in
-the monorepo root with full access to `JTBD.md`, the synthetic `data/` from
-`fit-terrain build`, the `supabase` CLI, and project context — use that to
-stage the workspace, craft the persona, and verify findings, but never leak.
+A **JTBD switching interview**: an agent, briefed only with a persona, tries
+to get a chosen Job To Be Done done using a Forward Impact product they meet
+cold at the public website. The agent is isolated with no monorepo access.
+You run in the monorepo root with `JTBD.md`, the synthetic `data/` from
+`fit-terrain build`, the `supabase` CLI, and project context — use them to
+stage, craft, and verify, but never leak.
 
 ## When to Use
 
@@ -27,19 +27,19 @@ This skill is not part of scheduled runs.
 ## LLM Availability
 
 `ANTHROPIC_API_KEY` is present in the shell — `libconfig` reads it.
-LLM-backed products (Guide, Outpost) should work without the agent
-configuring an API key. If the agent is asked to supply a key, that is a
-**bug** — the zero-config promise is broken. Do not tell the agent the
-key is pre-configured.
+LLM-backed products (Guide, Outpost) should work zero-config. If the agent
+is asked to supply a key, that is a **bug** — the zero-config promise is
+broken. Do not tell the agent the key is pre-configured.
 
 ## Checklists
 
 <read_do_checklist goal="Protect the interview before briefing the agent">
 
-- [ ] Persona is built from the chosen JTBD entry only — no outside
-      knowledge, no monorepo links, no product name in instruction text.
-- [ ] Workspace staged for the chosen product per the table in Step 3.
-- [ ] `$AGENT_CWD/CLAUDE.md` written before the briefing message.
+- [ ] Persona identity drawn from synthetic content (per Step 4) — not invented.
+- [ ] Persona situation drawn from the chosen JTBD entry (per Step 4).
+- [ ] Job text appears only in Ask 2 — never in `CLAUDE.md`.
+- [ ] No product names anywhere agent-visible.
+- [ ] Workspace staged per Step 3; `CLAUDE.md` written before Ask 1.
 - [ ] No leaks of monorepo internals, skills, or pre-configured tokens.
 - [ ] Do not fix problems for the agent — friction is the signal.
 
@@ -77,9 +77,8 @@ Hire, Competes With, Forces (Push, Pull, Habit, Anxiety), Fired When.
 
 ### Step 3: Stage the Agent Workspace
 
-The workflow has run `bunx fit-terrain build` and installed `supabase`
-globally. Copy the subset the chosen product needs into `$AGENT_CWD` (adjust
-for your installation's products):
+The workflow has run `bunx fit-terrain build` and installed `supabase`.
+Copy the subset the chosen product needs into `$AGENT_CWD`:
 
 | Product          | Stage into `$AGENT_CWD`                                                                  |
 | ---------------- | ---------------------------------------------------------------------------------------- |
@@ -92,45 +91,32 @@ Use `cp -r data/pathway "$AGENT_CWD/data/pathway"` and similar.
 
 ### Step 4: Craft the Persona
 
-Write `$AGENT_CWD/CLAUDE.md` using **only** fields from the chosen JTBD
-entry. Do not name the product — the persona arrives at the website without
-foreknowledge. Template:
+Write `$AGENT_CWD/CLAUDE.md`. The persona file carries **who** and **the
+situation** — never the job. Two sources:
 
-```markdown
-You are a <user> with a job to be done: <goal>.
+- **Identity** (name, team, manager, teammates, repos, recent project,
+  company facts) — from the installation's synthetic content. This
+  monorepo: `data/synthetic/story.dsl` and `prose-cache.json`.
+- **Situation** (Trigger, Forces, Competes With) — from the chosen JTBD
+  entry, rephrased into the persona's voice.
 
-## Trigger
-<Trigger>
+Excluded: goal sentence, Big Hire, Little Hire, Fired-When, product name.
+Fired-When stays with you for Step 8 classification.
 
-## Forces
-- **Push:** <push>
-- **Pull:** <pull>
-- **Habit:** <habit>
-- **Anxiety:** <anxiety>
-
-## What you currently use
-<Competes With list — your current alternatives>
-
-## Hire / Fire
-You'll hire something that helps you: <bigHire then littleHire>.
-You'll abandon it when: <firedWhen>.
-
-## How to act
-Try to get this job done. Start at https://www.forwardimpact.team — the
-only entry point. Follow docs as written; don't seek workarounds. Install
-from npm as a normal user would; don't clone any monorepo. Note friction
-in your final output — do not write findings to files.
-```
+Template: [`references/persona-template.md`](references/persona-template.md).
+Worked examples: [`references/example-personas.md`](references/example-personas.md).
 
 ### Step 5: Initiate the Session
 
-Your first response is the agent's initial message. Short and in character:
+Hand off in **two `Ask` calls** so persona and job both surface inline in
+the trace. **Ask 1** opens with an introduction prompt; the agent's
+`Answer` brings the persona, Trigger, and Forces inline. **Ask 2**
+delivers the job (Big Hire + Little Hire as the persona's own want); the
+website URL is in the Ask 2 template.
 
-> Welcome. Read `CLAUDE.md` for who you are and what you need to get done.
-> Start at https://www.forwardimpact.team. Get the job done. Report
-> findings in your final output, not in files.
-
-If the task carries steering not matching `Product:` / `Job:`, append it.
+Templates and worked examples:
+[`references/job-handoff.md`](references/job-handoff.md). If the task
+carries steering not matching `Product:` / `Job:`, append it to Ask 2.
 
 ### Step 6: Supervise
 
@@ -142,15 +128,15 @@ If the task carries steering not matching `Product:` / `Job:`, append it.
 | Looping without progress | Targeted guidance                          |
 | Job done or abandoned    | Proceed to Step 7                          |
 
-Use monorepo access to verify observations — but do not feed verification
+Short reply messages, not further `Ask` calls — only Step 5 uses two Asks.
+Use monorepo access to verify observations, but never feed verification
 back to the agent.
 
 ### Step 7: Transition to Post-Interview
 
-When the persona has gotten the job done or clearly abandoned it, stop
-sending work to the agent and proceed immediately to Steps 8 and 9 in the
-same turn. Conclude the session only after filing issues and writing the
-report.
+Once the persona is done or has abandoned, stop sending work and proceed
+to Steps 8–9 in the same turn. Conclude only after filing issues and
+writing the report.
 
 ### Step 8: Capture Findings
 
@@ -181,12 +167,8 @@ forces materialised; table of findings and issues created or updated.
 
 ## Memory: what to record
 
-Append to the current week's log:
-
-- **Product** — interviewed
-- **Job** — `<user>: <goal>`
-- **Outcome** — done / abandoned / partial
-- **Forces observed** — Push/Pull/Habit/Anxiety/Competes/Fired
-- **Issues created or updated** — numbers and categories
-- **Metrics** — Append one row per run to `wiki/metrics/{skill}/` per
-  `references/metrics.md`. See KATA.md § Metrics for recording eligibility.
+Append to the current week's log: product interviewed; job (`<user>: <goal>`);
+outcome (done / abandoned / partial); forces observed
+(Push/Pull/Habit/Anxiety/Competes/Fired); issue numbers + categories.
+Append one metrics row per run to `wiki/metrics/{skill}/` per
+`references/metrics.md`. See KATA.md § Metrics for recording eligibility.

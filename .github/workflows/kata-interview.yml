@@ -86,7 +86,12 @@ jobs:
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           mode: "supervise"
-          task-file: scenarios/interview/task.md
+          task-text: |
+            Run the `kata-interview` skill.
+
+            If a `Product:` or `Job:` line is appended below, honour it;
+            otherwise the skill picks. Any other appended text is steering
+            — pass it through.
           supervisor-cwd: "."
           agent-cwd: ${{ steps.agent-workspace.outputs.dir }}
           supervisor-profile: "product-manager"
