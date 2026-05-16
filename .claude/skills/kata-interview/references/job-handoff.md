@@ -1,8 +1,8 @@
 # Job handoff: two Asks
 
-The supervisor hands off to the agent with **two `mcp__orchestration__Ask`
-calls**. This is the whole reason the persona file is persona-only: it
-forces both the persona and the job to surface inline in the trace.
+The supervisor hands off to the agent with **two `Ask` calls**. This is
+the whole reason the persona file is persona-only: it forces both the
+persona and the job to surface inline in the trace.
 
 - **Ask 1** asks the agent to introduce themselves. The agent's `Answer`
   contains the persona (name, role, team, situation) — readable inline,

@@ -112,7 +112,7 @@ Worked examples: [`references/example-personas.md`](references/example-personas.
 
 ### Step 5: Initiate the Session
 
-Hand off in **two `mcp__orchestration__Ask` calls** so persona and job
+Hand off in **two `Ask` calls** so persona and job
 both surface inline in the trace.
 
 **Ask 1 — introduction.** Phrase like a human interviewer opening a

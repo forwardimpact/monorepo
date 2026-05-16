@@ -2,7 +2,7 @@ Conduct a JTBD switching interview using the `kata-interview` skill.
 
 The skill defines the protocol: pick a product and a JTBD job, ground the
 persona in this installation's synthetic content, write a persona-only
-`$AGENT_CWD/CLAUDE.md`, hand off in two `mcp__orchestration__Ask` calls
+`$AGENT_CWD/CLAUDE.md`, hand off in two `Ask` calls
 (introduction, then job delivery), and capture findings against the
 chosen job.
 
