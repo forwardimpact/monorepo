@@ -63,7 +63,7 @@ sequenceDiagram
 | Substrate orchestration shape | A `just` recipe (`just substrate-up`) called from one CI step | (a) Many inline YAML steps — bloats workflow; harder to test locally. (b) A composite action — premature; the spec defers reuse to other workflows. (c) A bash script — `just` recipes are already the local convention (`just env-setup`); a script duplicates the seam. |
 | Persona selection | Post-substrate pick by `scripts/pick-substrate-persona.js`, supervisor consumes pre-chosen email | (a) Pre-substrate pick by parsing `data/synthetic/story.dsl` directly — spec's invariants are about the seeded substrate, not the DSL; verifying without reading the DB risks drift. (b) Let the supervisor LLM pick — chicken-and-egg (substrate needs an email before agent starts). |
 | Persona-selection determinism | Lexicographic-first over the invariant-satisfying set | (a) Hash workflow inputs to seed RNG — spec defers cross-run determinism, but lexicographic-first is incidentally deterministic for free, and the spec doesn't forbid that. (b) Random pick — adds non-determinism without product benefit. |
-| Discovery-vector encoding | JSON file at `$AGENT_CWD/.substrate.json` | (a) Env vars on `Run interview` — works for the JWT (production CLI reads `LANDMARK_AUTH_TOKEN`) but bloats env for the other four values, and any env var named `LANDMARK_*` re-opens the persona-file invariant discussion. (b) A row in agent's `CLAUDE.md` — Step 4's `CLAUDE.md` exclusion list forbids product names; the discovery file dodges that surface entirely. |
+| Discovery-vector encoding | JSON file at `./.substrate.json` in the agent's cwd | (a) Env vars on `Run interview` — works for the JWT (production CLI reads `LANDMARK_AUTH_TOKEN`) but bloats env for the other four values, which are read once at agent start and never again. (b) A row in agent's `CLAUDE.md` — Step 4's `CLAUDE.md` exclusion list forbids product names; the discovery file dodges that surface entirely. |
 | JWT transport into agent env | Value-level ternary on the `Run interview` step's `env:` map | (a) Step-level `if:` on the whole `Run interview` step — would skip the agent entirely for non-Landmark runs (wrong; non-Landmark interviews must still run). (b) Pre-step that exports to `$GITHUB_ENV` — works but persists the JWT in the runner's environment beyond the step's scope. |
 | Service-role transit between env-setup and `fit-map auth issue` | `.env` on disk, read by libconfig via `createProductConfig("map")` | (a) Export to `process.env` directly — works but bypasses the libconfig credential-isolation invariant added in PR #933 (`no-supabase-env-in-src.test.js`). (b) `$GITHUB_ENV` — works but the `--output` mode of `env-setup.js` writes lowercase keys, so a transparent reuse of that mode would not match libconfig's uppercase expectation; the default `.env` mode preserves case correctly. |
 | Secret masking for env-setup secrets | A second `env-setup.js` invocation with `--add-mask --output <throwaway>` after the first writes `.env`; the masks register before the secrets transit any later step output | (a) Extending `env-setup.js` with a `--mask-only` mode that emits masks without writing files — cleaner long-term but the second-invocation pattern is one extra line of shell and avoids a script change. (b) Running env-setup once with `--add-mask --output $GITHUB_ENV` only — registers masks but loses the `.env` libconfig contract above. |
@@ -88,8 +88,11 @@ sequenceDiagram
     the spec without re-deriving the labels.
 
 - `scripts/assert-substrate.js`
-  - Inputs (from env or flags): `LANDMARK_AUTH_TOKEN`,
-    `$AGENT_CWD/.substrate.json` path.
+  - Inputs (from env or flags): `LANDMARK_AUTH_TOKEN`, and the
+    discovery-vector JSON file path. In CI, the path is the workflow's
+    `${{ steps.agent-workspace.outputs.dir }}/.substrate.json`; locally,
+    callers pass the path directly. The script does not depend on any
+    `AGENT_CWD` env var.
   - Re-verifies: JWT shape and claims; persona row presence in
     `organization_people` with `kind = 'human'`; discovery-vector
     resolution; the three named row-class smokes via `fit-landmark`
