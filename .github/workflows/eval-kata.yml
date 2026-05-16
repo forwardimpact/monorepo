@@ -2,14 +2,6 @@ name: "Eval: Kata"
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 6 * * 1"
-  pull_request:
-    paths:
-      - ".claude/skills/kata-*/**"
-      - ".claude/agents/*.md"
-      - "benchmarks/kata-skills/**"
-      - ".github/workflows/eval-kata.yml"
 
 concurrency:
   group: eval-kata-${{ github.ref }}
