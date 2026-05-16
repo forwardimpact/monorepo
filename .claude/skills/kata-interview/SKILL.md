@@ -35,15 +35,11 @@ broken. Do not tell the agent the key is pre-configured.
 
 <read_do_checklist goal="Protect the interview before briefing the agent">
 
-- [ ] Persona **identity** (name, team, manager, teammates, repos, project
-      context, company facts) is drawn from the installation's synthetic
-      content (`data/synthetic/` from `fit-terrain build`) — not invented.
-- [ ] Persona **situation** (Trigger, Forces, Competes With) taken from
-      the chosen JTBD entry and rephrased into the persona's voice.
-- [ ] **Job text** (goal, Big Hire, Little Hire) appears only in the Ask 2
-      call — never in `CLAUDE.md`. No product names anywhere agent-visible.
-- [ ] Workspace staged for the chosen product per the table in Step 3.
-- [ ] `$AGENT_CWD/CLAUDE.md` written before the first Ask.
+- [ ] Persona identity drawn from synthetic content (per Step 4) — not invented.
+- [ ] Persona situation drawn from the chosen JTBD entry (per Step 4).
+- [ ] Job text appears only in Ask 2 — never in `CLAUDE.md`.
+- [ ] No product names anywhere agent-visible.
+- [ ] Workspace staged per Step 3; `CLAUDE.md` written before Ask 1.
 - [ ] No leaks of monorepo internals, skills, or pre-configured tokens.
 - [ ] Do not fix problems for the agent — friction is the signal.
 
@@ -112,23 +108,11 @@ Worked examples: [`references/example-personas.md`](references/example-personas.
 
 ### Step 5: Initiate the Session
 
-Hand off in **two `Ask` calls** so persona and job
-both surface inline in the trace.
-
-**Ask 1 — introduction.** Phrase like a human interviewer opening a
-conversation. The harness loads `CLAUDE.md` automatically — do not mention
-it. Example:
-
-> Hi — thanks for making time. Before we get into it, tell me a bit about
-> yourself: who you are, your role and team, and what's been on your plate
-> lately.
-
-The `Answer` brings the persona, Trigger, and Forces inline.
-
-**Ask 2 — job delivery.** Compose from the JTBD: one sentence for today's
-want (Big Hire text, strip product names after `→`), one for the sub-want
-(Little Hire), one pointing at `https://www.forwardimpact.team` and asking
-for final-output reporting. Do not name the product.
+Hand off in **two `Ask` calls** so persona and job both surface inline in
+the trace. **Ask 1** opens with an introduction prompt; the agent's
+`Answer` brings the persona, Trigger, and Forces inline. **Ask 2**
+delivers the job (Big Hire + Little Hire as the persona's own want); the
+website URL is in the Ask 2 template.
 
 Templates and worked examples:
 [`references/job-handoff.md`](references/job-handoff.md). If the task
