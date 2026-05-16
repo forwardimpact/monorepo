@@ -163,7 +163,8 @@ try {
 ```
 
 If the trace service is unreachable, the client retries up to 10 times with
-a 1-second delay before surfacing the connection error.
+exponential backoff (1-second base delay, doubling each attempt, plus jitter)
+before surfacing the connection error.
 
 ## Verify
 

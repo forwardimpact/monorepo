@@ -86,7 +86,8 @@ const graphClient = await createClient("graph", logger, tracer);
 
 `createClient("graph")` resolves the host and port from the service
 configuration, creates a `GraphClient` instance, and establishes the gRPC
-channel with automatic retry (10 attempts, 1-second delay).
+channel with automatic retry (up to 10 retries on transient errors, exponential
+backoff starting at 1 second with jitter).
 
 ## Query the graph
 
