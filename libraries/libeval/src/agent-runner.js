@@ -77,22 +77,7 @@ export class AgentRunner {
     try {
       const iterator = this.query({
         prompt: effectiveTask,
-        options: {
-          cwd: this.cwd,
-          allowedTools: this.allowedTools,
-          maxTurns:
-            this.maxTurns === 0 ? Number.MAX_SAFE_INTEGER : this.maxTurns,
-          model: this.model,
-          permissionMode: PERMISSION_MODE,
-          allowDangerouslySkipPermissions: true,
-          settingSources: this.settingSources,
-          abortController,
-          ...(this.disallowedTools.length > 0 && {
-            disallowedTools: this.disallowedTools,
-          }),
-          ...(this.systemPrompt && { systemPrompt: this.systemPrompt }),
-          ...(this.mcpServers && { mcpServers: this.mcpServers }),
-        },
+        options: this.#callOptions(abortController),
       });
       return await this.#consumeQuery(iterator);
     } finally {
@@ -112,18 +97,45 @@ export class AgentRunner {
       const iterator = this.query({
         prompt,
         options: {
+          ...this.#callOptions(abortController),
           resume: this.sessionId,
-          model: this.model,
-          permissionMode: PERMISSION_MODE,
-          allowDangerouslySkipPermissions: true,
-          abortController,
-          ...(this.mcpServers && { mcpServers: this.mcpServers }),
         },
       });
       return await this.#consumeQuery(iterator);
     } finally {
       this.currentAbortController = null;
     }
+  }
+
+  /**
+   * Build the options passed to every SDK query() call. Shared by run() and
+   * resume() so the agent's configuration — cwd, tools, prompt, setting
+   * sources, turn budget — is identical across the session's lifetime. Only
+   * resume() layers `resume: this.sessionId` on top.
+   *
+   * SDK options are call-attached, not session-attached: the resumed call
+   * loads the prior conversation but otherwise uses whatever options this
+   * call passes. Omitting tool/prompt/setting options on resume causes the
+   * agent to silently lose its restrictions and persona between turns.
+   * @param {AbortController} abortController
+   * @returns {object}
+   */
+  #callOptions(abortController) {
+    return {
+      cwd: this.cwd,
+      allowedTools: this.allowedTools,
+      maxTurns: this.maxTurns === 0 ? Number.MAX_SAFE_INTEGER : this.maxTurns,
+      model: this.model,
+      permissionMode: PERMISSION_MODE,
+      allowDangerouslySkipPermissions: true,
+      settingSources: this.settingSources,
+      abortController,
+      ...(this.disallowedTools.length > 0 && {
+        disallowedTools: this.disallowedTools,
+      }),
+      ...(this.systemPrompt && { systemPrompt: this.systemPrompt }),
+      ...(this.mcpServers && { mcpServers: this.mcpServers }),
+    };
   }
 
   /**

@@ -104,7 +104,6 @@ export class Supervisor {
    */
   async run(task) {
     const initialTask = this.taskAmend ? `${task}\n\n${this.taskAmend}` : task;
-    this.taskContext = initialTask;
     this.currentSource = "supervisor";
     this.currentTurn = 0;
     let supervisorResult = await this.supervisorRunner.run(initialTask);
@@ -253,22 +252,6 @@ export class Supervisor {
   }
 
   /**
-   * Resume the supervisor runner, falling back to a fresh session when the
-   * SDK reports that the conversation no longer exists (e.g. session GC'd
-   * while the agent was running). The fresh session includes the original
-   * task context so the supervisor can still evaluate the agent's work.
-   * @param {string} prompt
-   * @returns {Promise<object>}
-   */
-  async #resumeSupervisor(prompt) {
-    const result = await this.supervisorRunner.resume(prompt);
-    if (result.error && isSessionNotFound(result.error)) {
-      return this.supervisorRunner.run(`${this.taskContext}\n\n${prompt}`);
-    }
-    return result;
-  }
-
-  /**
    * If the agent has an unanswered ask, drain reminders and return a
    * formatted relay string. Returns null when no relay is needed.
    * @returns {string|null}
@@ -295,7 +278,7 @@ export class Supervisor {
     this.currentSource = "supervisor";
     this.ctx.redirect = null;
 
-    await this.#resumeSupervisor(
+    await this.supervisorRunner.resume(
       `The agent is mid-turn. Latest batch:\n\n${batchTranscript}\n\n` +
         `Review and use your tools if action is needed.`,
     );
@@ -333,7 +316,7 @@ export class Supervisor {
           `Review and decide how to proceed.`
         : `The agent reported:\n\n${agentTranscript}\n\nReview the agent's work and decide how to proceed.`;
 
-    let supervisorResult = await this.#resumeSupervisor(reviewPrompt);
+    let supervisorResult = await this.supervisorRunner.resume(reviewPrompt);
 
     if (supervisorResult.error) {
       this.emitSummary({ success: false, turns: turn });
@@ -354,7 +337,7 @@ export class Supervisor {
     if (this.#checkAsk("supervisor") === "recheck" && !this.ctx.concluded) {
       const reminders = this.messageBus.drain("supervisor");
       if (reminders.length > 0) {
-        supervisorResult = await this.#resumeSupervisor(
+        supervisorResult = await this.supervisorRunner.resume(
           formatMessages(reminders),
         );
         if (this.ctx.concluded) {
@@ -616,9 +599,4 @@ export function createSupervisor({
     redactor,
   });
   return supervisor;
-}
-
-function isSessionNotFound(error) {
-  const msg = error?.message ?? String(error);
-  return msg.includes("No conversation found with session ID");
 }

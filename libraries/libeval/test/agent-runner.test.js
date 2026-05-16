@@ -240,6 +240,96 @@ describe("AgentRunner", () => {
     assert.strictEqual(result.text, "Resumed");
   });
 
+  test("resume() forwards every per-call option that run() forwards", async () => {
+    // Regression: SDK options are call-attached, not session-attached
+    // (sdk.d.ts:1027-1507). Resume that drops cwd, allowedTools,
+    // disallowedTools, systemPrompt, settingSources, or maxTurns lets the
+    // agent silently lose its sandbox, tool restrictions, persona, CLAUDE.md
+    // loading, or turn budget between turns. The cwd case was the original
+    // bug — the session lookup fails with "No conversation found with session
+    // ID: …" because the SDK falls back to process.cwd(). The others are
+    // silent correctness failures (tools/prompt/settings drift on resume).
+    let resumeCapture = null;
+    let callCount = 0;
+    const query = async function* (params) {
+      callCount++;
+      if (callCount === 1) {
+        yield { type: "system", subtype: "init", session_id: "sess-opts" };
+        yield { type: "result", subtype: "success", result: "First done" };
+      } else {
+        resumeCapture = params;
+        yield { type: "result", subtype: "success", result: "Resumed" };
+      }
+    };
+
+    const customSystemPrompt = {
+      type: "preset",
+      preset: "claude_code",
+      append: "You are a test agent.",
+    };
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/tmp/agent-sandbox",
+      query,
+      output,
+      model: "sonnet",
+      maxTurns: 17,
+      allowedTools: ["Read", "Grep"],
+      disallowedTools: ["Bash", "WebFetch"],
+      systemPrompt: customSystemPrompt,
+      settingSources: ["project"],
+      mcpServers: { orchestration: { command: "stub" } },
+      redactor: noop(),
+    });
+
+    await runner.run("Initial task");
+    await runner.resume("Follow up");
+
+    const opts = resumeCapture.options;
+    assert.strictEqual(opts.cwd, "/tmp/agent-sandbox");
+    assert.strictEqual(opts.model, "sonnet");
+    assert.strictEqual(opts.maxTurns, 17);
+    assert.deepStrictEqual(opts.allowedTools, ["Read", "Grep"]);
+    assert.deepStrictEqual(opts.disallowedTools, ["Bash", "WebFetch"]);
+    assert.deepStrictEqual(opts.systemPrompt, customSystemPrompt);
+    assert.deepStrictEqual(opts.settingSources, ["project"]);
+    assert.strictEqual(opts.permissionMode, "bypassPermissions");
+    assert.strictEqual(opts.allowDangerouslySkipPermissions, true);
+    assert.strictEqual(opts.resume, "sess-opts");
+    assert.deepStrictEqual(opts.mcpServers, {
+      orchestration: { command: "stub" },
+    });
+  });
+
+  test("resume() maps maxTurns=0 to MAX_SAFE_INTEGER like run() does", async () => {
+    let resumeCapture = null;
+    let callCount = 0;
+    const query = async function* (params) {
+      callCount++;
+      if (callCount === 1) {
+        yield { type: "system", subtype: "init", session_id: "sess-mt0" };
+        yield { type: "result", subtype: "success", result: "OK" };
+      } else {
+        resumeCapture = params;
+        yield { type: "result", subtype: "success", result: "Resumed" };
+      }
+    };
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query,
+      output,
+      maxTurns: 0,
+      redactor: noop(),
+    });
+
+    await runner.run("Task");
+    await runner.resume("Continue");
+
+    assert.strictEqual(resumeCapture.options.maxTurns, Number.MAX_SAFE_INTEGER);
+  });
+
   test("resume() passes mcpServers when configured", async () => {
     let resumeCapture = null;
 
