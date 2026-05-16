@@ -19,12 +19,65 @@ in the Map guide.
 - Node.js 18+
 - npm
 - Map's activity layer running and populated
+- A Supabase Auth JWT exported as `LANDMARK_AUTH_TOKEN` — see
+  [Authentication](#authentication) below
 
 ## Install
 
 ```sh
 npm install @forwardimpact/landmark
 ```
+
+## Authentication
+
+Every Landmark command except `marker` reads `LANDMARK_AUTH_TOKEN` from the
+environment and rejects requests without it. The token is a Supabase Auth JWT
+bound to your email — row-level security uses the `email` claim to scope every
+query, so the token both authenticates you and determines what you can see.
+
+**There is no hosted Forward Impact service and no free tier.** Landmark reads
+from the Supabase project you stand up via Map. Production-side issuance flows
+(a `fit-landmark login` verb, magic-link delivery, SSO bridge) are a
+follow-up — until they land, leaders and operators obtain a token by signing
+one against `SUPABASE_JWT_SECRET`.
+
+Today's minimum stand-up is four steps under Map:
+
+1. **Start the activity layer.** `npx fit-map activity start` brings the
+   Supabase stack up and prints a one-line ready confirmation. The stack
+   signs every token with `SUPABASE_JWT_SECRET`, which the bootstrap recipe
+   (`just env-setup` for monorepo contributors) writes to `.env` alongside
+   `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
+   Hosted Supabase users copy the same four values from Project Settings → API.
+2. **Push the roster.** `npx fit-map people push ./people.yaml` populates
+   `activity.organization_people`.
+3. **Provision auth users.** `npx fit-map people provision` reconciles
+   `auth.users` against the roster so each engineer's email maps to an
+   authenticable identity. See
+   [Provision Engineer Auth Users](/docs/products/provisioning-engineers/) for
+   the operator workflow.
+4. **Obtain a JWT for yourself.** HMAC-sign a Supabase-shaped JWT against
+   `SUPABASE_JWT_SECRET` with your manager email in the `email` claim, then
+   export it:
+
+   ```sh
+   export LANDMARK_AUTH_TOKEN=<your signed JWT>
+   ```
+
+   The signing recipe — header `{alg: "HS256", typ: "JWT"}`, payload with
+   `email`, `aud: "authenticated"`, `role: "authenticated"`, and a future
+   `exp` — is the same shape Supabase Auth issues. The CI test helper at
+   `products/landmark/test/lib/sign-test-token.js` in the monorepo source
+   is a reference implementation.
+
+Once `LANDMARK_AUTH_TOKEN` is set, every command in the rest of this guide
+works against your scope. The token is not honored offline — there is no
+`--data`-only fallback for analytical commands today
+([#921](https://github.com/forwardimpact/monorepo/issues/921) tracks that
+gap).
+
+For more on what data the token unlocks visibility into, see
+[List Engineering Data Sources](/docs/products/engineering-data-sources/).
 
 ## View the organization
 

@@ -288,6 +288,31 @@ curl -X POST \
   https://<project-ref>.supabase.co/functions/v1/people-upload
 ```
 
+## Activity: provision auth users
+
+Landmark's row-level security admits a request based on the JWT's `email`
+claim, and Supabase Auth only issues a JWT for an `auth.users` row that
+already exists. After pushing the roster, reconcile `auth.users` against
+`activity.organization_people`:
+
+```sh
+npx fit-map people provision
+```
+
+The command prints a per-action summary (`created`, `restored`,
+`decommissioned`, `unchanged`) and is safe to re-run — it upserts on email and
+preserves `auth.users.id` across decommission and rejoin. See
+[Provision Engineer Auth Users](/docs/products/provisioning-engineers/) for
+the full operator workflow.
+
+Provisioning ensures every engineer's email maps to an authenticable identity.
+It does not by itself deliver a JWT to engineer-side tooling —
+`fit-landmark login`, magic-link, and SSO are a follow-up. Until they land,
+Landmark callers obtain a token by signing one against `SUPABASE_JWT_SECRET`
+locally; see
+[Authentication](/docs/getting-started/leaders/landmark/#authentication) in
+the Landmark guide.
+
 ## Activity: ingest GitHub activity
 
 Map ships a `github-webhook` edge function that receives GitHub webhook events,
