@@ -240,6 +240,39 @@ describe("AgentRunner", () => {
     assert.strictEqual(result.text, "Resumed");
   });
 
+  test("resume() passes cwd so the SDK locates the session by project", async () => {
+    // Regression: the Claude Agent SDK keys session storage under
+    // ~/.claude/projects/<sanitized-cwd>/<session>.jsonl. If resume() omits
+    // cwd the SDK falls back to process.cwd() and fails with "No conversation
+    // found with session ID: …" whenever run() used a different cwd (e.g. a
+    // sandboxed mktemp dir).
+    let resumeCapture = null;
+    let callCount = 0;
+    const query = async function* (params) {
+      callCount++;
+      if (callCount === 1) {
+        yield { type: "system", subtype: "init", session_id: "sess-cwd" };
+        yield { type: "result", subtype: "success", result: "First done" };
+      } else {
+        resumeCapture = params;
+        yield { type: "result", subtype: "success", result: "Resumed" };
+      }
+    };
+
+    const output = new PassThrough();
+    const runner = new AgentRunner({
+      cwd: "/tmp/agent-sandbox",
+      query,
+      output,
+      redactor: noop(),
+    });
+
+    await runner.run("Initial task");
+    await runner.resume("Follow up");
+
+    assert.strictEqual(resumeCapture.options.cwd, "/tmp/agent-sandbox");
+  });
+
   test("resume() passes mcpServers when configured", async () => {
     let resumeCapture = null;
 

@@ -112,6 +112,7 @@ export class AgentRunner {
       const iterator = this.query({
         prompt,
         options: {
+          cwd: this.cwd,
           resume: this.sessionId,
           model: this.model,
           permissionMode: PERMISSION_MODE,
