@@ -14,11 +14,11 @@ Experiments. Full template at
 
 **Planning meeting** — first meeting of the month or no storyboard exists.
 Create the storyboard from [`storyboard-template.md`](storyboard-template.md):
-for every `wiki/metrics/{skill}/{YYYY}.csv`, instantiate a `#### {metric_name}`
-block bracketed by `<!-- xmr:{metric}:{csv} -->` / `<!-- /xmr -->` — that pair
-is the contract `bunx fit-wiki refresh` depends on. Then lead the team
-through: the Challenge, the Target Condition (measurable, by month end), the
-Current Condition from metrics CSVs, initial Obstacles, and the first
+for every `wiki/metrics/{skill}/{YYYY}.csv`, instantiate one
+`#### {metric_name}` block under `### {skill}` with its
+`<!-- xmr:{metric}:{csv} -->` / `<!-- /xmr -->` marker pair. Then lead the
+team through: the Challenge, the Target Condition (measurable, by month end),
+the Current Condition from metrics CSVs, initial Obstacles, and the first
 Experiment.
 
 **Review meeting** — all other team meetings. Walk through the five questions,

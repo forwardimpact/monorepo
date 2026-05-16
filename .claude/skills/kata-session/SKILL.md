@@ -62,9 +62,9 @@ Participant Protocol below.
       including XmR `status` and signal descriptions for each metric with
       sufficient data. Metrics with `insufficient_data` are noted.
 - [ ] Coaching metrics appended to CSV (see Facilitator Process step 6).
-- [ ] For team meetings: storyboard updated per partition protocol; every
-      metric block carries refresh-rendered content between `<!-- xmr:... -->`
-      markers; experiments and obstacles managed as labeled GitHub issues per
+- [ ] For team meetings: storyboard updated per partition protocol;
+      `bunx fit-wiki refresh` rendered every metric block (no no-op, no manual
+      paste); experiments and obstacles managed as labeled GitHub issues per
       [`issue-lifecycle.md`](references/issue-lifecycle.md).
 - [ ] For 1-on-1: agent's findings written to its own memory.
 - [ ] Weekly log updated under `## YYYY-MM-DD` with meeting type, metrics,
@@ -124,12 +124,9 @@ Mode-specific question wording (team vs. 1-on-1) lives in the overlays.
    `bunx fit-xmr analyze <csv> --format json` and use the `status`, fired-rule
    `signals`, and `latest` fields when reporting the Condition. For team
    storyboard runs, refresh chart blocks per
-   [`team-storyboard.md` § Storyboard updates](references/team-storyboard.md#storyboard-updates) —
-   seed any missing `<!-- xmr:... -->` marker pair from
-   [`storyboard-template.md`](references/storyboard-template.md), then run
-   `bunx fit-wiki refresh`. A no-op refresh is a missing-marker bug. Note any
-   `insufficient_data` metric. In facilitated mode, include `status` and
-   fired-rule signals in the Q2 `Ask`.
+   [`team-storyboard.md` § Storyboard updates](references/team-storyboard.md#storyboard-updates).
+   Note any `insufficient_data` metric. In facilitated mode, include `status`
+   and fired-rule signals in the Q2 `Ask`.
 5. **Run the five questions.** Follow the overlay's wording. In facilitated
    mode, pose each question via `Ask` and collect `Answer` replies before
    advancing. Use `Announce` for between-question transitions or any status that
