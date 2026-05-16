@@ -162,11 +162,6 @@ export class AgentRunner {
    * observe the partial state (e.g. note a crash or react to an external
    * abort). A throw from that final flush becomes the returned `error`
    * only if no earlier error was captured — the original failure wins.
-   *
-   * Failure is surfaced via the returned `error` field whether it arrived
-   * as a thrown exception or as a terminal `result` message with
-   * `is_error: true` and a non-empty `errors` array. Callers should not
-   * inspect raw SDK message fields to detect failure.
    * @param {AsyncIterable<object>} iterator
    * @returns {Promise<{success: boolean, text: string, sessionId: string|null, error: Error|null, aborted: boolean}>}
    */
@@ -183,7 +178,6 @@ export class AgentRunner {
         if (message.type === "result") {
           text = message.result ?? "";
           stopReason = message.subtype;
-          error = error ?? extractResultError(message);
         }
         await this.#maybeFlushBatch(message, state);
       }
@@ -305,23 +299,6 @@ export function hasTextBlock(message) {
     if (block.type === "text" && block.text) return true;
   }
   return false;
-}
-
-/**
- * Promote a result-message error into an Error object, or return null when
- * the message doesn't carry one. The Agent SDK signals failure two ways:
- * the iterator throws (caught in `#consumeQuery`'s try/catch) OR it
- * delivers a terminal result with `is_error: true` and a non-empty
- * `errors` array (e.g. session-not-found on resume). This helper handles
- * the second path so the runner exposes a uniform `error` shape.
- * @param {object} message
- * @returns {Error|null}
- */
-function extractResultError(message) {
-  if (!message.is_error) return null;
-  if (!Array.isArray(message.errors) || message.errors.length === 0)
-    return null;
-  return new Error(message.errors[0]);
 }
 
 function trackSkillInvocation(message) {

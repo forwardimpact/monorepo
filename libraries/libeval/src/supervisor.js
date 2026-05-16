@@ -27,7 +27,7 @@ import {
   createSupervisedAgentToolServer,
   checkPendingAsk,
 } from "./orchestration-toolkit.js";
-import { formatMessages, isSessionNotFound } from "./orchestrator-helpers.js";
+import { formatMessages } from "./orchestrator-helpers.js";
 
 /** System prompt appended for the supervisor runner in supervise mode. */
 export const SUPERVISOR_SYSTEM_PROMPT =
@@ -184,7 +184,9 @@ export class Supervisor {
       while (true) {
         this.currentSource = "agent";
         this.currentTurn = turn;
-        const agentResult = await this.#callAgent(agentCalled, relay);
+        const agentResult = agentCalled
+          ? await this.agentRunner.resume(relay)
+          : await this.agentRunner.run(relay);
         agentCalled = true;
 
         const outcome = this.#classifyAgentOutcome(
@@ -251,40 +253,16 @@ export class Supervisor {
   }
 
   /**
-   * Invoke the agent with the given relay — `run()` for the first call,
-   * `resume()` thereafter. On session-not-found, fall back to a fresh
-   * `run(relay)`: agents restart on the relay alone because the persona /
-   * task lives in `CLAUDE.md` (auto-loaded via `settingSources:
-   * ["project"]`) and the in-session history we lose was already captured
-   * in the trace.
-   * @param {boolean} agentCalled - True if the agent has been invoked
-   *   before in this run (so we should resume instead of run).
-   * @param {string} relay
-   * @returns {Promise<object>}
-   */
-  async #callAgent(agentCalled, relay) {
-    if (!agentCalled) return this.agentRunner.run(relay);
-    const result = await this.agentRunner.resume(relay);
-    if (result.error && isSessionNotFound(result.error)) {
-      this.agentRunner.sessionId = null;
-      return this.agentRunner.run(relay);
-    }
-    return result;
-  }
-
-  /**
    * Resume the supervisor runner, falling back to a fresh session when the
-   * SDK reports that the conversation no longer exists. The supervisor has
-   * no `CLAUDE.md` equivalent for the task — it lives in `this.taskContext`
-   * (captured in `run()`), so we re-inject it on restart so the supervisor
-   * can still evaluate the agent's work.
+   * SDK reports that the conversation no longer exists (e.g. session GC'd
+   * while the agent was running). The fresh session includes the original
+   * task context so the supervisor can still evaluate the agent's work.
    * @param {string} prompt
    * @returns {Promise<object>}
    */
   async #resumeSupervisor(prompt) {
     const result = await this.supervisorRunner.resume(prompt);
     if (result.error && isSessionNotFound(result.error)) {
-      this.supervisorRunner.sessionId = null;
       return this.supervisorRunner.run(`${this.taskContext}\n\n${prompt}`);
     }
     return result;
@@ -638,4 +616,9 @@ export function createSupervisor({
     redactor,
   });
   return supervisor;
+}
+
+function isSessionNotFound(error) {
+  const msg = error?.message ?? String(error);
+  return msg.includes("No conversation found with session ID");
 }

@@ -203,54 +203,6 @@ describe("AgentRunner", () => {
     assert.strictEqual(result.text, "Stopped");
   });
 
-  // Guards: the SDK can signal failure via a terminal result message (not
-  // a thrown iterator error). The runner must surface that as `result.error`
-  // so callers downstream — including isSessionNotFound — work uniformly.
-  test("run() surfaces result-message errors via result.error", async () => {
-    const messages = [
-      {
-        type: "result",
-        subtype: "error_during_execution",
-        is_error: true,
-        errors: ["No conversation found with session ID: abc-123"],
-      },
-    ];
-
-    const output = new PassThrough();
-    const runner = new AgentRunner({
-      cwd: "/tmp",
-      query: mockQuery(messages),
-      output,
-      redactor: noop(),
-    });
-
-    const result = await runner.run("Task");
-    assert.strictEqual(result.success, false);
-    assert.ok(result.error instanceof Error);
-    assert.strictEqual(
-      result.error.message,
-      "No conversation found with session ID: abc-123",
-    );
-  });
-
-  // Guards: a non-success subtype without is_error/errors (e.g. user-initiated
-  // stop) must not synthesise an error — preserves existing semantics.
-  test("run() does not synthesise error when is_error is absent", async () => {
-    const messages = [{ type: "result", subtype: "error", result: "Stopped" }];
-
-    const output = new PassThrough();
-    const runner = new AgentRunner({
-      cwd: "/tmp",
-      query: mockQuery(messages),
-      output,
-      redactor: noop(),
-    });
-
-    const result = await runner.run("Task");
-    assert.strictEqual(result.success, false);
-    assert.strictEqual(result.error, null);
-  });
-
   test("resume() passes sessionId via options.resume", async () => {
     let resumeCapture = null;
 

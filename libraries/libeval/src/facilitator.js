@@ -17,11 +17,7 @@ import {
   createFacilitatedAgentToolServer,
   checkPendingAsk,
 } from "./orchestration-toolkit.js";
-import {
-  createAsyncQueue,
-  formatMessages,
-  isSessionNotFound,
-} from "./orchestrator-helpers.js";
+import { createAsyncQueue, formatMessages } from "./orchestrator-helpers.js";
 
 /** System prompt appended for the facilitator runner. */
 export const FACILITATOR_SYSTEM_PROMPT =
@@ -95,10 +91,6 @@ export class Facilitator {
     this.emitOrchestratorEvent({ type: "session_start" });
 
     const initialTask = this.taskAmend ? `${task}\n\n${this.taskAmend}` : task;
-    // Stashed for `resumeOrRestart`'s coordinator policy — same shape as
-    // `Supervisor#run` so a facilitator restart can re-inject the task on
-    // session-loss. Agents don't need this; their persona lives in CLAUDE.md.
-    this.taskContext = initialTask;
 
     // Launch agent loops first — they wait for messages via messageBus.
     // This lets agents process Ask/Announce messages that arrive during
@@ -177,14 +169,7 @@ export class Facilitator {
     if (this.ctx.concluded) return;
     const reminders = this.messageBus.drain(agent.name);
     if (reminders.length === 0) return;
-    const prompt = formatMessages(reminders);
-    // Inline session-loss recovery — see orchestrator-helpers.js for why
-    // this isn't a wrapper helper.
-    const result = await agent.runner.resume(prompt);
-    if (result.error && isSessionNotFound(result.error)) {
-      agent.runner.sessionId = null;
-      await agent.runner.run(prompt);
-    }
+    await agent.runner.resume(formatMessages(reminders));
     if (this.ctx.concluded) return;
     this.#checkAsk(agent.name);
   }
@@ -208,17 +193,11 @@ export class Facilitator {
     await agent.runner.run(formatMessages(messages));
     if (await this.#settleAgentTurn(agent)) return;
 
-    // Loop: check for new messages, resume if any. Agents restart on the
-    // relay alone — CLAUDE.md re-loads and MCP servers reconnect on `run()`.
+    // Loop: check for new messages, resume if any
     while (!this.ctx.concluded) {
       messages = await this.#awaitAgentMessages(agent.name);
       if (messages.length === 0) break;
-      const prompt = formatMessages(messages);
-      const result = await agent.runner.resume(prompt);
-      if (result.error && isSessionNotFound(result.error)) {
-        agent.runner.sessionId = null;
-        await agent.runner.run(prompt);
-      }
+      await agent.runner.resume(formatMessages(messages));
       if (await this.#settleAgentTurn(agent)) break;
     }
   }
@@ -272,14 +251,7 @@ export class Facilitator {
         const msgs = this.messageBus.drain("facilitator");
         if (msgs.length === 0) break;
         this.facilitatorTurns++;
-        const prompt = formatMessages(msgs);
-        // Coordinator policy: re-inject `taskContext` on session-loss so a
-        // fresh facilitator session can still drive the session it owns.
-        const result = await this.facilitatorRunner.resume(prompt);
-        if (result.error && isSessionNotFound(result.error)) {
-          this.facilitatorRunner.sessionId = null;
-          await this.facilitatorRunner.run(`${this.taskContext}\n\n${prompt}`);
-        }
+        await this.facilitatorRunner.resume(formatMessages(msgs));
         await this.#processRedirect();
         if (!this.ctx.concluded) await this.#enforceFacilitatorPendingAsk();
         break;
@@ -298,12 +270,7 @@ export class Facilitator {
     const reminders = this.messageBus.drain("facilitator");
     if (reminders.length === 0) return;
     this.facilitatorTurns++;
-    const prompt = formatMessages(reminders);
-    const result = await this.facilitatorRunner.resume(prompt);
-    if (result.error && isSessionNotFound(result.error)) {
-      this.facilitatorRunner.sessionId = null;
-      await this.facilitatorRunner.run(`${this.taskContext}\n\n${prompt}`);
-    }
+    await this.facilitatorRunner.resume(formatMessages(reminders));
     await this.#processRedirect();
     if (this.ctx.concluded) return;
     this.#checkAsk("facilitator");
