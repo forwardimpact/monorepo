@@ -298,6 +298,7 @@ presentations.
 
 <div class="grid">
 
+<!-- part:card:culture-investments -->
 <!-- part:card:../growth-areas -->
 
 </div>
