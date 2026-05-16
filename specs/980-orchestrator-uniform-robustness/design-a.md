@@ -12,30 +12,30 @@ cleanly; nothing wraps a runner call in `try`/`catch`.
 
 ```mermaid
 flowchart LR
-    Supervisor[Supervisor] -- consumes --> Helpers[orchestrator-helpers.js]
-    Facilitator[Facilitator] -- consumes --> Helpers
-    Helpers --- ELT[extractLastText]
-    Helpers --- DAR[drainAndFormat]
-    Helpers --- PEE[participantErrorEvent]
-    Helpers --- FM[formatMessages existing]
-    Helpers --- AQ[createAsyncQueue existing]
+    Supervisor[Supervisor] --> Helpers[orchestrator-helpers.js]
+    Facilitator[Facilitator] --> Helpers
+    Helpers --> ELT[extractLastText]
+    Helpers --> DAR[drainAndFormat]
+    Helpers --> PEE[participantErrorEvent]
+    Helpers --> FM[formatMessages — existing]
+    Helpers --> AQ[createAsyncQueue — existing]
 ```
 
 ## Components
 
 | Component | Module | Role |
 |---|---|---|
-| `extractLastText(runner, fallback)` | `src/orchestrator-helpers.js` | Pure function — scans `runner.buffer` for the last assistant text block; returns `fallback` when none found. Moved from the two byte-identical copies. |
-| `drainAndFormat(messageBus, name)` | `src/orchestrator-helpers.js` | Drains messages addressed to `name`; returns `formatMessages(drained)` when non-empty, `null` when empty. Caller branches on `null` to keep null-vs-non-null behaviour explicit at each site. |
+| `extractLastText(runner, fallback)` | `src/orchestrator-helpers.js` | Pure function — scans `runner.buffer` for the last assistant text block; returns `fallback` when none found. Single home for both orchestrators. |
+| `drainAndFormat(messageBus, name)` | `src/orchestrator-helpers.js` | Drains messages addressed to `name` (destructive — same semantics as today's open-coded `messageBus.drain`); returns `formatMessages(drained)` when non-empty, `null` when empty. Caller branches on `null` to keep null-vs-non-null behaviour explicit at each site. Sites that need the raw `Message[]` (e.g. `#awaitAgentMessages`) keep using `messageBus.drain` directly — the helper covers only the drain-then-format kernel. |
 | `participantErrorEvent(participant, error)` | `src/orchestrator-helpers.js` | Event builder — returns `{type: "participant_error", participant, message: error.message}`. Pure data; orchestrators decide when to emit and how to exit. |
-| `Supervisor` | `src/supervisor.js` | Unchanged state machine. New: after every `runner.run`/`runner.resume`, branches on `result.error` and exits via the same paths it already uses for terminal failures (`#classifyAgentOutcome` and `supervisor.js:111`/`:226`). |
-| `Facilitator` | `src/facilitator.js` | Unchanged state machine. New: after every `runner.run`/`runner.resume`, branches on `result.error`. Concurrent agent loops abort their siblings on failure (existing `currentAbortController.abort()` mechanism on `facilitator.js:124-128`). |
+| `Supervisor` | `src/supervisor.js` | Unchanged state machine. New: after every `runner.run`/`runner.resume`, branches on `result.error` and emits the new event before the existing terminal-failure exit shape (matching the `if (result.error)` predicate already present at `supervisor.js:111` and `:225`). |
+| `Facilitator` | `src/facilitator.js` | Unchanged state machine. New: after every `runner.run`/`runner.resume`, branches on `result.error`. On error, emits the new event, then triggers sibling abort by calling `currentAbortController.abort()` on every running participant — the same call already used at `facilitator.js:124-128` (concludePromise) and `:135-141` (catch). The trigger is new; the abort call is not. |
 
 ## Interfaces
 
 ```text
-extractLastText(runner: AgentRunner, fallback: string): string
-drainAndFormat(messageBus: MessageBus, name: string): string | null
+extractLastText(runner: AgentRunner, fallback: string): string         // pure, non-mutating
+drainAndFormat(messageBus: MessageBus, name: string): string | null    // MUTATES bus — drains queue
 participantErrorEvent(participant: string, error: Error): { type: "participant_error", participant: string, message: string }
 ```
 
@@ -65,10 +65,11 @@ sequenceDiagram
     end
 ```
 
-Six Facilitator sites and two unchecked Supervisor sites (`:281`, `:340`)
-adopt this shape. Supervisor's three already-checked sites (`:111`, `:225`,
-`:321`) refactor to emit the same `participant_error` event before their
-existing summary call, so all error paths share one event type.
+Every runner-result callsite enumerated by spec § Defect 1 — Facilitator's
+six and Supervisor's five — adopts this branch shape. Supervisor's three
+sites that already check `.error` today emit the new event before their
+existing exit path, so all error attribution flows through one event type
+regardless of orchestrator or site.
 
 ## Key decisions
 
@@ -77,8 +78,8 @@ existing summary call, so all error paths share one event type.
 | **Where shared primitives live** | Add to `orchestrator-helpers.js` alongside `formatMessages`/`createAsyncQueue`. | New `src/orchestrator-base.js` with a `BaseOrchestrator` class the two extend. | The two orchestrators already share only data utilities — they have different state machines, different tool servers, different concurrency models (Facilitator runs N agent loops in parallel; Supervisor runs one). A base class would either be near-empty or force unnatural unification of the state machines. Helpers keep the seam at the data boundary, where it actually is. |
 | **Error-event vocabulary** | One event type `participant_error` with a `participant` field. | Two types `agent_error` and `facilitator_error`. | Trace consumers filter by `type` already. A single type lets a `--errors` view aggregate uniformly; the `participant` field carries the discrimination the consumer needs. Mirrors the existing `agent_start` event shape (one type, named participant). |
 | **Helper return shape for drain** | `string \| null` from `drainAndFormat`. | `string` (empty when drained nothing) or `{relay: string, messages: Message[]}` tuple. | The 11 callsites today already branch on `length > 0` before deciding what to do (some return null, some return undefined, some skip the call). A nullable return preserves that branch point; the tuple shape would force callers to discard data. |
-| **Failure semantics in Facilitator** | On any runner `.error`, emit `participant_error`, abort sibling agents via existing `currentAbortController.abort()`, emit summary `{success: false}`, return. | Let surviving agents continue; only fail the failed participant's loop. | A failed runner means the conversation's trace is corrupted from this point — surviving agents have nothing reliable to react to. Aborting matches the existing exception path at `facilitator.js:135-141`. |
-| **No `try`/`catch` around runner calls** | Inspect `result.error` after `await`; never wrap the call. | Try/catch wrapper that converts thrown errors into `{error: e}` results. | `AgentRunner` already normalizes thrown errors into `.error` on the return value (verified at `agent-runner.js:184-189`). Wrapping again is the recovery-shim pattern this session removed in commits `d741da99` and `58da3961`. Carries the clean-break direction forward. |
+| **Failure semantics in Facilitator** | On any runner `.error`, emit `participant_error`, abort sibling participants by calling `currentAbortController.abort()` on each running runner, emit summary `{success: false}`, return. | Let surviving agents continue; only fail the failed participant's loop. | A failed runner means the conversation's trace is corrupted from this point — surviving agents have nothing reliable to react to. The abort *calls* already exist at `facilitator.js:135-141` (catch-block cascade) and `:124-128` (concludePromise cascade); the new code reuses those calls under a new trigger. |
+| **No `try`/`catch` around runner calls** | Inspect `result.error` after `await`; never wrap the call. | Try/catch wrapper that converts thrown errors into `{error: e}` results. | `AgentRunner` already normalizes thrown errors into `.error` on the return value (catch block at `agent-runner.js:196-202`; result shape at `:208`). Wrapping again is the recovery-shim pattern this session removed in commits `d741da99` and `58da3961`. Carries the clean-break direction forward. |
 | **Where `participant_error` events go relative to summary** | Event first, then `emitSummary({success:false})`, then return. | Single `summary` event with an `error` field. | Existing `summary` shape has no `error` field; trace consumers parse it positionally. Adding a sibling event preserves the contract and gives `fit-trace errors` a single line to surface. |
 
 ## What stays untouched
@@ -101,16 +102,27 @@ existing summary call, so all error paths share one event type.
 
 ## Verifies
 
-- Spec § Success criteria row 1 ("typed failure event identifying the
-  participant") → `participant_error` event with `participant` field.
-- Spec § Success criteria row 2 (supervisor `:281`, `:340` parity) → same
-  branch shape applied at all five supervisor sites.
+- Spec § Success criteria row 1 (three-part conjunction: typed failure
+  event identifying the participant + `summary.success === false` +
+  same-turn iterator return) → `participant_error` event with `participant`
+  field; followed by `emitSummary({success: false, …})`; followed by
+  `return` from the same orchestrator method on the same turn (see Data
+  flow on error diagram).
+- Spec § Success criteria row 2 (supervisor `:281`, `:340` parity) →
+  identical branch shape and event emission applied at all five
+  supervisor runner-result sites.
 - Spec § Success criteria row 3 (`extractLastText` single location) →
-  `extractLastText` exported from `orchestrator-helpers.js`; supervisor's
-  callsite imports it; facilitator's dead copy deleted.
-- Spec § Success criteria row 4 (`drain` callsites ≤6 of 11) → 11 sites
-  become calls to `drainAndFormat`; remaining direct `messageBus.drain`
-  uses are the ones inside the helper itself plus any consumer that
-  legitimately needs the raw array.
+  the helper is exported from `orchestrator-helpers.js` and consumed by
+  Supervisor's existing callsite; the Facilitator copy is dead code and
+  is removed.
+- Spec § Success criteria row 4 (`drain` callsites ≤6) → drain-then-format
+  sites consume `drainAndFormat`; raw-`Message[]` consumers
+  (e.g. `#awaitAgentMessages` at `facilitator.js:226`/`:233` and the
+  prefix-decorated site at `supervisor.js:306-315`) keep direct
+  `messageBus.drain` calls with an inline comment naming the reason.
 - Spec § Success criteria row 5 (no `try`/`catch` added) → branch-on-result
-  pattern; helpers are pure functions.
+  pattern; helpers are pure functions; `participantErrorEvent` returns
+  data, never side-effects.
+- Spec § Success criteria row 6 (`bun test` and `bun run check` exit 0) →
+  plan-scope verification command; the design imposes no constraint
+  that prevents it.
