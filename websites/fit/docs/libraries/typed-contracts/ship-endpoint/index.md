@@ -145,7 +145,7 @@ https://acme.example/people/john-smith	https://schema.org/Person
 ```
 
 Retries are automatic -- the client retries transient failures up to 10 times
-with a 1-second delay between attempts.
+with exponential backoff starting at a 1-second base delay (with jitter).
 
 ### Make a streaming call
 
