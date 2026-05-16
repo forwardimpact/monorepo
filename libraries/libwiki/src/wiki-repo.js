@@ -112,11 +112,16 @@ export class WikiRepo {
     }
   }
 
-  /** Stage all changes, commit with the given message, fetch, rebase on origin/master (falling back to a merge with -X ours if rebase fails), and push. */
+  /** Stage and commit any working-tree changes, then fetch, rebase on origin/master (falling back to a merge with -X ours if rebase fails), and push if HEAD is ahead of origin/master. The commit gate and the push gate are independent so a clean tree with local commits still pushes. */
   commitAndPush(message) {
-    if (this.isClean()) return { pushed: false, reason: "clean" };
-    this.#git(["add", "-A"]);
-    this.#git(["commit", "-m", message]);
+    const hasWorkingTreeChanges = !this.isClean();
+    if (hasWorkingTreeChanges) {
+      this.#git(["add", "-A"]);
+      this.#git(["commit", "-m", message]);
+    }
+    if (!this.#hasCommitsAhead()) {
+      return { pushed: false, reason: "clean" };
+    }
     this.fetch();
     const rebase = this.#git(["rebase", "origin/master"]);
     if (rebase.status !== 0) {
@@ -125,6 +130,12 @@ export class WikiRepo {
     }
     this.#authGit(["-C", this.#wikiDir, "push", "origin", "master"]);
     return { pushed: true, reason: "pushed" };
+  }
+
+  #hasCommitsAhead() {
+    const r = this.#git(["rev-list", "--count", "origin/master..HEAD"]);
+    const count = parseInt(r.stdout?.toString().trim() || "0", 10);
+    return count > 0;
   }
 
   #parentConfig(key) {

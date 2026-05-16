@@ -180,6 +180,47 @@ describe("WikiRepo", () => {
     assert.equal(diff, "");
   });
 
+  test("commitAndPush pushes pre-existing local commits on clean tree", () => {
+    const { parent, wikiDir } = cloneRepo(bare, "ahead");
+    git(wikiDir, "checkout", "master");
+
+    writeFileSync(join(wikiDir, "inline.md"), "committed inline by caller");
+    git(wikiDir, "add", "-A");
+    git(wikiDir, "commit", "-m", "inline commit by caller");
+
+    const headBefore = git(wikiDir, "rev-parse", "HEAD");
+
+    const repo = new WikiRepo({
+      wikiDir,
+      parentDir: parent,
+      resolveToken: () => null,
+    });
+    const result = repo.commitAndPush("wiki: should not be used");
+    assert.equal(result.pushed, true);
+    assert.equal(result.reason, "pushed");
+
+    const headAfter = git(wikiDir, "rev-parse", "HEAD");
+    assert.equal(
+      headAfter,
+      headBefore,
+      "no new commit object should be created when the tree is clean",
+    );
+
+    const diff = git(wikiDir, "diff", "origin/master");
+    assert.equal(
+      diff,
+      "",
+      "local HEAD and origin/master should match after push",
+    );
+
+    const log = git(wikiDir, "log", "-1", "--format=%s");
+    assert.equal(
+      log,
+      "inline commit by caller",
+      "the existing commit should be the tip, not a new one",
+    );
+  });
+
   test("commitAndPush recovers via merge -X ours on divergence", () => {
     const { wikiDir: w1 } = cloneRepo(bare, "merge1");
     const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "merge2");
