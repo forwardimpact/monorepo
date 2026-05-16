@@ -2,9 +2,11 @@
 name: kata-interview
 description: >
   Conduct a JTBD switching interview to test a Forward Impact product. Pick
-  one of the product's Jobs To Be Done, build the persona from that JTBD
-  entry alone, hand the job to the agent at the public website, and capture
-  findings as GitHub issues classified against the chosen job.
+  one of the product's Jobs To Be Done, build a persona grounded in the
+  installation's synthetic content with the situation drawn from the JTBD
+  entry, hand the job to the agent at the public website in two Ask calls
+  (introduction, then job delivery), and capture findings as GitHub issues
+  classified against the chosen job.
 ---
 
 # Switching Interview
@@ -36,11 +38,21 @@ key is pre-configured.
 
 <read_do_checklist goal="Protect the interview before briefing the agent">
 
-- [ ] Persona is built from the chosen JTBD entry only — no outside
-      knowledge, no monorepo links, no product name in instruction text.
+- [ ] Persona **identity** (name, handle, email, team, manager, teammates,
+      repos, recent project context) is drawn from the installation's
+      synthetic content (e.g. `data/synthetic/story.dsl` and prose-cache
+      from `fit-terrain build`) — not invented.
+- [ ] `## About <Company>` section sourced from the same synthetic content
+      — every fact (HQ, departments, headcount, current projects, domain)
+      traces back to the DSL or generated prose.
+- [ ] Persona **situation** (Trigger, Forces, Competes With) is taken from
+      the chosen JTBD entry and rephrased into the persona's voice.
+- [ ] **Job text** (goal sentence, Big Hire, Little Hire) appears only in
+      the Ask 2 call — never in `CLAUDE.md`.
 - [ ] Workspace staged for the chosen product per the table in Step 3.
-- [ ] `$AGENT_CWD/CLAUDE.md` written before the briefing message.
+- [ ] `$AGENT_CWD/CLAUDE.md` written before the first Ask.
 - [ ] No leaks of monorepo internals, skills, or pre-configured tokens.
+- [ ] No product names in `CLAUDE.md` or in either Ask.
 - [ ] Do not fix problems for the agent — friction is the signal.
 
 </read_do_checklist>
@@ -92,45 +104,58 @@ Use `cp -r data/pathway "$AGENT_CWD/data/pathway"` and similar.
 
 ### Step 4: Craft the Persona
 
-Write `$AGENT_CWD/CLAUDE.md` using **only** fields from the chosen JTBD
-entry. Do not name the product — the persona arrives at the website without
-foreknowledge. Template:
+Write `$AGENT_CWD/CLAUDE.md`. The persona file describes **who the persona
+is** and **the situation they're in** — never **the job they're hiring a
+product for**. The job is delivered in Step 5 (Ask 2) so it lands inline in
+the trace.
 
-```markdown
-You are a <user> with a job to be done: <goal>.
+Two sources, kept distinct:
 
-## Trigger
-<Trigger>
+- **Identity** (name, team, manager, teammates, repos, recent project
+  context, company facts) — sourced from the installation's synthetic
+  content. In this monorepo: `data/synthetic/story.dsl` and
+  `data/synthetic/prose-cache.json` (output of `bunx fit-terrain build`).
+- **Situation** (Trigger, Forces, Competes With) — sourced from the chosen
+  JTBD entry, rephrased into the persona's voice.
 
-## Forces
-- **Push:** <push>
-- **Pull:** <pull>
-- **Habit:** <habit>
-- **Anxiety:** <anxiety>
+What is **excluded** from `CLAUDE.md`: the goal sentence, Big Hire, Little
+Hire, Fired-When, and any product name. Fired-When stays with you for Step
+8 classification.
 
-## What you currently use
-<Competes With list — your current alternatives>
+Full template and worked examples:
 
-## Hire / Fire
-You'll hire something that helps you: <bigHire then littleHire>.
-You'll abandon it when: <firedWhen>.
-
-## How to act
-Try to get this job done. Start at https://www.forwardimpact.team — the
-only entry point. Follow docs as written; don't seek workarounds. Install
-from npm as a normal user would; don't clone any monorepo. Note friction
-in your final output — do not write findings to files.
-```
+- [`references/persona-template.md`](references/persona-template.md) —
+  generic template with placeholders.
+- [`references/example-personas.md`](references/example-personas.md) — two
+  worked examples (installation-specific; use as a model, not a copy).
 
 ### Step 5: Initiate the Session
 
-Your first response is the agent's initial message. Short and in character:
+Hand off in **two `mcp__orchestration__Ask` calls**, so the persona and the
+job both surface inline in the trace.
 
-> Welcome. Read `CLAUDE.md` for who you are and what you need to get done.
-> Start at https://www.forwardimpact.team. Get the job done. Report
-> findings in your final output, not in files.
+**Ask 1 — introduction.** Phrase it like a human interviewer opening a
+conversation. The agent harness loads `CLAUDE.md` automatically; do not
+mention the file. Example wording:
 
-If the task carries steering not matching `Product:` / `Job:`, append it.
+> Hi — thanks for making time. Before we get into it, tell me a bit about
+> yourself: who you are, your role and team, and what's been on your plate
+> lately.
+
+Wait for the `Answer`. The persona, Trigger, and Forces now appear inline
+as the agent's introduction.
+
+**Ask 2 — job delivery.** Compose from the JTBD entry: one sentence
+articulating today's want (Big Hire text, with product names after the
+`→` stripped), one sentence for the immediate sub-want (Little Hire text),
+one sentence pointing at `https://www.forwardimpact.team` and reminding
+the agent to report in their final output. Do not name the product.
+
+Full Ask 1 / Ask 2 templates and two worked examples:
+[`references/job-handoff.md`](references/job-handoff.md).
+
+If the task carries steering not matching `Product:` / `Job:`, append it to
+Ask 2.
 
 ### Step 6: Supervise
 
@@ -141,6 +166,9 @@ If the task carries steering not matching `Product:` / `Job:`, append it.
 | Going down a dead end    | Nudge toward the documented path           |
 | Looping without progress | Targeted guidance                          |
 | Job done or abandoned    | Proceed to Step 7                          |
+
+These are short reply messages, not further `Ask` calls. Only the initial
+handoff in Step 5 uses two Asks.
 
 Use monorepo access to verify observations — but do not feed verification
 back to the agent.
