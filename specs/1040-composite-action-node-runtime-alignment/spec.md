@@ -1,4 +1,4 @@
-# Spec 1030 — GitHub Actions composite-action Node runtime alignment
+# Spec 1040 — GitHub Actions composite-action Node runtime alignment
 
 **Persona / job:** Internal contributor — operator of the Kata Agent Team
 and adjacent CI workflows. The operational hire is to keep CI logs
