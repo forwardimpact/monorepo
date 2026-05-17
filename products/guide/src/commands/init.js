@@ -1,35 +1,53 @@
 import fs from "node:fs/promises";
 import { resolve } from "node:path";
-import { generateSecret, updateEnvFile } from "@forwardimpact/libsecret";
+import { generateSecret, getOrGenerateSecret } from "@forwardimpact/libsecret";
+import { bootstrapProject } from "@forwardimpact/libconfig";
 import {
   SummaryRenderer,
   formatHeader,
   formatSuccess,
   formatError,
-  formatBullet,
 } from "@forwardimpact/libcli";
 
 /** Bootstrap a Guide project by generating secrets, writing default service URLs to .env, and copying starter configuration. */
 export async function runInitCommand() {
-  const serviceSecret = generateSecret();
-  const mcpToken = generateSecret();
+  const serviceSecret = await getOrGenerateSecret("SERVICE_SECRET", () =>
+    generateSecret(),
+  );
+  const mcpToken = await getOrGenerateSecret("MCP_TOKEN", () =>
+    generateSecret(),
+  );
 
-  await updateEnvFile("SERVICE_SECRET", serviceSecret);
-  await updateEnvFile("MCP_TOKEN", mcpToken);
+  const starterDir = new URL("../../starter", import.meta.url).pathname;
+  const skillsDir = resolve(".claude", "skills");
 
-  const serviceUrls = {
-    SERVICE_TRACE_URL: "grpc://localhost:3001",
-    SERVICE_VECTOR_URL: "grpc://localhost:3002",
-    SERVICE_GRAPH_URL: "grpc://localhost:3003",
-    SERVICE_PATHWAY_URL: "grpc://localhost:3004",
-    SERVICE_MAP_URL: "grpc://localhost:3006",
-    SERVICE_MCP_URL: "http://localhost:3005",
-    EMBEDDING_BASE_URL: "http://localhost:8090",
-  };
-
-  for (const [key, url] of Object.entries(serviceUrls)) {
-    await updateEnvFile(key, url);
+  try {
+    await fs.access(starterDir);
+  } catch {
+    process.stderr.write(
+      formatError("Starter data not found in package.") + "\n",
+    );
+    process.exit(1);
   }
+
+  const starterConfig = JSON.parse(
+    await fs.readFile(resolve(starterDir, "config.json"), "utf8"),
+  );
+
+  await bootstrapProject({
+    fragment: starterConfig,
+    env: {
+      SERVICE_SECRET: serviceSecret,
+      MCP_TOKEN: mcpToken,
+      SERVICE_TRACE_URL: "grpc://localhost:3001",
+      SERVICE_VECTOR_URL: "grpc://localhost:3002",
+      SERVICE_GRAPH_URL: "grpc://localhost:3003",
+      SERVICE_PATHWAY_URL: "grpc://localhost:3004",
+      SERVICE_MAP_URL: "grpc://localhost:3006",
+      SERVICE_MCP_URL: "http://localhost:3005",
+      EMBEDDING_BASE_URL: "http://localhost:8090",
+    },
+  });
 
   // Ensure package.json exists (needed by fit-codegen for project root detection)
   const pkgPath = resolve("package.json");
@@ -59,7 +77,7 @@ export async function runInitCommand() {
     items: [
       { label: "SERVICE_SECRET", description: "generated" },
       { label: "MCP_TOKEN", description: "generated" },
-      { label: "Service URLs", description: "ports 3001\u20133005" },
+      { label: "Service URLs", description: "ports 3001–3005" },
       {
         label: "ANTHROPIC_API_KEY",
         description: "set manually or run fit-guide login",
@@ -67,35 +85,6 @@ export async function runInitCommand() {
     ],
   });
   if (summary.shouldRender(true)) process.stdout.write("\n");
-
-  // Copy starter files into project
-  const starterDir = new URL("../../starter", import.meta.url).pathname;
-  const configDir = resolve("config");
-  const skillsDir = resolve(".claude", "skills");
-
-  try {
-    await fs.access(starterDir);
-  } catch {
-    process.stderr.write(
-      formatError("Starter data not found in package.") + "\n",
-    );
-    process.exit(1);
-  }
-
-  // Copy config.json → config/
-  const starterConfig = resolve(starterDir, "config.json");
-  try {
-    await fs.access(configDir);
-    process.stdout.write(
-      formatBullet("config/ already exists, skipping starter copy.", 0) + "\n",
-    );
-  } catch {
-    await fs.mkdir(configDir, { recursive: true });
-    await fs.cp(starterConfig, resolve(configDir, "config.json"));
-    process.stdout.write(
-      formatSuccess("config/ created with starter configuration.") + "\n",
-    );
-  }
 
   // Copy skills → .claude/skills/
   const starterSkills = resolve(starterDir, "skills");
