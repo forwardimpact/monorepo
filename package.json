@@ -28,7 +28,7 @@
     "format": "biome format .",
     "format:fix": "biome format --write .",
     "harness": "bun scripts/check-libharness.mjs",
-    "test": "find ./tests ./libraries ./products ./services -name '*.test.js' -not -path '*/node_modules/*' | xargs bun test",
+    "test": "find ./tests ./libraries ./products ./services ./.github/workflows/test ./.claude/skills/kata-interview/test -name '*.test.js' -not -path '*/node_modules/*' | xargs bun test",
     "test:e2e": "bunx playwright test",
     "generate": "fit-terrain build",
     "data": "bun run data:check-prose && bun run data:check-schema",

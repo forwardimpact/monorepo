@@ -15,25 +15,9 @@ import {
   formatBullet,
 } from "@forwardimpact/libcli";
 import { mintSupabaseJwt, parseDuration } from "@forwardimpact/libsecret";
+import { findAuthUser } from "../lib/auth-helpers.js";
 
 const DEFAULT_TTL = "8760h"; // 1 year.
-
-async function findAuthUser(supabase, email) {
-  // Roster size in the hundreds; one page covers any practical org.
-  // listUsers() returns paginated results; iterate to be safe.
-  let page = 1;
-  while (true) {
-    const { data, error } = await supabase.auth.admin.listUsers({
-      page,
-      perPage: 1000,
-    });
-    if (error) throw new Error(`listUsers: ${error.message}`);
-    const match = data.users.find((u) => u.email === email);
-    if (match) return match;
-    if (data.users.length < 1000) return null;
-    page += 1;
-  }
-}
 
 /**
  * Run the auth-issue command.

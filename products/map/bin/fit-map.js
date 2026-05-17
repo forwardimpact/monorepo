@@ -15,6 +15,7 @@ import { homedir } from "os";
 import { Finder } from "@forwardimpact/libutil";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createProductConfig } from "@forwardimpact/libconfig";
+import { findDataDir } from "../src/lib/data-dir.js";
 import {
   createCli,
   SummaryRenderer,
@@ -95,6 +96,37 @@ const definition = {
         },
       },
     },
+    {
+      name: "substrate stage",
+      description:
+        "Provision a Landmark substrate (stack + migrate + seed + provision + self-smoke)",
+    },
+    {
+      name: "substrate roster",
+      description:
+        "List invariant-satisfying personas from the seeded substrate",
+      options: {
+        format: { type: "string", description: "Output format (text|json)" },
+      },
+    },
+    {
+      name: "substrate issue",
+      description:
+        "Atomically write .env (JWT) and .substrate.json (discovery vector) into a target dir",
+      options: {
+        email: { type: "string", description: "Persona email" },
+        cwd: { type: "string", description: "Target dir for the atomic write" },
+        ttl: {
+          type: "string",
+          description: "JWT TTL (e.g. 1h, 30d). Default 1h.",
+        },
+        stash: {
+          type: "string",
+          description:
+            "Optional second path to write the bare JWT to (workflow-private; not for external operators)",
+        },
+      },
+    },
   ],
   globalOptions: {
     data: { type: "string", description: "Path to data directory" },
@@ -156,33 +188,6 @@ const definition = {
 };
 
 const cli = createCli(definition);
-
-/**
- * Find the data directory
- * @param {string|undefined} providedPath - Explicit path from --data flag
- * @returns {Promise<string>} Resolved data directory path
- */
-async function findDataDir(providedPath) {
-  if (providedPath) {
-    const resolved = resolve(providedPath);
-    try {
-      await fs.access(resolved);
-    } catch {
-      throw new Error(`Data directory not found: ${providedPath}`);
-    }
-    return resolved;
-  }
-
-  const logger = createLogger("map");
-  const finder = new Finder(fs, logger, process);
-  try {
-    return join(finder.findData("data", homedir()), "pathway");
-  } catch {
-    throw new Error(
-      "No data directory found. Use --data=<path> to specify location.",
-    );
-  }
-}
 
 /**
  * Format validation results for display using libcli helpers.
@@ -466,6 +471,46 @@ async function dispatchAuth(subcommand, _rest, values) {
   }
 }
 
+async function dispatchSubstrate(subcommand, _rest, values) {
+  switch (subcommand) {
+    case "stage": {
+      const { runStageCommand } = await import(
+        "../src/commands/substrate-stage.js"
+      );
+      return runStageCommand({ config });
+    }
+    case "roster": {
+      const supabase = await mapClient();
+      const { runRosterCommand } = await import(
+        "../src/commands/substrate-roster.js"
+      );
+      return runRosterCommand({
+        supabase,
+        options: { format: values.format },
+      });
+    }
+    case "issue": {
+      const supabase = await mapClient();
+      const { runSubstrateIssueCommand } = await import(
+        "../src/commands/substrate-issue.js"
+      );
+      return runSubstrateIssueCommand({
+        supabase,
+        config,
+        options: {
+          email: values.email,
+          cwd: values.cwd,
+          ttl: values.ttl,
+          stash: values.stash,
+        },
+      });
+    }
+    default:
+      cli.usageError(`unknown substrate subcommand: ${subcommand || "(none)"}`);
+      return 1;
+  }
+}
+
 /**
  * Main entry point
  */
@@ -525,6 +570,9 @@ async function main() {
         break;
       case "auth":
         exitCode = await dispatchAuth(subcommand, rest, values);
+        break;
+      case "substrate":
+        exitCode = await dispatchSubstrate(subcommand, rest, values);
         break;
       default:
         cli.usageError(`unknown command "${command}"`);

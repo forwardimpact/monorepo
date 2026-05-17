@@ -15,20 +15,7 @@ import { fileURLToPath } from "node:url";
 import { createCli } from "@forwardimpact/libcli";
 import { createProductConfig } from "@forwardimpact/libconfig";
 
-import { runOrgCommand } from "../src/commands/org.js";
-import { runSnapshotCommand } from "../src/commands/snapshot.js";
-import { runMarkerCommand } from "../src/commands/marker.js";
-import { runEvidenceCommand } from "../src/commands/evidence.js";
-import { runReadinessCommand } from "../src/commands/readiness.js";
-import { runTimelineCommand } from "../src/commands/timeline.js";
-import { runCoverageCommand } from "../src/commands/coverage.js";
-import { runPracticeCommand } from "../src/commands/practice.js";
-import { runPracticedCommand } from "../src/commands/practiced.js";
-import { runHealthCommand } from "../src/commands/health.js";
-import { runVoiceCommand } from "../src/commands/voice.js";
-import { runSourcesCommand } from "../src/commands/sources.js";
-import { runLoginCommand } from "../src/commands/login.js";
-import { runLogoutCommand } from "../src/commands/logout.js";
+import { COMMANDS } from "../src/lib/commands-manifest.js";
 import { resolveDataDir } from "../src/lib/cli.js";
 import { buildContext } from "../src/lib/context.js";
 import { SupabaseUnavailableError } from "../src/lib/supabase.js";
@@ -37,6 +24,28 @@ import {
   IdentityUnresolvedError,
 } from "../src/lib/identity.js";
 import { formatResult } from "../src/formatters/index.js";
+
+// Hidden manifest export consumed by `fit-map substrate stage`'s self-smoke
+// (spec 990). Placed before the top-level createProductConfig() await so
+// introspection does not pay the libconfig load cost and is independent of
+// the spawn cwd's .env. The branch must sit above the top-level await — if
+// future contributors move createProductConfig earlier in this file, the
+// products/landmark/test/lib/commands-verb.test.js runtime test fails.
+if (process.argv[2] === "_commands") {
+  const { SUBCOMMAND_EXPANSIONS, FLAT_SMOKE_OPTIONS } = await import(
+    "../src/lib/commands-manifest.js"
+  );
+  // JSON.stringify drops handler function references — that's intentional:
+  // the smoke only needs needsSupabase per entry, which serialises fine.
+  process.stdout.write(
+    JSON.stringify({
+      commands: COMMANDS,
+      subcommandExpansions: SUBCOMMAND_EXPANSIONS,
+      flatSmokeOptions: FLAT_SMOKE_OPTIONS,
+    }) + "\n",
+  );
+  process.exit(0);
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -49,23 +58,6 @@ const VERSION =
     .version;
 
 const config = await createProductConfig("landmark", { token: undefined });
-
-const COMMANDS = {
-  org: { handler: runOrgCommand, needsSupabase: true },
-  snapshot: { handler: runSnapshotCommand, needsSupabase: true },
-  marker: { handler: runMarkerCommand, needsSupabase: false },
-  evidence: { handler: runEvidenceCommand, needsSupabase: true },
-  readiness: { handler: runReadinessCommand, needsSupabase: true },
-  timeline: { handler: runTimelineCommand, needsSupabase: true },
-  coverage: { handler: runCoverageCommand, needsSupabase: true },
-  practice: { handler: runPracticeCommand, needsSupabase: true },
-  practiced: { handler: runPracticedCommand, needsSupabase: true },
-  health: { handler: runHealthCommand, needsSupabase: true },
-  voice: { handler: runVoiceCommand, needsSupabase: true },
-  sources: { handler: runSourcesCommand, needsSupabase: true },
-  login: { handler: runLoginCommand, needsSupabase: false },
-  logout: { handler: runLogoutCommand, needsSupabase: false },
-};
 
 const definition = {
   name: "fit-landmark",
