@@ -60,24 +60,41 @@ describe("kata-interview.yml spec 990 non-Landmark invariant", () => {
     }
   });
 
-  it("substrate-stage step propagates supabase env keys via $GITHUB_ENV", () => {
+  it("substrate-stage CLI propagates supabase env keys via $GITHUB_ENV", () => {
     // The supabase env keys flow through from $GITHUB_ENV rather than
     // sitting on the Run interview env: block — the substrate stage
-    // step (which is Landmark-gated) reads the values from
-    // `supabase status -o json` and writes them via $GITHUB_ENV. This
+    // Node process (which is Landmark-gated by the workflow step's
+    // if-predicate) reads the values from `supabase status -o json`
+    // inside the package root and writes them via $GITHUB_ENV. This
     // keeps the Run interview env identical between Landmark and
-    // non-Landmark runs (substrate-stage doesn't run for non-Landmark,
-    // so the env vars are never set).
-    const substrate = steps.find((s) => s.name === "Substrate stage");
-    assert.ok(substrate, "expected 'Substrate stage' step");
-    const run = substrate.run ?? "";
+    // non-Landmark runs.
+    const substrateStageJs = readFileSync(
+      join(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "products",
+        "map",
+        "src",
+        "commands",
+        "substrate-stage.js",
+      ),
+      "utf8",
+    );
     for (const key of SUBSTRATE_PROPAGATED_KEYS) {
       assert.match(
-        run,
-        new RegExp(`${key}=\\$?[a-zA-Z_]+["']?\\s*>>\\s*"?\\$GITHUB_ENV`),
-        `Substrate stage should write ${key} to $GITHUB_ENV`,
+        substrateStageJs,
+        new RegExp(`\\b${key}\\b`),
+        `substrate-stage.js should propagate ${key}`,
       );
     }
+    // The propagation goes through GITHUB_ENV, not stdout.
+    assert.match(
+      substrateStageJs,
+      /GITHUB_ENV/,
+      "substrate-stage.js should append to GITHUB_ENV",
+    );
   });
 
   it("interview job declares timeout-minutes < 60", () => {

@@ -101,38 +101,12 @@ jobs:
           # than inside the substrate-cli error.
           which supabase || { echo "FAIL: supabase not on PATH after bun -g install" >&2; exit 1; }
 
+          # The substrate-stage Node process reads the four supabase env
+          # values from `supabase status` (using its internal cwd that
+          # carries the project config) and writes them to $GITHUB_ENV
+          # so subsequent workflow steps (supervisor, agent, log scan)
+          # see them. No bash-side propagation needed here.
           bunx fit-map substrate stage --cwd "${{ steps.agent-workspace.outputs.dir }}"
-
-          # Propagate the local Supabase URL + anon key to subsequent
-          # workflow steps. The Node process running `bunx fit-map
-          # substrate stage` sets these in its own process.env only;
-          # the supervisor's later `bunx fit-map substrate roster/issue`
-          # invocations and the agent's `fit-landmark` spawns need them
-          # via $GITHUB_ENV.
-          # Supabase CLI ≥2.96 emits uppercase JSON keys (API_URL,
-          # ANON_KEY) matching the default env-var names; older
-          # versions used lowercase. Try both for compatibility.
-          status_json=$(bunx --no-install -- supabase status --output json)
-          api_url=$(echo "$status_json" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("API_URL") or d.get("api_url") or "")')
-          anon_key=$(echo "$status_json" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("ANON_KEY") or d.get("anon_key") or "")')
-          jwt_secret=$(echo "$status_json" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("JWT_SECRET") or d.get("jwt_secret") or "")')
-          service_role_key=$(echo "$status_json" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("SERVICE_ROLE_KEY") or d.get("service_role_key") or "")')
-          if [ -z "$api_url" ] || [ -z "$anon_key" ]; then
-            echo "FAIL: supabase status did not yield api_url + anon_key" >&2
-            echo "Raw JSON: $status_json" >&2
-            exit 1
-          fi
-          # Mask the secret values so subsequent steps don't print
-          # them in logs, then propagate to $GITHUB_ENV so the
-          # supervisor's `substrate roster`/`substrate issue` and the
-          # agent's fit-landmark spawns all see the live local-stack
-          # values regardless of whether repo secrets are configured.
-          if [ -n "$jwt_secret" ]; then echo "::add-mask::$jwt_secret"; fi
-          if [ -n "$service_role_key" ]; then echo "::add-mask::$service_role_key"; fi
-          echo "SUPABASE_URL=$api_url" >> "$GITHUB_ENV"
-          echo "SUPABASE_ANON_KEY=$anon_key" >> "$GITHUB_ENV"
-          if [ -n "$jwt_secret" ]; then echo "SUPABASE_JWT_SECRET=$jwt_secret" >> "$GITHUB_ENV"; fi
-          if [ -n "$service_role_key" ]; then echo "SUPABASE_SERVICE_ROLE_KEY=$service_role_key" >> "$GITHUB_ENV"; fi
 
       - name: Compose task amendment
         id: amend

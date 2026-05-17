@@ -11,11 +11,26 @@
  */
 
 import path from "node:path";
+import fs from "node:fs";
 import { createSupabaseCli as defaultCreateCli } from "../lib/supabase-cli.js";
 import { findDataDir as defaultFindDataDir } from "../lib/data-dir.js";
 import { createMapClient as defaultCreateMapClient } from "../lib/client.js";
 import { createProductConfig } from "@forwardimpact/libconfig";
 import { formatSuccess } from "@forwardimpact/libcli";
+
+// When running under GitHub Actions, write the four supabase env
+// values to $GITHUB_ENV so subsequent workflow steps (supervisor,
+// agent, log scan) see them without having to re-invoke supabase
+// status from a cwd that doesn't carry the project config.
+function exportToGithubEnv(values) {
+  const githubEnv = process.env.GITHUB_ENV;
+  if (!githubEnv) return;
+  const lines = Object.entries(values)
+    .filter(([, v]) => v)
+    .map(([k, v]) => `${k}=${v}`)
+    .join("\n");
+  if (lines) fs.appendFileSync(githubEnv, lines + "\n");
+}
 
 /**
  * Run the staging pipeline. Each phase is wrapped so failures surface
@@ -99,6 +114,16 @@ export async function runStageCommand(
     if (serviceRoleKey && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
       process.env.SUPABASE_SERVICE_ROLE_KEY = serviceRoleKey;
     }
+    // Propagate to $GITHUB_ENV when running under CI; the bash steps
+    // that follow can't re-read `supabase status` reliably because
+    // their cwd doesn't match the package root that supabase derives
+    // the project name from.
+    exportToGithubEnv({
+      SUPABASE_URL: apiUrl,
+      SUPABASE_ANON_KEY: anonKey,
+      SUPABASE_JWT_SECRET: jwtSecret,
+      SUPABASE_SERVICE_ROLE_KEY: serviceRoleKey,
+    });
   });
 
   await runPhase("migrate", () => cli.run(["db", "reset"]));
