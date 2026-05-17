@@ -74,13 +74,19 @@ export async function runStageCommand(
   await runPhase("url-discovery", async () => {
     const json = await cli.capture(["status", "--output", "json"]);
     const status = JSON.parse(json);
-    if (!status.api_url) throw new Error("supabase status: no api_url");
-    if (!status.anon_key) throw new Error("supabase status: no anon_key");
+    // supabase CLI ≥ 2.96 emits uppercase keys matching the default
+    // env-var names (API_URL, ANON_KEY); older versions used
+    // lowercase (api_url, anon_key). Fall back to lowercase for
+    // backward compatibility.
+    const apiUrl = status.API_URL ?? status.api_url;
+    const anonKey = status.ANON_KEY ?? status.anon_key;
+    if (!apiUrl) throw new Error("supabase status: no api_url");
+    if (!anonKey) throw new Error("supabase status: no anon_key");
     // libconfig's #env() reads process.env first; setting these here
     // makes the createMapClient call below (and any same-process
     // children) observe the live local-stack values.
-    process.env.SUPABASE_URL = status.api_url;
-    process.env.SUPABASE_ANON_KEY = status.anon_key;
+    process.env.SUPABASE_URL = apiUrl;
+    process.env.SUPABASE_ANON_KEY = anonKey;
   });
 
   await runPhase("migrate", () => cli.run(["db", "reset"]));
