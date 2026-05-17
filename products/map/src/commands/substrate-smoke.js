@@ -181,10 +181,14 @@ export async function assertPersonaIsHuman(supabase, email) {
  * @param {{snapshot_id: string, item_id: string}} discovery
  */
 export function assertDiscoveryResolves(persona, discovery) {
-  if (!persona.email || !persona.manager_email) {
-    throw new Error(
-      `persona missing email/manager_email: ${JSON.stringify(persona)}`,
-    );
+  // The smoke commands (and `substrate issue`'s .substrate.json
+  // discovery vector) substitute `persona.email` for both --email and
+  // --manager arguments — the persona IS the manager of the team the
+  // smoke queries. `persona.manager_email` (the persona's own parent
+  // in the org hierarchy) is informational only; it is null for the
+  // root of the hierarchy and unused at smoke-runtime.
+  if (!persona.email) {
+    throw new Error(`persona missing email: ${JSON.stringify(persona)}`);
   }
   if (!discovery.snapshot_id || !discovery.item_id) {
     throw new Error(

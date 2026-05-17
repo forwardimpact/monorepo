@@ -131,14 +131,23 @@ describe("assertPersonaIsHuman", () => {
 });
 
 describe("assertDiscoveryResolves", () => {
-  test("rejects persona missing manager_email", () => {
+  test("rejects persona missing email", () => {
     assert.throws(
       () =>
         assertDiscoveryResolves(
-          { email: "a@x" },
+          { manager_email: "a@x" },
           { snapshot_id: "S", item_id: "I" },
         ),
-      /missing email\/manager_email/,
+      /persona missing email/,
+    );
+  });
+
+  test("accepts persona at the root of the hierarchy (null manager_email)", () => {
+    assert.doesNotThrow(() =>
+      assertDiscoveryResolves(
+        { email: "ceo@x", manager_email: null },
+        { snapshot_id: "S", item_id: "I" },
+      ),
     );
   });
 
