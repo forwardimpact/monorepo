@@ -3,7 +3,7 @@
 ### Agent-Aligned Engineering Standard commands
 
 ```sh
-npx fit-map init                            # Create ./data/pathway/ with starter standard data
+npx fit-map init                            # Bootstrap ./data/pathway/ + ./config/config.json; re-runs are idempotent
 npx fit-map validate                        # Validate all data (JSON schema + referential)
 npx fit-map validate --shacl                # Validate RDF/SHACL syntax
 npx fit-map validate --data=PATH            # Validate a specific data directory

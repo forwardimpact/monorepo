@@ -36,7 +36,7 @@ Chat.
 
 **Setup and operations:**
 
-- Bootstrap a new project — `npx fit-guide init`
+- Bootstrap a new project — `npx fit-guide --init` (safe to re-run; no-op on existing projects)
 - Authenticate — `npx fit-guide login`
 - Start the service stack — `npx fit-rc start`
 - Check system readiness — `npx fit-guide status`
@@ -92,14 +92,16 @@ agent combine precise graph lookups with fuzzy semantic retrieval.
 
 ## Initialization
 
-Run `npx fit-guide init` once in a fresh project directory. It produces `.env`
+Run `npx fit-guide --init` in a fresh project directory. It produces `.env`
 (token and port assignments) and `config/config.json` (service composition).
-Then authenticate and set up the stack:
+Re-runs are byte-stable no-ops — generated `SERVICE_SECRET` and `MCP_TOKEN`
+are preserved across invocations, so running init again to pick up a starter
+update never rotates credentials. Then authenticate and set up the stack:
 
 ```sh
-npx fit-guide init          # Creates .env and config/config.json
+npx fit-guide --init        # Bootstrap .env + config/config.json (idempotent)
 npx fit-codegen --all       # Generate gRPC stubs and field metadata
-npx fit-guide login         # OAuth PKCE login (or set ANTHROPIC_API_KEY in .env)
+npx fit-guide --login       # OAuth PKCE login (or set ANTHROPIC_API_KEY in .env)
 npx fit-process-resources   # Process starter knowledge HTML
 npx fit-process-graphs      # Build the RDF index
 npx fit-process-vectors     # Build the vector index (skip if no embeddings backend)

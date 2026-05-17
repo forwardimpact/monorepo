@@ -38,9 +38,12 @@ npx fit-map init
 ```
 
 This creates `./data/pathway/` with starter definitions for levels, disciplines,
-capabilities, skills, behaviours, stages, drivers, and tracks. The starter data
-is a working agent-aligned engineering standard you can customize to match your
-organization.
+capabilities, skills, behaviours, stages, drivers, and tracks, plus a
+`./config/config.json` so subsequent `fit-map` commands anchor their
+configuration at the project root. The starter data is a working
+agent-aligned engineering standard you can customize to match your
+organization. Re-running `npx fit-map init` against an existing project is
+a no-op — already-copied files are preserved.
 
 ## Agent-Aligned Engineering Standard: validate
 
