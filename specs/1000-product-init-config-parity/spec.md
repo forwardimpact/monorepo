@@ -39,10 +39,13 @@ Spec 990 shipped that workaround as a one-line `mkdir -p`. The workaround
 is gated to Landmark interviews (`if: inputs.product == 'landmark'`), so
 only one production callsite carries it today. The escape itself is
 structural — every CLI built on `createProductConfig` resolves through
-`createStorage("config", …)`, which walks upward unconditionally — so any
-caller running a Forward Impact CLI outside a `fit-guide`-initialised
-project hits the same anchor-resolution path. The single observed instance
-is the canary, not the boundary.
+`createStorage("config", …)`, which walks upward via
+[`Finder.findUpward`](../../libraries/libutil/src/finder.js) (default
+`maxDepth=3` parent directories) — so any caller running a Forward
+Impact CLI outside a `fit-guide`-initialised project hits the same
+anchor-resolution path, resolving to whatever ancestor `config/` the
+walk first lands on. The single observed instance is the canary, not
+the boundary.
 
 **2. Bootstrap re-derivation, forecast.** `fit-guide init` already carries
 ~50 lines of `config/` creation, starter-config copy, and `.env`
@@ -58,16 +61,23 @@ current path) or risk truncating a sibling product's contributions (a
 hypothetical fit-map init that overwrote `config/config.json`).
 
 The persona served is the **internal contributor** named in
-[CLAUDE.md § Goal](../../CLAUDE.md) — the human or agent maintaining the
-monorepo and onboarding new product CLIs. [JTBD.md](../../JTBD.md) does
-not carry a Big-Hire entry for internal contributors: every published
-JTBD targets an external user group (Engineering Leaders, Empowered
-Engineers, Teams Using Agents, Platform Builders). The closest external
-mapping — Platform Builders' *Build Agent-Capable Systems* — routes both
-its Big Hire and Little Hire to **Gear**, not to product CLIs, so the
-fit is approximate. This spec serves the unrepresented internal-contributor
-persona; filing a JTBD entry for that persona is out of scope here and
-left to a separate spec.
+[CLAUDE.md § Primary Products](../../CLAUDE.md) — the human or agent
+building and maintaining the monorepo, including the CI workflows that
+exercise products against synthesized personas.
+[JTBD.md](../../JTBD.md) carries no Big-Hire entry for that persona:
+every published JTBD targets an external user group (Engineering
+Leaders, Empowered Engineers, Teams Using Agents, Platform Builders).
+The closest external mapping — Platform Builders' *Build Agent-Capable
+Systems* — routes both its Big Hire and Little Hire to **Gear**, which
+opens a real question this spec does not resolve: whether the shared
+init capability ultimately belongs in Gear and is consumed by product
+CLIs through a Gear dependency, or stays as a per-CLI implementation
+choice inside a Forward Impact library. The seam matters because Gear
+is the meta-package re-exporting library/service CLIs to external
+consumers, while product CLIs are themselves Gear's outputs. Naming
+which side of that seam the interface lands on is a design choice;
+filing a JTBD entry for the internal-contributor persona is deferred
+to a separate spec.
 
 ## Scope
 
@@ -80,9 +90,9 @@ left to a separate spec.
 | `.env` write semantics | Same ownership model as `config.json` at the key granularity, applied to the project-root `.env` file. Same-key-same-value writes are no-ops; same-key-different-value writes refuse without explicit overwrite intent. The shared interface preserves the `0o600` permission `libsecret`'s `updateEnvFile` already enforces — a regression test asserts the mode after a shared-interface write. |
 | Read-side coherence with spec 990 | Spec 990 introduced credential-override semantics where shell env wins over `.env`, and empty-string shell values are treated as absent for credential keys. The `.env` write semantics this spec introduces apply only to the *writer*. The reader's resolution order is unchanged; an empty-string write to `.env` is therefore equivalent to absence on the read path. |
 | `fit-map init` behaviour change | `fit-map init` adopts the shared interface and starts producing a `config/` directory at the init target. Whether it ships a starter `config.json` fragment carrying a `product.map` namespace is a design choice; the spec requires only that subsequent fit-map CLI invocations from that target resolve config-anchoring locally (rather than escaping upward). The existing `data/pathway/` write is unchanged. |
-| Relationship: `fit-map init` ↔ `fit-map substrate [stage\|roster\|issue]` | `fit-map init` is the **upstream** common-denominator bootstrap shared by every fit-map caller — external contributors setting up the product on a clean machine and CI workflows preparing a synthetic-interview workspace alike. `fit-map substrate stage` is a **downstream superset** that consumes a project already bootstrapped by `fit-map init` and extends it with Supabase-stack provisioning, schema migration, activity seeding, auth-user provisioning, and self-smoke (today's verb in [`substrate-stage.js`](../../products/map/src/commands/substrate-stage.js)). After this spec lands, every common-denominator step — at minimum, creating `./config/` so libconfig anchors locally; design picks the rest from `./data/pathway/` starter copy and any `.env` skeleton — lives in `fit-map init` and is invoked from `fit-map substrate stage` rather than re-implemented in CI shell or by the substrate verb itself. The substrate subcommand family keeps its Landmark-specific responsibilities; what moves upstream is exactly what both contributor setup and interview prep share. |
-| Spec 990 cleanup | The `mkdir -p "$AGENT_CWD/config"` workaround that spec 990 shipped at [`.github/workflows/kata-interview.yml`](../../.github/workflows/kata-interview.yml) line 82 is removed as part of this spec, not deferred. The kata-interview workflow's Substrate stage runs `bunx fit-map init` (or `fit-map substrate stage` calls it internally; design picks the shape) so the workaround is unnecessary by construction. The workflow's end-to-end behaviour for Landmark interviews — provisioned substrate, resolvable `PRODUCT_LANDMARK_TOKEN`, persona discovery via `substrate roster`/`substrate issue` — is preserved. |
-| `fit-guide init` behaviour preservation | `fit-guide init` adopts the shared interface. **First-run** preservation is strict: the set of files produced on disk, the set of `.env` keys written, and the exit code for the same user invocation match the pre-spec behaviour. **Re-run** semantics intentionally change: today fit-guide init prints `"config/ already exists, skipping starter copy"` and exits zero; under the shared interface a re-run with identical starter inputs is a same-key-same-value no-op (still exits zero, byte-identical on-disk state). The replacement message and the loss of the "skipping" wording are acceptable; no fit-guide-specific re-run output is preserved. |
+| Relationship: `fit-map init` ↔ `fit-map substrate [stage\|roster\|issue]` | `fit-map init` is the **upstream** bootstrap (this spec's `fit-map init` behaviour-change row, above, defines what it produces). `fit-map substrate` is a **downstream superset** — `substrate stage` extends a bootstrapped project with Supabase-stack provisioning, schema migration, seeding, auth provisioning, and self-smoke; `substrate roster` and `substrate issue` consume that substrate. The property this row commits to: after this spec lands, the bootstrap shape (`config/`, `data/pathway/`, any `.env` skeleton) is identical whether produced by a contributor running `fit-map init` directly or by the kata-interview workflow's Substrate stage; no caller re-implements that shape in CI shell or inside a `substrate` subcommand. *Which* component invokes which (substrate stage delegating to init, the workflow invoking both in sequence, or a third arrangement) is a design choice. |
+| Spec 990 cleanup | The `mkdir -p "$AGENT_CWD/config"` workaround that spec 990 shipped in [`.github/workflows/kata-interview.yml`](../../.github/workflows/kata-interview.yml) (the Substrate stage step, gated to `inputs.product == 'landmark'`) is removed as part of this spec, not deferred. The Landmark gate on the Substrate stage step is unchanged — non-Landmark interview runs continue to skip the substrate work entirely; only the workaround line goes away. After cleanup, the workflow's Landmark interview produces the same observable end-state as before: a substrate that `substrate roster` and `substrate issue` can read, an identity token (whatever name spec 990 picked for it) that `resolveIdentity()` resolves, and a passing Landmark self-smoke. |
+| `fit-guide init` behaviour preservation | `fit-guide init` adopts the shared interface. **First-run** preservation is strict: the set of files produced on disk, the set of `.env` keys written, and the exit code for the same user invocation match the pre-spec behaviour. **Re-run** semantics change in two ways that the spec accepts. (a) Generated secrets (`SERVICE_SECRET`, `MCP_TOKEN`) are no longer regenerated on every invocation — fit-guide init detects existing values and treats them as same-key-same-value writes against the shared interface, so the re-run does not trigger refusal-by-default against the fresh-generated value. (b) The pre-spec `"config/ already exists, skipping starter copy"` message is no longer emitted; the shared interface's silent no-op replaces it. Re-run exits zero and the on-disk state is byte-identical between successive identical invocations. |
 | New-product onboarding | The shared library's `README.md` documents the contract for adopting the interface: how a product packages its starter material, declares the namespaces it owns, signals overwrite intent, and hands both to the interface. The library identity (which existing or new library hosts the interface) is a design choice; the README home is not. |
 | Failure surfacing | A refused write (same-key-different-value, no overwrite intent) exits non-zero. The diagnostic, observable on `stderr`, must contain (a) the conflicting key path written as dotted notation (e.g., `product.x.foo`) and (b) the name of the overwrite-intent parameter the caller would set to opt in. The diagnostic is not required to identify the first writer; recording first-writer identity is left to a follow-up spec if the failure mode is reported in the field. |
 
@@ -94,12 +104,13 @@ left to a separate spec.
   originally proposed `fit-pathway init` — was implemented by moving the
   init verb into `fit-map init` (the `fit-map init` row above); no
   separate `fit-pathway init` is in flight.
-- **Refactoring `fit-map substrate` beyond the upstream/downstream split.**
+- **Refactoring `fit-map substrate` beyond the bootstrap-shape property.**
   Reorganising the Landmark-specific substrate phases (stack, migrate,
   seed, provision, smoke) inside `substrate-stage.js`, or merging
   `substrate roster`/`substrate issue` into other verbs, is out of scope.
-  This spec only moves the common-denominator bootstrap upstream into
-  `fit-map init`; the substrate verbs keep their current responsibilities.
+  This spec only commits the substrate verbs to producing the same
+  bootstrap shape as `fit-map init`; how they arrive at that shape and
+  what else they do is unchanged.
 - **Schema validation of merged `config.json`.** The spec covers merge
   ownership and conflict-refusal, not whether the merged document
   validates against a JSON schema. A future spec may add a schema once
@@ -121,11 +132,11 @@ left to a separate spec.
 ## Preconditions
 
 Spec 990 is merged (`plan implemented` in `wiki/STATUS.md`). The
-`mkdir -p config/` workaround it shipped — visible at
-[`kata-interview.yml`](../../.github/workflows/kata-interview.yml) line 82
-— is the observed evidence for the **1. Anchor escape, observed** failure
-mode and is removed by this spec (see the *Spec 990 cleanup* in-scope
-row).
+`mkdir -p config/` workaround it shipped in
+[`kata-interview.yml`](../../.github/workflows/kata-interview.yml)
+(the Substrate stage step) is the observed evidence for the
+**1. Anchor escape, observed** failure mode and is removed by this
+spec (see the *Spec 990 cleanup* in-scope row).
 
 ## Success Criteria
 
@@ -138,9 +149,10 @@ row).
 | Same-key, same-value writes are no-ops. | Same test setup with `product.x.foo = "a"` written twice exits zero on the second call and produces byte-identical on-disk state. |
 | `.env` writes follow the same ownership semantics. | A test invokes the interface with a starter declaring two `.env` entries against a target that already carries a third disjoint `.env` entry from prior provisioning; asserts the result carries all three entries with their original values, the pre-existing entry is byte-unchanged, and a subsequent same-key-different-value write refuses non-zero. |
 | `fit-map init` produces a project layout where subsequent fit-map invocations anchor at the init target. | A test runs `fit-map init` against a fresh tmpdir, then runs a fit-map verb that loads libconfig from a subdirectory of the tmpdir; asserts libconfig's resolved anchor is the init target rather than any ancestor. |
-| `fit-map substrate stage` no longer requires CI-shell bootstrap of `config/`. | A test runs `fit-map substrate stage` (with the Supabase phases stubbed out via the injectable deps in [`substrate-stage.js`](../../products/map/src/commands/substrate-stage.js)) against a fresh tmpdir with no `config/` present, asserts the run succeeds without manual `mkdir -p config/`, and asserts the resulting layout matches what `fit-map init` produces against the same tmpdir. |
-| The kata-interview workflow no longer carries a `mkdir -p config/` workaround. | A grep at the repo root asserts `.github/workflows/kata-interview.yml` contains no line that creates `config/` outside a product CLI invocation; the workflow's Substrate stage uses `bunx fit-map init` (directly, or transitively via `fit-map substrate stage` calling into it). |
-| End-to-end Landmark interview prep is preserved after the workaround removal. | The `kata-interview` workflow's Substrate stage continues to produce a substrate that `substrate roster` and `substrate issue` can read, `resolveIdentity()` resolves the issued JWT, and the Landmark self-smoke passes — verified by a workflow dry-run or a CI run on the implementation branch. |
+| The kata-interview workflow runs end-to-end without an in-workflow bootstrap of `config/`. | A regex check against `.github/workflows/kata-interview.yml` asserts no shell command (`mkdir`, `install -d`, redirect into a `config/` path) creates `config/` or any ancestor `config/` directory outside a CLI subprocess. A CI run on the implementation branch executes the workflow end-to-end against a Landmark interview and reaches a green Substrate stage. |
+| Bootstrap shape is identical from `fit-map init` directly and from the kata-interview Substrate stage. | A test seeds two fresh tmpdirs: one runs `bunx fit-map init`; the other runs whatever entry point the design picks for the workflow's Substrate stage (e.g., the workflow's actual command). Asserts the two resulting trees carry the same set of created files and directories under the project root (`config/`, `data/pathway/`, any `.env` keys the shared interface writes). |
+| End-to-end Landmark interview prep is preserved after the workaround removal. | The same CI run referenced above asserts: `substrate roster` returns a non-empty persona list; `substrate issue --email <picked>` writes the workflow's expected `.env` and `.substrate.json` files; `resolveIdentity()` in a `fit-landmark` subprocess succeeds against the issued token; the Landmark self-smoke step exits zero. |
 | `fit-guide init`'s first-run observable contract is preserved. | A test runs `fit-guide init` against a fresh tmpdir and asserts: (a) a `config/config.json` exists with the same top-level keys as the pre-spec output, (b) a `.env` exists with the same key set, (c) a `package.json` exists when none was present before, (d) a `.claude/skills/` tree exists when the starter ships skills, (e) the exit code matches the pre-spec invocation. The existing fit-guide init test suite also stays green. |
+| `fit-guide init`'s re-run is a same-key-same-value no-op. | A test runs `fit-guide init` twice against the same tmpdir. The second invocation exits zero, the on-disk byte state of `config/`, `.env`, `package.json`, and `.claude/skills/` is identical between calls, and the `SERVICE_SECRET` / `MCP_TOKEN` values written on the first call are unchanged on the second. |
 | The shared library's `README.md` documents the onboarding contract. | A test reads the shared library's `README.md` and asserts the file contains a section that names the interface entry point, the namespace-declaration step, and the overwrite-intent parameter. |
 | Existing in-tree tests for libconfig, libsecret, and the affected product CLIs stay green. | `bun run test` exits zero on the implementation branch. |
