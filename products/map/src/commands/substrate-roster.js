@@ -22,8 +22,9 @@ export async function runRosterCommand({ supabase, options }) {
   const { findInvariantSatisfyingPersonas } = await import(
     "./substrate-persona-query.js"
   );
-  const { personas, discovery, diagnostic } =
-    await findInvariantSatisfyingPersonas({ supabase });
+  const { personas, diagnostic } = await findInvariantSatisfyingPersonas({
+    supabase,
+  });
 
   if (!personas.length) {
     process.stderr.write(
@@ -32,12 +33,15 @@ export async function runRosterCommand({ supabase, options }) {
     return 1;
   }
 
+  // snapshot_id/item_id are carried per-row on each persona; the
+  // kata-interview supervisor reads them off the picked row. The
+  // SKILL.md Step 3a documents that shape, so no separate top-level
+  // discovery field is exposed here.
   const payload = {
     personas,
     selection_metadata: {
       signals: ["memory_diversification", "jtbd_role_alignment"],
     },
-    discovery,
   };
 
   if (options?.format === "json") {

@@ -134,7 +134,7 @@ describe("substrate-roster JSON output", () => {
     err.restore();
   });
 
-  test("--format json returns { personas, selection_metadata, discovery }", async () => {
+  test("--format json returns { personas, selection_metadata } with per-row discovery", async () => {
     const supabase = makeStub(supabasePersonaArtifacts);
     const code = await runRosterCommand({
       supabase,
@@ -148,8 +148,11 @@ describe("substrate-roster JSON output", () => {
       "memory_diversification",
       "jtbd_role_alignment",
     ]);
-    assert.equal(parsed.discovery.snapshot_id, "S1");
-    assert.equal(parsed.discovery.item_id, "ITEM1");
+    // snapshot_id/item_id are per-persona-row (consistent with SKILL.md
+    // Step 3a). No top-level `discovery` field is exposed.
+    assert.equal(parsed.personas[0].snapshot_id, "S1");
+    assert.equal(parsed.personas[0].item_id, "ITEM1");
+    assert.equal(parsed.discovery, undefined);
   });
 
   test("non-empty corpus exits 0 with text output", async () => {

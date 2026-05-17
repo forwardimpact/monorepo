@@ -1,7 +1,10 @@
 /**
- * Tests for substrate-smoke's pure assertion helpers. The spawn-based
- * iterator is covered by integration in the actual stage run; here we
- * verify the shape/email/exp/role-claim guards and persona kind check.
+ * Tests for substrate-smoke's pure assertion helpers and iteration
+ * builders. The actual `bunx fit-landmark` spawn loop is covered by
+ * integration in the live stage run; here we verify every pure
+ * surface the smoke composes from (shape/email/exp/role-claim guards,
+ * persona kind check, smoke-list expansion, argv build, row-class
+ * non-empty assertion).
  */
 
 import { describe, test } from "node:test";
@@ -9,9 +12,12 @@ import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
 
 import {
-  assertJwtShape,
-  assertPersonaIsHuman,
   assertDiscoveryResolves,
+  assertJwtShape,
+  assertNonEmpty,
+  assertPersonaIsHuman,
+  buildSmokeArgv,
+  buildSmokeList,
 } from "../../src/commands/substrate-smoke.js";
 
 function makeJwt(claims) {
@@ -152,6 +158,166 @@ describe("assertDiscoveryResolves", () => {
       assertDiscoveryResolves(
         { email: "a@x", manager_email: "a@x" },
         { snapshot_id: "S", item_id: "I" },
+      ),
+    );
+  });
+});
+
+describe("buildSmokeList expands manifest to iteration items", () => {
+  // A miniature manifest mirroring the real fit-landmark shape.
+  const manifest = {
+    commands: {
+      org: { needsSupabase: true },
+      snapshot: { needsSupabase: true },
+      evidence: { needsSupabase: true },
+      practice: { needsSupabase: true },
+      health: { needsSupabase: true },
+      marker: { needsSupabase: false },
+    },
+    subcommandExpansions: {
+      org: [
+        { command: "org show", smokeOptions: {} },
+        { command: "org team", smokeOptions: { manager: "$PERSONA_EMAIL" } },
+      ],
+      snapshot: [
+        { command: "snapshot list", smokeOptions: {} },
+        {
+          command: "snapshot show",
+          smokeOptions: { snapshot: "$SNAPSHOT_ID" },
+        },
+      ],
+    },
+    flatSmokeOptions: {
+      evidence: { email: "$PERSONA_EMAIL" },
+      practice: { manager: "$PERSONA_EMAIL" },
+    },
+  };
+
+  test("skips needsSupabase=false commands", () => {
+    const list = buildSmokeList(manifest);
+    assert.equal(
+      list.find((i) => i.command === "marker"),
+      undefined,
+    );
+  });
+
+  test("expands subcommand-style entries via SUBCOMMAND_EXPANSIONS", () => {
+    const list = buildSmokeList(manifest);
+    const orgs = list.filter((i) => i.command.startsWith("org "));
+    assert.equal(orgs.length, 2);
+    assert.deepEqual(
+      orgs.map((i) => i.command),
+      ["org show", "org team"],
+    );
+  });
+
+  test("flat commands carry FLAT_SMOKE_OPTIONS", () => {
+    const list = buildSmokeList(manifest);
+    const ev = list.find((i) => i.command === "evidence");
+    assert.deepEqual(ev.smokeOptions, { email: "$PERSONA_EMAIL" });
+  });
+
+  test("flat commands with no smoke options resolve to {}", () => {
+    const list = buildSmokeList(manifest);
+    const health = list.find((i) => i.command === "health");
+    assert.deepEqual(health.smokeOptions, {});
+  });
+});
+
+describe("buildSmokeArgv substitutes placeholders", () => {
+  const persona = {
+    email: "alice@x",
+    manager_email: "alice@x",
+  };
+  const discovery = { snapshot_id: "S1", item_id: "ITEM1" };
+
+  test("substitutes $PERSONA_EMAIL into option flags", () => {
+    const argv = buildSmokeArgv(
+      { command: "evidence", smokeOptions: { email: "$PERSONA_EMAIL" } },
+      persona,
+      discovery,
+    );
+    assert.deepEqual(argv, [
+      "evidence",
+      "--email",
+      "alice@x",
+      "--format",
+      "json",
+    ]);
+  });
+
+  test("substitutes $SNAPSHOT_ID and $ITEM_ID", () => {
+    const trend = buildSmokeArgv(
+      { command: "snapshot trend", smokeOptions: { item: "$ITEM_ID" } },
+      persona,
+      discovery,
+    );
+    assert.deepEqual(trend, [
+      "snapshot",
+      "trend",
+      "--item",
+      "ITEM1",
+      "--format",
+      "json",
+    ]);
+    const show = buildSmokeArgv(
+      { command: "snapshot show", smokeOptions: { snapshot: "$SNAPSHOT_ID" } },
+      persona,
+      discovery,
+    );
+    assert.deepEqual(show, [
+      "snapshot",
+      "show",
+      "--snapshot",
+      "S1",
+      "--format",
+      "json",
+    ]);
+  });
+
+  test("flat commands with no smoke options still get --format json", () => {
+    const argv = buildSmokeArgv(
+      { command: "health", smokeOptions: {} },
+      persona,
+      discovery,
+    );
+    assert.deepEqual(argv, ["health", "--format", "json"]);
+  });
+});
+
+describe("assertNonEmpty row-class trigger", () => {
+  test("throws on empty array under the named key", () => {
+    assert.throws(
+      () => assertNonEmpty(JSON.stringify({ team: [] }), "team"),
+      /row-class non-empty assertion failed for team/,
+    );
+  });
+
+  test("throws on missing key", () => {
+    assert.throws(
+      () => assertNonEmpty(JSON.stringify({ other: [{ x: 1 }] }), "team"),
+      /row-class non-empty assertion failed for team/,
+    );
+  });
+
+  test("throws on empty object", () => {
+    assert.throws(
+      () => assertNonEmpty(JSON.stringify({ evidence: {} }), "evidence"),
+      /row-class non-empty assertion failed for evidence/,
+    );
+  });
+
+  test("accepts non-empty array", () => {
+    assert.doesNotThrow(() =>
+      assertNonEmpty(JSON.stringify({ team: [{ email: "a@x" }] }), "team"),
+    );
+  });
+
+  test("accepts non-empty object (e.g. evidence by skillId)", () => {
+    assert.doesNotThrow(() =>
+      assertNonEmpty(
+        JSON.stringify({ evidence: { task_completion: [{ id: 1 }] } }),
+        "evidence",
       ),
     );
   });

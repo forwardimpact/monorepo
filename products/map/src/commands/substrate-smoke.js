@@ -37,7 +37,17 @@ function fetchManifest() {
   return JSON.parse(manifestRes.stdout);
 }
 
-function buildSmokeList({ commands, subcommandExpansions, flatSmokeOptions }) {
+/**
+ * Expand the manifest into a flat list of {command, smokeOptions} pairs
+ * the smoke loop spawns. Exported for unit-testing the iteration logic.
+ * @param {{commands: object, subcommandExpansions: object, flatSmokeOptions: object}} manifest
+ * @returns {Array<{command: string, smokeOptions: object}>}
+ */
+export function buildSmokeList({
+  commands,
+  subcommandExpansions,
+  flatSmokeOptions,
+}) {
   const list = [];
   for (const [name, entry] of Object.entries(commands)) {
     if (!entry.needsSupabase) continue;
@@ -50,7 +60,14 @@ function buildSmokeList({ commands, subcommandExpansions, flatSmokeOptions }) {
   return list;
 }
 
-function buildSmokeArgv({ command, smokeOptions }, persona, discovery) {
+/**
+ * Build the argv array for one smoke invocation. Exported for tests.
+ * @param {{command: string, smokeOptions: object}} item
+ * @param {object} persona
+ * @param {{snapshot_id: string, item_id: string}} discovery
+ * @returns {string[]}
+ */
+export function buildSmokeArgv({ command, smokeOptions }, persona, discovery) {
   const argv = command.split(" ");
   for (const [k, v] of Object.entries(smokeOptions)) {
     argv.push(`--${k}`, expand(v, persona, discovery));
@@ -176,7 +193,13 @@ export function assertDiscoveryResolves(persona, discovery) {
   }
 }
 
-function assertNonEmpty(stdout, key) {
+/**
+ * Assert the named row collection in a JSON stdout payload is non-empty.
+ * Exported for tests.
+ * @param {string} stdout
+ * @param {string} key
+ */
+export function assertNonEmpty(stdout, key) {
   const parsed = JSON.parse(stdout);
   const v = parsed[key];
   const empty =
