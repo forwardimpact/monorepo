@@ -1,4 +1,4 @@
-# Spec 980 — Uniformly Robust Supervisor and Facilitator Orchestration
+# Spec 1050 — Uniformly Robust Supervisor and Facilitator Orchestration
 
 ## Problem
 

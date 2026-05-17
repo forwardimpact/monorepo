@@ -1,4 +1,4 @@
-# Spec 980 — Memory Protocol Redesign
+# Spec 1060 — Memory Protocol Redesign
 
 ## Problem
 
