@@ -27,6 +27,11 @@ concurrency:
 
 permissions:
   contents: read
+  # The "Scan logs for sensitive values" step downloads the in-progress
+  # run's log archive via `gh api /repos/.../runs/{id}/logs`. The kata-
+  # agent-team GitHub App installation may not carry Actions:Read, so
+  # we let the scan step fall back to GITHUB_TOKEN with this scope.
+  actions: read
 
 jobs:
   interview:
@@ -157,7 +162,10 @@ jobs:
         if: always() && inputs.product == 'landmark'
         shell: bash
         env:
-          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
+          # Use the workflow's own GITHUB_TOKEN (Actions:Read granted via
+          # the workflow's `permissions:` block) rather than the kata-
+          # agent-team app token, which may not carry Actions:Read.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
           SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
