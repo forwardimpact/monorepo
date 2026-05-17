@@ -81,31 +81,30 @@ the same interface, with tooling to prove changes actually improved outcomes.
 
 ## Distribution Model
 
-The monorepo is open source but exists solely for internal contributors —
-external users consume products via npm.
+The monorepo is open source but internal-only — external users consume via
+npm. It's the source of truth for several sibling repos under
+`forwardimpact/*` we maintain alongside it:
 
-### How External Users Consume Products
+- **npm packages** — `fit-*` and `kata-*` CLIs and libraries, installed via
+  `npx fit-*`. All CLIs use `#!/usr/bin/env node` (no Bun required). gRPC
+  products (currently Guide) need `npx fit-codegen --all` — see
+  [Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md).
+- **Skill packs** — `forwardimpact/fit-skills` and `forwardimpact/kata-skills`
+  sync on push to `main`. Install: `npx skills add forwardimpact/fit-skills`
+  (or `kata-skills`). Internal skills (`libs-*`, product internals) never
+  publish.
+- **Composite actions** — `forwardimpact/{kata-agent,fit-eval,fit-benchmark}`
+  tagged at `v1`. Edit procedure in
+  [`.github/CLAUDE.md`](.github/CLAUDE.md).
 
-Agents are often the primary consumers. Published skills teach how a product
-**works** and **uses** — not how it is implemented. Use fully qualified URLs
-(e.g.
+Published skills teach how products **work** and **use** — not how they're
+implemented. Use fully qualified URLs (e.g.
 `https://www.forwardimpact.team/docs/products/authoring-standards/index.md`).
 
-Two skill packs sync on push to `main`: `forwardimpact/fit-skills` (the `fit-*`
-product and library skills) and `forwardimpact/kata-skills` (the `kata-*`
-agent-team skills). Install: `npx skills add forwardimpact/fit-skills` (or
-`kata-skills`). All CLIs use `#!/usr/bin/env node` — no Bun required. gRPC
-products (currently Guide) need `npx fit-codegen --all`. See
-[Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md).
-
-### How Internal Contributors Develop
-
-- **External users** — Node.js + npm, run `npx fit-*`.
-- **Internal contributors** — Bun 1.2+ + bun, run `bunx fit-*` and `just`.
-
-`just codegen` (included in `just quickstart`) runs `fit-codegen` internally.
-Internal skills (`libs-*`, product internals) are never published. External docs
-use `npm`/`npx`; `bun`/`bunx`/`just` appear only in internal docs.
+External users run Node.js + `npx`; internal contributors run Bun 1.2+ +
+`bunx` + `just`. `just codegen` (included in `just quickstart`) runs
+`fit-codegen` internally. External docs use `npm`/`npx`; `bun`/`bunx`/`just`
+appear only in internal docs.
 
 ## Contributor Workflow
 
