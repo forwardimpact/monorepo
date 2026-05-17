@@ -22,14 +22,8 @@ on:
     types: [created]
   workflow_dispatch:
     inputs:
-      target-type:
-        description: "Target type (pull_request or discussion)"
-        required: true
-        type: choice
-        default: pull_request
-        options: [pull_request, discussion]
-      target-number:
-        description: "PR or discussion number"
+      prompt:
+        description: "Ad-hoc prompt for the facilitator"
         required: true
         type: string
 permissions:
@@ -61,8 +55,7 @@ jobs:
         id: task
         env:
           EVENT: ${{ github.event_name }}
-          DT: ${{ inputs.target-type }}
-          DN: ${{ inputs.target-number }}
+          DP: ${{ inputs.prompt }}
           PN: ${{ github.event.issue.number || github.event.pull_request.number }}
           IT: ${{ github.event.issue.title }}
           DNUM: ${{ github.event.discussion.number }}
@@ -79,11 +72,12 @@ jobs:
             issues) t="issue"; ctx="New issue \"$IT\" (#$n) by @$AU. $URL"; act="assess the issue." ;;
             discussion) t="discussion"; n="$DNUM"; ctx="New discussion \"$DTIT\" (#$n, $DCAT) by @$AU. $URL Node: $DNID."; act="assess. Reply via gh api graphql (addDiscussionComment)." ;;
             discussion_comment) t="discussion"; n="$DNUM"; ctx="Comment on \"$DTIT\" (#$n) by @$AU. $URL Node: $DNID."; act="assess. Reply via gh api graphql (addDiscussionComment, pass replyToId)." ;;
-            workflow_dispatch) if [ "$DT" = "discussion" ]; then t="discussion"; n="$DN"; ctx="Dispatch: discussion #$n."; act="assess."; else t="pull_request"; n="$DN"; ctx="Dispatch: PR #$n."; act="assess."; fi ;;
+            workflow_dispatch) t=""; n="" ;;
             issue_comment) if [ "$IPR" = "true" ]; then ctx="Comment on PR #$n by @$AU. $URL"; act="assess."; else t="issue"; ctx="Comment on \"$IT\" (#$n) by @$AU. $URL"; act="assess."; fi ;;
             *) ctx="Comment on PR #$n by @$AU. $URL"; act="assess." ;;
           esac
-          task="$ctx As facilitator, route to the best-suited agent to $act
+          if [ "$EVENT" = "workflow_dispatch" ]; then prefix="$DP"; else prefix="$ctx As facilitator, route to the best-suited agent to $act"; fi
+          task="$prefix
           Recursion guard: if the latest activity is already an agent response, stop."
           { echo "target-type=$t"; echo "target-number=$n"; echo "task<<EOF"; echo "$task"; echo "EOF"; } >> "$GITHUB_OUTPUT"
       - name: Assess and Act
