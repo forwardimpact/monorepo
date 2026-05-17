@@ -178,10 +178,13 @@ export async function runStageCommand({ config }) {
   await runPhase("url-discovery", async () => {
     const json = await cli.capture(["status", "--output", "json"]);
     const status = JSON.parse(json);
-    // libconfig's #env() reads process.env first; setting it here makes
-    // every downstream mapClient construction observe the live URL.
+    // libconfig's #env() reads process.env first; setting these here
+    // makes every downstream mapClient + fit-landmark child observe
+    // the live local-stack values.
     if (!status.api_url) throw new Error("supabase status: no api_url");
+    if (!status.anon_key) throw new Error("supabase status: no anon_key");
     process.env.SUPABASE_URL = status.api_url;
+    process.env.SUPABASE_ANON_KEY = status.anon_key;
   });
 
   await runPhase("migrate", () => cli.run(["db", "reset"]));
@@ -557,6 +560,11 @@ export async function runSelfSmoke({ supabase, config }) {
       argv.push(`--${k}`, expand(v, persona, discovery));
     }
     argv.push("--format", "json");
+    // Smoke spawn inherits SUPABASE_URL + SUPABASE_ANON_KEY from
+    // process.env (set in the url-discovery phase) and is given the
+    // freshly-minted JWT. fit-landmark's createLandmarkClient needs
+    // both supabaseUrl() and supabaseAnonKey() to construct the anon
+    // client that resolveIdentity then authenticates.
     const res = spawnSync("bunx", ["fit-landmark", ...argv], {
       encoding: "utf8",
       env: { ...process.env, PRODUCT_LANDMARK_TOKEN: jwt },
@@ -745,9 +753,15 @@ export async function runSubstrateIssueCommand({ supabase, config, options }) {
     await fs.writeFile(envTmp, `PRODUCT_LANDMARK_TOKEN=${jwt}\n`,
       { mode: 0o600 });
     await fs.chmod(envTmp, 0o600);
+    // Spec § Persona-corpus invariant (a): the persona IS the manager
+    // of ≥1 other row (verified by findInvariantSatisfyingPersonas).
+    // `org team --manager <X>` and `practice --manager <X>` therefore
+    // take the PERSONA's own email — not the persona's own manager.
+    // The .substrate.json `manager_email` is the value any agent
+    // command consuming "the discovery vector's manager email" reads.
     await fs.writeFile(subTmp, JSON.stringify({
       persona_email: email,
-      manager_email: row.manager_email,
+      manager_email: email,  // persona is itself the manager
       snapshot_id, item_id,
       generated_at: new Date().toISOString(),
     }, null, 2) + "\n", { mode: 0o600 });
@@ -839,7 +853,7 @@ supabase + spawn fixtures.
 | Stage phases fire in order | `products/map/test/activity/substrate-stage.test.js` | Phase-tagged errors thrown by stubbed phases carry the phase name; each phase's stub is invoked once in stack → url-discovery → migrate → seed → provision → smoke order; `SUBSTRATE_FORCE_EMPTY_CORPUS=true` short-circuits to the smoke-phase throw |
 | Persona invariant predicate | `products/map/test/activity/substrate-persona-query.test.js` | Four invariants combine; a row missing any one is filtered out; empty result returns the binding-constraint diagnostic naming which invariant filtered most |
 | Self-smoke JWT shape + persona-kind + discovery | `products/map/test/activity/substrate-smoke.test.js` | `assertJwtShape` rejects on missing/wrong aud/role/email/exp; `assertPersonaIsHuman` rejects on `kind=service_account`; gated-command iteration spawns each `GATED_COMMANDS` entry once; row-class non-empty assertions fire for `org team`, `evidence`, `practice` |
-| Commands-manifest source-of-truth | `products/landmark/test/lib/commands-manifest.test.js` | Imports `COMMANDS`, `SUBCOMMAND_EXPANSIONS`, `FLAT_SMOKE_OPTIONS` from `commands-manifest.js`; asserts every `needsSupabase: true` key in `COMMANDS` is covered by exactly one of `SUBCOMMAND_EXPANSIONS[key]` or `FLAT_SMOKE_OPTIONS[key]` (or has no required smoke options) — guards against drift between the dispatcher table and the smoke list |
+| Commands-manifest source-of-truth | `products/landmark/test/lib/commands-manifest.test.js` | Imports `COMMANDS`, `SUBCOMMAND_EXPANSIONS`, `FLAT_SMOKE_OPTIONS` from `commands-manifest.js`; asserts every `needsSupabase: true` key in `COMMANDS` is covered by exactly one of `SUBCOMMAND_EXPANSIONS[key]` or `FLAT_SMOKE_OPTIONS[key]` (or has no required smoke options); **additionally** parses `products/landmark/bin/fit-landmark.js`'s libcli `commands` array (read as text + regex-extract `name:` values; or expose `definition.commands` from a tiny exported function) and asserts every entry with `needsSupabase: true` for its top-level command appears either in `SUBCOMMAND_EXPANSIONS[topLevel]` (for space-separated names like `"snapshot show"`) or as the `topLevel` itself in `FLAT_SMOKE_OPTIONS` (for flat names) — guards both directions of drift between the dispatcher table, the libcli surface, and the smoke list |
 | `_commands` verb emits manifest | `products/landmark/test/lib/commands-verb.test.js` | Spawn `node bin/fit-landmark.js _commands` from a tmpdir; assert stdout parses as `{ commands, subcommandExpansions, flatSmokeOptions }`; assert the spawn exits 0 even when no `config/` or `.env` is reachable (verifies the hidden verb sits above the top-level `createProductConfig` await) |
 | Roster emits JSON shape | `products/map/test/activity/substrate-roster.test.js` | `--format json` returns `{ personas, selection_metadata }`; exit 0 on non-empty, non-zero on empty (with diagnostic on stderr) |
 | Issue writes both files atomically | `products/map/test/activity/substrate-issue.test.js` | Both files written; mode 0600 on each; content parses as JSON / `KEY=VALUE`; mocked `fs.rename` failure on the second file leaves the first file on disk and cleans up the second's tmp file; mocked failure on the first file leaves no files at the target paths and cleans up both tmp files |

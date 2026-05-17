@@ -176,44 +176,83 @@ with all three tests passing.
 
 - **Created**: `libraries/libconfig/test/credential-env-override.test.js`
 
-Single test file (~70 lines) constructing a Config in a tmpdir with a
-`.env` file containing `PRODUCT_LANDMARK_TOKEN=test-jwt-value`, then:
+Single test file (~80 lines). Use the existing test pattern from
+`libraries/libconfig/test/libconfig-env-file.test.js` — a mocked
+`storageFn` keeps the test hermetic (the default `createStorage` would
+walk `findUpward("config")` from the tmpdir and may discover the
+monorepo's own `config/` directory):
 
 ```js
-const config = await createProductConfig(
-  "landmark",
-  { token: undefined },
-  { ...process, cwd: () => tmpdir, env: { PATH: process.env.PATH } },
-);
-assert.equal(config.token, "test-jwt-value");
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
+import { createProductConfig } from "@forwardimpact/libconfig";
+
+// Mocked storage that always returns no config file (no findUpward walk).
+function mockStorageFn() {
+  return {
+    get: async () => null,
+    put: async () => {},
+    delete: async () => {},
+    path: () => "/dev/null/config",
+  };
+}
+
+async function setup(envContent) {
+  const tmpdir = await mkdtemp(path.join(os.tmpdir(), "credenv-"));
+  if (envContent !== null) {
+    await writeFile(path.join(tmpdir, ".env"), envContent, { mode: 0o600 });
+  }
+  return tmpdir;
+}
+
+describe("PRODUCT_LANDMARK_TOKEN credential override", () => {
+  it("loads token from .env when no shell value is set", async () => {
+    const tmpdir = await setup("PRODUCT_LANDMARK_TOKEN=test-jwt-value\n");
+    const config = await createProductConfig(
+      "landmark",
+      { token: undefined },
+      { ...process, cwd: () => tmpdir, env: { PATH: process.env.PATH } },
+      mockStorageFn,
+    );
+    assert.equal(config.token, "test-jwt-value");
+    await rm(tmpdir, { recursive: true });
+  });
+
+  it("shell env wins over .env", async () => {
+    const tmpdir = await setup("PRODUCT_LANDMARK_TOKEN=env-value\n");
+    const config = await createProductConfig(
+      "landmark",
+      { token: undefined },
+      { ...process, cwd: () => tmpdir,
+        env: { PATH: process.env.PATH, PRODUCT_LANDMARK_TOKEN: "shell-jwt" } },
+      mockStorageFn,
+    );
+    assert.equal(config.token, "shell-jwt");
+    await rm(tmpdir, { recursive: true });
+  });
+
+  it("empty-string shell value falls through to .env", async () => {
+    const tmpdir = await setup("PRODUCT_LANDMARK_TOKEN=env-value\n");
+    const config = await createProductConfig(
+      "landmark",
+      { token: undefined },
+      { ...process, cwd: () => tmpdir,
+        env: { PATH: process.env.PATH, PRODUCT_LANDMARK_TOKEN: "" } },
+      mockStorageFn,
+    );
+    assert.equal(config.token, "env-value");  // .env wins, not ""
+    await rm(tmpdir, { recursive: true });
+  });
+});
 ```
 
-Also test that shell env wins over `.env`:
-
-```js
-const config = await createProductConfig(
-  "landmark",
-  { token: undefined },
-  { ...process, cwd: () => tmpdir,
-    env: { PATH: process.env.PATH, PRODUCT_LANDMARK_TOKEN: "shell-jwt" } },
-);
-assert.equal(config.token, "shell-jwt");
-```
-
-Also test that an empty-string shell value falls through to `.env`:
-
-```js
-const config = await createProductConfig(
-  "landmark",
-  { token: undefined },
-  { ...process, cwd: () => tmpdir,
-    env: { PATH: process.env.PATH, PRODUCT_LANDMARK_TOKEN: "" } },
-);
-assert.equal(config.token, "test-jwt-value");  // .env value wins
-```
-
-This third case covers the Part 03 workflow ternary that emits `''`
-for non-Landmark runs; it must not clobber a `.env`-supplied value.
+The empty-string case covers the Part 03 workflow ternary that emits
+`''` for non-Landmark runs; it must not clobber a `.env`-supplied
+value. The mocked `storageFn` ensures the test does not depend on
+disk layout outside the tmpdir.
 
 Verify: `bun test libraries/libconfig/test/credential-env-override.test.js`
 passes.
@@ -258,12 +297,17 @@ rg LANDMARK_AUTH_TOKEN websites/    # must return empty
 
 ## Step 10 — Verify contract-preservation suite green
 
-Run the full set of tests named in spec § Success Criteria row 11:
+Run the full set of tests covered by spec § Success Criteria row 11.
+Note: row 11 literally names `products/map/test/activity/activity.test.js`
+but that file does not exist on `main` — verify via `git ls-tree -r
+origin/main -- products/map/test/activity/`. The literal command is a
+spec inaccuracy; the intent is the whole activity test directory, which
+this step runs:
 
 ```sh
 bun test products/map/test/activity/auth-issue.test.js
 bun test products/map/test/activity/people-provision.test.js
-bun test products/map/test/activity/activity.test.js
+bun test products/map/test/activity/         # whole directory; covers row 11's intent
 bun test products/landmark/test/lib/identity.test.js
 bun test libraries/libconfig/test/
 bun run check  # full check suite

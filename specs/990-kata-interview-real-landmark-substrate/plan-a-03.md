@@ -22,24 +22,25 @@ CI fails closed if either is unset: Part 02's substrate-stage step calls
 `config.supabaseJwtSecret()` / `config.supabaseServiceRoleKey()` which
 throws on empty.
 
-## Step 2 — Grant `actions: read` on the workflow
+## Step 2 — Document the App installation prerequisite
 
-- **Modified**: `.github/workflows/kata-interview.yml` (the `permissions:`
-  block; locate via `rg "permissions:" .github/workflows/kata-interview.yml`)
+- **No workflow file change** — operator action documented in the PR
+  description.
 
-The post-run log scan in Step 6 calls `gh api .../actions/runs/<id>/logs`,
-which requires `actions: read`. Today the workflow's top-level
-permissions block declares only `contents: read`. Extend it to:
+The post-run log scan in Step 6 calls `gh api .../actions/runs/<id>/logs`
+using `GH_TOKEN: ${{ steps.ci-app.outputs.token }}` (the kata-agent-team
+GitHub App installation token, **not** the workflow `GITHUB_TOKEN`).
+Workflow-level `permissions:` blocks govern `GITHUB_TOKEN` only — they
+have no effect on App tokens, whose scope is set in App settings.
 
-```yaml
-permissions:
-  contents: read
-  actions: read
-```
+The implementer must verify (or coordinate verification of) the
+kata-agent-team App installation's repository permissions: **`Actions:
+Read`** must be enabled before Part 03 merges. List this in the PR
+description as an operator prerequisite alongside the two repo secrets
+from Step 1.
 
-The kata-agent-team GitHub App installation must also carry `actions:
-read` repository permission; document this in the PR description so the
-repo admin can verify before merge.
+Workflow-level `permissions:` block on `kata-interview.yml` is
+unchanged from `main`.
 
 ## Step 3 — Add the `Substrate stage` step (Landmark-gated)
 
@@ -62,18 +63,23 @@ Immediately after that step's run script ends, insert:
           mkdir -p "${{ steps.agent-workspace.outputs.dir }}/config"
           bunx fit-map substrate stage
 
-          # Propagate the local Supabase URL to subsequent workflow
-          # steps. Part 02's substrate-stage sets process.env.SUPABASE_URL
-          # inside its own Node process; that only survives the Node
-          # process. For the supervisor (next workflow step) to see it,
-          # write to $GITHUB_ENV.
-          api_url=$(bunx --no-install -- supabase status --output json \
-            | awk -F'"' '/"api_url"/ {print $4}')
-          if [ -z "$api_url" ]; then
-            echo "FAIL: supabase status did not yield api_url" >&2
+          # Propagate the local Supabase URL + anon key to subsequent
+          # workflow steps. Part 02's substrate-stage sets these in its
+          # own Node process; that only survives the Node process. For
+          # the supervisor (next workflow step) and the agent's
+          # fit-landmark spawns to see them, write to $GITHUB_ENV.
+          # SUPABASE_ANON_KEY is required by fit-landmark's
+          # createLandmarkClient (products/landmark/src/lib/supabase.js)
+          # to construct the anon client resolveIdentity authenticates.
+          status_json=$(bunx --no-install -- supabase status --output json)
+          api_url=$(echo "$status_json" | python3 -c 'import sys,json; print(json.load(sys.stdin)["api_url"])')
+          anon_key=$(echo "$status_json" | python3 -c 'import sys,json; print(json.load(sys.stdin)["anon_key"])')
+          if [ -z "$api_url" ] || [ -z "$anon_key" ]; then
+            echo "FAIL: supabase status did not yield api_url + anon_key" >&2
             exit 1
           fi
           echo "SUPABASE_URL=$api_url" >> "$GITHUB_ENV"
+          echo "SUPABASE_ANON_KEY=$anon_key" >> "$GITHUB_ENV"
 ```
 
 The `mkdir` line provisions `$AGENT_CWD/config/` so libconfig's
@@ -299,9 +305,11 @@ describe("kata-interview.yml spec 990 non-Landmark invariant", () => {
       `timeout-minutes expected < 60, got ${m}`);
   });
 
-  it("workflow permissions include actions: read", () => {
-    assert.equal(wf.permissions["actions"], "read");
-  });
+  // permissions block is unchanged from main — the gh api call uses
+  // the kata-agent-team App token, not the workflow GITHUB_TOKEN, so
+  // workflow-level permissions do not govern it (App installation
+  // permission is the actual prerequisite). Asserted via the
+  // PR-description operator checklist, not by this test.
 });
 ```
 
@@ -354,8 +362,10 @@ agent's identity into `$AGENT_CWD`:
      last 5 weekly-log entries.
    - **JTBD-role alignment** — match the picked job's audience against
      the persona's `discipline` and `level` (e.g. *Engineering Leaders*
-     → a Manager-track or Director-level row; *Empowered Engineers* →
-     an IC-track row at Senior or below).
+     → a `manager` or `director` discipline at any level; *Empowered
+     Engineers* → an `engineer` discipline at `Senior` or below).
+     The `track` field is informational only; do not use it as a
+     primary signal.
 
 3. Issue the substrate for the picked persona:
 

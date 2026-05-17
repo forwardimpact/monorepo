@@ -44,14 +44,12 @@ first.
 
 ## Design deviations
 
-Design-c § Supervisor experience names the JTBD-role alignment signal
-as matching the picked job's audience against the roster row's `role`
-field. The `activity.organization_people` schema on `origin/main` has
-no `role` column — the actual columns are `discipline`, `level`,
-`track`. The plan uses those three fields for the alignment signal
-(Part 02 § Step 4a roster shape; Part 03 § SKILL.md edit 8b). This is
-a deviation from the design's literal text; the design's intent
-(persona-role match) is preserved with the actual schema vocabulary.
+| Deviation | Where | Why |
+|---|---|---|
+| Roster row uses `discipline`+`level` for alignment, not `role` | Design-c § Supervisor experience names `role`; the `activity.organization_people` schema on `origin/main` has no such column. Real columns: `discipline`, `level`, `track`. | Schema reality. The plan uses `discipline`+`level` for the alignment signal (`track` informational only). Persona-role match intent preserved with actual vocabulary. |
+| Hidden `_commands` introspection verb replaces design's `bunx fit-landmark --json` | Design-c § Components row 1 names `--json` for command discovery, but libcli's existing `--json` global only renders help output, not a `COMMANDS`-map manifest. The plan adds a hidden `_commands` argv branch and a canonical `commands-manifest.js` library file. | Design's stated mechanism doesn't exist in libcli today; alternatives (extend libcli, scrape help) carry larger blast radius than a 5-line argv branch with a clean source-of-truth file. |
+| Spec § Success Criteria row 5 expansion source | Spec wants subcommand expansion "via the libcli `commands` array in the same file". The plan adds a parallel `SUBCOMMAND_EXPANSIONS`/`FLAT_SMOKE_OPTIONS` data structure in `commands-manifest.js`, with a drift-guard test asserting it stays synchronized with the bin's libcli `commands` array. | The libcli `commands` entries do not carry `needsSupabase` (only `COMMANDS` does), so naive iteration of the libcli array doesn't yield the gated subset. The drift-guard test (Part 02 § Step 8 first test) closes the door on divergence. |
+| Verification command `activity.test.js` | Spec § Success Criteria row 11 names `bun test products/map/test/activity/activity.test.js`; no such file exists on `main`. | Spec inaccuracy. Plan-a-01 § Step 10 runs the directory instead and notes this discrepancy. |
 
 ## Libraries used
 
@@ -68,7 +66,8 @@ New imports introduced by this plan: `@forwardimpact/libsecret`
 | The persona-query helper builds its `evidence_count` and `practice_directs_count` aggregates client-side (multiple round-trips against the Supabase JS client). On large rosters this could OOM the stage step. The synthetic corpus today is bounded (<200 humans), so it works; a future production substrate (out of scope) would need a Postgres view or RPC. | Round-trip count is not visible from the function signature; the alternative (Postgres view in a new migration) is forbidden by spec § Out-of-scope. |
 | The atomic-write recovery contract in `substrate issue` is "rename `.env` first, then `.substrate.json`; on partial failure leave whichever landed and let the caller re-issue". This trades atomicity-across-files for simplicity. The kata-interview workspace is `mktemp -d`-fresh per run, so the worst case is one failed run, but a future caller running in a non-fresh cwd would see stale `.env` state. | The recovery shape is invisible from the spec criteria; the spec only requires "mode 0600" and "atomic rename" — the two-file atomicity gap is a deliberate design choice. |
 | The `_commands` hidden subcommand on `fit-landmark` is invoked by parsing `process.argv[2]` before libcli's `createCli` runs. If a future contributor moves the libcli call earlier in `fit-landmark.js`, the hidden verb stops working. | The branch is two lines and looks vestigial; only a runtime test (added in Part 02 § Step 8) guards it. |
-| `bunx fit-map substrate stage` discovers `SUPABASE_URL` from `supabase status --output json` after `supabase start`. If the local stack ever changes its status JSON shape (e.g. renames `api_url`), substrate-stage fails with a `[substrate stage: url-discovery]` error. | The Supabase CLI's status JSON schema is not pinned in `libconfig` or anywhere in-tree; only a smoke test against the actual CLI catches a rename. |
+| `bunx fit-map substrate stage` discovers `SUPABASE_URL` and `SUPABASE_ANON_KEY` from `supabase status --output json` after `supabase start`. If the local stack ever changes its status JSON shape (e.g. renames `api_url` or `anon_key`), substrate-stage fails with a `[substrate stage: url-discovery]` error. | The Supabase CLI's status JSON schema is not pinned in `libconfig` or anywhere in-tree; only a smoke test against the actual CLI catches a rename. |
+| The kata-agent-team GitHub App installation must carry `Actions: Read` repository permission for Part 03's log-scan step's `gh api .../actions/runs/<id>/logs` call to succeed. The workflow-level `permissions:` block does not govern the App token — only App-settings permissions do. | This prerequisite is invisible from the plan files; it's an operator action recorded only in the PR description (Part 03 § Step 2). A misconfigured App fails the scan step at runtime with `403`. |
 
 ## Execution recommendation
 
