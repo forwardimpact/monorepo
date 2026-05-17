@@ -77,10 +77,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUBSTRATE_FORCE_EMPTY_CORPUS: ${{ inputs.empty-corpus-test }}
         run: |
-          # Provision $AGENT_CWD/config/ so libconfig's findUpward("config")
-          # resolves uniformly from the agent's cwd.
-          mkdir -p "${{ steps.agent-workspace.outputs.dir }}/config"
-          bunx fit-map substrate stage
+          bunx fit-map substrate stage --cwd "${{ steps.agent-workspace.outputs.dir }}"
 
           # Propagate the local Supabase URL + anon key to subsequent
           # workflow steps. The Node process running `bunx fit-map

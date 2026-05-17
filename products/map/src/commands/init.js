@@ -7,6 +7,7 @@
 import { cp, access } from "fs/promises";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { bootstrapProject } from "@forwardimpact/libconfig";
 import {
   formatError,
   formatSuccess,
@@ -26,16 +27,6 @@ export async function runInit(targetPath) {
   const target = targetPath || process.cwd();
   const dataDir = join(target, "data", "pathway");
 
-  // Check if data/pathway/ already exists
-  try {
-    await access(dataDir);
-    process.stderr.write(formatError("./data/pathway/ already exists.") + "\n");
-    process.stderr.write("Remove it first or use a different directory.\n");
-    process.exit(1);
-  } catch {
-    // Directory doesn't exist, proceed
-  }
-
   // Verify starter data is available
   try {
     await access(starterDir);
@@ -49,9 +40,19 @@ export async function runInit(targetPath) {
     process.exit(1);
   }
 
-  // Copy starter data
+  // Copy starter data — idempotent so substrate stage can re-stage a
+  // workspace produced by `fit-map init` as a no-op.
   process.stdout.write("Creating ./data/pathway/ with starter data...\n\n");
-  await cp(starterDir, dataDir, { recursive: true });
+  await cp(starterDir, dataDir, {
+    recursive: true,
+    force: false,
+    errorOnExist: false,
+  });
+
+  // Materialise target/config/config.json so subsequent fit-map invocations
+  // anchor at the init target rather than upward-walking into an ancestor
+  // config/. No product.map starter fragment is shipped this spec.
+  await bootstrapProject({ target, fragment: {} });
 
   process.stdout.write(
     formatSuccess("Created ./data/pathway/ with starter data.") + "\n\n",

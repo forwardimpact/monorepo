@@ -127,3 +127,6 @@ export async function createInitConfig(
 
 // Re-export Config class for advanced use cases
 export { Config } from "./config.js";
+
+// Writer surface — see src/bootstrap.js
+export { bootstrapProject } from "./bootstrap.js";

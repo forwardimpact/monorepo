@@ -99,7 +99,13 @@ const definition = {
     {
       name: "substrate stage",
       description:
-        "Provision a Landmark substrate (stack + migrate + seed + provision + self-smoke)",
+        "Provision a Landmark substrate (init + stack + migrate + seed + provision + self-smoke)",
+      options: {
+        cwd: {
+          type: "string",
+          description: "Target dir for the init bootstrap (default: cwd)",
+        },
+      },
     },
     {
       name: "substrate roster",
@@ -477,7 +483,7 @@ async function dispatchSubstrate(subcommand, _rest, values) {
       const { runStageCommand } = await import(
         "../src/commands/substrate-stage.js"
       );
-      return runStageCommand({ config });
+      return runStageCommand({ config, target: values.cwd });
     }
     case "roster": {
       const supabase = await mapClient();

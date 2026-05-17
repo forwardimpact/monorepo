@@ -27,4 +27,4 @@ Controls the service startup order for `fit-rc`:
 }
 ```
 
-To restore the starter config, delete `config/` and re-run `npx fit-guide init`.
+Re-running `npx fit-guide --init` against an existing project is a same-key-same-value no-op — the merged `config/config.json` and `.env` are byte-stable, and `SERVICE_SECRET` / `MCP_TOKEN` are preserved rather than rotated. To roll back hand-edits, delete the specific top-level key under `config/config.json` (or the whole file) and re-run; the starter shape is restored without disturbing other products' contributions.
