@@ -25,7 +25,7 @@ cite:
 | --- | --- | --- |
 | [`860-measurement-system-change-protocol`](../860-measurement-system-change-protocol/spec.md) | Cites a `JTBD § Teams Using Agents` anchor link. | Anchor does not resolve in the current `JTBD.md`. |
 | [`880-canonical-metric-cardinality`](../880-canonical-metric-cardinality/spec.md) | Names Teams Using Agents in its Persona / job line, sourced from CLAUDE.md prose. | Persona citation has no JTBD anchor — verification is anchored in KATA.md § Metrics, not in a JTBD contract. |
-| [`980-memory-protocol-redesign`](../980-memory-protocol-redesign/spec.md) § Personas and Job | Explicitly identifies the gap and commits to opening the follow-up issue ([#952](https://github.com/forwardimpact/monorepo/issues/952)) that this spec resolves. | Spec acknowledges its WHY anchor is missing and depends on this spec to land. |
+| [`1060-memory-protocol-redesign`](../1060-memory-protocol-redesign/spec.md) § Personas and Job | Explicitly identifies the gap and commits to opening the follow-up issue ([#952](https://github.com/forwardimpact/monorepo/issues/952)) that this spec resolves. | Spec acknowledges its WHY anchor is missing and depends on this spec to land. |
 
 The JTBD.md generator and the vision narrative document also disagree:
 
@@ -50,7 +50,7 @@ The drift compounds with every Kata-adjacent spec:
 
 - Each inline hire repeats CLAUDE.md text verbatim, accumulating drift risk
   with every rewording of either document.
-- Spec 980 (memory-protocol-redesign), currently `design approved` per
+- Spec 1060 (memory-protocol-redesign), currently `spec draft` per
   `wiki/STATUS.md`, verifies against a Big Hire that has no canonical anchor;
   any future tweak to the persona name or hire phrasing breaks the spec
   retroactively.
@@ -58,7 +58,7 @@ The drift compounds with every Kata-adjacent spec:
   the next wave of Kata-adjacent specs (memory protocol redesign research
   corpus ready). Resolving the canonical anchor before that wave lands lets
   it reference rather than restate.
-- Recurrence signal: spec 980 (memory-protocol-redesign, PR #951) opened the
+- Recurrence signal: spec 1060 (memory-protocol-redesign, PR #951) opened the
   follow-up issue this spec resolves at the same time it hired the persona
   inline — the gap was visible at point-of-spec and is now in the queue with
   the issue addressable.
@@ -83,7 +83,7 @@ is a configuration job — one-time setup adjacent to Pathway, framed around
 agent _configuration_. Kata's positioning is the _operation_ of an autonomous
 team running a daily Plan-Do-Study-Act loop. The hires are not the same job
 at different scope; they are different jobs. Two specs already merged (860,
-980) hire Teams Using Agents specifically against the autonomous-loop framing;
+1060) hire Teams Using Agents specifically against the autonomous-loop framing;
 spec 880 names the persona but anchors verification in KATA.md § Metrics, so
 its dependence on the framing is weaker but its persona citation still
 requires a canonical anchor. CLAUDE.md § Primary Products enumerates Teams
@@ -150,7 +150,7 @@ generator change drifts on the next `bun run context:fix` run.
   development team that keeps getting better"). That subsection is a
   per-product description across all primary products and would only be
   touched under a separate vision-narrative refactor.
-- Retroactive edits to merged specs 860, 880, and 980. They were authored
+- Retroactive edits to merged specs 860, 880, and 1060. They were authored
   under the historical gap; once the canonical entry exists, future specs
   cite it. The inline restatement in those completed specs remains as-is.
 - Defining schemas for `products/kata/package.json` or skill-pack metadata
