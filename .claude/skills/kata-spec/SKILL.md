@@ -32,6 +32,9 @@ asked for. If they ask for a spec, write the spec and stop.
 
 <read_do_checklist goal="Ensure the WHAT/WHY boundary when writing a spec">
 
+- [ ] Claim the spec number in `wiki/STATUS.md` as the first action — append a
+      `{NNN}\tspec\tdraft` row before writing, so parallel sessions cannot
+      claim the same id.
 - [ ] Only produce the deliverable asked for — if asked for a spec, stop after
       the spec. Do not also write a plan.
 - [ ] No implementation details in the spec — file paths, function signatures,
@@ -67,7 +70,9 @@ specs/{NNN}-{kebab-case-name}/
   plan-a.md    HOW and WHEN      (the `kata-plan` skill)
 ```
 
-Number directories sequentially. Use the next available number.
+Numbers are claimed in `wiki/STATUS.md` (see § Process Step 1) before any
+content is written. The directory name pairs the claimed `NNN` with a
+kebab-case slug.
 
 ## Writing a Spec (WHAT and WHY)
 
@@ -122,19 +127,29 @@ If criteria fall short, request changes via PR comment.
 
 ## Process
 
-### Step 1: Clarify
+### Step 1: Claim the spec number
+
+Read `wiki/STATUS.md` and pick the next available id — the next multiple of 10
+above the current highest. Append a `{NNN}\tspec\tdraft` row to STATUS.md and
+commit the wiki. The Stop hook pushes wiki commits, so the claim becomes
+visible to other sessions immediately and parallel PRs cannot collide on the
+same number. If the spec is later abandoned, transition the row to
+`{NNN}\tspec\tcancelled` rather than deleting it.
+
+### Step 2: Clarify
 
 Ask about motivation, scope, constraints, and success before writing.
 
-### Step 2: Research
+### Step 3: Research
 
 Read relevant code, data, and existing specs.
 
-### Step 3: Write the spec
+### Step 4: Write the spec
 
-WHAT and WHY only. Write `specs/NNN/spec.md` locally; do not push yet.
+WHAT and WHY only. Write `specs/NNN/spec.md` locally using the id claimed in
+Step 1; do not push yet.
 
-### Step 4: Clean sub-agent review panel
+### Step 5: Clean sub-agent review panel
 
 Follow the [`kata-review` caller
 protocol](../kata-review/references/caller-protocol.md), invoked on the local
@@ -143,7 +158,7 @@ protocol](../kata-review/references/caller-protocol.md), invoked on the local
 opening the PR — the PR should not become visible to `agent-react` until the
 panel is clean.
 
-### Step 5: Open a spec PR
+### Step 6: Open a spec PR
 
 The PR title carries the spec id: `spec(NNN): …`. Merge of that PR is what
 advances the phase. Do not apply the `spec:approved` label and do not
