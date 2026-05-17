@@ -75,18 +75,30 @@ export async function runStageCommand(
     const json = await cli.capture(["status", "--output", "json"]);
     const status = JSON.parse(json);
     // supabase CLI ≥ 2.96 emits uppercase keys matching the default
-    // env-var names (API_URL, ANON_KEY); older versions used
-    // lowercase (api_url, anon_key). Fall back to lowercase for
-    // backward compatibility.
+    // env-var names (API_URL, ANON_KEY, JWT_SECRET,
+    // SERVICE_ROLE_KEY); older versions used lowercase. Fall back to
+    // lowercase for backward compatibility.
     const apiUrl = status.API_URL ?? status.api_url;
     const anonKey = status.ANON_KEY ?? status.anon_key;
+    const jwtSecret = status.JWT_SECRET ?? status.jwt_secret;
+    const serviceRoleKey = status.SERVICE_ROLE_KEY ?? status.service_role_key;
     if (!apiUrl) throw new Error("supabase status: no api_url");
     if (!anonKey) throw new Error("supabase status: no anon_key");
     // libconfig's #env() reads process.env first; setting these here
     // makes the createMapClient call below (and any same-process
-    // children) observe the live local-stack values.
+    // children) observe the live local-stack values. JWT_SECRET and
+    // SERVICE_ROLE_KEY are read from the local stack so the workflow
+    // doesn't need to plumb them in via repo secrets — the stack
+    // generates them deterministically from its own config and the
+    // smoke / provision phases sign + admin against the same values.
     process.env.SUPABASE_URL = apiUrl;
     process.env.SUPABASE_ANON_KEY = anonKey;
+    if (jwtSecret && !process.env.SUPABASE_JWT_SECRET) {
+      process.env.SUPABASE_JWT_SECRET = jwtSecret;
+    }
+    if (serviceRoleKey && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      process.env.SUPABASE_SERVICE_ROLE_KEY = serviceRoleKey;
+    }
   });
 
   await runPhase("migrate", () => cli.run(["db", "reset"]));

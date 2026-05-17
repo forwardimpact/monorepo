@@ -109,13 +109,24 @@ jobs:
           status_json=$(bunx --no-install -- supabase status --output json)
           api_url=$(echo "$status_json" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("API_URL") or d.get("api_url") or "")')
           anon_key=$(echo "$status_json" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("ANON_KEY") or d.get("anon_key") or "")')
+          jwt_secret=$(echo "$status_json" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("JWT_SECRET") or d.get("jwt_secret") or "")')
+          service_role_key=$(echo "$status_json" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("SERVICE_ROLE_KEY") or d.get("service_role_key") or "")')
           if [ -z "$api_url" ] || [ -z "$anon_key" ]; then
             echo "FAIL: supabase status did not yield api_url + anon_key" >&2
             echo "Raw JSON: $status_json" >&2
             exit 1
           fi
+          # Mask the secret values so subsequent steps don't print
+          # them in logs, then propagate to $GITHUB_ENV so the
+          # supervisor's `substrate roster`/`substrate issue` and the
+          # agent's fit-landmark spawns all see the live local-stack
+          # values regardless of whether repo secrets are configured.
+          if [ -n "$jwt_secret" ]; then echo "::add-mask::$jwt_secret"; fi
+          if [ -n "$service_role_key" ]; then echo "::add-mask::$service_role_key"; fi
           echo "SUPABASE_URL=$api_url" >> "$GITHUB_ENV"
           echo "SUPABASE_ANON_KEY=$anon_key" >> "$GITHUB_ENV"
+          if [ -n "$jwt_secret" ]; then echo "SUPABASE_JWT_SECRET=$jwt_secret" >> "$GITHUB_ENV"; fi
+          if [ -n "$service_role_key" ]; then echo "SUPABASE_SERVICE_ROLE_KEY=$service_role_key" >> "$GITHUB_ENV"; fi
 
       - name: Compose task amendment
         id: amend
@@ -140,8 +151,12 @@ jobs:
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
           CLAUDE_CODE_USE_BEDROCK: "0"
           AGENT_CWD: ${{ inputs.product == 'landmark' && steps.agent-workspace.outputs.dir || '' }}
-          SUPABASE_JWT_SECRET: ${{ inputs.product == 'landmark' && secrets.SUPABASE_JWT_SECRET || '' }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ inputs.product == 'landmark' && secrets.SUPABASE_SERVICE_ROLE_KEY || '' }}
+          # SUPABASE_JWT_SECRET and SUPABASE_SERVICE_ROLE_KEY flow
+          # through from $GITHUB_ENV (written by the Substrate stage
+          # step after reading them from `supabase status`). Setting
+          # them again here with `secrets.*` would overwrite the live
+          # values with empty strings when the repo secrets aren't
+          # configured.
         with:
           mode: "supervise"
           task-text: |
