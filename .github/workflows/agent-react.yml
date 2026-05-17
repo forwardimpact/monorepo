@@ -17,16 +17,8 @@ on:
     types: [created]
   workflow_dispatch:
     inputs:
-      target-type:
-        description: "Target type (pull_request or discussion)"
-        required: true
-        type: choice
-        default: pull_request
-        options:
-          - pull_request
-          - discussion
-      target-number:
-        description: "PR or discussion number to act on (manual trigger for verification)"
+      prompt:
+        description: "Ad-hoc prompt for the facilitator"
         required: true
         type: string
 
@@ -37,7 +29,7 @@ permissions:
 # Triage flows fire `opened` plus several `labeled` events within ~1s; without this, each one
 # spawns an independent facilitator → independent agent → independent PR (observed on #647 / #654).
 concurrency:
-  group: agent-react-${{ github.event.issue.number || github.event.pull_request.number || github.event.discussion.number || inputs.target-number || github.run_id }}
+  group: agent-react-${{ github.event.issue.number || github.event.pull_request.number || github.event.discussion.number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -79,8 +71,7 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_ACTION: ${{ github.event.action }}
-          DISPATCH_TARGET_TYPE: ${{ inputs.target-type }}
-          DISPATCH_TARGET_NUMBER: ${{ inputs.target-number }}
+          DISPATCH_PROMPT: ${{ inputs.prompt }}
           PR_NUMBER_FROM_EVENT: ${{ github.event.issue.number || github.event.pull_request.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           PR_TITLE: ${{ github.event.pull_request.title }}
@@ -130,17 +121,8 @@ jobs:
               action="route to the best-suited agent and ask them to assess the comment and act on it. To reply, use \`gh api graphql\` (mutation \`addDiscussionComment\` with the discussion node ID; pass \`replyToId\` to thread the reply)."
               ;;
             workflow_dispatch)
-              if [ "$DISPATCH_TARGET_TYPE" = "discussion" ]; then
-                target_type="discussion"
-                target_number="$DISPATCH_TARGET_NUMBER"
-                context="Manual dispatch targeting discussion #$target_number (event: $EVENT_NAME)."
-                action="route to the best-suited agent and ask them to assess the discussion and act on it. To reply, use \`gh api graphql\` (mutation \`addDiscussionComment\`)."
-              else
-                target_type="pull_request"
-                target_number="$DISPATCH_TARGET_NUMBER"
-                context="Manual dispatch targeting PR #$target_number (event: $EVENT_NAME)."
-                action="route to the best-suited agent and ask them to assess the PR and act on it."
-              fi
+              target_type=""
+              target_number=""
               ;;
             issue_comment)
               if [ "$IS_PR" = "true" ]; then
@@ -158,7 +140,13 @@ jobs:
               ;;
           esac
 
-          task="$context As facilitator, $action
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            task_prefix="$DISPATCH_PROMPT"
+          else
+            task_prefix="$context As facilitator, $action"
+          fi
+
+          task="$task_prefix
 
           Ensure follow-through: when the agent answers, verify they acted on what was within their scope. If they acknowledged but deferred actionable work, send them back to complete it before you conclude.
 
