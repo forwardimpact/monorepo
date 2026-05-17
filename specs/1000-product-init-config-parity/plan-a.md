@@ -24,6 +24,19 @@ behavior they cover so each step is independently verifiable.
 Libraries used: `@forwardimpact/libsecret` (`updateEnvFile`, `readEnvFile`,
 `getOrGenerateSecret`, `generateSecret`).
 
+**Note on the design's dotted-literal interface example.** Design § *Interface*
+illustrates fragment with dotted-literal keys `"product.guide"` /
+`"service.mcp"`. The on-disk starter (and `Config.#getFileData` at
+`libraries/libconfig/src/config.js:484`, which reads `fileData[ns][name]` via
+nested key access) uses nested form `{ product: { guide: … }, service: { mcp:
+… } }`. This plan preserves the nested form to keep the reader untouched
+(Decision #4's invariant) and to satisfy the spec's *first-run preserves
+top-level keys* criterion. Top-level ownership is therefore at the literal
+first JSON segment (`product`, `service`); the design's example is
+illustrative of namespace semantics, not the on-disk encoding. The leaf-path
+diagnostic (`product.x.foo`) and the spec's two-starters disjoint-namespace
+test are satisfied identically under either encoding.
+
 ## Step 1 — Pure merge classifier
 
 **Created:** `libraries/libconfig/src/merge.js`, `libraries/libconfig/test/merge.test.js`
@@ -96,7 +109,7 @@ on disjoint top-level keys, plus leaf-path diagnostic accuracy
 `libraries/libconfig/src/bootstrap.js`,
 `libraries/libconfig/test/bootstrap.test.js`
 
-**Modified:** `libraries/libconfig/src/index.js` (add `export { bootstrapProject } from "./bootstrap.js"`), `libraries/libconfig/package.json` (add `"@forwardimpact/libsecret": "^0.1.15"` to `dependencies` and patch-bump `version` per repo pre-1.0 release policy — release cut handled by `kata-release-cut` after merge, not by this plan).
+**Modified:** `libraries/libconfig/src/index.js` (add `export { bootstrapProject } from "./bootstrap.js"`), `libraries/libconfig/package.json` (add `"@forwardimpact/libsecret": "^0.1.15"` to `dependencies` and patch-bump `version` per repo pre-1.0 release policy — release cut handled by `kata-release-cut` after merge, not by this plan). Run `bun run context:fix` after the package.json edit so `libraries/README.md` and any dependency catalog re-generate to reflect the new edge.
 
 ```js
 // libraries/libconfig/src/errors.js
@@ -163,15 +176,17 @@ by design.
 **Test coverage** (`bootstrap.test.js`) — covers every success criterion
 test from spec § Success Criteria that targets the writer:
 
-- Two-namespace merge writes both contributions.
+- Two-namespace merge writes both contributions (`config.json`).
 - Re-invoke same input is byte-stable (`config.json` and `.env`).
-- A→B→A→B converges to the post-AB state (byte equality).
+- A→B→A→B converges to the post-AB state (byte equality, `config.json`).
 - Same-key-different-value refuses with non-zero exit (throws), `config.json`
   unchanged, error message contains both `product.x.foo` and
   `overwrites.config`.
-- `.env` ownership: three keys land, pre-existing disjoint key preserved,
-  resulting file mode is `0o600`, refusal carries the bare key and
-  `overwrites.env`.
+- `.env` ownership: three keys land via the orchestrator, a pre-existing
+  disjoint key is preserved (verified after orchestrator returns — the
+  preservation comes from `updateEnvFile`'s line-preserving rewrite path,
+  not from the orchestrator reading the disjoint key), resulting `.env` is
+  mode `0o600`, refusal carries the bare key and `overwrites.env`.
 - Empty fragment + absent `config/config.json` → `target/config/config.json`
   exists with `"{}"` content (anchoring criterion).
 - Empty `env` against existing `.env` → file untouched (byte equality before
@@ -180,12 +195,15 @@ test from spec § Success Criteria that targets the writer:
 **Verification:** `bun test libraries/libconfig/test/` exits 0; running it
 from a tmpdir target proves `0o600` mode via `fs.stat`.
 
-## Step 3 — README onboarding contract
+## Step 3 — README onboarding contract and stderr-integration surface
 
 **Modified:** `libraries/libconfig/README.md`
 
-Append a `## Bootstrap` section that names the three onboarding artefacts the
-spec's *New-product onboarding* test asserts:
+**Created:** `libraries/libconfig/test/readme.test.js`,
+`libraries/libconfig/test/stderr-integration.test.js`
+
+Append a `## Bootstrap` section to the README that names the three onboarding
+artefacts the spec's *New-product onboarding* test asserts:
 
 | Section content | What it covers |
 |---|---|
@@ -194,9 +212,27 @@ spec's *New-product onboarding* test asserts:
 | Overwrite intent: `overwrites: { config: [...], env: [...] }` parameter | How a caller signals intent and what gets refused. |
 | One-line cross-link to libsecret `.env` primitives | Reader knows where the `.env` primitives live. |
 
-**Verification:** `bun test libraries/libconfig/test/` includes a new
-`readme.test.js` that greps the README for `bootstrapProject`, `fragment`,
-`overwrites`, and `libsecret`; all four substrings must be present.
+`readme.test.js` asserts the README's `## Bootstrap` heading exists and that
+the section body contains all four of `bootstrapProject`, `fragment`,
+`overwrites`, `libsecret` (substring presence scoped to the new section, not
+the whole file, so unrelated mentions elsewhere can't satisfy it).
+
+`stderr-integration.test.js` covers design § *Verification surfaces* row 3
+("Stderr diagnostic carries both conflicting key and overwrite-intent
+parameter"). It spawns a child Node process that:
+
+1. Writes a tmpdir-scoped `config/config.json` carrying `product.x.foo = "a"`.
+2. Invokes `bootstrapProject` against the same target with
+   `fragment: { product: { x: { foo: "b" } } }` (no `overwrites`).
+3. Catches the thrown Error and writes its message to `stderr` then
+   `process.exit(1)` — the same stderr-and-exit shape every product CLI
+   uses today (verified against `products/guide/bin/fit-guide.js` and
+   `products/map/bin/fit-map.js` error paths).
+
+The test asserts the child exits non-zero and the captured stderr is
+greppable for both the leaf path `product.x.foo` and the surface name
+`overwrites.config` (the exact two substrings the spec's *Failure surfacing*
+row calls out).
 
 ## Step 4 — `fit-guide init` adopts bootstrapProject
 
@@ -207,18 +243,36 @@ Replace the `updateEnvFile` loop and the manual `config/` copy with a single
 call via `getOrGenerateSecret(key, generateSecret)` so a re-run reuses the
 on-disk value (same-key-same-value no-op).
 
-```js
-// products/guide/src/commands/init.js (after change)
-import { getOrGenerateSecret, generateSecret } from "@forwardimpact/libsecret";
-import { bootstrapProject } from "@forwardimpact/libconfig";
+**Import changes** — drop `updateEnvFile` from the libsecret import (now dead
+after the loop is removed); add `getOrGenerateSecret` and the libconfig
+`bootstrapProject` import:
 
+```diff
+- import { generateSecret, updateEnvFile } from "@forwardimpact/libsecret";
++ import { generateSecret, getOrGenerateSecret } from "@forwardimpact/libsecret";
++ import { bootstrapProject } from "@forwardimpact/libconfig";
+```
+
+**Body change** — replace lines 14–32 (the secret generation + `updateEnvFile`
+loop) and lines 71–98 (the starter-config copy with the "already exists"
+bullet) with a single bootstrap call. The `package.json` materialisation
+(current lines 34–53), the `SummaryRenderer.render({ title: "Environment
+(.env)"… })` block (lines 55–69), and the `.claude/skills/` copy (lines
+100–111) all stay byte-for-byte; only the two blocks named above change.
+
+```js
+// products/guide/src/commands/init.js — after change, replacing only
+//   (a) the secret-generation + updateEnvFile loop and
+//   (b) the manual config/ copy with the "already exists" bullet
 const serviceSecret = await getOrGenerateSecret("SERVICE_SECRET", () => generateSecret());
 const mcpToken      = await getOrGenerateSecret("MCP_TOKEN",      () => generateSecret());
 const starterDir    = new URL("../../starter", import.meta.url).pathname;
-const starterConfig = JSON.parse(await fs.readFile(resolve(starterDir, "config.json"), "utf8"));
+const starterConfig = JSON.parse(
+  await fs.readFile(resolve(starterDir, "config.json"), "utf8"),
+);
 
 await bootstrapProject({
-  fragment: starterConfig,
+  fragment: starterConfig,                    // nested form — see § note
   env: {
     SERVICE_SECRET: serviceSecret,
     MCP_TOKEN: mcpToken,
@@ -231,18 +285,23 @@ await bootstrapProject({
     EMBEDDING_BASE_URL:   "http://localhost:8090",
   },
 });
+// SummaryRenderer.render(...) block continues unchanged below.
+// .claude/skills/ copy block continues unchanged below.
 ```
 
-The `package.json` materialisation, the `.claude/skills/` copy, and the
-`SummaryRenderer` block remain unchanged. The pre-spec
-`"config/ already exists, skipping starter copy."` bullet is deleted (per
-spec § *Re-run* semantics — silent no-op replaces it).
+The pre-spec `"config/ already exists, skipping starter copy."` bullet
+disappears (per spec § *Re-run* semantics — silent no-op replaces it).
+Pre-spec `"config/ created with starter configuration."` `formatSuccess`
+also disappears; the `SummaryRenderer` block stays because it covers the
+`.env` summary (orthogonal to the `config/` write).
 
 **Created:** `products/guide/test/init.test.js`
 
 - First run against a fresh tmpdir produces `config/config.json`,
-  `.env`, `package.json`, `.claude/skills/` and exits 0; top-level keys in
-  `config.json` match pre-spec (`init`, `product.guide`, `service.mcp`).
+  `.env`, `package.json`, `.claude/skills/` and exits 0; top-level keys
+  of the resulting `config.json` match the pre-spec starter's top-level
+  keys (`init`, `product`, `service` — the nested form preserved verbatim,
+  per the *Note on the design's dotted-literal interface example* above).
 - Second run is byte-identical to the first across all four artefacts;
   `SERVICE_SECRET` and `MCP_TOKEN` values are unchanged between runs.
 
@@ -364,11 +423,22 @@ async function dispatchSubstrate(subcommand, _rest, values) {
 }
 ```
 
-Update `substrate-stage.test.js` so existing tests pass `loadInit: async () => async () => undefined` and `reloadConfig: async () => config` via the
-deps object, and add a new test asserting the phase order now reads
-`init → stack → url-discovery → migrate → seed → provision → smoke`. Update
-the existing phase-ordering and `SUBSTRATE_FORCE_EMPTY_CORPUS` and per-phase
-error tests to include `init` at the start.
+**substrate-stage.test.js changes** (explicit):
+
+- Extend `buildDeps({ failPhase, invocations })` so it returns
+  `loadInit: async () => recorded("init")` and
+  `reloadConfig: async () => ({ supabaseJwtSecret: () => "secret" })` (a
+  stub config object matching what the existing test passes today). This
+  makes the new `init` phase recorded in `invocations`, mirroring the
+  existing pattern for `stack`/`seed`/`provision`/`smoke`.
+- Existing phase-ordering test (`test("invokes phases in stack → … order")`):
+  rename to `"invokes phases in init → stack → url-discovery → migrate → seed → provision → smoke order"` and update the `assert.deepEqual(invocations, [...])` array to prepend `"init"`.
+- Existing `SUBSTRATE_FORCE_EMPTY_CORPUS` test: prepend `"init"` to the
+  `invocations` expectation.
+- Existing per-phase-failure test: unchanged (still seeds `failPhase: "seed"`).
+- Add `runStageCommand({ config, target: tmpDir }, deps)` — passing an
+  explicit `target` — to at least one test case to lock the new
+  parameter's plumbing.
 
 **Verification:** `bun test products/map/test/activity/substrate-stage.test.js` exits 0.
 
@@ -407,7 +477,6 @@ green for a Landmark interview, the `agent-workspace` artefact carries
 | Risk | Mitigation |
 |---|---|
 | `fit-map.js` loads `createProductConfig("map")` at module top — before substrate stage's init phase runs, that config sees no `config/config.json` at the agent workspace. | Design § *fit-map init ↔ fit-map substrate stage* names this tolerance: `createProductConfig` returns empty `#fileData` on an absent file, so module-top load succeeds; substrate-stage's `reloadConfig` (Decision #7) picks up the materialised state. Verify by running `bunx fit-map substrate stage --cwd <fresh-tmpdir>` end-to-end in CI. |
-| Existing fit-guide eval and kata-interview workflow runs depend on the exact stdout text of `runInitCommand` (`"config/ already exists, skipping starter copy."`). | Grep before the PR: `rg -F 'skipping starter copy' .` returns no consumer hits — the line is human-facing only. |
 | `findDataDir` upward-walks from `process.cwd()`; if substrate-stage's `--cwd` ever points outside a workspace that has `data/pathway/`, the seed phase fails. | The `init` phase plants `data/pathway/` at `target` before any phase needing it runs. The plan covers this by ordering `init` first and by testing the fresh-tmpdir case in `substrate-stage.test.js`. |
 | `updateEnvFile` rewrites `.env` per-key; an intermediate process death between keys leaves a half-written file. | Spec § *Out of scope* explicitly defers cross-file atomicity. No mitigation in this plan. |
 | Test for the anchoring criterion (Step 5) needs an ambiguous upward walk; getting the directory layout wrong silently turns the test into a no-op. | Assert *both* directions: the loaded config resolves to `tmpdir/config/` AND, with `runInit` skipped, resolves to the planted ancestor `config/`. Two assertions catch a broken test setup. |
@@ -415,7 +484,9 @@ green for a Landmark interview, the `agent-workspace` artefact carries
 ## Execution
 
 Single agent, sequential. Recommend `staff-engineer` (or any engineering
-agent) for steps 1–6 since they are tightly coupled (Step 6's test changes
-ripple into all three deps objects). Step 7 is a one-line workflow edit; can
-ride in the same PR or a follow-up at the implementer's discretion. Verify
-end-to-end on a kata-interview CI run before requesting merge.
+agent) for all seven steps. Steps 1–6 are tightly coupled (Step 6's test
+changes ripple into all three deps objects). Step 7 ships in the **same
+PR** — spec § *Spec 990 cleanup* lists the `mkdir` removal as in-scope and
+explicitly "not deferred"; the end-to-end kata-interview CI run on the
+implementation branch is the gating verification for both Step 6 and
+Step 7. Verify CI green before requesting merge.
