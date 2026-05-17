@@ -80,22 +80,26 @@ left to a separate spec.
 | `.env` write semantics | Same ownership model as `config.json` at the key granularity, applied to the project-root `.env` file. Same-key-same-value writes are no-ops; same-key-different-value writes refuse without explicit overwrite intent. The shared interface preserves the `0o600` permission `libsecret`'s `updateEnvFile` already enforces — a regression test asserts the mode after a shared-interface write. |
 | Read-side coherence with spec 990 | Spec 990 introduced credential-override semantics where shell env wins over `.env`, and empty-string shell values are treated as absent for credential keys. The `.env` write semantics this spec introduces apply only to the *writer*. The reader's resolution order is unchanged; an empty-string write to `.env` is therefore equivalent to absence on the read path. |
 | `fit-map init` behaviour change | `fit-map init` adopts the shared interface and starts producing a `config/` directory at the init target. Whether it ships a starter `config.json` fragment carrying a `product.map` namespace is a design choice; the spec requires only that subsequent fit-map CLI invocations from that target resolve config-anchoring locally (rather than escaping upward). The existing `data/pathway/` write is unchanged. |
+| Relationship: `fit-map init` ↔ `fit-map substrate [stage\|roster\|issue]` | `fit-map init` is the **upstream** common-denominator bootstrap shared by every fit-map caller — external contributors setting up the product on a clean machine and CI workflows preparing a synthetic-interview workspace alike. `fit-map substrate stage` is a **downstream superset** that consumes a project already bootstrapped by `fit-map init` and extends it with Supabase-stack provisioning, schema migration, activity seeding, auth-user provisioning, and self-smoke (today's verb in [`substrate-stage.js`](../../products/map/src/commands/substrate-stage.js)). After this spec lands, every common-denominator step — at minimum, creating `./config/` so libconfig anchors locally; design picks the rest from `./data/pathway/` starter copy and any `.env` skeleton — lives in `fit-map init` and is invoked from `fit-map substrate stage` rather than re-implemented in CI shell or by the substrate verb itself. The substrate subcommand family keeps its Landmark-specific responsibilities; what moves upstream is exactly what both contributor setup and interview prep share. |
+| Spec 990 cleanup | The `mkdir -p "$AGENT_CWD/config"` workaround that spec 990 shipped at [`.github/workflows/kata-interview.yml`](../../.github/workflows/kata-interview.yml) line 82 is removed as part of this spec, not deferred. The kata-interview workflow's Substrate stage runs `bunx fit-map init` (or `fit-map substrate stage` calls it internally; design picks the shape) so the workaround is unnecessary by construction. The workflow's end-to-end behaviour for Landmark interviews — provisioned substrate, resolvable `PRODUCT_LANDMARK_TOKEN`, persona discovery via `substrate roster`/`substrate issue` — is preserved. |
 | `fit-guide init` behaviour preservation | `fit-guide init` adopts the shared interface. **First-run** preservation is strict: the set of files produced on disk, the set of `.env` keys written, and the exit code for the same user invocation match the pre-spec behaviour. **Re-run** semantics intentionally change: today fit-guide init prints `"config/ already exists, skipping starter copy"` and exits zero; under the shared interface a re-run with identical starter inputs is a same-key-same-value no-op (still exits zero, byte-identical on-disk state). The replacement message and the loss of the "skipping" wording are acceptable; no fit-guide-specific re-run output is preserved. |
 | New-product onboarding | The shared library's `README.md` documents the contract for adopting the interface: how a product packages its starter material, declares the namespaces it owns, signals overwrite intent, and hands both to the interface. The library identity (which existing or new library hosts the interface) is a design choice; the README home is not. |
 | Failure surfacing | A refused write (same-key-different-value, no overwrite intent) exits non-zero. The diagnostic, observable on `stderr`, must contain (a) the conflicting key path written as dotted notation (e.g., `product.x.foo`) and (b) the name of the overwrite-intent parameter the caller would set to opt in. The diagnostic is not required to identify the first writer; recording first-writer identity is left to a follow-up spec if the failure mode is reported in the field. |
 
 ### Out of scope, deferred
 
-- **Removing the kata-interview workflow's `mkdir -p config/` workaround.**
-  That line shipped under spec 990 and stays until a downstream consumer
-  supersedes it. Removal belongs in a follow-up spec once `fit-map init`
-  is the canonical path.
 - **Adding new `init` verbs.** `fit-pathway`, `fit-landmark`, `fit-summit`,
   and `fit-outpost` do not ship `init` today. Whether they should is a
   per-product decision deferred to per-product specs. Spec 230 — which
   originally proposed `fit-pathway init` — was implemented by moving the
   init verb into `fit-map init` (the `fit-map init` row above); no
   separate `fit-pathway init` is in flight.
+- **Refactoring `fit-map substrate` beyond the upstream/downstream split.**
+  Reorganising the Landmark-specific substrate phases (stack, migrate,
+  seed, provision, smoke) inside `substrate-stage.js`, or merging
+  `substrate roster`/`substrate issue` into other verbs, is out of scope.
+  This spec only moves the common-denominator bootstrap upstream into
+  `fit-map init`; the substrate verbs keep their current responsibilities.
 - **Schema validation of merged `config.json`.** The spec covers merge
   ownership and conflict-refusal, not whether the merged document
   validates against a JSON schema. A future spec may add a schema once
@@ -109,9 +113,10 @@ left to a separate spec.
   `fit-guide init` carries the same property today; this spec preserves
   rather than tightens it. A separate spec may add cross-file atomicity
   if the failure mode is reported in the field.
-- **Migrating non-init callers that create `config/` themselves** (the
-  kata-interview substrate-stage workflow, any future direct caller).
-  The spec is scoped to product `init` verbs.
+- **Migrating other non-init callers that create `config/` themselves.**
+  The kata-interview workflow's `mkdir -p config/` is now in scope (see
+  the *Spec 990 cleanup* row); any future direct caller outside a product
+  `init` verb stays out of scope.
 
 ## Preconditions
 
@@ -119,7 +124,8 @@ Spec 990 is merged (`plan implemented` in `wiki/STATUS.md`). The
 `mkdir -p config/` workaround it shipped — visible at
 [`kata-interview.yml`](../../.github/workflows/kata-interview.yml) line 82
 — is the observed evidence for the **1. Anchor escape, observed** failure
-mode. Removing that line is left to a follow-up spec (see Out of scope).
+mode and is removed by this spec (see the *Spec 990 cleanup* in-scope
+row).
 
 ## Success Criteria
 
@@ -132,6 +138,9 @@ mode. Removing that line is left to a follow-up spec (see Out of scope).
 | Same-key, same-value writes are no-ops. | Same test setup with `product.x.foo = "a"` written twice exits zero on the second call and produces byte-identical on-disk state. |
 | `.env` writes follow the same ownership semantics. | A test invokes the interface with a starter declaring two `.env` entries against a target that already carries a third disjoint `.env` entry from prior provisioning; asserts the result carries all three entries with their original values, the pre-existing entry is byte-unchanged, and a subsequent same-key-different-value write refuses non-zero. |
 | `fit-map init` produces a project layout where subsequent fit-map invocations anchor at the init target. | A test runs `fit-map init` against a fresh tmpdir, then runs a fit-map verb that loads libconfig from a subdirectory of the tmpdir; asserts libconfig's resolved anchor is the init target rather than any ancestor. |
+| `fit-map substrate stage` no longer requires CI-shell bootstrap of `config/`. | A test runs `fit-map substrate stage` (with the Supabase phases stubbed out via the injectable deps in [`substrate-stage.js`](../../products/map/src/commands/substrate-stage.js)) against a fresh tmpdir with no `config/` present, asserts the run succeeds without manual `mkdir -p config/`, and asserts the resulting layout matches what `fit-map init` produces against the same tmpdir. |
+| The kata-interview workflow no longer carries a `mkdir -p config/` workaround. | A grep at the repo root asserts `.github/workflows/kata-interview.yml` contains no line that creates `config/` outside a product CLI invocation; the workflow's Substrate stage uses `bunx fit-map init` (directly, or transitively via `fit-map substrate stage` calling into it). |
+| End-to-end Landmark interview prep is preserved after the workaround removal. | The `kata-interview` workflow's Substrate stage continues to produce a substrate that `substrate roster` and `substrate issue` can read, `resolveIdentity()` resolves the issued JWT, and the Landmark self-smoke passes — verified by a workflow dry-run or a CI run on the implementation branch. |
 | `fit-guide init`'s first-run observable contract is preserved. | A test runs `fit-guide init` against a fresh tmpdir and asserts: (a) a `config/config.json` exists with the same top-level keys as the pre-spec output, (b) a `.env` exists with the same key set, (c) a `package.json` exists when none was present before, (d) a `.claude/skills/` tree exists when the starter ships skills, (e) the exit code matches the pre-spec invocation. The existing fit-guide init test suite also stays green. |
 | The shared library's `README.md` documents the onboarding contract. | A test reads the shared library's `README.md` and asserts the file contains a section that names the interface entry point, the namespace-declaration step, and the overwrite-intent parameter. |
 | Existing in-tree tests for libconfig, libsecret, and the affected product CLIs stay green. | `bun run test` exits zero on the implementation branch. |
