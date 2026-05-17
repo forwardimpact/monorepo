@@ -22,8 +22,8 @@ bootstrap a project to that contract are inconsistent across the family:
 | CLI | Creates `config/` | Writes `config.json` | Writes `.env` | Init verb today |
 |---|---|---|---|---|
 | `fit-guide init` ([init.js](../../products/guide/src/commands/init.js)) | yes | yes (from `starter/config.json`) | yes (service URLs + credential generation) | shipped |
-| `fit-map init` ([init.js](../../products/map/src/commands/init.js)) | no | no | no | shipped (data-only) |
-| `fit-pathway` | n/a | n/a | n/a | not shipped; in-flight [spec 230](../230-pathway-init-npm/spec.md) |
+| `fit-map init` ([init.js](../../products/map/src/commands/init.js)) | no | no | no | shipped (data-only — writes `./data/pathway/` from [`products/map/starter/`](../../products/map/starter/); satisfies [spec 230](../230-pathway-init-npm/spec.md) after the init verb moved from `fit-pathway` to `fit-map`) |
+| `fit-pathway` | n/a | n/a | n/a | not shipped |
 | `fit-landmark` | n/a | n/a | n/a | not shipped |
 | `fit-summit` | n/a | n/a | n/a | not shipped |
 | `fit-outpost` | n/a | n/a | n/a | not shipped |
@@ -34,21 +34,23 @@ Two concrete failures follow from this asymmetry:
 kata-interview workflow had to add a workaround step
 ([kata-interview.yml § Substrate stage](../../.github/workflows/kata-interview.yml))
 because invoking a fit-map CLI verb from an `$AGENT_CWD` without `config/`
-caused the upward-walk to resolve outside `$AGENT_CWD`. Spec 990 ships that
-workaround as a one-line `mkdir -p`. Every other caller that runs a Forward
-Impact CLI outside a `fit-guide`-initialised project re-encounters the same
-escape and has to know the workaround.
+caused the upward-walk to resolve outside `$AGENT_CWD`. Spec 990 shipped
+that workaround as a one-line `mkdir -p`. Every other caller that runs a
+Forward Impact CLI outside a `fit-guide`-initialised project re-encounters
+the same escape and has to know the workaround.
 
 **2. Bootstrap re-derivation, forecast.** `fit-guide init` already carries
 ~50 lines of `config/` creation, starter-config copy, and `.env`
-provisioning logic. Spec 230 proposes an `fit-pathway init` that will
-re-derive the same shape; every future product that adopts `init` faces the
-same decision. Two products with non-overlapping top-level config
-namespaces (`product.guide` + `service.mcp` from Guide; whatever Map ships)
-are safe to merge given a shared writer, but each per-product `init` today
-either has to skip writing `config/` (fit-map's current path) or risk
-truncating a sibling product's contributions (a hypothetical fit-map init
-that overwrote `config/config.json`).
+provisioning logic. `fit-map init` ships today as data-only — its existence
+already forces the question of whether it should also write `config/`,
+which it declines to do precisely because no shared writer exists. Every
+future product that adopts `init` (or that extends `fit-map init` to write
+`config/`) faces the same decision. Two products with non-overlapping
+top-level config namespaces (`product.guide` + `service.mcp` from Guide;
+whatever Map ships) are safe to merge given a shared writer, but each
+per-product `init` today either has to skip writing `config/` (fit-map's
+current path) or risk truncating a sibling product's contributions (a
+hypothetical fit-map init that overwrote `config/config.json`).
 
 The user-facing job impacted is the closest match in
 [JTBD.md § Platform Builders: Build Agent-Capable Systems](../../JTBD.md).
@@ -80,14 +82,15 @@ through one interface) is the one this spec serves.
 ### Out of scope, deferred
 
 - **Removing the kata-interview workflow's `mkdir -p config/` workaround.**
-  That line ships under spec 990 and stays until a downstream consumer
+  That line shipped under spec 990 and stays until a downstream consumer
   supersedes it. Removal belongs in a follow-up spec once `fit-map init`
   is the canonical path.
-- **Adding new `init` verbs.** `fit-landmark`, `fit-summit`, and
-  `fit-outpost` do not ship `init` today. Whether they should is a
-  per-product decision deferred to per-product specs. `fit-pathway init`
-  is owned by spec 230 — coordinating the two specs is in scope (this
-  spec should not contradict 230), but writing 230's plan is not.
+- **Adding new `init` verbs.** `fit-pathway`, `fit-landmark`, `fit-summit`,
+  and `fit-outpost` do not ship `init` today. Whether they should is a
+  per-product decision deferred to per-product specs. Spec 230 — which
+  originally proposed `fit-pathway init` — was implemented by moving the
+  init verb into `fit-map init` (the `fit-map init` row above); no
+  separate `fit-pathway init` is in flight.
 - **Schema validation of merged `config.json`.** The spec covers merge
   ownership and conflict-refusal, not whether the merged document
   validates against a JSON schema. A future spec may add a schema once
