@@ -25,20 +25,39 @@ function isPlainObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function walkLeafConflicts(existing, fragment, prefix, conflicts) {
+/**
+ * Recursively merge `fragment` into `existing`, recording per-leaf
+ * conflicts at their dotted path. When both sides are plain objects with
+ * disjoint sub-keys (no leaf disagrees), the result is the deep-merge of
+ * the two subtrees — this is the cross-namespace-always-succeeds rule
+ * applied one level deeper than the top-level. When a leaf disagrees
+ * (or shapes mismatch), the conflict is recorded at that leaf path and
+ * the existing value is preserved in the partial result (which the
+ * orchestrator discards when conflicts is non-empty).
+ */
+function deepMergeOrConflict(existing, fragment, prefix, conflicts) {
+  if (canonicalize(existing) === canonicalize(fragment)) return existing;
   if (isPlainObject(existing) && isPlainObject(fragment)) {
-    const keys = new Set([...Object.keys(existing), ...Object.keys(fragment)]);
-    for (const key of keys) {
-      const nextPath = `${prefix}.${key}`;
-      if (!(key in existing) || !(key in fragment)) continue;
-      if (canonicalize(existing[key]) === canonicalize(fragment[key])) continue;
-      walkLeafConflicts(existing[key], fragment[key], nextPath, conflicts);
+    const result = { ...existing };
+    for (const [key, value] of Object.entries(fragment)) {
+      const subPath = `${prefix}.${key}`;
+      if (!(key in existing)) {
+        result[key] = value;
+        continue;
+      }
+      result[key] = deepMergeOrConflict(
+        existing[key],
+        value,
+        subPath,
+        conflicts,
+      );
     }
-    return;
+    return result;
   }
   // At least one side is a scalar/array, or the two sides have different
-  // shapes (object vs scalar) — record the conflict at the parent path.
+  // shapes (object vs scalar) — record the conflict at this path.
   conflicts.push({ kind: "config", path: prefix });
+  return existing;
 }
 
 /**
@@ -68,7 +87,12 @@ export function mergeConfigFragment({
       result[topKey] = subtree;
       continue;
     }
-    walkLeafConflicts(existing[topKey], subtree, topKey, conflicts);
+    result[topKey] = deepMergeOrConflict(
+      existing[topKey],
+      subtree,
+      topKey,
+      conflicts,
+    );
   }
   return { result, conflicts };
 }

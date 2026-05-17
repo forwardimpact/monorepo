@@ -46,18 +46,26 @@ export async function runStageCommand(
       import("./people-provision.js").then((m) => m.runProvisionCommand),
     loadSmoke = () =>
       import("./substrate-smoke.js").then((m) => m.runSelfSmoke),
-    reloadConfig = () => createProductConfig("map"),
+    // Anchor the re-read at `target` so the post-init load observes the
+    // bootstrapped target/config/config.json. fit-map.js's module-top
+    // createProductConfig("map") ran from process.cwd() before init —
+    // in CI that's the monorepo root, not the agent workspace — so a
+    // plain createProductConfig() here would re-read the same root
+    // config and silently no-op against the writer's contribution.
+    reloadConfig = () =>
+      createProductConfig(
+        "map",
+        {},
+        {
+          cwd: () => target,
+          env: process.env,
+        },
+      ),
   } = {},
 ) {
   const runInit = await loadInit();
   await runPhase("init", () => runInit(target));
-  // After init has materialised target/config/config.json, re-read libconfig
-  // so subsequent phases observe the bootstrapped state. fit-map.js's
-  // module-top config load ran before init in this subprocess.
-  const liveConfig = await reloadConfig();
-  // Production passes a config object; tests may stub `reloadConfig` to
-  // return their own. Use whichever value the stage observes after init.
-  const stageConfig = liveConfig ?? config;
+  const stageConfig = (await reloadConfig()) ?? config;
 
   const cli = createSupabaseCli();
 

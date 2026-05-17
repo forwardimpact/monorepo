@@ -56,12 +56,51 @@ describe("mergeConfigFragment — namespace ownership table", () => {
     });
     assert.deepEqual(conflicts, [{ kind: "config", path: "product.items" }]);
   });
+
+  test("disjoint sub-keys under shared top-level key deep-merge (cross-namespace one level deeper)", () => {
+    const { result, conflicts } = mergeConfigFragment({
+      existing: { product: { guide: { sys: "g" } } },
+      fragment: { product: { map: { sys: "m" } } },
+    });
+    assert.deepEqual(result, {
+      product: { guide: { sys: "g" }, map: { sys: "m" } },
+    });
+    assert.deepEqual(conflicts, []);
+  });
+
+  test("disjoint sub-keys plus matching leaves under shared top-level merge", () => {
+    const { result, conflicts } = mergeConfigFragment({
+      existing: { product: { shared: { v: 1 }, guide: { sys: "g" } } },
+      fragment: { product: { shared: { v: 1 }, map: { sys: "m" } } },
+    });
+    assert.deepEqual(result, {
+      product: {
+        shared: { v: 1 },
+        guide: { sys: "g" },
+        map: { sys: "m" },
+      },
+    });
+    assert.deepEqual(conflicts, []);
+  });
+
+  test("disjoint sibling plus one leaf disagreement → refuse at the disagreeing leaf", () => {
+    const { conflicts } = mergeConfigFragment({
+      existing: { product: { guide: { sys: "g" }, shared: { v: 1 } } },
+      fragment: { product: { map: { sys: "m" }, shared: { v: 2 } } },
+    });
+    assert.deepEqual(conflicts, [{ kind: "config", path: "product.shared.v" }]);
+  });
 });
 
-describe("mergeConfigFragment — convergence", () => {
-  test("disjoint top-level keys: A→B and B→A produce identical canonical bytes", () => {
-    const fragA = { "product.guide": { systemPrompt: "g" } };
-    const fragB = { "service.mcp": { systemPrompt: "m" } };
+describe("mergeConfigFragment — convergence (production nested encoding)", () => {
+  // Use the nested form fit-guide actually emits — top-level keys
+  // `init`/`product`/`service` with product/service slices nested
+  // beneath. Tests that use literal-dotted top-level keys
+  // (`"product.guide"`) wouldn't catch a regression in the
+  // disjoint-sub-key merge path the real callers walk.
+  test("disjoint nested namespaces under shared top-level: A→B and B→A produce identical canonical bytes", () => {
+    const fragA = { product: { guide: { systemPrompt: "g" } } };
+    const fragB = { product: { map: { systemPrompt: "m" } } };
     const ab = mergeConfigFragment({
       existing: mergeConfigFragment({ existing: {}, fragment: fragA }).result,
       fragment: fragB,
@@ -73,9 +112,9 @@ describe("mergeConfigFragment — convergence", () => {
     assert.equal(canonical(ab), canonical(ba));
   });
 
-  test("A→B→A→B converges to the post-AB state byte-for-byte", () => {
-    const fragA = { "product.guide": { v: 1 } };
-    const fragB = { "service.mcp": { v: 2 } };
+  test("A→B→A→B converges to the post-AB state byte-for-byte (nested form)", () => {
+    const fragA = { product: { guide: { v: 1 } }, service: { mcp: { v: 1 } } };
+    const fragB = { product: { map: { v: 2 } }, service: { other: { v: 2 } } };
     let state = {};
     state = mergeConfigFragment({ existing: state, fragment: fragA }).result;
     state = mergeConfigFragment({ existing: state, fragment: fragB }).result;

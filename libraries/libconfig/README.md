@@ -30,15 +30,19 @@ import { bootstrapProject } from '@forwardimpact/libconfig';
 await bootstrapProject({
   target,                              // absolute path; defaults to process.cwd()
   fragment: {                          // top-level keys are product-owned namespaces; {} or omitted is allowed
-    'product.guide': { systemPrompt: '…' },
-    'service.mcp':   { systemPrompt: '…' },
+    product: {
+      guide: { systemPrompt: '…' },    // fit-guide's slice under top-level `product`
+    },
+    service: {
+      mcp:   { systemPrompt: '…' },    // fit-guide's slice under top-level `service`
+    },
   },
   env: {                               // .env entries; {} or omitted is allowed
     SERVICE_SECRET: '…',
     MCP_TOKEN:      '…',
   },
   overwrites: {                        // explicit overwrite intent, partitioned per file
-    config: ['product.guide'],         // top-level namespace names (single segment)
+    config: ['product'],               // top-level namespace names (single segment)
     env:    ['MCP_TOKEN'],             // bare keys
   },
 });
@@ -49,12 +53,19 @@ await bootstrapProject({
   `{ kind, path, overwriteSurface }` when a write conflicts and the caller
   did not signal overwrite intent.
 - **Namespace declaration** — the top-level keys of `fragment` are the
-  namespaces the product owns. Cross-namespace writes never collide;
-  within a namespace, any leaf disagreement refuses at the top-level.
+  namespaces a product owns. Use the **nested form** (`{ product: { guide:
+  … } }`) — that's the shape the libconfig reader resolves and the shape
+  every in-tree caller emits. Cross-namespace writes (different top-level
+  keys, or disjoint sub-keys under a shared top-level) never collide;
+  within a namespace, any leaf disagreement refuses with a leaf-path
+  diagnostic.
 - **Overwrite intent** — pass `overwrites.config: [topLevelKey]` (single-
   segment names) or `overwrites.env: [bareKey]` to opt in to replacing
-  a conflicting value. The refusal message names both the conflicting key
-  and the surface so the caller's CLI can render a greppable diagnostic.
+  a conflicting value. The refusal message names both the conflicting
+  leaf path (e.g. `product.guide.systemPrompt`) and the surface; the
+  overwrite-intent entry remains the **top-level** key (`product`) —
+  forgiving a single leaf forgives the whole namespace by design, so
+  pick the smallest top-level that contains the disputed leaf.
 - **`.env` primitives** — `bootstrapProject` delegates per-key `.env`
   writes to `@forwardimpact/libsecret`'s `updateEnvFile`, which preserves
   comment lines, the trailing newline, and mode `0o600`.

@@ -79,16 +79,20 @@ describe("fit-map init", () => {
     await runInit(inner);
 
     process.chdir(sub);
-    await createProductConfig("map");
-    const localConfig = JSON.parse(
-      await fs.readFile(path.join(inner, "config", "config.json"), "utf8"),
-    );
-    // The local config materialised by runInit has no `marker` field.
-    assert.equal(localConfig.marker, undefined);
+    const config = await createProductConfig("map");
+    // Assert against libconfig's resolved anchor: the rootDir Config
+    // exposes is the parent of the resolved `config/` directory. After
+    // runInit(inner), the upward walk from `sub` must land on
+    // `inner/config/`, so rootDir resolves to `inner`. realpath both
+    // sides to normalise on platforms that symlink tmpdir.
+    assert.equal(await fs.realpath(config.rootDir), await fs.realpath(inner));
   });
 
   test("anchoring control: without runInit, createProductConfig resolves the ancestor decoy", async () => {
-    // Without bootstrap, the upward walk lands on the planted decoy.
+    // Without bootstrap, the upward walk from `sub` skips the empty
+    // `inner` and lands on the planted `<baseDir>/config/`. Asserting
+    // on the resolved anchor proves the resolver actually walked
+    // upward — not merely that the decoy file still exists on disk.
     const decoyDir = path.join(baseDir, "config");
     await fs.mkdir(decoyDir, { recursive: true });
     await fs.writeFile(
@@ -100,14 +104,8 @@ describe("fit-map init", () => {
     await fs.mkdir(sub, { recursive: true });
 
     process.chdir(sub);
-    await createProductConfig("map");
-    // The ancestor decoy is what would have been read on this layout.
-    // Re-read it explicitly to assert the path-direction parity (the
-    // decoy still exists; runInit was never called).
-    const ancestor = JSON.parse(
-      await fs.readFile(path.join(decoyDir, "config.json"), "utf8"),
-    );
-    assert.equal(ancestor.marker, "decoy");
+    const config = await createProductConfig("map");
+    assert.equal(await fs.realpath(config.rootDir), await fs.realpath(baseDir));
     // And no local config was planted at <inner>/config/.
     await assert.rejects(() => fs.stat(path.join(inner, "config")), {
       code: "ENOENT",

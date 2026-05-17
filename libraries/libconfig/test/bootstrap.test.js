@@ -31,14 +31,18 @@ describe("bootstrapProject — config writer", () => {
     assert.deepEqual(JSON.parse(text), {});
   });
 
-  test("two disjoint top-level namespaces merge into a single config.json", async () => {
+  test("two products with disjoint top-level namespaces merge into a single config.json (nested form)", async () => {
+    // Production callers ship nested top-level keys (fit-guide ships
+    // `init`/`product`/`service`); the spec's first success criterion
+    // calls for two callers' contributions to co-exist after sequential
+    // bootstrapProject calls against the same target.
     await bootstrapProject({
       target: testDir,
-      fragment: { "product.guide": { systemPrompt: "g" } },
+      fragment: { product: { guide: { systemPrompt: "g" } } },
     });
     await bootstrapProject({
       target: testDir,
-      fragment: { "service.mcp": { systemPrompt: "m" } },
+      fragment: { service: { mcp: { systemPrompt: "m" } } },
     });
     const text = await fs.readFile(
       path.join(testDir, "config", "config.json"),
@@ -46,15 +50,39 @@ describe("bootstrapProject — config writer", () => {
     );
     const parsed = JSON.parse(text);
     assert.deepEqual(parsed, {
-      "product.guide": { systemPrompt: "g" },
-      "service.mcp": { systemPrompt: "m" },
+      product: { guide: { systemPrompt: "g" } },
+      service: { mcp: { systemPrompt: "m" } },
+    });
+  });
+
+  test("two products sharing a top-level key but disjoint nested namespaces merge", async () => {
+    // The encoding fit-guide actually uses — both callers contribute
+    // under top-level `product`, but with disjoint nested namespaces
+    // (`product.guide` vs `product.map`). The merge classifier must
+    // deep-merge rather than refusing or silently dropping.
+    await bootstrapProject({
+      target: testDir,
+      fragment: { product: { guide: { systemPrompt: "g" } } },
+    });
+    await bootstrapProject({
+      target: testDir,
+      fragment: { product: { map: { systemPrompt: "m" } } },
+    });
+    const parsed = JSON.parse(
+      await fs.readFile(path.join(testDir, "config", "config.json"), "utf8"),
+    );
+    assert.deepEqual(parsed, {
+      product: {
+        guide: { systemPrompt: "g" },
+        map: { systemPrompt: "m" },
+      },
     });
   });
 
   test("re-invoking with same input is byte-stable", async () => {
     const input = {
       target: testDir,
-      fragment: { "product.guide": { systemPrompt: "g" } },
+      fragment: { product: { guide: { systemPrompt: "g" } } },
       env: { SERVICE_SECRET: "abc" },
     };
     await bootstrapProject(input);
@@ -71,9 +99,9 @@ describe("bootstrapProject — config writer", () => {
     assert.equal(envBefore.equals(envAfter), true);
   });
 
-  test("A→B→A→B converges to post-AB byte state", async () => {
-    const a = { fragment: { "product.guide": { v: 1 } } };
-    const b = { fragment: { "service.mcp": { v: 2 } } };
+  test("A→B→A→B converges to post-AB byte state (nested form)", async () => {
+    const a = { fragment: { product: { guide: { v: 1 } } } };
+    const b = { fragment: { service: { mcp: { v: 2 } } } };
     await bootstrapProject({ target: testDir, ...a });
     await bootstrapProject({ target: testDir, ...b });
     const after_ab = await fs.readFile(
