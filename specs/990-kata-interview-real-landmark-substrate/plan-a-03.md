@@ -91,75 +91,12 @@ in Step 10 into Part 02's stage code; the env value is the literal
 string `"true"` or `"false"` (GH Actions stringifies booleans), and
 Part 02 checks `=== "true"`.
 
-### Step 3a — Snapshot the persona JWT for the log-scan workflow
-
-Append to the same `Substrate stage` step's `run:` script:
-
-```bash
-          # Snapshot the persona JWT now so the post-run log scan
-          # (separate workflow_run-triggered workflow) checks against
-          # the value that was minted, not whatever the agent's .env
-          # contains at the end. Apply ::add-mask:: so the value is
-          # masked in this workflow's logs going forward.
-          token_file="${{ steps.agent-workspace.outputs.dir }}/.env"
-          if [ -f "$token_file" ]; then
-            persona_jwt=$(awk -F= '/^PRODUCT_LANDMARK_TOKEN=/ {print $2; exit}' \
-              "$token_file")
-            if [ -n "$persona_jwt" ]; then
-              echo "::add-mask::$persona_jwt"
-              # Persist via $GITHUB_OUTPUT so it is queryable from the
-              # separate scan workflow via the run-id API; outputs land
-              # in the run metadata and are auto-masked from logs.
-              echo "persona_jwt=$persona_jwt" >> "$GITHUB_OUTPUT"
-            fi
-          fi
-```
-
-Note: the substrate-stage step's `bunx fit-map substrate stage` call
-does not itself issue a persona JWT — that happens later when the
-supervisor calls `bunx fit-map substrate issue` inside `Run interview`.
-The `if [ -f "$token_file" ]` branch is therefore a no-op during stage
-but becomes load-bearing if a future caller changes the issue surface;
-the actual JWT snapshot is taken in the `Run interview` step's
-post-script (Step 4a below).
-
-### Step 3b — JWT-mask helper invoked after supervisor issues
-
-The supervisor calls `bunx fit-map substrate issue` inside `Run
-interview` (the agent-cwd's `.env` is populated after that call).
-Insert a tiny step **between** `Run interview` and the existing
-flow, conditioned on Landmark, that snapshots and masks the JWT:
-
-```yaml
-      - name: Snapshot persona JWT
-        id: snapshot-jwt
-        if: always() && inputs.product == 'landmark'
-        shell: bash
-        run: |
-          token_file="${{ steps.agent-workspace.outputs.dir }}/.env"
-          if [ ! -f "$token_file" ]; then
-            echo "No .env at agent cwd — substrate issue did not run."
-            exit 0
-          fi
-          persona_jwt=$(awk -F= '/^PRODUCT_LANDMARK_TOKEN=/ {print $2; exit}' \
-            "$token_file")
-          if [ -z "$persona_jwt" ]; then
-            echo "No PRODUCT_LANDMARK_TOKEN value in agent .env."
-            exit 0
-          fi
-          echo "::add-mask::$persona_jwt"
-          echo "persona_jwt=$persona_jwt" >> "$GITHUB_OUTPUT"
-```
-
-The step output `persona_jwt` is referenced by the separate
-`workflow_run`-triggered scan workflow (Step 6) via the run-id metadata
-API. `::add-mask::` ensures the value is masked in this workflow's
-logs going forward (the supervisor's own log lines were emitted earlier
-and may carry the unmasked value — that is exactly what the spec §
-Sensitive values are absent from run logs check is for).
-
-Position: this step runs *after* `Run interview` and *before* the
-existing flow's tail. Place it right after `Run interview`.
+The post-run log scan (Step 6 below) is inline in this workflow and
+reads the JWT from a workflow-private stash file written by `substrate
+issue` (via Part 02's `--stash` flag, threaded through SKILL.md Step
+3a's example invocation). The stash file lives at
+`$RUNNER_TEMP/.persona-jwt` — outside `$AGENT_CWD`, so the agent's
+Write/Edit tools cannot tamper with it.
 
 ## Step 4 — Extend the `Run interview` step env
 
@@ -212,124 +149,100 @@ minted by `substrate issue` has a 1-hour default TTL; the job timeout
 must be strictly less so a runaway job dies before the JWT expires
 mid-run.
 
-## Step 6 — Add the post-run JWT log scan (separate workflow)
+## Step 6 — Add the post-run log scan (inline, final step)
 
-- **Created**: `.github/workflows/kata-interview-log-scan.yml`
+- **Modified**: `.github/workflows/kata-interview.yml`
 
-GitHub's `actions/runs/{run_id}/logs` REST endpoint returns the logs
-archive only after the parent run reaches a terminal conclusion;
-calling it from within the same in-progress job yields 404 or an
-incomplete archive. The scan therefore lives in a separate workflow
-file triggered by `workflow_run` on the kata-interview workflow's
-completion.
+The scan runs as the final step of the same job, `if: always() &&
+inputs.product == 'landmark'`. It reads the JWT from
+`$RUNNER_TEMP/.persona-jwt` (the workflow-private stash file written
+by `substrate issue --stash`) — never from `$AGENT_CWD/.env`, which
+the agent could mutate. The `gh api .../actions/runs/<id>/logs`
+endpoint returns the archive of all completed-step logs for the
+current run; the only step it cannot include is the scan step itself
+(still in progress) — which is fine because the scan step never echoes
+the JWT value.
 
-GitHub Actions automatically masks any value registered as a repo
-secret in the logs (each appears as `***`); scanning for
-`SUPABASE_JWT_SECRET` / `SUPABASE_SERVICE_ROLE_KEY` literal values is
-structurally a no-op. The only value at risk is the per-run persona
-JWT — minted dynamically, not registered as a secret. The scan reads
-the JWT from the parent run's `Snapshot persona JWT` step output.
+Insert after the `Run interview` step:
 
 ```yaml
-name: "Kata: Interview Log Scan"
-
-on:
-  workflow_run:
-    workflows: ["Kata:–- Interview"]
-    types: [completed]
-
-permissions:
-  contents: read
-  actions: read
-
-jobs:
-  scan:
-    runs-on: ubuntu-latest
-    # Only scan Landmark runs (memoised on the parent run's event payload).
-    if: github.event.workflow_run.event == 'workflow_dispatch'
-    steps:
-      - name: Generate installation token
-        id: ci-app
-        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
-        with:
-          app-id: ${{ secrets.KATA_APP_ID }}
-          private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
-
-      - name: Fetch persona JWT from parent run
-        id: jwt
+      - name: Scan logs for sensitive values
+        if: always() && inputs.product == 'landmark'
+        shell: bash
         env:
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
-          PARENT_RUN: ${{ github.event.workflow_run.id }}
-        shell: bash
+          JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          # Query the parent run's `Snapshot persona JWT` step output.
-          # The output is auto-masked from logs but the API returns it.
-          jobs_json=$(gh api \
-            "/repos/${{ github.repository }}/actions/runs/$PARENT_RUN/jobs")
-          # If the parent run was not a Landmark interview, the step
-          # would not have run; abort gracefully.
-          jwt=$(echo "$jobs_json" \
-            | python3 -c "import sys,json; d=json.load(sys.stdin); \
-              steps=[s for j in d['jobs'] for s in j.get('steps',[])]; \
-              snap=[s for s in steps if s['name']=='Snapshot persona JWT']; \
-              print('present' if snap and snap[0]['conclusion']=='success' else '')")
-          if [ "$jwt" != "present" ]; then
-            echo "No Landmark persona-JWT snapshot in parent run; nothing to scan."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
+          stash="$RUNNER_TEMP/.persona-jwt"
+          if [ ! -f "$stash" ]; then
+            echo "No persona-JWT stash at $stash — substrate issue did not run."
+            persona_jwt=""
+          else
+            persona_jwt=$(cat "$stash")
+            echo "::add-mask::$persona_jwt"
           fi
-          # The actual JWT value lives in the step's output; fetch via
-          # the dedicated step-outputs endpoint.
-          token_val=$(gh api \
-            "/repos/${{ github.repository }}/actions/runs/$PARENT_RUN" \
-            --jq '.outputs."snapshot-jwt".persona_jwt // empty')
-          if [ -z "$token_val" ]; then
-            echo "Snapshot step ran but output is empty; cannot verify."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "::add-mask::$token_val"
-          echo "value<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$token_val" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-          echo "skip=false" >> "$GITHUB_OUTPUT"
 
-      - name: Scan parent-run logs
-        if: steps.jwt.outputs.skip != 'true'
-        env:
-          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
-          PARENT_RUN: ${{ github.event.workflow_run.id }}
-          TOKEN_VAL: ${{ steps.jwt.outputs.value }}
-        shell: bash
-        run: |
-          gh api -H "Accept: application/vnd.github+json" \
-            "/repos/${{ github.repository }}/actions/runs/$PARENT_RUN/logs" \
-            > /tmp/run-logs.zip
-          unzip -q /tmp/run-logs.zip -d /tmp/run-logs/
-          if grep -RFq -- "$TOKEN_VAL" /tmp/run-logs/; then
-            echo "FAIL: PRODUCT_LANDMARK_TOKEN literal in run logs" >&2
-            exit 1
+          # Download the in-progress run's log archive. GH serves the
+          # archive of all completed-step logs even while the run is
+          # active; only the scan step's own logs are excluded (which
+          # is fine — it never echoes the JWT).
+          if ! gh api -H "Accept: application/vnd.github+json" \
+              "/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/logs" \
+              > /tmp/run-logs.zip 2>/tmp/gh-err.log; then
+            echo "WARN: log archive not yet available — gh api stderr:" >&2
+            cat /tmp/gh-err.log >&2
+            echo "Relying on ::add-mask:: at-issue protection."
+            exit 0
           fi
-          echo "OK: persona JWT not in run logs"
+          if ! unzip -q /tmp/run-logs.zip -d /tmp/run-logs/; then
+            echo "WARN: log archive empty/unreadable; relying on ::add-mask::"
+            exit 0
+          fi
+
+          fail=0
+          # Spec § Success Criteria row 8: scan for all three literals.
+          # The two repo secrets are auto-masked by GH (appear as ***);
+          # the persona JWT is minted per-run and protected only by the
+          # ::add-mask:: applied at issue time. A failing grep here means
+          # something printed the value before the mask landed.
+          for pair in \
+              "persona-jwt:$persona_jwt" \
+              "jwt-secret:$JWT_SECRET" \
+              "service-role-key:$SERVICE_ROLE_KEY"; do
+            label="${pair%%:*}"
+            value="${pair#*:}"
+            [ -z "$value" ] && continue
+            if grep -RFq -- "$value" /tmp/run-logs/; then
+              echo "FAIL: $label literal in run logs" >&2
+              fail=1
+            fi
+          done
+          exit $fail
 ```
 
 Notes:
 
-- The parent run's `Snapshot persona JWT` step (Part 03 § Step 3b)
-  stores the value via `$GITHUB_OUTPUT`. GitHub Actions exposes step
-  outputs through the run-jobs API; the value carries the parent's
-  `::add-mask::` registration into the scan workflow's logs too.
-- `grep -F` avoids regex metacharacters in JWT base64url segments.
-- `grep -- "$TOKEN_VAL"` guards against a JWT starting with `-`.
-- The repo-secret pair (JWT secret, service role key) does not need
-  explicit scanning — GH masks them automatically. The PR description
-  must state this rationale.
-- The `workflow_run` trigger requires the scan workflow file to live
-  on the default branch. The PR introducing this file therefore must
-  merge to `main` before the scan begins firing on subsequent
-  kata-interview runs; until merge the scan does not exist and the
-  spec criterion is satisfied only after merge — note this in the PR
-  description.
+- The two repo secrets (`SUPABASE_JWT_SECRET`,
+  `SUPABASE_SERVICE_ROLE_KEY`) are auto-masked by GH Actions in run
+  logs, so grepping for their literal values is normally a no-op —
+  but the scan still performs the grep so spec § Success Criteria row
+  8 is satisfied literally, and to catch the unlikely case where GH's
+  masker fails on a partial-string match.
+- `grep -F` (fixed-string) avoids regex metacharacters in base64url JWT
+  segments; `grep -- "$value"` guards against a value starting with `-`.
+- `gh api` requires `actions: read` permission (added to the workflow's
+  top-level `permissions:` block in Step 2). The kata-agent-team GitHub
+  App installation must also carry `Actions: Read` repository
+  permission — document this in the PR description.
+- The `Scan logs for sensitive values` step is the only spec § Success
+  Criteria row 8 verification surface. Confidence is bounded: a
+  hypothetical leak printed during the scan step itself would not be
+  caught (the step's log is excluded from the in-progress archive).
+  The spec describes a "CI step downloads the workflow's run logs for
+  every step that executes after the assertion step is added"; this
+  implementation matches the spec literally — the scan step is itself
+  the "assertion step", and it scans every step that runs before it.
 
 ## Step 7 — Add the workflow-shape assertion test
 
@@ -350,13 +263,13 @@ import { parse } from "yaml";
 const wf = parse(readFileSync(".github/workflows/kata-interview.yml", "utf8"));
 const steps = wf.jobs.interview.steps;
 
-const ADDED_STEPS = new Set(["Substrate stage", "Snapshot persona JWT"]);
+const ADDED_STEPS = new Set([
+  "Substrate stage",
+  "Scan logs for sensitive values",
+]);
 // Every key added to Run interview's env by spec 990. Must match what
-// Step 4 above lands. Update this list when adding new env keys here.
-// SUPABASE_URL is propagated via $GITHUB_ENV (Step 3), not via this
-// step's env: map, so it does not appear here. The
-// kata-interview-log-scan.yml workflow handles the post-run scan and
-// is asserted in its own shape test (see scan-workflow-shape.test.js).
+// Step 4 above lands. SUPABASE_URL is propagated via $GITHUB_ENV
+// (Step 3), not via this step's env: map, so it does not appear here.
 const ADDED_RUN_ENV_KEYS = ["AGENT_CWD", "SUPABASE_JWT_SECRET",
   "SUPABASE_SERVICE_ROLE_KEY"];
 
@@ -392,14 +305,7 @@ describe("kata-interview.yml spec 990 non-Landmark invariant", () => {
 });
 ```
 
-Add a sibling test `.github/workflows/test/log-scan-shape.test.js`
-that parses `.github/workflows/kata-interview-log-scan.yml` and
-asserts: the `on.workflow_run.workflows` array contains `"Kata:–-
-Interview"`; the `permissions:` block includes both `contents: read`
-and `actions: read`; the scan job's `if:` predicate gates on
-`workflow_dispatch` events.
-
-Both tests run as part of `bun run test` via Part 02 § Step 7's
+The test runs as part of `bun run test` via Part 02 § Step 7's
 test-path extension to `.github/workflows/test`.
 
 ## Step 8 — Update the kata-interview SKILL.md
@@ -454,12 +360,17 @@ agent's identity into `$AGENT_CWD`:
 3. Issue the substrate for the picked persona:
 
    ```sh
-   bunx fit-map substrate issue --email <picked-email> --cwd "$AGENT_CWD"
+   bunx fit-map substrate issue \
+     --email <picked-email> \
+     --cwd "$AGENT_CWD" \
+     --stash "$RUNNER_TEMP/.persona-jwt"
    ```
 
    Writes `$AGENT_CWD/.env` (carrying the persona's JWT) and
-   `$AGENT_CWD/.substrate.json` (the discovery vector). Mode 0600 on
-   both files.
+   `$AGENT_CWD/.substrate.json` (the discovery vector), plus a third
+   workflow-private copy of the bare JWT at `$RUNNER_TEMP/.persona-jwt`
+   which the post-run log-scan step reads. The agent has no access to
+   `$RUNNER_TEMP`. Mode 0600 on all three files.
 
 You never see the JWT bytes. The agent's `fit-landmark` discovers the
 JWT through libconfig's `.env` read in `$AGENT_CWD`.

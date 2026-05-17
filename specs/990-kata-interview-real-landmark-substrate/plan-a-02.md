@@ -57,6 +57,11 @@ the same shape works here:
     email: { type: "string", description: "Persona email" },
     cwd: { type: "string", description: "Target dir for the atomic write" },
     ttl: { type: "string", description: "JWT TTL (e.g. 1h, 30d). Default 1h." },
+    stash: {
+      type: "string",
+      description:
+        "Optional second path to write the bare JWT to (workflow-private; not for external operators)",
+    },
   },
 },
 ```
@@ -102,6 +107,7 @@ async function dispatchSubstrate(subcommand, _rest, values) {
           email: values.email,
           cwd: values.cwd,
           ttl: values.ttl,
+          stash: values.stash,
         },
       });
     }
@@ -413,15 +419,23 @@ export const SUBCOMMAND_EXPANSIONS = {
 };
 
 // For flat (non-`subcommand`-style) command names whose libcli entry is
-// a single-word `name`, the smokeOptions live here.
+// a single-word `name`, the smokeOptions live here. Every gated command
+// whose handler throws on missing args MUST appear here so the spec
+// § Success Criteria row 5 smoke runs to non-error completion. Checked
+// command sources:
+//   - voice.js: throws if neither --email nor --manager supplied
+//   - practiced.js: throws on missing --manager
+//   - health.js: no required option
 export const FLAT_SMOKE_OPTIONS = {
   evidence: { email: "$PERSONA_EMAIL" },
   practice: { manager: "$PERSONA_EMAIL" },
+  practiced: { manager: "$PERSONA_EMAIL" },
   readiness: { email: "$PERSONA_EMAIL" },
   timeline: { email: "$PERSONA_EMAIL" },
   coverage: { email: "$PERSONA_EMAIL" },
   sources: { email: "$PERSONA_EMAIL" },
-  // health, voice, practiced — no required options for the smoke
+  voice: { email: "$PERSONA_EMAIL" },
+  // health — no required option
 };
 ```
 
@@ -620,132 +634,6 @@ function assertNonEmpty(stdout, key) {
 }
 ```
 
-**Smoke implementation** (`substrate-smoke.js`):
-
-```js
-import { spawnSync } from "node:child_process";
-import { mintSupabaseJwt, parseDuration } from "@forwardimpact/libsecret";
-
-export async function runSelfSmoke({ supabase, config }) {
-  const { findInvariantSatisfyingPersonas } = await import(
-    "./substrate-persona-query.js");
-  const { personas, discovery, diagnostic } =
-    await findInvariantSatisfyingPersonas({ supabase });
-  if (!personas.length) throw new Error(diagnostic);
-  const persona = personas[0];
-
-  // Mint a short-lived JWT (1h is the smallest unit parseDuration
-  // accepts; libsecret's regex is /^(\d+)([hdy])$/, no minutes).
-  const secret = config.supabaseJwtSecret();
-  const jwt = mintSupabaseJwt({
-    email: persona.email,
-    secret,
-    ttlSeconds: parseDuration("1h"),
-  });
-
-  // Spec § Success Criteria rows 1–4: explicit shape check.
-  assertJwtShape(jwt, persona.email);
-  await assertPersonaIsHuman(supabase, persona.email);
-  assertDiscoveryResolves(supabase, persona, discovery);
-
-  // Spec § Success Criteria row 5 (every gated command invocable) +
-  // row 6 (three named row-class smokes non-empty).
-  const manifestJson = spawnSync("bunx",
-    ["fit-landmark", "_gated-commands"], { encoding: "utf8" });
-  if (manifestJson.status !== 0)
-    throw new Error(`_gated-commands: ${manifestJson.stderr}`);
-  const manifest = JSON.parse(manifestJson.stdout);
-
-  for (const { command, options } of manifest) {
-    const argv = command.split(" ");
-    for (const [k, v] of Object.entries(options)) {
-      argv.push(`--${k}`, expand(v, persona, discovery));
-    }
-    argv.push("--format", "json");
-    const res = spawnSync("bunx", ["fit-landmark", ...argv], {
-      encoding: "utf8",
-      env: { ...process.env, PRODUCT_LANDMARK_TOKEN: jwt },
-    });
-    if (res.status !== 0)
-      throw new Error(`${argv.join(" ")} exited ${res.status}: ${res.stderr}`);
-
-    // Three row-class smokes (org team, evidence, practice) must return
-    // non-empty payloads. The per-command JSON shape is per spec
-    // § Success Criteria row 6 — assert via published formatter keys.
-    if (command === "org team") assertNonEmpty(res.stdout, ["team"]);
-    if (command === "evidence") assertNonEmpty(res.stdout, ["evidence"]);
-    if (command === "practice") assertNonEmpty(res.stdout, ["patterns"]);
-  }
-}
-
-function expand(template, persona, discovery) {
-  return template
-    .replace("$PERSONA_EMAIL", persona.email)
-    .replace("$SNAPSHOT_ID", discovery.snapshot_id)
-    .replace("$ITEM_ID", discovery.item_id);
-}
-
-function assertJwtShape(jwt, expectedEmail) {
-  const [, payloadB64] = jwt.split(".");
-  const claims = JSON.parse(Buffer.from(payloadB64, "base64url").toString());
-  if (claims.aud !== "authenticated")
-    throw new Error(`JWT aud != authenticated: ${claims.aud}`);
-  if (claims.role !== "authenticated")
-    throw new Error(`JWT role != authenticated: ${claims.role}`);
-  if (claims.email !== expectedEmail)
-    throw new Error(`JWT email mismatch: ${claims.email}`);
-  if (typeof claims.exp !== "number" || claims.exp * 1000 <= Date.now())
-    throw new Error(`JWT exp claim missing or in the past: ${claims.exp}`);
-}
-
-async function assertPersonaIsHuman(supabase, email) {
-  const { data, error } = await supabase
-    .from("organization_people")
-    .select("kind").eq("email", email).maybeSingle();
-  if (error) throw new Error(`organization_people: ${error.message}`);
-  if (data?.kind !== "human")
-    throw new Error(`persona ${email} kind=${data?.kind}, not human`);
-}
-
-function assertDiscoveryResolves(supabase, persona, discovery) {
-  // Persona email, persona's manager_email (if used by any gated cmd),
-  // snapshot_id, item_id — invariants already enforced by
-  // findInvariantSatisfyingPersonas; this function is a defensive
-  // re-check that fails loudly if the persona-query helper regresses.
-  if (!persona.email || !persona.manager_email) {
-    throw new Error(`persona missing email/manager_email: ${
-      JSON.stringify(persona)}`);
-  }
-  if (!discovery.snapshot_id || !discovery.item_id) {
-    throw new Error(`discovery vector incomplete: ${
-      JSON.stringify(discovery)}`);
-  }
-}
-
-function assertNonEmpty(stdout, keys) {
-  const parsed = JSON.parse(stdout);
-  for (const key of keys) {
-    const v = parsed[key] ?? parsed.view?.[key];
-    if (Array.isArray(v) ? v.length === 0 :
-        (v === undefined || v === null ||
-         (typeof v === "object" && Object.keys(v).length === 0))) {
-      throw new Error(`row-class non-empty assertion failed for ${key}`);
-    }
-  }
-}
-```
-
-Notes:
-
-- The smoke spawns inherit `process.cwd()` (the CI checkout root); the
-  JWT lives in `env` of the spawn options only, never on the parent
-  `process.env`.
-- `assertNonEmpty` accepts both `result[key]` and `result.view[key]`
-  because formatters wrap payloads under `view` (per `products/
-  landmark/src/commands/org.js:55, 72`) — verify the exact wrapper key
-  in implementation by reading the formatter; the test in Step 6
-  pins this.
-
 ## Step 5 — Create `substrate-roster.js`
 
 - **Created**: `products/map/src/commands/substrate-roster.js`
@@ -799,10 +687,18 @@ plan must commit to one shape.
 
 ### `substrate-issue.js`
 
-Atomically writes two files under `--cwd <path>`. To survive partial
-crashes, write both temp files first, then rename in fixed order
-(`.env` first, `.substrate.json` second); on any rename failure, attempt
-cleanup of leftover temp files before rethrowing:
+Atomically writes two files under `--cwd <path>`. Optionally also writes
+the bare JWT to a third path supplied via `--stash <path>` — used by
+the kata-interview workflow (Part 03) to surface the JWT into the
+workflow's private `$RUNNER_TEMP` so a post-run log scan has a tamper-
+resistant source for the JWT value to grep for. The stash path is
+mode 0600 like the other writes.
+
+To survive partial crashes, write both `.env`/`.substrate.json` temp
+files first, then rename in fixed order (`.env` first, `.substrate.json`
+second). The stash write (if `--stash` supplied) happens last, after
+both renames succeed; on any rename failure, attempt cleanup of leftover
+temp files before rethrowing:
 
 ```js
 import path from "node:path";
@@ -813,7 +709,7 @@ import { findAuthUser } from "../lib/auth-helpers.js";
 import { formatSuccess } from "@forwardimpact/libcli";
 
 export async function runSubstrateIssueCommand({ supabase, config, options }) {
-  const { email, cwd, ttl } = options;
+  const { email, cwd, ttl, stash } = options;
   if (!email) throw new Error("substrate issue: --email <e> is required");
   if (!cwd) throw new Error("substrate issue: --cwd <path> is required");
   const ttlSeconds = parseDuration(ttl ?? "1h");
@@ -864,6 +760,15 @@ export async function runSubstrateIssueCommand({ supabase, config, options }) {
     for (const orphan of [envTmp, subTmp]) {
       try { await fs.unlink(orphan); } catch { /* expected after rename */ }
     }
+  }
+
+  // Optional stash: write the bare JWT to a workflow-protected path so
+  // a post-run log scan can read the value without touching the agent's
+  // cwd (which the agent has Write/Edit tools over). Workflow contract
+  // only — never used by external operators or the dev path.
+  if (stash) {
+    await fs.writeFile(stash, jwt + "\n", { mode: 0o600 });
+    await fs.chmod(stash, 0o600);
   }
 
   process.stdout.write(formatSuccess(`Issued substrate for ${email}`) + "\n");
@@ -939,9 +844,11 @@ supabase + spawn fixtures.
 | Roster emits JSON shape | `products/map/test/activity/substrate-roster.test.js` | `--format json` returns `{ personas, selection_metadata }`; exit 0 on non-empty, non-zero on empty (with diagnostic on stderr) |
 | Issue writes both files atomically | `products/map/test/activity/substrate-issue.test.js` | Both files written; mode 0600 on each; content parses as JSON / `KEY=VALUE`; mocked `fs.rename` failure on the second file leaves the first file on disk and cleans up the second's tmp file; mocked failure on the first file leaves no files at the target paths and cleans up both tmp files |
 | Issue rejects non-human kind | (same file) | A persona row with `kind=service_account` throws with the named error and names `fit-map auth issue` as the alternative |
+| Issue with `--stash` writes JWT to stash path | (same file) | `--stash <tmp>` causes a third file at `<tmp>` containing just the JWT (mode 0600); omitting `--stash` writes only the two `--cwd` files |
 
 Verify: `bun test products/map/test/activity/substrate-*.test.js
-products/landmark/test/lib/gated-commands.test.js` exits 0 with ~20
+products/landmark/test/lib/commands-manifest.test.js
+products/landmark/test/lib/commands-verb.test.js` exits 0 with ~20
 tests passing.
 
 ## Step 9 — Run full check suite
@@ -954,7 +861,8 @@ bun test products/landmark/test/  # Part 01 surface still green
 ```
 
 Verify: all green. PR description names the three subcommands, the
-shared `findAuthUser` helper, the new `_gated-commands` introspection
-verb, and the rows from spec § In-scope the new surface satisfies
-(Workspace state, Persona corpus, Discovery vector, Gated-command
-coverage, Failure surfacing).
+shared `findAuthUser` helper, the new `_commands` introspection verb
+plus its canonical `products/landmark/src/lib/commands-manifest.js`
+source-of-truth file, and the rows from spec § In-scope the new
+surface satisfies (Workspace state, Persona corpus, Discovery vector,
+Gated-command coverage, Failure surfacing).
