@@ -1,0 +1,108 @@
+{
+  "scenario": {
+    "type": "remove",
+    "teamId": "platform",
+    "name": "Bob"
+  },
+  "diff": {
+    "capabilityChanges": [
+      {
+        "skillId": "incident_response",
+        "skillName": "Incident Response",
+        "capabilityId": "reliability",
+        "before": {
+          "headcountDepth": 0,
+          "effectiveDepth": 0,
+          "maxProficiency": "foundational"
+        },
+        "after": {
+          "headcountDepth": 0,
+          "effectiveDepth": 0,
+          "maxProficiency": "foundational"
+        },
+        "direction": "same"
+      },
+      {
+        "skillId": "planning",
+        "skillName": "Planning",
+        "capabilityId": "delivery",
+        "before": {
+          "headcountDepth": 0,
+          "effectiveDepth": 0,
+          "maxProficiency": "foundational"
+        },
+        "after": {
+          "headcountDepth": 0,
+          "effectiveDepth": 0,
+          "maxProficiency": "awareness"
+        },
+        "direction": "same"
+      },
+      {
+        "skillId": "task_completion",
+        "skillName": "Task Completion",
+        "capabilityId": "delivery",
+        "before": {
+          "headcountDepth": 1,
+          "effectiveDepth": 1,
+          "maxProficiency": "working"
+        },
+        "after": {
+          "headcountDepth": 0,
+          "effectiveDepth": 0,
+          "maxProficiency": "foundational"
+        },
+        "direction": "down"
+      }
+    ],
+    "riskChanges": {
+      "added": {
+        "singlePoints": [],
+        "criticalGaps": [
+          {
+            "skillId": "task_completion",
+            "skillName": "Task Completion",
+            "capabilityId": "delivery",
+            "reason": "core skill for software_engineering discipline"
+          }
+        ],
+        "concentrationRisks": []
+      },
+      "removed": {
+        "singlePoints": [
+          {
+            "skillId": "task_completion",
+            "skillName": "Task Completion",
+            "holder": {
+              "email": "bob@example.com",
+              "name": "Bob",
+              "proficiency": "working",
+              "allocation": 1
+            },
+            "severity": "low"
+          }
+        ],
+        "criticalGaps": [],
+        "concentrationRisks": []
+      },
+      "unchanged": {
+        "singlePoints": [],
+        "criticalGaps": [
+          {
+            "skillId": "incident_response",
+            "skillName": "Incident Response",
+            "capabilityId": "reliability",
+            "reason": "broad skill for software_engineering discipline"
+          },
+          {
+            "skillId": "planning",
+            "skillName": "Planning",
+            "capabilityId": "delivery",
+            "reason": "supporting skill for software_engineering discipline"
+          }
+        ],
+        "concentrationRisks": []
+      }
+    }
+  }
+}

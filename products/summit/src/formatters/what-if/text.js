@@ -6,20 +6,35 @@
  * Render a what-if scenario diff as plain text.
  *
  * @param {object} params
- * @param {import("../../aggregation/scenarios.js").Scenario} params.scenario
- * @param {{ capabilityChanges: Array<object> }} params.coverageDiff
- * @param {object} params.riskDiff
+ * @param {import("../../aggregation/what-if.js").WhatIfReport} params.report
  * @param {object} params.data
  * @returns {string}
  */
-export function whatIfToText({ scenario, coverageDiff, riskDiff, data }) {
+export function whatIfToText({ report, data }) {
+  const { scenario, teamDiffs } = report;
   const lines = [];
   lines.push(`  ${headline(scenario)}`);
   lines.push("");
+  if (teamDiffs.length === 1) {
+    appendDiffLines(lines, teamDiffs[0], scenario, data);
+  } else {
+    for (const td of teamDiffs) {
+      const label =
+        td.role === "source"
+          ? `Source team \`${td.teamId}\`:`
+          : `Destination team \`${td.teamId}\`:`;
+      lines.push(`  ${label}`);
+      lines.push("");
+      appendDiffLines(lines, td, scenario, data);
+    }
+  }
+  return lines.join("\n");
+}
 
+function appendDiffLines(lines, teamDiff, scenario, data) {
   lines.push("  Capability changes:");
   const changed = filterFocus(
-    coverageDiff.capabilityChanges,
+    teamDiff.coverageDiff.capabilityChanges,
     scenario.focus,
     data,
   );
@@ -42,15 +57,13 @@ export function whatIfToText({ scenario, coverageDiff, riskDiff, data }) {
   lines.push("");
 
   lines.push("  Risk changes:");
-  const riskLines = renderRiskDiff(riskDiff);
+  const riskLines = renderRiskDiff(teamDiff.riskDiff);
   if (riskLines.length === 0) {
     lines.push("    (no risk changes)");
   } else {
     lines.push(...riskLines);
   }
   lines.push("");
-
-  return lines.join("\n");
 }
 
 function headline(scenario) {

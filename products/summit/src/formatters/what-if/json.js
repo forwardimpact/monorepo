@@ -4,17 +4,30 @@
 
 /**
  * @param {object} params
- * @param {import("../../aggregation/scenarios.js").Scenario} params.scenario
- * @param {object} params.coverageDiff
- * @param {object} params.riskDiff
+ * @param {import("../../aggregation/what-if.js").WhatIfReport} params.report
  * @returns {object}
  */
-export function whatIfToJson({ scenario, coverageDiff, riskDiff }) {
+export function whatIfToJson({ report }) {
+  const { scenario, teamDiffs } = report;
+  if (scenario.type === "move") {
+    return {
+      scenario,
+      diff: {
+        teams: teamDiffs.map((td) => ({
+          teamId: td.teamId,
+          role: td.role,
+          capabilityChanges: td.coverageDiff.capabilityChanges,
+          riskChanges: td.riskDiff,
+        })),
+      },
+    };
+  }
+  const td = teamDiffs[0];
   return {
     scenario,
     diff: {
-      capabilityChanges: coverageDiff.capabilityChanges,
-      riskChanges: riskDiff,
+      capabilityChanges: td.coverageDiff.capabilityChanges,
+      riskChanges: td.riskDiff,
     },
   };
 }

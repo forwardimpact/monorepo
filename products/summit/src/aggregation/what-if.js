@@ -19,6 +19,38 @@ import { UnknownJobFieldError } from "./errors.js";
  */
 
 /**
+ * @typedef {object} TeamDiff
+ * @property {string} teamId
+ * @property {"source" | "destination" | "target"} role
+ * @property {{ capabilityChanges: Array<object> }} coverageDiff
+ * @property {object} riskDiff
+ *
+ * @typedef {object} WhatIfReport
+ * @property {Scenario} scenario
+ * @property {TeamDiff[]} teamDiffs
+ */
+
+/**
+ * Assemble a WhatIfReport from per-team snapshot pairs.
+ *
+ * @param {object} params
+ * @param {Scenario} params.scenario
+ * @param {Array<{ teamId: string, role: "source" | "destination" | "target", before: object, after: object }>} params.teams
+ * @returns {WhatIfReport}
+ */
+export function buildWhatIfReport({ scenario, teams }) {
+  return {
+    scenario,
+    teamDiffs: teams.map(({ teamId, role, before, after }) => ({
+      teamId,
+      role,
+      coverageDiff: diffCoverage(before.coverage, after.coverage),
+      riskDiff: diffRisks(before.risks, after.risks),
+    })),
+  };
+}
+
+/**
  * Apply a scenario to a roster and return the mutated copy.
  *
  * @param {Roster} roster

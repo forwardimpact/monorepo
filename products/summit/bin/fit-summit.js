@@ -108,12 +108,21 @@ const definition = {
     {
       name: "what-if",
       args: "<team>",
-      description: "Simulate roster changes",
+      description:
+        "Simulate roster changes (the team is the source for --move, otherwise the target team for the diff)",
       options: {
         add: { type: "string", description: "Add a hypothetical person" },
         remove: { type: "string", description: "Remove a team member" },
-        move: { type: "string", description: "Move a member between teams" },
-        to: { type: "string", description: "Destination team for --move" },
+        move: {
+          type: "string",
+          description:
+            "Move a member out of <team> (the source) to --to (the destination)",
+        },
+        to: {
+          type: "string",
+          description:
+            "Destination team for --move (receives the member); the diff covers both teams",
+        },
         promote: {
           type: "string",
           description: "Promote a member to the next level",
@@ -135,6 +144,7 @@ const definition = {
         "fit-summit what-if platform --add 'Jane, senior, backend'",
         "fit-summit what-if platform --remove 'Bob'",
         "fit-summit what-if platform --promote 'Alice'",
+        "fit-summit what-if platform --move 'Alice' --to billing",
       ],
     },
     {

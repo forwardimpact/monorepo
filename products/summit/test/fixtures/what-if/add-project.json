@@ -1,0 +1,101 @@
+{
+  "scenario": {
+    "type": "add",
+    "projectId": "migration-q2",
+    "job": {
+      "discipline": "software_engineering",
+      "level": "J060"
+    },
+    "allocation": 0.5
+  },
+  "diff": {
+    "capabilityChanges": [
+      {
+        "skillId": "incident_response",
+        "skillName": "Incident Response",
+        "capabilityId": "reliability",
+        "before": {
+          "headcountDepth": 0,
+          "effectiveDepth": 0,
+          "maxProficiency": "awareness"
+        },
+        "after": {
+          "headcountDepth": 0,
+          "effectiveDepth": 0,
+          "maxProficiency": "awareness"
+        },
+        "direction": "same"
+      },
+      {
+        "skillId": "planning",
+        "skillName": "Planning",
+        "capabilityId": "delivery",
+        "before": {
+          "headcountDepth": 0,
+          "effectiveDepth": 0,
+          "maxProficiency": "foundational"
+        },
+        "after": {
+          "headcountDepth": 0,
+          "effectiveDepth": 0,
+          "maxProficiency": "foundational"
+        },
+        "direction": "same"
+      },
+      {
+        "skillId": "task_completion",
+        "skillName": "Task Completion",
+        "capabilityId": "delivery",
+        "before": {
+          "headcountDepth": 2,
+          "effectiveDepth": 1.6,
+          "maxProficiency": "working"
+        },
+        "after": {
+          "headcountDepth": 3,
+          "effectiveDepth": 2.1,
+          "maxProficiency": "working"
+        },
+        "direction": "up"
+      }
+    ],
+    "riskChanges": {
+      "added": {
+        "singlePoints": [],
+        "criticalGaps": [],
+        "concentrationRisks": [
+          {
+            "capabilityId": "delivery",
+            "level": "J060",
+            "proficiency": "working",
+            "count": 3,
+            "totalMembers": 3
+          }
+        ]
+      },
+      "removed": {
+        "singlePoints": [],
+        "criticalGaps": [],
+        "concentrationRisks": []
+      },
+      "unchanged": {
+        "singlePoints": [],
+        "criticalGaps": [
+          {
+            "skillId": "incident_response",
+            "skillName": "Incident Response",
+            "capabilityId": "reliability",
+            "reason": "broad skill for software_engineering discipline"
+          },
+          {
+            "skillId": "planning",
+            "skillName": "Planning",
+            "capabilityId": "delivery",
+            "reason": "supporting skill for software_engineering discipline"
+          }
+        ],
+        "concentrationRisks": []
+      }
+    }
+  }
+}

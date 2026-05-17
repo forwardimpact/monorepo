@@ -6,11 +6,7 @@
 import { loadRoster } from "../roster/index.js";
 import { computeCoverage, resolveTeam } from "../aggregation/coverage.js";
 import { detectRisks } from "../aggregation/risks.js";
-import {
-  applyScenario,
-  diffCoverage,
-  diffRisks,
-} from "../aggregation/what-if.js";
+import { applyScenario, buildWhatIfReport } from "../aggregation/what-if.js";
 import { parseScenario, ScenarioError } from "../aggregation/scenarios.js";
 import { TeamNotFoundError } from "../aggregation/errors.js";
 import { Format, getRosterSource, resolveFormat } from "../lib/cli.js";
@@ -52,28 +48,37 @@ export async function runWhatIfCommand({ data, args, options, config }) {
   }
   const after = computeSnapshot(mutated, data, target);
 
-  const coverageDiff = diffCoverage(before.coverage, after.coverage);
-  const riskDiff = diffRisks(before.risks, after.risks);
+  const teams = [
+    {
+      teamId: target.teamId ?? target.projectId,
+      role: scenario.type === "move" ? "source" : "target",
+      before,
+      after,
+    },
+  ];
+  if (scenario.type === "move") {
+    const destTarget = { teamId: scenario.toTeamId };
+    teams.push({
+      teamId: scenario.toTeamId,
+      role: "destination",
+      before: computeSnapshot(roster, data, destTarget),
+      after: computeSnapshot(mutated, data, destTarget),
+    });
+  }
+
+  const report = buildWhatIfReport({ scenario, teams });
 
   if (format === Format.JSON) {
     process.stdout.write(
-      JSON.stringify(
-        whatIfToJson({ scenario, coverageDiff, riskDiff }),
-        null,
-        2,
-      ) + "\n",
+      JSON.stringify(whatIfToJson({ report }), null, 2) + "\n",
     );
     return;
   }
   if (format === Format.MARKDOWN) {
-    process.stdout.write(
-      whatIfToMarkdown({ scenario, coverageDiff, riskDiff }),
-    );
+    process.stdout.write(whatIfToMarkdown({ report }));
     return;
   }
-  process.stdout.write(
-    whatIfToText({ scenario, coverageDiff, riskDiff, data }),
-  );
+  process.stdout.write(whatIfToText({ report, data }));
 }
 
 function resolveTarget(args, options) {
