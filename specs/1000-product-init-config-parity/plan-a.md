@@ -22,20 +22,10 @@ stage bootstraps the agent workspace). Tests land in the same step as the
 behavior they cover so each step is independently verifiable.
 
 Libraries used: `@forwardimpact/libsecret` (`updateEnvFile`, `readEnvFile`,
-`getOrGenerateSecret`, `generateSecret`).
-
-**Note on the design's dotted-literal interface example.** Design § *Interface*
-illustrates fragment with dotted-literal keys `"product.guide"` /
-`"service.mcp"`. The on-disk starter (and `Config.#getFileData` at
-`libraries/libconfig/src/config.js:484`, which reads `fileData[ns][name]` via
-nested key access) uses nested form `{ product: { guide: … }, service: { mcp:
-… } }`. This plan preserves the nested form to keep the reader untouched
-(Decision #4's invariant) and to satisfy the spec's *first-run preserves
-top-level keys* criterion. Top-level ownership is therefore at the literal
-first JSON segment (`product`, `service`); the design's example is
-illustrative of namespace semantics, not the on-disk encoding. The leaf-path
-diagnostic (`product.x.foo`) and the spec's two-starters disjoint-namespace
-test are satisfied identically under either encoding.
+`getOrGenerateSecret`, `generateSecret`). Fragments are passed in nested
+form (literal first JSON segment as the top-level ownership key) to match
+the reader at `libraries/libconfig/src/config.js:484`; design § *Interface*'s
+dotted-literal keys are illustrative, not the on-disk encoding.
 
 ## Step 1 — Pure merge classifier
 
@@ -109,7 +99,7 @@ on disjoint top-level keys, plus leaf-path diagnostic accuracy
 `libraries/libconfig/src/bootstrap.js`,
 `libraries/libconfig/test/bootstrap.test.js`
 
-**Modified:** `libraries/libconfig/src/index.js` (add `export { bootstrapProject } from "./bootstrap.js"`), `libraries/libconfig/package.json` (add `"@forwardimpact/libsecret": "^0.1.15"` to `dependencies` and patch-bump `version` per repo pre-1.0 release policy — release cut handled by `kata-release-cut` after merge, not by this plan). Run `bun run context:fix` after the package.json edit so `libraries/README.md` and any dependency catalog re-generate to reflect the new edge.
+**Modified:** `libraries/libconfig/src/index.js` (add `export { bootstrapProject } from "./bootstrap.js"`), `libraries/libconfig/package.json` (add `"@forwardimpact/libsecret": "^0.1.15"` to `dependencies` only — **do not bump `version`**; the version bump is `kata-release-cut`'s surface after merge). Run `bun run context:fix` after the package.json edit so `libraries/README.md` and any dependency catalog re-generate to reflect the new edge.
 
 ```js
 // libraries/libconfig/src/errors.js
@@ -151,11 +141,22 @@ export async function bootstrapProject({
   const ev = mergeEnvEntries({
     existing: existingEnv, fragment: env, overwrites: overwrites.env ?? [],
   });
+  // config conflicts take precedence over env conflicts so the stderr-integration
+  // test's substring assertion (product.x.foo + overwrites.config) is deterministic
+  // regardless of input ordering.
   const conflicts = [...cfg.conflicts, ...ev.conflicts];
   if (conflicts.length) throw bootstrapRefusal(conflicts[0]);
 
   await mkdir(configDir, { recursive: true });
   await writeFile(configPath, JSON.stringify(cfg.result, null, 2) + "\n");
+  // Iterate the input `env`, not `ev.result`. Same-key-same-value writes
+  // are idempotent line rewrites in updateEnvFile (the line content is
+  // unchanged), and the per-call chmod 0o600 inside updateEnvFile is the
+  // mechanism that re-enforces mode 0o600 on every invocation — required
+  // for the spec's `.env` mode criterion to survive a pre-existing .env
+  // that was created with mode 0o644. The merged result `ev.result` is
+  // therefore computed for the conflict classifier but not used to drive
+  // writes (its only consumer is the conflict array via `ev.conflicts`).
   for (const [key, value] of Object.entries(env)) {
     await updateEnvFile(key, value, envPath);
   }
@@ -253,12 +254,18 @@ after the loop is removed); add `getOrGenerateSecret` and the libconfig
 + import { bootstrapProject } from "@forwardimpact/libconfig";
 ```
 
-**Body change** — replace lines 14–32 (the secret generation + `updateEnvFile`
-loop) and lines 71–98 (the starter-config copy with the "already exists"
-bullet) with a single bootstrap call. The `package.json` materialisation
-(current lines 34–53), the `SummaryRenderer.render({ title: "Environment
-(.env)"… })` block (lines 55–69), and the `.claude/skills/` copy (lines
-100–111) all stay byte-for-byte; only the two blocks named above change.
+**Body changes** (two non-contiguous replacements; line numbers reference the
+pre-spec file):
+
+| Block | Pre-spec lines | Action |
+|---|---|---|
+| Secret generation + `updateEnvFile` loop | 14–32 | Replace with secret materialisation (`getOrGenerateSecret`) + the single `bootstrapProject` call shown below. |
+| `package.json` materialisation | 34–53 | Unchanged. |
+| `SummaryRenderer.render({ title: "Environment (.env)"… })` block | 55–69 | Unchanged. |
+| `starterDir`/`configDir`/`skillsDir` declarations (71–74) | 71–74 | Drop `configDir = resolve("config")` (no longer needed — `bootstrapProject` handles `config/`); keep `starterDir` and `skillsDir` declarations because the `.claude/skills/` block at 100–111 still depends on them. |
+| `starterDir` access guard | 76–83 | Unchanged (the `.claude/skills/` block still needs it for the `starter/` package-installation check). |
+| `config.json` copy block ("already exists" bullet + `fs.mkdir`/`fs.cp` branch) | 85–98 | Delete entirely — `bootstrapProject` (added earlier in the function) has already written `config/config.json`. |
+| `.claude/skills/` copy block | 100–111 | Unchanged. |
 
 ```js
 // products/guide/src/commands/init.js — after change, replacing only
@@ -294,6 +301,15 @@ disappears (per spec § *Re-run* semantics — silent no-op replaces it).
 Pre-spec `"config/ created with starter configuration."` `formatSuccess`
 also disappears; the `SummaryRenderer` block stays because it covers the
 `.env` summary (orthogonal to the `config/` write).
+
+**Path agreement note.** `getOrGenerateSecret` reads from `.env` (its own
+default — CWD-relative) and `bootstrapProject` writes to `<target>/.env`.
+`fit-guide init` calls `bootstrapProject` without `target`, so both
+default to `process.cwd()` and resolve the same `.env`. The
+same-key-same-value invariant on re-run depends on this agreement — a
+future caller passing `target ≠ process.cwd()` to `bootstrapProject`
+would need to thread the same path into `getOrGenerateSecret` (via its
+`envPath` arg).
 
 **Created:** `products/guide/test/init.test.js`
 
@@ -390,10 +406,27 @@ export async function runStageCommand(
 }
 ```
 
-`findDataDir(undefined)` continues to walk upward from `process.cwd()`; in
-production `process.cwd()` is the repo root (workflow invokes from there),
-in CI after Step 7 it is the agent workspace where `runInit` just planted
-`data/pathway/`. Both resolve correctly.
+`findDataDir(undefined)` walks upward from `process.cwd()` to find `data/`
+then appends `pathway/`. The `--cwd` flag does **not** change the Node
+process's CWD — it only sets the `target` parameter passed into `runInit`.
+After Step 7 the workflow continues to invoke `bunx fit-map substrate
+stage --cwd "$AGENT_CWD"` from the repo root, so the substrate subprocess
+has `process.cwd() = $monorepo` and `findDataDir(undefined)` resolves to
+`$monorepo/data/pathway/` — the **fit-terrain output** written by the
+workflow's earlier `Prepare interview workspace` step (libterrain's
+`writeFiles` keys files as `data/pathway/<name>` relative to the
+monorepo root, per `libraries/libterrain/src/nodes.js:184`).
+
+Two `data/pathway/` directories exist in CI, serving disjoint roles:
+
+| Location | Source | Read by |
+|---|---|---|
+| `$monorepo/data/pathway/` | `bunx fit-terrain build` (existing workflow step) | seed phase (`findDataDir(undefined)` upward walk from repo-root cwd) |
+| `$AGENT_CWD/data/pathway/` | `runInit($AGENT_CWD)` (new init phase, starter copy) | nothing in the substrate stage subprocess; satisfies spec § *bootstrap shape* parity only |
+
+The substrate-stage unit suite stubs `findDataDir` so neither location is
+exercised by `bun test`; the only verification surface for the CWD
+geometry is the kata-interview Landmark CI run (Step 7).
 
 Add `--cwd` option to the `substrate stage` subcommand definition and
 forward it through `dispatchSubstrate`:
@@ -463,23 +496,31 @@ invocation to pass `--cwd`:
 +          bunx fit-map substrate stage --cwd "${{ steps.agent-workspace.outputs.dir }}"
 ```
 
-The Landmark `if:` gate is preserved. The shell-level `supabase status`
-invocation later in the step is unchanged (still runs from the repo root,
-still finds `products/map/supabase/config.toml`).
+The Landmark `if:` gate is preserved. The shell-level `bunx --no-install --
+supabase status --output json` invocation later in the same step is
+unchanged — it runs from the repo root, finds `products/map/supabase/config.toml`
+via the supabase CLI's own project discovery, and writes the discovered
+`SUPABASE_URL` / `SUPABASE_ANON_KEY` to `$GITHUB_ENV` for downstream steps.
+`runStageCommand`'s url-discovery phase sets these same vars in its own
+subprocess's `process.env` (so seed/provision/smoke phases observe them
+in-process); the shell-level `supabase status` block re-discovers and
+exports independently — no cross-process state leak.
 
 **Verification:** kata-interview workflow on the implementation branch runs
-green for a Landmark interview, the `agent-workspace` artefact carries
-`config/` planted by `fit-map init`, and `grep -nE 'mkdir|install -d'
-.github/workflows/kata-interview.yml | grep config` is empty.
+green for a Landmark interview; the `agent-workspace` artefact carries
+`config/config.json` (from `runInit`'s init phase) and `data/pathway/`
+(starter copy); `grep -nE 'mkdir|install -d' .github/workflows/kata-interview.yml | grep config`
+is empty; the same run's later `supervisor` step still receives
+`SUPABASE_URL` and `SUPABASE_ANON_KEY` via `$GITHUB_ENV` (asserted by the
+existing `Run interview` step using them as `env:` keys).
 
 ## Risks
 
 | Risk | Mitigation |
 |---|---|
-| `fit-map.js` loads `createProductConfig("map")` at module top — before substrate stage's init phase runs, that config sees no `config/config.json` at the agent workspace. | Design § *fit-map init ↔ fit-map substrate stage* names this tolerance: `createProductConfig` returns empty `#fileData` on an absent file, so module-top load succeeds; substrate-stage's `reloadConfig` (Decision #7) picks up the materialised state. Verify by running `bunx fit-map substrate stage --cwd <fresh-tmpdir>` end-to-end in CI. |
-| `findDataDir` upward-walks from `process.cwd()`; if substrate-stage's `--cwd` ever points outside a workspace that has `data/pathway/`, the seed phase fails. | The `init` phase plants `data/pathway/` at `target` before any phase needing it runs. The plan covers this by ordering `init` first and by testing the fresh-tmpdir case in `substrate-stage.test.js`. |
+| `bin/fit-map.js`'s module-top `findDataDir`/`config` loads run before `dispatchSubstrate` dispatches, and they observe the substrate subprocess's `process.cwd()` (always the repo root). If `--cwd` were ever interpreted as "change the Node process's cwd," the module-top loads would silently anchor against the wrong filesystem. | Step 6 plumbs `--cwd` exclusively through the `target` parameter; no `process.chdir`. The substrate-stage tests pass an explicit `target` to lock the parameter (Step 6 test row). Surfaces in plan code, not just in risks. |
+| Two `data/pathway/` directories exist in CI (repo's fit-terrain output and `$AGENT_CWD`'s starter copy); future readers may incorrectly assume the seed phase consumes the agent workspace's copy. | Documented in Step 6's data-flow table; the substrate-stage unit suite cannot verify (it stubs `findDataDir`), so the kata-interview CI run is the gating evidence. |
 | `updateEnvFile` rewrites `.env` per-key; an intermediate process death between keys leaves a half-written file. | Spec § *Out of scope* explicitly defers cross-file atomicity. No mitigation in this plan. |
-| Test for the anchoring criterion (Step 5) needs an ambiguous upward walk; getting the directory layout wrong silently turns the test into a no-op. | Assert *both* directions: the loaded config resolves to `tmpdir/config/` AND, with `runInit` skipped, resolves to the planted ancestor `config/`. Two assertions catch a broken test setup. |
 
 ## Execution
 
