@@ -15,7 +15,7 @@ to find out.
 ## Prerequisites
 
 - A Supabase Auth JWT bound to your engineer email. The CLI reads it from
-  `LANDMARK_AUTH_TOKEN`. Test harnesses and CI fixtures mint JWTs against
+  `PRODUCT_LANDMARK_TOKEN`. Test harnesses and CI fixtures mint JWTs against
   `SUPABASE_JWT_SECRET` via the `signTestToken` helper; production-side
   issuance flows (login, magic-link, SSO) are a follow-up — until then the
   command requires a manually-injected token.

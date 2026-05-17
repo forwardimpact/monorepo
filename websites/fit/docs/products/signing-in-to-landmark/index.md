@@ -104,11 +104,11 @@ Removes the credentials file. A subsequent `login` starts fresh.
 ## Power-user override
 
 If you have been issued a long-lived JWT (operator-minted via
-`fit-map auth issue`), export it as `LANDMARK_AUTH_TOKEN` and the resolver
+`fit-map auth issue`), export it as `PRODUCT_LANDMARK_TOKEN` and the resolver
 will skip the credentials store entirely:
 
 ```sh
-export LANDMARK_AUTH_TOKEN=<jwt>
+export PRODUCT_LANDMARK_TOKEN=<jwt>
 fit-landmark voice
 ```
 

@@ -17,8 +17,9 @@ import { signTestToken } from "./sign-test-token.js";
 
 const SECRET = "test-secret-do-not-reuse";
 
-function makeConfig({ url, anonKey, jwtSecret } = {}) {
+function makeConfig({ url, anonKey, jwtSecret, token } = {}) {
   return {
+    token,
     supabaseUrl: () => {
       if (!url) throw new Error("SUPABASE_URL not found in environment");
       return url;
@@ -37,7 +38,7 @@ function makeConfig({ url, anonKey, jwtSecret } = {}) {
 }
 
 describe("resolveIdentity — env-only path", () => {
-  it("rejects when neither LANDMARK_AUTH_TOKEN nor a session is set", async () => {
+  it("rejects when neither config.token nor a session is set", async () => {
     const env = { LANDMARK_CREDENTIALS_FILE: "/nonexistent/file" };
     await assert.rejects(
       () => resolveIdentity({ config: makeConfig(), env }),
@@ -53,8 +54,7 @@ describe("resolveIdentity — env-only path", () => {
     await assert.rejects(
       () =>
         resolveIdentity({
-          config: makeConfig(),
-          env: { LANDMARK_AUTH_TOKEN: "not.a.jwt.really" },
+          config: makeConfig({ token: "not.a.jwt.really" }),
         }),
       /not a JWT/,
     );
@@ -75,8 +75,7 @@ describe("resolveIdentity — env-only path", () => {
     await assert.rejects(
       () =>
         resolveIdentity({
-          config: makeConfig(),
-          env: { LANDMARK_AUTH_TOKEN: bad },
+          config: makeConfig({ token: bad }),
         }),
       /header rejected/,
     );
@@ -91,8 +90,7 @@ describe("resolveIdentity — env-only path", () => {
     await assert.rejects(
       () =>
         resolveIdentity({
-          config: makeConfig(),
-          env: { LANDMARK_AUTH_TOKEN: bad },
+          config: makeConfig({ token: bad }),
         }),
       /payload is not valid JSON/,
     );
@@ -116,8 +114,7 @@ describe("resolveIdentity — env-only path", () => {
     await assert.rejects(
       () =>
         resolveIdentity({
-          config: makeConfig({ jwtSecret: SECRET }),
-          env: { LANDMARK_AUTH_TOKEN: noEmail },
+          config: makeConfig({ jwtSecret: SECRET, token: noEmail }),
         }),
       /missing string email claim/,
     );
@@ -137,8 +134,7 @@ describe("resolveIdentity — env-only path", () => {
     await assert.rejects(
       () =>
         resolveIdentity({
-          config: makeConfig(),
-          env: { LANDMARK_AUTH_TOKEN: bad },
+          config: makeConfig({ token: bad }),
         }),
       /missing string email claim/,
     );
@@ -155,8 +151,7 @@ describe("resolveIdentity — env-only path", () => {
     await assert.rejects(
       () =>
         resolveIdentity({
-          config: makeConfig(),
-          env: { LANDMARK_AUTH_TOKEN: bad },
+          config: makeConfig({ token: bad }),
         }),
       /expired/,
     );
@@ -179,8 +174,7 @@ describe("resolveIdentity — env-only path", () => {
     await assert.rejects(
       () =>
         resolveIdentity({
-          config: makeConfig({ jwtSecret: SECRET }),
-          env: { LANDMARK_AUTH_TOKEN: expired },
+          config: makeConfig({ jwtSecret: SECRET, token: expired }),
         }),
       /expired/,
     );
@@ -193,8 +187,7 @@ describe("resolveIdentity — env-only path", () => {
     await assert.rejects(
       () =>
         resolveIdentity({
-          config: makeConfig({ jwtSecret: SECRET }),
-          env: { LANDMARK_AUTH_TOKEN: bad },
+          config: makeConfig({ jwtSecret: SECRET, token: bad }),
         }),
       /signature does not verify/,
     );
@@ -203,8 +196,7 @@ describe("resolveIdentity — env-only path", () => {
   it("returns { email, jwt } on a happy path with the secret present", async () => {
     const token = signTestToken({ email: "alice@example.com", secret: SECRET });
     const out = await resolveIdentity({
-      config: makeConfig({ jwtSecret: SECRET }),
-      env: { LANDMARK_AUTH_TOKEN: token },
+      config: makeConfig({ jwtSecret: SECRET, token }),
     });
     assert.equal(out.email, "alice@example.com");
     assert.equal(out.jwt, token);
@@ -213,8 +205,7 @@ describe("resolveIdentity — env-only path", () => {
   it("trusts the JWT shape when the secret is absent (production path)", async () => {
     const token = signTestToken({ email: "bob@example.com", secret: SECRET });
     const out = await resolveIdentity({
-      config: makeConfig(),
-      env: { LANDMARK_AUTH_TOKEN: token },
+      config: makeConfig({ token }),
     });
     assert.equal(out.email, "bob@example.com");
   });
@@ -249,7 +240,7 @@ describe("resolveIdentity — credentials-store fallback", () => {
     assert.equal(out.jwt, "access-from-store");
   });
 
-  it("env LANDMARK_AUTH_TOKEN takes precedence over the store", async () => {
+  it("config.token takes precedence over the store", async () => {
     const env = { LANDMARK_CREDENTIALS_FILE: credsFile };
     await writeCredentials(
       {
@@ -262,8 +253,8 @@ describe("resolveIdentity — credentials-store fallback", () => {
     );
     const token = signTestToken({ email: "dave@example.com", secret: SECRET });
     const out = await resolveIdentity({
-      config: makeConfig({ jwtSecret: SECRET }),
-      env: { ...env, LANDMARK_AUTH_TOKEN: token },
+      config: makeConfig({ jwtSecret: SECRET, token }),
+      env,
     });
     assert.equal(out.email, "dave@example.com");
     assert.equal(out.jwt, token);

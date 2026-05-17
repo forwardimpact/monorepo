@@ -6,7 +6,7 @@
  * to read `organization_people` and list `auth.users`) to verify both rows
  * exist before signing, then HMACs a JWT against SUPABASE_JWT_SECRET.
  * Output goes to stdout so the operator can capture it into `.env`, a
- * secret manager, or pipe it to an agent's `LANDMARK_AUTH_TOKEN` setting.
+ * secret manager, or pipe it to an agent's `PRODUCT_LANDMARK_TOKEN` setting.
  */
 
 import {
@@ -91,7 +91,7 @@ export async function runAuthIssueCommand({ supabase, config, options }) {
   process.stdout.write(jwt + "\n\n");
   process.stdout.write(
     formatBullet(
-      "Export: LANDMARK_AUTH_TOKEN=<jwt above>; never commit or echo it.",
+      "Export: PRODUCT_LANDMARK_TOKEN=<jwt above>; never commit or echo it.",
       0,
     ) + "\n",
   );

@@ -19,7 +19,7 @@ in the Map guide.
 - Node.js 18+
 - npm
 - Map's activity layer running and populated
-- A Supabase Auth JWT exported as `LANDMARK_AUTH_TOKEN` — see
+- A Supabase Auth JWT exported as `PRODUCT_LANDMARK_TOKEN` — see
   [Authentication](#authentication) below
 
 ## Install
@@ -30,7 +30,7 @@ npm install @forwardimpact/landmark
 
 ## Authentication
 
-Every Landmark command except `marker` reads `LANDMARK_AUTH_TOKEN` from the
+Every Landmark command except `marker` reads `PRODUCT_LANDMARK_TOKEN` from the
 environment and rejects requests without it. The token is a Supabase Auth JWT
 bound to your email — row-level security uses the `email` claim to scope every
 query, so the token both authenticates you and determines what you can see.
@@ -61,7 +61,7 @@ Today's minimum stand-up is four steps under Map:
    export it:
 
    ```sh
-   export LANDMARK_AUTH_TOKEN=<your signed JWT>
+   export PRODUCT_LANDMARK_TOKEN=<your signed JWT>
    ```
 
    The signing recipe — header `{alg: "HS256", typ: "JWT"}`, payload with
@@ -70,7 +70,7 @@ Today's minimum stand-up is four steps under Map:
    `products/landmark/test/lib/sign-test-token.js` in the monorepo source
    is a reference implementation.
 
-Once `LANDMARK_AUTH_TOKEN` is set, every command in the rest of this guide
+Once `PRODUCT_LANDMARK_TOKEN` is set, every command in the rest of this guide
 works against your scope. The token is not honored offline — there is no
 `--data`-only fallback for analytical commands today
 ([#921](https://github.com/forwardimpact/monorepo/issues/921) tracks that

@@ -6,7 +6,7 @@ description: Mint long-lived Supabase JWTs for unattended agents that take on a 
 Magic-link login works when a human is in front of the email client; it
 breaks down for unattended agents. The `fit-map auth issue` verb closes
 that gap: it mints a Supabase-shaped JWT for an existing roster row, and
-the operator hands the token to the agent as `LANDMARK_AUTH_TOKEN`.
+the operator hands the token to the agent as `PRODUCT_LANDMARK_TOKEN`.
 
 The same verb works for human emails too, but the canonical use case is a
 service-account row — an identity that exists solely so an agent can take
@@ -41,7 +41,7 @@ Issued JWT for kata-agent-team@example.com (service_account, ttl=8760h)
 
 eyJhbGciOi...
 
-  Export: LANDMARK_AUTH_TOKEN=<jwt above>; never commit or echo it.
+  Export: PRODUCT_LANDMARK_TOKEN=<jwt above>; never commit or echo it.
 
   Done.
 ```
@@ -77,11 +77,11 @@ field; the DB check constraint enforces `level IS NULL` when
 ## Hand the token to the agent
 
 Write the JWT to the agent's `.env` (or your secret manager). Once
-`LANDMARK_AUTH_TOKEN` is exported in the agent's environment, every
+`PRODUCT_LANDMARK_TOKEN` is exported in the agent's environment, every
 `fit-landmark` invocation resolves identity directly from the token:
 
 ```sh
-LANDMARK_AUTH_TOKEN=$JWT fit-landmark voice
+PRODUCT_LANDMARK_TOKEN=$JWT fit-landmark voice
 ```
 
 No magic-link, no refresh flow — the long-lived JWT verifies under

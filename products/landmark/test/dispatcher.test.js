@@ -3,7 +3,7 @@
  *
  * Spawns the bin/fit-landmark.js entrypoint via `node` with a controlled
  * env and asserts the documented exit codes:
- *   - 4: IdentityUnresolvedError (no LANDMARK_AUTH_TOKEN)
+ *   - 4: IdentityUnresolvedError (no PRODUCT_LANDMARK_TOKEN)
  *   - 3: SupabaseUnavailableError (token present but no SUPABASE_*)
  *   - 0: marker (needsSupabase: false, dispatcher skips identity)
  *
@@ -69,7 +69,7 @@ describe("fit-landmark dispatcher exit codes", () => {
     const res = run(
       ["voice", "--email", "alice@example.com", "--data", DATA_DIR],
       {
-        LANDMARK_AUTH_TOKEN: token,
+        PRODUCT_LANDMARK_TOKEN: token,
         // Important: do not set SUPABASE_URL or SUPABASE_ANON_KEY.
       },
     );

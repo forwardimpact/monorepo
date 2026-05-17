@@ -19,6 +19,19 @@ function stripQuotes(value) {
 }
 
 /**
+ * Parse an env value as JSON when possible, falling back to the raw string.
+ * @param {string} raw
+ * @returns {*}
+ */
+function parseEnvValue(raw) {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+}
+
+/**
  * Parses one line of a .env file.
  * @param {string} line
  * @returns {{ key: string, value: string } | null}
@@ -50,6 +63,7 @@ export class Config {
     "GH_TOKEN",
     "GITHUB_TOKEN",
     "MCP_TOKEN",
+    "PRODUCT_LANDMARK_TOKEN",
     "SUPABASE_ANON_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
     "SUPABASE_JWT_SECRET",
@@ -120,17 +134,14 @@ export class Config {
     data.url = `${data.protocol}://${data.host}:${data.port}${data.path}`;
 
     // 3. Environment overrides — SERVICE_{NAME}_{PARAM} env vars win over
-    //    config file values. These are on process.env (set by shell or by
-    //    #loadEnvFile for non-credential keys like SERVICE_MCP_URL).
+    //    config file values. Shell process.env wins over .env #envOverrides.
+    //    Credential keys treat empty string as absent so a workflow ternary
+    //    emitting '' cannot clobber a .env-supplied value; non-credential
+    //    service params keep today's empty-string-wins behaviour.
     for (const param of Object.keys(data)) {
       const varName = `${namespaceUpper}_${nameUpper}_${param.toUpperCase()}`;
-      if (this.#process.env[varName] !== undefined) {
-        try {
-          data[param] = JSON.parse(this.#process.env[varName]);
-        } catch {
-          data[param] = this.#process.env[varName];
-        }
-      }
+      const resolved = this.#resolveOverride(varName);
+      if (resolved !== undefined) data[param] = resolved;
     }
 
     // 4. Re-parse URL after overrides so host/port/protocol stay consistent
@@ -326,6 +337,29 @@ export class Config {
    */
   #env(key) {
     return this.#process.env[key] ?? this.#envOverrides[key];
+  }
+
+  /**
+   * Resolves a config-param override against shell env then #envOverrides,
+   * applying credential-key semantics (empty string treated as absent so a
+   * workflow ternary emitting '' cannot clobber a .env value). Returns the
+   * JSON-parsed value or raw string, or undefined if nothing is set.
+   * @param {string} varName - Fully-qualified env var name
+   * @returns {*|undefined}
+   * @private
+   */
+  #resolveOverride(varName) {
+    const isCredential = Config.#CREDENTIAL_KEYS.has(varName);
+    const shell = this.#process.env[varName];
+    const shellOk = isCredential
+      ? shell !== undefined && shell !== ""
+      : shell !== undefined;
+    if (shellOk) return parseEnvValue(shell);
+    const fallback = this.#envOverrides[varName];
+    const fallbackOk = isCredential
+      ? fallback !== undefined && fallback !== ""
+      : fallback !== undefined;
+    return fallbackOk ? parseEnvValue(fallback) : undefined;
   }
 
   /**

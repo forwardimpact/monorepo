@@ -48,7 +48,7 @@ const VERSION =
   JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8"))
     .version;
 
-const config = await createProductConfig("landmark");
+const config = await createProductConfig("landmark", { token: undefined });
 
 const COMMANDS = {
   org: { handler: runOrgCommand, needsSupabase: true },
