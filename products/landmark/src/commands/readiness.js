@@ -74,8 +74,27 @@ function emptyResult(format, emptyState) {
   return { view: null, meta: { format, emptyState } };
 }
 
+/** Format the "unknown discipline" error so the user sees the actionable gap. */
+function unknownDisciplineError(person, options, mapData) {
+  const available = (mapData.disciplines ?? [])
+    .map((d) => d.id)
+    .sort()
+    .join(", ");
+  const availableSuffix = available
+    ? ` Available disciplines: ${available}.`
+    : " No disciplines are defined in the pathway.";
+  return `Unknown discipline "${person.discipline}" for ${options.email}. The discipline is not defined in the pathway.${availableSuffix}`;
+}
+
 /** Resolve current level, target level, discipline, and track from the person and options. */
 function resolveTargetLevel(person, options, mapData) {
+  const discipline = (mapData.disciplines ?? []).find(
+    (d) => d.id === person.discipline,
+  );
+  if (!discipline) {
+    return { error: unknownDisciplineError(person, options, mapData) };
+  }
+
   const currentLevel = (mapData.levels ?? []).find(
     (l) => l.id === person.level,
   );
@@ -94,15 +113,6 @@ function resolveTargetLevel(person, options, mapData) {
     if (!targetLevel) {
       return { error: EMPTY_STATES.NO_HIGHER_LEVEL(currentLevel.id) };
     }
-  }
-
-  const discipline = (mapData.disciplines ?? []).find(
-    (d) => d.id === person.discipline,
-  );
-  if (!discipline) {
-    return {
-      error: `Unknown discipline "${person.discipline}" for ${options.email}.`,
-    };
   }
 
   const track = person.track

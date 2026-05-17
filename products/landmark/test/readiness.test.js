@@ -144,4 +144,35 @@ describe("readiness command", () => {
     assert.equal(result.view, null);
     assert.ok(result.meta.emptyState.includes("nobody@example.com"));
   });
+
+  it("reports unknown discipline (not unknown level) when the persona's discipline isn't defined", async () => {
+    const result = await runReadinessCommand({
+      options: {
+        email: "daedalus@bionova.example",
+        target: "J090",
+      },
+      mapData: MAP_DATA,
+      supabase: {},
+      format: "text",
+      queries: stubQueries({
+        person: {
+          email: "daedalus@bionova.example",
+          name: "Daedalus",
+          discipline: "data_engineering",
+          level: "J080",
+          track: null,
+        },
+      }),
+    });
+    assert.equal(result.view, null);
+    assert.match(
+      result.meta.emptyState,
+      /unknown discipline "data_engineering"/i,
+    );
+    assert.match(
+      result.meta.emptyState,
+      /Available disciplines: software_engineering/,
+    );
+    assert.doesNotMatch(result.meta.emptyState, /Unknown level/);
+  });
 });
