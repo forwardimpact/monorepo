@@ -1,4 +1,4 @@
-name: "Kata:–- Interview"
+name: "Kata: Interview"
 
 on:
   workflow_dispatch:
