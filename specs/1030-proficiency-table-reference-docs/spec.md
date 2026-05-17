@@ -1,4 +1,4 @@
-# Spec 1020 — Proficiency Table Structural Divergence in Reference Docs
+# Spec 1030 — Proficiency Table Structural Divergence in Reference Docs
 
 ## Problem
 
