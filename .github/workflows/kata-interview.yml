@@ -64,11 +64,14 @@ jobs:
 
           # Install the Supabase CLI globally — npm's global install is
           # blocked by supabase's postinstall script, so we use bun.
-          # bun's global bin dir isn't on PATH by default in CI, so we
-          # write it to $GITHUB_PATH for subsequent steps (the Substrate
-          # stage step spawns `supabase` directly, not via `bunx`).
+          # bun only symlinks its own binaries (bun, bunx) into
+          # $HOME/.bun/bin/; third-party globals land in
+          # $HOME/.bun/install/global/node_modules/.bin/. The Substrate
+          # stage step's supabase-cli.js spawns `supabase` directly, so
+          # we add the third-party bin dir to $GITHUB_PATH for the rest
+          # of the job.
           bun install -g supabase
-          echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.bun/install/global/node_modules/.bin" >> "$GITHUB_PATH"
 
           echo "dir=$agent_dir" >> "$GITHUB_OUTPUT"
 
@@ -81,14 +84,11 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUBSTRATE_FORCE_EMPTY_CORPUS: ${{ inputs.empty-corpus-test }}
         run: |
-          # Belt-and-braces: $GITHUB_PATH propagation from the previous
-          # step should already include $HOME/.bun/bin, but spawn() in
-          # supabase-cli.js reads PATH from process.env directly, so we
-          # also export it inline here. `which supabase` proves the
-          # binary is reachable before we hand control to fit-map.
-          export PATH="$HOME/.bun/bin:$PATH"
-          echo "PATH=$PATH"
-          which supabase || { echo "FAIL: supabase not on PATH after bun -g install" >&2; ls -la "$HOME/.bun/bin" >&2 || true; exit 1; }
+          # $GITHUB_PATH from the previous step adds the bun third-party
+          # bin dir; confirm `supabase` resolves before handing control
+          # to fit-map so a future PATH regression surfaces here rather
+          # than inside the substrate-cli error.
+          which supabase || { echo "FAIL: supabase not on PATH after bun -g install" >&2; exit 1; }
 
           bunx fit-map substrate stage --cwd "${{ steps.agent-workspace.outputs.dir }}"
 
