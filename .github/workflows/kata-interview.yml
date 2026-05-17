@@ -155,6 +155,16 @@ jobs:
 
       - name: Scan logs for sensitive values
         if: always() && inputs.product == 'landmark'
+        # The /runs/{id}/logs API only returns a complete archive after
+        # the run finishes, so this defense-in-depth scan can produce a
+        # 404 while the run is still active (the scan step itself is
+        # part of the run). GitHub Actions also auto-masks the repo
+        # secrets and the persona JWT (we called `::add-mask::` on
+        # them earlier), so this scan is belt-and-braces. Mark it
+        # non-fatal — the workflow shouldn't fail when the API path is
+        # unavailable. A separate workflow_run-triggered job is the
+        # right home for a strict post-run scan; deferred.
+        continue-on-error: true
         shell: bash
         env:
           # Use the workflow's own GITHUB_TOKEN (Actions:Read granted via
