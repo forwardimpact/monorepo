@@ -7,16 +7,20 @@ files.* Every gap the spec catalogues (F3, F4, F5, F6, F8, F10, F11, F13, F17,
 F18) is a tax that lands on the agent because the protocol contracts the work
 but not the surface that performs it. The redesign inverts that: **`fit-wiki`
 becomes the agent's interface to memory.** Writes collapse to one call per
-intent (claim, log, memo, audit). Reads pair a direct `Read` of `MEMORY.md`
-(the spec-criterion-satisfying surface) with one `boot` call that produces a
-structured digest covering the rest of Tier 1. Two boot tool calls replace
+intent (claim, log, memo). Reads pair a direct `Read` of `MEMORY.md` (the
+spec-criterion-satisfying surface) with one `boot` call that produces a
+structured digest covering the rest of Tier 1. Two tool calls at boot replace
 three. Direct file edits remain possible but become the escape hatch, not the
 path.
 
-This is what makes the read-on-boot habit cheap enough to beat
-`gh`/`git`/source re-derivation (the JTBD Habit named in the spec § Forces).
-The CLI is calibrated, on every primitive, to cost fewer tool calls than the
-alternative it competes with.
+This makes the read-on-boot habit cheap enough to beat `gh`/`git`/source
+re-derivation (the JTBD Habit per spec § Forces): the CLI is calibrated, on
+every primitive, to cost fewer tool calls than the alternative.
+
+The redesign also extends `fit-wiki refresh` to render storyboard Obstacle /
+Experiment lists from GitHub issue state, closing a two-artifact-sync failure
+class observed in W20/W21 storyboard traces. Issues remain the coordination
+artifact; the storyboard markdown becomes a rendered reflection.
 
 ```mermaid
 graph LR
@@ -47,8 +51,7 @@ graph LR
 | **`memory-protocol.md`** | Rewritten to specify CLI contracts plus the named jobs the CLI serves, not file-shape contracts. |
 | **`MEMORY.md`** | Retains canonical-priority role; gains the `## Active Claims` schema. **Authoritative schema location:** the markdown table in `MEMORY.md` is canonical; `boot`'s JSON digest is a derived view. When they disagree, the markdown wins. |
 
-**Digest schema (boot output, JSON).** Array element shapes are part of the
-stable contract:
+**Digest schema (boot output, JSON), stable contract:**
 
 ```
 {
@@ -94,11 +97,10 @@ agent's first ten tool calls:
    storyboard agent-items in one structured response, replacing two direct
    reads.
 
-Total cost: 2 tool calls (vs status-quo 3 reads). Boldness preserved: `boot`
-is still the agent's structured-routing interface, and write primitives
-(`log`, `claim`, `release`, `inbox`) remain CLI-only. The `Read MEMORY.md`
-companion costs ~50ms and pays the spec-criterion tax without compromising
-the cheap-memory thesis.
+Total cost: 2 tool calls (vs status-quo 3 reads); the companion `Read
+MEMORY.md` pays the spec-criterion tax in ~50ms without compromising the
+cheap-memory thesis. `boot` is the agent's structured-routing interface;
+write primitives (`log`, `claim`, `release`, `inbox`) remain CLI-only.
 
 ### During run
 
@@ -174,9 +176,8 @@ Each row carries position, rejected alternative, and why.
   `fit-wiki` already ships in every Kata installation (`just quickstart`). A
   broken CLI fails loud; a missed `Read wiki/MEMORY.md` fails silent.
 - **One more abstraction layer.** Agents interact with memory via a command
-  surface rather than the filesystem. The win on every weekly-log write (6
-  probes → 1 call, F4) and every cold boot (3 reads → 1 call) exceeds the
-  conceptual cost.
+  surface. The win on every weekly-log write (6 probes → 1, F4) and every cold
+  boot (3 reads → 1) exceeds the conceptual cost.
 - **Digest-format coupling.** Downstream skills consume `boot`'s JSON output.
   Treated as a stable contract under semantic versioning; format changes
   require a follow-up spec.
@@ -184,6 +185,10 @@ Each row carries position, rejected alternative, and why.
   `Read` tool event. Post-redesign it is a `Bash: fit-wiki boot` event. The
   spec's success-criteria verifier reads the trace the same way; the surface
   it observes shifts from filename to subcommand name.
+- **`gh` CLI dependency for `refresh`.** Extended `refresh` shells `gh issue
+  list` for Obstacle / Experiment blocks. `gh` ships with Kata; an unreachable
+  `gh` renders the new blocks empty with a stderr warning, leaving XmR
+  unaffected.
 
 ## References
 
