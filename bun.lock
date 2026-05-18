@@ -271,7 +271,7 @@
     },
     "libraries/libskill": {
       "name": "@forwardimpact/libskill",
-      "version": "5.3.1",
+      "version": "5.4.0",
       "dependencies": {
         "@forwardimpact/map": "^0.15.0",
       },
@@ -538,7 +538,7 @@
     },
     "products/landmark": {
       "name": "@forwardimpact/landmark",
-      "version": "0.1.17",
+      "version": "0.1.18",
       "bin": {
         "fit-landmark": "./bin/fit-landmark.js",
       },
@@ -558,7 +558,7 @@
     },
     "products/map": {
       "name": "@forwardimpact/map",
-      "version": "0.15.46",
+      "version": "0.15.47",
       "bin": {
         "fit-map": "./bin/fit-map.js",
       },
@@ -595,7 +595,7 @@
     },
     "products/pathway": {
       "name": "@forwardimpact/pathway",
-      "version": "0.25.58",
+      "version": "0.25.59",
       "bin": {
         "fit-pathway": "./bin/fit-pathway.js",
       },
@@ -612,6 +612,9 @@
         "hono": "^4.12.18",
         "mustache": "^4.2.0",
         "yaml": "^2.9.0",
+      },
+      "devDependencies": {
+        "happy-dom": "^20.9.0",
       },
     },
     "products/summit": {
@@ -654,7 +657,7 @@
     },
     "services/map": {
       "name": "@forwardimpact/svcmap",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "bin": {
         "fit-svcmap": "./server.js",
       },

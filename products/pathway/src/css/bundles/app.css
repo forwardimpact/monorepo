@@ -28,6 +28,7 @@
 
 /* Components (Pathway-specific) */
 @import "../components/command-prompt.css" layer(components);
+@import "../components/first-visit-banner.css" layer(components);
 @import "../components/skill-file-viewer.css" layer(components);
 @import "../components/file-card.css" layer(components);
 

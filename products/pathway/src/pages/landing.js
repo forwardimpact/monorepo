@@ -11,6 +11,8 @@ import {
 } from "@forwardimpact/map/levels";
 import { aggregateTools } from "../formatters/tool/shared.js";
 import { createCommandPrompt } from "../components/command-prompt.js";
+import { createFirstVisitBanner } from "../components/first-visit-banner.js";
+import { isDismissed, markDismissed } from "../lib/first-visit-dismissal.js";
 
 /**
  * Render the landing page
@@ -27,8 +29,19 @@ export function renderLanding() {
   const capabilityCount = Object.keys(skillsByCapability).length;
   const tools = aggregateTools(data.skills);
 
+  let banner = null;
+  if (!isDismissed()) {
+    banner = createFirstVisitBanner({
+      onDismiss: () => {
+        markDismissed();
+        banner.remove();
+      },
+    });
+  }
+
   const page = div(
     { className: "landing-page" },
+    banner,
     // Hero section
     div(
       { className: "landing-hero" },

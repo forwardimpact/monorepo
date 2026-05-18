@@ -131,6 +131,9 @@
     "mustache": "^4.2.0",
     "yaml": "^2.9.0"
   },
+  "devDependencies": {
+    "happy-dom": "^20.9.0"
+  },
   "engines": {
     "bun": ">=1.2.0",
     "node": ">=18.0.0"
