@@ -425,7 +425,41 @@ Edit `data/pathway/drivers.yaml`:
 Aim for 3--7 drivers. Each needs an `id` and `name`; the links to skills and
 behaviours are optional but make the standard's rationale visible.
 
-## Step 7: Configure the standard
+## Step 7: Add organizational context (optional)
+
+The organizational context slot carries installation-scoped per-team facts
+that do not belong on a track shared across teams. Sibling of the
+`claude-settings.yaml` file, the slot is optional -- skip this step if your
+installation has no per-team facts to add. When populated, the slot flows
+into the rendered `.claude/CLAUDE.md` that `npx fit-pathway agent` writes.
+
+Edit `data/pathway/organizational-context.yaml`:
+
+```yaml
+# data/pathway/organizational-context.yaml
+repositories: [molecularforge, data-lake-infra, api-gateway]
+team: pharma-platform
+manager: athena
+adjacentLeads:
+  - handle: iris
+    role: DX
+  - handle: prometheus
+    role: DS/AI
+projects: [drug-discovery-pipeline, lab-data-portal]
+escalationPaths:
+  - trigger: production page after hours
+    destination: pagerduty://pharma-platform-oncall
+  - trigger: security incident
+    destination: security@pharma.example.com
+```
+
+Each top-level concern is optional, so partial population is valid (a team
+may know its repos and manager before its escalation paths). The
+[Give Agents Organizational Context](/docs/products/agent-teams/organizational-context/)
+guide describes the rendered output and the marker contract downstream
+tooling depends on. Run `bunx fit-map validate` to confirm the slot parses.
+
+## Step 8: Configure the standard
 
 The `standard.yaml` file at the root of your data directory sets metadata and
 display configuration:

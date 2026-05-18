@@ -164,7 +164,7 @@ npx fit-pathway dev     # Preview changes in browser
 - [Configure Agents to Meet Your Engineering Standard](https://www.forwardimpact.team/docs/products/agent-teams/index.md)
   — Generate, structure, and maintain exported agent teams
 - [Give Agents Organizational Context](https://www.forwardimpact.team/docs/products/agent-teams/organizational-context/index.md)
-  — Team instructions, settings, and profile customization
+  — Track-scoped team instructions and installation-scoped organizational context for exported agent teams
 - [See What's Expected at Your Level](https://www.forwardimpact.team/docs/products/career-paths/index.md)
   — Browse jobs, skills, and career progression between levels
 - [Understand Autonomy and Scope](https://www.forwardimpact.team/docs/products/career-paths/autonomy-scope/index.md)
