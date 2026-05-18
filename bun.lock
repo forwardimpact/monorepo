@@ -134,6 +134,7 @@
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libindex": "^0.1.27",
+        "@forwardimpact/libresource": "^0.1.111",
         "@forwardimpact/libstorage": "^0.1.53",
         "@forwardimpact/libtelemetry": "^0.1.22",
         "@forwardimpact/libtype": "^0.1.63",
@@ -234,7 +235,9 @@
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libconfig": "^0.1.79",
         "@forwardimpact/libpolicy": "^0.1.52",
+        "@forwardimpact/libsecret": "^0.1.16",
         "@forwardimpact/libstorage": "^0.1.53",
         "@forwardimpact/libtelemetry": "^0.1.22",
         "@forwardimpact/libtype": "^0.1.63",
@@ -323,6 +326,7 @@
       },
       "devDependencies": {
         "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libsyntheticrender": "^0.1.25",
       },
       "optionalDependencies": {
         "@faker-js/faker": "^10.4.0",
@@ -333,6 +337,7 @@
       "version": "0.1.26",
       "dependencies": {
         "@forwardimpact/libprompt": "^0.1.0",
+        "@forwardimpact/libsyntheticgen": "^0.1.21",
         "@forwardimpact/libtelemetry": "^0.1.23",
         "@forwardimpact/libutil": "^0.1.61",
         "ajv": "^8.20.0",
@@ -368,6 +373,9 @@
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libindex": "^0.1.27",
+        "@forwardimpact/librepl": "^0.1.12",
+        "@forwardimpact/libstorage": "^0.1.78",
+        "@forwardimpact/libtype": "^0.1.75",
         "jmespath": "^0.16.0",
       },
       "devDependencies": {
@@ -431,6 +439,8 @@
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libstorage": "^0.1.78",
         "@forwardimpact/libtelemetry": "^0.1.22",
       },
       "devDependencies": {
@@ -446,7 +456,10 @@
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libconfig": "^0.1.79",
         "@forwardimpact/libindex": "^0.1.27",
+        "@forwardimpact/libresource": "^0.1.111",
+        "@forwardimpact/libstorage": "^0.1.78",
         "@forwardimpact/libtelemetry": "^0.1.22",
         "@forwardimpact/libtype": "^0.1.63",
       },
@@ -659,6 +672,7 @@
         "@forwardimpact/libgraph": "^0.1.49",
         "@forwardimpact/libresource": "^0.1.89",
         "@forwardimpact/librpc": "^0.1.77",
+        "@forwardimpact/libtelemetry": "^0.1.41",
         "n3": "^2.0.3",
       },
       "devDependencies": {
@@ -734,6 +748,7 @@
         "@forwardimpact/libindex": "^0.1.27",
         "@forwardimpact/librpc": "^0.1.77",
         "@forwardimpact/libstorage": "^0.1.53",
+        "@forwardimpact/libtelemetry": "^0.1.41",
         "@forwardimpact/libtype": "^0.1.63",
       },
       "devDependencies": {
@@ -751,6 +766,7 @@
         "@forwardimpact/libresource": "^0.1.89",
         "@forwardimpact/librpc": "^0.1.77",
         "@forwardimpact/libstorage": "^0.1.53",
+        "@forwardimpact/libtelemetry": "^0.1.41",
         "@forwardimpact/libtype": "^0.1.63",
         "@forwardimpact/libvector": "^0.1.68",
       },
