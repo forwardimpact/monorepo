@@ -33,6 +33,19 @@ Each run covers all four curation areas in sequence.
 
 If time-constrained, prioritize `summary-accuracy` and `inbox-follow-up`.
 
+## Write-time invariants
+
+**Verify state before writing.** When adding or editing any agent-summary
+entry that names a PR or Issue (Watching-list, "Recently merged", Open
+Blockers, Observations to Teammates), query state at write time via
+`gh pr view <num> --json state,mergedAt` or `gh issue view <num> --json state`.
+Do not infer state from teammate summaries, memos, or prior curation entries —
+they may be stale by hours, not just days.
+
+The same rule applies to agent-summary edits triggered by cross-agent
+corrections: re-verify the named artifact rather than transcribing the
+correction text verbatim.
+
 ## Process
 
 ### Step 0: Read Memory
@@ -69,7 +82,8 @@ For each agent, compare the summary against the most recent weekly log entries:
   file. The curator is the only agent that rewrites summaries; other agents
   propose edits via observations.
 
-Fix inaccuracies directly in the summary files.
+Fix inaccuracies directly in the summary files. Any fresh PR/Issue reference
+written during a fix must satisfy the write-time invariant above.
 
 ### Step 2: Inbox follow-up
 
