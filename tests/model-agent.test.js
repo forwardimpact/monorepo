@@ -6,6 +6,7 @@ import { assertThrowsMessage } from "@forwardimpact/libharness";
 import {
   deriveReferenceLevel,
   interpolateTeamInstructions,
+  renderOrganizationalContext,
 } from "@forwardimpact/libskill/agent";
 
 describe("Agent Module", () => {
@@ -211,5 +212,123 @@ describe("interpolateTeamInstructions", () => {
       humanDiscipline: discipline,
     });
     assert.strictEqual(result, "Static instructions.");
+  });
+});
+
+describe("renderOrganizationalContext", () => {
+  const fullExample = {
+    repositories: ["molecularforge", "data-lake-infra", "api-gateway"],
+    team: "pharma-platform",
+    manager: "athena",
+    adjacentLeads: [
+      { handle: "iris", role: "DX" },
+      { handle: "prometheus", role: "DS/AI" },
+    ],
+    projects: ["drug-discovery-pipeline", "lab-data-portal"],
+    escalationPaths: [
+      {
+        trigger: "production page after hours",
+        destination: "pagerduty://pharma-platform-oncall",
+      },
+      {
+        trigger: "security incident",
+        destination: "security@pharma.example.com",
+      },
+    ],
+  };
+
+  const fullExampleRendered =
+    "## Organizational Context\n" +
+    "\n" +
+    "- **Repositories:** molecularforge, data-lake-infra, api-gateway\n" +
+    "- **Team:** pharma-platform\n" +
+    "- **Manager:** athena\n" +
+    "- **Adjacent leads:** iris (DX), prometheus (DS/AI)\n" +
+    "- **Projects:** drug-discovery-pipeline, lab-data-portal\n" +
+    "- **Escalation paths:**\n" +
+    "  - production page after hours → pagerduty://pharma-platform-oncall\n" +
+    "  - security incident → security@pharma.example.com\n";
+
+  it("returns null for null input", () => {
+    assert.strictEqual(renderOrganizationalContext(null), null);
+  });
+
+  it("returns null for undefined input", () => {
+    assert.strictEqual(renderOrganizationalContext(undefined), null);
+  });
+
+  it("returns null for empty object", () => {
+    assert.strictEqual(renderOrganizationalContext({}), null);
+  });
+
+  it("returns null when all concerns are empty", () => {
+    const result = renderOrganizationalContext({
+      repositories: [],
+      team: "",
+      manager: "",
+      adjacentLeads: [],
+      projects: [],
+      escalationPaths: [],
+    });
+    assert.strictEqual(result, null);
+  });
+
+  it("emits a single bullet when only manager is populated", () => {
+    const result = renderOrganizationalContext({ manager: "athena" });
+    assert.strictEqual(
+      result,
+      "## Organizational Context\n\n- **Manager:** athena\n",
+    );
+  });
+
+  it("renders the full populated example byte-for-byte", () => {
+    assert.strictEqual(
+      renderOrganizationalContext(fullExample),
+      fullExampleRendered,
+    );
+  });
+
+  it("emits adjacent leads without a trailing comma when single entry", () => {
+    const result = renderOrganizationalContext({
+      adjacentLeads: [{ handle: "iris", role: "DX" }],
+    });
+    assert.match(result, /- \*\*Adjacent leads:\*\* iris \(DX\)\n$/);
+    assert.ok(!result.includes("iris (DX),"));
+  });
+
+  it("emits a single escalation path as one sub-bullet", () => {
+    const result = renderOrganizationalContext({
+      escalationPaths: [{ trigger: "incident", destination: "ops@example" }],
+    });
+    assert.strictEqual(
+      result,
+      "## Organizational Context\n\n- **Escalation paths:**\n  - incident → ops@example\n",
+    );
+  });
+
+  it("emits a single repository without commas", () => {
+    const result = renderOrganizationalContext({ repositories: ["only-repo"] });
+    assert.strictEqual(
+      result,
+      "## Organizational Context\n\n- **Repositories:** only-repo\n",
+    );
+  });
+
+  it("suppresses empty arrays under a populated section", () => {
+    const result = renderOrganizationalContext({
+      repositories: ["one", "two"],
+      adjacentLeads: [],
+      escalationPaths: [],
+    });
+    assert.strictEqual(
+      result,
+      "## Organizational Context\n\n- **Repositories:** one, two\n",
+    );
+  });
+
+  it("ends with exactly one trailing newline (not zero, not two)", () => {
+    const result = renderOrganizationalContext(fullExample);
+    assert.ok(result.endsWith("\n"));
+    assert.ok(!result.endsWith("\n\n"));
   });
 });

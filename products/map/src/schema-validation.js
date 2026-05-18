@@ -21,6 +21,7 @@ const SCHEMA_MAPPINGS = {
   "levels.yaml": "levels.schema.json",
   "standard.yaml": "standard.schema.json",
   "self-assessments.yaml": "self-assessments.schema.json",
+  "organizational-context.yaml": "organizational-context.schema.json",
   capabilities: "capability.schema.json",
   disciplines: "discipline.schema.json",
   tracks: "track.schema.json",
@@ -342,7 +343,10 @@ export class SchemaValidator {
   }
 
   /** @type {string[]} Files that are silently optional (no warning when absent). */
-  static #OPTIONAL_SILENT = ["self-assessments.yaml"];
+  static #OPTIONAL_SILENT = [
+    "self-assessments.yaml",
+    "organizational-context.yaml",
+  ];
 
   /**
    * Validate single YAML files listed in SCHEMA_MAPPINGS.

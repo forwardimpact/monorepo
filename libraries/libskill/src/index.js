@@ -98,6 +98,7 @@ export {
   generateAgentProfile,
   buildAgentIndex,
   interpolateTeamInstructions,
+  renderOrganizationalContext,
 } from "./agent.js";
 
 export {

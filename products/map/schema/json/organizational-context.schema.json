@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://www.forwardimpact.team/schema/json/organizational-context.schema.json",
+  "title": "Organizational Context",
+  "description": "Installation-scoped per-team context surfaced into the rendered .claude/CLAUDE.md by fit-pathway agent.",
+  "type": "object",
+  "properties": {
+    "repositories": { "type": "array", "items": { "type": "string" } },
+    "team": { "type": "string" },
+    "manager": { "type": "string" },
+    "adjacentLeads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["handle", "role"],
+        "properties": {
+          "handle": { "type": "string" },
+          "role": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "projects": { "type": "array", "items": { "type": "string" } },
+    "escalationPaths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["trigger", "destination"],
+        "properties": {
+          "trigger": { "type": "string" },
+          "destination": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
