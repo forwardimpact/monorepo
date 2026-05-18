@@ -14,7 +14,7 @@ file is the on-boot contract for six agents (`improvement-coach`,
 [JTBD](../../wiki/memory-protocol-jtbd-2026-05-16.md),
 [failures](../../wiki/memory-protocol-failures-2026-05-16.md)) shipped on
 2026-05-16 via [#950](https://github.com/forwardimpact/monorepo/issues/950)
-documents six load-bearing gaps between what the protocol says and what
+documents seven load-bearing gaps between what the protocol says and what
 agents do.
 
 The gaps are not opinion — they are measured against the protocol's own
@@ -24,12 +24,13 @@ contract:
 |---|---|---|
 | The canonical priority surface is dark to its primary readership. | `wiki/MEMORY.md` is Tier-1 "always" per the protocol; 0 reads across 8 inspected traces; only 33% (18 of 54) of wiki files even reference it. | F11 |
 | The summary line budget is documented but unenforced. | `release-engineer.md` at 106 lines (+33% over the 80-line cap), `staff-engineer.md` at 83 (+4%). The check is mechanical (`wc -l`) and not wired anywhere. | F10 |
-| Weekly logs grow unbounded and routinely cross the Read-tool ceiling. | 23 of 40 weekly logs (57.5%) exceed the 600-line Read-cap proxy; top files at 1,909 / 1,898 / 1,793 / 1,689 lines. No budget exists for these files. | F3, F17 |
+| Weekly logs grow unbounded; every read of one taxes the agent's context window, and reads that cross the Read-tool ceiling fail outright. | 23 of 40 weekly logs (57.5%) exceed the 600-line Read-cap proxy; top files at 1,909 / 1,898 / 1,793 / 1,689 lines. The Read-cap proxy marks the failure tip — every *successful* read of an oversized log still consumes the context the agent needed for its primary task. No budget exists for these files. | F3, F17 |
+| Appending an entry to a weekly log has no CLI primitive, so every write fans out across six probes before the first edit. | A single trace catalogued `date`, `ls`, `Read`, `wc -l`, `grep -n`, `Read offset=N` (often past end-of-file), and `tail` — six tool calls before the first write. `fit-wiki` has no `append-log` or `record-decision` subcommand. Every agent that writes a weekly log pays this turn tax. | F4 |
 | The wiki has no surface for in-flight work, so parallel agents collide. | 4 production duplicate-work incidents in W18–W20 plus 1 trace incident; tracked at MEMORY.md row 2 / RFC #873. Settled-state-only wiki cannot encode "I am about to start X." | F8, F18 |
 | Step 0 ("Read Memory") is declared by 11 skills (current `grep -l "Step 0: Read Memory" .claude/skills/**/SKILL.md` count) but routinely skipped in React-mode runs. | 4 of 4 React-mode participant traces in the study window skipped Step 0; reinforced by the zero-MEMORY.md-read finding. | F5 |
 | The Decision block is contracted as the *opening* of each run's log entry, but is written retroactively. | 2 of 2 inspected traces wrote the block at run end, reconstructing what happened. | F6, F13 |
 
-Two findings shape the response shape itself, not just its targets:
+Three findings shape the response shape itself, not just its targets:
 
 1. **Habit contradicts Push.** The JTBD analysis (§ Forces summary, line
    868 of `memory-protocol-jtbd-2026-05-16.md`) names cold-boot context loss
@@ -43,6 +44,27 @@ Two findings shape the response shape itself, not just its targets:
    "none" detection, plus 4 others with only reactive or post-hoc detection)
    have no preventive check, so adjacent small failures compose into
    incidents with no single check firing.
+3. **Every run pays a context-and-turn tax — most of it silent.** The
+   protocol contracts work the agent must do on every boot, but does not
+   budget the cost that work charges to the agent's run. Two dimensions
+   compound:
+   - **Context tax.** F3 (Read-cap overflow) is the *visible* size failure:
+     a Read errors out when a weekly log crosses the 25k-token ceiling. The
+     *silent* counterpart fires on every successful read of an oversized
+     memory file — Tier 1 or Tier 2 — where the tokens consumed are tokens
+     the agent will not spend on its primary task. The storyboard alone
+     (M05, 571 lines / 72 KB, already over the Read cap) and the largest
+     weekly logs (1,909 / 1,898 / 1,793 / 1,689 lines) crowd the agent's
+     attention before any domain work begins.
+   - **Turn tax.** F4 records six tool calls (`date`, `ls`, `Read`,
+     `wc -l`, `grep -n`, `tail`) before the first write of a weekly-log
+     entry, because no append primitive exists. Every weekly-log writer
+     pays this — it is structural, not incidental.
+
+   A memory protocol that improves the Kata loop has to win on the cost it
+   charges every agent that obeys it, not only on the gaps it closes.
+   Sizing, primitives, and read frequency are first-order design choices,
+   not implementation details.
 
 The protocol also serves jobs it does not name: "find the next thing to pick
 up without colliding" (F18 is the cost of leaving this unnamed), "trust
@@ -50,12 +72,26 @@ another agent's reported state without re-deriving," "receive memos without
 breaking my contract." These appear in the per-agent JTBD enumeration but
 nowhere in the protocol text.
 
-Status quo cost: every agent run pays the gap tax. Some runs lose work
-(F1-class), some recur indefinitely (F3, F4, F5, F17), some erode trust in
-the protocol as written (F10, F11, F13 — protocol artifacts that are
-documented but not enforced; F12 is a separate `STATUS.md` hygiene issue
-and is out of scope here). The corpus is the diagnostic; this spec is the
-WHAT/WHY of the response.
+Status quo cost: every agent run pays the gap tax in several measurable
+currencies.
+
+- **Lost work** when adjacent failures compose (F1).
+- **Stolen context** — every Tier 1 or Tier 2 read of an oversized file
+  consumes attention the agent needed for its primary task (F3 visible at
+  the Read-cap; F17 silent below it; F10 on the summary side).
+- **Wasted turns** — six probes per weekly-log append because no primitive
+  exists (F4).
+- **Routine voids of the on-boot contract** (F5 Step 0 skipped in
+  React-mode; F11 `MEMORY.md` unread across 8 inspected traces).
+- **Eroded trust in the protocol as written** (F10, F13 — documented
+  artifacts that go unchecked; F12 is a separate `STATUS.md` hygiene issue
+  and is out of scope here).
+
+The corpus is the diagnostic; this spec is the WHAT/WHY of the response.
+The redesign is fundamental to the performance of the entire Kata Agent
+system: every agent run starts by paying these costs, so reducing them is
+not optimization at the margin — it is the per-run budget the rest of the
+agent's work draws against.
 
 ## Personas and Job
 
@@ -105,7 +141,7 @@ spec stakes the *outcome*; the design and plan choose the mechanism.
 | # | Decision area | Closes | Position the redesign must take |
 |---|---|---|---|
 | 1 | **Tier 1 read set composition.** | F5, F11 | Tier 1 contains only files agents actually read on every cold boot. If `MEMORY.md` is retained, the redesign names what makes it read-worthy. If retired or folded, the canonical-priority-surface job (which it nominally owns) is rehomed to a named surface that decision area #3 must then make read-on-boot. The Tier 1 set after redesign contains no more than 3 files and at least 1 file, counted by file path (a folded-into-elsewhere outcome is fine and counts as zero new Tier 1 files plus whatever absorbs it). |
-| 2 | **Weekly-log size budget.** | F3, F17 | Weekly logs have a documented per-week line cap, daily-entry cap, rotation policy, or some combination that bounds growth. The cap is checkable by `wc -l` or equivalent. After the cutover date the design names, no weekly-log file on `main` exceeds the chosen bound (the verification is mechanical: `wc -l wiki/<agent>-YYYY-Www.md` is ≤ bound for every file whose week is on or after the cutover). The append-only audit guarantee is either preserved by the chosen mechanism or its loss is named in the design with the rationale. |
+| 2 | **Weekly-log size budget.** | F3, F17 | Weekly logs have a documented per-week line cap, daily-entry cap, rotation policy, or some combination that bounds growth. The bound is anchored in the *context cost* an agent pays on a Tier 2 read of the log — the design states what fraction of an agent's context window the largest legal log may consume, and picks the line/token/chunk bound that holds it — not only in the Read tool's 25k-token ceiling. The Read-cap is the failure tip; the context tax is the cost on every successful read. The cap is checkable by `wc -l` or equivalent. After the cutover date the design names, no weekly-log file on `main` exceeds the chosen bound (the verification is mechanical: `wc -l wiki/<agent>-YYYY-Www.md` is ≤ bound for every file whose week is on or after the cutover). The append-only audit guarantee is either preserved by the chosen mechanism or its loss is named in the design with the rationale. |
 | 3 | **Canonical priority surface readership.** | F11, F8 | After redesign, the priority surface (whatever name and location it takes) is read by every Tier 1 boot, including React-mode participant runs. "Read" is observable in a trace by a file open of the named surface within the run's first ten tool calls. The 0-of-8 trace finding does not recur on a fresh post-redesign sample of ≥8 runs covering at least 3 React-mode participant runs and at least 3 direct skill invocations. |
 | 4 | **In-flight work surface.** | F8, F18 | The wiki carries a named read surface (its own file, an extension of an existing file, or a column in an existing table) that lets a booting agent observe what other agents have already claimed before they start work. The surface is machine-readable by the booting agent's normal Tier 1 read (i.e. a file open returns a parseable structure, not just human-readable prose). The redesign defines what a "claim" is — at minimum, claims must distinguish "another agent is actively working on X" from "X is settled state." Specific claim-data schema (branch names, PR ids, ticket ids, expiry policy) is design-phase. |
 | 5 | **Mechanical enforcement of the summary contract.** | F10 | The 80-line summary cap, the `<!-- memo:inbox -->` marker, and the "Inbox is the first H2" rule are each, independently, either (a) mechanically gated on commit so a violation fails a checked surface, or (b) explicitly redesigned out of the contract — for example, the 80-line cap could be replaced by a different bound, the marker by a different convention, or a rule could be dropped entirely with rationale. The redesign decides per-rule. The disallowed end-state is "rule remains in the contract text, unchanged, and still unchecked." |
@@ -115,6 +151,24 @@ spec stakes the *outcome*; the design and plan choose the mechanism.
 
 Beyond the eight decision areas, the redesign:
 
+- **Anchors every size bound in context cost.** Wherever the redesign sets
+  or carries a size bound — on a Tier 1 file (summary, `MEMORY.md` if
+  retained, storyboard or its replacement), on a Tier 2 log, on the
+  in-flight-work surface — the bound is stated in terms of the context tax
+  every reader pays, not only in terms of the Read tool's 25k-token
+  ceiling. Tier 1 files load on every cold boot, so their combined size is
+  the floor on the context tax every agent pays before it does any work;
+  the redesign states what fraction of the agent's context window that
+  floor is allowed to consume. The append-vs-rewrite choice for any
+  read-hot file is made with the reader's cost in view, not only the
+  writer's.
+- **Replaces probe-heavy writes with primitives.** Where the current
+  protocol leaves writers to fan out across `date`/`ls`/`Read`/`wc -l`/`grep`/`tail`
+  to find an insertion point (F4), the redesign names a primitive — a
+  `fit-wiki` subcommand, a Stop-hook contract, or an equivalent — that
+  collapses the fan-out to one call. Decision area #8 names the specific
+  primitive; this bullet states the principle: no protocol-mandated write
+  should cost six probes.
 - **Names the jobs it serves.** The shared jobs the protocol demonstrably
   serves but does not name today — "find next thing to pick up without
   colliding," "trust another agent's reported state without re-deriving,"
@@ -198,7 +252,7 @@ Beyond the eight decision areas, the redesign:
 | Every decision area carries an explicit position. | A checklist mapping each of the eight decision areas above to a present-position assertion in the redesigned protocol (or, for decision area #8, in the protocol or the `fit-wiki` reference it points to) passes for every row. A supporting (not sufficient) mechanical check: `rg -n 'F(3\|4\|5\|6\|8\|10\|11\|13\|17\|18)\b' .claude/agents/references/memory-protocol.md` (extended-regex tool; equivalent forms acceptable) returns at least one hit for each id in the set the redesign decides to keep, where the kept-set is named in the redesign's reference convention. |
 | Tier 1 read set is no more than 3 files and at least 1 file, and named. | The redesigned protocol contains a list (heading, table, or diagram) the implementer can copy verbatim; the count of file paths in that list is between 1 and 3 inclusive; every path in the list exists in `wiki/` or is created by the implementation in the same PR. |
 | Canonical priority surface is read by every Tier 1 boot. | A post-implementation trace sample of at least 8 runs — comprising at least 3 React-mode participant runs and at least 3 direct skill invocations across at least 3 distinct agents — shows the named priority surface opened in each run's first ten tool calls. The sample is collected by the spec implementer or a designated verifier and posted as a PR comment on the implementation PR; the implementation does not merge until the sample passes. The 0-of-8 finding from the study is not reproduced on this sample. |
-| Weekly logs have a budget that binds file state. | The redesigned protocol contains a numeric or rule-based bound on weekly-log size or growth, and the design names a cutover date. After the cutover, every weekly-log file on `main` whose ISO week is on or after the cutover satisfies the bound under `wc -l` (or the equivalent measure the budget specifies). Pre-cutover logs are exempt and remain as-is. |
+| Weekly logs have a budget that binds file state, and the bound is anchored in context cost. | The redesigned protocol contains a numeric or rule-based bound on weekly-log size or growth, and the design names a cutover date. The protocol text (or its design companion) states the *context-cost* rationale for the chosen bound — the fraction of an agent's context window a Tier 2 read of the largest legal log may consume — and is not anchored only in the Read tool's 25k-token ceiling. After the cutover, every weekly-log file on `main` whose ISO week is on or after the cutover satisfies the bound under `wc -l` (or the equivalent measure the budget specifies). Pre-cutover logs are exempt and remain as-is. |
 | Summary-contract rules are each gated or each redesigned. | For each of the three rules (80-line cap, `<!-- memo:inbox -->` marker, "Inbox is the first H2"), one of the following is true: (a) a commit hook, CI step, or pre-merge check fails on a `wiki/<agent>.md` that violates the rule, and that gate runs on the repo; or (b) the redesigned protocol no longer carries the rule in its prior form (replaced by a different rule, dropped entirely with rationale, or absorbed into another rule whose gating then applies). The disallowed end-state per rule is "rule carried forward unchanged and still unchecked." |
 | In-flight work has a machine-readable read surface. | A new agent run that opens its Tier 1 set obtains the in-flight claim set by file open alone (no `gh pr list`, no `git ls-remote`, no separate tool round-trip). The surface is parseable by a normal Read of the file — for example, by line-prefix grep, by table row, or by a documented schema. A verifier can reproduce the claim set from the surface alone, in under one minute, by reading the file. |
 | Decision block requirement is stated. | The redesigned protocol's section on the `### Decision` block contains an unambiguous statement: required at the opening of each weekly-log entry, required at run end, optional, or some named hybrid. The choice is locatable by `rg -n '### Decision' .claude/agents/references/memory-protocol.md` returning a context window that contains a "required/optional/hybrid" keyword within five lines. |
