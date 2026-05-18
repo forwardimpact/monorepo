@@ -161,6 +161,7 @@ Each row carries position, rejected alternative, and why.
 | Obstacle / Experiment surface (kata-session integration) | GH issues remain the authoritative coordination artifact for obstacles and experiments (`gh issue create/comment/close` per `kata-session/references/issue-lifecycle.md`). The storyboard's `### Active` / `### Concluded (last 7 days)` lists become a *rendered reflection* of GH state via four fixed marker pairs (`obstacles:open`, `obstacles:closed`, `experiments:open`, `experiments:closed`) driven by `fit-wiki refresh`. Filter logic — label sets, state, the 7-day Concluded window — is internal to `libwiki`; the markers expose no GitHub-search syntax. Memory (the storyboard markdown) becomes mechanical; coordination (the issues) stays where it is. | Rejected (parallel writes): `fit-wiki obstacle` / `fit-wiki experiment` subcommands wrapping `gh issue`. · Duplicates `gh` for one consumer (the coach) and crosses the memory/coordination boundary. The W20/W21 trace failures (orphan `Staff Exp 41` with no labeled issue, +6d close-out lag on RE Exp 41, hand-edited `(#NNN)` suffixes, manual 7-day partition aging) are *reflection-drift* failures, not write-primitive failures — render-only closes them. Rejected (configurable syntax): GitHub-native qualifier strings inside the marker (`<!-- issues: label:obstacle is:open -->`). · Paste-into-web-UI debuggability is a real win but pays for itself only at high query diversity; storyboard rendering needs four fixed shapes. Opinionated markers keep the surface small and the contract testable. Future extension: a single optional timeframe suffix (`<!-- experiments:closed:30d -->`) if another window is ever needed — added only on demand. |
 | `boot` missing-section tolerance | Silent tolerance: missing `## Active Claims` / inbox / storyboard slice yields empty arrays in the digest. | Rejected: hard-fail on any missing canonical section. · A hard-fail blocks every agent on first install before `init` runs; the failure mode the spec closes (F11) is silent skipping of memory, not silent tolerance of an absent schema element. `audit` separately flags missing canonical sections, so the install-drift signal is preserved. |
 | `init` touches `.claude/settings.json` | `init` installs the Stop-hook entry in Claude Code settings as part of the bootstrap. | Rejected: documented manual installation step. · Manual install reproduces F10/F13 in cohorts of agents who skip the step. The settings.json reach is a one-time scope expansion paid back in mechanical enforcement coverage. |
+| Run-from-anywhere via `libutil` `Finder` | Every `fit-wiki` subcommand resolves the project root via `Finder.findProjectRoot(process.cwd())` before touching the filesystem (precedent: `refresh`, `sync`, `init`, `memo` already do this). Agents invoke `fit-wiki <subcommand>` from any working directory in the monorepo — including subagent worktrees, nested service dirs, or website roots — without `cd`. | Rejected: require callers to `cd` to the project root first. · Adds a manual setup step before every invocation, reproducing F4 (probe-heavy probing of "where am I, can I write?"). One Finder call per subcommand is the cheap path. |
 
 ## Non-Goals (Restated from Spec)
 
@@ -181,14 +182,13 @@ Each row carries position, rejected alternative, and why.
 - **Digest-format coupling.** Downstream skills consume `boot`'s JSON output.
   Treated as a stable contract under semantic versioning; format changes
   require a follow-up spec.
-- **Trace-observability shift.** Pre-redesign, the priority surface read was a
-  `Read` tool event. Post-redesign it is a `Bash: fit-wiki boot` event. The
-  spec's success-criteria verifier reads the trace the same way; the surface
-  it observes shifts from filename to subcommand name.
+- **Trace-observability shift.** The priority surface read shifts from a
+  `Read` tool event to a `Bash: fit-wiki boot` event; the spec's verifier
+  reads the trace the same way, observing a subcommand name instead of a
+  filename.
 - **`gh` CLI dependency for `refresh`.** Extended `refresh` shells `gh issue
   list` for Obstacle / Experiment blocks. `gh` ships with Kata; an unreachable
-  `gh` renders the new blocks empty with a stderr warning, leaving XmR
-  unaffected.
+  `gh` renders the new blocks empty with a stderr warning, leaving XmR intact.
 
 ## References
 
