@@ -65,6 +65,7 @@
   ],
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libconfig": "^0.1.79",
     "@forwardimpact/libtelemetry": "^0.1.33",
     "@forwardimpact/libutil": "^0.1.72",
     "@forwardimpact/libskill": "^5.0.0",

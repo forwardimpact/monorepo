@@ -129,3 +129,32 @@ const cli = createCli({
   ],
 });
 ```
+
+## Workspace dependencies
+
+Any `@forwardimpact/*` package imported by a file under `products/<name>/`
+must appear in that product's `package.json` — in `dependencies`,
+`devDependencies`, `peerDependencies`, or `optionalDependencies`. Imports
+at runtime go in `dependencies`; test-only imports may go in
+`devDependencies`.
+
+The monorepo's workspace hoist lets every product resolve every
+workspace package from the root `node_modules/`, masking missing
+declarations in `bun install` and `bun test`. The gap surfaces only when
+a downstream consumer runs `npx fit-<product>` against a clean machine
+and hits `Cannot find package '@forwardimpact/<name>'` before any product
+code executes (spec 1070).
+
+The `check-workspace-imports` guard
+([`scripts/check-workspace-imports.mjs`](../scripts/check-workspace-imports.mjs))
+enforces the rule on every PR through `bun run context`. If you hit a
+diagnostic of the form
+
+```
+products/<name>/<path>:<line>: imports "@forwardimpact/<pkg>" but it is not declared in products/<name>/package.json
+```
+
+add `@forwardimpact/<pkg>` to the importing product's manifest. The
+guard scans static `import`/`export` declarations and dynamic
+`await import("…")` calls; it skips self-imports (a package referencing
+its own name resolves via the package's own `exports` field).
