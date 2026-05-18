@@ -88,6 +88,10 @@ agent-aligned engineering standard. And it helps organizations see whether their
 engineering systems support the practices the agent-aligned engineering standard
 describes.
 
+**Summit** helps leaders make staffing decisions backed by evidence — modelling
+team capability as a system to surface coverage, structural risks, and what-if
+scenarios before someone gets set up to fail.
+
 **Outpost** gives engineers a personal operations center — scheduled AI tasks
 that sync information, prepare briefings, and organize knowledge so engineers
 can focus on the work that matters.
