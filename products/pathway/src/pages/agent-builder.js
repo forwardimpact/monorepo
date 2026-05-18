@@ -282,6 +282,7 @@ export async function renderAgentBuilder() {
       agentBehaviours: agentData.behaviours,
       claudeSettings: agentData.claudeSettings,
       vscodeSettings: agentData.vscodeSettings,
+      organizationalContext: agentData.organizationalContext,
       templates,
     };
   }

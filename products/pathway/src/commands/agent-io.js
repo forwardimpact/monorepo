@@ -98,20 +98,26 @@ export async function writeProfile(profile, baseDir, template) {
 }
 
 /**
- * Write team instructions to CLAUDE.md
+ * Write team instructions and/or organizational context to CLAUDE.md
  * @param {string|null} teamInstructions - Interpolated team instructions content
+ * @param {string|null} orgSection - Rendered organizational context section
  * @param {string} baseDir - Base output directory
  * @param {string} template - Mustache template string for CLAUDE.md
  * @returns {string|null} Path written, or null if skipped
  */
 export async function writeTeamInstructions(
   teamInstructions,
+  orgSection,
   baseDir,
   template,
 ) {
-  if (!teamInstructions) return null;
+  const content = formatTeamInstructions(
+    teamInstructions,
+    orgSection,
+    template,
+  );
+  if (!content) return null;
   const filePath = join(baseDir, ".claude", "CLAUDE.md");
-  const content = formatTeamInstructions(teamInstructions, template);
   await ensureDir(filePath);
   await writeFile(filePath, content, "utf-8");
   logger.info(formatSuccess(`Created: ${filePath}`));

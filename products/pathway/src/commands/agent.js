@@ -28,6 +28,7 @@ import {
   deriveAgentSkills,
   generateSkillMarkdown,
   interpolateTeamInstructions,
+  renderOrganizationalContext,
 } from "@forwardimpact/libskill/agent";
 import { deriveToolkit } from "@forwardimpact/libskill/toolkit";
 import { formatAgentProfile } from "../formatters/agent/profile.js";
@@ -122,24 +123,37 @@ function resolveAgentEntities(data, agentData, disciplineId, trackId) {
 }
 
 /**
- * Output team instructions to console if present
+ * Output team instructions and/or organizational context to console if present
  * @param {Object|null} agentTrack
  * @param {Object} humanDiscipline
+ * @param {string|null} orgSection - Rendered organizational context section
  * @param {string} template - Mustache template for CLAUDE.md
  */
-function printTeamInstructions(agentTrack, humanDiscipline, template) {
+function printTeamInstructions(
+  agentTrack,
+  humanDiscipline,
+  orgSection,
+  template,
+) {
   const teamInstructions = interpolateTeamInstructions({
     agentTrack,
     humanDiscipline,
   });
-  if (teamInstructions) {
-    // Markdown output — headings stay literal so downstream tools parse them
-    process.stdout.write("# Team Instructions (CLAUDE.md)\n\n");
-    process.stdout.write(
-      formatTeamInstructions(teamInstructions, template) + "\n",
-    );
-    process.stdout.write("\n---\n\n");
-  }
+  const content = formatTeamInstructions(
+    teamInstructions,
+    orgSection,
+    template,
+  );
+  if (!content) return;
+  const header =
+    teamInstructions && orgSection
+      ? "# Team Instructions + Organizational Context (CLAUDE.md)"
+      : teamInstructions
+        ? "# Team Instructions (CLAUDE.md)"
+        : "# Organizational Context (CLAUDE.md)";
+  process.stdout.write(`${header}\n\n`);
+  process.stdout.write(content + "\n");
+  process.stdout.write("\n---\n\n");
 }
 
 /**
@@ -220,8 +234,18 @@ async function handleAgent({
 
   const baseDir = options.output || ".";
 
+  // Computed once so console and file paths share the same rendered section.
+  const orgSection = renderOrganizationalContext(
+    agentData.organizationalContext,
+  );
+
   if (!options.output) {
-    printTeamInstructions(agentTrack, humanDiscipline, claudeTemplate);
+    printTeamInstructions(
+      agentTrack,
+      humanDiscipline,
+      orgSection,
+      claudeTemplate,
+    );
     process.stdout.write(formatAgentProfile(profile, agentTemplate) + "\n");
     return;
   }
@@ -230,7 +254,12 @@ async function handleAgent({
     agentTrack,
     humanDiscipline,
   });
-  await writeTeamInstructions(teamInstructions, baseDir, claudeTemplate);
+  await writeTeamInstructions(
+    teamInstructions,
+    orgSection,
+    baseDir,
+    claudeTemplate,
+  );
   await writeProfile(profile, baseDir, agentTemplate);
   const fileCount = await writeSkills(skillFiles, baseDir, skillTemplates);
   await generateClaudeSettings(baseDir, agentData.claudeSettings);

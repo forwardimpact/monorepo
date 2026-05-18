@@ -1,8 +1,9 @@
 /**
  * Team Instructions Formatter
  *
- * Formats team instructions content into CLAUDE.md file content
- * using a Mustache template.
+ * Composes the track-scoped teamInstructions body and the installation-scoped
+ * organizational-context section into the rendered .claude/CLAUDE.md content
+ * via a Mustache template.
  */
 
 import Mustache from "mustache";
@@ -10,12 +11,25 @@ import Mustache from "mustache";
 import { trimValue } from "../shared.js";
 
 /**
- * Format team instructions as CLAUDE.md file content using Mustache template
- * @param {string} teamInstructions - Already-interpolated team instructions content
- * @param {string} template - Mustache template string
- * @returns {string} Rendered CLAUDE.md content
+ * Format team instructions + organizational context as CLAUDE.md content.
+ *
+ * Behavior change vs pre-spec-920: returns null when both inputs are
+ * empty/whitespace (instead of an empty rendered template). All call sites
+ * — CLI writeTeamInstructions, web preview deriveAgentData, distribution
+ * formatContent — treat null as "skip the file/section." The marker-contract
+ * last-occurrence rule lives in renderOrganizationalContext and the
+ * org-context guide; this composer only appends the section after the
+ * teamInstructions body.
+ *
+ * @param {string|null} teamInstructions
+ * @param {string|null} orgSection
+ * @param {string} template
+ * @returns {string|null} Rendered content, or null if both inputs empty.
  */
-export function formatTeamInstructions(teamInstructions, template) {
-  const data = { content: trimValue(teamInstructions) || "" };
-  return Mustache.render(template, data);
+export function formatTeamInstructions(teamInstructions, orgSection, template) {
+  const ti = trimValue(teamInstructions);
+  const os = trimValue(orgSection);
+  if (!ti && !os) return null;
+  const content = ti && os ? `${ti}\n\n${os}` : ti || os;
+  return Mustache.render(template, { content });
 }
