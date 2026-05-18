@@ -13,6 +13,7 @@
         "acorn": "^8.16.0",
         "eslint": "^10.3.0",
         "eslint-plugin-jsdoc": "^62.9.0",
+        "semver": "^7.6.3",
         "serve": "^14.2.6",
         "yaml": "^2.9.0",
       },
@@ -520,7 +521,8 @@
         "@anthropic-ai/claude-agent-sdk": "0.2.112",
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libcodegen": "^0.1.32",
-        "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libformat": "^0.1.0",
         "@forwardimpact/librc": "^0.1.16",
         "@forwardimpact/librepl": "^0.1.6",
         "@forwardimpact/librpc": "^0.1.77",
@@ -544,6 +546,7 @@
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libconfig": "^0.1.79",
         "@forwardimpact/libskill": "^5.0.0",
         "@forwardimpact/libtelemetry": "^0.1.33",
         "@forwardimpact/libutil": "^0.1.72",
@@ -564,7 +567,9 @@
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libconfig": "^0.1.79",
         "@forwardimpact/libsecret": "^0.1.14",
+        "@forwardimpact/libtelemetry": "^0.1.33",
         "@forwardimpact/libtemplate": "^0.2.0",
         "@forwardimpact/libutil": "^0.1.64",
         "@supabase/supabase-js": "^2.105.4",
@@ -577,6 +582,7 @@
         "@forwardimpact/libharness": "^0.1.14",
         "@forwardimpact/libresource": "^0.1.98",
         "@forwardimpact/libstorage": "^0.1.61",
+        "@forwardimpact/libsyntheticgen": "^0.1.0",
         "microdata-rdf-streaming-parser": "^3.0.0",
         "n3": "^2.0.3",
       },
@@ -591,6 +597,9 @@
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libmacos": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.33",
+      },
+      "devDependencies": {
+        "@forwardimpact/libharness": "^0.1.14",
       },
     },
     "products/pathway": {
@@ -622,6 +631,7 @@
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libconfig": "^0.1.79",
         "@forwardimpact/libskill": "^5.0.0",
         "@forwardimpact/libtelemetry": "^0.1.33",
         "@forwardimpact/libutil": "^0.1.72",
