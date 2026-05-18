@@ -71,13 +71,16 @@ Create AI agent definitions matched to your role's skill profile:
 npx fit-pathway agent software_engineering --track=platform --output=./agents
 ```
 
-This generates a set of `.agent.md` files and a `skills/` directory. Each agent
-file defines a persona with specific capabilities. The skills directory contains
-`SKILL.md` files that agents use as operational context — the same skill
-definitions humans reference, formatted for AI consumption.
+This generates a `.claude/` directory (and a matching `.vscode/`) under
+`./agents/` containing one `<persona>.md` per agent profile under
+`.claude/agents/`, a `SKILL.md` per skill under `.claude/skills/<skill>/`,
+shared team instructions at `.claude/CLAUDE.md`, and matching editor settings.
+The skill files are the same skill definitions humans reference, formatted for
+AI consumption.
 
-Copy the output into your project's `.claude/` or equivalent agent configuration
-directory.
+To install into a project, copy the generated `.claude/` and `.vscode/`
+directories from `./agents/` into your project root — or re-run with
+`--output=<your-project-root>` so they land there directly.
 
 ---
 
