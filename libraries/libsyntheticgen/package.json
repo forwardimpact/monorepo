@@ -42,7 +42,8 @@
     "seedrandom": "^3.0.5"
   },
   "devDependencies": {
-    "@forwardimpact/libharness": "^0.1.14"
+    "@forwardimpact/libharness": "^0.1.14",
+    "@forwardimpact/libsyntheticrender": "^0.1.25"
   },
   "optionalDependencies": {
     "@faker-js/faker": "^10.4.0"

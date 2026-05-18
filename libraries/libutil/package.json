@@ -38,6 +38,8 @@
   },
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libconfig": "^0.1.79",
+    "@forwardimpact/libstorage": "^0.1.78",
     "@forwardimpact/libtelemetry": "^0.1.22"
   },
   "devDependencies": {
