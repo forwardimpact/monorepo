@@ -28,6 +28,7 @@ import {
   deriveAgentSkills,
   generateSkillMarkdown,
   interpolateTeamInstructions,
+  renderOrganizationalContext,
   getDisciplineAbbreviation,
   toKebabCase,
 } from "@forwardimpact/libskill/agent";
@@ -114,15 +115,18 @@ function derivePackContent({
     agentTrack: track,
     humanDiscipline,
   });
+  const orgSection = renderOrganizationalContext(
+    agentData.organizationalContext,
+  );
 
-  return { profiles, skillFiles, teamInstructions };
+  return { profiles, skillFiles, teamInstructions, orgSection };
 }
 
 /**
  * Bridge Pathway formatters to libpack's PackStager.stageFull input shape.
  */
 function formatContent(
-  { profiles, skillFiles, teamInstructions },
+  { profiles, skillFiles, teamInstructions, orgSection },
   templates,
   settings,
 ) {
@@ -150,9 +154,11 @@ function formatContent(
         })),
       ],
     })),
-    teamInstructions: teamInstructions
-      ? formatTeamInstructions(teamInstructions, templates.claude)
-      : null,
+    teamInstructions: formatTeamInstructions(
+      teamInstructions,
+      orgSection,
+      templates.claude,
+    ),
     claudeSettings: settings.claude,
     vscodeSettings: settings.vscode,
   };
@@ -233,18 +239,19 @@ export async function generatePacks({
   }
 
   const combinations = validCombinations.map((combo) => {
-    const { profiles, skillFiles, teamInstructions } = derivePackContent({
-      ...combo,
-      data,
-      agentData,
-      skillsWithAgent,
-      level,
-    });
+    const { profiles, skillFiles, teamInstructions, orgSection } =
+      derivePackContent({
+        ...combo,
+        data,
+        agentData,
+        skillsWithAgent,
+        level,
+      });
     return {
       name: `${getDisciplineAbbreviation(combo.discipline.id)}-${toKebabCase(combo.track.id)}`,
       description: `${combo.humanDiscipline.specialization || combo.humanDiscipline.name} (${combo.humanTrack.name}) — agent team`,
       content: formatContent(
-        { profiles, skillFiles, teamInstructions },
+        { profiles, skillFiles, teamInstructions, orgSection },
         {
           agent: agentTemplate,
           skill: skillTemplates.skill,

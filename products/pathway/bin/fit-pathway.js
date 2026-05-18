@@ -240,7 +240,8 @@ const definition = {
     {
       title: "Give Agents Organizational Context",
       url: "https://www.forwardimpact.team/docs/products/agent-teams/organizational-context/index.md",
-      description: "Team instructions, settings, and profile customization.",
+      description:
+        "Track-scoped team instructions and installation-scoped organizational context for exported agent teams.",
     },
     {
       title: "See What's Expected at Your Level",

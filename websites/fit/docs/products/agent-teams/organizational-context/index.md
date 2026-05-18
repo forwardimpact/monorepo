@@ -15,10 +15,87 @@ Complete the
 guide first -- this page assumes you have a working agent team generated with
 `npx fit-pathway agent`.
 
-## Understand the three-layer architecture
+## Use the organizational context slot
 
-Pathway generates agent configurations into three layers. Each layer has a
-distinct purpose, and information flows downward -- never upward.
+The organizational context slot carries **installation-scoped** per-team facts
+that do not belong on a track shared across teams: the repository names this
+team works in, the manager handle, adjacent leads on neighbouring teams, the
+active project list, and the escalation paths. Edit
+`data/pathway/organizational-context.yaml` (sibling of `claude-settings.yaml`)
+and the section reaches every agent the next time you regenerate. The starter
+template ships a populated example; replace the placeholder values or delete
+the file if your installation has no per-team facts to add.
+
+```yaml
+# data/pathway/organizational-context.yaml
+repositories: [molecularforge, data-lake-infra, api-gateway]
+team: pharma-platform
+manager: athena
+adjacentLeads:
+  - handle: iris
+    role: DX
+  - handle: prometheus
+    role: DS/AI
+projects: [drug-discovery-pipeline, lab-data-portal]
+escalationPaths:
+  - trigger: production page after hours
+    destination: pagerduty://pharma-platform-oncall
+  - trigger: security incident
+    destination: security@pharma.example.com
+```
+
+After `npx fit-pathway agent`, the rendered `.claude/CLAUDE.md` carries the
+section:
+
+```markdown
+## Organizational Context
+
+- **Repositories:** molecularforge, data-lake-infra, api-gateway
+- **Team:** pharma-platform
+- **Manager:** athena
+- **Adjacent leads:** iris (DX), prometheus (DS/AI)
+- **Projects:** drug-discovery-pipeline, lab-data-portal
+- **Escalation paths:**
+  - production page after hours → pagerduty://pharma-platform-oncall
+  - security incident → security@pharma.example.com
+```
+
+A top-level concern that has no value (or is an empty list) suppresses its
+bullet — partial population is valid. An entirely empty or absent slot
+suppresses the whole section, so the generator produces the same bytes it
+produced before the slot existed.
+
+Use the slot for facts that change with the team. Use the track-scoped
+`teamInstructions` for facts that match the track everywhere it is used. The
+slot lives at the installation level; `teamInstructions` lives on the track
+and contaminates every other team that hires that track. Run `bunx fit-map
+validate` to confirm your slot parses.
+
+## Marker contract for downstream tooling
+
+Tooling that consumes the rendered `.claude/CLAUDE.md` locates the
+organizational context section by string match. The contract:
+
+- The section opens with the literal line `## Organizational Context`.
+- Downstream tools detect the section by exact-string match on that line.
+- **Tooling that needs the unique occurrence MUST match the LAST occurrence
+  of `## Organizational Context` in the file.** The section is always appended
+  last; the final match is robust against the unlikely case that a track author
+  writes that heading inside `teamInstructions` prose.
+
+A worked example:
+
+```sh
+awk '/^## Organizational Context$/{i=NR} END{print i}' .claude/CLAUDE.md
+```
+
+prints the line number of the section in any CLAUDE.md that has one.
+
+## Understand the architecture
+
+Pathway generates agent configurations into three layers backed by the
+installation-scoped slot above. Each layer has a distinct purpose, and
+information flows downward -- never upward.
 
 ```text
 .claude/
@@ -40,7 +117,11 @@ The rules for what goes where follow from how these files are loaded:
 
 - **Team Instructions** -- content that every agent on the project must know
   regardless of their specialization. Environment variables, repository
-  conventions, deployment targets, shared architectural decisions.
+  conventions, deployment targets, shared architectural decisions. The
+  track-scoped `teamInstructions` body carries shared-across-teams content;
+  the installation-scoped organizational-context slot (above) carries the
+  per-team facts (repos, manager, adjacent leads, projects, escalation
+  paths). Both layers render into the same `.claude/CLAUDE.md`.
 - **Agent Profile** -- content that distinguishes this agent from others.
   Identity, working style derived from emphasized behaviours, constraints
   specific to the discipline and track.

@@ -429,6 +429,65 @@ export function interpolateTeamInstructions({ agentTrack, humanDiscipline }) {
   return substituteTemplateVars(agentTrack.teamInstructions, humanDiscipline);
 }
 
+function nonEmptyString(value) {
+  return typeof value === "string" && value.trim() !== "";
+}
+
+function nonEmptyArray(value) {
+  return Array.isArray(value) && value.length > 0;
+}
+
+/**
+ * Render an installation-scoped organizational context slot to a markdown
+ * section appended to the rendered .claude/CLAUDE.md. The section opens with
+ * `## Organizational Context`; downstream tooling matches the LAST occurrence
+ * of that heading (it is always appended last). Returns null when no concern
+ * is populated — callers treat that as "no section."
+ *
+ * @param {Object|null|undefined} orgContext - Loaded organizational-context.yaml
+ * @returns {string|null}
+ */
+export function renderOrganizationalContext(orgContext) {
+  if (!orgContext || typeof orgContext !== "object") return null;
+  const {
+    repositories,
+    team,
+    manager,
+    adjacentLeads,
+    projects,
+    escalationPaths,
+  } = orgContext;
+
+  const bullets = [];
+  if (nonEmptyArray(repositories)) {
+    bullets.push(`- **Repositories:** ${repositories.join(", ")}`);
+  }
+  if (nonEmptyString(team)) {
+    bullets.push(`- **Team:** ${team}`);
+  }
+  if (nonEmptyString(manager)) {
+    bullets.push(`- **Manager:** ${manager}`);
+  }
+  if (nonEmptyArray(adjacentLeads)) {
+    const leads = adjacentLeads
+      .map((entry) => `${entry.handle} (${entry.role})`)
+      .join(", ");
+    bullets.push(`- **Adjacent leads:** ${leads}`);
+  }
+  if (nonEmptyArray(projects)) {
+    bullets.push(`- **Projects:** ${projects.join(", ")}`);
+  }
+  if (nonEmptyArray(escalationPaths)) {
+    const subBullets = escalationPaths
+      .map((entry) => `  - ${entry.trigger} → ${entry.destination}`)
+      .join("\n");
+    bullets.push(`- **Escalation paths:**\n${subBullets}`);
+  }
+
+  if (bullets.length === 0) return null;
+  return `## Organizational Context\n\n${bullets.join("\n")}\n`;
+}
+
 // Re-export from extracted modules for backward compatibility
 export {
   validateAgentProfile,

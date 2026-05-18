@@ -228,6 +228,105 @@ describe("DataLoader", () => {
     });
   });
 
+  describe("loadAgentData — organizational-context.yaml", () => {
+    function setupAgentLoader() {
+      const fs = {
+        readFile: async () => "",
+        readdir: async () => [],
+        stat: async () => ({}),
+      };
+      const parser = { parseYaml: (content) => content };
+      const loader = new DataLoader(fs, parser);
+      return { fs, parser, loader };
+    }
+
+    test("neither root nor repository/ present → organizationalContext is null", async () => {
+      const { fs, loader } = setupAgentLoader();
+      // Empty directories for disciplines/tracks/behaviours; no settings files
+      fs.readdir = async () => [];
+      fs.stat = async (path) => {
+        if (
+          path.endsWith("organizational-context.yaml") ||
+          path.endsWith("claude-settings.yaml") ||
+          path.endsWith("vscode-settings.yaml")
+        ) {
+          throw new Error("ENOENT");
+        }
+        return { isDirectory: () => true };
+      };
+
+      const result = await loader.loadAgentData("/data");
+      assert.strictEqual(result.organizationalContext, null);
+    });
+
+    test("root file present → parsed YAML returned", async () => {
+      const { fs, parser, loader } = setupAgentLoader();
+      const orgYaml = {
+        team: "pharma-platform",
+        manager: "athena",
+      };
+      fs.readdir = async () => [];
+      fs.stat = async (path) => {
+        // Repository subdirectory paths fail; root paths succeed only for org-context
+        if (path.includes("/repository/")) throw new Error("ENOENT");
+        if (path.endsWith("organizational-context.yaml")) return {};
+        if (
+          path.endsWith("claude-settings.yaml") ||
+          path.endsWith("vscode-settings.yaml")
+        ) {
+          throw new Error("ENOENT");
+        }
+        return {};
+      };
+      fs.readFile = async (path) => {
+        if (
+          path.endsWith("organizational-context.yaml") &&
+          !path.includes("/repository/")
+        ) {
+          return "yaml-content";
+        }
+        return "";
+      };
+      parser.parseYaml = (content) =>
+        content === "yaml-content" ? orgYaml : content;
+
+      const result = await loader.loadAgentData("/data");
+      assert.deepStrictEqual(result.organizationalContext, orgYaml);
+    });
+
+    test("both root and repository/ present → repository/ wins", async () => {
+      const { fs, parser, loader } = setupAgentLoader();
+      const rootYaml = { team: "from-root" };
+      const repoYaml = { team: "from-repository" };
+      fs.readdir = async () => [];
+      fs.stat = async (path) => {
+        if (path.endsWith("organizational-context.yaml")) return {};
+        if (
+          path.endsWith("claude-settings.yaml") ||
+          path.endsWith("vscode-settings.yaml")
+        ) {
+          throw new Error("ENOENT");
+        }
+        return {};
+      };
+      fs.readFile = async (path) => {
+        if (path.includes("/repository/organizational-context.yaml")) {
+          return "repo-content";
+        }
+        if (path.endsWith("organizational-context.yaml")) return "root-content";
+        return "";
+      };
+      parser.parseYaml = (content) => {
+        if (content === "repo-content") return repoYaml;
+        if (content === "root-content") return rootYaml;
+        return content;
+      };
+
+      const result = await loader.loadAgentData("/data");
+      assert.deepStrictEqual(result.organizationalContext, repoYaml);
+    });
+  });
+
   describe("loadQuestionFolder", () => {
     test("loads questions from skills and behaviours subdirectories", async () => {
       mockFs.readdir = async (dir) => {

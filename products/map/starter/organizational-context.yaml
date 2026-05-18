@@ -1,0 +1,25 @@
+# Installation-scoped per-team facts surfaced into the rendered
+# .claude/CLAUDE.md by `npx fit-pathway agent`. Edit these values to
+# match your team; delete this file entirely if the section should not
+# render. See:
+# https://www.forwardimpact.team/docs/products/agent-teams/organizational-context/index.md
+
+repositories:
+  - molecularforge
+  - data-lake-infra
+  - api-gateway
+team: pharma-platform
+manager: athena
+adjacentLeads:
+  - handle: iris
+    role: DX
+  - handle: prometheus
+    role: DS/AI
+projects:
+  - drug-discovery-pipeline
+  - lab-data-portal
+escalationPaths:
+  - trigger: production page after hours
+    destination: pagerduty://pharma-platform-oncall
+  - trigger: security incident
+    destination: security@pharma.example.com

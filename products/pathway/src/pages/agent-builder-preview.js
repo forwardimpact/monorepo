@@ -12,6 +12,7 @@ import {
   generateSkillMarkdown,
   deriveAgentSkills,
   interpolateTeamInstructions,
+  renderOrganizationalContext,
 } from "@forwardimpact/libskill/agent";
 import { deriveToolkit } from "@forwardimpact/libskill/toolkit";
 import { formatAgentProfile } from "../formatters/agent/profile.js";
@@ -92,6 +93,7 @@ export function deriveAgentData(context) {
     behaviours,
     agentBehaviours,
     templates,
+    organizationalContext,
   } = context;
 
   const profile = generateAgentProfile({
@@ -128,9 +130,12 @@ export function deriveAgentData(context) {
     agentTrack,
     humanDiscipline,
   });
-  const teamInstructionsContent = teamInstructions
-    ? formatTeamInstructions(teamInstructions, templates.claude)
-    : null;
+  const orgSection = renderOrganizationalContext(organizationalContext);
+  const teamInstructionsContent = formatTeamInstructions(
+    teamInstructions,
+    orgSection,
+    templates.claude,
+  );
 
   return { profile, skillFiles, toolkit, teamInstructionsContent };
 }
