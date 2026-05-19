@@ -35,23 +35,23 @@ const VERSION =
  * @returns {string} Absolute path to package lib directory
  */
 function resolvePackageLib(packageName) {
-  // import.meta.resolve returns file:// URL to package's main entry (lib/index.js)
+  // Top-level `import.meta.resolve(...)` runs at module load and fails inside
+  // a `bun build --compile` bunfs root (no node_modules tree) — even on
+  // `--help`, because `bin/fit-pathway.js` statically imports this module
+  // (#1038). Call this lazily from the command handler that needs it.
   const mainUrl = import.meta.resolve(packageName);
-  // Convert to path and get lib directory
   return dirname(fileURLToPath(mainUrl));
 }
 
-const mapLibDir = resolvePackageLib("@forwardimpact/map");
-const modelLibDir = resolvePackageLib("@forwardimpact/libskill");
-const uiLibDir = resolvePackageLib("@forwardimpact/libui");
-
-// Vendor dependencies — mirror the paths that build.js copies to vendor/
-const mustacheDir = dirname(fileURLToPath(import.meta.resolve("mustache")));
-const yamlBrowserDir = join(
-  dirname(dirname(fileURLToPath(import.meta.resolve("yaml")))),
-  "browser",
-  "dist",
-);
+function resolveVendorDirs() {
+  const mustacheDir = dirname(fileURLToPath(import.meta.resolve("mustache")));
+  const yamlBrowserDir = join(
+    dirname(dirname(fileURLToPath(import.meta.resolve("yaml")))),
+    "browser",
+    "dist",
+  );
+  return { mustacheDir, yamlBrowserDir };
+}
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -122,6 +122,10 @@ async function isDirectory(path) {
  * @returns {Array<{ match: (p: string) => boolean, resolve: (p: string) => string }>}
  */
 function buildRoutes({ dataDir }) {
+  const mapLibDir = resolvePackageLib("@forwardimpact/map");
+  const modelLibDir = resolvePackageLib("@forwardimpact/libskill");
+  const uiLibDir = resolvePackageLib("@forwardimpact/libui");
+  const { mustacheDir, yamlBrowserDir } = resolveVendorDirs();
   const prefix = (p, dir, sliceLen) => ({
     match: (path) => path.startsWith(p),
     resolve: (path) => join(dir, path.slice(sliceLen)),
