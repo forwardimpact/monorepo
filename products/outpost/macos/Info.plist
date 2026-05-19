@@ -29,5 +29,7 @@
     <true/>
     <key>NSSupportsSuddenTermination</key>
     <false/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Outpost agents send emails on your behalf by driving Apple Mail through AppleScript. macOS will ask once per app you grant; you can review or revoke in System Settings → Privacy &amp; Security → Automation.</string>
 </dict>
 </plist>
