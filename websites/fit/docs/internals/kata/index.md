@@ -1,6 +1,6 @@
 ---
 title: Kata Agent Team
-description: "An autonomous and continuously improving agentic development team — six agent personas, four workflows, fifteen skills, organized as a Plan-Do-Study-Act loop."
+description: "An autonomous and continuously improving agentic development team — six agent personas, four workflows, sixteen skills, organized as a Plan-Do-Study-Act loop."
 ---
 
 > "What does the pattern of the Improvement Kata give us? A means for
@@ -16,7 +16,7 @@ features and hardening the repo, study their own execution traces and outputs,
 and act on findings — closing the loop every day. The name follows Toyota Kata:
 agents grasp the current condition (via prior-run traces), establish target
 conditions (via specs), and experiment toward them (via implementation). Six
-agent personas, four workflows, fifteen skills form this cycle.
+agent personas, four workflows, sixteen skills form this cycle.
 
 This page is the internal-contributor entry point. The canonical reference is
 [`KATA.md`](https://github.com/forwardimpact/monorepo/blob/main/KATA.md) at the
