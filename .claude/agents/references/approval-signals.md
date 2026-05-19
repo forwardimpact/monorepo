@@ -13,6 +13,7 @@ writes the row.
 | `<phase>:approved` label on PR | Human or `/ship-it` | `agent-react` (label event) |
 | `gh pr review --approve` | Trusted-account approver | `agent-react` (review event) |
 | Approval comment ("approve", "LGTM", "ship it") | Trusted contributor on PR | `agent-react` (comment event) |
+| Merged phase PR | Trusted merger (`kata-release-merge` or human) | `agent-react` (PR close event with `merged: true`) |
 | Direct user message in interactive session | Trusted user | Active agent (in-session) |
 | `kata-plan` panel-clean | `staff-engineer` (plans only) | `kata-plan` skill |
 | Implementation merge | `kata-release-merge` | Skill (writes `plan implemented`) |
