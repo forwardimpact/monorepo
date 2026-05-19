@@ -65,6 +65,8 @@ runs:
 
     - name: Bootstrap
       shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
       run: ./scripts/bootstrap.sh
 
     - name: Push wiki changes
