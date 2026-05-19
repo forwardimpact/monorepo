@@ -11,14 +11,15 @@ The spec disclaims backfill ("past logs remain as they are, append-
 only"); the user adds it for eval purposes. See § Spec deviation for
 the rationale and the audit-trail preservation strategy.
 
-Libraries used: `@forwardimpact/libwiki` (constants from Part 01 —
-`WEEKLY_LOG_LINE_BUDGET`, `DECISION_HEADING`, `ACTIVE_CLAIMS_HEADING`;
-audit primitives from Part 01 Step 6 for post-migration verification).
-The M-way partition algorithm (Step 2) is **net-new code in
-`src/commands/migrate.js`**, not a reuse of Part 01's `rotate` —
-`rotate` performs a 1-way rename of the current live file, while
-migration partitions a single oversize sealed file into N parts and
-deletes the source. No new external dependencies.
+Libraries used: `@forwardimpact/libwiki` (constants from Part 01 only —
+`WEEKLY_LOG_LINE_BUDGET`, `DECISION_HEADING`, `ACTIVE_CLAIMS_HEADING`).
+The migration is **a temporary script under `scripts/`, not a shipped
+`fit-wiki` subcommand**. No public CLI surface for a one-shot
+operation; no permanent legacy code. The script exists at HEAD only
+between commit 05A (adds it) and commit 05B (runs it and deletes it).
+After 05B merges, the script is recoverable from git history if
+re-needed but does not pollute the CLI catalog. No new external
+dependencies.
 
 ## Spec deviation
 
@@ -71,38 +72,64 @@ in 30-day windows until that follow-up spec lands. Surface the
 rejection trade-off in the PR description so the lifecycle is
 visible to the approver.
 
-## Step 1 — Migration script skeleton
+## Step 1 — Temporary migration script
 
-Created: `libraries/libwiki/src/commands/migrate.js`.
+Created: `scripts/spec-1060-migrate-wiki.mjs` (Node ESM, executable
+via `node scripts/spec-1060-migrate-wiki.mjs`).
 
-Exports `runMigrateCommand(values, args, cli)`. The subcommand is
-registered as `fit-wiki migrate` in `bin/fit-wiki.js`, but is **not**
-part of the public CLI contract documented in the protocol — it is a
-one-shot administrative tool. Mark with `description: "(internal,
-one-shot) Retroactively migrate the wiki to the redesigned contract."`
-in libcli registration.
+File header comment names the script as one-shot, references this
+plan, and instructs the runner that the script is deleted in commit
+05B after it produces its output. Format:
 
-Options:
-- `--dry-run` (boolean) — print every planned change to stdout; touch nothing on disk.
-- `--apply` (boolean) — execute the planned changes. Mutually exclusive with `--dry-run`; one must be present.
-- `--wiki-root <path>` (string) — override (default: auto-detect via Finder).
+```js
+#!/usr/bin/env node
+// One-shot migration script for spec 1060 — retroactive protocol
+// compliance. Added in commit 05A, run in commit 05B, deleted in the
+// same commit (05B). Recoverable from git history if re-needed.
+// Do NOT extend this script after 05B merges — file a follow-up spec.
+```
 
-The handler dispatches to Steps 2–5 below in order. Each step reports
-to stdout a one-line summary before doing work; `--dry-run` short-
-circuits before any write.
+Imports constants from `@forwardimpact/libwiki`
+(`WEEKLY_LOG_LINE_BUDGET`, `DECISION_HEADING`, `ACTIVE_CLAIMS_HEADING`,
+`SUMMARY_LINE_BUDGET`) so the script and the audit gate share the
+single source of truth for sizes/strings.
 
-Created: `libraries/libwiki/test/cli-migrate.test.js` — covers
-`--dry-run` parity (no filesystem changes), `--apply` idempotence
-(second run is a no-op), and the four sub-steps individually with
-fixture wikis.
+CLI surface (parsed via Node's built-in `util.parseArgs`, no libcli
+dependency):
 
-Verification: `bun test test/cli-migrate.test.js` passes; a manual
-`bunx fit-wiki migrate --dry-run` against the current wiki prints the
-expected change set without modifying any file.
+```
+node scripts/spec-1060-migrate-wiki.mjs --dry-run
+node scripts/spec-1060-migrate-wiki.mjs --apply
+```
+
+Flags:
+- `--dry-run` — print every planned change to stdout; touch nothing on disk.
+- `--apply` — execute. Mutually exclusive with `--dry-run`; one must be present.
+- `--wiki-root <path>` — override default `./wiki`.
+
+The script's `main` function dispatches to internal functions for each
+step (partition, decision-backfill, summary-compaction). Each function
+takes a `{ dryRun, fs }` parameter so the dry-run path exercises the
+same code as apply.
+
+Verification (one-time, run during PR development):
+- `node scripts/spec-1060-migrate-wiki.mjs --dry-run` prints the expected change set against the live wiki.
+- The script is self-contained — `node --check scripts/spec-1060-migrate-wiki.mjs` parses clean.
+- No `bun test` integration — the script is one-shot; eyeball verification on the dry-run output plus the diff in 05B is the review surface.
+
+**Lifecycle note**: this step adds the script. Commit 05B runs it
+(producing the migration output) and deletes it in the same commit.
+After 05B, the script no longer exists at HEAD. If the migration
+proves wrong in retrospect, the recovery is `git revert 05B` + amend,
+not a re-run of a script that no longer exists.
 
 ## Step 2 — Partition over-budget weekly logs
 
 Two distinct cases:
+
+The partition logic lives inside `scripts/spec-1060-migrate-wiki.mjs`
+(Step 1); the descriptions below are the contract that script
+implements.
 
 **(A) Sealed historical files** (every week strictly before the
 current ISO week, e.g. W14–W20 at planning time): for every
@@ -138,14 +165,15 @@ Algorithm:
 **(B) Current week file** (`2026-W21.md` at planning time, exact week
 re-derived at PR-open time): leave as a live file under Part 01's
 `rotate` convention. If the file already exceeds 500 lines at
-migration time, call `bunx fit-wiki rotate --agent <name>` — that
-primitive renames the existing file to `…-Www-part1.md` (sealed) and
-creates a fresh empty `…-Www.md` (live). This is the rotation
-convention every future `log` call observes. If `rotate` itself
-needs to land an M-way partition for an oversize current week, the
-migrate command falls back to the (A) algorithm followed by a fresh
-live file creation. Subsequent `log` writes always append to the
-unsuffixed `…-Www.md`.
+migration time, the script shells out to
+`bunx fit-wiki rotate --agent <name>` — that primitive renames the
+existing file to `…-Www-part1.md` (sealed) and creates a fresh empty
+`…-Www.md` (live). This is the rotation convention every future `log`
+call observes. If the live current-week file already exceeds 2×budget
+(so a single rotate would still leave a >500-line part), the script
+falls back to the (A) algorithm on the rotated `…-part1.md`,
+preserving the empty live file `…-Www.md` for ongoing appends.
+Subsequent `log` writes always append to the unsuffixed `…-Www.md`.
 
 For weekly logs that fit under 500 lines as-is: no change.
 
@@ -156,8 +184,9 @@ across the 31 source files ≈ 93.
 
 Verification:
 - `bunx fit-wiki audit --legacy-only` (post-rotation, no grace var) reports zero weekly-log-cap violations.
-- `git diff --stat` shows the deletion of 31 oversize files and creation of ~93 part files.
-- Byte-equivalence test (asserted in `cli-migrate.test.js`): for each rotated file, concatenate `partN`'s body content (skipping each part's H1 except for part 1) and compare against the original file's body. Bytes must match exactly. The H1-strip normalisation is the only permitted divergence.
+- `git diff --stat` shows the deletion of 31 oversize files, creation of ~93 part files, **and** deletion of `scripts/spec-1060-migrate-wiki.mjs` (the script self-destructs in 05B).
+- Byte-equivalence eyeball check during PR development: pick 3 of the 31 rotated files, concatenate `partN`'s body content (skipping each part's H1 except for part 1), and diff against the file's content at the parent commit (pre-05B HEAD). Bytes must match. The H1-strip is the only permitted divergence.
+- The script itself implements a `--verify` mode (no separate test infrastructure) that runs the byte-equivalence check across all rotated files before deleting the originals. `--apply` calls `--verify` internally and aborts on mismatch.
 
 ## Step 3 — Backfill `### Decision` blocks
 
@@ -201,7 +230,7 @@ Verification:
 - `bunx fit-wiki audit` post-backfill reports zero decision-block-opening violations.
 - `rg -c "^### Decision" wiki/*-2026-W*.md wiki/*-2026-W*-part*.md` total equals the **exact** entry count from Step 2 (573 + any new W21 entries written during the migration window — record the expected total at PR-open time, no ±tolerance).
 - A spot check on 5 random pre-backfill entries shows the original content intact beneath the stub.
-- A re-run of `bunx fit-wiki migrate --dry-run` after a successful `--apply` reports zero planned changes (asserted by `cli-migrate.test.js`).
+- A re-run of `node scripts/spec-1060-migrate-wiki.mjs --dry-run` after a successful `--apply` (run on a worktree copy, since the live script self-deletes in 05B) reports zero planned changes.
 
 ## Step 4 — Compact over-cap summaries
 
@@ -301,13 +330,15 @@ matches the migrated state (asserted by a follow-on test that reads
 - **The migration commit is large.** Git diff will show ~100 file
   renames/creations and a 100+ KB delta. To make the diff reviewable,
   split Part 05 into **two commits** on the same branch:
-  - Commit A: `feat(libwiki): add migrate subcommand` — Step 1 plus
-    tests in `cli-migrate.test.js`. Small, code-only, reviewable.
-  - Commit B: `migrate(wiki): retroactive protocol compliance per spec 1060` —
-    the mechanical output of Steps 2–7 against the live wiki, plus
-    `eval-corpus.md`. Large in line count, all wiki content.
-  The PR description names commit B as skim-not-read and points
-  reviewers at commit A as the reviewable surface.
+  - Commit 05A: `chore(scripts): add one-shot wiki migration script for spec 1060` —
+    Step 1 only. Small, ~200 lines of Node, fully reviewable.
+  - Commit 05B: `migrate(wiki): retroactive protocol compliance per spec 1060` —
+    runs the script, captures its mechanical output (Steps 2–6),
+    creates `eval-corpus.md` (Step 7), and **deletes the script in
+    the same commit**. Large in line count, mostly wiki content + one
+    file deletion.
+  The PR description names commit 05B as skim-not-read and points
+  reviewers at commit 05A as the reviewable surface.
 - **Backfill stubs change the readable wiki.** A future reader of an
   old weekly-log entry sees a migration stub above the original
   content. The stub names the migration explicitly to avoid confusion
@@ -321,18 +352,22 @@ matches the migrated state (asserted by a follow-on test that reads
   the audit-clean state. CI on 05B sees a strict gate against the
   migrated wiki — green. The release engineer does no follow-up
   commit; the system is consistent at every commit on the branch.
-- **Idempotence.** The migration script must be safe to re-run. Step 2
-  guards by `(part N of M)` in the H1 (sealed files no longer exist,
-  so the partition does not re-fire). Step 3 guards by content match
-  on the literal stub paragraph (the structural-position guard is
-  insufficient because Step 4 may have added new dated entries with
-  stubs). Step 4 skips summaries already ≤80 lines. The test suite
-  asserts a re-run of `migrate --dry-run` after `migrate --apply`
-  reports zero planned changes.
-- **`--dry-run` parity.** The test captures each step's planned
-  actions in dry-run mode, replays them in apply mode, then diffs the
-  resulting filesystem against the dry-run expectations. Byte-for-byte
-  parity required.
+- **Idempotence.** The migration script must be safe to re-run during
+  PR development (the script self-deletes in 05B, so post-merge
+  re-run is not a concern — only re-runs against successive WIP
+  states matter). Guards: Step 2 by `(part N of M)` in H1 (sealed
+  sources no longer exist after first run); Step 3 by content match
+  on the literal stub paragraph (structural-position guard
+  insufficient because Step 4 adds new dated entries with stubs);
+  Step 4 by `wc -l ≤ 80`. Eyeball verification: rerun `--dry-run`
+  after `--apply` (on a worktree copy of the script if 05B has
+  already removed it from HEAD) and confirm zero planned changes.
+- **`--dry-run` parity.** The same internal functions handle both
+  modes — the `dryRun` parameter gates the final `fs.writeFile` /
+  `fs.unlink` / `fs.rename` calls. Inline assertion at script
+  startup: dry-run never imports `fs/promises`'s mutating methods
+  directly; mutating calls go through a wrapper that no-ops in dry-
+  run. Eyeball verification on the dry-run output before `--apply`.
 - **Append-only-audit semantics (deletion deviation).** Spec § Decision
   area 2 says rotation preserves append-only-audit "by the chosen
   mechanism or its loss is named in the design with the rationale".
