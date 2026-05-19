@@ -171,7 +171,15 @@ describe("init Active Claims + Stop-hook install", () => {
     return execFileSync("node", [CLI_PATH, "init"], {
       cwd: dir,
       encoding: "utf-8",
-      env: { ...process.env, ...env, FIT_WIKI_URL: "/nonexistent/repo.git" },
+      // GH_TOKEN: ensure config.ghToken() resolves without invoking `gh auth`
+      // — clone of /nonexistent/repo.git fails by design, and init falls
+      // through to the local-only Active Claims / Stop-hook scaffolding.
+      env: {
+        ...process.env,
+        ...env,
+        FIT_WIKI_URL: "/nonexistent/repo.git",
+        GH_TOKEN: process.env.GH_TOKEN || "test-token",
+      },
       stdio: "pipe",
     });
   }
