@@ -32,8 +32,9 @@ with `— Improvement Coach 📊`.
 
 Survey domain state, then choose the highest-priority action:
 
-0. **[Action routing](.claude/agents/references/memory-protocol.md#action-routing)**
-   — read Tier 1; owned priorities and storyboard items preempt domain steps.
+0. **[On-boot read set](.claude/agents/references/memory-protocol.md#on-boot-read-set)**
+   — `Read wiki/MEMORY.md` then `Bash: fit-wiki boot`. Routing per
+   [On-Boot Routing](.claude/agents/references/memory-protocol.md#on-boot-routing).
 1. **Agents due for coaching?** — Check coaching log in
    `wiki/improvement-coach.md` and recent runs
    (`gh run list --workflow=kata-coaching.yml --limit=10`). Dispatch

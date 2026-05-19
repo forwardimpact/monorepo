@@ -35,8 +35,9 @@ Run `git fetch origin main` on every phase boundary, then route from
 one you just authored — does not advance routing; only merge of the prior
 phase's PR puts the artifact on `main`. Pick the highest-priority action:
 
-0. **[Action routing](.claude/agents/references/memory-protocol.md#action-routing)**
-   — read Tier 1; owned priorities and storyboard items preempt domain steps.
+0. **[On-boot read set](.claude/agents/references/memory-protocol.md#on-boot-read-set)**
+   — `Read wiki/MEMORY.md` then `Bash: fit-wiki boot`. Routing per
+   [On-Boot Routing](.claude/agents/references/memory-protocol.md#on-boot-routing).
 1. **Merged specs without designs?** -- `kata-design` (specs/NNN/ where
    `spec.md` is on `origin/main` but `design-a.md` is not)
 2. **Merged designs without plans?** -- `kata-plan` (specs/NNN/ where

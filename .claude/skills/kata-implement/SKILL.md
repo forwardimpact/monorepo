@@ -62,8 +62,7 @@ apply alongside the skill-specific ones below.
 
 ### Step 0: Read Memory
 
-Read memory per the agent profile (your summary, the current week's log, and
-teammates' summaries). Extract specs previously implemented and any blockers
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Extract specs previously implemented and any blockers
 from prior entries.
 
 > **Writing under `.claude/`:** If the plan targets files there, follow
