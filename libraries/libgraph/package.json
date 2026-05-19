@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libgraph",
-  "version": "0.1.72",
+  "version": "0.1.73",
   "description": "RDF triple store with named ontologies — answer relationship questions without writing join logic.",
   "keywords": [
     "rdf",
