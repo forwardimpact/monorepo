@@ -393,7 +393,7 @@ const devNull = new Writable({
  * @param {string} [deps.model] - Default model for all participants.
  * @param {string} [deps.agentModel] - Agent model override (falls back to `model`).
  * @param {string} [deps.facilitatorModel] - Facilitator model override (falls back to `model`).
- * @param {number} [deps.maxTurns]
+ * @param {number} [deps.maxTurns] - Facilitator's own per-invocation turn budget (default 20). Each participating agent's budget is taken from `config.maxTurns` on its entry in `agentConfigs` (default 50 when unset). The CLI command (`commands/facilitate.js`) threads `--max-turns` into both this parameter and every agent config so a single CLI value bounds all participants uniformly.
  * @param {string[]} [deps.facilitatorAllowedTools] - Tools the facilitator may use; defaults to a read/write file-edit set.
  * @param {string[]} [deps.facilitatorDisallowedTools] - Additional tools to block on the facilitator; merged with the sub-agent spawn defaults (Agent/Task/TaskOutput/TaskStop).
  * @param {string} [deps.facilitatorProfile] - Facilitator profile name; resolved into the main-thread system prompt via `composeProfilePrompt`.

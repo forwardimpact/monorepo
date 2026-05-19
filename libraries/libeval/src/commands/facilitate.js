@@ -18,11 +18,13 @@ function parseAgentProfiles(raw, cwd, maxTurns) {
 }
 
 /**
- * Parse and validate facilitate command options.
+ * Parse and validate facilitate command options. Exported for test
+ * coverage of the `--max-turns` → per-agent threading contract; not part
+ * of the package's public API.
  * @param {object} values - Parsed option values
  * @returns {object} Parsed options
  */
-function parseFacilitateOptions(values) {
+export function parseFacilitateOptions(values) {
   const taskFile = values["task-file"];
   const taskText = values["task-text"];
   if (taskFile && taskText)
