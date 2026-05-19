@@ -17,13 +17,16 @@
  *   markdown      ← entities, cache-lookup
  *   pathway       ← entities
  *   datasets      ← parse
+ *   clinical-output ← parse, entities, cache-lookup
  *   validate      ← enriched, entities
- *   write         ← enriched, raw, markdown, pathway, datasets, validate
+ *   write         ← enriched, raw, markdown, pathway, datasets,
+ *                    clinical-output, validate
  *
  * Verb terminal-closure walks (the cost-shifting payoff of Phase D):
  *   check    → parse, entities, prose-keys, cache-lookup
  *   validate → ...above + skeleton, enriched, validate
- *   build    → all of the above + raw, markdown, pathway, datasets, write
+ *   build    → all of the above + raw, markdown, pathway, datasets,
+ *              clinical-output, write
  *
  * Node table definitions live in nodes.js.
  *
@@ -45,6 +48,7 @@ export const STAGES = [
   "markdown",
   "pathway",
   "datasets",
+  "clinical-output",
   "validate",
   "write",
 ];

@@ -24,6 +24,7 @@ import { NullProseCacheSink } from "../src/sinks.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PATH = join(__dirname, "fixtures", "minimal.dsl");
+const CLINICAL_FIXTURE_PATH = join(__dirname, "fixtures", "clinical.dsl");
 
 function makeLogger() {
   return {
@@ -235,6 +236,60 @@ describe("Pipeline integration", () => {
         () => pipeline.run({ storyPath: FIXTURE_PATH, terminal: "nonsense" }),
         /Unknown stage 'nonsense'/,
       );
+    } finally {
+      rmSync(tmpDir, { recursive: true });
+    }
+  });
+
+  test("clinical-output produces zero files when no clinical block", async () => {
+    const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
+    try {
+      const pipeline = new Pipeline(deps);
+      const result = await pipeline.run({
+        storyPath: FIXTURE_PATH,
+        terminal: "clinical-output",
+      });
+      assert.strictEqual(result.output.files.size, 0);
+    } finally {
+      rmSync(tmpDir, { recursive: true });
+    }
+  });
+
+  test("clinical-output renders SQL and JSONL files", async () => {
+    const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
+    try {
+      const pipeline = new Pipeline(deps);
+      const result = await pipeline.run({
+        storyPath: CLINICAL_FIXTURE_PATH,
+        terminal: "clinical-output",
+      });
+      const paths = [...result.output.files.keys()];
+      assert.ok(
+        paths.some((p) => p.startsWith("bn_") && p.endsWith(".sql")),
+        `Expected SQL migration files, got: ${paths.join(", ")}`,
+      );
+      assert.ok(
+        paths.includes("out/clinical.jsonl"),
+        `Expected embeddings JSONL, got: ${paths.join(", ")}`,
+      );
+    } finally {
+      rmSync(tmpDir, { recursive: true });
+    }
+  });
+
+  test("write stage merges clinical output alongside other files", async () => {
+    const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
+    try {
+      const pipeline = new Pipeline(deps);
+      const result = await pipeline.run({
+        storyPath: CLINICAL_FIXTURE_PATH,
+        terminal: "write",
+      });
+      const paths = [...result.files.keys()];
+      assert.ok(paths.some((p) => p.startsWith("bn_") && p.endsWith(".sql")));
+      assert.ok(paths.includes("out/clinical.jsonl"));
+      // Existing knowledge files still produced
+      assert.ok(paths.some((p) => p.startsWith("data/knowledge/")));
     } finally {
       rmSync(tmpDir, { recursive: true });
     }
