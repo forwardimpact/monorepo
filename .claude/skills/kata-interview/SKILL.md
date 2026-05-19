@@ -83,7 +83,7 @@ Copy the subset the chosen product needs into `$AGENT_CWD`:
 | Guide, Outpost   | nothing                                                                                                                                            |
 | Pathway          | `data/pathway/`                                                                                                                                    |
 | Map              | `data/pathway/` and `data/activity/`                                                                                                               |
-| Landmark         | `data/pathway/` and `data/activity/`; substrate (`auth.users` for all humans, schema, seed, smoke) staged by the workflow's `Substrate stage` step |
+| Landmark         | `data/pathway/`; substrate (`data/activity/`, `auth.users` for all humans, schema, seed, smoke) staged by the workflow's `Substrate stage` step    |
 | Summit           | `data/pathway/` and `data/activity/raw/activity/summit.yaml` (as `summit.yaml` at root)                                                            |
 
 Use `cp -r data/pathway "$AGENT_CWD/data/pathway"` and similar.
