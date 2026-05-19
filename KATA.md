@@ -15,7 +15,7 @@ agents grasp the current condition (via prior-run traces), establish target
 conditions (via specs), and experiment toward them (via implementation). Four
 workflows (a sequential agent team across three shifts, a daily storyboard, an
 on-demand coaching session, an event-driven conversation responder), six agent
-personas, and fifteen skills form this cycle.
+personas, and sixteen skills form this cycle.
 
 Kata is an implementation of two upstream standards: the repository structure
 in [MONOREPO.md](MONOREPO.md) and the instruction architecture in
@@ -30,23 +30,25 @@ graph LR
 
 **Workflows** define schedule, trigger, permissions; **Agents** define persona,
 scope, skill composition; **Skills** define procedures, checklists, domain
-knowledge. Composite actions under `.github/actions/` encapsulate shared CI
-steps: `bootstrap/` (Bun + dependencies), `kata-action-eval/` (runs `fit-eval`
-with trace capture), and `kata-action-agent/` (full agent workflow wrapping the
-other two).
+knowledge. Local composite actions under `.github/actions/` encapsulate shared
+CI steps: `bootstrap/` (Bun + dependencies), `audit/` (npm audit + gitleaks),
+`coaligned-check/` (instruction-architecture checks), and `post-run/` (cleanup
+hooks). The full agent runtime is published as external composite actions —
+see § Actions.
 
 ## Actions
 
-Two composite actions, publishable as third-party GitHub Actions:
+Two composite actions published as third-party GitHub Actions under
+`forwardimpact/`:
 
-- **`kata-action-eval`** — Runs `fit-eval` with trace capture and artifact
-  upload. Wraps a single fit-eval invocation.
-- **`kata-action-agent`** — Full agent workflow: auth, checkout, bootstrap,
-  eval. The primary integration point for consumers.
+- **`forwardimpact/fit-eval`** — Runs `fit-eval` with trace capture and
+  artifact upload. Wraps a single fit-eval invocation.
+- **`forwardimpact/kata-agent`** — Full agent workflow: auth, checkout,
+  bootstrap, eval. The primary integration point for consumers.
 
-Internal workflows use local paths (`./.github/actions/kata-action-agent`);
-external installations use `forwardimpact/kata-action-agent@v1`. Run
-`kata-setup` to generate workflows interactively.
+Internal and external workflows both consume these by external tag (e.g.
+`forwardimpact/kata-agent@v1`); the monorepo does not maintain a local copy.
+Run `kata-setup` to generate workflows interactively.
 
 ## The PDSA Loop
 
