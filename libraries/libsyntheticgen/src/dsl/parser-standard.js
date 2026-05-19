@@ -24,7 +24,7 @@ export function createStandardParsers(helpers) {
     parseArray,
   } = helpers;
 
-  const { consumeFields } = createDispatchHelpers(helpers);
+  const { consumeFields, parseMappedArrays } = createDispatchHelpers(helpers);
 
   /**
    * Parse a brace-delimited block of keyword–value pairs using a dispatch
@@ -225,6 +225,8 @@ export function createStandardParsers(helpers) {
     "markdown",
     "parquet",
     "sql",
+    "supabase_migration",
+    "embeddings_jsonl",
   ]);
 
   function parseDatasetFields() {
@@ -280,6 +282,31 @@ export function createStandardParsers(helpers) {
     return ds;
   }
 
+  function parseBooleanIdent() {
+    return parseStringOrIdent() === "true";
+  }
+
+  const OUTPUT_DISPATCH = {
+    path: (out) => {
+      out.config.path = parseStringValue();
+    },
+    table: (out) => {
+      out.config.table = parseStringValue();
+    },
+    prefix: (out) => {
+      out.config.prefix = parseStringValue();
+    },
+    entities: (out) => {
+      out.config.entities = parseArray();
+    },
+    include_embeddings: (out) => {
+      out.config.include_embeddings = parseBooleanIdent();
+    },
+    text_fields: (out) => {
+      out.config.text_fields = parseMappedArrays("text_fields");
+    },
+  };
+
   function parseOutput(datasetId) {
     const format = parseStringOrIdent();
     if (!DATASET_FORMATS.has(format)) {
@@ -289,16 +316,10 @@ export function createStandardParsers(helpers) {
     }
     expect("LBRACE");
     const out = { dataset: datasetId, format, config: {} };
-    while (peek().type !== "RBRACE") {
-      const kw = advance();
-      if (kw.value === "path") out.config.path = parseStringValue();
-      else if (kw.value === "table") out.config.table = parseStringValue();
-      else
-        throw new Error(
-          `Unexpected '${kw.value}' in output at line ${kw.line}`,
-        );
-    }
-    expect("RBRACE");
+    consumeFields(OUTPUT_DISPATCH, "output", {
+      target: out,
+      consumeRBrace: true,
+    });
     return out;
   }
 

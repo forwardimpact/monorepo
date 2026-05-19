@@ -82,14 +82,84 @@ describe("dataset and output parsing", () => {
     assert.strictEqual(ast.outputs[1].config.table, "my_claims");
   });
 
-  test("parses all six output formats", () => {
-    const formats = ["json", "yaml", "csv", "markdown", "parquet", "sql"];
+  test("parses all eight output formats", () => {
+    const formats = [
+      "json",
+      "yaml",
+      "csv",
+      "markdown",
+      "parquet",
+      "sql",
+      "supabase_migration",
+      "embeddings_jsonl",
+    ];
     for (const fmt of formats) {
       const ast = parseDsl(
         `terrain test { output ds ${fmt} { path "out/file" } }`,
       );
       assert.strictEqual(ast.outputs[0].format, fmt);
     }
+  });
+
+  test("parses supabase_migration output config", () => {
+    const ast = parseDsl(`terrain test {
+      output clinical supabase_migration {
+        prefix "bionova"
+        entities [clinical.conditions, clinical.sites, clinical.trials]
+        include_embeddings true
+      }
+    }`);
+    const out = ast.outputs[0];
+    assert.strictEqual(out.format, "supabase_migration");
+    assert.strictEqual(out.config.prefix, "bionova");
+    assert.deepStrictEqual(out.config.entities, [
+      "clinical.conditions",
+      "clinical.sites",
+      "clinical.trials",
+    ]);
+    assert.strictEqual(out.config.include_embeddings, true);
+  });
+
+  test("include_embeddings defaults to false when set to 'false'", () => {
+    const ast = parseDsl(`terrain test {
+      output clinical supabase_migration {
+        prefix "x"
+        entities [clinical.conditions]
+        include_embeddings false
+      }
+    }`);
+    assert.strictEqual(ast.outputs[0].config.include_embeddings, false);
+  });
+
+  test("parses embeddings_jsonl output with text_fields", () => {
+    const ast = parseDsl(`terrain test {
+      output clinical embeddings_jsonl {
+        path "out/embed.jsonl"
+        entities [clinical.conditions, clinical.trials]
+        text_fields {
+          clinical.conditions [name, synonyms, prose_explainer]
+          clinical.trials [name, therapeutic_area, arms, prose_description]
+        }
+      }
+    }`);
+    const out = ast.outputs[0];
+    assert.strictEqual(out.format, "embeddings_jsonl");
+    assert.strictEqual(out.config.path, "out/embed.jsonl");
+    assert.deepStrictEqual(out.config.entities, [
+      "clinical.conditions",
+      "clinical.trials",
+    ]);
+    assert.deepStrictEqual(out.config.text_fields["clinical.conditions"], [
+      "name",
+      "synonyms",
+      "prose_explainer",
+    ]);
+    assert.deepStrictEqual(out.config.text_fields["clinical.trials"], [
+      "name",
+      "therapeutic_area",
+      "arms",
+      "prose_description",
+    ]);
   });
 
   test("throws on unknown output format", () => {
