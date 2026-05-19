@@ -7,10 +7,18 @@ Land the CLI primitives first (Part 01), then rewrite the protocol and seed
 `MEMORY.md ## Active Claims` so the contracts have implementations
 (Part 02), then update every citation across agent profiles and skills so
 the read/write asymmetry that fed F11 cannot reappear (Part 03), then wire
-mechanical enforcement and the trace-sample verification (Part 04). The
-spec mandates the protocol and the CLI ship together — they share one PR
-series on a single `feat/memory-protocol-redesign` branch with commits
-matching Parts 01–04.
+mechanical enforcement (Part 04), then retroactively migrate the existing
+wiki to look as if it had followed this protocol since day one (Part 05).
+The spec mandates the protocol and the CLI ship together — they share one
+PR series on a single `feat/memory-protocol-redesign` branch with commits
+matching Parts 01–05.
+
+Part 05 is a **user-directed deviation from spec § Out of scope**
+("Backfill of past weekly logs to the new contract"). The spec disclaims
+backfill so the redesign can ship with the cutover-only contract; the user
+adds Part 05 to convert the existing wiki into the high-fidelity eval
+corpus the system will be measured against. The deviation is documented
+in plan-a-05.md § Spec deviation and in this plan's Risks.
 
 Libraries used: `@forwardimpact/libcli` (createCli),
 `@forwardimpact/libutil` (Finder), `@forwardimpact/libharness` (test
@@ -23,7 +31,8 @@ helpers). No new dependencies.
 | [01](plan-a-01.md) | libwiki CLI primitives | — | Add `boot`, `log {decision\|note\|done}`, `claim`, `release`, `inbox {list\|ack\|promote\|drop}`, `rotate`, `audit`; modify `init`; extend `refresh`. Tests for each. |
 | [02](plan-a-02.md) | Protocol rewrite and MEMORY.md schema | 01 (primitive names must exist) | Rewrite `memory-protocol.md` to specify CLI contracts; add `## Active Claims` and `## Cross-Cutting Priorities` symmetry to `wiki/MEMORY.md`; update `KATA.md`, `CONTRIBUTING.md`, and `coordination-protocol.md` cross-references; produce citation inventory. |
 | [03](plan-a-03.md) | Agent profile + skill citation updates | 02 (protocol headings must be final) | Update Step 0 in 6 agent profiles to mandate `Read MEMORY.md` then `fit-wiki boot`; update 11 skills citing memory-protocol; update `fit-wiki` SKILL and `kata-wiki-curate` SKILL. |
-| [04](plan-a-04.md) | CI wiring, Stop-hook install, verification | 01–03 (and re-invokes Part 01's `init`) | Wire `fit-wiki audit` into pre-merge CI; install Stop-hook via `init`; delete `scripts/wiki-audit.sh`; file follow-up issue for JTBD gap; collect 8-run trace sample for spec § Success Criteria row 4. **No pre-emptive rotation of pre-cutover weekly logs** — spec § Success Criteria row 5 exempts them. |
+| [04](plan-a-04.md) | CI wiring, Stop-hook install, verification | 01–03 (and re-invokes Part 01's `init`) | Wire `fit-wiki audit` into pre-merge CI; install Stop-hook via `init`; delete `scripts/wiki-audit.sh`; file follow-up issue for JTBD gap; collect 8-run trace sample for spec § Success Criteria row 4. |
+| [05](plan-a-05.md) | Retroactive wiki migration (eval corpus) | 01–04 (uses `rotate`, `audit`, and the cutover constants from Part 01) | Run a one-time migration that converts the existing wiki into a state that audits clean against the new contract: rotate 31 over-budget weekly logs into `-partN.md` files, compact `release-engineer.md` (106 → ≤80), backfill `### Decision` stubs in ~140 dated entries that predate the contract, retire the audit grace window. The migrated wiki becomes the eval substrate for measuring the system against a realistic historical corpus. **Spec deviation** — see plan-a-05.md § Spec deviation. |
 
 ## Cross-Cutting Concerns
 
@@ -87,21 +96,36 @@ helpers). No new dependencies.
   until the sample is posted. If the post-merge window fails to
   accumulate ≥3 React-mode runs in 48h, Part 04's Risks describe the
   manual-dispatch fallback.
+- **Spec deviation: backfill of past weekly logs.** Spec § Out of scope
+  explicitly disclaims this ("past logs remain as they are, append-
+  only"). Part 05 backfills anyway because the user directs the
+  migration as eval-corpus preparation: a wiki that audits clean
+  against the new contract is a higher-fidelity stress test than the
+  greenfield case, and the 31 over-budget weekly logs already violate
+  the protocol the moment it lands. The deviation is a one-shot
+  documented in plan-a-05.md § Spec deviation; the git history before
+  the migration commit preserves the unmigrated state. If the
+  approver rejects the deviation, Part 05 is dropped and the system
+  ships with the cutover-only contract per spec.
 
 ## Execution Recommendation
 
 Sequential on a single `feat/memory-protocol-redesign` branch, one
 commit per Part, executed by `staff-engineer` via `kata-implement`.
 Parallelism within Part 01 (independent subcommand files) is acceptable
-inside one commit. Parts 02 and 03 are smaller and can compress into one
-commit if Part 02's review surfaces no architectural rework. Part 04 is
-the only part that interacts with CI and the wiki content — it ships
-last and gates the PR's mergeability via the new audit gate it just
-installed (first-run grace lets the PR pass).
+inside one commit. Parts 02 and 03 are smaller and can compress into
+one commit if Part 02's review surfaces no architectural rework. Part 04
+installs the audit gate (the grace window covers the historical
+violations until Part 05 lands). Part 05 retires the grace window by
+making the wiki audit-clean — after Part 05 commits, `audit` runs in
+strict mode and the eval substrate is ready.
 
 The `technical-writer` agent is the natural reviewer for Part 02's
 protocol rewrite via `kata-review`; engineering reviewers cover Parts
-01, 03, and 04.
+01, 03, and 04. Part 05 needs both perspectives — a technical-writer
+review of the backfill stubs (do they preserve readability without
+fabricating history?) and an engineering review of the migration
+script (idempotence, dry-run flag, git history shape).
 
 ## References
 

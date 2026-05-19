@@ -169,7 +169,11 @@ after merge.
 
 Output: human-readable lines to stdout, with a final `RESULT: pass` or
 `RESULT: fail (N checks failed)`. JSON output via `--format json` for
-programmatic consumers.
+programmatic consumers. `--legacy-only` flag runs only the checks the
+old `scripts/wiki-audit.sh` carried (summary budget, summary sections,
+weekly-log filename, priority index) and skips the four new checks
+introduced by this step — needed for development-time parity and for
+Part 05's per-step verification.
 
 Created: `libraries/libwiki/test/cli-audit.test.js` covering each new
 check plus the grace-var behaviour.

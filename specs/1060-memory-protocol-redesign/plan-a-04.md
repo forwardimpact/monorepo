@@ -34,15 +34,17 @@ required:
 ```
 
 `FIT_WIKI_AUDIT_GRACE_UNTIL` is computed at PR-open time, not at plan
-time: **merge-target date + 7 days**, derived from the expected
-release-engineer merge slot after Step 7's trace sample lands. The
-value is committed as a literal string in the same commit that opens
-the audit step; the release engineer recomputes and amends if the
-merge slips.
+time: **merge-target date + 30 days**, generous enough to cover the
+window between Part 04 landing (audit gate strict against legacy
+violations) and Part 05 landing (migration produces an audit-clean
+wiki). Part 05 Step 6 retires the variable entirely; if Part 05 is
+dropped per the user-deviation rejection path, the release engineer
+extends the variable on an ongoing basis until alternative remediation
+lands.
 
 Pre-cutover weekly logs are exempt by the cutover check inside `audit`
 itself. The grace var covers existing summary-budget and decision-block
-violations until they are remediated.
+violations until Part 05's migration remediates them mechanically.
 
 Verification:
 - `rg "FIT_WIKI_AUDIT_GRACE_UNTIL" .github/workflows/` returns the new step's literal value, not a `${{ env.* }}` reference.
