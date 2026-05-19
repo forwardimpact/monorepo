@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 
 import { runStageCommand } from "../../src/commands/substrate-stage.js";
 import { runInit } from "../../src/commands/init.js";
+import { copyActivity } from "../../src/lib/copy-activity.js";
 
 function buildDeps({ failPhase = null, invocations }) {
   function recorded(name, fn = async () => undefined) {
@@ -37,6 +38,7 @@ function buildDeps({ failPhase = null, invocations }) {
   };
   return {
     loadInit: async () => recorded("init"),
+    loadCopyActivity: async () => recorded("copy-activity"),
     createSupabaseCli: () => cliStub,
     createMapClient: () => ({ stub: true }),
     findDataDir: async () => "/tmp/data/pathway",
@@ -75,12 +77,13 @@ describe("substrate-stage phase ordering", () => {
     process.stdout.write = stdoutWrite;
   });
 
-  test("invokes phases in init → stack → url-discovery → migrate → seed → provision → smoke order", async () => {
+  test("invokes phases in init → copy-activity → stack → url-discovery → migrate → seed → provision → smoke order", async () => {
     const deps = buildDeps({ invocations });
     const config = { supabaseJwtSecret: () => "secret" };
     await runStageCommand({ config }, deps);
     assert.deepEqual(invocations, [
       "init",
+      "copy-activity",
       "stack",
       "url-discovery",
       "migrate",
@@ -100,6 +103,7 @@ describe("substrate-stage phase ordering", () => {
     );
     assert.deepEqual(invocations, [
       "init",
+      "copy-activity",
       "stack",
       "url-discovery",
       "migrate",
@@ -131,6 +135,30 @@ describe("substrate-stage phase ordering", () => {
       assert.equal(initTarget, tmpDir);
     } finally {
       await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test("real copy-activity helper against missing source wraps under [substrate stage: copy-activity]", async () => {
+    // Build a tmp root whose sibling `data/activity` does NOT exist so
+    // copyActivity's fs.cp call raises ENOENT.
+    const absentRoot = await fs.mkdtemp(
+      path.join(tmpdir(), "substrate-missing-source-"),
+    );
+    const target = await fs.mkdtemp(
+      path.join(tmpdir(), "substrate-missing-target-"),
+    );
+    const deps = buildDeps({ invocations });
+    deps.loadCopyActivity = async () => copyActivity;
+    deps.findDataDir = async () => path.join(absentRoot, "data", "pathway");
+    const config = { supabaseJwtSecret: () => "secret" };
+    try {
+      await assert.rejects(
+        () => runStageCommand({ config, target }, deps),
+        /\[substrate stage: copy-activity\]/,
+      );
+    } finally {
+      await fs.rm(absentRoot, { recursive: true, force: true });
+      await fs.rm(target, { recursive: true, force: true });
     }
   });
 });
@@ -182,6 +210,7 @@ describe("substrate-stage / fit-map init bootstrap-shape parity", () => {
       },
       {
         loadInit: async () => runInit,
+        loadCopyActivity: async () => async () => {},
         createSupabaseCli: () => ({
           run: recorded("noop"),
           capture: recorded("noop", async () =>

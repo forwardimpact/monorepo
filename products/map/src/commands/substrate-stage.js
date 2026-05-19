@@ -38,6 +38,8 @@ export async function runStageCommand(
   { config, target = process.cwd() },
   {
     loadInit = () => import("./init.js").then((m) => m.runInit),
+    loadCopyActivity = () =>
+      import("../lib/copy-activity.js").then((m) => m.copyActivity),
     createSupabaseCli = defaultCreateCli,
     findDataDir = defaultFindDataDir,
     createMapClient = defaultCreateMapClient,
@@ -65,6 +67,14 @@ export async function runStageCommand(
 ) {
   const runInit = await loadInit();
   await runPhase("init", () => runInit(target));
+
+  const copyActivity = await loadCopyActivity();
+  await runPhase("copy-activity", async () => {
+    const dataDir = await findDataDir(undefined);
+    const source = path.join(path.dirname(dataDir), "activity");
+    await copyActivity({ source, target });
+  });
+
   const stageConfig = (await reloadConfig()) ?? config;
 
   const cli = createSupabaseCli();
