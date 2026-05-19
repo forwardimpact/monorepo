@@ -10,19 +10,21 @@ import { createTeeWriter } from "../tee-writer.js";
  * @param {string} cwd - Shared working directory for all agents
  * @returns {Array<{name: string, role: string, cwd: string, agentProfile: string}>}
  */
-function parseAgentProfiles(raw, cwd) {
+function parseAgentProfiles(raw, cwd, maxTurns) {
   return raw.split(",").map((entry) => {
     const name = entry.trim();
-    return { name, role: name, cwd, agentProfile: name };
+    return { name, role: name, cwd, agentProfile: name, maxTurns };
   });
 }
 
 /**
- * Parse and validate facilitate command options.
+ * Parse and validate facilitate command options. Exported for test
+ * coverage of the `--max-turns` → per-agent threading contract; not part
+ * of the package's public API.
  * @param {object} values - Parsed option values
  * @returns {object} Parsed options
  */
-function parseFacilitateOptions(values) {
+export function parseFacilitateOptions(values) {
   const taskFile = values["task-file"];
   const taskText = values["task-text"];
   if (taskFile && taskText)
@@ -36,9 +38,15 @@ function parseFacilitateOptions(values) {
   const profilesRaw = values["agent-profiles"];
   if (!profilesRaw) throw new Error("--agent-profiles is required");
   const agentCwd = resolve(values["agent-cwd"] ?? ".");
-  const agentConfigs = parseAgentProfiles(profilesRaw, agentCwd);
 
   const maxTurnsRaw = values["max-turns"] ?? "20";
+  const maxTurns = maxTurnsRaw === "0" ? 0 : parseInt(maxTurnsRaw, 10);
+
+  // Thread --max-turns into each participant: without this, every facilitated
+  // agent silently falls back to the 50-turn default in facilitator.js even
+  // when the caller raises the budget. Observed in run 26078312414 where
+  // staff-engineer terminated at 51 turns despite --max-turns=200.
+  const agentConfigs = parseAgentProfiles(profilesRaw, agentCwd, maxTurns);
 
   return {
     taskContent,
@@ -47,7 +55,7 @@ function parseFacilitateOptions(values) {
     facilitatorCwd: resolve(values["facilitator-cwd"] ?? "."),
     agentModel: values["agent-model"] ?? "claude-opus-4-7[1m]",
     facilitatorModel: values["facilitator-model"] ?? "claude-opus-4-7[1m]",
-    maxTurns: maxTurnsRaw === "0" ? 0 : parseInt(maxTurnsRaw, 10),
+    maxTurns,
     outputPath: values.output,
     facilitatorProfile: values["facilitator-profile"] ?? undefined,
   };

@@ -73,13 +73,15 @@ npx fit-eval supervise \
   --supervisor-cwd=. \
   --supervisor-allowed-tools=Read,Grep,Bash \
   --agent-cwd=/tmp/refactor-sandbox \
-  --max-turns=20 \
+  --max-turns=200 \
   --output=trace--default.raw.ndjson
 ```
 
 `--agent-cwd` should be a sandbox copy of your repo since the target agent edits
 files there. When omitted, `fit-eval` creates a temporary directory. The judge
 stays in `--supervisor-cwd` to inspect the target's work without writing to it.
+`--max-turns` is the per-runner invocation budget (default `200`); the judge↔
+agent relay loop is bounded separately. `--max-turns=0` removes both caps.
 
 Exit code `0` means the judge concluded with `success: true`. Exit code `1`
 means `success: false`, the turn limit was reached, or an error occurred.
@@ -120,7 +122,7 @@ jobs:
             --supervisor-cwd=. \
             --supervisor-allowed-tools=Read,Grep,Bash \
             --agent-cwd=/tmp/sandbox \
-            --max-turns=20 \
+            --max-turns=200 \
             --output=/tmp/trace/trace--default.raw.ndjson
 
       - name: Split trace
@@ -183,7 +185,8 @@ first failure.
 
 ## Tips
 
-- **`--max-turns=0`** removes the turn cap. Use it for exploratory local runs;
+- **`--max-turns=0`** removes both caps (per-runner invocations and the
+  supervisor↔agent exchange loop). Use it for exploratory local runs;
   always set a real budget in CI.
 - **`--task-amend`** appends extra text to the task without editing the task
   file -- useful for parameterizing the same task across a matrix.

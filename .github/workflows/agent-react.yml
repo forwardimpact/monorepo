@@ -182,4 +182,5 @@ jobs:
           task-text: ${{ steps.task.outputs.task }}
           facilitator-profile: "release-engineer"
           agent-profiles: "product-manager,security-engineer,staff-engineer,technical-writer"
-          max-turns: "200"
+          max-turns: "1500"
+          timeout-minutes: "300"

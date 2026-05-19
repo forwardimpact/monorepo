@@ -251,12 +251,15 @@ npx fit-eval supervise \
   --supervisor-allowed-tools=Read,Grep,Bash \
   --agent-cwd=/tmp/refactor-sandbox \
   --allowed-tools=Read,Edit,Write,Bash,Grep,Glob \
-  --max-turns=50 \
+  --max-turns=200 \
   --output=trace--demo.raw.ndjson
 ```
 
-Exit code `0` means the judge concluded with `success: true`; exit code `1`
-means it concluded `success: false`, ran out of turns, or errored.
+`--max-turns` is the per-runner invocation budget for both the judge and the
+agent. The supervisor↔agent relay loop is bounded separately by an internal
+cap. `0` removes both caps. Exit code `0` means the judge concluded with
+`success: true`; exit code `1` means it concluded `success: false`, ran out of
+turns, or errored.
 
 For a **facilitated session** (one facilitator, N participants):
 
@@ -267,14 +270,16 @@ npx fit-eval facilitate \
   --facilitator-cwd=. \
   --agent-profiles=security-engineer,release-engineer,technical-writer \
   --agent-cwd=. \
-  --max-turns=20 \
+  --max-turns=200 \
   --output=trace--demo.raw.ndjson
 ```
 
 Participants share `--agent-cwd` by default. If two participants might edit the
 same file, give each its own working directory or restrict tool allowlists so
-only one can write. `--max-turns=20` is the default for `facilitate` -- always
-set a budget so a stuck participant cannot run the session indefinitely.
+only one can write. `--max-turns` is applied uniformly to the facilitator and
+to every participant -- always set a budget so a stuck participant cannot run
+the session indefinitely. The CLI default is `20`; raise it for sessions that
+do real implementation work.
 
 The `--task-file` content is visible to every agent in the session as the
 opening prompt. The facilitator profile steers how the goal is pursued; the

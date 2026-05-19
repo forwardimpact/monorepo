@@ -120,4 +120,31 @@ describe("Supervisor - createSupervisor factory", () => {
     assert.strictEqual(s.agentRunner.mcpServers.guide.type, "http");
     assert.strictEqual(s.supervisorRunner.mcpServers.guide, undefined);
   });
+
+  // The factory `maxTurns` parameter is the per-runner invocation budget for
+  // both the supervisor and the agent — matching `run` and `facilitate`
+  // semantics. The outer supervisor↔agent exchange loop is bounded separately
+  // by an internal default (currently 100). `maxTurns === 0` propagates as
+  // unlimited on both axes. These three tests lock that contract — see the
+  // commit that introduced them for the history of the silent 200-floor bug.
+  test("maxTurns sets per-runner budget; exchange loop bounded separately", () => {
+    const s = createSupervisor({ ...baseOpts(), maxTurns: 50 });
+    assert.strictEqual(s.agentRunner.maxTurns, 50);
+    assert.strictEqual(s.supervisorRunner.maxTurns, 50);
+    assert.strictEqual(s.maxTurns, 100); // exchange budget — independent of maxTurns
+  });
+
+  test("maxTurns=0 propagates as unlimited on both axes", () => {
+    const s = createSupervisor({ ...baseOpts(), maxTurns: 0 });
+    assert.strictEqual(s.agentRunner.maxTurns, 0);
+    assert.strictEqual(s.supervisorRunner.maxTurns, 0);
+    assert.strictEqual(s.maxTurns, 0);
+  });
+
+  test("default maxTurns yields 200 per runner and bounded exchanges", () => {
+    const s = createSupervisor(baseOpts());
+    assert.strictEqual(s.agentRunner.maxTurns, 200);
+    assert.strictEqual(s.supervisorRunner.maxTurns, 200);
+    assert.strictEqual(s.maxTurns, 100);
+  });
 });

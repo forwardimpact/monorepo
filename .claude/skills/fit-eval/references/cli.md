@@ -22,7 +22,7 @@ npx fit-eval <command> [options]
 | `--task-text`   | Inline task text (alternative to `--task-file`)                             |
 | `--task-amend`  | Additional text appended to the task                                        |
 | `--agent-model` | Claude model for agents (default: `claude-opus-4-7[1m]`)                    |
-| `--max-turns`   | Max agentic turns (default: 50 run, 20 supervise/facilitate; 0 = unlimited) |
+| `--max-turns`   | Max agentic turns per runner invocation (default: 50 run, 200 supervise, 20 facilitate; 0 = unlimited) |
 | `--output`      | Write the NDJSON trace to a file                                            |
 
 ## Run-Only Options

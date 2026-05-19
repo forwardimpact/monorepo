@@ -30,7 +30,7 @@ jobs:
       matrix:
         agent:
           - { name: product-manager }
-          - { name: staff-engineer, max-turns: "0" }
+          - { name: staff-engineer }
           - { name: security-engineer }
           - { name: technical-writer }
           - { name: release-engineer }
@@ -43,7 +43,8 @@ jobs:
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           agent-profile: ${{ matrix.agent.name }}
           case: ${{ matrix.agent.name }}
-          max-turns: ${{ matrix.agent.max-turns || '200' }}
+          max-turns: ${{ matrix.agent.max-turns || '1500' }}
+          timeout-minutes: "300"
           task-text: >-
             Assess the current state of your domain and act on the highest-priority finding.
           task-amend: ${{ inputs.task-amend }}

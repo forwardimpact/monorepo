@@ -50,9 +50,16 @@ export const AGENT_SYSTEM_PROMPT =
  * Maximum number of mid-turn interventions allowed within a single agent turn.
  * Bounded so a looping supervisor exhausts its quota fast (observability) but
  * leaves headroom for legitimate "intervene, observe, intervene again" patterns.
- * The outer maxTurns budget still bounds overall runtime.
+ * The outer exchange budget still bounds overall runtime.
  */
 const MAX_INTERVENTIONS_PER_TURN = 5;
+
+/**
+ * Default cap on supervisor↔agent exchanges in a single run. Not exposed via
+ * CLI — `--max-turns` governs the per-runner invocation budget instead. When
+ * a `--max-exchanges` flag is added this becomes the default for that flag.
+ */
+const DEFAULT_MAX_EXCHANGES = 100;
 
 /** Orchestrate a relay loop between a supervisor LLM and an agent LLM with mid-turn review. */
 export class Supervisor {
@@ -485,7 +492,7 @@ const devNull = new Writable({
  * @param {string} [deps.model] - Default model for both runners.
  * @param {string} [deps.agentModel] - Agent model override (falls back to `model`).
  * @param {string} [deps.supervisorModel] - Supervisor model override (falls back to `model`).
- * @param {number} [deps.maxTurns]
+ * @param {number} [deps.maxTurns] - Per-runner invocation budget for both the supervisor and the agent (default 200; 0 = unlimited). Outer supervisor↔agent exchanges are bounded separately by `DEFAULT_MAX_EXCHANGES` (passes through to unlimited when `maxTurns === 0`).
  * @param {string[]} [deps.allowedTools]
  * @param {string[]} [deps.supervisorAllowedTools]
  * @param {string[]} [deps.supervisorDisallowedTools]
@@ -544,8 +551,13 @@ export function createSupervisor({
 
   const onLine = (line) => supervisor.emitLine(line);
 
-  const perInvocationTurns =
-    maxTurns === 0 ? 0 : Math.max(maxTurns ?? 100, 200);
+  // `maxTurns` is the per-runner invocation budget — matches `run` and
+  // `facilitate` semantics. The outer supervisor↔agent exchange loop is
+  // bounded separately by `DEFAULT_MAX_EXCHANGES`; when --max-exchanges is
+  // added it will become a parameter. `maxTurns === 0` propagates through
+  // to mean unlimited on both axes.
+  const perInvocationTurns = maxTurns ?? 200;
+  const exchangeBudget = maxTurns === 0 ? 0 : DEFAULT_MAX_EXCHANGES;
 
   const agentRunner = createAgentRunner({
     cwd: agentCwd,
@@ -595,7 +607,7 @@ export function createSupervisor({
     agentRunner,
     supervisorRunner,
     output,
-    maxTurns,
+    maxTurns: exchangeBudget,
     ctx,
     messageBus,
     taskAmend,

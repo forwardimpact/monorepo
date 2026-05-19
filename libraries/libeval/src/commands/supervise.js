@@ -35,7 +35,7 @@ function parseSuperviseOptions(values) {
     agentModel: values["agent-model"] ?? "claude-opus-4-7[1m]",
     supervisorModel: values["supervisor-model"] ?? "claude-opus-4-7[1m]",
     maxTurns: (() => {
-      const raw = values["max-turns"] ?? "20";
+      const raw = values["max-turns"] ?? "200";
       return raw === "0" ? 0 : parseInt(raw, 10);
     })(),
     outputPath: values.output,

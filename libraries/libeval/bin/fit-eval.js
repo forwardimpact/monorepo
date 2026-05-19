@@ -100,7 +100,8 @@ const definition = {
         },
         "max-turns": {
           type: "string",
-          description: "Max agentic turns (default: 20, 0 = unlimited)",
+          description:
+            "Max agentic turns per runner invocation (default: 200, 0 = unlimited)",
         },
         output: {
           type: "string",
