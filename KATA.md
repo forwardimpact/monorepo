@@ -87,10 +87,11 @@ agent writes a spec rather than attempting the fix.
 | **improvement-coach** | Study          | Facilitate storyboard meetings and 1-on-1 coaching sessions             |
 
 Each agent's Assess section selects work via a four-level priority scheme
-([action routing](.claude/agents/references/memory-protocol.md#action-routing)):
-owned MEMORY.md priorities first, then storyboard deliverables and experiment
-issues labeled `agent:{name}`, then domain-specific checks, then cross-cutting
-fallback. An agent reports clean only after exhausting all four levels.
+([on-boot routing](.claude/agents/references/memory-protocol.md#on-boot-routing)):
+owned MEMORY.md priorities first, then active claims surfaced by `fit-wiki
+boot`, then storyboard deliverables and experiment issues labeled
+`agent:{name}`, then domain-specific checks, then cross-cutting fallback. An
+agent reports clean only after exhausting all four levels.
 
 ## Workflows
 
@@ -238,7 +239,8 @@ holds `STATUS.md`, the canonical approval record for every spec (see §
 Approval Signal). The canonical read-summary, append-log, update-summary
 cadence is defined in
 [`memory-protocol.md`](.claude/agents/references/memory-protocol.md), an
-agent-level shared reference. Entry-point skills include a read step and a
+agent-level shared reference. Read contract: `Read wiki/MEMORY.md` + `Bash:
+fit-wiki boot`. Entry-point skills include a read step and a
 "Memory: what to record" section; sub-skills and utility skills are exempt.
 The wiki holds settled state — open questions live in Discussions until
 answered.
@@ -250,8 +252,9 @@ distinguished by **time horizon** and **persistence**. Per-output coordination
 across them — including cross-agent escalation, run-time trust, Discussion
 ownership, and inbound comment handling — is governed by
 [coordination-protocol.md](.claude/agents/references/coordination-protocol.md),
-the sibling of `memory-protocol.md`. Each channel has an explicit non-purpose so
-they don't compete.
+the sibling of `memory-protocol.md`. Read contract: `Read wiki/MEMORY.md` +
+`Bash: fit-wiki boot`. Each channel has an explicit non-purpose so they
+don't compete.
 
 | Channel               | Use for                                                                                                      | Lifetime                              | Mechanism                    |
 | --------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------- | ---------------------------- |

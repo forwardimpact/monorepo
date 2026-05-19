@@ -1,0 +1,179 @@
+import { readFileSync, existsSync } from "node:fs";
+import path from "node:path";
+import { parseClaims, filterExpired } from "./active-claims.js";
+import { MEMO_INBOX_MARKER, PRIORITY_INDEX_HEADING } from "./constants.js";
+
+function readIfExists(filePath) {
+  if (!existsSync(filePath)) return null;
+  return readFileSync(filePath, "utf-8");
+}
+
+function currentStoryboardPath(wikiRoot, date) {
+  const yyyy = date.getUTCFullYear();
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return path.join(wikiRoot, `storyboard-${yyyy}-M${mm}.md`);
+}
+
+function extractSummary(text) {
+  if (!text) return "";
+  const lines = text.split("\n");
+  let i = 0;
+  while (i < lines.length && lines[i].startsWith("#")) i++;
+  while (i < lines.length && lines[i].trim() === "") i++;
+  const paragraph = [];
+  while (i < lines.length && lines[i].trim() !== "") {
+    paragraph.push(lines[i]);
+    i++;
+  }
+  return paragraph.join(" ").trim();
+}
+
+function parsePriorityRow(line) {
+  const cells = line
+    .split("|")
+    .slice(1, -1)
+    .map((c) => c.trim());
+  if (cells.length < 5) return null;
+  const [item, agents, owner, status, added] = cells;
+  if (item === "*None*") return null;
+  return { item, agents, owner, status, added, link: null };
+}
+
+function findHeading(lines, heading) {
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim() === heading) return i;
+  }
+  return -1;
+}
+
+function findSectionEnd(lines, start) {
+  for (let i = start; i < lines.length; i++) {
+    if (/^## /.test(lines[i])) return i;
+  }
+  return lines.length;
+}
+
+function parsePriorityTable(text) {
+  if (!text) return [];
+  const lines = text.split("\n");
+  const start = findHeading(lines, PRIORITY_INDEX_HEADING);
+  if (start === -1) return [];
+  const end = findSectionEnd(lines, start + 1);
+  const rows = [];
+  let inTable = false;
+  let seenSep = false;
+  for (let i = start + 1; i < end; i++) {
+    const line = lines[i];
+    if (/^\|\s*Item\s*\|/.test(line)) {
+      inTable = true;
+      continue;
+    }
+    if (inTable && /^\|\s*---/.test(line)) {
+      seenSep = true;
+      continue;
+    }
+    if (!(inTable && seenSep && line.startsWith("|"))) continue;
+    const row = parsePriorityRow(line);
+    if (row) rows.push(row);
+  }
+  return rows;
+}
+
+function splitPriorities(rows, agent) {
+  const owned = [];
+  const cross = [];
+  for (const r of rows) {
+    if (r.owner === agent) owned.push(r);
+    else cross.push(r);
+  }
+  return { owned, cross };
+}
+
+function parseStoryboardItems(text, agent) {
+  if (!text) return [];
+  const lines = text.split("\n");
+  const items = [];
+  let inAgent = false;
+  for (const line of lines) {
+    const h3Match = line.match(/^### (.+)$/);
+    if (h3Match) {
+      inAgent = h3Match[1].toLowerCase().startsWith(agent.toLowerCase());
+      continue;
+    }
+    if (!inAgent) continue;
+    const bullet = line.match(/^[-*]\s+(.+)$/);
+    if (bullet) {
+      items.push({
+        dim: agent,
+        threshold: bullet[1],
+        status: "open",
+        link: null,
+      });
+    }
+  }
+  return items;
+}
+
+function countInbox(text) {
+  if (!text) return 0;
+  const lines = text.split("\n");
+  const markerIdx = lines.findIndex((l) => l.trim() === MEMO_INBOX_MARKER);
+  if (markerIdx === -1) return 0;
+  let n = 0;
+  for (let i = markerIdx + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trim() === "") continue;
+    if (/^##\s/.test(line)) break;
+    if (!line.startsWith("-")) continue;
+    if (/\*No new messages\.\*/.test(line)) continue;
+    n++;
+  }
+  return n;
+}
+
+function mapPriority(r) {
+  return { item: r.item, status: r.status, added: r.added, link: r.link };
+}
+
+function mapClaim(c) {
+  return {
+    agent: c.agent,
+    target: c.target,
+    branch: c.branch,
+    pr: c.pr,
+    claimed_at: c.claimed_at,
+    expires_at: c.expires_at,
+  };
+}
+
+/** Build the boot digest JSON object. */
+export function buildDigest({ wikiRoot, agent, today, _fs, _gh }) {
+  const date = today instanceof Date ? today : new Date(today);
+  const todayStr = date.toISOString().slice(0, 10);
+
+  const summaryPath = path.join(wikiRoot, `${agent}.md`);
+  const memoryPath = path.join(wikiRoot, "MEMORY.md");
+  const storyboardPath = currentStoryboardPath(wikiRoot, date);
+
+  const summaryText = readIfExists(summaryPath);
+  const memoryText = readIfExists(memoryPath);
+  const storyboardText = readIfExists(storyboardPath);
+
+  const { active } = filterExpired(parseClaims(memoryText ?? ""), todayStr);
+  const { owned, cross } = splitPriorities(
+    parsePriorityTable(memoryText ?? ""),
+    agent,
+  );
+
+  return {
+    summary: extractSummary(summaryText),
+    owned_priorities: owned.map(mapPriority),
+    cross_cutting: cross.map(mapPriority),
+    claims: active.map(mapClaim),
+    storyboard_items: parseStoryboardItems(storyboardText ?? "", agent),
+    inbox_count: countInbox(summaryText),
+    storyboard_path: existsSync(storyboardPath)
+      ? path.relative(path.dirname(wikiRoot) || ".", storyboardPath)
+      : "",
+  };
+}

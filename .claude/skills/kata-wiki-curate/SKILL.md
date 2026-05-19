@@ -50,9 +50,7 @@ correction text verbatim.
 
 ### Step 0: Read Memory
 
-Read memory per the agent profile (your summary, the current week's log, and —
-because this skill is a named Tier 2 reader — all teammate summaries, all
-current-week logs, `wiki/MEMORY.md`, and `wiki/Home.md`). Then read every file
+Read `wiki/MEMORY.md` then run `Bash: fit-wiki boot` (per [Memory Protocol § On-Boot Read Set](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/references/memory-protocol.md#on-boot-read-set)). The boot digest's `owned_priorities`, `claims`, and (when this skill reads Tier-2 surfaces) `storyboard_items` seed the rest of this skill's Process. Then read every file
 in `wiki/`:
 
 - All agent summary files (`wiki/<agent>.md`)
@@ -77,10 +75,11 @@ For each agent, compare the summary against the most recent weekly log entries:
   in subsequent logs? Remove resolved blockers.
 - **Stale summaries** — Flag any agent whose summary shows a "Last run" date
   more than 7 days ago with no new weekly log entries.
-- **Contract conformance** — When `just wiki-audit` is available (added by spec
-  590 part 02), run it and fix any summary failures directly in the summary
-  file. The curator is the only agent that rewrites summaries; other agents
-  propose edits via observations.
+- **Contract conformance** — Run `bunx fit-wiki audit` (the audit logic
+  lives in `fit-wiki` after spec 1060; the legacy `just wiki-audit` recipe
+  shells out to the same code) and fix any summary failures directly in the
+  summary file. The curator is the only agent that rewrites summaries;
+  other agents propose edits via observations.
 
 Fix inaccuracies directly in the summary files. Any fresh PR/Issue reference
 written during a fix must satisfy the write-time invariant above.

@@ -83,7 +83,10 @@ export function createFirstVisitBanner({ onDismiss }) {
           "doesn't match the role as you experience it, say so. The standard " +
           "improves when people challenge it.",
       ),
-      p({}, "Questions? Talk to your manager or your Developer Experience Lead."),
+      p(
+        {},
+        "Questions? Talk to your manager or your Developer Experience Lead.",
+      ),
       div({ className: "first-visit-banner__actions" }, dismissButton),
     ),
   );

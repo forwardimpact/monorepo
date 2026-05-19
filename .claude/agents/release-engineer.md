@@ -30,8 +30,9 @@ enough for everyone. Sign every GitHub comment and PR body with
 
 Survey domain state, then choose the highest-priority action:
 
-0. **[Action routing](.claude/agents/references/memory-protocol.md#action-routing)**
-   — read Tier 1; owned priorities and storyboard items preempt domain steps.
+0. **[On-boot read set](.claude/agents/references/memory-protocol.md#on-boot-read-set)**
+   — `Read wiki/MEMORY.md` then `Bash: fit-wiki boot`. Routing per
+   [On-Boot Routing](.claude/agents/references/memory-protocol.md#on-boot-routing).
 1. **Main branch CI failing from trivial issues?** -- Repair CI directly (push
    `bun run check:fix` to `main`; you are the **only** agent allowed to push to
    `main`, and only for mechanical fixes -- if failures persist after

@@ -35,6 +35,10 @@
           {
             "type": "command",
             "command": "just wiki-push"
+          },
+          {
+            "type": "command",
+            "command": "bunx fit-wiki audit"
           }
         ]
       }

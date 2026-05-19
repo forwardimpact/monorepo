@@ -9,139 +9,158 @@ description: >
 
 # Wiki Operations
 
-`fit-wiki` is the operational CLI for the Kata agent wiki. It handles cross-team
-memos, storyboard chart maintenance, and wiki git lifecycle — so agents can
-focus on domain work instead of file plumbing.
+`fit-wiki` is the operational CLI for the Kata agent wiki. It handles the
+on-boot read set, run-time appends (decisions, notes), in-flight claims,
+cross-team memos, storyboard chart maintenance, audit, and git lifecycle.
 
 ## When to Use
 
-**Persist findings across sessions:**
-
-- Sending a memo to a teammate — `npx fit-wiki memo --to <agent> --message "..."`
-- Broadcasting to every agent on the team — `npx fit-wiki memo --to all --message "..."`
-
-**Keep storyboard metrics current:**
-
-- Regenerating XmR chart blocks in a storyboard — `npx fit-wiki refresh`
-- Refreshing a specific storyboard file — `npx fit-wiki refresh wiki/storyboard-2026-M05.md`
-
-**Manage the wiki lifecycle:**
-
-- Bootstrapping a wiki for a new installation — `npx fit-wiki init`
-- Pushing wiki changes to remote — `npx fit-wiki push`
-- Pulling remote changes — `npx fit-wiki pull`
+- **Cold boot** — `npx fit-wiki boot --agent <self>` produces a JSON digest.
+- **Run-time write** — `log decision` opens the entry; `log note` appends
+  fields; `log done` closes.
+- **In-flight work** — `claim` / `release` mark and clear `MEMORY.md ##
+  Active Claims` rows.
+- **Inbox triage** — `inbox list / ack / promote / drop`.
+- **Cross-team memo** — `memo --to <agent> --message "..."`.
+- **Storyboard refresh** — `refresh` regenerates XmR and
+  obstacle/experiment marker blocks.
+- **Bootstrap** — `init` clones the wiki, scaffolds Active Claims, installs
+  the audit Stop-hook.
+- **Audit** — `audit` runs the gate; replaces `scripts/wiki-audit.sh`.
+- **Git lifecycle** — `push` / `pull`.
 
 ## Commands
 
-### `memo` — Send a cross-team memo
+### `boot` — On-boot digest
 
-Appends a timestamped bullet to the target agent's `## Message Inbox`,
-directly after the `<!-- memo:inbox -->` marker.
+```sh
+npx fit-wiki boot --agent staff-engineer [--format markdown]
+```
+
+| Flag | Description |
+| --- | --- |
+| `--agent` | Falls back to `LIBEVAL_AGENT_PROFILE` |
+| `--format` | `json` (default) or `markdown` |
+| `--wiki-root` | Override wiki root |
+
+Contract: [Memory Protocol § CLI Contract Map](https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-operations/index.md#cli-contract-map)
+
+### `log decision | note | done` — Weekly-log append
+
+`decision` is required at the opening of each weekly-log entry. Rotation
+is implicit at the 500-line cap (sealed as `…-Www-partN.md`).
+
+```sh
+npx fit-wiki log decision --agent staff-engineer --surveyed "..." --chosen "..." --rationale "..."
+npx fit-wiki log note --agent staff-engineer --field "Actions taken" --body "..."
+npx fit-wiki log done --agent staff-engineer
+```
+
+### `claim` / `release` — Active Claims
+
+`claim` refuses duplicates with exit 2. `release --expired` clears every
+row past `expires_at`.
+
+```sh
+npx fit-wiki claim --agent staff-engineer --target spec-1060 --branch feat/x [--pr 1031] [--expires-at 2026-05-26]
+npx fit-wiki release --agent staff-engineer --target spec-1060
+```
+
+### `inbox list | ack | promote | drop`
+
+`promote --index N` writes a row to `MEMORY.md ## Cross-Cutting Priorities`
+and removes the inbox bullet.
+
+```sh
+npx fit-wiki inbox list --agent staff-engineer
+npx fit-wiki inbox promote --agent staff-engineer --index 0
+```
+
+### `rotate` — Force a weekly-log rotation
+
+Operator escape; seals the current file even when it is under the cap.
+
+### `audit` — Memory-protocol gate
+
+```sh
+npx fit-wiki audit [--format json] [--legacy-only]
+```
+
+`FIT_WIKI_AUDIT_GRACE_UNTIL=<ISO date>` converts summary and decision-block
+failures to warnings until the window closes.
+
+### `memo` — Cross-team memo
 
 ```sh
 npx fit-wiki memo --from staff-engineer --to security-engineer --message "audit d642ff0c"
 npx fit-wiki memo --from technical-writer --to all --message "new XmR baseline"
 ```
 
-| Flag          | Required | Description                                                            |
-| ------------- | -------- | ---------------------------------------------------------------------- |
-| `--from`      | No       | Sender name (falls back to `LIBEVAL_AGENT_PROFILE` env var)            |
-| `--to`        | Yes      | Target agent name, or `all` to broadcast (sender is skipped)           |
-| `--message`   | Yes      | Memo text                                                              |
-| `--wiki-root` | No       | Override wiki root directory (default: auto-detected from project root) |
+| Flag | Description |
+| --- | --- |
+| `--from` | Falls back to `LIBEVAL_AGENT_PROFILE` |
+| `--to` | Agent name, or `all` to broadcast |
+| `--message` | Memo text |
 
-### `refresh` — Regenerate storyboard XmR charts
+### `refresh` — Regenerate storyboard charts
 
-Scans a storyboard markdown file for `<!-- xmr:metric:path -->` /
-`<!-- /xmr -->` marker pairs and regenerates each block with the current XmR
-chart, latest value, status, and signals from the referenced CSV.
+Scans for marker pairs and regenerates each. Defaults to the current
+month's storyboard. Idempotent.
 
 ```sh
-npx fit-wiki refresh
-npx fit-wiki refresh wiki/storyboard-2026-M05.md
+npx fit-wiki refresh [storyboard-path]
 ```
 
-Without a path argument, defaults to the current month's storyboard
-(`wiki/storyboard-YYYY-MNN.md`). Idempotent — running it twice produces the
-same output. No-op on files without markers.
+### `init` — Bootstrap a wiki tree
 
-### `init` — Bootstrap a wiki working tree
-
-Clones the repository's wiki into `./wiki/` and creates
-`wiki/metrics/<skill>/` directories for each kata skill in the installation.
+Clones the wiki, scaffolds `MEMORY.md ## Active Claims`, installs the audit
+Stop-hook in `.claude/settings.json`, and creates `wiki/metrics/<skill>/`.
+Idempotent. Set `FIT_WIKI_URL` to override default URL derivation.
 
 ```sh
 npx fit-wiki init
 ```
 
-| Flag           | Required | Description                                       |
-| -------------- | -------- | ------------------------------------------------- |
-| `--wiki-root`  | No       | Override wiki root directory (default: wiki)       |
-| `--skills-dir` | No       | Override skills directory (default: .claude/skills) |
+### `push` / `pull` — Git lifecycle
 
-Idempotent — safe to run on an already-initialized wiki. Set
-`FIT_WIKI_URL` to override the wiki URL when the default derivation
-from `origin` does not resolve.
-
-### `push` — Push wiki changes to remote
-
-Commits local wiki changes and pushes to the remote. No-op when no local
-changes exist. Resolves push conflicts in favor of local state.
+Designed for Claude Code hooks (`SessionStart` → `pull`; `Stop` → `push` and
+`audit`).
 
 ```sh
 npx fit-wiki push
-```
-
-Designed for use in Claude Code hooks (`Stop` → `npx fit-wiki push`) and
-GitHub Actions post-run steps.
-
-### `pull` — Pull remote wiki changes
-
-Fetches and rebases local wiki state onto the remote. Exits non-zero with a
-diagnostic message on conflict.
-
-```sh
 npx fit-wiki pull
 ```
 
-Designed for use in Claude Code hooks (`SessionStart` → `npx fit-wiki pull`).
-
 ### Exit codes
 
-| Code | Meaning                                                    |
-| ---- | ---------------------------------------------------------- |
-| 0    | Success                                                    |
-| 1    | Pull conflict — local divergence detected                  |
-| 2    | Usage error — missing flag, missing target file, or marker |
+| Code | Meaning |
+| --- | --- |
+| 0 | Success |
+| 1 | Audit failure or pull conflict |
+| 2 | Usage error or duplicate claim |
 
 ### Marker contract
 
-Each agent summary must contain exactly one `<!-- memo:inbox -->` HTML comment
-directly under the `## Message Inbox` heading. The marker is invisible in
-rendered markdown and anchors `fit-wiki memo` writes. If the marker is absent,
-the command exits 2 with a diagnostic message.
+Storyboards carry these marker families recognized by `refresh`:
+
+- `<!-- memo:inbox -->` — anchors `fit-wiki memo` writes
+- `<!-- xmr:metric:csv-path --> ... <!-- /xmr -->` — XmR chart blocks
+- `<!-- obstacles:open|closed --> ... <!-- /obstacles -->` — issue lists
+- `<!-- experiments:open|closed --> ... <!-- /experiments -->` — issue lists
+
+Closed-state markers default to a 7-day window; a `:30d` suffix is
+reserved for future windows.
 
 ## Programmatic API
 
 ```js
 import {
-  writeMemo,
-  listAgents,
-  insertMarkers,
-  scanMarkers,
-  renderBlock,
-  WikiRepo,
-  listSkills,
+  buildDigest, parseClaims, appendClaim, removeClaim, filterExpired,
+  weeklyLogPath, rotateIfOverBudget, appendEntry,
+  scanMarkers, renderBlock, renderIssueList,
+  writeMemo, listAgents, WikiRepo, listSkills,
 } from "@forwardimpact/libwiki";
 ```
-
-- `writeMemo({ summaryPath, sender, message, today })` — append one bullet
-- `listAgents({ agentsDir, wikiRoot })` — discover agents from `.claude/agents/*.md`
-- `insertMarkers({ agentsDir, wikiRoot })` — idempotent marker insertion
-- `scanMarkers(text)` — find `<!-- xmr:... -->` marker pairs in markdown
-- `renderBlock({ metric, csvPath, projectRoot })` — render one XmR chart block
-- `new WikiRepo({ wikiDir, parentDir, resolveToken })` — git wrapper for wiki operations
-- `listSkills({ skillsDir })` — discover kata skills from `.claude/skills/`
 
 ## Documentation
 

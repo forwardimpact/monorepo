@@ -93,7 +93,7 @@
     },
     "libraries/libeval": {
       "name": "@forwardimpact/libeval",
-      "version": "0.1.41",
+      "version": "0.1.43",
       "bin": {
         "fit-eval": "./bin/fit-eval.js",
         "fit-trace": "./bin/fit-trace.js",
@@ -125,7 +125,7 @@
     },
     "libraries/libgraph": {
       "name": "@forwardimpact/libgraph",
-      "version": "0.1.71",
+      "version": "0.1.73",
       "bin": {
         "fit-process-graphs": "./bin/fit-process-graphs.js",
         "fit-subjects": "./bin/fit-subjects.js",
@@ -229,7 +229,7 @@
     },
     "libraries/libresource": {
       "name": "@forwardimpact/libresource",
-      "version": "0.1.111",
+      "version": "0.1.112",
       "bin": {
         "fit-process-resources": "./bin/fit-process-resources.js",
       },
@@ -319,7 +319,7 @@
     },
     "libraries/libsyntheticgen": {
       "name": "@forwardimpact/libsyntheticgen",
-      "version": "0.1.21",
+      "version": "0.1.22",
       "dependencies": {
         "@forwardimpact/libutil": "^0.1.61",
         "seedrandom": "^3.0.5",
@@ -334,7 +334,7 @@
     },
     "libraries/libsyntheticprose": {
       "name": "@forwardimpact/libsyntheticprose",
-      "version": "0.1.26",
+      "version": "0.1.27",
       "dependencies": {
         "@forwardimpact/libprompt": "^0.1.0",
         "@forwardimpact/libsyntheticgen": "^0.1.21",
@@ -366,7 +366,7 @@
     },
     "libraries/libtelemetry": {
       "name": "@forwardimpact/libtelemetry",
-      "version": "0.1.41",
+      "version": "0.1.42",
       "bin": {
         "fit-visualize": "./bin/fit-visualize.js",
       },
@@ -432,7 +432,7 @@
     },
     "libraries/libutil": {
       "name": "@forwardimpact/libutil",
-      "version": "0.1.80",
+      "version": "0.1.81",
       "bin": {
         "fit-download-bundle": "./bin/fit-download-bundle.js",
         "fit-tiktoken": "./bin/fit-tiktoken.js",
@@ -449,7 +449,7 @@
     },
     "libraries/libvector": {
       "name": "@forwardimpact/libvector",
-      "version": "0.1.90",
+      "version": "0.1.92",
       "bin": {
         "fit-process-vectors": "./bin/fit-process-vectors.js",
         "fit-search": "./bin/fit-search.js",
@@ -470,7 +470,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.1.5",
+      "version": "0.2.0",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },
@@ -515,7 +515,7 @@
         "@forwardimpact/libterrain": "^0.1.22",
         "@forwardimpact/libutil": "^0.1.78",
         "@forwardimpact/libvector": "^0.1.88",
-        "@forwardimpact/libwiki": "^0.1.2",
+        "@forwardimpact/libwiki": "^0.2.0",
         "@forwardimpact/libxmr": "^1.1.0",
         "@forwardimpact/svcgraph": "^0.1.68",
         "@forwardimpact/svcmcp": "^0.1.6",
@@ -526,7 +526,7 @@
     },
     "products/guide": {
       "name": "@forwardimpact/guide",
-      "version": "0.1.40",
+      "version": "0.1.41",
       "bin": {
         "fit-guide": "./bin/fit-guide.js",
       },
@@ -553,7 +553,7 @@
     },
     "products/landmark": {
       "name": "@forwardimpact/landmark",
-      "version": "0.1.18",
+      "version": "0.1.19",
       "bin": {
         "fit-landmark": "./bin/fit-landmark.js",
       },
@@ -574,7 +574,7 @@
     },
     "products/map": {
       "name": "@forwardimpact/map",
-      "version": "0.15.47",
+      "version": "0.15.48",
       "bin": {
         "fit-map": "./bin/fit-map.js",
       },
@@ -602,7 +602,7 @@
     },
     "products/outpost": {
       "name": "@forwardimpact/outpost",
-      "version": "3.0.3",
+      "version": "3.0.4",
       "bin": {
         "fit-outpost": "./bin/fit-outpost.js",
       },
@@ -617,7 +617,7 @@
     },
     "products/pathway": {
       "name": "@forwardimpact/pathway",
-      "version": "0.25.59",
+      "version": "0.25.60",
       "bin": {
         "fit-pathway": "./bin/fit-pathway.js",
       },
@@ -641,7 +641,7 @@
     },
     "products/summit": {
       "name": "@forwardimpact/summit",
-      "version": "0.1.20",
+      "version": "0.1.21",
       "bin": {
         "fit-summit": "./bin/fit-summit.js",
       },
@@ -663,7 +663,7 @@
     },
     "services/graph": {
       "name": "@forwardimpact/svcgraph",
-      "version": "0.1.69",
+      "version": "0.1.70",
       "bin": {
         "fit-svcgraph": "./server.js",
       },
@@ -739,7 +739,7 @@
     },
     "services/trace": {
       "name": "@forwardimpact/svctrace",
-      "version": "0.1.42",
+      "version": "0.1.44",
       "bin": {
         "fit-svctrace": "./server.js",
       },
@@ -757,7 +757,7 @@
     },
     "services/vector": {
       "name": "@forwardimpact/svcvector",
-      "version": "0.1.122",
+      "version": "0.1.124",
       "bin": {
         "fit-svcvector": "./server.js",
       },

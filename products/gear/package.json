@@ -70,7 +70,7 @@
     "@forwardimpact/libterrain": "^0.1.22",
     "@forwardimpact/libutil": "^0.1.78",
     "@forwardimpact/libvector": "^0.1.88",
-    "@forwardimpact/libwiki": "^0.1.2",
+    "@forwardimpact/libwiki": "^0.2.0",
     "@forwardimpact/libxmr": "^1.1.0"
   },
   "engines": {

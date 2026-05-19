@@ -22,7 +22,7 @@ output an agent produces.
 
 Experiment issues carry an `agent:{name}` label identifying the owning agent so
 agents can find their assigned work during
-[action routing](memory-protocol.md#action-routing):
+[on-boot routing](memory-protocol.md#on-boot-routing):
 
 ```sh
 gh issue list --state open --label experiment --label "agent:staff-engineer"

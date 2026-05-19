@@ -79,7 +79,8 @@ Exit gate — verify every item before committing.
       PR URL captured in output. Exception: release engineer's direct-to-`main`
       CI fixes.
 - [ ] Outputs routed per `coordination-protocol.md`; wiki writes per
-      `memory-protocol.md`. None of § Common mis-routings apply.
+      `memory-protocol.md` — prefer `fit-wiki` subcommands over hand-edits.
+      None of § Common mis-routings apply.
 
 </do_confirm_checklist>
 

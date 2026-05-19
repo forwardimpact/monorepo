@@ -1,146 +1,198 @@
 # Memory Protocol
 
-This file governs **agent memory and action routing** — what to read, how reads
-feed into action selection, and what to write. For non-wiki outputs see
+This file governs **agent memory and action routing** via the `fit-wiki` CLI.
+Every contract below maps to one or more `fit-wiki` subcommands — the CLI is
+the path, not an alternative. For non-wiki outputs see
 [coordination-protocol.md](coordination-protocol.md).
 
-## Memory Tiers
+## On-Boot Read Set
 
-```mermaid
-graph TD
-  A[Agent Startup] --> T1[Tier 1 — Always]
-  T1 --> F1["wiki/{self}.md"]
-  T1 --> F2[wiki/MEMORY.md]
-  T1 --> F3["wiki/storyboard-YYYY-MNN.md (if exists)"]
-  A --> T2[Tier 2 — Opt-In]
-  T2 --> F4["Teammate summaries"]
-  T2 --> F5["Weekly logs"]
-```
+Three Tier 1 surfaces, all in `wiki/`:
 
-**Tier 1 (always, every run):** own summary, MEMORY.md, current storyboard —
-three files that do not grow with agent count or week count.
+| Surface | Path | Reader |
+| --- | --- | --- |
+| Own summary | `wiki/{self}.md` | `fit-wiki boot` (digest) |
+| Cross-cutting memory | `wiki/MEMORY.md` | direct `Read` + `fit-wiki boot` |
+| Current storyboard | `wiki/storyboard-YYYY-MNN.md` | `fit-wiki boot` (slice) |
 
-**Tier 2 (opt-in):**
+**Step 0 contract — two tool calls within the first ten:**
 
-- **Teammate summaries** — read only when coordinating with a named agent or
-  investigating a priority-index item that names them.
-- **Weekly logs** — read only when the skill is `kata-wiki-curate` or
-  `kata-session`, or when explicitly investigating a historical decision.
+1. `Read wiki/MEMORY.md` — direct file open of the priority surface and `##
+   Active Claims`.
+2. `Bash: fit-wiki boot --agent <self>` — structured digest of the other
+   Tier 1 surfaces. JSON output; `--format markdown` for prose.
 
-Skills that need Tier 2 files declare it in their own Step 0.
+Total cost: 2 tool calls vs the legacy 3 reads (closes F11).
 
-## Action Routing
+## On-Boot Routing
 
-Tier 1 reads feed the agent's Assess order. After reading all Tier 1 files,
-apply this priority scheme — the first level with actionable work wins:
+Apply this priority scheme against the `boot` digest's JSON fields — first
+level with actionable work wins:
 
-1. **Owned priorities.** MEMORY.md Cross-Cutting Priorities where you are
-   `Owner`. These are team commitments assigned to you — they preempt
-   domain-specific work.
-2. **Storyboard items.** Per-agent deliverables in the current storyboard and
+1. **Owned priorities** (`owned_priorities[]`) — MEMORY.md `## Cross-Cutting
+   Priorities` rows where you are `Owner`. Team commitments preempt domain
+   work.
+2. **Storyboard items** (`storyboard_items[]`) — per-agent deliverables plus
    open experiment issues labeled `agent:{self}`.
-3. **Domain assess.** The numbered steps in your agent profile's Assess section.
-4. **Cross-cutting fallback.** MEMORY.md items listing you under `Agents` (not
-   Owner) where you can contribute. Report clean only after checking all four.
+3. **Domain assess** — the numbered steps in your agent profile's Assess
+   section.
+4. **Cross-cutting fallback** (`cross_cutting[]`) — rows listing you under
+   `Agents` (not Owner). Report clean only after checking all four.
+
+**Skip-self rule:** an agent treats its own row in `claims[]` as preempting
+routing — the work is already in flight. Other agents' claims are settled
+state for routing purposes.
 
 The `### Decision` block records which level produced the chosen action.
 
+## Tool-vs-Memory Habit
+
+The competing habit named by the JTBD analysis is `gh` / `git` / source
+re-derivation. When the next answer can come from either path, **prefer
+memory** — every primitive is calibrated to cost fewer tool calls than the
+alternative: one for the on-boot read set (closes **F11**), one for a
+Decision-block append (closes **F4**), one for inbox state (partial **F5**).
+The CLI is the path, not the alternative.
+
 ## During Each Run
 
-Append a new `## YYYY-MM-DD` section at the end of the current week's log:
+Append entries to the current weekly log via `fit-wiki log`:
 
-- **File:** `wiki/{agent}-$(date +%G-W%V).md`
-- **Heading:** `# {Agent Title} — YYYY-Www` (create the file if missing)
-- **Cadence:** one file per ISO week
+- `fit-wiki log decision --agent <self> --surveyed ... --chosen ...
+  --rationale ... [--alternatives ...]` — required at the **opening** of each
+  weekly-log entry. Decision-block contract closes **F6 / F13**.
+- `fit-wiki log note --agent <self> --field "Actions taken" --body "..."` —
+  in-run field append.
+- `fit-wiki log done --agent <self>` — close the entry.
 
-Use `###` subheadings for the fields skills specify to record. Every run must
-open with a `### Decision` subheading containing:
+Rotation is implicit: when the next append would push the file past the
+500-line cap, `log` seals the current file as `…-Www-partN.md` and writes the
+new entry to a fresh `…-Www.md`. `fit-wiki rotate` is the operator escape.
 
-| Field            | Record                                                 |
-| ---------------- | ------------------------------------------------------ |
-| **Surveyed**     | What was checked at each routing level and the results |
-| **Alternatives** | What actions were available                            |
-| **Chosen**       | What action was selected and which skill was invoked   |
-| **Rationale**    | Why this action over the alternatives                  |
+Triage the Message Inbox via `fit-wiki inbox {list|ack|promote|drop}`.
+`promote --index N` writes a row into `## Cross-Cutting Priorities` and
+removes the inbox bullet.
 
-## Each Run
-
-Read the `## Message Inbox` (first H2 of the file) for incoming memos from
-teammates. Triage each before working: act on it, promote it to MEMORY.md, or
-remove if obsolete.
-
-After the run, update `wiki/{agent}.md` with:
-
-1. Actions taken
-2. Open blockers
-
-To send memos to other agents, use `fit-wiki memo --from <you> --to <recipient>
---message "..."` rather than hand-editing any inbox.
+Cross-agent memos use `fit-wiki memo` (writer-side); the recipient triages
+via `inbox`. Update `wiki/{agent}.md` directly with Actions taken and Open
+Blockers as needed at run end.
 
 ## Summary Contract
 
-Each `wiki/<agent>.md` conforms to a mechanically-checkable contract.
+Each `wiki/<agent>.md` conforms to a mechanically-checkable contract —
+`audit` gates it on Stop-hook and pre-merge CI (closes **F10**).
 
-**Permitted sections (in order):**
+**Permitted sections (in order):** `# {Agent Title} — Summary` (H1) →
+`**Last run**:` → `## Message Inbox` (with `<!-- memo:inbox -->` marker —
+MUST be the first H2) → agent-specific H2 sections → `## Open Blockers`.
 
-1. `# {Agent Title} — Summary` (H1, exactly one)
-2. `**Last run**:` line — date and one-line description (may be followed by
-   directly attached caveats or blockquotes about that run)
-3. `## Message Inbox` — incoming memos from teammates not yet promoted to
-   the priority index. **MUST be the first H2 in the file** so on-boot
-   scanning surfaces it before state-heavy sections. Begins with the marker
-   `<!-- memo:inbox -->` directly under the heading; `fit-wiki memo` writes
-   new bullets immediately after it (newest-first within the section). When
-   the inbox is empty, leave a single line `- *No new messages.*` under the
-   marker so the section reads cleanly.
-4. Agent-specific state section(s) using H2
-5. `## Open Blockers` — currently-blocking items only
-
-**Bullet format:** `- YYYY-MM-DD from **<sender>**: <message>`. The bold name
-is the SENDER; the file owner is the RECIPIENT. Newest memos sort first;
-undated legacy bullets (from the pre-`fit-wiki memo` migration) sort to the
-bottom of the section.
-
-**Excluded from summaries** (with correct homes):
-
-- Historical audit data (previously tracked PRs, resolved blockers, evaluation
-  history) → weekly log
-- Storyboard commitments → storyboard file
-- Policy clarifications → CONTRIBUTING.md or skill docs
-- Metrics tables → CSV under `wiki/metrics/{skill}/`
-
-**Line budget: 80 lines.** Checked mechanically: `wc -l wiki/<agent>.md ≤ 80`.
-Summaries are state, not history. The line budget forces the discipline.
+**Line budget: 80 lines** (`SUMMARY_LINE_BUDGET`). State, not history.
 
 ## Weekly Log Contract
 
-Weekly logs (`wiki/<agent>-YYYY-Www.md`) are:
+Weekly logs (`wiki/<agent>-YYYY-Www.md`) are append-only Tier 2 records.
+Named readers: `kata-wiki-curate` (always), `kata-session` (for experiment
+verification), agents explicitly investigating past decisions.
 
-- **Append-only audit records** — no edits to past entries except format fixes.
-- **Tier 2** — not in the default startup load.
-- **Named readers:** `kata-wiki-curate` (always), `kata-session` (for experiment
-  verification), agents explicitly investigating past decisions.
-- **Format:** `## YYYY-MM-DD` / `### {Subsection}` structure.
-- **No line budget** — write-once records off the critical startup path.
+**Line budget: 500 lines** (`WEEKLY_LOG_LINE_BUDGET`), cutover ISO
+**2026-W23**. A Tier 2 read of the largest legal weekly log consumes ≤2.5%
+of an agent's 1M-token context window (≈25k tokens; ≈42 tokens/line × 500
+lines). This is the *context tax* every reader pays — the cap binds before
+the Read tool's 25k-token ceiling, not at it (closes **F3 / F17**).
 
-## Cross-Cutting Priority Index
+Overflow rotates: `log` seals the current file as
+`<agent>-YYYY-Www-partN.md` and writes the day's append into a fresh
+`<agent>-YYYY-Www.md`. No part is ever rewritten — the append-only audit
+guarantee is preserved by rename, not by in-place edit. Pre-cutover logs are
+exempt and remain as-is.
 
-`wiki/MEMORY.md` is the canonical location for cross-cutting items that affect
-multiple agents or the whole team.
+Every dated `## YYYY-MM-DD` entry post-cutover opens with `### Decision`
+(required; `audit` enforces).
 
-**Schema:** table row with fields Item / Agents / Owner / Status / Added.
-Maximum 10 active entries. Explicit empty state: a row reading
-`| *None* | — | — | — | — |` (distinguishes "no items" from "not tracked yet").
+## Cross-Cutting Priorities
 
-`kata-wiki-curate` is the authoritative writer; any agent may propose an entry
-but the curator verifies. Resolved items are removed within one curation cycle.
+`wiki/MEMORY.md` carries the cross-cutting priority surface. Read by every
+boot (digest's `owned_priorities` + `cross_cutting` slices). Schema: `| Item
+| Agents | Owner | Status | Added |`, max 10 active. Writers: `fit-wiki
+inbox promote` (from a memo) and direct `kata-wiki-curate` edits.
 
-**Entry lifecycle:**
+## Active Claims
 
-- **Add** — Finding affects ≥2 agents and persists beyond the run that surfaced
-  it. Link the GitHub artifact (Issue, PR, Discussion) that carries the
-  permanent record.
-- **Update** — Ownership transfers (change Owner) or material progress lands
-  (change Status: PR opened, PR merged, blocker cleared).
-- **Remove** — Underlying problem resolved; the linked GitHub artifact is the
-  permanent record. Do not keep resolved entries.
+Sibling H2 to Cross-Cutting Priorities in `wiki/MEMORY.md`. A *claim* is an
+assertion that an agent is actively working on a named target (a spec, an
+open PR, a storyboard experiment) and intends to ship the next observable
+state change for it. **Row present = active; row absent = settled.**
+
+Schema (header copied verbatim from `libwiki/constants.js`):
+
+```
+| agent | target | branch | pr | claimed_at | expires_at |
+```
+
+Lifecycle:
+
+- `fit-wiki claim --agent <self> --target <id> --branch <name> [--pr <id>]
+  [--expires-at YYYY-MM-DD]` — defaults `expires_at = claimed_at + 7 days`.
+  Refuses duplicates with exit 2.
+- `fit-wiki release --agent <self> --target <id>` — normal lifecycle removal.
+- `fit-wiki release --expired` — operator cleanup, removes every row past
+  `expires_at`.
+
+Audit history lives in git history of `MEMORY.md` — rows are settled by
+deletion, with the prior commit preserving the claim record. Closes **F8 /
+F18**.
+
+## Named Jobs This Protocol Serves
+
+- *Find the next thing to pick up without colliding* → `fit-wiki claim` /
+  `release`. Claims surface + skip-self rule resolves RFC #873's memory side.
+- *Trust another agent's reported state without re-deriving* → `fit-wiki
+  boot` digest + `Read wiki/MEMORY.md`.
+- *Receive memos without breaking my contract* → `fit-wiki inbox list / ack /
+  promote / drop`.
+
+## CLI Contract Map
+
+| Subcommand | Status | Contract(s) realized |
+| --- | --- | --- |
+| `boot` | new | On-Boot Read Set; On-Boot Routing |
+| `log decision` | new | Decision-block opening (write) |
+| `log note` / `log done` | new | Weekly log field append / close |
+| `claim` / `release` | new | Active Claims write |
+| `inbox list` | new | Message Inbox read |
+| `inbox ack` / `drop` | new | Message Inbox triage |
+| `inbox promote` | new | Cross-Cutting Priorities write (from inbox) |
+| `rotate` | new | Weekly Log Contract (explicit rotation) |
+| `audit` | absorbed (`scripts/wiki-audit.sh`) | Summary; Active Claims schema; Decision-block opening (gate); Weekly Log cap (gate); Expired claims |
+| `memo` | retained | Sibling channel (cross-agent memo writer) |
+| `push` / `pull` | retained | Sibling channel (wiki git lifecycle) |
+| `init` | modified | Active Claims scaffold; Stop-hook installation |
+| `refresh` | extended | Sibling channel (storyboard + obstacle/experiment markers) |
+
+One-shot administrative scripts (`scripts/spec-NNN-*.mjs`) write to `wiki/`
+transiently and self-delete in the same commit; they are not part of this
+protocol's read/write contract.
+
+**Reverse map — every contract has a writer and (if gated) an auditor:**
+
+| Contract assigned to the CLI | Subcommand(s) |
+| --- | --- |
+| On-Boot Read Set / On-Boot Routing | `boot` |
+| Decision-block (write / gate) | `log decision` / `audit` |
+| Weekly log append | `log decision`, `log note`, `log done` |
+| Weekly log cap (write / gate) | `log` (seal-before-append), `rotate` / `audit` |
+| Active Claims (write / gate) | `claim`, `release`, `release --expired` / `audit` |
+| Cross-Cutting Priorities write | `inbox promote` (plus `kata-wiki-curate`) |
+| Message Inbox (read / triage) | `inbox list` / `inbox ack`, `drop`, `promote` |
+| Summary Contract (gate) | `audit` |
+| Active Claims scaffold + Stop-hook install | `init` |
+
+## Process
+
+```mermaid
+graph TD
+  A[Agent Startup] --> R[Read wiki/MEMORY.md]
+  A --> B["Bash: fit-wiki boot"]
+  B --> D["Digest { owned_priorities, claims, storyboard_items, cross_cutting }"]
+  D --> Route[Action routing per § On-Boot Routing]
+```
