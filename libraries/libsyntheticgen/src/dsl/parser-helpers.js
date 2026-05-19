@@ -14,7 +14,7 @@
  * @returns {{ consumeFields: Function }}
  */
 export function createDispatchHelpers(helpers) {
-  const { peek, advance, expect } = helpers;
+  const { peek, advance, expect, parseArray } = helpers;
 
   /**
    * Consume brace-delimited keyword fields using a dispatch map.
@@ -56,5 +56,25 @@ export function createDispatchHelpers(helpers) {
     return target;
   }
 
-  return { consumeFields };
+  function parseMappedArrays(blockName) {
+    expect("LBRACE");
+    const map = {};
+    while (peek().type !== "RBRACE") {
+      const key = advance();
+      if (
+        key.type !== "DOTTED_IDENT" &&
+        key.type !== "IDENT" &&
+        key.type !== "KEYWORD"
+      ) {
+        throw new Error(
+          `Expected identifier in ${blockName} at line ${key.line}, got ${key.type}`,
+        );
+      }
+      map[key.value] = parseArray();
+    }
+    expect("RBRACE");
+    return map;
+  }
+
+  return { consumeFields, parseMappedArrays };
 }

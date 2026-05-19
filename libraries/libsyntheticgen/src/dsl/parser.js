@@ -20,6 +20,7 @@
  */
 
 import { createBlockParsers } from "./parser-blocks.js";
+import { createClinicalParsers } from "./parser-clinical.js";
 import { createStandardParsers } from "./parser-standard.js";
 
 /**
@@ -55,6 +56,7 @@ export function parse(tokens) {
     const t = peek();
     if (t.type === "STRING") return advance().value;
     if (t.type === "IDENT") return advance().value;
+    if (t.type === "DOTTED_IDENT") return advance().value;
     if (t.type === "KEYWORD") return advance().value;
     throw new Error(
       `Expected string or identifier at line ${t.line}, got ${t.type} '${t.value}'`,
@@ -82,7 +84,12 @@ export function parse(tokens) {
   /** Resolve a single array element from the current token. */
   function resolveArrayElement() {
     const t = peek();
-    if (t.type === "STRING" || t.type === "IDENT" || t.type === "KEYWORD") {
+    if (
+      t.type === "STRING" ||
+      t.type === "IDENT" ||
+      t.type === "KEYWORD" ||
+      t.type === "DOTTED_IDENT"
+    ) {
       return advance().value;
     }
     if (t.type === "NUMBER") return Number(advance().value);
@@ -112,6 +119,7 @@ export function parse(tokens) {
   };
 
   const blocks = createBlockParsers(helpers);
+  const clinical = createClinicalParsers(helpers);
   const std = createStandardParsers(helpers);
 
   // Main: parse terrain
@@ -133,6 +141,7 @@ export function parse(tokens) {
     snapshots: null,
     standard: null,
     content: [],
+    clinical: null,
     datasets: [],
     outputs: [],
   };
@@ -165,6 +174,9 @@ export function parse(tokens) {
       ast.standard = std.parseStandard();
     },
     content: () => ast.content.push(blocks.parseContent()),
+    clinical: () => {
+      ast.clinical = clinical.parseClinical();
+    },
     dataset: () => {
       const id = parseStringOrIdent();
       ast.datasets.push(std.parseDataset(id));

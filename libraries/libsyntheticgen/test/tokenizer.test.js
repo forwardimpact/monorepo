@@ -243,6 +243,74 @@ describe("tokenize", () => {
     });
   });
 
+  describe("dotted identifiers", () => {
+    test("tokenizes dotted path as DOTTED_IDENT", () => {
+      const tokens = tokenize("clinical.conditions");
+      assert.deepStrictEqual(tokens[0], {
+        type: "DOTTED_IDENT",
+        value: "clinical.conditions",
+        line: 1,
+      });
+    });
+
+    test("tokenizes dotted paths in arrays", () => {
+      const tokens = tokenize("[clinical.conditions, clinical.trials]");
+      const idents = tokens.filter((t) => t.type === "DOTTED_IDENT");
+      assert.strictEqual(idents.length, 2);
+      assert.strictEqual(idents[0].value, "clinical.conditions");
+      assert.strictEqual(idents[1].value, "clinical.trials");
+    });
+
+    test("plain identifier remains IDENT", () => {
+      const tokens = tokenize("researchers");
+      assert.deepStrictEqual(tokens[0], {
+        type: "IDENT",
+        value: "researchers",
+        line: 1,
+      });
+    });
+
+    test("multi-segment dotted path", () => {
+      const tokens = tokenize("a.b.c");
+      assert.deepStrictEqual(tokens[0], {
+        type: "DOTTED_IDENT",
+        value: "a.b.c",
+        line: 1,
+      });
+    });
+
+    test("dot followed by number does not form dotted ident", () => {
+      const tokens = tokenize("word");
+      assert.strictEqual(tokens[0].type, "IDENT");
+      assert.strictEqual(tokens[0].value, "word");
+    });
+  });
+
+  describe("clinical keywords", () => {
+    test("tokenizes clinical domain keywords", () => {
+      const input = "clinical condition site trial criteria";
+      const tokens = tokenize(input).filter((t) => t.type !== "EOF");
+      assert.strictEqual(tokens.length, 5);
+      for (const t of tokens) {
+        assert.strictEqual(t.type, "KEYWORD");
+      }
+      assert.strictEqual(tokens[0].value, "clinical");
+      assert.strictEqual(tokens[1].value, "condition");
+      assert.strictEqual(tokens[2].value, "site");
+      assert.strictEqual(tokens[3].value, "trial");
+      assert.strictEqual(tokens[4].value, "criteria");
+    });
+
+    test("tokenizes per_* sentinel keywords", () => {
+      const input = "per_condition per_trial per_site";
+      const tokens = tokenize(input).filter((t) => t.type !== "EOF");
+      assert.strictEqual(tokens.length, 3);
+      for (const t of tokens) {
+        assert.strictEqual(t.type, "KEYWORD");
+      }
+    });
+  });
+
   describe("complex input", () => {
     test("tokenizes a minimal terrain declaration", () => {
       const input = `terrain test_co {

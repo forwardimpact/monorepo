@@ -9,6 +9,7 @@
  *   PERCENT   - number followed by %
  *   DATE      - YYYY-MM format
  *   AT_IDENT  - @name references
+ *   DOTTED_IDENT - dotted path (clinical.conditions)
  *   LBRACE    - {
  *   RBRACE    - }
  *   LBRACKET  - [
@@ -114,6 +115,68 @@ const KEYWORDS = new Set([
   "markdown",
   "parquet",
   "sql",
+  // Clinical domain
+  "clinical",
+  "condition",
+  "site",
+  "trial",
+  "criteria",
+  "inclusion",
+  "exclusion",
+  // Clinical condition fields
+  "icd10",
+  "synonyms",
+  "synthea_module",
+  "severity",
+  // Clinical site fields
+  "address",
+  "city",
+  "state",
+  "country",
+  "capacity",
+  "specialties",
+  // Clinical trial fields
+  "protocol_id",
+  "therapeutic_area",
+  "conditions",
+  "sites",
+  "principal_investigator",
+  "sponsor",
+  "status",
+  "target_enrollment",
+  "current_enrollment",
+  "start_date",
+  "estimated_end_date",
+  "arms",
+  // Clinical criteria fields
+  "age_min",
+  "age_max",
+  "conditions_required",
+  "prior_treatments_allowed",
+  "ecog_max",
+  "custom",
+  "conditions_excluded",
+  "active_autoimmune",
+  "prior_immunotherapy",
+  // Clinical content fields
+  "condition_explainers",
+  "therapy_descriptions",
+  "therapy_topics",
+  "trial_faqs",
+  "consent_summaries",
+  "site_descriptions",
+  "patient_stories",
+  "patient_story_conditions",
+  "per_condition",
+  "per_trial",
+  "per_site",
+  // Output config fields
+  "prefix",
+  "entities",
+  "include_embeddings",
+  "text_fields",
+  "supabase_migration",
+  "embeddings_jsonl",
 ]);
 
 const DATE_RE = /^\d{4}-\d{2}$/;
@@ -206,7 +269,16 @@ function readWord(source, s) {
   while (s.i < source.length && /[a-zA-Z0-9_]/.test(source[s.i])) {
     word += source[s.i];
     s.i++;
+    if (
+      source[s.i] === "." &&
+      s.i + 1 < source.length &&
+      /[a-zA-Z]/.test(source[s.i + 1])
+    ) {
+      word += source[s.i];
+      s.i++;
+    }
   }
+  if (word.includes(".")) return { type: "DOTTED_IDENT", value: word };
   return { type: KEYWORDS.has(word) ? "KEYWORD" : "IDENT", value: word };
 }
 

@@ -9,6 +9,7 @@
  */
 
 import { PROSE_ACTIVITIES } from "../activity/index.js";
+import { clinicalProseKeys } from "./clinical-prose-keys.js";
 
 /**
  * Add guide HTML content keys (articles, blogs, FAQs, etc).
@@ -119,9 +120,10 @@ function addOutpostKeys(keys, outpostContent, entities, domain, orgName) {
 /**
  * Collect all prose keys from the entity graph.
  * @param {object} entities - Generated entity graph from tier0
+ * @param {{ promptLoader?: import('@forwardimpact/libprompt').PromptLoader }} [opts]
  * @returns {Map<string, object>} key -> context for prose generation
  */
-export function collectProseKeys(entities) {
+export function collectProseKeys(entities, { promptLoader } = {}) {
   const keys = new Map();
   const orgName = entities.orgs[0]?.name || "BioNova";
   const domain = entities.domain;
@@ -158,9 +160,12 @@ export function collectProseKeys(entities) {
     addOutpostKeys(keys, outpostContent, entities, domain, orgName);
   }
 
-  // Activity-prose dispatch — the registration is the single source of
-  // truth for which prose-bearing activity outputs exist (criterion
-  // #1 / #2 of spec 820). Non-activity prose stays inline above.
+  if (entities.clinical && promptLoader) {
+    for (const [k, ctx] of clinicalProseKeys(entities.clinical, domain, orgName, promptLoader)) {
+      keys.set(k, ctx);
+    }
+  }
+
   const pkCtx = { domain, orgName, entities };
   for (const pa of PROSE_ACTIVITIES) {
     const output = entities.activity?.[pa.id];

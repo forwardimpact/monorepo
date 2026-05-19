@@ -65,7 +65,9 @@ export function buildNodes(ctx) {
       deps: ["entities"],
       run({ entities }) {
         if (!entities.people) return new Map();
-        return collectProseKeys(entities);
+        return collectProseKeys(entities, {
+          promptLoader: proseGenerator.promptLoader,
+        });
       },
     },
 
@@ -335,7 +337,11 @@ async function resolveProse(proseKeys, proseGenerator, proseCacheSink, logger) {
   let i = 0;
   for (const [key, context] of proseKeys) {
     i++;
-    const value = await proseGenerator.generatePlain(key, context);
+    const value = context.messages
+      ? await proseGenerator.generateStructured(key, context.messages, {
+          maxTokens: context.maxTokens || 4000,
+        })
+      : await proseGenerator.generatePlain(key, context);
     if (value) prose.set(key, value);
     if (logging) {
       logger.info("prose", `[${i}/${total}] ${key}`);

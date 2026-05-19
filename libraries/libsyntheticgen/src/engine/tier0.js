@@ -6,6 +6,7 @@
 
 import { createSeededRNG } from "./rng.js";
 import { buildEntities } from "./entities.js";
+import { buildClinicalEntities } from "./clinical-entities.js";
 import { generateActivity } from "./activity.js";
 
 /**
@@ -37,6 +38,10 @@ export class EntityGenerator {
     );
     const activity = generateActivity(ast, rng, people, teams);
 
+    const clinical = ast.clinical
+      ? buildClinicalEntities(ast.clinical, people, orgs, projects, ast.domain, rng)
+      : null;
+
     return {
       orgs,
       departments,
@@ -48,6 +53,7 @@ export class EntityGenerator {
       standard: { ...ast.standard, seed: ast.seed },
       content: ast.content,
       activity,
+      clinical,
       domain: ast.domain,
       industry: ast.industry,
     };
