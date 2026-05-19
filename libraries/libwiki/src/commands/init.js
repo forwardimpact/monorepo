@@ -55,66 +55,6 @@ function scaffoldActiveClaims(memoryPath) {
   return true;
 }
 
-const AUDIT_HOOK_COMMAND = "bunx fit-wiki audit";
-
-function readSettings(settingsPath) {
-  if (!existsSync(settingsPath)) return {};
-  try {
-    return JSON.parse(readFileSync(settingsPath, "utf-8"));
-  } catch {
-    process.stderr.write(
-      `init: ${settingsPath} is not valid JSON; skipping stop-hook install\n`,
-    );
-    return null;
-  }
-}
-
-function hasAuditHook(settings) {
-  if (!settings.hooks || !Array.isArray(settings.hooks.Stop)) return false;
-  for (const group of settings.hooks.Stop) {
-    if (!group || !Array.isArray(group.hooks)) continue;
-    if (
-      group.hooks.some(
-        (h) =>
-          h &&
-          typeof h.command === "string" &&
-          h.command.includes("fit-wiki audit"),
-      )
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function addAuditHook(settings) {
-  if (!settings.hooks) settings.hooks = {};
-  if (!Array.isArray(settings.hooks.Stop)) settings.hooks.Stop = [];
-  if (settings.hooks.Stop.length === 0) {
-    settings.hooks.Stop.push({
-      hooks: [{ type: "command", command: AUDIT_HOOK_COMMAND }],
-    });
-    return;
-  }
-  if (!Array.isArray(settings.hooks.Stop[0].hooks)) {
-    settings.hooks.Stop[0].hooks = [];
-  }
-  settings.hooks.Stop[0].hooks.push({
-    type: "command",
-    command: AUDIT_HOOK_COMMAND,
-  });
-}
-
-function installStopHook(settingsPath) {
-  const settings = readSettings(settingsPath);
-  if (settings === null) return false;
-  if (hasAuditHook(settings)) return false;
-  addAuditHook(settings);
-  mkdirSync(path.dirname(settingsPath), { recursive: true });
-  writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
-  return true;
-}
-
 async function maybeCloneWiki(projectRoot, wikiDir) {
   const wikiUrl = deriveWikiUrl(projectRoot);
   if (!wikiUrl) {
@@ -139,7 +79,7 @@ async function maybeCloneWiki(projectRoot, wikiDir) {
   }
 }
 
-/** Clone the wiki if not already present, scaffold Active Claims in MEMORY.md, install the audit Stop-hook, and create per-skill metric directories. */
+/** Clone the wiki if not already present, scaffold Active Claims in MEMORY.md, and create per-skill metric directories. */
 export async function runInitCommand(values, _args, _cli) {
   const logger = { debug() {} };
   const finder = new Finder(fsAsync, logger, process);
@@ -150,7 +90,6 @@ export async function runInitCommand(values, _args, _cli) {
     projectRoot,
     values["skills-dir"] ?? path.join(".claude", "skills"),
   );
-  const settingsPath = path.resolve(projectRoot, ".claude", "settings.json");
 
   await maybeCloneWiki(projectRoot, wikiDir);
 
@@ -167,12 +106,6 @@ export async function runInitCommand(values, _args, _cli) {
         `init: scaffolded ${ACTIVE_CLAIMS_HEADING} in ${memoryPath}\n`,
       );
     }
-  }
-
-  if (installStopHook(settingsPath)) {
-    process.stdout.write(
-      `init: installed Stop-hook audit entry in ${settingsPath}\n`,
-    );
   }
 
   process.stdout.write(`init: wiki ready at ${wikiDir}\n`);

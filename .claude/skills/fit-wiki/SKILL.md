@@ -24,8 +24,7 @@ cross-team memos, storyboard chart maintenance, audit, and git lifecycle.
 - **Cross-team memo** — `memo --to <agent> --message "..."`.
 - **Storyboard refresh** — `refresh` regenerates XmR and
   obstacle/experiment marker blocks.
-- **Bootstrap** — `init` clones the wiki, scaffolds Active Claims, installs
-  the audit Stop-hook.
+- **Bootstrap** — `init` clones the wiki and scaffolds Active Claims.
 - **Audit** — `audit` runs the gate; replaces `scripts/wiki-audit.sh`.
 - **Git lifecycle** — `push` / `pull`.
 
@@ -113,9 +112,9 @@ npx fit-wiki refresh [storyboard-path]
 
 ### `init` — Bootstrap a wiki tree
 
-Clones the wiki, scaffolds `MEMORY.md ## Active Claims`, installs the audit
-Stop-hook in `.claude/settings.json`, and creates `wiki/metrics/<skill>/`.
-Idempotent. Set `FIT_WIKI_URL` to override default URL derivation.
+Clones the wiki, scaffolds `MEMORY.md ## Active Claims`, and creates
+`wiki/metrics/<skill>/`. Idempotent. Set `FIT_WIKI_URL` to override default
+URL derivation.
 
 ```sh
 npx fit-wiki init
@@ -123,8 +122,7 @@ npx fit-wiki init
 
 ### `push` / `pull` — Git lifecycle
 
-Designed for Claude Code hooks (`SessionStart` → `pull`; `Stop` → `push` and
-`audit`).
+Designed for Claude Code hooks (`SessionStart` → `pull`; `Stop` → `push`).
 
 ```sh
 npx fit-wiki push

@@ -192,8 +192,7 @@ const definition = {
     },
     {
       name: "init",
-      description:
-        "Bootstrap a wiki working tree, scaffold Active Claims, install audit Stop-hook",
+      description: "Bootstrap a wiki working tree and scaffold Active Claims",
       options: {
         ...wikiRootOpt,
         "skills-dir": {

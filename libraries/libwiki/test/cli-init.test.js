@@ -155,16 +155,14 @@ describe("deriveWikiUrl", () => {
   });
 });
 
-describe("init Active Claims + Stop-hook install", () => {
+describe("init Active Claims scaffolding", () => {
   let dir;
   let wikiRoot;
-  let settingsPath;
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "init-active-"));
     wikiRoot = join(dir, "wiki");
     mkdirSync(wikiRoot, { recursive: true });
     writeFileSync(join(dir, "package.json"), '{"name":"root"}');
-    settingsPath = join(dir, ".claude", "settings.json");
   });
 
   function runInit(env = {}) {
@@ -173,7 +171,7 @@ describe("init Active Claims + Stop-hook install", () => {
       encoding: "utf-8",
       // GH_TOKEN: ensure config.ghToken() resolves without invoking `gh auth`
       // — clone of /nonexistent/repo.git fails by design, and init falls
-      // through to the local-only Active Claims / Stop-hook scaffolding.
+      // through to the local-only Active Claims scaffolding.
       env: {
         ...process.env,
         ...env,
@@ -208,62 +206,5 @@ describe("init Active Claims + Stop-hook install", () => {
     const text = readFileSync(join(wikiRoot, "MEMORY.md"), "utf-8");
     const matches = text.match(/## Active Claims/g) || [];
     assert.equal(matches.length, 1);
-  });
-
-  test("creates settings.json with Stop hook when absent", () => {
-    writeFileSync(
-      join(wikiRoot, "MEMORY.md"),
-      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
-    );
-    runInit();
-    assert.equal(existsSync(settingsPath), true);
-    const settings = JSON.parse(readFileSync(settingsPath, "utf-8"));
-    const hooks = settings.hooks.Stop[0].hooks;
-    assert.ok(hooks.some((h) => h.command.includes("fit-wiki audit")));
-  });
-
-  test("appends audit hook alongside existing entries (preserved)", () => {
-    mkdirSync(join(dir, ".claude"), { recursive: true });
-    writeFileSync(
-      settingsPath,
-      JSON.stringify(
-        {
-          hooks: {
-            Stop: [{ hooks: [{ type: "command", command: "just wiki-push" }] }],
-          },
-        },
-        null,
-        2,
-      ),
-    );
-    writeFileSync(
-      join(wikiRoot, "MEMORY.md"),
-      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
-    );
-    runInit();
-    const settings = JSON.parse(readFileSync(settingsPath, "utf-8"));
-    const hooks = settings.hooks.Stop[0].hooks;
-    assert.ok(
-      hooks.some((h) => h.command === "just wiki-push"),
-      "existing hook preserved",
-    );
-    assert.ok(
-      hooks.some((h) => h.command.includes("fit-wiki audit")),
-      "audit hook added",
-    );
-  });
-
-  test("idempotent — second init does not re-add audit hook", () => {
-    writeFileSync(
-      join(wikiRoot, "MEMORY.md"),
-      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
-    );
-    runInit();
-    runInit();
-    const settings = JSON.parse(readFileSync(settingsPath, "utf-8"));
-    const auditEntries = settings.hooks.Stop[0].hooks.filter((h) =>
-      h.command.includes("fit-wiki audit"),
-    );
-    assert.equal(auditEntries.length, 1);
   });
 });
