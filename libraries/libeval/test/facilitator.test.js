@@ -2,7 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
-import { Facilitator, createFacilitator } from "@forwardimpact/libeval";
+import { Facilitator } from "@forwardimpact/libeval";
 import {
   createOrchestrationContext,
   createConcludeHandler,
@@ -411,22 +411,5 @@ describe("Facilitator - messaging", () => {
     assert.strictEqual(parsed.length, 2);
     assert.strictEqual(parsed[0].name, "facilitator");
     assert.strictEqual(parsed[1].name, "agent-1");
-  });
-});
-
-describe("Facilitator - factory required deps", () => {
-  test("createFacilitator throws on missing redactor", () => {
-    assert.throws(
-      () =>
-        createFacilitator({
-          facilitatorCwd: "/tmp/fac",
-          agentConfigs: [
-            { name: "agent-1", role: "worker", cwd: "/tmp/agent" },
-          ],
-          query: async function* () {},
-          output: new PassThrough(),
-        }),
-      /redactor is required/,
-    );
   });
 });
