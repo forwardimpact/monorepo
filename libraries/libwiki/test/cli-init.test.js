@@ -1,12 +1,22 @@
 import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, existsSync } from "node:fs";
+import {
+  mkdtempSync,
+  mkdirSync,
+  existsSync,
+  writeFileSync,
+  readFileSync,
+  rmSync,
+} from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { execFileSync } from "node:child_process";
 import { WikiRepo } from "../src/wiki-repo.js";
 import { listSkills } from "../src/skill-roster.js";
 import { deriveWikiUrl } from "../src/commands/init.js";
 import { git, createBareRepo, seedBareRepo } from "./helpers.js";
+
+const CLI_PATH = new URL("../bin/fit-wiki.js", import.meta.url).pathname;
 
 describe("init command", () => {
   let projectDir;
@@ -142,5 +152,110 @@ describe("deriveWikiUrl", () => {
 
   test("returns null when no origin remote configured", () => {
     assert.equal(deriveWikiUrl(projectDir), null);
+  });
+});
+
+describe("init Active Claims + Stop-hook install", () => {
+  let dir;
+  let wikiRoot;
+  let settingsPath;
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), "init-active-"));
+    wikiRoot = join(dir, "wiki");
+    mkdirSync(wikiRoot, { recursive: true });
+    writeFileSync(join(dir, "package.json"), '{"name":"root"}');
+    settingsPath = join(dir, ".claude", "settings.json");
+  });
+
+  function runInit(env = {}) {
+    return execFileSync("node", [CLI_PATH, "init"], {
+      cwd: dir,
+      encoding: "utf-8",
+      env: { ...process.env, ...env, FIT_WIKI_URL: "/nonexistent/repo.git" },
+      stdio: "pipe",
+    });
+  }
+
+  test("scaffolds ## Active Claims in MEMORY.md when absent", () => {
+    writeFileSync(
+      join(wikiRoot, "MEMORY.md"),
+      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
+    );
+    runInit();
+    const text = readFileSync(join(wikiRoot, "MEMORY.md"), "utf-8");
+    assert.match(text, /## Active Claims/);
+    assert.match(
+      text,
+      /\| agent \| target \| branch \| pr \| claimed_at \| expires_at \|/,
+    );
+  });
+
+  test("idempotent — second init does not duplicate Active Claims", () => {
+    writeFileSync(
+      join(wikiRoot, "MEMORY.md"),
+      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
+    );
+    runInit();
+    runInit();
+    const text = readFileSync(join(wikiRoot, "MEMORY.md"), "utf-8");
+    const matches = text.match(/## Active Claims/g) || [];
+    assert.equal(matches.length, 1);
+  });
+
+  test("creates settings.json with Stop hook when absent", () => {
+    writeFileSync(
+      join(wikiRoot, "MEMORY.md"),
+      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
+    );
+    runInit();
+    assert.equal(existsSync(settingsPath), true);
+    const settings = JSON.parse(readFileSync(settingsPath, "utf-8"));
+    const hooks = settings.hooks.Stop[0].hooks;
+    assert.ok(hooks.some((h) => h.command.includes("fit-wiki audit")));
+  });
+
+  test("appends audit hook alongside existing entries (preserved)", () => {
+    mkdirSync(join(dir, ".claude"), { recursive: true });
+    writeFileSync(
+      settingsPath,
+      JSON.stringify(
+        {
+          hooks: {
+            Stop: [{ hooks: [{ type: "command", command: "just wiki-push" }] }],
+          },
+        },
+        null,
+        2,
+      ),
+    );
+    writeFileSync(
+      join(wikiRoot, "MEMORY.md"),
+      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
+    );
+    runInit();
+    const settings = JSON.parse(readFileSync(settingsPath, "utf-8"));
+    const hooks = settings.hooks.Stop[0].hooks;
+    assert.ok(
+      hooks.some((h) => h.command === "just wiki-push"),
+      "existing hook preserved",
+    );
+    assert.ok(
+      hooks.some((h) => h.command.includes("fit-wiki audit")),
+      "audit hook added",
+    );
+  });
+
+  test("idempotent — second init does not re-add audit hook", () => {
+    writeFileSync(
+      join(wikiRoot, "MEMORY.md"),
+      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
+    );
+    runInit();
+    runInit();
+    const settings = JSON.parse(readFileSync(settingsPath, "utf-8"));
+    const auditEntries = settings.hooks.Stop[0].hooks.filter((h) =>
+      h.command.includes("fit-wiki audit"),
+    );
+    assert.equal(auditEntries.length, 1);
   });
 });

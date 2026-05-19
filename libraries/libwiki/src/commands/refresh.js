@@ -4,6 +4,7 @@ import fsAsync from "node:fs/promises";
 import { Finder } from "@forwardimpact/libutil";
 import { scanMarkers } from "../marker-scanner.js";
 import { renderBlock, BlockRenderError } from "../block-renderer.js";
+import { renderIssueList } from "../issue-list-renderer.js";
 
 function currentStoryboardPath() {
   const now = new Date();
@@ -12,8 +13,34 @@ function currentStoryboardPath() {
   return `wiki/storyboard-${yyyy}-M${mm}.md`;
 }
 
-/** Re-render all XmR chart blocks in a storyboard file by scanning markers and splicing updated content. */
-export function runRefreshCommand(values, args, cli) {
+function renderForBlock(block, projectRoot) {
+  if (block.kind === "xmr") {
+    return renderBlock({
+      metric: block.metric,
+      csvPath: block.csvPath,
+      projectRoot,
+    });
+  }
+  if (block.kind === "issue-list") {
+    return renderIssueList({
+      topic: block.topic,
+      state: block.state,
+      window: block.window,
+    });
+  }
+  return null;
+}
+
+function spliceBlock(lines, block, rendered) {
+  lines.splice(
+    block.openLine + 1,
+    block.closeLine - block.openLine - 1,
+    ...rendered,
+  );
+}
+
+/** Re-render XmR chart blocks and issue-list blocks in a storyboard file. */
+export function runRefreshCommand(values, args, _cli) {
   const logger = { debug() {} };
   const finder = new Finder(fsAsync, logger, process);
   const projectRoot = finder.findProjectRoot(process.cwd());
@@ -24,7 +51,6 @@ export function runRefreshCommand(values, args, cli) {
   );
   const text = readFileSync(storyboardPath, "utf-8");
   const blocks = scanMarkers(text);
-
   if (blocks.length === 0) return;
 
   const lines = text.split("\n");
@@ -33,16 +59,9 @@ export function runRefreshCommand(values, args, cli) {
   for (let i = blocks.length - 1; i >= 0; i--) {
     const block = blocks[i];
     try {
-      const rendered = renderBlock({
-        metric: block.metric,
-        csvPath: block.csvPath,
-        projectRoot,
-      });
-      lines.splice(
-        block.openLine + 1,
-        block.closeLine - block.openLine - 1,
-        ...rendered,
-      );
+      const rendered = renderForBlock(block, projectRoot);
+      if (!rendered) continue;
+      spliceBlock(lines, block, rendered);
       spliced = true;
     } catch (err) {
       if (!(err instanceof BlockRenderError)) throw err;
@@ -53,4 +72,9 @@ export function runRefreshCommand(values, args, cli) {
   }
 
   if (spliced) writeFileSync(storyboardPath, lines.join("\n"));
+  if (values && values.format === "json") {
+    process.stdout.write(
+      JSON.stringify({ blocks: blocks.length, spliced }) + "\n",
+    );
+  }
 }

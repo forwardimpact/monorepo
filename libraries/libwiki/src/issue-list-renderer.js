@@ -1,0 +1,69 @@
+import { spawnSync } from "node:child_process";
+
+function defaultGh(args) {
+  return spawnSync("gh", args, {
+    encoding: "utf-8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
+
+function daysAgo(today, n) {
+  const d = today instanceof Date ? new Date(today.getTime()) : new Date(today);
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Render an issue-list block for an obstacles/experiments marker. Returns markdown lines. */
+export function renderIssueList({
+  topic,
+  state,
+  window,
+  today = new Date(),
+  gh = defaultGh,
+}) {
+  const ghState = state === "closed" ? "closed" : "open";
+  const result = gh([
+    "issue",
+    "list",
+    "--label",
+    topic.replace(/s$/, ""),
+    "--state",
+    ghState,
+    "--json",
+    "number,title,labels,closedAt",
+    "--limit",
+    "100",
+  ]);
+  if (result.status !== 0) {
+    process.stderr.write(
+      `refresh: gh issue list failed for ${topic}:${state}\n`,
+    );
+    return [];
+  }
+  let issues;
+  try {
+    issues = JSON.parse(result.stdout || "[]");
+  } catch {
+    process.stderr.write(
+      `refresh: gh issue list JSON parse failed for ${topic}:${state}\n`,
+    );
+    return [];
+  }
+
+  if (state === "closed") {
+    const windowDays = window
+      ? Number.parseInt(window.replace("d", ""), 10)
+      : 7;
+    const cutoff = daysAgo(today, windowDays);
+    issues = issues.filter(
+      (i) => i.closedAt && i.closedAt.slice(0, 10) >= cutoff,
+    );
+  }
+
+  const lines = [];
+  for (const issue of issues) {
+    const tag = topic === "experiments" ? "Exp" : "Obs";
+    lines.push(`- **${tag} #${issue.number} — ${issue.title}**`);
+  }
+  return lines;
+}

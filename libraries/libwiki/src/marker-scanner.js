@@ -1,43 +1,90 @@
-const OPEN_RE = /^<!--\s*xmr:([^:\s]+):([^\s]+)\s*-->\s*$/;
-const CLOSE_RE = /^<!--\s*\/xmr\s*-->\s*$/;
+const XMR_OPEN_RE = /^<!--\s*xmr:([^:\s]+):([^\s]+)\s*-->\s*$/;
+const ISSUE_OPEN_RE =
+  /^<!--\s*(obstacles|experiments):(open|closed)(?::(\d+d))?\s*-->\s*$/;
+const XMR_CLOSE_RE = /^<!--\s*\/xmr\s*-->\s*$/;
+const ISSUE_CLOSE_RE = /^<!--\s*\/(obstacles|experiments)\s*-->\s*$/;
 
-/** Scan text for paired xmr open/close HTML comment markers and return their line positions and metadata. */
+function openLabel(open) {
+  return open.kind === "xmr" ? open.metric : open.topic;
+}
+
+function warnDangling(open) {
+  process.stderr.write(
+    `dangling-marker ${openLabel(open)} at line ${open.openLine + 1}\n`,
+  );
+}
+
+function tryOpen(line, i) {
+  const xmrMatch = line.match(XMR_OPEN_RE);
+  if (xmrMatch) {
+    return {
+      kind: "xmr",
+      metric: xmrMatch[1],
+      csvPath: xmrMatch[2],
+      openLine: i,
+    };
+  }
+  const issueMatch = line.match(ISSUE_OPEN_RE);
+  if (issueMatch) {
+    return {
+      kind: "issue-list",
+      topic: issueMatch[1],
+      state: issueMatch[2],
+      window: issueMatch[3] || null,
+      openLine: i,
+    };
+  }
+  return null;
+}
+
+function closePair(open, i) {
+  if (open.kind === "xmr") {
+    return {
+      kind: "xmr",
+      metric: open.metric,
+      csvPath: open.csvPath,
+      openLine: open.openLine,
+      closeLine: i,
+    };
+  }
+  return {
+    kind: "issue-list",
+    topic: open.topic,
+    state: open.state,
+    window: open.window,
+    openLine: open.openLine,
+    closeLine: i,
+  };
+}
+
+function matchClose(line, open) {
+  if (!open) return false;
+  if (open.kind === "xmr") return XMR_CLOSE_RE.test(line);
+  const m = line.match(ISSUE_CLOSE_RE);
+  return Boolean(m && open.kind === "issue-list" && open.topic === m[1]);
+}
+
+/** Scan text for paired marker blocks (xmr or issue-list). Returns positions and metadata. */
 export function scanMarkers(text) {
   const lines = text.split("\n");
   const pairs = [];
   let open = null;
 
   for (let i = 0; i < lines.length; i++) {
-    const openMatch = lines[i].match(OPEN_RE);
-    if (openMatch) {
-      if (open) {
-        process.stderr.write(
-          `dangling-marker ${open.metric} at line ${open.openLine + 1}\n`,
-        );
-      }
-      open = { metric: openMatch[1], csvPath: openMatch[2], openLine: i };
+    const line = lines[i];
+    const newOpen = tryOpen(line, i);
+    if (newOpen) {
+      if (open) warnDangling(open);
+      open = newOpen;
       continue;
     }
-
-    if (CLOSE_RE.test(lines[i])) {
-      if (open) {
-        pairs.push({
-          metric: open.metric,
-          csvPath: open.csvPath,
-          openLine: open.openLine,
-          closeLine: i,
-        });
-        open = null;
-      }
-      continue;
+    if (matchClose(line, open)) {
+      pairs.push(closePair(open, i));
+      open = null;
     }
   }
 
-  if (open) {
-    process.stderr.write(
-      `dangling-marker ${open.metric} at line ${open.openLine + 1}\n`,
-    );
-  }
+  if (open) warnDangling(open);
 
   return pairs;
 }
