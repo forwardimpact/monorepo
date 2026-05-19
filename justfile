@@ -17,7 +17,7 @@ wiki-push:
 
 # Audit agent memory against the wiki contract
 wiki-audit:
-    bash scripts/wiki-audit.sh
+    bunx fit-wiki audit
 
 # Install dependencies and tooling
 install: install-bun install-gh
