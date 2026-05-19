@@ -394,6 +394,8 @@ const devNull = new Writable({
  * @param {string} [deps.agentModel] - Agent model override (falls back to `model`).
  * @param {string} [deps.facilitatorModel] - Facilitator model override (falls back to `model`).
  * @param {number} [deps.maxTurns]
+ * @param {string[]} [deps.facilitatorAllowedTools] - Tools the facilitator may use; defaults to a read/write file-edit set.
+ * @param {string[]} [deps.facilitatorDisallowedTools] - Additional tools to block on the facilitator; merged with the sub-agent spawn defaults (Agent/Task/TaskOutput/TaskStop).
  * @param {string} [deps.facilitatorProfile] - Facilitator profile name; resolved into the main-thread system prompt via `composeProfilePrompt`.
  * @param {string} [deps.profilesDir] - Directory containing `<name>.md` profile files. Defaults to `<facilitatorCwd>/.claude/agents`. Resolved once from the facilitator's cwd so profiles travel with the project, not with per-agent sandboxes.
  * @param {string} [deps.taskAmend] - Opaque addendum appended to the task before delivery.
@@ -408,6 +410,8 @@ export function createFacilitator({
   agentModel,
   facilitatorModel,
   maxTurns,
+  facilitatorAllowedTools,
+  facilitatorDisallowedTools,
   facilitatorProfile,
   profilesDir,
   taskAmend,
@@ -467,12 +471,29 @@ export function createFacilitator({
     return { name: config.name, role: config.role, runner };
   });
 
+  // Block the SDK's sub-agent spawn tools on the facilitator: its job is to
+  // coordinate participants through the libeval orchestration harness, not
+  // to fan work out to ad-hoc Claude Code sub-agents. Mirrors the supervisor.
+  const defaultDisallowed = ["Agent", "Task", "TaskOutput", "TaskStop"];
+  const disallowedTools = facilitatorDisallowedTools
+    ? [...new Set([...defaultDisallowed, ...facilitatorDisallowedTools])]
+    : defaultDisallowed;
+
   const facilitatorRunner = createAgentRunner({
     cwd: facilitatorCwd,
     query,
     output: devNull,
     model: facilitatorModel ?? model,
     maxTurns: maxTurns ?? 20,
+    allowedTools: facilitatorAllowedTools ?? [
+      "Bash",
+      "Read",
+      "Glob",
+      "Grep",
+      "Write",
+      "Edit",
+    ],
+    disallowedTools,
     onLine: (line) => facilitator.emitLine("facilitator", line),
     mcpServers: { orchestration: facilitatorServer },
     settingSources: ["project"],
