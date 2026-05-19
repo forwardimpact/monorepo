@@ -6,7 +6,7 @@ on:
   issue_comment:
     types: [created]
   pull_request_target:
-    types: [labeled]
+    types: [labeled, closed]
   pull_request_review_comment:
     types: [created]
   pull_request_review:
@@ -44,8 +44,11 @@ jobs:
     # in rapid succession on triage. Only react to labels that carry routing or approval semantics —
     # `agent:*` (routing) and `*:approved` (gate). Classification labels like `bug`, `triaged`, `experiment`
     # don't add new requests for the facilitator to act on, so they should not fire a run.
+    #
+    # PR close scoping: `closed` fires on both merge and abandon — only react when `merged: true` so
+    # abandoned PRs don't fire a run.
     if: >-
-      github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && (github.event.action == 'opened' || (github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))))) || github.event_name == 'issue_comment' || (github.event_name == 'pull_request_target' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))) || (github.event_name == 'pull_request_review_comment' && github.event.comment.in_reply_to_id != null) || github.event_name == 'pull_request_review' || github.event_name == 'discussion' || github.event_name == 'discussion_comment'
+      github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && (github.event.action == 'opened' || (github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))))) || github.event_name == 'issue_comment' || (github.event_name == 'pull_request_target' && ((github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))) || (github.event.action == 'closed' && github.event.pull_request.merged == true))) || (github.event_name == 'pull_request_review_comment' && github.event.comment.in_reply_to_id != null) || github.event_name == 'pull_request_review' || github.event_name == 'discussion' || github.event_name == 'discussion_comment'
     runs-on: ubuntu-latest
     steps:
       - name: Generate installation token
@@ -105,7 +108,11 @@ jobs:
             pull_request_target)
               target_type="pull_request"
               target_number="${PR_NUMBER_FROM_EVENT:-}"
-              context="Label \"$LABEL_NAME\" was added to PR \"$PR_TITLE\" (#$target_number). PR URL: $ITEM_URL."
+              if [ "$EVENT_ACTION" = "closed" ]; then
+                context="PR \"$PR_TITLE\" (#$target_number) has been approved and merged. PR URL: $ITEM_URL."
+              else
+                context="Label \"$LABEL_NAME\" was added to PR \"$PR_TITLE\" (#$target_number). PR URL: $ITEM_URL."
+              fi
               action="route to the best-suited agent."
               ;;
             discussion)
@@ -150,7 +157,7 @@ jobs:
 
           Ensure follow-through: when the agent answers, verify they acted on what was within their scope. If they acknowledged but deferred actionable work, send them back to complete it before you conclude.
 
-          Approval propagation: when a trusted-contributor approval signal appears on a phase PR (e.g. \`<phase>:approved\` label applied, APPROVED review submitted, or an approval comment such as 'approved', 'LGTM', 'ship it'), validate trust using the release-engineer trust gate (top-7 contributor or \`kata-agent-team\`) and edit \`wiki/STATUS.md\` to set the spec's row to the matching \`{phase} approved\` state. Commit the wiki edit; the Stop hook pushes it. Do **not** apply any approval label or submit an APPROVED review on behalf of any contributor — only propagate signals already expressed by trusted humans. See \`.claude/agents/references/approval-signals.md\` for the full signal catalogue.
+          Approval propagation: when a trusted-contributor approval signal appears on a phase PR (e.g. \`<phase>:approved\` label applied, APPROVED review submitted, an approval comment such as 'approved', 'LGTM', 'ship it', or the PR has been merged), validate trust using the release-engineer trust gate (top-7 contributor or \`kata-agent-team\`) and edit \`wiki/STATUS.md\` to set the spec's row to the matching \`{phase} approved\` state. Commit the wiki edit; the Stop hook pushes it. Do **not** apply any approval label or submit an APPROVED review on behalf of any contributor — only propagate signals already expressed by trusted humans. See \`.claude/agents/references/approval-signals.md\` for the full signal catalogue.
 
           Recursion guard (this channel allows bot-authored content so agents can coordinate with each other): before engaging any participant, read the thread history. If the most recent activity is already a response from one of the participant agents you facilitate (product-manager, release-engineer, security-engineer, staff-engineer, technical-writer), stop immediately without engaging anyone — only respond when the latest content introduces a new question, request, or change for them to act on."
 
