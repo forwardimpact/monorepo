@@ -64,66 +64,15 @@ export function buildClinicalEntities(
   const researcherMap = new Map();
   const criteria = [];
 
-  const trials = clinicalAst.trials.map((t) => {
-    const piRef = t.principal_investigator;
-    const piPerson = resolvePerson(piRef, personByManagerAlias, t.id);
-
-    if (!researcherMap.has(piPerson.id)) {
-      researcherMap.set(piPerson.id, {
-        id: piPerson.id,
-        person_ref: piRef,
-        name: piPerson.name,
-        email: piPerson.email,
-        role: "principal_investigator",
-        trial_ids: [],
-        specialty: piPerson.discipline || null,
-        iri: `https://${domain}/id/clinical/researcher/${piPerson.id}`,
-      });
-    }
-    researcherMap.get(piPerson.id).trial_ids.push(t.id);
-
-    const project = t.project_ref
-      ? projectMap.get(t.project_ref) || null
-      : null;
-
-    if (t.criteria) {
-      criteria.push({
-        trial_id: t.id,
-        inclusion: t.criteria.inclusion || null,
-        exclusion: t.criteria.exclusion || null,
-        iri: `https://${domain}/id/clinical/criterion/${t.id}`,
-      });
-    }
-
-    return {
-      id: t.id,
-      name: t.name,
-      protocol_id: t.protocol_id,
-      phase: t.phase,
-      therapeutic_area: t.therapeutic_area,
-      conditions: t.conditions || [],
-      sites: t.sites || [],
-      principal_investigator: {
-        ref: piRef,
-        person: piPerson,
-      },
-      project_ref: t.project_ref || null,
-      project: project
-        ? { id: project.id, name: project.name, iri: project.iri }
-        : null,
-      sponsor: t.sponsor,
-      status: t.status,
-      target_enrollment: t.target_enrollment,
-      current_enrollment: t.current_enrollment,
-      start_date: t.start_date,
-      estimated_end_date: t.estimated_end_date,
-      arms: t.arms || [],
-      prose_topic: t.prose_topic || null,
-      prose_tone: t.prose_tone || null,
-      criteria: t.criteria || null,
-      iri: `https://${domain}/id/clinical/trial/${t.id}`,
-    };
-  });
+  const trials = clinicalAst.trials.map((t) =>
+    buildTrial(t, {
+      personByManagerAlias,
+      projectMap,
+      researcherMap,
+      criteria,
+      domain,
+    }),
+  );
 
   for (const trial of trials) {
     for (const condId of trial.conditions) {
@@ -164,6 +113,68 @@ function buildManagerLookup(people) {
     if (!lookup.has(alias)) lookup.set(alias, person);
   }
   return lookup;
+}
+
+function buildTrial(
+  t,
+  { personByManagerAlias, projectMap, researcherMap, criteria, domain },
+) {
+  const piRef = t.principal_investigator;
+  const piPerson = resolvePerson(piRef, personByManagerAlias, t.id);
+  registerResearcher(researcherMap, piPerson, piRef, t.id, domain);
+
+  const project = t.project_ref ? projectMap.get(t.project_ref) || null : null;
+
+  if (t.criteria) {
+    criteria.push({
+      trial_id: t.id,
+      inclusion: t.criteria.inclusion || null,
+      exclusion: t.criteria.exclusion || null,
+      iri: `https://${domain}/id/clinical/criterion/${t.id}`,
+    });
+  }
+
+  return {
+    id: t.id,
+    name: t.name,
+    protocol_id: t.protocol_id,
+    phase: t.phase,
+    therapeutic_area: t.therapeutic_area,
+    conditions: t.conditions || [],
+    sites: t.sites || [],
+    principal_investigator: { ref: piRef, person: piPerson },
+    project_ref: t.project_ref || null,
+    project: project
+      ? { id: project.id, name: project.name, iri: project.iri }
+      : null,
+    sponsor: t.sponsor,
+    status: t.status,
+    target_enrollment: t.target_enrollment,
+    current_enrollment: t.current_enrollment,
+    start_date: t.start_date,
+    estimated_end_date: t.estimated_end_date,
+    arms: t.arms || [],
+    prose_topic: t.prose_topic || null,
+    prose_tone: t.prose_tone || null,
+    criteria: t.criteria || null,
+    iri: `https://${domain}/id/clinical/trial/${t.id}`,
+  };
+}
+
+function registerResearcher(researcherMap, piPerson, piRef, trialId, domain) {
+  if (!researcherMap.has(piPerson.id)) {
+    researcherMap.set(piPerson.id, {
+      id: piPerson.id,
+      person_ref: piRef,
+      name: piPerson.name,
+      email: piPerson.email,
+      role: "principal_investigator",
+      trial_ids: [],
+      specialty: piPerson.discipline || null,
+      iri: `https://${domain}/id/clinical/researcher/${piPerson.id}`,
+    });
+  }
+  researcherMap.get(piPerson.id).trial_ids.push(trialId);
 }
 
 function resolvePerson(ref, personByManagerAlias, trialId) {

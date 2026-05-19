@@ -326,6 +326,7 @@
       },
       "devDependencies": {
         "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libprompt": "^0.1.9",
         "@forwardimpact/libsyntheticrender": "^0.1.25",
       },
       "optionalDependencies": {
@@ -500,7 +501,7 @@
     },
     "products/gear": {
       "name": "@forwardimpact/gear",
-      "version": "0.1.0",
+      "version": "0.1.2",
       "dependencies": {
         "@forwardimpact/libcodegen": "^0.1.49",
         "@forwardimpact/libdoc": "^0.2.24",
@@ -574,7 +575,7 @@
     },
     "products/map": {
       "name": "@forwardimpact/map",
-      "version": "0.15.48",
+      "version": "0.15.49",
       "bin": {
         "fit-map": "./bin/fit-map.js",
       },
@@ -602,7 +603,7 @@
     },
     "products/outpost": {
       "name": "@forwardimpact/outpost",
-      "version": "3.0.4",
+      "version": "3.0.5",
       "bin": {
         "fit-outpost": "./bin/fit-outpost.js",
       },
@@ -617,7 +618,7 @@
     },
     "products/pathway": {
       "name": "@forwardimpact/pathway",
-      "version": "0.25.60",
+      "version": "0.25.61",
       "bin": {
         "fit-pathway": "./bin/fit-pathway.js",
       },

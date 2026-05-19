@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.14",
+    "@forwardimpact/libprompt": "^0.1.9",
     "@forwardimpact/libsyntheticrender": "^0.1.25"
   },
   "optionalDependencies": {

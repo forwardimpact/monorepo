@@ -136,7 +136,16 @@ export function collectProseKeys(entities, { promptLoader } = {}) {
     orgName,
   });
 
-  for (const proj of entities.projects) {
+  addProjectKeys(keys, entities.projects, domain, orgName);
+  addContentKeys(keys, entities, domain, orgName);
+  addClinicalKeys(keys, entities, domain, orgName, promptLoader);
+  addActivityKeys(keys, entities, domain, orgName);
+
+  return keys;
+}
+
+function addProjectKeys(keys, projects, domain, orgName) {
+  for (const proj of projects) {
     if (proj.prose_topic) {
       keys.set(`project_${proj.id}`, {
         topic: proj.prose_topic,
@@ -147,7 +156,9 @@ export function collectProseKeys(entities, { promptLoader } = {}) {
       });
     }
   }
+}
 
+function addContentKeys(keys, entities, domain, orgName) {
   const guideContent = entities.content.find((c) => c.id === "guide_html");
   if (guideContent) {
     addGuideContentKeys(keys, guideContent, domain, orgName);
@@ -159,26 +170,27 @@ export function collectProseKeys(entities, { promptLoader } = {}) {
   if (outpostContent) {
     addOutpostKeys(keys, outpostContent, entities, domain, orgName);
   }
+}
 
-  if (entities.clinical && promptLoader) {
-    for (const [k, ctx] of clinicalProseKeys(
-      entities.clinical,
-      domain,
-      orgName,
-      promptLoader,
-    )) {
-      keys.set(k, ctx);
-    }
+function addClinicalKeys(keys, entities, domain, orgName, promptLoader) {
+  if (!entities.clinical || !promptLoader) return;
+  for (const [k, ctx] of clinicalProseKeys(
+    entities.clinical,
+    domain,
+    orgName,
+    promptLoader,
+  )) {
+    keys.set(k, ctx);
   }
+}
 
+function addActivityKeys(keys, entities, domain, orgName) {
   const pkCtx = { domain, orgName, entities };
   for (const pa of PROSE_ACTIVITIES) {
     const output = entities.activity?.[pa.id];
     if (!output) continue;
     for (const [k, ctx] of pa.proseKeys(output, pkCtx)) keys.set(k, ctx);
   }
-
-  return keys;
 }
 
 /**

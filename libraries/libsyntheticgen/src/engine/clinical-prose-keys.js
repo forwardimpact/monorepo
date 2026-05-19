@@ -137,17 +137,23 @@ function buildMessages(promptLoader, templateName, context) {
  * @yields {[string, object]} [proseKey, proseContext]
  */
 export function* clinicalProseKeys(clinical, domain, orgName, promptLoader) {
-  const condNames = clinical.conditions.map((c) => c.name);
-  const trialNames = clinical.trials.map((t) => t.name);
-  const siteNames = clinical.sites.map((s) => s.name);
   const base = {
     domain,
     orgName,
-    conditions_in_scope: condNames,
-    trials_in_scope: trialNames,
-    sites_in_scope: siteNames,
+    conditions_in_scope: clinical.conditions.map((c) => c.name),
+    trials_in_scope: clinical.trials.map((t) => t.name),
+    sites_in_scope: clinical.sites.map((s) => s.name),
   };
 
+  yield* conditionExplainerKeys(clinical, base, promptLoader);
+  yield* trialFaqKeys(clinical, base, promptLoader);
+  yield* consentSummaryKeys(clinical, base, promptLoader);
+  yield* siteDescriptionKeys(clinical, base, promptLoader);
+  yield* patientStoryKeys(clinical, base, promptLoader);
+  yield* therapyDescriptionKeys(clinical, base, promptLoader);
+}
+
+function* conditionExplainerKeys(clinical, base, promptLoader) {
   for (const cond of clinical.conditions) {
     const context = {
       topic: cond.prose_topic || `${cond.name} in plain language for patients`,
@@ -173,7 +179,9 @@ export function* clinicalProseKeys(clinical, domain, orgName, promptLoader) {
     );
     yield [`clinical_condition_explainer_${cond.id}`, context];
   }
+}
 
+function* trialFaqKeys(clinical, base, promptLoader) {
   for (const trial of clinical.trials) {
     const criteria = clinical.criteria.find((c) => c.trial_id === trial.id);
     const context = {
@@ -189,7 +197,9 @@ export function* clinicalProseKeys(clinical, domain, orgName, promptLoader) {
     context.messages = buildMessages(promptLoader, "trial-faq", context);
     yield [`clinical_trial_faq_${trial.id}`, context];
   }
+}
 
+function* consentSummaryKeys(clinical, base, promptLoader) {
   for (const trial of clinical.trials) {
     const criteria = clinical.criteria.find((c) => c.trial_id === trial.id);
     const context = {
@@ -205,7 +215,9 @@ export function* clinicalProseKeys(clinical, domain, orgName, promptLoader) {
     context.messages = buildMessages(promptLoader, "consent-summary", context);
     yield [`clinical_consent_summary_${trial.id}`, context];
   }
+}
 
+function* siteDescriptionKeys(clinical, base, promptLoader) {
   for (const site of clinical.sites) {
     const activeTrials = clinical.trials
       .filter((t) => t.sites.includes(site.id) && t.status === "recruiting")
@@ -228,56 +240,54 @@ export function* clinicalProseKeys(clinical, domain, orgName, promptLoader) {
     context.messages = buildMessages(promptLoader, "site-description", context);
     yield [`clinical_site_description_${site.id}`, context];
   }
+}
 
-  if (clinical.content) {
-    const storyConditions = clinical.content.patient_story_conditions || [];
-    const totalStories = clinical.content.patient_stories || 0;
-    const perCondition = Math.ceil(
-      totalStories / Math.max(storyConditions.length, 1),
-    );
-    for (const condId of storyConditions) {
-      const cond = clinical.conditions.find((c) => c.id === condId);
-      if (!cond) continue;
-      for (let i = 0; i < perCondition; i++) {
-        const context = {
-          topic: `Patient story: living with ${cond.name}`,
-          tone: "first-person, empathetic",
-          length: "300-400 words",
-          ...base,
-          clinical: {
-            condition: {
-              name: cond.name,
-              icd10: cond.icd10,
-              synonyms: cond.synonyms,
-              severity: cond.severity,
-            },
+function* patientStoryKeys(clinical, base, promptLoader) {
+  if (!clinical.content) return;
+  const storyConditions = clinical.content.patient_story_conditions || [];
+  const totalStories = clinical.content.patient_stories || 0;
+  const perCondition = Math.ceil(
+    totalStories / Math.max(storyConditions.length, 1),
+  );
+  for (const condId of storyConditions) {
+    const cond = clinical.conditions.find((c) => c.id === condId);
+    if (!cond) continue;
+    for (let i = 0; i < perCondition; i++) {
+      const context = {
+        topic: `Patient story: living with ${cond.name}`,
+        tone: "first-person, empathetic",
+        length: "300-400 words",
+        ...base,
+        clinical: {
+          condition: {
+            name: cond.name,
+            icd10: cond.icd10,
+            synonyms: cond.synonyms,
+            severity: cond.severity,
           },
-        };
-        context.messages = buildMessages(
-          promptLoader,
-          "patient-story",
-          context,
-        );
-        yield [`clinical_patient_story_${condId}_${i}`, context];
-      }
+        },
+      };
+      context.messages = buildMessages(promptLoader, "patient-story", context);
+      yield [`clinical_patient_story_${condId}_${i}`, context];
     }
   }
+}
 
-  if (clinical.content) {
-    for (const topic of clinical.content.therapy_topics || []) {
-      const context = {
-        topic: `${topic.replace(/_/g, " ")} treatment overview`,
-        tone: "balanced, factual, accessible",
-        length: "300-500 words",
-        ...base,
-        clinical: {},
-      };
-      context.messages = buildMessages(
-        promptLoader,
-        "therapy-description",
-        context,
-      );
-      yield [`clinical_therapy_description_${topic}`, context];
-    }
+function* therapyDescriptionKeys(clinical, base, promptLoader) {
+  if (!clinical.content) return;
+  for (const topic of clinical.content.therapy_topics || []) {
+    const context = {
+      topic: `${topic.replace(/_/g, " ")} treatment overview`,
+      tone: "balanced, factual, accessible",
+      length: "300-500 words",
+      ...base,
+      clinical: {},
+    };
+    context.messages = buildMessages(
+      promptLoader,
+      "therapy-description",
+      context,
+    );
+    yield [`clinical_therapy_description_${topic}`, context];
   }
 }
