@@ -40,13 +40,13 @@ Paths are relative to `products/map/` (published as `@forwardimpact/map`).
 
 ## Skill Proficiencies
 
-| Proficiency  | Index | Description                            |
-| ------------ | ----- | -------------------------------------- |
-| awareness    | 0     | Learning fundamentals, needs guidance  |
-| foundational | 1     | Applies basics independently           |
-| working      | 2     | Solid competence, handles ambiguity    |
-| practitioner | 3     | Deep expertise, leads and mentors      |
-| expert       | 4     | Authority, shapes direction across org |
+| Proficiency    | Index | Autonomy              | Scope                    |
+| -------------- | ----- | --------------------- | ------------------------ |
+| `awareness`    | 0     | with guidance         | team                     |
+| `foundational` | 1     | with minimal guidance | team                     |
+| `working`      | 2     | independently         | team                     |
+| `practitioner` | 3     | lead, mentor          | area (2--5 teams)        |
+| `expert`       | 4     | define, shape         | business unit / function |
 
 ---
 

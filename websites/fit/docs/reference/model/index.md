@@ -71,13 +71,13 @@ flowchart LR
     awareness --> foundational --> working --> practitioner --> expert
 ```
 
-| Proficiency    | Description                            |
-| -------------- | -------------------------------------- |
-| `awareness`    | Learning fundamentals, needs guidance  |
-| `foundational` | Applies basics independently           |
-| `working`      | Solid competence, handles ambiguity    |
-| `practitioner` | Deep expertise, leads and mentors      |
-| `expert`       | Authority, shapes direction across org |
+| Proficiency    | Autonomy              | Scope                    |
+| -------------- | --------------------- | ------------------------ |
+| `awareness`    | with guidance         | team                     |
+| `foundational` | with minimal guidance | team                     |
+| `working`      | independently         | team                     |
+| `practitioner` | lead, mentor          | area (2--5 teams)        |
+| `expert`       | define, shape         | business unit / function |
 
 ### Human-Only Skills
 
