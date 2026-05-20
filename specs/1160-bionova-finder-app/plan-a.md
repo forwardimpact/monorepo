@@ -1,0 +1,146 @@
+# Plan 1160-a — BioNova Finder Application
+
+Build the `bionova-apps` external repository to spec
+[1160](spec.md) / design [a](design-a.md).
+
+## Approach
+
+The implementation lives in a new, separate GitHub repository
+(`forwardimpact/bionova-apps`) — not in this monorepo. The implementer creates
+the repo, clones it as a sibling working directory, and executes every part
+inside that clone. Parts are decomposed by surface so they can run in parallel
+where the design allows: infrastructure stands the stack up, the data and
+schema parts populate it, edge functions and handlers consume it, and the CLI
+and web surfaces dispatch to the shared handlers. Each part is independently
+verifiable end-to-end against a local `docker compose` boot; the final part
+ties everything to the spec's six success criteria.
+
+## Where this lives
+
+| Aspect | Value |
+| --- | --- |
+| Target repo | `forwardimpact/bionova-apps` (new — created in part 01) |
+| Local working dir | `~/work/bionova-apps/` (sibling to this monorepo) |
+| All file paths in parts | relative to `bionova-apps/` repo root |
+| Monorepo deliverable | this plan + STATUS update only; no `bionova-apps/` directory in the monorepo |
+
+The implementer **must not** commit anything related to bionova-apps inside
+this monorepo. The kata-implement skill operates on the external repo for
+this spec; the monorepo PR (`plan-implemented`) updates only
+`wiki/STATUS.md` and this plan's metrics row.
+
+## Prerequisites
+
+| Dep | Status | Where checked |
+| --- | --- | --- |
+| Spec 1140 — clinical-output pipeline | implemented (commits `8bbf8f1c`, `0c921e81`) | `libterrain` clinical-output stage emits `supabase_migration` + `embeddings_jsonl` files |
+| Spec 1150 — story.dsl clinical rewrite | **plan approved, not implemented** | story.dsl currently lacks `clinical {}` and `output … supabase_migration {…}` blocks |
+| `@forwardimpact/libcli@0.1.9`, `libui@1.2.1`, `libformat@0.1.15`, `libtemplate@0.2.10`, `librepl@0.1.12` on npm | published — versions verified against [libraries/README.md](../../libraries/README.md) at plan-write time | part 01 pins these exact versions; implementer re-checks before `bun install` and bumps in the part-01 PR if any patch level published since |
+
+**This plan should not enter implementation until spec 1150 lands on
+`origin/main`.** Spec 1150 generates the clinical schema and seed data
+that every part beyond 01 references. Part 01 (bootstrap + infrastructure)
+is the only part that can land without 1150 — and even that is risky
+because the postgres image choice (see part 01 step 6) depends on the
+extensions terrain ultimately needs. Approval recommendation: hold this
+plan in `plan approved` state until `wiki/STATUS.md` shows `1150 plan
+implemented`; route `kata-implement` only after that signal flips.
+
+## Part Index
+
+| Part | Title | Scope | Depends on |
+| --- | --- | --- | --- |
+| [01](plan-a-01.md) | Repo bootstrap + infrastructure | New repo, MONOREPO.md, `package.json`, `docker-compose.yml`, all `infrastructure/{service}/` dirs, Kong config, `setup.sh` skeleton | — |
+| [02](plan-a-02.md) | Schema + RLS + interest_signals migration | Hand-written migration for `interest_signals`, RLS policies, schema verification | 01 |
+| [03](plan-a-03.md) | Data pipeline | story.dsl in `data/synthetic/`, `fit-terrain generate` integration, `setup.sh` data steps | 01, 02, spec 1150 implemented |
+| [04](plan-a-04.md) | Edge functions | `embed-seed`, `eligibility-check`, `notify-updates`, `sync-listings` under `services/finder-functions/` | 03 |
+| [05](plan-a-05.md) | Shared handlers | `products/finder/handlers/` — `searchTrials`, `showTrial`, `checkEligibility`, `listSites`, `showAbout`, `manageTrial` | 03 |
+| [06](plan-a-06.md) | CLI surface | `products/finder/cli/` + `bin/bionova-finder.js`, libcli wiring, `repl` subcommand | 05 |
+| [07](plan-a-07.md) | Web surface | `products/finder/site/` — Next.js App Router, Tailwind, shadcn/ui, libui routing | 05 |
+| [08](plan-a-08.md) | Deployment + smoke tests | Railway watch-path config per service, success-criteria verification script | 01–07 |
+
+## Libraries used
+
+Libraries used: `@forwardimpact/libcli` (createCli, dispatch, freezeInvocationContext), `@forwardimpact/libui` (createBoundRouter, render, components, freezeInvocationContext), `@forwardimpact/libformat` (createHtmlFormatter, createTerminalFormatter), `@forwardimpact/libtemplate` (createTemplateLoader), `@forwardimpact/librepl` (Repl), `@forwardimpact/libterrain` (CLI: `fit-terrain generate`, `fit-terrain build`).
+
+## Risks
+
+- **Spec 1150 not implemented before this plan starts.** Without the
+  rewritten story.dsl, `fit-terrain build` produces no clinical SQL or
+  embeddings. Mitigation: hold plan approval until 1150 lands (see
+  Prerequisites). Part 03 step 1 verifies the story.dsl on `origin/main`
+  contains a `clinical {}` block and one each of `output … supabase_migration {…}`
+  and `output … embeddings_jsonl {…}` declarations before generating output.
+- **`fit-terrain` subcommands** — `fit-terrain build` renders files using
+  the existing prose cache; `fit-terrain generate` first calls an LLM
+  (requires `ANTHROPIC_API_KEY`) to fill the cache then builds. The plan
+  uses `build` everywhere because the prose cache (`data/synthetic/prose-cache.json`)
+  is committed to the monorepo by spec 1150. Part 03 verifies the cache
+  exists; if absent, the implementer must escalate rather than running
+  `generate` blindly.
+- **`writeFiles()` in libterrain rm-rf's first-two-path-segment directories.**
+  Confirmed in `libraries/libterrain/src/sinks.js:209–226`. Part 03 routes
+  terrain output to `data/synthetic/output/` so the rm-rf zone is
+  disposable. Any deviation (e.g. outputting under `products/finder/…`)
+  destroys authored code.
+- **Forward Impact library versions** are pinned at plan-write time but
+  patches may publish between approval and implementation. Part 01's PR
+  description must record the resolved versions; if any pin requires a
+  bump, the implementer notes the breaking-change scan in the same PR.
+- **Postgres extension surface.** The plan uses `pgvector`, `pg_cron`,
+  `pg_net`, `pgjwt`, `pgsodium`, `pgaudit`, `pgcrypto`, `uuid-ossp`. Only
+  `supabase/postgres` ships all of these in one image. Part 01 step 6
+  pins `supabase/postgres:15.6.1.143` (the version the Forward Impact
+  monorepo runs); the alternative `pgvector/pgvector:pg16` lacks pg_net
+  and would block the notify-updates trigger pathway.
+- **No existing shadcn/ui or Tailwind reference in the monorepo.** Part 07
+  configures shadcn from scratch using the published `npx shadcn@latest
+  init` flow against a Next.js App Router project. The implementer
+  follows shadcn's then-current prompts; if a flag in the plan diverges
+  from the published CLI's current surface, the implementer records the
+  divergence in the part-07 PR description.
+- **`create-next-app` flag surface.** Part 07 step 1 uses `npx
+  create-next-app@14.2 . --typescript --tailwind --eslint --app --src-dir
+  --import-alias "@/*" --no-git` — `--use-bun` is dropped from the
+  generator's documented surface, so the plan instead lets npm scaffold
+  and immediately runs `bun install` at workspace root to convert the
+  lockfile. If `create-next-app` UX has shifted further, the implementer
+  follows the prompts and documents the chosen answers.
+- **Cross-repo STATUS handoff.** The trailing monorepo PR (part 08 step 9)
+  is the only signal `kata-release-merge` sees for this spec; the
+  implementer must write the row exactly as `1160<TAB>plan<TAB>implemented`
+  and include the bionova-apps repo URL in the PR body. There is no code
+  diff in the monorepo to gate on, so the trusted-human approval and
+  panel review of the trailing PR are the only safety net.
+- **Railway deployment requires a Railway project + token.** Part 08
+  step 1 creates the project; if Railway account access is unavailable
+  the implementer documents the gap, defers Railway-specific verification,
+  and ships local-only smoke tests. The deploy workflow pins a specific
+  SHA of the railway action rather than a floating tag.
+- **TEI embeddings cold-start can exceed 60s** on a fresh container. Part 01
+  configures Docker Compose healthchecks with a 120s `start_period` and
+  `setup.sh` waits on `tei`'s `/health` (internal port 80, host port 8080)
+  before invoking `embed-seed`.
+
+## Execution recommendation
+
+| Sequencing | Notes |
+| --- | --- |
+| 01 → 02 → 03 sequential | Each builds on the previous (repo → schema → data) |
+| 04 ∥ 05 parallel after 03 | Edge functions and handlers consume the same schema but do not depend on each other |
+| 06 ∥ 07 parallel after 05 | CLI and web both consume handlers; both can be staffed concurrently |
+| 08 sequential after 07 | End-to-end smoke tests require all surfaces present |
+
+Route all parts to `staff-engineer` via `kata-implement` (this is a build,
+not a documentation task). Parts 04, 05 can run as two concurrent
+implementer agents; same for 06 and 07. Each part lands as one PR in
+`bionova-apps`; the final part-08 PR also includes the success-criteria
+verification script.
+
+After all eight parts merge in `bionova-apps`, `staff-engineer` returns to
+this monorepo, opens a single trailing PR titled
+`feat(1160): mark bionova-apps build implemented`, that sets the
+`wiki/STATUS.md` row to `1160\tplan\timplemented` and records the metrics
+row. The bionova-apps repo URL is captured in that PR body.
+
+— Staff Engineer 🛠️
