@@ -66,4 +66,99 @@ describe("fit-wiki log CLI", () => {
       assert.equal(err.status, 2);
     }
   });
+
+  test("log note appends under the open decision's date heading", () => {
+    const args = (sub, extra) => [
+      CLI_PATH,
+      "log",
+      sub,
+      "--agent",
+      "staff-engineer",
+      "--today",
+      "2026-05-19",
+      ...extra,
+    ];
+    execFileSync(
+      "node",
+      args("decision", [
+        "--surveyed",
+        "owned",
+        "--chosen",
+        "x",
+        "--rationale",
+        "y",
+      ]),
+      { cwd: dir, encoding: "utf-8" },
+    );
+    execFileSync(
+      "node",
+      args("note", ["--field", "Actions taken", "--body", "Did stuff"]),
+      { cwd: dir, encoding: "utf-8" },
+    );
+    execFileSync(
+      "node",
+      args("note", ["--field", "Findings", "--body", "All clean"]),
+      { cwd: dir, encoding: "utf-8" },
+    );
+    execFileSync("node", args("done", []), { cwd: dir, encoding: "utf-8" });
+
+    const text = readFileSync(
+      join(wikiRoot, "staff-engineer-2026-W21.md"),
+      "utf-8",
+    );
+    const dateHeadings = text.match(/^## 2026-05-19/gm) || [];
+    assert.equal(
+      dateHeadings.length,
+      1,
+      "note/done must not start a new date heading under the open entry",
+    );
+    assert.match(
+      text,
+      /### Decision[\s\S]*### Actions taken[\s\S]*### Findings[\s\S]*### Closed/,
+    );
+  });
+
+  test("log note for a new day opens its own entry", () => {
+    const base = ["--agent", "staff-engineer", "--wiki-root", wikiRoot];
+    execFileSync(
+      "node",
+      [
+        CLI_PATH,
+        "log",
+        "decision",
+        ...base,
+        "--today",
+        "2026-05-19",
+        "--surveyed",
+        "s",
+        "--chosen",
+        "c",
+        "--rationale",
+        "r",
+      ],
+      { cwd: dir, encoding: "utf-8" },
+    );
+    execFileSync(
+      "node",
+      [
+        CLI_PATH,
+        "log",
+        "note",
+        ...base,
+        "--today",
+        "2026-05-20",
+        "--field",
+        "Followup",
+        "--body",
+        "Next day",
+      ],
+      { cwd: dir, encoding: "utf-8" },
+    );
+    const text = readFileSync(
+      join(wikiRoot, "staff-engineer-2026-W21.md"),
+      "utf-8",
+    );
+    assert.match(text, /^## 2026-05-19/m);
+    assert.match(text, /^## 2026-05-20/m);
+  });
 });

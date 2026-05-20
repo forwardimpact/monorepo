@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from "node:fs";
 import fsAsync from "node:fs/promises";
 import path from "node:path";
 import { Finder } from "@forwardimpact/libutil";
@@ -28,10 +29,14 @@ function commonContext(values) {
   return { agent, wikiRoot, today };
 }
 
-function ensureDateHeading(body, today) {
-  const heading = `## ${today}`;
-  if (body.startsWith(heading) || body.startsWith("## ")) return body;
-  return `${heading}\n\n${body}`;
+function lastDateHeading(text) {
+  // Match `## YYYY-MM-DD` at the start of a line, optionally followed by
+  // suffix text (e.g. `## 2026-05-19 (third activation)`).
+  const re = /^## (\d{4}-\d{2}-\d{2})/gm;
+  let last = null;
+  let match;
+  while ((match = re.exec(text)) !== null) last = match[1];
+  return last;
 }
 
 function runDecision(values) {
@@ -67,13 +72,15 @@ function runNote(values) {
     process.stderr.write("log note requires --field and --body\n");
     process.exit(2);
   }
-  const body = ensureDateHeading(
-    `### ${values.field}\n\n${values.body}\n`,
-    today,
-  );
-  const lineCount = body.split("\n").length;
-  rotateIfOverBudget(wikiRoot, agent, today, lineCount);
+  const fieldBlock = `### ${values.field}\n\n${values.body}\n`;
+  // Conservative line budget: assume we'll prepend a date heading.
+  const withHeading = `## ${today}\n\n${fieldBlock}`;
+  rotateIfOverBudget(wikiRoot, agent, today, withHeading.split("\n").length);
   const target = weeklyLogPath(wikiRoot, agent, today);
+  // Append under the open entry if the file's last `## YYYY-MM-DD` is today;
+  // otherwise open a new entry by prepending a date heading.
+  const existing = existsSync(target) ? readFileSync(target, "utf-8") : "";
+  const body = lastDateHeading(existing) === today ? fieldBlock : withHeading;
   appendEntry(target, body, agent, today);
   process.stdout.write(`logged note to ${target}\n`);
 }
