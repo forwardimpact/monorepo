@@ -119,13 +119,13 @@ jobs:
               target_type="discussion"
               target_number="$DISCUSSION_NUMBER"
               context="A new discussion was opened: \"$DISCUSSION_TITLE\" (#$target_number, category: $DISCUSSION_CATEGORY) by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Discussion URL: $ITEM_URL. Discussion node ID: $DISCUSSION_NODE_ID."
-              action="route to the best-suited agent and ask them to assess the discussion and act on it. To reply, use \`gh api graphql\` (mutation \`addDiscussionComment\` with the discussion node ID)."
+              action="if the body directly addresses multiple participants by role (headers like \"**Release engineer** — your view\"; \"**Staff engineer** — your view\"), Ask each named addressee in one parallel tool-call batch — one Ask per addressee — then post each Answer as a separate discussion comment via \`gh api graphql\` (mutation \`addDiscussionComment\` with the discussion node ID). Self-overlap rule: if your facilitator profile matches one of the addressees, you may answer that part yourself, but must still Ask the other named addressees via orchestration — naming them in your reply text does not count as engaging them. Otherwise (single addressee or untargeted), route to the best-suited agent and ask them to assess the discussion and act on it; reply via the same \`addDiscussionComment\` mutation."
               ;;
             discussion_comment)
               target_type="discussion"
               target_number="$DISCUSSION_NUMBER"
               context="A new comment was posted on discussion \"$DISCUSSION_TITLE\" (#$target_number, category: $DISCUSSION_CATEGORY) by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Comment URL: $ITEM_URL. Discussion node ID: $DISCUSSION_NODE_ID."
-              action="route to the best-suited agent and ask them to assess the comment and act on it. To reply, use \`gh api graphql\` (mutation \`addDiscussionComment\` with the discussion node ID; pass \`replyToId\` to thread the reply)."
+              action="if the comment directly addresses multiple participants by role, Ask each named addressee in one parallel tool-call batch — one Ask per addressee — then post each Answer as a separate threaded reply via \`gh api graphql\` (mutation \`addDiscussionComment\` with the discussion node ID; pass \`replyToId\` to thread the reply). Self-overlap rule: if your facilitator profile matches one of the addressees, you may answer that part yourself, but must still Ask the other named addressees via orchestration. Otherwise (single addressee or untargeted), route to the best-suited agent and ask them to assess the comment and act on it; reply via the same mutation."
               ;;
             workflow_dispatch)
               target_type=""

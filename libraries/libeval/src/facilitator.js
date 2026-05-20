@@ -21,13 +21,13 @@ import { createAsyncQueue, formatMessages } from "./orchestrator-helpers.js";
 
 /** System prompt appended for the facilitator runner. */
 export const FACILITATOR_SYSTEM_PROMPT =
-  "You coordinate multiple participants. " +
-  "Ask sends a question to a participant; omit the addressee to broadcast. " +
-  "Announce sends a message with no reply obligation. " +
-  "Redirect interrupts a participant with replacement instructions. " +
-  "RollCall lists participants. " +
-  "Conclude ends the session with a verdict ('success' or 'failure') and a summary; " +
-  "the verdict reflects whether the session met the criteria stated in the task.";
+  "You coordinate multiple participants via these tools: " +
+  "Ask delivers a question to one named participant — or broadcasts when no addressee is named — and blocks until that participant answers. " +
+  "Announce delivers a message with no reply obligation. " +
+  "Redirect interrupts an in-progress participant with replacement instructions. " +
+  "RollCall returns the participant roster. " +
+  "Conclude ends the session with a verdict ('success' or 'failure') and a summary. " +
+  "Ask and Announce calls issued in the same turn dispatch in parallel.";
 
 /** System prompt appended for facilitated agent runners. */
 export const FACILITATED_AGENT_SYSTEM_PROMPT =
