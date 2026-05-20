@@ -77,9 +77,9 @@ Libraries used: `@forwardimpact/libcli` (createCli, dispatch, freezeInvocationCo
   via a `curl --fail` probe before any subsequent step.
 - **libterrain not invokable from external repos.** Confirmed at
   `libraries/libterrain/bin/fit-terrain.js:197`: `monorepoRoot =
-  resolve(__dirname, "../../..")` — from `node_modules/@forwardimpact/libterrain/bin/`
-  this resolves to `node_modules/@forwardimpact/`, not the consumer's
-  repo root. Additionally `monorepoRoot/products/map/schema/json`
+  resolve(__dirname, "../../..")` — from
+  `<consumer>/node_modules/@forwardimpact/libterrain/bin/` this resolves
+  to `<consumer>/node_modules/`, not the consumer's repo root. Additionally `monorepoRoot/products/map/schema/json`
   (line 198) is referenced but not in libterrain's published `files`
   field. Conclusion: bionova-apps cannot run terrain; it consumes
   terrain output produced inside the monorepo. SC6 (regenerable) is

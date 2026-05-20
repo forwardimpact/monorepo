@@ -11,24 +11,27 @@ All paths are inside `bionova-apps/`.
 
 ## Step 1 — Verify spec 1150 artifacts exist on monorepo main
 
-Run before any other step. Probe the raw GitHub URL for the committed
-artifacts and pin the SHA the rest of this part will fetch:
+Run before any other step. The implementer picks a specific monorepo
+commit on `main` that has the spec-1150 artifacts merged, and pins it
+explicitly. The step does NOT auto-resolve `main` because doing so
+captures a moving target on each rerun.
 
 ```sh
 MONOREPO_RAW="https://raw.githubusercontent.com/forwardimpact/monorepo"
-MAIN_SHA=$(curl -fsSH "Accept: application/vnd.github.v3.sha" \
-  "https://api.github.com/repos/forwardimpact/monorepo/commits/main" \
-  | head -c 40)
+# Implementer sets this to a known-good 40-char SHA on origin/main after
+# verifying spec 1150 has merged at that commit. No fallback to HEAD.
+SHA="${MONOREPO_SHA:?Set MONOREPO_SHA to a 40-char commit SHA where spec 1150 is merged}"
+[ "${#SHA}" = "40" ] || { echo "FAIL: MONOREPO_SHA must be 40 chars (got ${#SHA})"; exit 1; }
 
 # Probe each required artifact
 for f in \
   "products/finder/site/supabase/migrations/seed_001_conditions.sql" \
   "products/finder/site/supabase/migrations/seed_002_sites.sql" \
   "products/finder/site/supabase/migrations/seed_embeddings.jsonl" ; do
-  status=$(curl -fsI -o /dev/null -w "%{http_code}" "$MONOREPO_RAW/$MAIN_SHA/$f")
-  [ "$status" = "200" ] || { echo "FAIL: $f not at $MAIN_SHA ($status)"; exit 1; }
+  status=$(curl -fsI -o /dev/null -w "%{http_code}" "$MONOREPO_RAW/$SHA/$f")
+  [ "$status" = "200" ] || { echo "FAIL: $f not at $SHA ($status)"; exit 1; }
 done
-echo "Monorepo SHA pinned: $MAIN_SHA"
+echo "Monorepo SHA pinned: $SHA"
 ```
 
 If any probe fails, halt and post an `agent-react` ask to the

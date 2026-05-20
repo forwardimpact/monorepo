@@ -89,15 +89,22 @@ story.dsl adds embeddings for `trials` or `sites`, embed-seed needs an
 explicit upsert path per table, but for 1160 only `conditions` is
 expected).
 
-TEI call (HuggingFace TEI `/embed` returns 2D array for batched input):
+TEI call (HuggingFace TEI `/embed` returns a 2D array `[[…], …]` when
+`inputs` is a string array, and `[[…]]` when `inputs` is a single
+string — verify against TEI 1.5 release notes at implementation time and
+adjust shape handling if the API has shifted):
 
 ```ts
 const r = await fetch(`${env.TEI_URL}/embed`, {
   method: "POST",
   headers: { "content-type": "application/json" },
-  body: JSON.stringify({ inputs: text }),
+  body: JSON.stringify({ inputs: [text] }),  // explicit array → predictable 2D return
 });
-const [vec] = await r.json();  // returns [[f, …]] for single-input request
+const arr = await r.json();
+if (!Array.isArray(arr) || !Array.isArray(arr[0])) {
+  throw new Error(`TEI returned unexpected shape: ${JSON.stringify(arr).slice(0, 80)}`);
+}
+const vec = arr[0];  // first (only) row of the 2D response
 ```
 
 PostgREST upsert uses the unique index added in plan-a-02 Step 3b

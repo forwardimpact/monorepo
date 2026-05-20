@@ -129,26 +129,31 @@ note() { echo "→ $*"; }
 ok()   { echo "  ✓ $*"; PASS=$((PASS+1)); }
 bad()  { echo "  ✗ $*" >&2; FAIL=$((FAIL+1)); }
 
-# SC1: docker compose up + ./setup.sh starts full stack and seeds all data
+# SC1: docker compose up + ./setup.sh starts full stack and seeds all data.
+# Every expected service must report Health=healthy — services with no
+# healthcheck are flagged so the script does not pass silently.
 note "SC1: stack boots and seeds"
-# docker compose ps --format json emits one JSON object per line (NDJSON).
-# Use jq -s to gather into an array, then assert ALL services healthy.
-unhealthy=$(docker compose ps --format json | jq -s '[.[] | select(.Health != "healthy" and .Health != "")] | length')
-expected_services=11
-actual=$(docker compose ps --format json | jq -s 'length')
-if [ "$unhealthy" = "0" ] && [ "$actual" -ge "$expected_services" ]; then
-  ok "all $actual services healthy"
-else
-  bad "$unhealthy unhealthy / $actual total (expected ≥ $expected_services)"
-  docker compose ps
-fi
+expected=(kong postgres pgbouncer postgrest gotrue realtime storage minio imgproxy tei finder-site finder-functions)
+sc1_fail=0
+for svc in "${expected[@]}"; do
+  state=$(docker compose ps "$svc" --format json | jq -r '.[0].Health // "missing"' 2>/dev/null || echo "missing")
+  if [ "$state" != "healthy" ]; then
+    bad "$svc: $state"
+    sc1_fail=1
+  fi
+done
+[ "$sc1_fail" = "0" ] && ok "all ${#expected[@]} services healthy" || docker compose ps
 test "$(psql -h localhost -U postgres -tAc "SELECT COUNT(*) FROM condition_embeddings;")" -gt 0 && ok "embeddings seeded" || bad "no embeddings"
 
-# SC2: /search returns trials matching a plain-language condition query
+# SC2: /search returns trials matching a plain-language condition query.
+# Use ?format=json so the assertion is against handler data, not template
+# text — protects against false positives from nav/footer/meta tags that
+# may incidentally include the word "diabetes".
 note "SC2: web search for 'high blood sugar'"
-body=$(curl -fsS "http://localhost:3001/search?condition=high+blood+sugar")
-# Look for a TrialCard element rendering a diabetes-typed trial
-echo "$body" | grep -qi "diabetes" && ok "diabetes matched on 'high blood sugar'" || { bad "no diabetes match for 'high blood sugar'"; echo "$body" | head -40; }
+result=$(curl -fsS "http://localhost:3001/search?condition=high+blood+sugar&format=json")
+matched=$(echo "$result" | jq -r '[.trials[].name, .trials[].conditions[]?.name // empty, .trials[].therapeutic_area] | join(" ") | ascii_downcase | contains("diabetes")')
+[ "$matched" = "true" ] && ok "diabetes-related trial returned for 'high blood sugar'" \
+  || { bad "no diabetes trial in result"; echo "$result" | jq -c '.trials[:3]'; }
 
 # SC3: eligibility screener returns "eligible" for a matching patient.
 # The matching-patient payload is hand-pinned in tests/fixtures/eligible-patient.json
@@ -206,6 +211,8 @@ fi
 # is asserted by spec 1150's CI; bionova-apps just verifies the fetch +
 # apply round-trip is stable.
 note "SC6: seed regenerable from pinned SHA"
+# Safety guard before any rm -rf in this section
+[ -d "$ROOT/.git" ] && [ -d "$ROOT/data/synthetic" ] || { bad "SC6 \$ROOT=$ROOT is not the bionova-apps repo"; exit 1; }
 ORIG=$(psql -h localhost -U postgres -tAc \
   "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
 # Full re-run: wipe local seed copy, truncate tables, re-fetch and re-apply
