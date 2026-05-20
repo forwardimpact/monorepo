@@ -131,9 +131,13 @@ terrain Acme {
 ```
 
 The DSL supports additional blocks -- `project`, `scenario`, `snapshots`,
-`content`, `dataset`, and `output` -- that add projects, time-based scenarios,
-external tool-generated datasets (Synthea, SDV, Faker), and rendered output
-files. Start small and add blocks as your evaluation demands more context.
+`content`, `clinical`, `dataset`, and `output` -- that add projects,
+time-based scenarios, a patient-and-trial domain with Schema.org microdata
+output, external tool-generated datasets (Synthea, SDV, Faker), and rendered
+output files. Start small and add blocks as your evaluation demands more
+context. See the
+[Generate an Eval Dataset](/docs/libraries/prove-changes/generate-dataset/)
+guide for examples of each.
 
 ## 2. Generate and validate the dataset
 
