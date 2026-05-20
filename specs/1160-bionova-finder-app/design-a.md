@@ -55,7 +55,7 @@ graph TD
 | Library | Consumer | Role |
 | --- | --- | --- |
 | `libcli` | `products/finder/cli/` | CLI dispatch, `--help`, subcommand routing |
-| `libui` | `products/finder/site/` | Web-side `InvocationContext` production from route params |
+| `libui` | `products/finder/site/` | Routing, reactive state, and `freezeInvocationContext` for the web surface |
 | `libformat` | `products/finder/handlers/` | Render handler output to ANSI (CLI) or HTML (web) |
 | `libtemplate` | `products/finder/handlers/` | Mustache templates for trial cards, eligibility reports |
 | `librepl` | `products/finder/cli/` | `bionova-finder repl` — staff interactive trial data exploration |
@@ -93,7 +93,7 @@ Tables seeded by the terrain pipeline (`supabase_migration` output via
 | `criteria` | `trial_id pk/fk`, `inclusion jsonb`, `exclusion jsonb` | `ClinicalCriterionEntity` |
 | `trial_conditions` | `trial_id fk`, `condition_id fk` (composite pk) | Junction from `trial.conditions[]` |
 | `trial_sites` | `trial_id fk`, `site_id fk` (composite pk) | Junction from `trial.sites[]` |
-| `condition_embeddings` | `id pk`, `condition_id fk`, `embedding vector(384)` | `renderEmbeddingsTable()` + `embed-seed` edge function |
+| `condition_embeddings` | `id pk`, `condition_id fk`, `embedding vector(384)` | `renderSql(include_embeddings: true)` + `embed-seed` edge function |
 
 Hand-written migration at `products/finder/site/supabase/migrations/` (not
 terrain-generated; sequenced after seed migrations):
@@ -150,7 +150,7 @@ data/synthetic/story.dsl
 
 | Decision | Chosen | Rejected | Why |
 | --- | --- | --- | --- |
-| Terrain output path | `data/synthetic/output/` with `setup.sh` copy to migrations | Direct output to `products/finder/site/supabase/migrations/` | `writeFiles()` in sinks.js `rm -rf`'s the second path segment before writing — outputting to `products/finder/...` would wipe `cli/`, `handlers/`, and authored code. Routing to `data/synthetic/output/` keeps generated files in the disposable zone; `setup.sh` copies them into the migration directory. |
+| Terrain output path | `data/synthetic/output/` with `setup.sh` copy to migrations | Direct output to `products/finder/site/supabase/migrations/` | `writeFiles()` in sinks.js joins the first two path segments of each output file into a directory and `rm -rf`'s it before writing — outputting to `products/finder/...` would delete `products/finder/` including `cli/`, `handlers/`, and authored code. Routing to `data/synthetic/output/` keeps generated files in the disposable zone; `setup.sh` copies them into the migration directory. |
 | Deployment | Railway watch-path CI/CD — one service per `infrastructure/` subdirectory | Kubernetes, Fly.io | PG On Rails provides Railway config out of the box; watch-paths limit rebuilds to changed services. |
 | API layer | PostgREST auto-generated from schema | Hand-written API routes | Schema-driven REST eliminates boilerplate; handlers call PostgREST via Kong. Staff writes also go through PostgREST with GoTrue JWT for RLS enforcement. |
 | Screener questions | Derived from `criteria.custom[]` strings at display time | Pre-generated `screener_questions` JSONB column | `custom[]` already contains plain-language criteria from the DSL. Displaying them as yes/no questions is a presentation concern, not a data concern. Avoids an extra prose pipeline key. |
