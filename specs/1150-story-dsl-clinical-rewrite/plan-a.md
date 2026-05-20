@@ -187,6 +187,28 @@ to receive the same files.
   panel-of-3 review. No mitigation step required at implementation time;
   the implementer can reference these symbols directly.
 
+- **`writeFiles` second-segment `rm -rf` hazard (out-of-scope; flagged for
+  1160 design).** `sinks.js:217` cleans the second path segment of every
+  emitted relative path before writing — so the new `path
+  "products/finder/site/supabase/migrations/"` causes `rm -rf
+  products/finder` on each build. For spec 1150 this is harmless because
+  no other files exist at `products/finder/` yet, but the 1160 BioNova
+  Finder application will populate that directory with `site/`, `cli/`,
+  `handlers/`. **The 1160 design must address write isolation** — either by
+  routing terrain outputs into a scoped sub-path (e.g.
+  `products/finder/seed/supabase/migrations/`), narrowing the sinks rm to
+  the leaf directory only, or by emitting through a separate sink that
+  doesn't follow the "rm second segment" rule. Out of scope for 1150
+  implementation; logged here so 1160 doesn't lose the constraint.
+
+- **Migration filename convention.** `render-sql.js` emits `seed_001_*.sql`,
+  `seed_002_*.sql`, etc. Supabase's documented convention is
+  `YYYYMMDDHHMMSS_*.sql` so migrations sort chronologically across teams;
+  numeric-prefix files sort lexicographically and `supabase db push` accepts
+  both — so the smoke test passes either way. If 1160 wants timestamp-based
+  filenames, that's a renderer change (libsyntheticrender / spec 1160's
+  call), not a 1150 plan concern.
+
 ## Verification
 
 ### Parse test
@@ -225,7 +247,23 @@ Expected: clinical: true, conditions: 6, sites: 5, trials: 6, projects: 8, scena
 
 ### Full pipeline smoke test
 
+**Cache-fill prerequisite.** This step introduces ~39 net-new prose keys
+(condition_explainers × 6 + therapy_descriptions × 6 + trial_faqs × 6 +
+consent_summaries × 6 + site_descriptions × 5 + patient_stories × 10), none
+of which exist in `data/synthetic/prose-cache.json` before this plan runs.
+`bunx fit-terrain build` is the cached-mode render verb and will hit
+cache-miss for every new key on a cold cache. The implementer must therefore
+follow a two-step workflow:
+
 ```sh
+# Step A — fill cache (one-time LLM call, incurs cost):
+bunx fit-terrain generate
+
+# Commit the populated cache so CI sees a warm cache:
+git add data/synthetic/prose-cache.json
+git commit -m "chore(1150): refresh prose-cache for new clinical entities"
+
+# Step B — verify SC #6 (LLM-free, repeatable in CI):
 bunx fit-terrain build
 ls -la products/finder/site/supabase/migrations/
 ```
@@ -235,20 +273,60 @@ ls -la products/finder/site/supabase/migrations/
 honored literally by `render-sql.js` + `sinks.js` — no `output/` prefix is
 prepended, so files land under monorepo-root `products/finder/site/supabase/migrations/`.
 
+Note: Step A's `generate` already runs `build` as its second phase ("Fill
+the prose cache via LLM, then build" — `fit-terrain.js:101-102`), so Step
+A's invocation also writes the output files. Step B's `build` is a
+deliberate re-run that proves SC #6 holds **from a warm cache only** — i.e.
+that CI can verify the smoke test without any LLM call. If you skip Step B
+the outputs are correct but SC #6's LLM-free guarantee is unverified.
+
 Verify SQL migrations and embeddings JSONL are generated. Existing outputs
 (claims, trial_patients_*) still generate.
 
-### Claims output unchanged (spec SC #7)
+### Existing outputs unchanged (spec SC #7 + Step 7 commitments)
 
-Snapshot the claims outputs before Step 1 and compare after Step 6:
+Spec SC #7 calls out claims; Step 7 of this plan additionally commits that
+the three `trial_patients_*` output blocks (L806-808) remain byte-identical
+in their existing form. Snapshot both sets before Step 1 and verify after
+Step B of the smoke test.
+
+**Baseline-generation prerequisite.** `output/` is gitignored (no
+pre-existing baseline in the working tree). Materialize a baseline by
+running the build on the unmodified DSL **before** taking the snapshot:
+
+```sh
+# Baseline — produce output/ from the unmodified story.dsl:
+bunx fit-terrain build
+```
+
+Then take the snapshot:
 
 ```sh
 # Pre-change (before editing story.dsl):
-shasum output/claims.parquet output/claims.sql > /tmp/claims-pre.sha
+shasum output/claims.sql \
+       output/trial_patients.json \
+       output/trial_patients.csv \
+       output/trial_conditions.json \
+       > /tmp/outputs-pre.sha
 
-# Post-change (after build):
-shasum -c /tmp/claims-pre.sha
+# Parquet handled separately (see determinism note below):
+duckdb -c "SELECT COUNT(*) AS rows FROM 'output/claims.parquet'" \
+       > /tmp/claims-parquet-pre-rows.txt
+
+# Post-change (after Step B `bunx fit-terrain build`):
+shasum -c /tmp/outputs-pre.sha
+duckdb -c "SELECT COUNT(*) AS rows FROM 'output/claims.parquet'" \
+       > /tmp/claims-parquet-post-rows.txt
+diff /tmp/claims-parquet-pre-rows.txt /tmp/claims-parquet-post-rows.txt
 ```
 
-Both hashes must match. If claims output is regenerated rather than diffed
-in-place, instead capture the file content via `cmp` against a pre-change copy.
+**Determinism note.** `writeFiles` (`libraries/libterrain/src/sinks.js:209-218`)
+`rm -rf`'s top-level subdirs then rewrites, so every output is regenerated.
+Byte-equality holds for SQL/JSON/CSV (the renderers are pure functions over
+deterministic AST input — no timestamps, no UUIDs). It does **not** hold for
+parquet: parquet file headers carry library-version and creation-timestamp
+metadata that drift across runs even when the row data is identical. For
+parquet, verify equality at the row-count + schema level via `duckdb` (or
+`parquet-tools` if duckdb isn't on PATH). If neither tool is available, fall
+back to `ls -la output/claims.parquet` byte-size comparison — the SDV row
+generator is seeded deterministically, so file size should match.
