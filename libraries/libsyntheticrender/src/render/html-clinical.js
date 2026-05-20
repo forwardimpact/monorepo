@@ -37,12 +37,12 @@ function buildConditionData(conditions, trials, prose) {
   }));
 }
 
-function buildTherapyData(content, prose) {
+function buildTherapyData(content, prose, domain) {
   if (!content?.therapy_topics) return [];
   return content.therapy_topics.map((topic) => ({
     topic,
     title: titleCase(topic),
-    iri: `#therapy-${topic}`,
+    iri: `https://${domain}/id/clinical/therapy/${topic}`,
     prose:
       prose.get(`clinical_therapy_description_${topic}`) ||
       `${titleCase(topic)} treatment overview.`,
@@ -202,7 +202,7 @@ export function renderClinicalPages(
     pageWrap(
       "Therapy Descriptions",
       templates.render("therapy-description.html", {
-        therapies: buildTherapyData(content, prose),
+        therapies: buildTherapyData(content, prose, domain),
       }),
     ),
   );

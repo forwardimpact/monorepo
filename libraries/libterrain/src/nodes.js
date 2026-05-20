@@ -15,6 +15,8 @@ import {
   validateLinks,
   validateHTML,
   renderDataset,
+  renderSql,
+  renderEmbeddings,
 } from "@forwardimpact/libsyntheticrender";
 import { collectProseKeys } from "@forwardimpact/libsyntheticgen";
 import { loadSchemas } from "@forwardimpact/libsyntheticprose/pathway";
@@ -208,6 +210,34 @@ export function buildNodes(ctx) {
       },
     },
 
+    "clinical-output": {
+      deps: ["parse", "entities", "cache-lookup"],
+      run({ parse, entities, "cache-lookup": prose }) {
+        const files = new Map();
+        if (!entities.clinical) return { files };
+
+        const clinicalOutputs = (parse.outputs || []).filter(
+          (o) =>
+            o.format === "supabase_migration" ||
+            o.format === "embeddings_jsonl",
+        );
+        if (clinicalOutputs.length === 0) return { files };
+
+        logger.info(
+          "pipeline",
+          `Rendering ${clinicalOutputs.length} clinical output(s)`,
+        );
+
+        for (const out of clinicalOutputs) {
+          const rendered = renderClinicalOutput(out, entities.clinical, prose);
+          for (const [path, content] of rendered) files.set(path, content);
+        }
+
+        logger.info("pipeline", `Clinical output: ${files.size} files`);
+        return { files };
+      },
+    },
+
     validate: {
       deps: ["enriched", "entities"],
       run({ enriched, entities }) {
@@ -235,8 +265,24 @@ export function buildNodes(ctx) {
     },
 
     write: {
-      deps: ["enriched", "raw", "markdown", "pathway", "datasets", "validate"],
-      run({ enriched, raw, markdown, pathway, datasets, validate }) {
+      deps: [
+        "enriched",
+        "raw",
+        "markdown",
+        "pathway",
+        "datasets",
+        "clinical-output",
+        "validate",
+      ],
+      run({
+        enriched,
+        raw,
+        markdown,
+        pathway,
+        datasets,
+        "clinical-output": clinicalOutput,
+        validate,
+      }) {
         const files = mergeOutputFiles(
           options.only,
           enriched,
@@ -244,6 +290,7 @@ export function buildNodes(ctx) {
           markdown,
           pathway,
           datasets,
+          clinicalOutput,
         );
         const include = (type) => !options.only || options.only === type;
         const rawDocuments = include("raw") ? raw.rawDocuments : new Map();
@@ -345,7 +392,15 @@ async function renderDatasetOutputs(outputs, datasets, files, logger) {
 }
 
 /** Merge files from each content type, respecting the --only filter. */
-function mergeOutputFiles(only, enriched, raw, markdown, pathway, datasets) {
+function mergeOutputFiles(
+  only,
+  enriched,
+  raw,
+  markdown,
+  pathway,
+  datasets,
+  clinicalOutput,
+) {
   const files = new Map();
   const include = (type) => !only || only === type;
 
@@ -360,10 +415,18 @@ function mergeOutputFiles(only, enriched, raw, markdown, pathway, datasets) {
       for (const [k, v] of source) files.set(k, v);
     }
   }
-  // datasets are always included regardless of --only
+  // datasets and clinical output are always included regardless of --only
   for (const [k, v] of datasets.files) files.set(k, v);
+  for (const [k, v] of clinicalOutput.files) files.set(k, v);
 
   return files;
+}
+
+function renderClinicalOutput(out, clinical, prose) {
+  if (out.format === "supabase_migration") {
+    return renderSql(clinical, out.config);
+  }
+  return renderEmbeddings(clinical, prose, out.config);
 }
 
 /**

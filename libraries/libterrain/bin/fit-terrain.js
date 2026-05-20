@@ -200,7 +200,11 @@ async function runVerb(options) {
     options.cache ||
     join(monorepoRoot, "data", "synthetic", "prose-cache.json");
 
-  const { promptDir, templateDir } = resolvePackagePaths(import.meta.resolve);
+  // Bind to `import.meta` so the helper can invoke it under Bun, which
+  // requires `import.meta.resolve` to be called with `this === import.meta`.
+  const { promptDir, templateDir } = resolvePackagePaths(
+    (specifier) => import.meta.resolve(specifier),
+  );
 
   const pipeline = createPipeline({
     logger,
