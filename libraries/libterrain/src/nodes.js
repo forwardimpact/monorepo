@@ -264,7 +264,7 @@ async function generateDatasets(
   logger.info("pipeline", `Generating ${definitions.length} dataset(s)`);
   const datasets = new Map();
   for (const ds of definitions) {
-    resolveDatasetConditions(ds, clinical);
+    const config = resolveDatasetConfig(ds, clinical, logger);
     const tool = toolFactory(ds.tool, { logger });
     try {
       await tool.checkAvailability();
@@ -276,7 +276,7 @@ async function generateDatasets(
       continue;
     }
     const results = await tool.generate({
-      ...ds.config,
+      ...config,
       seed,
       name: ds.id,
     });
@@ -287,14 +287,42 @@ async function generateDatasets(
   return datasets;
 }
 
-function resolveDatasetConditions(ds, clinical) {
-  if (!ds.config.conditions || !clinical?.conditions) return;
-  ds.config.modules = ds.config.conditions
-    .map(
-      (condId) =>
-        clinical.conditions.find((c) => c.id === condId)?.synthea_module,
-    )
-    .filter(Boolean);
+/**
+ * Build the per-dataset config passed to the tool. Resolves clinical
+ * `conditions` to Synthea modules and merges with any modules the DSL
+ * declares explicitly. Returns a shallow copy of `ds.config` — never mutates
+ * the parsed AST node, so re-runs of the datasets stage see the same input.
+ */
+function resolveDatasetConfig(ds, clinical, logger) {
+  const config = { ...ds.config };
+  if (!config.conditions?.length || !clinical?.conditions?.length)
+    return config;
+
+  const resolved = [];
+  for (const condId of config.conditions) {
+    const cond = clinical.conditions.find((c) => c.id === condId);
+    if (cond?.synthea_module) {
+      resolved.push(cond.synthea_module);
+    } else {
+      logger.info(
+        "pipeline",
+        `Dataset '${ds.id}' condition '${condId}' has no synthea_module; skipped`,
+      );
+    }
+  }
+  if (resolved.length === 0) return config;
+
+  const existing = config.modules || [];
+  const seen = new Set(existing);
+  const merged = [...existing];
+  for (const m of resolved) {
+    if (!seen.has(m)) {
+      seen.add(m);
+      merged.push(m);
+    }
+  }
+  config.modules = merged;
+  return config;
 }
 
 /** Render dataset outputs and merge into the files map. */

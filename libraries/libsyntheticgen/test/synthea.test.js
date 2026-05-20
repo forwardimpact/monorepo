@@ -193,6 +193,115 @@ describe("SyntheaTool", () => {
     assert.strictEqual(patientDs.records.length, 2);
   });
 
+  test("filterByConditions retains linked Encounters/Observations of matched patients", async () => {
+    // Real Synthea bundles include Encounter, Observation, etc., each with
+    // their own resource id and a `subject.reference` back to the patient.
+    // The filter must walk subject.reference, not r.id, for non-Patient rows.
+    const bundles = [
+      {
+        entry: [
+          { resource: { resourceType: "Patient", id: "p1" } },
+          {
+            resource: {
+              resourceType: "Condition",
+              id: "cond-1",
+              code: { coding: [{ display: "Diabetes" }] },
+              subject: { reference: "urn:uuid:p1" },
+            },
+          },
+          {
+            resource: {
+              resourceType: "Encounter",
+              id: "enc-1",
+              subject: { reference: "urn:uuid:p1" },
+            },
+          },
+          {
+            resource: {
+              resourceType: "Observation",
+              id: "obs-1",
+              subject: { reference: "urn:uuid:p1" },
+            },
+          },
+        ],
+      },
+      {
+        entry: [
+          { resource: { resourceType: "Patient", id: "p2" } },
+          {
+            resource: {
+              resourceType: "Condition",
+              id: "cond-2",
+              code: { coding: [{ display: "Hypertension" }] },
+              subject: { reference: "urn:uuid:p2" },
+            },
+          },
+          {
+            resource: {
+              resourceType: "Encounter",
+              id: "enc-2",
+              subject: { reference: "urn:uuid:p2" },
+            },
+          },
+        ],
+      },
+    ];
+    const tool = makeToolWithBundles(bundles, "/synthea.jar");
+    const datasets = await tool.generate({
+      name: "patients",
+      population: 2,
+      conditions: ["diabetes"],
+      seed: 1,
+    });
+    const byType = Object.fromEntries(
+      datasets.map((d) => [d.metadata.resourceType, d.records]),
+    );
+    assert.strictEqual(byType.Patient.length, 1);
+    assert.strictEqual(byType.Patient[0].id, "p1");
+    assert.strictEqual(byType.Condition.length, 1);
+    assert.strictEqual(byType.Condition[0].id, "cond-1");
+    assert.strictEqual(byType.Encounter.length, 1);
+    assert.strictEqual(byType.Encounter[0].id, "enc-1");
+    assert.strictEqual(byType.Observation.length, 1);
+  });
+
+  test("filterByConditions handles Patient/<id> reference form", async () => {
+    const bundles = [
+      {
+        entry: [
+          { resource: { resourceType: "Patient", id: "p1" } },
+          {
+            resource: {
+              resourceType: "Condition",
+              id: "cond-1",
+              code: { coding: [{ display: "Diabetes" }] },
+              subject: { reference: "Patient/p1" },
+            },
+          },
+          {
+            resource: {
+              resourceType: "Encounter",
+              id: "enc-1",
+              subject: { reference: "Patient/p1" },
+            },
+          },
+        ],
+      },
+    ];
+    const tool = makeToolWithBundles(bundles, "/synthea.jar");
+    const datasets = await tool.generate({
+      name: "patients",
+      population: 1,
+      conditions: ["diabetes"],
+      seed: 1,
+    });
+    const byType = Object.fromEntries(
+      datasets.map((d) => [d.metadata.resourceType, d.records]),
+    );
+    assert.strictEqual(byType.Patient.length, 1);
+    assert.strictEqual(byType.Encounter.length, 1);
+  });
+
   test("empty FHIR output — generate returns no datasets without error", async () => {
     const tool = makeToolWithBundles([], "/synthea.jar");
     const datasets = await tool.generate({
@@ -206,17 +315,21 @@ describe("SyntheaTool", () => {
 
 /**
  * Build FHIR bundles where each patient has a set of Condition resources
- * referencing them. `conditions[].code` and `.display` are optional fields
- * on the FHIR `code.coding` element.
+ * referencing them. Every resource gets its own `id` UUID — matching real
+ * Synthea output, where Patient, Condition, Encounter, Observation, etc.
+ * all carry independent resource IDs and link back via `subject.reference`.
  */
 function makeFhirBundles(patientSpecs) {
   const bundles = [];
+  let condCounter = 0;
   for (const spec of patientSpecs) {
     const entry = [{ resource: { resourceType: "Patient", id: spec.patient } }];
     for (const c of spec.conditions) {
+      condCounter++;
       entry.push({
         resource: {
           resourceType: "Condition",
+          id: `cond-${condCounter}`,
           code: {
             coding: [{ code: c.code, display: c.display }],
           },

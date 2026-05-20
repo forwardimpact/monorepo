@@ -134,4 +134,51 @@ describe("datasets node — condition resolution", () => {
 
     assert.deepStrictEqual(calls[0].modules, ["diabetes"]);
   });
+
+  test("merges explicit modules with conditions-derived modules, deduped", async () => {
+    const { factory, calls } = makeRecordingFactory();
+    const ds = {
+      id: "trial_patients",
+      tool: "synthea",
+      config: {
+        modules: ["hypertension"],
+        conditions: ["diabetes_t2", "hypertension_dsl"],
+      },
+    };
+    const parse = { datasets: [ds], outputs: [], seed: 42 };
+    const clinical = {
+      conditions: [
+        { id: "diabetes_t2", synthea_module: "diabetes" },
+        // Both DSL conditions can resolve to the same Synthea module —
+        // the merge dedupes so we don't load the same module twice.
+        { id: "hypertension_dsl", synthea_module: "hypertension" },
+      ],
+    };
+
+    await runDatasetsNode(parse, { clinical, factory });
+
+    assert.deepStrictEqual(calls[0].modules, ["hypertension", "diabetes"]);
+    // The parsed AST node must stay clean for any re-run of the stage.
+    assert.deepStrictEqual(ds.config.modules, ["hypertension"]);
+  });
+
+  test("does not mutate parse.datasets[i].config", async () => {
+    const { factory } = makeRecordingFactory();
+    const ds = {
+      id: "trial_patients",
+      tool: "synthea",
+      config: { conditions: ["diabetes_t2"] },
+    };
+    const parse = { datasets: [ds], outputs: [], seed: 42 };
+    const clinical = {
+      conditions: [{ id: "diabetes_t2", synthea_module: "diabetes" }],
+    };
+
+    await runDatasetsNode(parse, { clinical, factory });
+
+    // Original AST node still only carries `conditions`; nothing wrote
+    // `modules` onto it.
+    assert.strictEqual(ds.config.modules, undefined);
+    assert.deepStrictEqual(ds.config.conditions, ["diabetes_t2"]);
+  });
 });

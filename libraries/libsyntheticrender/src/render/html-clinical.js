@@ -1,10 +1,18 @@
 /**
  * Clinical HTML rendering — patient-facing pages with Schema.org microdata.
  *
- * Pass 1 produces deterministic templates with `data-enrich="clinical_..."`
- * placeholders. The cache-lookup stage fills those placeholders from the
- * prose cache before write; the LLM enricher (enricher.js) leaves them
- * untouched because no handler matches the `clinical_` prefix.
+ * Each `build*Data` helper looks up the prose key for the entity (e.g.
+ * `clinical_condition_explainer_${id}`) in the prose cache and slots the
+ * resolved prose into the template at Pass-1 render time via Mustache. The
+ * `data-enrich="clinical_..."` attribute is left on the output element as
+ * a marker only — the LLM enricher (`enricher.js`) iterates `data-enrich`
+ * blocks but matches handlers by prefix (`project_`, `drug_`, ...), so
+ * `clinical_` keys are never re-enriched and the cached prose survives
+ * intact to disk.
+ *
+ * Prose is interpolated with triple-brace Mustache (`{{{prose}}}`) so the
+ * patient-facing prompt's inline Schema.org spans land as live microdata
+ * rather than HTML-escaped text.
  */
 
 function titleCase(str) {
@@ -109,11 +117,13 @@ function buildSiteData(sites, trials, prose) {
 function buildPatientStoryData(conditions, content, prose, domain) {
   if (!content?.patient_story_conditions?.length) return [];
   const total = content.patient_stories || 0;
-  const perCondition = Math.ceil(
-    total / Math.max(content.patient_story_conditions.length, 1),
-  );
+  const condIds = content.patient_story_conditions;
+  // Mirror the prose-key generator's cardinality math (clinical-prose-keys.js).
+  // Generate exactly `perCondition` stories per condition so the data-enrich
+  // keys here line up 1:1 with the keys collected upstream.
+  const perCondition = Math.ceil(total / Math.max(condIds.length, 1));
   const stories = [];
-  for (const condId of content.patient_story_conditions) {
+  for (const condId of condIds) {
     const cond = conditions.find((c) => c.id === condId);
     if (!cond) continue;
     for (let i = 0; i < perCondition; i++) {

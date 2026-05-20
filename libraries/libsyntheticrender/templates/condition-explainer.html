@@ -9,10 +9,9 @@
   <meta itemprop="code" content="{{code}}" />
   {{/icd10List}} {{#synonymList}}
   <meta itemprop="alternateName" content="{{synonym}}" />
-  {{/synonymList}}
-  <meta itemprop="riskFactor" content="{{severity}}" />
-
-  {{#trialLinks}}
+  {{/synonymList}} {{#severity}}
+  <meta itemprop="status" content="{{severity}}" />
+  {{/severity}} {{#trialLinks}}
   <link itemprop="study" href="{{{iri}}}" />
   {{/trialLinks}}
 
@@ -20,7 +19,7 @@
     itemprop="description"
     data-enrich="clinical_condition_explainer_{{id}}"
   >
-    {{prose}}
+    {{{prose}}}
   </div>
 </section>
 {{/conditions}}

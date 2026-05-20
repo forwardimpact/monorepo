@@ -48,6 +48,10 @@ export class SyntheaTool {
    * @param {string} config.name - Dataset name from DSL
    * @param {number} [config.population=100] - Number of patients
    * @param {string[]} [config.modules] - Synthea modules to enable
+   * @param {string[]} [config.conditions] - Clinical condition IDs to filter
+   *   patients by, matched against `Condition.code.coding[].code` exactly or
+   *   `.display` normalized to `lowercase_underscored` form (the DSL
+   *   condition-id convention).
    * @param {number} config.seed - RNG seed
    * @returns {Promise<Dataset[]>}
    */
@@ -144,8 +148,8 @@ function filterByConditions(byType, conditions) {
         conditions.includes(c.display?.toLowerCase().replace(/\s+/g, "_")),
     );
     if (!matches) continue;
-    const ref = cond.subject?.reference;
-    if (ref) matchedPatientIds.add(ref.replace("urn:uuid:", ""));
+    const patientId = normalizePatientRef(cond.subject?.reference);
+    if (patientId) matchedPatientIds.add(patientId);
   }
   if (matchedPatientIds.size === 0) return;
 
@@ -153,11 +157,22 @@ function filterByConditions(byType, conditions) {
     byType.set(
       type,
       records.filter((r) => {
-        const id = r.id || r.subject?.reference?.replace("urn:uuid:", "");
-        return !id || matchedPatientIds.has(id);
+        // Patient resources carry their own UUID in `id`. All other FHIR
+        // resources (Condition, Encounter, Observation, ...) also carry their
+        // own UUID in `id` — the link back to the patient lives on
+        // `subject.reference`. Prefer the patient reference when present.
+        const subjectId = normalizePatientRef(r.subject?.reference);
+        if (subjectId) return matchedPatientIds.has(subjectId);
+        if (type === "Patient") return matchedPatientIds.has(r.id);
+        return true;
       }),
     );
   }
+}
+
+function normalizePatientRef(ref) {
+  if (!ref) return null;
+  return ref.replace(/^urn:uuid:/, "").replace(/^Patient\//, "");
 }
 
 /**

@@ -5,9 +5,11 @@
   itemid="{{{iri}}}"
 >
   <h2 itemprop="name">{{name}} — Consent Summary</h2>
+  {{#protocol_id}}
   <meta itemprop="identifier" content="{{protocol_id}}" />
+  {{/protocol_id}} {{#phase}}
   <meta itemprop="phase" content="{{phase}}" />
-  {{#eligibilitySummary}}
+  {{/phase}} {{#eligibilitySummary}}
   <meta itemprop="eligibleMaxAge" content="{{eligibleMaxAge}}" />
   <meta itemprop="eligibleMinAge" content="{{eligibleMinAge}}" />
   {{/eligibilitySummary}}
@@ -16,7 +18,7 @@
     itemprop="description"
     data-enrich="clinical_consent_summary_{{id}}"
   >
-    {{prose}}
+    {{{prose}}}
   </div>
 </section>
 {{/trials}}

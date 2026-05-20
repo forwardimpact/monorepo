@@ -8,10 +8,11 @@
   <div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
     {{#address}}
     <span itemprop="streetAddress">{{address}}</span>
-    {{/address}}
+    {{/address}} {{#city}}
     <span itemprop="addressLocality">{{city}}</span>
+    {{/city}} {{#state}}
     <span itemprop="addressRegion">{{state}}</span>
-    {{#country}}
+    {{/state}} {{#country}}
     <span itemprop="addressCountry">{{country}}</span>
     {{/country}}
   </div>
@@ -25,7 +26,7 @@
     itemprop="description"
     data-enrich="clinical_site_description_{{id}}"
   >
-    {{prose}}
+    {{{prose}}}
   </div>
 </section>
 {{/sites}}
