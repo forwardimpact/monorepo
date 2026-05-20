@@ -9,6 +9,7 @@ import { runTeeCommand } from "../src/commands/tee.js";
 import { runRunCommand } from "../src/commands/run.js";
 import { runSuperviseCommand } from "../src/commands/supervise.js";
 import { runFacilitateCommand } from "../src/commands/facilitate.js";
+import { runCallbackCommand } from "../src/commands/callback.js";
 
 // `bun build --compile` injects FIT_EVAL_VERSION via --define, eliminating
 // the readFileSync branch in the compiled binary (which would ENOENT against
@@ -198,6 +199,30 @@ const definition = {
       description:
         "Stream readable text to stdout while saving raw NDJSON to a file",
     },
+    {
+      name: "callback",
+      args: "",
+      description:
+        "Extract the facilitator summary from an NDJSON trace and POST it to a callback URL",
+      options: {
+        "trace-file": {
+          type: "string",
+          description: "Path to the NDJSON trace file",
+        },
+        "callback-url": {
+          type: "string",
+          description: "URL to POST the summary to",
+        },
+        "correlation-id": {
+          type: "string",
+          description: "Correlation ID to include in the payload",
+        },
+        "run-url": {
+          type: "string",
+          description: "GitHub Actions run URL (optional)",
+        },
+      },
+    },
   ],
   globalOptions: {
     format: { type: "string", description: "Output format (json|text)" },
@@ -248,6 +273,7 @@ const COMMANDS = {
   run: runRunCommand,
   supervise: runSuperviseCommand,
   facilitate: runFacilitateCommand,
+  callback: runCallbackCommand,
 };
 
 async function main() {

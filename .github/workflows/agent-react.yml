@@ -21,6 +21,14 @@ on:
         description: "Ad-hoc prompt for the facilitator"
         required: true
         type: string
+      callback_url:
+        description: "URL to POST the facilitator conclusion to (optional)"
+        required: false
+        type: string
+      correlation_id:
+        description: "Correlation ID returned in the callback payload (optional)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -170,6 +178,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Assess and Act
+        id: assess
         uses: forwardimpact/fit-eval@v1
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -184,3 +193,42 @@ jobs:
           agent-profiles: "product-manager,security-engineer,staff-engineer,technical-writer"
           max-turns: "1500"
           timeout-minutes: "300"
+
+      # Deliver the facilitator's conclusion to an external caller (e.g. the
+      # Microsoft Teams bridge) when one is specified via workflow_dispatch.
+      # Skipped on issue/PR/discussion events where `inputs` is null. Runs on
+      # both success and failure of the facilitate step so callers always get
+      # a verdict — even when no trace was produced, we POST a failure
+      # placeholder so the caller is never stranded.
+      #
+      # fit-eval@v1 exposes the raw NDJSON trace path as a composite output
+      # (`steps.assess.outputs.trace-file`). The callback subcommand is
+      # invoked from the monorepo workspace
+      # (`node libraries/libeval/bin/fit-eval.js`) rather than via
+      # `npx fit-eval` so this workflow does not depend on libeval being
+      # published before the workflow change lands.
+      - name: Deliver callback
+        if: github.event_name == 'workflow_dispatch' && always() && inputs.callback_url != ''
+        env:
+          CALLBACK_URL: ${{ inputs.callback_url }}
+          CORRELATION_ID: ${{ inputs.correlation_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
+        run: |
+          set -euo pipefail
+          if [ -n "$TRACE_FILE" ] && [ -f "$TRACE_FILE" ]; then
+            echo "Using trace file: $TRACE_FILE"
+            node libraries/libeval/bin/fit-eval.js callback \
+              --trace-file="$TRACE_FILE" \
+              --callback-url="$CALLBACK_URL" \
+              --correlation-id="$CORRELATION_ID" \
+              --run-url="$RUN_URL"
+          else
+            echo "::warning::No trace file found — posting failure placeholder so the caller is not stranded"
+            curl -fsS -X POST "$CALLBACK_URL" \
+              -H 'Content-Type: application/json' \
+              -d "$(jq -n \
+                --arg cid "$CORRELATION_ID" \
+                --arg run "$RUN_URL" \
+                '{correlation_id: $cid, verdict: "failure", summary: "Facilitator session did not produce a trace; see run log.", run_url: $run}')"
+          fi

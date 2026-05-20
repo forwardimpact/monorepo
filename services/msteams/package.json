@@ -1,0 +1,51 @@
+{
+  "name": "@forwardimpact/svcmsteams",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Microsoft Teams bridge — relay messages between Teams conversations and the Kata agent team.",
+  "keywords": [
+    "teams",
+    "bridge",
+    "bot",
+    "relay",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "services/msteams"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Bridge Conversation Platforms to the Agent Team",
+      "trigger": "Engineers discuss work in Microsoft Teams and need to context-switch to GitHub to invoke the agent team.",
+      "bigHire": "relay messages between a chat platform and the Kata agent team without leaving the conversation.",
+      "littleHire": "dispatch a facilitate session from a chat message and return the verdict to the same thread.",
+      "competesWith": "manually creating GitHub issues; copy-pasting between chat and GitHub; leaving the agent team unreachable from daily conversation"
+    }
+  ],
+  "type": "module",
+  "main": "./index.js",
+  "bin": {
+    "fit-svcmsteams": "./server.js"
+  },
+  "files": [
+    "index.js",
+    "server.js"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "botbuilder": "^4.23.3",
+    "express": "^4.21.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=18.0.0"
+  }
+}
