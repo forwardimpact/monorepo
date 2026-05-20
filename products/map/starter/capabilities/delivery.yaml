@@ -144,3 +144,73 @@ skills:
       confirmChecklist:
         - Plan steps are completed in order
         - Deviations from the plan are documented
+
+  - id: data_integration
+    name: Data Integration
+    human:
+      description:
+        Building and operating the pipelines that move data between source
+        systems and downstream consumers — analytics, ML, and application
+        surfaces — without losing fidelity along the way.
+      proficiencyDescriptions:
+        awareness:
+          You run existing data pipelines with guidance, follow established
+          loading patterns, and escalate when source contracts change.
+        foundational:
+          You build small batch or streaming pipelines end-to-end, handle
+          common failure modes, and verify downstream data matches expectation.
+        working:
+          You own pipelines from contract negotiation through production
+          operation, design idempotent loads, and recover cleanly from upstream
+          failures.
+        practitioner:
+          You set integration patterns for the team, lead the design of
+          pipelines that bridge multiple systems, and establish data-quality
+          gates that catch issues before they reach consumers.
+        expert:
+          You shape integration strategy across the organization and lead
+          the build-out of the most demanding cross-system data flows.
+    markers:
+      awareness:
+        human:
+          - Ran an existing scheduled load and verified the destination row
+            count matched expectation
+        agent:
+          - Triggered a pipeline run from a defined entry point and reported
+            success or failure with the relevant log lines
+      foundational:
+        human:
+          - Built a small batch pipeline that landed source data into a
+            downstream table with the agreed schema
+          - Diagnosed a failed pipeline run and produced a fix that did not
+            require reprocessing earlier batches
+        agent:
+          - Implemented an idempotent loader that produces identical output
+            when re-run against the same input
+      working:
+        human:
+          - Designed and delivered a pipeline integrating two or more source
+            systems with documented contracts and recovery behaviour
+          - Recovered cleanly from an upstream schema change without losing
+            data or blocking downstream consumers
+        agent:
+          - Implemented a multi-stage pipeline that handles partial failure
+            without producing duplicate or missing rows downstream
+    agent:
+      name: data-integration
+      description: |
+        Guide for building and operating pipelines that move data between
+        source systems and downstream consumers.
+      useWhen: |
+        Building, extending, or recovering data pipelines that span source
+        systems and analytics, ML, or application consumers.
+      focus: |
+        Implement the pipeline so downstream consumers receive the contracted
+        data on schedule, with the observability needed to detect drift early.
+      readChecklist:
+        - Review the source and destination contracts in scope
+        - Identify replay and idempotency requirements before writing code
+      confirmChecklist:
+        - Pipeline produces the contracted output on representative input
+        - Failure and replay behaviour is documented and tested
+        - Schema and contract changes are versioned alongside the pipeline

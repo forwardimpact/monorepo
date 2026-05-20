@@ -1,0 +1,306 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/capability.schema.json
+
+id: scale
+name: Scale
+emojiIcon: "\U0001F4C8"
+ordinalRank: 3
+description: |
+  Building systems that grow with load and complexity without losing their
+  shape.
+professionalResponsibilities:
+  awareness:
+    You follow established patterns for handling load and ask before
+    introducing new ones
+  foundational:
+    You implement components that meet documented load and latency targets
+  working:
+    You design and own systems sized for current and projected load
+  practitioner:
+    You set architecture direction for scale across multiple systems
+  expert:
+    You shape the platform and architecture strategy that determines how the
+    business unit scales
+managementResponsibilities:
+  awareness:
+    You understand scale requirements and surface them to the right owners
+  foundational:
+    You ensure your team uses established scale patterns and capacity planning
+  working:
+    You own scale outcomes for your team's systems including capacity decisions
+  practitioner:
+    You drive scale strategy across teams and own cross-team capacity decisions
+  expert:
+    You shape platform investment and architecture strategy across the
+    business unit
+skills:
+  - id: architecture_design
+    name: Architecture Design
+    human:
+      description:
+        Designing system structure — components, interfaces, and data flow —
+        so the system can be built, operated, and evolved without surprises.
+      proficiencyDescriptions:
+        awareness:
+          You read and explain existing architectural decisions and apply
+          established patterns under guidance.
+        foundational:
+          You design components and their interfaces within a defined system
+          boundary and document the trade-offs you considered.
+        working:
+          You design systems end-to-end, weigh non-functional requirements,
+          and lead architecture conversations within your service area.
+        practitioner:
+          You set architectural direction across services, lead the design of
+          systems with significant cross-team impact, and mentor others on
+          design trade-offs.
+        expert:
+          You shape architectural strategy across the organization and lead
+          the design of the most complex platforms.
+    markers:
+      awareness:
+        human:
+          - Walked a teammate through an existing architecture diagram and
+            its key decisions
+        agent:
+          - Summarized an existing design document and identified the named
+            components and data flow accurately
+      foundational:
+        human:
+          - Produced a component design with interfaces, data flow, and key
+            trade-offs for a feature scoped to one service
+          - Identified a non-functional requirement that the original design
+            missed and adjusted the design accordingly
+        agent:
+          - Drafted an architecture sketch from a spec, including components,
+            interfaces, and one alternative considered with rationale
+      working:
+        human:
+          - Led the design of a system spanning multiple services with
+            explicit non-functional requirements and reviewed trade-offs
+          - Drove a design review that produced a substantively different
+            design from the initial proposal based on the feedback
+        agent:
+          - Produced an architectural design document covering components,
+            interfaces, data flow, key decisions, and risks with mitigations
+    agent:
+      name: architecture-design
+      description: |
+        Guide for designing system structure — components, interfaces, and
+        data flow — that can be built, operated, and evolved.
+      useWhen: |
+        Designing a new system, redesigning an existing one, or evaluating
+        an architectural proposal.
+      focus: |
+        Produce a design that names components, interfaces, and data flow,
+        and makes trade-offs explicit so reviewers can redirect early.
+      readChecklist:
+        - Understand the functional and non-functional requirements
+        - Review existing components the design must integrate with
+      confirmChecklist:
+        - Components, interfaces, and data flow are named
+        - Trade-offs and alternatives considered are documented
+        - Risks and mitigations are surfaced
+
+  - id: data_modeling
+    name: Data Modeling
+    human:
+      description:
+        Shaping the entities, relationships, and constraints that data lives
+        in — so the model fits the questions the business actually asks.
+      proficiencyDescriptions:
+        awareness:
+          You read existing data models and follow them when writing queries
+          or adding fields under guidance.
+        foundational:
+          You extend an existing model with new entities or fields,
+          preserving normalization and constraints.
+        working:
+          You design and evolve models for new product surfaces, weigh
+          normalization and denormalization choices, and document the
+          relationships.
+        practitioner:
+          You set modelling standards for the team, lead the design of
+          models that span multiple systems, and resolve cross-system
+          consistency questions.
+        expert:
+          You shape data modelling strategy across the organization and own
+          the canonical models the business relies on.
+    markers:
+      awareness:
+        human:
+          - Added a field to an existing model under guidance, preserving
+            existing constraints
+        agent:
+          - Produced a query against an existing model that respects the
+            documented relationships and constraints
+      foundational:
+        human:
+          - Extended a model with a new entity and migration, including the
+            keys, indexes, and constraints needed for the workload
+        agent:
+          - Drafted a schema change including the entity, relationships,
+            constraints, and an accompanying migration
+      working:
+        human:
+          - Designed a data model for a new product surface, weighing
+            normalization choices and documenting the relationships
+          - Resolved a cross-system consistency question by reshaping the
+            model rather than adding application-level workarounds
+        agent:
+          - Produced a model design that names entities, relationships,
+            constraints, and the queries it is shaped to serve
+    agent:
+      name: data-modeling
+      description: |
+        Guide for shaping entities, relationships, and constraints that fit
+        the workload they have to serve.
+      useWhen: |
+        Designing a new data model, extending an existing one, or resolving
+        a cross-system consistency question.
+      focus: |
+        Produce a model that fits the queries the business asks, with
+        documented relationships and explicit constraints.
+      readChecklist:
+        - Understand the queries and workload the model must serve
+        - Review existing related models and their constraints
+      confirmChecklist:
+        - Entities, relationships, and constraints are named
+        - The model fits the workload without application-level workarounds
+        - Migration path is documented if an existing model changes
+
+  - id: performance_optimization
+    name: Performance Optimization
+    human:
+      description:
+        Making systems faster and cheaper to run by measuring where time and
+        resources actually go and reshaping the hot paths.
+      proficiencyDescriptions:
+        awareness:
+          You follow established performance guidance and use existing
+          profiling tools under direction.
+        foundational:
+          You profile a slow path, identify a hot spot from evidence, and
+          apply a targeted fix that improves the measured number.
+        working:
+          You own performance for a service area, set targets, and drive
+          measured improvements through profiling, design changes, and
+          capacity decisions.
+        practitioner:
+          You set performance standards across teams, lead optimization of
+          the highest-leverage paths, and establish the measurement practices
+          others rely on.
+        expert:
+          You shape performance strategy across the organization and lead
+          optimization of the most demanding systems.
+    markers:
+      awareness:
+        human:
+          - Ran an existing profiler against a slow path and reported the
+            top contributors
+        agent:
+          - Captured a profile from a slow request and identified the
+            top time-consuming functions
+      foundational:
+        human:
+          - Diagnosed and fixed a hot spot in a slow path, with before-and-
+            after measurements
+        agent:
+          - Produced a measured optimization that improved a profiled hot
+            spot without regressing other paths
+      working:
+        human:
+          - Set and met a measurable performance target for a service area
+            over a quarter
+          - Drove a substantive performance improvement that required design
+            change rather than local tuning
+        agent:
+          - Produced a performance investigation with profile evidence,
+            proposed change, and projected impact before implementation
+    agent:
+      name: performance-optimization
+      description: |
+        Guide for measuring where time and resources actually go and
+        reshaping the hot paths.
+      useWhen: |
+        Investigating a performance regression, hitting a latency or cost
+        target, or designing a change with significant performance impact.
+      focus: |
+        Profile first, change second. Make decisions from evidence and
+        measure the impact of every change.
+      readChecklist:
+        - Identify the performance target and how it is measured
+        - Capture a baseline profile before changing anything
+      confirmChecklist:
+        - Improvement is measured against the baseline
+        - Change does not regress other paths
+        - Profile evidence is captured alongside the change
+
+  - id: cloud_platforms
+    name: Cloud Platforms
+    human:
+      description:
+        Building on cloud platform primitives — compute, storage, network,
+        identity — so the system inherits the platform's reliability and
+        operability instead of fighting it.
+      proficiencyDescriptions:
+        awareness:
+          You use existing cloud-platform components under guidance and
+          follow established account, network, and identity conventions.
+        foundational:
+          You provision and operate a service on the platform using
+          infrastructure as code, with the basic monitoring and access
+          controls in place.
+        working:
+          You design and own services that use platform primitives
+          appropriately — managed data stores, identity, networking,
+          observability — and operate them through their lifecycle.
+        practitioner:
+          You set platform usage standards across teams, lead the design of
+          services that span multiple platform primitives, and own the
+          guardrails that keep teams on the paved road.
+        expert:
+          You shape cloud platform strategy across the organization and own
+          the platform decisions that determine cost, reliability, and
+          velocity at scale.
+    markers:
+      awareness:
+        human:
+          - Deployed a change through the team's existing pipeline using
+            the documented platform conventions
+        agent:
+          - Applied an infrastructure-as-code change that matches the
+            existing pattern and produces an equivalent resource shape
+      foundational:
+        human:
+          - Provisioned a service end-to-end with infrastructure as code,
+            including monitoring and access controls
+        agent:
+          - Authored an infrastructure-as-code change that creates a
+            functioning service with monitoring and least-privilege identity
+      working:
+        human:
+          - Owned a platform service through its lifecycle, including
+            upgrades, observability changes, and cost or capacity decisions
+          - Designed a service that uses platform primitives appropriately
+            instead of reimplementing them
+        agent:
+          - Produced a platform design that names the primitives used and
+            justifies each choice against alternatives
+    agent:
+      name: cloud-platforms
+      description: |
+        Guide for building on cloud platform primitives so the system
+        inherits the platform's reliability and operability.
+      useWhen: |
+        Provisioning or operating a service on the cloud platform, or
+        designing a service that uses platform primitives.
+      focus: |
+        Prefer paved-road primitives. Provision through infrastructure as
+        code and inherit platform observability and identity by default.
+      readChecklist:
+        - Review the existing platform conventions and paved-road primitives
+        - Confirm account, identity, and network boundaries for the service
+      confirmChecklist:
+        - Primitives are used appropriately rather than reimplemented
+        - Infrastructure is captured as code with monitoring in place
+        - Identity and network controls follow least privilege

@@ -1,0 +1,173 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/capability.schema.json
+
+id: people
+name: People
+emojiIcon: "\U0001F465"
+ordinalRank: 5
+description: |
+  Working effectively with and through other engineers — collaborating
+  on shared work and growing the people around you.
+professionalResponsibilities:
+  awareness:
+    You collaborate on assigned work and seek input when you need it
+  foundational:
+    You contribute to a healthy team dynamic and pair on work outside your
+    own
+  working:
+    You own collaborative outcomes for your team and actively grow the
+    engineers around you
+  practitioner:
+    You shape team norms across multiple teams and own the growth of
+    senior engineers
+  expert:
+    You shape engineering culture across the organization and own the
+    growth of leaders
+managementResponsibilities:
+  awareness:
+    You understand your team's collaboration patterns and growth needs
+  foundational:
+    You facilitate team collaboration and run regular growth conversations
+  working:
+    You own team health and own the growth of every engineer on your team
+  practitioner:
+    You shape culture across multiple teams and own the growth of managers
+  expert:
+    You shape engineering culture and leadership growth across the business
+    unit
+skills:
+  - id: team_collaboration
+    name: Team Collaboration
+    human:
+      description:
+        Working effectively with the rest of the team — pairing, reviewing,
+        co-designing, and resolving disagreement so the team produces more
+        than the sum of individuals.
+      proficiencyDescriptions:
+        awareness:
+          You participate in team rituals and ask for input on your work
+          when it would help.
+        foundational:
+          You pair on work outside your own area, give clear code reviews,
+          and resolve routine disagreements without escalation.
+        working:
+          You shape how the team collaborates — pairing patterns, review
+          standards, decision norms — and resolve substantive disagreements
+          with evidence.
+        practitioner:
+          You set collaboration norms across multiple teams and coach
+          others through difficult collaborations.
+        expert:
+          You shape collaboration culture across the organization.
+    markers:
+      awareness:
+        human:
+          - Participated in team rituals on the agreed cadence and
+            requested help when blocked
+        agent:
+          - Asked for clarification on an ambiguous task instead of
+            guessing, in the agreed channel
+      foundational:
+        human:
+          - Paired on work outside your own area and produced a working
+            outcome together
+          - Gave a code review that named specific, actionable feedback and
+            improved the change
+        agent:
+          - Provided a code review covering correctness, design, and
+            readability with specific actionable feedback
+      working:
+        human:
+          - Shaped a team practice — pairing pattern, review standard, or
+            decision norm — that the team adopted
+          - Resolved a substantive disagreement through evidence rather
+            than authority or escalation
+        agent:
+          - Mediated a disagreement between options by surfacing the
+            underlying trade-offs and proposing a resolution path
+    agent:
+      name: team-collaboration
+      description: |
+        Guide for working effectively with the rest of the team — pairing,
+        reviewing, co-designing, and resolving disagreement.
+      useWhen: |
+        Working with humans or other agents on shared work — pairing,
+        reviewing, co-designing, or resolving disagreement.
+      focus: |
+        Make collaboration cheap. Be specific in feedback. Resolve
+        disagreement with evidence, not authority.
+      readChecklist:
+        - Understand who is involved and what they expect
+        - Confirm the agreed channel and cadence for the work
+      confirmChecklist:
+        - Collaborators received specific, actionable input
+        - Disagreements were resolved with evidence
+        - Outcomes and decisions are visible to everyone involved
+
+  - id: mentoring
+    name: Mentoring
+    human:
+      description:
+        Growing the engineers around you — by transferring knowledge,
+        coaching through hard problems, and helping them see their own
+        next step.
+      proficiencyDescriptions:
+        awareness:
+          You share what you know when asked and point teammates toward
+          existing resources.
+        foundational:
+          You mentor a more junior engineer through specific challenges
+          and adjust your approach based on their progress.
+        working:
+          You own the growth of engineers on your team, set up feedback
+          loops, and coach through hard problems including non-technical
+          ones.
+        practitioner:
+          You mentor across multiple teams, coach senior engineers, and
+          shape the mentoring practices the organization uses.
+        expert:
+          You shape engineering growth practices across the organization
+          and mentor leaders.
+    markers:
+      awareness:
+        human:
+          - Answered a teammate's question with a working explanation and
+            pointed them toward the relevant resource
+        agent:
+          - Explained a concept on request with an example grounded in the
+            current codebase
+      foundational:
+        human:
+          - Mentored a more junior engineer through a specific challenge
+            with measurable improvement in their approach
+        agent:
+          - Provided coaching on a specific challenge including worked
+            examples and a follow-up check
+      working:
+        human:
+          - Owned the growth of an engineer for a full quarter with
+            documented improvement against agreed goals
+          - Coached an engineer through a non-technical challenge —
+            scope, stakeholder, or career — to a constructive outcome
+        agent:
+          - Produced a mentoring plan covering goals, milestones, and the
+            evidence each milestone is measured against
+    agent:
+      name: mentoring
+      description: |
+        Guide for growing the engineers around you through knowledge
+        transfer, coaching, and feedback.
+      useWhen: |
+        Mentoring an engineer, coaching through a specific challenge, or
+        setting up a growth conversation.
+      focus: |
+        Meet the mentee where they are. Make progress visible against
+        explicit goals.
+      readChecklist:
+        - Understand the mentee's current state and the goal they are
+          working toward
+        - Confirm the cadence and feedback loop for the mentoring
+          relationship
+      confirmChecklist:
+        - Goals and milestones are explicit
+        - Progress is visible against agreed evidence
+        - Feedback loop is working — both directions

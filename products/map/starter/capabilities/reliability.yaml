@@ -112,3 +112,74 @@ skills:
           - Root cause — the proximate failure and the systemic factor.
           - Contributing factors — what made the failure possible.
           - Corrective actions — owner, due date, tracking link each.
+
+  - id: incident_management
+    name: Incident Management
+    human:
+      description:
+        Shaping the process and coordination around incidents — rotation
+        design, postmortem culture, severity policy, paging hygiene — so the
+        team handles incidents predictably rather than heroically.
+      proficiencyDescriptions:
+        awareness:
+          You follow the established on-call and severity policy and surface
+          friction points to whoever owns the process.
+        foundational:
+          You take part in shaping the rotation and postmortem cadence and
+          can run a routine postmortem to completion.
+        working:
+          You own the incident management process for your service area —
+          severity definitions, rotation health, postmortem follow-through,
+          and the metrics that signal when the process is drifting.
+        practitioner:
+          You set incident management standards across teams, coach incident
+          commanders, and drive systemic fixes that show up as fewer or
+          shorter incidents over time.
+        expert:
+          You shape incident management strategy across the organization and
+          own the maturity of the practice at the company scale.
+    markers:
+      awareness:
+        human:
+          - Carried a primary on-call shift and acknowledged pages within the
+            published response time
+        agent:
+          - Routed a page through the configured channels using the documented
+            severity guidance
+      foundational:
+        human:
+          - Facilitated a blameless postmortem that produced specific,
+            owned follow-up actions
+          - Proposed an on-call rotation change that improved load balance
+            across the team
+        agent:
+          - Drafted a postmortem from incident timeline data with timeline,
+            root cause, and contributing factors filled in
+      working:
+        human:
+          - Owned the rotation, severity policy, and postmortem cadence for a
+            service area for a full quarter
+          - Drove a systemic follow-up out of a postmortem to completion and
+            measured the resulting incident reduction
+        agent:
+          - Analyzed a quarter of incident records to surface recurring
+            contributing factors and proposed process changes targeting them
+    agent:
+      name: incident-management
+      description: |
+        Guide for shaping the process and coordination around incidents —
+        rotation design, postmortem culture, severity policy, paging hygiene.
+      useWhen: |
+        Designing or improving incident response process, on-call rotations,
+        severity policy, or postmortem practice — distinct from working a
+        single live incident.
+      focus: |
+        Improve the process so the next incident is handled more predictably
+        than the last, and the team carries less avoidable load.
+      readChecklist:
+        - Review current rotation, severity policy, and postmortem cadence
+        - Gather recent incident records and follow-up status
+      confirmChecklist:
+        - Process changes are documented and owned
+        - On-call load is sustainable and visible to the team
+        - Postmortem follow-ups are tracked through to completion

@@ -1,0 +1,306 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/capability.schema.json
+
+id: business
+name: Business
+emojiIcon: "\U0001F4BC"
+ordinalRank: 4
+description: |
+  Connecting engineering work to business outcomes, stakeholders, and the
+  regulatory environment the system has to live in.
+professionalResponsibilities:
+  awareness:
+    You understand the business context for your work and ask when it is
+    unclear
+  foundational:
+    You weigh business impact alongside technical choices for your own work
+  working:
+    You own engineering decisions that trade off against business outcomes
+    and engage stakeholders directly
+  practitioner:
+    You drive business alignment across teams and own stakeholder
+    relationships at the cross-team level
+  expert:
+    You shape the business strategy that engineering investment flows from
+managementResponsibilities:
+  awareness:
+    You understand the business context your team operates in
+  foundational:
+    You ensure your team understands stakeholder needs and regulatory context
+  working:
+    You own stakeholder relationships and business outcomes for your team
+  practitioner:
+    You drive business alignment across teams and own cross-team stakeholder
+    outcomes
+  expert:
+    You shape business strategy across the business unit and own enterprise
+    stakeholder outcomes
+skills:
+  - id: stakeholder_management
+    name: Stakeholder Management
+    human:
+      description:
+        Working with the people outside engineering who set direction,
+        consume the output, or carry the risk — keeping them informed and
+        engaged at the right moments.
+      proficiencyDescriptions:
+        awareness:
+          You communicate progress and blockers to stakeholders through
+          established channels and escalate when needed.
+        foundational:
+          You engage stakeholders directly for your own work, gather
+          requirements, and surface trade-offs that affect their outcomes.
+        working:
+          You own stakeholder relationships for your area, negotiate scope
+          and timing, and resolve conflicting requests with evidence.
+        practitioner:
+          You drive stakeholder alignment across teams, set the cadence and
+          format of stakeholder communication, and coach others on it.
+        expert:
+          You own enterprise stakeholder relationships and shape the
+          alignment practices the organization relies on.
+    markers:
+      awareness:
+        human:
+          - Reported progress and blockers to a stakeholder through the
+            agreed channel on the agreed cadence
+        agent:
+          - Produced a stakeholder-facing status note that named progress,
+            blockers, and next steps in stakeholder-readable language
+      foundational:
+        human:
+          - Ran a requirements conversation with a non-engineering
+            stakeholder and produced a documented set of acceptance criteria
+          - Surfaced a scope trade-off to a stakeholder before committing to
+            a plan
+        agent:
+          - Drafted a stakeholder note that explained a technical trade-off
+            in terms of the stakeholder's outcomes
+      working:
+        human:
+          - Owned a stakeholder relationship through a programme of work,
+            including negotiating scope and resolving conflicting requests
+          - Resolved a stakeholder conflict by surfacing the underlying
+            trade-off with evidence rather than escalating
+        agent:
+          - Produced a stakeholder briefing covering options, trade-offs,
+            and a recommendation in the format the stakeholder asked for
+    agent:
+      name: stakeholder-management
+      description: |
+        Guide for engaging stakeholders — keeping them informed at the right
+        cadence, in language that fits their outcomes.
+      useWhen: |
+        Engaging non-engineering stakeholders on scope, status, trade-offs,
+        or risk.
+      focus: |
+        Communicate in stakeholder-readable language. Make trade-offs
+        explicit; surface them before committing, not after.
+      readChecklist:
+        - Identify who needs to know what and when
+        - Confirm the stakeholder's preferred channel and format
+      confirmChecklist:
+        - Stakeholders received the right information at the right time
+        - Trade-offs were surfaced before commitments were made
+        - Decisions and follow-ups are recorded where stakeholders can find them
+
+  - id: product_thinking
+    name: Product Thinking
+    human:
+      description:
+        Connecting engineering work to the problem the product is solving
+        for users and the business — choosing what to build, not just how
+        to build it.
+      proficiencyDescriptions:
+        awareness:
+          You understand the user problem your work serves and ask when the
+          connection is unclear.
+        foundational:
+          You weigh product impact in your own technical decisions and
+          surface alternatives that better fit the user problem.
+        working:
+          You shape the product direction of features you own, propose
+          options against user evidence, and influence prioritization.
+        practitioner:
+          You drive product direction across multiple features, frame the
+          user problems behind them, and coach others on product reasoning.
+        expert:
+          You shape product strategy at the organization level alongside
+          product leadership.
+    markers:
+      awareness:
+        human:
+          - Articulated the user problem behind an assigned piece of work
+            and confirmed it with the product owner
+        agent:
+          - Summarized a feature in terms of the user problem and the
+            outcome it changes
+      foundational:
+        human:
+          - Proposed an alternative solution that better fit the user
+            problem and got it accepted
+          - Flagged a feature decision that no longer matched the user
+            evidence and prompted a re-decision
+        agent:
+          - Drafted feature options that each connect explicitly to the
+            user problem with their trade-offs
+      working:
+        human:
+          - Shaped the direction of a feature using user evidence and
+            influenced prioritization against alternatives
+          - Drove a product decision that visibly changed user behaviour
+            and measured the change
+        agent:
+          - Produced a product brief connecting the user problem, the
+            evidence, the options, and the recommendation
+    agent:
+      name: product-thinking
+      description: |
+        Guide for connecting engineering work to the user problem and the
+        business outcome it serves.
+      useWhen: |
+        Shaping what to build, evaluating feature options, or framing the
+        user problem behind a piece of work.
+      focus: |
+        Lead with the user problem and the outcome. Make alternatives
+        explicit so the choice is informed by evidence.
+      readChecklist:
+        - Identify the user problem and the outcome the work has to change
+        - Review the relevant user evidence and existing options
+      confirmChecklist:
+        - The user problem and intended outcome are explicit
+        - Alternatives have been considered against the evidence
+        - The recommendation is connected to a measurable change
+
+  - id: regulatory_compliance
+    name: Regulatory Compliance
+    human:
+      description:
+        Building and operating systems inside the regulatory and policy
+        constraints they have to live in — privacy, security, sector rules —
+        without grinding delivery to a halt.
+      proficiencyDescriptions:
+        awareness:
+          You follow established compliance procedures, ask before deviating,
+          and surface concerns through the right channel.
+        foundational:
+          You implement controls for documented compliance requirements in
+          your own work and produce the evidence the auditor needs.
+        working:
+          You own compliance outcomes for your service area, work with
+          security and legal directly, and design systems to satisfy the
+          relevant regimes by default.
+        practitioner:
+          You set compliance patterns across teams, lead remediation of
+          systemic gaps, and own the relationships with security, legal,
+          and external auditors.
+        expert:
+          You shape compliance strategy across the organization and own the
+          posture against the most consequential regimes.
+    markers:
+      awareness:
+        human:
+          - Completed an assigned control under guidance and produced the
+            artifacts the existing checklist required
+        agent:
+          - Generated the audit-ready artifact required by a documented
+            control, in the agreed format
+      foundational:
+        human:
+          - Implemented a documented compliance control in code with
+            evidence captured in the agreed system of record
+        agent:
+          - Implemented a control with tests and evidence aligned to the
+            documented requirement
+      working:
+        human:
+          - Owned a service through an internal or external audit and
+            closed the findings on agreed timelines
+          - Designed a system change that satisfied a new regulatory
+            requirement without disrupting delivery
+        agent:
+          - Produced a compliance design that names the regime, the
+            controls, and the evidence collection mechanism
+    agent:
+      name: regulatory-compliance
+      description: |
+        Guide for building systems that satisfy the regulatory and policy
+        constraints they have to live in.
+      useWhen: |
+        Implementing or evolving controls, preparing for an audit, or
+        designing systems that touch regulated data or behaviour.
+      focus: |
+        Design for the regime up front; capture evidence as a by-product of
+        the system, not as a parallel artifact.
+      readChecklist:
+        - Identify the regimes that apply and the controls in scope
+        - Review the system of record for evidence
+      confirmChecklist:
+        - Controls are implemented and tested
+        - Evidence is captured in the agreed format and location
+        - Deviations are documented and owned
+
+  - id: risk_management
+    name: Risk Management
+    human:
+      description:
+        Surfacing the things that could go wrong before they do, sizing
+        them honestly, and choosing whether to mitigate, accept, or
+        escalate.
+      proficiencyDescriptions:
+        awareness:
+          You surface risks you notice through the established channels and
+          follow guidance on mitigations.
+        foundational:
+          You identify risks in your own work, size them, and either
+          mitigate or escalate with a clear ask.
+        working:
+          You own the risk picture for your service area, run regular
+          reviews, and drive mitigations to completion.
+        practitioner:
+          You set risk practices across teams, lead the response to
+          significant risks, and coach others on honest sizing.
+        expert:
+          You shape risk strategy across the organization and own the
+          posture for the most consequential risks.
+    markers:
+      awareness:
+        human:
+          - Raised a noticed risk through the established channel with the
+            relevant detail
+        agent:
+          - Reported a risk encountered during work with severity and
+            context attached
+      foundational:
+        human:
+          - Identified, sized, and mitigated a risk in your own work and
+            recorded the decision
+        agent:
+          - Produced a risk note for a piece of work that named likelihood,
+            impact, and recommended mitigation
+      working:
+        human:
+          - Owned a risk register for a service area through a quarter,
+            driving mitigations to completion
+          - Caught a significant risk through a review that would otherwise
+            have shipped
+        agent:
+          - Produced a risk review across a programme of work covering
+            top risks, sizing, and current mitigation state
+    agent:
+      name: risk-management
+      description: |
+        Guide for surfacing, sizing, and choosing how to handle risks
+        before they bite.
+      useWhen: |
+        Planning a piece of work, reviewing a design, or running a risk
+        review for an existing system.
+      focus: |
+        Surface honestly. Size with evidence. Choose mitigation, acceptance,
+        or escalation explicitly — never by default.
+      readChecklist:
+        - Identify the risks in scope and how to size them
+        - Review existing mitigations and ownership
+      confirmChecklist:
+        - Risks are named with likelihood and impact
+        - Each risk has a chosen response and an owner
+        - Material risks are visible to the right stakeholders

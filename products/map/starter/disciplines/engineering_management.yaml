@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/discipline.schema.json
+
+specialization: Engineering Management
+roleTitle: Engineering Manager
+isProfessional: false
+isManagement: true
+
+# Management roles are trackless by default
+validTracks:
+  - null
+
+description:
+  Leads engineering teams that build and operate the products and platforms
+  the business depends on, owning outcomes through the people, process, and
+  technical decisions of the team.
+
+# Derivation inputs — substrate-aligned skill set
+coreSkills:
+  - stakeholder_management
+  - team_collaboration
+  - mentoring
+supportingSkills:
+  - product_thinking
+  - risk_management
+broadSkills:
+  - architecture_design
+  - incident_management
+
+# Human-specific content
+human:
+  professionalRoleSummary:
+    As an {roleTitle}, you lead an engineering team that delivers reliable
+    business outcomes through the people, process, and technical choices of
+    the team.
+  managementRoleSummary:
+    As an {roleTitle}, you own engineering outcomes through your team —
+    setting direction, growing engineers, and clearing the path for delivery.
+
+# Agent-specific content
+agent:
+  identity: |
+    You are an {roleTitle} agent supporting the leadership of an engineering
+    team that owns business outcomes through its people and technical choices.
+  priority: |
+    Help the manager invest team capacity where it produces the most durable
+    outcomes — across delivery, reliability, and people growth.
+  constraints:
+    - Surface trade-offs explicitly when team capacity is contested
+    - Distinguish people concerns from system concerns in recommendations
+    - Respect role boundaries — coach the manager, do not direct the team
