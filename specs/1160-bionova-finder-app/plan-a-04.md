@@ -62,25 +62,34 @@ finder-functions`.
 Created: `services/finder-functions/embed-seed/mod.ts`
 
 Behavior: reads JSONL from a path on disk (default
-`/data/synthetic/output/seed_embeddings.jsonl`); for each row, POSTs the
-prose text to TEI (`POST ${TEI_URL}/embed`), receives a 384-dim vector,
-and upserts into `condition_embeddings(condition_id, embedding)` via
-PostgREST.
+`/data/synthetic/seed/seed_embeddings.jsonl`); for each row whose `table`
+is `"conditions"`, POSTs the prose text to TEI (`POST ${TEI_URL}/embed`),
+receives a 384-dim vector, and upserts into
+`condition_embeddings(condition_id, embedding)` via PostgREST.
 
 Request shape:
 
 ```ts
-type EmbedSeedRequest = { source?: string };  // defaults to /data/synthetic/output/seed_embeddings.jsonl
+type EmbedSeedRequest = { source?: string };  // defaults to /data/synthetic/seed/seed_embeddings.jsonl
 type EmbedSeedResponse = { seeded: number; skipped: number };
 ```
 
-JSONL row shape (produced by `renderEmbeddings()` in libsyntheticrender):
+JSONL row shape (verified against
+`libraries/libsyntheticrender/src/render/render-embeddings.js:35`):
 
 ```
-{"condition_id":"<uuid>","text":"…prose…"}
+{"id":"<text-id>","table":"conditions","text":"…prose…"}
 ```
 
-TEI call (per HuggingFace TEI HTTP API):
+`id` is the entity's primary key (here, the condition id, which is what
+populates `condition_embeddings.condition_id`). `table` is `"conditions"`
+for embeddings produced from `clinical.conditions` — embed-seed filters
+on this field and ignores any other tables in the JSONL (if a future
+story.dsl adds embeddings for `trials` or `sites`, embed-seed needs an
+explicit upsert path per table, but for 1160 only `conditions` is
+expected).
+
+TEI call (HuggingFace TEI `/embed` returns 2D array for batched input):
 
 ```ts
 const r = await fetch(`${env.TEI_URL}/embed`, {
@@ -88,25 +97,36 @@ const r = await fetch(`${env.TEI_URL}/embed`, {
   headers: { "content-type": "application/json" },
   body: JSON.stringify({ inputs: text }),
 });
-const [vec] = await r.json();  // returns [[float, …]]
+const [vec] = await r.json();  // returns [[f, …]] for single-input request
 ```
 
-PostgREST upsert:
+PostgREST upsert uses the unique index added in plan-a-02 Step 3b
+(`condition_embeddings_condition_id_uidx`):
 
 ```ts
-await fetch(`${env.PGREST_URL}/condition_embeddings?on_conflict=condition_id`, {
-  method: "POST",
-  headers: {
-    apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-    Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-    "content-type": "application/json",
-    Prefer: "resolution=merge-duplicates",
-  },
-  body: JSON.stringify({ condition_id, embedding: vec }),
-});
+for (const row of rows) {
+  if (row.table !== "conditions") continue;
+  const text = row.text;
+  const condition_id = row.id;
+  const vec = await embedOne(text);
+  await fetch(`${env.PGREST_URL}/condition_embeddings?on_conflict=condition_id`, {
+    method: "POST",
+    headers: {
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+      "content-type": "application/json",
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    },
+    body: JSON.stringify({ condition_id, embedding: vec }),
+  });
+}
 ```
 
-Idempotent: re-running `embed-seed` overwrites embeddings in place.
+Idempotent: re-running `embed-seed` upserts via the unique index on
+`condition_id`, overwriting prior embeddings in place. condition_embeddings'
+`id` column (set by terrain output) remains untouched on upsert
+because PostgREST `Prefer: resolution=merge-duplicates` only updates
+explicitly-supplied columns.
 
 Verify: after `setup.sh` invokes embed-seed, `psql -c "SELECT COUNT(*)
 FROM condition_embeddings;"` matches the JSONL row count.

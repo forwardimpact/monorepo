@@ -150,60 +150,74 @@ body=$(curl -fsS "http://localhost:3001/search?condition=high+blood+sugar")
 # Look for a TrialCard element rendering a diabetes-typed trial
 echo "$body" | grep -qi "diabetes" && ok "diabetes matched on 'high blood sugar'" || { bad "no diabetes match for 'high blood sugar'"; echo "$body" | head -40; }
 
-# SC3: eligibility screener returns "eligible" for a matching patient
+# SC3: eligibility screener returns "eligible" for a matching patient.
+# The matching-patient payload is hand-pinned in tests/fixtures/eligible-patient.json
+# because it must satisfy every inclusion criterion (including custom_answers)
+# of a specific seeded trial. The fixture is committed alongside this script.
 note "SC3: eligibility screener"
-# Pick the diabetes trial deterministically (story.dsl seed=42)
-trial_id=$(curl -fsS "http://localhost:8000/rest/v1/trials?select=id,trial_conditions(conditions(name))&trial_conditions.conditions.name=ilike.*diabetes*&limit=1" \
-  -H "apikey:$ANON_KEY" | jq -r '.[0].id')
-[ -n "$trial_id" ] && [ "$trial_id" != "null" ] || { bad "no diabetes trial in seed"; trial_id=""; }
-if [ -n "$trial_id" ]; then
-  # Matching patient profile derived from story.dsl seeded diabetes inclusion criteria
+fixture="$ROOT/scripts/fixtures/eligible-patient.json"
+[ -s "$fixture" ] || { bad "fixtures/eligible-patient.json missing"; }
+if [ -s "$fixture" ]; then
+  trial_id=$(jq -r .trial_id "$fixture")
+  payload=$(jq -r .payload "$fixture" | jq -c .)
   score=$(curl -fsS -X POST "http://localhost:8000/functions/v1/eligibility-check" \
-    -H "apikey: $ANON_KEY" -H "Content-Type: application/json" \
-    -d "{\"trial_id\":\"$trial_id\",\"age\":55,\"conditions\":[\"type-2-diabetes\"],\"ecog\":1,\"prior_treatments\":[],\"custom_answers\":{}}" \
+    -H "apikey: $ANON_KEY" -H "Content-Type: application/json" -d "$payload" \
     | jq -r .match_score)
-  [ "$score" = "eligible" ] && ok "matching patient → eligible" || bad "matching patient → $score (expected eligible)"
+  [ "$score" = "eligible" ] && ok "matching patient → eligible (trial $trial_id)" \
+    || bad "matching patient → $score (expected eligible; check fixture against current seed)"
 fi
 
-# SC4: CLI search matches web search data — compare via the same REST endpoint
-note "SC4: CLI search matches web (compared via REST)"
-# REST is the source of truth both surfaces consume; if it returns the same set,
-# both surfaces show the same set. This isolates SC4 from rendering details.
-rest_ids=$(curl -fsS "http://localhost:8000/rest/v1/trials?select=id&trial_conditions.conditions.name=ilike.*diabetes*" \
-  -H "apikey:$ANON_KEY" | jq -r '[.[].id] | sort | join(",")')
-# CLI emits JSON when `--json` is passed (libcli convention); plan-06 step 2
-# should declare `--json` on every read command. The CLI's --json output is
-# the canonical "data" view; compare its id list to REST's id list.
+# SC4: CLI search matches web search data — compare against the same handler
+# call. PostgREST grandchild-resource filters via dotted paths require the
+# embedded resource to be selected; rather than rely on REST query syntax,
+# call the web surface's /search route and compare its trial list (parsed
+# from a stable id attribute on TrialCard) to the CLI's --json output.
+note "SC4: CLI search matches web"
+web_ids=$(curl -fsS "http://localhost:3001/search?condition=diabetes&format=json" \
+  | jq -r '[.trials[].id] | sort | join(",")')
 cli_ids=$(node products/finder/cli/bin/bionova-finder.js search --condition=diabetes --json \
   | jq -r '[.trials[].id] | sort | join(",")')
-[ -n "$cli_ids" ] && [ "$cli_ids" = "$rest_ids" ] && ok "cli ids match REST" || bad "cli=$cli_ids REST=$rest_ids"
+[ -n "$cli_ids" ] && [ "$cli_ids" = "$web_ids" ] && ok "cli ids = web ids" \
+  || bad "cli=$cli_ids web=$web_ids"
 
-# SC5: admin CLI updates reflect in web (via DB query, not HTML scrape)
+# SC5: admin CLI updates reflect in web (via DB query, not HTML scrape).
+# Pick a different trial than the SC3 fixture so we are not testing the
+# same row twice; use the first 'recruiting' trial.
 note "SC5: admin update propagates"
-if [ -n "$trial_id" ]; then
+sc5_trial_id=$(curl -fsS "http://localhost:8000/rest/v1/trials?status=eq.recruiting&select=id&limit=1" \
+  -H "apikey:$ANON_KEY" | jq -r '.[0].id')
+[ -n "$sc5_trial_id" ] && [ "$sc5_trial_id" != "null" ] || { bad "no recruiting trial to update"; sc5_trial_id=""; }
+if [ -n "$sc5_trial_id" ]; then
   SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
-    node products/finder/cli/bin/bionova-finder.js admin trial "$trial_id" --update '{"status":"completed"}'
+    node products/finder/cli/bin/bionova-finder.js admin trial "$sc5_trial_id" --update '{"status":"completed"}'
   # Verify via PostgREST as anon — the web surface reads the same data
-  new_status=$(curl -fsS "http://localhost:8000/rest/v1/trials?id=eq.${trial_id}&select=status" \
+  new_status=$(curl -fsS "http://localhost:8000/rest/v1/trials?id=eq.${sc5_trial_id}&select=status" \
     -H "apikey:$ANON_KEY" | jq -r '.[0].status')
   [ "$new_status" = "completed" ] && ok "REST shows completed (web reads same source)" || bad "REST shows '$new_status', expected completed"
   # Spot-check web page does not error
-  web_status=$(curl -fsS -o /dev/null -w "%{http_code}" "http://localhost:3001/trials/$trial_id")
+  web_status=$(curl -fsS -o /dev/null -w "%{http_code}" "http://localhost:3001/trials/$sc5_trial_id")
   [ "$web_status" = "200" ] && ok "web page renders trial" || bad "web page returned HTTP $web_status"
 fi
 
-# SC6: seed data is deterministic and regenerable
-note "SC6: seed regenerable"
-# Snapshot the seed signature *before* any mutation in this test run.
-# Use protocol_id (story.dsl-derived, stable across runs with seed=42) and condition names.
-ORIG=$(psql -h localhost -U postgres -tAc "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
-# Full regen: delete terrain output, delete generated migrations, truncate tables, re-run setup.sh
-rm -rf "$ROOT/data/synthetic/output"
-find "$ROOT/products/finder/site/supabase/migrations" -name "20250101000000_bn_*.sql" -delete
-docker compose exec -T postgres psql -U postgres -c "TRUNCATE conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, interest_signals CASCADE;"
+# SC6: seed data is deterministic and regenerable.
+# In bionova-apps, "regenerable" means: re-running setup.sh against a fresh
+# stack at the same MONOREPO_SHA produces the same seed signature. The
+# monorepo's own deterministic regen (story.dsl seed=42 → terrain output)
+# is asserted by spec 1150's CI; bionova-apps just verifies the fetch +
+# apply round-trip is stable.
+note "SC6: seed regenerable from pinned SHA"
+ORIG=$(psql -h localhost -U postgres -tAc \
+  "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
+# Full re-run: wipe local seed copy, truncate tables, re-fetch and re-apply
+rm -rf "$ROOT/data/synthetic/seed"
+docker compose exec -T postgres psql -U postgres -c \
+  "TRUNCATE conditions, sites, researchers, trials, criteria, trial_conditions, trial_sites, condition_embeddings, interest_signals CASCADE;"
+find "$ROOT/products/finder/site/supabase/migrations" -maxdepth 1 -name "20250101000000_seed_*.sql" -delete
 (cd "$ROOT" && ./setup.sh)
-REGEN=$(psql -h localhost -U postgres -tAc "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
-[ "$ORIG" = "$REGEN" ] && ok "deterministic regen" || bad "regen drift: $ORIG → $REGEN"
+REGEN=$(psql -h localhost -U postgres -tAc \
+  "SELECT md5(string_agg(protocol_id || '|' || name, ',' ORDER BY protocol_id)) FROM trials;")
+[ "$ORIG" = "$REGEN" ] && ok "deterministic regen at SHA=$MONOREPO_SHA" \
+  || bad "regen drift: $ORIG → $REGEN"
 
 echo "===================="
 echo " PASS: $PASS  FAIL: $FAIL"
@@ -211,6 +225,15 @@ exit "$FAIL"
 ```
 
 Make executable: `chmod +x scripts/smoke.sh`.
+
+Also created: `scripts/fixtures/eligible-patient.json` — a single object
+with `trial_id` (the id of a specific seeded trial, derived from the
+1150 story.dsl) and `payload` (a matching-patient eligibility request
+that satisfies every inclusion criterion of that trial). The fixture is
+the implementer's only piece of seed-aware data in this part; it must be
+regenerated if the 1150 implementation changes which trials exist or what
+their custom criteria are. Document the regeneration procedure in
+`scripts/fixtures/README.md`.
 
 Verify: against a clean stack, `scripts/smoke.sh` exits 0 and reports all 6
 SCs pass.

@@ -99,6 +99,21 @@ Created (one `page.tsx` per route + `layout.tsx`):
 | `/about` | `src/app/about/page.tsx` | `showAbout` |
 | `/admin/trials/[id]` | `src/app/admin/trials/[id]/page.tsx` | `manageTrial` |
 
+All read pages also respond to `?format=json` by serializing the handler
+result and returning it as `application/json`. This is implemented in
+each Server Component as:
+
+```tsx
+if (searchParams.format === "json") {
+  const result = await searchTrials(ctx);
+  return new Response(JSON.stringify(result), { headers: { "content-type": "application/json" } });
+}
+```
+
+The format-json branch is used by the smoke script (plan-a-08 SC4) to
+compare web vs CLI without parsing rendered HTML. It is NOT used by
+ordinary browsers.
+
 `src/app/layout.tsx`: imports Tailwind base, wraps children in shadcn
 Toaster + a header with nav (Home, Search, Sites, About). Admin pages add
 a sidebar.
@@ -110,31 +125,50 @@ Each page is a Server Component that:
 3. Renders via shadcn primitives (NOT libformat HTML, since React already
    renders — libformat HTML output is for non-React contexts)
 
-Example `src/app/search/page.tsx`:
+Created: `src/lib/build-ctx.ts` — shared bootstrap so each page does not
+duplicate the six-line wiring:
 
-```tsx
-import { searchTrials } from "@bionova/finder-handlers";
+```ts
 import { freezeInvocationContext } from "@forwardimpact/libui";
 import { createDataContext } from "@bionova/finder-handlers/context";
-import { TrialCard } from "@/components/trial-card";
 
-export default async function SearchPage({ searchParams }: { searchParams: Record<string, string> }) {
+export function buildCtx(searchParams: Record<string, string | string[] | undefined>, args: Record<string, string> = {}) {
+  // Next 14 may pass array values when the same key appears multiple times.
+  // Handlers expect scalar options; collapse arrays to first value.
+  const options: Record<string, string> = {};
+  for (const [k, v] of Object.entries(searchParams)) {
+    if (typeof v === "string") options[k] = v;
+    else if (Array.isArray(v) && v.length > 0) options[k] = v[0];
+  }
   const env = {
     SUPABASE_URL: process.env.SUPABASE_URL!,
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
     TEI_URL: process.env.TEI_URL!,
   };
-  const ctx = freezeInvocationContext({
-    data: createDataContext(env),
-    args: {},
-    options: searchParams,
-  });
+  return freezeInvocationContext({ data: createDataContext(env), args, options });
+}
+```
+
+Example `src/app/search/page.tsx`:
+
+```tsx
+import { searchTrials } from "@bionova/finder-handlers";
+import { buildCtx } from "@/lib/build-ctx";
+import { TrialCard } from "@/components/trial-card";
+
+export default async function SearchPage({ searchParams }: { searchParams: Record<string, string | string[]> }) {
+  const ctx = buildCtx(searchParams);
   const result = await searchTrials(ctx);
+
+  if (searchParams.format === "json") {
+    return new Response(JSON.stringify(result), { headers: { "content-type": "application/json" } });
+  }
+
   return (
     <main>
       <h1>Trial search</h1>
-      <SearchForm initialValues={searchParams} />
+      <SearchForm initialValues={ctx.options} />
       <ul>
         {result.trials.map(t => <TrialCard key={t.id} trial={t} />)}
       </ul>

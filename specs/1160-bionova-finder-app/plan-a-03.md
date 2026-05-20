@@ -1,267 +1,233 @@
-# Plan 1160-a-03 — Data pipeline (story.dsl + terrain integration)
+# Plan 1160-a-03 — Data fetch from monorepo
 
-Wire the synthetic data pipeline into bionova-apps: copy the
-spec-1150-rewritten `story.dsl`, run `fit-terrain generate`, route its
-output to `data/synthetic/output/`, and copy generated SQL and embeddings
-into the supabase migrations directory at `setup.sh` time.
+Wire bionova-apps's data pipeline. **Terrain output is produced inside
+the monorepo by spec 1150's implementation** and committed to
+`products/finder/site/supabase/migrations/seed_*.sql` +
+`seed_embeddings.jsonl`. bionova-apps fetches these artifacts at
+`setup.sh` time and applies them. No `fit-terrain` invocation occurs in
+bionova-apps.
 
 All paths are inside `bionova-apps/`.
 
-## Step 1 — Verify spec 1150 implemented
+## Step 1 — Verify spec 1150 artifacts exist on monorepo main
 
-Run before any other step. Fetch the monorepo's story.dsl directly via
-GitHub (no path assumption needed):
-
-```sh
-MONOREPO_RAW="https://raw.githubusercontent.com/forwardimpact/monorepo/main"
-STORY=$(curl -fsSL "$MONOREPO_RAW/data/synthetic/story.dsl")
-CACHE_EXISTS=$(curl -fsSI "$MONOREPO_RAW/data/synthetic/prose-cache.json" | head -1 | grep -c "200" || true)
-
-# Check 1: clinical block exists
-echo "$STORY" | grep -qE "^\s*clinical\s*\{" || { echo "FAIL: no clinical{} block in story.dsl"; exit 1; }
-
-# Check 2: supabase_migration output declared
-echo "$STORY" | grep -qE "output\s+\w+\s+supabase_migration\s*\{" || { echo "FAIL: no supabase_migration output"; exit 1; }
-
-# Check 3: embeddings_jsonl output declared
-echo "$STORY" | grep -qE "output\s+\w+\s+embeddings_jsonl\s*\{" || { echo "FAIL: no embeddings_jsonl output"; exit 1; }
-
-# Check 4: prose cache exists (else `fit-terrain build` will need ANTHROPIC_API_KEY)
-[ "$CACHE_EXISTS" = "1" ] || { echo "WARN: prose-cache.json not in monorepo; offline build will fail"; }
-```
-
-If any check fails, halt and post an `agent-react` ask to the
-release-engineer: "Spec 1160 plan-a-03 blocked on spec 1150 implementation.
-Story.dsl in monorepo lacks the required `clinical {}` / `output …
-supabase_migration {…}` / `output … embeddings_jsonl {…}` declarations."
-Do not proceed.
-
-Verify: all four checks pass.
-
-## Step 2 — Copy story.dsl and prose cache into bionova-apps
-
-Created: `data/synthetic/story.dsl`
-
-Content: byte-for-byte copy from
-`<monorepo>/data/synthetic/story.dsl` at `origin/main` (fetched via
-`curl -fsSLO "$MONOREPO_RAW/data/synthetic/story.dsl"`).
-
-Also created: `data/synthetic/prose-cache.json` — byte-for-byte copy from
-`<monorepo>/data/synthetic/prose-cache.json` (no leading dot; that is the
-file's actual name in the monorepo) so bionova-apps CI can run
-`fit-terrain build` offline without LLM API access. Commit this file —
-it's the offline contract.
-
-Edit story.dsl `output` blocks to route generated files under
-`data/synthetic/output/` (the disposable zone — `writeFiles()` rm-rf's
-the first-two-path-segment directory before writing, so anywhere under
-`data/synthetic/` is safe; under `products/finder/` would destroy
-authored code). The real DSL grammar (verified against
-`libraries/libterrain/test/fixtures/clinical.dsl`) is:
-
-```dsl
-output clinical_db supabase_migration {
-  prefix "bn"
-  path "data/synthetic/output/migrations/"
-  entities [clinical.conditions, clinical.sites, clinical.researchers, clinical.trials]
-}
-
-output clinical_embed embeddings_jsonl {
-  path "data/synthetic/output/seed_embeddings.jsonl"
-  entities [clinical.conditions]
-  text_fields {
-    clinical.conditions [name, synonyms]
-  }
-}
-```
-
-Key shape rules:
-- `output <label> <format> { … }` — `<label>` is a free identifier.
-- `prefix` controls the table/file name prefix (defaults to `clinical`).
-- `path` (optional) is a directory prefix prepended to every emitted file.
-- `entities` is the list of entity types to include (use the
-  `clinical.<type>` namespace).
-- `text_fields { <entity> [<field>, …] }` (embeddings only) controls which
-  fields contribute to the embedding text.
-- No `include_rls` flag exists — RLS is always emitted via `renderRls()`.
-- No `include_embeddings true` flag exists — the JSONL output is the
-  embedding text source; `embed-seed` (part 04) computes vectors.
-
-If 1150's story.dsl already declares these blocks with different paths,
-update them here to point under `data/synthetic/output/`. **Never** route
-output under `products/finder/` or `services/finder-functions/` —
-writeFiles will rm-rf the parent directory before writing.
-
-Verify:
-- `grep -E "supabase_migration\s*\{" data/synthetic/story.dsl` matches.
-- Both output blocks' `path` (or default) places files under `data/synthetic/output/`.
-- `data/synthetic/prose-cache.json` is committed (size > 0).
-
-## Step 3 — Pin libterrain and add invocation recipes
-
-Edit root `package.json` devDependencies (from part 01):
-
-```json
-"@forwardimpact/libterrain": "0.1.29"
-```
-
-Edit `justfile` (from part 01):
-
-```just
-# Generate terrain output (offline; uses prose-cache.json)
-terrain:
-    bunx fit-terrain build --story=data/synthetic/story.dsl --cache=data/synthetic/prose-cache.json
-
-# Fill prose cache via LLM then build (requires ANTHROPIC_API_KEY)
-terrain-fresh:
-    bunx fit-terrain generate --story=data/synthetic/story.dsl --cache=data/synthetic/prose-cache.json
-```
-
-Verify: `just terrain` writes files under `data/synthetic/output/` and
-exits 0. Inspect: `ls data/synthetic/output/migrations/` shows timestamped
-SQL files; `wc -l data/synthetic/output/seed_embeddings.jsonl` shows ≥ 6
-lines (one per condition).
-
-## Step 4 — Wire terrain into `setup.sh`
-
-Edit `setup.sh`; insert before Step B (migration apply):
+Run before any other step. Probe the raw GitHub URL for the committed
+artifacts and pin the SHA the rest of this part will fetch:
 
 ```sh
-# Step B0 — regenerate terrain output every run for determinism
-TERRAIN_OUT="$ROOT/data/synthetic/output"
-echo "Regenerating terrain output (idempotent; SC6 requires deterministic regen)…"
-rm -rf "$TERRAIN_OUT"
-(cd "$ROOT" && bunx fit-terrain build \
-  --story=data/synthetic/story.dsl \
-  --cache=data/synthetic/prose-cache.json)
+MONOREPO_RAW="https://raw.githubusercontent.com/forwardimpact/monorepo"
+MAIN_SHA=$(curl -fsSH "Accept: application/vnd.github.v3.sha" \
+  "https://api.github.com/repos/forwardimpact/monorepo/commits/main" \
+  | head -c 40)
 
-# Step B1 — refresh terrain SQL in supabase migrations
-TERRAIN_MIG="$TERRAIN_OUT/migrations"
-SITE_MIG="$ROOT/products/finder/site/supabase/migrations"
-echo "Refreshing terrain migrations under supabase/migrations/"
-# Remove any prior terrain output (matches terrain's prefix to avoid touching hand-written files)
-TERRAIN_PREFIX="bn"  # MUST match the `prefix` in story.dsl's supabase_migration output block
-find "$SITE_MIG" -maxdepth 1 -name "${TERRAIN_PREFIX}_*.sql" -delete
-cp "$TERRAIN_MIG"/*.sql "$SITE_MIG/"
-```
-
-Hand-written migrations are dated `20260601*` (part 02 + part 04 + part
-05); terrain emits files prefixed with the story.dsl `prefix` value
-(`bn_*` per Step 2 above). The two namespaces do not collide, so `cp` is
-safe (no `-n` needed) and `find … -delete` cleans only terrain output.
-However, `supabase db push` applies files in filename-sorted order — to
-ensure terrain SQL applies first (so `trials` exists before the
-`interest_signals` FK resolves), rename terrain output as part of the
-copy:
-
-```sh
-# Reorder: terrain SQL gets a 2025* date prefix to sort before hand-written 2026*
-for f in "$TERRAIN_MIG"/${TERRAIN_PREFIX}_*.sql; do
-  base=$(basename "$f")
-  cp "$f" "$SITE_MIG/20250101000000_${base}"
+# Probe each required artifact
+for f in \
+  "products/finder/site/supabase/migrations/seed_001_conditions.sql" \
+  "products/finder/site/supabase/migrations/seed_002_sites.sql" \
+  "products/finder/site/supabase/migrations/seed_embeddings.jsonl" ; do
+  status=$(curl -fsI -o /dev/null -w "%{http_code}" "$MONOREPO_RAW/$MAIN_SHA/$f")
+  [ "$status" = "200" ] || { echo "FAIL: $f not at $MAIN_SHA ($status)"; exit 1; }
 done
+echo "Monorepo SHA pinned: $MAIN_SHA"
 ```
 
-Verify: after `./setup.sh`, `ls products/finder/site/supabase/migrations/`
-shows terrain files prefixed `20250101000000_bn_*.sql` (sorting before
-all hand-written `20260601*` files) and the hand-written files; `supabase
-db push` applies in directory order without FK violations.
+If any probe fails, halt and post an `agent-react` ask to the
+release-engineer: "Spec 1160 plan-a-03 blocked on spec 1150
+implementation. Monorepo `main` at SHA $MAIN_SHA lacks
+`products/finder/site/supabase/migrations/seed_*.sql` or
+`seed_embeddings.jsonl`."
 
-## Step 5 — Wire embeddings into `setup.sh` invocation of `embed-seed`
+The exact filenames `seed_001_conditions.sql` etc. follow
+`render-sql.js`'s `${prefix}_${NNN}_${entity}.sql` convention with
+`prefix=seed` from spec 1150's plan-a.md:138. If terrain output
+filenames change, the probe list updates here in the same commit.
 
-Add Step C (embeddings seeding) — the `embed-seed` edge function (part
-04) reads `data/synthetic/output/seed_embeddings.jsonl` and POSTs rows
-to TEI. `setup.sh` invokes it once after migrations apply and fails the
-script if the response is not 200:
+Verify: all three probes return 200; SHA is captured.
+
+## Step 2 — Author `scripts/fetch-seed.sh`
+
+Created: `scripts/fetch-seed.sh` — fetches monorepo terrain output to
+`data/synthetic/seed/` and stages it into supabase migrations.
 
 ```sh
-# Step C — populate condition_embeddings via embed-seed edge function
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MONOREPO_RAW="https://raw.githubusercontent.com/forwardimpact/monorepo"
+PINNED_SHA="${MONOREPO_SHA:?Must be set to the pinned monorepo SHA}"
+
+SEED_DIR="$ROOT/data/synthetic/seed"
+MIG_DIR="$ROOT/products/finder/site/supabase/migrations"
+mkdir -p "$SEED_DIR"
+
+# List of files to fetch (one per terrain entity + embeddings)
+FILES=(
+  seed_001_conditions.sql
+  seed_002_sites.sql
+  seed_003_researchers.sql
+  seed_004_trials.sql
+  seed_005_criteria.sql
+  seed_006_trial_conditions.sql
+  seed_007_trial_sites.sql
+  seed_008_rls.sql
+  seed_009_condition_embeddings.sql
+  seed_embeddings.jsonl
+)
+
+for f in "${FILES[@]}"; do
+  url="$MONOREPO_RAW/$PINNED_SHA/products/finder/site/supabase/migrations/$f"
+  echo "Fetching $f from $PINNED_SHA…"
+  curl --fail -fsSL -o "$SEED_DIR/$f" "$url"
+done
+
+# Stage SQL into supabase/migrations with a 2025-prefixed timestamp so terrain
+# files sort before hand-written 20260601* files (FK to trials resolves).
+find "$MIG_DIR" -maxdepth 1 -name "20250101000000_seed_*.sql" -delete
+for f in "$SEED_DIR"/seed_*.sql; do
+  base=$(basename "$f")
+  cp "$f" "$MIG_DIR/20250101000000_${base}"
+done
+echo "Staged $(ls "$MIG_DIR"/20250101000000_seed_*.sql | wc -l) seed migrations"
+```
+
+Make executable: `chmod +x scripts/fetch-seed.sh`.
+
+Filenames listed above must match terrain's actual output for the
+1150-implemented story.dsl. The implementer probes the directory listing
+via `curl https://api.github.com/repos/forwardimpact/monorepo/contents/products/finder/site/supabase/migrations?ref=$MAIN_SHA`
+at part-03 PR time and updates the FILES array if names differ.
+
+Verify: `MONOREPO_SHA=$MAIN_SHA bash scripts/fetch-seed.sh` exits 0 and
+populates `data/synthetic/seed/` + `products/finder/site/supabase/migrations/20250101000000_seed_*.sql`.
+
+## Step 3 — Pin monorepo SHA + add to `.env`
+
+Created: `.env.example` (extends part-01 entries):
+
+```
+# Source of truth for synthetic data — terrain output committed in the
+# Forward Impact monorepo. Update by re-running part-03 step 1's probe
+# against monorepo main and committing the new SHA here.
+MONOREPO_SHA=<40-char-sha>
+```
+
+`setup.sh` exports `MONOREPO_SHA` from `.env` (already loaded by part 01)
+and `scripts/fetch-seed.sh` reads it.
+
+Verify: `.env.example` includes `MONOREPO_SHA=` with a placeholder; the
+implementer's own `.env` carries the actual SHA from step 1.
+
+## Step 4 — Wire fetch into `setup.sh`
+
+Edit `setup.sh` from part 01; replace the placeholder Step B with:
+
+```sh
+# Step B0 — fetch terrain output from pinned monorepo SHA
+echo "Fetching seed data from monorepo@$MONOREPO_SHA…"
+"$ROOT/scripts/fetch-seed.sh"
+
+# Step B — apply migrations via supabase db push
+echo "Running supabase db push…"
+cd "$ROOT/products/finder/site"
+npx -y supabase@1.219.2 db push --db-url "postgres://postgres:${POSTGRES_PASSWORD}@localhost:5432/postgres"
+cd "$ROOT"
+```
+
+Verify: after `docker compose up -d` and `./setup.sh`, `psql -c "\dt"`
+lists all 9 tables (conditions, sites, researchers, trials, criteria,
+trial_conditions, trial_sites, condition_embeddings, interest_signals).
+
+## Step 5 — Wire `embed-seed` invocation
+
+Add Step C (embeddings seeding) to `setup.sh`:
+
+```sh
+# Step C — populate condition_embeddings via embed-seed edge function.
+# The JSONL is mounted at /data/synthetic/seed/seed_embeddings.jsonl
+# inside the finder-functions container (volume added in step 6 below).
 echo "Seeding embeddings via embed-seed edge function…"
 curl --fail -sS -X POST "http://localhost:8000/functions/v1/embed-seed" \
   -H "apikey: ${SERVICE_ROLE_KEY}" \
   -H "Authorization: Bearer ${SERVICE_ROLE_KEY}" \
   -H "Content-Type: application/json" \
-  --data '{"source":"/data/synthetic/output/seed_embeddings.jsonl"}'
+  --data '{"source":"/data/synthetic/seed/seed_embeddings.jsonl"}'
 ```
 
-The `services/finder-functions/` container mounts the output dir
-read-only — set in `docker-compose.yml` finder-functions block (edit
-from part 01):
+## Step 6 — Mount seed dir into edge-functions container
+
+Edit `docker-compose.yml` `finder-functions` block (from part 01) to add:
 
 ```yaml
 volumes:
-  - ./data/synthetic/output:/data/synthetic/output:ro
+  - ./data/synthetic/seed:/data/synthetic/seed:ro
 ```
 
-The `data/synthetic/output/` directory may not exist on a fresh clone
-before terrain runs. Two-part mitigation:
-- Add `mkdir -p data/synthetic/output` to `setup.sh` Step A (before
-  `wait_healthy` calls) so the bind mount target exists.
-- The `finder-functions` service depends on `tei` healthy (already set in
-  part 01); terrain runs in Step B0 before the function is invoked in
-  Step C, populating the directory before any read.
+Also add `setup.sh` Step A line: `mkdir -p data/synthetic/seed` before
+`wait_healthy` so the bind-mount target exists on a fresh clone.
 
-Verify: `psql -c "SELECT COUNT(*) FROM condition_embeddings;"` returns ≥
-6 after `setup.sh` completes (matching the count of clinical conditions
-in story.dsl, which spec 1150 fixes at 6).
+Verify: `docker compose exec finder-functions ls /data/synthetic/seed/`
+lists the fetched files after `setup.sh` runs.
 
-## Step 6 — Add `data/synthetic/README.md`
+## Step 7 — Add `data/synthetic/seed/README.md`
 
-Created: `data/synthetic/README.md`
+Created: `data/synthetic/seed/README.md`
 
-Content: one-page guide — how the pipeline works, how to regenerate
-(`just terrain`), where outputs land, how to re-seed prose cache
-(`just terrain-fresh` with `ANTHROPIC_API_KEY` set).
+Content: one-page describing the static-fetch approach. Key points:
+- bionova-apps does NOT regenerate seed data; it fetches from a pinned
+  monorepo SHA
+- To refresh: update `MONOREPO_SHA` in `.env` to the desired commit on
+  `forwardimpact/monorepo:main`, then re-run `setup.sh`
+- To audit what's in the seed: `cat data/synthetic/seed/seed_*.sql`
+- Source of the data: `forwardimpact/monorepo/data/synthetic/story.dsl`
 
 Verify: file present; renders cleanly on GitHub.
 
-## Step 7 — Add CI step that runs `fit-terrain build` headless
+## Step 8 — Add CI step that proves fetch works
 
 Edit `.github/workflows/ci.yml` (from part 01):
 
 ```yaml
-  terrain:
+  seed-fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
+      - name: Resolve MONOREPO_SHA from .env.example
+        id: env
+        run: |
+          sha=$(grep -E '^MONOREPO_SHA=' .env.example | cut -d= -f2)
+          [ -n "$sha" ] && [ "$sha" != "<40-char-sha>" ] || { echo "MONOREPO_SHA not pinned in .env.example"; exit 1; }
+          echo "sha=$sha" >> $GITHUB_OUTPUT
+      - run: MONOREPO_SHA=${{ steps.env.outputs.sha }} bash scripts/fetch-seed.sh
       - run: |
-          # Fail-loud: require prose-cache.json so build is offline + deterministic
-          test -s data/synthetic/prose-cache.json || { echo "ERR: prose-cache.json missing — build would call LLM"; exit 1; }
-      - run: bunx fit-terrain build --story=data/synthetic/story.dsl --cache=data/synthetic/prose-cache.json
-      - run: |
-          test -d data/synthetic/output/migrations
-          test "$(ls data/synthetic/output/migrations/*.sql | wc -l)" -gt 0
-          test -s data/synthetic/output/seed_embeddings.jsonl
-          test "$(wc -l < data/synthetic/output/seed_embeddings.jsonl)" -ge 6
+          test "$(ls data/synthetic/seed/seed_*.sql | wc -l)" -ge 6
+          test -s data/synthetic/seed/seed_embeddings.jsonl
+          test "$(wc -l < data/synthetic/seed/seed_embeddings.jsonl)" -ge 6
 ```
 
-Verify: PR CI passes; if prose-cache.json is missing or empty, the job
-exits 1 with a clear error (fail-loud per the plan-overview risk).
+Verify: PR CI runs `seed-fetch` job; passes when `.env.example` pins a
+SHA that has the expected files.
 
-## Step 8 — Open part-03 PR
+## Step 9 — Open part-03 PR
 
 ```sh
-git checkout -b data/terrain-pipeline
-git add data/synthetic/ setup.sh package.json justfile docker-compose.yml .github/workflows/ci.yml
-git commit -m "data: terrain pipeline + setup.sh data seeding"
-git push -u origin data/terrain-pipeline
-gh pr create --title "data: terrain pipeline + setup.sh data seeding" --body "Implements plan-a-03 of spec 1160. Wires fit-terrain into setup flow; output staged at data/synthetic/output/."
+git checkout -b data/fetch-from-monorepo
+git add scripts/fetch-seed.sh setup.sh docker-compose.yml .env.example data/synthetic/ .github/workflows/ci.yml
+git commit -m "data: fetch seed migrations from pinned monorepo SHA"
+git push -u origin data/fetch-from-monorepo
+gh pr create --title "data: fetch seed migrations from pinned monorepo SHA" --body "Implements plan-a-03 of spec 1160. bionova-apps does not run fit-terrain (libterrain's bin resolves paths from its install dir, not consumer CWD). Instead, the monorepo's spec-1150 implementation commits terrain output, and bionova-apps fetches the committed artifacts at setup.sh time pinned to a known-good SHA."
 ```
 
-Verify: PR CI green (lint + terrain build + compose validate).
+Verify: PR CI green (lint + seed-fetch jobs).
 
 ## Verification (end of part 03)
 
-- [ ] `data/synthetic/story.dsl` present; `output … supabase_migration` and `output … embeddings_jsonl` blocks route under `data/synthetic/output/`.
-- [ ] `data/synthetic/prose-cache.json` committed (size > 0).
-- [ ] `just terrain` exits 0; populates `data/synthetic/output/migrations/*.sql` and `seed_embeddings.jsonl`.
-- [ ] `./setup.sh` against a fresh stack: regenerates terrain output, stages migrations (terrain renamed to `20250101*`, hand-written `20260601*`), applies via `supabase db push`, seeds embeddings via `embed-seed`.
+- [ ] `scripts/fetch-seed.sh` fetches all `seed_*.sql` + `seed_embeddings.jsonl` from monorepo@MONOREPO_SHA.
+- [ ] `.env.example` pins a real 40-char SHA that points at a commit on `forwardimpact/monorepo:main` containing the artifacts.
+- [ ] `./setup.sh` against a fresh stack: fetches seed, stages migrations, applies via `supabase db push`, seeds embeddings via `embed-seed`.
 - [ ] `psql -c "SELECT COUNT(*) FROM trials;"` returns ≥ 6 (story.dsl trial count).
-- [ ] `psql -c "SELECT COUNT(*) FROM condition_embeddings;"` returns ≥ 6.
-- [ ] `psql -c "SELECT COUNT(*) FROM pg_policies WHERE schemaname='public';"` shows public_read (terrain) + staff_write + interest_signals policies with no duplicates.
-- [ ] `cd products/finder/site && npx -y supabase@1.219.2 test db` exits 0 (the part-02 RLS test now has data to assert against).
-- [ ] No files exist under `products/finder/` or `services/finder-functions/` except authored code (verify writeFiles rm-rf zone respected).
+- [ ] `psql -c "SELECT COUNT(*) FROM condition_embeddings;"` returns ≥ 6 (after embed-seed runs).
+- [ ] `psql -c "SELECT indexrelid::regclass FROM pg_index WHERE indrelid = 'condition_embeddings'::regclass AND indisunique;"` includes `condition_embeddings_condition_id_uidx` (from part 02).
+- [ ] `cd products/finder/site && npx -y supabase@1.219.2 test db` exits 0 (the part-02 RLS test asserts against the now-applied schema).
 
 — Staff Engineer 🛠️

@@ -193,14 +193,28 @@ output.
 Created: `products/finder/cli/src/repl.js`
 
 Per librepl's real API (verified against
-`libraries/librepl/src/index.js`), commands are objects with
-`{ usage, handler, type? }` shape; the handler signature is
-`(args: string[], state) => Promise<string|false>`. `start()` is the
-entry; `help`, `clear`, `exit` are built-in.
+`libraries/librepl/src/index.js:268,316`):
+
+- Commands are invoked by typing `/<command>` (leading slash required);
+  bare input falls through to the `onLine` handler.
+- Commands are objects shaped `{ usage, handler, type? }`. The handler
+  signature is `(args: string[], state) => Promise<string|false>`.
+- librepl only writes output to the readline stream if the handler
+  returns a value with `.on()` (a Readable stream). Returning a plain
+  string is ignored — the handler must write to the REPL's output
+  itself OR return a Readable.
+- Built-ins: `/help`, `/clear`, `/exit`.
+
+The handler pattern: take `args + state`, do the work, write the
+formatted result to `state.output` (a writable stream librepl injects),
+return `false` (signal "I handled output").
 
 ```js
+import { Readable } from "stream";
 import { Repl } from "@forwardimpact/librepl";
 import * as handlers from "@bionova/finder-handlers";
+
+const out = (text) => Readable.from([text.endsWith("\n") ? text : text + "\n"]);
 
 export async function startRepl(ctx) {
   const repl = new Repl({
@@ -212,27 +226,27 @@ export async function startRepl(ctx) {
     }],
     commands: {
       search: {
-        usage: "search --condition=<text> — find trials by condition",
+        usage: "/search --condition=<text> — find trials by condition",
         handler: async (args, state) => {
           const result = await handlers.searchTrials({ ...ctx, options: parseKvArgs(args) });
           state.lastResults = result.trials;
-          return formatTrials(result.trials);
+          return out(formatTrials(result.trials));
         },
       },
       trial: {
-        usage: "trial <idx|id> — show details for one trial (idx into last search)",
+        usage: "/trial <idx|id> — show details for one trial (idx into last search)",
         handler: async (args, state) => {
           const arg = args[0] ?? "";
           const idx = Number.parseInt(arg, 10);
           const id = Number.isInteger(idx) && state.lastResults?.[idx]
             ? state.lastResults[idx].id
             : arg;
-          return formatTrialDetail(await handlers.showTrial({ ...ctx, args: { id } }));
+          return out(formatTrialDetail(await handlers.showTrial({ ...ctx, args: { id } })));
         },
       },
       sites: {
-        usage: "sites [--specialty=<name>] — list enrollment sites",
-        handler: async (args) => formatSites(await handlers.listSites({ ...ctx, options: parseKvArgs(args) })),
+        usage: "/sites [--specialty=<name>] — list enrollment sites",
+        handler: async (args) => out(formatSites(await handlers.listSites({ ...ctx, options: parseKvArgs(args) }))),
       },
     },
   });
@@ -250,6 +264,17 @@ function parseKvArgs(args) {
 function formatTrials(trials) { /* ANSI table */ }
 function formatTrialDetail(detail) { /* ANSI formatted block */ }
 function formatSites(sites) { /* ANSI table */ }
+```
+
+REPL session usage (note the leading slash):
+
+```
+bionova> /search --condition=diabetes
+[...table of trials...]
+bionova> /trial 0
+[...detail of first hit...]
+bionova> /help
+bionova> /exit
 ```
 
 Verify: `bunx bionova-finder repl` opens an interactive prompt; `search
@@ -314,7 +339,7 @@ documented in PR description.
 
 - [ ] `bunx bionova-finder --help` lists all 7 commands.
 - [ ] `bionova-finder search --condition=diabetes` returns trials matching diabetes (success criterion #4 partial — matches web search result; full match deferred to part 08).
-- [ ] `bionova-finder repl` opens librepl-based session.
+- [ ] `bionova-finder repl` opens librepl-based session. Typing `/search --condition=diabetes` then `/trial 0` shows trial detail. (Bare `search` without slash prefix triggers `/help` per librepl convention.)
 - [ ] `bionova-finder admin trial <id>` fails without `--token` or `SUPABASE_SERVICE_ROLE_KEY` env.
 - [ ] `bionova-finder admin trial <id>` with service role succeeds and shows interest signal aggregates (success criterion #5 partial — verified end-to-end in part 08).
 - [ ] `bun test products/finder/cli/` exits 0.

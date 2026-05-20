@@ -52,10 +52,11 @@ Created: `products/finder/site/supabase/migrations/20260601000000_interest_signa
 Content:
 
 ```sql
--- interest_signals: anonymous interest indicator (no PII)
+-- interest_signals: anonymous interest indicator (no PII).
+-- trial_id is TEXT (not UUID) to match render-sql.js's emitted trials.id type.
 CREATE TABLE interest_signals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  trial_id UUID NOT NULL REFERENCES trials(id) ON DELETE CASCADE,
+  trial_id TEXT NOT NULL REFERENCES trials(id) ON DELETE CASCADE,
   screener_answers JSONB NOT NULL,
   match_score TEXT NOT NULL
     CHECK (match_score IN ('eligible', 'possibly_eligible', 'not_eligible')),
@@ -71,6 +72,24 @@ ALTER TABLE interest_signals ENABLE ROW LEVEL SECURITY;
 Verify: after `supabase db push`, `\d interest_signals` shows columns,
 constraints, indexes; FK to `trials(id)` resolves (requires part 03's
 terrain output to have applied first).
+
+## Step 3b — Author `condition_embeddings` unique-constraint migration
+
+Created: `products/finder/site/supabase/migrations/20260601000000a_condition_embeddings_unique.sql`
+
+```sql
+-- libsyntheticrender emits condition_embeddings.condition_id without a UNIQUE
+-- constraint; PostgREST on_conflict upsert (embed-seed in part 04) requires one.
+CREATE UNIQUE INDEX IF NOT EXISTS condition_embeddings_condition_id_uidx
+  ON condition_embeddings(condition_id);
+```
+
+Filename `…000000a_…` sorts after `20260601000000_interest_signals.sql`
+but before `20260601000001_rls_policies.sql`, ensuring the index exists
+before any policy or trigger references it.
+
+Verify: after `supabase db push`, `\d condition_embeddings` shows the
+unique index `condition_embeddings_condition_id_uidx`.
 
 ## Step 4 — Author RLS policies migration
 

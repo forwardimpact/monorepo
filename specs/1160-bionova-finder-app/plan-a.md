@@ -6,14 +6,18 @@ Build the `bionova-apps` external repository to spec
 ## Approach
 
 The implementation lives in a new, separate GitHub repository
-(`forwardimpact/bionova-apps`) — not in this monorepo. The implementer creates
-the repo, clones it as a sibling working directory, and executes every part
-inside that clone. Parts are decomposed by surface so they can run in parallel
-where the design allows: infrastructure stands the stack up, the data and
-schema parts populate it, edge functions and handlers consume it, and the CLI
-and web surfaces dispatch to the shared handlers. Each part is independently
-verifiable end-to-end against a local `docker compose` boot; the final part
-ties everything to the spec's six success criteria.
+(`forwardimpact/bionova-apps`) — not in this monorepo. **bionova-apps does
+NOT run `fit-terrain` itself**: `libterrain`'s bin resolves output paths
+from `__dirname` relative to its install location, so running it from an
+external repo's `node_modules` writes files to the wrong place and would
+need `products/map/schema/json` (not in the published npm package). The
+data pipeline is therefore inverted: the monorepo regenerates terrain
+output via spec 1150's implementation; bionova-apps fetches the committed
+SQL and JSONL artifacts from `raw.githubusercontent.com/forwardimpact/monorepo/<sha>/products/finder/site/supabase/migrations/`
+at `setup.sh` time. Parts are decomposed by surface so they can run in
+parallel where the design allows. Each part is independently verifiable
+end-to-end against a local `docker compose` boot; the final part ties
+everything to the spec's six success criteria.
 
 ## Where this lives
 
@@ -35,7 +39,7 @@ this spec; the monorepo PR (`plan-implemented`) updates only
 | --- | --- | --- |
 | Spec 1140 — clinical-output pipeline | implemented (commits `8bbf8f1c`, `0c921e81`) | `libterrain` clinical-output stage emits `supabase_migration` + `embeddings_jsonl` files |
 | Spec 1150 — story.dsl clinical rewrite | **plan approved, not implemented** | story.dsl currently lacks `clinical {}` and `output … supabase_migration {…}` blocks |
-| `@forwardimpact/libcli@0.1.9`, `libui@1.2.1`, `libformat@0.1.15`, `libtemplate@0.2.10`, `librepl@0.1.12` on npm | published — versions verified against [libraries/README.md](../../libraries/README.md) at plan-write time | part 01 pins these exact versions; implementer re-checks before `bun install` and bumps in the part-01 PR if any patch level published since |
+| `@forwardimpact/libcli@0.1.9`, `libui@1.2.1`, `libformat@0.1.15`, `libtemplate@0.2.10`, `librepl@0.1.12` on npm | published — versions verified via `npm view @forwardimpact/<lib> version` at plan-write time | part 01 pins these exact versions; implementer re-runs `npm view` before `bun install` and bumps in the part-01 PR if any patch level published since. **libterrain is NOT a bionova-apps dependency** — see Approach |
 
 **This plan should not enter implementation until spec 1150 lands on
 `origin/main`.** Spec 1150 generates the clinical schema and seed data
@@ -61,28 +65,35 @@ implemented`; route `kata-implement` only after that signal flips.
 
 ## Libraries used
 
-Libraries used: `@forwardimpact/libcli` (createCli, dispatch, freezeInvocationContext), `@forwardimpact/libui` (createBoundRouter, render, components, freezeInvocationContext), `@forwardimpact/libformat` (createHtmlFormatter, createTerminalFormatter), `@forwardimpact/libtemplate` (createTemplateLoader), `@forwardimpact/librepl` (Repl), `@forwardimpact/libterrain` (CLI: `fit-terrain generate`, `fit-terrain build`).
+Libraries used: `@forwardimpact/libcli` (createCli, dispatch, freezeInvocationContext), `@forwardimpact/libui` (createBoundRouter, render, components, freezeInvocationContext), `@forwardimpact/libformat` (createHtmlFormatter, createTerminalFormatter), `@forwardimpact/libtemplate` (createTemplateLoader), `@forwardimpact/librepl` (Repl).
 
 ## Risks
 
-- **Spec 1150 not implemented before this plan starts.** Without the
-  rewritten story.dsl, `fit-terrain build` produces no clinical SQL or
-  embeddings. Mitigation: hold plan approval until 1150 lands (see
-  Prerequisites). Part 03 step 1 verifies the story.dsl on `origin/main`
-  contains a `clinical {}` block and one each of `output … supabase_migration {…}`
-  and `output … embeddings_jsonl {…}` declarations before generating output.
-- **`fit-terrain` subcommands** — `fit-terrain build` renders files using
-  the existing prose cache; `fit-terrain generate` first calls an LLM
-  (requires `ANTHROPIC_API_KEY`) to fill the cache then builds. The plan
-  uses `build` everywhere because the prose cache (`data/synthetic/prose-cache.json`)
-  is committed to the monorepo by spec 1150. Part 03 verifies the cache
-  exists; if absent, the implementer must escalate rather than running
-  `generate` blindly.
-- **`writeFiles()` in libterrain rm-rf's first-two-path-segment directories.**
-  Confirmed in `libraries/libterrain/src/sinks.js:209–226`. Part 03 routes
-  terrain output to `data/synthetic/output/` so the rm-rf zone is
-  disposable. Any deviation (e.g. outputting under `products/finder/…`)
-  destroys authored code.
+- **Spec 1150 not implemented before this plan starts.** Without spec
+  1150's `products/finder/site/supabase/migrations/seed_*.sql` and
+  `seed_embeddings.jsonl` committed to monorepo `main`, bionova-apps has
+  no data to fetch. Mitigation: hold plan approval until 1150 lands (see
+  Prerequisites). Part 03 step 1 verifies the artifacts exist on `main`
+  via a `curl --fail` probe before any subsequent step.
+- **libterrain not invokable from external repos.** Confirmed at
+  `libraries/libterrain/bin/fit-terrain.js:197`: `monorepoRoot =
+  resolve(__dirname, "../../..")` — from `node_modules/@forwardimpact/libterrain/bin/`
+  this resolves to `node_modules/@forwardimpact/`, not the consumer's
+  repo root. Additionally `monorepoRoot/products/map/schema/json`
+  (line 198) is referenced but not in libterrain's published `files`
+  field. Conclusion: bionova-apps cannot run terrain; it consumes
+  terrain output produced inside the monorepo. SC6 (regenerable) is
+  satisfied by re-fetching from a pinned monorepo SHA — see part 03.
+- **Schema type mismatch: `trials.id` is `text` not `uuid`.** Confirmed at
+  `libraries/libsyntheticrender/src/render/render-sql.js:303` (`"id" text
+  PRIMARY KEY`). All FKs to `trials(id)` and `conditions(id)` in
+  hand-written migrations must use `text`. Part 02 reflects this in
+  `interest_signals.trial_id`.
+- **`condition_embeddings.condition_id` lacks a UNIQUE constraint** as
+  emitted by render-sql.js. Part 02 adds a hand-written migration
+  `CREATE UNIQUE INDEX condition_embeddings_condition_id_uidx ON
+  condition_embeddings(condition_id)` so PostgREST `on_conflict` upsert
+  works in `embed-seed`.
 - **Forward Impact library versions** are pinned at plan-write time but
   patches may publish between approval and implementation. Part 01's PR
   description must record the resolved versions; if any pin requires a
