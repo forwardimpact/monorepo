@@ -202,8 +202,8 @@ async function runVerb(options) {
 
   // Bind to `import.meta` so the helper can invoke it under Bun, which
   // requires `import.meta.resolve` to be called with `this === import.meta`.
-  const { promptDir, templateDir } = resolvePackagePaths(
-    (specifier) => import.meta.resolve(specifier),
+  const { promptDir, templateDir } = resolvePackagePaths((specifier) =>
+    import.meta.resolve(specifier),
   );
 
   const pipeline = createPipeline({
