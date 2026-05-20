@@ -128,7 +128,14 @@ function buildTrial(
 ) {
   const piRef = t.principal_investigator;
   const piPerson = resolvePerson(piRef, personByManagerAlias, t.id);
-  registerResearcher(researcherMap, piPerson, piRef, t.id, domain);
+  registerResearcher(
+    researcherMap,
+    piPerson,
+    piRef,
+    t.id,
+    domain,
+    t.therapeutic_area,
+  );
 
   const project = t.project_ref ? projectMap.get(t.project_ref) || null : null;
 
@@ -168,7 +175,14 @@ function buildTrial(
   };
 }
 
-function registerResearcher(researcherMap, piPerson, piRef, trialId, domain) {
+function registerResearcher(
+  researcherMap,
+  piPerson,
+  piRef,
+  trialId,
+  domain,
+  therapeuticArea,
+) {
   if (!researcherMap.has(piPerson.id)) {
     researcherMap.set(piPerson.id, {
       id: piPerson.id,
@@ -177,7 +191,7 @@ function registerResearcher(researcherMap, piPerson, piRef, trialId, domain) {
       email: piPerson.email,
       role: "principal_investigator",
       trial_ids: [],
-      specialty: piPerson.discipline || null,
+      specialty: therapeuticArea || null,
       iri: `https://${domain}/id/clinical/researcher/${piPerson.id}`,
     });
   }

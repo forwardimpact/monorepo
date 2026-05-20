@@ -113,12 +113,28 @@ terrain clinical {
       start_date 2024-06
       estimated_end_date 2026-06
       arms ["mAb + SoC", "placebo + SoC"]
+      criteria {
+        inclusion {
+          age_min 18
+          age_max 75
+          conditions_required ["diabetes_t2"]
+          ecog_max 2
+          custom ["Confirmed diagnosis of Type 2 Diabetes", "HbA1c between 7.0% and 10.5%"]
+        }
+        exclusion {
+          conditions_excluded ["type_1_diabetes"]
+          active_autoimmune true
+          prior_immunotherapy false
+          custom ["Active CNS metastases", "History of cardiac events within 6 months"]
+        }
+      }
     }
   }
 
   output clinical_db supabase_migration {
     prefix "bn"
-    entities [clinical.conditions, clinical.sites, clinical.researchers, clinical.trials]
+    entities [clinical.conditions, clinical.sites, clinical.researchers, clinical.trials, clinical.criteria]
+    include_embeddings true
   }
 
   output clinical_embed embeddings_jsonl {

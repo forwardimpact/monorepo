@@ -801,6 +801,253 @@ terrain BioNova {
     }
   }
 
+  // ─── Clinical ──────────────────────────────────
+
+  clinical {
+    condition diabetes_t2 {
+      name "Type 2 Diabetes Mellitus"
+      icd10 ["E11", "E11.9"]
+      synonyms ["high blood sugar", "adult-onset diabetes", "insulin resistance"]
+      synthea_module diabetes
+      severity chronic
+      prose_topic "type 2 diabetes for patients considering clinical trials"
+      prose_tone "empathetic, accessible"
+    }
+
+    condition hypertension {
+      name "Essential Hypertension"
+      icd10 [I10]
+      synonyms ["high blood pressure", "elevated blood pressure"]
+      synthea_module hypertension
+      severity chronic
+      prose_topic "hypertension and cardiovascular risk in clinical research"
+      prose_tone "empathetic, accessible"
+    }
+
+    condition breast_cancer {
+      name "Breast Cancer"
+      icd10 ["C50", "C50.9"]
+      synonyms ["breast malignancy", "breast tumor"]
+      synthea_module breast_cancer
+      severity acute
+      prose_topic "breast cancer treatment options and clinical trials"
+      prose_tone "supportive, clear"
+    }
+
+    condition lung_cancer {
+      name "Non-Small Cell Lung Cancer"
+      icd10 ["C34", "C34.9"]
+      synonyms ["NSCLC", "lung tumor", "lung malignancy"]
+      synthea_module lung_cancer
+      severity acute
+      prose_topic "NSCLC immunotherapy and targeted therapy trials"
+      prose_tone "supportive, clear"
+    }
+
+    condition alzheimers {
+      name "Alzheimer Disease"
+      icd10 ["G30", "G30.9"]
+      synonyms ["memory loss", "dementia", "cognitive decline"]
+      synthea_module alzheimers
+      severity chronic
+      prose_topic "Alzheimer disease research and emerging therapies"
+      prose_tone "compassionate, hopeful"
+    }
+
+    site cambridge {
+      name "BioNova Cambridge Research Center"
+      address "200 CambridgePark Drive"
+      city "Cambridge"
+      state "MA"
+      country "US"
+      org headquarters
+      capacity 500
+      specialties [oncology, endocrinology, neurology]
+    }
+
+    site houston {
+      name "BioNova Houston Clinical Site"
+      address "6550 Fannin Street"
+      city "Houston"
+      state "TX"
+      country "US"
+      org headquarters
+      capacity 350
+      specialties [oncology, cardiology]
+    }
+
+    site chicago {
+      name "BioNova Chicago Research Institute"
+      address "300 E Superior Street"
+      city "Chicago"
+      state "IL"
+      country "US"
+      org headquarters
+      capacity 400
+      specialties [neurology, endocrinology]
+    }
+
+    site london {
+      name "BioNova London Clinical Centre"
+      address "35 Red Lion Square"
+      city "London"
+      state "England"
+      country "GB"
+      org headquarters
+      capacity 300
+      specialties [oncology, neurology]
+    }
+
+    site tokyo {
+      name "BioNova Tokyo Research Facility"
+      address "1-7-1 Otemachi"
+      city "Tokyo"
+      state "Tokyo"
+      country "JP"
+      org headquarters
+      capacity 250
+      specialties [oncology, endocrinology]
+    }
+
+    trial oncora_p3 {
+      name "ONCORA-301"
+      protocol_id "BNV-ONC-2024-301"
+      project oncora
+      phase "phase_3"
+      therapeutic_area "oncology"
+      conditions [breast_cancer]
+      sites [cambridge, houston, london]
+      principal_investigator @chronos
+      sponsor "BioNova Therapeutics"
+      status "recruiting"
+      target_enrollment 450
+      current_enrollment 287
+      start_date 2024-06
+      estimated_end_date 2026-06
+      arms ["mAb + SoC", "placebo + SoC"]
+      prose_topic "Phase 3 HER2+ breast cancer monoclonal antibody trial"
+      prose_tone "clinical, accessible"
+      criteria {
+        inclusion {
+          age_min 18
+          age_max 75
+          conditions_required ["breast_cancer"]
+          ecog_max 2
+          custom ["Histologically confirmed HER2+ breast cancer", "Measurable disease per RECIST 1.1", "Adequate organ function"]
+        }
+        exclusion {
+          conditions_excluded ["active_autoimmune_disease"]
+          active_autoimmune true
+          prior_immunotherapy false
+          custom ["Prior treatment with anti-HER2 therapy in metastatic setting", "Active CNS metastases", "History of cardiac events within 6 months"]
+        }
+      }
+    }
+
+    trial neuregen_p2 {
+      name "NEUREGEN-201"
+      protocol_id "BNV-NRG-2025-201"
+      phase "phase_2"
+      therapeutic_area "neurology"
+      conditions [alzheimers]
+      sites [cambridge, chicago, london, tokyo]
+      principal_investigator @apollo
+      sponsor "BioNova Therapeutics"
+      status "recruiting"
+      target_enrollment 200
+      current_enrollment 45
+      start_date 2025-03
+      estimated_end_date 2027-12
+      arms ["Gene therapy low dose", "Gene therapy high dose", "placebo"]
+      prose_topic "Phase 2 gene therapy for early Alzheimer disease"
+      prose_tone "compassionate, scientific"
+      criteria {
+        inclusion {
+          age_min 55
+          age_max 85
+          conditions_required ["alzheimers"]
+          ecog_max 1
+          custom ["Clinical diagnosis of mild-to-moderate Alzheimer disease", "MMSE score 16-26", "Stable on cholinesterase inhibitor for 3+ months"]
+        }
+        exclusion {
+          conditions_excluded ["active_cancer", "uncontrolled_seizures"]
+          active_autoimmune false
+          prior_immunotherapy false
+          custom ["Participation in another interventional trial within 30 days", "Known contraindication to lumbar puncture", "Severe hepatic impairment"]
+        }
+      }
+    }
+
+    trial diabex_p2 {
+      name "DIABEX-201"
+      protocol_id "BNV-DBX-2025-201"
+      project oncora
+      phase "phase_2"
+      therapeutic_area "endocrinology"
+      conditions [diabetes_t2, hypertension]
+      sites [cambridge, chicago, houston, tokyo]
+      principal_investigator @chronos
+      sponsor "BioNova Therapeutics"
+      status "active_not_recruiting"
+      target_enrollment 300
+      current_enrollment 298
+      start_date 2024-01
+      estimated_end_date 2026-03
+      arms ["BNV-DX01 10mg", "BNV-DX01 25mg", "placebo"]
+      prose_topic "Phase 2 dual GLP-1/GIP agonist for T2D with comorbid hypertension"
+      prose_tone "clinical, encouraging"
+      criteria {
+        inclusion {
+          age_min 30
+          age_max 70
+          conditions_required ["diabetes_t2"]
+          ecog_max 1
+          custom ["HbA1c between 7.0% and 10.5%", "BMI between 25 and 40", "On stable metformin dose for 3+ months"]
+        }
+        exclusion {
+          conditions_excluded ["type_1_diabetes", "gestational_diabetes"]
+          active_autoimmune false
+          prior_immunotherapy false
+          custom ["eGFR < 45 mL/min", "History of diabetic ketoacidosis", "Use of insulin within 3 months"]
+        }
+      }
+    }
+
+    trial lungshield_p1 {
+      name "LUNGSHIELD-101"
+      protocol_id "BNV-LS-2025-101"
+      phase "phase_1"
+      therapeutic_area "oncology"
+      conditions [lung_cancer]
+      sites [houston, tokyo]
+      principal_investigator @thoth
+      sponsor "BioNova Therapeutics"
+      status "recruiting"
+      target_enrollment 60
+      current_enrollment 12
+      start_date 2025-06
+      estimated_end_date 2027-06
+      arms ["BNV-LS01 dose escalation"]
+      prose_topic "Phase 1 bispecific antibody dose escalation for advanced NSCLC"
+      prose_tone "clinical, precise"
+      criteria {
+        inclusion {
+          age_min 18
+          age_max 80
+          conditions_required ["lung_cancer"]
+          ecog_max 1
+          custom ["Histologically confirmed NSCLC stage IIIB/IV", "At least one prior line of therapy", "Adequate bone marrow function"]
+        }
+        exclusion {
+          conditions_excluded ["active_autoimmune_disease", "uncontrolled_infection"]
+          active_autoimmune true
+          prior_immunotherapy true
+          custom ["Prior treatment with the same class of agent", "Symptomatic brain metastases", "Pregnancy or breastfeeding"]
+        }
+      }
+    }
+  }
+
   // ─── Outputs ──────────────────────────────────
 
   output trial_patients_patient json     { path "output/trial_patients.json" }
@@ -810,4 +1057,19 @@ terrain BioNova {
   output claims_claims sql               { path "output/claims.sql" table "bionova_claims" }
   output researchers yaml                { path "output/researchers.yaml" }
   output researchers markdown            { path "output/researchers.md" }
+
+  output clinical_db supabase_migration {
+    prefix "bn"
+    path "output/"
+    entities [clinical.conditions, clinical.sites, clinical.researchers, clinical.trials, clinical.criteria]
+    include_embeddings true
+  }
+
+  output clinical_embed embeddings_jsonl {
+    path "output/clinical_embeddings.jsonl"
+    entities [clinical.conditions]
+    text_fields {
+      clinical.conditions [name, synonyms]
+    }
+  }
 }
