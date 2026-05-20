@@ -14,7 +14,18 @@ Libraries used: none (DSL content only).
 
 ## Step 1 — Add `clinical {}` block
 
-Insert after the last `content` block (line 772) and before the datasets section (line 774).
+Insert after the last `content` block (line 772) and before the datasets
+section (line 774). The entire `clinical { … }` block, including the
+clinical content sub-block defined below, lives **inside** the `clinical {}`
+braces — not at top-level alongside the existing `guide_html` /
+`outpost_markdown` content blocks. This matches spec 1140 § Proposal which
+scopes clinical content as a sub-block of `clinical`.
+
+**String-quoting note.** `phase` and `status` are STRING-typed per the
+parser. Write them quoted in the DSL: `phase "Phase 3"`, `status "recruiting"`,
+`status "active_not_recruiting"`. Bare identifiers (e.g. `phase Phase 3`)
+will fail the parse at `parseStringValue`. The illustrative tables below
+show the *values*; the DSL emission must wrap each in double quotes.
 
 ### 6 conditions
 
@@ -109,6 +120,12 @@ dataset trial_patients {
 
 Delete the `dataset researchers { ... }` block (lines 791-802) and its output blocks (`researchers yaml` at line 811, `researchers markdown` at line 812).
 
+**Downstream-consumer check (panel-verified at plan time):** A monorepo-wide
+grep for readers of `output/researchers.{yaml,md}` returned zero code or
+product consumers — only the `data/synthetic/story.dsl` producer (being
+removed) and a historical reference in `specs/063-synthetic-generalize/`
+documentation. Deletion is safe with no further consumer search needed.
+
 **Verify:** `ast.datasets.length === 2` (trial_patients + claims).
 
 ## Step 6 — Add new output blocks
@@ -129,21 +146,46 @@ output finder_embeddings embeddings_jsonl {
   entities [clinical.conditions, clinical.trials]
   text_fields {
     clinical.conditions [name, synonyms, prose_explainer]
-    clinical.trials [name, therapeutic_area, arms, prose_description]
+    clinical.trials [name, arms, prose_description]
   }
 }
 ```
+
+**Entity-derivation note.** `clinical.researchers` is **entity-generated** per
+spec 1140 — the renderer derives a researcher record from each trial's
+`principal_investigator @ref` (see `render-sql.js` TABLE_SPEC `researchers`
+key). Do **not** author a separate `researcher { … }` block inside
+`clinical {}`; the implementer should reference `clinical.researchers` in
+the `entities [...]` list and rely on derivation.
+
+**Field-correctness note.** `clinical.trials` embedding `text_fields` lists
+`[name, arms, prose_description]`. The previous draft included
+`therapeutic_area`, which spec 1140 places on conditions, not trials —
+removed to keep the embedding payload consistent with the entity shape.
 
 **Verify:** `ast.outputs` contains `finder_seed` and `finder_embeddings` with correct formats.
 
 ## Step 7 — Keep unchanged
 
-All existing blocks (org, departments, teams, standard, snapshots, 5 existing projects, 5 existing scenarios, `claims` dataset, `claims_claims` outputs) remain untouched.
+All existing blocks (org, departments, teams, standard, snapshots, 5 existing
+projects, 5 existing scenarios, `claims` dataset, `claims_claims` outputs,
+`trial_patients_patient json` / `csv` / `trial_patients_condition json`
+outputs at L806-808) remain untouched. Step 4 redefines the `trial_patients`
+dataset *body* (replacing `modules` with `conditions`) but its three output
+blocks at L806-808 keep their existing form so downstream readers of
+`output/trial_patients.{json,csv}` and `output/trial_conditions.json` continue
+to receive the same files.
 
 ## Risks
 
-- **PI @refs may not match existing people.** Mitigated by verifying `@thoth`, `@chronos`, `@hygieia`, `@asclepius`, `@apollo` exist as manager aliases in the people graph before writing. If any are missing, substitute with existing manager refs.
-- **Team IDs may not match existing hierarchy.** Mitigated by checking team IDs in the DSL before referencing them in new projects/scenarios.
+- **PI @refs and team IDs — verified at plan time.** All five PI @refs
+  (`@thoth` L23, `@chronos` L30, `@apollo` L37, `@hygieia` L44,
+  `@asclepius` L146) and all six team IDs (`clinical_development` L27,
+  `platform_engineering` L61, `data_science_ai` L68, `security_compliance`
+  L82, `enterprise_applications` L89, `developer_experience` L96) were
+  confirmed present in the current `data/synthetic/story.dsl` during the
+  panel-of-3 review. No mitigation step required at implementation time;
+  the implementer can reference these symbols directly.
 
 ## Verification
 
@@ -155,11 +197,13 @@ cd libraries/libsyntheticgen && bun test
 
 ### Parse output inspection
 
+Run from `libraries/libsyntheticgen/`:
+
 ```sh
-node -e "
-  import { tokenize } from './src/dsl/tokenizer.js';
-  import { parse } from './src/dsl/parser.js';
-  import { readFileSync } from 'fs';
+bun -e "
+  const { tokenize } = await import('./src/dsl/tokenizer.js');
+  const { parse } = await import('./src/dsl/parser.js');
+  const { readFileSync } = await import('fs');
   const src = readFileSync('../../data/synthetic/story.dsl', 'utf-8');
   const ast = parse(tokenize(src));
   console.log('clinical:', ast.clinical !== null);
@@ -172,13 +216,39 @@ node -e "
 "
 ```
 
+`bun -e` accepts dynamic `await import()` without an `--input-type=module`
+toggle and handles the project's ESM convention natively. `node -e` with
+static `import` throws SyntaxError; if the implementer prefers Node, run it
+as a `.mjs` script instead.
+
 Expected: clinical: true, conditions: 6, sites: 5, trials: 6, projects: 8, scenarios: 7, datasets: 2.
 
 ### Full pipeline smoke test
 
 ```sh
-bun run fit-terrain generate --mode no-prose
-ls -la output/products/finder/site/supabase/migrations/
+bunx fit-terrain build
+ls -la products/finder/site/supabase/migrations/
 ```
 
-Verify SQL migrations and embeddings JSONL are generated. Existing outputs (claims) still generate.
+`build` is the cached-mode render verb (no LLM calls) per
+`libraries/libterrain/bin/fit-terrain.js:81-98`. The DSL `path` field is
+honored literally by `render-sql.js` + `sinks.js` — no `output/` prefix is
+prepended, so files land under monorepo-root `products/finder/site/supabase/migrations/`.
+
+Verify SQL migrations and embeddings JSONL are generated. Existing outputs
+(claims, trial_patients_*) still generate.
+
+### Claims output unchanged (spec SC #7)
+
+Snapshot the claims outputs before Step 1 and compare after Step 6:
+
+```sh
+# Pre-change (before editing story.dsl):
+shasum output/claims.parquet output/claims.sql > /tmp/claims-pre.sha
+
+# Post-change (after build):
+shasum -c /tmp/claims-pre.sha
+```
+
+Both hashes must match. If claims output is regenerated rather than diffed
+in-place, instead capture the file content via `cmp` against a pre-change copy.

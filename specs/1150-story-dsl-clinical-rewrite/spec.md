@@ -72,9 +72,11 @@ output blocks with domain-qualified entity references.
 5. `ast.datasets` contains 2 datasets (`trial_patients` + `claims`; researchers
    removed). Verify: parse output inspection.
 
-6. `fit-terrain generate --mode no-prose` produces SQL migrations and embeddings
-   JSONL at the configured output paths. Verify: files exist at
-   `products/finder/site/supabase/migrations/`.
+6. `bunx fit-terrain build` produces SQL migrations and embeddings JSONL at the
+   configured output paths. Verify: files exist at
+   `products/finder/site/supabase/migrations/`. (`build` is the LLM-free render
+   verb per `libraries/libterrain/bin/fit-terrain.js`; `generate` would also
+   work but additionally calls the LLM to refill the prose cache.)
 
 7. Existing outputs (`claims` parquet and SQL) still generate unchanged. Verify:
    diff against pre-change output.
