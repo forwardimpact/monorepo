@@ -5,6 +5,7 @@ import * as prettier from "prettier";
 const VALID_USERS = [
   "Engineering Leaders",
   "Empowered Engineers",
+  "Teams Using Agents",
   "Platform Builders",
 ];
 

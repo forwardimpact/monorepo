@@ -21,6 +21,14 @@ on:
         description: "Ad-hoc prompt for the facilitator"
         required: true
         type: string
+      callback_url:
+        description: "URL to POST the facilitator conclusion to (optional)"
+        required: false
+        type: string
+      correlation_id:
+        description: "Correlation ID returned in the callback payload (optional)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -184,3 +192,35 @@ jobs:
           agent-profiles: "product-manager,security-engineer,staff-engineer,technical-writer"
           max-turns: "1500"
           timeout-minutes: "300"
+
+      # Deliver the facilitator's conclusion to an external caller (e.g. the
+      # Microsoft Teams bridge) when one is specified via workflow_dispatch.
+      # Skipped on issue/PR/discussion events where `inputs` is null. Runs on
+      # both success and failure of the facilitate step so callers always get
+      # a verdict.
+      #
+      # fit-eval@v1 writes its NDJSON trace to a mktemp directory under /tmp
+      # (path `trace--<case>.raw.ndjson`) and does not expose that path as a
+      # composite-action output. Until the action exposes `trace-dir` or
+      # accepts an `output` input, we locate the trace via glob — the
+      # workflow runner reuses a fresh /tmp per job, so at most one trace
+      # file matches.
+      - name: Deliver callback
+        if: github.event_name == 'workflow_dispatch' && always() && inputs.callback_url != ''
+        env:
+          CALLBACK_URL: ${{ inputs.callback_url }}
+          CORRELATION_ID: ${{ inputs.correlation_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          TRACE_FILE=$(find /tmp -maxdepth 3 -name 'trace--*.raw.ndjson' 2>/dev/null | head -1)
+          if [ -z "$TRACE_FILE" ]; then
+            echo "::error::No trace file found under /tmp — fit-eval may have failed to start"
+            exit 1
+          fi
+          echo "Using trace file: $TRACE_FILE"
+          npx fit-eval callback \
+            --trace-file="$TRACE_FILE" \
+            --callback-url="$CALLBACK_URL" \
+            --correlation-id="$CORRELATION_ID" \
+            --run-url="$RUN_URL"

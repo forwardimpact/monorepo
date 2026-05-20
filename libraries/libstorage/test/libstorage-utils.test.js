@@ -1,4 +1,4 @@
-import { test, describe, beforeEach } from "node:test";
+import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 import { spy } from "@forwardimpact/libharness";
 
@@ -63,8 +63,10 @@ describe("SupabaseStorage", () => {
   let mockClient;
   let mockCommands;
   let supabaseStorage;
+  let originalFetch;
 
   beforeEach(() => {
+    originalFetch = globalThis.fetch;
     mockClient = { send: spy(() => Promise.resolve()) };
     mockCommands = {
       PutObjectCommand: spy((params) => ({ params })),
@@ -83,6 +85,10 @@ describe("SupabaseStorage", () => {
       "service-role-key-123",
       mockCommands,
     );
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
   });
 
   test("constructor throws when serviceRoleKey is missing", () => {

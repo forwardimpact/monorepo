@@ -14,6 +14,7 @@ that let agents consume backend functionality natively.
 | **graph**   | RDF knowledge graph over gRPC — relationship queries without each product standing up its own store.     |
 | **map**     | Activity reads and writes over gRPC — the agent-facing gateway to Map's activity database.               |
 | **mcp**     | Unified MCP server — agents reach backend services as tools without per-service integration.             |
+| **msteams** | Microsoft Teams bridge — relay messages between Teams conversations and the Kata agent team.             |
 | **pathway** | Engineering standard queries over gRPC — career paths and agent profiles as derivable data for products. |
 | **trace**   | OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.      |
 | **vector**  | Vector similarity search over gRPC — semantic retrieval without a dedicated database per product.        |
@@ -23,6 +24,24 @@ that let agents consume backend functionality natively.
 ## Jobs To Be Done
 
 <!-- BEGIN:jobs — Do not edit. Generated from each service's package.json. -->
+
+<job user="Teams Using Agents" goal="Reach the Agent Team from Teams">
+
+## Teams Using Agents: Reach the Agent Team from Teams
+
+**Trigger:** Discussing work in Microsoft Teams and needing to context-switch to
+GitHub to ask the agent team anything.
+
+**Big Hire:** Help me invoke the Kata agent team from a Teams conversation
+without leaving Teams. → **msteams**
+
+**Little Hire:** Help me send a message and get the facilitator's conclusion
+back in the same thread. → **msteams**
+
+**Competes With:** manually creating GitHub issues; copy-pasting between Teams
+and GitHub; leaving the agent team unreachable from daily conversation.
+
+</job>
 
 <job user="Platform Builders" goal="Expose Activity Data to Agents">
 
