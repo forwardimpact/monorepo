@@ -137,8 +137,8 @@ Seven HTML templates following the existing two-pass pattern (skeleton with
    `bun test` in `libsyntheticgen` passes.
 
 3. Clinical prose keys are collected and flow through the cache-lookup pipeline.
-   Verify: `bun run fit-terrain generate --mode no-prose` logs clinical key
-   collection without error.
+   Verify: `bun test` in `libsyntheticgen` (clinical-prose-keys tests) passes
+   and `bun run fit-terrain build` completes without error.
 
 4. `supabase_migration` output produces numbered SQL files loadable by
    `supabase db push`. Verify: generated SQL files create tables with correct

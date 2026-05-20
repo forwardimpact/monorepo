@@ -49,7 +49,7 @@ const TABLE_SPEC = [
       {
         name: "project_id",
         type: "text",
-        value: (t) => t.project_ref ?? null,
+        value: (t) => t.project?.id ?? null,
       },
     ],
     foreignKeys: [
@@ -215,12 +215,15 @@ function inferType(records, read) {
   return "text";
 }
 
+const DATE_RE = /^\d{4}-\d{2}(-\d{2})?$/;
+
 function typeOfValue(v) {
   if (typeof v === "boolean") return "boolean";
   if (typeof v === "number")
     return Number.isInteger(v) ? "integer" : "double precision";
   if (Array.isArray(v)) return arrayTypeOf(v);
   if (typeof v === "object") return "jsonb";
+  if (typeof v === "string" && DATE_RE.test(v)) return "date";
   return "text";
 }
 
@@ -233,6 +236,7 @@ const SCALAR_LITERALS = {
   boolean: (v) => (v ? "TRUE" : "FALSE"),
   integer: (v) => String(v),
   "double precision": (v) => String(v),
+  date: (v) => `'${v.length === 7 ? v + "-01" : v}'`,
   jsonb: (v) => `${dollarQuote(JSON.stringify(v))}::jsonb`,
 };
 
@@ -304,5 +308,8 @@ CREATE TABLE IF NOT EXISTS "condition_embeddings" (
   "condition_id" text REFERENCES "conditions"(id),
   "embedding" vector(384)
 );
+
+ALTER TABLE "condition_embeddings" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "public_read" ON "condition_embeddings" FOR SELECT USING (true);
 `;
 }

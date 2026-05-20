@@ -26,6 +26,8 @@
     "./render/raw": "./src/render/raw.js",
     "./render/markdown": "./src/render/markdown.js",
     "./render/dataset-renderers": "./src/render/dataset-renderers.js",
+    "./render/render-sql": "./src/render/render-sql.js",
+    "./render/render-embeddings": "./src/render/render-embeddings.js",
     "./validate": "./src/validate.js",
     "./format": "./src/format.js"
   },

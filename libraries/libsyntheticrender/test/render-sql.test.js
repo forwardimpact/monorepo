@@ -219,7 +219,7 @@ describe("renderSql", () => {
     }
   });
 
-  test("embeddings table uses vector(384)", () => {
+  test("embeddings table uses vector(384) and has RLS", () => {
     const out = renderSql(makeClinical(), {
       prefix: "bn",
       entities: ALL_ENTITIES,
@@ -229,6 +229,14 @@ describe("renderSql", () => {
     assert.ok(emb.includes("CREATE EXTENSION IF NOT EXISTS vector"));
     assert.ok(emb.includes("vector(384)"));
     assert.ok(!emb.includes("INSERT INTO"));
+    assert.ok(
+      emb.includes(
+        'ALTER TABLE "condition_embeddings" ENABLE ROW LEVEL SECURITY',
+      ),
+    );
+    assert.ok(
+      emb.includes('CREATE POLICY "public_read" ON "condition_embeddings"'),
+    );
   });
 
   test("strings with single quotes are dollar-quoted safely", () => {
@@ -276,6 +284,41 @@ describe("renderSql", () => {
     const criteria = out.get("bn_005_criteria.sql");
     assert.ok(
       criteria.includes('FOREIGN KEY ("trial_id") REFERENCES trials(id)'),
+    );
+  });
+
+  test("project_id reads from project.id not project_ref", () => {
+    const clinical = makeClinical();
+    clinical.trials[0].project_ref = "oncora";
+    clinical.trials[0].project = { id: "oncora_resolved", name: "Oncora" };
+    const out = renderSql(clinical, {
+      prefix: "bn",
+      entities: ["clinical.trials"],
+    });
+    const trials = out.get("bn_001_trials.sql");
+    assert.ok(
+      trials.includes("oncora_resolved"),
+      "project_id should use project.id",
+    );
+  });
+
+  test("date-pattern strings infer as date columns", () => {
+    const out = renderSql(makeClinical(), {
+      prefix: "bn",
+      entities: ["clinical.trials"],
+    });
+    const trials = out.get("bn_001_trials.sql");
+    assert.ok(
+      trials.includes('"start_date" date'),
+      "start_date should be date type",
+    );
+    assert.ok(
+      trials.includes('"estimated_end_date" date'),
+      "estimated_end_date should be date type",
+    );
+    assert.ok(
+      trials.includes("'2024-06-01'"),
+      "YYYY-MM dates should be padded to YYYY-MM-01",
     );
   });
 
