@@ -29,12 +29,15 @@ Run `npx fit-terrain <verb> --help` for verb-scoped options.
 
 `build --only=<type>` renders a single content type:
 
-| Type       | Output Directory | Contents                        |
-| ---------- | ---------------- | ------------------------------- |
-| `html`     | `data/knowledge` | Articles, guides, FAQs, courses |
-| `pathway`  | `data/pathway`   | YAML standard files             |
-| `raw`      | `data/activity`  | Roster, GitHub events, evidence |
-| `markdown` | `data/personal`  | Briefings, notes, KB content    |
+| Type       | Output Directory | Contents                                                            |
+| ---------- | ---------------- | ------------------------------------------------------------------- |
+| `html`     | `data/knowledge` | Articles, guides, FAQs, courses; plus the seven clinical pages when the DSL declares a `clinical {}` block |
+| `pathway`  | `data/pathway`   | YAML standard files                                                 |
+| `raw`      | `data/activity`  | Roster, GitHub events, evidence                                     |
+| `markdown` | `data/personal`  | Briefings, notes, KB content                                        |
+
+Dataset outputs (declared via `output` blocks in the DSL) are written
+regardless of `--only` to the paths each `output` block names.
 
 ### Global Flags
 

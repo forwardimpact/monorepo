@@ -28,6 +28,13 @@ rendering into multiple output formats.
 - Producing organizational documents, activity records, and KB content
 - Testing pipeline changes end-to-end with synthetic data
 
+**Build a healthcare deployment:**
+
+- Declaring trials, sites, and conditions in a `clinical {}` DSL block
+- Generating Synthea-backed patient cohorts filtered to those conditions
+- Rendering patient-facing prose and Schema.org `MedicalCondition` /
+  `MedicalTrial` / `MedicalClinic` microdata pages
+
 ---
 
 ## How It Works
@@ -36,19 +43,25 @@ rendering into multiple output formats.
 
 Generation flows through four stages:
 
-1. **DSL parsing** — the terrain file is tokenized and parsed into an AST
-   containing organizational hierarchy, people, projects, agent-aligned
-   engineering standard definitions, and content specifications
-2. **Entity generation** — the AST is expanded deterministically (using a seeded
-   RNG) into a full entity graph: orgs, departments, teams, people with roles
-   and skill assignments, repos, and projects
-3. **Prose generation** — prose keys are collected from the entity graph (one
-   per article, FAQ, briefing, etc.) with context (topic, tone, length). The
-   `build` verb reads from `prose-cache.json`; the `generate` verb sends each
-   key to an LLM and writes the result back to the cache before building
-4. **Rendering** — entities and prose are rendered into output formats: YAML
-   standard files (`pathway`), HTML articles (`html`), JSON/YAML activity
-   records (`raw`), and Markdown briefings (`markdown`)
+1. **DSL parsing** — the terrain file is parsed into an AST containing the
+   org hierarchy, people, projects, engineering-standard definitions, content
+   specs, and optionally a `clinical {}` domain (conditions, sites, trials,
+   criteria, content keys).
+2. **Entity generation** — the AST is expanded deterministically (seeded RNG)
+   into a full entity graph: orgs, departments, teams, people, repos,
+   projects, and — when `clinical {}` is present — conditions, sites, trials,
+   criteria, and researchers with bidirectional cross-references.
+3. **Prose generation** — prose keys are collected (one per article, FAQ,
+   briefing, condition explainer, trial FAQ, etc.) with context (topic, tone,
+   length). The `build` verb reads from `prose-cache.json`; `generate` sends
+   each key to an LLM and writes the result back to the cache before
+   building. Clinical prose uses a medical-communications system prompt.
+4. **Rendering** — entities and prose render into YAML standard files
+   (`pathway`), HTML articles + clinical pages with Schema.org microdata
+   (`html`), JSON/YAML activity records (`raw`), Markdown briefings
+   (`markdown`). External `dataset` blocks emit through `output` blocks to
+   formats including JSON, CSV, Parquet, SQL, `supabase_migration`, and
+   `embeddings_jsonl`.
 
 ### Content Validation
 
@@ -59,19 +72,15 @@ schemas.
 
 ### Prose Caching
 
-The prose cache maps each content key to its generated text. The `build` verb
-reads from the cache, making generation fully repeatable without LLM calls. The
-`generate` verb regenerates all entries and writes the updated cache, then runs
-the same render+write the `build` verb performs.
+The prose cache maps each content key to its generated text. `build` reads
+from the cache (no LLM calls). `generate` regenerates entries and writes the
+updated cache, then runs the same render+write as `build`.
 
-Structured pathway entities (agent-aligned engineering standard, levels,
-behaviours, capabilities, etc.) use a stable cache key derived from the entity
-key alone (e.g. `pathway:track:platform`). This means prompt changes (such as
-adding context forwarding or updating preambles) do not invalidate existing
-cache entries — use `fit-terrain generate` to regenerate with updated prompts.
-
-General prose entries (articles, comments, briefings) use a cache key that
-includes the content context (topic, tone, length).
+Structured pathway entities use a stable cache key derived from the entity
+key alone (e.g. `pathway:track:platform`), so prompt changes (such as
+preamble updates) do not invalidate existing entries — use `generate` to
+refresh them. General prose entries (articles, comments, briefings) use a
+cache key that includes the content context (topic, tone, length).
 
 ### Output Cleanup
 
@@ -133,6 +142,13 @@ ANTHROPIC_API_KEY=<your-key> npx fit-terrain generate
 
 The `check`, `validate`, and `build` verbs require no LLM credentials — they
 read from the prose cache.
+
+DSL files that declare a Synthea `dataset` block also need Java 11+ on
+`PATH` and the Synthea JAR available via `SYNTHEA_JAR` (or in the default
+`vendor/synthea/synthea-with-dependencies.jar` location). When either is
+missing the pipeline logs an "unavailable" line and skips the Synthea block
+— it does not fail the run. See
+[`references/datasets.md`](references/datasets.md) for the one-time install.
 
 ---
 
