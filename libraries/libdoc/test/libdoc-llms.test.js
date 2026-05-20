@@ -314,7 +314,10 @@ test("PagesBuilder copies root-level static files and skips .md, template, CNAME
   assert.ok(copied.has("dist/favicon.ico"), "favicon.ico copied");
   assert.ok(!copied.has("dist/CNAME"), "CNAME not copied");
   assert.ok(!copied.has("dist/index.template.html"), "template not copied");
-  assert.ok(!copied.has("dist/justfile"), "justfile not copied (pre-build hook)");
+  assert.ok(
+    !copied.has("dist/justfile"),
+    "justfile not copied (pre-build hook)",
+  );
   assert.ok(
     !copied.has("dist/index.md") ||
       !copied.get("dist/index.md")?.includes("src/index.md"),
