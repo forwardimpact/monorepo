@@ -1,0 +1,25 @@
+{{#conditions}}
+<section
+  itemscope
+  itemtype="https://schema.org/MedicalCondition"
+  itemid="{{{iri}}}"
+>
+  <h2 itemprop="name">{{name}}</h2>
+  {{#icd10List}}
+  <meta itemprop="code" content="{{code}}" />
+  {{/icd10List}} {{#synonymList}}
+  <meta itemprop="alternateName" content="{{synonym}}" />
+  {{/synonymList}} {{#severity}}
+  <meta itemprop="status" content="{{severity}}" />
+  {{/severity}} {{#trialLinks}}
+  <link itemprop="study" href="{{{iri}}}" />
+  {{/trialLinks}}
+
+  <div
+    itemprop="description"
+    data-enrich="clinical_condition_explainer_{{id}}"
+  >
+    {{{prose}}}
+  </div>
+</section>
+{{/conditions}}

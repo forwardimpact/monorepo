@@ -97,7 +97,14 @@ export function buildClinicalEntities(
 
   const researchers = Array.from(researcherMap.values());
 
-  return { conditions, sites, trials, criteria, researchers };
+  return {
+    conditions,
+    sites,
+    trials,
+    criteria,
+    researchers,
+    content: clinicalAst.content || null,
+  };
 }
 
 function buildManagerLookup(people) {

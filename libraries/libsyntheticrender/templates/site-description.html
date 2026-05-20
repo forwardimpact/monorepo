@@ -1,0 +1,32 @@
+{{#sites}}
+<section
+  itemscope
+  itemtype="https://schema.org/MedicalClinic"
+  itemid="{{{iri}}}"
+>
+  <h2 itemprop="name">{{name}}</h2>
+  <div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
+    {{#address}}
+    <span itemprop="streetAddress">{{address}}</span>
+    {{/address}} {{#city}}
+    <span itemprop="addressLocality">{{city}}</span>
+    {{/city}} {{#state}}
+    <span itemprop="addressRegion">{{state}}</span>
+    {{/state}} {{#country}}
+    <span itemprop="addressCountry">{{country}}</span>
+    {{/country}}
+  </div>
+  {{#specialtyList}}
+  <meta itemprop="medicalSpecialty" content="{{specialty}}" />
+  {{/specialtyList}} {{#activeTrialLinks}}
+  <link itemprop="availableService" href="{{{iri}}}" />
+  {{/activeTrialLinks}}
+
+  <div
+    itemprop="description"
+    data-enrich="clinical_site_description_{{id}}"
+  >
+    {{{prose}}}
+  </div>
+</section>
+{{/sites}}

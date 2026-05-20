@@ -112,7 +112,8 @@ export function createPipeline(opts) {
         return new SyntheaTool({
           logger: deps.logger,
           syntheaJar:
-            process.env.SYNTHEA_JAR || "synthea-with-dependencies.jar",
+            process.env.SYNTHEA_JAR ||
+            "vendor/synthea/synthea-with-dependencies.jar",
           execFileFn,
           fsFns: {
             readFile,

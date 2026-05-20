@@ -482,3 +482,36 @@ tei-install:
 # Start TEI embedding service (foreground, Ctrl-C to stop)
 tei-start:
     text-embeddings-router --model-id BAAI/bge-small-en-v1.5 --port 8090 --json-output
+
+# ── Synthea ───────────────────────────────────────────────────────
+
+synthea_version := "3.3.0"
+synthea_jar := "vendor/synthea/synthea-with-dependencies.jar"
+
+# Download the Synthea JAR into vendor/synthea/ if not already present
+synthea-install:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -f "{{synthea_jar}}" ]; then
+        echo "synthea: already installed at {{synthea_jar}}"
+        exit 0
+    fi
+    mkdir -p vendor/synthea
+    echo "Downloading Synthea v{{synthea_version}}..."
+    curl -fSL -o "{{synthea_jar}}" \
+        "https://github.com/synthetichealth/synthea/releases/download/v{{synthea_version}}/synthea-with-dependencies.jar"
+    echo "synthea: installed at {{synthea_jar}}"
+
+# Report Synthea install status and Java availability
+synthea-status:
+    #!/usr/bin/env bash
+    if [ ! -f "{{synthea_jar}}" ]; then
+        echo "synthea: not installed (run 'just synthea-install')"
+        exit 1
+    fi
+    if ! command -v java &>/dev/null; then
+        echo "synthea: Java not found (install Java 11+)"
+        exit 1
+    fi
+    java_version=$(java -version 2>&1 | head -1)
+    echo "synthea: ok (${java_version})"

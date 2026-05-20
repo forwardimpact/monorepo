@@ -36,9 +36,8 @@ export class SyntheaTool {
     } catch {
       throw new Error(
         `Synthea requires Java and ${this.syntheaJar}. ` +
-          "Install Java (java.com) and download Synthea " +
-          "(github.com/synthetichealth/synthea/releases). " +
-          "Set SYNTHEA_JAR to the jar path.",
+          "Run 'just synthea-install' to download the JAR, " +
+          "or set SYNTHEA_JAR to a custom path.",
       );
     }
   }
@@ -49,6 +48,10 @@ export class SyntheaTool {
    * @param {string} config.name - Dataset name from DSL
    * @param {number} [config.population=100] - Number of patients
    * @param {string[]} [config.modules] - Synthea modules to enable
+   * @param {string[]} [config.conditions] - Clinical condition IDs to filter
+   *   patients by, matched against `Condition.code.coding[].code` exactly or
+   *   `.display` normalized to `lowercase_underscored` form (the DSL
+   *   condition-id convention).
    * @param {number} config.seed - RNG seed
    * @returns {Promise<Dataset[]>}
    */
@@ -100,6 +103,8 @@ export class SyntheaTool {
       }
     }
 
+    filterByConditions(byType, config.conditions);
+
     // Return one dataset per resource type
     const datasets = [];
     for (const [type, records] of byType) {
@@ -116,6 +121,58 @@ export class SyntheaTool {
 
     return datasets;
   }
+}
+
+/**
+ * Restrict the flattened FHIR resources to patients whose Condition entries
+ * match one of the supplied clinical condition IDs. Matches on `code.coding[].code`
+ * exactly, or `code.coding[].display` normalized to lowercase-underscored form
+ * (the DSL convention).
+ *
+ * Mutates `byType` in place. No-op when conditions is empty/undefined, when
+ * there are no FHIR Condition resources, or when no patients match (so a
+ * mis-spelled condition does not silently drop the entire dataset).
+ */
+function filterByConditions(byType, conditions) {
+  if (!conditions?.length) return;
+  const patientType = byType.get("Patient");
+  const conditionType = byType.get("Condition");
+  if (!patientType || !conditionType) return;
+
+  const matchedPatientIds = new Set();
+  for (const cond of conditionType) {
+    const coding = cond.code?.coding || [];
+    const matches = coding.some(
+      (c) =>
+        conditions.includes(c.code) ||
+        conditions.includes(c.display?.toLowerCase().replace(/\s+/g, "_")),
+    );
+    if (!matches) continue;
+    const patientId = normalizePatientRef(cond.subject?.reference);
+    if (patientId) matchedPatientIds.add(patientId);
+  }
+  if (matchedPatientIds.size === 0) return;
+
+  for (const [type, records] of byType) {
+    byType.set(
+      type,
+      records.filter((r) => {
+        // Patient resources carry their own UUID in `id`. All other FHIR
+        // resources (Condition, Encounter, Observation, ...) also carry their
+        // own UUID in `id` — the link back to the patient lives on
+        // `subject.reference`. Prefer the patient reference when present.
+        const subjectId = normalizePatientRef(r.subject?.reference);
+        if (subjectId) return matchedPatientIds.has(subjectId);
+        if (type === "Patient") return matchedPatientIds.has(r.id);
+        return true;
+      }),
+    );
+  }
+}
+
+function normalizePatientRef(ref) {
+  if (!ref) return null;
+  return ref.replace(/^urn:uuid:/, "").replace(/^Patient\//, "");
 }
 
 /**

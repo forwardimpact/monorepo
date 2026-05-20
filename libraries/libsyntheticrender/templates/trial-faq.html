@@ -1,0 +1,24 @@
+{{#trials}}
+<section
+  itemscope
+  itemtype="https://schema.org/MedicalTrial"
+  itemid="{{{iri}}}"
+>
+  <h2 itemprop="name">{{name}}</h2>
+  {{#protocol_id}}
+  <meta itemprop="identifier" content="{{protocol_id}}" />
+  {{/protocol_id}} {{#phase}}
+  <meta itemprop="phase" content="{{phase}}" />
+  {{/phase}} {{#status}}
+  <meta itemprop="status" content="{{status}}" />
+  {{/status}} {{#sponsor}}
+  <meta itemprop="sponsor" content="{{sponsor}}" />
+  {{/sponsor}} {{#conditionLinks}}
+  <link itemprop="healthCondition" href="{{{iri}}}" />
+  {{/conditionLinks}}
+
+  <div itemprop="description" data-enrich="clinical_trial_faq_{{id}}">
+    {{{prose}}}
+  </div>
+</section>
+{{/trials}}

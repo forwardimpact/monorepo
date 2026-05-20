@@ -140,4 +140,45 @@ describe("dataset and output parsing", () => {
     assert.strictEqual(ast.datasets[0].id, "a");
     assert.strictEqual(ast.datasets[1].id, "b");
   });
+
+  test("parses conditions field on dataset", () => {
+    const ast = parseDsl(`terrain test {
+      dataset trial_patients {
+        tool synthea
+        population 100
+        conditions [lung_cancer, diabetes_t2, cardiovascular]
+      }
+    }`);
+    const ds = ast.datasets[0];
+    assert.deepStrictEqual(ds.config.conditions, [
+      "lung_cancer",
+      "diabetes_t2",
+      "cardiovascular",
+    ]);
+  });
+
+  test("parses conditions alongside modules — both coexist", () => {
+    const ast = parseDsl(`terrain test {
+      dataset trial_patients {
+        tool synthea
+        modules [hypertension]
+        conditions [lung_cancer]
+      }
+    }`);
+    const ds = ast.datasets[0];
+    assert.deepStrictEqual(ds.config.modules, ["hypertension"]);
+    assert.deepStrictEqual(ds.config.conditions, ["lung_cancer"]);
+  });
+
+  test("parses conditions without modules", () => {
+    const ast = parseDsl(`terrain test {
+      dataset trial_patients {
+        tool synthea
+        conditions [lung_cancer]
+      }
+    }`);
+    const ds = ast.datasets[0];
+    assert.strictEqual(ds.config.modules, undefined);
+    assert.deepStrictEqual(ds.config.conditions, ["lung_cancer"]);
+  });
 });

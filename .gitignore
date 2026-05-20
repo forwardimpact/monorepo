@@ -103,3 +103,6 @@ design/scripts/bun.lock
 
 # Pitch material
 pitch/
+
+# Synthea JAR (downloaded on demand via `just synthea-install`)
+vendor/synthea/

@@ -13,6 +13,7 @@ import {
   enrichPlatformsWithLinks,
   enrichDrugsWithLinks,
 } from "./html-helpers.js";
+import { renderClinicalPages } from "./html-clinical.js";
 
 /** Wrap inner HTML in the page shell. */
 function page(templates, title, body, domain) {
@@ -403,6 +404,11 @@ export function renderHTML(entities, prose, templates) {
 
   if (gc) {
     renderContentPages(files, gc, linked, entities, prose, templates, domain);
+  }
+
+  if (entities.clinical) {
+    const pageWrap = (title, body) => page(templates, title, body, domain);
+    renderClinicalPages(files, entities, prose, templates, domain, pageWrap);
   }
 
   return { files, linked };

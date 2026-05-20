@@ -249,6 +249,9 @@ export function createStandardParsers(helpers) {
     modules: (ds) => {
       ds.config.modules = parseArray();
     },
+    conditions: (ds) => {
+      ds.config.conditions = parseArray();
+    },
     metadata: (ds) => {
       ds.config.metadata = parseStringValue();
     },

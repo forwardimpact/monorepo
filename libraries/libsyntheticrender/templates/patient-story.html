@@ -1,0 +1,17 @@
+{{#stories}}
+<article
+  itemscope
+  itemtype="https://schema.org/MedicalCondition"
+  itemid="{{{conditionIri}}}"
+>
+  <h2 itemprop="name">{{title}}</h2>
+  <meta itemprop="alternateName" content="{{conditionName}}" />
+
+  <div
+    itemprop="description"
+    data-enrich="clinical_patient_story_{{conditionId}}_{{index}}"
+  >
+    {{{prose}}}
+  </div>
+</article>
+{{/stories}}

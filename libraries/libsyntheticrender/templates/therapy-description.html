@@ -1,0 +1,17 @@
+{{#therapies}}
+<section
+  itemscope
+  itemtype="https://schema.org/MedicalTherapy"
+  itemid="{{{iri}}}"
+>
+  <h2 itemprop="name">{{title}}</h2>
+  <meta itemprop="identifier" content="{{topic}}" />
+
+  <div
+    itemprop="description"
+    data-enrich="clinical_therapy_description_{{topic}}"
+  >
+    {{{prose}}}
+  </div>
+</section>
+{{/therapies}}
