@@ -176,14 +176,17 @@ export async function assertPersonaIsHuman(supabase, email) {
 
 /**
  * Verify both the persona row and discovery vector carry the values the
- * smoke loop will substitute into command argv placeholders.
+ * smoke loop will substitute into command argv placeholders. The persona
+ * row's `parent_email` field is the spec 1090 § Decision 4 rename of the
+ * previous `manager_email` column; the assertion still gates "persona
+ * has a non-null parent".
  * @param {object} persona
  * @param {{snapshot_id: string, item_id: string}} discovery
  */
 export function assertDiscoveryResolves(persona, discovery) {
-  if (!persona.email || !persona.manager_email) {
+  if (!persona.email || !persona.parent_email) {
     throw new Error(
-      `persona missing email/manager_email: ${JSON.stringify(persona)}`,
+      `persona missing email/parent_email: ${JSON.stringify(persona)}`,
     );
   }
   if (!discovery.snapshot_id || !discovery.item_id) {

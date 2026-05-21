@@ -7,71 +7,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 
 import { findInvariantSatisfyingPersonas } from "../../src/commands/substrate-persona-query.js";
-
-/**
- * Build a Supabase-shaped stub with the five tables the helper queries.
- * Each table's stub returns rows; chained calls (select/eq/order/limit)
- * are tolerated as no-ops so the helper's call patterns work.
- */
-function makeStub({
-  snapshots = [],
-  scores = [],
-  humans = [],
-  artifacts = [],
-  evidence = [],
-} = {}) {
-  return {
-    from(table) {
-      let rows;
-      let filter = (rs) => rs;
-      switch (table) {
-        case "getdx_snapshots":
-          rows = snapshots;
-          break;
-        case "getdx_snapshot_team_scores":
-          rows = scores;
-          break;
-        case "organization_people":
-          rows = humans;
-          // helper filters `.eq("kind", "human")`
-          filter = (rs) => rs.filter((r) => r.kind === "human");
-          break;
-        case "github_artifacts":
-          rows = artifacts;
-          break;
-        case "evidence":
-          rows = evidence;
-          break;
-        default:
-          throw new Error(`unexpected table ${table}`);
-      }
-      let filtered = rows;
-      const builder = {
-        select() {
-          filtered = filter(rows);
-          return builder;
-        },
-        eq(col, val) {
-          filtered = filtered.filter((r) => r[col] === val);
-          return builder;
-        },
-        order() {
-          return builder;
-        },
-        limit() {
-          return Promise.resolve({ data: filtered, error: null });
-        },
-        then(resolve, reject) {
-          return Promise.resolve({ data: filtered, error: null }).then(
-            resolve,
-            reject,
-          );
-        },
-      };
-      return builder;
-    },
-  };
-}
+import { makeStub } from "./_substrate-stubs.js";
 
 describe("findInvariantSatisfyingPersonas", () => {
   test("returns empty + diagnostic when no snapshots exist", async () => {
@@ -140,28 +76,46 @@ describe("findInvariantSatisfyingPersonas", () => {
 
   test("returns a persona that satisfies all four invariants", async () => {
     // alice manages bob AND has her own evidence; bob authored evidence
-    // (so practice_directs_count >= 1 for alice).
+    // (so practice_directs_count >= 1 for alice). Spec 1090 § Decision 4
+    // requires the row's own manager_email to be non-null — chief@x is
+    // alice's parent for that join.
     const supabase = makeStub({
       snapshots: [{ snapshot_id: "S1", scheduled_for: "2026-01-01" }],
       scores: [{ item_id: "ITEM1", snapshot_id: "S1" }],
+      teams: [{ getdx_team_id: "T1", name: "Team One" }],
       humans: [
         {
           email: "alice@x",
           name: "A",
+          github_username: "alice",
           kind: "human",
           discipline: "d",
           level: "L1",
           track: null,
-          manager_email: null,
+          manager_email: "chief@x",
+          getdx_team_id: "T1",
         },
         {
           email: "bob@x",
           name: "B",
+          github_username: "bob",
           kind: "human",
           discipline: "d",
           level: "L1",
           track: null,
           manager_email: "alice@x",
+          getdx_team_id: "T1",
+        },
+        {
+          email: "chief@x",
+          name: "Chief",
+          github_username: "chief",
+          kind: "human",
+          discipline: "d",
+          level: "L9",
+          track: null,
+          manager_email: null,
+          getdx_team_id: null,
         },
       ],
       artifacts: [
@@ -172,12 +126,47 @@ describe("findInvariantSatisfyingPersonas", () => {
     });
     const out = await findInvariantSatisfyingPersonas({ supabase });
     assert.equal(out.personas.length, 1);
-    assert.equal(out.personas[0].email, "alice@x");
+    const alice = out.personas[0];
+    assert.equal(alice.email, "alice@x");
+    assert.equal(alice.parent_email, "chief@x");
+    assert.equal(alice.team_name, "Team One");
+    assert.equal(alice.parent.email, "chief@x");
+    assert.equal(alice.parent.level, "L9");
+    assert.equal(alice.teammates.length, 1);
+    assert.equal(alice.teammates[0].email, "bob@x");
+    assert.equal(alice.teammates_truncated, false);
     assert.equal(out.discovery.snapshot_id, "S1");
     assert.equal(out.discovery.item_id, "ITEM1");
-    assert.equal(out.personas[0].manages_count, 1);
-    assert.equal(out.personas[0].evidence_count, 1);
-    assert.equal(out.personas[0].practice_directs_count, 1);
+    assert.equal(alice.manages_count, 1);
+    assert.equal(alice.evidence_count, 1);
+    assert.equal(alice.practice_directs_count, 1);
+  });
+
+  test("excludes top-of-tree rows; diagnoses parent_email_known when all parents are null", async () => {
+    const supabase = makeStub({
+      snapshots: [{ snapshot_id: "S1", scheduled_for: "2026-01-01" }],
+      scores: [{ item_id: "ITEM1", snapshot_id: "S1" }],
+      humans: [
+        {
+          email: "solo@x",
+          name: "Solo",
+          kind: "human",
+          discipline: "d",
+          level: "L9",
+          track: null,
+          manager_email: null,
+          getdx_team_id: null,
+        },
+      ],
+      artifacts: [],
+      evidence: [],
+    });
+    const out = await findInvariantSatisfyingPersonas({ supabase });
+    assert.equal(out.personas.length, 0);
+    assert.match(
+      out.diagnostic,
+      /no invariant-satisfying persona — binding constraint: parent_email_known/,
+    );
   });
 
   test("excludes service_account rows from the humans pool", async () => {
