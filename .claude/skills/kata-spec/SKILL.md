@@ -53,7 +53,8 @@ asked for. If they ask for a spec, write the spec and stop.
       excluded.
 - [ ] Success criteria are verifiable (a command, observable behaviour, or
       testable property).
-- [ ] No implementation details have leaked in (HOW belongs in the plan).
+- [ ] No implementation details have leaked in (HOW belongs in the plan) —
+      including `file:line` citations in Problem evidence.
 - [ ] Clean sub-agent review panel of `spec.md` via
       [`kata-review`](../kata-review/SKILL.md) completed (fresh context, no
       prior bias, panel size per caller protocol) and every **blocker**,
@@ -85,7 +86,8 @@ Identify which persona and job from [JTBD.md](../../../JTBD.md) the spec serves.
 - **Verifiable success.** Each criterion is a claim plus the command or path
   that verifies it. One sentence each. No rationale, no alternatives considered.
 - **No HOW.** Name what each component does, not which mechanism implements it.
-  Tool selection and sequencing belong in the design and plan.
+  Tool selection and sequencing belong in the design and plan. Cite evidence
+  by entity or behaviour name, not by `file:line` pointer.
 
 **Form follows content.** Prefer tables for lists with shared structure (files,
 criteria, alternatives). Prefer bullets for flat facts. Use prose only for the
