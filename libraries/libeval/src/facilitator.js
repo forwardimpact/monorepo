@@ -27,7 +27,9 @@ export const FACILITATOR_SYSTEM_PROMPT =
   "Redirect interrupts an in-progress participant with replacement instructions. " +
   "RollCall returns the participant roster. " +
   "Conclude ends the session with a verdict ('success' or 'failure') and a summary. " +
-  "Ask and Announce calls issued in the same turn dispatch in parallel.";
+  "Ask and Announce calls issued in the same turn dispatch in parallel. " +
+  "You MUST call Conclude to end every session — never end a turn with only text. " +
+  "If you can answer the task yourself, still call Conclude with verdict='success' and the answer as the summary.";
 
 /** System prompt appended for facilitated agent runners. */
 export const FACILITATED_AGENT_SYSTEM_PROMPT =
