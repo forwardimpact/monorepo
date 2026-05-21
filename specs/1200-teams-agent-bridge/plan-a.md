@@ -235,6 +235,9 @@ dependencies, and configuration.
   "files": ["index.js", "server.js"],
   "scripts": { "test": "bun test test/*.test.js" },
   "dependencies": {
+    "@forwardimpact/libconfig": "workspace:*",
+    "@forwardimpact/librpc": "workspace:*",
+    "@forwardimpact/libtelemetry": "workspace:*",
     "botbuilder": "^4.24.0",
     "express": "^4.21.0"
   },
@@ -251,27 +254,49 @@ persona is `"Teams Using Agents"` rather than the conventional
 (Teams engineers invoke it directly), not a backend consumed by other
 products.
 
-`server.js` — entry point. Departs from the standard service bootstrap
-sequence (`createServiceConfig` / `createLogger` / `createTracer`) because
-the bridge is an HTTP/Bot Framework service, not a gRPC service — it has no
-`libconfig` config stanza, no proto definitions, and no `librpc` server.
-Logger and tracer are also omitted: the prototype uses `console.log` for
-diagnostic output; wiring `createLogger` requires a `libconfig` service
-config entry that does not exist for this service. Revisit if the bridge
-moves beyond prototype. Env vars are read directly at the composition root:
+`server.js` — entry point. Follows the standard service bootstrap sequence
+(`createServiceConfig` / `createLogger` / `createTracer`). Although the
+bridge is HTTP/Bot Framework (not gRPC), it uses libconfig for credential
+management, libtelemetry for structured logging, and librpc for optional
+distributed tracing. All credentials flow through Config getters
+(`msAppId()`, `msAppPassword()`, `msAppTenantId()`, `ghToken()`);
+service-specific params (`github_repo`, `callback_base_url`) are declared
+as defaults and overridden via `SERVICE_MSTEAMS_*` env vars. No direct
+`process.env` access:
 
 ```js
 #!/usr/bin/env node
+import { createServiceConfig } from "@forwardimpact/libconfig";
+import { createTracer } from "@forwardimpact/librpc";
+import { createLogger } from "@forwardimpact/libtelemetry";
+
 import { createBridge } from "./index.js";
 
+const config = await createServiceConfig("msteams", {
+  protocol: "http",
+  port: 3978,
+  github_repo: "",
+  callback_base_url: "",
+});
+const logger = createLogger("msteams");
+
+let tracer = null;
+try {
+  tracer = await createTracer("msteams");
+} catch {
+  logger.info("server", "trace service unavailable, spans disabled");
+}
+
 const bridge = createBridge({
-  microsoftAppId: process.env.MICROSOFT_APP_ID ?? "",
-  microsoftAppPassword: process.env.MICROSOFT_APP_PASSWORD ?? "",
-  microsoftAppTenantId: process.env.MICROSOFT_APP_TENANT_ID ?? "",
-  githubToken: process.env.GH_TOKEN,
-  githubRepo: process.env.GITHUB_REPO,
-  callbackBaseUrl: process.env.CALLBACK_BASE_URL,
-  port: parseInt(process.env.PORT ?? "3978", 10),
+  microsoftAppId: config.msAppId(),
+  microsoftAppPassword: config.msAppPassword(),
+  microsoftAppTenantId: config.msAppTenantId(),
+  githubToken: config.ghToken(),
+  githubRepo: config.github_repo,
+  callbackBaseUrl: config.callback_base_url,
+  port: config.port,
+  logger,
+  tracer,
 });
 
 await bridge.start();
@@ -290,17 +315,22 @@ callback webhook, and conversation continuity.
 |---|---|
 | Modify | `services/msteams/index.js` |
 
-`index.js` exports `createBridge(config)` returning `{ start() }`.
-Internally constructs the adapter, stores, and Express app — the factory
-function is the composition root; collaborators (adapter, stores) are
-created inside and exposed on the returned object for test access.
+`index.js` exports `createBridge(config)` returning the bridge object.
+Config accepts optional `logger` (libtelemetry Logger) and `tracer`
+(librpc Tracer); both default to null when omitted (tests pass without
+them). Internally constructs the adapter, stores, and Express app — the
+factory function is the composition root; collaborators (adapter, stores)
+are created inside and exposed on the returned object for test access.
 
 ```
 createBridge(config) → {
   start(),
+  stop(),
   conversations,      // Map<threadId, { ref, history }> — exposed for tests
   pendingCallbacks,   // Map<token, { correlationId, threadId }> — exposed for tests
   buildPrompt(text, history),  // pure function — exposed for tests
+  formatReply(payload),        // pure function — exposed for tests
+  app,                         // Express app — exposed for route assertions
 }
 ```
 
@@ -321,12 +351,17 @@ Internal structure:
    `microsoftAppId` from config.
 
 3. **Activity handler** — On `message` activity type:
-   - Extract thread ID from `activity.conversation.id`.
-   - Look up or create conversation state in `conversations`.
+   - Ignore non-message activities, missing thread IDs, and empty text
+     (all logged at debug level).
+   - Start a `MsTeams.HandleMessage` span (SERVER kind) if tracer is
+     available.
+   - Look up or create conversation state in `conversations`. Log new
+     conversations at info level with thread ID and sender.
    - Save the `ConversationReference` from
      `TurnContext.getConversationReference(activity)`.
    - Build the prompt via `buildPrompt(text, history)`: prepend last 5
-     exchanges (~4000 chars max), then the current message.
+     exchanges (~4000 chars max), then the current message. Log prompt
+     construction details at debug level.
    - Generate a correlation ID and a callback token (both via
      `crypto.randomUUID()` — Node.js built-in, no `uuid` dependency).
    - Store `{ correlationId, threadId }` in `pendingCallbacks` keyed by
@@ -334,20 +369,26 @@ Internal structure:
    - Send an acknowledgement reply: `"Working on it..."`.
    - POST `workflow_dispatch` to GitHub REST API with `prompt`,
      `callback_url` (`{callbackBaseUrl}/api/callback/{callbackToken}`), and
-     `correlation_id`.
+     `correlation_id`. Log dispatch and success at info level.
    - Append `{ role: "user", text }` to conversation history.
+   - End span with setOk/setError.
 
 4. **Callback handler** — On `POST /api/callback/:token`:
    - Look up `pendingCallbacks` by the `:token` path parameter.
    - Return 404 if not found (token is one-time use).
+   - Start a `MsTeams.HandleCallback` span (SERVER kind) if tracer is
+     available.
    - Parse the JSON body: `{ correlation_id, verdict, summary, run_url }`.
+   - Verify `correlation_id` matches the stored value; return 400 on
+     mismatch (logged at error level).
    - Look up conversation state via the stored `threadId`.
-   - Format reply text: `"**{verdict}** — {summary}"` (with run URL link
-     if present).
+   - Format reply text via `formatReply()`: `"**{verdict}** — {summary}"`
+     (with run URL link if present).
    - Send proactive message to the stored `ConversationReference` using
-     `adapter.continueConversationAsync()`.
+     `adapter.continueConversationAsync()`. Log delivery at info level.
    - Append `{ role: "assistant", text: summary }` to conversation history.
    - Delete the `pendingCallbacks` entry.
+   - End span with setOk/setError.
 
 5. **Conversation store** — `Map<threadId, { ref, history }>`. History
    bounded to 5 exchanges (10 entries). Keyed by Teams thread ID so
@@ -387,15 +428,20 @@ external dependencies.
 - Tests the error case: trace with no summary event throws
   `"No orchestrator summary event found in trace"`.
 
-`bridge.test.js` — imports `createBridge` and tests the extracted helpers:
+`bridge.test.js` — imports `createBridge` and tests the extracted helpers.
+Tests create bridges without a logger or tracer (both default to null):
 
 - `buildPrompt(text, history)`: returns just the text when history is empty;
   prepends history entries when present; truncates history to 5 exchanges
   (10 entries, oldest discarded first); total prompt stays within ~4000
   chars (character cap applied after entry-count cap).
+- `formatReply(payload)`: formats verdict and summary; appends run-log link
+  when `run_url` is present; defaults to "unknown" for missing verdict.
+- `appendHistory(history, entry)`: bounded append, rollover at 10 entries.
 - `pendingCallbacks` store: token-based insert, O(1) lookup, cleanup after
   delivery.
 - `conversations` store: history append, bounded rollover.
+- Config normalization: trailing slashes stripped from `callbackBaseUrl`.
 
 The HTTP routing and Bot Framework adapter are not unit-tested — they
 require a live Teams tenant. This is a known limitation acceptable for a
@@ -416,16 +462,20 @@ prototype.
 Contents:
 
 1. **Prerequisites** — Node.js 18+, a Microsoft 365 developer tenant, Azure
-   Bot registration (single-tenant), a dev tunnel tool (VS Code Dev Tunnels
-   or ngrok).
+   Bot registration (single-tenant), a dev tunnel tool (cloudflared,
+   VS Code Dev Tunnels, or ngrok).
 2. **Bot registration** — Step-by-step for creating a single-tenant Azure
    Bot registration, configuring the messaging endpoint URL.
-3. **Environment variables** — `MICROSOFT_APP_ID`, `MICROSOFT_APP_PASSWORD`,
-   `GH_TOKEN` (with `actions:write`), `GITHUB_REPO` (owner/repo),
-   `CALLBACK_BASE_URL` (the tunnel's public URL), `PORT` (default 3978).
-4. **Running** — `cd services/msteams && bun install && node server.js`.
-5. **Dev tunnel** — Start tunnel, copy the public URL to
-   `CALLBACK_BASE_URL` and the bot registration's messaging endpoint.
+3. **Environment variables** — All set in the root `.env` and loaded via
+   libconfig: `MICROSOFT_APP_ID`, `MICROSOFT_APP_PASSWORD`,
+   `MICROSOFT_APP_TENANT_ID` (credentials), `SERVICE_MSTEAMS_GITHUB_REPO`
+   (owner/repo), `SERVICE_MSTEAMS_CALLBACK_BASE_URL` (the tunnel's public
+   URL). Port defaults to 3978 via service config.
+4. **Running** — `just msteams-tunnel` (in one terminal) and
+   `just msteams-bridge` (in another).
+5. **Dev tunnel** — `just msteams-tunnel` starts cloudflared; copy the
+   public URL to `SERVICE_MSTEAMS_CALLBACK_BASE_URL` and the bot
+   registration's messaging endpoint.
 6. **Testing** — Send a message to the bot in Teams, observe the
    round-trip.
 
@@ -440,7 +490,7 @@ Contents:
 Run `bun run context:fix` to regenerate the service catalog in
 `services/README.md`. The bridge is intentionally excluded from
 `config/config.example.json` — it is not part of the init system that
-`just guide` manages (it runs standalone via `node server.js`).
+`just guide` manages (it runs standalone via `just msteams-bridge`).
 
 **Verify:** `services/README.md` includes the `msteams` row. `bun run check`
 passes.
@@ -460,7 +510,7 @@ passes.
   when the workflow change lands, the step will fail with "unknown command."
   Sequence: merge libeval, cut a release, then merge the workflow change.
 
-Libraries used: `botbuilder` (CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext), `express` (HTTP server).
+Libraries used: `botbuilder` (CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext), `express` (HTTP server), `@forwardimpact/libconfig` (credential management, env loading), `@forwardimpact/libtelemetry` (structured logging), `@forwardimpact/librpc` (optional distributed tracing).
 
 ## Execution
 
