@@ -2,8 +2,8 @@
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
-Microsoft Teams bridge — relay messages between Teams conversations and the
-Kata agent team.
+Microsoft Teams bridge — relay messages between Teams conversations and the Kata
+agent team.
 
 <!-- END:description -->
 
