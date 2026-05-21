@@ -215,13 +215,14 @@ test("PagesBuilder prefers explicit baseUrl over CNAME", async () => {
   );
 });
 
-test("PagesBuilder copies root-level static files and skips .md, template, CNAME", async () => {
+test("PagesBuilder copies root-level static files and skips .md, template, CNAME, justfile", async () => {
   const sourceFiles = new Map([
     ["src/index.md", "---\ntitle: Home\n---\nContent"],
     ["src/robots.txt", "User-agent: *"],
     ["src/favicon.ico", "icon-data"],
     ["src/CNAME", "example.com"],
     ["src/index.template.html", "template"],
+    ["src/justfile", "build:\n    echo build hook"],
   ]);
 
   const allRootEntries = [
@@ -230,6 +231,7 @@ test("PagesBuilder copies root-level static files and skips .md, template, CNAME
     { name: "favicon.ico", isFile: () => true },
     { name: "CNAME", isFile: () => true },
     { name: "index.template.html", isFile: () => true },
+    { name: "justfile", isFile: () => true },
     { name: "docs", isFile: () => false },
   ];
 
@@ -312,6 +314,10 @@ test("PagesBuilder copies root-level static files and skips .md, template, CNAME
   assert.ok(copied.has("dist/favicon.ico"), "favicon.ico copied");
   assert.ok(!copied.has("dist/CNAME"), "CNAME not copied");
   assert.ok(!copied.has("dist/index.template.html"), "template not copied");
+  assert.ok(
+    !copied.has("dist/justfile"),
+    "justfile not copied (pre-build hook)",
+  );
   assert.ok(
     !copied.has("dist/index.md") ||
       !copied.get("dist/index.md")?.includes("src/index.md"),
