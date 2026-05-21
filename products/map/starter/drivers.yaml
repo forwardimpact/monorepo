@@ -1,26 +1,65 @@
 # yaml-language-server: $schema=https://www.forwardimpact.team/schema/json/drivers.schema.json
 
-- id: quality
-  name: Quality
-  description: Deliver work that meets expectations consistently.
-  contributingSkills:
-    - task_completion
-    - planning
-  contributingBehaviours:
-    - systems_thinking
+- id: clear_direction
+  name: Clear Direction
+  description: Teams know what to build and why.
 
-- id: reliability
-  name: Reliability
-  description: Keep systems dependable and recover quickly from disruption.
-  contributingSkills:
-    - incident_response
-  contributingBehaviours:
-    - systems_thinking
+- id: say_on_priorities
+  name: Say On Priorities
+  description: Engineers shape the priorities they are asked to deliver.
 
-- id: cognitive_load
-  name: Cognitive Load
-  description: Keep day-to-day engineering tractable by managing complexity.
-  contributingSkills:
-    - planning
-  contributingBehaviours:
-    - systems_thinking
+- id: requirements_quality
+  name: Requirements Quality
+  description: Requests arrive specific enough to act on without re-discovery.
+
+- id: ease_of_release
+  name: Ease Of Release
+  description: Shipping a change to users is low-friction and low-anxiety.
+
+- id: test_efficiency
+  name: Test Efficiency
+  description: The test suite gives fast, trustworthy signal on every change.
+
+- id: managing_tech_debt
+  name: Managing Tech Debt
+  description: Known debt is tracked and paid down on a predictable cadence.
+
+- id: code_review
+  name: Code Review
+  description: Reviews are timely, substantive, and improve the change under review.
+
+- id: documentation
+  name: Documentation
+  description: The docs a contributor needs are present, current, and discoverable.
+
+- id: codebase_experience
+  name: Codebase Experience
+  description: Navigating, reading, and changing the codebase feels coherent.
+
+- id: incident_response
+  name: Incident Response
+  description: Production issues are detected, mitigated, and learned from quickly.
+
+- id: learning_culture
+  name: Learning Culture
+  description: People grow their craft as a normal part of the work.
+
+- id: experimentation
+  name: Experimentation
+  description: Small, reversible bets are encouraged and resourced.
+
+- id: connectedness
+  name: Connectedness
+  description: Engineers know who to talk to and feel part of the team.
+
+- id: efficient_processes
+  name: Efficient Processes
+  description: Process exists to unblock work, not to add ceremony.
+
+- id: deep_work
+  name: Deep Work
+  description: Engineers get uninterrupted time for sustained focus.
+
+- id: leveraging_user_feedback
+  name: Leveraging User Feedback
+  description: User signal reaches the people building the product and changes what they build.

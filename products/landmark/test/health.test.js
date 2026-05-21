@@ -148,4 +148,62 @@ describe("health command", () => {
     assert.equal(result.view, null);
     assert.ok(result.meta.emptyState.includes("nobody@example.com"));
   });
+
+  it("driverJoin.state is MATCHED with the existing fixture", async () => {
+    const result = await runHealthCommand({
+      options: { manager: "alice@example.com" },
+      mapData: MAP_DATA,
+      supabase: {},
+      format: "text",
+      queries: stubQueries(),
+      summitFn: summitAbsent,
+    });
+    assert.equal(result.view.driverJoin.state, "MATCHED");
+    assert.equal(result.view.driverJoin.matched, 1);
+  });
+
+  it("driverJoin.state is NO_DRIVERS when drivers.yaml is empty", async () => {
+    const emptyDriversMap = { ...MAP_DATA, drivers: [] };
+    const result = await runHealthCommand({
+      options: { manager: "alice@example.com" },
+      mapData: emptyDriversMap,
+      supabase: {},
+      format: "text",
+      queries: stubQueries(),
+      summitFn: summitAbsent,
+    });
+    assert.equal(result.view.driverJoin.state, "NO_DRIVERS");
+    assert.equal(result.view.driverJoin.yamlIds, 0);
+  });
+
+  it("driverJoin.state is NO_MATCH when scores carry ids disjoint from drivers.yaml", async () => {
+    const disjointScores = [
+      { snapshot_id: "snap-1", item_id: "clear_direction", score: 50 },
+      { snapshot_id: "snap-1", item_id: "deep_work", score: 60 },
+    ];
+    const result = await runHealthCommand({
+      options: { manager: "alice@example.com" },
+      mapData: MAP_DATA,
+      supabase: {},
+      format: "text",
+      queries: stubQueries({ scores: disjointScores }),
+      summitFn: summitAbsent,
+    });
+    assert.equal(result.view.driverJoin.state, "NO_MATCH");
+    assert.equal(result.view.driverJoin.matched, 0);
+    assert.equal(result.view.driverJoin.scoreIds, 2);
+  });
+
+  it("driverJoin.state is null when drivers configured but no team-scoped scores", async () => {
+    const result = await runHealthCommand({
+      options: { manager: "alice@example.com" },
+      mapData: MAP_DATA,
+      supabase: {},
+      format: "text",
+      queries: stubQueries({ scores: [] }),
+      summitFn: summitAbsent,
+    });
+    assert.equal(result.view.driverJoin.state, null);
+    assert.equal(result.view.driverJoin.scoreIds, 0);
+  });
 });

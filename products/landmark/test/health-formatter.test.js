@@ -296,4 +296,77 @@ describe("health formatter — verbose mode", () => {
     assert.match(out, /Evidence:/);
     assert.match(out, /GetDX comments:/);
   });
+
+  it("suppresses Contributing skills / Evidence when contributingSkills is empty", () => {
+    const view = {
+      teamLabel: "Team",
+      drivers: [
+        makeDriver({
+          name: "Clear Direction",
+          score: 42,
+          vs_org: -10,
+          contributingSkills: [],
+        }),
+      ],
+    };
+    const out = toText(view, {
+      format: "text",
+      warnings: [],
+      verbose: true,
+    });
+    assert.ok(
+      !out.includes("Contributing skills:"),
+      "verbose output should not include Contributing skills: when empty",
+    );
+    assert.ok(
+      !out.includes("Evidence:"),
+      "verbose output should not include Evidence: when empty",
+    );
+  });
+});
+
+describe("health formatter — driverJoin states", () => {
+  it("renders NO_DRIVERS copy and skips the column header", () => {
+    const view = {
+      teamLabel: "Team",
+      drivers: [],
+      driverJoin: { state: "NO_DRIVERS", yamlIds: 0, scoreIds: 0, matched: 0 },
+    };
+    const out = toText(view, { format: "text", warnings: [] });
+    assert.match(out, /Drivers \(no drivers configured\)/);
+    assert.match(out, /npx fit-map init/);
+    assert.ok(
+      !/^\s*#\s+Driver\s+Percentile/m.test(out),
+      "should not render the default table column header",
+    );
+  });
+
+  it("renders NO_MATCH copy with the configured/snapshot id counts", () => {
+    const view = {
+      teamLabel: "Team",
+      drivers: [],
+      driverJoin: { state: "NO_MATCH", yamlIds: 2, scoreIds: 3, matched: 0 },
+    };
+    const out = toText(view, { format: "text", warnings: [] });
+    assert.match(out, /Drivers \(no matches\)/);
+    assert.match(
+      out,
+      /Snapshot has 3 driver ids, your `data\/pathway\/drivers\.yaml` declares 2/,
+    );
+    assert.match(out, /GetDX taxonomy/);
+  });
+
+  it("renders NO_DRIVERS copy in markdown", () => {
+    const view = {
+      teamLabel: "Team",
+      drivers: [],
+      driverJoin: { state: "NO_DRIVERS", yamlIds: 0, scoreIds: 0, matched: 0 },
+    };
+    const out = toMarkdown(view, { format: "markdown", warnings: [] });
+    assert.match(out, /## Drivers \(no drivers configured\)/);
+    assert.ok(
+      !out.includes("| # | Driver |"),
+      "should not render the default markdown table header",
+    );
+  });
 });

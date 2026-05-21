@@ -10,7 +10,7 @@ import { PROSE_ACTIVITIES } from "../activity/index.js";
 import { deriveInitiatives } from "./activity-initiatives.js";
 import { generateRosterSnapshots } from "./activity-roster.js";
 
-const ALL_DRIVERS = [
+export const ALL_DRIVERS = [
   "clear_direction",
   "say_on_priorities",
   "requirements_quality",
