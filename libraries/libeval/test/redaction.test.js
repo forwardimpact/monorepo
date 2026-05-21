@@ -56,7 +56,21 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     const SB_ANON = "SUPABASE_ANON_SENTINEL_VALUE";
     const SB_JWT = "SUPABASE_JWT_SENTINEL_VALUE";
     const SB_ROLE = "SUPABASE_ROLE_SENTINEL_VALUE";
-    for (const s of [ANTHROPIC, AWS_KEY, AWS_SECRET, DB_PASS, GH, GITHUB, MCP, MS_PASS, LANDMARK, SVC, SB_ANON, SB_JWT, SB_ROLE]) {
+    for (const s of [
+      ANTHROPIC,
+      AWS_KEY,
+      AWS_SECRET,
+      DB_PASS,
+      GH,
+      GITHUB,
+      MCP,
+      MS_PASS,
+      LANDMARK,
+      SVC,
+      SB_ANON,
+      SB_JWT,
+      SB_ROLE,
+    ]) {
       assertJsonStableSentinel(s);
     }
 
@@ -121,17 +135,26 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     const out = JSON.stringify(r.redactValue(fixture));
     assert.ok(!out.includes(ANTHROPIC), "ANTHROPIC sentinel leaked");
     assert.ok(!out.includes(AWS_KEY), "AWS_ACCESS_KEY_ID sentinel leaked");
-    assert.ok(!out.includes(AWS_SECRET), "AWS_SECRET_ACCESS_KEY sentinel leaked");
+    assert.ok(
+      !out.includes(AWS_SECRET),
+      "AWS_SECRET_ACCESS_KEY sentinel leaked",
+    );
     assert.ok(!out.includes(DB_PASS), "DATABASE_PASSWORD sentinel leaked");
     assert.ok(!out.includes(GH), "GH sentinel leaked");
     assert.ok(!out.includes(GITHUB), "GITHUB sentinel leaked");
     assert.ok(!out.includes(MCP), "MCP_TOKEN sentinel leaked");
     assert.ok(!out.includes(MS_PASS), "MICROSOFT_APP_PASSWORD sentinel leaked");
-    assert.ok(!out.includes(LANDMARK), "PRODUCT_LANDMARK_TOKEN sentinel leaked");
+    assert.ok(
+      !out.includes(LANDMARK),
+      "PRODUCT_LANDMARK_TOKEN sentinel leaked",
+    );
     assert.ok(!out.includes(SVC), "SERVICE_SECRET sentinel leaked");
     assert.ok(!out.includes(SB_ANON), "SUPABASE_ANON_KEY sentinel leaked");
     assert.ok(!out.includes(SB_JWT), "SUPABASE_JWT_SECRET sentinel leaked");
-    assert.ok(!out.includes(SB_ROLE), "SUPABASE_SERVICE_ROLE_KEY sentinel leaked");
+    assert.ok(
+      !out.includes(SB_ROLE),
+      "SUPABASE_SERVICE_ROLE_KEY sentinel leaked",
+    );
     assert.ok(out.includes("[REDACTED:env:ANTHROPIC_API_KEY]"));
     assert.ok(out.includes("[REDACTED:env:AWS_ACCESS_KEY_ID]"));
     assert.ok(out.includes("[REDACTED:env:AWS_SECRET_ACCESS_KEY]"));
