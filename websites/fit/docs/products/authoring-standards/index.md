@@ -99,7 +99,7 @@ Expected output:
 Validation passed
 
 Data Summary
-  Skills       — 20
+  Skills       — 15
   ...
   Levels       — 2
 ```
@@ -556,17 +556,27 @@ npx fit-pathway job software_engineering J060 --track=platform
 Expected output (abbreviated):
 
 ```text
-Software Engineer II — Platform
+# Software Engineer Level II - Platform
 
-Core Skills
-  architecture_design      working
-  code_quality             working
-  full_stack_development   working
+Software Engineering × J060 × Platform
 
-Supporting Skills (adjusted by track)
-  reliability              working (+1 from platform)
-  ...
+## Expectations
+...
+
+## Skill Matrix
+
+| Skill | Level |
+| --- | --- |
+| Architecture Design | Working |
+| Code Quality | Working |
+| Full Stack Development | Working |
+| Reliability | Working |
+| ...
 ```
+
+Track modifiers raise or lower entire capabilities (not individual skills),
+so the Platform track's `reliability: +1` shifts every skill in the Reliability
+capability up one proficiency level.
 
 For common validation errors and their fixes, see the
 [YAML Schema Reference](/docs/reference/yaml-schema/).

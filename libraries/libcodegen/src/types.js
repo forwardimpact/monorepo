@@ -58,6 +58,14 @@ export class CodegenTypes {
       .replace(
         /import\s+\*\s+as\s+\$protobuf\s+from\s+"protobufjs\/minimal\.js";/,
         'import $protobuf from "protobufjs/minimal.js";',
+      )
+      // Statically bind protobufjs's $util.Long to the `long` package. Without
+      // this, `bun build --compile` tree-shakes `long` (only reached via
+      // protobufjs's lazy require) and module-init crashes on int64 prototype
+      // defaults like `Span.prototype.start_time_unix_nano = $util.Long.fromBits(...)`.
+      .replace(
+        /(import \$protobuf from "protobufjs\/minimal\.js";)/,
+        '$1\nimport Long from "long";\n$protobuf.util.Long = Long;\n$protobuf.configure();',
       );
 
     if (fixed !== content) {

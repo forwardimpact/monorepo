@@ -344,7 +344,8 @@ export class MsTeamsService {
         pending_total: this.#pendingCallbacks.size,
       });
 
-      const verb = TYPING_VERBS[Math.floor(Math.random() * TYPING_VERBS.length)];
+      const verb =
+        TYPING_VERBS[Math.floor(Math.random() * TYPING_VERBS.length)];
       await context.sendActivity(`${verb}...`);
       this.#logger.debug("handleMessage", "acknowledgement sent", {
         thread_id: threadId,

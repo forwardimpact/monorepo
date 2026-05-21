@@ -106,7 +106,7 @@ export class PagesBuilder {
       logger.info("  ✓ assets/");
     }
 
-    const skipFiles = new Set(["index.template.html", "CNAME"]);
+    const skipFiles = new Set(["index.template.html", "CNAME", "justfile"]);
     this.#fs
       .readdirSync(pagesDir, { withFileTypes: true })
       .filter(

@@ -52,13 +52,13 @@ Paths are relative to `products/map/` (published as `@forwardimpact/map`).
 
 ## Behaviour Maturities
 
-| Maturity      | Index | Description                                          |
-| ------------- | ----- | ---------------------------------------------------- |
-| emerging      | 0     | Shows interest, needs prompting                      |
-| developing    | 1     | Regularly applies with some guidance                 |
-| practicing    | 2     | Consistently demonstrates in daily work              |
-| role_modeling | 3     | Influences the team's approach, others seek them out |
-| exemplifying  | 4     | Shapes organizational culture in this area           |
+| Maturity        | Index | Description                                          |
+| --------------- | ----- | ---------------------------------------------------- |
+| `emerging`      | 0     | Shows interest, needs prompting                      |
+| `developing`    | 1     | Regularly applies with some guidance                 |
+| `practicing`    | 2     | Consistently demonstrates in daily work              |
+| `role_modeling` | 3     | Influences the team's approach, others seek them out |
+| `exemplifying`  | 4     | Shapes organizational culture in this area           |
 
 ---
 
