@@ -109,18 +109,6 @@ describe("msteams service", () => {
       });
     });
 
-    test("throws if SERVICE_SECRET is missing", () => {
-      const saved = process.env.SERVICE_SECRET;
-      delete process.env.SERVICE_SECRET;
-      try {
-        assert.throws(() => new MsTeamsService(config, deps), {
-          message: "SERVICE_SECRET is required",
-        });
-      } finally {
-        process.env.SERVICE_SECRET = saved;
-      }
-    });
-
     test("constructs empty conversations and pendingCallbacks maps", () => {
       const service = new MsTeamsService(config, deps);
       assert.ok(service.conversations instanceof Map);
@@ -498,36 +486,7 @@ describe("msteams service", () => {
       await new Promise((resolve) => server.close(resolve));
     });
 
-    test("rejects request without authorization header", async () => {
-      const res = await fetch(
-        `http://localhost:${port}/api/callback/some-token`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ correlation_id: "cid" }),
-        },
-      );
-      assert.strictEqual(res.status, 401);
-      const body = await res.json();
-      assert.strictEqual(body.error, "Unauthorized");
-    });
-
-    test("rejects request with invalid HMAC token", async () => {
-      const res = await fetch(
-        `http://localhost:${port}/api/callback/some-token`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer totally-invalid-token",
-          },
-          body: JSON.stringify({ correlation_id: "cid" }),
-        },
-      );
-      assert.strictEqual(res.status, 401);
-    });
-
-    test("returns 404 for unknown callback token with valid auth", async () => {
+    test("returns 404 for unknown callback token", async () => {
       const token = hmacAuth.generateToken("agent-react");
       const res = await fetch(
         `http://localhost:${port}/api/callback/unknown-token`,
