@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 
 import botbuilder from "botbuilder";
 import express from "express";
-import { HmacAuth } from "@forwardimpact/librpc";
 
 const { CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext } =
   botbuilder;
@@ -128,7 +127,6 @@ export class MsTeamsService {
   #conversations = new Map();
   #pendingCallbacks = new Map();
   #adapter;
-  #hmacAuth;
   #app;
   #server;
   #sweepTimer;
@@ -147,10 +145,6 @@ export class MsTeamsService {
     this.#logger = logger;
     this.#tracer = tracer;
     this.#callbackBaseUrl = normalizeBaseUrl(config.callback_base_url);
-
-    const secret = process.env.SERVICE_SECRET;
-    if (!secret) throw new Error("SERVICE_SECRET is required");
-    this.#hmacAuth = new HmacAuth(secret);
 
     const auth = new ConfigurationBotFrameworkAuthentication({
       MicrosoftAppId: config.msAppId(),
@@ -490,16 +484,6 @@ export class MsTeamsService {
     } finally {
       await span.end();
     }
-  }
-
-  #verifyAuth(req) {
-    const header = req.headers.authorization;
-    if (!header)
-      return { isValid: false, error: "Missing authorization header" };
-    const match = header.match(/^Bearer\s+(.+)$/);
-    if (!match)
-      return { isValid: false, error: "Invalid authorization format" };
-    return this.#hmacAuth.verifyToken(match[1]);
   }
 
   #isRateLimited(state) {
