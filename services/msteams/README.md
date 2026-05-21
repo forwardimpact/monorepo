@@ -34,7 +34,7 @@ acceptable for a prototype.
 ## Setup
 
 See [`SETUP.md`](SETUP.md) for the dev environment walkthrough and
-[`../../specs/1200-teams-agent-bridge/msteams-config.md`](../../specs/1200-teams-agent-bridge/msteams-config.md)
+[`../../specs/1200-teams-agent-bridge/config-msteams.md`](../../specs/1200-teams-agent-bridge/config-msteams.md)
 for the Microsoft Azure / Teams side.
 
 ## Run
@@ -46,8 +46,8 @@ node server.js
 ```
 
 Required environment variables: `MICROSOFT_APP_ID`, `MICROSOFT_APP_PASSWORD`,
-`MICROSOFT_APP_TENANT_ID`, `GH_TOKEN`, `GITHUB_REPO`, `CALLBACK_BASE_URL`.
-Optional: `PORT` (default `3978`).
+`MICROSOFT_APP_TENANT_ID`, `SERVICE_SECRET`, `GH_TOKEN`, `GITHUB_REPO`,
+`CALLBACK_BASE_URL`. Optional: `PORT` (default `3978`).
 
 ## Tests
 

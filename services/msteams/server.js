@@ -3,7 +3,7 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
-import { createBridge } from "./index.js";
+import { MsTeamsService } from "./index.js";
 
 const config = await createServiceConfig("msteams", {
   protocol: "http",
@@ -12,24 +12,7 @@ const config = await createServiceConfig("msteams", {
   callback_base_url: "",
 });
 const logger = createLogger("msteams");
+const tracer = await createTracer("msteams");
 
-let tracer = null;
-try {
-  tracer = await createTracer("msteams");
-} catch {
-  logger.info("server", "trace service unavailable, spans disabled");
-}
-
-const bridge = createBridge({
-  microsoftAppId: config.msAppId(),
-  microsoftAppPassword: config.msAppPassword(),
-  microsoftAppTenantId: config.msAppTenantId(),
-  githubToken: config.ghToken(),
-  githubRepo: config.github_repo,
-  callbackBaseUrl: config.callback_base_url,
-  port: config.port,
-  logger,
-  tracer,
-});
-
-await bridge.start();
+const service = new MsTeamsService(config, { logger, tracer });
+await service.start();

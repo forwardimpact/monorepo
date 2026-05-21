@@ -4,7 +4,7 @@ This guide walks through running the bridge service on a developer machine
 against a developer/test Microsoft 365 tenant. The Microsoft-side
 configuration (Azure AD app registration, Azure Bot, Teams app manifest,
 sideloading) lives in
-[`specs/1200-teams-agent-bridge/msteams-config.md`](../../specs/1200-teams-agent-bridge/msteams-config.md).
+[`specs/1200-teams-agent-bridge/config-msteams.md`](../../specs/1200-teams-agent-bridge/config-msteams.md).
 Complete that guide first — the values it produces are the inputs to this
 one.
 
@@ -17,9 +17,9 @@ one.
   helpers and stores, not the live adapter.
 - A Microsoft 365 developer tenant with an Azure Bot resource registered
   for the Teams channel — see
-  [msteams-config.md § 1–3](../../specs/1200-teams-agent-bridge/msteams-config.md).
+  [config-msteams.md § 1–3](../../specs/1200-teams-agent-bridge/config-msteams.md).
 - A dev tunnel tool (VS Code Dev Tunnels or ngrok) — see
-  [msteams-config.md § 4](../../specs/1200-teams-agent-bridge/msteams-config.md).
+  [config-msteams.md § 4](../../specs/1200-teams-agent-bridge/config-msteams.md).
 - A GitHub token with `actions:write` on `forwardimpact/monorepo`
   (fine-grained PAT or GitHub App installation token).
 
@@ -30,6 +30,7 @@ one.
 | `MICROSOFT_APP_ID` | Azure AD app registration → Application (client) ID | UUID |
 | `MICROSOFT_APP_PASSWORD` | Azure AD app registration → client secret value | shown once at creation |
 | `MICROSOFT_APP_TENANT_ID` | Azure AD app registration → Directory (tenant) ID | required for single-tenant validation |
+| `SERVICE_SECRET` | Shared inter-service secret (≥32 chars) | generate via `just env-setup` |
 | `GH_TOKEN` | GitHub PAT or App token | `actions:write` only |
 | `GITHUB_REPO` | `owner/repo` | typically `forwardimpact/monorepo` |
 | `CALLBACK_BASE_URL` | Dev tunnel public URL | no trailing slash |
@@ -38,7 +39,7 @@ one.
 Quick check that everything is set:
 
 ```sh
-node -e "for (const v of ['MICROSOFT_APP_ID','MICROSOFT_APP_PASSWORD','MICROSOFT_APP_TENANT_ID','GH_TOKEN','GITHUB_REPO','CALLBACK_BASE_URL']) if (!process.env[v]) { console.error('Missing: ' + v); process.exit(1); }; console.log('All set')"
+node -e "for (const v of ['MICROSOFT_APP_ID','MICROSOFT_APP_PASSWORD','MICROSOFT_APP_TENANT_ID','SERVICE_SECRET','GH_TOKEN','GITHUB_REPO','CALLBACK_BASE_URL']) if (!process.env[v]) { console.error('Missing: ' + v); process.exit(1); }; console.log('All set')"
 ```
 
 ## Install and run
@@ -75,7 +76,7 @@ Copy the public URL into:
   `https://<tunnel-domain>/api/messages`
 - The Teams app manifest's `validDomains` (re-zip and re-upload if it
   changed) — see
-  [msteams-config.md § 3](../../specs/1200-teams-agent-bridge/msteams-config.md).
+  [config-msteams.md § 3](../../specs/1200-teams-agent-bridge/config-msteams.md).
 
 ## Smoke test
 
@@ -96,7 +97,7 @@ Copy the public URL into:
 ## Troubleshooting
 
 See
-[msteams-config.md § Troubleshooting](../../specs/1200-teams-agent-bridge/msteams-config.md)
+[config-msteams.md § Troubleshooting](../../specs/1200-teams-agent-bridge/config-msteams.md)
 for the most common failure modes (bot not responding, callback timing out,
 manifest upload errors). The bridge's own console output (stdout) is the
 primary diagnostic channel for the local process.

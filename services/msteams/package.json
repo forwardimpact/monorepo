@@ -1,7 +1,6 @@
 {
   "name": "@forwardimpact/svcmsteams",
   "version": "0.1.0",
-  "private": true,
   "description": "Microsoft Teams bridge — relay messages between Teams conversations and the Kata agent team.",
   "keywords": [
     "teams",
@@ -41,11 +40,14 @@
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
-    "@forwardimpact/libconfig": "workspace:*",
-    "@forwardimpact/librpc": "workspace:*",
-    "@forwardimpact/libtelemetry": "workspace:*",
+    "@forwardimpact/libconfig": "^0.1.79",
+    "@forwardimpact/librpc": "^0.1.99",
+    "@forwardimpact/libtelemetry": "^0.1.42",
     "botbuilder": "^4.23.3",
     "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.5"
   },
   "engines": {
     "bun": ">=1.2.0",
