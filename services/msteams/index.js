@@ -16,7 +16,7 @@ const SWEEP_INTERVAL_MS = 60 * 1000;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX = 5;
 const MAX_FIELD_LENGTH = 2000;
-const TYPING_INTERVAL_MS = 9_000;
+const TYPING_INTERVAL_MS = 12_000;
 const TYPING_VERBS = [
   "Moonwalking",
   "Unravelling",
