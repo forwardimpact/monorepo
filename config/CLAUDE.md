@@ -26,8 +26,9 @@ the supervisor manages.
     "log_dir": "data/logs",
     "shutdown_timeout": 3000,
     "services": [
-      { "name": "graph",   "command": "node -e \"import('@forwardimpact/svcgraph/server.js')\"" },
-      { "name": "pathway", "command": "node -e \"import('@forwardimpact/svcpathway/server.js')\"" }
+      { "name": "graph",     "command": "node -e \"import('@forwardimpact/svcgraph/server.js')\"" },
+      { "name": "pathway",   "command": "node -e \"import('@forwardimpact/svcpathway/server.js')\"" },
+      { "name": "embedding", "command": "node -e \"import('@forwardimpact/svcembedding/server.js')\"" }
     ]
   }
 }
@@ -54,13 +55,6 @@ Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`.
   "up": "sh -c '. ./.env && cd products/map && supabase start --workdir .'",
   "down": "sh -c 'cd products/map && supabase stop --workdir .'"
 }
-```
-
-Services that wrap an external binary run as Node entry points — the gRPC
-server proxies to the binary which runs as a managed child process:
-
-```json
-{ "name": "embedding", "command": "node services/embedding/server.js" }
 ```
 
 ### `service` — service configuration
