@@ -144,6 +144,10 @@ rc-status:
 msteams-tunnel:
     bunx fit-rc start msteams-tunnel
 
+# Package the Teams App for sideloading (reads tunnel domain from .env)
+msteams-package *ARGS:
+    bun scripts/msteams-package.js {{ARGS}}
+
 # Start the MS Teams bridge service
 msteams-bridge:
     bunx fit-rc start msteams-bridge

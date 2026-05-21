@@ -6,7 +6,7 @@ environment** — no organizational publishing, no multi-tenant Azure AD
 setup.
 
 This guide covers only the Microsoft/Azure side. The bridge service code
-lives at `services/msteams/` — see that directory's `SETUP.md` for
+lives at `services/msteams/` — see that directory's `README.md` for
 installation and startup instructions.
 
 ## Prerequisites
