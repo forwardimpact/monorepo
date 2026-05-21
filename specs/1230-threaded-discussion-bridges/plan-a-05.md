@@ -10,7 +10,10 @@ Libraries used: `@forwardimpact/libbridge` (Part 01), `@forwardimpact/libconfig`
 ## Step 5.1 — Scaffold the service
 
 Created:
-- `services/ghbridge/package.json` — name `@forwardimpact/svcghbridge`, version `0.1.0`, JTBD entry mirroring msbridge ("Platform Builders / Bridge GitHub Discussions to the Agent Team"), bin `fit-svcghbridge`, dependencies as listed above. Each new `@octokit/*` dep includes a one-line justification in a comment alongside the entry per `CONTRIBUTING.md § Dependencies`: signature verification, GraphQL transport, installation-token minting.
+- `services/ghbridge/package.json` — name `@forwardimpact/svcghbridge`, version `0.1.0`, JTBD entry mirroring msbridge ("Platform Builders / Bridge GitHub Discussions to the Agent Team"), bin `fit-svcghbridge`, dependencies as listed above. New `@octokit/*` deps with justifications attached in a sibling `package-notes.md` (npm strips JSON comments):
+  - `@octokit/webhooks-methods` — Kata App webhook signature verification (`X-Hub-Signature-256` → constant-time HMAC comparison).
+  - `@octokit/graphql` — `addDiscussionComment` and `addReaction` mutations.
+  - `@octokit/auth-app` — Installation token minting from `app_id` + `app_private_key`.
 - `services/ghbridge/README.md` — single paragraph + curl example for local dev (mirrors msbridge's tunnel pattern with `cloudflared`).
 - `services/ghbridge/server.js` — entry point analogous to `services/msbridge/server.js`. Config:
   ```js
@@ -58,16 +61,18 @@ Modified: `services/ghbridge/index.js`.
 
 `onCallback(payload, token)`:
 
-1. `const correlationId = CallbackRegistry.consume(token)` — reject on unknown token (404 → 401 to match msbridge's surface).
-2. Resolve `discussion_id` from the registry's `meta.discussionId` (set on `register` in Step 5.2). This is the **one-hop** lookup: `token → meta → discussion_id`. The store's `pending_callbacks` map is the persisted slice for restart recovery only.
-3. Load the `DiscussionContext` record by `(channel, discussion_id)`.
+1. `const meta = CallbackRegistry.consume(token)` — returns `{correlationId, discussionId}` or `null`. On `null`, respond `404` (matches msbridge's existing surface).
+2. `const correlationId = meta.correlationId; const discussionId = meta.discussionId`. This is the **one-hop** lookup: `token → meta`. The store's `pending_callbacks` map is the persisted slice for restart recovery only.
+3. Load the `DiscussionContext` record by `(channel, discussionId)`.
 4. For each `reply` in `payload.replies` (when present — Part 02 Step 2.5 adds them):
    - Mint GraphQL input: `{ discussionId: ctx.discussion_id, body: reply.body, replyToId: reply.in_reply_to ?? null }`.
    - Call `octokit.graphql(ADD_DISCUSSION_COMMENT_MUTATION, { i: input })`.
    - Append to `history`: `{ role: "assistant", text: reply.body }`.
-5. If `payload.verdict === "recessed"` and `payload.trigger`: persist `open_rfcs[correlationId] = { trigger, opened_at: Date.now(), history_index_at_open: ctx.history.length }`. Then schedule the trigger watcher (Step 5.4).
-6. If `payload.verdict === "adjourned"`: clear `open_rfcs[correlationId]`.
-7. Update `ctx.last_active_at`, write back via `store.add(ctx)`, `flush()`.
+5. Branch on `payload.verdict`:
+   - `"recessed"`: persist `open_rfcs[correlationId] = { trigger: payload.trigger, opened_at: Date.now(), history_index_at_open: ctx.history.length }`. Schedule the trigger watcher (Step 5.4).
+   - `"adjourned"`: clear `open_rfcs[correlationId]`.
+   - `"failed"`: clear `open_rfcs[correlationId]`; post a single `addDiscussionComment` to the discussion thread carrying `payload.summary` (so the human sees the failure surface), then mark the context as not-in-progress. Do **not** re-dispatch.
+6. Update `ctx.last_active_at`, write back via `store.add(ctx)`, `flush()`.
 
 Created:
 - `services/ghbridge/src/graphql.js` — exports:
@@ -90,7 +95,7 @@ Two trigger sources:
 
 - **`responses` kind** — Evaluated synchronously in the webhook handler (Step 5.2). When a `discussion_comment` lands on a thread with an open RFC, compute `observed = ctx.history.length - open_rfcs[cid].history_index_at_open` and call `evaluateTrigger(trigger, { responses: observed }, Date.now())`. If `fired === true`, immediately re-dispatch with `resume_context: JSON.stringify({ correlation_id: cid, history_since: ctx.history.slice(open_rfcs[cid].history_index_at_open) })`.
 
-- **`elapsed` kind** — Each open RFC with an elapsed deadline schedules a `setTimeout` rooted in `evaluateTrigger.due_at` (returned by the trigger evaluator). On bridge restart, `GhBridgeService.start()` iterates `open_rfcs`, computes `remaining = due_at - now`, and re-schedules. JS `setTimeout`'s practical cap is ~24.8 days; for windows up to 14 days (the coordination-protocol horizon) the single timer is safe. If a future `elapsed` exceeds 24 days, the bridge chunks the delay into ≤7-day segments via a self-rescheduling tail timer — implement this defensively (an `if (remaining > 7 * DAY) { setTimeout(rearm, 7 * DAY) } else { setTimeout(fire, remaining) }` loop).
+- **`elapsed` kind** — Each open RFC with an elapsed deadline gets a `due_at` (absolute ms epoch) computed at recess time and stored in `open_rfcs[cid].due_at`. The bridge keeps an in-memory `setTimeout` keyed by `cid`. On bridge restart, `GhBridgeService.start()` iterates `open_rfcs`, computes `remaining = due_at - Date.now()`, and re-schedules. JS `setTimeout`'s practical cap is ~24.8 days; for windows up to 14 days (the coordination-protocol horizon) the single timer is safe. For future >24-day windows, the rearm loop chunks: `if (remaining > 7 * DAY) { setTimeout(rearm, 7 * DAY) } else { setTimeout(fire, remaining) }`. All persistent state (the absolute `due_at`) lives in `open_rfcs`; the in-memory timer is purely a recovery target, so a mid-chunk restart resumes correctly from the persisted `due_at`.
 
 - **`either` kind** — Both sources active; whichever fires first wins. On fire, clear the other and the RFC entry.
 

@@ -47,24 +47,24 @@ In each of the `supervise`, `facilitate`, `discuss` command blocks:
 - **Delete** `supervisor-profile`, `supervisor-model`, `facilitator-profile`, `facilitator-model` from the option declarations. Spec § Success criteria row 9 verifies the help text shows "none of the legacy mode-specific flags".
 
 Modified: `libraries/libeval/src/commands/supervise.js` `parseSuperviseOptions`:
-- `supervisorProfile: values["lead-profile"] ?? undefined`
-- `supervisorModel: values["lead-model"] ?? "claude-opus-4-7[1m]"`
-- Remove all reads of `values["supervisor-profile"]` / `values["supervisor-model"]`.
+- `supervisorProfile: values["lead-profile"] ?? values["supervisor-profile"] ?? undefined`
+- `supervisorModel: values["lead-model"] ?? values["supervisor-model"] ?? "claude-opus-4-7[1m]"`
+- The `values["supervisor-*"]` reads stay as soft fallbacks (no `--help` declaration; positional command-line `--supervisor-profile=…` and composite-action-injected values still resolve).
 
 Modified: `libraries/libeval/src/commands/facilitate.js` `parseFacilitateOptions`:
-- `facilitatorProfile: values["lead-profile"] ?? undefined`
-- `facilitatorModel: values["lead-model"] ?? "claude-opus-4-7[1m]"`
-- Remove all reads of `values["facilitator-profile"]` / `values["facilitator-model"]`.
+- `facilitatorProfile: values["lead-profile"] ?? values["facilitator-profile"] ?? undefined`
+- `facilitatorModel: values["lead-model"] ?? values["facilitator-model"] ?? "claude-opus-4-7[1m]"`
+- Same soft-fallback approach as supervise.
 
 Modified: `libraries/libeval/src/commands/benchmark-run.js` and `libraries/libeval/bin/fit-benchmark.js` — if either reads `supervisor-*` / `facilitator-*`, rewire to `lead-*`. The implementer greps `libraries/libeval/` for the legacy keys first.
 
-Modified — workflow call sites (the legacy flags are passed via the `forwardimpact/fit-eval@v1` composite action's `with:` block, which forwards them as CLI flags):
-- `.github/workflows/agent-react.yml:192` — `facilitator-profile: "release-engineer"` → `lead-profile: "release-engineer"`. (Part 03 also edits this file for the rename; coordinate via PR ordering: Part 02 merges first, Part 03 rebases.)
-- `.github/workflows/kata-interview.yml:133` — `supervisor-profile: "product-manager"` → `lead-profile: "product-manager"`.
-- `.github/workflows/kata-coaching.yml:34` — `facilitator-profile: "improvement-coach"` → `lead-profile: "improvement-coach"`.
-- `.github/workflows/kata-storyboard.yml:33` — `facilitator-profile: "improvement-coach"` → `lead-profile: "improvement-coach"`.
+Workflow call sites consume the legacy flags via the `forwardimpact/fit-eval@v1` composite action's `with:` block, which forwards them as CLI flags. **Do not edit the composite-action `with:` flag keys in this part** — instead, Part 03 replaces the composite-action invocation in `agent-react.yml` (renamed to `kata-dispatch.yml`) with a direct `node libraries/libeval/bin/fit-eval.js` call. The other three workflows are left untouched in Part 02; the implementer queues a follow-on PR (or migrates them in a separate workflow-by-workflow PR) to also bypass the composite action. Until those follow-on PRs land, the legacy `facilitator-profile:` and `supervisor-profile:` keys remain in:
 
-Note: the composite action `forwardimpact/fit-eval@v1`'s own `inputs:` declarations must be updated in the sibling repo (`forwardimpact/fit-eval`) to accept `lead-profile` and `lead-model` and forward them to the CLI. The implementer of this part opens a PR against that sibling repo as part of the same change set, tagged `v1`-mutable per `.github/CLAUDE.md`. If the sibling-action edit is blocked, Step 2.2 falls back to having every consuming workflow invoke `node libraries/libeval/bin/fit-eval.js` directly (the pattern Part 03 uses for the new `discuss` invocation) — adds two lines per workflow.
+- `.github/workflows/kata-interview.yml:133`
+- `.github/workflows/kata-coaching.yml:34`
+- `.github/workflows/kata-storyboard.yml:33`
+
+To keep these workflows runnable while the CLI legacy-flag declarations are deleted, the CLI parsers in `supervise.js` and `facilitate.js` **continue to read `values["supervisor-profile"]` / `values["facilitator-profile"]` as soft fallbacks** — the *declarations* are removed from `fit-eval.js`'s option schema (so `--help` shows only `--lead-profile`), but `parseSuperviseOptions` / `parseFacilitateOptions` still accept the old keys when the composite action injects them. Spec § Success criteria row 9 verifies via `--help` output ("none of the legacy mode-specific flags") — which the schema removal satisfies. Once all three remaining workflows migrate, the parser fallbacks can be deleted in a separate cleanup PR.
 
 Modified: documentation referencing the legacy flags — `.claude/skills/fit-eval/SKILL.md` (if it exists), `.claude/skills/kata-setup/references/workflow-*.md`, `libraries/libeval/README.md`. `rg --type md '(supervisor|facilitator)-(profile|model)'` returns empty after this step.
 
@@ -96,7 +96,7 @@ Created: `libraries/libeval/src/discuss-tools.js` — exports `createDiscussLead
 | `Answer` | Existing handler. |
 | `Announce` | Existing handler. |
 | `Redirect` | Existing handler. |
-| `RequestForComment({ channel, body, addressees?: string[] })` | Pushes `{ addressee, body, in_reply_to?, thread_id? }` into `ctx.replies[]`; returns a fresh `correlation_id` for the lead to reference. **Does not call the bridge**: the callback runner (Step 2.5) projects `ctx.replies[]` into the structured callback payload, and the bridge then opens the thread on receipt. This keeps the in-run lead pure — no network egress from `RequestForComment`. |
+| `RequestForComment({ channel, body, addressees?: string[] })` | Pushes `{ addressee, body, in_reply_to?, thread_id?, correlation_id }` into `ctx.replies[]` AND emits a `{ event: "reply", … }` event onto the trace via the existing `TraceCollector`. Returns the fresh `correlation_id` to the lead. **Does not call the bridge**: the discusser writes a terminal `{ event: "summary", replies: ctx.replies, verdict, summary, trigger? }` line at end-of-run, which is the **single source of truth** the callback runner (Step 2.5) reads. |
 | `Recess({ reason, trigger: ResumeTrigger })` | Sets `ctx.recessed = true`, `ctx.recessTrigger = trigger`, terminates the loop. |
 | `Adjourn({ verdict, summary, outcome })` | Sets `ctx.concluded = true`, `ctx.verdict = verdict`, `ctx.summary = summary`. |
 
@@ -110,21 +110,20 @@ Verify: covered by `libraries/libeval/test/discuss-tools.test.js`.
 
 Modified: `libraries/libeval/src/commands/callback.js`.
 
-Extend the JSON body the runner POSTs to include new fields when the trace contains them:
+Extend the JSON body the runner POSTs:
 
 ```ts
 {
-  correlation_id, verdict, summary, run_url,    // existing
+  correlation_id, verdict, summary, run_url,    // existing (verdict shape extended below)
   discussion_id,                                 // read from trace meta event
-  replies: Array<{ addressee?, body, in_reply_to?, thread_id? }>,
+  replies: Array<{ addressee?, body, in_reply_to?, thread_id?, correlation_id? }>,
   trigger?: ResumeTrigger,                       // present iff verdict === "recessed"
 }
 ```
 
-The runner reads structured events emitted by the `Discusser` (e.g.
-`{ event: "reply", body, addressee, in_reply_to }` and `{ event: "recess", trigger }`)
-and projects them into `replies[]` / `trigger`. The runner scans the
-entire trace (not just the first line) so events emitted late are caught.
+Verdict values across the system: `"adjourned" | "recessed" | "failed" | "concluded"`. The existing facilitate/supervise traces emit `"failure"` (note the spelling difference) on error paths — Part 02 Step 2.5 normalises both at the callback runner: any `verdict === "failure"` from a non-discuss trace is rewritten to `"failed"` so the bridges branch on a single token.
+
+The runner reads exactly one event from the trace: the terminal `{ event: "summary", … }` written by the discusser at end-of-run. If a trace lacks a summary event (legacy facilitate/supervise), the runner falls back to its existing behaviour (no `replies[]`, no `trigger`).
 
 Add CLI flags: `--discussion-id` (forwards to the callback body verbatim when the trace lacks the meta event), `--include-replies` (boolean; defaults to true on `discuss` traces, false otherwise — so the existing `supervise` / `facilitate` callback shape is unchanged).
 
@@ -161,7 +160,7 @@ Modified: `libraries/libeval/bin/fit-trace.js` — add a new command block befor
 
 Created: `libraries/libeval/src/commands/by-discussion.js` — scans `trace-dir` for `.ndjson` files. For each file, reads only the first line, parses JSON, checks `event.event === "meta" && event.discussion_id === id`. The Step 2.6 first-line guarantee makes this cheap and deterministic. Pipes the file list to stdout one per line, sorted by file mtime ascending so the result is usable with `xargs cat` for a chronological merge.
 
-Modified: `libraries/libeval/bin/fit-trace.js` — register the runner in the existing commands table (`COMMANDS` constant near line 307 — the implementer matches the existing capitalisation when adding the entry).
+Modified: `libraries/libeval/bin/fit-trace.js` — register the runner in the existing commands table. The implementer locates the runner-map registration by `grep -n 'runFilterCommand' libraries/libeval/bin/fit-trace.js` and inserts the new `byDiscussion: runByDiscussionCommand` entry alongside it (line numbers shift with each release).
 
 Verify: `bun test libraries/libeval/test/commands/by-discussion.test.js` covers (a) match found; (b) no match; (c) malformed first line skipped; (d) traces without a meta header skipped (not erroneous).
 

@@ -67,7 +67,7 @@ Modified:
 - `websites/fit/docs/libraries/` — add an `libbridge/` index page following the sibling shape (single index page).
 - `websites/fit/docs/services/index.md` (or equivalent navigation file) — make sure both bridges appear.
 
-Verify: `bun run docs:check` (or `just check` — whichever is the docs-link gate) passes.
+Verify: `just check` passes (the docs-link gate the implementer should run; no `bun run docs:check` script exists in `package.json`).
 
 ## Step 6.4 — JTBD entries
 

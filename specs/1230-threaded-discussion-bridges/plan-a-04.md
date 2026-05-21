@@ -53,7 +53,13 @@ The Bot Framework `ConversationReference` is a structured object (`bot`, `channe
 
 Constants moving to libbridge defaults (passed by msbridge to constructors): `CONVERSATION_TTL_MS = 24h` → `conversationTtlMs`; `SWEEP_INTERVAL_MS = 60s` → `sweepIntervalMs` (defined on the `DiscussionContextStore` constructor in Part 01 Step 1.5).
 
-Rename the class `MsTeamsService` → `MsBridgeService`. Re-export `buildPrompt`, `isValidRunUrl`, `formatReply`, `validateCallbackPayload`, `appendHistory` from libbridge as named exports so existing tests' imports continue to resolve (the file re-exports them; tests are updated in Step 4.4 only where assertions change).
+Rename the class `MsTeamsService` → `MsBridgeService`. Keep `isValidRunUrl`, `formatReply`, `validateCallbackPayload` defined locally in `services/msbridge/index.js` — they are Teams-callback-specific helpers (lifted from `services/msteams/index.js:58-104`) and have no place in channel-agnostic libbridge. Re-export `buildPrompt` and `appendHistory` from libbridge as named exports so existing tests' imports of those two continue to resolve:
+
+```js
+export { buildPrompt, appendHistory } from "@forwardimpact/libbridge";
+export { isValidRunUrl, formatReply, validateCallbackPayload } from "./helpers.js";  // or inline in index.js
+export { MsBridgeService };
+```
 
 Verify: `bun test services/msbridge/test/msbridge.test.js` (renamed in Step 4.4) passes; `grep -c HISTORY_MAX_EXCHANGES services/msbridge/index.js` returns `0`.
 
@@ -81,12 +87,28 @@ Modified: `services/msbridge/server.js`.
 - Construct the storage: `import { LocalStorage } from "@forwardimpact/libstorage"; const storage = new LocalStorage({ root: process.env.STATE_DIR ?? "/var/lib/msbridge" });` and pass `storage` into `new MsBridgeService(config, { logger, tracer, storage })`.
 
 Config-namespace migration: env vars rename from `SERVICE_MSTEAMS_*` to
-`SERVICE_MSBRIDGE_*`. Add to `libraries/libconfig` (out-of-scope for this
-PR) a per-namespace alias map so operators get a deprecation warning if
-they pass the old prefix and the value is forwarded. This part documents
-the rename in `services/msbridge/README.md` and adds a row to the
-release-engineer follow-on backlog (an issue opened from the kata-implement
-session, not a code change here).
+`SERVICE_MSBRIDGE_*`. To avoid breaking deployed operators on first pull,
+this part ships a compatibility shim inside `services/msbridge/server.js`:
+
+```js
+// Backward-compat: copy SERVICE_MSTEAMS_* env vars into SERVICE_MSBRIDGE_* if
+// the new name is unset. Emit a single deprecation warning on first match.
+for (const key of Object.keys(process.env)) {
+  if (key.startsWith("SERVICE_MSTEAMS_")) {
+    const newKey = key.replace("SERVICE_MSTEAMS_", "SERVICE_MSBRIDGE_");
+    if (!(newKey in process.env)) {
+      process.env[newKey] = process.env[key];
+      console.warn(`[msbridge] ${key} is deprecated; rename to ${newKey}`);
+    }
+  }
+}
+```
+
+The shim sits inside `services/msbridge/server.js` before
+`createServiceConfig` runs. It is removed in a follow-on PR once the
+operator-facing release notes for `msbridge@v0.2.0` are published. The
+follow-on PR opens an issue via `gh issue create` from the kata-implement
+session at the same time this part lands.
 
 Verify: `node services/msbridge/server.js --help 2>&1` exits without crashing on missing env; the startup banner says "msbridge".
 

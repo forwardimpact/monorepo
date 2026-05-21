@@ -54,73 +54,96 @@ resume_context:
 
 Verify: `gh workflow view kata-dispatch.yml --yaml | grep -E 'discussion_id|resume_context'` returns matches after push.
 
-## Step 3.4 — Replace the `Assess and Act` step for bridge dispatches
+## Step 3.4 — Replace the `Assess and Act` step with direct CLI invocation
 
 Modified: `.github/workflows/kata-dispatch.yml`.
 
-The current step invokes `forwardimpact/fit-eval@v1` with
-`mode: "facilitate"`. The composite action does not expose `discuss` mode
-or the new `--lead-*` / `--discussion-id` / `--resume-context` flags
-without a sibling-repo retag. To avoid that cross-repo coupling, this step
-splits into two:
+Bypass the `forwardimpact/fit-eval@v1` composite action entirely — this
+removes the cross-repo coupling that the sibling-repo retag would
+introduce, and lets Part 02's CLI changes take effect without a `v1` tag
+flip. The replacement step picks `facilitate` or `discuss` mode based on
+whether `inputs.discussion_id` is set:
 
-1. **Existing composite-action path** — keep `forwardimpact/fit-eval@v1` with `mode: "facilitate"` and `lead-profile: "release-engineer"` (the lead-flag rename lands in Part 02 Step 2.2's sibling-repo PR) for the issue/PR/review events that don't carry a `discussion_id`. Add a step `if: github.event_name != 'workflow_dispatch' || inputs.discussion_id == ''` guard.
+```yaml
+- name: Assess and Act
+  id: assess
+  env:
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    GH_TOKEN: ${{ steps.ci-app.outputs.token }}
+    DISPATCH_PROMPT: ${{ steps.task.outputs.task }}
+    DISCUSSION_ID: ${{ inputs.discussion_id }}
+    RESUME_CONTEXT: ${{ inputs.resume_context }}
+    TARGET_TYPE: ${{ steps.task.outputs.target-type }}
+    TARGET_NUMBER: ${{ steps.task.outputs.target-number }}
+  run: |
+    set -euo pipefail
+    args=(
+      --task-text="$DISPATCH_PROMPT"
+      --lead-profile=release-engineer
+      --agent-profiles=product-manager,security-engineer,staff-engineer,technical-writer
+      --max-turns=1500
+      --output="$RUNNER_TEMP/trace.ndjson"
+    )
+    if [ -n "$DISCUSSION_ID" ]; then
+      args+=( --discussion-id="$DISCUSSION_ID" )
+      if [ -n "$RESUME_CONTEXT" ]; then
+        args+=( --resume-context="$RESUME_CONTEXT" )
+      fi
+      node libraries/libeval/bin/fit-eval.js discuss "${args[@]}"
+    else
+      node libraries/libeval/bin/fit-eval.js facilitate "${args[@]}"
+    fi
+    echo "trace-file=$RUNNER_TEMP/trace.ndjson" >> "$GITHUB_OUTPUT"
+```
 
-2. **New direct-CLI path for bridge dispatches** — when `inputs.discussion_id != ''`, run `node libraries/libeval/bin/fit-eval.js discuss` directly:
-   ```yaml
-   - name: Discuss (bridge-dispatched)
-     id: discuss
-     if: github.event_name == 'workflow_dispatch' && inputs.discussion_id != ''
-     env:
-       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-       GH_TOKEN: ${{ steps.ci-app.outputs.token }}
-     run: |
-       node libraries/libeval/bin/fit-eval.js discuss \
-         --task-text="$DISPATCH_PROMPT" \
-         --lead-profile=release-engineer \
-         --agent-profiles=product-manager,security-engineer,staff-engineer,technical-writer \
-         --discussion-id="${{ inputs.discussion_id }}" \
-         ${{ inputs.resume_context != '' && format('--resume-context={0}', inputs.resume_context) || '' }} \
-         --max-turns=40 \
-         --output="$RUNNER_TEMP/trace.ndjson"
-       echo "trace-file=$RUNNER_TEMP/trace.ndjson" >> "$GITHUB_OUTPUT"
-   ```
+Security: all untrusted dispatch inputs (`DISPATCH_PROMPT`, `DISCUSSION_ID`, `RESUME_CONTEXT`) reach the shell only via `env:` declarations — never as `${{ }}` expression interpolation in the `run:` block. This blocks script injection per the GitHub Security Lab template-injection guidance and CONTRIBUTING.md § Security. The `set -euo pipefail` enforces fail-on-error.
 
-The downstream `Deliver callback` step (Step 3.5) reads the trace from
-whichever of the two steps produced it.
+Bash `args=(...)` array quoting preserves whitespace and special characters in the JSON `RESUME_CONTEXT` payload — every element is one shell argument regardless of content.
 
-Verify: `gh workflow view kata-dispatch.yml --yaml | grep -E 'fit-eval\.js discuss'` returns one match.
+Verify: `gh workflow view kata-dispatch.yml --yaml | grep -E 'fit-eval\.js (discuss|facilitate)'` returns matches for both modes; `grep -E '\$\{\{ inputs\.' .github/workflows/kata-dispatch.yml | grep -v 'env:'` returns empty (no expression-in-shell sinks).
 
 ## Step 3.5 — Extend callback delivery for structured replies
 
 Modified: `.github/workflows/kata-dispatch.yml` `Deliver callback` step.
 
 Replace the existing `node libraries/libeval/bin/fit-eval.js callback ...`
-invocation with:
+invocation with (env-declared inputs, no inline `${{ }}` shell sinks):
 
-```sh
-node libraries/libeval/bin/fit-eval.js callback \
-  --trace-file="$TRACE_FILE" \
-  --callback-url="$CALLBACK_URL" \
-  --correlation-id="$CORRELATION_ID" \
-  --run-url="$RUN_URL" \
-  --discussion-id="${{ inputs.discussion_id }}" \
-  --include-replies
+```yaml
+- name: Deliver callback
+  if: github.event_name == 'workflow_dispatch' && always() && inputs.callback_url != ''
+  env:
+    CALLBACK_URL: ${{ inputs.callback_url }}
+    CORRELATION_ID: ${{ inputs.correlation_id }}
+    DISCUSSION_ID: ${{ inputs.discussion_id }}
+    RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
+  run: |
+    set -euo pipefail
+    if [ -n "$TRACE_FILE" ] && [ -f "$TRACE_FILE" ]; then
+      node libraries/libeval/bin/fit-eval.js callback \
+        --trace-file="$TRACE_FILE" \
+        --callback-url="$CALLBACK_URL" \
+        --correlation-id="$CORRELATION_ID" \
+        --run-url="$RUN_URL" \
+        --discussion-id="$DISCUSSION_ID" \
+        --include-replies
+    else
+      curl -fsS -X POST "$CALLBACK_URL" \
+        -H 'Content-Type: application/json' \
+        -d "$(jq -n \
+          --arg cid "$CORRELATION_ID" \
+          --arg run "$RUN_URL" \
+          --arg did "$DISCUSSION_ID" \
+          '{correlation_id: $cid, verdict: "failed", summary: "Facilitator session did not produce a trace; see run log.", run_url: $run, discussion_id: $did, replies: []}')"
+    fi
 ```
 
 The `--discussion-id` and `--include-replies` flags exist after Part 02
 Step 2.5 — Part 03 cannot merge until Part 02 is on `main`. The
-prerequisite is enforced in plan-a.md's parts table.
-
-The trace-file path now reads from `steps.assess.outputs.trace-file` **or**
-`steps.discuss.outputs.trace-file`, whichever ran:
-
-```yaml
-TRACE_FILE: ${{ steps.assess.outputs.trace-file || steps.discuss.outputs.trace-file }}
-```
-
-The fallback `jq -n` payload in the "no trace file found" branch also
-forwards `--arg did "$DISCUSSION_ID"` and includes it in the JSON.
+prerequisite is enforced in plan-a.md's parts table. The fallback `jq -n`
+payload uses verdict `"failed"` (matching Part 02 Step 2.5's normalised
+verdict set).
 
 Verify: `gh workflow run kata-dispatch.yml --field prompt='ping' --field correlation_id=test-1 --field discussion_id=GD_test --field callback_url=https://example.invalid/cb` (or local `act` equivalent if `act` is available) — the workflow runs the `discuss` step, produces a trace, and the callback step POSTs a body containing `replies: []` and `discussion_id: "GD_test"`. Use a literal correlation_id string — `${{ run_id }}` is a workflow expression and does not interpolate inside a shell invocation.
 
@@ -142,7 +165,7 @@ Modified (all matches updated `agent-react` → `kata-dispatch` and `agent-team`
 - `services/msteams/test/msteams.test.js` lines 458, 480, 501 — `hmacAuth.generateToken("agent-react")` → `"kata-dispatch"`. (Note: Part 04 renames this directory to `services/msbridge/`; whichever of 03 or 04 lands second picks up the path move via rebase.)
 - `KATA.md` — every `agent-react` / `agent-team` narrative reference (≈14 occurrences). Replace verbatim.
 - `.claude/agents/references/coordination-protocol.md` — 5 `agent-react` narrative references in bridge-logic prose. (The new "## Runtime mechanism" subsection lives in Part 06 Step 6.1 — Part 03 only flips the existing strings.)
-- `.claude/agents/references/approval-signals.md` — 7 `agent-react` references.
+- `.claude/agents/references/approval-signals.md` — `agent-react` references (implementer runs `grep -c agent-react` and verifies the count before/after; the file may have evolved since this plan was authored).
 - `.claude/agents/release-engineer.md`, `.claude/agents/product-manager.md`, `.claude/agents/improvement-coach.md` — `agent-react` mentions in agent prose.
 - `.claude/skills/kata-spec/SKILL.md`, `.claude/skills/kata-plan/SKILL.md`, `.claude/skills/kata-setup/SKILL.md`, `.claude/skills/kata-release-merge/**/*.md`, `.claude/skills/kata-setup/references/workflow-react.md`, `.claude/skills/kata-setup/references/github-app.md`, `.claude/skills/kata-security-update/references/sha-inventory.md` — every literal mention.
 - `.github/CLAUDE.md` — composite-action mentions.
