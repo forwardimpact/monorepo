@@ -142,11 +142,11 @@ rc-status:
 
 # Start the cloudflared tunnel for the MS Teams bridge
 msteams-tunnel:
-    cloudflared tunnel --url http://localhost:3978 --name kata-bridge --protocol http2
+    bunx fit-rc start msteams-tunnel
 
 # Start the MS Teams bridge service
 msteams-bridge:
-    bunx fit-rc start msteams
+    bunx fit-rc start msteams-bridge
 
 # ── CLI ───────────────────────────────────────────────────────────
 
@@ -457,18 +457,10 @@ supabase-install:
 
 # Start local Supabase instance
 supabase-up:
-    cd products/map && supabase start --workdir .
+    bunx fit-rc start supabase
 
 # Stop local Supabase instance
 supabase-down:
-    cd products/map && supabase stop --workdir .
-
-# Start Supabase via fit-rc (oneshot)
-supabase-start:
-    bunx fit-rc start supabase
-
-# Stop Supabase via fit-rc (oneshot)
-supabase-stop:
     bunx fit-rc stop supabase
 
 # Run Map database migrations
