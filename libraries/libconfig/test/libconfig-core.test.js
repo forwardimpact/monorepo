@@ -234,30 +234,6 @@ describe("libconfig - Environment-driven storage integration", () => {
 });
 
 describe("libconfig - Config methods", () => {
-  let config;
-
-  beforeEach(async () => {
-    const mockProcess = {
-      cwd: spy(() => "/test/dir"),
-      env: {
-        ANTHROPIC_API_KEY: "sk-ant-test-123",
-      },
-    };
-
-    const mockStorageFn = () =>
-      createMockStorage({
-        get: spy(() => Promise.resolve("")),
-      });
-
-    config = await createConfig(
-      "test",
-      "myservice",
-      {},
-      mockProcess,
-      mockStorageFn,
-    );
-  });
-
   test("reset clears cached values", async () => {
     const mockProcess = {
       cwd: () => "/test/dir",
