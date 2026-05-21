@@ -41,7 +41,6 @@ const manifest = {
   manifestVersion: "1.17",
   version: "0.1.0",
   id: appId,
-  packageName: "com.forwardimpact.kata-agent-bridge",
   developer: {
     name: "Forward Impact",
     websiteUrl: "https://www.forwardimpact.team",

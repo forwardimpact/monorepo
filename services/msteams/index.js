@@ -175,6 +175,10 @@ export class MsTeamsService {
     this.#app = express();
     this.#app.use(express.json());
 
+    this.#app.options("/api/messages", (_req, res) => {
+      res.status(200).end();
+    });
+
     this.#app.post("/api/messages", async (req, res) => {
       this.#logger.debug("messages", "activity received");
       try {
