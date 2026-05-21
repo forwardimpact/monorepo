@@ -364,6 +364,26 @@ describe("health formatter — driverJoin states", () => {
     };
     const out = toMarkdown(view, { format: "markdown", warnings: [] });
     assert.match(out, /## Drivers \(no drivers configured\)/);
+    assert.match(out, /npx fit-map init/);
+    assert.ok(
+      !out.includes("| # | Driver |"),
+      "should not render the default markdown table header",
+    );
+  });
+
+  it("renders NO_MATCH copy in markdown", () => {
+    const view = {
+      teamLabel: "Team",
+      drivers: [],
+      driverJoin: { state: "NO_MATCH", yamlIds: 2, scoreIds: 3, matched: 0 },
+    };
+    const out = toMarkdown(view, { format: "markdown", warnings: [] });
+    assert.match(out, /## Drivers \(no matches\)/);
+    assert.match(
+      out,
+      /Snapshot has 3 driver ids, your `data\/pathway\/drivers\.yaml` declares 2/,
+    );
+    assert.match(out, /GetDX taxonomy/);
     assert.ok(
       !out.includes("| # | Driver |"),
       "should not render the default markdown table header",
