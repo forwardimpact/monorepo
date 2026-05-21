@@ -138,22 +138,25 @@ describe("fit-eval callback", () => {
     }
   });
 
-  test("throws when no orchestrator summary event is present", async () => {
+  test("posts failure fallback when no orchestrator summary event is present", async () => {
+    const server = await startServer(200);
     const { tracePath, cleanup } = writeTrace([
       { source: "agent", seq: 0, event: { type: "start" } },
     ]);
 
     try {
-      await assert.rejects(
-        () =>
-          runCallbackCommand({
-            "trace-file": tracePath,
-            "callback-url": "http://127.0.0.1:1/unused",
-            "correlation-id": "x",
-          }),
-        /No orchestrator summary event found in trace/,
-      );
+      await runCallbackCommand({
+        "trace-file": tracePath,
+        "callback-url": server.url,
+        "correlation-id": "x",
+      });
+
+      const req = server.getLastRequest();
+      assert.strictEqual(req.body.verdict, "failure");
+      assert.ok(req.body.summary.length > 0);
+      assert.strictEqual(req.body.correlation_id, "x");
     } finally {
+      await server.close();
       cleanup();
     }
   });

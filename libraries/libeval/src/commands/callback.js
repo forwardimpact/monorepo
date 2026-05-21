@@ -46,10 +46,10 @@ export async function runCallbackCommand(values, _args) {
   if (!traceFile) throw new Error("--trace-file is required");
   if (!callbackUrl) throw new Error("--callback-url is required");
 
-  const found = findOrchestratorSummary(traceFile);
-  if (found === null) {
-    throw new Error("No orchestrator summary event found in trace");
-  }
+  const found = findOrchestratorSummary(traceFile) ?? {
+    verdict: "failure",
+    summary: "Facilitator session ended without producing a summary.",
+  };
 
   const payload = {
     correlation_id: correlationId,

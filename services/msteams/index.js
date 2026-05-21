@@ -393,15 +393,6 @@ export class MsTeamsService {
   }
 
   async #handleCallback(req, res) {
-    const authResult = this.#verifyAuth(req);
-    if (!authResult.isValid) {
-      this.#logger.debug("callback", "auth failed", {
-        error: authResult.error,
-      });
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
     const { token } = req.params;
     const pending = this.#pendingCallbacks.get(token);
     if (!pending) {
