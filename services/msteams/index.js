@@ -499,9 +499,11 @@ export class MsTeamsService {
 
   #verifyAuth(req) {
     const header = req.headers.authorization;
-    if (!header) return { isValid: false, error: "Missing authorization header" };
+    if (!header)
+      return { isValid: false, error: "Missing authorization header" };
     const match = header.match(/^Bearer\s+(.+)$/);
-    if (!match) return { isValid: false, error: "Invalid authorization format" };
+    if (!match)
+      return { isValid: false, error: "Invalid authorization format" };
     return this.#hmacAuth.verifyToken(match[1]);
   }
 

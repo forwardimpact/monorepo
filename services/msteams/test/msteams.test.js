@@ -1,4 +1,11 @@
-import { test, describe, beforeEach, afterEach, before, after } from "node:test";
+import {
+  test,
+  describe,
+  beforeEach,
+  afterEach,
+  before,
+  after,
+} from "node:test";
 import assert from "node:assert";
 
 import { HmacAuth } from "@forwardimpact/librpc";
@@ -265,9 +272,7 @@ describe("msteams service", () => {
 
     test("accepts GitHub URL with nested path", () => {
       assert.strictEqual(
-        isValidRunUrl(
-          "https://github.com/owner/repo/actions/runs/123/job/456",
-        ),
+        isValidRunUrl("https://github.com/owner/repo/actions/runs/123/job/456"),
         true,
       );
     });
@@ -334,10 +339,7 @@ describe("msteams service", () => {
     });
 
     test("returns null when correlation_id is missing", () => {
-      assert.strictEqual(
-        validateCallbackPayload({ verdict: "success" }),
-        null,
-      );
+      assert.strictEqual(validateCallbackPayload({ verdict: "success" }), null);
     });
 
     test("returns null when correlation_id is not a string", () => {
@@ -549,17 +551,14 @@ describe("msteams service", () => {
       });
 
       const token = hmacAuth.generateToken("agent-react");
-      const res = await fetch(
-        `http://localhost:${port}/api/callback/tok-1`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({}),
+      const res = await fetch(`http://localhost:${port}/api/callback/tok-1`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({}),
+      });
       assert.strictEqual(res.status, 400);
       const body = await res.json();
       assert.strictEqual(body.error, "Invalid payload");
@@ -573,17 +572,14 @@ describe("msteams service", () => {
       });
 
       const token = hmacAuth.generateToken("agent-react");
-      const res = await fetch(
-        `http://localhost:${port}/api/callback/tok-2`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ correlation_id: "wrong-cid" }),
+      const res = await fetch(`http://localhost:${port}/api/callback/tok-2`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ correlation_id: "wrong-cid" }),
+      });
       assert.strictEqual(res.status, 400);
       const body = await res.json();
       assert.strictEqual(body.error, "Correlation ID mismatch");

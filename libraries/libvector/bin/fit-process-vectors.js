@@ -54,7 +54,9 @@ async function main() {
         input: Array.isArray(input) ? input : [input],
       });
       const res = await embeddingClient.CreateEmbeddings(req);
-      return { data: res.data.map((v) => ({ embedding: Array.from(v.values) })) };
+      return {
+        data: res.data.map((v) => ({ embedding: Array.from(v.values) })),
+      };
     },
   };
 
