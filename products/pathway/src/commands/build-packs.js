@@ -218,7 +218,7 @@ export async function generatePacks({
   const loader = createDataLoader();
   const templateLoader = createTemplateLoader(templatesDir);
 
-  const data = await loader.loadAllData(dataDir);
+  const data = await loader.loadAndValidate(dataDir);
   const agentData = await loader.loadAgentData(dataDir);
   const skillsWithAgent = await loader.loadSkillsWithAgentData(dataDir);
 

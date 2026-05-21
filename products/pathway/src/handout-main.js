@@ -12,6 +12,8 @@
 
 import { setData, getState } from "./lib/state.js";
 import { loadAllData } from "./lib/yaml-loader.js";
+import { validateAllData } from "@forwardimpact/map/validation";
+import { throwIfErrors } from "@forwardimpact/map/contract";
 import {
   div,
   h1,
@@ -423,6 +425,10 @@ async function init() {
 
   try {
     const data = await loadAllData();
+    throwIfErrors(validateAllData(data), {
+      ruleCodes: ["INVALID_VALUE"],
+      paths: [/\.professionalTitle$/, /\.autonomyExpectation$/],
+    });
     setData(data);
 
     // Populate brand header

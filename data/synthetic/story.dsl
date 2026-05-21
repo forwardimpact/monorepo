@@ -677,13 +677,16 @@ terrain BioNova {
     proficiencies [awareness, foundational, working, practitioner, expert]
     maturities [emerging, developing, practicing, role_modeling, exemplifying]
 
+    // Level titles must comply with the professionalTitle contract:
+    // single capitalised rank word — see
+    // https://www.forwardimpact.team/docs/products/authoring-standards/index.md#level-field-conventions
     levels {
-      J040 { title "Associate Engineer" rank 1 experience "0-2 years" }
-      J060 { title "Engineer" rank 2 experience "2-4 years" }
-      J070 { title "Senior Engineer" rank 3 experience "4-7 years" }
-      J080 { title "Lead Engineer" rank 4 experience "7-10 years" }
-      J090 { title "Staff Engineer" rank 5 experience "10-14 years" }
-      J100 { title "Principal Engineer" rank 6 experience "14+ years" }
+      J040 { title "Associate" rank 1 experience "0-2 years" }
+      J060 { title "Mid" rank 2 experience "2-4 years" }
+      J070 { title "Senior" rank 3 experience "4-7 years" }
+      J080 { title "Staff" rank 4 experience "7-10 years" }
+      J090 { title "Principal" rank 5 experience "10-14 years" }
+      J100 { title "Distinguished" rank 6 experience "14+ years" }
     }
 
     capabilities {

@@ -219,3 +219,59 @@ export function validateCapability(capability, index) {
 
   return { errors, warnings };
 }
+
+export const CONTRACT_URL =
+  "https://www.forwardimpact.team/docs/products/authoring-standards/index.md#level-field-conventions";
+
+const PROFESSIONAL_TITLE_SHAPE = /^(?:Level [IVX]+|Level \d+|[A-Z][a-z]+)$/;
+
+/** @param {string} value */
+export function checkProfessionalTitleShape(value) {
+  if (typeof value !== "string" || !PROFESSIONAL_TITLE_SHAPE.test(value)) {
+    return {
+      ok: false,
+      reason: `professionalTitle must be a single capitalised rank word or "Level <numeral>"; got ${JSON.stringify(value)}`,
+    };
+  }
+  return { ok: true };
+}
+
+function tokenise(s) {
+  return String(s)
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t && t !== "level");
+}
+
+/** @param {{professionalTitle: string}} level @param {Array<{roleTitle: string}>} disciplines */
+export function checkProfessionalTitleDisjoint(level, disciplines) {
+  const titleTokens = new Set(tokenise(level.professionalTitle));
+  for (const discipline of disciplines || []) {
+    const roleTokens = tokenise(discipline.roleTitle);
+    const overlap = roleTokens.filter((t) => titleTokens.has(t));
+    if (overlap.length > 0) {
+      return {
+        ok: false,
+        reason: `professionalTitle ${JSON.stringify(level.professionalTitle)} shares token "${overlap[0]}" with discipline "${discipline.id}" roleTitle ${JSON.stringify(discipline.roleTitle)}`,
+      };
+    }
+  }
+  return { ok: true };
+}
+
+const AUTONOMY_THIRD_PERSON = /^[A-Z][a-z]*[^s]s$/;
+
+/** @param {string} value */
+export function checkAutonomyExpectation(value) {
+  if (typeof value !== "string" || value.length === 0) {
+    return { ok: true };
+  }
+  const firstToken = value.split(/\s+/)[0];
+  if (firstToken === "Is" || AUTONOMY_THIRD_PERSON.test(firstToken)) {
+    return {
+      ok: false,
+      reason: `autonomyExpectation must open with a base-form verb (e.g. "Work…"); got third-person opener ${JSON.stringify(firstToken)}`,
+    };
+  }
+  return { ok: true };
+}

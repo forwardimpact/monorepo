@@ -33,6 +33,7 @@
     ".": "./src/index.js",
     "./iri": "./src/iri.js",
     "./loader": "./src/loader.js",
+    "./contract": "./src/contract.js",
     "./renderer": "./src/renderer.js",
     "./exporter": "./src/exporter.js",
     "./validation": "./src/validation.js",

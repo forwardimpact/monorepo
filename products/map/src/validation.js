@@ -12,7 +12,14 @@ import {
 } from "./validation/discipline.js";
 import { validateTrack } from "./validation/track.js";
 import { validateDriver } from "./validation/driver.js";
-import { validateLevel, validateCapability } from "./validation/level.js";
+import {
+  validateLevel,
+  validateCapability,
+  checkProfessionalTitleShape,
+  checkProfessionalTitleDisjoint,
+  checkAutonomyExpectation,
+  CONTRACT_URL,
+} from "./validation/level.js";
 import { validateAgentData } from "./validation/agent.js";
 import {
   validateSelfAssessment,
@@ -130,6 +137,47 @@ export function validateAllData({
     allErrors,
     allWarnings,
   );
+
+  (levels || []).forEach((level, index) => {
+    const path = `levels[${index}]`;
+
+    const shape = checkProfessionalTitleShape(level.professionalTitle);
+    if (!shape.ok) {
+      allErrors.push(
+        createError(
+          "INVALID_VALUE",
+          `${shape.reason} — see ${CONTRACT_URL}`,
+          `${path}.professionalTitle`,
+          level.professionalTitle,
+        ),
+      );
+    }
+
+    const disjoint = checkProfessionalTitleDisjoint(level, disciplines || []);
+    if (!disjoint.ok) {
+      allErrors.push(
+        createError(
+          "INVALID_VALUE",
+          `${disjoint.reason} — see ${CONTRACT_URL}`,
+          `${path}.professionalTitle`,
+          level.professionalTitle,
+        ),
+      );
+    }
+
+    const exp = level.expectations || {};
+    const autonomy = checkAutonomyExpectation(exp.autonomyExpectation);
+    if (!autonomy.ok) {
+      allErrors.push(
+        createError(
+          "INVALID_VALUE",
+          `${autonomy.reason} — see ${CONTRACT_URL}`,
+          `${path}.expectations.autonomyExpectation`,
+          exp.autonomyExpectation,
+        ),
+      );
+    }
+  });
 
   if (!capabilities || capabilities.length === 0) {
     allErrors.push(

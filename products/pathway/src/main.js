@@ -5,6 +5,8 @@
 import { createPagesRouter } from "./lib/router-pages.js";
 import { setData, setError, getBranding } from "./lib/state.js";
 import { loadAllData } from "./lib/yaml-loader.js";
+import { validateAllData } from "@forwardimpact/map/validation";
+import { throwIfErrors } from "@forwardimpact/map/contract";
 import { render, div, h1, p, showError } from "./lib/render.js";
 import { updateActiveNav } from "./components/nav.js";
 import { setupTopBar, updateCommand } from "./components/top-bar.js";
@@ -49,6 +51,10 @@ async function init() {
   // Load data
   try {
     const data = await loadAllData("./data");
+    throwIfErrors(validateAllData(data), {
+      ruleCodes: ["INVALID_VALUE"],
+      paths: [/\.professionalTitle$/, /\.autonomyExpectation$/],
+    });
     data.disciplines = data.disciplines.filter((d) => !d.hidden);
     setData(data);
 

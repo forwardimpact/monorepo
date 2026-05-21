@@ -15,7 +15,6 @@ import { readFileSync } from "fs";
 import fs from "fs/promises";
 import { homedir } from "os";
 import { createDataLoader } from "@forwardimpact/map/loader";
-import { validateAllData } from "@forwardimpact/map/validation";
 import { Finder } from "@forwardimpact/libutil";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createCli } from "@forwardimpact/libcli";
@@ -321,8 +320,7 @@ async function main() {
     const loader = createDataLoader();
     const templateLoader = createTemplateLoader(TEMPLATE_DIR);
 
-    const data = await loader.loadAllData(dataDir);
-    validateAllData(data);
+    const data = await loader.loadAndValidate(dataDir);
 
     await handler({
       data,

@@ -26,7 +26,7 @@
         },
         "professionalTitle": {
           "type": "string",
-          "description": "Title for professional/IC track (e.g., Engineer I, Senior Engineer)"
+          "description": "Rank token; see https://www.forwardimpact.team/docs/products/authoring-standards/index.md#level-field-conventions"
         },
         "managementTitle": {
           "type": "string",
@@ -87,7 +87,7 @@
             },
             "autonomyExpectation": {
               "type": "string",
-              "description": "Level of autonomy expected"
+              "description": "Base-form verb opener; see https://www.forwardimpact.team/docs/products/authoring-standards/index.md#level-field-conventions"
             },
             "influenceScope": {
               "type": "string",

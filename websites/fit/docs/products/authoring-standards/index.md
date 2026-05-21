@@ -104,6 +104,54 @@ Data Summary
   Levels       — 2
 ```
 
+## Level field conventions
+
+Two fields on each level entry feed string composition in `fit-pathway job`
+and have an unstated shape contract. This section names both. Standards
+that violate either shape fail `fit-map validate` and `fit-pathway` startup
+with a `ContractViolationError` pointing back here.
+
+### `professionalTitle` — rank token
+
+`professionalTitle` is the **rank** the engineer sits at, not the role.
+The discipline supplies the role (e.g. `Software Engineer`); Pathway
+composes the two into the job title via two branches:
+
+- When `professionalTitle` starts with `Level`, the job title is
+  `{roleTitle} {professionalTitle}` (e.g. `Software Engineer Level II`).
+- Otherwise the job title is `{professionalTitle} {roleTitle}` (e.g.
+  `Senior Software Engineer`).
+
+The second branch produces a duplicated role token whenever the rank token
+shares words with the discipline `roleTitle`. To avoid that, the contract
+requires:
+
+- A single capitalised word (`Associate`, `Senior`, `Staff`, `Principal`,
+  `Distinguished`).
+- `Level <roman>` (`Level I`, `Level II`) or `Level <digit>` (`Level 3`).
+- The rank token must be **disjoint** (case- and punctuation-insensitive)
+  from every discipline's `roleTitle` in the same standard.
+
+Compliant: `professionalTitle: Senior` against
+`discipline.roleTitle: Software Engineer` renders `Senior Software Engineer`.
+
+Non-compliant: `professionalTitle: "Engineer"` against the same discipline
+renders `Engineer Software Engineer` — `Engineer` is not disjoint from
+`Software Engineer`.
+
+### `autonomyExpectation` — base-form verb opener
+
+`autonomyExpectation` is composed into the sentence `You will <value>`
+(with the value lower-cased). The first word must be a base-form/imperative
+verb so the sentence parses.
+
+Compliant: `Work independently on familiar problems` →
+`You will work independently on familiar problems.`
+
+Non-compliant: `Works independently on routine tasks` →
+`You will works independently on routine tasks.` Third-person openers
+(`Works`, `Owns`, `Drives`, `Leads`, `Defines`) are rejected.
+
 ## Step 2: Define capabilities and skills
 
 Capabilities group related skills. When a track modifier targets a capability,

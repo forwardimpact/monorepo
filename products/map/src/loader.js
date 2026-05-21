@@ -8,6 +8,10 @@
 import { readFile, readdir, stat } from "fs/promises";
 import { parse as parseYaml } from "yaml";
 import { join, basename } from "path";
+import { validateAllData } from "./validation.js";
+import { throwIfErrors } from "./contract.js";
+
+export { ContractViolationError, throwIfErrors } from "./contract.js";
 
 /**
  * Data loader class with injectable filesystem and parser dependencies.
@@ -341,6 +345,23 @@ export class DataLoader {
       questions,
       standard,
     };
+  }
+
+  /**
+   * Load all data and gate on K3/K5 contract violations.
+   * Non-contract validation errors pass through silently to preserve
+   * pre-existing behaviour at the CLI entry.
+   * @param {string} dataDir
+   * @returns {Promise<Object>}
+   */
+  async loadAndValidate(dataDir) {
+    const data = await this.loadAllData(dataDir);
+    const result = validateAllData(data);
+    throwIfErrors(result, {
+      ruleCodes: ["INVALID_VALUE"],
+      paths: [/\.professionalTitle$/, /\.autonomyExpectation$/],
+    });
+    return data;
   }
 
   /**

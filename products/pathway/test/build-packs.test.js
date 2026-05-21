@@ -19,6 +19,7 @@ import {
   getDisciplineAbbreviation,
   toKebabCase,
 } from "@forwardimpact/libskill/agent";
+import { generateJobTitle } from "@forwardimpact/libskill/derivation";
 import { generatePacks } from "../src/commands/build-packs.js";
 import {
   findValidCombinations,
@@ -88,6 +89,7 @@ describe("generatePacks", () => {
   let workDir;
   let outputDir;
   let validCombinations;
+  let data;
 
   before(async () => {
     workDir = mkdtempSync(join(tmpdir(), "fit-pathway-packs-test-"));
@@ -95,7 +97,7 @@ describe("generatePacks", () => {
     await mkdir(outputDir, { recursive: true });
 
     const loader = createDataLoader();
-    const data = await loader.loadAllData(starterDir);
+    data = await loader.loadAllData(starterDir);
     const agentData = await loader.loadAgentData(starterDir);
     validCombinations = findValidCombinations(data, agentData);
 
@@ -119,6 +121,33 @@ describe("generatePacks", () => {
     assert.ok(
       validCombinations.length > 0,
       "expected starter data to produce valid combinations",
+    );
+  });
+
+  test("starter renders software_engineering × J060 without duplicated role token or broken autonomy", () => {
+    const swDiscipline = data.disciplines.find(
+      (d) => d.id === "software_engineering",
+    );
+    const j060 = data.levels.find((l) => l.id === "J060");
+    assert.ok(
+      swDiscipline && j060,
+      "starter must contain software_engineering + J060",
+    );
+
+    const title = generateJobTitle({ discipline: swDiscipline, level: j060 });
+    const occurrences = title.split("Software Engineer").length - 1;
+    assert.strictEqual(
+      occurrences,
+      1,
+      `expected one role-title occurrence in ${JSON.stringify(title)}`,
+    );
+
+    const autonomy = j060.expectations.autonomyExpectation;
+    const sentence = `You will ${autonomy.toLowerCase()}`;
+    assert.doesNotMatch(
+      sentence,
+      /You will (works|owns|drives|leads|defines)/i,
+      "no broken verb agreement",
     );
   });
 

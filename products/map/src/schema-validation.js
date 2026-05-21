@@ -11,6 +11,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
+import { validateAllData } from "./validation.js";
 
 /**
  * Schema mappings for different file types
@@ -458,6 +459,9 @@ export class SchemaValidator {
       const refResult = this.validateReferentialIntegrity(loadedData);
       allErrors.push(...refResult.errors);
       allWarnings.push(...refResult.warnings);
+      const allDataResult = validateAllData(loadedData);
+      allErrors.push(...allDataResult.errors);
+      allWarnings.push(...allDataResult.warnings);
     }
 
     return createValidationResult(

@@ -7,6 +7,8 @@
 import { createSlideRouter } from "./lib/router-slides.js";
 import { setData, getState } from "./lib/state.js";
 import { loadAllData } from "./lib/yaml-loader.js";
+import { validateAllData } from "@forwardimpact/map/validation";
+import { throwIfErrors } from "@forwardimpact/map/contract";
 import { span, a } from "./lib/render.js";
 import { generateAllJobs } from "@forwardimpact/libskill/derivation";
 import { sortTracksByName } from "./formatters/track/shared.js";
@@ -346,6 +348,10 @@ async function init() {
   try {
     // Load data
     const data = await loadAllData();
+    throwIfErrors(validateAllData(data), {
+      ruleCodes: ["INVALID_VALUE"],
+      paths: [/\.professionalTitle$/, /\.autonomyExpectation$/],
+    });
     setData(data);
 
     // Populate brand header
