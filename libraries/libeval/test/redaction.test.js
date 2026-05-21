@@ -46,15 +46,27 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     const ANTHROPIC = "ANTHROPIC_SENTINEL_VALUE";
     const GH = "GH_TOKEN_SENTINEL_VALUE";
     const GITHUB = "GITHUB_TOKEN_SENTINEL_VALUE";
-    assertJsonStableSentinel(ANTHROPIC);
-    assertJsonStableSentinel(GH);
-    assertJsonStableSentinel(GITHUB);
+    const MCP = "MCP_TOKEN_SENTINEL_VALUE";
+    const MS_PASS = "MS_APP_PASSWORD_SENTINEL_VALUE";
+    const LANDMARK = "LANDMARK_TOKEN_SENTINEL_VALUE";
+    const SB_ANON = "SUPABASE_ANON_SENTINEL_VALUE";
+    const SB_JWT = "SUPABASE_JWT_SENTINEL_VALUE";
+    const SB_ROLE = "SUPABASE_ROLE_SENTINEL_VALUE";
+    for (const s of [ANTHROPIC, GH, GITHUB, MCP, MS_PASS, LANDMARK, SB_ANON, SB_JWT, SB_ROLE]) {
+      assertJsonStableSentinel(s);
+    }
 
     const r = createRedactor({
       env: {
         ANTHROPIC_API_KEY: ANTHROPIC,
         GH_TOKEN: GH,
         GITHUB_TOKEN: GITHUB,
+        MCP_TOKEN: MCP,
+        MICROSOFT_APP_PASSWORD: MS_PASS,
+        PRODUCT_LANDMARK_TOKEN: LANDMARK,
+        SUPABASE_ANON_KEY: SB_ANON,
+        SUPABASE_JWT_SECRET: SB_JWT,
+        SUPABASE_SERVICE_ROLE_KEY: SB_ROLE,
       },
     });
 
@@ -83,6 +95,14 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
           [`array slot ${GITHUB}`],
         ],
       },
+      credentials: {
+        mcp: MCP,
+        msPassword: MS_PASS,
+        landmark: LANDMARK,
+        sbAnon: SB_ANON,
+        sbJwt: SB_JWT,
+        sbRole: SB_ROLE,
+      },
       summary: `wrap-up ${ANTHROPIC}`,
     };
 
@@ -90,9 +110,21 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     assert.ok(!out.includes(ANTHROPIC), "ANTHROPIC sentinel leaked");
     assert.ok(!out.includes(GH), "GH sentinel leaked");
     assert.ok(!out.includes(GITHUB), "GITHUB sentinel leaked");
+    assert.ok(!out.includes(MCP), "MCP_TOKEN sentinel leaked");
+    assert.ok(!out.includes(MS_PASS), "MICROSOFT_APP_PASSWORD sentinel leaked");
+    assert.ok(!out.includes(LANDMARK), "PRODUCT_LANDMARK_TOKEN sentinel leaked");
+    assert.ok(!out.includes(SB_ANON), "SUPABASE_ANON_KEY sentinel leaked");
+    assert.ok(!out.includes(SB_JWT), "SUPABASE_JWT_SECRET sentinel leaked");
+    assert.ok(!out.includes(SB_ROLE), "SUPABASE_SERVICE_ROLE_KEY sentinel leaked");
     assert.ok(out.includes("[REDACTED:env:ANTHROPIC_API_KEY]"));
     assert.ok(out.includes("[REDACTED:env:GH_TOKEN]"));
     assert.ok(out.includes("[REDACTED:env:GITHUB_TOKEN]"));
+    assert.ok(out.includes("[REDACTED:env:MCP_TOKEN]"));
+    assert.ok(out.includes("[REDACTED:env:MICROSOFT_APP_PASSWORD]"));
+    assert.ok(out.includes("[REDACTED:env:PRODUCT_LANDMARK_TOKEN]"));
+    assert.ok(out.includes("[REDACTED:env:SUPABASE_ANON_KEY]"));
+    assert.ok(out.includes("[REDACTED:env:SUPABASE_JWT_SECRET]"));
+    assert.ok(out.includes("[REDACTED:env:SUPABASE_SERVICE_ROLE_KEY]"));
   });
 
   test("multiple occurrences of the same sentinel in a single string all redacted", () => {
@@ -358,7 +390,17 @@ describe("Redactor — exports and defaults", () => {
   test("DEFAULT_ENV_ALLOWLIST is the documented contract", () => {
     assert.deepStrictEqual(
       [...DEFAULT_ENV_ALLOWLIST],
-      ["ANTHROPIC_API_KEY", "GH_TOKEN", "GITHUB_TOKEN"],
+      [
+        "ANTHROPIC_API_KEY",
+        "GH_TOKEN",
+        "GITHUB_TOKEN",
+        "MCP_TOKEN",
+        "MICROSOFT_APP_PASSWORD",
+        "PRODUCT_LANDMARK_TOKEN",
+        "SUPABASE_ANON_KEY",
+        "SUPABASE_JWT_SECRET",
+        "SUPABASE_SERVICE_ROLE_KEY",
+      ],
     );
   });
 

@@ -138,6 +138,16 @@ rc-restart:
 rc-status:
     bunx fit-rc status
 
+# ── MS Teams Bridge ──────────────────────────────────────────────
+
+# Start the cloudflared tunnel for the MS Teams bridge
+msteams-tunnel:
+    cloudflared tunnel --url http://localhost:3978 --name kata-bridge --protocol http2
+
+# Start the MS Teams bridge service
+msteams-bridge:
+    node services/msteams/server.js
+
 # ── CLI ───────────────────────────────────────────────────────────
 
 # Agent conversations

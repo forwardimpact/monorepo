@@ -725,6 +725,9 @@
         "fit-svcmsteams": "./server.js",
       },
       "dependencies": {
+        "@forwardimpact/libconfig": "workspace:*",
+        "@forwardimpact/librpc": "workspace:*",
+        "@forwardimpact/libtelemetry": "workspace:*",
         "botbuilder": "^4.23.3",
         "express": "^4.21.0",
       },

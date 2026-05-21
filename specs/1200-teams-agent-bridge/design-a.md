@@ -36,7 +36,7 @@ graph LR
 |---|---|---|
 | **Bridge service** | `services/msteams/` | Receives Teams messages, triggers workflow_dispatch, receives callbacks, posts responses |
 | **Callback step** | `.github/workflows/agent-react.yml` | Invokes a libeval CLI utility that reads the NDJSON trace and POSTs the conclusion to the caller-supplied URL |
-| **Dev tunnel** | External tooling (devtunnel / ngrok) | Exposes the bridge's localhost endpoints to Teams and GitHub Actions |
+| **Dev tunnel** | External tooling (cloudflared / devtunnel / ngrok) | Exposes the bridge's localhost endpoints to Teams and GitHub Actions |
 
 ## Data Flow
 
@@ -140,7 +140,9 @@ within the `prompt` input's size constraints.
 | Trigger mechanism | `workflow_dispatch` | `repository_dispatch` / new workflow | workflow_dispatch already exists on agent-react.yml with a free-form prompt. Adding optional inputs is a smaller change than a new event type or workflow. |
 | Bot framework | Bot Framework SDK v4 (Node.js) | Direct Microsoft Graph API | Bot Framework handles Teams authentication handshake, conversation references, and proactive messaging. Direct Graph API requires manual OAuth and state management. |
 | Conversation store | In-memory Map | File or database | Prototype is single-process, local-only. Persistent storage adds complexity without prototype value. State is lost on restart — acceptable for a demo. |
-| Bridge location | `services/msteams/` | Standalone repo / products/ | It is a running service (protocol bridge), consistent with `services/mcp` which bridges MCP to backend services. Unlike gRPC services it uses HTTP/Bot Framework and does not follow the `server.js`/`proto/` structure — this divergence is acceptable for a prototype; production placement is a follow-up concern. |
+| Bridge location | `services/msteams/` | Standalone repo / products/ | It is a running service (protocol bridge), consistent with `services/mcp` which bridges MCP to backend services. Uses HTTP/Bot Framework (not gRPC) but follows the standard bootstrap sequence (`createServiceConfig` / `createLogger` / `createTracer`) via libconfig, libtelemetry, and librpc. |
+| Observability | libtelemetry Logger + optional librpc Tracer | `console.log` | Structured RFC 5424 logging at every decision point. Tracer creates `MsTeams.HandleMessage` and `MsTeams.HandleCallback` spans when the trace service is available; gracefully disabled otherwise. |
+| Configuration | libconfig `createServiceConfig("msteams")` | Raw `process.env` reads | All credentials (`msAppId`, `msAppPassword`, `msAppTenantId`, `ghToken`) flow through Config getters; service-specific params (`github_repo`, `callback_base_url`) flow through service config defaults with `SERVICE_MSTEAMS_*` env var overrides. No direct `process.env` access. |
 | Summary extraction | CLI utility in libeval reads NDJSON trace | Parse stdout / modify fit-eval action outputs | The NDJSON trace already contains the structured summary event. A small CLI utility in libeval reads it directly — no stdout parsing fragility, no fit-eval action changes. |
 
 ## Workflow Changes

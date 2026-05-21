@@ -63,6 +63,9 @@ export class Config {
     "GH_TOKEN",
     "GITHUB_TOKEN",
     "MCP_TOKEN",
+    "MICROSOFT_APP_ID",
+    "MICROSOFT_APP_PASSWORD",
+    "MICROSOFT_APP_TENANT_ID",
     "PRODUCT_LANDMARK_TOKEN",
     "SUPABASE_ANON_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
@@ -169,6 +172,21 @@ export class Config {
   /** @returns {string} Embedding API base URL with trailing slashes removed */
   embeddingBaseUrl() {
     return this.#resolve(["EMBEDDING_BASE_URL"], stripTrailingSlashes);
+  }
+
+  /** @returns {string} Microsoft App registration ID (MICROSOFT_APP_ID) */
+  msAppId() {
+    return this.#resolve(["MICROSOFT_APP_ID"]);
+  }
+
+  /** @returns {string} Microsoft App client secret (MICROSOFT_APP_PASSWORD) */
+  msAppPassword() {
+    return this.#resolve(["MICROSOFT_APP_PASSWORD"]);
+  }
+
+  /** @returns {string} Microsoft App tenant/directory ID (MICROSOFT_APP_TENANT_ID) */
+  msAppTenantId() {
+    return this.#resolve(["MICROSOFT_APP_TENANT_ID"]);
   }
 
   /** @returns {string} MCP bearer token */

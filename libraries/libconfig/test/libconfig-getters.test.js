@@ -350,4 +350,106 @@ describe("libconfig - Config getters", () => {
       message: "SUPABASE_JWT_SECRET not found in environment",
     });
   });
+
+  test("msAppPassword() returns env value", async () => {
+    const mockProcess = {
+      cwd: spy(() => "/test/dir"),
+      env: { MICROSOFT_APP_PASSWORD: "test-client-secret" },
+    };
+
+    const config = await createConfig(
+      "test",
+      "myservice",
+      {},
+      mockProcess,
+      mockStorageFn,
+    );
+    assert.strictEqual(config.msAppPassword(), "test-client-secret");
+  });
+
+  test("msAppPassword() throws when unset", async () => {
+    const mockProcess = {
+      cwd: spy(() => "/test/dir"),
+      env: {},
+    };
+
+    const config = await createConfig(
+      "test",
+      "myservice",
+      {},
+      mockProcess,
+      mockStorageFn,
+    );
+    assert.throws(() => config.msAppPassword(), {
+      message: "MICROSOFT_APP_PASSWORD not found in environment",
+    });
+  });
+
+  test("msAppId() returns env value", async () => {
+    const mockProcess = {
+      cwd: spy(() => "/test/dir"),
+      env: { MICROSOFT_APP_ID: "test-app-id" },
+    };
+
+    const config = await createConfig(
+      "test",
+      "myservice",
+      {},
+      mockProcess,
+      mockStorageFn,
+    );
+    assert.strictEqual(config.msAppId(), "test-app-id");
+  });
+
+  test("msAppId() throws when unset", async () => {
+    const mockProcess = {
+      cwd: spy(() => "/test/dir"),
+      env: {},
+    };
+
+    const config = await createConfig(
+      "test",
+      "myservice",
+      {},
+      mockProcess,
+      mockStorageFn,
+    );
+    assert.throws(() => config.msAppId(), {
+      message: "MICROSOFT_APP_ID not found in environment",
+    });
+  });
+
+  test("msAppTenantId() returns env value", async () => {
+    const mockProcess = {
+      cwd: spy(() => "/test/dir"),
+      env: { MICROSOFT_APP_TENANT_ID: "test-tenant-id" },
+    };
+
+    const config = await createConfig(
+      "test",
+      "myservice",
+      {},
+      mockProcess,
+      mockStorageFn,
+    );
+    assert.strictEqual(config.msAppTenantId(), "test-tenant-id");
+  });
+
+  test("msAppTenantId() throws when unset", async () => {
+    const mockProcess = {
+      cwd: spy(() => "/test/dir"),
+      env: {},
+    };
+
+    const config = await createConfig(
+      "test",
+      "myservice",
+      {},
+      mockProcess,
+      mockStorageFn,
+    );
+    assert.throws(() => config.msAppTenantId(), {
+      message: "MICROSOFT_APP_TENANT_ID not found in environment",
+    });
+  });
 });
