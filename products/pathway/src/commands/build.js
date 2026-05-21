@@ -32,15 +32,13 @@ const appDir = join(__dirname, "..");
  * @returns {string} Absolute path to package lib directory
  */
 function resolvePackageLib(packageName) {
-  // import.meta.resolve returns file:// URL to package's main entry (lib/index.js)
+  // Top-level `import.meta.resolve(...)` runs at module load and fails inside
+  // a `bun build --compile` bunfs root (no node_modules tree) — even on
+  // `--help`, because `bin/fit-pathway.js` statically imports this module
+  // (#1038). Call this lazily from the command handler that needs it.
   const mainUrl = import.meta.resolve(packageName);
-  // Convert to path and get lib directory
   return dirname(fileURLToPath(mainUrl));
 }
-
-const mapLibDir = resolvePackageLib("@forwardimpact/map");
-const modelLibDir = resolvePackageLib("@forwardimpact/libskill");
-const uiLibDir = resolvePackageLib("@forwardimpact/libui");
 
 /**
  * Files and directories to copy from app/
@@ -135,6 +133,9 @@ ${standard.emojiIcon} Generating ${standard.title} static site...
   // Copy @forwardimpact/map and @forwardimpact/libskill packages
   // These are needed by the browser's import map
   logger.info("📚 Copying package dependencies...");
+  const mapLibDir = resolvePackageLib("@forwardimpact/map");
+  const modelLibDir = resolvePackageLib("@forwardimpact/libskill");
+  const uiLibDir = resolvePackageLib("@forwardimpact/libui");
   await cp(mapLibDir, join(outputDir, "map/lib"), { recursive: true });
   logger.info(`   ✓ map/lib`);
   await cp(modelLibDir, join(outputDir, "model/lib"), { recursive: true });
