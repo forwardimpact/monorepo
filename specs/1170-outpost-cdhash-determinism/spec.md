@@ -74,7 +74,7 @@ running is the channel that has never worked.
     `products/outpost/pkg/build.js`).
   - The scheduler binary compiled by the same `products/outpost/pkg/build.js`
     default-mode invocation (the `fit-outpost` CLI surfaced as the bundle's
-    `--extra-exec` per root justfile:261).
+    `--extra-exec` per root justfile:275).
   - Bundle assembly by `libraries/libmacos/scripts/build-app.sh` against
     `products/outpost/macos/Info.plist`,
     `products/outpost/macos/Outpost.entitlements`, and the declared resources
@@ -88,7 +88,7 @@ running is the channel that has never worked.
 
 - The six other product/gear bundles (`fit-guide`, `fit-landmark`, `fit-map`,
   `fit-pathway`, `fit-summit`, `fit-gear`). Those use the `else` branch of
-  `build-app-product NAME` (root justfile:269–277) — no Swift launcher, no
+  `build-app-product NAME` (root justfile:283–291) — no Swift launcher, no
   `products/outpost/pkg/build.js`. They currently publish to brew without
   cdhash drift. Re-establishing determinism for them is a separate effort if
   and when it becomes load-bearing.
