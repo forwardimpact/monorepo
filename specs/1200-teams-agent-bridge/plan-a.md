@@ -257,12 +257,13 @@ products.
 `server.js` — entry point. Follows the standard service bootstrap sequence
 (`createServiceConfig` / `createLogger` / `createTracer`). Although the
 bridge is HTTP/Bot Framework (not gRPC), it uses libconfig for credential
-management, libtelemetry for structured logging, and librpc for optional
-distributed tracing. All credentials flow through Config getters
-(`msAppId()`, `msAppPassword()`, `msAppTenantId()`, `ghToken()`);
-service-specific params (`github_repo`, `callback_base_url`) are declared
-as defaults and overridden via `SERVICE_MSTEAMS_*` env vars. No direct
-`process.env` access:
+management, libtelemetry for structured logging, and librpc for distributed
+tracing and HMAC authentication (`HmacAuth`). Credentials flow through
+Config getters (`msAppId()`, `msAppPassword()`, `msAppTenantId()`,
+`ghToken()`); service-specific params (`github_repo`,
+`callback_base_url`) are declared as defaults and overridden via
+`SERVICE_MSTEAMS_*` env vars. `SERVICE_SECRET` is read from `process.env`
+in the `MsTeamsService` constructor — same pattern as `librpc/src/base.js`:
 
 ```js
 #!/usr/bin/env node
@@ -270,7 +271,7 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
-import { createBridge } from "./index.js";
+import { MsTeamsService } from "./index.js";
 
 const config = await createServiceConfig("msteams", {
   protocol: "http",
@@ -279,27 +280,10 @@ const config = await createServiceConfig("msteams", {
   callback_base_url: "",
 });
 const logger = createLogger("msteams");
+const tracer = await createTracer("msteams");
 
-let tracer = null;
-try {
-  tracer = await createTracer("msteams");
-} catch {
-  logger.info("server", "trace service unavailable, spans disabled");
-}
-
-const bridge = createBridge({
-  microsoftAppId: config.msAppId(),
-  microsoftAppPassword: config.msAppPassword(),
-  microsoftAppTenantId: config.msAppTenantId(),
-  githubToken: config.ghToken(),
-  githubRepo: config.github_repo,
-  callbackBaseUrl: config.callback_base_url,
-  port: config.port,
-  logger,
-  tracer,
-});
-
-await bridge.start();
+const service = new MsTeamsService(config, { logger, tracer });
+await service.start();
 ```
 
 **Verify:** `cd services/msteams && bun install && node server.js` starts
@@ -315,23 +299,27 @@ callback webhook, and conversation continuity.
 |---|---|
 | Modify | `services/msteams/index.js` |
 
-`index.js` exports `createBridge(config)` returning the bridge object.
-Config accepts optional `logger` (libtelemetry Logger) and `tracer`
-(librpc Tracer); both default to null when omitted (tests pass without
-them). Internally constructs the adapter, stores, and Express app — the
-factory function is the composition root; collaborators (adapter, stores)
-are created inside and exposed on the returned object for test access.
+`index.js` exports the `MsTeamsService` class and standalone pure
+functions. The constructor takes `(config, { logger, tracer })` — config
+from `createServiceConfig`, logger from libtelemetry, tracer from librpc.
+`SERVICE_SECRET` is read from `process.env` in the constructor and used
+to create an `HmacAuth` instance (from librpc) for callback verification.
 
 ```
-createBridge(config) → {
-  start(),
-  stop(),
-  conversations,      // Map<threadId, { ref, history }> — exposed for tests
-  pendingCallbacks,   // Map<token, { correlationId, threadId }> — exposed for tests
-  buildPrompt(text, history),  // pure function — exposed for tests
-  formatReply(payload),        // pure function — exposed for tests
-  app,                         // Express app — exposed for route assertions
-}
+// Class
+MsTeamsService(config, { logger, tracer })
+  .start()              // listen + start sweep timer
+  .stop()               // close server + clear sweep timer
+  .conversations        // Map<threadId, { ref, history, lastActiveAt, dispatches }>
+  .pendingCallbacks     // Map<token, { correlationId, threadId, createdAt }>
+  .app                  // Express app — exposed for route assertions in tests
+
+// Exported pure functions
+buildPrompt(text, history)
+formatReply(payload)
+appendHistory(history, entry)
+isValidRunUrl(url)
+validateCallbackPayload(body)
 ```
 
 Internal structure:
@@ -359,44 +347,64 @@ Internal structure:
      conversations at info level with thread ID and sender.
    - Save the `ConversationReference` from
      `TurnContext.getConversationReference(activity)`.
+   - Update `lastActiveAt` to `Date.now()`.
+   - Check per-thread rate limit (`dispatches` within the last 60 s).
+     If ≥ 5 dispatches, reply with a user-friendly wait message and
+     return early.
    - Build the prompt via `buildPrompt(text, history)`: prepend last 5
      exchanges (~4000 chars max), then the current message. Log prompt
      construction details at debug level.
    - Generate a correlation ID and a callback token (both via
      `crypto.randomUUID()` — Node.js built-in, no `uuid` dependency).
-   - Store `{ correlationId, threadId }` in `pendingCallbacks` keyed by
-     the callback token.
+   - Store `{ correlationId, threadId, createdAt }` in `pendingCallbacks`
+     keyed by the callback token.
    - Send an acknowledgement reply: `"Working on it..."`.
    - POST `workflow_dispatch` to GitHub REST API with `prompt`,
      `callback_url` (`{callbackBaseUrl}/api/callback/{callbackToken}`), and
      `correlation_id`. Log dispatch and success at info level.
-   - Append `{ role: "user", text }` to conversation history.
+   - On success, push `Date.now()` to `state.dispatches` for rate
+     limiting and append `{ role: "user", text }` to history.
+   - On failure, send a generic error message
+     (`"Failed to reach the agent team. Please try again later."`) —
+     never expose `err.message` which may contain GitHub API details.
    - End span with setOk/setError.
 
 4. **Callback handler** — On `POST /api/callback/:token`:
+   - Verify `Authorization: Bearer <token>` header via `HmacAuth`
+     (librpc). Return 401 if missing, malformed, or invalid.
    - Look up `pendingCallbacks` by the `:token` path parameter.
    - Return 404 if not found (token is one-time use).
-   - Start a `MsTeams.HandleCallback` span (SERVER kind) if tracer is
-     available.
-   - Parse the JSON body: `{ correlation_id, verdict, summary, run_url }`.
+   - Start a `MsTeams.HandleCallback` span (SERVER kind).
+   - Validate body via `validateCallbackPayload()`: type-check all
+     fields, cap `verdict`/`summary` at 2000 chars, verify `run_url` is
+     HTTPS on `github.com` or drop it. Return 400 if `correlation_id`
+     is missing or non-string.
    - Verify `correlation_id` matches the stored value; return 400 on
      mismatch (logged at error level).
    - Look up conversation state via the stored `threadId`.
    - Format reply text via `formatReply()`: `"**{verdict}** — {summary}"`
-     (with run URL link if present).
+     (with run URL link only if `isValidRunUrl()` passes).
    - Send proactive message to the stored `ConversationReference` using
      `adapter.continueConversationAsync()`. Log delivery at info level.
    - Append `{ role: "assistant", text: summary }` to conversation history.
    - Delete the `pendingCallbacks` entry.
    - End span with setOk/setError.
 
-5. **Conversation store** — `Map<threadId, { ref, history }>`. History
-   bounded to 5 exchanges (10 entries). Keyed by Teams thread ID so
-   follow-up messages in the same thread carry context.
+5. **Conversation store** —
+   `Map<threadId, { ref, history, lastActiveAt, dispatches }>`. History
+   bounded to 5 exchanges (10 entries). `lastActiveAt` (epoch ms)
+   updated on each message; conversations idle >24 h are evicted by a
+   periodic sweep. `dispatches` tracks recent dispatch timestamps for
+   per-thread rate limiting (max 5 per 60 s window).
 
-6. **Pending callbacks store** — `Map<token, { correlationId, threadId }>`.
-   Keyed by the callback token (the value extracted from the URL path) so
-   lookups are O(1).
+6. **Pending callbacks store** —
+   `Map<token, { correlationId, threadId, createdAt }>`. `createdAt`
+   (epoch ms) set on registration; entries older than 2 h are evicted
+   by the same sweep timer.
+
+7. **Sweep timer** — A 60 s `setInterval` (`.unref()`'d so it does not
+   prevent shutdown) evicts stale conversations and expired pending
+   callbacks. Started in `start()`, cleared in `stop()`.
 
 **Verify:** Start the bridge with valid env vars. Send a message in Teams.
 Observe `"Working on it..."` reply and a workflow run triggered with the
@@ -413,42 +421,46 @@ external dependencies.
 | Action | File |
 |---|---|
 | Create | `libraries/libeval/test/callback.test.js` |
-| Create | `services/msteams/test/bridge.test.js` |
+| Create | `services/msteams/test/msteams.test.js` |
 
 `callback.test.js`:
 
 - Writes a temp NDJSON trace file with an orchestrator summary event.
 - Starts a local HTTP server (`node:http`) to receive the callback.
-  `libharness` does not provide a callback-receiver helper (checked:
-  `createMockRequest`/`createMockResponse` mock Express req/res objects,
-  not a listening server).
 - Runs `runCallbackCommand` with the temp file and server URL.
 - Asserts the received payload contains the correct verdict, summary, and
   correlation ID.
 - Tests the error case: trace with no summary event throws
   `"No orchestrator summary event found in trace"`.
 
-`bridge.test.js` — imports `createBridge` and tests the extracted helpers.
-Tests create bridges without a logger or tracer (both default to null):
+`msteams.test.js` — imports `MsTeamsService` and the exported pure
+functions. Tests set `process.env.SERVICE_SECRET` to a test value
+(≥32 chars) in a `before` hook:
 
 - `buildPrompt(text, history)`: returns just the text when history is empty;
   prepends history entries when present; truncates history to 5 exchanges
   (10 entries, oldest discarded first); total prompt stays within ~4000
   chars (character cap applied after entry-count cap).
 - `formatReply(payload)`: formats verdict and summary; appends run-log link
-  when `run_url` is present; defaults to "unknown" for missing verdict.
+  only when `run_url` passes `isValidRunUrl()`; drops non-GitHub URLs;
+  defaults to "unknown" for missing verdict.
+- `isValidRunUrl(url)`: accepts HTTPS github.com URLs; rejects HTTP, non-
+  GitHub hosts, spoofed hostnames (`github.com.evil.com`), `javascript:`
+  schemes, non-string input.
+- `validateCallbackPayload(body)`: returns validated object or null;
+  requires `correlation_id` string; truncates long fields; drops invalid
+  `run_url`.
 - `appendHistory(history, entry)`: bounded append, rollover at 10 entries.
-- `pendingCallbacks` store: token-based insert, O(1) lookup, cleanup after
-  delivery.
-- `conversations` store: history append, bounded rollover.
-- Config normalization: trailing slashes stripped from `callbackBaseUrl`.
-
-The HTTP routing and Bot Framework adapter are not unit-tested — they
-require a live Teams tenant. This is a known limitation acceptable for a
-prototype.
+- `MsTeamsService` instance: constructor validation (`logger`, `tracer`,
+  `SERVICE_SECRET` all required), conversations/pendingCallbacks maps, route
+  registration, trailing-slash normalization.
+- Callback endpoint (HTTP-level): starts the Express app on port 0; tests
+  401 for missing/invalid HMAC auth, 404 for unknown token, 400 for
+  invalid payload and correlation ID mismatch. Uses `HmacAuth` from librpc
+  to generate valid tokens in passing tests.
 
 **Verify:** `bun test libraries/libeval/test/callback.test.js` and
-`bun test services/msteams/test/bridge.test.js` pass.
+`bun test services/msteams/test/msteams.test.js` pass.
 
 ### Step 7 — Add setup documentation
 
@@ -510,7 +522,7 @@ passes.
   when the workflow change lands, the step will fail with "unknown command."
   Sequence: merge libeval, cut a release, then merge the workflow change.
 
-Libraries used: `botbuilder` (CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext), `express` (HTTP server), `@forwardimpact/libconfig` (credential management, env loading), `@forwardimpact/libtelemetry` (structured logging), `@forwardimpact/librpc` (optional distributed tracing).
+Libraries used: `botbuilder` (CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext), `express` (HTTP server), `@forwardimpact/libconfig` (credential management, env loading), `@forwardimpact/libtelemetry` (structured logging), `@forwardimpact/librpc` (distributed tracing + `HmacAuth` for callback HMAC-SHA256 verification via `SERVICE_SECRET`).
 
 ## Execution
 

@@ -85,12 +85,17 @@ via GitHub UI) omit them and behavior is unchanged.
 
 ### Workflow → Bridge (callback)
 
-A small CLI utility in libeval (`fit-eval callback` or similar) reads
-the NDJSON trace file produced by the facilitate session, extracts the
-orchestrator summary event (`{type: "summary", verdict, summary, turns}`),
-and POSTs it to the callback URL (capability URL — the token in the path
-authenticates the caller). The post-step in agent-react.yml invokes this
+A small CLI utility in libeval (`fit-eval callback`) reads the NDJSON
+trace file produced by the facilitate session, extracts the orchestrator
+summary event (`{type: "summary", verdict, summary, turns}`), and POSTs
+it to the callback URL. The post-step in agent-react.yml invokes this
 utility.
+
+The caller must include an HMAC-signed `Authorization: Bearer <token>`
+header (generated via `HmacAuth` from librpc using `SERVICE_SECRET`).
+The bridge validates this header before processing the payload. See
+[config-ghactions.md](config-ghactions.md) for the GitHub Actions secret
+configuration.
 
 Payload:
 
@@ -103,9 +108,10 @@ Payload:
 }
 ```
 
-This requires the fit-eval step to write its NDJSON trace to a file
-(via `--output`). The callback utility reads the trace, finds the
-summary event, and delivers it — no stdout parsing needed.
+The bridge validates the callback body: `correlation_id` must be a
+non-empty string, `verdict` and `summary` are capped at 2000 characters,
+and `run_url` must be an HTTPS URL on `github.com` or it is silently
+dropped.
 
 ### Bridge ↔ Teams (Bot Framework)
 
@@ -119,24 +125,27 @@ The bridge maintains an in-memory map keyed by Teams thread ID:
 
 ```
 threadId → {
-  conversationReference,  // Bot Framework proactive-messaging handle
-  history: [              // rolling window of prior exchanges
-    { role: "user", text: "..." },
-    { role: "assistant", text: "..." }
-  ]
+  ref,                    // Bot Framework ConversationReference
+  history: [...],         // rolling window (last 5 exchanges, 10 entries)
+  lastActiveAt,           // epoch ms — sweep evicts after 24 h
+  dispatches: [...]       // epoch ms timestamps — rate limit (5 / min)
 }
 ```
 
 Follow-up messages in the same thread prepend the history to the
 workflow_dispatch prompt so the facilitator has conversation context.
-The history window is bounded (the plan determines the limit) to stay
-within the `prompt` input's size constraints.
+The history window is bounded to 5 exchanges and the total prompt is
+capped at ~4000 characters to stay within the `prompt` input's size
+constraints. A periodic sweep (60 s interval) evicts conversations
+idle longer than 24 hours and pending callbacks older than 2 hours,
+preventing unbounded memory growth.
 
 ## Key Decisions
 
 | Decision | Chosen | Rejected | Why |
 |---|---|---|---|
 | Return path | Callback webhook | Polling GitHub API for run completion | The bridge already exposes a public endpoint (required for Teams). Callback delivers the response immediately on session completion; polling adds latency and a background loop. |
+| Callback auth | HMAC-SHA256 via `SERVICE_SECRET` | Capability URL (token-in-path only) | Callback URLs are visible in workflow dispatch inputs (Actions UI + API). HMAC verification ensures only holders of `SERVICE_SECRET` can deliver replies, even if the URL leaks. Reuses `HmacAuth` from librpc — same auth pattern as gRPC inter-service calls. |
 | Trigger mechanism | `workflow_dispatch` | `repository_dispatch` / new workflow | workflow_dispatch already exists on agent-react.yml with a free-form prompt. Adding optional inputs is a smaller change than a new event type or workflow. |
 | Bot framework | Bot Framework SDK v4 (Node.js) | Direct Microsoft Graph API | Bot Framework handles Teams authentication handshake, conversation references, and proactive messaging. Direct Graph API requires manual OAuth and state management. |
 | Conversation store | In-memory Map | File or database | Prototype is single-process, local-only. Persistent storage adds complexity without prototype value. State is lost on restart — acceptable for a demo. |
@@ -160,12 +169,15 @@ agent-react.yml gains two additions (no existing behavior changes):
 
 ## Security
 
-- **Callback authentication**: The bridge embeds an unguessable token in
-  the callback URL path (capability URL pattern — the URL itself is the
-  credential). The bridge generates and stores the token per dispatch;
-  the callback step does not need a separate secret input. This avoids
-  passing secrets through workflow_dispatch inputs, which are visible in
-  the Actions UI and API.
+- **Callback authentication**: The callback endpoint verifies an
+  `Authorization: Bearer <token>` header using `HmacAuth` from librpc,
+  keyed on `SERVICE_SECRET` — the same shared secret used for
+  inter-service authentication across gRPC services. The workflow's
+  callback step generates the HMAC token and includes it in the POST.
+  The URL path token routes the request to the correct pending callback
+  but is not the sole authentication mechanism — HMAC verification
+  prevents unauthorized callers from injecting replies even when the
+  callback URL is visible in workflow logs or the Actions UI.
 
 - **Tunnel exposure**: The dev tunnel exposes only the bridge's two HTTP
   endpoints (Bot Framework messaging endpoint, callback webhook). No

@@ -103,6 +103,8 @@ developer/test Microsoft Teams tenant. No cloud hosting required.
 - Posting the facilitator's response back to the originating Teams
   conversation thread.
 - Conversation continuity across follow-up messages within a thread.
+- Callback authentication via HMAC-SHA256 using the shared service secret
+  (`SERVICE_SECRET`) and per-thread rate limiting.
 - Setup instructions for the developer/test environment.
 
 ### Excluded
@@ -117,8 +119,6 @@ developer/test Microsoft Teams tenant. No cloud hosting required.
 - Rich message formatting (Adaptive Cards, images, file attachments) —
   plain text relay only.
 - Authentication federation between Teams and GitHub identities.
-- Rate limiting, retry logic, or graceful degradation beyond what the
-  prototype needs to function.
 - Message editing or deletion synchronization.
 - Streaming partial responses during the facilitate session — the
   response is delivered after the session concludes.

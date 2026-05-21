@@ -263,7 +263,9 @@ devtunnel host kata-bridge
 This is acceptable for development: the Bot Framework messaging endpoint is
 protected by JWT token validation (the adapter verifies tokens signed by
 the Bot Framework connector), and the callback endpoint is protected by
-capability URLs (unguessable token in the path). Do **not** use anonymous
+HMAC-SHA256 authentication — callers must include an `Authorization:
+Bearer <token>` header signed with `SERVICE_SECRET` (see
+[config-ghactions.md](config-ghactions.md)). Do **not** use anonymous
 tunnels in non-prototype contexts.
 
 The output shows the public URL, e.g.
@@ -299,6 +301,7 @@ starting the bridge:
 | `MICROSOFT_APP_ID` | § 1 — App registration overview → Application (client) ID | `a1b2c3d4-e5f6-7890-abcd-ef1234567890` |
 | `MICROSOFT_APP_PASSWORD` | § 1 — Certificates & secrets → client secret Value | `abc~DEF123...` |
 | `MICROSOFT_APP_TENANT_ID` | § 1 — App registration overview → Directory (tenant) ID | `f1e2d3c4-b5a6-7890-abcd-ef1234567890` |
+| `SERVICE_SECRET` | Shared inter-service secret (≥32 chars). Generate via `just env-setup` or `scripts/env-setup.js` | (opaque hex string) |
 | `GH_TOKEN` | GitHub PAT or App token with `actions:write` scope only | `ghp_xxxx` |
 | `GITHUB_REPO` | `owner/repo` format | `forwardimpact/monorepo` |
 | `CALLBACK_BASE_URL` | § 4 — tunnel public URL (no trailing slash) | `https://abc123.use2.devtunnels.ms` |
@@ -311,7 +314,7 @@ broad `repo` scope.
 Quick check that all required vars are set:
 
 ```sh
-node -e "for (const v of ['MICROSOFT_APP_ID','MICROSOFT_APP_PASSWORD','MICROSOFT_APP_TENANT_ID','GH_TOKEN','GITHUB_REPO','CALLBACK_BASE_URL']) if (!process.env[v]) { console.error('Missing: ' + v); process.exit(1); }; console.log('All set')"
+node -e "for (const v of ['MICROSOFT_APP_ID','MICROSOFT_APP_PASSWORD','MICROSOFT_APP_TENANT_ID','SERVICE_SECRET','GH_TOKEN','GITHUB_REPO','CALLBACK_BASE_URL']) if (!process.env[v]) { console.error('Missing: ' + v); process.exit(1); }; console.log('All set')"
 ```
 
 ## 6. Verification Checklist
