@@ -16,6 +16,13 @@ Write `--help` output, skill instructions, and published guides for that reader:
 self-contained, no insider tooling references, no relative paths into
 `products/` or `websites/`, and every doc link a fully-qualified public URL.
 
+## Configuration
+
+Products that need runtime config use `createProductConfig(name)`, which merges
+constructor defaults → `config.json` `product.<name>` block → `PRODUCT_{NAME}_*`
+env vars. See [`config/CLAUDE.md`](../config/CLAUDE.md) for the file format
+and merge order.
+
 ## `package.json` metadata
 
 Every product carries metadata the catalog generators consume. `description`

@@ -23,10 +23,10 @@ This rule lives next to the other invariants in
 
 ## Architecture
 
-All services except `mcp` expose a gRPC interface defined in `proto/`. The MCP
-service exposes an HTTP/SSE interface using `@modelcontextprotocol/sdk` and
-delegates to the gRPC services as a client. Service topology is defined in
-`config/config.json` under `init.services`.
+Most services expose a gRPC interface defined in `proto/`. Exceptions: `mcp`
+exposes an HTTP/SSE interface using `@modelcontextprotocol/sdk` and delegates to
+the gRPC services as a client; `msteams` exposes an HTTP interface using
+`express` and `botbuilder`.
 
 Each service follows the same structure:
 
@@ -36,6 +36,44 @@ Each service follows the same structure:
   factory function (MCP).
 - **`proto/*.proto`** — gRPC service definition (all services except `mcp`).
 - **`test/`** — tests, run with `bun test test/*.test.js`.
+
+## `server.js` conventions
+
+Every `server.js` follows the same sequence:
+
+1. `createServiceConfig(name)` — load config.
+2. `createLogger(name)` and `createTracer(name)` — set up observability.
+3. Initialize domain dependencies (indexes, clients, data loaders).
+4. Construct service instance, wrap in `Server`, call `start()`.
+
+The shebang is `#!/usr/bin/env node`. The `bin` entry in `package.json` is
+`fit-svc<name>` (e.g. `fit-svcgraph`).
+
+## Configuration
+
+Each service receives its config from `createServiceConfig(name)`, which merges
+constructor defaults → `config.json` `service.<name>` block → `SERVICE_{NAME}_*`
+env vars. See [`config/CLAUDE.md`](../config/CLAUDE.md) for the file format
+and merge order.
+
+## Running services
+
+Services are managed by `fit-rc`. The service list lives in `config/config.json`
+under `init.services` — see [`config/CLAUDE.md`](../config/CLAUDE.md) for the
+entry format and standard/optional service lists.
+
+```sh
+just rc-start              # start all services in config.json
+just rc-stop               # stop all services
+just rc-status             # show service status
+bunx fit-rc start <name>   # start a single service
+```
+
+For a single service during development without `fit-rc`:
+
+```sh
+node --watch services/<name>/server.js
+```
 
 ## `package.json` metadata
 
@@ -65,45 +103,6 @@ tokens; last is always `agent`. `jobs` are Little Hire entries — no `forces` o
 
 After editing, regenerate: `bun run context:fix`.
 
-## Shared infrastructure
-
-Services use a common set of libraries:
-
-- **`libconfig`** — `createServiceConfig(name)` loads config from
-  `config/config.json` and environment variables.
-- **`librpc`** — `Server` hosts a gRPC service; `createClient(name)` connects
-  to a peer; `createTracer(name)` sets up distributed tracing.
-- **`libtelemetry`** — `createLogger(name)` creates a structured logger.
-
-## `server.js` conventions
-
-Every `server.js` follows the same sequence:
-
-1. `createServiceConfig(name)` — load config.
-2. `createLogger(name)` and `createTracer(name)` — set up observability.
-3. Initialize domain dependencies (indexes, clients, data loaders).
-4. Construct service instance, wrap in `Server`, call `start()`.
-
-The shebang is `#!/usr/bin/env node`. The `bin` entry in `package.json` is
-`fit-svc<name>` (e.g. `fit-svcgraph`), but services are normally started via
-`config/config.json` using `node --watch services/<name>/server.js`.
-
-## Running services
-
-Services are managed together. Use the init system defined in
-`config/config.json`:
-
-```sh
-just guide        # start all services
-just guide-stop   # stop all services
-```
-
-For a single service during development:
-
-```sh
-node --watch services/<name>/server.js
-```
-
 ## Proto definitions
 
 gRPC services define their interface in `proto/<name>.proto`. After editing a
@@ -123,6 +122,7 @@ Same shape as every other service here:
 - `index.js` — service implementation.
 - `proto/<name>.proto` — gRPC service definition (unless MCP-only).
 - `test/` — `*.test.js` files.
+- Add an entry to `config/config.json` so `fit-rc` can manage it.
 - Run `bun run context:fix` to regenerate the catalog and jobs tables. Update
   any consuming product to import from the new service.
 
