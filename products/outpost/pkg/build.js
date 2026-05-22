@@ -77,6 +77,9 @@ function compileLauncher() {
   // (b) -file-prefix-map — DWARF absolute-path scrubbing.
   //     -no-clang-module-breadcrumbs — strips clang-module debug
   //     paths Swift modules can pull alongside DWARF.
+  //     -gnone — last-resort drop of DWARF debug info entirely
+  //     (plan § Step 4); first verification probe left 5 timestamp-
+  //     shaped 4-byte writes inside Contents/MacOS/Outpost.
   // (c) -Xlinker -no_uuid — suppress LC_UUID which ld64 derives from
   //     content + build-time entropy; pairs with (a)/(b) to leave
   //     the Mach-O byte-identical across rebuilds.
@@ -84,6 +87,7 @@ function compileLauncher() {
     "swift build -c release",
     "-Xswiftc -no-clang-module-breadcrumbs",
     `-Xswiftc -file-prefix-map -Xswiftc "${LAUNCHER_DIR}=."`,
+    "-Xswiftc -gnone",
     "-Xlinker -no_uuid",
   ].join(" ");
   run(swiftCmd, {
