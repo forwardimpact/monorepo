@@ -106,6 +106,7 @@ const service = createMcpService({
   graphClient,
   vectorClient,
   pathwayClient,
+  mapClient,
   myserviceClient,
   resourceIndex,
 });

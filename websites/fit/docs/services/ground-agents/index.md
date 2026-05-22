@@ -47,9 +47,9 @@ Product A ──┐                   ┌── data/graphs/index.jsonl
             ├── gRPC ── graph ──┤
 Product B ──┘                   └── data/graphs/ontology.ttl
 
-Product A ──┐                   ┌── data/vectors/index.jsonl
+Product A ──┐                    ┌── data/vectors/index.jsonl
             ├── gRPC ── vector ──┤
-Product B ──┘                   └── embedding endpoint
+Product B ──┘                    └── gRPC ── embedding ── inference backend
 ```
 
 The graph service owns three RPCs:
