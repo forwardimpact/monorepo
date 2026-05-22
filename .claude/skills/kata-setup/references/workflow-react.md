@@ -88,7 +88,7 @@ jobs:
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           mode: "facilitate"
-          facilitator-profile: "product-manager"
+          lead-profile: "product-manager"
           agent-profiles: "{{AGENT_LIST}}"
           model: "{{MODEL}}"
           task-text: ${{ steps.task.outputs.task }}

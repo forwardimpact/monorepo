@@ -130,7 +130,7 @@ jobs:
             — pass it through.
           supervisor-cwd: "."
           agent-cwd: ${{ steps.agent-workspace.outputs.dir }}
-          supervisor-profile: "product-manager"
+          lead-profile: "product-manager"
           max-turns: "200"
           allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,WebFetch,WebSearch"
           supervisor-allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,Skill,TodoWrite"

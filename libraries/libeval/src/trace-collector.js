@@ -40,6 +40,7 @@ export class TraceCollector {
    * Malformed lines are silently skipped.
    * @param {string} line - A single JSON line from stream-json output
    */
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: NDJSON envelope unwrap + orchestrator/system/assistant/user dispatch
   addLine(line) {
     const trimmed = line.trim();
     if (!trimmed) return;
@@ -73,6 +74,9 @@ export class TraceCollector {
           ...(typeof event.summary === "string" && { summary: event.summary }),
           ...(typeof event.turns === "number" && { turns: event.turns }),
         };
+      }
+      if (event.type === "meta" && typeof event.discussion_id === "string") {
+        this.discussionId = event.discussion_id;
       }
       return;
     }

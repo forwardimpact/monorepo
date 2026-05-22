@@ -1,7 +1,7 @@
 # Workflow Templates: Facilitated Sessions
 
 Two facilitated session types: daily storyboard and on-demand coaching. Both use
-`mode: "facilitate"` with `facilitator-profile` and `agent-profiles`. Generate
+`mode: "facilitate"` with `lead-profile` and `agent-profiles`. Generate
 only when `improvement-coach` is selected.
 
 ## Placeholders
@@ -43,7 +43,7 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           mode: "facilitate"
-          facilitator-profile: "improvement-coach"
+          lead-profile: "improvement-coach"
           agent-profiles: "{{AGENT_LIST}}"
           model: "{{MODEL}}"
           wiki: "{{WIKI}}"
@@ -84,7 +84,7 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           mode: "facilitate"
-          facilitator-profile: "improvement-coach"
+          lead-profile: "improvement-coach"
           agent-profiles: "${{ inputs.agent }}"
           model: "{{MODEL}}"
           wiki: "{{WIKI}}"

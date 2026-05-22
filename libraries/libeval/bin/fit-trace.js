@@ -26,6 +26,7 @@ import {
   runSplitCommand,
 } from "../src/commands/trace.js";
 import { runAssertCommand } from "../src/commands/assert.js";
+import { runByDiscussionCommand } from "../src/commands/by-discussion.js";
 
 // `bun build --compile` injects FIT_TRACE_VERSION via --define, eliminating
 // the readFileSync branch in the compiled binary (which would ENOENT against
@@ -159,6 +160,18 @@ const definition = {
       name: "turn",
       args: "<file> <index>",
       description: "Single turn by index",
+    },
+    {
+      name: "by-discussion",
+      args: "<discussion-id> [trace-dir]",
+      description:
+        "List trace files whose meta header carries the given discussion_id, ordered by first-event timestamp",
+      options: {
+        "trace-dir": {
+          type: "string",
+          description: "Directory to scan (default: traces)",
+        },
+      },
     },
     {
       name: "filter",
@@ -307,6 +320,7 @@ const COMMANDS = {
   filter: runFilterCommand,
   split: runSplitCommand,
   assert: runAssertCommand,
+  "by-discussion": runByDiscussionCommand,
 };
 
 async function main() {
