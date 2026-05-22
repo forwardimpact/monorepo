@@ -36,165 +36,244 @@ primitives every adapter needs:
 
 | Primitive | Purpose |
 | --- | --- |
-| `createBridgeServer` | Hono server with health, callback, and webhook routes wired together |
-| `CallbackRegistry` | Token-based callback verification with TTL and one-shot redemption |
-| `DiscussionContextStore` | Durable per-thread state in `libindex` JSONL |
-| `RateLimiter` | Per-thread rate limit so a noisy channel cannot DOS the workflow |
-| `ProgressTicker` | Status-word ticker so humans see "thinking…" while the workflow runs |
-| `appendHistory` | Bounded message history with a host-supplied truncation policy |
-| `buildPrompt` | Prompt template fill with history, participants, and channel metadata |
-| `dispatchWorkflow` | GitHub Actions `workflow_dispatch` POST with retry and auth |
-| `evaluateTrigger` | Caller-clock resume-trigger evaluation (elapsed, message, mention) |
+| `createBridgeServer` | Hono server wiring a channel webhook route and `/api/callback/:token` together |
+| `CallbackRegistry` | In-memory `correlation_id → token` registry with TTL and atomic consume |
+| `DiscussionContextStore` | Durable per-thread state in `libindex` JSONL, keyed by `(channel, discussion_id)` |
+| `RateLimiter` | Sliding-window per-thread rate limit so a noisy channel cannot DoS the workflow |
+| `ProgressTicker` | Tick-and-stop timer so the host can show progress while the workflow runs |
+| `appendHistory` | Bounded message history (default cap: 10 entries; oldest dropped on overflow) |
+| `buildPrompt` | Prompt builder that prepends recent history bounded by exchange count and char cap |
+| `dispatchWorkflow` | GitHub Actions `workflow_dispatch` POST with the agreed input shape |
+| `evaluateTrigger` | Caller-clock resume-trigger evaluation (kinds: `responses`, `elapsed`, `either`) |
+| `parseIsoDuration` | ISO-8601 duration parser (`P1D`, `PT12H`, `P1DT6H`) used by `evaluateTrigger` |
 
-The store is **caller-injected**: pass a `StorageInterface` from
-`@forwardimpact/libstorage` (or your own implementation), and the library
-never constructs storage on its own. The trigger evaluator is **clock-injected**:
-pass `now` as a parameter, never relying on `Date.now()` inside the library.
-Both decisions keep the surface testable from any host.
+Two injection rules keep the surface testable from any host. Storage is
+**caller-injected**: the `DiscussionContextStore` constructor takes a
+`StorageInterface` from `@forwardimpact/libstorage` as its first positional
+argument, and the library never constructs storage on its own. The trigger
+evaluator is **clock-injected**: `evaluateTrigger(trigger, observed, now)`
+takes `now` as a parameter, never calling `Date.now()` inside the library.
 
 ## Compose a bridge server
 
-The minimum shape a channel adapter needs is a Hono server with health, a
-channel-shaped webhook route, and a workflow callback route. `createBridgeServer`
-wires the standard pieces; the host adds its channel route:
+The minimum shape a channel adapter needs is a Hono server with a
+channel-shaped webhook route and a workflow callback route. `createBridgeServer`
+mounts both routes on a Hono app and returns lifecycle handles. Both routes
+hand the raw Hono `Context` to host-supplied callbacks — the host owns
+signature verification, token redemption, and channel-shaped responses:
 
 ```js
-import { createBridgeServer, CallbackRegistry } from "@forwardimpact/libbridge";
+import {
+  createBridgeServer,
+  CallbackRegistry,
+  DiscussionContextStore,
+} from "@forwardimpact/libbridge";
 import { createStorage } from "@forwardimpact/libstorage";
-import { DiscussionContextStore } from "@forwardimpact/libbridge";
 
-const storage = createStorage({ prefix: "data/bridges/example/" });
-const store = new DiscussionContextStore({ storage });
+const storage = createStorage("bridges/example");
+const store = new DiscussionContextStore(storage);
 const registry = new CallbackRegistry({ ttlMs: 60 * 60 * 1000 });
 
-const server = createBridgeServer({
-  store,
-  registry,
-  onCallback: async ({ thread, payload }) => {
+const bridge = createBridgeServer({
+  config: { host: "0.0.0.0", port: 8080 },
+  logger,
+  webhookPath: "/api/messages",
+  onWebhook: async (c) => {
+    const event = await verifyChannelSignature(c);
+    await handleChannelEvent({ event, store, registry });
+    return c.body(null, 200);
+  },
+  onCallback: async (c) => {
+    const meta = registry.consume(c.req.param("token"));
+    if (!meta) return c.json({ error: "Unknown token" }, 404);
+    const payload = await c.req.json();
+    if (payload.correlation_id !== meta.correlationId) {
+      return c.json({ error: "Correlation ID mismatch" }, 400);
+    }
+    const ctx = await store.loadByChannel("example", meta.meta.discussionId);
     if (payload.verdict === "adjourned") {
       for (const reply of payload.replies) {
-        await postChannelMessage(thread.id, reply.body);
+        await postChannelMessage(ctx.discussion_id, reply.body);
       }
-    } else if (payload.verdict === "recessed") {
-      await store.recordRecess(thread.id, payload.trigger);
-    } else {
-      await postChannelMessage(thread.id, `Failed: ${payload.summary}`);
+    } else if (payload.verdict === "failed") {
+      await postChannelMessage(ctx.discussion_id, `Failed: ${payload.summary}`);
     }
+    return c.json({ ok: true }, 200);
   },
 });
 
-server.post("/api/messages", async (c) => {
-  const event = await verifyChannelSignature(c);
-  await handleChannelEvent({ event, store, registry });
-  return c.text("ok");
-});
-
-server.listen({ port: 8080 });
+await bridge.start();
 ```
 
-`onCallback` is the only host-specific verdict handler — libbridge verifies the
-callback token via the registry, looks up the thread context via the store, and
-hands `(thread, payload)` to the host. The host's only job is to translate
-the verdict into channel-shaped output (a GraphQL `addDiscussionComment` for
+`createBridgeServer` mounts `POST <webhookPath>` and
+`POST /api/callback/:token` on a Hono app, captures the raw POST body on
+`c.get("rawBody")` for signature verification, and returns
+`{ start, stop, app, address }`. The host owns lifecycle, the channel SDK,
+and the verdict-to-channel translation (a GraphQL `addDiscussionComment` for
 GitHub, a `botbuilder` activity for Teams, etc.).
 
 ## Persist per-thread context
 
-Each thread (a Discussion, a Teams conversation) carries its own context:
-message history, participants, the workflow run ID, open RFCs, and the recess
-trigger (if any). `DiscussionContextStore` persists this as JSONL under the
-host's configured storage prefix:
+Each thread (a Discussion, a Teams conversation) carries its own context
+record, keyed by `(channel, discussion_id)`:
+
+```text
+{
+  id: "<channel>:<discussion_id>",
+  channel: "github-discussions" | "msteams",
+  discussion_id: string,
+  history: Array<{role: "user"|"assistant", text: string}>,
+  participants: Array<{name, kind: "agent"|"human", external_id?, metadata?}>,
+  open_rfcs: Record<correlationId, {trigger, opened_at, history_index_at_open}>,
+  lead: string,
+  pending_callbacks: Record<token, correlationId>,
+  last_active_at: number,
+}
+```
+
+`DiscussionContextStore` extends `BufferedIndex` from `@forwardimpact/libindex`,
+so the host appends records with `add()` and persists them with `flush()`:
 
 ```js
 import { DiscussionContextStore } from "@forwardimpact/libbridge";
+import { appendHistory } from "@forwardimpact/libbridge";
 
-const store = new DiscussionContextStore({ storage });
+const store = new DiscussionContextStore(storage);
 
-await store.append(threadId, {
-  authorName: "Alice",
-  body: "Should we add nested levels?",
-  channelMessageId: "MSG_kw...",
-});
+const ctx = (await store.loadByChannel("github-discussions", discussionId)) ?? {
+  id: DiscussionContextStore.keyOf("github-discussions", discussionId),
+  channel: "github-discussions",
+  discussion_id: discussionId,
+  history: [],
+  participants: [],
+  open_rfcs: {},
+  lead: "release-engineer",
+  pending_callbacks: {},
+  last_active_at: Date.now(),
+};
 
-const context = await store.load(threadId);
-console.log(context.history.length);     // 1
-console.log(context.participants);       // ["Alice"]
+appendHistory(ctx.history, { role: "user", text: "Should we add nested levels?" });
+ctx.last_active_at = Date.now();
+await store.add(ctx);
+await store.flush();
 ```
 
 The store reads, appends, and writes through the injected storage — no
-filesystem access inside the library. Hosts that run on Lambda or a managed
-storage tier swap the storage implementation without touching libbridge.
+filesystem access inside the library. Records older than `conversationTtlMs`
+(default 24h) are evicted by a background sweep; hosts running on Lambda or a
+managed storage tier swap the storage implementation without touching libbridge.
 
 ## Issue and verify callback tokens
 
 A bridge dispatches a workflow run and waits for the workflow to POST back its
-verdict. The callback URL carries a token issued by the bridge; the workflow
-echoes it; the bridge redeems the token once and rejects all subsequent
-attempts:
+verdict. The host registers a `(correlationId, meta)` pair and receives a
+randomly generated token; the host embeds the token in the callback URL; the
+workflow echoes it; the host consumes the token once and rejects all
+subsequent attempts. `consume()` is atomic — it removes the entry and returns
+its metadata in one call.
 
 ```js
-import { CallbackRegistry } from "@forwardimpact/libbridge";
+import { randomUUID } from "node:crypto";
+import {
+  CallbackRegistry,
+  dispatchWorkflow,
+} from "@forwardimpact/libbridge";
 
 const registry = new CallbackRegistry({ ttlMs: 60 * 60 * 1000 });
 
-const token = registry.issue({ threadId, runIntent: "discuss" });
+const correlationId = randomUUID();
+const token = registry.register(correlationId, { discussionId });
 await dispatchWorkflow({
-  repo: "owner/repo",
-  workflow: "kata-dispatch.yml",
+  workflowFile: "kata-dispatch.yml",
   ref: "main",
-  inputs: { callback_url: `${publicUrl}/api/callback/${token}` },
-  authToken,
+  repo: "owner/repo",
+  token: ghInstallationToken,
+  prompt,
+  callbackUrl: `${publicUrl}/api/callback/${token}`,
+  correlationId,
+  discussionId,
 });
 
-// Later, when the workflow POSTs back:
-server.post("/api/callback/:token", async (c) => {
-  const entry = registry.redeem(c.req.param("token"));
-  if (!entry) return c.text("forbidden", 403);
-  await onCallback({ thread: await store.load(entry.threadId), payload: await c.req.json() });
-  return c.text("ok");
-});
+// In the `onCallback` handler passed to createBridgeServer:
+async function onCallback(c) {
+  const meta = registry.consume(c.req.param("token"));
+  if (!meta) return c.json({ error: "Unknown token" }, 404);
+  const payload = await c.req.json();
+  if (payload.correlation_id !== meta.correlationId) {
+    return c.json({ error: "Correlation ID mismatch" }, 400);
+  }
+  // …deliver replies, recess, or fail per payload.verdict…
+  return c.json({ ok: true }, 200);
+}
 ```
 
-The registry is in-memory by default; for multi-process bridges, inject a
-persistent backing store via the registry's adapter interface.
+The registry is in-memory; for multi-process bridges, persist
+`pending_callbacks` on each `DiscussionContextStore` record so the host can
+re-register tokens on restart. The `correlation_id` echoes through the
+workflow and is checked against `meta.correlationId` to defend against
+token-and-payload mismatches.
 
 ## Evaluate recess triggers
 
-Long-running RFCs use the `Recess` verdict to wait for an external signal
-(elapsed time, a new message, a mention). `evaluateTrigger` decides whether a
-recess should resume based on a host-supplied `now` and the observation that
-just arrived:
+Long-running RFCs use the libeval `Recess` verdict to wait for an external
+signal. A trigger is one of three shapes:
+
+- `{ kind: "responses", responses: N }` — fire when at least `N` new responses
+  arrive since the recess opened.
+- `{ kind: "elapsed", elapsed: "P1D" }` — fire after an ISO-8601 duration
+  passes. Days, hours, minutes, seconds supported (`P14D`, `PT12H`, `P1DT6H`).
+- `{ kind: "either", responses?: N, elapsed?: "P1D" }` — fire on whichever
+  arm satisfies first.
+
+`evaluateTrigger(trigger, observed, now)` returns `{ fired: boolean, due_at?: number }`
+where `due_at` is the absolute ms-epoch when an elapsed arm will fire (useful
+for scheduling a wake-up). The host owns `now` so unit tests stay deterministic:
 
 ```js
 import { evaluateTrigger } from "@forwardimpact/libbridge";
 
-const trigger = { kind: "elapsed", durationMs: 24 * 60 * 60 * 1000 };
-const observed = { kind: "elapsed", at: Date.now() - 25 * 60 * 60 * 1000 };
+const trigger = { kind: "elapsed", elapsed: "P1D" };
+const observed = { opened_at: Date.now() - 25 * 60 * 60 * 1000 };
 
-if (evaluateTrigger(trigger, observed, Date.now())) {
+const result = evaluateTrigger(trigger, observed, Date.now());
+if (result.fired) {
   await dispatchWorkflow({
-    /* ...with resume_context = thread context... */
+    workflowFile: "kata-dispatch.yml",
+    ref: "main",
+    repo: "owner/repo",
+    token: ghInstallationToken,
+    prompt: "Resume requested.",
+    callbackUrl,
+    correlationId: newCorrelationId,
+    discussionId,
+    resumeContext: JSON.stringify({
+      correlation_id: priorCorrelationId,
+      history_since: historySliceSinceRecess,
+    }),
   });
 }
 ```
 
-`evaluateTrigger` is pure: it takes a trigger, an observation, and a clock
-reading, and returns `true` when the observation satisfies the trigger. The
-host calls it whenever a candidate event arrives — never from inside libbridge.
+`evaluateTrigger` is pure: it takes a trigger, an observation
+(`{ responses?, opened_at? }`), and a clock reading, and returns whether the
+observation satisfies the trigger. The host calls it whenever a candidate
+event arrives — for `responses`, on every new channel message; for `elapsed`,
+on a host-scheduled wake-up at `due_at`.
 
 ## Verify
 
 You have reached the outcome of this guide when:
 
-- You can stand up a Hono server with health, webhook, and callback routes via
-  `createBridgeServer`, with the host's channel-specific SDK glue only in the
-  webhook route.
+- You can stand up a Hono server with channel-webhook and
+  `/api/callback/:token` routes via `createBridgeServer`, with the host's
+  channel-specific SDK glue only inside `onWebhook` and `onCallback`.
 - You can persist per-thread state through `DiscussionContextStore` backed by
-  an injected `libstorage` instance.
-- You can issue, dispatch, and one-shot redeem callback tokens through
-  `CallbackRegistry`.
-- You can evaluate recess triggers against a caller-supplied clock and route
-  the resume back through `dispatchWorkflow`.
+  an injected `libstorage` instance and keyed by `(channel, discussion_id)`.
+- You can `register`, dispatch, and one-shot `consume` callback tokens through
+  `CallbackRegistry`, with `correlation_id` echoed end-to-end.
+- You can evaluate `responses`, `elapsed`, and `either` recess triggers
+  against a caller-supplied clock and route the resume back through
+  `dispatchWorkflow` with a JSON-encoded `resume_context`.
 
 ## What's next
 
