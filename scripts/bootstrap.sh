@@ -27,8 +27,12 @@ else
 fi
 
 # ── Install workspace ───────────────────────────────────────────
+# Codegen creates symlinks at libraries/*/src/generated → ./generated that
+# the workspace cache does not restore, so always run codegen even on a
+# warm cache; bun install is what we actually save time on.
 if [ "${BOOTSTRAP_WORKSPACE_CACHE_HIT:-}" = "true" ]; then
-  echo "Workspace cache hit — skipping bun install + codegen"
+  echo "Workspace cache hit — skipping bun install, running codegen"
+  just codegen
 else
   just install
 fi
