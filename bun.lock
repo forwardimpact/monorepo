@@ -568,6 +568,9 @@
         "@forwardimpact/svcvector": "^0.1.111",
       },
     },
+    "products/kata": {
+      "name": "@forwardimpact/kata",
+    },
     "products/landmark": {
       "name": "@forwardimpact/landmark",
       "version": "0.1.19",
@@ -1033,6 +1036,8 @@
     "@forwardimpact/gear": ["@forwardimpact/gear@workspace:products/gear"],
 
     "@forwardimpact/guide": ["@forwardimpact/guide@workspace:products/guide"],
+
+    "@forwardimpact/kata": ["@forwardimpact/kata@workspace:products/kata"],
 
     "@forwardimpact/landmark": ["@forwardimpact/landmark@workspace:products/landmark"],
 

@@ -57,6 +57,9 @@ block in README.md.
 
 After editing, regenerate: `bun run context:fix`.
 
+A `products/<name>/` may be `"private": true` with only `description` +
+`jobs` (e.g., Kata), exempt from § Audience.
+
 ## Invocation context
 
 Products with both a web UI and a CLI can share handler logic through

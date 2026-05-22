@@ -282,4 +282,34 @@ iterating on agents.
 
 </job>
 
+<job user="Teams Using Agents" goal="Run a Continuously Improving Agent Team">
+
+## Teams Using Agents: Run a Continuously Improving Agent Team
+
+**Trigger:** Agents are shipping work but nobody can tell whether the team is
+getting better — the only feedback loop is reading every diff.
+
+**Big Hire:** Help me run an autonomous, continuously improving development team
+that plans, ships, studies its own traces, and acts on findings. → **Kata**
+
+**Little Hire:** Help me onboard a Kata installation that runs the
+Plan-Do-Study-Act loop without per-team prompt engineering. → **Kata**
+
+**Competes With:** bespoke per-agent system prompts; manual orchestration
+scripts; not measuring agent outcomes; abandoning agent investment after a
+failed pilot.
+
+**Forces:**
+- **Push:** Agent regressions are silent until users complain.
+- **Pull:** A closed loop that surfaces what improved and what regressed,
+  grounded in evidence.
+- **Habit:** Treating each agent run as a one-off rather than an iteration.
+- **Anxiety:** Autonomy might amplify bad patterns faster than humans can
+  intervene.
+
+**Fired When:** the autonomous loop becomes harder to operate than direct
+prompting; or organizational policy bans autonomous agent execution.
+
+</job>
+
 <!-- END:jobs -->

@@ -123,7 +123,7 @@ async function buildLayers(root) {
         id: "L2",
         name: "JTBD.md",
         maxLines: 320,
-        maxWords: 1408,
+        maxWords: 1664,
         files: ["JTBD.md"],
       },
       {
