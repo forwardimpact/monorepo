@@ -31,8 +31,8 @@ data, write down what each initiative was *supposed* to change:
 
 | Initiative                       | Owner       | Completed   | Intended driver  |
 | -------------------------------- | ----------- | ----------- | ---------------- |
-| `init_007` Deep Work remediation | you         | 2025-02-28  | `cognitive_load` |
-| `init_029` One BioNova           | you         | 2025-08-15  | `quality`        |
+| `init_007` Deep Work remediation | you         | 2025-02-28  | `deep_work`      |
+| `init_029` One BioNova           | you         | 2025-08-15  | `code_review`    |
 
 Initiative IDs and completion dates come from GetDX. Driver IDs come from
 your `drivers.yaml` — list them with `npx fit-pathway driver --list` if you
@@ -46,11 +46,11 @@ For each initiative, read the driver's score across the snapshots that
 straddle its completion date:
 
 ```sh
-npx fit-landmark snapshot trend --item cognitive_load --manager you@example.com
+npx fit-landmark snapshot trend --item deep_work --manager you@example.com
 ```
 
 ```text
-  Trend: cognitive_load (Your team)
+  Trend: deep_work (Your team)
 
     2024-12-15   58
     2025-03-15   71
@@ -67,11 +67,11 @@ persisted rather than reverting.
 Repeat for the second initiative:
 
 ```sh
-npx fit-landmark snapshot trend --item quality --manager you@example.com
+npx fit-landmark snapshot trend --item code_review --manager you@example.com
 ```
 
 ```text
-  Trend: quality (Your team)
+  Trend: code_review (Your team)
 
     2025-03-15   76
     2025-06-14   78
@@ -101,9 +101,9 @@ npx fit-landmark snapshot compare --snapshot NzE4MmRk --manager you@example.com
   Snapshot comparison: NzE4MmRk (Your team vs organization)
 
     Driver          Team   p50   p75   p90
-    cognitive_load    74    65    73    82
-    quality           78    70    80    88
-    reliability       65    68    76    84
+    deep_work         74    65    73    82
+    code_review       78    70    80    88
+    incident_response 65    68    76    84
 ```
 
 If the organization-wide median moved with your team, the initiative may not
@@ -132,7 +132,7 @@ npx fit-landmark voice --manager you@example.com
       "Meeting load is more reasonable than it was"
 
     Below-50th driver alignment:
-      reliability (48th percentile) — 3 incident comments
+      incident_response (48th percentile) — 3 incident comments
 ```
 
 When themed comments line up with the intended driver — focus comments
@@ -147,7 +147,7 @@ For each initiative, write one of three verdicts grounded in what you saw:
 - **Worked.** Driver moved across the completion window, team's percentile
   rose relative to the organization, and engineer voice aligns with the
   intended driver. Example: *"`init_007` (Deep Work remediation, completed
-  2025-02-28) tracked with `cognitive_load` moving from 58 to 71 across the
+  2025-02-28) tracked with `deep_work` moving from 58 to 71 across the
   Q4→Q1 snapshot boundary. The team's Q1 percentile placed it above the
   organizational median, and engineer comments that quarter clustered on
   focus and meeting load. Recommend continuing the policy."*

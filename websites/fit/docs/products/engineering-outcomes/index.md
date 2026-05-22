@@ -93,11 +93,11 @@ diving into the health view, check how a specific driver has moved over time.
 Track a driver's trend across snapshots, scoped to your team:
 
 ```sh
-npx fit-landmark snapshot trend --item quality --manager alice@example.com
+npx fit-landmark snapshot trend --item code_review --manager alice@example.com
 ```
 
 ```text
-  Trend: quality (Alice Smith's team)
+  Trend: code_review (Alice Smith's team)
 
     2025-03-15   72
     2025-06-14   78
@@ -105,8 +105,8 @@ npx fit-landmark snapshot trend --item quality --manager alice@example.com
 ```
 
 The output shows the driver's score at each snapshot date, making the direction
-visible. Replace `quality` with any driver ID from your `drivers.yaml` --
-the starter data includes `quality`, `reliability`, and `cognitive_load`.
+visible. Replace `code_review` with any driver ID from your `drivers.yaml` --
+the starter data includes `code_review`, `incident_response`, and `deep_work`.
 
 Compare the latest snapshot against organizational benchmarks:
 
@@ -118,9 +118,9 @@ npx fit-landmark snapshot compare --snapshot MjUyNbaY --manager alice@example.co
   Snapshot comparison: MjUyNbaY (Alice Smith's team vs organization)
 
     Driver          Team   p50   p75   p90
-    quality           78    70    80    88
-    reliability       65    68    76    84
-    cognitive_load    82    72    81    90
+    code_review       78    70    80    88
+    incident_response 65    68    76    84
+    deep_work         82    72    81    90
 ```
 
 Use the snapshot ID from `npx fit-landmark snapshot list`.
@@ -140,13 +140,13 @@ npx fit-landmark health --manager alice@example.com
 ```text
   Health: Alice Smith's team
 
-    quality (78, 72nd percentile, vs_org: +5)
+    code_review (78, 72nd percentile, vs_org: +5)
       Contributing skills: task_completion (12 artifacts), planning (8 artifacts)
       "We've been catching more issues in review lately" — latest snapshot
       "Design docs are getting better but still inconsistent" — latest snapshot
       Recommendation: Carol Davis could develop planning (currently working)
 
-    reliability (65, 48th percentile, vs_org: -3)
+    incident_response (65, 48th percentile, vs_org: -3)
       Contributing skills: incident_response (4 artifacts), sre_practices (2 artifacts)
       "On-call handoffs are still rough" — latest snapshot
 ```
@@ -204,7 +204,7 @@ npx fit-landmark voice --manager alice@example.com
       "Integration tests saved us twice this month"
 
     Below-50th driver alignment:
-      reliability (48th percentile) — 3 incident comments
+      incident_response (48th percentile) — 3 incident comments
 ```
 
 The manager view buckets comments by theme and counts how many mention each. It
@@ -212,8 +212,8 @@ also highlights drivers scoring below the 50th percentile where engineer
 comments align -- showing where sentiment matches the quantitative data.
 
 This is valuable for quarterly reviews because it grounds numerical scores in
-the team's own words. A low reliability score paired with three comments about
-incident response tells a clearer story than the score alone.
+the team's own words. A low `incident_response` score paired with three
+incident comments tells a clearer story than the score alone.
 
 ## Check where evidence supports the standard
 
@@ -277,7 +277,7 @@ You have demonstrated engineering progress without surveillance when:
    alice@example.com` shows at least one driver with a score, contributing
    skills, and evidence counts. No "No GetDX snapshot data available" messages.
 
-2. **Trends show direction.** `npx fit-landmark snapshot trend --item quality
+2. **Trends show direction.** `npx fit-landmark snapshot trend --item code_review
    --manager alice@example.com` shows scores across multiple snapshots, making
    the trajectory visible.
 
