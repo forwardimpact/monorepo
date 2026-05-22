@@ -166,47 +166,18 @@ describe("ghbridge webhook intake", () => {
     expect(Object.keys(ctx.pending_callbacks)).toHaveLength(1);
   });
 
-  test("addReaction (EYES) GraphQL mutation fires as progress indicator", async () => {
-    // Replace the global service with one that uses a capturing ticker so
-    // we can invoke the tick callback synchronously.
-    await service.stop();
-    harness.restore();
-
-    let capturedTick = null;
-    const captureTicker = {
-      start: (_token, tick) => {
-        capturedTick = tick;
-      },
-      stop: () => {},
-    };
-    const localHarness = buildHarness();
-    const graphqlCalls = [];
-    service = new (await import("../index.js")).GhBridgeService(makeConfig(), {
-      logger: createMockLogger(),
-      tracer: makeTracer(),
-      storage: createMockStorage(),
-      verifyWebhook: (s, b, sig) =>
-        import("@octokit/webhooks-methods").then((m) => m.verify(s, b, sig)),
-      getInstallationToken: async () => "ghs_test",
-      graphqlClient: async (q, v) => {
-        graphqlCalls.push({ query: q, variables: v });
-        return {};
-      },
-      progressTicker: captureTicker,
-    });
-    await service.start();
-    harness = localHarness;
-    baseUrl = `http://127.0.0.1:${service.address().port}`;
-
+  test("addReaction (EYES) fires once when the discussion is dispatched", async () => {
     await postSigned(baseUrl, "discussion", discussionEvent());
-    expect(capturedTick).not.toBeNull();
-    await capturedTick();
-    const reactionCalls = graphqlCalls.filter((c) =>
+    const reactionCalls = harness.graphqlCalls.filter((c) =>
       c.query.includes("addReaction"),
     );
     expect(reactionCalls).toHaveLength(1);
     expect(reactionCalls[0].variables.i.content).toBe("EYES");
     expect(reactionCalls[0].variables.i.subjectId).toBe("D_kw1");
+    const removeCalls = harness.graphqlCalls.filter((c) =>
+      c.query.includes("removeReaction"),
+    );
+    expect(removeCalls).toHaveLength(0);
   });
 
   test("ignores unsupported events with 204", async () => {

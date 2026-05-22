@@ -3,9 +3,10 @@ const CHUNK_CAP_MS = 7 * 24 * 60 * 60 * 1000;
 /**
  * In-memory scheduler for `elapsed` resume triggers. JS `setTimeout`'s
  * practical cap is ~24.8 days; this scheduler chunks longer durations
- * into <= 7-day rearm segments so future >24-day windows work, while the
- * persistent `due_at` in `open_rfcs` is the source of truth across
- * restarts.
+ * into <= 7-day rearm segments so future >24-day windows work, while
+ * the persistent `due_at` in `open_rfcs` is the source of truth across
+ * restarts. Channel-agnostic — used by `ResumeScheduler` for both
+ * bridges.
  */
 export class ElapsedScheduler {
   #timers = new Map();

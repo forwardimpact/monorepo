@@ -10,6 +10,7 @@ import { GhBridgeService } from "../index.js";
 import {
   ADD_DISCUSSION_COMMENT_MUTATION,
   ADD_REACTION_MUTATION,
+  REMOVE_REACTION_MUTATION,
 } from "../src/graphql.js";
 
 function makeTracer() {
@@ -200,9 +201,31 @@ describe("ghbridge callback handler", () => {
     );
   });
 
-  test("graphql contains exactly two mutations (the source of truth)", () => {
+  test("graphql contains the three mutations (the source of truth)", () => {
     expect(ADD_DISCUSSION_COMMENT_MUTATION).toContain("addDiscussionComment");
     expect(ADD_REACTION_MUTATION).toContain("addReaction");
+    expect(REMOVE_REACTION_MUTATION).toContain("removeReaction");
+  });
+
+  test("callback fires removeReaction(EYES) on the discussion", async () => {
+    const token = await dispatchFresh(ctx.service, baseUrl);
+    const meta = ctx.service.callbacks.peek(token);
+    const before = ctx.graphqlCalls.filter((c) =>
+      c.query.includes("removeReaction"),
+    ).length;
+    expect(before).toBe(0);
+    await postCallback(baseUrl, token, {
+      correlation_id: meta.correlationId,
+      verdict: "adjourned",
+      summary: "done",
+      replies: [],
+    });
+    const removeCalls = ctx.graphqlCalls.filter((c) =>
+      c.query.includes("removeReaction"),
+    );
+    expect(removeCalls).toHaveLength(1);
+    expect(removeCalls[0].variables.i.content).toBe("EYES");
+    expect(removeCalls[0].variables.i.subjectId).toBe("D_kw1");
   });
 
   test("addDiscussionComment is not composed inside any workflow YAML", async () => {

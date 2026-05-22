@@ -19,6 +19,13 @@ export const ADD_REACTION_MUTATION = `
     }
   }`;
 
+export const REMOVE_REACTION_MUTATION = `
+  mutation RemoveReaction($i: RemoveReactionInput!) {
+    removeReaction(input: $i) {
+      reaction { content }
+    }
+  }`;
+
 /**
  * Post each reply in `replies` as a separate `addDiscussionComment`
  * GraphQL mutation. Skips entries lacking a body.
