@@ -205,6 +205,29 @@ describe("ghbridge callback handler", () => {
     expect(ADD_REACTION_MUTATION).toContain("addReaction");
   });
 
+  test("addDiscussionComment is not composed inside any workflow YAML", async () => {
+    // Spec § Success criteria row 6: GraphQL mutation strings are owned by
+    // src/graphql.js, never composed inside facilitator prompts or workflow
+    // YAML. This guard catches a regression where the Discussion handling
+    // sneaks back into kata-dispatch.yml.
+    const { readdir, readFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const workflowsDir = join(
+      import.meta.dir,
+      "..",
+      "..",
+      "..",
+      ".github",
+      "workflows",
+    );
+    const files = await readdir(workflowsDir);
+    for (const file of files) {
+      if (!file.endsWith(".yml") && !file.endsWith(".yaml")) continue;
+      const contents = await readFile(join(workflowsDir, file), "utf8");
+      expect(contents).not.toContain("addDiscussionComment");
+    }
+  });
+
   test("correlation_id mismatch returns 400", async () => {
     const token = await dispatchFresh(ctx.service, baseUrl);
     const res = await postCallback(baseUrl, token, {

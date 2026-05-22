@@ -70,21 +70,18 @@ export function validateCallbackPayload(body) {
 
   const cid = body.correlation_id;
   if (typeof cid !== "string" || !cid) return null;
+  if (typeof body.verdict !== "string" || !body.verdict) return null;
+  if (typeof body.summary !== "string") return null;
+  if (typeof body.run_url !== "string" || !isValidRunUrl(body.run_url)) {
+    return null;
+  }
 
-  const verdict =
-    typeof body.verdict === "string"
-      ? body.verdict.slice(0, MAX_FIELD_LENGTH)
-      : "unknown";
-  const summary =
-    typeof body.summary === "string"
-      ? body.summary.slice(0, MAX_FIELD_LENGTH)
-      : "";
-  const run_url =
-    typeof body.run_url === "string" && isValidRunUrl(body.run_url)
-      ? body.run_url
-      : undefined;
-
-  return { correlation_id: cid, verdict, summary, run_url };
+  return {
+    correlation_id: cid,
+    verdict: body.verdict.slice(0, MAX_FIELD_LENGTH),
+    summary: body.summary.slice(0, MAX_FIELD_LENGTH),
+    run_url: body.run_url,
+  };
 }
 
 function normalizeBaseUrl(url) {

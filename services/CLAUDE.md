@@ -25,8 +25,10 @@ This rule lives next to the other invariants in
 
 Most services expose a gRPC interface defined in `proto/`. Exceptions: `mcp`
 exposes an HTTP/SSE interface using `@modelcontextprotocol/sdk` and delegates to
-the gRPC services as a client; `msteams` exposes an HTTP interface using
-`express` and `botbuilder`.
+the gRPC services as a client; `msbridge` and `ghbridge` expose HTTP
+interfaces using `libbridge` (Hono + `@hono/node-server`) — `msbridge`
+adds `botbuilder` for the Bot Framework, `ghbridge` adds `@octokit/*`
+for App auth, webhook verification, and GraphQL.
 
 Each service follows the same structure:
 

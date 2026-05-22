@@ -177,12 +177,18 @@ jobs:
 
           Recursion guard (this channel allows bot-authored content so agents can coordinate with each other): before engaging any participant, read the thread history. If the most recent activity is already a response from one of the participant agents you facilitate (product-manager, release-engineer, security-engineer, staff-engineer, technical-writer), stop immediately without engaging anyone — only respond when the latest content introduces a new question, request, or change for them to act on."
 
+          # Heredoc delimiter must be unguessable: $task interpolates user-
+          # controlled fields (issue title, PR title, label, author, URL).
+          # A predictable delimiter would let an attacker inject extra
+          # `key=value` lines into $GITHUB_OUTPUT — per GitHub Security
+          # Lab template-injection guidance.
+          delim="EOF_$(openssl rand -hex 16)"
           {
             echo "target-type=$target_type"
             echo "target-number=$target_number"
-            echo "task<<TASK_EOF"
+            echo "task<<$delim"
             echo "$task"
-            echo "TASK_EOF"
+            echo "$delim"
           } >> "$GITHUB_OUTPUT"
 
       # Run the libeval CLI directly so Part 02's discuss mode + lead-flag

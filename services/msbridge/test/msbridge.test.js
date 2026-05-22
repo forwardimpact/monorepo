@@ -1,5 +1,4 @@
-import { test, describe, beforeEach, afterEach } from "node:test";
-import assert from "node:assert";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
 import {
   createMockConfig,
@@ -72,22 +71,44 @@ function newService({ adapter, config: configOverrides } = {}) {
 describe("msbridge service", () => {
   describe("module exports", () => {
     test("exports MsBridgeService class", () => {
-      assert.strictEqual(typeof MsBridgeService, "function");
-      assert.ok(MsBridgeService.prototype.start);
-      assert.ok(MsBridgeService.prototype.stop);
+      expect(typeof MsBridgeService).toBe("function");
+      expect(MsBridgeService.prototype.start).toBeTruthy();
+      expect(MsBridgeService.prototype.stop).toBeTruthy();
     });
 
     test("re-exports buildPrompt and appendHistory from libbridge", () => {
-      assert.strictEqual(typeof buildPrompt, "function");
-      assert.strictEqual(typeof appendHistory, "function");
+      expect(typeof buildPrompt).toBe("function");
+      expect(typeof appendHistory).toBe("function");
     });
   });
 
   describe("validateCallbackPayload", () => {
-    test("requires a correlation_id", () => {
-      assert.strictEqual(validateCallbackPayload(null), null);
-      assert.strictEqual(validateCallbackPayload({}), null);
-      assert.strictEqual(validateCallbackPayload({ correlation_id: 42 }), null);
+    test("rejects bodies missing required keys", () => {
+      const validRunUrl = "https://github.com/owner/repo/actions/runs/1";
+      expect(validateCallbackPayload(null)).toBeNull();
+      expect(validateCallbackPayload({})).toBeNull();
+      expect(validateCallbackPayload({ correlation_id: 42 })).toBeNull();
+      expect(
+        validateCallbackPayload({
+          correlation_id: "c1",
+          summary: "ok",
+          run_url: validRunUrl,
+        }),
+      ).toBeNull();
+      expect(
+        validateCallbackPayload({
+          correlation_id: "c1",
+          verdict: "success",
+          run_url: validRunUrl,
+        }),
+      ).toBeNull();
+      expect(
+        validateCallbackPayload({
+          correlation_id: "c1",
+          verdict: "success",
+          summary: "ok",
+        }),
+      ).toBeNull();
     });
 
     test("normalises required keys", () => {
@@ -97,7 +118,7 @@ describe("msbridge service", () => {
         summary: "all good",
         run_url: "https://github.com/owner/repo/actions/runs/1",
       });
-      assert.deepStrictEqual(payload, {
+      expect(payload).toEqual({
         correlation_id: "c1",
         verdict: "success",
         summary: "all good",
@@ -110,14 +131,15 @@ describe("msbridge service", () => {
         correlation_id: "c1",
         verdict: "adjourned",
         summary: "done",
+        run_url: "https://github.com/owner/repo/actions/runs/1",
         replies: [{ body: "hi" }],
         trigger: { kind: "responses", responses: 2 },
         discussion_id: "GD_abc",
       });
-      assert.ok(payload);
-      assert.strictEqual(payload.replies, undefined);
-      assert.strictEqual(payload.trigger, undefined);
-      assert.strictEqual(payload.discussion_id, undefined);
+      expect(payload).toBeTruthy();
+      expect(payload.replies).toBeUndefined();
+      expect(payload.trigger).toBeUndefined();
+      expect(payload.discussion_id).toBeUndefined();
     });
 
     test("rejects untrusted run_url hosts", () => {
@@ -127,81 +149,76 @@ describe("msbridge service", () => {
         summary: "",
         run_url: "https://evil.example/x",
       });
-      assert.strictEqual(payload.run_url, undefined);
+      expect(payload).toBeNull();
     });
   });
 
   describe("isValidRunUrl", () => {
     test("accepts https github.com URLs", () => {
-      assert.strictEqual(
+      expect(
         isValidRunUrl("https://github.com/owner/repo/actions/runs/1"),
-        true,
-      );
+      ).toBe(true);
     });
 
     test("rejects non-github hosts and non-https", () => {
-      assert.strictEqual(isValidRunUrl("https://evil.example/x"), false);
-      assert.strictEqual(isValidRunUrl("http://github.com/x"), false);
-      assert.strictEqual(isValidRunUrl(null), false);
-      assert.strictEqual(isValidRunUrl(42), false);
+      expect(isValidRunUrl("https://evil.example/x")).toBe(false);
+      expect(isValidRunUrl("http://github.com/x")).toBe(false);
+      expect(isValidRunUrl(null)).toBe(false);
+      expect(isValidRunUrl(42)).toBe(false);
     });
   });
 
   describe("formatReply", () => {
     test("returns the summary verbatim", () => {
-      assert.strictEqual(
-        formatReply({ verdict: "success", summary: "hello" }),
+      expect(formatReply({ verdict: "success", summary: "hello" })).toBe(
         "hello",
       );
     });
 
     test("returns empty string when summary missing", () => {
-      assert.strictEqual(formatReply({}), "");
+      expect(formatReply({})).toBe("");
     });
   });
 
   describe("MsBridgeService construction", () => {
     test("creates instance with config", () => {
       const service = newService();
-      assert.ok(service);
-      assert.ok(service.store);
-      assert.ok(service.callbacks);
+      expect(service).toBeTruthy();
+      expect(service.store).toBeTruthy();
+      expect(service.callbacks).toBeTruthy();
     });
 
     test("throws if logger is missing", () => {
-      assert.throws(
+      expect(
         () =>
           new MsBridgeService(makeConfig(), {
             tracer: makeTracer(),
             storage: createMockStorage(),
             adapter: makeAdapter(),
           }),
-        { message: "logger is required" },
-      );
+      ).toThrow("logger is required");
     });
 
     test("throws if tracer is missing", () => {
-      assert.throws(
+      expect(
         () =>
           new MsBridgeService(makeConfig(), {
             logger: createMockLogger(),
             storage: createMockStorage(),
             adapter: makeAdapter(),
           }),
-        { message: "tracer is required" },
-      );
+      ).toThrow("tracer is required");
     });
 
     test("throws if storage is missing", () => {
-      assert.throws(
+      expect(
         () =>
           new MsBridgeService(makeConfig(), {
             logger: createMockLogger(),
             tracer: makeTracer(),
             adapter: makeAdapter(),
           }),
-        { message: "storage is required" },
-      );
+      ).toThrow("storage is required");
     });
   });
 
@@ -229,7 +246,7 @@ describe("msbridge service", () => {
           summary: "",
         }),
       });
-      assert.strictEqual(res.status, 404);
+      expect(res.status).toBe(404);
     });
 
     test("accepts payloads carrying optional replies/trigger/discussion_id", async () => {
@@ -269,7 +286,43 @@ describe("msbridge service", () => {
           discussion_id: "GD_x",
         }),
       });
-      assert.strictEqual(res.status, 200);
+      expect(res.status).toBe(200);
+    });
+
+    test("correlation_id mismatch returns 400", async () => {
+      const token = service.callbacks.register("real-corr", {
+        threadId: "t-2",
+      });
+      await service.store.add({
+        id: "msteams:t-2",
+        channel: "msteams",
+        discussion_id: "t-2",
+        history: [],
+        participants: [
+          {
+            name: "teams-user",
+            kind: "human",
+            metadata: { conversation: { id: "t-2" } },
+          },
+        ],
+        open_rfcs: {},
+        lead: "release-engineer",
+        pending_callbacks: { [token]: "real-corr" },
+        dispatches: [],
+        last_active_at: Date.now(),
+      });
+      await service.store.flush();
+      const res = await fetch(`${baseUrl}/api/callback/${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          correlation_id: "wrong-corr",
+          verdict: "success",
+          summary: "ok",
+          run_url: "https://github.com/owner/repo/actions/runs/1",
+        }),
+      });
+      expect(res.status).toBe(400);
     });
   });
 
@@ -300,7 +353,7 @@ describe("msbridge service", () => {
       await service.store.add(record);
       await service.store.flush();
       const reloaded = await service.store.loadByChannel("msteams", "thread-1");
-      assert.deepStrictEqual(reloaded.participants[0].metadata, ref);
+      expect(reloaded.participants[0].metadata).toEqual(ref);
     });
   });
 });

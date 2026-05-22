@@ -56,9 +56,11 @@ export async function dispatchWorkflow({
   });
 
   if (!res.ok) {
-    const body = await res.text();
+    // GitHub's error body sometimes echoes the dispatched inputs, including
+    // the callback URL which carries a single-use token. Surface only the
+    // status — operators can inspect the run log if they need more.
     throw new Error(
-      `workflow_dispatch failed: ${res.status} ${res.statusText} ${body}`,
+      `workflow_dispatch failed: ${res.status} ${res.statusText}`,
     );
   }
 }
