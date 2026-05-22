@@ -277,6 +277,22 @@ don't compete.
   references them as one-liners.
 - **Sub-agents** don't carry state across runs — that's the wiki's job.
 
+### Threaded channels
+
+Human-side conversations on threaded channels (GitHub Discussions, Microsoft
+Teams) reach the agent team through bridge services rather than directly from
+workflow triggers. `services/ghbridge` fronts GitHub Discussion events;
+`services/msbridge` fronts Microsoft Teams conversations. Both build on
+`@forwardimpact/libbridge` for the shared callback registry, durable
+per-thread state, and resume-trigger contract. Inside the agent team, RFC
+coordination across multiple workflow runs is expressed via the libeval
+`discuss` mode's `Recess` and `RequestForComment` tools — so a Discussion that
+spans 14 days of recesses looks the same to a participant as one that
+resolves in a single run. See
+[`services/ghbridge/README.md`](services/ghbridge/README.md),
+[`services/msbridge/README.md`](services/msbridge/README.md), and
+[`libraries/libbridge/README.md`](libraries/libbridge/README.md).
+
 ## Metrics
 
 Only skills representing **end-to-end processes** — those whose output is

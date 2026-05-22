@@ -216,6 +216,16 @@ in a comment. A Discussion older than **14 days** without a terminal event is a
 mis-routing; the invariant audit (KATA.md § Invariants) checks for stale open
 Discussions.
 
+### Runtime mechanism
+
+Discussion events reach the agent team via `services/ghbridge`, not directly
+via the dispatch workflow. The bridge stores per-thread state (history,
+participants, open RFCs, lead) in `libindex` JSONL and re-dispatches the
+workflow when a recess trigger fires. RFC long-running coordination is
+expressed via the libeval `discuss` mode's `Recess` and `RequestForComment`
+tools — the agent team should treat a Discussion the same way regardless of
+whether it spans one workflow run or 14 days of recesses.
+
 ## Trust at run-time
 
 The `kata-dispatch` facilitator verifies the author is a trusted contributor

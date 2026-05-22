@@ -104,6 +104,14 @@ If `product-manager` is selected, ask: "Do you want agents to respond to PR
 comments, issue comments, and discussions?" If yes, generate `kata-dispatch.yml`
 from `references/workflow-react.md`.
 
+If discussion replies are wanted, also instruct the operator to deploy
+`services/ghbridge` before flipping the App webhook URL to point at it. PR,
+issue, and review events reach `kata-dispatch` directly via workflow triggers
+and need no bridge, but Discussion events arrive through the App webhook and
+require a running ghbridge instance. Point them at
+[`services/ghbridge/README.md`](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
+for prerequisites, configuration, and the tunnel/webhook setup.
+
 ### Step 4: Verify
 
 Run verification:
