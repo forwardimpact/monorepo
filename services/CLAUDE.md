@@ -53,29 +53,24 @@ The shebang is `#!/usr/bin/env node`. The `bin` entry in `package.json` is
 
 ## Configuration
 
-Each service receives its config from `createServiceConfig(name)`, which merges
-constructor defaults → `config.json` `service.<name>` block → `SERVICE_{NAME}_*`
-env vars. See [`config/CLAUDE.md`](../config/CLAUDE.md) for the file format
-and merge order.
+`createServiceConfig(name)` merges constructor defaults → `config.json`
+`service.<name>` → `.env` `SERVICE_{NAME}_*`. See
+[`config/CLAUDE.md`](../config/CLAUDE.md) for format and merge order.
 
 ## Running services
 
-Services are managed by `fit-rc`. The service list lives in `config/config.json`
-under `init.services` — see [`config/CLAUDE.md`](../config/CLAUDE.md) for the
-entry format, declaration order semantics, and optional service entries.
+Services are managed by `fit-rc`. The service list lives in
+`config/config.json` under `init.services` — see
+[`config/CLAUDE.md`](../config/CLAUDE.md) for entry format and declaration
+order.
 
 ```sh
-just rc-start                # start all services in config.json
+just rc-start                # start all services
 just rc-stop                 # stop all services
 just rc-status               # show service status
 bunx fit-rc start <name>     # start <name> and everything after it
 bunx fit-rc restart <name>   # restart <name> and everything after it
-```
-
-For a single service during development without `fit-rc`:
-
-```sh
-node --watch services/<name>/server.js
+node --watch services/<name>/server.js   # single service without fit-rc
 ```
 
 ## `package.json` metadata

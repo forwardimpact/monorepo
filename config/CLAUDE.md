@@ -38,13 +38,10 @@ Each entry has a `name` and a `command` (the shell command `fit-rc` spawns).
 Non-Node commands that need `.env` variables must source them explicitly (the
 supervisor does not load `.env` — Node services use `libconfig` internally).
 
-**Declaration order matters.** `fit-rc start <name>` starts from the named
-service to the end of the list; `fit-rc stop <name>` stops from the named
-service to the end (in reverse). `restart <name>` combines both — only the
-named service and those declared after it are affected. Services declared
-before the target are left untouched. List infrastructure (tunnels, databases)
-before the services that depend on them so a service restart does not cycle
-the tunnel.
+**Declaration order matters.** `start <name>`, `stop <name>`, and
+`restart <name>` operate on the named service and everything after it.
+Services before the target are untouched. List infrastructure (tunnels,
+databases) before the services that depend on them.
 
 Optional entries — add when working on those features:
 
@@ -99,16 +96,10 @@ with `PRODUCT_{NAME}_{KEY}` environment variables.
 
 ## `.env`
 
-Environment variables that configure services and products at runtime. Merge
-order: constructor defaults → `config.json` → `.env`.
+Merge order: constructor defaults → `config.json` → `.env`. The `.env` file
+is the persistent source of truth — non-credential keys overwrite
+`process.env` unconditionally on load. Credential keys (API keys, tokens) go
+to a private map; shell env wins at read time for credentials only.
 
-Credentials (API keys, tokens) are loaded into a private map and never set on
-`process.env`; shell env wins at read time for credentials. All other keys are
-set on `process.env` unconditionally from `.env` — the file is the persistent
-source of truth, so editing `.env` and restarting the service always takes
-effect.
-
-See [services/CLAUDE.md](../services/CLAUDE.md) and
-[products/CLAUDE.md](../products/CLAUDE.md) for conventions on each side.
-See [libraries/CLAUDE.md](../libraries/CLAUDE.md) for the `libconfig`
+See [libraries/libconfig/CLAUDE.md](../libraries/libconfig/CLAUDE.md) for the
 implementation contract.
