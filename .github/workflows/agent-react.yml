@@ -7,6 +7,17 @@ on:
     types: [created]
   pull_request_target:
     types: [labeled, closed]
+  # NOTE: `pull_request_review_comment` is intentionally NOT a trigger.
+  # A review submission fires N `pull_request_review_comment.created` events plus one
+  # `pull_request_review.submitted` event in the same instant — all share the per-PR
+  # concurrency group below, and with `cancel-in-progress: false` the cascade of
+  # "newly pending cancels previously pending" cancels every run before any reaches
+  # `in_progress` (observed on PR #1230, 2026-05-22; zero facilitators ran).
+  # The `pull_request_review.submitted` payload already carries every inline diff
+  # comment in the batch, so the facilitator can read them via the API — adding the
+  # comment trigger back would reintroduce the race without adding any reachable
+  # information. Standalone inline comments / thread replies are wrapped in an
+  # auto-created `state: COMMENTED` review by GitHub, which also fires `submitted`.
   pull_request_review:
     types: [submitted]
   discussion:
@@ -34,6 +45,11 @@ permissions:
 # Coalesce simultaneous events on the same target so the recursion guard sees a stable thread.
 # Triage flows fire `opened` plus several `labeled` events within ~1s; without this, each one
 # spawns an independent facilitator → independent agent → independent PR (observed on #647 / #654).
+#
+# `cancel-in-progress: false` is load-bearing: facilitator runs routinely last 30+ minutes
+# (e.g. staff engineer doing implementation work). A new label or comment arriving mid-run
+# must NOT cancel that work, so flipping this to `true` is not an acceptable fix for any
+# downstream race condition — adjust the trigger surface instead (see the `on:` block).
 concurrency:
   group: agent-react-${{ github.event.issue.number || github.event.pull_request.number || github.event.discussion.number || github.run_id }}
   cancel-in-progress: false
@@ -42,11 +58,7 @@ jobs:
   kata:
     # Bot-authored content is allowed so this workflow can serve as an agent-to-agent coordination channel;
     # the task text contains a recursion guard that stops the facilitator when the latest activity is already
-    # a participant agent's response. Inline diff comments are observed via the `pull_request_review` (submitted)
-    # event, which carries the full set of comments in one payload — `pull_request_review_comment` is not a
-    # trigger here. When several events on the same PR arrived in the same instant (e.g. a review submission
-    # bundling N comment events plus the review event), the `cancel-in-progress: false` concurrency rule
-    # cancelled every one of them in the resulting race, so no facilitator ran (observed on PR #1230).
+    # a participant agent's response.
     #
     # Label scoping: `labeled` fires once per label, and the product-manager bot applies several labels
     # in rapid succession on triage. Only react to labels that carry routing or approval semantics —
@@ -55,6 +67,10 @@ jobs:
     #
     # PR close scoping: `closed` fires on both merge and abandon — only react when `merged: true` so
     # abandoned PRs don't fire a run.
+    #
+    # Trigger surface: this `if:` must stay aligned with the `on:` block above. There is intentionally
+    # no `pull_request_review_comment` clause — see the NOTE on that trigger in `on:` for why adding one
+    # back reintroduces the cancel-in-progress race (PR #1230).
     if: >-
       github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && (github.event.action == 'opened' || (github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))))) || github.event_name == 'issue_comment' || (github.event_name == 'pull_request_target' && ((github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))) || (github.event.action == 'closed' && github.event.pull_request.merged == true))) || github.event_name == 'pull_request_review' || github.event_name == 'discussion' || github.event_name == 'discussion_comment'
     runs-on: ubuntu-latest
