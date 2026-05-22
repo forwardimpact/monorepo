@@ -1,8 +1,12 @@
 # Plan 1230-a — Part 04: services/msbridge
 
 Rename `services/msteams` → `services/msbridge` and refactor it onto
-`libbridge`. Preserve the existing Bot Framework callback contract so
-already-deployed Teams installations continue to work.
+`libbridge`. Clean break: there are no deployed consumers of either the
+internal service interface or the workflow→callback contract, so no
+shims, env-var aliases, or verdict-rewrite mappings are emitted.
+Microsoft's Bot Framework HTTP protocol (the external Teams API) is
+unchanged — that is the wire format Teams itself speaks, not internal
+back-compat.
 
 Libraries used: `@forwardimpact/libbridge` (Part 01), `@forwardimpact/libconfig`, `@forwardimpact/libtelemetry`, `@forwardimpact/librpc`, `@forwardimpact/libstorage` (LocalStorage), `@forwardimpact/libharness` (devDep), `botbuilder` (existing), `express` (existing — already a libbridge peer-dep).
 
@@ -86,41 +90,25 @@ Modified: `services/msbridge/server.js`.
 - `createTracer("msteams")` → `createTracer("msbridge")`.
 - Construct the storage: `import { LocalStorage } from "@forwardimpact/libstorage"; const storage = new LocalStorage({ root: process.env.STATE_DIR ?? "/var/lib/msbridge" });` and pass `storage` into `new MsBridgeService(config, { logger, tracer, storage })`.
 
-Config-namespace migration: env vars rename from `SERVICE_MSTEAMS_*` to
-`SERVICE_MSBRIDGE_*`. To avoid breaking deployed operators on first pull,
-this part ships a compatibility shim inside `services/msbridge/server.js`:
+Config-namespace rename: env vars change from `SERVICE_MSTEAMS_*` to
+`SERVICE_MSBRIDGE_*` as a clean break. No alias shim, no deprecation
+warning, no follow-on PR — `createServiceConfig("msbridge", …)` reads
+the new namespace directly, and any operator pulling this build updates
+their env file in the same step.
 
-```js
-// Backward-compat: copy SERVICE_MSTEAMS_* env vars into SERVICE_MSBRIDGE_* if
-// the new name is unset. Emit a single deprecation warning on first match.
-for (const key of Object.keys(process.env)) {
-  if (key.startsWith("SERVICE_MSTEAMS_")) {
-    const newKey = key.replace("SERVICE_MSTEAMS_", "SERVICE_MSBRIDGE_");
-    if (!(newKey in process.env)) {
-      process.env[newKey] = process.env[key];
-      console.warn(`[msbridge] ${key} is deprecated; rename to ${newKey}`);
-    }
-  }
-}
-```
+Verify: `node services/msbridge/server.js --help 2>&1` exits without crashing on missing env; the startup banner says "msbridge"; `rg 'SERVICE_MSTEAMS_' services/msbridge/` returns empty.
 
-The shim sits inside `services/msbridge/server.js` before
-`createServiceConfig` runs. It is removed in a follow-on PR once the
-operator-facing release notes for `msbridge@v0.2.0` are published. The
-follow-on PR opens an issue via `gh issue create` from the kata-implement
-session at the same time this part lands.
+## Step 4.6 — Reject malformed callback bodies; ignore unsupported optional fields
 
-Verify: `node services/msbridge/server.js --help 2>&1` exits without crashing on missing env; the startup banner says "msbridge".
+`MsBridgeService.handleCallback` validates the required keys
+(`correlation_id`, `verdict`, `summary`, `run_url`) and rejects bodies
+missing any of them with `400`. The new optional fields (`replies[]`,
+`trigger`, `discussion_id`) are accepted and silently ignored — Teams
+does not have a threaded-discussion surface to render `replies[]` into,
+and `recessed`-verdict callbacks targeted at msbridge are out of scope
+for this spec.
 
-## Step 4.6 — Confirm callback contract forward-compat
-
-Read-only check; no edits. The `Callback` payload shape that the workflow
-delivers (`{correlation_id, verdict, summary, run_url}`) is preserved
-byte-for-byte; the new optional fields (`replies[]`, `trigger`,
-`discussion_id`) are ignored by `MsBridgeService` until a follow-on PR
-wires Teams-side handling. This part does not need to handle them.
-
-Verify: `bun test services/msbridge/test/msbridge.test.js -t 'callback'` covers the legacy shape; add a new test case asserting that an inbound callback with unknown `replies[]` / `trigger` fields is accepted (forward-compat — they are ignored, not rejected).
+Verify: `bun test services/msbridge/test/msbridge.test.js -t 'callback'` covers the required shape and asserts that an inbound callback with `replies[]` / `trigger` / `discussion_id` fields is accepted (they are ignored, not rejected).
 
 ## Step 4.7 — Update root references
 

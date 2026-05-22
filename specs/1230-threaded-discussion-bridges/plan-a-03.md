@@ -126,8 +126,7 @@ invocation with (env-declared inputs, no inline `${{ }}` shell sinks):
         --callback-url="$CALLBACK_URL" \
         --correlation-id="$CORRELATION_ID" \
         --run-url="$RUN_URL" \
-        --discussion-id="$DISCUSSION_ID" \
-        --include-replies
+        --discussion-id="$DISCUSSION_ID"
     else
       curl -fsS -X POST "$CALLBACK_URL" \
         -H 'Content-Type: application/json' \
@@ -199,8 +198,9 @@ the placeholder URL and the run terminates normally.
 - The `git mv` commit and the body edits go on the same branch but in
   separate commits — implementer reviews the diff against the previous
   filename to confirm only the renames are detected as renames.
-- The composite-action sibling-repo retag (Part 02 Step 2.2) is the
-  prerequisite for the `lead-profile: "release-engineer"` `with:` block to
-  take effect on the non-bridge path. If that PR has not merged, leave
-  the legacy `facilitator-profile:` key on that branch only and queue a
-  follow-on micro-PR.
+- Part 03 invokes the CLI directly (Step 3.4 / Step 3.5) and does not
+  pass `lead-profile:` through the composite action, so the
+  sibling-repo retag is not a prerequisite for *this* part. The three
+  workflows that still route through the composite action are migrated
+  in Part 02 (clean break — no legacy `facilitator-profile:` /
+  `supervisor-profile:` keys remain after Part 02 lands).

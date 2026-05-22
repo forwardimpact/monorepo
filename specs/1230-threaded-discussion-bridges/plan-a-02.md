@@ -47,28 +47,28 @@ In each of the `supervise`, `facilitate`, `discuss` command blocks:
 - **Delete** `supervisor-profile`, `supervisor-model`, `facilitator-profile`, `facilitator-model` from the option declarations. Spec § Success criteria row 9 verifies the help text shows "none of the legacy mode-specific flags".
 
 Modified: `libraries/libeval/src/commands/supervise.js` `parseSuperviseOptions`:
-- `supervisorProfile: values["lead-profile"] ?? values["supervisor-profile"] ?? undefined`
-- `supervisorModel: values["lead-model"] ?? values["supervisor-model"] ?? "claude-opus-4-7[1m]"`
-- The `values["supervisor-*"]` reads stay as soft fallbacks (no `--help` declaration; positional command-line `--supervisor-profile=…` and composite-action-injected values still resolve).
+- `supervisorProfile: values["lead-profile"] ?? undefined`
+- `supervisorModel: values["lead-model"] ?? "claude-opus-4-7[1m]"`
+- Delete every read of `values["supervisor-profile"]` / `values["supervisor-model"]`. Clean break — no soft fallback.
 
 Modified: `libraries/libeval/src/commands/facilitate.js` `parseFacilitateOptions`:
-- `facilitatorProfile: values["lead-profile"] ?? values["facilitator-profile"] ?? undefined`
-- `facilitatorModel: values["lead-model"] ?? values["facilitator-model"] ?? "claude-opus-4-7[1m]"`
-- Same soft-fallback approach as supervise.
+- `facilitatorProfile: values["lead-profile"] ?? undefined`
+- `facilitatorModel: values["lead-model"] ?? "claude-opus-4-7[1m]"`
+- Delete every read of `values["facilitator-profile"]` / `values["facilitator-model"]`. Clean break.
 
-Modified: `libraries/libeval/src/commands/benchmark-run.js` and `libraries/libeval/bin/fit-benchmark.js` — if either reads `supervisor-*` / `facilitator-*`, rewire to `lead-*`. The implementer greps `libraries/libeval/` for the legacy keys first.
+Modified: `libraries/libeval/src/commands/benchmark-run.js` and `libraries/libeval/bin/fit-benchmark.js` — rewire any `supervisor-*` / `facilitator-*` reads to `lead-*`. The implementer greps `libraries/libeval/` for the legacy keys first and removes every match.
 
-Workflow call sites consume the legacy flags via the `forwardimpact/fit-eval@v1` composite action's `with:` block, which forwards them as CLI flags. **Do not edit the composite-action `with:` flag keys in this part** — instead, Part 03 replaces the composite-action invocation in `agent-react.yml` (renamed to `kata-dispatch.yml`) with a direct `node libraries/libeval/bin/fit-eval.js` call. The other three workflows are left untouched in Part 02; the implementer queues a follow-on PR (or migrates them in a separate workflow-by-workflow PR) to also bypass the composite action. Until those follow-on PRs land, the legacy `facilitator-profile:` and `supervisor-profile:` keys remain in:
+Workflow call sites consume the legacy flags via the `forwardimpact/fit-eval@v1` composite action's `with:` block. Because the CLI parsers no longer accept the legacy keys, the three remaining workflows must migrate in this part — they cannot be left on legacy keys with the CLI fallback gone:
 
 - `.github/workflows/kata-interview.yml:133`
 - `.github/workflows/kata-coaching.yml:34`
 - `.github/workflows/kata-storyboard.yml:33`
 
-To keep these workflows runnable while the CLI legacy-flag declarations are deleted, the CLI parsers in `supervise.js` and `facilitate.js` **continue to read `values["supervisor-profile"]` / `values["facilitator-profile"]` as soft fallbacks** — the *declarations* are removed from `fit-eval.js`'s option schema (so `--help` shows only `--lead-profile`), but `parseSuperviseOptions` / `parseFacilitateOptions` still accept the old keys when the composite action injects them. Spec § Success criteria row 9 verifies via `--help` output ("none of the legacy mode-specific flags") — which the schema removal satisfies. Once all three remaining workflows migrate, the parser fallbacks can be deleted in a separate cleanup PR.
+Modified: each of the three workflows above — replace the `forwardimpact/fit-eval@v1` `with:` block's `facilitator-profile:` / `supervisor-profile:` keys with `lead-profile:` / `lead-model:` and update the composite action's input passthrough in the sibling repo PR. If the composite action's `v1` tag does not yet expose `lead-*`, the three workflows bypass the composite action with a direct `node libraries/libeval/bin/fit-eval.js …` invocation — same pattern Part 03 Step 3.4 uses for `kata-dispatch.yml`. Both paths leave the CLI with a single accepted flag name.
 
 Modified: documentation referencing the legacy flags — `.claude/skills/fit-eval/SKILL.md` (if it exists), `.claude/skills/kata-setup/references/workflow-*.md`, `libraries/libeval/README.md`. `rg --type md '(supervisor|facilitator)-(profile|model)'` returns empty after this step.
 
-Verify: `fit-eval supervise --help`, `fit-eval facilitate --help`, `fit-eval discuss --help` all show `--lead-profile` and `--lead-model`; none show the legacy flags. `rg --type md '(supervisor|facilitator)-(profile|model)'` returns empty. Add unit tests `libraries/libeval/test/commands/lead-flags.test.js` covering all three modes.
+Verify: `fit-eval supervise --help`, `fit-eval facilitate --help`, `fit-eval discuss --help` all show `--lead-profile` and `--lead-model`; none show the legacy flags. `rg '(supervisor|facilitator)-(profile|model)' libraries/libeval .github/workflows .claude/skills` returns empty (no shim, no stray reference). Add unit tests `libraries/libeval/test/commands/lead-flags.test.js` covering all three modes; the tests assert that `parseSuperviseOptions({"supervisor-profile": "x"})` and `parseFacilitateOptions({"facilitator-profile": "x"})` ignore the legacy key (no soft fallback).
 
 ## Step 2.3 — Discusser class with suspend/resume
 
@@ -121,11 +121,11 @@ Extend the JSON body the runner POSTs:
 }
 ```
 
-Verdict values across the system: `"adjourned" | "recessed" | "failed" | "concluded"`. The existing facilitate/supervise traces emit `"failure"` (note the spelling difference) on error paths — Part 02 Step 2.5 normalises both at the callback runner: any `verdict === "failure"` from a non-discuss trace is rewritten to `"failed"` so the bridges branch on a single token.
+Verdict values across the system: `"adjourned" | "recessed" | "failed" | "concluded"`. The existing facilitate/supervise error paths currently emit `"failure"` (spelling drift) — fix them at the source: rename every `verdict: "failure"` emission inside `libraries/libeval/src/` to `verdict: "failed"`. The callback runner does **not** translate at the boundary; every trace emits the canonical token directly.
 
-The runner reads exactly one event from the trace: the terminal `{ event: "summary", … }` written by the discusser at end-of-run. If a trace lacks a summary event (legacy facilitate/supervise), the runner falls back to its existing behaviour (no `replies[]`, no `trigger`).
+The runner reads exactly one event from the trace: the terminal `{ event: "summary", … }` written by the discusser, supervisor, or facilitator at end-of-run. Update `supervise.js` and `facilitate.js` so their terminal-event emissions match the shape (with empty `replies: []` and no `trigger` when not in discuss mode). The runner does not branch on trace mode — a missing summary event is a bug, not a fallback path.
 
-Add CLI flags: `--discussion-id` (forwards to the callback body verbatim when the trace lacks the meta event), `--include-replies` (boolean; defaults to true on `discuss` traces, false otherwise — so the existing `supervise` / `facilitate` callback shape is unchanged).
+Add CLI flag: `--discussion-id` (forwards to the callback body verbatim when the trace lacks the meta event). Every callback body always carries `replies` (the array is empty when the trace's terminal summary has no `replies` field). No `--include-replies` toggle — clean break, one wire shape across modes.
 
 Verify: `bun test libraries/libeval/test/commands/callback.test.js` covers all three verdict shapes.
 
@@ -175,16 +175,17 @@ Verify: `fit-eval discuss --task-text='ping' --discussion-id=GD_x` runs without 
 
 ## Notes for the implementer
 
-- The legacy flag removal is irreversible once this part merges. Confirm
-  with release-engineer that all in-flight workflow runs of the affected
-  workflows (`agent-react.yml`, `kata-interview.yml`, `kata-coaching.yml`,
-  `kata-storyboard.yml`) are quiesced before merging — a half-rebased
-  runner on the old composite-action tag will reject the new `lead-*`
-  inputs.
-- The composite-action sibling-repo PR (`forwardimpact/fit-eval`) is a
-  prerequisite for the workflow `with:` edits to take effect. The release
-  engineer cuts a new `v1`-mutable tag once the sibling PR merges; the
-  monorepo PR rebases and re-runs CI.
+- The legacy flag removal is a clean break — no soft fallback, no
+  alias. Confirm with release-engineer that all in-flight workflow runs
+  of the affected workflows (`agent-react.yml`, `kata-interview.yml`,
+  `kata-coaching.yml`, `kata-storyboard.yml`) are quiesced before
+  merging so no run mid-flight references the deleted flags.
+- The composite-action sibling-repo PR (`forwardimpact/fit-eval`) ships
+  the new `lead-*` inputs. The release engineer cuts a new `v1`-mutable
+  tag once the sibling PR merges; the monorepo PR rebases and re-runs
+  CI. If the sibling tag is not ready, the three remaining workflows
+  bypass the composite action with a direct `node libraries/libeval/bin/fit-eval.js`
+  call in this same part (same pattern as Part 03 Step 3.4).
 - The `Discusser`'s `resumeContext` is the entire suspend/resume contract;
   every state mutation a `Recess` needs to preserve must live there.
   Tests must cover round-trip serialisation of `ctx.pendingAsks` (a
