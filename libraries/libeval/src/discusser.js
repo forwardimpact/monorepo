@@ -1,14 +1,12 @@
 /**
- * Discusser — async, suspendable orchestration on top of the within-run
- * Facilitator loop. The lead role uses `DiscussTools` instead of the
- * facilitator's tool set: `Conclude` is replaced by `Adjourn` (terminal
- * verdict) and `Recess` (suspend with a `ResumeTrigger`), and
- * `RequestForComment` queues structured replies for the bridge to
- * deliver after the workflow run completes.
+ * Discusser — async, suspendable orchestration on top of a within-run
+ * `OrchestrationLoop`. The lead role uses `DiscussTools` (Adjourn / Recess
+ * / RequestForComment) instead of the facilitator's Conclude.
  *
- * Composition (not inheritance): `Discusser` owns ctx, runners,
- * messageBus, and the augmented summary; the embedded `Facilitator`
- * stays a pure within-run orchestrator.
+ * Discuss mode is a sibling of facilitate mode, not a subset of it. The
+ * within-run turn loop is shared via `OrchestrationLoop`, but the lead
+ * role, tool set, system prompts, and participant naming all stay
+ * mode-local.
  */
 
 import { Writable } from "node:stream";
@@ -18,15 +16,13 @@ import { createAgentRunner } from "./agent-runner.js";
 import { composeProfilePrompt } from "./profile-prompt.js";
 import { SequenceCounter } from "./sequence-counter.js";
 import { createMessageBus } from "./message-bus.js";
-import {
-  createOrchestrationContext,
-  createFacilitatedAgentToolServer,
-} from "./orchestration-toolkit.js";
+import { createOrchestrationContext } from "./orchestration-toolkit.js";
 import {
   createDiscussLeadToolServer,
   createDiscussAgentToolServer,
+  DISCUSS_AGENT_SYSTEM_PROMPT,
 } from "./discuss-tools.js";
-import { Facilitator, FACILITATED_AGENT_SYSTEM_PROMPT } from "./facilitator.js";
+import { OrchestrationLoop } from "./orchestration-loop.js";
 
 /** System prompt appended for the lead (Chair) runner in discuss mode. */
 export const DISCUSS_SYSTEM_PROMPT =
@@ -38,7 +34,7 @@ export const DISCUSS_SYSTEM_PROMPT =
   "RequestForComment posts a fire-and-forget message to a channel via the bridge; the reply arrives on a later workflow run. " +
   "Recess suspends the run with a resumption trigger (responses / elapsed / either). " +
   "Adjourn ends the discussion with a verdict ('adjourned' / 'failed') and a summary. " +
-  "You MUST end every run by calling Adjourn or Recess — never end a turn with only text and never call Conclude.";
+  "You MUST end every run by calling Adjourn or Recess — never end a turn with only text.";
 
 /**
  * Augment a base orchestration context with discuss-mode fields.
@@ -83,25 +79,26 @@ const devNull = new Writable({
 });
 
 /**
- * Async orchestrator for the `discuss` mode. Composes a `Facilitator` for
- * the within-run loop but owns ctx, runners, and the terminal summary.
+ * Async orchestrator for the `discuss` mode. Composes an
+ * `OrchestrationLoop` for the within-run turns but owns the discussion id,
+ * the resumption trigger, and the discuss-augmented terminal summary.
  */
 export class Discusser {
   /**
    * @param {object} deps
-   * @param {Facilitator} deps.facilitator
+   * @param {OrchestrationLoop} deps.loop
    * @param {object} deps.ctx
    * @param {import("stream").Writable} deps.output
    * @param {string|null} [deps.discussionId]
    * @param {SequenceCounter} [deps.counter]
    * @param {object} [deps.redactor]
    */
-  constructor({ facilitator, ctx, output, discussionId, counter, redactor }) {
-    if (!facilitator) throw new Error("facilitator is required");
+  constructor({ loop, ctx, output, discussionId, counter, redactor }) {
+    if (!loop) throw new Error("loop is required");
     if (!ctx) throw new Error("ctx is required");
     if (!output) throw new Error("output is required");
     if (!redactor) throw new Error("redactor is required");
-    this.facilitator = facilitator;
+    this.loop = loop;
     this.ctx = ctx;
     this.output = output;
     this.discussionId = discussionId ?? null;
@@ -111,8 +108,8 @@ export class Discusser {
 
   /**
    * Run the discussion. Emits the meta header first (when a discussion_id
-   * is set), delegates the within-run loop to `Facilitator`, then emits
-   * the discuss-augmented summary (overrides the facilitator's earlier
+   * is set), delegates the within-run loop to `OrchestrationLoop`, then
+   * emits the discuss-augmented summary (overrides the loop's earlier
    * summary; trace consumers keep the last summary they see).
    *
    * @param {string} task
@@ -121,22 +118,22 @@ export class Discusser {
   async run(task) {
     this.#emitMeta();
 
-    // The Facilitator owns within-run turns. Its emitSummary fires once
-    // before run() returns; ours replaces it as the last summary line.
-    await this.facilitator.run(task);
+    // The loop owns within-run turns. Its emitSummary fires once before
+    // run() returns; ours replaces it as the last summary line.
+    await this.loop.run(task);
 
     const verdict = this.ctx.verdict ?? "failed";
     const success = verdict === "adjourned" || verdict === "concluded";
     this.#emitDiscussSummary({
       success,
       verdict,
-      turns: this.facilitator.facilitatorTurns,
+      turns: this.loop.leadTurns,
     });
 
     return {
       success,
       verdict,
-      turns: this.facilitator.facilitatorTurns,
+      turns: this.loop.leadTurns,
       replies: this.ctx.replies.slice(),
       trigger: this.ctx.recessTrigger ?? null,
     };
@@ -182,7 +179,8 @@ export class Discusser {
 
 /**
  * Factory — wires the lead and agent runners with `DiscussTools`, builds
- * the `Facilitator` and the wrapping `Discusser`.
+ * the `OrchestrationLoop` (with `leadName: "lead"` and discuss-mode
+ * protocol tagging) and the wrapping `Discusser`.
  *
  * @param {object} deps
  * @param {string} [deps.leadProfile]
@@ -244,12 +242,12 @@ export function createDiscusser({
   }
 
   const messageBus = createMessageBus({
-    participants: ["facilitator", ...resolvedConfigs.map((a) => a.name)],
+    participants: ["lead", ...resolvedConfigs.map((a) => a.name)],
   });
   ctx.messageBus = messageBus;
   if (ctx.participants.length === 0) {
     ctx.participants = [
-      { name: "facilitator", role: "lead" },
+      { name: "lead", role: "lead" },
       ...resolvedConfigs.map((a) => ({ name: a.name, role: a.role })),
     ];
   }
@@ -268,18 +266,13 @@ export function createDiscusser({
   const leadServer = createDiscussLeadToolServer(ctx);
 
   const agents = resolvedConfigs.map((config) => {
-    // Composition note: agents may carry the legacy facilitated-agent
-    // server (unchanged surface) — but the DiscussAgent server is a
-    // straight rename that matches the lead's reference to "lead" in its
-    // prompts. We keep `createFacilitatedAgentToolServer` available for
-    // any caller wiring its own roster.
-    const agentServer = config.useFacilitatedAgentServer
-      ? createFacilitatedAgentToolServer(ctx, { from: config.name })
-      : createDiscussAgentToolServer(ctx, { from: config.name });
+    const agentServer = createDiscussAgentToolServer(ctx, {
+      from: config.name,
+    });
 
     const agentTrailer = config.systemPromptAmend
-      ? `${FACILITATED_AGENT_SYSTEM_PROMPT}\n\n${config.systemPromptAmend}`
-      : FACILITATED_AGENT_SYSTEM_PROMPT;
+      ? `${DISCUSS_AGENT_SYSTEM_PROMPT}\n\n${config.systemPromptAmend}`
+      : DISCUSS_AGENT_SYSTEM_PROMPT;
 
     const runner = createAgentRunner({
       cwd: config.cwd ?? resolvedLeadCwd,
@@ -288,7 +281,7 @@ export function createDiscusser({
       model: agentModel ?? "claude-opus-4-7[1m]",
       maxTurns: config.maxTurns ?? 50,
       allowedTools: config.allowedTools,
-      onLine: (line) => discusser.facilitator.emitLine(config.name, line),
+      onLine: (line) => discusser.loop.emitLine(config.name, line),
       mcpServers: { orchestration: agentServer },
       settingSources: ["project"],
       systemPrompt: systemPromptFor(config.agentProfile, agentTrailer),
@@ -307,18 +300,20 @@ export function createDiscusser({
     maxTurns: maxTurns ?? 40,
     allowedTools: ["Bash", "Read", "Glob", "Grep", "Write", "Edit"],
     disallowedTools: defaultDisallowed,
-    onLine: (line) => discusser.facilitator.emitLine("facilitator", line),
+    onLine: (line) => discusser.loop.emitLine("lead", line),
     mcpServers: { orchestration: leadServer },
     settingSources: ["project"],
     systemPrompt: systemPromptFor(leadProfile, DISCUSS_SYSTEM_PROMPT),
     redactor,
   });
 
-  const facilitator = new Facilitator({
-    facilitatorRunner: leadRunner,
+  const loop = new OrchestrationLoop({
+    leadRunner,
     agents,
     messageBus,
     output,
+    leadName: "lead",
+    mode: "discussion",
     maxTurns: maxTurns ?? 40,
     ctx,
     taskAmend,
@@ -326,12 +321,12 @@ export function createDiscusser({
   });
 
   discusser = new Discusser({
-    facilitator,
+    loop,
     ctx,
     output,
     discussionId: discussionId ?? null,
     redactor,
-    counter: facilitator.counter,
+    counter: loop.counter,
   });
   return discusser;
 }

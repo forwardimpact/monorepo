@@ -1,11 +1,13 @@
 /**
- * DiscussTools — tool servers for the `discuss` orchestration mode. The
- * lead's set replaces `Conclude` with `Adjourn` (terminal verdict) and
- * `Recess` (suspend with a ResumeTrigger), and adds `RequestForComment`
- * which queues structured replies onto the trace for the bridge to
- * deliver after the workflow run completes.
+ * DiscussTools — tool servers and prompts for the `discuss` orchestration
+ * mode. The lead's set is sibling to (not derived from) the facilitator's:
+ * `Conclude` is absent; instead `Adjourn` (terminal verdict) and `Recess`
+ * (suspend with a ResumeTrigger) end a run, and `RequestForComment` queues
+ * structured replies onto the trace for the bridge to deliver after the
+ * workflow run completes.
  *
- * Agents in discuss mode reuse the facilitated-agent surface unchanged.
+ * Discuss-mode prompts and tool wiring stay in this module; nothing here
+ * imports from `facilitator.js`.
  */
 
 import { createSdkMcpServer, tool } from "@anthropic-ai/claude-agent-sdk";
@@ -19,6 +21,14 @@ import {
   createRedirectHandler,
 } from "./orchestration-toolkit.js";
 
+/** System prompt appended for discuss-mode agent runners. */
+export const DISCUSS_AGENT_SYSTEM_PROMPT =
+  "You participate in an asynchronous discussion. " +
+  "Answer replies to an ask addressed to you. " +
+  "Ask sends a question to the lead or another participant. " +
+  "Announce broadcasts a message. " +
+  "RollCall lists participants.";
+
 const RESUME_TRIGGER_SCHEMA = z
   .object({
     kind: z.enum(["responses", "elapsed", "either"]),
@@ -28,11 +38,12 @@ const RESUME_TRIGGER_SCHEMA = z
   .strict();
 
 /**
- * Lead tools for the discusser. Mirrors the facilitator surface plus
- * Redirect, RequestForComment, Recess, and Adjourn; intentionally omits
- * Conclude. `RequestForComment` writes a structured reply onto
- * `ctx.replies[]`; the discusser flushes those into the terminal summary
- * event at end-of-run.
+ * Lead tools for the discusser. The discuss-mode surface is Ask / Answer /
+ * Announce / Redirect / RollCall plus the discuss-only RequestForComment,
+ * Recess, and Adjourn. `Conclude` is intentionally absent — discuss mode
+ * ends via Adjourn or Recess, never Conclude. `RequestForComment` writes
+ * a structured reply onto `ctx.replies[]`; the discusser flushes those
+ * into the terminal summary event at end-of-run.
  *
  * @param {object} ctx - Orchestration context (must carry `replies` array)
  * @returns {object} MCP server config (type: "sdk")
@@ -51,19 +62,19 @@ export function createDiscussLeadToolServer(ctx) {
         "Ask",
         "Send a question to a participant. Omit 'to' to broadcast. The reply arrives via Answer.",
         { question: z.string(), to: z.string().optional() },
-        createAskHandler(ctx, { from: "facilitator", defaultTo: undefined }),
+        createAskHandler(ctx, { from: "lead", defaultTo: undefined }),
       ),
       tool(
         "Answer",
         "Reply to an ask addressed to you.",
         { message: z.string() },
-        createAnswerHandler(ctx, { from: "facilitator" }),
+        createAnswerHandler(ctx, { from: "lead" }),
       ),
       tool(
         "Announce",
         "Broadcast a message with no reply expected.",
         { message: z.string() },
-        createAnnounceHandler(ctx, { from: "facilitator" }),
+        createAnnounceHandler(ctx, { from: "lead" }),
       ),
       tool(
         "Redirect",
@@ -102,7 +113,10 @@ export function createDiscussLeadToolServer(ctx) {
 }
 
 /**
- * Discussed-agent tools — same surface as facilitated agents.
+ * Discuss-mode agent tools: Ask / Answer / Announce / RollCall. Surface is
+ * defined here (not borrowed from facilitate mode) so the two modes stay
+ * structurally independent.
+ *
  * @param {object} ctx - Orchestration context
  * @param {{from: string}} opts - Agent name (canonical)
  * @returns {object} MCP server config (type: "sdk")

@@ -26,6 +26,7 @@ export {
   createJudgeToolServer,
 } from "./orchestration-toolkit.js";
 export { MessageBus, createMessageBus } from "./message-bus.js";
+export { OrchestrationLoop } from "./orchestration-loop.js";
 export {
   Facilitator,
   createFacilitator,
@@ -43,6 +44,7 @@ export {
 export {
   createDiscussLeadToolServer,
   createDiscussAgentToolServer,
+  DISCUSS_AGENT_SYSTEM_PROMPT,
 } from "./discuss-tools.js";
 export { Judge, createJudge, JUDGE_SYSTEM_PROMPT } from "./judge.js";
 export {
