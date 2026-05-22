@@ -6,7 +6,7 @@ description: >
   key decisions with trade-offs — that gives reviewers a high-leverage point
   to redirect architecture before the full plan is written. Design is approved
   when `wiki/STATUS.md` shows the spec row at `design approved` — written
-  there by a human signal that `agent-react` or the active agent propagates.
+  there by a human signal that `kata-dispatch` or the active agent propagates.
 ---
 
 # Write and Review Designs
@@ -126,7 +126,7 @@ not restate what the artifact already shows.
 A design is approved when `wiki/STATUS.md` shows its row at `design
 approved`. **Human-only**: agents never originate `design approved` — they
 only propagate signals already expressed by a trusted human (label, APPROVED
-review, approval comment, or in-session message), which `agent-react` or
+review, approval comment, or in-session message), which `kata-dispatch` or
 the active agent writes to STATUS. See
 [`approval-signals.md`](../../agents/references/approval-signals.md).
 
@@ -171,7 +171,7 @@ Follow the [`kata-review` caller
 protocol](../kata-review/references/caller-protocol.md), invoked on the local
 `design-a.md` before push. Tell each reviewer not to invoke `kata-design`.
 Address every confirmed blocker/high/medium finding before opening the PR —
-the PR should not become visible to `agent-react` until the panel is clean.
+the PR should not become visible to `kata-dispatch` until the panel is clean.
 
 ### Step 6: Open a design PR
 

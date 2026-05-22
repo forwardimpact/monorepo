@@ -4,7 +4,7 @@ description: >
   Write specifications (WHAT/WHY) for features, changes, and improvements.
   Spec is approved when `wiki/STATUS.md` shows the spec row at `spec
   approved` — written there by a human signal (label, comment, APPROVED
-  review, or in-session message) that `agent-react` or the active agent
+  review, or in-session message) that `kata-dispatch` or the active agent
   propagates. Use when proposing changes, capturing findings as actionable
   specs, or evaluating spec quality. Pair with the `kata-plan` skill for
   the HOW side.
@@ -100,7 +100,7 @@ A spec is approved when `wiki/STATUS.md` shows its row at `spec approved`.
 The decision is **human-only**: agents never autonomously originate `spec
 approved`. STATUS is written when a trusted human's signal is observed —
 `<phase>:approved` label, APPROVED review, approval comment on the PR, or a
-direct message in an interactive session. `agent-react` validates trust and
+direct message in an interactive session. `kata-dispatch` validates trust and
 propagates PR-side signals into STATUS; an in-session agent writes STATUS
 when the user explicitly approves. See
 [`approval-signals.md`](../../agents/references/approval-signals.md) and
@@ -157,7 +157,7 @@ Follow the [`kata-review` caller
 protocol](../kata-review/references/caller-protocol.md), invoked on the local
 `specs/NNN/spec.md` before push. Tell each reviewer not to invoke
 `kata-spec`. Address every confirmed blocker/high/medium finding before
-opening the PR — the PR should not become visible to `agent-react` until the
+opening the PR — the PR should not become visible to `kata-dispatch` until the
 panel is clean.
 
 ### Step 6: Open a spec PR

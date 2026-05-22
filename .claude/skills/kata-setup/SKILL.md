@@ -46,7 +46,7 @@ facilitated sessions, and event-driven responses.
 - [ ] Cron schedules match the user's requested timezone.
 - [ ] Secrets reference names match what was configured.
 - [ ] Agent profiles match the names the user confirmed.
-- [ ] agent-react workflow includes the recursion guard.
+- [ ] kata-dispatch workflow includes the recursion guard.
 
 </do_confirm_checklist>
 
@@ -98,10 +98,10 @@ templates from `references/workflow-agent.md` (scheduled agents) and
 Generate one workflow per agent. Storyboard and coaching workflows are generated
 only when `improvement-coach` is selected.
 
-### Step 3: Generate agent-react
+### Step 3: Generate kata-dispatch
 
 If `product-manager` is selected, ask: "Do you want agents to respond to PR
-comments, issue comments, and discussions?" If yes, generate `agent-react.yml`
+comments, issue comments, and discussions?" If yes, generate `kata-dispatch.yml`
 from `references/workflow-react.md`.
 
 ### Step 4: Verify

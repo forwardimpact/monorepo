@@ -2,7 +2,7 @@
 
 Responds to PR comments, issue comments, new issues, and discussions. The
 product-manager facilitates and routes to the best-suited agent. File name:
-`agent-react.yml`. Replace `{{AGENT_LIST}}` (all agents except product-manager
+`kata-dispatch.yml`. Replace `{{AGENT_LIST}}` (all agents except product-manager
 and improvement-coach) and `{{MODEL}}`.
 
 ```yaml

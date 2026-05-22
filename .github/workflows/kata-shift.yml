@@ -1,4 +1,4 @@
-name: "Agent: Team"
+name: "Kata: Shift"
 
 # Sequential agent team. The matrix below is the roster — add or remove an
 # agent by editing one line. Agents run in declaration order, one at a time

@@ -52,9 +52,8 @@ function readTraceSummary(traceFile) {
 /**
  * Callback command — read an NDJSON trace, extract the terminal
  * orchestrator summary, and POST a canonical callback body to the
- * configured URL. Used by `kata-dispatch.yml` (formerly `agent-react`)
- * to deliver the lead's conclusion to the bridge that dispatched the
- * run.
+ * configured URL. Used by `kata-dispatch.yml` to deliver the lead's
+ * conclusion to the bridge that dispatched the run.
  *
  * Wire shape (single shape across modes):
  *

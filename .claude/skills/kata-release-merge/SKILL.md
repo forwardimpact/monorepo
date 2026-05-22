@@ -138,7 +138,7 @@ PR passes when the row shows the PR's classified phase at `approved` (or
 `implemented` for the terminal plan row on implementation PRs). If absent
 or `draft`/`cancelled`, mark **blocked** with reason `awaiting approval
 signal`. Labels and APPROVED reviews are inputs to STATUS captured by
-`agent-react`; not consulted directly here. See
+`kata-dispatch`; not consulted directly here. See
 [`approval-signals.md`](../../agents/references/approval-signals.md).
 
 ### Step 7: Implementation PR Spec Check

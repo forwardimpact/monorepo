@@ -10,10 +10,10 @@ writes the row.
 
 | Signal | Source | Captured by |
 |---|---|---|
-| `<phase>:approved` label on PR | Human or `/ship-it` | `agent-react` (label event) |
-| `gh pr review --approve` | Trusted-account approver | `agent-react` (review event) |
-| Approval comment ("approve", "LGTM", "ship it") | Trusted contributor on PR | `agent-react` (comment event) |
-| Merged phase PR | Trusted merger (`kata-release-merge` or human) | `agent-react` (PR close event with `merged: true`) |
+| `<phase>:approved` label on PR | Human or `/ship-it` | `kata-dispatch` (label event) |
+| `gh pr review --approve` | Trusted-account approver | `kata-dispatch` (review event) |
+| Approval comment ("approve", "LGTM", "ship it") | Trusted contributor on PR | `kata-dispatch` (comment event) |
+| Merged phase PR | Trusted merger (`kata-release-merge` or human) | `kata-dispatch` (PR close event with `merged: true`) |
 | Direct user message in interactive session | Trusted user | Active agent (in-session) |
 | `kata-plan` panel-clean | `staff-engineer` (plans only) | `kata-plan` skill |
 | Implementation merge | `kata-release-merge` | Skill (writes `plan implemented`) |
@@ -27,7 +27,7 @@ may be approved by `staff-engineer` after a clean `kata-plan` panel
 review.
 
 The release engineer's trust gate (top-7 contributor or `kata-agent-team`)
-is the canonical trust check. `agent-react` runs the same check before
+is the canonical trust check. `kata-dispatch` runs the same check before
 writing STATUS in response to a PR-side signal.
 
 ## In-session approval
@@ -54,5 +54,5 @@ session; the Stop hook pushes wiki commits.
 ## Labels remain as input signals
 
 Humans may still apply `<phase>:approved` labels for PR UI visibility.
-The label fires `agent-react`, which validates trust and writes STATUS.
+The label fires `kata-dispatch`, which validates trust and writes STATUS.
 The label is no longer the merge gate.

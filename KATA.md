@@ -95,7 +95,7 @@ agent reports clean only after exhausting all four levels.
 
 ## Workflows
 
-A single scheduled workflow, **agent-team**, runs the producer → reviewer →
+A single scheduled workflow, **kata-shift**, runs the producer → reviewer →
 shipper chain three times daily on a Europe/Paris rhythm — 03:00, 12:00, and
 20:00 — plus the daily storyboard at 08:00. The full chain runs in
 declaration order on every invocation: product-manager triages and approves
@@ -103,24 +103,27 @@ spec quality so staff has a fresh backlog, staff implements, security-engineer
 reviews code before it ships, technical-writer reviews docs, release-engineer
 gates and ships, improvement-coach reviews the run. Adding or removing an
 agent is a one-line edit to the matrix in
-`.github/workflows/agent-team.yml`. Crons are authored in UTC; Paris times
+`.github/workflows/kata-shift.yml`. Crons are authored in UTC; Paris times
 below use CEST (UTC+2), the tighter summer bound. A separate event-driven
-workflow, **agent-react**, runs on PR comments, new discussions, and
-discussion comments — the release engineer facilitates and routes the comment
-to the participant best suited to respond, and propagates trusted-contributor
-approval signals into `wiki/STATUS.md`. All
+workflow, **kata-dispatch**, runs on PR comments and issue activity, and on
+`workflow_dispatch` from the bridge services (msbridge, ghbridge) for
+threaded discussions — the release engineer facilitates and routes the
+comment to the participant best suited to respond, and propagates
+trusted-contributor approval signals into `wiki/STATUS.md`. Discussion
+events themselves now reach kata-dispatch via the GitHub Discussions
+bridge (services/ghbridge), not directly from a `discussion:` trigger. All
 workflows support `workflow_dispatch` and time out at 45 minutes; storyboard,
-coaching, and react also use concurrency groups (agent-team serializes via the
-matrix's `max-parallel: 1`). Agent workflows send a generic prompt; the agent's Assess
-section picks the action. Storyboard and coaching send specific prompts to
-the improvement coach.
+coaching, and dispatch also use concurrency groups (kata-shift serializes
+via the matrix's `max-parallel: 1`). Agent workflows send a generic prompt;
+the agent's Assess section picks the action. Storyboard and coaching send
+specific prompts to the improvement coach.
 
 | Workflow            | Schedule (Paris, CEST)        | Agent                                                                                                       |
 | ------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | **kata-storyboard** | Daily 08:00                   | improvement-coach (facilitates 5 agents)                                                                    |
 | **kata-coaching**   | `workflow_dispatch`           | improvement-coach (facilitates 1 agent)                                                                     |
-| **agent-team**      | Daily 03:00 · 12:00 · 20:00   | product-manager → staff-engineer → security-engineer → technical-writer → release-engineer → improvement-coach |
-| **agent-react**     | On PR/discussion activity     | release-engineer (facilitates 4 agents)                                                                     |
+| **kata-shift**      | Daily 03:00 · 12:00 · 20:00   | product-manager → staff-engineer → security-engineer → technical-writer → release-engineer → improvement-coach |
+| **kata-dispatch**   | On PR / issue activity (and bridge dispatch) | release-engineer (facilitates 4 agents)                                                                     |
 
 ## Skills
 
@@ -187,9 +190,9 @@ from any source below feed STATUS.
 
 | Signal | Source | Captured by |
 |---|---|---|
-| `<phase>:approved` label | Human or `/ship-it` | `agent-react` |
-| APPROVED review | Trusted-account approver | `agent-react` |
-| Approval comment ("LGTM", "ship it") | Trusted contributor | `agent-react` |
+| `<phase>:approved` label | Human or `/ship-it` | `kata-dispatch` |
+| APPROVED review | Trusted-account approver | `kata-dispatch` |
+| Approval comment ("LGTM", "ship it") | Trusted contributor | `kata-dispatch` |
 | In-session user message | Trusted user | Active agent |
 | `kata-plan` panel-clean | `staff-engineer` (plans only) | `kata-plan` skill |
 
@@ -259,8 +262,8 @@ don't compete.
 | Channel               | Use for                                                                                                      | Lifetime                              | Mechanism                    |
 | --------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------- | ---------------------------- |
 | **Storyboard**        | Daily current condition and next experiment                                                                  | One day; captured into wiki           | `kata-storyboard` workflow   |
-| **Discussion**        | Open questions before they become decisions — RFCs, cross-policy                                             | Open until resolved into spec or wiki | `agent-react` workflow       |
-| **PR / issue thread** | Real-time response on a specific artifact; PDSA state for experiment and obstacle issues                     | Lives with the artifact               | `agent-react` workflow       |
+| **Discussion**        | Open questions before they become decisions — RFCs, cross-policy                                             | Open until resolved into spec or wiki | `ghbridge` → `kata-dispatch` |
+| **PR / issue thread** | Real-time response on a specific artifact; PDSA state for experiment and obstacle issues                     | Lives with the artifact               | `kata-dispatch` workflow     |
 | **Sub-agent**         | Specialized inline work within one run (not for cross-agent comms — see escalation in coordination-protocol) | Ephemeral (one task)                  | `Agent` tool, skill spawning |
 
 - **Storyboard** observes and plans; structural decisions go through

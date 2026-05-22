@@ -28,7 +28,7 @@ short-lived installation tokens -- no long-lived PATs to rotate.
 
 ## Event Subscriptions
 
-Check these events so `agent-react` fires on external activity:
+Check these events so `kata-dispatch` fires on external activity:
 
 - **Issue comment** -- triggers on PR and issue comments
 - **Pull request review** -- triggers on submitted reviews

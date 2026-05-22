@@ -63,7 +63,7 @@ action's own directory. Two consequences:
 ## Matrix workflows and trace artifacts
 
 When a workflow runs the same action across a matrix, pass `case` to avoid
-artifact name collisions. Example from `agent-team.yml`:
+artifact name collisions. Example from `kata-shift.yml`:
 
 ```yaml
 case: ${{ matrix.agent.name }}

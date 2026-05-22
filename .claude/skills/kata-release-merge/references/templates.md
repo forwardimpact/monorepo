@@ -19,7 +19,7 @@ gh pr comment <number> --body "Release merge: skipping — PR type \`<type>\` re
 ### Awaiting Approval Signal
 
 ```sh
-gh pr comment <number> --body "Release merge: blocked — \`wiki/STATUS.md\` row for spec NNN does not yet show \`<phase>\tapproved\`. Apply \`<phase>:approved\` label, submit an APPROVED review, or post an approval comment from a trusted account; \`agent-react\` will propagate it into STATUS."
+gh pr comment <number> --body "Release merge: blocked — \`wiki/STATUS.md\` row for spec NNN does not yet show \`<phase>\tapproved\`. Apply \`<phase>:approved\` label, submit an APPROVED review, or post an approval comment from a trusted account; \`kata-dispatch\` will propagate it into STATUS."
 ```
 
 ### CI Failing

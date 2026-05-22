@@ -53,7 +53,7 @@ Agents never autonomously originate `spec approved` or `design approved`; they
 only propagate signals already expressed by a trusted human. Plans may be
 approved by `staff-engineer` after `kata-plan` review.
 
-`agent-react` is the bridge from PR-side signals (labels, comments, reviews)
+`kata-dispatch` is the bridge from PR-side signals (labels, comments, reviews)
 to STATUS — it validates trust (using the same gate as `kata-release-merge`)
 and writes the matching STATUS row. The facilitator does **not** apply any
 approval label or submit an APPROVED review on behalf of any contributor; it
@@ -67,7 +67,7 @@ when the prior phase's artifact (`specs/NNN/spec.md`, `design-a.md`,
 approved-but-unmerged PR does not unblock the next phase.
 
 **Labels remain as input signals**, not as gates. Humans may apply
-`<phase>:approved` labels for PR UI visibility; the label fires `agent-react`
+`<phase>:approved` labels for PR UI visibility; the label fires `kata-dispatch`
 which validates trust and writes STATUS.
 
 ## Measurement-system changes
@@ -196,7 +196,7 @@ but either may run alongside a Discussion.
 
 To pull another agent into a thread, address them by name in plain text — e.g.
 "Hello Product Manager," or "Hey Staff Engineer, can you take a look at the
-trust check?" The `agent-react` facilitator infers the addressee and routes the
+trust check?" The `kata-dispatch` facilitator infers the addressee and routes the
 response. Do **not** use `@`-mentions for agents: agents don't have GitHub user
 accounts, so `@product-manager` would either ping an unrelated GitHub user with
 that handle or resolve to nothing. Do not write to another agent's wiki summary
@@ -218,7 +218,7 @@ Discussions.
 
 ## Trust at run-time
 
-The `agent-react` facilitator verifies the author is a trusted contributor
+The `kata-dispatch` facilitator verifies the author is a trusted contributor
 before engaging any participant — LLM judgement, scoped per run. Untrusted
 authors receive an acknowledgement; no participant agent files a `fix/` or
 `spec/` branch on their behalf.
@@ -238,7 +238,7 @@ linked. Format: `<Channel> #<N>: <one-line topic> (<URL>)`.
 ```
 Discussion #123: should fit-pathway support nested levels?
 (https://github.com/forwardimpact/monorepo/discussions/123)
-PR #549: docs(kata): document agent-react workflow
+PR #549: docs(kata): document kata-dispatch workflow
 (https://github.com/forwardimpact/monorepo/pull/549)
 Issue #200: clarify proficiency scale for expert tier
 (https://github.com/forwardimpact/monorepo/issues/200)

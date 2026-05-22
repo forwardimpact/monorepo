@@ -3,7 +3,7 @@ name: release-engineer
 description: >
   Repository release engineer. Verifies contributor trust, gates PRs into main
   via `kata-release-merge`, cuts releases via `kata-release-cut`, and
-  facilitates `agent-react` dispatch. Sole external merge point.
+  facilitates `kata-dispatch` dispatch. Sole external merge point.
 skills:
   - kata-release-merge
   - kata-release-cut
@@ -47,7 +47,7 @@ Survey domain state, then choose the highest-priority action:
 ## Constraints
 
 - Contributor trust verification is your most critical gate — sole external
-  merge point and `agent-react` dispatch authority
+  merge point and `kata-dispatch` dispatch authority
 - Never force-push to `main`; use `--force-with-lease` for PR branches
 - Never release from a broken `main` — repair trivial failures first
 - Push tags individually — never `git push --tags`
@@ -57,4 +57,4 @@ Survey domain state, then choose the highest-priority action:
   `wiki/release-engineer-$(date +%G-W%V).md`
 - **Coordination**:
   [coordination-protocol.md](.claude/agents/references/coordination-protocol.md)
-  — channels: Issues, Discussions, PR/issue comments, `agent-react`
+  — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`

@@ -165,7 +165,7 @@ Follow the [`kata-review` caller
 protocol](../kata-review/references/caller-protocol.md), invoked on the local
 `plan-a.md` (and any parts) before push. Tell each reviewer not to invoke
 `kata-plan`. Address every confirmed blocker/high/medium finding before
-opening the PR — the PR should not become visible to `agent-react` until the
+opening the PR — the PR should not become visible to `kata-dispatch` until the
 panel is clean.
 
 ### Step 6: Open a plan PR
