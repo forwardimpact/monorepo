@@ -22,6 +22,3 @@ import {
   evaluateTrigger,
 } from "@forwardimpact/libbridge";
 ```
-
-See [libbridge guide](https://www.forwardimpact.team/docs/libraries/libbridge/index.md)
-for composition examples and the resume-trigger contract.

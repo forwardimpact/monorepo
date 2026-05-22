@@ -20,12 +20,17 @@ describe("CallbackRegistry", () => {
     expect(second).toBeNull();
   });
 
-  test("peek returns metadata without consuming", () => {
+  test("peek returns metadata without consuming and clones the entry", () => {
     const reg = new CallbackRegistry();
     const token = reg.register("corr-2");
     const peeked = reg.peek(token);
     expect(peeked.correlationId).toBe("corr-2");
     expect(reg.size).toBe(1);
+
+    // Mutating the peeked entry must not corrupt internal state.
+    peeked.correlationId = "tampered";
+    const second = reg.peek(token);
+    expect(second.correlationId).toBe("corr-2");
   });
 
   test("register rejects empty correlationId", () => {
@@ -34,28 +39,29 @@ describe("CallbackRegistry", () => {
     expect(() => reg.register(undefined)).toThrow();
   });
 
-  test("sweep evicts entries older than ttlMs", () => {
+  test("sweep evicts entries older than ttlMs (caller-provided clock)", () => {
     const reg = new CallbackRegistry({ ttlMs: 1000 });
-    const fresh = reg.register("corr-fresh");
-    const stale = reg.register("corr-stale");
+    const before = Date.now();
+    const a = reg.register("corr-a");
+    const b = reg.register("corr-b");
+    const after = Date.now();
 
-    const staleEntry = reg.peek(stale);
-    staleEntry.createdAt = Date.now() - 5000;
+    // No eviction when `now` is still inside the window.
+    expect(reg.sweep(after)).toBe(0);
 
-    const evicted = reg.sweep();
-    expect(evicted).toBe(1);
-    expect(reg.consume(stale)).toBeNull();
-    expect(reg.consume(fresh)).not.toBeNull();
+    // Eviction when `now` has advanced past createdAt + ttlMs for both.
+    expect(reg.sweep(before + 5000)).toBe(2);
+    expect(reg.consume(a)).toBeNull();
+    expect(reg.consume(b)).toBeNull();
   });
 
   test("default ttlMs matches the legacy 2h constant", () => {
     const reg = new CallbackRegistry();
-    const token = reg.register("corr-default-ttl");
-    const peeked = reg.peek(token);
-    peeked.createdAt = Date.now() - (2 * 60 * 60 * 1000 - 1000);
-    expect(reg.sweep()).toBe(0);
-    peeked.createdAt = Date.now() - (2 * 60 * 60 * 1000 + 1000);
-    expect(reg.sweep()).toBe(1);
+    const before = Date.now();
+    reg.register("corr-default-ttl");
+    const twoHours = 2 * 60 * 60 * 1000;
+    expect(reg.sweep(before + twoHours - 1000)).toBe(0);
+    expect(reg.sweep(before + twoHours + 1000)).toBe(1);
   });
 
   test("issues unique tokens for distinct correlationIds", () => {

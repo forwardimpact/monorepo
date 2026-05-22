@@ -6,4 +6,4 @@ export { RateLimiter } from "./rate-limit.js";
 export { dispatchWorkflow } from "./dispatch.js";
 export { DiscussionContextStore } from "./discussion-context.js";
 export { ProgressTicker } from "./progress-ticker.js";
-export { evaluateTrigger } from "./triggers.js";
+export { evaluateTrigger, parseIsoDuration } from "./triggers.js";

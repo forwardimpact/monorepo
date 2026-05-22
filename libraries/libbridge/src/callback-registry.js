@@ -56,13 +56,17 @@ export class CallbackRegistry {
   }
 
   /**
-   * Returns the stored metadata for a token without consuming it. Used by
-   * sweeping/diagnostic code paths that must not invalidate the token.
+   * Returns a shallow clone of the stored metadata for a token without
+   * consuming it. Cloning prevents callers from corrupting internal state
+   * via the returned reference; diagnostic code paths that need to read
+   * `correlationId`, `meta`, or `createdAt` work unchanged.
    * @param {string} token
    * @returns {{correlationId: string, meta: object, createdAt: number} | null}
    */
   peek(token) {
-    return this.#entries.get(token) ?? null;
+    const entry = this.#entries.get(token);
+    if (!entry) return null;
+    return { ...entry };
   }
 
   /**

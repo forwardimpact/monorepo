@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { buildPrompt } from "../src/prompt.js";
 
 describe("buildPrompt", () => {
-  test("empty history returns Prior conversation block with empty body", () => {
+  test("empty history returns the text alone (no Prior conversation block)", () => {
     const result = buildPrompt("hello", []);
     expect(result).toBe("hello");
   });
