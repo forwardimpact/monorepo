@@ -72,7 +72,24 @@ function compileLauncher() {
   const buildDir = join(LAUNCHER_DIR, ".build");
   rmSync(buildDir, { recursive: true, force: true });
 
-  run("swift build -c release", { cwd: LAUNCHER_DIR });
+  // Determinism profile — spec 1170, design Decision 4.
+  // (a) SWIFT_DETERMINISTIC_HASHING=1 — symbol-table/section order.
+  // (b) -file-prefix-map — DWARF absolute-path scrubbing.
+  //     -no-clang-module-breadcrumbs — strips clang-module debug
+  //     paths Swift modules can pull alongside DWARF.
+  // (c) -Xlinker -no_uuid — suppress LC_UUID which ld64 derives from
+  //     content + build-time entropy; pairs with (a)/(b) to leave
+  //     the Mach-O byte-identical across rebuilds.
+  const swiftCmd = [
+    "swift build -c release",
+    "-Xswiftc -no-clang-module-breadcrumbs",
+    `-Xswiftc -file-prefix-map -Xswiftc "${LAUNCHER_DIR}=."`,
+    "-Xlinker -no_uuid",
+  ].join(" ");
+  run(swiftCmd, {
+    cwd: LAUNCHER_DIR,
+    env: { ...process.env, SWIFT_DETERMINISTIC_HASHING: "1" },
+  });
 
   const binary = join(buildDir, "release", LAUNCHER_NAME);
   const outputPath = join(DIST_DIR, LAUNCHER_NAME);
