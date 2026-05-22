@@ -1,4 +1,4 @@
-const DEFAULT_INTERVAL_MS = 12_000;
+const DEFAULT_INTERVAL_MS = 25_000;
 
 /**
  * Channel-agnostic ticker. Hosts call `start(token, tick)` after dispatching
