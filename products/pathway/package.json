@@ -126,8 +126,8 @@
     "@forwardimpact/libui": "^1.0.0",
     "@forwardimpact/libutil": "^0.1.64",
     "@forwardimpact/map": "^0.15.5",
-    "@hono/node-server": "^2.0.2",
-    "hono": "^4.12.18",
+    "@hono/node-server": "^2.0.3",
+    "hono": "^4.12.21",
     "mustache": "^4.2.0",
     "yaml": "^2.9.0"
   },
