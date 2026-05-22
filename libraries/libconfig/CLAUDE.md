@@ -1,8 +1,6 @@
 # Configuration and supervision libraries
 
-Three libraries form the config-to-runtime pipeline. The config file format
-lives in [`../../config/CLAUDE.md`](../../config/CLAUDE.md); usage from
-services and products is in their respective CLAUDE.md files.
+Three libraries form the config-to-runtime pipeline.
 
 ## `libconfig`
 
@@ -16,7 +14,10 @@ services and products is in their respective CLAUDE.md files.
 | `createExtensionConfig(name)` | `extension` | `extension.<name>` | `EXTENSION_{NAME}_*` |
 | `createScriptConfig(name)` | `script` | `script.<name>` | `SCRIPT_{NAME}_*` |
 
-Merge order and `.env` semantics: see [`config/CLAUDE.md` § .env](../../config/CLAUDE.md#env).
+Merge order: constructor defaults → `config.json` block → `.env`.
+Non-credential keys overwrite `process.env` unconditionally from `.env`.
+Credential keys go to a private map; shell env wins at read time for
+credentials only.
 
 ## `librc`
 
@@ -25,8 +26,7 @@ to `libsupervise` (svscan) for process supervision. The CLI is `fit-rc`.
 
 Scoping rule: named `start`/`stop`/`restart` operate on the target and
 everything after it; services before are untouched. A named `start` reuses
-the running svscan daemon; a full `start` (no name) restarts it. See
-[`config/CLAUDE.md`](../../config/CLAUDE.md) for declaration order.
+the running svscan daemon; a full `start` (no name) restarts it.
 
 ## `libsupervise`
 

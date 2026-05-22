@@ -54,15 +54,12 @@ The shebang is `#!/usr/bin/env node`. The `bin` entry in `package.json` is
 ## Configuration
 
 `createServiceConfig(name)` merges constructor defaults → `config.json`
-`service.<name>` → `.env` `SERVICE_{NAME}_*`. See
-[`config/CLAUDE.md`](../config/CLAUDE.md) for format and merge order.
+`service.<name>` → `.env` `SERVICE_{NAME}_*`.
 
 ## Running services
 
 Services are managed by `fit-rc`. The service list lives in
-`config/config.json` under `init.services` — see
-[`config/CLAUDE.md`](../config/CLAUDE.md) for entry format and declaration
-order.
+`config/config.json` under `init.services`.
 
 ```sh
 just rc-start                # start all services

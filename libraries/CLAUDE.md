@@ -146,9 +146,8 @@ Same shape as every other library here:
 
 ## Configuration and supervision libraries
 
-See [libconfig/CLAUDE.md](libconfig/CLAUDE.md) for the libconfig / librc /
-libsupervise pipeline; config file format in
-[`config/CLAUDE.md`](../config/CLAUDE.md).
+`libconfig`, `librc`, and `libsupervise` form the config-to-runtime pipeline.
+See `libraries/libconfig/CLAUDE.md` and `config/CLAUDE.md`.
 
 ## Vocabulary
 

@@ -101,5 +101,3 @@ is the persistent source of truth — non-credential keys overwrite
 `process.env` unconditionally on load. Credential keys (API keys, tokens) go
 to a private map; shell env wins at read time for credentials only.
 
-See [libraries/libconfig/CLAUDE.md](../libraries/libconfig/CLAUDE.md) for the
-implementation contract.
