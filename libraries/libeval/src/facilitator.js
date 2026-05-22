@@ -1,23 +1,23 @@
 /**
- * Facilitator — N agent sessions + one facilitator LLM session. The Ask/Answer
- * contract is enforced at turn boundaries via checkPendingAsk: one synthetic
- * reminder, then a `protocol_violation` event plus a null-answer injection so
- * the session advances instead of deadlocking.
+ * Facilitator — facilitate-mode wrapper around `OrchestrationLoop`. The
+ * lead participant is named "facilitator" and uses the `Conclude` tool to
+ * end the session. The within-run turn loop itself lives in
+ * `orchestration-loop.js`; this file owns only the facilitate-mode
+ * specifics (lead role name, system prompts, tool wiring, factory).
  */
 
 import { Writable } from "node:stream";
 import { resolve } from "node:path";
 import { createAgentRunner } from "./agent-runner.js";
 import { composeProfilePrompt } from "./profile-prompt.js";
-import { SequenceCounter } from "./sequence-counter.js";
 import { createMessageBus } from "./message-bus.js";
 import {
   createOrchestrationContext,
   createFacilitatorToolServer,
   createFacilitatedAgentToolServer,
-  checkPendingAsk,
 } from "./orchestration-toolkit.js";
-import { createAsyncQueue, formatMessages } from "./orchestrator-helpers.js";
+import { createAsyncQueue } from "./orchestrator-helpers.js";
+import { OrchestrationLoop } from "./orchestration-loop.js";
 
 /** System prompt appended for the facilitator runner. */
 export const FACILITATOR_SYSTEM_PROMPT =
@@ -39,8 +39,13 @@ export const FACILITATED_AGENT_SYSTEM_PROMPT =
   "Announce broadcasts a message. " +
   "RollCall lists participants.";
 
-/** Orchestrate N agent sessions coordinated by a single facilitator LLM session. */
-export class Facilitator {
+/**
+ * Facilitate-mode wrapper around `OrchestrationLoop`. The lead participant
+ * is `"facilitator"` and the protocol mode is `"facilitated"`. Preserves
+ * the public surface (`facilitatorRunner`, `facilitatorTurns`) that
+ * existing callers rely on.
+ */
+export class Facilitator extends OrchestrationLoop {
   /**
    * @param {object} deps
    * @param {import("./agent-runner.js").AgentRunner} deps.facilitatorRunner
@@ -50,332 +55,31 @@ export class Facilitator {
    * @param {number} [deps.maxTurns]
    * @param {object} [deps.ctx]
    * @param {object} [deps.eventQueue]
-   * @param {string} [deps.taskAmend] - Opaque addendum appended to the task before delivery.
+   * @param {string} [deps.taskAmend]
+   * @param {object} deps.redactor
    */
-  constructor({
-    facilitatorRunner,
-    agents,
-    messageBus,
-    output,
-    maxTurns,
-    ctx,
-    eventQueue,
-    taskAmend,
-    redactor,
-  }) {
-    if (!redactor) throw new Error("redactor is required");
-    this.redactor = redactor;
-    this.facilitatorRunner = facilitatorRunner;
-    this.agents = agents;
-    this.messageBus = messageBus;
-    this.output = output;
-    this.maxTurns = maxTurns ?? 20;
-    this.ctx = ctx ?? createOrchestrationContext();
-    this.counter = new SequenceCounter();
-    this.eventQueue = eventQueue ?? createAsyncQueue();
-    this.facilitatorTurns = 0;
-    this.taskAmend = taskAmend ?? null;
-
-    let resolve;
-    const promise = new Promise((r) => {
-      resolve = r;
-    });
-    this.concludePromise = promise;
-    this.concludeResolve = resolve;
-  }
-
-  /**
-   * Run the full facilitated session.
-   * @param {string} task
-   * @returns {Promise<{success: boolean, turns: number}>}
-   */
-  async run(task) {
-    this.emitOrchestratorEvent({ type: "session_start" });
-
-    const initialTask = this.taskAmend ? `${task}\n\n${this.taskAmend}` : task;
-
-    // Launch agent loops first — they wait for messages via messageBus.
-    // This lets agents process Ask/Announce messages that arrive during
-    // the facilitator's initial run, rather than after it completes.
-    const agentPromises = this.agents.map((a) => this.#runAgent(a));
-
-    // Turn 0: facilitator receives the task
-    this.facilitatorTurns++;
-    await this.facilitatorRunner.run(initialTask);
-
-    // Handle redirect after turn 0
-    await this.#processRedirect();
-
-    if (this.ctx.concluded) {
-      // Facilitator concluded during its initial run. Let agents finish any
-      // in-progress work before returning — they may have received Ask/Answer
-      // messages and started processing concurrently.
-      this.concludeResolve();
-      await Promise.allSettled(agentPromises);
-      const success = this.ctx.verdict === "success";
-      this.emitSummary({
-        success,
-        verdict: this.ctx.verdict,
-        turns: this.facilitatorTurns,
-        summary: this.ctx.summary,
-      });
-      return { success, turns: this.facilitatorTurns };
-    }
-
-    // Abort agents promptly when Conclude is called during the event loop
-    this.concludePromise.then(() => {
-      for (const agent of this.agents) {
-        agent.runner.currentAbortController?.abort();
-      }
-    });
-
-    // Concurrent phase: facilitator event loop + already-running agent loops
-    const facilitatorPromise = this.#facilitatorLoop();
-
-    try {
-      await Promise.all([...agentPromises, facilitatorPromise]);
-    } catch (err) {
-      for (const agent of this.agents) {
-        agent.runner.currentAbortController?.abort();
-      }
-      this.facilitatorRunner.currentAbortController?.abort();
-      throw err;
-    }
-
-    const success = this.ctx.concluded && this.ctx.verdict === "success";
-    const result = {
-      success,
-      turns: this.facilitatorTurns,
-    };
-    this.emitSummary({
-      success,
-      verdict: this.ctx.verdict,
-      turns: result.turns,
-      summary: this.ctx.summary,
-    });
-    return result;
-  }
-
-  #checkAsk(name) {
-    return checkPendingAsk({
-      ctx: this.ctx,
-      messageBus: this.messageBus,
-      addresseeName: name,
+  constructor(deps) {
+    super({
+      ...deps,
+      leadRunner: deps.facilitatorRunner,
+      leadName: "facilitator",
       mode: "facilitated",
-      emitViolation: (e) => this.emitOrchestratorEvent(e),
     });
   }
 
-  async #enforcePendingAsk(agent) {
-    if (this.#checkAsk(agent.name) !== "recheck") return;
-    if (this.ctx.concluded) return;
-    const reminders = this.messageBus.drain(agent.name);
-    if (reminders.length === 0) return;
-    await agent.runner.resume(formatMessages(reminders));
-    if (this.ctx.concluded) return;
-    this.#checkAsk(agent.name);
+  /** @returns {import("./agent-runner.js").AgentRunner} */
+  get facilitatorRunner() {
+    return this.leadRunner;
   }
 
-  /**
-   * Agent outer loop — waits for messages, runs/resumes the agent.
-   * @param {{name: string, role: string, runner: import("./agent-runner.js").AgentRunner}} agent
-   */
-  async #runAgent(agent) {
-    // Wait for first message (lazy start)
-    await Promise.race([
-      this.messageBus.waitForMessages(agent.name),
-      this.concludePromise,
-    ]);
-    if (this.ctx.concluded) return;
-
-    let messages = this.messageBus.drain(agent.name);
-    if (messages.length === 0) return;
-
-    this.emitOrchestratorEvent({ type: "agent_start", agent: agent.name });
-    await agent.runner.run(formatMessages(messages));
-    if (await this.#settleAgentTurn(agent)) return;
-
-    // Loop: check for new messages, resume if any
-    while (!this.ctx.concluded) {
-      messages = await this.#awaitAgentMessages(agent.name);
-      if (messages.length === 0) break;
-      await agent.runner.resume(formatMessages(messages));
-      if (await this.#settleAgentTurn(agent)) break;
-    }
+  /** @returns {number} */
+  get facilitatorTurns() {
+    return this.leadTurns;
   }
 
-  /**
-   * Enforce pending-ask and emit turn_complete. Returns true when the
-   * session has concluded and the caller should stop.
-   */
-  async #settleAgentTurn(agent) {
-    if (this.ctx.concluded) return true;
-    await this.#enforcePendingAsk(agent);
-    if (this.ctx.concluded) return true;
-    this.eventQueue.enqueue({
-      type: "lifecycle",
-      agent: agent.name,
-      status: "turn_complete",
-    });
-    return false;
-  }
-
-  /**
-   * Wait for messages addressed to `name`, returning an empty array when
-   * the session concludes first.
-   */
-  async #awaitAgentMessages(name) {
-    const messages = this.messageBus.drain(name);
-    if (messages.length > 0) return messages;
-    await Promise.race([
-      this.messageBus.waitForMessages(name),
-      this.concludePromise,
-    ]);
-    if (this.ctx.concluded) return [];
-    return this.messageBus.drain(name);
-  }
-
-  /**
-   * Facilitator event loop — only runs when input arrives.
-   */
-  async #facilitatorLoop() {
-    while (!this.ctx.concluded) {
-      const event = await this.eventQueue.dequeue();
-      if (this.ctx.concluded || event === null) break;
-      await this.#handleEvent(event);
-    }
-  }
-
-  async #handleEvent(event) {
-    switch (event.type) {
-      case "messages":
-      case "lifecycle": {
-        const msgs = this.messageBus.drain("facilitator");
-        if (msgs.length === 0) break;
-        this.facilitatorTurns++;
-        await this.facilitatorRunner.resume(formatMessages(msgs));
-        await this.#processRedirect();
-        if (!this.ctx.concluded) await this.#enforceFacilitatorPendingAsk();
-        break;
-      }
-    }
-
-    if (this.ctx.concluded) {
-      this.concludeResolve();
-      this.eventQueue.close();
-    }
-  }
-
-  async #enforceFacilitatorPendingAsk() {
-    if (this.#checkAsk("facilitator") !== "recheck") return;
-    if (this.ctx.concluded) return;
-    const reminders = this.messageBus.drain("facilitator");
-    if (reminders.length === 0) return;
-    this.facilitatorTurns++;
-    await this.facilitatorRunner.resume(formatMessages(reminders));
-    await this.#processRedirect();
-    if (this.ctx.concluded) return;
-    this.#checkAsk("facilitator");
-  }
-
-  /**
-   * Process a pending redirect after a facilitator turn.
-   */
-  async #processRedirect() {
-    if (!this.ctx.redirect) return;
-    const redirect = this.ctx.redirect;
-    this.ctx.redirect = null;
-
-    this.emitOrchestratorEvent({
-      type: "redirect",
-      to: redirect.to,
-    });
-
-    if (redirect.to === "all") {
-      // Abort all agents and deliver redirect via broadcast
-      for (const agent of this.agents) {
-        agent.runner.currentAbortController?.abort();
-      }
-      this.messageBus.announce("facilitator", redirect.message);
-    } else if (redirect.to) {
-      // Abort specific agent and deliver via direct message
-      const target = this.agents.find((a) => a.name === redirect.to);
-      if (target) {
-        target.runner.currentAbortController?.abort();
-      }
-      this.messageBus.direct("facilitator", redirect.to, redirect.message);
-    }
-  }
-
-  /** Return the last assistant text block from a runner's buffer, or the fallback if none exists. */
-  extractLastText(runner, fallback) {
-    const lines = runner.buffer;
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const event = JSON.parse(lines[i]);
-      if (event.type !== "assistant") continue;
-      const content = event.message?.content ?? event.content;
-      if (!Array.isArray(content)) continue;
-      for (let j = content.length - 1; j >= 0; j--) {
-        if (content[j].type === "text" && content[j].text) {
-          return content[j].text;
-        }
-      }
-    }
-    return fallback;
-  }
-
-  /**
-   * Emit a single NDJSON line tagged with source and seq.
-   * @param {string} source - Participant name
-   * @param {string} line - Raw NDJSON line
-   */
-  emitLine(source, line) {
-    const event = JSON.parse(line);
-    this.output.write(
-      JSON.stringify(
-        this.redactor.redactValue({
-          source,
-          seq: this.counter.next(),
-          event,
-        }),
-      ) + "\n",
-    );
-  }
-
-  /**
-   * @param {{type: string}} event
-   */
-  emitOrchestratorEvent(event) {
-    this.output.write(
-      JSON.stringify(
-        this.redactor.redactValue({
-          source: "orchestrator",
-          seq: this.counter.next(),
-          event,
-        }),
-      ) + "\n",
-    );
-  }
-
-  /**
-   * @param {{success: boolean, verdict?: string|null, turns: number, summary?: string}} result
-   */
-  emitSummary(result) {
-    this.output.write(
-      JSON.stringify(
-        this.redactor.redactValue({
-          source: "orchestrator",
-          seq: this.counter.next(),
-          event: {
-            type: "summary",
-            success: result.success,
-            ...(result.verdict && { verdict: result.verdict }),
-            turns: result.turns,
-            ...(result.summary && { summary: result.summary }),
-          },
-        }),
-      ) + "\n",
-    );
+  /** @param {number} v */
+  set facilitatorTurns(v) {
+    this.leadTurns = v;
   }
 }
 
