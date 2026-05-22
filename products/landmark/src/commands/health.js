@@ -84,6 +84,8 @@ export async function runHealthCommand({
   );
   attachComments(drivers, allComments);
 
+  const driverJoin = computeDriverJoin(mapData, scores, drivers);
+
   // Deduplicate warnings
   meta.warnings = [...new Set(meta.warnings)];
 
@@ -103,10 +105,28 @@ export async function runHealthCommand({
       snapshotId: latestSnapshot.snapshot_id,
       snapshotDate: latestSnapshot.scheduled_for,
       drivers,
+      driverJoin,
       summitAvailable: growthResult.available,
     },
     meta,
   };
+}
+
+/**
+ * Classify the snapshot-to-drivers.yaml join into one of three observable
+ * states so the formatter can distinguish "no drivers configured" from
+ * "configured but disjoint from snapshot ids" from "matched". Spec 1180
+ * criterion 4.
+ */
+function computeDriverJoin(mapData, scores, drivers) {
+  const yamlIds = (mapData.drivers ?? []).length;
+  const scoreIds = new Set(scores.map((s) => s.item_id)).size;
+  const matched = drivers.length;
+  let state = null;
+  if (yamlIds === 0) state = "NO_DRIVERS";
+  else if (scoreIds > 0 && matched === 0) state = "NO_MATCH";
+  else if (matched > 0) state = "MATCHED";
+  return { state, yamlIds, scoreIds, matched };
 }
 
 /** Resolve team members (by manager or full org). Returns null on empty state. */

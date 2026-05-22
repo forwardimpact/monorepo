@@ -156,8 +156,10 @@ function renderTextDriver(driver, lines, deduped) {
   if (anchorLines.length > 0) {
     lines.push(`      Anchors: ${anchorLines.join(", ")}`);
   }
-  lines.push(`      Contributing skills: ${formatSkillNames(driver)}`);
-  lines.push(`      Evidence: ${formatEvidenceParts(driver)}`);
+  if (driver.contributingSkills.length > 0) {
+    lines.push(`      Contributing skills: ${formatSkillNames(driver)}`);
+    lines.push(`      Evidence: ${formatEvidenceParts(driver)}`);
+  }
 
   renderTextComments(driver, lines);
   renderTextRecommendations(driver, lines, deduped);
@@ -200,8 +202,10 @@ function renderMdDriver(driver, lines, deduped) {
     lines.push("");
   }
 
-  lines.push(`**Contributing skills:** ${formatSkillNames(driver)}`);
-  lines.push(`**Evidence:** ${formatEvidenceParts(driver)}`);
+  if (driver.contributingSkills.length > 0) {
+    lines.push(`**Contributing skills:** ${formatSkillNames(driver)}`);
+    lines.push(`**Evidence:** ${formatEvidenceParts(driver)}`);
+  }
 
   renderMdComments(driver, lines);
   renderMdRecommendations(driver, lines, deduped);
@@ -279,6 +283,48 @@ function renderMdDefault(view, deduped, lines) {
 }
 
 // ---------------------------------------------------------------------------
+// Join-state copy — observable distinction between (a) no drivers configured
+// and (b) configured but disjoint from snapshot ids. Spec 1180 criterion 4.
+// ---------------------------------------------------------------------------
+
+function noDriversText() {
+  return [
+    "  Drivers (no drivers configured)",
+    "  `data/pathway/drivers.yaml` is empty. Run `npx fit-map init` to",
+    "  seed the 16-driver starter, then re-run.",
+  ];
+}
+
+function noMatchText(driverJoin) {
+  const { scoreIds, yamlIds } = driverJoin;
+  return [
+    "  Drivers (no matches)",
+    `  Snapshot has ${scoreIds} driver ids, your \`data/pathway/drivers.yaml\` declares ${yamlIds}; none overlap.`,
+    "  Edit `data/pathway/drivers.yaml` to align with the GetDX taxonomy",
+    "  (`npx fit-map init` resets it).",
+  ];
+}
+
+function noDriversMarkdown() {
+  return [
+    "## Drivers (no drivers configured)",
+    "",
+    "`data/pathway/drivers.yaml` is empty. Run `npx fit-map init` to seed the 16-driver starter, then re-run.",
+  ];
+}
+
+function noMatchMarkdown(driverJoin) {
+  const { scoreIds, yamlIds } = driverJoin;
+  return [
+    "## Drivers (no matches)",
+    "",
+    `Snapshot has ${scoreIds} driver ids, your \`data/pathway/drivers.yaml\` declares ${yamlIds}; none overlap.`,
+    "",
+    "Edit `data/pathway/drivers.yaml` to align with the GetDX taxonomy (`npx fit-map init` resets it).",
+  ];
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -287,6 +333,14 @@ function renderMdDefault(view, deduped, lines) {
  * per-driver paragraph layout with all anchors disclosed. */
 export function toText(view, meta) {
   const lines = [renderHeader(`${view.teamLabel} — health view`), ""];
+  if (view.driverJoin?.state === "NO_DRIVERS") {
+    lines.push(...noDriversText());
+    return lines.join("\n");
+  }
+  if (view.driverJoin?.state === "NO_MATCH") {
+    lines.push(...noMatchText(view.driverJoin));
+    return lines.join("\n");
+  }
   const deduped = dedupeRecommendations(view.drivers);
   if (meta?.verbose) {
     for (const driver of view.drivers) {
@@ -308,6 +362,14 @@ export function toJson(view, meta) {
  * per-driver section layout with all anchors disclosed. */
 export function toMarkdown(view, meta) {
   const lines = [`# ${view.teamLabel} — health view`, ""];
+  if (view.driverJoin?.state === "NO_DRIVERS") {
+    lines.push(...noDriversMarkdown());
+    return lines.join("\n");
+  }
+  if (view.driverJoin?.state === "NO_MATCH") {
+    lines.push(...noMatchMarkdown(view.driverJoin));
+    return lines.join("\n");
+  }
   const deduped = dedupeRecommendations(view.drivers);
   if (meta?.verbose) {
     for (const driver of view.drivers) {
