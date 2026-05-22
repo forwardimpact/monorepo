@@ -57,8 +57,9 @@ block in README.md.
 
 After editing, regenerate: `bun run context:fix`.
 
-A `products/<name>/` may be `"private": true` with only `description` +
-`jobs` (e.g., Kata), exempt from § Audience.
+`products/<name>/` metadata-only (e.g., Kata) — `"private": true`,
+`description` + `jobs`, no `bin/` or CLI — exempt from § Audience's
+`npx fit-<product>` claim.
 
 ## Invocation context
 
