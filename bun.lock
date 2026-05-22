@@ -24,8 +24,8 @@
       "dependencies": {
         "@forwardimpact/libindex": "^0.1.38",
         "@forwardimpact/libstorage": "^0.1.78",
-        "@hono/node-server": "^2.0.2",
-        "hono": "^4.12.18",
+        "@hono/node-server": "^2.0.3",
+        "hono": "^4.12.22",
       },
       "devDependencies": {
         "@forwardimpact/libharness": "^0.1.21",
@@ -90,7 +90,7 @@
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.22",
         "@hono/node-server": "^2.0.3",
-        "hono": "^4.12.21",
+        "hono": "^4.12.22",
         "marked": "^18.0.4",
         "marked-gfm-heading-id": "^4.1.4",
         "marked-highlight": "^2.2.4",
@@ -651,7 +651,7 @@
         "@forwardimpact/libutil": "^0.1.64",
         "@forwardimpact/map": "^0.15.5",
         "@hono/node-server": "^2.0.3",
-        "hono": "^4.12.21",
+        "hono": "^4.12.22",
         "mustache": "^4.2.0",
         "yaml": "^2.9.0",
       },
