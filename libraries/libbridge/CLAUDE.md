@@ -15,3 +15,109 @@ Channel-agnostic primitives shared by `services/ghbridge` and `services/msbridge
   construction inside this package.
 - **Caller-injected clock.** `evaluateTrigger(trigger, observed, now)` takes
   `now` as a parameter; never call `Date.now()` from trigger evaluation.
+
+## Bridge contract
+
+A "bridge" is a service that relays human messages from a channel
+(GitHub Discussions, Microsoft Teams, …) to the Kata dispatch workflow
+and posts the workflow's reply back. Every bridge composes the same
+libbridge primitives in the same order.
+
+To add a new bridge `xbridge`, implement four things:
+
+1. **Channel intake** — `onWebhook: (c) => Response`. Verify the inbound
+   request is authentic (signature, OAuth, whatever the channel uses) and
+   extract `(threadId, text, ackTarget)`. For channels with an
+   SDK-driven intake (e.g. Bot Framework's `adapter.process`), wrap the
+   SDK inside `services/xbridge/src/<channel>.js` so `index.js` never
+   sees the express/HTTP shim.
+
+2. **Reaction adapter** — `{ add(target) -> reactionId | null, remove(reactionId, target) -> void }`.
+   The channel's "I received your message" reaction. The `target` shape
+   is opaque to libbridge — pick whatever your channel needs (a GraphQL
+   subject id, an activity reference, a Slack `(channel, ts)` tuple).
+
+3. **Typing adapter** *(optional)* — `{ send(target, text) -> void }`.
+   Only if your channel benefits from filler "Crafting..." messages
+   while the workflow runs. `Acknowledgement` owns the verb pool and
+   cadence; the adapter only delivers a string.
+
+4. **Reply handler** — `handleReply(ctx, payload, meta) -> void`. Posts
+   `payload.replies` to the channel, appends them to `ctx.history`, and
+   applies the verdict (`adjourned` / `failed` / `recessed`). Throw
+   `new CallbackHandlerError(status, message)` to short-circuit with a
+   specific HTTP status (e.g. 410 if the conversation reference is gone).
+
+Once those four pieces exist, the rest is composition:
+
+```js
+import {
+  Acknowledgement, CallbackRegistry, DiscussionContextStore, Dispatcher,
+  RateLimiter, createBridgeServer, createCallbackHandler,
+  newDiscussionContext, normalizeBaseUrl,
+} from "@forwardimpact/libbridge";
+
+const ack = new Acknowledgement({
+  reactionAdapter,         // your channel
+  typingAdapter,           // optional
+});
+const dispatcher = new Dispatcher({
+  callbacks: new CallbackRegistry(),
+  ack,
+  store: new DiscussionContextStore(storage),
+  callbackBaseUrl: normalizeBaseUrl(config.callback_base_url),
+  workflowFile: "kata-dispatch.yml",
+  githubRepo: config.github_repo,
+  getGithubToken: () => config.ghToken(),
+});
+const onCallback = createCallbackHandler({
+  channel: "xchannel",
+  callbacks, ack, store, logger, tracer,
+  spanName: "XBridge.HandleCallback",
+  loadDiscussionId: (meta) => meta.meta.threadId,
+  handleReply,             // your channel
+});
+const bridge = createBridgeServer({
+  config, logger, tracer,
+  webhookPath: "/api/messages",
+  onWebhook,               // your channel
+  onCallback,
+});
+```
+
+Inside your channel's intake, the only call you make for dispatch is:
+
+```js
+await dispatcher.dispatch({
+  ctx,
+  prompt: buildPrompt(text, ctx.history),
+  ackTarget,               // your channel-shaped target
+  historyText: text,
+  callbackMeta: { threadId },
+});
+```
+
+`Dispatcher.dispatch` owns the rest: register the callback token, start
+the acknowledgement, fire the workflow, append history, push the
+dispatch timestamp, flush the store, and on failure roll back the
+acknowledgement and the callback registration.
+
+## Configuration
+
+Every bridge consumes the canonical `BridgeConfig` JSDoc typedef from
+`src/index.js`. Channel-specific fields extend it — see each bridge's
+README for the channel-specific surface.
+
+## What lives where
+
+- `Acknowledgement` — reaction + optional typing-verb lifecycle.
+- `CallbackRegistry` — in-memory token → correlation map with TTL.
+- `DiscussionContextStore` — persisted `(channel, discussion_id)` state.
+- `Dispatcher` — the dispatch dance.
+- `createCallbackHandler` — the inbound-callback skeleton.
+- `RateLimiter` — per-thread dispatch rate cap.
+- `createBridgeServer` — Hono + `@hono/node-server` wiring.
+- `validateCallbackPayload` — lenient kata-dispatch payload validator.
+- `newDiscussionContext` — canonical record-shape factory.
+- `evaluateTrigger`, `parseIsoDuration` — recessed-resume trigger helpers.
+- `dispatchWorkflow` — the one channel-specific URL (`workflow_dispatch`).

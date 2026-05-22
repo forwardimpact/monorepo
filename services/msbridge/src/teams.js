@@ -105,3 +105,69 @@ export function createDefaultAdapter(config) {
   });
   return new CloudAdapter(auth);
 }
+
+/**
+ * Adapt the Bot Framework's express-style `adapter.process(req, res, cb)`
+ * to a Hono request handler. The bridge service hands off the inbound
+ * activity stream to this helper and gets a normal `(c) => Response`
+ * back — `index.js` never sees the express shim.
+ *
+ * @param {object} adapter - Bot Framework CloudAdapter
+ * @param {(turnContext: object) => Promise<void>} onContext
+ * @param {{error?: Function}} [logger]
+ * @returns {(c: object) => Promise<Response>}
+ */
+export function botFrameworkIntake(adapter, onContext, logger) {
+  return async (c) => {
+    const req = c.req.raw;
+    const rawBody = c.get("rawBody");
+    const expressLikeReq = {
+      headers: Object.fromEntries(req.headers.entries()),
+      body: rawBody ? JSON.parse(rawBody.toString("utf8")) : {},
+      method: req.method,
+    };
+    const resLike = makeResLike();
+    try {
+      await adapter.process(expressLikeReq, resLike, onContext);
+      return new Response(resLike._body ?? null, {
+        status: resLike._status,
+        headers: resLike._headers,
+      });
+    } catch (err) {
+      logger?.error?.("messages", err);
+      return c.json({ error: "Invalid activity" }, 400);
+    }
+  };
+}
+
+function makeResLike() {
+  return {
+    headersSent: false,
+    _status: 200,
+    _body: undefined,
+    _headers: {},
+    status(code) {
+      this._status = code;
+      return this;
+    },
+    json(body) {
+      this._body = JSON.stringify(body);
+      this._headers["content-type"] = "application/json";
+      this.headersSent = true;
+      return this;
+    },
+    send(body) {
+      this._body = body;
+      this.headersSent = true;
+      return this;
+    },
+    end(body) {
+      if (body !== undefined) this._body = body;
+      this.headersSent = true;
+      return this;
+    },
+    header(k, v) {
+      this._headers[k.toLowerCase()] = v;
+    },
+  };
+}

@@ -1,14 +1,14 @@
-import { randomUUID } from "node:crypto";
-
 import {
   Acknowledgement,
+  CallbackHandlerError,
   CallbackRegistry,
   DiscussionContextStore,
+  Dispatcher,
   RateLimiter,
   appendHistory,
   buildPrompt,
   createBridgeServer,
-  dispatchWorkflow,
+  createCallbackHandler,
   newDiscussionContext,
   normalizeBaseUrl,
   validateCallbackPayload,
@@ -16,6 +16,7 @@ import {
 
 import {
   TurnContext,
+  botFrameworkIntake,
   buildReactionAdapter,
   buildTypingAdapter,
   createDefaultAdapter,
@@ -29,26 +30,33 @@ const WORKFLOW_FILE = "kata-dispatch.yml";
 export { appendHistory, buildPrompt, validateCallbackPayload };
 
 /**
- * Microsoft Teams bridge service. Receives messages from Teams via the Bot
- * Framework, dispatches the channel-agnostic Kata dispatch workflow on
- * GitHub, and delivers the callback reply back into the Teams
- * conversation. Mirrors the shape of `services/ghbridge`: shared libbridge
- * primitives plus a small `src/teams.js` for botbuilder-bound rendering.
+ * Microsoft Teams bridge service. Receives messages from Teams via the
+ * Bot Framework, drives the libbridge dispatch dance, and delivers the
+ * callback reply back into the Teams conversation. Mirrors `ghbridge`:
+ * shared libbridge primitives (Dispatcher, callback handler,
+ * Acknowledgement) plus a small `src/teams.js` for botbuilder-bound
+ * rendering.
  */
 export class MsBridgeService {
   #logger;
   #tracer;
-  #config;
-  #callbackBaseUrl;
+  #msAppId;
   #adapter;
   #store;
   #callbacks;
   #rateLimiter;
   #ack;
+  #dispatcher;
   #bridge;
+  #onCallback;
 
   /**
-   * @param {import("@forwardimpact/libconfig").ServiceConfig} config
+   * @param {import("@forwardimpact/libbridge").BridgeConfig & {
+   *   msAppId: () => string,
+   *   msAppPassword: () => string,
+   *   msAppTenantId: () => string,
+   *   ghToken: () => string,
+   * }} config
    * @param {object} deps
    * @param {import("@forwardimpact/libtelemetry").Logger} deps.logger
    * @param {import("@forwardimpact/libtelemetry").Tracer} deps.tracer
@@ -61,10 +69,9 @@ export class MsBridgeService {
     if (!tracer) throw new Error("tracer is required");
     if (!storage) throw new Error("storage is required");
     this.config = config;
-    this.#config = config;
     this.#logger = logger;
     this.#tracer = tracer;
-    this.#callbackBaseUrl = normalizeBaseUrl(config.callback_base_url);
+    this.#msAppId = () => config.msAppId();
 
     this.#adapter = adapter ?? createDefaultAdapter(config);
     this.#adapter.onTurnError = async (context, error) => {
@@ -82,22 +89,47 @@ export class MsBridgeService {
     this.#store = new DiscussionContextStore(storage);
     this.#callbacks = new CallbackRegistry();
     this.#rateLimiter = new RateLimiter();
-    const msAppIdFn = () => this.#config.msAppId();
     this.#ack =
       acknowledgement ??
       new Acknowledgement({
-        reactionAdapter: buildReactionAdapter(this.#adapter, msAppIdFn),
-        typingAdapter: buildTypingAdapter(this.#adapter, msAppIdFn),
+        reactionAdapter: buildReactionAdapter(this.#adapter, this.#msAppId),
+        typingAdapter: buildTypingAdapter(this.#adapter, this.#msAppId),
         logger,
       });
+    this.#dispatcher = new Dispatcher({
+      callbacks: this.#callbacks,
+      ack: this.#ack,
+      store: this.#store,
+      callbackBaseUrl: normalizeBaseUrl(config.callback_base_url),
+      workflowFile: WORKFLOW_FILE,
+      githubRepo: config.github_repo,
+      getGithubToken: () => config.ghToken(),
+    });
+
+    this.#onCallback = createCallbackHandler({
+      channel: CHANNEL,
+      callbacks: this.#callbacks,
+      ack: this.#ack,
+      store: this.#store,
+      logger,
+      tracer,
+      spanName: "MsBridge.HandleCallback",
+      loadDiscussionId: (meta) => meta.meta?.threadId,
+      handleReply: (ctx, payload, meta) =>
+        this.#handleReply(ctx, payload, meta),
+    });
 
     this.#bridge = createBridgeServer({
       config,
       logger,
       tracer,
       webhookPath: WEBHOOK_PATH,
-      onWebhook: (c) => this.#handleWebhook(c),
-      onCallback: (c) => this.#handleCallback(c),
+      onWebhook: botFrameworkIntake(
+        this.#adapter,
+        (turnContext) => this.#handleNewMessage(turnContext),
+        logger,
+      ),
+      onCallback: (c) => this.#onCallback(c),
     });
   }
 
@@ -132,57 +164,6 @@ export class MsBridgeService {
     await this.#store.shutdown();
   }
 
-  async #handleWebhook(c) {
-    const req = c.req.raw;
-    const rawBody = c.get("rawBody");
-    const expressLikeReq = {
-      headers: Object.fromEntries(req.headers.entries()),
-      body: rawBody ? JSON.parse(rawBody.toString("utf8")) : {},
-      method: req.method,
-    };
-    const resLike = {
-      headersSent: false,
-      _status: 200,
-      _body: undefined,
-      _headers: {},
-      status(code) {
-        this._status = code;
-        return this;
-      },
-      json(body) {
-        this._body = JSON.stringify(body);
-        this._headers["content-type"] = "application/json";
-        this.headersSent = true;
-        return this;
-      },
-      send(body) {
-        this._body = body;
-        this.headersSent = true;
-        return this;
-      },
-      end(body) {
-        if (body !== undefined) this._body = body;
-        this.headersSent = true;
-        return this;
-      },
-      header(k, v) {
-        this._headers[k.toLowerCase()] = v;
-      },
-    };
-    try {
-      await this.#adapter.process(expressLikeReq, resLike, (context) =>
-        this.#handleNewMessage(context),
-      );
-      return new Response(resLike._body ?? null, {
-        status: resLike._status,
-        headers: resLike._headers,
-      });
-    } catch (err) {
-      this.#logger.error("messages", err);
-      return c.json({ error: "Invalid activity" }, 400);
-    }
-  }
-
   async #handleNewMessage(context) {
     const activity = context.activity;
     if (activity.type !== "message") return;
@@ -197,10 +178,9 @@ export class MsBridgeService {
     });
 
     try {
-      const now = Date.now();
       const ref = TurnContext.getConversationReference(activity);
       const ctx = await this.#loadOrCreateContext(threadId, ref);
-      ctx.last_active_at = now;
+      ctx.last_active_at = Date.now();
       ctx.participants[0].metadata = ref;
 
       const limit = this.#rateLimiter.check(threadId, ctx.dispatches);
@@ -215,41 +195,20 @@ export class MsBridgeService {
         return;
       }
 
-      const prompt = buildPrompt(text, ctx.history);
-      const correlationId = randomUUID();
-      const callbackToken = this.#callbacks.register(correlationId, {
-        threadId,
-      });
-      ctx.pending_callbacks[callbackToken] = correlationId;
-      const callbackUrl = `${this.#callbackBaseUrl}/api/callback/${callbackToken}`;
-      const ackTarget = { ref, activityId: activity.id };
-
-      await this.#ack.start(callbackToken, ackTarget);
       try {
-        await dispatchWorkflow({
-          workflowFile: WORKFLOW_FILE,
-          repo: this.#config.github_repo,
-          token: this.#config.ghToken(),
-          prompt,
-          callbackUrl,
-          correlationId,
+        const { correlationId } = await this.#dispatcher.dispatch({
+          ctx,
+          prompt: buildPrompt(text, ctx.history),
+          ackTarget: { ref, activityId: activity.id },
+          historyText: text,
+          callbackMeta: { threadId },
         });
-        appendHistory(ctx.history, { role: "user", text });
-        ctx.dispatches.push(Date.now());
-        await this.#store.add(ctx);
-        await this.#store.flush();
         span.addEvent("workflow_dispatched", {
           correlation_id: correlationId,
         });
         span.setOk();
       } catch (err) {
-        await this.#ack.finish(callbackToken, ackTarget);
-        this.#callbacks.consume(callbackToken);
-        delete ctx.pending_callbacks[callbackToken];
-        this.#logger.error("handleNewMessage", err, {
-          thread_id: threadId,
-          correlation_id: correlationId,
-        });
+        this.#logger.error("handleNewMessage", err, { thread_id: threadId });
         span.setError(err);
         await context.sendActivity(
           "Failed to reach the agent team. Please try again later.",
@@ -260,66 +219,25 @@ export class MsBridgeService {
     }
   }
 
-  async #handleCallback(c) {
-    const token = c.req.param("token");
-    const meta = this.#callbacks.consume(token);
-    if (!meta) {
-      return c.json({ error: "Unknown callback token" }, 404);
+  async #handleReply(ctx, payload, meta) {
+    if (!ctx.participants?.[0]?.metadata) {
+      throw new CallbackHandlerError(410, "Conversation reference missing");
     }
-    await this.#ack.finish(token);
-
-    let body;
-    try {
-      body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON" }, 400);
-    }
-    const payload = validateCallbackPayload(body);
-    if (!payload) return c.json({ error: "Invalid payload" }, 400);
-    if (payload.correlation_id !== meta.correlationId) {
-      return c.json({ error: "Correlation ID mismatch" }, 400);
-    }
-
-    const threadId = meta.meta?.threadId;
-    const ctx = await this.#store.loadByChannel(CHANNEL, threadId);
-    if (!ctx || !ctx.participants?.[0]?.metadata) {
-      return c.json({ error: "Conversation reference missing" }, 410);
-    }
-    delete ctx.pending_callbacks[token];
-
-    const span = this.#tracer.startSpan("MsBridge.HandleCallback", {
-      kind: "SERVER",
-      attributes: { correlation_id: meta.correlationId },
-    });
-    try {
-      const ref = ctx.participants[0].metadata;
-      await this.#postReplies(ref, payload.replies, ctx);
-      await this.#applyVerdict(ref, payload, threadId, meta.correlationId);
-
-      ctx.last_active_at = Date.now();
-      await this.#store.add(ctx);
-      await this.#store.flush();
-      span.addEvent("reply_delivered", { verdict: payload.verdict });
-      span.setOk();
-      return c.json({ ok: true }, 200);
-    } catch (err) {
-      this.#logger.error("callback", err, {
-        thread_id: threadId,
-        correlation_id: meta.correlationId,
-      });
-      span.setError(err);
-      return c.json({ error: "Failed to deliver reply" }, 500);
-    } finally {
-      await span.end();
-    }
+    const ref = ctx.participants[0].metadata;
+    await this.#postReplies(ref, payload.replies, ctx);
+    await this.#applyVerdict(
+      ref,
+      payload,
+      ctx.discussion_id,
+      meta.correlationId,
+    );
   }
 
   async #postReplies(ref, replies, ctx) {
     const list = Array.isArray(replies) ? replies : [];
-    const msAppIdFn = () => this.#config.msAppId();
     for (const reply of list) {
       if (!reply || typeof reply.body !== "string" || !reply.body) continue;
-      await sendReply(this.#adapter, msAppIdFn, ref, reply.body);
+      await sendReply(this.#adapter, this.#msAppId, ref, reply.body);
     }
     for (const reply of list) {
       if (!reply || typeof reply.body !== "string") continue;
@@ -336,12 +254,7 @@ export class MsBridgeService {
       return;
     }
     if (payload.verdict === "failed" && payload.summary) {
-      await sendReply(
-        this.#adapter,
-        () => this.#config.msAppId(),
-        ref,
-        payload.summary,
-      );
+      await sendReply(this.#adapter, this.#msAppId, ref, payload.summary);
     }
   }
 
