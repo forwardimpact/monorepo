@@ -72,7 +72,8 @@ runs:
         path: |
           node_modules
           generated
-        key: workspace-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          libraries/*/src/generated
+        key: workspace-${{ runner.os }}-${{ hashFiles('bun.lock', '**/*.proto', 'libraries/libcodegen/src/**', 'libraries/libcodegen/templates/**', 'libraries/libcodegen/bin/**') }}
 
     - name: Bootstrap
       shell: bash
