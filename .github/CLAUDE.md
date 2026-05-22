@@ -41,7 +41,7 @@ Live under `actions/`. Workflows reference them via the full workspace path
 
 | Action | Purpose |
 |---|---|
-| `bootstrap` | Bun + git identity + wiki checkout + `scripts/bootstrap.sh` + post-run wiki push |
+| `bootstrap` | Bun + git identity + wiki checkout + cached deps/workspace + `scripts/bootstrap.sh` + post-run wiki push |
 | `post-run` | Defer a shell command to job cleanup (node20 `post:` step) |
 | `audit` | Dependency `npm audit` + gitleaks secret scanning |
 | `coaligned-check` | Run `bunx coaligned` checks (instructions, jtbd) |

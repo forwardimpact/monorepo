@@ -26,12 +26,12 @@ else
   fi
 fi
 
-# ── Install tooling ──────────────────────────────────────────────
-if ! command -v just &>/dev/null; then
-  bun install -g rust-just
+# ── Install workspace ───────────────────────────────────────────
+if [ "${BOOTSTRAP_WORKSPACE_CACHE_HIT:-}" = "true" ]; then
+  echo "Workspace cache hit — skipping bun install + codegen"
+else
+  just install
 fi
-
-just install
 
 # ── Wiki sync ────────────────────────────────────────────────────
 # Some sandboxed environments rewrite `origin` to a local git proxy that

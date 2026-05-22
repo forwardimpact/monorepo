@@ -20,16 +20,16 @@ wiki-audit:
     bunx fit-wiki audit
 
 # Install dependencies and tooling
-install: install-bun install-gh
+install: install-bun install-deps
 
 # Install bun dependencies and generate code
 install-bun:
     bun install --frozen-lockfile
     bunx --workspace=@forwardimpact/libcodegen fit-codegen --all
 
-# Install the GitHub CLI (gh)
-install-gh:
-    bash scripts/install-gh.sh
+# Install CLI dependencies (apm, just, gh)
+install-deps:
+    bash scripts/install-deps.sh
 
 # Bootstrap from scratch
 quickstart: env-reset env-setup synthetic data-init codegen process-fast _quickstart-seed

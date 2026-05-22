@@ -45,37 +45,40 @@ runs:
         path: wiki
         token: ${{ inputs.token }}
 
-    - name: Install apm
+    - name: Restore deps cache
+      id: deps-cache
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: |
+          ~/.local/bin
+          ~/.local/lib/apm
+          ~/.local/lib/just
+          ~/.local/lib/gh
+        key: deps-${{ runner.os }}-${{ hashFiles('scripts/install-deps.sh') }}
+
+    - name: Install CLI dependencies
+      if: steps.deps-cache.outputs.cache-hit != 'true'
       shell: bash
-      run: |
-        if command -v apm &>/dev/null; then
-          echo "apm already available: $(apm --version)"
-        else
-          APM_VERSION="0.12.4"
-          ARCH=$(uname -m)
-          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-          case "$OS-$ARCH" in
-            linux-x86_64)  APM_SHA256="a9be6afb9f33f63598d11a7de1029722fd2601aa2ecaebfe82f4903e12a23a52" ;;
-            linux-aarch64) APM_SHA256="0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5" ;;
-            darwin-x86_64) APM_SHA256="c76ef17fa3250f87131ee09d1c8e166fce535dc2d7cea6e44fc1c5d0e3df0bac" ;;
-            darwin-arm64)  APM_SHA256="1354eb636a2b84f03938a3bd8890175298f57650e6d8507f2d084d3c66c10fd0" ;;
-            *) echo "::error::apm install: unsupported platform $OS-$ARCH" >&2; exit 1 ;;
-          esac
-          APM_DIR="$HOME/.local/lib/apm"
-          mkdir -p "$APM_DIR" "$HOME/.local/bin"
-          curl -fsSL -o "$APM_DIR/apm.tar.gz" "https://github.com/microsoft/apm/releases/download/v${APM_VERSION}/apm-${OS}-${ARCH}.tar.gz"
-          echo "${APM_SHA256}  ${APM_DIR}/apm.tar.gz" | sha256sum -c -
-          tar -xz -C "$APM_DIR" --strip-components=1 -f "$APM_DIR/apm.tar.gz"
-          rm "$APM_DIR/apm.tar.gz"
-          ln -sf "$APM_DIR/apm" "$HOME/.local/bin/apm"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          echo "Installed apm $("$APM_DIR/apm" --version)"
-        fi
+      run: bash scripts/install-deps.sh
+
+    - name: Add deps to PATH
+      shell: bash
+      run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    - name: Restore workspace cache
+      id: workspace-cache
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: |
+          node_modules
+          generated
+        key: workspace-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
     - name: Bootstrap
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
+        BOOTSTRAP_WORKSPACE_CACHE_HIT: ${{ steps.workspace-cache.outputs.cache-hit }}
       run: ./scripts/bootstrap.sh
 
     - name: Push wiki changes
