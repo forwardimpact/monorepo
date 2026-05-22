@@ -8,28 +8,45 @@ import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 
 import { runRosterCommand } from "../../src/commands/substrate-roster.js";
+import { makeStub } from "./_substrate-stubs.js";
 
 const supabasePersonaArtifacts = {
   snapshots: [{ snapshot_id: "S1", scheduled_for: "2026-01-01" }],
   scores: [{ item_id: "ITEM1", snapshot_id: "S1" }],
+  teams: [{ getdx_team_id: "T1", name: "Team One" }],
   humans: [
     {
       email: "alice@x",
       name: "Alice",
+      github_username: "alice",
       kind: "human",
       discipline: "d",
       level: "L1",
       track: "core",
-      manager_email: null,
+      manager_email: "chief@x",
+      getdx_team_id: "T1",
     },
     {
       email: "bob@x",
       name: "Bob",
+      github_username: "bob",
       kind: "human",
       discipline: "d",
       level: "L1",
       track: null,
       manager_email: "alice@x",
+      getdx_team_id: "T1",
+    },
+    {
+      email: "chief@x",
+      name: "Chief",
+      github_username: "chief",
+      kind: "human",
+      discipline: "d",
+      level: "L9",
+      track: null,
+      manager_email: null,
+      getdx_team_id: null,
     },
   ],
   artifacts: [
@@ -38,59 +55,6 @@ const supabasePersonaArtifacts = {
   ],
   evidence: [{ artifact_id: "ART1" }, { artifact_id: "ART2" }],
 };
-
-function makeStub(seed) {
-  return {
-    from(table) {
-      let rows;
-      let filter = (rs) => rs;
-      switch (table) {
-        case "getdx_snapshots":
-          rows = seed.snapshots ?? [];
-          break;
-        case "getdx_snapshot_team_scores":
-          rows = seed.scores ?? [];
-          break;
-        case "organization_people":
-          rows = seed.humans ?? [];
-          filter = (rs) => rs.filter((r) => r.kind === "human");
-          break;
-        case "github_artifacts":
-          rows = seed.artifacts ?? [];
-          break;
-        case "evidence":
-          rows = seed.evidence ?? [];
-          break;
-        default:
-          throw new Error(`unexpected table ${table}`);
-      }
-      let filtered = rows;
-      const builder = {
-        select() {
-          filtered = filter(rows);
-          return builder;
-        },
-        eq(col, val) {
-          filtered = filtered.filter((r) => r[col] === val);
-          return builder;
-        },
-        order() {
-          return builder;
-        },
-        limit() {
-          return Promise.resolve({ data: filtered, error: null });
-        },
-        then(resolve, reject) {
-          return Promise.resolve({ data: filtered, error: null }).then(
-            resolve,
-            reject,
-          );
-        },
-      };
-      return builder;
-    },
-  };
-}
 
 function captureStdout() {
   const chunks = [];
@@ -143,23 +107,38 @@ describe("substrate-roster JSON output", () => {
     assert.equal(code, 0);
     const parsed = JSON.parse(out.text());
     assert.equal(parsed.personas.length, 1);
-    assert.equal(parsed.personas[0].email, "alice@x");
+    const alice = parsed.personas[0];
+    assert.equal(alice.email, "alice@x");
     assert.deepEqual(parsed.selection_metadata.signals, [
       "memory_diversification",
       "jtbd_role_alignment",
     ]);
     // snapshot_id/item_id are per-persona-row (consistent with SKILL.md
     // Step 3a). No top-level `discovery` field is exposed.
-    assert.equal(parsed.personas[0].snapshot_id, "S1");
-    assert.equal(parsed.personas[0].item_id, "ITEM1");
+    assert.equal(alice.snapshot_id, "S1");
+    assert.equal(alice.item_id, "ITEM1");
     assert.equal(parsed.discovery, undefined);
+    // Spec 1090 § Decision 4 + Decision 7 — operator surface fields.
+    assert.equal(alice.parent_email, "chief@x");
+    assert.equal(alice.team_name, "Team One");
+    assert.equal(alice.parent.email, "chief@x");
+    assert.equal(alice.teammates_truncated, false);
+    // The seed's getdx_team_id "T1" does not match any DSL team id, so the
+    // enricher returns the three DSL fields as null without throwing.
+    assert.equal(alice.repos, null);
+    assert.equal(alice.department_name, null);
+    assert.equal(alice.scenario, null);
   });
 
-  test("non-empty corpus exits 0 with text output", async () => {
+  test("non-empty corpus exits 0 with table output", async () => {
     const supabase = makeStub(supabasePersonaArtifacts);
     const code = await runRosterCommand({ supabase, options: {} });
     assert.equal(code, 0);
-    assert.match(out.text(), /alice@x/);
+    const text = out.text();
+    // Spec 1090 criterion 1 — aligned header line, no leading bullet.
+    assert.match(text, /^email\s+name\s+/);
+    assert.match(text, /alice@x/);
+    assert.equal(text.includes("\u2022"), false);
   });
 
   test("empty corpus exits non-zero with diagnostic on stderr", async () => {

@@ -16,6 +16,7 @@ import { Finder } from "@forwardimpact/libutil";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createProductConfig } from "@forwardimpact/libconfig";
 import { findDataDir } from "../src/lib/data-dir.js";
+import { dispatchSubstrate as _dispatchSubstrate } from "./dispatch-substrate.js";
 import {
   createCli,
   SummaryRenderer,
@@ -113,6 +114,21 @@ const definition = {
         "List invariant-satisfying personas from the seeded substrate",
       options: {
         format: { type: "string", description: "Output format (text|json)" },
+      },
+    },
+    {
+      name: "substrate pick",
+      description:
+        "Pick one invariant-satisfying persona diversified against recent picks (writes wiki/kata-interview/picks.csv)",
+      options: {
+        "memory-window": {
+          type: "string",
+          description: "Recent-pick window size (default 5)",
+        },
+        format: {
+          type: "string",
+          description: "Output format (text|json), default json",
+        },
       },
     },
     {
@@ -478,43 +494,11 @@ async function dispatchAuth(subcommand, _rest, values) {
 }
 
 async function dispatchSubstrate(subcommand, _rest, values) {
-  switch (subcommand) {
-    case "stage": {
-      const { runStageCommand } = await import(
-        "../src/commands/substrate-stage.js"
-      );
-      return runStageCommand({ config, target: values.cwd });
-    }
-    case "roster": {
-      const supabase = await mapClient();
-      const { runRosterCommand } = await import(
-        "../src/commands/substrate-roster.js"
-      );
-      return runRosterCommand({
-        supabase,
-        options: { format: values.format },
-      });
-    }
-    case "issue": {
-      const supabase = await mapClient();
-      const { runSubstrateIssueCommand } = await import(
-        "../src/commands/substrate-issue.js"
-      );
-      return runSubstrateIssueCommand({
-        supabase,
-        config,
-        options: {
-          email: values.email,
-          cwd: values.cwd,
-          ttl: values.ttl,
-          stash: values.stash,
-        },
-      });
-    }
-    default:
-      cli.usageError(`unknown substrate subcommand: ${subcommand || "(none)"}`);
-      return 1;
-  }
+  return _dispatchSubstrate(subcommand, _rest, values, {
+    config,
+    mapClient,
+    cli,
+  });
 }
 
 /**

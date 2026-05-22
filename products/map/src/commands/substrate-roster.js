@@ -1,16 +1,32 @@
 /**
  * `fit-map substrate roster` — list invariant-satisfying personas from
- * the seeded substrate. Used by the kata-interview supervisor to pick
- * a persona before invoking `fit-map substrate issue`.
+ * the seeded substrate as a persona-pick menu for the kata-interview
+ * supervisor. Default output is an aligned table over the columns the
+ * supervisor reads to pick a persona; `--format json` returns enriched
+ * rows carrying every persona-template `## You` field.
  *
- * Read-only verb: queries `organization_people`, `evidence`,
- * `github_artifacts`, `getdx_snapshots`, and
- * `getdx_snapshot_team_scores` via the helper, then renders one row per
- * persona. Exits non-zero with a diagnostic on an empty result so the
- * caller can surface the binding constraint to the operator.
+ * Read-only verb: queries `organization_people`, `getdx_teams`,
+ * `evidence`, `github_artifacts`, `getdx_snapshots`, and
+ * `getdx_snapshot_team_scores` via the persona-query helper, then
+ * augments each row with three DSL-derived fields (`repos`,
+ * `department_name`, `scenario`) from `data/synthetic/story.dsl`.
+ * Exits non-zero with a diagnostic on an empty result so the caller can
+ * surface the binding constraint to the operator.
  */
 
-import { formatHeader, formatBullet, formatError } from "@forwardimpact/libcli";
+import { formatTable, formatError } from "@forwardimpact/libcli";
+import { loadStory, enrichPersonaRow } from "../lib/persona-enricher.js";
+
+const TABLE_HEADERS = [
+  "email",
+  "name",
+  "discipline",
+  "level",
+  "track",
+  "team_name",
+  "manages_count",
+  "parent_email",
+];
 
 /**
  * @param {object} params
@@ -33,12 +49,11 @@ export async function runRosterCommand({ supabase, options }) {
     return 1;
   }
 
-  // snapshot_id/item_id are carried per-row on each persona; the
-  // kata-interview supervisor reads them off the picked row. The
-  // SKILL.md Step 3a documents that shape, so no separate top-level
-  // discovery field is exposed here.
+  const ast = await loadStory();
+  const enriched = personas.map((row) => enrichPersonaRow(row, ast));
+
   const payload = {
-    personas,
+    personas: enriched,
     selection_metadata: {
       signals: ["memory_diversification", "jtbd_role_alignment"],
     },
@@ -49,18 +64,16 @@ export async function runRosterCommand({ supabase, options }) {
     return 0;
   }
 
-  process.stdout.write(
-    formatHeader(`Invariant-satisfying personas (${personas.length})`) + "\n\n",
-  );
-  for (const p of personas) {
-    process.stdout.write(
-      formatBullet(
-        `${p.email} — ${p.name} (${p.discipline}/${p.level}/${p.track ?? "-"}) ` +
-          `manages=${p.manages_count} evidence=${p.evidence_count} ` +
-          `practice_directs=${p.practice_directs_count}`,
-        0,
-      ) + "\n",
-    );
-  }
+  const rows = enriched.map((p) => [
+    p.email,
+    p.name,
+    p.discipline,
+    p.level,
+    p.track,
+    p.team_name,
+    p.manages_count,
+    p.parent_email,
+  ]);
+  process.stdout.write(formatTable(TABLE_HEADERS, rows) + "\n");
   return 0;
 }

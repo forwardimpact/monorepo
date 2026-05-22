@@ -131,14 +131,14 @@ describe("assertPersonaIsHuman", () => {
 });
 
 describe("assertDiscoveryResolves", () => {
-  test("rejects persona missing manager_email", () => {
+  test("rejects persona missing parent_email", () => {
     assert.throws(
       () =>
         assertDiscoveryResolves(
           { email: "a@x" },
           { snapshot_id: "S", item_id: "I" },
         ),
-      /missing email\/manager_email/,
+      /missing email\/parent_email/,
     );
   });
 
@@ -146,7 +146,7 @@ describe("assertDiscoveryResolves", () => {
     assert.throws(
       () =>
         assertDiscoveryResolves(
-          { email: "a@x", manager_email: "a@x" },
+          { email: "a@x", parent_email: "a@x" },
           { snapshot_id: null, item_id: "I" },
         ),
       /discovery vector incomplete/,
@@ -156,7 +156,7 @@ describe("assertDiscoveryResolves", () => {
   test("accepts a fully populated persona + discovery", () => {
     assert.doesNotThrow(() =>
       assertDiscoveryResolves(
-        { email: "a@x", manager_email: "a@x" },
+        { email: "a@x", parent_email: "a@x" },
         { snapshot_id: "S", item_id: "I" },
       ),
     );
@@ -227,7 +227,7 @@ describe("buildSmokeList expands manifest to iteration items", () => {
 describe("buildSmokeArgv substitutes placeholders", () => {
   const persona = {
     email: "alice@x",
-    manager_email: "alice@x",
+    parent_email: "alice@x",
   };
   const discovery = { snapshot_id: "S1", item_id: "ITEM1" };
 

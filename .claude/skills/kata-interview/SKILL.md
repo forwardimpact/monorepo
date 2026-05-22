@@ -93,13 +93,13 @@ Use `cp -r data/pathway "$AGENT_CWD/data/pathway"` and similar.
 For **Landmark**, the workflow already brought up the substrate. Before
 `CLAUDE.md`, pick a persona and seal identity:
 
-1. `bunx fit-map substrate roster --format json` lists candidates
-   (`email`, `discipline`, `level`, `manager_email`, `snapshot_id`,
-   `item_id`).
-2. Pick using **memory diversification** (skip personas in your last 5
-   log entries) and **JTBD-role alignment** (`discipline`/`level`;
-   `track` is informational).
-3. `bunx fit-map substrate issue --email <picked> --cwd "$AGENT_CWD"
+1. `bunx fit-map substrate pick --format json` returns one
+   invariant-satisfying persona diversified against the last 5 picks
+   (reads + appends `wiki/kata-interview/picks.csv`). Read `email`,
+   `name`, `github_username`, `team_name`, `department_name`,
+   `parent.{name,github_username,level}`, `repos`, `teammates`, and
+   `scenario` — no follow-up reads of `data/synthetic/` are needed.
+2. `bunx fit-map substrate issue --email <picked> --cwd "$AGENT_CWD"
    --stash "$RUNNER_TEMP/.persona-jwt"` writes `.env`, `.substrate.json`,
    and a workflow-private JWT copy (mode 0600 on all three). You never
    see the JWT bytes; the agent has no `$RUNNER_TEMP` access.
@@ -113,8 +113,8 @@ Write `$AGENT_CWD/CLAUDE.md`. The persona file carries **who** and **the
 situation** — never the job. Two sources:
 
 - **Identity** (name, team, manager, teammates, repos, recent project,
-  company facts) — from the installation's synthetic content. This
-  monorepo: `data/synthetic/story.dsl` and `prose-cache.json`.
+  company facts) — Landmark: the persona row from Step 3a. Other
+  products: `data/synthetic/story.dsl` and `prose-cache.json`.
 - **Situation** (Trigger, Forces, Competes With) — from the chosen JTBD
   entry, rephrased into the persona's voice.
 

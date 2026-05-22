@@ -14,6 +14,9 @@
  *       returns ≥1 row).
  *   (d) Corpus carries ≥1 organization snapshot id and ≥1 driver/item id
  *       (the discovery vector).
+ *   Plus spec 1090 § Decision 4: the row's own `manager_email` is non-null,
+ *   so every roster row carries an org-tree parent (no top-of-tree rows
+ *   leak through the operator surface as `parent_email: null`).
  */
 
 async function loadDiscovery(supabase) {
@@ -82,7 +85,11 @@ function diagnoseBindingConstraint(
   evidenceCountByEmail,
   practiceCountByManager,
 ) {
+  // parent_email_known is listed first so it wins ties: when no human has
+  // a parent, every downstream constraint that depends on manager_email
+  // also reads 0, and spec 1090 § Decision 4's filter is the binding root.
   const counts = {
+    parent_email_known: humans.filter((h) => h.manager_email != null).length,
     manages: humans.filter((h) => (directsByManager.get(h.email) ?? 0) >= 1)
       .length,
     authors_evidence: humans.filter(
@@ -93,6 +100,77 @@ function diagnoseBindingConstraint(
     ).length,
   };
   return Object.entries(counts).sort(([, a], [, b]) => a - b)[0][0];
+}
+
+async function loadTeamsById(supabase) {
+  const { data: teams } = await supabase
+    .from("getdx_teams")
+    .select("getdx_team_id,name");
+  return new Map((teams ?? []).map((t) => [t.getdx_team_id, { name: t.name }]));
+}
+
+function peerProjection(p) {
+  return {
+    email: p.email,
+    name: p.name,
+    github_username: p.github_username,
+    level: p.level,
+  };
+}
+
+function buildPeerMaps(humans) {
+  const peopleByEmail = new Map();
+  const peersByTeamId = new Map();
+  for (const h of humans) {
+    peopleByEmail.set(h.email, h);
+    if (h.getdx_team_id == null) continue;
+    const arr = peersByTeamId.get(h.getdx_team_id) ?? [];
+    arr.push(h);
+    peersByTeamId.set(h.getdx_team_id, arr);
+  }
+  for (const [id, arr] of peersByTeamId) {
+    arr.sort((a, b) => (a.email < b.email ? -1 : a.email > b.email ? 1 : 0));
+    peersByTeamId.set(id, arr);
+  }
+  return { peopleByEmail, peersByTeamId };
+}
+
+function buildPersonaRow(
+  h,
+  {
+    teamsById,
+    peopleByEmail,
+    peersByTeamId,
+    directsByManager,
+    evidenceCountByEmail,
+    practiceCountByManager,
+    snapshot_id,
+    item_id,
+  },
+) {
+  const allPeers = (peersByTeamId.get(h.getdx_team_id) ?? []).filter(
+    (p) => p.email !== h.email,
+  );
+  const parentRow = peopleByEmail.get(h.manager_email);
+  return {
+    email: h.email,
+    name: h.name,
+    github_username: h.github_username,
+    discipline: h.discipline,
+    level: h.level,
+    track: h.track,
+    parent_email: h.manager_email,
+    getdx_team_id: h.getdx_team_id,
+    team_name: teamsById.get(h.getdx_team_id)?.name ?? null,
+    parent: parentRow ? peerProjection(parentRow) : null,
+    teammates: allPeers.slice(0, 3).map(peerProjection),
+    teammates_truncated: allPeers.length > 3,
+    manages_count: directsByManager.get(h.email) ?? 0,
+    evidence_count: evidenceCountByEmail.get(h.email) ?? 0,
+    practice_directs_count: practiceCountByManager.get(h.email) ?? 0,
+    snapshot_id,
+    item_id,
+  };
 }
 
 /**
@@ -113,7 +191,9 @@ export async function findInvariantSatisfyingPersonas({ supabase }) {
 
   const { data: humans } = await supabase
     .from("organization_people")
-    .select("email,name,discipline,level,track,manager_email")
+    .select(
+      "email,name,github_username,discipline,level,track,manager_email,getdx_team_id",
+    )
     .eq("kind", "human");
   if (!humans?.length) {
     return { personas: [], diagnostic: "no kind=human rows" };
@@ -125,27 +205,29 @@ export async function findInvariantSatisfyingPersonas({ supabase }) {
     humans,
     evidenceCountByEmail,
   );
+  const teamsById = await loadTeamsById(supabase);
+  const { peopleByEmail, peersByTeamId } = buildPeerMaps(humans);
 
   const personas = humans
     .filter(
       (h) =>
+        (h.manager_email ?? null) !== null &&
         (directsByManager.get(h.email) ?? 0) >= 1 &&
         (evidenceCountByEmail.get(h.email) ?? 0) >= 1 &&
         (practiceCountByManager.get(h.email) ?? 0) >= 1,
     )
-    .map((h) => ({
-      email: h.email,
-      name: h.name,
-      discipline: h.discipline,
-      level: h.level,
-      track: h.track,
-      manager_email: h.manager_email,
-      manages_count: directsByManager.get(h.email) ?? 0,
-      evidence_count: evidenceCountByEmail.get(h.email) ?? 0,
-      practice_directs_count: practiceCountByManager.get(h.email) ?? 0,
-      snapshot_id,
-      item_id,
-    }));
+    .map((h) =>
+      buildPersonaRow(h, {
+        teamsById,
+        peopleByEmail,
+        peersByTeamId,
+        directsByManager,
+        evidenceCountByEmail,
+        practiceCountByManager,
+        snapshot_id,
+        item_id,
+      }),
+    );
 
   if (!personas.length) {
     const binding = diagnoseBindingConstraint(
