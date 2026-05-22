@@ -59,6 +59,31 @@ function makeDeps() {
   };
 }
 
+async function assertRoutesResolve(service) {
+  const server = service.app.listen(0, "127.0.0.1");
+  try {
+    await new Promise((resolve) => server.on("listening", resolve));
+    const { port } = server.address();
+    const base = `http://127.0.0.1:${port}`;
+
+    const messagesRes = await fetch(`${base}/api/messages`, {
+      method: "OPTIONS",
+    });
+    assert.strictEqual(messagesRes.status, 200);
+
+    const callbackRes = await fetch(`${base}/api/callback/unknown-token`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+    });
+    assert.strictEqual(callbackRes.status, 404);
+    const callbackBody = await callbackRes.json();
+    assert.strictEqual(callbackBody.error, "Unknown callback token");
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+}
+
 describe("msteams service", () => {
   describe("MsTeamsService", () => {
     test("exports MsTeamsService class", () => {
@@ -162,25 +187,17 @@ describe("msteams service", () => {
       assert.strictEqual(service.conversations.size, 1);
     });
 
-    test("registers expected routes on express app", () => {
+    test("registers expected routes on express app", async () => {
       const service = new MsTeamsService(config, deps);
-      const routes = service.app._router.stack
-        .filter((layer) => layer.route)
-        .map((layer) => layer.route.path);
-      assert.ok(routes.includes("/api/callback/:token"));
-      assert.ok(routes.includes("/api/messages"));
+      await assertRoutesResolve(service);
     });
 
-    test("normalizes trailing slash from callbackBaseUrl", () => {
+    test("normalizes trailing slash from callbackBaseUrl", async () => {
       const service = new MsTeamsService(
         makeConfig({ callback_base_url: "https://tunnel.example/" }),
         deps,
       );
-      const routes = service.app._router.stack
-        .filter((layer) => layer.route)
-        .map((layer) => layer.route.path);
-      assert.ok(routes.includes("/api/callback/:token"));
-      assert.ok(routes.includes("/api/messages"));
+      await assertRoutesResolve(service);
     });
   });
 
