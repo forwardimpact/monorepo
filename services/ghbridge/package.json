@@ -1,0 +1,63 @@
+{
+  "name": "@forwardimpact/svcghbridge",
+  "version": "0.1.0",
+  "description": "GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.",
+  "keywords": [
+    "github",
+    "discussions",
+    "bridge",
+    "relay",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "services/ghbridge"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Bridge GitHub Discussions to the Agent Team",
+      "trigger": "Engineers run RFCs in GitHub Discussions and need the Kata agent team to engage humans across the 14-day coordination horizon.",
+      "bigHire": "relay messages between GitHub Discussion threads and the Kata agent team without the workflow owning channel-specific reply logic.",
+      "littleHire": "post a structured discussion reply from a workflow callback and resume a recessed RFC when humans answer.",
+      "competesWith": "composing GraphQL mutation strings inside facilitator prompts; one-shot workflow runs that cannot await human responses; per-channel duplication of intake skeletons"
+    }
+  ],
+  "type": "module",
+  "main": "./index.js",
+  "bin": {
+    "fit-svcghbridge": "./server.js"
+  },
+  "files": [
+    "index.js",
+    "server.js",
+    "src/**/*.js"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libbridge": "^0.1.0",
+    "@forwardimpact/libconfig": "^0.1.79",
+    "@forwardimpact/librpc": "^0.1.99",
+    "@forwardimpact/libstorage": "^0.1.78",
+    "@forwardimpact/libtelemetry": "^0.1.42",
+    "@octokit/auth-app": "^7.1.4",
+    "@octokit/graphql": "^8.1.1",
+    "@octokit/webhooks-methods": "^5.1.0"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.21"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

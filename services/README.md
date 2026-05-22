@@ -12,6 +12,7 @@ that let agents consume backend functionality natively.
 | Service       | Description                                                                                              |
 | ------------- | -------------------------------------------------------------------------------------------------------- |
 | **embedding** | Text embeddings over gRPC — semantic representation without each product running its own inference.      |
+| **ghbridge**  | GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.    |
 | **graph**     | RDF knowledge graph over gRPC — relationship queries without each product standing up its own store.     |
 | **map**       | Activity reads and writes over gRPC — the agent-facing gateway to Map's activity database.               |
 | **mcp**       | Unified MCP server — agents reach backend services as tools without per-service integration.             |
@@ -41,6 +42,26 @@ return the verdict to the same thread. → **msteams**
 
 **Competes With:** manually creating GitHub issues; copy-pasting between chat
 and GitHub; leaving the agent team unreachable from daily conversation.
+
+</job>
+
+<job user="Platform Builders" goal="Bridge GitHub Discussions to the Agent Team">
+
+## Platform Builders: Bridge GitHub Discussions to the Agent Team
+
+**Trigger:** Engineers run RFCs in GitHub Discussions and need the Kata agent
+team to engage humans across the 14-day coordination horizon.
+
+**Big Hire:** Help me relay messages between GitHub Discussion threads and the
+Kata agent team without the workflow owning channel-specific reply logic. →
+**ghbridge**
+
+**Little Hire:** Help me post a structured discussion reply from a workflow
+callback and resume a recessed RFC when humans answer. → **ghbridge**
+
+**Competes With:** composing GraphQL mutation strings inside facilitator
+prompts; one-shot workflow runs that cannot await human responses; per-channel
+duplication of intake skeletons.
 
 </job>
 

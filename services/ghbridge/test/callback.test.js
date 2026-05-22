@@ -1,0 +1,218 @@
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { sign } from "@octokit/webhooks-methods";
+import {
+  createMockConfig,
+  createMockLogger,
+  createMockStorage,
+} from "@forwardimpact/libharness";
+
+import { GhBridgeService } from "../index.js";
+import {
+  ADD_DISCUSSION_COMMENT_MUTATION,
+  ADD_REACTION_MUTATION,
+} from "../src/graphql.js";
+
+function makeTracer() {
+  const noop = () => {};
+  return {
+    startSpan: () => ({
+      addEvent: noop,
+      setOk: noop,
+      setError: noop,
+      end: async () => {},
+    }),
+  };
+}
+
+const SECRET = "ghbridge-test-secret-long-enough";
+
+function makeConfig() {
+  return createMockConfig("ghbridge", {
+    host: "127.0.0.1",
+    port: 0,
+    github_repo: "owner/repo",
+    callback_base_url: "https://bridge.example",
+    app_webhook_secret: SECRET,
+  });
+}
+
+async function newService() {
+  const dispatches = [];
+  const graphqlCalls = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const target = String(url);
+    if (target.startsWith("https://api.github.com/")) {
+      dispatches.push({ url: target, init });
+      return new Response("{}", { status: 204 });
+    }
+    return originalFetch(url, init);
+  };
+  const service = new GhBridgeService(makeConfig(), {
+    logger: createMockLogger(),
+    tracer: makeTracer(),
+    storage: createMockStorage(),
+    verifyWebhook: (s, b, sig) =>
+      import("@octokit/webhooks-methods").then((m) => m.verify(s, b, sig)),
+    getInstallationToken: async () => "ghs_test",
+    graphqlClient: async (query, variables) => {
+      graphqlCalls.push({ query, variables });
+      return {};
+    },
+  });
+  await service.start();
+  return {
+    service,
+    dispatches,
+    graphqlCalls,
+    restore: () => {
+      globalThis.fetch = originalFetch;
+    },
+  };
+}
+
+async function dispatchFresh(service, baseUrl) {
+  const event = {
+    action: "created",
+    discussion: { node_id: "D_kw1", body: "rfc", user: { id: 1, login: "u" } },
+  };
+  const json = JSON.stringify(event);
+  const signature = await sign(SECRET, json);
+  await fetch(`${baseUrl}/api/webhook`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-github-event": "discussion",
+      "x-hub-signature-256": signature,
+    },
+    body: json,
+  });
+  const [token] = Array.from(
+    (await service.store.loadByChannel("github-discussions", "D_kw1"))
+      .pending_callbacks
+      ? Object.keys(
+          (await service.store.loadByChannel("github-discussions", "D_kw1"))
+            .pending_callbacks,
+        )
+      : [],
+  );
+  return token;
+}
+
+async function postCallback(baseUrl, token, body) {
+  return fetch(`${baseUrl}/api/callback/${token}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+describe("ghbridge callback handler", () => {
+  let ctx;
+  let baseUrl;
+
+  beforeEach(async () => {
+    ctx = await newService();
+    baseUrl = `http://127.0.0.1:${ctx.service.address().port}`;
+  });
+
+  afterEach(async () => {
+    await ctx.service.stop();
+    ctx.restore();
+  });
+
+  test("unknown token returns 404", async () => {
+    const res = await postCallback(baseUrl, "missing-token", {
+      correlation_id: "x",
+      verdict: "adjourned",
+      summary: "",
+      replies: [],
+    });
+    expect(res.status).toBe(404);
+  });
+
+  test("adjourned verdict posts each reply via addDiscussionComment", async () => {
+    const token = await dispatchFresh(ctx.service, baseUrl);
+    const meta = ctx.service.callbacks.peek(token);
+    const res = await postCallback(baseUrl, token, {
+      correlation_id: meta.correlationId,
+      verdict: "adjourned",
+      summary: "done",
+      run_url: "https://github.com/owner/repo/actions/runs/1",
+      replies: [
+        { body: "first reply" },
+        { body: "follow up", in_reply_to: "C_root" },
+      ],
+    });
+    expect(res.status).toBe(200);
+    const commentCalls = ctx.graphqlCalls.filter(
+      (c) => c.query === ADD_DISCUSSION_COMMENT_MUTATION,
+    );
+    expect(commentCalls).toHaveLength(2);
+    expect(commentCalls[0].variables.i.body).toBe("first reply");
+    expect(commentCalls[1].variables.i.replyToId).toBe("C_root");
+    const stored = await ctx.service.store.loadByChannel(
+      "github-discussions",
+      "D_kw1",
+    );
+    expect(stored.open_rfcs).toEqual({});
+  });
+
+  test("recessed verdict persists open_rfcs with the trigger", async () => {
+    const token = await dispatchFresh(ctx.service, baseUrl);
+    const meta = ctx.service.callbacks.peek(token);
+    const res = await postCallback(baseUrl, token, {
+      correlation_id: meta.correlationId,
+      verdict: "recessed",
+      summary: "awaiting responses",
+      run_url: "https://github.com/owner/repo/actions/runs/1",
+      replies: [{ body: "what do others think?" }],
+      trigger: { kind: "responses", responses: 2 },
+    });
+    expect(res.status).toBe(200);
+    const stored = await ctx.service.store.loadByChannel(
+      "github-discussions",
+      "D_kw1",
+    );
+    const rfcs = Object.values(stored.open_rfcs);
+    expect(rfcs).toHaveLength(1);
+    expect(rfcs[0].trigger).toEqual({ kind: "responses", responses: 2 });
+    expect(typeof rfcs[0].history_index_at_open).toBe("number");
+  });
+
+  test("failed verdict posts the summary as a discussion comment and clears state", async () => {
+    const token = await dispatchFresh(ctx.service, baseUrl);
+    const meta = ctx.service.callbacks.peek(token);
+    const res = await postCallback(baseUrl, token, {
+      correlation_id: meta.correlationId,
+      verdict: "failed",
+      summary: "facilitator failed; see run",
+      run_url: "https://github.com/owner/repo/actions/runs/1",
+      replies: [],
+    });
+    expect(res.status).toBe(200);
+    const commentCalls = ctx.graphqlCalls.filter(
+      (c) => c.query === ADD_DISCUSSION_COMMENT_MUTATION,
+    );
+    expect(commentCalls).toHaveLength(1);
+    expect(commentCalls[0].variables.i.body).toBe(
+      "facilitator failed; see run",
+    );
+  });
+
+  test("graphql contains exactly two mutations (the source of truth)", () => {
+    expect(ADD_DISCUSSION_COMMENT_MUTATION).toContain("addDiscussionComment");
+    expect(ADD_REACTION_MUTATION).toContain("addReaction");
+  });
+
+  test("correlation_id mismatch returns 400", async () => {
+    const token = await dispatchFresh(ctx.service, baseUrl);
+    const res = await postCallback(baseUrl, token, {
+      correlation_id: "wrong-id",
+      verdict: "adjourned",
+      summary: "",
+      replies: [],
+    });
+    expect(res.status).toBe(400);
+  });
+});
