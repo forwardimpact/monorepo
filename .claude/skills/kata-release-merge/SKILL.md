@@ -86,6 +86,7 @@ Parse the title using `type(scope): subject`. Each type maps to a phase:
 - `design` → design phase, gate STATUS row `{NNN}\tdesign\tapproved`
 - `plan` → plan phase, gate STATUS row `{NNN}\tplan\tapproved`
 - `feat`, `fix`, `bug`, `refactor`, `chore` → implementation phase
+- `docs` → docs fast-path (Step 6, capped to `.md`/`.mdx` files)
 - `!` breaking variants retain the base type
 - Any other type → mark **blocked**
 
@@ -127,6 +128,10 @@ git push --force-with-lease origin <pr-branch>
 ```
 
 ### Step 6: Approval Gate
+
+**Docs fast-path**: A `docs`-typed PR whose changed files are all `.md` or
+`.mdx` (`gh pr view <n> --json files`) passes on trust (Step 2) alone — skip
+the STATUS check below. Any non-doc file falls through to the standard check.
 
 Read `wiki/STATUS.md` for the PR's spec id (`grep -P "^${spec_id}\t"`). The
 PR passes when the row shows the PR's classified phase at `approved` (or
