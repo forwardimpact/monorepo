@@ -8,12 +8,21 @@ short-lived installation tokens -- no long-lived PATs to rotate.
 1. Go to **Settings > Developer settings > GitHub Apps > New GitHub App**
    (organization-owned recommended, user-owned also works).
 2. Name it (e.g., `kata-agent-team`). The slug becomes the git commit author.
-3. Disable the webhook (uncheck "Active") -- events are handled by GitHub
-   Actions triggers, not webhook delivery.
+3. Enable the webhook. **Webhook URL** = `${GHBRIDGE_PUBLIC_URL}/api/webhook`.
+   **Webhook secret** = a random 32-byte hex string (also set as
+   `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET` on the ghbridge process). Discussion
+   events are served by `services/ghbridge`; other events still reach GitHub
+   Actions via their own triggers and need no webhook URL.
 4. Under **Permissions**, set the **repository permissions** below.
 5. Under **Subscribe to events**, check the events listed below.
 6. Set "Where can this GitHub App be installed?" to "Only on this account."
 7. Click **Create GitHub App**.
+
+Deploy `services/ghbridge` before flipping the App webhook URL to point at
+it -- the bridge must be reachable at `${GHBRIDGE_PUBLIC_URL}/api/webhook`
+when GitHub starts delivering events. See
+[`services/ghbridge/README.md`](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
+for deployment, tunnel, and configuration steps.
 
 ## Repository Permissions
 
@@ -28,13 +37,37 @@ short-lived installation tokens -- no long-lived PATs to rotate.
 
 ## Event Subscriptions
 
-Check these events so `kata-dispatch` fires on external activity:
+The App delivers two event families through different channels. Subscribe to
+all five events on the App, and both channels will fire when their respective
+events arrive.
+
+### App webhook (served by `services/ghbridge`)
+
+Discussion events reach `kata-dispatch` only through the App webhook URL
+configured above:
+
+- **Discussion** -- a new discussion is created, edited, or closed
+- **Discussion comment** -- a reply lands on a discussion thread
+
+### GitHub Actions triggers (no webhook URL needed)
+
+PR and issue events reach `kata-dispatch` via workflow triggers in
+`.github/workflows/kata-dispatch.yml`; the App webhook URL is not consulted
+for these:
 
 - **Issue comment** -- triggers on PR and issue comments
 - **Pull request review** -- triggers on submitted reviews
 - **Pull request review comment** -- triggers on review thread replies
-- **Discussion** -- triggers on new discussions
-- **Discussion comment** -- triggers on discussion replies
+
+## Webhook events
+
+The App webhook URL receives the two Discussion subscriptions listed above.
+`services/ghbridge` verifies the `X-Hub-Signature-256` header against the
+shared secret, persists thread state, and dispatches `kata-dispatch` via
+`workflow_dispatch`. See
+[`services/ghbridge/README.md`](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
+for the full request/response shape, callback verdicts (`adjourned`,
+`recessed`, `failed`), and resume-trigger contract.
 
 ## Install the App
 
