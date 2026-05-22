@@ -38,12 +38,3 @@ updates:
         update-types:
           - version-update:semver-patch
           - version-update:semver-minor
-      # express@5.x changed router internals — `app._router.stack` is no
-      # longer the same shape (router@2 backend). services/msteams tests
-      # depend on the v4 introspection API. CVE-2024-51999 (the only
-      # security driver in the 4→5 window) was rejected and reverted in
-      # 5.2.1, so no security urgency. Re-bump only after msteams is
-      # migrated off the `_router.stack` introspection. PR #1118 closed.
-      - dependency-name: express
-        update-types:
-          - version-update:semver-major
