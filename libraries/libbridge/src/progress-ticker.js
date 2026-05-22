@@ -4,7 +4,7 @@ const DEFAULT_INTERVAL_MS = 12_000;
  * Channel-agnostic ticker. Hosts call `start(token, tick)` after dispatching
  * a workflow; `tick()` runs every `intervalMs` until the host calls
  * `stop(token)` or until `tick()` rejects (which auto-stops the ticker —
- * matching the legacy `services/msteams/index.js:512-522` behaviour).
+ * matching the legacy msteams ticker behaviour preserved in services/msbridge).
  *
  * Per-channel rendering (Teams typing activity, GitHub reaction) lives in
  * the adapter; this class only owns the timer lifecycle.

@@ -2,8 +2,8 @@
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
-Microsoft Teams bridge — relay messages between Teams conversations and the Kata
-agent team.
+Microsoft Teams bridge onto libbridge — relay messages between Teams
+conversations and the Kata agent team.
 
 <!-- END:description -->
 
@@ -17,9 +17,12 @@ agent team.
 - A GitHub token with `actions:write` on `forwardimpact/monorepo`.
 - Credentials (`MICROSOFT_APP_ID`, `MICROSOFT_APP_PASSWORD`,
   `MICROSOFT_APP_TENANT_ID`, `GH_TOKEN`) and service params
-  (`SERVICE_MSTEAMS_PORT`, `SERVICE_MSTEAMS_CALLBACK_BASE_URL`,
-  `SERVICE_MSTEAMS_GITHUB_REPO`) in `.env`. All config is loaded by
-  `libconfig` via `createServiceConfig("msteams")`.
+  (`SERVICE_MSBRIDGE_PORT`, `SERVICE_MSBRIDGE_CALLBACK_BASE_URL`,
+  `SERVICE_MSBRIDGE_GITHUB_REPO`) in `.env`. All config is loaded by
+  `libconfig` via `createServiceConfig("msbridge")`.
+- `STATE_DIR` env var (default `/var/lib/msbridge`) — directory for the
+  JSONL discussion-context store. The directory must be writable by the
+  service process.
 
 ## Running
 
@@ -33,14 +36,14 @@ The tunnel uses a quick `trycloudflare.com` hostname that changes on
 every restart. After starting, check the tunnel log for the assigned URL:
 
 ```sh
-cat data/logs/msteams-tunnel/current | grep trycloudflare.com
+cat data/logs/msbridge-tunnel/current | grep trycloudflare.com
 ```
 
 Set that URL as the Azure Bot messaging endpoint in the Azure portal
 (Settings → Configuration):
 `https://<tunnel-domain>/api/messages`.
 
-Also set `SERVICE_MSTEAMS_CALLBACK_BASE_URL` in `.env` to the same
+Also set `SERVICE_MSBRIDGE_CALLBACK_BASE_URL` in `.env` to the same
 tunnel domain (without the `/api/messages` path) so the bridge can
 receive workflow callbacks. The bridge must be restarted after changing
 `.env` — kill the bridge process and let the supervisor restart it, or
@@ -57,11 +60,11 @@ starting the bridge, or allowlist the required endpoints.
 ## Packaging the Teams App
 
 ```sh
-just msteams-package
+just msbridge-package
 ```
 
 Reads `MICROSOFT_APP_ID` from `.env` via libconfig and the tunnel domain
-from `SERVICE_MSTEAMS_CALLBACK_BASE_URL`. Produces
+from `SERVICE_MSBRIDGE_CALLBACK_BASE_URL`. Produces
 `dist/kata-agent-bridge.zip` (git-ignored) containing the manifest and
 placeholder icons. Override the tunnel domain with
 `--tunnel-domain=<host>` if needed.

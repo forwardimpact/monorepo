@@ -1,7 +1,7 @@
 {
-  "name": "@forwardimpact/svcmsteams",
+  "name": "@forwardimpact/svcmsbridge",
   "version": "0.1.0",
-  "description": "Microsoft Teams bridge — relay messages between Teams conversations and the Kata agent team.",
+  "description": "Microsoft Teams bridge onto libbridge — relay messages between Teams conversations and the Kata agent team.",
   "keywords": [
     "teams",
     "bridge",
@@ -13,7 +13,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forwardimpact/monorepo.git",
-    "directory": "services/msteams"
+    "directory": "services/msbridge"
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",
@@ -30,7 +30,7 @@
   "type": "module",
   "main": "./index.js",
   "bin": {
-    "fit-svcmsteams": "./server.js"
+    "fit-svcmsbridge": "./server.js"
   },
   "files": [
     "index.js",
@@ -40,11 +40,12 @@
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
+    "@forwardimpact/libbridge": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.79",
     "@forwardimpact/librpc": "^0.1.99",
+    "@forwardimpact/libstorage": "^0.1.78",
     "@forwardimpact/libtelemetry": "^0.1.42",
-    "botbuilder": "^4.23.3",
-    "express": "^4.21.0"
+    "botbuilder": "^4.23.3"
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.5"

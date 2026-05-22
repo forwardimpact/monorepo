@@ -17,7 +17,7 @@ const { values } = parseArgs({
   },
 });
 
-const config = await createServiceConfig("msteams", {
+const config = await createServiceConfig("msbridge", {
   protocol: "http",
   port: 3978,
   callback_base_url: "",
@@ -30,7 +30,7 @@ if (!tunnelDomain && config.callback_base_url) {
 }
 if (!tunnelDomain) {
   console.error(
-    "No tunnel domain: pass --tunnel-domain or set SERVICE_MSTEAMS_CALLBACK_BASE_URL in .env",
+    "No tunnel domain: pass --tunnel-domain or set SERVICE_MSBRIDGE_CALLBACK_BASE_URL in .env",
   );
   process.exit(1);
 }

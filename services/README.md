@@ -9,17 +9,17 @@ that let agents consume backend functionality natively.
 
 <!-- BEGIN:catalog — Do not edit. Generated from each service's package.json. -->
 
-| Service       | Description                                                                                              |
-| ------------- | -------------------------------------------------------------------------------------------------------- |
-| **embedding** | Text embeddings over gRPC — semantic representation without each product running its own inference.      |
-| **ghbridge**  | GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.    |
-| **graph**     | RDF knowledge graph over gRPC — relationship queries without each product standing up its own store.     |
-| **map**       | Activity reads and writes over gRPC — the agent-facing gateway to Map's activity database.               |
-| **mcp**       | Unified MCP server — agents reach backend services as tools without per-service integration.             |
-| **msteams**   | Microsoft Teams bridge — relay messages between Teams conversations and the Kata agent team.             |
-| **pathway**   | Engineering standard queries over gRPC — career paths and agent profiles as derivable data for products. |
-| **trace**     | OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.      |
-| **vector**    | Vector similarity search over gRPC — semantic retrieval without a dedicated database per product.        |
+| Service       | Description                                                                                                 |
+| ------------- | ----------------------------------------------------------------------------------------------------------- |
+| **embedding** | Text embeddings over gRPC — semantic representation without each product running its own inference.         |
+| **ghbridge**  | GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.       |
+| **graph**     | RDF knowledge graph over gRPC — relationship queries without each product standing up its own store.        |
+| **map**       | Activity reads and writes over gRPC — the agent-facing gateway to Map's activity database.                  |
+| **mcp**       | Unified MCP server — agents reach backend services as tools without per-service integration.                |
+| **msbridge**  | Microsoft Teams bridge onto libbridge — relay messages between Teams conversations and the Kata agent team. |
+| **pathway**   | Engineering standard queries over gRPC — career paths and agent profiles as derivable data for products.    |
+| **trace**     | OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.         |
+| **vector**    | Vector similarity search over gRPC — semantic retrieval without a dedicated database per product.           |
 
 <!-- END:catalog -->
 
@@ -35,10 +35,10 @@ that let agents consume backend functionality natively.
 context-switch to GitHub to invoke the agent team.
 
 **Big Hire:** Help me relay messages between a chat platform and the Kata agent
-team without leaving the conversation. → **msteams**
+team without leaving the conversation. → **msbridge**
 
 **Little Hire:** Help me dispatch a facilitate session from a chat message and
-return the verdict to the same thread. → **msteams**
+return the verdict to the same thread. → **msbridge**
 
 **Competes With:** manually creating GitHub issues; copy-pasting between chat
 and GitHub; leaving the agent team unreachable from daily conversation.

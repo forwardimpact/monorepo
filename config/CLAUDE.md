@@ -41,8 +41,8 @@ supervisor does not load `.env` — Node services use `libconfig` internally).
 Optional entries — add when working on those features:
 
 ```json
-{ "name": "msteams-bridge", "command": "node -e \"import('@forwardimpact/svcmsteams/server.js')\"" }
-{ "name": "msteams-tunnel", "command": "sh -c '. ./.env && exec cloudflared tunnel --url http://localhost:${SERVICE_MSTEAMS_PORT:-3978} --protocol http2'" }
+{ "name": "msbridge", "command": "node -e \"import('@forwardimpact/svcmsbridge/server.js')\"" }
+{ "name": "msbridge-tunnel", "command": "sh -c '. ./.env && exec cloudflared tunnel --url http://localhost:${SERVICE_MSBRIDGE_PORT:-3978} --protocol http2'" }
 ```
 
 Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`.

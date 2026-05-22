@@ -1,7 +1,7 @@
 /**
  * Append a message to a bounded history, dropping the oldest entries when
  * the cap is exceeded. Mutates `history` in place to match the legacy
- * `services/msteams/index.js` behaviour.
+ * msteams bridge behaviour preserved in services/msbridge.
  *
  * @param {Array<{role: "user"|"assistant", text: string}>} history
  * @param {{role: "user"|"assistant", text: string}} entry
