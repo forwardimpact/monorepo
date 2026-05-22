@@ -5,6 +5,16 @@ layout: product
 toc: false
 ---
 
+## Embed Text for Retrieval
+
+<div class="grid">
+
+<!-- part:card:embed-text -->
+
+<!-- part:card:embed-text/embed-batch -->
+
+</div>
+
 ## Ground Agents in Context
 
 <div class="grid">
