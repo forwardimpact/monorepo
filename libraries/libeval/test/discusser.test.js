@@ -19,10 +19,10 @@ function readLines(stream) {
   return () => buffer.split("\n").filter((line) => line.trim());
 }
 
-/** Minimal stand-in for the Facilitator — emits one summary line and reports turns. */
-function fakeFacilitator({ output, verdict, summary, turns, redactor }) {
+/** Minimal stand-in for OrchestrationLoop — emits one summary line and reports turns. */
+function fakeLoop({ output, verdict, summary, turns, redactor }) {
   return {
-    facilitatorTurns: turns,
+    leadTurns: turns,
     counter: { next: () => 99 },
     emitLine() {},
     async run() {
@@ -51,7 +51,7 @@ describe("Discusser orchestration", () => {
     ctx.verdict = "adjourned";
     ctx.summary = "ok";
 
-    const facilitator = fakeFacilitator({
+    const loop = fakeLoop({
       output,
       verdict: "adjourned",
       summary: "ok",
@@ -59,7 +59,7 @@ describe("Discusser orchestration", () => {
       redactor,
     });
     const discusser = new Discusser({
-      facilitator,
+      loop,
       ctx,
       output,
       discussionId: "GD_abc",
@@ -88,7 +88,7 @@ describe("Discusser orchestration", () => {
     ctx.summary = "awaiting replies";
     ctx.replies.push({ body: "outgoing RFC", correlation_id: "rfc_1" });
 
-    const facilitator = fakeFacilitator({
+    const loop = fakeLoop({
       output,
       verdict: "recessed",
       summary: "awaiting replies",
@@ -96,7 +96,7 @@ describe("Discusser orchestration", () => {
       redactor,
     });
     const discusser = new Discusser({
-      facilitator,
+      loop,
       ctx,
       output,
       discussionId: null,
@@ -137,7 +137,7 @@ describe("Discusser orchestration", () => {
       { body: "outgoing two", correlation_id: "rfc_2" },
     );
 
-    const facilitator = fakeFacilitator({
+    const loop = fakeLoop({
       output,
       verdict: "adjourned",
       summary: "done",
@@ -145,7 +145,7 @@ describe("Discusser orchestration", () => {
       redactor,
     });
     const discusser = new Discusser({
-      facilitator,
+      loop,
       ctx,
       output,
       discussionId: "GD_kw_xyz",

@@ -41,13 +41,12 @@
   },
   "dependencies": {
     "@forwardimpact/libindex": "^0.1.38",
-    "@forwardimpact/libstorage": "^0.1.78"
+    "@forwardimpact/libstorage": "^0.1.78",
+    "@hono/node-server": "^2.0.2",
+    "hono": "^4.12.18"
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.21"
-  },
-  "peerDependencies": {
-    "express": "^4.21.0"
   },
   "engines": {
     "bun": ">=1.2.0",

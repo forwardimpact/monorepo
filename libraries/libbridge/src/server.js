@@ -1,25 +1,28 @@
-import express from "express";
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
 
 /**
  * Create the channel-agnostic HTTP server that bridges (ghbridge, msbridge)
  * share. The server mounts two routes:
- *   - `OPTIONS|POST <webhookPath>` — channel-specific intake (raw body
- *     available on `req.rawBody` for signature verification).
+ *   - `OPTIONS|POST <webhookPath>` — channel-specific intake. The raw POST
+ *     body is captured on `c.get("rawBody")` for signature verification.
  *   - `POST /api/callback/:token` — workflow → bridge reply intake.
  *
- * The caller owns lifecycle (start/stop). Returning the `app` exposes the
- * underlying express instance so adapters can mount additional health or
- * diagnostic routes. `address()` returns the bound `{ port }` once started
- * (useful for tests that bind to port 0).
+ * Handlers receive Hono's context `c` (matching the monorepo standard) and
+ * return a `Response` (or use `c.json` / `c.text` / `c.body`). The caller
+ * owns lifecycle (start/stop). Returning the `app` exposes the underlying
+ * Hono instance so adapters can mount additional health or diagnostic
+ * routes. `address()` returns the bound `{ port }` once started (useful for
+ * tests that bind to port 0).
  *
  * @param {object} options
  * @param {{host?: string, port: number}} options.config - host/port
  * @param {object} options.logger
  * @param {object} [options.tracer]
  * @param {string} options.webhookPath - e.g. `/api/messages` or `/api/webhooks/github`
- * @param {(req: import("express").Request, res: import("express").Response) => Promise<void> | void} options.onWebhook
- * @param {(req: import("express").Request, res: import("express").Response) => Promise<void> | void} options.onCallback
- * @returns {{ start: () => Promise<void>, stop: () => Promise<void>, app: import("express").Express, address: () => ({port: number} | null) }}
+ * @param {(c: import("hono").Context) => Promise<Response> | Response} options.onWebhook
+ * @param {(c: import("hono").Context) => Promise<Response> | Response} options.onCallback
+ * @returns {{ start: () => Promise<void>, stop: () => Promise<void>, app: import("hono").Hono, address: () => ({port: number} | null) }}
  */
 export function createBridgeServer({
   config,
@@ -39,34 +42,35 @@ export function createBridgeServer({
     throw new Error("onCallback is required");
   }
 
-  const app = express();
-  app.use(
-    express.json({
-      verify: (req, _res, buf) => {
-        req.rawBody = buf;
-      },
-    }),
-  );
+  const app = new Hono();
 
-  app.options(webhookPath, (_req, res) => {
-    res.status(200).end();
+  // Capture the raw POST body once, before downstream handlers parse it.
+  // Channel adapters use this buffer to verify HMAC signatures.
+  app.use("*", async (c, next) => {
+    if (c.req.method === "POST") {
+      const buf = Buffer.from(await c.req.raw.clone().arrayBuffer());
+      c.set("rawBody", buf);
+    }
+    await next();
   });
 
-  app.post(webhookPath, async (req, res) => {
+  app.options(webhookPath, (c) => c.body(null, 200));
+
+  app.post(webhookPath, async (c) => {
     try {
-      await onWebhook(req, res);
+      return await onWebhook(c);
     } catch (err) {
       logger.error("bridge.webhook", err);
-      if (!res.headersSent) res.status(500).json({ error: "Webhook failure" });
+      return c.json({ error: "Webhook failure" }, 500);
     }
   });
 
-  app.post("/api/callback/:token", async (req, res) => {
+  app.post("/api/callback/:token", async (c) => {
     try {
-      await onCallback(req, res);
+      return await onCallback(c);
     } catch (err) {
       logger.error("bridge.callback", err);
-      if (!res.headersSent) res.status(500).json({ error: "Callback failure" });
+      return c.json({ error: "Callback failure" }, 500);
     }
   });
 
@@ -75,7 +79,7 @@ export function createBridgeServer({
   return {
     app,
     address() {
-      if (!server) return null;
+      if (!server || typeof server.address !== "function") return null;
       const addr = server.address();
       if (!addr || typeof addr === "string") return null;
       return { port: addr.port };
@@ -83,8 +87,11 @@ export function createBridgeServer({
     async start() {
       const { host, port } = config;
       await new Promise((resolve) => {
-        server = app.listen(port, host, () => {
-          logger.info("bridge.server", "listening", { host, port });
+        server = serve({ fetch: app.fetch, port, hostname: host }, (info) => {
+          logger.info("bridge.server", "listening", {
+            host,
+            port: info?.port ?? port,
+          });
           resolve();
         });
       });

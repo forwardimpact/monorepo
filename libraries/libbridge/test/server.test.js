@@ -12,14 +12,16 @@ describe("createBridgeServer", () => {
       config: { host: "127.0.0.1", port: 0 },
       logger: createMockLogger(),
       webhookPath: "/api/test-webhook",
-      onWebhook: async (req, res) => {
-        res.status(200).json({
-          received: req.body,
-          hasRawBody: Buffer.isBuffer(req.rawBody),
-        });
+      onWebhook: async (c) => {
+        const body = await c.req.json();
+        return c.json(
+          { received: body, hasRawBody: Buffer.isBuffer(c.get("rawBody")) },
+          200,
+        );
       },
-      onCallback: async (req, res) => {
-        res.status(200).json({ token: req.params.token, body: req.body });
+      onCallback: async (c) => {
+        const body = await c.req.json();
+        return c.json({ token: c.req.param("token"), body }, 200);
       },
     });
     await bridge.start();
@@ -70,7 +72,7 @@ describe("createBridgeServer", () => {
       onWebhook: async () => {
         throw new Error("boom");
       },
-      onCallback: async (_req, res) => res.status(200).end(),
+      onCallback: async (c) => c.body(null, 200),
     });
     await bridge.start();
     const res = await fetch(
