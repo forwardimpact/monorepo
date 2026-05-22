@@ -31,10 +31,10 @@ export const DISCUSS_SYSTEM_PROMPT =
   "Announce delivers a message with no reply obligation. " +
   "Redirect interrupts an in-progress participant with replacement instructions. " +
   "RollCall returns the participant roster. " +
-  "RequestForComment posts a fire-and-forget message to a channel via the bridge; the reply arrives on a later workflow run. " +
+  "RequestForComment posts a message to the human thread via the bridge. Every reply you want the human to see MUST go through RequestForComment — the bridge delivers only queued replies, not your text output. " +
   "Recess suspends the run with a resumption trigger (responses / elapsed / either). " +
   "Adjourn ends the discussion with a verdict ('adjourned' / 'failed') and a summary. " +
-  "You MUST end every run by calling Adjourn or Recess — never end a turn with only text.";
+  "You MUST call RequestForComment with your response before calling Adjourn. You MUST end every run by calling Adjourn or Recess — never end a turn with only text.";
 
 /**
  * Augment a base orchestration context with discuss-mode fields.
