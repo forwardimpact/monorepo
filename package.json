@@ -51,7 +51,7 @@
     "@playwright/test": "^1.60.0",
     "acorn": "^8.16.0",
     "eslint": "^10.3.0",
-    "eslint-plugin-jsdoc": "^62.9.0",
+    "eslint-plugin-jsdoc": "^63.0.0",
     "semver": "^7.6.3",
     "serve": "^14.2.6",
     "yaml": "^2.9.0"
