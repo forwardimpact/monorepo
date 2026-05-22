@@ -1,28 +1,40 @@
 import { ProgressTicker } from "./progress-ticker.js";
 
-const DEFAULT_TICKER_INTERVAL_MS = 25_000;
+const DEFAULT_INTERVAL_MS = 25_000;
+
+export const DEFAULT_TYPING_VERBS = Object.freeze([
+  "Moonwalking",
+  "Unravelling",
+  "Tempering",
+  "Crafting",
+  "Simmering",
+  "Percolating",
+  "Decoding",
+]);
 
 /**
- * Channel-agnostic acknowledgement lifecycle. The host service injects two
- * adapters; libbridge owns the *when*, the adapter owns the *how*:
+ * Channel-agnostic acknowledgement lifecycle. The consumer provides a
+ * reaction adapter that knows how to add and remove the channel's
+ * "received" reaction. Optionally, the consumer may pass a typing adapter
+ * — its only job is to deliver a single string to the channel.
+ * Acknowledgement owns *when* to react, *which* typing verb to use, and
+ * *how often* to send one.
  *
  *   reactionAdapter.add(target) -> reactionId | null
  *   reactionAdapter.remove(reactionId, target) -> void
- *   tickerAdapter.tick(target, n) -> void          // optional
+ *   typingAdapter.send(target, text) -> void           // optional
  *
- * `start(token, target)` immediately adds the reaction and, if a ticker
- * adapter is supplied, starts a ProgressTicker that calls `tick(target, n)`
- * every `tickerIntervalMs` (default 25s). `finish(token, target)` stops the
- * ticker and removes the reaction.
- *
- * Errors from adapter calls are logged (via the optional logger) but never
- * thrown — a missing reaction or a failed tick must not block the
- * dispatch or the reply. Ticker rejections auto-stop the ticker
- * (inherited from ProgressTicker).
+ * `start(token, target)` adds the reaction immediately. If a typing
+ * adapter was supplied, it also begins posting a random typing verb
+ * every `intervalMs` (default 25s) — e.g. `"Crafting..."`,
+ * `"Moonwalking..."`. `finish(token, target)` stops the typing ticker
+ * and removes the reaction. Adapter errors are logged through the
+ * optional logger but never thrown.
  */
 export class Acknowledgement {
   #reactionAdapter;
-  #tickerAdapter;
+  #typingAdapter;
+  #typingVerbs;
   #ticker;
   #logger;
   #state = new Map();
@@ -30,15 +42,17 @@ export class Acknowledgement {
   /**
    * @param {object} options
    * @param {{add: Function, remove: Function}} options.reactionAdapter
-   * @param {{tick: Function}} [options.tickerAdapter]
-   * @param {number} [options.tickerIntervalMs]
+   * @param {{send: Function}} [options.typingAdapter]
+   * @param {number} [options.intervalMs] - Typing cadence (default 25s)
+   * @param {readonly string[]} [options.typingVerbs] - Override the verb pool
    * @param {import("./progress-ticker.js").ProgressTicker} [options.progressTicker]
    * @param {{warn?: Function, error?: Function}} [options.logger]
    */
   constructor({
     reactionAdapter,
-    tickerAdapter,
-    tickerIntervalMs,
+    typingAdapter,
+    intervalMs,
+    typingVerbs,
     progressTicker,
     logger,
   } = {}) {
@@ -49,23 +63,26 @@ export class Acknowledgement {
     ) {
       throw new Error("reactionAdapter must implement add() and remove()");
     }
-    if (tickerAdapter && typeof tickerAdapter.tick !== "function") {
-      throw new Error("tickerAdapter must implement tick()");
+    if (typingAdapter && typeof typingAdapter.send !== "function") {
+      throw new Error("typingAdapter must implement send()");
+    }
+    if (typingVerbs !== undefined) {
+      if (!Array.isArray(typingVerbs) || typingVerbs.length === 0) {
+        throw new Error("typingVerbs must be a non-empty array");
+      }
     }
     this.#reactionAdapter = reactionAdapter;
-    this.#tickerAdapter = tickerAdapter ?? null;
+    this.#typingAdapter = typingAdapter ?? null;
+    this.#typingVerbs = typingVerbs ?? DEFAULT_TYPING_VERBS;
     this.#ticker =
       progressTicker ??
-      new ProgressTicker({
-        intervalMs: tickerIntervalMs ?? DEFAULT_TICKER_INTERVAL_MS,
-      });
+      new ProgressTicker({ intervalMs: intervalMs ?? DEFAULT_INTERVAL_MS });
     this.#logger = logger ?? null;
   }
 
   /**
-   * Begin acknowledging the dispatch identified by `token`. Idempotent on the
-   * same token — a second start is a no-op (the original timer keeps
-   * running, the original reaction stays attached).
+   * Begin acknowledging the dispatch identified by `token`. Idempotent on
+   * the same token — a second start is a no-op.
    * @param {string} token
    * @param {unknown} target
    */
@@ -78,20 +95,7 @@ export class Acknowledgement {
       this.#logger?.warn?.("acknowledgement.add", err);
     }
     this.#state.set(token, { reactionId, target });
-    if (this.#tickerAdapter) {
-      let n = 0;
-      const adapter = this.#tickerAdapter;
-      const logger = this.#logger;
-      this.#ticker.start(token, async () => {
-        n++;
-        try {
-          await adapter.tick(target, n);
-        } catch (err) {
-          logger?.warn?.("acknowledgement.tick", err);
-          throw err;
-        }
-      });
-    }
+    if (this.#typingAdapter) this.#startTyping(token, target);
   }
 
   /**
@@ -118,5 +122,20 @@ export class Acknowledgement {
   /** @param {string} token @returns {boolean} */
   pending(token) {
     return this.#state.has(token);
+  }
+
+  #startTyping(token, target) {
+    const adapter = this.#typingAdapter;
+    const verbs = this.#typingVerbs;
+    const logger = this.#logger;
+    this.#ticker.start(token, async () => {
+      const verb = verbs[Math.floor(Math.random() * verbs.length)];
+      try {
+        await adapter.send(target, `${verb}...`);
+      } catch (err) {
+        logger?.warn?.("acknowledgement.typing", err);
+        throw err;
+      }
+    });
   }
 }

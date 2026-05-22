@@ -5,26 +5,12 @@ const { CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext } =
 
 export { CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext };
 
-export const TYPING_VERBS = [
-  "Moonwalking",
-  "Unravelling",
-  "Tempering",
-  "Crafting",
-  "Simmering",
-  "Percolating",
-  "Decoding",
-];
-
-function pickVerb() {
-  return TYPING_VERBS[Math.floor(Math.random() * TYPING_VERBS.length)];
-}
-
 /**
- * Reaction adapter for the Bot Framework. Sends a `messageReaction` activity
- * with `reactionsAdded: [{ type: "like" }]` on start and the matching
- * `reactionsRemoved` on finish — Microsoft's Bot SDK does not surface a
- * generic emoji reaction type, so `like` is the closest immediate
- * acknowledgement we can offer.
+ * Reaction adapter for the Bot Framework. Sends a `messageReaction`
+ * activity with `reactionsAdded: [{ type: "like" }]` on start and the
+ * matching `reactionsRemoved` on finish — Microsoft's Bot SDK does not
+ * surface a generic emoji reaction type, so `like` is the closest
+ * immediate acknowledgement we can offer.
  *
  * @param {object} adapter - Bot Framework CloudAdapter (or compatible stub)
  * @param {() => string} msAppIdFn
@@ -65,25 +51,23 @@ export function buildReactionAdapter(adapter, msAppIdFn) {
 }
 
 /**
- * Ticker adapter that posts a random "Moonwalking…" verb as a fresh
- * message activity. Teams is a more immediate medium than GitHub
- * Discussions; the verbs give a sense of presence while the workflow
- * dispatch is running.
+ * Typing adapter for the Bot Framework. Single responsibility: deliver
+ * `text` to the conversation identified by `target.ref`. Acknowledgement
+ * owns the verb pool and cadence.
  *
  * @param {object} adapter
  * @param {() => string} msAppIdFn
- * @returns {{tick: Function}}
+ * @returns {{send: Function}}
  */
-export function buildTickerAdapter(adapter, msAppIdFn) {
+export function buildTypingAdapter(adapter, msAppIdFn) {
   return {
-    tick: async (target, _n) => {
+    send: async (target, text) => {
       if (!target?.ref) return;
-      const verb = pickVerb();
       await adapter.continueConversationAsync(
         msAppIdFn(),
         target.ref,
         async (turnContext) => {
-          await turnContext.sendActivity(`${verb}...`);
+          await turnContext.sendActivity(text);
         },
       );
     },

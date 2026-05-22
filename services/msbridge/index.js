@@ -17,7 +17,7 @@ import {
 import {
   TurnContext,
   buildReactionAdapter,
-  buildTickerAdapter,
+  buildTypingAdapter,
   createDefaultAdapter,
   sendReply,
 } from "./src/teams.js";
@@ -82,15 +82,12 @@ export class MsBridgeService {
     this.#store = new DiscussionContextStore(storage);
     this.#callbacks = new CallbackRegistry();
     this.#rateLimiter = new RateLimiter();
+    const msAppIdFn = () => this.#config.msAppId();
     this.#ack =
       acknowledgement ??
       new Acknowledgement({
-        reactionAdapter: buildReactionAdapter(this.#adapter, () =>
-          this.#config.msAppId(),
-        ),
-        tickerAdapter: buildTickerAdapter(this.#adapter, () =>
-          this.#config.msAppId(),
-        ),
+        reactionAdapter: buildReactionAdapter(this.#adapter, msAppIdFn),
+        typingAdapter: buildTypingAdapter(this.#adapter, msAppIdFn),
         logger,
       });
 

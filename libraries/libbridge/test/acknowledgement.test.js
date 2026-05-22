@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import { Acknowledgement } from "../src/acknowledgement.js";
+import {
+  Acknowledgement,
+  DEFAULT_TYPING_VERBS,
+} from "../src/acknowledgement.js";
 import { ProgressTicker } from "../src/progress-ticker.js";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -22,13 +25,13 @@ function makeReactionAdapter({ addImpl, removeImpl } = {}) {
   };
 }
 
-function makeTickerAdapter({ tickImpl } = {}) {
-  const ticks = [];
+function makeTypingAdapter({ sendImpl } = {}) {
+  const sends = [];
   return {
-    ticks,
-    tick: async (target, n) => {
-      ticks.push({ target, n });
-      if (tickImpl) await tickImpl(target, n);
+    sends,
+    send: async (target, text) => {
+      sends.push({ target, text });
+      if (sendImpl) await sendImpl(target, text);
     },
   };
 }
@@ -39,12 +42,22 @@ describe("Acknowledgement", () => {
     expect(() => new Acknowledgement({ reactionAdapter: {} })).toThrow();
   });
 
-  test("rejects a ticker adapter that lacks tick()", () => {
+  test("rejects a typing adapter that lacks send()", () => {
     expect(
       () =>
         new Acknowledgement({
           reactionAdapter: makeReactionAdapter(),
-          tickerAdapter: {},
+          typingAdapter: {},
+        }),
+    ).toThrow();
+  });
+
+  test("rejects an empty typingVerbs list", () => {
+    expect(
+      () =>
+        new Acknowledgement({
+          reactionAdapter: makeReactionAdapter(),
+          typingVerbs: [],
         }),
     ).toThrow();
   });
@@ -64,7 +77,7 @@ describe("Acknowledgement", () => {
     expect(ack.pending("tok-1")).toBe(false);
   });
 
-  test("reaction-only mode never invokes a ticker", async () => {
+  test("reaction-only mode never starts the typing ticker", async () => {
     const reactions = makeReactionAdapter();
     const ticker = new ProgressTicker({ intervalMs: 10 });
     const ack = new Acknowledgement({
@@ -77,20 +90,41 @@ describe("Acknowledgement", () => {
     expect(ticker.size).toBe(0);
   });
 
-  test("when a ticker adapter is supplied, tick() runs on each interval", async () => {
+  test("when a typing adapter is supplied, send() runs on each interval with a verb", async () => {
     const reactions = makeReactionAdapter();
-    const ticks = makeTickerAdapter();
+    const typing = makeTypingAdapter();
     const ack = new Acknowledgement({
       reactionAdapter: reactions,
-      tickerAdapter: ticks,
+      typingAdapter: typing,
       progressTicker: new ProgressTicker({ intervalMs: 10 }),
     });
     await ack.start("tok-3", { ref: "abc" });
     await wait(55);
     await ack.finish("tok-3");
-    expect(ticks.ticks.length).toBeGreaterThanOrEqual(3);
-    expect(ticks.ticks[0]).toEqual({ target: { ref: "abc" }, n: 1 });
-    expect(ticks.ticks[1].n).toBe(2);
+    expect(typing.sends.length).toBeGreaterThanOrEqual(3);
+    for (const { target, text } of typing.sends) {
+      expect(target).toEqual({ ref: "abc" });
+      expect(text).toMatch(/^[A-Z][a-z]+\.\.\.$/);
+      const verb = text.replace(/\.\.\.$/, "");
+      expect(DEFAULT_TYPING_VERBS).toContain(verb);
+    }
+  });
+
+  test("custom typingVerbs override the default pool", async () => {
+    const typing = makeTypingAdapter();
+    const ack = new Acknowledgement({
+      reactionAdapter: makeReactionAdapter(),
+      typingAdapter: typing,
+      typingVerbs: ["Chirping"],
+      progressTicker: new ProgressTicker({ intervalMs: 10 }),
+    });
+    await ack.start("tok-custom", "T");
+    await wait(35);
+    await ack.finish("tok-custom");
+    expect(typing.sends.length).toBeGreaterThan(0);
+    for (const { text } of typing.sends) {
+      expect(text).toBe("Chirping...");
+    }
   });
 
   test("add() errors are swallowed and the lifecycle still proceeds", async () => {
@@ -118,17 +152,17 @@ describe("Acknowledgement", () => {
     await expect(ack.finish("tok-5")).resolves.toBeUndefined();
   });
 
-  test("tick() errors auto-stop the ticker without blocking finish()", async () => {
+  test("typing send() errors auto-stop the ticker without blocking finish()", async () => {
     const reactions = makeReactionAdapter();
-    const ticks = makeTickerAdapter({
-      tickImpl: () => {
+    const typing = makeTypingAdapter({
+      sendImpl: () => {
         throw new Error("post failed");
       },
     });
     const ticker = new ProgressTicker({ intervalMs: 10 });
     const ack = new Acknowledgement({
       reactionAdapter: reactions,
-      tickerAdapter: ticks,
+      typingAdapter: typing,
       progressTicker: ticker,
     });
     await ack.start("tok-6", "T");
