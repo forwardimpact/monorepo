@@ -2,15 +2,12 @@
 
 ## Persona and job
 
-Hired by the **Teams Using Agents** user group named in
-[CLAUDE.md § Primary Products](../../CLAUDE.md#primary-products) — teams that
-ask their agent team a question on Microsoft Teams, expect the agent to think,
-deliberate, and come back when the answer is ready, rather than answer
-immediately every time.
-
-This persona has no `<job>` entry in [JTBD.md](../../JTBD.md) today; the user
-group exists in CLAUDE.md as one of the three primary product audiences but
-its jobs are not yet captured in the JTBD authoritative list.
+Hired by the **Teams Using Agents** user group's
+[`<job goal="Run a Continuously Improving Agent Team">`](../../JTBD.md) entry
+— specifically, the discuss-mode surface where an agent reasons before
+answering rather than answering immediately every time. This spec extends
+that surface on Microsoft Teams to match what `services/ghbridge` already
+delivers on GitHub Discussions.
 
 ## Problem
 
@@ -79,16 +76,15 @@ Three non-changes:
 
 ### In scope
 
-- Wiring `ResumeScheduler` into `services/msbridge` with msteams-shaped
-  callback meta and resume-input builders. Composition only — the names
-  used by `services/msbridge`'s callback registry (`threadId`) and the
-  fact that msteams does not pass `discussion_id` as a workflow input
-  today are inherited from existing convention.
-- Calling the scheduler's pre-dispatch and per-message hooks from the
-  intake and reply handlers so trigger evaluation happens before fresh
-  dispatch and rfc state transitions happen on the verdict.
-- Rearming persisted timers when `services/msbridge` starts; cancelling
-  them when it stops.
+- `services/msbridge` learns to suspend a recess on a `recessed` verdict,
+  watch subsequent inbound messages and elapsed time for the trigger's
+  satisfaction, and re-dispatch the workflow with `resume_context` when
+  the trigger fires. Behaviour matches `services/ghbridge`'s resume
+  surface; the design decides the exact composition.
+- Trigger evaluation occurs before any fresh dispatch on the inbound
+  path, and recess state transitions occur on receipt of the workflow
+  verdict.
+- Persisted recess deadlines survive a `services/msbridge` restart.
 - End-to-end tests at the `services/msbridge/test` layer matching the
   shape of `services/ghbridge/test/resume.test.js`: both
   `responses`-trigger and `elapsed`-trigger paths, with the same
@@ -131,8 +127,8 @@ Out of scope by inheritance:
 | A `recessed` verdict on Teams persists the trigger on `open_rfcs` rather than no-opping. | An end-to-end test that drives a Teams message → `recessed` callback returns the discussion context with one entry in `open_rfcs` carrying the trigger payload. |
 | A subsequent Teams message that satisfies a `responses` trigger re-dispatches the workflow with `resume_context`. | An end-to-end test that observes exactly two workflow dispatches (initial + resume) on the captured GitHub Actions fetch, with the second carrying a `resume_context` whose `correlation_id` matches the original dispatch and whose `history_since` contains the post-recess messages. |
 | A subsequent Teams message during an open recess that does NOT satisfy the trigger accrues into history without spawning a parallel fresh dispatch. | An end-to-end test where the dispatch fetch is observed once total and the stored context shows the user's intermediate message in `history`. |
-| An `elapsed` trigger persists `due_at` and the scheduler rearms it on bridge start. | A test that seeds an `open_rfcs` record with a future `due_at` into the same storage backing, constructs a fresh `MsBridgeService`, calls `start()`, and observes a scheduled timer (visible via the scheduler's `size` getter exposed for diagnostics) without sending any new message. |
+| An `elapsed` trigger persists `due_at` and the bridge rearms it on start. | A test that seeds an `open_rfcs` record with a future `due_at` into the same storage backing, starts a fresh bridge, and observes that a timer is armed for that deadline without any inbound message — verifiable by any read-only observable the host exposes on its scheduler. |
 | The Teams resume behaviour matches `services/ghbridge` for the same trigger shapes. | The new `services/msbridge/test` resume tests assert the same end-to-end claims that `services/ghbridge/test/resume.test.js` asserts, with the only differences being the channel name (`msteams` vs `github-discussions`), the inbound activity shape, and the absence of GraphQL reactions in the assertions. |
 | The `adjourned` and `failed` paths in `services/msbridge` continue to behave as today. | Existing tests in `services/msbridge/test/msbridge.test.js` for `adjourned` and `failed` verdicts continue to pass without modification. |
-| `services/msbridge` no longer emits the `"resume not yet supported on msteams"` log line. | `grep -F 'resume not yet supported' services/msbridge` returns no matches. |
-| Service shutdown cancels every armed elapsed timer. | A test that arms an `elapsed` trigger via the bridge, calls `stop()`, and asserts the underlying scheduler `size` is zero after the call. |
+| `services/msbridge` no longer logs a "resume not supported" notice on a `recessed` verdict. | An end-to-end test that POSTs a `recessed` callback and observes the logger captured no entry matching that phrase. |
+| Service shutdown cancels every armed elapsed timer. | A test that arms an `elapsed` trigger via the bridge, calls `stop()`, and observes — by any read-only observable the host exposes on its scheduler — that no timer remains armed. |
