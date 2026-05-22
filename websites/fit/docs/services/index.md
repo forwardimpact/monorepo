@@ -5,6 +5,16 @@ layout: product
 toc: false
 ---
 
+## Bridge Conversation Platforms to the Agent Team
+
+<div class="grid">
+
+<!-- part:card:bridge-conversations -->
+
+<!-- part:card:bridge-conversations/dispatch-from-chat -->
+
+</div>
+
 ## Embed Text for Retrieval
 
 <div class="grid">
