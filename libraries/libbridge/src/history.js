@@ -1,0 +1,14 @@
+/**
+ * Append a message to a bounded history, dropping the oldest entries when
+ * the cap is exceeded. Mutates `history` in place to match the legacy
+ * `services/msteams/index.js` behaviour.
+ *
+ * @param {Array<{role: "user"|"assistant", text: string}>} history
+ * @param {{role: "user"|"assistant", text: string}} entry
+ * @param {object} [options]
+ * @param {number} [options.maxEntries] - Default 10
+ */
+export function appendHistory(history, entry, { maxEntries = 10 } = {}) {
+  history.push(entry);
+  while (history.length > maxEntries) history.shift();
+}
