@@ -1,6 +1,6 @@
-# Design 1240-a — Public hosting for Kata bridges
+# Design 1270-a — Public hosting for Kata bridges
 
-Architectural design for [spec 1240](spec.md). Builds on the bridge pattern
+Architectural design for [spec 1270](spec.md). Builds on the bridge pattern
 established by [design 1230-a](../1230-threaded-discussion-bridges/design-a.md):
 adds tenancy to `libbridge`, multi-tenant modes to `services/ghbridge` and
 `services/msbridge`, and a new `services/tenancy` service that owns the

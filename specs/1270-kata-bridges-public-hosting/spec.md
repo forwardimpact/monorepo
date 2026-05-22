@@ -1,4 +1,4 @@
-# Spec 1240 — Public hosting for Kata bridges
+# Spec 1270 — Public hosting for Kata bridges
 
 ## Persona and job
 
