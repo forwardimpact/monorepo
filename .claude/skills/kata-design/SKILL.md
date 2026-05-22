@@ -43,17 +43,18 @@ is no commitment to implement, and a design has nothing to shape.
 - [ ] One design per spec — do not bundle multiple specs into one design.
 - [ ] Read the spec end-to-end before writing. Restate problem, scope, and
       success criteria without referring back.
+- [ ] Default to a clean break — compat only when the spec required it.
 
 </read_do_checklist>
 
 <do_confirm_checklist goal="Verify design quality before recommending approval">
 
-- [ ] Components, interfaces, and data flow stated before detail.
+- [ ] Components, interfaces, and data flow stated — Mermaid where it clarifies.
 - [ ] Each key decision names a rejected alternative and why.
-- [ ] Mermaid diagrams used where they clarify structure.
 - [ ] Stays within spec scope at the architectural level — names components,
       interfaces, and data structures but not file-level changes, execution
       ordering, or implementation steps (plan scope).
+- [ ] Clean break unless the spec explicitly required backward compatibility.
 - [ ] Under 200 lines total.
 - [ ] Clean sub-agent review panel of `design-a.md` via
       [`kata-review`](../kata-review/SKILL.md) completed (fresh context, panel
@@ -112,6 +113,8 @@ interfaces connect them — and why this architecture over alternatives.
   flow, state machines, sequence diagrams.
 - **Scope-faithful.** Stay within the spec's scope. If scope should change,
   return the spec to draft rather than expanding silently.
+- **Clean break by default.** Honor [§ Clean breaks](../../../CONTRIBUTING.md#read-do)
+  — design without compat unless the spec required it; return spec to `draft` if unsafe.
 
 **Form follows content.** Prefer tables for lists with shared structure
 (components, decisions). Prefer bullets for flat facts. Use prose only for the
