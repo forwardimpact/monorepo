@@ -46,10 +46,10 @@ export const definition = {
           description:
             "Claude model for the agent-under-test (default: claude-sonnet-4-6)",
         },
-        "supervisor-model": {
+        "lead-model": {
           type: "string",
           description:
-            "Claude model for the supervisor (default: claude-opus-4-7)",
+            "Claude model for the lead role (default: claude-opus-4-7)",
         },
         "judge-model": {
           type: "string",

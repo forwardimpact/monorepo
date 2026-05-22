@@ -54,10 +54,10 @@ export function parseFacilitateOptions(values) {
     agentConfigs,
     facilitatorCwd: resolve(values["facilitator-cwd"] ?? "."),
     agentModel: values["agent-model"] ?? "claude-opus-4-7[1m]",
-    facilitatorModel: values["facilitator-model"] ?? "claude-opus-4-7[1m]",
+    facilitatorModel: values["lead-model"] ?? "claude-opus-4-7[1m]",
     maxTurns,
     outputPath: values.output,
-    facilitatorProfile: values["facilitator-profile"] ?? undefined,
+    facilitatorProfile: values["lead-profile"] ?? undefined,
   };
 }
 

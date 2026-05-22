@@ -106,7 +106,7 @@ For a supervised run, swap `run` for `supervise` and add a supervisor profile:
 ```sh
 npx fit-eval supervise \
   --task-file task.md \
-  --supervisor-profile reviewer \
+  --lead-profile reviewer \
   --agent-profile coder \
   --output trace.ndjson
 ```
@@ -146,6 +146,6 @@ from there.
   — Read the NDJSON traces produced by `fit-eval` with `fit-trace` —
   grounded-theory method and worked examples.
 - [Agent Teams](https://www.forwardimpact.team/docs/products/agent-teams/index.md)
-  — How to author the agent, supervisor, and facilitator profiles that
-  `--agent-profile`, `--supervisor-profile`, `--facilitator-profile`, and
+  — How to author the agent and lead profiles that
+  `--agent-profile`, `--lead-profile`, and
   `--agent-profiles` consume.

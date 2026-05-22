@@ -12,7 +12,7 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
  * @returns {object}
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: CLI option validation
-function parseSuperviseOptions(values) {
+export function parseSuperviseOptions(values) {
   const taskFile = values["task-file"];
   const taskText = values["task-text"];
   if (taskFile && taskText)
@@ -33,13 +33,13 @@ function parseSuperviseOptions(values) {
       values["agent-cwd"] ?? mkdtempSync(join(tmpdir(), "fit-eval-agent-")),
     ),
     agentModel: values["agent-model"] ?? "claude-opus-4-7[1m]",
-    supervisorModel: values["supervisor-model"] ?? "claude-opus-4-7[1m]",
+    supervisorModel: values["lead-model"] ?? "claude-opus-4-7[1m]",
     maxTurns: (() => {
       const raw = values["max-turns"] ?? "200";
       return raw === "0" ? 0 : parseInt(raw, 10);
     })(),
     outputPath: values.output,
-    supervisorProfile: values["supervisor-profile"] ?? undefined,
+    supervisorProfile: values["lead-profile"] ?? undefined,
     agentProfile: values["agent-profile"] ?? undefined,
     allowedTools: (
       values["allowed-tools"] ??

@@ -13,6 +13,7 @@ const SUPPRESSED = new Set([
   "ask_answered",
   "redirect",
   "summary",
+  "meta",
 ]);
 
 /**

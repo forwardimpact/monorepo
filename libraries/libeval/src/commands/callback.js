@@ -1,15 +1,22 @@
 import { readFileSync } from "node:fs";
 
 /**
- * Scan an NDJSON trace and return the last orchestrator summary event, or
- * null if none is present. Skips malformed lines (a trace writer that
- * crashed mid-flush can leave a partial trailing record).
+ * Scan an NDJSON trace and return the last orchestrator summary event,
+ * the first `meta` event's `discussion_id`, and any structured replies
+ * collected by the discusser. Skips malformed lines.
+ *
+ * The runner is verdict-agnostic — verbatim passthrough of whatever the
+ * trace carries ("success"/"failure" from supervise/facilitate; canonical
+ * "adjourned"/"recessed"/"failed" from discuss). The bridge layer maps to
+ * its channel semantics.
  *
  * @param {string} traceFile
- * @returns {{verdict: string, summary: string} | null}
+ * @returns {{verdict: string, summary: string, replies: object[], trigger?: object, discussionId?: string} | null}
  */
-function findOrchestratorSummary(traceFile) {
-  let result = null;
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: NDJSON scan with malformed-line tolerance + meta/summary dual extraction
+function readTraceSummary(traceFile) {
+  let summary = null;
+  let metaDiscussionId = null;
   for (const line of readFileSync(traceFile, "utf8").split("\n")) {
     if (!line.trim()) continue;
     let record;
@@ -18,21 +25,45 @@ function findOrchestratorSummary(traceFile) {
     } catch {
       continue;
     }
-    if (record.source === "orchestrator" && record.event?.type === "summary") {
-      result = {
-        verdict: record.event.verdict ?? "failure",
+    if (record.source !== "orchestrator") continue;
+    if (record.event?.type === "meta" && !metaDiscussionId) {
+      metaDiscussionId = record.event.discussion_id ?? null;
+    }
+    if (record.event?.type === "summary") {
+      summary = {
+        verdict: record.event.verdict ?? "failed",
         summary: record.event.summary ?? "",
+        replies: Array.isArray(record.event.replies)
+          ? record.event.replies
+          : [],
+        ...(record.event.trigger && { trigger: record.event.trigger }),
+        ...(record.event.discussion_id && {
+          discussionId: record.event.discussion_id,
+        }),
       };
     }
   }
-  return result;
+  if (summary && !summary.discussionId && metaDiscussionId) {
+    summary.discussionId = metaDiscussionId;
+  }
+  return summary;
 }
 
 /**
- * Callback command — read an NDJSON trace file, extract the orchestrator's
- * summary event, and POST it to a callback URL. Used by agent-react.yml to
- * deliver the facilitator's conclusion to an external caller (e.g. the
- * Microsoft Teams bridge) after the facilitate session completes.
+ * Callback command — read an NDJSON trace, extract the terminal
+ * orchestrator summary, and POST a canonical callback body to the
+ * configured URL. Used by `kata-dispatch.yml` (formerly `agent-react`)
+ * to deliver the lead's conclusion to the bridge that dispatched the
+ * run.
+ *
+ * Wire shape (single shape across modes):
+ *
+ * ```
+ * {
+ *   correlation_id, verdict, summary, run_url,
+ *   discussion_id?, replies: [], trigger?
+ * }
+ * ```
  *
  * @param {object} values - Parsed option values from cli.parse()
  * @param {string[]} _args - Positional arguments
@@ -42,20 +73,26 @@ export async function runCallbackCommand(values, _args) {
   const callbackUrl = values["callback-url"];
   const correlationId = values["correlation-id"];
   const runUrl = values["run-url"] ?? "";
+  const discussionIdOverride = values["discussion-id"] ?? null;
 
   if (!traceFile) throw new Error("--trace-file is required");
   if (!callbackUrl) throw new Error("--callback-url is required");
 
-  const found = findOrchestratorSummary(traceFile) ?? {
-    verdict: "failure",
-    summary: "Facilitator session ended without producing a summary.",
+  const found = readTraceSummary(traceFile) ?? {
+    verdict: "failed",
+    summary: "Run ended without producing a summary.",
+    replies: [],
   };
 
+  const discussionId = found.discussionId ?? discussionIdOverride ?? null;
   const payload = {
     correlation_id: correlationId,
     verdict: found.verdict,
     summary: found.summary,
     run_url: runUrl,
+    replies: found.replies,
+    ...(discussionId && { discussion_id: discussionId }),
+    ...(found.trigger && { trigger: found.trigger }),
   };
   const res = await fetch(callbackUrl, {
     method: "POST",

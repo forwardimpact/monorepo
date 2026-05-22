@@ -31,6 +31,6 @@ jobs:
           mode: "facilitate"
           task-text: >-
             Facilitate a one-on-one Kata coaching session with "${{ inputs.agent }}".
-          facilitator-profile: "improvement-coach"
+          lead-profile: "improvement-coach"
           agent-profiles: "${{ inputs.agent }}"
           task-amend: ${{ inputs.task-amend }}

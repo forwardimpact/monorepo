@@ -22,7 +22,7 @@ npx fit-benchmark <command> [options]
 | `--output`         | no       | Run-output directory (created if missing, default `benchmark-runs`)                              |
 | `--runs`           | no       | Runs per task (default `5`)                                                                      |
 | `--agent-model`    | no       | Claude model for the agent-under-test (default `claude-sonnet-4-6`)                              |
-| `--supervisor-model` | no     | Claude model for the supervisor (default `claude-opus-4-7`)                                      |
+| `--lead-model`       | no     | Claude model for the lead role (default `claude-opus-4-7`)                                       |
 | `--judge-model`    | no       | Claude model for the judge (default `claude-opus-4-7`)                                           |
 | `--agent-profile`  | no       | Agent-under-test profile name                                                                    |
 | `--judge-profile`  | no       | Judge profile name                                                                               |

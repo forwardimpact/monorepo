@@ -99,6 +99,7 @@ describe("fit-eval callback", () => {
         verdict: "success",
         summary: "Routed to staff-engineer.",
         run_url: "https://github.com/foo/bar/actions/runs/42",
+        replies: [],
       });
     } finally {
       await server.close();
@@ -152,9 +153,10 @@ describe("fit-eval callback", () => {
       });
 
       const req = server.getLastRequest();
-      assert.strictEqual(req.body.verdict, "failure");
+      assert.strictEqual(req.body.verdict, "failed");
       assert.ok(req.body.summary.length > 0);
       assert.strictEqual(req.body.correlation_id, "x");
+      assert.deepStrictEqual(req.body.replies, []);
     } finally {
       await server.close();
       cleanup();
@@ -172,7 +174,7 @@ describe("fit-eval callback", () => {
     );
   });
 
-  test("treats a missing verdict as 'failure'", async () => {
+  test("treats a missing verdict as 'failed'", async () => {
     const server = await startServer(200);
     const { tracePath, cleanup } = writeTrace([
       {
@@ -190,8 +192,84 @@ describe("fit-eval callback", () => {
       });
 
       const req = server.getLastRequest();
-      assert.strictEqual(req.body.verdict, "failure");
+      assert.strictEqual(req.body.verdict, "failed");
       assert.strictEqual(req.body.summary, "session aborted");
+    } finally {
+      await server.close();
+      cleanup();
+    }
+  });
+
+  test("propagates discussion_id from meta header, replies, and trigger to the wire", async () => {
+    const server = await startServer(200);
+    const { tracePath, cleanup } = writeTrace([
+      {
+        source: "orchestrator",
+        seq: 0,
+        event: { type: "meta", discussion_id: "GD_kw_test" },
+      },
+      { source: "agent", seq: 1, event: { type: "start" } },
+      {
+        source: "orchestrator",
+        seq: 2,
+        event: {
+          type: "summary",
+          verdict: "recessed",
+          summary: "Awaiting human input",
+          replies: [{ body: "Please weigh in", correlation_id: "rfc_1" }],
+          trigger: { kind: "elapsed", elapsed: "P14D" },
+        },
+      },
+    ]);
+
+    try {
+      await runCallbackCommand({
+        "trace-file": tracePath,
+        "callback-url": `${server.url}/api/callback/recess`,
+        "correlation-id": "r-1",
+      });
+
+      const req = server.getLastRequest();
+      assert.strictEqual(req.body.verdict, "recessed");
+      assert.strictEqual(req.body.discussion_id, "GD_kw_test");
+      assert.deepStrictEqual(req.body.replies, [
+        { body: "Please weigh in", correlation_id: "rfc_1" },
+      ]);
+      assert.deepStrictEqual(req.body.trigger, {
+        kind: "elapsed",
+        elapsed: "P14D",
+      });
+    } finally {
+      await server.close();
+      cleanup();
+    }
+  });
+
+  test("uses the --discussion-id CLI override when the trace has no meta event", async () => {
+    const server = await startServer(200);
+    const { tracePath, cleanup } = writeTrace([
+      {
+        source: "orchestrator",
+        seq: 1,
+        event: {
+          type: "summary",
+          verdict: "adjourned",
+          summary: "done",
+        },
+      },
+    ]);
+
+    try {
+      await runCallbackCommand({
+        "trace-file": tracePath,
+        "callback-url": `${server.url}/api/callback/override`,
+        "correlation-id": "o",
+        "discussion-id": "GD_cli_override",
+      });
+
+      const req = server.getLastRequest();
+      assert.strictEqual(req.body.discussion_id, "GD_cli_override");
+      assert.strictEqual(req.body.verdict, "adjourned");
     } finally {
       await server.close();
       cleanup();

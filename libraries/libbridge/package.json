@@ -1,0 +1,59 @@
+{
+  "name": "@forwardimpact/libbridge",
+  "version": "0.1.0",
+  "description": "Threaded-channel bridge primitives — relay messages between human channels (GitHub Discussions, Microsoft Teams) and the Kata agent team.",
+  "keywords": [
+    "bridge",
+    "discussions",
+    "teams",
+    "callback",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "libraries/libbridge"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Bridge Threaded Channels to the Agent Team",
+      "trigger": "Building a chat or discussion adapter and reaching for last project's callback registry, rate limiter, and history-bound prompt builder.",
+      "bigHire": "ship a threaded-channel adapter without reimplementing the intake skeleton, callback registry, durable thread state, and resume-trigger contract.",
+      "littleHire": "register a callback token, build a bounded prompt, and dispatch a workflow without managing each piece directly.",
+      "competesWith": "copy-pasting channel adapter boilerplate; per-channel workflow YAML composition; ephemeral in-memory thread state that vanishes on restart"
+    }
+  ],
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src/**/*.js",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libindex": "^0.1.38",
+    "@forwardimpact/libstorage": "^0.1.78"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.21"
+  },
+  "peerDependencies": {
+    "express": "^4.21.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

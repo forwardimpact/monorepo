@@ -9,6 +9,7 @@ import { runTeeCommand } from "../src/commands/tee.js";
 import { runRunCommand } from "../src/commands/run.js";
 import { runSuperviseCommand } from "../src/commands/supervise.js";
 import { runFacilitateCommand } from "../src/commands/facilitate.js";
+import { runDiscussCommand } from "../src/commands/discuss.js";
 import { runCallbackCommand } from "../src/commands/callback.js";
 
 // `bun build --compile` injects FIT_EVAL_VERSION via --define, eliminating
@@ -18,6 +19,18 @@ const VERSION =
   process.env.FIT_EVAL_VERSION ||
   JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
     .version;
+
+const LEAD_OPTIONS = {
+  "lead-profile": {
+    type: "string",
+    description: "Lead role profile name (supervisor / facilitator / chair)",
+  },
+  "lead-model": {
+    type: "string",
+    description:
+      "Claude model for the lead role (default: claude-opus-4-7[1m])",
+  },
+};
 
 const definition = {
   name: "fit-eval",
@@ -94,11 +107,7 @@ const definition = {
           description:
             "Claude model for the agent (default: claude-opus-4-7[1m])",
         },
-        "supervisor-model": {
-          type: "string",
-          description:
-            "Claude model for the supervisor (default: claude-opus-4-7[1m])",
-        },
+        ...LEAD_OPTIONS,
         "max-turns": {
           type: "string",
           description:
@@ -118,10 +127,6 @@ const definition = {
           description: "Supervisor working directory",
         },
         "agent-cwd": { type: "string", description: "Agent working directory" },
-        "supervisor-profile": {
-          type: "string",
-          description: "Supervisor (judge) profile name",
-        },
         "supervisor-allowed-tools": {
           type: "string",
           description: "Supervisor tool allowlist",
@@ -155,11 +160,7 @@ const definition = {
           type: "string",
           description: "Claude model for agents (default: claude-opus-4-7[1m])",
         },
-        "facilitator-model": {
-          type: "string",
-          description:
-            "Claude model for the facilitator (default: claude-opus-4-7[1m])",
-        },
+        ...LEAD_OPTIONS,
         "max-turns": {
           type: "string",
           description: "Max agentic turns (default: 20, 0 = unlimited)",
@@ -172,10 +173,6 @@ const definition = {
           type: "string",
           description: "Facilitator working directory",
         },
-        "facilitator-profile": {
-          type: "string",
-          description: "Facilitator profile name",
-        },
         "agent-profiles": {
           type: "string",
           description:
@@ -184,6 +181,56 @@ const definition = {
         "agent-cwd": {
           type: "string",
           description: "Working directory shared by participants (default: .)",
+        },
+      },
+    },
+    {
+      name: "discuss",
+      args: "",
+      description:
+        "Run an async, suspendable discussion — Chair + N participants + bridge callback",
+      options: {
+        "task-file": {
+          type: "string",
+          description: "Path to a markdown task file",
+        },
+        "task-text": {
+          type: "string",
+          description: "Inline task text (alternative to --task-file)",
+        },
+        "task-amend": {
+          type: "string",
+          description: "Additional text appended to the task",
+        },
+        "agent-model": {
+          type: "string",
+          description: "Claude model for agents (default: claude-opus-4-7[1m])",
+        },
+        ...LEAD_OPTIONS,
+        "max-turns": {
+          type: "string",
+          description: "Max agentic turns (default: 40, 0 = unlimited)",
+        },
+        output: {
+          type: "string",
+          description: "Write the NDJSON trace to a file",
+        },
+        "agent-profiles": {
+          type: "string",
+          description: "Comma-separated participant profile names (optional)",
+        },
+        "agent-cwd": {
+          type: "string",
+          description: "Working directory shared by participants (default: .)",
+        },
+        "discussion-id": {
+          type: "string",
+          description:
+            "Stable id for the threaded conversation; carried through traces for linking",
+        },
+        "resume-context": {
+          type: "string",
+          description: "JSON-serialized prior state for a resumed run",
         },
       },
     },
@@ -203,7 +250,7 @@ const definition = {
       name: "callback",
       args: "",
       description:
-        "Extract the facilitator summary from an NDJSON trace and POST it to a callback URL",
+        "Extract the terminal summary from an NDJSON trace and POST it to a callback URL",
       options: {
         "trace-file": {
           type: "string",
@@ -221,6 +268,11 @@ const definition = {
           type: "string",
           description: "GitHub Actions run URL (optional)",
         },
+        "discussion-id": {
+          type: "string",
+          description:
+            "Discussion id (fallback when the trace lacks a meta event)",
+        },
       },
     },
   ],
@@ -232,8 +284,9 @@ const definition = {
   },
   examples: [
     "fit-eval run --task-file=task.md --output=trace.ndjson",
-    "fit-eval supervise --task-file=task.md --supervisor-profile=judge --agent-profile=coder --output=trace.ndjson",
-    'fit-eval facilitate --task-file=task.md --facilitator-profile=lead --agent-profiles="security-engineer,technical-writer" --output=trace.ndjson',
+    "fit-eval supervise --task-file=task.md --lead-profile=judge --agent-profile=coder --output=trace.ndjson",
+    'fit-eval facilitate --task-file=task.md --lead-profile=lead --agent-profiles="security-engineer,technical-writer" --output=trace.ndjson',
+    'fit-eval discuss --task-file=task.md --lead-profile=release-engineer --agent-profiles="staff-engineer,security-engineer" --discussion-id=GD_kw...',
     "fit-eval output --format=text < trace.ndjson",
   ],
   documentation: [
@@ -259,7 +312,7 @@ const definition = {
       title: "Agent Teams",
       url: "https://www.forwardimpact.team/docs/products/agent-teams/index.md",
       description:
-        "How to author the agent, supervisor, and facilitator profiles consumed by --agent-profile, --supervisor-profile, --facilitator-profile, and --agent-profiles.",
+        "How to author the profiles consumed by --agent-profile, --lead-profile, and --agent-profiles.",
     },
   ],
 };
@@ -273,6 +326,7 @@ const COMMANDS = {
   run: runRunCommand,
   supervise: runSuperviseCommand,
   facilitate: runFacilitateCommand,
+  discuss: runDiscussCommand,
   callback: runCallbackCommand,
 };
 

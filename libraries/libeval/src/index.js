@@ -32,6 +32,18 @@ export {
   FACILITATOR_SYSTEM_PROMPT,
   FACILITATED_AGENT_SYSTEM_PROMPT,
 } from "./facilitator.js";
+export {
+  Discusser,
+  createDiscusser,
+  DISCUSS_SYSTEM_PROMPT,
+  augmentContextForDiscuss,
+  pendingAsksToPlain,
+  pendingAsksFromPlain,
+} from "./discusser.js";
+export {
+  createDiscussLeadToolServer,
+  createDiscussAgentToolServer,
+} from "./discuss-tools.js";
 export { Judge, createJudge, JUDGE_SYSTEM_PROMPT } from "./judge.js";
 export {
   Redactor,
