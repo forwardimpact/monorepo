@@ -113,8 +113,8 @@ Write `$AGENT_CWD/CLAUDE.md`. The persona file carries **who** and **the
 situation** — never the job. Two sources:
 
 - **Identity** (name, team, manager, teammates, repos, recent project,
-  company facts) — from the installation's synthetic content. This
-  monorepo: `data/synthetic/story.dsl` and `prose-cache.json`.
+  company facts) — Landmark: the persona row from Step 3a. Other
+  products: `data/synthetic/story.dsl` and `prose-cache.json`.
 - **Situation** (Trigger, Forces, Competes With) — from the chosen JTBD
   entry, rephrased into the persona's voice.
 

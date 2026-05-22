@@ -101,10 +101,19 @@ export async function runPickCommand({
     process.stdout.write(JSON.stringify(payload, null, 2) + "\n");
   }
 
-  await appendPickMemory(memoryPath, {
-    persona_email: enriched.email,
-    run_id: env.GITHUB_RUN_ID ?? "",
-  });
+  try {
+    await appendPickMemory(memoryPath, {
+      persona_email: enriched.email,
+      run_id: env.GITHUB_RUN_ID ?? "",
+    });
+  } catch (err) {
+    process.stderr.write(
+      formatError(
+        `substrate pick: failed to append ${memoryPath}: ${err.message}`,
+      ) + "\n",
+    );
+    return 1;
+  }
 
   return 0;
 }
