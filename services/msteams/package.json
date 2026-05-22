@@ -44,7 +44,7 @@
     "@forwardimpact/librpc": "^0.1.99",
     "@forwardimpact/libtelemetry": "^0.1.42",
     "botbuilder": "^4.23.3",
-    "express": "^4.21.0"
+    "express": "^5.2.1"
   },
   "devDependencies": {
     "@forwardimpact/libharness": "^0.1.5"
