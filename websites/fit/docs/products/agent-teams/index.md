@@ -85,6 +85,21 @@ generated output. The configuration is derived from the same YAML files that
 define human roles -- update the source, and the agent configuration updates
 with it.
 
+### Calibrate the agent's level
+
+The `--level` flag picks which level's expectations the generated agent
+encodes. Without it, Pathway selects a default level based on core-skill
+proficiency.
+
+```sh
+npx fit-pathway agent software_engineering --track=platform --level=J060
+```
+
+Set `--level` explicitly when generating agents that should meet different
+expectations -- for example, a J040 agent and a J060 agent on the same team
+need separate profiles. When omitted, the output is byte-identical to today's
+default-resolved behaviour.
+
 ## Generate the agent team
 
 Once the preview looks right, generate the files into your project:

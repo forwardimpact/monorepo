@@ -134,10 +134,12 @@ function printTeamInstructions(
   humanDiscipline,
   orgSection,
   template,
+  levelForInstructions,
 ) {
   const teamInstructions = interpolateTeamInstructions({
     agentTrack,
     humanDiscipline,
+    level: levelForInstructions,
   });
   const content = formatTeamInstructions(
     teamInstructions,
@@ -145,10 +147,12 @@ function printTeamInstructions(
     template,
   );
   if (!content) return;
+  const hasTeamInstructionsContent = Boolean(teamInstructions);
+  const hasOrgSection = Boolean(orgSection);
   const header =
-    teamInstructions && orgSection
+    hasTeamInstructionsContent && hasOrgSection
       ? "# Team Instructions + Organizational Context (CLAUDE.md)"
-      : teamInstructions
+      : hasTeamInstructionsContent
         ? "# Team Instructions (CLAUDE.md)"
         : "# Organizational Context (CLAUDE.md)";
   process.stdout.write(`${header}\n\n`);
@@ -170,6 +174,7 @@ async function handleAgent({
   agentDiscipline,
   skillsWithAgent,
   level,
+  levelForInstructions,
   templateLoader,
   dataDir,
 }) {
@@ -245,6 +250,7 @@ async function handleAgent({
       humanDiscipline,
       orgSection,
       claudeTemplate,
+      levelForInstructions,
     );
     process.stdout.write(formatAgentProfile(profile, agentTemplate) + "\n");
     return;
@@ -253,6 +259,7 @@ async function handleAgent({
   const teamInstructions = interpolateTeamInstructions({
     agentTrack,
     humanDiscipline,
+    level: levelForInstructions,
   });
   await writeTeamInstructions(
     teamInstructions,
@@ -332,7 +339,20 @@ export async function runAgentCommand({
   const { humanDiscipline, humanTrack, agentDiscipline, agentTrack } =
     resolveAgentEntities(data, agentData, disciplineId, trackId);
 
-  const level = deriveReferenceLevel(data.levels);
+  let level;
+  let levelForInstructions = null;
+  if (options.level) {
+    level = data.levels.find((l) => l.id === options.level);
+    requireEntity(
+      level,
+      `Unknown level: ${options.level}`,
+      "Available levels:",
+      data.levels,
+    );
+    levelForInstructions = level;
+  } else {
+    level = deriveReferenceLevel(data.levels);
+  }
 
   if (options.skills) {
     const derivedSkills = deriveAgentSkills({
@@ -373,6 +393,7 @@ export async function runAgentCommand({
     agentDiscipline,
     skillsWithAgent,
     level,
+    levelForInstructions,
     templateLoader,
     dataDir,
   });
