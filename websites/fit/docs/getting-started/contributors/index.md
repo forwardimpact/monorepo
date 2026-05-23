@@ -56,7 +56,7 @@ bun run check
 bun run test
 ```
 
-`bun run check` runs `format`, `lint`, `jsdoc`, `harness`, and `context`
+`bun run check` runs `format`, `lint`, `jsdoc`, `invariants`, and `context`
 sequentially so failures are easy to spot. `bun run test` runs unit tests
 (`bun test`) separately so test output does not bury check failures.
 
@@ -71,7 +71,7 @@ bun run check:fix
 ```
 products/       Seven products (map, pathway, outpost, guide, summit, landmark, gear)
 libraries/      Shared libraries (libskill, libui, libdoc, etc.)
-services/       gRPC microservices (trace, vector, graph, pathway, map, mcp)
+services/       Microservices (trace, vector, graph, pathway, map, mcp, embedding, msteams)
 data/           Generated and standard data
 config/         Service and tool configuration
 specs/          Feature specifications and plans
@@ -81,7 +81,9 @@ websites/       Public site sources (websites/fit/, websites/kata/, …)
 **Products** answer specific questions for specific users. Map defines what good
 engineering looks like. Pathway renders agent-aligned engineering standards.
 Outpost manages personal knowledge. Guide interprets artifacts. Summit models
-team capability.
+team capability. Landmark surfaces engineering-system signals from Map's
+activity layer. Gear is a meta-package that re-exports all service and library
+CLIs as dependencies.
 
 **Libraries** provide shared logic following OO+DI patterns — classes accept
 dependencies through constructors, factory functions wire real implementations,

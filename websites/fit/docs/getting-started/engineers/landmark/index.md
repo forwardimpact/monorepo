@@ -18,6 +18,10 @@ agent-aligned engineering standard YAML.
 - Node.js 18+
 - npm
 - Map's activity layer running and populated (for most commands)
+- A Supabase Auth JWT exported as `PRODUCT_LANDMARK_TOKEN` for every command
+  except `marker` — see
+  [Authentication](/docs/getting-started/leaders/landmark/#authentication) in
+  the Landmark for Leaders guide for how the token is provisioned
 
 ## Install
 
