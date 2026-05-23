@@ -417,8 +417,10 @@ export function buildAgentIndex({
   return agents;
 }
 
-// Keys mirror products/map/starter/levels.yaml expectations schema.
-// Adding a new key to that schema requires a matching entry here.
+// Keys mirror products/map/starter/levels.yaml expectations schema. Adding a
+// new key to that schema requires a matching entry here AND a matching case
+// in libraries/libskill/test/agent-team-instructions.test.js case G, which
+// fails loudly on any unknown key that leaks through.
 function renderLevelExpectations(level) {
   const e = level?.expectations;
   if (!e || typeof e !== "object") return null;

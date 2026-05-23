@@ -45,13 +45,7 @@ function stageDataDir({ stripOrgContext = true } = {}) {
   return { work, dataDir };
 }
 
-async function runAgent({
-  dataDir,
-  args,
-  options,
-  outputDir = null,
-  loaderRef = null,
-}) {
+async function runAgent({ dataDir, args, options, outputDir = null }) {
   const loader = createDataLoader();
   const templateLoader = createTemplateLoader(templatesDir);
   const data = await loader.loadAllData(dataDir);
@@ -65,7 +59,6 @@ async function runAgent({
     templateLoader,
     loader,
   });
-  if (loaderRef) loaderRef.loader = loader;
 }
 
 function captureWrite(stream) {
