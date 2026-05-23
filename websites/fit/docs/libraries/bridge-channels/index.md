@@ -37,6 +37,10 @@ primitives every adapter needs:
 | Primitive | Purpose |
 | --- | --- |
 | `createBridgeServer` | Hono server wiring a channel webhook route and `/api/callback/:token` together |
+| `Acknowledgement` | Reaction-plus-optional-typing-verb lifecycle for "I received your message" feedback |
+| `Dispatcher` | Composes callback registration, acknowledgement, workflow dispatch, history append, and rollback-on-failure into one call |
+| `createCallbackHandler` | Inbound-callback skeleton with verdict routing (`adjourned` / `failed` / `recessed`) and span instrumentation |
+| `ResumeScheduler` | Channel-agnostic suspend/resume lifecycle for `recessed` verdicts; wraps `ElapsedScheduler` |
 | `CallbackRegistry` | In-memory `correlation_id → token` registry with TTL and atomic consume |
 | `DiscussionContextStore` | Durable per-thread state in `libindex` JSONL, keyed by `(channel, discussion_id)` |
 | `RateLimiter` | Sliding-window per-thread rate limit so a noisy channel cannot DoS the workflow |
@@ -46,6 +50,12 @@ primitives every adapter needs:
 | `dispatchWorkflow` | GitHub Actions `workflow_dispatch` POST with the agreed input shape |
 | `evaluateTrigger` | Caller-clock resume-trigger evaluation (kinds: `responses`, `elapsed`, `either`) |
 | `parseIsoDuration` | ISO-8601 duration parser (`P1D`, `PT12H`, `P1DT6H`) used by `evaluateTrigger` |
+
+The top four — `Acknowledgement`, `Dispatcher`, `createCallbackHandler`, and
+`ResumeScheduler` — are the composition layer. A real bridge wires the channel
+SDK into these constructors and lets each one own its slice of the dance; the
+primitives below them are still available when you need to step outside the
+shared composition.
 
 Two injection rules keep the surface testable from any host. Storage is
 **caller-injected**: the `DiscussionContextStore` constructor takes a
