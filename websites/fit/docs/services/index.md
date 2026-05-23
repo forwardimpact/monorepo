@@ -15,6 +15,16 @@ toc: false
 
 </div>
 
+## Bridge GitHub Discussions to the Agent Team
+
+<div class="grid">
+
+<!-- part:card:bridge-discussions -->
+
+<!-- part:card:bridge-discussions/resume-recessed -->
+
+</div>
+
 ## Embed Text for Retrieval
 
 <div class="grid">
