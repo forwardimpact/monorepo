@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libskill",
-  "version": "5.4.0",
+  "version": "5.5.0",
   "description": "Derive skill matrices, agent profiles, and job definitions from standard data — the engineering standard made queryable.",
   "keywords": [
     "skill",
