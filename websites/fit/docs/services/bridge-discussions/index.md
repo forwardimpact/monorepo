@@ -5,7 +5,7 @@ description: Stand up the ghbridge service so a new discussion or comment dispat
 
 Engineers open RFCs in GitHub Discussions. The Kata agent team can engage,
 deliberate over the 14-day coordination horizon, and post structured replies
-back -- but only with a bridge between the Discussion webhook and the
+back — but only with a bridge between the Discussion webhook and the
 `kata-dispatch` workflow. The `ghbridge` service is that bridge. A new
 discussion or a follow-up comment in the configured repository fires a
 webhook, the bridge verifies the signature, dispatches the workflow with the
