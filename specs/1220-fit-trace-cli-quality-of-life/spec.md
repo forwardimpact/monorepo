@@ -26,12 +26,12 @@ Across both sessions, the wrappers reconstructed the same views:
 - "What files were touched?" by grouping `Read`/`Edit`/`Write` by `file_path`
 - Side-by-side comparison of two same-workflow traces with different outcomes
 
-The CLI today registers 19 commands in
+The CLI today registers 20 commands in
 [`libraries/libeval/bin/fit-trace.js`](../../libraries/libeval/bin/fit-trace.js):
 15 are analyst-facing (`overview`, `count`, `batch`, `head`, `tail`,
 `search`, `tools`, `tool`, `errors`, `reasoning`, `timeline`, `stats`,
-`init`, `turn`, `filter`); four are administrative or IO (`runs`,
-`download`, `split`, `assert`). Every analyst-facing verb except `count`
+`init`, `turn`, `filter`); five are administrative or IO (`runs`,
+`download`, `by-discussion`, `split`, `assert`). Every analyst-facing verb except `count`
 and `timeline` emits a JSON envelope via `writeJSON`
 ([`libraries/libeval/src/commands/trace.js`](../../libraries/libeval/src/commands/trace.js)).
 Envelope shapes vary across verbs (a flat array from `errors`, an array of
@@ -104,8 +104,9 @@ surfaces:
   output is meant for human or scripted analysis (`overview`, `count`,
   `batch`, `head`, `tail`, `search`, `tools`, `tool`, `errors`,
   `reasoning`, `timeline`, `stats`, `init`, `turn`, `filter`).
-- **Administrative or IO verbs:** `runs`, `download`, `split`, `assert`.
-  Out of scope for the default-output and variadic-file changes.
+- **Administrative or IO verbs:** `runs`, `download`, `by-discussion`,
+  `split`, `assert`. Out of scope for the default-output and variadic-file
+  changes.
 - **Cross-trace-meaningful verbs:** the subset of analyst-facing verbs
   (plus the three new aggregators introduced by changes 1-2) whose
   output is meaningful when run against more than one trace. The design
@@ -114,7 +115,7 @@ surfaces:
   subset.
 
 The four new verb names proposed by this spec (`tool-calls`, `commands`,
-`paths`, `compare`) do not collide with names in the existing 19-verb
+`paths`, `compare`) do not collide with names in the existing 20-verb
 registry. `tool-calls` is one character from `tool` and `tools`; that
 ambiguity is acknowledged in Risks below and in "Verb-name commitment".
 
