@@ -114,13 +114,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          target_type="pull_request"
           target_number="${PR_NUMBER_FROM_EVENT:-}"
 
           case "$EVENT_NAME" in
             issues)
-              target_type="issue"
-              target_number="${PR_NUMBER_FROM_EVENT:-}"
               if [ "$EVENT_ACTION" = "labeled" ]; then
                 context="Label \"$LABEL_NAME\" was added to issue \"$ISSUE_TITLE\" (#$target_number). Issue URL: $ITEM_URL."
                 action="route to the best-suited agent."
@@ -130,8 +127,6 @@ jobs:
               fi
               ;;
             pull_request_target)
-              target_type="pull_request"
-              target_number="${PR_NUMBER_FROM_EVENT:-}"
               if [ "$EVENT_ACTION" = "closed" ]; then
                 context="PR \"$PR_TITLE\" (#$target_number) has been approved and merged. PR URL: $ITEM_URL."
               else
@@ -140,18 +135,14 @@ jobs:
               action="route to the best-suited agent."
               ;;
             workflow_dispatch)
-              target_type=""
-              target_number=""
               ;;
             issue_comment)
               if [ "$IS_PR" = "true" ]; then
                 context="A new comment was posted on PR #$target_number by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Comment URL: $ITEM_URL."
-                action="route to the best-suited agent and ask them to assess the comment and act on it."
               else
-                target_type="issue"
                 context="A new comment was posted on issue \"$ISSUE_TITLE\" (#$target_number) by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Comment URL: $ITEM_URL."
-                action="route to the best-suited agent and ask them to assess the comment and act on it."
               fi
+              action="route to the best-suited agent and ask them to assess the comment and act on it."
               ;;
             pull_request_review)
               context="A review was submitted on PR \"$PR_TITLE\" (#$target_number) by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Review URL: $ITEM_URL. The review payload bundles the review body together with any inline diff comments — fetch the full set when assessing."
@@ -184,8 +175,6 @@ jobs:
           # Lab template-injection guidance.
           delim="EOF_$(openssl rand -hex 16)"
           {
-            echo "target-type=$target_type"
-            echo "target-number=$target_number"
             echo "task<<$delim"
             echo "$task"
             echo "$delim"
@@ -236,7 +225,7 @@ jobs:
           set -euo pipefail
           if [ -n "$TRACE_FILE" ] && [ -f "$TRACE_FILE" ]; then
             echo "Using trace file: $TRACE_FILE"
-            node libraries/libeval/bin/fit-eval.js callback \
+            bunx fit-eval callback \
               --trace-file="$TRACE_FILE" \
               --callback-url="$CALLBACK_URL" \
               --correlation-id="$CORRELATION_ID" \
