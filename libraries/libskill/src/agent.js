@@ -417,16 +417,49 @@ export function buildAgentIndex({
   return agents;
 }
 
+// Keys mirror products/map/starter/levels.yaml expectations schema.
+// Adding a new key to that schema requires a matching entry here.
+function renderLevelExpectations(level) {
+  const e = level?.expectations;
+  if (!e || typeof e !== "object") return null;
+  const bullets = [];
+  if (e.impactScope) bullets.push(`- **Impact scope:** ${e.impactScope}`);
+  if (e.autonomyExpectation)
+    bullets.push(`- **Autonomy:** ${e.autonomyExpectation}`);
+  if (e.influenceScope)
+    bullets.push(`- **Influence scope:** ${e.influenceScope}`);
+  if (e.complexityHandled)
+    bullets.push(`- **Complexity:** ${e.complexityHandled}`);
+  if (bullets.length === 0) return null;
+  return `## Level Expectations\n\n${bullets.join("\n")}\n`;
+}
+
 /**
- * Interpolate teamInstructions from a track's agent section
+ * Interpolate teamInstructions from a track's agent section, optionally
+ * composing a `## Level Expectations` section drawn from the level's
+ * `expectations` block.
+ *
  * @param {Object} params
  * @param {Object} params.agentTrack - Agent track definition
  * @param {Object} params.humanDiscipline - Human discipline (with roleTitle, specialization)
- * @returns {string|null} Interpolated team instructions or null
+ * @param {Object} [params.level] - Optional level entity whose `expectations`
+ *   block is composed after the interpolated team-instructions body. When
+ *   omitted, the return value is byte-identical to the pre-`level` behaviour.
+ * @returns {string|null} Composed team-instructions content, or null when
+ *   neither input contributes content.
  */
-export function interpolateTeamInstructions({ agentTrack, humanDiscipline }) {
-  if (!agentTrack?.teamInstructions) return null;
-  return substituteTemplateVars(agentTrack.teamInstructions, humanDiscipline);
+export function interpolateTeamInstructions({
+  agentTrack,
+  humanDiscipline,
+  level,
+}) {
+  const ti = agentTrack?.teamInstructions
+    ? substituteTemplateVars(agentTrack.teamInstructions, humanDiscipline)
+    : null;
+  const expectations = level ? renderLevelExpectations(level) : null;
+  if (!ti && !expectations) return null;
+  if (ti && expectations) return `${ti}\n\n${expectations}`;
+  return ti || expectations;
 }
 
 function nonEmptyString(value) {

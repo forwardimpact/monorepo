@@ -139,6 +139,10 @@ const definition = {
       description: "Generate AI agent profile",
       options: {
         track: { type: "string", description: "Track specialization" },
+        level: {
+          type: "string",
+          description: "Level calibration (see `fit-pathway level --list`)",
+        },
         output: {
           type: "string",
           description: "Output directory for generated files",

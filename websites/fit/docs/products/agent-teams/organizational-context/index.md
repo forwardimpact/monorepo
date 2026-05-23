@@ -139,6 +139,19 @@ When you need to add organizational context, ask: "Who needs to know this?"
 | One role specialization      | Agent Profile        | "Platform engineers own backward compatibility"            |
 | Anyone doing a specific task | Skill                | "Code review follows the four-step checklist in REVIEW.md" |
 
+The `--level` flag is the per-invocation calibration surface — distinct from
+`teamInstructions` (shared across every agent on a track) and the
+organizational-context slot (shared across every installation):
+
+```sh
+npx fit-pathway agent software_engineering --track=platform --level=J060
+```
+
+Set `--level` explicitly when two agents on the same team must reflect
+different role-level expectations. Run the command once per level rather than
+encoding the difference inside `teamInstructions`, which contaminates every
+team using the track.
+
 Preview what Pathway generates for a given role to confirm placement:
 
 ```sh
