@@ -24,6 +24,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "bash scripts/install-deps.sh"
+          },
+          {
+            "type": "command",
             "command": "bash scripts/bootstrap.sh"
           }
         ]
