@@ -57,6 +57,10 @@ block in README.md.
 
 After editing, regenerate: `bun run context:fix`.
 
+`products/<name>/` metadata-only (e.g., Kata) — `"private": true`,
+`description` + `jobs`, no `bin/` or CLI — exempt from § Audience's
+`npx fit-<product>` claim.
+
 ## Invocation context
 
 Products with both a web UI and a CLI can share handler logic through

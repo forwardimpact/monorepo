@@ -6,6 +6,7 @@ const VALID_USERS = [
   "Engineering Leaders",
   "Empowered Engineers",
   "Platform Builders",
+  "Teams Using Agents",
 ];
 
 const USER_ORDER = new Map(VALID_USERS.map((u, i) => [u, i]));

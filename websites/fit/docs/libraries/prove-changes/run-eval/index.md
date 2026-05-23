@@ -69,7 +69,7 @@ mask failures.
 ```sh
 npx fit-eval supervise \
   --task-file=evals/refactor-utils/task.md \
-  --supervisor-profile=refactor-judge \
+  --lead-profile=refactor-judge \
   --supervisor-cwd=. \
   --supervisor-allowed-tools=Read,Grep,Bash \
   --agent-cwd=/tmp/refactor-sandbox \
@@ -118,7 +118,7 @@ jobs:
           cp -r . /tmp/sandbox
           npx --yes @forwardimpact/libeval fit-eval supervise \
             --task-file=evals/refactor-utils/task.md \
-            --supervisor-profile=refactor-judge \
+            --lead-profile=refactor-judge \
             --supervisor-cwd=. \
             --supervisor-allowed-tools=Read,Grep,Bash \
             --agent-cwd=/tmp/sandbox \

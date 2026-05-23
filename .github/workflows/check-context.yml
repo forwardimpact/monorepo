@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: ./.github/actions/bootstrap
+      - uses: forwardimpact/fit-bootstrap@v1
       - uses: ./.github/actions/coaligned-check
         with:
           command: instructions
@@ -23,14 +23,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: ./.github/actions/bootstrap
+      - uses: forwardimpact/fit-bootstrap@v1
       - run: bun run context:check-metadata
 
   jtbd:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: ./.github/actions/bootstrap
+      - uses: forwardimpact/fit-bootstrap@v1
       - uses: ./.github/actions/coaligned-check
         with:
           command: jtbd

@@ -18,8 +18,8 @@ maintain the monorepo. See [JTBD.md](JTBD.md) for each persona's jobs.
 - **Empowered Engineers** — Understand expectations, find growth areas, prepare
   for the day ahead, and equip and trust their agent teams — grounded in their
   organization's agent-aligned engineering standard.
-- **Teams Using Agents** — Run an autonomous, continuously improving development
-  team that plans, ships, studies its own traces, and acts on findings.
+- **Teams Using Agents** —
+  [Run a continuously improving agent team](JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team).
 
 ### Map — `fit-map`
 

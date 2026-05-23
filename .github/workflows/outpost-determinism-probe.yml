@@ -1,0 +1,50 @@
+name: "Probe: Outpost determinism"
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "products/outpost/**"
+      - "libraries/libmacos/**"
+      - ".github/workflows/outpost-determinism-probe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: forwardimpact/fit-bootstrap@v1
+      - name: Install diffoscope
+        run: brew install diffoscope
+      - name: First build
+        run: |
+          just build-binary "fit-outpost"
+          just build-app-product outpost
+          cp -R dist/apps/fit-outpost.app /tmp/outpost-before.app
+          codesign -dvvv dist/apps/fit-outpost.app 2>&1 | grep -i CDHash > /tmp/cdhash.before
+      - name: Second build
+        run: |
+          rm -rf dist/apps dist/binaries products/outpost/dist
+          just build-binary "fit-outpost"
+          just build-app-product outpost
+          cp -R dist/apps/fit-outpost.app /tmp/outpost-after.app
+          codesign -dvvv dist/apps/fit-outpost.app 2>&1 | grep -i CDHash > /tmp/cdhash.after
+      - name: Diffoscope
+        run: |
+          set +e
+          diffoscope --text /tmp/diffoscope.txt \
+            /tmp/outpost-before.app /tmp/outpost-after.app
+          echo "diffoscope exit: $?"
+          echo "=== CDHash before ==="; cat /tmp/cdhash.before
+          echo "=== CDHash after ==="; cat /tmp/cdhash.after
+          set -e
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: outpost-determinism-probe
+          path: |
+            /tmp/diffoscope.txt
+            /tmp/cdhash.before
+            /tmp/cdhash.after

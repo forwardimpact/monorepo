@@ -14,35 +14,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: ./.github/actions/bootstrap
+      - uses: forwardimpact/fit-bootstrap@v1
       - run: bun run format
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: ./.github/actions/bootstrap
+      - uses: forwardimpact/fit-bootstrap@v1
       - run: bun run lint
 
   jsdoc:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: ./.github/actions/bootstrap
+      - uses: forwardimpact/fit-bootstrap@v1
       - run: bun run jsdoc
 
   invariants:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: ./.github/actions/bootstrap
+      - uses: forwardimpact/fit-bootstrap@v1
       - run: bun run invariants
 
   wiki-audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: ./.github/actions/bootstrap
+      - uses: forwardimpact/fit-bootstrap@v1
       - name: Checkout wiki (read-only)
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:

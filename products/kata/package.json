@@ -1,0 +1,34 @@
+{
+  "name": "@forwardimpact/kata",
+  "private": true,
+  "description": "Run an autonomous, continuously improving development team via a daily Plan-Do-Study-Act loop, shipped as a skill pack under .claude/skills/kata-*/.",
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "products/kata"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Teams Using Agents",
+      "goal": "Run a Continuously Improving Agent Team",
+      "trigger": "Agents are shipping work but nobody can tell whether the team is getting better — the only feedback loop is reading every diff.",
+      "bigHire": "run an autonomous, continuously improving development team that plans, ships, studies its own traces, and acts on findings.",
+      "littleHire": "onboard a Kata installation that runs the Plan-Do-Study-Act loop without per-team prompt engineering.",
+      "competesWith": "bespoke per-agent system prompts; manual orchestration scripts; not measuring agent outcomes; abandoning agent investment after a failed pilot",
+      "forces": {
+        "push": "Agent regressions are silent until users complain.",
+        "pull": "A closed loop that surfaces what improved and what regressed, grounded in evidence.",
+        "habit": "Treating each agent run as a one-off rather than an iteration.",
+        "anxiety": "Autonomy might amplify bad patterns faster than humans can intervene."
+      },
+      "firedWhen": "the autonomous loop becomes harder to operate than direct prompting; or organizational policy bans autonomous agent execution."
+    }
+  ],
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=18.0.0"
+  }
+}

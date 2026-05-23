@@ -19,6 +19,16 @@ Engineers
 
 </div>
 
+## Bridge Threaded Channels to the Agent Team
+
+Builders
+
+<div class="grid">
+
+<!-- part:card:bridge-channels -->
+
+</div>
+
 ## Enable Agents on Every Surface
 
 Builders

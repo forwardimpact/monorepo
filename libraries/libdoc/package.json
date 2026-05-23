@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libdoc",
-  "version": "0.2.30",
+  "version": "0.2.31",
   "description": "Static documentation sites from markdown — publish docs without a framework.",
   "keywords": [
     "docs",
@@ -41,7 +41,7 @@
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@hono/node-server": "^2.0.3",
-    "hono": "^4.12.21",
+    "hono": "^4.12.22",
     "marked": "^18.0.4",
     "marked-gfm-heading-id": "^4.1.4",
     "marked-highlight": "^2.2.4",

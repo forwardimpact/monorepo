@@ -123,7 +123,8 @@ async function buildLayers(root) {
         id: "L2",
         name: "JTBD.md",
         maxLines: 320,
-        maxWords: 1408,
+        // Bumped from 1408 in spec 1010 to absorb a fifth persona block.
+        maxWords: 1664,
         files: ["JTBD.md"],
       },
       {

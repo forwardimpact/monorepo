@@ -44,7 +44,7 @@ jobs:
             echo "cask=${CASK}"
           } >> "$GITHUB_OUTPUT"
 
-      - uses: ./.github/actions/bootstrap
+      - uses: forwardimpact/fit-bootstrap@v1
 
       - uses: ./.github/actions/audit
 

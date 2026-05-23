@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/pathway",
-  "version": "0.25.61",
+  "version": "0.25.62",
   "description": "Explore roles, generate agent profiles, and surface career expectations so progression and team configuration are visible, not guessed.",
   "keywords": [
     "career",
@@ -127,7 +127,7 @@
     "@forwardimpact/libutil": "^0.1.64",
     "@forwardimpact/map": "^0.15.5",
     "@hono/node-server": "^2.0.3",
-    "hono": "^4.12.21",
+    "hono": "^4.12.22",
     "mustache": "^4.2.0",
     "yaml": "^2.9.0"
   },

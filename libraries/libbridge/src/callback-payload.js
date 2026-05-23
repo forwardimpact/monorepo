@@ -1,9 +1,11 @@
-const MAX_FIELD_LENGTH = 2000;
+export const MAX_FIELD_LENGTH = 2000;
 
 /**
- * Validate and sanitize the kata-dispatch callback payload. Returns a clean
- * object or null. Accepts the channel-agnostic optional fields (`replies`,
- * `trigger`, `discussion_id`) used by the discuss-mode trace.
+ * Validate and sanitize the kata-dispatch callback payload. Lenient by
+ * design: missing `verdict`/`summary` default to safe sentinels rather
+ * than rejecting, so a host that wants to surface a degraded callback
+ * can still post something useful. Returns a clean object or `null` if
+ * `correlation_id` is missing.
  *
  * @param {unknown} body
  * @returns {object | null}
@@ -40,6 +42,8 @@ export function validateCallbackPayload(body) {
 }
 
 /**
+ * Strip trailing slashes from a base URL so callback URL composition is
+ * deterministic regardless of operator input.
  * @param {string} url
  * @returns {string}
  */
@@ -48,27 +52,24 @@ export function normalizeBaseUrl(url) {
 }
 
 /**
- * Build a fresh `DiscussionContext` record for the github-discussions channel.
- * Mirrors the canonical record shape declared in `libbridge`.
+ * Build a fresh `DiscussionContext` record for any channel. The host
+ * service supplies a `participant` (channel-shaped) and the canonical
+ * record fields (`history`, `open_rfcs`, `dispatches`, etc.) are filled
+ * in here so both bridges agree on the shape.
  *
- * @param {string} discussionId
- * @param {object} discussion - The GitHub webhook payload's discussion object
+ * @param {object} args
+ * @param {string} args.channel
+ * @param {string} args.discussionId
+ * @param {object} args.participant
  * @returns {object}
  */
-export function newDiscussionContext(discussionId, discussion) {
+export function newDiscussionContext({ channel, discussionId, participant }) {
   return {
-    id: `github-discussions:${discussionId}`,
-    channel: "github-discussions",
+    id: `${channel}:${discussionId}`,
+    channel,
     discussion_id: discussionId,
     history: [],
-    participants: [
-      {
-        name: discussion?.user?.login ?? "github-user",
-        kind: "human",
-        external_id: discussion?.user?.id?.toString(),
-        metadata: { node_id: discussion?.node_id },
-      },
-    ],
+    participants: [participant],
     open_rfcs: {},
     lead: "release-engineer",
     pending_callbacks: {},
