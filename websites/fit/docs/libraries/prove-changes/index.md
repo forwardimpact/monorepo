@@ -250,7 +250,7 @@ For a **supervised evaluation** (one agent, one judge):
 ```sh
 npx fit-eval supervise \
   --task-file=evals/refactor-utils/task.md \
-  --supervisor-profile=refactor-judge \
+  --lead-profile=refactor-judge \
   --supervisor-cwd=. \
   --supervisor-allowed-tools=Read,Grep,Bash \
   --agent-cwd=/tmp/refactor-sandbox \
@@ -270,7 +270,7 @@ For a **facilitated session** (one facilitator, N participants):
 ```sh
 npx fit-eval facilitate \
   --task-file=sessions/release-review/task.md \
-  --facilitator-profile=release-facilitator \
+  --lead-profile=release-facilitator \
   --facilitator-cwd=. \
   --agent-profiles=security-engineer,release-engineer,technical-writer \
   --agent-cwd=. \

@@ -68,7 +68,7 @@ CI-specific inputs that have no CLI equivalent:
 | `output` | `"benchmark-runs"` | Run-output directory |
 | `runs` | `"5"` | Runs per task |
 | `agent-model` | `"claude-sonnet-4-6"` | Claude model for the agent-under-test |
-| `supervisor-model` | `"claude-opus-4-7"` | Claude model for the supervisor |
+| `lead-model` | `"claude-opus-4-7"` | Claude model for the lead role |
 | `judge-model` | `"claude-opus-4-7"` | Claude model for the judge |
 | `agent-profile` | | Agent-under-test profile name |
 | `judge-profile` | | Judge profile name |
