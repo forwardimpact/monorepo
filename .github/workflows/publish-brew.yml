@@ -118,6 +118,25 @@ jobs:
             echo "sha256=$(cat "dist/apps/${ASSET}.sha256")"
           } >> "$GITHUB_OUTPUT"
 
+      # Outpost ships a second installable surface (the .pkg used by direct
+      # downloads — not the brew cask, which consumes the `.zip` above). Built
+      # here so the create/upload pair below owns both assets, eliminating the
+      # cross-workflow race that publish-macos.yml previously caused.
+      - name: Build .pkg installer (outpost only)
+        if: steps.meta.outputs.name == 'outpost'
+        id: pkg
+        working-directory: products/outpost
+        run: |
+          just pkg
+          VERSION="${{ steps.meta.outputs.version }}"
+          PKG_FILE="dist/fit-outpost-${VERSION}.pkg"
+          if [ ! -f "$PKG_FILE" ]; then
+            echo "Error: $PKG_FILE not found"
+            ls -la dist/
+            exit 1
+          fi
+          echo "pkg_file=$PKG_FILE" >> "$GITHUB_OUTPUT"
+
       - name: Create or reuse GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -132,10 +151,14 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME}"
           ASSET="${{ steps.hash.outputs.asset }}"
-          gh release upload "$TAG" \
-            "dist/apps/${ASSET}" \
-            "dist/apps/${ASSET}.sha256" \
-            --clobber
+          ASSETS=(
+            "dist/apps/${ASSET}"
+            "dist/apps/${ASSET}.sha256"
+          )
+          if [ -n "${{ steps.pkg.outputs.pkg_file }}" ]; then
+            ASSETS+=("products/outpost/${{ steps.pkg.outputs.pkg_file }}")
+          fi
+          gh release upload "$TAG" "${ASSETS[@]}" --clobber
 
   tap-pr:
     needs: build
