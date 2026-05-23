@@ -114,13 +114,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          target_type="pull_request"
           target_number="${PR_NUMBER_FROM_EVENT:-}"
 
           case "$EVENT_NAME" in
             issues)
-              target_type="issue"
-              target_number="${PR_NUMBER_FROM_EVENT:-}"
               if [ "$EVENT_ACTION" = "labeled" ]; then
                 context="Label \"$LABEL_NAME\" was added to issue \"$ISSUE_TITLE\" (#$target_number). Issue URL: $ITEM_URL."
                 action="route to the best-suited agent."
@@ -130,8 +127,6 @@ jobs:
               fi
               ;;
             pull_request_target)
-              target_type="pull_request"
-              target_number="${PR_NUMBER_FROM_EVENT:-}"
               if [ "$EVENT_ACTION" = "closed" ]; then
                 context="PR \"$PR_TITLE\" (#$target_number) has been approved and merged. PR URL: $ITEM_URL."
               else
@@ -140,18 +135,14 @@ jobs:
               action="route to the best-suited agent."
               ;;
             workflow_dispatch)
-              target_type=""
-              target_number=""
               ;;
             issue_comment)
               if [ "$IS_PR" = "true" ]; then
                 context="A new comment was posted on PR #$target_number by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Comment URL: $ITEM_URL."
-                action="route to the best-suited agent and ask them to assess the comment and act on it."
               else
-                target_type="issue"
                 context="A new comment was posted on issue \"$ISSUE_TITLE\" (#$target_number) by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Comment URL: $ITEM_URL."
-                action="route to the best-suited agent and ask them to assess the comment and act on it."
               fi
+              action="route to the best-suited agent and ask them to assess the comment and act on it."
               ;;
             pull_request_review)
               context="A review was submitted on PR \"$PR_TITLE\" (#$target_number) by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Review URL: $ITEM_URL. The review payload bundles the review body together with any inline diff comments — fetch the full set when assessing."
@@ -184,53 +175,37 @@ jobs:
           # Lab template-injection guidance.
           delim="EOF_$(openssl rand -hex 16)"
           {
-            echo "target-type=$target_type"
-            echo "target-number=$target_number"
             echo "task<<$delim"
             echo "$task"
             echo "$delim"
           } >> "$GITHUB_OUTPUT"
 
-      # Run the libeval CLI directly so Part 02's discuss mode + lead-flag
-      # consolidation reach this workflow without a sibling-repo
-      # composite-action retag. Selects discuss mode when discussion_id is
-      # set (the bridge path), otherwise facilitate mode.
+      # Select discuss mode when a discussion_id is supplied (the bridge
+      # path resuming or starting a threaded conversation); otherwise run a
+      # one-shot facilitate. The discuss / facilitate / supervise modes all
+      # take the same lead-profile + agent-profiles pair after the libeval
+      # consolidation that landed alongside discuss mode.
       #
-      # Security: every untrusted dispatch input (DISPATCH_PROMPT,
-      # DISCUSSION_ID, RESUME_CONTEXT) reaches the shell only via env:
-      # declarations — never as ${{ }} interpolation inside the `run:`
-      # block. The args=(...) array preserves whitespace and JSON contents.
+      # Untrusted dispatch inputs (task text, discussion_id, resume_context)
+      # flow as `with:` inputs; the composite action env-wraps them before
+      # they reach any shell, so this surface preserves the same
+      # template-injection-safe contract as the previous direct-CLI form.
       - name: Assess and Act
         id: assess
+        uses: forwardimpact/fit-eval@v1
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
           CLAUDE_CODE_USE_BEDROCK: "0"
-          DISPATCH_PROMPT: ${{ steps.task.outputs.task }}
-          DISCUSSION_ID: ${{ inputs.discussion_id }}
-          RESUME_CONTEXT: ${{ inputs.resume_context }}
-          TARGET_TYPE: ${{ steps.task.outputs.target-type }}
-          TARGET_NUMBER: ${{ steps.task.outputs.target-number }}
-        run: |
-          set -euo pipefail
-          trace_file="$RUNNER_TEMP/trace.ndjson"
-          args=(
-            --task-text="$DISPATCH_PROMPT"
-            --lead-profile=release-engineer
-            --agent-profiles=product-manager,security-engineer,staff-engineer,technical-writer
-            --max-turns=1500
-            --output="$trace_file"
-          )
-          if [ -n "$DISCUSSION_ID" ]; then
-            args+=( --discussion-id="$DISCUSSION_ID" )
-            if [ -n "$RESUME_CONTEXT" ]; then
-              args+=( --resume-context="$RESUME_CONTEXT" )
-            fi
-            node libraries/libeval/bin/fit-eval.js discuss "${args[@]}"
-          else
-            node libraries/libeval/bin/fit-eval.js facilitate "${args[@]}"
-          fi
-          echo "trace-file=$trace_file" >> "$GITHUB_OUTPUT"
+        with:
+          mode: ${{ inputs.discussion_id != '' && 'discuss' || 'facilitate' }}
+          task-text: ${{ steps.task.outputs.task }}
+          lead-profile: release-engineer
+          agent-profiles: product-manager,security-engineer,staff-engineer,technical-writer
+          max-turns: "1500"
+          timeout-minutes: "300"
+          discussion-id: ${{ inputs.discussion_id }}
+          resume-context: ${{ inputs.resume_context }}
 
       # Deliver the facilitator's conclusion to an external caller (e.g. the
       # MS Teams bridge or GitHub Discussions bridge) when one is specified
@@ -250,7 +225,7 @@ jobs:
           set -euo pipefail
           if [ -n "$TRACE_FILE" ] && [ -f "$TRACE_FILE" ]; then
             echo "Using trace file: $TRACE_FILE"
-            node libraries/libeval/bin/fit-eval.js callback \
+            bunx fit-eval callback \
               --trace-file="$TRACE_FILE" \
               --callback-url="$CALLBACK_URL" \
               --correlation-id="$CORRELATION_ID" \
