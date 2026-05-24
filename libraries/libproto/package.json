@@ -1,0 +1,47 @@
+{
+  "name": "@forwardimpact/libproto",
+  "version": "0.1.0",
+  "description": "Shared protobuf schemas — one editable source for the service contracts every product imports.",
+  "keywords": [
+    "proto",
+    "protobuf",
+    "schema",
+    "contract",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "libraries/libproto"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Ground Service Contracts in One Source",
+      "trigger": "Shipping a proto that imports tool.proto and discovering the published copy lives in another package the consumer never installed.",
+      "bigHire": "publish service protos that resolve on any external `npm install` without coordinating multiple package homes.",
+      "littleHire": "import a shared proto and trust the consumer of my service can read it.",
+      "competesWith": "duplicating .proto files across packages; embedding shared schemas inside transport or codegen libraries; tolerating ENOENT for non-Guide installs"
+    }
+  ],
+  "type": "module",
+  "main": "./src/index.js",
+  "files": [
+    "proto/",
+    "src/index.js",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

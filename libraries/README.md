@@ -28,6 +28,7 @@ can read and tune via JSON.
 | **libpack**            | Pack distribution — tarballs, bare git repos, and skill discovery indices                                                                 |
 | **libpolicy**          | Access-control policy evaluation — scoped context access without per-service authorization logic.                                         |
 | **libprompt**          | Prompt templates from .prompt.md files — structured prompts without string concatenation.                                                 |
+| **libproto**           | Shared protobuf schemas — one editable source for the service contracts every product imports.                                            |
 | **librc**              | Service lifecycle management — start, stop, and check services without manual oversight.                                                  |
 | **librepl**            | Agent-friendly interactive REPL — exploratory interfaces that humans and agents navigate the same way.                                    |
 | **libresource**        | Typed resources with identifiers and rich context chunks — trustworthy, retrievable knowledge for agent grounding.                        |
@@ -153,6 +154,25 @@ scanning; loading entire datasets into memory; passing raw file contents;
 untyped JSON payloads; skipping provenance and hoping the agent figures it out;
 external vector databases; keyword search instead of semantic; skipping
 retrieval entirely.
+
+</job>
+
+<job user="Platform Builders" goal="Ground Service Contracts in One Source">
+
+## Platform Builders: Ground Service Contracts in One Source
+
+**Trigger:** Shipping a proto that imports tool.proto and discovering the
+published copy lives in another package the consumer never installed.
+
+**Big Hire:** Help me publish service protos that resolve on any external
+`npm install` without coordinating multiple package homes. → **libproto**
+
+**Little Hire:** Help me import a shared proto and trust the consumer of my
+service can read it. → **libproto**
+
+**Competes With:** duplicating .proto files across packages; embedding shared
+schemas inside transport or codegen libraries; tolerating ENOENT for non-Guide
+installs.
 
 </job>
 

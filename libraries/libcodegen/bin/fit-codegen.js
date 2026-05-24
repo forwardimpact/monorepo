@@ -31,7 +31,8 @@ const VERSION =
 const definition = {
   name: "fit-codegen",
   version: VERSION,
-  description: "Generate protobuf types, service clients, and definitions",
+  description:
+    "Generate protobuf types, service clients, and definitions from .proto files in installed @forwardimpact/* packages (node_modules/@forwardimpact/*/proto/) and an optional project-local proto/ directory.",
   globalOptions: {
     all: { type: "boolean", description: "Generate all code" },
     type: { type: "boolean", description: "Generate protobuf types only" },
