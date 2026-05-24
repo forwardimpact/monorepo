@@ -25,28 +25,24 @@ bunx fit-doc serve --src=websites/monorepo --watch
 Every page is a directory containing `index.md`. No other `.md` filenames.
 
 - **Frontmatter** — `title` (rendered as H1) and `description` (meta) are
-  required. Optional: `toc: false`, `layout: product|home`,
-  `hero: { image, alt, title, subtitle, cta }`.
-- **Headings** — body headings start at `##` (the build system renders H1 from
+  required. Optional: `toc: false`, `layout: product|home`, `hero: {…}`.
+- **Headings** — body headings start at `##` (the build renders H1 from
   `title`; a manual `# Title` produces a duplicate).
-- **Links** — absolute directory paths (`/docs/products/agent-teams/`, not
-  relative, not `index.md`). External links use full URLs.
-- **Code blocks** — always specify a language tag (`sh`, `yaml`, `json`,
-  `mermaid`, etc.).
-- **Card grids use content partials.** Hub page cards are
-  `<!-- part:card:relative-path -->` markers that resolve to the target page's
-  frontmatter `title` and `description` at build time. The build fails if a
-  partial references a nonexistent page. Hand-written `<a>` cards are only used
-  for external links or same-page anchors.
-- **Hand-written links are not checked.** Partials validate their targets, but
-  inline markdown links are not verified at build time.
-- **Cross-links** — every non-hub page ends with a `## What's next` section.
-  Cards use content partials only (`<!-- part:card:path -->`), never markdown
-  links. Maximum four cards. When a page has a `## Verify` section,
+- **Links** — absolute directory paths (`/docs/products/agent-teams/`),
+  never relative, never `index.md`. External links use full URLs.
+- **Code blocks** — always specify a language tag (`sh`, `yaml`, `mermaid`).
+- **Card grids use content partials.** `<!-- part:card:relative-path -->`
+  markers resolve to the target page's `title` and `description` at build
+  time; the build fails if the target is missing. Hand-written `<a>` cards
+  are only for external links or same-page anchors.
+- **Hand-written markdown links are not checked.** Only partials validate
+  their targets.
+- **Cross-links** — every non-hub page ends with `## What's next` using
+  partials only (max four cards). When a page has `## Verify`,
   `## What's next` follows it. Card targets follow JTBD structure: Big Hire
-  guides link to their Little Hire children; Little Hire guides link back to
-  the parent Big Hire and sibling Little Hires; Getting Started pages link to
-  the product page and primary guide.
+  guides link to Little Hire children; Little Hire guides link back to the
+  parent Big Hire and siblings; Getting Started pages link to the product
+  page and primary guide.
 
 ## Page Types
 
@@ -69,23 +65,9 @@ Product pages (`/map/`, `/pathway/`, etc.) follow a consistent structure:
 
 Collection pages use `toc: false` and a grid of content partials to link to
 children. Cards are organized under `##` job headings with a persona label.
-
-```html
-<div class="grid">
-<!-- part:card:agent-teams -->
-<!-- part:card:agent-teams/organizational-context -->
-</div>
-```
-
-Each `<!-- part:card:path -->` resolves to an `<a>` with the target page's
-`title` and `description` from frontmatter. Paths are relative to the current
-page's directory — `agent-teams` for a sibling, `../docs/libraries` for a
-cross-tree reference. The build fails if a target page does not exist, so stale
-card references are caught automatically.
-
-Hand-written `<a>` cards are still used for external links (GitHub URLs) and
-same-page anchors (`href="#section"`). See `gear/index.md` and
-`docs/internals/kata/index.md` for examples.
+Partial paths are relative to the page's directory — `agent-teams` for a
+sibling, `../docs/libraries` for a cross-tree reference. See `gear/index.md`
+and `docs/internals/kata/index.md` for examples.
 
 ### Getting Started Pages
 

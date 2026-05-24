@@ -1,11 +1,28 @@
 # Config
 
 Local runtime configuration. This directory is gitignored — each contributor
-maintains their own `config.json`. The file is read by `libconfig` at startup.
+maintains their own `config.json`, read by `libconfig` at startup.
+
+## Audience
+
+Internal contributors only. External users never reach `config/` — products
+and services ship constructor defaults, and `npx fit-<product> init` writes
+a starter `config.json` on first run.
+
+## Layered consumers
+
+`config.json` is the canonical source. Three layers consume it via
+[`libconfig`](../libraries/libconfig/CLAUDE.md):
+
+| Block            | Factory                     | Consumed by                                  |
+| ---------------- | --------------------------- | -------------------------------------------- |
+| `init`           | `createInitConfig()`        | [services/](../services/CLAUDE.md) (`fit-rc`) |
+| `service.<name>` | `createServiceConfig(name)` | [services/](../services/CLAUDE.md)            |
+| `product.<name>` | `createProductConfig(name)` | [products/](../products/CLAUDE.md)            |
 
 ## `config.json` structure
 
-Three top-level sections, each consumed by a different factory in `libconfig`:
+Three top-level sections, each consumed by a different factory:
 
 ```json
 {
@@ -17,8 +34,7 @@ Three top-level sections, each consumed by a different factory in `libconfig`:
 
 ### `init` — service supervision
 
-Read by `createInitConfig()` → consumed by `fit-rc`. Defines which processes
-the supervisor manages.
+Defines which processes `fit-rc` manages.
 
 ```json
 {
@@ -35,23 +51,13 @@ the supervisor manages.
 ```
 
 Each entry has a `name` and a `command` (the shell command `fit-rc` spawns).
-Non-Node commands that need `.env` variables must source them explicitly (the
-supervisor does not load `.env` — Node services use `libconfig` internally).
+Non-Node commands needing `.env` variables must source them explicitly.
 
 **Declaration order matters.** `start <name>`, `stop <name>`, and
-`restart <name>` operate on the named service and everything after it.
-Services before the target are untouched. List infrastructure (tunnels,
-databases) before the services that depend on them.
+`restart <name>` operate on the target and everything after it. List
+infrastructure (tunnels, databases) before services that depend on them.
 
-Optional entries — add when working on those features:
-
-```json
-{ "name": "mstunnel", "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_MSBRIDGE_URL} --protocol http2'" }
-{ "name": "msbridge", "command": "node -e \"import('@forwardimpact/svcmsbridge/server.js')\"" }
-```
-
-Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`.
-`fit-rc start <name>` runs the `up` command; `fit-rc stop <name>` runs `down`:
+Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`:
 
 ```json
 {
@@ -62,37 +68,15 @@ Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`.
 }
 ```
 
-### `service` — service configuration
+### `service.<name>` — service configuration
 
-Read by `createServiceConfig(name)`. Keyed by service name. Values are merged
-with the service's constructor defaults, then overridden by `SERVICE_{NAME}_{KEY}`
-environment variables from `.env` or the shell.
+Values merge with the service's constructor defaults, then overridden by
+`SERVICE_{NAME}_{KEY}` environment variables from `.env` or the shell.
 
-```json
-{
-  "service": {
-    "mcp": {
-      "systemPrompt": "...",
-      "tools": { ... }
-    }
-  }
-}
-```
+### `product.<name>` — product configuration
 
-### `product` — product configuration
-
-Read by `createProductConfig(name)`. Same merge/override pattern as services,
-with `PRODUCT_{NAME}_{KEY}` environment variables.
-
-```json
-{
-  "product": {
-    "guide": {
-      "systemPrompt": "..."
-    }
-  }
-}
-```
+Same merge/override pattern as services, with `PRODUCT_{NAME}_{KEY}`
+environment variables.
 
 ## `.env`
 
@@ -100,4 +84,3 @@ Merge order: constructor defaults → `config.json` → `.env`. The `.env` file
 is the persistent source of truth — non-credential keys overwrite
 `process.env` unconditionally on load. Credential keys (API keys, tokens) go
 to a private map; shell env wins at read time for credentials only.
-

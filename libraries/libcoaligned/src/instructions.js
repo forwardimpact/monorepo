@@ -102,15 +102,25 @@ async function findSkillReferences(root, skillDirs) {
 async function buildLayers(root) {
   const claudeDirs = await findByName(root, ".claude", "dir");
   const skillDirs = await findSkillDirs(root, claudeDirs);
+  const allClaude = await findByName(root, "CLAUDE.md", "file");
+  const rootClaude = allClaude.filter((p) => p === "CLAUDE.md");
+  const subdirClaude = allClaude.filter((p) => p !== "CLAUDE.md");
   return {
     skillDirs,
     layers: [
       {
         id: "L1",
-        name: "CLAUDE.md",
+        name: "root CLAUDE.md",
         maxLines: 192,
         maxWords: 896,
-        files: await findByName(root, "CLAUDE.md", "file"),
+        files: rootClaude,
+      },
+      {
+        id: "L1",
+        name: "subdir CLAUDE.md",
+        maxLines: 128,
+        maxWords: 768,
+        files: subdirClaude,
       },
       {
         id: "L2",
