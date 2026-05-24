@@ -29,6 +29,7 @@ const agentOpt = {
   agent: {
     type: "string",
     description: "Agent name (falls back to LIBEVAL_AGENT_PROFILE env var)",
+    default: process.env.LIBEVAL_AGENT_PROFILE,
   },
 };
 
@@ -165,6 +166,7 @@ const definition = {
           type: "string",
           description:
             "Sender agent name (falls back to LIBEVAL_AGENT_PROFILE env var)",
+          default: process.env.LIBEVAL_AGENT_PROFILE,
         },
         to: {
           type: "string",
