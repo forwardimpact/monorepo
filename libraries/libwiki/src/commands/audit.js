@@ -5,12 +5,13 @@ import { Finder } from "@forwardimpact/libutil";
 import {
   ACTIVE_CLAIMS_HEADING,
   ACTIVE_CLAIMS_TABLE_HEADER,
-  CUTOVER_ISO_WEEK,
   DECISION_HEADING,
   MEMO_INBOX_MARKER,
   PRIORITY_INDEX_HEADING,
   SUMMARY_LINE_BUDGET,
+  SUMMARY_WORD_BUDGET,
   WEEKLY_LOG_LINE_BUDGET,
+  WEEKLY_LOG_WORD_BUDGET,
 } from "../constants.js";
 import { parseClaims, filterExpired } from "../active-claims.js";
 
@@ -69,15 +70,20 @@ function countLines(text) {
   return text.split("\n").length - (text.endsWith("\n") ? 1 : 0);
 }
 
-function compareIsoWeek(a, b) {
-  return a.localeCompare(b);
-}
-
-function isoWeekForFile(base) {
-  const match =
-    base.match(WEEKLY_LOG_NAME_RE) || base.match(WEEKLY_LOG_PART_NAME_RE);
-  if (!match) return null;
-  return `${match[1]}-W${match[2]}`;
+function countWords(text) {
+  let count = 0;
+  let inWord = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    const isWs = c === 32 || c === 9 || c === 10 || c === 13;
+    if (isWs) {
+      inWord = false;
+    } else if (!inWord) {
+      inWord = true;
+      count++;
+    }
+  }
+  return count;
 }
 
 function pushFail(findings, level, message) {
@@ -144,6 +150,14 @@ function checkSummaryFile(f, findings, grace) {
       `budget: ${f} has ${lines} lines (limit ${SUMMARY_LINE_BUDGET})`,
     );
   }
+  const words = countWords(text);
+  if (words > SUMMARY_WORD_BUDGET) {
+    pushFail(
+      findings,
+      grace ? "warn" : "fail",
+      `budget: ${f} has ${words} words (limit ${SUMMARY_WORD_BUDGET})`,
+    );
+  }
   const fileLines = text.split("\n");
   const h2s = [];
   for (const line of fileLines) {
@@ -196,17 +210,23 @@ function checkWeeklyLogFile(f, base, findings, grace) {
   if (!firstLine || !WEEKLY_LOG_H1_RE.test(firstLine)) {
     pushFail(findings, "fail", `weekly-log: ${f} missing valid H1 heading`);
   }
-  const week = isoWeekForFile(base);
-  const postCutover = week && compareIsoWeek(week, CUTOVER_ISO_WEEK) >= 0;
   const lines = countLines(text);
-  if (postCutover && lines > WEEKLY_LOG_LINE_BUDGET) {
+  if (lines > WEEKLY_LOG_LINE_BUDGET) {
     pushFail(
       findings,
       "fail",
-      `weekly-log: ${f} has ${lines} lines (limit ${WEEKLY_LOG_LINE_BUDGET}, post-cutover)`,
+      `weekly-log: ${f} has ${lines} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
     );
   }
-  if (isMain && postCutover) {
+  const words = countWords(text);
+  if (words > WEEKLY_LOG_WORD_BUDGET) {
+    pushFail(
+      findings,
+      "fail",
+      `weekly-log: ${f} has ${words} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
+    );
+  }
+  if (isMain) {
     checkDecisionBlocks(f, text, findings, grace);
   }
 }

@@ -14,7 +14,8 @@ export {
   DECISION_HEADING,
   WEEKLY_LOG_LINE_BUDGET,
   SUMMARY_LINE_BUDGET,
-  CUTOVER_ISO_WEEK,
+  WEEKLY_LOG_WORD_BUDGET,
+  SUMMARY_WORD_BUDGET,
 } from "./constants.js";
 export { scanMarkers } from "./marker-scanner.js";
 export { renderBlock } from "./block-renderer.js";
