@@ -73,7 +73,7 @@ describe("fit-wiki audit CLI", () => {
     assert.match(out, /WARN .*staff-engineer.md/);
   });
 
-  test("post-cutover weekly log over budget fails", () => {
+  test("weekly log over line budget fails", () => {
     const big = Array(550).fill("x").join("\n");
     writeFileSync(
       join(wikiRoot, "staff-engineer-2026-W25.md"),
@@ -81,17 +81,33 @@ describe("fit-wiki audit CLI", () => {
     );
     const r = runFail(dir, ["audit", "--today", "2026-06-22"]);
     assert.equal(r.status, 1);
-    assert.match(r.stdout, /weekly-log.*post-cutover/);
+    assert.match(r.stdout, /weekly-log:.*has \d+ lines/);
   });
 
-  test("pre-cutover weekly log is exempt", () => {
-    const big = Array(1500).fill("x").join("\n");
+  test("summary over word budget fails even when line count fits", () => {
+    const paragraphs = Array(20)
+      .fill(Array(900).fill("word").join(" "))
+      .join("\n\n");
     writeFileSync(
-      join(wikiRoot, "staff-engineer-2026-W19.md"),
-      `# Staff Engineer — 2026-W19\n\n${big}\n`,
+      join(wikiRoot, "staff-engineer.md"),
+      `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${paragraphs}\n`,
     );
-    const out = run(dir, ["audit"]);
-    assert.match(out, /RESULT: pass/);
+    const r = runFail(dir, ["audit"]);
+    assert.equal(r.status, 1);
+    assert.match(r.stdout, /budget:.*staff-engineer.md has \d+ words/);
+  });
+
+  test("weekly log over word budget fails", () => {
+    const paragraphs = Array(20)
+      .fill(Array(500).fill("word").join(" "))
+      .join("\n\n");
+    writeFileSync(
+      join(wikiRoot, "staff-engineer-2026-W25.md"),
+      `# Staff Engineer — 2026-W25\n\n${paragraphs}\n`,
+    );
+    const r = runFail(dir, ["audit", "--today", "2026-06-22"]);
+    assert.equal(r.status, 1);
+    assert.match(r.stdout, /weekly-log:.*has \d+ words/);
   });
 
   test("JSON format emits machine-readable output", () => {
