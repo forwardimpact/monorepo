@@ -44,6 +44,7 @@
   "dependencies": {
     "@forwardimpact/libconfig": "^0.1.58",
     "@forwardimpact/libgraph": "^0.1.49",
+    "@forwardimpact/libproto": "^0.1.0",
     "@forwardimpact/libresource": "^0.1.89",
     "@forwardimpact/librpc": "^0.1.77",
     "@forwardimpact/libtelemetry": "^0.1.41",

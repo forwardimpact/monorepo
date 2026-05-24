@@ -51,7 +51,7 @@
     },
     "libraries/libcodegen": {
       "name": "@forwardimpact/libcodegen",
-      "version": "0.1.55",
+      "version": "0.1.56",
       "bin": {
         "fit-codegen": "./bin/fit-codegen.js",
       },
@@ -71,7 +71,7 @@
     },
     "libraries/libconfig": {
       "name": "@forwardimpact/libconfig",
-      "version": "0.1.79",
+      "version": "0.1.80",
       "dependencies": {
         "@forwardimpact/libsecret": "^0.1.15",
         "@forwardimpact/libstorage": "^0.1.53",
@@ -214,9 +214,13 @@
         "mustache": "^4.2.0",
       },
     },
+    "libraries/libproto": {
+      "name": "@forwardimpact/libproto",
+      "version": "0.1.0",
+    },
     "libraries/librc": {
       "name": "@forwardimpact/librc",
-      "version": "0.1.29",
+      "version": "0.1.30",
       "bin": {
         "fit-rc": "./bin/fit-rc.js",
       },
@@ -288,7 +292,7 @@
     },
     "libraries/libskill": {
       "name": "@forwardimpact/libskill",
-      "version": "5.4.0",
+      "version": "5.5.0",
       "dependencies": {
         "@forwardimpact/map": "^0.15.0",
       },
@@ -428,7 +432,7 @@
     },
     "libraries/libtype": {
       "name": "@forwardimpact/libtype",
-      "version": "0.1.75",
+      "version": "0.1.76",
       "dependencies": {
         "@forwardimpact/libsecret": "^0.1.3",
         "@forwardimpact/libutil": "^0.1.60",
@@ -465,7 +469,7 @@
     },
     "libraries/libvector": {
       "name": "@forwardimpact/libvector",
-      "version": "0.1.92",
+      "version": "0.1.93",
       "bin": {
         "fit-process-vectors": "./bin/fit-process-vectors.js",
         "fit-search": "./bin/fit-search.js",
@@ -543,7 +547,7 @@
     },
     "products/guide": {
       "name": "@forwardimpact/guide",
-      "version": "0.1.41",
+      "version": "0.1.42",
       "bin": {
         "fit-guide": "./bin/fit-guide.js",
       },
@@ -637,7 +641,7 @@
     },
     "products/pathway": {
       "name": "@forwardimpact/pathway",
-      "version": "0.25.62",
+      "version": "0.25.63",
       "bin": {
         "fit-pathway": "./bin/fit-pathway.js",
       },
@@ -725,6 +729,7 @@
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.58",
         "@forwardimpact/libgraph": "^0.1.49",
+        "@forwardimpact/libproto": "^0.1.0",
         "@forwardimpact/libresource": "^0.1.89",
         "@forwardimpact/librpc": "^0.1.77",
         "@forwardimpact/libtelemetry": "^0.1.41",
@@ -742,6 +747,7 @@
       },
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libproto": "^0.1.0",
         "@forwardimpact/librpc": "^0.1.77",
         "@forwardimpact/libtelemetry": "^0.1.30",
         "@forwardimpact/libtype": "^0.1.67",
@@ -798,6 +804,7 @@
       },
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libproto": "^0.1.0",
         "@forwardimpact/librpc": "^0.1.77",
         "@forwardimpact/libskill": "^5.0.0",
         "@forwardimpact/libtelemetry": "^0.1.30",
@@ -836,6 +843,7 @@
       },
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libproto": "^0.1.0",
         "@forwardimpact/libresource": "^0.1.89",
         "@forwardimpact/librpc": "^0.1.77",
         "@forwardimpact/libstorage": "^0.1.53",
@@ -1073,6 +1081,8 @@
     "@forwardimpact/libpolicy": ["@forwardimpact/libpolicy@workspace:libraries/libpolicy"],
 
     "@forwardimpact/libprompt": ["@forwardimpact/libprompt@workspace:libraries/libprompt"],
+
+    "@forwardimpact/libproto": ["@forwardimpact/libproto@workspace:libraries/libproto"],
 
     "@forwardimpact/librc": ["@forwardimpact/librc@workspace:libraries/librc"],
 
