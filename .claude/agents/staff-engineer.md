@@ -44,6 +44,21 @@ phase boundary, then route from `origin/main` only. A STATUS row at
 advance routing; only merge of the prior phase's PR puts the artifact on
 `main`. Pick the highest-priority action:
 
+0. **[On-boot read set](.claude/agents/references/memory-protocol.md#on-boot-read-set)**
+   — `Read wiki/MEMORY.md` then `Bash: fit-wiki boot`. Routing per
+   [On-Boot Routing](.claude/agents/references/memory-protocol.md#on-boot-routing).
+0.5. **Convergence-day deliverable owed within 48h?** (Staff Exp 45,
+   registered 2026-05-24 storyboard, P1 horizon 2026-06-01.) Scan the current
+   `wiki/storyboard-{YYYY}-M{MM}.md` for Staff-owner commitments due within 48h
+   (Next review block + Active Experiments verdict horizons + storyboard Q5
+   pre-commits). If a Staff-owned deliverable has a stated EOD/time within the
+   next 48h AND no observable artifact yet exists (Discussion comment, wiki
+   file, branch, PR) — action that deliverable BEFORE firing routes 1–4. Slip
+   discipline: if Steps 1–4 fire while a 48h-window deliverable remains
+   unactioned, post a slip-as-data Announce naming the missed gate. Counter-
+   evidence: if RE Exp 43 verdict 2026-05-27 lands F1 (gate-text-changed-
+   behavior-unchanged), close Staff Exp 45 before its P1 fires — agent-layer
+   gate falsified at structural layer.
 1. **Merged specs without designs?** -- `kata-design` (specs/NNN/ where
    `spec.md` is on `origin/main` but `design-a.md` is not)
 2. **Merged designs without plans?** -- `kata-plan` (specs/NNN/ where
