@@ -37,6 +37,8 @@ Validate your standard data against the schema:
 npx fit-map validate
 ```
 
+Expected output (your counts will reflect your installation's standard):
+
 ```text
 Validation passed
 

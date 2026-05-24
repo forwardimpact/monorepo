@@ -99,12 +99,12 @@ information flows downward -- never upward.
 
 ```text
 .claude/
-  CLAUDE.md                       # Layer 1: Team Instructions
+  CLAUDE.md                              # Layer 1: Team Instructions
   agents/
-    software-engineer--platform.md  # Layer 2: Agent Profile
+    software-engineer--platform.agent.md  # Layer 2: Agent Profile
   skills/
-    architecture-design/SKILL.md    # Layer 3: Skills
-    code-review/SKILL.md
+    task-completion/SKILL.md             # Layer 3: Skills
+    incident-response/SKILL.md
 ```
 
 | Layer               | File                          | Loaded by              | Contains                                                  |

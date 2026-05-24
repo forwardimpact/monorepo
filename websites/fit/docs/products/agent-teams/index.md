@@ -108,19 +108,19 @@ Once the preview looks right, generate the files into your project:
 npx fit-pathway agent software_engineering --track=platform --output=.
 ```
 
-Pathway writes the following structure:
+Pathway writes the following structure (the skill directories will match
+your discipline's tier arrays — the example below uses the starter):
 
 ```text
 .claude/
   CLAUDE.md                                  # Team instructions
   settings.json                              # Tool permissions
   agents/
-    software-engineer--platform.md           # Agent profile
+    software-engineer--platform.agent.md     # Agent profile
   skills/
-    architecture-design/SKILL.md             # Skill files
-    code-review/SKILL.md
-    cloud-platforms/SKILL.md
-    sre-practices/SKILL.md
+    task-completion/SKILL.md                 # Skill files
+    incident-response/SKILL.md
+    incident-management/SKILL.md
 ```
 
 The agent name is derived from the discipline's `roleTitle`, suffixed with the
@@ -135,11 +135,13 @@ List the skill IDs the agent received to confirm they match the discipline:
 npx fit-pathway agent software_engineering --track=platform --skills
 ```
 
+Expected output (your organization's skills will differ — the starter ships
+this shape for `software_engineering --track=platform`):
+
 ```text
-architecture_design
-code_review
-cloud_platforms
-sre_practices
+task_completion
+incident_response
+incident_management
 ```
 
 Each skill file under `.claude/skills/` contains procedural guidance for one

@@ -78,11 +78,14 @@ referenced the original `id`.
 
 ## What this does not do
 
-- **Issue JWTs to engineers.** A `fit-landmark login` verb,
-  magic-link delivery, password-reset flow, or SSO bridge — any of which
-  would turn a provisioned `auth.users` row into a JWT in the engineer's
-  CLI environment — is a follow-up. `provision` only ensures the row
-  exists; getting a JWT into engineer hands remains a separate concern.
+- **Issue JWTs to engineers.** `provision` only ensures the `auth.users`
+  row exists so Supabase Auth will accept the engineer's sign-in. Engineers
+  obtain a JWT by running `fit-landmark login` themselves (magic-link or
+  OTP); operators issuing long-lived tokens for unattended agents use
+  `fit-map auth issue`. See
+  [Sign In to Landmark](https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md)
+  and
+  [Issue Service-Account Tokens](https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md).
 - **Delete user data.** Decommissioning bans the row; it does not remove
   the engineer's history from `activity.*`. That is governed by the
   retention windows declared in the migration metadata and surfaced via

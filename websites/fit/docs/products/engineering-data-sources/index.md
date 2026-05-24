@@ -14,11 +14,12 @@ to find out.
 
 ## Prerequisites
 
-- A Supabase Auth JWT bound to your engineer email. The CLI reads it from
-  `PRODUCT_LANDMARK_TOKEN`. Test harnesses and CI fixtures mint JWTs against
-  `SUPABASE_JWT_SECRET` via the `signTestToken` helper; production-side
-  issuance flows (login, magic-link, SSO) are a follow-up — until then the
-  command requires a manually-injected token.
+- A Supabase Auth session bound to your engineer email. Engineers run
+  `fit-landmark login` (magic-link or `--otp`) to obtain one — see
+  [Sign In to Landmark](https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md).
+  Unattended agents and CI fixtures instead export an operator-minted JWT
+  as `PRODUCT_LANDMARK_TOKEN`; test harnesses mint short-lived JWTs against
+  `SUPABASE_JWT_SECRET` via the `signTestToken` helper.
 - `SUPABASE_URL` and `SUPABASE_ANON_KEY` available in your environment.
   Local installs generate these in `.env` via `just env-setup`; hosted
   Supabase deployments copy them from the project's API settings.
