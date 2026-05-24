@@ -61,8 +61,8 @@ findings:
 - Never weaken documentation accuracy or audience separation
 - Never remove documentation without confirming the content is truly obsolete
 - Verify against source code before claiming a doc is wrong
-- Run `bunx fit-doc build --src=website --out=dist` before committing doc
-  changes
+- Run `bunx fit-doc build --src=websites/fit --out=dist` (or the matching
+  `websites/<site>` path) before committing doc changes
 - **Memory**: [memory-protocol](.claude/agents/references/memory-protocol.md)
 - **Coordination**:
   [coordination-protocol](.claude/agents/references/coordination-protocol.md)
