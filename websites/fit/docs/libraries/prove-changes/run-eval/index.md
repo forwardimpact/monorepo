@@ -5,10 +5,11 @@ description: Know whether agent changes improved outcomes — an agent-as-judge 
 
 You changed an agent profile, a tool allowlist, or a system prompt -- and now
 you need to know whether things got better or worse. `fit-eval supervise` runs a
-**judge agent** alongside a **target agent** in a relay loop: the judge watches
-the target work turn-by-turn and calls `Conclude` with a verdict. The exit code
-(`0` pass, `1` fail) drops into GitHub Actions like any other check. The NDJSON
-trace captures every turn so you can inspect what happened with `fit-trace`.
+**judge agent** alongside a **target agent** on a shared orchestration loop:
+the judge sends `Ask` questions, the target replies with `Answer`, and the judge
+calls `Conclude` with a verdict when satisfied. The exit code (`0` pass, `1`
+fail) drops into GitHub Actions like any other check. The NDJSON trace captures
+every turn so you can inspect what happened with `fit-trace`.
 
 ## Prerequisites
 
@@ -54,10 +55,11 @@ Pass criteria -- all must hold:
 - New tests exist for en-US, en-GB, and de-DE.
 - The full test suite passes on the agent's final run.
 
-If the agent strays, use `Redirect` to bring it back on task. If it claims
-to be done, verify the criteria yourself with `Read` and `Bash` before
-calling `Conclude`. Conclude with `verdict: "failure"` if any criterion fails;
-include a one-paragraph summary of the gap.
+If the agent strays, send a fresh `Ask` to redirect it -- each `Ask` gets a
+new `askId`, so a follow-up question coexists with any in-flight ones. If
+it claims to be done, verify the criteria yourself with `Read` and `Bash`
+before calling `Conclude`. Conclude with `verdict: "failure"` if any
+criterion fails; include a one-paragraph summary of the gap.
 ```
 
 Give the judge read-only tools via `--supervisor-allowed-tools` (typically
@@ -80,8 +82,10 @@ npx fit-eval supervise \
 `--agent-cwd` should be a sandbox copy of your repo since the target agent edits
 files there. When omitted, `fit-eval` creates a temporary directory. The judge
 stays in `--supervisor-cwd` to inspect the target's work without writing to it.
-`--max-turns` is the per-runner invocation budget (default `200`); the judge↔
-agent relay loop is bounded separately. `--max-turns=0` removes both caps.
+`--max-turns` is the per-runner invocation budget (default `200`); the
+orchestration loop that drives the judge↔agent exchange is bounded
+separately by an internal lead-turn cap. `--max-turns=0` removes the
+per-runner cap.
 
 Exit code `0` means the judge concluded with `success: true`. Exit code `1`
 means `success: false`, the turn limit was reached, or an error occurred.
@@ -185,9 +189,9 @@ first failure.
 
 ## Tips
 
-- **`--max-turns=0`** removes both caps (per-runner invocations and the
-  supervisor↔agent exchange loop). Use it for exploratory local runs;
-  always set a real budget in CI.
+- **`--max-turns=0`** removes the per-runner invocation cap; the
+  orchestration loop's internal lead-turn cap still applies. Use it for
+  exploratory local runs; always set a real budget in CI.
 - **`--task-amend`** appends extra text to the task without editing the task
   file -- useful for parameterizing the same task across a matrix.
 - **The judge profile is a system prompt, not a contract.** It steers the judge
