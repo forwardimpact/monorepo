@@ -140,8 +140,8 @@ async function buildLayers(root) {
       {
         id: "L3",
         name: "agent profile",
-        maxLines: 64,
-        maxWords: 384,
+        maxLines: 72,
+        maxWords: 448,
         files: await findAgentProfiles(root, claudeDirs),
       },
       {
