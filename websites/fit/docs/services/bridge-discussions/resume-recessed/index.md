@@ -5,7 +5,7 @@ description: Trace the suspend/resume contract — how a `recessed` verdict pers
 
 An RFC posted as a GitHub Discussion may need to wait. The lead reads the
 intake, judges that humans need time to respond (or wants a fixed window to
-elapse), and returns a `recessed` verdict with a trigger -- not a final
+elapse), and returns a `recessed` verdict with a trigger — not a final
 reply. The bridge persists that trigger, keeps the RFC open in the
 discussion-context store, accumulates every follow-up comment into history,
 and re-dispatches the workflow with `resume_context` when the trigger
@@ -20,7 +20,7 @@ startup, see
 
 - Completed the
   [Bridge GitHub Discussions to the Agent Team](/docs/services/bridge-discussions/)
-  guide -- `ghbridge` is running, the tunnel is published, the App webhook
+  guide — `ghbridge` is running, the tunnel is published, the App webhook
   is configured, and a fresh discussion already triggered a workflow
   successfully.
 
