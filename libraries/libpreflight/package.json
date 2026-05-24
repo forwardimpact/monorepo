@@ -1,0 +1,50 @@
+{
+  "name": "@forwardimpact/libpreflight",
+  "version": "0.1.0",
+  "description": "Runtime-floor preflight — fail fast with a product-authored error when the host Node is below a package's declared floor.",
+  "keywords": [
+    "preflight",
+    "runtime",
+    "node",
+    "engines",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "libraries/libpreflight"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Ship Predictable CLIs",
+      "trigger": "User runs an npx CLI on an unsupported Node and sees an upstream-authored error.",
+      "bigHire": "enforce a runtime floor before any heavy import evaluates.",
+      "littleHire": "surface a product-authored Node-version error instead of an upstream library's.",
+      "competesWith": "inline checks in each bin; engines-strict; install-time hooks"
+    }
+  ],
+  "type": "module",
+  "main": "./src/check.js",
+  "exports": {
+    "./node22": "./src/node22.js",
+    "./check.js": "./src/check.js"
+  },
+  "files": [
+    "src/**/*.js",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

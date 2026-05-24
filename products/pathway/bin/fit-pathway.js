@@ -9,6 +9,8 @@
  *   npx fit-pathway <command> [options]
  */
 
+import "@forwardimpact/libpreflight/node22";
+
 import { join, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";

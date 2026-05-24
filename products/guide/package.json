@@ -69,25 +69,26 @@
     "@anthropic-ai/claude-agent-sdk": "0.2.112",
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libcodegen": "^0.1.32",
-    "@forwardimpact/librc": "^0.1.16",
     "@forwardimpact/libconfig": "^0.1.79",
     "@forwardimpact/libformat": "^0.1.0",
+    "@forwardimpact/libpreflight": "^0.1.0",
+    "@forwardimpact/librc": "^0.1.16",
     "@forwardimpact/librepl": "^0.1.6",
-    "@forwardimpact/libsecret": "^0.1.7",
     "@forwardimpact/librpc": "^0.1.77",
+    "@forwardimpact/libsecret": "^0.1.7",
     "@forwardimpact/libstorage": "^0.1.53",
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@forwardimpact/libtype": "^0.1.63",
     "@forwardimpact/libutil": "^0.1.64",
     "@forwardimpact/svcgraph": "^0.1.60",
-    "@forwardimpact/svcpathway": "^0.1.8",
     "@forwardimpact/svcmcp": "^0.1.0",
+    "@forwardimpact/svcpathway": "^0.1.8",
     "@forwardimpact/svctrace": "^0.1.34",
     "@forwardimpact/svcvector": "^0.1.111"
   },
   "engines": {
     "bun": ">=1.2.0",
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "publishConfig": {
     "access": "public"

@@ -50,6 +50,7 @@
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.79",
     "@forwardimpact/libpolicy": "^0.1.52",
+    "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libsecret": "^0.1.16",
     "@forwardimpact/libstorage": "^0.1.53",
     "@forwardimpact/libtelemetry": "^0.1.22",
@@ -66,7 +67,7 @@
   },
   "engines": {
     "bun": ">=1.2.0",
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "publishConfig": {
     "access": "public"

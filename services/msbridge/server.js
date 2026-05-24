@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import "@forwardimpact/libpreflight/node22";
+
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createStorage } from "@forwardimpact/libstorage";
 import { createTracer } from "@forwardimpact/librpc";

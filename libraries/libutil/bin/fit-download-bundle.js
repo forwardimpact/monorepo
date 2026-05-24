@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import "@forwardimpact/libpreflight/node22";
+
 import { readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { createCli } from "@forwardimpact/libcli";

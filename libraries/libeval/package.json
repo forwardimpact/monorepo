@@ -54,6 +54,7 @@
     "@anthropic-ai/claude-agent-sdk": "0.2.112",
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.0",
+    "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@forwardimpact/libutil": "^0.1.0",
     "jmespath": "^0.16.0",
@@ -65,7 +66,7 @@
   },
   "engines": {
     "bun": ">=1.2.0",
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "publishConfig": {
     "access": "public"

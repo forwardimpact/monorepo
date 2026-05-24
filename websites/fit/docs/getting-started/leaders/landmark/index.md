@@ -16,7 +16,7 @@ in the Map guide.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - npm
 - Map's activity layer running and populated
 - A Supabase Auth JWT exported as `PRODUCT_LANDMARK_TOKEN` — see

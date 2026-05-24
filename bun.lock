@@ -210,6 +210,10 @@
         "@forwardimpact/libharness": "^0.1.5",
       },
     },
+    "libraries/libpreflight": {
+      "name": "@forwardimpact/libpreflight",
+      "version": "0.1.0",
+    },
     "libraries/libprompt": {
       "name": "@forwardimpact/libprompt",
       "version": "0.1.9",
@@ -1086,6 +1090,8 @@
     "@forwardimpact/libpack": ["@forwardimpact/libpack@workspace:libraries/libpack"],
 
     "@forwardimpact/libpolicy": ["@forwardimpact/libpolicy@workspace:libraries/libpolicy"],
+
+    "@forwardimpact/libpreflight": ["@forwardimpact/libpreflight@workspace:libraries/libpreflight"],
 
     "@forwardimpact/libprompt": ["@forwardimpact/libprompt@workspace:libraries/libprompt"],
 

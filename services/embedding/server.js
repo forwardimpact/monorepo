@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import "@forwardimpact/libpreflight/node22";
+
 import { spawn } from "node:child_process";
 import { Server } from "@forwardimpact/librpc";
 import { createServiceConfig } from "@forwardimpact/libconfig";

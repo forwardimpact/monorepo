@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libstorage": "^0.1.53",
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@forwardimpact/libutil": "^0.1.64",
@@ -59,7 +60,7 @@
   },
   "engines": {
     "bun": ">=1.2.0",
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "publishConfig": {
     "access": "public"

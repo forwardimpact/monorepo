@@ -15,7 +15,7 @@ agent-aligned engineering standard YAML.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - npm
 - Map's activity layer running and populated (for most commands)
 - A Supabase Auth JWT exported as `PRODUCT_LANDMARK_TOKEN` for every command

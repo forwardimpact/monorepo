@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import "@forwardimpact/libpreflight/node22";
+
 import { createAppAuth } from "@octokit/auth-app";
 import { graphql } from "@octokit/graphql";
 import { verify } from "@octokit/webhooks-methods";

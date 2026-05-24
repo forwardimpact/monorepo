@@ -19,7 +19,7 @@ everything Landmark and Summit do.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - npm
 
 ## Install

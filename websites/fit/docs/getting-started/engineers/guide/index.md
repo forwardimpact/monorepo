@@ -9,7 +9,7 @@ interpret engineering artifacts against your skill markers.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - npm
 
 ## Install
