@@ -326,7 +326,6 @@ async function runFhirNodes(parse, ctx = {}) {
     logger: ctx.logger ?? makeLogger(),
     options: {},
   });
-  const parsed = await nodes.parse;
   const datasets = await nodes.datasets.run({
     parse: { ...parse, clinical: ctx.entities?.clinical ?? null },
   });
@@ -334,10 +333,11 @@ async function runFhirNodes(parse, ctx = {}) {
   const crossRef = nodes["fhir-cross-ref"].run({ parse, entities, datasets });
   const microdata = nodes["fhir-microdata-html"].run({
     parse,
+    entities,
     datasets,
     "fhir-cross-ref": crossRef,
   });
-  return { datasets, crossRef, microdata, parse: parsed };
+  return { datasets, crossRef, microdata };
 }
 
 describe("fhir-cross-ref node", () => {

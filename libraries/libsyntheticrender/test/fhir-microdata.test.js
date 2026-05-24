@@ -145,6 +145,23 @@ describe("buildFhirCrossRef", () => {
     assert.strictEqual(crossRef.trialIriToPatientIris.size, 0);
   });
 
+  test("returned CrossRefIndex is frozen at the top level", () => {
+    const crossRef = buildFhirCrossRef({
+      patients: [makePatient(PATIENT_A, "Jones", "Alice")],
+      conditions: [],
+      clinical: makeClinical(),
+      domain: "test.example",
+    });
+    assert.strictEqual(Object.isFrozen(crossRef), true);
+    const before = crossRef.patientToTrialIris;
+    try {
+      crossRef.patientToTrialIris = new Map();
+    } catch {
+      /* strict mode throws; non-strict silently ignores — both produce no-op */
+    }
+    assert.strictEqual(crossRef.patientToTrialIris, before);
+  });
+
   test("preserves insertion order across multiple patients", () => {
     const patients = [
       makePatient(PATIENT_A, "Jones", "Alice"),
@@ -321,6 +338,42 @@ describe("renderFhirMicrodataHtml", () => {
     assert.throws(
       () => renderFhirMicrodataHtml({ ...input, domain: "test.example" }, {}),
       /config\.path is required/,
+    );
+  });
+
+  test("throws when input.patients is not an array", () => {
+    const input = basicInput();
+    assert.throws(
+      () =>
+        renderFhirMicrodataHtml(
+          { ...input, patients: null, domain: "test.example" },
+          { path: "data/patients" },
+        ),
+      /input\.patients must be an array/,
+    );
+  });
+
+  test("throws when input.domain is missing or empty", () => {
+    const input = basicInput();
+    assert.throws(
+      () =>
+        renderFhirMicrodataHtml(
+          { ...input, domain: "" },
+          { path: "data/patients" },
+        ),
+      /input\.domain is required/,
+    );
+  });
+
+  test("throws when input.crossRef is null", () => {
+    const input = basicInput();
+    assert.throws(
+      () =>
+        renderFhirMicrodataHtml(
+          { ...input, crossRef: null, domain: "test.example" },
+          { path: "data/patients" },
+        ),
+      /input\.crossRef is required/,
     );
   });
 

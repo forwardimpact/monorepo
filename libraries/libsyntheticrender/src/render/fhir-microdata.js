@@ -34,6 +34,12 @@ const PRED = {
  * @property {Map<string, Set<string>>} conditionIdToPatientIris
  * @property {Map<string, Set<string>>} siteIdToPatientIris
  * @property {Map<string, Set<string>>} trialIriToPatientIris
+ *
+ * Immutability contract: the returned object is frozen with
+ * `Object.freeze`. The inner Maps and Sets are not frozen (JS provides no
+ * shallow path), so consumers must read-only — never `.set`/`.add` into
+ * them. `skeleton` and `fhir-microdata-html` both consume the same
+ * instance per pipeline run.
  */
 
 /**
@@ -137,10 +143,10 @@ export function buildFhirCrossRef({ patients, conditions, clinical, domain }) {
     }
   }
 
-  return {
+  return Object.freeze({
     ...maps,
     trialIriToPatientIris: invertPatientToTrials(maps.patientToTrialIris),
-  };
+  });
 }
 
 function pickName(name) {
@@ -199,6 +205,25 @@ function summarizeConditions(items) {
   return `${names.slice(0, 3).join(", ")} (+${names.length - 3} more)`;
 }
 
+/** Guard the boundary contract for `renderFhirMicrodataHtml`. */
+function validateFhirInput(input, config) {
+  if (!config || typeof config.path !== "string" || config.path.length === 0) {
+    throw new Error("renderFhirMicrodataHtml: config.path is required");
+  }
+  if (!input || typeof input !== "object") {
+    throw new Error("renderFhirMicrodataHtml: input is required");
+  }
+  if (!Array.isArray(input.patients)) {
+    throw new Error("renderFhirMicrodataHtml: input.patients must be an array");
+  }
+  if (typeof input.domain !== "string" || input.domain.length === 0) {
+    throw new Error("renderFhirMicrodataHtml: input.domain is required");
+  }
+  if (!input.crossRef || typeof input.crossRef !== "object") {
+    throw new Error("renderFhirMicrodataHtml: input.crossRef is required");
+  }
+}
+
 /**
  * Render one HTML file per FHIR Patient plus an `index.html` aggregator.
  *
@@ -214,9 +239,7 @@ function summarizeConditions(items) {
  * @returns {Map<string, string>}
  */
 export function renderFhirMicrodataHtml(input, config) {
-  if (!config || typeof config.path !== "string" || config.path.length === 0) {
-    throw new Error("renderFhirMicrodataHtml: config.path is required");
-  }
+  validateFhirInput(input, config);
   const { patients, conditions, procedures, medRequests, crossRef, domain } =
     input;
 

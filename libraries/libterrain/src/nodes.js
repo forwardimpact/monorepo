@@ -262,21 +262,28 @@ export function buildNodes(ctx) {
     },
 
     "fhir-microdata-html": {
-      deps: ["parse", "datasets", "fhir-cross-ref"],
-      run({ parse, datasets, "fhir-cross-ref": crossRef }) {
+      deps: ["parse", "entities", "datasets", "fhir-cross-ref"],
+      run({ parse, entities, datasets, "fhir-cross-ref": crossRef }) {
         const files = new Map();
         if (crossRef === null) return { files };
         const wiredOutputs = (parse.outputs || []).filter(
           (o) => o.format === "fhir_microdata_html",
         );
         for (const out of wiredOutputs) {
+          // entities.domain is canonical: fhir-cross-ref mints trial IRIs from it.
           const input = unwrapFhirDatasets(
             datasets.datasetsMap,
             out,
-            parse.domain,
+            entities.domain,
             crossRef,
           );
-          if (!input) continue;
+          if (!input) {
+            logger.info(
+              "pipeline",
+              `fhir-microdata-html: skipping output '${out.dataset}' (sibling FHIR datasets not generated)`,
+            );
+            continue;
+          }
           const rendered = renderFhirMicrodataHtml(input, out.config);
           for (const [path, content] of rendered) files.set(path, content);
         }
@@ -502,35 +509,27 @@ function mergeOutputFiles(
   return files;
 }
 
-/**
- * Look up a Synthea-generated FHIR Dataset by `<output.dataset>_<type>` —
- * the naming convention `SyntheaTool.generate()` follows.
- */
+/** Look up a Synthea-generated FHIR Dataset by `<output.dataset>_<type>`. */
 function findFhirDataset(datasetsMap, datasetId, type) {
-  if (!datasetsMap) return undefined;
-  return datasetsMap.get(`${datasetId}_${type}`);
+  return datasetsMap?.get(`${datasetId}_${type}`);
 }
 
 /**
  * Pull the four FHIR record arrays for one `fhir_microdata_html` output from
- * `datasetsMap` and shape the input contract `renderFhirMicrodataHtml`
- * expects. Returns `null` when sibling Datasets are missing.
+ * `datasetsMap`. Returns `null` when sibling Datasets are missing.
  */
 function unwrapFhirDatasets(datasetsMap, out, domain, crossRef) {
   const patient = findFhirDataset(datasetsMap, out.dataset, "patient");
   const condition = findFhirDataset(datasetsMap, out.dataset, "condition");
   if (!patient || !condition) return null;
-  const procedure = findFhirDataset(datasetsMap, out.dataset, "procedure");
-  const medRequest = findFhirDataset(
-    datasetsMap,
-    out.dataset,
-    "medicationrequest",
-  );
   return {
     patients: patient.records,
     conditions: condition.records,
-    procedures: procedure?.records ?? [],
-    medRequests: medRequest?.records ?? [],
+    procedures:
+      findFhirDataset(datasetsMap, out.dataset, "procedure")?.records ?? [],
+    medRequests:
+      findFhirDataset(datasetsMap, out.dataset, "medicationrequest")?.records ??
+      [],
     crossRef,
     domain,
   };
