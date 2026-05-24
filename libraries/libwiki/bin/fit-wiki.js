@@ -143,7 +143,7 @@ const definition = {
     {
       name: "audit",
       description:
-        "Audit the wiki against the memory-protocol contract (500-line cap; cutover 2026-W23)",
+        "Audit the wiki against the memory-protocol contract (line and word budgets)",
       options: {
         ...wikiRootOpt,
         ...todayOpt,
