@@ -369,33 +369,7 @@ describe("AgentRunner", () => {
     );
   });
 
-  test("drainOutput() returns buffered lines and clears buffer", async () => {
-    const messages = [
-      { type: "assistant", content: "Line 1" },
-      { type: "result", subtype: "success", result: "Line 2" },
-    ];
-
-    const output = new PassThrough();
-    const runner = new AgentRunner({
-      cwd: "/tmp",
-      query: mockQuery(messages),
-      output,
-      redactor: noop(),
-    });
-
-    await runner.run("Task");
-
-    const drained = runner.drainOutput();
-    assert.strictEqual(drained.length, 2);
-    assert.deepStrictEqual(JSON.parse(drained[0]), messages[0]);
-    assert.deepStrictEqual(JSON.parse(drained[1]), messages[1]);
-
-    // Buffer should be empty after drain
-    const secondDrain = runner.drainOutput();
-    assert.strictEqual(secondDrain.length, 0);
-  });
-
-  test("run() captures error when query throws and returns buffered output", async () => {
+  test("run() captures error when query throws and still emits the lines yielded before the throw", async () => {
     async function* failingQuery() {
       yield { type: "system", subtype: "init", session_id: "sess-err" };
       yield { type: "assistant", content: "Partial work" };
@@ -416,9 +390,11 @@ describe("AgentRunner", () => {
     assert.match(result.error.message, /exited with code 1/);
     assert.strictEqual(result.sessionId, "sess-err");
 
-    // Buffered output should contain the messages yielded before the error
-    const drained = runner.drainOutput();
-    assert.strictEqual(drained.length, 2);
+    const lines = (output.read()?.toString() ?? "")
+      .trim()
+      .split("\n")
+      .filter((l) => l.length > 0);
+    assert.strictEqual(lines.length, 2);
   });
 
   test("resume() captures error when query throws", async () => {

@@ -67,21 +67,18 @@ In `supervise` and `facilitate` modes, agents coordinate via tool calls instead
 of free-form chat. The same tools serve both use cases — verdict signaling for
 evaluations, message passing for collaboration. The trace records each call.
 
-| Tool       | Caller                      | Effect                                                  |
-| ---------- | --------------------------- | ------------------------------------------------------- |
-| `Ask`      | Any                         | Send a question to a target; reply arrives via `Answer` |
-| `Answer`   | Agent / participant         | Reply to an `Ask` addressed to you                      |
-| `Announce` | Any                         | Broadcast a message with no reply expected              |
-| `Conclude` | Supervisor / facilitator    | End the session with a final summary                    |
-| `Redirect` | Supervisor (supervise mode) | Interrupt the agent with replacement instructions       |
-| `RollCall` | Any                         | List the participants currently in the session          |
+| Tool       | Caller                   | Effect                                                                                                                                |
+| ---------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `Ask`      | Any                      | Send a question to a participant (or omit `to` to broadcast); blocks until the reply arrives. The `tool_result` carries the answer(s) |
+| `Answer`   | Any                      | Reply to an `Ask` addressed to you. Quote `askId` from the `[ask#N]` tag — optional when only one ask is owed                         |
+| `Announce` | Any                      | Broadcast a message with no reply expected                                                                                            |
+| `Conclude` | Supervisor / facilitator | End the session with a verdict and summary                                                                                            |
+| `RollCall` | Any                      | List the participants currently in the session                                                                                        |
 
-Tool surface differs by role: supervisors use
-`Ask`/`Announce`/`Conclude`/`Redirect`/`RollCall`; supervised agents use
-`Ask`/`Answer`/`Announce`/`RollCall`; facilitators use
-`Ask`/`Announce`/`Conclude`/`RollCall` (no `Redirect` — the facilitator
-re-`Ask`s instead); facilitated participants use
-`Ask`/`Answer`/`Announce`/`RollCall`.
+Tool surface is uniform across modes: leads (supervisor, facilitator,
+discuss-lead) use `Ask`/`Answer`/`Announce`/`Conclude`/`RollCall`;
+participants use the same set minus `Conclude` (discuss-lead also gets
+`RequestForComment`/`Recess`/`Adjourn` in place of `Conclude`).
 
 ---
 

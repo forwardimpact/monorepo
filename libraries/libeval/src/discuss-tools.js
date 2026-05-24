@@ -1,32 +1,33 @@
 /**
- * DiscussTools — tool servers and prompts for the `discuss` orchestration
- * mode. The lead's set is sibling to (not derived from) the facilitator's:
- * `Conclude` is absent; instead `Adjourn` (terminal verdict) and `Recess`
- * (suspend with a ResumeTrigger) end a run, and `RequestForComment` queues
- * structured replies onto the trace for the bridge to deliver after the
- * workflow run completes.
+ * DiscussTools — discuss-mode tool servers. The lead's surface extends the
+ * base set with three discuss-only terminal tools:
  *
- * Discuss-mode prompts and tool wiring stay in this module; nothing here
- * imports from `facilitator.js`.
+ * - `RequestForComment` posts a fire-and-forget message to a human channel
+ *   via the bridge; the reply arrives on a later workflow run.
+ * - `Recess` suspends the session with a resumption trigger.
+ * - `Adjourn` ends the discussion with a verdict.
+ *
+ * `Conclude` is absent — discuss mode ends via Adjourn or Recess. The
+ * agent surface is identical to the facilitated agent's: Ask / Answer /
+ * Announce / RollCall, with Ask defaulting to the lead.
  */
 
-import { createSdkMcpServer, tool } from "@anthropic-ai/claude-agent-sdk";
+import { tool } from "@anthropic-ai/claude-agent-sdk";
 import { z } from "zod";
 
 import {
-  createAskHandler,
-  createAnswerHandler,
-  createAnnounceHandler,
-  createRollCallHandler,
-  createRedirectHandler,
+  baseTools,
+  concludeSession,
+  orchestrationServer,
 } from "./orchestration-toolkit.js";
 
 /** System prompt appended for discuss-mode agent runners. */
 export const DISCUSS_AGENT_SYSTEM_PROMPT =
   "You participate in an asynchronous discussion. " +
-  "Answer replies to an ask addressed to you. " +
-  "Ask sends a question to the lead or another participant. " +
-  "Announce broadcasts a message. " +
+  "Each question you receive carries an [ask#N] header — quote that N back as the askId field on Answer so the reply pairs with the right question. " +
+  "Answer replies to an ask addressed to you. askId is optional: omit it and the handler auto-picks if exactly one ask is owed to you, otherwise it routes your message as an Announce. " +
+  "Ask sends a question to the lead or another participant and returns immediately with {askIds:[N]}; the reply arrives on a later turn as `[answer#N] <participant>: <text>` in your inbox. " +
+  "Announce broadcasts a message to every other participant — use this for unsolicited remarks or to reply to an Announce. " +
   "RollCall lists participants.";
 
 const RESUME_TRIGGER_SCHEMA = z
@@ -37,128 +38,51 @@ const RESUME_TRIGGER_SCHEMA = z
   })
   .strict();
 
-/**
- * Lead tools for the discusser. The discuss-mode surface is Ask / Answer /
- * Announce / Redirect / RollCall plus the discuss-only RequestForComment,
- * Recess, and Adjourn. `Conclude` is intentionally absent — discuss mode
- * ends via Adjourn or Recess, never Conclude. `RequestForComment` writes
- * a structured reply onto `ctx.replies[]`; the discusser flushes those
- * into the terminal summary event at end-of-run.
- *
- * @param {object} ctx - Orchestration context (must carry `replies` array)
- * @returns {object} MCP server config (type: "sdk")
- */
+/** Discuss-mode lead tool server. */
 export function createDiscussLeadToolServer(ctx) {
-  return createSdkMcpServer({
-    name: "orchestration",
-    tools: [
-      tool(
-        "RollCall",
-        "List all participants in the session.",
-        {},
-        createRollCallHandler(ctx),
-      ),
-      tool(
-        "Ask",
-        "Send a question to a participant. Omit 'to' to broadcast. The reply arrives via Answer.",
-        { question: z.string(), to: z.string().optional() },
-        createAskHandler(ctx, { from: "lead", defaultTo: undefined }),
-      ),
-      tool(
-        "Answer",
-        "Reply to an ask addressed to you.",
-        { message: z.string() },
-        createAnswerHandler(ctx, { from: "lead" }),
-      ),
-      tool(
-        "Announce",
-        "Broadcast a message with no reply expected.",
-        { message: z.string() },
-        createAnnounceHandler(ctx, { from: "lead" }),
-      ),
-      tool(
-        "Redirect",
-        "Interrupt a participant with replacement instructions.",
-        { message: z.string(), to: z.string().optional() },
-        createRedirectHandler(ctx),
-      ),
-      tool(
-        "RequestForComment",
-        "Post a fire-and-forget message to a channel via the bridge. Returns a correlation id; the reply arrives on a later workflow run.",
-        {
-          channel: z.string(),
-          body: z.string(),
-          addressees: z.array(z.string()).optional(),
-        },
-        createRequestForCommentHandler(ctx),
-      ),
-      tool(
-        "Recess",
-        "Suspend the run. The bridge re-dispatches the workflow when the trigger fires.",
-        { reason: z.string(), trigger: RESUME_TRIGGER_SCHEMA },
-        createRecessHandler(ctx),
-      ),
-      tool(
-        "Adjourn",
-        "End the discussion with a verdict and a summary.",
-        {
-          verdict: z.enum(["adjourned", "failed"]),
-          summary: z.string(),
-          outcome: z.string().optional(),
-        },
-        createAdjournHandler(ctx),
-      ),
-    ],
-  });
+  return orchestrationServer([
+    ...baseTools(ctx, { from: "lead", defaultTo: undefined, broadcast: true }),
+    tool(
+      "RequestForComment",
+      "Post a fire-and-forget message to a channel via the bridge. Returns a correlation id; the reply arrives on a later workflow run.",
+      {
+        channel: z.string(),
+        body: z.string(),
+        addressees: z.array(z.string()).optional(),
+      },
+      createRequestForCommentHandler(ctx),
+    ),
+    tool(
+      "Recess",
+      "Suspend the run. The bridge re-dispatches the workflow when the trigger fires.",
+      { reason: z.string(), trigger: RESUME_TRIGGER_SCHEMA },
+      createRecessHandler(ctx),
+    ),
+    tool(
+      "Adjourn",
+      "End the discussion with a verdict ('adjourned' / 'failed') and a summary.",
+      {
+        verdict: z.enum(["adjourned", "failed"]),
+        summary: z.string(),
+        outcome: z.string().optional(),
+      },
+      createAdjournHandler(ctx),
+    ),
+  ]);
 }
 
-/**
- * Discuss-mode agent tools: Ask / Answer / Announce / RollCall. Surface is
- * defined here (not borrowed from facilitate mode) so the two modes stay
- * structurally independent.
- *
- * @param {object} ctx - Orchestration context
- * @param {{from: string}} opts - Agent name (canonical)
- * @returns {object} MCP server config (type: "sdk")
- */
+/** Discuss-mode agent tool server. */
 export function createDiscussAgentToolServer(ctx, { from }) {
-  return createSdkMcpServer({
-    name: "orchestration",
-    tools: [
-      tool(
-        "Ask",
-        "Send a question to another participant. Omit 'to' to ask the lead.",
-        { question: z.string(), to: z.string().optional() },
-        createAskHandler(ctx, { from, defaultTo: "lead" }),
-      ),
-      tool(
-        "Answer",
-        "Reply to an ask addressed to you.",
-        { message: z.string() },
-        createAnswerHandler(ctx, { from }),
-      ),
-      tool(
-        "Announce",
-        "Broadcast a message with no reply expected.",
-        { message: z.string() },
-        createAnnounceHandler(ctx, { from }),
-      ),
-      tool(
-        "RollCall",
-        "List all participants in the session.",
-        {},
-        createRollCallHandler(ctx),
-      ),
-    ],
-  });
+  return orchestrationServer(
+    baseTools(ctx, { from, defaultTo: "lead", broadcast: true }),
+  );
 }
 
-/** Create a RequestForComment handler. Queues a reply into ctx.replies[]. */
+/** RequestForComment handler — queues structured replies on `ctx.replies[]`. */
 export function createRequestForCommentHandler(ctx) {
   return async ({ channel, body, addressees }) => {
     const correlationId = `rfc_${++ctx.rfcCounter}`;
-    const addresseeList =
-      Array.isArray(addressees) && addressees.length > 0 ? addressees : [null];
+    const addresseeList = addressees?.length ? addressees : [null];
     for (const addressee of addresseeList) {
       ctx.replies.push({
         ...(addressee && { addressee }),
@@ -178,26 +102,34 @@ export function createRequestForCommentHandler(ctx) {
   };
 }
 
-/** Create a Recess handler. Marks the session as recessed with a trigger. */
+/**
+ * Recess handler — ends the run with a structured pause + resumption
+ * trigger; cancels any open Asks so askers see a synthetic null answer.
+ * `concluded` flips true (same as Adjourn); the `recessed` verdict
+ * distinguishes them, and `recessTrigger` carries the resume shape for
+ * the bridge.
+ */
 export function createRecessHandler(ctx) {
   return async ({ reason, trigger }) => {
-    ctx.recessed = true;
     ctx.recessTrigger = trigger;
-    ctx.recessReason = reason;
-    ctx.concluded = true;
-    ctx.verdict = "recessed";
-    ctx.summary = reason;
+    concludeSession(ctx, {
+      verdict: "recessed",
+      summary: reason,
+      reason: "session recessed",
+    });
     return { content: [{ type: "text", text: "Recess queued." }] };
   };
 }
 
-/** Create an Adjourn handler. Marks the session as concluded with a verdict. */
+/** Adjourn handler — ends the discussion with a verdict. */
 export function createAdjournHandler(ctx) {
   return async ({ verdict, summary, outcome }) => {
-    ctx.concluded = true;
-    ctx.verdict = verdict;
-    ctx.summary = summary;
     if (outcome !== undefined) ctx.outcome = outcome;
+    concludeSession(ctx, {
+      verdict,
+      summary,
+      reason: "session adjourned",
+    });
     return { content: [{ type: "text", text: "Session adjourned." }] };
   };
 }

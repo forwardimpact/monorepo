@@ -18,10 +18,14 @@ const noop = () => createNoopRedactor();
 
 const concludeMsg = (summary, verdict = "success") =>
   createToolUseMsg("Conclude", { verdict, summary });
-const askMsg = (to, question) =>
-  createToolUseMsg("Ask", { to, question }, { id: `ask-${to}` });
-const answerMsg = (message) =>
-  createToolUseMsg("Answer", { message }, { id: "answer-1" });
+const askMsg = (to, question, suffix) =>
+  createToolUseMsg("Ask", { to, question }, { id: `ask-${to}-${suffix}` });
+const answerMsgPlaceholder = (suffix) =>
+  createToolUseMsg(
+    "Answer",
+    { askId: 0, message: "" },
+    { id: `answer-${suffix}` },
+  );
 
 function seedCtx(participants) {
   const ctx = createOrchestrationContext();
@@ -31,8 +35,26 @@ function seedCtx(participants) {
   return { ctx, messageBus };
 }
 
-describe("Facilitator - re-Ask recovery", () => {
-  test("re-Ask overwrites consumed slot so agent can Answer", async () => {
+/**
+ * Pop the *oldest* pending Ask addressed to `from` and route the answer
+ * back through it. Mirrors how the agent would pick up the next [ask#N]
+ * tag from its inbox.
+ */
+function answerDispatcherInOrder(ctx, from, messages) {
+  const handler = createAnswerHandler(ctx, { from });
+  let cursor = 0;
+  return async () => {
+    const pending = [...ctx.pendingAsks.values()]
+      .filter((e) => e.addresseeName === from)
+      .sort((a, b) => a.askId - b.askId);
+    const entry = pending[0];
+    const message = messages[cursor++];
+    return handler({ askId: entry?.askId, message });
+  };
+}
+
+describe("Facilitator - duplicate-Ask resilience (regression for run 26336965189)", () => {
+  test("two sequential Asks to the same addressee each get their own askId and the agent answers both", async () => {
     const { ctx, messageBus } = seedCtx(["facilitator", "agent-1"]);
     const concludeHandler = createConcludeHandler(ctx);
     const askHandler = createAskHandler(ctx, {
@@ -40,15 +62,18 @@ describe("Facilitator - re-Ask recovery", () => {
       defaultTo: undefined,
     });
 
-    // Turn 0: Ask agent-1 "What is 2+2?"
-    // Turn 1 (after premature answer): Ask agent-1 again
-    // Turn 2 (after correct answer): Conclude
+    // The facilitator deliberately Asks twice in a row — the broadcast-
+    // then-individual pattern that previously orphaned a queue message.
+    // Both Asks are issued in the same assistant turn and dispatched in
+    // parallel (the SDK fans tool_use blocks out simultaneously).
     const facilitatorRunner = createMockRunner(
-      [{ text: "Asking" }, { text: "Re-asking" }, { text: "Done" }],
+      [{ text: "Asking twice" }],
       [
-        [askMsg("agent-1", "What is 2+2?")],
-        [askMsg("agent-1", "Please answer: what is 2+2?")],
-        [concludeMsg("Complete")],
+        [
+          askMsg("agent-1", "First question?", "1"),
+          askMsg("agent-1", "Second question?", "2"),
+          concludeMsg("Both answered"),
+        ],
       ],
       {
         toolDispatcher: {
@@ -58,13 +83,20 @@ describe("Facilitator - re-Ask recovery", () => {
       },
     );
 
-    const agent1AnswerHandler = createAnswerHandler(ctx, { from: "agent-1" });
-    // Run 0: premature answer consuming the Ask slot
-    // Resume (after re-Ask): correct answer — should succeed
+    // Agent answers both, in order — turn 1 answers ask#1, turn 2 (resume
+    // when ask#2 lands) answers ask#2. This proves the two asks coexist
+    // without overwriting each other.
     const agent1Runner = createMockRunner(
-      [{ text: "Ready" }, { text: "Four" }],
-      [[answerMsg("Ready")], [answerMsg("4")]],
-      { toolDispatcher: { Answer: (i) => agent1AnswerHandler(i) } },
+      [{ text: "First" }, { text: "Second" }],
+      [[answerMsgPlaceholder("1")], [answerMsgPlaceholder("2")]],
+      {
+        toolDispatcher: {
+          Answer: answerDispatcherInOrder(ctx, "agent-1", [
+            "answer to first",
+            "answer to second",
+          ]),
+        },
+      },
     );
 
     const output = new PassThrough();
@@ -73,17 +105,17 @@ describe("Facilitator - re-Ask recovery", () => {
       agents: [{ name: "agent-1", role: "worker", runner: agent1Runner }],
       messageBus,
       output,
-      maxTurns: 10,
       ctx,
       redactor: noop(),
     });
 
-    const result = await facilitator.run("Test re-Ask recovery");
+    const result = await facilitator.run("Test duplicate Asks");
 
     assert.strictEqual(result.success, true);
-    assert.ok(
-      !ctx.pendingAsks.has("agent-1"),
-      "pending ask should be cleared after agent answered the re-Ask",
+    assert.strictEqual(
+      ctx.pendingAsks.size,
+      0,
+      "both pending entries should clear; neither leaks as a phantom",
     );
   });
 });

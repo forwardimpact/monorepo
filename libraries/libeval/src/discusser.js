@@ -27,14 +27,15 @@ import { OrchestrationLoop } from "./orchestration-loop.js";
 /** System prompt appended for the lead (Chair) runner in discuss mode. */
 export const DISCUSS_SYSTEM_PROMPT =
   "You lead an asynchronous discussion across multiple participants and a human channel. " +
-  "Ask delivers a question to one named participant — or broadcasts when no addressee is named — and blocks until that participant answers. " +
+  "Ask sends a question and returns immediately with {askIds:[N,…]}. The reply arrives on a later turn as `[answer#N] <participant>: <text>` in your inbox — between turns you can plan, reflect, or send more Asks while participants work in parallel. End your turn with text after you've asked everything you intend to; the orchestrator wakes you when the next message lands. " +
+  "Answer replies to an ask a participant addressed to you (you'll see it tagged `[ask#N] <participant>: …` in your inbox). Quote askId from the [ask#N] tag; omit it and the handler auto-picks the only pending ask or routes your message as an Announce. " +
   "Announce delivers a message with no reply obligation. " +
-  "Redirect interrupts an in-progress participant with replacement instructions. " +
   "RollCall returns the participant roster. " +
   "RequestForComment posts a message to the human thread via the bridge. Every reply you want the human to see MUST go through RequestForComment — the bridge delivers only queued replies, not your text output. " +
-  "Recess suspends the run with a resumption trigger (responses / elapsed / either). " +
+  "Recess suspends the run with a resumption trigger (responses / elapsed / either); any open Asks get a synthetic '[no answer: session concluded]' on the asker's queue so nothing dangles. " +
   "Adjourn ends the discussion with a verdict ('adjourned' / 'failed') and a summary. " +
-  "You MUST call RequestForComment with your response before calling Adjourn. You MUST end every run by calling Adjourn or Recess — never end a turn with only text.";
+  "Multiple Ask / Announce calls in one assistant turn dispatch in parallel — issue them as parallel tool_use blocks rather than sending the same question both broadcast and individually. " +
+  "You MUST call RequestForComment with your response before calling Adjourn. You MUST end every run by calling Adjourn or Recess — never end a turn with only text *after* every Ask round has resolved.";
 
 /**
  * Augment a base orchestration context with discuss-mode fields.
@@ -44,32 +45,11 @@ export const DISCUSS_SYSTEM_PROMPT =
  */
 export function augmentContextForDiscuss(ctx, discussionId) {
   ctx.discussionId = discussionId;
-  ctx.recessed = false;
   ctx.recessTrigger = null;
-  ctx.recessReason = null;
   ctx.replies = [];
   ctx.rfcCounter = 0;
   ctx.outcome = null;
   return ctx;
-}
-
-/**
- * Round-trip-safe representation of `ctx.pendingAsks` (a `Map`).
- * @param {Map<string, object>} map
- * @returns {object}
- */
-export function pendingAsksToPlain(map) {
-  return Object.fromEntries(map);
-}
-
-/**
- * Restore a plain object back into a `Map<string, …>`.
- * @param {object|null|undefined} plain
- * @returns {Map<string, object>}
- */
-export function pendingAsksFromPlain(plain) {
-  if (!plain) return new Map();
-  return new Map(Object.entries(plain));
 }
 
 const devNull = new Writable({
@@ -89,9 +69,9 @@ export class Discusser {
    * @param {OrchestrationLoop} deps.loop
    * @param {object} deps.ctx
    * @param {import("stream").Writable} deps.output
+   * @param {object} deps.redactor
    * @param {string|null} [deps.discussionId]
    * @param {SequenceCounter} [deps.counter]
-   * @param {object} [deps.redactor]
    */
   constructor({ loop, ctx, output, discussionId, counter, redactor }) {
     if (!loop) throw new Error("loop is required");
@@ -123,7 +103,7 @@ export class Discusser {
     await this.loop.run(task);
 
     const verdict = this.ctx.verdict ?? "failed";
-    const success = verdict === "adjourned" || verdict === "concluded";
+    const success = verdict === "adjourned";
     this.#emitDiscussSummary({
       success,
       verdict,
@@ -163,7 +143,6 @@ export class Discusser {
       replies: this.ctx.replies,
       ...(this.ctx.recessTrigger && { trigger: this.ctx.recessTrigger }),
       ...(this.discussionId && { discussion_id: this.discussionId }),
-      pending_asks: pendingAsksToPlain(this.ctx.pendingAsks),
     };
     this.output.write(
       JSON.stringify(
@@ -181,6 +160,12 @@ export class Discusser {
  * Factory — wires the lead and agent runners with `DiscussTools`, builds
  * the `OrchestrationLoop` (with `leadName: "lead"` and discuss-mode
  * protocol tagging) and the wrapping `Discusser`.
+ *
+ * Resume semantics: Recess ends the run, cancels any open Asks via
+ * `cancelPendingAsks`, and emits a synthetic null answer per cancelled
+ * ask so nothing dangles in the trace. The bridge later re-dispatches
+ * the workflow against a fresh context; the human reads the trail of
+ * events to decide what to re-ask.
  *
  * @param {object} deps
  * @param {string} [deps.leadProfile]
@@ -225,12 +210,11 @@ export function createDiscusser({
     discussionId ?? null,
   );
 
-  // Hydrate resume context — pendingAsks, participants, history, replies.
-  // resumeContext is the entire suspend/resume contract; every mutation a
-  // Recess needs to preserve must travel through it.
+  // Hydrate resume context — participants, replies, counters. `pendingAsks`
+  // is intentionally not restored: Recess cancelled every in-flight Ask
+  // with a synthetic null answer, so there's nothing meaningful to carry
+  // forward.
   if (resumeContext) {
-    if (resumeContext.pendingAsks)
-      ctx.pendingAsks = pendingAsksFromPlain(resumeContext.pendingAsks);
     if (Array.isArray(resumeContext.participants))
       ctx.participants = resumeContext.participants;
     if (Array.isArray(resumeContext.replies))
@@ -297,7 +281,7 @@ export function createDiscusser({
     query,
     output: devNull,
     model: leadModel ?? "claude-opus-4-7[1m]",
-    maxTurns: maxTurns ?? 40,
+    maxTurns: maxTurns ?? 80,
     allowedTools: ["Bash", "Read", "Glob", "Grep", "Write", "Edit"],
     disallowedTools: defaultDisallowed,
     onLine: (line) => discusser.loop.emitLine("lead", line),
@@ -314,7 +298,6 @@ export function createDiscusser({
     output,
     leadName: "lead",
     mode: "discussion",
-    maxTurns: maxTurns ?? 40,
     ctx,
     taskAmend,
     redactor,

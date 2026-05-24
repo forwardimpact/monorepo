@@ -38,8 +38,6 @@ export {
   createDiscusser,
   DISCUSS_SYSTEM_PROMPT,
   augmentContextForDiscuss,
-  pendingAsksToPlain,
-  pendingAsksFromPlain,
 } from "./discusser.js";
 export {
   createDiscussLeadToolServer,

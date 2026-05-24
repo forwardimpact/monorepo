@@ -50,14 +50,14 @@ describe("DiscussTools handlers", () => {
     assert.strictEqual(ctx.replies[0].body, "Status update");
   });
 
-  test("Recess marks the session recessed and records the trigger", async () => {
+  test("Recess marks the session concluded with verdict='recessed' and records the trigger", async () => {
     const ctx = makeCtx();
+    ctx.messageBus = { answer: () => {} };
     const handler = createRecessHandler(ctx);
     const trigger = { kind: "elapsed", elapsed: "P14D" };
 
     await handler({ reason: "Awaiting human input", trigger });
 
-    assert.strictEqual(ctx.recessed, true);
     assert.strictEqual(ctx.concluded, true);
     assert.strictEqual(ctx.verdict, "recessed");
     assert.deepStrictEqual(ctx.recessTrigger, trigger);
@@ -66,6 +66,7 @@ describe("DiscussTools handlers", () => {
 
   test("Adjourn marks the session concluded with the given verdict and summary", async () => {
     const ctx = makeCtx();
+    ctx.messageBus = { answer: () => {} };
     const handler = createAdjournHandler(ctx);
 
     await handler({

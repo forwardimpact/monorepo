@@ -20,8 +20,12 @@ const concludeMsg = (summary, verdict = "success") =>
   createToolUseMsg("Conclude", { verdict, summary });
 const askMsg = (question) =>
   createToolUseMsg("Ask", { question }, { id: "ask-1" });
-const answerMsg = (message) =>
-  createToolUseMsg("Answer", { message }, { id: "answer-1" });
+const answerMsgPlaceholder = (suffix) =>
+  createToolUseMsg(
+    "Answer",
+    { askId: 0, message: "" },
+    { id: `answer-${suffix}` },
+  );
 
 function seedSupervise() {
   const ctx = createOrchestrationContext();
@@ -34,164 +38,72 @@ function seedSupervise() {
   return { ctx, messageBus };
 }
 
-describe("Supervisor - run and turns", () => {
-  test("constructor throws on missing agentRunner", () => {
+/** Resolve askId of the only pending ask addressed to `from`. */
+function answerDispatcher(ctx, from, message) {
+  const handler = createAnswerHandler(ctx, { from });
+  return async () => {
+    const owed = [...ctx.pendingAsks.values()].find(
+      (e) => e.addresseeName === from,
+    );
+    return handler({ askId: owed?.askId, message });
+  };
+}
+
+describe("Supervisor - constructor validation", () => {
+  test("throws on missing agentRunner", () => {
     assert.throws(
       () =>
         new Supervisor({
           supervisorRunner: createMockRunner([]),
           output: new PassThrough(),
+          redactor: noop(),
         }),
       /agentRunner is required/,
     );
   });
 
-  test("constructor throws on missing supervisorRunner", () => {
+  test("throws on missing supervisorRunner", () => {
     assert.throws(
       () =>
         new Supervisor({
           agentRunner: createMockRunner([]),
           output: new PassThrough(),
+          redactor: noop(),
         }),
       /supervisorRunner is required/,
     );
   });
 
-  test("constructor throws on missing output", () => {
+  test("throws on missing output", () => {
     assert.throws(
       () =>
         new Supervisor({
           agentRunner: createMockRunner([]),
           supervisorRunner: createMockRunner([]),
+          redactor: noop(),
         }),
       /output is required/,
     );
   });
+});
 
-  test("completes on Conclude tool call from supervisor at turn 0", async () => {
+describe("Supervisor - sync session flow", () => {
+  test("Conclude on turn 0 ends the session without starting the agent", async () => {
     const { ctx, messageBus } = seedSupervise();
     const concludeHandler = createConcludeHandler(ctx);
 
-    const agentRunner = createMockRunner([]);
-
-    const supervisorRunner = createMockRunner(
-      [{ text: "Done" }],
-      [[concludeMsg("All tasks complete")]],
-      {
-        toolDispatcher: {
-          Conclude: (input) => concludeHandler(input),
-        },
-      },
-    );
-
-    const output = new PassThrough();
-    const supervisor = new Supervisor({
-      agentRunner,
-      supervisorRunner,
-      output,
-      maxTurns: 10,
-      ctx,
-      messageBus,
-      redactor: noop(),
-    });
-
-    const result = await supervisor.run("Install stuff");
-
-    assert.strictEqual(result.success, true);
-    assert.strictEqual(result.turns, 0);
-    assert.strictEqual(result.concluded, true);
-    assert.strictEqual(ctx.summary, "All tasks complete");
-  });
-
-  test("completes after one agent turn", async () => {
-    const { ctx, messageBus } = seedSupervise();
-    const concludeHandler = createConcludeHandler(ctx);
-
-    const agentRunner = createMockRunner([
-      { text: "I installed the packages." },
-    ]);
-
-    const supervisorRunner = createMockRunner(
-      [
-        { text: "Welcome! Please install the packages." },
-        { text: "Good work." },
-      ],
-      [undefined, [concludeMsg("Agent completed the task")]],
-      {
-        toolDispatcher: {
-          Conclude: (input) => concludeHandler(input),
-        },
-      },
-    );
-
-    const output = new PassThrough();
-    const supervisor = new Supervisor({
-      agentRunner,
-      supervisorRunner,
-      output,
-      maxTurns: 10,
-      ctx,
-      messageBus,
-      redactor: noop(),
-    });
-
-    const result = await supervisor.run("Install stuff");
-
-    assert.strictEqual(result.success, true);
-    assert.strictEqual(result.turns, 1);
-    assert.strictEqual(result.concluded, true);
-  });
-
-  test("relays only the last assistant text block to the agent", async () => {
-    const { ctx, messageBus } = seedSupervise();
-    const concludeHandler = createConcludeHandler(ctx);
-
-    const supervisorMessages = [
-      [
-        {
-          type: "assistant",
-          message: {
-            content: [
-              { type: "text", text: "Let me research the product first." },
-            ],
-          },
-        },
-        {
-          type: "assistant",
-          message: {
-            content: [
-              {
-                type: "text",
-                text: "Hello! Here is your task: install the packages.",
-              },
-            ],
-          },
-        },
-      ],
-      [concludeMsg("Done")],
-    ];
-
-    let capturedAgentPrompt = null;
-    const agentRunner = createMockRunner([
-      { text: "I installed the packages." },
-    ]);
+    let agentStarted = false;
+    const agentRunner = createMockRunner([{ text: "Never" }]);
     const origRun = agentRunner.run;
     agentRunner.run = async (task) => {
-      capturedAgentPrompt = task;
+      agentStarted = true;
       return origRun.call(agentRunner, task);
     };
 
     const supervisorRunner = createMockRunner(
-      [
-        { text: "Hello! Here is your task: install the packages." },
-        { text: "Done" },
-      ],
-      supervisorMessages,
-      {
-        toolDispatcher: {
-          Conclude: (input) => concludeHandler(input),
-        },
-      },
+      [{ text: "Done immediately" }],
+      [[concludeMsg("Nothing to do")]],
+      { toolDispatcher: { Conclude: (input) => concludeHandler(input) } },
     );
 
     const output = new PassThrough();
@@ -199,191 +111,41 @@ describe("Supervisor - run and turns", () => {
       agentRunner,
       supervisorRunner,
       output,
-      maxTurns: 10,
       ctx,
       messageBus,
       redactor: noop(),
     });
 
-    await supervisor.run("Evaluate the product");
-
-    assert.strictEqual(
-      capturedAgentPrompt,
-      "Hello! Here is your task: install the packages.",
-    );
-    assert.ok(
-      !capturedAgentPrompt.includes("research"),
-      "Reasoning text should not leak to agent",
-    );
-  });
-
-  test("runs multiple turns before completion", async () => {
-    const { ctx, messageBus } = seedSupervise();
-    const concludeHandler = createConcludeHandler(ctx);
-
-    const agentRunner = createMockRunner([
-      { text: "Started working." },
-      { text: "Made progress." },
-      { text: "Finished everything." },
-    ]);
-
-    const supervisorRunner = createMockRunner(
-      [
-        { text: "Here is your task. Do the work." },
-        { text: "Keep going, you need to do more." },
-        { text: "Almost there, continue." },
-        { text: "Done" },
-      ],
-      [undefined, undefined, undefined, [concludeMsg("Complete")]],
-      {
-        toolDispatcher: {
-          Conclude: (input) => concludeHandler(input),
-        },
-      },
-    );
-
-    const output = new PassThrough();
-    const supervisor = new Supervisor({
-      agentRunner,
-      supervisorRunner,
-      output,
-      maxTurns: 10,
-      ctx,
-      messageBus,
-      redactor: noop(),
-    });
-
-    const result = await supervisor.run("Do the work");
-
+    const result = await supervisor.run("Quick task");
     assert.strictEqual(result.success, true);
-    assert.strictEqual(result.turns, 3);
+    assert.strictEqual(agentStarted, false);
+    assert.strictEqual(ctx.summary, "Nothing to do");
   });
 
-  test("enforces maxTurns limit", async () => {
-    const { ctx, messageBus } = seedSupervise();
-    const agentRunner = createMockRunner([
-      { text: "Turn 1" },
-      { text: "Turn 2" },
-    ]);
-
-    const supervisorRunner = createMockRunner([
-      { text: "Start working." },
-      { text: "Continue." },
-      { text: "Continue." },
-    ]);
-
-    const output = new PassThrough();
-    const supervisor = new Supervisor({
-      agentRunner,
-      supervisorRunner,
-      output,
-      maxTurns: 2,
-      ctx,
-      messageBus,
-      redactor: noop(),
-    });
-
-    const result = await supervisor.run("Endless task");
-
-    assert.strictEqual(result.success, false);
-    assert.strictEqual(result.turns, 2);
-    assert.strictEqual(result.concluded, false);
-  });
-
-  test("concluded=true even when verdict is failure", async () => {
+  test("Ask → agent answers → Conclude completes the session (verdict=success)", async () => {
     const { ctx, messageBus } = seedSupervise();
     const concludeHandler = createConcludeHandler(ctx);
-
-    const agentRunner = createMockRunner([
-      { text: "I did the work but it's wrong." },
-    ]);
+    const askHandler = createAskHandler(ctx, {
+      from: "supervisor",
+      defaultTo: "agent",
+    });
 
     const supervisorRunner = createMockRunner(
-      [{ text: "Please do the work." }, { text: "That is not acceptable." }],
-      [undefined, [concludeMsg("Agent failed the task", "failure")]],
+      [{ text: "Delegating" }],
+      [[askMsg("Install the packages."), concludeMsg("Done")]],
       {
         toolDispatcher: {
+          Ask: (input) => askHandler(input),
           Conclude: (input) => concludeHandler(input),
         },
       },
     );
-
-    const output = new PassThrough();
-    const supervisor = new Supervisor({
-      agentRunner,
-      supervisorRunner,
-      output,
-      maxTurns: 10,
-      ctx,
-      messageBus,
-      redactor: noop(),
-    });
-
-    const result = await supervisor.run("Do the work");
-
-    assert.strictEqual(result.success, false);
-    assert.strictEqual(result.turns, 1);
-    assert.strictEqual(result.concluded, true);
-  });
-
-  test("agent Ask → supervisor Answer round-trip", async () => {
-    const { ctx, messageBus } = seedSupervise();
-    const concludeHandler = createConcludeHandler(ctx);
-    const agentAskHandler = createAskHandler(ctx, {
-      from: "agent",
-      defaultTo: "supervisor",
-    });
-    const supervisorAnswerHandler = createAnswerHandler(ctx, {
-      from: "supervisor",
-    });
-
-    // Agent turn 1: calls Ask(question). Turn ends.
-    const agentMessages = [
-      [
-        {
-          type: "assistant",
-          message: {
-            content: [{ type: "text", text: "I have a question." }],
-          },
-        },
-        askMsg("Should I use npm or yarn?"),
-      ],
-    ];
 
     const agentRunner = createMockRunner(
-      [{ text: "Asked" }, { text: "Got the answer, proceeding." }],
-      [
-        ...agentMessages,
-        [
-          {
-            type: "assistant",
-            message: {
-              content: [{ type: "text", text: "Got the answer, proceeding." }],
-            },
-          },
-        ],
-      ],
+      [{ text: "Installed" }],
+      [[answerMsgPlaceholder("1")]],
       {
-        toolDispatcher: {
-          Ask: (input) => agentAskHandler(input),
-        },
-      },
-    );
-
-    // Supervisor turn 0: relay task. Supervisor turn 1: Answer the agent's
-    // question. Supervisor turn 2: Conclude.
-    const supervisorRunner = createMockRunner(
-      [
-        { text: "Install the packages." },
-        { text: "Use npm install." },
-        { text: "Good" },
-      ],
-      [undefined, [answerMsg("Use npm install.")], [concludeMsg("Complete")]],
-      {
-        toolDispatcher: {
-          Answer: (input) => supervisorAnswerHandler(input),
-          Conclude: (input) => concludeHandler(input),
-        },
+        toolDispatcher: { Answer: answerDispatcher(ctx, "agent", "installed") },
       },
     );
 
@@ -392,16 +154,188 @@ describe("Supervisor - run and turns", () => {
       agentRunner,
       supervisorRunner,
       output,
-      maxTurns: 10,
       ctx,
       messageBus,
       redactor: noop(),
     });
 
     const result = await supervisor.run("Install task");
-
     assert.strictEqual(result.success, true);
-    // After Answer, the pending ask entry keyed by "supervisor" is cleared.
-    assert.strictEqual(ctx.pendingAsks.has("supervisor"), false);
+    assert.strictEqual(ctx.verdict, "success");
+    assert.strictEqual(ctx.pendingAsks.size, 0);
+  });
+
+  test("Conclude with verdict=failure → result.success is false", async () => {
+    const { ctx, messageBus } = seedSupervise();
+    const concludeHandler = createConcludeHandler(ctx);
+    const askHandler = createAskHandler(ctx, {
+      from: "supervisor",
+      defaultTo: "agent",
+    });
+
+    const supervisorRunner = createMockRunner(
+      [{ text: "Reviewing" }],
+      [
+        [
+          askMsg("Do the work."),
+          concludeMsg("Agent failed the task", "failure"),
+        ],
+      ],
+      {
+        toolDispatcher: {
+          Ask: (input) => askHandler(input),
+          Conclude: (input) => concludeHandler(input),
+        },
+      },
+    );
+    const agentRunner = createMockRunner(
+      [{ text: "I tried." }],
+      [[answerMsgPlaceholder("1")]],
+      {
+        toolDispatcher: {
+          Answer: answerDispatcher(ctx, "agent", "I tried"),
+        },
+      },
+    );
+
+    const output = new PassThrough();
+    const supervisor = new Supervisor({
+      agentRunner,
+      supervisorRunner,
+      output,
+      ctx,
+      messageBus,
+      redactor: noop(),
+    });
+
+    const result = await supervisor.run("Do the work");
+    assert.strictEqual(result.success, false);
+    assert.strictEqual(ctx.verdict, "failure");
+  });
+
+  test("agent error propagates: supervisor.run rejects with the agent's error", async () => {
+    const { ctx, messageBus } = seedSupervise();
+    const askHandler = createAskHandler(ctx, {
+      from: "supervisor",
+      defaultTo: "agent",
+    });
+
+    const supervisorRunner = createMockRunner(
+      [{ text: "Delegating" }],
+      [[askMsg("Do it.")]],
+      { toolDispatcher: { Ask: (input) => askHandler(input) } },
+    );
+    const agentRunner = createMockRunner([{ text: "Crash" }]);
+    agentRunner.run = async () => {
+      throw new Error("Agent process crashed");
+    };
+
+    const output = new PassThrough();
+    const supervisor = new Supervisor({
+      agentRunner,
+      supervisorRunner,
+      output,
+      ctx,
+      messageBus,
+      redactor: noop(),
+    });
+
+    await assert.rejects(() => supervisor.run("Install"), {
+      message: "Agent process crashed",
+    });
+  });
+});
+
+describe("Supervisor - bidirectional Ask", () => {
+  test("agent-initiated Ask routes to the supervisor; supervisor answers via Answer", async () => {
+    const { ctx, messageBus } = seedSupervise();
+    const concludeHandler = createConcludeHandler(ctx);
+    const supAskHandler = createAskHandler(ctx, {
+      from: "supervisor",
+      defaultTo: "agent",
+    });
+    const agentAskHandler = createAskHandler(ctx, {
+      from: "agent",
+      defaultTo: "supervisor",
+    });
+
+    // Supervisor delegates work. When the agent's Ask comes back in the
+    // tool_result's `incoming` field, supervisor answers it via Answer
+    // and then concludes.
+    const supervisorAnswerDispatcher = async () => {
+      const owed = [...ctx.pendingAsks.values()].find(
+        (e) => e.addresseeName === "supervisor",
+      );
+      return createAnswerHandler(ctx, { from: "supervisor" })({
+        askId: owed?.askId,
+        message: "Use npm.",
+      });
+    };
+    const supervisorRunner = createMockRunner(
+      [{ text: "Coordinating" }],
+      [
+        [
+          askMsg("Install the packages."),
+          createToolUseMsg(
+            "Answer",
+            { askId: 0, message: "Use npm." },
+            { id: "sup-ans-1" },
+          ),
+          concludeMsg("Done"),
+        ],
+      ],
+      {
+        toolDispatcher: {
+          Ask: (input) => supAskHandler(input),
+          Answer: supervisorAnswerDispatcher,
+          Conclude: (input) => concludeHandler(input),
+        },
+      },
+    );
+
+    // Agent answers the supervisor's question (with a question of its own
+    // alongside, which is a sync Ask back).
+    const agentAnswerDispatcher = async () => {
+      const owed = [...ctx.pendingAsks.values()].find(
+        (e) => e.addresseeName === "agent",
+      );
+      return createAnswerHandler(ctx, { from: "agent" })({
+        askId: owed?.askId,
+        message: "Installed.",
+      });
+    };
+    const agentRunner = createMockRunner(
+      [{ text: "Replying and asking back" }],
+      [
+        [
+          answerMsgPlaceholder("a1"),
+          createToolUseMsg(
+            "Ask",
+            { question: "npm or yarn?" },
+            { id: "agt-ask-1" },
+          ),
+        ],
+      ],
+      {
+        toolDispatcher: {
+          Answer: agentAnswerDispatcher,
+          Ask: (input) => agentAskHandler(input),
+        },
+      },
+    );
+
+    const output = new PassThrough();
+    const supervisor = new Supervisor({
+      agentRunner,
+      supervisorRunner,
+      output,
+      ctx,
+      messageBus,
+      redactor: noop(),
+    });
+
+    const result = await supervisor.run("Install task");
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(ctx.pendingAsks.size, 0);
   });
 });

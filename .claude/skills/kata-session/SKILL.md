@@ -28,9 +28,10 @@ Two mode overlays describe the mode-specific artifact surface:
 contexts — team storyboard meetings (`kata-storyboard.yml` workflow) and 1-on-1
 coaching sessions (`kata-coaching.yml` workflow).
 
-**Participant**: Answer each `Ask` with `Answer`. The coach's session-open
-briefing is sufficient for most runs; load this skill only if you need the full
-Participant Protocol below.
+**Participant**: Answer each `Ask` with `Answer`, quoting the `askId` from the
+`[ask#N]` header on the question so the reply routes back to the right
+question. The coach's session-open briefing is sufficient for most runs; load
+this skill only if you need the full Participant Protocol below.
 
 ## Checklists
 
@@ -163,9 +164,11 @@ briefing.
 2. **Record metrics to CSV.** Before answering, append one row per metric to
    `wiki/metrics/{skill}/{YYYY}.csv` per the skill's
    `references/metrics.md`, creating the directory and header if needed. The CSV is authoritative; your `Answer` summarizes it.
-3. **Answer with measured data.** Report numbers via `Answer`, referencing the
-   CSV rows. Use counts and durations — not narratives like "improving." Use
-   `Announce` only for unsolicited team-wide context.
+3. **Answer with measured data.** Report numbers via
+   `Answer(askId=N, message=…)`, quoting the `askId` from the `[ask#N]` header
+   on the question. Reference the CSV rows; use counts and durations — not
+   narratives like "improving." Use `Announce` only for unsolicited team-wide
+   context.
 4. **Ground obstacles in data.** For Q3, identify obstacles from the gap between
    current and target. Prefer trace findings or live run data over log
    narratives.

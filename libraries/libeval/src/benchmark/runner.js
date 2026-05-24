@@ -3,7 +3,7 @@
  *
  * Phases per (task, runIndex):
  *   1. WorkdirManager.start → seed CWD + run pre-flight probe
- *   2. Supervisor relay (agent + supervisor) → produce traces + submission
+ *   2. Supervisor session (agent + supervisor) → produce traces + submission
  *   3. Scorer.runScoring → exit-code-driven verdict via fd-3 NDJSON
  *   4. Judge.runJudge → Conclude-driven verdict mapped to pass/fail
  *   5. WorkdirManager.teardown → process-group cleanup
@@ -272,7 +272,7 @@ export class BenchmarkRunner {
   }
 
   /**
-   * Run the agent-under-test via a Supervisor relay. The supervisor writes
+   * Run the agent-under-test under a Supervisor. The supervisor writes
    * a combined tagged NDJSON trace; after the session we split it into
    * agent.ndjson and supervisor.ndjson and extract cost/turns/submission.
    */

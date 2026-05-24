@@ -243,14 +243,7 @@ describe("TeeWriter", () => {
       mode: "supervised",
     });
 
-    const suppressed = [
-      "session_start",
-      "agent_start",
-      "ask_received",
-      "ask_answered",
-      "redirect",
-      "summary",
-    ];
+    const suppressed = ["session_start", "agent_start", "summary", "meta"];
     const events = suppressed.map((type, i) =>
       JSON.stringify({
         source: "orchestrator",
@@ -264,10 +257,11 @@ describe("TeeWriter", () => {
     const fileData = collect(fileStream);
     const textData = collect(textStream);
 
-    // All six stay in the fileStream — the NDJSON artifact is unchanged.
+    // Every suppressed event stays in the fileStream — the NDJSON
+    // artifact is unchanged.
     assert.strictEqual(fileData.trim().split("\n").length, suppressed.length);
 
-    // None of the six render to textStream, and the old footer is gone.
+    // None of them render to textStream, and the old footer is gone.
     assert.strictEqual(stripAnsi(textData).trim(), "");
     assert.ok(!textData.includes("--- Evaluation"));
   });

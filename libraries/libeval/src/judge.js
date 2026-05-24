@@ -2,7 +2,7 @@
  * Judge — one agent session that inspects a completed agent's work and emits
  * a verdict via the orchestration `Conclude` tool. Parallel concept to
  * `Supervisor` and `Facilitator`, but post-hoc and solo: no peer agents,
- * no message bus, no relay loop. The judge reads the task, optionally
+ * no message bus, no orchestration loop. The judge reads the task, optionally
  * inspects the working directory and trace via read-only tools, and calls
  * Conclude exactly once.
  *

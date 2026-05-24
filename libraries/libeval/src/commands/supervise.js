@@ -53,7 +53,9 @@ export function parseSuperviseOptions(values) {
 }
 
 /**
- * Supervise command — run two agents in a relay loop via the Claude Agent SDK.
+ * Supervise command — run one agent under a supervisor via the
+ * orchestration loop. The supervisor delegates work through Ask, sees
+ * each reply on its next turn, and ends with Conclude.
  *
  * Usage: fit-eval supervise [options]
  *

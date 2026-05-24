@@ -1,44 +1,10 @@
 /**
- * Shared helpers for Facilitator and Supervisor orchestrators:
- * - `createAsyncQueue`  — simple promise-based queue used by the facilitator
- *                         event loop.
- * - `formatMessages`    — render a drained message batch as tagged lines.
- */
-
-/** Create a promise-based async queue for serializing event delivery to the facilitator loop. */
-export function createAsyncQueue() {
-  const items = [];
-  let waiter = null;
-  let closed = false;
-  return {
-    enqueue(item) {
-      items.push(item);
-      if (waiter) {
-        waiter();
-        waiter = null;
-      }
-    },
-    async dequeue() {
-      if (items.length > 0) return items.shift();
-      if (closed) return null;
-      await new Promise((resolve) => {
-        waiter = resolve;
-      });
-      return items.length > 0 ? items.shift() : null;
-    },
-    close() {
-      closed = true;
-      if (waiter) {
-        waiter();
-        waiter = null;
-      }
-    },
-  };
-}
-
-/**
- * Render a drained batch of bus messages as tagged text lines.
- * @param {Array<{from: string, text: string, kind?: string, direct?: boolean}>} messages
+ * Render a drained batch of bus messages as tagged text lines so the
+ * LLM can read its inbox at a glance. Asks and answers include the
+ * `askId` in the tag (`[ask#42] facilitator: …`, `[answer#42] agent: …`)
+ * so the addressee can quote it back via Answer's `askId` field.
+ *
+ * @param {Array<{from: string, text: string, kind?: string, askId?: number}>} messages
  * @returns {string}
  */
 export function formatMessages(messages) {
@@ -50,10 +16,8 @@ function formatMessage(m) {
 }
 
 function tagFor(m) {
-  if (m.kind === "ask") return "[ask]";
-  if (m.kind === "answer") return "[answer]";
-  if (m.kind === "announce") return "[shared]";
+  if (m.kind === "ask") return `[ask#${m.askId}]`;
+  if (m.kind === "answer") return `[answer#${m.askId}]`;
   if (m.kind === "synthetic") return "[system]";
-  if (m.kind === "direct") return "[direct]";
-  return m.direct ? "[direct]" : "[shared]";
+  return "[shared]";
 }

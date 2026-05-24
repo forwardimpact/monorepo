@@ -1,21 +1,16 @@
 /**
- * Test-only mock factory for AgentRunner. Yields pre-scripted responses,
- * and (when an `onBatch` callback is set) fires it at the same boundaries
- * the real AgentRunner would: every `runner.batchSize` assistant messages
- * with a text block, and the terminal `result` message. Tool-only
- * assistant messages accumulate into the pending batch without counting
- * toward the threshold. If the callback calls `abort()`, the mock stops
- * iterating that response's messages and reports `aborted: true` — any
- * lines that never made it through a flush boundary then ship in a
- * terminal batch, mirroring the real runner's finally-flush.
+ * Test-only mock factory for AgentRunner. Yields pre-scripted responses
+ * and dispatches any embedded `tool_use` blocks through `toolDispatcher`
+ * so orchestration tests can exercise the Ask / Answer / Announce
+ * flow without a real SDK.
  *
- * Intentionally a regular module (not a test file) so describe/test blocks
- * here would not run. Lives under test/ to make its scope explicit.
+ * Intentionally a regular module (not a `.test.js` file) so describe /
+ * test blocks here would not run. Lives under test/ to make its scope
+ * explicit.
  */
 
 import { PassThrough } from "node:stream";
 import { AgentRunner } from "@forwardimpact/libeval";
-import { hasTextBlock } from "../src/agent-runner.js";
 import { createNoopRedactor } from "../src/redaction.js";
 
 async function dispatchTools(toolDispatcher, message) {
@@ -30,13 +25,17 @@ async function dispatchTools(toolDispatcher, message) {
 }
 
 /**
- * Create a mock AgentRunner that yields pre-scripted responses. Each call
- * to `run()` or `resume()` pops the next response from the array.
- * @param {object[]} responses - Array of {text, success} objects
- * @param {object[]} [messages] - Messages to buffer per response
+ * Create a mock AgentRunner that yields pre-scripted responses. Each
+ * call to `run()` or `resume()` pops the next response from the array.
+ *
+ * @param {Array<{text: string, success?: boolean}>} responses
+ * @param {object[][]} [messages] - Per-call message arrays. Each entry
+ *   is the list of SDK messages the runner emits for that call. If
+ *   omitted, a single `{type:"assistant", content: resp.text}` is
+ *   synthesised per call.
  * @param {object} [opts]
- * @param {Record<string, function>} [opts.toolDispatcher] - Map of tool name → async handler for orchestration tool calls
- * @returns {AgentRunner}
+ * @param {Record<string, function>} [opts.toolDispatcher] - Map of tool
+ *   name to handler. Called for every `tool_use` block in the script.
  */
 export function createMockRunner(responses, messages, { toolDispatcher } = {}) {
   const output = new PassThrough();
@@ -49,83 +48,30 @@ export function createMockRunner(responses, messages, { toolDispatcher } = {}) {
     redactor: createNoopRedactor(),
   });
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: decomposing this closure breaks abort-callback semantics that pending-ask tests depend on
   const consume = async (msgs) => {
-    let aborted = false;
-    const pendingBatch = [];
-    let assistantTextCount = 0;
     for (const m of msgs) {
-      const line = JSON.stringify(m);
-      runner.buffer.push(line);
-      if (runner.onLine) runner.onLine(line);
-      if (runner.onBatch) pendingBatch.push(line);
-
+      if (runner.onLine) runner.onLine(JSON.stringify(m));
       await dispatchTools(toolDispatcher, m);
-
-      if (hasTextBlock(m)) {
-        assistantTextCount++;
-      }
-
-      const shouldFlush =
-        runner.onBatch &&
-        (m.type === "result" || assistantTextCount >= runner.batchSize);
-      if (shouldFlush) {
-        assistantTextCount = 0;
-        const batchLines = pendingBatch.splice(0);
-        await runner.onBatch(batchLines, {
-          abort: () => {
-            aborted = true;
-          },
-        });
-        if (aborted) break;
-      }
     }
-    // Terminal flush: mirror the real AgentRunner's abnormal-end path —
-    // an aborted scripted run delivers any pending tail so the supervisor
-    // sees the partial state. Natural-end without a `result` marker is
-    // treated as a simplified stub (no phantom flush), matching the real
-    // runner's rule that terminal flush only fires on error/abort.
-    if (aborted && runner.onBatch && pendingBatch.length > 0) {
-      const batchLines = pendingBatch.splice(0);
-      await runner.onBatch(batchLines, {
-        abort: () => {
-          aborted = true;
-        },
-      });
-    }
-    return aborted;
   };
 
-  runner.run = async (_task) => {
+  const callOnce = async () => {
     const resp = responses[callIndex++];
     const msgs = messages?.[callIndex - 1] ?? [
       { type: "assistant", content: resp.text },
     ];
-    const aborted = await consume(msgs);
-    runner.sessionId = "mock-session";
-    return {
-      success: resp.success ?? true,
-      text: resp.text,
-      sessionId: "mock-session",
-      aborted,
-      error: null,
-    };
-  };
-
-  runner.resume = async (_prompt) => {
-    const resp = responses[callIndex++];
-    const msgs = messages?.[callIndex - 1] ?? [
-      { type: "assistant", content: resp.text },
-    ];
-    const aborted = await consume(msgs);
+    await consume(msgs);
+    runner.sessionId ??= "mock-session";
     return {
       success: resp.success ?? true,
       text: resp.text,
       sessionId: runner.sessionId,
-      aborted,
+      aborted: false,
       error: null,
     };
   };
 
+  runner.run = callOnce;
+  runner.resume = callOnce;
   return runner;
 }
