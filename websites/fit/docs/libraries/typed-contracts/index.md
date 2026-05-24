@@ -86,9 +86,9 @@ message GetItemRequest {
 ```
 
 The `common.proto` and `tool.proto` imports resolve from the installed
-`@forwardimpact/guide` and project-root `proto/` packages. The codegen uses
-every discovered `proto/` directory as an include path, so cross-file imports
-work without extra configuration.
+`@forwardimpact/libproto` package, which carries the canonical shared
+schemas. The codegen uses every discovered `proto/` directory as an include
+path, so cross-file imports work without extra configuration.
 
 ## Step 2: Run code generation
 
