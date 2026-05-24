@@ -36,6 +36,7 @@ flowchart LR
 | Readiness command + formatter | `products/landmark/src/commands/readiness.js`, `formatters/readiness.js` | Command attaches `coverage` to view payload; formatter renders the ratio one line after `X/Y markers evidenced`; below-floor branch wraps the verdict |
 | Timeline command + formatter | `products/landmark/src/commands/timeline.js`, `formatters/timeline.js` | Command attaches `coverage`; below-floor branch wraps timeline output |
 | Coverage formatter | `products/landmark/src/formatters/coverage.js` | Adds per-provenance breakdown alongside the existing per-type breakdown; classes with zero rows shown explicitly (criterion 5); below-floor banner above ratio |
+| Guide skill writer | `products/guide/starter/skills/evaluate-evidence/SKILL.md` step (e) | Append `provenance: 'agent_attested'` to the `WriteEvidence` call signature so Guide-judged rows land in `agent_attested` instead of the DB default `human_attested` (criterion 7) |
 
 ## Provenance
 
@@ -43,7 +44,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | `synthetic_placeholder` | `transform/evidence.js` (round-robin) | free-form from `artifact.metadata.title \| message` | producer always sets |
 | `artifact_interpreted` | `transform/evidence-artifact.js` (new) | canonical marker text from the standard's vocabulary | producer always sets |
-| `agent_attested` | Guide `evaluate-evidence` skill → `WriteEvidence` RPC | verbatim marker text from `GetMarkersForProfile` | producer must set explicitly (see § Related producers) |
+| `agent_attested` | Guide `evaluate-evidence` skill → `WriteEvidence` RPC | verbatim marker text from `GetMarkersForProfile` | skill must pass `provenance: 'agent_attested'` (this spec edits step (e); see § Related producers) |
 | `human_attested` | direct/manual `WriteEvidence` RPC | free-form per RPC contract | RPC handler default + DB column default |
 
 Round-robin and artifact-driven producers write disjoint `marker_text`
@@ -76,13 +77,13 @@ artifact-driven producer alone — Guide's stack isn't running yet.
 `agent_attested` rows accumulate on top once a deployment runs the
 scheduled agent; `human_attested` rows accumulate from manual RPC calls.
 
-**Follow-on for Guide (out of scope here).**
+**Guide skill writer (in scope, criterion 7).**
 `products/guide/starter/skills/evaluate-evidence/SKILL.md` step (e)
-currently calls `WriteEvidence` without setting `provenance`, so its
-rows would fall through to the DB default (`human_attested`) — honest
-about the RPC path, loose about the attester. After this spec ships,
-the skill must pass `provenance: 'agent_attested'` on every call. Tracked
-separately; the storage carrier and validation here are forward-compatible.
+currently calls `WriteEvidence` without `provenance`, so rows route to
+the DB default `human_attested` — honest about the path, loose about
+the attester. This spec edits step (e) to pass
+`provenance: 'agent_attested'` as the seventh named field. Verified by
+inspecting step (e) and reading rows back via `getEvidence`.
 
 ## Confidence floor
 
@@ -190,7 +191,7 @@ from the same constant — no hard-coded `30%` anywhere.
 - `products/map/src/activity/transform/index.js` — orchestrator (modified)
 - `products/landmark/src/lib/evidence-helpers.js:114-120` — coverage formula (unchanged)
 - `services/map/proto/map.proto:28-41` — `WriteEvidenceRequest`
-- `products/guide/starter/skills/evaluate-evidence/SKILL.md` — Guide's writer (follow-on for `agent_attested`)
+- `products/guide/starter/skills/evaluate-evidence/SKILL.md` step (e) — Guide's writer (this spec; passes `provenance: 'agent_attested'`)
 - `data/synthetic/story.dsl:134` — `manufacturing_it` repos (`scada-bridge`, `mes-connector`)
 - `products/map/supabase/migrations/20250504000004_evidence_upsert_key.sql` — UNIQUE index reused as conflict key
 - `products/map/supabase/migrations/20250504000002_evidence_not_null.sql` — `level_id NOT NULL` makes the UNIQUE safe
