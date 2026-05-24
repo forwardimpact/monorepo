@@ -7,82 +7,57 @@ reproducible evidence.
 
 <!-- END:description -->
 
-`libeval` provides the runtime and tool surface for multi-LLM
-coordination: an agent talks to a supervisor, a facilitator chairs a
-team meeting, or a lead drives an asynchronous discussion across a
-human channel. Every conversation produces a structured NDJSON trace
-for analysis.
+`libeval` provides the runtime and tool surface for multi-LLM coordination —
+an agent talks to a supervisor, a facilitator chairs a meeting, a lead drives
+an asynchronous discussion — plus a CLI suite that runs evals, queries the
+traces they produce, and edits skill files under controlled conditions.
+
+## CLIs
+
+| CLI             | Purpose                                                                |
+| --------------- | ---------------------------------------------------------------------- |
+| `fit-eval`      | Run agents in `run`/`supervise`/`facilitate`/`discuss` subcommands.    |
+| `fit-trace`     | Download, query, and analyze NDJSON traces produced by `fit-eval`.     |
+| `fit-benchmark` | Run task families for N runs each and aggregate pass@k.                |
+| `fit-selfedit`  | Write stdin to `.claude/**` paths, gated by settings.json + branch.    |
+
+`fit-eval`'s subcommands share one orchestration loop and one async tool
+surface, below. The `judge` role is a profile passed to `supervise`.
 
 ## Modes
 
-| Mode          | Lead          | Participants  | Terminal tool          |
-| ------------- | ------------- | ------------- | ---------------------- |
-| `run`         | (none)        | one agent     | task completion        |
-| `supervise`   | `supervisor`  | one `agent`   | `Conclude`             |
+| Mode         | Lead          | Participants  | Terminal tool          |
+| ------------ | ------------- | ------------- | ---------------------- |
+| `run`        | (none)        | one agent     | task completion        |
+| `supervise`  | `supervisor`  | one `agent`   | `Conclude`             |
 | `facilitate` | `facilitator` | N named       | `Conclude`             |
-| `discuss`     | `lead`        | N named       | `Adjourn` or `Recess`  |
-| `judge`       | `judge`       | (none)        | `Conclude`             |
+| `discuss`    | `lead`        | N named       | `Adjourn` or `Recess`  |
+| `judge`      | `judge`       | (none)        | `Conclude`             |
 
-Every mode except `run` and `judge` shares one orchestration loop
-(`OrchestrationLoop`) and one tool surface (`Ask` / `Answer` /
-`Announce` / `RollCall`, plus a mode-specific terminal tool). The
-loop fires the lead's LLM, fans messages out to participants over an
-in-memory bus, wakes them when something lands, and emits the
-universal `{source, seq, event}` NDJSON envelope for every line.
+`run` and `judge` are one-shot. The other three share `OrchestrationLoop`
+plus an async Ask/Answer/Announce/RollCall tool surface; the loop fans
+messages out over an in-memory bus and emits a `{source, seq, event}`
+NDJSON envelope for every line.
 
-## The Ask / Answer protocol
-
-Coordination uses one async request/reply pattern with one piece of
-state per question — the `askId`. Every Ask returns immediately; the
-reply arrives later on the asker's inbox.
-
-### Ask
+## Async Ask / Answer / Announce
 
 ```text
-Ask({ question, to? })  →  { askIds: [N, …] }
-```
-
-The handler registers a pending entry per addressee, posts the
-question on the bus, and returns immediately. Each pending entry is
-keyed by a numeric `askId`. Two Asks to the same addressee each get
-their own id, so they coexist without overwriting.
-
-Broadcast: omit `to` on a multi-participant lead's Ask to fan out to
-every other participant — the result `askIds` array has one entry
-per addressee.
-
-### Answer
-
-```text
+Ask({ question, to? })       →  { askIds: [N, …] }
 Answer({ message, askId? })  →  routed to the asker
+Announce({ message })        →  broadcast, no reply expected
 ```
 
-The reply lands in the asker's bus inbox as
-`[answer#N] <participant>: <text>` on a later turn. `askId` is
-optional and the handler is forgiving:
+Every Ask returns immediately and registers a pending entry keyed by an
+`askId`. The reply arrives later on the asker's inbox as `[answer#N]
+<participant>: <text>`. Broadcast: omit `to` on a multi-participant
+lead. Answer's `askId` is optional — the handler is forgiving:
 
-- **Provided + matches an ask owed by the caller** → routes the reply
-  to that specific asker.
-- **Provided but unknown or wrong addressee** → `isError` with a
-  pointed message. The caller tried to specify; we tell them why.
-- **Omitted + exactly one ask is owed to the caller** → auto-picks
-  that ask. (Forcing an Announce when the only owed ask is obvious
-  would be pedantic.)
-- **Omitted + 0 or many asks owed** → broadcasts as Announce so the
-  message still reaches every participant.
+- **Provided + matches an ask owed by the caller** → routes to that asker.
+- **Provided but unknown or wrong addressee** → `isError` with a pointed message.
+- **Omitted + exactly one ask owed to the caller** → auto-picks it.
+- **Omitted + 0 or many asks owed** → broadcasts as Announce.
 
-### Announce
-
-```text
-Announce({ message })  →  broadcast, no reply expected
-```
-
-Lands on every other participant's queue as `[shared] <from>: <text>`.
-
-### Inbox format
-
-Every line a participant reads on a resume is one bus message rendered
-with its tag:
+Inbox lines on resume:
 
 ```text
 [ask#42]     facilitator: What is your current condition?
@@ -91,59 +66,39 @@ with its tag:
 [system]     @orchestrator: You have an unanswered ask from facilitator (askId=42)…
 ```
 
-The `[ask#N]` tag is what the participant quotes back in Answer's
-`askId` field.
+Async means the lead can issue Asks, end its turn, and plan in the gap
+while participants work in parallel — nothing blocks the LLM thread.
 
-### Why async
+## Orchestration loop
 
-The lead can issue Asks, end its turn, and use the gap between turns
-for planning, reflection, or follow-up Asks while participants work
-in parallel. Nothing blocks the LLM thread waiting on a reply. The
-orchestrator wakes the lead whenever the inbox has new content.
+Each participant drains the bus (or waits), runs/resumes the LLM with
+drained messages as tagged lines, and on an unanswered owed Ask injects
+one synthetic reminder before emitting `protocol_violation` and
+unblocking the asker with a synthetic null answer.
 
-## The orchestration loop
-
-`OrchestrationLoop` runs one outer pattern for both the lead and each
-participant:
-
-1. Drain the bus queue, or wait for the first message.
-2. Run (first turn) or resume (every subsequent turn) the LLM with the
-   drained messages formatted as tagged lines.
-3. If the participant ended a turn with an unanswered Ask owed to it,
-   inject one synthetic reminder and resume once more. If still
-   unanswered, emit a `protocol_violation` event and cancel the
-   pending entry with a synthetic null answer so the asker unblocks.
-
-The lead's first turn starts with the task as its initial prompt;
-participants' first runs are triggered by their first inbound message.
-
-Termination flips two flags:
-
-- `ctx.concluded` — explicit `Conclude` / `Adjourn` / `Recess`. The
-  handler also cancels any in-flight Asks with a synthetic null so
-  askers see why their question won't be answered.
-- `stopped` — broader: also true on a lead error, an agent crash, or
-  any abort path. Loops watch `stopped`; `ctx.concluded` is only used
-  for the summary's `success` / `verdict`.
+Termination uses two flags. `ctx.concluded` is explicit
+`Conclude`/`Adjourn`/`Recess` — also cancels in-flight Asks so askers
+see why their question won't be answered. `stopped` is broader: lead
+error, agent crash, abort path. Loops watch `stopped`; `ctx.concluded`
+only feeds the summary's `success`/`verdict`.
 
 ## Tool surface, by role
 
-| Role         | Ask | Answer | Announce | RollCall | Conclude | Other                                |
-| ------------ | --- | ------ | -------- | -------- | -------- | ------------------------------------ |
-| Facilitator  | ✓   | ✓      | ✓        | ✓        | ✓        |                                      |
-| Fac. agent   | ✓   | ✓      | ✓        | ✓        |          |                                      |
-| Supervisor   | ✓   | ✓      | ✓        | ✓        | ✓        |                                      |
-| Sup. agent   | ✓   | ✓      | ✓        | ✓        |          |                                      |
+| Role         | Ask | Answer | Announce | RollCall | Conclude | Other                                    |
+| ------------ | --- | ------ | -------- | -------- | -------- | ---------------------------------------- |
+| Facilitator  | ✓   | ✓      | ✓        | ✓        | ✓        |                                          |
+| Fac. agent   | ✓   | ✓      | ✓        | ✓        |          |                                          |
+| Supervisor   | ✓   | ✓      | ✓        | ✓        | ✓        |                                          |
+| Sup. agent   | ✓   | ✓      | ✓        | ✓        |          |                                          |
 | Discuss lead | ✓   | ✓      | ✓        | ✓        |          | `RequestForComment`, `Recess`, `Adjourn` |
-| Discuss agt  | ✓   | ✓      | ✓        | ✓        |          |                                      |
-| Judge        |     |        |          |          | ✓        |                                      |
+| Discuss agt  | ✓   | ✓      | ✓        | ✓        |          |                                          |
+| Judge        |     |        |          |          | ✓        |                                          |
 
 Ask's `to` accepts a participant name on multi-participant roles
-(facilitator, discuss lead, all participants); supervise's
-`supervisor` / `agent` pair don't accept `to` because there's only
-one possible target.
+(facilitator, discuss lead, all participants). The supervise pair has
+only one possible target so `to` is rejected there.
 
-## Minimal example: a two-participant facilitator
+## Minimal example: two-participant facilitator
 
 ```js
 import { createFacilitator, createRedactor } from "@forwardimpact/libeval";
@@ -165,66 +120,77 @@ const result = await facilitator.run("Run a kata storyboard meeting.");
 // result.success / result.turns / NDJSON trace on process.stdout
 ```
 
-The facilitator's LLM, started with that task, has access to `Ask`,
-`Answer`, `Announce`, `RollCall`, and `Conclude`. Alice and Bob each
-get `Ask`, `Answer`, `Announce`, `RollCall`. Every tool call, every
-message routed through the bus, and every orchestrator event becomes a
-line in the trace.
+The facilitator gets `Ask`/`Answer`/`Announce`/`RollCall`/`Conclude`;
+each agent gets the same minus `Conclude`. Every tool call, bus
+message, and orchestrator event becomes one trace line.
 
-## Trace format
+## Trace format and redaction
 
-Every line is one JSON object with three fields:
+Each line is `{ "source": "<participant|orchestrator>", "seq": N, "event":
+{…} }`. `seq` is monotonic across the whole trace; `orchestrator` emits
+`session_start`, `agent_start`, `protocol_violation`, `lead_turn_limit`,
+and `summary`. `event` is the SDK event verbatim or the orchestrator
+payload. `fit-trace` consumes this format.
 
-```json
-{ "source": "facilitator", "seq": 42, "event": { … } }
-```
+Redaction is on by default for `fit-eval run`/`supervise`/`facilitate`
+and composes two layers:
 
-- `source` — the participant whose LLM produced the line, or
-  `orchestrator` for loop-level events (`session_start`, `agent_start`,
-  `protocol_violation`, `lead_turn_limit`, `summary`).
-- `seq` — monotonically increasing across the whole trace; useful for
-  reconstructing the wall-clock order across concurrent participants.
-- `event` — the SDK event verbatim, or the orchestrator event payload.
+- **Env-var allowlist** — `ANTHROPIC_API_KEY`, `GH_TOKEN`, `GITHUB_TOKEN`
+  by default; override with `LIBEVAL_REDACTION_ENV_VARS=NAME1,…`
+  (replaces, not extends). Runtime values become `[REDACTED:env:NAME]`
+  everywhere they appear.
+- **Credential-shape patterns** — `sk-ant-`, `ghp_`, `ghs_`, `gho_`,
+  `github_pat_`. Hits become `[REDACTED:pattern:KIND]`.
 
-`fit-trace` consumes this format. See the trace analysis guide for the
-full schema.
-
-## Trace redaction
-
-`fit-eval run`, `fit-eval supervise`, and `fit-eval facilitate` redact
-secrets in trace artifacts before they reach disk. Two layers compose:
-
-- **Env-var allowlist**, defaulting to `ANTHROPIC_API_KEY`, `GH_TOKEN`,
-  `GITHUB_TOKEN`. The runtime values of these vars are replaced with
-  `[REDACTED:env:NAME]` wherever they appear in tool inputs, tool
-  outputs, assistant text, or orchestrator summaries. Override the
-  list with `LIBEVAL_REDACTION_ENV_VARS=NAME1,NAME2,…` (replaces, not
-  extends).
-- **Credential-shape patterns**, covering Anthropic API keys
-  (`sk-ant-`), GitHub PATs (`ghp_`), installation tokens (`ghs_`),
-  OAuth tokens (`gho_`), and fine-grained PATs (`github_pat_`).
-  Pattern hits become `[REDACTED:pattern:KIND]`.
-
-Redaction is on by default. To disable, set
-`LIBEVAL_REDACTION_DISABLED=1` — a stderr warning fires once per run.
-Never set this in CI on a public repository: workflow artifacts there
-are downloadable through the retention window.
+Set `LIBEVAL_REDACTION_DISABLED=1` to disable (one stderr warning per
+run). Never on CI for a public repo — workflow artifacts are
+downloadable through retention.
 
 ## Module map
 
-| Module                       | Purpose                                                                 |
-| ---------------------------- | ----------------------------------------------------------------------- |
-| `agent-runner.js`            | One Claude Agent SDK session; emits NDJSON via the redactor.            |
-| `message-bus.js`             | In-memory per-participant queues + `waitForMessages` Promise wakeup.    |
-| `orchestration-toolkit.js`   | Shared Ask / Answer / Announce / Conclude / RollCall handlers + builders. |
-| `orchestration-loop.js`      | Unified lead+participant loop; reminder/violation handling.             |
-| `facilitator.js`             | `Facilitator` class + factory + system prompts.                         |
-| `supervisor.js`              | `Supervisor` class + factory + system prompts.                          |
-| `discuss-tools.js`           | Discuss-only RequestForComment / Recess / Adjourn handlers + tool servers. |
-| `discusser.js`               | `Discusser` class + factory + system prompt + resume hydration.         |
-| `judge.js`                   | One-shot post-hoc verdict via `Conclude`.                               |
-| `trace-collector.js` / `trace-query.js` / `trace-github.js` | Trace ingestion / querying / GitHub-attachment helpers. |
-| `redaction.js`               | Env-var allowlist + credential-shape pattern redaction.                 |
+| Module                                                      | Purpose                                                              |
+| ----------------------------------------------------------- | -------------------------------------------------------------------- |
+| `agent-runner.js`                                           | One Claude Agent SDK session; emits NDJSON via the redactor.         |
+| `message-bus.js`                                            | Per-participant queues + `waitForMessages` Promise wakeup.           |
+| `orchestration-toolkit.js`                                  | Shared Ask/Answer/Announce/Conclude/RollCall handlers + builders.    |
+| `orchestration-loop.js`                                     | Unified lead+participant loop; reminder/violation handling.          |
+| `facilitator.js` / `supervisor.js` / `discusser.js` / `judge.js` | Per-mode class + factory + system prompt.                       |
+| `discuss-tools.js`                                          | Discuss-only `RequestForComment`/`Recess`/`Adjourn`.                 |
+| `trace-collector.js` / `trace-query.js` / `trace-github.js` | Trace ingestion / querying / GitHub-attachment helpers.              |
+| `redaction.js`                                              | Env-var allowlist + credential-shape pattern redaction.              |
+
+## fit-selfedit
+
+A narrow, audited bypass for sessions where `Edit`/`Write` (and bash
+writes) are blocked against paths the project's own allowlist permits —
+see [#1162](https://github.com/forwardimpact/monorepo/issues/1162) and
+[#441](https://github.com/forwardimpact/monorepo/issues/441) for the
+original episodes. Reads stdin, writes the target, exits 0 / 2
+(safeguard violation) / 1 (I/O error).
+
+```sh
+echo "<content>" | bunx fit-selfedit <path>
+```
+
+Two safeguards, checked in order:
+
+1. **Settings-allow.** Walk upward from the target with
+   [`Finder.findUpward`](../libutil/src/finder.js) to find the nearest
+   `.claude/settings.json`. The target relative to its grandparent
+   directory must match at least one `Edit(<glob>)` rule in
+   `permissions.allow[]` (matched with
+   [`minimatch`](https://github.com/isaacs/minimatch), `dot: true`).
+   Settings.json is the single source of truth — widen the project
+   allowlist and the CLI follows. Traversal like `.claude/../README.md`
+   is rejected as a side effect: `path.resolve` collapses `..` first,
+   then the resolved path tests against the rules.
+
+2. **Branch scope.** `git rev-parse --abbrev-ref HEAD` must not be
+   `HEAD` (detached) or `main`. Edits ride a feature branch through
+   whatever merge gates the project has configured.
+
+Failure messages name the safeguard that rejected; safeguard 1 also
+lists the `Edit()` rules that were tried.
 
 ## Documentation
 

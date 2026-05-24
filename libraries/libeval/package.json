@@ -33,12 +33,14 @@
     ".": "./src/index.js",
     "./bin/fit-eval.js": "./bin/fit-eval.js",
     "./bin/fit-trace.js": "./bin/fit-trace.js",
-    "./bin/fit-benchmark.js": "./bin/fit-benchmark.js"
+    "./bin/fit-benchmark.js": "./bin/fit-benchmark.js",
+    "./bin/fit-selfedit.js": "./bin/fit-selfedit.js"
   },
   "bin": {
     "fit-eval": "./bin/fit-eval.js",
     "fit-trace": "./bin/fit-trace.js",
-    "fit-benchmark": "./bin/fit-benchmark.js"
+    "fit-benchmark": "./bin/fit-benchmark.js",
+    "fit-selfedit": "./bin/fit-selfedit.js"
   },
   "files": [
     "src/**/*.js",
@@ -53,7 +55,9 @@
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libutil": "^0.1.0",
     "jmespath": "^0.16.0",
+    "minimatch": "^10.0.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
