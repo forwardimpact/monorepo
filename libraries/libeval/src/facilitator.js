@@ -1,7 +1,7 @@
 /**
  * Facilitator — facilitate-mode wrapper around `OrchestrationLoop`. The
- * lead participant is named "facilitator" and uses the `Conclude` tool to
- * end the session. The within-run turn loop itself lives in
+ * lead participant is named "facilitator" and ends the session via the
+ * `Conclude` tool. The within-run turn loop lives in
  * `orchestration-loop.js`; this file owns only the facilitate-mode
  * specifics (lead role name, system prompts, tool wiring, factory).
  */
@@ -16,34 +16,33 @@ import {
   createFacilitatorToolServer,
   createFacilitatedAgentToolServer,
 } from "./orchestration-toolkit.js";
-import { createAsyncQueue } from "./orchestrator-helpers.js";
 import { OrchestrationLoop } from "./orchestration-loop.js";
 
 /** System prompt appended for the facilitator runner. */
 export const FACILITATOR_SYSTEM_PROMPT =
   "You coordinate multiple participants via these tools: " +
-  "Ask delivers a question to one named participant — or broadcasts when no addressee is named — and blocks until that participant answers. " +
+  "Ask sends a question and returns immediately with {askIds:[N,…]}. The reply arrives on a later turn as `[answer#N] <participant>: <text>` in your inbox — between turns you can plan, reflect, or send more Asks while participants work in parallel. End your turn with text after you've asked everything you intend to; the orchestrator wakes you again as soon as a reply (or any message) lands. " +
+  "Answer replies to an ask a participant addressed to you (you'll see it tagged `[ask#N] <participant>: …` in your inbox). Quote askId from the [ask#N] tag; omit it and the handler auto-picks the only pending ask or routes your message as an Announce. " +
   "Announce delivers a message with no reply obligation. " +
-  "Redirect interrupts an in-progress participant with replacement instructions. " +
   "RollCall returns the participant roster. " +
   "Conclude ends the session with a verdict ('success' or 'failure') and a summary. " +
-  "Ask and Announce calls issued in the same turn dispatch in parallel. " +
-  "You MUST call Conclude to end every session — never end a turn with only text. " +
+  "Multiple Ask / Announce calls in one assistant turn dispatch in parallel — issue them as parallel tool_use blocks rather than sending the same question both broadcast and individually. " +
+  "You MUST end every session with Conclude — never end a turn with only text *after* every Ask round has resolved. " +
   "If you can answer the task yourself, still call Conclude with verdict='success' and the answer as the summary.";
 
 /** System prompt appended for facilitated agent runners. */
 export const FACILITATED_AGENT_SYSTEM_PROMPT =
   "You participate in a coordinated session. " +
-  "Answer replies to an ask addressed to you. " +
-  "Ask sends a question to another participant. " +
-  "Announce broadcasts a message. " +
+  "Each question you receive carries an [ask#N] header — quote that N back as the askId field on Answer so the reply pairs with the right question. " +
+  "Answer replies to an ask addressed to you. askId is optional: omit it and the handler auto-picks if exactly one ask is owed to you, otherwise it routes your message as an Announce. " +
+  "Ask sends a question to another participant and returns immediately with {askIds:[N]}; the reply arrives on a later turn as `[answer#N] <participant>: <text>` in your inbox. " +
+  "Announce broadcasts a message to every other participant — use this for unsolicited remarks or to reply to an Announce. " +
   "RollCall lists participants.";
 
 /**
- * Facilitate-mode wrapper around `OrchestrationLoop`. The lead participant
- * is `"facilitator"` and the protocol mode is `"facilitated"`. Preserves
- * the public surface (`facilitatorRunner`, `facilitatorTurns`) that
- * existing callers rely on.
+ * Facilitate-mode wrapper around `OrchestrationLoop`. The lead is named
+ * `"facilitator"`. `facilitatorRunner` getter is a readability shim for
+ * tests that read the runner directly.
  */
 export class Facilitator extends OrchestrationLoop {
   /**
@@ -52,11 +51,9 @@ export class Facilitator extends OrchestrationLoop {
    * @param {Array<{name: string, role: string, runner: import("./agent-runner.js").AgentRunner}>} deps.agents
    * @param {import("./message-bus.js").MessageBus} deps.messageBus
    * @param {import("stream").Writable} deps.output
-   * @param {number} [deps.maxTurns]
-   * @param {object} [deps.ctx]
-   * @param {object} [deps.eventQueue]
-   * @param {string} [deps.taskAmend]
+   * @param {object} deps.ctx
    * @param {object} deps.redactor
+   * @param {string} [deps.taskAmend]
    */
   constructor(deps) {
     super({
@@ -67,19 +64,9 @@ export class Facilitator extends OrchestrationLoop {
     });
   }
 
-  /** @returns {import("./agent-runner.js").AgentRunner} */
+  /** Readability shim — exposes the lead runner under its mode-specific name. */
   get facilitatorRunner() {
     return this.leadRunner;
-  }
-
-  /** @returns {number} */
-  get facilitatorTurns() {
-    return this.leadTurns;
-  }
-
-  /** @param {number} v */
-  set facilitatorTurns(v) {
-    this.leadTurns = v;
   }
 }
 
@@ -96,15 +83,15 @@ const devNull = new Writable({
  * @param {Array<{name: string, role: string, cwd?: string, maxTurns?: number, allowedTools?: string[], agentProfile?: string, systemPromptAmend?: string}>} deps.agentConfigs
  * @param {function} deps.query
  * @param {import("stream").Writable} deps.output
- * @param {string} [deps.model] - Default model for all participants.
- * @param {string} [deps.agentModel] - Agent model override (falls back to `model`).
- * @param {string} [deps.facilitatorModel] - Facilitator model override (falls back to `model`).
- * @param {number} [deps.maxTurns] - Facilitator's own per-invocation turn budget (default 20). Each participating agent's budget is taken from `config.maxTurns` on its entry in `agentConfigs` (default 50 when unset). The CLI command (`commands/facilitate.js`) threads `--max-turns` into both this parameter and every agent config so a single CLI value bounds all participants uniformly.
- * @param {string[]} [deps.facilitatorAllowedTools] - Tools the facilitator may use; defaults to a read/write file-edit set.
- * @param {string[]} [deps.facilitatorDisallowedTools] - Additional tools to block on the facilitator; merged with the sub-agent spawn defaults (Agent/Task/TaskOutput/TaskStop).
- * @param {string} [deps.facilitatorProfile] - Facilitator profile name; resolved into the main-thread system prompt via `composeProfilePrompt`.
- * @param {string} [deps.profilesDir] - Directory containing `<name>.md` profile files. Defaults to `<facilitatorCwd>/.claude/agents`. Resolved once from the facilitator's cwd so profiles travel with the project, not with per-agent sandboxes.
- * @param {string} [deps.taskAmend] - Opaque addendum appended to the task before delivery.
+ * @param {string} [deps.model]
+ * @param {string} [deps.agentModel]
+ * @param {string} [deps.facilitatorModel]
+ * @param {number} [deps.maxTurns] - Per-SDK-call turn budget for the facilitator runner (default 80). Each agent's budget is taken from `config.maxTurns` (default 50). The lead is resumed once per inbox-drain round, so this caps the size of one such round, not the whole session — `OrchestrationLoop.maxLeadTurns` bounds session length.
+ * @param {string[]} [deps.facilitatorAllowedTools]
+ * @param {string[]} [deps.facilitatorDisallowedTools]
+ * @param {string} [deps.facilitatorProfile]
+ * @param {string} [deps.profilesDir]
+ * @param {string} [deps.taskAmend]
  * @returns {Facilitator}
  */
 export function createFacilitator({
@@ -147,8 +134,6 @@ export function createFacilitator({
 
   let facilitator;
 
-  const eventQueue = createAsyncQueue();
-
   const facilitatorServer = createFacilitatorToolServer(ctx);
 
   const agents = agentConfigs.map((config) => {
@@ -190,7 +175,7 @@ export function createFacilitator({
     query,
     output: devNull,
     model: facilitatorModel ?? model,
-    maxTurns: maxTurns ?? 20,
+    maxTurns: maxTurns ?? 80,
     allowedTools: facilitatorAllowedTools ?? [
       "Bash",
       "Read",
@@ -215,9 +200,7 @@ export function createFacilitator({
     agents,
     messageBus,
     output,
-    maxTurns,
     ctx,
-    eventQueue,
     taskAmend,
     redactor,
   });

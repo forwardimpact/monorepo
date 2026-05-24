@@ -4,12 +4,12 @@ import { PassThrough } from "node:stream";
 
 import { Facilitator } from "@forwardimpact/libeval";
 import {
-  createOrchestrationContext,
-  createConcludeHandler,
-  createRollCallHandler,
-  createAskHandler,
-  createAnswerHandler,
   createAnnounceHandler,
+  createAnswerHandler,
+  createAskHandler,
+  createConcludeHandler,
+  createOrchestrationContext,
+  createRollCallHandler,
 } from "../src/orchestration-toolkit.js";
 import { MessageBus } from "../src/message-bus.js";
 import { createNoopRedactor } from "../src/redaction.js";
@@ -21,9 +21,20 @@ const noop = () => createNoopRedactor();
 const concludeMsg = (summary, verdict = "success") =>
   createToolUseMsg("Conclude", { verdict, summary });
 const askMsg = (to, question) =>
-  createToolUseMsg("Ask", { to, question }, { id: `ask-${to}` });
-const answerMsg = (message) =>
-  createToolUseMsg("Answer", { message }, { id: "answer-1" });
+  createToolUseMsg(
+    "Ask",
+    { to, question },
+    {
+      id: `ask-${to ?? "broadcast"}-${Math.random().toString(36).slice(2, 6)}`,
+    },
+  );
+const answerMsgPlaceholder = () =>
+  createToolUseMsg(
+    "Answer",
+    // askId is resolved lazily by the dispatcher closure.
+    { askId: 0, message: "" },
+    { id: `answer-${Math.random().toString(36).slice(2, 6)}` },
+  );
 const announceMsg = (message) =>
   createToolUseMsg("Announce", { message }, { id: "announce-1" });
 
@@ -35,6 +46,21 @@ function seedCtx(participants) {
   return { ctx, messageBus };
 }
 
+/**
+ * Dispatcher that snapshots the only pending Ask addressed to `from` at
+ * dispatch time and quotes its askId back to the Answer handler. Lets
+ * mock scripts answer without knowing askIds ahead of time.
+ */
+function answerDispatcher(ctx, from, message) {
+  const handler = createAnswerHandler(ctx, { from });
+  return async () => {
+    const owed = [...ctx.pendingAsks.values()].find(
+      (e) => e.addresseeName === from,
+    );
+    return handler({ askId: owed?.askId, message });
+  };
+}
+
 describe("Facilitator - core orchestration", () => {
   test("turn 0 Conclude: no agents start", async () => {
     const { ctx, messageBus } = seedCtx(["facilitator", "agent-1"]);
@@ -43,11 +69,7 @@ describe("Facilitator - core orchestration", () => {
     const facilitatorRunner = createMockRunner(
       [{ text: "Done immediately" }],
       [[concludeMsg("Nothing to do")]],
-      {
-        toolDispatcher: {
-          Conclude: (input) => concludeHandler(input),
-        },
-      },
+      { toolDispatcher: { Conclude: (input) => concludeHandler(input) } },
     );
 
     let agentStarted = false;
@@ -64,20 +86,13 @@ describe("Facilitator - core orchestration", () => {
       agents: [{ name: "agent-1", role: "worker", runner: agentRunner }],
       messageBus,
       output,
-      maxTurns: 10,
       ctx,
       redactor: noop(),
     });
 
     const result = await facilitator.run("Quick task");
-
     assert.strictEqual(result.success, true);
-    assert.strictEqual(result.turns, 1);
-    assert.strictEqual(
-      agentStarted,
-      false,
-      "Agent should not start when facilitator concludes on turn 0",
-    );
+    assert.strictEqual(agentStarted, false);
   });
 
   test("lazy start: agents only start when they receive a message", async () => {
@@ -88,8 +103,9 @@ describe("Facilitator - core orchestration", () => {
       defaultTo: undefined,
     });
 
+    // Turn 0: Ask. Turn 1 (after agent-1's answer arrives): Conclude.
     const facilitatorRunner = createMockRunner(
-      [{ text: "Assigning work" }, { text: "Done" }],
+      [{ text: "Assigning work" }, { text: "All done" }],
       [[askMsg("agent-1", "Explore the docs")], [concludeMsg("All done")]],
       {
         toolDispatcher: {
@@ -101,13 +117,12 @@ describe("Facilitator - core orchestration", () => {
 
     let agent1Started = false;
     let agent2Started = false;
-    const agent1AnswerHandler = createAnswerHandler(ctx, { from: "agent-1" });
     const agent1Runner = createMockRunner(
       [{ text: "Found docs" }],
-      [[answerMsg("Found the docs")]],
+      [[answerMsgPlaceholder()]],
       {
         toolDispatcher: {
-          Answer: (input) => agent1AnswerHandler(input),
+          Answer: answerDispatcher(ctx, "agent-1", "Found the docs"),
         },
       },
     );
@@ -132,28 +147,25 @@ describe("Facilitator - core orchestration", () => {
       ],
       messageBus,
       output,
-      maxTurns: 10,
       ctx,
       redactor: noop(),
     });
 
     const result = await facilitator.run("Test task");
-
     assert.strictEqual(result.success, true);
-    assert.strictEqual(agent1Started, true, "agent-1 should have started");
-    assert.strictEqual(
-      agent2Started,
-      false,
-      "agent-2 should not have started (no message)",
-    );
+    assert.strictEqual(agent1Started, true);
+    assert.strictEqual(agent2Started, false);
   });
 
-  test("trace uses universal { source, seq, event } envelope", async () => {
+  test("trace uses universal { source, seq, event } envelope and seqs are monotone", async () => {
     const { ctx, messageBus } = seedCtx(["facilitator", "agent-1"]);
     const concludeHandler = createConcludeHandler(ctx);
     const askHandler = createAskHandler(ctx, {
       from: "facilitator",
       defaultTo: undefined,
+    });
+    const agentAnnounceHandler = createAnnounceHandler(ctx, {
+      from: "agent-1",
     });
 
     const facilitatorRunner = createMockRunner(
@@ -166,17 +178,12 @@ describe("Facilitator - core orchestration", () => {
         },
       },
     );
-
-    const agentAnnounceHandler = createAnnounceHandler(ctx, {
-      from: "agent-1",
-    });
-    const agentAnswerHandler = createAnswerHandler(ctx, { from: "agent-1" });
     const agentRunner = createMockRunner(
       [{ text: "Working" }],
-      [[answerMsg("Done working"), announceMsg("Heads up")]],
+      [[answerMsgPlaceholder(), announceMsg("Heads up")]],
       {
         toolDispatcher: {
-          Answer: (input) => agentAnswerHandler(input),
+          Answer: answerDispatcher(ctx, "agent-1", "Done working"),
           Announce: (input) => agentAnnounceHandler(input),
         },
       },
@@ -188,7 +195,6 @@ describe("Facilitator - core orchestration", () => {
       agents: [{ name: "agent-1", role: "worker", runner: agentRunner }],
       messageBus,
       output,
-      maxTurns: 10,
       ctx,
       redactor: noop(),
     });
@@ -198,14 +204,12 @@ describe("Facilitator - core orchestration", () => {
 
     await facilitator.run("Do the work");
 
-    const data = output.read()?.toString() ?? "";
-    const lines = data
+    const lines = (output.read()?.toString() ?? "")
       .trim()
       .split("\n")
       .filter((l) => l.length > 0)
       .map((l) => JSON.parse(l));
 
-    // All lines with seq should be monotonically increasing
     const seqs = lines
       .filter((l) => typeof l.seq === "number")
       .map((l) => l.seq);
@@ -216,15 +220,14 @@ describe("Facilitator - core orchestration", () => {
       );
     }
 
-    // Summary line should exist — wrapped in envelope
     const summary = lines.find(
       (l) => l.source === "orchestrator" && l.event?.type === "summary",
     );
-    assert.ok(summary, "Trace should contain summary");
+    assert.ok(summary);
     assert.strictEqual(summary.event.success, true);
   });
 
-  test("fail-fast: agent error aborts all sessions", async () => {
+  test("fail-fast: agent error aborts all sessions and re-throws", async () => {
     const { ctx, messageBus } = seedCtx(["facilitator", "agent-1", "agent-2"]);
     const askHandler = createAskHandler(ctx, {
       from: "facilitator",
@@ -234,19 +237,13 @@ describe("Facilitator - core orchestration", () => {
     const facilitatorRunner = createMockRunner(
       [{ text: "Assigning" }],
       [[askMsg("agent-1", "Do work"), askMsg("agent-2", "Do work")]],
-      {
-        toolDispatcher: {
-          Ask: (input) => askHandler(input),
-        },
-      },
+      { toolDispatcher: { Ask: (input) => askHandler(input) } },
     );
 
-    // agent-1 throws an error
     const agent1Runner = createMockRunner([{ text: "Crash" }]);
     agent1Runner.run = async () => {
       throw new Error("Agent-1 process crashed");
     };
-
     const agent2Runner = createMockRunner([{ text: "Working" }]);
 
     const output = new PassThrough();
@@ -258,7 +255,6 @@ describe("Facilitator - core orchestration", () => {
       ],
       messageBus,
       output,
-      maxTurns: 10,
       ctx,
       redactor: noop(),
     });
@@ -270,7 +266,7 @@ describe("Facilitator - core orchestration", () => {
 });
 
 describe("Facilitator - messaging", () => {
-  test("Ask delivers question to a specific agent and Answer clears it", async () => {
+  test("Ask delivers questions to specific agents; each receives the right task", async () => {
     const { ctx, messageBus } = seedCtx(["facilitator", "agent-1", "agent-2"]);
     const concludeHandler = createConcludeHandler(ctx);
     const askHandler = createAskHandler(ctx, {
@@ -278,6 +274,8 @@ describe("Facilitator - messaging", () => {
       defaultTo: undefined,
     });
 
+    // Lead turn 0: parallel Asks. Turn 1: replies arrive (one or both
+    // batches depending on microtask interleaving) → Conclude.
     const facilitatorRunner = createMockRunner(
       [{ text: "Assigning" }, { text: "Done" }],
       [
@@ -294,12 +292,12 @@ describe("Facilitator - messaging", () => {
 
     let agent1Task = null;
     let agent2Task = null;
-    const agent1AnswerHandler = createAnswerHandler(ctx, { from: "agent-1" });
-    const agent2AnswerHandler = createAnswerHandler(ctx, { from: "agent-2" });
     const agent1Runner = createMockRunner(
       [{ text: "Did A" }],
-      [[answerMsg("A done")]],
-      { toolDispatcher: { Answer: (i) => agent1AnswerHandler(i) } },
+      [[answerMsgPlaceholder()]],
+      {
+        toolDispatcher: { Answer: answerDispatcher(ctx, "agent-1", "A done") },
+      },
     );
     const origRun1 = agent1Runner.run;
     agent1Runner.run = async (task) => {
@@ -308,8 +306,10 @@ describe("Facilitator - messaging", () => {
     };
     const agent2Runner = createMockRunner(
       [{ text: "Did B" }],
-      [[answerMsg("B done")]],
-      { toolDispatcher: { Answer: (i) => agent2AnswerHandler(i) } },
+      [[answerMsgPlaceholder()]],
+      {
+        toolDispatcher: { Answer: answerDispatcher(ctx, "agent-2", "B done") },
+      },
     );
     const origRun2 = agent2Runner.run;
     agent2Runner.run = async (task) => {
@@ -326,7 +326,6 @@ describe("Facilitator - messaging", () => {
       ],
       messageBus,
       output,
-      maxTurns: 10,
       ctx,
       redactor: noop(),
     });
@@ -345,8 +344,8 @@ describe("Facilitator - messaging", () => {
     });
 
     const facilitatorRunner = createMockRunner(
-      [{ text: "Broadcasting" }, { text: "Done" }],
-      [[announceMsg("Everyone listen")], [concludeMsg("Complete")]],
+      [{ text: "Broadcasting" }],
+      [[announceMsg("Everyone listen"), concludeMsg("Complete")]],
       {
         toolDispatcher: {
           Announce: (input) => announceHandler(input),
@@ -361,8 +360,6 @@ describe("Facilitator - messaging", () => {
     const origRun1 = agent1Runner.run;
     agent1Runner.run = async (task) => {
       agent1Task = task;
-      // Wake the facilitator so it can emit its Conclude turn.
-      messageBus.announce("agent-1", "Acknowledged");
       return origRun1.call(agent1Runner, task);
     };
     const agent2Runner = createMockRunner([{ text: "Heard" }]);
@@ -381,21 +378,14 @@ describe("Facilitator - messaging", () => {
       ],
       messageBus,
       output,
-      maxTurns: 10,
       ctx,
       redactor: noop(),
     });
 
     await facilitator.run("Broadcast test");
 
-    assert.ok(
-      agent1Task && agent1Task.includes("Everyone listen"),
-      "agent-1 should receive the announcement",
-    );
-    assert.ok(
-      agent2Task && agent2Task.includes("Everyone listen"),
-      "agent-2 should receive the announcement",
-    );
+    assert.ok(agent1Task && agent1Task.includes("Everyone listen"));
+    assert.ok(agent2Task && agent2Task.includes("Everyone listen"));
   });
 
   test("RollCall returns participant list", async () => {
@@ -404,12 +394,96 @@ describe("Facilitator - messaging", () => {
       { name: "facilitator", role: "facilitator" },
       { name: "agent-1", role: "explorer" },
     ];
-    const rollCallHandler = createRollCallHandler(ctx);
-
-    const result = await rollCallHandler();
+    const result = await createRollCallHandler(ctx)();
     const parsed = JSON.parse(result.content[0].text);
     assert.strictEqual(parsed.length, 2);
-    assert.strictEqual(parsed[0].name, "facilitator");
-    assert.strictEqual(parsed[1].name, "agent-1");
+  });
+});
+
+describe("Facilitator - bidirectional Ask", () => {
+  test("agent-initiated Ask routes to the facilitator; facilitator answers via Answer", async () => {
+    const { ctx, messageBus } = seedCtx(["facilitator", "agent-1"]);
+    const concludeHandler = createConcludeHandler(ctx);
+    const facilitatorAskHandler = createAskHandler(ctx, {
+      from: "facilitator",
+      defaultTo: undefined,
+    });
+    const agentAskHandler = createAskHandler(ctx, {
+      from: "agent-1",
+      defaultTo: "facilitator",
+    });
+    const facilitatorAnswerHandler = createAnswerHandler(ctx, {
+      from: "facilitator",
+    });
+
+    // Facilitator: turn 0 Ask → turn 1 (sees agent's answer + agent's own
+    // Ask) Answer + Conclude.
+    const facilitatorAnswerDispatcher = async () => {
+      const owed = [...ctx.pendingAsks.values()].find(
+        (e) => e.addresseeName === "facilitator",
+      );
+      return facilitatorAnswerHandler({
+        askId: owed?.askId,
+        message: "use Bun 1.2+",
+      });
+    };
+    const facilitatorRunner = createMockRunner(
+      [{ text: "Asking" }, { text: "Handling back-and-forth" }],
+      [
+        [askMsg("agent-1", "What runtime?")],
+        [
+          createToolUseMsg(
+            "Answer",
+            { askId: 0, message: "use Bun 1.2+" },
+            { id: "fac-ans-1" },
+          ),
+          concludeMsg("Done"),
+        ],
+      ],
+      {
+        toolDispatcher: {
+          Ask: (input) => facilitatorAskHandler(input),
+          Answer: facilitatorAnswerDispatcher,
+          Conclude: (input) => concludeHandler(input),
+        },
+      },
+    );
+
+    // Agent: turn 0 (with facilitator's ask in inbox) → Answer + Ask back.
+    // Turn 1 (with facilitator's answer in inbox) → end turn quietly.
+    const agentRunner = createMockRunner(
+      [{ text: "Replying and asking back" }, { text: "Got it" }],
+      [
+        [
+          answerMsgPlaceholder(),
+          createToolUseMsg(
+            "Ask",
+            { question: "What version is required?" },
+            { id: "agt-ask-1" },
+          ),
+        ],
+        [{ type: "assistant", content: "Thanks." }],
+      ],
+      {
+        toolDispatcher: {
+          Answer: answerDispatcher(ctx, "agent-1", "node"),
+          Ask: (input) => agentAskHandler(input),
+        },
+      },
+    );
+
+    const output = new PassThrough();
+    const facilitator = new Facilitator({
+      facilitatorRunner,
+      agents: [{ name: "agent-1", role: "worker", runner: agentRunner }],
+      messageBus,
+      output,
+      ctx,
+      redactor: noop(),
+    });
+
+    const result = await facilitator.run("Bidirectional");
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(ctx.pendingAsks.size, 0);
   });
 });

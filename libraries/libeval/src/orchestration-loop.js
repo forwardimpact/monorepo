@@ -1,27 +1,35 @@
 /**
- * OrchestrationLoop — N agent sessions + one lead LLM session. The
- * Ask/Answer contract is enforced at turn boundaries via checkPendingAsk:
- * one synthetic reminder, then a `protocol_violation` event plus a
- * null-answer injection so the session advances instead of deadlocking.
+ * OrchestrationLoop — N agent sessions coordinated by one lead LLM session.
  *
- * Mode-specific concepts (Conclude vs. Adjourn/Recess, lead role name,
- * system prompts, tool sets) live in mode-specific wrappers
- * (`Facilitator` for facilitate mode, `Discusser` for discuss mode). This
- * file owns only the loop itself.
+ * Ask is **async**: the tool returns immediately, the actual reply arrives
+ * on a later turn as `[answer#N] participant: …` on the asker's bus queue.
+ * Pending state keys by `askId` (visible in the `[ask#N]` tag), so duplicate
+ * Asks to the same addressee coexist without overwriting each other, and
+ * the asker can map each reply unambiguously back to its question.
+ *
+ * Both lead and participants follow the same outer pattern: drain the bus
+ * queue, run / resume the LLM with the drained messages, then settle any
+ * unanswered Asks the participant owes. They differ only in how the first
+ * turn starts (the lead receives the task; participants wait for traffic).
+ *
+ * Termination signals:
+ * - `ctx.concluded` — explicit Conclude / Adjourn / Recess.
+ * - `stopped` — broader: also true on lead error, agent crash, or any
+ *   other abort path. Loops watch `stopped`; `ctx.concluded` is only used
+ *   for the summary's success/verdict.
  */
 import { SequenceCounter } from "./sequence-counter.js";
 import {
-  createOrchestrationContext,
-  checkPendingAsk,
+  cancelPendingAsks,
+  pendingAsksOwedBy,
+  remindOwedAsks,
 } from "./orchestration-toolkit.js";
-import { createAsyncQueue, formatMessages } from "./orchestrator-helpers.js";
+import { formatMessages } from "./orchestrator-helpers.js";
 
-/**
- * Orchestrate N agent sessions coordinated by a single lead LLM session.
- * Mode-neutral. Callers parameterise the lead participant's name and the
- * `protocol_violation` mode tag so the same loop powers both facilitate
- * and discuss modes without either knowing about the other.
- */
+/** Default per-session lead-turn budget (one resume per round of traffic). */
+const DEFAULT_MAX_LEAD_TURNS = 40;
+
+/** Orchestrate N agent sessions coordinated by a single lead LLM session. */
 export class OrchestrationLoop {
   /**
    * @param {object} deps
@@ -29,13 +37,12 @@ export class OrchestrationLoop {
    * @param {Array<{name: string, role: string, runner: import("./agent-runner.js").AgentRunner}>} deps.agents
    * @param {import("./message-bus.js").MessageBus} deps.messageBus
    * @param {import("stream").Writable} deps.output
-   * @param {string} [deps.leadName] - Canonical name of the lead participant on the messageBus (default "lead").
-   * @param {"facilitated"|"discussion"|"supervised"} [deps.mode] - Mode tag emitted on `protocol_violation` events.
-   * @param {number} [deps.maxTurns]
-   * @param {object} [deps.ctx]
-   * @param {object} [deps.eventQueue]
-   * @param {string} [deps.taskAmend] - Opaque addendum appended to the task before delivery.
+   * @param {string} deps.leadName - Canonical name of the lead participant on the bus.
+   * @param {"facilitated"|"discussion"|"supervised"} deps.mode - Carries through to `protocol_violation` events.
+   * @param {object} deps.ctx - Orchestration context (from `createOrchestrationContext()`).
    * @param {object} deps.redactor
+   * @param {number} [deps.maxLeadTurns] - Cap on lead resumes per session (default 40).
+   * @param {string} [deps.taskAmend] - Appended to the task before delivery.
    */
   constructor({
     leadRunner,
@@ -44,34 +51,41 @@ export class OrchestrationLoop {
     output,
     leadName,
     mode,
-    maxTurns,
+    maxLeadTurns,
     ctx,
-    eventQueue,
     taskAmend,
     redactor,
   }) {
+    if (!leadRunner) throw new Error("leadRunner is required");
+    if (!agents) throw new Error("agents is required");
+    if (!messageBus) throw new Error("messageBus is required");
+    if (!output) throw new Error("output is required");
+    if (!leadName) throw new Error("leadName is required");
+    if (!mode) throw new Error("mode is required");
+    if (!ctx) throw new Error("ctx is required");
     if (!redactor) throw new Error("redactor is required");
-    this.redactor = redactor;
     this.leadRunner = leadRunner;
-    this.leadName = leadName ?? "lead";
-    this.mode = mode ?? "facilitated";
     this.agents = agents;
     this.messageBus = messageBus;
     this.output = output;
-    this.maxTurns = maxTurns ?? 20;
-    this.ctx = ctx ?? createOrchestrationContext();
-    this.counter = new SequenceCounter();
-    this.eventQueue = eventQueue ?? createAsyncQueue();
-    this.leadTurns = 0;
+    this.leadName = leadName;
+    this.mode = mode;
+    this.ctx = ctx;
+    this.redactor = redactor;
     this.taskAmend = taskAmend ?? null;
-
-    let resolve;
-    const promise = new Promise((r) => {
-      resolve = r;
+    this.maxLeadTurns = maxLeadTurns ?? DEFAULT_MAX_LEAD_TURNS;
+    this.counter = new SequenceCounter();
+    this.leadTurns = 0;
+    this.stopped = false;
+    let resolveDone;
+    this.donePromise = new Promise((r) => {
+      resolveDone = r;
     });
-    this.concludePromise = promise;
-    this.concludeResolve = resolve;
+    this.#signalDone = resolveDone;
   }
+
+  /** Internal — resolved when `stopped` flips true so waiters unblock. */
+  #signalDone;
 
   /**
    * Run the full orchestrated session.
@@ -80,243 +94,170 @@ export class OrchestrationLoop {
    */
   async run(task) {
     this.emitOrchestratorEvent({ type: "session_start" });
-
     const initialTask = this.taskAmend ? `${task}\n\n${this.taskAmend}` : task;
 
-    // Launch agent loops first — they wait for messages via messageBus.
-    // This lets agents process Ask/Announce messages that arrive during
-    // the lead's initial run, rather than after it completes.
-    const agentPromises = this.agents.map((a) => this.#runAgent(a));
+    let firstError = null;
+    const abort = (err) => {
+      if (err && !firstError) firstError = err;
+      this.#stop();
+    };
 
-    // Turn 0: lead receives the task
-    this.leadTurns++;
-    await this.leadRunner.run(initialTask);
-
-    // Handle redirect after turn 0
-    await this.#processRedirect();
-
-    if (this.ctx.concluded) {
-      // Lead concluded during its initial run. Let agents finish any
-      // in-progress work before returning — they may have received Ask/Answer
-      // messages and started processing concurrently.
-      this.concludeResolve();
-      await Promise.allSettled(agentPromises);
-      const success = this.ctx.verdict === "success";
-      this.emitSummary({
-        success,
-        verdict: this.ctx.verdict,
-        turns: this.leadTurns,
-        summary: this.ctx.summary,
-      });
-      return { success, turns: this.leadTurns };
-    }
-
-    // Abort agents promptly when the session concludes during the event loop
-    this.concludePromise.then(() => {
-      for (const agent of this.agents) {
-        agent.runner.currentAbortController?.abort();
-      }
-    });
-
-    // Concurrent phase: lead event loop + already-running agent loops
-    const leadPromise = this.#leadLoop();
+    // Start agent loops in parallel. Wrapped so a crash flips `stopped`
+    // but the wrapper itself resolves — Promise.allSettled below never
+    // sees an unhandled rejection.
+    const agentPromises = this.agents.map((a) =>
+      this.#runAgent(a).catch(abort),
+    );
 
     try {
-      await Promise.all([...agentPromises, leadPromise]);
+      await this.#runLead(initialTask);
     } catch (err) {
-      for (const agent of this.agents) {
-        agent.runner.currentAbortController?.abort();
-      }
-      this.leadRunner.currentAbortController?.abort();
-      throw err;
+      abort(err);
+    } finally {
+      this.#stop();
     }
 
+    await Promise.allSettled(agentPromises);
+    if (firstError) throw firstError;
+
     const success = this.ctx.concluded && this.ctx.verdict === "success";
-    const result = {
-      success,
-      turns: this.leadTurns,
-    };
     this.emitSummary({
       success,
       verdict: this.ctx.verdict,
-      turns: result.turns,
+      turns: this.leadTurns,
       summary: this.ctx.summary,
     });
-    return result;
+    return { success, turns: this.leadTurns };
   }
 
-  #checkAsk(name) {
-    return checkPendingAsk({
-      ctx: this.ctx,
-      messageBus: this.messageBus,
-      addresseeName: name,
-      mode: this.mode,
-      emitViolation: (e) => this.emitOrchestratorEvent(e),
-    });
-  }
-
-  async #enforcePendingAsk(agent) {
-    if (this.#checkAsk(agent.name) !== "recheck") return;
-    if (this.ctx.concluded) return;
-    const reminders = this.messageBus.drain(agent.name);
-    if (reminders.length === 0) return;
-    await agent.runner.resume(formatMessages(reminders));
-    if (this.ctx.concluded) return;
-    this.#checkAsk(agent.name);
+  #stop() {
+    if (this.stopped) return;
+    this.stopped = true;
+    this.#signalDone();
+    for (const agent of this.agents) {
+      agent.runner.currentAbortController?.abort();
+    }
+    this.leadRunner.currentAbortController?.abort();
   }
 
   /**
-   * Agent outer loop — waits for messages, runs/resumes the agent.
-   * @param {{name: string, role: string, runner: import("./agent-runner.js").AgentRunner}} agent
+   * Lead loop. The lead's first turn carries the task; every subsequent
+   * turn is a resume triggered by something landing on its inbox.
+   *
+   * `messages.length === 0` from `#drainOrWait` means the session ended
+   * before any message arrived — that's the natural exit. If
+   * `drainOrWait` returned messages, deliver them even if the session
+   * concluded in the microtask window between wake-up and this check;
+   * the inbox already has them and they deserve to be seen.
    */
-  async #runAgent(agent) {
-    // Wait for first message (lazy start)
-    await Promise.race([
-      this.messageBus.waitForMessages(agent.name),
-      this.concludePromise,
-    ]);
-    if (this.ctx.concluded) return;
+  async #runLead(initialTask) {
+    this.leadTurns = 1;
+    this.emitOrchestratorEvent({ type: "agent_start", agent: this.leadName });
+    await this.leadRunner.run(initialTask);
+    if (this.#exiting()) return;
+    await this.#settleOwedAsks(this.leadName, this.leadRunner);
 
-    let messages = this.messageBus.drain(agent.name);
-    if (messages.length === 0) return;
+    while (!this.#exiting()) {
+      if (this.leadTurns >= this.maxLeadTurns) {
+        this.emitOrchestratorEvent({
+          type: "lead_turn_limit",
+          limit: this.maxLeadTurns,
+        });
+        return;
+      }
+      const messages = await this.#drainOrWait(this.leadName);
+      if (messages.length === 0) return;
 
-    this.emitOrchestratorEvent({ type: "agent_start", agent: agent.name });
-    await agent.runner.run(formatMessages(messages));
-    if (await this.#settleAgentTurn(agent)) return;
-
-    // Loop: check for new messages, resume if any
-    while (!this.ctx.concluded) {
-      messages = await this.#awaitAgentMessages(agent.name);
-      if (messages.length === 0) break;
-      await agent.runner.resume(formatMessages(messages));
-      if (await this.#settleAgentTurn(agent)) break;
+      this.leadTurns++;
+      await this.leadRunner.resume(formatMessages(messages));
+      if (this.#exiting()) return;
+      await this.#settleOwedAsks(this.leadName, this.leadRunner);
     }
   }
 
   /**
-   * Enforce pending-ask and emit turn_complete. Returns true when the
-   * session has concluded and the caller should stop.
+   * Agent loop. The first message off the inbox triggers `run()`; every
+   * subsequent batch triggers `resume()`. No turn budget — the agent
+   * runner's own `maxTurns` caps each SDK call.
    */
-  async #settleAgentTurn(agent) {
-    if (this.ctx.concluded) return true;
-    await this.#enforcePendingAsk(agent);
-    if (this.ctx.concluded) return true;
-    this.eventQueue.enqueue({
-      type: "lifecycle",
-      agent: agent.name,
-      status: "turn_complete",
-    });
-    return false;
+  async #runAgent({ name, runner }) {
+    let started = false;
+    while (!this.#exiting()) {
+      const messages = await this.#drainOrWait(name);
+      if (messages.length === 0) return;
+
+      if (!started) {
+        started = true;
+        this.emitOrchestratorEvent({ type: "agent_start", agent: name });
+        await runner.run(formatMessages(messages));
+      } else {
+        await runner.resume(formatMessages(messages));
+      }
+      if (this.#exiting()) return;
+      await this.#settleOwedAsks(name, runner);
+    }
+  }
+
+  /** Either an explicit Conclude or any abort path. */
+  #exiting() {
+    return this.stopped || this.ctx.concluded;
   }
 
   /**
-   * Wait for messages addressed to `name`, returning an empty array when
-   * the session concludes first.
+   * Drain the queue, or wait for the first message to arrive. Returns an
+   * empty array when the session ended before any message landed.
    */
-  async #awaitAgentMessages(name) {
-    const messages = this.messageBus.drain(name);
+  async #drainOrWait(name) {
+    let messages = this.messageBus.drain(name);
     if (messages.length > 0) return messages;
     await Promise.race([
       this.messageBus.waitForMessages(name),
-      this.concludePromise,
+      this.donePromise,
     ]);
-    if (this.ctx.concluded) return [];
-    return this.messageBus.drain(name);
+    if (this.stopped) return [];
+    messages = this.messageBus.drain(name);
+    return messages;
   }
 
   /**
-   * Lead event loop — only runs when input arrives.
+   * If `name` left a pending Ask unanswered, inject one synthetic reminder
+   * and resume once more. If still unanswered after the reminder, emit a
+   * `protocol_violation` event per outstanding ask and cancel them — the
+   * asker's queue gets a synthetic `[no answer: …]` so it doesn't deadlock
+   * on a participant that's silently ignoring its inbox.
    */
-  async #leadLoop() {
-    while (!this.ctx.concluded) {
-      const event = await this.eventQueue.dequeue();
-      if (this.ctx.concluded || event === null) break;
-      await this.#handleEvent(event);
-    }
-  }
+  async #settleOwedAsks(name, runner) {
+    if (pendingAsksOwedBy(this.ctx, name).length === 0) return;
+    if (this.stopped) return;
 
-  async #handleEvent(event) {
-    switch (event.type) {
-      case "messages":
-      case "lifecycle": {
-        const msgs = this.messageBus.drain(this.leadName);
-        if (msgs.length === 0) break;
-        this.leadTurns++;
-        await this.leadRunner.resume(formatMessages(msgs));
-        await this.#processRedirect();
-        if (!this.ctx.concluded) await this.#enforceLeadPendingAsk();
-        break;
-      }
-    }
-
-    if (this.ctx.concluded) {
-      this.concludeResolve();
-      this.eventQueue.close();
-    }
-  }
-
-  async #enforceLeadPendingAsk() {
-    if (this.#checkAsk(this.leadName) !== "recheck") return;
-    if (this.ctx.concluded) return;
-    const reminders = this.messageBus.drain(this.leadName);
+    const reminded = remindOwedAsks(this.ctx, name);
+    if (!reminded) return;
+    const reminders = this.messageBus.drain(name);
     if (reminders.length === 0) return;
-    this.leadTurns++;
-    await this.leadRunner.resume(formatMessages(reminders));
-    await this.#processRedirect();
-    if (this.ctx.concluded) return;
-    this.#checkAsk(this.leadName);
+
+    await runner.resume(formatMessages(reminders));
+    if (this.stopped) return;
+
+    const stillOwed = pendingAsksOwedBy(this.ctx, name);
+    if (stillOwed.length === 0) return;
+
+    for (const entry of stillOwed) {
+      this.emitOrchestratorEvent({
+        type: "protocol_violation",
+        agent: name,
+        askId: entry.askId,
+        mode: this.mode,
+      });
+    }
+    cancelPendingAsks(this.ctx, `${name} did not answer after reminder`, name);
   }
 
   /**
-   * Process a pending redirect after a lead turn.
-   */
-  async #processRedirect() {
-    if (!this.ctx.redirect) return;
-    const redirect = this.ctx.redirect;
-    this.ctx.redirect = null;
-
-    this.emitOrchestratorEvent({
-      type: "redirect",
-      to: redirect.to,
-    });
-
-    if (redirect.to === "all") {
-      // Abort all agents and deliver redirect via broadcast
-      for (const agent of this.agents) {
-        agent.runner.currentAbortController?.abort();
-      }
-      this.messageBus.announce(this.leadName, redirect.message);
-    } else if (redirect.to) {
-      // Abort specific agent and deliver via direct message
-      const target = this.agents.find((a) => a.name === redirect.to);
-      if (target) {
-        target.runner.currentAbortController?.abort();
-      }
-      this.messageBus.direct(this.leadName, redirect.to, redirect.message);
-    }
-  }
-
-  /** Return the last assistant text block from a runner's buffer, or the fallback if none exists. */
-  extractLastText(runner, fallback) {
-    const lines = runner.buffer;
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const event = JSON.parse(lines[i]);
-      if (event.type !== "assistant") continue;
-      const content = event.message?.content ?? event.content;
-      if (!Array.isArray(content)) continue;
-      for (let j = content.length - 1; j >= 0; j--) {
-        if (content[j].type === "text" && content[j].text) {
-          return content[j].text;
-        }
-      }
-    }
-    return fallback;
-  }
-
-  /**
-   * Emit a single NDJSON line tagged with source and seq.
-   * @param {string} source - Participant name
-   * @param {string} line - Raw NDJSON line
+   * Emit one NDJSON line tagged with its source (participant name) and a
+   * monotonic seq, wrapped in the universal `{source, seq, event}` envelope.
+   * Called from each runner's `onLine` callback.
+   * @param {string} source
+   * @param {string} line - Raw NDJSON line from the SDK iterator.
    */
   emitLine(source, line) {
     const event = JSON.parse(line);
@@ -332,7 +273,10 @@ export class OrchestrationLoop {
   }
 
   /**
-   * @param {{type: string}} event
+   * Emit one orchestrator-source event (`session_start`, `agent_start`,
+   * `protocol_violation`, `lead_turn_limit`) wrapped in the universal
+   * envelope.
+   * @param {object} event
    */
   emitOrchestratorEvent(event) {
     this.output.write(
@@ -347,7 +291,10 @@ export class OrchestrationLoop {
   }
 
   /**
-   * @param {{success: boolean, verdict?: string|null, turns: number, summary?: string}} result
+   * Emit the terminal summary line. `Discusser` emits its own discuss-
+   * augmented summary after this one; trace consumers keep the last
+   * summary they see.
+   * @param {{success: boolean, verdict?: string|null, turns: number, summary?: string|null}} result
    */
   emitSummary(result) {
     this.output.write(

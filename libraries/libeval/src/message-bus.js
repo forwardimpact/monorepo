@@ -1,22 +1,26 @@
 /**
- * MessageBus — in-memory per-participant message queues for facilitated and
- * supervised modes. The message vocabulary mirrors the orchestration toolkit:
+ * MessageBus — in-memory per-participant message queues.
  *
- * - ask(from, to, text, askId)       — direct question; registers nothing
- *   itself (the handler's caller owns pending-ask state). `to === "@broadcast"`
- *   sends an identical entry to every participant except the sender.
- * - answer(from, to, text, askId)    — direct reply to the asker.
- * - announce(from, text)             — broadcast, no reply expected.
- * - synthetic(to, text)              — orchestrator-only reminder injection.
+ * Four message kinds, each pushed onto the addressee's queue:
+ *
+ * - `ask(from, to, text, askId)` — direct question; the toolkit owns the
+ *   pending-ask state separately. Fan-out (broadcast Ask) happens at the
+ *   handler level by calling `ask()` once per addressee.
+ * - `answer(from, to, text, askId)` — direct reply to the original asker.
+ *   The orchestrator may inject synthetic answers (`from === "@orchestrator"`)
+ *   when an Ask times out.
+ * - `announce(from, text)` — broadcast, no reply expected; lands on every
+ *   participant's queue except the sender's.
+ * - `synthetic(to, text)` — orchestrator-only reminder injection.
  *
  * Follows OO+DI: constructor injection, factory function, tests bypass factory.
  */
 
-/** In-memory per-participant message queues for facilitated and supervised orchestration modes. */
+/** In-memory per-participant message queues. */
 export class MessageBus {
   /**
    * @param {object} deps
-   * @param {string[]} deps.participants - Participant names
+   * @param {string[]} deps.participants - Canonical participant names.
    */
   constructor({ participants }) {
     this.queues = new Map();
@@ -27,55 +31,30 @@ export class MessageBus {
     }
   }
 
-  /**
-   * Send a question to a participant (direct), or broadcast when
-   * `to === "@broadcast"`.
-   * @param {string} from
-   * @param {string} to - Recipient name or "@broadcast"
-   * @param {string} text
-   * @param {number} askId
-   */
+  /** Send a question to one participant. */
   ask(from, to, text, askId) {
     this.#assertParticipant(from);
-    if (to === "@broadcast") {
-      for (const [name, queue] of this.queues) {
-        if (name === from) continue;
-        queue.push({ from, text, kind: "ask", askId, direct: false });
-        this.#resolveWaiter(name);
-      }
-      return;
-    }
     this.#assertParticipant(to);
-    this.queues.get(to).push({ from, text, kind: "ask", askId, direct: true });
+    this.queues.get(to).push({ from, text, kind: "ask", askId });
     this.#resolveWaiter(to);
   }
 
   /**
-   * Reply to a pending ask.
-   * @param {string} from - Answerer (or "@orchestrator" for a synthetic answer)
-   * @param {string} to - Original asker
-   * @param {string} text
-   * @param {number} askId
+   * Reply to a pending ask. `from === "@orchestrator"` is allowed for
+   * synthetic null answers — the orchestrator is not a real participant
+   * but it routes through the bus.
    */
   answer(from, to, text, askId) {
     this.#assertParticipant(to);
-    // Synthetic answers from the orchestrator bypass the participant check
-    // on `from` — the orchestrator is not a message-bus participant.
     if (from !== "@orchestrator") this.#assertParticipant(from);
-    this.queues
-      .get(to)
-      .push({ from, text, kind: "answer", askId, direct: true });
+    this.queues.get(to).push({ from, text, kind: "answer", askId });
     this.#resolveWaiter(to);
   }
 
-  /**
-   * Broadcast a message to every participant except the sender.
-   * @param {string} from
-   * @param {string} text
-   */
+  /** Broadcast a message to every participant except the sender. */
   announce(from, text) {
     this.#assertParticipant(from);
-    const msg = { from, text, kind: "announce", direct: false };
+    const msg = { from, text, kind: "announce" };
     for (const [name, queue] of this.queues) {
       if (name === from) continue;
       queue.push(msg);
@@ -83,53 +62,24 @@ export class MessageBus {
     }
   }
 
-  /**
-   * Send a direct message with no reply expected. Used by the Redirect
-   * runtime plumbing (facilitator / supervisor) to deliver replacement
-   * instructions to a single participant without engaging the ask/answer
-   * contract.
-   * @param {string} from
-   * @param {string} to
-   * @param {string} text
-   */
-  direct(from, to, text) {
-    this.#assertParticipant(from);
-    this.#assertParticipant(to);
-    this.queues.get(to).push({ from, text, kind: "direct", direct: true });
-    this.#resolveWaiter(to);
-  }
-
-  /**
-   * Inject an orchestrator-originated reminder onto a single participant's
-   * queue. Used by the turn-complete guard.
-   * @param {string} to
-   * @param {string} text
-   */
+  /** Inject an orchestrator-originated reminder onto one participant's queue. */
   synthetic(to, text) {
     this.#assertParticipant(to);
     this.queues
       .get(to)
-      .push({ from: "@orchestrator", text, kind: "synthetic", direct: true });
+      .push({ from: "@orchestrator", text, kind: "synthetic" });
     this.#resolveWaiter(to);
   }
 
-  /**
-   * Return and clear pending messages for a participant.
-   * @param {string} participant - Participant name
-   * @returns {{from: string, text: string, kind: string, direct: boolean, askId?: number}[]}
-   */
+  /** Return and clear pending messages for a participant. */
   drain(participant) {
     this.#assertParticipant(participant);
-    const queue = this.queues.get(participant);
-    const messages = queue.splice(0);
-    return messages;
+    return this.queues.get(participant).splice(0);
   }
 
   /**
    * Return a Promise that resolves when at least one message is pending.
    * Resolves immediately if messages are already queued.
-   * @param {string} participant - Participant name
-   * @returns {Promise<void>}
    */
   waitForMessages(participant) {
     this.#assertParticipant(participant);
@@ -156,11 +106,7 @@ export class MessageBus {
   }
 }
 
-/**
- * Factory function.
- * @param {object} deps - Same as MessageBus constructor
- * @returns {MessageBus}
- */
+/** Factory function. */
 export function createMessageBus(deps) {
   return new MessageBus(deps);
 }

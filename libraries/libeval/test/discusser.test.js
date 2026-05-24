@@ -2,12 +2,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
-import {
-  Discusser,
-  augmentContextForDiscuss,
-  pendingAsksToPlain,
-  pendingAsksFromPlain,
-} from "../src/discusser.js";
+import { Discusser, augmentContextForDiscuss } from "../src/discusser.js";
 import { createOrchestrationContext } from "../src/orchestration-toolkit.js";
 import { createNoopRedactor } from "../src/redaction.js";
 
@@ -164,44 +159,39 @@ describe("Discusser orchestration", () => {
   });
 });
 
-describe("pendingAsks serialization", () => {
-  test("Map round-trips through JSON-friendly plain object representation", () => {
-    const map = new Map();
-    map.set("alice", {
-      askId: 7,
-      askerName: "facilitator",
-      question: "Status?",
-      reminded: false,
+describe("Discusser - summary shape", () => {
+  test("the recessed summary no longer carries pending_asks (in-flight sync Asks were resolved at Recess time)", async () => {
+    const output = new PassThrough();
+    const getLines = readLines(output);
+    const redactor = createNoopRedactor();
+    const ctx = augmentContextForDiscuss(createOrchestrationContext(), null);
+    ctx.verdict = "recessed";
+    ctx.recessTrigger = { kind: "elapsed", elapsed: "PT1H" };
+    ctx.summary = "awaiting";
+
+    const loop = fakeLoop({
+      output,
+      verdict: "recessed",
+      summary: "awaiting",
+      turns: 1,
+      redactor,
     });
-    map.set("bob", {
-      askId: 12,
-      askerName: "alice",
-      question: "Follow up?",
-      reminded: true,
+    const discusser = new Discusser({
+      loop,
+      ctx,
+      output,
+      discussionId: null,
+      redactor,
     });
 
-    const plain = pendingAsksToPlain(map);
-    const serialized = JSON.stringify(plain);
-    const restored = pendingAsksFromPlain(JSON.parse(serialized));
+    await discusser.run("ping");
 
-    assert.strictEqual(restored.size, 2);
-    assert.deepStrictEqual(restored.get("alice"), {
-      askId: 7,
-      askerName: "facilitator",
-      question: "Status?",
-      reminded: false,
-    });
-    assert.deepStrictEqual(restored.get("bob"), {
-      askId: 12,
-      askerName: "alice",
-      question: "Follow up?",
-      reminded: true,
-    });
-  });
-
-  test("an empty or absent serialization yields an empty Map", () => {
-    assert.strictEqual(pendingAsksFromPlain(null).size, 0);
-    assert.strictEqual(pendingAsksFromPlain(undefined).size, 0);
-    assert.strictEqual(pendingAsksFromPlain({}).size, 0);
+    const lines = getLines();
+    const last = JSON.parse(lines[lines.length - 1]);
+    assert.strictEqual(last.event.type, "summary");
+    assert.ok(
+      !("pending_asks" in last.event),
+      "summary must not include pending_asks under the sync-Ask model",
+    );
   });
 });

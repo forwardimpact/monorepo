@@ -6,15 +6,7 @@
  * controls what the live `textStream` and offline `toText()` show.
  */
 
-const SUPPRESSED = new Set([
-  "session_start",
-  "agent_start",
-  "ask_received",
-  "ask_answered",
-  "redirect",
-  "summary",
-  "meta",
-]);
+const SUPPRESSED = new Set(["session_start", "agent_start", "summary", "meta"]);
 
 /**
  * @param {{type?: string}|null|undefined} event
