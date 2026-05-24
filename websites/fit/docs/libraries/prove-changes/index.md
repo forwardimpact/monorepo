@@ -214,7 +214,8 @@ Pass criteria -- all must hold:
 - New tests exist for en-US, en-GB, and de-DE.
 - The full test suite passes on the agent's final run.
 
-If the agent strays, use `Redirect` to bring it back on task. If it claims
+If the agent strays, send a fresh `Ask` to redirect it -- each `Ask` gets a
+new `askId`, so a follow-up coexists with any in-flight ones. If it claims
 to be done, verify the criteria yourself with `Read` and `Bash` before
 calling `Conclude`. Conclude with `verdict: "failure"` if any criterion fails;
 include a one-paragraph summary of the gap.
@@ -260,10 +261,10 @@ npx fit-eval supervise \
 ```
 
 `--max-turns` is the per-runner invocation budget for both the judge and the
-agent. The supervisor↔agent relay loop is bounded separately by an internal
-cap. `0` removes both caps. Exit code `0` means the judge concluded with
-`success: true`; exit code `1` means it concluded `success: false`, ran out of
-turns, or errored.
+agent. The orchestration loop that drives the supervisor↔agent exchange is
+bounded separately by an internal lead-turn cap. `0` removes the per-runner
+cap. Exit code `0` means the judge concluded with `success: true`; exit code
+`1` means it concluded `success: false`, ran out of turns, or errored.
 
 For a **facilitated session** (one facilitator, N participants):
 
