@@ -36,19 +36,16 @@ destructive actions.
 
 ## Dependencies
 
-- **ripgrep** (`rg`) — fast knowledge graph searches. Install:
+- **ripgrep** (`rg`) — fast knowledge graph searches.
   `brew install ripgrep`.
 
 ## Workspace Layout
 
-Everything is relative to this root:
-
 ```
 ./
-├── knowledge/         # The knowledge graph (Obsidian-compatible)
-│   ├── People/ Organizations/ Projects/ Topics/
-│   ├── Candidates/ Goals/ Priorities/ Conditions/ Roles/
-│   └── Tasks/ Weeklies/
+├── knowledge/         # Obsidian-compatible graph: People/ Organizations/
+│   Projects/ Topics/ Candidates/ Goals/ Priorities/ Conditions/ Roles/
+│   Tasks/ Weeklies/
 ├── .claude/skills/    # Auto-discovered skill files
 ├── drafts/            # Email drafts (draft-emails skill)
 ├── USER.md            # Your identity — gitignored
@@ -77,16 +74,14 @@ Each agent writes `~/.cache/fit/outpost/state/{agent}_triage.md` per wake. The
 
 ## Cache Directory (`~/.cache/fit/outpost/`)
 
-Synced data and runtime state live outside the KB to keep it clean — only parsed
-knowledge, notes, and drafts live here. Top-level subdirs:
+Synced data and runtime state live outside the KB. Top-level subdirs:
 
 - `apple_mail/` — Mail threads as `.md` (plus `attachments/`)
 - `apple_calendar/` — Calendar events as `.json`
 - `teams_chat/` — Teams 1:1 chats as `.md`
-- `head-hunter/` — head-hunter agent memory (cursor, failures, seen, prospects,
-  log)
-- `state/` — runtime state: per-source last-sync timestamps, processed-file
-  index, and `{agent}_triage.md` per agent
+- `head-hunter/` — head-hunter agent memory
+- `state/` — per-source last-sync timestamps, processed-file index, and
+  `{agent}_triage.md` per agent
 
 ## Knowledge Graph
 
@@ -129,6 +124,5 @@ generation).
 
 ## Working Outside This Directory
 
-You have full filesystem access (macOS). For tasks outside this knowledge base
-(organizing Desktop, finding files in Downloads, etc.), use shell commands
-directly.
+You have full filesystem access (macOS). For tasks outside this KB
+(organizing Desktop, finding files in Downloads), use shell commands directly.

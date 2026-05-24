@@ -23,15 +23,39 @@ describe("checkInstructions", () => {
     }
   });
 
-  test("flags an oversized CLAUDE.md against L1 line cap", async () => {
+  test("flags an oversized root CLAUDE.md against L1 line cap", async () => {
     const root = await makeRepo();
     try {
       const oversize = "line\n".repeat(200);
       await writeFile(join(root, "CLAUDE.md"), oversize);
       const errors = await checkInstructions({ root });
       assert.ok(
-        errors.some((e) => e.includes("CLAUDE.md") && e.includes("L1")),
-        `expected an L1 CLAUDE.md error, got: ${JSON.stringify(errors)}`,
+        errors.some(
+          (e) => e.includes("CLAUDE.md") && e.includes("L1 root CLAUDE.md"),
+        ),
+        `expected an L1 root CLAUDE.md error, got: ${JSON.stringify(errors)}`,
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("flags an oversized subdir CLAUDE.md at the tighter 128-line cap", async () => {
+    const root = await makeRepo();
+    try {
+      await mkdir(join(root, "products"), { recursive: true });
+      // 140 lines exceeds the 128-line subdir cap but stays under the 192
+      // root cap — proves the tighter rule applies to subdirectories only.
+      const oversize = "line\n".repeat(140);
+      await writeFile(join(root, "products", "CLAUDE.md"), oversize);
+      const errors = await checkInstructions({ root });
+      assert.ok(
+        errors.some(
+          (e) =>
+            e.includes("products/CLAUDE.md") &&
+            e.includes("L1 subdir CLAUDE.md"),
+        ),
+        `expected an L1 subdir CLAUDE.md error, got: ${JSON.stringify(errors)}`,
       );
     } finally {
       await rm(root, { recursive: true, force: true });

@@ -210,12 +210,17 @@ enforced by `coaligned instructions` (see `libraries/libcoaligned/`):
 
 | Layer                        | Target      | Loaded           |
 | ---------------------------- | ----------- | ---------------- |
-| L1 CLAUDE.md                 | ≤ 192 lines | auto             |
+| L1 root CLAUDE.md            | ≤ 192 lines | auto             |
+| L1 subdir CLAUDE.md          | ≤ 128 lines | on demand        |
 | L2 CONTRIBUTING.md & JTBD.md | ≤ 256 lines | on demand        |
 | L3 Agent profile             | ≤ 64 lines  | auto (every run) |
 | L4 SKILL.md                  | ≤ 192 lines | auto (per skill) |
 | L5 Skill reference file      | ≤ 128 lines | on demand        |
 | L6 Checklist (per block)     | ≤ 9 items   | auto (per skill) |
 
-L6 is gated by item count, not lines — wrapped-line length is a formatting
-artifact, not cognitive load.
+The root `CLAUDE.md` carries project identity and is auto-loaded every run.
+Subdirectory `CLAUDE.md` files are read on demand when work enters that
+directory — they extend the root with directory-local conventions and must
+stay tight so they layer cleanly. L1 subdir is capped at 128 lines and 768
+words; L6 is gated by item count, not lines — wrapped-line length is a
+formatting artifact, not cognitive load.
