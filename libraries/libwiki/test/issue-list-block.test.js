@@ -1,6 +1,9 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { renderIssueList } from "../src/issue-list-renderer.js";
+import {
+  renderIssueList,
+  GENERATED_NOTICE,
+} from "../src/issue-list-renderer.js";
 
 function mockGh(stdout, status = 0) {
   return () => ({ status, stdout, stderr: "" });
@@ -24,8 +27,9 @@ describe("renderIssueList", () => {
         ]),
       ),
     });
-    assert.equal(lines.length, 1);
-    assert.match(lines[0], /Obs #100 — obstacle one/);
+    assert.equal(lines.length, 2);
+    assert.equal(lines[0], GENERATED_NOTICE);
+    assert.match(lines[1], /Obs #100 — obstacle one/);
   });
 
   test("filters closed experiments by 7-day window", () => {
@@ -41,8 +45,9 @@ describe("renderIssueList", () => {
         ]),
       ),
     });
-    assert.equal(lines.length, 1);
-    assert.match(lines[0], /recent/);
+    assert.equal(lines.length, 2);
+    assert.equal(lines[0], GENERATED_NOTICE);
+    assert.match(lines[1], /recent/);
   });
 
   test("returns [] on gh failure", () => {
@@ -52,7 +57,7 @@ describe("renderIssueList", () => {
       window: null,
       gh: mockGh("", 1),
     });
-    assert.deepEqual(lines, []);
+    assert.deepEqual(lines, [GENERATED_NOTICE]);
   });
 
   test("honours window suffix (30d)", () => {
@@ -68,7 +73,8 @@ describe("renderIssueList", () => {
         ]),
       ),
     });
-    assert.equal(lines.length, 1);
-    assert.match(lines[0], /in-window/);
+    assert.equal(lines.length, 2);
+    assert.equal(lines[0], GENERATED_NOTICE);
+    assert.match(lines[1], /in-window/);
   });
 });

@@ -62,46 +62,46 @@ something to say.)
 
 _What stands between the current condition and the target condition. Discovered
 through experiments, not predicted upfront. Each obstacle is a labeled GitHub
-issue; the storyboard carries one-line references. Full state lives in the
-issue._
+issue; the storyboard lists are rendered from GitHub state, not hand-edited._
 
 ### Active
 
-- **Current obstacle -->** Obstacle name (#NNN)
-- Other obstacle (#NNN)
+<!-- obstacles:open -->
+<!-- Do not edit. Generated from fit-wiki refresh. -->
+- **Obs #NNN — [obstacle name]**
+<!-- /obstacles -->
 
 ### Concluded (last 7 days)
 
-_One line per item: status (RESOLVED/ABANDONED), date closed, one-sentence
-verdict. Items older than 7 days are deleted; the closed issue is the permanent
-record._
-
-- ~~Obstacle name~~ (#NNN) — RESOLVED YYYY-MM-DD. [one-sentence verdict].
+<!-- obstacles:closed -->
+<!-- Do not edit. Generated from fit-wiki refresh. -->
+- **Obs #NNN — [obstacle name]**
+<!-- /obstacles -->
 
 ## Experiments
 
 _PDSA cycles run against the current obstacle. Each experiment is a labeled
-GitHub issue carrying the full PDSA content; the storyboard carries one-line
-references._
+GitHub issue carrying the full PDSA content; the storyboard lists are rendered
+from GitHub state, not hand-edited._
 
 ### Active
 
-- Exp N (#NNN) — [short name]
+<!-- experiments:open -->
+<!-- Do not edit. Generated from fit-wiki refresh. -->
+- **Exp #NNN — [experiment name]**
+<!-- /experiments -->
 
 ### Concluded (last 7 days)
 
-_One line per item: verdict (DELIVERED/PASS/FAIL/ABANDONED), date closed,
-one-sentence learning. Items older than 7 days are deleted; the closed issue is
-the permanent record._
-
-- **Exp N — [short name]** (#NNN) — DELIVERED YYYY-MM-DD. [one-sentence
-  learning].
+<!-- experiments:closed -->
+<!-- Do not edit. Generated from fit-wiki refresh. -->
+- **Exp #NNN — [experiment name]**
+<!-- /experiments -->
 
 ## Retention rule
 
 When concluding an obstacle or experiment, post the verdict as a closing comment
-on the issue, close the issue, and move the storyboard entry from `Active` to
-`Concluded (last 7 days)`. At the start of every storyboard session, scan
-`Concluded (last 7 days)` and delete any line whose closed-date is more than 7
-days before today. The decision is mechanical — date math, not judgment. The
-closed issue is the permanent record.
+on the issue and close the issue. `bunx fit-wiki refresh` rerenders both
+`Active` and `Concluded (last 7 days)` from GitHub state — no manual storyboard
+edit needed. Items aged out of the 7-day window drop off the next refresh
+automatically. The closed issue is the permanent record.
