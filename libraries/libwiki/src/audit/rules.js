@@ -4,6 +4,8 @@ import {
   DECISION_HEADING,
   MEMO_INBOX_MARKER,
   PRIORITY_INDEX_HEADING,
+  STORYBOARD_LINE_BUDGET,
+  STORYBOARD_WORD_BUDGET,
   SUMMARY_LINE_BUDGET,
   SUMMARY_WORD_BUDGET,
   WEEKLY_LOG_LINE_BUDGET,
@@ -418,6 +420,24 @@ export const RULES = [
     when: storyboardExists,
     check: allRequiredLines(AGENT_H3_REQUIREMENTS),
     message: (s, r) => `storyboard: ${s.path} missing '### ${r.label}' H3`,
+  },
+  {
+    id: "storyboard.line-budget",
+    scope: "storyboard",
+    severity: "fail",
+    when: storyboardExists,
+    check: lineBudget(STORYBOARD_LINE_BUDGET),
+    message: (s, r) =>
+      `storyboard: ${s.path} has ${r.value} lines (limit ${STORYBOARD_LINE_BUDGET})`,
+  },
+  {
+    id: "storyboard.word-budget",
+    scope: "storyboard",
+    severity: "fail",
+    when: storyboardExists,
+    check: wordBudget(STORYBOARD_WORD_BUDGET),
+    message: (s, r) =>
+      `storyboard: ${s.path} has ${r.value} words (limit ${STORYBOARD_WORD_BUDGET})`,
   },
   {
     id: "storyboard.markers-balanced.xmr",

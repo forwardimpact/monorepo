@@ -48,6 +48,8 @@ describe("RULES catalogue", () => {
         "expired-claim",
         "storyboard.current-month-exists",
         "storyboard.agent-h3-required",
+        "storyboard.line-budget",
+        "storyboard.word-budget",
         "storyboard.markers-balanced.xmr",
         "storyboard.markers-balanced.issues",
         "wiki.stray-file",
@@ -120,7 +122,7 @@ describe("runAudit", () => {
 
   test("over-budget summary: fires summary.line-budget", () => {
     seedClean();
-    const big = Array(100).fill("x").join("\n");
+    const big = Array(600).fill("x").join("\n");
     writeFileSync(
       join(wiki, "staff-engineer.md"),
       `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${big}\n`,

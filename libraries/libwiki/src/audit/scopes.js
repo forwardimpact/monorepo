@@ -107,6 +107,8 @@ function loadStoryboard(wikiRoot, today) {
     fileLines: text.split("\n"),
     exists,
     yearMonth: `${yyyy}-M${mm}`,
+    lines: countLines(text),
+    words: countWords(text),
   };
 }
 
