@@ -7,23 +7,148 @@ persists across sessions.
 
 <!-- END:description -->
 
-## Getting Started
+A wiki under `wiki/` holds each agent's running state: per-agent summaries,
+weekly logs, shared memory (priorities and active claims), and monthly
+storyboards. `libwiki` keeps that wiki coherent across sessions — agents boot
+from it, write decisions back, send memos to each other, and audit the
+result against a declarative rule set.
+
+The primary interface is the `fit-wiki` CLI. The library also exposes a few
+helpers for programmatic use.
+
+## Getting started
 
 ```sh
-npx fit-wiki memo --from staff-engineer --to security-engineer --message "audit d642ff0c"
-npx fit-wiki memo --from staff-engineer --to all --message "new XmR baseline"
+npx fit-wiki init
+npx fit-wiki boot --agent staff-engineer
+npx fit-wiki audit
 ```
+
+## CLI
+
+Every command accepts `--wiki-root` (default `wiki/`) and `--today` (default
+today, ISO date). Agent commands take `--agent <name>` or read
+`LIBEVAL_AGENT_PROFILE` from the environment.
+
+### `boot` — start a session
+
+```sh
+npx fit-wiki boot --agent staff-engineer [--format json|markdown]
+```
+
+Print the on-boot digest for the agent: own priorities, cross-cutting
+priorities, active claims, storyboard items, inbox count.
+
+### `log` — record decisions, notes, done
+
+```sh
+npx fit-wiki log decision --agent X --surveyed "..." --chosen "..." --rationale "..."
+npx fit-wiki log note     --agent X --field "PR Status" --body "merged"
+npx fit-wiki log done     --agent X
+```
+
+Appends to `wiki/<agent>-YYYY-WVV.md`. Auto-rotates to `*-partN.md` when the
+line budget would be exceeded.
+
+### `claim` / `release` — coordinate work
+
+```sh
+npx fit-wiki claim   --agent X --target spec-1060 --branch claude/spec-1060
+npx fit-wiki release --agent X --target spec-1060
+npx fit-wiki release --agent X --expired
+```
+
+Maintains the `## Active Claims` table in `MEMORY.md`. Duplicates refused;
+row absent means settled.
+
+### `inbox` — triage memos
+
+```sh
+npx fit-wiki inbox list    --agent X
+npx fit-wiki inbox ack     --agent X --index 0
+npx fit-wiki inbox promote --agent X --index 0 [--owner X]
+npx fit-wiki inbox drop    --agent X --index 0
+```
+
+Reads bullets under the `<!-- memo:inbox -->` marker in the agent's summary.
+`promote` moves a bullet into the cross-cutting priorities table.
+
+### `memo` — cross-team coordination
+
+```sh
+npx fit-wiki memo --from X --to Y   --message "audit d642ff0c"
+npx fit-wiki memo --from X --to all --message "new XmR baseline"
+```
+
+Inserts a bullet `- YYYY-MM-DD from **X**: ...` after the recipient's
+`<!-- memo:inbox -->` marker.
+
+### `audit` — verify wiki state
+
+```sh
+npx fit-wiki audit [--format text|json]
+```
+
+Runs a declarative catalogue of rules across the wiki. Exits 0 on pass, 1
+on any failure. Text output: `WARN ...` and `FAIL ...` lines plus a
+`RESULT: ...` trailer. JSON output:
+
+```json
+{ "result": "pass|fail", "failures": [...], "warnings": [...] }
+```
+
+Each finding carries a stable `id` for filtering. The catalogue lives in
+`src/audit/rules.js` — adding a rule is one literal.
+
+### `rotate` — force a part split
+
+```sh
+npx fit-wiki rotate --agent X
+```
+
+Renames the current weekly log to the next `-partN.md` and starts a fresh
+main file.
+
+### `refresh` — re-render storyboard blocks
+
+```sh
+npx fit-wiki refresh [storyboard-path]
+```
+
+Re-renders `<!-- xmr:metric:csv-path -->` and `<!-- obstacles:open[:Nd] -->`
+marker blocks inside a storyboard from their backing CSV / GitHub state.
+Default path: `wiki/storyboard-YYYY-MMM.md` for the current month.
+
+### `init` / `push` / `pull` — wiki working tree
+
+```sh
+npx fit-wiki init [--wiki-root wiki] [--skills-dir .claude/skills]
+npx fit-wiki push
+npx fit-wiki pull
+```
+
+`init` clones the wiki repo if missing, scaffolds Active Claims in
+`MEMORY.md`, and creates `wiki/metrics/<skill>/` directories. `push` and
+`pull` are thin wrappers over `git` with conflict handling.
+
+## Programmatic API
 
 ```js
-import { writeMemo, listAgents, insertMarkers } from "@forwardimpact/libwiki";
+import {
+  writeMemo, listAgents, insertMarkers, runAudit, RULES,
+} from "@forwardimpact/libwiki";
 ```
 
-## Key Exports
-
-- `writeMemo({ summaryPath, sender, message, today })` — append a timestamped
-  bullet after the `<!-- memo:inbox -->` marker in a wiki summary's
-  `## Message Inbox` section.
+- `writeMemo({ summaryPath, sender, message, today })` — append a memo
+  bullet after the `<!-- memo:inbox -->` marker.
 - `listAgents({ agentsDir, wikiRoot })` — discover agents from
   `.claude/agents/*.md` and derive wiki summary paths.
-- `insertMarkers({ agentsDir, wikiRoot })` — idempotent insertion of the memo
-  marker into existing summaries.
+- `insertMarkers({ agentsDir, wikiRoot })` — idempotent insertion of the
+  memo marker into existing summaries.
+- `runAudit(rules, ctx)` — pure audit engine: `(rules, ctx) → findings[]`.
+- `RULES` — the audit rule catalogue (one literal per rule).
+
+## Documentation
+
+- [Operate a Predictable Agent Team](https://www.forwardimpact.team/docs/libraries/predictable-team/index.md)
+- [Send a Memo or Update a Storyboard](https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-operations/index.md)

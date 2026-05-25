@@ -86,7 +86,9 @@ Each `wiki/<agent>.md` conforms to a mechanically-checkable contract —
 `**Last run**:` → `## Message Inbox` (with `<!-- memo:inbox -->` marker —
 MUST be the first H2) → agent-specific H2 sections → `## Open Blockers`.
 
-**Line budget: 80 lines** (`SUMMARY_LINE_BUDGET`). State, not history.
+**Line budget: 72 lines** (`SUMMARY_LINE_BUDGET`); **word budget: 12 800
+words** (`SUMMARY_WORD_BUDGET`) to backstop dense single-line prose. State,
+not history.
 
 ## Weekly Log Contract
 
@@ -94,20 +96,19 @@ Weekly logs (`wiki/<agent>-YYYY-Www.md`) are append-only Tier 2 records.
 Named readers: `kata-wiki-curate` (always), `kata-session` (for experiment
 verification), agents explicitly investigating past decisions.
 
-**Line budget: 500 lines** (`WEEKLY_LOG_LINE_BUDGET`), cutover ISO
-**2026-W23**. A Tier 2 read of the largest legal weekly log consumes ≤2.5%
-of an agent's 1M-token context window (≈25k tokens; ≈42 tokens/line × 500
-lines). This is the *context tax* every reader pays — the cap binds before
-the Read tool's 25k-token ceiling, not at it (closes **F3 / F17**).
+**Line budget: 496 lines** (`WEEKLY_LOG_LINE_BUDGET`); **word budget: 6 400
+words** (`WEEKLY_LOG_WORD_BUDGET`) to backstop dense single-line prose. A
+Tier 2 read of the largest legal weekly log consumes ≤2.5% of an agent's
+1M-token context window — the *context tax* every reader pays (closes **F3
+/ F17**).
 
 Overflow rotates: `log` seals the current file as
 `<agent>-YYYY-Www-partN.md` and writes the day's append into a fresh
 `<agent>-YYYY-Www.md`. No part is ever rewritten — the append-only audit
-guarantee is preserved by rename, not by in-place edit. Pre-cutover logs are
-exempt and remain as-is.
+guarantee is preserved by rename, not by in-place edit.
 
-Every dated `## YYYY-MM-DD` entry post-cutover opens with `### Decision`
-(required; `audit` enforces).
+Every dated `## YYYY-MM-DD` entry opens with `### Decision` (required;
+`audit` enforces).
 
 ## Cross-Cutting Priorities
 

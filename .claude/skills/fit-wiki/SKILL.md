@@ -82,11 +82,8 @@ Operator escape; seals the current file even when it is under the cap.
 ### `audit` — Memory-protocol gate
 
 ```sh
-npx fit-wiki audit [--format json] [--legacy-only]
+npx fit-wiki audit [--format json]
 ```
-
-`FIT_WIKI_AUDIT_GRACE_UNTIL=<ISO date>` converts summary and decision-block
-failures to warnings until the window closes.
 
 ### `memo` — Cross-team memo
 

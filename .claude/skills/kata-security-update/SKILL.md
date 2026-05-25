@@ -32,6 +32,7 @@ security policies.
 - [ ] No unnecessary dependencies.
 - [ ] First-party or official org actions only.
 - [ ] Peer and transitive dependency compatibility verified.
+- [ ] Root `overrides` cover every bumped workspace range (applies to **any** `*/package.json` diff — Dependabot, agent-authored, or direct human edits).
 
 </do_confirm_checklist>
 
@@ -50,6 +51,7 @@ each check to its policy source and failure action — merge, fix, close, or ski
 | No unnecessary deps      | CONTRIBUTING.md § Dependency Policy | **close** with explanation                                    |
 | First-party actions only | kata-security-audit § 1             | **close** with explanation                                    |
 | Peer/transitive compat   | CONTRIBUTING.md § Dependency Policy | **close** until co-dependent packages release compat versions |
+| Override-range shadowing | CONTRIBUTING.md § Dependency Policy | **fix** — open follow-up override-bump PR before merging      |
 
 When evaluating the SHA-pinning check, verify the PR updates **all** workflow
 files referencing the action. See `references/sha-inventory.md` for the full
@@ -84,6 +86,32 @@ Determine update type from title: **patch** (low risk), **minor** (low risk),
 Run `bun pm ls` on the PR branch. Look for: **`invalid`** (close), **nested
 duplicates** in `bun.lock` (close), or **`deduped` across mismatched majors**
 (investigate before merging).
+
+#### Check 9: Override-Range Shadowing
+
+Bun's resolver **replaces** (does not intersect) workspace ranges with root
+`overrides`. A workspace `package.json` bump can be silently shadowed by a
+stale override floor; a root override below a workspace range silently floors
+that workspace under the policy minimum.
+
+**Scope.** Fire on **any** PR whose diff touches `*/package.json` or root
+`package.json` — Dependabot, agent-authored, or direct human edits. Originally
+piloted on Dependabot bundles (SE Exp 40 / #817, 2026-05-08); widened to all
+vectors after SE Exp 42 / #1004 P1 fired on a non-Dependabot case (PR #1075
+libdoc `@hono/node-server` floor-shadow, 2026-05-21).
+
+**Procedure.**
+
+1. For every package whose `*/package.json` range is bumped in the diff, grep
+   the root `package.json` `overrides` block. If the package appears, verify
+   the override range satisfies the bumped workspace range.
+2. Run `bun install` on the PR branch, then `bun audit`.
+3. If audit is **dirty for any package the diff attempts to bump**, the
+   override is shadowing — open a follow-up `fix/security-audit-<date>-<pkg>-override`
+   PR bumping the override floor **before** merging the original PR.
+4. The inverse direction also fires: if a workspace range is **below** an
+   existing override floor, the workspace silently regresses if the override
+   is ever removed. Align the workspace range in the same PR.
 
 ### Step 3: Take Action
 

@@ -143,18 +143,13 @@ const definition = {
     {
       name: "audit",
       description:
-        "Audit the wiki against the memory-protocol contract (500-line cap; cutover 2026-W23)",
+        "Audit the wiki against the declarative rule catalogue (line and word budgets, headings, decision blocks, storyboards, claims)",
       options: {
         ...wikiRootOpt,
         ...todayOpt,
         format: {
           type: "string",
           description: "Output format: text (default) or json",
-        },
-        "legacy-only": {
-          type: "boolean",
-          description:
-            "Run only the checks the legacy wiki-audit.sh carried (parity mode)",
         },
       },
     },
