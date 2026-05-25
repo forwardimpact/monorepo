@@ -55,7 +55,10 @@ describe("Supervisor - createSupervisor factory", () => {
   test("supervisor lead gets plain string system prompt (no preset)", () => {
     const s = createSupervisor(baseOpts());
     assert.strictEqual(typeof s.supervisorRunner.systemPrompt, "string");
-    assert.strictEqual(s.supervisorRunner.systemPrompt, SUPERVISOR_SYSTEM_PROMPT);
+    assert.strictEqual(
+      s.supervisorRunner.systemPrompt,
+      SUPERVISOR_SYSTEM_PROMPT,
+    );
   });
 
   test("agent gets claude_code preset system prompt", () => {

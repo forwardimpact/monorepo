@@ -35,7 +35,12 @@ export const REMOVE_REACTION_MUTATION = `
  * @param {Array<{body: string, in_reply_to?: string}>} replies
  * @param {(comment: {id: string}) => Promise<void>} [onPosted] - Called after each mutation returns
  */
-export async function postDiscussionReplies(graphqlClient, ctx, replies, onPosted) {
+export async function postDiscussionReplies(
+  graphqlClient,
+  ctx,
+  replies,
+  onPosted,
+) {
   for (const reply of replies) {
     if (!reply || typeof reply.body !== "string") continue;
     const input = {
@@ -43,7 +48,9 @@ export async function postDiscussionReplies(graphqlClient, ctx, replies, onPoste
       body: reply.body,
       ...(reply.in_reply_to ? { replyToId: reply.in_reply_to } : {}),
     };
-    const res = await graphqlClient(ADD_DISCUSSION_COMMENT_MUTATION, { i: input });
+    const res = await graphqlClient(ADD_DISCUSSION_COMMENT_MUTATION, {
+      i: input,
+    });
     const comment = res?.addDiscussionComment?.comment;
     if (comment?.id && onPosted) await onPosted(comment);
   }
@@ -57,7 +64,12 @@ export async function postDiscussionReplies(graphqlClient, ctx, replies, onPoste
  * @param {string} text
  * @param {(comment: {id: string}) => Promise<void>} [onPosted] - Called after the mutation returns
  */
-export async function postSingleDiscussionReply(graphqlClient, ctx, text, onPosted) {
+export async function postSingleDiscussionReply(
+  graphqlClient,
+  ctx,
+  text,
+  onPosted,
+) {
   const res = await graphqlClient(ADD_DISCUSSION_COMMENT_MUTATION, {
     i: { discussionId: ctx.discussion_id, body: text },
   });

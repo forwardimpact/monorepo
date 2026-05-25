@@ -158,8 +158,13 @@ export function createFacilitator({
   });
 
   const defaultDisallowed = [
-    "Agent", "Task", "TaskOutput", "TaskStop",
-    "Bash", "Write", "Edit",
+    "Agent",
+    "Task",
+    "TaskOutput",
+    "TaskStop",
+    "Bash",
+    "Write",
+    "Edit",
   ];
   const disallowedTools = facilitatorDisallowedTools
     ? [...new Set([...defaultDisallowed, ...facilitatorDisallowedTools])]
