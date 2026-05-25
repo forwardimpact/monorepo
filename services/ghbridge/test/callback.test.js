@@ -60,7 +60,11 @@ async function newService() {
     graphqlClient: async (query, variables) => {
       graphqlCalls.push({ query, variables });
       if (query.includes("addDiscussionComment")) {
-        return { addDiscussionComment: { comment: { id: `C_${++commentCounter}`, url: "url" } } };
+        return {
+          addDiscussionComment: {
+            comment: { id: `C_${++commentCounter}`, url: "url" },
+          },
+        };
       }
       return {};
     },
@@ -276,7 +280,11 @@ describe("ghbridge callback handler", () => {
 
     const commentEvent = {
       action: "created",
-      discussion: { node_id: "D_kw1", body: "rfc", user: { id: 1, login: "u" } },
+      discussion: {
+        node_id: "D_kw1",
+        body: "rfc",
+        user: { id: 1, login: "u" },
+      },
       comment: { node_id: postedCommentId, body: "bot reply" },
     };
     const json = JSON.stringify(commentEvent);

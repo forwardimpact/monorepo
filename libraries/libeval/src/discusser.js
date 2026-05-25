@@ -256,7 +256,6 @@ export function createDiscusser({
     ];
   }
 
-
   let discusser;
   const leadServer = createDiscussLeadToolServer(ctx);
 
@@ -292,8 +291,13 @@ export function createDiscusser({
   });
 
   const defaultDisallowed = [
-    "Agent", "Task", "TaskOutput", "TaskStop",
-    "Bash", "Write", "Edit",
+    "Agent",
+    "Task",
+    "TaskOutput",
+    "TaskStop",
+    "Bash",
+    "Write",
+    "Edit",
   ];
   const leadRunner = createAgentRunner({
     cwd: resolvedLeadCwd,

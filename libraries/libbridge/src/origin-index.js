@@ -20,7 +20,10 @@ export class OriginIndex extends BufferedIndex {
    * @param {string} [options.indexKey]
    * @param {number} [options.ttlMs] - Eviction window (default 24h)
    */
-  constructor(storage, { indexKey = "origins.jsonl", ttlMs = DEFAULT_TTL_MS } = {}) {
+  constructor(
+    storage,
+    { indexKey = "origins.jsonl", ttlMs = DEFAULT_TTL_MS } = {},
+  ) {
     super(storage, indexKey, {
       flush_interval: 1_000,
       max_buffer_size: 100,

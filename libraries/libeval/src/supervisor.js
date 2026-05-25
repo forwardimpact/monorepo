@@ -185,8 +185,13 @@ export function createSupervisor({
   });
 
   const defaultDisallowed = [
-    "Agent", "Task", "TaskOutput", "TaskStop",
-    "Bash", "Write", "Edit",
+    "Agent",
+    "Task",
+    "TaskOutput",
+    "TaskStop",
+    "Bash",
+    "Write",
+    "Edit",
   ];
   const disallowedTools = supervisorDisallowedTools
     ? [...new Set([...defaultDisallowed, ...supervisorDisallowedTools])]

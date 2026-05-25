@@ -60,7 +60,10 @@ describe("Facilitator - createFacilitator factory", () => {
   test("facilitator lead gets plain string system prompt (no preset)", () => {
     const f = createFacilitator(baseOpts());
     assert.strictEqual(typeof f.facilitatorRunner.systemPrompt, "string");
-    assert.strictEqual(f.facilitatorRunner.systemPrompt, FACILITATOR_SYSTEM_PROMPT);
+    assert.strictEqual(
+      f.facilitatorRunner.systemPrompt,
+      FACILITATOR_SYSTEM_PROMPT,
+    );
   });
 
   test("agents get claude_code preset system prompt", () => {

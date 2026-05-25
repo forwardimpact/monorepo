@@ -343,7 +343,12 @@ export class GhBridgeService {
       });
     };
 
-    await postDiscussionReplies(this.#graphqlClient, ctx, payload.replies, recordOrigin);
+    await postDiscussionReplies(
+      this.#graphqlClient,
+      ctx,
+      payload.replies,
+      recordOrigin,
+    );
     for (const reply of payload.replies) {
       appendHistory(ctx.history, {
         role: "assistant",

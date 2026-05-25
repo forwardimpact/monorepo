@@ -30,15 +30,16 @@ describe("DiscussTools handlers", () => {
     assert.strictEqual(ctx.rfcs[0].thread_id, "GD_kw_test");
     assert.strictEqual(ctx.rfcs[0].channel, "github-discussions");
     assert.strictEqual(ctx.rfcs[1].addressee, "bob");
-    assert.strictEqual(
-      ctx.rfcs[0].correlation_id,
-      ctx.rfcs[1].correlation_id,
-    );
+    assert.strictEqual(ctx.rfcs[0].correlation_id, ctx.rfcs[1].correlation_id);
 
     const payload = JSON.parse(result.content[0].text);
     assert.match(payload.correlation_id, /^rfc_\d+$/);
     assert.strictEqual(payload.channel, "github-discussions");
-    assert.strictEqual(ctx.replies.length, 0, "replies should not be populated by RFC");
+    assert.strictEqual(
+      ctx.replies.length,
+      0,
+      "replies should not be populated by RFC",
+    );
   });
 
   test("RequestForComment emits a single anonymous RFC when no addressees are listed", async () => {
