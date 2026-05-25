@@ -6,47 +6,17 @@ const { CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext } =
 export { CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext };
 
 /**
- * Reaction adapter for the Bot Framework. Sends a `messageReaction`
- * activity with `reactionsAdded: [{ type: "like" }]` on start and the
- * matching `reactionsRemoved` on finish — Microsoft's Bot SDK does not
- * surface a generic emoji reaction type, so `like` is the closest
- * immediate acknowledgement we can offer.
+ * No-op reaction adapter for the Bot Framework. Teams bots cannot
+ * programmatically add reactions — the `messageReaction` activity type
+ * is receive-only (fired when a *user* reacts). The typing adapter
+ * provides user-visible progress instead.
  *
- * @param {object} adapter - Bot Framework CloudAdapter (or compatible stub)
- * @param {() => string} msAppIdFn
  * @returns {{add: Function, remove: Function}}
  */
-export function buildReactionAdapter(adapter, msAppIdFn) {
+export function buildReactionAdapter() {
   return {
-    add: async (target) => {
-      if (!target?.ref || !target?.activityId) return null;
-      await adapter.continueConversationAsync(
-        msAppIdFn(),
-        target.ref,
-        async (turnContext) => {
-          await turnContext.sendActivity({
-            type: "messageReaction",
-            replyToId: target.activityId,
-            reactionsAdded: [{ type: "like" }],
-          });
-        },
-      );
-      return "like";
-    },
-    remove: async (_reactionId, target) => {
-      if (!target?.ref || !target?.activityId) return;
-      await adapter.continueConversationAsync(
-        msAppIdFn(),
-        target.ref,
-        async (turnContext) => {
-          await turnContext.sendActivity({
-            type: "messageReaction",
-            replyToId: target.activityId,
-            reactionsRemoved: [{ type: "like" }],
-          });
-        },
-      );
-    },
+    add: async () => null,
+    remove: async () => {},
   };
 }
 

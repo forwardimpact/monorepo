@@ -389,21 +389,15 @@ describe("msbridge service", () => {
       service._restoreFetch();
     });
 
-    test("dispatch sends a 'like' reactionsAdded activity and callback sends reactionsRemoved", async () => {
-      // Drive an inbound message through the bot adapter.
+    test("dispatch and callback succeed without reaction activities", async () => {
       const res = await fetch(`${baseUrl}/api/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "message", text: "hi" }),
       });
       expect(res.status).toBe(200);
-      const added = adapter.reactionActivities.filter(
-        (a) => a.reactionsAdded?.[0]?.type === "like",
-      );
-      expect(added.length).toBe(1);
-      expect(added[0].replyToId).toBe("act-1");
+      expect(adapter.reactionActivities.length).toBe(0);
 
-      // Now invoke the callback for the token that was just registered.
       const stored = await service.store.loadByChannel("msteams", "thread-ack");
       const [token] = Object.keys(stored.pending_callbacks);
       const correlationId = stored.pending_callbacks[token];
@@ -418,11 +412,7 @@ describe("msbridge service", () => {
         }),
       });
       expect(cb.status).toBe(200);
-      const removed = adapter.reactionActivities.filter(
-        (a) => a.reactionsRemoved?.[0]?.type === "like",
-      );
-      expect(removed.length).toBe(1);
-      expect(removed[0].replyToId).toBe("act-1");
+      expect(adapter.reactionActivities.length).toBe(0);
     });
   });
 });

@@ -349,6 +349,18 @@ export class GhBridgeService {
         }
         break;
       default:
+        this.#resume.cancelRecess(ctx, meta.correlationId);
+        if (payload.summary && !payload.replies?.length) {
+          await postSingleDiscussionReply(
+            this.#graphqlClient,
+            ctx,
+            payload.summary,
+          );
+          appendHistory(ctx.history, {
+            role: "assistant",
+            text: payload.summary,
+          });
+        }
         break;
     }
   }

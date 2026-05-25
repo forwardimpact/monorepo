@@ -1,6 +1,20 @@
 /**
- * ServiceManager for service lifecycle management.
- * Manages services through the svscan supervision daemon.
+ * Service lifecycle manager that communicates with a svscan supervision
+ * daemon over a Unix socket.
+ *
+ * ## Declaration-order contract
+ *
+ * The `init.services` array in config.json doubles as a dependency graph.
+ * Earlier entries are treated as infrastructure that later entries depend
+ * on (e.g. tunnels before bridges). Three operations exploit this ordering:
+ *
+ *   start(name)   — bring up [first … name]      (dependencies, then target)
+ *   stop(name)    — tear down [name … last]       (dependents, then target — reversed)
+ *   restart(name) — stop [name … last], start [name … last]
+ *
+ * `restart` intentionally does NOT re-run `start(name)`, because start's
+ * scope ([first … name]) would miss dependents that stop just tore down.
+ * Instead it starts the same [name … last] slice that was stopped.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -56,9 +70,6 @@ const SVSCAN_BIN = require.resolve(
  * @property {NodeJS.WritableStream} [stdout] - Stdout sink (default process.stdout)
  */
 
-/**
- * Service lifecycle manager that communicates with svscan daemon.
- */
 export class ServiceManager {
   #config;
   #logger;
@@ -116,6 +127,7 @@ export class ServiceManager {
       return false;
     }
     try {
+      // Signal 0 tests whether the process exists without actually signalling it.
       this.#process.kill(pid, 0);
       return true;
     } catch {
@@ -221,9 +233,10 @@ export class ServiceManager {
   }
 
   /**
-   * Gets services to start: from first through target, in declaration order.
+   * Start scope: [first … target] in declaration order.
+   * Everything before the target is a dependency that must be up first.
    * @param {string} [serviceName] - Target service (all if omitted)
-   * @returns {ServiceConfig[]} Services in start order
+   * @returns {ServiceConfig[]}
    */
   #getServicesToStart(serviceName) {
     const services = this.#config.init.services;
@@ -233,9 +246,11 @@ export class ServiceManager {
   }
 
   /**
-   * Gets services to stop: from target to last, in reverse order.
+   * Stop scope: [target … last] in reverse declaration order.
+   * Everything after the target depends on it and must come down first.
+   * Reversed so dependents stop before the thing they depend on.
    * @param {string} [serviceName] - Target service (all if omitted)
-   * @returns {ServiceConfig[]} Services in stop order (reversed)
+   * @returns {ServiceConfig[]}
    */
   #getServicesToStop(serviceName) {
     const services = this.#config.init.services;
@@ -253,12 +268,13 @@ export class ServiceManager {
     try {
       await this.#sendCommand(socketPath, { command: "shutdown" });
     } catch {
-      // Expected — connection closes on shutdown
+      // The daemon closes the socket as part of shutting down, so the
+      // send always fails with a connection-reset — that IS the success signal.
     }
     try {
       this.#fs.unlinkSync(socketPath);
     } catch {
-      // Ignore
+      // Socket file may already be gone if the daemon cleaned up first.
     }
   }
 
@@ -298,6 +314,7 @@ export class ServiceManager {
       cmd: svc.command,
       cwd: this.#config.rootDir,
     });
+    // "already exists" means svscan is already supervising it — idempotent success.
     if (response.ok || response.error?.includes("already exists")) {
       this.#logger.info(svc.name, "Service started");
     } else if (svc.optional) {
@@ -310,7 +327,8 @@ export class ServiceManager {
   }
 
   /**
-   * Starts configured services.
+   * Start services from first through target (bringing up dependencies).
+   * Idempotent for services already supervised by svscan.
    * @param {string} [serviceName] - Target service (starts first through target)
    * @returns {Promise<void>}
    */
@@ -324,6 +342,9 @@ export class ServiceManager {
     });
 
     if (this.isSvscanRunning()) {
+      // Bare `start` (no name) replaces the daemon so it picks up
+      // config changes; `start <name>` reuses the running daemon
+      // because we only need to add services, not reset the world.
       if (!serviceName) {
         this.#logger.debug("svscan", "Restarting daemon (fresh environment)");
         await this.#shutdownSvscan(paths.socketPath);
@@ -362,12 +383,54 @@ export class ServiceManager {
         });
       }
     } catch {
-      // Service not supervised, ignore
+      // Throws when the service was never added to svscan — harmless
+      // during teardown of services that weren't running.
     }
   }
 
   /**
-   * Stops running services.
+   * Restart scope: stop [name … last], then start [name … last].
+   *
+   * This deliberately does NOT delegate to `start(name)` for the
+   * start phase. `start(name)` brings up [first … name] (the
+   * dependency prefix), which would leave dependents — the services
+   * after the target that `stop` just tore down — dead. Instead we
+   * start the same [name … last] slice so every stopped service
+   * comes back.
+   *
+   * Dependencies before the target are left untouched throughout.
+   *
+   * @param {string} [serviceName] - Target service (all if omitted)
+   * @returns {Promise<void>}
+   */
+  async restart(serviceName) {
+    await this.stop(serviceName);
+    if (!serviceName) {
+      await this.start();
+      return;
+    }
+    const paths = this.getRuntimePaths();
+    const services = this.#config.init.services;
+    const index = this.#findServiceIndex(serviceName);
+    // Same forward slice that stop used (stop reversed it for teardown order).
+    const toStart = services.slice(index);
+    if (!this.isSvscanRunning()) {
+      await this.spawnSvscan();
+    }
+    for (const svc of toStart) {
+      if (svc.type === "oneshot") {
+        await this.#startOneshotService(svc);
+      } else {
+        await this.#startLongrunService(svc, paths.socketPath);
+      }
+    }
+  }
+
+  /**
+   * Stop services from target through last (tearing down dependents first).
+   * Bare `stop` (no name) also shuts down the svscan daemon itself;
+   * `stop <name>` leaves the daemon running so surviving services
+   * keep their supervisor.
    * @param {string} [serviceName] - Target service (stops target through last)
    * @returns {Promise<void>}
    */

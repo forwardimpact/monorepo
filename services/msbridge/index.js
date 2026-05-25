@@ -94,7 +94,7 @@ export class MsBridgeService {
     this.#ack =
       acknowledgement ??
       new Acknowledgement({
-        reactionAdapter: buildReactionAdapter(this.#adapter, this.#msAppId),
+        reactionAdapter: buildReactionAdapter(),
         typingAdapter: buildTypingAdapter(this.#adapter, this.#msAppId),
         logger,
       });
@@ -227,6 +227,7 @@ export class MsBridgeService {
           prompt: buildPrompt(text, ctx.history),
           ackTarget: { ref, activityId: activity.id },
           callbackMeta: { threadId },
+          workflowInputs: { discussionId: threadId },
         });
         span.addEvent("workflow_dispatched", {
           correlation_id: correlationId,
@@ -264,6 +265,14 @@ export class MsBridgeService {
         }
         break;
       default:
+        this.#resume.cancelRecess(ctx, meta.correlationId);
+        if (payload.summary && !payload.replies?.length) {
+          await sendReply(this.#adapter, this.#msAppId, ref, payload.summary);
+          appendHistory(ctx.history, {
+            role: "assistant",
+            text: payload.summary,
+          });
+        }
         break;
     }
   }

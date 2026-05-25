@@ -91,8 +91,7 @@ switch (command) {
     await manager.status(serviceName);
     break;
   case "restart":
-    await manager.stop(serviceName);
-    await manager.start(serviceName);
+    await manager.restart(serviceName);
     break;
   case "logs":
     if (!serviceName) {
