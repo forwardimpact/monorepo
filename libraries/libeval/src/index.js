@@ -8,7 +8,11 @@ export {
   parseGitRemote,
 } from "./trace-github.js";
 export { AgentRunner, createAgentRunner } from "./agent-runner.js";
-export { composeProfilePrompt } from "./profile-prompt.js";
+export {
+  composeProfilePrompt,
+  composeLeadPrompt,
+  composeSystemPrompt,
+} from "./profile-prompt.js";
 export {
   Supervisor,
   createSupervisor,

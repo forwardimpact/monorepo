@@ -53,12 +53,12 @@ describe("--lead-profile / --lead-model consolidation across modes", () => {
     assert.strictEqual(opts.facilitatorProfile, undefined);
   });
 
-  test("discuss defaults --lead-profile to release-engineer and exposes the consolidated flags", () => {
+  test("discuss defaults --lead-profile to undefined and exposes the consolidated flags", () => {
     const opts = parseDiscussOptions({
       "task-text": "do a thing",
     });
 
-    assert.strictEqual(opts.leadProfile, "release-engineer");
+    assert.strictEqual(opts.leadProfile, undefined);
     assert.strictEqual(opts.leadModel, "claude-opus-4-7[1m]");
     assert.strictEqual(opts.maxTurns, 40);
     assert.deepStrictEqual(opts.agentConfigs, []);

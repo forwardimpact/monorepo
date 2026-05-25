@@ -9,7 +9,7 @@
 import { Writable } from "node:stream";
 import { resolve } from "node:path";
 import { createAgentRunner } from "./agent-runner.js";
-import { composeProfilePrompt } from "./profile-prompt.js";
+import { composeSystemPrompt } from "./profile-prompt.js";
 import { createMessageBus } from "./message-bus.js";
 import {
   createOrchestrationContext,
@@ -116,15 +116,6 @@ export function createFacilitator({
   if (!redactor) throw new Error("redactor is required");
   const resolvedProfilesDir =
     profilesDir ?? resolve(facilitatorCwd, ".claude/agents");
-  const systemPromptFor = (profile, trailer) => {
-    if (!trailer) throw new Error("trailer is required");
-    return profile
-      ? composeProfilePrompt(profile, {
-          profilesDir: resolvedProfilesDir,
-          trailer,
-        })
-      : { type: "preset", preset: "claude_code", append: trailer };
-  };
   const ctx = createOrchestrationContext();
   const messageBus = createMessageBus({
     participants: ["facilitator", ...agentConfigs.map((a) => a.name)],
@@ -158,7 +149,12 @@ export function createFacilitator({
       onLine: (line) => facilitator.emitLine(config.name, line),
       mcpServers: { orchestration: agentServer },
       settingSources: ["project"],
-      systemPrompt: systemPromptFor(config.agentProfile, agentTrailer),
+      systemPrompt: composeSystemPrompt({
+        role: "agent",
+        profile: config.agentProfile,
+        profilesDir: resolvedProfilesDir,
+        trailer: agentTrailer,
+      }),
       redactor,
     });
 
@@ -179,22 +175,17 @@ export function createFacilitator({
     output: devNull,
     model: facilitatorModel ?? model,
     maxTurns: maxTurns ?? 80,
-    allowedTools: facilitatorAllowedTools ?? [
-      "Bash",
-      "Read",
-      "Glob",
-      "Grep",
-      "Write",
-      "Edit",
-    ],
+    allowedTools: facilitatorAllowedTools ?? ["Read", "Glob", "Grep"],
     disallowedTools,
     onLine: (line) => facilitator.emitLine("facilitator", line),
     mcpServers: { orchestration: facilitatorServer },
     settingSources: ["project"],
-    systemPrompt: systemPromptFor(
-      facilitatorProfile,
-      FACILITATOR_SYSTEM_PROMPT,
-    ),
+    systemPrompt: composeSystemPrompt({
+      role: "lead",
+      profile: facilitatorProfile,
+      profilesDir: resolvedProfilesDir,
+      trailer: FACILITATOR_SYSTEM_PROMPT,
+    }),
     redactor,
   });
 

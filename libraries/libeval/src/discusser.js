@@ -17,7 +17,7 @@ import { Writable } from "node:stream";
 import { resolve } from "node:path";
 
 import { createAgentRunner } from "./agent-runner.js";
-import { composeProfilePrompt } from "./profile-prompt.js";
+import { composeSystemPrompt } from "./profile-prompt.js";
 import { SequenceCounter } from "./sequence-counter.js";
 import { createMessageBus } from "./message-bus.js";
 import { createOrchestrationContext } from "./orchestration-toolkit.js";
@@ -256,15 +256,6 @@ export function createDiscusser({
     ];
   }
 
-  const systemPromptFor = (profile, trailer) => {
-    if (!trailer) throw new Error("trailer is required");
-    return profile
-      ? composeProfilePrompt(profile, {
-          profilesDir: resolvedProfilesDir,
-          trailer,
-        })
-      : { type: "preset", preset: "claude_code", append: trailer };
-  };
 
   let discusser;
   const leadServer = createDiscussLeadToolServer(ctx);
@@ -288,7 +279,12 @@ export function createDiscusser({
       onLine: (line) => discusser.loop.emitLine(config.name, line),
       mcpServers: { orchestration: agentServer },
       settingSources: ["project"],
-      systemPrompt: systemPromptFor(config.agentProfile, agentTrailer),
+      systemPrompt: composeSystemPrompt({
+        role: "agent",
+        profile: config.agentProfile,
+        profilesDir: resolvedProfilesDir,
+        trailer: agentTrailer,
+      }),
       redactor,
     });
 
@@ -302,12 +298,17 @@ export function createDiscusser({
     output: devNull,
     model: leadModel ?? "claude-opus-4-7[1m]",
     maxTurns: maxTurns ?? 80,
-    allowedTools: ["Bash", "Read", "Glob", "Grep", "Write", "Edit"],
+    allowedTools: ["Read", "Glob", "Grep"],
     disallowedTools: defaultDisallowed,
     onLine: (line) => discusser.loop.emitLine("lead", line),
     mcpServers: { orchestration: leadServer },
     settingSources: ["project"],
-    systemPrompt: systemPromptFor(leadProfile, DISCUSS_SYSTEM_PROMPT),
+    systemPrompt: composeSystemPrompt({
+      role: "lead",
+      profile: leadProfile,
+      profilesDir: resolvedProfilesDir,
+      trailer: DISCUSS_SYSTEM_PROMPT,
+    }),
     redactor,
   });
 

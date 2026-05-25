@@ -18,7 +18,7 @@
 import { Writable } from "node:stream";
 import { resolve } from "node:path";
 import { createAgentRunner } from "./agent-runner.js";
-import { composeProfilePrompt } from "./profile-prompt.js";
+import { composeSystemPrompt } from "./profile-prompt.js";
 import { createMessageBus } from "./message-bus.js";
 import {
   createOrchestrationContext,
@@ -148,15 +148,6 @@ export function createSupervisor({
   if (!redactor) throw new Error("redactor is required");
   const resolvedProfilesDir =
     profilesDir ?? resolve(supervisorCwd, ".claude/agents");
-  const systemPromptFor = (profile, trailer) => {
-    if (!trailer) throw new Error("trailer is required");
-    return profile
-      ? composeProfilePrompt(profile, {
-          profilesDir: resolvedProfilesDir,
-          trailer,
-        })
-      : { type: "preset", preset: "claude_code", append: trailer };
-  };
 
   const ctx = createOrchestrationContext();
   const messageBus = createMessageBus({
@@ -183,7 +174,12 @@ export function createSupervisor({
     allowedTools,
     onLine: (line) => supervisor.emitLine("agent", line),
     settingSources: ["project"],
-    systemPrompt: systemPromptFor(agentProfile, AGENT_SYSTEM_PROMPT),
+    systemPrompt: composeSystemPrompt({
+      role: "agent",
+      profile: agentProfile,
+      profilesDir: resolvedProfilesDir,
+      trailer: AGENT_SYSTEM_PROMPT,
+    }),
     mcpServers: { orchestration: agentServer, ...agentMcpServers },
     redactor,
   });
@@ -202,18 +198,16 @@ export function createSupervisor({
     output: devNull,
     model: supervisorModel ?? model,
     maxTurns: perRunBudget,
-    allowedTools: supervisorAllowedTools ?? [
-      "Bash",
-      "Read",
-      "Glob",
-      "Grep",
-      "Write",
-      "Edit",
-    ],
+    allowedTools: supervisorAllowedTools ?? ["Read", "Glob", "Grep"],
     disallowedTools,
     onLine: (line) => supervisor.emitLine("supervisor", line),
     settingSources: ["project"],
-    systemPrompt: systemPromptFor(supervisorProfile, SUPERVISOR_SYSTEM_PROMPT),
+    systemPrompt: composeSystemPrompt({
+      role: "lead",
+      profile: supervisorProfile,
+      profilesDir: resolvedProfilesDir,
+      trailer: SUPERVISOR_SYSTEM_PROMPT,
+    }),
     mcpServers: { orchestration: supervisorServer },
     redactor,
   });

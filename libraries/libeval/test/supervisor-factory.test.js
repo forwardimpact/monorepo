@@ -34,12 +34,9 @@ describe("Supervisor - createSupervisor factory", () => {
   test("uses default supervisor tools when none specified", () => {
     const s = createSupervisor(baseOpts());
     assert.deepStrictEqual(s.supervisorRunner.allowedTools, [
-      "Bash",
       "Read",
       "Glob",
       "Grep",
-      "Write",
-      "Edit",
     ]);
   });
 
@@ -55,17 +52,18 @@ describe("Supervisor - createSupervisor factory", () => {
     ]);
   });
 
-  test("wires system prompts to both runners", () => {
+  test("supervisor lead gets plain string system prompt (no preset)", () => {
+    const s = createSupervisor(baseOpts());
+    assert.strictEqual(typeof s.supervisorRunner.systemPrompt, "string");
+    assert.strictEqual(s.supervisorRunner.systemPrompt, SUPERVISOR_SYSTEM_PROMPT);
+  });
+
+  test("agent gets claude_code preset system prompt", () => {
     const s = createSupervisor(baseOpts());
     assert.deepStrictEqual(s.agentRunner.systemPrompt, {
       type: "preset",
       preset: "claude_code",
       append: AGENT_SYSTEM_PROMPT,
-    });
-    assert.deepStrictEqual(s.supervisorRunner.systemPrompt, {
-      type: "preset",
-      preset: "claude_code",
-      append: SUPERVISOR_SYSTEM_PROMPT,
     });
   });
 

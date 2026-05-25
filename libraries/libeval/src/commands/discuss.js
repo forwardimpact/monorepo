@@ -52,7 +52,7 @@ export function parseDiscussOptions(values) {
     taskContent,
     taskAmend,
     agentConfigs,
-    leadProfile: values["lead-profile"] ?? "release-engineer",
+    leadProfile: values["lead-profile"] ?? undefined,
     leadModel: values["lead-model"] ?? "claude-opus-4-7[1m]",
     agentModel: values["agent-model"] ?? "claude-opus-4-7[1m]",
     maxTurns,

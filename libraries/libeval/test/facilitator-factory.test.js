@@ -39,12 +39,9 @@ describe("Facilitator - createFacilitator factory", () => {
   test("uses default facilitator tools when none specified", () => {
     const f = createFacilitator(baseOpts());
     assert.deepStrictEqual(f.facilitatorRunner.allowedTools, [
-      "Bash",
       "Read",
       "Glob",
       "Grep",
-      "Write",
-      "Edit",
     ]);
   });
 
@@ -60,13 +57,14 @@ describe("Facilitator - createFacilitator factory", () => {
     ]);
   });
 
-  test("wires system prompts to facilitator and every agent runner", () => {
+  test("facilitator lead gets plain string system prompt (no preset)", () => {
     const f = createFacilitator(baseOpts());
-    assert.deepStrictEqual(f.facilitatorRunner.systemPrompt, {
-      type: "preset",
-      preset: "claude_code",
-      append: FACILITATOR_SYSTEM_PROMPT,
-    });
+    assert.strictEqual(typeof f.facilitatorRunner.systemPrompt, "string");
+    assert.strictEqual(f.facilitatorRunner.systemPrompt, FACILITATOR_SYSTEM_PROMPT);
+  });
+
+  test("agents get claude_code preset system prompt", () => {
+    const f = createFacilitator(baseOpts());
     for (const agent of f.agents) {
       assert.deepStrictEqual(agent.runner.systemPrompt, {
         type: "preset",
