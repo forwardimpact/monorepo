@@ -18,5 +18,5 @@ export const DECISION_HEADING = "### Decision";
 // See spec 1060 design-a.md § Decision area 2 for the full anchor.
 export const WEEKLY_LOG_LINE_BUDGET = 496;
 export const SUMMARY_LINE_BUDGET = 72;
-export const WEEKLY_LOG_WORD_BUDGET = 6400;
-export const SUMMARY_WORD_BUDGET = 12800;
+export const WEEKLY_LOG_WORD_BUDGET = 12800;
+export const SUMMARY_WORD_BUDGET = 6400;

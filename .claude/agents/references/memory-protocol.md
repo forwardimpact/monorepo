@@ -86,7 +86,7 @@ Each `wiki/<agent>.md` conforms to a mechanically-checkable contract —
 `**Last run**:` → `## Message Inbox` (with `<!-- memo:inbox -->` marker —
 MUST be the first H2) → agent-specific H2 sections → `## Open Blockers`.
 
-**Line budget: 72 lines** (`SUMMARY_LINE_BUDGET`); **word budget: 12 800
+**Line budget: 72 lines** (`SUMMARY_LINE_BUDGET`); **word budget: 6 400
 words** (`SUMMARY_WORD_BUDGET`) to backstop dense single-line prose. State,
 not history.
 
@@ -96,7 +96,7 @@ Weekly logs (`wiki/<agent>-YYYY-Www.md`) are append-only Tier 2 records.
 Named readers: `kata-wiki-curate` (always), `kata-session` (for experiment
 verification), agents explicitly investigating past decisions.
 
-**Line budget: 496 lines** (`WEEKLY_LOG_LINE_BUDGET`); **word budget: 6 400
+**Line budget: 496 lines** (`WEEKLY_LOG_LINE_BUDGET`); **word budget: 12 800
 words** (`WEEKLY_LOG_WORD_BUDGET`) to backstop dense single-line prose. A
 Tier 2 read of the largest legal weekly log consumes ≤2.5% of an agent's
 1M-token context window — the *context tax* every reader pays (closes **F3
