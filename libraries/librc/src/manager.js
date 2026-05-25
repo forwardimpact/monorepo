@@ -70,6 +70,9 @@ const SVSCAN_BIN = require.resolve(
  * @property {NodeJS.WritableStream} [stdout] - Stdout sink (default process.stdout)
  */
 
+/**
+ *
+ */
 export class ServiceManager {
   #config;
   #logger;
