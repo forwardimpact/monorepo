@@ -94,8 +94,7 @@ on any failure. Text output: `WARN ...` and `FAIL ...` lines plus a
 `RESULT: ...` trailer. JSON output:
 
 ```json
-{ "result": "pass|fail", "failures": [...], "warnings": [...],
-  "grace_active": false, "grace_until": null }
+{ "result": "pass|fail", "failures": [...], "warnings": [...] }
 ```
 
 Each finding carries a stable `id` for filtering. The catalogue lives in

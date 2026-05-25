@@ -173,7 +173,7 @@ export function resolveScope(scopeKey, ctx) {
 }
 
 /** Build the audit context: classifies and loads every wiki file once. */
-export function buildContext({ wikiRoot, today, graceUntil }) {
+export function buildContext({ wikiRoot, today }) {
   const subjects = {
     summary: [],
     "weekly-log-main": [],
@@ -187,8 +187,6 @@ export function buildContext({ wikiRoot, today, graceUntil }) {
   return {
     wikiRoot,
     today,
-    grace: Boolean(graceUntil && graceUntil >= today),
-    graceUntil: graceUntil ?? null,
     subjects,
     memory: loadMemory(wikiRoot),
     storyboard: loadStoryboard(wikiRoot, today),

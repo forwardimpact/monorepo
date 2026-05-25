@@ -22,8 +22,8 @@ export function emitText(findings) {
   return lines.join("\n") + "\n";
 }
 
-/** Render findings as a JSON document with grace-window metadata from ctx. */
-export function emitJson(findings, ctx) {
+/** Render findings as a JSON document. */
+export function emitJson(findings) {
   const { failures, warnings } = partition(findings);
   return (
     JSON.stringify(
@@ -31,8 +31,6 @@ export function emitJson(findings, ctx) {
         result: failures.length === 0 ? "pass" : "fail",
         failures,
         warnings,
-        grace_active: ctx.grace,
-        grace_until: ctx.graceUntil,
       },
       null,
       2,

@@ -12,13 +12,12 @@ export function runAuditCommand(values, _args, _cli) {
   const projectRoot = finder.findProjectRoot(process.cwd());
   const wikiRoot = values["wiki-root"] || path.join(projectRoot, "wiki");
   const today = values.today || new Date().toISOString().slice(0, 10);
-  const graceUntil = process.env.FIT_WIKI_AUDIT_GRACE_UNTIL || null;
 
-  const ctx = buildContext({ wikiRoot, today, graceUntil });
+  const ctx = buildContext({ wikiRoot, today });
   const findings = runAudit(RULES, ctx);
 
   process.stdout.write(
-    values.format === "json" ? emitJson(findings, ctx) : emitText(findings),
+    values.format === "json" ? emitJson(findings) : emitText(findings),
   );
 
   if (findings.some((f) => f.level === "fail")) process.exit(1);

@@ -177,8 +177,7 @@ function compactSummary(filePath, dryRun) {
   const lines = countLines(text);
   if (lines <= SUMMARY_LINE_BUDGET) return null;
   // Conservative compaction: do nothing automatically — print a warning so the
-  // human reviewer can decide what to trim. The audit grace window covers
-  // these until manual compaction lands. (The plan called for an automatic
+  // human reviewer can decide what to trim. (The plan called for an automatic
   // move-to-current-week pass; in a sandbox where the wiki is a separate repo
   // and we cannot guarantee the live week file, we surface the violation
   // instead and exit cleanly.)

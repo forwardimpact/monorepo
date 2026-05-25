@@ -212,7 +212,6 @@ export const RULES = [
     id: "summary.line-budget",
     scope: "summary",
     severity: "fail",
-    graceDowngrade: true,
     check: lineBudget(SUMMARY_LINE_BUDGET),
     message: (s, r) =>
       `budget: ${s.path} has ${r.value} lines (limit ${SUMMARY_LINE_BUDGET})`,
@@ -221,7 +220,6 @@ export const RULES = [
     id: "summary.word-budget",
     scope: "summary",
     severity: "fail",
-    graceDowngrade: true,
     check: wordBudget(SUMMARY_WORD_BUDGET),
     message: (s, r) =>
       `budget: ${s.path} has ${r.value} words (limit ${SUMMARY_WORD_BUDGET})`,
@@ -272,7 +270,6 @@ export const RULES = [
     id: "decision-block.heading-within-5",
     scope: "weekly-log-main",
     severity: "fail",
-    graceDowngrade: true,
     check: decisionWithin5({
       entryRe: /^## \d{4}-\d{2}-\d{2}(?:[\s(].*)?$/,
       requiredLine: DECISION_HEADING,

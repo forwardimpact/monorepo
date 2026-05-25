@@ -88,8 +88,6 @@ describe("fit-wiki audit CLI", () => {
     assert.equal(result.result, "pass");
     assert.deepEqual(result.failures, []);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.grace_active, false);
-    assert.equal(result.grace_until, null);
   });
 
   test("over-budget summary: JSON failure with id, path, exit 1", () => {
@@ -119,28 +117,6 @@ describe("fit-wiki audit CLI", () => {
       lineBudget.message,
       /staff-engineer\.md has \d+ lines \(limit 72\)/,
     );
-  });
-
-  test("grace window: summary line budget downgrades to warn, RESULT pass", () => {
-    seedCleanWiki(wikiRoot);
-    const big = Array(100).fill("x").join("\n");
-    writeFileSync(
-      join(wikiRoot, "staff-engineer.md"),
-      `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${big}\n`,
-    );
-    const out = run(
-      dir,
-      ["audit", "--today", "2026-05-24", "--format", "json"],
-      { FIT_WIKI_AUDIT_GRACE_UNTIL: "2099-01-01" },
-    );
-    const result = JSON.parse(out);
-    assert.equal(result.result, "pass");
-    assert.equal(result.grace_active, true);
-    assert.equal(result.grace_until, "2099-01-01");
-    const lineBudget = result.warnings.find(
-      (w) => w.id === "summary.line-budget",
-    );
-    assert.ok(lineBudget, "expected line-budget downgraded to warn");
   });
 
   test("text emitter: WARN before FAIL, RESULT trailer", () => {

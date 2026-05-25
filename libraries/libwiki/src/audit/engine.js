@@ -13,11 +13,10 @@ function applyRule(rule, subject, ctx) {
   if (rule.when && !rule.when(subject, ctx)) return [];
   const result = rule.check(subject, ctx);
   if (result == null) return [];
-  const level = rule.graceDowngrade && ctx.grace ? "warn" : rule.severity;
   const items = Array.isArray(result) ? result : [result];
   return items.map((item) => ({
     id: rule.id,
-    level,
+    level: rule.severity,
     path: subject.path ?? null,
     message: rule.message(subject, item, ctx),
   }));

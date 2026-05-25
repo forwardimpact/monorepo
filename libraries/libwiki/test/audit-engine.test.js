@@ -107,8 +107,8 @@ describe("runAudit", () => {
     );
   };
 
-  const audit = (today = "2026-05-24", graceUntil = null) =>
-    runAudit(RULES, buildContext({ wikiRoot: wiki, today, graceUntil }));
+  const audit = (today = "2026-05-24") =>
+    runAudit(RULES, buildContext({ wikiRoot: wiki, today }));
 
   const idsOf = (findings) => findings.map((f) => f.id);
 
@@ -126,19 +126,6 @@ describe("runAudit", () => {
       `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${big}\n`,
     );
     assert.ok(idsOf(audit()).includes("summary.line-budget"));
-  });
-
-  test("grace window downgrades summary.line-budget to warn", () => {
-    seedClean();
-    const big = Array(100).fill("x").join("\n");
-    writeFileSync(
-      join(wiki, "staff-engineer.md"),
-      `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${big}\n`,
-    );
-    const lineBudget = audit("2026-05-24", "2099-01-01").find(
-      (f) => f.id === "summary.line-budget",
-    );
-    assert.equal(lineBudget.level, "warn");
   });
 
   test("summary first H2 mismatch fires summary.first-h2-inbox", () => {
