@@ -35,7 +35,7 @@ describe("renderIssueList", () => {
       ),
     });
     assert.equal(lines.length, 1);
-    assert.match(lines[0], /Obs #100 — obstacle one/);
+    assert.equal(lines[0], "- #100 obstacle one");
   });
 
   test("filters closed experiments by 7-day window", () => {
@@ -52,7 +52,7 @@ describe("renderIssueList", () => {
       ),
     });
     assert.equal(lines.length, 1);
-    assert.match(lines[0], /recent/);
+    assert.equal(lines[0], "- #2 recent");
   });
 
   test("returns [] on gh failure", () => {
@@ -107,6 +107,6 @@ describe("renderIssueList", () => {
       ),
     });
     assert.equal(lines.length, 1);
-    assert.match(lines[0], /in-window/);
+    assert.equal(lines[0], "- #2 in-window");
   });
 });

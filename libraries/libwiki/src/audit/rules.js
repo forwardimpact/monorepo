@@ -25,11 +25,15 @@ const CLAIMS_HEADER_RE =
 const CLAIMS_SEPARATOR_RE =
   /^\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|/m;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const XMR_OPEN_RE = /^<!--\s*xmr:([^:\s]+):([^\s]+)\s*-->\s*$/;
-const XMR_CLOSE_RE = /^<!--\s*\/xmr\s*-->\s*$/;
+// Marker regexes (mirror of marker-scanner.js): tolerate optional trailing
+// text inside the marker so an open marker can carry an inline notice like
+// "Do not edit. Auto-generated." without breaking the audit's balance check.
+const XMR_OPEN_RE = /^<!--\s*xmr:([^:\s]+):(\S+)(?:\s+[^>]*?)?\s*-->\s*$/;
+const XMR_CLOSE_RE = /^<!--\s*\/xmr(?:\s+[^>]*?)?\s*-->\s*$/;
 const ISSUE_OPEN_RE =
-  /^<!--\s*(obstacles|experiments):(open|closed)(?::(\d+d))?\s*-->\s*$/;
-const ISSUE_CLOSE_RE = /^<!--\s*\/(obstacles|experiments)\s*-->\s*$/;
+  /^<!--\s*(obstacles|experiments):(open|closed)(?::(\d+d))?(?:\s+[^>]*?)?\s*-->\s*$/;
+const ISSUE_CLOSE_RE =
+  /^<!--\s*\/(obstacles|experiments)(?:\s+[^>]*?)?\s*-->\s*$/;
 
 // improvement-coach is the storyboard facilitator and carries no domain
 // metrics; only the five domain agents need their own H3.

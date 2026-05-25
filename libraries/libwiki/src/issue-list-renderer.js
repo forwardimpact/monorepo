@@ -70,8 +70,7 @@ export function renderIssueList({
 
   const lines = [];
   for (const issue of issues) {
-    const tag = topic === "experiments" ? "Exp" : "Obs";
-    lines.push(`- **${tag} #${issue.number} — ${issue.title}**`);
+    lines.push(`- #${issue.number} ${issue.title}`);
   }
   return lines;
 }
