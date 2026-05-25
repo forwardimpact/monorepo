@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import {
   MAX_FIELD_LENGTH,
+  MAX_REPLY_COUNT,
   newDiscussionContext,
   normalizeBaseUrl,
   validateCallbackPayload,
@@ -67,6 +68,80 @@ describe("validateCallbackPayload", () => {
     });
     expect(payload.replies).toEqual([]);
     expect(payload.trigger).toBeUndefined();
+  });
+
+  test("truncates reply body strings to MAX_FIELD_LENGTH", () => {
+    const long = "y".repeat(MAX_FIELD_LENGTH + 500);
+    const payload = validateCallbackPayload({
+      correlation_id: "c-1",
+      replies: [{ body: long }],
+    });
+    expect(payload.replies[0].body).toHaveLength(MAX_FIELD_LENGTH);
+  });
+
+  test("caps reply count at MAX_REPLY_COUNT", () => {
+    const replies = Array.from({ length: MAX_REPLY_COUNT + 10 }, (_, i) => ({
+      body: `r${i}`,
+    }));
+    const payload = validateCallbackPayload({
+      correlation_id: "c-1",
+      replies,
+    });
+    expect(payload.replies).toHaveLength(MAX_REPLY_COUNT);
+  });
+
+  test("rejects trigger with unknown kind", () => {
+    const payload = validateCallbackPayload({
+      correlation_id: "c-1",
+      trigger: { kind: "evil", responses: 1 },
+    });
+    expect(payload.trigger).toBeUndefined();
+  });
+
+  test("rejects trigger with non-string kind", () => {
+    const payload = validateCallbackPayload({
+      correlation_id: "c-1",
+      trigger: { kind: 42 },
+    });
+    expect(payload.trigger).toBeUndefined();
+  });
+
+  test("accepts trigger with allowed kind values", () => {
+    for (const kind of ["responses", "elapsed", "any"]) {
+      const payload = validateCallbackPayload({
+        correlation_id: "c-1",
+        trigger: { kind },
+      });
+      expect(payload.trigger).toEqual({ kind });
+    }
+  });
+
+  test("validates trigger responses as a finite non-negative number", () => {
+    const bad = validateCallbackPayload({
+      correlation_id: "c-1",
+      trigger: { kind: "responses", responses: -1 },
+    });
+    expect(bad.trigger).toBeUndefined();
+
+    const good = validateCallbackPayload({
+      correlation_id: "c-1",
+      trigger: { kind: "responses", responses: 3 },
+    });
+    expect(good.trigger).toEqual({ kind: "responses", responses: 3 });
+  });
+
+  test("validates trigger elapsed as a string", () => {
+    const bad = validateCallbackPayload({
+      correlation_id: "c-1",
+      trigger: { kind: "elapsed", elapsed: 300 },
+    });
+    expect(bad.trigger).toBeUndefined();
+
+    const good = validateCallbackPayload({
+      correlation_id: "c-1",
+      trigger: { kind: "elapsed", elapsed: "PT5M" },
+    });
+    expect(good.trigger).toEqual({ kind: "elapsed", elapsed: "PT5M" });
   });
 });
 

@@ -1,4 +1,5 @@
 export const MAX_FIELD_LENGTH = 2000;
+export const MAX_REPLY_COUNT = 50;
 
 /**
  * Validate and sanitize the kata-dispatch callback payload. Lenient by
@@ -23,11 +24,17 @@ export function validateCallbackPayload(body) {
     typeof body.summary === "string"
       ? body.summary.slice(0, MAX_FIELD_LENGTH)
       : "";
-  const replies = Array.isArray(body.replies) ? body.replies : [];
+  const rawReplies = Array.isArray(body.replies) ? body.replies : [];
+  const replies = rawReplies.slice(0, MAX_REPLY_COUNT).map((r) => {
+    if (!r || typeof r !== "object") return r;
+    if (typeof r.body === "string") {
+      return { ...r, body: r.body.slice(0, MAX_FIELD_LENGTH) };
+    }
+    return r;
+  });
   const discussionId =
     typeof body.discussion_id === "string" ? body.discussion_id : undefined;
-  const trigger =
-    body.trigger && typeof body.trigger === "object" ? body.trigger : undefined;
+  const trigger = validateTrigger(body.trigger);
   const runUrl = typeof body.run_url === "string" ? body.run_url : undefined;
 
   return {
@@ -39,6 +46,33 @@ export function validateCallbackPayload(body) {
     ...(trigger && { trigger }),
     ...(runUrl && { run_url: runUrl }),
   };
+}
+
+const ALLOWED_TRIGGER_KINDS = new Set(["responses", "elapsed", "any"]);
+
+/**
+ * Validate and sanitize a trigger object at the payload boundary.
+ * Rejects triggers with unknown `kind` values or invalid field types.
+ *
+ * @param {unknown} raw
+ * @returns {object | undefined}
+ */
+function validateTrigger(raw) {
+  if (!raw || typeof raw !== "object") return undefined;
+  if (typeof raw.kind !== "string" || !ALLOWED_TRIGGER_KINDS.has(raw.kind)) {
+    return undefined;
+  }
+  const trigger = { kind: raw.kind };
+  if (raw.responses !== undefined) {
+    const n = Number(raw.responses);
+    if (!Number.isFinite(n) || n < 0) return undefined;
+    trigger.responses = n;
+  }
+  if (raw.elapsed !== undefined) {
+    if (typeof raw.elapsed !== "string") return undefined;
+    trigger.elapsed = raw.elapsed;
+  }
+  return trigger;
 }
 
 /**

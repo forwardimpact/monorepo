@@ -297,7 +297,7 @@ describe("createCallbackHandler", () => {
     );
     expect(res.status).toBe(410);
     const body = await res.json();
-    expect(body.error).toBe("Conversation reference missing");
+    expect(body.error).toBe("Gone");
   });
 
   test("unexpected handleReply errors return 500", async () => {

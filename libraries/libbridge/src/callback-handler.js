@@ -134,6 +134,19 @@ async function resolveContext(
   return { token, ctx, meta, payload };
 }
 
+const STATUS_MESSAGES = {
+  400: "Bad request",
+  404: "Not found",
+  410: "Gone",
+  429: "Too many requests",
+  500: "Internal error",
+};
+
+/** Map a CallbackHandlerError status to a safe generic message. */
+function sanitizeErrorMessage(status) {
+  return STATUS_MESSAGES[status] ?? `Error ${status}`;
+}
+
 async function runHandleReply(
   c,
   { ctx, meta, payload, handleReply, store, logger, tracer, spanName },
@@ -154,7 +167,7 @@ async function runHandleReply(
     if (err instanceof CallbackHandlerError) {
       span.addEvent("short_circuit", { status: err.status });
       span.setOk();
-      return c.json({ error: err.message }, err.status);
+      return c.json({ error: sanitizeErrorMessage(err.status) }, err.status);
     }
     logger.error?.("callback", err, {
       correlation_id: meta.correlationId,

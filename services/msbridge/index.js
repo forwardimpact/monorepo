@@ -70,7 +70,6 @@ export class MsBridgeService {
     if (!logger) throw new Error("logger is required");
     if (!tracer) throw new Error("tracer is required");
     if (!storage) throw new Error("storage is required");
-    this.config = config;
     this.#logger = logger;
     this.#tracer = tracer;
     this.#msAppId = () => config.msAppId();

@@ -32,6 +32,7 @@ export { ElapsedScheduler } from "./elapsed-scheduler.js";
 export { ResumeScheduler } from "./resume-scheduler.js";
 export {
   MAX_FIELD_LENGTH,
+  MAX_REPLY_COUNT,
   newDiscussionContext,
   normalizeBaseUrl,
   validateCallbackPayload,

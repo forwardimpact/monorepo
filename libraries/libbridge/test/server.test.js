@@ -51,6 +51,17 @@ describe("createBridgeServer", () => {
     expect(json.hasRawBody).toBe(true);
   });
 
+  test("responses include security headers", async () => {
+    const res = await fetch(`${baseUrl}/api/test-webhook`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ping: true }),
+    });
+    expect(res.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(res.headers.get("x-frame-options")).toBe("DENY");
+    expect(res.headers.get("cache-control")).toBe("no-store");
+  });
+
   test("POST to /api/callback/:token runs onCallback with the token", async () => {
     const res = await fetch(`${baseUrl}/api/callback/tok-123`, {
       method: "POST",

@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { serve } from "@hono/node-server";
 
 /**
@@ -43,6 +44,17 @@ export function createBridgeServer({
   }
 
   const app = new Hono();
+
+  // Security headers — standard hardening for a backend service.
+  app.use("*", async (c, next) => {
+    await next();
+    c.header("X-Content-Type-Options", "nosniff");
+    c.header("X-Frame-Options", "DENY");
+    c.header("Cache-Control", "no-store");
+  });
+
+  // Request body size limit — 1 MB is generous for JSON callback payloads.
+  app.use("*", bodyLimit({ maxSize: 1024 * 1024 }));
 
   // Capture the raw POST body once, before downstream handlers parse it.
   // Channel adapters use this buffer to verify HMAC signatures.
