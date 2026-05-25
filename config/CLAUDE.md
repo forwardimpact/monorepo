@@ -57,6 +57,13 @@ Non-Node commands needing `.env` variables must source them explicitly.
 `restart <name>` operate on the target and everything after it. List
 infrastructure (tunnels, databases) before services that depend on them.
 
+Optional entries — add when working on those features:
+
+```json
+{ "name": "mstunnel", "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_MSBRIDGE_URL} --protocol http2'" }
+{ "name": "msbridge", "command": "node -e \"import('@forwardimpact/svcmsbridge/server.js')\"" }
+```
+
 Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`:
 
 ```json
