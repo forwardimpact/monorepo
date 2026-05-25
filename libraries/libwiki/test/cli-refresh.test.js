@@ -67,8 +67,6 @@ describe("fit-wiki refresh CLI", () => {
     run(dir, "storyboard.md");
 
     const after = readFileSync(storyboard, "utf-8");
-    assert.ok(after.includes("**Latest:** 10"));
-    assert.ok(after.includes("**Status:** predictable"));
     assert.ok(after.includes("**Signals:**"));
     assert.ok(after.includes("```"));
     assert.ok(after.includes("trailing prose"));
@@ -141,8 +139,8 @@ describe("fit-wiki refresh CLI", () => {
     run(dir, "storyboard.md");
 
     const after = readFileSync(storyboard, "utf-8");
-    assert.ok(after.includes("**Latest:** 24"));
-    assert.ok(after.includes("**Latest:** 34"));
+    const signalsCount = (after.match(/\*\*Signals:\*\*/g) || []).length;
+    assert.equal(signalsCount, 2);
     assert.ok(!after.includes("old alpha"));
     assert.ok(!after.includes("old beta"));
   });
@@ -193,7 +191,7 @@ describe("fit-wiki refresh CLI", () => {
     });
 
     const after = readFileSync(storyboard, "utf-8");
-    assert.ok(after.includes("**Latest:** 5"));
+    assert.ok(after.includes("**Signals:**"));
     assert.ok(!after.includes("old"));
   });
 
@@ -228,7 +226,7 @@ describe("fit-wiki refresh CLI", () => {
     });
 
     const after = readFileSync(defaultPath, "utf-8");
-    assert.ok(after.includes("**Latest:** 7"));
+    assert.ok(after.includes("**Signals:**"));
     assert.ok(!after.includes("old"));
   });
 });

@@ -1,9 +1,19 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { renderIssueList } from "../src/issue-list-renderer.js";
+import { renderIssueList, parseRepoSlug } from "../src/issue-list-renderer.js";
 
 function mockGh(stdout, status = 0) {
   return () => ({ status, stdout, stderr: "" });
+}
+
+function spyGh(stdout, status = 0) {
+  const calls = [];
+  const fn = (args, options) => {
+    calls.push({ args, options });
+    return { status, stdout, stderr: "" };
+  };
+  fn.calls = calls;
+  return fn;
 }
 
 describe("renderIssueList", () => {
@@ -25,7 +35,7 @@ describe("renderIssueList", () => {
       ),
     });
     assert.equal(lines.length, 1);
-    assert.match(lines[0], /Obs #100 — obstacle one/);
+    assert.equal(lines[0], "- #100 obstacle one");
   });
 
   test("filters closed experiments by 7-day window", () => {
@@ -42,7 +52,7 @@ describe("renderIssueList", () => {
       ),
     });
     assert.equal(lines.length, 1);
-    assert.match(lines[0], /recent/);
+    assert.equal(lines[0], "- #2 recent");
   });
 
   test("returns [] on gh failure", () => {
@@ -53,6 +63,39 @@ describe("renderIssueList", () => {
       gh: mockGh("", 1),
     });
     assert.deepEqual(lines, []);
+  });
+
+  test("forwards cwd, repo, and token to gh when provided", () => {
+    const gh = spyGh(JSON.stringify([]));
+    renderIssueList({
+      topic: "obstacles",
+      state: "open",
+      window: null,
+      cwd: "/some/project-root",
+      repo: "forwardimpact/monorepo",
+      token: "ghp_test",
+      gh,
+    });
+    const call = gh.calls[0];
+    const repoIdx = call.args.indexOf("--repo");
+    assert.notEqual(repoIdx, -1);
+    assert.equal(call.args[repoIdx + 1], "forwardimpact/monorepo");
+    assert.equal(call.options.cwd, "/some/project-root");
+    assert.equal(call.options.token, "ghp_test");
+  });
+
+  test("omits --repo and options when none provided", () => {
+    const gh = spyGh(JSON.stringify([]));
+    renderIssueList({
+      topic: "obstacles",
+      state: "open",
+      window: null,
+      gh,
+    });
+    const call = gh.calls[0];
+    assert.equal(call.args.includes("--repo"), false);
+    assert.equal(call.options.cwd, undefined);
+    assert.equal(call.options.token, undefined);
   });
 
   test("honours window suffix (30d)", () => {
@@ -69,6 +112,34 @@ describe("renderIssueList", () => {
       ),
     });
     assert.equal(lines.length, 1);
-    assert.match(lines[0], /in-window/);
+    assert.equal(lines[0], "- #2 in-window");
+  });
+});
+
+describe("parseRepoSlug", () => {
+  test("parses https github URL", () => {
+    assert.equal(
+      parseRepoSlug("https://github.com/forwardimpact/monorepo.git"),
+      "forwardimpact/monorepo",
+    );
+  });
+
+  test("parses ssh github URL", () => {
+    assert.equal(
+      parseRepoSlug("git@github.com:forwardimpact/monorepo.git"),
+      "forwardimpact/monorepo",
+    );
+  });
+
+  test("parses proxy-rewritten URL with extra path prefix", () => {
+    assert.equal(
+      parseRepoSlug("http://127.0.0.1:1234/git/forwardimpact/monorepo"),
+      "forwardimpact/monorepo",
+    );
+  });
+
+  test("returns null for empty input", () => {
+    assert.equal(parseRepoSlug(null), null);
+    assert.equal(parseRepoSlug(""), null);
   });
 });

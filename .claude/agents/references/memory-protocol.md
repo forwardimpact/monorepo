@@ -86,7 +86,7 @@ Each `wiki/<agent>.md` conforms to a mechanically-checkable contract —
 `**Last run**:` → `## Message Inbox` (with `<!-- memo:inbox -->` marker —
 MUST be the first H2) → agent-specific H2 sections → `## Open Blockers`.
 
-**Line budget: 72 lines** (`SUMMARY_LINE_BUDGET`); **word budget: 12 800
+**Line budget: 496 lines** (`SUMMARY_LINE_BUDGET`); **word budget: 6 400
 words** (`SUMMARY_WORD_BUDGET`) to backstop dense single-line prose. State,
 not history.
 
@@ -100,7 +100,12 @@ verification), agents explicitly investigating past decisions.
 words** (`WEEKLY_LOG_WORD_BUDGET`) to backstop dense single-line prose. A
 Tier 2 read of the largest legal weekly log consumes ≤2.5% of an agent's
 1M-token context window — the *context tax* every reader pays (closes **F3
-/ F17**).
+/ F17**). Storyboards (`wiki/storyboard-YYYY-MNN.md`) share the same
+budgets — 496 lines / 6 400 words — gated by `storyboard.line-budget` and
+`storyboard.word-budget` audit rules. The three budgets share numeric
+limits today; each surface keeps its own rule pair so the limits can
+diverge later if the context-tax model says one surface should be looser
+or tighter.
 
 Overflow rotates: `log` seals the current file as
 `<agent>-YYYY-Www-partN.md` and writes the day's append into a fresh

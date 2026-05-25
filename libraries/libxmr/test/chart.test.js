@@ -13,19 +13,19 @@ import { renderChart } from "../src/chart.js";
 // NOTE: trailing spaces in zone rows are intentional — they preserve
 // fixed-width column alignment.
 const GOLDEN_SECTION_10 = [
-  " UPL 12.5 ──────────────────────────────●───────────────",
+  " UPL 12.5 ┬                             ●               ",
   "          │                                             ",
   "+1.5σ 9.4 │        ·           ·  ·              ·      ",
-  "    μ 6.4 ┼╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌",
+  "    μ 6.4 ┼                                             ",
   "-1.5σ 3.4 │  ·  ·     ·  ·  ·        ·     ·  ·     ·  ·",
   "          │                                             ",
-  "  LPL 0.3 ──────────────────────────────────────────────",
+  "  LPL 0.3 ┴                                             ",
   "",
-  "  URL 7.5 ─────────────────────────────────●────────────",
+  "  URL 7.5 ┬                                ●            ",
   "          │                    ·        ·               ",
-  "    R 2.3 ┼╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌",
+  "    R 2.3 ┼                                             ",
   "          │     ·  ·  ·  ·  ·     ·  ·        ·  ·  ·  ·",
-  "      0.0 ──────────────────────────────────────────────",
+  "      0.0 ┴                                             ",
   "             1  2  3  4  5  6  7  8  9 10 11 12 13 14 15",
 ].join("\n");
 
@@ -56,11 +56,10 @@ describe("renderChart — alignment invariant", () => {
     const signals = detectSignals(values, stats.mrs, stats);
     const lines = renderChart(values, stats, signals).split("\n");
 
-    // The edge character sits at index labelWidth + 1 (0-indexed). Find it
-    // on the X chart's UPL row and on the mR chart's URL row, and assert
-    // the columns match.
-    const xEdge = lines[0].indexOf("─");
-    const mrEdge = lines[8].indexOf("─");
+    // Zone rows carry a `│` edge at index labelWidth + 1 (0-indexed). Find
+    // it on a zone row from each chart and assert the columns match.
+    const xEdge = lines[1].indexOf("│");
+    const mrEdge = lines[9].indexOf("│");
     assert.strictEqual(xEdge, mrEdge);
   });
 

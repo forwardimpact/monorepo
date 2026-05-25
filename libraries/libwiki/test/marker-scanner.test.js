@@ -83,4 +83,44 @@ describe("scanMarkers", () => {
     const pairs = scanMarkers(text);
     assert.equal(pairs.length, 0);
   });
+
+  test("tolerates inline notice text after the tag (xmr)", () => {
+    const text = [
+      "<!-- xmr:findings_count:wiki/metrics/kata-spec/2026.csv Do not edit. Generated from fit-wiki refresh. -->",
+      "**Latest:** 3 · **Status:** predictable",
+      "<!-- /xmr Do not edit. Generated from fit-wiki refresh. -->",
+    ].join("\n");
+
+    const pairs = scanMarkers(text);
+    assert.equal(pairs.length, 1);
+    assert.equal(pairs[0].metric, "findings_count");
+    assert.equal(pairs[0].csvPath, "wiki/metrics/kata-spec/2026.csv");
+  });
+
+  test("tolerates inline notice text after the tag (issue-list)", () => {
+    const text = [
+      "<!-- obstacles:open Do not edit. Generated from fit-wiki refresh. -->",
+      "- **Obs #100 — example**",
+      "<!-- /obstacles Do not edit. Generated from fit-wiki refresh. -->",
+    ].join("\n");
+
+    const pairs = scanMarkers(text);
+    assert.equal(pairs.length, 1);
+    assert.equal(pairs[0].topic, "obstacles");
+    assert.equal(pairs[0].state, "open");
+  });
+
+  test("tolerates inline notice combined with closed:30d window suffix", () => {
+    const text = [
+      "<!-- experiments:closed:30d Do not edit. Generated from fit-wiki refresh. -->",
+      "- **Exp #42 — older entry**",
+      "<!-- /experiments -->",
+    ].join("\n");
+
+    const pairs = scanMarkers(text);
+    assert.equal(pairs.length, 1);
+    assert.equal(pairs[0].topic, "experiments");
+    assert.equal(pairs[0].state, "closed");
+    assert.equal(pairs[0].window, "30d");
+  });
 });

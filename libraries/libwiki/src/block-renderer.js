@@ -32,11 +32,8 @@ export function renderBlock({
     throw new BlockRenderError(`metric-not-found: ${metric}`);
   }
 
-  const latestValue = m.latest?.value ?? m.values[m.values.length - 1] ?? "—";
-  const status = m.status;
-
   let chartLines;
-  if (status === "insufficient_data") {
+  if (m.status === "insufficient_data") {
     chartLines = [
       `Insufficient data: ${m.n} points (need at least ${MIN_POINTS}).`,
     ];
@@ -45,16 +42,12 @@ export function renderBlock({
     chartLines = chartText.split("\n");
   }
 
-  const signalLine = formatSignals(m.signals);
-
   return [
-    `**Latest:** ${latestValue} · **Status:** ${status}`,
-    "",
     "```",
     ...chartLines,
     "```",
     "",
-    `**Signals:** ${signalLine}`,
+    `**Signals:** ${formatSignals(m.signals)}`,
   ];
 }
 

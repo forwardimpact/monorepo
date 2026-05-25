@@ -13,10 +13,14 @@ export const PRIORITY_INDEX_TABLE_HEADER =
   "| Item | Agents | Owner | Status | Added |";
 export const DECISION_HEADING = "### Decision";
 
-// Cap derivation: ≤2.5% of a 1M-token context window = 25k tokens;
-// converted via ≈42 tokens/line empirical proxy, then 64-aligned.
-// See spec 1060 design-a.md § Decision area 2 for the full anchor.
+// Unified budgets for the three audited surfaces (summary, weekly-log,
+// storyboard). They share the same numeric limits today so the
+// context-tax floor is symmetric across surfaces; each surface keeps
+// its own audit rule pair so the limits can diverge later if the
+// context-tax model says one surface should be looser or tighter.
+export const SUMMARY_LINE_BUDGET = 496;
+export const SUMMARY_WORD_BUDGET = 2048;
 export const WEEKLY_LOG_LINE_BUDGET = 496;
-export const SUMMARY_LINE_BUDGET = 72;
 export const WEEKLY_LOG_WORD_BUDGET = 6400;
-export const SUMMARY_WORD_BUDGET = 12800;
+export const STORYBOARD_LINE_BUDGET = 496;
+export const STORYBOARD_WORD_BUDGET = 6400;

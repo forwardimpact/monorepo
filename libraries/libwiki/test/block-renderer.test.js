@@ -17,7 +17,7 @@ function makeCSV(metric, values) {
 }
 
 describe("renderBlock", () => {
-  test("predictable metric renders Latest, chart, and Signals", () => {
+  test("predictable metric renders chart fenced code and Signals", () => {
     const dir = mkdtempSync(join(tmpdir(), "block-"));
     const values = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10];
     writeFileSync(join(dir, "test.csv"), makeCSV("findings", values));
@@ -28,15 +28,12 @@ describe("renderBlock", () => {
       projectRoot: dir,
     });
 
-    assert.ok(lines[0].startsWith("**Latest:** 10"));
-    assert.ok(lines[0].includes("**Status:** predictable"));
-    assert.equal(lines[1], "");
-    assert.equal(lines[2], "```");
+    assert.equal(lines[0], "```");
 
     const report = analyze(makeCSV("findings", values));
     const m = report.metrics[0];
     const expectedChart = renderChart(m.values, m.stats, m.signals);
-    const chartContent = lines.slice(3, lines.indexOf("```", 3)).join("\n");
+    const chartContent = lines.slice(1, lines.indexOf("```", 1)).join("\n");
     assert.equal(chartContent, expectedChart);
 
     const lastLine = lines[lines.length - 1];
@@ -55,7 +52,6 @@ describe("renderBlock", () => {
       projectRoot: dir,
     });
 
-    assert.ok(lines[0].includes("**Status:** signals_present"));
     const signalLine = lines[lines.length - 1];
     assert.ok(signalLine.includes("xRule1") || signalLine.includes("mrRule1"));
   });
@@ -71,10 +67,8 @@ describe("renderBlock", () => {
       projectRoot: dir,
     });
 
-    assert.ok(lines[0].includes("**Latest:** 50"));
-    assert.ok(lines[0].includes("**Status:** insufficient_data"));
-
-    const chartLine = lines[3];
+    assert.equal(lines[0], "```");
+    const chartLine = lines[1];
     assert.ok(chartLine.includes("Insufficient data"));
     assert.ok(chartLine.includes("5 points"));
   });

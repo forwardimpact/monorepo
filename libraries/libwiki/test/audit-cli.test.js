@@ -92,7 +92,7 @@ describe("fit-wiki audit CLI", () => {
 
   test("over-budget summary: JSON failure with id, path, exit 1", () => {
     seedCleanWiki(wikiRoot);
-    const big = Array(100).fill("x").join("\n");
+    const big = Array(600).fill("x").join("\n");
     writeFileSync(
       join(wikiRoot, "staff-engineer.md"),
       `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${big}\n`,
@@ -115,13 +115,13 @@ describe("fit-wiki audit CLI", () => {
     assert.equal(lineBudget.level, "fail");
     assert.match(
       lineBudget.message,
-      /staff-engineer\.md has \d+ lines \(limit 72\)/,
+      /staff-engineer\.md has \d+ lines \(limit 496\)/,
     );
   });
 
   test("text emitter: WARN before FAIL, RESULT trailer", () => {
     seedCleanWiki(wikiRoot);
-    const big = Array(100).fill("x").join("\n");
+    const big = Array(600).fill("x").join("\n");
     writeFileSync(
       join(wikiRoot, "staff-engineer.md"),
       `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${big}\n`,
