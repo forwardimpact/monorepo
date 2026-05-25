@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libpreflight",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Runtime-floor preflight — fail fast with a product-authored error when the host Node is below a package's declared floor.",
   "keywords": [
     "preflight",
@@ -28,7 +28,6 @@
     }
   ],
   "type": "module",
-  "main": "./src/check.js",
   "exports": {
     "./node22": "./src/node22.js",
     "./check.js": "./src/check.js"
