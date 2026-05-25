@@ -1,12 +1,16 @@
 /**
  * Discusser — async, suspendable orchestration on top of a within-run
- * `OrchestrationLoop`. The lead role uses `DiscussTools` (Adjourn / Recess
- * / RequestForComment) instead of the facilitator's Conclude.
+ * `OrchestrationLoop`. The lead role uses `DiscussTools` (Adjourn / Recess)
+ * instead of the facilitator's Conclude.
  *
  * Discuss mode is a sibling of facilitate mode, not a subset of it. The
  * within-run turn loop is shared via `OrchestrationLoop`, but the lead
  * role, tool set, system prompts, and participant naming all stay
  * mode-local.
+ *
+ * Each agent Answer routed to the lead is captured as a thread reply
+ * delivered via the bridge callback — no explicit reply tool is needed
+ * on the lead surface.
  */
 
 import { Writable } from "node:stream";
@@ -27,15 +31,15 @@ import { OrchestrationLoop } from "./orchestration-loop.js";
 /** System prompt appended for the lead (Chair) runner in discuss mode. */
 export const DISCUSS_SYSTEM_PROMPT =
   "You lead an asynchronous discussion across multiple participants and a human channel. " +
+  "Each participant's Answer is delivered to the discussion thread as a separate reply. Delegate to participants via Ask; their Answers are posted individually. If you can answer directly, include your answer in the Adjourn summary. " +
   "Ask sends a question and returns immediately with {askIds:[N,…]}. The reply arrives on a later turn as `[answer#N] <participant>: <text>` in your inbox — between turns you can plan, reflect, or send more Asks while participants work in parallel. End your turn with text after you've asked everything you intend to; the orchestrator wakes you when the next message lands. " +
   "Answer replies to an ask a participant addressed to you (you'll see it tagged `[ask#N] <participant>: …` in your inbox). Quote askId from the [ask#N] tag; omit it and the handler auto-picks the only pending ask or routes your message as an Announce. " +
   "Announce delivers a message with no reply obligation. " +
   "RollCall returns the participant roster. " +
-  "RequestForComment posts a message to the human thread via the bridge. Every reply you want the human to see MUST go through RequestForComment — the bridge delivers only queued replies, not your text output. " +
   "Recess suspends the run with a resumption trigger (responses / elapsed / either); any open Asks get a synthetic '[no answer: session concluded]' on the asker's queue so nothing dangles. " +
   "Adjourn ends the discussion with a verdict ('adjourned' / 'failed') and a summary. " +
   "Multiple Ask / Announce calls in one assistant turn dispatch in parallel — issue them as parallel tool_use blocks rather than sending the same question both broadcast and individually. " +
-  "You MUST call RequestForComment with your response before calling Adjourn. You MUST end every run by calling Adjourn or Recess — never end a turn with only text *after* every Ask round has resolved.";
+  "You MUST end every run by calling Adjourn or Recess — never end a turn with only text *after* every Ask round has resolved.";
 
 /**
  * Augment a base orchestration context with discuss-mode fields.
@@ -47,6 +51,7 @@ export function augmentContextForDiscuss(ctx, discussionId) {
   ctx.discussionId = discussionId;
   ctx.recessTrigger = null;
   ctx.replies = [];
+  ctx.rfcs = [];
   ctx.rfcCounter = 0;
   ctx.outcome = null;
   return ctx;
@@ -141,6 +146,7 @@ export class Discusser {
       ...(this.ctx.summary && { summary: this.ctx.summary }),
       ...(this.ctx.outcome && { outcome: this.ctx.outcome }),
       replies: this.ctx.replies,
+      ...(this.ctx.rfcs?.length && { rfcs: this.ctx.rfcs }),
       ...(this.ctx.recessTrigger && { trigger: this.ctx.recessTrigger }),
       ...(this.discussionId && { discussion_id: this.discussionId }),
     };
@@ -228,6 +234,20 @@ export function createDiscusser({
   const messageBus = createMessageBus({
     participants: ["lead", ...resolvedConfigs.map((a) => a.name)],
   });
+
+  // Intercept answers routed to the lead — each becomes a discussion reply.
+  const originalAnswer = messageBus.answer.bind(messageBus);
+  messageBus.answer = (from, to, text, askId) => {
+    if (to === "lead" && from !== "@orchestrator") {
+      ctx.replies.push({
+        body: text,
+        agent: from,
+        ...(ctx.discussionId && { thread_id: ctx.discussionId }),
+      });
+    }
+    originalAnswer(from, to, text, askId);
+  };
+
   ctx.messageBus = messageBus;
   if (ctx.participants.length === 0) {
     ctx.participants = [

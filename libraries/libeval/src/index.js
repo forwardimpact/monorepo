@@ -19,6 +19,7 @@ export { TeeWriter, createTeeWriter } from "./tee-writer.js";
 export { SequenceCounter, createSequenceCounter } from "./sequence-counter.js";
 export {
   createOrchestrationContext,
+  createRequestForCommentHandler,
   createSupervisorToolServer,
   createSupervisedAgentToolServer,
   createFacilitatorToolServer,

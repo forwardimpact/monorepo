@@ -3,6 +3,7 @@ import {
   CallbackRegistry,
   DiscussionContextStore,
   Dispatcher,
+  OriginIndex,
   RateLimiter,
   ResumeScheduler,
   appendHistory,
@@ -61,6 +62,7 @@ export class GhBridgeService {
   #getInstallationToken;
   #graphqlClient;
   #store;
+  #origins;
   #callbacks;
   #rateLimiter;
   #ack;
@@ -102,6 +104,7 @@ export class GhBridgeService {
     this.#graphqlClient = deps.graphqlClient;
 
     this.#store = new DiscussionContextStore(storage);
+    this.#origins = new OriginIndex(storage);
     this.#callbacks = new CallbackRegistry();
     this.#rateLimiter = new RateLimiter();
     this.#ack =
@@ -181,6 +184,7 @@ export class GhBridgeService {
   async stop() {
     this.#resume.clear();
     await this.#bridge.stop();
+    await this.#origins.shutdown();
     await this.#store.shutdown();
   }
 
@@ -271,6 +275,14 @@ export class GhBridgeService {
   async #handleDiscussionComment(c, body) {
     const discussion = body.discussion;
     const comment = body.comment;
+    const commentId = comment?.node_id;
+    if (commentId && (await this.#origins.has(commentId))) {
+      this.#logger.debug("webhook", "skipping self-originated comment", {
+        comment_id: commentId,
+      });
+      return c.body(null, 204);
+    }
+
     const discussionId = discussion?.node_id;
     const text = (comment?.body ?? "").trim();
     if (!discussionId || !text) return c.body(null, 204);
@@ -323,7 +335,15 @@ export class GhBridgeService {
   }
 
   async #handleReply(ctx, payload, meta) {
-    await postDiscussionReplies(this.#graphqlClient, ctx, payload.replies);
+    const recordOrigin = async (comment) => {
+      await this.#origins.add({
+        id: comment.id,
+        discussion_id: ctx.discussion_id,
+        posted_at: Date.now(),
+      });
+    };
+
+    await postDiscussionReplies(this.#graphqlClient, ctx, payload.replies, recordOrigin);
     for (const reply of payload.replies) {
       appendHistory(ctx.history, {
         role: "assistant",
@@ -345,6 +365,7 @@ export class GhBridgeService {
             this.#graphqlClient,
             ctx,
             payload.summary,
+            recordOrigin,
           );
         }
         break;
@@ -355,6 +376,7 @@ export class GhBridgeService {
             this.#graphqlClient,
             ctx,
             payload.summary,
+            recordOrigin,
           );
           appendHistory(ctx.history, {
             role: "assistant",
@@ -363,6 +385,8 @@ export class GhBridgeService {
         }
         break;
     }
+
+    await this.#origins.flush();
   }
 
   async #loadOrCreateContext(discussionId, discussion) {

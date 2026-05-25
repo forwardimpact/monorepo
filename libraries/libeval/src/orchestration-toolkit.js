@@ -5,15 +5,15 @@
  *
  * **Tool surface, by role:**
  *
- *   |             | Ask | Answer | Announce | RollCall | Conclude | …extras |
- *   |-------------|-----|--------|----------|----------|----------|---------|
- *   | Facilitator |  ✓  |   ✓    |    ✓     |    ✓     |    ✓     |         |
- *   | Fac. agent  |  ✓  |   ✓    |    ✓     |    ✓     |          |         |
- *   | Supervisor  |  ✓  |   ✓    |    ✓     |    ✓     |    ✓     |         |
- *   | Sup. agent  |  ✓  |   ✓    |    ✓     |    ✓     |          |         |
- *   | Discuss lead|  ✓  |   ✓    |    ✓     |    ✓     |          | RFC / Recess / Adjourn |
- *   | Discuss agt |  ✓  |   ✓    |    ✓     |    ✓     |          |         |
- *   | Judge       |     |        |          |          |    ✓     |         |
+ *   |             | Ask | Answer | Announce | RollCall | Conclude | …extras              |
+ *   |-------------|-----|--------|----------|----------|----------|-----------------------|
+ *   | Facilitator |  ✓  |   ✓    |    ✓     |    ✓     |    ✓     |                       |
+ *   | Fac. agent  |  ✓  |   ✓    |    ✓     |    ✓     |          | RFC                   |
+ *   | Supervisor  |  ✓  |   ✓    |    ✓     |    ✓     |    ✓     |                       |
+ *   | Sup. agent  |  ✓  |   ✓    |    ✓     |    ✓     |          |                       |
+ *   | Discuss lead|  ✓  |   ✓    |    ✓     |    ✓     |          | Recess / Adjourn      |
+ *   | Discuss agt |  ✓  |   ✓    |    ✓     |    ✓     |          | RFC                   |
+ *   | Judge       |     |        |          |          |    ✓     |                       |
  *
  * **Ask is async.** Ask returns `{askIds:[…]}` immediately and posts the
  * question to the addressee's bus queue. The reply arrives on the asker's
@@ -337,11 +337,12 @@ export function createFacilitatorToolServer(ctx) {
   ]);
 }
 
-/** Facilitated agent tools: Ask + Answer + Announce + RollCall. */
+/** Facilitated agent tools: Ask + Answer + Announce + RollCall + RequestForComment. */
 export function createFacilitatedAgentToolServer(ctx, { from }) {
-  return orchestrationServer(
-    baseTools(ctx, { from, defaultTo: "facilitator", broadcast: true }),
-  );
+  return orchestrationServer([
+    ...baseTools(ctx, { from, defaultTo: "facilitator", broadcast: true }),
+    requestForCommentTool(ctx),
+  ]);
 }
 
 /**
@@ -352,6 +353,42 @@ export function createJudgeToolServer(ctx) {
   return orchestrationServer([concludeTool(ctx)]);
 }
 
+// --- RequestForComment (agent-level coordination tool) ---
+
+/** RequestForComment handler — queues RFC intent on `ctx.rfcs[]`. */
+export function createRequestForCommentHandler(ctx) {
+  return async ({ channel, body, addressees }) => {
+    if (!ctx.rfcs) ctx.rfcs = [];
+    if (typeof ctx.rfcCounter !== "number") ctx.rfcCounter = 0;
+    const correlationId = `rfc_${++ctx.rfcCounter}`;
+    const addresseeList = addressees?.length ? addressees : [null];
+    for (const addressee of addresseeList) {
+      ctx.rfcs.push({
+        ...(addressee && { addressee }),
+        body,
+        channel,
+        ...(ctx.discussionId && { thread_id: ctx.discussionId }),
+        correlation_id: correlationId,
+      });
+    }
+    return jsonResult({ correlation_id: correlationId, channel });
+  };
+}
+
+/** Build the RequestForComment tool definition. */
+function requestForCommentTool(ctx) {
+  return tool(
+    "RequestForComment",
+    "Open a new Discussion thread for long-horizon coordination on an open question. The bridge creates the thread; replies arrive asynchronously on future runs.",
+    {
+      channel: z.string(),
+      body: z.string(),
+      addressees: z.array(z.string()).optional(),
+    },
+    createRequestForCommentHandler(ctx),
+  );
+}
+
 // Re-export the building blocks discuss-tools.js needs to assemble its
-// own lead tool surface (it has three extra terminal tools).
-export { baseTools, orchestrationServer };
+// own lead tool surface (it has two extra terminal tools).
+export { baseTools, orchestrationServer, requestForCommentTool };

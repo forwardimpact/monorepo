@@ -81,7 +81,7 @@ describe("Discusser orchestration", () => {
     ctx.verdict = "recessed";
     ctx.recessTrigger = { kind: "responses", responses: 2 };
     ctx.summary = "awaiting replies";
-    ctx.replies.push({ body: "outgoing RFC", correlation_id: "rfc_1" });
+    ctx.replies.push({ body: "outgoing reply", agent: "agent-1" });
 
     const loop = fakeLoop({
       output,
@@ -128,8 +128,8 @@ describe("Discusser orchestration", () => {
     ctx.verdict = "adjourned";
     ctx.summary = "done";
     ctx.replies.push(
-      { body: "outgoing one", correlation_id: "rfc_1" },
-      { body: "outgoing two", correlation_id: "rfc_2" },
+      { body: "outgoing one", agent: "agent-1" },
+      { body: "outgoing two", agent: "agent-2" },
     );
 
     const loop = fakeLoop({

@@ -69,6 +69,20 @@ Inbox lines on resume:
 Async means the lead can issue Asks, end its turn, and plan in the gap
 while participants work in parallel — nothing blocks the LLM thread.
 
+### Discuss-mode replies
+
+In discussion mode, Answer calls routed to the lead are captured as
+thread replies delivered via the bridge callback. The lead delegates work
+via Ask; each agent's Answer becomes a separate reply posted to the
+discussion thread. No explicit reply tool is needed on the lead surface —
+the message bus intercepts answers and appends them to `ctx.replies[]`.
+
+`RequestForComment` is a separate coordination tool available on agent
+roles (facilitated agents and discuss agents). It queues an intent to
+open a new Discussion thread for long-horizon coordination on open
+questions; these are accumulated in `ctx.rfcs[]`, separate from the
+thread replies in `ctx.replies[]`.
+
 ## Orchestration loop
 
 Each participant drains the bus (or waits), runs/resumes the LLM with
@@ -84,15 +98,15 @@ only feeds the summary's `success`/`verdict`.
 
 ## Tool surface, by role
 
-| Role         | Ask | Answer | Announce | RollCall | Conclude | Other                                    |
-| ------------ | --- | ------ | -------- | -------- | -------- | ---------------------------------------- |
-| Facilitator  | ✓   | ✓      | ✓        | ✓        | ✓        |                                          |
-| Fac. agent   | ✓   | ✓      | ✓        | ✓        |          |                                          |
-| Supervisor   | ✓   | ✓      | ✓        | ✓        | ✓        |                                          |
-| Sup. agent   | ✓   | ✓      | ✓        | ✓        |          |                                          |
-| Discuss lead | ✓   | ✓      | ✓        | ✓        |          | `RequestForComment`, `Recess`, `Adjourn` |
-| Discuss agt  | ✓   | ✓      | ✓        | ✓        |          |                                          |
-| Judge        |     |        |          |          | ✓        |                                          |
+| Role         | Ask | Answer | Announce | RollCall | Conclude | Other                          |
+| ------------ | --- | ------ | -------- | -------- | -------- | ------------------------------ |
+| Facilitator  | ✓   | ✓      | ✓        | ✓        | ✓        |                                |
+| Fac. agent   | ✓   | ✓      | ✓        | ✓        |          | `RequestForComment`            |
+| Supervisor   | ✓   | ✓      | ✓        | ✓        | ✓        |                                |
+| Sup. agent   | ✓   | ✓      | ✓        | ✓        |          |                                |
+| Discuss lead | ✓   | ✓      | ✓        | ✓        |          | `Recess`, `Adjourn`            |
+| Discuss agt  | ✓   | ✓      | ✓        | ✓        |          | `RequestForComment`            |
+| Judge        |     |        |          |          | ✓        |                                |
 
 Ask's `to` accepts a participant name on multi-participant roles
 (facilitator, discuss lead, all participants). The supervise pair has
@@ -152,10 +166,10 @@ downloadable through retention.
 | ----------------------------------------------------------- | -------------------------------------------------------------------- |
 | `agent-runner.js`                                           | One Claude Agent SDK session; emits NDJSON via the redactor.         |
 | `message-bus.js`                                            | Per-participant queues + `waitForMessages` Promise wakeup.           |
-| `orchestration-toolkit.js`                                  | Shared Ask/Answer/Announce/Conclude/RollCall handlers + builders.    |
+| `orchestration-toolkit.js`                                  | Shared Ask/Answer/Announce/Conclude/RollCall/RequestForComment handlers + builders. |
 | `orchestration-loop.js`                                     | Unified lead+participant loop; reminder/violation handling.          |
 | `facilitator.js` / `supervisor.js` / `discusser.js` / `judge.js` | Per-mode class + factory + system prompt.                       |
-| `discuss-tools.js`                                          | Discuss-only `RequestForComment`/`Recess`/`Adjourn`.                 |
+| `discuss-tools.js`                                          | Discuss-only `Recess`/`Adjourn`.                                     |
 | `trace-collector.js` / `trace-query.js` / `trace-github.js` | Trace ingestion / querying / GitHub-attachment helpers.              |
 | `redaction.js`                                              | Env-var allowlist + credential-shape pattern redaction.              |
 

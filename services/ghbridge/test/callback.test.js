@@ -40,6 +40,7 @@ function makeConfig() {
 async function newService() {
   const dispatches = [];
   const graphqlCalls = [];
+  let commentCounter = 0;
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, init) => {
     const target = String(url);
@@ -58,6 +59,9 @@ async function newService() {
     getInstallationToken: async () => "ghs_test",
     graphqlClient: async (query, variables) => {
       graphqlCalls.push({ query, variables });
+      if (query.includes("addDiscussionComment")) {
+        return { addDiscussionComment: { comment: { id: `C_${++commentCounter}`, url: "url" } } };
+      }
       return {};
     },
   });
@@ -249,6 +253,47 @@ describe("ghbridge callback handler", () => {
       const contents = await readFile(join(workflowsDir, file), "utf8");
       expect(contents).not.toContain("addDiscussionComment");
     }
+  });
+
+  test("self-originated comments are skipped by the webhook handler", async () => {
+    const token = await dispatchFresh(ctx.service, baseUrl);
+    const meta = ctx.service.callbacks.peek(token);
+    await postCallback(baseUrl, token, {
+      correlation_id: meta.correlationId,
+      verdict: "adjourned",
+      summary: "done",
+      run_url: "https://github.com/owner/repo/actions/runs/1",
+      replies: [{ body: "bot reply" }],
+    });
+
+    const commentCalls = ctx.graphqlCalls.filter(
+      (c) => c.query === ADD_DISCUSSION_COMMENT_MUTATION,
+    );
+    expect(commentCalls.length).toBeGreaterThan(0);
+
+    const postedCommentId = `C_${commentCalls.length}`;
+    const dispatchesBefore = ctx.dispatches.length;
+
+    const commentEvent = {
+      action: "created",
+      discussion: { node_id: "D_kw1", body: "rfc", user: { id: 1, login: "u" } },
+      comment: { node_id: postedCommentId, body: "bot reply" },
+    };
+    const json = JSON.stringify(commentEvent);
+    const { sign } = await import("@octokit/webhooks-methods");
+    const signature = await sign(SECRET, json);
+    const res = await fetch(`${baseUrl}/api/webhook`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-github-event": "discussion_comment",
+        "x-hub-signature-256": signature,
+      },
+      body: json,
+    });
+
+    expect(res.status).toBe(204);
+    expect(ctx.dispatches.length).toBe(dispatchesBefore);
   });
 
   test("correlation_id mismatch returns 400", async () => {

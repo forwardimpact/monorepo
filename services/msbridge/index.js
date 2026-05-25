@@ -184,6 +184,8 @@ export class MsBridgeService {
     const activity = context.activity;
     if (activity.type !== "message") return;
 
+    if (activity.from?.id === this.#msAppId()) return;
+
     const threadId = activity.conversation?.id;
     const text = (activity.text ?? "").trim();
     if (!threadId || !text) return;

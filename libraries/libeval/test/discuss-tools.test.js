@@ -2,10 +2,10 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 
 import {
-  createRequestForCommentHandler,
   createRecessHandler,
   createAdjournHandler,
 } from "../src/discuss-tools.js";
+import { createRequestForCommentHandler } from "../src/orchestration-toolkit.js";
 import { augmentContextForDiscuss } from "../src/discusser.js";
 import { createOrchestrationContext } from "../src/orchestration-toolkit.js";
 
@@ -14,7 +14,7 @@ function makeCtx(discussionId = null) {
 }
 
 describe("DiscussTools handlers", () => {
-  test("RequestForComment pushes one reply per addressee with a shared correlation id", async () => {
+  test("RequestForComment pushes one RFC per addressee with a shared correlation id", async () => {
     const ctx = makeCtx("GD_kw_test");
     const handler = createRequestForCommentHandler(ctx);
 
@@ -24,30 +24,43 @@ describe("DiscussTools handlers", () => {
       addressees: ["alice", "bob"],
     });
 
-    assert.strictEqual(ctx.replies.length, 2);
-    assert.strictEqual(ctx.replies[0].addressee, "alice");
-    assert.strictEqual(ctx.replies[0].body, "Please weigh in on the spec.");
-    assert.strictEqual(ctx.replies[0].thread_id, "GD_kw_test");
-    assert.strictEqual(ctx.replies[1].addressee, "bob");
+    assert.strictEqual(ctx.rfcs.length, 2);
+    assert.strictEqual(ctx.rfcs[0].addressee, "alice");
+    assert.strictEqual(ctx.rfcs[0].body, "Please weigh in on the spec.");
+    assert.strictEqual(ctx.rfcs[0].thread_id, "GD_kw_test");
+    assert.strictEqual(ctx.rfcs[0].channel, "github-discussions");
+    assert.strictEqual(ctx.rfcs[1].addressee, "bob");
     assert.strictEqual(
-      ctx.replies[0].correlation_id,
-      ctx.replies[1].correlation_id,
+      ctx.rfcs[0].correlation_id,
+      ctx.rfcs[1].correlation_id,
     );
 
     const payload = JSON.parse(result.content[0].text);
     assert.match(payload.correlation_id, /^rfc_\d+$/);
     assert.strictEqual(payload.channel, "github-discussions");
+    assert.strictEqual(ctx.replies.length, 0, "replies should not be populated by RFC");
   });
 
-  test("RequestForComment emits a single anonymous reply when no addressees are listed", async () => {
+  test("RequestForComment emits a single anonymous RFC when no addressees are listed", async () => {
     const ctx = makeCtx();
     const handler = createRequestForCommentHandler(ctx);
 
     await handler({ channel: "msteams", body: "Status update" });
 
-    assert.strictEqual(ctx.replies.length, 1);
-    assert.strictEqual(ctx.replies[0].addressee, undefined);
-    assert.strictEqual(ctx.replies[0].body, "Status update");
+    assert.strictEqual(ctx.rfcs.length, 1);
+    assert.strictEqual(ctx.rfcs[0].addressee, undefined);
+    assert.strictEqual(ctx.rfcs[0].body, "Status update");
+    assert.strictEqual(ctx.rfcs[0].channel, "msteams");
+  });
+
+  test("RequestForComment works on a context without discuss augmentation", async () => {
+    const ctx = createOrchestrationContext();
+    const handler = createRequestForCommentHandler(ctx);
+
+    await handler({ channel: "github-discussions", body: "open question" });
+
+    assert.strictEqual(ctx.rfcs.length, 1);
+    assert.strictEqual(ctx.rfcCounter, 1);
   });
 
   test("Recess marks the session concluded with verdict='recessed' and records the trigger", async () => {

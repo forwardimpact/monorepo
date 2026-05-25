@@ -39,7 +39,8 @@ export const FACILITATED_AGENT_SYSTEM_PROMPT =
   "Answer replies to an ask addressed to you. askId is optional: omit it and the handler auto-picks if exactly one ask is owed to you, otherwise it routes your message as an Announce. " +
   "Ask sends a question to another participant and returns immediately with {askIds:[N]}; the reply arrives on a later turn as `[answer#N] <participant>: <text>` in your inbox. " +
   "Announce broadcasts a message to every other participant — use this for unsolicited remarks or to reply to an Announce. " +
-  "RollCall lists participants.";
+  "RollCall lists participants. " +
+  "RequestForComment opens a new Discussion thread for long-horizon coordination on an open question encountered during your work. The bridge creates the thread; replies arrive asynchronously on future runs.";
 
 /**
  * Facilitate-mode wrapper around `OrchestrationLoop`. The lead is named

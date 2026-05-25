@@ -17,6 +17,7 @@ export { appendHistory } from "./history.js";
 export { RateLimiter } from "./rate-limit.js";
 export { dispatchWorkflow } from "./dispatch.js";
 export { DiscussionContextStore } from "./discussion-context.js";
+export { OriginIndex } from "./origin-index.js";
 export { ProgressTicker } from "./progress-ticker.js";
 export {
   Acknowledgement,

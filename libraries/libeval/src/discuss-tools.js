@@ -1,15 +1,19 @@
 /**
  * DiscussTools — discuss-mode tool servers. The lead's surface extends the
- * base set with three discuss-only terminal tools:
+ * base set with two discuss-only terminal tools:
  *
- * - `RequestForComment` posts a fire-and-forget message to a human channel
- *   via the bridge; the reply arrives on a later workflow run.
  * - `Recess` suspends the session with a resumption trigger.
  * - `Adjourn` ends the discussion with a verdict.
  *
- * `Conclude` is absent — discuss mode ends via Adjourn or Recess. The
- * agent surface is identical to the facilitated agent's: Ask / Answer /
- * Announce / RollCall, with Ask defaulting to the lead.
+ * `Conclude` is absent — discuss mode ends via Adjourn or Recess.
+ *
+ * `RequestForComment` is an agent-level coordination tool — available on
+ * discuss agents and facilitated agents (not leads). It opens a new
+ * Discussion thread for long-horizon coordination on open questions.
+ *
+ * In discuss mode, each agent Answer routed to the lead is captured as a
+ * thread reply delivered via the bridge callback — no explicit reply tool
+ * is needed on the lead surface.
  */
 
 import { tool } from "@anthropic-ai/claude-agent-sdk";
@@ -19,6 +23,7 @@ import {
   baseTools,
   concludeSession,
   orchestrationServer,
+  requestForCommentTool,
 } from "./orchestration-toolkit.js";
 
 /** System prompt appended for discuss-mode agent runners. */
@@ -28,7 +33,8 @@ export const DISCUSS_AGENT_SYSTEM_PROMPT =
   "Answer replies to an ask addressed to you. askId is optional: omit it and the handler auto-picks if exactly one ask is owed to you, otherwise it routes your message as an Announce. " +
   "Ask sends a question to the lead or another participant and returns immediately with {askIds:[N]}; the reply arrives on a later turn as `[answer#N] <participant>: <text>` in your inbox. " +
   "Announce broadcasts a message to every other participant — use this for unsolicited remarks or to reply to an Announce. " +
-  "RollCall lists participants.";
+  "RollCall lists participants. " +
+  "RequestForComment opens a new Discussion thread for long-horizon coordination on an open question encountered during your work. The bridge creates the thread; replies arrive asynchronously on future runs.";
 
 const RESUME_TRIGGER_SCHEMA = z
   .object({
@@ -42,16 +48,6 @@ const RESUME_TRIGGER_SCHEMA = z
 export function createDiscussLeadToolServer(ctx) {
   return orchestrationServer([
     ...baseTools(ctx, { from: "lead", defaultTo: undefined, broadcast: true }),
-    tool(
-      "RequestForComment",
-      "Post a fire-and-forget message to a channel via the bridge. Returns a correlation id; the reply arrives on a later workflow run.",
-      {
-        channel: z.string(),
-        body: z.string(),
-        addressees: z.array(z.string()).optional(),
-      },
-      createRequestForCommentHandler(ctx),
-    ),
     tool(
       "Recess",
       "Suspend the run. The bridge re-dispatches the workflow when the trigger fires.",
@@ -73,33 +69,10 @@ export function createDiscussLeadToolServer(ctx) {
 
 /** Discuss-mode agent tool server. */
 export function createDiscussAgentToolServer(ctx, { from }) {
-  return orchestrationServer(
-    baseTools(ctx, { from, defaultTo: "lead", broadcast: true }),
-  );
-}
-
-/** RequestForComment handler — queues structured replies on `ctx.replies[]`. */
-export function createRequestForCommentHandler(ctx) {
-  return async ({ channel, body, addressees }) => {
-    const correlationId = `rfc_${++ctx.rfcCounter}`;
-    const addresseeList = addressees?.length ? addressees : [null];
-    for (const addressee of addresseeList) {
-      ctx.replies.push({
-        ...(addressee && { addressee }),
-        body,
-        ...(ctx.discussionId && { thread_id: ctx.discussionId }),
-        correlation_id: correlationId,
-      });
-    }
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify({ correlation_id: correlationId, channel }),
-        },
-      ],
-    };
-  };
+  return orchestrationServer([
+    ...baseTools(ctx, { from, defaultTo: "lead", broadcast: true }),
+    requestForCommentTool(ctx),
+  ]);
 }
 
 /**
