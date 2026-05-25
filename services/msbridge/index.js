@@ -5,6 +5,7 @@ import {
   DiscussionContextStore,
   Dispatcher,
   RateLimiter,
+  ResumeScheduler,
   appendHistory,
   buildPrompt,
   createBridgeServer,
@@ -47,6 +48,7 @@ export class MsBridgeService {
   #rateLimiter;
   #ack;
   #dispatcher;
+  #resume;
   #bridge;
   #onCallback;
 
@@ -105,6 +107,13 @@ export class MsBridgeService {
       githubRepo: config.github_repo,
       getGithubToken: () => config.ghToken(),
     });
+    this.#resume = new ResumeScheduler({
+      dispatcher: this.#dispatcher,
+      store: this.#store,
+      logger,
+      buildCallbackMeta: (ctx) => ({ threadId: ctx.discussion_id }),
+      buildResumeInputs: () => ({}),
+    });
 
     this.#onCallback = createCallbackHandler({
       channel: CHANNEL,
@@ -143,6 +152,11 @@ export class MsBridgeService {
     return this.#callbacks;
   }
 
+  /** @returns {import("@forwardimpact/libbridge").ResumeScheduler} */
+  get resume() {
+    return this.#resume;
+  }
+
   /** @returns {object} */
   get app() {
     return this.#bridge.app;
@@ -156,10 +170,12 @@ export class MsBridgeService {
   /** @returns {Promise<void>} */
   async start() {
     await this.#bridge.start();
+    await this.#resume.rearm();
   }
 
   /** @returns {Promise<void>} */
   async stop() {
+    this.#resume.clear();
     await this.#bridge.stop();
     await this.#store.shutdown();
   }
@@ -183,6 +199,16 @@ export class MsBridgeService {
       ctx.last_active_at = Date.now();
       ctx.participants[0].metadata = ref;
 
+      appendHistory(ctx.history, { role: "user", text });
+
+      const { freshDispatchAllowed } = await this.#resume.processInbound(ctx);
+      if (!freshDispatchAllowed) {
+        await this.#store.add(ctx);
+        await this.#store.flush();
+        span.setOk();
+        return;
+      }
+
       const limit = this.#rateLimiter.check(threadId, ctx.dispatches);
       if (!limit.allowed) {
         await context.sendActivity(
@@ -200,7 +226,6 @@ export class MsBridgeService {
           ctx,
           prompt: buildPrompt(text, ctx.history),
           ackTarget: { ref, activityId: activity.id },
-          historyText: text,
           callbackMeta: { threadId },
         });
         span.addEvent("workflow_dispatched", {
@@ -225,12 +250,22 @@ export class MsBridgeService {
     }
     const ref = ctx.participants[0].metadata;
     await this.#postReplies(ref, payload.replies, ctx);
-    await this.#applyVerdict(
-      ref,
-      payload,
-      ctx.discussion_id,
-      meta.correlationId,
-    );
+    switch (payload.verdict) {
+      case "recessed":
+        this.#resume.enterRecess(ctx, meta.correlationId, payload.trigger);
+        break;
+      case "adjourned":
+        this.#resume.cancelRecess(ctx, meta.correlationId);
+        break;
+      case "failed":
+        this.#resume.cancelRecess(ctx, meta.correlationId);
+        if (payload.summary) {
+          await sendReply(this.#adapter, this.#msAppId, ref, payload.summary);
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   async #postReplies(ref, replies, ctx) {
@@ -242,19 +277,6 @@ export class MsBridgeService {
     for (const reply of list) {
       if (!reply || typeof reply.body !== "string") continue;
       appendHistory(ctx.history, { role: "assistant", text: reply.body });
-    }
-  }
-
-  async #applyVerdict(ref, payload, threadId, correlationId) {
-    if (payload.verdict === "recessed") {
-      this.#logger.info("callback", "resume not yet supported on msteams", {
-        thread_id: threadId,
-        correlation_id: correlationId,
-      });
-      return;
-    }
-    if (payload.verdict === "failed" && payload.summary) {
-      await sendReply(this.#adapter, this.#msAppId, ref, payload.summary);
     }
   }
 

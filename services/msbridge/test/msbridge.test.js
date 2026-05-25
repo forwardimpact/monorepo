@@ -75,9 +75,9 @@ function makeAdapter(overrides = {}) {
   };
 }
 
-function newService({ adapter, config: configOverrides } = {}) {
+function newService({ adapter, config: configOverrides, logger } = {}) {
   return new MsBridgeService(makeConfig(configOverrides), {
-    logger: createMockLogger(),
+    logger: logger ?? createMockLogger(),
     tracer: makeTracer(),
     storage: createMockStorage(),
     adapter: adapter ?? makeAdapter(),
@@ -173,6 +173,7 @@ describe("msbridge service", () => {
     let service;
     let adapter;
     let baseUrl;
+    let logger;
 
     async function seedCtx(token, threadId, correlationId) {
       const ref = {
@@ -201,7 +202,8 @@ describe("msbridge service", () => {
 
     beforeEach(async () => {
       adapter = makeAdapter();
-      service = newService({ adapter });
+      logger = createMockLogger();
+      service = newService({ adapter, logger });
       await service.start();
       baseUrl = `http://127.0.0.1:${service.address().port}`;
     });
@@ -281,7 +283,7 @@ describe("msbridge service", () => {
       expect(adapter.sent).toContain("facilitator failed; see run");
     });
 
-    test("recessed verdict logs and posts only the replies (no resume yet)", async () => {
+    test("recessed verdict persists the trigger and posts only the replies", async () => {
       const token = service.callbacks.register("c-rec", { threadId: "t-rec" });
       await seedCtx(token, "t-rec", "c-rec");
       const res = await fetch(`${baseUrl}/api/callback/${token}`, {
@@ -298,6 +300,21 @@ describe("msbridge service", () => {
       expect(res.status).toBe(200);
       expect(adapter.sent).toContain("what do you think?");
       expect(adapter.sent).not.toContain("awaiting humans");
+      const stored = await service.store.loadByChannel("msteams", "t-rec");
+      expect(Object.keys(stored.open_rfcs)).toHaveLength(1);
+      expect(Object.values(stored.open_rfcs)[0].trigger).toEqual({
+        kind: "responses",
+        responses: 2,
+      });
+      const infoMessages = logger.info.mock.calls.map((call) =>
+        String(call.arguments[1] ?? ""),
+      );
+      expect(
+        infoMessages.some((msg) => msg.includes("resume not supported")),
+      ).toBe(false);
+      expect(
+        infoMessages.some((msg) => msg.includes("resume not yet supported")),
+      ).toBe(false);
     });
   });
 
