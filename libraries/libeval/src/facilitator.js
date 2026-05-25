@@ -24,6 +24,7 @@ export const FACILITATOR_SYSTEM_PROMPT =
   "You have no tools to perform work yourself.\n" +
   "Use `RollCall` to list participants.\n" +
   "Use `Ask` to delegate work to the best-suited participant.\n" +
+  "Participants are domain experts; state the task, not how to do it.\n" +
   "`Ask` returns {askIds:[N,…]} immediately.\n" +
   "Answers arrive on your next turn as `[answer#N] <participant>: <text>`.\n" +
   "Multiple `Ask` calls in one turn run participants concurrently.\n" +
