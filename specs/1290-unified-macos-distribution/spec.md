@@ -7,9 +7,17 @@ The monorepo publishes seven macOS `.app` bundles to brew today —
 `fit-summit`, and `fit-gear` (shared bundle for the gear CLI suite). All
 seven are tagged on `*@v*` push and built by `publish-brew.yml`, all seven
 go through the same "Verify cdhash stability" gate spec 1170 introduced,
-and all seven assemble under the same `dist/apps/fit-{name}.app` directory
-via `libraries/libmacos/scripts/build-app.sh`. Six of the seven follow
-this single approach end-to-end. One does not.
+and all seven assemble through the same shared assembly script
+`libraries/libmacos/scripts/build-app.sh` (invoked by the `justfile`
+recipes `build-app-product NAME` for single-product bundles and
+`build-app-gear` for the shared gear bundle). The two `justfile` recipes
+already differ in shape — `build-app-gear` enumerates 25 `--extra-exec`
+binaries; `build-app-product` carries an `if [ "{{NAME}}" = "outpost" ]`
+branch that adds an `--extra-exec` and resources the other five products
+do not need — so "single approach" here means the shared assembly script
+plus one cdhash determinism gate, not a uniform recipe shape. Six of
+seven brew lanes reach the gate end-to-end. One product breaks the
+approach on a second channel.
 
 **Outpost is the special case.** In addition to the brew lane, Outpost
 ships a `.pkg` installer through `publish-macos.yml` that assembles a
@@ -40,9 +48,9 @@ themselves. Two directional reviews on the originating thread rejected
 that framing:
 
 - [#issuecomment-4525623218](https://github.com/forwardimpact/monorepo/pull/1153#issuecomment-4525623218)
-  (2026-05-23): "We need a single Outpost.app build. Brew and .pkg are
-  just packaging concerns. They should distribute exactly the same app
-  build."
+  (2026-05-23): "We need to rethink this completely. We need a single
+  Outpost.app build. Brew and .pkg are just packaging concerns. They
+  should distribute exactly the same app build."
 - [#issuecomment-4525839764](https://github.com/forwardimpact/monorepo/pull/1154#issuecomment-4525839764)
   (2026-05-23): "I want to expand this spec to holistically cover all
   macOS + brew workflows. Outpost is one special case. But the intention
@@ -78,10 +86,14 @@ fixing the one violation — addresses concrete costs:
   `(CFBundleIdentifier, cdhash, install path)`. The two Outpost bundles
   share `CFBundleIdentifier` but diverge on cdhash and install path, so
   a user who installs via brew and later installs via `.pkg` (or vice
-  versa) must re-grant Calendar / Contacts / Apple Events authorizations.
-  The other six products do not have this failure mode because they have
-  only one channel; bringing Outpost into the unified approach
-  eliminates the failure mode there too.
+  versa) must re-grant the Apple Events authorization Outpost requests
+  in `products/outpost/macos/Info.plist` (the only TCC-gated entitlement
+  the bundle declares today). Re-granting interrupts the user's
+  meeting-prep flow — the very job Outpost is hired for. The other six
+  products do not have this failure mode because they have only one
+  channel; bringing Outpost into the unified approach eliminates the
+  failure mode there too, and inherits the contract for any future
+  Gear-bundle channel that declares TCC entitlements.
 - **Release surface area doubles for Outpost.** Every Outpost release
   builds the app twice — once in `publish-brew.yml` for the brew zip and
   once in `publish-macos.yml` for the `.pkg` — with two build scripts,
@@ -90,13 +102,14 @@ fixing the one violation — addresses concrete costs:
   brings it in line with the cost profile every other product already
   has.
 - **The contract is currently undocumented.** The six conforming lanes
-  satisfy the approach because they were all generated from the same
-  `build-app-product` recipe template, not because any spec requires it.
-  A future per-product `.pkg` channel (or any other new macOS
-  distribution channel) would have no documented contract to satisfy and
-  could re-introduce divergence the way Outpost's `.pkg` did. Naming the
-  contract here lets future work — including Outpost's `.pkg`
-  consolidation — apply it explicitly.
+  satisfy the approach because every `build-app-product NAME` invocation
+  passes the same fixed `--bundle-name "fit-{{NAME}}"` to the shared
+  assembly script, not because any spec requires it. A future per-product
+  `.pkg` channel (or any other new macOS distribution channel) would
+  have no documented contract to satisfy and could re-introduce
+  divergence the way Outpost's `.pkg` did. Naming the contract here lets
+  future work — including Outpost's `.pkg` consolidation — apply it
+  explicitly.
 - **The migration window is empty for the one product that needs
   migration.** Spec 1170 § Why documents that the cask remains at the
   seed placeholder; no real brew release has ever installed
@@ -104,12 +117,17 @@ fixing the one violation — addresses concrete costs:
   bundle in line with its brew bundle (or vice versa) can pick the right
   name once without a deprecation story for either channel.
 
-The work serves **Empowered Engineers → Be Prepared and Productive** and
-the **Platform Builders → use shared libraries and services** jobs
-([JTBD.md](../../JTBD.md)): users who hire any Gear CLI or Outpost
-should encounter the same install conventions, the same on-disk
-identity, and the same determinism guarantees regardless of which
-channel they used.
+The work serves **Platform Builders → Build Agent-Capable Systems**
+([JTBD.md:228](../../JTBD.md)) — the job Gear is hired for, where the
+Big Hire is *"help me give humans and agents shared capabilities through
+the same interface, with tooling to prove changes improved outcomes"*. A
+shared `.app` distribution contract is part of that interface; without
+it, each new Gear macOS channel renegotiates install conventions
+ad-hoc. The Outpost-specific TCC-grant failure mode above also surfaces
+in **Empowered Engineers → Be Prepared and Productive**
+([JTBD.md:85](../../JTBD.md)) — the job Outpost is hired for — because
+re-granting Apple Events authorization interrupts the briefing flow the
+job exists to protect.
 
 ## Scope
 
@@ -128,18 +146,25 @@ channel they used.
   Outpost this resolves the current
   `/Applications/fit-outpost.app` vs `/Applications/Outpost.app` split.
 - **One canonical build entry point per product.** The brew lane and
-  any other macOS channel that ships the bundle reach it through the
-  same `justfile` recipe (or equivalent). For Outpost this means
-  `products/outpost/pkg/build.js --app` and the brew lane's bundle
-  step converge on one canonical builder; today only the brew lane
-  recipe is reachable from the other six products' release paths and
-  that property is preserved.
+  any other macOS channel that ships the bundle reach the bundle
+  through the same root-`justfile` recipe (`build-app-product NAME` for
+  product bundles, `build-app-gear` for gear). For Outpost this means
+  the `.pkg` lane stops calling `products/outpost/pkg/build.js --app`
+  for the bundle-assembly step and instead consumes the bundle produced
+  by `build-app-product outpost`. The workflow change that wires
+  `publish-macos.yml` to the canonical builder (or that retires
+  `publish-macos.yml` in favor of an extended `publish-brew.yml`) is
+  in scope as the means of satisfying this property; the specific
+  workflow layout is a design output. For the other six products the
+  property is preserved (their release paths already reach
+  `build-app-product`).
 - **One cdhash determinism gate covering every release path on every
   Gear macOS bundle.** Today `publish-brew.yml`'s "Verify cdhash
   stability" step gates all seven brew bundles. After this spec lands,
-  every macOS release path for every Gear bundle passes through that
-  step (or an equivalent step that emits the same guarantee),
-  including the path that produces Outpost's `.pkg` payload.
+  every macOS release path for every Gear bundle runs the same
+  baseline / rebuild / compare check against the same canonical bundle
+  (SC3) before its release-asset upload, including the path that
+  produces Outpost's `.pkg` payload.
 - **The contract is documented in spec form** so future channels (a
   per-product `.pkg`, a notarized signed channel, etc.) inherit the
   approach rather than re-discovering it. The contract is the four
@@ -184,64 +209,100 @@ channel they used.
   equality and SC2's install-path equality constrain the design; the
   means of honoring them is out of scope here.
 - **Workflow-split reorganisation beyond what unification requires.**
-  PR #1153's `publish-macos`-into-`publish-brew` consolidation falls
-  out naturally once Outpost has one canonical build to publish, but
-  the spec does not prescribe a specific workflow layout — only that
-  every release path for every Gear bundle passes through one
-  determinism gate (SC3).
+  The workflow change that wires the canonical builder into the `.pkg`
+  release path (including PR #1153-style consolidation of
+  `publish-macos.yml` into `publish-brew.yml`, if that is what design
+  picks) is in scope above. Beyond that — restructuring the brew
+  lane's matrix shape, splitting `publish-brew.yml` per product,
+  introducing a separate release-on-tag workflow per bundle, or any
+  other reorganisation not required by SC1–SC4 — is out of scope.
 
 ## Success criteria
 
 Each criterion is verifiable from the state of `main` and real
 `*@v*` tag pushes across the seven product / gear bundles.
 
-### SC1 — One bundle directory name per product across every channel
+### SC1 — Outpost reduces to one bundle directory name across channels; no other product introduces a second
 
-For each of the seven product / gear bundles, every `--bundle-name`
-value emitted along that product's macOS build chain resolves to a
-single canonical name. Verifiable on `main` by extracting, for each
-product, the set of `--bundle-name` values referenced from any
-`build-app-*` invocation reachable from that product's release path
-(the root `justfile` recipes for the brew lane, and
-`products/outpost/pkg/build.js` for Outpost's `.pkg` lane). The set
-size is 1 for every product. Today Outpost is the only product whose
-set is size 2 (`fit-outpost` from the brew lane and `Outpost` from
-`products/outpost/pkg/build.js`); after this spec lands every product
-satisfies the size-1 criterion.
+Today, for each of the seven product / gear bundles, the set of
+`--bundle-name` values referenced from any `build-app-*` invocation
+reachable from that product's release path has size 1 for six
+products and size 2 for Outpost (`fit-outpost` from
+`build-app-product outpost` and `Outpost` from
+`products/outpost/pkg/build.js --app`). The criterion has two parts:
 
-### SC2 — One install path per product across every channel
+1. **Reduction (Outpost only):** after this spec lands, Outpost's set
+   has size 1.
+2. **Non-regression (all seven):** no product introduces a new
+   `--bundle-name` value as a side effect of this spec; the size-1
+   property the other six already satisfy by construction is
+   preserved.
+
+Verifiable on `main` post-merge by extracting, for each of the seven
+products, the union of `--bundle-name` arguments reachable from that
+product's release path (root `justfile` recipes for the brew lane;
+`products/outpost/pkg/build.js` for Outpost's `.pkg` lane while it
+still exists). Each union is a singleton.
+
+### SC2 — One install path per product across every channel (post-release verifier for Outpost)
 
 For each product that ships through more than one channel, every
 channel's install path for that product is a byte-identical
 `/Applications/...` string. Today Outpost is the only product with
-more than one channel; the criterion is verified by reading:
+more than one channel.
 
-- `forwardimpact/homebrew-tap/Casks/fit-outpost.rb` — the cask's
-  `app` stanza names the same bundle directory the `.pkg` installs.
-- `products/outpost/pkg/macos/build-pkg.sh` — the payload copies the
-  bundle to the same `/Applications/` path the cask declares.
+**Pre-merge property:** the monorepo emits a single canonical bundle
+directory name for each product (SC1), so any install path of the form
+`/Applications/<bundle>.app` derived from it is the same string for
+every channel that consumes that bundle.
+
+**Post-release verifier (Outpost only):** on the first `outpost@v*`
+tag pushed after the unification lands, the `app` stanza in
+`forwardimpact/homebrew-tap`'s `Casks/fit-outpost.rb` at the
+release-time commit, and the install location encoded in
+`products/outpost/pkg/macos/build-pkg.sh` on the merge commit, both
+name the same `/Applications/<bundle>.app` path. The cask is in a
+sibling repo this monorepo does not version-lock, so SC2's
+external-repo half is an explicit post-release verifier, not a
+pre-merge CI gate.
 
 For the other six products the criterion holds trivially (single
 channel → single install path). The criterion is stated per-product so
 future channels for those products inherit the same constraint.
 
-### SC3 — Every Gear macOS release path passes through one cdhash determinism gate
+### SC3 — Every Gear macOS release path runs the same cdhash determinism check against the same canonical artifact
 
 After this spec lands, on every `*@v*` tag push for each of the seven
-product / gear bundles, every macOS release path for that tag executes
-exactly one "Verify cdhash stability" step (or an equivalent step
-emitting the same `baseline != after → fail` guarantee), and that step
-covers the artifact every downstream packager consumes. Verifiable by
-inspecting `.github/workflows/` on `main` after merge: for each of the
-seven tag patterns, every CI job that produces a release asset passes
-through one cdhash gate. Today six of seven brew lanes satisfy this via
-`publish-brew.yml`'s gate; the Outpost `.pkg` lane in
-`publish-macos.yml` does not. After this spec lands, the Outpost `.pkg`
-lane passes through the gate (either by sharing the brew lane's gate
-via consolidation, or by running an equivalent gate against the same
-canonical build artifact).
+product / gear bundles, every macOS release path for that tag includes
+a step satisfying all three mechanical predicates:
 
-### SC4 — Both Outpost release assets carry the same bundle identity
+1. **Same check.** The step records a baseline cdhash with
+   `codesign -dvvv "$BUNDLE" 2>&1 | grep -i CDHash`, rebuilds the
+   bundle from the same source tree by invoking
+   `build-app-product <NAME>` (or `build-app-gear` for the gear
+   bundle), records the post-rebuild cdhash with the same `codesign
+   -dvvv | grep CDHash` invocation, and fails the release if the two
+   strings differ. This is the same predicate
+   `publish-brew.yml`'s "Verify cdhash stability" step encodes today
+   (`.github/workflows/publish-brew.yml:78–104`).
+2. **Same artifact.** Both the baseline and the after-rebuild cdhash
+   measurements target the canonical bundle produced by
+   `build-app-product` / `build-app-gear` — the same bundle the
+   release asset for every channel is derived from. The Outpost
+   `.pkg` lane must not measure cdhash against a separately-assembled
+   `products/outpost/dist/Outpost.app`.
+3. **Coverage.** Every CI job that produces a release asset for the
+   tagged product reaches the step before its release-asset upload.
+
+Verifiable on `main` post-merge by inspecting
+`.github/workflows/publish-brew.yml` and `.github/workflows/publish-macos.yml`
+(or whichever workflow replaces them per the design decision under
+*One canonical build entry point*): every release-asset-producing job
+contains the predicate above. Today six of seven brew lanes satisfy
+this via `publish-brew.yml`'s gate; the Outpost `.pkg` lane in
+`publish-macos.yml` does not.
+
+### SC4 — Both Outpost release assets carry the same bundle identity (post-release verifier)
 
 On the first `outpost@v*` tag pushed after the unification lands, both
 release assets (the brew `.zip` and the `.pkg`) on the GitHub release
@@ -260,10 +321,13 @@ locating the `.app` inside each extraction, and running `codesign
 filenames and the canonical bundle directory name are design outputs;
 the SC tests for identity equality, not for specific filenames.
 
-For the other six products SC4 holds trivially (single asset → identity
-matches itself); the criterion is named explicitly for Outpost because
-Outpost is where identity equality across channels is the headline
-deliverable.
+SC4 is a **post-release verifier** — the two release assets only exist
+after the next `outpost@v*` tag publishes. SC3's pre-merge mechanical
+predicate (same check against the same canonical artifact) is the
+pre-merge gate that ensures SC4 will hold on that first release; SC4
+confirms the property held end-to-end once the assets exist. For the
+other six products SC4 holds trivially (single asset → identity
+matches itself).
 
 ### SC5 — TCC-keyed identity is equal across channels (Outpost)
 
