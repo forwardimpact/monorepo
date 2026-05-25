@@ -10,9 +10,6 @@ import { buildSignalMask, buildMRSignalMask } from "./signals.js";
 import { fmt1 } from "./format.js";
 
 const UNICODE = {
-  solid: "─",
-  dashed: "╌",
-  cross: "┼",
   vertical: "│",
   point: "·",
   signal: "●",
@@ -21,9 +18,6 @@ const UNICODE = {
 };
 
 const ASCII = {
-  solid: "-",
-  dashed: ".",
-  cross: "+",
   vertical: "|",
   point: "o",
   signal: "*",
@@ -129,8 +123,11 @@ function bucketXValues(values, stats) {
   return buckets;
 }
 
-// X chart — 7 rows: UPL line, outer-upper, inner-upper, μ centerline,
-// inner-lower, outer-lower, LPL line.
+// X chart — 7 rows: UPL marker, outer-upper, inner-upper, μ centerline,
+// inner-lower, outer-lower, LPL marker. The UPL, μ, and LPL rows show
+// only their label + data marks; the running chart skips full-width
+// fill on those rows because the ruler labels already tell the reader
+// where each level sits.
 function renderXChart({
   values,
   stats,
@@ -283,16 +280,16 @@ function renderMRChart({
   ];
 }
 
-// A horizontal limit line with `─` filling the plot. Breach slots replace
-// the line character with `●`. Edge character is also `─` so the line is
-// continuous through the label-to-plot transition.
+// A limit row — label + blank plot, breach slots marked with `●`. No
+// horizontal fill line; the label in the left ruler tells the reader
+// where the level sits.
 function limitRow(label, labelWidth, slots, plotWidth, slotWidth, glyphs) {
-  const plot = Array(plotWidth).fill(glyphs.solid);
+  const plot = Array(plotWidth).fill(" ");
   for (const slot of slots) {
     const col = slotWidth * slot - 1;
     plot[col] = glyphs.signal;
   }
-  return `${rightAlign(label, labelWidth)} ${glyphs.solid}${plot.join("")}`;
+  return `${rightAlign(label, labelWidth)}  ${plot.join("")}`;
 }
 
 // A zone row — vertical edge, spaces in plot, `·` (or `●` for signals) at
@@ -306,8 +303,8 @@ function zoneRow(label, labelWidth, slots, mask, plotWidth, slotWidth, glyphs) {
   return `${rightAlign(label, labelWidth)} ${glyphs.vertical}${plot.join("")}`;
 }
 
-// A centerline row — `╌` filling the plot, `┼` edge. Replace `╌` with the
-// point glyph at any slot whose value equals the centerline exactly.
+// A centerline row — label + blank plot, on-centerline slots marked with
+// the point (or signal) glyph. No horizontal fill line.
 function centerlineRow(
   label,
   labelWidth,
@@ -317,16 +314,16 @@ function centerlineRow(
   slotWidth,
   glyphs,
 ) {
-  const plot = Array(plotWidth).fill(glyphs.dashed);
+  const plot = Array(plotWidth).fill(" ");
   for (const slot of slots) {
     const col = slotWidth * slot - 1;
     plot[col] = mask[slot] ? glyphs.signal : glyphs.point;
   }
-  return `${rightAlign(label, labelWidth)} ${glyphs.cross}${plot.join("")}`;
+  return `${rightAlign(label, labelWidth)}  ${plot.join("")}`;
 }
 
-// The mR zero baseline — `─` line. Visual floor only, not an LRL.
-// A zero mR (consecutive identical values) renders as a glyph on this row.
+// The mR zero baseline — label + blank plot, zero-mR slots marked with
+// the point (or signal) glyph. No horizontal fill line.
 function baselineRow(
   label,
   labelWidth,
@@ -336,12 +333,12 @@ function baselineRow(
   slotWidth,
   glyphs,
 ) {
-  const plot = Array(plotWidth).fill(glyphs.solid);
+  const plot = Array(plotWidth).fill(" ");
   for (const slot of slots) {
     const col = slotWidth * slot - 1;
     plot[col] = mask[slot] ? glyphs.signal : glyphs.point;
   }
-  return `${rightAlign(label, labelWidth)} ${glyphs.solid}${plot.join("")}`;
+  return `${rightAlign(label, labelWidth)}  ${plot.join("")}`;
 }
 
 // Shared time axis — slot numbers right-aligned in each slot. Edge is a
@@ -386,13 +383,12 @@ function rightAlign(s, width) {
 // Edge case: n=1. No mR, no limits — just one point on a degenerate
 // centerline. Spec §11 requires a note about needing n≥2 for mR.
 function renderSinglePoint(value, glyphs, slotWidth) {
-  const muSym = glyphs.mu;
-  const label = `${muSym} ${fmt1(value)}`;
-  const plot = Array(slotWidth).fill(glyphs.dashed);
+  const label = `${glyphs.mu} ${fmt1(value)}`;
+  const plot = Array(slotWidth).fill(" ");
   plot[slotWidth - 1] = glyphs.point;
   const labelWidth = label.length;
   const lines = [
-    `${rightAlign(label, labelWidth)} ${glyphs.cross}${plot.join("")}`,
+    `${rightAlign(label, labelWidth)}  ${plot.join("")}`,
     "",
     `${" ".repeat(labelWidth)}  ${"1".padStart(slotWidth, " ")}`,
     "",
@@ -412,16 +408,16 @@ function renderFlat(values, stats, glyphs, slotWidth, ascii) {
   const labels = [`${muSym} ${fmt1(stats.mu)}`, `${rSym} ${fmt1(stats.R)}`];
   const labelWidth = jointLabelWidth(labels);
 
-  const xPlot = Array(plotWidth).fill(glyphs.dashed);
+  const xPlot = Array(plotWidth).fill(" ");
   for (let i = 0; i < n; i++) xPlot[slotWidth * (i + 1) - 1] = glyphs.point;
 
-  const mrPlot = Array(plotWidth).fill(glyphs.solid);
+  const mrPlot = Array(plotWidth).fill(" ");
   for (let i = 1; i < n; i++) mrPlot[slotWidth * (i + 1) - 1] = glyphs.point;
 
   const lines = [
-    `${rightAlign(labels[0], labelWidth)} ${glyphs.cross}${xPlot.join("")}`,
+    `${rightAlign(labels[0], labelWidth)}  ${xPlot.join("")}`,
     "",
-    `${rightAlign(labels[1], labelWidth)} ${glyphs.solid}${mrPlot.join("")}`,
+    `${rightAlign(labels[1], labelWidth)}  ${mrPlot.join("")}`,
     axisRow(labelWidth, n, slotWidth),
     "",
     "Note: zero observed variation — control limits coincide with",
