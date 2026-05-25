@@ -20,7 +20,12 @@
   <meta itemprop="medicalSpecialty" content="{{specialty}}" />
   {{/specialtyList}} {{#activeTrialLinks}}
   <link itemprop="availableService" href="{{{iri}}}" />
-  {{/activeTrialLinks}}
+  {{/activeTrialLinks}} {{#servedPatientLinks}}
+  <link
+    itemprop="https://www.forwardimpact.team/schema/rdf/servedPatient"
+    href="{{{iri}}}"
+  />
+  {{/servedPatientLinks}}
 
   <div
     itemprop="description"

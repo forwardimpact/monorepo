@@ -16,6 +16,11 @@
   <link itemprop="healthCondition" href="{{{iri}}}" />
   {{/conditionLinks}} {{#siteLinks}}
   <link itemprop="location" href="{{{iri}}}" />
-  {{/siteLinks}}
+  {{/siteLinks}} {{#enrolledPatientLinks}}
+  <link
+    itemprop="https://www.forwardimpact.team/schema/rdf/enrolledPatient"
+    href="{{{iri}}}"
+  />
+  {{/enrolledPatientLinks}}
 </article>
 {{/trials}}

@@ -36,10 +36,14 @@ export class Renderer {
    *
    * @param {object} entities
    * @param {Map<string,string>} prose
+   * @param {object} [options]
+   * @param {object} [options.fhirCrossRef] - Cross-ref index from
+   *   `buildFhirCrossRef`; when supplied, spec 1140 clinical pages emit
+   *   reverse links to matched patients.
    * @returns {{ files: Map<string,string>, linked: object }}
    */
-  renderSkeleton(entities, prose) {
-    return renderHTML(entities, prose, this.templateLoader);
+  renderSkeleton(entities, prose, options = {}) {
+    return renderHTML(entities, prose, this.templateLoader, options);
   }
 
   /**

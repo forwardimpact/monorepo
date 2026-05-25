@@ -162,6 +162,78 @@ describe("datasets node — condition resolution", () => {
     assert.deepStrictEqual(ds.config.modules, ["hypertension"]);
   });
 
+  test("returns datasetsMap on the empty path when no datasets declared", async () => {
+    const { factory } = makeRecordingFactory();
+    const parse = { datasets: [], outputs: [], seed: 42 };
+
+    const result = await runDatasetsNode(parse, { clinical: null, factory });
+
+    assert.ok(result.datasetsMap instanceof Map, "datasetsMap is a Map");
+    assert.strictEqual(result.datasetsMap.size, 0);
+  });
+
+  test("returns datasetsMap with generated datasets", async () => {
+    function factoryWithDataset() {
+      return {
+        checkAvailability: async () => true,
+        generate: async (config) => [
+          { name: `${config.name}_patient`, records: [{ id: "p1" }] },
+        ],
+      };
+    }
+    const parse = {
+      datasets: [{ id: "trial_patients", tool: "synthea", config: {} }],
+      outputs: [],
+      seed: 42,
+    };
+
+    const result = await runDatasetsNode(parse, {
+      clinical: null,
+      factory: factoryWithDataset,
+    });
+
+    assert.ok(result.datasetsMap.has("trial_patients_patient"));
+  });
+
+  test("skips fhir_microdata_html outputs without 'dataset not generated' log", async () => {
+    const logs = [];
+    const logger = {
+      info: (cat, msg) => logs.push({ cat, msg }),
+      debug: () => {},
+      warn: () => {},
+      error: () => {},
+    };
+    const { factory } = makeRecordingFactory();
+    const parse = {
+      datasets: [{ id: "trial_patients", tool: "synthea", config: {} }],
+      outputs: [
+        {
+          dataset: "trial_patients",
+          format: "fhir_microdata_html",
+          config: {},
+        },
+      ],
+      seed: 42,
+    };
+    const nodes = buildNodes({
+      dslParser: null,
+      entityGenerator: null,
+      proseGenerator: null,
+      pathwayGenerator: null,
+      renderer: null,
+      validator: null,
+      proseCacheSink: { flush: () => {} },
+      toolFactory: factory,
+      logger,
+      options: {},
+    });
+
+    await nodes.datasets.run({ parse: { ...parse, clinical: null } });
+
+    const skips = logs.filter((l) => l.msg?.includes("dataset not generated"));
+    assert.strictEqual(skips.length, 0);
+  });
+
   test("does not mutate parse.datasets[i].config", async () => {
     const { factory } = makeRecordingFactory();
     const ds = {
@@ -180,5 +252,178 @@ describe("datasets node — condition resolution", () => {
     // `modules` onto it.
     assert.strictEqual(ds.config.modules, undefined);
     assert.deepStrictEqual(ds.config.conditions, ["diabetes_t2"]);
+  });
+});
+
+const PATIENT_UUID = "11111111-1111-4111-8111-111111111111";
+
+function makeFhirFactory() {
+  return function fhirFactory() {
+    return {
+      checkAvailability: async () => true,
+      generate: async (config) => [
+        {
+          name: `${config.name}_patient`,
+          records: [
+            {
+              resourceType: "Patient",
+              id: PATIENT_UUID,
+              name: [{ use: "official", family: "Jones", given: ["Alice"] }],
+            },
+          ],
+        },
+        {
+          name: `${config.name}_condition`,
+          records: [
+            {
+              resourceType: "Condition",
+              subject: { reference: `urn:uuid:${PATIENT_UUID}` },
+              code: {
+                coding: [{ code: "diabetes_t2", display: "Type 2 Diabetes" }],
+                text: "Type 2 Diabetes",
+              },
+            },
+          ],
+        },
+      ],
+    };
+  };
+}
+
+function makeClinicalEntities() {
+  return {
+    domain: "test.example",
+    clinical: {
+      conditions: [{ id: "diabetes_t2", name: "Type 2 Diabetes" }],
+      trials: [
+        {
+          id: "oncora_p3",
+          conditions: ["diabetes_t2"],
+          sites: ["cambridge"],
+          iri: "https://test.example/id/clinical/trial/oncora_p3",
+        },
+      ],
+      sites: [
+        {
+          id: "cambridge",
+          iri: "https://test.example/id/clinical/site/cambridge",
+        },
+      ],
+    },
+  };
+}
+
+async function runFhirNodes(parse, ctx = {}) {
+  const nodes = buildNodes({
+    dslParser: null,
+    entityGenerator: null,
+    proseGenerator: null,
+    pathwayGenerator: null,
+    renderer: null,
+    validator: null,
+    proseCacheSink: { flush: () => {} },
+    toolFactory: ctx.factory ?? null,
+    logger: ctx.logger ?? makeLogger(),
+    options: {},
+  });
+  const datasets = await nodes.datasets.run({
+    parse: { ...parse, clinical: ctx.entities?.clinical ?? null },
+  });
+  const entities = ctx.entities ?? {};
+  const crossRef = nodes["fhir-cross-ref"].run({ parse, entities, datasets });
+  const microdata = nodes["fhir-microdata-html"].run({
+    parse,
+    entities,
+    datasets,
+    "fhir-cross-ref": crossRef,
+  });
+  return { datasets, crossRef, microdata };
+}
+
+describe("fhir-cross-ref node", () => {
+  test("returns null when no output declares fhir_microdata_html", async () => {
+    const parse = {
+      datasets: [],
+      outputs: [{ dataset: "ds", format: "json", config: { path: "x" } }],
+      seed: 42,
+    };
+    const { crossRef } = await runFhirNodes(parse, {
+      entities: makeClinicalEntities(),
+    });
+    assert.strictEqual(crossRef, null);
+  });
+
+  test("returns null when entities.clinical is missing even with wired output", async () => {
+    const parse = {
+      datasets: [],
+      outputs: [
+        {
+          dataset: "patients",
+          format: "fhir_microdata_html",
+          config: { path: "p" },
+        },
+      ],
+      seed: 42,
+    };
+    const { crossRef } = await runFhirNodes(parse, {
+      entities: { domain: "test.example" },
+    });
+    assert.strictEqual(crossRef, null);
+  });
+
+  test("returns CrossRefIndex when both conditions hold", async () => {
+    const parse = {
+      datasets: [{ id: "patients", tool: "synthea", config: {} }],
+      outputs: [
+        {
+          dataset: "patients",
+          format: "fhir_microdata_html",
+          config: { path: "data/patients" },
+        },
+      ],
+      seed: 42,
+      domain: "test.example",
+    };
+    const { crossRef } = await runFhirNodes(parse, {
+      entities: makeClinicalEntities(),
+      factory: makeFhirFactory(),
+    });
+    assert.ok(crossRef, "crossRef should be non-null");
+    assert.ok(crossRef.conditionIdToPatientIris.get("diabetes_t2"));
+  });
+});
+
+describe("fhir-microdata-html node", () => {
+  test("emits per-patient HTML + index.html files when wired", async () => {
+    const parse = {
+      datasets: [{ id: "patients", tool: "synthea", config: {} }],
+      outputs: [
+        {
+          dataset: "patients",
+          format: "fhir_microdata_html",
+          config: { path: "data/patients" },
+        },
+      ],
+      seed: 42,
+      domain: "test.example",
+    };
+    const { microdata } = await runFhirNodes(parse, {
+      entities: makeClinicalEntities(),
+      factory: makeFhirFactory(),
+    });
+    assert.ok(microdata.files.has(`data/patients/${PATIENT_UUID}.html`));
+    assert.ok(microdata.files.has("data/patients/index.html"));
+  });
+
+  test("emits empty files Map when cross-ref is null", async () => {
+    const parse = {
+      datasets: [],
+      outputs: [{ dataset: "ds", format: "json", config: { path: "x" } }],
+      seed: 42,
+    };
+    const { microdata } = await runFhirNodes(parse, {
+      entities: makeClinicalEntities(),
+    });
+    assert.strictEqual(microdata.files.size, 0);
   });
 });

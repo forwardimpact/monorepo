@@ -82,7 +82,7 @@ describe("dataset and output parsing", () => {
     assert.strictEqual(ast.outputs[1].config.table, "my_claims");
   });
 
-  test("parses all eight output formats", () => {
+  test("parses all nine output formats", () => {
     const formats = [
       "json",
       "yaml",
@@ -92,6 +92,7 @@ describe("dataset and output parsing", () => {
       "sql",
       "supabase_migration",
       "embeddings_jsonl",
+      "fhir_microdata_html",
     ];
     for (const fmt of formats) {
       const ast = parseDsl(
@@ -99,6 +100,16 @@ describe("dataset and output parsing", () => {
       );
       assert.strictEqual(ast.outputs[0].format, fmt);
     }
+  });
+
+  test("parses fhir_microdata_html output config", () => {
+    const ast = parseDsl(`terrain test {
+      output patients fhir_microdata_html { path "out/patients" }
+    }`);
+    const out = ast.outputs[0];
+    assert.strictEqual(out.dataset, "patients");
+    assert.strictEqual(out.format, "fhir_microdata_html");
+    assert.strictEqual(out.config.path, "out/patients");
   });
 
   test("parses supabase_migration output config", () => {

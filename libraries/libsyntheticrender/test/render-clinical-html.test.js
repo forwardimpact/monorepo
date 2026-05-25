@@ -250,6 +250,63 @@ describe("renderClinicalPages", () => {
     );
   });
 
+  test("fhirCrossRef option: spec 1140 pages emit reverse patient links", () => {
+    const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
+    const patientIri = "https://example.com/id/clinical/patient/abc";
+    const trialIri = "https://example.com/id/clinical/trial/oncora_p3";
+    const fhirCrossRef = {
+      patientToTrialIris: new Map([[patientIri, new Set([trialIri])]]),
+      conditionIdToPatientIris: new Map([
+        ["diabetes_t2", new Set([patientIri])],
+      ]),
+      siteIdToPatientIris: new Map([["cambridge", new Set([patientIri])]]),
+      trialIriToPatientIris: new Map([[trialIri, new Set([patientIri])]]),
+    };
+    const { files } = renderHTML(entities, new Map(), makeTemplates(), {
+      fhirCrossRef,
+    });
+    assert.match(
+      files.get("trial-cards.html"),
+      /itemprop="https:\/\/www\.forwardimpact\.team\/schema\/rdf\/enrolledPatient"/,
+    );
+    assert.match(
+      files.get("condition-explainers.html"),
+      /itemprop="https:\/\/www\.forwardimpact\.team\/schema\/rdf\/affectedPatient"/,
+    );
+    assert.match(
+      files.get("site-descriptions.html"),
+      /itemprop="https:\/\/www\.forwardimpact\.team\/schema\/rdf\/servedPatient"/,
+    );
+  });
+
+  test("no fhirCrossRef option: spec 1190 reverse-link strings absent (criterion 7)", () => {
+    const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
+    const { files } = renderHTML(entities, new Map(), makeTemplates());
+
+    for (const page of [
+      "trial-cards.html",
+      "condition-explainers.html",
+      "site-descriptions.html",
+    ]) {
+      const out = files.get(page);
+      assert.strictEqual(
+        out.includes("enrolledPatient"),
+        false,
+        `${page} unexpectedly contains 'enrolledPatient'`,
+      );
+      assert.strictEqual(
+        out.includes("affectedPatient"),
+        false,
+        `${page} unexpectedly contains 'affectedPatient'`,
+      );
+      assert.strictEqual(
+        out.includes("servedPatient"),
+        false,
+        `${page} unexpectedly contains 'servedPatient'`,
+      );
+    }
+  });
+
   test("site availableService link includes only recruiting trials", () => {
     const clinical = makeClinicalFixture();
     clinical.trials.push({

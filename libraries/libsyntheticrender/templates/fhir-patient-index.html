@@ -1,0 +1,10 @@
+<section>
+  <h1>Synthetic Patients ({{count}})</h1>
+  <ul>
+    {{#patients}}
+    <li>
+      <a href="{{patientHtmlPath}}">{{name}}</a>{{#conditionSummary}} — {{conditionSummary}}{{/conditionSummary}}
+    </li>
+    {{/patients}}
+  </ul>
+</section>

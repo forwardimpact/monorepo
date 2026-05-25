@@ -13,7 +13,12 @@
   <meta itemprop="status" content="{{severity}}" />
   {{/severity}} {{#trialLinks}}
   <link itemprop="study" href="{{{iri}}}" />
-  {{/trialLinks}}
+  {{/trialLinks}} {{#affectedPatientLinks}}
+  <link
+    itemprop="https://www.forwardimpact.team/schema/rdf/affectedPatient"
+    href="{{{iri}}}"
+  />
+  {{/affectedPatientLinks}}
 
   <div
     itemprop="description"

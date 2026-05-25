@@ -170,7 +170,17 @@ function filterByConditions(byType, conditions) {
   }
 }
 
-function normalizePatientRef(ref) {
+/**
+ * Strip the `urn:uuid:` or `Patient/` prefix from a FHIR reference so
+ * the bare patient id can be matched against records elsewhere in the
+ * bundle. Exported so `buildFhirCrossRef` in `libsyntheticrender` keys
+ * patients by the same id `filterByConditions` does.
+ *
+ * @param {string|undefined|null} ref - A FHIR reference (e.g.
+ *   `Patient/<id>` or `urn:uuid:<id>`)
+ * @returns {string|null} the bare id, or `null` when `ref` is empty
+ */
+export function normalizePatientRef(ref) {
   if (!ref) return null;
   return ref.replace(/^urn:uuid:/, "").replace(/^Patient\//, "");
 }

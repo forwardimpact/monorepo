@@ -28,6 +28,7 @@
     "./render/dataset-renderers": "./src/render/dataset-renderers.js",
     "./render/render-sql": "./src/render/render-sql.js",
     "./render/render-embeddings": "./src/render/render-embeddings.js",
+    "./render/fhir-microdata": "./src/render/fhir-microdata.js",
     "./validate": "./src/validate.js",
     "./format": "./src/format.js"
   },

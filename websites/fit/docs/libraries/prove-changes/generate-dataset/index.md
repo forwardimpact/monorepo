@@ -201,9 +201,12 @@ data/
 Datasets declared via `dataset` + `output` blocks land at the paths each
 `output` block names. Available output formats include `json`, `yaml`,
 `csv`, `markdown`, `parquet`, `sql`, plus `supabase_migration` (numbered
-SQL files applicable via `supabase db push`) and `embeddings_jsonl` (one
+SQL files applicable via `supabase db push`), `embeddings_jsonl` (one
 JSON object per line, combining entity fields with cached prose, ready for
-vector embedding).
+vector embedding), and `fhir_microdata_html` (one Schema.org-microdata
+HTML page per FHIR `Patient` from a Synthea-produced dataset, plus an
+`index.html`, with reverse links from the clinical trial / condition /
+site pages to the matching synthetic patients).
 
 ## Verify without regenerating
 

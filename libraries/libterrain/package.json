@@ -51,6 +51,10 @@
     "@forwardimpact/libtelemetry": "^0.1.23",
     "@forwardimpact/libtemplate": "^0.2.0"
   },
+  "devDependencies": {
+    "@forwardimpact/libresource": "^0.1.111",
+    "jsdom": "^29.1.1"
+  },
   "peerDependencies": {
     "prettier": "^3.0.0"
   },

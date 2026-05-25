@@ -227,6 +227,7 @@ export function createStandardParsers(helpers) {
     "sql",
     "supabase_migration",
     "embeddings_jsonl",
+    "fhir_microdata_html",
   ]);
 
   function parseDatasetFields() {

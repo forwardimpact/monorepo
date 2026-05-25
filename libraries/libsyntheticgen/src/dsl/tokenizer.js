@@ -177,6 +177,7 @@ const KEYWORDS = new Set([
   "text_fields",
   "supabase_migration",
   "embeddings_jsonl",
+  "fhir_microdata_html",
 ]);
 
 const DATE_RE = /^\d{4}-\d{2}$/;

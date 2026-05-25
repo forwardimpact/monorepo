@@ -7,26 +7,29 @@
  * uploads, cache flushes) live in sinks.
  *
  * Nodes:
- *   parse         ← storyPath
- *   entities      ← parse
- *   prose-keys    ← entities
- *   cache-lookup  ← prose-keys
- *   skeleton      ← entities
- *   enriched      ← skeleton, cache-lookup
- *   raw           ← entities, cache-lookup
- *   markdown      ← entities, cache-lookup
- *   pathway       ← entities
- *   datasets      ← parse
- *   clinical-output ← parse, entities, cache-lookup
- *   validate      ← enriched, entities
- *   write         ← enriched, raw, markdown, pathway, datasets,
- *                    clinical-output, validate
+ *   parse              ← storyPath
+ *   entities           ← parse
+ *   prose-keys         ← entities
+ *   cache-lookup       ← prose-keys
+ *   datasets           ← parse
+ *   fhir-cross-ref     ← parse, entities, datasets
+ *   skeleton           ← entities, cache-lookup, fhir-cross-ref
+ *   enriched           ← skeleton, cache-lookup
+ *   raw                ← entities, cache-lookup
+ *   markdown           ← entities, cache-lookup
+ *   pathway            ← entities
+ *   clinical-output    ← parse, entities, cache-lookup
+ *   fhir-microdata-html ← parse, datasets, fhir-cross-ref
+ *   validate           ← enriched, entities
+ *   write              ← enriched, raw, markdown, pathway, datasets,
+ *                         clinical-output, fhir-microdata-html, validate
  *
  * Verb terminal-closure walks (the cost-shifting payoff of Phase D):
  *   check    → parse, entities, prose-keys, cache-lookup
- *   validate → ...above + skeleton, enriched, validate
- *   build    → all of the above + raw, markdown, pathway, datasets,
- *              clinical-output, write
+ *   validate → ...above + datasets, fhir-cross-ref, skeleton, enriched,
+ *              validate (datasets pulled via the spec 1190 D12 dep)
+ *   build    → all of the above + raw, markdown, pathway,
+ *              clinical-output, fhir-microdata-html, write
  *
  * Node table definitions live in nodes.js.
  *
@@ -48,7 +51,9 @@ export const STAGES = [
   "markdown",
   "pathway",
   "datasets",
+  "fhir-cross-ref",
   "clinical-output",
+  "fhir-microdata-html",
   "validate",
   "write",
 ];

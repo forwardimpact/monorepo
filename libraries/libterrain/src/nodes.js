@@ -17,6 +17,8 @@ import {
   renderDataset,
   renderSql,
   renderEmbeddings,
+  renderFhirMicrodataHtml,
+  buildFhirCrossRef,
 } from "@forwardimpact/libsyntheticrender";
 import { collectProseKeys } from "@forwardimpact/libsyntheticgen";
 import { loadSchemas } from "@forwardimpact/libsyntheticprose/pathway";
@@ -84,14 +86,14 @@ export function buildNodes(ctx) {
     },
 
     skeleton: {
-      deps: ["entities", "cache-lookup"],
-      run({ entities, "cache-lookup": prose }) {
+      deps: ["entities", "cache-lookup", "fhir-cross-ref"],
+      run({ entities, "cache-lookup": prose, "fhir-cross-ref": fhirCrossRef }) {
         if (!entities.people) return { files: new Map(), linked: null };
         logger.info(
           "render",
           "Rendering HTML (Pass 1: deterministic skeleton)",
         );
-        return renderer.renderSkeleton(entities, prose);
+        return renderer.renderSkeleton(entities, prose, { fhirCrossRef });
       },
     },
 
@@ -196,7 +198,9 @@ export function buildNodes(ctx) {
       deps: ["parse"],
       async run({ parse }) {
         const files = new Map();
-        if (!parse.datasets?.length || !toolFactory) return { files };
+        if (!parse.datasets?.length || !toolFactory) {
+          return { files, datasetsMap: new Map() };
+        }
 
         const datasets = await generateDatasets(
           parse.datasets,
@@ -206,6 +210,83 @@ export function buildNodes(ctx) {
           parse.clinical,
         );
         await renderDatasetOutputs(parse.outputs, datasets, files, logger);
+        return { files, datasetsMap: datasets };
+      },
+    },
+
+    "fhir-cross-ref": {
+      deps: ["parse", "entities", "datasets"],
+      run({ parse, entities, datasets }) {
+        const wiredOutputs = (parse.outputs || []).filter(
+          (o) => o.format === "fhir_microdata_html",
+        );
+        if (wiredOutputs.length === 0) return null;
+        if (!entities.clinical) {
+          logger.info(
+            "pipeline",
+            "fhir-cross-ref: skipped (no clinical block)",
+          );
+          return null;
+        }
+        const mergedPatients = [];
+        const mergedConditions = [];
+        for (const out of wiredOutputs) {
+          const p = findFhirDataset(
+            datasets.datasetsMap,
+            out.dataset,
+            "patient",
+          );
+          const c = findFhirDataset(
+            datasets.datasetsMap,
+            out.dataset,
+            "condition",
+          );
+          if (!p || !c) {
+            logger.info(
+              "pipeline",
+              `fhir-cross-ref: skipping output '${out.dataset}' (sibling FHIR datasets not generated)`,
+            );
+            continue;
+          }
+          mergedPatients.push(...p.records);
+          mergedConditions.push(...c.records);
+        }
+        if (mergedPatients.length === 0) return null;
+        return buildFhirCrossRef({
+          patients: mergedPatients,
+          conditions: mergedConditions,
+          clinical: entities.clinical,
+          domain: entities.domain,
+        });
+      },
+    },
+
+    "fhir-microdata-html": {
+      deps: ["parse", "entities", "datasets", "fhir-cross-ref"],
+      run({ parse, entities, datasets, "fhir-cross-ref": crossRef }) {
+        const files = new Map();
+        if (crossRef === null) return { files };
+        const wiredOutputs = (parse.outputs || []).filter(
+          (o) => o.format === "fhir_microdata_html",
+        );
+        for (const out of wiredOutputs) {
+          // entities.domain is canonical: fhir-cross-ref mints trial IRIs from it.
+          const input = unwrapFhirDatasets(
+            datasets.datasetsMap,
+            out,
+            entities.domain,
+            crossRef,
+          );
+          if (!input) {
+            logger.info(
+              "pipeline",
+              `fhir-microdata-html: skipping output '${out.dataset}' (sibling FHIR datasets not generated)`,
+            );
+            continue;
+          }
+          const rendered = renderFhirMicrodataHtml(input, out.config);
+          for (const [path, content] of rendered) files.set(path, content);
+        }
         return { files };
       },
     },
@@ -272,6 +353,7 @@ export function buildNodes(ctx) {
         "pathway",
         "datasets",
         "clinical-output",
+        "fhir-microdata-html",
         "validate",
       ],
       run({
@@ -281,6 +363,7 @@ export function buildNodes(ctx) {
         pathway,
         datasets,
         "clinical-output": clinicalOutput,
+        "fhir-microdata-html": fhirMicrodataHtml,
         validate,
       }) {
         const files = mergeOutputFiles(
@@ -291,6 +374,7 @@ export function buildNodes(ctx) {
           pathway,
           datasets,
           clinicalOutput,
+          fhirMicrodataHtml,
         );
         const include = (type) => !options.only || options.only === type;
         const rawDocuments = include("raw") ? raw.rawDocuments : new Map();
@@ -376,6 +460,7 @@ function resolveDatasetConfig(ds, clinical, logger) {
 async function renderDatasetOutputs(outputs, datasets, files, logger) {
   logger.info("pipeline", `Rendering ${outputs.length} dataset output(s)`);
   for (const out of outputs) {
+    if (out.format === "fhir_microdata_html") continue;
     const dataset = datasets.get(out.dataset);
     if (!dataset) {
       logger.info(
@@ -400,6 +485,7 @@ function mergeOutputFiles(
   pathway,
   datasets,
   clinicalOutput,
+  fhirMicrodataHtml,
 ) {
   const files = new Map();
   const include = (type) => !only || only === type;
@@ -418,8 +504,35 @@ function mergeOutputFiles(
   // datasets and clinical output are always included regardless of --only
   for (const [k, v] of datasets.files) files.set(k, v);
   for (const [k, v] of clinicalOutput.files) files.set(k, v);
+  for (const [k, v] of fhirMicrodataHtml.files) files.set(k, v);
 
   return files;
+}
+
+/** Look up a Synthea-generated FHIR Dataset by `<output.dataset>_<type>`. */
+function findFhirDataset(datasetsMap, datasetId, type) {
+  return datasetsMap?.get(`${datasetId}_${type}`);
+}
+
+/**
+ * Pull the four FHIR record arrays for one `fhir_microdata_html` output from
+ * `datasetsMap`. Returns `null` when sibling Datasets are missing.
+ */
+function unwrapFhirDatasets(datasetsMap, out, domain, crossRef) {
+  const patient = findFhirDataset(datasetsMap, out.dataset, "patient");
+  const condition = findFhirDataset(datasetsMap, out.dataset, "condition");
+  if (!patient || !condition) return null;
+  return {
+    patients: patient.records,
+    conditions: condition.records,
+    procedures:
+      findFhirDataset(datasetsMap, out.dataset, "procedure")?.records ?? [],
+    medRequests:
+      findFhirDataset(datasetsMap, out.dataset, "medicationrequest")?.records ??
+      [],
+    crossRef,
+    domain,
+  };
 }
 
 function renderClinicalOutput(out, clinical, prose) {

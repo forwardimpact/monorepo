@@ -106,7 +106,7 @@
     },
     "libraries/libeval": {
       "name": "@forwardimpact/libeval",
-      "version": "0.1.45",
+      "version": "0.1.46",
       "bin": {
         "fit-eval": "./bin/fit-eval.js",
         "fit-trace": "./bin/fit-trace.js",
@@ -426,6 +426,10 @@
         "@forwardimpact/libtelemetry": "^0.1.23",
         "@forwardimpact/libtemplate": "^0.2.0",
       },
+      "devDependencies": {
+        "@forwardimpact/libresource": "^0.1.111",
+        "jsdom": "^29.1.1",
+      },
       "optionalDependencies": {
         "@supabase/supabase-js": "^2.106.1",
       },
@@ -494,7 +498,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },

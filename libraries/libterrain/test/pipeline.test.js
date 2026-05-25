@@ -25,6 +25,8 @@ import { NullProseCacheSink } from "../src/sinks.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PATH = join(__dirname, "fixtures", "minimal.dsl");
 const CLINICAL_FIXTURE_PATH = join(__dirname, "fixtures", "clinical.dsl");
+const FHIR_FIXTURE_PATH = join(__dirname, "fixtures", "fhir.dsl");
+const FIXTURE_PATIENT_UUID = "55555555-5555-4555-8555-555555555555";
 
 function makeLogger() {
   return {
@@ -47,7 +49,47 @@ const TEMPLATE_DIR = join(
   "templates",
 );
 
-function makePipelineDeps({ mode = "no-prose", strict = false } = {}) {
+function makeFhirToolFactory() {
+  return function () {
+    return {
+      checkAvailability: async () => true,
+      generate: async (config) => [
+        {
+          name: `${config.name}_patient`,
+          records: [
+            {
+              resourceType: "Patient",
+              id: FIXTURE_PATIENT_UUID,
+              name: [{ use: "official", family: "Jones", given: ["Alice"] }],
+              gender: "female",
+              birthDate: "1980-01-01",
+            },
+          ],
+        },
+        {
+          name: `${config.name}_condition`,
+          records: [
+            {
+              resourceType: "Condition",
+              subject: { reference: `urn:uuid:${FIXTURE_PATIENT_UUID}` },
+              code: {
+                coding: [{ code: "diabetes_t2", display: "Type 2 Diabetes" }],
+                text: "Type 2 Diabetes",
+              },
+              onsetDateTime: "2020-01-01",
+            },
+          ],
+        },
+      ],
+    };
+  };
+}
+
+function makePipelineDeps({
+  mode = "no-prose",
+  strict = false,
+  toolFactory = null,
+} = {}) {
   const tmpDir = mkdtempSync(join(tmpdir(), "pipeline-deps-"));
   const logger = makeLogger();
   const proseCache = new ProseCache({
@@ -72,6 +114,7 @@ function makePipelineDeps({ mode = "no-prose", strict = false } = {}) {
       renderer: new Renderer(new TemplateLoader(TEMPLATE_DIR), logger),
       validator: new ContentValidator(logger),
       proseCacheSink: new NullProseCacheSink(),
+      toolFactory,
       logger,
     },
   };
@@ -207,7 +250,7 @@ describe("Pipeline integration", () => {
     }
   });
 
-  test("validate verb does not pull datasets, raw, markdown, pathway, or write", async () => {
+  test("validate verb pulls datasets via skeleton → fhir-cross-ref (spec 1190 D12)", async () => {
     const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
     try {
       const pipeline = new Pipeline(deps);
@@ -218,11 +261,19 @@ describe("Pipeline integration", () => {
 
       assert.ok(result.ran.has("validate"));
       assert.ok(result.ran.has("enriched"));
+      // skeleton now depends on fhir-cross-ref → datasets per spec 1190
+      // design § D12. With no toolFactory wired, `datasets` short-circuits
+      // and the extra work stays O(1). When Synthea IS configured but no
+      // `fhir_microdata_html` output is declared, `datasets` still runs
+      // fully (and serializes ahead of `skeleton`); D12 accepts that cost
+      // as the alternative to a stateful post-render mutation pass.
+      assert.ok(result.ran.has("datasets"));
+      assert.ok(result.ran.has("fhir-cross-ref"));
       assert.ok(!result.ran.has("write"));
-      assert.ok(!result.ran.has("datasets"));
       assert.ok(!result.ran.has("raw"));
       assert.ok(!result.ran.has("markdown"));
       assert.ok(!result.ran.has("pathway"));
+      assert.ok(!result.ran.has("fhir-microdata-html"));
     } finally {
       rmSync(tmpDir, { recursive: true });
     }
@@ -290,6 +341,30 @@ describe("Pipeline integration", () => {
       assert.ok(paths.includes("out/clinical.jsonl"));
       // Existing knowledge files still produced
       assert.ok(paths.some((p) => p.startsWith("data/knowledge/")));
+    } finally {
+      rmSync(tmpDir, { recursive: true });
+    }
+  });
+
+  test("write merges fhir_microdata_html files when wired", async () => {
+    const { tmpDir, deps } = makePipelineDeps({
+      mode: "no-prose",
+      toolFactory: makeFhirToolFactory(),
+    });
+    try {
+      const pipeline = new Pipeline(deps);
+      const result = await pipeline.run({
+        storyPath: FHIR_FIXTURE_PATH,
+        terminal: "write",
+      });
+      assert.ok(
+        result.files.has(`data/patients/${FIXTURE_PATIENT_UUID}.html`),
+        "expected per-patient HTML file",
+      );
+      assert.ok(
+        result.files.has("data/patients/index.html"),
+        "expected patient index.html",
+      );
     } finally {
       rmSync(tmpDir, { recursive: true });
     }

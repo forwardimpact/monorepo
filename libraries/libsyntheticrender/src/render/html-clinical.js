@@ -19,22 +19,31 @@ function titleCase(str) {
   return str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function buildConditionData(conditions, trials, prose) {
-  return conditions.map((cond) => ({
-    id: cond.id,
-    name: cond.name,
-    iri: cond.iri,
-    severity: cond.severity || "",
-    icd10List: (cond.icd10 || []).map((code) => ({ code })),
-    synonymList: (cond.synonyms || []).map((synonym) => ({ synonym })),
-    trialLinks: (cond.trials || [])
-      .map((tid) => trials.find((t) => t.id === tid))
-      .filter(Boolean)
-      .map((t) => ({ iri: t.iri })),
-    prose:
-      prose.get(`clinical_condition_explainer_${cond.id}`) ||
-      `${cond.name} — patient-facing overview.`,
-  }));
+function buildConditionData(conditions, trials, prose, fhirCrossRef = null) {
+  return conditions.map((cond) => {
+    const base = {
+      id: cond.id,
+      name: cond.name,
+      iri: cond.iri,
+      severity: cond.severity || "",
+      icd10List: (cond.icd10 || []).map((code) => ({ code })),
+      synonymList: (cond.synonyms || []).map((synonym) => ({ synonym })),
+      trialLinks: (cond.trials || [])
+        .map((tid) => trials.find((t) => t.id === tid))
+        .filter(Boolean)
+        .map((t) => ({ iri: t.iri })),
+      prose:
+        prose.get(`clinical_condition_explainer_${cond.id}`) ||
+        `${cond.name} — patient-facing overview.`,
+    };
+    if (!fhirCrossRef) return base;
+    const matched = fhirCrossRef.conditionIdToPatientIris.get(cond.id);
+    if (!matched || matched.size === 0) return base;
+    return {
+      ...base,
+      affectedPatientLinks: [...matched].map((iri) => ({ iri })),
+    };
+  });
 }
 
 function buildTherapyData(content, prose, domain) {
@@ -94,24 +103,35 @@ function buildConsentData(trials, criteria, prose) {
   });
 }
 
-function buildSiteData(sites, trials, prose) {
-  return sites.map((site) => ({
-    id: site.id,
-    name: site.name,
-    iri: site.iri,
-    address: site.address || "",
-    city: site.city || "",
-    state: site.state || "",
-    country: site.country || "",
-    specialtyList: (site.specialties || []).map((specialty) => ({ specialty })),
-    activeTrialLinks: (site.trials || [])
-      .map((tid) => trials.find((t) => t.id === tid))
-      .filter((t) => t && t.status === "recruiting")
-      .map((t) => ({ iri: t.iri })),
-    prose:
-      prose.get(`clinical_site_description_${site.id}`) ||
-      `${site.name} — site information.`,
-  }));
+function buildSiteData(sites, trials, prose, fhirCrossRef = null) {
+  return sites.map((site) => {
+    const base = {
+      id: site.id,
+      name: site.name,
+      iri: site.iri,
+      address: site.address || "",
+      city: site.city || "",
+      state: site.state || "",
+      country: site.country || "",
+      specialtyList: (site.specialties || []).map((specialty) => ({
+        specialty,
+      })),
+      activeTrialLinks: (site.trials || [])
+        .map((tid) => trials.find((t) => t.id === tid))
+        .filter((t) => t && t.status === "recruiting")
+        .map((t) => ({ iri: t.iri })),
+      prose:
+        prose.get(`clinical_site_description_${site.id}`) ||
+        `${site.name} — site information.`,
+    };
+    if (!fhirCrossRef) return base;
+    const matched = fhirCrossRef.siteIdToPatientIris.get(site.id);
+    if (!matched || matched.size === 0) return base;
+    return {
+      ...base,
+      servedPatientLinks: [...matched].map((iri) => ({ iri })),
+    };
+  });
 }
 
 function buildPatientStoryData(conditions, content, prose, domain) {
@@ -143,25 +163,34 @@ function buildPatientStoryData(conditions, content, prose, domain) {
   return stories;
 }
 
-function buildTrialCardData(trials, conditions, sites) {
-  return trials.map((trial) => ({
-    id: trial.id,
-    name: trial.name,
-    iri: trial.iri,
-    protocol_id: trial.protocol_id || "",
-    phase: trial.phase || "",
-    status: trial.status || "",
-    therapeutic_area: trial.therapeutic_area || "",
-    sponsor: trial.sponsor || "",
-    conditionLinks: (trial.conditions || [])
-      .map((cid) => conditions.find((c) => c.id === cid))
-      .filter(Boolean)
-      .map((c) => ({ iri: c.iri })),
-    siteLinks: (trial.sites || [])
-      .map((sid) => sites.find((s) => s.id === sid))
-      .filter(Boolean)
-      .map((s) => ({ iri: s.iri })),
-  }));
+function buildTrialCardData(trials, conditions, sites, fhirCrossRef = null) {
+  return trials.map((trial) => {
+    const base = {
+      id: trial.id,
+      name: trial.name,
+      iri: trial.iri,
+      protocol_id: trial.protocol_id || "",
+      phase: trial.phase || "",
+      status: trial.status || "",
+      therapeutic_area: trial.therapeutic_area || "",
+      sponsor: trial.sponsor || "",
+      conditionLinks: (trial.conditions || [])
+        .map((cid) => conditions.find((c) => c.id === cid))
+        .filter(Boolean)
+        .map((c) => ({ iri: c.iri })),
+      siteLinks: (trial.sites || [])
+        .map((sid) => sites.find((s) => s.id === sid))
+        .filter(Boolean)
+        .map((s) => ({ iri: s.iri })),
+    };
+    if (!fhirCrossRef) return base;
+    const matched = fhirCrossRef.trialIriToPatientIris.get(trial.iri);
+    if (!matched || matched.size === 0) return base;
+    return {
+      ...base,
+      enrolledPatientLinks: [...matched].map((iri) => ({ iri })),
+    };
+  });
 }
 
 /**
@@ -182,6 +211,7 @@ export function renderClinicalPages(
   templates,
   domain,
   pageWrap,
+  fhirCrossRef = null,
 ) {
   const clinical = entities.clinical;
   if (!clinical) return;
@@ -192,7 +222,7 @@ export function renderClinicalPages(
     pageWrap(
       "Condition Explainers",
       templates.render("condition-explainer.html", {
-        conditions: buildConditionData(conditions, trials, prose),
+        conditions: buildConditionData(conditions, trials, prose, fhirCrossRef),
       }),
     ),
   );
@@ -232,7 +262,7 @@ export function renderClinicalPages(
     pageWrap(
       "Site Descriptions",
       templates.render("site-description.html", {
-        sites: buildSiteData(sites, trials, prose),
+        sites: buildSiteData(sites, trials, prose, fhirCrossRef),
       }),
     ),
   );
@@ -252,7 +282,7 @@ export function renderClinicalPages(
     pageWrap(
       "Trials",
       templates.render("trial-card.html", {
-        trials: buildTrialCardData(trials, conditions, sites),
+        trials: buildTrialCardData(trials, conditions, sites, fhirCrossRef),
       }),
     ),
   );

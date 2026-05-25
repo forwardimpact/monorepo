@@ -1,0 +1,44 @@
+<article
+  itemscope
+  itemtype="https://schema.org/Person"
+  itemid="{{{patientIri}}}"
+>
+  <h1 itemprop="name">{{name}}</h1>
+  {{#gender}}
+  <meta itemprop="gender" content="{{gender}}" />
+  {{/gender}} {{#birthDate}}
+  <meta itemprop="birthDate" content="{{birthDate}}" />
+  {{/birthDate}} {{#conditions}}
+  <div
+    itemprop="{{{hasCondition}}}"
+    itemscope
+    itemtype="https://schema.org/MedicalCondition"
+  >
+    <span itemprop="name">{{name}}</span>
+    {{#code}}<meta itemprop="code" content="{{code}}" />{{/code}}
+    {{#onset}}<meta itemprop="dateCreated" content="{{onset}}" />{{/onset}}
+  </div>
+  {{/conditions}} {{#procedures}}
+  <div
+    itemprop="{{{hasProcedure}}}"
+    itemscope
+    itemtype="https://schema.org/MedicalProcedure"
+  >
+    <span itemprop="name">{{name}}</span>
+    {{#code}}<meta itemprop="code" content="{{code}}" />{{/code}}
+    {{#performed}}<meta itemprop="dateCreated" content="{{performed}}" />{{/performed}}
+  </div>
+  {{/procedures}} {{#medications}}
+  <div
+    itemprop="{{{hasMedicationRequest}}}"
+    itemscope
+    itemtype="https://schema.org/DrugPrescription"
+  >
+    <span itemprop="name">{{name}}</span>
+    {{#code}}<meta itemprop="code" content="{{code}}" />{{/code}}
+    {{#authored}}<meta itemprop="dateCreated" content="{{authored}}" />{{/authored}}
+  </div>
+  {{/medications}} {{#trialLinks}}
+  <link itemprop="{{{enrolledIn}}}" href="{{{iri}}}" />
+  {{/trialLinks}}
+</article>
