@@ -46,17 +46,19 @@
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.9",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "prettier": "^3.0.0",
       },
     },
     "libraries/libcodegen": {
       "name": "@forwardimpact/libcodegen",
-      "version": "0.1.56",
+      "version": "0.1.57",
       "bin": {
         "fit-codegen": "./bin/fit-codegen.js",
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libstorage": "^0.1.53",
         "@forwardimpact/libtelemetry": "^0.1.22",
         "@forwardimpact/libutil": "^0.1.64",
@@ -88,6 +90,7 @@
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.22",
         "@hono/node-server": "^2.0.3",
         "hono": "^4.12.22",
@@ -117,6 +120,7 @@
         "@anthropic-ai/claude-agent-sdk": "0.2.112",
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.22",
         "@forwardimpact/libutil": "^0.1.0",
         "jmespath": "^0.16.0",
@@ -129,7 +133,7 @@
     },
     "libraries/libformat": {
       "name": "@forwardimpact/libformat",
-      "version": "0.1.15",
+      "version": "0.1.16",
       "dependencies": {
         "marked": "^18.0.4",
         "marked-terminal": "^7.3.0",
@@ -150,6 +154,7 @@
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libindex": "^0.1.27",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libresource": "^0.1.111",
         "@forwardimpact/libstorage": "^0.1.53",
         "@forwardimpact/libtelemetry": "^0.1.22",
@@ -210,6 +215,10 @@
         "@forwardimpact/libharness": "^0.1.5",
       },
     },
+    "libraries/libpreflight": {
+      "name": "@forwardimpact/libpreflight",
+      "version": "0.1.0",
+    },
     "libraries/libprompt": {
       "name": "@forwardimpact/libprompt",
       "version": "0.1.9",
@@ -230,6 +239,7 @@
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libsupervise": "^0.1.6",
         "@forwardimpact/libtelemetry": "^0.1.22",
       },
@@ -257,6 +267,7 @@
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.79",
         "@forwardimpact/libpolicy": "^0.1.52",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libsecret": "^0.1.16",
         "@forwardimpact/libstorage": "^0.1.53",
         "@forwardimpact/libtelemetry": "^0.1.22",
@@ -274,13 +285,14 @@
     },
     "libraries/librpc": {
       "name": "@forwardimpact/librpc",
-      "version": "0.1.99",
+      "version": "0.1.100",
       "bin": {
         "fit-unary": "./bin/fit-unary.js",
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.22",
         "@forwardimpact/libutil": "^0.1.60",
         "@grpc/grpc-js": "^1.14.4",
@@ -305,7 +317,7 @@
     },
     "libraries/libstorage": {
       "name": "@forwardimpact/libstorage",
-      "version": "0.1.78",
+      "version": "0.1.79",
       "bin": {
         "fit-storage": "./bin/fit-storage.js",
       },
@@ -314,6 +326,7 @@
         "@aws-sdk/credential-providers": "^3.1052.0",
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libsecret": "^0.1.3",
         "@forwardimpact/libtelemetry": "^0.1.22",
         "@forwardimpact/libutil": "^0.1.60",
@@ -331,6 +344,7 @@
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.22",
       },
       "devDependencies": {
@@ -394,6 +408,7 @@
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libindex": "^0.1.27",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/librepl": "^0.1.12",
         "@forwardimpact/libstorage": "^0.1.78",
         "@forwardimpact/libtype": "^0.1.75",
@@ -419,6 +434,7 @@
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.59",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libprompt": "^0.1.0",
         "@forwardimpact/libsyntheticgen": "^0.1.0",
         "@forwardimpact/libsyntheticprose": "^0.1.0",
@@ -467,6 +483,7 @@
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libstorage": "^0.1.78",
         "@forwardimpact/libtelemetry": "^0.1.22",
       },
@@ -485,6 +502,7 @@
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.79",
         "@forwardimpact/libindex": "^0.1.27",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libresource": "^0.1.111",
         "@forwardimpact/librpc": "^0.1.77",
         "@forwardimpact/libstorage": "^0.1.78",
@@ -498,13 +516,14 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.3",
+      "version": "0.2.5",
       "bin": {
         "fit-wiki": "./bin/fit-wiki.js",
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.77",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libutil": "^0.1.0",
         "@forwardimpact/libxmr": "^1.1.0",
       },
@@ -520,6 +539,7 @@
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libutil": "^0.1.0",
       },
       "devDependencies": {
@@ -564,6 +584,7 @@
         "@forwardimpact/libcodegen": "^0.1.32",
         "@forwardimpact/libconfig": "^0.1.79",
         "@forwardimpact/libformat": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/librc": "^0.1.16",
         "@forwardimpact/librepl": "^0.1.6",
         "@forwardimpact/librpc": "^0.1.77",
@@ -591,6 +612,7 @@
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libskill": "^5.0.0",
         "@forwardimpact/libtelemetry": "^0.1.33",
         "@forwardimpact/libutil": "^0.1.72",
@@ -612,6 +634,7 @@
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libsecret": "^0.1.14",
         "@forwardimpact/libsyntheticgen": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.33",
@@ -633,13 +656,14 @@
     },
     "products/outpost": {
       "name": "@forwardimpact/outpost",
-      "version": "3.1.0",
+      "version": "3.1.1",
       "bin": {
         "fit-outpost": "./bin/fit-outpost.js",
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libmacos": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.33",
       },
       "devDependencies": {
@@ -655,6 +679,7 @@
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libpack": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libskill": "^5.0.0",
         "@forwardimpact/libtelemetry": "^0.1.33",
         "@forwardimpact/libtemplate": "^0.2.0",
@@ -672,13 +697,14 @@
     },
     "products/summit": {
       "name": "@forwardimpact/summit",
-      "version": "0.1.21",
+      "version": "0.1.22",
       "bin": {
         "fit-summit": "./bin/fit-summit.js",
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libskill": "^5.0.0",
         "@forwardimpact/libtelemetry": "^0.1.33",
         "@forwardimpact/libutil": "^0.1.72",
@@ -700,6 +726,7 @@
       },
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/librpc": "^0.1.77",
         "@forwardimpact/libtelemetry": "^0.1.41",
       },
@@ -716,6 +743,7 @@
       "dependencies": {
         "@forwardimpact/libbridge": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/librpc": "^0.1.99",
         "@forwardimpact/libstorage": "^0.1.78",
         "@forwardimpact/libtelemetry": "^0.1.42",
@@ -736,6 +764,7 @@
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.58",
         "@forwardimpact/libgraph": "^0.1.49",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libproto": "^0.1.0",
         "@forwardimpact/libresource": "^0.1.89",
         "@forwardimpact/librpc": "^0.1.77",
@@ -754,6 +783,7 @@
       },
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libproto": "^0.1.0",
         "@forwardimpact/librpc": "^0.1.77",
         "@forwardimpact/libtelemetry": "^0.1.30",
@@ -774,6 +804,7 @@
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.67",
         "@forwardimpact/libmcp": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libresource": "^0.1.0",
         "@forwardimpact/librpc": "^0.1.92",
         "@forwardimpact/libtelemetry": "^0.1.35",
@@ -794,6 +825,7 @@
       "dependencies": {
         "@forwardimpact/libbridge": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/librpc": "^0.1.99",
         "@forwardimpact/libstorage": "^0.1.78",
         "@forwardimpact/libtelemetry": "^0.1.42",
@@ -811,6 +843,7 @@
       },
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libproto": "^0.1.0",
         "@forwardimpact/librpc": "^0.1.77",
         "@forwardimpact/libskill": "^5.0.0",
@@ -833,6 +866,7 @@
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.58",
         "@forwardimpact/libindex": "^0.1.27",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/librpc": "^0.1.77",
         "@forwardimpact/libstorage": "^0.1.53",
         "@forwardimpact/libtelemetry": "^0.1.41",
@@ -850,6 +884,7 @@
       },
       "dependencies": {
         "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libproto": "^0.1.0",
         "@forwardimpact/libresource": "^0.1.89",
         "@forwardimpact/librpc": "^0.1.77",
@@ -1086,6 +1121,8 @@
     "@forwardimpact/libpack": ["@forwardimpact/libpack@workspace:libraries/libpack"],
 
     "@forwardimpact/libpolicy": ["@forwardimpact/libpolicy@workspace:libraries/libpolicy"],
+
+    "@forwardimpact/libpreflight": ["@forwardimpact/libpreflight@workspace:libraries/libpreflight"],
 
     "@forwardimpact/libprompt": ["@forwardimpact/libprompt@workspace:libraries/libprompt"],
 

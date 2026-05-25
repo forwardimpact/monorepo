@@ -27,6 +27,7 @@ can read and tune via JSON.
 | **libmcp**             | Config-driven gRPC-to-MCP tool registration — expose protobuf services as agent tools without glue code.                                  |
 | **libpack**            | Pack distribution — tarballs, bare git repos, and skill discovery indices                                                                 |
 | **libpolicy**          | Access-control policy evaluation — scoped context access without per-service authorization logic.                                         |
+| **libpreflight**       | Runtime-floor preflight — fail fast with a product-authored error when the host Node is below a package's declared floor.                 |
 | **libprompt**          | Prompt templates from .prompt.md files — structured prompts without string concatenation.                                                 |
 | **libproto**           | Shared protobuf schemas — one editable source for the service contracts every product imports.                                            |
 | **librc**              | Service lifecycle management — start, stop, and check services without manual oversight.                                                  |
@@ -294,6 +295,24 @@ handles the rest. → **libeval, libterrain**
 evidence; skipping evaluation entirely; scripting the pipeline by hand;
 coordinating libraries manually; using stale fixtures and hoping they still
 apply.
+
+</job>
+
+<job user="Platform Builders" goal="Ship Predictable CLIs">
+
+## Platform Builders: Ship Predictable CLIs
+
+**Trigger:** User runs an npx CLI on an unsupported Node and sees an
+upstream-authored error.
+
+**Big Hire:** Help me enforce a runtime floor before any heavy import evaluates.
+→ **libpreflight**
+
+**Little Hire:** Help me surface a product-authored Node-version error instead
+of an upstream library's. → **libpreflight**
+
+**Competes With:** inline checks in each bin; engines-strict; install-time
+hooks.
 
 </job>
 

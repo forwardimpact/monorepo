@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import "@forwardimpact/libpreflight/node22";
+
 import { readFileSync } from "node:fs";
 import fs from "node:fs/promises";
 import {

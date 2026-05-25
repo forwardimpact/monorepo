@@ -8,7 +8,7 @@ roles, generate job definitions, and preview everything in the browser.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - npm
 - Standard data initialized (see
   [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/))

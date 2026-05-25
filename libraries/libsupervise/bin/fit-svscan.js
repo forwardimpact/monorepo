@@ -4,6 +4,8 @@
  * Listens on a Unix domain socket for control commands.
  * This is a pure supervisor - it knows nothing about service order or oneshots.
  */
+import "@forwardimpact/libpreflight/node22";
+
 import { readFileSync } from "node:fs";
 import fs from "node:fs";
 import net from "node:net";

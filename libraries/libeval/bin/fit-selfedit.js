@@ -5,6 +5,7 @@
  * libraries/libeval/README.md § fit-selfedit for the full rationale.
  */
 
+import "@forwardimpact/libpreflight/node22";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import fsPromises from "node:fs/promises";
 import { parseArgs } from "node:util";

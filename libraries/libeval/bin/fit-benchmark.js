@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import "@forwardimpact/libpreflight/node22";
+
 import { readFileSync, realpathSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
 import { createLogger } from "@forwardimpact/libtelemetry";

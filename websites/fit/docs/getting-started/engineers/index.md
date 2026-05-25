@@ -8,7 +8,7 @@ toc: false
 Get up and running with the Forward Impact CLI tools. Each guide covers one
 product from install to first use.
 
-**Prerequisites for all guides:** Node.js 18+ and npm.
+**Prerequisites for all guides:** Node.js 22+ and npm.
 
 <div class="grid">
 

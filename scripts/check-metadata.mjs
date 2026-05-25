@@ -22,7 +22,7 @@ const AUTHOR = "D. Olsson <hi@senzilla.io>";
 const LICENSE = "Apache-2.0";
 const HOMEPAGE = "https://www.forwardimpact.team";
 const REPOSITORY_URL = "git+https://github.com/forwardimpact/monorepo.git";
-const ENGINES = { bun: ">=1.2.0", node: ">=18.0.0" };
+const ENGINES = { bun: ">=1.2.0", node: ">=22.0.0" };
 const PUBLISH_CONFIG = { access: "public" };
 
 // Well-known keys in canonical order, grouped by concern. Anything outside

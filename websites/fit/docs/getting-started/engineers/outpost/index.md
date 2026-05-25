@@ -9,7 +9,7 @@ running as scheduled AI tasks in the background.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - npm
 - macOS (for Apple Mail and Calendar sync)
 - Claude Code installed via **Homebrew** (`brew install claude`) — Outpost

@@ -7,6 +7,8 @@
  * for Engineering Pathway data.
  */
 
+import "@forwardimpact/libpreflight/node22";
+
 import fs from "fs/promises";
 import { join, resolve, dirname } from "path";
 import { fileURLToPath } from "url";

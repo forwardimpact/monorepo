@@ -8,7 +8,7 @@ toc: false
 Set up the Forward Impact suite for engineering leaders. Each guide walks you
 through a single product from install to working output.
 
-**Prerequisites for all guides:** Node.js 18+ and npm.
+**Prerequisites for all guides:** Node.js 22+ and npm.
 
 <div class="grid">
 

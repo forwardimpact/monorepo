@@ -78,6 +78,7 @@
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.79",
+    "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libsecret": "^0.1.14",
     "@forwardimpact/libsyntheticgen": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.33",
@@ -98,7 +99,7 @@
   },
   "engines": {
     "bun": ">=1.2.0",
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "publishConfig": {
     "access": "public"

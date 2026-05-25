@@ -2,6 +2,8 @@
 
 // fit-terrain CLI — run with --help for usage.
 
+import "@forwardimpact/libpreflight/node22";
+
 import { readFileSync } from "node:fs";
 import { resolve, join, dirname } from "path";
 import { fileURLToPath } from "url";

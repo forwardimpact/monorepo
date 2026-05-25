@@ -3,6 +3,8 @@
  * Service manager CLI (s6-rc equivalent).
  * Communicates with svscan daemon via Unix socket.
  */
+import "@forwardimpact/libpreflight/node22";
+
 import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
 import { createInitConfig } from "@forwardimpact/libconfig";

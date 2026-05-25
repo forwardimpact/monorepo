@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import "@forwardimpact/libpreflight/node22";
+
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import fs from "node:fs";

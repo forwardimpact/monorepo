@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@hono/node-server": "^2.0.3",
     "hono": "^4.12.22",
@@ -56,7 +57,7 @@
   },
   "engines": {
     "bun": ">=1.2.0",
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "publishConfig": {
     "access": "public"

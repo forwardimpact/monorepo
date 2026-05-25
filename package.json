@@ -28,9 +28,10 @@
     "lint:fix": "biome lint --write .",
     "format": "biome format .",
     "format:fix": "biome format --write .",
-    "invariants": "bun run invariants:check-workspace-imports && bun run invariants:check-libharness",
+    "invariants": "bun run invariants:check-workspace-imports && bun run invariants:check-libharness && bun run invariants:check-node-floor",
     "invariants:check-workspace-imports": "bun scripts/check-workspace-imports.mjs",
     "invariants:check-libharness": "bun scripts/check-libharness.mjs",
+    "invariants:check-node-floor": "bun scripts/check-node-floor.mjs",
     "test": "find ./tests ./libraries ./products ./services ./.github/workflows/test ./.claude/skills/kata-interview/test -name '*.test.js' -not -path '*/node_modules/*' | xargs bun test",
     "test:e2e": "bunx playwright test",
     "generate": "fit-terrain build",
@@ -74,6 +75,6 @@
   },
   "engines": {
     "bun": ">=1.2.0",
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   }
 }

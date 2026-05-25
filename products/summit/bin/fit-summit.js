@@ -8,6 +8,8 @@
  *   npx fit-summit <command> [options]
  */
 
+import "@forwardimpact/libpreflight/node22";
+
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
