@@ -281,7 +281,7 @@ describe("msbridge service", () => {
       expect(adapter.sent).toContain("facilitator failed; see run");
     });
 
-    test("recessed verdict logs and posts only the replies (no resume yet)", async () => {
+    test("recessed verdict persists the trigger and posts only the replies", async () => {
       const token = service.callbacks.register("c-rec", { threadId: "t-rec" });
       await seedCtx(token, "t-rec", "c-rec");
       const res = await fetch(`${baseUrl}/api/callback/${token}`, {
@@ -298,6 +298,12 @@ describe("msbridge service", () => {
       expect(res.status).toBe(200);
       expect(adapter.sent).toContain("what do you think?");
       expect(adapter.sent).not.toContain("awaiting humans");
+      const stored = await service.store.loadByChannel("msteams", "t-rec");
+      expect(Object.keys(stored.open_rfcs)).toHaveLength(1);
+      expect(Object.values(stored.open_rfcs)[0].trigger).toEqual({
+        kind: "responses",
+        responses: 2,
+      });
     });
   });
 

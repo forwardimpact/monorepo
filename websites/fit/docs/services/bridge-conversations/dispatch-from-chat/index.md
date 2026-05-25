@@ -101,14 +101,18 @@ When `kata-dispatch.yml` finishes, the workflow POSTs to
    `ctx.history` as an `{role: "assistant"}` entry. If the conversation
    reference is missing the handler throws `CallbackHandlerError(410,
    "Conversation reference missing")` and the request returns 410.
-8. **Verdict application** — `#applyVerdict` branches:
+8. **Verdict application** — `#handleReply` switches on `payload.verdict`:
    - `adjourned` — replies are the whole story; the `summary` is not
      posted into the thread.
    - `failed` — the `summary` is posted into the thread *after* the
      replies as a final message.
-   - `recessed` — the bridge logs `resume not yet supported on msteams`
-     and does not start a resume timer. The replies are still posted
-     (step 7) so the user sees what the team has so far.
+   - `recessed` — the bridge calls
+     `ResumeScheduler.enterRecess(ctx, correlationId, trigger)` to
+     persist the trigger on `ctx.open_rfcs[correlationId]`. Subsequent
+     inbound messages in the same Teams thread accrue toward a
+     `responses` trigger; an `elapsed` trigger arms a timer that
+     survives a service restart via `rearm()`. The replies are still
+     posted (step 7) so the user sees what the team has so far.
 9. **Store flush** — the updated context (`last_active_at`, history,
    pending callbacks) is written to disk.
 
