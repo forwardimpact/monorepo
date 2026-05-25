@@ -81,6 +81,15 @@ bunx fit-rc restart <name>   # restart <name> and everything after it
 node --watch services/<name>/server.js   # single service without fit-rc
 ```
 
+## Runtime data
+
+All services store runtime data under `data/`. For example, `ghbridge` and
+`msbridge`:
+
+- **Logs** — `data/logs/{ghbridge,msbridge}/current`
+- **Discussion index** — `data/bridges/{ghbridge,msbridge}/discussions.jsonl`
+  (managed by `libindex`)
+
 ## Proto definitions
 
 gRPC services define their interface in `proto/<name>.proto`. After editing
