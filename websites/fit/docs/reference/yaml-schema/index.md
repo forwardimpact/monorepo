@@ -24,17 +24,22 @@ Paths are relative to `products/map/` (published as `@forwardimpact/map`).
 
 ## Entity Types
 
-| Entity       | Question                                         | File Location            | Schema                                |
-| ------------ | ------------------------------------------------ | ------------------------ | ------------------------------------- |
-| Standard     | What is this agent-aligned engineering standard? | `standard.yaml`          | `schema/json/standard.schema.json`    |
-| Levels       | What career level?                               | `levels.yaml`            | `schema/json/levels.schema.json`      |
-| Disciplines  | What kind of engineer?                           | `disciplines/{id}.yaml`  | `schema/json/discipline.schema.json`  |
-| Tracks       | Where/how do you work?                           | `tracks/{id}.yaml`       | `schema/json/track.schema.json`       |
-| Capabilities | What capability area?                            | `capabilities/{id}.yaml` | `schema/json/capability.schema.json`  |
-| Skills       | What can you do?                                 | `capabilities/{id}.yaml` | (within capability schema)            |
-| Behaviours   | How do you approach work?                        | `behaviours/{id}.yaml`   | `schema/json/behaviour.schema.json`   |
-| Drivers      | What outcomes matter?                            | `drivers.yaml`           | `schema/json/drivers.schema.json`     |
-| Questions    | How do you assess this?                          | `questions/{type}/`      | `schema/json/*-questions.schema.json` |
+| Entity                 | Question                                         | File Location                  | Schema                                          |
+| ---------------------- | ------------------------------------------------ | ------------------------------ | ----------------------------------------------- |
+| Standard               | What is this agent-aligned engineering standard? | `standard.yaml`                | `schema/json/standard.schema.json`              |
+| Levels                 | What career level?                               | `levels.yaml`                  | `schema/json/levels.schema.json`                |
+| Disciplines            | What kind of engineer?                           | `disciplines/{id}.yaml`        | `schema/json/discipline.schema.json`            |
+| Tracks                 | Where/how do you work?                           | `tracks/{id}.yaml`             | `schema/json/track.schema.json`                 |
+| Capabilities           | What capability area?                            | `capabilities/{id}.yaml`       | `schema/json/capability.schema.json`            |
+| Skills                 | What can you do?                                 | `capabilities/{id}.yaml`       | (within capability schema)                      |
+| Behaviours             | How do you approach work?                        | `behaviours/{id}.yaml`         | `schema/json/behaviour.schema.json`             |
+| Drivers                | What outcomes matter?                            | `drivers.yaml`                 | `schema/json/drivers.schema.json`               |
+| Questions              | How do you assess this?                          | `questions/{type}/`            | `schema/json/*-questions.schema.json`           |
+| Organizational Context | What facts apply to this team?                   | `organizational-context.yaml`  | `schema/json/organizational-context.schema.json` |
+
+Entity file locations are relative to your data directory — typically
+`data/pathway/`, configurable via `npx fit-map validate --data=<path>`. Schema
+paths are relative to `products/map/` in the monorepo.
 
 ---
 
