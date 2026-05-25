@@ -61,11 +61,23 @@ and it presents a store-shaped object to `Dispatcher` and
 
 | Component | Role |
 |---|---|
-| `services/svcdiscussion/` | New gRPC service. Follows the `services/CLAUDE.md` layout (server entry, implementation, `proto/`, `test/`). Owns the only on-disk discussion and origin state and runs the periodic sweep. The `svc`-prefixed directory deviates from the bare names used by `services/{trace,graph,vector}` and matches the spec's explicit naming choice. |
+| `services/svcdiscussion/` | New gRPC service. Follows the `services/CLAUDE.md` layout (server entry, implementation, `proto/`, `test/`). Owns the only on-disk discussion and origin state and runs the periodic sweep. The spec mandates the `svc`-prefixed directory name even though peer services use bare names (`services/{trace,graph,vector}`); this design honours the spec without renaming peers in the same change. |
 | `services/svcdiscussion/proto/discussion.proto` | Declares `package discussion`, `service Discussion`, message `DiscussionRecord` (deliberately not `Discussion` to avoid the codegen service/message name collision), `Origin`, `OpenRfc`, `Participant`, `ResumeTrigger`, plus a small set of request/response messages. |
 | `services/svcdiscussion/index.js` | Implements `Discussion` over two `BufferedIndex` stores constructed against one shared `StorageInterface` rooted at `data/bridges/`. The service's own config block is `service.discussion.*` (the registered name on `createServiceConfig("discussion")`). |
 | `services/{gh,ms}bridge/index.js` | Construct a `DiscussionClient` at startup via `createClient("discussion", …)`. Wrap the client in a `DiscussionAdapter` (a small in-process object) and pass that adapter wherever the old `DiscussionContextStore` instance went. ghbridge calls `client.HasOrigin` / `client.RecordOrigin` from the webhook intake and reply paths without going through the adapter. |
-| `libraries/libbridge` | Loses `discussion-context.js` and `origin-index.js`. `ResumeScheduler` is amended to stop reaching into `store.loaded`, `store.loadData()`, and `store.index.values()` (see § Key decisions). Everything else stays. |
+| `libraries/libbridge` | Loses `discussion-context.js` and `origin-index.js`. `ResumeScheduler` widens its store contract to consume `loadByCorrelation` and `listOpenRecesses` (see § Key decisions); everything else stays. |
+
+## Naming map
+
+| Surface | Identifier |
+|---|---|
+| Service directory | `services/svcdiscussion/` (per spec) |
+| npm package | `@forwardimpact/svcdiscussion` |
+| Proto package | `discussion` |
+| gRPC service | `Discussion` |
+| Generated client | `DiscussionClient` |
+| Config block | `service.discussion.*` (registered via `createServiceConfig("discussion")`) |
+| Supervisor entry name | `discussion` (bare, matching peer entries like `trace`, `graph`) |
 
 ## Discussion record on the wire
 
@@ -86,7 +98,7 @@ persisted JSONL on disk follows the proto field names.
 | `open_rfcs` | `map<string, OpenRfc>` | Correlation id → `{ trigger, opened_at, history_index_at_open, due_at }`. |
 | `pending_callbacks` | `map<string, string>` | Token → correlation id. Travels with the record per spec. |
 
-`OpenRfc.trigger` is a typed `ResumeTrigger` message — `{ kind, responses, elapsed }` — so the on-disk field name remains `trigger` (preserving the spec's "persisted record shape is unchanged" requirement). `OpenRfc.due_at` is required for `ResumeScheduler` to rearm elapsed timers after a restart.
+`OpenRfc.trigger` is a typed `ResumeTrigger` message — `{ kind, responses, elapsed }` — so the on-disk field name remains `trigger` (preserving the spec's "persisted record shape is unchanged" requirement). `OpenRfc.due_at` is encoded as `optional int64` because `ResumeScheduler.enterRecess` only sets it for `elapsed` and `either` triggers; `ResumeScheduler.rearm` keys arming on field presence, not on the proto3 default `0`.
 
 `Origin` is flat: `{ id, discussion_id, posted_at }`. Opaque per-participant metadata (Bot Framework `ConversationReference`, GitHub node metadata) rides as a JSON string because it is channel-shaped and outside this service's concern.
 
@@ -95,8 +107,8 @@ persisted JSONL on disk follows the proto field names.
 | RPC | Request | Response | Caller |
 |---|---|---|---|
 | `LoadDiscussion` | `{ channel, discussion_id }` | `DiscussionRecord` or gRPC `NOT_FOUND` | Adapter `loadByChannel`. |
-| `LoadDiscussionByCorrelation` | `{ correlation_id }` | `DiscussionRecord` or gRPC `NOT_FOUND` | Adapter `loadByCorrelation` — replaces `ResumeScheduler.#findContextWithRfc`'s linear scan over `store.index.values()`. |
-| `ListOpenRecesses` | `common.Empty` | `repeated OpenRecessRef { id, channel, discussion_id, correlation_id, due_at }` | Adapter `listOpenRecesses` — used by `ResumeScheduler.rearm()` to arm elapsed timers without iterating the whole map. |
+| `LoadDiscussionByCorrelation` | `{ correlation_id }` | `DiscussionRecord` or gRPC `NOT_FOUND` | Adapter `loadByCorrelation`. Lets `ResumeScheduler` find the owning record when an elapsed timer fires. |
+| `ListOpenRecesses` | `common.Empty` | `repeated OpenRecessRef { correlation_id, due_at }` | Adapter `listOpenRecesses`. Server-side filter: returns one entry per open RFC that has a `due_at` set. Response-only triggers are excluded because `ResumeScheduler.rearm` only arms elapsed timers. |
 | `SaveDiscussion` | `DiscussionRecord` | `common.Empty` | Adapter `save` — the single hot-path write that today is `add+flush`. |
 | `HasOrigin` | `{ id }` | `{ exists: bool }` | ghbridge's `#handleDiscussionComment` self-echo guard. |
 | `RecordOrigin` | `Origin` | `common.Empty` | ghbridge's `recordOrigin` callback inside `#handleReply`. |
@@ -112,16 +124,16 @@ persisted JSONL on disk follows the proto field names.
 | `loadByCorrelation(correlationId)` | `client.LoadDiscussionByCorrelation`, returns `null` on gRPC `NOT_FOUND`. |
 | `listOpenRecesses()` | `client.ListOpenRecesses` → array of `{ correlationId, due_at }`. |
 | `add(ctx)` | `client.SaveDiscussion(ctx)`. |
-| `flush()` | No-op. The server-side `BufferedIndex` owns batching, so a successful `SaveDiscussion` carries the same durability promise the old in-process `add+flush` did: in-memory until the next service-side flush. Crash semantics are identical to today — `svcdiscussion` losing buffered writes is the same crash window the per-bridge buffer had. |
+| `flush()` | No-op. The server-side `BufferedIndex` owns batching, so a `SaveDiscussion` returns when the record is in the service's in-memory index but not necessarily on disk. See § Key decisions on the write-barrier shift this introduces. |
 | `shutdown()` | No-op on the bridge side. The service drains its own buffer through librpc's SIGTERM handler. The previous bridge-side `store.shutdown()` flush gate disappears with the in-process buffer; bridges no longer drain anything on stop. |
 
-`Dispatcher.dispatch` only uses `.add` and `.flush` and is satisfied by this adapter unchanged. `ResumeScheduler` is amended to consume `loadByCorrelation` and `listOpenRecesses` in place of its current reaches into `store.loaded`, `store.loadData()`, and `store.index.values()`; that change keeps the resume lifecycle working over a remote backend without leaking gRPC into libbridge.
+`Dispatcher.dispatch` only uses `.add` and `.flush` and is satisfied by this adapter unchanged. `ResumeScheduler` consumes `loadByCorrelation` and `listOpenRecesses` from the adapter to drive its rearm and elapsed-fire paths; that contract widening keeps the resume lifecycle working over a remote backend without leaking gRPC into libbridge.
 
 ## Storage layout
 
 The service constructs one `StorageInterface` rooted at `bridges/`, resolved by `libstorage` to `data/bridges/` from the monorepo root, and hands it to two `BufferedIndex` instances using the existing index keys (`discussions.jsonl`, `origins.jsonl`). Both files land at the canonical paths the spec requires, owned by a single process. The discussion store keeps the current 5 s / 1000-entry buffer; the origin store keeps the current 1 s / 100-entry buffer. Both can be overridden via `service.discussion.*`.
 
-A single 60 s sweep timer evicts records older than the TTL from both indexes. The discussion side mirrors the existing 24 h `conversationTtlMs`. The origin side gains a periodic timer it did not have before — today's `OriginIndex.sweep(now)` is caller-driven; the service moves it onto the same cadence as discussions to put both indexes under one lifecycle. The origin TTL stays at 24 h.
+A single sweep timer evicts records older than the TTL from both indexes; the cadence carries over from today's `DEFAULT_SWEEP_INTERVAL_MS` (60 s). The discussion side keeps the existing 24 h `conversationTtlMs`. The origin side gains a periodic timer it did not have before — today's `OriginIndex.sweep(now)` is caller-driven; the service moves it onto the same cadence as discussions to put both indexes under one lifecycle. The origin TTL stays at 24 h.
 
 ## Key decisions
 
@@ -129,15 +141,16 @@ A single 60 s sweep timer evicts records older than the TTL from both indexes. T
 |---|---|---|---|
 | Surface shape | One `Discussion` service with seven RPCs covering both record kinds | Two services (`Discussion` + `Origin`) | Spec mandates a single interface. Matches `trace.Trace` and `graph.Graph` — one proto, one stub, one supervised process. |
 | Resume contract over gRPC | Widen the store contract with `loadByCorrelation` and `listOpenRecesses`; amend `ResumeScheduler` to use them in place of `store.loaded` / `store.loadData()` / `store.index.values()` | Keep the four-method adapter (`loadByChannel`, `add`, `flush`, `shutdown`) and let `ResumeScheduler.rearm` and `#findContextWithRfc` fail | The current `ResumeScheduler` reaches past `loadByChannel` to walk every record. A 4-method adapter cannot satisfy that. Either widen the contract or move resume into the service; widening keeps the dispatcher + scheduler composition on the bridge side, which is what the libbridge contract is designed around. |
-| Message name | `DiscussionRecord` | `Discussion` | proto3 allows `service Discussion` + `message Discussion` in the same package, but every peer service (`trace.Trace`/`Span`, `graph.Graph`/`PatternQuery`) keeps the names distinct; matching the convention avoids codegen-tool friction. |
-| Not-found channel | gRPC `NOT_FOUND` status from `LoadDiscussion` / `LoadDiscussionByCorrelation` | Sentinel empty `id` on a default-constructed `DiscussionRecord` | Status codes are how every other librpc service signals absence; the adapter translates `NOT_FOUND` to `null` so the bridge call sites read exactly as they do today. |
+| Message name | `DiscussionRecord` | `Discussion` | proto3 allows `service Discussion` + `message Discussion` in the same package, but no peer service has a message that shares its service name; matching that convention avoids codegen-tool friction. |
+| Not-found channel | gRPC `NOT_FOUND` status from `LoadDiscussion` / `LoadDiscussionByCorrelation` | Sentinel empty `id` on a default-constructed `DiscussionRecord` | No peer service currently signals absence — every other librpc method either returns a collection or is a write that does not fail with "missing." `NOT_FOUND` is the standard gRPC status for this case, and the adapter translates it to `null` so bridge call sites read exactly as they do today. |
 | Resume trigger over the wire | Typed `ResumeTrigger` message; on-record field name stays `trigger` | `string trigger_json` carrying the JSON-serialised trigger | A typed message keeps the spec's "persisted record shape is unchanged" intact — the on-disk JSONL field is still `trigger`, not `trigger_json` — and gives the service introspection over recess state if a future tool wants it. |
 | Opaque participant metadata | JSON string per participant | `google.protobuf.Struct` or first-class proto fields | The Bot Framework `ConversationReference` and GitHub node metadata are channel-shaped and outside this service's concern. A JSON string keeps the contract minimal and matches how the JSONL already round-trips these blobs. |
 | Sweep ownership | Server-internal 60 s timer plus a `Sweep` RPC for tests | Bridge-driven sweep | The TTL is store-owned, not caller-owned. A test-callable RPC keeps the integration test deterministic without exposing scheduling to production callers. The origin index gains a periodic timer it did not have before — intentional, so both indexes share one lifecycle. |
 | Origin path on ghbridge | Direct `client.HasOrigin` / `client.RecordOrigin` calls; no adapter wrapper | Wrap the client in an `OriginIndex`-shaped class in libbridge | The actual call sites are explicit; the previous `.flush()` after each reply and the `.shutdown()` on stop disappear because the service owns batching and its own lifecycle. |
 | Storage root | `createStorage("bridges")` inside the service, both indexes share it | Per-service root (`createStorage("svcdiscussion")`) with `indexKey` overrides | Lands the two files at the canonical paths the spec requires with no `indexKey` gymnastics. The bridges' previous `bridges/{ghbridge,msbridge}/` directories are not read or written by any code after cutover. |
-| Buffering / durability | Server keeps the existing `BufferedIndex` cadences; adapter `flush()` is a no-op | Per-call synchronous append, or pass-through buffering on the client | Per-call append would slow the hot path. Client-side buffering would lose state when the bridge crashes. Server-side buffering is the simplest viable choice; durability does not improve relative to today (the service can still lose buffered writes on crash), and the design is honest that the crash window moves rather than disappears. |
-| Service supervision | The product starter that bundles the bridges (today none of the shipped starters does) gains `svcdiscussion` in its `init.services` list before the bridge entries | Lazy connection with retries from the bridges | Today's bridges are not in any shipped starter; this design does not assume they are. When a starter does bundle them, `svcdiscussion` must come first so the bridges' `createClient("discussion", …)` resolves at startup. |
+| Buffering / durability | Server keeps the existing `BufferedIndex` cadences; adapter `flush()` is a no-op | Per-call synchronous append, or pass-through buffering on the client | Per-call append would slow the hot path. Client-side buffering would lose state when the bridge crashes. Server-side buffering keeps the simplest viable shape. |
+| Write-barrier semantics | `Dispatcher.dispatch` and `ResumeScheduler.#fireElapsed` treat `add` + `flush` as a hard write barrier today; under this design `add` succeeds when the record is in the service's in-memory index but not necessarily on disk, and `flush` is a no-op | Issue a synchronous server-side flush from `flush()` on every call | Today a per-bridge crash loses that bridge's unflushed buffer. Under this design a `svcdiscussion` crash loses any unflushed buffered writes from both bridges at once — the same window, larger blast radius. The plan must accept this trade or revisit the write-barrier. |
+| Service supervision | Any starter that supervises a bridge also lists `discussion` in its `init.services` ahead of the bridge entries | Lazy connection with retries from the bridges | None of the shipped starters supervise the bridges today, so the design states the conditional rule rather than naming a concrete starter. Where a starter does bundle them, `discussion` must come first so the bridges' `createClient("discussion", …)` resolves at startup. |
 
 ## What this design does not cover
 
