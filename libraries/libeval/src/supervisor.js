@@ -184,10 +184,10 @@ export function createSupervisor({
     redactor,
   });
 
-  // Block the SDK's sub-agent spawn tools on the supervisor: it should
-  // coordinate the agent through orchestration tools, not fan work out
-  // to ad-hoc Claude Code sub-agents.
-  const defaultDisallowed = ["Agent", "Task", "TaskOutput", "TaskStop"];
+  const defaultDisallowed = [
+    "Agent", "Task", "TaskOutput", "TaskStop",
+    "Bash", "Write", "Edit",
+  ];
   const disallowedTools = supervisorDisallowedTools
     ? [...new Set([...defaultDisallowed, ...supervisorDisallowedTools])]
     : defaultDisallowed;

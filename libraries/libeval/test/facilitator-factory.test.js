@@ -74,13 +74,16 @@ describe("Facilitator - createFacilitator factory", () => {
     }
   });
 
-  test("blocks sub-agent spawn tools on facilitator by default", () => {
+  test("blocks sub-agent spawn and write tools on facilitator by default", () => {
     const f = createFacilitator(baseOpts());
     assert.deepStrictEqual(f.facilitatorRunner.disallowedTools, [
       "Agent",
       "Task",
       "TaskOutput",
       "TaskStop",
+      "Bash",
+      "Write",
+      "Edit",
     ]);
     for (const agent of f.agents) {
       assert.deepStrictEqual(agent.runner.disallowedTools, []);

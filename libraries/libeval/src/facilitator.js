@@ -161,10 +161,10 @@ export function createFacilitator({
     return { name: config.name, role: config.role, runner };
   });
 
-  // Block the SDK's sub-agent spawn tools on the facilitator: its job is to
-  // coordinate participants through the libeval orchestration harness, not
-  // to fan work out to ad-hoc Claude Code sub-agents. Mirrors the supervisor.
-  const defaultDisallowed = ["Agent", "Task", "TaskOutput", "TaskStop"];
+  const defaultDisallowed = [
+    "Agent", "Task", "TaskOutput", "TaskStop",
+    "Bash", "Write", "Edit",
+  ];
   const disallowedTools = facilitatorDisallowedTools
     ? [...new Set([...defaultDisallowed, ...facilitatorDisallowedTools])]
     : defaultDisallowed;

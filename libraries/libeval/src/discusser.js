@@ -291,7 +291,10 @@ export function createDiscusser({
     return { name: config.name, role: config.role, runner };
   });
 
-  const defaultDisallowed = ["Agent", "Task", "TaskOutput", "TaskStop"];
+  const defaultDisallowed = [
+    "Agent", "Task", "TaskOutput", "TaskStop",
+    "Bash", "Write", "Edit",
+  ];
   const leadRunner = createAgentRunner({
     cwd: resolvedLeadCwd,
     query,

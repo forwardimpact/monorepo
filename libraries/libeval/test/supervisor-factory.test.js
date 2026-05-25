@@ -67,13 +67,16 @@ describe("Supervisor - createSupervisor factory", () => {
     });
   });
 
-  test("blocks sub-agent spawn tools on supervisor by default", () => {
+  test("blocks sub-agent spawn and write tools on supervisor by default", () => {
     const s = createSupervisor(baseOpts());
     assert.deepStrictEqual(s.supervisorRunner.disallowedTools, [
       "Agent",
       "Task",
       "TaskOutput",
       "TaskStop",
+      "Bash",
+      "Write",
+      "Edit",
     ]);
     assert.deepStrictEqual(s.agentRunner.disallowedTools, []);
   });
