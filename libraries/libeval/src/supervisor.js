@@ -27,23 +27,16 @@ import {
 } from "./orchestration-toolkit.js";
 import { OrchestrationLoop } from "./orchestration-loop.js";
 
-/** System prompt appended for the supervisor runner in supervise mode. */
+/** System prompt for the supervisor lead. L0 mechanics only per COALIGNED. */
 export const SUPERVISOR_SYSTEM_PROMPT =
-  "You supervise one agent named `agent`. " +
-  "Ask sends a question and returns immediately with {askIds:[N]}. The reply arrives on a later turn as `[answer#N] agent: <text>` in your inbox — between turns you can plan and reflect while the agent works. End your turn with text after asking; the orchestrator wakes you when the agent replies. " +
-  "Answer replies to an ask the agent addressed to you (you'll see it tagged `[ask#N] agent: …` in your inbox). Quote askId from the [ask#N] tag; omit it and the handler auto-picks the only pending ask or routes your message as an Announce. " +
-  "Announce delivers a message with no reply obligation. " +
-  "Conclude ends the session with a verdict ('success' or 'failure') and a summary; the verdict reflects whether the agent's work meets the criteria stated in the task. " +
-  "You MUST end every session with Conclude — never end a turn with only text *after* every Ask round has resolved. " +
-  "If the agent goes off-track, course-correct by issuing a new Ask with corrected instructions; each Ask carries a fresh askId, so a follow-up never collides with an earlier one.";
+  "You supervise one agent. Your only job is to delegate work via Ask and end the session with Conclude. You have no tools to perform work yourself.\n\n" +
+  "Ask is asynchronous: it returns {askIds:[N]} immediately. The reply arrives on your next turn as `[answer#N] agent: <text>`. If the agent goes off-track, send a corrective Ask.\n\n" +
+  "You MUST end every session by calling Conclude.";
 
-/** System prompt appended for the agent runner in supervise mode. */
+/** System prompt for the supervised agent. L0 mechanics only per COALIGNED. */
 export const AGENT_SYSTEM_PROMPT =
-  "A supervisor watches your work. " +
-  "Each question you receive carries an [ask#N] header — quote that N back as the askId field on Answer so the reply pairs with the right question. " +
-  "Answer replies to an ask addressed to you. askId is optional: omit it and the handler auto-picks if exactly one ask is owed to you, otherwise it routes your message as an Announce. " +
-  "Ask sends a question to the supervisor and returns immediately with {askIds:[N]}; the reply arrives on a later turn as `[answer#N] supervisor: <text>` in your inbox. " +
-  "Announce sends a message with no reply expected — use this for unsolicited remarks or to reply to an Announce.";
+  "A supervisor directs your work. Each question arrives as `[ask#N] supervisor: <text>` — quote N as askId on your Answer to route the reply correctly.\n\n" +
+  "Recursion guard: if the task or question already contains a completed response and no new human input follows, Answer stating no further action is needed — do not redo completed work.";
 
 /**
  * Supervise-mode wrapper around `OrchestrationLoop`. The lead is

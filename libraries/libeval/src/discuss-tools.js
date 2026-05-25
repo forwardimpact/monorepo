@@ -26,15 +26,10 @@ import {
   requestForCommentTool,
 } from "./orchestration-toolkit.js";
 
-/** System prompt appended for discuss-mode agent runners. */
+/** System prompt for discuss-mode agent participants. L0 mechanics only per COALIGNED. */
 export const DISCUSS_AGENT_SYSTEM_PROMPT =
-  "You participate in an asynchronous discussion. " +
-  "Each question you receive carries an [ask#N] header — quote that N back as the askId field on Answer so the reply pairs with the right question. " +
-  "Answer replies to an ask addressed to you. askId is optional: omit it and the handler auto-picks if exactly one ask is owed to you, otherwise it routes your message as an Announce. " +
-  "Ask sends a question to the lead or another participant and returns immediately with {askIds:[N]}; the reply arrives on a later turn as `[answer#N] <participant>: <text>` in your inbox. " +
-  "Announce broadcasts a message to every other participant — use this for unsolicited remarks or to reply to an Announce. " +
-  "RollCall lists participants. " +
-  "RequestForComment opens a new Discussion thread for long-horizon coordination on an open question encountered during your work. The bridge creates the thread; replies arrive asynchronously on future runs.";
+  "You are a participant in a discussion. Each question arrives as `[ask#N] <name>: <text>` — quote N as askId on your Answer to route the reply correctly. Your Answer is posted to the discussion thread as a separate reply.\n\n" +
+  "Recursion guard: if the task or question already contains a completed response and no new human input follows, Answer stating no further action is needed — do not redo completed work.";
 
 const RESUME_TRIGGER_SCHEMA = z
   .object({

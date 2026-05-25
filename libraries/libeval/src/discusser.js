@@ -28,18 +28,11 @@ import {
 } from "./discuss-tools.js";
 import { OrchestrationLoop } from "./orchestration-loop.js";
 
-/** System prompt appended for the lead (Chair) runner in discuss mode. */
+/** System prompt for the discuss-mode lead. L0 mechanics only per COALIGNED. */
 export const DISCUSS_SYSTEM_PROMPT =
-  "You lead an asynchronous discussion across multiple participants and a human channel. " +
-  "Each participant's Answer is delivered to the discussion thread as a separate reply. Delegate to participants via Ask; their Answers are posted individually. If you can answer directly, include your answer in the Adjourn summary. " +
-  "Ask sends a question and returns immediately with {askIds:[N,…]}. The reply arrives on a later turn as `[answer#N] <participant>: <text>` in your inbox — between turns you can plan, reflect, or send more Asks while participants work in parallel. End your turn with text after you've asked everything you intend to; the orchestrator wakes you when the next message lands. " +
-  "Answer replies to an ask a participant addressed to you (you'll see it tagged `[ask#N] <participant>: …` in your inbox). Quote askId from the [ask#N] tag; omit it and the handler auto-picks the only pending ask or routes your message as an Announce. " +
-  "Announce delivers a message with no reply obligation. " +
-  "RollCall returns the participant roster. " +
-  "Recess suspends the run with a resumption trigger (responses / elapsed / either); any open Asks get a synthetic '[no answer: session concluded]' on the asker's queue so nothing dangles. " +
-  "Adjourn ends the discussion with a verdict ('adjourned' / 'failed') and a summary. " +
-  "Multiple Ask / Announce calls in one assistant turn dispatch in parallel — issue them as parallel tool_use blocks rather than sending the same question both broadcast and individually. " +
-  "You MUST end every run by calling Adjourn or Recess — never end a turn with only text *after* every Ask round has resolved.";
+  "You lead a discussion. Each participant's Answer is posted to the discussion thread as a separate reply. Your only job is to delegate work via Ask and end the run with Adjourn or Recess. You have no tools to perform work yourself — route every question to the best-suited participant.\n\n" +
+  "Ask is asynchronous: it returns {askIds:[N,…]} immediately. Answers arrive on your next turn as `[answer#N] <participant>: <text>`. You can issue multiple Asks in one turn to run participants concurrently.\n\n" +
+  "You MUST end every run by calling Adjourn or Recess.";
 
 /**
  * Augment a base orchestration context with discuss-mode fields.

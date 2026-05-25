@@ -16,28 +16,53 @@ const SUPERVISE_PROMPTS = [
   ["SUPERVISOR_SYSTEM_PROMPT", SUPERVISOR_SYSTEM_PROMPT],
   ["AGENT_SYSTEM_PROMPT", AGENT_SYSTEM_PROMPT],
 ];
+const LEAD_PROMPTS = [
+  ["FACILITATOR_SYSTEM_PROMPT", FACILITATOR_SYSTEM_PROMPT],
+  ["SUPERVISOR_SYSTEM_PROMPT", SUPERVISOR_SYSTEM_PROMPT],
+];
+const AGENT_PROMPTS = [
+  ["FACILITATED_AGENT_SYSTEM_PROMPT", FACILITATED_AGENT_SYSTEM_PROMPT],
+  ["AGENT_SYSTEM_PROMPT", AGENT_SYSTEM_PROMPT],
+];
 const ALL_PROMPTS = [...FACILITATED_PROMPTS, ...SUPERVISE_PROMPTS];
 
-describe("SC 4 — prompts name Ask / Answer / Announce", () => {
-  test("facilitator names Ask + Announce", () => {
+describe("COALIGNED L0 — leads name Ask and their terminal tool", () => {
+  test("facilitator names Ask and Conclude", () => {
     assert.ok(FACILITATOR_SYSTEM_PROMPT.includes("Ask"));
-    assert.ok(FACILITATOR_SYSTEM_PROMPT.includes("Announce"));
+    assert.ok(FACILITATOR_SYSTEM_PROMPT.includes("Conclude"));
   });
-  test("facilitated agent names Ask + Answer + Announce", () => {
-    assert.ok(FACILITATED_AGENT_SYSTEM_PROMPT.includes("Ask"));
-    assert.ok(FACILITATED_AGENT_SYSTEM_PROMPT.includes("Answer"));
-    assert.ok(FACILITATED_AGENT_SYSTEM_PROMPT.includes("Announce"));
-  });
-  test("supervisor + agent name Ask + Answer + Announce", () => {
-    for (const [, prompt] of SUPERVISE_PROMPTS) {
-      assert.ok(prompt.includes("Ask"));
-      assert.ok(prompt.includes("Answer"));
-      assert.ok(prompt.includes("Announce"));
-    }
+  test("supervisor names Ask and Conclude", () => {
+    assert.ok(SUPERVISOR_SYSTEM_PROMPT.includes("Ask"));
+    assert.ok(SUPERVISOR_SYSTEM_PROMPT.includes("Conclude"));
   });
 });
 
-describe("SC 4 — prompts carry no enforcement phrasing", () => {
+describe("COALIGNED L0 — leads state delegation constraint", () => {
+  for (const [name, prompt] of LEAD_PROMPTS) {
+    test(`${name} contains delegation constraint`, () => {
+      assert.ok(
+        prompt.includes("no tools to perform work yourself"),
+        `${name} must state that the lead cannot do work directly`,
+      );
+    });
+  }
+});
+
+describe("COALIGNED L0 — agents name Answer and carry recursion guard", () => {
+  for (const [name, prompt] of AGENT_PROMPTS) {
+    test(`${name} names Answer`, () => {
+      assert.ok(prompt.includes("Answer"));
+    });
+    test(`${name} carries recursion guard`, () => {
+      assert.ok(
+        prompt.includes("Recursion guard"),
+        `${name} must carry the recursion guard`,
+      );
+    });
+  }
+});
+
+describe("COALIGNED L0 — prompts carry no enforcement phrasing", () => {
   const forbidden = [
     "then Answer",
     "then Share",
@@ -55,7 +80,7 @@ describe("SC 4 — prompts carry no enforcement phrasing", () => {
   }
 });
 
-describe("SC 4 — prompts are domain-agnostic", () => {
+describe("COALIGNED L0 — prompts are domain-agnostic", () => {
   const forbidden = ["kata-", "storyboard", "coaching", "Toyota", "meeting"];
   for (const [name, prompt] of ALL_PROMPTS) {
     test(`${name} free of domain vocabulary`, () => {
@@ -66,7 +91,7 @@ describe("SC 4 — prompts are domain-agnostic", () => {
   }
 });
 
-describe("SC 1 — prompts do not reference the removed Tell / Share tools", () => {
+describe("COALIGNED L0 — prompts do not reference removed Tell / Share tools", () => {
   for (const [name, prompt] of ALL_PROMPTS) {
     test(`${name} free of Tell / Share references`, () => {
       assert.ok(!prompt.includes("Tell"), `${name} contains "Tell"`);

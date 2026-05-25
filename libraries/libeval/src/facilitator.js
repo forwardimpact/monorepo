@@ -18,29 +18,16 @@ import {
 } from "./orchestration-toolkit.js";
 import { OrchestrationLoop } from "./orchestration-loop.js";
 
-/** System prompt appended for the facilitator runner. */
+/** System prompt for the facilitator lead. L0 mechanics only per COALIGNED. */
 export const FACILITATOR_SYSTEM_PROMPT =
-  "You coordinate multiple participants via these tools: " +
-  "Ask sends a question and returns immediately with {askIds:[N,…]}. The reply arrives on a later turn as `[answer#N] <participant>: <text>` in your inbox — between turns you can plan, reflect, or send more Asks while participants work in parallel. End your turn with text after you've asked everything you intend to; the orchestrator wakes you again as soon as a reply (or any message) lands. " +
-  "Answer replies to an ask a participant addressed to you (you'll see it tagged `[ask#N] <participant>: …` in your inbox). Quote askId from the [ask#N] tag; omit it and the handler auto-picks the only pending ask or routes your message as an Announce. " +
-  "Announce delivers a message with no reply obligation. " +
-  "RollCall returns the participant roster. " +
-  "Conclude ends the session with a verdict ('success' or 'failure') and a summary. " +
-  "Multiple Ask / Announce calls in one assistant turn dispatch in parallel — issue them as parallel tool_use blocks rather than sending the same question both broadcast and individually. " +
-  "You MUST end every session with Conclude — never end a turn with only text *after* every Ask round has resolved. " +
-  "If you can answer the task yourself, still call Conclude with verdict='success' and the answer as the summary. " +
-  "Follow-through: when a participant answers, verify they acted — not just acknowledged. If they deferred actionable work within their scope, send them back before you Conclude. " +
-  "Recursion guard: if the task text already contains a response from one of your participants and no new human input follows it, Conclude immediately — do not re-engage.";
+  "You are the facilitator. Your only job is to delegate work to participants via Ask and end the session with Conclude. You have no tools to perform work yourself — route every task to the best-suited participant.\n\n" +
+  "Ask is asynchronous: it returns {askIds:[N,…]} immediately. Answers arrive on your next turn as `[answer#N] <participant>: <text>`. You can issue multiple Asks in one turn to run participants concurrently.\n\n" +
+  "You MUST end every session by calling Conclude.";
 
-/** System prompt appended for facilitated agent runners. */
+/** System prompt for facilitated agent participants. L0 mechanics only per COALIGNED. */
 export const FACILITATED_AGENT_SYSTEM_PROMPT =
-  "You participate in a coordinated session. " +
-  "Each question you receive carries an [ask#N] header — quote that N back as the askId field on Answer so the reply pairs with the right question. " +
-  "Answer replies to an ask addressed to you. askId is optional: omit it and the handler auto-picks if exactly one ask is owed to you, otherwise it routes your message as an Announce. " +
-  "Ask sends a question to another participant and returns immediately with {askIds:[N]}; the reply arrives on a later turn as `[answer#N] <participant>: <text>` in your inbox. " +
-  "Announce broadcasts a message to every other participant — use this for unsolicited remarks or to reply to an Announce. " +
-  "RollCall lists participants. " +
-  "RequestForComment opens a new Discussion thread for long-horizon coordination on an open question encountered during your work. The bridge creates the thread; replies arrive asynchronously on future runs.";
+  "You are a participant. Each question arrives as `[ask#N] <name>: <text>` — quote N as askId on your Answer to route the reply correctly.\n\n" +
+  "Recursion guard: if the task or question already contains a completed response and no new human input follows, Answer stating no further action is needed — do not redo completed work.";
 
 /**
  * Facilitate-mode wrapper around `OrchestrationLoop`. The lead is named
