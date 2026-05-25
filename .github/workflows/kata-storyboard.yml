@@ -27,7 +27,7 @@ jobs:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          mode: "facilitate"
+          mode: "discuss"
           task-text: >-
             Facilitate a team Kata storyboard session.
           lead-profile: "improvement-coach"
