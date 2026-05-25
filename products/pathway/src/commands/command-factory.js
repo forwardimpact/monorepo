@@ -56,7 +56,7 @@ export function createEntityCommand({
       return handleValidate({ data, entityName, pluralName, validate });
     }
 
-    // --list: Output descriptive comma-separated lines for piping and AI agent discovery
+    // --list: Output one id per line for piping
     if (options.list) {
       return handleList(items, formatListItem);
     }
