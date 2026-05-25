@@ -30,9 +30,9 @@ npx fit-pathway discipline --list
 Example output:
 
 ```text
-software_engineering, Software Engineering, professional, platform|sre
-data_engineering, Data Engineering, professional, platform
-engineering_management, Engineering Management, management, —
+software_engineering
+data_engineering
+engineering_management
 ```
 
 List available tracks:
@@ -44,8 +44,8 @@ npx fit-pathway track --list
 Example output:
 
 ```text
-platform, Platform Engineering
-sre, Site Reliability Engineering
+platform
+sre
 ```
 
 If the new role fits an existing discipline and track, skip to

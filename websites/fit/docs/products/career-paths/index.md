@@ -32,15 +32,15 @@ npx fit-pathway discipline --list
 Expected output (your organization's values will differ):
 
 ```text
-clinical_informatics, Clinical Informatics, professional, —
-data_engineering, Data Engineering, professional, platform
-engineering_management, Engineering Management, management, —
-quality_engineering, Quality Engineering, professional, sre
-software_engineering, Software Engineering, professional, platform|sre
+clinical_informatics
+data_engineering
+engineering_management
+quality_engineering
+software_engineering
 ```
 
-The first column is the discipline ID you will use in later commands. The last
-column shows which tracks are available for that discipline.
+Each line is a discipline ID. Note the one that matches your current role; you
+will use it in later commands.
 
 List the levels:
 
@@ -49,16 +49,15 @@ npx fit-pathway level --list
 ```
 
 ```text
-J040, Associate Engineer, Team Coordinator
-J060, Engineer, Team Lead
-J070, Senior Engineer, Engineering Manager
-J080, Lead Engineer, Senior Engineering Manager
-J090, Staff Engineer, Director of Engineering
-J100, Principal Engineer, Vice President of Engineering
+J040
+J060
+J070
+J080
+J090
+J100
 ```
 
-Each row shows the level code and the professional / management title. Find
-the row that matches your current role.
+Each line is a level code. Find the one that matches your current role.
 
 If your discipline supports track specializations, list them:
 
@@ -67,10 +66,10 @@ npx fit-pathway track --list
 ```
 
 ```text
-ml_ops, ML Operations
-platform, Platform Engineering
-security, Security Engineering
-sre, Site Reliability Engineering
+ml_ops
+platform
+security
+sre
 ```
 
 Note down your discipline ID, level code, and track ID (if applicable). These
