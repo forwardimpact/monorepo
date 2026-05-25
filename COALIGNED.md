@@ -70,9 +70,11 @@ interactive runs or `libeval` prompt for agent workflows.
 
 1. **Mechanics only.** Turns, tool calls, completion signalling. No domain
    knowledge, no project context.
-2. **Harness-specific.** Each runtime supplies its own; contributors never edit
+2. **Short direct sentences.** Minimal dashes, semicolons, or mid-sentence
+   interruptions. One idea per sentence.
+3. **Harness-specific.** Each runtime supplies its own; contributors never edit
    these directly.
-3. **Invisible downstream.** The most specific layer overrides — a system prompt
+4. **Invisible downstream.** The most specific layer overrides. A system prompt
    should never compete with a skill procedure.
 
 ## L1 — Project Identity (CLAUDE.md)
