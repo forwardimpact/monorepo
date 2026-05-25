@@ -1,8 +1,5 @@
 import { spawnSync } from "node:child_process";
 
-export const GENERATED_NOTICE =
-  "<!-- Do not edit. Generated from fit-wiki refresh. -->";
-
 function defaultGh(args, options) {
   const env = options?.token
     ? { ...process.env, GH_TOKEN: options.token }
@@ -49,7 +46,7 @@ export function renderIssueList({
     process.stderr.write(
       `refresh: gh issue list failed for ${topic}:${state}\n`,
     );
-    return [GENERATED_NOTICE];
+    return [];
   }
   let issues;
   try {
@@ -58,7 +55,7 @@ export function renderIssueList({
     process.stderr.write(
       `refresh: gh issue list JSON parse failed for ${topic}:${state}\n`,
     );
-    return [GENERATED_NOTICE];
+    return [];
   }
 
   if (state === "closed") {
@@ -71,7 +68,7 @@ export function renderIssueList({
     );
   }
 
-  const lines = [GENERATED_NOTICE];
+  const lines = [];
   for (const issue of issues) {
     const tag = topic === "experiments" ? "Exp" : "Obs";
     lines.push(`- **${tag} #${issue.number} — ${issue.title}**`);

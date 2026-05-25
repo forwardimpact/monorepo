@@ -1,8 +1,11 @@
-const XMR_OPEN_RE = /^<!--\s*xmr:([^:\s]+):([^\s]+)\s*-->\s*$/;
+// Markers tolerate optional trailing text after the tag (typically an inline
+// "Do not edit. Generated from fit-wiki refresh." notice), so an open or close
+// marker can carry its own warning without needing a separate notice line.
+const XMR_OPEN_RE = /^<!--\s*xmr:([^:\s]+):(\S+)(?:\s+[^>]*?)?\s*-->\s*$/;
 const ISSUE_OPEN_RE =
-  /^<!--\s*(obstacles|experiments):(open|closed)(?::(\d+d))?\s*-->\s*$/;
-const XMR_CLOSE_RE = /^<!--\s*\/xmr\s*-->\s*$/;
-const ISSUE_CLOSE_RE = /^<!--\s*\/(obstacles|experiments)\s*-->\s*$/;
+  /^<!--\s*(obstacles|experiments):(open|closed)(?::(\d+d))?(?:\s+[^>]*?)?\s*-->\s*$/;
+const XMR_CLOSE_RE = /^<!--\s*\/xmr(?:\s+[^>]*?)?\s*-->\s*$/;
+const ISSUE_CLOSE_RE = /^<!--\s*\/(obstacles|experiments)(?:\s+[^>]*?)?\s*-->\s*$/;
 
 function openLabel(open) {
   return open.kind === "xmr" ? open.metric : open.topic;

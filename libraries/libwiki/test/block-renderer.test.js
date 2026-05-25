@@ -4,7 +4,6 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { renderBlock, BlockRenderError } from "../src/block-renderer.js";
-import { GENERATED_NOTICE } from "../src/issue-list-renderer.js";
 import { analyze, renderChart } from "@forwardimpact/libxmr";
 
 const HEADER = "date,metric,value,unit,run,note";
@@ -29,16 +28,15 @@ describe("renderBlock", () => {
       projectRoot: dir,
     });
 
-    assert.equal(lines[0], GENERATED_NOTICE);
-    assert.ok(lines[1].startsWith("**Latest:** 10"));
-    assert.ok(lines[1].includes("**Status:** predictable"));
-    assert.equal(lines[2], "");
-    assert.equal(lines[3], "```");
+    assert.ok(lines[0].startsWith("**Latest:** 10"));
+    assert.ok(lines[0].includes("**Status:** predictable"));
+    assert.equal(lines[1], "");
+    assert.equal(lines[2], "```");
 
     const report = analyze(makeCSV("findings", values));
     const m = report.metrics[0];
     const expectedChart = renderChart(m.values, m.stats, m.signals);
-    const chartContent = lines.slice(4, lines.indexOf("```", 4)).join("\n");
+    const chartContent = lines.slice(3, lines.indexOf("```", 3)).join("\n");
     assert.equal(chartContent, expectedChart);
 
     const lastLine = lines[lines.length - 1];
@@ -57,8 +55,7 @@ describe("renderBlock", () => {
       projectRoot: dir,
     });
 
-    assert.equal(lines[0], GENERATED_NOTICE);
-    assert.ok(lines[1].includes("**Status:** signals_present"));
+    assert.ok(lines[0].includes("**Status:** signals_present"));
     const signalLine = lines[lines.length - 1];
     assert.ok(signalLine.includes("xRule1") || signalLine.includes("mrRule1"));
   });
@@ -74,11 +71,10 @@ describe("renderBlock", () => {
       projectRoot: dir,
     });
 
-    assert.equal(lines[0], GENERATED_NOTICE);
-    assert.ok(lines[1].includes("**Latest:** 50"));
-    assert.ok(lines[1].includes("**Status:** insufficient_data"));
+    assert.ok(lines[0].includes("**Latest:** 50"));
+    assert.ok(lines[0].includes("**Status:** insufficient_data"));
 
-    const chartLine = lines[4];
+    const chartLine = lines[3];
     assert.ok(chartLine.includes("Insufficient data"));
     assert.ok(chartLine.includes("5 points"));
   });

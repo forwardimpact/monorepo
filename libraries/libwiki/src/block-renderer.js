@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { analyze, renderChart, MIN_POINTS } from "@forwardimpact/libxmr";
-import { GENERATED_NOTICE } from "./issue-list-renderer.js";
 
 /** Error thrown when an XmR block cannot be rendered due to missing CSV or metric. */
 export class BlockRenderError extends Error {
@@ -49,7 +48,6 @@ export function renderBlock({
   const signalLine = formatSignals(m.signals);
 
   return [
-    GENERATED_NOTICE,
     `**Latest:** ${latestValue} · **Status:** ${status}`,
     "",
     "```",

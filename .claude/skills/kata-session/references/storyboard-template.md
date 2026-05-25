@@ -36,8 +36,7 @@ threshold crossed, classification flip). Empty if nothing changed — write
 
 #### {metric_name}
 
-<!-- xmr:{metric_name}:wiki/metrics/{skill}/{YYYY}.csv -->
-<!-- Do not edit. Generated from fit-wiki refresh. -->
+<!-- xmr:{metric_name}:wiki/metrics/{skill}/{YYYY}.csv Do not edit. Generated from fit-wiki refresh. -->
 **Latest:** {value} · **Status:** {status from `bunx fit-xmr analyze`}
 
 ```
@@ -48,7 +47,7 @@ the chart.}
 
 **Signals:** {fired-rule list (`xRule1`, `xRule2`, `xRule3`, `mrRule1`), or `—`
 if none}
-<!-- /xmr -->
+<!-- /xmr Do not edit. Generated from fit-wiki refresh. -->
 
 _Note:_ {one line, only when `status` is `signals_present` or a fired rule needs
 cross-referencing to a specific event; stable metrics get no prose}.
@@ -67,17 +66,15 @@ issue; the storyboard lists are rendered from GitHub state, not hand-edited._
 
 ### Active
 
-<!-- obstacles:open -->
-<!-- Do not edit. Generated from fit-wiki refresh. -->
+<!-- obstacles:open Do not edit. Generated from fit-wiki refresh. -->
 - **Obs #NNN — [obstacle name]**
-<!-- /obstacles -->
+<!-- /obstacles Do not edit. Generated from fit-wiki refresh. -->
 
 ### Concluded (last 7 days)
 
-<!-- obstacles:closed -->
-<!-- Do not edit. Generated from fit-wiki refresh. -->
+<!-- obstacles:closed Do not edit. Generated from fit-wiki refresh. -->
 - **Obs #NNN — [obstacle name]**
-<!-- /obstacles -->
+<!-- /obstacles Do not edit. Generated from fit-wiki refresh. -->
 
 ## Experiments
 
@@ -87,17 +84,15 @@ from GitHub state, not hand-edited._
 
 ### Active
 
-<!-- experiments:open -->
-<!-- Do not edit. Generated from fit-wiki refresh. -->
+<!-- experiments:open Do not edit. Generated from fit-wiki refresh. -->
 - **Exp #NNN — [experiment name]**
-<!-- /experiments -->
+<!-- /experiments Do not edit. Generated from fit-wiki refresh. -->
 
 ### Concluded (last 7 days)
 
-<!-- experiments:closed -->
-<!-- Do not edit. Generated from fit-wiki refresh. -->
+<!-- experiments:closed Do not edit. Generated from fit-wiki refresh. -->
 - **Exp #NNN — [experiment name]**
-<!-- /experiments -->
+<!-- /experiments Do not edit. Generated from fit-wiki refresh. -->
 
 ## Retention rule
 
