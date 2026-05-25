@@ -3,10 +3,15 @@ import { spawnSync } from "node:child_process";
 export const GENERATED_NOTICE =
   "<!-- Do not edit. Generated from fit-wiki refresh. -->";
 
-function defaultGh(args) {
+function defaultGh(args, options) {
+  const env = options?.token
+    ? { ...process.env, GH_TOKEN: options.token }
+    : undefined;
   return spawnSync("gh", args, {
     encoding: "utf-8",
     stdio: ["ignore", "pipe", "pipe"],
+    cwd: options?.cwd,
+    env,
   });
 }
 
@@ -16,16 +21,18 @@ function daysAgo(today, n) {
   return d.toISOString().slice(0, 10);
 }
 
-/** Render an issue-list block for an obstacles/experiments marker. Returns markdown lines. */
+/** Render an issue-list block for an obstacles/experiments marker. Returns markdown lines. `cwd` should be the parent monorepo's project root so `gh` resolves the correct origin; `token` is the resolved GH token (e.g. via `Config.ghToken()`). */
 export function renderIssueList({
   topic,
   state,
   window,
+  cwd,
+  token,
   today = new Date(),
   gh = defaultGh,
 }) {
   const ghState = state === "closed" ? "closed" : "open";
-  const result = gh([
+  const args = [
     "issue",
     "list",
     "--label",
@@ -36,7 +43,8 @@ export function renderIssueList({
     "number,title,labels,closedAt",
     "--limit",
     "100",
-  ]);
+  ];
+  const result = gh(args, { cwd, token });
   if (result.status !== 0) {
     process.stderr.write(
       `refresh: gh issue list failed for ${topic}:${state}\n`,

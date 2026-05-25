@@ -9,6 +9,16 @@ function mockGh(stdout, status = 0) {
   return () => ({ status, stdout, stderr: "" });
 }
 
+function spyGh(stdout, status = 0) {
+  const calls = [];
+  const fn = (args, options) => {
+    calls.push({ args, options });
+    return { status, stdout, stderr: "" };
+  };
+  fn.calls = calls;
+  return fn;
+}
+
 describe("renderIssueList", () => {
   test("renders open obstacles as bullets", () => {
     const lines = renderIssueList({
@@ -58,6 +68,34 @@ describe("renderIssueList", () => {
       gh: mockGh("", 1),
     });
     assert.deepEqual(lines, [GENERATED_NOTICE]);
+  });
+
+  test("forwards cwd and token to gh when provided", () => {
+    const gh = spyGh(JSON.stringify([]));
+    renderIssueList({
+      topic: "obstacles",
+      state: "open",
+      window: null,
+      cwd: "/some/project-root",
+      token: "ghp_test",
+      gh,
+    });
+    const call = gh.calls[0];
+    assert.equal(call.options.cwd, "/some/project-root");
+    assert.equal(call.options.token, "ghp_test");
+  });
+
+  test("does not pass cwd or token when not provided", () => {
+    const gh = spyGh(JSON.stringify([]));
+    renderIssueList({
+      topic: "obstacles",
+      state: "open",
+      window: null,
+      gh,
+    });
+    const call = gh.calls[0];
+    assert.equal(call.options.cwd, undefined);
+    assert.equal(call.options.token, undefined);
   });
 
   test("honours window suffix (30d)", () => {
