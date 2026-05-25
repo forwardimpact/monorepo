@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libprompt",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Prompt templates from .prompt.md files — structured prompts without string concatenation.",
   "keywords": [
     "prompt",
