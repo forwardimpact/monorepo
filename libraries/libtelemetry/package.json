@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libtelemetry",
-  "version": "0.1.43",
+  "version": "0.1.44",
   "description": "Structured logging and trace spans — observable operations so problems surface before they escalate.",
   "keywords": [
     "logger",
