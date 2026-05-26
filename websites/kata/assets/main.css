@@ -75,10 +75,11 @@
 
   /* Typography */
   --font-display: "Roboto Slab", "Rockwell", Georgia, "Times New Roman", serif;
-  --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, sans-serif;
-  --font-mono: "IBM Plex Mono", "SF Mono", Consolas, "Liberation Mono",
-    monospace;
+  --font-sans:
+    "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  --font-mono:
+    "IBM Plex Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
 
   --text-hero-size: 4.5rem;
   --text-hero-weight: 700;
@@ -117,7 +118,8 @@
 .site-header {
   background: transparent;
   border-bottom: none;
-  transition: background var(--duration-normal) var(--ease-default),
+  transition:
+    background var(--duration-normal) var(--ease-default),
     border-color var(--duration-normal) var(--ease-default);
 }
 
@@ -393,7 +395,8 @@
   border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
-  transition: border-color var(--duration-normal) var(--ease-default),
+  transition:
+    border-color var(--duration-normal) var(--ease-default),
     transform var(--duration-normal) var(--ease-default);
 }
 
@@ -443,7 +446,8 @@
   border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
-  transition: border-color var(--duration-normal) var(--ease-default),
+  transition:
+    border-color var(--duration-normal) var(--ease-default),
     transform var(--duration-normal) var(--ease-default);
 }
 
@@ -530,7 +534,9 @@
   max-width: 640px;
   margin: 0 auto;
   overflow: hidden;
-  box-shadow: 0 24px 80px rgba(8, 7, 6, 0.15), 0 8px 24px rgba(8, 7, 6, 0.1);
+  box-shadow:
+    0 24px 80px rgba(8, 7, 6, 0.15),
+    0 8px 24px rgba(8, 7, 6, 0.1);
 }
 
 .terminal-bar {
@@ -567,7 +573,8 @@
 .terminal-line {
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 300ms var(--ease-default),
+  transition:
+    opacity 300ms var(--ease-default),
     transform 300ms var(--ease-default);
 }
 
@@ -611,7 +618,8 @@
 .stagger-item {
   opacity: 0;
   transform: translateY(12px);
-  transition: opacity 400ms var(--ease-default),
+  transition:
+    opacity 400ms var(--ease-default),
     transform 400ms var(--ease-default);
 }
 
@@ -626,7 +634,8 @@
   stroke: var(--gray-300);
   stroke-width: 1.5;
   fill: none;
-  transition: stroke var(--duration-normal) var(--ease-default),
+  transition:
+    stroke var(--duration-normal) var(--ease-default),
     stroke-width var(--duration-normal) var(--ease-default);
 }
 
