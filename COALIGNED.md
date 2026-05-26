@@ -26,7 +26,7 @@ must; experts skip them because they think they don't need to.
 
 ## The Layers
 
-Instructions span seven layers, ascending from most general (every contributor,
+Instructions span eight layers, ascending from most general (every contributor,
 every run) to most specific (one pause point). Each layer has one job. A defect
 in one layer is a different class of problem from a defect in another, and
 trace attribution depends on the separation.
@@ -36,21 +36,25 @@ trace attribution depends on the separation.
 2. **CONTRIBUTING.md** & **JTBD.md** — contribution standards and jobs. See
    [MONOREPO.md](MONOREPO.md).
 3. **Agent profile** — persona, voice, skill routing, scope constraints.
-4. **Skill procedure (SKILL.md)** — decision-making, sequencing, rationale.
-5. **Skill references (`references/`)** — data the procedure consults:
+4. **Agent references (`references/`)** — cross-cutting protocols shared across
+   agents: memory, coordination, approval.
+5. **Skill procedure (SKILL.md)** — decision-making, sequencing, rationale.
+6. **Skill references (`references/`)** — data the procedure consults:
    templates, worked examples, invariant tables, lookup data.
-6. **Checklists** — binary verification at pause points, no explanation. In
+7. **Checklists** — binary verification at pause points, no explanation. In
    SKILL.md (domain) or CONTRIBUTING.md (universal).
 
-L4/L5/L6 share a skill folder but serve different concerns: L4 is _procedural_,
-L5 is _declarative_, L6 is _verificational_. Trace attribution requires the
+L3/L4 mirror L5/L6: profiles define boundaries, agent references supply shared
+protocols; procedures define steps, skill references supply domain data. L5/L6/L7
+share a skill folder but serve different concerns: L5 is _procedural_, L6 is
+_declarative_, L7 is _verificational_. Trace attribution requires the
 separation — "wrong procedure" is a different class of defect from "stale data"
 or "missing verification."
 
 ### Layer Rules
 
 - No layer restates another. When two layers mention the same tool, separate by
-  voice: L0 describes ("ToolX sends a message"), L4 directs ("Use ToolX to
+  voice: L0 describes ("ToolX sends a message"), L5 directs ("Use ToolX to
   deliver the report").
 - Contributors follow the most specific layer — a complete skill procedure makes
   system-level tool descriptions invisible.
@@ -96,18 +100,20 @@ scope constraints.
 ### Properties of Good Agent Profiles
 
 1. **Boundaries, not steps.** Defines scope and persona — task procedures belong
-   in L4.
+   in L5.
 2. **One persona per profile.** Mixing personas creates ambiguity about voice,
    scope, and accountability.
 3. **Minimal.** Every line loads on every run. Include scope constraints and
-   skill routing; push everything else to L4 or L5.
+   skill routing; push everything else to L5 or L6.
 
-### Agent References
+## L4 — Agent Reference
 
 Read on demand when a profile or procedure cites them. Co-located in
-`.claude/agents/references/<name>.md`. Same declarative role as L5 skill
+`.claude/agents/references/<name>.md`. Same declarative role as L6 skill
 references but shared across agents — cross-cutting protocols (memory,
 coordination, approval) that no single skill owns.
+
+### Properties of Good Agent References
 
 1. **Declarative, cross-cutting.** Protocols and tables shared by multiple
    agents. If only one skill consults it, put it in that skill's `references/`.
@@ -116,7 +122,7 @@ coordination, approval) that no single skill owns.
 3. **On-demand only.** Never auto-loaded. If a profile always needs the
    content, fold it into the profile or the calling skill.
 
-## L4 — Skill Procedure (SKILL.md)
+## L5 — Skill Procedure (SKILL.md)
 
 Auto-loaded per skill invocation. The procedure is the complete instruction set
 for one domain.
@@ -128,11 +134,11 @@ for one domain.
 2. **Imperative voice.** Directs action ("Use X to do Y"), not describes
    capability ("X can be used to do Y").
 3. **Decision-making, not data.** Sequencing, rationale, and judgment calls.
-   Push templates, examples, and data tables to L5.
+   Push templates, examples, and data tables to L6.
 4. **Self-contained at invocation.** Auto-loaded, no external reads required to
    begin work. References are consulted mid-procedure, not prerequisites.
 
-## L5 — Skill References
+## L6 — Skill References
 
 Read on demand when the procedure calls for them. Co-located in
 `references/<name>.md` or `scripts/<name>.sh|.mjs`.
@@ -140,13 +146,13 @@ Read on demand when the procedure calls for them. Co-located in
 ### Properties of Good References
 
 1. **Declarative, not procedural.** Templates, worked examples, invariant
-   tables, lookup data. Prescribing steps belongs in L4.
+   tables, lookup data. Prescribing steps belongs in L5.
 2. **Independently correct.** A stale reference is a different defect class from
    a wrong procedure — trace attribution requires the separation.
 3. **On-demand only.** Never auto-loaded. If a reference is always needed, its
    content should move into the procedure.
 
-## L6 — Checklists
+## L7 — Checklists
 
 Binary verification at pause points. Two types gate natural pause points; using
 the wrong type at the wrong moment undermines the checklist's purpose.
@@ -164,7 +170,7 @@ independent checks; skilled contributors work fluidly, not interrupted mid-flow.
 | Before starting work     | READ-DO    | Load constraints into memory |
 | Before crossing boundary | DO-CONFIRM | Verify nothing was missed    |
 
-The boundary with L4 is strict: if a contributor needs an item to _learn_ what
+The boundary with L5 is strict: if a contributor needs an item to _learn_ what
 to do, it belongs in the procedure; if it only confirms a known step was done,
 it belongs in the checklist.
 
@@ -230,14 +236,14 @@ enforced by `coaligned instructions` (see `libraries/libcoaligned/`):
 | L1 subdir CLAUDE.md          | ≤ 128 lines | on demand        |
 | L2 CONTRIBUTING.md & JTBD.md | ≤ 256 lines | on demand        |
 | L3 Agent profile             | ≤ 72 lines  | auto (every run) |
-| L3 Agent reference           | ≤ 192 lines | on demand        |
-| L4 SKILL.md                  | ≤ 192 lines | auto (per skill) |
-| L5 Skill reference file      | ≤ 128 lines | on demand        |
-| L6 Checklist (per block)     | ≤ 9 items   | auto (per skill) |
+| L4 Agent reference           | ≤ 192 lines | on demand        |
+| L5 SKILL.md                  | ≤ 192 lines | auto (per skill) |
+| L6 Skill reference file      | ≤ 128 lines | on demand        |
+| L7 Checklist (per block)     | ≤ 9 items   | auto (per skill) |
 
 The root `CLAUDE.md` carries project identity and is auto-loaded every run.
 Subdirectory `CLAUDE.md` files are read on demand when work enters that
 directory — they extend the root with directory-local conventions and must
 stay tight so they layer cleanly. L1 subdir is capped at 128 lines and 768
-words; L6 is gated by item count, not lines — wrapped-line length is a
+words; L7 is gated by item count, not lines — wrapped-line length is a
 formatting artifact, not cognitive load.

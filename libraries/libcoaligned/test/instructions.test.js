@@ -111,10 +111,10 @@ describe("checkInstructions", () => {
       ].join("\n");
       await writeFile(join(root, ".claude/skills/demo/SKILL.md"), skill);
       const findings = await checkInstructions({ root });
-      const f = findings.find((x) => x.id === "L6.too-many-items");
+      const f = findings.find((x) => x.id === "L7.too-many-items");
       assert.ok(
         f,
-        `expected an L6.too-many-items finding, got: ${JSON.stringify(findings)}`,
+        `expected an L7.too-many-items finding, got: ${JSON.stringify(findings)}`,
       );
       assert.match(f.message, /12 items/);
       assert.ok(f.path.endsWith(".claude/skills/demo/SKILL.md"));

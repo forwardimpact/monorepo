@@ -14,8 +14,8 @@ const SKIP_DIRS = new Set([
   "worktrees",
 ]);
 
-const L6_MAX_ITEMS = 9;
-const L6_MAX_WORDS_PER_ITEM = 32;
+const L7_MAX_ITEMS = 9;
+const L7_MAX_WORDS_PER_ITEM = 32;
 
 const CHECKLIST_RE =
   /<(read_do_checklist|do_confirm_checklist)\b[^>]*>([\s\S]*?)<\/\1>/g;
@@ -159,21 +159,21 @@ async function buildLayers(root) {
         files: await findAgentProfiles(root, claudeDirs),
       },
       {
-        id: "L3",
+        id: "L4",
         name: "agent reference",
         maxLines: 192,
         maxWords: 1280,
         files: await findAgentReferences(root, claudeDirs),
       },
       {
-        id: "L4",
+        id: "L5",
         name: "skill procedure",
         maxLines: 192,
         maxWords: 1280,
         files: skillDirs.map((d) => `${d}/SKILL.md`),
       },
       {
-        id: "L5",
+        id: "L6",
         name: "skill reference",
         maxLines: 128,
         maxWords: 768,
@@ -261,29 +261,29 @@ export const INSTRUCTION_RULES = [
     hint: HINT_LAYER_BUDGET,
   },
   {
-    id: "L6.too-many-items",
+    id: "L7.too-many-items",
     scope: "checklist-block",
     severity: "fail",
     check: (s) =>
-      s.items.length > L6_MAX_ITEMS
-        ? { count: s.items.length, max: L6_MAX_ITEMS }
+      s.items.length > L7_MAX_ITEMS
+        ? { count: s.items.length, max: L7_MAX_ITEMS }
         : null,
     message: (s, r) =>
       `checklist #${s.blockIndex} (${s.type}) has ${r.count} items (max ${r.max})`,
     hint: "split the checklist into multiple sections, or remove items not load-bearing for the goal",
   },
   {
-    id: "L6.item-too-many-words",
+    id: "L7.item-too-many-words",
     scope: "checklist-block",
     severity: "fail",
     check: (s) => {
       const offenders = [];
       s.items.forEach((item, i) => {
-        if (item.words > L6_MAX_WORDS_PER_ITEM) {
+        if (item.words > L7_MAX_WORDS_PER_ITEM) {
           offenders.push({
             itemIndex: i + 1,
             words: item.words,
-            max: L6_MAX_WORDS_PER_ITEM,
+            max: L7_MAX_WORDS_PER_ITEM,
           });
         }
       });
@@ -298,7 +298,7 @@ export const INSTRUCTION_RULES = [
 // -- Public entry --------------------------------------------------------
 
 /**
- * Walk the repo rooted at `root`, applying the L1–L6 caps from COALIGNED.md.
+ * Walk the repo rooted at `root`, applying the L1–L7 caps from COALIGNED.md.
  * Each layer is gated by a line cap AND a word cap; either breach fails.
  *
  * @param {{ root: string }} options
