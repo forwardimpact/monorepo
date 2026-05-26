@@ -29,19 +29,17 @@ Two consequences:
 2. **The chosen target is not a user-facing CLI.** Service binaries
    are daemons brought up by `fit-rc` (see
    [`services/CLAUDE.md` § Running services](../../services/CLAUDE.md)).
-   The gear bundle additionally packages many non-daemon CLIs
-   (the full list lives in `justfile`'s `build-app-gear` recipe;
-   examples include `fit-codegen`, `fit-doc`, `fit-xmr`, `fit-rc`,
-   and `fit-trace`) whose entry points do implement `--help`. The
-   smoke gate's job is to exercise the contract a brew-installing
-   user relies on; today it exercises one the bundle does not
-   advertise.
+   The gear bundle additionally packages many non-daemon CLIs (the
+   full list lives in `justfile`'s `build-app-gear` recipe) whose
+   entry points do implement `--help`. The smoke gate's job is to
+   exercise the contract a brew-installing user relies on; today it
+   exercises one the bundle does not advertise.
 
-This is one of four brew-publish blockers filed 2026-05-19 within a
-few hours of each other (#1036 outpost cdhash drift, #1038 pathway
-map resolution, #1039 gear `$util.Long`, #1041 this issue). The
-other three are mechanism choices triaged as fix-shape work; this
-one is the success-criteria-shaped question: **what does the brew
+This is one of four brew-publish blockers filed the same day
+2026-05-19 (#1036 outpost cdhash drift, #1038 pathway map
+resolution, #1039 gear `$util.Long`, #1041 this issue). The other
+three are mechanism choices triaged as fix-shape work; this one
+is the success-criteria-shaped question: **what does the brew
 smoke gate owe?**
 
 ## Why now
@@ -74,12 +72,15 @@ is reopened as option (c) below.
 
 ## Strategic position
 
-The brew smoke gate validates **competence of the user-facing CLI
-surface in the gear bundle** — that a brew-installing user can
-immediately run at least one CLI from the bundle. It does **not**
-validate the broader property that every binary on `PATH` answers
-`--help` (that is spec 600 SC1's full scope, separable from the
-release-time gate).
+The brew smoke gate validates that **at least one user-facing CLI in
+the gear bundle answers `--help` cleanly** — the contract a
+brew-installing user exercises on day one. It does **not** validate
+that every binary on `PATH` answers `--help` (that is spec 600 SC1's
+full scope, separable from the release-time gate), and it does
+not claim full coverage of the bundle's CLI surface. Strengthening
+coverage (sample size, representativeness from the bundle's
+`--extra-exec` list) is a separable widening of the same gate that
+the design can revisit if a wider sample becomes load-bearing.
 
 Three options were sketched in issue #1041:
 
@@ -87,7 +88,7 @@ Three options were sketched in issue #1041:
 |---|---|---|
 | (a) Smoke gate exercises a user-facing CLI from the bundle (one or more) | **Direction accepted** | Matches the contract brew-installing users exercise on day one; uses binaries the bundle already ships and that already implement `--help`. Identity and cardinality of the chosen binaries are design decisions |
 | (b) Inject a dummy `SERVICE_SECRET` so `fit-svcgraph` proceeds past the auth check | Rejected | Does not solve the underlying defect (service binaries do not handle `--help`); allowing module-init to proceed pulls the gate forward past the auth wall and into `server.start()`, which calls `bindAsync` on a configured host/port — replacing a deterministic module-init throw with a flakier port-bind/network surface |
-| (c) Extend service entry points to parse argv and answer `--help` before module-init runs | Out of scope (separable) | Real surface bug and the right path to bring service binaries into spec 600 SC1's property; cross-cuts all five gear-bundled `services/*` entry points and is driven by a different product question (whether daemons should be self-describing without runtime config); reopen as its own spec when load-bearing |
+| (c) Extend service entry points to parse argv and answer `--help` before module-init runs | Out of scope (separable) | Real surface bug and the right path to bring service binaries into spec 600 SC1's property; cross-cuts all five gear-bundled `services/*` entry points and is driven by a different product question (whether daemons should be self-describing without runtime config). Concrete reopen triggers: (i) the first inbound issue from a brew user reporting `fit-svc* --help` crash on `PATH`, or (ii) any `services/{graph,mcp,pathway,trace,vector}` binary being added to a `--primary-exec` slot or being documented as user-invokable outside `fit-rc` |
 
 ## Scope
 
@@ -98,7 +99,7 @@ Three options were sketched in issue #1041:
 | | Which specific CLI (or CLIs) become the smoke target — design decision; the spec constrains the property, not the identity or count |
 | | The `primary-exec` choice in `build-app-gear`. The smoke step today reads `Contents/MacOS/fit-svcgraph` (the primary-exec). Whether the design realigns primary-exec to a user-facing CLI, or instead targets an extra-exec from elsewhere in the bundle layout, is a design decision |
 | | Brew smoke patterns for non-gear shared bundles (none exist today; this contract would extend if they emerge) |
-| | The cdhash determinism check in the same workflow. The check is already present; gear-bundle determinism is not the contract this spec restores (spec 1170 is explicitly outpost-only and lists gear among bundles where determinism is "a separate effort if and when it becomes load-bearing") |
+| | The cdhash determinism check in the same workflow. The check is already present; gear-bundle determinism is not the contract this spec restores. Spec 1170 is explicitly outpost-only; its closing note that non-outpost macOS bundles are "a separate effort if and when it becomes load-bearing" applies to all six non-outpost bundles (not gear specifically) and is paraphrased here only to confirm gear sits outside spec 1170's scope |
 
 ## Success criteria
 
@@ -108,38 +109,48 @@ Three options were sketched in issue #1041:
    configuration environment variables. *Verified by:* the chosen
    binary exits zero and prints help when invoked as
    `env -i HOME=$HOME PATH=$PATH <binary> --help` from a working
-   directory outside the monorepo (so libconfig's project finder
-   does not walk into a `.env`).
-2. A `gear@v*` tag pushed from `main` after this change produces a
-   `publish-brew.yml` run whose `Smoke test` step exits zero.
-   *Verified by:* `gh run list --workflow=publish-brew.yml
-   --status=success` returns at least one run matching a `gear@v*`
-   tag pushed after the merge. (This is a post-merge release-time
-   observation, not a pre-merge gate; the pre-merge gate is the
-   property in SC1.)
-3. The chosen smoke target satisfies the libraries audience contract
-   in [`libraries/CLAUDE.md` § Audience](../../libraries/CLAUDE.md)
-   — its `--help` output is self-contained, with no relative paths
-   into the monorepo and no insider tooling references as user
-   prerequisites. *Verified by:* the chosen binary's `--help` is
-   reviewed against `libraries/CLAUDE.md § Audience` during the
-   design or implementation phase.
-4. The `Verify cdhash stability` step that already runs after the
-   smoke step in the same workflow continues to pass on the
-   `kind=gear` branch after the smoke-target change. *Verified by:*
-   the workflow run that satisfies SC2 shows the `Verify cdhash
-   stability` step still passing. (This SC documents non-regression
-   on an existing check, not a new requirement this spec introduces.)
+   directory outside the monorepo. (The invocation starts from an
+   empty environment and restores only `HOME` and `PATH`, which is
+   what `env -i` already does — no other variables are implied.)
+2. The first `Verify cdhash stability` step the workflow executes on
+   a `kind=gear` branch (i.e. on the first `gear@v*` tag pushed after
+   this change reaches `main`, on which the smoke step exits zero
+   per SC1) exits zero. *Verified by:* the workflow run for that tag
+   shows both `Smoke test` and `Verify cdhash stability` passing on
+   `kind=gear`. (Pre-this-spec, the cdhash step never executed on
+   `kind=gear` because `Smoke test` failed first — so this is the
+   first executable observation of the existing check on gear, not
+   a non-regression claim.)
+
+### Design-phase checklist (not pre-merge gates)
+
+The following are review-time decisions for the implementation,
+listed here so the spec's "what the smoke gate owes" framing is
+complete. They are not mechanically verifiable from a CI script and
+should be checked during design or implementation review rather
+than gated on.
+
+- **D1.** The chosen smoke target satisfies the libraries audience
+  contract in [`libraries/CLAUDE.md` § Audience](../../libraries/CLAUDE.md)
+  — its `--help` output is self-contained, with no relative paths
+  into the monorepo and no insider tooling references as user
+  prerequisites. Reviewed against that section during the design
+  or implementation phase.
+- **D2.** The successful gear release that exercises SC1+SC2 is
+  observable post-merge. *Tracked by:* `gh run list
+  --workflow=publish-brew.yml --status=success` returning at least
+  one run matching a `gear@v*` tag pushed after the merge. This is a
+  release-time verification of the same property SC1 gates pre-merge,
+  not a separate criterion.
 
 ## Risks
 
 | Risk | Mitigation |
 |---|---|
 | The chosen CLI develops a module-init regression and the gear lane goes red on an unrelated release | This is the failure mode the smoke gate is supposed to catch — the gate stays useful and observable |
-| Switching the smoke target hides daemon-binary regressions that would have surfaced via `fit-svcgraph` today | Service-binary module-init is exercised by service tests on `main`; the bundled-binary surface is a separate concern that option (c) addresses. The unit/integration coverage does not fully substitute for the bundled-binary smoke surface, and this gap is named in option (c) as the reopen path |
+| Switching the smoke target leaves the `fit-svc*` subset uncovered on two fronts at once — the bundled-binary smoke surface no longer catches their regressions, and spec 600 SC1's "every CLI surfaced by the bundle answers --help" property remains unsatisfied for them after this spec lands | Service-binary module-init is exercised by service tests on `main`; the unit/integration coverage does not fully substitute for the bundled-binary smoke surface. Both halves of the gap (regression-catching surface and the SC1 property) are recorded together as the reopen path option (c) closes |
 | The chosen CLI is removed from the gear bundle in a future refactor, silently breaking the smoke step | The smoke step's binary name and the bundle's binary list must agree by construction. Coupling them (e.g. parameterising the smoke target from the bundle manifest) is a design decision; this risk row records the requirement |
-| A brew user runs `fit-svc* --help` from `PATH` and observes a crash, since the gear cask's binary stanzas surface daemon binaries directly | Acknowledged; the bundle's documented contract is "run daemons via `fit-rc`", not "every binary on `PATH` is self-describing". Option (c) is the reopen path if this failure mode becomes a recurring support cost |
-| Spec 600 SC1's "every CLI surfaced by the bundle answers --help" property remains unsatisfied for the `fit-svc*` subset after this spec lands | Recorded as an explicit follow-on; option (c) is the spec that closes it |
+| A brew user runs `fit-svc* --help` from `PATH` and observes a crash, since the gear cask's binary stanzas surface daemon binaries directly | Acknowledged; the bundle's documented contract is "run daemons via `fit-rc`", not "every binary on `PATH` is self-describing". Option (c)'s concrete triggers (first inbound report, or a daemon binary entering `--primary-exec`) are the reopen path if this failure mode becomes load-bearing |
 
 ## References
 
