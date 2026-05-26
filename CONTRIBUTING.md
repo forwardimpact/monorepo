@@ -38,7 +38,7 @@ Entry gate — read every item before starting.
 
 <read_do_checklist goal="Internalize constraints before writing code">
 
-- [ ] **Understand the task.** What is it actually asking? Which files will I
+- [ ] **Understand the task.** What is it asking? Which files will I
       touch, and which will I not?
 - [ ] **Smallest plan.** No unrequested features, abstractions, or refactors. If
       it isn't asked for, don't add it.
@@ -89,7 +89,7 @@ Exit gate — verify every item before committing.
 ### Monorepo layout
 
 ```
-.claude/       # agent and skills, edited via scripts/claude-write.sh
+.claude/       # agent and skills, edited via `bunx fit-selfedit`
 products/
   map/         # fit-map — data product, validation, schema, starter YAML
   pathway/     # fit-pathway — web app, CLI, formatters
@@ -151,7 +151,7 @@ path from `config/config.example.json`), plus `proto/`, `src/`, `test/`, and
 ### `.claude/` — agent configuration
 
 `Edit` and `Write` are denied on `.claude/**` paths. Use
-[`scripts/claude-write.sh`](.claude/agents/references/self-improvement.md)
+[`bunx fit-selfedit`](.claude/agents/references/self-improvement.md)
 instead.
 
 ## Pull Request Workflow
@@ -161,7 +161,7 @@ commit, push, and open a PR before finishing a task; a local commit on an
 ephemeral runner is lost work, and the PR URL is the only valid "done" signal.
 
 **Exception:** the release engineer may push trivial CI fixes (formatting, lint,
-lock file drift) that `bun run check:fix` can resolve directly to `main`. See
+lockfile drift) that `bun run check:fix` can resolve directly to `main`. See
 [.claude/agents/release-engineer.md](.claude/agents/release-engineer.md).
 
 ## Git Conventions

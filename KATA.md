@@ -366,9 +366,10 @@ issues, CI status, or wiki summaries before doing anything skill-specific.
 
 Beyond that, the following apply to every trace:
 
-- **Sandbox discipline** — `dangerouslyDisableSandbox: true` is only used to
-  invoke `scripts/claude-write.sh`. Any other sandbox-disabled call is
-  high-severity.
+- **`.claude/**` writes via `fit-selfedit`** — every write under `.claude/**`
+  is performed by `bunx fit-selfedit`. Any other mechanism — direct
+  `Edit`/`Write` on `.claude/**` or a sandbox-disabled `Bash` write targeting
+  those paths — is high-severity.
 - **Wiki questions cite Discussions** — wiki entries containing open questions
   ("?", "decide whether", "needs review") must link to a Discussion.
 - **Non-wiki outputs cited in weekly log** — every PR, issue comment, or
