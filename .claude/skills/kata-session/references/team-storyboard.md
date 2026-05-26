@@ -69,7 +69,7 @@ never paste charts by hand.
 
 Above the agent-domain sections, write a tight `### Headlines` list naming only
 metrics whose status changed since the last meeting. Agents add cross-reference
-notes (e.g. "matches the recent burst seen in a related PR") only where they help.
+notes (e.g. "matches a related PR burst") only where they help.
 
 ## Active / Concluded partition
 
