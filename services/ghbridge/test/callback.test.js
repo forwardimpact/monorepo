@@ -173,10 +173,10 @@ describe("ghbridge callback handler", () => {
     const res = await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
       verdict: "recessed",
-      summary: "awaiting responses",
+      summary: "awaiting replies",
       run_url: "https://github.com/owner/repo/actions/runs/1",
       replies: [{ body: "what do others think?" }],
-      trigger: { kind: "responses", responses: 2 },
+      trigger: { kind: "missing_input", replies: 2 },
     });
     expect(res.status).toBe(200);
     const stored = await ctx.service.store.loadByChannel(
@@ -185,7 +185,7 @@ describe("ghbridge callback handler", () => {
     );
     const rfcs = Object.values(stored.open_rfcs);
     expect(rfcs).toHaveLength(1);
-    expect(rfcs[0].trigger).toEqual({ kind: "responses", responses: 2 });
+    expect(rfcs[0].trigger).toEqual({ kind: "missing_input", replies: 2 });
     expect(typeof rfcs[0].history_index_at_open).toBe("number");
   });
 

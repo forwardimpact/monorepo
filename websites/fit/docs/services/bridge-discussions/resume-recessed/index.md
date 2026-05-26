@@ -1,6 +1,6 @@
 ---
 title: Resume a Recessed RFC When a Trigger Fires
-description: Trace the suspend/resume contract — how a `recessed` verdict persists a trigger, accumulates responses, and re-dispatches with `resume_context` when the trigger condition is met.
+description: Trace the suspend/resume contract — how a `recessed` verdict persists a trigger, accumulates replies, and re-dispatches with `resume_context` when the trigger condition is met.
 ---
 
 An RFC posted as a GitHub Discussion may need to wait. The lead reads the
@@ -27,14 +27,14 @@ startup, see
 ## Trigger kinds
 
 A `recessed` callback carries a `trigger` object that `ResumeScheduler`
-evaluates via `evaluateTrigger` (from `@forwardimpact/libbridge`). Three
-kinds are supported:
+evaluates via `evaluateTrigger` (from `@forwardimpact/libbridge`). The
+kind names the lead's intent for the recess:
 
-| Kind        | Fires when                                                                              |
-| ----------- | --------------------------------------------------------------------------------------- |
-| `responses` | A configured number of new history entries have accrued since the RFC opened.           |
-| `elapsed`   | An ISO-8601 duration (`P1D`, `PT12H`, `P1DT6H`) has passed since the RFC opened.        |
-| `either`    | Whichever of a `responses` count and an `elapsed` duration fires first.                 |
+| Kind                 | Fires when                                                                                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `missing_input`      | At least `replies` new history entries have accrued on the dispatching thread since the RFC opened.                                                   |
+| `elapsed`            | An ISO-8601 duration (`P1D`, `PT12H`, `P1DT6H`) has passed since the RFC opened.                                                                      |
+| `escalation_needed`  | Reserved for future use. The schema accepts `{ kind: "escalation_needed", signal: "<name>" }`, but the scheduler throws until signal-based resume ships. |
 
 Triggers are evaluated against the caller's clock (libbridge's
 `evaluateTrigger(trigger, observed, now)` takes `now` as a parameter), so
@@ -53,14 +53,13 @@ When the bridge receives a `recessed` callback, the libbridge
    verdict, it exists only for trace/debug purposes.
 2. **`ResumeScheduler.enterRecess(ctx, correlation_id, trigger)`**
    records `open_rfcs[correlation_id] = { trigger, opened_at, history_index_at_open }`.
-3. **For an `elapsed` or `either` trigger** with an `elapsed` field, the
-   scheduler computes `due_at = opened_at + parseIsoDuration(elapsed)`,
-   stores it on the rfc, and arms the embedded `ElapsedScheduler`. When
-   it fires the scheduler re-dispatches without further inbound
-   activity.
-4. **For a `responses` trigger** (or `either` without an `elapsed`
-   field), no timer is armed — every subsequent comment will re-evaluate
-   the trigger inside `processInbound(ctx)`.
+3. **For an `elapsed` trigger**, the scheduler computes
+   `due_at = opened_at + parseIsoDuration(elapsed)`, stores it on the
+   rfc, and arms the embedded `ElapsedScheduler`. When it fires the
+   scheduler re-dispatches without further inbound activity.
+4. **For a `missing_input` trigger**, no timer is armed — every
+   subsequent comment will re-evaluate the trigger inside
+   `processInbound(ctx)`.
 5. **The "EYES" reaction is removed** by `Acknowledgement.finish(...)`
    before the handler returns, signalling that the workflow run for this
    correlation id is complete.
@@ -74,7 +73,7 @@ A trigger fires in one of two places:
 
 - **Inbound comment path** — `#handleDiscussionComment` calls
   `resume.processInbound(ctx)` for every comment. The scheduler walks
-  `ctx.open_rfcs`, computes `observed = { responses: history.length - history_index_at_open, opened_at }`,
+  `ctx.open_rfcs`, computes `observed = { replies: history.length - history_index_at_open, opened_at }`,
   and feeds each `(trigger, observed, Date.now())` triple to
   `evaluateTrigger`. Fired RFCs are re-dispatched and cancelled.
 - **Elapsed timer path** — `ElapsedScheduler` (embedded in
@@ -100,10 +99,10 @@ Either way, re-dispatch goes through the shared `Dispatcher`:
    `adjourned` with final replies, but a second `recessed` is also valid
    — `ResumeScheduler` will track the new RFC the same way.
 
-## Accumulating responses without firing
+## Accumulating replies without firing
 
 If an RFC is open and a comment arrives but the trigger does not yet
-fire (e.g., `responses: 3` and only one comment has arrived):
+fire (e.g., `replies: 3` and only one comment has arrived):
 
 - The inbound comment is appended to `ctx.history` so the next
   evaluation sees the wider window.
@@ -122,7 +121,7 @@ because they do not consume workflow runs.
 | Symptom                                                       | Cause                                                                             |
 | ------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | Elapsed trigger never fires after bridge restart              | `ResumeScheduler.rearm()` walks `store.index.values()` and re-schedules any rfc with a persisted `due_at`; check whether the rfc on disk has `due_at` and whether `rearm()` ran (called from `service.start()`) |
-| Responses trigger never fires despite enough comments         | The `responses` count is compared against `history.length - history_index_at_open`; check that webhook delivery is reaching the bridge and that comments are appearing in `ctx.history` |
+| `missing_input` trigger never fires despite enough comments   | The `replies` count is compared against `history.length - history_index_at_open`; check that webhook delivery is reaching the bridge and that comments are appearing in `ctx.history` |
 | Re-dispatch happens but the workflow lacks prior context      | `resume_context` carries `history_since`, the slice from `history_index_at_open` onward — *not* the full history. The workflow must thread it through its prompt itself |
 | Two parallel workflow runs on the same thread                 | A fresh dispatch fired while an RFC was open; inspect logs around `processInbound` to confirm `freshDispatchAllowed` was correctly false (and that no other code path bypassed it) |
 
@@ -137,7 +136,7 @@ You have reached the outcome of this guide when:
 - Subsequent comments on the discussion accrue into the bridge's
   history without spawning new workflow runs (verify with the Actions
   tab — no new run while `hasOpenRfc` holds).
-- When the trigger condition is met (responses count reached or elapsed
+- When the trigger condition is met (replies count reached or elapsed
   duration passed), a fresh workflow run appears in the Actions tab
   with a `resume_context` input carrying the original `correlation_id`
   and the `history_since` slice.

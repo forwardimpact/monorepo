@@ -131,8 +131,8 @@ describe("Supervisor - sync session flow", () => {
     });
 
     const supervisorRunner = createMockRunner(
-      [{ text: "Delegating" }],
-      [[askMsg("Install the packages."), concludeMsg("Done")]],
+      [{ text: "Delegating" }, { text: "Concluding" }],
+      [[askMsg("Install the packages.")], [concludeMsg("Done")]],
       {
         toolDispatcher: {
           Ask: (input) => askHandler(input),
@@ -174,12 +174,10 @@ describe("Supervisor - sync session flow", () => {
     });
 
     const supervisorRunner = createMockRunner(
-      [{ text: "Reviewing" }],
+      [{ text: "Reviewing" }, { text: "Concluding" }],
       [
-        [
-          askMsg("Do the work."),
-          concludeMsg("Agent failed the task", "failure"),
-        ],
+        [askMsg("Do the work.")],
+        [concludeMsg("Agent failed the task", "failure")],
       ],
       {
         toolDispatcher: {

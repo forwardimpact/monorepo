@@ -36,10 +36,11 @@ export const DISCUSS_SYSTEM_PROMPT =
   "Use `Ask` to delegate work to the best-suited participant.\n" +
   "Participants are domain experts; state the task, not how to do it.\n" +
   "Each participant's `Answer` is posted to the discussion thread as a separate reply.\n" +
-  "`Ask` returns {askIds:[N,…]} immediately.\n" +
-  "Answers arrive on your next turn as `[answer#N] <participant>: <text>`.\n" +
-  "Multiple `Ask` calls in one turn run participants concurrently.\n" +
-  "Wait for all participants to `Answer` before calling `Adjourn` or `Recess`.";
+  "`Ask` is async and returns {askIds:[N,…]} immediately.\n" +
+  "Answers arrive on your next turn as `[answer#N] <participant>: <text>` in your inbox.\n" +
+  "End your turn while Asks are pending. The system resumes you when answers arrive.\n" +
+  "Multiple `Ask` calls in one turn run participants in parallel.\n" +
+  "End the discussion by calling `Adjourn` with a verdict and summary, or `Recess` only to wait on an external reply or duration.";
 
 /**
  * Augment a base orchestration context with discuss-mode fields.

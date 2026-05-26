@@ -107,8 +107,8 @@ describe("Pending-ask enforcement — facilitated mode", () => {
     const concludeHandler = createConcludeHandler(ctx);
 
     const facilitatorRunner = createMockRunner(
-      [{ text: "Asking" }],
-      [[askMsg("agent-1", "What?"), concludeMsg("Done")]],
+      [{ text: "Asking" }, { text: "Concluding" }],
+      [[askMsg("agent-1", "What?")], [concludeMsg("Done")]],
       {
         toolDispatcher: {
           Ask: (i) => askHandler(i),
@@ -153,8 +153,8 @@ describe("Pending-ask enforcement — facilitated mode", () => {
     const concludeHandler = createConcludeHandler(ctx);
 
     const facilitatorRunner = createMockRunner(
-      [{ text: "Asking" }],
-      [[askMsg("agent-1", "What?"), concludeMsg("Done")]],
+      [{ text: "Asking" }, { text: "Concluding" }],
+      [[askMsg("agent-1", "What?")], [concludeMsg("Done")]],
       {
         toolDispatcher: {
           Ask: (i) => askHandler(i),

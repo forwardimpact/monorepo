@@ -1,10 +1,13 @@
 /**
  * @typedef {object} ResumeTrigger
- * @property {"responses"|"elapsed"|"either"} kind
- * @property {number} [responses] - Number of new responses needed.
- *   For `kind: "either"`, optional alongside `elapsed`.
- * @property {string} [elapsed] - ISO-8601 duration, e.g. `"P14D"`, `"PT12H"`,
- *   `"P1DT6H"`. Required for `kind: "elapsed"`; optional for `"either"`.
+ * @property {"missing_input"|"escalation_needed"|"elapsed"} kind
+ * @property {number} [replies] - Required for `kind: "missing_input"`.
+ *   Number of new replies on the dispatching thread needed to fire.
+ * @property {string} [elapsed] - Required for `kind: "elapsed"`.
+ *   ISO-8601 duration, e.g. `"P14D"`, `"PT12H"`, `"P1DT6H"`.
+ * @property {string} [signal] - Required for `kind: "escalation_needed"`.
+ *   Reserved for future use. The bridge throws when evaluating this kind
+ *   until signal-based resume support lands.
  */
 
 const ISO_8601_DURATION =
@@ -42,7 +45,7 @@ export function parseIsoDuration(duration) {
  * Evaluate whether a resume trigger has fired.
  *
  * @param {ResumeTrigger} trigger
- * @param {{responses?: number, opened_at?: number}} observed
+ * @param {{replies?: number, opened_at?: number}} observed
  * @param {number} now - ms epoch (caller-provided for testability)
  * @returns {{fired: boolean, due_at?: number}}
  */
@@ -56,37 +59,27 @@ export function evaluateTrigger(trigger, observed, now) {
   observed ??= {};
 
   switch (trigger.kind) {
-    case "responses":
-      return evaluateResponses(trigger, observed);
+    case "missing_input":
+      return evaluateMissingInput(trigger, observed);
     case "elapsed":
       return evaluateElapsed(trigger, observed, now);
-    case "either": {
-      const r =
-        trigger.responses !== undefined
-          ? evaluateResponses(trigger, observed)
-          : { fired: false };
-      const e =
-        trigger.elapsed !== undefined
-          ? evaluateElapsed(trigger, observed, now)
-          : { fired: false };
-      if (r.fired || e.fired) return { fired: true };
-      return e.due_at !== undefined
-        ? { fired: false, due_at: e.due_at }
-        : { fired: false };
-    }
+    case "escalation_needed":
+      throw new Error(
+        "escalation_needed is reserved for future use. See the follow-up spec for signal-based resume.",
+      );
     default:
       throw new Error(`Unsupported trigger kind: ${trigger.kind}`);
   }
 }
 
-function evaluateResponses(trigger, observed) {
-  if (typeof trigger.responses !== "number" || trigger.responses < 1) {
+function evaluateMissingInput(trigger, observed) {
+  if (typeof trigger.replies !== "number" || trigger.replies < 1) {
     throw new Error(
-      'trigger.responses must be a positive number for kind "responses"',
+      'trigger.replies must be a positive number for kind "missing_input"',
     );
   }
-  const seen = observed.responses ?? 0;
-  return { fired: seen >= trigger.responses };
+  const seen = observed.replies ?? 0;
+  return { fired: seen >= trigger.replies };
 }
 
 function evaluateElapsed(trigger, observed, now) {

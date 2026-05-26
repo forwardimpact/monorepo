@@ -65,15 +65,24 @@ describe("Facilitator - duplicate-Ask resilience (regression for run 26336965189
     // The facilitator deliberately Asks twice in a row — the broadcast-
     // then-individual pattern that previously orphaned a queue message.
     // Both Asks are issued in the same assistant turn and dispatched in
-    // parallel (the SDK fans tool_use blocks out simultaneously).
+    // parallel. Under the auto-resume model the lead ends its turn after
+    // the two Asks. The agent answers each ask in its own turn (a
+    // synthetic reminder unblocks the second), so the lead may wake twice
+    // — once per answer. Conclude only runs once both Asks are cleared;
+    // the second wake-up that has nothing pending is a no-op turn.
     const facilitatorRunner = createMockRunner(
-      [{ text: "Asking twice" }],
+      [
+        { text: "Asking twice" },
+        { text: "Waiting for the other answer" },
+        { text: "Concluding" },
+      ],
       [
         [
           askMsg("agent-1", "First question?", "1"),
           askMsg("agent-1", "Second question?", "2"),
-          concludeMsg("Both answered"),
         ],
+        [],
+        [concludeMsg("Both answered")],
       ],
       {
         toolDispatcher: {

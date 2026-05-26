@@ -72,8 +72,12 @@ README for the channel-specific surface.
 ## Suspend/resume
 
 When a workflow returns `verdict: "recessed"` with a `trigger`, the
-conversation waits — for N more responses, an elapsed duration, or either.
-`ResumeScheduler` owns that lifecycle:
+conversation waits. The trigger kind names the lead's intent:
+`missing_input` (resume when N new replies have arrived on the
+dispatching thread), `elapsed` (resume after an ISO-8601 duration), or
+`escalation_needed` (reserved for future signal-based resume; the
+scheduler throws if it sees this kind today). `ResumeScheduler` owns
+that lifecycle:
 
 ```js
 const resume = new ResumeScheduler({

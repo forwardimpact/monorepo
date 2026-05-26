@@ -118,10 +118,10 @@ describe("ghbridge resume", () => {
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
       verdict: "recessed",
-      summary: "awaiting 2 responses",
+      summary: "awaiting 2 replies",
       run_url: "https://github.com/owner/repo/actions/runs/1",
       replies: [],
-      trigger: { kind: "responses", responses: 2 },
+      trigger: { kind: "missing_input", replies: 2 },
     });
     const stored2 = await ctx.service.store.loadByChannel(
       "github-discussions",
@@ -256,14 +256,14 @@ describe("ghbridge resume", () => {
     );
     const token = Object.keys(stored1.pending_callbacks)[0];
     const meta = ctx.service.callbacks.peek(token);
-    // Recess with a 3-response trigger; one comment must not fire.
+    // Recess with a 3-reply trigger; one comment must not fire.
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
       verdict: "recessed",
-      summary: "wait for 3 responses",
+      summary: "wait for 3 replies",
       run_url: "https://github.com/owner/repo/actions/runs/1",
       replies: [],
-      trigger: { kind: "responses", responses: 3 },
+      trigger: { kind: "missing_input", replies: 3 },
     });
     expect(ctx.dispatches).toHaveLength(1);
 

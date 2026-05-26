@@ -79,7 +79,7 @@ describe("Discusser orchestration", () => {
     const redactor = createNoopRedactor();
     const ctx = augmentContextForDiscuss(createOrchestrationContext(), null);
     ctx.verdict = "recessed";
-    ctx.recessTrigger = { kind: "responses", responses: 2 };
+    ctx.recessTrigger = { kind: "missing_input", replies: 2 };
     ctx.summary = "awaiting replies";
     ctx.replies.push({ body: "outgoing reply", agent: "agent-1" });
 
@@ -102,7 +102,10 @@ describe("Discusser orchestration", () => {
 
     assert.strictEqual(result.success, false);
     assert.strictEqual(result.verdict, "recessed");
-    assert.deepStrictEqual(result.trigger, { kind: "responses", responses: 2 });
+    assert.deepStrictEqual(result.trigger, {
+      kind: "missing_input",
+      replies: 2,
+    });
     assert.strictEqual(result.replies.length, 1);
 
     // The last summary line is the discuss-augmented one; it carries replies and trigger.
@@ -111,8 +114,8 @@ describe("Discusser orchestration", () => {
     assert.strictEqual(last.event.type, "summary");
     assert.strictEqual(last.event.verdict, "recessed");
     assert.deepStrictEqual(last.event.trigger, {
-      kind: "responses",
-      responses: 2,
+      kind: "missing_input",
+      replies: 2,
     });
     assert.strictEqual(last.event.replies.length, 1);
   });

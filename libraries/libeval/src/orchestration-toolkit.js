@@ -46,9 +46,24 @@ export function createOrchestrationContext() {
 
 // --- Handler factories ---
 
+/**
+ * Guard for terminal tools (`Conclude`, `Adjourn`, `Recess`). Returns an
+ * error result when the caller still has Asks in flight, telling them to
+ * end the turn and wait for the auto-resume. Returns `null` when no Asks
+ * are pending and the terminal tool is free to run.
+ */
+export function requireNoPendingAsks(ctx) {
+  if (ctx.pendingAsks.size === 0) return null;
+  return errorResult(
+    "Asks are still pending. End your turn. You will be resumed when answers arrive.",
+  );
+}
+
 /** Mark the session as concluded; cancel any open Asks so askers see the synthetic null on their next turn. */
 export function createConcludeHandler(ctx) {
   return async ({ verdict, summary }) => {
+    const guard = requireNoPendingAsks(ctx);
+    if (guard) return guard;
     concludeSession(ctx, { verdict, summary, reason: "session concluded" });
     return { content: [{ type: "text", text: "Session concluded." }] };
   };
@@ -235,8 +250,18 @@ const ANNOUNCE_DESC = "Broadcast a message with no reply expected.";
 
 const ROLLCALL_DESC = "List all participants in the session.";
 
+// Terminal-tool descriptions. Each one ends the run. Group them so the
+// contrast is visible: Conclude (success/failure), Adjourn (settled in
+// thread), Recess (paused for out-of-session input). Each description
+// leads with the cost.
 const CONCLUDE_DESC =
-  "End the session with a verdict ('success' or 'failure') and a summary.";
+  "End the session. Provide a verdict ('success' or 'failure') and a summary.";
+
+const ADJOURN_DESC =
+  "End the discussion. Provide a verdict ('adjourned' or 'failed') and a summary. Cancels any unanswered Asks.";
+
+const RECESS_DESC =
+  "End the run and schedule an out-of-session re-dispatch. Cancels any unanswered Asks. Use only when waiting on an external reply or duration. Do not use to wait on in-flight Asks.";
 
 // --- Tool builders ---
 
@@ -244,6 +269,7 @@ const CONCLUDE_DESC =
 function textResult(text) {
   return { content: [{ type: "text", text }] };
 }
+/** Build an MCP tool error result wrapping a single text message. */
 function errorResult(text) {
   return { content: [{ type: "text", text }], isError: true };
 }
@@ -391,4 +417,11 @@ function requestForCommentTool(ctx) {
 
 // Re-export the building blocks discuss-tools.js needs to assemble its
 // own lead tool surface (it has two extra terminal tools).
-export { baseTools, orchestrationServer, requestForCommentTool };
+export {
+  ADJOURN_DESC,
+  baseTools,
+  errorResult,
+  orchestrationServer,
+  RECESS_DESC,
+  requestForCommentTool,
+};
