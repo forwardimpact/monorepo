@@ -120,47 +120,39 @@ jobs:
             issues)
               if [ "$EVENT_ACTION" = "labeled" ]; then
                 context="Label \"$LABEL_NAME\" was added to issue \"$ISSUE_TITLE\" (#$target_number). Issue URL: $ITEM_URL."
-                action="route to the best-suited agent."
               else
-                context="A new issue was opened: \"$ISSUE_TITLE\" (#$target_number) by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Issue URL: $ITEM_URL."
-                action="route to the best-suited agent and ask them to assess the issue and act on it."
+                context="New issue: \"$ISSUE_TITLE\" (#$target_number) by @$AUTHOR (type: $AUTHOR_TYPE). Issue URL: $ITEM_URL."
               fi
               ;;
             pull_request_target)
               if [ "$EVENT_ACTION" = "closed" ]; then
-                context="PR \"$PR_TITLE\" (#$target_number) has been approved and merged. PR URL: $ITEM_URL."
+                context="PR \"$PR_TITLE\" (#$target_number) merged. PR URL: $ITEM_URL."
               else
                 context="Label \"$LABEL_NAME\" was added to PR \"$PR_TITLE\" (#$target_number). PR URL: $ITEM_URL."
               fi
-              action="route to the best-suited agent."
               ;;
             workflow_dispatch)
               ;;
             issue_comment)
               if [ "$IS_PR" = "true" ]; then
-                context="A new comment was posted on PR #$target_number by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Comment URL: $ITEM_URL."
+                context="New comment on PR #$target_number by @$AUTHOR (type: $AUTHOR_TYPE). Comment URL: $ITEM_URL."
               else
-                context="A new comment was posted on issue \"$ISSUE_TITLE\" (#$target_number) by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Comment URL: $ITEM_URL."
+                context="New comment on issue \"$ISSUE_TITLE\" (#$target_number) by @$AUTHOR (type: $AUTHOR_TYPE). Comment URL: $ITEM_URL."
               fi
-              action="route to the best-suited agent and ask them to assess the comment and act on it."
               ;;
             pull_request_review)
-              context="A review was submitted on PR \"$PR_TITLE\" (#$target_number) by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Review URL: $ITEM_URL. The review payload bundles the review body together with any inline diff comments — fetch the full set when assessing."
-              action="route to the best-suited agent and ask them to assess the review and act on it."
+              context="Review submitted on PR \"$PR_TITLE\" (#$target_number) by @$AUTHOR (type: $AUTHOR_TYPE). Review URL: $ITEM_URL."
               ;;
             *)
-              context="A new comment was posted on PR #$target_number by @$AUTHOR (user type: $AUTHOR_TYPE; event: $EVENT_NAME). Comment URL: $ITEM_URL."
-              action="route to the best-suited agent and ask them to assess the comment and act on it."
+              context="New comment on PR #$target_number by @$AUTHOR (type: $AUTHOR_TYPE). Comment URL: $ITEM_URL."
               ;;
           esac
 
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            task_prefix="$DISPATCH_PROMPT"
+            task="$DISPATCH_PROMPT"
           else
-            task_prefix="$context As facilitator, $action"
+            task="$context"
           fi
-
-          task="$task_prefix"
 
           # Heredoc delimiter must be unguessable: $task interpolates user-
           # controlled fields (issue title, PR title, label, author, URL).
