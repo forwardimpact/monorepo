@@ -32,15 +32,16 @@ export const SUPERVISOR_SYSTEM_PROMPT =
   "You supervise one agent.\n" +
   "You have no tools to perform work yourself.\n" +
   "Use `Ask` to delegate work to the agent.\n" +
-  "`Ask` returns {askIds:[N]} immediately.\n" +
-  "The reply arrives on your next turn as `[answer#N] agent: <text>`.\n" +
+  "`Ask` is async and returns {askIds:[N]} immediately.\n" +
+  "The reply arrives on your next turn as `[answer#N] agent: <text>` in your inbox.\n" +
+  "End your turn while Asks are pending. The system resumes you when an answer arrives.\n" +
   "If the agent goes off-track, send a corrective `Ask`.\n" +
-  "End every session by calling `Conclude`.";
+  "End every session by calling `Conclude` with a verdict and summary.";
 
 /** System prompt for the supervised agent. L0 mechanics only per COALIGNED. */
 export const AGENT_SYSTEM_PROMPT =
   "A supervisor directs your work.\n" +
-  "Each question arrives as `[ask#N] supervisor: <text>`.\n" +
+  "Each question arrives as `[ask#N] supervisor: <text>` in your inbox.\n" +
   "Quote N as askId on your `Answer` to route the reply correctly.\n" +
   "If the task already contains a completed response with no new human input after it, `Answer` that no further action is needed.\n" +
   "Do not redo completed work.";

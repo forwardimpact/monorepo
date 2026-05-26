@@ -416,8 +416,15 @@ describe("Facilitator - bidirectional Ask", () => {
       from: "facilitator",
     });
 
-    // Facilitator: turn 0 Ask → turn 1 (sees agent's answer + agent's own
-    // Ask) Answer + Conclude.
+    // Sequence (each side handles one message per turn — no in-turn
+    // Answer-and-Ask collapses, so the inboxes drain deterministically
+    // under the auto-resume model):
+    //
+    //   fac.0: Ask agent ("What runtime?")            askId=1
+    //   agt.0: Ask fac  ("What version is required?")  askId=2
+    //   fac.1: Answer askId=2 (still owes askId=1)     end turn
+    //   agt.1: Answer askId=1                          end turn
+    //   fac.2: Conclude (no pending Asks)
     const facilitatorAnswerDispatcher = async () => {
       const owed = [...ctx.pendingAsks.values()].find(
         (e) => e.addresseeName === "facilitator",
@@ -428,7 +435,7 @@ describe("Facilitator - bidirectional Ask", () => {
       });
     };
     const facilitatorRunner = createMockRunner(
-      [{ text: "Asking" }, { text: "Handling back-and-forth" }],
+      [{ text: "Asking" }, { text: "Answering" }, { text: "Concluding" }],
       [
         [askMsg("agent-1", "What runtime?")],
         [
@@ -437,8 +444,8 @@ describe("Facilitator - bidirectional Ask", () => {
             { askId: 0, message: "use Bun 1.2+" },
             { id: "fac-ans-1" },
           ),
-          concludeMsg("Done"),
         ],
+        [concludeMsg("Done")],
       ],
       {
         toolDispatcher: {
@@ -449,20 +456,17 @@ describe("Facilitator - bidirectional Ask", () => {
       },
     );
 
-    // Agent: turn 0 (with facilitator's ask in inbox) → Answer + Ask back.
-    // Turn 1 (with facilitator's answer in inbox) → end turn quietly.
     const agentRunner = createMockRunner(
-      [{ text: "Replying and asking back" }, { text: "Got it" }],
+      [{ text: "Asking back" }, { text: "Replying" }],
       [
         [
-          answerMsgPlaceholder(),
           createToolUseMsg(
             "Ask",
             { question: "What version is required?" },
             { id: "agt-ask-1" },
           ),
         ],
-        [{ type: "assistant", content: "Thanks." }],
+        [answerMsgPlaceholder()],
       ],
       {
         toolDispatcher: {

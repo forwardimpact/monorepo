@@ -118,11 +118,11 @@ describe("msbridge service", () => {
         verdict: "adjourned",
         summary: "done",
         replies: [{ body: "hi" }],
-        trigger: { kind: "responses", responses: 2 },
+        trigger: { kind: "missing_input", replies: 2 },
         discussion_id: "GD_x",
       });
       expect(payload.replies).toEqual([{ body: "hi" }]);
-      expect(payload.trigger).toEqual({ kind: "responses", responses: 2 });
+      expect(payload.trigger).toEqual({ kind: "missing_input", replies: 2 });
       expect(payload.discussion_id).toBe("GD_x");
     });
   });
@@ -294,7 +294,7 @@ describe("msbridge service", () => {
           verdict: "recessed",
           summary: "awaiting humans",
           replies: [{ body: "what do you think?" }],
-          trigger: { kind: "responses", responses: 2 },
+          trigger: { kind: "missing_input", replies: 2 },
         }),
       });
       expect(res.status).toBe(200);
@@ -303,8 +303,8 @@ describe("msbridge service", () => {
       const stored = await service.store.loadByChannel("msteams", "t-rec");
       expect(Object.keys(stored.open_rfcs)).toHaveLength(1);
       expect(Object.values(stored.open_rfcs)[0].trigger).toEqual({
-        kind: "responses",
-        responses: 2,
+        kind: "missing_input",
+        replies: 2,
       });
       const infoMessages = logger.info.mock.calls.map((call) =>
         String(call.arguments[1] ?? ""),

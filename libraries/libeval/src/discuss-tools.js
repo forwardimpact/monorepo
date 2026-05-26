@@ -20,28 +20,44 @@ import { tool } from "@anthropic-ai/claude-agent-sdk";
 import { z } from "zod";
 
 import {
+  ADJOURN_DESC,
   baseTools,
   concludeSession,
   orchestrationServer,
+  RECESS_DESC,
   requestForCommentTool,
+  requireNoPendingAsks,
 } from "./orchestration-toolkit.js";
 
 /** System prompt for discuss-mode agent participants. L0 mechanics only per COALIGNED. */
 export const DISCUSS_AGENT_SYSTEM_PROMPT =
   "You are a participant in a discussion.\n" +
-  "Each question arrives as `[ask#N] <name>: <text>`.\n" +
+  "Each question arrives as `[ask#N] <name>: <text>` in your inbox.\n" +
   "Quote N as askId on your `Answer` to route the reply correctly.\n" +
   "Your `Answer` is posted to the discussion thread as a separate reply.\n" +
   "If the task already contains a completed response with no new human input after it, `Answer` that no further action is needed.\n" +
   "Do not redo completed work.";
 
-const RESUME_TRIGGER_SCHEMA = z
-  .object({
-    kind: z.enum(["responses", "elapsed", "either"]),
-    responses: z.number().optional(),
-    elapsed: z.string().optional(),
-  })
-  .strict();
+const RESUME_TRIGGER_SCHEMA = z.discriminatedUnion("kind", [
+  z
+    .object({
+      kind: z.literal("missing_input"),
+      replies: z.number().int().positive(),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("escalation_needed"),
+      signal: z.string().min(1),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("elapsed"),
+      elapsed: z.string().min(1),
+    })
+    .strict(),
+]);
 
 /** Discuss-mode lead tool server. */
 export function createDiscussLeadToolServer(ctx) {
@@ -49,13 +65,13 @@ export function createDiscussLeadToolServer(ctx) {
     ...baseTools(ctx, { from: "lead", defaultTo: undefined, broadcast: true }),
     tool(
       "Recess",
-      "Suspend the run. The bridge re-dispatches the workflow when the trigger fires.",
+      RECESS_DESC,
       { reason: z.string(), trigger: RESUME_TRIGGER_SCHEMA },
       createRecessHandler(ctx),
     ),
     tool(
       "Adjourn",
-      "End the discussion with a verdict ('adjourned' / 'failed') and a summary.",
+      ADJOURN_DESC,
       {
         verdict: z.enum(["adjourned", "failed"]),
         summary: z.string(),
@@ -83,6 +99,8 @@ export function createDiscussAgentToolServer(ctx, { from }) {
  */
 export function createRecessHandler(ctx) {
   return async ({ reason, trigger }) => {
+    const guard = requireNoPendingAsks(ctx);
+    if (guard) return guard;
     ctx.recessTrigger = trigger;
     concludeSession(ctx, {
       verdict: "recessed",
@@ -96,6 +114,8 @@ export function createRecessHandler(ctx) {
 /** Adjourn handler — ends the discussion with a verdict. */
 export function createAdjournHandler(ctx) {
   return async ({ verdict, summary, outcome }) => {
+    const guard = requireNoPendingAsks(ctx);
+    if (guard) return guard;
     if (outcome !== undefined) ctx.outcome = outcome;
     concludeSession(ctx, {
       verdict,

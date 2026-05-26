@@ -110,7 +110,7 @@ When `kata-dispatch.yml` finishes, the workflow POSTs to
      `ResumeScheduler.enterRecess(ctx, correlationId, trigger)` to
      persist the trigger on `ctx.open_rfcs[correlationId]`. Subsequent
      inbound messages in the same Teams thread accrue toward a
-     `responses` trigger; an `elapsed` trigger arms a timer that
+     `missing_input` trigger; an `elapsed` trigger arms a timer that
      survives a service restart via `rearm()`. The replies are still
      posted (step 7) so the user sees what the team has so far.
 9. **Store flush** — the updated context (`last_active_at`, history,

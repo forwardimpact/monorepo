@@ -48,12 +48,12 @@ describe("validateCallbackPayload", () => {
       verdict: "adjourned",
       summary: "done",
       replies: [{ body: "hi" }, { body: "follow up", in_reply_to: "C_1" }],
-      trigger: { kind: "responses", responses: 2 },
+      trigger: { kind: "missing_input", replies: 2 },
       discussion_id: "GD_x",
       run_url: "https://github.com/owner/repo/actions/runs/1",
     });
     expect(payload.replies).toHaveLength(2);
-    expect(payload.trigger).toEqual({ kind: "responses", responses: 2 });
+    expect(payload.trigger).toEqual({ kind: "missing_input", replies: 2 });
     expect(payload.discussion_id).toBe("GD_x");
     expect(payload.run_url).toBe(
       "https://github.com/owner/repo/actions/runs/1",
@@ -107,7 +107,7 @@ describe("validateCallbackPayload", () => {
   });
 
   test("accepts trigger with allowed kind values", () => {
-    for (const kind of ["responses", "elapsed", "any"]) {
+    for (const kind of ["missing_input", "escalation_needed", "elapsed"]) {
       const payload = validateCallbackPayload({
         correlation_id: "c-1",
         trigger: { kind },
@@ -116,18 +116,28 @@ describe("validateCallbackPayload", () => {
     }
   });
 
-  test("validates trigger responses as a finite non-negative number", () => {
+  test("rejects legacy kinds (responses, either, any) at the payload boundary", () => {
+    for (const kind of ["responses", "either", "any"]) {
+      const payload = validateCallbackPayload({
+        correlation_id: "c-1",
+        trigger: { kind },
+      });
+      expect(payload.trigger).toBeUndefined();
+    }
+  });
+
+  test("validates trigger replies as a finite non-negative number", () => {
     const bad = validateCallbackPayload({
       correlation_id: "c-1",
-      trigger: { kind: "responses", responses: -1 },
+      trigger: { kind: "missing_input", replies: -1 },
     });
     expect(bad.trigger).toBeUndefined();
 
     const good = validateCallbackPayload({
       correlation_id: "c-1",
-      trigger: { kind: "responses", responses: 3 },
+      trigger: { kind: "missing_input", replies: 3 },
     });
-    expect(good.trigger).toEqual({ kind: "responses", responses: 3 });
+    expect(good.trigger).toEqual({ kind: "missing_input", replies: 3 });
   });
 
   test("validates trigger elapsed as a string", () => {
@@ -142,6 +152,23 @@ describe("validateCallbackPayload", () => {
       trigger: { kind: "elapsed", elapsed: "PT5M" },
     });
     expect(good.trigger).toEqual({ kind: "elapsed", elapsed: "PT5M" });
+  });
+
+  test("validates trigger signal as a non-empty string for escalation_needed", () => {
+    const bad = validateCallbackPayload({
+      correlation_id: "c-1",
+      trigger: { kind: "escalation_needed", signal: "" },
+    });
+    expect(bad.trigger).toBeUndefined();
+
+    const good = validateCallbackPayload({
+      correlation_id: "c-1",
+      trigger: { kind: "escalation_needed", signal: "reviewer-ack" },
+    });
+    expect(good.trigger).toEqual({
+      kind: "escalation_needed",
+      signal: "reviewer-ack",
+    });
   });
 });
 

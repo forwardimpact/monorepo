@@ -119,12 +119,10 @@ export class ResumeScheduler {
       opened_at: openedAt,
       history_index_at_open: ctx.history.length,
     };
-    if (trigger.kind === "elapsed" || trigger.kind === "either") {
-      if (typeof trigger.elapsed === "string") {
-        const dueAt = openedAt + parseIsoDuration(trigger.elapsed);
-        ctx.open_rfcs[correlationId].due_at = dueAt;
-        this.#elapsed.schedule(correlationId, dueAt);
-      }
+    if (trigger.kind === "elapsed" && typeof trigger.elapsed === "string") {
+      const dueAt = openedAt + parseIsoDuration(trigger.elapsed);
+      ctx.open_rfcs[correlationId].due_at = dueAt;
+      this.#elapsed.schedule(correlationId, dueAt);
     }
   }
 
@@ -204,7 +202,7 @@ export class ResumeScheduler {
       const trigger = rfc.trigger;
       if (!trigger) continue;
       const observed = {
-        responses: ctx.history.length - rfc.history_index_at_open,
+        replies: ctx.history.length - rfc.history_index_at_open,
         opened_at: rfc.opened_at,
       };
       if (evaluateTrigger(trigger, observed, Date.now()).fired) {

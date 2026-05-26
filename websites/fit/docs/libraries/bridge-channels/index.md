@@ -48,7 +48,7 @@ primitives every adapter needs:
 | `appendHistory` | Bounded message history (default cap: 10 entries; oldest dropped on overflow) |
 | `buildPrompt` | Prompt builder that prepends recent history bounded by exchange count and char cap |
 | `dispatchWorkflow` | GitHub Actions `workflow_dispatch` POST with the agreed input shape |
-| `evaluateTrigger` | Caller-clock resume-trigger evaluation (kinds: `responses`, `elapsed`, `either`) |
+| `evaluateTrigger` | Caller-clock resume-trigger evaluation (kinds: `missing_input`, `elapsed`, `escalation_needed`) |
 | `parseIsoDuration` | ISO-8601 duration parser (`P1D`, `PT12H`, `P1DT6H`) used by `evaluateTrigger` |
 
 The top four — `Acknowledgement`, `Dispatcher`, `createCallbackHandler`, and
@@ -226,14 +226,15 @@ token-and-payload mismatches.
 ## Evaluate recess triggers
 
 Long-running RFCs use the libeval `Recess` verdict to wait for an external
-signal. A trigger is one of three shapes:
+signal. A trigger is one of three shapes, named for the lead's intent:
 
-- `{ kind: "responses", responses: N }` — fire when at least `N` new responses
-  arrive since the recess opened.
+- `{ kind: "missing_input", replies: N }` — fire when at least `N` new
+  replies have arrived on the dispatching thread since the recess opened.
 - `{ kind: "elapsed", elapsed: "P1D" }` — fire after an ISO-8601 duration
   passes. Days, hours, minutes, seconds supported (`P14D`, `PT12H`, `P1DT6H`).
-- `{ kind: "either", responses?: N, elapsed?: "P1D" }` — fire on whichever
-  arm satisfies first.
+- `{ kind: "escalation_needed", signal: "<name>" }` — reserved for future
+  use. The schema accepts this shape, but the scheduler throws until
+  signal-based resume support ships.
 
 `evaluateTrigger(trigger, observed, now)` returns `{ fired: boolean, due_at?: number }`
 where `due_at` is the absolute ms-epoch when an elapsed arm will fire (useful
@@ -265,10 +266,12 @@ if (result.fired) {
 ```
 
 `evaluateTrigger` is pure: it takes a trigger, an observation
-(`{ responses?, opened_at? }`), and a clock reading, and returns whether the
+(`{ replies?, opened_at? }`), and a clock reading, and returns whether the
 observation satisfies the trigger. The host calls it whenever a candidate
-event arrives — for `responses`, on every new channel message; for `elapsed`,
-on a host-scheduled wake-up at `due_at`.
+event arrives — for `missing_input`, on every new channel message; for
+`elapsed`, on a host-scheduled wake-up at `due_at`; `escalation_needed`
+throws today and will integrate with channel signal intake once that
+spec lands.
 
 ## Verify
 
@@ -281,9 +284,11 @@ You have reached the outcome of this guide when:
   an injected `libstorage` instance and keyed by `(channel, discussion_id)`.
 - You can `register`, dispatch, and one-shot `consume` callback tokens through
   `CallbackRegistry`, with `correlation_id` echoed end-to-end.
-- You can evaluate `responses`, `elapsed`, and `either` recess triggers
+- You can evaluate `missing_input` and `elapsed` recess triggers
   against a caller-supplied clock and route the resume back through
   `dispatchWorkflow` with a JSON-encoded `resume_context`.
+  `escalation_needed` triggers parse but throw at evaluation until
+  signal-based resume ships.
 
 ## What's next
 

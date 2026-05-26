@@ -94,4 +94,49 @@ describe("DiscussTools handlers", () => {
     assert.strictEqual(ctx.summary, "Discussion settled");
     assert.strictEqual(ctx.outcome, "approved");
   });
+
+  test("Recess refuses when Asks are still pending and leaves ctx.concluded false", async () => {
+    const ctx = makeCtx();
+    ctx.messageBus = { answer: () => {} };
+    ctx.pendingAsks.set(7, {
+      askId: 7,
+      askerName: "lead",
+      addresseeName: "agent-1",
+      reminded: false,
+    });
+    const handler = createRecessHandler(ctx);
+
+    const result = await handler({
+      reason: "premature",
+      trigger: { kind: "elapsed", elapsed: "PT1H" },
+    });
+
+    assert.strictEqual(result.isError, true);
+    assert.match(result.content[0].text, /Asks are still pending/);
+    assert.strictEqual(ctx.concluded, false);
+    assert.strictEqual(ctx.recessTrigger, null);
+    assert.strictEqual(ctx.pendingAsks.size, 1);
+  });
+
+  test("Adjourn refuses when Asks are still pending and leaves ctx.concluded false", async () => {
+    const ctx = makeCtx();
+    ctx.messageBus = { answer: () => {} };
+    ctx.pendingAsks.set(9, {
+      askId: 9,
+      askerName: "lead",
+      addresseeName: "agent-1",
+      reminded: false,
+    });
+    const handler = createAdjournHandler(ctx);
+
+    const result = await handler({
+      verdict: "adjourned",
+      summary: "early exit",
+    });
+
+    assert.strictEqual(result.isError, true);
+    assert.match(result.content[0].text, /Asks are still pending/);
+    assert.strictEqual(ctx.concluded, false);
+    assert.strictEqual(ctx.pendingAsks.size, 1);
+  });
 });

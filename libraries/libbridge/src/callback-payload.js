@@ -48,7 +48,20 @@ export function validateCallbackPayload(body) {
   };
 }
 
-const ALLOWED_TRIGGER_KINDS = new Set(["responses", "elapsed", "any"]);
+const ALLOWED_TRIGGER_KINDS = new Set([
+  "missing_input",
+  "escalation_needed",
+  "elapsed",
+]);
+
+const TRIGGER_FIELD_VALIDATORS = {
+  replies: (raw) => {
+    const n = Number(raw);
+    return Number.isFinite(n) && n >= 0 ? n : undefined;
+  },
+  elapsed: (raw) => (typeof raw === "string" ? raw : undefined),
+  signal: (raw) => (typeof raw === "string" && raw ? raw : undefined),
+};
 
 /**
  * Validate and sanitize a trigger object at the payload boundary.
@@ -63,14 +76,11 @@ function validateTrigger(raw) {
     return undefined;
   }
   const trigger = { kind: raw.kind };
-  if (raw.responses !== undefined) {
-    const n = Number(raw.responses);
-    if (!Number.isFinite(n) || n < 0) return undefined;
-    trigger.responses = n;
-  }
-  if (raw.elapsed !== undefined) {
-    if (typeof raw.elapsed !== "string") return undefined;
-    trigger.elapsed = raw.elapsed;
+  for (const [field, validate] of Object.entries(TRIGGER_FIELD_VALIDATORS)) {
+    if (raw[field] === undefined) continue;
+    const clean = validate(raw[field]);
+    if (clean === undefined) return undefined;
+    trigger[field] = clean;
   }
   return trigger;
 }

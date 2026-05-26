@@ -108,11 +108,11 @@ describe("ResumeScheduler", () => {
       history: [{ role: "user", text: "first" }],
     });
     env.scheduler.enterRecess(ctx, "corr-1", {
-      kind: "responses",
-      responses: 2,
+      kind: "missing_input",
+      replies: 2,
     });
     const rfc = ctx.open_rfcs["corr-1"];
-    expect(rfc.trigger).toEqual({ kind: "responses", responses: 2 });
+    expect(rfc.trigger).toEqual({ kind: "missing_input", replies: 2 });
     expect(rfc.history_index_at_open).toBe(1);
     expect(typeof rfc.opened_at).toBe("number");
     expect(rfc.due_at).toBeUndefined();
@@ -162,10 +162,10 @@ describe("ResumeScheduler", () => {
   test("processInbound returns freshDispatchAllowed=false when an rfc is open but no trigger fired", async () => {
     const ctx = makeCtx({ history: [{ role: "user", text: "x" }] });
     env.scheduler.enterRecess(ctx, "corr-5", {
-      kind: "responses",
-      responses: 5,
+      kind: "missing_input",
+      replies: 5,
     });
-    // Append one more so we have responses=1 since recess (one < 5).
+    // Append one more so we have replies=1 since recess (one < 5).
     ctx.history.push({ role: "user", text: "y" });
     const result = await env.scheduler.processInbound(ctx);
     expect(result).toEqual({
@@ -176,14 +176,14 @@ describe("ResumeScheduler", () => {
     expect(fetchStub.calls).toHaveLength(0);
   });
 
-  test("processInbound fires a 'responses' trigger and redispatches with resume_context", async () => {
+  test("processInbound fires a 'missing_input' trigger and redispatches with resume_context", async () => {
     const ctx = makeCtx();
     await env.store.add(ctx);
     env.scheduler.enterRecess(ctx, "corr-fire", {
-      kind: "responses",
-      responses: 2,
+      kind: "missing_input",
+      replies: 2,
     });
-    // Two new responses since recess.
+    // Two new replies since recess.
     ctx.history.push({ role: "user", text: "one" });
     ctx.history.push({ role: "user", text: "two" });
 
@@ -215,8 +215,8 @@ describe("ResumeScheduler", () => {
     const ctx = makeCtx({ id: "thread-99" });
     await env.store.add(ctx);
     env.scheduler.enterRecess(ctx, "corr-x", {
-      kind: "responses",
-      responses: 1,
+      kind: "missing_input",
+      replies: 1,
     });
     ctx.history.push({ role: "user", text: "hello" });
     await env.scheduler.processInbound(ctx);
@@ -235,8 +235,8 @@ describe("ResumeScheduler", () => {
     const ctx = makeCtx({ id: "D_99" });
     await env.store.add(ctx);
     env.scheduler.enterRecess(ctx, "corr-y", {
-      kind: "responses",
-      responses: 1,
+      kind: "missing_input",
+      replies: 1,
     });
     ctx.history.push({ role: "user", text: "hi" });
     await env.scheduler.processInbound(ctx);

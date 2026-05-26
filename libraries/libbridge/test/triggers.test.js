@@ -33,17 +33,17 @@ describe("parseIsoDuration", () => {
 });
 
 describe("evaluateTrigger", () => {
-  test("kind=responses fires when observed count reaches the threshold", () => {
-    const t = { kind: "responses", responses: 3 };
-    expect(evaluateTrigger(t, { responses: 2 }, 0)).toEqual({ fired: false });
-    expect(evaluateTrigger(t, { responses: 3 }, 0)).toEqual({ fired: true });
-    expect(evaluateTrigger(t, { responses: 5 }, 0)).toEqual({ fired: true });
+  test("kind=missing_input fires when observed replies reaches the threshold", () => {
+    const t = { kind: "missing_input", replies: 3 };
+    expect(evaluateTrigger(t, { replies: 2 }, 0)).toEqual({ fired: false });
+    expect(evaluateTrigger(t, { replies: 3 }, 0)).toEqual({ fired: true });
+    expect(evaluateTrigger(t, { replies: 5 }, 0)).toEqual({ fired: true });
   });
 
-  test("kind=responses without observed.responses treats it as 0", () => {
-    expect(evaluateTrigger({ kind: "responses", responses: 1 }, {}, 0)).toEqual(
-      { fired: false },
-    );
+  test("kind=missing_input without observed.replies treats it as 0", () => {
+    expect(
+      evaluateTrigger({ kind: "missing_input", replies: 1 }, {}, 0),
+    ).toEqual({ fired: false });
   });
 
   test("kind=elapsed fires once now passes opened_at + duration", () => {
@@ -68,31 +68,10 @@ describe("evaluateTrigger", () => {
     );
   });
 
-  test("kind=either fires when either branch fires", () => {
-    const opened_at = 100;
-    const trigger = { kind: "either", responses: 2, elapsed: "PT1H" };
-    expect(
-      evaluateTrigger(trigger, { responses: 0, opened_at }, opened_at + 10),
-    ).toEqual({
-      fired: false,
-      due_at: opened_at + 60 * 60 * 1000,
-    });
-    expect(
-      evaluateTrigger(trigger, { responses: 2, opened_at }, opened_at + 10),
-    ).toEqual({ fired: true });
-    expect(
-      evaluateTrigger(
-        trigger,
-        { responses: 0, opened_at },
-        opened_at + 60 * 60 * 1000,
-      ),
-    ).toEqual({ fired: true });
-  });
-
-  test("kind=either honours single-branch triggers (only responses)", () => {
-    expect(
-      evaluateTrigger({ kind: "either", responses: 1 }, { responses: 1 }, 0),
-    ).toEqual({ fired: true });
+  test("kind=escalation_needed throws as reserved for future use", () => {
+    expect(() =>
+      evaluateTrigger({ kind: "escalation_needed", signal: "ack" }, {}, 0),
+    ).toThrow(/reserved for future use/);
   });
 
   test("now is caller-provided — function never reads Date.now()", () => {
@@ -106,7 +85,8 @@ describe("evaluateTrigger", () => {
   test("rejects invalid trigger shapes", () => {
     expect(() => evaluateTrigger(null, {}, 0)).toThrow();
     expect(() => evaluateTrigger({ kind: "ufo" }, {}, 0)).toThrow();
-    expect(() => evaluateTrigger({ kind: "responses" }, {}, 0)).toThrow();
+    expect(() => evaluateTrigger({ kind: "either" }, {}, 0)).toThrow();
+    expect(() => evaluateTrigger({ kind: "missing_input" }, {}, 0)).toThrow();
     expect(() => evaluateTrigger({ kind: "elapsed" }, {}, 0)).toThrow();
     expect(() =>
       evaluateTrigger({ kind: "elapsed", elapsed: "P14D" }, {}, "now"),

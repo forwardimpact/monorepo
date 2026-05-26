@@ -155,10 +155,10 @@ describe("msbridge resume", () => {
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
       verdict: "recessed",
-      summary: "awaiting 2 responses",
+      summary: "awaiting 2 replies",
       run_url: "https://github.com/owner/repo/actions/runs/1",
       replies: [],
-      trigger: { kind: "responses", responses: 2 },
+      trigger: { kind: "missing_input", replies: 2 },
     });
     const stored2 = await service.store.loadByChannel("msteams", "t-r");
     expect(Object.keys(stored2.open_rfcs)).toHaveLength(1);
@@ -219,10 +219,10 @@ describe("msbridge resume", () => {
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
       verdict: "recessed",
-      summary: "wait for 3 responses",
+      summary: "wait for 3 replies",
       run_url: "https://github.com/owner/repo/actions/runs/1",
       replies: [],
-      trigger: { kind: "responses", responses: 3 },
+      trigger: { kind: "missing_input", replies: 3 },
     });
     expect(dispatches).toHaveLength(1);
 

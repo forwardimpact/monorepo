@@ -3,6 +3,7 @@ import assert from "node:assert";
 
 import {
   cancelPendingAsks,
+  concludeSession,
   createAnnounceHandler,
   createAnswerHandler,
   createAskHandler,
@@ -47,7 +48,7 @@ describe("OrchestrationToolkit - simple handlers", () => {
     assert.ok(result.content[0].text.includes("concluded"));
   });
 
-  test("Conclude cancels every pending Ask by routing a synthetic null answer to each asker's queue", async () => {
+  test("concludeSession cancels every pending Ask with a synthetic null answer (defensive cleanup)", () => {
     const ctx = createOrchestrationContext();
     ctx.messageBus = stubBus();
     ctx.pendingAsks.set(1, {
@@ -65,7 +66,11 @@ describe("OrchestrationToolkit - simple handlers", () => {
       reminded: false,
     });
 
-    await createConcludeHandler(ctx)({ verdict: "failure", summary: "done" });
+    concludeSession(ctx, {
+      verdict: "failure",
+      summary: "done",
+      reason: "session concluded",
+    });
 
     assert.strictEqual(ctx.pendingAsks.size, 0);
     const answers = ctx.messageBus.calls.filter((c) => c.method === "answer");
@@ -74,6 +79,30 @@ describe("OrchestrationToolkit - simple handlers", () => {
       assert.strictEqual(a.from, "@orchestrator");
       assert.ok(a.text.includes("session concluded"));
     }
+  });
+
+  test("Conclude refuses when Asks are still pending and leaves ctx.concluded false", async () => {
+    const ctx = createOrchestrationContext();
+    ctx.messageBus = stubBus();
+    ctx.pendingAsks.set(1, {
+      askId: 1,
+      askerName: "facilitator",
+      addresseeName: "agent-1",
+      question: "Q1?",
+      reminded: false,
+    });
+
+    const result = await createConcludeHandler(ctx)({
+      verdict: "success",
+      summary: "done",
+    });
+
+    assert.strictEqual(result.isError, true);
+    assert.match(result.content[0].text, /Asks are still pending/);
+    assert.strictEqual(ctx.concluded, false);
+    assert.strictEqual(ctx.pendingAsks.size, 1);
+    const answers = ctx.messageBus.calls.filter((c) => c.method === "answer");
+    assert.strictEqual(answers.length, 0);
   });
 
   test("Announce publishes via the bus and never touches pendingAsks", async () => {
