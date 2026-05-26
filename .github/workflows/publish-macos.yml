@@ -49,11 +49,25 @@ jobs:
           echo "Built: $PKG_FILE ($(du -h "$PKG_FILE" | cut -f1))"
         id: verify
 
-      - name: Create GitHub Release
-        run: |
-          gh release create "${{ steps.meta.outputs.tag }}" \
-            --title "Outpost ${{ steps.meta.outputs.version }}" \
-            --generate-notes \
-            products/outpost/${{ steps.verify.outputs.pkg_file }}
+      # Publish: Brew fires on the same `outpost@v*` tag and races on
+      # `gh release create`. Split create from upload and treat create as
+      # idempotent, mirroring publish-brew.yml, so whichever workflow wins
+      # the race the other still uploads its asset to the existing release.
+      - name: Create or reuse GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.meta.outputs.tag }}"
+          gh release create "$TAG" \
+            --title "Outpost ${{ steps.meta.outputs.version }}" \
+            --generate-notes 2>/dev/null \
+            || echo "Release $TAG already exists"
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.meta.outputs.tag }}"
+          gh release upload "$TAG" \
+            "products/outpost/${{ steps.verify.outputs.pkg_file }}" \
+            --clobber
