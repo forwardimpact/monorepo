@@ -186,7 +186,7 @@ jobs:
         with:
           mode: ${{ inputs.discussion_id != '' && 'discuss' || 'facilitate' }}
           task-text: ${{ steps.task.outputs.task }}
-          agent-profiles: release-engineer,product-manager,security-engineer,staff-engineer,technical-writer
+          agent-profiles: release-engineer,product-manager,security-engineer,staff-engineer,technical-writer,improvement-coach
           max-turns: "1500"
           timeout-minutes: "300"
           discussion-id: ${{ inputs.discussion_id }}
