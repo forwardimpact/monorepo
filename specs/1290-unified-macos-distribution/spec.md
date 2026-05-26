@@ -358,7 +358,7 @@ holds trivially.
   cdhash determinism. SC1–SC2 are the determinism inputs this spec
   inherits. SC4 (no regression for other six bundles) remains the
   contract for non-outpost bundles after unification.
-- [Spec 600](../600-native-binary-distribution/spec.md) — native binary
+- [Spec 0600](../600-native-binary-distribution/spec.md) — native binary
   distribution. SC8 ("Stable bundle identity") is the contract TCC
   grants attach to; this spec re-establishes it across every Gear
   macOS bundle and every channel that ships them.
