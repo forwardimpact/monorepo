@@ -110,11 +110,11 @@ export function prepareSkillDetail(
     }));
 
   const relatedTracks = tracks
-    .filter((t) => t.skillModifiers?.[skill.id])
+    .filter((t) => t.skillModifiers?.[skill.capability])
     .map((t) => ({
       id: t.id,
       name: t.name,
-      modifier: t.skillModifiers[skill.id],
+      modifier: t.skillModifiers[skill.capability],
     }));
 
   const relatedDrivers = drivers

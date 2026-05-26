@@ -50,12 +50,15 @@ export function buildSkillView(skill, ctx) {
     }));
 
   const relatedTracks = tracks
-    .filter((t) => t.skillModifiers && t.skillModifiers[skill.id] !== undefined)
+    .filter(
+      (t) =>
+        t.skillModifiers && t.skillModifiers[skill.capability] !== undefined,
+    )
     .map((t) => ({
       iri: trackIri(t.id),
       id: t.id,
       name: t.name,
-      modifier: t.skillModifiers[skill.id],
+      modifier: t.skillModifiers[skill.capability],
     }));
 
   const relatedDrivers = drivers

@@ -239,7 +239,7 @@ export const SkillType = {
  * @property {string} id - Unique identifier
  * @property {string} name - Display name
  * @property {string} description - Description of the track focus
- * @property {Object<string, number>} skillModifiers - Map of capability/skill ID to level modifier (positive or negative integer)
+ * @property {Object<string, number>} skillModifiers - Map of capability ID to level modifier (positive or negative integer)
  * @property {Object<string, number>} behaviourModifiers - Map of behaviour ID to maturity modifier (positive or negative integer)
  * @property {AssessmentWeights} [assessmentWeights] - Optional custom weights for job matching
  * @property {string} [minLevel] - Optional minimum level ID this track is valid for

@@ -28,7 +28,7 @@ const CTX = {
     {
       id: "platform",
       name: "Platform",
-      skillModifiers: { python: 1 },
+      skillModifiers: { foundations: 1 },
     },
   ],
   drivers: [{ id: "quality", name: "Quality", contributingSkills: ["python"] }],
