@@ -1,5 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
+import { runRules } from "@forwardimpact/libutil";
 
 const SKIP_DIRS = new Set([
   ".cache",
@@ -170,74 +171,111 @@ function offsetToLine(text, offset) {
   return line;
 }
 
-async function checkLayer(root, layer, findings) {
-  for (const relPath of layer.files) {
-    const text = await readText(root, relPath);
-    if (text == null) continue;
-    const absPath = resolve(root, relPath);
-    const lines = lineCount(text);
-    const words = wordCount(text);
-    if (lines > layer.maxLines) {
-      findings.push({
-        id: `${layer.id}.line-budget`,
-        level: "fail",
-        path: absPath,
-        message: `${lines} lines (max ${layer.maxLines}, ${layer.name})`,
-        hint: "trim prose to fit the layer cap — see COALIGNED.md for the layered-instruction model",
-      });
-    }
-    if (words > layer.maxWords) {
-      findings.push({
-        id: `${layer.id}.word-budget`,
-        level: "fail",
-        path: absPath,
-        message: `${words} words (max ${layer.maxWords}, ${layer.name})`,
-        hint: "trim prose to fit the layer cap — see COALIGNED.md for the layered-instruction model",
+// -- Subject builders ----------------------------------------------------
+
+async function buildFileSubjects(root, layers) {
+  const subjects = [];
+  for (const layer of layers) {
+    for (const relPath of layer.files) {
+      const text = await readText(root, relPath);
+      if (text == null) continue;
+      subjects.push({
+        path: resolve(root, relPath),
+        layer: { id: layer.id, name: layer.name },
+        lines: lineCount(text),
+        words: wordCount(text),
+        maxLines: layer.maxLines,
+        maxWords: layer.maxWords,
       });
     }
   }
+  return subjects;
 }
 
-async function checkChecklists(root, sources, findings) {
+async function buildChecklistSubjects(root, sources) {
+  const subjects = [];
   for (const relPath of sources) {
     const text = await readText(root, relPath);
     if (text == null) continue;
     const absPath = resolve(root, relPath);
-    // Reset stateful regex before each file.
     CHECKLIST_RE.lastIndex = 0;
     let m;
-    let index = 0;
+    let blockIndex = 0;
     while ((m = CHECKLIST_RE.exec(text))) {
-      index += 1;
-      const type = m[1];
-      const blockLine = offsetToLine(text, m.index);
+      blockIndex += 1;
       const items = m[2].split(ITEM_SPLIT_RE).slice(1);
-      if (items.length > L6_MAX_ITEMS) {
-        findings.push({
-          id: "L6.too-many-items",
-          level: "fail",
-          path: absPath,
-          lineNo: blockLine,
-          message: `checklist #${index} (${type}) has ${items.length} items (max ${L6_MAX_ITEMS})`,
-          hint: "split the checklist into multiple sections, or remove items not load-bearing for the goal",
-        });
-      }
-      items.forEach((raw, i) => {
-        const w = wordCount(raw.trim());
-        if (w > L6_MAX_WORDS_PER_ITEM) {
-          findings.push({
-            id: "L6.item-too-many-words",
-            level: "fail",
-            path: absPath,
-            lineNo: blockLine,
-            message: `checklist #${index} (${type}) item ${i + 1} has ${w} words (max ${L6_MAX_WORDS_PER_ITEM})`,
-            hint: "rewrite the item more concisely — checklist items are pointers, not explanations",
-          });
-        }
+      subjects.push({
+        path: absPath,
+        lineNo: offsetToLine(text, m.index),
+        type: m[1],
+        blockIndex,
+        items: items.map((raw) => ({ words: wordCount(raw.trim()) })),
       });
     }
   }
+  return subjects;
 }
+
+const HINT_LAYER_BUDGET =
+  "trim prose to fit the layer cap — see COALIGNED.md for the layered-instruction model";
+
+// -- Rule catalogue ------------------------------------------------------
+
+export const INSTRUCTION_RULES = [
+  {
+    id: "instructions.line-budget",
+    scope: "instruction-file",
+    severity: "fail",
+    check: (s) =>
+      s.lines > s.maxLines ? { value: s.lines, max: s.maxLines } : null,
+    message: (s, r) => `${r.value} lines (max ${r.max}, ${s.layer.name})`,
+    hint: HINT_LAYER_BUDGET,
+  },
+  {
+    id: "instructions.word-budget",
+    scope: "instruction-file",
+    severity: "fail",
+    check: (s) =>
+      s.words > s.maxWords ? { value: s.words, max: s.maxWords } : null,
+    message: (s, r) => `${r.value} words (max ${r.max}, ${s.layer.name})`,
+    hint: HINT_LAYER_BUDGET,
+  },
+  {
+    id: "L6.too-many-items",
+    scope: "checklist-block",
+    severity: "fail",
+    check: (s) =>
+      s.items.length > L6_MAX_ITEMS
+        ? { count: s.items.length, max: L6_MAX_ITEMS }
+        : null,
+    message: (s, r) =>
+      `checklist #${s.blockIndex} (${s.type}) has ${r.count} items (max ${r.max})`,
+    hint: "split the checklist into multiple sections, or remove items not load-bearing for the goal",
+  },
+  {
+    id: "L6.item-too-many-words",
+    scope: "checklist-block",
+    severity: "fail",
+    check: (s) => {
+      const offenders = [];
+      s.items.forEach((item, i) => {
+        if (item.words > L6_MAX_WORDS_PER_ITEM) {
+          offenders.push({
+            itemIndex: i + 1,
+            words: item.words,
+            max: L6_MAX_WORDS_PER_ITEM,
+          });
+        }
+      });
+      return offenders.length === 0 ? null : offenders;
+    },
+    message: (s, r) =>
+      `checklist #${s.blockIndex} (${s.type}) item ${r.itemIndex} has ${r.words} words (max ${r.max})`,
+    hint: "rewrite the item more concisely — checklist items are pointers, not explanations",
+  },
+];
+
+// -- Public entry --------------------------------------------------------
 
 /**
  * Walk the repo rooted at `root`, applying the L1–L6 caps from COALIGNED.md.
@@ -249,16 +287,19 @@ async function checkChecklists(root, sources, findings) {
  *   with `emitFindingsText` / `emitFindingsJson` from libutil.
  */
 export async function checkInstructions({ root }) {
-  const findings = [];
   const { layers, skillDirs } = await buildLayers(root);
-
-  for (const layer of layers) await checkLayer(root, layer, findings);
-
-  const checklistSources = [
+  const fileSubjects = await buildFileSubjects(root, layers);
+  const checklistSubjects = await buildChecklistSubjects(root, [
     "CONTRIBUTING.md",
     ...skillDirs.map((d) => `${d}/SKILL.md`),
-  ];
-  await checkChecklists(root, checklistSources, findings);
+  ]);
 
-  return findings;
+  const ctx = {
+    subjects: {
+      "instruction-file": fileSubjects,
+      "checklist-block": checklistSubjects,
+    },
+  };
+  const resolveScope = (scopeKey) => ctx.subjects[scopeKey] ?? [];
+  return runRules(INSTRUCTION_RULES, ctx, { resolveScope });
 }

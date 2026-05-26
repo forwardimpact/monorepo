@@ -4,10 +4,10 @@ import {
   Finder,
   emitFindingsJson,
   emitFindingsText,
+  runRules,
 } from "@forwardimpact/libutil";
-import { runAudit } from "../audit/engine.js";
 import { RULES } from "../audit/rules.js";
-import { buildContext } from "../audit/scopes.js";
+import { buildContext, resolveScope } from "../audit/scopes.js";
 
 /** Run the wiki audit and emit findings. JSON via --format json. */
 export function runAuditCommand(values, _args, _cli) {
@@ -17,7 +17,7 @@ export function runAuditCommand(values, _args, _cli) {
   const today = values.today || new Date().toISOString().slice(0, 10);
 
   const ctx = buildContext({ wikiRoot, today });
-  const findings = runAudit(RULES, ctx);
+  const findings = runRules(RULES, ctx, { resolveScope });
 
   process.stdout.write(
     values.format === "json"

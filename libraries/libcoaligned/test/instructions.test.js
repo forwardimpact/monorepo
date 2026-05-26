@@ -30,11 +30,12 @@ describe("checkInstructions", () => {
       await writeFile(join(root, "CLAUDE.md"), oversize);
       const findings = await checkInstructions({ root });
       const f = findings.find(
-        (x) => x.id === "L1.line-budget" && x.path.endsWith("CLAUDE.md"),
+        (x) =>
+          x.id === "instructions.line-budget" && x.path.endsWith("CLAUDE.md"),
       );
       assert.ok(
         f,
-        `expected an L1.line-budget finding, got: ${JSON.stringify(findings)}`,
+        `expected an instructions.line-budget finding, got: ${JSON.stringify(findings)}`,
       );
       assert.match(f.message, /root CLAUDE\.md/);
       assert.equal(f.level, "fail");
@@ -54,11 +55,12 @@ describe("checkInstructions", () => {
       const findings = await checkInstructions({ root });
       const f = findings.find(
         (x) =>
-          x.id === "L1.line-budget" && x.path.endsWith("products/CLAUDE.md"),
+          x.id === "instructions.line-budget" &&
+          x.path.endsWith("products/CLAUDE.md"),
       );
       assert.ok(
         f,
-        `expected an L1.line-budget finding for products/CLAUDE.md, got: ${JSON.stringify(findings)}`,
+        `expected an instructions.line-budget finding for products/CLAUDE.md, got: ${JSON.stringify(findings)}`,
       );
       assert.match(f.message, /subdir CLAUDE\.md/);
     } finally {

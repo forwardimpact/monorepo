@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { runAudit } from "../src/audit/engine.js";
+import { runRules } from "@forwardimpact/libutil";
 import { RULES } from "../src/audit/rules.js";
-import { buildContext } from "../src/audit/scopes.js";
+import { buildContext, resolveScope } from "../src/audit/scopes.js";
 
 const STORYBOARD_AGENTS = [
   "product-manager",
@@ -71,7 +71,7 @@ describe("RULES catalogue", () => {
   });
 });
 
-describe("runAudit", () => {
+describe("runRules", () => {
   let dir;
   let wiki;
 
@@ -110,7 +110,7 @@ describe("runAudit", () => {
   };
 
   const audit = (today = "2026-05-24") =>
-    runAudit(RULES, buildContext({ wikiRoot: wiki, today }));
+    runRules(RULES, buildContext({ wikiRoot: wiki, today }), { resolveScope });
 
   const idsOf = (findings) => findings.map((f) => f.id);
 

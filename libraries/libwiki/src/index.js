@@ -35,5 +35,5 @@ export {
   appendEntry,
 } from "./weekly-log.js";
 export { buildDigest } from "./boot.js";
-export { runAudit } from "./audit/engine.js";
 export { RULES } from "./audit/rules.js";
+export { resolveScope as resolveAuditScope } from "./audit/scopes.js";
