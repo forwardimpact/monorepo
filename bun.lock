@@ -24,8 +24,8 @@
       "dependencies": {
         "@forwardimpact/libindex": "^0.1.38",
         "@forwardimpact/libstorage": "^0.1.78",
-        "@hono/node-server": "^2.0.3",
-        "hono": "^4.12.22",
+        "@hono/node-server": "^2.0.4",
+        "hono": "^4.12.23",
       },
       "devDependencies": {
         "@forwardimpact/libharness": "^0.1.21",
@@ -93,8 +93,8 @@
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.22",
-        "@hono/node-server": "^2.0.3",
-        "hono": "^4.12.22",
+        "@hono/node-server": "^2.0.4",
+        "hono": "^4.12.23",
         "marked": "^18.0.4",
         "marked-gfm-heading-id": "^4.1.4",
         "marked-highlight": "^2.2.4",
@@ -323,8 +323,8 @@
         "fit-storage": "./bin/fit-storage.js",
       },
       "dependencies": {
-        "@aws-sdk/client-s3": "^3.1052.0",
-        "@aws-sdk/credential-providers": "^3.1052.0",
+        "@aws-sdk/client-s3": "^3.1053.0",
+        "@aws-sdk/credential-providers": "^3.1053.0",
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.58",
         "@forwardimpact/libpreflight": "^0.1.0",
@@ -448,7 +448,7 @@
         "jsdom": "^29.1.1",
       },
       "optionalDependencies": {
-        "@supabase/supabase-js": "^2.106.1",
+        "@supabase/supabase-js": "^2.106.2",
       },
       "peerDependencies": {
         "prettier": "^3.0.0",
@@ -619,7 +619,7 @@
         "@forwardimpact/libutil": "^0.1.72",
         "@forwardimpact/map": "^0.15.18",
         "@forwardimpact/summit": "^0.1.0",
-        "@supabase/supabase-js": "^2.106.1",
+        "@supabase/supabase-js": "^2.106.2",
       },
       "devDependencies": {
         "@forwardimpact/libharness": "^0.1.14",
@@ -641,7 +641,7 @@
         "@forwardimpact/libtelemetry": "^0.1.33",
         "@forwardimpact/libtemplate": "^0.2.0",
         "@forwardimpact/libutil": "^0.1.64",
-        "@supabase/supabase-js": "^2.106.1",
+        "@supabase/supabase-js": "^2.106.2",
         "ajv": "^8.20.0",
         "ajv-formats": "^3.0.1",
         "yaml": "^2.9.0",
@@ -687,8 +687,8 @@
         "@forwardimpact/libui": "^1.0.0",
         "@forwardimpact/libutil": "^0.1.64",
         "@forwardimpact/map": "^0.15.5",
-        "@hono/node-server": "^2.0.3",
-        "hono": "^4.12.22",
+        "@hono/node-server": "^2.0.4",
+        "hono": "^4.12.23",
         "mustache": "^4.2.0",
         "yaml": "^2.9.0",
       },
@@ -716,7 +716,7 @@
         "@forwardimpact/libharness": "^0.1.14",
       },
       "optionalDependencies": {
-        "@supabase/supabase-js": "^2.106.1",
+        "@supabase/supabase-js": "^2.106.2",
       },
     },
     "services/embedding": {
@@ -790,7 +790,7 @@
         "@forwardimpact/libtelemetry": "^0.1.30",
         "@forwardimpact/libtype": "^0.1.67",
         "@forwardimpact/map": "^0.15.12",
-        "@supabase/supabase-js": "^2.106.1",
+        "@supabase/supabase-js": "^2.106.2",
       },
       "devDependencies": {
         "@forwardimpact/libharness": "^0.1.14",
@@ -941,9 +941,9 @@
 
     "@aws-crypto/util": ["@aws-crypto/util@5.2.0", "", { "dependencies": { "@aws-sdk/types": "^3.222.0", "@smithy/util-utf8": "^2.0.0", "tslib": "^2.6.2" } }, "sha512-4RkU9EsI6ZpBve5fseQlGNUWKMa1RLPQ1dnjnQoe07ldfIzcsGb5hC5W0Dm7u423KWzawlrpbjXBrXCEv9zazQ=="],
 
-    "@aws-sdk/client-cognito-identity": ["@aws-sdk/client-cognito-identity@3.1052.0", "", { "dependencies": { "@aws-crypto/sha256-browser": "5.2.0", "@aws-crypto/sha256-js": "5.2.0", "@aws-sdk/core": "^3.974.13", "@aws-sdk/credential-provider-node": "^3.972.44", "@aws-sdk/types": "^3.973.9", "@smithy/core": "^3.24.3", "@smithy/fetch-http-handler": "^5.4.3", "@smithy/node-http-handler": "^4.7.3", "@smithy/types": "^4.14.2", "tslib": "^2.6.2" } }, "sha512-fi0xFX+AgVp9LDmnpuuSUFwqVTA0zohGz4q2E6Jz2vqiO8/Fh+IsRT55SHc42vbHxJ5PG8+tDidAdcunRwdQEA=="],
+    "@aws-sdk/client-cognito-identity": ["@aws-sdk/client-cognito-identity@3.1053.0", "", { "dependencies": { "@aws-crypto/sha256-browser": "5.2.0", "@aws-crypto/sha256-js": "5.2.0", "@aws-sdk/core": "^3.974.13", "@aws-sdk/credential-provider-node": "^3.972.44", "@aws-sdk/types": "^3.973.9", "@smithy/core": "^3.24.3", "@smithy/fetch-http-handler": "^5.4.3", "@smithy/node-http-handler": "^4.7.3", "@smithy/types": "^4.14.2", "tslib": "^2.6.2" } }, "sha512-fMwSPTOWcYrKsB1NG1z9uRSLE/GDJR/375tjiAyO6z2UTlpLSuWkfoYx98oMwHaJpqb1fEhtZZQ7o8czblShJQ=="],
 
-    "@aws-sdk/client-s3": ["@aws-sdk/client-s3@3.1052.0", "", { "dependencies": { "@aws-crypto/sha1-browser": "5.2.0", "@aws-crypto/sha256-browser": "5.2.0", "@aws-crypto/sha256-js": "5.2.0", "@aws-sdk/core": "^3.974.13", "@aws-sdk/credential-provider-node": "^3.972.44", "@aws-sdk/middleware-bucket-endpoint": "^3.972.15", "@aws-sdk/middleware-expect-continue": "^3.972.13", "@aws-sdk/middleware-flexible-checksums": "^3.974.21", "@aws-sdk/middleware-location-constraint": "^3.972.11", "@aws-sdk/middleware-sdk-s3": "^3.972.42", "@aws-sdk/middleware-ssec": "^3.972.11", "@aws-sdk/signature-v4-multi-region": "^3.996.28", "@aws-sdk/types": "^3.973.9", "@smithy/core": "^3.24.3", "@smithy/fetch-http-handler": "^5.4.3", "@smithy/node-http-handler": "^4.7.3", "@smithy/types": "^4.14.2", "tslib": "^2.6.2" } }, "sha512-8fgQHfk1WjGUyowyqtMwq9HzZvIQQ86cqn9IZW5Qkq8kaolVjMmZez60qVYxKYvKhVRYUP5hWYPVCyraoud0AA=="],
+    "@aws-sdk/client-s3": ["@aws-sdk/client-s3@3.1053.0", "", { "dependencies": { "@aws-crypto/sha1-browser": "5.2.0", "@aws-crypto/sha256-browser": "5.2.0", "@aws-crypto/sha256-js": "5.2.0", "@aws-sdk/core": "^3.974.13", "@aws-sdk/credential-provider-node": "^3.972.44", "@aws-sdk/middleware-bucket-endpoint": "^3.972.15", "@aws-sdk/middleware-expect-continue": "^3.972.13", "@aws-sdk/middleware-flexible-checksums": "^3.974.21", "@aws-sdk/middleware-location-constraint": "^3.972.11", "@aws-sdk/middleware-sdk-s3": "^3.972.42", "@aws-sdk/middleware-ssec": "^3.972.11", "@aws-sdk/signature-v4-multi-region": "^3.996.28", "@aws-sdk/types": "^3.973.9", "@smithy/core": "^3.24.3", "@smithy/fetch-http-handler": "^5.4.3", "@smithy/node-http-handler": "^4.7.3", "@smithy/types": "^4.14.2", "tslib": "^2.6.2" } }, "sha512-/oGxoB6p1Nqs935Blt+v1o+anSCEf2n3RjIrcLz84i4cn2Gr+Z7JpDdUkG5+74r5ctqEPG7k/phTGbJ9fNKnHg=="],
 
     "@aws-sdk/core": ["@aws-sdk/core@3.974.13", "", { "dependencies": { "@aws-sdk/types": "^3.973.9", "@aws-sdk/xml-builder": "^3.972.25", "@aws/lambda-invoke-store": "^0.2.2", "@smithy/core": "^3.24.3", "@smithy/signature-v4": "^5.4.2", "@smithy/types": "^4.14.2", "bowser": "^2.11.0", "tslib": "^2.6.2" } }, "sha512-+Y5/4tHki0uYgyx8eun146DegRVQBpdKGK5RbV0FTKJPpaKTchvqVxrrRFK6Wk0JksO4iAZKw3eqxGEIwtO98w=="],
 
@@ -967,7 +967,7 @@
 
     "@aws-sdk/credential-provider-web-identity": ["@aws-sdk/credential-provider-web-identity@3.972.43", "", { "dependencies": { "@aws-sdk/core": "^3.974.13", "@aws-sdk/nested-clients": "^3.997.11", "@aws-sdk/types": "^3.973.9", "@smithy/core": "^3.24.3", "@smithy/types": "^4.14.2", "tslib": "^2.6.2" } }, "sha512-wQtL34lUD/09VXjwAUo2T+I3aEXRDxMB3DKmTJL/Zj0Gi6sLDTrVhae1XVt01yzkquOWajI/sZW72JGDZ1ciTw=="],
 
-    "@aws-sdk/credential-providers": ["@aws-sdk/credential-providers@3.1052.0", "", { "dependencies": { "@aws-sdk/client-cognito-identity": "3.1052.0", "@aws-sdk/core": "^3.974.13", "@aws-sdk/credential-provider-cognito-identity": "^3.972.36", "@aws-sdk/credential-provider-env": "^3.972.39", "@aws-sdk/credential-provider-http": "^3.972.41", "@aws-sdk/credential-provider-ini": "^3.972.43", "@aws-sdk/credential-provider-login": "^3.972.43", "@aws-sdk/credential-provider-node": "^3.972.44", "@aws-sdk/credential-provider-process": "^3.972.39", "@aws-sdk/credential-provider-sso": "^3.972.43", "@aws-sdk/credential-provider-web-identity": "^3.972.43", "@aws-sdk/nested-clients": "^3.997.11", "@aws-sdk/types": "^3.973.9", "@smithy/core": "^3.24.3", "@smithy/credential-provider-imds": "^4.3.2", "@smithy/types": "^4.14.2", "tslib": "^2.6.2" } }, "sha512-PpF9zZ8Mkzb2M9u/O4blveBRF4vo9FdMhsnUcfZBjam06mfrUnhnKZw9yTfdGxvO9noxyPIrxQZ4tyj2NxEDTg=="],
+    "@aws-sdk/credential-providers": ["@aws-sdk/credential-providers@3.1053.0", "", { "dependencies": { "@aws-sdk/client-cognito-identity": "3.1053.0", "@aws-sdk/core": "^3.974.13", "@aws-sdk/credential-provider-cognito-identity": "^3.972.36", "@aws-sdk/credential-provider-env": "^3.972.39", "@aws-sdk/credential-provider-http": "^3.972.41", "@aws-sdk/credential-provider-ini": "^3.972.43", "@aws-sdk/credential-provider-login": "^3.972.43", "@aws-sdk/credential-provider-node": "^3.972.44", "@aws-sdk/credential-provider-process": "^3.972.39", "@aws-sdk/credential-provider-sso": "^3.972.43", "@aws-sdk/credential-provider-web-identity": "^3.972.43", "@aws-sdk/nested-clients": "^3.997.11", "@aws-sdk/types": "^3.973.9", "@smithy/core": "^3.24.3", "@smithy/credential-provider-imds": "^4.3.2", "@smithy/types": "^4.14.2", "tslib": "^2.6.2" } }, "sha512-jMzNBhYIIzaKiVOFndhyWSvEIosiU/zSxgcOaGXrHGcwlRXcFgTgZEcOFL504hxg4BdrrAIVdGw55Zk9zMhs7g=="],
 
     "@aws-sdk/middleware-bucket-endpoint": ["@aws-sdk/middleware-bucket-endpoint@3.972.15", "", { "dependencies": { "@aws-sdk/core": "^3.974.13", "@aws-sdk/types": "^3.973.9", "@smithy/core": "^3.24.3", "@smithy/types": "^4.14.2", "tslib": "^2.6.2" } }, "sha512-O2HDANa+MrvbxpaRVQDiH3T13uAa9AkMjKyZmDygwauAmmvqZ5B0iRmKW+fuVGW6NPXuyXurFgIx69lSvmAWGA=="],
 
@@ -1333,19 +1333,19 @@
 
     "@smithy/util-utf8": ["@smithy/util-utf8@2.3.0", "", { "dependencies": { "@smithy/util-buffer-from": "^2.2.0", "tslib": "^2.6.2" } }, "sha512-R8Rdn8Hy72KKcebgLiv8jQcQkXoLMOGGv5uI1/k0l+snqkOzQ1R0ChUBCxWMlBsFMekWjq0wRudIweFs7sKT5A=="],
 
-    "@supabase/auth-js": ["@supabase/auth-js@2.106.1", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-7eyheXfAGwkB9bZewJPs+N3UYt6kra2JG6mIxNEgbkvcO15PLD1e75PTIUEYYl3zrifm3GrpShVl7QZxKrXO/w=="],
+    "@supabase/auth-js": ["@supabase/auth-js@2.106.2", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-VcAjUErkHkhC5Jaf+g/G1qbkQrFh8edaCdHa7pxJmHUjkWKjT7UnYCtPA89XV0N0GIYRkEqJZw5V62CtOxTmBQ=="],
 
-    "@supabase/functions-js": ["@supabase/functions-js@2.106.1", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-XbOPnR2mW7jp/EcW447xmGwCa+/Wc00Hkw8t4tUIJjRsHQ4xAESsLKcyLRhRJjJoUnJVXUlC+w0wUxUCM7CG2A=="],
+    "@supabase/functions-js": ["@supabase/functions-js@2.106.2", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-oRnr0QrL8H+zTO1YyQ1QjiHZU/957jvubbxSJTUm2XLAgzoGGV9Tahfyd+uvLsBLRVmXLtpU3oyCjdQIvkGMOA=="],
 
     "@supabase/phoenix": ["@supabase/phoenix@0.4.2", "", {}, "sha512-YSAGnmDAfuleFCVt3CeurQZAhxRfXWeZIIkwp7NhYzQ1UwW6ePSnzsFAiUm/mbCkfoCf70QQHKW/K6RKh52a4A=="],
 
-    "@supabase/postgrest-js": ["@supabase/postgrest-js@2.106.1", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-Qbn6d2lqiqeaBX1Uko0e/hL90dtQGRN6CG2wMVQtJpRFstlVW45qmUTyTOsiB8dYUWu1fWYo4YzJuDbokGv3tQ=="],
+    "@supabase/postgrest-js": ["@supabase/postgrest-js@2.106.2", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-tDOzyPgp9pIRMR2x6C9+uDSJrnXSzxLtt3d7nC+Lrsy3jnJDHYfdQC/xcRyhJE/TOBJ0heSqRKR3UmejDjZxsw=="],
 
-    "@supabase/realtime-js": ["@supabase/realtime-js@2.106.1", "", { "dependencies": { "@supabase/phoenix": "^0.4.2", "tslib": "2.8.1" } }, "sha512-eQCYri5E8KsjpDgC7g28cOOS2britjUWdNSJluFMainqrMRepzjOnaxqXc3RoAz7H0dxmBrfLUNF6NGP8C+YaA=="],
+    "@supabase/realtime-js": ["@supabase/realtime-js@2.106.2", "", { "dependencies": { "@supabase/phoenix": "^0.4.2", "tslib": "2.8.1" } }, "sha512-LdRGT7DNhyZkPjubUv5bSdAZ0jSEX8wTHvx7htj7+K59TOZRvz4TuQK7tL2RWxyIZVeFMRluL04SzWS61rKnUA=="],
 
-    "@supabase/storage-js": ["@supabase/storage-js@2.106.1", "", { "dependencies": { "iceberg-js": "^0.8.1", "tslib": "2.8.1" } }, "sha512-HWcLIhqinhWKpOQ3WzglR2unjW0eh9J7yOu3IZrZNIEkraK4La/HDvTqndljGsNw0itPtyHhuKBxRoPG1VUARw=="],
+    "@supabase/storage-js": ["@supabase/storage-js@2.106.2", "", { "dependencies": { "iceberg-js": "^0.8.1", "tslib": "2.8.1" } }, "sha512-xgKCSYuev1YarV+iVqr+zlfgSyremnJtn8T0NCT8L4XmMv1CLtESc0Q6kNp8+mKWdX/8ND0nzm7OMKx08kwNAw=="],
 
-    "@supabase/supabase-js": ["@supabase/supabase-js@2.106.1", "", { "dependencies": { "@supabase/auth-js": "2.106.1", "@supabase/functions-js": "2.106.1", "@supabase/postgrest-js": "2.106.1", "@supabase/realtime-js": "2.106.1", "@supabase/storage-js": "2.106.1" } }, "sha512-gP4HurGkGu7Z3xoOCjtAI17BKKp7jpsmwY0Ssbsks9XQRzJ7ZhK7LxfLdBSYgUdgZCQgjRK+Mr7+cl4Gxrk0Rw=="],
+    "@supabase/supabase-js": ["@supabase/supabase-js@2.106.2", "", { "dependencies": { "@supabase/auth-js": "2.106.2", "@supabase/functions-js": "2.106.2", "@supabase/postgrest-js": "2.106.2", "@supabase/realtime-js": "2.106.2", "@supabase/storage-js": "2.106.2" } }, "sha512-2/RZ/1fmJx/MRSEDG2Xk8+J4JVk5clM9V0uSI6kUTrcS32KA89DtqI5RUOC9r6mzY3WBC9qexLjssIHjbLyVJA=="],
 
     "@swc/helpers": ["@swc/helpers@0.5.19", "", { "dependencies": { "tslib": "^2.8.0" } }, "sha512-QamiFeIK3txNjgUTNppE6MiG3p7TdninpZu0E0PbqVh1a9FNLT2FRhisaa4NcaX52XVhA5l7Pk58Ft7Sqi/2sA=="],
 

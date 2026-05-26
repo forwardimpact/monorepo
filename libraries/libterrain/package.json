@@ -60,7 +60,7 @@
     "prettier": "^3.0.0"
   },
   "optionalDependencies": {
-    "@supabase/supabase-js": "^2.106.1"
+    "@supabase/supabase-js": "^2.106.2"
   },
   "engines": {
     "bun": ">=1.2.0",
