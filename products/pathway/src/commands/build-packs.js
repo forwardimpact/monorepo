@@ -10,7 +10,7 @@
  *
  * An `apm.yml` project manifest for Microsoft APM is written at the site root.
  *
- * See specs/520-apm-compatible-packs and specs/700-git-installable-packs.
+ * See specs/0520-apm-compatible-packs and specs/0700-git-installable-packs.
  *
  * Invoked from build.js after the distribution bundle has been generated.
  */

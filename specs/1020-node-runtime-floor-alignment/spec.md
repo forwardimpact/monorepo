@@ -66,7 +66,7 @@ trends that show direction without naming individuals") never gets a fair
 read because the persona never reaches a Landmark output. The same activation
 gate applies to the _Find Growth Areas_ job: an engineer evaluating Guide +
 Landmark on the documented floor hits the same wall before any career
-guidance surface is exercised. The pattern is identical to spec 950's auth
+guidance surface is exercised. The pattern is identical to spec 0950's auth
 wall: the product positioning matches the JTBD, but the activation step
 disqualifies the tool before any output is felt — except here the gate is in
 the runtime rather than the auth layer, and it lives at the boundary between

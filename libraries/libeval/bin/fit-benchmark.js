@@ -134,7 +134,7 @@ export const definition = {
     "fit-benchmark run --family=./families/coding --runs=10 --agent-model=claude-sonnet-4-6",
     "fit-benchmark score --family=./families/coding --task=todo-api --workdir=./benchmark-runs/runs/todo-api/0",
     "fit-benchmark report --format=text",
-    "fit-benchmark report --input=./runs/2026-05-11 --k=1,3,5 --format=text",
+    "fit-benchmark report --input=./runs/today --k=1,3,5 --format=text",
   ],
   documentation: [
     {

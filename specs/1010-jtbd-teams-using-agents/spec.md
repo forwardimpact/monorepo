@@ -84,7 +84,7 @@ agent _configuration_. Kata's positioning is the _operation_ of an autonomous
 team running a daily Plan-Do-Study-Act loop. The hires are not the same job
 at different scope; they are different jobs. Two specs already merged (860,
 1060) hire Teams Using Agents specifically against the autonomous-loop framing;
-spec 880 names the persona but anchors verification in KATA.md § Metrics, so
+spec 0880 names the persona but anchors verification in KATA.md § Metrics, so
 its dependence on the framing is weaker but its persona citation still
 requires a canonical anchor. CLAUDE.md § Primary Products enumerates Teams
 Using Agents alongside Engineering Leaders and Empowered Engineers as a
@@ -150,7 +150,7 @@ generator change drifts on the next `bun run context:fix` run.
   development team that keeps getting better"). That subsection is a
   per-product description across all primary products and would only be
   touched under a separate vision-narrative refactor.
-- Retroactive edits to merged specs 860, 880, and 1060. They were authored
+- Retroactive edits to merged specs 0860, 0880, and 1060. They were authored
   under the historical gap; once the canonical entry exists, future specs
   cite it. The inline restatement in those completed specs remains as-is.
 - Defining schemas for `products/kata/package.json` or skill-pack metadata

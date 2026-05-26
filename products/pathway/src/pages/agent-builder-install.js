@@ -4,7 +4,7 @@
  * Surfaces the ecosystem-tool install commands (direct download, Microsoft APM,
  * and `npx skills`) for the currently selected discipline/track
  * pack. The packs themselves are emitted by `fit-pathway build` when
- * `standard.distribution.siteUrl` is configured — see specs 520 and 700, and
+ * `standard.distribution.siteUrl` is configured — see specs 0520 and 0700, and
  * `products/pathway/src/commands/build-packs.js`. The pack name derivation
  * here must stay in sync with that generator so the command points at an
  * artifact that actually exists on the deployed site.

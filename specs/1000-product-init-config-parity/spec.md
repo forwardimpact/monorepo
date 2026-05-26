@@ -22,7 +22,7 @@ bootstrap a project to that contract are inconsistent across the family:
 | CLI | Creates `config/` | Writes `config.json` | Writes `.env` | Init verb today |
 |---|---|---|---|---|
 | `fit-guide init` ([init.js](../../products/guide/src/commands/init.js)) | yes | yes (from `starter/config.json`) | yes (service URLs + credential generation) | shipped |
-| `fit-map init` ([init.js](../../products/map/src/commands/init.js)) | no | no | no | shipped (data-only — writes `./data/pathway/` from [`products/map/starter/`](../../products/map/starter/); satisfies [spec 230](../230-pathway-init-npm/spec.md) after the init verb moved from `fit-pathway` to `fit-map`) |
+| `fit-map init` ([init.js](../../products/map/src/commands/init.js)) | no | no | no | shipped (data-only — writes `./data/pathway/` from [`products/map/starter/`](../../products/map/starter/); satisfies [spec 0230](../230-pathway-init-npm/spec.md) after the init verb moved from `fit-pathway` to `fit-map`) |
 | `fit-pathway` | n/a | n/a | n/a | not shipped |
 | `fit-landmark` | n/a | n/a | n/a | not shipped |
 | `fit-summit` | n/a | n/a | n/a | not shipped |
@@ -30,12 +30,12 @@ bootstrap a project to that contract are inconsistent across the family:
 
 Two concrete failures follow from this asymmetry:
 
-**1. Anchor escape, observed.** During spec 990's implementation, the
+**1. Anchor escape, observed.** During spec 0990's implementation, the
 kata-interview workflow had to add a workaround step
 ([kata-interview.yml § Substrate stage](../../.github/workflows/kata-interview.yml))
 because invoking `bunx fit-map substrate stage` from an `$AGENT_CWD`
 without `config/` caused the upward-walk to resolve outside `$AGENT_CWD`.
-Spec 990 shipped that workaround as a one-line `mkdir -p`. The workaround
+Spec 0990 shipped that workaround as a one-line `mkdir -p`. The workaround
 is gated to Landmark interviews (`if: inputs.product == 'landmark'`), so
 only one production callsite carries it today. The escape itself is
 structural — every CLI built on `createProductConfig` resolves through
@@ -76,10 +76,10 @@ filing one is deferred to a separate spec.
 | Shared init capability | One callable interface, exposed from a Forward Impact library, that a product's `init` verb hands its starter material to. The interface receives at least: a target directory, a `config.json` fragment scoped to one or more top-level namespaces the product owns, and a set of `.env` entries the product wants written. Where the interface lives (which library) and what it's named is a design choice. |
 | Namespace ownership semantics | The shared interface treats top-level keys in `config.json` as product-owned: keys present at the same path with the same value across two callers are a successful no-op; keys present at the same path with different values are a refusal-by-default that requires the caller to signal explicit overwrite intent. Cross-namespace writes always succeed. Overwrite intent is signalled programmatically as part of the interface's call contract (so a refusal is observable by the calling product's `init` verb, not by an out-of-band mechanism); the exact parameter shape is a design choice. |
 | `.env` write semantics | Same ownership model as `config.json` at the key granularity, applied to the project-root `.env` file. Same-key-same-value writes are no-ops; same-key-different-value writes refuse without explicit overwrite intent. The resulting `.env` is mode `0o600` (matching the existing on-disk guarantee for the credential file). |
-| Read-side coherence with spec 990 | Spec 990 introduced credential-override semantics where shell env wins over `.env`, and empty-string shell values are treated as absent for credential keys. The `.env` write semantics this spec introduces apply only to the *writer*. The reader's resolution order is unchanged; an empty-string write to `.env` is therefore equivalent to absence on the read path. |
+| Read-side coherence with spec 0990 | Spec 0990 introduced credential-override semantics where shell env wins over `.env`, and empty-string shell values are treated as absent for credential keys. The `.env` write semantics this spec introduces apply only to the *writer*. The reader's resolution order is unchanged; an empty-string write to `.env` is therefore equivalent to absence on the read path. |
 | `fit-map init` behaviour change | `fit-map init` adopts the shared interface and starts producing a `config/` directory at the init target. Whether it ships a starter `config.json` fragment carrying a `product.map` namespace is a design choice; the spec requires only that subsequent fit-map CLI invocations from that target resolve config-anchoring locally (rather than escaping upward). The existing `data/pathway/` write is unchanged. |
 | Relationship: `fit-map init` ↔ `fit-map substrate [stage\|roster\|issue]` | `fit-map init` is the **upstream** bootstrap (defined by the `fit-map init` behaviour-change row, above). `fit-map substrate` is a **downstream superset** — `substrate stage` extends a bootstrapped project with Supabase-stack provisioning, schema migration, seeding, auth provisioning, and self-smoke; `substrate roster` and `substrate issue` consume that substrate. The **bootstrap shape** this row commits to is defined as the exact set of paths created at the project root by `fit-map init` (today: `data/pathway/`; after the `fit-map init` row above lands: `config/` and any `.env` keys the shared interface writes). After this spec lands, the bootstrap shape is identical whether produced by a contributor running `fit-map init` directly or by the kata-interview workflow's Substrate stage; no caller re-implements it in CI shell or inside a `substrate` subcommand. *Which* component invokes which (substrate stage delegating to init, the workflow invoking both in sequence, or a third arrangement) is a design choice. |
-| Spec 990 cleanup | The `mkdir -p "$AGENT_CWD/config"` workaround that spec 990 shipped in [`.github/workflows/kata-interview.yml`](../../.github/workflows/kata-interview.yml) (the Substrate stage step, gated to `inputs.product == 'landmark'`) is removed as part of this spec, not deferred. The Landmark gate on the Substrate stage step is unchanged — non-Landmark interview runs continue to skip the substrate work entirely; only the workaround line goes away. After cleanup, the workflow's Landmark interview produces the same observable end-state as before: a substrate that `substrate roster` and `substrate issue` can read, an identity token (whatever name spec 990 picked for it) that `resolveIdentity()` resolves, and a passing Landmark self-smoke. |
+| Spec 0990 cleanup | The `mkdir -p "$AGENT_CWD/config"` workaround that spec 0990 shipped in [`.github/workflows/kata-interview.yml`](../../.github/workflows/kata-interview.yml) (the Substrate stage step, gated to `inputs.product == 'landmark'`) is removed as part of this spec, not deferred. The Landmark gate on the Substrate stage step is unchanged — non-Landmark interview runs continue to skip the substrate work entirely; only the workaround line goes away. After cleanup, the workflow's Landmark interview produces the same observable end-state as before: a substrate that `substrate roster` and `substrate issue` can read, an identity token (whatever name spec 0990 picked for it) that `resolveIdentity()` resolves, and a passing Landmark self-smoke. |
 | `fit-guide init` behaviour preservation | `fit-guide init` adopts the shared interface. **First-run** preservation is strict: the set of files produced on disk, the set of `.env` keys written, and the exit code for the same user invocation match the pre-spec behaviour. **Re-run** semantics change in two ways that the spec accepts. (a) Generated secrets (`SERVICE_SECRET`, `MCP_TOKEN`) are no longer regenerated on every invocation — fit-guide init detects existing values and treats them as same-key-same-value writes against the shared interface, so the re-run does not trigger refusal-by-default against the fresh-generated value. (b) The pre-spec `"config/ already exists, skipping starter copy"` message is no longer emitted; the shared interface's silent no-op replaces it. Re-run exits zero and the on-disk state is byte-identical between successive identical invocations. Secret rotation (replacing an existing `SERVICE_SECRET` or `MCP_TOKEN` with a fresh value) is **out of scope** for this spec — re-running `init` is no longer a rotation path; a dedicated rotation verb is a separate spec if the use case arises. |
 | New-product onboarding | The shared library's `README.md` documents the contract for adopting the interface: how a product packages its starter material, declares the namespaces it owns, signals overwrite intent, and hands both to the interface. The library identity (which existing or new library hosts the interface) is a design choice; the README home is not. |
 | Failure surfacing | A refused write (same-key-different-value, no overwrite intent) exits non-zero. The diagnostic, observable on `stderr`, must contain (a) the conflicting key (the dotted key path for `config.json` writes, e.g., `product.x.foo`; the bare key name for `.env` writes) and (b) a reference to the overwrite-intent parameter that lets the caller suppress the refusal — sufficient for a contributor to recognise the failure surface without having to read the library source. The diagnostic is not required to identify the first writer; recording first-writer identity is left to a follow-up spec if the failure mode is reported in the field. |
@@ -88,7 +88,7 @@ filing one is deferred to a separate spec.
 
 - **Adding new `init` verbs.** `fit-pathway`, `fit-landmark`, `fit-summit`,
   and `fit-outpost` do not ship `init` today. Whether they should is a
-  per-product decision deferred to per-product specs. Spec 230 — which
+  per-product decision deferred to per-product specs. Spec 0230 — which
   originally proposed `fit-pathway init` — was implemented by moving the
   init verb into `fit-map init` (the `fit-map init` row above); no
   separate `fit-pathway init` is in flight.
@@ -114,17 +114,17 @@ filing one is deferred to a separate spec.
   if the failure mode is reported in the field.
 - **Migrating other non-init callers that create `config/` themselves.**
   The kata-interview workflow's `mkdir -p config/` is now in scope (see
-  the *Spec 990 cleanup* row); any future direct caller outside a product
+  the *Spec 0990 cleanup* row); any future direct caller outside a product
   `init` verb stays out of scope.
 
 ## Preconditions
 
-Spec 990 is merged (`plan implemented` in `wiki/STATUS.md`). The
+Spec 0990 is merged (`plan implemented` in `wiki/STATUS.md`). The
 `mkdir -p config/` workaround it shipped in
 [`kata-interview.yml`](../../.github/workflows/kata-interview.yml)
 (the Substrate stage step) is the observed evidence for the
 **1. Anchor escape, observed** failure mode and is removed by this
-spec (see the *Spec 990 cleanup* in-scope row).
+spec (see the *Spec 0990 cleanup* in-scope row).
 
 ## Success Criteria
 

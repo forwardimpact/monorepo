@@ -164,7 +164,7 @@ current ISO week, e.g. W14–W20 at planning time): for every
 
 Entry-boundary regex (use this literal pattern, not the conceptual
 `## YYYY-MM-DD` shorthand — actual entry headings carry day annotations
-like `## 2026-05-02 (W19-day1 — spec 660-map design)`):
+like `## 2026-05-02 (W19-day1 — spec 0660-map design)`):
 
 ```js
 const ENTRY_RE = /^## \d{4}-\d{2}-\d{2}(?:[\s(].*)?$/m;

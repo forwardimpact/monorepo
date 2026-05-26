@@ -28,9 +28,6 @@ the jobs that directory exists to serve:
   library has a `README.md` that captures the jobs it does for the platform
   builders that depend on it.
 
-These three READMEs are the canonical home for narrower jobs ("Little Hires") —
-captured next to the code that serves them.
-
 Three directories support the shippable code without being shipped themselves:
 
 - **`websites/`** — Documentation hubs. The top-level `README.md` maps every
@@ -171,7 +168,7 @@ fail. → **Summit**
 Discover jobs from anywhere in the repo:
 
 ```sh
-rg '<job '   # all jobs — Big in JTBD.md, Little near the code
+rg '<job '  # all jobs
 ```
 
 ## Internal Contributors vs External Users

@@ -29,7 +29,7 @@ that produces the CandidateCDHash).
 ## Why
 
 The brew install path is one of three documented distribution channels for
-every product (CLAUDE.md § Distribution Model; spec 600 SC8 "Stable bundle
+every product (CLAUDE.md § Distribution Model; spec 0600 SC8 "Stable bundle
 identity"). The other two — `npx fit-outpost` from npm and the `.pkg` from
 the GitHub release page — publish successfully today;
 `fit-outpost-3.0.5.pkg` is attached to the v3.0.5 release. The brew lane
@@ -178,9 +178,9 @@ are unverified-but-not-failed.
 - [Issue #1036](https://github.com/forwardimpact/monorepo/issues/1036) — bug
   report with reproduction recipe, four hypothesis sources, and four suggested
   investigations. Authored by release engineer, triaged product-aligned.
-- [Spec 740](../740-seed-homebrew-tap/spec.md) — parent of the brew lane.
+- [Spec 0740](../740-seed-homebrew-tap/spec.md) — parent of the brew lane.
   Seeds the seven casks the publish-brew workflow updates.
-- [Spec 600](../600-native-binary-distribution/spec.md) — native binary
+- [Spec 0600](../600-native-binary-distribution/spec.md) — native binary
   distribution. SC8 ("Stable bundle identity") is the determinism contract
   this spec re-establishes for Outpost; the publish-brew workflow comment
   at `.github/workflows/publish-brew.yml:79–82` cites it as the rationale
