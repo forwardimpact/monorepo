@@ -1,6 +1,6 @@
 /**
- * Tests for `findInvariantSatisfyingPersonas` — covers each spec 990
- * § Persona-corpus invariant and the binding-constraint diagnostic.
+ * Tests for `findInvariantSatisfyingPersonas` — covers each persona-corpus
+ * invariant and the binding-constraint diagnostic.
  */
 
 import { describe, test } from "node:test";
@@ -76,9 +76,9 @@ describe("findInvariantSatisfyingPersonas", () => {
 
   test("returns a persona that satisfies all four invariants", async () => {
     // alice manages bob AND has her own evidence; bob authored evidence
-    // (so practice_directs_count >= 1 for alice). Spec 1090 § Decision 4
-    // requires the row's own manager_email to be non-null — chief@x is
-    // alice's parent for that join.
+    // (so practice_directs_count >= 1 for alice). The persona's own
+    // manager_email must be non-null — chief@x is alice's parent for that
+    // join.
     const supabase = makeStub({
       snapshots: [{ snapshot_id: "S1", scheduled_for: "2026-01-01" }],
       scores: [{ item_id: "ITEM1", snapshot_id: "S1" }],

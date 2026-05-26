@@ -1,5 +1,5 @@
 /**
- * Spec 840 criterion 10/11 — admin provisioning lifecycle.
+ * Verifies the admin provisioning lifecycle.
  *
  * Live-Postgres only — skipped when SUPABASE_URL /
  * SUPABASE_JWT_SECRET are unset.
@@ -36,7 +36,7 @@ async function listEmails(admin) {
   return all;
 }
 
-describe("Spec 840 — fit-map people provision lifecycle", () => {
+describe("fit-map people provision lifecycle", () => {
   if (!isLiveSupabaseAvailable()) {
     test("skipped — SUPABASE_URL / SUPABASE_JWT_SECRET not set", {
       skip: true,
@@ -50,7 +50,7 @@ describe("Spec 840 — fit-map people provision lifecycle", () => {
     // Reset: ban any pre-existing auth.users entries for the test emails.
     const before = await listEmails(admin);
     for (const u of before) {
-      if (/(alice|bob|carol)@spec840\.example/.test(u.email ?? "")) {
+      if (/(alice|bob|carol)@provision-test\.example/.test(u.email ?? "")) {
         await admin.auth.admin.deleteUser(u.id);
       }
     }
@@ -59,21 +59,28 @@ describe("Spec 840 — fit-map people provision lifecycle", () => {
     await admin
       .from("organization_people")
       .delete()
-      .in("email", ["alice@spec840.example", "bob@spec840.example"]);
+      .in("email", [
+        "alice@provision-test.example",
+        "bob@provision-test.example",
+      ]);
 
     await admin.from("organization_people").insert([
       {
-        email: "alice@spec840.example",
+        email: "alice@provision-test.example",
         manager_email: null,
         getdx_team_id: "t",
       },
-      { email: "bob@spec840.example", manager_email: null, getdx_team_id: "t" },
+      {
+        email: "bob@provision-test.example",
+        manager_email: null,
+        getdx_team_id: "t",
+      },
     ]);
 
     // 1. First run.
     await runProvisionCommand({ supabase: admin });
     let users = (await listEmails(admin)).filter((u) =>
-      /spec840\.example$/.test(u.email ?? ""),
+      /provision-test\.example$/.test(u.email ?? ""),
     );
     const byEmail = new Map(users.map((u) => [u.email, u]));
     assert.equal(byEmail.size, 2);
@@ -83,7 +90,7 @@ describe("Spec 840 — fit-map people provision lifecycle", () => {
     // 2. Idempotent re-run.
     await runProvisionCommand({ supabase: admin });
     users = (await listEmails(admin)).filter((u) =>
-      /spec840\.example$/.test(u.email ?? ""),
+      /provision-test\.example$/.test(u.email ?? ""),
     );
     const byEmail2 = new Map(users.map((u) => [u.email, u]));
     assert.equal(byEmail2.size, 2);
@@ -96,12 +103,12 @@ describe("Spec 840 — fit-map people provision lifecycle", () => {
     await admin
       .from("organization_people")
       .delete()
-      .eq("email", "alice@spec840.example");
+      .eq("email", "alice@provision-test.example");
     await runProvisionCommand({ supabase: admin });
     users = (await listEmails(admin)).filter((u) =>
-      /spec840\.example$/.test(u.email ?? ""),
+      /provision-test\.example$/.test(u.email ?? ""),
     );
-    const alice = users.find((u) => u.email === "alice@spec840.example");
+    const alice = users.find((u) => u.email === "alice@provision-test.example");
     assert.ok(alice, "alice still exists");
     assert.ok(alice.banned_until, "alice banned_until set");
     const aliceUntil = new Date(alice.banned_until).getTime();
@@ -116,9 +123,11 @@ describe("Spec 840 — fit-map people provision lifecycle", () => {
     const aliceUntilAfterDecomm = alice.banned_until;
     await runProvisionCommand({ supabase: admin });
     users = (await listEmails(admin)).filter((u) =>
-      /spec840\.example$/.test(u.email ?? ""),
+      /provision-test\.example$/.test(u.email ?? ""),
     );
-    const alice2 = users.find((u) => u.email === "alice@spec840.example");
+    const alice2 = users.find(
+      (u) => u.email === "alice@provision-test.example",
+    );
     assert.equal(alice2.id, aliceIdAfterDecomm, "alice id unchanged");
     assert.equal(
       alice2.banned_until,
@@ -129,16 +138,18 @@ describe("Spec 840 — fit-map people provision lifecycle", () => {
     // 5. Re-add alice → restored to active.
     await admin.from("organization_people").insert([
       {
-        email: "alice@spec840.example",
+        email: "alice@provision-test.example",
         manager_email: null,
         getdx_team_id: "t",
       },
     ]);
     await runProvisionCommand({ supabase: admin });
     users = (await listEmails(admin)).filter((u) =>
-      /spec840\.example$/.test(u.email ?? ""),
+      /provision-test\.example$/.test(u.email ?? ""),
     );
-    const alice3 = users.find((u) => u.email === "alice@spec840.example");
+    const alice3 = users.find(
+      (u) => u.email === "alice@provision-test.example",
+    );
     assert.ok(!alice3.banned_until, "alice restored to active");
     assert.equal(
       alice3.id,
@@ -151,6 +162,9 @@ describe("Spec 840 — fit-map people provision lifecycle", () => {
     await admin
       .from("organization_people")
       .delete()
-      .in("email", ["alice@spec840.example", "bob@spec840.example"]);
+      .in("email", [
+        "alice@provision-test.example",
+        "bob@provision-test.example",
+      ]);
   });
 });

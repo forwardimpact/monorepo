@@ -2,7 +2,7 @@
  * Cross-file fixture caching helpers. The test runner currently executes one
  * test file per process, but fixtures loaded inside a file (e.g. starter
  * standard YAML via `createDataLoader().loadAllData(dir)`) are re-parsed for
- * every `test(...)` case unless hoisted. See spec 620.
+ * every `test(...)` case unless hoisted.
  */
 
 const caches = new WeakMap();

@@ -9,7 +9,7 @@
  *
  * Human text rendering is delegated to the pure modules under `./render/`
  * so the live stream and the offline `TraceCollector.toText()` replay share
- * one formatting path (spec 540). The NDJSON going to `fileStream` is
+ * one formatting path. The NDJSON going to `fileStream` is
  * untouched — only what reaches `textStream` changes.
  *
  * Follows OO+DI: constructor injection, factory function, tests bypass factory.
@@ -67,10 +67,9 @@ export class TeeWriter extends Writable {
     }
 
     // Emit the trailing `--- Result: ... ---` footer — the one summary line
-    // humans want (spec 540). This is the same tail TraceCollector.toText()
-    // appends, so the live stream and the offline replay stay in sync
-    // (spec 540 criterion #6). The superseded `--- Evaluation ... ---`
-    // footer is gone in every mode.
+    // humans want. This is the same tail TraceCollector.toText()
+    // appends, so the live stream and the offline replay stay in sync.
+    // The superseded `--- Evaluation ... ---` footer is gone in every mode.
     if (this.collector.result) {
       const text = this.collector.toText();
       const idx = text.lastIndexOf("\n---");
@@ -78,7 +77,7 @@ export class TeeWriter extends Writable {
         // Slice past the leading `\n` — the previously-streamed body
         // already ended with its own newline, so re-emitting `\n---` here
         // would produce a blank line before the footer and desync from
-        // the offline replay (spec 540 #6).
+        // the offline replay.
         this.textStream.write(text.slice(idx + 1) + "\n");
       }
     }
@@ -107,7 +106,8 @@ export class TeeWriter extends Writable {
       this.collector.addLine(line);
 
       // Orchestrator lifecycle events are suppressed from the text stream
-      // entirely (spec 540). They still reached fileStream above.
+      // entirely — humans only want agent-visible content. They still
+      // reached fileStream above.
       if (
         parsed.source === "orchestrator" &&
         isSuppressedOrchestratorEvent(parsed.event)
@@ -118,7 +118,7 @@ export class TeeWriter extends Writable {
       return;
     }
 
-    // Bare event (run mode pre-migration or direct feed)
+    // Bare event (unwrapped run mode line or direct feed)
     this.collector.addLine(line);
     this.flushTurns();
   }

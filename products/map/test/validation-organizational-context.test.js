@@ -1,6 +1,6 @@
 /**
  * Integration tests for SchemaValidator against the
- * organizational-context.yaml slot introduced in spec 920.
+ * organizational-context.yaml slot.
  *
  * Stages a temp data dir on disk, then invokes the real validator with
  * real fs/ajv dependencies — same approach as `bunx fit-map validate`

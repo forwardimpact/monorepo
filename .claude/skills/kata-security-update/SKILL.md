@@ -96,9 +96,8 @@ that workspace under the policy minimum.
 
 **Scope.** Fire on **any** PR whose diff touches `*/package.json` or root
 `package.json` — Dependabot, agent-authored, or direct human edits. Originally
-piloted on Dependabot bundles (SE Exp 40 / #817, 2026-05-08); widened to all
-vectors after SE Exp 42 / #1004 P1 fired on a non-Dependabot case (PR #1075
-libdoc `@hono/node-server` floor-shadow, 2026-05-21).
+piloted on Dependabot bundles; widened to all vectors after a non-Dependabot
+case (a floor-shadow on an agent-authored bump) tripped the same hazard.
 
 **Procedure.**
 
@@ -168,10 +167,10 @@ gh pr close <number> --comment "Dependabot triage: closing because <reason>. Pol
 ### Step 4: Summary
 
 ```
-| PR  | Title                          | Action | Reason                     |
-| --- | ------------------------------ | ------ | -------------------------- |
-| #67 | bump protobufjs 7.5.4 to 8.0.0 | close  | Check 8: peer incompatible |
-| #61 | bump upload-pages-artifact ...  | fix    | Missing SHA pins           |
+| PR      | Title                          | Action | Reason                     |
+| ------- | ------------------------------ | ------ | -------------------------- |
+| #dep-a  | bump protobufjs 7.5.4 to 8.0.0 | close  | Check 8: peer incompatible |
+| #dep-b  | bump upload-pages-artifact ... | fix    | Missing SHA pins           |
 ```
 
 ## Memory: what to record

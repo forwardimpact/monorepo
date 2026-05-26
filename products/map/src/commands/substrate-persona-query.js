@@ -1,8 +1,8 @@
 /**
- * Find personas in the seeded substrate that satisfy every spec 990
- * § Persona-corpus invariant. The helper composes the result client-side
- * via chained Supabase JS calls — no Postgres view or RPC, because spec
- * § Out-of-scope forbids changes under `products/map/supabase/migrations/`.
+ * Find personas in the seeded substrate that satisfy every persona-corpus
+ * invariant. The helper composes the result client-side via chained Supabase
+ * JS calls — no Postgres view or RPC, because changes under
+ * `products/map/supabase/migrations/` are out of scope.
  *
  * Invariants required of a chosen persona row:
  *   (a) IS the manager of at least one other row (manager_email match),
@@ -14,9 +14,9 @@
  *       returns ≥1 row).
  *   (d) Corpus carries ≥1 organization snapshot id and ≥1 driver/item id
  *       (the discovery vector).
- *   Plus spec 1090 § Decision 4: the row's own `manager_email` is non-null,
- *   so every roster row carries an org-tree parent (no top-of-tree rows
- *   leak through the operator surface as `parent_email: null`).
+ *   Plus: the row's own `manager_email` is non-null, so every roster row
+ *   carries an org-tree parent (no top-of-tree rows leak through the
+ *   operator surface as `parent_email: null`).
  */
 
 async function loadDiscovery(supabase) {
@@ -87,7 +87,7 @@ function diagnoseBindingConstraint(
 ) {
   // parent_email_known is listed first so it wins ties: when no human has
   // a parent, every downstream constraint that depends on manager_email
-  // also reads 0, and spec 1090 § Decision 4's filter is the binding root.
+  // also reads 0, and the parent_email_known filter is the binding root.
   const counts = {
     parent_email_known: humans.filter((h) => h.manager_email != null).length,
     manages: humans.filter((h) => (directsByManager.get(h.email) ?? 0) >= 1)

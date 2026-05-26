@@ -6,7 +6,7 @@
  *
  * Human text rendering is delegated to the pure modules under `./render/`
  * so the live `TeeWriter` stream and the offline `toText()` replay share
- * one formatting path (spec 540).
+ * one formatting path.
  */
 
 import { renderTurnLines } from "./render/turn-renderer.js";
@@ -293,7 +293,7 @@ export class TraceCollector {
   }
 
   /**
-   * Format the trailing result summary line (spec 540). When an orchestrator
+   * Format the trailing result summary line. When an orchestrator
    * summary is present (supervised / facilitated mode), the headline word is
    * the supervisor's verdict ("success" / "failure") rather than the SDK's
    * per-runner subtype, so the footer aligns with the CI exit code.

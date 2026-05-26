@@ -4,8 +4,6 @@
  * Loads the real starter standard data via createDataLoader, constructs the
  * service in-process, and verifies that DescribeJob and DescribeProgression
  * Turtle responses match the underlying libskill output field-by-field.
- *
- * This is the automated form of spec 290 success criteria 7 and 8.
  */
 
 import { test, describe, before } from "node:test";

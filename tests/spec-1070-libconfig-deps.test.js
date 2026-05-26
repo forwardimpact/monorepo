@@ -1,8 +1,6 @@
 /**
- * Spec 1070 § Success Criteria — manifest assertion.
- *
- * Each of the four products (map, landmark, summit, guide) declares
- * `@forwardimpact/libconfig` in `dependencies` at a range whose
+ * Manifest assertion: each of the four products (map, landmark, summit, guide)
+ * declares `@forwardimpact/libconfig` in `dependencies` at a range whose
  * `semver.minVersion` is exactly `0.1.79` — the first published version
  * that ships `bootstrapProject`.
  */
@@ -17,7 +15,7 @@ const PRODUCTS = ["map", "landmark", "summit", "guide"];
 const FLOOR = "0.1.79";
 const PACKAGE = "@forwardimpact/libconfig";
 
-describe("spec 1070 — libconfig declared at floor 0.1.79", () => {
+describe("libconfig declared at floor 0.1.79", () => {
   for (const product of PRODUCTS) {
     test(`products/${product}/package.json declares ${PACKAGE} at >= ${FLOOR}`, () => {
       const manifest = JSON.parse(
@@ -39,7 +37,7 @@ describe("spec 1070 — libconfig declared at floor 0.1.79", () => {
       assert.strictEqual(
         min.version,
         FLOOR,
-        `products/${product}/package.json declares ${PACKAGE} at ${range} (minVersion ${min.version}); spec 1070 requires minVersion ${FLOOR}`,
+        `products/${product}/package.json declares ${PACKAGE} at ${range} (minVersion ${min.version}); libconfig dependency must meet minVersion ${FLOOR}`,
       );
     });
   }

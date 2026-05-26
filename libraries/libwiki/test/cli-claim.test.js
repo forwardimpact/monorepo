@@ -39,7 +39,7 @@ describe("fit-wiki claim/release CLI", () => {
         "--agent",
         "staff-engineer",
         "--target",
-        "spec-1060",
+        "spec-NNNN",
         "--branch",
         "feat/x",
         "--today",
@@ -48,7 +48,7 @@ describe("fit-wiki claim/release CLI", () => {
       { cwd: dir, encoding: "utf-8" },
     );
     const text = readFileSync(memoryPath, "utf-8");
-    assert.match(text, /staff-engineer \| spec-1060 \| feat\/x/);
+    assert.match(text, /staff-engineer \| spec-NNNN \| feat\/x/);
   });
 
   test("claim refuses duplicates with exit 2", () => {
@@ -60,7 +60,7 @@ describe("fit-wiki claim/release CLI", () => {
         "--agent",
         "staff-engineer",
         "--target",
-        "spec-1060",
+        "spec-NNNN",
         "--branch",
         "feat/x",
       ],
@@ -78,7 +78,7 @@ describe("fit-wiki claim/release CLI", () => {
           "--agent",
           "staff-engineer",
           "--target",
-          "spec-1060",
+          "spec-NNNN",
           "--branch",
           "feat/y",
         ],
@@ -103,7 +103,7 @@ describe("fit-wiki claim/release CLI", () => {
         "--agent",
         "staff-engineer",
         "--target",
-        "spec-1060",
+        "spec-NNNN",
         "--branch",
         "feat/x",
       ],
@@ -120,7 +120,7 @@ describe("fit-wiki claim/release CLI", () => {
         "--agent",
         "staff-engineer",
         "--target",
-        "spec-1060",
+        "spec-NNNN",
       ],
       {
         cwd: dir,
@@ -128,7 +128,7 @@ describe("fit-wiki claim/release CLI", () => {
       },
     );
     const text = readFileSync(memoryPath, "utf-8");
-    assert.doesNotMatch(text, /staff-engineer \| spec-1060/);
+    assert.doesNotMatch(text, /staff-engineer \| spec-NNNN/);
   });
 
   test("release --expired clears expired rows", () => {

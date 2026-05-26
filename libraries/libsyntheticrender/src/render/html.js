@@ -383,8 +383,8 @@ function buildLinkedEntities(entities, domain) {
  * @param {import('@forwardimpact/libtemplate/loader').TemplateLoader} templates - Template loader
  * @param {object} [options]
  * @param {object} [options.fhirCrossRef] - Optional FHIR cross-ref index;
- *   when non-null, spec 1140 clinical pages emit reverse links to matched
- *   patients. Absent or `null` → byte-identical pre-1190 output.
+ *   when non-null, clinical pages emit reverse links to matched patients.
+ *   Absent or `null` → byte-identical output with no reverse links.
  * @returns {{ files: Map<string,string>, linked: import('./link-assigner.js').LinkedEntities }}
  */
 export function renderHTML(entities, prose, templates, options = {}) {

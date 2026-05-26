@@ -3,12 +3,12 @@
  * - ({ data, args, options }) — CLI-side legacy (any superset of all three keys)
  * - (params) — web-side legacy (single identifier named "params")
  *
- * Adapted from plan 760-a-01 Step 9 (originally an ESLint rule; the repo
- * migrated to Biome which lacks custom AST rules). This test achieves the
- * same enforcement — it runs during `bun run test` which gates every commit.
+ * Replaces an earlier ESLint rule (Biome lacks custom AST rules). This test
+ * achieves the same enforcement — it runs during `bun run test` which gates
+ * every commit.
  *
- * Scope: libraries/libui/, libraries/libcli/ (Part 01).
- * Part 02 adds products/pathway/ after migration.
+ * Scope: libraries/libui/, libraries/libcli/. products/pathway/ is added once
+ * its migration completes.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Triangulate the Node.js floor across three surface families (spec 1020):
+// Triangulate the Node.js floor across three surface families:
 //   (a) every package.json#engines.node lower bound parses to a major ≥ 22
 //   (b) every file referenced by a published package.json#bin includes
 //       `import "@forwardimpact/libpreflight/nodeNN"` as its first import,

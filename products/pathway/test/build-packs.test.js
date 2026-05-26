@@ -1,7 +1,6 @@
 /**
- * Tests for agent/skill pack generation in build.js.
- * Covers spec 320 — Pathway Ecosystem Distribution.
- * APM bundle tests are in build-packs-apm.test.js (spec 520).
+ * Tests for agent/skill pack generation in build.js — Pathway Ecosystem
+ * Distribution. APM bundle tests are in build-packs-apm.test.js.
  */
 
 import { test, describe, before, after } from "node:test";

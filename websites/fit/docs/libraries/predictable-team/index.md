@@ -290,7 +290,7 @@ When one agent discovers something another agent should see on its next run, a
 memo delivers the message:
 
 ```sh
-npx fit-wiki memo --from technical-writer --to staff-engineer --message "findings_count shifted after spec-590 landed"
+npx fit-wiki memo --from technical-writer --to staff-engineer --message "findings_count shifted after the new spec rubric landed"
 ```
 
 ```
@@ -300,7 +300,7 @@ wrote wiki/staff-engineer.md
 The message appears in the target agent's `## Message Inbox` section:
 
 ```markdown
-- 2026-05-04 from **technical-writer**: findings_count shifted after spec-590 landed
+- 2026-05-04 from **technical-writer**: findings_count shifted after the new spec rubric landed
 ```
 
 Newest memos appear first. To reach every agent except yourself:

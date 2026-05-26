@@ -250,7 +250,7 @@ describe("Pipeline integration", () => {
     }
   });
 
-  test("validate verb pulls datasets via skeleton → fhir-cross-ref (spec 1190 D12)", async () => {
+  test("validate verb pulls datasets via skeleton → fhir-cross-ref", async () => {
     const { tmpDir, deps } = makePipelineDeps({ mode: "no-prose" });
     try {
       const pipeline = new Pipeline(deps);
@@ -261,12 +261,11 @@ describe("Pipeline integration", () => {
 
       assert.ok(result.ran.has("validate"));
       assert.ok(result.ran.has("enriched"));
-      // skeleton now depends on fhir-cross-ref → datasets per spec 1190
-      // design § D12. With no toolFactory wired, `datasets` short-circuits
-      // and the extra work stays O(1). When Synthea IS configured but no
-      // `fhir_microdata_html` output is declared, `datasets` still runs
-      // fully (and serializes ahead of `skeleton`); D12 accepts that cost
-      // as the alternative to a stateful post-render mutation pass.
+      // skeleton depends on fhir-cross-ref → datasets. With no toolFactory
+      // wired, `datasets` short-circuits and the extra work stays O(1). When
+      // Synthea IS configured but no `fhir_microdata_html` output is declared,
+      // `datasets` still runs fully (and serializes ahead of `skeleton`); the
+      // cost is accepted as the alternative to a stateful post-render mutation pass.
       assert.ok(result.ran.has("datasets"));
       assert.ok(result.ran.has("fhir-cross-ref"));
       assert.ok(!result.ran.has("write"));

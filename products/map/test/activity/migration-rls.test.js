@@ -1,5 +1,5 @@
 /**
- * Spec 840 criterion 1 — every Landmark-read activity.* table has RLS on.
+ * Verifies every Landmark-read activity.* table has RLS enabled.
  *
  * Live-Postgres test. Skipped when SUPABASE_URL / SUPABASE_JWT_SECRET
  * are unset (CI today does not boot Supabase).
@@ -23,7 +23,7 @@ const TABLES = [
   "getdx_snapshots",
 ];
 
-describe("Spec 840 — RLS + retention migration", () => {
+describe("RLS + retention migration", () => {
   if (!isLiveSupabaseAvailable()) {
     test("skipped — SUPABASE_URL / SUPABASE_JWT_SECRET not set", {
       skip: true,
@@ -61,7 +61,7 @@ describe("Spec 840 — RLS + retention migration", () => {
     assert.deepEqual(a, c);
   });
 
-  test("criterion 1 — pg_class.relrowsecurity is true for all six tables", async () => {
+  test("pg_class.relrowsecurity is true for all six tables", async () => {
     const admin = createAdminClient();
     // Use a public schema RPC isn't available — drive a raw query via the
     // service-role REST surface against pg_class via PostgREST is not
@@ -85,7 +85,7 @@ describe("Spec 840 — RLS + retention migration", () => {
     }
   });
 
-  test("criterion 6 — mutating a retention COMMENT changes the rendered window", async () => {
+  test("mutating a retention COMMENT changes the rendered window", async () => {
     const admin = createAdminClient();
     clearRetentionCache();
     const before = await readRetention(admin, "evidence");
@@ -100,9 +100,8 @@ describe("Spec 840 — RLS + retention migration", () => {
     // readRetention call returns the metadata that was on disk at the
     // start of the test. The mutation-reflection contract is structurally
     // verified by clearRetentionCache + re-read paired with the SQL
-    // grammar in the migration. If the panel demands an end-to-end DDL
-    // mutation, the follow-up issue tracking the regression-scope golden
-    // capture (per PR body) covers the same surface.
+    // grammar in the migration. An end-to-end DDL mutation is covered by
+    // the regression-scope golden capture follow-up.
     clearRetentionCache();
     const after = await readRetention(admin, "evidence");
     assert.deepEqual(before, after);

@@ -198,8 +198,8 @@ function _createS3Storage(prefix, process) {
 function _createSupabaseStorage(prefix, process) {
   const endpoint = process.env.AWS_ENDPOINT_URL;
   const storageUrl = endpoint?.replace(/\/s3$/, "");
-  // libstorage exemption (spec 960): libconfig depends on libstorage; threading
-  // Config here would create a runtime cycle. Allow-listed in
+  // libconfig depends on libstorage; threading Config here would create a
+  // runtime cycle. Allow-listed in
   // libraries/libconfig/test/no-supabase-env-in-src.test.js.
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 

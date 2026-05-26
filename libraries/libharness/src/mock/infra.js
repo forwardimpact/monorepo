@@ -1,8 +1,6 @@
 /**
- * Additional infrastructure mocks for services/products tests.
- *
- * Historically each consumer inlined its own variant. See spec 620 for the
- * call-site inventory.
+ * Additional infrastructure mocks for services/products tests. Centralizes
+ * variants that consumers previously inlined.
  */
 
 /**

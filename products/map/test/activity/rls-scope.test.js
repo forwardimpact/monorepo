@@ -1,5 +1,5 @@
 /**
- * Spec 840 criterion 2/4 — per-caller scope matrix on the six RLS'd tables.
+ * Per-caller RLS scope matrix on the six RLS'd tables.
  *
  * Three callers (engineer A; manager M with reports A+B; engineer C under
  * a different manager M') hit each table; this test asserts the admit/deny
@@ -30,7 +30,7 @@ function clientFor(email) {
   });
 }
 
-describe("Spec 840 — RLS scope matrix", () => {
+describe("RLS scope matrix", () => {
   if (!isLiveSupabaseAvailable()) {
     test("skipped — SUPABASE_URL / SUPABASE_JWT_SECRET not set", {
       skip: true,

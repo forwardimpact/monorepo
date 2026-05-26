@@ -118,7 +118,7 @@ gitignored and created from examples during setup.
 
 ### Per-package layout
 
-Every package follows the same on-disk shape (spec 390). Source files live under
+Every package follows the same on-disk shape. Source files live under
 `src/` — no `.js` or `.ts` files at the package root.
 
 ```

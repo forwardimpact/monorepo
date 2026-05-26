@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Assert the Dependabot ↔ .github/actions/ coverage invariant (spec 730).
+// Assert the Dependabot ↔ .github/actions/ coverage invariant.
 //
 // Computes the filesystem set (every .github/actions/<D>/ that contains an
 // action.yml or action.yaml) and the scan set (the directories: list in the

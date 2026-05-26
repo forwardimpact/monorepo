@@ -1,7 +1,7 @@
 /**
- * copyThreadAttachments containment integration tests (spec 810 row 2).
+ * copyThreadAttachments containment integration tests.
  *
- * Injects a temp `attachmentsDir` via the parameter added in step 4 — no HOME
+ * Injects a temp `attachmentsDir` via the dedicated DI parameter — no HOME
  * override (bun's `os.homedir()` ignores `process.env.HOME` and reads
  * `getpwuid()` directly, so DI is the only correct isolation channel under
  * `bun test`). Asserts that no traversal-shaped name causes a write outside

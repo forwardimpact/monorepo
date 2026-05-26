@@ -76,10 +76,10 @@ For each agent, compare the summary against the most recent weekly log entries:
 - **Stale summaries** — Flag any agent whose summary shows a "Last run" date
   more than 7 days ago with no new weekly log entries.
 - **Contract conformance** — Run `bunx fit-wiki audit` (the audit logic
-  lives in `fit-wiki` after spec 1060; the legacy `just wiki-audit` recipe
-  shells out to the same code) and fix any summary failures directly in the
-  summary file. The curator is the only agent that rewrites summaries;
-  other agents propose edits via observations.
+  lives in `fit-wiki` — formerly a separate recipe; the legacy
+  `just wiki-audit` recipe shells out to the same code) and fix any summary
+  failures directly in the summary file. The curator is the only agent that
+  rewrites summaries; other agents propose edits via observations.
 
 Fix inaccuracies directly in the summary files. Any fresh PR/Issue reference
 written during a fix must satisfy the write-time invariant above.

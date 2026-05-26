@@ -10,9 +10,8 @@ const FIXTURE_DATA = join(import.meta.dirname, "fixtures", "map-data");
 
 /**
  * Loads the shared starter standard fixture (map data + agent data) once per
- * process via `memoizeAsync`. Summit test files previously re-parsed this
- * directory from YAML on every `test(...)` case — spec 640 hoists it to cut
- * per-test overhead.
+ * process via `memoizeAsync`. Hoisting it here keeps Summit test files from
+ * re-parsing this directory from YAML on every `test(...)` case.
  *
  * @returns {Promise<{ data: object, agentData: object }>}
  */

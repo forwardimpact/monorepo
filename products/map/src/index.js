@@ -26,7 +26,7 @@ export {
   validateAgentData,
 } from "./validation.js";
 
-// Level field contract (spec 900)
+// Level field contract
 export {
   checkProfessionalTitleShape,
   checkProfessionalTitleDisjoint,
@@ -34,7 +34,7 @@ export {
   CONTRACT_URL,
 } from "./validation/level.js";
 
-// Render-gate primitives (spec 900)
+// Render-gate primitives
 export { ContractViolationError, throwIfErrors } from "./contract.js";
 
 // Type constants and helpers

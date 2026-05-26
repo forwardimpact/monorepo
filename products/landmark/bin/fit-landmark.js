@@ -27,11 +27,11 @@ import {
 } from "../src/lib/identity.js";
 import { formatResult } from "../src/formatters/index.js";
 
-// Hidden manifest export consumed by `fit-map substrate stage`'s self-smoke
-// (spec 990). Placed before the top-level createProductConfig() await so
-// introspection does not pay the libconfig load cost and is independent of
-// the spawn cwd's .env. The branch must sit above the top-level await — if
-// future contributors move createProductConfig earlier in this file, the
+// Hidden manifest export consumed by `fit-map substrate stage`'s self-smoke.
+// Placed before the top-level createProductConfig() await so introspection
+// does not pay the libconfig load cost and is independent of the spawn cwd's
+// .env. The branch must sit above the top-level await — if future
+// contributors move createProductConfig earlier in this file, the
 // products/landmark/test/lib/commands-verb.test.js runtime test fails.
 if (process.argv[2] === "_commands") {
   const { SUBCOMMAND_EXPANSIONS, FLAT_SMOKE_OPTIONS } = await import(

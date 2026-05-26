@@ -37,7 +37,7 @@ describe("fit-wiki log CLI", () => {
         "--surveyed",
         "owned",
         "--chosen",
-        "implement spec 1060",
+        "implement spec NNNN",
         "--rationale",
         "merged plan",
         "--today",
@@ -51,7 +51,7 @@ describe("fit-wiki log CLI", () => {
     assert.match(text, /## 2026-05-19/);
     assert.match(text, /### Decision/);
     assert.match(text, /\*\*Surveyed:\*\* owned/);
-    assert.match(text, /\*\*Chosen:\*\* implement spec 1060/);
+    assert.match(text, /\*\*Chosen:\*\* implement spec NNNN/);
   });
 
   test("missing subcommand exits 2", () => {

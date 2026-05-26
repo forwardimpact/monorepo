@@ -1,5 +1,5 @@
 /**
- * Dispatcher exit-code test (spec 840 criterion 3b).
+ * Dispatcher exit-code test.
  *
  * Spawns the bin/fit-landmark.js entrypoint via `node` with a controlled
  * env and asserts the documented exit codes:
@@ -7,7 +7,7 @@
  *   - 3: SupabaseUnavailableError (token present but no SUPABASE_*)
  *   - 0: marker (needsSupabase: false, dispatcher skips identity)
  *
- * The "no Supabase query before error" half of criterion 3b is enforced
+ * The "no Supabase query before error" guarantee is enforced
  * structurally — resolveIdentity runs before buildContext, which is the
  * only construction site for the Supabase client.
  */

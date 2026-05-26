@@ -100,7 +100,7 @@ describe("scanMarkers", () => {
   test("tolerates inline notice text after the tag (issue-list)", () => {
     const text = [
       "<!-- obstacles:open Do not edit. Generated from fit-wiki refresh. -->",
-      "- **Obs #100 — example**",
+      "- **Obs #1 — example**",
       "<!-- /obstacles Do not edit. Generated from fit-wiki refresh. -->",
     ].join("\n");
 
@@ -113,7 +113,7 @@ describe("scanMarkers", () => {
   test("tolerates inline notice combined with closed:30d window suffix", () => {
     const text = [
       "<!-- experiments:closed:30d Do not edit. Generated from fit-wiki refresh. -->",
-      "- **Exp #42 — older entry**",
+      "- **Exp #2 — older entry**",
       "<!-- /experiments -->",
     ].join("\n");
 

@@ -2,8 +2,7 @@
  * Turn renderer — maps a structured turn into formatted text lines.
  *
  * Shared by `TeeWriter.flushTurns()` (live stream) and
- * `TraceCollector.toText()` (offline replay) so both emit identical output
- * (spec 540).
+ * `TraceCollector.toText()` (offline replay) so both emit identical output.
  */
 
 import {

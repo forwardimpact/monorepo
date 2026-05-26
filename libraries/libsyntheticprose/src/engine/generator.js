@@ -166,10 +166,10 @@ export class ProseGenerator {
    *
    * The scalar `driver` / `direction` / `magnitude` consumed by the
    * template's `{{#scenario}}` block are derived from `context.drivers[0]`
-   * — the top driver (sorted by `|magnitude|`) per spec 820 design-a
-   * Decision #7. Snapshot-comment and webhook contexts both populate
-   * `drivers: DriverImpact[]`; this method is a function of the
-   * `ProseContext` entry alone, with no per-output branching.
+   * — the top driver (sorted by `|magnitude|`). Snapshot-comment and
+   * webhook contexts both populate `drivers: DriverImpact[]`; this method
+   * is a function of the `ProseContext` entry alone, with no per-output
+   * branching.
    *
    * @param {string} key
    * @param {object} context

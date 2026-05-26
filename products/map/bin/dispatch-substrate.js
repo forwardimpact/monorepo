@@ -2,10 +2,8 @@
  * Substrate subcommand dispatch — extracted from `bin/fit-map.js` so the
  * CLI entry point stays under biome's `nursery/noExcessiveLinesPerFile`
  * cap (`biome.json` line 46-49: `maxLines: 530, skipBlankLines: true`).
- * Inlining the spec-1090 `substrate pick` case directly into
- * `dispatchSubstrate` pushed `fit-map.js` to 544 effective lines,
- * triggering the rule; this extraction restores headroom without
- * altering behaviour.
+ * Keeping the `substrate pick` case here (instead of inlining it into
+ * `fit-map.js`) preserves headroom under the line cap.
  *
  * Callers pass `{ config, mapClient, cli }` so this module stays
  * dep-free at import time (no Supabase init, no CLI singleton) and

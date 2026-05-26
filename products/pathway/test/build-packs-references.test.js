@@ -1,7 +1,7 @@
 /**
- * Spec 660 — verify the build-packs CLI writer emits one references/{name}.md
- * file per starter `references` entry (criterion 5 + criterion 6 on the
- * build-packs path).
+ * Verify the build-packs CLI writer emits one references/{name}.md file per
+ * starter `references` entry (criterion 5 + criterion 6 on the build-packs
+ * path).
  *
  * Lives in its own file (not build-packs.test.js) because that file is at the
  * 400-line ESLint cap.
@@ -35,7 +35,7 @@ async function silent(fn) {
   }
 }
 
-describe("generatePacks — spec 660 references emission", () => {
+describe("generatePacks — references emission", () => {
   let workDir;
   let outputDir;
 

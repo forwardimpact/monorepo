@@ -33,7 +33,7 @@ writing STATUS in response to a PR-side signal.
 ## In-session approval
 
 When a trusted user explicitly approves a spec, design, or plan in an
-interactive coding session ("approve spec 880", "this design is good,
+interactive coding session ("approve this spec", "this design is good,
 mark it approved"), the active agent edits `wiki/STATUS.md` to set the
 matching row, commits the wiki, and lets the Stop hook push. No GitHub
 action is required — STATUS is the canonical record. The merge happens on

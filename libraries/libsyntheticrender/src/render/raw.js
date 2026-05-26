@@ -23,8 +23,8 @@ export function renderRawDocuments(entities, proseMap) {
   const files = new Map();
 
   // Activity-prose render dispatch — the registration is the single
-  // source of truth for which prose-bearing activity outputs exist
-  // (criterion #1 / #2 of spec 820). Non-prose helpers stay inline.
+  // source of truth for which prose-bearing activity outputs exist.
+  // Non-prose helpers stay inline.
   for (const pa of PROSE_ACTIVITIES) {
     const output = entities.activity?.[pa.id];
     if (!output) continue;

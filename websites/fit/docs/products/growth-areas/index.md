@@ -126,7 +126,7 @@ npx fit-landmark evidence --email you@example.com
 
     architecture_design: 3 matched, 1 unmatched
       [matched] Designs services with clear API boundaries
-        rationale: PR #142 introduced a new service boundary with documented...
+        rationale: A recent pull request introduced a new service boundary with documented...
       [matched] Documents trade-offs in design decisions
         rationale: Design doc for auth migration weighed three approaches...
       [matched] Defines module boundaries for a bounded domain
@@ -135,9 +135,9 @@ npx fit-landmark evidence --email you@example.com
 
     code_review: 2 matched, 0 unmatched
       [matched] Provides actionable feedback on design intent, not just style
-        rationale: Review of PR #198 identified a coupling risk between...
+        rationale: Review of a recent pull request identified a coupling risk between...
       [matched] Catches cross-cutting concerns during review
-        rationale: Review of PR #215 flagged a missing audit trail...
+        rationale: Review of a recent pull request flagged a missing audit trail...
 
     Evidence covers 18/24 artifacts.
 ```
@@ -162,13 +162,13 @@ npx fit-landmark readiness --email you@example.com
   Readiness: you@example.com (J060 -> J070)
 
     Architecture Design (practitioner):
-      [x] Designs services with clear API boundaries (PR #142)
+      [x] Designs services with clear API boundaries (service-boundary-pr)
       [x] Documents trade-offs in design decisions (design-doc-auth)
       [x] Defines module boundaries for a bounded domain (RFC-019)
       [ ] Leads architecture for a product or platform area
 
     Code Review (practitioner):
-      [x] Provides actionable feedback on design intent, not just style (PR #198)
+      [x] Provides actionable feedback on design intent, not just style (review-coupling-pr)
       [ ] Mentors others on review quality
       [ ] Defines review standards for the area
 

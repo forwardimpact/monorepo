@@ -109,19 +109,19 @@ EOF
 Inbound triage (existing issues classified):
 
 ```
-| Issue | Title                           | Category        | Action      | Detail                     |
-| ----- | ------------------------------- | --------------- | ----------- | -------------------------- |
-| #12   | Schema validation crash on null | trivial fix     | PR #45      | Fix null check in validate |
-| #8    | Support custom skill levels     | product-aligned | spec PR #46 | specs/220-custom-levels/   |
-| #5    | Add dark mode                   | out of scope    | closed      | Not in product scope       |
+| Issue   | Title                           | Category        | Action       | Detail                     |
+| ------- | ------------------------------- | --------------- | ------------ | -------------------------- |
+| #bug-a  | Schema validation crash on null | trivial fix     | PR #fix-a    | Fix null check in validate |
+| #feat-b | Support custom skill levels     | product-aligned | spec PR #spec-b | Spec lives at specs/<slug>/ |
+| #out-c  | Add dark mode                   | out of scope    | closed       | Not in product scope       |
 ```
 
 Outbound feedback (from user testing):
 
 ```
-| # | Feedback                          | Category      | Action           | Issue |
-| - | --------------------------------- | ------------- | ---------------- | ----- |
-| 1 | Install docs missing Node version | documentation | commented on #48 | #48   |
-| 2 | Crash on skill query              | bug           | issue #53        | #53   |
-| 3 | Slow response in CI environment   | out of scope  | skipped          | —     |
+| Item  | Feedback                          | Category      | Action               | Issue   |
+| ----- | --------------------------------- | ------------- | -------------------- | ------- |
+| Obs-a | Install docs missing Node version | documentation | commented on #docs-a | #docs-a |
+| Obs-b | Crash on skill query              | bug           | issue #bug-b         | #bug-b  |
+| Obs-c | Slow response in CI environment   | out of scope  | skipped              | —       |
 ```

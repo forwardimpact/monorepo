@@ -64,8 +64,8 @@ export const SUBCOMMAND_EXPANSIONS = {
 };
 
 // Flat (non-subcommand-style) command options. Every gated command whose
-// handler throws on missing args must appear here so the spec 990 § Success
-// Criteria row 5 smoke runs to non-error completion.
+// handler throws on missing args must appear here so the substrate stage
+// self-smoke runs to non-error completion.
 //   - voice.js: throws if neither --email nor --manager supplied
 //   - practiced.js: throws on missing --manager
 //   - health.js: no required option

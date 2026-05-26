@@ -1,5 +1,5 @@
 /**
- * Integration tests for `fit-pathway agent` with the spec-920
+ * Integration tests for `fit-pathway agent` with the
  * organizational-context slot wired through the CLI.
  *
  * Each test stages a copy of products/map/starter into a temp data dir,

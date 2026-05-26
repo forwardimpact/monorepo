@@ -72,9 +72,7 @@ Today's minimum stand-up is four steps under Map:
 
 Once `PRODUCT_LANDMARK_TOKEN` is set, every command in the rest of this guide
 works against your scope. The token is not honored offline — there is no
-`--data`-only fallback for analytical commands today
-([#921](https://github.com/forwardimpact/monorepo/issues/921) tracks that
-gap).
+`--data`-only fallback for analytical commands today.
 
 For more on what data the token unlocks visibility into, see
 [List Engineering Data Sources](/docs/products/engineering-data-sources/).

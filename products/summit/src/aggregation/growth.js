@@ -7,10 +7,10 @@
  * current proficiency for that skill.
  *
  * `computeGrowthAlignment` is also exported publicly from the package
- * root — Landmark (spec 080) imports it and renders its output inline
- * in health views. The signature is stable across parts; Part 07 layers
- * on evidence filtering and outcome weighting through the optional
- * `evidence` and `driverScores` parameters without changing the shape.
+ * root — Landmark imports it and renders its output inline in health
+ * views. The signature is stable across parts; Part 07 layers on evidence
+ * filtering and outcome weighting through the optional `evidence` and
+ * `driverScores` parameters without changing the shape.
  */
 
 import { getSkillProficiencyIndex } from "@forwardimpact/map/levels";

@@ -1,9 +1,9 @@
 /**
  * Test helpers for libeval-style streams, tool-use messages, and traces.
  *
- * Before these helpers existed, every test file under libraries/libeval/test
- * inlined its own copy of concludeMsg / redirectMsg / tellMsg / stripAnsi /
- * collect / writeLines / buildTrace. See spec 620.
+ * Centralizes concludeMsg / redirectMsg / tellMsg / stripAnsi / collect /
+ * writeLines / buildTrace so test files under libraries/libeval/test do not
+ * each inline their own copy.
  */
 
 /**

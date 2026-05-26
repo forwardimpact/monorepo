@@ -2,9 +2,9 @@
  * Pure namespace-ownership classifier used by `bootstrapProject`.
  *
  * `mergeConfigFragment` enforces ownership at the **top-level key** but
- * surfaces diagnostics at the **leaf path** that disagrees — design 1000-c
- * Decision #3. `mergeEnvEntries` applies the same three rows at bare-key
- * granularity.
+ * surfaces diagnostics at the **leaf path** that disagrees so the caller can
+ * pinpoint the conflict. `mergeEnvEntries` applies the same three rows at
+ * bare-key granularity.
  */
 
 function canonicalize(value) {

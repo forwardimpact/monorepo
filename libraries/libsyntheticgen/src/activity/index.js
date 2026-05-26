@@ -14,7 +14,7 @@
  * `ProseContext` is the single LLM-bound shape every prose-bearing
  * output's `proseKeys` emits. Its `drivers: DriverImpact[]` field
  * carries the full team-affect driver array end-to-end, removing the
- * comment-vs-webhook driver-context asymmetry that motivated spec 820.
+ * comment-vs-webhook driver-context asymmetry.
  *
  * @module libsyntheticgen/activity
  *

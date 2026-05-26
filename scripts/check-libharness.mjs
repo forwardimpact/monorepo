@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Flag test files that inline a mock/fixture helper already available in
-// libharness (spec 640). Called from `bun run check`.
+// libharness. Called from `bun run check`.
 
 import { readFile } from "node:fs/promises";
 import { execSync } from "node:child_process";
@@ -58,7 +58,7 @@ for (const file of files) {
     findings.push("inline class MockStorage — use createMockStorage");
   }
   // mock.fn from node:test is not portable to bun test. Use spy() from
-  // libharness instead (spec 650).
+  // libharness instead.
   if (/\bmock\.fn\s*\(/.test(text)) {
     findings.push(
       "mock.fn from node:test is not bun-compatible — use spy from libharness",

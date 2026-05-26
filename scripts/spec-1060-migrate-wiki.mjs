@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-// One-shot migration script for spec 1060 — retroactive protocol compliance.
-// Added in commit 05A, run in commit 05B, deleted in the same commit (05B).
+// One-shot migration script — retroactive protocol compliance for wiki memory.
 // Recoverable from git history if re-needed.
-// Do NOT extend this script after 05B merges — file a follow-up spec.
+// Do NOT extend this script — file a follow-up spec for additional migrations.
 
 import {
   readFileSync,
@@ -26,7 +25,7 @@ const SUMMARY_LINE_BUDGET = 80;
 const ENTRY_RE = /^## \d{4}-\d{2}-\d{2}(?:[\s(].*)?$/;
 const WEEKLY_NAME_RE = /^([a-z-]+)-(\d{4})-W(\d{2})\.md$/;
 const STUB_FIRST_LINE =
-  "Retroactively reconstructed during spec 1060 migration.";
+  "Retroactively reconstructed from earlier wiki history.";
 
 const STUB = `### Decision
 

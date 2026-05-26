@@ -1,5 +1,5 @@
 /**
- * Integration tests for `fit-pathway agent --level=<id>` (spec 910).
+ * Integration tests for `fit-pathway agent --level=<id>`.
  *
  * Stages a copy of products/map/starter into a temp data dir, removes the
  * organizational-context slot so byte-comparisons are scoped to the

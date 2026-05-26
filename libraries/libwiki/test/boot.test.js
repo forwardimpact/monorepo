@@ -35,7 +35,7 @@ describe("buildDigest", () => {
     );
     writeFileSync(
       join(root, "MEMORY.md"),
-      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| big migration | All | staff-engineer | active | 2026-05-01 |\n| someone-else thing | All | release-engineer | active | 2026-05-01 |\n\n## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| staff-engineer | spec-1060 | feat/x | — | 2026-05-19 | 2026-05-26 |\n",
+      "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| big migration | All | staff-engineer | active | 2026-05-01 |\n| someone-else thing | All | release-engineer | active | 2026-05-01 |\n\n## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| staff-engineer | spec-NNNN | feat/x | — | 2026-05-19 | 2026-05-26 |\n",
     );
 
     const digest = buildDigest({
@@ -48,7 +48,7 @@ describe("buildDigest", () => {
     assert.equal(digest.owned_priorities[0].item, "big migration");
     assert.equal(digest.cross_cutting.length, 1);
     assert.equal(digest.claims.length, 1);
-    assert.equal(digest.claims[0].target, "spec-1060");
+    assert.equal(digest.claims[0].target, "spec-NNNN");
     assert.equal(digest.inbox_count, 1);
   });
 

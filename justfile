@@ -208,7 +208,7 @@ build-binary NAME TARGET="bun-darwin-arm64":
     fi
     # Inject the package version as a build-time literal. `bun --compile` mounts
     # source onto a virtual /$bunfs filesystem, so readFileSync(__dirname/../package.json)
-    # ENOENTs at runtime (issue #627). Each bin reads `process.env.<NAME>_VERSION`
+    # ENOENTs at runtime. Each bin reads `process.env.<NAME>_VERSION`
     # with a readFileSync fallback for source execution; --define inlines the
     # literal at compile time so the fallback branch tree-shakes away.
     VERSION=$(jq -r .version "$PKG_DIR/package.json")

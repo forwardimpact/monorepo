@@ -100,7 +100,7 @@ describe("ServiceManager - logs", () => {
       ...mockDeps,
       fs: {
         ...mockDeps.fs,
-        createReadStream: () => Readable.from(["spec-710-canary\n"]),
+        createReadStream: () => Readable.from(["log-canary-payload\n"]),
       },
       stdout,
     };
@@ -110,7 +110,7 @@ describe("ServiceManager - logs", () => {
     assert.ok(
       Buffer.concat(stdout.captured)
         .toString("utf8")
-        .includes("spec-710-canary"),
+        .includes("log-canary-payload"),
     );
   });
 

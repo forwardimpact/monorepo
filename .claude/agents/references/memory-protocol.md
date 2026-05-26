@@ -151,7 +151,8 @@ F18**.
 ## Named Jobs This Protocol Serves
 
 - *Find the next thing to pick up without colliding* → `fit-wiki claim` /
-  `release`. Claims surface + skip-self rule resolves RFC #873's memory side.
+  `release`. Claims surface + skip-self rule keeps two agents from racing on
+  the same target.
 - *Trust another agent's reported state without re-deriving* → `fit-wiki
   boot` digest + `Read wiki/MEMORY.md`.
 - *Receive memos without breaking my contract* → `fit-wiki inbox list / ack /

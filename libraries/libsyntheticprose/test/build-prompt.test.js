@@ -1,6 +1,5 @@
 /**
- * Spec 820 criterion #4 — `#buildPrompt` is a function of the
- * `ProseContext` entry alone.
+ * `#buildPrompt` is a pure function of the `ProseContext` entry alone.
  *
  * Two prose-context entries with identical fields (drivers, scenario,
  * role, topic, tone, length) but different cache keys must produce
@@ -63,7 +62,7 @@ function makeFixture() {
   return { tmpDir, generator, captured };
 }
 
-describe("ProseGenerator #buildPrompt (criterion #4)", () => {
+describe("ProseGenerator #buildPrompt", () => {
   test("identical contexts under different cache keys render byte-equal prompts", async () => {
     const { tmpDir, generator, captured } = makeFixture();
     try {

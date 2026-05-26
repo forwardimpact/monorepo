@@ -222,8 +222,8 @@ const definition = {
   examples: [
     "fit-wiki boot --agent staff-engineer",
     'fit-wiki log decision --agent staff-engineer --surveyed "..." --chosen "..." --rationale "..."',
-    "fit-wiki claim --agent staff-engineer --target spec-1060 --branch claude/...",
-    "fit-wiki release --agent staff-engineer --target spec-1060",
+    "fit-wiki claim --agent staff-engineer --target spec-NNNN --branch claude/...",
+    "fit-wiki release --agent staff-engineer --target spec-NNNN",
     "fit-wiki inbox list --agent staff-engineer",
     "fit-wiki rotate --agent staff-engineer",
     "fit-wiki audit",

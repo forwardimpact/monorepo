@@ -61,8 +61,8 @@ npx fit-wiki log done --agent staff-engineer
 row past `expires_at`.
 
 ```sh
-npx fit-wiki claim --agent staff-engineer --target spec-1060 --branch feat/x [--pr 1031] [--expires-at 2026-05-26]
-npx fit-wiki release --agent staff-engineer --target spec-1060
+npx fit-wiki claim --agent staff-engineer --target spec-NNNN --branch feat/x [--pr NNNN] [--expires-at YYYY-MM-DD]
+npx fit-wiki release --agent staff-engineer --target spec-NNNN
 ```
 
 ### `inbox list | ack | promote | drop`

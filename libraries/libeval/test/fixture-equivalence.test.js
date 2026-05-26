@@ -1,5 +1,6 @@
 /**
- * Fixture-anchored equivalence test — spec 540 criterion #6.
+ * Fixture-anchored equivalence test — guards that the live stream and
+ * the offline replay render identical text.
  *
  * The live `TeeWriter` stream and the offline `TraceCollector.toText()`
  * replay share one rendering path. If anyone changes a renderer without
@@ -19,7 +20,7 @@ import { collectStream as collect, stripAnsi } from "@forwardimpact/libharness";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-describe("spec 540 fixture equivalence", () => {
+describe("live stream and offline replay fixture equivalence", () => {
   test("live TeeWriter text equals offline toText() replay", async () => {
     const fixturePath = path.join(__dirname, "fixtures", "multi-agent.ndjson");
     const lines = fs.readFileSync(fixturePath, "utf8").trim().split("\n");

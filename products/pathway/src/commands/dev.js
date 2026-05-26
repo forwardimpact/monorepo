@@ -37,8 +37,8 @@ const VERSION =
 function resolvePackageLib(packageName) {
   // Top-level `import.meta.resolve(...)` runs at module load and fails inside
   // a `bun build --compile` bunfs root (no node_modules tree) — even on
-  // `--help`, because `bin/fit-pathway.js` statically imports this module
-  // (#1038). Call this lazily from the command handler that needs it.
+  // `--help`, because `bin/fit-pathway.js` statically imports this module.
+  // Call this lazily from the command handler that needs it.
   const mainUrl = import.meta.resolve(packageName);
   return dirname(fileURLToPath(mainUrl));
 }

@@ -7,9 +7,8 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, "..", "..", "..");
 
-// Permanent exemptions. Documented in spec 960 design § Per-module injection
-// seams and spec 990 design-c § Three setup paths. Do not add entries without
-// a corresponding design-doc note.
+// Permanent exemptions for per-module injection seams and the three setup
+// paths. Do not add entries without a corresponding design-doc note.
 const ALLOW = new Set([
   // libstorage: libconfig depends on libstorage; threading Config would cycle.
   "libraries/libstorage/src/index.js",
@@ -17,7 +16,7 @@ const ALLOW = new Set([
   // stack after `supabase start` (only known post-bring-up). The values must
   // propagate to in-process createMapClient (libconfig #env() reads
   // process.env first); cross-step propagation is via $GITHUB_ENV in the
-  // workflow. Spec 990 design-c documents this seam.
+  // workflow.
   "products/map/src/commands/substrate-stage.js",
 ]);
 
@@ -74,7 +73,7 @@ async function* productionFiles() {
   yield* walkServices();
 }
 
-// Catches every form spec § Success Criteria § "No legacy shims" forbids:
+// Catches every legacy-shim form forbidden by the no-direct-env invariant:
 // canonical process.env.SUPABASE_* (the migration must flow through Config),
 // legacy process.env.MAP_SUPABASE_*, and standalone process.env.JWT_SECRET.
 // Matches both dot-access (`process.env.SUPABASE_URL`) and bracket-access
@@ -83,7 +82,7 @@ async function* productionFiles() {
 const FORBIDDEN =
   /process\.env(?:\.|\[["']?)(MAP_SUPABASE_|SUPABASE_|JWT_SECRET\b)/;
 
-describe("Spec 960: no direct Supabase env reads in src/bin", () => {
+describe("no direct Supabase env reads in src/bin", () => {
   test("no process.env.SUPABASE_, MAP_SUPABASE_, or JWT_SECRET literals", async () => {
     const hits = [];
     for await (const file of productionFiles()) {

@@ -26,7 +26,7 @@ data.
 
 ## Prospective tagging
 
-Rows emitted under this rule between 2026-05-10 and 2026-05-15 carry the note
-tag `kata-pm-issue-uniform-cadence` for PM Exp 34 (#836) Stage 2 verification.
-After the verdict horizon the tag is no longer required; the recording rule
-remains.
+Rows emitted under this rule during the verification window for the
+uniform-cadence experiment carry the note tag
+`kata-pm-issue-uniform-cadence`. After the verdict horizon the tag is no
+longer required; the recording rule remains.

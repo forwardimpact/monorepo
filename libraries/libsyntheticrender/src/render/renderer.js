@@ -38,8 +38,8 @@ export class Renderer {
    * @param {Map<string,string>} prose
    * @param {object} [options]
    * @param {object} [options.fhirCrossRef] - Cross-ref index from
-   *   `buildFhirCrossRef`; when supplied, spec 1140 clinical pages emit
-   *   reverse links to matched patients.
+   *   `buildFhirCrossRef`; when supplied, clinical pages emit reverse
+   *   links to matched patients.
    * @returns {{ files: Map<string,string>, linked: object }}
    */
   renderSkeleton(entities, prose, options = {}) {

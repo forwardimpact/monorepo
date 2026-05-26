@@ -17,7 +17,7 @@ updates:
         update-types: [minor, patch]
     ignore:
       # @grpc/proto-loader peer-constrains protobufjs to ^7.x. Block the v8
-      # major bump until upstream widens. PR #620 (7.5.5 → 8.0.3) closed.
+      # major bump until upstream widens peer compatibility.
       - dependency-name: protobufjs
         update-types:
           - version-update:semver-major
@@ -33,7 +33,7 @@ updates:
       # platform-specific optional deps. On glibc Linux runners (GitHub
       # ubuntu-latest), the musl variant wins resolution and fails to exec,
       # causing facilitator runs to exit with only a session_start event.
-      # See PR #529. Re-bump only after upstream resolves the resolver bug.
+      # Re-bump only after upstream resolves the resolver bug.
       - dependency-name: "@anthropic-ai/claude-agent-sdk"
         update-types:
           - version-update:semver-patch

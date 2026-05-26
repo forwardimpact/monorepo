@@ -1,5 +1,5 @@
 /**
- * Spec 1070 § Success Criteria — guard unit test.
+ * Unit test for the workspace-imports guard.
  *
  * Exercises `findUndeclaredImports` from `scripts/check-workspace-imports.mjs`
  * against synthetic in-memory inputs. The test does not touch real product
@@ -10,7 +10,7 @@ import assert from "node:assert";
 
 import { findUndeclaredImports } from "../scripts/check-workspace-imports.mjs";
 
-describe("spec 1070 — check-workspace-imports guard", () => {
+describe("check-workspace-imports guard", () => {
   test("flags a static import of an undeclared workspace package", () => {
     const packageDir = "/synthetic/products/widget";
     const findings = findUndeclaredImports({

@@ -1,9 +1,7 @@
 /**
- * Spec 1070 § Success Criteria — documentation assertion.
- *
- * `products/CLAUDE.md` records the "workspace imports declare dependencies"
- * rule and references the contributor-side guard by name
- * (`check-workspace-imports`).
+ * Documentation assertion: `products/CLAUDE.md` records the "workspace
+ * imports declare dependencies" rule and references the contributor-side
+ * guard by name (`check-workspace-imports`).
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";
@@ -12,7 +10,7 @@ import { resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
 
-describe("spec 1070 — products/CLAUDE.md documents the rule", () => {
+describe("products/CLAUDE.md documents the workspace imports rule", () => {
   const doc = readFileSync(resolve(ROOT, "products/CLAUDE.md"), "utf8");
 
   test("states that @forwardimpact/* imports inside a product must be declared in its package.json", () => {

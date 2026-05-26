@@ -72,14 +72,14 @@ function compileLauncher() {
   const buildDir = join(LAUNCHER_DIR, ".build");
   rmSync(buildDir, { recursive: true, force: true });
 
-  // Determinism profile — spec 1170, design Decision 4.
+  // Determinism profile — produces a byte-identical Mach-O across rebuilds.
   // (a) SWIFT_DETERMINISTIC_HASHING=1 — symbol-table/section order.
   // (b) -file-prefix-map — DWARF absolute-path scrubbing.
   //     -no-clang-module-breadcrumbs — strips clang-module debug
   //     paths Swift modules can pull alongside DWARF.
-  //     -gnone — last-resort drop of DWARF debug info entirely
-  //     (plan § Step 4); first verification probe left 5 timestamp-
-  //     shaped 4-byte writes inside Contents/MacOS/Outpost.
+  //     -gnone — last-resort drop of DWARF debug info entirely;
+  //     without it, timestamp-shaped 4-byte writes leak into
+  //     Contents/MacOS/Outpost.
   // (c) -Xlinker -no_uuid — suppress LC_UUID which ld64 derives from
   //     content + build-time entropy; pairs with (a)/(b) to leave
   //     the Mach-O byte-identical across rebuilds.

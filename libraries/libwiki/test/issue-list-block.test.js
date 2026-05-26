@@ -26,7 +26,7 @@ describe("renderIssueList", () => {
       gh: mockGh(
         JSON.stringify([
           {
-            number: 100,
+            number: 1,
             title: "obstacle one",
             labels: [{ name: "obstacle" }],
             closedAt: null,
@@ -35,7 +35,7 @@ describe("renderIssueList", () => {
       ),
     });
     assert.equal(lines.length, 1);
-    assert.equal(lines[0], "- #100 obstacle one");
+    assert.equal(lines[0], "- #1 obstacle one");
   });
 
   test("filters closed experiments by 7-day window", () => {

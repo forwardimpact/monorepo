@@ -1,6 +1,5 @@
 /**
- * Tests for APM bundle generation.
- * Covers spec 520 — APM-Compatible Pack Distribution.
+ * Tests for APM bundle generation — APM-Compatible Pack Distribution.
  */
 
 import { test, describe, before, after } from "node:test";

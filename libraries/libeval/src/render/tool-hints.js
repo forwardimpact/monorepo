@@ -101,7 +101,8 @@ export function simplifyToolName(name) {
  *
  * Three branches, in priority order:
  *  - A built-in tool with an entry in `HINT_HANDLERS` → sanitized hint, no
- *    `{` / `"` from the input (spec 540 criterion #2 for non-MCP tools).
+ *    `{` / `"` from the input (built-in tool hints stay free of JSON
+ *    punctuation so readers see clean one-liners).
  *  - An MCP-prefixed tool (`mcp__*`) → full input rendered as compact
  *    single-line JSON; `{` and `"` intentionally appear so readers see
  *    the actual MCP payload.

@@ -1,5 +1,5 @@
 /**
- * Tests for spec 660 — skill multiple references.
+ * Tests for skill multiple references.
  *
  * Covers:
  *  - formatReference(entry, template) byte shape
@@ -65,7 +65,7 @@ describe("writeSkillReferences", () => {
   let skillDir;
 
   beforeEach(async () => {
-    workDir = mkdtempSync(join(tmpdir(), "spec-660-writer-"));
+    workDir = mkdtempSync(join(tmpdir(), "skill-references-writer-"));
     skillDir = join(workDir, "incident-response");
     await mkdir(skillDir, { recursive: true });
   });

@@ -1,10 +1,10 @@
 /**
- * Baseline regression tests for `fit-pathway agent` after spec 920.
+ * Baseline regression tests for `fit-pathway agent`.
  *
- * Case 1 (byte-identical-absent) reads the captured-pre-change fixture and
- * compares the post-change generator's output against it, with the slot
- * file removed. This is the spec's "absent slot produces output identical
- * to today" claim, anchored to an empirical snapshot.
+ * Case 1 (byte-identical-absent) reads a captured baseline fixture and
+ * compares the generator's output against it, with the slot file removed.
+ * This anchors the "absent slot produces output identical to baseline"
+ * invariant to an empirical snapshot.
  *
  * Case 2 (populated-starter) runs against the unmodified starter (slot
  * present) and asserts the rendered file carries the placeholder values

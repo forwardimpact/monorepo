@@ -79,7 +79,7 @@ npx fit-landmark evidence --email you@example.com
 
     architecture_design: 1 matched, 2 unmatched
       [matched] Owned the architecture of a service through delivery and validation.
-        rationale: PR #142 introduced a new service boundary with documented API contracts.
+        rationale: A recent pull request introduced a new service boundary with documented API contracts.
       [unmatched] Evaluated alternatives and justified trade-offs in a written design review.
         rationale: No design review artifact present in this PR.
 ```

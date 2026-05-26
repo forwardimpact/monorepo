@@ -83,9 +83,9 @@ message; no rows are exposed across scope boundaries.
 
 ## What's not in scope
 
-- Slices 2–4 of [issue #829](https://github.com/forwardimpact/monorepo/issues/829)
-  (Claude Code aggregates, `evaluate-evidence` traces, Copilot ingestion) are
-  not yet listed by this command. When they land, the
+- Additional source classes (Claude Code aggregates, `evaluate-evidence`
+  traces, Copilot ingestion) are not yet listed by this command. When they
+  land, the
   [SOURCE_CLASSES registry](https://github.com/forwardimpact/monorepo/blob/main/products/landmark/src/commands/sources.js)
   expands to cover them.
 - Map ingestion-pipeline rows (`getdx_initiatives`, `getdx_teams`,

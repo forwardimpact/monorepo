@@ -1,5 +1,5 @@
 /**
- * Spec 840 criterion 8 (static-inspection half).
+ * Static-inspection guard for the ingestion service-role credential.
  *
  * Map's ingestion code path keeps the service-role credential — this test
  * locks the property in so a future refactor does not silently migrate

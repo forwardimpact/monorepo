@@ -76,16 +76,16 @@ Changes to a canonical-11 metric — skill removal, rename, split, definition
 change, sidecar opening, denominator redefinition, rule-semantics challenge —
 follow one of eight named repair moves and ship with a redefinition file.
 
-| Move | Definition (one sentence) | Falsifier-set kind | Existing precedent |
-|---|---|---|---|
-| `producer-rehoming` | Reassign a metric's producing skill when the original is removed/split/renamed; record a continuity tag on the first row under the new producer. | "structural-zero rows present after rehoming run" | #788, RFC #804 |
-| `mode-restriction` | Narrow recording to one activation mode of a multi-mode skill so the series is unimodal. | "post-restriction series remains bimodal under XmR" | #772, PR #773 |
-| `historical-phasing` | Annotate a series with a Phase boundary; XmR analysis windows on Phase 1; no CSV backfill. | "Phase 1 cannot reach `predictable` after horizon" | #809, PR #811 |
-| `sidecar-pre-flight` | Record a candidate metric to a sibling CSV while the canonical metric continues; no denominator change until ratification. | "sidecar diverges from canonical at horizon" | #787 |
-| `stock-vs-flow-recast` | Replace a flow-rate metric with a stock metric on the same axis when burst architecture trips XmR by construction. | "stock series fires `xRule1` or `mrRule1` post-recast" | #768, #770 |
-| `event-driven-recast` | Replace per-day cadence with per-activation ("no row, no event"). | "per-activation series remains `insufficient_data` at horizon" | #810 |
-| `rule-semantics-rfc` | Challenge an XmR rule's blocking effect on `predictable` via Discussion RFC; quorum required. | "RFC quorum not reached by horizon" | #814 |
-| `habit-to-policy` | Promote an undocumented defensive habit into a `SKILL.md` check after a defect surfaces. | "post-promotion defect of the same shape recurs" | #817, PR #655 |
+| Move | Definition (one sentence) | Falsifier-set kind |
+|---|---|---|
+| `producer-rehoming` | Reassign a metric's producing skill when the original is removed/split/renamed; record a continuity tag on the first row under the new producer. | "structural-zero rows present after rehoming run" |
+| `mode-restriction` | Narrow recording to one activation mode of a multi-mode skill so the series is unimodal. | "post-restriction series remains bimodal under XmR" |
+| `historical-phasing` | Annotate a series with a Phase boundary; XmR analysis windows on Phase 1; no CSV backfill. | "Phase 1 cannot reach `predictable` after horizon" |
+| `sidecar-pre-flight` | Record a candidate metric to a sibling CSV while the canonical metric continues; no denominator change until ratification. | "sidecar diverges from canonical at horizon" |
+| `stock-vs-flow-recast` | Replace a flow-rate metric with a stock metric on the same axis when burst architecture trips XmR by construction. | "stock series fires `xRule1` or `mrRule1` post-recast" |
+| `event-driven-recast` | Replace per-day cadence with per-activation ("no row, no event"). | "per-activation series remains `insufficient_data` at horizon" |
+| `rule-semantics-rfc` | Challenge an XmR rule's blocking effect on `predictable` via Discussion RFC; quorum required. | "RFC quorum not reached by horizon" |
+| `habit-to-policy` | Promote an undocumented defensive habit into a `SKILL.md` check after a defect surfaces. | "post-promotion defect of the same shape recurs" |
 
 The list is closed; extensions land via the spec/design/plan/implement chain.
 
@@ -107,9 +107,9 @@ verdict_horizon: <YYYY-MM-DD>
 cohort_readout: <YYYY-MM-DD>      # >= verdict_horizon
 denominator_effect: none | sidecar | conditional-amend | amend
 links:
-  obstacle_issue: <#NNN>?
-  experiment_issue: <#NNN>?
-  pr: <#NNN>?
+  obstacle_issue: <issue-ref>?
+  experiment_issue: <issue-ref>?
+  pr: <pr-ref>?
 ---
 
 # Redefinition — <human-readable title>
@@ -134,7 +134,7 @@ that don't move the denominator; `sidecar` for a parallel CSV pending verdict;
 > This single statement lives in `coordination-protocol.md` § Measurement-system
 > changes. KATA.md § Metrics links to it; no other file restates it.
 
-### Worked example — SE Exp 33 (#787) sidecar pre-flight
+### Worked example — sidecar pre-flight
 
 ```yaml
 ---
@@ -143,19 +143,19 @@ affected_metrics:
   - {skill: kata-trace, metric: findings_count}
 falsifier_set:
   - sidecar diverges from canonical at verdict horizon
-verdict_horizon: 2026-05-19
-cohort_readout: 2026-05-26
+verdict_horizon: YYYY-MM-DD
+cohort_readout: YYYY-MM-DD
 denominator_effect: none
 links:
-  obstacle_issue: "#788"
-  experiment_issue: "#787"
+  obstacle_issue: "<issue-ref>"
+  experiment_issue: "<issue-ref>"
   pr: null
 ---
 
-# Redefinition — SE Exp 33 (#787) sidecar pre-flight (inline example)
+# Redefinition — sidecar pre-flight (inline example)
 
-One paragraph context: SE Exp 33 opened a sidecar CSV to evaluate the
-`findings_count` recasting; the cohort ratifies at the 2026-05-26 read-out.
+One paragraph context: a sidecar CSV opened to evaluate the
+`findings_count` recasting; the cohort ratifies at the next read-out.
 ```
 
 ### Detection
@@ -246,12 +246,12 @@ Cite every non-wiki output back in the wiki log so the deliberation trail stays
 linked. Format: `<Channel> #<N>: <one-line topic> (<URL>)`.
 
 ```
-Discussion #123: should fit-pathway support nested levels?
-(https://github.com/forwardimpact/monorepo/discussions/123)
-PR #549: docs(kata): document kata-dispatch workflow
-(https://github.com/forwardimpact/monorepo/pull/549)
-Issue #200: clarify proficiency scale for expert tier
-(https://github.com/forwardimpact/monorepo/issues/200)
+Discussion: should fit-pathway support nested levels?
+(https://github.com/forwardimpact/monorepo/discussions/<N>)
+PR: docs(kata): document kata-dispatch workflow
+(https://github.com/forwardimpact/monorepo/pull/<N>)
+Issue: clarify proficiency scale for expert tier
+(https://github.com/forwardimpact/monorepo/issues/<N>)
 ```
 
 ## Creating outputs (gh CLI)

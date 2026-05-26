@@ -118,7 +118,7 @@ describe("substrate-roster JSON output", () => {
     assert.equal(alice.snapshot_id, "S1");
     assert.equal(alice.item_id, "ITEM1");
     assert.equal(parsed.discovery, undefined);
-    // Spec 1090 § Decision 4 + Decision 7 — operator surface fields.
+    // Operator surface fields.
     assert.equal(alice.parent_email, "chief@x");
     assert.equal(alice.team_name, "Team One");
     assert.equal(alice.parent.email, "chief@x");
@@ -135,7 +135,7 @@ describe("substrate-roster JSON output", () => {
     const code = await runRosterCommand({ supabase, options: {} });
     assert.equal(code, 0);
     const text = out.text();
-    // Spec 1090 criterion 1 — aligned header line, no leading bullet.
+    // Aligned header line, no leading bullet.
     assert.match(text, /^email\s+name\s+/);
     assert.match(text, /alice@x/);
     assert.equal(text.includes("\u2022"), false);

@@ -1,9 +1,11 @@
 /**
- * Workflow-shape assertion for spec 990 § *Non-Landmark interviews are
- * not regressed*. Parses `.github/workflows/kata-interview.yml` as YAML
- * and verifies every step + every Run-interview env key added by spec
- * 990 carries a Landmark predicate, and the interview job declares a
- * timeout-minutes strictly less than the JWT's 1-hour default TTL.
+ * Workflow-shape assertion guarding the *Non-Landmark interviews are
+ * not regressed* invariant. Parses `.github/workflows/kata-interview.yml`
+ * as YAML and verifies every Landmark-only step + every Run-interview
+ * env key that selects the Landmark path carries a Landmark predicate,
+ * and the interview job declares a timeout-minutes strictly less than
+ * the JWT's 1-hour default TTL so a stalled run cannot outlive its
+ * credentials.
  */
 
 import { describe, it } from "node:test";
@@ -20,17 +22,17 @@ const wf = parse(readFileSync(WORKFLOW_PATH, "utf8"));
 const steps = wf.jobs.interview.steps;
 
 const ADDED_STEPS = ["Substrate stage", "Scan logs for sensitive values"];
-// Every key added to `Run interview`'s env by spec 990. Must match what
-// Step 4 of plan-a-03 lands. SUPABASE_URL is propagated via $GITHUB_ENV
-// (Step 3) and does not appear in the env: map here.
+// Every key on `Run interview`'s env that selects the Landmark-only
+// interview path. SUPABASE_URL is propagated via $GITHUB_ENV from the
+// Substrate stage and does not appear in the env: map here.
 const ADDED_RUN_ENV_KEYS = [
   "AGENT_CWD",
   "SUPABASE_JWT_SECRET",
   "SUPABASE_SERVICE_ROLE_KEY",
 ];
 
-describe("kata-interview.yml spec 990 non-Landmark invariant", () => {
-  it("every step added by spec 990 carries the Landmark predicate", () => {
+describe("kata-interview.yml non-Landmark invariant", () => {
+  it("every Landmark-only step carries the Landmark predicate", () => {
     for (const name of ADDED_STEPS) {
       const step = steps.find((s) => s.name === name);
       assert.ok(step, `expected step "${name}"`);
@@ -42,7 +44,7 @@ describe("kata-interview.yml spec 990 non-Landmark invariant", () => {
     }
   });
 
-  it("every Run-interview env key added by spec 990 is Landmark-gated", () => {
+  it("every Landmark-only Run-interview env key is Landmark-gated", () => {
     const run = steps.find((s) => s.name === "Run interview");
     assert.ok(run, "expected 'Run interview' step");
     for (const key of ADDED_RUN_ENV_KEYS) {

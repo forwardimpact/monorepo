@@ -1,5 +1,5 @@
 /**
- * Spec 840 criterion 5/6/7 — fit-landmark sources verb.
+ * fit-landmark sources verb tests.
  *
  * Live-Postgres only — skipped when SUPABASE_URL / SUPABASE_JWT_SECRET
  * are unset.
@@ -35,7 +35,7 @@ function clientFor(email) {
   });
 }
 
-describe("Spec 840 — fit-landmark sources", () => {
+describe("fit-landmark sources", () => {
   if (!isLiveSupabaseAvailable()) {
     test("skipped — SUPABASE_URL / SUPABASE_JWT_SECRET not set", {
       skip: true,

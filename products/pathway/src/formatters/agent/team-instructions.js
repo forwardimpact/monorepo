@@ -13,13 +13,12 @@ import { trimValue } from "../shared.js";
 /**
  * Format team instructions + organizational context as CLAUDE.md content.
  *
- * Behavior change vs pre-spec-920: returns null when both inputs are
- * empty/whitespace (instead of an empty rendered template). All call sites
- * — CLI writeTeamInstructions, web preview deriveAgentData, distribution
- * formatContent — treat null as "skip the file/section." The marker-contract
- * last-occurrence rule lives in renderOrganizationalContext and the
- * org-context guide; this composer only appends the section after the
- * teamInstructions body.
+ * Returns null when both inputs are empty/whitespace (instead of an empty
+ * rendered template). All call sites — CLI writeTeamInstructions, web
+ * preview deriveAgentData, distribution formatContent — treat null as
+ * "skip the file/section." The marker-contract last-occurrence rule lives
+ * in renderOrganizationalContext and the org-context guide; this composer
+ * only appends the section after the teamInstructions body.
  *
  * @param {string|null} teamInstructions
  * @param {string|null} orgSection

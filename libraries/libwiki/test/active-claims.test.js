@@ -17,7 +17,7 @@ const EMPTY_MEMORY =
 
 const MEMORY_WITH_EMPTY_CLAIMS = `${EMPTY_MEMORY}\n${ACTIVE_CLAIMS_HEADING}\n\n${ACTIVE_CLAIMS_TABLE_HEADER}\n${ACTIVE_CLAIMS_TABLE_SEPARATOR}\n| *None* | — | — | — | — | — |\n`;
 
-const MEMORY_WITH_CLAIM = `${EMPTY_MEMORY}\n${ACTIVE_CLAIMS_HEADING}\n\n${ACTIVE_CLAIMS_TABLE_HEADER}\n${ACTIVE_CLAIMS_TABLE_SEPARATOR}\n| staff-engineer | spec-1060 | feat/x | — | 2026-05-19 | 2026-05-26 |\n`;
+const MEMORY_WITH_CLAIM = `${EMPTY_MEMORY}\n${ACTIVE_CLAIMS_HEADING}\n\n${ACTIVE_CLAIMS_TABLE_HEADER}\n${ACTIVE_CLAIMS_TABLE_SEPARATOR}\n| staff-engineer | spec-NNNN | feat/x | — | 2026-05-19 | 2026-05-26 |\n`;
 
 describe("parseClaims", () => {
   test("returns [] when section missing", () => {
@@ -30,7 +30,7 @@ describe("parseClaims", () => {
     const claims = parseClaims(MEMORY_WITH_CLAIM);
     assert.equal(claims.length, 1);
     assert.equal(claims[0].agent, "staff-engineer");
-    assert.equal(claims[0].target, "spec-1060");
+    assert.equal(claims[0].target, "spec-NNNN");
     assert.equal(claims[0].expires_at, "2026-05-26");
     assert.equal(claims[0].pr, null);
   });
@@ -40,20 +40,20 @@ describe("appendClaim", () => {
   test("inserts a new row into an empty-state table", () => {
     const result = appendClaim(MEMORY_WITH_EMPTY_CLAIMS, {
       agent: "staff-engineer",
-      target: "spec-1060",
+      target: "spec-NNNN",
       branch: "feat/x",
       pr: null,
       claimed_at: "2026-05-19",
       expires_at: "2026-05-26",
     });
     assert.equal(result.inserted, true);
-    assert.match(result.text, /staff-engineer \| spec-1060/);
+    assert.match(result.text, /staff-engineer \| spec-NNNN/);
     assert.doesNotMatch(result.text, /\| \*None\* \| — \| — \| — \| — \| — \|/);
   });
   test("refuses (agent, target) duplicates", () => {
     const result = appendClaim(MEMORY_WITH_CLAIM, {
       agent: "staff-engineer",
-      target: "spec-1060",
+      target: "spec-NNNN",
       branch: "feat/y",
       pr: null,
       claimed_at: "2026-05-20",
@@ -65,15 +65,15 @@ describe("appendClaim", () => {
   test("appends second row alongside first", () => {
     const result = appendClaim(MEMORY_WITH_CLAIM, {
       agent: "release-engineer",
-      target: "PR-#1029",
+      target: "PR-#NNNN",
       branch: "feat/z",
-      pr: "1029",
+      pr: "NNNN",
       claimed_at: "2026-05-19",
       expires_at: "2026-05-26",
     });
     assert.equal(result.inserted, true);
-    assert.match(result.text, /release-engineer \| PR-#1029/);
-    assert.match(result.text, /staff-engineer \| spec-1060/);
+    assert.match(result.text, /release-engineer \| PR-#NNNN/);
+    assert.match(result.text, /staff-engineer \| spec-NNNN/);
   });
 });
 
@@ -81,10 +81,10 @@ describe("removeClaim", () => {
   test("removes a matching row", () => {
     const result = removeClaim(MEMORY_WITH_CLAIM, {
       agent: "staff-engineer",
-      target: "spec-1060",
+      target: "spec-NNNN",
     });
     assert.equal(result.removed, true);
-    assert.doesNotMatch(result.text, /staff-engineer \| spec-1060/);
+    assert.doesNotMatch(result.text, /staff-engineer \| spec-NNNN/);
   });
   test("returns removed:false for unknown rows (idempotent)", () => {
     const result = removeClaim(MEMORY_WITH_CLAIM, {

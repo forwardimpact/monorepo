@@ -11,7 +11,7 @@ import { writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 
 /**
- * Unified bootstrap script (spec 960).
+ * Unified bootstrap script.
  *
  * Generates every secret previously split between scripts/env-secrets.js
  * and scripts/env-storage.js. All values land in a single .env. Re-runs

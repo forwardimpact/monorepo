@@ -1,7 +1,7 @@
 /**
  * TeeWriter tests for the v1.1 schema expansion — system and user role
- * rendering must match `TraceCollector.toText()` so spec 540 criterion #6
- * (live stream equals offline replay) keeps holding.
+ * rendering must match `TraceCollector.toText()` so the live stream
+ * equals the offline replay.
  */
 import { describe, test } from "node:test";
 import assert from "node:assert";

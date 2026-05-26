@@ -8,8 +8,6 @@
  *
  *   import { MAP_DATA } from "./fixtures.js";
  *   const partial = { ...MAP_DATA, skills: [{ id: "x", name: "X" }] };
- *
- * See spec 640 (specs/640-refactor-test-suite/spec.md).
  */
 
 export const PEOPLE = [

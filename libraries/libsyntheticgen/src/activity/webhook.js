@@ -4,11 +4,11 @@
  * prose keys), prose-context construction (PR-body and review-body
  * entries), and output rendering (per-event JSON + index).
  *
- * `TOut = { events, keys }` per design 820-A — `events` feeds render,
- * `keys` feeds prose-context. Internal branching in `proseKeys`
- * (PR-body vs review-body) is allowed inside the per-output method
- * body; the call sites do not name the branches (criterion #2 of spec
- * 820 governs call sites, not method internals).
+ * `TOut = { events, keys }` — `events` feeds render, `keys` feeds
+ * prose-context. Internal branching in `proseKeys` (PR-body vs
+ * review-body) is allowed inside the per-output method body; the call
+ * sites must not name the branches (the no-per-output-names rule
+ * governs call sites, not method internals).
  *
  * @module libsyntheticgen/activity/webhook
  */
@@ -480,7 +480,7 @@ function generateWebhook(ctx) {
 /**
  * Yield prose-context entries for PR-body and review-body prose. The
  * branch by `prose_type` is internal to this method — the call site
- * does not see it (criterion #2 of spec 820).
+ * does not see it (the no-per-output-names rule governs call sites).
  *
  * @param {{ keys: object[] }} output
  * @param {{ domain: string, orgName: string }} ctx

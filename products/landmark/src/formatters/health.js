@@ -284,7 +284,7 @@ function renderMdDefault(view, deduped, lines) {
 
 // ---------------------------------------------------------------------------
 // Join-state copy — observable distinction between (a) no drivers configured
-// and (b) configured but disjoint from snapshot ids. Spec 1180 criterion 4.
+// and (b) configured but disjoint from snapshot ids.
 // ---------------------------------------------------------------------------
 
 function noDriversText() {

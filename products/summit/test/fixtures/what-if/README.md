@@ -41,8 +41,7 @@ expected output.
 The 15 fixture files committed alongside this README capture the pre-refactor
 output of the legacy `whatIfToText` / `whatIfToJson` / `whatIfToMarkdown`
 parameter shape (`{ scenario, coverageDiff, riskDiff, data? }`). After the
-spec 830 refactor migrates the formatters to the new `{ report, data? }`
-shape, the post-refactor regeneration (via the updated `regenerate.mjs`)
-must produce the exact same bytes for every fixture file. If the diff is
-non-empty after regenerating, the refactor has changed the non-move output
-path and the test will fail.
+formatters migrate to the new `{ report, data? }` shape, the post-refactor
+regeneration (via the updated `regenerate.mjs`) must produce the exact same
+bytes for every fixture file. If the diff is non-empty after regenerating,
+the refactor has changed the non-move output path and the test will fail.

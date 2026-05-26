@@ -1,11 +1,9 @@
 /**
- * Spec 820 — `ProseActivity` contract tests.
+ * `ProseActivity` contract tests.
  *
- * Asserts the contract's behavior against the success criteria in
- * `specs/820-synthetic-pipeline-activity-interface/spec.md`:
- * #1 single source of truth · #2 no per-output names at the call sites
- * · #3 multi-driver context for snapshot comments · #5 per-output unit
- * coverage including multi-driver-declining input.
+ * Asserts the contract's behavior: single source of truth, no per-output
+ * names at the call sites, multi-driver context for snapshot comments,
+ * and per-output unit coverage including multi-driver-declining input.
  */
 import { describe, test } from "node:test";
 import assert from "node:assert";
@@ -34,7 +32,7 @@ function loadFromDsl() {
   return { ast, entities, rng };
 }
 
-describe("PROSE_ACTIVITIES registration (criterion #1)", () => {
+describe("PROSE_ACTIVITIES registration is the single source of truth", () => {
   test("registration is the single source of truth", () => {
     assert.deepStrictEqual(PROSE_ACTIVITIES.map((p) => p.id).sort(), [
       "comment",
@@ -64,7 +62,7 @@ describe("PROSE_ACTIVITIES registration (criterion #1)", () => {
   });
 });
 
-describe("call sites do not name prose-bearing outputs (criterion #2)", () => {
+describe("call sites do not name prose-bearing outputs", () => {
   // Static-source check: the three pipeline call sites must not name the
   // in-scope prose-bearing output identifiers in their own bodies.
   // Identifiers and per-output helper names appear only inside the
@@ -110,7 +108,7 @@ describe("call sites do not name prose-bearing outputs (criterion #2)", () => {
   });
 });
 
-describe("comment proseKeys carries multi-driver array (criterion #3)", () => {
+describe("comment proseKeys carries multi-driver array", () => {
   test("alpha team comment-keys expose drivers array of length 2", () => {
     const { entities } = loadFromDsl();
     const alphaComments = entities.activity.comment.keys.filter(
@@ -174,7 +172,7 @@ describe("comment proseKeys carries multi-driver array (criterion #3)", () => {
   });
 });
 
-describe("commentActivity per-output coverage (criterion #5)", () => {
+describe("commentActivity per-output coverage", () => {
   test("snapshot-comment generation under multi-driver-declining input", () => {
     const { entities } = loadFromDsl();
     const output = entities.activity.comment;
@@ -191,7 +189,7 @@ describe("commentActivity per-output coverage (criterion #5)", () => {
   });
 });
 
-describe("webhookActivity contract (criteria #1, #5)", () => {
+describe("webhookActivity contract", () => {
   test("webhookActivity.generate returns { events, keys }", () => {
     const { ast, entities, rng } = loadFromDsl();
     const output = webhookActivity.generate({

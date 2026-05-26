@@ -4,8 +4,8 @@
  * `MedicalProcedure` / `DrugPrescription` items) plus a single `index.html`.
  *
  * Pure module: no filesystem I/O, no logger. Pipeline wiring lives in
- * `libterrain/src/nodes.js`. See spec 1190 § Proposal and design 1190
- * § Vocabulary for the Schema.org / fit: namespace split.
+ * `libterrain/src/nodes.js`. Vocabulary splits across the Schema.org and
+ * fit: namespaces.
  */
 
 import { dirname, join } from "node:path";
@@ -107,8 +107,7 @@ function invertPatientToTrials(patientToTrialIris) {
 
 /**
  * Build the cross-ref index linking FHIR Patient records to DSL-declared
- * trials, conditions, and sites. Pure function. See design 1190
- * § Cross-ref derivation.
+ * trials, conditions, and sites. Pure function.
  *
  * @param {{ patients: object[], conditions: object[], clinical: object, domain: string }} args
  * @returns {CrossRefIndex}

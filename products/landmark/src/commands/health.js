@@ -115,8 +115,7 @@ export async function runHealthCommand({
 /**
  * Classify the snapshot-to-drivers.yaml join into one of three observable
  * states so the formatter can distinguish "no drivers configured" from
- * "configured but disjoint from snapshot ids" from "matched". Spec 1180
- * criterion 4.
+ * "configured but disjoint from snapshot ids" from "matched".
  */
 function computeDriverJoin(mapData, scores, drivers) {
   const yamlIds = (mapData.drivers ?? []).length;

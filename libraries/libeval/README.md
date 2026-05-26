@@ -176,11 +176,9 @@ downloadable through retention.
 ## fit-selfedit
 
 A narrow, audited bypass for sessions where `Edit`/`Write` (and bash
-writes) are blocked against paths the project's own allowlist permits —
-see [#1162](https://github.com/forwardimpact/monorepo/issues/1162) and
-[#441](https://github.com/forwardimpact/monorepo/issues/441) for the
-original episodes. Reads stdin, writes the target, exits 0 / 2
-(safeguard violation) / 1 (I/O error).
+writes) are blocked against paths the project's own allowlist permits.
+Reads stdin, writes the target, exits 0 / 2 (safeguard violation) / 1
+(I/O error).
 
 ```sh
 echo "<content>" | bunx fit-selfedit <path>

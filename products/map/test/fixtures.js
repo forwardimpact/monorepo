@@ -1,8 +1,8 @@
 /**
  * Shared test fixtures for products/map/test/.
  *
- * Spec 640 removed inline standard data from each test file. Any constant
- * that repeats across two or more tests (or two or more files) lives here.
+ * Any constant that repeats across two or more tests (or two or more files)
+ * lives here so per-test files stay minimal and stay in sync.
  */
 
 /**

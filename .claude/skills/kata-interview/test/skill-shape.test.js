@@ -1,11 +1,11 @@
 /**
- * Shape assertion for the kata-interview SKILL.md amendments from
- * specs 990 and 1090. Guards:
+ * Shape assertion for the kata-interview SKILL.md. Guards:
  *   - Step 3 staging table mentions substrate on the Landmark row.
  *   - Step 3a (Landmark persona pick) names the substrate verbs the
- *     spec-1090 reframe invokes (`substrate pick` + `substrate issue`).
- *   - The read-do-checklist line is the spec-990 amended wording (the
- *     literal "No product names anywhere agent-visible" must be gone).
+ *     persona-pick reframe invokes (`substrate pick` + `substrate issue`).
+ *   - The read-do-checklist line carries the amended wording (the
+ *     literal "No product names anywhere agent-visible" must be gone, so
+ *     production CLI env vars stay permitted).
  *   - Step 4 CLAUDE.md exclusion list is unchanged.
  */
 
@@ -19,7 +19,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SKILL_PATH = join(__dirname, "..", "SKILL.md");
 const skill = readFileSync(SKILL_PATH, "utf8");
 
-describe("kata-interview SKILL.md spec 990 + 1090 amendments", () => {
+describe("kata-interview SKILL.md amendments", () => {
   it("Step 3 staging table Landmark row mentions substrate", () => {
     assert.match(skill, /\| Landmark\s+\|.*substrate.*staged.*\|/);
   });

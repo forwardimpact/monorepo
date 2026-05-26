@@ -27,7 +27,8 @@
  * Verb terminal-closure walks (the cost-shifting payoff of Phase D):
  *   check    → parse, entities, prose-keys, cache-lookup
  *   validate → ...above + datasets, fhir-cross-ref, skeleton, enriched,
- *              validate (datasets pulled via the spec 1190 D12 dep)
+ *              validate (datasets pulled via the skeleton → fhir-cross-ref
+ *              dependency)
  *   build    → all of the above + raw, markdown, pathway,
  *              clinical-output, fhir-microdata-html, write
  *

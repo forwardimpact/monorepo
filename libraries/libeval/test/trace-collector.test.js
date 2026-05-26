@@ -364,7 +364,7 @@ describe("TraceCollector", () => {
       const collector = collectFixture();
       const text = collector.toText();
 
-      // Spec 540: tool-call lines pair the tool name with a colon and the
+      // Tool-call lines pair the tool name with a colon and the
       // sanitized hint — no leading marker, no JSON punctuation.
       assert.ok(text.includes("Bash: ls -la"));
       assert.ok(!text.includes("> Bash"));

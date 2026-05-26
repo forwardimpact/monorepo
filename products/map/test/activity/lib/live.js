@@ -1,8 +1,8 @@
 /**
- * Live-Postgres test harness for spec 840.
+ * Live-Postgres test harness for the RLS policy suite.
  *
- * Six new tests need a running Supabase stack (migrate, apply RLS, mint
- * JWTs, exercise the policy matrix). The harness:
+ * Tests need a running Supabase stack (migrate, apply RLS, mint JWTs,
+ * exercise the policy matrix). The harness:
  *   - skips when `SUPABASE_URL` and `SUPABASE_JWT_SECRET` are unset
  *     (CI runs the suite without booting Supabase)
  *   - applies the RLS migration via `bunx fit-map activity migrate`

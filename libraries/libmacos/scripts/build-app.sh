@@ -95,8 +95,8 @@ cp "$INFO_PLIST" "$APP_DIR/Contents/Info.plist"
 # --- Embed version into Info.plist -------------------------------------------
 
 # Substitute the release version into the bundle's Info.plist before signing
-# so codesign covers the version-correct plist. Spec 600 SC9 requires the
-# bundle's CFBundleShortVersionString to match the release tag.
+# so codesign covers the version-correct plist. The bundle's
+# CFBundleShortVersionString must match the release tag.
 if [ -n "$VERSION" ]; then
   if command -v plutil >/dev/null 2>&1; then
     plutil -replace CFBundleVersion -string "$VERSION" "$APP_DIR/Contents/Info.plist"

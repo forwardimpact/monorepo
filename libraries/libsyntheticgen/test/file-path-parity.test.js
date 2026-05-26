@@ -1,5 +1,5 @@
 /**
- * Spec 820 criterion #6 — file-path parity.
+ * File-path parity.
  *
  * The pre-refactor pipeline produced a known set of storage paths for
  * the `MINI_TERRAIN` activity fixture. The post-refactor pipeline must

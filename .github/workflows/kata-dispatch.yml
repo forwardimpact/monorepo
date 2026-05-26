@@ -12,7 +12,7 @@ on:
   # `pull_request_review.submitted` event in the same instant — all share the per-PR
   # concurrency group below, and with `cancel-in-progress: false` the cascade of
   # "newly pending cancels previously pending" cancels every run before any reaches
-  # `in_progress` (observed on PR #1230, 2026-05-22; zero facilitators ran).
+  # `in_progress` when concurrent review-comment events race and zero facilitators run.
   # The `pull_request_review.submitted` payload already carries every inline diff
   # comment in the batch, so the facilitator can read them via the API — adding the
   # comment trigger back would reintroduce the race without adding any reachable
@@ -48,7 +48,7 @@ permissions:
 
 # Coalesce simultaneous events on the same target so the recursion guard sees a stable thread.
 # Triage flows fire `opened` plus several `labeled` events within ~1s; without this, each one
-# spawns an independent facilitator → independent agent → independent PR (observed on #647 / #654).
+# spawns an independent facilitator → independent agent → independent PR.
 #
 # `cancel-in-progress: false` is load-bearing: facilitator runs routinely last 30+ minutes
 # (e.g. staff engineer doing implementation work). A new label or comment arriving mid-run
@@ -74,7 +74,7 @@ jobs:
     #
     # Trigger surface: this `if:` must stay aligned with the `on:` block above. There is intentionally
     # no `pull_request_review_comment` clause — see the NOTE on that trigger in `on:` for why adding one
-    # back reintroduces the cancel-in-progress race (PR #1230).
+    # back reintroduces the cancel-in-progress race.
     if: >-
       github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && (github.event.action == 'opened' || (github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))))) || github.event_name == 'issue_comment' || (github.event_name == 'pull_request_target' && ((github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))) || (github.event.action == 'closed' && github.event.pull_request.merged == true))) || github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest

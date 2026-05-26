@@ -1,6 +1,6 @@
 /**
- * Unit tests for products/map/src/validation/skill.js — covers spec 660
- * (skill multiple references) validation rules and the deprecated
+ * Unit tests for products/map/src/validation/skill.js — covers the
+ * multiple-references validation rules and the deprecated
  * `implementationReference` rejection.
  */
 

@@ -53,8 +53,8 @@ line budget would be exceeded.
 ### `claim` / `release` — coordinate work
 
 ```sh
-npx fit-wiki claim   --agent X --target spec-1060 --branch claude/spec-1060
-npx fit-wiki release --agent X --target spec-1060
+npx fit-wiki claim   --agent X --target spec-NNNN --branch claude/spec-NNNN
+npx fit-wiki release --agent X --target spec-NNNN
 npx fit-wiki release --agent X --expired
 ```
 

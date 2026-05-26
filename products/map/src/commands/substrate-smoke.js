@@ -133,9 +133,8 @@ function expand(template, persona, discovery) {
 }
 
 /**
- * Verify a JWT's payload carries the Supabase-Auth claims spec 990 § Success
- * Criteria rows 2 requires (aud, role, email, future exp). Throws on any
- * mismatch.
+ * Verify a JWT's payload carries the Supabase-Auth claims the smoke loop
+ * requires (aud, role, email, future exp). Throws on any mismatch.
  * @param {string} jwt
  * @param {string} expectedEmail
  */
@@ -176,10 +175,10 @@ export async function assertPersonaIsHuman(supabase, email) {
 
 /**
  * Verify both the persona row and discovery vector carry the values the
- * smoke loop will substitute into command argv placeholders. The persona
- * row's `parent_email` field is the spec 1090 § Decision 4 rename of the
- * previous `manager_email` column; the assertion still gates "persona
- * has a non-null parent".
+ * smoke loop will substitute into command argv placeholders. The
+ * `parent_email` field is the operator-surface name for the persona's
+ * organizational parent; the assertion gates "persona has a non-null
+ * parent".
  * @param {object} persona
  * @param {{snapshot_id: string, item_id: string}} discovery
  */

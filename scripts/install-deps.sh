@@ -158,8 +158,33 @@ resolve_gh() {
   install_tool gh "$version" "$url" "$sha256" "$binary_path" "$strip"
 }
 
+resolve_rg() {
+  local version="15.1.0"
+  local target sha256 binary_path="rg" strip=1
+
+  case "$OS-$ARCH" in
+    linux-x86_64)
+      target="x86_64-unknown-linux-musl"
+      sha256="1c9297be4a084eea7ecaedf93eb03d058d6faae29bbc57ecdaf5063921491599" ;;
+    linux-aarch64)
+      target="aarch64-unknown-linux-gnu"
+      sha256="2b661c6ef508e902f388e9098d9c4c5aca72c87b55922d94abdba830b4dc885e" ;;
+    darwin-x86_64)
+      target="x86_64-apple-darwin"
+      sha256="64811cb24e77cac3057d6c40b63ac9becf9082eedd54ca411b475b755d334882" ;;
+    darwin-arm64)
+      target="aarch64-apple-darwin"
+      sha256="378e973289176ca0c6054054ee7f631a065874a352bf43f0fa60ef079b6ba715" ;;
+    *) echo "::error::rg: unsupported platform $OS-$ARCH" >&2; exit 1 ;;
+  esac
+
+  local url="https://github.com/BurntSushi/ripgrep/releases/download/${version}/ripgrep-${version}-${target}.tar.gz"
+  install_tool rg "$version" "$url" "$sha256" "$binary_path" "$strip"
+}
+
 # ── Install ──────────────────────────────────────────────────────
 
 resolve_apm
 resolve_just
 resolve_gh
+resolve_rg

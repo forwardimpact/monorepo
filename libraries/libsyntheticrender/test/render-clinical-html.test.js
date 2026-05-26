@@ -250,7 +250,7 @@ describe("renderClinicalPages", () => {
     );
   });
 
-  test("fhirCrossRef option: spec 1140 pages emit reverse patient links", () => {
+  test("fhirCrossRef option: clinical pages emit reverse patient links", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
     const patientIri = "https://example.com/id/clinical/patient/abc";
     const trialIri = "https://example.com/id/clinical/trial/oncora_p3";
@@ -279,7 +279,7 @@ describe("renderClinicalPages", () => {
     );
   });
 
-  test("no fhirCrossRef option: spec 1190 reverse-link strings absent (criterion 7)", () => {
+  test("no fhirCrossRef option: reverse-link strings absent from output", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
     const { files } = renderHTML(entities, new Map(), makeTemplates());
 

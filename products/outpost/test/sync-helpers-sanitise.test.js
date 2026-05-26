@@ -1,15 +1,15 @@
 /**
- * sanitiseAttachmentName unit tests (spec 810 row 1 + row 3).
+ * sanitiseAttachmentName unit tests.
  *
- * Pure-function tests — no filesystem touched. Covers the spec's worked-example
- * traversal payloads, the design's totality invariant for non-string inputs,
- * and the round-trip identity requirement for benign UTF-8 names.
+ * Pure-function tests — no filesystem touched. Covers worked-example traversal
+ * payloads, the totality invariant for non-string inputs, and the round-trip
+ * identity requirement for benign UTF-8 names.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";
 import { sanitiseAttachmentName } from "../templates/.claude/skills/sync-apple-mail/scripts/sync-helpers.mjs";
 
-describe("sanitiseAttachmentName — traversal and degenerate inputs (spec row 1)", () => {
+describe("sanitiseAttachmentName — traversal and degenerate inputs", () => {
   test("strips POSIX traversal prefix", () => {
     assert.strictEqual(sanitiseAttachmentName("../../../foo"), "foo");
   });
@@ -51,7 +51,7 @@ describe("sanitiseAttachmentName — traversal and degenerate inputs (spec row 1
   });
 });
 
-describe("sanitiseAttachmentName — benign UTF-8 round-trip (spec row 3)", () => {
+describe("sanitiseAttachmentName — benign UTF-8 round-trip", () => {
   test("simple ASCII filename byte-identical", () => {
     assert.strictEqual(sanitiseAttachmentName("contract.pdf"), "contract.pdf");
   });
