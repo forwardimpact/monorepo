@@ -1,9 +1,9 @@
-# Plan 1300-a — svcdiscussion
+# Plan 1300-a — svcbridge
 
 Execution plan for [design 1300-a](design-a.md). Stand up
-`services/svcdiscussion/` as the canonical store, widen
+`services/bridge/` as the canonical store, widen
 `ResumeScheduler` so the resume lifecycle survives over a remote
-backend, swap both bridges onto a `DiscussionClient` through a
+backend, swap both bridges onto a `BridgeClient` through a
 per-bridge `DiscussionAdapter`, and delete the two store classes from
 `libbridge`. Clean break: no migration, no compat shim.
 
@@ -30,10 +30,10 @@ adapter wrapper. Catalogs regenerate at the end.
 | # | Step | Touches |
 |---|---|---|
 | 1 | Propagate handler-thrown `.code` in librpc | `libraries/librpc/src/server.js`, `libraries/librpc/test/server.test.js` |
-| 2 | Service package + proto + skeleton | `services/svcdiscussion/package.json`, `services/svcdiscussion/proto/discussion.proto`, `services/svcdiscussion/server.js`, `services/svcdiscussion/index.js`, `services/svcdiscussion/README.md` |
+| 2 | Service package + proto + skeleton | `services/bridge/package.json`, `services/bridge/proto/bridge.proto`, `services/bridge/server.js`, `services/bridge/index.js`, `services/bridge/README.md` |
 | 3 | `bun install` + `bunx fit-codegen --all` | `bun.lock`, `generated/` (regenerated artifacts) |
-| 4 | Service implementation body | `services/svcdiscussion/index.js` (RPC bodies + sweep) |
-| 5 | Service tests | `services/svcdiscussion/test/discussion.test.js` |
+| 4 | Service implementation body | `services/bridge/index.js` (RPC bodies + sweep) |
+| 5 | Service tests | `services/bridge/test/bridge.test.js` |
 | 6 | `createMockDiscussionClient` in libharness | `libraries/libharness/src/mock/clients.js`, `libraries/libharness/src/mock/index.js` |
 | 7 | Widen `ResumeScheduler` store contract + rewrite affected libbridge tests | `libraries/libbridge/src/resume-scheduler.js`, `libraries/libbridge/src/index.js` (typedef), `libraries/libbridge/test/{resume-scheduler,dispatcher,callback-handler}.test.js` |
 | 8 | Delete the two store classes | `libraries/libbridge/src/{discussion-context,origin-index}.js`, `libraries/libbridge/test/{discussion-context,origin-index}.test.js`, `libraries/libbridge/src/index.js` exports |
@@ -71,14 +71,14 @@ before codegen runs. The skeleton compiles but throws "not
 implemented" on each RPC; Step 4 fills in the bodies.
 
 - **Created:**
-  - `services/svcdiscussion/package.json`
-  - `services/svcdiscussion/proto/discussion.proto`
-  - `services/svcdiscussion/server.js`
-  - `services/svcdiscussion/index.js`
-  - `services/svcdiscussion/README.md`
+  - `services/bridge/package.json`
+  - `services/bridge/proto/bridge.proto`
+  - `services/bridge/server.js`
+  - `services/bridge/index.js`
+  - `services/bridge/README.md`
 
 `package.json` mirrors `services/trace/package.json`. Name
-`@forwardimpact/svcdiscussion`, `bin.fit-svcdiscussion = ./server.js`,
+`@forwardimpact/svcbridge`, `bin.fit-svcbridge = ./server.js`,
 deps on `libconfig`, `libindex`, `libpreflight`, `librpc`,
 `libstorage`, `libtelemetry`, `libtype`; devDep on `libharness`.
 `description` ends in a noun phrase agents recognise (e.g. "Canonical
@@ -90,26 +90,26 @@ conversation state across bridges`, with `bigHire`/`littleHire`/
 `competesWith`/`trigger` strings — copy the shape from
 `services/trace/package.json:20-29`.
 
-`proto/discussion.proto`:
+`proto/bridge.proto`:
 
 ```proto
 syntax = "proto3";
 
-package discussion;
+package bridge;
 
 import "common.proto";
 
-service Discussion {
-  rpc LoadDiscussion(LoadDiscussionRequest) returns (DiscussionRecord);
-  rpc LoadDiscussionByCorrelation(LoadByCorrelationRequest) returns (DiscussionRecord);
+service Bridge {
+  rpc LoadDiscussion(LoadDiscussionRequest) returns (Discussion);
+  rpc LoadDiscussionByCorrelation(LoadByCorrelationRequest) returns (Discussion);
   rpc ListOpenRecesses(common.Empty) returns (OpenRecessList);
-  rpc SaveDiscussion(DiscussionRecord) returns (common.Empty);
+  rpc SaveDiscussion(Discussion) returns (common.Empty);
   rpc HasOrigin(OriginKey) returns (HasOriginResponse);
   rpc RecordOrigin(Origin) returns (common.Empty);
   rpc Sweep(SweepRequest) returns (SweepResponse);
 }
 
-message DiscussionRecord {
+message Discussion {
   string id = 1;
   string channel = 2;
   string discussion_id = 3;
@@ -161,9 +161,9 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { Server, createTracer } from "@forwardimpact/librpc";
 import { createStorage } from "@forwardimpact/libstorage";
 
-import { DiscussionService } from "./index.js";
+import { BridgeService } from "./index.js";
 
-const config = await createServiceConfig("discussion", {
+const config = await createServiceConfig("bridge", {
   discussion_flush_interval_ms: 5_000,
   discussion_max_buffer_size: 1_000,
   origin_flush_interval_ms: 1_000,
@@ -172,24 +172,24 @@ const config = await createServiceConfig("discussion", {
   origin_ttl_ms: 24 * 60 * 60 * 1000,
   sweep_interval_ms: 60_000,
 });
-const logger = createLogger("discussion");
-const tracer = await createTracer("discussion");
+const logger = createLogger("bridge");
+const tracer = await createTracer("bridge");
 const storage = createStorage("bridges");
 
-const service = new DiscussionService(config, { storage, logger, tracer });
+const service = new BridgeService(config, { storage, logger, tracer });
 await new Server(service, config).start();
 ```
 
-`createServiceConfig("discussion")` roots the namespace at `service.discussion.*`; the per-key names above land at `service.discussion.conversation_ttl_ms`, etc. The `discussion_` / `origin_` prefixes on the buffer keys disambiguate the two sub-stores within one config block (one service, two `BufferedIndex` instances).
+`createServiceConfig("bridge")` roots the namespace at `service.bridge.*`; the per-key names above land at `service.bridge.conversation_ttl_ms`, etc. The `discussion_` / `origin_` prefixes on the buffer keys disambiguate the two sub-stores within one config block (one service, two `BufferedIndex` instances).
 
 `index.js` skeleton — RPC bodies stubbed to `throw new Error("not implemented")`, ready for Step 4:
 
 ```js
 import { services } from "@forwardimpact/librpc";
 
-const { DiscussionBase } = services;
+const { BridgeBase } = services;
 
-export class DiscussionService extends DiscussionBase {
+export class BridgeService extends BridgeBase {
   constructor(config, { storage, logger, tracer }) {
     super(config);
     // Stored for Step 4
@@ -222,21 +222,21 @@ bunx fit-codegen --all
 ```
 
 `bun install` materialises the workspace symlink at
-`node_modules/@forwardimpact/svcdiscussion`. `fit-codegen` then
-discovers `services/svcdiscussion/proto/discussion.proto` (via
+`node_modules/@forwardimpact/svcbridge`. `fit-codegen` then
+discovers `services/bridge/proto/bridge.proto` (via
 `libcodegen/bin/fit-codegen.js:140-147`) and emits:
 
-- `generated/proto/discussion.proto`
-- `generated/services/discussion/{service.js,client.js}`
-- `generated/types/discussion/*`
-- updated `generated/services/exports.js` (new `DiscussionBase`, `DiscussionClient` lines)
+- `generated/proto/bridge.proto`
+- `generated/services/bridge/{service.js,client.js}`
+- `generated/types/bridge/*`
+- updated `generated/services/exports.js` (new `BridgeBase`, `BridgeClient` lines)
 - updated `generated/definitions/exports.js`
 
-**Verify:** `generated/services/exports.js` lists `DiscussionBase` and `DiscussionClient`; the generated client (`generated/services/discussion/client.js`) enforces `req instanceof discussion.<Request>` per the codegen pattern (see `generated/services/trace/client.js:31-35`).
+**Verify:** `generated/services/exports.js` lists `BridgeBase` and `BridgeClient`; the generated client (`generated/services/bridge/client.js`) enforces `req instanceof bridge.<Request>` per the codegen pattern (see `generated/services/trace/client.js:31-35`).
 
 ## Step 4 — Service implementation body
 
-- **Modified:** `services/svcdiscussion/index.js`
+- **Modified:** `services/bridge/index.js`
 
 Replace the stubs. Constructor builds two `BufferedIndex` instances against the shared storage and starts the sweep timer:
 
@@ -244,11 +244,11 @@ Replace the stubs. Constructor builds two `BufferedIndex` instances against the 
 import { BufferedIndex } from "@forwardimpact/libindex";
 import { services } from "@forwardimpact/librpc";
 import grpc from "@grpc/grpc-js";
-import { discussion } from "@forwardimpact/libtype";
+import { bridge } from "@forwardimpact/libtype";
 
-const { DiscussionBase } = services;
+const { BridgeBase } = services;
 
-export class DiscussionService extends DiscussionBase {
+export class BridgeService extends BridgeBase {
   #discussions;
   #origins;
   #conversationTtlMs;
@@ -281,8 +281,8 @@ RPC bodies, one-to-one with the design's § RPC contract:
 
 | RPC | Body |
 |---|---|
-| `LoadDiscussion` | `await this.#discussions.loadData(); const rec = this.#discussions.index.get(`${req.channel}:${req.discussion_id}`); if (!rec) throw Object.assign(new Error("not found"), { code: grpc.status.NOT_FOUND }); return discussion.DiscussionRecord.fromObject(rec);` |
-| `LoadDiscussionByCorrelation` | `await this.#discussions.loadData(); for (const rec of this.#discussions.index.values()) if (rec.pending_callbacks?.[req.correlation_id] !== undefined \|\| rec.open_rfcs?.[req.correlation_id]) return discussion.DiscussionRecord.fromObject(rec); throw Object.assign(new Error("not found"), { code: grpc.status.NOT_FOUND });` |
+| `LoadDiscussion` | `await this.#discussions.loadData(); const rec = this.#discussions.index.get(`${req.channel}:${req.discussion_id}`); if (!rec) throw Object.assign(new Error("not found"), { code: grpc.status.NOT_FOUND }); return bridge.Discussion.fromObject(rec);` |
+| `LoadDiscussionByCorrelation` | `await this.#discussions.loadData(); for (const rec of this.#discussions.index.values()) if (rec.pending_callbacks?.[req.correlation_id] !== undefined \|\| rec.open_rfcs?.[req.correlation_id]) return bridge.Discussion.fromObject(rec); throw Object.assign(new Error("not found"), { code: grpc.status.NOT_FOUND });` |
 | `ListOpenRecesses` | `await this.#discussions.loadData(); const refs = []; for (const rec of this.#discussions.index.values()) for (const [cid, rfc] of Object.entries(rec.open_rfcs ?? {})) if (typeof rfc.due_at === "number") refs.push({ correlation_id: cid, due_at: rfc.due_at }); return { refs };` |
 | `SaveDiscussion` | `await this.#discussions.add(req); return {};` |
 | `HasOrigin` | `return { exists: await this.#origins.has(req.id) };` |
@@ -298,13 +298,13 @@ RPC bodies, one-to-one with the design's § RPC contract:
 
 `shutdown()` clears the sweep timer and awaits `Promise.all([this.#discussions.flush(), this.#origins.flush()])`.
 
-**Verify:** `bun test services/svcdiscussion/test/*.test.js` exits 0 (Step 5).
+**Verify:** `bun test services/bridge/test/*.test.js` exits 0 (Step 5).
 
 ## Step 5 — Service tests
 
 Mirror `services/trace/test/trace.test.js` shape.
 
-- **Created:** `services/svcdiscussion/test/discussion.test.js`
+- **Created:** `services/bridge/test/bridge.test.js`
 
 Cases (test names quoted):
 
@@ -319,7 +319,7 @@ Cases (test names quoted):
 9. `"Sweep evicts origins whose posted_at is older than origin_ttl_ms"` — covers the new per-server origin TTL behaviour the design § Storage layout introduces.
 10. `"Concurrent SaveDiscussion from two channels both land"`.
 
-Use `createMockConfig("discussion", { …Step 2 defaults })`, `createMockStorage()`, `createMockLogger()` from `libharness`. RPC bodies are called directly on the service instance (in-process), same as the trace service tests.
+Use `createMockConfig("bridge", { …Step 2 defaults })`, `createMockStorage()`, `createMockLogger()` from `libharness`. RPC bodies are called directly on the service instance (in-process), same as the trace service tests.
 
 **Verify:** all ten tests pass.
 
@@ -403,7 +403,7 @@ Drop the two export lines at `libraries/libbridge/src/index.js:19-20` (`Discussi
 
 ```js
 import grpc from "@grpc/grpc-js";
-import { common, discussion } from "@forwardimpact/libtype";
+import { common, bridge } from "@forwardimpact/libtype";
 
 const isNotFound = (err) => err?.code === grpc.status.NOT_FOUND;
 
@@ -414,14 +414,14 @@ export class DiscussionAdapter {
   async loadByChannel(channel, id) {
     try {
       return await this.#client.LoadDiscussion(
-        discussion.LoadDiscussionRequest.fromObject({ channel, discussion_id: id }),
+        bridge.LoadDiscussionRequest.fromObject({ channel, discussion_id: id }),
       );
     } catch (err) { if (isNotFound(err)) return null; throw err; }
   }
   async loadByCorrelation(correlationId) {
     try {
       return await this.#client.LoadDiscussionByCorrelation(
-        discussion.LoadByCorrelationRequest.fromObject({ correlation_id: correlationId }),
+        bridge.LoadByCorrelationRequest.fromObject({ correlation_id: correlationId }),
       );
     } catch (err) { if (isNotFound(err)) return null; throw err; }
   }
@@ -432,7 +432,7 @@ export class DiscussionAdapter {
     return refs.map((r) => ({ correlationId: r.correlation_id, dueAt: r.due_at }));
   }
   async add(ctx) {
-    await this.#client.SaveDiscussion(discussion.DiscussionRecord.fromObject(ctx));
+    await this.#client.SaveDiscussion(bridge.Discussion.fromObject(ctx));
   }
   async flush() {}
   async shutdown() {}
@@ -442,16 +442,16 @@ export class DiscussionAdapter {
 `ghbridge/index.js`:
 
 - Drop `DiscussionContextStore` and `OriginIndex` from the libbridge import.
-- Add `import { DiscussionAdapter } from "./src/discussion-adapter.js";` and `import { discussion as discussionPb } from "@forwardimpact/libtype";` — aliased because `#handleDiscussionCreated` and `#handleDiscussionComment` both declare a `const discussion = body.discussion;` local that would otherwise shadow the import.
+- Add `import { DiscussionAdapter } from "./src/discussion-adapter.js";` and `import { bridge } from "@forwardimpact/libtype";`. No alias is needed: `#handleDiscussionCreated` and `#handleDiscussionComment` declare a `const discussion = body.discussion;` local, but the libtype namespace is now `bridge`, so it no longer collides with that local.
 - Constructor signature: replace `storage` dep with `discussionClient`. Wrap once: `this.#store = new DiscussionAdapter(discussionClient); this.#client = discussionClient;`. Hand `this.#store` to `Dispatcher`, `ResumeScheduler`, `createCallbackHandler` exactly as before. Drop `#origins` field entirely.
-- In `#handleDiscussionComment`: replace `await this.#origins.has(commentId)` with `(await this.#client.HasOrigin(discussionPb.OriginKey.fromObject({ id: commentId }))).exists`.
-- In `#handleReply`: the `recordOrigin` callback becomes `async (comment) => this.#client.RecordOrigin(discussionPb.Origin.fromObject({ id: comment.id, discussion_id: ctx.discussion_id, posted_at: Date.now() }))`. Drop the trailing `await this.#origins.flush()`.
+- In `#handleDiscussionComment`: replace `await this.#origins.has(commentId)` with `(await this.#client.HasOrigin(bridge.OriginKey.fromObject({ id: commentId }))).exists`.
+- In `#handleReply`: the `recordOrigin` callback becomes `async (comment) => this.#client.RecordOrigin(bridge.Origin.fromObject({ id: comment.id, discussion_id: ctx.discussion_id, posted_at: Date.now() }))`. Drop the trailing `await this.#origins.flush()`.
 - In `stop()`: the sequence is now `this.#resume.clear(); await this.#bridge.stop();` — `await this.#origins.shutdown()` and `await this.#store.shutdown()` both go away (the adapter's `shutdown()` is a no-op; the service owns buffer draining via librpc's SIGTERM handler).
 
 `ghbridge/server.js`:
 
 - Drop `createStorage` import and the `const storage = createStorage("bridges/ghbridge");` line.
-- Add `import { createClient } from "@forwardimpact/librpc";` and `const discussionClient = await createClient("discussion", logger, tracer);`.
+- Add `import { createClient } from "@forwardimpact/librpc";` and `const discussionClient = await createClient("bridge", logger, tracer);`.
 - Replace `storage` with `discussionClient` on the deps object.
 
 `ghbridge/package.json`: drop `@forwardimpact/libstorage` dep; ensure `@forwardimpact/libtype` is added (used by `discussion-adapter.js`). Bump minor.
@@ -475,9 +475,9 @@ Mirror Step 9 minus the origin paths (msbridge has no `OriginIndex` import today
 
 `libbridge/CLAUDE.md`:
 
-- Drop the "Caller-injected storage" bullet from § Invariants — the caller-injected-storage invariant moves to `services/svcdiscussion`.
+- Drop the "Caller-injected storage" bullet from § Invariants — the caller-injected-storage invariant moves to `services/bridge`.
 - Drop the `DiscussionContextStore` and `OriginIndex` rows from the § What lives where table.
-- In § Bridge contract step 3 of the composition recipe, replace "construct a `Dispatcher` over a `CallbackRegistry` and `DiscussionContextStore`" with "construct a `Dispatcher` over a `CallbackRegistry` and a host-supplied object satisfying the `DiscussionAdapter` typedef — see `services/svcdiscussion`".
+- In § Bridge contract step 3 of the composition recipe, replace "construct a `Dispatcher` over a `CallbackRegistry` and `DiscussionContextStore`" with "construct a `Dispatcher` over a `CallbackRegistry` and a host-supplied object satisfying the `DiscussionAdapter` typedef — see `services/bridge`".
 
 `libbridge/README.md`:
 
@@ -485,12 +485,12 @@ Mirror Step 9 minus the origin paths (msbridge has no `OriginIndex` import today
 
 `services/ghbridge/README.md` and `services/msbridge/README.md`:
 
-- Replace the "Discussion context is persisted as JSONL under `data/bridges/{ghbridge,msbridge}/`" prose with: "Discussion state is owned by `services/svcdiscussion`; the bridge talks to it over gRPC. The bridge process keeps no on-disk discussion state of its own. Operators upgrading from a pre-svcdiscussion bridge can safely delete legacy `data/bridges/{ghbridge,msbridge}/` files; conversations in flight at cutover are un-resumable on the new service and the legacy files expire under their existing 24-hour TTL on disk regardless."
-- Add a § Service supervision note: "If you supervise `ghbridge`/`msbridge` via `fit-rc`, list `discussion` ahead of the bridge entries in `init.services` so `createClient('discussion', …)` resolves at startup."
+- Replace the "Discussion context is persisted as JSONL under `data/bridges/{ghbridge,msbridge}/`" prose with: "Discussion state is owned by `services/bridge`; the bridge talks to it over gRPC. The bridge process keeps no on-disk discussion state of its own. Operators upgrading from a bridge that predates this service can safely delete legacy `data/bridges/{ghbridge,msbridge}/` files; conversations in flight at cutover are un-resumable on the new service and the legacy files expire under their existing 24-hour TTL on disk regardless."
+- Add a § Service supervision note: "If you supervise `ghbridge`/`msbridge` via `fit-rc`, list `bridge` ahead of the bridge entries in `init.services` so `createClient('bridge', …)` resolves at startup."
 
 `services/CLAUDE.md`:
 
-- Drop the "Discussion index — `data/bridges/{ghbridge,msbridge}/discussions.jsonl`" example from § Runtime data; replace with: "Bridge discussion + origin state — owned by `svcdiscussion`, persisted at `data/bridges/discussions.jsonl` and `data/bridges/origins.jsonl`."
+- Drop the "Discussion index — `data/bridges/{ghbridge,msbridge}/discussions.jsonl`" example from § Runtime data; replace with: "Bridge discussion + origin state — owned by `services/bridge`, persisted at `data/bridges/discussions.jsonl` and `data/bridges/origins.jsonl`."
 
 **Verify:** `bun run context` exits 0 (no doc length / jsdoc breaks).
 
@@ -506,7 +506,7 @@ bun test
 bun run check
 ```
 
-`context:fix` regenerates the services catalog row and the JTBD entry from the new `svcdiscussion/package.json`. The full `bun test` sweep exercises the cross-package boundary (`libbridge` ResumeScheduler against in-memory FakeAdapter; bridges against `createMockDiscussionClient`; svcdiscussion against `createMockStorage`).
+`context:fix` regenerates the services catalog row and the JTBD entry from the new `services/bridge/package.json`. The full `bun test` sweep exercises the cross-package boundary (`libbridge` ResumeScheduler against in-memory FakeAdapter; bridges against `createMockDiscussionClient`; the bridge service against `createMockStorage`).
 
 The spec's "no shipped starter bundles the bridges today, so § Service supervision support is vacuously satisfied" claim is verified mechanically: `rg 'ghbridge|msbridge' products/*/starter/` returns no matches.
 
@@ -517,12 +517,12 @@ The spec's "per-bridge files are no longer written" criterion is verified mechan
 ## Risks
 
 - **Proto `int64` JSON shape.** The wire types `OpenRfc.due_at`, `Origin.posted_at`, and `OpenRfc.history_index_at_open` are `int64`. `protobuf.js` returns these as `Long` instances or strings depending on loader config; the existing protos already use `int64` (`trace.Span.start_time_unix_nano` etc.) and consumers treat them as numbers, so the prevailing loader config is `longs: Number` or equivalent — confirm by exercising case 7 in Step 5 (`ListOpenRecesses` returns `due_at` consumable as a `number` by `setTimeout`).
-- **`bun.lock` churn from new workspace member.** `bun install` after adding `services/svcdiscussion/package.json` updates the lockfile to record the new workspace. Expected.
+- **`bun.lock` churn from new workspace member.** `bun install` after adding `services/bridge/package.json` updates the lockfile to record the new workspace. Expected.
 
-Libraries used: `@forwardimpact/libindex` (`BufferedIndex`), `@forwardimpact/librpc` (`Server`, `createClient`, `createTracer`, `services.DiscussionBase`, `grpc.status`), `@forwardimpact/libstorage` (`createStorage`), `@forwardimpact/libconfig` (`createServiceConfig`), `@forwardimpact/libtelemetry` (`createLogger`), `@forwardimpact/libpreflight` (`node22`), `@forwardimpact/libtype` (`discussion.*` typed messages), `@forwardimpact/libharness` (`createMockConfig`, `createMockStorage`, `createMockLogger`, `createMockDiscussionClient` — new in Step 6).
+Libraries used: `@forwardimpact/libindex` (`BufferedIndex`), `@forwardimpact/librpc` (`Server`, `createClient`, `createTracer`, `services.BridgeBase`, `grpc.status`), `@forwardimpact/libstorage` (`createStorage`), `@forwardimpact/libconfig` (`createServiceConfig`), `@forwardimpact/libtelemetry` (`createLogger`), `@forwardimpact/libpreflight` (`node22`), `@forwardimpact/libtype` (`bridge.*` typed messages), `@forwardimpact/libharness` (`createMockConfig`, `createMockStorage`, `createMockLogger`, `createMockDiscussionClient` — new in Step 6).
 
 ## Execution
 
-Single agent, sequential. The steps share too much context for parallel execution to pay off (Step 1's librpc patch unblocks Step 4's NOT_FOUND throws; Step 2's package.json must exist before Step 3's codegen; Step 7's contract change is consumed by Step 9/10's adapter wiring). Route to `staff-engineer` via `kata-implement`. One PR titled `feat(svcdiscussion): canonical store for both bridges`.
+Single agent, sequential. The steps share too much context for parallel execution to pay off (Step 1's librpc patch unblocks Step 4's NOT_FOUND throws; Step 2's package.json must exist before Step 3's codegen; Step 7's contract change is consumed by Step 9/10's adapter wiring). Route to `staff-engineer` via `kata-implement`. One PR titled `feat(svcbridge): canonical store for both bridges`.
 
 — Staff Engineer 🛠️

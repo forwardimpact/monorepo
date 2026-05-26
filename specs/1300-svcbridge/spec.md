@@ -1,4 +1,4 @@
-# Spec 1300 — svcdiscussion
+# Spec 1300 — svcbridge
 
 ## Persona and job
 
@@ -55,7 +55,7 @@ today no such service exists.
 
 ### In scope
 
-- A new service, `services/svcdiscussion`, owning the canonical store
+- A new service, `services/bridge`, owning the canonical store
   for every threaded-discussion bridge.
 - A single service interface that exposes both kinds of records the
   bridges write today — discussion state keyed by
@@ -109,7 +109,7 @@ today no such service exists.
 
 | Claim | Verifies via |
 |---|---|
-| A `services/svcdiscussion` service exists and follows the structural conventions documented in `services/CLAUDE.md`. | The service directory contains a server entry point, an implementation module, a proto definition, and a test directory at the conventional locations for a service. |
+| A `services/bridge` service exists and follows the structural conventions documented in `services/CLAUDE.md`. | The service directory contains a server entry point, an implementation module, a proto definition, and a test directory at the conventional locations for a service. |
 | The service exposes both record kinds — thread state and origin dedupe — on one service interface. | The proto definition declares a single service whose RPC methods cover loading a discussion by channel, upserting a discussion record, checking and recording origin reply ids, and triggering a sweep. |
 | Neither bridge contains a reference to the removed in-process store types. | A repository-wide search across `services/ghbridge/` and `services/msbridge/` returns no occurrences of either removed type name. |
 | The store and origin classes are gone from `libbridge`. | The `@forwardimpact/libbridge` package no longer exports the two types, and the package source no longer contains either implementation module. |
@@ -117,7 +117,7 @@ today no such service exists.
 | Discussion state from both channels lands in one file; origins in another. | After both bridges exchange at least one message with the agent team, `data/bridges/discussions.jsonl` contains records with both `github-discussions:…` and `msteams:…` ids, and `data/bridges/origins.jsonl` is the only origin file on disk. |
 | The per-bridge files are no longer written. | After end-to-end exercise, the directories `data/bridges/ghbridge/` and `data/bridges/msbridge/` contain no `discussions.jsonl` or `origins.jsonl`. |
 | The 24-hour conversation TTL is honoured by the service. | A test seeds a record whose last activity is older than 24 hours, lets the periodic sweep run, and observes the record removed from a subsequent load. |
-| The service is supervised the same way as peer gRPC services. | The starter configuration that ships with the products bundling these services lists `svcdiscussion` alongside the existing supervised services. |
+| The service is supervised the same way as peer gRPC services. | The starter configuration that ships with the products bundling these services lists `bridge` alongside the existing supervised services. |
 | ghbridge's self-echo dedupe still suppresses inbound webhooks for replies the bridge just posted. | An integration test posts a reply through ghbridge, replays the resulting `discussion_comment.created` webhook, and observes no dispatch. |
 | msbridge's resume-from-recess flow still finds the right thread state after restart. | An integration test enters a recess, restarts msbridge, fires the inbound activity that satisfies the trigger, and observes a fresh dispatch. |
 | `libbridge` documentation reflects the new ownership boundary. | The `libbridge` package documentation no longer claims ownership of the persisted discussion or origin state and directs readers to the new service for that state. |
