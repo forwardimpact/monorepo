@@ -44,10 +44,10 @@ smoke gate owe?**
 
 ## Why now
 
-Spec 600 SC1 commits the brew lane to the property *every `fit-*` CLI
+Spec 0600 SC1 commits the brew lane to the property *every `fit-*` CLI
 surfaced by those bundles runs its `--help` successfully on a macOS
 arm64 machine that has neither `node` nor `bun` on `PATH`* — a
-no-toolchain environment contract. Spec 600 does not distinguish
+no-toolchain environment contract. Spec 0600 does not distinguish
 daemons from user-facing CLIs; its SC1 applies to whichever
 binaries the bundle surfaces.
 
@@ -75,7 +75,7 @@ is reopened as option (c) below.
 The brew smoke gate validates that **at least one user-facing CLI in
 the gear bundle answers `--help` cleanly** — the contract a
 brew-installing user exercises on day one. It does **not** validate
-that every binary on `PATH` answers `--help` (that is spec 600 SC1's
+that every binary on `PATH` answers `--help` (that is spec 0600 SC1's
 full scope, separable from the release-time gate), and it does
 not claim full coverage of the bundle's CLI surface. Strengthening
 coverage (sample size, representativeness from the bundle's
@@ -88,7 +88,7 @@ Three options were sketched in issue #1041:
 |---|---|---|
 | (a) Smoke gate exercises a user-facing CLI from the bundle (one or more) | **Direction accepted** | Matches the contract brew-installing users exercise on day one; uses binaries the bundle already ships and that already implement `--help`. Identity and cardinality of the chosen binaries are design decisions |
 | (b) Inject a dummy `SERVICE_SECRET` so `fit-svcgraph` proceeds past the auth check | Rejected | Does not solve the underlying defect (service binaries do not handle `--help`); allowing module-init to proceed pulls the gate forward past the auth wall and into `server.start()`, which calls `bindAsync` on a configured host/port — replacing a deterministic module-init throw with a flakier port-bind/network surface |
-| (c) Extend service entry points to parse argv and answer `--help` before module-init runs | Out of scope (separable) | Real surface bug and the right path to bring service binaries into spec 600 SC1's property; cross-cuts all five gear-bundled `services/*` entry points and is driven by a different product question (whether daemons should be self-describing without runtime config). Concrete reopen triggers: (i) the first inbound issue from a brew user reporting `fit-svc* --help` crash on `PATH`, or (ii) any `services/{graph,mcp,pathway,trace,vector}` binary being added to a `--primary-exec` slot or being documented as user-invokable outside `fit-rc` |
+| (c) Extend service entry points to parse argv and answer `--help` before module-init runs | Out of scope (separable) | Real surface bug and the right path to bring service binaries into spec 0600 SC1's property; cross-cuts all five gear-bundled `services/*` entry points and is driven by a different product question (whether daemons should be self-describing without runtime config). Concrete reopen triggers: (i) the first inbound issue from a brew user reporting `fit-svc* --help` crash on `PATH`, or (ii) any `services/{graph,mcp,pathway,trace,vector}` binary being added to a `--primary-exec` slot or being documented as user-invokable outside `fit-rc` |
 
 ## Scope
 
@@ -148,7 +148,7 @@ than gated on.
 | Risk | Mitigation |
 |---|---|
 | The chosen CLI develops a module-init regression and the gear lane goes red on an unrelated release | This is the failure mode the smoke gate is supposed to catch — the gate stays useful and observable |
-| Switching the smoke target leaves the `fit-svc*` subset uncovered on two fronts at once — the bundled-binary smoke surface no longer catches their regressions, and spec 600 SC1's "every CLI surfaced by the bundle answers --help" property remains unsatisfied for them after this spec lands | Service-binary module-init is exercised by service tests on `main`; the unit/integration coverage does not fully substitute for the bundled-binary smoke surface. Both halves of the gap (regression-catching surface and the SC1 property) are recorded together as the reopen path option (c) closes |
+| Switching the smoke target leaves the `fit-svc*` subset uncovered on two fronts at once — the bundled-binary smoke surface no longer catches their regressions, and spec 0600 SC1's "every CLI surfaced by the bundle answers --help" property remains unsatisfied for them after this spec lands | Service-binary module-init is exercised by service tests on `main`; the unit/integration coverage does not fully substitute for the bundled-binary smoke surface. Both halves of the gap (regression-catching surface and the SC1 property) are recorded together as the reopen path option (c) closes |
 | The chosen CLI is removed from the gear bundle in a future refactor, silently breaking the smoke step | The smoke step's binary name and the bundle's binary list must agree by construction. Coupling them (e.g. parameterising the smoke target from the bundle manifest) is a design decision; this risk row records the requirement |
 | A brew user runs `fit-svc* --help` from `PATH` and observes a crash, since the gear cask's binary stanzas surface daemon binaries directly | Acknowledged; the bundle's documented contract is "run daemons via `fit-rc`", not "every binary on `PATH` is self-describing". Option (c)'s concrete triggers (first inbound report, or a daemon binary entering `--primary-exec`) are the reopen path if this failure mode becomes load-bearing |
 
@@ -156,7 +156,7 @@ than gated on.
 
 - [#1041](https://github.com/forwardimpact/monorepo/issues/1041) — bug report with the three-option sketch
 - Cluster: [#1036](https://github.com/forwardimpact/monorepo/issues/1036), [#1038](https://github.com/forwardimpact/monorepo/issues/1038), [#1039](https://github.com/forwardimpact/monorepo/issues/1039) — brew-publish blockers filed the same day
-- [Spec 600 SC1](../600-native-binary-distribution/spec.md) — every `fit-*` CLI surfaced by the bundles answers `--help` in a no-toolchain environment (the broader property; this spec narrows the smoke-gate subset)
+- [Spec 0600 SC1](../600-native-binary-distribution/spec.md) — every `fit-*` CLI surfaced by the bundles answers `--help` in a no-toolchain environment (the broader property; this spec narrows the smoke-gate subset)
 - [Spec 1170](../1170-outpost-cdhash-determinism/spec.md) — outpost cdhash determinism (explicitly outpost-only; cited only to confirm gear is out of its scope)
 - [`publish-brew.yml`](../../.github/workflows/publish-brew.yml) — the workflow whose `Smoke test` step this spec scopes
 - [`services/CLAUDE.md` § Running services](../../services/CLAUDE.md) — daemons are managed by `fit-rc`
