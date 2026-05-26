@@ -159,7 +159,7 @@ not constrain the default shape of the operator-facing roster output.
   Sibling specs cover 4 (substrate stage, claimed 1100) and 9 (wiki
   log rotation, claimed 1110). Findings 6/7/8 already tracked on
   existing issues.
-- Spec 990 — `kata-interview-real-landmark-substrate` (the substrate
+- Spec 0990 — `kata-interview-real-landmark-substrate` (the substrate
   this spec rebalances).
 - Spec 1010 — `jtbd-teams-using-agents` (`design draft`; promotes
   Teams Using Agents to JTBD.md).

@@ -152,11 +152,11 @@ The spec's re-run requirements drop out of the merge rules:
 | 7 | Substrate stage runs `runInit` as a new first phase and re-reads config after init. | Workflow sequences `init` + `stage` as two subprocesses (design-b). | Bootstrap-shape parity becomes structural (one code path) rather than asserted (one CI test). Re-reading config is the architectural consequence of running init in-process after the verb's module-top config load. |
 | 8 | `runInit` becomes idempotent on `data/pathway/`. | Keep the non-zero exit. | Spec § *Re-invoking* idempotency requires it; substrate stage re-running against a bootstrapped workspace requires it. |
 | 9 | Always materialise `config/config.json`; never auto-create empty `.env`; empty-env on existing `.env` is a no-op. | Symmetric auto-creation. | The anchoring criterion needs `config/config.json` to exist; `.env` has no anchoring role. Auto-creating an empty `0o600` `.env` would surprise developers and mask absence on the read path. |
-| 10 | Empty-string `.env` values written verbatim. | Skip empty values. | Spec § *Read-side coherence with spec 990* preserves spec 990's empty-string-equals-absent rule for credential keys on the *read* path; the writer's job is bytes for any key. No write-side filtering. |
+| 10 | Empty-string `.env` values written verbatim. | Skip empty values. | Spec § *Read-side coherence with spec 0990* preserves spec 0990's empty-string-equals-absent rule for credential keys on the *read* path; the writer's job is bytes for any key. No write-side filtering. |
 | 11 | Onboarding docs in `libraries/libconfig/README.md` § *Bootstrap* with a one-sentence cross-link to libsecret env primitives. | (a) New `libinit/README.md` (design-a). (b) Three sections across three READMEs (design-b). | Spec § *New-product onboarding* mandates "the shared library's README." The orchestrator lives in libconfig, so libconfig is the shared library; a single cross-link is not the fan-out design-b incurs. |
 | 12 | libconfig adds a direct `@forwardimpact/libsecret` dependency. | Have product CLIs call libsecret directly after libconfig's merge. | Refuse-before-mutate requires the orchestrator to own both surfaces. Layering: libconfig → libstorage → libsecret already exists transitively but doesn't re-export the env primitives, so a direct edge is needed; no cycle, since libsecret has no libconfig dep. |
 
-## Coherence with spec 990
+## Coherence with spec 0990
 
 - **`mkdir -p` workaround** — removed. The Landmark gate on the Substrate
   stage step is preserved; only the `mkdir` line goes.

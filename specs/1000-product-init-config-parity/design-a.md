@@ -3,7 +3,7 @@
 Spec [1000-product-init-config-parity](spec.md) requires one callable
 interface that every product's `init` verb hands its starter material to,
 with namespace-scoped ownership semantics for `config/config.json` and
-`.env`. The spec also pulls in the spec 990 `mkdir -p config/` workaround
+`.env`. The spec also pulls in the spec 0990 `mkdir -p config/` workaround
 cleanup and commits `fit-map init` ↔ `fit-map substrate stage` to a
 shared bootstrap shape.
 
@@ -19,7 +19,7 @@ shared bootstrap shape.
 | `fit-guide init` adapter | `products/guide/src/commands/init.js` | Calls `bootstrapProject` once with the starter config + `.env` entries. Existing `package.json` / `.claude/skills/` writes stay local — those are not config or env. |
 | `fit-map init` adapter | `products/map/src/commands/init.js` | Calls `bootstrapProject` with no config fragment (empty); existing `data/pathway/` copy stays local. The `bootstrapProject`-emitted `config/config.json` is what unblocks anchoring. |
 | `fit-map substrate stage` adapter | `products/map/src/commands/substrate-stage.js` | New first phase: invokes `runInit` (the function `products/map/src/commands/init.js` already exports — currently consumed by the `fit-map init` CLI dispatch) before `stack`/`url-discovery`/etc. Idempotent — re-stages a workspace produced by `fit-map init` as a no-op. |
-| Workflow cleanup | `.github/workflows/kata-interview.yml` | Spec 990 `mkdir -p "$AGENT_CWD/config"` line removed from the Substrate stage step. |
+| Workflow cleanup | `.github/workflows/kata-interview.yml` | Spec 0990 `mkdir -p "$AGENT_CWD/config"` line removed from the Substrate stage step. |
 
 ## Interface
 
@@ -147,12 +147,12 @@ substrate stage idempotent against an already-bootstrapped workspace.
 | 7 | `.env` writer reuses `libsecret.updateEnvFile`. | New env writer in libinit. | `updateEnvFile` already preserves `0o600`, comment-rewrite, and trailing-newline. libinit calls it per key after the merge passes. The spec's explicit `0o600` requirement is satisfied transitively. |
 | 8 | `substrate stage` delegates to `runInit`. | Workflow invokes init + substrate in sequence. | Two subprocesses, two error surfaces, two ways for CI to silently drift out of parity with developer-local `bunx fit-map init`. Delegation makes bootstrap-shape parity structural (one code path) rather than asserted (one CI test). |
 | 9 | `runInit` becomes idempotent on `data/pathway/`. | Keep the non-zero exit. | Spec § *Re-invoking* idempotency requires it; substrate stage re-running against a bootstrapped workspace requires it. |
-| 10 | Empty-string `.env` values written verbatim. | Skip empty values. | Spec 990 makes empty-string-on-shell-env equivalent to absent on the read path; the writer's job is bytes, not read semantics. Coherence with 990 holds without writer-side filtering. |
+| 10 | Empty-string `.env` values written verbatim. | Skip empty values. | Spec 0990 makes empty-string-on-shell-env equivalent to absent on the read path; the writer's job is bytes, not read semantics. Coherence with 0990 holds without writer-side filtering. |
 | 11 | Onboarding docs in `libraries/libinit/README.md`. | User guide at `websites/fit/docs/libraries/<slug>/index.md`. | Spec § *New-product onboarding* fixes the README as the home. A user guide may follow later under libraries/CLAUDE.md § CLIs and progressive documentation — but libinit ships no CLI (library-only), so the README is sufficient under that policy and the spec's success criterion. |
 
-## Coherence with spec 990
+## Coherence with spec 0990
 
-- **`mkdir -p` workaround** — removed by this design (spec 990 cleanup
+- **`mkdir -p` workaround** — removed by this design (spec 0990 cleanup
   row). The substrate stage step in `kata-interview.yml` keeps the
   `if: inputs.product == 'landmark'` gate; only the `mkdir` line goes.
 - **Credential-override read order** — unchanged. libinit only writes

@@ -138,7 +138,7 @@ is **design-determined**.
 
 - Issue [#993](https://github.com/forwardimpact/monorepo/issues/993)
   finding 4 (substrate-stage workspace conflation).
-- Spec 990 — `kata-interview-real-landmark-substrate` (the substrate
+- Spec 0990 — `kata-interview-real-landmark-substrate` (the substrate
   this spec extends).
 - Spec 1010 — `jtbd-teams-using-agents` (`design draft`; promotes
   Teams Using Agents to JTBD.md).

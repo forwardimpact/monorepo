@@ -163,10 +163,10 @@ no-op so the `init`-then-`stage` sequence is byte-stable.
 | 7 | `writeConfigFragment` always materialises `config/config.json`; `updateEnvEntries` never auto-creates `.env`. | Symmetric auto-creation. | The spec's anchoring criterion needs `config/config.json` to exist; `.env` has no equivalent anchoring role and auto-creating an empty `0o600` `.env` would surprise developers. |
 | 8 | `WriterConflict` is an aggregating error; per-entry `overwriteSurface` names the caller's parameter. | Library prints the diagnostic itself. | The library names the conflicting leaf path + overwrite parameter; the CLI maps that to its flag wording. Keeps the diagnostic greppable for both per spec without coupling libraries to CLI text. |
 | 9 | `updateEnvEntries` wraps libsecret's per-key `updateEnvFile`. | Reuse libutil's `updateEnvFile` primitive. | libutil's `updateEnvFile` lacks libsecret's comment-rewrite + `0o600` guarantees; wrapping libsecret's keeps the on-disk contract intact and reuses its test coverage. |
-| 10 | Empty-string `.env` values written verbatim. | Skip empty values. | Spec 990 makes empty-string-on-shell-env equivalent to absent on the **read** path; the writer's job is bytes, not read semantics. |
+| 10 | Empty-string `.env` values written verbatim. | Skip empty values. | Spec 0990 makes empty-string-on-shell-env equivalent to absent on the **read** path; the writer's job is bytes, not read semantics. |
 | 11 | Onboarding docs in libconfig `README.md` with cross-links. | A new `libinit/README.md`. | The contract surfaces three libraries; the README home follows the highest-leverage surface (the config writer products always call). |
 
-## Coherence with spec 990
+## Coherence with spec 0990
 
 - **`mkdir -p` workaround** — removed. The workflow's Substrate stage
   step becomes a two-subprocess sequence (`init` then `stage`); the

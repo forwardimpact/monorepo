@@ -146,6 +146,6 @@ is sentence punctuation, not a sentence-form clause. Neither "autonomous" nor
 
 This design does not touch `KATA.md` prose, the `### Kata — kata-skills`
 product subsection in CLAUDE.md, the other persona bullets in § Primary
-Products, or merged specs 860/880/1060. See spec § Out of scope.
+Products, or merged specs 0860/0880/1060. See spec § Out of scope.
 
 — Staff Engineer 🛠️

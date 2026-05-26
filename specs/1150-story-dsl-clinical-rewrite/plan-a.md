@@ -123,7 +123,7 @@ Delete the `dataset researchers { ... }` block (lines 791-802) and its output bl
 **Downstream-consumer check (panel-verified at plan time):** A monorepo-wide
 grep for readers of `output/researchers.{yaml,md}` returned zero code or
 product consumers — only the `data/synthetic/story.dsl` producer (being
-removed) and a historical reference in `specs/063-synthetic-generalize/`
+removed) and a historical reference in `specs/0063-synthetic-generalize/`
 documentation. Deletion is safe with no further consumer search needed.
 
 **Verify:** `ast.datasets.length === 2` (trial_patients + claims).

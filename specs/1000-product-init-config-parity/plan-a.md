@@ -527,7 +527,7 @@ existing `Run interview` step using them as `env:` keys).
 Single agent, sequential. Recommend `staff-engineer` (or any engineering
 agent) for all seven steps. Steps 1–6 are tightly coupled (Step 6's test
 changes ripple into all three deps objects). Step 7 ships in the **same
-PR** — spec § *Spec 990 cleanup* lists the `mkdir` removal as in-scope and
+PR** — spec § *Spec 0990 cleanup* lists the `mkdir` removal as in-scope and
 explicitly "not deferred"; the end-to-end kata-interview CI run on the
 implementation branch is the gating verification for both Step 6 and
 Step 7. Verify CI green before requesting merge.

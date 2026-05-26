@@ -25,7 +25,10 @@ const rules = [
   { pattern: "\\bGH-[0-9]{2,5}\\b" },
   { pattern: "\\(#[0-9]{2,5}\\)" },
   { pattern: "[[:space:]]#[0-9]{2,5}\\b" },
-  { pattern: "\\b(introduced|added|landed|shipped|removed) in (spec|design|plan|PR|issue)\\b" },
+  {
+    pattern:
+      "\\b(introduced|added|landed|shipped|removed) in (spec|design|plan|PR|issue)\\b",
+  },
   { pattern: "\\bas of (spec|design|plan|PR|issue) [0-9]+\\b" },
   { pattern: "\\bpre-migration\\b" },
   { pattern: "\\bduring spec [0-9]+ migration\\b" },
@@ -51,7 +54,9 @@ const baseGlobs = [
 
 const rgCheck = spawnSync("rg", ["--version"], { stdio: "pipe" });
 if (rgCheck.status !== 0) {
-  process.stderr.write("error: ripgrep (rg) is required for check-temporal.mjs\n");
+  process.stderr.write(
+    "error: ripgrep (rg) is required for check-temporal.mjs\n",
+  );
   process.exit(2);
 }
 
@@ -59,7 +64,12 @@ const allMatches = [];
 
 for (const rule of rules) {
   const args = [
-    "--hidden", "--no-messages", "--line-number", "--color", "never", "-i",
+    "--hidden",
+    "--no-messages",
+    "--line-number",
+    "--color",
+    "never",
+    "-i",
   ];
   for (const g of baseGlobs) args.push("--glob", g);
   if (rule.globs) {
@@ -81,14 +91,14 @@ for (const rule of rules) {
 if (allMatches.length > 0) {
   const unique = [...new Set(allMatches)].sort();
   process.stderr.write(
-    "error: temporal references found — replace each with a "
-    + "short, non-temporal description that explains WHY the code is there.\n\n",
+    "error: temporal references found — replace each with a " +
+      "short, non-temporal description that explains WHY the code is there.\n\n",
   );
   process.stderr.write(unique.join("\n") + "\n\n");
   process.stderr.write(
-    "If a match is a false positive (CSS hex, HTML entity, runtime ID, "
-    + "opaque fixture ID), narrow the rule in scripts/check-temporal.mjs "
-    + "rather than leaving the temporal reference in place.\n",
+    "If a match is a false positive (CSS hex, HTML entity, runtime ID, " +
+      "opaque fixture ID), narrow the rule in scripts/check-temporal.mjs " +
+      "rather than leaving the temporal reference in place.\n",
   );
   process.exit(1);
 }
