@@ -42,6 +42,19 @@ composite actions are published under `forwardimpact/`:
 eval). Both are consumed by tag (e.g. `@v1`). Run `kata-setup` to generate
 workflows interactively.
 
+## Simplicity
+
+A differentiating factor of the Kata Agent Team is its simplicity.
+
+- **15 curated skills** (excluding the setup utility), each under 3k tokens
+  (~200 lines of text). Small enough to read in full, audit in minutes.
+- **No additional infrastructure.** All core surfaces work with only skills and
+  GitHub Actions — no databases, no queues, no custom servers.
+- **Minimal harness.** The orchestration layer is built around the Claude SDK —
+  simple yet incredibly capable.
+- **Zero external runtime dependencies.** JavaScript libraries (`libeval`,
+  `libwiki`, etc.) are plain JavaScript with no third-party packages.
+
 ## Surfaces
 
 The same agents operate across six surfaces. Each surface routes to the agent
@@ -257,6 +270,8 @@ these via `fit-xmr` for control limits. Changes follow [coordination-protocol.md
 
 ## Design Principles
 
+- **Simplicity over machinery.** Fewer moving parts, fewer failure modes, easier
+  to audit.
 - **PDSA over pipeline.** Findings from Study always re-enter the loop.
 - **Fix-or-spec discipline.** Mechanical fixes and structural improvements never
   share a PR.
