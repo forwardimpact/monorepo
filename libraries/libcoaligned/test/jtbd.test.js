@@ -50,7 +50,7 @@ describe("checkJtbd", () => {
     const root = await makeRepo();
     try {
       const result = await checkJtbd({ root });
-      assert.deepStrictEqual(result.errors, []);
+      assert.deepStrictEqual(result.findings, []);
       assert.deepStrictEqual(result.stale, []);
     } finally {
       await rm(root, { recursive: true, force: true });
@@ -71,10 +71,15 @@ describe("checkJtbd", () => {
         JSON.stringify(pkg),
       );
       const result = await checkJtbd({ root });
-      assert.ok(
-        result.errors.some((e) => e.includes('must end with "."')),
-        `expected period-rule error, got: ${JSON.stringify(result.errors)}`,
+      const f = result.findings.find(
+        (x) => x.id === "jtbd.hire-missing-period",
       );
+      assert.ok(
+        f,
+        `expected jtbd.hire-missing-period finding, got: ${JSON.stringify(result.findings)}`,
+      );
+      assert.match(f.message, /must end with "\."/);
+      assert.ok(f.path.endsWith("libraries/libfoo/package.json"));
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -136,7 +141,7 @@ describe("checkJtbd", () => {
       );
 
       const result = await checkJtbd({ root });
-      assert.deepStrictEqual(result.errors, []);
+      assert.deepStrictEqual(result.findings, []);
       assert.ok(result.stale.includes("JTBD.md"));
     } finally {
       await rm(root, { recursive: true, force: true });
@@ -158,14 +163,13 @@ describe("checkJtbd", () => {
       );
 
       const result = await checkJtbd({ root });
+      const f = result.findings.find((x) => x.id === "jtbd.invalid-user");
       assert.ok(
-        result.errors.some((e) => e.includes('invalid user "Teams of Agents"')),
-        `expected invalid-user error, got: ${JSON.stringify(result.errors)}`,
+        f,
+        `expected jtbd.invalid-user finding, got: ${JSON.stringify(result.findings)}`,
       );
-      assert.ok(
-        result.errors.some((e) => e.includes("Teams Using Agents")),
-        `expected allowlist to enumerate Teams Using Agents, got: ${JSON.stringify(result.errors)}`,
-      );
+      assert.match(f.message, /invalid user "Teams of Agents"/);
+      assert.match(f.hint, /Teams Using Agents/);
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -238,7 +242,7 @@ describe("checkJtbd", () => {
 
       assert.deepStrictEqual(second.fixed, []);
       assert.deepStrictEqual(second.stale, []);
-      assert.deepStrictEqual(second.errors, []);
+      assert.deepStrictEqual(second.findings, []);
     } finally {
       await rm(root, { recursive: true, force: true });
     }

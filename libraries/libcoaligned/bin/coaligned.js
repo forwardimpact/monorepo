@@ -4,6 +4,7 @@ import "@forwardimpact/libpreflight/node22";
 
 import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
+import { emitFindingsJson, emitFindingsText } from "@forwardimpact/libutil";
 import { checkInstructions, checkJtbd } from "../src/index.js";
 
 const { version: VERSION } = JSON.parse(
@@ -40,37 +41,48 @@ const definition = {
   globalOptions: {
     help: { type: "boolean", short: "h", description: "Show this help" },
     version: { type: "boolean", description: "Show version" },
-    json: { type: "boolean", description: "Output help as JSON" },
+    json: { type: "boolean", description: "Output findings as JSON" },
   },
   examples: ["coaligned", "coaligned instructions", "coaligned jtbd --fix"],
 };
 
 const cli = createCli(definition);
 
-async function runInstructions(root) {
-  const errors = await checkInstructions({ root });
-  for (const e of errors) process.stderr.write(`error: ${e}\n`);
-  return errors.length > 0 ? 1 : 0;
+function writeFindings(findings, passMessage, jsonOutput, cwd) {
+  if (jsonOutput) {
+    process.stdout.write(emitFindingsJson(findings));
+  } else if (findings.length > 0) {
+    process.stderr.write(emitFindingsText(findings, { cwd, passMessage }));
+  } else {
+    process.stdout.write(emitFindingsText(findings, { cwd, passMessage }));
+  }
 }
 
-async function runJtbd(root, fix) {
-  const { errors, stale, fixed } = await checkJtbd({ root, fix });
-  for (const e of errors) process.stderr.write(`${e}\n`);
+async function runInstructions(root, jsonOutput) {
+  const findings = await checkInstructions({ root });
+  writeFindings(findings, "coaligned instructions passed", jsonOutput, root);
+  return findings.length > 0 ? 1 : 0;
+}
+
+async function runJtbd(root, fix, jsonOutput) {
+  const { findings, stale, fixed } = await checkJtbd({ root, fix });
+  writeFindings(findings, "coaligned jtbd passed", jsonOutput, root);
   for (const f of fixed) process.stdout.write(`Regenerated ${f}.\n`);
-  for (const s of stale) {
+  if (stale.length > 0 && !jsonOutput) {
     process.stderr.write(
-      `${s} out of date. Run \`coaligned jtbd --fix\` to regenerate.\n`,
+      `\n${stale.length} file${stale.length === 1 ? "" : "s"} out of date — run \`coaligned jtbd --fix\` to regenerate:\n`,
     );
+    for (const s of stale) process.stderr.write(`  - ${s}\n`);
   }
-  return errors.length > 0 || stale.length > 0 ? 1 : 0;
+  return findings.length > 0 || stale.length > 0 ? 1 : 0;
 }
 
 async function instructionsHandler(ctx) {
-  return runInstructions(ctx.data.root);
+  return runInstructions(ctx.data.root, !!ctx.options.json);
 }
 
 async function jtbdHandler(ctx) {
-  return runJtbd(ctx.data.root, !!ctx.options.fix);
+  return runJtbd(ctx.data.root, !!ctx.options.fix, !!ctx.options.json);
 }
 
 async function main() {
@@ -78,12 +90,13 @@ async function main() {
   if (!parsed) return 0;
 
   const root = process.cwd();
+  const jsonOutput = !!parsed.values.json;
 
   // No subcommand → run every check; --fix stays jtbd-only and must be opted
   // into explicitly via `coaligned jtbd --fix`.
   if (parsed.positionals.length === 0) {
-    const a = await runInstructions(root);
-    const b = await runJtbd(root, false);
+    const a = await runInstructions(root, jsonOutput);
+    const b = await runJtbd(root, false, jsonOutput);
     return a || b;
   }
 

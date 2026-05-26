@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import * as prettier from "prettier";
+import { runRules } from "@forwardimpact/libutil";
 
 const VALID_USERS = [
   "Engineering Leaders",
@@ -55,65 +56,140 @@ function loadPackages(dir, filter) {
   return out.sort((a, b) => a.dir.localeCompare(b.dir));
 }
 
-function validateEntry(entry, prefix) {
-  const errors = [];
-  if (!(entry.user && VALID_USERS.includes(entry.user))) {
-    errors.push(
-      `${prefix}: invalid user "${entry.user}". Must be one of: ${VALID_USERS.join(", ")}`,
-    );
-  }
-  for (const field of ["goal", "trigger", "competesWith"]) {
-    if (!entry[field] || typeof entry[field] !== "string") {
-      errors.push(`${prefix}: ${field} is required and must be a string`);
-    }
-  }
-  for (const field of ["bigHire", "littleHire"]) {
-    if (!entry[field] || typeof entry[field] !== "string") {
-      errors.push(`${prefix}: ${field} is required and must be a string`);
-    } else if (!entry[field].endsWith(".")) {
-      errors.push(`${prefix}: ${field} must end with ".": "${entry[field]}"`);
-    }
-  }
-  return errors;
+function slot(s) {
+  return `.jobs[${s.index}]`;
 }
 
-function checkHireUniqueness(entry, prefix, allHires, loc) {
-  const errors = [];
-  for (const field of ["bigHire", "littleHire"]) {
-    if (!entry[field] || typeof entry[field] !== "string") continue;
-    const key = `${field}:${entry[field].toLowerCase()}`;
-    if (allHires.has(key) && allHires.get(key).goal !== entry.goal) {
-      errors.push(
-        `${prefix}: duplicate ${field} "${entry[field]}" (also in ${allHires.get(key).loc})`,
-      );
-    }
-    allHires.set(key, { loc, goal: entry.goal });
-  }
-  return errors;
-}
-
-function validate(packages, dirName, { skipUniqueHires = false } = {}) {
-  const allHires = new Map();
-  const errors = [];
-  for (const { dir, pkg } of packages) {
-    const jobs = pkg.jobs;
-    if (!jobs) continue;
-    if (!Array.isArray(jobs)) {
-      errors.push(`${dir}/package.json: .jobs must be an array`);
-      continue;
-    }
-    for (let i = 0; i < jobs.length; i++) {
-      const entry = jobs[i];
-      const prefix = `${dirName}/${dir}/package.json .jobs[${i}]`;
-      errors.push(...validateEntry(entry, prefix));
-      if (!skipUniqueHires) {
-        errors.push(
-          ...checkHireUniqueness(entry, prefix, allHires, `${dirName}/${dir}`),
-        );
+export const JTBD_RULES = [
+  {
+    id: "jtbd.jobs-must-be-array",
+    scope: "package-jobs",
+    severity: "fail",
+    check: (s) => (Array.isArray(s.jobs) ? null : {}),
+    message: () => ".jobs must be an array",
+    hint: "wrap the value in [] — even a single job is an array of one",
+  },
+  {
+    id: "jtbd.invalid-user",
+    scope: "jtbd-entry",
+    severity: "fail",
+    check: (s) =>
+      s.entry.user && VALID_USERS.includes(s.entry.user)
+        ? null
+        : { user: s.entry.user },
+    message: (s, r) => `${slot(s)}: invalid user "${r.user}"`,
+    hint: `must be one of: ${VALID_USERS.join(", ")}`,
+  },
+  {
+    id: "jtbd.missing-field",
+    scope: "jtbd-entry",
+    severity: "fail",
+    check: (s) => {
+      const offenders = [];
+      for (const field of [
+        "goal",
+        "trigger",
+        "competesWith",
+        "bigHire",
+        "littleHire",
+      ]) {
+        if (!s.entry[field] || typeof s.entry[field] !== "string") {
+          offenders.push({ field });
+        }
       }
-    }
+      return offenders.length === 0 ? null : offenders;
+    },
+    message: (s, r) =>
+      `${slot(s)}: ${r.field} is required and must be a string`,
+    hint: "every job entry needs goal, trigger, competesWith, bigHire, and littleHire (hires end with a period)",
+  },
+  {
+    id: "jtbd.hire-missing-period",
+    scope: "jtbd-entry",
+    severity: "fail",
+    check: (s) => {
+      const offenders = [];
+      for (const field of ["bigHire", "littleHire"]) {
+        const v = s.entry[field];
+        if (typeof v === "string" && v.length > 0 && !v.endsWith(".")) {
+          offenders.push({ field, value: v });
+        }
+      }
+      return offenders.length === 0 ? null : offenders;
+    },
+    message: (s, r) =>
+      `${slot(s)}: ${r.field} must end with "." — "${r.value}"`,
+    hint: "append a period to the hire sentence",
+  },
+  {
+    // Cross-entry uniqueness — mutates ctx.allHires across iterations.
+    id: "jtbd.duplicate-hire",
+    scope: "jtbd-entry",
+    severity: "fail",
+    when: (s) => !s.skipUniqueHires,
+    check: (s, ctx) => {
+      const offenders = [];
+      for (const field of ["bigHire", "littleHire"]) {
+        const v = s.entry[field];
+        if (typeof v !== "string" || !v) continue;
+        const key = `${field}:${v.toLowerCase()}`;
+        const prior = ctx.allHires.get(key);
+        if (prior && prior.goal !== s.entry.goal) {
+          offenders.push({ field, value: v, otherLoc: prior.loc });
+        }
+        ctx.allHires.set(key, { loc: s.loc, goal: s.entry.goal });
+      }
+      return offenders.length === 0 ? null : offenders;
+    },
+    message: (s, r) =>
+      `${slot(s)}: duplicate ${r.field} "${r.value}" (also in ${r.otherLoc})`,
+    hint: "merge the duplicate job into a single entry, or differentiate the hire text",
+  },
+];
+
+function buildSubjects(packages, catalogDir, catalogName, skipUniqueHires) {
+  const packageSubjects = [];
+  const entrySubjects = [];
+  for (const { dir, pkg } of packages) {
+    const pkgPath = join(catalogDir, dir, "package.json");
+    if (pkg.jobs == null) continue;
+    packageSubjects.push({ path: pkgPath, jobs: pkg.jobs });
+    if (!Array.isArray(pkg.jobs)) continue;
+    const loc = `${catalogName}/${dir}`;
+    pkg.jobs.forEach((entry, i) => {
+      entrySubjects.push({
+        path: pkgPath,
+        index: i,
+        entry,
+        loc,
+        skipUniqueHires,
+      });
+    });
   }
-  return errors;
+  return { packageSubjects, entrySubjects };
+}
+
+function validate(
+  packages,
+  catalogDir,
+  catalogName,
+  { skipUniqueHires = false } = {},
+) {
+  const { packageSubjects, entrySubjects } = buildSubjects(
+    packages,
+    catalogDir,
+    catalogName,
+    skipUniqueHires,
+  );
+  const ctx = {
+    allHires: new Map(),
+    subjects: {
+      "package-jobs": packageSubjects,
+      "jtbd-entry": entrySubjects,
+    },
+  };
+  const resolveScope = (scopeKey) => ctx.subjects[scopeKey] ?? [];
+  return runRules(JTBD_RULES, ctx, { resolveScope });
 }
 
 function renderTable(headers, rows) {
@@ -340,11 +416,11 @@ function commitUpdate(filePath, label, original, updated, fix, result) {
 
 async function processCatalog(catalog, fix, formatMarkdown, result) {
   const packages = loadPackages(catalog.dir, catalog.filter);
-  const errors = validate(packages, catalog.name, {
+  const findings = validate(packages, catalog.dir, catalog.name, {
     skipUniqueHires: catalog.skipUniqueHires ?? false,
   });
-  if (errors.length > 0) {
-    result.errors.push(...errors);
+  if (findings.length > 0) {
+    result.findings.push(...findings);
     return;
   }
 
@@ -394,9 +470,11 @@ async function processJtbdMd(root, fix, formatMarkdown, result) {
   if (!existsSync(jtbdPath)) return;
   const productsCatalog = catalogs(root).find((c) => c.name === "products");
   const packages = loadPackages(productsCatalog.dir, productsCatalog.filter);
-  const errors = validate(packages, "products", { skipUniqueHires: true });
-  if (errors.length > 0) {
-    if (result.errors.length === 0) result.errors.push(...errors);
+  const findings = validate(packages, productsCatalog.dir, "products", {
+    skipUniqueHires: true,
+  });
+  if (findings.length > 0) {
+    if (result.findings.length === 0) result.findings.push(...findings);
     return;
   }
   const original = readFileSync(jtbdPath, "utf8");
@@ -412,13 +490,14 @@ async function processJtbdMd(root, fix, formatMarkdown, result) {
  * jobs, and description blocks in the corresponding README.md and JTBD.md.
  *
  * @param {{ root: string, fix?: boolean }} options
- * @returns {Promise<{ errors: string[], stale: string[], fixed: string[] }>}
- *   `errors` are validation failures; `stale` is files whose generated blocks
+ * @returns {Promise<{ findings: Finding[], stale: string[], fixed: string[] }>}
+ *   `findings` are validation failures (structured for `emitFindingsText` /
+ *   `emitFindingsJson` from libutil); `stale` is files whose generated blocks
  *   are out of date (only populated when `fix` is false); `fixed` is files
  *   that were rewritten in place.
  */
 export async function checkJtbd({ root, fix = false }) {
-  const result = { errors: [], stale: [], fixed: [] };
+  const result = { findings: [], stale: [], fixed: [] };
   const prettierConfig = await prettier.resolveConfig(join(root, "JTBD.md"));
   const formatMarkdown = makeFormatter(prettierConfig);
 

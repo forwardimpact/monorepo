@@ -163,3 +163,5 @@ export { ProcessorBase } from "./processor.js";
 export { Retry, createRetry } from "./retry.js";
 export { parseJsonBody } from "./http.js";
 export { waitFor } from "./wait.js";
+export { emitFindingsText, emitFindingsJson } from "./findings.js";
+export { runRules } from "./rules.js";

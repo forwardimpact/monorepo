@@ -7,8 +7,8 @@ monthly team storyboard meeting with multiple participants.
 
 Monthly file at `wiki/storyboard-YYYY-MNN.md` (e.g., `storyboard-2026-M04.md`)
 with five sections: Challenge, Target Condition, Current Condition, Obstacles,
-Experiments. Full template at
-[`storyboard-template.md`](storyboard-template.md).
+Experiments. Full template, with per-section word budgets, at
+[`storyboard-template.md`](storyboard-template.md). State, not history.
 
 ## Planning vs. Review
 

@@ -13,11 +13,11 @@ async function makeRepo() {
 }
 
 describe("checkInstructions", () => {
-  test("returns no errors for an empty repo", async () => {
+  test("returns no findings for an empty repo", async () => {
     const root = await makeRepo();
     try {
-      const errors = await checkInstructions({ root });
-      assert.deepStrictEqual(errors, []);
+      const findings = await checkInstructions({ root });
+      assert.deepStrictEqual(findings, []);
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -28,13 +28,17 @@ describe("checkInstructions", () => {
     try {
       const oversize = "line\n".repeat(200);
       await writeFile(join(root, "CLAUDE.md"), oversize);
-      const errors = await checkInstructions({ root });
-      assert.ok(
-        errors.some(
-          (e) => e.includes("CLAUDE.md") && e.includes("L1 root CLAUDE.md"),
-        ),
-        `expected an L1 root CLAUDE.md error, got: ${JSON.stringify(errors)}`,
+      const findings = await checkInstructions({ root });
+      const f = findings.find(
+        (x) =>
+          x.id === "instructions.line-budget" && x.path.endsWith("CLAUDE.md"),
       );
+      assert.ok(
+        f,
+        `expected an instructions.line-budget finding, got: ${JSON.stringify(findings)}`,
+      );
+      assert.match(f.message, /root CLAUDE\.md/);
+      assert.equal(f.level, "fail");
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -48,15 +52,17 @@ describe("checkInstructions", () => {
       // root cap — proves the tighter rule applies to subdirectories only.
       const oversize = "line\n".repeat(140);
       await writeFile(join(root, "products", "CLAUDE.md"), oversize);
-      const errors = await checkInstructions({ root });
-      assert.ok(
-        errors.some(
-          (e) =>
-            e.includes("products/CLAUDE.md") &&
-            e.includes("L1 subdir CLAUDE.md"),
-        ),
-        `expected an L1 subdir CLAUDE.md error, got: ${JSON.stringify(errors)}`,
+      const findings = await checkInstructions({ root });
+      const f = findings.find(
+        (x) =>
+          x.id === "instructions.line-budget" &&
+          x.path.endsWith("products/CLAUDE.md"),
       );
+      assert.ok(
+        f,
+        `expected an instructions.line-budget finding for products/CLAUDE.md, got: ${JSON.stringify(findings)}`,
+      );
+      assert.match(f.message, /subdir CLAUDE\.md/);
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -80,13 +86,15 @@ describe("checkInstructions", () => {
         "",
       ].join("\n");
       await writeFile(join(root, ".claude/skills/demo/SKILL.md"), skill);
-      const errors = await checkInstructions({ root });
+      const findings = await checkInstructions({ root });
+      const f = findings.find((x) => x.id === "L6.too-many-items");
       assert.ok(
-        errors.some(
-          (e) => e.includes("L6 checklist") && e.includes("12 items"),
-        ),
-        `expected an L6 checklist error, got: ${JSON.stringify(errors)}`,
+        f,
+        `expected an L6.too-many-items finding, got: ${JSON.stringify(findings)}`,
       );
+      assert.match(f.message, /12 items/);
+      assert.ok(f.path.endsWith(".claude/skills/demo/SKILL.md"));
+      assert.ok(typeof f.lineNo === "number" && f.lineNo > 0);
     } finally {
       await rm(root, { recursive: true, force: true });
     }

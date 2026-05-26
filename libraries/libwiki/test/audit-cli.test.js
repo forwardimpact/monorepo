@@ -113,10 +113,7 @@ describe("fit-wiki audit CLI", () => {
     assert.ok(lineBudget, "expected a summary.line-budget failure");
     assert.match(lineBudget.path, /staff-engineer\.md$/);
     assert.equal(lineBudget.level, "fail");
-    assert.match(
-      lineBudget.message,
-      /staff-engineer\.md has \d+ lines \(limit 496\)/,
-    );
+    assert.match(lineBudget.message, /^\d+ lines \(limit 496\)$/);
   });
 
   test("text emitter: WARN before FAIL, RESULT trailer", () => {
@@ -128,7 +125,9 @@ describe("fit-wiki audit CLI", () => {
     );
     const r = runFail(dir, ["audit", "--today", "2026-05-24"]);
     assert.equal(r.status, 1);
-    assert.match(r.stdout, /^FAIL /m);
-    assert.match(r.stdout, /^RESULT: fail \(\d+ checks failed\)$/m);
+    // ESLint-style: relative path header, then indented `error` lines
+    assert.match(r.stdout, /^wiki\/staff-engineer\.md$/m);
+    assert.match(r.stdout, /^ +\d* +error +.+ +summary\.line-budget$/m);
+    assert.match(r.stdout, /^✖ \d+ problems? \(\d+ errors?, \d+ warnings?\)$/m);
   });
 });

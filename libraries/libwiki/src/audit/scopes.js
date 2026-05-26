@@ -161,8 +161,12 @@ const SCOPE_RESOLVERS = {
   "weekly-log-part": (ctx) => ctx.subjects["weekly-log-part"],
   memory: (ctx) => [ctx.memory],
   "claims-row": (ctx) =>
-    parseClaims(ctx.memory.text).map((c) => ({ path: null, ...c })),
-  "priority-row": (ctx) => parsePriorityRows(ctx.memory.text),
+    parseClaims(ctx.memory.text).map((c) => ({ ...c, path: ctx.memory.path })),
+  "priority-row": (ctx) =>
+    parsePriorityRows(ctx.memory.text).map((r) => ({
+      ...r,
+      path: ctx.memory.path,
+    })),
   storyboard: (ctx) => [ctx.storyboard],
   "stray-file": (ctx) => ctx.subjects.stray,
 };

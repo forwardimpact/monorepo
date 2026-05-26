@@ -188,15 +188,16 @@ export const RULES = [
     scope: "summary",
     severity: "fail",
     check: matches(/^\*\*Last run\*\*:/m),
-    message: (s) => `sections: ${s.path} missing '**Last run**:' line`,
+    message: () => "Missing '**Last run**:' line",
+    hint: "add a '**Last run**: <date> — <one-line state>' line directly after the H1",
   },
   {
     id: "summary.first-h2-inbox",
     scope: "summary",
     severity: "fail",
     check: firstH2Is("Message Inbox"),
-    message: (s, r) =>
-      `sections: ${s.path} first H2 is '${r.observed}', expected 'Message Inbox'`,
+    message: (_s, r) => `First H2 is '${r.observed}', expected 'Message Inbox'`,
+    hint: "move '## Message Inbox' to be the first H2 in the file",
   },
   {
     id: "summary.memo-inbox-marker",
@@ -204,31 +205,32 @@ export const RULES = [
     severity: "fail",
     when: (s) => s.h2s.includes("Message Inbox"),
     check: containsLine(MEMO_INBOX_MARKER),
-    message: (s) => `sections: ${s.path} missing <!-- memo:inbox --> marker`,
+    message: () => `Missing ${MEMO_INBOX_MARKER} marker`,
+    hint: "add the marker directly below the '## Message Inbox' heading so `fit-wiki memo` can find it",
   },
   {
     id: "summary.open-blockers-last",
     scope: "summary",
     severity: "fail",
     check: nothingAfterH2("Open Blockers"),
-    message: (s, r) =>
-      `sections: ${s.path} '${r.observed}' appears after 'Open Blockers'`,
+    message: (_s, r) => `'${r.observed}' appears after 'Open Blockers'`,
+    hint: "move '## Open Blockers' to the end of the file",
   },
   {
     id: "summary.line-budget",
     scope: "summary",
     severity: "fail",
     check: lineBudget(SUMMARY_LINE_BUDGET),
-    message: (s, r) =>
-      `budget: ${s.path} has ${r.value} lines (limit ${SUMMARY_LINE_BUDGET})`,
+    message: (_s, r) => `${r.value} lines (limit ${SUMMARY_LINE_BUDGET})`,
+    hint: "trim history into the weekly log; the summary holds settled state, not history",
   },
   {
     id: "summary.word-budget",
     scope: "summary",
     severity: "fail",
     check: wordBudget(SUMMARY_WORD_BUDGET),
-    message: (s, r) =>
-      `budget: ${s.path} has ${r.value} words (limit ${SUMMARY_WORD_BUDGET})`,
+    message: (_s, r) => `${r.value} words (limit ${SUMMARY_WORD_BUDGET})`,
+    hint: "trim history into the weekly log; the summary holds settled state, not history",
   },
   {
     id: "summary.h1-agent-matches-filename",
@@ -236,7 +238,8 @@ export const RULES = [
     severity: "fail",
     check: summaryAgentMismatch,
     message: (s, r) =>
-      `sections: ${s.path} H1 title slug '${r.titleSlug}' does not match filename prefix '${s.agentPrefix}'`,
+      `H1 title slug '${r.titleSlug}' does not match filename prefix '${s.agentPrefix}'`,
+    hint: "rename either the H1 ('# <agent> — Summary') or the file so they agree",
   },
 
   // -- Weekly logs (main) --
@@ -246,23 +249,24 @@ export const RULES = [
     scope: "weekly-log-main",
     severity: "fail",
     check: firstLineMatches(WEEKLY_LOG_H1_RE),
-    message: (s) => `weekly-log: ${s.path} missing valid H1 heading`,
+    message: () => "Missing valid H1 heading",
+    hint: "set the H1 to '# <agent> — YYYY-Www'",
   },
   {
     id: "weekly-log.line-budget",
     scope: "weekly-log-main",
     severity: "fail",
     check: lineBudget(WEEKLY_LOG_LINE_BUDGET),
-    message: (s, r) =>
-      `weekly-log: ${s.path} has ${r.value} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
+    message: (_s, r) => `${r.value} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
+    hint: "run `bunx fit-wiki rotate` to seal this file as a sealed part and start a fresh weekly log",
   },
   {
     id: "weekly-log.word-budget",
     scope: "weekly-log-main",
     severity: "fail",
     check: wordBudget(WEEKLY_LOG_WORD_BUDGET),
-    message: (s, r) =>
-      `weekly-log: ${s.path} has ${r.value} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
+    message: (_s, r) => `${r.value} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
+    hint: "run `bunx fit-wiki rotate` to seal this file as a sealed part and start a fresh weekly log",
   },
   {
     id: "weekly-log.h1-agent-matches-filename",
@@ -270,7 +274,8 @@ export const RULES = [
     severity: "fail",
     check: weeklyAgentMismatch,
     message: (s, r) =>
-      `weekly-log: ${s.path} H1 title slug '${r.titleSlug}' does not match filename prefix '${s.agentPrefix}'`,
+      `H1 title slug '${r.titleSlug}' does not match filename prefix '${s.agentPrefix}'`,
+    hint: "rename either the H1 or the file so they agree",
   },
   {
     id: "decision-block.heading-within-5",
@@ -281,8 +286,8 @@ export const RULES = [
       requiredLine: DECISION_HEADING,
       stopRe: /^##\s/,
     }),
-    message: (s, r) =>
-      `decision-block: ${s.path}:${r.lineNo} entry lacks leading '### Decision'`,
+    message: () => "Entry lacks leading '### Decision'",
+    hint: "open each '## YYYY-MM-DD' entry with a '### Decision' subheading; use `bunx fit-wiki log decision` to do this mechanically",
   },
 
   // -- Weekly logs (sealed parts) --
@@ -292,23 +297,24 @@ export const RULES = [
     scope: "weekly-log-part",
     severity: "fail",
     check: firstLineMatches(WEEKLY_LOG_H1_RE),
-    message: (s) => `weekly-log: ${s.path} missing valid H1 heading`,
+    message: () => "Missing valid H1 heading",
+    hint: "set the H1 to '# <agent> — YYYY-Www (part N of M)'",
   },
   {
     id: "weekly-log-part.line-budget",
     scope: "weekly-log-part",
     severity: "fail",
     check: lineBudget(WEEKLY_LOG_LINE_BUDGET),
-    message: (s, r) =>
-      `weekly-log: ${s.path} has ${r.value} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
+    message: (_s, r) => `${r.value} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
+    hint: "sealed parts should already be at-or-under the cap; if not, the rotation that produced this part needs investigation",
   },
   {
     id: "weekly-log-part.word-budget",
     scope: "weekly-log-part",
     severity: "fail",
     check: wordBudget(WEEKLY_LOG_WORD_BUDGET),
-    message: (s, r) =>
-      `weekly-log: ${s.path} has ${r.value} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
+    message: (_s, r) => `${r.value} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
+    hint: "sealed parts should already be at-or-under the cap; if not, the rotation that produced this part needs investigation",
   },
   {
     id: "weekly-log-part.h1-agent-matches-filename",
@@ -316,7 +322,8 @@ export const RULES = [
     severity: "fail",
     check: weeklyAgentMismatch,
     message: (s, r) =>
-      `weekly-log: ${s.path} H1 title slug '${r.titleSlug}' does not match filename prefix '${s.agentPrefix}'`,
+      `H1 title slug '${r.titleSlug}' does not match filename prefix '${s.agentPrefix}'`,
+    hint: "rename either the H1 or the file so they agree",
   },
 
   // -- MEMORY.md --
@@ -326,7 +333,8 @@ export const RULES = [
     scope: "memory",
     severity: "fail",
     check: exists,
-    message: (s) => `memory: ${s.path} not found`,
+    message: () => "MEMORY.md not found",
+    hint: "run `bunx fit-wiki init` to scaffold the canonical sections",
   },
   {
     id: "memory.priority-heading",
@@ -334,7 +342,8 @@ export const RULES = [
     severity: "fail",
     when: memoryExists,
     check: matches(PRIORITY_INDEX_HEADING_RE),
-    message: () => `memory: missing '${PRIORITY_INDEX_HEADING}' heading`,
+    message: () => `Missing '${PRIORITY_INDEX_HEADING}' heading`,
+    hint: "add the heading before the cross-cutting priorities table",
   },
   {
     id: "memory.priority-table-header",
@@ -342,7 +351,8 @@ export const RULES = [
     severity: "fail",
     when: memoryExists,
     check: matches(PRIORITY_HEADER_RE),
-    message: () => "memory: missing priority table header row",
+    message: () => "Missing priority table header row",
+    hint: "add '| Item | Agents | Owner | Status | Added |' under the priority heading",
   },
   {
     id: "memory.priority-separator-row",
@@ -350,8 +360,8 @@ export const RULES = [
     severity: "fail",
     when: memoryHasPriorityHeader,
     check: matches(PRIORITY_SEPARATOR_RE),
-    message: () =>
-      "memory: missing priority table separator row (| --- | --- | --- | --- | --- |)",
+    message: () => "Missing priority table separator row",
+    hint: "add '| --- | --- | --- | --- | --- |' directly below the header row",
   },
   {
     id: "memory.active-claims-table-header",
@@ -359,8 +369,8 @@ export const RULES = [
     severity: "fail",
     when: memoryHasClaimsHeading,
     check: matches(CLAIMS_HEADER_RE),
-    message: () =>
-      `active-claims: header mismatch (expected ${ACTIVE_CLAIMS_TABLE_HEADER})`,
+    message: () => `Active claims header mismatch`,
+    hint: `expected header row: '${ACTIVE_CLAIMS_TABLE_HEADER}'`,
   },
   {
     id: "memory.active-claims-separator-row",
@@ -368,8 +378,8 @@ export const RULES = [
     severity: "fail",
     when: memoryHasClaimsHeader,
     check: matches(CLAIMS_SEPARATOR_RE),
-    message: () =>
-      "active-claims: missing separator row (| --- | --- | --- | --- | --- | --- |)",
+    message: () => "Missing active-claims separator row",
+    hint: "add '| --- | --- | --- | --- | --- | --- |' directly below the claims header",
   },
 
   // -- Table rows --
@@ -379,32 +389,32 @@ export const RULES = [
     scope: "priority-row",
     severity: "fail",
     check: columnCount(5),
-    message: (s, r) =>
-      `priority-row: row at line ${s.lineNo} has ${r.actual} cells (expected ${r.expected})`,
+    message: (_s, r) => `${r.actual} cells (expected ${r.expected})`,
+    hint: "every priority row needs 5 cells: Item, Agents, Owner, Status, Added",
   },
   {
     id: "claims-row.claimed-at-format",
     scope: "claims-row",
     severity: "fail",
     check: fieldMatches("claimed_at", ISO_DATE_RE),
-    message: (s, r) =>
-      `active-claims: bad claimed_at '${r.value}' for ${s.agent}/${s.target}`,
+    message: (s, r) => `Bad claimed_at '${r.value}' for ${s.agent}/${s.target}`,
+    hint: "claimed_at must be ISO YYYY-MM-DD",
   },
   {
     id: "claims-row.expires-at-format",
     scope: "claims-row",
     severity: "fail",
     check: fieldMatches("expires_at", ISO_DATE_RE),
-    message: (s, r) =>
-      `active-claims: bad expires_at '${r.value}' for ${s.agent}/${s.target}`,
+    message: (s, r) => `Bad expires_at '${r.value}' for ${s.agent}/${s.target}`,
+    hint: "expires_at must be ISO YYYY-MM-DD",
   },
   {
     id: "expired-claim",
     scope: "claims-row",
     severity: "warn",
     check: expired,
-    message: (s) =>
-      `expired-claim: ${s.agent}/${s.target} expired ${s.expires_at}`,
+    message: (s) => `${s.agent}/${s.target} expired ${s.expires_at}`,
+    hint: "run `bunx fit-wiki release --expired` to clear expired claims",
   },
 
   // -- Storyboards --
@@ -414,8 +424,8 @@ export const RULES = [
     scope: "storyboard",
     severity: "fail",
     check: exists,
-    message: (s) =>
-      `storyboard: ${s.path} (current month ${s.yearMonth}) not found`,
+    message: (s) => `Current-month storyboard (${s.yearMonth}) not found`,
+    hint: "create it from `.claude/skills/kata-session/references/storyboard-template.md`",
   },
   {
     id: "storyboard.agent-h3-required",
@@ -423,7 +433,8 @@ export const RULES = [
     severity: "fail",
     when: storyboardExists,
     check: allRequiredLines(AGENT_H3_REQUIREMENTS),
-    message: (s, r) => `storyboard: ${s.path} missing '### ${r.label}' H3`,
+    message: (_s, r) => `Missing '### ${r.label}' H3`,
+    hint: "every domain agent gets an H3 under '## Current Condition'",
   },
   {
     id: "storyboard.line-budget",
@@ -431,8 +442,8 @@ export const RULES = [
     severity: "fail",
     when: storyboardExists,
     check: lineBudget(STORYBOARD_LINE_BUDGET),
-    message: (s, r) =>
-      `storyboard: ${s.path} has ${r.value} lines (limit ${STORYBOARD_LINE_BUDGET})`,
+    message: (_s, r) => `${r.value} lines (limit ${STORYBOARD_LINE_BUDGET})`,
+    hint: "see per-section word budgets in storyboard-template.md; retire prior-session Headlines/Notes/Next-review entries to weekly logs",
   },
   {
     id: "storyboard.word-budget",
@@ -440,8 +451,8 @@ export const RULES = [
     severity: "fail",
     when: storyboardExists,
     check: wordBudget(STORYBOARD_WORD_BUDGET),
-    message: (s, r) =>
-      `storyboard: ${s.path} has ${r.value} words (limit ${STORYBOARD_WORD_BUDGET})`,
+    message: (_s, r) => `${r.value} words (limit ${STORYBOARD_WORD_BUDGET})`,
+    hint: "see per-section word budgets in storyboard-template.md; retire prior-session Headlines/Notes/Next-review entries to weekly logs",
   },
   {
     id: "storyboard.markers-balanced.xmr",
@@ -453,8 +464,9 @@ export const RULES = [
       closeRe: XMR_CLOSE_RE,
       label: "xmr",
     }),
-    message: (s, r) =>
-      `storyboard: ${s.path}:${r.lineNo} ${r.reason} xmr marker${r.label ? ` (${r.label})` : ""}`,
+    message: (_s, r) =>
+      `${r.reason} xmr marker${r.label ? ` (${r.label})` : ""}`,
+    hint: "every '<!-- xmr:metric:csv -->' needs a matching '<!-- /xmr -->'",
   },
   {
     id: "storyboard.markers-balanced.issues",
@@ -466,8 +478,9 @@ export const RULES = [
       closeRe: ISSUE_CLOSE_RE,
       label: "issue-list",
     }),
-    message: (s, r) =>
-      `storyboard: ${s.path}:${r.lineNo} ${r.reason} issue-list marker${r.label ? ` (${r.label})` : ""}`,
+    message: (_s, r) =>
+      `${r.reason} issue-list marker${r.label ? ` (${r.label})` : ""}`,
+    hint: "every '<!-- obstacles:* -->' or '<!-- experiments:* -->' needs a matching close marker",
   },
 
   // -- Stray files --
@@ -477,7 +490,7 @@ export const RULES = [
     scope: "stray-file",
     severity: "fail",
     check: always,
-    message: (s) =>
-      `stray-file: ${s.path} does not match any known scope (summary, weekly log, or excluded prefix)`,
+    message: () => "Does not match any known scope",
+    hint: "rename to a recognized scope (summary, weekly log, weekly-log part) or remove the file",
   },
 ];
