@@ -1,7 +1,7 @@
 # Co-Aligned Instruction Architecture Standard
 
-> "The volume and complexity of what we know has exceeded our individual
-> ability to deliver its benefits correctly, safely, or reliably."
+> "The volume and complexity of what we know has exceeded our individual ability
+> to deliver its benefits correctly, safely, or reliably."
 >
 > — Atul Gawande, _The Checklist Manifesto_
 
@@ -12,15 +12,15 @@ JTBD entry structure and tagging convention this standard assumes.
 
 It draws on two well-publicized ideas:
 
-1. **Jobs To Be Done** (Christensen, Moesta) — agents align to the progress
-   each persona seeks in specific circumstances, not to feature lists. See
+1. **Jobs To Be Done** (Christensen, Moesta) — agents align to the progress each
+   persona seeks in specific circumstances, not to feature lists. See
    [JTBD.md](JTBD.md).
-2. **The Checklist Manifesto** (Gawande) — complex work fails not from
-   ignorance but from inattention under load. Structured instructions ensure
-   existing knowledge is consistently applied — by humans and agents alike.
+2. **The Checklist Manifesto** (Gawande) — complex work fails not from ignorance
+   but from inattention under load. Structured instructions ensure existing
+   knowledge is consistently applied — by humans and agents alike.
 
-Together they answer _what_ agents align to (the jobs) and _how_ alignment
-holds under load (the layered instruction architecture). The more expert the
+Together they answer _what_ agents align to (the jobs) and _how_ alignment holds
+under load (the layered instruction architecture). The more expert the
 contributor, the more this matters: beginners follow procedures because they
 must; experts skip them because they think they don't need to.
 
@@ -28,8 +28,8 @@ must; experts skip them because they think they don't need to.
 
 Instructions span eight layers, ascending from most general (every contributor,
 every run) to most specific (one pause point). Each layer has one job. A defect
-in one layer is a different class of problem from a defect in another, and
-trace attribution depends on the separation.
+in one layer is a different class of problem from a defect in another, and trace
+attribution depends on the separation.
 
 0. **System prompt** — harness mechanics: turns, tool calls, completion signal.
 1. **CLAUDE.md** — project identity. See [MONOREPO.md](MONOREPO.md).
@@ -45,9 +45,9 @@ trace attribution depends on the separation.
    SKILL.md (domain) or CONTRIBUTING.md (universal).
 
 L3/L4 mirror L5/L6: profiles define boundaries, agent references supply shared
-protocols; procedures define steps, skill references supply domain data. L5/L6/L7
-share a skill folder but serve different concerns: L5 is _procedural_, L6 is
-_declarative_, L7 is _verificational_. Trace attribution requires the
+protocols; procedures define steps, skill references supply domain data.
+L5/L6/L7 share a skill folder but serve different concerns: L5 is _procedural_,
+L6 is _declarative_, L7 is _verificational_. Trace attribution requires the
 separation — "wrong procedure" is a different class of defect from "stale data"
 or "missing verification."
 
@@ -108,7 +108,8 @@ scope constraints.
 
 ## L4 — Agent Reference
 
-Read on demand when a profile or procedure cites them. Co-located in
+Progressive disclosure for agent-scoped data — profiles (L3) stay minimal,
+references load on demand when a profile or procedure cites them. Co-located in
 `.claude/agents/references/<name>.md`. Same declarative role as L6 skill
 references but shared across agents — cross-cutting protocols (memory,
 coordination, approval) that no single skill owns.
@@ -117,14 +118,15 @@ coordination, approval) that no single skill owns.
 
 1. **Declarative, cross-cutting.** Protocols and tables shared by multiple
    agents. If only one skill consults it, put it in that skill's `references/`.
-2. **Independently correct.** Stale data is a distinct defect class from a
-   wrong profile or procedure.
-3. **On-demand only.** Never auto-loaded. If a profile always needs the
-   content, fold it into the profile or the calling skill.
+2. **Independently correct.** Stale data is a distinct defect class from a wrong
+   profile or procedure.
+3. **On-demand only.** Never auto-loaded. If a profile always needs the content,
+   fold it into the profile or the calling skill.
 
 ## L5 — Skill Procedure (SKILL.md)
 
-Auto-loaded per skill invocation. The procedure is the complete instruction set
+Progressive disclosure for domain-scoped work — profiles (L3) route to skills,
+procedures load per invocation. The procedure is the complete instruction set
 for one domain.
 
 ### Properties of Good Skill Procedures
@@ -243,7 +245,7 @@ enforced by `coaligned instructions` (see `libraries/libcoaligned/`):
 
 The root `CLAUDE.md` carries project identity and is auto-loaded every run.
 Subdirectory `CLAUDE.md` files are read on demand when work enters that
-directory — they extend the root with directory-local conventions and must
-stay tight so they layer cleanly. L1 subdir is capped at 128 lines and 768
-words; L7 is gated by item count, not lines — wrapped-line length is a
-formatting artifact, not cognitive load.
+directory — they extend the root with directory-local conventions and must stay
+tight so they layer cleanly. L1 subdir is capped at 128 lines and 768 words; L7
+is gated by item count, not lines — wrapped-line length is a formatting
+artifact, not cognitive load.
