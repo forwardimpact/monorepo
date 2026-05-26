@@ -68,6 +68,30 @@ describe("checkInstructions", () => {
     }
   });
 
+  test("flags an oversized agent reference at the 192-line cap", async () => {
+    const root = await makeRepo();
+    try {
+      await mkdir(join(root, ".claude", "agents", "references"), {
+        recursive: true,
+      });
+      const oversize = "line\n".repeat(200);
+      await writeFile(join(root, ".claude/agents/references/big.md"), oversize);
+      const findings = await checkInstructions({ root });
+      const f = findings.find(
+        (x) =>
+          x.id === "instructions.line-budget" &&
+          x.path.endsWith(".claude/agents/references/big.md"),
+      );
+      assert.ok(
+        f,
+        `expected an agent-reference line-budget finding, got: ${JSON.stringify(findings)}`,
+      );
+      assert.match(f.message, /agent reference/);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   test("flags a checklist that exceeds 9 items", async () => {
     const root = await makeRepo();
     try {

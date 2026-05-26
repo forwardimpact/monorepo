@@ -102,6 +102,20 @@ scope constraints.
 3. **Minimal.** Every line loads on every run. Include scope constraints and
    skill routing; push everything else to L4 or L5.
 
+### Agent References
+
+Read on demand when a profile or procedure cites them. Co-located in
+`.claude/agents/references/<name>.md`. Same declarative role as L5 skill
+references but shared across agents — cross-cutting protocols (memory,
+coordination, approval) that no single skill owns.
+
+1. **Declarative, cross-cutting.** Protocols and tables shared by multiple
+   agents. If only one skill consults it, put it in that skill's `references/`.
+2. **Independently correct.** Stale data is a distinct defect class from a
+   wrong profile or procedure.
+3. **On-demand only.** Never auto-loaded. If a profile always needs the
+   content, fold it into the profile or the calling skill.
+
 ## L4 — Skill Procedure (SKILL.md)
 
 Auto-loaded per skill invocation. The procedure is the complete instruction set
@@ -216,6 +230,7 @@ enforced by `coaligned instructions` (see `libraries/libcoaligned/`):
 | L1 subdir CLAUDE.md          | ≤ 128 lines | on demand        |
 | L2 CONTRIBUTING.md & JTBD.md | ≤ 256 lines | on demand        |
 | L3 Agent profile             | ≤ 72 lines  | auto (every run) |
+| L3 Agent reference           | ≤ 192 lines | on demand        |
 | L4 SKILL.md                  | ≤ 192 lines | auto (per skill) |
 | L5 Skill reference file      | ≤ 128 lines | on demand        |
 | L6 Checklist (per block)     | ≤ 9 items   | auto (per skill) |

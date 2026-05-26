@@ -78,6 +78,19 @@ async function findAgentProfiles(root, claudeDirs) {
   return out;
 }
 
+async function findAgentReferences(root, claudeDirs) {
+  const out = [];
+  for (const d of claudeDirs) {
+    const files = await listFiles(
+      root,
+      `${d}/agents/references`,
+      (e) => e.isFile() && e.name.endsWith(".md"),
+    );
+    out.push(...files);
+  }
+  return out;
+}
+
 async function findSkillDirs(root, claudeDirs) {
   const out = [];
   for (const d of claudeDirs) {
@@ -144,6 +157,13 @@ async function buildLayers(root) {
         maxLines: 72,
         maxWords: 448,
         files: await findAgentProfiles(root, claudeDirs),
+      },
+      {
+        id: "L3",
+        name: "agent reference",
+        maxLines: 192,
+        maxWords: 1280,
+        files: await findAgentReferences(root, claudeDirs),
       },
       {
         id: "L4",
