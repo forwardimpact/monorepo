@@ -32,7 +32,7 @@
     "invariants:check-workspace-imports": "bun scripts/check-workspace-imports.mjs",
     "invariants:check-libharness": "bun scripts/check-libharness.mjs",
     "invariants:check-node-floor": "bun scripts/check-node-floor.mjs",
-    "invariants:check-temporal": "bash scripts/check-temporal.sh",
+    "invariants:check-temporal": "node scripts/check-temporal.mjs",
     "test": "find ./tests ./libraries ./products ./services ./.github/workflows/test ./.claude/skills/kata-interview/test -name '*.test.js' -not -path '*/node_modules/*' | xargs bun test",
     "test:e2e": "bunx playwright test",
     "generate": "fit-terrain build",
