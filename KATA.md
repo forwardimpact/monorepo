@@ -35,11 +35,12 @@ domain knowledge. **Memory** (`libwiki` + `wiki/`) persists state across
 surfaces and sessions.
 
 Local composite actions under `.github/actions/` encapsulate shared CI steps:
-`bootstrap/`, `audit/`, `coaligned-check/`, and `post-run/`. Two external
-composite actions are published under `forwardimpact/`:
-`forwardimpact/fit-eval` (trace capture + artifact upload) and
-`forwardimpact/kata-agent` (full agent workflow: auth, checkout, bootstrap,
-eval). Both are consumed by tag (e.g. `@v1`). Run `kata-setup` to generate
+`audit/` and `coaligned-check/`. Four external composite actions are published
+under `forwardimpact/`: `forwardimpact/fit-benchmark` (coding-agent
+benchmarks), `forwardimpact/fit-bootstrap` (the FIT CI environment),
+`forwardimpact/fit-eval` (agent task execution), and
+`forwardimpact/kata-agent` (full Kata workflow: auth, checkout, bootstrap,
+eval). All are consumed by tag (e.g. `@v1`). Run `kata-setup` to generate
 workflows interactively.
 
 ## Simplicity
