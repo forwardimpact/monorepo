@@ -266,19 +266,16 @@ async #fireElapsed(correlationId) {
   on the dispatched path. No double-cancel or double-flush on either
   path.
 
-### `processInbound` — branch on dispatch result, return declined flag
+### `processInbound` — branch on dispatch result
 
 ```js
 async processInbound(ctx) {
   const fired = this.#evaluate(ctx);
-  let anyDeclined = false;
   for (const { correlationId, rfc } of fired) {
     const historySince = ctx.history.slice(rfc.history_index_at_open);
     const result = await this.#redispatch(ctx, correlationId, historySince);
     if (result.kind === "dispatched") {
       this.cancelRecess(ctx, correlationId);
-    } else {
-      anyDeclined = true;
     }
   }
   const hasOpenRfc = Object.keys(ctx.open_rfcs ?? {}).length > 0;
@@ -286,18 +283,17 @@ async processInbound(ctx) {
     fired: fired.length,
     hasOpenRfc,
     freshDispatchAllowed: fired.length === 0 && !hasOpenRfc,
-    anyDeclined,
   };
 }
 ```
 
 - `cancelRecess` only on dispatched results — `#redispatch` handles the
-  non-dispatched path.
-- New `anyDeclined` flag in the return value: when a resume is declined
-  because the requester has no token, a fresh dispatch from the same
-  message would also be declined (same user, same missing token). The
-  bridge intake can use this flag to skip the redundant fresh dispatch
-  and avoid a double-decline message.
+  non-dispatched path internally (cancel + flush + onDeclined).
+- Return shape unchanged (no new fields). A declined resume and a
+  subsequent fresh dispatch from the same user will both be declined,
+  producing two channel messages. This is acceptable — the messages are
+  distinct (resume-declined vs fresh-declined) and the user sees a
+  consistent "link your account" prompt either way.
 
 Verify: `bun test libraries/libbridge/test/resume-scheduler.test.js`
 
@@ -392,25 +388,29 @@ this.#resume = new ResumeScheduler({
 ### `index.js` — `#handleNewMessage`
 
 Derive requester from `activity.from.id` and pass it to dispatch. Handle
-non-dispatched outcomes. Keep the existing try/catch around dispatch
-because `dispatchWorkflow` HTTP failures still throw:
+non-dispatched outcomes. The surrounding method structure is unchanged —
+context loading, `appendHistory`, `processInbound`, rate-limiter check,
+span lifecycle (`try/finally { span.end() }`), and the inner try/catch
+around dispatch all remain. Only the changes are shown:
 
 ```js
+// NEW — derive requester; bail if absent (inserted after threadId/text guards)
 const requester = activity.from?.id;
 if (!requester) return;
 
-// ... rate limiter check unchanged ...
+// ... context loading, appendHistory, processInbound, rate limiter unchanged ...
 
+// CHANGED — dispatch call gains requester; result is checked instead of destructured
 try {
   const result = await this.#dispatcher.dispatch({
     ctx,
     prompt: buildPrompt(text, ctx.history),
-    requester,
+    requester,                                      // new
     ackTarget: { ref, activityId: activity.id },
     callbackMeta: { threadId },
     workflowInputs: { discussionId: threadId },
   });
-  if (result.kind === "dispatched") {
+  if (result.kind === "dispatched") {               // new branch
     span.addEvent("workflow_dispatched", { correlation_id: result.correlationId });
   } else {
     await this.#renderDeclined(ctx, result);
@@ -418,6 +418,7 @@ try {
   }
   span.setOk();
 } catch (err) {
+  // unchanged — handles dispatchWorkflow HTTP failures (which still throw)
   this.#logger.error("handleNewMessage", err, { thread_id: threadId });
   span.setError(err);
   await context.sendActivity(
@@ -515,29 +516,33 @@ onDeclined: (ctx, outcome) => this.#renderDeclined(ctx, outcome),
 
 ### `index.js` — `#handleDiscussionCreated`
 
-Derive requester from `discussion.user.id`. Keep the existing try/catch
-because `dispatchWorkflow` HTTP failures still throw:
+Derive requester from `discussion.user.id`. The surrounding method
+structure is unchanged — discussionId/text extraction, span lifecycle
+(`try/finally { span.end() }`), context loading, rate-limiter check, and
+the inner try/catch all remain. Only the changes are shown:
 
 ```js
+// NEW — derive requester; bail if absent (inserted after discussionId/text guards)
 const requester = discussion?.user?.id?.toString();
 if (!requester) {
   this.#logger.debug("webhook", "ignoring discussion without user id");
   return c.body(null, 204);
 }
 
-// ... rate limiter check unchanged ...
+// ... context loading, rate limiter unchanged ...
 
+// CHANGED — dispatch call gains requester; result is checked
 try {
   const result = await this.#dispatcher.dispatch({
     ctx,
     prompt: buildPrompt(text, ctx.history),
-    requester,
+    requester,                                      // new
     ackTarget: { subjectId: discussionId },
     historyText: text,
     callbackMeta: { discussionId },
     workflowInputs: { discussionId },
   });
-  if (result.kind === "dispatched") {
+  if (result.kind === "dispatched") {               // new branch
     span.addEvent("workflow_dispatched", { correlation_id: result.correlationId });
   } else {
     await this.#renderDeclined(ctx, result);
@@ -546,6 +551,7 @@ try {
   span.setOk();
   return c.body(null, 200);
 } catch (err) {
+  // unchanged — handles dispatchWorkflow HTTP failures
   this.#logger.error("webhook", err, { discussion_id: discussionId });
   span.setError(err);
   return c.json({ error: "Dispatch failed" }, 502);
@@ -554,14 +560,21 @@ try {
 
 ### `index.js` — `#handleDiscussionComment`
 
-Derive requester from `comment.user.id`:
+Derive requester from `comment.user.id`. The surrounding method
+structure is unchanged — self-originated-comment guard, discussionId/text
+extraction, context loading, `appendHistory`, `last_active_at`,
+`processInbound`, span lifecycle, and the `store.add`/`store.flush`
+after the `if (freshDispatchAllowed)` block all remain. Only the changes
+are shown:
 
 ```js
+// NEW — derive requester; bail if absent (inserted after self-originated guard)
 const requester = comment?.user?.id?.toString();
 if (!requester) return c.body(null, 204);
 
-// ... freshDispatchAllowed check ...
+// ... context loading, appendHistory, last_active_at, processInbound unchanged ...
 
+// CHANGED — dispatch call gains requester; result is checked
 if (freshDispatchAllowed) {
   const limit = this.#rateLimiter.check(discussionId, ctx.dispatches);
   if (!limit.allowed) { /* ... unchanged ... */ }
@@ -569,16 +582,18 @@ if (freshDispatchAllowed) {
     const result = await this.#dispatcher.dispatch({
       ctx,
       prompt: buildPrompt(text, ctx.history),
-      requester,
+      requester,                                    // new
       ackTarget: { subjectId: comment?.node_id },
       callbackMeta: { discussionId: ctx.discussion_id },
       workflowInputs: { discussionId: ctx.discussion_id },
     });
-    if (result.kind !== "dispatched") {
+    if (result.kind !== "dispatched") {              // new branch
       await this.#renderDeclined(ctx, result);
     }
   }
 }
+
+// store.add + store.flush unchanged (persists both dispatched and non-dispatched paths)
 ```
 
 ### `index.js` — `#handleReply`
@@ -594,7 +609,8 @@ case "recessed":
 ### `index.js` — new `#renderDeclined` method
 
 Posts via the `graphqlClient` (installation credential — the app's voice,
-not the user's):
+not the user's). Records the posted comment in `OriginIndex` so the
+webhook echo does not trigger a re-dispatch loop:
 
 ```js
 async #renderDeclined(ctx, outcome) {
@@ -612,13 +628,26 @@ async #renderDeclined(ctx, outcome) {
     default:
       return;
   }
-  await postSingleDiscussionReply(this.#graphqlClient, ctx, body);
+  const recordOrigin = async (comment) => {
+    await this.#origins.add({
+      id: comment.id,
+      discussion_id: ctx.discussion_id,
+      posted_at: Date.now(),
+    });
+  };
+  await postSingleDiscussionReply(this.#graphqlClient, ctx, body, recordOrigin);
+  await this.#origins.flush();
 }
 ```
 
 - Uses the installation credential via `this.#graphqlClient` — the
   declined message is the app's notice, not the user's action (design
   decision: replies stay on installation credential).
+- Passes `recordOrigin` and flushes `OriginIndex`, mirroring the
+  existing `#handleReply` pattern. Without this, GitHub delivers a
+  `discussion_comment.created` webhook for the bot's own declined
+  notice, and the `#origins.has(commentId)` guard at
+  `#handleDiscussionComment` would miss it — creating a dispatch loop.
 
 ### Reply/reaction path unchanged
 
