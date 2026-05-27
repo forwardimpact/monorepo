@@ -735,6 +735,25 @@
         "@forwardimpact/libharness": "^0.1.5",
       },
     },
+    "services/ghauth": {
+      "name": "@forwardimpact/svcghauth",
+      "version": "0.1.0",
+      "bin": {
+        "fit-svcghauth": "./server.js",
+      },
+      "dependencies": {
+        "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libindex": "^0.1.0",
+        "@forwardimpact/libpreflight": "^0.1.0",
+        "@forwardimpact/librpc": "^0.1.99",
+        "@forwardimpact/libstorage": "^0.1.78",
+        "@forwardimpact/libtelemetry": "^0.1.42",
+        "@forwardimpact/libtype": "^0.1.0",
+      },
+      "devDependencies": {
+        "@forwardimpact/libharness": "^0.1.21",
+      },
+    },
     "services/ghbridge": {
       "name": "@forwardimpact/svcghbridge",
       "version": "0.1.0",
@@ -834,6 +853,25 @@
       },
       "devDependencies": {
         "@forwardimpact/libharness": "^0.1.5",
+      },
+    },
+    "services/oauth": {
+      "name": "@forwardimpact/svcoauth",
+      "version": "0.1.0",
+      "bin": {
+        "fit-svcoauth": "./server.js",
+      },
+      "dependencies": {
+        "@forwardimpact/libconfig": "^0.1.79",
+        "@forwardimpact/libpreflight": "^0.1.0",
+        "@forwardimpact/librpc": "^0.1.99",
+        "@forwardimpact/libtelemetry": "^0.1.42",
+        "@forwardimpact/libtype": "^0.1.0",
+        "@hono/node-server": "^2.0.2",
+        "hono": "^4.12.18",
+      },
+      "devDependencies": {
+        "@forwardimpact/libharness": "^0.1.21",
       },
     },
     "services/pathway": {
@@ -1180,6 +1218,8 @@
 
     "@forwardimpact/svcembedding": ["@forwardimpact/svcembedding@workspace:services/embedding"],
 
+    "@forwardimpact/svcghauth": ["@forwardimpact/svcghauth@workspace:services/ghauth"],
+
     "@forwardimpact/svcghbridge": ["@forwardimpact/svcghbridge@workspace:services/ghbridge"],
 
     "@forwardimpact/svcgraph": ["@forwardimpact/svcgraph@workspace:services/graph"],
@@ -1189,6 +1229,8 @@
     "@forwardimpact/svcmcp": ["@forwardimpact/svcmcp@workspace:services/mcp"],
 
     "@forwardimpact/svcmsbridge": ["@forwardimpact/svcmsbridge@workspace:services/msbridge"],
+
+    "@forwardimpact/svcoauth": ["@forwardimpact/svcoauth@workspace:services/oauth"],
 
     "@forwardimpact/svcpathway": ["@forwardimpact/svcpathway@workspace:services/pathway"],
 

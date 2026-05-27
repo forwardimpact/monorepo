@@ -1,0 +1,61 @@
+{
+  "name": "@forwardimpact/svcoauth",
+  "version": "0.1.0",
+  "description": "OAuth 2.1 authorization server adapter — protocol-only HTTP front that delegates to a configured provider backend over gRPC.",
+  "keywords": [
+    "oauth",
+    "authorization",
+    "protocol",
+    "adapter",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "services/oauth"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Expose an OAuth 2.1 authorization server without provider-specific code",
+      "trigger": "A new identity provider needs to plug into the same authorization flow without changing the protocol layer.",
+      "bigHire": "serve standard OAuth 2.1 endpoints that delegate every provider-specific step to a gRPC backend, keeping the HTTP surface provider-agnostic.",
+      "littleHire": "redirect an authorize request to the upstream provider and exchange a callback code for a downstream token.",
+      "competesWith": "per-provider HTTP services that mix OAuth protocol handling with provider-specific exchange logic"
+    }
+  ],
+  "type": "module",
+  "main": "./index.js",
+  "bin": {
+    "fit-svcoauth": "./server.js"
+  },
+  "files": [
+    "index.js",
+    "server.js"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libconfig": "^0.1.79",
+    "@forwardimpact/libpreflight": "^0.1.0",
+    "@forwardimpact/librpc": "^0.1.99",
+    "@forwardimpact/libtelemetry": "^0.1.42",
+    "@forwardimpact/libtype": "^0.1.0",
+    "@hono/node-server": "^2.0.2",
+    "hono": "^4.12.18"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.21"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -9,17 +9,19 @@ that let agents consume backend functionality natively.
 
 <!-- BEGIN:catalog — Do not edit. Generated from each service's package.json. -->
 
-| Service       | Description                                                                                                 |
-| ------------- | ----------------------------------------------------------------------------------------------------------- |
-| **embedding** | Text embeddings over gRPC — semantic representation without each product running its own inference.         |
-| **ghbridge**  | GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.       |
-| **graph**     | RDF knowledge graph over gRPC — relationship queries without each product standing up its own store.        |
-| **map**       | Activity reads and writes over gRPC — the agent-facing gateway to Map's activity database.                  |
-| **mcp**       | Unified MCP server — agents reach backend services as tools without per-service integration.                |
-| **msbridge**  | Microsoft Teams bridge onto libbridge — relay messages between Teams conversations and the Kata agent team. |
-| **pathway**   | Engineering standard queries over gRPC — career paths and agent profiles as derivable data for products.    |
-| **trace**     | OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.         |
-| **vector**    | Vector similarity search over gRPC — semantic retrieval without a dedicated database per product.           |
+| Service       | Description                                                                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **embedding** | Text embeddings over gRPC — semantic representation without each product running its own inference.                          |
+| **ghauth**    | GitHub user authentication — per-user OAuth token lifecycle for the Kata Agent User App.                                     |
+| **ghbridge**  | GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.                        |
+| **graph**     | RDF knowledge graph over gRPC — relationship queries without each product standing up its own store.                         |
+| **map**       | Activity reads and writes over gRPC — the agent-facing gateway to Map's activity database.                                   |
+| **mcp**       | Unified MCP server — agents reach backend services as tools without per-service integration.                                 |
+| **msbridge**  | Microsoft Teams bridge onto libbridge — relay messages between Teams conversations and the Kata agent team.                  |
+| **oauth**     | OAuth 2.1 authorization server adapter — protocol-only HTTP front that delegates to a configured provider backend over gRPC. |
+| **pathway**   | Engineering standard queries over gRPC — career paths and agent profiles as derivable data for products.                     |
+| **trace**     | OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.                          |
+| **vector**    | Vector similarity search over gRPC — semantic retrieval without a dedicated database per product.                            |
 
 <!-- END:catalog -->
 
@@ -101,6 +103,25 @@ per-product activity endpoints; embedding query logic in the evaluation skill.
 
 </job>
 
+<job user="Platform Builders" goal="Expose an OAuth 2.1 authorization server without provider-specific code">
+
+## Platform Builders: Expose an OAuth 2.1 authorization server without provider-specific code
+
+**Trigger:** A new identity provider needs to plug into the same authorization
+flow without changing the protocol layer.
+
+**Big Hire:** Help me serve standard OAuth 2.1 endpoints that delegate every
+provider-specific step to a gRPC backend, keeping the HTTP surface
+provider-agnostic. → **oauth**
+
+**Little Hire:** Help me redirect an authorize request to the upstream provider
+and exchange a callback code for a downstream token. → **oauth**
+
+**Competes With:** per-provider HTTP services that mix OAuth protocol handling
+with provider-specific exchange logic.
+
+</job>
+
 <job user="Platform Builders" goal="Ground Agents in Context">
 
 ## Platform Builders: Ground Agents in Context
@@ -174,6 +195,27 @@ later. → **trace**
 
 **Competes With:** per-product trace files; manual log comparison; skipping
 observability entirely.
+
+</job>
+
+<job user="Platform Builders" goal="Resolve a per-user GitHub token for agent dispatch">
+
+## Platform Builders: Resolve a per-user GitHub token for agent dispatch
+
+**Trigger:** A chat surface needs to dispatch a workflow under the identity of
+the human who asked, not a shared bot token.
+
+**Big Hire:** Help me own the Kata Agent User App credential lifecycle
+end-to-end so every surface resolves a per-user GitHub token through one gRPC
+query. → **ghauth**
+
+**Little Hire:** Help me exchange an authorization code for a user-to-server
+token, store the binding, refresh on expiry, and return a typed link/re-auth
+result when the binding is missing or revoked. → **ghauth**
+
+**Competes With:** per-surface OAuth implementations duplicating the
+authorization-code flow, token storage, and refresh logic across multiple bridge
+services.
 
 </job>
 

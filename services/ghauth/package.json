@@ -1,0 +1,63 @@
+{
+  "name": "@forwardimpact/svcghauth",
+  "version": "0.1.0",
+  "description": "GitHub user authentication — per-user OAuth token lifecycle for the Kata Agent User App.",
+  "keywords": [
+    "github",
+    "oauth",
+    "authentication",
+    "token",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "services/ghauth"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Resolve a per-user GitHub token for agent dispatch",
+      "trigger": "A chat surface needs to dispatch a workflow under the identity of the human who asked, not a shared bot token.",
+      "bigHire": "own the Kata Agent User App credential lifecycle end-to-end so every surface resolves a per-user GitHub token through one gRPC query.",
+      "littleHire": "exchange an authorization code for a user-to-server token, store the binding, refresh on expiry, and return a typed link/re-auth result when the binding is missing or revoked.",
+      "competesWith": "per-surface OAuth implementations duplicating the authorization-code flow, token storage, and refresh logic across multiple bridge services"
+    }
+  ],
+  "type": "module",
+  "main": "./index.js",
+  "bin": {
+    "fit-svcghauth": "./server.js"
+  },
+  "files": [
+    "index.js",
+    "server.js",
+    "src",
+    "proto"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libconfig": "^0.1.79",
+    "@forwardimpact/libindex": "^0.1.0",
+    "@forwardimpact/libpreflight": "^0.1.0",
+    "@forwardimpact/librpc": "^0.1.99",
+    "@forwardimpact/libstorage": "^0.1.78",
+    "@forwardimpact/libtelemetry": "^0.1.42",
+    "@forwardimpact/libtype": "^0.1.0"
+  },
+  "devDependencies": {
+    "@forwardimpact/libharness": "^0.1.21"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

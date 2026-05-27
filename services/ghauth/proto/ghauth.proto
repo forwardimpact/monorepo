@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package ghauth;
+
+import "common.proto";
+
+service Ghauth {
+  rpc Begin(BeginRequest) returns (BeginResponse);
+  rpc Complete(CompleteRequest) returns (CompleteResponse);
+  rpc Redeem(RedeemRequest) returns (RedeemResponse);
+  rpc GetToken(GetTokenRequest) returns (GetTokenResponse);
+  rpc Revoke(RevokeRequest) returns (common.Empty);
+}
+
+message BeginRequest {
+  string surface = 1;
+  string surface_user_id = 2;
+  optional string redirect_uri = 3;
+  optional string code_challenge = 4;
+  repeated string scopes = 5;
+}
+message BeginResponse { string upstream_authorize_url = 1; string state = 2; }
+
+message CompleteRequest { string code = 1; string state = 2; }
+message CompleteResponse {
+  optional string downstream_code = 1;
+  optional string redirect_uri = 2;
+  optional string client_state = 3;
+}
+
+message RedeemRequest { string code = 1; string code_verifier = 2; }
+message RedeemResponse { string access_token = 1; string token_type = 2; int64 expires_in = 3; }
+
+message GetTokenRequest { string surface = 1; string surface_user_id = 2; }
+message LinkRequired { string authorize_url = 1; }
+message ReAuthRequired {}
+message GetTokenResponse {
+  oneof result {
+    string token = 1;
+    LinkRequired link_required = 2;
+    ReAuthRequired re_auth_required = 3;
+  }
+}
+
+message RevokeRequest { string surface = 1; string surface_user_id = 2; }
