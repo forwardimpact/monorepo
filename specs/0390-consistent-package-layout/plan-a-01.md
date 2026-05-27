@@ -167,7 +167,7 @@ if (violations.length || rootSourceFiles.length) {
 5. Run `bun run layout` locally — **expect it to report drift** (that is the
    whole point of permissive mode). Verify the report lists all the
    non-conforming packages the spec calls out (`libui`, `libskill`,
-   `libsyntheticgen`, `libharness`, `products/guide`, `products/map`, etc.).
+   `libsyntheticgen`, `libmock`, `products/guide`, `products/map`, etc.).
 6. Run `bun run check` — should pass (permissive mode exits 0 on drift).
 7. Commit as `refactor(layout): add package layout contract check (permissive)`.
 8. Push.
@@ -179,8 +179,8 @@ if (violations.length || rootSourceFiles.length) {
 - `bun run check` exits 0.
 - `bun run test` exits 0.
 - Drift report includes at minimum: `products/guide/lib`,
-  `products/map/activity`, `libraries/libharness/packages`,
-  `libraries/libharness/fixture`, `libraries/libharness/mock`,
+  `products/map/activity`, `libraries/libmock/packages`,
+  `libraries/libmock/fixture`, `libraries/libmock/mock`,
   `libraries/libskill/policies`, `libraries/libsyntheticgen/dsl`,
   `libraries/libsyntheticgen/engine`, `libraries/libsyntheticgen/tools`,
   `libraries/libsyntheticprose/engine`, `libraries/libsyntheticprose/prompts`,

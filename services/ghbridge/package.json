@@ -52,7 +52,7 @@
     "@octokit/webhooks-methods": "^6.0.0"
   },
   "devDependencies": {
-    "@forwardimpact/libharness": "^0.1.21"
+    "@forwardimpact/libmock": "^0.1.0"
   },
   "engines": {
     "bun": ">=1.2.0",

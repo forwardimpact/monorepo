@@ -1,7 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 import { transformPeople } from "@forwardimpact/map/activity/transform/people";
-import { createMockSupabaseClient } from "@forwardimpact/libharness";
+import { createMockSupabaseClient } from "@forwardimpact/libmock";
 
 function createFakeClient({ peopleYaml }) {
   const client = createMockSupabaseClient({

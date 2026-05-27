@@ -42,7 +42,7 @@
     "seedrandom": "^3.0.5"
   },
   "devDependencies": {
-    "@forwardimpact/libharness": "^0.1.14",
+    "@forwardimpact/libmock": "^0.1.0",
     "@forwardimpact/libprompt": "^0.1.9",
     "@forwardimpact/libsyntheticrender": "^0.1.25"
   },

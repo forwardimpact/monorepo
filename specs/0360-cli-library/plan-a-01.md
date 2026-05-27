@@ -49,13 +49,13 @@ and tests.
     "access": "public"
   },
   "devDependencies": {
-    "@forwardimpact/libharness": "^0.1.5"
+    "@forwardimpact/libmock": "^0.1.5"
   }
 }
 ```
 
 Follows the standard library package.json pattern (cf. libformat). No runtime
-dependencies. libcli uses only `node:util` (for `parseArgs`). libharness is a
+dependencies. libcli uses only `node:util` (for `parseArgs`). libmock is a
 devDependency for test mocking.
 
 Run `bun install` after creating this file to register the workspace package.

@@ -91,7 +91,7 @@
   },
   "devDependencies": {
     "@forwardimpact/libgraph": "^0.1.59",
-    "@forwardimpact/libharness": "^0.1.14",
+    "@forwardimpact/libmock": "^0.1.0",
     "@forwardimpact/libresource": "^0.1.98",
     "@forwardimpact/libstorage": "^0.1.61",
     "microdata-rdf-streaming-parser": "^3.0.0",

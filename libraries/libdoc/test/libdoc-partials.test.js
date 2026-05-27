@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { resolvePartials, defaultRegistry } from "../src/partials.js";
-import { assertThrowsMessage } from "@forwardimpact/libharness";
+import { assertThrowsMessage } from "@forwardimpact/libmock";
 
 const mockPath = {
   join: (...parts) => parts.join("/"),

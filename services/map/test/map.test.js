@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 import { MapService } from "../index.js";
-import { createMockConfig } from "@forwardimpact/libharness";
+import { createMockConfig } from "@forwardimpact/libmock";
 
 function createMockSupabase(overrides = {}) {
   const tables = {};

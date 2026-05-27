@@ -7,7 +7,7 @@ import {
   assertThrowsMessage,
   createMockStorage,
   spy,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 describe("VectorIndex - Core Functionality", () => {
   let vectorIndex;

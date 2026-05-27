@@ -14,7 +14,7 @@ import { isSuppressedOrchestratorEvent } from "../src/render/orchestrator-filter
 import { MessageBus } from "../src/message-bus.js";
 import { createNoopRedactor } from "../src/redaction.js";
 import { createMockRunner } from "./mock-runner.js";
-import { createToolUseMsg } from "@forwardimpact/libharness";
+import { createToolUseMsg } from "@forwardimpact/libmock";
 
 const noop = () => createNoopRedactor();
 

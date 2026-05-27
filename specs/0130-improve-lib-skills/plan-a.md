@@ -96,7 +96,7 @@ match actual parameter names.
 | libconfig    | `serviceConfig` → `createServiceConfig`, `extensionConfig` → `createExtensionConfig`, `scriptConfig` → `createScriptConfig`. Add `createInitConfig`, `createConfig`, `Config`.                   |
 | libtelemetry | Remove `Tracer` (not exported from index.js — import from `./tracer.js` directly). Add `Observer`, `createObserver`. Note the direct import path for Tracer.                                     |
 | libtype      | No changes (correct).                                                                                                                                                                            |
-| libharness   | Clarify that exports come from `./fixture/index.js` and `./mock/index.js` submodules.                                                                                                            |
+| libmock   | Clarify that exports come from `./fixture/index.js` and `./mock/index.js` submodules.                                                                                                            |
 
 ### 5. `.claude/skills/libs-synthetic-data/SKILL.md`
 

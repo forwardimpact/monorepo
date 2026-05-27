@@ -5,7 +5,7 @@ import assert from "node:assert";
 import { TraceService } from "../index.js";
 import { TraceIndex } from "@forwardimpact/libtelemetry/index/trace.js";
 import { trace } from "@forwardimpact/libtype";
-import { createMockConfig, createMockStorage } from "@forwardimpact/libharness";
+import { createMockConfig, createMockStorage } from "@forwardimpact/libmock";
 
 describe("trace service", () => {
   describe("TraceService", () => {

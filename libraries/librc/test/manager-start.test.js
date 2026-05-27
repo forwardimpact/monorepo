@@ -5,7 +5,7 @@ import { ServiceManager } from "../src/manager.js";
 import {
   assertRejectsMessage,
   assertThrowsMessage,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 describe("ServiceManager - constructor, paths, running, start", () => {
   let mockConfig;

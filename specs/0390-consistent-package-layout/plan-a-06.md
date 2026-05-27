@@ -26,7 +26,7 @@ first as a standalone commit.
 | libuniverse        |                   index.js, load.js, pipeline.js | —                           |            3 |
 | libvector          |                                         index.js | index/, processor/          |            3 |
 
-(libharness tier-A candidate was handled in Part 04.)
+(libmock tier-A candidate was handled in Part 04.)
 
 **Total: 15 libraries, 79 subpath keys.** Every key's right-hand target is
 rewritten from `./foo.js` → `./src/foo.js` or `./<dir>/x.js` →
@@ -606,7 +606,7 @@ Libraries: libdoc, libgraph, libmemory, libprompt, libresource,
 libskill, libsyntheticgen, libsyntheticprose, libsyntheticrender,
 libtelemetry, libtemplate, libtool, libui, libuniverse, libvector.
 
-libharness was handled in part 04.
+libmock was handled in part 04.
 
 Part 06 of 08 for spec 0390.
 ```

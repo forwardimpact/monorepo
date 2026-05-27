@@ -5,7 +5,7 @@ from the Kata GitHub App, dispatches `kata-dispatch.yml` via libbridge, and
 posts replies via the `addDiscussionComment` GraphQL mutation. Sibling to
 `services/msbridge`; both depend on `libbridge`.
 
-Libraries used: `@forwardimpact/libbridge` (Part 01), `@forwardimpact/libconfig`, `@forwardimpact/libtelemetry`, `@forwardimpact/librpc`, `@forwardimpact/libstorage` (LocalStorage), `@forwardimpact/libharness` (devDep), `express` (existing — libbridge peer-dep), `@octokit/webhooks-methods` (NEW — signature verification), `@octokit/graphql` (NEW — `addDiscussionComment`), `@octokit/auth-app` (NEW — installation token minting).
+Libraries used: `@forwardimpact/libbridge` (Part 01), `@forwardimpact/libconfig`, `@forwardimpact/libtelemetry`, `@forwardimpact/librpc`, `@forwardimpact/libstorage` (LocalStorage), `@forwardimpact/libmock` (devDep), `express` (existing — libbridge peer-dep), `@octokit/webhooks-methods` (NEW — signature verification), `@octokit/graphql` (NEW — `addDiscussionComment`), `@octokit/auth-app` (NEW — installation token minting).
 
 ## Step 5.1 — Scaffold the service
 

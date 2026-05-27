@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PagesBuilder, PagesServer } from "../src/index.js";
-import { assertThrowsMessage } from "@forwardimpact/libharness";
+import { assertThrowsMessage } from "@forwardimpact/libmock";
 
 test("PagesBuilder constructor validates dependencies", () => {
   assertThrowsMessage(

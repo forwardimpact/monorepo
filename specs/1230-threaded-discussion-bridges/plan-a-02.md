@@ -8,7 +8,7 @@ flags across `supervise`, `facilitate`, and `discuss` to `--lead-profile`
 the legacy mode-specific flags"). Thread `discussion_id` through the
 trace so `fit-trace by-discussion <id>` can join multi-run conversations.
 
-Libraries used: `@forwardimpact/libeval` (extends in place), `@anthropic-ai/claude-agent-sdk`, `zod` (existing — tool schemas), `@forwardimpact/libbridge` (Part 01 — `ResumeTrigger` type), `@forwardimpact/libharness` (devDep — `createMockStorage`).
+Libraries used: `@forwardimpact/libeval` (extends in place), `@anthropic-ai/claude-agent-sdk`, `zod` (existing — tool schemas), `@forwardimpact/libbridge` (Part 01 — `ResumeTrigger` type), `@forwardimpact/libmock` (devDep — `createMockStorage`).
 
 ## Step 2.1 — Add `discuss` command skeleton
 

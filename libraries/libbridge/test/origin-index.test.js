@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createMockStorage } from "@forwardimpact/libharness/mock";
+import { createMockStorage } from "@forwardimpact/libmock/mock";
 
 import { OriginIndex } from "../src/origin-index.js";
 

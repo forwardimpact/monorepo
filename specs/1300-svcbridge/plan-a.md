@@ -34,7 +34,7 @@ adapter wrapper. Catalogs regenerate at the end.
 | 3 | `bun install` + `bunx fit-codegen --all` | `bun.lock`, `generated/` (regenerated artifacts) |
 | 4 | Service implementation body | `services/bridge/index.js` (RPC bodies + sweep) |
 | 5 | Service tests | `services/bridge/test/bridge.test.js` |
-| 6 | `createMockDiscussionClient` in libharness | `libraries/libharness/src/mock/clients.js`, `libraries/libharness/src/mock/index.js` |
+| 6 | `createMockDiscussionClient` in libmock | `libraries/libmock/src/mock/clients.js`, `libraries/libmock/src/mock/index.js` |
 | 7 | Widen `ResumeScheduler` store contract + rewrite affected libbridge tests | `libraries/libbridge/src/resume-scheduler.js`, `libraries/libbridge/src/index.js` (typedef), `libraries/libbridge/test/{resume-scheduler,dispatcher,callback-handler}.test.js` |
 | 8 | Delete the two store classes | `libraries/libbridge/src/{discussion-context,origin-index}.js`, `libraries/libbridge/test/{discussion-context,origin-index}.test.js`, `libraries/libbridge/src/index.js` exports |
 | 9 | ghbridge: adapter + direct origin calls | `services/ghbridge/src/discussion-adapter.js` (new), `services/ghbridge/{index,server}.js`, `services/ghbridge/package.json`, `services/ghbridge/test/*.test.js` |
@@ -80,7 +80,7 @@ implemented" on each RPC; Step 4 fills in the bodies.
 `package.json` mirrors `services/trace/package.json`. Name
 `@forwardimpact/svcbridge`, `bin.fit-svcbridge = ./server.js`,
 deps on `libconfig`, `libindex`, `libpreflight`, `librpc`,
-`libstorage`, `libtelemetry`, `libtype`; devDep on `libharness`.
+`libstorage`, `libtelemetry`, `libtype`; devDep on `libmock`.
 `description` ends in a noun phrase agents recognise (e.g. "Canonical
 threaded-discussion store — single source of truth for
 GitHub/Microsoft Teams bridge state."); `keywords` are five lowercase
@@ -319,13 +319,13 @@ Cases (test names quoted):
 9. `"Sweep evicts origins whose posted_at is older than origin_ttl_ms"` — covers the new per-server origin TTL behaviour the design § Storage layout introduces.
 10. `"Concurrent SaveDiscussion from two channels both land"`.
 
-Use `createMockConfig("bridge", { …Step 2 defaults })`, `createMockStorage()`, `createMockLogger()` from `libharness`. RPC bodies are called directly on the service instance (in-process), same as the trace service tests.
+Use `createMockConfig("bridge", { …Step 2 defaults })`, `createMockStorage()`, `createMockLogger()` from `libmock`. RPC bodies are called directly on the service instance (in-process), same as the trace service tests.
 
 **Verify:** all ten tests pass.
 
-## Step 6 — `createMockDiscussionClient` in libharness
+## Step 6 — `createMockDiscussionClient` in libmock
 
-- **Modified:** `libraries/libharness/src/mock/clients.js`, `libraries/libharness/src/mock/index.js`, `libraries/libharness/package.json`
+- **Modified:** `libraries/libmock/src/mock/clients.js`, `libraries/libmock/src/mock/index.js`, `libraries/libmock/package.json`
 
 Add a factory shaped like `createMockTraceClient`. Spies resolve to plain objects matching what the generated client returns after `toObject(...)` (the bridges only consume `.exists`, `.refs`, and the record fields directly):
 
@@ -350,9 +350,9 @@ export function createMockDiscussionClient(overrides = {}) {
 }
 ```
 
-Re-export from `libharness/src/mock/index.js`. Bump `libharness` minor (new public export).
+Re-export from `libmock/src/mock/index.js`. Bump `libmock` minor (new public export).
 
-**Verify:** `bun test libraries/libharness/test/*.test.js` exits 0.
+**Verify:** `bun test libraries/libmock/test/*.test.js` exits 0.
 
 ## Step 7 — Widen `ResumeScheduler` store contract
 
@@ -519,7 +519,7 @@ The spec's "per-bridge files are no longer written" criterion is verified mechan
 - **Proto `int64` JSON shape.** The wire types `OpenRfc.due_at`, `Origin.posted_at`, and `OpenRfc.history_index_at_open` are `int64`. `protobuf.js` returns these as `Long` instances or strings depending on loader config; the existing protos already use `int64` (`trace.Span.start_time_unix_nano` etc.) and consumers treat them as numbers, so the prevailing loader config is `longs: Number` or equivalent — confirm by exercising case 7 in Step 5 (`ListOpenRecesses` returns `due_at` consumable as a `number` by `setTimeout`).
 - **`bun.lock` churn from new workspace member.** `bun install` after adding `services/bridge/package.json` updates the lockfile to record the new workspace. Expected.
 
-Libraries used: `@forwardimpact/libindex` (`BufferedIndex`), `@forwardimpact/librpc` (`Server`, `createClient`, `createTracer`, `services.BridgeBase`, `grpc.status`), `@forwardimpact/libstorage` (`createStorage`), `@forwardimpact/libconfig` (`createServiceConfig`), `@forwardimpact/libtelemetry` (`createLogger`), `@forwardimpact/libpreflight` (`node22`), `@forwardimpact/libtype` (`bridge.*` typed messages), `@forwardimpact/libharness` (`createMockConfig`, `createMockStorage`, `createMockLogger`, `createMockDiscussionClient` — new in Step 6).
+Libraries used: `@forwardimpact/libindex` (`BufferedIndex`), `@forwardimpact/librpc` (`Server`, `createClient`, `createTracer`, `services.BridgeBase`, `grpc.status`), `@forwardimpact/libstorage` (`createStorage`), `@forwardimpact/libconfig` (`createServiceConfig`), `@forwardimpact/libtelemetry` (`createLogger`), `@forwardimpact/libpreflight` (`node22`), `@forwardimpact/libtype` (`bridge.*` typed messages), `@forwardimpact/libmock` (`createMockConfig`, `createMockStorage`, `createMockLogger`, `createMockDiscussionClient` — new in Step 6).
 
 ## Execution
 

@@ -1,7 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 import { transformAllGetDX } from "@forwardimpact/map/activity/transform/getdx";
-import { createMockSupabaseClient } from "@forwardimpact/libharness";
+import { createMockSupabaseClient } from "@forwardimpact/libmock";
 
 const createFakeClient = ({ rawFiles }) =>
   createMockSupabaseClient({ files: rawFiles });

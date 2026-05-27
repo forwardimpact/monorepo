@@ -13,7 +13,7 @@ import {
   createMockObserverFn,
   createMockAuthFn,
   createMockLogger,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 describe("healthDefinition", () => {
   test("Check has the required service definition fields", () => {

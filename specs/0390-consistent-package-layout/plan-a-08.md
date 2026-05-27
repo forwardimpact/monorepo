@@ -308,7 +308,7 @@ these points intact:
 
 > Spec 0390 (consistent package layout) has landed as Parts 01–07 of its plan.
 > Every package now lives under `src/`; the root-level `generated/` output is
-> symlinked as `libraries/{librpc,libtype}/src/generated`; `libharness` is fully
+> symlinked as `libraries/{librpc,libtype}/src/generated`; `libmock` is fully
 > restructured. Your job is the documentation pass that completes Part 08.
 >
 > Update these surfaces so they reflect the new layout:
@@ -339,7 +339,7 @@ these points intact:
 - `CLAUDE.md § Structure` no longer mentions `landmark/` or `summit/` as
   directories.
 - Fresh-install smoke test: run `npm pack` for a couple of published libraries
-  (libskill, libharness, map) and verify the tarball contents include `src/**`
+  (libskill, libmock, map) and verify the tarball contents include `src/**`
   and no legacy root-level `.js` files.
 
 ## Risks

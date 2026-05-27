@@ -24,7 +24,7 @@ header bootstrap. `libwiki` does not depend on `libxmr` per design P3.
   `agent-self-improvement`; one need: `Append a cross-team observation to a
   wiki summary`; bin `fit-wiki` → `./bin/fit-wiki.js`; depend on
   `@forwardimpact/libcli` and `@forwardimpact/libutil` (for `Finder`); devDep
-  `@forwardimpact/libharness`).
+  `@forwardimpact/libmock`).
 - Created: `libraries/libwiki/README.md` (purpose, key exports, one example).
 - Created: `libraries/libwiki/src/index.js` exporting
   `{ writeMemo, listAgents, insertMarkers, MEMO_INBOX_MARKER, OBSERVATIONS_HEADING }`.

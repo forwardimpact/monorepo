@@ -1,7 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 import { transformEvidence } from "@forwardimpact/map/activity/transform/evidence";
-import { createMockSupabaseClient } from "@forwardimpact/libharness";
+import { createMockSupabaseClient } from "@forwardimpact/libmock";
 import { makeEvidenceRow, makeArtifact } from "../fixtures.js";
 
 /**

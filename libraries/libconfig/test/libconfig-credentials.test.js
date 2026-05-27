@@ -2,7 +2,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 
 import { createConfig } from "../src/index.js";
-import { createMockStorage, spy } from "@forwardimpact/libharness";
+import { createMockStorage, spy } from "@forwardimpact/libmock";
 
 describe("libconfig - Anthropic and MCP credentials", () => {
   const baseMockProcess = () => ({

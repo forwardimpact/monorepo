@@ -27,7 +27,7 @@ accept, wholesale rejection, partial-deletion rejection, partial-backfill
 rejection) and reflected in this plan's Risks.
 
 Libraries used: `@forwardimpact/libcli` (createCli),
-`@forwardimpact/libutil` (Finder), `@forwardimpact/libharness` (test
+`@forwardimpact/libutil` (Finder), `@forwardimpact/libmock` (test
 helpers). No new dependencies.
 
 ## Parts Index

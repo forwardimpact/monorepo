@@ -281,11 +281,11 @@ repl.start();
 ## Testing
 
 Inject mocks for all dependencies to test without real I/O. Use
-`createMockStorage` from `libharness` for storage.
+`createMockStorage` from `libmock` for storage.
 
 ```js
 import { Repl } from "@forwardimpact/librepl";
-import { createMockStorage } from "@forwardimpact/libharness";
+import { createMockStorage } from "@forwardimpact/libmock";
 
 const mockFormatter = () => ({ format: (text) => text });
 const mockReadline = { createInterface: () => ({ on() {}, prompt() {} }) };

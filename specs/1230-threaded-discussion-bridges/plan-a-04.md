@@ -8,7 +8,7 @@ Microsoft's Bot Framework HTTP protocol (the external Teams API) is
 unchanged — that is the wire format Teams itself speaks, not internal
 back-compat.
 
-Libraries used: `@forwardimpact/libbridge` (Part 01), `@forwardimpact/libconfig`, `@forwardimpact/libtelemetry`, `@forwardimpact/librpc`, `@forwardimpact/libstorage` (LocalStorage), `@forwardimpact/libharness` (devDep), `botbuilder` (existing), `express` (existing — already a libbridge peer-dep).
+Libraries used: `@forwardimpact/libbridge` (Part 01), `@forwardimpact/libconfig`, `@forwardimpact/libtelemetry`, `@forwardimpact/librpc`, `@forwardimpact/libstorage` (LocalStorage), `@forwardimpact/libmock` (devDep), `botbuilder` (existing), `express` (existing — already a libbridge peer-dep).
 
 ## Step 4.1 — Move the directory
 

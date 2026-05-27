@@ -1,7 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 import { renderDataset } from "../src/render/dataset-renderers.js";
-import { assertRejectsMessage } from "@forwardimpact/libharness";
+import { assertRejectsMessage } from "@forwardimpact/libmock";
 
 const FIXTURE = {
   name: "test_records",

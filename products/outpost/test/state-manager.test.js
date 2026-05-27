@@ -1,7 +1,7 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
-import { createMockFs } from "@forwardimpact/libharness/mock";
+import { createMockFs } from "@forwardimpact/libmock/mock";
 import { StateManager } from "../src/state-manager.js";
 
 describe("StateManager", () => {

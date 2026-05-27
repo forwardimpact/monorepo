@@ -75,7 +75,7 @@
     "@supabase/supabase-js": "^2.106.2"
   },
   "devDependencies": {
-    "@forwardimpact/libharness": "^0.1.14",
+    "@forwardimpact/libmock": "^0.1.0",
     "@forwardimpact/libsecret": "^0.1.14"
   },
   "engines": {

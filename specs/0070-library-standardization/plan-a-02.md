@@ -42,7 +42,7 @@ from 22 descriptions to 6.
 ```
 
 **Deleted** (22 files): libagent, libcodegen, libconfig, libdoc, libformat,
-libgraph, libharness, libindex, libllm, libmemory, libpolicy, libprompt, librc,
+libgraph, libmock, libindex, libllm, libmemory, libpolicy, libprompt, librc,
 libresource, librpc, libsecret, libstorage, libsupervise, libtelemetry, libtype,
 libui, libuniverse, libutil, libvector, libweb.
 
@@ -87,7 +87,7 @@ description: >
 
 ### Recipe 3: {Testing pattern}
 
-{How to mock/test this library group using libharness}
+{How to mock/test this library group using libmock}
 
 ## DI Wiring
 
@@ -97,7 +97,7 @@ in this group — the agent's quick-reference for instantiation}
 
 ## Group 1: libs-service-infrastructure
 
-**Libraries:** librpc, libconfig, libtelemetry, libtype, libharness
+**Libraries:** librpc, libconfig, libtelemetry, libtype, libmock
 
 **Trigger:** Building or modifying gRPC services, service configuration,
 logging, tracing, or service tests.
@@ -107,7 +107,7 @@ logging, tracing, or service tests.
 > Service infrastructure for gRPC microservices. librpc provides Server/Client
 > base classes. libconfig loads service settings. libtelemetry provides
 > structured logging and tracing. libtype provides Protocol Buffer types.
-> libharness provides test mocks. Use when building, modifying, or testing gRPC
+> libmock provides test mocks. Use when building, modifying, or testing gRPC
 > services.
 
 **Decision guide content:**

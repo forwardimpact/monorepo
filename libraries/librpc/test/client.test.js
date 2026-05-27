@@ -10,7 +10,7 @@ import {
   createMockLogger,
   createMockObserverFn,
   spy,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 describe("Client", () => {
   let mockConfig;

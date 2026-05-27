@@ -109,7 +109,7 @@ Replace 22 individual library skills with **5 capability group skills**:
 
 | Group skill                | Libraries covered                                                 | When activated                                                                                      |
 | -------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| **service-infrastructure** | librpc, libconfig, libtelemetry, libtype, libharness              | Building or modifying gRPC services, service configuration, logging/tracing                         |
+| **service-infrastructure** | librpc, libconfig, libtelemetry, libtype, libmock              | Building or modifying gRPC services, service configuration, logging/tracing                         |
 | **data-persistence**       | libstorage, libindex, libresource, libpolicy, libgraph, libvector | Storing data, querying indexes, managing resources, access control, knowledge graphs, vector search |
 | **llm-orchestration**      | libllm, libmemory, libprompt, libagent                            | LLM completions, embeddings, conversation memory, prompt templates, agent orchestration             |
 | **web-presentation**       | libui, libformat, libweb, libdoc, libtemplate                     | Web UIs, markdown rendering, HTTP middleware, documentation sites                                   |

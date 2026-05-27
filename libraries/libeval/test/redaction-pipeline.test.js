@@ -12,7 +12,7 @@ import { MessageBus } from "../src/message-bus.js";
 import { TraceCollector } from "../src/trace-collector.js";
 import { createTeeWriter } from "../src/tee-writer.js";
 import { createMockRunner } from "./mock-runner.js";
-import { createToolUseMsg } from "@forwardimpact/libharness";
+import { createToolUseMsg } from "@forwardimpact/libmock";
 
 /**
  * JSON-stable guard: sentinels are printable ASCII without `"`, `\`, or

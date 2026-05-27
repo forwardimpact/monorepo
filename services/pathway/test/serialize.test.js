@@ -10,7 +10,7 @@ import {
   progressionToTurtle,
   jobSoftwareToTurtle,
 } from "../src/serialize.js";
-import { createTurtleHelpers } from "@forwardimpact/libharness";
+import { createTurtleHelpers } from "@forwardimpact/libmock";
 
 const { Parser } = pkg;
 const FIT = "https://www.forwardimpact.team/schema/rdf/";

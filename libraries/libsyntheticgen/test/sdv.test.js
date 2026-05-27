@@ -4,7 +4,7 @@ import { SdvTool } from "../src/tools/sdv.js";
 import {
   assertRejectsMessage,
   assertThrowsMessage,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 const logger = { info() {}, error() {} };
 

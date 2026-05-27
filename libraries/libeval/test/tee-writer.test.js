@@ -7,7 +7,7 @@ import {
   collectStream as collect,
   stripAnsi,
   writeLines,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 describe("TeeWriter", () => {
   test("constructor throws on missing fileStream", () => {

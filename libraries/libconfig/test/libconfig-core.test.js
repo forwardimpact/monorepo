@@ -11,7 +11,7 @@ import {
   assertThrowsMessage,
   createMockStorage,
   spy,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 describe("libconfig - Config", () => {
   let mockProcess;

@@ -35,10 +35,10 @@ libraries/libpreflight/src/node22.js
 libraries/libpreflight/test/check.test.js
 ```
 
-**`package.json` shape.** Mirror an existing peer (`libraries/libharness/package.json`
+**`package.json` shape.** Mirror an existing peer (`libraries/libmock/package.json`
 is the simplest match — zero `dependencies`, ESM, `engines` block, no `bin`)
 and substitute the libpreflight-specific values below. The implementer
-opens `libraries/libharness/package.json` and changes the listed fields,
+opens `libraries/libmock/package.json` and changes the listed fields,
 leaving the rest of the manifest shape (license, homepage, repository, author,
 publishConfig.access) identical:
 
@@ -52,7 +52,7 @@ publishConfig.access) identical:
 | `main` | `./src/check.js` |
 | `exports` | `{ "./node22": "./src/node22.js", "./check.js": "./src/check.js" }` |
 | `files` | `["src/**/*.js", "README.md"]` |
-| `scripts.test` | `bun test test/*.test.js` (matches the libharness/libcli/libdoc convention) |
+| `scripts.test` | `bun test test/*.test.js` (matches the libmock/libcli/libdoc convention) |
 | `engines.node` | `>=22.0.0` (libpreflight bootstrap note in design) |
 | `engines.bun` | `>=1.2.0` (matches every peer library) |
 | `dependencies` | _(omit the block entirely — Decision 1 zero-dep invariant)_ |
@@ -88,7 +88,7 @@ check(22);
 ```
 
 **`test/check.test.js`.** Node-runner test (node:test compatible per
-`libharness` conventions) with three cases against a mock process object:
+`libmock` conventions) with three cases against a mock process object:
 (i) `versions.node: "22.0.0"` → no stderr writes, no exit; (ii)
 `versions.node: "20.11.0"` → both lines written verbatim, exit called with
 `1`; (iii) `versions.node: "18.20.0"` → same as (ii) with `18.20.0` echoed
@@ -267,7 +267,7 @@ PR.
 **Files modified.** Root `package.json` (npm scripts block).
 
 **Script shape.** Match the style of the existing
-`scripts/check-workspace-imports.mjs` and `scripts/check-libharness.mjs`:
+`scripts/check-workspace-imports.mjs` and `scripts/check-libmock.mjs`:
 plain `node`-runnable ESM with `#!/usr/bin/env node` shebang as the first
 line (the two existing siblings both carry this shebang — verified at
 plan authoring), ROOT computed from `import.meta.url`, status-code
@@ -289,7 +289,7 @@ block, add `"invariants:check-node-floor": "bun scripts/check-node-floor.mjs"`
 and extend the existing `"invariants"` script to chain the new check:
 
 ```json
-"invariants": "bun run invariants:check-workspace-imports && bun run invariants:check-libharness && bun run invariants:check-node-floor",
+"invariants": "bun run invariants:check-workspace-imports && bun run invariants:check-libmock && bun run invariants:check-node-floor",
 "invariants:check-node-floor": "bun scripts/check-node-floor.mjs",
 ```
 

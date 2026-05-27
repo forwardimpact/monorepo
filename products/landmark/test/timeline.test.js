@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   assertRejectsMessage,
   createMockQueries,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 import { runTimelineCommand } from "../src/commands/timeline.js";
 import { EMPTY_STATES } from "../src/lib/empty-state.js";

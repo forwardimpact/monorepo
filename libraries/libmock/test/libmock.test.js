@@ -20,7 +20,7 @@ import {
   createTestBehaviourEntry,
 } from "../src/fixture/pathway.js";
 
-describe("libharness", () => {
+describe("libmock", () => {
   test("createMockConfig creates config with defaults", () => {
     const config = createMockConfig();
     assert.strictEqual(config.name, "test-service");

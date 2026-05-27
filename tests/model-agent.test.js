@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
 
-import { assertThrowsMessage } from "@forwardimpact/libharness";
+import { assertThrowsMessage } from "@forwardimpact/libmock";
 
 import {
   deriveReferenceLevel,

@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 import { GraphProcessor } from "../src/processor/graph.js";
 import { resource } from "@forwardimpact/libtype";
-import { createSilentLogger } from "@forwardimpact/libharness";
+import { createSilentLogger } from "@forwardimpact/libmock";
 
 describe("GraphProcessor", () => {
   let mockLogger;

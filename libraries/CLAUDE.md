@@ -86,6 +86,6 @@ a product guide when the task naturally cuts across both audiences.
 - `README.md` — purpose, key exports, one composition example.
 - `src/` — implementation (no tests in `src`).
 - `test/` — `*.test.js` files, runner-independent (`bun:test` and
-  `node:test` both work, see `libharness`).
+  `node:test` both work, see `libmock`).
 - Run `bun run context:fix` to regenerate the catalog and jobs tables.
   Update any consuming product or service to import from the new library.

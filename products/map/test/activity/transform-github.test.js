@@ -1,7 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 import { transformGitHubWebhook } from "@forwardimpact/map/activity/transform/github";
-import { createMockSupabaseClient } from "@forwardimpact/libharness";
+import { createMockSupabaseClient } from "@forwardimpact/libmock";
 
 /**
  * Wraps `createMockSupabaseClient` to add a chainable

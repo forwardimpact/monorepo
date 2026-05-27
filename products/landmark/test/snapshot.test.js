@@ -9,7 +9,7 @@ import { EMPTY_STATES } from "../src/lib/empty-state.js";
 import {
   assertRejectsMessage,
   createMockQueries,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 import { MAP_DATA, SCORES, SNAPSHOTS } from "./fixtures.js";
 
 const TREND = [

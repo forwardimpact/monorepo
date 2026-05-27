@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
-import { spy } from "@forwardimpact/libharness";
+import { spy } from "@forwardimpact/libmock";
 
 import { parseRosterYaml } from "../src/roster/yaml.js";
 import {

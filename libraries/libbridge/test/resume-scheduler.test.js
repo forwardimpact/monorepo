@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { createMockStorage } from "@forwardimpact/libharness";
+import { createMockStorage } from "@forwardimpact/libmock";
 
 import { Acknowledgement } from "../src/acknowledgement.js";
 import { CallbackRegistry } from "../src/callback-registry.js";

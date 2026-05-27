@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { EventEmitter } from "node:events";
 
 import { SupervisionTree } from "../src/tree.js";
-import { createSilentLogger } from "@forwardimpact/libharness";
+import { createSilentLogger } from "@forwardimpact/libmock";
 
 const mockLogger = createSilentLogger();
 

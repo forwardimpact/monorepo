@@ -107,7 +107,7 @@ visible text contains `activity` (case-insensitive).
 
 ### 2. Create `scripts/check-map-page.mjs`
 
-New file modelled on `scripts/check-libharness.mjs` (no test runner, plain
+New file modelled on `scripts/check-libmock.mjs` (no test runner, plain
 node script with `process.exit(status)`).
 
 ```js

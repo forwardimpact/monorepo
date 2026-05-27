@@ -21,10 +21,10 @@ can read and tune via JSON.
 | **libeval**            | Agent evaluation framework — prove whether agent changes improved outcomes with reproducible evidence.                                    |
 | **libformat**          | Render markdown to ANSI or HTML — formatted output in any surface without losing structure.                                               |
 | **libgraph**           | RDF triple store with named ontologies — answer relationship questions without writing join logic.                                        |
-| **libharness**         | Shared mocks and test fixtures so every library and service tests the same way.                                                           |
 | **libindex**           | JSONL-backed indexes with filtering and buffered writes — fast context lookup without an external search engine.                          |
 | **libmacos**           | macOS bundle assembly, code signing, and OS permission helpers — desktop delivery without platform ceremony.                              |
 | **libmcp**             | Config-driven gRPC-to-MCP tool registration — expose protobuf services as agent tools without glue code.                                  |
+| **libmock**            | Shared mocks and test fixtures so every library and service tests the same way.                                                           |
 | **libpack**            | Pack distribution — tarballs, bare git repos, and skill discovery indices                                                                 |
 | **libpolicy**          | Access-control policy evaluation — scoped context access without per-service authorization logic.                                         |
 | **libpreflight**       | Runtime-floor preflight — fail fast with a product-authored error when the host Node is below a package's declared floor.                 |

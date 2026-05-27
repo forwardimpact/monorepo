@@ -4,10 +4,7 @@ import assert from "node:assert";
 import { TraceVisualizer } from "../src/visualizer.js";
 import { TraceIndex } from "../src/index/trace.js";
 import { trace } from "@forwardimpact/libtype";
-import {
-  assertThrowsMessage,
-  createMockStorage,
-} from "@forwardimpact/libharness";
+import { assertThrowsMessage, createMockStorage } from "@forwardimpact/libmock";
 
 describe("TraceVisualizer - basics", () => {
   let traceIndex;

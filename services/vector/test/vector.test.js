@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 // Module under test
 import { VectorService } from "../index.js";
-import { createMockConfig, spy } from "@forwardimpact/libharness";
+import { createMockConfig, spy } from "@forwardimpact/libmock";
 
 describe("vector service", () => {
   describe("VectorService", () => {

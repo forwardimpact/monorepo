@@ -66,7 +66,7 @@ steps.
 | 01  | [plan-a-01.md](plan-a-01.md) | Allowed-root-subdirs check infrastructure (permissive mode)                                                      | staff-engineer                    |
 | 02  | [plan-a-02.md](plan-a-02.md) | Codegen pipeline: move `generated/` → `src/generated/`                                                           | staff-engineer                    |
 | 03  | [plan-a-03.md](plan-a-03.md) | Services: fix `services/pathway/`, document the services exception                                               | staff-engineer                    |
-| 04  | [plan-a-04.md](plan-a-04.md) | `libharness` full restructure + stale `packages/` deletion                                                       | staff-engineer                    |
+| 04  | [plan-a-04.md](plan-a-04.md) | `libmock` full restructure + stale `packages/` deletion                                                       | staff-engineer                    |
 | 05  | [plan-a-05.md](plan-a-05.md) | Products: map, guide, basecamp, pathway                                                                          | staff-engineer                    |
 | 06  | [plan-a-06.md](plan-a-06.md) | Libraries tier A (published subpath exports, higher blast radius)                                                | staff-engineer                    |
 | 07  | [plan-a-07.md](plan-a-07.md) | Libraries tier B (no subpath exports, lower blast radius)                                                        | staff-engineer                    |
@@ -84,7 +84,7 @@ steps.
   03 (services/pathway)
     │
     ▼
-  04 (libharness)
+  04 (libmock)
     │
     ▼
   05 (products) ──┐
@@ -306,6 +306,6 @@ execution if any are wrong.
   40, 44, 48, 52
 - Subpath export inventory: 112 keys across 25 libraries + 2 products (map alone
   contributes 25 keys: 1 root `"."` + 24 subpaths)
-- libharness call sites: ~23 test files across services and libraries
+- libmock call sites: ~23 test files across services and libraries
 
 — Staff Engineer 🛠️

@@ -209,7 +209,7 @@ Part 03 populated-starter test asserts against):
 
 **Verify (run from repo root):** `bun run test tests/model-agent.test.js`
 exits 0 (the file at the repo's top-level `tests/` resolves workspace
-dependencies — `@forwardimpact/libharness`, `@forwardimpact/libskill` — only
+dependencies — `@forwardimpact/libmock`, `@forwardimpact/libskill` — only
 when invoked from the workspace root, not from inside `libraries/libskill/`).
 `rg -n 'renderOrganizationalContext' libraries/libskill/src/index.js` returns
 one hit (the re-export).

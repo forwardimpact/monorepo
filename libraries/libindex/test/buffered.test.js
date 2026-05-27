@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 // Module under test
 import { BufferedIndex } from "../src/index.js";
-import { createMockStorage } from "@forwardimpact/libharness";
+import { createMockStorage } from "@forwardimpact/libmock";
 
 describe("BufferedIndex - Buffered Write Operations", () => {
   let bufferedIndex;

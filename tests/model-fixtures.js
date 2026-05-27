@@ -6,7 +6,7 @@ import {
   createTestLevel,
   createTestDriver,
   createTestCapability,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 import { Capability } from "@forwardimpact/map/levels";
 

@@ -1,10 +1,10 @@
 /**
- * Thin wrappers around @forwardimpact/libharness pathway atoms that preserve
+ * Thin wrappers around @forwardimpact/libmock pathway atoms that preserve
  * libskill-specific defaults (e.g. the `specialization` field on disciplines,
  * the populated `expectations` shape on levels, and the capability/skill ids
  * that libskill derivation tests reason about).
  *
- * New tests should prefer calling the libharness atoms directly; these
+ * New tests should prefer calling the libmock atoms directly; these
  * `make*` names exist for backward compat with the existing libskill suite.
  */
 import {
@@ -15,7 +15,7 @@ import {
   createTestBehaviour,
   createTestCapability,
   createTestDriver,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 const DEFAULT_LEVEL_EXPECTATIONS = {
   impactScope: "team",

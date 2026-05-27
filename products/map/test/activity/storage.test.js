@@ -1,6 +1,6 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { assertRejectsMessage } from "@forwardimpact/libharness";
+import { assertRejectsMessage } from "@forwardimpact/libmock";
 import {
   storeRaw,
   readRaw,

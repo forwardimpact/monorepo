@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { createMockQueries } from "@forwardimpact/libharness";
+import { createMockQueries } from "@forwardimpact/libmock";
 
 import { runCoverageCommand } from "../src/commands/coverage.js";
 

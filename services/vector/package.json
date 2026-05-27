@@ -53,7 +53,7 @@
     "@forwardimpact/libvector": "^0.1.68"
   },
   "devDependencies": {
-    "@forwardimpact/libharness": "^0.1.5"
+    "@forwardimpact/libmock": "^0.1.0"
   },
   "engines": {
     "bun": ">=1.2.0",

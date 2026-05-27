@@ -27,7 +27,7 @@ itself).
 
 Consumes no `@forwardimpact/lib*` packages — this part implements one. The
 existing libeval dependencies (`@anthropic-ai/claude-agent-sdk`, `zod`,
-`@forwardimpact/libharness` for test helpers) stay as-is.
+`@forwardimpact/libmock` for test helpers) stay as-is.
 
 ## Blast radius
 

@@ -6,7 +6,7 @@ primitives exist. Build under `libraries/libwiki/`; commit the full part as
 one atomic commit on `feat/memory-protocol-redesign`.
 
 Libraries used: `@forwardimpact/libcli` (createCli, dispatch),
-`@forwardimpact/libutil` (Finder), `@forwardimpact/libharness` (test
+`@forwardimpact/libutil` (Finder), `@forwardimpact/libmock` (test
 helpers in test files only).
 
 ## Step 1 — `MEMORY_FILE` and `ACTIVE_CLAIMS_HEADING` constants

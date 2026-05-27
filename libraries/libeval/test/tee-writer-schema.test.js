@@ -12,7 +12,7 @@ import {
   collectStream as collect,
   stripAnsi,
   writeLines,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 describe("TeeWriter v1.1 schema rendering", () => {
   test("renders system turns with subtype label", async () => {

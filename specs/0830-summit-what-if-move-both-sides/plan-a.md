@@ -19,7 +19,7 @@ positional and the `--move` / `--to` options name the source and destination
 roles. Pre-change formatter outputs are captured into committed fixtures
 **before** the refactor lands so post-change byte-identity is verifiable.
 
-Libraries used: `@forwardimpact/libharness` (`spy` — Test 6 only).
+Libraries used: `@forwardimpact/libmock` (`spy` — Test 6 only).
 
 ## File-shape decisions (cross-cutting)
 
@@ -496,7 +496,7 @@ added/removed lists is sufficient.
 | 6   | "runWhatIfCommand emits diff.teams[] for --move via JSON output" — write `MOVE_FIXTURE_YAML` to a tmp file via `mkdtempSync` + `writeFileSync`; load `data` via `await loadStarterData()`; install the stdout spy via the save-replace-restore pattern below; call `runWhatIfCommand({ data, args: ["a"], options: { roster: tmpFile, move: "Alice", to: "b", format: "json" } })`; restore stdout in `finally`; remove the tmp dir via `rmSync(tmpDir, { recursive: true })` in the same `finally`; parse the captured JSON; assert `parsed.diff.teams.length === 2`, `parsed.diff.teams[0].role === "source"`, `parsed.diff.teams[1].role === "destination"`, and `parsed.diff.teams.map(t => t.teamId)` equals `["a", "b"]`. The tmp-file path is the only viable channel — ESM module bindings cannot be monkey-patched from the test. Exercises the command-level wiring of the destination snapshot (design Risk #4). | `what-if-formatters.test.js`      | command wiring |
 | 7   | "CLI help strings name source/destination roles" (criterion #5) — read `products/summit/bin/fit-summit.js` source via `fs.readFileSync`; lower-case the matched substrings; assert the `what-if` block's subcommand `description` contains `source for --move`; the `options.move.description` contains both `source` and `--to`; the `options.to.description` contains both `destination` and `move`. Static inspection — does not boot the CLI. | `what-if-formatters.test.js`      | #5             |
 
-Test 6 imports `spy` from `@forwardimpact/libharness` directly (the
+Test 6 imports `spy` from `@forwardimpact/libmock` directly (the
 package is a workspace dependency of `products/summit`; other summit tests
 import named exports from it via `fixtures.js`). The stdout spy install
 pattern is:

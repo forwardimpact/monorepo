@@ -11,7 +11,7 @@ import {
   createMockObserverFn,
   createMockTracer,
   spy,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 describe("Server", () => {
   let mockService;

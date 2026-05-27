@@ -93,7 +93,7 @@ export function createMockSupabaseClient({ tables = {}, files = {} } = {}) {
 
 /**
  * Creates Turtle parsing helpers bound to an injected n3 Parser. Keeps
- * libharness free of an n3 dependency while allowing services to share the
+ * libmock free of an n3 dependency while allowing services to share the
  * parseQuads / findAll / findOne idiom.
  *
  * @param {import("n3").Parser | Function} ParserOrInstance - n3 Parser class

@@ -85,7 +85,7 @@ For each file, the rewrite recipe is:
   Services" for consistency with the new directory name. **Decision:** rename to
   "gRPC Services and Service Infrastructure". Naming the directory and the H1
   with compatible words helps readers who grep for "service".
-- **Members (5):** librpc, libconfig, libtelemetry, libtype, libharness.
+- **Members (5):** librpc, libconfig, libtelemetry, libtype, libmock.
   Unchanged from old `libs-service-infrastructure`.
 - **`Key Exports` source-of-truth check (read at execution time):**
 
@@ -95,7 +95,7 @@ For each file, the rewrite recipe is:
   | libconfig    | `libraries/libconfig/src/index.js`                                                             |
   | libtelemetry | `libraries/libtelemetry/src/index.js` + `./tracer.js` + `./visualizer.js` + `./index/trace.js` |
   | libtype      | `libraries/libtype/src/index.js` (re-exports from `./generated/types/types.js`)                |
-  | libharness   | `libraries/libharness/src/index.js` (re-exports from `./fixture/index.js`, `./mock/index.js`)  |
+  | libmock   | `libraries/libmock/src/index.js` (re-exports from `./fixture/index.js`, `./mock/index.js`)  |
 
   Known divergence from the current (stale) `Main API` column: librpc exports
   `Server`/`Client`/`createClient` (not `RpcServer`/`RpcClient`/

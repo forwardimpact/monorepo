@@ -4,7 +4,7 @@ import { Store, DataFactory } from "n3";
 
 import { GraphIndex } from "../src/index/graph.js";
 import { resource } from "@forwardimpact/libtype";
-import { createMockStorage } from "@forwardimpact/libharness";
+import { createMockStorage } from "@forwardimpact/libmock";
 
 const { namedNode, literal } = DataFactory;
 

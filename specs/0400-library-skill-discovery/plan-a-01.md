@@ -72,7 +72,7 @@ Library skills are organized into capability groups with corresponding skill
 files in [.claude/skills/](.claude/skills/):
 
 - **`libs-grpc-services`** — librpc, libconfig, libtelemetry, libtype,
-  libharness
+  libmock
 - **`libs-storage`** — libstorage, libindex, libresource, libpolicy, libgraph,
   libvector
 - **`libs-llm-and-agents`** — libllm, libmemory, libprompt, libagent, libtool

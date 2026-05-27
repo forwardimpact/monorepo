@@ -13,7 +13,7 @@ import {
 } from "../src/orchestration-toolkit.js";
 import { createNoopRedactor } from "../src/redaction.js";
 import { createMockRunner } from "./mock-runner.js";
-import { createToolUseMsg } from "@forwardimpact/libharness";
+import { createToolUseMsg } from "@forwardimpact/libmock";
 
 const noop = () => createNoopRedactor();
 const concludeMsg = (summary, verdict = "success") =>

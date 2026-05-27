@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
-import { spy } from "@forwardimpact/libharness";
+import { spy } from "@forwardimpact/libmock";
 import { createTccSpawn } from "../src/tcc-responsibility.js";
 
 describe("createTccSpawn", () => {

@@ -1,6 +1,6 @@
 import { join } from "node:path";
 
-import { memoizeAsync } from "@forwardimpact/libharness";
+import { memoizeAsync } from "@forwardimpact/libmock";
 import { createDataLoader } from "@forwardimpact/map/loader";
 
 import { computeCoverage, resolveTeam } from "../src/aggregation/coverage.js";

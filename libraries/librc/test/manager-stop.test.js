@@ -2,7 +2,7 @@ import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { ServiceManager } from "../src/manager.js";
-import { assertRejectsMessage } from "@forwardimpact/libharness";
+import { assertRejectsMessage } from "@forwardimpact/libmock";
 
 describe("ServiceManager - stop, status, filtering", () => {
   let mockConfig;

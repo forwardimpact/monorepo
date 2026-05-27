@@ -4,7 +4,7 @@ import { SyntheaTool } from "../src/tools/synthea.js";
 import {
   assertRejectsMessage,
   assertThrowsMessage,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 const logger = { info() {}, error() {} };
 

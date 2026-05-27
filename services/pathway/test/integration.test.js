@@ -14,10 +14,7 @@ import pkg from "n3";
 
 import { PathwayService } from "../index.js";
 import { createDataLoader } from "@forwardimpact/map/loader";
-import {
-  createMockConfig,
-  createTurtleHelpers,
-} from "@forwardimpact/libharness";
+import { createMockConfig, createTurtleHelpers } from "@forwardimpact/libmock";
 import { deriveJob } from "@forwardimpact/libskill/derivation";
 import { analyzeProgression } from "@forwardimpact/libskill/progression";
 

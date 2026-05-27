@@ -5,7 +5,7 @@ import path from "node:path";
 import { tmpdir } from "node:os";
 
 import { createConfig } from "../src/index.js";
-import { createMockStorage, spy } from "@forwardimpact/libharness";
+import { createMockStorage, spy } from "@forwardimpact/libmock";
 
 describe("libconfig - .env file loading", () => {
   const testDir = path.join(tmpdir(), `libconfig-env-test-${process.pid}`);

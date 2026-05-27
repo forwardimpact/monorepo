@@ -4,7 +4,7 @@ import {
   createMockConfig,
   createMockLogger,
   createMockStorage,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 import { MsBridgeService } from "../index.js";
 

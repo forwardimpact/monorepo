@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 import { registerToolsFromConfig } from "@forwardimpact/libmcp";
 import { buildZodSchema } from "../src/schema.js";
-import { assertThrowsMessage, spy } from "@forwardimpact/libharness";
+import { assertThrowsMessage, spy } from "@forwardimpact/libmock";
 
 /** Minimal mock McpServer that records tool() calls */
 function createMockServer() {

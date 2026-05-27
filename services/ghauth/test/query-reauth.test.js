@@ -1,7 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
-import { createMockConfig } from "@forwardimpact/libharness";
-import { createMockStorage } from "@forwardimpact/libharness/mock";
+import { createMockConfig } from "@forwardimpact/libmock";
+import { createMockStorage } from "@forwardimpact/libmock/mock";
 import { GhauthService } from "../index.js";
 import { BindingStore, FlowStore, GrantStore } from "../src/stores.js";
 import { RevokedError } from "../src/github-oauth.js";

@@ -3,7 +3,7 @@ import assert from "node:assert";
 import {
   assertThrowsMessage,
   assertRejectsMessage,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 import { DataLoader } from "../src/loader.js";
 

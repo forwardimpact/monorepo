@@ -11,7 +11,7 @@ import {
 import { createNoopRedactor } from "../src/redaction.js";
 import { MessageBus } from "../src/message-bus.js";
 import { createMockRunner } from "./mock-runner.js";
-import { createToolUseMsg } from "@forwardimpact/libharness";
+import { createToolUseMsg } from "@forwardimpact/libmock";
 
 const noop = () => createNoopRedactor();
 

@@ -18,7 +18,7 @@ Current state of all 22 libraries against the standard pattern:
 | libdoc           | Compliant          | DocsBuilder, DocsServer — comprehensive DI                       |
 | libformat        | Compliant          | HtmlFormatter, TerminalFormatter + factories                     |
 | libgraph         | Compliant          | GraphIndex via createGraphIndex factory                          |
-| libharness       | N/A                | Test infrastructure — mocks and fixtures                         |
+| libmock       | N/A                | Test infrastructure — mocks and fixtures                         |
 | libindex         | Compliant          | IndexBase, BufferedIndex — constructor DI                        |
 | libllm           | Compliant          | LlmApi + createLlmApi factory                                    |
 | libmemory        | Compliant          | MemoryWindow — constructor DI                                    |

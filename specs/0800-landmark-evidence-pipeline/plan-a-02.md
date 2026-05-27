@@ -399,7 +399,7 @@ await server.start();
     "@supabase/supabase-js": "^2.49.4"
   },
   "devDependencies": {
-    "@forwardimpact/libharness": "^0.1.14"
+    "@forwardimpact/libmock": "^0.1.14"
   },
   "engines": {
     "bun": ">=1.2.0",

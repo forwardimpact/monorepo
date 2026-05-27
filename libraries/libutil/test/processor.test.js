@@ -1,7 +1,7 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
-import { createSilentLogger } from "@forwardimpact/libharness";
+import { createSilentLogger } from "@forwardimpact/libmock";
 
 // Module under test
 import { ProcessorBase } from "../src/processor.js";

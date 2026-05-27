@@ -4,7 +4,7 @@ import { PassThrough } from "node:stream";
 
 import { AgentRunner, createAgentRunner } from "@forwardimpact/libeval";
 import { createNoopRedactor } from "../src/redaction.js";
-import { createMockAgentQuery as mockQuery } from "@forwardimpact/libharness";
+import { createMockAgentQuery as mockQuery } from "@forwardimpact/libmock";
 
 const noop = () => createNoopRedactor();
 

@@ -253,7 +253,7 @@ export {
 ## Step 4: Create `libraries/librpc/test/health.test.js`
 
 Tests follow the existing pattern in `libraries/librpc/test/server.test.js`:
-import from `../index.js`, use libharness mocks.
+import from `../index.js`, use libmock mocks.
 
 ### Test cases
 
@@ -307,7 +307,7 @@ import {
   createMockObserverFn,
   createMockAuthFn,
   createMockLogger,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 describe("healthDefinition", () => {
   // Tests 1-3: definition shape, serialization round-trips

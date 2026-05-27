@@ -2,7 +2,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 
 import { ShaclSerializer } from "../src/serializer.js";
-import { assertThrowsMessage } from "@forwardimpact/libharness";
+import { assertThrowsMessage } from "@forwardimpact/libmock";
 
 describe("ShaclSerializer - basics", () => {
   let serializer;

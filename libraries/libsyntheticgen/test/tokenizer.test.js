@@ -1,7 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 import { tokenize } from "../src/dsl/tokenizer.js";
-import { assertThrowsMessage } from "@forwardimpact/libharness";
+import { assertThrowsMessage } from "@forwardimpact/libmock";
 
 describe("tokenize", () => {
   describe("basic tokens", () => {

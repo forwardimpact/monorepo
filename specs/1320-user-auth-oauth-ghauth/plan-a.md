@@ -219,7 +219,7 @@ Service metadata + contributor docs per `services/CLAUDE.md`.
 `@forwardimpact/svcghauth`, ESM, `bin.fit-svcghauth: ./server.js`, `files`
 listing `index.js`/`server.js`/`src`/`proto`, `description`, `keywords`
 (last `agent`), one `jobs` entry. Deps: `librpc`, `libconfig`, `libstorage`,
-`libindex`, `libtelemetry`, `libpreflight`, `libtype`; dev `libharness`.
+`libindex`, `libtelemetry`, `libpreflight`, `libtype`; dev `libmock`.
 README documents the `service.ghauth` config block (`host`, `port`,
 `link_base_url`, `client_id`, `client_secret`) + `init.services` entry +
 `SERVICE_GHAUTH_CLIENT_ID`/`SERVICE_GHAUTH_CLIENT_SECRET` env.
@@ -228,7 +228,7 @@ Verify: `bun run context:fix` regenerates `services/README.md` cleanly.
 
 ## Step 7 — ghauth tests
 
-Cover SC#1,4,5,6,7,8 with `node:test` + `libharness` mocks.
+Cover SC#1,4,5,6,7,8 with `node:test` + `libmock` mocks.
 
 - **Created:** `services/ghauth/test/smoke.test.js`,
   `services/ghauth/test/query-linked.test.js`,
@@ -350,7 +350,7 @@ committed `config.json` to edit.
 
 Verify: `bun run context` passes (catalog + workspace-imports guards green).
 
-Libraries used: librpc (Server, createClient, services), libconfig (createServiceConfig), libstorage (createStorage), libindex (BufferedIndex), libtelemetry (createLogger), libtype (message types), libpreflight, hono (Hono), @hono/node-server (serve); libharness (dev). GitHub OAuth uses built-in `fetch` (no octokit added).
+Libraries used: librpc (Server, createClient, services), libconfig (createServiceConfig), libstorage (createStorage), libindex (BufferedIndex), libtelemetry (createLogger), libtype (message types), libpreflight, hono (Hono), @hono/node-server (serve); libmock (dev). GitHub OAuth uses built-in `fetch` (no octokit added).
 
 ## Risks
 

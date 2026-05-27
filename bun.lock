@@ -29,14 +29,14 @@
         "hono": "^4.12.23",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.21",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libcli": {
       "name": "@forwardimpact/libcli",
       "version": "0.1.10",
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libcoaligned": {
@@ -70,7 +70,7 @@
         "protobufjs-cli": "1.2.2",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libconfig": {
@@ -81,7 +81,7 @@
         "@forwardimpact/libstorage": "^0.1.53",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libdoc": {
@@ -103,7 +103,7 @@
         "yaml": "^2.9.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
       "peerDependencies": {
         "prettier": "^3.0.0",
@@ -130,7 +130,7 @@
         "zod": "^4.4.3",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libformat": {
@@ -142,7 +142,7 @@
         "sanitize-html": "^2.17.4",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libgraph": {
@@ -164,15 +164,8 @@
         "n3": "^2.0.3",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
         "@forwardimpact/libutil": "^0.1.60",
-      },
-    },
-    "libraries/libharness": {
-      "name": "@forwardimpact/libharness",
-      "version": "0.1.22",
-      "peerDependencies": {
-        "@forwardimpact/libtype": "*",
       },
     },
     "libraries/libindex": {
@@ -182,14 +175,14 @@
         "@forwardimpact/libtype": "^0.1.63",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libmacos": {
       "name": "@forwardimpact/libmacos",
       "version": "0.1.1",
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libmcp": {
@@ -200,7 +193,14 @@
         "zod": "^4.4.3",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
+      },
+    },
+    "libraries/libmock": {
+      "name": "@forwardimpact/libmock",
+      "version": "0.1.0",
+      "peerDependencies": {
+        "@forwardimpact/libtype": "*",
       },
     },
     "libraries/libpack": {
@@ -214,7 +214,7 @@
         "@forwardimpact/libstorage": "^0.1.53",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libpreflight": {
@@ -246,7 +246,7 @@
         "@forwardimpact/libtelemetry": "^0.1.22",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/librepl": {
@@ -256,7 +256,7 @@
         "@forwardimpact/libformat": "^0.1.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libresource": {
@@ -282,7 +282,7 @@
         "rdf-canonize": "^5.0.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/librpc": {
@@ -300,7 +300,7 @@
         "@grpc/grpc-js": "^1.14.4",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libsecret": {
@@ -314,7 +314,7 @@
         "@forwardimpact/map": "^0.15.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libstorage": {
@@ -334,7 +334,7 @@
         "@forwardimpact/libutil": "^0.1.60",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libsupervise": {
@@ -350,7 +350,7 @@
         "@forwardimpact/libtelemetry": "^0.1.22",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libsyntheticgen": {
@@ -361,7 +361,7 @@
         "seedrandom": "^3.0.5",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
         "@forwardimpact/libprompt": "^0.1.9",
         "@forwardimpact/libsyntheticrender": "^0.1.25",
       },
@@ -391,7 +391,7 @@
         "yaml": "^2.9.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
       "optionalDependencies": {
         "apache-arrow": "^21.1.0",
@@ -417,7 +417,7 @@
         "jmespath": "^0.16.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libtemplate": {
@@ -465,7 +465,7 @@
         "protobufjs": "^7.6.1",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libui": {
@@ -490,7 +490,7 @@
         "@forwardimpact/libtelemetry": "^0.1.22",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libvector": {
@@ -512,7 +512,7 @@
         "@forwardimpact/libtype": "^0.1.63",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
         "@forwardimpact/libutil": "^0.1.60",
       },
     },
@@ -530,7 +530,7 @@
         "@forwardimpact/libxmr": "^1.1.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libxmr": {
@@ -545,7 +545,7 @@
         "@forwardimpact/libutil": "^0.1.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "products/gear": {
@@ -623,7 +623,7 @@
         "@supabase/supabase-js": "^2.106.2",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
         "@forwardimpact/libsecret": "^0.1.14",
       },
     },
@@ -649,7 +649,7 @@
       },
       "devDependencies": {
         "@forwardimpact/libgraph": "^0.1.59",
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
         "@forwardimpact/libresource": "^0.1.98",
         "@forwardimpact/libstorage": "^0.1.61",
         "microdata-rdf-streaming-parser": "^3.0.0",
@@ -669,7 +669,7 @@
         "@forwardimpact/libtelemetry": "^0.1.33",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "products/pathway": {
@@ -714,7 +714,7 @@
         "yaml": "^2.9.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
       "optionalDependencies": {
         "@supabase/supabase-js": "^2.106.2",
@@ -733,7 +733,7 @@
         "@forwardimpact/libtelemetry": "^0.1.41",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "services/ghauth": {
@@ -752,7 +752,7 @@
         "@forwardimpact/libtype": "^0.1.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.21",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "services/ghbridge": {
@@ -773,7 +773,7 @@
         "@octokit/webhooks-methods": "^6.0.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.21",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "services/graph": {
@@ -793,7 +793,7 @@
         "n3": "^2.0.3",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "services/map": {
@@ -813,7 +813,7 @@
         "@supabase/supabase-js": "^2.106.2",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "services/mcp": {
@@ -834,7 +834,7 @@
         "@modelcontextprotocol/sdk": "^1.29.0",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.13",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "services/msbridge": {
@@ -853,7 +853,7 @@
         "botbuilder": "^4.23.3",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "services/oauth": {
@@ -872,7 +872,7 @@
         "hono": "^4.12.18",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.21",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "services/pathway": {
@@ -894,7 +894,7 @@
         "n3": "^2.0.3",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.14",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "services/trace": {
@@ -913,7 +913,7 @@
         "@forwardimpact/libtype": "^0.1.63",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "services/vector": {
@@ -934,7 +934,7 @@
         "@forwardimpact/libvector": "^0.1.68",
       },
       "devDependencies": {
-        "@forwardimpact/libharness": "^0.1.5",
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
   },
@@ -1151,13 +1151,13 @@
 
     "@forwardimpact/libgraph": ["@forwardimpact/libgraph@workspace:libraries/libgraph"],
 
-    "@forwardimpact/libharness": ["@forwardimpact/libharness@workspace:libraries/libharness"],
-
     "@forwardimpact/libindex": ["@forwardimpact/libindex@workspace:libraries/libindex"],
 
     "@forwardimpact/libmacos": ["@forwardimpact/libmacos@workspace:libraries/libmacos"],
 
     "@forwardimpact/libmcp": ["@forwardimpact/libmcp@workspace:libraries/libmcp"],
+
+    "@forwardimpact/libmock": ["@forwardimpact/libmock@workspace:libraries/libmock"],
 
     "@forwardimpact/libpack": ["@forwardimpact/libpack@workspace:libraries/libpack"],
 

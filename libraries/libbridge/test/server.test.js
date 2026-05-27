@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { createMockLogger } from "@forwardimpact/libharness/mock";
+import { createMockLogger } from "@forwardimpact/libmock/mock";
 
 import { createBridgeServer } from "../src/server.js";
 

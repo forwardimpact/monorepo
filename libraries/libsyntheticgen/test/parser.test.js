@@ -2,7 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 import { tokenize } from "../src/dsl/tokenizer.js";
 import { parse } from "../src/dsl/parser.js";
-import { assertThrowsMessage } from "@forwardimpact/libharness";
+import { assertThrowsMessage } from "@forwardimpact/libmock";
 
 /**
  * Helper: tokenize then parse a DSL source string.

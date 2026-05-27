@@ -2,7 +2,7 @@
 
 ## Approach
 
-Build the harness inside `@forwardimpact/libeval` as ten new modules under `src/benchmark/` plus a `bin/fit-benchmark.js` entry, in dependency order: pure-data layers (`task-family`, `result`, `apm-installer`), then per-task lifecycle (`workdir`, `scorer`, `judge`), then the orchestrator (`runner`), then `report` and the three subcommand handlers under `commands/`. The agent-under-test runs as a bare `AgentRunner` with a fixed `BASE_TOOLS` allow-list per design Decision 9; the judge composes `Supervisor`+`AgentRunner` per Decision 7; family-shipped paths reach the LLM via prompt templating (`{{SCORING}}`, `{{AGENT_TRACE_PATH}}`); the runner owns the JSONL append, handlers mirror to stdout; `apm.lock.yaml` is the LF-normalised fingerprint over a pre-staged `.claude/`; tests use `node:test` + `libharness`'s `createMockAgentQuery` for the agent SDK and the `Supervisor`-with-mock-runners pattern (`test/supervisor-run.test.js`) for the judge.
+Build the harness inside `@forwardimpact/libeval` as ten new modules under `src/benchmark/` plus a `bin/fit-benchmark.js` entry, in dependency order: pure-data layers (`task-family`, `result`, `apm-installer`), then per-task lifecycle (`workdir`, `scorer`, `judge`), then the orchestrator (`runner`), then `report` and the three subcommand handlers under `commands/`. The agent-under-test runs as a bare `AgentRunner` with a fixed `BASE_TOOLS` allow-list per design Decision 9; the judge composes `Supervisor`+`AgentRunner` per Decision 7; family-shipped paths reach the LLM via prompt templating (`{{SCORING}}`, `{{AGENT_TRACE_PATH}}`); the runner owns the JSONL append, handlers mirror to stdout; `apm.lock.yaml` is the LF-normalised fingerprint over a pre-staged `.claude/`; tests use `node:test` + `libmock`'s `createMockAgentQuery` for the agent SDK and the `Supervisor`-with-mock-runners pattern (`test/supervisor-run.test.js`) for the judge.
 
 Libraries used: `@forwardimpact/libeval` (`createAgentRunner`, `createSupervisor`, `createTraceCollector`, `composeProfilePrompt`, `AGENT_SYSTEM_PROMPT`), `@forwardimpact/libcli` (`createCli`), `@forwardimpact/libtelemetry` (`createLogger`), `zod`.
 
@@ -432,7 +432,7 @@ consolidated into Step 15. Verify locally: `bunx fit-benchmark
 `benchmark-workdir.test.js`, `benchmark-scorer.test.js`,
 `benchmark-judge.test.js`, `benchmark-result.test.js`,
 `benchmark-report.test.js`. Use `node:test` +
-`@forwardimpact/libharness` helpers (`createMockAgentQuery`,
+`@forwardimpact/libmock` helpers (`createMockAgentQuery`,
 `createToolUseMsg`, `createTextBlockMsg`, `collectLines`, `stripAnsi`).
 The judge unit test feeds pre-baked NDJSON fixture files to
 `parseConcludeFromTrace` (Step 6); the `Supervisor`-with-mock-runners
@@ -461,7 +461,7 @@ Each task carries `workdir/scripts/preflight.sh`, `scoring/run.sh`,
 **Created:** `libraries/libeval/test/benchmark-e2e.test.js`. Drives the
 runner end-to-end against the fixture family with `runs=2`. The
 agent-under-test SDK is mocked via `createMockAgentQuery`
-(`libraries/libharness/src/fixture/eval.js:133`) — the SDK-shaped query
+(`libraries/libmock/src/fixture/eval.js:133`) — the SDK-shaped query
 function `BenchmarkRunner` accepts as its `query` parameter. The judge
 phase is exercised through `createSupervisor` with the same query
 mock; the canonical pattern is

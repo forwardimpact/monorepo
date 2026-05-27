@@ -2,11 +2,11 @@
 
 ## Problem
 
-Spec 0640 cut test-file LOC and lifted libharness adoption but left wall-clock
+Spec 0640 cut test-file LOC and lifted libmock adoption but left wall-clock
 test time unchanged at ~16 s. The bottleneck is `node --test`'s fork-per-file
 overhead: 211 files × ~90 ms of Node boot ≈ 19 s of pure startup. Earlier
 benchmarking showed `bun test` ran the same suite in 12 s — a 30 % win — but
-failed because libharness uses `mock.fn` from `node:test`, which throws
+failed because libmock uses `mock.fn` from `node:test`, which throws
 `NotImplementedError` under bun
 ([bun#5090](https://github.com/oven-sh/bun/issues/5090)).
 
@@ -17,7 +17,7 @@ collect the wall-clock win without losing any test.
 
 ## Approach
 
-Add a runner-independent `spy()` helper in libharness that matches `node:test`'s
+Add a runner-independent `spy()` helper in libmock that matches `node:test`'s
 `mock.fn` shape (`fn.mock.calls[N].arguments`, `fn.mock.callCount()`,
 `fn.mock.resetCalls()`, `fn.mock.mockImplementation`). Sweep all `mock.fn` usage
 to `spy`. The helper is dependency-free — it doesn't import from `node:test` or
@@ -38,7 +38,7 @@ throwing:
 
 ### 1. New helper
 
-`libraries/libharness/src/mock/spy.js` — 45 LOC, no external deps:
+`libraries/libmock/src/mock/spy.js` — 45 LOC, no external deps:
 
 ```js
 export function spy(impl) {
@@ -68,11 +68,11 @@ export function spy(impl) {
 }
 ```
 
-Exported as `spy` from `@forwardimpact/libharness`.
+Exported as `spy` from `@forwardimpact/libmock`.
 
 ### 2. Sweep
 
-- 6 files in `libraries/libharness/src/mock/*` migrated from
+- 6 files in `libraries/libmock/src/mock/*` migrated from
   `import { mock } from "node:test"` + `mock.fn(...)` to
   `import { spy } from "./spy.js"` + `spy(...)`.
 - 25 test files (4 × libconfig, 1 × libgraph, 3 × libindex, 1 × libmcp, 1 ×
@@ -112,7 +112,7 @@ running as root, and CI doesn't).
 
 Two paths existed:
 
-- **A** — runtime detection in libharness, dispatching to `node:test`'s
+- **A** — runtime detection in libmock, dispatching to `node:test`'s
   `mock.fn` or `bun:test`'s `mock` and translating bun's call-shape to node's.
   Required reaching into bun's internals to access the underlying call records
   before they were re-exposed under the `.mock` property, which fights bun's

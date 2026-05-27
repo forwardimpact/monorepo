@@ -46,9 +46,9 @@ Entry gate — read every item before starting.
 - [ ] **Search shared libraries first.** Before writing any generic helper, scan
       [libraries/README.md](libraries/README.md). Use a library if one covers
       it; otherwise note that in the commit or plan.
-- [ ] **Search libharness first for test helpers.** Before writing a mock or
-      fixture, check `libraries/libharness/src/index.js`. Reuse it; extend
-      libharness in the same PR when duplication would cross two files.
+- [ ] **Search libmock first for test helpers.** Before writing a mock or
+      fixture, check `libraries/libmock/src/index.js`. Reuse it; extend
+      libmock in the same PR when duplication would cross two files.
 - [ ] **Simple over easy.** Reduce complexity, don't relocate it. Three similar
       lines beat a premature abstraction. Inline single-use helpers; hardcode
       single-consumer configuration.
@@ -69,8 +69,8 @@ Exit gate — verify every item before committing.
 
 - [ ] `bun run check` passes — format and lint, all file types.
 - [ ] `bun run test` passes — new logic has tests.
-- [ ] No new inline mock/fixture helpers that libharness already provides.
-      Touched test files import from `@forwardimpact/libharness` instead of
+- [ ] No new inline mock/fixture helpers that libmock already provides.
+      Touched test files import from `@forwardimpact/libmock` instead of
       redefining `createMock*`, `make*`, or `stubQueries`.
 - [ ] My diff only contains changes the task required — no unrequested
       refactors, no scope creep.

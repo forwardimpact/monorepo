@@ -1,6 +1,6 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { spy } from "@forwardimpact/libharness";
+import { spy } from "@forwardimpact/libmock";
 
 import { S3Storage } from "../src/index.js";
 

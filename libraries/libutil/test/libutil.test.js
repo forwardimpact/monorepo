@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 // Module under test
 import { createBundleDownloader } from "../src/index.js";
-import { createSilentLogger, spy } from "@forwardimpact/libharness";
+import { createSilentLogger, spy } from "@forwardimpact/libmock";
 
 const mockLogger = createSilentLogger();
 

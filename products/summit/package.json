@@ -61,7 +61,7 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@forwardimpact/libharness": "^0.1.14"
+    "@forwardimpact/libmock": "^0.1.0"
   },
   "optionalDependencies": {
     "@supabase/supabase-js": "^2.106.2"

@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test, describe, beforeEach } from "node:test";
-import { createSilentLogger, spy } from "@forwardimpact/libharness";
+import { createSilentLogger, spy } from "@forwardimpact/libmock";
 
 import { BundleDownloader } from "../src/downloader.js";
 

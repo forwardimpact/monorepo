@@ -210,7 +210,7 @@ CLI output formats, including basecamp's new positional subcommands).
 
 ### Testing
 
-Every libcli class gets unit tests using `node:test` and libharness mocks. Key
+Every libcli class gets unit tests using `node:test` and libmock mocks. Key
 test scenarios:
 
 - `Cli.parse()` returns correct values for valid input

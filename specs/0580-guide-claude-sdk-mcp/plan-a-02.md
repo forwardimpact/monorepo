@@ -35,7 +35,7 @@ Part 1 complete (`mcpToken()` available on `Config`).
     "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "devDependencies": {
-    "@forwardimpact/libharness": "workspace:*"
+    "@forwardimpact/libmock": "workspace:*"
   }
 }
 ```
@@ -240,7 +240,7 @@ export function registerTools(server, { graphClient, vectorClient, pathwayClient
 | Tool handler routes pathway tools      | Call `pathway_list_jobs` with mock pathway client | `pathwayClient.ListJobs` called                   |
 | Tool handler routes vector tools       | Call `search_content` with mock vector client     | `vectorClient.SearchContent` called               |
 
-Mock gRPC clients return canned proto responses. Use `@forwardimpact/libharness`
+Mock gRPC clients return canned proto responses. Use `@forwardimpact/libmock`
 for config mocks.
 
 ## Files changed

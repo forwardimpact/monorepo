@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { createMockQueries } from "@forwardimpact/libharness";
+import { createMockQueries } from "@forwardimpact/libmock";
 
 import { runPracticeCommand } from "../src/commands/practice.js";
 import { EMPTY_STATES } from "../src/lib/empty-state.js";

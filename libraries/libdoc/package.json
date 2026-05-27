@@ -50,7 +50,7 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@forwardimpact/libharness": "^0.1.14"
+    "@forwardimpact/libmock": "^0.1.0"
   },
   "peerDependencies": {
     "prettier": "^3.0.0"

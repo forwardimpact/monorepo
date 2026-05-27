@@ -615,7 +615,7 @@ mode. Verify:
 2. `npx fit-map validate --data=examples/pathway` passes.
 3. Cross-reference integrity holds.
 
-Use a mock LLM client (from libharness) that returns canned JSON responses for
+Use a mock LLM client (from libmock) that returns canned JSON responses for
 deterministic testing without actual LLM calls.
 
 ### Cached mode test

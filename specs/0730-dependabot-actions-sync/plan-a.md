@@ -71,7 +71,7 @@ types.
 
 1. **Read & parse.** Resolve repo root via
    `new URL("..", import.meta.url).pathname` (matches existing
-   `check-instructions.mjs` / `check-libharness.mjs`). Read
+   `check-instructions.mjs` / `check-libmock.mjs`). Read
    `.github/dependabot.yml` and `yaml.parse` it.
 2. **Locate ecosystem.** Find the `updates[]` entry where
    `package-ecosystem === "github-actions"`; extract its `directories` array.

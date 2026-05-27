@@ -3,14 +3,14 @@
 Foundation for every later part. Adds `libraries/libbridge` and the
 `DiscussionContext` libindex schema both bridges share.
 
-Libraries used: `@forwardimpact/libindex` (BufferedIndex), `@forwardimpact/libstorage` (StorageInterface — caller-injected at runtime), `@forwardimpact/libconfig` (createServiceConfig consumed by host services), `@forwardimpact/libtelemetry` (Logger / Tracer types only — no runtime dep), `@forwardimpact/libharness` (devDep — `createMockStorage`, `createMockLogger`), `express` (peer-dep — host services own the version).
+Libraries used: `@forwardimpact/libindex` (BufferedIndex), `@forwardimpact/libstorage` (StorageInterface — caller-injected at runtime), `@forwardimpact/libconfig` (createServiceConfig consumed by host services), `@forwardimpact/libtelemetry` (Logger / Tracer types only — no runtime dep), `@forwardimpact/libmock` (devDep — `createMockStorage`, `createMockLogger`), `express` (peer-dep — host services own the version).
 
 ## Step 1.1 — Scaffold the package
 
 Create the package layout with stub exports so later steps can import.
 
 Created:
-- `libraries/libbridge/package.json` — name `@forwardimpact/libbridge`, version `0.1.0`, scripts mirroring sibling libraries, JTBD entry under `jobs` ("Platform Builders / Bridge Threaded Channels to the Agent Team"). `dependencies` includes `@forwardimpact/libindex` and `@forwardimpact/libstorage`. `peerDependencies` includes `express`. `devDependencies` includes `@forwardimpact/libharness`.
+- `libraries/libbridge/package.json` — name `@forwardimpact/libbridge`, version `0.1.0`, scripts mirroring sibling libraries, JTBD entry under `jobs` ("Platform Builders / Bridge Threaded Channels to the Agent Team"). `dependencies` includes `@forwardimpact/libindex` and `@forwardimpact/libstorage`. `peerDependencies` includes `express`. `devDependencies` includes `@forwardimpact/libmock`.
 - `libraries/libbridge/README.md` — single-paragraph overview pointing to `websites/fit/docs/libraries/libbridge/`.
 - `libraries/libbridge/src/index.js` — re-exports all public symbols (see steps below).
 - `libraries/libbridge/CLAUDE.md` — channel-agnostic invariants (no `botbuilder` imports, no `@octokit/*` imports, no GraphQL strings).
@@ -24,7 +24,7 @@ Channel-agnostic HTTP server that accepts a per-bridge webhook on a configurable
 Created:
 - `libraries/libbridge/src/server.js` — exports `createBridgeServer({ config, logger, tracer, onWebhook, onCallback, webhookPath })`. Wraps `express.json({ verify: (req, _res, buf) => { req.rawBody = buf; } })` so signature-verifying adapters can read the raw body; mounts `OPTIONS|POST <webhookPath>` and `POST /api/callback/:token`; returns `{ start, stop, app }`.
 - `libraries/libbridge/src/callback-registry.js` — exports `class CallbackRegistry { constructor({ ttlMs = 7_200_000 }); register(correlationId, meta): token; consume(token): meta|null; sweep(now) }`. Default TTL matches the existing `services/msteams/index.js` constant (2h). Constructor accepts `ttlMs` so host services can override.
-- `libraries/libbridge/test/server.test.js`, `test/callback-registry.test.js` — both use `createMockLogger` from `@forwardimpact/libharness`.
+- `libraries/libbridge/test/server.test.js`, `test/callback-registry.test.js` — both use `createMockLogger` from `@forwardimpact/libmock`.
 
 Verify: `bun test libraries/libbridge/test/server.test.js libraries/libbridge/test/callback-registry.test.js`.
 
@@ -109,7 +109,7 @@ Created:
   | `lead` | `string` | Current Chair profile name (default `"release-engineer"`). |
   | `pending_callbacks` | `Record<token, correlationId>` | Token registry. Mirror of `CallbackRegistry` for the *persisted* slice (CallbackRegistry's in-memory state is recoverable from this on restart). |
   | `last_active_at` | `number` | ms epoch — drives the configurable conversation TTL. |
-- `libraries/libbridge/test/discussion-context.test.js` — uses `createMockStorage` from `@forwardimpact/libharness`. Asserts: `keyOf` round-trip, persistence across `flush()`, `loadByChannel` lookup, `participants[?].metadata` survives `JSON.stringify` round-trip on records with nested objects (covers msbridge's `ConversationReference`).
+- `libraries/libbridge/test/discussion-context.test.js` — uses `createMockStorage` from `@forwardimpact/libmock`. Asserts: `keyOf` round-trip, persistence across `flush()`, `loadByChannel` lookup, `participants[?].metadata` survives `JSON.stringify` round-trip on records with nested objects (covers msbridge's `ConversationReference`).
 - `libraries/libbridge/src/index.js` — add `export { DiscussionContextStore } from "./discussion-context.js";`.
 
 Verify: `bun test libraries/libbridge/test/discussion-context.test.js`.

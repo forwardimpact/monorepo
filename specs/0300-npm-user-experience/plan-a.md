@@ -140,7 +140,7 @@ Libraries (33):
 - `libraries/libeval/package.json`
 - `libraries/libformat/package.json`
 - `libraries/libgraph/package.json`
-- `libraries/libharness/package.json`
+- `libraries/libmock/package.json`
 - `libraries/libindex/package.json`
 - `libraries/libllm/package.json`
 - `libraries/libmemory/package.json`

@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { Readable, Writable } from "node:stream";
 
 import { ServiceManager } from "../src/manager.js";
-import { assertRejectsMessage } from "@forwardimpact/libharness";
+import { assertRejectsMessage } from "@forwardimpact/libmock";
 
 // Stream that asynchronously fails with an Error carrying the given code.
 const failingStream = (code) =>

@@ -8,7 +8,7 @@ import {
   assertThrowsMessage,
   createMockConfig,
   createTurtleHelpers,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 const { Parser } = pkg;
 const FIT = "https://www.forwardimpact.team/schema/rdf/";

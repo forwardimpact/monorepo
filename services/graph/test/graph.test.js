@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 // Module under test
 import { GraphService } from "../index.js";
-import { createMockConfig } from "@forwardimpact/libharness";
+import { createMockConfig } from "@forwardimpact/libmock";
 
 describe("graph service", () => {
   describe("GraphService", () => {

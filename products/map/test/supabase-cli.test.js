@@ -9,7 +9,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 import { EventEmitter } from "node:events";
-import { assertRejectsMessage } from "@forwardimpact/libharness";
+import { assertRejectsMessage } from "@forwardimpact/libmock";
 
 import { createSupabaseCli } from "../src/lib/supabase-cli.js";
 import { getPackageRoot } from "../src/lib/package-root.js";

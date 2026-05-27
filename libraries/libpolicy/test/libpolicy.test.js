@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 // Module under test
 import { Policy } from "../src/index.js";
-import { createMockStorage, spy } from "@forwardimpact/libharness";
+import { createMockStorage, spy } from "@forwardimpact/libmock";
 
 describe("libpolicy", () => {
   describe("Policy", () => {

@@ -45,7 +45,7 @@ The plan is split into two independently executable parts.
   in `generated/`.
 - **No per-service changes.** Individual service `server.js` files are
   untouched.
-- **Test pattern.** All tests use OO+DI: inject mocks from libharness, no
+- **Test pattern.** All tests use OO+DI: inject mocks from libmock, no
   factories.
 
 ## Risks

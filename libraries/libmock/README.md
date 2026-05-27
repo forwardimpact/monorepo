@@ -1,4 +1,4 @@
-# libharness
+# libmock
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
@@ -64,20 +64,20 @@ import {
   // Caching
   memoizeAsync,
   memoizeOnSubject,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 ```
 
 The full export list lives in `src/index.js`. Subpath entries
-`@forwardimpact/libharness/fixture` and `@forwardimpact/libharness/mock` remain
+`@forwardimpact/libmock/fixture` and `@forwardimpact/libmock/mock` remain
 for narrower imports.
 
-## When to extend libharness
+## When to extend libmock
 
 Before adding a helper locally in a test file, check `src/index.js`. If the
 helper doesn't exist and would be reused across two or more files, add it to
-libharness in the same PR instead of inlining. See
+libmock in the same PR instead of inlining. See
 [CONTRIBUTING.md](../../CONTRIBUTING.md) READ-DO and DO-CONFIRM checklists for
-the enforced policy and `scripts/check-libharness.mjs` for the pre-commit guard
+the enforced policy and `scripts/check-libmock.mjs` for the pre-commit guard
 that flags inline reimplementations.
 
 ## `spy` vs `node:test`'s `mock.fn`

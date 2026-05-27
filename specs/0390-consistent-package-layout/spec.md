@@ -73,7 +73,7 @@ documented allowed-list:
 | `libraries/libsyntheticgen`                                             | `dsl/`, `engine/`, `tools/`                                 |
 | `libraries/libsyntheticprose`                                           | `engine/`, `prompts/`                                       |
 | `libraries/libsyntheticrender`                                          | `render/`                                                   |
-| `libraries/libharness`                                                  | `fixture/`, `mock/`, `packages/`                            |
+| `libraries/libmock`                                                  | `fixture/`, `mock/`, `packages/`                            |
 | `libraries/libgraph`, `libmemory`, `libtelemetry`, `libvector`          | `index/`                                                    |
 | `libraries/libagent`, `libgraph`, `libresource`, `libtool`, `libvector` | `processor/`                                                |
 
@@ -227,10 +227,10 @@ While we are touching every package, also resolve these drifts:
    `src/commands/`. `bin/fit-map.js` imports from `src/` like every other binary
    in the monorepo.
 
-5. **Fix `libraries/libharness`.** libharness is the outlier in every library
+5. **Fix `libraries/libmock`.** libmock is the outlier in every library
    audit — it has `index.js`, `fixture/`, `mock/`, and a stale `packages/` tree
    at the root, plus an orphan zero-byte file at
-   `packages/libharness/mock/config.js`. Bring it into line with every other
+   `packages/libmock/mock/config.js`. Bring it into line with every other
    library:
    - Create `src/` and move the current root `index.js` to `src/index.js`.
    - Move `fixture/` to `src/fixture/` and `mock/` to `src/mock/`.
@@ -331,7 +331,7 @@ Future new packages copy the shape rather than invent one.
   internal workspace imports and deep subpath imports of `@forwardimpact/*`
   packages.
 - Generated-code output directories that live inside packages.
-- The `libraries/libharness` restructure — `src/`, deletion of the stale
+- The `libraries/libmock` restructure — `src/`, deletion of the stale
   `packages/` tree, updated description, and updated call sites.
 - `CLAUDE.md § Structure` — updated to describe the new layout and the allowed
   root subdirs as a contract. Also reconciled with on-disk reality: the current
@@ -413,8 +413,8 @@ Future new packages copy the shape rather than invent one.
    fresh-install smoke test in a clean directory that imports each public
    subpath and asserts it resolves.
 
-10. **libharness is restructured.** `libraries/libharness/packages/` no longer
-    exists. `libharness`'s `fixture/` and `mock/` are under `src/`, along with a
+10. **libmock is restructured.** `libraries/libmock/packages/` no longer
+    exists. `libmock`'s `fixture/` and `mock/` are under `src/`, along with a
     `src/index.js`. The package description in `package.json` no longer says
     "for guide tests" — it describes the cross-monorepo role.
 
@@ -422,7 +422,7 @@ Future new packages copy the shape rather than invent one.
 
 - **Published subpath exports are a large, silent blast radius.** Several
   packages (`@forwardimpact/map`, `@forwardimpact/libskill`,
-  `@forwardimpact/libharness`) publish many deep subpath exports that reference
+  `@forwardimpact/libmock`) publish many deep subpath exports that reference
   specific on-disk files. Every export key has to keep resolving after the move,
   and a missed key breaks downstream installations only when a consumer happens
   to import that subpath — not at build time. The `exports`-pointing-at-`src/`

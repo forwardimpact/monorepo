@@ -62,15 +62,14 @@ describe("check-workspace-imports guard", () => {
       files: [
         {
           path: `${packageDir}/test/widget.test.js`,
-          source:
-            'import { createHarness } from "@forwardimpact/libharness";\n',
+          source: 'import { createHarness } from "@forwardimpact/libmock";\n',
           packageDir,
         },
       ],
       manifests: {
         [packageDir]: {
           name: "@forwardimpact/widget",
-          devDependencies: { "@forwardimpact/libharness": "^0.1.14" },
+          devDependencies: { "@forwardimpact/libmock": "^0.1.14" },
         },
       },
     });

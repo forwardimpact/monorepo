@@ -4,7 +4,7 @@ import assert from "node:assert";
 // Module under test
 import { VectorIndex } from "../src/index/vector.js";
 import { resource } from "@forwardimpact/libtype";
-import { createMockStorage, spy } from "@forwardimpact/libharness";
+import { createMockStorage, spy } from "@forwardimpact/libmock";
 
 describe("libvector", () => {
   describe("VectorIndex", () => {

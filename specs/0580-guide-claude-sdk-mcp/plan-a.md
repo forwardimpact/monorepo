@@ -66,7 +66,7 @@ Deleting `svcagent` breaks one consumer:
 ### Testing strategy
 
 Each part carries its own verification steps using `node:test`. Mocking follows
-existing `@forwardimpact/libharness` patterns. The final quality gate is
+existing `@forwardimpact/libmock` patterns. The final quality gate is
 `bun run check && bun run test` passing with zero regressions.
 
 ## Part index
@@ -101,7 +101,7 @@ Within Part 4, documentation updates (technical-writer) and parity rubric code
 | `@forwardimpact/libtelemetry`    | `createLogger`                                               | Parts 2, 3                |
 | `@forwardimpact/libtype`         | Proto message factories (`graph.*`, `vector.*`, `pathway.*`) | Part 2                    |
 | `@forwardimpact/libcli`          | `createCli`                                                  | Part 3                    |
-| `@forwardimpact/libharness`      | `createMockConfig`, `createMockGrpc`                         | Parts 1–3 (tests)         |
+| `@forwardimpact/libmock`      | `createMockConfig`, `createMockGrpc`                         | Parts 1–3 (tests)         |
 | `@modelcontextprotocol/sdk`      | `McpServer`, `StreamableHTTPServerTransport`                 | Part 2                    |
 | `@anthropic-ai/claude-agent-sdk` | `query`                                                      | Part 3                    |
 

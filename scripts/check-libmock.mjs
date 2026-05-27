@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Flag test files that inline a mock/fixture helper already available in
-// libharness. Called from `bun run check`.
+// libmock. Called from `bun run check`.
 
 import { readFile } from "node:fs/promises";
 import { execSync } from "node:child_process";
@@ -21,13 +21,13 @@ const files = execSync(
   .filter(Boolean);
 
 for (const file of files) {
-  // libharness's own self-tests are expected to redefine some helpers.
-  if (file.startsWith("./libraries/libharness/")) continue;
+  // libmock's own self-tests are expected to redefine some helpers.
+  if (file.startsWith("./libraries/libmock/")) continue;
 
   const text = await readFile(resolve(root, file), "utf8");
-  const imports = /from\s+["']@forwardimpact\/libharness["']/.test(text);
+  const imports = /from\s+["']@forwardimpact\/libmock["']/.test(text);
 
-  // Simple inline patterns that libharness already covers.
+  // Simple inline patterns that libmock already covers.
   const findings = [];
   if (
     /function\s+(concludeMsg|redirectMsg|tellMsg|shareMsg)\s*\(/.test(text) &&
@@ -40,9 +40,9 @@ for (const file of files) {
   if (
     /function\s+stripAnsi\s*\(/.test(text) &&
     !text.includes("stripAnsi }") &&
-    !/from\s+["']@forwardimpact\/libharness["']/.test(text)
+    !/from\s+["']@forwardimpact\/libmock["']/.test(text)
   ) {
-    findings.push("inline stripAnsi — use libharness stripAnsi");
+    findings.push("inline stripAnsi — use libmock stripAnsi");
   }
   if (
     /const\s+mockLogger\s*=\s*\{\s*(info|debug|warn|error)/.test(text) &&
@@ -53,15 +53,15 @@ for (const file of files) {
   }
   // class MockStorage verbatim is easy to spot, but `function createMockStorage`
   // may be an extension with extra methods. Only flag when there's no
-  // libharness import at all.
+  // libmock import at all.
   if (/class\s+MockStorage\b/.test(text) && !imports) {
     findings.push("inline class MockStorage — use createMockStorage");
   }
   // mock.fn from node:test is not portable to bun test. Use spy() from
-  // libharness instead.
+  // libmock instead.
   if (/\bmock\.fn\s*\(/.test(text)) {
     findings.push(
-      "mock.fn from node:test is not bun-compatible — use spy from libharness",
+      "mock.fn from node:test is not bun-compatible — use spy from libmock",
     );
   }
   // Callback-style test signatures (test("...", (_, done) => {...})) don't

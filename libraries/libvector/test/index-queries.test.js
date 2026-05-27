@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 import { VectorIndex } from "../src/index/vector.js";
 import { resource } from "@forwardimpact/libtype";
-import { createMockStorage } from "@forwardimpact/libharness";
+import { createMockStorage } from "@forwardimpact/libmock";
 
 const normalize = (vector) => {
   const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));

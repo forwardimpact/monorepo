@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 import { TraceIndex } from "../src/index/trace.js";
 import { trace } from "@forwardimpact/libtype";
-import { createMockStorage } from "@forwardimpact/libharness";
+import { createMockStorage } from "@forwardimpact/libmock";
 
 describe("TraceIndex - Resource ID Filtering", () => {
   let traceIndex;

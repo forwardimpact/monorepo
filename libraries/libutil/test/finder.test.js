@@ -5,7 +5,7 @@ import fsPromises from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import { createMockLogger, spy } from "@forwardimpact/libharness";
+import { createMockLogger, spy } from "@forwardimpact/libmock";
 
 // Module under test
 import { Finder } from "../src/finder.js";

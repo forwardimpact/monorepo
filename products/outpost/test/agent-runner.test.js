@@ -9,7 +9,7 @@ import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { AgentRunner } from "../src/agent-runner.js";
-import { spy } from "@forwardimpact/libharness";
+import { spy } from "@forwardimpact/libmock";
 
 const TEST_KB = join(tmpdir(), "outpost-test-kb");
 

@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 import { Cli } from "../src/cli.js";
 import { HelpRenderer } from "../src/help.js";
-import { assertThrowsMessage } from "@forwardimpact/libharness";
+import { assertThrowsMessage } from "@forwardimpact/libmock";
 
 function createProc() {
   return {

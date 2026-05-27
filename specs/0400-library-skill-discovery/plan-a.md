@@ -113,7 +113,7 @@ source; reproduced here for in-plan reference.
 
 | New group            | Old group                   | Members (count)                                                                               |
 | -------------------- | --------------------------- | --------------------------------------------------------------------------------------------- |
-| libs-grpc-services   | libs-service-infrastructure | librpc, libconfig, libtelemetry, libtype, libharness (5)                                      |
+| libs-grpc-services   | libs-service-infrastructure | librpc, libconfig, libtelemetry, libtype, libmock (5)                                      |
 | libs-storage         | libs-data-persistence       | libstorage, libindex, libresource, libpolicy, libgraph, libvector (6)                         |
 | libs-llm-and-agents  | libs-llm-orchestration      | libllm, libmemory, libprompt, libagent, **libtool** (5)                                       |
 | libs-content         | libs-web-presentation       | libui, libformat, libweb, libdoc, libtemplate (5)                                             |

@@ -1,19 +1,18 @@
 {
-  "name": "@forwardimpact/libharness",
-  "version": "0.1.22",
+  "name": "@forwardimpact/libmock",
+  "version": "0.1.0",
   "description": "Shared mocks and test fixtures so every library and service tests the same way.",
   "keywords": [
     "test",
     "mock",
     "fixture",
-    "harness",
     "agent"
   ],
   "homepage": "https://www.forwardimpact.team",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forwardimpact/monorepo.git",
-    "directory": "libraries/libharness"
+    "directory": "libraries/libmock"
   },
   "license": "Apache-2.0",
   "author": "D. Olsson <hi@senzilla.io>",

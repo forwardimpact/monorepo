@@ -4,7 +4,7 @@ import { FakerTool } from "../src/tools/faker.js";
 import {
   assertRejectsMessage,
   assertThrowsMessage,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 const logger = {
   info() {},

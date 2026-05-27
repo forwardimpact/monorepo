@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { assertRejectsMessage } from "@forwardimpact/libharness";
+import { assertRejectsMessage } from "@forwardimpact/libmock";
 
 import { runMarkerCommand } from "../src/commands/marker.js";
 import { MAP_DATA } from "./fixtures.js";

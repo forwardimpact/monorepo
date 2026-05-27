@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
-import { createMockStorage } from "@forwardimpact/libharness/mock";
+import { createMockStorage } from "@forwardimpact/libmock/mock";
 import { BindingStore } from "../src/stores.js";
 
 describe("ghauth persistence (SC#7)", () => {

@@ -7,7 +7,7 @@ import {
   assertRejectsMessage,
   createMockStorage,
   spy,
-} from "@forwardimpact/libharness";
+} from "@forwardimpact/libmock";
 
 class TestIndex extends IndexBase {
   constructor(storage, indexKey = "test.jsonl") {

@@ -3,7 +3,7 @@
 ## Problem
 
 The test suite has grown to 211 files / 45,456 lines / 3,089 test cases, and it
-is slow to run and time-consuming to maintain. `libraries/libharness/` was
+is slow to run and time-consuming to maintain. `libraries/libmock/` was
 created to hold shared fixtures and mocks, but adoption has stalled: coding
 agents consistently pick the local optimum and reinvent helpers inline rather
 than extend the shared library.
@@ -17,10 +17,10 @@ Measured on branch `claude/refactor-test-suite-Fx4EQ` at 2026-04-23:
 | Test files                                                            | 211                                     |
 | Total LOC in test files                                               | 45,456                                  |
 | Test cases                                                            | 3,089                                   |
-| Test files importing `@forwardimpact/libharness`                      | **37 (17.5%)**                          |
+| Test files importing `@forwardimpact/libmock`                      | **37 (17.5%)**                          |
 | Test files with local `createMock*` / `mockStorage` / `createFake*`   | 67                                      |
 | Files using raw `assert.throws` / `assert.rejects`                    | 82                                      |
-| Files using libharness `assertThrowsMessage` / `assertRejectsMessage` | **0**                                   |
+| Files using libmock `assertThrowsMessage` / `assertRejectsMessage` | **0**                                   |
 | Tests that call `createDataLoader().loadAllData()` (real YAML I/O)    | 27                                      |
 | Tests using `mkdtempSync` / real tmp dirs                             | 12                                      |
 | Tests doing real `fs.readFile` / `readFileSync`                       | 20                                      |
@@ -33,18 +33,18 @@ Measured on branch `claude/refactor-test-suite-Fx4EQ` at 2026-04-23:
 
 1. **Serial execution is hard-coded.** `package.json` runs
    `node --test --test-concurrency=0`, which forces one test file at a time.
-2. **Products almost never use libharness.** 0 of 19 `products/map` tests, 0 of
+2. **Products almost never use libmock.** 0 of 19 `products/map` tests, 0 of
    17 `products/landmark` tests, and 0 of 12 root `tests/model-*.test.js` files
    import it. They redefine framework fixtures (disciplines, levels, tracks,
    skills, behaviours) 10+ times.
-3. **Existing libharness helpers are reimplemented.** `MockMetadata` is
+3. **Existing libmock helpers are reimplemented.** `MockMetadata` is
    redefined four times in `libraries/libtelemetry/test/*` even though
-   `libharness` already exports it. `createMockStorage`, `createMockLogger`, and
+   `libmock` already exports it. `createMockStorage`, `createMockLogger`, and
    `createMockFs` are duplicated across at least seven subsystems.
 4. **Ad-hoc `make*` vs `createTest*` naming.** `libraries/libskill/test/`
    invented a parallel fixture layer (`makeDiscipline`, `makeLevel`,
    `makeSeniorLevel`, `makeSkills`, `makeBehaviours`, `makeCapabilities`,
-   `makeDrivers`) that duplicates the pathway fixtures already in libharness.
+   `makeDrivers`) that duplicates the pathway fixtures already in libmock.
 5. **Coverage loops.** The 12 root `tests/model-*.test.js` files, the 16
    `libraries/libskill/test/*` files, and
    `services/pathway/test/integration.test.js` overlap on libskill
@@ -54,12 +54,12 @@ Measured on branch `claude/refactor-test-suite-Fx4EQ` at 2026-04-23:
 
 Halve both maintenance surface (duplicate fixture/mock definitions) and
 wall-clock test time. Coverage reduction is allowed where redundant, but it must
-not be the only fix — the primary levers are consolidation into libharness and
+not be the only fix — the primary levers are consolidation into libmock and
 removing real I/O from unit tests.
 
 ## Scope
 
-### A. Move into libharness
+### A. Move into libmock
 
 Concrete helpers to add, with call sites that will collapse once they exist.
 
@@ -76,7 +76,7 @@ behaviours / levels) is inlined or re-defined in at least 20 places.
 | `createTestEvidenceRow(overrides?)`                                                                                      | `products/map/test/activity/transform-evidence.test.js:74-100`, `products/landmark/test/{evidence,evidence-helpers,health,timeline}.test.js` (5 sites, identical shape)                                                                                                                                                                      |
 | `createTestSkillWithMarkers()`                                                                                           | `products/landmark/test/{marker,readiness,evidence-helpers}.test.js`                                                                                                                                                                                                                                                                         |
 
-libharness already exports `createTestLevel[s]`, `createTestDiscipline`,
+libmock already exports `createTestLevel[s]`, `createTestDiscipline`,
 `createTestSkill[s]`, `createTestTrack`, `createTestCapability`,
 `createTestBehaviour[s]` in `src/fixture/pathway.js`. Extend (don't replace)
 those with a single top-level `createTestFramework()` and migrate
@@ -88,7 +88,7 @@ and `products/landmark/test/**/stubQueries` from landmark.
 #### A.2 libeval supervisor / trace helpers
 
 The `libraries/libeval/test/` directory (23 files) contains 10 helpers
-duplicated 2–6 times each. Add to libharness as an opt-in `eval` namespace:
+duplicated 2–6 times each. Add to libmock as an opt-in `eval` namespace:
 
 | Helper                                                                                         | Call sites                                                                                                                                                                                                          |
 | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -121,10 +121,10 @@ duplicated 2–6 times each. Add to libharness as an opt-in `eval` namespace:
 
 #### A.5 Promote existing helpers (no new API needed)
 
-These exist in libharness already but the 67 inline reimplementations prove the
+These exist in libmock already but the 67 inline reimplementations prove the
 helpers aren't discoverable. Blocking fix: add `CONTRIBUTING.md` section
-pointing to the libharness README with an example and add to the `CHECKLISTS.md`
-DO-CONFIRM gate "checked libharness before writing a mock."
+pointing to the libmock README with an example and add to the `CHECKLISTS.md`
+DO-CONFIRM gate "checked libmock before writing a mock."
 
 - `createMockStorage` — reimplemented in
   `libraries/libutil/test/downloader.test.js:9-44`,
@@ -135,12 +135,12 @@ DO-CONFIRM gate "checked libharness before writing a mock."
   `libraries/libutil/test/finder.test.js:14`,
   `libraries/libutil/test/libutil.test.js:8`.
 - `createMockFs` — `products/basecamp/test/kb-manager.test.js:9-80`
-  (sophisticated, could feed back into libharness),
+  (sophisticated, could feed back into libmock),
   `products/basecamp/test/agent-runner.test.js:13-14` uses real tmpdir instead.
 - `assertThrowsMessage` / `assertRejectsMessage` — exist, zero adopters.
 - `MockMetadata` — exported, redefined 4×.
 
-### B. Speed improvements that aren't libharness moves
+### B. Speed improvements that aren't libmock moves
 
 #### B.1 Turn on concurrency
 
@@ -177,7 +177,7 @@ offenders:
 in `products/map/starter/`. Even at 57 KB it adds up × 27 × (parse + derive).
 Options:
 
-- Add a libharness `loadStarterFrameworkCached()` that memoizes the load across
+- Add a libmock `loadStarterFrameworkCached()` that memoizes the load across
   a process, keyed by `starterDir`. Safe because fixtures are read-only.
 - Replace per-test `loadData()` calls in `products/summit/test/*` with a single
   shared `before()` that loads once per file.
@@ -211,7 +211,7 @@ time.
 
 ### C. Coverage reductions (secondary, after B)
 
-Only take these after the libharness moves so the remaining tests are also
+Only take these after the libmock moves so the remaining tests are also
 cleaner to maintain. Each removal below was called out by independent sub-agents
 as redundant with upstream coverage.
 
@@ -228,26 +228,26 @@ as redundant with upstream coverage.
 ### D. Docs / process (prevents regression)
 
 1. Add a short "Don't inline a mock" section to `CONTRIBUTING.md`, listing the
-   libharness API and saying: if you need a helper that isn't there, add it to
-   libharness in the same PR.
+   libmock API and saying: if you need a helper that isn't there, add it to
+   libmock in the same PR.
 2. Add a `<read_do_checklist>` entry in the project-wide test checklist (per
-   `CHECKLISTS.md`): _"Checked `libraries/libharness/src/index.js` for an
+   `CHECKLISTS.md`): _"Checked `libraries/libmock/src/index.js` for an
    existing mock / fixture before writing a new one."_
 3. Add a simple eslint rule or `scripts/check-instructions.mjs` lint that warns
    when a test file defines `createMock*` locally and does not import from
-   `@forwardimpact/libharness`.
+   `@forwardimpact/libmock`.
 
 ## Non-goals
 
 - No changes to what products do or how they are wired. Only test code.
 - No new test framework. Keep `node:test`.
-- No rewrite of libharness internals; only additive extensions.
+- No rewrite of libmock internals; only additive extensions.
 
 ## Open questions
 
 1. What's the right ceiling for coverage reduction? Step C removes maybe 8–12
    test files; are any of those load-bearing for a spec owner?
-2. Should the `eval` namespace helpers live in libharness or in a sibling
+2. Should the `eval` namespace helpers live in libmock or in a sibling
    `libeval/test-helpers.js` exported for downstream libraries that consume
    libeval? Precedent in `libdoc/test-harness.js`.
 3. Is there appetite for property-based testing (fast-check or similar) to
@@ -258,7 +258,7 @@ as redundant with upstream coverage.
 - Local `bun run test` wall-clock: 16 s → ~5 s (parallel + cached framework
   data + fewer tmpdirs).
 - Duplicate mock/fixture definitions: ~120 → ~15.
-- libharness adoption: 17% → ~80% of test files.
+- libmock adoption: 17% → ~80% of test files.
 - Test LOC: 45,456 → ~33,000 (≈ 25% reduction) without losing a real code path
   from coverage.
 
@@ -266,7 +266,7 @@ as redundant with upstream coverage.
 
 First execution pass on branch `claude/refactor-test-suite-Fx4EQ`:
 
-- **libharness extended** — `src/fixture/eval.js`, `src/fixture/cache.js`, and
+- **libmock extended** — `src/fixture/eval.js`, `src/fixture/cache.js`, and
   `src/mock/infra.js` added. New exports: `createToolUseMsg`,
   `createTextBlockMsg`, `createTestTrace`, `collectStream`, `collectLines`,
   `stripAnsi`, `writeLines`, `createMockAgentQuery`, `createTestFramework`,
@@ -282,14 +282,14 @@ First execution pass on branch `claude/refactor-test-suite-Fx4EQ`:
   Supabase fake clients); libsupervise + libutil (inline `mockLogger`);
   products/landmark (10 `stubQueries` factories).
 - **Process**: `CONTRIBUTING.md` READ-DO and DO-CONFIRM entries added;
-  `scripts/check-libharness.mjs` wired into `bun run check` to flag new inline
+  `scripts/check-libmock.mjs` wired into `bun run check` to flag new inline
   `concludeMsg`/`stripAnsi`/`mockLogger`/`MockStorage` patterns.
 
 Measured deltas:
 
 | Metric                                             | Before     | After                         |
 | -------------------------------------------------- | ---------- | ----------------------------- |
-| Test files importing `@forwardimpact/libharness`   | 37 (17.5%) | **85 (40.9%)**                |
+| Test files importing `@forwardimpact/libmock`   | 37 (17.5%) | **85 (40.9%)**                |
 | Files using `assertThrowsMessage`/`RejectsMessage` | 0          | **40**                        |
 | Total LOC in test files                            | 45,456     | 44,312 (−1,144)               |
 | Test file count                                    | 211        | 208 (3 schema-sibling merges) |
@@ -314,9 +314,9 @@ remaining migrations:
   Activity tests migrated to `createMockSupabaseClient`; `exporter`, `pipeline`,
   `validate-people`, `transform-github` migrated.
 - `libraries/libskill/test/derivation-fixtures.js` rewritten as thin wrappers
-  around libharness pathway atoms (315 → 266 LOC); `job.test.js` inline fixtures
+  around libmock pathway atoms (315 → 266 LOC); `job.test.js` inline fixtures
   deleted (161 → 49 LOC).
-- `tests/model-fixtures.js` rewritten to compose from libharness atoms (176 →
+- `tests/model-fixtures.js` rewritten to compose from libmock atoms (176 →
   114 LOC).
 - Mechanical `assertThrowsMessage`/`assertRejectsMessage` sweep across libcli,
   libconfig, libdoc, libgraph, libindex, libmcp, librc, librepl, librpc,
@@ -334,7 +334,7 @@ of pure startup, which matches the observed wall-clock. Measured:
   single-threaded — module caching helps but async serialization hurts more
 - `bun test`: 12 s — but `node:test`'s `mock.fn` throws `NotImplementedError`
   under bun ([bun#5090](https://github.com/oven-sh/bun/issues/5090)), and
-  libharness relies heavily on `mock.fn`
+  libmock relies heavily on `mock.fn`
 
 So wall-clock speedups only come from reducing file count. This pass merged
 three schema/messaging sibling pairs in libeval (saving ~280 ms) — a small
@@ -350,7 +350,7 @@ collapsed files hurt discoverability.
   hardcode `readFileSync` from `node:fs` rather than accepting a fs dep.
 - Remaining file consolidation (libeval supervisor-_, libtelemetry visualizer-_)
   — would move wall-clock, deferred on aesthetic grounds.
-- `bun test` migration — blocked on a `mock.fn` shim in libharness that bridges
+- `bun test` migration — blocked on a `mock.fn` shim in libmock that bridges
   to `bun:test`'s `mock`. Plausible but invasive.
 - Coverage cuts remain unlikely to pay off: the original audit's candidates
   (`libutil.test.js`, `guide/test/cli.test.js`, `trace-query.test.js` +

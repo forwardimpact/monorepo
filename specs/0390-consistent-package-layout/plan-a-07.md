@@ -25,9 +25,9 @@ rewrite. Lower blast radius than tier A.
 | libutil      | downloader.js, extractor.js, finder.js, http.js, index.js, processor.js, retry.js, tokenizer.js, wait.js | —                           |       — |
 | libweb       |                                                                auth.js, cors.js, index.js, validation.js | —                           |       — |
 
-(librpc and libtype handled in Part 02. libharness handled in Part 04.)
+(librpc and libtype handled in Part 02. libmock handled in Part 04.)
 
-**Total: 16 libraries** (after excluding librpc, libtype, libharness which are
+**Total: 16 libraries** (after excluding librpc, libtype, libmock which are
 in earlier parts). Each gets a minimal `exports` field added when one does not
 already exist — at a minimum `{ ".": "./src/index.js" }` — so the package root
 is properly walled off.
@@ -326,7 +326,7 @@ Libraries: libagent, libcli, libcodegen, libconfig, libeval, libformat,
 libindex, libllm, libpolicy, librc, librepl, libsecret, libstorage,
 libsupervise, libutil, libweb.
 
-librpc, libtype handled in part 02; libharness in part 04.
+librpc, libtype handled in part 02; libmock in part 04.
 
 Pre-existing transitive dep issues in libvector (fit-search) and
 libmemory (fit-window) are preserved — out of scope for 0390.
