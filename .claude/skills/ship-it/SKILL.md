@@ -1,9 +1,9 @@
 ---
 name: ship-it
 description: >
-  Ship the current feature branch as-is: approve, rebase on main, run checks,
-  open (or reuse) a PR, wait for checks, and squash-merge into main. Ships only
-  the work already done — never creates new work to complete a phase.
+  Ship the current feature branch as-is: approve, rebase on main, open a PR,
+  wait for CI checks, and squash-merge into main. Ships only the work already
+  done — never creates new work to complete a phase.
 ---
 
 # Ship Feature Branch
@@ -54,7 +54,6 @@ the mechanical ship process begins.
 - [ ] Scope limited to work already on the branch.
 - [ ] `wiki/STATUS.md` row updated for the spec (if spec-tracked).
 - [ ] Rebased cleanly on `origin/main` (no unresolved conflicts).
-- [ ] `bun run check` and `bun run test` pass locally.
 - [ ] PR exists and its body follows the repo's Summary / Test plan template.
 - [ ] All PR checks reported green by `gh pr checks --watch`.
 - [ ] Merge uses `--squash` so the feature lands as a single conventional commit
@@ -107,20 +106,10 @@ Resolve conflicts in place, then `git add <files> && git rebase --continue`. If
 a conflict is substantive and cannot be resolved mechanically, abort with
 `git rebase --abort` and stop.
 
-### Step 4: Run Checks
+CI runs `check` and `test` against the PR (Step 6) — that is the authoritative
+gate, so this skill does not run them locally first.
 
-Skip if `check` and `test` already passed this session and the rebase was clean.
-Otherwise:
-
-```sh
-bun run check:fix    # auto-fix format and lint
-bun run check        # verify
-bun run test         # unit tests
-```
-
-Do not proceed until all checks pass.
-
-### Step 5: Push the Branch
+### Step 4: Push the Branch
 
 ```sh
 git push --force-with-lease -u origin "$branch"
@@ -128,16 +117,9 @@ git push --force-with-lease -u origin "$branch"
 
 Keep atomic commits intact — squashing happens at merge time, not here.
 
-### Step 6: Create or Reuse PR
+### Step 5: Create or Reuse PR
 
-Probe for an existing open PR on this branch before creating one:
-
-```sh
-pr_number=$(gh pr list --head "$branch" --state open \
-  --json number --jq '.[0].number')
-```
-
-If `pr_number` is empty, create a new PR:
+Reuse the open PR on this branch if one exists; otherwise create it:
 
 ```sh
 gh pr create --base main --head "$branch" \
@@ -155,9 +137,7 @@ EOF
 )"
 ```
 
-If a PR already exists, reuse it — do not open a duplicate.
-
-### Step 7: Wait for Checks
+### Step 6: Wait for Checks
 
 ```sh
 gh pr checks "$branch" --watch
@@ -168,7 +148,7 @@ attempt code fixes from inside this skill. If no workflow runs against the
 branch at all, abort after a reasonable wait and investigate upstream rather
 than blocking forever.
 
-### Step 8: Squash-Merge
+### Step 7: Squash-Merge
 
 ```sh
 gh pr merge "$branch" --squash --delete-branch
