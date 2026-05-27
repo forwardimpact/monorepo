@@ -64,13 +64,17 @@ starts the acknowledgement *before* fetching the token. The change:
 3. On `link_required` / `reauth_required` / `transient`: start **no**
    acknowledgement, fire **no** workflow, and return the variant to the caller.
 
-`dispatch()` gains a `requester` parameter and returns a `DispatchAuth` outcome.
-The `token` variant still includes the existing `{token, correlationId}` the
-intake success-caller destructures today. The intake caller renders any
-non-`token` variant inline; the resume path (`#redispatch`), which discards the
-return today, now inspects the outcome and, on a non-`token` variant, invokes
-the declined-outcome handler (below) instead. The token is resolved *before* the
-acknowledgement starts (see Key Decisions).
+`dispatch()` gains a `requester` field on its existing destructured-object
+parameter (`{ ctx, prompt, requester, callbackMeta, ackTarget, historyText,
+workflowInputs }`) and returns a `DispatchAuth` outcome. On the `token`
+variant, `dispatch()` fires the workflow and returns the existing
+`{ token: callbackToken, correlationId }` shape the intake caller
+destructures today (the `callbackToken` is the callback-registry token, not
+the GitHub auth token resolved by `TokenResolver`). On a non-`token`
+variant, it returns the variant to the caller; the intake caller renders it
+inline, and the resume path (`#redispatch`) invokes the declined-outcome
+handler (below) instead. The token is resolved *before* the acknowledgement
+starts (see Key Decisions).
 
 ```mermaid
 sequenceDiagram
@@ -78,7 +82,7 @@ sequenceDiagram
   participant D as Dispatcher
   participant T as TokenResolver
   participant W as workflow_dispatch
-  H->>D: dispatch(ctx, prompt, requester, ackTarget)
+  H->>D: dispatch({ ctx, prompt, requester, ackTarget, ... })
   D->>T: resolve(ctx.channel, requester)
   alt token
     T-->>D: token
@@ -100,8 +104,8 @@ event and passes it into the dispatch path:
 
 | Bridge | Surface (`ctx.channel`) | Requester source |
 | ------ | ----------------------- | ---------------- |
-| `msbridge` | `msteams` | the message sender (`activity.from.id`) |
-| `ghbridge` | `github-discussions` | comment author for comment events, else discussion author |
+| `msbridge` | `msteams` | `activity.from.id` (equals `ref.user.id`, the existing `external_id` source via `TurnContext.getConversationReference`) |
+| `ghbridge` | `github-discussions` | `body.comment.user.id.toString()` for comment events; `body.discussion.user.id.toString()` for top-level discussions (matches the existing `external_id` pattern at `#loadOrCreateContext`) |
 
 Because the requester is an explicit dispatch input, fresh and resume dispatches
 differ only in who supplies it. When a dispatch enters recess, `enterRecess` —
@@ -121,21 +125,27 @@ on the installation credential — see Key Decisions).
 
 The **resume** path runs inside `ResumeScheduler`, which is channel-agnostic and
 holds no reply adapter, and an `elapsed`-timer resume has no live inbound to
-reply through. So `ResumeScheduler` gains a caller-injected declined-outcome
-handler in its constructor — mirroring its existing `buildCallbackMeta` /
-`buildResumeInputs` constructor callbacks (not the reply handler, which lives on
-the separate callback handler) — that each bridge wires to its reply path. When
-a resume resolves to a non-`token` variant,
-`ResumeScheduler` cancels the recess and invokes that handler, which posts the
-prompt using the channel coordinates already stored on the context (the same
-coordinates the bridges use to post recess replies today), so it works without a
-live inbound.
+reply through. The resume path passes no `ackTarget` to `dispatch()`, so no
+acknowledgement is ever started on a resume — the dangling-ack concern (SC#7) is
+intake-only. But when a resume resolves to a non-`token` variant, the channel
+still needs notification. So `ResumeScheduler` gains a caller-injected
+declined-outcome handler in its constructor — mirroring its existing
+`buildCallbackMeta` / `buildResumeInputs` constructor callbacks (not the reply
+handler, which lives on the separate callback handler) — that each bridge wires
+to its reply path. When a resume resolves to a non-`token` variant,
+`ResumeScheduler` cancels the recess, flushes the store (removing the RFC from
+persistence), and invokes that handler, which posts the prompt using the channel
+coordinates already stored on the context (the same coordinates the bridges use
+to post recess replies today), so it works without a live inbound.
+`last_active_at` is not updated on a declined resume — no dispatch occurred.
 
 ## Configuration
 
 Each bridge's startup wiring constructs a `ghauth` gRPC client (via `librpc`
-`createClient`) from a `ghauth` client binding added to its service config, and
-injects it into the `TokenResolver` the `Dispatcher` requires. The failing
+`createClient`) from a `ghauth` client binding added to its service config (via
+`.env` / `config.json`, per `services/CLAUDE.md` — no in-code
+`createServiceConfig` defaults), and injects it into the `TokenResolver` the
+`Dispatcher` requires. The failing
 component for SC#10 is that **bridge startup wiring**: with the binding absent
 it cannot build the `ghauth` client, so the `TokenResolver` and `Dispatcher` are
 never constructed and the service does not start — the same fail-fast posture

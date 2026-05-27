@@ -107,7 +107,7 @@ fired, and what the channel received); the named test is where it is asserted.
 | 4 | Given a `ReAuthRequired` result, the channel receives a re-link prompt and the workflow-dispatch call is never invoked. | both bridges' `dispatch-auth.test.js` |
 | 5 | Given a transient `ghauth` failure, the channel receives a transient-error message and the workflow-dispatch call is never invoked. | both bridges' `dispatch-auth.test.js` |
 | 6 | Given a usable token, the workflow-dispatch call is invoked with that token and not with the static/installation token. | both bridges' `dispatch-auth.test.js` |
-| 7 | After a declined dispatch (criteria 3–5), no "received" acknowledgement remains pending for that message. | `libraries/libbridge/test/dispatcher.test.js` |
+| 7 | On a declined dispatch (criteria 3–5), no "received" acknowledgement appears for that message (the acknowledgement is never started). | `libraries/libbridge/test/dispatcher.test.js` |
 | 8 | A resume redispatch invokes the `ghauth` query keyed by the requester recorded for the dispatch that entered recess, not a fresh sender. | `libraries/libbridge/test/resume-scheduler.test.js` |
 | 9 | `ghbridge` reply and reaction posting still goes through the installation credential after the change. | `services/ghbridge/test/reply-path.test.js` |
 | 10 | Each bridge fails to start when its `ghauth` client binding is absent from configuration. | `services/msbridge/test/startup.test.js`, `services/ghbridge/test/startup.test.js` |
