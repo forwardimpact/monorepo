@@ -8,8 +8,8 @@ import { createOauthService } from "./index.js";
 
 const config = await createServiceConfig("oauth", {
   protocol: "http",
-  port: 3006,
-  issuer: "http://localhost:3006",
+  port: 3007,
+  issuer: "http://localhost:3007",
   provider: "ghauth",
 });
 

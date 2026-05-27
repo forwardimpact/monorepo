@@ -45,6 +45,7 @@ Defines which processes `fit-rc` manages.
       { "name": "trace",   "command": "node -e \"import('@forwardimpact/svctrace/server.js')\"" },
       { "name": "vector",  "command": "node -e \"import('@forwardimpact/svcvector/server.js')\"" },
       { "name": "graph",   "command": "node -e \"import('@forwardimpact/svcgraph/server.js')\"" },
+      { "name": "map",     "command": "node -e \"import('@forwardimpact/svcmap/server.js')\"" },
       { "name": "pathway", "command": "node -e \"import('@forwardimpact/svcpathway/server.js')\"" }
     ]
   }

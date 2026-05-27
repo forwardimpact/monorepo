@@ -11,8 +11,8 @@ import { createGithubOAuth } from "./src/github-oauth.js";
 
 const config = await createServiceConfig("ghauth", {
   protocol: "grpc",
-  port: 3005,
-  link_base_url: "http://localhost:3006",
+  port: 3006,
+  link_base_url: "http://localhost:3007",
   client_id: "",
   client_secret: "",
 });
