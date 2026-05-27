@@ -52,7 +52,7 @@ credentials works out of the box.
 
 - `init.services` — Ordered list of service objects (`name`, `command`,
   optional `optional: true`) for `fit-rc` to supervise (trace, vector, graph,
-  pathway, map, mcp)
+  map, pathway)
 - `init.log_dir` / `init.shutdown_timeout` — Logging and shutdown
 - `service.*` — Per-service settings (e.g. MCP tool routing)
 
@@ -68,11 +68,11 @@ bunx fit-rc start              # Start all services (or: just rc-start)
 bunx fit-rc stop               # Graceful shutdown    (or: just rc-stop)
 bunx fit-rc restart            # Restart all          (or: just rc-restart)
 bunx fit-rc status             # Show service status  (or: just rc-status)
-bunx fit-rc start tei          # Start a single service
+bunx fit-rc start embedding    # Start a single service
 ```
 
-Services run on localhost in local mode (ports 3001–3005, 8090 for TEI
-embeddings). Port mapping is in `.env.local`.
+Services run on localhost in local mode (core ports 3001–3005; optional
+services on additional ports). Port mapping is in `.env.local.example`.
 
 TEI (Text Embeddings Inference) provides local embeddings:
 

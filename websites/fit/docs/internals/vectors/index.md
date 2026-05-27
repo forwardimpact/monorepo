@@ -77,7 +77,7 @@ Because the service is marked `optional`, fit-rc skips it with a warning if
 `text-embeddings-router` is not installed.
 
 The gRPC server listens on `SERVICE_EMBEDDING_URL` (default
-`grpc://localhost:3007`). TEI runs on an internal backend port (default 8090,
+`grpc://localhost:3011`). TEI runs on an internal backend port (default 8090,
 configurable via `SERVICE_EMBEDDING_BACKEND_PORT`).
 
 ### Docker
