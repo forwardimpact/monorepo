@@ -16,7 +16,7 @@ layout: home
     <text class="wheel-label" x="21" y="50">S</text>
     <text class="wheel-label" x="17" y="24">A</text>
   </svg>
-  <h1 class="hero-title">An agent team with a daily practice of getting better.</h1>
+  <h1 class="hero-title">Autonomous coding agents that continuously improve</h1>
   <p class="hero-subtitle">An autonomous agent team that keeps getting better — organized as a daily Plan-Do-Study-Act cycle. Six agents. Fifteen skills. Zero infrastructure.</p>
   <div class="scroll-hint">
     <span>Scroll</span>

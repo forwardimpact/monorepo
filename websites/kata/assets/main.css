@@ -192,7 +192,7 @@
   line-height: 1.05;
   color: var(--black);
   letter-spacing: -0.02em;
-  max-width: 720px;
+  max-width: 848px;
   margin: 0 auto var(--space-6);
   animation: fadeUp 600ms var(--ease-default) 200ms backwards;
 }
