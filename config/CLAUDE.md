@@ -42,9 +42,10 @@ Defines which processes `fit-rc` manages.
     "log_dir": "data/logs",
     "shutdown_timeout": 3000,
     "services": [
-      { "name": "graph",     "command": "node -e \"import('@forwardimpact/svcgraph/server.js')\"" },
-      { "name": "pathway",   "command": "node -e \"import('@forwardimpact/svcpathway/server.js')\"" },
-      { "name": "embedding", "command": "node -e \"import('@forwardimpact/svcembedding/server.js')\"" }
+      { "name": "trace",   "command": "node -e \"import('@forwardimpact/svctrace/server.js')\"" },
+      { "name": "vector",  "command": "node -e \"import('@forwardimpact/svcvector/server.js')\"" },
+      { "name": "graph",   "command": "node -e \"import('@forwardimpact/svcgraph/server.js')\"" },
+      { "name": "pathway", "command": "node -e \"import('@forwardimpact/svcpathway/server.js')\"" }
     ]
   }
 }
@@ -59,16 +60,18 @@ everything before it (bringing up dependencies). `stop <name>` and
 down dependents). List infrastructure (tunnels, databases) before
 services that depend on them.
 
-Optional entries — add when working on those features:
+Optional services — add when working on those features:
 
 ```json
 { "name": "oauthtunnel", "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_OAUTH_URL} --protocol http2'" }
 { "name": "mstunnel", "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_MSBRIDGE_URL} --protocol http2'" }
 { "name": "ghtunnel", "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_GHBRIDGE_URL} --protocol http2'" }
-{ "name": "ghauth", "command": "node -e \"import('@forwardimpact/svcghauth/server.js')\"" }
-{ "name": "oauth",  "command": "node -e \"import('@forwardimpact/svcoauth/server.js')\"" }
-{ "name": "msbridge", "command": "node -e \"import('@forwardimpact/svcmsbridge/server.js')\"" }
-{ "name": "ghbridge", "command": "node -e \"import('@forwardimpact/svcghbridge/server.js')\"" }
+{ "name": "ghauth",    "command": "node -e \"import('@forwardimpact/svcghauth/server.js')\"" }
+{ "name": "oauth",     "command": "node -e \"import('@forwardimpact/svcoauth/server.js')\"" }
+{ "name": "mcp",       "command": "node -e \"import('@forwardimpact/svcmcp/server.js')\"" }
+{ "name": "msbridge",  "command": "node -e \"import('@forwardimpact/svcmsbridge/server.js')\"" }
+{ "name": "ghbridge",  "command": "node -e \"import('@forwardimpact/svcghbridge/server.js')\"" }
+{ "name": "embedding", "command": "node -e \"import('@forwardimpact/svcembedding/server.js')\"" }
 ```
 
 Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`:
