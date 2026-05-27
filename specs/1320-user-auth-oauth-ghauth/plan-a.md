@@ -14,8 +14,9 @@ refreshes OAuth tokens). `oauth` is a protocol-only Hono adapter (the repo's
 HTTP standard, used by both bridges via `libbridge`'s `createBridgeServer`):
 every endpoint maps to one gRPC call on a backend client constructed by name
 from config (`createClient(config.provider, …)`), so its source stays
-GitHub-free (SC#3). Credential accessors follow the existing
-`msAppId()`/`mcpToken()` precedent in `libconfig`.
+GitHub-free (SC#3). `ghauth` owns the Kata Agent User App credentials
+end-to-end via its own `service.ghauth` config — mirroring how `ghbridge` owns
+the Team App's credentials — with no `libconfig` accessor.
 
 ## Step 1 — ghauth proto + codegen
 
@@ -75,30 +76,7 @@ message RevokeRequest { string surface = 1; string surface_user_id = 2; }
 Verify: `just codegen` succeeds and `generated/services/exports.js` exports
 `GhauthBase` and `GhauthClient`.
 
-## Step 2 — libconfig credential accessors
-
-Add Kata Agent User App client-id/secret accessors (can run alongside Step 1).
-
-- **Modified:** `libraries/libconfig/src/config.js`
-
-Add to `Config.#CREDENTIAL_KEYS`: `"SERVICE_GHAUTH_CLIENT_ID"`,
-`"SERVICE_GHAUTH_CLIENT_SECRET"`. Add two methods beside `mcpToken()`:
-
-```js
-/** @returns {string} Kata Agent User App client id */
-ghauthClientId() { return this.#resolve(["SERVICE_GHAUTH_CLIENT_ID"]); }
-/** @returns {string} Kata Agent User App client secret */
-ghauthClientSecret() { return this.#resolve(["SERVICE_GHAUTH_CLIENT_SECRET"]); }
-```
-
-The `SERVICE_GHAUTH_*` env names are deliberate (per design-a § Configuration),
-unlike the bare-name accessors (`MCP_TOKEN`); keep them fully qualified and in
-`#CREDENTIAL_KEYS` so they resolve via `#resolve` into the private credential
-map rather than the auto-mapped config props. Verify:
-`bun test libraries/libconfig/test/*.test.js` passes; bump
-`libraries/libconfig/package.json` patch version.
-
-## Step 3 — ghauth state stores
+## Step 2 — ghauth state stores
 
 Three `BufferedIndex`-backed stores over one injected `libstorage` store.
 
@@ -107,7 +85,7 @@ Three `BufferedIndex`-backed stores over one injected `libstorage` store.
 - `BindingStore extends BufferedIndex` — `indexKey: "bindings.jsonl"`, no
   sweep; `static keyOf(surface, userId)`, `loadBinding(surface, userId)`,
   `upsert(record)`. Record: `{ id, github_user_id, access_token,
-  refresh_token, expires_at, scopes }`. Server shutdown (Step 6) calls
+  refresh_token, expires_at, scopes }`. Server shutdown (Step 5) calls
   `shutdown()` on all three stores to flush buffered writes — required for
   SC#7 (a binding written before restart must survive).
 - `TtlStore extends BufferedIndex` — generic short-TTL store mirroring
@@ -120,10 +98,25 @@ Three `BufferedIndex`-backed stores over one injected `libstorage` store.
   record `{ id: downstream_code, binding_id, code_challenge, redirect_uri,
   client_state, created_at }`; `consume(code)` reads-then-deletes.
 
-Verify: `node --input-type=module -e "import('./services/ghauth/src/stores.js')"`
-imports cleanly and `BindingStore.keyOf('teams','u1') === 'teams:u1'`.
+**Deletion semantics (no base primitive).** `BufferedIndex`/`IndexBase` are
+append-only and expose no `delete`; `DiscussionContextStore.#sweep` only
+mutates the in-memory `this.index` Map, which does **not** survive restart
+(`loadData` re-reads every JSONL row). That is fine for short-TTL `flows`
+(re-swept on reload) but wrong for `Revoke` — a revoked binding would
+reappear after a restart. So `BindingStore.delete(id)` and
+`GrantStore.consume(code)` must write a durable **tombstone** row
+(`{ id, deleted: true }`) and override `loadData` to drop tombstoned ids on
+load (last-write-wins by append order already gives `upsert` its update
+semantics). `GrantStore.consume` additionally deletes from the in-memory Map
+so a second `Redeem` in the same process fails before the tombstone flushes.
 
-## Step 4 — ghauth GitHub OAuth client
+Verify: `node --input-type=module -e "import('./services/ghauth/src/stores.js')"`
+imports cleanly and `BindingStore.keyOf('teams','u1') === 'teams:u1'`; a
+`createMockStorage`-backed `BindingStore` `delete`d then rebuilt over the same
+storage no longer returns the binding (the Revoke-durability case, also
+exercised by Step 7's persistence test).
+
+## Step 3 — ghauth GitHub OAuth client
 
 Encapsulate the Kata Agent User App authorization-code exchange/refresh/revoke.
 
@@ -146,7 +139,7 @@ Verify: with a stub `fetchImpl` returning `{access_token,refresh_token,expires_i
 `exchangeCode` resolves that shape and a `bad_refresh_token` body makes `refresh`
 throw `RevokedError`.
 
-## Step 5 — ghauth service implementation
+## Step 4 — ghauth service implementation
 
 Implement the five RPCs against the stores and GitHub client.
 
@@ -172,13 +165,14 @@ export class GhauthService extends GhauthBase {
 `LinkRequired.authorize_url` is composed from `config.link_base_url` +
 `/authorize?surface=…&surface_user_id=…` (one URL shape). `link_base_url` is
 **`oauth`'s externally-reachable origin** (its `/authorize` is the user-facing
-endpoint per design-a:94), not `ghauth`'s own address. Verify code-challenge
+endpoint, per design-a's oauth-HTTP-surface table and the LinkRequired-URL
+decision), not `ghauth`'s own address. Verify code-challenge
 match with `crypto.createHash("sha256")` base64url (S256).
 
 Verify: importing `../index.js` exposes `GhauthService` with `Begin`/`Complete`/
-`Redeem`/`GetToken`/`Revoke` methods (full behaviour in Step 8).
+`Redeem`/`GetToken`/`Revoke` methods (full behaviour in Step 7).
 
-## Step 6 — ghauth server.js
+## Step 5 — ghauth server.js
 
 Bootstrap config, storage, stores, GitHub client, and the gRPC server.
 
@@ -197,11 +191,12 @@ import { createGithubOAuth } from "./src/github-oauth.js";
 
 const config = await createServiceConfig("ghauth", {
   protocol: "grpc", port: 3006, link_base_url: "http://localhost:3007",
+  client_id: "", client_secret: "",
 });
 const logger = createLogger("ghauth");
 const tracer = await createTracer("ghauth");
 const storage = createStorage("ghauth");                 // → data/ghauth/
-const github = createGithubOAuth({ clientId: config.ghauthClientId(), clientSecret: config.ghauthClientSecret() });
+const github = createGithubOAuth({ clientId: config.client_id, clientSecret: config.client_secret });
 const service = new GhauthService(config, {
   bindings: new BindingStore(storage), flows: new FlowStore(storage), grants: new GrantStore(storage), github,
 });
@@ -209,9 +204,13 @@ const server = new Server(service, config, logger, tracer);
 await server.start();
 ```
 
+The Kata Agent User App `client_id`/`client_secret` come from `service.ghauth`
+config (env `SERVICE_GHAUTH_CLIENT_ID`/`SERVICE_GHAUTH_CLIENT_SECRET`), exactly
+as `ghbridge` reads the Team App's `app_id`/`app_private_key`/
+`app_installation_id` from `service.ghbridge` — no `libconfig` accessor.
 Verify: `bunx fit-rc start ghauth` then `services/ghauth/test/smoke.test.js`.
 
-## Step 7 — ghauth package.json + README
+## Step 6 — ghauth package.json + README
 
 Service metadata + contributor docs per `services/CLAUDE.md`.
 
@@ -221,12 +220,13 @@ Service metadata + contributor docs per `services/CLAUDE.md`.
 listing `index.js`/`server.js`/`src`/`proto`, `description`, `keywords`
 (last `agent`), one `jobs` entry. Deps: `librpc`, `libconfig`, `libstorage`,
 `libindex`, `libtelemetry`, `libpreflight`, `libtype`; dev `libharness`.
-README documents the `service.ghauth` config block + `init.services` entry +
-`SERVICE_GHAUTH_CLIENT_ID/SECRET` env.
+README documents the `service.ghauth` config block (`host`, `port`,
+`link_base_url`, `client_id`, `client_secret`) + `init.services` entry +
+`SERVICE_GHAUTH_CLIENT_ID`/`SERVICE_GHAUTH_CLIENT_SECRET` env.
 
 Verify: `bun run context:fix` regenerates `services/README.md` cleanly.
 
-## Step 8 — ghauth tests
+## Step 7 — ghauth tests
 
 Cover SC#1,4,5,6,7,8 with `node:test` + `libharness` mocks.
 
@@ -249,7 +249,7 @@ Cover SC#1,4,5,6,7,8 with `node:test` + `libharness` mocks.
 Use a stub `github` (`{ refresh: async () => { throw new RevokedError() } }`
 etc.) injected via the constructor. Verify: `bun test services/ghauth/test/*.test.js`.
 
-## Step 9 — oauth service implementation
+## Step 8 — oauth service implementation
 
 Protocol-only Hono adapter delegating to the configured provider client.
 
@@ -276,9 +276,9 @@ from `@hono/node-server` (the `createBridgeServer` pattern — it maps config
 `host` onto `hostname`; libconfig defaults `host` to `0.0.0.0`), retaining the
 returned handle; `stop()` wraps `handle.close()` in a promise; `address()`
 returns `{ port }` from the handle. No `github`/`octokit` identifiers anywhere
-in this file (SC#3). Verify: SC#3 `rg` check in Step 12.
+in this file (SC#3). Verify: SC#3 `rg` check in Step 11.
 
-## Step 10 — oauth server.js
+## Step 9 — oauth server.js
 
 Bootstrap config + provider client by name, start the HTTP service.
 
@@ -297,11 +297,11 @@ for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => service.stop());
 ```
 
 `createClient("ghauth", …)` resolves `GhauthClient` and dials the `service.ghauth`
-config (grpc, port 3006 per Step 6 defaults), so client and server agree on the
+config (grpc, port 3006 per Step 5 defaults), so client and server agree on the
 port without a committed `config.json`. Verify: `bunx fit-rc start oauth` boots
 both services (ghauth listed first) and `GET /health` returns `{status:"ok"}`.
 
-## Step 11 — oauth package.json + README
+## Step 10 — oauth package.json + README
 
 Service metadata + docs per `services/CLAUDE.md`.
 
@@ -319,7 +319,7 @@ a higher pin. README documents `service.oauth` config (`issuer`, `provider`,
 
 Verify: `bun run context:fix`.
 
-## Step 12 — oauth tests
+## Step 11 — oauth tests
 
 Cover SC#2 and SC#3.
 
@@ -337,20 +337,20 @@ socket needed).
 
 Verify: `bun test services/oauth/test/*.test.js`.
 
-## Step 13 — config docs + catalog regen
+## Step 12 — config docs + catalog regen
 
 Document the two `init.services`/`service.*` blocks and regenerate catalogs.
 
 - **Modified:** `services/README.md` (generated), root catalog via `context:fix`
 
 `config/config.json` is gitignored, so runnable defaults live in the
-`createServiceConfig(name, defaults)` argument in each `server.js` (Steps 6,
-10), with the documented `service.*`/`init.services` blocks in each README; no
+`createServiceConfig(name, defaults)` argument in each `server.js` (Steps 5,
+9), with the documented `service.*`/`init.services` blocks in each README; no
 committed `config.json` to edit.
 
 Verify: `bun run context` passes (catalog + workspace-imports guards green).
 
-Libraries used: librpc (Server, createClient, services), libconfig (createServiceConfig), libstorage (createStorage), libindex (BufferedIndex), libtelemetry (createLogger), libtype (generated message types), libpreflight, hono (Hono — oauth web server, used directly not via libbridge since oauth's routes are not bridge-shaped), @hono/node-server (serve); libharness (dev). GitHub OAuth uses built-in `fetch` (no octokit added).
+Libraries used: librpc (Server, createClient, services), libconfig (createServiceConfig), libstorage (createStorage), libindex (BufferedIndex), libtelemetry (createLogger), libtype (message types), libpreflight, hono (Hono), @hono/node-server (serve); libharness (dev). GitHub OAuth uses built-in `fetch` (no octokit added).
 
 ## Risks
 
@@ -368,14 +368,17 @@ Libraries used: librpc (Server, createClient, services), libconfig (createServic
 - **Port collisions.** `config/config.json` is gitignored; the suggested
   defaults (ghauth 3006, oauth 3007) must not collide with a contributor's
   existing service ports — confirm against the local `init.services` set.
-- **libconfig is shared.** The new accessors/`#CREDENTIAL_KEYS` entries are
-  additive, but the patch bump must be released for downstream services that
-  pin `@forwardimpact/libconfig`.
+- **User App secret is not masked.** `client_secret` is a plain `service.ghauth`
+  config value (mirroring `ghbridge`'s `app_private_key`), so — unlike libconfig
+  `#CREDENTIAL_KEYS` secrets, which load into a private map — a `.env`-supplied
+  `SERVICE_GHAUTH_CLIENT_SECRET` is written to `process.env` and inherited by
+  sibling `fit-rc`-spawned services. Accepted here to keep `ghauth`
+  self-contained; masking both apps' GitHub secrets uniformly is a separate
+  cross-cutting follow-up (track as its own security issue), not in scope here.
 
 ## Execution
 
-Single engineering agent (`staff-engineer`), sequential. Step 2 may run
-alongside Step 1. Steps 1–8 (ghauth) must complete before Steps 9–12 (oauth),
-since `oauth` constructs the generated `ghauth` client. Step 13 last. READMEs
-in Steps 7/11 are within the engineering agent's scope; no separate
-`technical-writer` pass required.
+Single engineering agent (`staff-engineer`), sequential. Steps 1–7 (ghauth)
+must complete before Steps 8–11 (oauth), since `oauth` constructs the generated
+`ghauth` client. Step 12 last. READMEs in Steps 6/10 are within the engineering
+agent's scope; no separate `technical-writer` pass required.

@@ -143,9 +143,13 @@ Dispatch read path: `bridge → GetToken(surface,user_id) → {token|LinkRequire
 - `service.oauth`: `host`, `port`, `issuer`, `provider: "ghauth"` (backend
   client name). `init.services` lists `ghauth` **before** `oauth` (dependency
   first).
-- `service.ghauth`: `host`, `port`, `link_base_url`; secrets via env
-  (`SERVICE_GHAUTH_*` client id/secret accessors, per `libconfig` credential
-  resolution); storage under `data/ghauth/`.
+- `service.ghauth`: `host`, `port`, `link_base_url`, plus the Kata Agent User
+  App `client_id`/`client_secret` (env `SERVICE_GHAUTH_CLIENT_ID`/
+  `SERVICE_GHAUTH_CLIENT_SECRET`); storage under `data/ghauth/`. `ghauth` owns
+  these credentials **end-to-end in its own service config** — no `libconfig`
+  accessor — mirroring how `services/ghbridge` owns the Team App's
+  `app_id`/`app_private_key`/`app_installation_id`. The per-user tokens never
+  surface in config; they live in `bindings` and are resolved by `GetToken`.
 
 ## Future-surface note (not designed here)
 
