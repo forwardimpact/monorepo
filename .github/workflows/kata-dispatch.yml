@@ -192,6 +192,16 @@ jobs:
           discussion-id: ${{ inputs.discussion_id }}
           resume-context: ${{ inputs.resume_context }}
 
+      # Push agent memory back with a freshly minted token — the token from
+      # job start expires after an hour and this run can take up to five.
+      - name: Push wiki changes
+        if: always()
+        uses: forwardimpact/fit-wiki@v1
+        with:
+          command: push
+          app-id: ${{ secrets.KATA_APP_ID }}
+          app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+
       # Deliver the facilitator's conclusion to an external caller (e.g. the
       # MS Teams bridge or GitHub Discussions bridge) when one is specified
       # via workflow_dispatch. Skipped on issue/PR events where inputs is
