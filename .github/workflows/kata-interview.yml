@@ -136,6 +136,14 @@ jobs:
           supervisor-allowed-tools: "Bash,Read,Glob,Grep,Write,Edit,Skill,TodoWrite"
           task-amend: ${{ steps.amend.outputs.amend }}
 
+      - name: Push wiki changes
+        if: always()
+        uses: forwardimpact/fit-wiki@v1
+        with:
+          command: push
+          app-id: ${{ secrets.KATA_APP_ID }}
+          app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+
       - name: Scan logs for sensitive values
         if: always() && inputs.product == 'landmark'
         shell: bash

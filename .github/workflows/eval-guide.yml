@@ -169,6 +169,14 @@ jobs:
           task-amend: ${{ inputs.task-amend }}
           case: ${{ matrix.case.id }}
 
+      - name: Push wiki changes
+        if: always()
+        uses: forwardimpact/fit-wiki@v1
+        with:
+          command: push
+          app-id: ${{ secrets.KATA_APP_ID }}
+          app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+
       - name: Dump service logs
         if: failure()
         shell: bash
