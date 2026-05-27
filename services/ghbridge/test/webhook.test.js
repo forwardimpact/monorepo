@@ -55,6 +55,10 @@ function buildHarness({ dispatchImpl } = {}) {
   return { dispatches, graphqlCalls, restore };
 }
 
+function makeGhauthClient(token = "ghs_per_user") {
+  return { GetToken: async () => ({ result: "token", token }) };
+}
+
 async function newService({ dispatchImpl } = {}) {
   const harness = buildHarness({ dispatchImpl });
   const config = makeConfig();
@@ -70,6 +74,7 @@ async function newService({ dispatchImpl } = {}) {
       harness.graphqlCalls.push({ query, variables });
       return { addDiscussionComment: { comment: { id: "C_1", url: "url" } } };
     },
+    ghauthClient: makeGhauthClient(),
   });
   await service.start();
   return { service, harness };

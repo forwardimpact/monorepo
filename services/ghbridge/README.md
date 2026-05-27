@@ -13,17 +13,31 @@ the Kata agent team.
   webhook subscriptions for `discussion` and `discussion_comment` events
   (see the kata-setup skill for initial App creation).
 - An installation of that App on the target repository.
-- A GitHub token with `actions:write` on the target repository.
-  `libconfig` falls back to `gh auth token` when `GH_TOKEN` is not set in
-  `.env`, so `gh auth login` is sufficient.
+- The `ghauth` service running and reachable (provides per-user GitHub
+  tokens for dispatch). Each user who triggers a dispatch must have linked
+  their GitHub account through the OAuth flow — the bridge posts a link
+  prompt on the discussion when a link is missing.
 
-Configuration (loaded via `createServiceConfig("ghbridge")`):
+The App installation token is still used for posting replies, reactions,
+and declined-dispatch notices — only the `workflow_dispatch` call uses
+the per-user token.
+
+### Dependencies
+
+| Service | Why |
+| --- | --- |
+| `ghauth` | Per-user GitHub token for `workflow_dispatch` |
+
+### Configuration
+
+Loaded via `createServiceConfig("ghbridge")`):
 
 | Env var | Purpose |
 | --- | --- |
 | `SERVICE_GHBRIDGE_URL` | Listen URL (default `http://localhost:3009`) |
 | `SERVICE_GHBRIDGE_GITHUB_REPO` | `owner/repo` target |
 | `SERVICE_GHBRIDGE_CALLBACK_BASE_URL` | Public URL the workflow POSTs callbacks to |
+| `SERVICE_GHAUTH_URL` | gRPC address of the ghauth service |
 | `SERVICE_GHBRIDGE_APP_ID` | Kata App numeric id |
 | `SERVICE_GHBRIDGE_APP_PRIVATE_KEY` | PEM contents (see § Private key format) |
 | `SERVICE_GHBRIDGE_APP_INSTALLATION_ID` | Installation id for the target repo |

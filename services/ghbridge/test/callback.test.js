@@ -68,6 +68,9 @@ async function newService() {
       }
       return {};
     },
+    ghauthClient: {
+      GetToken: async () => ({ result: "token", token: "ghs_per_user" }),
+    },
   });
   await service.start();
   return {

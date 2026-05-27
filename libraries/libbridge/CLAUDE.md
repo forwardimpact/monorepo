@@ -55,7 +55,7 @@ Inside channel intake, the only dispatch call is:
 ```js
 await dispatcher.dispatch({
   ctx, prompt: buildPrompt(text, ctx.history),
-  ackTarget, historyText: text, callbackMeta: { threadId },
+  requester, ackTarget, historyText: text, callbackMeta: { threadId },
 });
 ```
 
@@ -104,6 +104,7 @@ its `loadDiscussionId` lens.
 | `CallbackRegistry` | token → correlation map with TTL |
 | `DiscussionContextStore` | persisted `(channel, discussion_id)` state |
 | `Dispatcher`, `dispatchWorkflow` | the dispatch dance + workflow URL |
+| `TokenResolver` | `(surface, user) → DispatchAuth` via ghauth gRPC |
 | `createCallbackHandler`, `validateCallbackPayload` | inbound-callback skeleton + payload validator |
 | `RateLimiter` | per-thread dispatch rate cap |
 | `ResumeScheduler`, `ElapsedScheduler` | suspend/resume lifecycle + chunked-setTimeout |

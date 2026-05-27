@@ -3,46 +3,7 @@ import { evaluateTrigger, parseIsoDuration } from "./triggers.js";
 
 const DEFAULT_PROMPT = "Resume requested.";
 
-/**
- * Channel-agnostic suspend/resume lifecycle for the discuss-mode trace.
- * When the workflow returns a `"recessed"` verdict, the bridge calls
- * `enterRecess(...)` to persist the trigger on
- * `ctx.open_rfcs[correlationId]`. The scheduler watches inbound activity
- * via `processInbound(ctx)` and ticking elapsed timers via the embedded
- * `ElapsedScheduler`; when a trigger fires, it redispatches the workflow
- * through the shared `Dispatcher` with a `resume_context` payload
- * linking back to the original correlation id.
- *
- * Channel-specific extras are supplied by two small constructor
- * callbacks:
- *
- *   buildCallbackMeta(ctx) -> { ... }   // matches the bridge's loadDiscussionId
- *   buildResumeInputs(ctx) -> { ... }   // extra workflow_dispatch inputs
- *
- * Both default to ghbridge's convention; msbridge overrides
- * `buildCallbackMeta` to `{ threadId: ctx.discussion_id }` when it
- * adopts resume.
- *
- * @example
- *   const scheduler = new ResumeScheduler({
- *     dispatcher,
- *     store,
- *     logger,
- *     buildCallbackMeta: (ctx) => ({ discussionId: ctx.discussion_id }),
- *     buildResumeInputs: (ctx) => ({ discussionId: ctx.discussion_id }),
- *   });
- *   // service start:
- *   await scheduler.rearm();
- *   // inbound activity:
- *   const { freshDispatchAllowed } = await scheduler.processInbound(ctx);
- *   if (freshDispatchAllowed) { ... dispatch fresh ... }
- *   // on "recessed" verdict:
- *   scheduler.enterRecess(ctx, correlationId, payload.trigger);
- *   // on "adjourned" / "failed":
- *   scheduler.cancelRecess(ctx, correlationId);
- *   // service stop:
- *   scheduler.clear();
- */
+/** Channel-agnostic suspend/resume lifecycle for the discuss-mode trace. */
 export class ResumeScheduler {
   #dispatcher;
   #store;
@@ -51,6 +12,7 @@ export class ResumeScheduler {
   #prompt;
   #buildResumeInputs;
   #buildCallbackMeta;
+  #onDeclined;
 
   /**
    * @param {object} options
@@ -60,6 +22,7 @@ export class ResumeScheduler {
    * @param {string} [options.prompt] - Default "Resume requested."
    * @param {(ctx: object) => object} [options.buildCallbackMeta]
    * @param {(ctx: object) => object} [options.buildResumeInputs]
+   * @param {((ctx: object, outcome: object) => Promise<void>) | null} [options.onDeclined]
    */
   constructor({
     dispatcher,
@@ -68,6 +31,7 @@ export class ResumeScheduler {
     prompt = DEFAULT_PROMPT,
     buildCallbackMeta = (ctx) => ({ discussionId: ctx.discussion_id }),
     buildResumeInputs = () => ({}),
+    onDeclined = null,
   }) {
     if (!dispatcher) throw new Error("dispatcher is required");
     if (!store) throw new Error("store is required");
@@ -77,12 +41,16 @@ export class ResumeScheduler {
     if (typeof buildResumeInputs !== "function") {
       throw new Error("buildResumeInputs must be a function");
     }
+    if (onDeclined != null && typeof onDeclined !== "function") {
+      throw new Error("onDeclined must be a function");
+    }
     this.#dispatcher = dispatcher;
     this.#store = store;
     this.#logger = logger ?? null;
     this.#prompt = prompt;
     this.#buildCallbackMeta = buildCallbackMeta;
     this.#buildResumeInputs = buildResumeInputs;
+    this.#onDeclined = onDeclined;
     this.#elapsed = new ElapsedScheduler({
       onFire: (cid) => this.#fireElapsed(cid),
       onError: (err, cid) =>
@@ -99,10 +67,9 @@ export class ResumeScheduler {
 
   /**
    * Begin watching `correlationId` for trigger resolution. Persists the
-   * trigger and the history index at recess time onto
-   * `ctx.open_rfcs[correlationId]`. If the trigger has an elapsed
-   * component, schedules an in-memory timer that will fire even when no
-   * inbound activity arrives. No-op if `trigger` is falsy.
+   * trigger, the history index at recess time, and the triggering
+   * requester onto `ctx.open_rfcs[correlationId]`. If the trigger has an
+   * elapsed component, schedules an in-memory timer.
    *
    * The caller is responsible for flushing the store after this call —
    * `enterRecess` mutates ctx but does not write.
@@ -110,14 +77,16 @@ export class ResumeScheduler {
    * @param {object} ctx
    * @param {string} correlationId
    * @param {import("./triggers.js").ResumeTrigger} trigger
+   * @param {string} requester - Surface user id of the triggering human
    */
-  enterRecess(ctx, correlationId, trigger) {
+  enterRecess(ctx, correlationId, trigger, requester) {
     if (!trigger) return;
     const openedAt = Date.now();
     ctx.open_rfcs[correlationId] = {
       trigger,
       opened_at: openedAt,
       history_index_at_open: ctx.history.length,
+      requester,
     };
     if (trigger.kind === "elapsed" && typeof trigger.elapsed === "string") {
       const dueAt = openedAt + parseIsoDuration(trigger.elapsed);
@@ -128,8 +97,7 @@ export class ResumeScheduler {
 
   /**
    * Stop watching `correlationId`. Removes the rfc from `ctx.open_rfcs`
-   * and cancels any associated elapsed timer. Idempotent — safe to call
-   * for verdicts that didn't actually recess.
+   * and cancels any associated elapsed timer. Idempotent.
    *
    * @param {object} ctx
    * @param {string} correlationId
@@ -140,29 +108,21 @@ export class ResumeScheduler {
   }
 
   /**
-   * Walk `ctx.open_rfcs`. For each rfc whose trigger has fired given the
-   * current history length and clock, redispatch the workflow with
-   * `resume_context` linking back to the original correlation id, then
-   * cancel the rfc. Returns a summary so the host can decide whether to
-   * additionally fire a fresh lead session on this inbound activity.
-   *
-   * If a redispatch fails the rfc remains armed — the host's failure
-   * recovery (next inbound activity, or the next elapsed tick) will
-   * retry.
+   * Walk `ctx.open_rfcs`. For each rfc whose trigger has fired,
+   * redispatch the workflow. Returns a summary so the host can decide
+   * whether to additionally fire a fresh lead session.
    *
    * @param {object} ctx
-   * @returns {Promise<{
-   *   fired: number,
-   *   hasOpenRfc: boolean,
-   *   freshDispatchAllowed: boolean,
-   * }>}
+   * @returns {Promise<{fired: number, hasOpenRfc: boolean, freshDispatchAllowed: boolean}>}
    */
   async processInbound(ctx) {
     const fired = this.#evaluate(ctx);
     for (const { correlationId, rfc } of fired) {
       const historySince = ctx.history.slice(rfc.history_index_at_open);
-      await this.#redispatch(ctx, correlationId, historySince);
-      this.cancelRecess(ctx, correlationId);
+      const result = await this.#redispatch(ctx, correlationId, historySince);
+      if (result.kind === "dispatched") {
+        this.cancelRecess(ctx, correlationId);
+      }
     }
     const hasOpenRfc = Object.keys(ctx.open_rfcs ?? {}).length > 0;
     return {
@@ -173,9 +133,7 @@ export class ResumeScheduler {
   }
 
   /**
-   * Rehydrate persistent elapsed timers from the store. Call once after
-   * the bridge server starts so deadlines set before a restart still
-   * fire.
+   * Rehydrate persistent elapsed timers from the store.
    * @returns {Promise<void>}
    */
   async rearm() {
@@ -213,19 +171,38 @@ export class ResumeScheduler {
   }
 
   async #redispatch(ctx, correlationId, historySince) {
+    const rfc = ctx.open_rfcs[correlationId];
+    if (!rfc.requester) {
+      this.cancelRecess(ctx, correlationId);
+      this.#logger?.info?.("resume.skip", "rfc missing requester", {
+        correlation_id: correlationId,
+      });
+      return {
+        kind: "transient",
+        error: new Error("rfc missing requester"),
+      };
+    }
     const resumeContext = JSON.stringify({
       correlation_id: correlationId,
       history_since: historySince,
     });
-    await this.#dispatcher.dispatch({
+    const result = await this.#dispatcher.dispatch({
       ctx,
       prompt: this.#prompt,
+      requester: rfc.requester,
       callbackMeta: this.#buildCallbackMeta(ctx),
       workflowInputs: {
         ...this.#buildResumeInputs(ctx),
         resumeContext,
       },
     });
+    if (result.kind !== "dispatched") {
+      this.cancelRecess(ctx, correlationId);
+      await this.#store.add(ctx);
+      await this.#store.flush();
+      if (this.#onDeclined) await this.#onDeclined(ctx, result);
+    }
+    return result;
   }
 
   async #fireElapsed(correlationId) {
@@ -233,11 +210,13 @@ export class ResumeScheduler {
     if (!found) return;
     const { ctx, rfc } = found;
     const historySince = ctx.history.slice(rfc.history_index_at_open);
-    await this.#redispatch(ctx, correlationId, historySince);
-    this.cancelRecess(ctx, correlationId);
-    ctx.last_active_at = Date.now();
-    await this.#store.add(ctx);
-    await this.#store.flush();
+    const result = await this.#redispatch(ctx, correlationId, historySince);
+    if (result.kind === "dispatched") {
+      this.cancelRecess(ctx, correlationId);
+      ctx.last_active_at = Date.now();
+      await this.#store.add(ctx);
+      await this.#store.flush();
+    }
   }
 
   async #findContextWithRfc(correlationId) {

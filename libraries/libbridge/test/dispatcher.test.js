@@ -57,6 +57,10 @@ function stubFetch({ onWorkflowDispatch } = {}) {
   };
 }
 
+function makeTokenResolver(token = "ghs_test") {
+  return { resolve: async () => ({ kind: "token", token }) };
+}
+
 describe("Dispatcher", () => {
   let store;
   let callbacks;
@@ -78,7 +82,7 @@ describe("Dispatcher", () => {
       callbackBaseUrl: "https://bridge.example",
       workflowFile: "kata-dispatch.yml",
       githubRepo: "owner/repo",
-      getGithubToken: async () => "ghs_test",
+      tokenResolver: makeTokenResolver(),
     });
   });
 
@@ -99,7 +103,7 @@ describe("Dispatcher", () => {
           workflowFile: "w",
           githubRepo: "r",
         }),
-    ).toThrow("getGithubToken is required");
+    ).toThrow("tokenResolver is required");
   });
 
   test("happy path: registers callback, starts ack, dispatches, appends history, flushes store", async () => {
@@ -107,18 +111,19 @@ describe("Dispatcher", () => {
     const result = await dispatcher.dispatch({
       ctx,
       prompt: "hello",
+      requester: "U_1",
       ackTarget: { subjectId: "S_1" },
       historyText: "hello",
       callbackMeta: { discussionId: "T_1" },
       workflowInputs: { discussionId: "T_1" },
     });
+    expect(result.kind).toBe("dispatched");
     expect(typeof result.token).toBe("string");
     expect(typeof result.correlationId).toBe("string");
     expect(ctx.pending_callbacks[result.token]).toBe(result.correlationId);
     expect(ctx.history).toEqual([{ role: "user", text: "hello" }]);
     expect(ctx.dispatches).toHaveLength(1);
     expect(reactions.adds).toEqual([{ subjectId: "S_1" }]);
-    expect(callbacks.peek(result.token)?.meta).toEqual({ discussionId: "T_1" });
     expect(fetchStub.calls).toHaveLength(1);
     const body = JSON.parse(fetchStub.calls[0].init.body);
     expect(body.inputs.callback_url).toBe(
@@ -135,6 +140,7 @@ describe("Dispatcher", () => {
     await dispatcher.dispatch({
       ctx,
       prompt: "resume",
+      requester: "U_1",
       callbackMeta: { discussionId: "T_1" },
       workflowInputs: { discussionId: "T_1", resumeContext: "{}" },
     });
@@ -146,6 +152,7 @@ describe("Dispatcher", () => {
     await dispatcher.dispatch({
       ctx,
       prompt: "p",
+      requester: "U_1",
       callbackMeta: {},
       ackTarget: { subjectId: "S" },
     });
@@ -157,6 +164,7 @@ describe("Dispatcher", () => {
     await dispatcher.dispatch({
       ctx,
       prompt: "p",
+      requester: "U_1",
       callbackMeta: {},
       workflowInputs: { discussionId: "D_1", resumeContext: '{"r":1}' },
     });
@@ -176,6 +184,7 @@ describe("Dispatcher", () => {
       dispatcher.dispatch({
         ctx,
         prompt: "p",
+        requester: "U_1",
         callbackMeta: {},
         ackTarget: { subjectId: "S_2" },
       }),
@@ -195,15 +204,19 @@ describe("Dispatcher", () => {
     });
     const ctx = makeCtx();
     await expect(
-      dispatcher.dispatch({ ctx, prompt: "p", callbackMeta: {} }),
+      dispatcher.dispatch({
+        ctx,
+        prompt: "p",
+        requester: "U_1",
+        callbackMeta: {},
+      }),
     ).rejects.toThrow();
     expect(reactions.removes).toHaveLength(0);
     expect(callbacks.size).toBe(0);
     expect(Object.keys(ctx.pending_callbacks)).toHaveLength(0);
   });
 
-  test("getGithubToken receives await — accepts sync or async values", async () => {
-    let calls = 0;
+  test("token resolver result is used as the dispatch token", async () => {
     dispatcher = new Dispatcher({
       callbacks,
       ack,
@@ -211,16 +224,128 @@ describe("Dispatcher", () => {
       callbackBaseUrl: "https://bridge.example",
       workflowFile: "kata-dispatch.yml",
       githubRepo: "owner/repo",
-      getGithubToken: () => {
-        calls++;
-        return "sync_token";
+      tokenResolver: makeTokenResolver("ghs_per_user"),
+    });
+    const ctx = makeCtx();
+    await dispatcher.dispatch({
+      ctx,
+      prompt: "p",
+      requester: "U_1",
+      callbackMeta: {},
+    });
+    expect(fetchStub.calls[0].init.headers.Authorization).toBe(
+      "Bearer ghs_per_user",
+    );
+  });
+
+  test("requester is required", () => {
+    const ctx = makeCtx();
+    expect(
+      dispatcher.dispatch({ ctx, prompt: "p", callbackMeta: {} }),
+    ).rejects.toThrow("requester is required");
+  });
+
+  test("link_required: no ack, no workflow, no callback registered", async () => {
+    dispatcher = new Dispatcher({
+      callbacks,
+      ack,
+      store,
+      callbackBaseUrl: "https://bridge.example",
+      workflowFile: "kata-dispatch.yml",
+      githubRepo: "owner/repo",
+      tokenResolver: {
+        resolve: async () => ({
+          kind: "link_required",
+          authorizeUrl: "https://example.com/authorize",
+        }),
       },
     });
     const ctx = makeCtx();
-    await dispatcher.dispatch({ ctx, prompt: "p", callbackMeta: {} });
-    expect(calls).toBe(1);
-    expect(fetchStub.calls[0].init.headers.Authorization).toBe(
-      "Bearer sync_token",
-    );
+    const result = await dispatcher.dispatch({
+      ctx,
+      prompt: "p",
+      requester: "U_1",
+      callbackMeta: {},
+      ackTarget: { subjectId: "S_1" },
+    });
+    expect(result.kind).toBe("link_required");
+    expect(result.authorizeUrl).toBe("https://example.com/authorize");
+    expect(reactions.adds).toHaveLength(0);
+    expect(fetchStub.calls).toHaveLength(0);
+    expect(callbacks.size).toBe(0);
+    expect(ctx.history).toEqual([]);
+    expect(ctx.dispatches).toEqual([]);
+  });
+
+  test("reauth_required: no ack, no workflow, no callback registered", async () => {
+    dispatcher = new Dispatcher({
+      callbacks,
+      ack,
+      store,
+      callbackBaseUrl: "https://bridge.example",
+      workflowFile: "kata-dispatch.yml",
+      githubRepo: "owner/repo",
+      tokenResolver: {
+        resolve: async () => ({ kind: "reauth_required" }),
+      },
+    });
+    const ctx = makeCtx();
+    const result = await dispatcher.dispatch({
+      ctx,
+      prompt: "p",
+      requester: "U_1",
+      callbackMeta: {},
+      ackTarget: { subjectId: "S_1" },
+    });
+    expect(result.kind).toBe("reauth_required");
+    expect(reactions.adds).toHaveLength(0);
+    expect(fetchStub.calls).toHaveLength(0);
+    expect(callbacks.size).toBe(0);
+    expect(ctx.history).toEqual([]);
+    expect(ctx.dispatches).toEqual([]);
+  });
+
+  test("transient: no ack, no workflow, no callback registered", async () => {
+    dispatcher = new Dispatcher({
+      callbacks,
+      ack,
+      store,
+      callbackBaseUrl: "https://bridge.example",
+      workflowFile: "kata-dispatch.yml",
+      githubRepo: "owner/repo",
+      tokenResolver: {
+        resolve: async () => ({
+          kind: "transient",
+          error: new Error("UNAVAILABLE"),
+        }),
+      },
+    });
+    const ctx = makeCtx();
+    const result = await dispatcher.dispatch({
+      ctx,
+      prompt: "p",
+      requester: "U_1",
+      callbackMeta: {},
+      ackTarget: { subjectId: "S_1" },
+    });
+    expect(result.kind).toBe("transient");
+    expect(reactions.adds).toHaveLength(0);
+    expect(fetchStub.calls).toHaveLength(0);
+    expect(callbacks.size).toBe(0);
+    expect(ctx.history).toEqual([]);
+    expect(ctx.dispatches).toEqual([]);
+  });
+
+  test("requester round-trips in callbackMeta", async () => {
+    const ctx = makeCtx();
+    const result = await dispatcher.dispatch({
+      ctx,
+      prompt: "p",
+      requester: "U_1",
+      callbackMeta: { discussionId: "T_1" },
+    });
+    expect(result.kind).toBe("dispatched");
+    expect(callbacks.peek(result.token).meta.requester).toBe("U_1");
+    expect(callbacks.peek(result.token).meta.discussionId).toBe("T_1");
   });
 });

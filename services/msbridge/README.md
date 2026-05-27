@@ -14,17 +14,27 @@ conversations and the Kata agent team.
   [config-msteams.md § 1–3](../../specs/1200-teams-agent-bridge/config-msteams.md).
 - The **Microsoft Teams channel** must be enabled on the Azure Bot resource
   (Settings → Channels → add Microsoft Teams).
-- A GitHub token with `actions:write` on `forwardimpact/monorepo`.
-  `libconfig` falls back to `gh auth token` when `GH_TOKEN` is not set in
-  `.env`, so `gh auth login` is sufficient.
+- The `ghauth` service running and reachable (provides per-user GitHub
+  tokens for dispatch). Each user who triggers a dispatch must have linked
+  their GitHub account through the OAuth flow — the bridge prompts on the
+  channel when a link is missing.
 
-Configuration (loaded via `createServiceConfig("msbridge")`):
+### Dependencies
+
+| Service | Why |
+| --- | --- |
+| `ghauth` | Per-user GitHub token for `workflow_dispatch` |
+
+### Configuration
+
+Loaded via `createServiceConfig("msbridge")`:
 
 | Env var | Purpose |
 | --- | --- |
 | `SERVICE_MSBRIDGE_URL` | Listen URL (default `http://localhost:3010`) |
 | `SERVICE_MSBRIDGE_GITHUB_REPO` | `owner/repo` target |
 | `SERVICE_MSBRIDGE_CALLBACK_BASE_URL` | Public URL the workflow POSTs callbacks to |
+| `SERVICE_GHAUTH_URL` | gRPC address of the ghauth service |
 | `MICROSOFT_APP_ID` | Azure Bot application id |
 | `MICROSOFT_APP_PASSWORD` | Azure Bot client secret |
 | `MICROSOFT_APP_TENANT_ID` | Azure AD tenant id |

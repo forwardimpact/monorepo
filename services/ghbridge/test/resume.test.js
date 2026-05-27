@@ -51,6 +51,9 @@ async function newService() {
       import("@octokit/webhooks-methods").then((m) => m.verify(s, b, sig)),
     getInstallationToken: async () => "ghs_test",
     graphqlClient: async () => ({}),
+    ghauthClient: {
+      GetToken: async () => ({ result: "token", token: "ghs_per_user" }),
+    },
   });
   await service.start();
   return {
@@ -132,7 +135,7 @@ describe("ghbridge resume", () => {
     await postSigned(baseUrl, "discussion_comment", {
       action: "created",
       discussion: { node_id: "D_resume" },
-      comment: { body: "I think yes", node_id: "C_1" },
+      comment: { body: "I think yes", node_id: "C_1", user: { id: 2 } },
     });
     let stored3 = await ctx.service.store.loadByChannel(
       "github-discussions",
@@ -143,7 +146,7 @@ describe("ghbridge resume", () => {
     await postSigned(baseUrl, "discussion_comment", {
       action: "created",
       discussion: { node_id: "D_resume" },
-      comment: { body: "agreed", node_id: "C_2" },
+      comment: { body: "agreed", node_id: "C_2", user: { id: 3 } },
     });
     stored3 = await ctx.service.store.loadByChannel(
       "github-discussions",
@@ -270,7 +273,7 @@ describe("ghbridge resume", () => {
     await postSigned(baseUrl, "discussion_comment", {
       action: "created",
       discussion: { node_id: "D_accum" },
-      comment: { body: "one", node_id: "C_1" },
+      comment: { body: "one", node_id: "C_1", user: { id: 2 } },
     });
     // No fresh dispatch should fire — there's an open RFC.
     expect(ctx.dispatches).toHaveLength(1);

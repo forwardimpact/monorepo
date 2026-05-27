@@ -7,7 +7,7 @@ import { verify } from "@octokit/webhooks-methods";
 
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createStorage } from "@forwardimpact/libstorage";
-import { createTracer } from "@forwardimpact/librpc";
+import { clients, createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
 import { GhBridgeService } from "./index.js";
@@ -36,6 +36,10 @@ const graphqlClient = async (query, variables) => {
   });
 };
 
+const { GhauthClient } = clients;
+const ghauthConfig = await createServiceConfig("ghauth");
+const ghauthClient = new GhauthClient(ghauthConfig, logger, tracer);
+
 const service = new GhBridgeService(config, {
   logger,
   tracer,
@@ -43,6 +47,7 @@ const service = new GhBridgeService(config, {
   verifyWebhook: verify,
   getInstallationToken,
   graphqlClient,
+  ghauthClient,
 });
 
 await service.start();

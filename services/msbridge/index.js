@@ -6,6 +6,7 @@ import {
   Dispatcher,
   RateLimiter,
   ResumeScheduler,
+  TokenResolver,
   appendHistory,
   buildPrompt,
   createBridgeServer,
@@ -57,19 +58,23 @@ export class MsBridgeService {
    *   msAppId: () => string,
    *   msAppPassword: () => string,
    *   msAppTenantId: () => string,
-   *   ghToken: () => string,
    * }} config
    * @param {object} deps
    * @param {import("@forwardimpact/libtelemetry").Logger} deps.logger
    * @param {import("@forwardimpact/libtelemetry").Tracer} deps.tracer
    * @param {import("@forwardimpact/libstorage").StorageInterface} deps.storage
+   * @param {object} deps.ghauthClient - ghauth gRPC client
    * @param {object} [deps.adapter] - Bot Framework adapter override (tests)
    * @param {Acknowledgement} [deps.acknowledgement] - Override (tests)
    */
-  constructor(config, { logger, tracer, storage, adapter, acknowledgement }) {
+  constructor(
+    config,
+    { logger, tracer, storage, ghauthClient, adapter, acknowledgement },
+  ) {
     if (!logger) throw new Error("logger is required");
     if (!tracer) throw new Error("tracer is required");
     if (!storage) throw new Error("storage is required");
+    if (!ghauthClient) throw new Error("ghauthClient is required");
     this.#logger = logger;
     this.#tracer = tracer;
     this.#msAppId = () => config.msAppId();
@@ -104,7 +109,7 @@ export class MsBridgeService {
       callbackBaseUrl: normalizeBaseUrl(config.callback_base_url),
       workflowFile: WORKFLOW_FILE,
       githubRepo: config.github_repo,
-      getGithubToken: () => config.ghToken(),
+      tokenResolver: new TokenResolver(ghauthClient),
     });
     this.#resume = new ResumeScheduler({
       dispatcher: this.#dispatcher,
@@ -112,6 +117,7 @@ export class MsBridgeService {
       logger,
       buildCallbackMeta: (ctx) => ({ threadId: ctx.discussion_id }),
       buildResumeInputs: () => ({}),
+      onDeclined: (ctx, outcome) => this.#renderDeclined(ctx, outcome),
     });
 
     this.#onCallback = createCallbackHandler({
@@ -189,6 +195,9 @@ export class MsBridgeService {
     const text = (activity.text ?? "").trim();
     if (!threadId || !text) return;
 
+    const requester = activity.from?.id;
+    if (!requester) return;
+
     const span = this.#tracer.startSpan("MsBridge.HandleNewMessage", {
       kind: "SERVER",
       attributes: { thread_id: threadId },
@@ -223,16 +232,22 @@ export class MsBridgeService {
       }
 
       try {
-        const { correlationId } = await this.#dispatcher.dispatch({
+        const result = await this.#dispatcher.dispatch({
           ctx,
           prompt: buildPrompt(text, ctx.history),
+          requester,
           ackTarget: { ref, activityId: activity.id },
           callbackMeta: { threadId },
           workflowInputs: { discussionId: threadId },
         });
-        span.addEvent("workflow_dispatched", {
-          correlation_id: correlationId,
-        });
+        if (result.kind === "dispatched") {
+          span.addEvent("workflow_dispatched", {
+            correlation_id: result.correlationId,
+          });
+        } else {
+          await this.#renderDeclined(ctx, result);
+          span.addEvent("dispatch_declined", { kind: result.kind });
+        }
         span.setOk();
       } catch (err) {
         this.#logger.error("handleNewMessage", err, { thread_id: threadId });
@@ -254,7 +269,12 @@ export class MsBridgeService {
     await this.#postReplies(ref, payload.replies, ctx);
     switch (payload.verdict) {
       case "recessed":
-        this.#resume.enterRecess(ctx, meta.correlationId, payload.trigger);
+        this.#resume.enterRecess(
+          ctx,
+          meta.correlationId,
+          payload.trigger,
+          meta.meta?.requester,
+        );
         break;
       case "adjourned":
         this.#resume.cancelRecess(ctx, meta.correlationId);
@@ -287,6 +307,37 @@ export class MsBridgeService {
     for (const reply of list) {
       if (!reply || typeof reply.body !== "string") continue;
       appendHistory(ctx.history, { role: "assistant", text: reply.body });
+    }
+  }
+
+  async #renderDeclined(ctx, outcome) {
+    const ref = ctx.participants?.[0]?.metadata;
+    if (!ref) return;
+    switch (outcome.kind) {
+      case "link_required":
+        await sendReply(
+          this.#adapter,
+          this.#msAppId,
+          ref,
+          `To dispatch, link your GitHub account: ${outcome.authorizeUrl}`,
+        );
+        break;
+      case "reauth_required":
+        await sendReply(
+          this.#adapter,
+          this.#msAppId,
+          ref,
+          "Your GitHub link has expired. Please re-link your account to dispatch.",
+        );
+        break;
+      case "transient":
+        await sendReply(
+          this.#adapter,
+          this.#msAppId,
+          ref,
+          "Unable to verify your GitHub identity right now. Please try again later.",
+        );
+        break;
     }
   }
 

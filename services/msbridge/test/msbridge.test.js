@@ -22,7 +22,6 @@ function makeConfig(overrides = {}) {
     msAppId: () => "test-app-id",
     msAppPassword: () => "test-password",
     msAppTenantId: () => "test-tenant",
-    ghToken: () => "test-gh-token",
     ...overrides,
   });
 }
@@ -75,11 +74,23 @@ function makeAdapter(overrides = {}) {
   };
 }
 
-function newService({ adapter, config: configOverrides, logger } = {}) {
+function makeGhauthClient(token = "ghs_per_user") {
+  return {
+    GetToken: async () => ({ result: "token", token }),
+  };
+}
+
+function newService({
+  adapter,
+  config: configOverrides,
+  logger,
+  ghauthClient,
+} = {}) {
   return new MsBridgeService(makeConfig(configOverrides), {
     logger: logger ?? createMockLogger(),
     tracer: makeTracer(),
     storage: createMockStorage(),
+    ghauthClient: ghauthClient ?? makeGhauthClient(),
     adapter: adapter ?? makeAdapter(),
   });
 }

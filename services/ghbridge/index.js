@@ -6,6 +6,7 @@ import {
   OriginIndex,
   RateLimiter,
   ResumeScheduler,
+  TokenResolver,
   appendHistory,
   buildPrompt,
   createBridgeServer,
@@ -59,7 +60,6 @@ export class GhBridgeService {
   #tracer;
   #config;
   #verifyWebhook;
-  #getInstallationToken;
   #graphqlClient;
   #store;
   #origins;
@@ -80,27 +80,22 @@ export class GhBridgeService {
    * @param {import("@forwardimpact/libtelemetry").Tracer} deps.tracer
    * @param {import("@forwardimpact/libstorage").StorageInterface} deps.storage
    * @param {(secret: string, body: string, signature: string) => Promise<boolean>} deps.verifyWebhook
-   * @param {() => Promise<string>} deps.getInstallationToken
    * @param {(query: string, vars: object) => Promise<unknown>} deps.graphqlClient
    * @param {Acknowledgement} [deps.acknowledgement] - Override (tests)
    */
   constructor(config, deps) {
-    const { logger, tracer, storage, verifyWebhook, getInstallationToken } =
-      deps;
+    const { logger, tracer, storage, verifyWebhook } = deps;
     if (!logger) throw new Error("logger is required");
     if (!tracer) throw new Error("tracer is required");
     if (!storage) throw new Error("storage is required");
     if (typeof verifyWebhook !== "function") {
       throw new Error("verifyWebhook is required");
     }
-    if (typeof getInstallationToken !== "function") {
-      throw new Error("getInstallationToken is required");
-    }
+    if (!deps.ghauthClient) throw new Error("ghauthClient is required");
     this.#config = config;
     this.#logger = logger;
     this.#tracer = tracer;
     this.#verifyWebhook = verifyWebhook;
-    this.#getInstallationToken = getInstallationToken;
     this.#graphqlClient = deps.graphqlClient;
 
     this.#store = new DiscussionContextStore(storage);
@@ -120,7 +115,7 @@ export class GhBridgeService {
       callbackBaseUrl: normalizeBaseUrl(config.callback_base_url),
       workflowFile: WORKFLOW_FILE,
       githubRepo: config.github_repo,
-      getGithubToken: () => this.#getInstallationToken(),
+      tokenResolver: new TokenResolver(deps.ghauthClient),
     });
     this.#resume = new ResumeScheduler({
       dispatcher: this.#dispatcher,
@@ -128,6 +123,7 @@ export class GhBridgeService {
       logger,
       buildCallbackMeta: (ctx) => ({ discussionId: ctx.discussion_id }),
       buildResumeInputs: (ctx) => ({ discussionId: ctx.discussion_id }),
+      onDeclined: (ctx, outcome) => this.#renderDeclined(ctx, outcome),
     });
 
     this.#onCallback = createCallbackHandler({
@@ -232,6 +228,12 @@ export class GhBridgeService {
       return c.body(null, 204);
     }
 
+    const requester = discussion?.user?.id?.toString();
+    if (!requester) {
+      this.#logger.debug("webhook", "ignoring discussion without user id");
+      return c.body(null, 204);
+    }
+
     const span = this.#tracer.startSpan("GhBridge.HandleDiscussion", {
       kind: "SERVER",
       attributes: { discussion_id: discussionId },
@@ -249,17 +251,23 @@ export class GhBridgeService {
       }
 
       try {
-        const { correlationId } = await this.#dispatcher.dispatch({
+        const result = await this.#dispatcher.dispatch({
           ctx,
           prompt: buildPrompt(text, ctx.history),
+          requester,
           ackTarget: { subjectId: discussionId },
           historyText: text,
           callbackMeta: { discussionId },
           workflowInputs: { discussionId },
         });
-        span.addEvent("workflow_dispatched", {
-          correlation_id: correlationId,
-        });
+        if (result.kind === "dispatched") {
+          span.addEvent("workflow_dispatched", {
+            correlation_id: result.correlationId,
+          });
+        } else {
+          await this.#renderDeclined(ctx, result);
+          span.addEvent("dispatch_declined", { kind: result.kind });
+        }
         span.setOk();
         return c.body(null, 200);
       } catch (err) {
@@ -282,6 +290,9 @@ export class GhBridgeService {
       });
       return c.body(null, 204);
     }
+
+    const requester = comment?.user?.id?.toString();
+    if (!requester) return c.body(null, 204);
 
     const discussionId = discussion?.node_id;
     const text = (comment?.body ?? "").trim();
@@ -312,13 +323,17 @@ export class GhBridgeService {
           span.setOk();
           return c.body(null, 200);
         }
-        await this.#dispatcher.dispatch({
+        const result = await this.#dispatcher.dispatch({
           ctx,
           prompt: buildPrompt(text, ctx.history),
+          requester,
           ackTarget: { subjectId: comment?.node_id },
           callbackMeta: { discussionId: ctx.discussion_id },
           workflowInputs: { discussionId: ctx.discussion_id },
         });
+        if (result.kind !== "dispatched") {
+          await this.#renderDeclined(ctx, result);
+        }
       }
 
       await this.#store.add(ctx);
@@ -358,7 +373,12 @@ export class GhBridgeService {
 
     switch (payload.verdict) {
       case "recessed":
-        this.#resume.enterRecess(ctx, meta.correlationId, payload.trigger);
+        this.#resume.enterRecess(
+          ctx,
+          meta.correlationId,
+          payload.trigger,
+          meta.meta?.requester,
+        );
         break;
       case "adjourned":
         this.#resume.cancelRecess(ctx, meta.correlationId);
@@ -391,6 +411,39 @@ export class GhBridgeService {
         break;
     }
 
+    await this.#origins.flush();
+  }
+
+  async #renderDeclined(ctx, outcome) {
+    let body;
+    switch (outcome.kind) {
+      case "link_required":
+        body = `To dispatch, link your GitHub account: ${outcome.authorizeUrl}`;
+        break;
+      case "reauth_required":
+        body =
+          "Your GitHub link has expired. Please re-link your account to dispatch.";
+        break;
+      case "transient":
+        body =
+          "Unable to verify your GitHub identity right now. Please try again later.";
+        break;
+      default:
+        return;
+    }
+    const recordOrigin = async (comment) => {
+      await this.#origins.add({
+        id: comment.id,
+        discussion_id: ctx.discussion_id,
+        posted_at: Date.now(),
+      });
+    };
+    await postSingleDiscussionReply(
+      this.#graphqlClient,
+      ctx,
+      body,
+      recordOrigin,
+    );
     await this.#origins.flush();
   }
 

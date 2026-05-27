@@ -3,27 +3,7 @@ import { randomUUID } from "node:crypto";
 import { dispatchWorkflow } from "./dispatch.js";
 import { appendHistory } from "./history.js";
 
-/**
- * The standard "dispatch dance" both bridges perform: generate a
- * correlation ID, register the callback token, start the acknowledgement
- * (if `ackTarget` is supplied), fire the kata-dispatch workflow, append
- * history, push the dispatch timestamp, and flush the store. On failure
- * the acknowledgement is finished and the callback registration is rolled
- * back before the error rethrows.
- *
- * The caller still owns: loading/creating the context, checking the rate
- * limiter, and deciding the user-facing action when `dispatch()` throws.
- *
- * @example
- *   const { token, correlationId } = await dispatcher.dispatch({
- *     ctx,
- *     prompt,
- *     ackTarget: { subjectId: nodeId },
- *     historyText: text,
- *     callbackMeta: { discussionId },
- *     workflowInputs: { discussionId },
- *   });
- */
+/** Dispatch dance: resolve per-user token, register callback, ack, fire workflow, flush. */
 export class Dispatcher {
   #callbacks;
   #ack;
@@ -31,7 +11,7 @@ export class Dispatcher {
   #callbackBaseUrl;
   #workflowFile;
   #githubRepo;
-  #getGithubToken;
+  #tokenResolver;
 
   /**
    * @param {object} options
@@ -41,7 +21,7 @@ export class Dispatcher {
    * @param {string} options.callbackBaseUrl - Already normalised
    * @param {string} options.workflowFile
    * @param {string} options.githubRepo
-   * @param {() => Promise<string> | string} options.getGithubToken
+   * @param {import("./token-resolver.js").TokenResolver} options.tokenResolver
    */
   constructor({
     callbacks,
@@ -50,7 +30,7 @@ export class Dispatcher {
     callbackBaseUrl,
     workflowFile,
     githubRepo,
-    getGithubToken,
+    tokenResolver,
   }) {
     if (!callbacks) throw new Error("callbacks is required");
     if (!ack) throw new Error("ack is required");
@@ -60,31 +40,31 @@ export class Dispatcher {
     }
     if (!workflowFile) throw new Error("workflowFile is required");
     if (!githubRepo) throw new Error("githubRepo is required");
-    if (typeof getGithubToken !== "function") {
-      throw new Error("getGithubToken is required");
-    }
+    if (!tokenResolver) throw new Error("tokenResolver is required");
     this.#callbacks = callbacks;
     this.#ack = ack;
     this.#store = store;
     this.#callbackBaseUrl = callbackBaseUrl;
     this.#workflowFile = workflowFile;
     this.#githubRepo = githubRepo;
-    this.#getGithubToken = getGithubToken;
+    this.#tokenResolver = tokenResolver;
   }
 
   /**
    * @param {object} args
    * @param {object} args.ctx - Discussion context record (mutated)
    * @param {string} args.prompt
+   * @param {string} args.requester - Surface user id of the triggering human
    * @param {object} args.callbackMeta - Stored on the callback token
    * @param {unknown} [args.ackTarget] - If omitted, no acknowledgement is started
    * @param {string} [args.historyText] - Appended to ctx.history as the user turn on success
    * @param {object} [args.workflowInputs] - Extra fields for `dispatchWorkflow`
-   * @returns {Promise<{token: string, correlationId: string}>}
+   * @returns {Promise<{kind: "dispatched", token: string, correlationId: string} | {kind: "link_required", authorizeUrl: string} | {kind: "reauth_required"} | {kind: "transient", error: Error}>}
    */
   async dispatch({
     ctx,
     prompt,
+    requester,
     callbackMeta,
     ackTarget,
     historyText,
@@ -92,19 +72,23 @@ export class Dispatcher {
   }) {
     if (!ctx) throw new Error("ctx is required");
     if (typeof prompt !== "string") throw new Error("prompt is required");
+    if (typeof requester !== "string") throw new Error("requester is required");
+
+    const auth = await this.#tokenResolver.resolve(ctx.channel, requester);
+    if (auth.kind !== "token") return auth;
 
     const correlationId = randomUUID();
-    const token = this.#callbacks.register(correlationId, callbackMeta ?? {});
+    const mergedMeta = { ...(callbackMeta ?? {}), requester };
+    const token = this.#callbacks.register(correlationId, mergedMeta);
     ctx.pending_callbacks[token] = correlationId;
     const callbackUrl = `${this.#callbackBaseUrl}/api/callback/${token}`;
 
     if (ackTarget !== undefined) await this.#ack.start(token, ackTarget);
     try {
-      const ghToken = await this.#getGithubToken();
       await dispatchWorkflow({
         workflowFile: this.#workflowFile,
         repo: this.#githubRepo,
-        token: ghToken,
+        token: auth.token,
         prompt,
         callbackUrl,
         correlationId,
@@ -117,7 +101,7 @@ export class Dispatcher {
       ctx.last_active_at = Date.now();
       await this.#store.add(ctx);
       await this.#store.flush();
-      return { token, correlationId };
+      return { kind: "dispatched", token, correlationId };
     } catch (err) {
       if (ackTarget !== undefined) await this.#ack.finish(token, ackTarget);
       this.#callbacks.consume(token);

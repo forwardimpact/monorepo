@@ -43,7 +43,23 @@ function stubFetch() {
   };
 }
 
-function buildEnv({ buildCallbackMeta, buildResumeInputs } = {}) {
+function makeTokenResolver(token = "ghs_test") {
+  const calls = [];
+  return {
+    calls,
+    resolve: async (surface, surfaceUserId) => {
+      calls.push({ surface, surfaceUserId });
+      return { kind: "token", token };
+    },
+  };
+}
+
+function buildEnv({
+  buildCallbackMeta,
+  buildResumeInputs,
+  onDeclined,
+  tokenResolver,
+} = {}) {
   const store = new DiscussionContextStore(createMockStorage());
   const callbacks = new CallbackRegistry();
   const ack = new Acknowledgement({
@@ -52,6 +68,7 @@ function buildEnv({ buildCallbackMeta, buildResumeInputs } = {}) {
       remove: async () => {},
     },
   });
+  const tr = tokenResolver ?? makeTokenResolver();
   const dispatcher = new Dispatcher({
     callbacks,
     ack,
@@ -59,15 +76,16 @@ function buildEnv({ buildCallbackMeta, buildResumeInputs } = {}) {
     callbackBaseUrl: "https://bridge.example",
     workflowFile: "kata-dispatch.yml",
     githubRepo: "owner/repo",
-    getGithubToken: async () => "ghs_test",
+    tokenResolver: tr,
   });
   const scheduler = new ResumeScheduler({
     dispatcher,
     store,
     buildCallbackMeta,
     buildResumeInputs,
+    onDeclined,
   });
-  return { store, callbacks, dispatcher, scheduler };
+  return { store, callbacks, dispatcher, scheduler, tokenResolver: tr };
 }
 
 describe("ResumeScheduler", () => {
@@ -103,27 +121,49 @@ describe("ResumeScheduler", () => {
     ).toThrow();
   });
 
-  test("enterRecess stores trigger, opened_at, history_index_at_open on ctx.open_rfcs", () => {
+  test("rejects non-function onDeclined", () => {
+    expect(
+      () =>
+        new ResumeScheduler({
+          dispatcher: env.dispatcher,
+          store: env.store,
+          onDeclined: "nope",
+        }),
+    ).toThrow("onDeclined must be a function");
+  });
+
+  test("enterRecess stores trigger, opened_at, history_index_at_open, and requester on ctx.open_rfcs", () => {
     const ctx = makeCtx({
       history: [{ role: "user", text: "first" }],
     });
-    env.scheduler.enterRecess(ctx, "corr-1", {
-      kind: "missing_input",
-      replies: 2,
-    });
+    env.scheduler.enterRecess(
+      ctx,
+      "corr-1",
+      {
+        kind: "missing_input",
+        replies: 2,
+      },
+      "U_1",
+    );
     const rfc = ctx.open_rfcs["corr-1"];
     expect(rfc.trigger).toEqual({ kind: "missing_input", replies: 2 });
     expect(rfc.history_index_at_open).toBe(1);
     expect(typeof rfc.opened_at).toBe("number");
     expect(rfc.due_at).toBeUndefined();
+    expect(rfc.requester).toBe("U_1");
   });
 
   test("enterRecess with elapsed trigger schedules a timer and records due_at", () => {
     const ctx = makeCtx();
-    env.scheduler.enterRecess(ctx, "corr-2", {
-      kind: "elapsed",
-      elapsed: "PT5S",
-    });
+    env.scheduler.enterRecess(
+      ctx,
+      "corr-2",
+      {
+        kind: "elapsed",
+        elapsed: "PT5S",
+      },
+      "U_1",
+    );
     expect(ctx.open_rfcs["corr-2"].due_at).toBe(
       ctx.open_rfcs["corr-2"].opened_at + 5000,
     );
@@ -132,16 +172,21 @@ describe("ResumeScheduler", () => {
 
   test("enterRecess with falsy trigger is a no-op", () => {
     const ctx = makeCtx();
-    env.scheduler.enterRecess(ctx, "corr-3", null);
+    env.scheduler.enterRecess(ctx, "corr-3", null, "U_1");
     expect(ctx.open_rfcs["corr-3"]).toBeUndefined();
   });
 
   test("cancelRecess removes the rfc and cancels its timer; idempotent", () => {
     const ctx = makeCtx();
-    env.scheduler.enterRecess(ctx, "corr-4", {
-      kind: "elapsed",
-      elapsed: "PT5S",
-    });
+    env.scheduler.enterRecess(
+      ctx,
+      "corr-4",
+      {
+        kind: "elapsed",
+        elapsed: "PT5S",
+      },
+      "U_1",
+    );
     expect(env.scheduler.size).toBe(1);
     env.scheduler.cancelRecess(ctx, "corr-4");
     expect(ctx.open_rfcs["corr-4"]).toBeUndefined();
@@ -161,11 +206,15 @@ describe("ResumeScheduler", () => {
 
   test("processInbound returns freshDispatchAllowed=false when an rfc is open but no trigger fired", async () => {
     const ctx = makeCtx({ history: [{ role: "user", text: "x" }] });
-    env.scheduler.enterRecess(ctx, "corr-5", {
-      kind: "missing_input",
-      replies: 5,
-    });
-    // Append one more so we have replies=1 since recess (one < 5).
+    env.scheduler.enterRecess(
+      ctx,
+      "corr-5",
+      {
+        kind: "missing_input",
+        replies: 5,
+      },
+      "U_1",
+    );
     ctx.history.push({ role: "user", text: "y" });
     const result = await env.scheduler.processInbound(ctx);
     expect(result).toEqual({
@@ -179,11 +228,15 @@ describe("ResumeScheduler", () => {
   test("processInbound fires a 'missing_input' trigger and redispatches with resume_context", async () => {
     const ctx = makeCtx();
     await env.store.add(ctx);
-    env.scheduler.enterRecess(ctx, "corr-fire", {
-      kind: "missing_input",
-      replies: 2,
-    });
-    // Two new replies since recess.
+    env.scheduler.enterRecess(
+      ctx,
+      "corr-fire",
+      {
+        kind: "missing_input",
+        replies: 2,
+      },
+      "U_1",
+    );
     ctx.history.push({ role: "user", text: "one" });
     ctx.history.push({ role: "user", text: "two" });
 
@@ -202,8 +255,6 @@ describe("ResumeScheduler", () => {
       { role: "user", text: "one" },
       { role: "user", text: "two" },
     ]);
-    // Default buildCallbackMeta keys discussionId from ctx.discussion_id.
-    expect(inputs.discussion_id).toBeUndefined(); // default buildResumeInputs returns {}
   });
 
   test("buildCallbackMeta override flows into the registered callback meta (msbridge convention)", async () => {
@@ -214,16 +265,22 @@ describe("ResumeScheduler", () => {
     });
     const ctx = makeCtx({ id: "thread-99" });
     await env.store.add(ctx);
-    env.scheduler.enterRecess(ctx, "corr-x", {
-      kind: "missing_input",
-      replies: 1,
-    });
+    env.scheduler.enterRecess(
+      ctx,
+      "corr-x",
+      {
+        kind: "missing_input",
+        replies: 1,
+      },
+      "U_1",
+    );
     ctx.history.push({ role: "user", text: "hello" });
     await env.scheduler.processInbound(ctx);
 
     const token = Object.keys(ctx.pending_callbacks)[0];
     const stored = env.callbacks.peek(token);
-    expect(stored.meta).toEqual({ threadId: "thread-99" });
+    expect(stored.meta.threadId).toBe("thread-99");
+    expect(stored.meta.requester).toBe("U_1");
   });
 
   test("buildResumeInputs override flows into the workflow_dispatch inputs (ghbridge convention)", async () => {
@@ -234,10 +291,15 @@ describe("ResumeScheduler", () => {
     });
     const ctx = makeCtx({ id: "D_99" });
     await env.store.add(ctx);
-    env.scheduler.enterRecess(ctx, "corr-y", {
-      kind: "missing_input",
-      replies: 1,
-    });
+    env.scheduler.enterRecess(
+      ctx,
+      "corr-y",
+      {
+        kind: "missing_input",
+        replies: 1,
+      },
+      "U_1",
+    );
     ctx.history.push({ role: "user", text: "hi" });
     await env.scheduler.processInbound(ctx);
     const inputs = JSON.parse(fetchStub.calls[0].init.body).inputs;
@@ -246,50 +308,40 @@ describe("ResumeScheduler", () => {
   });
 
   test("rearm reschedules timers from persisted due_at across a fresh process", async () => {
-    // Seed via the existing store, then reopen the same storage with a
-    // fresh scheduler — that mirrors a service restart.
     const ctx = makeCtx({ id: "D_rearm" });
     ctx.open_rfcs["corr-z"] = {
       trigger: { kind: "elapsed", elapsed: "PT60S" },
       opened_at: Date.now(),
       history_index_at_open: 0,
       due_at: Date.now() + 60_000,
+      requester: "U_1",
     };
     await env.store.add(ctx);
     await env.store.flush();
 
-    // Tear down the original scheduler/store and reuse the same backing.
-    const sharedStorage = env.store._storage ?? null;
-    if (!sharedStorage) {
-      // DiscussionContextStore doesn't expose its storage handle; build a
-      // second store against the same underlying mock by direct add. The
-      // path that matters in production is `loadData()` reading JSONL —
-      // here we replay that by adding the record into a fresh store and
-      // calling rearm.
-      const freshStore = new DiscussionContextStore(createMockStorage());
-      await freshStore.add(ctx);
-      const callbacks = new CallbackRegistry();
-      const ack = new Acknowledgement({
-        reactionAdapter: { add: async () => null, remove: async () => {} },
-      });
-      const dispatcher = new Dispatcher({
-        callbacks,
-        ack,
-        store: freshStore,
-        callbackBaseUrl: "https://bridge.example",
-        workflowFile: "kata-dispatch.yml",
-        githubRepo: "owner/repo",
-        getGithubToken: async () => "t",
-      });
-      const fresh = new ResumeScheduler({ dispatcher, store: freshStore });
-      try {
-        expect(fresh.size).toBe(0);
-        await fresh.rearm();
-        expect(fresh.size).toBe(1);
-      } finally {
-        fresh.clear();
-        await freshStore.shutdown();
-      }
+    const freshStore = new DiscussionContextStore(createMockStorage());
+    await freshStore.add(ctx);
+    const callbacks = new CallbackRegistry();
+    const ack = new Acknowledgement({
+      reactionAdapter: { add: async () => null, remove: async () => {} },
+    });
+    const dispatcher = new Dispatcher({
+      callbacks,
+      ack,
+      store: freshStore,
+      callbackBaseUrl: "https://bridge.example",
+      workflowFile: "kata-dispatch.yml",
+      githubRepo: "owner/repo",
+      tokenResolver: makeTokenResolver(),
+    });
+    const fresh = new ResumeScheduler({ dispatcher, store: freshStore });
+    try {
+      expect(fresh.size).toBe(0);
+      await fresh.rearm();
+      expect(fresh.size).toBe(1);
+    } finally {
+      fresh.clear();
+      await freshStore.shutdown();
     }
   });
 
@@ -297,20 +349,92 @@ describe("ResumeScheduler", () => {
     const ctx = makeCtx({ id: "D_tick" });
     await env.store.add(ctx);
     await env.store.flush();
-    // Directly construct an rfc with a 20ms deadline.
     const dueAt = Date.now() + 20;
     ctx.open_rfcs["corr-tick"] = {
       trigger: { kind: "elapsed", elapsed: "PT60S" },
       opened_at: Date.now(),
       history_index_at_open: 0,
       due_at: dueAt,
+      requester: "U_1",
     };
     await env.store.add(ctx);
-    // Manually arm via rearm (mimics restart path).
     await env.scheduler.rearm();
     await wait(60);
     expect(fetchStub.calls.length).toBeGreaterThanOrEqual(1);
     const reloaded = await env.store.loadByChannel("test-channel", "D_tick");
     expect(reloaded.open_rfcs["corr-tick"]).toBeUndefined();
+  });
+
+  test("resume redispatch passes recorded requester to dispatch", async () => {
+    const tr = makeTokenResolver();
+    env = buildEnv({ tokenResolver: tr });
+    const ctx = makeCtx();
+    await env.store.add(ctx);
+    env.scheduler.enterRecess(
+      ctx,
+      "corr-req",
+      {
+        kind: "missing_input",
+        replies: 1,
+      },
+      "U_42",
+    );
+    ctx.history.push({ role: "user", text: "trigger" });
+    await env.scheduler.processInbound(ctx);
+    expect(tr.calls.length).toBeGreaterThanOrEqual(1);
+    expect(tr.calls[0].surfaceUserId).toBe("U_42");
+    expect(tr.calls[0].surface).toBe("test-channel");
+  });
+
+  test("resume declined: cancelRecess + onDeclined called", async () => {
+    const declinedCalls = [];
+    const tr = {
+      resolve: async () => ({
+        kind: "link_required",
+        authorizeUrl: "https://example.com/auth",
+      }),
+    };
+    env = buildEnv({
+      tokenResolver: tr,
+      onDeclined: async (ctx, outcome) => {
+        declinedCalls.push({
+          discussion_id: ctx.discussion_id,
+          kind: outcome.kind,
+        });
+      },
+    });
+    const ctx = makeCtx();
+    await env.store.add(ctx);
+    env.scheduler.enterRecess(
+      ctx,
+      "corr-dec",
+      {
+        kind: "missing_input",
+        replies: 1,
+      },
+      "U_1",
+    );
+    ctx.history.push({ role: "user", text: "trigger" });
+    await env.scheduler.processInbound(ctx);
+    expect(ctx.open_rfcs["corr-dec"]).toBeUndefined();
+    expect(declinedCalls).toHaveLength(1);
+    expect(declinedCalls[0].kind).toBe("link_required");
+  });
+
+  test("RFC missing requester: cancel + skip, dispatch not called", async () => {
+    const tr = makeTokenResolver();
+    env = buildEnv({ tokenResolver: tr });
+    const ctx = makeCtx();
+    await env.store.add(ctx);
+    ctx.open_rfcs["corr-old"] = {
+      trigger: { kind: "missing_input", replies: 1 },
+      opened_at: Date.now(),
+      history_index_at_open: 0,
+    };
+    ctx.history.push({ role: "user", text: "trigger" });
+    await env.scheduler.processInbound(ctx);
+    expect(ctx.open_rfcs["corr-old"]).toBeUndefined();
+    expect(tr.calls).toHaveLength(0);
+    expect(fetchStub.calls).toHaveLength(0);
   });
 });

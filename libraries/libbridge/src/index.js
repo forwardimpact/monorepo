@@ -24,6 +24,7 @@ export {
   DEFAULT_TYPING_VERBS,
 } from "./acknowledgement.js";
 export { Dispatcher } from "./dispatcher.js";
+export { TokenResolver } from "./token-resolver.js";
 export {
   CallbackHandlerError,
   createCallbackHandler,
