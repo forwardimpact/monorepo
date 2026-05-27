@@ -10,7 +10,7 @@ import { MsBridgeService } from "./index.js";
 
 const config = await createServiceConfig("msbridge", {
   protocol: "http",
-  port: 3978,
+  port: 3009,
   github_repo: "",
   callback_base_url: "",
 });

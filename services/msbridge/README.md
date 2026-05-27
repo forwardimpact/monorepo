@@ -22,7 +22,7 @@ Configuration (loaded via `createServiceConfig("msbridge")`):
 
 | Env var | Purpose |
 | --- | --- |
-| `SERVICE_MSBRIDGE_URL` | Listen URL (default `http://localhost:3978`) |
+| `SERVICE_MSBRIDGE_URL` | Listen URL (default `http://localhost:3009`) |
 | `SERVICE_MSBRIDGE_GITHUB_REPO` | `owner/repo` target |
 | `SERVICE_MSBRIDGE_CALLBACK_BASE_URL` | Public URL the workflow POSTs callbacks to |
 | `MICROSOFT_APP_ID` | Azure Bot application id |

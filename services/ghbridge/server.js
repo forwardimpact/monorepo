@@ -14,7 +14,7 @@ import { GhBridgeService } from "./index.js";
 
 const config = await createServiceConfig("ghbridge", {
   protocol: "http",
-  port: 8080,
+  port: 3008,
   github_repo: "",
   callback_base_url: "",
   app_id: "",

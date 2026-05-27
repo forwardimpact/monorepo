@@ -21,7 +21,7 @@ Configuration (loaded via `createServiceConfig("ghbridge")`):
 
 | Env var | Purpose |
 | --- | --- |
-| `SERVICE_GHBRIDGE_URL` | Listen URL (default `http://localhost:8080`) |
+| `SERVICE_GHBRIDGE_URL` | Listen URL (default `http://localhost:3008`) |
 | `SERVICE_GHBRIDGE_GITHUB_REPO` | `owner/repo` target |
 | `SERVICE_GHBRIDGE_CALLBACK_BASE_URL` | Public URL the workflow POSTs callbacks to |
 | `SERVICE_GHBRIDGE_APP_ID` | Kata App numeric id |
