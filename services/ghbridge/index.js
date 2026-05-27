@@ -80,21 +80,16 @@ export class GhBridgeService {
    * @param {import("@forwardimpact/libtelemetry").Tracer} deps.tracer
    * @param {import("@forwardimpact/libstorage").StorageInterface} deps.storage
    * @param {(secret: string, body: string, signature: string) => Promise<boolean>} deps.verifyWebhook
-   * @param {() => Promise<string>} deps.getInstallationToken
    * @param {(query: string, vars: object) => Promise<unknown>} deps.graphqlClient
    * @param {Acknowledgement} [deps.acknowledgement] - Override (tests)
    */
   constructor(config, deps) {
-    const { logger, tracer, storage, verifyWebhook, getInstallationToken } =
-      deps;
+    const { logger, tracer, storage, verifyWebhook } = deps;
     if (!logger) throw new Error("logger is required");
     if (!tracer) throw new Error("tracer is required");
     if (!storage) throw new Error("storage is required");
     if (typeof verifyWebhook !== "function") {
       throw new Error("verifyWebhook is required");
-    }
-    if (typeof getInstallationToken !== "function") {
-      throw new Error("getInstallationToken is required");
     }
     if (!deps.ghauthClient) throw new Error("ghauthClient is required");
     this.#config = config;
