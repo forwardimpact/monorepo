@@ -18,7 +18,7 @@ Configuration (loaded via `createServiceConfig("ghauth")`):
 
 | Env var | Purpose |
 | --- | --- |
-| `SERVICE_GHAUTH_URL` | Listen URL (default `grpc://localhost:3006`) |
+| `SERVICE_GHAUTH_URL` | Listen URL (default `grpc://localhost:3005`) |
 | `SERVICE_GHAUTH_CLIENT_ID` | Kata Agent User App client ID |
 | `SERVICE_GHAUTH_CLIENT_SECRET` | Kata Agent User App client secret |
 | `SERVICE_GHAUTH_LINK_BASE_URL` | Public URL of the `oauth` service (used in `LinkRequired.authorize_url`) |
