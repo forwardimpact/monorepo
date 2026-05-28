@@ -21,10 +21,17 @@ const rules = [
   { pattern: "\\bdesign[- ][0-9]{2,5}\\b" },
   { pattern: "\\bplan[- ][0-9]{2,5}\\b" },
   { pattern: "\\bissue[- ]?#?[0-9]{2,5}\\b" },
-  { pattern: "\\b(pr|pull)[- ]?#[0-9]{2,5}\\b" },
+  // Loose patterns: test fixtures naturally include synthetic IDs that look
+  // like cross-references ("(#42)", "PR #99"). Exclude **/test/** so the
+  // checker keeps catching real temporal references in production code
+  // without flagging assertion strings.
+  {
+    pattern: "\\b(pr|pull)[- ]?#[0-9]{2,5}\\b",
+    globs: ["!**/test/**"],
+  },
   { pattern: "\\bGH-[0-9]{2,5}\\b" },
-  { pattern: "\\(#[0-9]{2,5}\\)" },
-  { pattern: "[[:space:]]#[0-9]{2,5}\\b" },
+  { pattern: "\\(#[0-9]{2,5}\\)", globs: ["!**/test/**"] },
+  { pattern: "[[:space:]]#[0-9]{2,5}\\b", globs: ["!**/test/**"] },
   {
     pattern:
       "\\b(introduced|added|landed|shipped|removed) in (spec|design|plan|PR|issue)\\b",
