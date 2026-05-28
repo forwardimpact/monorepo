@@ -23,6 +23,7 @@ graph LR
         RS[ResumeScheduler]
         ACK[Acknowledgement]
         CB[createCallbackHandler]
+        TR[TokenResolver]
     end
     subgraph bridge["services/bridge"]
         IDX[BufferedIndex pair<br/>+ sweep timer]
@@ -36,11 +37,13 @@ graph LR
     GBI --> RS
     GBI --> ACK
     GBI --> CB
+    GBI --> TR
     GBI --> GCA
     MBI --> DSP
     MBI --> RS
     MBI --> ACK
     MBI --> CB
+    MBI --> TR
     MBI --> MCA
     DSP -.store contract.-> GCA
     DSP -.store contract.-> MCA
@@ -64,8 +67,8 @@ and it presents a store-shaped object to `Dispatcher` and
 | `services/bridge/` | New gRPC service. Follows the `services/CLAUDE.md` layout (server entry, implementation, `proto/`, `test/`) and the peer naming convention — a bare directory name (`bridge`, matching `services/{trace,graph,vector}`) with the `svc`-prefix carried only by the npm package (`@forwardimpact/svcbridge`). Sits beside its `ghbridge`/`msbridge` clients. Owns the only on-disk discussion and origin state and runs the periodic sweep. |
 | `services/bridge/proto/bridge.proto` | Declares `package bridge`, `service Bridge`, message `Discussion` (the persisted record the service stores; `service Bridge` leaves the bare `Discussion` name free of any service/message collision), `Origin`, `OpenRfc`, `Participant`, `ResumeTrigger`, plus a small set of request/response messages. |
 | `services/bridge/index.js` | Implements `Bridge` over two `BufferedIndex` stores constructed against one shared `StorageInterface` rooted at `data/bridges/`. The service's own config block is `service.bridge.*` (the registered name on `createServiceConfig("bridge")`). |
-| `services/{gh,ms}bridge/index.js` | Construct a `BridgeClient` at startup via `createClient("bridge", …)`. Wrap the client in a `DiscussionAdapter` (a small in-process object) and pass that adapter wherever the old `DiscussionContextStore` instance went. ghbridge calls `client.HasOrigin` / `client.RecordOrigin` from the webhook intake and reply paths without going through the adapter. |
-| `libraries/libbridge` | Loses `discussion-context.js` and `origin-index.js`. `ResumeScheduler` widens its store contract to consume `loadByCorrelation` and `listOpenRecesses` (see § Key decisions); everything else stays. |
+| `services/{gh,ms}bridge/index.js` | Construct a `BridgeClient` at startup alongside the existing `GhauthClient` (added by spec 1320 — both bridges already have a gRPC client dependency for per-user dispatch auth). Wrap the bridge client in a `DiscussionAdapter` (a small in-process object) and pass that adapter wherever the old `DiscussionContextStore` instance went. ghbridge calls `client.HasOrigin` / `client.RecordOrigin` from the webhook intake and reply paths without going through the adapter. |
+| `libraries/libbridge` | Loses `discussion-context.js` and `origin-index.js`. `ResumeScheduler` widens its store contract to consume `loadByCorrelation` and `listOpenRecesses` (see § Key decisions); `TokenResolver` and everything else stays. |
 
 ## Naming map
 

@@ -150,7 +150,7 @@ message SweepRequest { optional int64 now = 1; }
 message SweepResponse { int32 evicted_discussions = 1; int32 evicted_origins = 2; }
 ```
 
-`server.js` — defaults declared here, matching `services/ghbridge/server.js:15-24`:
+`server.js` — defaults declared here, matching `services/ghbridge/server.js:15-22`:
 
 ```js
 #!/usr/bin/env node
@@ -360,8 +360,8 @@ Re-export from `libmock/src/mock/index.js`. Bump `libmock` minor (new public exp
 
 | Today | Replace with |
 |---|---|
-| `if (!this.#store.loaded) await this.#store.loadData();` in `rearm()` (line 184); `for (const record of this.#store.index.values()) { ... open.due_at }` (lines 185-193) | `const refs = await this.#store.listOpenRecesses();` then `for (const { correlationId, dueAt } of refs) this.#elapsed.schedule(correlationId, dueAt);` |
-| `if (!this.#store.loaded) await this.#store.loadData();` + `for (const record of this.#store.index.values()) if (record?.open_rfcs?.[correlationId])` in `#findContextWithRfc()` (lines 246-252) | `const ctx = await this.#store.loadByCorrelation(correlationId); if (!ctx) return null; return { ctx, rfc: ctx.open_rfcs[correlationId] };` |
+| `if (!this.#store.loaded) await this.#store.loadData();` in `rearm()` (line 140); `for (const record of this.#store.index.values()) { ... open.due_at }` (lines 141-149) | `const refs = await this.#store.listOpenRecesses();` then `for (const { correlationId, dueAt } of refs) this.#elapsed.schedule(correlationId, dueAt);` |
+| `if (!this.#store.loaded) await this.#store.loadData();` + `for (const record of this.#store.index.values()) if (record?.open_rfcs?.[correlationId])` in `#findContextWithRfc()` (lines 222-230) | `const ctx = await this.#store.loadByCorrelation(correlationId); if (!ctx) return null; return { ctx, rfc: ctx.open_rfcs[correlationId] };` |
 
 `processInbound`, `enterRecess`, `cancelRecess`, and `#fireElapsed`'s `add`+`flush` tail are unchanged.
 
@@ -379,7 +379,7 @@ Add a `@typedef DiscussionAdapter` to `libraries/libbridge/src/index.js`'s typed
  */
 ```
 
-Update `dispatcher.js`, `callback-handler.js`, and `resume-scheduler.js` JSDoc to reference this typedef in place of `DiscussionContextStore`.
+Update `dispatcher.js`, `callback-handler.js`, `token-resolver.js`, and `resume-scheduler.js` JSDoc to reference this typedef in place of `DiscussionContextStore`. The `token-resolver.js` file (added by spec 1320) has no store dependency and is unaffected by the contract change; only its JSDoc type reference in `dispatcher.js` needs the `DiscussionContextStore` → `DiscussionAdapter` rename.
 
 Rewrite `resume-scheduler.test.js`, `dispatcher.test.js`, and `callback-handler.test.js` to drop `DiscussionContextStore`. Each builds a small in-memory `FakeAdapter` keyed by `id` with `loadByChannel`, `loadByCorrelation`, `listOpenRecesses`, `add`, `flush`, `shutdown` methods backed by a `Map`. Same coverage, smaller surface.
 
@@ -390,14 +390,14 @@ Rewrite `resume-scheduler.test.js`, `dispatcher.test.js`, and `callback-handler.
 - **Deleted:** `libraries/libbridge/src/discussion-context.js`, `libraries/libbridge/src/origin-index.js`, `libraries/libbridge/test/discussion-context.test.js`, `libraries/libbridge/test/origin-index.test.js`
 - **Modified:** `libraries/libbridge/src/index.js`, `libraries/libbridge/package.json`
 
-Drop the two export lines at `libraries/libbridge/src/index.js:19-20` (`DiscussionContextStore` and `OriginIndex`). Bump `libbridge` minor (`0.x` breaking surface change).
+Drop the two export lines at `libraries/libbridge/src/index.js:19-20` (`DiscussionContextStore` and `OriginIndex`). All other exports — including `TokenResolver` (line 27, added by spec 1320), `ProgressTicker` (line 21), and the typedef block — remain. Bump `libbridge` minor (`0.x` breaking surface change).
 
 **Verify:** `bun test libraries/libbridge/test/*.test.js` exits 0; `bun run check` exits 0 (no orphan imports).
 
 ## Step 9 — ghbridge: adapter + direct origin calls
 
 - **Created:** `services/ghbridge/src/discussion-adapter.js`
-- **Modified:** `services/ghbridge/index.js`, `services/ghbridge/server.js`, `services/ghbridge/package.json`, `services/ghbridge/test/webhook.test.js`, `services/ghbridge/test/callback.test.js`, `services/ghbridge/test/resume.test.js`
+- **Modified:** `services/ghbridge/index.js`, `services/ghbridge/server.js`, `services/ghbridge/package.json`, `services/ghbridge/test/webhook.test.js`, `services/ghbridge/test/callback.test.js`, `services/ghbridge/test/resume.test.js`, `services/ghbridge/test/dispatch-auth.test.js`, `services/ghbridge/test/reply-path.test.js`, `services/ghbridge/test/startup.test.js`
 
 `discussion-adapter.js` — typed-message construction at every call site (the generated client throws `TypeError` if `req` is not an instance of the proto message; see `generated/services/trace/client.js:31-35`):
 
@@ -441,31 +441,31 @@ export class DiscussionAdapter {
 
 `ghbridge/index.js`:
 
-- Drop `DiscussionContextStore` and `OriginIndex` from the libbridge import.
+- Drop `DiscussionContextStore` and `OriginIndex` from the libbridge import. Keep `TokenResolver` and all other imports (spec 1320 added `TokenResolver`; the full current import list is `Acknowledgement`, `CallbackRegistry`, `DiscussionContextStore`, `Dispatcher`, `OriginIndex`, `RateLimiter`, `ResumeScheduler`, `TokenResolver`, `appendHistory`, `buildPrompt`, `createBridgeServer`, `createCallbackHandler`, `newDiscussionContext`, `normalizeBaseUrl`, `validateCallbackPayload`).
 - Add `import { DiscussionAdapter } from "./src/discussion-adapter.js";` and `import { bridge } from "@forwardimpact/libtype";`. No alias is needed: `#handleDiscussionCreated` and `#handleDiscussionComment` declare a `const discussion = body.discussion;` local, but the libtype namespace is now `bridge`, so it no longer collides with that local.
-- Constructor signature: replace `storage` dep with `discussionClient`. Wrap once: `this.#store = new DiscussionAdapter(discussionClient); this.#client = discussionClient;`. Hand `this.#store` to `Dispatcher`, `ResumeScheduler`, `createCallbackHandler` exactly as before. Drop `#origins` field entirely.
+- Constructor signature: replace `storage` dep with `discussionClient`. Keep `ghauthClient` (added by spec 1320 — the constructor validates it at line 94 and passes `new TokenResolver(deps.ghauthClient)` to `Dispatcher`). Wrap once: `this.#store = new DiscussionAdapter(discussionClient); this.#client = discussionClient;`. Hand `this.#store` to `Dispatcher`, `ResumeScheduler`, `createCallbackHandler` exactly as before. Drop `#origins` field entirely.
 - In `#handleDiscussionComment`: replace `await this.#origins.has(commentId)` with `(await this.#client.HasOrigin(bridge.OriginKey.fromObject({ id: commentId }))).exists`.
-- In `#handleReply`: the `recordOrigin` callback becomes `async (comment) => this.#client.RecordOrigin(bridge.Origin.fromObject({ id: comment.id, discussion_id: ctx.discussion_id, posted_at: Date.now() }))`. Drop the trailing `await this.#origins.flush()`.
+- In `#handleReply`: the `recordOrigin` callback becomes `async (comment) => this.#client.RecordOrigin(bridge.Origin.fromObject({ id: comment.id, discussion_id: ctx.discussion_id, posted_at: Date.now() }))`. Drop the trailing `await this.#origins.flush()`. The `#renderDeclined` method (added by spec 1320) also has `recordOrigin` callbacks with `this.#origins.add` and `this.#origins.flush()` — apply the same transformation there.
 - In `stop()`: the sequence is now `this.#resume.clear(); await this.#bridge.stop();` — `await this.#origins.shutdown()` and `await this.#store.shutdown()` both go away (the adapter's `shutdown()` is a no-op; the service owns buffer draining via librpc's SIGTERM handler).
 
 `ghbridge/server.js`:
 
-- Drop `createStorage` import and the `const storage = createStorage("bridges/ghbridge");` line.
-- Add `import { createClient } from "@forwardimpact/librpc";` and `const discussionClient = await createClient("bridge", logger, tracer);`.
-- Replace `storage` with `discussionClient` on the deps object.
+- Drop `createStorage` import (line 9) and the `const storage = createStorage("bridges/ghbridge");` line (line 26).
+- The file already imports `{ clients, createTracer }` from `@forwardimpact/librpc` (line 10, added by spec 1320 for `GhauthClient`). Add `BridgeClient` to the destructured `clients` import: `const { GhauthClient, BridgeClient } = clients;`. Construct `const bridgeConfig = await createServiceConfig("bridge");` and `const discussionClient = new BridgeClient(bridgeConfig, logger, tracer);` alongside the existing `ghauthClient` construction (lines 46-48).
+- Replace `storage` with `discussionClient` on the deps object (line 53). Keep `ghauthClient` (line 57).
 
 `ghbridge/package.json`: drop `@forwardimpact/libstorage` dep; ensure `@forwardimpact/libtype` is added (used by `discussion-adapter.js`). Bump minor.
 
-Tests: swap `storage: createMockStorage()` for `discussionClient: createMockDiscussionClient({ /* per-test overrides */ })`. The self-echo test in `webhook.test.js` configures `HasOrigin` to resolve `{ exists: true }` for the seeded comment id and asserts dispatch is skipped. `resume.test.js` configures the mock `discussionClient` so `LoadDiscussion` returns the seeded record, `LoadDiscussionByCorrelation` returns it under the open RFC's correlation id, and `ListOpenRecesses` returns `{ refs: [{ correlation_id, due_at }] }` so `rearm()` arms the elapsed timer.
+Tests: swap `storage: createMockStorage()` for `discussionClient: createMockDiscussionClient({ /* per-test overrides */ })`. Keep the existing `ghauthClient` mock (added by spec 1320 — see `dispatch-auth.test.js` and `startup.test.js`). The self-echo test in `webhook.test.js` configures `HasOrigin` to resolve `{ exists: true }` for the seeded comment id and asserts dispatch is skipped. `resume.test.js` configures the mock `discussionClient` so `LoadDiscussion` returns the seeded record, `LoadDiscussionByCorrelation` returns it under the open RFC's correlation id, and `ListOpenRecesses` returns `{ refs: [{ correlation_id, due_at }] }` so `rearm()` arms the elapsed timer. `dispatch-auth.test.js`, `reply-path.test.js`, and `startup.test.js` (added by spec 1320) need the same `storage` → `discussionClient` swap.
 
 **Verify:** `bun test services/ghbridge/test/*.test.js` exits 0.
 
 ## Step 10 — msbridge: adapter
 
 - **Created:** `services/msbridge/src/discussion-adapter.js` (same shape as Step 9; extraction to a shared module is a follow-up if a third bridge ever lands)
-- **Modified:** `services/msbridge/index.js`, `services/msbridge/server.js`, `services/msbridge/package.json`, `services/msbridge/test/msbridge.test.js`, `services/msbridge/test/resume.test.js`
+- **Modified:** `services/msbridge/index.js`, `services/msbridge/server.js`, `services/msbridge/package.json`, `services/msbridge/test/msbridge.test.js`, `services/msbridge/test/resume.test.js`, `services/msbridge/test/dispatch-auth.test.js`, `services/msbridge/test/startup.test.js`
 
-Mirror Step 9 minus the origin paths (msbridge has no `OriginIndex` import today). Drop the libstorage dep from `package.json`; add `libtype`; bump minor.
+Mirror Step 9 minus the origin paths (msbridge has no `OriginIndex` import today). msbridge already has the `ghauthClient` dependency (spec 1320 — `server.js` imports `{ clients }` from librpc at line 6 and constructs `GhauthClient` at lines 20-22; `index.js` constructor validates it at line 77 and passes `new TokenResolver(ghauthClient)` to `Dispatcher`). Add `BridgeClient` alongside `GhauthClient` following the same pattern as Step 9. Drop the libstorage dep from `package.json`; add `libtype`; bump minor.
 
 **Verify:** `bun test services/msbridge/test/*.test.js` exits 0.
 
@@ -490,7 +490,7 @@ Mirror Step 9 minus the origin paths (msbridge has no `OriginIndex` import today
 
 `services/CLAUDE.md`:
 
-- Drop the "Discussion index — `data/bridges/{ghbridge,msbridge}/discussions.jsonl`" example from § Runtime data; replace with: "Bridge discussion + origin state — owned by `services/bridge`, persisted at `data/bridges/discussions.jsonl` and `data/bridges/origins.jsonl`."
+- In § Runtime data, replace `indexes in `data/bridges/<name>/` (managed by `libindex`)` with: `bridge discussion + origin state at `data/bridges/discussions.jsonl` and `data/bridges/origins.jsonl` (owned by `services/bridge`)`.
 
 **Verify:** `bun run context` exits 0 (no doc length / jsdoc breaks).
 

@@ -75,11 +75,12 @@ today no such service exists.
 - `libbridge` retains only the channel-agnostic primitives that have
   no shared state of their own — the acknowledgement and
   callback-handling primitives, the dispatcher, the resume scheduler,
-  the rate limiter, the prompt/history/trigger helpers, and the bridge
-  HTTP wiring. The discussion-store and origin-index classes leave the
-  package. The record factory and payload validator stay because the
-  bridges still construct the record locally before sending it to the
-  service.
+  the rate limiter, the token resolver (per-user dispatch auth via
+  `ghauth`, added by spec 1320), the prompt/history/trigger helpers,
+  and the bridge HTTP wiring. The discussion-store and origin-index
+  classes leave the package. The record factory and payload validator
+  stay because the bridges still construct the record locally before
+  sending it to the service.
 - The persisted record shape is unchanged, including the per-record
   `pending_callbacks` map that pairs callback tokens with correlation
   ids across restarts. The in-memory callback-token registry the
