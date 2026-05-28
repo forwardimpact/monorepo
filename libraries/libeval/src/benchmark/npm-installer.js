@@ -11,6 +11,7 @@ import { spawn as nodeSpawn } from "node:child_process";
 import { access, cp } from "node:fs/promises";
 import { join } from "node:path";
 
+/** Run `bun install` in the family root and stage node_modules/ for per-task CWDs. */
 export class NpmInstaller {
   /**
    * @param {object} [deps]

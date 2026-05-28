@@ -1,12 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
-import {
-  access,
-  mkdir,
-  mkdtemp,
-  rm,
-  writeFile,
-} from "node:fs/promises";
+import { access, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -101,7 +95,10 @@ describe("NpmInstaller.install", () => {
   test("propagates non-zero exit codes from bun", async () => {
     await setup();
     const family = await makeFamilyWithPkg(dir);
-    const fakeSpawn = makeFakeSpawn({ exitCode: 1, stderr: "resolution failed" });
+    const fakeSpawn = makeFakeSpawn({
+      exitCode: 1,
+      stderr: "resolution failed",
+    });
     const installer = createNpmInstaller({ spawn: fakeSpawn });
     await assert.rejects(
       installer.install(family, stagingDir),

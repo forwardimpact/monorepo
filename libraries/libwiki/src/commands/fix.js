@@ -10,6 +10,7 @@ import {
 import { RULES } from "../audit/rules.js";
 import { buildContext, resolveScope } from "../audit/scopes.js";
 
+/** Run the wiki audit and auto-fix findings via a Haiku-powered AgentRunner. */
 export async function runFixCommand(values, _args, _cli) {
   const finder = new Finder(fsAsync, { debug() {} }, process);
   const projectRoot = finder.findProjectRoot(process.cwd());
@@ -26,7 +27,11 @@ export async function runFixCommand(values, _args, _cli) {
 
   const auditText = emitFindingsText(findings, { cwd: projectRoot });
   const redactor = createRedactor();
-  const devNull = new Writable({ write(_c, _e, cb) { cb(); } });
+  const devNull = new Writable({
+    write(_c, _e, cb) {
+      cb();
+    },
+  });
 
   const systemPrompt = composeProfilePrompt("technical-writer", {
     profilesDir: path.resolve(projectRoot, ".claude/agents"),
