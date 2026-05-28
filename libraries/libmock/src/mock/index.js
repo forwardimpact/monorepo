@@ -25,6 +25,7 @@ export {
 } from "./clients.js";
 export { createMockServiceCallbacks } from "./service-callbacks.js";
 export { createMockFs } from "./fs.js";
+export { createMockClock } from "./clock.js";
 export { spy } from "./spy.js";
 export {
   createMockSupabaseClient,

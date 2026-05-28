@@ -8,15 +8,16 @@ import {
   parseClaims,
   filterExpired,
 } from "../active-claims.js";
+import { createDefaultIo } from "../io.js";
 
-function projectRoot() {
+function projectRoot(io) {
   const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, process);
-  return finder.findProjectRoot(process.cwd());
+  const finder = new Finder(fsAsync, logger, { cwd: io.cwd });
+  return finder.findProjectRoot(io.cwd());
 }
 
-function memoryPath(values) {
-  const root = projectRoot();
+function memoryPath(values, io) {
+  const root = projectRoot(io);
   const wikiRoot = values["wiki-root"] || path.join(root, "wiki");
   return path.join(wikiRoot, "MEMORY.md");
 }
@@ -33,19 +34,19 @@ function addDays(today, n) {
 }
 
 /** Insert a row into MEMORY.md `## Active Claims`. Refuses if (agent, target) already present. */
-export function runClaimCommand(values, _args, cli) {
-  const agent = values.agent || process.env.LIBEVAL_AGENT_PROFILE;
+export function runClaimCommand(values, _args, cli, io = createDefaultIo()) {
+  const agent = values.agent || io.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
     cli.usageError("claim requires --agent or LIBEVAL_AGENT_PROFILE");
-    process.exit(2);
+    return io.exit(2);
   }
   if (!values.target || !values.branch) {
     cli.usageError("claim requires --target and --branch");
-    process.exit(2);
+    return io.exit(2);
   }
-  const today = values.today || new Date().toISOString().slice(0, 10);
+  const today = values.today || io.today();
   const expires = values["expires-at"] || addDays(today, 7);
-  const memPath = memoryPath(values);
+  const memPath = memoryPath(values, io);
   const text = readMemory(memPath);
   const result = appendClaim(text, {
     agent,
@@ -56,22 +57,20 @@ export function runClaimCommand(values, _args, cli) {
     expires_at: expires,
   });
   if (!result.inserted) {
-    process.stderr.write(
-      `claim already exists for ${agent}/${values.target}\n`,
-    );
-    process.exit(2);
+    io.stderr(`claim already exists for ${agent}/${values.target}\n`);
+    return io.exit(2);
   }
   writeFileSync(memPath, result.text);
-  process.stdout.write(`claimed ${values.target} (expires ${expires})\n`);
+  io.stdout(`claimed ${values.target} (expires ${expires})\n`);
 }
 
 /** Remove a claim row. `--expired` cleans every row past expires_at. */
-export function runReleaseCommand(values, _args, cli) {
-  const memPath = memoryPath(values);
+export function runReleaseCommand(values, _args, cli, io = createDefaultIo()) {
+  const memPath = memoryPath(values, io);
   const text = readMemory(memPath);
 
   if (values.expired) {
-    const today = values.today || new Date().toISOString().slice(0, 10);
+    const today = values.today || io.today();
     const claims = parseClaims(text);
     const { expired } = filterExpired(claims, today);
     let current = text;
@@ -84,24 +83,24 @@ export function runReleaseCommand(values, _args, cli) {
       }
     }
     writeFileSync(memPath, current);
-    process.stdout.write(`released ${count} expired claim(s)\n`);
+    io.stdout(`released ${count} expired claim(s)\n`);
     return;
   }
 
-  const agent = values.agent || process.env.LIBEVAL_AGENT_PROFILE;
+  const agent = values.agent || io.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
     cli.usageError("release requires --agent or --expired");
-    process.exit(2);
+    return io.exit(2);
   }
   if (!values.target) {
     cli.usageError("release requires --target (or --expired)");
-    process.exit(2);
+    return io.exit(2);
   }
   const result = removeClaim(text, { agent, target: values.target });
   writeFileSync(memPath, result.text);
   if (!result.removed) {
-    process.stdout.write(`no matching claim for ${agent}/${values.target}\n`);
+    io.stdout(`no matching claim for ${agent}/${values.target}\n`);
   } else {
-    process.stdout.write(`released ${values.target}\n`);
+    io.stdout(`released ${values.target}\n`);
   }
 }

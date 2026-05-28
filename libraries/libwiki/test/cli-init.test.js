@@ -1,4 +1,4 @@
-import { describe, test, beforeEach } from "node:test";
+import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import {
   mkdtempSync,
@@ -6,17 +6,14 @@ import {
   existsSync,
   writeFileSync,
   readFileSync,
-  rmSync,
 } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { execFileSync } from "node:child_process";
 import { WikiRepo } from "../src/wiki-repo.js";
 import { listSkills } from "../src/skill-roster.js";
-import { deriveWikiUrl } from "../src/commands/init.js";
+import { deriveWikiUrl, runInitCommand } from "../src/commands/init.js";
+import { createTestIo, runWithIo } from "../src/io.js";
 import { git, createBareRepo, seedBareRepo } from "./helpers.js";
-
-const CLI_PATH = new URL("../bin/fit-wiki.js", import.meta.url).pathname;
 
 describe("init command", () => {
   let projectDir;
@@ -158,36 +155,43 @@ describe("deriveWikiUrl", () => {
 describe("init Active Claims scaffolding", () => {
   let dir;
   let wikiRoot;
+  let io;
+  // runInitCommand calls createScriptConfig("wiki") which reads
+  // process.env.GH_TOKEN directly (it predates io.env injection), so the
+  // global needs a value for the test to reach the scaffolding step.
+  let priorGhToken;
   beforeEach(() => {
+    priorGhToken = process.env.GH_TOKEN;
+    if (!process.env.GH_TOKEN) process.env.GH_TOKEN = "test-token";
     dir = mkdtempSync(join(tmpdir(), "init-active-"));
     wikiRoot = join(dir, "wiki");
     mkdirSync(wikiRoot, { recursive: true });
     writeFileSync(join(dir, "package.json"), '{"name":"root"}');
-  });
-
-  function runInit(env = {}) {
-    return execFileSync("node", [CLI_PATH, "init"], {
-      cwd: dir,
-      encoding: "utf-8",
-      // GH_TOKEN: ensure config.ghToken() resolves without invoking `gh auth`
-      // — clone of /nonexistent/repo.git fails by design, and init falls
-      // through to the local-only Active Claims scaffolding.
+    io = createTestIo({
+      cwd: () => dir,
+      // FIT_WIKI_URL points at a non-existent path so the clone fails
+      // cleanly; the handler falls through to the local-only scaffolding.
       env: {
         ...process.env,
-        ...env,
         FIT_WIKI_URL: "/nonexistent/repo.git",
-        GH_TOKEN: process.env.GH_TOKEN || "test-token",
       },
-      stdio: "pipe",
     });
+  });
+  afterEach(() => {
+    if (priorGhToken === undefined) delete process.env.GH_TOKEN;
+    else process.env.GH_TOKEN = priorGhToken;
+  });
+
+  async function runInit() {
+    return runWithIo(() => runInitCommand({}, [], null, io));
   }
 
-  test("scaffolds ## Active Claims in MEMORY.md when absent", () => {
+  test("scaffolds ## Active Claims in MEMORY.md when absent", async () => {
     writeFileSync(
       join(wikiRoot, "MEMORY.md"),
       "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
     );
-    runInit();
+    await runInit();
     const text = readFileSync(join(wikiRoot, "MEMORY.md"), "utf-8");
     assert.match(text, /## Active Claims/);
     assert.match(
@@ -196,13 +200,13 @@ describe("init Active Claims scaffolding", () => {
     );
   });
 
-  test("idempotent — second init does not duplicate Active Claims", () => {
+  test("idempotent — second init does not duplicate Active Claims", async () => {
     writeFileSync(
       join(wikiRoot, "MEMORY.md"),
       "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
     );
-    runInit();
-    runInit();
+    await runInit();
+    await runInit();
     const text = readFileSync(join(wikiRoot, "MEMORY.md"), "utf-8");
     const matches = text.match(/## Active Claims/g) || [];
     assert.equal(matches.length, 1);

@@ -37,6 +37,10 @@ export function createMockTracer(overrides = {}) {
       trace_id: `trace-${Date.now()}`,
       name,
       ...options,
+      addEvent: spy(),
+      setOk: spy(),
+      setError: spy(),
+      end: spy(async () => {}),
     })),
     startClientSpan: spy((_service, _method) => ({
       span: {

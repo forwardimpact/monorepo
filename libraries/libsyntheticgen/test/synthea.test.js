@@ -4,9 +4,10 @@ import { SyntheaTool } from "../src/tools/synthea.js";
 import {
   assertRejectsMessage,
   assertThrowsMessage,
+  createSilentLogger,
 } from "@forwardimpact/libmock";
 
-const logger = { info() {}, error() {} };
+const logger = createSilentLogger();
 
 describe("SyntheaTool", () => {
   test("requires all dependencies", () => {

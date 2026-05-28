@@ -8,14 +8,17 @@ import grpc from "@grpc/grpc-js";
 export class HmacAuth {
   #secret;
   #tokenLifetimeMs;
+  #now;
 
   /**
    * Creates a new HMAC authenticator instance
    * @param {string} secret - Shared secret key for HMAC generation (minimum 32 characters)
    * @param {number} tokenLifetimeSeconds - Token lifetime in seconds (default: 60)
+   * @param {object} [options] - Optional collaborators
+   * @param {() => number} [options.now] - Injectable clock (default: Date.now)
    * @throws {Error} When secret is too short or invalid
    */
-  constructor(secret, tokenLifetimeSeconds = 60) {
+  constructor(secret, tokenLifetimeSeconds = 60, { now = Date.now } = {}) {
     if (!secret || typeof secret !== "string") {
       throw new Error("Secret must be a non-empty string");
     }
@@ -28,6 +31,7 @@ export class HmacAuth {
 
     this.#secret = secret;
     this.#tokenLifetimeMs = tokenLifetimeSeconds * 1000;
+    this.#now = now;
   }
 
   /**
@@ -41,7 +45,7 @@ export class HmacAuth {
       throw new Error("Service ID must be a non-empty string");
     }
 
-    const timestamp = Date.now();
+    const timestamp = this.#now();
     const payload = `${serviceId}:${timestamp}`;
     const signature = crypto
       .createHmac("sha256", this.#secret)
@@ -92,7 +96,7 @@ export class HmacAuth {
       }
 
       // Check token expiration
-      const now = Date.now();
+      const now = this.#now();
       if (now - timestamp > this.#tokenLifetimeMs) {
         return {
           isValid: false,

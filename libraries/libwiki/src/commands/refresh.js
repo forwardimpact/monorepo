@@ -7,16 +7,16 @@ import { createScriptConfig } from "@forwardimpact/libconfig";
 import { scanMarkers } from "../marker-scanner.js";
 import { renderBlock, BlockRenderError } from "../block-renderer.js";
 import { renderIssueList, parseRepoSlug } from "../issue-list-renderer.js";
+import { createDefaultIo } from "../io.js";
 
-function currentStoryboardPath() {
-  const now = new Date();
+function currentStoryboardPath(now = new Date()) {
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   return `wiki/storyboard-${yyyy}-M${mm}.md`;
 }
 
-function deriveParentRepo(parentDir) {
-  if (process.env.FIT_GH_REPO) return process.env.FIT_GH_REPO;
+function deriveParentRepo(parentDir, env) {
+  if (env.FIT_GH_REPO) return env.FIT_GH_REPO;
   const r = spawnSync("git", ["-C", parentDir, "remote", "get-url", "origin"], {
     encoding: "utf-8",
     stdio: "pipe",
@@ -55,10 +55,15 @@ function spliceBlock(lines, block, rendered) {
 }
 
 /** Re-render XmR chart blocks and issue-list blocks in a storyboard file. */
-export async function runRefreshCommand(values, args, _cli) {
+export async function runRefreshCommand(
+  values,
+  args,
+  _cli,
+  io = createDefaultIo(),
+) {
   const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, process);
-  const projectRoot = finder.findProjectRoot(process.cwd());
+  const finder = new Finder(fsAsync, logger, { cwd: io.cwd });
+  const projectRoot = finder.findProjectRoot(io.cwd());
 
   const storyboardPath = path.resolve(
     projectRoot,
@@ -84,7 +89,7 @@ export async function runRefreshCommand(values, args, _cli) {
   // overrides the parsed origin.
   const ghContext = {
     cwd: projectRoot,
-    repo: deriveParentRepo(projectRoot),
+    repo: deriveParentRepo(projectRoot, io.env),
     token,
   };
 
@@ -100,7 +105,7 @@ export async function runRefreshCommand(values, args, _cli) {
       spliced = true;
     } catch (err) {
       if (!(err instanceof BlockRenderError)) throw err;
-      process.stderr.write(
+      io.stderr(
         `refresh-error ${storyboardPath}:${block.openLine + 1} ${err.message}\n`,
       );
     }
@@ -108,8 +113,6 @@ export async function runRefreshCommand(values, args, _cli) {
 
   if (spliced) writeFileSync(storyboardPath, lines.join("\n"));
   if (values && values.format === "json") {
-    process.stdout.write(
-      JSON.stringify({ blocks: blocks.length, spliced }) + "\n",
-    );
+    io.stdout(JSON.stringify({ blocks: blocks.length, spliced }) + "\n");
   }
 }

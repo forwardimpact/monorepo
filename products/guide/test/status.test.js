@@ -1,5 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
+import { createMockFs } from "@forwardimpact/libmock";
 import { runStatus } from "../src/lib/status.js";
 
 /**
@@ -91,12 +92,6 @@ function createMockHealthDefinition() {
       requestStream: false,
       responseStream: false,
     },
-  };
-}
-
-function createMockFs() {
-  return {
-    readdir: async () => [],
   };
 }
 

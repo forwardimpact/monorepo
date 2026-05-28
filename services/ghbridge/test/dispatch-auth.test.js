@@ -4,21 +4,10 @@ import {
   createMockConfig,
   createMockLogger,
   createMockStorage,
+  createMockTracer,
 } from "@forwardimpact/libmock";
 
 import { GhBridgeService } from "../index.js";
-
-function makeTracer() {
-  const noop = () => {};
-  return {
-    startSpan: () => ({
-      addEvent: noop,
-      setOk: noop,
-      setError: noop,
-      end: async () => {},
-    }),
-  };
-}
 
 const SECRET = "ghbridge-test-secret-long-enough";
 
@@ -84,7 +73,7 @@ describe("ghbridge dispatch-auth", () => {
     let commentCounter = 0;
     return new GhBridgeService(makeConfig(), {
       logger: createMockLogger(),
-      tracer: makeTracer(),
+      tracer: createMockTracer(),
       storage: createMockStorage(),
       verifyWebhook: (s, b, sig) =>
         import("@octokit/webhooks-methods").then((m) => m.verify(s, b, sig)),

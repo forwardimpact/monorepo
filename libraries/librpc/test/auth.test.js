@@ -2,7 +2,7 @@ import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { createAuth, HmacAuth } from "../src/index.js";
-import { assertThrowsMessage } from "@forwardimpact/libmock";
+import { assertThrowsMessage, createMockClock } from "@forwardimpact/libmock";
 
 describe("Auth", () => {
   describe("HmacAuth", () => {
@@ -30,16 +30,18 @@ describe("Auth", () => {
       assert.strictEqual(result.serviceId, serviceId);
     });
 
-    test("should reject expired tokens", async () => {
+    test("should reject expired tokens", () => {
       const secret = "test-secret-that-is-at-least-32-characters-long";
-      // 1 second lifetime
-      const auth = new HmacAuth(secret, 1);
+      // 1 second lifetime, with an injected clock so the test doesn't
+      // have to sleep through real time.
+      const clock = createMockClock({ start: 1_000_000 });
+      const auth = new HmacAuth(secret, 1, { now: clock.now });
       const serviceId = "test-service";
 
       const token = auth.generateToken(serviceId);
 
-      // Wait for token to expire (1.1 seconds)
-      await new Promise((resolve) => setTimeout(resolve, 1100));
+      // Move past the 1-second lifetime.
+      clock.advance(1100);
 
       const result = auth.verifyToken(token);
       assert.strictEqual(result.isValid, false);

@@ -5,7 +5,9 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
 
-const CLI_PATH = new URL("../bin/fit-wiki.js", import.meta.url).pathname;
+import { runRefreshCommand } from "../src/commands/refresh.js";
+import { createTestIo, runWithIo } from "../src/io.js";
+
 const HEADER = "date,metric,value,unit,run,note";
 
 function makeCSV(metric, values) {
@@ -23,29 +25,26 @@ function createProject() {
   return dir;
 }
 
-function run(cwd, storyboardPath) {
-  return execFileSync("node", [CLI_PATH, "refresh", storyboardPath], {
-    cwd,
-    encoding: "utf-8",
-    env: { ...process.env, PATH: process.env.PATH },
-    stdio: "pipe",
-  });
+async function refresh(cwd, storyboardPath) {
+  const io = createTestIo({ cwd: () => cwd });
+  await runWithIo(() => runRefreshCommand({}, [storyboardPath], null, io));
+  return io;
 }
 
 describe("fit-wiki refresh CLI", () => {
-  test("no markers — file unchanged", () => {
+  test("no markers — file unchanged", async () => {
     const dir = createProject();
     const storyboard = join(dir, "storyboard.md");
     const original = "# Storyboard\n\nSome prose.\n";
     writeFileSync(storyboard, original);
 
-    run(dir, "storyboard.md");
+    await refresh(dir, "storyboard.md");
 
     const after = readFileSync(storyboard, "utf-8");
     assert.equal(after, original);
   });
 
-  test("one marker — block regenerated with chart", () => {
+  test("one marker — block regenerated with chart", async () => {
     const dir = createProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");
     mkdirSync(csvDir, { recursive: true });
@@ -64,7 +63,7 @@ describe("fit-wiki refresh CLI", () => {
       ].join("\n"),
     );
 
-    run(dir, "storyboard.md");
+    await refresh(dir, "storyboard.md");
 
     const after = readFileSync(storyboard, "utf-8");
     assert.ok(after.includes("**Signals:**"));
@@ -73,7 +72,7 @@ describe("fit-wiki refresh CLI", () => {
     assert.ok(!after.includes("old content here"));
   });
 
-  test("idempotent — second refresh produces same output", () => {
+  test("idempotent — second refresh produces same output", async () => {
     const dir = createProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");
     mkdirSync(csvDir, { recursive: true });
@@ -90,16 +89,16 @@ describe("fit-wiki refresh CLI", () => {
       ].join("\n"),
     );
 
-    run(dir, "storyboard.md");
+    await refresh(dir, "storyboard.md");
     const after1 = readFileSync(storyboard, "utf-8");
 
-    run(dir, "storyboard.md");
+    await refresh(dir, "storyboard.md");
     const after2 = readFileSync(storyboard, "utf-8");
 
     assert.equal(after1, after2);
   });
 
-  test("two markers — both blocks regenerated", () => {
+  test("two markers — both blocks regenerated", async () => {
     const dir = createProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");
     mkdirSync(csvDir, { recursive: true });
@@ -136,7 +135,7 @@ describe("fit-wiki refresh CLI", () => {
       ].join("\n"),
     );
 
-    run(dir, "storyboard.md");
+    await refresh(dir, "storyboard.md");
 
     const after = readFileSync(storyboard, "utf-8");
     const signalsCount = (after.match(/\*\*Signals:\*\*/g) || []).length;
@@ -145,7 +144,7 @@ describe("fit-wiki refresh CLI", () => {
     assert.ok(!after.includes("old beta"));
   });
 
-  test("missing CSV — block unchanged, exit 0", () => {
+  test("missing CSV — block unchanged, exit 0", async () => {
     const dir = createProject();
     const storyboard = join(dir, "storyboard.md");
     const original = [
@@ -155,13 +154,13 @@ describe("fit-wiki refresh CLI", () => {
     ].join("\n");
     writeFileSync(storyboard, original);
 
-    run(dir, "storyboard.md");
+    await refresh(dir, "storyboard.md");
 
     const after = readFileSync(storyboard, "utf-8");
     assert.ok(after.includes("preserved content"));
   });
 
-  test("working-directory independence", () => {
+  test("working-directory independence", async () => {
     const dir = createProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");
     mkdirSync(csvDir, { recursive: true });
@@ -183,19 +182,15 @@ describe("fit-wiki refresh CLI", () => {
     const subdir = join(dir, "deep", "nested");
     mkdirSync(subdir, { recursive: true });
 
-    execFileSync("node", [CLI_PATH, "refresh", "storyboard.md"], {
-      cwd: subdir,
-      encoding: "utf-8",
-      env: { ...process.env, PATH: process.env.PATH },
-      stdio: "pipe",
-    });
+    // Run from a deep subdir; project-root resolution must climb to dir.
+    await refresh(subdir, "storyboard.md");
 
     const after = readFileSync(storyboard, "utf-8");
     assert.ok(after.includes("**Signals:**"));
     assert.ok(!after.includes("old"));
   });
 
-  test("defaults to current month storyboard when no path given", () => {
+  test("defaults to current month storyboard when no path given", async () => {
     const dir = createProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");
     mkdirSync(csvDir, { recursive: true });
@@ -218,12 +213,8 @@ describe("fit-wiki refresh CLI", () => {
       ].join("\n"),
     );
 
-    execFileSync("node", [CLI_PATH, "refresh"], {
-      cwd: dir,
-      encoding: "utf-8",
-      env: { ...process.env, PATH: process.env.PATH },
-      stdio: "pipe",
-    });
+    const io = createTestIo({ cwd: () => dir });
+    await runWithIo(() => runRefreshCommand({}, [], null, io));
 
     const after = readFileSync(defaultPath, "utf-8");
     assert.ok(after.includes("**Signals:**"));

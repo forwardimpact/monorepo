@@ -4,21 +4,10 @@ import {
   createMockConfig,
   createMockLogger,
   createMockStorage,
+  createMockTracer,
 } from "@forwardimpact/libmock";
 
 import { MsBridgeService } from "../index.js";
-
-function makeTracer() {
-  const noop = () => {};
-  return {
-    startSpan: () => ({
-      addEvent: noop,
-      setOk: noop,
-      setError: noop,
-      end: async () => {},
-    }),
-  };
-}
 
 function makeConfig(configOverrides = {}) {
   return createMockConfig("msbridge", {
@@ -115,7 +104,7 @@ describe("msbridge resume", () => {
   function buildService() {
     return new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
-      tracer: makeTracer(),
+      tracer: createMockTracer(),
       storage,
       ghauthClient: makeGhauthClient(),
       adapter,

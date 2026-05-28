@@ -1,16 +1,18 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
-import { spy } from "@forwardimpact/libmock";
+import { createMockClock, spy } from "@forwardimpact/libmock";
 
 // Module under test
 import { Retry } from "../src/retry.js";
 
 describe("Retry", () => {
   let retry;
+  let clock;
 
   beforeEach(() => {
-    // Use very short delay for testing to speed up retry tests
-    retry = new Retry({ delay: 1 });
+    // Mock clock collapses every backoff sleep to a microtask.
+    clock = createMockClock();
+    retry = new Retry({ delay: 1, sleep: clock.sleep });
   });
 
   test("creates retry instance with default config", () => {
