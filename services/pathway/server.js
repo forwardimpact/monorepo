@@ -13,7 +13,7 @@ import fs from "fs/promises";
 import { PathwayService } from "./index.js";
 
 const config = await createServiceConfig("pathway", {
-  dataDir: "",
+  data_dir: "",
 });
 
 // Initialize observability
@@ -22,10 +22,10 @@ const tracer = await createTracer("pathway");
 
 // Resolve the pathway data directory using the same upward-walk + HOME
 // fallback rules as fit-pathway. SERVICE_PATHWAY_DATA_DIR (picked up by
-// libconfig and exposed as config.dataDir) overrides the discovery.
+// libconfig and exposed as config.data_dir) overrides the discovery.
 const finder = new Finder(fs, logger, process);
-const dataDir = config.dataDir
-  ? String(config.dataDir)
+const data_dir = config.data_dir
+  ? String(config.data_dir)
   : join(finder.findData("data", homedir()), "pathway");
 
 // Three-call load sequence matching products/pathway/src/commands/agent.js.
@@ -33,9 +33,9 @@ const dataDir = config.dataDir
 // loadSkillsWithAgentData spreads the full raw skill, which is the shape
 // generateAgentProfile walks. Both are required.
 const loader = createDataLoader();
-const data = await loader.loadAllData(dataDir);
-const agentData = await loader.loadAgentData(dataDir);
-const skillsWithAgent = await loader.loadSkillsWithAgentData(dataDir);
+const data = await loader.loadAllData(data_dir);
+const agentData = await loader.loadAgentData(data_dir);
+const skillsWithAgent = await loader.loadSkillsWithAgentData(data_dir);
 
 const service = new PathwayService(config, {
   data,

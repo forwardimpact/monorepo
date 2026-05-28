@@ -105,7 +105,7 @@ async function dispatchNewSession(req, res, ctx) {
  *
  * Each client session gets its own McpServer + transport pair, because the
  * MCP SDK's Protocol only supports one transport at a time. The system prompt
- * is read from config.systemPrompt and served via the guide-default MCP prompt.
+ * is read from config.system_prompt and served via the guide-default MCP prompt.
  *
  * @param {{ config: object, logger: object, graphClient: object, vectorClient: object, pathwayClient: object, mapClient: object, resourceIndex: object }} deps
  * @returns {{ start: () => Promise<void> }}
@@ -148,7 +148,7 @@ export function createMcpService({
   }
 
   async function start() {
-    const promptText = buildPromptText(config.systemPrompt, config.tools);
+    const promptText = buildPromptText(config.system_prompt, config.tools);
     const host = config.host || "0.0.0.0";
     const port = config.port || 3005;
     const expectedToken = config.mcpToken();

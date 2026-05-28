@@ -10,20 +10,20 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { EmbeddingService } from "./index.js";
 
 const config = await createServiceConfig("embedding", {
-  backendPort: 8090,
+  backend_port: 8090,
   model: "BAAI/bge-small-en-v1.5",
 });
 
 const logger = createLogger("embedding");
 const tracer = await createTracer("embedding");
 
-const backendPort = config.backendPort;
+const backend_port = config.backend_port;
 const model = config.model;
-const backendUrl = `http://127.0.0.1:${backendPort}`;
+const backendUrl = `http://127.0.0.1:${backend_port}`;
 
 const tei = spawn(
   "text-embeddings-router",
-  ["--model-id", model, "--port", String(backendPort), "--json-output"],
+  ["--model-id", model, "--port", String(backend_port), "--json-output"],
   { stdio: "inherit" },
 );
 

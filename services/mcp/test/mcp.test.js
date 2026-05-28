@@ -12,7 +12,7 @@ function createMockConfig() {
     host: "127.0.0.1",
     port: 0,
     mcpToken: () => "test-bearer-token",
-    systemPrompt: "You are Guide, a test agent.",
+    system_prompt: "You are Guide, a test agent.",
     tools: {
       get_ontology: {
         method: "graph.Graph.GetOntology",
