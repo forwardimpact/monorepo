@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package bridge;
+
+import "common.proto";
+
+service Bridge {
+  rpc LoadDiscussion(LoadDiscussionRequest) returns (Discussion);
+  rpc LoadDiscussionByCorrelation(LoadByCorrelationRequest) returns (Discussion);
+  rpc ListOpenRecesses(common.Empty) returns (OpenRecessList);
+  rpc SaveDiscussion(Discussion) returns (common.Empty);
+  rpc HasOrigin(OriginKey) returns (HasOriginResponse);
+  rpc RecordOrigin(Origin) returns (common.Empty);
+  rpc Sweep(SweepRequest) returns (SweepResponse);
+}
+
+message Discussion {
+  string id = 1;
+  string channel = 2;
+  string discussion_id = 3;
+  string lead = 4;
+  int64 last_active_at = 5;
+  repeated int64 dispatches = 6;
+  repeated HistoryEntry history = 7;
+  repeated Participant participants = 8;
+  map<string, OpenRfc> open_rfcs = 9;
+  map<string, string> pending_callbacks = 10;
+}
+
+message HistoryEntry { string role = 1; string text = 2; }
+message Participant {
+  string name = 1; string kind = 2;
+  optional string external_id = 3; string metadata_json = 4;
+}
+message ResumeTrigger {
+  string kind = 1;
+  optional int64 replies = 2;
+  optional string elapsed = 3;
+}
+message OpenRfc {
+  ResumeTrigger trigger = 1;
+  int64 opened_at = 2;
+  int64 history_index_at_open = 3;
+  optional int64 due_at = 4;
+  optional string requester = 5;
+}
+message Origin { string id = 1; string discussion_id = 2; int64 posted_at = 3; }
+
+message LoadDiscussionRequest { string channel = 1; string discussion_id = 2; }
+message LoadByCorrelationRequest { string correlation_id = 1; }
+message OriginKey { string id = 1; }
+message HasOriginResponse { bool exists = 1; }
+message OpenRecessRef { string correlation_id = 1; int64 due_at = 2; }
+message OpenRecessList { repeated OpenRecessRef refs = 1; }
+message SweepRequest { optional int64 now = 1; }
+message SweepResponse { int32 evicted_discussions = 1; int32 evicted_origins = 2; }

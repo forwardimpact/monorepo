@@ -20,10 +20,8 @@
     },
     "libraries/libbridge": {
       "name": "@forwardimpact/libbridge",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "dependencies": {
-        "@forwardimpact/libindex": "^0.1.38",
-        "@forwardimpact/libstorage": "^0.1.78",
         "@forwardimpact/libtype": "^0.1.0",
         "@hono/node-server": "^2.0.4",
         "hono": "^4.12.23",
@@ -198,7 +196,7 @@
     },
     "libraries/libmock": {
       "name": "@forwardimpact/libmock",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "peerDependencies": {
         "@forwardimpact/libtype": "*",
       },
@@ -287,7 +285,7 @@
     },
     "libraries/librpc": {
       "name": "@forwardimpact/librpc",
-      "version": "0.1.102",
+      "version": "0.1.103",
       "bin": {
         "fit-unary": "./bin/fit-unary.js",
       },
@@ -724,6 +722,25 @@
         "@supabase/supabase-js": "^2.106.2",
       },
     },
+    "services/bridge": {
+      "name": "@forwardimpact/svcbridge",
+      "version": "0.1.0",
+      "bin": {
+        "fit-svcbridge": "./server.js",
+      },
+      "dependencies": {
+        "@forwardimpact/libconfig": "^0.1.58",
+        "@forwardimpact/libindex": "^0.1.27",
+        "@forwardimpact/libpreflight": "^0.1.0",
+        "@forwardimpact/librpc": "^0.1.77",
+        "@forwardimpact/libstorage": "^0.1.53",
+        "@forwardimpact/libtelemetry": "^0.1.41",
+        "@forwardimpact/libtype": "^0.1.63",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
+      },
+    },
     "services/embedding": {
       "name": "@forwardimpact/svcembedding",
       "version": "0.1.0",
@@ -761,7 +778,7 @@
     },
     "services/ghbridge": {
       "name": "@forwardimpact/svcghbridge",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bin": {
         "fit-svcghbridge": "./server.js",
       },
@@ -770,8 +787,8 @@
         "@forwardimpact/libconfig": "^0.1.79",
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/librpc": "^0.1.99",
-        "@forwardimpact/libstorage": "^0.1.78",
         "@forwardimpact/libtelemetry": "^0.1.42",
+        "@forwardimpact/libtype": "^0.1.63",
         "@octokit/auth-app": "^8.2.0",
         "@octokit/graphql": "^9.0.3",
         "@octokit/webhooks-methods": "^6.0.0",
@@ -843,7 +860,7 @@
     },
     "services/msbridge": {
       "name": "@forwardimpact/svcmsbridge",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bin": {
         "fit-svcmsbridge": "./server.js",
       },
@@ -852,8 +869,8 @@
         "@forwardimpact/libconfig": "^0.1.79",
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/librpc": "^0.1.99",
-        "@forwardimpact/libstorage": "^0.1.78",
         "@forwardimpact/libtelemetry": "^0.1.42",
+        "@forwardimpact/libtype": "^0.1.63",
         "botbuilder": "^4.23.3",
       },
       "devDependencies": {
@@ -1220,6 +1237,8 @@
     "@forwardimpact/pathway": ["@forwardimpact/pathway@workspace:products/pathway"],
 
     "@forwardimpact/summit": ["@forwardimpact/summit@workspace:products/summit"],
+
+    "@forwardimpact/svcbridge": ["@forwardimpact/svcbridge@workspace:services/bridge"],
 
     "@forwardimpact/svcembedding": ["@forwardimpact/svcembedding@workspace:services/embedding"],
 

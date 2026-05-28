@@ -1,0 +1,63 @@
+{
+  "name": "@forwardimpact/svcbridge",
+  "version": "0.1.0",
+  "description": "Canonical threaded-discussion store — single source of truth for GitHub/Microsoft Teams bridge state.",
+  "keywords": [
+    "discussion",
+    "bridges",
+    "store",
+    "grpc",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "services/bridge"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Platform Builders",
+      "goal": "Share Threaded Conversation State Across Bridges",
+      "trigger": "Adding a second bridge and realizing each one owns its own private store with no way to query across channels.",
+      "bigHire": "share threaded conversation state across bridges without each one managing its own storage.",
+      "littleHire": "load or save a discussion record and trust it is visible to every bridge.",
+      "competesWith": "per-bridge JSONL files; in-process discussion stores; tolerating the partition"
+    }
+  ],
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "fit-svcbridge": "./server.js"
+  },
+  "files": [
+    "proto/",
+    "server.js"
+  ],
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "bunx download && bun server.js",
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libconfig": "^0.1.58",
+    "@forwardimpact/libindex": "^0.1.27",
+    "@forwardimpact/libpreflight": "^0.1.0",
+    "@forwardimpact/librpc": "^0.1.77",
+    "@forwardimpact/libstorage": "^0.1.53",
+    "@forwardimpact/libtelemetry": "^0.1.41",
+    "@forwardimpact/libtype": "^0.1.63"
+  },
+  "devDependencies": {
+    "@forwardimpact/libmock": "^0.1.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
