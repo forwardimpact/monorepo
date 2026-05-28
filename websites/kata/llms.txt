@@ -1,0 +1,17 @@
+# Kata Agent Team
+
+> An autonomous, continuously improving agent team organized as a daily
+> Plan-Do-Study-Act cycle. Six agents, sixteen skills, plain JavaScript,
+> zero infrastructure to maintain.
+
+Kata is an open-source agent team for coding repositories. Six agent
+personas — Staff Engineer, Release Engineer, Security Engineer, Product
+Manager, Technical Writer, and Improvement Coach — operate the daily
+Plan-Do-Study-Act cycle through sixteen skills. The team runs on plain
+JavaScript with no databases, no queues, and no third-party dependencies;
+shared state lives as markdown in a Git repository.
+
+Install via `apm install forwardimpact/kata-skills`, then ask Claude to set
+up the team.
+
+## Optional
