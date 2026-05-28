@@ -60,9 +60,17 @@ awk 'NR>1{printf "\\n"}{printf "%s",$0}' path/to/your-key.pem
 
 Paste the output between double quotes after the `=`.
 
-Discussion context is persisted as JSONL under `data/bridges/ghbridge/`
-via `libstorage` (the standard `createStorage` path — no extra env var
-needed).
+Discussion state is owned by `services/bridge`; the bridge talks to it over
+gRPC. The bridge process keeps no on-disk discussion state of its own.
+Operators upgrading from a bridge that predates this service can safely
+delete legacy `data/bridges/ghbridge/` files; conversations in flight at
+cutover are un-resumable on the new service and the legacy files expire
+under their existing 24-hour TTL on disk regardless.
+
+## Service supervision
+
+If you supervise `ghbridge` via `fit-rc`, list `bridge` ahead of the bridge
+entries in `init.services` so `createClient('bridge', …)` resolves at startup.
 
 ## Running
 

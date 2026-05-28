@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcghbridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.",
   "keywords": [
     "github",
@@ -45,8 +45,8 @@
     "@forwardimpact/libconfig": "^0.1.79",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/librpc": "^0.1.99",
-    "@forwardimpact/libstorage": "^0.1.78",
     "@forwardimpact/libtelemetry": "^0.1.42",
+    "@forwardimpact/libtype": "^0.1.63",
     "@octokit/auth-app": "^8.2.0",
     "@octokit/graphql": "^9.0.3",
     "@octokit/webhooks-methods": "^6.0.0"

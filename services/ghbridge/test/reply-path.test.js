@@ -3,11 +3,11 @@ import { sign } from "@octokit/webhooks-methods";
 import {
   createMockConfig,
   createMockLogger,
-  createMockStorage,
   createMockTracer,
 } from "@forwardimpact/libmock";
 
 import { GhBridgeService } from "../index.js";
+import { createStatefulDiscussionClient } from "./helpers.js";
 import { ADD_DISCUSSION_COMMENT_MUTATION } from "../src/graphql.js";
 
 const SECRET = "ghbridge-test-secret-long-enough";
@@ -45,7 +45,7 @@ describe("ghbridge reply path", () => {
     service = new GhBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
-      storage: createMockStorage(),
+      discussionClient: createStatefulDiscussionClient(),
       verifyWebhook: (s, b, sig) =>
         import("@octokit/webhooks-methods").then((m) => m.verify(s, b, sig)),
       getInstallationToken: async () => "ghs_installation_token",

@@ -2,7 +2,6 @@
 import "@forwardimpact/libpreflight/node22";
 
 import { createServiceConfig } from "@forwardimpact/libconfig";
-import { createStorage } from "@forwardimpact/libstorage";
 import { clients, createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
@@ -15,16 +14,16 @@ const config = await createServiceConfig("msbridge", {
 const logger = createLogger("msbridge");
 const tracer = await createTracer("msbridge");
 
-const storage = createStorage("bridges/msbridge");
-
-const { GhauthClient } = clients;
+const { GhauthClient, BridgeClient } = clients;
 const ghauthConfig = await createServiceConfig("ghauth");
 const ghauthClient = new GhauthClient(ghauthConfig, logger, tracer);
+const bridgeConfig = await createServiceConfig("bridge");
+const discussionClient = new BridgeClient(bridgeConfig, logger, tracer);
 
 const service = new MsBridgeService(config, {
   logger,
   tracer,
-  storage,
+  discussionClient,
   ghauthClient,
 });
 await service.start();

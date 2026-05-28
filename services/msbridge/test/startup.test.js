@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   createMockConfig,
   createMockLogger,
-  createMockStorage,
+  createMockDiscussionClient,
   createMockTracer,
 } from "@forwardimpact/libmock";
 
@@ -44,7 +44,7 @@ describe("msbridge startup", () => {
         new MsBridgeService(makeConfig(), {
           logger: createMockLogger(),
           tracer: createMockTracer(),
-          storage: createMockStorage(),
+          discussionClient: createMockDiscussionClient(),
           adapter: makeAdapter(),
         }),
     ).toThrow("ghauthClient is required");

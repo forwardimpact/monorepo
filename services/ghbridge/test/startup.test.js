@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   createMockConfig,
   createMockLogger,
-  createMockStorage,
+  createMockDiscussionClient,
   createMockTracer,
 } from "@forwardimpact/libmock";
 
@@ -26,7 +26,7 @@ describe("ghbridge startup", () => {
         new GhBridgeService(makeConfig(), {
           logger: createMockLogger(),
           tracer: createMockTracer(),
-          storage: createMockStorage(),
+          discussionClient: createMockDiscussionClient(),
           verifyWebhook: async () => true,
           getInstallationToken: async () => "t",
           graphqlClient: async () => ({}),

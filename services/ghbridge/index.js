@@ -1,9 +1,7 @@
 import {
   Acknowledgement,
   CallbackRegistry,
-  DiscussionContextStore,
   Dispatcher,
-  OriginIndex,
   RateLimiter,
   ResumeScheduler,
   TokenResolver,
@@ -15,7 +13,9 @@ import {
   normalizeBaseUrl,
   validateCallbackPayload,
 } from "@forwardimpact/libbridge";
+import { bridge } from "@forwardimpact/libtype";
 
+import { DiscussionAdapter } from "./src/discussion-adapter.js";
 import {
   ADD_REACTION_MUTATION,
   REMOVE_REACTION_MUTATION,
@@ -62,7 +62,7 @@ export class GhBridgeService {
   #verifyWebhook;
   #graphqlClient;
   #store;
-  #origins;
+  #client;
   #callbacks;
   #rateLimiter;
   #ack;
@@ -78,16 +78,16 @@ export class GhBridgeService {
    * @param {object} deps
    * @param {import("@forwardimpact/libtelemetry").Logger} deps.logger
    * @param {import("@forwardimpact/libtelemetry").Tracer} deps.tracer
-   * @param {import("@forwardimpact/libstorage").StorageInterface} deps.storage
+   * @param {object} deps.discussionClient - BridgeClient instance
    * @param {(secret: string, body: string, signature: string) => Promise<boolean>} deps.verifyWebhook
    * @param {(query: string, vars: object) => Promise<unknown>} deps.graphqlClient
    * @param {Acknowledgement} [deps.acknowledgement] - Override (tests)
    */
   constructor(config, deps) {
-    const { logger, tracer, storage, verifyWebhook } = deps;
+    const { logger, tracer, discussionClient, verifyWebhook } = deps;
     if (!logger) throw new Error("logger is required");
     if (!tracer) throw new Error("tracer is required");
-    if (!storage) throw new Error("storage is required");
+    if (!discussionClient) throw new Error("discussionClient is required");
     if (typeof verifyWebhook !== "function") {
       throw new Error("verifyWebhook is required");
     }
@@ -98,8 +98,8 @@ export class GhBridgeService {
     this.#verifyWebhook = verifyWebhook;
     this.#graphqlClient = deps.graphqlClient;
 
-    this.#store = new DiscussionContextStore(storage);
-    this.#origins = new OriginIndex(storage);
+    this.#store = new DiscussionAdapter(discussionClient);
+    this.#client = discussionClient;
     this.#callbacks = new CallbackRegistry();
     this.#rateLimiter = new RateLimiter();
     this.#ack =
@@ -150,7 +150,7 @@ export class GhBridgeService {
     });
   }
 
-  /** @returns {import("@forwardimpact/libbridge").DiscussionContextStore} */
+  /** @returns {import("@forwardimpact/libbridge").DiscussionAdapter} */
   get store() {
     return this.#store;
   }
@@ -180,8 +180,6 @@ export class GhBridgeService {
   async stop() {
     this.#resume.clear();
     await this.#bridge.stop();
-    await this.#origins.shutdown();
-    await this.#store.shutdown();
   }
 
   async #handleWebhook(c) {
@@ -284,7 +282,14 @@ export class GhBridgeService {
     const discussion = body.discussion;
     const comment = body.comment;
     const commentId = comment?.node_id;
-    if (commentId && (await this.#origins.has(commentId))) {
+    if (
+      commentId &&
+      (
+        await this.#client.HasOrigin(
+          bridge.OriginKey.fromObject({ id: commentId }),
+        )
+      ).exists
+    ) {
       this.#logger.debug("webhook", "skipping self-originated comment", {
         comment_id: commentId,
       });
@@ -351,11 +356,13 @@ export class GhBridgeService {
 
   async #handleReply(ctx, payload, meta) {
     const recordOrigin = async (comment) => {
-      await this.#origins.add({
-        id: comment.id,
-        discussion_id: ctx.discussion_id,
-        posted_at: Date.now(),
-      });
+      await this.#client.RecordOrigin(
+        bridge.Origin.fromObject({
+          id: comment.id,
+          discussion_id: ctx.discussion_id,
+          posted_at: Date.now(),
+        }),
+      );
     };
 
     await postDiscussionReplies(
@@ -410,8 +417,6 @@ export class GhBridgeService {
         }
         break;
     }
-
-    await this.#origins.flush();
   }
 
   async #renderDeclined(ctx, outcome) {
@@ -432,11 +437,13 @@ export class GhBridgeService {
         return;
     }
     const recordOrigin = async (comment) => {
-      await this.#origins.add({
-        id: comment.id,
-        discussion_id: ctx.discussion_id,
-        posted_at: Date.now(),
-      });
+      await this.#client.RecordOrigin(
+        bridge.Origin.fromObject({
+          id: comment.id,
+          discussion_id: ctx.discussion_id,
+          posted_at: Date.now(),
+        }),
+      );
     };
     await postSingleDiscussionReply(
       this.#graphqlClient,
@@ -444,7 +451,6 @@ export class GhBridgeService {
       body,
       recordOrigin,
     );
-    await this.#origins.flush();
   }
 
   async #loadOrCreateContext(discussionId, discussion) {

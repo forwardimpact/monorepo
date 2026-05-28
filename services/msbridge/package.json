@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcmsbridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Microsoft Teams bridge onto libbridge — relay messages between Teams conversations and the Kata agent team.",
   "keywords": [
     "teams",
@@ -44,8 +44,8 @@
     "@forwardimpact/libconfig": "^0.1.79",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/librpc": "^0.1.99",
-    "@forwardimpact/libstorage": "^0.1.78",
     "@forwardimpact/libtelemetry": "^0.1.42",
+    "@forwardimpact/libtype": "^0.1.63",
     "botbuilder": "^4.23.3"
   },
   "devDependencies": {

@@ -2,7 +2,6 @@ import {
   Acknowledgement,
   CallbackHandlerError,
   CallbackRegistry,
-  DiscussionContextStore,
   Dispatcher,
   RateLimiter,
   ResumeScheduler,
@@ -15,6 +14,8 @@ import {
   normalizeBaseUrl,
   validateCallbackPayload,
 } from "@forwardimpact/libbridge";
+
+import { DiscussionAdapter } from "./src/discussion-adapter.js";
 
 import {
   TurnContext,
@@ -62,18 +63,25 @@ export class MsBridgeService {
    * @param {object} deps
    * @param {import("@forwardimpact/libtelemetry").Logger} deps.logger
    * @param {import("@forwardimpact/libtelemetry").Tracer} deps.tracer
-   * @param {import("@forwardimpact/libstorage").StorageInterface} deps.storage
+   * @param {object} deps.discussionClient - BridgeClient instance
    * @param {object} deps.ghauthClient - ghauth gRPC client
    * @param {object} [deps.adapter] - Bot Framework adapter override (tests)
    * @param {Acknowledgement} [deps.acknowledgement] - Override (tests)
    */
   constructor(
     config,
-    { logger, tracer, storage, ghauthClient, adapter, acknowledgement },
+    {
+      logger,
+      tracer,
+      discussionClient,
+      ghauthClient,
+      adapter,
+      acknowledgement,
+    },
   ) {
     if (!logger) throw new Error("logger is required");
     if (!tracer) throw new Error("tracer is required");
-    if (!storage) throw new Error("storage is required");
+    if (!discussionClient) throw new Error("discussionClient is required");
     if (!ghauthClient) throw new Error("ghauthClient is required");
     this.#logger = logger;
     this.#tracer = tracer;
@@ -92,7 +100,7 @@ export class MsBridgeService {
       }
     };
 
-    this.#store = new DiscussionContextStore(storage);
+    this.#store = new DiscussionAdapter(discussionClient);
     this.#callbacks = new CallbackRegistry();
     this.#rateLimiter = new RateLimiter();
     this.#ack =
@@ -147,7 +155,7 @@ export class MsBridgeService {
     });
   }
 
-  /** @returns {import("@forwardimpact/libbridge").DiscussionContextStore} */
+  /** @returns {import("@forwardimpact/libbridge").DiscussionAdapter} */
   get store() {
     return this.#store;
   }
@@ -182,7 +190,6 @@ export class MsBridgeService {
   async stop() {
     this.#resume.clear();
     await this.#bridge.stop();
-    await this.#store.shutdown();
   }
 
   async #handleNewMessage(context) {

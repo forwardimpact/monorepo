@@ -11,6 +11,7 @@ that let agents consume backend functionality natively.
 
 | Service       | Description                                                                                                                  |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **bridge**    | Canonical threaded-discussion store — single source of truth for GitHub/Microsoft Teams bridge state.                        |
 | **embedding** | Text embeddings over gRPC — semantic representation without each product running its own inference.                          |
 | **ghauth**    | GitHub user authentication — per-user OAuth token lifecycle for the Kata Agent User App.                                     |
 | **ghbridge**  | GitHub Discussions bridge — relay messages between GitHub Discussion threads and the Kata agent team.                        |
@@ -216,6 +217,24 @@ result when the binding is missing or revoked. → **ghauth**
 **Competes With:** per-surface OAuth implementations duplicating the
 authorization-code flow, token storage, and refresh logic across multiple bridge
 services.
+
+</job>
+
+<job user="Platform Builders" goal="Share Threaded Conversation State Across Bridges">
+
+## Platform Builders: Share Threaded Conversation State Across Bridges
+
+**Trigger:** Adding a second bridge and realizing each one owns its own private
+store with no way to query across channels.
+
+**Big Hire:** Help me share threaded conversation state across bridges without
+each one managing its own storage. → **bridge**
+
+**Little Hire:** Help me load or save a discussion record and trust it is
+visible to every bridge. → **bridge**
+
+**Competes With:** per-bridge JSONL files; in-process discussion stores;
+tolerating the partition.
 
 </job>
 

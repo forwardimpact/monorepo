@@ -6,7 +6,6 @@ import { graphql } from "@octokit/graphql";
 import { verify } from "@octokit/webhooks-methods";
 
 import { createServiceConfig } from "@forwardimpact/libconfig";
-import { createStorage } from "@forwardimpact/libstorage";
 import { clients, createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
@@ -22,8 +21,6 @@ const config = await createServiceConfig("ghbridge", {
 });
 const logger = createLogger("ghbridge");
 const tracer = await createTracer("ghbridge");
-
-const storage = createStorage("bridges/ghbridge");
 
 const appAuth = createAppAuth({
   appId: config.app_id,
@@ -43,14 +40,16 @@ const graphqlClient = async (query, variables) => {
   });
 };
 
-const { GhauthClient } = clients;
+const { GhauthClient, BridgeClient } = clients;
 const ghauthConfig = await createServiceConfig("ghauth");
 const ghauthClient = new GhauthClient(ghauthConfig, logger, tracer);
+const bridgeConfig = await createServiceConfig("bridge");
+const discussionClient = new BridgeClient(bridgeConfig, logger, tracer);
 
 const service = new GhBridgeService(config, {
   logger,
   tracer,
-  storage,
+  discussionClient,
   verifyWebhook: verify,
   getInstallationToken,
   graphqlClient,

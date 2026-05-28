@@ -3,11 +3,11 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
   createMockConfig,
   createMockLogger,
-  createMockStorage,
   createMockTracer,
 } from "@forwardimpact/libmock";
 
 import { MsBridgeService } from "../index.js";
+import { createStatefulDiscussionClient } from "./helpers.js";
 
 function makeConfig(configOverrides = {}) {
   return createMockConfig("msbridge", {
@@ -87,7 +87,7 @@ async function postMessage(baseUrl) {
   });
 }
 
-let storage;
+let discussionClient;
 
 describe("msbridge resume", () => {
   let baseUrl;
@@ -105,14 +105,14 @@ describe("msbridge resume", () => {
     return new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
-      storage,
+      discussionClient,
       ghauthClient: makeGhauthClient(),
       adapter,
     });
   }
 
   beforeEach(async () => {
-    storage = createMockStorage();
+    discussionClient = createStatefulDiscussionClient();
     dispatches = [];
     originalFetch = globalThis.fetch;
     globalThis.fetch = async (url, init) => {

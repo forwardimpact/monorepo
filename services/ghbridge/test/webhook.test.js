@@ -3,11 +3,11 @@ import { sign } from "@octokit/webhooks-methods";
 import {
   createMockConfig,
   createMockLogger,
-  createMockStorage,
   createMockTracer,
 } from "@forwardimpact/libmock";
 
 import { GhBridgeService } from "../index.js";
+import { createStatefulDiscussionClient } from "./helpers.js";
 
 const SECRET = "ghbridge-test-secret-long-enough";
 
@@ -51,11 +51,11 @@ function makeGhauthClient(token = "ghs_per_user") {
 async function newService({ dispatchImpl } = {}) {
   const harness = buildHarness({ dispatchImpl });
   const config = makeConfig();
-  const storage = createMockStorage();
+  const discussionClient = createStatefulDiscussionClient();
   const service = new GhBridgeService(config, {
     logger: createMockLogger(),
     tracer: createMockTracer(),
-    storage,
+    discussionClient,
     verifyWebhook: (s, b, sig) =>
       import("@octokit/webhooks-methods").then((m) => m.verify(s, b, sig)),
     getInstallationToken: async () => "ghs_test_token",

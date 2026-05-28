@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
 import {
   createMockConfig,
+  createMockDiscussionClient,
   createMockLogger,
-  createMockStorage,
   createMockTracer,
 } from "@forwardimpact/libmock";
 
@@ -13,6 +13,7 @@ import {
   buildPrompt,
   validateCallbackPayload,
 } from "../index.js";
+import { createStatefulDiscussionClient } from "./helpers.js";
 
 function makeConfig(overrides = {}) {
   return createMockConfig("msbridge", {
@@ -78,7 +79,7 @@ function newService({
   return new MsBridgeService(makeConfig(configOverrides), {
     logger: logger ?? createMockLogger(),
     tracer: createMockTracer(),
-    storage: createMockStorage(),
+    discussionClient: createStatefulDiscussionClient(),
     ghauthClient: ghauthClient ?? makeGhauthClient(),
     adapter: adapter ?? makeAdapter(),
   });
@@ -140,7 +141,7 @@ describe("msbridge service", () => {
         () =>
           new MsBridgeService(makeConfig(), {
             tracer: createMockTracer(),
-            storage: createMockStorage(),
+            discussionClient: createMockDiscussionClient(),
             adapter: makeAdapter(),
           }),
       ).toThrow("logger is required");
@@ -151,7 +152,7 @@ describe("msbridge service", () => {
         () =>
           new MsBridgeService(makeConfig(), {
             logger: createMockLogger(),
-            storage: createMockStorage(),
+            discussionClient: createMockDiscussionClient(),
             adapter: makeAdapter(),
           }),
       ).toThrow("tracer is required");
@@ -165,7 +166,7 @@ describe("msbridge service", () => {
             tracer: createMockTracer(),
             adapter: makeAdapter(),
           }),
-      ).toThrow("storage is required");
+      ).toThrow("discussionClient is required");
     });
   });
 

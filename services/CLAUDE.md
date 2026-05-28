@@ -109,7 +109,7 @@ bunx fit-rc restart <name>   # restart <name> and everything after it
 ## Runtime data
 
 Runtime data lives under `data/` — logs in `data/logs/<name>/current`,
-indexes in `data/bridges/<name>/` (managed by `libindex`).
+bridge discussion + origin state at `data/bridges/discussions.jsonl` and `data/bridges/origins.jsonl` (owned by `services/bridge`).
 
 ## Proto definitions
 

@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
 import {
   createMockConfig,
+  createMockDiscussionClient,
   createMockLogger,
-  createMockStorage,
   createMockTracer,
 } from "@forwardimpact/libmock";
 
@@ -106,7 +106,7 @@ describe("msbridge dispatch-auth", () => {
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
-      storage: createMockStorage(),
+      discussionClient: createMockDiscussionClient(),
       ghauthClient: client,
       adapter,
     });
@@ -149,7 +149,7 @@ describe("msbridge dispatch-auth", () => {
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
-      storage: createMockStorage(),
+      discussionClient: createMockDiscussionClient(),
       ghauthClient: client,
       adapter,
     });
@@ -185,7 +185,7 @@ describe("msbridge dispatch-auth", () => {
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
-      storage: createMockStorage(),
+      discussionClient: createMockDiscussionClient(),
       ghauthClient: client,
       adapter,
     });
@@ -218,7 +218,7 @@ describe("msbridge dispatch-auth", () => {
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
-      storage: createMockStorage(),
+      discussionClient: createMockDiscussionClient(),
       ghauthClient: client,
       adapter,
     });
@@ -252,7 +252,7 @@ describe("msbridge dispatch-auth", () => {
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
       tracer: createMockTracer(),
-      storage: createMockStorage(),
+      discussionClient: createMockDiscussionClient(),
       ghauthClient: client,
       adapter,
     });
