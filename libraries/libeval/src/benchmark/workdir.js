@@ -70,6 +70,11 @@ export class WorkdirManager {
     await cp(join(this.stagingDir, ".claude"), join(cwd, ".claude"), {
       recursive: true,
     });
+    await cp(join(this.stagingDir, "node_modules"), join(cwd, "node_modules"), {
+      recursive: true,
+    }).catch((e) => {
+      if (e.code !== "ENOENT") throw e;
+    });
 
     const envDirs = [
       ...(this.familyRootPath ? [this.familyRootPath] : []),

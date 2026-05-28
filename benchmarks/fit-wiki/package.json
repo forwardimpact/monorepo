@@ -1,0 +1,7 @@
+{
+  "name": "fit-wiki-benchmark",
+  "private": true,
+  "dependencies": {
+    "@forwardimpact/libwiki": "file:../../libraries/libwiki"
+  }
+}

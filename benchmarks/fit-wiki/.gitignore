@@ -1,0 +1,5 @@
+/.claude/
+/apm.lock.yaml
+/apm_modules/
+/node_modules/
+/bun.lock
