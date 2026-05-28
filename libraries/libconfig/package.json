@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libconfig",
-  "version": "0.1.81",
+  "version": "0.1.82",
   "description": "Environment-aware application settings — services and CLIs load configuration without custom plumbing.",
   "keywords": [
     "config",
