@@ -26,7 +26,14 @@ the per-user token.
 
 | Service | Why |
 | --- | --- |
+| `bridge` | Canonical discussion and origin store (gRPC) |
 | `ghauth` | Per-user GitHub token for `workflow_dispatch` |
+
+Discussion state is owned by `services/bridge`; the bridge talks to it
+over gRPC and keeps no on-disk discussion state of its own. Operators
+upgrading from a bridge that predates this service can safely delete
+legacy `data/bridges/ghbridge/` files; they expire under their existing
+24-hour TTL regardless.
 
 ### Configuration
 
@@ -59,13 +66,6 @@ awk 'NR>1{printf "\\n"}{printf "%s",$0}' path/to/your-key.pem
 ```
 
 Paste the output between double quotes after the `=`.
-
-Discussion state is owned by `services/bridge`; the bridge talks to it over
-gRPC. The bridge process keeps no on-disk discussion state of its own.
-Operators upgrading from a bridge that predates this service can safely
-delete legacy `data/bridges/ghbridge/` files; conversations in flight at
-cutover are un-resumable on the new service and the legacy files expire
-under their existing 24-hour TTL on disk regardless.
 
 ## Service supervision
 
@@ -125,7 +125,7 @@ restrictions, disconnect before starting.
 Open a new GitHub Discussion in the configured repository. The bridge:
 
 1. Verifies the `X-Hub-Signature-256` against the webhook secret.
-2. Persists a `DiscussionContext` record keyed by the discussion's `node_id`.
+2. Saves a discussion record to `services/bridge` keyed by the discussion's `node_id`.
 3. Dispatches `kata-dispatch.yml` via `workflow_dispatch`.
 4. Adds an "EYES" reaction to the discussion as a progress indicator.
 
