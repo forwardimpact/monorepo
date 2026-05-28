@@ -103,10 +103,8 @@ pattern, frontmatter opt-in). Choice deferred to design.
   the cadence is known to produce (decision-block, retro) without
   another spec round.
 - Admitted per-deliverable files remain subject to whatever other
-  wiki-audit rules apply to non-summary, non-weekly-log files (e.g.
-  agent-prefix consistency, ownership), if the design chooses to
-  apply any. The class is admitted; the file does not become a
-  rule-free zone.
+  wiki-audit rules the design chooses to apply to the new class.
+  The class is admitted; the file does not become a rule-free zone.
 - The design chooses the admission mechanism (suffix allowlist,
   generic pattern, frontmatter opt-in, or a combination) and the
   exact list of admitted categories at landing time. The spec
@@ -140,9 +138,9 @@ pattern, frontmatter opt-in). Choice deferred to design.
   not require a general frontmatter system for the wiki.
 - **`MEMORY.md`, `STATUS.md`, `Home.md` and weekly logs.** Already
   classified outside the stray-file path.
-- **External-consumer behaviour of `fit-wiki`** beyond what the new
-  admission rule requires. No change to the CLI surface, exit
-  codes, or JSON shape beyond reporting a new classification.
+- **External-consumer behaviour of `fit-wiki`**. CLI flags, exit
+  codes, and the JSON output schema stay backward-compatible; the
+  only intentional behaviour change lives inside the classifier.
 - **The audit's severity model.** `wiki.stray-file` keeps its
   `fail` severity for genuinely stray files. The change is *which
   files count as stray*, not how `stray` is reported.
@@ -151,11 +149,11 @@ pattern, frontmatter opt-in). Choice deferred to design.
 
 | Claim | Verifies via |
 |---|---|
-| The two observed per-deliverable categories pass the audit. | A fixture asserts that a `<agent>-<descriptor>-postmortem.md` filename and a `<agent>-<descriptor>-framing-draft.md` filename, each with arbitrary content, are classified as non-stray. |
+| The two observed per-deliverable categories pass the audit. | A fixture (shape chosen by the design to match the admission mechanism) asserts that a representative post-mortem instance and a representative framing-draft instance are classified as non-stray. |
 | Genuinely stray files still fail. | A fixture asserts that a wiki file with no agent prefix, no admitted suffix or pattern, no summary H1, and no weekly-log shape (e.g. a file named `random-notes.md` with an arbitrary first line) continues to fail `wiki.stray-file` at severity `fail`. |
 | The stray-file failure path points future agents at the admission mechanism. | Running the audit against a fixture containing an unrecognised per-deliverable-shaped filename emits a hint that either names the admission mechanism or links to the page documenting it. |
-| The staff Dim 5β post-mortem is re-filable as a standalone wiki file without breaking the audit. | A fixture asserts that re-filing the embedded section of the Dim 5β post-mortem (any heading level, any content) under a standalone filename matching the per-deliverable shape passes the audit. |
-| The change is confined to libwiki. | The implementation PR's diff touches `libraries/libwiki/` and the spec/design/plan tree under `specs/1350-wiki-audit-per-deliverable-files/`. Documentation updates required to surface the admission mechanism may live in libwiki's own documentation tree (its README, in-source hint string, or a libwiki-scoped guide); they do not touch unrelated services, `CONTRIBUTING.md`, the per-deliverable wiki files themselves, or weekly logs. |
+| Real previously-embedded content round-trips back to a standalone file without information loss. | A fixture asserts that the actual content of the Dim 5β post-mortem (currently embedded as an H2 inside the staff weekly log — bespoke H1, original heading structure, code blocks) is classified as non-stray when re-filed as a standalone per-deliverable file with its original heading levels restored. |
+| The change is confined to libwiki. | The implementation PR's diff touches only paths under `libraries/libwiki/` and the spec/design/plan tree under `specs/1350-wiki-audit-per-deliverable-files/`. No other library, service, top-level documentation (`CONTRIBUTING.md`, `CLAUDE.md`, `JTBD.md`), per-deliverable wiki file, or weekly log is modified. |
 | The `Context/wiki` check on `main` stays green when a per-deliverable file is filed. | After the implementation merges, a follow-up commit re-filing the staff Dim 5β post-mortem as a standalone wiki file (or any new per-deliverable file matching the admitted shape) leaves the next `Context/wiki` check on `main` at `success`. |
 
 — Product Manager 🌱
