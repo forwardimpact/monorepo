@@ -19,7 +19,7 @@ in the Map guide.
 - Node.js 22+
 - npm
 - Map's activity layer running and populated
-- A Supabase Auth JWT exported as `PRODUCT_LANDMARK_TOKEN` — see
+- A Landmark session created with `fit-landmark login` — see
   [Authentication](#authentication) below
 
 ## Install
@@ -30,25 +30,22 @@ npm install @forwardimpact/landmark
 
 ## Authentication
 
-Every Landmark command except `marker` reads `PRODUCT_LANDMARK_TOKEN` from the
-environment and rejects requests without it. The token is a Supabase Auth JWT
-bound to your email — row-level security uses the `email` claim to scope every
-query, so the token both authenticates you and determines what you can see.
+Every Landmark command except `marker` resolves the caller's identity from a
+Supabase Auth session. Row-level security uses the JWT's `email` claim to scope
+every query, so the session both authenticates you and determines what you can
+see.
 
 **There is no hosted Forward Impact service and no free tier.** Landmark reads
-from the Supabase project you stand up via Map. Production-side issuance flows
-(a `fit-landmark login` verb, magic-link delivery, SSO bridge) are a
-follow-up — until they land, leaders and operators obtain a token by signing
-one against `SUPABASE_JWT_SECRET`.
+from the Supabase project you stand up via Map.
 
-Today's minimum stand-up is four steps under Map:
+Today's minimum stand-up is three steps under Map plus one Landmark login:
 
 1. **Start the activity layer.** `npx fit-map activity start` brings the
-   Supabase stack up and prints a one-line ready confirmation. The stack
-   signs every token with `SUPABASE_JWT_SECRET`, which the bootstrap recipe
-   (`just env-setup` for monorepo contributors) writes to `.env` alongside
-   `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
-   Hosted Supabase users copy the same four values from Project Settings → API.
+   Supabase stack up and prints a one-line ready confirmation. The bootstrap
+   recipe (`just env-setup` for monorepo contributors) writes `SUPABASE_URL`,
+   `SUPABASE_ANON_KEY`, `SUPABASE_JWT_SECRET`, and `SUPABASE_SERVICE_ROLE_KEY`
+   to `.env`. Hosted Supabase users copy the same four values from Project
+   Settings → API.
 2. **Push the roster.** `npx fit-map people push ./people.yaml` populates
    `activity.organization_people`.
 3. **Provision auth users.** `npx fit-map people provision` reconciles
@@ -56,25 +53,29 @@ Today's minimum stand-up is four steps under Map:
    authenticable identity. See
    [Provision Engineer Auth Users](/docs/products/provisioning-engineers/) for
    the operator workflow.
-4. **Obtain a JWT for yourself.** HMAC-sign a Supabase-shaped JWT against
-   `SUPABASE_JWT_SECRET` with your manager email in the `email` claim, then
-   export it:
+4. **Sign in.** `npx fit-landmark login` walks Supabase's magic-link flow,
+   captures the session at a localhost callback, and stores it under
+   `~/.config/landmark/credentials.json` (0600). Subsequent commands resolve
+   identity automatically. Use `--otp` to skip the browser and paste the
+   six-digit code instead:
 
    ```sh
-   export PRODUCT_LANDMARK_TOKEN=<your signed JWT>
+   npx fit-landmark login --email you@example.com
+   npx fit-landmark login --email you@example.com --otp
    ```
 
-   The signing recipe — header `{alg: "HS256", typ: "JWT"}`, payload with
-   `email`, `aud: "authenticated"`, `role: "authenticated"`, and a future
-   `exp` — is the same shape Supabase Auth issues. The CI test helper at
-   `products/landmark/test/lib/sign-test-token.js` in the monorepo source
-   is a reference implementation.
+   For unattended agents and service accounts that cannot run an interactive
+   flow, an operator issues a signed JWT with `fit-map auth issue` instead —
+   see
+   [Issue Service-Account Tokens](/docs/products/issuing-service-account-tokens/)
+   and [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the
+   full flows.
 
-Once `PRODUCT_LANDMARK_TOKEN` is set, every command in the rest of this guide
-works against your scope. The token is not honored offline — there is no
-`--data`-only fallback for analytical commands today.
+Once you are signed in, every command in the rest of this guide works against
+your scope. `fit-landmark logout` deletes the local credentials file when you
+need to switch identity or revoke the session locally.
 
-For more on what data the token unlocks visibility into, see
+For more on what data the session unlocks visibility into, see
 [List Engineering Data Sources](/docs/products/engineering-data-sources/).
 
 ## View the organization

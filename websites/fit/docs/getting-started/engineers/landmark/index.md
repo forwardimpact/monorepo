@@ -18,16 +18,28 @@ agent-aligned engineering standard YAML.
 - Node.js 22+
 - npm
 - Map's activity layer running and populated (for most commands)
-- A Supabase Auth JWT exported as `PRODUCT_LANDMARK_TOKEN` for every command
-  except `marker` — see
-  [Authentication](/docs/getting-started/leaders/landmark/#authentication) in
-  the Landmark for Leaders guide for how the token is provisioned
+- A Landmark session created with `fit-landmark login` for every command except
+  `marker` — see [Sign In to Landmark](/docs/products/signing-in-to-landmark/)
+  for the full flow
 
 ## Install
 
 ```sh
 npm install @forwardimpact/landmark
 ```
+
+## Sign in
+
+```sh
+npx fit-landmark login --email you@example.com
+```
+
+`login` walks Supabase's magic-link flow and stores the session under
+`~/.config/landmark/credentials.json` (0600). Subsequent commands resolve your
+identity automatically. Use `--otp` to skip the browser and paste the
+six-digit code instead. If your email is not in the activity roster, login
+fails — your operator runs `fit-map people provision` to keep `auth.users`
+synchronized.
 
 ## Browse marker definitions
 

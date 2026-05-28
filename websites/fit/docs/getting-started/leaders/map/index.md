@@ -208,13 +208,18 @@ supabase functions deploy github-webhook getdx-sync people-upload transform
 ## Activity: apply migrations
 
 `fit-map activity start` applies the bundled migrations automatically the first
-time it runs. Three migrations create everything Map needs:
+time it runs. The core migrations that create the structures every Map install
+needs are:
 
 | Migration                              | Creates                                                                |
 | -------------------------------------- | ---------------------------------------------------------------------- |
 | `20250101000000_activity_schema.sql`   | `activity` schema with `organization_people`, GitHub, GetDX, evidence  |
 | `20250101000001_get_team_function.sql` | `activity.get_team(email)` recursive CTE for manager-rooted team walks |
 | `20250101000002_raw_bucket.sql`        | `raw` storage bucket for the ELT extract phase                         |
+
+Additional evolutionary migrations under `products/map/supabase/migrations/`
+extend the schema (driver columns, RLS policies, evidence keys). All bundled
+migrations apply in lexical order on first start.
 
 To re-apply migrations against a clean local database (this drops your data):
 
@@ -309,12 +314,13 @@ preserves `auth.users.id` across decommission and rejoin. See
 the full operator workflow.
 
 Provisioning ensures every engineer's email maps to an authenticable identity.
-It does not by itself deliver a JWT to engineer-side tooling —
-`fit-landmark login`, magic-link, and SSO are a follow-up. Until they land,
-Landmark callers obtain a token by signing one against `SUPABASE_JWT_SECRET`
-locally; see
+Once provisioned, leaders and engineers sign in to Landmark with
+`fit-landmark login`, which walks Supabase's magic-link flow and stores the
+session at `~/.config/landmark/credentials.json`. See
+[Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the
+end-to-end flow, or
 [Authentication](/docs/getting-started/leaders/landmark/#authentication) in
-the Landmark guide.
+the Landmark guide for the short version.
 
 ## Activity: ingest GitHub activity
 
@@ -440,7 +446,7 @@ First, generate synthetic data (requires the `@forwardimpact/libterrain`
 package):
 
 ```sh
-npx fit-terrain --story=data/synthetic/story.dsl build
+npx fit-terrain build --story=data/synthetic/story.dsl
 ```
 
 Then seed the activity database:

@@ -69,9 +69,9 @@ bun run check:fix
 ## Understand the structure
 
 ```
-products/       Seven products (map, pathway, outpost, guide, summit, landmark, gear)
-libraries/      Shared libraries (libskill, libui, libdoc, etc.)
-services/       Microservices (trace, vector, graph, pathway, map, mcp, embedding, msteams)
+products/       Eight products (map, pathway, outpost, guide, summit, landmark, kata, gear)
+libraries/      Shared libraries (libskill, libdoc, libbridge, etc.)
+services/       Microservices (trace, vector, graph, pathway, map, mcp, embedding, ghauth, ghbridge, msbridge, oauth)
 data/           Generated and standard data
 config/         Service and tool configuration
 specs/          Feature specifications and plans
@@ -82,7 +82,8 @@ websites/       Public site sources (websites/fit/, websites/kata/, …)
 engineering looks like. Pathway renders agent-aligned engineering standards.
 Outpost manages personal knowledge. Guide interprets artifacts. Summit models
 team capability. Landmark surfaces engineering-system signals from Map's
-activity layer. Gear is a meta-package that re-exports all service and library
+activity layer. Kata orchestrates an autonomous agent team that ships and
+improves itself. Gear is a meta-package that re-exports all service and library
 CLIs as dependencies.
 
 **Libraries** provide shared logic following OO+DI patterns — classes accept
