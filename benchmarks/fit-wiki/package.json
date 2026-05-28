@@ -1,0 +1,19 @@
+{
+  "name": "fit-wiki-benchmark",
+  "private": true,
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "benchmarks/fit-wiki"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "dependencies": {
+    "@forwardimpact/libwiki": "file:../../libraries/libwiki"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  }
+}

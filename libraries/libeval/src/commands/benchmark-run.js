@@ -17,6 +17,14 @@ export async function runBenchmarkRunCommand(values, _args) {
   const opts = parseRunOptions(values);
   const config = await createConfig("script", "benchmark");
   process.env.ANTHROPIC_API_KEY = await config.anthropicToken();
+
+  // The Claude Agent SDK spawns a `claude` subprocess that inherits
+  // process.env. NODE_EXTRA_CA_CERTS causes undici (the HTTP client
+  // inside that subprocess) to fail with UND_ERR_INVALID_ARG on
+  // Node 22+, aborting every API call after 10 retries. Strip it
+  // before the SDK loads so the subprocess gets a clean environment.
+  delete process.env.NODE_EXTRA_CA_CERTS;
+
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
   const runner = createBenchmarkRunner({ ...opts, query });
 

@@ -129,6 +129,7 @@ async function setupRunner({ runs = 2, runAgent = mockRunAgent } = {}) {
     runAgent,
     runJudge: mockRunJudge,
     installApm: mockInstallApm,
+    installNpm: async () => {},
     termGraceMs: 100,
   });
   return { runner, out };

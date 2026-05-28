@@ -15,6 +15,7 @@ import { runClaimCommand, runReleaseCommand } from "../src/commands/claim.js";
 import { runInboxCommand } from "../src/commands/inbox.js";
 import { runRotateCommand } from "../src/commands/rotate.js";
 import { runAuditCommand } from "../src/commands/audit.js";
+import { runFixCommand } from "../src/commands/fix.js";
 
 const { version: VERSION } = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -157,6 +158,15 @@ const definition = {
       },
     },
     {
+      name: "fix",
+      description:
+        "Auto-fix wiki audit findings using an AI agent (technical-writer, Haiku)",
+      options: {
+        ...wikiRootOpt,
+        ...todayOpt,
+      },
+    },
+    {
       name: "memo",
       description: "Send a cross-team memo into a teammate's Message Inbox",
       options: {
@@ -228,6 +238,7 @@ const definition = {
     "fit-wiki inbox list --agent staff-engineer",
     "fit-wiki rotate --agent staff-engineer",
     "fit-wiki audit",
+    "fit-wiki fix",
     'fit-wiki memo --from staff-engineer --to security-engineer --message "audit d642ff0c"',
     "fit-wiki refresh",
     "fit-wiki init",
@@ -260,6 +271,7 @@ const COMMANDS = {
   inbox: runInboxCommand,
   rotate: runRotateCommand,
   audit: runAuditCommand,
+  fix: runFixCommand,
   memo: runMemoCommand,
   refresh: runRefreshCommand,
   init: runInitCommand,

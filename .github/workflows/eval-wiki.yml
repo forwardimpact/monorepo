@@ -1,0 +1,26 @@
+name: "Eval: Wiki"
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: eval-wiki-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: forwardimpact/fit-bootstrap@v1
+      - uses: forwardimpact/fit-benchmark@v1
+        with:
+          family: ./benchmarks/fit-wiki
+          runs: "5"
+          max-turns: "25"
+          judge-profile: judge
