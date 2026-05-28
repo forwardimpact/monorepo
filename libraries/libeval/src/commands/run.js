@@ -15,8 +15,7 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
  * @returns {{ taskContent: string, cwd: string, model: string, maxTurns: number, outputPath: string|undefined, agentProfile: string|undefined, allowedTools: string[] }}
  */
 function parseRunOptions(values) {
-  const taskContent = resolveTaskContent(values);
-  const taskAmend = values["task-amend"] ?? undefined;
+  const { task: taskContent, amend: taskAmend } = resolveTaskContent(values);
   const maxTurnsRaw = values["max-turns"] ?? "50";
 
   return {

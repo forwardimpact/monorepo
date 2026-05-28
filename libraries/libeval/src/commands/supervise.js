@@ -13,8 +13,7 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
  * @returns {object}
  */
 export function parseSuperviseOptions(values) {
-  const taskContent = resolveTaskContent(values);
-  const taskAmend = values["task-amend"] ?? undefined;
+  const { task: taskContent, amend: taskAmend } = resolveTaskContent(values);
   const supervisorAllowedToolsRaw = values["supervisor-allowed-tools"];
 
   return {

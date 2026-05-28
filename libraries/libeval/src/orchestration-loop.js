@@ -94,7 +94,11 @@ export class OrchestrationLoop {
    */
   async run(task) {
     this.emitOrchestratorEvent({ type: "session_start" });
-    const initialTask = this.taskAmend ? `${task}\n\n${this.taskAmend}` : task;
+    const initialTask = this.taskAmend
+      ? task
+        ? `${task}\n\n${this.taskAmend}`
+        : this.taskAmend
+      : task;
 
     let firstError = null;
     const abort = (err) => {

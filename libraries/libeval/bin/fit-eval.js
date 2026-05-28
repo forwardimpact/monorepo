@@ -49,17 +49,7 @@ const TASK_INPUT_OPTIONS = {
   "task-event": {
     type: "string",
     description:
-      "Path to a native GitHub event payload JSON, composed into the task via libeval/src/events/github.js",
-  },
-  "task-event-name": {
-    type: "string",
-    description:
-      "Override event name for --task-event (default: $GITHUB_EVENT_NAME)",
-  },
-  "task-event-dispatch-prompt": {
-    type: "string",
-    description:
-      "Prompt body used verbatim when --task-event is a workflow_dispatch payload",
+      "Path to a native GitHub event payload JSON, composed into the task via libeval/src/events/github.js (reads $GITHUB_EVENT_NAME)",
   },
   "task-amend": {
     type: "string",

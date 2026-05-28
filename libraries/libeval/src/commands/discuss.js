@@ -20,8 +20,7 @@ function parseAgentProfiles(raw, cwd, maxTurns) {
  * @returns {object}
  */
 export function parseDiscussOptions(values) {
-  const taskContent = resolveTaskContent(values);
-  const taskAmend = values["task-amend"] ?? undefined;
+  const { task: taskContent, amend: taskAmend } = resolveTaskContent(values);
 
   const profilesRaw = values["agent-profiles"];
   const agentCwd = resolve(values["agent-cwd"] ?? ".");

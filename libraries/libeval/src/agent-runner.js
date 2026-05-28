@@ -62,7 +62,9 @@ export class AgentRunner {
     const abortController = new AbortController();
     this.currentAbortController = abortController;
     const effectiveTask = this.taskAmend
-      ? `${task}\n\n${this.taskAmend}`
+      ? task
+        ? `${task}\n\n${this.taskAmend}`
+        : this.taskAmend
       : task;
     try {
       const iterator = this.query({

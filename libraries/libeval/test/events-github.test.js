@@ -61,120 +61,128 @@ describe("TASK_TEMPLATE_* constants carry the documented placeholders", () => {
 
 describe("composeTaskFromGitHubEvent matches the kata-dispatch shell output", () => {
   test("issues / opened", () => {
-    const out = composeTaskFromGitHubEvent(loadFixture("issues-opened.json"), {
-      eventName: "issues",
-    });
+    const { task, amend } = composeTaskFromGitHubEvent(
+      loadFixture("issues-opened.json"),
+      "issues",
+    );
     assert.strictEqual(
-      out,
+      task,
       'New issue: "Investigate flaky CI" (#42) by @alice (type: User). Issue URL: https://github.com/acme/repo/issues/42.',
     );
+    assert.strictEqual(amend, "");
   });
 
   test("issues / labeled", () => {
-    const out = composeTaskFromGitHubEvent(loadFixture("issues-labeled.json"), {
-      eventName: "issues",
-    });
+    const { task } = composeTaskFromGitHubEvent(
+      loadFixture("issues-labeled.json"),
+      "issues",
+    );
     assert.strictEqual(
-      out,
+      task,
       'Label "agent:staff-engineer" was added to issue "Investigate flaky CI" (#42). Issue URL: https://github.com/acme/repo/issues/42.',
     );
   });
 
   test("pull_request_target / labeled", () => {
-    const out = composeTaskFromGitHubEvent(loadFixture("pr-labeled.json"), {
-      eventName: "pull_request_target",
-    });
+    const { task } = composeTaskFromGitHubEvent(
+      loadFixture("pr-labeled.json"),
+      "pull_request_target",
+    );
     assert.strictEqual(
-      out,
+      task,
       'Label "spec:approved" was added to PR "Wire up task-event" (#99). PR URL: https://github.com/acme/repo/pull/99.',
     );
   });
 
   test("pull_request_target / closed (merged)", () => {
-    const out = composeTaskFromGitHubEvent(loadFixture("pr-merged.json"), {
-      eventName: "pull_request_target",
-    });
+    const { task } = composeTaskFromGitHubEvent(
+      loadFixture("pr-merged.json"),
+      "pull_request_target",
+    );
     assert.strictEqual(
-      out,
+      task,
       'PR "Wire up task-event" (#99) merged. PR URL: https://github.com/acme/repo/pull/99.',
     );
   });
 
   test("issue_comment / created — on issue", () => {
-    const out = composeTaskFromGitHubEvent(
+    const { task } = composeTaskFromGitHubEvent(
       loadFixture("issue-comment-on-issue.json"),
-      { eventName: "issue_comment" },
+      "issue_comment",
     );
     assert.strictEqual(
-      out,
+      task,
       'New comment on issue "Investigate flaky CI" (#42) by @carol (type: User). Comment URL: https://github.com/acme/repo/issues/42#issuecomment-1.',
     );
   });
 
   test("issue_comment / created — on PR", () => {
-    const out = composeTaskFromGitHubEvent(
+    const { task } = composeTaskFromGitHubEvent(
       loadFixture("issue-comment-on-pr.json"),
-      { eventName: "issue_comment" },
+      "issue_comment",
     );
     assert.strictEqual(
-      out,
+      task,
       "New comment on PR #99 by @carol (type: Bot). Comment URL: https://github.com/acme/repo/pull/99#issuecomment-2.",
     );
   });
 
   test("pull_request_review / submitted", () => {
-    const out = composeTaskFromGitHubEvent(
+    const { task } = composeTaskFromGitHubEvent(
       loadFixture("review-submitted.json"),
-      { eventName: "pull_request_review" },
+      "pull_request_review",
     );
     assert.strictEqual(
-      out,
+      task,
       'Review submitted on PR "Wire up task-event" (#99) by @dave (type: User). Review URL: https://github.com/acme/repo/pull/99#pullrequestreview-1.',
     );
   });
 
-  test("workflow_dispatch returns dispatchPrompt verbatim", () => {
-    const out = composeTaskFromGitHubEvent(
-      { inputs: { prompt: "ignored" } },
-      { eventName: "workflow_dispatch", dispatchPrompt: "Do the thing." },
+  test("workflow_dispatch puts inputs.prompt in `amend` with empty task", () => {
+    const { task, amend } = composeTaskFromGitHubEvent(
+      { inputs: { prompt: "Do the thing." } },
+      "workflow_dispatch",
     );
-    assert.strictEqual(out, "Do the thing.");
+    assert.strictEqual(task, "");
+    assert.strictEqual(amend, "Do the thing.");
+  });
+
+  test("inputs.prompt on a non-dispatch event becomes the amend", () => {
+    const payload = {
+      ...loadFixture("issues-opened.json"),
+      inputs: { prompt: "Focus on the CI flake." },
+    };
+    const { task, amend } = composeTaskFromGitHubEvent(payload, "issues");
+    assert.ok(task.startsWith('New issue: "Investigate flaky CI"'));
+    assert.strictEqual(amend, "Focus on the CI flake.");
   });
 });
 
 describe("composeTaskFromGitHubEvent error paths", () => {
-  test("workflow_dispatch without dispatchPrompt throws", () => {
+  test("workflow_dispatch without inputs.prompt throws", () => {
     assert.throws(
-      () => composeTaskFromGitHubEvent({}, { eventName: "workflow_dispatch" }),
-      /workflow_dispatch requires dispatchPrompt/,
+      () => composeTaskFromGitHubEvent({}, "workflow_dispatch"),
+      /workflow_dispatch payload must include inputs.prompt/,
     );
   });
 
   test("missing eventName throws", () => {
     assert.throws(
-      () => composeTaskFromGitHubEvent({}, {}),
+      () => composeTaskFromGitHubEvent({}),
       /eventName is required/,
     );
   });
 
   test("unknown event/action throws", () => {
     assert.throws(
-      () =>
-        composeTaskFromGitHubEvent(
-          { action: "deleted" },
-          { eventName: "issues" },
-        ),
+      () => composeTaskFromGitHubEvent({ action: "deleted" }, "issues"),
       /no template for event_name="issues" action="deleted"/,
     );
   });
 
   test("unknown event_name throws", () => {
     assert.throws(
-      () =>
-        composeTaskFromGitHubEvent(
-          { action: "created" },
-          { eventName: "discussion" },
-        ),
+      () => composeTaskFromGitHubEvent({ action: "created" }, "discussion"),
       /no template for event_name="discussion"/,
     );
   });

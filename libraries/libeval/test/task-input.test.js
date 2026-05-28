@@ -68,47 +68,76 @@ describe("resolveTaskContent dispatch", () => {
     }
   });
 
-  test("--task-file returns file contents", () => {
+  test("--task-file returns file contents and undefined amend", () => {
     const path = join(tmpDir, "task.md");
     writeFileSync(path, "from a file");
-    assert.strictEqual(
-      resolveTaskContent({ "task-file": path }),
-      "from a file",
-    );
+    assert.deepStrictEqual(resolveTaskContent({ "task-file": path }), {
+      task: "from a file",
+      amend: undefined,
+    });
   });
 
-  test("--task-text returns inline text", () => {
-    assert.strictEqual(resolveTaskContent({ "task-text": "inline" }), "inline");
+  test("--task-text returns inline text and undefined amend", () => {
+    assert.deepStrictEqual(resolveTaskContent({ "task-text": "inline" }), {
+      task: "inline",
+      amend: undefined,
+    });
+  });
+
+  test("--task-amend on --task-text returns both", () => {
+    assert.deepStrictEqual(
+      resolveTaskContent({ "task-text": "inline", "task-amend": "PS" }),
+      { task: "inline", amend: "PS" },
+    );
   });
 
   test("--task-event composes from GITHUB_EVENT_NAME", () => {
     process.env.GITHUB_EVENT_NAME = "issues";
-    const out = resolveTaskContent({ "task-event": EVENT_FIXTURE });
-    assert.ok(out.includes('New issue: "Investigate flaky CI" (#42)'));
+    const { task, amend } = resolveTaskContent({ "task-event": EVENT_FIXTURE });
+    assert.ok(task.includes('New issue: "Investigate flaky CI" (#42)'));
+    assert.strictEqual(amend, "");
   });
 
-  test("--task-event with explicit --task-event-name overrides env", () => {
-    process.env.GITHUB_EVENT_NAME = "wrong";
-    const out = resolveTaskContent({
-      "task-event": EVENT_FIXTURE,
-      "task-event-name": "issues",
-    });
-    assert.ok(out.startsWith('New issue: "Investigate flaky CI"'));
-  });
-
-  test("--task-event without event name throws", () => {
+  test("--task-event without GITHUB_EVENT_NAME throws", () => {
     assert.throws(
       () => resolveTaskContent({ "task-event": EVENT_FIXTURE }),
-      /GITHUB_EVENT_NAME or --task-event-name/,
+      /GITHUB_EVENT_NAME/,
     );
   });
 
-  test("--task-event with workflow_dispatch + dispatch prompt", () => {
+  test("--task-event with workflow_dispatch returns empty task + inputs.prompt as amend", () => {
     process.env.GITHUB_EVENT_NAME = "workflow_dispatch";
-    const out = resolveTaskContent({
-      "task-event": EVENT_FIXTURE,
-      "task-event-dispatch-prompt": "Hello world",
+    const dispatchFixture = join(tmpDir, "dispatch.json");
+    writeFileSync(
+      dispatchFixture,
+      JSON.stringify({ inputs: { prompt: "Hello world" } }),
+    );
+    assert.deepStrictEqual(
+      resolveTaskContent({ "task-event": dispatchFixture }),
+      { task: "", amend: "Hello world" },
+    );
+  });
+
+  test("explicit --task-amend overrides payload.inputs.prompt on --task-event", () => {
+    process.env.GITHUB_EVENT_NAME = "issues";
+    const path = join(tmpDir, "with-input.json");
+    writeFileSync(
+      path,
+      JSON.stringify({
+        action: "opened",
+        issue: {
+          number: 1,
+          title: "t",
+          html_url: "u",
+          user: { login: "a", type: "User" },
+        },
+        inputs: { prompt: "from payload" },
+      }),
+    );
+    const { amend } = resolveTaskContent({
+      "task-event": path,
+      "task-amend": "explicit",
     });
-    assert.strictEqual(out, "Hello world");
+    assert.strictEqual(amend, "explicit");
   });
 });

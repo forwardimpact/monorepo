@@ -2,12 +2,16 @@ import { readFileSync } from "node:fs";
 import { composeTaskFromGitHubEvent } from "../events/github.js";
 
 /**
- * Resolve `--task-file` / `--task-text` / `--task-event` into the task string
- * the runner consumes. Exactly one of the three must be set; the helper is
- * shared across run/supervise/facilitate/discuss to keep the contract aligned.
+ * Resolve `--task-file` / `--task-text` / `--task-event` into the task pair the
+ * runner consumes. Exactly one of the three must be set. For `--task-event`,
+ * libeval reads the event payload and extracts both the main task (from the
+ * template that matches `$GITHUB_EVENT_NAME` + `payload.action`) and the
+ * amendment (from `payload.inputs?.prompt`) — so the workflow doesn't need to
+ * wire `--task-amend` separately. For the other two modes, `--task-amend`
+ * works as before.
  *
  * @param {object} values - Parsed option values from cli.parse()
- * @returns {string}
+ * @returns {{ task: string, amend: string | undefined }}
  */
 export function resolveTaskContent(values) {
   const taskFile = values["task-file"];
@@ -26,18 +30,20 @@ export function resolveTaskContent(values) {
     );
   }
 
-  if (taskFile) return readFileSync(taskFile, "utf8");
-  if (taskText) return taskText;
+  const amendFlag = values["task-amend"] ?? undefined;
 
-  const payload = JSON.parse(readFileSync(taskEvent, "utf8"));
-  const eventName = values["task-event-name"] ?? process.env.GITHUB_EVENT_NAME;
-  if (!eventName) {
-    throw new Error(
-      "--task-event requires GITHUB_EVENT_NAME or --task-event-name",
-    );
+  if (taskFile) {
+    return { task: readFileSync(taskFile, "utf8"), amend: amendFlag };
   }
-  return composeTaskFromGitHubEvent(payload, {
-    eventName,
-    dispatchPrompt: values["task-event-dispatch-prompt"],
-  });
+  if (taskText) {
+    return { task: taskText, amend: amendFlag };
+  }
+
+  const eventName = process.env.GITHUB_EVENT_NAME;
+  if (!eventName) {
+    throw new Error("--task-event requires GITHUB_EVENT_NAME to be set");
+  }
+  const payload = JSON.parse(readFileSync(taskEvent, "utf8"));
+  const composed = composeTaskFromGitHubEvent(payload, eventName);
+  return { task: composed.task, amend: amendFlag ?? composed.amend };
 }

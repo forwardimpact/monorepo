@@ -121,7 +121,6 @@ jobs:
         with:
           mode: ${{ inputs.discussion_id != '' && 'discuss' || 'facilitate' }}
           task-event: ${{ github.event_path }}
-          task-event-dispatch-prompt: ${{ inputs.prompt }}
           agent-profiles: release-engineer,product-manager,security-engineer,staff-engineer,technical-writer,improvement-coach
           max-turns: "1500"
           timeout-minutes: "300"

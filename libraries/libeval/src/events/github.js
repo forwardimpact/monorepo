@@ -91,31 +91,36 @@ function pickTemplate(payload, eventName) {
 }
 
 /**
- * Compose the task prompt a libeval lead receives from a native GitHub event
- * payload. Throws on unknown (event_name, action) combos so a typo in a
- * workflow doesn't silently ship a misleading prompt.
+ * Compose the task a libeval lead receives from a native GitHub event payload.
+ * Returns `{ task, amend }`: `task` is the template-rendered context for real
+ * events (or empty string for `workflow_dispatch`); `amend` is read from
+ * `payload.inputs?.prompt` so an ad-hoc dispatcher (workflow_dispatch trigger
+ * or bridge) can layer instructions on top without the workflow wiring
+ * `--task-amend` separately. The runner combines them via the existing
+ * taskAmend path.
  *
- * @param {object} payload - The native event payload (shape mirrors
+ * Throws on unknown (event_name, action) combos so a typo doesn't silently
+ * ship a misleading prompt.
+ *
+ * @param {object} payload - Native event payload (shape mirrors
  *   `$GITHUB_EVENT_PATH` JSON written by the runner).
- * @param {object} opts
- * @param {string} opts.eventName - Value of `GITHUB_EVENT_NAME` for the run.
- * @param {string} [opts.dispatchPrompt] - Required when `eventName ===
- *   "workflow_dispatch"`; returned verbatim as the task.
- * @returns {string} The composed task string.
+ * @param {string} eventName - Value of `$GITHUB_EVENT_NAME` for the run.
+ * @returns {{ task: string, amend: string }}
  */
-export function composeTaskFromGitHubEvent(payload, opts = {}) {
-  const { eventName, dispatchPrompt } = opts;
+export function composeTaskFromGitHubEvent(payload, eventName) {
   if (!eventName) {
     throw new Error("composeTaskFromGitHubEvent: eventName is required");
   }
 
+  const amend = payload.inputs?.prompt ?? "";
+
   if (eventName === "workflow_dispatch") {
-    if (!dispatchPrompt) {
+    if (!amend) {
       throw new Error(
-        "composeTaskFromGitHubEvent: workflow_dispatch requires dispatchPrompt",
+        "composeTaskFromGitHubEvent: workflow_dispatch payload must include inputs.prompt",
       );
     }
-    return dispatchPrompt;
+    return { task: "", amend };
   }
 
   const template = pickTemplate(payload, eventName);
@@ -124,5 +129,5 @@ export function composeTaskFromGitHubEvent(payload, opts = {}) {
       `composeTaskFromGitHubEvent: no template for event_name="${eventName}" action="${payload.action}"`,
     );
   }
-  return render(template, extractCommonFields(payload));
+  return { task: render(template, extractCommonFields(payload)), amend };
 }

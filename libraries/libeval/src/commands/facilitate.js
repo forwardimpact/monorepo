@@ -26,8 +26,7 @@ function parseAgentProfiles(raw, cwd, maxTurns) {
  * @returns {object} Parsed options
  */
 export function parseFacilitateOptions(values) {
-  const taskContent = resolveTaskContent(values);
-  const taskAmend = values["task-amend"] ?? undefined;
+  const { task: taskContent, amend: taskAmend } = resolveTaskContent(values);
 
   const profilesRaw = values["agent-profiles"];
   if (!profilesRaw) throw new Error("--agent-profiles is required");
