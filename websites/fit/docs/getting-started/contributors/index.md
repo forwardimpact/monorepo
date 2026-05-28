@@ -91,7 +91,7 @@ dependencies through constructors, factory functions wire real implementations,
 tests inject mocks directly.
 
 **Services** are gRPC microservices supervised by `fit-rc`. Start them with
-`just rc-start`.
+`bunx fit-rc start`.
 
 ## Development workflow
 

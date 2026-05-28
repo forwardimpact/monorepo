@@ -98,7 +98,7 @@ the tunnel.
 Start both services:
 
 ```sh
-just rc-start
+bunx fit-rc start
 ```
 
 The tunnel publishes a fresh `trycloudflare.com` hostname on every

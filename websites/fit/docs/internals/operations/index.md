@@ -29,8 +29,8 @@ Environment is configured via profile-based `.env` files, managed by
 load `.env` via `set dotenv-load`. Configure profiles via `just env-reset`:
 
 ```sh
-just rc-start                              # local env, local storage, no auth
-just env-reset docker-native && just rc-start  # docker networking, MinIO storage
+bunx fit-rc start                          # local env, local storage, no auth
+just env-reset docker-native && bunx fit-rc start  # docker networking, MinIO storage
 ```
 
 ### Environment Setup
@@ -64,10 +64,10 @@ Services are supervised by `fit-rc` (via `libraries/librc/`). The service list
 is defined in `config/config.json` under `init.services`.
 
 ```sh
-bunx fit-rc start              # Start all services (or: just rc-start)
-bunx fit-rc stop               # Graceful shutdown    (or: just rc-stop)
-bunx fit-rc restart            # Restart all          (or: just rc-restart)
-bunx fit-rc status             # Show service status  (or: just rc-status)
+bunx fit-rc start              # Start all services
+bunx fit-rc stop               # Graceful shutdown
+bunx fit-rc restart            # Restart all
+bunx fit-rc status             # Show service status
 bunx fit-rc start embedding    # Start a single service
 ```
 
@@ -90,7 +90,7 @@ just tei-start                # Start TEI service (downloads model on first run)
 ```sh
 bun install                   # Install all workspace dependencies
 just quickstart               # Full bootstrap: env, generate, data, codegen, process
-just rc-start                 # Start services (supabase/tei skipped if not installed)
+bunx fit-rc start             # Start services (supabase/tei skipped if not installed)
 ```
 
 ### Generation
@@ -139,9 +139,9 @@ bunx fit-outpost daemon      # Run scheduler
 ```sh
 just process                  # Process all resources (agents, tools, vectors, graphs)
 just process-fast             # Process without vectors (no TEI required)
-just rc-start                 # Start all services
-just rc-stop                  # Stop all services
-just rc-status                # Service health check
+bunx fit-rc start             # Start all services
+bunx fit-rc stop              # Stop all services
+bunx fit-rc status            # Service health check
 ```
 
 ### Infrastructure

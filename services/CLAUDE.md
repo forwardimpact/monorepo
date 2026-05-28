@@ -99,9 +99,9 @@ Services are managed by `fit-rc`. The service list lives in
 `config/config.json` under `init.services`.
 
 ```sh
-just rc-start                # start all services
-just rc-stop                 # stop all services
-just rc-status               # show service status
+bunx fit-rc start                # start all services
+bunx fit-rc stop                 # stop all services
+bunx fit-rc status               # show service status
 bunx fit-rc start <name>     # start everything up through <name>
 bunx fit-rc restart <name>   # restart <name> and everything after it
 ```

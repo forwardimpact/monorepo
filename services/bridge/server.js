@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import "@forwardimpact/libpreflight/node22";
 
+import { Server, createTracer } from "@forwardimpact/librpc";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
-import { Server, createTracer } from "@forwardimpact/librpc";
 import { createStorage } from "@forwardimpact/libstorage";
 
 import { BridgeService } from "./index.js";
@@ -17,9 +17,14 @@ const config = await createServiceConfig("bridge", {
   origin_ttl_ms: 24 * 60 * 60 * 1000,
   sweep_interval_ms: 60_000,
 });
+
+// Initialize observability
 const logger = createLogger("bridge");
 const tracer = await createTracer("bridge");
+
 const storage = createStorage("bridges");
 
 const service = new BridgeService(config, { storage, logger, tracer });
-await new Server(service, config).start();
+const server = new Server(service, config, logger, tracer);
+
+await server.start();

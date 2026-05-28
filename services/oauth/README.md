@@ -30,7 +30,7 @@ before `oauth` (dependency first).
 Start the service:
 
 ```sh
-just rc-start
+bunx fit-rc start
 ```
 
 The tunnel uses a quick `trycloudflare.com` hostname that changes on
