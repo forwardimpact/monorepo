@@ -1,7 +1,10 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 import { validateCrossContent, ContentValidator } from "../src/validate.js";
-import { assertThrowsMessage } from "@forwardimpact/libmock";
+import {
+  assertThrowsMessage,
+  createSilentLogger,
+} from "@forwardimpact/libmock";
 
 /**
  * Build minimal valid entities for testing.
@@ -401,7 +404,7 @@ describe("ContentValidator", () => {
   });
 
   test("validates entities using validate method", () => {
-    const logger = { info() {}, error() {} };
+    const logger = createSilentLogger();
     const validator = new ContentValidator(logger);
     const result = validator.validate(buildEntities());
     assert.strictEqual(result.passed, true);

@@ -1,19 +1,25 @@
+const defaultSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Retry class for handling transient errors with exponential backoff
  */
 export class Retry {
   #retries;
   #delay;
+  #sleep;
 
   /**
    * Creates a new Retry instance
    * @param {object} [config] - Optional configuration object
    * @param {number} [config.retries] - Maximum number of retry attempts (default: 10)
    * @param {number} [config.delay] - Initial delay in milliseconds (default: 1000)
+   * @param {(ms: number) => Promise<void>} [config.sleep] - Injectable sleep
+   *   for deterministic tests (default: real setTimeout-based wait).
    */
   constructor(config = {}) {
     this.#retries = config.retries ?? 10;
     this.#delay = config.delay ?? 1000;
+    this.#sleep = config.sleep ?? defaultSleep;
   }
 
   /**
@@ -87,7 +93,7 @@ export class Retry {
           const exponentialDelay = this.#delay * Math.pow(2, attempt);
           const jitter = Math.random() * 0.3 * exponentialDelay;
           const wait = exponentialDelay + jitter;
-          await new Promise((resolve) => setTimeout(resolve, wait));
+          await this.#sleep(wait);
           continue;
         }
 
@@ -100,7 +106,7 @@ export class Retry {
           const exponentialDelay = this.#delay * Math.pow(2, attempt);
           const jitter = Math.random() * 0.3 * exponentialDelay;
           const wait = exponentialDelay + jitter;
-          await new Promise((resolve) => setTimeout(resolve, wait));
+          await this.#sleep(wait);
           continue;
         }
 

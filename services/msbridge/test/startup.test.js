@@ -4,21 +4,10 @@ import {
   createMockConfig,
   createMockLogger,
   createMockStorage,
+  createMockTracer,
 } from "@forwardimpact/libmock";
 
 import { MsBridgeService } from "../index.js";
-
-function makeTracer() {
-  const noop = () => {};
-  return {
-    startSpan: () => ({
-      addEvent: noop,
-      setOk: noop,
-      setError: noop,
-      end: async () => {},
-    }),
-  };
-}
 
 function makeConfig() {
   return createMockConfig("msbridge", {
@@ -54,7 +43,7 @@ describe("msbridge startup", () => {
       () =>
         new MsBridgeService(makeConfig(), {
           logger: createMockLogger(),
-          tracer: makeTracer(),
+          tracer: createMockTracer(),
           storage: createMockStorage(),
           adapter: makeAdapter(),
         }),

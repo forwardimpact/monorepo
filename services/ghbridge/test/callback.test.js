@@ -4,6 +4,7 @@ import {
   createMockConfig,
   createMockLogger,
   createMockStorage,
+  createMockTracer,
 } from "@forwardimpact/libmock";
 
 import { GhBridgeService } from "../index.js";
@@ -12,18 +13,6 @@ import {
   ADD_REACTION_MUTATION,
   REMOVE_REACTION_MUTATION,
 } from "../src/graphql.js";
-
-function makeTracer() {
-  const noop = () => {};
-  return {
-    startSpan: () => ({
-      addEvent: noop,
-      setOk: noop,
-      setError: noop,
-      end: async () => {},
-    }),
-  };
-}
 
 const SECRET = "ghbridge-test-secret-long-enough";
 
@@ -52,7 +41,7 @@ async function newService() {
   };
   const service = new GhBridgeService(makeConfig(), {
     logger: createMockLogger(),
-    tracer: makeTracer(),
+    tracer: createMockTracer(),
     storage: createMockStorage(),
     verifyWebhook: (s, b, sig) =>
       import("@octokit/webhooks-methods").then((m) => m.verify(s, b, sig)),

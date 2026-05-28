@@ -4,21 +4,10 @@ import {
   createMockConfig,
   createMockLogger,
   createMockStorage,
+  createMockTracer,
 } from "@forwardimpact/libmock";
 
 import { MsBridgeService } from "../index.js";
-
-function makeTracer() {
-  const noop = () => {};
-  return {
-    startSpan: () => ({
-      addEvent: noop,
-      setOk: noop,
-      setError: noop,
-      end: async () => {},
-    }),
-  };
-}
 
 function makeConfig(overrides = {}) {
   return createMockConfig("msbridge", {
@@ -116,7 +105,7 @@ describe("msbridge dispatch-auth", () => {
     const adapter = makeAdapter(overrides);
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
-      tracer: makeTracer(),
+      tracer: createMockTracer(),
       storage: createMockStorage(),
       ghauthClient: client,
       adapter,
@@ -159,7 +148,7 @@ describe("msbridge dispatch-auth", () => {
     });
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
-      tracer: makeTracer(),
+      tracer: createMockTracer(),
       storage: createMockStorage(),
       ghauthClient: client,
       adapter,
@@ -195,7 +184,7 @@ describe("msbridge dispatch-auth", () => {
     });
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
-      tracer: makeTracer(),
+      tracer: createMockTracer(),
       storage: createMockStorage(),
       ghauthClient: client,
       adapter,
@@ -228,7 +217,7 @@ describe("msbridge dispatch-auth", () => {
     });
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
-      tracer: makeTracer(),
+      tracer: createMockTracer(),
       storage: createMockStorage(),
       ghauthClient: client,
       adapter,
@@ -262,7 +251,7 @@ describe("msbridge dispatch-auth", () => {
     });
     const service = new MsBridgeService(makeConfig(), {
       logger: createMockLogger(),
-      tracer: makeTracer(),
+      tracer: createMockTracer(),
       storage: createMockStorage(),
       ghauthClient: client,
       adapter,

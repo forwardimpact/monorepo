@@ -4,6 +4,7 @@ import {
   createMockConfig,
   createMockLogger,
   createMockStorage,
+  createMockTracer,
 } from "@forwardimpact/libmock";
 
 import {
@@ -24,18 +25,6 @@ function makeConfig(overrides = {}) {
     msAppTenantId: () => "test-tenant",
     ...overrides,
   });
-}
-
-function makeTracer() {
-  const noop = () => {};
-  return {
-    startSpan: () => ({
-      addEvent: noop,
-      setOk: noop,
-      setError: noop,
-      end: async () => {},
-    }),
-  };
 }
 
 function makeAdapter(overrides = {}) {
@@ -88,7 +77,7 @@ function newService({
 } = {}) {
   return new MsBridgeService(makeConfig(configOverrides), {
     logger: logger ?? createMockLogger(),
-    tracer: makeTracer(),
+    tracer: createMockTracer(),
     storage: createMockStorage(),
     ghauthClient: ghauthClient ?? makeGhauthClient(),
     adapter: adapter ?? makeAdapter(),
@@ -150,7 +139,7 @@ describe("msbridge service", () => {
       expect(
         () =>
           new MsBridgeService(makeConfig(), {
-            tracer: makeTracer(),
+            tracer: createMockTracer(),
             storage: createMockStorage(),
             adapter: makeAdapter(),
           }),
@@ -173,7 +162,7 @@ describe("msbridge service", () => {
         () =>
           new MsBridgeService(makeConfig(), {
             logger: createMockLogger(),
-            tracer: makeTracer(),
+            tracer: createMockTracer(),
             adapter: makeAdapter(),
           }),
       ).toThrow("storage is required");

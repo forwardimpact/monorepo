@@ -10,40 +10,48 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { execFileSync } from "node:child_process";
 
-const CLI_PATH = new URL("../bin/fit-wiki.js", import.meta.url).pathname;
+import { runLogCommand } from "../src/commands/log.js";
+import { createTestIo, runWithIo } from "../src/io.js";
+
+function makeCli() {
+  return {
+    errors: [],
+    usageError(message) {
+      this.errors.push(message);
+    },
+  };
+}
 
 describe("fit-wiki log CLI", () => {
   let dir;
   let wikiRoot;
+  let cli;
+  let io;
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "log-cli-"));
     wikiRoot = join(dir, "wiki");
     mkdirSync(wikiRoot, { recursive: true });
     writeFileSync(join(dir, "package.json"), '{"name":"root"}');
+    cli = makeCli();
+    io = createTestIo({ cwd: () => dir });
   });
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-  test("log decision writes leading ### Decision block", () => {
-    execFileSync(
-      "node",
-      [
-        CLI_PATH,
-        "log",
-        "decision",
-        "--agent",
-        "staff-engineer",
-        "--surveyed",
-        "owned",
-        "--chosen",
-        "implement spec NNNN",
-        "--rationale",
-        "merged plan",
-        "--today",
-        "2026-05-19",
-      ],
-      { cwd: dir, encoding: "utf-8" },
+  test("log decision writes leading ### Decision block", async () => {
+    await runWithIo(() =>
+      runLogCommand(
+        {
+          agent: "staff-engineer",
+          surveyed: "owned",
+          chosen: "implement spec NNNN",
+          rationale: "merged plan",
+          today: "2026-05-19",
+        },
+        ["decision"],
+        cli,
+        io,
+      ),
     );
     const expected = join(wikiRoot, "staff-engineer-2026-W21.md");
     assert.equal(existsSync(expected), true);
@@ -54,53 +62,40 @@ describe("fit-wiki log CLI", () => {
     assert.match(text, /\*\*Chosen:\*\* implement spec NNNN/);
   });
 
-  test("missing subcommand exits 2", () => {
-    try {
-      execFileSync("node", [CLI_PATH, "log", "--agent", "staff-engineer"], {
-        cwd: dir,
-        encoding: "utf-8",
-        stdio: "pipe",
-      });
-      assert.fail("expected exit 2");
-    } catch (err) {
-      assert.equal(err.status, 2);
-    }
+  test("missing subcommand exits 2", async () => {
+    await runWithIo(() =>
+      runLogCommand({ agent: "staff-engineer" }, [], cli, io),
+    );
+    assert.equal(io.exitCode, 2);
   });
 
-  test("log note appends under the open decision's date heading", () => {
-    const args = (sub, extra) => [
-      CLI_PATH,
-      "log",
-      sub,
-      "--agent",
-      "staff-engineer",
-      "--today",
-      "2026-05-19",
-      ...extra,
-    ];
-    execFileSync(
-      "node",
-      args("decision", [
-        "--surveyed",
-        "owned",
-        "--chosen",
-        "x",
-        "--rationale",
-        "y",
-      ]),
-      { cwd: dir, encoding: "utf-8" },
+  test("log note appends under the open decision's date heading", async () => {
+    const base = { agent: "staff-engineer", today: "2026-05-19" };
+    await runWithIo(() =>
+      runLogCommand(
+        { ...base, surveyed: "owned", chosen: "x", rationale: "y" },
+        ["decision"],
+        cli,
+        io,
+      ),
     );
-    execFileSync(
-      "node",
-      args("note", ["--field", "Actions taken", "--body", "Did stuff"]),
-      { cwd: dir, encoding: "utf-8" },
+    await runWithIo(() =>
+      runLogCommand(
+        { ...base, field: "Actions taken", body: "Did stuff" },
+        ["note"],
+        cli,
+        io,
+      ),
     );
-    execFileSync(
-      "node",
-      args("note", ["--field", "Findings", "--body", "All clean"]),
-      { cwd: dir, encoding: "utf-8" },
+    await runWithIo(() =>
+      runLogCommand(
+        { ...base, field: "Findings", body: "All clean" },
+        ["note"],
+        cli,
+        io,
+      ),
     );
-    execFileSync("node", args("done", []), { cwd: dir, encoding: "utf-8" });
+    await runWithIo(() => runLogCommand(base, ["done"], cli, io));
 
     const text = readFileSync(
       join(wikiRoot, "staff-engineer-2026-W21.md"),
@@ -118,41 +113,34 @@ describe("fit-wiki log CLI", () => {
     );
   });
 
-  test("log note for a new day opens its own entry", () => {
-    const base = ["--agent", "staff-engineer", "--wiki-root", wikiRoot];
-    execFileSync(
-      "node",
-      [
-        CLI_PATH,
-        "log",
-        "decision",
-        ...base,
-        "--today",
-        "2026-05-19",
-        "--surveyed",
-        "s",
-        "--chosen",
-        "c",
-        "--rationale",
-        "r",
-      ],
-      { cwd: dir, encoding: "utf-8" },
+  test("log note for a new day opens its own entry", async () => {
+    const base = { agent: "staff-engineer", "wiki-root": wikiRoot };
+    await runWithIo(() =>
+      runLogCommand(
+        {
+          ...base,
+          today: "2026-05-19",
+          surveyed: "s",
+          chosen: "c",
+          rationale: "r",
+        },
+        ["decision"],
+        cli,
+        io,
+      ),
     );
-    execFileSync(
-      "node",
-      [
-        CLI_PATH,
-        "log",
-        "note",
-        ...base,
-        "--today",
-        "2026-05-20",
-        "--field",
-        "Followup",
-        "--body",
-        "Next day",
-      ],
-      { cwd: dir, encoding: "utf-8" },
+    await runWithIo(() =>
+      runLogCommand(
+        {
+          ...base,
+          today: "2026-05-20",
+          field: "Followup",
+          body: "Next day",
+        },
+        ["note"],
+        cli,
+        io,
+      ),
     );
     const text = readFileSync(
       join(wikiRoot, "staff-engineer-2026-W21.md"),

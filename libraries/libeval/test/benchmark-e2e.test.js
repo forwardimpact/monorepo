@@ -9,7 +9,7 @@
  * `supervisor-run.test.js`.
  */
 
-import { describe, test } from "node:test";
+import { describe, test, before } from "node:test";
 import assert from "node:assert";
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -141,7 +141,23 @@ async function collectRecords(runner) {
 }
 
 describe("BenchmarkRunner E2E (fixture family)", () => {
-  test("produces one record per (task, runIndex), including pre-flight failures", async () => {
+  // Tests 1, 2, 4, 5, 6 share the runs:1 / mockRunAgent configuration and
+  // only differ in what they assert against the resulting records — set up
+  // once instead of paying the runner.run() cost five times.
+  let sharedRecords;
+  // Shared setup does a full runner.run() with 4 tasks; on slower CI hardware
+  // the default 5s test timeout is tight, so explicitly budget headroom.
+  before(
+    async () => {
+      const { runner } = await setupRunner({ runs: 1 });
+      sharedRecords = await collectRecords(runner);
+    },
+    { timeout: 30_000 },
+  );
+
+  test("produces one record per (task, runIndex), including pre-flight failures", {
+    timeout: 30_000,
+  }, async () => {
     const { runner, out } = await setupRunner({ runs: 2 });
     const records = await collectRecords(runner);
     // 4 tasks × 2 runs = 8 records (preflight-broken records included).
@@ -171,10 +187,8 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
   });
 
-  test("pass: running-service grading via HTTP probe yields verdict='pass'", async () => {
-    const { runner } = await setupRunner({ runs: 1 });
-    const records = await collectRecords(runner);
-    const passRec = records.find((r) => r.taskId === "pass");
+  test("pass: running-service grading via HTTP probe yields verdict='pass'", () => {
+    const passRec = sharedRecords.find((r) => r.taskId === "pass");
     assert.ok(passRec, "pass record missing");
     assert.strictEqual(passRec.scoring.verdict, "pass");
     assert.strictEqual(passRec.scoring.exitCode, 0);
@@ -182,19 +196,15 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     assert.strictEqual(passRec.scoring.details[0].test, "probe");
   });
 
-  test("repo-state: repository-state grading via SHA-256 yields verdict='pass'", async () => {
-    const { runner } = await setupRunner({ runs: 1 });
-    const records = await collectRecords(runner);
-    const rs = records.find((r) => r.taskId === "repo-state");
+  test("repo-state: repository-state grading via SHA-256 yields verdict='pass'", () => {
+    const rs = sharedRecords.find((r) => r.taskId === "repo-state");
     assert.ok(rs);
     assert.strictEqual(rs.scoring.verdict, "pass");
     assert.strictEqual(rs.verdict, "pass");
   });
 
   test("scoring sentinel filename never appears in the agent trace", async () => {
-    const { runner } = await setupRunner({ runs: 1 });
-    const records = await collectRecords(runner);
-    for (const r of records) {
+    for (const r of sharedRecords) {
       if (!r.agentTracePath) continue;
       const body = await readFile(r.agentTracePath, "utf8").catch(() => "");
       assert.ok(
@@ -204,10 +214,8 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
   });
 
-  test("judge prompt has {{SCORING_RESULT}} substituted (verdict tracks scoring)", async () => {
-    const { runner } = await setupRunner({ runs: 1 });
-    const records = await collectRecords(runner);
-    for (const r of records) {
+  test("judge prompt has {{SCORING_RESULT}} substituted (verdict tracks scoring)", () => {
+    for (const r of sharedRecords) {
       if (r.preflightError) continue;
       assert.strictEqual(
         r.scoring.verdict === "pass" ? "pass" : "fail",
@@ -218,9 +226,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   });
 
   test("traces are consumable by fit-trace overview", async () => {
-    const { runner } = await setupRunner({ runs: 1 });
-    const records = await collectRecords(runner);
-    for (const r of records) {
+    for (const r of sharedRecords) {
       if (!r.agentTracePath) continue;
       const ndjson = await readFile(r.agentTracePath, "utf8").catch(() => "");
       if (!ndjson) continue;
@@ -234,7 +240,9 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
   });
 
-  test("report aggregator computes pass@k over the JSONL file", async () => {
+  test("report aggregator computes pass@k over the JSONL file", {
+    timeout: 30_000,
+  }, async () => {
     const { runner, out } = await setupRunner({ runs: 2 });
     await collectRecords(runner);
     const report = await aggregate({ inputDir: out, kValues: [1] });

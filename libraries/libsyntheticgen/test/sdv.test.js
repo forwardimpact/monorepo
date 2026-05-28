@@ -4,9 +4,10 @@ import { SdvTool } from "../src/tools/sdv.js";
 import {
   assertRejectsMessage,
   assertThrowsMessage,
+  createSilentLogger,
 } from "@forwardimpact/libmock";
 
-const logger = { info() {}, error() {} };
+const logger = createSilentLogger();
 
 describe("SdvTool", () => {
   test("requires all dependencies", () => {

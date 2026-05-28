@@ -4,21 +4,10 @@ import {
   createMockConfig,
   createMockLogger,
   createMockStorage,
+  createMockTracer,
 } from "@forwardimpact/libmock";
 
 import { GhBridgeService } from "../index.js";
-
-function makeTracer() {
-  const noop = () => {};
-  return {
-    startSpan: () => ({
-      addEvent: noop,
-      setOk: noop,
-      setError: noop,
-      end: async () => {},
-    }),
-  };
-}
 
 function makeConfig() {
   return createMockConfig("ghbridge", {
@@ -36,7 +25,7 @@ describe("ghbridge startup", () => {
       () =>
         new GhBridgeService(makeConfig(), {
           logger: createMockLogger(),
-          tracer: makeTracer(),
+          tracer: createMockTracer(),
           storage: createMockStorage(),
           verifyWebhook: async () => true,
           getInstallationToken: async () => "t",

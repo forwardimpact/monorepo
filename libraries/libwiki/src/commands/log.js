@@ -8,24 +8,24 @@ import {
   appendEntry,
 } from "../weekly-log.js";
 import { DECISION_HEADING } from "../constants.js";
+import { createDefaultIo } from "../io.js";
 
-function projectRootForCommand() {
+function projectRootForCommand(io) {
   const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, process);
-  return finder.findProjectRoot(process.cwd());
+  const finder = new Finder(fsAsync, logger, { cwd: io.cwd });
+  return finder.findProjectRoot(io.cwd());
 }
 
-function commonContext(values) {
-  const agent = values.agent || process.env.LIBEVAL_AGENT_PROFILE;
+function commonContext(values, io) {
+  const agent = values.agent || io.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
-    process.stderr.write(
-      "log requires --agent <name> or LIBEVAL_AGENT_PROFILE env var\n",
-    );
-    process.exit(2);
+    io.stderr("log requires --agent <name> or LIBEVAL_AGENT_PROFILE env var\n");
+    io.exit(2);
+    return null;
   }
-  const projectRoot = projectRootForCommand();
+  const projectRoot = projectRootForCommand(io);
   const wikiRoot = values["wiki-root"] || path.join(projectRoot, "wiki");
-  const today = values.today || new Date().toISOString().slice(0, 10);
+  const today = values.today || io.today();
   return { agent, wikiRoot, today };
 }
 
@@ -39,8 +39,10 @@ function lastDateHeading(text) {
   return last;
 }
 
-function runDecision(values) {
-  const { agent, wikiRoot, today } = commonContext(values);
+function runDecision(values, io) {
+  const ctx = commonContext(values, io);
+  if (!ctx) return;
+  const { agent, wikiRoot, today } = ctx;
   const surveyed = values.surveyed || "—";
   const chosen = values.chosen || "—";
   const rationale = values.rationale || "—";
@@ -63,14 +65,17 @@ function runDecision(values) {
   rotateIfOverBudget(wikiRoot, agent, today, lineCount);
   const target = weeklyLogPath(wikiRoot, agent, today);
   appendEntry(target, body, agent, today);
-  process.stdout.write(`logged decision to ${target}\n`);
+  io.stdout(`logged decision to ${target}\n`);
 }
 
-function runNote(values) {
-  const { agent, wikiRoot, today } = commonContext(values);
+function runNote(values, io) {
+  const ctx = commonContext(values, io);
+  if (!ctx) return;
+  const { agent, wikiRoot, today } = ctx;
   if (!values.field || !values.body) {
-    process.stderr.write("log note requires --field and --body\n");
-    process.exit(2);
+    io.stderr("log note requires --field and --body\n");
+    io.exit(2);
+    return;
   }
   const fieldBlock = `### ${values.field}\n\n${values.body}\n`;
   // Conservative line budget: assume we'll prepend a date heading.
@@ -82,28 +87,30 @@ function runNote(values) {
   const existing = existsSync(target) ? readFileSync(target, "utf-8") : "";
   const body = lastDateHeading(existing) === today ? fieldBlock : withHeading;
   appendEntry(target, body, agent, today);
-  process.stdout.write(`logged note to ${target}\n`);
+  io.stdout(`logged note to ${target}\n`);
 }
 
-function runDone(values) {
-  const { agent, wikiRoot, today } = commonContext(values);
+function runDone(values, io) {
+  const ctx = commonContext(values, io);
+  if (!ctx) return;
+  const { agent, wikiRoot, today } = ctx;
   const body = `### Closed\n\nRun closed ${today}.\n`;
   const lineCount = body.split("\n").length;
   rotateIfOverBudget(wikiRoot, agent, today, lineCount);
   const target = weeklyLogPath(wikiRoot, agent, today);
   appendEntry(target, body, agent, today);
-  process.stdout.write(`closed entry in ${target}\n`);
+  io.stdout(`closed entry in ${target}\n`);
 }
 
 const SUBS = { decision: runDecision, note: runNote, done: runDone };
 
 /** Dispatch `log {decision|note|done}` to the matching sub-handler. */
-export function runLogCommand(values, args, cli) {
+export function runLogCommand(values, args, cli, io = createDefaultIo()) {
   const sub = args[0];
   const handler = SUBS[sub];
   if (!handler) {
     cli.usageError("log requires subcommand: decision | note | done");
-    process.exit(2);
+    return io.exit(2);
   }
-  handler(values);
+  handler(values, io);
 }
