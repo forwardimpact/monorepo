@@ -1,10 +1,37 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { createMockStorage } from "@forwardimpact/libmock";
 
 import { Acknowledgement } from "../src/acknowledgement.js";
 import { CallbackRegistry } from "../src/callback-registry.js";
-import { DiscussionContextStore } from "../src/discussion-context.js";
 import { Dispatcher } from "../src/dispatcher.js";
+
+function createFakeAdapter() {
+  const records = new Map();
+  return {
+    loadByChannel: async (channel, id) =>
+      records.get(`${channel}:${id}`) ?? null,
+    loadByCorrelation: async (correlationId) => {
+      for (const rec of records.values()) {
+        if (
+          Object.values(rec.pending_callbacks ?? {}).includes(correlationId) ||
+          rec.open_rfcs?.[correlationId]
+        )
+          return rec;
+      }
+      return null;
+    },
+    listOpenRecesses: async () => {
+      const refs = [];
+      for (const rec of records.values())
+        for (const [cid, rfc] of Object.entries(rec.open_rfcs ?? {}))
+          if (typeof rfc.due_at === "number")
+            refs.push({ correlationId: cid, dueAt: rfc.due_at });
+      return refs;
+    },
+    add: async (ctx) => records.set(ctx.id, ctx),
+    flush: async () => {},
+    shutdown: async () => {},
+  };
+}
 
 function makeReactionAdapter() {
   const adds = [];
@@ -70,7 +97,7 @@ describe("Dispatcher", () => {
   let fetchStub;
 
   beforeEach(() => {
-    store = new DiscussionContextStore(createMockStorage());
+    store = createFakeAdapter();
     callbacks = new CallbackRegistry();
     reactions = makeReactionAdapter();
     ack = new Acknowledgement({ reactionAdapter: reactions });
@@ -86,9 +113,8 @@ describe("Dispatcher", () => {
     });
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     fetchStub.restore();
-    await store.shutdown();
   });
 
   test("rejects construction when required options are missing", () => {

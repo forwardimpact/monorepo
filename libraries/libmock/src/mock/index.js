@@ -22,6 +22,8 @@ export {
   createMockVectorClient,
   createMockGraphClient,
   createMockToolClient,
+  createMockDiscussionClient,
+  createStatefulDiscussionClient,
 } from "./clients.js";
 export { createMockServiceCallbacks } from "./service-callbacks.js";
 export { createMockFs } from "./fs.js";

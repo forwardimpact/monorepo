@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { createMockStorage } from "@forwardimpact/libmock";
 
 import { Acknowledgement } from "../src/acknowledgement.js";
 import {
@@ -7,7 +6,28 @@ import {
   createCallbackHandler,
 } from "../src/callback-handler.js";
 import { CallbackRegistry } from "../src/callback-registry.js";
-import { DiscussionContextStore } from "../src/discussion-context.js";
+
+function createFakeAdapter() {
+  const records = new Map();
+  return {
+    loadByChannel: async (channel, id) =>
+      records.get(`${channel}:${id}`) ?? null,
+    loadByCorrelation: async (correlationId) => {
+      for (const rec of records.values()) {
+        if (
+          Object.values(rec.pending_callbacks ?? {}).includes(correlationId) ||
+          rec.open_rfcs?.[correlationId]
+        )
+          return rec;
+      }
+      return null;
+    },
+    listOpenRecesses: async () => [],
+    add: async (ctx) => records.set(ctx.id, ctx),
+    flush: async () => {},
+    shutdown: async () => {},
+  };
+}
 
 function makeLogger() {
   const calls = [];
@@ -105,7 +125,7 @@ describe("createCallbackHandler", () => {
   let handler;
 
   beforeEach(() => {
-    store = new DiscussionContextStore(createMockStorage());
+    store = createFakeAdapter();
     callbacks = new CallbackRegistry();
     reactions = makeReactionAdapter();
     ack = new Acknowledgement({ reactionAdapter: reactions });
@@ -125,10 +145,6 @@ describe("createCallbackHandler", () => {
         handleReplyCalls.push({ ctx, payload, meta });
       },
     });
-  });
-
-  afterEach(async () => {
-    await store.shutdown();
   });
 
   test("rejects construction when required options are missing", () => {

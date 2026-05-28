@@ -1,11 +1,38 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { createMockStorage } from "@forwardimpact/libmock";
 
 import { Acknowledgement } from "../src/acknowledgement.js";
 import { CallbackRegistry } from "../src/callback-registry.js";
-import { DiscussionContextStore } from "../src/discussion-context.js";
 import { Dispatcher } from "../src/dispatcher.js";
 import { ResumeScheduler } from "../src/resume-scheduler.js";
+
+function createFakeAdapter() {
+  const records = new Map();
+  return {
+    loadByChannel: async (channel, id) =>
+      records.get(`${channel}:${id}`) ?? null,
+    loadByCorrelation: async (correlationId) => {
+      for (const rec of records.values()) {
+        if (
+          Object.values(rec.pending_callbacks ?? {}).includes(correlationId) ||
+          rec.open_rfcs?.[correlationId]
+        )
+          return rec;
+      }
+      return null;
+    },
+    listOpenRecesses: async () => {
+      const refs = [];
+      for (const rec of records.values())
+        for (const [cid, rfc] of Object.entries(rec.open_rfcs ?? {}))
+          if (typeof rfc.due_at === "number")
+            refs.push({ correlationId: cid, dueAt: rfc.due_at });
+      return refs;
+    },
+    add: async (ctx) => records.set(ctx.id, ctx),
+    flush: async () => {},
+    shutdown: async () => {},
+  };
+}
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -60,7 +87,7 @@ function buildEnv({
   onDeclined,
   tokenResolver,
 } = {}) {
-  const store = new DiscussionContextStore(createMockStorage());
+  const store = createFakeAdapter();
   const callbacks = new CallbackRegistry();
   const ack = new Acknowledgement({
     reactionAdapter: {
@@ -97,10 +124,9 @@ describe("ResumeScheduler", () => {
     env = buildEnv();
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     fetchStub.restore();
     env.scheduler.clear();
-    await env.store.shutdown();
   });
 
   test("rejects construction when required options are missing", () => {
@@ -316,10 +342,8 @@ describe("ResumeScheduler", () => {
       due_at: Date.now() + 60_000,
       requester: "U_1",
     };
-    await env.store.add(ctx);
-    await env.store.flush();
 
-    const freshStore = new DiscussionContextStore(createMockStorage());
+    const freshStore = createFakeAdapter();
     await freshStore.add(ctx);
     const callbacks = new CallbackRegistry();
     const ack = new Acknowledgement({
@@ -341,7 +365,6 @@ describe("ResumeScheduler", () => {
       expect(fresh.size).toBe(1);
     } finally {
       fresh.clear();
-      await freshStore.shutdown();
     }
   });
 

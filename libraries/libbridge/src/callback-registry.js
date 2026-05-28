@@ -4,7 +4,7 @@ const DEFAULT_TTL_MS = 2 * 60 * 60 * 1000;
 
 /**
  * In-memory registry of pending bridge → workflow callbacks. Hosts persist
- * the (token, correlationId) pairs via DiscussionContextStore so the registry
+ * the (token, correlationId) pairs via the discussion store so the registry
  * can be rehydrated after a restart; this class only owns the live token →
  * metadata mapping and TTL sweep.
  */

@@ -13,7 +13,6 @@ Threaded-channel bridge primitives — relay messages between human channels
 import {
   createBridgeServer,
   CallbackRegistry,
-  DiscussionContextStore,
   RateLimiter,
   ProgressTicker,
   appendHistory,

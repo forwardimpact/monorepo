@@ -10,14 +10,22 @@
  * @property {string} github_repo - "owner/repo" hosting the kata-dispatch workflow
  */
 
+/**
+ * @typedef {object} DiscussionAdapter
+ * @property {(channel: string, discussionId: string) => Promise<object|null>} loadByChannel
+ * @property {(correlationId: string) => Promise<object|null>} loadByCorrelation
+ * @property {() => Promise<Array<{correlationId: string, dueAt: number}>>} listOpenRecesses
+ * @property {(ctx: object) => Promise<void>} add
+ * @property {() => Promise<void>} flush
+ * @property {() => Promise<void>} shutdown
+ */
+
 export { createBridgeServer } from "./server.js";
 export { CallbackRegistry } from "./callback-registry.js";
 export { buildPrompt } from "./prompt.js";
 export { appendHistory } from "./history.js";
 export { RateLimiter } from "./rate-limit.js";
 export { dispatchWorkflow } from "./dispatch.js";
-export { DiscussionContextStore } from "./discussion-context.js";
-export { OriginIndex } from "./origin-index.js";
 export { ProgressTicker } from "./progress-ticker.js";
 export {
   Acknowledgement,

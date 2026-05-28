@@ -37,7 +37,7 @@ export class CallbackHandlerError extends Error {
  * @param {string} options.channel
  * @param {import("./callback-registry.js").CallbackRegistry} options.callbacks
  * @param {import("./acknowledgement.js").Acknowledgement} options.ack
- * @param {import("./discussion-context.js").DiscussionContextStore} options.store
+ * @param {import("./index.js").DiscussionAdapter} options.store
  * @param {{debug?: Function, error?: Function}} options.logger
  * @param {{startSpan: Function}} options.tracer
  * @param {string} options.spanName

@@ -17,7 +17,7 @@ export class ResumeScheduler {
   /**
    * @param {object} options
    * @param {import("./dispatcher.js").Dispatcher} options.dispatcher
-   * @param {import("./discussion-context.js").DiscussionContextStore} options.store
+   * @param {import("./index.js").DiscussionAdapter} options.store
    * @param {{error?: Function, info?: Function}} [options.logger]
    * @param {string} [options.prompt] - Default "Resume requested."
    * @param {(ctx: object) => object} [options.buildCallbackMeta]
@@ -137,15 +137,9 @@ export class ResumeScheduler {
    * @returns {Promise<void>}
    */
   async rearm() {
-    if (!this.#store.loaded) await this.#store.loadData();
-    for (const record of this.#store.index.values()) {
-      const open = record?.open_rfcs;
-      if (!open) continue;
-      for (const [correlationId, rfc] of Object.entries(open)) {
-        if (typeof rfc.due_at === "number") {
-          this.#elapsed.schedule(correlationId, rfc.due_at);
-        }
-      }
+    const refs = await this.#store.listOpenRecesses();
+    for (const { correlationId, dueAt } of refs) {
+      this.#elapsed.schedule(correlationId, dueAt);
     }
   }
 
@@ -220,12 +214,8 @@ export class ResumeScheduler {
   }
 
   async #findContextWithRfc(correlationId) {
-    if (!this.#store.loaded) await this.#store.loadData();
-    for (const record of this.#store.index.values()) {
-      if (record?.open_rfcs?.[correlationId]) {
-        return { ctx: record, rfc: record.open_rfcs[correlationId] };
-      }
-    }
-    return null;
+    const ctx = await this.#store.loadByCorrelation(correlationId);
+    if (!ctx) return null;
+    return { ctx, rfc: ctx.open_rfcs[correlationId] };
   }
 }

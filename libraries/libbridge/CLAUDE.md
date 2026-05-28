@@ -9,9 +9,6 @@ Channel-agnostic primitives shared by `services/ghbridge` and `services/msbridge
 - **No GraphQL or REST strings.** Never compose `addDiscussionComment` or
   `addReaction` mutations, or any channel-specific URL beyond the
   workflow-dispatch endpoint (GitHub-Actions-shaped, not channel-shaped).
-- **Caller-injected storage.** `DiscussionContextStore` takes a
-  `StorageInterface` from the host service — no implicit `LocalStorage`
-  construction inside this package.
 - **Caller-injected clock.** `evaluateTrigger(trigger, observed, now)` takes
   `now` as a parameter; never call `Date.now()` from trigger evaluation.
 
@@ -46,7 +43,8 @@ order. To add `xbridge`, implement four pieces:
 
 Once those exist, composition is mechanical — instantiate
 `Acknowledgement` with your adapters, construct a `Dispatcher` over a
-`CallbackRegistry` and `DiscussionContextStore`, wire `createBridgeServer`
+`CallbackRegistry` and a host-supplied object satisfying the `DiscussionAdapter`
+typedef — see `services/bridge`, wire `createBridgeServer`
 with `onWebhook` and `createCallbackHandler({ channel, handleReply, ...})`.
 See `services/ghbridge/src/index.js` for the canonical wiring.
 
@@ -102,7 +100,6 @@ its `loadDiscussionId` lens.
 |---|---|
 | `Acknowledgement` | reaction + optional typing-verb lifecycle |
 | `CallbackRegistry` | token → correlation map with TTL |
-| `DiscussionContextStore` | persisted `(channel, discussion_id)` state |
 | `Dispatcher`, `dispatchWorkflow` | the dispatch dance + workflow URL |
 | `TokenResolver` | `(surface, user) → DispatchAuth` via ghauth gRPC |
 | `createCallbackHandler`, `validateCallbackPayload` | inbound-callback skeleton + payload validator |

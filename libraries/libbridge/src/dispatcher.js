@@ -17,7 +17,7 @@ export class Dispatcher {
    * @param {object} options
    * @param {import("./callback-registry.js").CallbackRegistry} options.callbacks
    * @param {import("./acknowledgement.js").Acknowledgement} options.ack
-   * @param {import("./discussion-context.js").DiscussionContextStore} options.store
+   * @param {import("./index.js").DiscussionAdapter} options.store
    * @param {string} options.callbackBaseUrl - Already normalised
    * @param {string} options.workflowFile
    * @param {string} options.githubRepo
