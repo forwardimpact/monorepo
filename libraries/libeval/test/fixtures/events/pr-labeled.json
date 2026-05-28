@@ -1,0 +1,10 @@
+{
+  "action": "labeled",
+  "pull_request": {
+    "number": 99,
+    "title": "Wire up task-event",
+    "html_url": "https://github.com/acme/repo/pull/99",
+    "user": { "login": "bob", "type": "Bot" }
+  },
+  "label": { "name": "spec:approved" }
+}

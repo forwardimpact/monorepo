@@ -51,6 +51,16 @@ export {
 } from "./discuss-tools.js";
 export { Judge, createJudge, JUDGE_SYSTEM_PROMPT } from "./judge.js";
 export {
+  composeTaskFromGitHubEvent,
+  TASK_TEMPLATE_ISSUE_OPENED,
+  TASK_TEMPLATE_ISSUE_LABELED,
+  TASK_TEMPLATE_PR_LABELED,
+  TASK_TEMPLATE_PR_MERGED,
+  TASK_TEMPLATE_ISSUE_COMMENT_ON_ISSUE,
+  TASK_TEMPLATE_ISSUE_COMMENT_ON_PR,
+  TASK_TEMPLATE_REVIEW_SUBMITTED,
+} from "./events/github.js";
+export {
   Redactor,
   createRedactor,
   createNoopRedactor,

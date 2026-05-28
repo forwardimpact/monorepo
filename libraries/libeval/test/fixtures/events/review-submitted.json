@@ -1,0 +1,13 @@
+{
+  "action": "submitted",
+  "pull_request": {
+    "number": 99,
+    "title": "Wire up task-event",
+    "html_url": "https://github.com/acme/repo/pull/99",
+    "user": { "login": "bob", "type": "User" }
+  },
+  "review": {
+    "html_url": "https://github.com/acme/repo/pull/99#pullrequestreview-1",
+    "user": { "login": "dave", "type": "User" }
+  }
+}

@@ -1,9 +1,10 @@
-import { readFileSync, createWriteStream, mkdtempSync } from "node:fs";
+import { createWriteStream, mkdtempSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { tmpdir } from "node:os";
 import { createSupervisor } from "../supervisor.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
+import { resolveTaskContent } from "./task-input.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 
 /**
@@ -11,19 +12,10 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
  * @param {object} values - Parsed option values from cli.parse()
  * @returns {object}
  */
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: CLI option validation
 export function parseSuperviseOptions(values) {
-  const taskFile = values["task-file"];
-  const taskText = values["task-text"];
-  if (taskFile && taskText)
-    throw new Error("--task-file and --task-text are mutually exclusive");
-  if (!taskFile && !taskText)
-    throw new Error("--task-file or --task-text is required");
-
-  const supervisorAllowedToolsRaw = values["supervisor-allowed-tools"];
-
+  const taskContent = resolveTaskContent(values);
   const taskAmend = values["task-amend"] ?? undefined;
-  const taskContent = taskFile ? readFileSync(taskFile, "utf8") : taskText;
+  const supervisorAllowedToolsRaw = values["supervisor-allowed-tools"];
 
   return {
     taskContent,

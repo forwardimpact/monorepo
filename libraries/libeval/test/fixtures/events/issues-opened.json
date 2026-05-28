@@ -1,0 +1,9 @@
+{
+  "action": "opened",
+  "issue": {
+    "number": 42,
+    "title": "Investigate flaky CI",
+    "html_url": "https://github.com/acme/repo/issues/42",
+    "user": { "login": "alice", "type": "User" }
+  }
+}

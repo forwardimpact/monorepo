@@ -1,0 +1,13 @@
+{
+  "action": "created",
+  "issue": {
+    "number": 42,
+    "title": "Investigate flaky CI",
+    "html_url": "https://github.com/acme/repo/issues/42",
+    "user": { "login": "alice", "type": "User" }
+  },
+  "comment": {
+    "html_url": "https://github.com/acme/repo/issues/42#issuecomment-1",
+    "user": { "login": "carol", "type": "User" }
+  }
+}

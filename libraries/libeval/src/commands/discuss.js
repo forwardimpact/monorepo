@@ -1,8 +1,9 @@
-import { readFileSync, createWriteStream } from "node:fs";
+import { createWriteStream } from "node:fs";
 import { resolve } from "node:path";
 import { createDiscusser } from "../discusser.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
+import { resolveTaskContent } from "./task-input.js";
 
 function parseAgentProfiles(raw, cwd, maxTurns) {
   if (!raw) return [];
@@ -18,17 +19,9 @@ function parseAgentProfiles(raw, cwd, maxTurns) {
  * @param {object} values - Parsed option values
  * @returns {object}
  */
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: CLI option validation
 export function parseDiscussOptions(values) {
-  const taskFile = values["task-file"];
-  const taskText = values["task-text"];
-  if (taskFile && taskText)
-    throw new Error("--task-file and --task-text are mutually exclusive");
-  if (!taskFile && !taskText)
-    throw new Error("--task-file or --task-text is required");
-
+  const taskContent = resolveTaskContent(values);
   const taskAmend = values["task-amend"] ?? undefined;
-  const taskContent = taskFile ? readFileSync(taskFile, "utf8") : taskText;
 
   const profilesRaw = values["agent-profiles"];
   const agentCwd = resolve(values["agent-cwd"] ?? ".");

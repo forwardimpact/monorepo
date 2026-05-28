@@ -1,8 +1,9 @@
-import { readFileSync, createWriteStream } from "node:fs";
+import { createWriteStream } from "node:fs";
 import { resolve } from "node:path";
 import { createFacilitator } from "../facilitator.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
+import { resolveTaskContent } from "./task-input.js";
 
 /**
  * Parse comma-separated agent profile names into structured configs.
@@ -25,15 +26,8 @@ function parseAgentProfiles(raw, cwd, maxTurns) {
  * @returns {object} Parsed options
  */
 export function parseFacilitateOptions(values) {
-  const taskFile = values["task-file"];
-  const taskText = values["task-text"];
-  if (taskFile && taskText)
-    throw new Error("--task-file and --task-text are mutually exclusive");
-  if (!taskFile && !taskText)
-    throw new Error("--task-file or --task-text is required");
-
+  const taskContent = resolveTaskContent(values);
   const taskAmend = values["task-amend"] ?? undefined;
-  const taskContent = taskFile ? readFileSync(taskFile, "utf8") : taskText;
 
   const profilesRaw = values["agent-profiles"];
   if (!profilesRaw) throw new Error("--agent-profiles is required");

@@ -1,4 +1,4 @@
-import { readFileSync, createWriteStream } from "node:fs";
+import { createWriteStream } from "node:fs";
 import { Writable } from "node:stream";
 import { resolve } from "node:path";
 import { createAgentRunner } from "../agent-runner.js";
@@ -6,6 +6,7 @@ import { composeProfilePrompt } from "../profile-prompt.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
 import { SequenceCounter } from "../sequence-counter.js";
+import { resolveTaskContent } from "./task-input.js";
 import { createServiceConfig } from "@forwardimpact/libconfig";
 
 /**
@@ -14,16 +15,9 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
  * @returns {{ taskContent: string, cwd: string, model: string, maxTurns: number, outputPath: string|undefined, agentProfile: string|undefined, allowedTools: string[] }}
  */
 function parseRunOptions(values) {
-  const taskFile = values["task-file"];
-  const taskText = values["task-text"];
-  if (taskFile && taskText)
-    throw new Error("--task-file and --task-text are mutually exclusive");
-  if (!taskFile && !taskText)
-    throw new Error("--task-file or --task-text is required");
-
-  const maxTurnsRaw = values["max-turns"] ?? "50";
+  const taskContent = resolveTaskContent(values);
   const taskAmend = values["task-amend"] ?? undefined;
-  const taskContent = taskFile ? readFileSync(taskFile, "utf8") : taskText;
+  const maxTurnsRaw = values["max-turns"] ?? "50";
 
   return {
     taskContent,

@@ -97,85 +97,20 @@ jobs:
           app-slug: kata-agent-team
           app-id: ${{ secrets.KATA_APP_ID }}
 
-      - name: Compose task text
-        id: task
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          EVENT_ACTION: ${{ github.event.action }}
-          DISPATCH_PROMPT: ${{ inputs.prompt }}
-          PR_NUMBER_FROM_EVENT: ${{ github.event.issue.number || github.event.pull_request.number }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          LABEL_NAME: ${{ github.event.label.name }}
-          IS_PR: ${{ github.event.issue.pull_request != null }}
-          AUTHOR: ${{ github.event.comment.user.login || github.event.review.user.login || github.event.issue.user.login || github.actor }}
-          AUTHOR_TYPE: ${{ github.event.comment.user.type || github.event.review.user.type || github.event.issue.user.type || 'User' }}
-          ITEM_URL: ${{ github.event.comment.html_url || github.event.review.html_url || github.event.issue.html_url || github.event.pull_request.html_url || '' }}
-        run: |
-          set -euo pipefail
-
-          target_number="${PR_NUMBER_FROM_EVENT:-}"
-
-          case "$EVENT_NAME" in
-            issues)
-              if [ "$EVENT_ACTION" = "labeled" ]; then
-                context="Label \"$LABEL_NAME\" was added to issue \"$ISSUE_TITLE\" (#$target_number). Issue URL: $ITEM_URL."
-              else
-                context="New issue: \"$ISSUE_TITLE\" (#$target_number) by @$AUTHOR (type: $AUTHOR_TYPE). Issue URL: $ITEM_URL."
-              fi
-              ;;
-            pull_request_target)
-              if [ "$EVENT_ACTION" = "closed" ]; then
-                context="PR \"$PR_TITLE\" (#$target_number) merged. PR URL: $ITEM_URL."
-              else
-                context="Label \"$LABEL_NAME\" was added to PR \"$PR_TITLE\" (#$target_number). PR URL: $ITEM_URL."
-              fi
-              ;;
-            workflow_dispatch)
-              ;;
-            issue_comment)
-              if [ "$IS_PR" = "true" ]; then
-                context="New comment on PR #$target_number by @$AUTHOR (type: $AUTHOR_TYPE). Comment URL: $ITEM_URL."
-              else
-                context="New comment on issue \"$ISSUE_TITLE\" (#$target_number) by @$AUTHOR (type: $AUTHOR_TYPE). Comment URL: $ITEM_URL."
-              fi
-              ;;
-            pull_request_review)
-              context="Review submitted on PR \"$PR_TITLE\" (#$target_number) by @$AUTHOR (type: $AUTHOR_TYPE). Review URL: $ITEM_URL."
-              ;;
-            *)
-              context="New comment on PR #$target_number by @$AUTHOR (type: $AUTHOR_TYPE). Comment URL: $ITEM_URL."
-              ;;
-          esac
-
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            task="$DISPATCH_PROMPT"
-          else
-            task="$context"
-          fi
-
-          # Heredoc delimiter must be unguessable: $task interpolates user-
-          # controlled fields (issue title, PR title, label, author, URL).
-          # A predictable delimiter would let an attacker inject extra
-          # `key=value` lines into $GITHUB_OUTPUT — per GitHub Security
-          # Lab template-injection guidance.
-          delim="EOF_$(openssl rand -hex 16)"
-          {
-            echo "task<<$delim"
-            echo "$task"
-            echo "$delim"
-          } >> "$GITHUB_OUTPUT"
-
       # Select discuss mode when a discussion_id is supplied (the bridge
       # path resuming or starting a threaded conversation); otherwise run a
       # one-shot facilitate. The discuss / facilitate / supervise modes all
       # take the same lead-profile + agent-profiles pair after the libeval
       # consolidation that landed alongside discuss mode.
       #
-      # Untrusted dispatch inputs (task text, discussion_id, resume_context)
-      # flow as `with:` inputs; the composite action env-wraps them before
-      # they reach any shell, so this surface preserves the same
-      # template-injection-safe contract as the previous direct-CLI form.
+      # Task composition lives inside libeval (libraries/libeval/src/events/
+      # github.js) — the workflow just hands the runner's native event JSON
+      # to the action. `GITHUB_EVENT_NAME` is exported automatically by the
+      # runner, so the composer can pick the right template without any
+      # extra wiring. Untrusted dispatch inputs (discussion_id,
+      # resume_context, dispatch prompt) flow as `with:` inputs; the
+      # composite action env-wraps them before they reach any shell, so
+      # this surface preserves the same template-injection-safe contract.
       - name: Assess and Act
         id: assess
         uses: forwardimpact/fit-eval@v1
@@ -185,7 +120,8 @@ jobs:
           CLAUDE_CODE_USE_BEDROCK: "0"
         with:
           mode: ${{ inputs.discussion_id != '' && 'discuss' || 'facilitate' }}
-          task-text: ${{ steps.task.outputs.task }}
+          task-event: ${{ github.event_path }}
+          task-event-dispatch-prompt: ${{ inputs.prompt }}
           agent-profiles: release-engineer,product-manager,security-engineer,staff-engineer,technical-writer,improvement-coach
           max-turns: "1500"
           timeout-minutes: "300"
