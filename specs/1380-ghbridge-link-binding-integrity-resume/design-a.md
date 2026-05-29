@@ -102,9 +102,10 @@ several humans have posted in the thread.
 
 | Structure | Shape |
 |---|---|
-| `PendingDispatch` record | `{ link_token, surface, surface_user_id, discussion_id, created_at }` — target only, TTL-swept like the flow/grant stores. |
+| `PendingDispatch` record | New `services/bridge` message `{ link_token, surface, surface_user_id, discussion_id, created_at }` — target only, TTL-swept like the flow/grant stores. `surface` is the channel value the replay feeds to `loadByChannel` (i.e. `ctx.channel`), not a second identifier. |
+| `BeginRequest` (`ghauth`) | Gains a `client_state` field; `Begin` persists it on the flow instead of hard-coding `null`. This is the upstream half of the `client_state` round-trip. |
 | Binding (`ghauth`) | `github_user_id` populated with the verified authorizer id (was always `null`). |
-| History entry | `{ role, text, author? }` (was `{ role, text }`). |
+| History entry (`bridge` proto `HistoryEntry`) | `{ role, text, author? }` (was `{ role, text }`); the shared canonical schema, not just an in-memory shape. |
 
 ## Key Decisions
 
@@ -121,14 +122,20 @@ several humans have posted in the thread.
 
 ## Constraints the plan must honor
 
-- **`client_state` round-trips end to end.** It must enter at `/authorize`,
-  persist on the flow record (the `GetToken`-originated path fixes it to `null`
-  today), and survive to `Complete`, which already echoes it. No other `oauth`
-  contract changes.
-- **The history `author` field is the shared cross-bridge change.** Both
-  `ghbridge` and `msbridge` read the same history entries, so the schema
-  addition is common. Removing the `Dispatcher` `historyText` append is
-  `ghbridge`-only: `msbridge` already appends its turn at intake and does not
-  use `historyText`, so its dispatch path is unaffected.
+- **`client_state` round-trips end to end across two contracts.** It must enter
+  at `oauth /authorize` (a new query pass-through), cross the `ghauth.Begin`
+  gRPC boundary (a new `BeginRequest.client_state` field, persisted on the flow
+  instead of the current hard-coded `null`), and survive to `Complete`, which
+  already echoes `flow.client_state`. `oauth`'s own HTTP surface needs no other
+  change.
+- **Two cross-bridge changes, different blast radius.** The `HistoryEntry`
+  `author` field is a shared canonical-schema addition both bridges read.
+  Removing the success-only `historyText` append is a change to the shared
+  `libbridge.Dispatcher` contract — but only `ghbridge` is behaviourally
+  affected: `msbridge` already appends its turn at intake and passes no
+  `historyText`, so its dispatch path does not change.
+- **`reauth_required` is the `libbridge` outcome name** (`TokenResolver` maps
+  the `ghauth` gRPC `re_auth_required` arm onto it); the plan should grep the
+  resolver-level spelling, not the wire spelling.
 - **The confirmation page is a `ghbridge` HTTP response** — no channel SDK,
   preserving the libbridge no-channel invariant.
