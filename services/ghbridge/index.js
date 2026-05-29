@@ -437,7 +437,7 @@ export class GhBridgeService {
   async #handleDispatchResult(ctx, result, requester) {
     if (result.kind === "link_required") {
       await this.#stashAndPostLink(ctx, result, requester);
-    } else if (result.kind !== "dispatched") {
+    } else {
       await this.#renderDeclined(ctx, result);
     }
   }

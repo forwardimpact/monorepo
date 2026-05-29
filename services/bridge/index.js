@@ -141,9 +141,11 @@ export class BridgeService extends BridgeBase {
    */
   async ResolvePendingDispatch(req) {
     await this.#pendingDispatches.loadData();
+    const stale = [];
     for (const [id, rec] of this.#pendingDispatches.index) {
-      if (rec.deleted) this.#pendingDispatches.index.delete(id);
+      if (rec.deleted) stale.push(id);
     }
+    for (const id of stale) this.#pendingDispatches.index.delete(id);
     const rec = this.#pendingDispatches.index.get(req.link_token);
     if (!rec)
       throw Object.assign(new Error("not found"), {
