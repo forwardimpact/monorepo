@@ -7,10 +7,11 @@
 The implementation sequences changes bottom-up: proto definitions first
 (shared schema), then the identity-verification and client-state plumbing
 in `ghauth` / `oauth`, the `PendingDispatch` store in `services/bridge`,
-the `Dispatcher` clean break in `libbridge`, and finally the `ghbridge`
-integration that ties the resume flow together. Each step is independently
-testable and the ordering avoids forward references — later steps depend
-on earlier ones but never the reverse.
+the `Dispatcher` clean break in `libbridge`, then the `ghbridge`
+integration, and finally the parallel `msbridge` integration for full
+bridge parity. Each step is independently testable and the ordering avoids
+forward references — later steps depend on earlier ones but never the
+reverse.
 
 ## Step 1 — Proto changes and codegen
 
@@ -566,6 +567,154 @@ not the bare authorize URL.
 
 Verify: `bun test services/ghbridge/test/` — all tests pass.
 
+## Step 8 — msbridge: resume parity
+
+Intent: msbridge gets the same resume flow as ghbridge — turn persistence
+with author, pending-dispatch stash on `link_required`, and a
+`/api/link-complete` endpoint. The handler logic is identical to ghbridge's;
+the only channel-specific difference is that `#stashAndPostLink` uses
+`sendReply` (Bot Framework) instead of `postSingleDiscussionReply`
+(GraphQL). Depends on Steps 5 (PendingDispatch store) and 6 (Dispatcher
+clean break).
+
+| File | Action |
+|---|---|
+| `services/msbridge/index.js` | Modified |
+| `services/msbridge/src/discussion-adapter.js` | Modified |
+| `services/msbridge/test/helpers.js` | Modified |
+| `services/msbridge/test/dispatch-auth.test.js` | Modified |
+| `services/msbridge/test/link-complete.test.js` | Created |
+
+### 8a — DiscussionAdapter: add pending-dispatch methods
+
+Add `putPendingDispatch(target)` and `resolvePendingDispatch(linkToken)` to
+msbridge's `DiscussionAdapter`. Identical to ghbridge's (Step 7a) — same
+`isNotFound` pattern, same bridge RPC wrappers.
+
+### 8b — Turn persistence with author
+
+**`#handleNewMessage` (line 219)** — add `author: requester` to the
+existing `appendHistory` call:
+
+```js
+appendHistory(ctx.history, { role: "user", text, author: requester });
+```
+
+Move `await this.#store.add(ctx)` before the `processInbound` call
+(currently at lines 223–224 inside the `!freshDispatchAllowed` branch) to
+ensure the turn reaches the canonical store before any bookkeeping on
+every code path, not just the non-dispatch path:
+
+```js
+appendHistory(ctx.history, { role: "user", text, author: requester });
+
+const { freshDispatchAllowed } = await this.#resume.processInbound(ctx);
+if (!freshDispatchAllowed) {
+  await this.#store.add(ctx);
+  await this.#store.flush();
+  span.setOk();
+  return;
+}
+```
+
+Wait — msbridge currently persists only on the `!freshDispatchAllowed`
+early return. On the dispatch path, the dispatcher itself calls
+`store.add(ctx)` + `store.flush()` on success. For the resume invariant,
+the turn must be persisted **before** the pending-dispatch stash
+(link_required path). Add `await this.#store.add(ctx)` before the dispatch
+call:
+
+```js
+await this.#store.add(ctx);
+
+const limit = this.#rateLimiter.check(threadId, ctx.dispatches);
+// ... rate limit, dispatch, etc.
+```
+
+### 8c — Link augmentation on link_required
+
+Add a `#stashAndPostLink` method mirroring ghbridge's (Step 7c), using
+`sendReply` instead of `postSingleDiscussionReply`:
+
+```js
+async #stashAndPostLink(ctx, result, requester) {
+  const linkToken = crypto.randomUUID();
+
+  await this.#store.putPendingDispatch({
+    link_token: linkToken,
+    surface: CHANNEL,
+    surface_user_id: requester,
+    discussion_id: ctx.discussion_id,
+    created_at: Date.now(),
+  });
+
+  const url = new URL(result.authorizeUrl);
+  const callbackBase = normalizeBaseUrl(this.#config.callback_base_url);
+  url.searchParams.set("redirect_uri", `${callbackBase}/api/link-complete`);
+  url.searchParams.set("client_state", linkToken);
+
+  const ref = ctx.participants?.[0]?.metadata;
+  if (ref) {
+    await sendReply(
+      this.#adapter,
+      this.#msAppId,
+      ref,
+      `To dispatch, link your GitHub account: ${url}`,
+    );
+  }
+}
+```
+
+Add `import crypto from "node:crypto";` at the top of the file.
+
+In `#handleNewMessage`, when dispatch returns `link_required`, call
+`#stashAndPostLink` instead of `#renderDeclined`. Keep `link_required`
+in `#renderDeclined` for the `ResumeScheduler.onDeclined` callback (same
+reasoning as ghbridge Step 7c).
+
+### 8d — `/api/link-complete` endpoint
+
+Mount a GET route on the bridge app in the constructor, after
+`createBridgeServer`:
+
+```js
+this.#bridge.app.get("/api/link-complete", (c) =>
+  this.#handleLinkComplete(c),
+);
+```
+
+The handler is identical to ghbridge's (Step 7d) — resolve
+`PendingDispatch` by link token, load discussion context, find latest user
+turn by author, re-dispatch, render confirmation page. No `ackTarget` (user
+is on the browser). No channel SDK involved.
+
+Store the `config` reference as `this.#config = config` in the constructor
+(currently only `this.#msAppId` is stored from config; `callback_base_url`
+is needed for `normalizeBaseUrl` in `#stashAndPostLink`).
+
+### 8e — Tests
+
+**helpers.js** — extend msbridge's `createStatefulDiscussionClient` with
+`PutPendingDispatch` / `ResolvePendingDispatch` stubs (same pattern as
+ghbridge Step 7e).
+
+**dispatch-auth.test.js** — update the `link_required` test: the reply
+now contains the augmented URL.
+
+**link-complete.test.js** (new) — same test matrix as ghbridge's
+(Step 7e), adapted for Bot Framework mocks instead of GraphQL:
+
+| Case | Assertion |
+|---|---|
+| Valid link_token, binding exists | dispatch fires, renders "Processing" page |
+| Valid link_token, no binding | renders "Unable to dispatch" |
+| Unknown/consumed link_token | renders "Already processed" |
+| Missing `state` param | 400 |
+| New message then link_required | user turn present in discussion store before pending stash |
+| Inspect PendingDispatch record | no message body in record |
+
+Verify: `bun test services/msbridge/test/` — all tests pass.
+
 ## Libraries used
 
 `@forwardimpact/libbridge` (appendHistory, Dispatcher, buildPrompt,
@@ -581,7 +730,9 @@ ghauth typed message constructors).
 
 ## Execution
 
-All steps are sequential (each depends on the prior step's outputs).
+Steps 1–7 are sequential (each depends on the prior step's outputs).
+Step 8 (msbridge parity) depends on Steps 5 and 6 but is independent of
+Step 7 — Steps 7 and 8 can run in parallel if two agents are available.
 Route to `staff-engineer` for implementation. `technical-writer` is not
 needed — changes are internal service code with no published documentation
 impact.

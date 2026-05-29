@@ -1,29 +1,33 @@
 # Design 1380-a — link binding integrity and auth-completion resume
 
-Spec 1380 closes two coupled defects on the `github-discussions` linking flow:
-the completion step binds a token without checking who authorized, and the
-message that triggered linking is dropped. The integrity fix lands in `ghauth`
-(`Complete`); the resume flow is composed in `ghbridge` over a new
+Spec 1380 closes two coupled defects on the bridge linking flow: the
+completion step binds a token without checking who authorized, and the
+message that triggered linking is dropped. Both defects affect every bridge
+channel (`github-discussions` via `ghbridge`, `msteams` via `msbridge`)
+because they originate in the shared `ghauth` completion step and the
+shared `libbridge` dispatch contract. The integrity fix lands in `ghauth`
+(`Complete`); the resume flow is composed in each bridge over a new
 `services/bridge` store, the existing `libbridge` `Dispatcher`, and the
-`oauth` round-trip already used for OAuth-client redirects. Out of scope:
-the Teams surface, alternative token-minting methods, and the clickable-link
-UX (retained).
+`oauth` round-trip. Both bridges implement the same resume pattern — the
+only per-channel difference is how the link is posted (GraphQL comment vs
+Bot Framework reply). Out of scope: alternative token-minting methods and
+the clickable-link UX (retained).
 
 ## Components and flow
 
 ```mermaid
 graph LR
-  U[Discussion participant] -->|webhook| GB[ghbridge intake]
-  GB -->|dispatch| DSP[libbridge Dispatcher]
+  U[Channel participant] -->|webhook / activity| BR[ghbridge or msbridge intake]
+  BR -->|dispatch| DSP[libbridge Dispatcher]
   DSP -->|GetToken| GH[ghauth]
-  GB -.->|link_required:<br/>mint link_token, stash target,<br/>augment authorize URL| PD[(PendingDispatchStore<br/>services/bridge)]
-  GB -->|post link| TH[discussion thread]
+  BR -.->|link_required:<br/>mint link_token, stash target,<br/>augment authorize URL| PD[(PendingDispatchStore<br/>services/bridge)]
+  BR -->|post link| TH[channel thread]
   U -->|click| OA[oauth /authorize]
   OA -->|Begin client_state=link_token| GH
   GH --> GHUB[GitHub User App]
   GHUB -->|callback| OC[oauth /callback]
-  OC -->|Complete: verify authorizer == surface id,<br/>record github_user_id| GH
-  OC -->|302 to redirect_uri, state=link_token| LC[ghbridge /api/link-complete]
+  OC -->|Complete: verify authorizer,<br/>record github_user_id| GH
+  OC -->|302 to redirect_uri, state=link_token| LC[bridge /api/link-complete]
   LC -->|lookup link_token| PD
   LC -->|re-dispatch ctx| DSP
   LC -->|confirmation page| U
@@ -31,10 +35,10 @@ graph LR
 
 | Component | Role in this design |
 |---|---|
-| `ghauth.Complete` | Verifies the authorizing GitHub account against the flow's `surface_user_id`; records the verified id on the binding. |
-| `PendingDispatchStore` (`services/bridge`) | Canonical, TTL'd map `link_token → replay target`; sibling to the discussion/origin stores so it survives `ghbridge` restarts. Like those stores it is reached over the bridge gRPC client, behind new RPCs (put / resolve-and-consume / sweep), not a local in-process object. |
-| `ghbridge` link-prompt path | On a `link_required` decline, mints `link_token`, stashes the target, augments the authorize URL with its completion redirect + token. |
-| `ghbridge` `/api/link-complete` | Post-auth landing endpoint: resolves `link_token`, re-dispatches, renders confirmation. |
+| `ghauth.Complete` | Verifies the authorizing GitHub account against the flow's `surface_user_id` (equality check on `github-discussions`; record-only on `msteams`); records the verified id on the binding. |
+| `PendingDispatchStore` (`services/bridge`) | Canonical, TTL'd map `link_token → replay target`; sibling to the discussion/origin stores so it survives bridge restarts. Like those stores it is reached over the bridge gRPC client, behind new RPCs (put / resolve-and-consume / sweep), not a local in-process object. |
+| `ghbridge` / `msbridge` link-prompt path | On a `link_required` decline, mints `link_token`, stashes the target, augments the authorize URL with its completion redirect + token. Each bridge posts the link through its own channel SDK (GraphQL comment / Bot Framework reply). |
+| `ghbridge` / `msbridge` `/api/link-complete` | Post-auth landing endpoint on each bridge: resolves `link_token`, re-dispatches, renders confirmation. Identical handler logic; the channel SDK is not involved (the user is on the browser). |
 | `oauth /authorize` | Gains one new pass-through: forwards `client_state` (carrying `link_token`) into `Begin` (today it forwards `redirect_uri`/`code_challenge`/`scope` but not `client_state`). |
 | `libbridge.Dispatcher` | Unchanged dispatch primitive; the replay calls it exactly as intake does. |
 
@@ -50,27 +54,32 @@ no create, no overwrite — and returns a typed `identity_mismatch` outcome the
 
 The equality rule applies to surfaces whose identity namespace **is** GitHub
 accounts, which `github-discussions` is (its `surface_user_id` is the GitHub
-numeric id, per Spec 1340). This is expressed as a per-surface identity policy
-on the provider so a future surface with a non-GitHub namespace records the
-verified id without asserting equality. Teams is explicitly deferred.
+numeric id, per Spec 1340). For `msteams`, the `surface_user_id` is a
+Teams/AAD object id — a different namespace — so the equality check does not
+fire, but the verified GitHub id is still recorded on the binding. This is
+expressed as a per-surface identity policy on the provider
+(`GITHUB_ID_SURFACES`) so the same `Complete` code path serves both channels.
 
 ## Resume flow (Defect 2)
 
-When `Dispatcher.dispatch` returns `link_required`, `ghbridge` (not `libbridge`,
-keeping it channel-agnostic) mints an opaque `link_token`, writes a
-`PendingDispatch` target keyed by it, and augments the `authorize_url` with
-`redirect_uri=<callback_base>/api/link-complete` and `client_state=<link_token>`
-before posting. The other declined outcomes stash nothing: `reauth_required`
-carries no `authorize_url` to augment and `transient` shows no link. Resume for
+When `Dispatcher.dispatch` returns `link_required`, each bridge (not
+`libbridge`, keeping it channel-agnostic) mints an opaque `link_token`,
+writes a `PendingDispatch` target keyed by it, and augments the
+`authorize_url` with `redirect_uri=<callback_base>/api/link-complete` and
+`client_state=<link_token>` before posting the link through its channel SDK.
+The other declined outcomes stash nothing: `reauth_required` carries no
+`authorize_url` to augment and `transient` shows no link. Resume for
 expired bindings (`reauth_required`) is out of scope per the spec — it would
 first need `GetToken` to surface a re-link URL, which it does not today.
 
 `oauth /callback` already redirects to a downstream `redirect_uri` with the
-echoed `client_state`; `/api/link-complete` receives `state=link_token`,
-resolves the `PendingDispatch` target, reloads the discussion context, and
-re-dispatches through `Dispatcher.dispatch`. The pending record is deleted on
-re-dispatch (idempotent against a page refresh) and renders a "processing your
-message" page in place of today's terminal notice.
+echoed `client_state`; `/api/link-complete` on each bridge receives
+`state=link_token`, resolves the `PendingDispatch` target, reloads the
+discussion context, and re-dispatches through `Dispatcher.dispatch`. The
+pending record is deleted on re-dispatch (idempotent against a page refresh)
+and renders a "processing your message" page in place of today's terminal
+notice. The `/api/link-complete` handler is identical across bridges — it
+uses no channel SDK since the user is on the browser, not in the channel.
 
 **Safety property:** the replay re-runs the same `GetToken` gate, which returns
 a token only if a binding now exists for `target.surface_user_id` — and after
@@ -82,16 +91,18 @@ harmlessly. No separate proof-of-completion is needed.
 
 The replay reconstructs the prompt from the discussion store, so the inbound
 turn must reach the canonical store **before** the pending pointer is written.
-The two intake paths are asymmetric today: the comment path appends the turn
-and persists the context regardless of dispatch outcome, while the
+The intake paths are asymmetric today: ghbridge's comment path appends the
+turn and persists the context regardless of dispatch outcome, while its
 discussion-created path never persists the turn on a declined dispatch — it
 relies on `Dispatcher` appending `historyText` only when dispatch succeeds.
+msbridge already appends at intake but does not persist before dispatch on all
+code paths.
 
-This design makes turn persistence the **intake's** responsibility on both
-paths and removes the success-only append from the `Dispatcher` contract (a
-clean break: the dispatch primitive no longer mutates history). The resulting
-invariant — inbound turn persisted before resume bookkeeping — is what lets the
-pending record carry **no message body**.
+This design makes turn persistence the **intake's** responsibility on all
+paths across both bridges and removes the success-only append from the
+`Dispatcher` contract (a clean break: the dispatch primitive no longer mutates
+history). The resulting invariant — inbound turn persisted before resume
+bookkeeping — is what lets the pending record carry **no message body**.
 
 History entries gain an `author` field (the participant's `external_id`;
 assistant turns carry none) so the replay selects the latest turn authored by
@@ -118,7 +129,7 @@ several humans have posted in the thread.
 | How resume is modeled | Dedicated pending store + completion endpoint | A new `ResumeScheduler` trigger kind — its triggers fire off inbound replies / elapsed time, not an external OAuth callback; overloading muddies the abstraction |
 | How the message is re-sent | Replay through `Dispatcher.dispatch` | A bespoke dispatch path — would duplicate rate-limiting, callback registration, and the `GetToken` safety gate |
 | Which message a multi-party thread replays | Latest history turn authored by the linking user | Latest turn regardless of author — could re-dispatch another participant's message |
-| Where link augmentation happens | `ghbridge` (channel-specific completion endpoint) | `libbridge` `TokenResolver` — would import a channel-specific callback path, breaking its no-channel invariant |
+| Where link augmentation happens | Each bridge (channel-specific completion endpoint) | `libbridge` `TokenResolver` — would import a channel-specific callback path, breaking its no-channel invariant |
 
 ## Constraints the plan must honor
 
@@ -133,9 +144,13 @@ several humans have posted in the thread.
   Removing the success-only `historyText` append is a change to the shared
   `libbridge.Dispatcher` contract — but only `ghbridge` is behaviourally
   affected: `msbridge` already appends its turn at intake and passes no
-  `historyText`, so its dispatch path does not change.
+  `historyText`, so its dispatch path does not change. Both bridges gain
+  the resume flow (stash + link-complete endpoint).
 - **`reauth_required` is the `libbridge` outcome name** (`TokenResolver` maps
   the `ghauth` gRPC `re_auth_required` arm onto it); the plan should grep the
   resolver-level spelling, not the wire spelling.
-- **The confirmation page is a `ghbridge` HTTP response** — no channel SDK,
-  preserving the libbridge no-channel invariant.
+- **The confirmation page is a bridge HTTP response** — no channel SDK on
+  either bridge, preserving the libbridge no-channel invariant.
+- **msbridge's single intake path** simplifies the turn-persistence change:
+  `#handleNewMessage` is the only entry point (no discussion-created /
+  comment split), so the invariant requires one code path, not two.
