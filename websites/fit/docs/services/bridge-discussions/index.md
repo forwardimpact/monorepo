@@ -49,10 +49,13 @@ Discussion ──webhook── ghtunnel ── ghbridge ──dispatch──> ka
 The service is built on `@forwardimpact/libbridge` — the channel-agnostic
 intake skeleton, `Dispatcher` (the dispatch dance), `Acknowledgement`
 (reaction lifecycle), `ResumeScheduler` (suspend/resume), callback
-registry, rate limiter, history bound, prompt builder, durable thread
-state, and trigger evaluator all come from the library. `ghbridge` owns
-the GitHub-specific glue: webhook signature verification, App
-installation token minting, and the GraphQL reaction and reply adapters.
+registry, rate limiter, history bound, prompt builder, and trigger
+evaluator all come from the library. Durable thread state lives in the
+shared `services/bridge` gRPC service, reached through a `BridgeClient`.
+Per-user GitHub auth (used to mint the dispatch token) lives in
+`services/ghauth`, reached through a `GhauthClient`. `ghbridge` owns the
+GitHub-specific glue: webhook signature verification, App installation
+token minting, and the GraphQL reaction and reply adapters.
 
 ## Configure credentials
 
@@ -68,9 +71,13 @@ Set the credentials and service parameters in `.env`. All are loaded via
 | `SERVICE_GHBRIDGE_APP_INSTALLATION_ID`   | Installation ID for the target repo                              |
 | `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET`    | Shared secret used to verify `X-Hub-Signature-256`               |
 
-Discussion context is persisted as JSONL under `data/bridges/ghbridge/`
-through `libstorage`. The default `createStorage` path is used; no extra
-env var is needed.
+Discussion context is persisted by the shared `services/bridge` gRPC
+service at `data/bridges/discussions.jsonl`. `ghbridge` calls `bridge`
+through a `BridgeClient` channel — no per-bridge storage configuration
+is needed. `services/ghauth` similarly persists per-user GitHub link
+state under `data/ghauth/` and is reached through a `GhauthClient`. Add
+both `bridge` and `ghauth` to `config/config.json` under `init.services`
+ahead of `ghbridge` so they start first.
 
 ### Private key format
 
@@ -137,9 +144,10 @@ separate service that restarts independently.
 Open a new GitHub Discussion in the configured repository. The bridge:
 
 1. Verifies the `X-Hub-Signature-256` header against the webhook secret.
-2. Loads or creates a `DiscussionContext` record keyed by the
-   discussion's `node_id` and persists it under `data/bridges/ghbridge/`
-   via `libstorage`.
+2. Loads or creates a `DiscussionContext` record keyed by
+   `github-discussions:<node_id>` and persists it to
+   `data/bridges/discussions.jsonl` via the shared `services/bridge`
+   gRPC service.
 3. Hands the dispatch to `libbridge`'s `Dispatcher`, which registers a
    callback token, fires `kata-dispatch.yml` via `workflow_dispatch`,
    appends the user text to history, and flushes the store.

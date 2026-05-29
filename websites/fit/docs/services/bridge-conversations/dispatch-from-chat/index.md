@@ -34,10 +34,11 @@ fixed sequence:
    produces an opaque reference that the bridge needs to post the reply
    later. It is stored on `participants[0].metadata` of the discussion
    context.
-3. **Discussion context load or create** — `DiscussionContextStore.loadByChannel("msteams", threadId)`
-   returns any prior record for this conversation from
-   `data/bridges/msbridge/`. A new conversation starts with an empty
-   history via `newDiscussionContext`.
+3. **Discussion context load or create** — `DiscussionAdapter.loadByChannel("msteams", threadId)`
+   calls the shared `services/bridge` gRPC service, which returns any
+   prior record for this conversation from `data/bridges/discussions.jsonl`
+   (keyed by `msteams:<thread-id>`). A new conversation starts with an
+   empty history via `newDiscussionContext`.
 4. **Rate-limit check** — `RateLimiter.check(threadId, ctx.dispatches)`
    enforces a sliding-window cap of 5 dispatches per 60 seconds. Above
    the cap, the bridge replies `"You're sending messages too quickly.
@@ -123,7 +124,7 @@ When `kata-dispatch.yml` finishes, the workflow POSTs to
 | Typing verb cycles forever; no reply                 | Workflow ran but `callback_url` was unreachable (check tunnel hostname drift)  |
 | Callback 404, summary never posted                   | Callback token TTL (2h) expired before the workflow finished                   |
 | Callback 400 "Correlation ID mismatch"               | Two dispatches against the same registry entry; only the first wins           |
-| Callback 410 "Conversation context missing"          | The JSONL record under `data/bridges/msbridge/` was deleted between dispatch and callback |
+| Callback 410 "Conversation context missing"          | The JSONL record in `data/bridges/discussions.jsonl` was deleted (or the `bridge` service swept it past its conversation TTL) between dispatch and callback |
 | `Sorry, something went wrong.` posted to thread      | `onTurnError` caught an exception inside the Bot Framework turn                |
 | `Failed to reach the agent team. Please try again later.` | `Dispatcher.dispatch` rethrew (typically the `workflow_dispatch` POST failed) |
 

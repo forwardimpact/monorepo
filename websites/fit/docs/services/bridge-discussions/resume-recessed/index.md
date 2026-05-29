@@ -131,8 +131,9 @@ You have reached the outcome of this guide when:
 
 - A `recessed` verdict posts every `reply` in the callback as a threaded
   comment, removes the "EYES" reaction, and leaves the discussion open
-  with `open_rfcs[correlation_id]` written into the JSONL record under
-  `data/bridges/ghbridge/`.
+  with `open_rfcs[correlation_id]` written into the matching JSONL
+  record at `data/bridges/discussions.jsonl` (saved through the shared
+  `services/bridge` gRPC service).
 - Subsequent comments on the discussion accrue into the bridge's
   history without spawning new workflow runs (verify with the Actions
   tab — no new run while `hasOpenRfc` holds).
