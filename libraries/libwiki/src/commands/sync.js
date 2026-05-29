@@ -1,22 +1,5 @@
-import path from "node:path";
-import fsAsync from "node:fs/promises";
-import { Finder } from "@forwardimpact/libutil";
-import { createScriptConfig } from "@forwardimpact/libconfig";
-import { WikiRepo, WikiPullConflict } from "../wiki-repo.js";
-
-async function buildRepo(values) {
-  const logger = { debug() {} };
-  const finder = new Finder(fsAsync, logger, process);
-  const projectRoot = finder.findProjectRoot(process.cwd());
-  const wikiDir = path.resolve(projectRoot, values["wiki-root"] ?? "wiki");
-
-  const config = await createScriptConfig("wiki");
-  return new WikiRepo({
-    wikiDir,
-    parentDir: projectRoot,
-    resolveToken: () => config.ghToken(),
-  });
-}
+import { WikiPullConflict } from "../wiki-repo.js";
+import { buildRepo } from "../build-repo.js";
 
 /** Commit all wiki changes and push them to the remote wiki repository. */
 export async function runPushCommand(values, _args, cli) {

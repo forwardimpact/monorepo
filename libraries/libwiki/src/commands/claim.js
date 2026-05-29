@@ -9,6 +9,7 @@ import {
   filterExpired,
 } from "../active-claims.js";
 import { createDefaultIo } from "../io.js";
+import { buildRepo } from "../build-repo.js";
 
 function projectRoot(io) {
   const logger = { debug() {} };
@@ -33,8 +34,26 @@ function addDays(today, n) {
   return d.toISOString().slice(0, 10);
 }
 
+async function pushWiki(repoFactory, values, io, message) {
+  if (!repoFactory) return;
+  try {
+    const repo = await repoFactory(values, io.cwd());
+    repo.inheritIdentity();
+    const result = repo.commitAndPush(message);
+    if (result.pushed) io.stdout("push: committed and pushed\n");
+  } catch (err) {
+    io.stderr(`push failed (saved locally): ${err.message}\n`);
+  }
+}
+
 /** Insert a row into MEMORY.md `## Active Claims`. Refuses if (agent, target) already present. */
-export function runClaimCommand(values, _args, cli, io = createDefaultIo()) {
+export async function runClaimCommand(
+  values,
+  _args,
+  cli,
+  io = createDefaultIo(),
+  repoFactory = buildRepo,
+) {
   const agent = values.agent || io.env.LIBEVAL_AGENT_PROFILE;
   if (!agent) {
     cli.usageError("claim requires --agent or LIBEVAL_AGENT_PROFILE");
@@ -62,10 +81,17 @@ export function runClaimCommand(values, _args, cli, io = createDefaultIo()) {
   }
   writeFileSync(memPath, result.text);
   io.stdout(`claimed ${values.target} (expires ${expires})\n`);
+  await pushWiki(repoFactory, values, io, `wiki: claim ${values.target}`);
 }
 
 /** Remove a claim row. `--expired` cleans every row past expires_at. */
-export function runReleaseCommand(values, _args, cli, io = createDefaultIo()) {
+export async function runReleaseCommand(
+  values,
+  _args,
+  cli,
+  io = createDefaultIo(),
+  repoFactory = buildRepo,
+) {
   const memPath = memoryPath(values, io);
   const text = readMemory(memPath);
 
@@ -84,6 +110,7 @@ export function runReleaseCommand(values, _args, cli, io = createDefaultIo()) {
     }
     writeFileSync(memPath, current);
     io.stdout(`released ${count} expired claim(s)\n`);
+    await pushWiki(repoFactory, values, io, "wiki: release expired claims");
     return;
   }
 
@@ -102,5 +129,6 @@ export function runReleaseCommand(values, _args, cli, io = createDefaultIo()) {
     io.stdout(`no matching claim for ${agent}/${values.target}\n`);
   } else {
     io.stdout(`released ${values.target}\n`);
+    await pushWiki(repoFactory, values, io, `wiki: release ${values.target}`);
   }
 }
