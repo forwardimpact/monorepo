@@ -23,6 +23,7 @@ import { serve } from "@hono/node-server";
  * @param {string} options.webhookPath - e.g. `/api/messages` or `/api/webhooks/github`
  * @param {(c: import("hono").Context) => Promise<Response> | Response} options.onWebhook
  * @param {(c: import("hono").Context) => Promise<Response> | Response} options.onCallback
+ * @param {((c: import("hono").Context) => Promise<Response> | Response)} [options.onLinkComplete]
  * @returns {{ start: () => Promise<void>, stop: () => Promise<void>, app: import("hono").Hono, address: () => ({port: number} | null) }}
  */
 export function createBridgeServer({
@@ -32,6 +33,7 @@ export function createBridgeServer({
   webhookPath,
   onWebhook,
   onCallback,
+  onLinkComplete,
 }) {
   if (!config) throw new Error("config is required");
   if (!logger) throw new Error("logger is required");
@@ -85,6 +87,17 @@ export function createBridgeServer({
       return c.json({ error: "Callback failure" }, 500);
     }
   });
+
+  if (onLinkComplete) {
+    app.get("/api/link-complete", async (c) => {
+      try {
+        return await onLinkComplete(c);
+      } catch (err) {
+        logger.error("bridge.link-complete", err);
+        return c.json({ error: "Link completion failure" }, 500);
+      }
+    });
+  }
 
   let server = null;
 

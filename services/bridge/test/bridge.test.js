@@ -246,6 +246,54 @@ describe("bridge service", () => {
     assert.strictEqual(freshCheck.exists, true);
   });
 
+  test("PutPendingDispatch then ResolvePendingDispatch returns and consumes the record", async () => {
+    await service.PutPendingDispatch({
+      pending: {
+        link_token: "lt-1",
+        surface: "github-discussions",
+        surface_user_id: "42",
+        discussion_id: "d-100",
+        created_at: Date.now(),
+      },
+    });
+
+    const resolved = await service.ResolvePendingDispatch({
+      link_token: "lt-1",
+    });
+    assert.strictEqual(resolved.link_token, "lt-1");
+    assert.strictEqual(resolved.surface, "github-discussions");
+    assert.strictEqual(resolved.surface_user_id, "42");
+    assert.strictEqual(resolved.discussion_id, "d-100");
+
+    await assert.rejects(
+      () => service.ResolvePendingDispatch({ link_token: "lt-1" }),
+      (err) => err.code === grpc.status.NOT_FOUND,
+    );
+  });
+
+  test("Sweep evicts pending dispatches older than TTL", async () => {
+    const now = Date.now();
+    const stale = now - 11 * 60 * 1000;
+
+    await service.PutPendingDispatch({
+      pending: {
+        link_token: "lt-old",
+        surface: "github-discussions",
+        surface_user_id: "42",
+        discussion_id: "d-1",
+        created_at: stale,
+      },
+    });
+
+    const result = await service.Sweep({ now });
+    assert.ok(result.evicted_pending >= 1);
+
+    await assert.rejects(
+      () => service.ResolvePendingDispatch({ link_token: "lt-old" }),
+      (err) => err.code === grpc.status.NOT_FOUND,
+    );
+  });
+
   test("Concurrent SaveDiscussion from two channels both land", async () => {
     await Promise.all([
       service.SaveDiscussion({

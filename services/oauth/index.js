@@ -39,8 +39,14 @@ export function createOauthService({ config, logger, providerClient }) {
   app.get("/.well-known/oauth-authorization-server", (c) => c.json(metadata));
 
   app.get("/authorize", async (c) => {
-    const { surface, surface_user_id, redirect_uri, code_challenge, scope } =
-      c.req.query();
+    const {
+      surface,
+      surface_user_id,
+      redirect_uri,
+      code_challenge,
+      scope,
+      client_state,
+    } = c.req.query();
     if (!surface || !surface_user_id) {
       return c.json({ error: "invalid_request" }, 400);
     }
@@ -53,6 +59,7 @@ export function createOauthService({ config, logger, providerClient }) {
         redirect_uri: redirect_uri || undefined,
         code_challenge: code_challenge || undefined,
         scopes,
+        client_state: client_state || undefined,
       }),
     );
 
@@ -68,6 +75,15 @@ export function createOauthService({ config, logger, providerClient }) {
     const result = await providerClient.Complete(
       typed("CompleteRequest", { code, state }),
     );
+
+    if (result.outcome === "identity_mismatch") {
+      return c.html(
+        "<!DOCTYPE html><html><body><h1>Account mismatch</h1>" +
+          "<p>The account that authorized does not match the " +
+          "account that requested linking. No binding was created. " +
+          "Please try again from the correct account.</p></body></html>",
+      );
+    }
 
     if (result.redirect_uri) {
       const url = new URL(result.redirect_uri);

@@ -153,8 +153,8 @@ describe("ghbridge resume", () => {
     const resumeCtx = JSON.parse(resumeInputs.resume_context);
     expect(resumeCtx.correlation_id).toBe(meta.correlationId);
     expect(resumeCtx.history_since).toEqual([
-      { role: "user", text: "I think yes" },
-      { role: "user", text: "agreed" },
+      { role: "user", text: "I think yes", author: "2" },
+      { role: "user", text: "agreed", author: "3" },
     ]);
   });
 

@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 
 import { dispatchWorkflow } from "./dispatch.js";
-import { appendHistory } from "./history.js";
 
 /** Dispatch dance: resolve per-user token, register callback, ack, fire workflow, flush. */
 export class Dispatcher {
@@ -57,7 +56,6 @@ export class Dispatcher {
    * @param {string} args.requester - Surface user id of the triggering human
    * @param {object} args.callbackMeta - Stored on the callback token
    * @param {unknown} [args.ackTarget] - If omitted, no acknowledgement is started
-   * @param {string} [args.historyText] - Appended to ctx.history as the user turn on success
    * @param {object} [args.workflowInputs] - Extra fields for `dispatchWorkflow`
    * @returns {Promise<{kind: "dispatched", token: string, correlationId: string} | {kind: "link_required", authorizeUrl: string} | {kind: "reauth_required"} | {kind: "transient", error: Error}>}
    */
@@ -67,7 +65,6 @@ export class Dispatcher {
     requester,
     callbackMeta,
     ackTarget,
-    historyText,
     workflowInputs,
   }) {
     if (!ctx) throw new Error("ctx is required");
@@ -94,9 +91,6 @@ export class Dispatcher {
         correlationId,
         ...(workflowInputs ?? {}),
       });
-      if (historyText !== undefined) {
-        appendHistory(ctx.history, { role: "user", text: historyText });
-      }
       ctx.dispatches.push(Date.now());
       ctx.last_active_at = Date.now();
       await this.#store.add(ctx);

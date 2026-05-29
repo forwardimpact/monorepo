@@ -166,7 +166,7 @@ describe("msbridge dispatch-auth", () => {
     expect(
       adapter.sent.some((m) =>
         typeof m === "string"
-          ? m.includes("https://example.com/authorize")
+          ? m.includes("link-complete") && m.includes("client_state")
           : false,
       ),
     ).toBe(true);

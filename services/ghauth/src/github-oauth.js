@@ -84,6 +84,18 @@ export function createGithubOAuth({
       };
     },
 
+    async getUser(accessToken) {
+      const res = await fetchImpl("https://api.github.com/user", {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!res.ok) throw new Error(`GitHub user lookup failed: ${res.status}`);
+      const body = await res.json();
+      return body.id;
+    },
+
     async revoke(accessToken) {
       const res = await fetchImpl(
         `https://api.github.com/applications/${clientId}/token`,

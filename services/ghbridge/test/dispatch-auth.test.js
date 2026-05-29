@@ -179,9 +179,10 @@ describe("ghbridge dispatch-auth", () => {
       c.query.includes("addDiscussionComment"),
     );
     expect(commentCalls).toHaveLength(1);
-    expect(commentCalls[0].variables.i.body).toContain(
-      "https://example.com/authorize",
-    );
+    const linkBody = commentCalls[0].variables.i.body;
+    expect(linkBody).toContain("redirect_uri=");
+    expect(linkBody).toContain("client_state=");
+    expect(linkBody).toContain("link-complete");
 
     await service.stop();
   });

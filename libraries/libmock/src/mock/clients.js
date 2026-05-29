@@ -155,8 +155,14 @@ export function createMockDiscussionClient(overrides = {}) {
     HasOrigin: spy(() => Promise.resolve({ exists: false })),
     RecordOrigin: spy(() => Promise.resolve({})),
     Sweep: spy(() =>
-      Promise.resolve({ evicted_discussions: 0, evicted_origins: 0 }),
+      Promise.resolve({
+        evicted_discussions: 0,
+        evicted_origins: 0,
+        evicted_pending: 0,
+      }),
     ),
+    PutPendingDispatch: spy(() => Promise.resolve({})),
+    ResolvePendingDispatch: spy(() => Promise.reject(notFound())),
     ...overrides,
   };
 }
@@ -187,6 +193,7 @@ function coerceInt64Fields(obj) {
 export function createStatefulDiscussionClient() {
   const records = new Map();
   const origins = new Map();
+  const pending = new Map();
 
   return {
     SaveDiscussion: spy(async (req) => {
@@ -235,6 +242,21 @@ export function createStatefulDiscussionClient() {
     Sweep: spy(async () => ({
       evicted_discussions: 0,
       evicted_origins: 0,
+      evicted_pending: 0,
     })),
+    PutPendingDispatch: spy(async (req) => {
+      const obj = req?.toJSON?.() ?? req;
+      const p = obj.pending ?? obj;
+      pending.set(p.link_token, p);
+      return {};
+    }),
+    ResolvePendingDispatch: spy(async (req) => {
+      const obj = req?.toJSON?.() ?? req;
+      const token = obj.link_token;
+      const rec = pending.get(token);
+      if (!rec) throw notFound();
+      pending.delete(token);
+      return rec;
+    }),
   };
 }

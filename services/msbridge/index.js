@@ -10,8 +10,10 @@ import {
   buildPrompt,
   createBridgeServer,
   createCallbackHandler,
+  createLinkCompleteHandler,
   newDiscussionContext,
   normalizeBaseUrl,
+  prepareLinkResume,
   validateCallbackPayload,
 } from "@forwardimpact/libbridge";
 
@@ -43,6 +45,7 @@ export { appendHistory, buildPrompt, validateCallbackPayload };
 export class MsBridgeService {
   #logger;
   #tracer;
+  #config;
   #msAppId;
   #adapter;
   #store;
@@ -85,6 +88,7 @@ export class MsBridgeService {
     if (!ghauthClient) throw new Error("ghauthClient is required");
     this.#logger = logger;
     this.#tracer = tracer;
+    this.#config = config;
     this.#msAppId = () => config.msAppId();
 
     this.#adapter = adapter ?? createDefaultAdapter(config);
@@ -141,6 +145,13 @@ export class MsBridgeService {
         this.#handleReply(ctx, payload, meta),
     });
 
+    const onLinkComplete = createLinkCompleteHandler({
+      channel: CHANNEL,
+      store: this.#store,
+      dispatcher: this.#dispatcher,
+      buildCallbackMeta: (ctx) => ({ threadId: ctx.discussion_id }),
+    });
+
     this.#bridge = createBridgeServer({
       config,
       logger,
@@ -152,6 +163,7 @@ export class MsBridgeService {
         logger,
       ),
       onCallback: (c) => this.#onCallback(c),
+      onLinkComplete,
     });
   }
 
@@ -213,10 +225,11 @@ export class MsBridgeService {
     try {
       const ref = TurnContext.getConversationReference(activity);
       const ctx = await this.#loadOrCreateContext(threadId, ref);
-      ctx.last_active_at = Date.now();
       ctx.participants[0].metadata = ref;
 
-      appendHistory(ctx.history, { role: "user", text });
+      appendHistory(ctx.history, { role: "user", text, author: requester });
+      ctx.last_active_at = Date.now();
+      await this.#store.add(ctx);
 
       const { freshDispatchAllowed } = await this.#resume.processInbound(ctx);
       if (!freshDispatchAllowed) {
@@ -251,6 +264,9 @@ export class MsBridgeService {
           span.addEvent("workflow_dispatched", {
             correlation_id: result.correlationId,
           });
+        } else if (result.kind === "link_required") {
+          await this.#stashAndPostLink(ctx, result, requester);
+          span.addEvent("dispatch_declined", { kind: result.kind });
         } else {
           await this.#renderDeclined(ctx, result);
           span.addEvent("dispatch_declined", { kind: result.kind });
@@ -314,6 +330,31 @@ export class MsBridgeService {
     for (const reply of list) {
       if (!reply || typeof reply.body !== "string") continue;
       appendHistory(ctx.history, { role: "assistant", text: reply.body });
+    }
+  }
+
+  async #stashAndPostLink(ctx, result, requester) {
+    const { linkToken, augmentedUrl } = prepareLinkResume(
+      result.authorizeUrl,
+      this.#config.callback_base_url,
+    );
+
+    await this.#store.putPendingDispatch({
+      link_token: linkToken,
+      surface: CHANNEL,
+      surface_user_id: requester,
+      discussion_id: ctx.discussion_id,
+      created_at: Date.now(),
+    });
+
+    const ref = ctx.participants?.[0]?.metadata;
+    if (ref) {
+      await sendReply(
+        this.#adapter,
+        this.#msAppId,
+        ref,
+        `To dispatch, link your GitHub account: ${augmentedUrl}`,
+      );
     }
   }
 

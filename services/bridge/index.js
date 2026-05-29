@@ -11,8 +11,10 @@ const { BridgeBase } = services;
 export class BridgeService extends BridgeBase {
   #discussions;
   #origins;
+  #pendingDispatches;
   #conversationTtlMs;
   #originTtlMs;
+  #pendingTtlMs;
   #sweepTimer;
 
   /**
@@ -28,8 +30,17 @@ export class BridgeService extends BridgeBase {
       flush_interval: config.origin_flush_interval_ms,
       max_buffer_size: config.origin_max_buffer_size,
     });
+    this.#pendingDispatches = new BufferedIndex(
+      storage,
+      "pending_dispatches.jsonl",
+      {
+        flush_interval: config.pending_flush_interval_ms ?? 1_000,
+        max_buffer_size: 100,
+      },
+    );
     this.#conversationTtlMs = config.conversation_ttl_ms;
     this.#originTtlMs = config.origin_ttl_ms;
+    this.#pendingTtlMs = config.pending_ttl_ms ?? 10 * 60 * 1000;
     this.#sweepTimer = setInterval(() => {
       this.#sweep(Date.now()).catch((e) => logger.error?.("sweep", e));
     }, config.sweep_interval_ms);
@@ -113,36 +124,91 @@ export class BridgeService extends BridgeBase {
   /**
    *
    */
+  async PutPendingDispatch(req) {
+    const p = req.pending;
+    await this.#pendingDispatches.add({
+      id: p.link_token,
+      surface: p.surface,
+      surface_user_id: p.surface_user_id,
+      discussion_id: p.discussion_id,
+      created_at: Number(p.created_at) || Date.now(),
+    });
+    return {};
+  }
+
+  /**
+   *
+   */
+  async ResolvePendingDispatch(req) {
+    await this.#pendingDispatches.loadData();
+    const stale = [];
+    for (const [id, rec] of this.#pendingDispatches.index) {
+      if (rec.deleted) stale.push(id);
+    }
+    for (const id of stale) this.#pendingDispatches.index.delete(id);
+    const rec = this.#pendingDispatches.index.get(req.link_token);
+    if (!rec)
+      throw Object.assign(new Error("not found"), {
+        code: grpc.status.NOT_FOUND,
+      });
+    this.#pendingDispatches.index.delete(req.link_token);
+    await this.#pendingDispatches.add({ id: req.link_token, deleted: true });
+    return bridge.PendingDispatch.fromObject({
+      link_token: rec.id,
+      surface: rec.surface,
+      surface_user_id: rec.surface_user_id,
+      discussion_id: rec.discussion_id,
+      created_at: rec.created_at,
+    });
+  }
+
+  /**
+   *
+   */
   async Sweep(req) {
     const now = req.now ?? Date.now();
-    const { evicted_discussions, evicted_origins } = await this.#sweep(now);
-    return { evicted_discussions, evicted_origins };
+    const { evicted_discussions, evicted_origins, evicted_pending } =
+      await this.#sweep(now);
+    return { evicted_discussions, evicted_origins, evicted_pending };
+  }
+
+  #sweepIndex(index, now, isStale) {
+    let evicted = 0;
+    for (const [key, rec] of index) {
+      if (isStale(rec, now)) {
+        index.delete(key);
+        evicted++;
+      }
+    }
+    return evicted;
   }
 
   async #sweep(now) {
     await this.#discussions.loadData();
     await this.#origins.loadData();
+    await this.#pendingDispatches.loadData();
 
-    let evicted_discussions = 0;
-    for (const [key, rec] of this.#discussions.index) {
-      if (now - (rec.last_active_at ?? 0) > this.#conversationTtlMs) {
-        this.#discussions.index.delete(key);
-        evicted_discussions++;
-      }
-    }
-
-    let evicted_origins = 0;
-    for (const [key, rec] of this.#origins.index) {
-      if (now - (rec.posted_at ?? 0) > this.#originTtlMs) {
-        this.#origins.index.delete(key);
-        evicted_origins++;
-      }
-    }
+    const evicted_discussions = this.#sweepIndex(
+      this.#discussions.index,
+      now,
+      (rec) => now - (rec.last_active_at ?? 0) > this.#conversationTtlMs,
+    );
+    const evicted_origins = this.#sweepIndex(
+      this.#origins.index,
+      now,
+      (rec) => now - (rec.posted_at ?? 0) > this.#originTtlMs,
+    );
+    const evicted_pending = this.#sweepIndex(
+      this.#pendingDispatches.index,
+      now,
+      (rec) => rec.deleted || now - (rec.created_at ?? 0) > this.#pendingTtlMs,
+    );
 
     if (evicted_discussions > 0) await this.#discussions.flush();
     if (evicted_origins > 0) await this.#origins.flush();
+    if (evicted_pending > 0) await this.#pendingDispatches.flush();
 
-    return { evicted_discussions, evicted_origins };
+    return { evicted_discussions, evicted_origins, evicted_pending };
   }
 
   /**
@@ -150,6 +216,10 @@ export class BridgeService extends BridgeBase {
    */
   async shutdown() {
     clearInterval(this.#sweepTimer);
-    await Promise.all([this.#discussions.flush(), this.#origins.flush()]);
+    await Promise.all([
+      this.#discussions.flush(),
+      this.#origins.flush(),
+      this.#pendingDispatches.flush(),
+    ]);
   }
 }

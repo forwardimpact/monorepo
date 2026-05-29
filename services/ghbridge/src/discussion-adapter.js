@@ -102,6 +102,31 @@ export class DiscussionAdapter {
   /**
    *
    */
+  async putPendingDispatch(target) {
+    await this.#client.PutPendingDispatch(
+      bridge.PutPendingDispatchRequest.fromObject({ pending: target }),
+    );
+  }
+
+  /**
+   *
+   */
+  async resolvePendingDispatch(linkToken) {
+    try {
+      return await this.#client.ResolvePendingDispatch(
+        bridge.ResolvePendingDispatchRequest.fromObject({
+          link_token: linkToken,
+        }),
+      );
+    } catch (err) {
+      if (isNotFound(err)) return null;
+      throw err;
+    }
+  }
+
+  /**
+   *
+   */
   async flush() {}
   /**
    *

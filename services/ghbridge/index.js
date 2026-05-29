@@ -9,8 +9,10 @@ import {
   buildPrompt,
   createBridgeServer,
   createCallbackHandler,
+  createLinkCompleteHandler,
   newDiscussionContext,
   normalizeBaseUrl,
+  prepareLinkResume,
   validateCallbackPayload,
 } from "@forwardimpact/libbridge";
 import { bridge } from "@forwardimpact/libtype";
@@ -140,6 +142,13 @@ export class GhBridgeService {
         this.#handleReply(ctx, payload, meta),
     });
 
+    const onLinkComplete = createLinkCompleteHandler({
+      channel: CHANNEL,
+      store: this.#store,
+      dispatcher: this.#dispatcher,
+      buildCallbackMeta: (ctx) => ({ discussionId: ctx.discussion_id }),
+    });
+
     this.#bridge = createBridgeServer({
       config,
       logger,
@@ -147,6 +156,7 @@ export class GhBridgeService {
       webhookPath: WEBHOOK_PATH,
       onWebhook: (c) => this.#handleWebhook(c),
       onCallback: (c) => this.#onCallback(c),
+      onLinkComplete,
     });
   }
 
@@ -238,6 +248,11 @@ export class GhBridgeService {
     });
     try {
       const ctx = await this.#loadOrCreateContext(discussionId, discussion);
+
+      appendHistory(ctx.history, { role: "user", text, author: requester });
+      ctx.last_active_at = Date.now();
+      await this.#store.add(ctx);
+
       const limit = this.#rateLimiter.check(discussionId, ctx.dispatches);
       if (!limit.allowed) {
         this.#logger.info("webhook", "rate limited", {
@@ -254,7 +269,6 @@ export class GhBridgeService {
           prompt: buildPrompt(text, ctx.history),
           requester,
           ackTarget: { subjectId: discussionId },
-          historyText: text,
           callbackMeta: { discussionId },
           workflowInputs: { discussionId },
         });
@@ -263,7 +277,7 @@ export class GhBridgeService {
             correlation_id: result.correlationId,
           });
         } else {
-          await this.#renderDeclined(ctx, result);
+          await this.#handleDispatchResult(ctx, result, requester);
           span.addEvent("dispatch_declined", { kind: result.kind });
         }
         span.setOk();
@@ -311,8 +325,9 @@ export class GhBridgeService {
       let ctx = await this.#store.loadByChannel(CHANNEL, discussionId);
       if (!ctx) ctx = await this.#loadOrCreateContext(discussionId, discussion);
 
-      appendHistory(ctx.history, { role: "user", text });
+      appendHistory(ctx.history, { role: "user", text, author: requester });
       ctx.last_active_at = Date.now();
+      await this.#store.add(ctx);
 
       const { freshDispatchAllowed } = await this.#resume.processInbound(ctx);
 
@@ -337,7 +352,7 @@ export class GhBridgeService {
           workflowInputs: { discussionId: ctx.discussion_id },
         });
         if (result.kind !== "dispatched") {
-          await this.#renderDeclined(ctx, result);
+          await this.#handleDispatchResult(ctx, result, requester);
         }
       }
 
@@ -417,6 +432,46 @@ export class GhBridgeService {
         }
         break;
     }
+  }
+
+  async #handleDispatchResult(ctx, result, requester) {
+    if (result.kind === "link_required") {
+      await this.#stashAndPostLink(ctx, result, requester);
+    } else {
+      await this.#renderDeclined(ctx, result);
+    }
+  }
+
+  async #stashAndPostLink(ctx, result, requester) {
+    const { linkToken, augmentedUrl } = prepareLinkResume(
+      result.authorizeUrl,
+      this.#config.callback_base_url,
+    );
+
+    await this.#store.putPendingDispatch({
+      link_token: linkToken,
+      surface: CHANNEL,
+      surface_user_id: requester,
+      discussion_id: ctx.discussion_id,
+      created_at: Date.now(),
+    });
+
+    const body = `To dispatch, link your GitHub account: ${augmentedUrl}`;
+    const recordOrigin = async (comment) => {
+      await this.#client.RecordOrigin(
+        bridge.Origin.fromObject({
+          id: comment.id,
+          discussion_id: ctx.discussion_id,
+          posted_at: Date.now(),
+        }),
+      );
+    };
+    await postSingleDiscussionReply(
+      this.#graphqlClient,
+      ctx,
+      body,
+      recordOrigin,
+    );
   }
 
   async #renderDeclined(ctx, outcome) {

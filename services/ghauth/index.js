@@ -5,6 +5,7 @@ import { RevokedError } from "./src/github-oauth.js";
 const { GhauthBase } = services;
 
 const EXPIRY_BUFFER_MS = 5 * 60 * 1000;
+const GITHUB_ID_SURFACES = new Set(["github-discussions"]);
 
 /**
  * GitHub user authentication service — Kata Agent User App token lifecycle.
@@ -48,7 +49,7 @@ export class GhauthService extends GhauthBase {
       surface_user_id: req.surface_user_id,
       code_challenge: req.code_challenge ?? null,
       redirect_uri: req.redirect_uri ?? null,
-      client_state: null,
+      client_state: req.client_state ?? null,
       created_at: Date.now(),
     });
 
@@ -72,13 +73,24 @@ export class GhauthService extends GhauthBase {
     const redirectUri = `${this.#linkBaseUrl}/callback`;
     const tokens = await this.#github.exchangeCode(req.code, redirectUri);
 
+    const authorizedGithubId = String(
+      await this.#github.getUser(tokens.access_token),
+    );
+
+    if (
+      GITHUB_ID_SURFACES.has(flow.surface) &&
+      authorizedGithubId !== flow.surface_user_id
+    ) {
+      return { outcome: "identity_mismatch" };
+    }
+
     const bindingId = this.#bindings.constructor.keyOf(
       flow.surface,
       flow.surface_user_id,
     );
     await this.#bindings.upsert({
       id: bindingId,
-      github_user_id: null,
+      github_user_id: authorizedGithubId,
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token ?? null,
       expires_at: tokens.expires_in

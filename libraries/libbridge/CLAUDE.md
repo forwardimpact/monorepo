@@ -53,7 +53,7 @@ Inside channel intake, the only dispatch call is:
 ```js
 await dispatcher.dispatch({
   ctx, prompt: buildPrompt(text, ctx.history),
-  requester, ackTarget, historyText: text, callbackMeta: { threadId },
+  requester, ackTarget, callbackMeta: { threadId },
 });
 ```
 
@@ -107,3 +107,5 @@ its `loadDiscussionId` lens.
 | `ResumeScheduler`, `ElapsedScheduler` | suspend/resume lifecycle + chunked-setTimeout |
 | `createBridgeServer` | Hono + `@hono/node-server` wiring |
 | `newDiscussionContext`, `evaluateTrigger`, `parseIsoDuration` | record factory + trigger helpers |
+| `prepareLinkResume` | mints link token, augments authorize URL for resume |
+| `createLinkCompleteHandler` | factory for the `/api/link-complete` GET handler |

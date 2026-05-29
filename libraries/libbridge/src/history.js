@@ -9,6 +9,8 @@
  * @param {number} [options.maxEntries] - Default 10
  */
 export function appendHistory(history, entry, { maxEntries = 10 } = {}) {
-  history.push(entry);
+  const record = { role: entry.role, text: entry.text };
+  if (entry.author !== undefined) record.author = entry.author;
+  history.push(record);
   while (history.length > maxEntries) history.shift();
 }

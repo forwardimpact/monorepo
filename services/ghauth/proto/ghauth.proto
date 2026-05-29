@@ -18,6 +18,7 @@ message BeginRequest {
   optional string redirect_uri = 3;
   optional string code_challenge = 4;
   repeated string scopes = 5;
+  optional string client_state = 6;
 }
 message BeginResponse { string upstream_authorize_url = 1; string state = 2; }
 
@@ -26,6 +27,7 @@ message CompleteResponse {
   optional string downstream_code = 1;
   optional string redirect_uri = 2;
   optional string client_state = 3;
+  optional string outcome = 4;
 }
 
 message RedeemRequest { string code = 1; string code_verifier = 2; }

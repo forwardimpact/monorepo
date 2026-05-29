@@ -139,7 +139,6 @@ describe("Dispatcher", () => {
       prompt: "hello",
       requester: "U_1",
       ackTarget: { subjectId: "S_1" },
-      historyText: "hello",
       callbackMeta: { discussionId: "T_1" },
       workflowInputs: { discussionId: "T_1" },
     });
@@ -147,7 +146,7 @@ describe("Dispatcher", () => {
     expect(typeof result.token).toBe("string");
     expect(typeof result.correlationId).toBe("string");
     expect(ctx.pending_callbacks[result.token]).toBe(result.correlationId);
-    expect(ctx.history).toEqual([{ role: "user", text: "hello" }]);
+    expect(ctx.history).toEqual([]);
     expect(ctx.dispatches).toHaveLength(1);
     expect(reactions.adds).toEqual([{ subjectId: "S_1" }]);
     expect(fetchStub.calls).toHaveLength(1);
@@ -171,18 +170,6 @@ describe("Dispatcher", () => {
       workflowInputs: { discussionId: "T_1", resumeContext: "{}" },
     });
     expect(reactions.adds).toHaveLength(0);
-  });
-
-  test("historyText omitted: no history is appended", async () => {
-    const ctx = makeCtx();
-    await dispatcher.dispatch({
-      ctx,
-      prompt: "p",
-      requester: "U_1",
-      callbackMeta: {},
-      ackTarget: { subjectId: "S" },
-    });
-    expect(ctx.history).toEqual([]);
   });
 
   test("workflowInputs flow through to the dispatch payload", async () => {

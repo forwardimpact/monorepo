@@ -18,6 +18,8 @@
  * @property {(ctx: object) => Promise<void>} add
  * @property {() => Promise<void>} flush
  * @property {() => Promise<void>} shutdown
+ * @property {(target: object) => Promise<void>} [putPendingDispatch]
+ * @property {(linkToken: string) => Promise<object|null>} [resolvePendingDispatch]
  */
 
 export { createBridgeServer } from "./server.js";
@@ -47,3 +49,4 @@ export {
   validateCallbackPayload,
 } from "./callback-payload.js";
 export { evaluateTrigger, parseIsoDuration } from "./triggers.js";
+export { prepareLinkResume, createLinkCompleteHandler } from "./link-resume.js";
