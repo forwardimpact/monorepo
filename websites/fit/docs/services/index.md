@@ -5,7 +5,7 @@ layout: product
 toc: false
 ---
 
-## Bridge Conversation Platforms to the Agent Team
+## Bridge Conversation Platforms to the Agent Team (Builders)
 
 <div class="grid">
 
@@ -15,7 +15,7 @@ toc: false
 
 </div>
 
-## Bridge GitHub Discussions to the Agent Team
+## Bridge GitHub Discussions to the Agent Team (Builders)
 
 <div class="grid">
 
@@ -25,7 +25,7 @@ toc: false
 
 </div>
 
-## Embed Text for Retrieval
+## Embed Text for Retrieval (Builders)
 
 <div class="grid">
 
@@ -35,7 +35,7 @@ toc: false
 
 </div>
 
-## Ground Agents in Context
+## Ground Agents in Context (Builders)
 
 <div class="grid">
 
@@ -47,7 +47,7 @@ toc: false
 
 </div>
 
-## Integrate with the Engineering Standard
+## Integrate with the Engineering Standard (Builders)
 
 <div class="grid">
 
@@ -57,7 +57,7 @@ toc: false
 
 </div>
 
-## Keep Service Contracts Typed
+## Keep Service Contracts Typed (Builders)
 
 <div class="grid">
 
@@ -67,7 +67,7 @@ toc: false
 
 </div>
 
-## Prove Agent Changes
+## Prove Agent Changes (Builders)
 
 <div class="grid">
 

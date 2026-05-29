@@ -5,9 +5,7 @@ layout: product
 toc: false
 ---
 
-## Operate a Predictable Agent Team
-
-Engineers
+## Operate a Predictable Agent Team (Engineers)
 
 <div class="grid">
 
@@ -19,9 +17,7 @@ Engineers
 
 </div>
 
-## Bridge Threaded Channels to the Agent Team
-
-Builders
+## Bridge Threaded Channels to the Agent Team (Builders)
 
 <div class="grid">
 
@@ -29,9 +25,7 @@ Builders
 
 </div>
 
-## Enable Agents on Every Surface
-
-Builders
+## Enable Agents on Every Surface (Builders)
 
 <div class="grid">
 
@@ -41,9 +35,7 @@ Builders
 
 </div>
 
-## Ground Agents in Context
-
-Builders
+## Ground Agents in Context (Builders)
 
 <div class="grid">
 
@@ -59,9 +51,7 @@ Builders
 
 </div>
 
-## Integrate with the Engineering Standard
-
-Builders
+## Integrate with the Engineering Standard (Builders)
 
 <div class="grid">
 
@@ -71,9 +61,7 @@ Builders
 
 </div>
 
-## Keep Service Contracts Typed
-
-Builders
+## Keep Service Contracts Typed (Builders)
 
 <div class="grid">
 
@@ -85,9 +73,7 @@ Builders
 
 </div>
 
-## Keep Services Running and Visible
-
-Builders
+## Keep Services Running and Visible (Builders)
 
 <div class="grid">
 
@@ -99,9 +85,7 @@ Builders
 
 </div>
 
-## Prove Agent Changes
-
-Builders
+## Prove Agent Changes (Builders)
 
 <div class="grid">
 

@@ -1,6 +1,6 @@
 ---
 title: Internals
-description: Understand how the system works under the hood — architecture and code for Map, Pathway, Guide, Summit, Outpost, and supporting libraries.
+description: Understand how the system works under the hood — architecture and code for the Kata Agent Team, the REPL library, vector services, operations, and the release process.
 layout: product
 toc: false
 ---
