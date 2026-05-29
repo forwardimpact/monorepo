@@ -16,7 +16,7 @@ graph LR
   U[Discussion participant] -->|webhook| GB[ghbridge intake]
   GB -->|dispatch| DSP[libbridge Dispatcher]
   DSP -->|GetToken| GH[ghauth]
-  GB -.->|link_required / reauth_required:<br/>mint link_token, stash target,<br/>augment authorize URL| PD[(PendingDispatchStore<br/>services/bridge)]
+  GB -.->|link_required:<br/>mint link_token, stash target,<br/>augment authorize URL| PD[(PendingDispatchStore<br/>services/bridge)]
   GB -->|post link| TH[discussion thread]
   U -->|click| OA[oauth /authorize]
   OA -->|Begin client_state=link_token| GH
@@ -32,10 +32,10 @@ graph LR
 | Component | Role in this design |
 |---|---|
 | `ghauth.Complete` | Verifies the authorizing GitHub account against the flow's `surface_user_id`; records the verified id on the binding. |
-| `PendingDispatchStore` (`services/bridge`) | Canonical, TTL'd map `link_token → replay target`; sibling to the discussion/origin stores so it survives `ghbridge` restarts. |
-| `ghbridge` link-prompt path | Mints `link_token`, stashes the target, augments the authorize URL with its completion redirect + token. |
+| `PendingDispatchStore` (`services/bridge`) | Canonical, TTL'd map `link_token → replay target`; sibling to the discussion/origin stores so it survives `ghbridge` restarts. Like those stores it is reached over the bridge gRPC client, behind new RPCs (put / resolve-and-consume / sweep), not a local in-process object. |
+| `ghbridge` link-prompt path | On a `link_required` decline, mints `link_token`, stashes the target, augments the authorize URL with its completion redirect + token. |
 | `ghbridge` `/api/link-complete` | Post-auth landing endpoint: resolves `link_token`, re-dispatches, renders confirmation. |
-| `oauth /authorize` | Forwards `client_state` (carrying `link_token`) into `Begin` — the one new pass-through. |
+| `oauth /authorize` | Gains one new pass-through: forwards `client_state` (carrying `link_token`) into `Begin` (today it forwards `redirect_uri`/`code_challenge`/`scope` but not `client_state`). |
 | `libbridge.Dispatcher` | Unchanged dispatch primitive; the replay calls it exactly as intake does. |
 
 ## Identity verification (Defect 1)
@@ -56,12 +56,14 @@ verified id without asserting equality. Teams is explicitly deferred.
 
 ## Resume flow (Defect 2)
 
-When `Dispatcher.dispatch` returns `link_required` or `reauth_required`,
-`ghbridge` (not `libbridge`, keeping it channel-agnostic) mints an opaque
-`link_token`, writes a `PendingDispatch` target keyed by it, and augments the
-`authorize_url` with `redirect_uri=<callback_base>/api/link-complete` and
-`client_state=<link_token>` before posting. `transient` stashes nothing (no
-link is shown).
+When `Dispatcher.dispatch` returns `link_required`, `ghbridge` (not `libbridge`,
+keeping it channel-agnostic) mints an opaque `link_token`, writes a
+`PendingDispatch` target keyed by it, and augments the `authorize_url` with
+`redirect_uri=<callback_base>/api/link-complete` and `client_state=<link_token>`
+before posting. The other declined outcomes stash nothing: `reauth_required`
+carries no `authorize_url` to augment and `transient` shows no link. Resume for
+expired bindings (`reauth_required`) is out of scope per the spec — it would
+first need `GetToken` to surface a re-link URL, which it does not today.
 
 `oauth /callback` already redirects to a downstream `redirect_uri` with the
 echoed `client_state`; `/api/link-complete` receives `state=link_token`,
@@ -79,13 +81,17 @@ harmlessly. No separate proof-of-completion is needed.
 ## Canonical store as the single source of truth
 
 The replay reconstructs the prompt from the discussion store, so the inbound
-turn must be persisted **before** the pending pointer on every intake path.
-Today only the comment path persists on decline; the discussion-created path
-relies on `Dispatcher` appending `historyText` on success only. This design
-unifies both: intake appends the inbound turn to the context and flushes it
-through the `DiscussionAdapter` before calling `dispatch`, and the success-only
-`historyText` append inside `Dispatcher` is removed (clean break). The pending
-record therefore carries **no message body**.
+turn must reach the canonical store **before** the pending pointer is written.
+The two intake paths are asymmetric today: the comment path appends the turn
+and persists the context regardless of dispatch outcome, while the
+discussion-created path never persists the turn on a declined dispatch — it
+relies on `Dispatcher` appending `historyText` only when dispatch succeeds.
+
+This design makes turn persistence the **intake's** responsibility on both
+paths and removes the success-only append from the `Dispatcher` contract (a
+clean break: the dispatch primitive no longer mutates history). The resulting
+invariant — inbound turn persisted before resume bookkeeping — is what lets the
+pending record carry **no message body**.
 
 History entries gain an `author` field (the participant's `external_id`;
 assistant turns carry none) so the replay selects the latest turn authored by
@@ -113,12 +119,16 @@ several humans have posted in the thread.
 | Which message a multi-party thread replays | Latest history turn authored by the linking user | Latest turn regardless of author — could re-dispatch another participant's message |
 | Where link augmentation happens | `ghbridge` (channel-specific completion endpoint) | `libbridge` `TokenResolver` — would import a channel-specific callback path, breaking its no-channel invariant |
 
-## Notes for the planner
+## Constraints the plan must honor
 
-- The only `oauth` change is forwarding `client_state` through `/authorize`
-  into `Begin`; `Complete` already echoes `flow.client_state`.
-- `Begin`/the flow record must persist `client_state` (today set `null` on the
-  GetToken-originated path).
-- Removing `historyText` touches both bridges' intake and the `Dispatcher`
-  contract; `msbridge` must adopt the same intake-persists-first ordering.
-- The confirmation page is a `ghbridge` HTTP response; no channel SDK involved.
+- **`client_state` round-trips end to end.** It must enter at `/authorize`,
+  persist on the flow record (the `GetToken`-originated path fixes it to `null`
+  today), and survive to `Complete`, which already echoes it. No other `oauth`
+  contract changes.
+- **The history `author` field is the shared cross-bridge change.** Both
+  `ghbridge` and `msbridge` read the same history entries, so the schema
+  addition is common. Removing the `Dispatcher` `historyText` append is
+  `ghbridge`-only: `msbridge` already appends its turn at intake and does not
+  use `historyText`, so its dispatch path is unaffected.
+- **The confirmation page is a `ghbridge` HTTP response** — no channel SDK,
+  preserving the libbridge no-channel invariant.

@@ -48,18 +48,20 @@ asked for.
 
 ### Why they are coupled
 
-Automatically re-dispatching the pending message on link completion is only
-safe once Defect 1 is fixed. With the identity check absent, completing a
-victim's pending link would both plant the completer's token under the victim's
-identity **and** auto-fire the victim's queued message under it — turning the
-binding hijack into an unsolicited dispatch. The integrity fix is therefore a
+The auto-completion resume this spec introduces (Defect 2) is only safe once
+Defect 1 is fixed. Today no auto-resume exists, so the hijack stops at the
+binding. Once resume ships, completing a victim's pending link with the
+identity check still absent would both plant the completer's token under the
+victim's identity **and** auto-fire the victim's queued message under it —
+turning the binding hijack into an unsolicited dispatch. The integrity fix is
+therefore a
 precondition for the resume feature, and the two ship together.
 
 ## Personas and Jobs
 
 | Persona | Job | How the gap blocks progress |
 |---|---|---|
-| Teams Using Agents | [Run a Continuously Improving Agent Team](../../JTBD.md) | A dispatch identity that another participant can silently assume amplifies bad patterns faster than humans can intervene (the job's named anxiety), and a first interaction that dead-ends at a link prompt is friction at the very moment a team is onboarding the bridge. |
+| Teams Using Agents | [Run a Continuously Improving Agent Team](../../JTBD.md#teams-using-agents-run-a-continuously-improving-agent-team) | A dispatch identity that another participant can silently assume amplifies bad patterns faster than humans can intervene (the job's named anxiety), and a first interaction that dead-ends at a link prompt is friction at the very moment a team is onboarding the bridge. |
 
 ## Scope
 
@@ -96,9 +98,10 @@ precondition for the resume feature, and the two ship together.
 | Claim | Verification |
 |---|---|
 | A completion whose authorizing GitHub account differs from the requested surface identity neither writes a new binding nor overwrites an existing one. | Drive a completion where the authorizer's account id differs from the requested surface identity; observe no binding is created or modified. |
-| Every binding records the GitHub account id of the user who authorized it. | Complete a flow and inspect the resulting binding; observe it carries the authorizer's GitHub account id, not a null value. |
+| Every binding records the GitHub account id of the user who authorized it. | Complete a flow and inspect the resulting binding; observe it carries the authorizer's GitHub account id. |
 | A message arriving from a user with no binding is recorded in the canonical discussion store before any resume bookkeeping, on the first-message-of-a-new-discussion path. | Send a first message on a new discussion from an unlinked user; observe the message is present in the canonical discussion store after the link is posted, before linking completes. |
+| The same record-before-bookkeeping ordering holds on the existing-thread comment path, so the property is uniform across intake paths. | Post a comment from an unlinked user on an existing discussion; observe the message is in the canonical discussion store before any resume bookkeeping. |
 | Completing the link causes the originally-intended message to be dispatched without the user sending it again. | Drive first message → posted link → verified completion with no second inbound message; observe exactly one workflow dispatch occurs and it carries the original prompt. |
 | Resume bookkeeping holds no copy of the message body. | Inspect the persisted resume record; observe it carries identifiers and timestamps only, no message text. |
-| Whoever completes the link cannot redirect the re-dispatch to a different user or thread than the one recorded when the link was issued. | Attempt to alter the completer-visible round-trip data to name a different user/thread; observe the re-dispatch targets only the server-recorded (user, thread) or does not fire. |
+| Whoever completes the link cannot redirect the re-dispatch to a different user or thread than the one recorded when the link was issued. | Attempt to alter the completer-visible round-trip data to name a different user/thread; observe the re-dispatch targets the server-recorded (user, thread) and ignores the altered data. |
 | In a thread where several humans have posted, resume re-dispatches the turn authored by the user who linked. | Interleave turns from two users before linking, then complete linking as one of them; observe the re-dispatched prompt is that user's turn. |
