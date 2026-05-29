@@ -45,8 +45,8 @@
     "@forwardimpact/librpc": "^0.1.99",
     "@forwardimpact/libtelemetry": "^0.1.42",
     "@forwardimpact/libtype": "^0.1.0",
-    "@hono/node-server": "^2.0.2",
-    "hono": "^4.12.18"
+    "@hono/node-server": "^2.0.4",
+    "hono": "^4.12.23"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
