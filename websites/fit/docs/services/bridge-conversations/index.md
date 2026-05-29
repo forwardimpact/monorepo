@@ -47,9 +47,12 @@ Teams thread ──webhook── mstunnel ── msbridge ──dispatch──> 
 
 The service is built on `@forwardimpact/libbridge`. The dispatch dance,
 callback handler, callback registry, rate limiter, history bound, prompt
-builder, lenient payload validator, durable thread state, and the
-acknowledgement lifecycle (reaction + randomized typing-verb ticker) all
-come from the library. `msbridge` owns three Bot Framework adapters in
+builder, lenient payload validator, and the acknowledgement lifecycle
+(reaction + randomized typing-verb ticker) all come from the library.
+Durable thread state lives in the shared `services/bridge` gRPC service,
+which `msbridge` reaches through a `BridgeClient`. Per-user GitHub auth
+(used to mint the dispatch token) lives in `services/ghauth`, reached
+through a `GhauthClient`. `msbridge` owns three Bot Framework adapters in
 `src/teams.js`:
 
 - `botFrameworkIntake` — converts Bot Framework's express-style
@@ -73,9 +76,13 @@ Set the credentials and service parameters in `.env`. All are loaded via
 | `SERVICE_MSBRIDGE_GITHUB_REPO`       | `owner/repo` target for workflow dispatch              |
 | `SERVICE_MSBRIDGE_CALLBACK_BASE_URL` | Public URL the workflow POSTs callbacks back to        |
 
-Discussion context is persisted as JSONL under `data/bridges/msbridge/`
-through `libstorage`. The default `createStorage` path is used; no extra
-env var is needed.
+Discussion context is persisted by the shared `services/bridge` gRPC
+service at `data/bridges/discussions.jsonl`. `msbridge` calls `bridge`
+through a `BridgeClient` channel — no per-bridge storage configuration
+is needed. `services/ghauth` similarly persists per-user GitHub link
+state under `data/ghauth/` and is reached through a `GhauthClient`. Add
+both `bridge` and `ghauth` to `config/config.json` under `init.services`
+ahead of `msbridge` so they start first.
 
 ## Start the bridge
 
@@ -154,8 +161,9 @@ You have reached the outcome of this guide when:
 - When the workflow finishes, the facilitator's `replies` are posted back
   into the same Teams thread (one message per reply) and the `like`
   reaction is removed.
-- `data/bridges/msbridge/` contains a JSONL record per conversation
-  (keyed by the Teams conversation ID).
+- `data/bridges/discussions.jsonl` contains a JSONL record per
+  conversation, keyed by `msteams:<conversation-id>` and written by the
+  `bridge` service when `msbridge` calls `SaveDiscussion`.
 
 If the workflow dispatch fails, the bridge posts `Failed to reach the
 agent team. Please try again later.` into the thread; confirm the GitHub
