@@ -1,11 +1,23 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
+import nodeFsSync from "node:fs";
 import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createServer } from "node:http";
 
 import { runCallbackCommand } from "../src/commands/callback.js";
+
+/**
+ * Invoke the callback handler with an InvocationContext-shaped object backed
+ * by a real-fs runtime (the trace file lives on disk).
+ */
+function callback(values) {
+  return runCallbackCommand({
+    options: values,
+    deps: { runtime: { fsSync: nodeFsSync } },
+  });
+}
 
 // Some sibling test files (libstorage-utils.test.js) mock global.fetch and
 // do not restore it. When bun runs files in the same process, the mock
@@ -84,7 +96,7 @@ describe("fit-eval callback", () => {
     ]);
 
     try {
-      await runCallbackCommand({
+      await callback({
         "trace-file": tracePath,
         "callback-url": `${server.url}/api/callback/abc`,
         "correlation-id": "corr-123",
@@ -125,7 +137,7 @@ describe("fit-eval callback", () => {
     ]);
 
     try {
-      await runCallbackCommand({
+      await callback({
         "trace-file": tracePath,
         "callback-url": `${server.url}/api/callback/multi`,
         "correlation-id": "m",
@@ -148,7 +160,7 @@ describe("fit-eval callback", () => {
     ]);
 
     try {
-      await runCallbackCommand({
+      await callback({
         "trace-file": tracePath,
         "callback-url": server.url,
         "correlation-id": "x",
@@ -166,14 +178,12 @@ describe("fit-eval callback", () => {
   });
 
   test("requires --trace-file and --callback-url", async () => {
-    await assert.rejects(
-      () => runCallbackCommand({ "callback-url": "http://example" }),
-      /--trace-file is required/,
-    );
-    await assert.rejects(
-      () => runCallbackCommand({ "trace-file": "/dev/null" }),
-      /--callback-url is required/,
-    );
+    const noTrace = await callback({ "callback-url": "http://example" });
+    assert.strictEqual(noTrace.ok, false);
+    assert.match(noTrace.error, /--trace-file is required/);
+    const noUrl = await callback({ "trace-file": "/dev/null" });
+    assert.strictEqual(noUrl.ok, false);
+    assert.match(noUrl.error, /--callback-url is required/);
   });
 
   test("treats a missing verdict as 'failed'", async () => {
@@ -187,7 +197,7 @@ describe("fit-eval callback", () => {
     ]);
 
     try {
-      await runCallbackCommand({
+      await callback({
         "trace-file": tracePath,
         "callback-url": `${server.url}/api/callback/nv`,
         "correlation-id": "nv",
@@ -225,7 +235,7 @@ describe("fit-eval callback", () => {
     ]);
 
     try {
-      await runCallbackCommand({
+      await callback({
         "trace-file": tracePath,
         "callback-url": `${server.url}/api/callback/recess`,
         "correlation-id": "r-1",
@@ -262,7 +272,7 @@ describe("fit-eval callback", () => {
     ]);
 
     try {
-      await runCallbackCommand({
+      await callback({
         "trace-file": tracePath,
         "callback-url": `${server.url}/api/callback/override`,
         "correlation-id": "o",
@@ -278,7 +288,7 @@ describe("fit-eval callback", () => {
     }
   });
 
-  test("throws when the callback POST returns a non-2xx status", async () => {
+  test("returns a failure envelope when the callback POST returns a non-2xx status", async () => {
     const server = await startServer(500);
     const { tracePath, cleanup } = writeTrace([
       {
@@ -289,15 +299,13 @@ describe("fit-eval callback", () => {
     ]);
 
     try {
-      await assert.rejects(
-        () =>
-          runCallbackCommand({
-            "trace-file": tracePath,
-            "callback-url": `${server.url}/x`,
-            "correlation-id": "x",
-          }),
-        /Callback POST failed: 500/,
-      );
+      const result = await callback({
+        "trace-file": tracePath,
+        "callback-url": `${server.url}/x`,
+        "correlation-id": "x",
+      });
+      assert.strictEqual(result.ok, false);
+      assert.match(result.error, /Callback POST failed: 500/);
     } finally {
       await server.close();
       cleanup();

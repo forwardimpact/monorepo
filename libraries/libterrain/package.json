@@ -43,6 +43,7 @@
   ],
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libutil": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.59",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libprompt": "^0.1.0",
@@ -53,6 +54,7 @@
     "@forwardimpact/libtemplate": "^0.2.0"
   },
   "devDependencies": {
+    "@forwardimpact/libmock": "^0.1.0",
     "@forwardimpact/libresource": "^0.1.111",
     "jsdom": "^29.1.1"
   },

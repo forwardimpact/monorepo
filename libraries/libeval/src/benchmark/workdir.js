@@ -13,6 +13,8 @@ import { createServer } from "node:net";
 import { connect } from "node:net";
 import { join } from "node:path";
 
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
 import { loadEnv } from "./env-loader.js";
 
 const DEFAULT_TERM_GRACE_MS = 5_000;
@@ -38,13 +40,23 @@ export class WorkdirManager {
    * @param {string} deps.stagingDir - Output of `installApm(...)`.
    * @param {string} deps.runOutputDir - Root run-output directory (parent of `runs/`).
    */
-  constructor({ stagingDir, runOutputDir, termGraceMs, familyRootPath }) {
+  constructor({
+    stagingDir,
+    runOutputDir,
+    termGraceMs,
+    familyRootPath,
+    runtime,
+  }) {
     if (!stagingDir) throw new Error("stagingDir is required");
     if (!runOutputDir) throw new Error("runOutputDir is required");
     this.stagingDir = stagingDir;
     this.runOutputDir = runOutputDir;
     this.termGraceMs = termGraceMs ?? DEFAULT_TERM_GRACE_MS;
     this.familyRootPath = familyRootPath ?? null;
+    // `loadEnv` is the only collaborator routed through the runtime today; the
+    // rest of this manager still uses raw streaming/net/process-group APIs the
+    // runtime surface does not yet cover.
+    this.runtime = runtime ?? null;
   }
 
   /**
@@ -80,7 +92,10 @@ export class WorkdirManager {
       ...(this.familyRootPath ? [this.familyRootPath] : []),
       ...(task.paths.taskDir ? [task.paths.taskDir] : []),
     ];
-    const envNames = envDirs.length > 0 ? await loadEnv(envDirs, cwd) : [];
+    const envNames =
+      envDirs.length > 0
+        ? await loadEnv(envDirs, cwd, this.runtime ?? createDefaultRuntime())
+        : [];
 
     const port = await allocatePort();
     const agentTracePath = join(runDir, "agent.ndjson");

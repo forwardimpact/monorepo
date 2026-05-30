@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-
 /**
  * Scan an NDJSON trace and return the last orchestrator summary event,
  * the first `meta` event's `discussion_id`, and any structured replies
@@ -11,13 +9,14 @@ import { readFileSync } from "node:fs";
  * its channel semantics.
  *
  * @param {string} traceFile
+ * @param {object} fsSync - Sync filesystem surface (`runtime.fsSync`).
  * @returns {{verdict: string, summary: string, replies: object[], trigger?: object, discussionId?: string} | null}
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: NDJSON scan with malformed-line tolerance + meta/summary dual extraction
-function readTraceSummary(traceFile) {
+function readTraceSummary(traceFile, fsSync) {
   let summary = null;
   let metaDiscussionId = null;
-  for (const line of readFileSync(traceFile, "utf8").split("\n")) {
+  for (const line of fsSync.readFileSync(traceFile, "utf8").split("\n")) {
     if (!line.trim()) continue;
     let record;
     try {
@@ -67,20 +66,24 @@ function readTraceSummary(traceFile) {
  * }
  * ```
  *
- * @param {object} values - Parsed option values from cli.parse()
- * @param {string[]} _args - Positional arguments
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {Promise<{ok: true} | {ok: false, code: number, error: string}>}
  */
-export async function runCallbackCommand(values, _args) {
+export async function runCallbackCommand(ctx) {
+  const values = ctx.options;
+  const runtime = ctx.deps.runtime;
   const traceFile = values["trace-file"];
   const callbackUrl = values["callback-url"];
   const correlationId = values["correlation-id"];
   const runUrl = values["run-url"] ?? "";
   const discussionIdOverride = values["discussion-id"] ?? null;
 
-  if (!traceFile) throw new Error("--trace-file is required");
-  if (!callbackUrl) throw new Error("--callback-url is required");
+  if (!traceFile)
+    return { ok: false, code: 1, error: "--trace-file is required" };
+  if (!callbackUrl)
+    return { ok: false, code: 1, error: "--callback-url is required" };
 
-  const found = readTraceSummary(traceFile) ?? {
+  const found = readTraceSummary(traceFile, runtime.fsSync) ?? {
     verdict: "failed",
     summary: "Run ended without producing a summary.",
     replies: [],
@@ -104,6 +107,7 @@ export async function runCallbackCommand(values, _args) {
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    throw new Error(`Callback POST failed: ${res.status}`);
+    return { ok: false, code: 1, error: `Callback POST failed: ${res.status}` };
   }
+  return { ok: true };
 }

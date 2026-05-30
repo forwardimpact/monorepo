@@ -1,4 +1,3 @@
-import { existsSync, readFileSync } from "node:fs";
 import {
   formatHeader,
   formatSuccess,
@@ -9,28 +8,42 @@ import {
 import { validateCSV } from "../csv.js";
 
 /** Run the validate command: check a CSV file for structural and field-level errors. */
-export function runValidateCommand(values, args, cli) {
-  const csvPath = args[0];
+export function runValidateCommand(ctx) {
+  const {
+    options: values,
+    args,
+    deps: { runtime },
+  } = ctx;
+  const { fsSync, proc } = runtime;
+
+  const csvPath = args["csv-path"];
   if (!csvPath) {
-    cli.usageError("validate requires a <csv-path> argument");
-    process.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: "validate requires a <csv-path> argument",
+    };
   }
-  if (!existsSync(csvPath)) {
-    cli.usageError(`cannot read CSV "${csvPath}": file not found`);
-    process.exit(2);
+  if (!fsSync.existsSync(csvPath)) {
+    return {
+      ok: false,
+      code: 2,
+      error: `cannot read CSV "${csvPath}": file not found`,
+    };
   }
 
-  const text = readFileSync(csvPath, "utf-8");
+  const text = fsSync.readFileSync(csvPath, "utf-8");
   const result = validateCSV(text);
   result.source = csvPath;
 
   if (values.format === "json") {
-    process.stdout.write(JSON.stringify(result, null, 2) + "\n");
+    proc.stdout.write(JSON.stringify(result, null, 2) + "\n");
   } else {
-    process.stdout.write(formatValidationText(csvPath, result) + "\n");
+    proc.stdout.write(formatValidationText(csvPath, result) + "\n");
   }
 
-  if (!result.valid) process.exitCode = 1;
+  if (!result.valid) return { ok: false, code: 1 };
+  return { ok: true };
 }
 
 function formatValidationText(csvPath, result) {

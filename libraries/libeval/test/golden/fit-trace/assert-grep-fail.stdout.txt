@@ -1,0 +1,1 @@
+{"test":"missing","pass":false,"message":"pattern \"ZZZ_NOPE\" not found in trace.ndjson"}

@@ -1,0 +1,29 @@
+[
+  {
+    "name": "--help",
+    "args": ["--help"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "help.stdout.txt",
+    "stderrFile": "help.stderr.txt",
+    "transform": [{ "pattern": "\\d+\\.\\d+\\.\\d+", "replacement": "X.Y.Z" }]
+  },
+  {
+    "name": "no args (usage error)",
+    "args": [],
+    "env": {},
+    "exitCode": 2,
+    "stdoutFile": "no-args.stdout.txt",
+    "stderrFile": "no-args.stderr.txt",
+    "transform": [{ "pattern": "\\d+\\.\\d+\\.\\d+", "replacement": "X.Y.Z" }]
+  },
+  {
+    "name": "unknown command",
+    "args": ["bogus"],
+    "env": {},
+    "exitCode": 2,
+    "stdoutFile": "unknown-cmd.stdout.txt",
+    "stderrFile": "unknown-cmd.stderr.txt",
+    "transform": [{ "pattern": "\\d+\\.\\d+\\.\\d+", "replacement": "X.Y.Z" }]
+  }
+]

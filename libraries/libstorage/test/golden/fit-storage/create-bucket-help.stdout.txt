@@ -1,0 +1,7 @@
+fit-storage create-bucket — Create storage bucket (idempotent)
+
+Usage: fit-storage create-bucket [options]
+
+Global options:
+  --help, -h  Show this help
+  --json      Output help as JSON

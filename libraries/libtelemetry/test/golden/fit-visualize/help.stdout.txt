@@ -1,0 +1,14 @@
+fit-visualize X.Y.Z — Query and visualize traces using JMESPath expressions
+
+Usage: fit-visualize [options]
+
+Options:
+  --trace=<string>     Filter traces by trace ID
+  --resource=<string>  Filter traces by resource ID
+  --help, -h           Show this help
+  --version            Show version
+  --json               Output help as JSON
+
+Examples:
+  echo "[?name=='ProcessStream']" | fit-visualize
+  echo "[]" | fit-visualize --trace 0f53069dbc62d

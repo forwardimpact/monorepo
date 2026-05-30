@@ -1,0 +1,25 @@
+[
+  {
+    "name": "help",
+    "args": ["--help"],
+    "exitCode": 0,
+    "stdoutFile": "help.stdout.txt",
+    "stderrFile": "help.stderr.txt",
+    "transform": [{ "pattern": "\\d+\\.\\d+\\.\\d+", "replacement": "VERSION" }]
+  },
+  {
+    "name": "version",
+    "args": ["--version"],
+    "exitCode": 0,
+    "stdoutFile": "version.stdout.txt",
+    "stderrFile": "version.stderr.txt",
+    "transform": [{ "pattern": "\\d+\\.\\d+\\.\\d+", "replacement": "VERSION" }]
+  },
+  {
+    "name": "no-args",
+    "args": [],
+    "exitCode": 2,
+    "stdoutFile": "no-args.stdout.txt",
+    "stderrFile": "no-args.stderr.txt"
+  }
+]

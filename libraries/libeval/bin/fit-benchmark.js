@@ -4,6 +4,7 @@ import "@forwardimpact/libpreflight/node22";
 
 import { readFileSync, realpathSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
 import { runBenchmarkRunCommand } from "../src/commands/benchmark-run.js";
@@ -26,7 +27,8 @@ export const definition = {
   commands: [
     {
       name: "run",
-      args: "",
+      args: [],
+      handler: runBenchmarkRunCommand,
       description:
         "Run every task in a family for N runs and emit one result record per (task, runIndex).",
       options: {
@@ -79,7 +81,8 @@ export const definition = {
     },
     {
       name: "score",
-      args: "",
+      args: [],
+      handler: runBenchmarkScoreCommand,
       description:
         "Score a single task against a post-run workdir without invoking an agent.",
       options: {
@@ -104,7 +107,8 @@ export const definition = {
     },
     {
       name: "report",
-      args: "",
+      args: [],
+      handler: runBenchmarkReportCommand,
       description:
         "Aggregate result records into pass@k via the OpenAI HumanEval estimator.",
       options: {
@@ -152,35 +156,30 @@ export const definition = {
   ],
 };
 
-const cli = createCli(definition);
 const logger = createLogger("benchmark");
 
-const COMMANDS = {
-  run: runBenchmarkRunCommand,
-  score: runBenchmarkScoreCommand,
-  report: runBenchmarkReportCommand,
-};
-
 async function main() {
-  const parsed = cli.parse(process.argv.slice(2));
-  if (!parsed) process.exit(0);
+  const runtime = createDefaultRuntime();
+  const cli = createCli(definition, { runtime });
+  const parsed = cli.parse(runtime.proc.argv.slice(2));
+  if (!parsed) return runtime.proc.exit(0);
 
-  const { values, positionals } = parsed;
-
+  const { positionals } = parsed;
   if (positionals.length === 0) {
     cli.usageError("no command specified");
-    process.exit(2);
+    return runtime.proc.exit(2);
   }
 
-  const [command, ...args] = positionals;
-  const handler = COMMANDS[command];
-
-  if (!handler) {
+  const command = positionals[0];
+  if (!definition.commands.some((c) => c.name === command)) {
     cli.usageError(`unknown command "${command}"`);
-    process.exit(2);
+    return runtime.proc.exit(2);
   }
 
-  await handler(values, args);
+  const result = await cli.dispatch(parsed, { deps: { runtime } });
+  const envelope = result ?? { ok: true };
+  if (!envelope.ok && envelope.error) cli.error(envelope.error);
+  runtime.proc.exit(envelope.ok ? 0 : (envelope.code ?? 1));
 }
 
 // Run main only when invoked as a CLI. Importing for tests (e.g. parity)
@@ -188,7 +187,7 @@ async function main() {
 if (import.meta.url === `file://${realpathSync(process.argv[1])}`) {
   main().catch((error) => {
     logger.exception("main", error);
-    cli.error(error.message);
+    createCli(definition).error(error.message);
     process.exit(1);
   });
 }

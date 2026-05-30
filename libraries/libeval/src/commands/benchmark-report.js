@@ -9,24 +9,31 @@ import { resolve } from "node:path";
 import { aggregate, renderTextReport } from "../benchmark/report.js";
 
 /**
- * @param {object} values
- * @param {string[]} _args
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {Promise<{ok: true} | {ok: false, code: number, error: string}>}
  */
-export async function runBenchmarkReportCommand(values, _args) {
+export async function runBenchmarkReportCommand(ctx) {
+  const values = ctx.options;
+  const runtime = ctx.deps.runtime;
   const inputDir = values.input ?? "benchmark-runs";
   const kRaw = values.k ?? "1,3,5";
-  const kValues = kRaw.split(",").map((t) => {
-    const n = Number.parseInt(t.trim(), 10);
-    if (!Number.isFinite(n) || n < 1) {
-      throw new Error(
-        "--k must be a comma-separated list of positive integers",
-      );
-    }
-    return n;
-  });
+  let kValues;
+  try {
+    kValues = kRaw.split(",").map((t) => {
+      const n = Number.parseInt(t.trim(), 10);
+      if (!Number.isFinite(n) || n < 1) {
+        throw new Error(
+          "--k must be a comma-separated list of positive integers",
+        );
+      }
+      return n;
+    });
+  } catch (err) {
+    return { ok: false, code: 1, error: err.message };
+  }
   const format = values.format ?? "json";
   if (format !== "json" && format !== "text") {
-    throw new Error("--format must be 'json' or 'text'");
+    return { ok: false, code: 1, error: "--format must be 'json' or 'text'" };
   }
 
   const report = await aggregate({
@@ -35,8 +42,9 @@ export async function runBenchmarkReportCommand(values, _args) {
     includeRuns: format === "text",
   });
   if (format === "text") {
-    process.stdout.write(renderTextReport(report, kValues) + "\n");
+    runtime.proc.stdout.write(renderTextReport(report, kValues) + "\n");
   } else {
-    process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    runtime.proc.stdout.write(JSON.stringify(report, null, 2) + "\n");
   }
+  return { ok: true };
 }

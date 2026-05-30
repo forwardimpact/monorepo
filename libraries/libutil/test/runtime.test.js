@@ -79,6 +79,24 @@ describe("createDefaultProc exitCode", () => {
   });
 });
 
+describe("createDefaultProc kill", () => {
+  test("forwards pid and signal to the source (negative pid = group)", () => {
+    const calls = [];
+    const source = {
+      env: {},
+      argv: ["node", "x"],
+      kill: (pid, signal) => calls.push({ pid, signal }),
+    };
+    const proc = createDefaultProc({ source, env: source.env });
+    proc.kill(42, 0);
+    proc.kill(-99, "SIGTERM");
+    assert.deepStrictEqual(calls, [
+      { pid: 42, signal: 0 },
+      { pid: -99, signal: "SIGTERM" },
+    ]);
+  });
+});
+
 describe("createDefaultClock / createDefaultSubprocess", () => {
   test("clock.now is a number and sleep resolves", async () => {
     const clock = createDefaultClock();
@@ -105,6 +123,27 @@ describe("createDefaultClock / createDefaultSubprocess", () => {
     const result = await sub.run("definitely-not-a-real-binary-xyz", []);
     assert.strictEqual(typeof result.exitCode, "number");
     assert.notStrictEqual(result.exitCode, 0);
+  });
+
+  test("subprocess.runSync echoes via a real binary", () => {
+    const sub = createDefaultSubprocess();
+    const result = sub.runSync("node", ["-e", "process.stdout.write('hi')"]);
+    assert.strictEqual(result.stdout, "hi");
+    assert.strictEqual(result.exitCode, 0);
+    assert.strictEqual(result.signal, null);
+  });
+
+  test("subprocess.runSync reports a numeric non-zero exit on a normal failure", () => {
+    const sub = createDefaultSubprocess();
+    const result = sub.runSync("node", ["-e", "process.exit(3)"]);
+    assert.strictEqual(result.exitCode, 3);
+    assert.strictEqual(typeof result.exitCode, "number");
+  });
+
+  test("subprocess.runSync returns 127 on spawn failure (ENOENT)", () => {
+    const sub = createDefaultSubprocess();
+    const result = sub.runSync("definitely-not-a-real-binary-xyz", []);
+    assert.strictEqual(result.exitCode, 127);
   });
 });
 

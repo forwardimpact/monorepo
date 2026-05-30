@@ -1,5 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
+import nodeFsSync from "node:fs";
 import { mkdtempSync, writeFileSync, rmSync, utimesSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -53,7 +54,7 @@ describe("fit-trace by-discussion", () => {
         1_500_000_000,
       );
 
-      const matches = findTracesByDiscussion(dir, "GD_x");
+      const matches = findTracesByDiscussion(dir, "GD_x", nodeFsSync);
 
       assert.deepStrictEqual(
         matches.map((m) => m.path),
@@ -72,7 +73,10 @@ describe("fit-trace by-discussion", () => {
         seq: 0,
         event: { type: "meta", discussion_id: "GD_other" },
       });
-      assert.deepStrictEqual(findTracesByDiscussion(dir, "GD_x"), []);
+      assert.deepStrictEqual(
+        findTracesByDiscussion(dir, "GD_x", nodeFsSync),
+        [],
+      );
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -92,7 +96,7 @@ describe("fit-trace by-discussion", () => {
         event: { type: "meta", discussion_id: "GD_x" },
       });
 
-      const matches = findTracesByDiscussion(dir, "GD_x");
+      const matches = findTracesByDiscussion(dir, "GD_x", nodeFsSync);
       assert.strictEqual(matches.length, 1);
       assert.ok(matches[0].path.endsWith("good.ndjson"));
     } finally {
@@ -102,7 +106,7 @@ describe("fit-trace by-discussion", () => {
 
   test("returns an empty list when the directory does not exist", () => {
     assert.deepStrictEqual(
-      findTracesByDiscussion("/nonexistent-path-zzz", "GD_x"),
+      findTracesByDiscussion("/nonexistent-path-zzz", "GD_x", nodeFsSync),
       [],
     );
   });

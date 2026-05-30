@@ -2,7 +2,11 @@ import { describe, test, beforeEach } from "node:test";
 import assert from "node:assert";
 
 import { ServiceManager } from "../src/manager.js";
-import { assertRejectsMessage } from "@forwardimpact/libmock";
+import {
+  assertRejectsMessage,
+  createMockProcess,
+  createTestRuntime,
+} from "@forwardimpact/libmock";
 
 describe("ServiceManager - stop, status, filtering", () => {
   let mockConfig;
@@ -52,12 +56,14 @@ describe("ServiceManager - stop, status, filtering", () => {
         return child;
       },
       execSync: () => {},
-      process: {
-        kill: (pid, signal) => {
-          if (signal === 0 && pid === 12345) return true;
-          throw new Error("ESRCH");
-        },
-      },
+      runtime: createTestRuntime({
+        proc: createMockProcess({
+          kill: (pid, signal) => {
+            if (signal === 0 && pid === 12345) return true;
+            throw new Error("ESRCH");
+          },
+        }),
+      }),
       sendCommand: async () => ({ ok: true }),
       waitForSocket: async () => true,
     };

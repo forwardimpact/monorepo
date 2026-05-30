@@ -17,18 +17,8 @@ function makeFakeProcess() {
 function renderCacheReport(stats, ok) {
   const { proc, chunks } = makeFakeProcess();
   const summary = new SummaryRenderer({ process: proc });
-  // printCacheReport writes to the global `process.stdout` directly for the
-  // leading newline, so capture both streams into one buffer.
-  const origWrite = process.stdout.write.bind(process.stdout);
-  process.stdout.write = (s) => {
-    chunks.push(s);
-    return true;
-  };
-  try {
-    printCacheReport({ stats: { prose: stats } }, summary, ok);
-  } finally {
-    process.stdout.write = origWrite;
-  }
+  // Pass proc.stdout directly — printCacheReport now accepts it as the fourth arg.
+  printCacheReport({ stats: { prose: stats } }, summary, ok, proc.stdout);
   return chunks.join("");
 }
 

@@ -4,6 +4,7 @@ import "@forwardimpact/libpreflight/node22";
 
 import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
 import { runOutputCommand } from "../src/commands/output.js";
@@ -13,6 +14,19 @@ import { runSuperviseCommand } from "../src/commands/supervise.js";
 import { runFacilitateCommand } from "../src/commands/facilitate.js";
 import { runDiscussCommand } from "../src/commands/discuss.js";
 import { runCallbackCommand } from "../src/commands/callback.js";
+
+// `tee` streams stdin→stdout via Node's `pipeline`, which needs real stream
+// objects the runtime surface does not expose; it keeps the legacy
+// `(values, args)` signature and this adapter bridges it into dispatch.
+async function teeHandler(ctx) {
+  const out = ctx.args.output;
+  try {
+    await runTeeCommand(ctx.options, out ? [out] : []);
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, code: 1, error: error.message };
+  }
+}
 
 // `bun build --compile` injects FIT_EVAL_VERSION via --define, eliminating
 // the readFileSync branch in the compiled binary (which would ENOENT against
@@ -65,7 +79,9 @@ const definition = {
   commands: [
     {
       name: "run",
-      args: "",
+      args: [],
+      argsUsage: "",
+      handler: runRunCommand,
       description: "Run a single agent autonomously on a defined task",
       options: {
         ...TASK_INPUT_OPTIONS,
@@ -100,7 +116,9 @@ const definition = {
     },
     {
       name: "supervise",
-      args: "",
+      args: [],
+      argsUsage: "",
+      handler: runSuperviseCommand,
       description:
         "Run a supervisor–agent relay — typical shape for agent-as-judge evaluations",
       options: {
@@ -143,7 +161,9 @@ const definition = {
     },
     {
       name: "facilitate",
-      args: "",
+      args: [],
+      argsUsage: "",
+      handler: runFacilitateCommand,
       description:
         "Run a facilitator with N participants — typical shape for multi-agent collaboration",
       options: {
@@ -178,7 +198,9 @@ const definition = {
     },
     {
       name: "discuss",
-      args: "",
+      args: [],
+      argsUsage: "",
+      handler: runDiscussCommand,
       description:
         "Run an async, suspendable discussion — Chair + N participants + bridge callback",
       options: {
@@ -217,19 +239,25 @@ const definition = {
     },
     {
       name: "output",
-      args: "",
+      args: [],
+      argsUsage: "",
+      handler: runOutputCommand,
       description:
         "Read NDJSON from stdin and emit a structured or readable form",
     },
     {
       name: "tee",
-      args: "[output.ndjson]",
+      args: ["output"],
+      argsUsage: "[output.ndjson]",
+      handler: teeHandler,
       description:
         "Stream readable text to stdout while saving raw NDJSON to a file",
     },
     {
       name: "callback",
-      args: "",
+      args: [],
+      argsUsage: "",
+      handler: runCallbackCommand,
       description:
         "Extract the terminal summary from an NDJSON trace and POST it to a callback URL",
       options: {
@@ -298,43 +326,34 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition);
 const logger = createLogger("eval");
 
-const COMMANDS = {
-  output: runOutputCommand,
-  tee: runTeeCommand,
-  run: runRunCommand,
-  supervise: runSuperviseCommand,
-  facilitate: runFacilitateCommand,
-  discuss: runDiscussCommand,
-  callback: runCallbackCommand,
-};
-
 async function main() {
-  const parsed = cli.parse(process.argv.slice(2));
-  if (!parsed) process.exit(0);
+  const runtime = createDefaultRuntime();
+  const cli = createCli(definition, { runtime });
+  const parsed = cli.parse(runtime.proc.argv.slice(2));
+  if (!parsed) return runtime.proc.exit(0);
 
-  const { values, positionals } = parsed;
-
+  const { positionals } = parsed;
   if (positionals.length === 0) {
     cli.usageError("no command specified");
-    process.exit(2);
+    return runtime.proc.exit(2);
   }
 
-  const [command, ...args] = positionals;
-  const handler = COMMANDS[command];
-
-  if (!handler) {
+  const command = positionals[0];
+  if (!definition.commands.some((c) => c.name === command)) {
     cli.usageError(`unknown command "${command}"`);
-    process.exit(2);
+    return runtime.proc.exit(2);
   }
 
-  await handler(values, args);
+  const result = await cli.dispatch(parsed, { deps: { runtime } });
+  const envelope = result ?? { ok: true };
+  if (!envelope.ok && envelope.error) cli.error(envelope.error);
+  runtime.proc.exit(envelope.ok ? 0 : (envelope.code ?? 1));
 }
 
 main().catch((error) => {
   logger.exception("main", error);
-  cli.error(error.message);
+  createCli(definition).error(error.message);
   process.exit(1);
 });

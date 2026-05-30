@@ -1,0 +1,5 @@
+Metrics — test/fixtures/stable.csv
+
+Metric         Unit   Points  From        To        
+────────────────────────────────────────────────────
+stable_metric  count  20      2026-01-01  2026-01-20

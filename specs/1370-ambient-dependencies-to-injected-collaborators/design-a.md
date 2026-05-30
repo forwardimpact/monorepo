@@ -118,11 +118,15 @@ bin shim along with the src modules it drives.
   fire-and-forget scheduling (debounce, watchdog) only.
 - `runtime.subprocess` — `run(cmd, args, opts) → Promise<{ stdout,
   stderr, exitCode }>` for one-shot commands (replaces every current
-  `spawnSync` / `execFileSync`); `spawn(cmd, args, opts) → { stdout:
-  AsyncIterable, stderr: AsyncIterable, exitCode: Promise<number>,
-  kill(signal) }` for streaming and long-running children (the outpost
-  scheduler's bash watcher consumes this). Sync subprocess is not in the
-  contract.
+  `spawnSync` / `execFileSync`); `runSync(cmd, args, opts) → { stdout,
+  stderr, exitCode }` is the synchronous sibling (over `spawnSync`) for
+  the rare caller that cannot become async — notably a synchronous config
+  accessor shelling to `gh auth token` (libconfig); `spawn(cmd, args,
+  opts) → { stdout: AsyncIterable, stderr: AsyncIterable, exitCode:
+  Promise<number>, kill(signal) }` for streaming and long-running children
+  (the outpost scheduler's bash watcher consumes this). Prefer `run`; reach
+  for `runSync` only when the call site is a synchronous accessor whose
+  caller chain cannot be made async without an unbounded cascade.
 - `runtime.finder` — pre-constructed `Finder` built inside
   `createDefaultRuntime` (phase 2). Methods accept `{ logger }` per call
   for sites that want a custom logger; default is a stderr logger built

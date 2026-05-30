@@ -66,6 +66,49 @@ export function createMockFs(files = {}) {
     mkdir: spy(async (path) => {
       dirs.add(path);
     }),
+    mkdtemp: spy(async (prefix) => {
+      // Mirror node:fs/promises.mkdtemp: append 6 random chars to the prefix
+      // and register the directory. Returns the created path.
+      const path = `${prefix}${Math.random().toString(36).slice(2, 8)}`;
+      dirs.add(path);
+      return path;
+    }),
+    rm: spy(async (path, opts = {}) => {
+      // Mirror fs.rm(path, { recursive }): with `recursive`, drop the entry
+      // and every descendant so subsequent readdir/access don't see ghosts.
+      const prefix = path.endsWith("/") ? path : `${path}/`;
+      const matches = (k) =>
+        k === path || (opts.recursive && k.startsWith(prefix));
+      for (const k of [...data.keys()]) if (matches(k)) data.delete(k);
+      for (const k of [...dirs]) if (matches(k)) dirs.delete(k);
+    }),
+    lstat: spy(async (path) => {
+      if (data.has(path)) {
+        return {
+          isFile: () => true,
+          isDirectory: () => false,
+          isSymbolicLink: () => false,
+        };
+      }
+      if (dirs.has(path)) {
+        return {
+          isFile: () => false,
+          isDirectory: () => true,
+          isSymbolicLink: () => false,
+        };
+      }
+      const err = new Error(
+        `ENOENT: no such file or directory, lstat '${path}'`,
+      );
+      err.code = "ENOENT";
+      throw err;
+    }),
+    unlink: spy(async (path) => {
+      data.delete(path);
+    }),
+    symlink: spy(async (_target, path) => {
+      dirs.add(path);
+    }),
     access: spy(async (path) => {
       if (!data.has(path) && !dirs.has(path)) {
         const err = new Error(

@@ -3,7 +3,11 @@ import assert from "node:assert";
 import { Readable, Writable } from "node:stream";
 
 import { ServiceManager } from "../src/manager.js";
-import { assertRejectsMessage } from "@forwardimpact/libmock";
+import {
+  assertRejectsMessage,
+  createMockProcess,
+  createTestRuntime,
+} from "@forwardimpact/libmock";
 
 // Stream that asynchronously fails with an Error carrying the given code.
 const failingStream = (code) =>
@@ -75,12 +79,14 @@ describe("ServiceManager - logs", () => {
       },
       spawn: () => ({ unref: () => {} }),
       execSync: () => {},
-      process: {
-        kill: (pid, signal) => {
-          if (signal === 0 && pid === 12345) return true;
-          throw new Error("ESRCH");
-        },
-      },
+      runtime: createTestRuntime({
+        proc: createMockProcess({
+          kill: (pid, signal) => {
+            if (signal === 0 && pid === 12345) return true;
+            throw new Error("ESRCH");
+          },
+        }),
+      }),
       sendCommand: async () => ({ ok: true }),
       waitForSocket: async () => true,
     };

@@ -1,6 +1,5 @@
-import { createWriteStream, mkdtempSync } from "node:fs";
+import { createWriteStream } from "node:fs";
 import { resolve, join } from "node:path";
-import { tmpdir } from "node:os";
 import { createSupervisor } from "../supervisor.js";
 import { createRedactor } from "../redaction.js";
 import { createTeeWriter } from "../tee-writer.js";
@@ -10,19 +9,27 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
 /**
  * Parse all supervise flags from parsed values into an options object.
  * @param {object} values - Parsed option values from cli.parse()
- * @returns {object}
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @returns {Promise<object>}
  */
-export function parseSuperviseOptions(values) {
-  const { task: taskContent, amend: taskAmend } = resolveTaskContent(values);
+export async function parseSuperviseOptions(values, runtime) {
+  const { task: taskContent, amend: taskAmend } = resolveTaskContent(
+    values,
+    runtime,
+  );
   const supervisorAllowedToolsRaw = values["supervisor-allowed-tools"];
+
+  const tmpRoot = runtime.proc.env.TMPDIR ?? "/tmp";
+  const agentCwd = resolve(
+    values["agent-cwd"] ??
+      (await runtime.fs.mkdtemp(join(tmpRoot, "fit-eval-agent-"))),
+  );
 
   return {
     taskContent,
     taskAmend,
     supervisorCwd: resolve(values["supervisor-cwd"] ?? "."),
-    agentCwd: resolve(
-      values["agent-cwd"] ?? mkdtempSync(join(tmpdir(), "fit-eval-agent-")),
-    ),
+    agentCwd,
     agentModel: values["agent-model"] ?? "claude-opus-4-7[1m]",
     supervisorModel: values["lead-model"] ?? "claude-opus-4-7[1m]",
     maxTurns: (() => {
@@ -50,16 +57,17 @@ export function parseSuperviseOptions(values) {
  *
  * Usage: fit-eval supervise [options]
  *
- * @param {object} values - Parsed option values from cli.parse()
- * @param {string[]} args - Positional arguments
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {Promise<{ok: boolean, code?: number, error?: string}>}
  */
-export async function runSuperviseCommand(values, _args) {
-  const opts = parseSuperviseOptions(values);
+export async function runSuperviseCommand(ctx) {
+  const runtime = ctx.deps.runtime;
+  const opts = await parseSuperviseOptions(ctx.options, runtime);
 
   // Build the redactor as the first observable side-effect after option
   // parsing — the env snapshot must freeze BEFORE any in-process
-  // process.env writes the command performs (e.g. LIBEVAL_AGENT_PROFILE).
-  const redactor = createRedactor();
+  // env writes the command performs (e.g. LIBEVAL_AGENT_PROFILE).
+  const redactor = createRedactor({ runtime });
 
   // When --output is specified, stream text to stdout while writing NDJSON to file.
   // Otherwise, write NDJSON directly to stdout (backwards-compatible).
@@ -69,10 +77,10 @@ export async function runSuperviseCommand(values, _args) {
   const output = fileStream
     ? createTeeWriter({
         fileStream,
-        textStream: process.stdout,
+        textStream: runtime.proc.stdout,
         mode: "supervised",
       })
-    : process.stdout;
+    : runtime.proc.stdout;
 
   let agentMcpServers = null;
   if (opts.mcpServer) {
@@ -88,7 +96,7 @@ export async function runSuperviseCommand(values, _args) {
   }
 
   if (opts.agentProfile) {
-    process.env.LIBEVAL_AGENT_PROFILE = opts.agentProfile;
+    runtime.proc.env.LIBEVAL_AGENT_PROFILE = opts.agentProfile;
   }
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
@@ -107,6 +115,7 @@ export async function runSuperviseCommand(values, _args) {
     taskAmend: opts.taskAmend,
     agentMcpServers,
     redactor,
+    runtime,
   });
 
   const result = await supervisor.run(opts.taskContent);
@@ -116,5 +125,5 @@ export async function runSuperviseCommand(values, _args) {
     await new Promise((r) => fileStream.end(r));
   }
 
-  process.exit(result.success ? 0 : 1);
+  return result.success ? { ok: true } : { ok: false, code: 1, error: "" };
 }

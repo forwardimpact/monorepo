@@ -1,7 +1,4 @@
 [
-  "libraries/libeval/test/selfedit.test.js",
-  "libraries/libxmr/test/record.test.js",
-  "libraries/libxmr/test/summarize.test.js",
   "products/landmark/test/dispatcher.test.js",
   "products/landmark/test/lib/commands-verb.test.js",
   "products/pathway/test/serve.test.js"

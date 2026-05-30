@@ -1,7 +1,7 @@
-import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import * as prettier from "prettier";
 import { runRules } from "@forwardimpact/libutil";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const VALID_USERS = [
   "Engineering Leaders",
@@ -39,15 +39,15 @@ function catalogs(root) {
   ];
 }
 
-function loadPackages(dir, filter) {
-  if (!existsSync(dir)) return [];
+function loadPackages(dir, filter, fsSync) {
+  if (!fsSync.existsSync(dir)) return [];
   const out = [];
-  for (const name of readdirSync(dir)) {
+  for (const name of fsSync.readdirSync(dir)) {
     if (!filter(name)) continue;
     const pkgPath = join(dir, name, "package.json");
     let pkg;
     try {
-      pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+      pkg = JSON.parse(fsSync.readFileSync(pkgPath, "utf8"));
     } catch {
       continue;
     }
@@ -404,18 +404,18 @@ async function buildDescription(content, description, formatMarkdown) {
   );
 }
 
-function commitUpdate(filePath, label, original, updated, fix, result) {
+function commitUpdate(filePath, label, original, updated, fix, result, fsSync) {
   if (updated === null || updated === original) return;
   if (!fix) {
     result.stale.push(label);
     return;
   }
-  writeFileSync(filePath, updated);
+  fsSync.writeFileSync(filePath, updated);
   result.fixed.push(label);
 }
 
-async function processCatalog(catalog, fix, formatMarkdown, result) {
-  const packages = loadPackages(catalog.dir, catalog.filter);
+async function processCatalog(catalog, fix, formatMarkdown, result, fsSync) {
+  const packages = loadPackages(catalog.dir, catalog.filter, fsSync);
   const findings = validate(packages, catalog.dir, catalog.name, {
     skipUniqueHires: catalog.skipUniqueHires ?? false,
   });
@@ -424,8 +424,8 @@ async function processCatalog(catalog, fix, formatMarkdown, result) {
     return;
   }
 
-  if (existsSync(catalog.readme)) {
-    const original = readFileSync(catalog.readme, "utf8");
+  if (fsSync.existsSync(catalog.readme)) {
+    const original = fsSync.readFileSync(catalog.readme, "utf8");
     let content = original;
     content = await buildCatalog(
       content,
@@ -441,14 +441,15 @@ async function processCatalog(catalog, fix, formatMarkdown, result) {
       content,
       fix,
       result,
+      fsSync,
     );
   }
 
   for (const { dir, pkg } of packages) {
     if (!pkg.description) continue;
     const pkgReadme = join(catalog.dir, dir, "README.md");
-    if (!existsSync(pkgReadme)) continue;
-    const original = readFileSync(pkgReadme, "utf8");
+    if (!fsSync.existsSync(pkgReadme)) continue;
+    const original = fsSync.readFileSync(pkgReadme, "utf8");
     const updated = await buildDescription(
       original,
       pkg.description,
@@ -461,15 +462,20 @@ async function processCatalog(catalog, fix, formatMarkdown, result) {
       updated,
       fix,
       result,
+      fsSync,
     );
   }
 }
 
-async function processJtbdMd(root, fix, formatMarkdown, result) {
+async function processJtbdMd(root, fix, formatMarkdown, result, fsSync) {
   const jtbdPath = join(root, "JTBD.md");
-  if (!existsSync(jtbdPath)) return;
+  if (!fsSync.existsSync(jtbdPath)) return;
   const productsCatalog = catalogs(root).find((c) => c.name === "products");
-  const packages = loadPackages(productsCatalog.dir, productsCatalog.filter);
+  const packages = loadPackages(
+    productsCatalog.dir,
+    productsCatalog.filter,
+    fsSync,
+  );
   const findings = validate(packages, productsCatalog.dir, "products", {
     skipUniqueHires: true,
   });
@@ -477,11 +483,11 @@ async function processJtbdMd(root, fix, formatMarkdown, result) {
     if (result.findings.length === 0) result.findings.push(...findings);
     return;
   }
-  const original = readFileSync(jtbdPath, "utf8");
+  const original = fsSync.readFileSync(jtbdPath, "utf8");
   const updated = await buildJobs(original, packages, formatMarkdown, {
     capitalize: true,
   });
-  commitUpdate(jtbdPath, "JTBD.md", original, updated, fix, result);
+  commitUpdate(jtbdPath, "JTBD.md", original, updated, fix, result, fsSync);
 }
 
 /**
@@ -489,22 +495,23 @@ async function processJtbdMd(root, fix, formatMarkdown, result) {
  * libraries/, and (when `fix` is true) regenerate the marker-delimited catalog,
  * jobs, and description blocks in the corresponding README.md and JTBD.md.
  *
- * @param {{ root: string, fix?: boolean }} options
+ * @param {{ root: string, fix?: boolean, runtime?: import('@forwardimpact/libutil/runtime').Runtime }} options
  * @returns {Promise<{ findings: Finding[], stale: string[], fixed: string[] }>}
  *   `findings` are validation failures (structured for `emitFindingsText` /
  *   `emitFindingsJson` from libutil); `stale` is files whose generated blocks
  *   are out of date (only populated when `fix` is false); `fixed` is files
  *   that were rewritten in place.
  */
-export async function checkJtbd({ root, fix = false }) {
+export async function checkJtbd({ root, fix = false, runtime }) {
+  const { fsSync } = runtime ?? createDefaultRuntime();
   const result = { findings: [], stale: [], fixed: [] };
   const prettierConfig = await prettier.resolveConfig(join(root, "JTBD.md"));
   const formatMarkdown = makeFormatter(prettierConfig);
 
   for (const catalog of catalogs(root)) {
-    await processCatalog(catalog, fix, formatMarkdown, result);
+    await processCatalog(catalog, fix, formatMarkdown, result, fsSync);
   }
-  await processJtbdMd(root, fix, formatMarkdown, result);
+  await processJtbdMd(root, fix, formatMarkdown, result, fsSync);
 
   return result;
 }

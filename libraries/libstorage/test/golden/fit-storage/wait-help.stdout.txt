@@ -1,0 +1,10 @@
+fit-storage wait — Wait for storage to be ready
+
+Usage: fit-storage wait [options]
+
+Options:
+  --timeout=<string>  Timeout in ms (default: 30000)
+
+Global options:
+  --help, -h  Show this help
+  --json      Output help as JSON

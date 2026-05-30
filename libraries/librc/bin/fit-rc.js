@@ -5,20 +5,27 @@
  */
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
+import { spawn, execSync } from "node:child_process";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createCli } from "@forwardimpact/libcli";
 import { createInitConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
 import { ServiceManager, sendCommand, waitForSocket } from "../src/index.js";
 
+const runtime = createDefaultRuntime();
+
 // `bun build --compile` injects FIT_RC_VERSION via --define, eliminating
 // the readFileSync branch in the compiled binary (which would ENOENT against
 // the bunfs virtual mount). Source execution falls through to package.json.
 const VERSION =
-  process.env.FIT_RC_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
+  runtime.proc.env.FIT_RC_VERSION ||
+  JSON.parse(
+    runtime.fsSync.readFileSync(
+      new URL("../package.json", import.meta.url),
+      "utf8",
+    ),
+  ).version;
 
 const definition = {
   name: "fit-rc",
@@ -54,8 +61,8 @@ const definition = {
 };
 
 const cli = createCli(definition);
-const parsed = cli.parse(process.argv.slice(2));
-if (!parsed) process.exit(0);
+const parsed = cli.parse(runtime.proc.argv.slice(2));
+if (!parsed) runtime.proc.exit(0);
 
 const { values, positionals } = parsed;
 const [command, serviceName] = positionals;
@@ -71,13 +78,17 @@ const logger = {
 
 if (!command) {
   cli.usageError("no command specified");
-  process.exit(2);
+  runtime.proc.exit(2);
 }
 
 const config = await createInitConfig();
 const manager = new ServiceManager(config, logger, {
-  sendCommand,
-  waitForSocket,
+  runtime,
+  sendCommand: (socketPath, cmd) => sendCommand(socketPath, cmd),
+  waitForSocket: (socketPath, timeout) =>
+    waitForSocket(socketPath, timeout, runtime),
+  spawn,
+  execSync,
 });
 
 switch (command) {
@@ -96,13 +107,13 @@ switch (command) {
   case "logs":
     if (!serviceName) {
       cli.usageError("missing required service argument");
-      process.exit(2);
+      runtime.proc.exit(2);
     }
     await manager.logs(serviceName);
     break;
   default:
     cli.usageError(`unknown command "${command}"`);
-    process.exit(2);
+    runtime.proc.exit(2);
 }
 
-process.exit(0);
+runtime.proc.exit(0);

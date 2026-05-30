@@ -4,7 +4,6 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
 import { resolve, join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { format } from "prettier";
@@ -15,6 +14,7 @@ import {
 } from "@forwardimpact/libcli";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import {
   createPipeline,
@@ -31,13 +31,19 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const runtime = createDefaultRuntime();
+
 // `bun build --compile` injects FIT_TERRAIN_VERSION via --define, eliminating
 // the readFileSync branch in the compiled binary (which would ENOENT against
 // the bunfs virtual mount). Source execution falls through to package.json.
 const VERSION =
-  process.env.FIT_TERRAIN_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
+  runtime.proc.env.FIT_TERRAIN_VERSION ||
+  JSON.parse(
+    runtime.fsSync.readFileSync(
+      new URL("../package.json", import.meta.url),
+      "utf8",
+    ),
+  ).version;
 
 const documentation = [
   {
@@ -209,6 +215,7 @@ async function runVerb(options) {
   );
 
   const pipeline = createPipeline({
+    runtime,
     logger,
     mode,
     cachePath,
@@ -236,10 +243,11 @@ async function runVerb(options) {
     prettierFn: format,
     logger,
     config,
+    runtime,
   });
   const writeStats = await sink.accept(result);
 
-  const summary = new SummaryRenderer({ process });
+  const summary = new SummaryRenderer({ process: runtime.proc });
 
   if (verb === "inspect") {
     return { ok: true };
@@ -247,21 +255,21 @@ async function runVerb(options) {
 
   if (verb === "check") {
     const ok = result.stats.prose.misses === 0;
-    printCacheReport(result, summary, ok);
+    printCacheReport(result, summary, ok, runtime.proc.stdout);
     return { ok };
   }
 
   if (verb === "validate") {
-    const ok = printValidation(result, summary);
+    const ok = printValidation(result, summary, runtime.proc.stdout);
     return { ok };
   }
 
   // build / generate
-  const validationOk = printValidation(result, summary);
+  const validationOk = printValidation(result, summary, runtime.proc.stdout);
   const writeOk = writeStats.loadErrors === 0;
   const cacheMisses = result.stats.prose.misses;
   if (cacheMisses > 0) {
-    process.stdout.write(
+    runtime.proc.stdout.write(
       "\n" +
         formatWarning(
           `${cacheMisses} prose cache misses — run "fit-terrain generate" to fill the cache.`,
@@ -271,7 +279,7 @@ async function runVerb(options) {
   }
   printRenderStats(summary, result, validationOk);
   printProseStats(summary, result, validationOk);
-  printWriteStats(summary, writeStats, writeOk);
+  printWriteStats(summary, writeStats, writeOk, runtime.proc.stdout);
   if (verb === "generate") {
     printGenerateStats(summary, result, validationOk && writeOk);
   }
@@ -330,7 +338,7 @@ function resolveVerb(positionals) {
 }
 
 async function main() {
-  const argv = process.argv.slice(2);
+  const argv = runtime.proc.argv.slice(2);
   if (argv.length === 0) {
     cli.showHelp();
     return;
@@ -365,7 +373,7 @@ async function main() {
     throw err;
   }
 
-  if (!ok) process.exitCode = 1;
+  if (!ok) runtime.proc.exitCode = 1;
 }
 
 main().catch((err) => {

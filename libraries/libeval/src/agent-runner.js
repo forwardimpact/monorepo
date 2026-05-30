@@ -29,12 +29,16 @@ export class AgentRunner {
    * @param {string[]} [deps.disallowedTools] - Tools to explicitly remove from the model's context
    * @param {Record<string, object>} [deps.mcpServers] - MCP server configs to pass to the SDK query
    * @param {object} deps.redactor
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} [deps.runtime] -
+   *   Ambient collaborators. Only `proc.env` is read (to record Skill
+   *   invocations into `LIBEVAL_SKILL`); when absent the write is skipped.
    */
   constructor(deps) {
     if (!deps.cwd) throw new Error("cwd is required");
     if (!deps.query) throw new Error("query is required");
     if (!deps.output) throw new Error("output is required");
     if (!deps.redactor) throw new Error("redactor is required");
+    this.runtime = deps.runtime ?? null;
     this.cwd = deps.cwd;
     this.query = deps.query;
     this.output = deps.output;
@@ -179,20 +183,24 @@ export class AgentRunner {
     if (message.type === "system" && message.subtype === "init") {
       this.sessionId = message.session_id;
     }
-    if (message.type === "assistant") trackSkillInvocation(message);
+    if (message.type === "assistant") this.#trackSkillInvocation(message);
   }
-}
 
-function trackSkillInvocation(message) {
-  const content = message.message?.content ?? message.content;
-  if (!Array.isArray(content)) return;
-  for (const block of content) {
-    if (
-      block.type === "tool_use" &&
-      block.name === "Skill" &&
-      block.input?.skill
-    ) {
-      process.env.LIBEVAL_SKILL = block.input.skill;
+  #trackSkillInvocation(message) {
+    const content = message.message?.content ?? message.content;
+    if (!Array.isArray(content)) return;
+    // Skill metric is recorded into the env map; without a runtime there is
+    // no env surface to write to, so the side-effect is simply skipped.
+    const env = this.runtime?.proc?.env ?? null;
+    if (!env) return;
+    for (const block of content) {
+      if (
+        block.type === "tool_use" &&
+        block.name === "Skill" &&
+        block.input?.skill
+      ) {
+        env.LIBEVAL_SKILL = block.input.skill;
+      }
     }
   }
 }

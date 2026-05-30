@@ -4,6 +4,7 @@ import "@forwardimpact/libpreflight/node22";
 
 import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
@@ -46,7 +47,9 @@ const definition = {
   commands: [
     {
       name: "runs",
-      args: "[pattern]",
+      args: ["pattern"],
+      argsUsage: "[pattern]",
+      handler: runRunsCommand,
       description:
         "List recent GitHub Actions workflow runs (default pattern: agent)",
       options: {
@@ -63,7 +66,9 @@ const definition = {
     },
     {
       name: "download",
-      args: "<run-id>",
+      args: ["run-id"],
+      argsUsage: "<run-id>",
+      handler: runDownloadCommand,
       description: "Download trace artifact and convert to structured JSON",
       options: {
         dir: { type: "string", description: "Output directory" },
@@ -77,32 +82,44 @@ const definition = {
     },
     {
       name: "overview",
-      args: "<file>",
+      args: ["file"],
+      argsUsage: "<file>",
+      handler: runOverviewCommand,
       description: "Metadata, summary, turn count, tool frequency",
     },
     {
       name: "count",
-      args: "<file>",
+      args: ["file"],
+      argsUsage: "<file>",
+      handler: runCountCommand,
       description: "Number of turns",
     },
     {
       name: "batch",
-      args: "<file> <from> <to>",
+      args: ["file", "from", "to"],
+      argsUsage: "<file> <from> <to>",
+      handler: runBatchCommand,
       description: "Turns in range [from, to) (zero-indexed)",
     },
     {
       name: "head",
-      args: "<file> [N]",
+      args: ["file", "n"],
+      argsUsage: "<file> [N]",
+      handler: runHeadCommand,
       description: "First N turns (default 10)",
     },
     {
       name: "tail",
-      args: "<file> [N]",
+      args: ["file", "n"],
+      argsUsage: "<file> [N]",
+      handler: runTailCommand,
       description: "Last N turns (default 10)",
     },
     {
       name: "search",
-      args: "<file> <pattern>",
+      args: ["file", "pattern"],
+      argsUsage: "<file> <pattern>",
+      handler: runSearchCommand,
       description: "Search all content for regex pattern",
       options: {
         limit: {
@@ -121,22 +138,30 @@ const definition = {
     },
     {
       name: "tools",
-      args: "<file>",
+      args: ["file"],
+      argsUsage: "<file>",
+      handler: runToolsCommand,
       description: "Tool usage frequency (descending)",
     },
     {
       name: "tool",
-      args: "<file> <name>",
+      args: ["file", "name"],
+      argsUsage: "<file> <name>",
+      handler: runToolCommand,
       description: "All turns involving a specific tool",
     },
     {
       name: "errors",
-      args: "<file>",
+      args: ["file"],
+      argsUsage: "<file>",
+      handler: runErrorsCommand,
       description: "Tool results with isError=true",
     },
     {
       name: "reasoning",
-      args: "<file>",
+      args: ["file"],
+      argsUsage: "<file>",
+      handler: runReasoningCommand,
       description: "Agent reasoning text only",
       options: {
         from: { type: "string", description: "Start at turn index" },
@@ -145,27 +170,37 @@ const definition = {
     },
     {
       name: "timeline",
-      args: "<file>",
+      args: ["file"],
+      argsUsage: "<file>",
+      handler: runTimelineCommand,
       description: "Compact one-line-per-turn overview",
     },
     {
       name: "stats",
-      args: "<file>",
+      args: ["file"],
+      argsUsage: "<file>",
+      handler: runStatsCommand,
       description: "Token usage and cost breakdown",
     },
     {
       name: "init",
-      args: "<file>",
+      args: ["file"],
+      argsUsage: "<file>",
+      handler: runInitCommand,
       description: "Full system/init event",
     },
     {
       name: "turn",
-      args: "<file> <index>",
+      args: ["file", "index"],
+      argsUsage: "<file> <index>",
+      handler: runTurnCommand,
       description: "Single turn by index",
     },
     {
       name: "by-discussion",
-      args: "<discussion-id> [trace-dir]",
+      args: ["discussion-id", "trace-dir"],
+      argsUsage: "<discussion-id> [trace-dir]",
+      handler: runByDiscussionCommand,
       description:
         "List trace files whose meta header carries the given discussion_id, ordered by first-event timestamp",
       options: {
@@ -177,7 +212,9 @@ const definition = {
     },
     {
       name: "filter",
-      args: "<file>",
+      args: ["file"],
+      argsUsage: "<file>",
+      handler: runFilterCommand,
       description: "Filter turns by role, tool, or error status",
       options: {
         role: {
@@ -196,7 +233,9 @@ const definition = {
     },
     {
       name: "split",
-      args: "<file>",
+      args: ["file"],
+      argsUsage: "<file>",
+      handler: runSplitCommand,
       description:
         "Split a combined trace into per-source files following the `trace--<case>--<participant>.<role>.ndjson` convention",
       options: {
@@ -217,7 +256,9 @@ const definition = {
     },
     {
       name: "assert",
-      args: "<test-name> <file>",
+      args: ["test-name", "file"],
+      argsUsage: "<test-name> <file>",
+      handler: runAssertCommand,
       description:
         "Shell-friendly assertion — outputs structured JSON for scoring hooks",
       options: {
@@ -299,57 +340,42 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition);
 const logger = createLogger("trace");
 
-const COMMANDS = {
-  runs: runRunsCommand,
-  download: runDownloadCommand,
-  overview: runOverviewCommand,
-  count: runCountCommand,
-  batch: runBatchCommand,
-  head: runHeadCommand,
-  tail: runTailCommand,
-  search: runSearchCommand,
-  tools: runToolsCommand,
-  tool: runToolCommand,
-  errors: runErrorsCommand,
-  reasoning: runReasoningCommand,
-  timeline: runTimelineCommand,
-  stats: runStatsCommand,
-  init: runInitCommand,
-  turn: runTurnCommand,
-  filter: runFilterCommand,
-  split: runSplitCommand,
-  assert: runAssertCommand,
-  "by-discussion": runByDiscussionCommand,
-};
+// Commands that talk to the GitHub API need a config-backed token resolver;
+// the rest only read local trace files through the runtime.
+const NEEDS_CONFIG = new Set(["runs", "download"]);
 
 async function main() {
-  const parsed = cli.parse(process.argv.slice(2));
-  if (!parsed) process.exit(0);
+  const runtime = createDefaultRuntime();
+  const cli = createCli(definition, { runtime });
+  const parsed = cli.parse(runtime.proc.argv.slice(2));
+  if (!parsed) return runtime.proc.exit(0);
 
-  const { values, positionals } = parsed;
-
+  const { positionals } = parsed;
   if (positionals.length === 0) {
     cli.usageError("no command specified");
-    process.exit(2);
+    return runtime.proc.exit(2);
   }
 
-  const [command, ...args] = positionals;
-  const handler = COMMANDS[command];
-
-  if (!handler) {
+  const command = positionals[0];
+  if (!definition.commands.some((c) => c.name === command)) {
     cli.usageError(`unknown command "${command}"`);
-    process.exit(2);
+    return runtime.proc.exit(2);
   }
 
-  const config = await createScriptConfig("eval");
-  await handler(values, args, { config });
+  const config = NEEDS_CONFIG.has(command)
+    ? await createScriptConfig("eval")
+    : undefined;
+
+  const result = await cli.dispatch(parsed, { deps: { runtime, config } });
+  const envelope = result ?? { ok: true };
+  if (!envelope.ok && envelope.error) cli.error(envelope.error);
+  runtime.proc.exit(envelope.ok ? 0 : (envelope.code ?? 1));
 }
 
 main().catch((error) => {
   logger.exception("main", error);
-  cli.error(error.message);
+  createCli(definition).error(error.message);
   process.exit(1);
 });

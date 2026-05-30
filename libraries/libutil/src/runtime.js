@@ -1,4 +1,4 @@
-import { spawn as nodeSpawn, execFile } from "node:child_process";
+import { spawn as nodeSpawn, execFile, spawnSync } from "node:child_process";
 import nodeFsSync from "node:fs";
 import nodeFs from "node:fs/promises";
 import { Finder } from "./finder.js";
@@ -23,15 +23,19 @@ import { Finder } from "./finder.js";
  *   `readFileSync`, `writeFileSync`, `mkdirSync`, `readdirSync`, `statSync`.
  * @property {Object} proc
  *   Process surface: `cwd()`, `env`, `argv`, `stdin`, `stdout.write`,
- *   `stderr.write`, `exit(code)`, and an `exitCode` accessor.
+ *   `stderr.write`, `exit(code)`, `kill(pid, signal)` (a negative `pid`
+ *   signals the process group, e.g. for daemon teardown), and an `exitCode`
+ *   accessor.
  * @property {Object} clock
  *   Time surface: `now()`, `sleep(ms)`, `setTimeout(fn, ms)`,
  *   `clearTimeout(handle)`.
  * @property {Object} subprocess
  *   Subprocess surface: `run(cmd, args, opts) -> Promise<{stdout, stderr,
- *   exitCode}>` and `spawn(cmd, args, opts) -> {stdout, stderr, exitCode,
- *   kill}` where `stdout`/`stderr` are AsyncIterables and `exitCode` a
- *   Promise.
+ *   exitCode}>` (async, buffered), `runSync(cmd, args, opts) -> {stdout,
+ *   stderr, exitCode}` (synchronous, buffered — for the rare caller that
+ *   cannot go async, e.g. a sync config accessor shelling to `gh auth
+ *   token`), and `spawn(cmd, args, opts) -> {stdout, stderr, exitCode, kill}`
+ *   where `stdout`/`stderr` are AsyncIterables and `exitCode` a Promise.
  * @property {Object} finder
  *   A constructed `Finder` (project path resolution + symlink management).
  */
@@ -75,6 +79,7 @@ export function createDefaultProc({ source = process, env = source.env } = {}) {
     stdout: { write: (s) => source.stdout.write(s) },
     stderr: { write: (s) => source.stderr.write(s) },
     exit: (code) => source.exit(code),
+    kill: (pid, signal) => source.kill(pid, signal),
   };
   Object.defineProperty(proc, "exitCode", {
     enumerable: true,
@@ -123,10 +128,27 @@ export function createDefaultClock() {
 
 /**
  * Build the subprocess surface over `node:child_process`. `run` buffers the
- * full output; `spawn` exposes streaming AsyncIterables plus an exit Promise.
- * @returns {{run: Function, spawn: Function}}
+ * full output; `runSync` is its synchronous sibling; `spawn` exposes streaming
+ * AsyncIterables plus an exit Promise.
+ * @returns {{run: Function, runSync: Function, spawn: Function}}
  */
 export function createDefaultSubprocess() {
+  const runSync = (cmd, args = [], opts = {}) => {
+    const r = spawnSync(cmd, args, { encoding: "utf8", ...opts });
+    // `error` is set on spawn failure (e.g. ENOENT); mirror run()'s mapping:
+    // numeric status, 128 for a signal-kill, 127 for a spawn failure.
+    let exitCode = 0;
+    if (r.error) exitCode = 127;
+    else if (typeof r.status === "number") exitCode = r.status;
+    else if (r.signal) exitCode = 128;
+    return {
+      stdout: r.stdout ?? "",
+      stderr: r.stderr ?? "",
+      exitCode,
+      signal: r.signal ?? null,
+    };
+  };
+
   const run = (cmd, args = [], opts = {}) =>
     new Promise((resolve) => {
       execFile(
@@ -159,7 +181,7 @@ export function createDefaultSubprocess() {
     };
   };
 
-  return { run, spawn };
+  return { run, runSync, spawn };
 }
 
 /**

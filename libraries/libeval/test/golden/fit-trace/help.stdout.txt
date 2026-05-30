@@ -1,0 +1,61 @@
+fit-trace 0.1.50 — Download, query, and analyze agent execution traces — read NDJSON output from fit-eval as qualitative research
+
+Usage: fit-trace <command> [options]
+
+Commands:
+  runs [pattern]                             List recent GitHub Actions workflow runs (default pattern: agent)
+  download <run-id>                          Download trace artifact and convert to structured JSON
+  overview <file>                            Metadata, summary, turn count, tool frequency
+  count <file>                               Number of turns
+  batch <file> <from> <to>                   Turns in range [from, to) (zero-indexed)
+  head <file> [N]                            First N turns (default 10)
+  tail <file> [N]                            Last N turns (default 10)
+  search <file> <pattern>                    Search all content for regex pattern
+  tools <file>                               Tool usage frequency (descending)
+  tool <file> <name>                         All turns involving a specific tool
+  errors <file>                              Tool results with isError=true
+  reasoning <file>                           Agent reasoning text only
+  timeline <file>                            Compact one-line-per-turn overview
+  stats <file>                               Token usage and cost breakdown
+  init <file>                                Full system/init event
+  turn <file> <index>                        Single turn by index
+  by-discussion <discussion-id> [trace-dir]  List trace files whose meta header carries the given discussion_id, ordered by first-event timestamp
+  filter <file>                              Filter turns by role, tool, or error status
+  split <file>                               Split a combined trace into per-source files following the `trace--<case>--<participant>.<role>.ndjson` convention
+  assert <test-name> <file>                  Shell-friendly assertion — outputs structured JSON for scoring hooks
+
+Options:
+  --help, -h    Show this help
+  --version     Show version
+  --json        Output help as JSON
+  --signatures  Include thinking.signature blobs in output
+
+Examples:
+  fit-trace runs --lookback 7d
+  fit-trace download 24497273755
+  fit-trace split structured.json --mode=facilitate
+  fit-trace overview structured.json
+  fit-trace timeline structured.json
+  fit-trace stats structured.json
+  fit-trace tool structured.json Conclude
+  fit-trace search structured.json 'error|fail' --context 1
+  fit-trace filter structured.json --tool Bash --error
+  fit-trace turn structured.json 3
+  fit-trace assert has-heading --grep '^## Problem' spec.md
+  fit-trace assert no-leak --not --grep 'password' output.log
+  fit-trace assert file-present --exists path/to/spec.md
+  fit-trace assert cites-jtbd --cites-job jtbd-excerpt.md spec.md
+  fit-trace assert used-edit --query "[?type=='assistant'].message.content[] | [?name=='Edit']" trace.ndjson
+
+Documentation:
+  Analyze Traces
+    https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md
+    The full method walkthrough with worked examples (an eval that failed, a multi-agent session that stalled).
+  Run an Eval
+    https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md
+    How `fit-eval supervise` produces the traces this skill analyzes.
+  Prove Agent Changes
+    https://www.forwardimpact.team/docs/libraries/prove-changes/index.md
+    End-to-end workflow including multi-agent collaboration; `split` is the bridge into per-source trace files.
+
+Use fit-trace <command> --help for command-specific options.

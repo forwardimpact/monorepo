@@ -1,25 +1,33 @@
-import { existsSync, readFileSync } from "node:fs";
 import { formatHeader, formatTable } from "@forwardimpact/libcli";
 
 import { listMetrics } from "../csv.js";
 
 /** Run the list command: read a CSV and display all metrics with their point counts and date ranges. */
-export function runListCommand(values, args, cli) {
-  const csvPath = args[0];
+export function runListCommand(ctx) {
+  const {
+    options: values,
+    args,
+    deps: { runtime },
+  } = ctx;
+  const { fsSync, proc } = runtime;
+
+  const csvPath = args["csv-path"];
   if (!csvPath) {
-    cli.usageError("list requires a <csv-path> argument");
-    process.exit(2);
+    return { ok: false, code: 2, error: "list requires a <csv-path> argument" };
   }
-  if (!existsSync(csvPath)) {
-    cli.usageError(`cannot read CSV "${csvPath}": file not found`);
-    process.exit(2);
+  if (!fsSync.existsSync(csvPath)) {
+    return {
+      ok: false,
+      code: 2,
+      error: `cannot read CSV "${csvPath}": file not found`,
+    };
   }
 
-  const text = readFileSync(csvPath, "utf-8");
+  const text = fsSync.readFileSync(csvPath, "utf-8");
   const metrics = listMetrics(text);
 
   if (values.format === "json") {
-    process.stdout.write(
+    proc.stdout.write(
       JSON.stringify({ source: csvPath, metrics }, null, 2) + "\n",
     );
   } else {
@@ -32,6 +40,8 @@ export function runListCommand(values, args, cli) {
       m.to,
     ]);
     const table = formatTable(["Metric", "Unit", "Points", "From", "To"], rows);
-    process.stdout.write(header + "\n\n" + table + "\n");
+    proc.stdout.write(header + "\n\n" + table + "\n");
   }
+
+  return { ok: true };
 }

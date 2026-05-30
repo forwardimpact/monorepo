@@ -1,35 +1,48 @@
-import { existsSync, readFileSync } from "node:fs";
-
+import { isoDate } from "@forwardimpact/libutil";
 import { analyze, roundStats } from "../analyze.js";
 import { round1 } from "../format.js";
 
 /** Run the summarize command: analyze a CSV and output a condensed summary as markdown or JSON. */
-export function runSummarizeCommand(values, args, cli) {
-  const csvPath = args[0];
+export function runSummarizeCommand(ctx) {
+  const {
+    options: values,
+    args,
+    deps: { runtime },
+  } = ctx;
+  const { fsSync, proc, clock } = runtime;
+
+  const csvPath = args["csv-path"];
   if (!csvPath) {
-    cli.usageError("summarize requires a <csv-path> argument");
-    process.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: "summarize requires a <csv-path> argument",
+    };
   }
-  if (!existsSync(csvPath)) {
-    cli.usageError(`cannot read CSV "${csvPath}": file not found`);
-    process.exit(2);
+  if (!fsSync.existsSync(csvPath)) {
+    return {
+      ok: false,
+      code: 2,
+      error: `cannot read CSV "${csvPath}": file not found`,
+    };
   }
 
-  const text = readFileSync(csvPath, "utf-8");
+  const text = fsSync.readFileSync(csvPath, "utf-8");
   const report = analyze(text);
   report.source = csvPath;
-  report.generated = new Date().toISOString().slice(0, 10);
+  report.generated = isoDate(clock.now());
 
   if (values.metric) {
     report.metrics = report.metrics.filter((m) => m.metric === values.metric);
   }
 
   if (values.format === "json") {
-    process.stdout.write(JSON.stringify(jsonReport(report), null, 2) + "\n");
-    return;
+    proc.stdout.write(JSON.stringify(jsonReport(report), null, 2) + "\n");
+    return { ok: true };
   }
 
-  process.stdout.write(renderMarkdown(report) + "\n");
+  proc.stdout.write(renderMarkdown(report) + "\n");
+  return { ok: true };
 }
 
 // Same `{source, generated, metrics: [...]}` shape as analyze, with each

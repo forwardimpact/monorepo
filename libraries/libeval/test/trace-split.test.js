@@ -7,6 +7,18 @@ import path from "node:path";
 import { runSplitCommand } from "../src/commands/trace.js";
 
 /**
+ * Invoke the split handler with an InvocationContext-shaped object backed by a
+ * real-fs runtime. `values` are the parsed flags; `file` is the positional.
+ */
+function split(values, [file]) {
+  return runSplitCommand({
+    options: values,
+    args: { file },
+    deps: { runtime: { fsSync: fs } },
+  });
+}
+
+/**
  * Create a temp directory and write combined NDJSON lines to a trace file.
  * @param {object[]} envelopes - Array of envelope objects { source, seq, event }
  * @returns {{ dir: string, file: string }}
@@ -49,7 +61,7 @@ describe("fit-trace split", () => {
         { source: "supervisor", seq: 1, event: supervisorEvent },
       ]);
 
-      runSplitCommand({ mode: "supervise", case: "demo" }, [file]);
+      split({ mode: "supervise", case: "demo" }, [file]);
 
       const agentLines = readNdjson(
         path.join(dir, "trace--demo--agent.agent.ndjson"),
@@ -86,7 +98,7 @@ describe("fit-trace split", () => {
         { source: "security-engineer", seq: 2, event: eng2Event },
       ]);
 
-      runSplitCommand({ mode: "facilitate", case: "demo" }, [file]);
+      split({ mode: "facilitate", case: "demo" }, [file]);
 
       const facLines = readNdjson(
         path.join(dir, "trace--demo--facilitator.facilitator.ndjson"),
@@ -121,7 +133,7 @@ describe("fit-trace split", () => {
       };
       const { dir, file } = setupTrace([{ source: "agent", seq: 0, event }]);
 
-      runSplitCommand({ mode: "run", case: "demo" }, [file]);
+      split({ mode: "run", case: "demo" }, [file]);
 
       const agentLines = readNdjson(
         path.join(dir, "trace--demo--agent.agent.ndjson"),
@@ -139,7 +151,7 @@ describe("fit-trace split", () => {
       };
       const { dir, file } = setupTrace([{ source: "agent", seq: 0, event }]);
 
-      runSplitCommand({ mode: "run" }, [file]);
+      split({ mode: "run" }, [file]);
 
       assert.ok(
         fs.existsSync(path.join(dir, "trace--default--agent.agent.ndjson")),
@@ -166,7 +178,7 @@ describe("fit-trace split", () => {
         { source: "-starts-hyphen", seq: 4, event: invalidEvent },
       ]);
 
-      runSplitCommand({ mode: "facilitate", case: "demo" }, [file]);
+      split({ mode: "facilitate", case: "demo" }, [file]);
 
       assert.ok(
         fs.existsSync(path.join(dir, "trace--demo--valid-agent.agent.ndjson")),
@@ -207,7 +219,7 @@ describe("fit-trace split", () => {
       ].join("\n");
       fs.writeFileSync(file, content);
 
-      runSplitCommand({ mode: "supervise", case: "demo" }, [file]);
+      split({ mode: "supervise", case: "demo" }, [file]);
 
       const agentLines = readNdjson(
         path.join(dir, "trace--demo--agent.agent.ndjson"),
@@ -234,7 +246,7 @@ describe("fit-trace split", () => {
       ].join("\n");
       fs.writeFileSync(file, content);
 
-      runSplitCommand({ mode: "supervise", case: "demo" }, [file]);
+      split({ mode: "supervise", case: "demo" }, [file]);
 
       const agentLines = readNdjson(
         path.join(dir, "trace--demo--agent.agent.ndjson"),
@@ -257,7 +269,7 @@ describe("fit-trace split", () => {
         { source: "supervisor", seq: 2, event: agentEvent },
       ]);
 
-      runSplitCommand({ mode: "supervise", case: "demo" }, [file]);
+      split({ mode: "supervise", case: "demo" }, [file]);
 
       assert.ok(
         !fs.existsSync(
@@ -295,10 +307,7 @@ describe("fit-trace split", () => {
 
       const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "trace-out-"));
 
-      runSplitCommand(
-        { mode: "supervise", case: "demo", "output-dir": outDir },
-        [file],
-      );
+      split({ mode: "supervise", case: "demo", "output-dir": outDir }, [file]);
 
       assert.ok(
         fs.existsSync(path.join(outDir, "trace--demo--agent.agent.ndjson")),
@@ -328,10 +337,7 @@ describe("fit-trace split", () => {
         "nested",
       );
 
-      runSplitCommand(
-        { mode: "supervise", case: "demo", "output-dir": outDir },
-        [file],
-      );
+      split({ mode: "supervise", case: "demo", "output-dir": outDir }, [file]);
 
       assert.ok(
         fs.existsSync(path.join(outDir, "trace--demo--agent.agent.ndjson")),
@@ -349,10 +355,9 @@ describe("fit-trace split", () => {
         },
       ]);
 
-      await assert.rejects(
-        runSplitCommand({ mode: "bogus", case: "demo" }, [file]),
-        /invalid --mode/,
-      );
+      const result = await split({ mode: "bogus", case: "demo" }, [file]);
+      assert.strictEqual(result.ok, false);
+      assert.match(result.error, /invalid --mode/);
     });
   });
 });

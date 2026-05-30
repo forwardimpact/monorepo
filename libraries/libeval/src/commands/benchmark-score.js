@@ -4,7 +4,6 @@
  * agent's output against revised grading material.
  */
 
-import { writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createServer } from "node:net";
 
@@ -13,20 +12,25 @@ import { runScoring } from "../benchmark/scorer.js";
 import { loadTaskFamily } from "../benchmark/task-family.js";
 
 /**
- * @param {object} values
- * @param {string[]} _args
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {Promise<{ok: true} | {ok: false, code: number, error: string}>}
  */
-export async function runBenchmarkScoreCommand(values, _args) {
+export async function runBenchmarkScoreCommand(ctx) {
+  const values = ctx.options;
+  const runtime = ctx.deps.runtime;
   const familyInput = values.family;
-  if (!familyInput) throw new Error("--family is required");
+  if (!familyInput)
+    return { ok: false, code: 1, error: "--family is required" };
   const taskId = values.task;
-  if (!taskId) throw new Error("--task is required");
+  if (!taskId) return { ok: false, code: 1, error: "--task is required" };
   const workdirArg = values.workdir;
-  if (!workdirArg) throw new Error("--workdir is required");
+  if (!workdirArg)
+    return { ok: false, code: 1, error: "--workdir is required" };
 
   const family = await loadTaskFamily(familyInput);
   const task = family.tasks().find((t) => t.id === taskId);
-  if (!task) throw new Error(`task not found in family: ${taskId}`);
+  if (!task)
+    return { ok: false, code: 1, error: `task not found in family: ${taskId}` };
 
   const runDir = resolve(workdirArg);
   const cwd = join(runDir, "cwd");
@@ -42,11 +46,13 @@ export async function runBenchmarkScoreCommand(values, _args) {
 
   const line = JSON.stringify(record) + "\n";
   if (values.output) {
-    writeFileSync(resolve(values.output), line);
+    runtime.fsSync.writeFileSync(resolve(values.output), line);
   } else {
-    process.stdout.write(line);
+    runtime.proc.stdout.write(line);
   }
-  process.exit(scoring.verdict === "pass" ? 0 : 1);
+  return scoring.verdict === "pass"
+    ? { ok: true }
+    : { ok: false, code: 1, error: "" };
 }
 
 function allocatePort() {

@@ -48,9 +48,12 @@ warning instead of failing.
 ## Programmatic usage
 
 ```js
+import { spawn, execSync } from "node:child_process";
 import { ServiceManager } from "@forwardimpact/librc";
 
-const manager = new ServiceManager(config, logger);
+// spawn/execSync are injected by the caller (no runtime-level equivalent
+// covers detached, stdio-redirected daemon spawning).
+const manager = new ServiceManager(config, logger, { spawn, execSync });
 await manager.start();          // spawn svscan, add all services
 await manager.status();         // query supervised state
 await manager.stop();           // tear down in reverse order

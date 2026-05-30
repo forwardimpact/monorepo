@@ -8,6 +8,9 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
 
+/** Sentinel epoch value used as a fallback sort key (equivalent to new Date(0)). */
+const EPOCH = { getTime: () => 0 };
+
 import {
   fromJsonLines,
   fromJson,
@@ -432,7 +435,7 @@ export class S3Storage {
       if (!keyFilter || keyFilter(strippedKey)) {
         results.push({
           key: strippedKey,
-          lastModified: object.LastModified || new Date(0),
+          lastModified: object.LastModified || EPOCH,
         });
       }
     }
@@ -452,7 +455,7 @@ export class S3Storage {
       if (!keyFilter || keyFilter(strippedPrefix)) {
         results.push({
           key: strippedPrefix,
-          lastModified: new Date(0),
+          lastModified: EPOCH,
         });
       }
     }

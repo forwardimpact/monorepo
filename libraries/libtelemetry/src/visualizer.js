@@ -1,5 +1,7 @@
 import { trace } from "@forwardimpact/libtype";
 
+import { msToIso } from "./time.js";
+
 /**
  * Visualizes trace spans as Mermaid sequence diagrams
  * Focuses on service interactions and call sequences
@@ -10,8 +12,10 @@ export class TraceVisualizer {
   /**
    * Creates a new TraceVisualizer instance
    * @param {import("./index.js").TraceIndex} traceIndex - Initialized TraceIndex instance
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} [_runtime] - Optional runtime bag
+   *   (reserved for future clock injection; accepted for API consistency)
    */
-  constructor(traceIndex) {
+  constructor(traceIndex, _runtime = null) {
     if (!traceIndex) throw new Error("traceIndex is required");
     this.#traceIndex = traceIndex;
   }
@@ -304,7 +308,7 @@ export class TraceVisualizer {
   #formatTimestamp(nanoTimestamp) {
     const nanos = BigInt(nanoTimestamp);
     const millis = Number(nanos / 1000000n);
-    return new Date(millis).toISOString();
+    return msToIso(millis);
   }
 
   /**

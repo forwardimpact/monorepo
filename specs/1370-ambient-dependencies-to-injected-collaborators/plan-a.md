@@ -115,6 +115,17 @@ this conversion to every libwiki caller chain (the bridges, the
 libraries follow the same propagation — a unit may not exit migration
 with a remaining sync subprocess call against its own surface.
 
+**Synchronous exception (`runSync`).** A small number of call sites are
+synchronous accessors whose caller chains cannot be made async without an
+unbounded cascade — the canonical case is `libconfig`'s `Config.ghToken()`,
+a sync getter that shells to `gh auth token` and is read synchronously
+across the monorepo. For these, the subprocess surface provides
+`runtime.subprocess.runSync(cmd, args, opts) → { stdout, stderr, exitCode }`
+(over `spawnSync`), added to both `createDefaultSubprocess` and
+`createMockSubprocess` as part of the foundation. `runSync` is the
+escape hatch, not the default: reach for it only when async propagation is
+genuinely infeasible, and document the reason at the call site.
+
 ### Golden capture timing
 
 `scripts/capture-cli-golden.mjs` ships in plan-a-01-foundations. Every

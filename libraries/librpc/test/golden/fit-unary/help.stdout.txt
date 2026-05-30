@@ -1,0 +1,11 @@
+fit-unary VERSION — Make a unary gRPC call to a service
+
+Usage: fit-unary <service> <method> [json-request]
+
+Options:
+  --help, -h  Show this help
+  --version   Show version
+  --json      Output help as JSON
+
+Examples:
+  fit-unary memory GetWindow '{"resource_id":"..."}'

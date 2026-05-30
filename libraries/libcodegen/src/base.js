@@ -1,6 +1,6 @@
-import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import protobuf from "protobufjs";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /** Convert camelCase to snake_case (protobufjs normalizes field names) */
 function camelToSnake(str) {
@@ -61,6 +61,7 @@ export class CodegenBase {
   #mustache;
   #protoLoader;
   #fs;
+  #subprocess;
 
   /**
    * Creates a new codegen base instance with dependency injection
@@ -70,8 +71,17 @@ export class CodegenBase {
    * @param {object} mustache - Mustache template rendering module
    * @param {object} protoLoader - Protocol buffer loader module
    * @param {object} fs - File system module (sync operations only)
+   * @param {object} [runtime] - Optional runtime bag; falls back to createDefaultRuntime()
    */
-  constructor(protoDirs, projectRoot, path, mustache, protoLoader, fs) {
+  constructor(
+    protoDirs,
+    projectRoot,
+    path,
+    mustache,
+    protoLoader,
+    fs,
+    runtime,
+  ) {
     if (!protoDirs || !Array.isArray(protoDirs) || protoDirs.length === 0) {
       throw new Error("protoDirs must be a non-empty array");
     }
@@ -87,6 +97,7 @@ export class CodegenBase {
     this.#mustache = mustache;
     this.#protoLoader = protoLoader;
     this.#fs = fs;
+    this.#subprocess = (runtime ?? createDefaultRuntime()).subprocess;
   }
 
   /**
@@ -182,22 +193,28 @@ export class CodegenBase {
    * Run a command with arguments and options
    * @param {string} cmd - Command to execute
    * @param {string[]} args - Command-line arguments
-   * @param {object} [opts] - Child process options
+   * @param {object} [opts] - Subprocess options (e.g. cwd)
    * @returns {Promise<void>} Resolves when the command completes successfully
    */
-  run(cmd, args, opts = {}) {
-    return new Promise((resolvePromise, reject) => {
-      const child = execFile(
-        cmd,
-        args,
-        { stdio: "inherit", ...opts },
-        (err) => {
-          if (err) reject(err);
-          else resolvePromise();
-        },
-      );
-      child.on("error", reject);
+  async run(cmd, args, opts = {}) {
+    // `stdio: "inherit"` forwards to the underlying execFile/spawn so the
+    // child's stdout/stderr go straight to the parent's fds — preserving the
+    // exact pre-1370 behavior (origin/main also ran execFile with
+    // stdio:"inherit"), so `just codegen` shows protoc/pbjs progress live.
+    // With inherited stdio the buffered result is empty, so the error path
+    // below falls back to the exit code. Capture-mode callers override via
+    // `opts.stdio`.
+    const result = await this.#subprocess.run(cmd, args, {
+      stdio: "inherit",
+      ...opts,
     });
+    if (result.exitCode !== 0) {
+      const msg =
+        result.stderr?.trim() ||
+        result.stdout?.trim() ||
+        `exited with code ${result.exitCode}`;
+      throw new Error(`Command failed: ${cmd} ${args.join(" ")}\n${msg}`);
+    }
   }
 
   /**

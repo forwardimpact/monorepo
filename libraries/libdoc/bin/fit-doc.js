@@ -13,6 +13,7 @@ import prettier from "prettier";
 
 import { createCli, formatBullet } from "@forwardimpact/libcli";
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { PagesBuilder, PagesServer } from "../src/index.js";
 import { parseFrontMatter } from "../src/frontmatter.js";
 
@@ -143,6 +144,8 @@ async function runServe(builder, server, pagesDir, distDir, options) {
 }
 
 async function main() {
+  const runtime = createDefaultRuntime();
+
   const parsed = cli.parse(process.argv.slice(2));
   if (!parsed) process.exit(0);
 
@@ -177,7 +180,7 @@ async function main() {
     if (command === "build") {
       await runBuild(builder, pagesDir, distDir, baseUrl);
     } else {
-      const server = new PagesServer(fs, Hono, serve, builder);
+      const server = new PagesServer(fs, Hono, serve, builder, { runtime });
       await runServe(builder, server, pagesDir, distDir, {
         port: parseInt(values.port || "3000", 10),
         watch: values.watch,

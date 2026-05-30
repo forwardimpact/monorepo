@@ -23,10 +23,14 @@ function parseAgentProfiles(raw, cwd, maxTurns) {
  * coverage of the `--max-turns` → per-agent threading contract; not part
  * of the package's public API.
  * @param {object} values - Parsed option values
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {object} Parsed options
  */
-export function parseFacilitateOptions(values) {
-  const { task: taskContent, amend: taskAmend } = resolveTaskContent(values);
+export function parseFacilitateOptions(values, runtime) {
+  const { task: taskContent, amend: taskAmend } = resolveTaskContent(
+    values,
+    runtime,
+  );
 
   const profilesRaw = values["agent-profiles"];
   if (!profilesRaw) throw new Error("--agent-profiles is required");
@@ -59,16 +63,17 @@ export function parseFacilitateOptions(values) {
  *
  * Usage: fit-eval facilitate [options]
  *
- * @param {object} values - Parsed option values from cli.parse()
- * @param {string[]} _args - Positional arguments
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {Promise<{ok: boolean, code?: number, error?: string}>}
  */
-export async function runFacilitateCommand(values, _args) {
-  const opts = parseFacilitateOptions(values);
+export async function runFacilitateCommand(ctx) {
+  const runtime = ctx.deps.runtime;
+  const opts = parseFacilitateOptions(ctx.options, runtime);
 
   // Build the redactor as the first observable side-effect after option
   // parsing — the env snapshot must freeze BEFORE any in-process
-  // process.env writes the command performs (e.g. LIBEVAL_AGENT_PROFILE).
-  const redactor = createRedactor();
+  // env writes the command performs (e.g. LIBEVAL_AGENT_PROFILE).
+  const redactor = createRedactor({ runtime });
 
   const fileStream = opts.outputPath
     ? createWriteStream(opts.outputPath)
@@ -76,13 +81,13 @@ export async function runFacilitateCommand(values, _args) {
   const output = fileStream
     ? createTeeWriter({
         fileStream,
-        textStream: process.stdout,
+        textStream: runtime.proc.stdout,
         mode: "supervised",
       })
-    : process.stdout;
+    : runtime.proc.stdout;
 
   if (opts.facilitatorProfile) {
-    process.env.LIBEVAL_AGENT_PROFILE = opts.facilitatorProfile;
+    runtime.proc.env.LIBEVAL_AGENT_PROFILE = opts.facilitatorProfile;
   }
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
@@ -97,6 +102,7 @@ export async function runFacilitateCommand(values, _args) {
     facilitatorProfile: opts.facilitatorProfile,
     taskAmend: opts.taskAmend,
     redactor,
+    runtime,
   });
 
   const result = await facilitator.run(opts.taskContent);
@@ -106,5 +112,5 @@ export async function runFacilitateCommand(values, _args) {
     await new Promise((r) => fileStream.end(r));
   }
 
-  process.exit(result.success ? 0 : 1);
+  return result.success ? { ok: true } : { ok: false, code: 1, error: "" };
 }

@@ -6,6 +6,7 @@ import {
   capitalizeFirstLetter,
 } from "./base.js";
 import { healthDefinition, createHealthHandlers } from "./health.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
  * gRPC Server class using pre-compiled service definitions
@@ -14,6 +15,7 @@ import { healthDefinition, createHealthHandlers } from "./health.js";
 export class Server extends Rpc {
   #server;
   #service;
+  #runtime;
 
   /**
    * Creates a gRPC server for a service
@@ -24,6 +26,8 @@ export class Server extends Rpc {
    * @param {(serviceName: string, logger: object, tracer: object) => object} observerFn - Observer factory
    * @param {() => {grpc: object}} grpcFn - gRPC factory
    * @param {(serviceName: string) => object} authFn - Auth factory
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Optional runtime bag;
+   *   falls back to `createDefaultRuntime()` so existing service callers keep working.
    */
   constructor(
     service,
@@ -33,11 +37,13 @@ export class Server extends Rpc {
     observerFn = createObserver,
     grpcFn = createGrpc,
     authFn = createAuth,
+    runtime = null,
   ) {
     if (!service) throw new Error("service is required");
 
     super(config, logger, tracer, observerFn, grpcFn, authFn);
     this.#service = service;
+    this.#runtime = runtime ?? createDefaultRuntime();
   }
 
   /** Starts the gRPC server */
@@ -204,6 +210,7 @@ export class Server extends Rpc {
 
   /** Sets up graceful shutdown handlers */
   #setupShutdown() {
+    const runtime = this.#runtime;
     const shutdown = async () => {
       this.observer().logger()?.info("Server", "Shutting down...");
 
@@ -212,7 +219,7 @@ export class Server extends Rpc {
         await this.#service.shutdown();
       }
 
-      this.#server.tryShutdown(() => process.exit(0));
+      this.#server.tryShutdown(() => runtime.proc.exit(0));
     };
     process.on("SIGINT", shutdown);
     process.on("SIGTERM", shutdown);

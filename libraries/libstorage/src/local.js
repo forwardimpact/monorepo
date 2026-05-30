@@ -1,5 +1,8 @@
 import { dirname, join } from "path";
 
+/** Sentinel epoch value used as a fallback sort key (equivalent to new Date(0)). */
+const EPOCH = { getTime: () => 0 };
+
 import {
   fromJsonLines,
   fromJson,
@@ -256,7 +259,7 @@ export class LocalStorage {
         await traverse(fullPath, relativeKey);
       } else if (entry.isFile() && (!fileFilter || fileFilter(relativeKey))) {
         const stats = await this.#fs.stat(fullPath);
-        const birthtime = stats.birthtime || stats.mtime || new Date(0);
+        const birthtime = stats.birthtime || stats.mtime || EPOCH;
         filesWithStats.push({ key: relativeKey, birthtime });
       }
     };

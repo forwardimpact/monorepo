@@ -1,6 +1,6 @@
 import path from "node:path";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { readEnvFile, updateEnvFile } from "@forwardimpact/libsecret";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { mergeConfigFragment, mergeEnvEntries } from "./merge.js";
 import { bootstrapRefusal } from "./errors.js";
@@ -20,7 +20,7 @@ import { bootstrapRefusal } from "./errors.js";
  * (spec § *Out of scope*).
  *
  * @param {object} params
- * @param {string} [params.target]   Absolute path; defaults to `process.cwd()`.
+ * @param {string} [params.target]   Absolute path; defaults to `runtime.proc.cwd()`.
  * @param {object} [params.fragment] Top-level keys are product-owned
  *   namespaces; may be `{}` or omitted.
  * @param {Record<string,string>} [params.env] `.env` entries the product
@@ -28,19 +28,27 @@ import { bootstrapRefusal } from "./errors.js";
  * @param {{ config?: string[], env?: string[] }} [params.overwrites]
  *   Explicit overwrite intent, partitioned per file. `config` entries are
  *   top-level namespace names (single segment); `env` entries are bare keys.
+ * @param {{ runtime?: import("@forwardimpact/libutil/runtime").Runtime }} [params.deps]
+ *   Injected collaborators. `runtime.fs` is used for all filesystem I/O;
+ *   `runtime.proc.cwd()` resolves the default `target`. When omitted the
+ *   production runtime is used (backward-compatible).
  * @returns {Promise<void>}
  */
 export async function bootstrapProject({
-  target = process.cwd(),
+  target,
   fragment = {},
   env = {},
   overwrites = {},
+  deps,
 } = {}) {
-  const configDir = path.join(target, "config");
-  const configPath = path.join(configDir, "config.json");
-  const envPath = path.join(target, ".env");
+  const { fs, proc } = deps?.runtime ?? createDefaultRuntime();
+  const resolvedTarget = target ?? proc.cwd();
 
-  const existingConfig = await readJsonOrEmpty(configPath);
+  const configDir = path.join(resolvedTarget, "config");
+  const configPath = path.join(configDir, "config.json");
+  const envPath = path.join(resolvedTarget, ".env");
+
+  const existingConfig = await readJsonOrEmpty(fs, configPath);
   const existingEnv = await readEnvSubset(Object.keys(env), envPath);
 
   const cfg = mergeConfigFragment({
@@ -58,8 +66,8 @@ export async function bootstrapProject({
   const conflicts = [...cfg.conflicts, ...ev.conflicts];
   if (conflicts.length > 0) throw bootstrapRefusal(conflicts[0]);
 
-  await mkdir(configDir, { recursive: true });
-  await writeFile(configPath, JSON.stringify(cfg.result, null, 2) + "\n");
+  await fs.mkdir(configDir, { recursive: true });
+  await fs.writeFile(configPath, JSON.stringify(cfg.result, null, 2) + "\n");
 
   // Iterate the input `env`, not `ev.result`. Same-key-same-value writes are
   // idempotent line rewrites in updateEnvFile (the line content is unchanged),
@@ -72,9 +80,9 @@ export async function bootstrapProject({
   }
 }
 
-async function readJsonOrEmpty(filePath) {
+async function readJsonOrEmpty(fs, filePath) {
   try {
-    const text = await readFile(filePath, "utf8");
+    const text = await fs.readFile(filePath, "utf8");
     return JSON.parse(text);
   } catch (err) {
     if (err.code === "ENOENT") return {};

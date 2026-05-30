@@ -1,19 +1,30 @@
 import { trace } from "@forwardimpact/libtype";
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
 
 /**
- * Wall-clock offset: difference between Date.now() (ms since Unix epoch)
- * and hrtime.bigint() (ns since arbitrary point). Captured once at module load.
- * This allows converting hrtime to wall-clock time while preserving nanosecond precision.
+ * Compute the wall-clock offset (ns) relative to hrtime.bigint() using the
+ * given clock, so nanosecond-precision timestamps are anchored to wall time
+ * without calling `Date.now()` directly.
+ *
+ * Computed per-Span (rather than once at module load as the pre-1370 code did)
+ * so an injected clock is honoured deterministically in tests. Trade-off: each
+ * span anchors to its own `clock.now()` (ms resolution), so absolute per-span
+ * timestamps are accurate but sub-millisecond *relative* ordering across spans
+ * within a trace is not nanosecond-exact.
+ * @param {object} clock - Clock collaborator with a `now()` method (returns ms)
+ * @returns {bigint} Nanosecond offset
  */
-const WALL_CLOCK_OFFSET_NS =
-  BigInt(Date.now()) * 1_000_000n - process.hrtime.bigint();
+function computeWallClockOffset(clock) {
+  return BigInt(clock.now()) * 1_000_000n - process.hrtime.bigint();
+}
 
 /**
  * Returns current wall-clock time in nanoseconds since Unix epoch
+ * @param {bigint} wallClockOffsetNs - Precomputed wall-clock offset
  * @returns {string} Nanosecond timestamp as string
  */
-function nowNano() {
-  return String(process.hrtime.bigint() + WALL_CLOCK_OFFSET_NS);
+function nowNano(wallClockOffsetNs) {
+  return String(process.hrtime.bigint() + wallClockOffsetNs);
 }
 
 /**
@@ -22,6 +33,7 @@ function nowNano() {
 export class Span {
   #object;
   #traceClient;
+  #wallClockOffsetNs;
 
   /**
    * Creates a new Span instance
@@ -33,6 +45,8 @@ export class Span {
    * @param {string} [options.traceId] - Trace ID from parent context
    * @param {string} [options.parentSpanId] - Parent span ID from parent context
    * @param {object} options.traceClient - Trace service client
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} [options.runtime] - Optional runtime bag;
+   *   falls back to `createDefaultClock()` so existing callers keep working unchanged.
    */
   constructor({
     name,
@@ -42,14 +56,17 @@ export class Span {
     traceId,
     parentSpanId,
     traceClient,
+    runtime = null,
   }) {
+    const clock = runtime?.clock ?? createDefaultClock();
+    this.#wallClockOffsetNs = computeWallClockOffset(clock);
     this.#object = {
       trace_id: traceId || this.#generateId(),
       span_id: this.#generateId(),
       parent_span_id: parentSpanId || "",
       name,
       kind,
-      start_time_unix_nano: nowNano(),
+      start_time_unix_nano: nowNano(this.#wallClockOffsetNs),
       end_time_unix_nano: "",
       attributes: { service_name: serviceName, ...attributes },
       events: [],
@@ -66,7 +83,7 @@ export class Span {
   addEvent(name, attributes = {}) {
     this.#object.events.push({
       name,
-      time_unix_nano: nowNano(),
+      time_unix_nano: nowNano(this.#wallClockOffsetNs),
       attributes,
     });
   }
@@ -107,7 +124,7 @@ export class Span {
    * @returns {Promise<void>}
    */
   async end() {
-    this.#object.end_time_unix_nano = nowNano();
+    this.#object.end_time_unix_nano = nowNano(this.#wallClockOffsetNs);
 
     const span = trace.Span.fromObject(this.#object);
     await this.#traceClient.RecordSpan(span);

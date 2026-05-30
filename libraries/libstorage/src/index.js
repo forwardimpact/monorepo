@@ -1,13 +1,10 @@
-import { promises as fs } from "fs";
-import fsAsync from "fs/promises";
 import { join } from "path";
 
 import { S3Client } from "@aws-sdk/client-s3";
 import { fromTemporaryCredentials } from "@aws-sdk/credential-providers";
 
 import { generateUUID } from "@forwardimpact/libsecret";
-import { Finder } from "@forwardimpact/libutil";
-import { Logger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { LocalStorage } from "./local.js";
 import { S3Storage } from "./s3.js";
@@ -101,14 +98,28 @@ export function isJson(key, data) {
 }
 
 /**
+ * Adapt an old-style `process`-shaped object `{ env, cwd? }` into a minimal
+ * `runtime.proc`-shaped collaborator so BC callers keep working.
+ * @param {object} proc - Old-style process-like object.
+ * @returns {object} Runtime-proc-shaped object.
+ */
+function _procFromLegacy(proc) {
+  return {
+    env: proc.env ?? {},
+    cwd: typeof proc.cwd === "function" ? () => proc.cwd() : () => "",
+  };
+}
+
+/**
  * Creates a local storage instance
  * @param {string} prefix - Bucket/directory name for local storage
- * @param {object} process - Process environment access (for testing)
+ * @param {object} runtime - Runtime collaborator bag
  * @param {string|null} rootDir - Explicit root directory (highest priority)
  * @returns {LocalStorage} Local storage instance
  * @throws {Error} When bucket directory cannot be found
  */
-function _createLocalStorage(prefix, process, rootDir = null) {
+function _createLocalStorage(prefix, runtime, rootDir = null) {
+  const { fs, proc } = runtime;
   let relative;
 
   switch (prefix) {
@@ -128,17 +139,14 @@ function _createLocalStorage(prefix, process, rootDir = null) {
   }
 
   // 2. STORAGE_ROOT environment variable
-  if (process.env?.STORAGE_ROOT) {
-    return new LocalStorage(join(process.env.STORAGE_ROOT, relative), fs);
+  if (proc.env?.STORAGE_ROOT) {
+    return new LocalStorage(join(proc.env.STORAGE_ROOT, relative), fs);
   }
 
-  // 3. Filesystem discovery (fallback)
-  const root =
-    typeof process.cwd === "function" ? process.cwd() : global.process.cwd();
-
-  const logger = new Logger("storage");
-  const finder = new Finder(fsAsync, logger, process);
-  const basePath = finder.findUpward(root, relative);
+  // 3. Filesystem discovery (fallback) via the injected finder collaborator,
+  //    so the runtime's fs flows through path discovery (SC9).
+  const root = proc.cwd();
+  const basePath = runtime.finder.findUpward(root, relative);
 
   // Use discovered path, or fall back to CWD-relative path.
   // Callers use ensureBucket() to create the directory if it doesn't exist yet.
@@ -148,60 +156,58 @@ function _createLocalStorage(prefix, process, rootDir = null) {
 /**
  * Creates an S3 storage instance
  * @param {string} prefix - Prefix for S3 storage operations
- * @param {object} process - Process environment access (for testing)
+ * @param {object} runtime - Runtime collaborator bag
  * @returns {S3Storage} S3 storage instance
  */
-function _createS3Storage(prefix, process) {
+function _createS3Storage(prefix, runtime) {
+  const { proc } = runtime;
   const config = {
     forcePathStyle: true,
-    region: process.env.S3_REGION,
+    region: proc.env.S3_REGION,
   };
 
   // Configure credentials
-  if (process.env.S3_BUCKET_ROLE_ARN) {
+  if (proc.env.S3_BUCKET_ROLE_ARN) {
     config.credentials = fromTemporaryCredentials({
       params: {
-        RoleArn: process.env.S3_BUCKET_ROLE_ARN,
+        RoleArn: proc.env.S3_BUCKET_ROLE_ARN,
         RoleSessionName: `guide-${generateUUID()}`,
         DurationSeconds: 3600, // 1 hour
       },
     });
-  } else if (
-    process.env.AWS_ACCESS_KEY_ID &&
-    process.env.AWS_SECRET_ACCESS_KEY
-  ) {
+  } else if (proc.env.AWS_ACCESS_KEY_ID && proc.env.AWS_SECRET_ACCESS_KEY) {
     config.credentials = {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      accessKeyId: proc.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: proc.env.AWS_SECRET_ACCESS_KEY,
     };
   }
   // If no explicit credentials are provided, use default credential chain
 
   // Optional custom endpoint for S3-compatible services (AWS SDK standard variable)
-  if (process.env.AWS_ENDPOINT_URL)
-    config.endpoint = process.env.AWS_ENDPOINT_URL;
+  if (proc.env.AWS_ENDPOINT_URL) config.endpoint = proc.env.AWS_ENDPOINT_URL;
 
   const client = new S3Client(config);
 
   // Get bucket name from environment, use the factory parameter as prefix
-  const bucketName = process.env.S3_BUCKET_NAME || "guide";
+  const bucketName = proc.env.S3_BUCKET_NAME || "guide";
   return new S3Storage(prefix, bucketName, client);
 }
 
 /**
  * Creates a Supabase storage instance
  * @param {string} prefix - Prefix for Supabase storage operations
- * @param {object} process - Process environment access (for testing)
+ * @param {object} runtime - Runtime collaborator bag
  * @returns {SupabaseStorage} Supabase storage instance
  * @throws {Error} If SUPABASE_SERVICE_ROLE_KEY is missing
  */
-function _createSupabaseStorage(prefix, process) {
-  const endpoint = process.env.AWS_ENDPOINT_URL;
+function _createSupabaseStorage(prefix, runtime) {
+  const { proc } = runtime;
+  const endpoint = proc.env.AWS_ENDPOINT_URL;
   const storageUrl = endpoint?.replace(/\/s3$/, "");
   // libconfig depends on libstorage; threading Config here would create a
   // runtime cycle. Allow-listed in
   // libraries/libconfig/test/no-supabase-env-in-src.test.js.
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceRoleKey = proc.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!serviceRoleKey) {
     throw new Error(
@@ -210,17 +216,17 @@ function _createSupabaseStorage(prefix, process) {
   }
 
   const config = {
-    region: process.env.S3_REGION || "local",
+    region: proc.env.S3_REGION || "local",
     endpoint,
     forcePathStyle: true,
     credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      accessKeyId: proc.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: proc.env.AWS_SECRET_ACCESS_KEY,
     },
   };
 
   const client = new S3Client(config);
-  const bucketName = process.env.S3_BUCKET_NAME || "guide";
+  const bucketName = proc.env.S3_BUCKET_NAME || "guide";
 
   return new SupabaseStorage(
     prefix,
@@ -232,7 +238,7 @@ function _createSupabaseStorage(prefix, process) {
 }
 
 /**
- * Creates a storage instance based on configuration
+ * Creates a storage instance based on configuration.
  *
  * Resolution order for local storage paths:
  * 1. Explicit rootDir parameter (for dependency injection and testing)
@@ -240,36 +246,57 @@ function _createSupabaseStorage(prefix, process) {
  * 3. Filesystem discovery via Finder.findUpward (fallback)
  *
  * @param {string} prefix - Prefix for the storage operations (for S3) or bucket/directory name (for local)
- * @param {string} type - Storage type ("local", "s3", or "supabase")
- * @param {object} process - Process environment access (for testing)
- * @param {string|null} rootDir - Explicit root directory for local storage
+ * @param {string} [type] - Storage type ("local", "s3", or "supabase")
+ * @param {object|null} [processOrRuntime] - Legacy process-shaped object `{ env, cwd? }` OR a
+ *   runtime bag `{ fs, proc, … }` — either is accepted for backward compatibility.
+ *   When omitted, a default runtime is constructed automatically.
+ * @param {string|null} [rootDir] - Explicit root directory for local storage
  * @returns {object} Storage instance
  * @throws {Error} When unsupported storage type is provided
  */
 export function createStorage(
   prefix,
   type,
-  process = global.process,
+  processOrRuntime = null,
   rootDir = null,
 ) {
+  // Build the runtime collaborator. Accept three shapes:
+  //   (a) a full runtime bag (has `.proc`),
+  //   (b) a legacy process-like object (has `.env` but no `.proc`),
+  //   (c) null/undefined — construct the default runtime.
+  let runtime;
+  if (processOrRuntime && typeof processOrRuntime === "object") {
+    if ("proc" in processOrRuntime && "fs" in processOrRuntime) {
+      // Full runtime bag — use as-is.
+      runtime = processOrRuntime;
+    } else {
+      // Legacy process-like object: adapt it into a minimal runtime.
+      const legacyProc = _procFromLegacy(processOrRuntime);
+      const defaultRuntime = createDefaultRuntime();
+      runtime = { ...defaultRuntime, proc: legacyProc };
+    }
+  } else {
+    runtime = createDefaultRuntime();
+  }
+
   // Always use local storage for config and generated directories
   // These are part of the codebase and should never be stored in S3
   if (prefix === "config" || prefix === "generated") {
-    return _createLocalStorage(prefix, process, rootDir);
+    return _createLocalStorage(prefix, runtime, rootDir);
   }
 
-  const finalType = type || process.env.STORAGE_TYPE || "local";
+  const finalType = type || runtime.proc.env.STORAGE_TYPE || "local";
 
   switch (finalType) {
     case "local":
     case undefined:
-      return _createLocalStorage(prefix, process, rootDir);
+      return _createLocalStorage(prefix, runtime, rootDir);
 
     case "s3":
-      return _createS3Storage(prefix, process);
+      return _createS3Storage(prefix, runtime);
 
     case "supabase":
-      return _createSupabaseStorage(prefix, process);
+      return _createSupabaseStorage(prefix, runtime);
 
     default:
       throw new Error(`Unsupported storage type: ${finalType}`);

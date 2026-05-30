@@ -16,16 +16,23 @@
  * scope ([first … name]) would miss dependents that stop just tore down.
  * Instead it starts the same [name … last] slice that was stopped.
  */
-import fs from "node:fs";
 import path from "node:path";
-import { spawn, execSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { pipeline } from "node:stream/promises";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const require = createRequire(import.meta.url);
 const SVSCAN_BIN = require.resolve(
   "@forwardimpact/libsupervise/bin/fit-svscan.js",
 );
+
+// Lazily constructed so that test code importing this module does not
+// trigger the real-fs side-effects of createDefaultRuntime at import time.
+let _defaultRuntime;
+function getDefaultRuntime() {
+  if (!_defaultRuntime) _defaultRuntime = createDefaultRuntime();
+  return _defaultRuntime;
+}
 
 /**
  * @typedef {object} RuntimePaths
@@ -61,13 +68,21 @@ const SVSCAN_BIN = require.resolve(
 
 /**
  * @typedef {object} Dependencies
- * @property {typeof import("node:fs")} [fs] - File system module
- * @property {typeof import("node:child_process").spawn} [spawn] - Spawn function
- * @property {typeof import("node:child_process").execSync} [execSync] - ExecSync function
- * @property {typeof process} [process] - Process module
+ * @property {typeof import("node:fs")} [fs] - File system module (sync surface).
+ *   BC shim: superseded by `runtime.fsSync` when a `runtime` bag is injected.
+ * @property {typeof import("node:child_process").spawn} [spawn] - Spawn function.
+ *   In production wire from the bin (which is allowed to import child_process).
+ * @property {typeof import("node:child_process").execSync} [execSync] - ExecSync function.
+ *   In production wire from the bin (which is allowed to import child_process).
  * @property {function(string, object): Promise<object>} [sendCommand] - Socket command sender
  * @property {function(string, number): Promise<boolean>} [waitForSocket] - Socket waiter
- * @property {NodeJS.WritableStream} [stdout] - Stdout sink (default process.stdout)
+ * @property {NodeJS.WritableStream} [stdout] - Stdout sink for `logs()`'s
+ *   `pipeline()`; defaults to the ambient `process.stdout` because
+ *   `runtime.proc.stdout` is a `{ write }` shim, not a pipeline-grade
+ *   `Writable` (see MONOREPO teardown § foundation surface gaps).
+ * @property {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Runtime bag.
+ *   Supplies the sync-fs (`fsSync`) and process (`proc`, including `kill` and
+ *   `env`) surfaces; `deps.fs` overrides `fsSync` when present.
  */
 
 /**
@@ -79,7 +94,7 @@ export class ServiceManager {
   #fs;
   #spawn;
   #execSync;
-  #process;
+  #proc;
   #sendCommand;
   #waitForSocket;
   #stdout;
@@ -94,14 +109,31 @@ export class ServiceManager {
     if (!config) throw new Error("config is required");
     if (!logger) throw new Error("logger is required");
 
+    const runtime = deps.runtime ?? getDefaultRuntime();
+
     this.#config = config;
     this.#logger = logger;
-    this.#fs = deps.fs ?? fs;
-    this.#spawn = deps.spawn ?? spawn;
-    this.#execSync = deps.execSync ?? execSync;
-    this.#process = deps.process ?? process;
+    // deps.fs (legacy sync-fs override) > runtime.fsSync
+    this.#fs = deps.fs ?? runtime.fsSync;
+    // spawn and execSync must be provided by the caller (bin or test); there
+    // is no runtime-level equivalent that covers detached stdio-redirect
+    // spawning. Fail fast with a clear message rather than a late TypeError
+    // when start()/status() first dereferences them.
+    if (!deps.spawn || !deps.execSync) {
+      throw new Error(
+        "ServiceManager requires deps.spawn and deps.execSync (the bin injects them from node:child_process)",
+      );
+    }
+    this.#spawn = deps.spawn;
+    this.#execSync = deps.execSync;
+    // proc supplies kill() (liveness probe) and env (child env) via the
+    // injected runtime — no ambient `process` fallback.
+    this.#proc = runtime.proc;
     this.#sendCommand = deps.sendCommand;
     this.#waitForSocket = deps.waitForSocket;
+    // logs() pipes a read stream into a Writable; runtime.proc.stdout is a
+    // `{ write }` shim, not pipeline-grade, so this stays on the ambient
+    // stream until the runtime surface grows a writable stdout (teardown).
     this.#stdout = deps.stdout ?? process.stdout;
   }
 
@@ -131,7 +163,7 @@ export class ServiceManager {
     }
     try {
       // Signal 0 tests whether the process exists without actually signalling it.
-      this.#process.kill(pid, 0);
+      this.#proc.kill(pid, 0);
       return true;
     } catch {
       return false;
@@ -170,7 +202,7 @@ export class ServiceManager {
       {
         detached: true,
         stdio: ["ignore", logFd, logFd],
-        env: this.#process.env,
+        env: this.#proc.env,
       },
     );
     child.unref();

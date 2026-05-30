@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { composeTaskFromGitHubEvent } from "../events/github.js";
 
 /**
@@ -11,9 +10,12 @@ import { composeTaskFromGitHubEvent } from "../events/github.js";
  * works as before.
  *
  * @param {object} values - Parsed option values from cli.parse()
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Ambient
+ *   collaborators; `fsSync.readFileSync` loads `--task-file`/`--task-event`
+ *   and `proc.env` resolves `GITHUB_EVENT_NAME`.
  * @returns {{ task: string, amend: string | undefined }}
  */
-export function resolveTaskContent(values) {
+export function resolveTaskContent(values, runtime) {
   const taskFile = values["task-file"];
   const taskText = values["task-text"];
   const taskEvent = values["task-event"];
@@ -33,17 +35,20 @@ export function resolveTaskContent(values) {
   const amendFlag = values["task-amend"] ?? undefined;
 
   if (taskFile) {
-    return { task: readFileSync(taskFile, "utf8"), amend: amendFlag };
+    return {
+      task: runtime.fsSync.readFileSync(taskFile, "utf8"),
+      amend: amendFlag,
+    };
   }
   if (taskText) {
     return { task: taskText, amend: amendFlag };
   }
 
-  const eventName = process.env.GITHUB_EVENT_NAME;
+  const eventName = runtime.proc.env.GITHUB_EVENT_NAME;
   if (!eventName) {
     throw new Error("--task-event requires GITHUB_EVENT_NAME to be set");
   }
-  const payload = JSON.parse(readFileSync(taskEvent, "utf8"));
+  const payload = JSON.parse(runtime.fsSync.readFileSync(taskEvent, "utf8"));
   const composed = composeTaskFromGitHubEvent(payload, eventName);
   return { task: composed.task, amend: amendFlag ?? composed.amend };
 }

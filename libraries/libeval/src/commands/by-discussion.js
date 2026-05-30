@@ -1,9 +1,16 @@
-import { readdirSync, statSync, openSync, readSync, closeSync } from "node:fs";
+import { closeSync, openSync, readSync } from "node:fs";
 import { join } from "node:path";
 
+const FIRST_LINE_CAP = 64 * 1024;
+
 /**
- * Read the first newline-terminated line of a file. Bounded to 64 KiB
- * which is well above any orchestrator envelope.
+ * Read the first newline-terminated line of a file, bounded to the first
+ * {@link FIRST_LINE_CAP} bytes. Trace `.ndjson` files can be many MB; the
+ * Step 2.6 meta header is always small, so a bounded `readSync` avoids
+ * loading whole files into memory just to inspect the header. This uses
+ * `node:fs` directly because the `runtime.fsSync` surface exposes no
+ * positional `openSync`/`readSync` — the file is grandfathered for
+ * `import:fs` in `check-ambient-deps.deny.json` until that seam exists.
  *
  * @param {string} path
  * @returns {string}
@@ -11,11 +18,11 @@ import { join } from "node:path";
 function readFirstLine(path) {
   const fd = openSync(path, "r");
   try {
-    const buf = Buffer.alloc(65536);
+    const buf = Buffer.alloc(FIRST_LINE_CAP);
     const bytes = readSync(fd, buf, 0, buf.length, 0);
-    const slice = buf.slice(0, bytes).toString("utf8");
-    const nl = slice.indexOf("\n");
-    return nl === -1 ? slice : slice.slice(0, nl);
+    const text = buf.toString("utf8", 0, bytes);
+    const nl = text.indexOf("\n");
+    return nl === -1 ? text : text.slice(0, nl);
   } finally {
     closeSync(fd);
   }
@@ -30,13 +37,14 @@ function readFirstLine(path) {
  *
  * @param {string} dir
  * @param {string} discussionId
+ * @param {object} fsSync - Sync filesystem surface (`runtime.fsSync`).
  * @returns {Array<{path: string, mtimeMs: number}>}
  */
-export function findTracesByDiscussion(dir, discussionId) {
+export function findTracesByDiscussion(dir, discussionId, fsSync) {
   const matches = [];
   let entries;
   try {
-    entries = readdirSync(dir);
+    entries = fsSync.readdirSync(dir);
   } catch {
     return [];
   }
@@ -58,7 +66,7 @@ export function findTracesByDiscussion(dir, discussionId) {
     const event = parsed.event ?? parsed;
     if (event?.type !== "meta") continue;
     if (event.discussion_id !== discussionId) continue;
-    matches.push({ path, mtimeMs: statSync(path).mtimeMs });
+    matches.push({ path, mtimeMs: fsSync.statSync(path).mtimeMs });
   }
   matches.sort((a, b) => a.mtimeMs - b.mtimeMs);
   return matches;
@@ -70,15 +78,18 @@ export function findTracesByDiscussion(dir, discussionId) {
  * line, ordered by first-event timestamp (file mtime ascending). The
  * result is usable with `xargs cat` for a chronological merge.
  *
- * @param {object} values
- * @param {string[]} args
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {Promise<{ok: true} | {ok: false, code: number, error: string}>}
  */
-export async function runByDiscussionCommand(values, args) {
-  const [discussionId, traceDirArg] = args;
-  if (!discussionId) throw new Error("<discussion-id> is required");
-  const dir = traceDirArg ?? values["trace-dir"] ?? "traces";
-  const matches = findTracesByDiscussion(dir, discussionId);
+export async function runByDiscussionCommand(ctx) {
+  const runtime = ctx.deps.runtime;
+  const discussionId = ctx.args["discussion-id"];
+  if (!discussionId)
+    return { ok: false, code: 1, error: "<discussion-id> is required" };
+  const dir = ctx.args["trace-dir"] ?? ctx.options["trace-dir"] ?? "traces";
+  const matches = findTracesByDiscussion(dir, discussionId, runtime.fsSync);
   for (const { path } of matches) {
-    process.stdout.write(`${path}\n`);
+    runtime.proc.stdout.write(`${path}\n`);
   }
+  return { ok: true };
 }

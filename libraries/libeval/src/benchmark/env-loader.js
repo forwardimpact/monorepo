@@ -14,7 +14,6 @@
  * AND rendered (with resolved values) into the agent working directory.
  */
 
-import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const ENV_FILES = [".env.local", ".env"];
@@ -48,12 +47,13 @@ export function parseEnvFile(content) {
 
 /**
  * Read and parse an env file, returning [] if the file does not exist.
+ * @param {object} fs - Async filesystem surface (`runtime.fs`).
  * @param {string} filePath
  * @returns {Promise<Array<{key: string, value: string}>>}
  */
-async function readEnvFile(filePath) {
+async function readEnvFile(fs, filePath) {
   try {
-    const content = await readFile(filePath, "utf8");
+    const content = await fs.readFile(filePath, "utf8");
     return parseEnvFile(content);
   } catch (e) {
     if (e.code === "ENOENT") return [];
@@ -62,32 +62,36 @@ async function readEnvFile(filePath) {
 }
 
 /**
- * Load entries into process.env. Existing keys are never overwritten.
+ * Load entries into the process env map. Existing keys are never overwritten.
+ * @param {Record<string, string|undefined>} env - The `runtime.proc.env` map.
  * @param {Array<{key: string, value: string}>} entries
  * @returns {string[]} var names that were loaded
  */
-function applyToProcessEnv(entries) {
+function applyToProcessEnv(env, entries) {
   const names = [];
   for (const { key, value } of entries) {
     names.push(key);
-    if (process.env[key] === undefined) {
-      process.env[key] = value;
+    if (env[key] === undefined) {
+      env[key] = value;
     }
   }
   return names;
 }
 
 /**
- * Load one env file: apply to process.env, record keys in the merged map.
+ * Load one env file: apply to the env map, record keys in the merged map.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {string} dir
  * @param {string} file
  * @param {Set<string>} names
  * @param {Map<string, Map<string, true>>} merged
  */
-async function loadOneEnvFile(dir, file, names, merged) {
-  const entries = await readEnvFile(join(dir, file));
+async function loadOneEnvFile(runtime, dir, file, names, merged) {
+  const entries = await readEnvFile(runtime.fs, join(dir, file));
   if (entries.length === 0) return;
-  for (const name of applyToProcessEnv(entries)) names.add(name);
+  for (const name of applyToProcessEnv(runtime.proc.env, entries)) {
+    names.add(name);
+  }
   if (!merged.has(file)) merged.set(file, new Map());
   const fileMap = merged.get(file);
   for (const { key } of entries) {
@@ -96,17 +100,18 @@ async function loadOneEnvFile(dir, file, names, merged) {
 }
 
 /**
- * Scan directories for env files, load into process.env, and collect
+ * Scan directories for env files, load into the env map, and collect
  * a merged key manifest per filename.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {string[]} dirs
  * @returns {Promise<{names: Set<string>, merged: Map<string, Map<string, true>>}>}
  */
-async function collectEnvEntries(dirs) {
+async function collectEnvEntries(runtime, dirs) {
   const names = new Set();
   const merged = new Map();
   for (const dir of dirs) {
     for (const file of ENV_FILES) {
-      await loadOneEnvFile(dir, file, names, merged);
+      await loadOneEnvFile(runtime, dir, file, names, merged);
     }
   }
   return { names, merged };
@@ -114,17 +119,22 @@ async function collectEnvEntries(dirs) {
 
 /**
  * Write resolved env files into the agent CWD and warn about empty values.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {Map<string, Map<string, true>>} merged
  * @param {string} agentCwd
  */
-async function renderEnvFiles(merged, agentCwd) {
+async function renderEnvFiles(runtime, merged, agentCwd) {
+  const env = runtime.proc.env;
   for (const [file, keyMap] of merged) {
     const keys = [...keyMap.keys()];
-    const resolved = keys.map((key) => `${key}=${process.env[key] ?? ""}`);
-    await writeFile(join(agentCwd, file), resolved.join("\n") + "\n");
-    const empty = keys.filter((key) => !process.env[key]);
+    const resolved = keys.map((key) => `${key}=${env[key] ?? ""}`);
+    await runtime.fs.writeFile(
+      join(agentCwd, file),
+      resolved.join("\n") + "\n",
+    );
+    const empty = keys.filter((key) => !env[key]);
     if (empty.length > 0) {
-      process.stderr.write(
+      runtime.proc.stderr.write(
         `libeval: env warning: ${file} declares vars with no value: ${empty.join(", ")}\n`,
       );
     }
@@ -133,14 +143,16 @@ async function renderEnvFiles(merged, agentCwd) {
 
 /**
  * Discover `.env` / `.env.local` in one or more directories, load them
- * into process.env, and render the resolved values into the agent CWD.
+ * into the process env map, and render the resolved values into the agent CWD.
  *
  * @param {string[]} dirs - Directories to scan (family root, task dir, etc.)
  * @param {string} agentCwd - Agent working directory to render into.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Ambient
+ *   collaborators; uses `fs` (async read/write), `proc.env`, `proc.stderr`.
  * @returns {Promise<string[]>} All var names discovered (for redaction).
  */
-export async function loadEnv(dirs, agentCwd) {
-  const { names, merged } = await collectEnvEntries(dirs);
-  await renderEnvFiles(merged, agentCwd);
+export async function loadEnv(dirs, agentCwd, runtime) {
+  const { names, merged } = await collectEnvEntries(runtime, dirs);
+  await renderEnvFiles(runtime, merged, agentCwd);
   return [...names];
 }

@@ -1,4 +1,3 @@
-import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import jmespath from "jmespath";
 
@@ -6,10 +5,11 @@ import jmespath from "jmespath";
  * Evaluate an assertion and return the structured result.
  * @param {object} values - { grep?: string, query?: string, exists?: boolean, not?: boolean, message?: string }
  * @param {string[]} args - [testName, file]
+ * @param {object} fsSync - Sync filesystem surface (`runtime.fsSync`): `existsSync`, `readFileSync`.
  * @returns {{ test: string, pass: boolean, message?: string }}
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: assertion dispatch by type
-export function evaluateAssertion(values, args) {
+export function evaluateAssertion(values, args, fsSync) {
   const testName = args[0];
   if (!testName) throw new Error("assert: missing test name");
 
@@ -34,16 +34,16 @@ export function evaluateAssertion(values, args) {
   let result;
   if (values.exists) {
     if (!file) throw new Error("assert: missing file argument");
-    result = assertExists(file);
+    result = assertExists(file, fsSync);
   } else if (values.grep) {
     if (!file) throw new Error("assert: missing file argument for --grep");
-    result = assertGrep(values.grep, file);
+    result = assertGrep(values.grep, file, fsSync);
   } else if (values["cites-job"]) {
     if (!file) throw new Error("assert: missing file argument for --cites-job");
-    result = assertCitesJob(values["cites-job"], file);
+    result = assertCitesJob(values["cites-job"], file, fsSync);
   } else {
     if (!file) throw new Error("assert: missing file argument for --query");
-    result = assertQuery(values.query, file);
+    result = assertQuery(values.query, file, fsSync);
   }
 
   if (values.not) {
@@ -66,23 +66,31 @@ export function evaluateAssertion(values, args) {
 }
 
 /**
- * Run an assertion, write JSON to stdout, and set process.exitCode on failure.
- * @param {object} values
- * @param {string[]} args
+ * Run an assertion, write JSON to stdout, and return a failure envelope when
+ * the assertion does not pass.
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {Promise<{ok: true} | {ok: false, code: number, error: string}>}
  */
-export async function runAssertCommand(values, args) {
-  const result = evaluateAssertion(values, args);
-  process.stdout.write(JSON.stringify(result) + "\n");
-  if (!result.pass) process.exitCode = 1;
+export async function runAssertCommand(ctx) {
+  const runtime = ctx.deps.runtime;
+  const args = [ctx.args["test-name"], ctx.args.file];
+  let result;
+  try {
+    result = evaluateAssertion(ctx.options, args, runtime.fsSync);
+  } catch (err) {
+    return { ok: false, code: 1, error: err.message };
+  }
+  runtime.proc.stdout.write(JSON.stringify(result) + "\n");
+  return result.pass ? { ok: true } : { ok: false, code: 1, error: "" };
 }
 
-function assertExists(file) {
-  if (existsSync(file)) return { pass: true };
+function assertExists(file, fsSync) {
+  if (fsSync.existsSync(file)) return { pass: true };
   return { pass: false, message: `${file} not found` };
 }
 
-function assertGrep(pattern, file) {
-  const content = readFileSync(file, "utf8");
+function assertGrep(pattern, file, fsSync) {
+  const content = fsSync.readFileSync(file, "utf8");
   const re = new RegExp(pattern, "im");
   if (re.test(content)) return { pass: true };
   return {
@@ -91,8 +99,8 @@ function assertGrep(pattern, file) {
   };
 }
 
-function assertQuery(expression, file) {
-  const content = readFileSync(file, "utf8");
+function assertQuery(expression, file, fsSync) {
+  const content = fsSync.readFileSync(file, "utf8");
   const data = parseJsonOrNdjson(content);
   const result = jmespath.search(data, expression);
   const truthy =
@@ -109,8 +117,8 @@ function assertQuery(expression, file) {
 
 const JOB_TAG_RE = /<job\s+user="([^"]*)"\s+goal="([^"]*)">/;
 
-function assertCitesJob(jobFile, file) {
-  const jobContent = readFileSync(jobFile, "utf8");
+function assertCitesJob(jobFile, file, fsSync) {
+  const jobContent = fsSync.readFileSync(jobFile, "utf8");
   const match = JOB_TAG_RE.exec(jobContent);
   if (!match) {
     return {
@@ -119,7 +127,7 @@ function assertCitesJob(jobFile, file) {
     };
   }
   const citation = `${match[1]}: ${match[2]}`;
-  const content = readFileSync(file, "utf8");
+  const content = fsSync.readFileSync(file, "utf8");
   if (content.includes(citation)) return { pass: true };
   return { pass: false, message: `missing "${citation}"` };
 }

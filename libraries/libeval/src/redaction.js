@@ -113,34 +113,56 @@ export class Redactor {
 
 /**
  * Build a redactor. Reads `LIBEVAL_REDACTION_DISABLED` and
- * `LIBEVAL_REDACTION_ENV_VARS` from the supplied env (defaults to
- * `process.env`). Fires a one-shot stderr warning when constructed
- * disabled — bypass via `createNoopRedactor()` for silent fixtures.
+ * `LIBEVAL_REDACTION_ENV_VARS` from the supplied env. The env and the stderr
+ * sink are sourced from an injected `runtime` (`runtime.proc.env` /
+ * `runtime.proc.stderr`); when no runtime is supplied a default one is
+ * constructed so existing callers keep working. An explicit `opts.env`
+ * override still wins for the snapshot. Fires a one-shot stderr warning when
+ * constructed disabled — bypass via `createNoopRedactor()` for silent
+ * fixtures.
  * @param {object} [opts]
- * @param {Record<string, string|undefined>} [opts.env] - Environment to snapshot. Defaults to `process.env`.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} [opts.runtime] - Ambient collaborators; `proc.env`/`proc.stderr` are used.
+ * @param {Record<string, string|undefined>} [opts.env] - Environment to snapshot. Defaults to `runtime.proc.env`.
  * @param {string[]} [opts.allowlist] - Override the env-var name list. Defaults to `DEFAULT_ENV_ALLOWLIST` or the parsed `LIBEVAL_REDACTION_ENV_VARS` value.
  * @param {ReadonlyArray<{kind: string, regex: RegExp}>} [opts.patterns] - Credential-shape regexes. Defaults to `DEFAULT_PATTERNS`.
  * @param {boolean} [opts.enabled] - Force enabled/disabled; bypasses `LIBEVAL_REDACTION_DISABLED`.
  * @returns {Redactor}
  */
 export function createRedactor({
-  env = process.env,
+  runtime,
+  env,
   allowlist,
   patterns = DEFAULT_PATTERNS,
   enabled,
 } = {}) {
-  const envDisabled = env.LIBEVAL_REDACTION_DISABLED === "1";
+  const proc = runtime?.proc ?? defaultProc();
+  const resolvedEnv = env ?? proc.env;
+  const envDisabled = resolvedEnv.LIBEVAL_REDACTION_DISABLED === "1";
   const resolvedEnabled = enabled ?? !envDisabled;
-  const resolvedAllowlist = allowlist ?? resolveAllowlistFromEnv(env);
+  const resolvedAllowlist = allowlist ?? resolveAllowlistFromEnv(resolvedEnv);
   const envSnapshot = resolvedEnabled
-    ? snapshotEnv(env, resolvedAllowlist)
+    ? snapshotEnv(resolvedEnv, resolvedAllowlist)
     : Object.freeze({});
   if (!resolvedEnabled) {
-    process.stderr.write(
+    proc.stderr.write(
       "libeval: trace redaction DISABLED via LIBEVAL_REDACTION_DISABLED — secrets may appear in trace artifact\n",
     );
   }
   return new Redactor({ envSnapshot, patterns, enabled: resolvedEnabled });
+}
+
+/**
+ * Lazily build the production proc surface so callers that don't inject a
+ * runtime keep working. Imported indirectly to avoid pulling the whole
+ * runtime bag (and its `node:fs`/`node:child_process` imports) into modules
+ * that only ever receive an injected runtime.
+ * @returns {{env: Record<string, string|undefined>, stderr: {write: (s: string) => void}}}
+ */
+function defaultProc() {
+  return {
+    env: globalThis.process?.env ?? {},
+    stderr: { write: (s) => globalThis.process?.stderr?.write(s) },
+  };
 }
 
 /**

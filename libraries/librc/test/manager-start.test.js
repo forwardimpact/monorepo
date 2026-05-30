@@ -5,6 +5,8 @@ import { ServiceManager } from "../src/manager.js";
 import {
   assertRejectsMessage,
   assertThrowsMessage,
+  createMockProcess,
+  createTestRuntime,
 } from "@forwardimpact/libmock";
 
 describe("ServiceManager - constructor, paths, running, start", () => {
@@ -55,12 +57,14 @@ describe("ServiceManager - constructor, paths, running, start", () => {
         return child;
       },
       execSync: () => {},
-      process: {
-        kill: (pid, signal) => {
-          if (signal === 0 && pid === 12345) return true;
-          throw new Error("ESRCH");
-        },
-      },
+      runtime: createTestRuntime({
+        proc: createMockProcess({
+          kill: (pid, signal) => {
+            if (signal === 0 && pid === 12345) return true;
+            throw new Error("ESRCH");
+          },
+        }),
+      }),
       sendCommand: async () => ({ ok: true }),
       waitForSocket: async () => true,
     };
@@ -118,11 +122,13 @@ describe("ServiceManager - constructor, paths, running, start", () => {
     test("returns false when process is not alive", () => {
       const deps = {
         ...mockDeps,
-        process: {
-          kill: () => {
-            throw new Error("ESRCH");
-          },
-        },
+        runtime: createTestRuntime({
+          proc: createMockProcess({
+            kill: () => {
+              throw new Error("ESRCH");
+            },
+          }),
+        }),
       };
       const manager = new ServiceManager(mockConfig, mockLogger, deps);
       assert.strictEqual(manager.isSvscanRunning(), false);

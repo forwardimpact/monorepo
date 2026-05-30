@@ -1,0 +1,1 @@
+fit-storage: error: no command specified

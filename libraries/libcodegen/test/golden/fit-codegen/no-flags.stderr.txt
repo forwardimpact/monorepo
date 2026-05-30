@@ -1,0 +1,1 @@
+fit-codegen: error: no generation flags specified (use --all, --type, --service, --client, --definition, or --metadata)

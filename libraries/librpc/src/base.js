@@ -1,6 +1,7 @@
 import grpc from "@grpc/grpc-js";
 
 import { createObserver } from "@forwardimpact/libtelemetry";
+import { createDefaultProc } from "@forwardimpact/libutil/runtime";
 
 import { Interceptor, HmacAuth } from "./auth.js";
 import { definitions } from "./generated/definitions/exports.js";
@@ -23,12 +24,15 @@ export function createGrpc() {
 }
 
 /**
- * Default auth factory that creates authentication interceptor
+ * Default auth factory that creates authentication interceptor.
+ * Reads `SERVICE_SECRET` through `createDefaultProc().env` (a late-binding
+ * Proxy over `process.env`) rather than touching the `process` global
+ * directly — same read semantics as before, no ambient-dep smell.
  * @param {string} serviceName - Name of the service for the interceptor
  * @returns {Interceptor} Configured interceptor instance
  */
 export function createAuth(serviceName) {
-  const secret = process.env.SERVICE_SECRET;
+  const secret = createDefaultProc().env.SERVICE_SECRET;
   if (!secret) {
     throw new Error(
       `SERVICE_SECRET environment variable is required for service ${serviceName}`,

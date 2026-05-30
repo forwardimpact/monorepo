@@ -1,0 +1,31 @@
+[
+  {
+    "name": "help",
+    "args": ["--help"],
+    "exitCode": 0,
+    "stdoutFile": "help.stdout.txt",
+    "stderrFile": "help.stderr.txt"
+  },
+  {
+    "name": "version",
+    "args": ["--version"],
+    "exitCode": 0,
+    "stdoutFile": "version.stdout.txt",
+    "stderrFile": "version.stderr.txt",
+    "transform": [{ "pattern": "\\d+\\.\\d+\\.\\d+", "replacement": "X.Y.Z" }]
+  },
+  {
+    "name": "no-command",
+    "args": [],
+    "exitCode": 2,
+    "stdoutFile": "no-command.stdout.txt",
+    "stderrFile": "no-command.stderr.txt"
+  },
+  {
+    "name": "unknown-command",
+    "args": ["frobnicate"],
+    "exitCode": 2,
+    "stdoutFile": "unknown.stdout.txt",
+    "stderrFile": "unknown.stderr.txt"
+  }
+]

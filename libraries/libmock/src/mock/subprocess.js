@@ -11,13 +11,13 @@ function asyncIterableOf(str) {
 /**
  * Creates a mock subprocess collaborator matching the `Runtime.subprocess`
  * surface. `run(cmd, args, opts)` resolves to `{ stdout, stderr, exitCode }`
- * consulting `responses[cmd]` (default: empty success). `spawn` returns a
- * streaming quad backed by the same responses. All invocations are recorded
- * on `calls`.
+ * consulting `responses[cmd]` (default: empty success); `runSync` is its
+ * synchronous sibling returning the same shape. `spawn` returns a streaming
+ * quad backed by the same responses. All invocations are recorded on `calls`.
  *
  * @param {object} [options]
  * @param {Record<string, {stdout?: string, stderr?: string, exitCode?: number}>} [options.responses]
- * @returns {{run: Function, spawn: Function, calls: Array<{cmd: string, args: string[], opts: object}>}}
+ * @returns {{run: Function, runSync: Function, spawn: Function, calls: Array<{cmd: string, args: string[], opts: object}>}}
  */
 export function createMockSubprocess({ responses = {} } = {}) {
   const calls = [];
@@ -25,10 +25,16 @@ export function createMockSubprocess({ responses = {} } = {}) {
     stdout: "",
     stderr: "",
     exitCode: 0,
+    signal: null,
     ...(responses[cmd] ?? {}),
   });
 
   const run = spy(async (cmd, args = [], opts = {}) => {
+    calls.push({ cmd, args, opts });
+    return resolve(cmd);
+  });
+
+  const runSync = spy((cmd, args = [], opts = {}) => {
     calls.push({ cmd, args, opts });
     return resolve(cmd);
   });
@@ -44,5 +50,5 @@ export function createMockSubprocess({ responses = {} } = {}) {
     };
   });
 
-  return { run, spawn, calls };
+  return { run, runSync, spawn, calls };
 }

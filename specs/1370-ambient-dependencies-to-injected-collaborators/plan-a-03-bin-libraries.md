@@ -17,14 +17,15 @@ Sub-row: `1370/libconfig\tplan\timplemented`.
 
 (No bin — libconfig is library-only. Part 03 collects it here because design § Decision 8 sequences libconfig immediately after libwiki and ahead of bin-shipping libraries; the recipe steps that don't apply — golden capture / replay — are skipped per the [plan-a.md migration recipe](plan-a.md#migration-recipe).)
 
-Files (src): `libraries/libconfig/src/libconfig-core.js`, `libraries/libconfig/src/factories.js` (or current factory file).
+Files (src): `libraries/libconfig/src/config.js`, `libraries/libconfig/src/bootstrap.js`, `libraries/libconfig/src/index.js` (factories).
 
-- Replace the optional `process` constructor arg on every `createXxxConfig` factory with a `runtime` parameter destructured to `{ proc }`. Every `process.env.X` read becomes `runtime.proc.env.X`; every `process.cwd()` becomes `runtime.proc.cwd()`.
-- The factories' public API gains `{ runtime }` as the construction parameter; existing callers that passed a bare `process` get a one-cycle deprecation alias (`createXxxConfig({ process })` → maps `process` to `proc` internally and logs a one-time deprecation via `runtime.proc.stderr` when available).
+- Replace the optional `process` constructor arg on `Config` / every `createXxxConfig` factory with a `runtimeOrProcess` parameter resolved to a runtime bag (`{ proc, fs, clock, subprocess }`). Every `process.env.X` read becomes `runtime.proc.env.X`; every `process.cwd()` becomes `runtime.proc.cwd()`; `.env` reads route through `runtime.fs`; `Date.now()` routes through `runtime.clock`.
+- The factories' public API accepts `{ runtime }` as the construction parameter; existing callers that passed a bare `process` get a one-cycle deprecation alias (`resolveRuntime` maps a bare process-like object onto `{ proc }` over a default runtime).
+- **`Config.ghToken()`'s `gh auth token` fallback uses `runtime.subprocess.runSync("gh", ["auth", "token"])`.** `ghToken()` is a synchronous accessor read across the monorepo, so it cannot await `subprocess.run`; the synchronous `runSync` seam (added to the foundation — see [plan-a.md § Async-only subprocess propagation](plan-a.md#async-only-subprocess-propagation)) lets `config.js` drop its `node:child_process` import entirely and **fully exit the deny-list** (no grandfathered smell remains). The legacy `execSyncFn` constructor parameter is removed; tests that exercised the fallback inject `createTestRuntime({ subprocess: createMockSubprocess({ responses: { gh: { stdout: "<token>" } } }) })`.
 - Test files using `process.env` mutation migrate to `createTestRuntime({ proc: createMockProcess({ env: { …, FORWARDIMPACT_X: "value" } }) })`.
 - No bin; libconfig itself has no `bin/` entry — golden capture N/A.
 
-Verification: `bun run invariants` exits 0 with libconfig entries removed from deny-list; `bun test libraries/libconfig/test/` passes.
+Verification: `bun run invariants` exits 0 with **all** libconfig entries removed from the deny-list; `bun test libraries/libconfig/test/` passes.
 
 ## libstorage
 

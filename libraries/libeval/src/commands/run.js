@@ -12,10 +12,14 @@ import { createServiceConfig } from "@forwardimpact/libconfig";
 /**
  * Parse and validate run command options from parsed values.
  * @param {object} values - Parsed option values from cli.parse()
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {{ taskContent: string, cwd: string, model: string, maxTurns: number, outputPath: string|undefined, agentProfile: string|undefined, allowedTools: string[] }}
  */
-function parseRunOptions(values) {
-  const { task: taskContent, amend: taskAmend } = resolveTaskContent(values);
+function parseRunOptions(values, runtime) {
+  const { task: taskContent, amend: taskAmend } = resolveTaskContent(
+    values,
+    runtime,
+  );
   const maxTurnsRaw = values["max-turns"] ?? "50";
 
   return {
@@ -39,10 +43,11 @@ function parseRunOptions(values) {
  *
  * Usage: fit-eval run [options]
  *
- * @param {object} values - Parsed option values from cli.parse()
- * @param {string[]} args - Positional arguments
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {Promise<{ok: boolean, code?: number, error?: string}>}
  */
-export async function runRunCommand(values, _args) {
+export async function runRunCommand(ctx) {
+  const runtime = ctx.deps.runtime;
   const {
     taskContent,
     taskAmend,
@@ -53,19 +58,23 @@ export async function runRunCommand(values, _args) {
     agentProfile,
     allowedTools,
     mcpServer,
-  } = parseRunOptions(values);
+  } = parseRunOptions(ctx.options, runtime);
 
   // Build the redactor as the first observable side-effect after option
   // parsing — the env snapshot must freeze BEFORE any in-process
-  // process.env writes the command performs (e.g. LIBEVAL_AGENT_PROFILE).
-  const redactor = createRedactor();
+  // env writes the command performs (e.g. LIBEVAL_AGENT_PROFILE).
+  const redactor = createRedactor({ runtime });
 
   // When --output is specified, stream text to stdout while writing NDJSON to file.
   // Otherwise, write NDJSON directly to stdout (backwards-compatible).
   const fileStream = outputPath ? createWriteStream(outputPath) : null;
   const output = fileStream
-    ? createTeeWriter({ fileStream, textStream: process.stdout, mode: "raw" })
-    : process.stdout;
+    ? createTeeWriter({
+        fileStream,
+        textStream: runtime.proc.stdout,
+        mode: "raw",
+      })
+    : runtime.proc.stdout;
 
   const counter = new SequenceCounter();
   const devNull = new Writable({
@@ -93,7 +102,7 @@ export async function runRunCommand(values, _args) {
   }
 
   if (agentProfile) {
-    process.env.LIBEVAL_AGENT_PROFILE = agentProfile;
+    runtime.proc.env.LIBEVAL_AGENT_PROFILE = agentProfile;
   }
 
   const systemPrompt = agentProfile
@@ -116,6 +125,7 @@ export async function runRunCommand(values, _args) {
     taskAmend,
     mcpServers,
     redactor,
+    runtime,
   });
 
   const result = await runner.run(taskContent);
@@ -125,5 +135,5 @@ export async function runRunCommand(values, _args) {
     await new Promise((r) => fileStream.end(r));
   }
 
-  process.exit(result.success ? 0 : 1);
+  return result.success ? { ok: true } : { ok: false, code: 1, error: "" };
 }

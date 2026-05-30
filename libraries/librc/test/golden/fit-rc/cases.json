@@ -1,0 +1,16 @@
+[
+  {
+    "name": "help flag",
+    "args": ["--help"],
+    "exitCode": 0,
+    "stdoutFile": "help.stdout.txt",
+    "stderrFile": "help.stderr.txt"
+  },
+  {
+    "name": "no command",
+    "args": [],
+    "exitCode": 2,
+    "stdoutFile": "no-command.stdout.txt",
+    "stderrFile": "no-command.stderr.txt"
+  }
+]

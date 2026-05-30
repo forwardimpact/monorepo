@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { isoDate } from "@forwardimpact/libutil";
 import {
   formatHeader,
   formatSection,
@@ -11,31 +11,46 @@ import { renderChart } from "../chart.js";
 import { fmt1, round1 } from "../format.js";
 
 /** Read a CSV, optionally filter to a single metric, and print a full report (chart + stats table + signals) in text mode or a stamped JSON object with source path and generation date. */
-export function runAnalyzeCommand(values, args, cli) {
-  const csvPath = args[0];
+export function runAnalyzeCommand(ctx) {
+  const {
+    options: values,
+    args,
+    deps: { runtime },
+  } = ctx;
+  const { fsSync, proc, clock } = runtime;
+
+  const csvPath = args["csv-path"];
   if (!csvPath) {
-    cli.usageError("analyze requires a <csv-path> argument");
-    process.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: "analyze requires a <csv-path> argument",
+    };
   }
-  if (!existsSync(csvPath)) {
-    cli.usageError(`cannot read CSV "${csvPath}": file not found`);
-    process.exit(2);
+  if (!fsSync.existsSync(csvPath)) {
+    return {
+      ok: false,
+      code: 2,
+      error: `cannot read CSV "${csvPath}": file not found`,
+    };
   }
 
-  const text = readFileSync(csvPath, "utf-8");
+  const text = fsSync.readFileSync(csvPath, "utf-8");
   const report = analyze(text);
   report.source = csvPath;
-  report.generated = new Date().toISOString().slice(0, 10);
+  report.generated = isoDate(clock.now());
 
   if (values.metric) {
     report.metrics = report.metrics.filter((m) => m.metric === values.metric);
   }
 
   if (values.format === "json") {
-    process.stdout.write(JSON.stringify(jsonReport(report), null, 2) + "\n");
+    proc.stdout.write(JSON.stringify(jsonReport(report), null, 2) + "\n");
   } else {
-    process.stdout.write(formatText(report, { ascii: !!values.ascii }) + "\n");
+    proc.stdout.write(formatText(report, { ascii: !!values.ascii }) + "\n");
   }
+
+  return { ok: true };
 }
 
 // Strip raw values/dates and round stats for human/agent JSON consumption.

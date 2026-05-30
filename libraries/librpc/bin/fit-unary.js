@@ -1,18 +1,24 @@
 #!/usr/bin/env node
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
 import { createCli } from "@forwardimpact/libcli";
 import { createClient, createTracer } from "@forwardimpact/librpc";
 import { createLogger } from "@forwardimpact/libtelemetry";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+
+const runtime = createDefaultRuntime();
 
 // `bun build --compile` injects FIT_UNARY_VERSION via --define, eliminating
 // the readFileSync branch in the compiled binary (which would ENOENT against
 // the bunfs virtual mount). Source execution falls through to package.json.
 const VERSION =
-  process.env.FIT_UNARY_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
+  runtime.proc.env.FIT_UNARY_VERSION ||
+  JSON.parse(
+    runtime.fsSync.readFileSync(
+      new URL("../package.json", import.meta.url),
+      "utf8",
+    ),
+  ).version;
 
 const definition = {
   name: "fit-unary",
@@ -27,7 +33,7 @@ const definition = {
   examples: ['fit-unary memory GetWindow \'{"resource_id":"..."}\''],
 };
 
-const cli = createCli(definition);
+const cli = createCli(definition, { runtime });
 const logger = createLogger("cli");
 
 /**
@@ -35,13 +41,13 @@ const logger = createLogger("cli");
  * @returns {Promise<void>}
  */
 async function main() {
-  const parsed = cli.parse(process.argv.slice(2));
-  if (!parsed) process.exit(0);
+  const parsed = cli.parse(runtime.proc.argv.slice(2));
+  if (!parsed) return runtime.proc.exit(0);
 
   const [service, method, requestJson] = parsed.positionals;
   if (!service || !method) {
     cli.usageError("expected arguments: <service> <method> [json-request]");
-    process.exit(2);
+    return runtime.proc.exit(2);
   }
 
   const request = requestJson ? JSON.parse(requestJson) : {};
@@ -49,11 +55,11 @@ async function main() {
   const client = await createClient(service, logger, tracer);
 
   const response = await client.callUnary(method, request);
-  console.log(JSON.stringify(response, null, 2));
+  runtime.proc.stdout.write(JSON.stringify(response, null, 2) + "\n");
 }
 
 main().catch((error) => {
   logger.exception("main", error);
   cli.error(error.message);
-  process.exit(1);
+  runtime.proc.exit(1);
 });

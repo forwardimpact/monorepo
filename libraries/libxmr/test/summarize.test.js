@@ -1,11 +1,11 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
-import { spawnSync } from "node:child_process";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-
-const BIN = new URL("../bin/fit-xmr.js", import.meta.url).pathname;
+import { runSummarizeCommand } from "../src/commands/summarize.js";
+import { runChartCommand } from "../src/commands/chart.js";
+import { makeRuntime, ctxFor } from "./helpers.js";
 
 function makeCSV(metric, values, { unit = "count" } = {}) {
   const header = "date,metric,value,unit,run,note";
@@ -28,8 +28,26 @@ function withTempCSV(content, fn) {
   }
 }
 
-function run(args) {
-  return spawnSync("node", [BIN, ...args], { encoding: "utf-8" });
+function runSummarize(csvPath, options = {}) {
+  const rt = makeRuntime();
+  const ctx = ctxFor({
+    runtime: rt.runtime,
+    options,
+    args: { "csv-path": csvPath },
+  });
+  const result = runSummarizeCommand(ctx);
+  return { result, stdout: rt.stdout, stderr: rt.stderr };
+}
+
+function runChart(csvPath, options = {}) {
+  const rt = makeRuntime();
+  const ctx = ctxFor({
+    runtime: rt.runtime,
+    options,
+    args: { "csv-path": csvPath },
+  });
+  const result = runChartCommand(ctx);
+  return { result, stdout: rt.stdout, stderr: rt.stderr };
 }
 
 describe("summarize command", () => {
@@ -38,16 +56,15 @@ describe("summarize command", () => {
     const csv = makeCSV("stable_metric", values);
 
     withTempCSV(csv, (file) => {
-      const result = run(["summarize", file]);
-      assert.strictEqual(result.status, 0, result.stderr);
-      const out = result.stdout;
-      assert.match(out, /\*\*XmR — `.*`\*\*/);
+      const { result, stdout } = runSummarize(file);
+      assert.ok(result.ok, JSON.stringify(result));
+      assert.match(stdout, /\*\*XmR — `.*`\*\*/);
       assert.match(
-        out,
+        stdout,
         /\| metric \| n \| latest \| μ \| UPL \| LPL \| classification \| signals \|/,
       );
-      assert.match(out, /\| stable_metric \| 20 \|/);
-      assert.match(out, /\| stable \|/);
+      assert.match(stdout, /\| stable_metric \| 20 \|/);
+      assert.match(stdout, /\| stable \|/);
     });
   });
 
@@ -55,13 +72,10 @@ describe("summarize command", () => {
     const csv = makeCSV("new_metric", [1, 2, 3]);
 
     withTempCSV(csv, (file) => {
-      const result = run(["summarize", file]);
-      assert.strictEqual(result.status, 0, result.stderr);
-      assert.match(
-        result.stdout,
-        /Insufficient data \(n<15\):_ new_metric \(n=3\)\./,
-      );
-      assert.doesNotMatch(result.stdout, /\| metric \| n \|/);
+      const { result, stdout } = runSummarize(file);
+      assert.ok(result.ok, JSON.stringify(result));
+      assert.match(stdout, /Insufficient data \(n<15\):_ new_metric \(n=3\)\./);
+      assert.doesNotMatch(stdout, /\| metric \| n \|/);
     });
   });
 
@@ -70,9 +84,9 @@ describe("summarize command", () => {
     const csv = makeCSV("m", values);
 
     withTempCSV(csv, (file) => {
-      const result = run(["summarize", file, "--format", "json"]);
-      assert.strictEqual(result.status, 0, result.stderr);
-      const parsed = JSON.parse(result.stdout);
+      const { result, stdout } = runSummarize(file, { format: "json" });
+      assert.ok(result.ok, JSON.stringify(result));
+      const parsed = JSON.parse(stdout);
       assert.ok(parsed.source);
       assert.ok(parsed.generated);
       assert.strictEqual(parsed.metrics.length, 1);
@@ -98,17 +112,20 @@ describe("summarize command", () => {
     ].join("\n");
 
     withTempCSV(csv, (file) => {
-      const result = run(["summarize", file, "--metric", "b"]);
-      assert.strictEqual(result.status, 0, result.stderr);
-      assert.match(result.stdout, /\| b \|/);
-      assert.doesNotMatch(result.stdout, /\| a \|/);
+      const { result, stdout } = runSummarize(file, { metric: "b" });
+      assert.ok(result.ok, JSON.stringify(result));
+      assert.match(stdout, /\| b \|/);
+      assert.doesNotMatch(stdout, /\| a \|/);
     });
   });
 
   test("requires a csv-path argument", () => {
-    const result = run(["summarize"]);
-    assert.notStrictEqual(result.status, 0);
-    assert.match(result.stderr, /requires a <csv-path>/);
+    const rt = makeRuntime();
+    const ctx = ctxFor({ runtime: rt.runtime, options: {}, args: {} });
+    const result = runSummarizeCommand(ctx);
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+    assert.match(result.error, /requires a <csv-path>/);
   });
 
   test("flags non-stable classification when X Rule 2 fires", () => {
@@ -120,9 +137,9 @@ describe("summarize command", () => {
     const csv = makeCSV("shifty", values);
 
     withTempCSV(csv, (file) => {
-      const result = run(["summarize", file, "--format", "json"]);
-      assert.strictEqual(result.status, 0, result.stderr);
-      const parsed = JSON.parse(result.stdout);
+      const { result, stdout } = runSummarize(file, { format: "json" });
+      assert.ok(result.ok, JSON.stringify(result));
+      const parsed = JSON.parse(stdout);
       assert.notStrictEqual(parsed.metrics[0].classification, "stable");
       assert.ok(parsed.metrics[0].signals.xRule2.length > 0);
     });
@@ -134,9 +151,9 @@ describe("chart command", () => {
     const csv = makeCSV("ex", [5, 6, 7, 5, 6, 4, 7, 8, 6, 13, 5, 6, 7, 6, 5]);
 
     withTempCSV(csv, (file) => {
-      const result = run(["chart", file, "--metric", "ex"]);
-      assert.strictEqual(result.status, 0, result.stderr);
-      const lines = result.stdout.replace(/\n$/, "").split("\n");
+      const { result, stdout } = runChart(file, { metric: "ex" });
+      assert.ok(result.ok, JSON.stringify(result));
+      const lines = stdout.replace(/\n$/, "").split("\n");
       assert.strictEqual(lines.length, 14);
       assert.ok(lines[0].includes("UPL 12.5"));
       assert.ok(lines[0].includes("●"));
@@ -149,10 +166,10 @@ describe("chart command", () => {
   test("defaults to the sole metric when --metric is omitted", () => {
     const csv = makeCSV("ex", [5, 6, 7, 5, 6, 4, 7, 8, 6, 13, 5, 6, 7, 6, 5]);
     withTempCSV(csv, (file) => {
-      const result = run(["chart", file]);
-      assert.strictEqual(result.status, 0, result.stderr);
-      assert.ok(result.stdout.includes("UPL 12.5"));
-      assert.ok(result.stdout.includes("●"));
+      const { result, stdout } = runChart(file);
+      assert.ok(result.ok, JSON.stringify(result));
+      assert.ok(stdout.includes("UPL 12.5"));
+      assert.ok(stdout.includes("●"));
     });
   });
 
@@ -163,40 +180,40 @@ describe("chart command", () => {
       "2026-01-02,b,2,count,,",
     ].join("\n");
     withTempCSV(csv, (file) => {
-      const result = run(["chart", file]);
-      assert.notStrictEqual(result.status, 0);
-      assert.match(result.stderr, /requires --metric/);
+      const { result } = runChart(file);
+      assert.equal(result.ok, false);
+      assert.match(result.error, /requires --metric/);
     });
   });
 
   test("rejects --format json", () => {
     const csv = makeCSV("ex", [1, 2, 3]);
     withTempCSV(csv, (file) => {
-      const result = run(["chart", file, "--metric", "ex", "--format", "json"]);
-      assert.notStrictEqual(result.status, 0);
-      assert.match(result.stderr, /does not support --format json/);
+      const { result } = runChart(file, { metric: "ex", format: "json" });
+      assert.equal(result.ok, false);
+      assert.match(result.error, /does not support --format json/);
     });
   });
 
   test("--ascii substitutes ASCII glyphs", () => {
     const csv = makeCSV("ex", [5, 6, 7, 5, 6, 4, 7, 8, 6, 13, 5, 6, 7, 6, 5]);
     withTempCSV(csv, (file) => {
-      const result = run(["chart", file, "--metric", "ex", "--ascii"]);
-      assert.strictEqual(result.status, 0, result.stderr);
-      assert.ok(result.stdout.includes("X-bar"));
-      assert.ok(result.stdout.includes("R-bar"));
-      assert.ok(result.stdout.includes("*"));
-      assert.ok(!result.stdout.includes("●"));
-      assert.ok(!result.stdout.includes("σ"));
+      const { result, stdout } = runChart(file, { metric: "ex", ascii: true });
+      assert.ok(result.ok, JSON.stringify(result));
+      assert.ok(stdout.includes("X-bar"));
+      assert.ok(stdout.includes("R-bar"));
+      assert.ok(stdout.includes("*"));
+      assert.ok(!stdout.includes("●"));
+      assert.ok(!stdout.includes("σ"));
     });
   });
 
   test("notes insufficient data when n < 15", () => {
     const csv = makeCSV("ex", [1, 2, 3]);
     withTempCSV(csv, (file) => {
-      const result = run(["chart", file, "--metric", "ex"]);
-      assert.strictEqual(result.status, 0, result.stderr);
-      assert.match(result.stdout, /Insufficient data/);
+      const { result, stdout } = runChart(file, { metric: "ex" });
+      assert.ok(result.ok, JSON.stringify(result));
+      assert.match(stdout, /Insufficient data/);
     });
   });
 });

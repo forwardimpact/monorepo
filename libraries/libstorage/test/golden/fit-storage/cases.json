@@ -1,0 +1,83 @@
+[
+  {
+    "name": "top-level --help",
+    "args": ["--help"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "help.stdout.txt",
+    "stderrFile": "help.stderr.txt",
+    "transform": [{ "pattern": "\\d+\\.\\d+\\.\\d+", "replacement": "X.Y.Z" }]
+  },
+  {
+    "name": "--version",
+    "args": ["--version"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "version.stdout.txt",
+    "stderrFile": "version.stderr.txt",
+    "transform": [{ "pattern": "\\d+\\.\\d+\\.\\d+", "replacement": "X.Y.Z" }]
+  },
+  {
+    "name": "no command",
+    "args": [],
+    "env": {},
+    "exitCode": 2,
+    "stdoutFile": "no-command.stdout.txt",
+    "stderrFile": "no-command.stderr.txt",
+    "transform": []
+  },
+  {
+    "name": "unknown command",
+    "args": ["bogus"],
+    "env": {},
+    "exitCode": 2,
+    "stdoutFile": "unknown.stdout.txt",
+    "stderrFile": "unknown.stderr.txt",
+    "transform": []
+  },
+  {
+    "name": "create-bucket --help",
+    "args": ["create-bucket", "--help"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "create-bucket-help.stdout.txt",
+    "stderrFile": "create-bucket-help.stderr.txt",
+    "transform": []
+  },
+  {
+    "name": "wait --help",
+    "args": ["wait", "--help"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "wait-help.stdout.txt",
+    "stderrFile": "wait-help.stderr.txt",
+    "transform": []
+  },
+  {
+    "name": "upload --help",
+    "args": ["upload", "--help"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "upload-help.stdout.txt",
+    "stderrFile": "upload-help.stderr.txt",
+    "transform": []
+  },
+  {
+    "name": "download --help",
+    "args": ["download", "--help"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "download-help.stdout.txt",
+    "stderrFile": "download-help.stderr.txt",
+    "transform": []
+  },
+  {
+    "name": "list --help",
+    "args": ["list", "--help"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "list-help.stdout.txt",
+    "stderrFile": "list-help.stderr.txt",
+    "transform": []
+  }
+]

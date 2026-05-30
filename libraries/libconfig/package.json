@@ -29,7 +29,8 @@
   },
   "dependencies": {
     "@forwardimpact/libsecret": "^0.1.15",
-    "@forwardimpact/libstorage": "^0.1.53"
+    "@forwardimpact/libstorage": "^0.1.53",
+    "@forwardimpact/libutil": "^0.1.60"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

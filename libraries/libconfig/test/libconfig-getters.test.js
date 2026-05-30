@@ -2,7 +2,12 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 
 import { createConfig } from "../src/index.js";
-import { createMockStorage, spy } from "@forwardimpact/libmock";
+import {
+  createMockStorage,
+  createMockSubprocess,
+  createTestRuntime,
+  spy,
+} from "@forwardimpact/libmock";
 
 describe("libconfig - Config getters", () => {
   const mockStorageFn = () =>
@@ -85,21 +90,16 @@ describe("libconfig - Config getters", () => {
   });
 
   test("ghToken throws when not set in environment and gh cli fails", async () => {
-    const mockProcess = {
-      cwd: spy(() => "/test/dir"),
-      env: {},
-    };
-    const mockExecSync = spy(() => {
-      throw new Error("gh: command not found");
+    // gh exits non-zero (e.g. not authenticated / not installed).
+    const subprocess = createMockSubprocess({
+      responses: { gh: { exitCode: 1, stderr: "gh: not authenticated" } },
     });
-
     const config = await createConfig(
       "test",
       "myservice",
       {},
-      mockProcess,
+      { runtime: createTestRuntime({ subprocess }) },
       mockStorageFn,
-      mockExecSync,
     );
     assert.throws(() => config.ghToken(), /GH_TOKEN not found in environment/);
   });
@@ -153,47 +153,37 @@ describe("libconfig - Config getters", () => {
   });
 
   test("ghToken falls back to gh auth token when env vars are unset", async () => {
-    const mockProcess = {
-      cwd: spy(() => "/test/dir"),
-      env: {},
-    };
-    const mockExecSync = spy(() => "fake-gh-cli-token\n");
-
+    const subprocess = createMockSubprocess({
+      responses: { gh: { stdout: "fake-gh-cli-token\n" } },
+    });
     const config = await createConfig(
       "test",
       "myservice",
       {},
-      mockProcess,
+      { runtime: createTestRuntime({ subprocess }) },
       mockStorageFn,
-      mockExecSync,
     );
     assert.strictEqual(config.ghToken(), "fake-gh-cli-token");
-    assert.strictEqual(mockExecSync.mock.callCount(), 1);
-    assert.strictEqual(
-      mockExecSync.mock.calls[0].arguments[0],
-      "gh auth token",
-    );
+    assert.strictEqual(subprocess.calls.length, 1);
+    assert.strictEqual(subprocess.calls[0].cmd, "gh");
+    assert.deepStrictEqual(subprocess.calls[0].args, ["auth", "token"]);
   });
 
   test("ghToken caches gh auth token result", async () => {
-    const mockProcess = {
-      cwd: spy(() => "/test/dir"),
-      env: {},
-    };
-    const mockExecSync = spy(() => "fake-gh-cli-token");
-
+    const subprocess = createMockSubprocess({
+      responses: { gh: { stdout: "fake-gh-cli-token" } },
+    });
     const config = await createConfig(
       "test",
       "myservice",
       {},
-      mockProcess,
+      { runtime: createTestRuntime({ subprocess }) },
       mockStorageFn,
-      mockExecSync,
     );
     const first = config.ghToken();
     const second = config.ghToken();
     assert.strictEqual(first, second);
-    assert.strictEqual(mockExecSync.mock.callCount(), 1);
+    assert.strictEqual(subprocess.calls.length, 1);
   });
 
   test("supabaseUrl() returns env value with trailing slashes stripped", async () => {

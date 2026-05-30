@@ -10,12 +10,12 @@
  * @module libterrain/sinks
  */
 
-import { mkdir, writeFile, rm } from "fs/promises";
 import { join, dirname } from "path";
 import {
   ContentFormatter,
   formatContent,
 } from "@forwardimpact/libsyntheticrender";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 const ZERO_STATS = {
   filesWritten: 0,
@@ -36,15 +36,17 @@ export class NullSink {
 /** Sink that formats pipeline output with Prettier and writes files to disk under the monorepo root. */
 export class WriteSink {
   /**
-   * @param {{ monorepoRoot: string, prettierFn: Function, logger: object }} options
+   * @param {{ monorepoRoot: string, prettierFn: Function, logger: object, runtime?: import('@forwardimpact/libutil/runtime').Runtime }} options
    */
-  constructor({ monorepoRoot, prettierFn, logger }) {
+  constructor({ monorepoRoot, prettierFn, logger, runtime }) {
     if (!monorepoRoot) throw new Error("monorepoRoot is required");
     if (!prettierFn) throw new Error("prettierFn is required");
     if (!logger) throw new Error("logger is required");
     this.monorepoRoot = monorepoRoot;
     this.formatter = new ContentFormatter(prettierFn, logger);
     this.logger = logger;
+    // Fall back to the production runtime for BC when no runtime is injected.
+    this._fs = (runtime ?? createDefaultRuntime()).fs;
   }
 
   /** Format and write generated files, raw documents, and evidence to disk. */
@@ -56,11 +58,15 @@ export class WriteSink {
       `Formatted ${formattedFiles.size} files, ${formattedRaw.size} raw documents`,
     );
 
-    const filesWritten = await writeFiles(formattedFiles, this.monorepoRoot);
+    const filesWritten = await writeFiles(
+      formattedFiles,
+      this.monorepoRoot,
+      this._fs,
+    );
 
     let rawWritten = 0;
     if (formattedRaw.size > 0) {
-      await writeRawLocally(formattedRaw, this.monorepoRoot);
+      await writeRawLocally(formattedRaw, this.monorepoRoot, this._fs);
       rawWritten = formattedRaw.size;
     }
 
@@ -70,12 +76,12 @@ export class WriteSink {
         this.monorepoRoot,
         "data/activity/evidence.json",
       );
-      await mkdir(dirname(evidencePath), { recursive: true });
+      await this._fs.mkdir(dirname(evidencePath), { recursive: true });
       const formatted = await formatContent(
         evidencePath,
         JSON.stringify(evidence, null, 2),
       );
-      await writeFile(evidencePath, formatted);
+      await this._fs.writeFile(evidencePath, formatted);
     }
 
     return { ...ZERO_STATS, filesWritten, rawWritten };
@@ -156,16 +162,20 @@ export class CompositeSink {
  * formats it for stdout.
  */
 export class InspectSink {
-  /** Store the stdout stream used for inspect output. */
-  constructor({ stdout = process.stdout } = {}) {
+  /**
+   * @param {{ stdout?: { write: (s: string) => void } }} [options]
+   */
+  constructor({ stdout } = {}) {
     this.stdout = stdout;
   }
 
   /** Serialize the terminal stage's output as JSON and write it to stdout. */
   async accept(result) {
     const payload = serializeForInspect(result.output);
-    this.stdout.write(`# stage: ${result.stage}\n`);
-    this.stdout.write(payload + "\n");
+    if (this.stdout) {
+      this.stdout.write(`# stage: ${result.stage}\n`);
+      this.stdout.write(payload + "\n");
+    }
     return { ...ZERO_STATS };
   }
 }
@@ -206,7 +216,7 @@ export class ProseCacheWriteSink {
  * Write a Map of relative paths → content under the monorepo root. Cleans
  * each top-level subdirectory before writing so removed entities don't linger.
  */
-async function writeFiles(files, monorepoRoot) {
+async function writeFiles(files, monorepoRoot, fs) {
   const generatedDirs = new Set();
   for (const relPath of files.keys()) {
     const parts = relPath.split("/");
@@ -215,20 +225,20 @@ async function writeFiles(files, monorepoRoot) {
     }
   }
   for (const dir of generatedDirs) {
-    await rm(dir, { recursive: true, force: true });
+    await fs.rm(dir, { recursive: true, force: true });
   }
   for (const [relPath, content] of files) {
     const fullPath = join(monorepoRoot, relPath);
-    await mkdir(dirname(fullPath), { recursive: true });
-    await writeFile(fullPath, content);
+    await fs.mkdir(dirname(fullPath), { recursive: true });
+    await fs.writeFile(fullPath, content);
   }
   return files.size;
 }
 
-async function writeRawLocally(rawDocuments, monorepoRoot) {
+async function writeRawLocally(rawDocuments, monorepoRoot, fs) {
   for (const [storagePath, content] of rawDocuments) {
     const fullPath = join(monorepoRoot, "data/activity/raw", storagePath);
-    await mkdir(dirname(fullPath), { recursive: true });
-    await writeFile(fullPath, content);
+    await fs.mkdir(dirname(fullPath), { recursive: true });
+    await fs.writeFile(fullPath, content);
   }
 }

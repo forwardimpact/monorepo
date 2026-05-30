@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createCli } from "@forwardimpact/libcli";
 import { Repl } from "@forwardimpact/librepl";
 import { createStorage } from "@forwardimpact/libstorage";
@@ -9,13 +9,19 @@ import { createStorage } from "@forwardimpact/libstorage";
 import { TraceIndex } from "../src/index/trace.js";
 import { TraceVisualizer } from "../src/visualizer.js";
 
+const runtime = createDefaultRuntime();
+
 // `bun build --compile` injects FIT_VISUALIZE_VERSION via --define,
 // eliminating the readFileSync branch in the compiled binary (which would
 // ENOENT against the bunfs virtual mount). Source execution falls through.
 const VERSION =
-  process.env.FIT_VISUALIZE_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
+  runtime.proc.env.FIT_VISUALIZE_VERSION ||
+  JSON.parse(
+    runtime.fsSync.readFileSync(
+      new URL("../package.json", import.meta.url),
+      "utf8",
+    ),
+  ).version;
 
 const definition = {
   name: "fit-visualize",
@@ -39,8 +45,8 @@ const definition = {
 
 const cli = createCli(definition);
 
-const parsed = cli.parse(process.argv.slice(2));
-if (!parsed) process.exit(0);
+const parsed = cli.parse(runtime.proc.argv.slice(2));
+if (!parsed) runtime.proc.exit(0);
 
 const { values } = parsed;
 
@@ -94,7 +100,7 @@ const repl = new Repl({
   setup: async (state) => {
     const traceStorage = createStorage("traces");
     state.traceIndex = new TraceIndex(traceStorage, "index.jsonl");
-    state.visualizer = new TraceVisualizer(state.traceIndex);
+    state.visualizer = new TraceVisualizer(state.traceIndex, runtime);
   },
 
   state: {

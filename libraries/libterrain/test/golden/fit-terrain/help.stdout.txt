@@ -1,0 +1,33 @@
+fit-terrain 0.1.32 — Synthetic data generation pipeline
+
+Usage: fit-terrain <command> [options]
+
+Commands:
+  check            Verify cache completeness; prints hit-rate
+  validate         Run entity and cross-content checks (no writes)
+  build            Render and write all content
+  generate         Fill the prose cache via LLM, then build
+  inspect <stage>  Dump a pipeline stage's output. Stages: parse, entities, prose-keys, cache-lookup, skeleton, enriched, raw, markdown, pathway, datasets, validate, write.
+
+Options:
+  --story=<string>  Path to a custom story DSL file
+  --cache=<string>  Path to prose cache file
+  --help, -h        Show this help
+  --version         Show version
+  --json            Output help as JSON
+
+Examples:
+  bunx fit-terrain check
+  bunx fit-terrain validate
+  bunx fit-terrain build --only=pathway
+  bunx fit-terrain generate
+
+Documentation:
+  Prove Agent Changes
+    https://www.forwardimpact.team/docs/libraries/prove-changes/index.md
+    End-to-end workflow from dataset generation through evaluation to trace analysis.
+  Generate an Eval Dataset
+    https://www.forwardimpact.team/docs/libraries/prove-changes/generate-dataset/index.md
+    Using the Terrain DSL to define and generate synthetic datasets.
+
+Use fit-terrain <command> --help for command-specific options.

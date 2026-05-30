@@ -9,7 +9,6 @@
  * @module libterrain/nodes
  */
 
-import { readFile } from "fs/promises";
 import { join } from "path";
 import {
   validateLinks,
@@ -42,14 +41,21 @@ export function buildNodes(ctx) {
     toolFactory,
     logger,
     options,
+    runtime,
   } = ctx;
+
+  // Resolve the async fs surface from the injected runtime.
+  // `runtime` is required for the `parse` node; `Pipeline` always injects it.
+  // Direct `buildNodes` callers that skip the `parse` node may omit it.
+  const { readFile: readFileFn } = runtime?.fs ?? {};
 
   return {
     parse: {
       deps: [],
       async run() {
+        if (!readFileFn) throw new Error("runtime fs required for parse node");
         logger.info("pipeline", "Parsing terrain DSL");
-        const source = await readFile(options.storyPath, "utf-8");
+        const source = await readFileFn(options.storyPath, "utf-8");
         return dslParser.parse(source);
       },
     },

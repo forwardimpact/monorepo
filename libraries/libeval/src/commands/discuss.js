@@ -17,10 +17,14 @@ function parseAgentProfiles(raw, cwd, maxTurns) {
  * Parse and validate discuss command options. Exported so tests can verify
  * defaults and the legacy-flag clean break.
  * @param {object} values - Parsed option values
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {object}
  */
-export function parseDiscussOptions(values) {
-  const { task: taskContent, amend: taskAmend } = resolveTaskContent(values);
+export function parseDiscussOptions(values, runtime) {
+  const { task: taskContent, amend: taskAmend } = resolveTaskContent(
+    values,
+    runtime,
+  );
 
   const profilesRaw = values["agent-profiles"];
   const agentCwd = resolve(values["agent-cwd"] ?? ".");
@@ -55,9 +59,9 @@ export function parseDiscussOptions(values) {
     outputPath: values.output,
     discussionId: values["discussion-id"] ?? null,
     resumeContext,
-    callbackUrl: process.env.CALLBACK_URL ?? null,
-    inboxUrl: process.env.INBOX_URL ?? null,
-    correlationId: process.env.CORRELATION_ID ?? null,
+    callbackUrl: runtime.proc.env.CALLBACK_URL ?? null,
+    inboxUrl: runtime.proc.env.INBOX_URL ?? null,
+    correlationId: runtime.proc.env.CORRELATION_ID ?? null,
   };
 }
 
@@ -66,13 +70,14 @@ export function parseDiscussOptions(values) {
  * semantics, threading `discussion_id` through the trace so multi-run
  * conversations are queryable as one.
  *
- * @param {object} values - Parsed option values
- * @param {string[]} _args - Positional arguments
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
+ * @returns {Promise<{ok: boolean, code?: number, error?: string}>}
  */
-export async function runDiscussCommand(values, _args) {
-  const opts = parseDiscussOptions(values);
+export async function runDiscussCommand(ctx) {
+  const runtime = ctx.deps.runtime;
+  const opts = parseDiscussOptions(ctx.options, runtime);
 
-  const redactor = createRedactor();
+  const redactor = createRedactor({ runtime });
 
   const fileStream = opts.outputPath
     ? createWriteStream(opts.outputPath)
@@ -80,13 +85,13 @@ export async function runDiscussCommand(values, _args) {
   const output = fileStream
     ? createTeeWriter({
         fileStream,
-        textStream: process.stdout,
+        textStream: runtime.proc.stdout,
         mode: "supervised",
       })
-    : process.stdout;
+    : runtime.proc.stdout;
 
   if (opts.leadProfile) {
-    process.env.LIBEVAL_AGENT_PROFILE = opts.leadProfile;
+    runtime.proc.env.LIBEVAL_AGENT_PROFILE = opts.leadProfile;
   }
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");
@@ -106,6 +111,7 @@ export async function runDiscussCommand(values, _args) {
     callbackUrl: opts.callbackUrl,
     inboxUrl: opts.inboxUrl,
     correlationId: opts.correlationId,
+    runtime,
   });
 
   const result = await discusser.run(opts.taskContent);
@@ -115,5 +121,5 @@ export async function runDiscussCommand(values, _args) {
     await new Promise((r) => fileStream.end(r));
   }
 
-  process.exit(result.success ? 0 : 1);
+  return result.success ? { ok: true } : { ok: false, code: 1, error: "" };
 }

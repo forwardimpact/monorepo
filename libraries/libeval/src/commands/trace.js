@@ -1,153 +1,227 @@
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { createTraceCollector } from "@forwardimpact/libeval";
 import { createTraceQuery } from "../trace-query.js";
 import { createTraceGitHub } from "../trace-github.js";
 import { stripSignatures } from "../signature-filter.js";
 
+// Every handler receives a libcli `InvocationContext`:
+//   ctx.options — parsed flag values (`cli.parse().values`)
+//   ctx.args    — named positionals declared on the subcommand
+//   ctx.deps    — host-injected collaborators: `{ runtime, config }`
+// Handlers read/write the filesystem and stdout exclusively through
+// `ctx.deps.runtime` and return `{ ok: true }` on success.
+
 // --- GitHub commands ---
 
 /**
  * List recent workflow runs matching a pattern.
- * @param {object} values - Parsed option values
- * @param {string[]} args - [pattern?]
- * @param {{config: import("@forwardimpact/libconfig").Config}} ctx
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  */
-export async function runRunsCommand(values, args, ctx) {
+export async function runRunsCommand(ctx) {
+  const { runtime, config } = ctx.deps;
   const gh = await createTraceGitHub({
-    token: ctx.config.ghToken(),
-    repo: values.repo,
+    token: config.ghToken(),
+    repo: ctx.options.repo,
+    runtime,
   });
-  const pattern = args[0] ?? "agent";
-  const lookback = values.lookback ?? "7d";
+  const pattern = ctx.args.pattern ?? "agent";
+  const lookback = ctx.options.lookback ?? "7d";
   const runs = await gh.listRuns({ pattern, lookback });
-  writeJSON(runs, values);
+  writeJSON(runtime, runs, ctx.options);
+  return { ok: true };
 }
 
 /**
  * Download a trace artifact and auto-convert to structured JSON.
- * @param {object} values - Parsed option values
- * @param {string[]} args - [run-id]
- * @param {{config: import("@forwardimpact/libconfig").Config}} ctx
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  */
-export async function runDownloadCommand(values, args, ctx) {
+export async function runDownloadCommand(ctx) {
+  const { runtime, config } = ctx.deps;
   const gh = await createTraceGitHub({
-    token: ctx.config.ghToken(),
-    repo: values.repo,
+    token: config.ghToken(),
+    repo: ctx.options.repo,
+    runtime,
   });
-  const result = await gh.downloadTrace(args[0], {
-    dir: values.dir,
-    name: values.artifact,
+  const result = await gh.downloadTrace(ctx.args["run-id"], {
+    dir: ctx.options.dir,
+    name: ctx.options.artifact,
   });
 
   const ndjsonFile = result.files.find((f) => f.endsWith(".ndjson"));
   if (ndjsonFile) {
     const ndjsonPath = join(result.dir, ndjsonFile);
     const collector = createTraceCollector();
-    for (const line of readFileSync(ndjsonPath, "utf8").split("\n")) {
+    for (const line of runtime.fsSync
+      .readFileSync(ndjsonPath, "utf8")
+      .split("\n")) {
       collector.addLine(line);
     }
     const structuredPath = join(result.dir, "structured.json");
-    writeFileSync(structuredPath, JSON.stringify(collector.toJSON()) + "\n");
+    runtime.fsSync.writeFileSync(
+      structuredPath,
+      JSON.stringify(collector.toJSON()) + "\n",
+    );
     result.files.push("structured.json");
   }
 
-  writeJSON(result, values);
+  writeJSON(runtime, result, ctx.options);
+  return { ok: true };
 }
 
 // --- Query commands ---
 
-/** @param {object} values @param {string[]} args - [file] */
-export async function runOverviewCommand(values, args) {
-  writeJSON(loadTrace(args[0]).overview(), values);
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runOverviewCommand(ctx) {
+  const { runtime } = ctx.deps;
+  writeJSON(runtime, loadTrace(runtime, ctx.args.file).overview(), ctx.options);
+  return { ok: true };
 }
 
-/** @param {object} values @param {string[]} args - [file] */
-export async function runCountCommand(values, args) {
-  process.stdout.write(String(loadTrace(args[0]).count()) + "\n");
-}
-
-/** @param {object} values @param {string[]} args - [file, from, to] */
-export async function runBatchCommand(values, args) {
-  writeJSON(
-    loadTrace(args[0]).batch(parseInt(args[1], 10), parseInt(args[2], 10)),
-    values,
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runCountCommand(ctx) {
+  const { runtime } = ctx.deps;
+  runtime.proc.stdout.write(
+    String(loadTrace(runtime, ctx.args.file).count()) + "\n",
   );
+  return { ok: true };
 }
 
-/** @param {object} values @param {string[]} args - [file, N?] */
-export async function runHeadCommand(values, args) {
-  const n = args[1] ? parseInt(args[1], 10) : 10;
-  writeJSON(loadTrace(args[0]).head(n), values);
-}
-
-/** @param {object} values @param {string[]} args - [file, N?] */
-export async function runTailCommand(values, args) {
-  const n = args[1] ? parseInt(args[1], 10) : 10;
-  writeJSON(loadTrace(args[0]).tail(n), values);
-}
-
-/** @param {object} values @param {string[]} args - [file, pattern] */
-export async function runSearchCommand(values, args) {
-  const limit = values.limit ? parseInt(values.limit, 10) : 50;
-  const context = values.context ? parseInt(values.context, 10) : 0;
-  const full = values.full ?? false;
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runBatchCommand(ctx) {
+  const { runtime } = ctx.deps;
   writeJSON(
-    loadTrace(args[0]).search(args[1], { limit, context, full }),
-    values,
+    runtime,
+    loadTrace(runtime, ctx.args.file).batch(
+      parseInt(ctx.args.from, 10),
+      parseInt(ctx.args.to, 10),
+    ),
+    ctx.options,
   );
+  return { ok: true };
 }
 
-/** @param {object} values @param {string[]} args - [file] */
-export async function runToolsCommand(values, args) {
-  writeJSON(loadTrace(args[0]).toolFrequency(), values);
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runHeadCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const n = ctx.args.n ? parseInt(ctx.args.n, 10) : 10;
+  writeJSON(runtime, loadTrace(runtime, ctx.args.file).head(n), ctx.options);
+  return { ok: true };
 }
 
-/** @param {object} values @param {string[]} args - [file, name] */
-export async function runToolCommand(values, args) {
-  writeJSON(loadTrace(args[0]).tool(args[1]), values);
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runTailCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const n = ctx.args.n ? parseInt(ctx.args.n, 10) : 10;
+  writeJSON(runtime, loadTrace(runtime, ctx.args.file).tail(n), ctx.options);
+  return { ok: true };
 }
 
-/** @param {object} values @param {string[]} args - [file] */
-export async function runErrorsCommand(values, args) {
-  writeJSON(loadTrace(args[0]).errors(), values);
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runSearchCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const limit = ctx.options.limit ? parseInt(ctx.options.limit, 10) : 50;
+  const context = ctx.options.context ? parseInt(ctx.options.context, 10) : 0;
+  const full = ctx.options.full ?? false;
+  writeJSON(
+    runtime,
+    loadTrace(runtime, ctx.args.file).search(ctx.args.pattern, {
+      limit,
+      context,
+      full,
+    }),
+    ctx.options,
+  );
+  return { ok: true };
 }
 
-/** @param {object} values @param {string[]} args - [file] */
-export async function runReasoningCommand(values, args) {
-  const from = values.from ? parseInt(values.from, 10) : undefined;
-  const to = values.to ? parseInt(values.to, 10) : undefined;
-  writeJSON(loadTrace(args[0]).reasoning({ from, to }), values);
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runToolsCommand(ctx) {
+  const { runtime } = ctx.deps;
+  writeJSON(
+    runtime,
+    loadTrace(runtime, ctx.args.file).toolFrequency(),
+    ctx.options,
+  );
+  return { ok: true };
 }
 
-/** @param {object} values @param {string[]} args - [file] */
-export async function runTimelineCommand(values, args) {
-  const lines = loadTrace(args[0]).timeline();
-  process.stdout.write(lines.join("\n") + "\n");
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runToolCommand(ctx) {
+  const { runtime } = ctx.deps;
+  writeJSON(
+    runtime,
+    loadTrace(runtime, ctx.args.file).tool(ctx.args.name),
+    ctx.options,
+  );
+  return { ok: true };
 }
 
-/** @param {object} values @param {string[]} args - [file] */
-export async function runStatsCommand(values, args) {
-  writeJSON(loadTrace(args[0]).stats(), values);
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runErrorsCommand(ctx) {
+  const { runtime } = ctx.deps;
+  writeJSON(runtime, loadTrace(runtime, ctx.args.file).errors(), ctx.options);
+  return { ok: true };
 }
 
-/** @param {object} values @param {string[]} args - [file] */
-export async function runInitCommand(values, args) {
-  writeJSON(loadTrace(args[0]).init(), values);
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runReasoningCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const from = ctx.options.from ? parseInt(ctx.options.from, 10) : undefined;
+  const to = ctx.options.to ? parseInt(ctx.options.to, 10) : undefined;
+  writeJSON(
+    runtime,
+    loadTrace(runtime, ctx.args.file).reasoning({ from, to }),
+    ctx.options,
+  );
+  return { ok: true };
 }
 
-/** @param {object} values @param {string[]} args - [file, index] */
-export async function runTurnCommand(values, args) {
-  writeJSON(loadTrace(args[0]).turn(parseInt(args[1], 10)), values);
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runTimelineCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const lines = loadTrace(runtime, ctx.args.file).timeline();
+  runtime.proc.stdout.write(lines.join("\n") + "\n");
+  return { ok: true };
 }
 
-/** @param {object} values @param {string[]} args - [file] */
-export async function runFilterCommand(values, args) {
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runStatsCommand(ctx) {
+  const { runtime } = ctx.deps;
+  writeJSON(runtime, loadTrace(runtime, ctx.args.file).stats(), ctx.options);
+  return { ok: true };
+}
+
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runInitCommand(ctx) {
+  const { runtime } = ctx.deps;
+  writeJSON(runtime, loadTrace(runtime, ctx.args.file).init(), ctx.options);
+  return { ok: true };
+}
+
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runTurnCommand(ctx) {
+  const { runtime } = ctx.deps;
+  writeJSON(
+    runtime,
+    loadTrace(runtime, ctx.args.file).turn(parseInt(ctx.args.index, 10)),
+    ctx.options,
+  );
+  return { ok: true };
+}
+
+/** @param {import("@forwardimpact/libcli").InvocationContext} ctx */
+export async function runFilterCommand(ctx) {
+  const { runtime } = ctx.deps;
   const opts = {};
-  if (values.role) opts.role = values.role;
-  if (values.tool) opts.toolName = values.tool;
-  if (values.error) opts.isError = true;
-  writeJSON(loadTrace(args[0]).filter(opts), values);
+  if (ctx.options.role) opts.role = ctx.options.role;
+  if (ctx.options.tool) opts.toolName = ctx.options.tool;
+  if (ctx.options.error) opts.isError = true;
+  writeJSON(
+    runtime,
+    loadTrace(runtime, ctx.args.file).filter(opts),
+    ctx.options,
+  );
+  return { ok: true };
 }
 
 // --- Split command ---
@@ -168,24 +242,24 @@ const STRUCTURAL_ROLES = new Set(["agent", "supervisor", "facilitator"]);
  * `staff-engineer`) classify as agents with the profile in the participant
  * slot. Orchestrator events and invalid source names are dropped.
  *
- * @param {object} values - Parsed option values
- * @param {string[]} args - [file]
+ * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  */
-export async function runSplitCommand(values, args) {
-  const file = args[0];
-  if (!file) throw new Error("split: missing input file");
+export async function runSplitCommand(ctx) {
+  const { runtime } = ctx.deps;
+  const file = ctx.args.file;
+  if (!file) return { ok: false, code: 1, error: "split: missing input file" };
 
-  const mode = values.mode;
-  if (!mode) throw new Error("split: --mode is required");
+  const mode = ctx.options.mode;
+  if (!mode) return { ok: false, code: 1, error: "split: --mode is required" };
   if (!["run", "supervise", "facilitate"].includes(mode)) {
-    throw new Error(`split: invalid --mode "${mode}"`);
+    return { ok: false, code: 1, error: `split: invalid --mode "${mode}"` };
   }
 
-  const caseId = values.case ?? "default";
-  const outputDir = values["output-dir"] || dirname(file);
-  mkdirSync(outputDir, { recursive: true });
+  const caseId = ctx.options.case ?? "default";
+  const outputDir = ctx.options["output-dir"] || dirname(file);
+  runtime.fsSync.mkdirSync(outputDir, { recursive: true });
 
-  const buckets = parseBuckets(readFileSync(file, "utf8"));
+  const buckets = parseBuckets(runtime.fsSync.readFileSync(file, "utf8"));
 
   for (const [source, lines] of buckets.entries()) {
     if (!VALID_SOURCE_NAME.test(source)) continue;
@@ -194,8 +268,9 @@ export async function runSplitCommand(values, args) {
       outputDir,
       `trace--${caseId}--${source}.${role}.ndjson`,
     );
-    writeFileSync(outPath, lines.join("\n") + "\n");
+    runtime.fsSync.writeFileSync(outPath, lines.join("\n") + "\n");
   }
+  return { ok: true };
 }
 
 /**
@@ -234,11 +309,12 @@ function parseBuckets(content) {
 
 /**
  * Load a trace file. Supports structured JSON and raw NDJSON.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {string} file
  * @returns {import("../trace-query.js").TraceQuery}
  */
-function loadTrace(file) {
-  const content = readFileSync(file, "utf8");
+function loadTrace(runtime, file) {
+  const content = runtime.fsSync.readFileSync(file, "utf8");
 
   try {
     const parsed = JSON.parse(content);
@@ -260,10 +336,11 @@ function loadTrace(file) {
  * Write JSON output to stdout. By default strips `thinking.signature`
  * base64 blobs from the payload so they don't dominate terminal output;
  * pass `--signatures` (surfaced as `values.signatures`) to keep them.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {*} data
  * @param {object} [values]
  */
-function writeJSON(data, values = {}) {
+function writeJSON(runtime, data, values = {}) {
   const output = values.signatures ? data : stripSignatures(data);
-  process.stdout.write(JSON.stringify(output, null, 2) + "\n");
+  runtime.proc.stdout.write(JSON.stringify(output, null, 2) + "\n");
 }

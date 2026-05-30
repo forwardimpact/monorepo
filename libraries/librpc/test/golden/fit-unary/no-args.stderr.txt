@@ -1,0 +1,1 @@
+fit-unary: error: expected arguments: <service> <method> [json-request]

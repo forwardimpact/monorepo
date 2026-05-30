@@ -5,11 +5,7 @@
  */
 
 import { join, dirname } from "path";
-import { readFile, readdir, mkdtemp, rm, writeFile } from "fs/promises";
 import { fileURLToPath } from "url";
-import { execFile } from "child_process";
-import { promisify } from "util";
-import { tmpdir } from "os";
 import {
   formatHeader,
   formatListItem,
@@ -73,9 +69,15 @@ export async function resolveSupabaseClient({ config }) {
   return createClient(url, key);
 }
 
-/** Assemble all pipeline dependencies from CLI options and return a configured Pipeline. */
+/**
+ * Assemble all pipeline dependencies from CLI options and return a configured Pipeline.
+ *
+ * @param {object} opts
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} opts.runtime - Injected runtime bag.
+ */
 export function createPipeline(opts) {
   const {
+    runtime,
     logger,
     mode,
     cachePath,
@@ -102,7 +104,28 @@ export function createPipeline(opts) {
   const renderer = new Renderer(templateLoader, logger);
   const validator = new ContentValidator(logger);
 
-  const execFileFn = promisify(execFile);
+  // Build an execFileFn compatible with SyntheaTool / SdvTool from the
+  // injected subprocess surface. These tools follow the `promisify(execFile)`
+  // contract: it REJECTS on a non-zero exit, and they depend on that — e.g.
+  // `checkAvailability()` probes `python3 -c "import sdv"` and treats a throw
+  // as "tool unavailable, skip". `runtime.subprocess.run` resolves on failure,
+  // so re-throw here to preserve the reject-on-failure semantics.
+  const { run: subprocessRun } = runtime.subprocess;
+  const execFileFn = async (cmd, args, opts2) => {
+    const result = await subprocessRun(cmd, args ?? [], opts2 ?? {});
+    if (result.exitCode !== 0) {
+      const err = new Error(
+        `${cmd} exited with code ${result.exitCode}: ${
+          result.stderr?.trim() || result.stdout?.trim() || "(no output)"
+        }`,
+      );
+      err.code = result.exitCode;
+      err.stdout = result.stdout;
+      err.stderr = result.stderr;
+      throw err;
+    }
+    return result;
+  };
 
   function toolFactory(name, deps) {
     switch (name) {
@@ -112,21 +135,27 @@ export function createPipeline(opts) {
         return new SyntheaTool({
           logger: deps.logger,
           syntheaJar:
-            process.env.SYNTHEA_JAR ||
+            runtime.proc.env.SYNTHEA_JAR ||
             "vendor/synthea/synthea-with-dependencies.jar",
           execFileFn,
           fsFns: {
-            readFile,
-            readdir,
-            mkdtemp: (prefix) => mkdtemp(join(tmpdir(), prefix)),
-            rm,
+            readFile: (path, enc) => runtime.fs.readFile(path, enc),
+            readdir: (path) => runtime.fs.readdir(path),
+            mkdtemp: (prefix) =>
+              runtime.fs.mkdtemp(
+                join(runtime.proc.env.TMPDIR ?? "/tmp", prefix),
+              ),
+            rm: (path, opts2) => runtime.fs.rm(path, opts2),
           },
         });
       case "sdv":
         return new SdvTool({
           logger: deps.logger,
           execFileFn,
-          fsFns: { writeFile, rm },
+          fsFns: {
+            writeFile: (path, data) => runtime.fs.writeFile(path, data),
+            rm: (path, opts2) => runtime.fs.rm(path, opts2),
+          },
         });
       default:
         throw new Error(`Unknown tool: ${name}`);
@@ -147,6 +176,7 @@ export function createPipeline(opts) {
     validator,
     proseCacheSink,
     toolFactory,
+    runtime,
     logger,
   });
 }
@@ -159,11 +189,18 @@ export async function selectOutputSink({
   prettierFn,
   logger,
   config,
+  runtime,
 }) {
-  if (verb === "inspect") return new InspectSink();
+  if (verb === "inspect")
+    return new InspectSink({ stdout: runtime?.proc?.stdout });
   if (verb !== "build" && verb !== "generate") return new NullSink();
 
-  const writeSink = new WriteSink({ monorepoRoot, prettierFn, logger });
+  const writeSink = new WriteSink({
+    monorepoRoot,
+    prettierFn,
+    logger,
+    runtime,
+  });
   if (!load) return writeSink;
 
   const supabase = await resolveSupabaseClient({ config });
@@ -223,8 +260,12 @@ export function resolvePackagePaths(metaResolve) {
 /**
  * Render the validation block followed by a totals summary. Returns true on
  * pass, false on fail.
+ *
+ * @param {object} result
+ * @param {object} summary
+ * @param {{ write: (s: string) => void }} stdout - stdout surface (runtime.proc.stdout)
  */
-export function printValidation(result, summary) {
+export function printValidation(result, summary, stdout) {
   const items = result.validation.checks.map((check) => ({
     label: check.name,
     description: check.passed ? "✓" : `✗ ${check.message ?? "failed"}`,
@@ -237,10 +278,10 @@ export function printValidation(result, summary) {
   });
 
   if (!ok) {
-    process.stdout.write("\n");
+    stdout.write("\n");
     const failed = result.validation.checks.filter((c) => !c.passed);
     for (const check of failed) {
-      process.stdout.write(
+      stdout.write(
         formatListItem(check.name, check.message ?? "failed") + "\n",
       );
     }
@@ -299,8 +340,13 @@ export function printRenderStats(summary, result, ok) {
 /**
  * Render the write-stats block (file counts on disk + any load errors as
  * formatListItem rows in the structured result).
+ *
+ * @param {object} summary
+ * @param {object} writeStats
+ * @param {boolean} ok
+ * @param {{ write: (s: string) => void }} stdout - stdout surface (runtime.proc.stdout)
  */
-export function printWriteStats(summary, writeStats, ok) {
+export function printWriteStats(summary, writeStats, ok, stdout) {
   const items = [];
   if (writeStats.filesWritten > 0) {
     items.push({
@@ -329,9 +375,9 @@ export function printWriteStats(summary, writeStats, ok) {
   if (items.length === 0 && writeStats.loadErrors === 0) return;
   summary.render({ title: formatHeader("Write"), items, ok });
   if (writeStats.loadErrors > 0 && writeStats.loadErrorMessages?.length) {
-    process.stdout.write("\n");
+    stdout.write("\n");
     for (const err of writeStats.loadErrorMessages) {
-      process.stdout.write(formatListItem("error", err) + "\n");
+      stdout.write(formatListItem("error", err) + "\n");
     }
   }
 }
@@ -355,8 +401,13 @@ export function printGenerateStats(summary, result, ok) {
  * misses/rate block. On failure, a formatTable surfaces the same numbers in a
  * scannable, agent-parseable shape so a CI gate can diff cache state turn over
  * turn.
+ *
+ * @param {object} result
+ * @param {object} summary
+ * @param {boolean} ok
+ * @param {{ write: (s: string) => void }} stdout - stdout surface (runtime.proc.stdout)
  */
-export function printCacheReport(result, summary, ok) {
+export function printCacheReport(result, summary, ok, stdout) {
   const { hits, generated, misses, missKeys } = result.stats.prose;
   const total = hits + generated + misses;
   const rate = total === 0 ? 100 : Math.round((hits / total) * 100);
@@ -364,7 +415,7 @@ export function printCacheReport(result, summary, ok) {
   if (!ok) {
     const sortedMissKeys = [...missKeys].sort();
     if (sortedMissKeys.length > 0) {
-      process.stdout.write("\n");
+      stdout.write("\n");
       summary.render({
         title: formatHeader(`Cache misses (${sortedMissKeys.length})`),
         items: [],

@@ -53,6 +53,7 @@
     "@forwardimpact/librepl": "^0.1.12",
     "@forwardimpact/libstorage": "^0.1.78",
     "@forwardimpact/libtype": "^0.1.75",
+    "@forwardimpact/libutil": "^0.1.0",
     "jmespath": "^0.16.0"
   },
   "devDependencies": {

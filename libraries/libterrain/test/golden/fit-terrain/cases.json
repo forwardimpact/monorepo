@@ -1,0 +1,17 @@
+[
+  {
+    "name": "help",
+    "args": ["--help"],
+    "exitCode": 0,
+    "stdoutFile": "help.stdout.txt",
+    "stderrFile": "help.stderr.txt"
+  },
+  {
+    "name": "version",
+    "args": ["--version"],
+    "exitCode": 0,
+    "stdoutFile": "version.stdout.txt",
+    "stderrFile": "version.stderr.txt",
+    "transform": [{ "pattern": "\\d+\\.\\d+\\.\\d+", "replacement": "X.Y.Z" }]
+  }
+]

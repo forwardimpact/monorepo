@@ -1,31 +1,44 @@
-import { existsSync, readFileSync } from "node:fs";
-
 import { analyze } from "../analyze.js";
 import { renderChart } from "../chart.js";
 import { MIN_POINTS } from "../constants.js";
 
 /** Run the chart command: read a CSV, select a metric, and print its XmR control chart to stdout. */
-export function runChartCommand(values, args, cli) {
-  const csvPath = args[0];
+export function runChartCommand(ctx) {
+  const {
+    options: values,
+    args,
+    deps: { runtime },
+  } = ctx;
+  const { fsSync, proc } = runtime;
+
+  const csvPath = args["csv-path"];
   if (!csvPath) {
-    cli.usageError("chart requires a <csv-path> argument");
-    process.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: "chart requires a <csv-path> argument",
+    };
   }
   if (values.format === "json") {
-    cli.usageError("chart does not support --format json");
-    process.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: "chart does not support --format json",
+    };
   }
-  if (!existsSync(csvPath)) {
-    cli.usageError(`cannot read CSV "${csvPath}": file not found`);
-    process.exit(2);
+  if (!fsSync.existsSync(csvPath)) {
+    return {
+      ok: false,
+      code: 2,
+      error: `cannot read CSV "${csvPath}": file not found`,
+    };
   }
 
-  const text = readFileSync(csvPath, "utf-8");
+  const text = fsSync.readFileSync(csvPath, "utf-8");
   const report = analyze(text);
 
   if (report.metrics.length === 0) {
-    cli.usageError(`no metrics found in "${csvPath}"`);
-    process.exit(2);
+    return { ok: false, code: 2, error: `no metrics found in "${csvPath}"` };
   }
 
   // If --metric is given, pick that one. If not given but the CSV carries
@@ -35,28 +48,33 @@ export function runChartCommand(values, args, cli) {
   if (values.metric) {
     target = report.metrics.find((m) => m.metric === values.metric);
     if (!target) {
-      cli.usageError(`no rows for metric "${values.metric}"`);
-      process.exit(2);
+      return {
+        ok: false,
+        code: 2,
+        error: `no rows for metric "${values.metric}"`,
+      };
     }
   } else if (report.metrics.length === 1) {
     target = report.metrics[0];
   } else {
     const names = report.metrics.map((m) => m.metric).join(", ");
-    cli.usageError(
-      `chart requires --metric when CSV has multiple metrics (found: ${names})`,
-    );
-    process.exit(2);
+    return {
+      ok: false,
+      code: 2,
+      error: `chart requires --metric when CSV has multiple metrics (found: ${names})`,
+    };
   }
 
   if (target.status === "insufficient_data") {
-    process.stdout.write(
+    proc.stdout.write(
       `Insufficient data: ${target.n} points (need at least ${MIN_POINTS}).\n`,
     );
-    return;
+    return { ok: true };
   }
 
   const chart = renderChart(target.values, target.stats, target.signals, {
     ascii: !!values.ascii,
   });
-  process.stdout.write(chart + "\n");
+  proc.stdout.write(chart + "\n");
+  return { ok: true };
 }

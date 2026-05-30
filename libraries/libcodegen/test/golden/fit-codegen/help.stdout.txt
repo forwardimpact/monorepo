@@ -1,0 +1,19 @@
+fit-codegen 0.1.59 — Generate protobuf types, service clients, and definitions from .proto files in installed @forwardimpact/* packages (node_modules/@forwardimpact/*/proto/) and an optional project-local proto/ directory.
+
+Usage: fit-codegen [options]
+
+Options:
+  --all         Generate all code
+  --type        Generate protobuf types only
+  --service     Generate service bases only
+  --client      Generate clients only
+  --definition  Generate service definitions only
+  --metadata    Generate field metadata only
+  --help, -h    Show this help
+  --version     Show version
+  --json        Output help as JSON
+
+Examples:
+  npx fit-codegen --all
+  npx fit-codegen --type
+  npx fit-codegen --service

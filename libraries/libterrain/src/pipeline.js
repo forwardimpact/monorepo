@@ -39,6 +39,7 @@
 
 import { buildNodes } from "./nodes.js";
 import { NullProseCacheSink } from "./sinks.js";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /** Names of the nodes the DAG knows about. Inspect verb takes one of these. */
 export const STAGES = [
@@ -122,6 +123,7 @@ export class Pipeline {
     proseCacheSink,
     toolFactory,
     logger,
+    runtime,
   }) {
     if (!dslParser) throw new Error("dslParser is required");
     if (!entityGenerator) throw new Error("entityGenerator is required");
@@ -142,6 +144,10 @@ export class Pipeline {
     this.proseCacheSink = proseCacheSink || new NullProseCacheSink();
     this.toolFactory = toolFactory || null;
     this.logger = logger;
+    // Fall back to the production runtime when callers do not inject one.
+    // This preserves backward compatibility for external consumers that
+    // construct Pipeline without a runtime bag.
+    this.runtime = runtime ?? createDefaultRuntime();
   }
 
   /**
@@ -170,6 +176,7 @@ export class Pipeline {
       proseCacheSink: this.proseCacheSink,
       toolFactory: this.toolFactory,
       logger: this.logger,
+      runtime: this.runtime,
       options: { storyPath, only, schemaDir },
     });
 

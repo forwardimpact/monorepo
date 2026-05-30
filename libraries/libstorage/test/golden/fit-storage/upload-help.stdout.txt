@@ -1,0 +1,10 @@
+fit-storage upload — Upload local data to remote storage
+
+Usage: fit-storage upload [options]
+
+Options:
+  --prefix=<string>  Storage prefix to operate on (repeatable)
+
+Global options:
+  --help, -h  Show this help
+  --json      Output help as JSON

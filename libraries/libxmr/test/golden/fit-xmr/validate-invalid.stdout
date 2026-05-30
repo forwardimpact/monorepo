@@ -1,0 +1,5 @@
+Validate — test/fixtures/invalid.csv
+Rows: 2
+Error: 2 error(s)
+• line 2 [value]: not a number "not_a_number"
+• line 3 [value]: not a number "also_bad"

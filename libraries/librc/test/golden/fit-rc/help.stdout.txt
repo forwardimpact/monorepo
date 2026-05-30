@@ -1,0 +1,24 @@
+fit-rc 0.1.34 — Service manager for Forward Impact
+
+Usage: fit-rc <command> [options]
+
+Commands:
+  start [service]    Start services
+  stop [service]     Stop services
+  status [service]   Show service status
+  restart [service]  Restart services
+  logs <service>     Print a service's current log to stdout
+
+Options:
+  --help, -h    Show this help
+  --silent, -s  Suppress info/debug output
+  --version     Show version
+  --json        Output help as JSON
+
+Examples:
+  fit-rc start
+  fit-rc stop agent
+  fit-rc status
+  fit-rc logs trace
+
+Use fit-rc <command> --help for command-specific options.

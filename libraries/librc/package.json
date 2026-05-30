@@ -48,7 +48,8 @@
     "@forwardimpact/libconfig": "^0.1.58",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libsupervise": "^0.1.6",
-    "@forwardimpact/libtelemetry": "^0.1.22"
+    "@forwardimpact/libtelemetry": "^0.1.22",
+    "@forwardimpact/libutil": "^0.1.0"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

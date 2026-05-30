@@ -2,13 +2,18 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createCli } from "@forwardimpact/libcli";
 import { emitFindingsJson, emitFindingsText } from "@forwardimpact/libutil";
 import { checkInstructions, checkJtbd } from "../src/index.js";
 
+const runtime = createDefaultRuntime();
+
 const { version: VERSION } = JSON.parse(
-  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+  runtime.fsSync.readFileSync(
+    new URL("../package.json", import.meta.url),
+    "utf8",
+  ),
 );
 
 const definition = {
@@ -48,55 +53,67 @@ const definition = {
 
 const cli = createCli(definition);
 
-function writeFindings(findings, passMessage, jsonOutput, cwd) {
+function writeFindings(findings, passMessage, jsonOutput, cwd, rt) {
   if (jsonOutput) {
-    process.stdout.write(emitFindingsJson(findings));
+    rt.proc.stdout.write(emitFindingsJson(findings));
   } else if (findings.length > 0) {
-    process.stderr.write(emitFindingsText(findings, { cwd, passMessage }));
+    rt.proc.stderr.write(emitFindingsText(findings, { cwd, passMessage }));
   } else {
-    process.stdout.write(emitFindingsText(findings, { cwd, passMessage }));
+    rt.proc.stdout.write(emitFindingsText(findings, { cwd, passMessage }));
   }
 }
 
-async function runInstructions(root, jsonOutput) {
-  const findings = await checkInstructions({ root });
-  writeFindings(findings, "coaligned instructions passed", jsonOutput, root);
+async function runInstructions(root, jsonOutput, rt) {
+  const findings = await checkInstructions({ root, runtime: rt });
+  writeFindings(
+    findings,
+    "coaligned instructions passed",
+    jsonOutput,
+    root,
+    rt,
+  );
   return findings.length > 0 ? 1 : 0;
 }
 
-async function runJtbd(root, fix, jsonOutput) {
-  const { findings, stale, fixed } = await checkJtbd({ root, fix });
-  writeFindings(findings, "coaligned jtbd passed", jsonOutput, root);
-  for (const f of fixed) process.stdout.write(`Regenerated ${f}.\n`);
+async function runJtbd(root, fix, jsonOutput, rt) {
+  const { findings, stale, fixed } = await checkJtbd({
+    root,
+    fix,
+    runtime: rt,
+  });
+  writeFindings(findings, "coaligned jtbd passed", jsonOutput, root, rt);
+  for (const f of fixed) rt.proc.stdout.write(`Regenerated ${f}.\n`);
   if (stale.length > 0 && !jsonOutput) {
-    process.stderr.write(
+    rt.proc.stderr.write(
       `\n${stale.length} file${stale.length === 1 ? "" : "s"} out of date — run \`coaligned jtbd --fix\` to regenerate:\n`,
     );
-    for (const s of stale) process.stderr.write(`  - ${s}\n`);
+    for (const s of stale) rt.proc.stderr.write(`  - ${s}\n`);
   }
   return findings.length > 0 || stale.length > 0 ? 1 : 0;
 }
 
 async function instructionsHandler(ctx) {
-  return runInstructions(ctx.data.root, !!ctx.options.json);
+  const rt = ctx.deps.runtime;
+  return runInstructions(ctx.data.root, !!ctx.options.json, rt);
 }
 
 async function jtbdHandler(ctx) {
-  return runJtbd(ctx.data.root, !!ctx.options.fix, !!ctx.options.json);
+  const rt = ctx.deps.runtime;
+  return runJtbd(ctx.data.root, !!ctx.options.fix, !!ctx.options.json, rt);
 }
 
 async function main() {
-  const parsed = cli.parse(process.argv.slice(2));
-  if (!parsed) return 0;
+  const parsed = cli.parse(runtime.proc.argv.slice(2));
+  if (!parsed) return runtime.proc.exit(0);
 
-  const root = process.cwd();
+  const root = runtime.proc.cwd();
   const jsonOutput = !!parsed.values.json;
 
   // No subcommand → run every check; --fix stays jtbd-only and must be opted
   // into explicitly via `coaligned jtbd --fix`.
   if (parsed.positionals.length === 0) {
-    const a = await runInstructions(root, jsonOutput);
-    const b = await runJtbd(root, false, jsonOutput);
+    const a = await runInstructions(root, jsonOutput, runtime);
+    const b = await runJtbd(root, false, jsonOutput, runtime);
     return a || b;
   }
 
@@ -106,12 +123,12 @@ async function main() {
     return 2;
   }
 
-  return await cli.dispatch(parsed, { data: { root } });
+  return await cli.dispatch(parsed, { data: { root }, deps: { runtime } });
 }
 
 main()
-  .then((code) => process.exit(code ?? 0))
+  .then((code) => runtime.proc.exit(code ?? 0))
   .catch((err) => {
     cli.error(err.message);
-    process.exit(1);
+    runtime.proc.exit(1);
   });

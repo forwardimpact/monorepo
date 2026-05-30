@@ -11,6 +11,7 @@ export class PagesServer {
   #serve;
   #builder;
   #watcher;
+  #proc;
 
   /**
    * Creates a new PagesServer instance
@@ -18,8 +19,9 @@ export class PagesServer {
    * @param {Function} HonoConstructor - Hono constructor (optional, required for serve())
    * @param {Function} serveFn - Hono serve function from @hono/node-server (optional, required for serve())
    * @param {import("./builder.js").PagesBuilder} builder - PagesBuilder instance
+   * @param {{ runtime?: import("@forwardimpact/libutil/runtime").Runtime }} [opts] - Optional injected runtime bag
    */
-  constructor(fs, HonoConstructor, serveFn, builder) {
+  constructor(fs, HonoConstructor, serveFn, builder, opts) {
     if (!fs) throw new Error("fs is required");
     if (!builder) throw new Error("builder is required");
 
@@ -28,6 +30,8 @@ export class PagesServer {
     this.#serve = serveFn;
     this.#builder = builder;
     this.#watcher = null;
+    // Fall back to the ambient process when no runtime is injected (BC shim).
+    this.#proc = opts?.runtime?.proc ?? process;
   }
 
   /**
@@ -57,10 +61,13 @@ export class PagesServer {
       },
     );
 
-    // Keep process alive
+    // Keep process alive. Signal registration is inherently global — the
+    // `runtime.proc` surface deliberately omits `.on` (like librpc's server) —
+    // so SIGINT is wired on the ambient `process`; only the exit routes through
+    // the injected `proc` so tests can observe it.
     process.on("SIGINT", () => {
       this.stopWatch();
-      process.exit(0);
+      this.#proc.exit(0);
     });
   }
 

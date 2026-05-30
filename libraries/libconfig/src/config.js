@@ -1,9 +1,12 @@
-import { execSync } from "node:child_process";
 import path from "node:path";
-import { readFile } from "node:fs/promises";
 import { createStorage } from "@forwardimpact/libstorage";
+import {
+  createDefaultProc,
+  createDefaultRuntime,
+} from "@forwardimpact/libutil/runtime";
 
 /** @typedef {import("@forwardimpact/libstorage").StorageInterface} StorageInterface */
+/** @typedef {import("@forwardimpact/libutil/runtime").Runtime} Runtime */
 
 /** @param {string} url */
 function stripTrailingSlashes(url) {
@@ -50,13 +53,46 @@ function parseEnvLine(line) {
 }
 
 /**
+ * Resolve a runtime collaborator from the new or legacy call shapes.
+ *
+ * New shape  — callers pass `{ runtime }` as the third positional arg; the
+ *   runtime bag carries `{ proc, fs, clock, subprocess }`.
+ * Legacy shape — callers pass a bare `process`-like object (with `.env` and
+ *   `.cwd()`). This is mapped onto a minimal runtime for one deprecation cycle.
+ * Absent      — falls back to `createDefaultRuntime()`.
+ *
+ * @param {object|undefined} runtimeOrProcess
+ * @returns {{ proc: object, fs: object, clock: object }}
+ */
+function resolveRuntime(runtimeOrProcess) {
+  if (!runtimeOrProcess) {
+    return createDefaultRuntime();
+  }
+  // New shape: { runtime: <bag> }
+  if (runtimeOrProcess.runtime) {
+    return runtimeOrProcess.runtime;
+  }
+  // Legacy shape: bare process-like object ({ env, cwd })
+  // Map onto a minimal runtime, preserving the original proc surface.
+  const legacyProc =
+    typeof runtimeOrProcess.cwd === "function"
+      ? runtimeOrProcess
+      : createDefaultProc({ source: runtimeOrProcess });
+  const defaultRt = createDefaultRuntime();
+  return {
+    ...defaultRt,
+    proc: legacyProc,
+  };
+}
+
+/**
  * Centralized configuration management class
  */
 export class Config {
   // Keys containing secrets or tokens. Values from .env are loaded into
-  // a private map (#envOverrides) instead of process.env, so they never
-  // leak through child-process inheritance or process.env inspection.
-  // Getter methods read via #env(), which checks process.env first —
+  // a private map (#envOverrides) instead of proc.env, so they never
+  // leak through child-process inheritance or proc.env inspection.
+  // Getter methods read via #env(), which checks proc.env first —
   // so shell-exported credentials still work; .env is the fallback.
   static #CREDENTIAL_KEYS = new Set([
     "ANTHROPIC_API_KEY",
@@ -79,30 +115,44 @@ export class Config {
   #envOverrides = {};
   #fileData = null;
   #storage = null;
-  #process;
+  #proc;
+  #fs;
+  #clock;
   #storageFn;
-  #execSync;
+  #subprocess;
 
   /**
-   * Creates a new Config instance
-   * @param {string} namespace - Namespace for the configuration (e.g., "service", "extension")
-   * @param {string} name - Name of the configuration (used for environment variable prefix)
-   * @param {object} defaults - Default configuration values
-   * @param {object} process - Process environment access
-   * @param {(bucket: string, type?: string, process?: object) => StorageInterface} storageFn - Optional storage factory function that takes basePath and returns storage instance
-   * @param {(command: string, options?: object) => Buffer | string} execSyncFn - Optional child_process.execSync override (for testing)
+   * Creates a new Config instance.
+   *
+   * Preferred call shape (new):
+   *   `new Config(namespace, name, defaults, { runtime }, storageFn)`
+   *   where `runtime` is a runtime bag from `createDefaultRuntime()` or
+   *   `createTestRuntime()`.
+   *
+   * Legacy call shape (one-cycle deprecation alias — still supported):
+   *   `new Config(namespace, name, defaults, process, storageFn)`
+   *   where `process` is a bare process-like object with `.env` and `.cwd()`.
+   *
+   * @param {string} namespace - Namespace for the configuration
+   * @param {string} name - Name of the configuration
+   * @param {object} [defaults] - Default configuration values
+   * @param {{ runtime: Runtime }|object} [runtimeOrProcess] - Runtime bag wrapper
+   *   or legacy bare process object
+   * @param {(bucket: string, type?: string, process?: object) => StorageInterface} [storageFn]
    */
   constructor(
     namespace,
     name,
     defaults = {},
-    process = global.process,
+    runtimeOrProcess = undefined,
     storageFn = createStorage,
-    execSyncFn = execSync,
   ) {
-    this.#process = process;
+    const rt = resolveRuntime(runtimeOrProcess);
+    this.#proc = rt.proc;
+    this.#fs = rt.fs;
+    this.#clock = rt.clock;
     this.#storageFn = storageFn;
-    this.#execSync = execSyncFn;
+    this.#subprocess = rt.subprocess;
 
     this.name = name;
     this.namespace = namespace;
@@ -114,10 +164,10 @@ export class Config {
    * @returns {Promise<void>}
    */
   async load() {
-    this.#storage = this.#storageFn("config", null, this.#process);
+    this.#storage = this.#storageFn("config", null, this.#proc);
 
     // 1. Load .env — credentials go to #envOverrides, everything else
-    //    goes to process.env (so SERVICE_*_URL etc. are available below)
+    //    goes to proc.env (so SERVICE_*_URL etc. are available below)
     await this.#loadEnvFile();
     // 2. Load config/config.json for file-based configuration
     await this.#loadFileData();
@@ -137,7 +187,7 @@ export class Config {
     data.url = `${data.protocol}://${data.host}:${data.port}${data.path}`;
 
     // 3. Environment overrides — SERVICE_{NAME}_{PARAM} env vars win over
-    //    config file values. Shell process.env wins over .env #envOverrides.
+    //    config file values. Shell proc.env wins over .env #envOverrides.
     //    Credential keys treat empty string as absent so a workflow ternary
     //    emitting '' cannot clobber a .env-supplied value; non-credential
     //    service params keep today's empty-string-wins behaviour.
@@ -226,7 +276,7 @@ export class Config {
       );
     }
 
-    if (Date.now() >= oauth.expires_at - 5 * 60 * 1000) {
+    if (this.#clock.now() >= oauth.expires_at - 5 * 60 * 1000) {
       try {
         const refreshed = await this.#refreshOAuthToken(oauth.refresh_token);
         await this.#writeOAuthToken(refreshed);
@@ -319,7 +369,7 @@ export class Config {
    */
   async #refreshOAuthToken(refreshToken) {
     const tokenUrl =
-      this.#process.env.ANTHROPIC_OAUTH_TOKEN_URL ||
+      this.#proc.env.ANTHROPIC_OAUTH_TOKEN_URL ||
       "https://auth.anthropic.com/oauth/token";
     const res = await fetch(tokenUrl, {
       method: "POST",
@@ -336,20 +386,20 @@ export class Config {
     return {
       access_token: body.access_token,
       refresh_token: body.refresh_token ?? refreshToken,
-      expires_at: Date.now() + (body.expires_in ?? 3600) * 1000,
+      expires_at: this.#clock.now() + (body.expires_in ?? 3600) * 1000,
     };
   }
 
   /**
-   * Resolves an environment variable. Shell environment (process.env)
+   * Resolves an environment variable. Shell environment (proc.env)
    * always wins; .env credential values in #envOverrides are the fallback.
-   * Non-credential .env keys are already on process.env (set by #loadEnvFile).
+   * Non-credential .env keys are already on proc.env (set by #loadEnvFile).
    * @param {string} key - Environment variable name
    * @returns {string|undefined}
    * @private
    */
   #env(key) {
-    return this.#process.env[key] ?? this.#envOverrides[key];
+    return this.#proc.env[key] ?? this.#envOverrides[key];
   }
 
   /**
@@ -363,7 +413,7 @@ export class Config {
    */
   #resolveOverride(varName) {
     const isCredential = Config.#CREDENTIAL_KEYS.has(varName);
-    const shell = this.#process.env[varName];
+    const shell = this.#proc.env[varName];
     const shellOk = isCredential
       ? shell !== undefined && shell !== ""
       : shell !== undefined;
@@ -381,7 +431,7 @@ export class Config {
    * transformed. The first name is the cache key and error label.
    * Throws if none of the names is set.
    * @param {string[]} keys - Environment variable names in priority order
-   * @param {((v: string) => string)|null} [transform] - Optional value transform (e.g. strip slashes)
+   * @param {((v: string) => string)|null} [transform] - Optional value transform
    * @returns {string}
    * @private
    */
@@ -403,7 +453,10 @@ export class Config {
   }
 
   /**
-   * Spawns `gh auth token` and caches the result under the GH_TOKEN key.
+   * Shells out to `gh auth token` (synchronously, via the injected
+   * `runtime.subprocess.runSync`) and caches the result under the GH_TOKEN
+   * key. The sync surface is used because `ghToken()` is a synchronous
+   * accessor called across the codebase.
    * @returns {string}
    * @private
    */
@@ -412,11 +465,13 @@ export class Config {
 
     let token;
     try {
-      token = this.#execSync("gh auth token", {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"],
-        env: this.#process.env,
-      }).trim();
+      const result = this.#subprocess.runSync("gh", ["auth", "token"], {
+        env: this.#proc.env,
+      });
+      if (result.exitCode !== 0) {
+        throw new Error(`gh auth token exited ${result.exitCode}`);
+      }
+      token = (result.stdout ?? "").trim();
     } catch {
       throw new Error(
         "GH_TOKEN not found in environment and `gh auth token` failed",
@@ -436,16 +491,16 @@ export class Config {
   /**
    * Loads environment variables from a .env file in the working directory.
    * Credential keys (tokens, secrets) are loaded into a private override
-   * map so they never leak onto process.env. All other keys (SERVICE_*_URL,
-   * LLM_BASE_URL, etc.) are set directly on process.env when not already
+   * map so they never leak onto proc.env. All other keys (SERVICE_*_URL,
+   * LLM_BASE_URL, etc.) are set directly on proc.env when not already
    * present.
    * @returns {Promise<void>}
    * @private
    */
   async #loadEnvFile() {
     try {
-      const envPath = path.join(this.#process.cwd(), ".env");
-      const content = await readFile(envPath, "utf8");
+      const envPath = path.join(this.#proc.cwd(), ".env");
+      const content = await this.#fs.readFile(envPath, "utf8");
       for (const line of content.split("\n")) {
         const parsed = parseEnvLine(line);
         if (parsed) this.#applyEnvEntry(parsed.key, parsed.value);
@@ -460,18 +515,18 @@ export class Config {
   #applyEnvEntry(key, value) {
     if (Config.#CREDENTIAL_KEYS.has(key)) {
       // Credentials → private map. #env() reads them without
-      // exposing them on process.env. Shell env still wins at
-      // read time because #env() checks process.env first.
+      // exposing them on proc.env. Shell env still wins at
+      // read time because #env() checks proc.env first.
       this.#envOverrides[key] = value;
     } else {
-      // Non-credentials → process.env unconditionally. The .env file
+      // Non-credentials → proc.env unconditionally. The .env file
       // is the persistent source of truth for SERVICE_* URLs and other
       // runtime config. Supervised processes (svscan children) inherit
-      // their parent's process.env, so a stale inherited value is
+      // their parent's proc.env, so a stale inherited value is
       // indistinguishable from an explicit shell export — always
       // applying the .env value ensures that editing .env and
       // restarting the service picks up the change.
-      this.#process.env[key] = value;
+      this.#proc.env[key] = value;
     }
   }
 

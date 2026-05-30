@@ -1,0 +1,10 @@
+fit-storage download — Download remote data to local storage
+
+Usage: fit-storage download [options]
+
+Options:
+  --prefix=<string>  Storage prefix to operate on (repeatable)
+
+Global options:
+  --help, -h  Show this help
+  --json      Output help as JSON

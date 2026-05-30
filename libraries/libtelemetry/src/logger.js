@@ -1,3 +1,7 @@
+import { createDefaultClock } from "@forwardimpact/libutil/runtime";
+
+import { msToIso } from "./time.js";
+
 /**
  * Numeric severity per syslog ordering. `info` is the default when LOG_LEVEL
  * is unset, preserving the historical behavior where info() and error() both
@@ -15,19 +19,23 @@ export class Logger {
   #enabled;
   #level;
   #process;
+  #clock;
   #msgId = 0;
 
   /**
    * Creates a new Logger instance
    * @param {string} domain - Domain or service area for this logger instance
-   * @param {object} process - Process object for environment access
+   * @param {object} [proc] - Process object for environment access (defaults to global.process)
+   * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Optional runtime bag;
+   *   falls back to `createDefaultClock()` so existing callers keep working unchanged.
    */
-  constructor(domain, process = global.process) {
+  constructor(domain, proc = global.process, runtime = null) {
     if (!domain || typeof domain !== "string") {
       throw new Error("domain must be a non-empty string");
     }
     this.#domain = domain;
-    this.#process = process;
+    this.#process = proc;
+    this.#clock = runtime?.clock ?? createDefaultClock();
     this.#level = this.#resolveLevel();
     this.#enabled = this.#isEnabled();
   }
@@ -70,7 +78,7 @@ export class Logger {
    * @returns {string} The current timestamp
    */
   get timestamp() {
-    return new Date().toISOString();
+    return msToIso(this.#clock.now());
   }
 
   /**
@@ -237,8 +245,9 @@ export class Logger {
 /**
  * Factory function to create a Logger instance
  * @param {string} domain - Domain or service area for the logger
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Optional runtime bag
  * @returns {Logger} Configured logger instance
  */
-export function createLogger(domain) {
-  return new Logger(domain);
+export function createLogger(domain, runtime = null) {
+  return new Logger(domain, global.process, runtime);
 }

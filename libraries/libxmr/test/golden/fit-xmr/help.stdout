@@ -1,0 +1,40 @@
+fit-xmr 1.2.4 — Wheeler/Vacanti XmR control charts for time-series CSV metrics
+
+Usage: fit-xmr <command> [options]
+
+Commands:
+  analyze <csv-path>    Full XmR control chart report — chart, limits, signals, classification
+  chart <csv-path>      Render the 14-line Wheeler/Vacanti XmR chart for a single metric
+  list <csv-path>       List metrics with counts and date ranges
+  validate <csv-path>   Validate CSV against the metrics schema
+  summarize <csv-path>  Compact markdown table of XmR stats and classification per metric
+  record                Append a metric row to the skill's CSV and print a one-line XmR summary
+
+Options:
+  --format=<string>  Command output format: text (default) or json. Charts are text-only.
+  --ascii            Render charts with ASCII glyphs instead of Unicode
+  --help, -h         Show this help
+  --version          Show version
+  --json             Render the --help output itself as JSON (separate from --format)
+
+Examples:
+  fit-xmr analyze wiki/metrics/kata-security-audit/2026.csv
+  fit-xmr analyze wiki/metrics/kata-security-audit/2026.csv --metric findings_count
+  fit-xmr analyze wiki/metrics/kata-security-audit/2026.csv --format json
+  fit-xmr chart wiki/metrics/kata-security-audit/2026.csv --metric findings_count
+  fit-xmr chart wiki/metrics/kata-security-audit/2026.csv --metric findings_count --ascii
+  fit-xmr list wiki/metrics/kata-security-audit/2026.csv
+  fit-xmr validate wiki/metrics/kata-security-audit/2026.csv
+  fit-xmr summarize wiki/metrics/kata-security-audit/2026.csv
+  fit-xmr summarize wiki/metrics/kata-security-audit/2026.csv --format json
+  fit-xmr record --skill kata-product-issue --metric issues_triaged --value 3
+
+Documentation:
+  Operate a Predictable Agent Team
+    https://www.forwardimpact.team/docs/libraries/predictable-team/index.md
+    End-to-end guide to wiki memory, XmR charts, and team coordination.
+  Chart a Metric and Check Variation
+    https://www.forwardimpact.team/docs/libraries/predictable-team/xmr-analysis/index.md
+    CSV schema, the three detection rules, the 14-line chart, and how to read the report.
+
+Use fit-xmr <command> --help for command-specific options.

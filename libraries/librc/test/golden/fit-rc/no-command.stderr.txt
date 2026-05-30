@@ -1,0 +1,1 @@
+fit-rc: error: no command specified

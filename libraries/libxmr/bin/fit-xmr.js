@@ -2,7 +2,7 @@
 
 import "@forwardimpact/libpreflight/node22";
 
-import { readFileSync } from "node:fs";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { createCli } from "@forwardimpact/libcli";
 
 import { runAnalyzeCommand } from "../src/commands/analyze.js";
@@ -12,13 +12,19 @@ import { runChartCommand } from "../src/commands/chart.js";
 import { runSummarizeCommand } from "../src/commands/summarize.js";
 import { runRecordCommand } from "../src/commands/record.js";
 
+const runtime = createDefaultRuntime();
+
 // `bun build --compile` injects FIT_XMR_VERSION via --define, eliminating
 // the readFileSync branch in the compiled binary (which would ENOENT against
 // the bunfs virtual mount). Source execution falls through to package.json.
 const VERSION =
-  process.env.FIT_XMR_VERSION ||
-  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
-    .version;
+  runtime.proc.env.FIT_XMR_VERSION ||
+  JSON.parse(
+    runtime.fsSync.readFileSync(
+      new URL("../package.json", import.meta.url),
+      "utf8",
+    ),
+  ).version;
 
 const definition = {
   name: "fit-xmr",
@@ -27,7 +33,8 @@ const definition = {
   commands: [
     {
       name: "analyze",
-      args: "<csv-path>",
+      args: ["csv-path"],
+      argsUsage: "<csv-path>",
       description:
         "Full XmR control chart report — chart, limits, signals, classification",
       options: {
@@ -37,10 +44,12 @@ const definition = {
           description: "Filter to a single metric by name",
         },
       },
+      handler: runAnalyzeCommand,
     },
     {
       name: "chart",
-      args: "<csv-path>",
+      args: ["csv-path"],
+      argsUsage: "<csv-path>",
       description:
         "Render the 14-line Wheeler/Vacanti XmR chart for a single metric",
       options: {
@@ -51,20 +60,26 @@ const definition = {
             "Metric name (optional when the CSV carries exactly one metric)",
         },
       },
+      handler: runChartCommand,
     },
     {
       name: "list",
-      args: "<csv-path>",
+      args: ["csv-path"],
+      argsUsage: "<csv-path>",
       description: "List metrics with counts and date ranges",
+      handler: runListCommand,
     },
     {
       name: "validate",
-      args: "<csv-path>",
+      args: ["csv-path"],
+      argsUsage: "<csv-path>",
       description: "Validate CSV against the metrics schema",
+      handler: runValidateCommand,
     },
     {
       name: "summarize",
-      args: "<csv-path>",
+      args: ["csv-path"],
+      argsUsage: "<csv-path>",
       description:
         "Compact markdown table of XmR stats and classification per metric",
       options: {
@@ -74,6 +89,7 @@ const definition = {
           description: "Filter to a single metric by name",
         },
       },
+      handler: runSummarizeCommand,
     },
     {
       name: "record",
@@ -114,6 +130,7 @@ const definition = {
           description: "Override wiki root directory (default: auto-detected)",
         },
       },
+      handler: runRecordCommand,
     },
   ],
   globalOptions: {
@@ -162,37 +179,24 @@ const definition = {
   ],
 };
 
-const cli = createCli(definition);
+const cli = createCli(definition, { runtime });
 
-const COMMANDS = {
-  analyze: runAnalyzeCommand,
-  chart: runChartCommand,
-  list: runListCommand,
-  validate: runValidateCommand,
-  summarize: runSummarizeCommand,
-  record: runRecordCommand,
-};
+async function main() {
+  const parsed = cli.parse(runtime.proc.argv.slice(2));
+  if (!parsed) return runtime.proc.exit(0);
 
-function main() {
-  const parsed = cli.parse(process.argv.slice(2));
-  if (!parsed) process.exit(0);
-
-  const { values, positionals } = parsed;
+  const { positionals } = parsed;
 
   if (positionals.length === 0) {
     cli.showHelp();
-    process.exit(0);
+    return runtime.proc.exit(0);
   }
 
-  const [command, ...args] = positionals;
-  const handler = COMMANDS[command];
+  const result = await cli.dispatch(parsed, { deps: { runtime } });
 
-  if (!handler) {
-    cli.usageError(`unknown command "${command}"`);
-    process.exit(2);
-  }
-
-  handler(values, args, cli);
+  const envelope = result ?? { ok: true };
+  if (!envelope.ok && envelope.error) cli.usageError(envelope.error);
+  runtime.proc.exit(envelope.ok ? 0 : (envelope.code ?? 1));
 }
 
 main();

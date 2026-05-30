@@ -1,5 +1,5 @@
-import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
+import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { runRules } from "@forwardimpact/libutil";
 
 const SKIP_DIRS = new Set([
@@ -24,10 +24,10 @@ const ITEM_SPLIT_RE = /^\s*-\s*\[[ xX]\]\s*/m;
 const lineCount = (text) => (text.match(/\n/g) || []).length;
 const wordCount = (text) => (text.match(/\S+/g) || []).length;
 
-async function walk(root, dir, visit) {
+async function walk(root, dir, visit, fs) {
   let entries;
   try {
-    entries = await readdir(resolve(root, dir), { withFileTypes: true });
+    entries = await fs.readdir(resolve(root, dir), { withFileTypes: true });
   } catch {
     return;
   }
@@ -35,88 +35,103 @@ async function walk(root, dir, visit) {
     if (SKIP_DIRS.has(e.name)) continue;
     const path = dir === "." ? e.name : `${dir}/${e.name}`;
     await visit(e, path);
-    if (e.isDirectory()) await walk(root, path, visit);
+    if (e.isDirectory()) await walk(root, path, visit, fs);
   }
 }
 
-async function listFiles(root, dir, match) {
+async function listFiles(root, dir, match, fs) {
   try {
-    const entries = await readdir(resolve(root, dir), { withFileTypes: true });
+    const entries = await fs.readdir(resolve(root, dir), {
+      withFileTypes: true,
+    });
     return entries.filter(match).map((e) => `${dir}/${e.name}`);
   } catch {
     return [];
   }
 }
 
-async function readText(root, path) {
+async function readText(root, path, fs) {
   try {
-    return await readFile(resolve(root, path), "utf8");
+    return await fs.readFile(resolve(root, path), "utf8");
   } catch {
     return null;
   }
 }
 
-async function findByName(root, name, kind) {
+async function findByName(root, name, kind, fs) {
   const out = [];
-  await walk(root, ".", (e, path) => {
-    const isMatch = kind === "file" ? e.isFile() : e.isDirectory();
-    if (isMatch && e.name === name) out.push(path);
-  });
+  await walk(
+    root,
+    ".",
+    (e, path) => {
+      const isMatch = kind === "file" ? e.isFile() : e.isDirectory();
+      if (isMatch && e.name === name) out.push(path);
+    },
+    fs,
+  );
   return out;
 }
 
-async function findAgentProfiles(root, claudeDirs) {
+async function findAgentProfiles(root, claudeDirs, fs) {
   const out = [];
   for (const d of claudeDirs) {
     const files = await listFiles(
       root,
       `${d}/agents`,
       (e) => e.isFile() && e.name.endsWith(".md"),
+      fs,
     );
     out.push(...files);
   }
   return out;
 }
 
-async function findAgentReferences(root, claudeDirs) {
+async function findAgentReferences(root, claudeDirs, fs) {
   const out = [];
   for (const d of claudeDirs) {
     const files = await listFiles(
       root,
       `${d}/agents/references`,
       (e) => e.isFile() && e.name.endsWith(".md"),
+      fs,
     );
     out.push(...files);
   }
   return out;
 }
 
-async function findSkillDirs(root, claudeDirs) {
+async function findSkillDirs(root, claudeDirs, fs) {
   const out = [];
   for (const d of claudeDirs) {
-    const dirs = await listFiles(root, `${d}/skills`, (e) => e.isDirectory());
+    const dirs = await listFiles(
+      root,
+      `${d}/skills`,
+      (e) => e.isDirectory(),
+      fs,
+    );
     out.push(...dirs);
   }
   return out;
 }
 
-async function findSkillReferences(root, skillDirs) {
+async function findSkillReferences(root, skillDirs, fs) {
   const out = [];
   for (const d of skillDirs) {
     const files = await listFiles(
       root,
       `${d}/references`,
       (e) => e.isFile() && e.name.endsWith(".md"),
+      fs,
     );
     out.push(...files);
   }
   return out;
 }
 
-async function buildLayers(root) {
-  const claudeDirs = await findByName(root, ".claude", "dir");
-  const skillDirs = await findSkillDirs(root, claudeDirs);
-  const allClaude = await findByName(root, "CLAUDE.md", "file");
+async function buildLayers(root, fs) {
+  const claudeDirs = await findByName(root, ".claude", "dir", fs);
+  const skillDirs = await findSkillDirs(root, claudeDirs, fs);
+  const allClaude = await findByName(root, "CLAUDE.md", "file", fs);
   const rootClaude = allClaude.filter((p) => p === "CLAUDE.md");
   const subdirClaude = allClaude.filter((p) => p !== "CLAUDE.md");
   return {
@@ -156,14 +171,14 @@ async function buildLayers(root) {
         name: "agent profile",
         maxLines: 72,
         maxWords: 448,
-        files: await findAgentProfiles(root, claudeDirs),
+        files: await findAgentProfiles(root, claudeDirs, fs),
       },
       {
         id: "L4",
         name: "agent reference",
         maxLines: 192,
         maxWords: 1280,
-        files: await findAgentReferences(root, claudeDirs),
+        files: await findAgentReferences(root, claudeDirs, fs),
       },
       {
         id: "L5",
@@ -177,7 +192,7 @@ async function buildLayers(root) {
         name: "skill reference",
         maxLines: 128,
         maxWords: 768,
-        files: await findSkillReferences(root, skillDirs),
+        files: await findSkillReferences(root, skillDirs, fs),
       },
     ],
   };
@@ -193,11 +208,11 @@ function offsetToLine(text, offset) {
 
 // -- Subject builders ----------------------------------------------------
 
-async function buildFileSubjects(root, layers) {
+async function buildFileSubjects(root, layers, fs) {
   const subjects = [];
   for (const layer of layers) {
     for (const relPath of layer.files) {
-      const text = await readText(root, relPath);
+      const text = await readText(root, relPath, fs);
       if (text == null) continue;
       subjects.push({
         path: resolve(root, relPath),
@@ -212,10 +227,10 @@ async function buildFileSubjects(root, layers) {
   return subjects;
 }
 
-async function buildChecklistSubjects(root, sources) {
+async function buildChecklistSubjects(root, sources, fs) {
   const subjects = [];
   for (const relPath of sources) {
-    const text = await readText(root, relPath);
+    const text = await readText(root, relPath, fs);
     if (text == null) continue;
     const absPath = resolve(root, relPath);
     CHECKLIST_RE.lastIndex = 0;
@@ -301,18 +316,20 @@ export const INSTRUCTION_RULES = [
  * Walk the repo rooted at `root`, applying the L1–L7 caps from COALIGNED.md.
  * Each layer is gated by a line cap AND a word cap; either breach fails.
  *
- * @param {{ root: string }} options
+ * @param {{ root: string, runtime?: import('@forwardimpact/libutil/runtime').Runtime }} options
  * @returns {Promise<Finding[]>} Structured findings; empty when conformant.
  *   Each Finding is `{ id, level, path, lineNo?, message, hint? }` for use
  *   with `emitFindingsText` / `emitFindingsJson` from libutil.
  */
-export async function checkInstructions({ root }) {
-  const { layers, skillDirs } = await buildLayers(root);
-  const fileSubjects = await buildFileSubjects(root, layers);
-  const checklistSubjects = await buildChecklistSubjects(root, [
-    "CONTRIBUTING.md",
-    ...skillDirs.map((d) => `${d}/SKILL.md`),
-  ]);
+export async function checkInstructions({ root, runtime }) {
+  const { fs } = runtime ?? createDefaultRuntime();
+  const { layers, skillDirs } = await buildLayers(root, fs);
+  const fileSubjects = await buildFileSubjects(root, layers, fs);
+  const checklistSubjects = await buildChecklistSubjects(
+    root,
+    ["CONTRIBUTING.md", ...skillDirs.map((d) => `${d}/SKILL.md`)],
+    fs,
+  );
 
   const ctx = {
     subjects: {

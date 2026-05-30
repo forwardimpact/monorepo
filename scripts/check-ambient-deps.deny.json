@@ -7,25 +7,9 @@
   "libraries/libbridge/src/inbox-handler.js": ["date-now", "set-timeout"],
   "libraries/libbridge/src/rate-limit.js": ["date-now"],
   "libraries/libbridge/src/resume-scheduler.js": ["date-now"],
-  "libraries/libcoaligned/src/instructions.js": ["import:fs"],
-  "libraries/libcoaligned/src/jtbd.js": ["import:fs"],
-  "libraries/libcodegen/src/base.js": ["import:child_process"],
-  "libraries/libconfig/src/bootstrap.js": ["import:fs", "process-cwd"],
-  "libraries/libconfig/src/config.js": [
-    "date-now",
-    "import:child_process",
-    "import:fs"
-  ],
-  "libraries/libdoc/src/server.js": ["process-exit"],
-  "libraries/libeval/src/agent-runner.js": ["process-global"],
   "libraries/libeval/src/benchmark/apm-installer.js": [
     "import:child_process",
     "import:fs"
-  ],
-  "libraries/libeval/src/benchmark/env-loader.js": [
-    "import:fs",
-    "process-global",
-    "process-io"
   ],
   "libraries/libeval/src/benchmark/judge.js": ["import:fs"],
   "libraries/libeval/src/benchmark/npm-installer.js": [
@@ -50,53 +34,13 @@
     "process-global",
     "set-timeout"
   ],
-  "libraries/libeval/src/commands/assert.js": ["import:fs", "process-io"],
-  "libraries/libeval/src/commands/benchmark-report.js": ["process-io"],
-  "libraries/libeval/src/commands/benchmark-run.js": [
-    "process-exit",
-    "process-global",
-    "process-io"
-  ],
-  "libraries/libeval/src/commands/benchmark-score.js": [
-    "import:fs",
-    "process-exit",
-    "process-io"
-  ],
-  "libraries/libeval/src/commands/by-discussion.js": [
-    "import:fs",
-    "process-io"
-  ],
-  "libraries/libeval/src/commands/callback.js": ["import:fs"],
-  "libraries/libeval/src/commands/discuss.js": [
-    "import:fs",
-    "process-exit",
-    "process-global"
-  ],
-  "libraries/libeval/src/commands/facilitate.js": [
-    "import:fs",
-    "process-exit",
-    "process-global"
-  ],
-  "libraries/libeval/src/commands/output.js": ["process-io"],
-  "libraries/libeval/src/commands/run.js": [
-    "import:fs",
-    "process-exit",
-    "process-global"
-  ],
-  "libraries/libeval/src/commands/supervise.js": [
-    "import:fs",
-    "process-exit",
-    "process-global"
-  ],
-  "libraries/libeval/src/commands/task-input.js": [
-    "import:fs",
-    "process-global"
-  ],
+  "libraries/libeval/src/commands/by-discussion.js": ["import:fs"],
+  "libraries/libeval/src/commands/discuss.js": ["import:fs"],
+  "libraries/libeval/src/commands/facilitate.js": ["import:fs"],
+  "libraries/libeval/src/commands/run.js": ["import:fs"],
+  "libraries/libeval/src/commands/supervise.js": ["import:fs"],
   "libraries/libeval/src/commands/tee.js": ["import:fs"],
-  "libraries/libeval/src/commands/trace.js": ["import:fs", "process-io"],
-  "libraries/libeval/src/inbox-poller.js": ["set-timeout"],
   "libraries/libeval/src/profile-prompt.js": ["import:fs"],
-  "libraries/libeval/src/redaction.js": ["process-global", "process-io"],
   "libraries/libeval/src/trace-collector.js": ["new-date"],
   "libraries/libeval/src/trace-github.js": [
     "date-now",
@@ -123,18 +67,7 @@
   "libraries/libpack/src/tar-emitter.js": ["import:child_process", "import:fs"],
   "libraries/libpack/src/util.js": ["import:fs", "new-date"],
   "libraries/libprompt/src/loader.js": ["import:fs"],
-  "libraries/librc/src/index.js": ["date-now", "set-timeout"],
-  "libraries/librc/src/manager.js": ["import:child_process", "import:fs"],
-  "libraries/librpc/src/base.js": ["process-global"],
-  "libraries/librpc/src/server.js": ["process-exit"],
   "libraries/libsecret/src/index.js": ["date-now", "import:fs"],
-  "libraries/libstorage/src/index.js": [
-    "import:fs",
-    "process-cwd",
-    "process-global"
-  ],
-  "libraries/libstorage/src/local.js": ["new-date"],
-  "libraries/libstorage/src/s3.js": ["new-date"],
   "libraries/libsupervise/src/logger.js": [
     "import:fs",
     "new-date",
@@ -162,59 +95,13 @@
   "libraries/libsyntheticrender/src/render/html.js": ["new-date"],
   "libraries/libsyntheticrender/src/render/link-assigner.js": ["new-date"],
   "libraries/libsyntheticrender/src/render/markdown.js": ["new-date"],
-  "libraries/libtelemetry/src/logger.js": ["new-date"],
-  "libraries/libtelemetry/src/span.js": ["date-now"],
-  "libraries/libtelemetry/src/visualizer.js": ["new-date"],
   "libraries/libtemplate/src/loader.js": ["import:fs"],
-  "libraries/libterrain/src/cli-helpers.js": [
-    "import:child_process",
-    "import:fs",
-    "process-global",
-    "process-io"
-  ],
-  "libraries/libterrain/src/nodes.js": ["import:fs"],
-  "libraries/libterrain/src/sinks.js": ["import:fs"],
   "libraries/libui/src/command-bar.js": ["set-timeout"],
   "libraries/libutil/src/extractor.js": ["import:fs"],
   "libraries/libutil/src/finder.js": ["import:fs"],
   "libraries/libutil/src/index.js": ["import:fs"],
   "libraries/libutil/src/retry.js": ["set-timeout"],
   "libraries/libutil/src/wait.js": ["date-now"],
-  "libraries/libxmr/src/commands/analyze.js": [
-    "import:fs",
-    "new-date",
-    "process-exit",
-    "process-io"
-  ],
-  "libraries/libxmr/src/commands/chart.js": [
-    "import:fs",
-    "process-exit",
-    "process-io"
-  ],
-  "libraries/libxmr/src/commands/list.js": [
-    "import:fs",
-    "process-exit",
-    "process-io"
-  ],
-  "libraries/libxmr/src/commands/record.js": [
-    "import:fs",
-    "new-date",
-    "process-cwd",
-    "process-exit",
-    "process-global",
-    "process-io"
-  ],
-  "libraries/libxmr/src/commands/summarize.js": [
-    "import:fs",
-    "new-date",
-    "process-exit",
-    "process-io"
-  ],
-  "libraries/libxmr/src/commands/validate.js": [
-    "import:fs",
-    "process-exit",
-    "process-io"
-  ],
   "products/guide/src/commands/init.js": [
     "import:fs",
     "process-exit",

@@ -136,6 +136,7 @@ failures.
 The same operations are available from the `ServiceManager` class:
 
 ```js
+import { spawn, execSync } from "node:child_process";
 import { ServiceManager, sendCommand, waitForSocket } from "@forwardimpact/librc";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
@@ -150,7 +151,11 @@ const config = {
 };
 
 const logger = createLogger("rc");
+// spawn/execSync are injected by the caller — there is no runtime-level
+// equivalent for detached, stdio-redirected daemon spawning.
 const manager = new ServiceManager(config, logger, {
+  spawn,
+  execSync,
   sendCommand,
   waitForSocket,
 });

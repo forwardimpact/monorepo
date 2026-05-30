@@ -1,0 +1,10 @@
+fit-storage list — List remote storage contents
+
+Usage: fit-storage list [options]
+
+Options:
+  --prefix=<string>  Storage prefix to operate on (repeatable)
+
+Global options:
+  --help, -h  Show this help
+  --json      Output help as JSON
