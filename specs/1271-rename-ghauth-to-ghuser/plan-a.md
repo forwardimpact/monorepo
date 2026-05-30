@@ -112,6 +112,10 @@ error message → `"ghuserClient is required"`; JSDoc comment updated.
 
 **`oauth/server.js`**: `provider: "ghauth"` → `provider: "ghuser"`.
 
+**`oauth/README.md`**: update all `ghauth` references — provider name,
+`fit-rc restart ghauth`, `SERVICE_GHAUTH_LINK_BASE_URL`, and the link to
+`../ghauth/README.md` → their `ghuser` equivalents.
+
 Also update all test files in these services that reference `ghauth`:
 
 | Action | Path |
@@ -130,6 +134,7 @@ Also update all test files in these services that reference `ghauth`:
 | modify | `services/oauth/test/metadata.test.js` |
 | modify | `services/ghbridge/README.md` |
 | modify | `services/msbridge/README.md` |
+| modify | `services/oauth/README.md` |
 
 Verification: `rg ghauth services/ghbridge/ services/msbridge/ services/oauth/` returns nothing.
 
