@@ -15,7 +15,7 @@ import { spy } from "./spy.js";
  */
 export function createMockFinder({ files = {}, cwd = "/work" } = {}) {
   const calls = [];
-  const has = (p) => Object.prototype.hasOwnProperty.call(files, p);
+  const has = (p) => Object.hasOwn(files, p);
   const record = (name, args) => calls.push({ name, args });
 
   const findUpward = spy((root, relativePath, maxDepth = 3) => {

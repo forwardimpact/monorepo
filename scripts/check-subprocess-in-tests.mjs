@@ -104,6 +104,12 @@ function targetsNodeOrBin(arg) {
   return false;
 }
 
+/**
+ * Return true when `source` spawns `node` or a project bin in a test.
+ * @param {string} source - The test file source text.
+ * @param {string} filePath - Path used in parse-error messages.
+ * @returns {boolean}
+ */
 function spawnsProjectBin(source, filePath) {
   let ast;
   try {

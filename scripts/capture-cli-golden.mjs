@@ -15,11 +15,9 @@
 //   node scripts/capture-cli-golden.mjs --bin <name> --verify [...]
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
-import { join, resolve, dirname } from "node:path";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
-
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 function parseFlags(argv) {
   const flags = { verify: false };
@@ -42,6 +40,12 @@ function resolveGoldenDir(flags) {
   return resolve(process.cwd(), "test", "golden", flags.bin);
 }
 
+/**
+ * Apply each `{ pattern, replacement }` transform (global flag) to `text`.
+ * @param {string} text - The captured output.
+ * @param {Array<{pattern: string, replacement: string}>} [transform]
+ * @returns {string} The normalised text.
+ */
 function applyTransforms(text, transform = []) {
   let out = text;
   for (const { pattern, replacement } of transform) {
@@ -74,6 +78,11 @@ function loadCases(goldenDir) {
   return JSON.parse(readFileSync(casesPath, "utf8"));
 }
 
+/**
+ * Capture every case's normalised output into the golden directory.
+ * @param {object} flags - Parsed CLI flags (`bin`, `exec`, `goldenDir`).
+ * @returns {{count: number, goldenDir: string}}
+ */
 function capture(flags) {
   const goldenDir = resolveGoldenDir(flags);
   const execPath = flags.exec ? resolve(flags.exec) : flags.bin;
@@ -87,6 +96,11 @@ function capture(flags) {
   return { count: cases.length, goldenDir };
 }
 
+/**
+ * Re-run every case and compare against the committed snapshots.
+ * @param {object} flags - Parsed CLI flags (`bin`, `exec`, `goldenDir`).
+ * @returns {{ok: boolean, diffs: string[], count: number}}
+ */
 function verify(flags) {
   const goldenDir = resolveGoldenDir(flags);
   const execPath = flags.exec ? resolve(flags.exec) : flags.bin;

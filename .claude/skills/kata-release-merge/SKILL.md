@@ -133,16 +133,13 @@ git push --force-with-lease origin <pr-branch>
 `.mdx` (`gh pr view <n> --json files`) passes on trust (Step 2) alone — skip
 the STATUS check below. Any non-doc file falls through to the standard check.
 
-Read `wiki/STATUS.md` for the PR's spec id
-(`grep -P "^${spec_id}(/[a-z0-9-]+)?\t"`, which matches both the master
-`NNNN` row and any `NNNN/<unit>` sub-rows). The PR passes when
-the row shows the PR's classified phase at `approved` (or `implemented` for
-the terminal plan row on implementation PRs). If absent or
-`draft`/`cancelled`, mark **blocked** with reason `awaiting approval signal`.
-For a spec migrated as per-unit sub-rows, the master `NNNN` row advances to
-`plan implemented` only once every `NNNN/<unit>` sub-row reads
-`plan implemented`. Labels and APPROVED reviews are inputs to STATUS captured
-by `kata-dispatch`; not consulted directly here. See
+Read `wiki/STATUS.md` for the PR's spec id —
+`grep -P "^${spec_id}(/[a-z0-9-]+)?\t"` matches the master `NNNN` row and any
+`NNNN/<unit>` sub-rows. The PR passes when the row shows its classified phase at
+`approved` (or `implemented` for the terminal plan row); the master `NNNN` row
+reaches `plan implemented` only once every sub-row does. If absent or
+`draft`/`cancelled`, mark **blocked** (`awaiting approval signal`). Labels and
+APPROVED reviews feed STATUS via `kata-dispatch`; not consulted here. See
 [`approval-signals.md`](../../agents/references/approval-signals.md).
 
 ### Step 7: Implementation PR Spec Check
