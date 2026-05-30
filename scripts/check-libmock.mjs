@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 // Flag test files that inline a mock/fixture helper already available in
-// libmock. Called from `bun run check`.
+// libmock. Called from `bun run check`. Detection rules live in
+// check-libmock-rules.mjs so a regression test can exercise them directly.
 
 import { readFile } from "node:fs/promises";
 import { execSync } from "node:child_process";
 import { resolve } from "node:path";
+import { libmockFindings } from "./check-libmock-rules.mjs";
 
 const root = resolve(new URL("..", import.meta.url).pathname);
 let status = 0;
@@ -23,56 +25,11 @@ const files = execSync(
 for (const file of files) {
   // libmock's own self-tests are expected to redefine some helpers.
   if (file.startsWith("./libraries/libmock/")) continue;
+  // The guard's own regression test embeds the very inline shapes it detects.
+  if (file.endsWith("/check-libmock-rules.test.js")) continue;
 
   const text = await readFile(resolve(root, file), "utf8");
-  const imports = /from\s+["']@forwardimpact\/libmock["']/.test(text);
-
-  // Simple inline patterns that libmock already covers.
-  const findings = [];
-  if (
-    /function\s+(concludeMsg|redirectMsg|tellMsg|shareMsg)\s*\(/.test(text) &&
-    !text.includes("createToolUseMsg")
-  ) {
-    findings.push(
-      "inline concludeMsg/redirectMsg/tellMsg/shareMsg — use createToolUseMsg",
-    );
-  }
-  if (
-    /function\s+stripAnsi\s*\(/.test(text) &&
-    !text.includes("stripAnsi }") &&
-    !/from\s+["']@forwardimpact\/libmock["']/.test(text)
-  ) {
-    findings.push("inline stripAnsi — use libmock stripAnsi");
-  }
-  if (
-    /const\s+mockLogger\s*=\s*\{\s*(info|debug|warn|error)/.test(text) &&
-    !text.includes("createMockLogger") &&
-    !text.includes("createSilentLogger")
-  ) {
-    findings.push("inline mockLogger object — use createSilentLogger");
-  }
-  // class MockStorage verbatim is easy to spot, but `function createMockStorage`
-  // may be an extension with extra methods. Only flag when there's no
-  // libmock import at all.
-  if (/class\s+MockStorage\b/.test(text) && !imports) {
-    findings.push("inline class MockStorage — use createMockStorage");
-  }
-  // mock.fn from node:test is not portable to bun test. Use spy() from
-  // libmock instead.
-  if (/\bmock\.fn\s*\(/.test(text)) {
-    findings.push(
-      "mock.fn from node:test is not bun-compatible — use spy from libmock",
-    );
-  }
-  // Callback-style test signatures (test("...", (_, done) => {...})) don't
-  // work under bun test. Convert to async.
-  if (/\btest\s*\([^,)]*,\s*\([^)]*,\s*done\s*\)/.test(text)) {
-    findings.push(
-      "test(..., (_, done) => …) is not bun-compatible — rewrite as async",
-    );
-  }
-
-  for (const finding of findings) {
+  for (const finding of libmockFindings(text)) {
     fail(`${file}: ${finding}`);
   }
 }

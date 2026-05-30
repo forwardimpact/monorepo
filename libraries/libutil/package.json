@@ -21,6 +21,9 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./runtime": "./src/runtime.js",
+    "./git-client": "./src/git-client.js",
+    "./gh-client": "./src/gh-client.js",
     "./bin/fit-download-bundle.js": "./bin/fit-download-bundle.js",
     "./bin/fit-tiktoken.js": "./bin/fit-tiktoken.js"
   },

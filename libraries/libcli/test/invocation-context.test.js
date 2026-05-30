@@ -69,4 +69,17 @@ describe("freezeInvocationContext", () => {
     assert.strictEqual(ctx.args.id, "x");
     assert.strictEqual(ctx.options.json, true);
   });
+
+  // The deps slot carries host-injected collaborators.
+  test("freezes deps when provided", () => {
+    const deps = { runtime: { clock: {} } };
+    const ctx = freezeInvocationContext({ ...fixture, deps });
+    assert.strictEqual(Object.isFrozen(ctx.deps), true);
+    assert.strictEqual(ctx.deps.runtime, deps.runtime);
+  });
+
+  test("deps defaults to undefined when omitted", () => {
+    const ctx = freezeInvocationContext(fixture);
+    assert.strictEqual(ctx.deps, undefined);
+  });
 });

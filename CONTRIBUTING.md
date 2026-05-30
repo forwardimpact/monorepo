@@ -46,9 +46,10 @@ Entry gate — read every item before starting.
 - [ ] **Search shared libraries first.** Before writing any generic helper, scan
       [libraries/README.md](libraries/README.md). Use a library if one covers
       it; otherwise note that in the commit or plan.
-- [ ] **Search libmock first for test helpers.** Before writing a mock or
-      fixture, check `libraries/libmock/src/index.js`. Reuse it; extend
-      libmock in the same PR when duplication would cross two files.
+- [ ] **Reuse libmock; inject collaborators.** Before writing a mock or
+      fixture, check `libraries/libmock/src/index.js` and reuse it. New src
+      takes injected `fs`/`proc`/`clock`/`subprocess`, not ambient globals —
+      see [MONOREPO.md § Ambient Dependencies](MONOREPO.md#ambient-dependencies-and-collaborator-injection).
 - [ ] **Simple over easy.** Reduce complexity, don't relocate it. Three similar
       lines beat a premature abstraction. Inline single-use helpers; hardcode
       single-consumer configuration.

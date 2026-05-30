@@ -1,0 +1,20 @@
+[
+  {
+    "name": "claim round-trip help",
+    "args": ["claim", "--help"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "claim-help.stdout.txt",
+    "stderrFile": "claim-help.stderr.txt",
+    "transform": []
+  },
+  {
+    "name": "version",
+    "args": ["--version"],
+    "env": {},
+    "exitCode": 0,
+    "stdoutFile": "version.stdout.txt",
+    "stderrFile": "version.stderr.txt",
+    "transform": [{ "pattern": "\\d+\\.\\d+\\.\\d+", "replacement": "X.Y.Z" }]
+  }
+]

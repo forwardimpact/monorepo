@@ -184,3 +184,48 @@ source. Two consequences shape the structure:
 
 `CLAUDE.md` is the canonical place to spell out the specific tooling split —
 package manager, task runner, codegen.
+
+## Ambient Dependencies and Collaborator Injection
+
+Source modules under `libraries/*/src`, `products/*/src`, and `services/*/src`
+do not reach for ambient node-runtime dependencies. They receive their
+collaborators explicitly, so a reader learns a module's dependency surface from
+its constructor signature and a test can substitute fakes without touching the
+real filesystem, spawning subprocesses, or sleeping real wall-clock time.
+
+### The four collaborator surfaces
+
+One `runtime` bag — `{ fs, fsSync, proc, clock, subprocess, finder }` — flows
+from each binary's entry point through libcli's `ctx.deps` slot into every
+constructor and factory:
+
+- **`clock`** — `now()` / `sleep(ms)` instead of `Date.now()`, `new Date()`,
+  or `setTimeout(...)`.
+- **`fs` / `fsSync`** — the async or sync filesystem surface a module actually
+  uses, instead of importing `node:fs` / `node:fs/promises`. A module takes one
+  surface, never both.
+- **`proc`** — `cwd()`, `env`, `argv`, `stdin`, `stdout`/`stderr`, and `exit`
+  instead of the global `process`. Handlers return a typed result and the bin
+  shim translates it to an exit code; `process.exit` survives only in
+  `bin/*.js`.
+- **`subprocess`** — `run`/`spawn` (or a typed wrapper such as `GitClient` /
+  `GhClient`) instead of importing `node:child_process`.
+
+`libutil` owns the bag (`createDefaultRuntime`), the `Finder` refactor, and the
+typed `GitClient` / `GhClient`. The canonical fakes live in libmock — see
+[libmock § Collaborators](libraries/libmock/README.md#collaborators) — and
+every test imports them from there.
+
+### Enforcement
+
+- `scripts/check-ambient-deps.mjs` flags any new src file that imports
+  `node:fs` / `node:child_process`, calls `Date.now` / `new Date` /
+  `setTimeout`, or reads `process.*` outside the allow-listed factories, bin
+  shims, and libcli internals. A monotone deny-list grandfathers files still
+  being migrated and shrinks as each unit converts.
+- `scripts/check-subprocess-in-tests.mjs` flags tests that spawn `node` or a
+  project bin, exempting the one `*.integration.test.js` smoke test per binary.
+- `scripts/check-libmock.mjs` flags inline reimplementations of the canonical
+  fakes.
+
+All three run under `bun run invariants`.

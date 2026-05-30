@@ -1,0 +1,13 @@
+{
+  "globs": [
+    "libraries/*/bin/*.js",
+    "products/*/bin/*.js",
+    "services/*/bin/*.js",
+    "services/*/server.js",
+    "libraries/libutil/src/runtime.js",
+    "libraries/libutil/src/git-client.js",
+    "libraries/libutil/src/gh-client.js",
+    "libraries/libcli/src/**",
+    "libraries/libmock/src/**"
+  ]
+}

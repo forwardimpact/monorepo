@@ -5,7 +5,7 @@ import fsPromises from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import { createMockLogger, spy } from "@forwardimpact/libmock";
+import { createMockFs, createMockLogger, spy } from "@forwardimpact/libmock";
 
 // Module under test
 import { Finder } from "../src/finder.js";
@@ -358,6 +358,59 @@ describe("Finder", () => {
       const result = finder.findGeneratedPath(projectRoot, "libtype");
 
       assert.strictEqual(result, path.join(packagePath, "src", "generated"));
+    });
+  });
+});
+
+// The collaborator-config constructor form injects fs/proc so the
+// dead-`fs` bug (existence checks ignoring the injected fs) is fixed.
+describe("Finder (collaborator config)", () => {
+  test("findUpward uses the injected fs, not the real filesystem", () => {
+    const mockFs = createMockFs({
+      "/repo/sub/dir/package.json": "{}",
+    });
+    const finder = new Finder({
+      fs: mockFs,
+      proc: { cwd: () => "/repo/sub/dir" },
+    });
+
+    const result = finder.findUpward("/repo/sub/dir", "package.json");
+
+    assert.strictEqual(result, "/repo/sub/dir/package.json");
+    // The injected fs.existsSync drove the lookup — proves fs flows through.
+    assert.ok(mockFs.existsSync.mock.calls.length > 0);
+  });
+
+  test("findUpward returns null when the injected fs has no match", () => {
+    const mockFs = createMockFs({});
+    const finder = new Finder({
+      fs: mockFs,
+      proc: { cwd: () => "/repo" },
+    });
+
+    assert.strictEqual(finder.findUpward("/repo", "package.json"), null);
+  });
+
+  test("fsSync drives existence checks when both surfaces are supplied", () => {
+    const asyncFs = createMockFs({});
+    const syncFs = createMockFs({ "/work/data": "" });
+    const finder = new Finder({
+      fs: asyncFs,
+      fsSync: syncFs,
+      proc: { cwd: () => "/work" },
+    });
+
+    assert.strictEqual(finder.findData("data", "/home"), "/work/data");
+    assert.ok(syncFs.existsSync.mock.calls.length > 0);
+    assert.strictEqual(asyncFs.existsSync.mock.calls.length, 0);
+  });
+
+  test("requires fs and proc", () => {
+    assert.throws(() => new Finder({ proc: { cwd: () => "/" } }), {
+      message: /fs is required/,
+    });
+    assert.throws(() => new Finder({ fs: {} }), {
+      message: /proc is required/,
     });
   });
 });

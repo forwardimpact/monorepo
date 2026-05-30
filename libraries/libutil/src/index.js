@@ -157,6 +157,14 @@ export function execLine(shift, deps) {
 }
 
 export { Finder } from "./finder.js";
+export {
+  createDefaultRuntime,
+  createDefaultProc,
+  createDefaultSubprocess,
+  createDefaultClock,
+} from "./runtime.js";
+export { GitClient } from "./git-client.js";
+export { GhClient } from "./gh-client.js";
 export { BundleDownloader } from "./downloader.js";
 export { TarExtractor, ZipExtractor } from "./extractor.js";
 export { ProcessorBase } from "./processor.js";

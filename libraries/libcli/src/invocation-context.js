@@ -35,14 +35,20 @@
  *   empty-valued query parameter), or an array of strings (when the same
  *   key appears more than once). Absent options are not present in the
  *   object — 'foo' in ctx.options is the membership test.
+ *
+ * @property {Readonly<Object>} deps
+ *   Host-injected ambient collaborators (the `runtime` bag and typed
+ *   clients). The handler treats deps as immutable input.
+ *   Distinct from `data` (host-loaded domain values). Defaults to
+ *   `undefined` for hosts that do not inject collaborators.
  */
 
 /**
  * Deep-freeze an invocation context so handlers may assume immutability.
- * @param {{ data: Object, args: Object<string,string>, options: Object<string,string|boolean|string[]> }} raw
+ * @param {{ data: Object, args: Object<string,string>, options: Object<string,string|boolean|string[]>, deps?: Object }} raw
  * @returns {InvocationContext}
  */
-export function freezeInvocationContext({ data, args, options }) {
+export function freezeInvocationContext({ data, args, options, deps }) {
   for (const v of Object.values(options)) {
     if (Array.isArray(v)) Object.freeze(v);
   }
@@ -50,5 +56,6 @@ export function freezeInvocationContext({ data, args, options }) {
     data,
     args: Object.freeze({ ...args }),
     options: Object.freeze({ ...options }),
+    deps: deps === undefined ? undefined : Object.freeze(deps),
   });
 }

@@ -134,8 +134,8 @@ export class Cli {
     return null;
   }
 
-  /** Match parsed positionals to a subcommand and invoke its handler with a frozen invocation context. */
-  dispatch(parsed, { data }) {
+  /** Match parsed positionals to a subcommand and invoke its handler with a frozen invocation context. `deps` carries host-injected collaborators (the runtime bag); `data` carries host-loaded domain values. */
+  dispatch(parsed, { data, deps } = {}) {
     const command = this.#findCommand(parsed.positionals);
     if (!command) {
       throw new Error(`${this.#definition.name}: no matching subcommand`);
@@ -156,6 +156,7 @@ export class Cli {
       data,
       args,
       options: parsed.values,
+      deps,
     });
     return command.handler(ctx);
   }
@@ -178,8 +179,18 @@ export class Cli {
   }
 }
 
-/** Create a Cli instance wired to the real process and a default HelpRenderer. */
-export function createCli(definition) {
-  const helpRenderer = new HelpRenderer({ process });
-  return new Cli(definition, { process, helpRenderer });
+/**
+ * Create a Cli instance. When `runtime` is provided, error,
+ * usage-error, and help output route through `runtime.proc` instead of the
+ * global `process`. The zero-arg form keeps reading the global `process` as a
+ * deprecated alias for one migration cycle.
+ * @param {object} definition - The CLI definition.
+ * @param {object} [options]
+ * @param {import('@forwardimpact/libutil/runtime').Runtime} [options.runtime]
+ * @returns {Cli}
+ */
+export function createCli(definition, { runtime } = {}) {
+  const proc = runtime ? runtime.proc : process;
+  const helpRenderer = new HelpRenderer({ process: proc });
+  return new Cli(definition, { process: proc, helpRenderer });
 }
