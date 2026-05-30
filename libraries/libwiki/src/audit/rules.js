@@ -484,7 +484,7 @@ export const RULES = [
     hint: "every '<!-- obstacles:* -->' or '<!-- experiments:* -->' needs a matching close marker",
   },
 
-  // -- STATUS.md rows (spec 1370 sub-row schema) --
+  // -- STATUS.md rows (per-migration-unit sub-row schema) --
 
   ...STATUS_ROW_RULES,
 

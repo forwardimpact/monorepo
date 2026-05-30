@@ -6,7 +6,7 @@ import { createMockFinder } from "./mock/finder.js";
 
 /**
  * Build a frozen mock runtime bag for tests, matching the production
- * `Runtime` typedef (spec 1370). Every field defaults to its canonical
+ * `Runtime` typedef. Every field defaults to its canonical
  * libmock fake and is independently overridable via `overrides`.
  *
  * @param {object} [overrides] - Per-field replacements.

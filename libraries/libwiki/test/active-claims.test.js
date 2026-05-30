@@ -96,7 +96,7 @@ describe("removeClaim", () => {
   });
 });
 
-describe("sub-row suffix targets (spec 1370)", () => {
+describe("sub-row suffix targets (per-unit migration)", () => {
   test("a plan:NNNN/unit target round-trips through append/parse/remove", () => {
     const target = "plan:1370/libutil-ambient-deps";
     const appended = appendClaim(MEMORY_WITH_EMPTY_CLAIMS, {

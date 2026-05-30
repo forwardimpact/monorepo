@@ -362,7 +362,7 @@ describe("Finder", () => {
   });
 });
 
-// Spec 1370: the collaborator-config constructor form injects fs/proc so the
+// The collaborator-config constructor form injects fs/proc so the
 // dead-`fs` bug (existence checks ignoring the injected fs) is fixed.
 describe("Finder (collaborator config)", () => {
   test("findUpward uses the injected fs, not the real filesystem", () => {

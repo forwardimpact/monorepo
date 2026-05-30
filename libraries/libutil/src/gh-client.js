@@ -20,7 +20,7 @@ export class GhError extends Error {
 /**
  * Typed wrapper over the `gh` CLI. Shelling-out flows through the injected
  * `runtime.subprocess` so callers never import `node:child_process` and tests
- * inject `createMockSubprocess` (spec 1370).
+ * inject `createMockSubprocess`.
  */
 export class GhClient {
   #runtime;

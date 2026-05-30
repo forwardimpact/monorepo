@@ -1,4 +1,4 @@
-// Spec 1370: STATUS.md row ids may carry a `/<unit>` suffix denoting a
+// STATUS.md row ids may carry a `/<unit>` suffix denoting a
 // per-migration-unit sub-row of a master spec (`1370/libutil`, …). The master
 // `NNNN` row advances only when every sub-row reads `plan implemented`.
 

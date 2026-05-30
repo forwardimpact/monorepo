@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import * as libmock from "../src/index.js";
 
-// Spec 1370 drift detection: every field on the production `Runtime` typedef
+// Drift detection: every field on the production `Runtime` typedef
 // must have a canonical libmock fake. Adding a field to `Runtime` without a
 // fake (or an alias entry pointing at a real export) fails this test.
 

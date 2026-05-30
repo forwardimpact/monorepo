@@ -8,7 +8,7 @@ import { Finder } from "./finder.js";
  *
  * The single bag of ambient collaborators threaded from every binary's
  * entry point through `ctx.deps` into every constructor and factory
- * (spec 1370). Production wires the bag from `createDefaultRuntime`; tests
+ * Production wires the bag from `createDefaultRuntime`; tests
  * wire it from libmock's `createTestRuntime`. A module destructures the
  * fields it actually uses and never imports `node:fs` / `node:child_process`
  * or reads `Date.now` / `process.*` directly.

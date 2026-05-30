@@ -27,7 +27,7 @@ function isRuntimeConfig(arg) {
  * Finder class for project path resolution and symlink management.
  * Handles filesystem operations for linking generated code to packages.
  *
- * Two constructor forms are supported during the spec 1370 migration:
+ * Two constructor forms are supported during the ambient-to-injected migration:
  *
  * - Collaborator config (canonical): `new Finder({ fs, fsSync?, proc, logger? })`.
  *   The injected `fs` (async) and `fsSync` (sync, for existence checks) flow
@@ -50,13 +50,20 @@ export class Finder {
    */
   constructor(fsOrConfig, logger, proc = global.process) {
     if (isRuntimeConfig(fsOrConfig)) {
-      const { fs, fsSync, proc: procArg, logger: loggerArg } = fsOrConfig;
+      // Finder is the one module that legitimately bridges the sync and async
+      // fs surfaces (existence checks vs. symlink ops), so it reads both fields
+      // by property access rather than a single `{ fs, fsSync }` destructure
+      // (which design Decision 7 reserves for consumer modules).
+      const fs = fsOrConfig.fs;
+      const fsSync = fsOrConfig.fsSync;
+      const procArg = fsOrConfig.proc;
       if (!fs) throw new Error("fs is required");
       if (!procArg) throw new Error("proc is required");
       this.#fs = fs;
-      this.#existsSync = (fsSync ?? fs).existsSync.bind(fsSync ?? fs);
+      const existsTarget = fsSync ?? fs;
+      this.#existsSync = existsTarget.existsSync.bind(existsTarget);
       this.#proc = procArg;
-      this.#logger = loggerArg ?? NOOP_LOGGER;
+      this.#logger = fsOrConfig.logger ?? NOOP_LOGGER;
       return;
     }
     // Legacy positional form: behavior identical to the pre-1370 Finder —

@@ -71,6 +71,27 @@ The full export list lives in `src/index.js`. Subpath entries
 `@forwardimpact/libmock/fixture` and `@forwardimpact/libmock/mock` remain
 for narrower imports.
 
+## Collaborators
+
+Canonical fakes for the `runtime` collaborator surfaces. Every test that needs
+a fake imports it from here so production and test wire the same shape.
+`createTestRuntime` assembles them into a frozen bag mirroring libutil's
+`createDefaultRuntime`.
+
+| Surface | Production shape | Factory | Example |
+|---|---|---|---|
+| clock | `now()` / `sleep(ms)` | `createMockClock` | `const clock = createMockClock(); clock.advance(1000);` |
+| fs | `node:fs` / `node:fs/promises` | `createMockFs` | `const fs = createMockFs({ "/a.txt": "hi" });` |
+| proc | the `process` global | `createMockProcess` | `const proc = createMockProcess({ cwd: "/work", env: { K: "v" } });` |
+| subprocess | `node:child_process` | `createMockSubprocess` | `const sub = createMockSubprocess({ responses: { git: { stdout: "ok" } } });` |
+| finder | libutil `Finder` | `createMockFinder` | `const finder = createMockFinder({ files: { "/p/package.json": true } });` |
+| git-client | libutil `GitClient` | `createMockGitClient` | `const git = createMockGitClient({ responses: { revListCount: 3 } });` |
+| gh-client | libutil `GhClient` | `createMockGhClient` | `const gh = createMockGhClient({ responses: { prCreate: "url" } });` |
+| runtime bag | libutil `createDefaultRuntime` | `createTestRuntime` | `const rt = createTestRuntime({ clock: createMockClock() });` |
+
+`test/runtime-completeness.test.js` asserts every field on libutil's `Runtime`
+typedef has a matching fake here, so the fakes can't drift behind the bag.
+
 ## When to extend libmock
 
 Before adding a helper locally in a test file, check `src/index.js`. If the

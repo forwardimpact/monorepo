@@ -1,6 +1,6 @@
 import { STATUS_ID_REGEX } from "../status.js";
 
-// Spec 1370: validate every row inside wiki/STATUS.md's code fence against the
+// Validate every row inside wiki/STATUS.md's code fence against the
 // `{id}<TAB>{phase}<TAB>{status}` shape. Rows are resolved by the `status-row`
 // scope in scopes.js; each subject carries `{ cells, id, phase, status, text }`.
 

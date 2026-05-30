@@ -70,7 +70,7 @@ describe("freezeInvocationContext", () => {
     assert.strictEqual(ctx.options.json, true);
   });
 
-  // Spec 1370: the deps slot carries host-injected collaborators.
+  // The deps slot carries host-injected collaborators.
   test("freezes deps when provided", () => {
     const deps = { runtime: { clock: {} } };
     const ctx = freezeInvocationContext({ ...fixture, deps });

@@ -134,7 +134,7 @@ export class Cli {
     return null;
   }
 
-  /** Match parsed positionals to a subcommand and invoke its handler with a frozen invocation context. `deps` carries host-injected collaborators (the spec 1370 runtime bag); `data` carries host-loaded domain values. */
+  /** Match parsed positionals to a subcommand and invoke its handler with a frozen invocation context. `deps` carries host-injected collaborators (the runtime bag); `data` carries host-loaded domain values. */
   dispatch(parsed, { data, deps } = {}) {
     const command = this.#findCommand(parsed.positionals);
     if (!command) {
@@ -180,7 +180,7 @@ export class Cli {
 }
 
 /**
- * Create a Cli instance. When `runtime` is provided (spec 1370), error,
+ * Create a Cli instance. When `runtime` is provided, error,
  * usage-error, and help output route through `runtime.proc` instead of the
  * global `process`. The zero-arg form keeps reading the global `process` as a
  * deprecated alias for one migration cycle.

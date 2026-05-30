@@ -135,7 +135,7 @@ the STATUS check below. Any non-doc file falls through to the standard check.
 
 Read `wiki/STATUS.md` for the PR's spec id
 (`grep -P "^${spec_id}(/[a-z0-9-]+)?\t"`, which matches both the master
-`NNNN` row and any `NNNN/<unit>` sub-rows from spec 1370). The PR passes when
+`NNNN` row and any `NNNN/<unit>` sub-rows). The PR passes when
 the row shows the PR's classified phase at `approved` (or `implemented` for
 the terminal plan row on implementation PRs). If absent or
 `draft`/`cancelled`, mark **blocked** with reason `awaiting approval signal`.

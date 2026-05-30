@@ -47,9 +47,9 @@ Libraries that ship a CLI can opt into `InvocationContext` — a frozen
 `{ data, args, options, deps }` contract that libcli produces from argv.
 Declare named positionals with `args: string[]` on the subcommand and a
 `handler: (ctx) => …`; call `cli.dispatch(parsed, { data, deps })`. Use
-`ctx.deps` for host-injected ambient collaborators (the `runtime` bag from
-spec 1370 — see [MONOREPO.md § Ambient Dependencies](../MONOREPO.md));
-use `ctx.data` for host-loaded domain values. See the
+`ctx.deps` for host-injected ambient collaborators (the `runtime` bag — see
+[MONOREPO.md § Ambient Dependencies](../MONOREPO.md)); use `ctx.data` for
+host-loaded domain values. See the
 [Every Surface guide](https://www.forwardimpact.team/docs/libraries/every-surface/index.md)
 for the full contract.
 

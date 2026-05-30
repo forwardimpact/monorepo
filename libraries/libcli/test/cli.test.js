@@ -472,7 +472,7 @@ describe("Cli", () => {
     });
   });
 
-  // Spec 1370: the ctx.deps slot carries host-injected collaborators.
+  // The ctx.deps slot carries host-injected collaborators.
   describe("dispatch deps slot", () => {
     function depsDef(received) {
       return {
@@ -517,7 +517,7 @@ describe("Cli", () => {
     });
   });
 
-  // Spec 1370: createCli(definition, { runtime }) routes process I/O through
+  // createCli(definition, { runtime }) routes process I/O through
   // the injected runtime.proc instead of the global process.
   describe("createCli runtime wiring", () => {
     test("error output routes through runtime.proc.stderr", () => {

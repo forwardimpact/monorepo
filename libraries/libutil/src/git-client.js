@@ -20,7 +20,7 @@ export class GitError extends Error {
 /**
  * Typed wrapper over the `git` CLI. All shelling-out flows through the
  * injected `runtime.subprocess`, so callers never import `node:child_process`
- * and tests inject `createMockSubprocess` (spec 1370). Methods resolve to the
+ * and tests inject `createMockSubprocess`. Methods resolve to the
  * raw `{ stdout, stderr, exitCode }` result; `#run` throws a {@link GitError}
  * on a non-zero exit unless `allowFailure` is set.
  */

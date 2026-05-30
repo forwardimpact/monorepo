@@ -38,7 +38,7 @@
  *
  * @property {Readonly<Object>} deps
  *   Host-injected ambient collaborators (the `runtime` bag and typed
- *   clients from spec 1370). The handler treats deps as immutable input.
+ *   clients). The handler treats deps as immutable input.
  *   Distinct from `data` (host-loaded domain values). Defaults to
  *   `undefined` for hosts that do not inject collaborators. libui handlers
  *   rarely consume `runtime` (web surface), but the typedef parity keeps a
