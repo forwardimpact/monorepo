@@ -149,19 +149,23 @@ export function createMockStdin(chunks = []) {
 /**
  * Creates a mock `process`-like object matching the `Runtime.proc` surface:
  * `cwd()`, `env`, `argv`, `stdin`, `stdout.write`, `stderr.write`,
- * `exit(code)`, and a settable `exitCode`. Writes are captured on
- * `stdout.chunks` / `stderr.chunks`.
+ * `exit(code)`, `kill(pid, signal)`, and a settable `exitCode`. Writes are
+ * captured on `stdout.chunks` / `stderr.chunks`; kill calls on `kills`.
  *
  * @param {object} [options]
  * @param {Record<string, string>} [options.env] - Initial env map.
  * @param {string} [options.cwd] - Working directory `cwd()` returns.
  * @param {string[]} [options.argv] - The frozen `argv` array.
  * @param {string[]} [options.stdin] - Chunks the `stdin` iterator yields.
+ * @param {(pid: number, signal: string|number) => any} [options.kill] - Optional
+ *   `kill` implementation (e.g. to model a liveness probe); calls are always
+ *   recorded on the returned `kills` array regardless.
  * @returns {object}
  */
-export function createMockProcess({ env = {}, cwd, argv, stdin } = {}) {
+export function createMockProcess({ env = {}, cwd, argv, stdin, kill } = {}) {
   const stdout = { chunks: [], write: (s) => stdout.chunks.push(String(s)) };
   const stderr = { chunks: [], write: (s) => stderr.chunks.push(String(s)) };
+  const kills = [];
   return {
     env: { ...env },
     cwd: () => cwd ?? "/work",
@@ -172,6 +176,11 @@ export function createMockProcess({ env = {}, cwd, argv, stdin } = {}) {
     exitCode: 0,
     exit(code = 0) {
       this.exitCode = code;
+    },
+    kills,
+    kill(pid, signal) {
+      kills.push({ pid, signal });
+      return kill?.(pid, signal);
     },
   };
 }
